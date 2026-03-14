@@ -1,14 +1,14 @@
-# Cloud Lego Platform - Domain Model
+# CloudBlocks Platform - Domain Model
 
-This document defines the core domain model used by the Cloud Lego Platform.
+This document defines the core domain model used by the CloudBlocks Platform.
 
-The platform represents cloud architecture using a **Lego-based spatial abstraction model** that allows users to visually construct cloud systems and optionally deploy them to real cloud providers.
+The platform represents cloud architecture using a **block-based spatial abstraction model** that allows users to visually construct cloud systems and optionally deploy them to real cloud providers.
 
 ---
 
 # 1. Domain Philosophy
 
-Cloud infrastructure is represented as a **spatial Lego model** composed of:
+Cloud infrastructure is represented as a **spatial block model** composed of:
 
 - Plates (Infrastructure regions)
 - Blocks (Cloud services)
@@ -319,7 +319,7 @@ validation_rules
 
 # 9. Provider Abstraction
 
-Cloud Lego uses a **provider abstraction layer**.
+CloudBlocks uses a **provider abstraction layer**.
 
 Generic blocks map to provider-specific resources.
 
@@ -341,7 +341,7 @@ Example:
 
 # 10. Deployment Model
 
-The platform converts Lego architecture into deployable infrastructure.
+The platform converts block architecture into deployable infrastructure.
 
 Pipeline:
 
@@ -365,7 +365,101 @@ Supported formats:
 
 ---
 
-# 11. Future Domain Extensions
+# 11. Server-Side Data Model (v0.5+)
+
+v0.5 이상에서 CUBRID 도입 시 사용되는 서버 측 데이터 모델.
+
+### Core Entities
+
+```typescript
+// User account
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Workspace contains architecture models
+interface ServerWorkspace {
+  id: string;
+  userId: string;
+  name: string;
+  architecture: ArchitectureModel;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Learning scenario definition
+interface ScenarioDefinition {
+  id: string;
+  name: string;
+  description: string;
+  requiredStructure: {
+    requiredPlates: string[];
+    requiredBlocks: string[];
+    requiredConnections: string[];
+    validationRules: string[];
+  };
+  createdAt: string;
+}
+
+// Per-user learning progress
+interface LearningProgress {
+  id: string;
+  userId: string;
+  scenarioId: string;
+  status: 'not_started' | 'in_progress' | 'completed';
+  completedAt: string | null;
+}
+
+// Deployment history
+interface DeploymentRecord {
+  id: string;
+  workspaceId: string;
+  provider: 'azure' | 'aws' | 'gcp';
+  status: 'queued' | 'provisioning' | 'succeeded' | 'failed' | 'canceled';
+  infrastructureCode: string | null;
+  logs: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+### Repository Pattern
+
+```typescript
+interface UserRepository {
+  findById(id: string): Promise<User>;
+  findByEmail(email: string): Promise<User | null>;
+  save(user: User): Promise<void>;
+}
+
+interface WorkspaceRepository {
+  findById(id: string): Promise<ServerWorkspace>;
+  findByUserId(userId: string): Promise<ServerWorkspace[]>;
+  save(workspace: ServerWorkspace): Promise<void>;
+  delete(id: string): Promise<void>;
+}
+
+interface ScenarioRepository {
+  findAll(): Promise<ScenarioDefinition[]>;
+  findById(id: string): Promise<ScenarioDefinition>;
+}
+
+interface DeploymentRepository {
+  findByWorkspaceId(workspaceId: string): Promise<DeploymentRecord[]>;
+  save(deployment: DeploymentRecord): Promise<void>;
+  updateStatus(id: string, status: string): Promise<void>;
+}
+```
+
+> 이 모델들은 커스텀 ORM을 통해 CUBRID와 매핑된다.
+
+---
+
+# 12. Future Domain Extensions
 
 ### Serverless Architecture (v1.0)
 
@@ -398,9 +492,9 @@ failure simulation
 
 ---
 
-### Physical Lego Integration (v3.5)
+### Physical Block Integration (v3.5)
 
-Future extension allowing IoT-enabled physical Lego blocks.
+Future extension allowing IoT-enabled physical blocks.
 
 Example:
 
@@ -410,7 +504,7 @@ Physical Block → Sensor Detection → Cloud Model Update
 
 ---
 
-# 12. Implementation Schema
+# 13. Implementation Schema
 
 도메인 모델의 구현을 위한 TypeScript 타입 정의.
 
@@ -533,9 +627,9 @@ interface Workspace {
 
 ---
 
-# 13. Summary
+# 14. Summary
 
-The Cloud Lego Domain Model provides a **visual abstraction layer for cloud architecture**.
+The CloudBlocks Domain Model provides a **visual abstraction layer for cloud architecture**.
 
 Key concepts:
 

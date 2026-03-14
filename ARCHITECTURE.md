@@ -1,8 +1,8 @@
-# Cloud Lego Platform - System Architecture
+# CloudBlocks Platform - System Architecture
 
-This document defines the system architecture for the Cloud Lego Platform.
+This document defines the system architecture for the CloudBlocks Platform.
 
-The platform enables users to visually construct cloud architecture using a Lego-style interface and optionally deploy the resulting architecture to real cloud environments.
+The platform enables users to visually construct cloud architecture using a block-style interface and optionally deploy the resulting architecture to real cloud environments.
 
 ---
 
@@ -11,11 +11,13 @@ The platform enables users to visually construct cloud architecture using a Lego
 The platform consists of the following major layers:
 
 ```
-Frontend (3D Lego Builder)
+Frontend (3D Block Builder)
 │
 Core Modeling Engine
 │
 Rule Engine
+│
+Data Layer (CUBRID + Custom ORM)
 │
 Provider Adapter
 │
@@ -32,7 +34,7 @@ Cloud Deployment Engine
 
 Responsible for:
 
-- Visual Lego builder interface
+- Visual block builder interface
 - Drag and drop interaction
 - Block placement on Plates
 - Connection visualization
@@ -99,9 +101,83 @@ src/
 
 ---
 
+# 2.5 Data Layer (v0.5+)
+
+v0.5 이상에서 도입되는 데이터 레이어. CUBRID를 주요 관계형 데이터베이스로 사용한다.
+
+### Storage Architecture
+
+```
+Application Layer
+│
+├─ Custom ORM Layer
+│   ├─ Repository Pattern (WorkspaceRepository, UserRepository, ...)
+│   ├─ Query Abstraction
+│   └─ Object Mapping
+│
+├─ CUBRID (Primary Database)
+│   ├─ Users, Workspaces, Architecture Models
+│   ├─ Scenario Definitions, Learning Progress
+│   └─ Deployment History, Template Metadata
+│
+├─ Redis (Cache & Session)
+│   ├─ Session storage
+│   ├─ Architecture state cache
+│   └─ Task queues
+│
+└─ Object Storage (Cloud Provider)
+    ├─ Template assets
+    ├─ Deployment artifacts
+    └─ Logs
+```
+
+### Why CUBRID
+
+- 성숙한 관계형 데이터베이스 (ACID, MVCC 지원)
+- 구조화된 워크로드에 적합한 성능
+- SaaS 멀티테넌트 데이터 모델에 적합
+- CUBRID 생태계 레퍼런스 아키텍처 제공 기회
+
+### Custom ORM Layer
+
+커스텀 ORM을 통해 애플리케이션 로직이 데이터베이스 구현에서 분리된다.
+
+```typescript
+// Repository Pattern Example
+interface WorkspaceRepository {
+  findById(id: string): Promise<Workspace>;
+  findByUserId(userId: string): Promise<Workspace[]>;
+  save(workspace: Workspace): Promise<void>;
+  delete(id: string): Promise<void>;
+}
+
+// ORM Layer abstracts CUBRID specifics
+class CubridWorkspaceRepository implements WorkspaceRepository {
+  // CUBRID-specific query implementation
+}
+```
+
+### Data Entity Relationships
+
+```
+User
+└ Workspace
+      └ Architecture Model
+            ├─ Plates
+            ├─ Blocks
+            └─ Connections
+
+Scenario Definition
+└ Learning Progress (per User)
+
+Deployment History (per Architecture)
+```
+
+---
+
 # 3. Core Modeling Engine
 
-The Core Modeling Engine manages the **Cloud Lego Domain Model**.
+The Core Modeling Engine manages the **CloudBlocks Domain Model**.
 
 This layer is responsible for:
 
@@ -201,7 +277,7 @@ MVP (v0.1)에서는 DataFlow만 지원한다.
 
 # 5. Provider Adapter Layer
 
-The Provider Adapter translates the generic Cloud Lego model into cloud provider resources.
+The Provider Adapter translates the generic CloudBlocks model into cloud provider resources.
 
 Supported providers:
 
@@ -238,7 +314,7 @@ Supported formats:
 Example pipeline:
 
 ```
-Cloud Lego Model
+CloudBlocks Model
 ↓
 Logical Architecture
 ↓
@@ -381,7 +457,7 @@ Validation checks ensure correct design.
 
 v0.1에서는 브라우저 localStorage를 사용한다.
 
-Key: `cloude-lego:workspaces`
+Key: `cloudblocks:workspaces`
 
 ```json
 {
@@ -406,21 +482,61 @@ Key: `cloude-lego:workspaces`
 }
 ```
 
-### v0.5+ Storage (Server)
+### v0.5+ Storage (CUBRID)
 
-PostgreSQL 스키마:
+CUBRID를 주요 데이터 저장소로 사용한다.
 
 ```sql
-CREATE TABLE workspaces (
-  id UUID PRIMARY KEY,
+CREATE TABLE users (
+  id VARCHAR(36) PRIMARY KEY,
+  email VARCHAR(255) NOT NULL UNIQUE,
   name VARCHAR(255) NOT NULL,
-  architecture JSONB NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE workspaces (
+  id VARCHAR(36) PRIMARY KEY,
+  user_id VARCHAR(36) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  architecture CLOB NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE scenarios (
+  id VARCHAR(36) PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  description CLOB,
+  required_structure CLOB NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE learning_progress (
+  id VARCHAR(36) PRIMARY KEY,
+  user_id VARCHAR(36) NOT NULL,
+  scenario_id VARCHAR(36) NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'not_started',
+  completed_at TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (scenario_id) REFERENCES scenarios(id)
+);
+
+CREATE TABLE deployments (
+  id VARCHAR(36) PRIMARY KEY,
+  workspace_id VARCHAR(36) NOT NULL,
+  provider VARCHAR(20) NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'queued',
+  infrastructure_code CLOB,
+  logs CLOB,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (workspace_id) REFERENCES workspaces(id)
 );
 ```
 
-Redis for session cache.
+Redis는 세션 캐시 및 임시 상태 저장에 사용한다.
 
 ---
 
@@ -438,9 +554,9 @@ This enables **Cloud Digital Twin visualization**.
 
 ---
 
-# 13. Physical Lego Integration (Future)
+# 13. Physical Block Integration (Future)
 
-Future architecture supports IoT-enabled Lego blocks.
+Future architecture supports IoT-enabled blocks.
 
 Example architecture:
 
@@ -491,12 +607,13 @@ Key scalable components:
 
 # 16. Summary
 
-The Cloud Lego Platform architecture separates concerns into modular components:
+The CloudBlocks Platform architecture separates concerns into modular components:
 
 ```
 Frontend (v0.1: SPA with R3F)
 Core Model (Zustand store)
 Rule Engine (in-browser validation)
+Data Layer (v0.5+: CUBRID + Custom ORM + Redis)
 Provider Adapter (v0.5+)
 Infrastructure Generator (v0.5+)
 Deployment Engine (v0.5+)

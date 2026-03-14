@@ -1,15 +1,15 @@
-# Cloud Lego Platform - Development Roadmap
+# CloudBlocks Platform - Development Roadmap
 
-This document defines the staged development roadmap for the Cloud Lego Platform.
+This document defines the staged development roadmap for the CloudBlocks Platform.
 
-The platform aims to evolve from a **visual cloud learning tool** into a **full cloud architecture platform** capable of real deployment, simulation, and physical interaction.
+The platform aims to evolve from a **visual cloud learning tool** into a **full cloud architecture platform** capable of real deployment, simulation, and physical interaction — while also serving as a **CUBRID ecosystem reference implementation**.
 
 ---
 
 # Phase 0 — Concept Validation
 
 Goal:
-Validate the Cloud Lego abstraction model.
+Validate the CloudBlocks abstraction model.
 
 Key Objectives:
 
@@ -25,7 +25,7 @@ Deliverables:
 
 Outcome:
 
-Proof that the **Lego abstraction works for cloud architecture education**.
+Proof that the **block abstraction works for cloud architecture education**.
 
 ### Exit Criteria
 - [ ] Domain model types implemented in TypeScript
@@ -34,10 +34,10 @@ Proof that the **Lego abstraction works for cloud architecture education**.
 
 ---
 
-# v0.1 — Cloud Lego Builder (MVP)
+# v0.1 — CloudBlocks Builder (MVP)
 
 Goal:
-Create a working **Cloud Lego visual architecture builder**.
+Create a working **CloudBlocks visual architecture builder**.
 
 Features:
 
@@ -84,7 +84,7 @@ Workspace Persistence
 
 Deliverables:
 
-- Visual Lego Builder (React + React Three Fiber)
+- Visual Block Builder (React + React Three Fiber)
 - Basic architecture validation (in-browser Rule Engine)
 - Workspace save/load (localStorage)
 
@@ -104,10 +104,12 @@ Cloud beginners.
 
 ---
 
-# v0.5 — Azure Deployment Integration
+# v0.5 — Azure Deployment + Data Layer Integration
 
 Goal:
-Allow users to **deploy Lego architecture to Azure**.
+Allow users to **deploy architecture to Azure** and introduce **CUBRID-based server-side data persistence**.
+
+## Cloud Deployment
 
 Supported Infrastructure:
 
@@ -136,20 +138,47 @@ Features:
 - Deployment status feedback
 - URL access for deployed apps
 
+## Data Layer Introduction
+
+CUBRID를 주요 데이터베이스로 도입한다.
+
+### CUBRID Integration
+
+- Users, Workspaces, Architecture Models 저장
+- Scenario Definitions, Learning Progress 관리
+- Deployment History 기록
+
+### Custom ORM Layer
+
+- 커스텀 ORM을 통한 CUBRID 접근
+- Repository Pattern 기반 데이터 액세스
+- 객체 매핑 및 쿼리 추상화
+
+### Supporting Infrastructure
+
+- Redis: 세션 캐시, 임시 상태 저장, 태스크 큐
+- Object Storage: 템플릿 에셋, 배포 아티팩트, 로그
+
 Outcome:
 
-Users can see their architecture **running in real cloud infrastructure**.
+Users can see their architecture **running in real cloud infrastructure**, with **server-side persistence powered by CUBRID**.
 
 ### Exit Criteria
 - [ ] Azure deployment succeeds for 3-tier architecture
 - [ ] Deployment status displayed in real-time
 - [ ] Deployed application accessible via URL
 - [ ] Cost guard: deployment limited to sandbox resource group
+- [ ] CUBRID schema created and migrations applied
+- [ ] User/Workspace CRUD via custom ORM functional
+- [ ] Redis session cache operational
+- [ ] Data persistence roundtrip (save → reload → verify) passes
 
 ### Dependencies
 - v0.1 complete
 - Azure credential management implemented
 - Deployment sandbox environment configured
+- CUBRID instance provisioned
+- Custom ORM layer implemented
 
 ---
 
@@ -225,7 +254,7 @@ Example Missions:
 
 Outcome:
 
-Cloud Lego becomes a **cloud education platform**.
+CloudBlocks becomes a **cloud education platform**.
 
 ### Exit Criteria
 - [ ] 3+ guided scenarios with step-by-step hints
@@ -272,7 +301,7 @@ Features:
 
 Outcome:
 
-Cloud Lego becomes a **universal cloud learning system**.
+CloudBlocks becomes a **universal cloud learning system**.
 
 ### Exit Criteria
 - [ ] AWS and GCP provider adapters functional
@@ -333,10 +362,10 @@ Visual architecture becomes a **cloud operations dashboard**.
 
 ---
 
-# v3.5 — Physical Lego Integration
+# v3.5 — Physical Block Integration
 
 Goal:
-Allow real Lego blocks to control cloud architecture.
+Allow real blocks to control cloud architecture.
 
 Technologies:
 
@@ -348,30 +377,54 @@ Technologies:
 Architecture:
 
 ```
-Physical Lego Block
+Physical Block
 ↓
 IoT Sensor Detection
 ↓
-Cloud Lego Model Update
+CloudBlocks Model Update
 ↓
 Infrastructure Deployment
 ```
 
 Outcome:
 
-Cloud Lego becomes a **tangible cloud learning system**.
+CloudBlocks becomes a **tangible cloud learning system**.
+
+---
+
+# CUBRID Ecosystem Contribution
+
+CloudBlocks Platform은 CUBRID 생태계에 다음과 같이 기여한다.
+
+### Planned Contributions
+
+- CUBRID 기반 SaaS 레퍼런스 아키텍처 공개
+- 커스텀 ORM 도구 개선 및 오픈소스화
+- Terraform을 통한 CUBRID 배포 예제
+- 성능 벤치마크 및 튜닝 가이드
+- 개발자 온보딩 문서
+
+### Contribution Timeline
+
+| Version | Contribution |
+|---------|-------------|
+| v0.5 | CUBRID schema 설계 + ORM 기본 구현 |
+| v1.0 | ORM 고도화 + 쿼리 최적화 |
+| v1.5 | 레퍼런스 아키텍처 문서 공개 |
+| v2.0 | 성능 벤치마크 공개 |
 
 ---
 
 # Long Term Vision
 
-Cloud Lego Platform evolves into:
+CloudBlocks Platform evolves into:
 
 - Cloud education platform
 - Visual cloud architecture builder
 - Cloud simulator
 - Cloud operations dashboard
-- Physical Lego cloud interface
+- Physical block cloud interface
+- **CUBRID 생태계 레퍼런스 SaaS 구현**
 
 ---
 
@@ -380,10 +433,11 @@ Cloud Lego Platform evolves into:
 Key principles:
 
 1. Start with **small core model**
-2. Validate Lego abstraction early
+2. Validate block abstraction early
 3. Expand through modular layers
 4. Maintain provider abstraction
 5. Prioritize education-first experience
+6. **Validate CUBRID in production-like SaaS workloads**
 
 ---
 
@@ -398,6 +452,8 @@ Phase 0 + v0.1
 v0.5
 
 - Successful Azure deployments
+- CUBRID data layer operational
+- Custom ORM functional
 
 v1.0
 
@@ -414,17 +470,17 @@ v2.0
 v2.5+
 
 - Simulation and digital twin operational
-- Physical Lego prototype working
+- Physical block prototype working
 
 ---
 
 # Summary
 
-The roadmap evolves Cloud Lego from:
+The roadmap evolves CloudBlocks from:
 
 Visual Cloud Builder (v0.1)
 
-→ Cloud Deployment Platform (v0.5)
+→ Cloud Deployment Platform + CUBRID Data Layer (v0.5)
 
 → Learning Platform (v1.0 / v1.5)
 

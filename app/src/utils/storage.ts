@@ -1,7 +1,7 @@
 import type { Workspace } from '../models/types';
 import { serialize, deserialize } from '../models/schema';
 
-const STORAGE_KEY = 'cloude-lego:workspaces';
+const STORAGE_KEY = 'cloudblocks:workspaces';
 
 /**
  * Save workspaces to localStorage.

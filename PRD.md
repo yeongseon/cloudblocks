@@ -1,11 +1,11 @@
-# Cloud Lego Platform
-Build cloud architecture like Lego, learn it visually, and make it real.
+# CloudBlocks Platform
+Build cloud architecture like blocks, learn it visually, and make it real.
 
 ---
 
 # 1. Product Overview
 
-Cloud Lego Platform은 클라우드 아키텍처를 레고처럼 조립하면서 학습하고, 실제 클라우드 인프라로 배포할 수 있는 교육 중심 플랫폼이다.
+CloudBlocks Platform은 클라우드 아키텍처를 블록처럼 조립하면서 학습하고, 실제 클라우드 인프라로 배포할 수 있는 교육 중심 플랫폼이다.
 
 이 플랫폼은 클라우드 입문자가 다음을 자연스럽게 이해하도록 설계된다.
 
@@ -15,7 +15,7 @@ Cloud Lego Platform은 클라우드 아키텍처를 레고처럼 조립하면서
 - serverless 개념
 - 실제 인프라 동작 방식
 
-사용자는 3D Lego 형태의 블록을 배치하여 클라우드 아키텍처를 구성할 수 있다.
+사용자는 3D 블록을 배치하여 클라우드 아키텍처를 구성할 수 있다.
 
 플랫폼은 다음 개념을 기반으로 한다.
 
@@ -26,6 +26,8 @@ Cloud Lego Platform은 클라우드 아키텍처를 레고처럼 조립하면서
 - External Actor (외부 엔드포인트 — Internet 등)
 
 구성된 아키텍처는 실제 클라우드 환경(Azure first)에 배포할 수 있다.
+
+또한 이 프로젝트는 **CUBRID 생태계의 실제 서비스 레퍼런스 구현**으로서의 역할도 수행한다.
 
 ---
 
@@ -38,7 +40,8 @@ Cloud Lego Platform은 클라우드 아키텍처를 레고처럼 조립하면서
 - Visual Cloud Architecture Builder
 - Cloud Learning Platform
 - Cloud Simulator
-- Physical Lego + Cloud IoT Integration
+- Physical Block + Cloud IoT Integration
+- **CUBRID 기반 SaaS 레퍼런스 아키텍처**
 
 ---
 
@@ -62,7 +65,7 @@ Cloud Lego Platform은 클라우드 아키텍처를 레고처럼 조립하면서
 
 # 4. Core Concept
 
-## Lego Cloud Model
+## Block Cloud Model
 
 Cloud Architecture는 다음 구조로 표현된다.
 
@@ -173,7 +176,7 @@ MVP (v0.1)는 다음 시나리오를 모두 통과해야 완료된다.
 
 ## Visual Architecture Builder
 
-- Lego style block placement
+- Block style placement
 - Plate 기반 구조
 - Drag and drop UI
 
@@ -201,7 +204,68 @@ Internet → Gateway → App → Database
 
 ---
 
-# 7. Post-MVP Features (v0.5)
+# 7. Data Layer Strategy
+
+## Primary Database — CUBRID
+
+CloudBlocks Platform은 **CUBRID를 주요 관계형 데이터베이스**로 채택한다.
+
+이 결정은 다음 목표를 기반으로 한다.
+
+1. CUBRID를 사용한 **실제 서비스 레퍼런스 아키텍처** 제공
+2. 커스텀 ORM 구현의 **프로덕션 환경 검증**
+3. **CUBRID 생태계 활성화** 기여
+4. 현대적 SaaS 플랫폼이 CUBRID 위에서 운영 가능함을 증명
+
+## Core Data Entities
+
+CUBRID에 저장되는 핵심 엔티티:
+
+- Users (사용자 계정)
+- Workspaces (작업 공간)
+- Architecture Models (아키텍처 모델)
+- Scenario Definitions (학습 시나리오)
+- Learning Progress (학습 진행 상황)
+- Deployment History (배포 이력)
+- Template Metadata (템플릿 메타데이터)
+
+```
+User
+└ Workspace
+      └ Architecture Model
+            └ Blocks
+            └ Connections
+```
+
+## ORM Layer
+
+커스텀 ORM 레이어를 통해 CUBRID와 상호작용한다.
+
+- 객체 매핑 (Object Mapping)
+- 쿼리 추상화 (Query Abstraction)
+- 리포지토리 패턴 (Repository Pattern)
+- 데이터베이스 이식성 (Database Portability)
+
+```
+WorkspaceRepository
+ScenarioRepository
+DeploymentRepository
+UserRepository
+```
+
+## Hybrid Storage Architecture
+
+| Storage | 용도 |
+|---------|------|
+| CUBRID | 핵심 애플리케이션 데이터, 워크스페이스, 시나리오, 사용자 상태, 배포 이력 |
+| Redis | 캐싱, 세션 저장, 임시 아키텍처 상태, 태스크 큐 |
+| Object Storage (Cloud) | 템플릿 에셋, 배포 아티팩트, 로그 |
+
+> v0.1에서는 localStorage를 사용한다. CUBRID 및 Redis는 v0.5에서 도입된다.
+
+---
+
+# 8. Post-MVP Features (v0.5)
 
 ## Deploy to Cloud
 
@@ -218,7 +282,7 @@ Internet → Gateway → App → Database
 
 ---
 
-# 8. Serverless Extension (v1.0)
+# 9. Serverless Extension (v1.0)
 
 기본 인프라 위에 serverless 개념을 확장할 수 있다.
 
@@ -237,7 +301,7 @@ HTTP → Function → Storage
 
 ---
 
-# 9. Learning Mode (v1.5)
+# 10. Learning Mode (v1.5)
 
 학습 시나리오 기반 미션 제공
 
@@ -254,7 +318,7 @@ Build an event driven system
 
 ---
 
-# 10. Monetization (Future)
+# 11. Monetization (Future)
 
 가능한 SaaS 모델
 
@@ -265,7 +329,21 @@ Build an event driven system
 
 ---
 
-# 11. Long Term Expansion
+# 12. CUBRID Ecosystem Contribution
+
+프로젝트 발전에 따라 다음과 같은 생태계 기여를 계획한다.
+
+- 개선된 ORM 도구
+- CUBRID 기반 SaaS 아키텍처 예제
+- Terraform 배포 예제
+- 성능 벤치마크
+- 개발자 문서
+
+CloudBlocks Platform은 **CUBRID 기반 SaaS 플랫폼 구축의 레퍼런스 구현**이 될 수 있다.
+
+---
+
+# 13. Long Term Expansion
 
 ### Multi Cloud Support (v2.0)
 
@@ -281,17 +359,17 @@ Build an event driven system
 
 실제 인프라 상태 반영
 
-### Physical Lego Integration (v3.5)
+### Physical Block Integration (v3.5)
 
 IoT 기반 실제 블록 감지
 
 ```
-Physical Lego → Cloud Model → Infrastructure Deploy
+Physical Block → Cloud Model → Infrastructure Deploy
 ```
 
 ---
 
-# 12. Success Metrics
+# 14. Success Metrics
 
 - User onboarding success rate
 - Completed learning scenarios
