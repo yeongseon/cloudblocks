@@ -3,21 +3,23 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB)](https://react.dev/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688)](https://fastapi.tiangolo.com/)
 
-**Open-source 3D visual cloud architecture builder that generates deployable infrastructure code.**
+**Open-source 2.5D isometric cloud architecture builder and code generation platform.**
 
-Design cloud infrastructure by placing blocks on plates in a 3D scene, connect components visually, validate against real-world rules, and generate production-ready Terraform / Bicep / Pulumi code — all from your browser.
+Design cloud infrastructure by placing blocks on plates in an isometric scene, connect components visually, and validate against real-world rules — all from your browser. Code generation (Terraform, Bicep, Pulumi) and GitHub integration are on the roadmap.
 
 ## Why CloudBlocks?
 
-Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks works **diagram → code** (design visually, generate infra). No YAML. No HCL. Just drag, drop, connect, generate.
+Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks works **diagram → code** (design visually, generate infra). No YAML. No HCL. Just place, connect, validate.
 
-- **Visual-first** — 3D block builder powered by React Three Fiber
-- **Git-native** — Your architecture lives in GitHub repos, not a proprietary database
-- **Code generation** — Export to Terraform, Bicep, or Pulumi with one click
-- **Validation engine** — Real-time rule checking before you generate
+- **Visual-first** — 2.5D isometric builder powered by React Three Fiber
+- **Validation engine** — Real-time rule checking for placement and connections
 - **Open source** — MIT licensed, extend and contribute freely
+
+### Planned Features
+
+- **Git-native storage** — Architecture stored in GitHub repos (v0.5)
+- **Code generation** — Export to Terraform, Bicep, or Pulumi (v0.3)
 
 ## Quick Start
 
@@ -35,32 +37,35 @@ cd apps/web && pnpm dev
 
 Open [http://localhost:5173](http://localhost:5173) to start building.
 
-## How It Works
+> **Note**: v0.1 is a frontend-only SPA. No backend required.
+
+## How It Works (v0.1)
 
 ```
-Design in 3D UI  →  architecture.json  →  Generate Terraform  →  Commit to GitHub  →  CI/CD deploys
+Place blocks on plates  →  Connect components  →  Validate rules  →  Save to localStorage
 ```
 
-1. **Place blocks** — Compute, Database, Storage, Gateway on network plates
+1. **Place blocks** — Compute, Database, Storage, Gateway on network plates via the palette
 2. **Connect** — Draw data flow connections between components
 3. **Validate** — Built-in rules check subnet placement, security, and connectivity
-4. **Generate** — Export to Terraform (Bicep/Pulumi coming soon)
-5. **Deploy** — Push to GitHub, let your CI/CD pipeline handle the rest
+4. **Save** — Workspace persisted in browser localStorage
+
+### Planned Workflow (v0.5+)
+
+```
+Design in isometric UI  →  architecture.json  →  Generate Terraform  →  Commit to GitHub  →  CI/CD deploys
+```
 
 ## Architecture
 
-CloudBlocks is a monorepo with a **Git-native SaaS architecture** — GitHub repos serve as the primary data store, with a thin orchestration backend.
+CloudBlocks is a monorepo. v0.1 is a frontend-only SPA with local persistence. Backend and GitHub integration are planned for v0.5.
 
 ```
 cloudblocks/
 ├── apps/
 │   ├── web/          # React + Three.js frontend (FSD architecture)
-│   └── api/          # Python FastAPI backend (thin orchestration layer)
-├── packages/
-│   ├── schema/       # Shared JSON schema definitions
-│   ├── cloudblocks-domain/  # Domain logic package
-│   ├── cloudblocks-ui/      # Reusable UI components
-│   └── terraform-templates/ # IaC code templates
+│   └── api/          # Python FastAPI backend (scaffolded, v0.5+)
+├── packages/         # Shared packages (scaffolded)
 ├── docs/             # Project documentation
 ├── infra/            # Infrastructure-as-code for self-hosting
 ├── scripts/          # Dev, build, deploy scripts
@@ -70,7 +75,7 @@ cloudblocks/
 ## Core Concepts
 
 ### Plates (Containers)
-- **Network Plate** — Virtual Network (VNet)
+- **Network Plate** — Virtual Network (Azure VNet)
 - **Subnet Plate** — Public or Private subnet within a Network
 
 ### Blocks (Resources)
@@ -90,9 +95,10 @@ Internet → Gateway → Compute → Database
 | Layer | Technology |
 |-------|-----------|
 | Frontend | React 19, TypeScript, React Three Fiber, Zustand, Vite |
-| Backend | Python, FastAPI (thin orchestration layer) |
-| Storage | GitHub repos (Git-native), Supabase (auth metadata) |
-| Code Generation | Terraform, Bicep, Pulumi (planned) |
+| Backend (v0.5+) | Python, FastAPI (scaffolded) |
+| Storage (v0.1) | Browser localStorage |
+| Storage (v0.5+) | GitHub repos (Git-native), Supabase (auth metadata) |
+| Code Generation (v0.3+) | Terraform, Bicep, Pulumi (planned) |
 | Frontend Architecture | Feature-Sliced Design (FSD) |
 | Monorepo | pnpm workspaces |
 
@@ -104,7 +110,7 @@ Internet → Gateway → Compute → Database
 | [Domain Model](docs/DOMAIN_MODEL.md) | Domain entities and rules |
 | [Architecture](docs/ARCHITECTURE.md) | System architecture |
 | [Storage Architecture](docs/STORAGE_ARCHITECTURE.md) | Git-native storage design |
-| [API Spec](docs/API_SPEC.md) | REST API endpoints |
+| [API Spec](docs/API_SPEC.md) | REST API endpoints (planned) |
 | [Roadmap](docs/ROADMAP.md) | Development roadmap |
 | [Deployment](docs/DEPLOYMENT.md) | Deployment guide |
 | [Tutorials](docs/TUTORIALS.md) | Getting started tutorials |
@@ -121,8 +127,8 @@ cd apps/web && pnpm build
 # Type check
 cd apps/web && npx tsc -b
 
-# Backend (requires Python 3.12+)
-cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
+# Backend (scaffolded, not required for v0.1)
+# cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 ```
 
 ## Examples
@@ -135,11 +141,11 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 
 | Version | Milestone | Status |
 |---------|-----------|--------|
-| v0.1 | Frontend MVP — 3D builder with validation | ✅ Complete |
-| v0.2 | Enhanced UX — drag & drop, visual polish | Planned |
-| v0.3 | Workspace management, import/export | Planned |
-| v0.5 | GitHub integration, Terraform generation | Planned |
-| v1.0 | Full platform with multi-provider support | Planned |
+| v0.1 | Frontend MVP — 2.5D isometric builder with validation | ✅ Complete |
+| v0.2 | Enhanced UX — drag & drop repositioning, visual polish | Planned |
+| v0.3 | Code generation — Terraform export (Azure first) | Planned |
+| v0.5 | GitHub integration, backend API | Planned |
+| v1.0 | Multi-generator (Bicep, Pulumi), template marketplace | Planned |
 
 ## Contributing
 

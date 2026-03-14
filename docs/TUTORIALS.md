@@ -2,7 +2,7 @@
 
 ## Overview
 
-CloudBlocks tutorials guide you through building real-world cloud architectures and generating infrastructure code. Each tutorial teaches specific concepts through hands-on practice with the 3D block builder.
+CloudBlocks tutorials guide you through building real-world cloud architectures and generating infrastructure code. Each tutorial teaches specific concepts through hands-on practice with the 2.5D isometric builder.
 
 ## Tutorial Structure
 
@@ -186,7 +186,9 @@ Tutorials are defined as JSON files for programmatic use:
 
 ## Adding Community Tutorials
 
-Tutorials live in `packages/scenario-library/scenarios/`:
+> **Note**: The tutorial scenario library is planned for v1.0+. The directory structure below shows the intended organization.
+
+Tutorial scenarios will live in a dedicated package:
 
 ```
 packages/scenario-library/
