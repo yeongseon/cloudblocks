@@ -177,21 +177,7 @@ Connect CloudBlocks to GitHub — architecture and generated code stored in user
 
 ## GitHub Repo Structure (per project)
 
-```
-my-cloud-project/
-├── cloudblocks/
-│   ├── architecture.json
-│   ├── schemaVersion
-│   └── generator.lock
-├── infra/
-│   └── terraform/
-│       ├── main.tf
-│       ├── variables.tf
-│       └── outputs.tf
-└── .github/
-    └── workflows/
-        └── plan.yml
-```
+> See [STORAGE_ARCHITECTURE.md](../model/STORAGE_ARCHITECTURE.md) for the complete GitHub repo structure per workspace.
 
 ### Exit Criteria
 - [ ] GitHub App OAuth login works
@@ -286,12 +272,7 @@ Providers:
 
 Architecture remains the same — provider adapters handle the mapping.
 
-| Generic | Azure | AWS | GCP |
-|---------|-------|-----|-----|
-| Network | VNet | VPC | VPC |
-| Compute | VM / Container App | EC2 | Compute Engine |
-| Database | Azure SQL | RDS | Cloud SQL |
-
+> See [provider.md](../engine/provider.md) for the complete provider mapping table (block and plate mappings per cloud provider).
 ### Exit Criteria
 - [ ] AWS and GCP provider adapters functional
 - [ ] Same architecture deployable to any supported provider

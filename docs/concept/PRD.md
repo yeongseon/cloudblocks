@@ -361,58 +361,14 @@ Example output:
 {
   "id": "arch-001",
   "name": "3-Tier Web App",
-  "version": "1",
-  "plates": [
-    {
-      "id": "plate-001",
-      "name": "Main VNet",
-      "type": "network",
-      "parentId": null,
-      "children": ["plate-002", "plate-003"],
-      "position": { "x": 0, "y": 0, "z": 0 },
-      "size": { "width": 12, "height": 0.3, "depth": 10 },
-      "metadata": {}
-    },
-    {
-      "id": "plate-002",
-      "name": "Public Subnet",
-      "type": "subnet",
-      "subnetAccess": "public",
-      "parentId": "plate-001",
-      "children": ["block-001"],
-      "position": { "x": -3, "y": 0.3, "z": 0 },
-      "size": { "width": 5, "height": 0.2, "depth": 8 },
-      "metadata": {}
-    }
-  ],
-  "blocks": [
-    {
-      "id": "block-001",
-      "name": "App Gateway",
-      "category": "gateway",
-      "placementId": "plate-002",
-      "position": { "x": 0, "y": 0.5, "z": 0 },
-      "metadata": {}
-    }
-  ],
-  "connections": [
-    {
-      "id": "conn-001",
-      "sourceId": "ext-internet",
-      "targetId": "block-001",
-      "type": "dataflow",
-      "metadata": {}
-    }
-  ],
-  "externalActors": [
-    { "id": "ext-internet", "name": "Internet", "type": "internet" }
-  ],
-  "createdAt": "2025-01-01T00:00:00.000Z",
-  "updatedAt": "2025-01-01T00:00:00.000Z"
+  "plates": [...],
+  "blocks": [...],
+  "connections": [...],
+  "externalActors": [...]
 }
 ```
 
-> This JSON matches the `ArchitectureModel` schema defined in `apps/web/src/shared/types/index.ts`. The export is the full model, not a simplified projection.
+> For the complete `ArchitectureModel` schema with all fields (positions, sizes, metadata), see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md) §14 (Complete Architecture Model). The canonical TypeScript types are defined in `apps/web/src/shared/types/index.ts`.
 
 # 13. User Interface
 

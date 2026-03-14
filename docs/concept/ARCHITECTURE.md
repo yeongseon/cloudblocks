@@ -44,9 +44,11 @@ The system consists of several subsystems:
 | Subsystem | Responsibility | Details |
 |-----------|---------------|---------|
 | **Web Builder** | Visual diagram editing, architecture visualization, rule feedback | This document |
-| **Architecture Model** | Provider-agnostic architecture representation, versioning, serialization | [model.md](../model/model.md) |
+| **Architecture Model** | Provider-agnostic architecture representation, versioning, serialization | [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md) |
+| **Architecture Graph** | Graph-based execution model for validation and generation | [ARCHITECTURE_GRAPH.md](../ARCHITECTURE_GRAPH.md) |
+| **DSL Specification** | Language definition for infrastructure modeling | [DSL_SPEC.md](../DSL_SPEC.md) |
 | **Rule Engine** | Architecture validation, security checks, topology validation | [rules.md](../engine/rules.md) |
-| **Generator** | Infrastructure code generation, provider abstraction | [generator.md](../engine/generator.md) |
+| **Generator** | Infrastructure code generation pipeline | [generator.md](../engine/generator.md) |
 | **Provider Adapters** | Cloud-specific resource mapping | [provider.md](../engine/provider.md) |
 | **Templates** | Reusable architecture starting points | [templates.md](../engine/templates.md) |
 
@@ -294,155 +296,21 @@ Key responsibilities:
 
 ## 3.5 Architecture Model Schema (v0.1 — current)
 
-The canonical model types are defined in `apps/web/src/shared/types/index.ts`.
+The canonical model types are defined in `apps/web/src/shared/types/index.ts`. The domain model consists of the following core entities:
 
-```typescript
-export type PlateType = 'network' | 'subnet';
-export type SubnetAccess = 'public' | 'private';
-export type BlockCategory = 'compute' | 'database' | 'storage' | 'gateway';
-export type ConnectionType = 'dataflow';
+- **Plate** — Infrastructure boundary (network / subnet), with containment hierarchy (`parentId`, `children`)
+- **Block** — Infrastructure resource (`category`: compute / database / storage / gateway), placed on a plate via `placementId`
+- **Connection** — Dataflow between blocks (`sourceId` → `targetId`), initiator model
+- **ExternalActor** — External endpoint (e.g., Internet)
+- **ArchitectureModel** — Root container for all entities
 
-export interface Position {
-  x: number;
-  y: number;
-  z: number;
-}
-
-export interface Size {
-  width: number;
-  height: number;
-  depth: number;
-}
-
-export interface Plate {
-  id: string;
-  name: string;
-  type: PlateType;
-  subnetAccess?: SubnetAccess;
-  parentId: string | null;
-  children: string[];
-  position: Position;
-  size: Size;
-  metadata: Record<string, unknown>;
-}
-
-export interface Block {
-  id: string;
-  name: string;
-  category: BlockCategory;
-  placementId: string;
-  position: Position;
-  metadata: Record<string, unknown>;
-}
-
-export interface Connection {
-  id: string;
-  sourceId: string;
-  targetId: string;
-  type: ConnectionType;
-  metadata: Record<string, unknown>;
-}
-
-export interface ExternalActor {
-  id: string;
-  name: string;
-  type: 'internet';
-}
-
-export interface ArchitectureModel {
-  id: string;
-  name: string;
-  version: string;
-  plates: Plate[];
-  blocks: Block[];
-  connections: Connection[];
-  externalActors: ExternalActor[];
-  createdAt: string;
-  updatedAt: string;
-}
-```
-
-### Example ArchitectureModel JSON
-
-```json
-{
-  "id": "arch-001",
-  "name": "3-Tier Web App",
-  "version": "1",
-  "plates": [
-    {
-      "id": "plate-network-1",
-      "name": "Main Network",
-      "type": "network",
-      "parentId": null,
-      "children": ["plate-subnet-public-1"],
-      "position": { "x": 0, "y": 0, "z": 0 },
-      "size": { "width": 12, "height": 0.3, "depth": 10 },
-      "metadata": {}
-    },
-    {
-      "id": "plate-subnet-public-1",
-      "name": "Public Subnet",
-      "type": "subnet",
-      "subnetAccess": "public",
-      "parentId": "plate-network-1",
-      "children": ["block-gateway-1", "block-compute-1"],
-      "position": { "x": 0, "y": 0.2, "z": 0 },
-      "size": { "width": 5, "height": 0.2, "depth": 8 },
-      "metadata": {}
-    }
-  ],
-  "blocks": [
-    {
-      "id": "block-gateway-1",
-      "name": "App Gateway",
-      "category": "gateway",
-      "placementId": "plate-subnet-public-1",
-      "position": { "x": -1, "y": 0, "z": 0 },
-      "metadata": {}
-    },
-    {
-      "id": "block-compute-1",
-      "name": "Web API",
-      "category": "compute",
-      "placementId": "plate-subnet-public-1",
-      "position": { "x": 1.5, "y": 0, "z": 0 },
-      "metadata": { "runtime": "container" }
-    }
-  ],
-  "connections": [
-    {
-      "id": "conn-1",
-      "sourceId": "ext-internet",
-      "targetId": "block-gateway-1",
-      "type": "dataflow",
-      "metadata": {}
-    },
-    {
-      "id": "conn-2",
-      "sourceId": "block-gateway-1",
-      "targetId": "block-compute-1",
-      "type": "dataflow",
-      "metadata": {}
-    }
-  ],
-  "externalActors": [
-    {
-      "id": "ext-internet",
-      "name": "Internet",
-      "type": "internet"
-    }
-  ],
-  "createdAt": "2025-01-01T00:00:00.000Z",
-  "updatedAt": "2025-01-01T00:00:00.000Z"
-}
-```
+> For full TypeScript interfaces, field specifications, and JSON examples, see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md) §14 (Implementation Schema).
 
 ### Serialization Format
 
 - Serialization is versioned through `schemaVersion` and currently uses `"0.1.0"` (see `apps/web/src/shared/types/schema.ts`).
 - The persisted root payload shape is `{ schemaVersion, workspaces[] }`, where each workspace contains one `architecture: ArchitectureModel`.
-- For broader domain semantics and lifecycle rules, see `docs/model/DOMAIN_MODEL.md`.
+- For broader domain semantics and lifecycle rules, see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md).
 
 ---
 
@@ -468,27 +336,7 @@ Validation flow in `engine.ts`:
 - Iterate all connections and run connection rules from `connection.ts`
 - Aggregate errors/warnings into one `ValidationResult`
 
-### Rule Categories
-
-Placement Rules:
-
-```
-ComputeBlock must be placed on SubnetPlate
-DatabaseBlock must be placed on private SubnetPlate
-GatewayBlock must be placed on public SubnetPlate
-StorageBlock must be placed on SubnetPlate
-```
-
-Connection Rules:
-
-```
-Internet → Gateway    ✔
-Gateway  → Compute    ✔
-Compute  → Database   ✔
-Compute  → Storage    ✔
-Database → Gateway    ❌
-Database → Internet   ❌
-```
+> For the complete rule set (placement rules, connection rules, and connection semantics), see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md) §7 (Rule Engine).
 
 ### Validation Response
 
@@ -508,43 +356,17 @@ Database → Internet   ❌
 }
 ```
 
-### Connection Type Handling
-
-- **DataFlow**: Request/response communication (solid arrow) — MVP
-- **EventFlow**: Event-driven trigger (dotted arrow) — v1.0
-- **Dependency**: Resource dependency (dashed line) — v1.0
-
-MVP (v0.1) supports DataFlow only.
-
 ---
 
 # 5. Code Generation Pipeline (v0.3+)
 
-> See also: PRD §12 (MVP Feature Set — Architecture Model Export), PRD §16 (Future Roadmap)
-
 > **Status**: Not yet implemented. Planned for v0.3.
 
-The core value delivery — transforming visual architecture into deployable IaC code.
+The core value delivery — transforming visual architecture into deployable IaC code. The pipeline follows a multi-stage process: Normalize → Validate → Provider Map → Generate → Format → Output.
 
-### Pipeline
-
-```
-Architecture Model (JSON)
-↓
-Schema Validation
-↓
-Normalization Layer (canonical model normalization)
-↓
-Provider Adapter (Azure / AWS / GCP mapping)
-↓
-Generator Plugin (Terraform / Bicep / Pulumi)
-↓
-Formatter (output shaping, file layout)
-↓
-Generated Code Output
-↓
-GitHub Commit / PR (via Backend, v0.5+)
-```
+> For the full pipeline specification (stage details, Generator interface, determinism guarantees, error handling), see [generator.md](../engine/generator.md).
+>
+> For provider-specific resource mapping, see [provider.md](../engine/provider.md).
 
 ### Planned Module Structure (v0.3+)
 
@@ -571,42 +393,6 @@ generators/
 | Provider Adapter | Map CloudBlocks generic entities to provider-specific resource semantics. |
 | Generator | Produce IaC artifacts from normalized, provider-mapped input. |
 | Formatter | Assemble final output files and directory structure for commit/export. |
-
-### Generator Plugin Architecture
-
-Generators are modular plugins implementing a standard interface:
-
-```typescript
-interface Generator {
-  name: string;
-  version: string;
-  supportedProviders: string[];
-  generate(architecture: ArchitectureModel, options: GeneratorOptions): GeneratedOutput;
-}
-```
-
-| Generator | Format | Priority |
-|-----------|--------|----------|
-| Terraform | HCL | Primary (v0.3) |
-| Bicep | Azure ARM DSL | v0.5 |
-| Pulumi | TypeScript/Python | v1.0 |
-
-### CI/CD Integration (v0.5+)
-
-Generated code triggers CI pipelines:
-
-```yaml
-# .github/workflows/plan.yml
-on:
-  pull_request:
-    paths: ['infra/**']
-jobs:
-  plan:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: hashicorp/setup-terraform@v3
-      - run: terraform init && terraform plan
-```
 
 ---
 
@@ -639,21 +425,9 @@ SceneCanvas (root 3D scene)
 
 # 7. Provider Adapter Layer
 
-> See also: PRD §9 (Architecture Elements — Blocks and Plates)
+The Provider Adapter translates the generic CloudBlocks model into cloud provider resources. Azure is the primary target (Azure-first strategy).
 
-The Provider Adapter translates the generic CloudBlocks model into cloud provider resources.
-
-> Simplification for MVP: In the MVP, Compute refers to resources deployed within a Subnet (VM, Container App).
-
-| Generic Resource | Azure | AWS | GCP |
-|------------------|------|-----|-----|
-| Network (Plate) | VNet | VPC | VPC |
-| Subnet (Plate) | Subnet | Subnet | Subnet |
-| Compute | VM / Container App | EC2 | Compute Engine |
-| Database | Azure SQL | RDS | Cloud SQL |
-| Storage | Blob Storage | S3 | Cloud Storage |
-| Gateway | Application Gateway | ALB | Load Balancer |
-| Function (v1.0) | Azure Function | Lambda | Cloud Functions |
+> For the full provider mapping tables (block mapping, plate mapping, connection interpretation) and adapter interface, see [provider.md](../engine/provider.md).
 
 ---
 
@@ -703,72 +477,11 @@ User → CloudBlocks UI → Backend API → GitHub App → User's Repos
 
 # 9. Storage Architecture
 
-### Data Placement Strategy
+> For the full storage architecture (data placement strategy, metadata DB schema, Redis schema, GitHub repo structure, migration strategy), see [STORAGE_ARCHITECTURE.md](../model/STORAGE_ARCHITECTURE.md).
 
-| Data Type | Storage | Reason |
-|-----------|---------|--------|
-| Architecture spec | GitHub repo (v0.5+) | Version history, diff, collaboration |
-| Generated IaC code | GitHub repo (v0.5+) | PR-based review, CI/CD |
-| Templates | GitHub repo | Community contribution |
-| User / Identity | Metadata DB | Auth, OAuth tokens |
-| Workspace index | Metadata DB | Fast lookup |
-| Run status | Metadata DB | Job state tracking |
-| Audit summary | Metadata DB | Lightweight trail |
-| Large artifacts | Blob Storage | Binary assets |
-| Session / Cache | Redis / Upstash | Rate limiting, locks |
+The storage follows a **Git-native** design: GitHub repos serve as the primary data store for architecture assets and generated code. A minimal metadata database (4 tables: `users`, `identities`, `workspaces`, `generation_runs`) handles auth, workspace indexing, and run status only.
 
-### Metadata DB Schema (Minimal)
-
-> **Note**: The schema below matches the actual migration files. See `apps/api/app/infrastructure/db/migrations/` for the source of truth.
-
-```sql
--- Users and identity (001_create_users.sql)
-CREATE TABLE users (
-    id          TEXT PRIMARY KEY,
-    github_id   TEXT UNIQUE,
-    github_username TEXT,
-    email       TEXT,
-    display_name TEXT,
-    avatar_url  TEXT,
-    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE identities (
-    id          TEXT PRIMARY KEY,
-    user_id     TEXT NOT NULL REFERENCES users(id),
-    provider    TEXT NOT NULL,  -- 'github', 'google'
-    provider_id TEXT NOT NULL,
-    access_token_hash TEXT,
-    refresh_token_hash TEXT,
-    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(provider, provider_id)
-);
-
--- Workspaces and generation runs (002_create_workspaces.sql)
-CREATE TABLE workspaces (
-    id          TEXT PRIMARY KEY,
-    owner_id    TEXT NOT NULL REFERENCES users(id),
-    name        TEXT NOT NULL,
-    github_repo TEXT,
-    github_branch TEXT DEFAULT 'main',
-    last_synced_at TIMESTAMP,
-    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE generation_runs (
-    id            TEXT PRIMARY KEY,
-    workspace_id  TEXT NOT NULL REFERENCES workspaces(id),
-    status        TEXT NOT NULL DEFAULT 'pending',  -- pending, running, completed, failed
-    generator     TEXT NOT NULL,
-    commit_sha    TEXT,
-    started_at    TIMESTAMP,
-    completed_at  TIMESTAMP,
-    error_message TEXT,
-    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
+**Design principle**: DB = index and status only, real data = Git / Blob Storage.
 
 ---
 
@@ -776,34 +489,11 @@ CREATE TABLE generation_runs (
 
 ### v0.1 Storage (Local)
 
-v0.1 uses browser localStorage for persistence.
+v0.1 uses browser localStorage for persistence. Storage key: `cloudblocks:workspaces`.
 
-Key: `cloudblocks:workspaces`
+The persisted format uses `schemaVersion: "0.1.0"` with a `workspaces[]` array, each containing a single `architecture: ArchitectureModel` object.
 
-```json
-{
-  "schemaVersion": "0.1.0",
-  "workspaces": [
-    {
-      "id": "ws-abc123",
-      "name": "My First Architecture",
-      "architecture": {
-        "id": "arch-001",
-        "name": "3-Tier Web App",
-        "version": "1",
-        "plates": [],
-        "blocks": [],
-        "connections": [],
-        "externalActors": []
-      },
-      "createdAt": "2025-01-01T00:00:00Z",
-      "updatedAt": "2025-01-01T00:00:00Z"
-    }
-  ]
-}
-```
-
-> **Note**: Each workspace contains a single `architecture` object (not an array). This matches the code implementation in `apps/web/src/shared/types/index.ts`.
+> For the full workspace model and serialization format, see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md) §13 (Workspace Model) and §14 (Implementation Schema).
 
 ### v0.3+ Storage (Local-First + GitHub Sync — Planned)
 
@@ -819,16 +509,6 @@ Local (IndexedDB)     ←→    GitHub (via Backend API)
 - Anonymous/offline editing always works
 - "Connect to GitHub" to sync and collaborate
 - GitHub is "publish/collaborate", not "required to use"
-
-Planned sync behavior (v0.3+):
-- Conflict detection via GitHub file SHA comparison before write operations
-- Offline edits are persisted locally and queued for sync on reconnect
-- Optimistic concurrency model: fast local commits, fail-fast when remote SHA diverges
-
-Future workspace evolution (post-v0.3):
-- Multiple architectures per workspace may be supported
-- Environment variants (dev/staging/prod) may be added
-- Architecture version history may be tracked per workspace
 
 ---
 
@@ -874,3 +554,17 @@ This architecture enables:
 - Automated infrastructure code generation (planned)
 - Git-native collaboration and version control (planned)
 - Lightweight deployment with minimal infrastructure cost
+
+---
+
+> **Cross-references:**
+> - Domain model (canonical): [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)
+> - Architecture graph: [ARCHITECTURE_GRAPH.md](../ARCHITECTURE_GRAPH.md)
+> - DSL specification: [DSL_SPEC.md](../DSL_SPEC.md)
+> - Generator pipeline: [generator.md](../engine/generator.md)
+> - Provider adapters: [provider.md](../engine/provider.md)
+> - Storage architecture: [STORAGE_ARCHITECTURE.md](../model/STORAGE_ARCHITECTURE.md)
+> - Rule engine: [rules.md](../engine/rules.md)
+> - Templates: [templates.md](../engine/templates.md)
+> - Roadmap: [ROADMAP.md](./ROADMAP.md)
+> - PRD: [PRD.md](./PRD.md)
