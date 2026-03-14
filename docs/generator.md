@@ -30,39 +30,41 @@ iac-code
 
 ### Step 1 — Normalize Model
 
-Normalize the diagram model into canonical architecture model.
+Normalize the architecture model into a canonical, generation-safe form (stable IDs, resolved references, defaults).
 
 ```
-normalize(model)
+normalize(architectureModel)
 ```
 
-### Step 2 — Dependency Graph
+### Step 2 — Validate
 
-Build resource dependency graph.
-
-**Example:**
+Run schema validation and rule engine checks before generation.
 
 ```
-gateway → compute
-compute → database
+validate(normalizedModel)
 ```
 
 ### Step 3 — Provider Mapping
 
-Map generic infrastructure blocks to provider resources.
+Map generic infrastructure blocks to provider-specific resources.
 
 **Example mapping:**
 
 | Block | Azure | AWS | GCP |
 |-------|-------|-----|-----|
-| `compute` | `azurerm_linux_web_app` | `aws_ecs_service` | `cloud_run` |
+| `compute` | `azurerm_linux_web_app` | `aws_ecs_service` | `google_cloud_run` |
 | `storage` | `azurerm_storage_account` | `s3_bucket` | `gcs_bucket` |
 
 See [provider.md](./provider.md) for full provider abstraction details.
 
-### Step 4 — Module Generation
+### Step 4 — Generate
 
-Generate IaC modules.
+Generate IaC modules from provider-mapped model.
+
+
+### Step 5 — Format
+
+Assemble final output files and directory structure for commit/export.
 
 **Example Terraform output:**
 

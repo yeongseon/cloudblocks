@@ -26,7 +26,7 @@ Provider Resources
 |----------|----------|
 | Azure | `azurerm_linux_web_app` |
 | AWS | `aws_ecs_service` |
-| GCP | `google_cloud_run` |
+|| GCP | `google_cloud_run` |
 
 ---
 

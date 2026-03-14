@@ -28,7 +28,14 @@ Workspace is the top-level container for architecture projects.
 {
   "id": "workspace-1",
   "name": "My Architecture",
-  "architectures": []
+  "architecture": {
+    "id": "arch-1",
+    "name": "3-Tier Web App",
+    "plates": [],
+    "blocks": [],
+    "connections": [],
+    "externalActors": []
+  }
 }
 ```
 
@@ -88,13 +95,13 @@ Plate represents a logical infrastructure boundary.
 
 Block represents an infrastructure resource.
 
-**Examples:** Compute, Database, Storage, Queue, Gateway
+**Examples:** Compute, Database, Storage, Gateway
 
 ```json
 {
   "id": "block-1",
-  "type": "compute",
-  "plateId": "plate-1"
+  "category": "compute",
+  "placementId": "plate-1"
 }
 ```
 
@@ -111,20 +118,35 @@ Connection represents communication between resources.
 
 ```json
 {
-  "source": "block-a",
-  "target": "block-b",
-  "type": "network"
+  "sourceId": "block-a",
+  "targetId": "block-b",
+  "type": "dataflow"
 }
 ```
 
 **Connection types:**
 
-| Type | Meaning |
-|------|---------|
-| `network` | TCP/HTTP connectivity |
-| `data` | Database/storage access |
-| `event` | Message/event flow |
+| Type | Meaning | Version |
+|------|---------|---------|
+| `dataflow` | Request/response communication | v0.1 (MVP) |
+| `eventflow` | Event-driven trigger | v1.0 (planned) |
+| `dependency` | Resource dependency | v1.0 (planned) |
 
+### External Actor
+
+An External Actor represents an endpoint outside the system (e.g., Internet).
+
+```json
+{
+  "id": "ext-internet",
+  "name": "Internet",
+  "type": "internet"
+}
+```
+
+External Actors can be used as a source or target of a Connection, but are not Plates or Blocks.
+
+> **v0.1 supports `dataflow` only.** EventFlow and Dependency are planned for v1.0.
 ---
 
 ## Policy Model
