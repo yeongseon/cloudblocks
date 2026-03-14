@@ -79,17 +79,28 @@ export function ConnectionLine({
     return curve.getPoints(30);
   }, [sourcePos, targetPos, midPos]);
 
-  if (!curvePoints) return null;
-
   const geometry = useMemo(() => {
+    if (!curvePoints) return null;
     const geo = new THREE.BufferGeometry().setFromPoints(curvePoints);
     return geo;
   }, [curvePoints]);
 
+  const lineMaterial = useMemo(
+    () => new THREE.LineBasicMaterial({ color: '#ff6b6b' }),
+    []
+  );
+
+  const lineObject = useMemo(() => {
+    if (!geometry) return null;
+    return new THREE.Line(geometry, lineMaterial);
+  }, [geometry, lineMaterial]);
+
+  if (!lineObject) return null;
+
   return (
     <group>
       {/* Connection line */}
-      <primitive object={new THREE.Line(geometry, new THREE.LineBasicMaterial({ color: '#ff6b6b' }))} />
+      <primitive object={lineObject} />
 
       {/* Arrow head at target */}
       {targetPos && (

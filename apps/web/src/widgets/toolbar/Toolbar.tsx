@@ -58,6 +58,17 @@ export function Toolbar() {
     loadFromStorage();
   };
 
+  const handleExport = () => {
+    const json = JSON.stringify(architecture, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'architecture.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleReset = () => {
     if (confirm('Reset workspace? All unsaved changes will be lost.')) {
       resetWorkspace();
@@ -132,6 +143,9 @@ export function Toolbar() {
         </button>
         <button className="toolbar-btn" onClick={handleLoad} title="Load Workspace">
           📂 Load
+        </button>
+        <button className="toolbar-btn" onClick={handleExport} title="Export architecture.json">
+          📤 Export
         </button>
         <button className="toolbar-btn" onClick={handleReset} title="Reset Workspace">
           🔄 Reset

@@ -9,8 +9,10 @@ export function PropertiesPanel() {
     (s) => s.workspace.architecture
   );
   const removeBlock = useArchitectureStore((s) => s.removeBlock);
+  const moveBlock = useArchitectureStore((s) => s.moveBlock);
   const removePlate = useArchitectureStore((s) => s.removePlate);
   const removeConnection = useArchitectureStore((s) => s.removeConnection);
+  const plates = useArchitectureStore((s) => s.workspace.architecture.plates);
 
   if (!showProperties || !selectedId) return null;
 
@@ -70,6 +72,41 @@ export function PropertiesPanel() {
           >
             🗑️ Delete Block
           </button>
+
+          {(() => {
+            const targetPlates = plates.filter(
+              (p) => p.type === 'subnet' && p.id !== block.placementId
+            );
+            if (targetPlates.length === 0) return null;
+
+            return (
+              <div style={{ marginTop: '8px' }}>
+                <label style={{ fontSize: '11px', color: '#999', display: 'block', marginBottom: '4px' }}>
+                  Move to:
+                </label>
+                <select
+                  onChange={(e) => {
+                    if (e.target.value) moveBlock(block.id, e.target.value);
+                  }}
+                  defaultValue=""
+                  style={{
+                    width: '100%',
+                    padding: '4px 6px',
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    border: '1px solid #444',
+                    borderRadius: '3px',
+                    color: '#e0e0e0',
+                    fontSize: '12px',
+                  }}
+                >
+                  <option value="" disabled>Select plate...</option>
+                  {targetPlates.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+            );
+          })()}
         </div>
       )}
 

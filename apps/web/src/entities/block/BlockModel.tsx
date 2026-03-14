@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import type { ThreeEvent } from '@react-three/fiber';
+import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import type { Block, Plate } from '../../shared/types/index';
 import { BLOCK_COLORS, DEFAULT_BLOCK_SIZE } from '../../shared/types/index';
@@ -142,6 +143,29 @@ export function BlockModel({ block, parentPlate }: BlockModelProps) {
           />
         </mesh>
       )}
+
+      <Html
+        position={[0, DEFAULT_BLOCK_SIZE.height / 2 + 0.3, 0]}
+        center
+        distanceFactor={10}
+        style={{ pointerEvents: 'none' }}
+      >
+        <div
+          style={{
+            color: '#e0e0e0',
+            fontSize: '10px',
+            fontFamily: "'Segoe UI', system-ui, sans-serif",
+            fontWeight: 500,
+            background: 'rgba(0, 0, 0, 0.5)',
+            padding: '1px 5px',
+            borderRadius: '2px',
+            whiteSpace: 'nowrap',
+            userSelect: 'none',
+          }}
+        >
+          {block.name}
+        </div>
+      </Html>
     </group>
   );
 }

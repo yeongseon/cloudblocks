@@ -13,8 +13,8 @@ export function SceneCanvas() {
   const setSelectedId = useUIStore((s) => s.setSelectedId);
 
   return (
-    <Canvas
-      camera={{ position: [10, 10, 10], fov: 50 }}
+      <Canvas
+      camera={{ position: [12, 12, 12], fov: 50 }}
       shadows
       style={{ background: '#1a1a2e' }}
       onPointerMissed={() => setSelectedId(null)}
@@ -30,11 +30,11 @@ export function SceneCanvas() {
 
       <OrbitControls
         makeDefault
+        enableRotate={false}
         enableDamping
         dampingFactor={0.1}
         minDistance={3}
         maxDistance={30}
-        maxPolarAngle={Math.PI / 2.1}
       />
 
       {/* Ground grid */}

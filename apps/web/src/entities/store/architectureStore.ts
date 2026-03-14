@@ -6,6 +6,7 @@ import type {
   Connection,
   Plate,
   PlateType,
+  Position,
   SubnetAccess,
   ValidationResult,
   Workspace,
@@ -62,6 +63,28 @@ function createDefaultWorkspace(): Workspace {
 
 function touchModel(model: ArchitectureModel): ArchitectureModel {
   return { ...model, updatedAt: new Date().toISOString() };
+}
+
+const GRID_CELL = 1.5;
+
+function snapToGrid(val: number): number {
+  return Math.round(val / GRID_CELL) * GRID_CELL;
+}
+
+function nextGridPosition(
+  existingBlocks: Block[],
+  plateSize: { width: number; depth: number }
+): Position {
+  const maxCols = Math.max(1, Math.floor((plateSize.width - 1) / GRID_CELL));
+  const index = existingBlocks.length;
+  const col = index % maxCols;
+  const row = Math.floor(index / maxCols);
+
+  return {
+    x: snapToGrid(-plateSize.width / 2 + GRID_CELL / 2 + 0.5 + col * GRID_CELL),
+    y: 0.5,
+    z: snapToGrid(-plateSize.depth / 2 + GRID_CELL / 2 + 0.5 + row * GRID_CELL),
+  };
 }
 
 export const useArchitectureStore = create<ArchitectureState>((set, get) => ({
@@ -204,11 +227,7 @@ export const useArchitectureStore = create<ArchitectureState>((set, get) => ({
         name,
         category,
         placementId,
-        position: {
-          x: existingBlocksOnPlate.length * 1.5,
-          y: 0.5,
-          z: 0,
-        },
+        position: nextGridPosition(existingBlocksOnPlate, plate.size),
         metadata: {},
       };
 

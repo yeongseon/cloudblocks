@@ -1,5 +1,6 @@
 import { useRef, useState, type ReactNode } from 'react';
 import type { ThreeEvent } from '@react-three/fiber';
+import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import type { Plate } from '../../shared/types/index';
 import { PLATE_COLORS, SUBNET_ACCESS_COLORS } from '../../shared/types/index';
@@ -79,6 +80,7 @@ export function PlateModel({ plate }: PlateModelProps) {
 
       {/* Label */}
       <PlateLabel
+        name={plate.name}
         width={plate.size.width}
         height={plate.size.height}
       />
@@ -120,16 +122,39 @@ function generateStuds(
 }
 
 function PlateLabel({
+  name,
   width,
   height,
 }: {
+  name: string;
   width: number;
   height: number;
 }) {
   return (
-    <mesh position={[0, height / 2 + 0.2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-      <planeGeometry args={[Math.min(width * 0.8, 4), 0.4]} />
-      <meshBasicMaterial color="#333333" transparent opacity={0.8} />
-    </mesh>
+    <Html
+      position={[0, height / 2 + 0.15, 0]}
+      center
+      distanceFactor={10}
+      style={{ pointerEvents: 'none' }}
+    >
+      <div
+        style={{
+          color: '#ffffff',
+          fontSize: '13px',
+          fontFamily: "'Segoe UI', system-ui, sans-serif",
+          fontWeight: 600,
+          background: 'rgba(0, 0, 0, 0.6)',
+          padding: '2px 8px',
+          borderRadius: '3px',
+          whiteSpace: 'nowrap',
+          userSelect: 'none',
+          maxWidth: `${Math.max(80, Math.min(width * 42, 220))}px`,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+        }}
+      >
+        {name}
+      </div>
+    </Html>
   );
 }

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { BlockCategory } from '../../shared/types/index';
 import { BLOCK_COLORS } from '../../shared/types/index';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
@@ -22,12 +23,14 @@ export function BlockPalette() {
   const addBlock = useArchitectureStore((s) => s.addBlock);
   const plates = useArchitectureStore((s) => s.workspace.architecture.plates);
   const selectedId = useUIStore((s) => s.selectedId);
+  const [explicitTarget, setExplicitTarget] = useState<string | null>(null);
 
   if (!showBlockPalette) return null;
 
   const subnetPlates = plates.filter((p) => p.type === 'subnet');
-  const targetPlateId = subnetPlates.find((p) => p.id === selectedId)?.id
-    ?? subnetPlates[0]?.id;
+  const targetPlateId = explicitTarget && subnetPlates.find((p) => p.id === explicitTarget)
+    ? explicitTarget
+    : subnetPlates.find((p) => p.id === selectedId)?.id ?? subnetPlates[0]?.id;
 
   const handleAddBlock = (category: BlockCategory) => {
     if (!targetPlateId) {
@@ -41,6 +44,33 @@ export function BlockPalette() {
   return (
     <div className="block-palette">
       <h3 className="palette-title">🧱 Blocks</h3>
+
+      {subnetPlates.length > 1 && (
+        <div className="palette-target-selector">
+          <label style={{ fontSize: '11px', color: '#999', display: 'block', marginBottom: '4px' }}>
+            Target Plate:
+          </label>
+          <select
+            value={targetPlateId ?? ''}
+            onChange={(e) => setExplicitTarget(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '4px 6px',
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid #444',
+              borderRadius: '3px',
+              color: '#e0e0e0',
+              fontSize: '12px',
+              marginBottom: '8px',
+            }}
+          >
+            {subnetPlates.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <div className="palette-items">
         {PALETTE_ITEMS.map((item) => (
           <button
