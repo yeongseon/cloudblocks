@@ -2,9 +2,55 @@
 
 This document defines the system architecture for the CloudBlocks Platform.
 
-CloudBlocks enables users to visually construct cloud architecture using a **2.5D isometric interface**. The platform validates designs against architectural rules and will generate deployable infrastructure code (Terraform, Bicep, Pulumi) in future versions. The long-term architecture follows a **Git-native** model where GitHub repos serve as the primary data store.
+CloudBlocks is an **Architecture Compiler** — it enables users to visually construct cloud architecture using a **2.5D isometric interface**, validates designs against architectural rules, and generates deployable infrastructure code (Terraform, Bicep, Pulumi). The long-term architecture follows a **Git-native** model where GitHub repos serve as the primary data store.
 
 > **Technical approach**: CloudBlocks is a **2D-first editor with 2.5D rendering**, rather than a full 3D engine. The internal model is a 2D coordinate system with containment hierarchy. The rendering layer projects this into an isometric view using React Three Fiber.
+
+---
+
+## Architecture Compiler — Core Concept
+
+CloudBlocks introduces an intermediate **architecture model layer** between visual diagrams and infrastructure code. This distinguishes it from diagram tools (draw.io) and direct IaC authoring (Terraform).
+
+```
+UI Builder
+    ↓
+Architecture Model (CloudBlocks DSL)
+    ↓
+Rule Engine
+    ↓
+Generator
+    ↓
+Infrastructure Code (Terraform / Bicep / Pulumi)
+```
+
+The system consists of several subsystems:
+
+| Subsystem | Responsibility | Details |
+|-----------|---------------|---------|
+| **Web Builder** | Visual diagram editing, architecture visualization, rule feedback | This document |
+| **Architecture Model** | Provider-agnostic architecture representation, versioning, serialization | [model.md](./model.md) |
+| **Rule Engine** | Architecture validation, security checks, topology validation | [rules.md](./rules.md) |
+| **Generator** | Infrastructure code generation, provider abstraction | [generator.md](./generator.md) |
+| **Provider Adapters** | Cloud-specific resource mapping | [provider.md](./provider.md) |
+| **Templates** | Reusable architecture starting points | [templates.md](./templates.md) |
+
+### Target Repository Structure
+
+```
+cloudblocks/
+  apps/
+    web/          # Frontend SPA (React + R3F)
+    api/          # Backend API (Python FastAPI)
+  packages/
+    model/        # Architecture model DSL
+    rule-engine/  # Validation rules
+    generator/    # IaC code generator
+    providers/    # Cloud provider adapters
+  docs/
+  templates/
+  examples/
+```
 
 ---
 
