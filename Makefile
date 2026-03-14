@@ -38,7 +38,7 @@ test: ## Run all tests
 
 # ─── Infrastructure ──────────────────────────────────────────
 
-docker-up: ## Start local infrastructure (CUBRID, Redis, MinIO)
+docker-up: ## Start local infrastructure (Redis, MinIO)
 	docker compose up -d
 
 docker-down: ## Stop local infrastructure

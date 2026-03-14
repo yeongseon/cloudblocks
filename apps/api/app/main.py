@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="CloudBlocks API",
-    description="Backend API for CloudBlocks Platform",
+    description="Thin orchestration backend for CloudBlocks Platform",
     version="0.1.0",
 )
 
@@ -27,6 +27,6 @@ async def health_check() -> dict[str, str]:
 
 @app.get("/health/ready")
 async def readiness_check() -> dict[str, str]:
-    """Readiness check - verifies DB and cache connections."""
-    # TODO: Check CUBRID and Redis connections
+    """Readiness check - verifies Redis and GitHub connectivity."""
+    # TODO: Check Redis and GitHub API connectivity
     return {"status": "ready"}

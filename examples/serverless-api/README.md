@@ -14,7 +14,7 @@ Internet → Gateway (API Gateway)
          Private Subnet
            ↓        ↓
      Database    Storage
-     (CUBRID)   (Queue / Blob)
+     (Managed)  (Queue / Blob)
 ```
 
 ## Components
@@ -23,7 +23,7 @@ Internet → Gateway (API Gateway)
 |-------|-----------|--------|-------------|
 | Entry | Gateway | Public | API Gateway / Function proxy |
 | Logic | Compute | Public | Serverless functions / Container Apps |
-| Data | Database | Private | CUBRID for structured data |
+| Data | Database | Private | Managed database for structured data |
 | Data | Storage | Private | Queue storage for async processing |
 
 ## How to Build in CloudBlocks

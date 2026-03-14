@@ -14,7 +14,7 @@ Internet → Gateway (Application Gateway)
          Private Subnet
            ↓        ↓
      Database    Storage
-     (CUBRID)   (Blob Storage)
+     (Managed)  (Blob Storage)
 ```
 
 ## Components
@@ -23,7 +23,7 @@ Internet → Gateway (Application Gateway)
 |-------|-----------|--------|-------------|
 | Frontend | Gateway | Public | Application Gateway / Load Balancer |
 | Application | Compute | Public | VM or Container App instances |
-| Data | Database | Private | CUBRID database server |
+| Data | Database | Private | Managed database server |
 | Data | Storage | Private | Blob storage for static assets |
 
 ## How to Build in CloudBlocks
@@ -38,3 +38,7 @@ Internet → Gateway (Application Gateway)
 8. Connect: Internet → Gateway → Compute → Database
 9. Connect: Compute → Storage
 10. Run **Validate** to confirm the architecture is valid
+
+## Generate Infrastructure Code
+
+After validation, click **Generate** to export Terraform (or Bicep/Pulumi) code for this architecture. The generated code will be committed to your connected GitHub repository.

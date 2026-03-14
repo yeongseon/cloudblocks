@@ -1,1 +1,1 @@
-"""CloudBlocks API - CUBRID database infrastructure."""
+"""CloudBlocks API - Database infrastructure (minimal metadata store)."""

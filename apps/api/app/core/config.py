@@ -13,12 +13,10 @@ class Settings:
     app_port: int = field(default_factory=lambda: int(os.getenv("APP_PORT", "8000")))
     app_debug: bool = field(default_factory=lambda: os.getenv("APP_DEBUG", "true").lower() == "true")
 
-    # CUBRID
-    cubrid_host: str = field(default_factory=lambda: os.getenv("CUBRID_HOST", "localhost"))
-    cubrid_port: int = field(default_factory=lambda: int(os.getenv("CUBRID_PORT", "33000")))
-    cubrid_db: str = field(default_factory=lambda: os.getenv("CUBRID_DB", "cloudblocks"))
-    cubrid_user: str = field(default_factory=lambda: os.getenv("CUBRID_USER", "dba"))
-    cubrid_password: str = field(default_factory=lambda: os.getenv("CUBRID_PASSWORD", ""))
+    # GitHub Integration
+    github_app_id: str = field(default_factory=lambda: os.getenv("GITHUB_APP_ID", ""))
+    github_client_id: str = field(default_factory=lambda: os.getenv("GITHUB_CLIENT_ID", ""))
+    github_client_secret: str = field(default_factory=lambda: os.getenv("GITHUB_CLIENT_SECRET", ""))
 
     # Redis
     redis_host: str = field(default_factory=lambda: os.getenv("REDIS_HOST", "localhost"))
@@ -34,6 +32,10 @@ class Settings:
     storage_access_key: str = field(default_factory=lambda: os.getenv("STORAGE_ACCESS_KEY", "minioadmin"))
     storage_secret_key: str = field(default_factory=lambda: os.getenv("STORAGE_SECRET_KEY", "minioadmin"))
     storage_bucket: str = field(default_factory=lambda: os.getenv("STORAGE_BUCKET", "cloudblocks"))
+
+    # Supabase (auth metadata)
+    supabase_url: str = field(default_factory=lambda: os.getenv("SUPABASE_URL", ""))
+    supabase_anon_key: str = field(default_factory=lambda: os.getenv("SUPABASE_ANON_KEY", ""))
 
 
 settings = Settings()

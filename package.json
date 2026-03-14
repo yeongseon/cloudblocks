@@ -11,7 +11,7 @@
     "preview": "pnpm --filter @cloudblocks/web preview",
     "clean": "pnpm -r exec rm -rf node_modules dist .turbo"
   },
-  "keywords": ["cloud", "architecture", "3d", "visualization", "cubrid"],
+  "keywords": ["cloud", "architecture", "3d", "visualization", "terraform", "infrastructure-as-code"],
   "author": "yeongseon",
   "license": "MIT",
   "engines": {

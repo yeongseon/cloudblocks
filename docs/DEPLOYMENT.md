@@ -1,8 +1,8 @@
-# CloudBlocks - Deployment Guide
+# CloudBlocks — Deployment Guide
 
 ## Overview
 
-This guide covers deploying CloudBlocks to production environments. The platform uses a **containerized architecture** deployable to Azure (primary), AWS, or GCP.
+CloudBlocks is designed for **lightweight deployment** with minimal infrastructure. The frontend is a static SPA, and the backend is a thin orchestration layer — no heavy database servers required.
 
 ## Local Development
 
@@ -11,7 +11,7 @@ This guide covers deploying CloudBlocks to production environments. The platform
 - Node.js >= 20
 - Python >= 3.10
 - pnpm >= 9
-- Docker & Docker Compose
+- Docker & Docker Compose (optional, for backend services)
 
 ### Quick Start
 
@@ -21,10 +21,10 @@ git clone https://github.com/yeongseon/cloudblocks.git
 cd cloudblocks
 make install
 
-# Start infrastructure (CUBRID, Redis, MinIO)
-make docker-up
+# Start frontend dev server (no backend needed for v0.1)
+cd apps/web && pnpm dev
 
-# Start development servers
+# Or use Makefile
 make dev
 ```
 
@@ -33,14 +33,44 @@ make dev
 | Service | URL |
 |---------|-----|
 | Frontend | http://localhost:5173 |
-| Backend API | http://localhost:8000 |
+| Backend API (v0.5+) | http://localhost:8000 |
 | API Docs (Swagger) | http://localhost:8000/docs |
-| CUBRID Manager | http://localhost:8001 |
-| MinIO Console | http://localhost:9001 |
 
-## Docker Deployment
+## Architecture
 
-### Build Images
+```
+Static Frontend (SPA)
+     ↓
+Backend API (Thin Orchestration Layer)
+     ↓
+┌─────────────┬──────────────┬──────────────┐
+│ Supabase/PG │ Redis/Upstash│ GitHub API   │
+│ (metadata)  │ (cache/queue)│ (data store) │
+└─────────────┴──────────────┴──────────────┘
+```
+
+## Deployment Options
+
+### Option 1: Frontend Only (v0.1)
+
+Deploy the frontend as a static site. No backend needed.
+
+```bash
+# Build
+cd apps/web && pnpm build
+
+# Output in apps/web/dist/
+# Deploy to any static host:
+# - Vercel
+# - Netlify
+# - GitHub Pages
+# - Cloudflare Pages
+# - S3 + CloudFront
+```
+
+### Option 2: Full Stack (v0.5+)
+
+#### Docker Deployment
 
 ```bash
 # Build frontend
@@ -48,29 +78,55 @@ docker build -t cloudblocks-web -f infra/docker/web.Dockerfile .
 
 # Build backend
 docker build -t cloudblocks-api -f infra/docker/api.Dockerfile .
+
+# Start all services
+docker compose up -d
 ```
 
-### Production Compose
+#### docker-compose.yml Services
 
-```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+| Service | Purpose |
+|---------|---------|
+| `web` | Frontend SPA (nginx) |
+| `api` | Backend API (FastAPI) |
+| `redis` | Cache, rate limiting, job queue |
+
+> Note: PostgreSQL is provided by Supabase (hosted) or can be added as a Docker service for self-hosting.
+
+### Option 3: Cloud Deployment
+
+#### Recommended Stack
+
+| Component | Service | Cost |
+|-----------|---------|------|
+| Frontend | Vercel / Cloudflare Pages | Free |
+| Backend API | Railway / Fly.io / Cloud Run | ~$5/mo |
+| Metadata DB | Supabase (free tier) | Free |
+| Cache | Upstash Redis (free tier) | Free |
+| Data Store | GitHub (user repos) | Free |
+
+**Total initial cost: $0 – $5/month**
+
+#### Vercel + Supabase + Upstash (Recommended)
+
+```
+Frontend (Vercel)
+     ↓
+Backend API (Railway / Fly.io)
+     ↓
+┌──────────────┬──────────────┬──────────────┐
+│ Supabase     │ Upstash      │ GitHub API   │
+│ (Postgres)   │ (Redis)      │              │
+└──────────────┴──────────────┴──────────────┘
 ```
 
-## Azure Deployment (v0.5+)
+1. Deploy frontend to Vercel (auto-deploy from GitHub)
+2. Deploy backend to Railway or Fly.io
+3. Create Supabase project (free tier: 500MB DB)
+4. Create Upstash Redis (free tier: 10K commands/day)
+5. Configure GitHub App for OAuth + repo integration
 
-### Architecture
-
-```
-Azure Resource Group: rg-cloudblocks
-├── Azure Container Apps (Frontend)
-├── Azure Container Apps (Backend API)
-├── Azure Database for CUBRID (or VM-hosted)
-├── Azure Cache for Redis
-├── Azure Blob Storage
-└── Azure Container Registry
-```
-
-### Terraform Deployment
+#### Terraform Deployment (Self-Hosted)
 
 ```bash
 cd infra/terraform/environments/production
@@ -85,29 +141,53 @@ terraform plan -var-file="terraform.tfvars"
 terraform apply -var-file="terraform.tfvars"
 ```
 
-### Required Azure Resources
-
-1. **Resource Group**: `rg-cloudblocks`
-2. **Container Registry**: For Docker images
-3. **Container Apps Environment**: For frontend + backend
-4. **Virtual Machine**: For CUBRID (no managed service available)
-5. **Redis Cache**: Standard tier
-6. **Storage Account**: Blob storage for assets
-
 ## Environment Variables
 
-See `.env.example` for all required environment variables.
+### Frontend (.env)
 
-### Production Secrets (must be set via secret manager)
+```bash
+VITE_API_URL=http://localhost:8000
+VITE_GITHUB_APP_CLIENT_ID=your_github_app_client_id
+```
 
-- `JWT_SECRET`: Strong random string for JWT signing
-- `CUBRID_PASSWORD`: Database password
-- `REDIS_PASSWORD`: Redis password
-- `STORAGE_SECRET_KEY`: Object storage secret
+### Backend (.env)
+
+```bash
+# Server
+HOST=0.0.0.0
+PORT=8000
+ENVIRONMENT=production
+
+# Auth
+JWT_SECRET=your-strong-random-string
+GITHUB_APP_ID=your_github_app_id
+GITHUB_APP_CLIENT_ID=your_github_app_client_id
+GITHUB_APP_CLIENT_SECRET=your_github_app_client_secret
+GITHUB_APP_PRIVATE_KEY_PATH=/path/to/private-key.pem
+
+# Metadata DB (Supabase / Postgres)
+DATABASE_URL=postgresql://user:pass@host:5432/cloudblocks
+
+# Cache (Redis / Upstash)
+REDIS_URL=redis://localhost:6379
+# Or for Upstash:
+# UPSTASH_REDIS_REST_URL=https://your-instance.upstash.io
+# UPSTASH_REDIS_REST_TOKEN=your_token
+```
+
+### Production Secrets (set via secret manager)
+
+| Secret | Description |
+|--------|-------------|
+| `JWT_SECRET` | Strong random string for JWT signing |
+| `GITHUB_APP_CLIENT_SECRET` | GitHub App OAuth secret |
+| `GITHUB_APP_PRIVATE_KEY` | GitHub App private key (PEM) |
+| `DATABASE_URL` | Postgres connection string |
+| `REDIS_URL` | Redis connection string |
 
 ## CI/CD Pipeline
 
-### GitHub Actions (planned)
+### GitHub Actions
 
 ```yaml
 # .github/workflows/deploy.yml
@@ -117,26 +197,43 @@ on:
 
 jobs:
   test:
-    - lint + type-check
-    - unit tests
-    - integration tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+      - run: pnpm install
+      - run: pnpm -r build
+      - run: pnpm -r test
 
-  build:
-    - build Docker images
-    - push to container registry
+  deploy-frontend:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
 
-  deploy:
-    - terraform apply
-    - rolling update containers
+  deploy-backend:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: railway up --service api
 ```
+
+## Health Checks
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /health` | Basic health check |
+| `GET /health/ready` | Readiness (DB + Redis + GitHub API) |
 
 ## Monitoring
 
-### Health Checks
-
-- `GET /health` — Basic health check
-- `GET /health/ready` — Readiness (DB + Redis connected)
-
-### Logs
-
 Application logs are written to stdout/stderr and collected by the container platform's logging driver.
+
+Recommended monitoring:
+- **Uptime**: Better Uptime / UptimeRobot (free tier)
+- **Errors**: Sentry (free tier: 5K events/month)
+- **Metrics**: Supabase dashboard (built-in)

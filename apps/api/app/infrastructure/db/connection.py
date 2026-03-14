@@ -1,30 +1,35 @@
-"""CloudBlocks API - CUBRID connection pool."""
+"""CloudBlocks API - Database connection for minimal metadata store.
+
+This module provides a lightweight connection layer for the metadata database.
+CloudBlocks uses a Git-native architecture where GitHub repos serve as the
+primary data store. This database only stores minimal metadata:
+  - User / identity records
+  - Workspace index (pointers to GitHub repos)
+  - Generation run status
+  - Audit summary
+"""
 
 
-class CubridPool:
-    """Connection pool for CUBRID database.
+class MetadataDB:
+    """Connection manager for the minimal metadata database.
 
-    Uses the pycubrid driver to manage connections.
-    This is the custom ORM layer since no existing ORM supports CUBRID.
+    Uses SQLite for local development and Supabase (PostgreSQL) for production.
+    This is intentionally thin — most data lives in GitHub repos.
     """
 
-    def __init__(self, host: str, port: int, db: str, user: str, password: str) -> None:
-        self.host = host
-        self.port = port
-        self.db = db
-        self.user = user
-        self.password = password
-        self._pool: list = []  # TODO: Implement connection pooling
+    def __init__(self, database_url: str = "sqlite:///cloudblocks.db") -> None:
+        self.database_url = database_url
+        self._connected = False
 
     async def connect(self) -> None:
-        """Initialize the connection pool."""
-        # TODO: Implement with pycubrid
-        pass
+        """Initialize the database connection."""
+        # TODO: Implement with aiosqlite (dev) or asyncpg (prod)
+        self._connected = True
 
     async def disconnect(self) -> None:
-        """Close all connections in the pool."""
+        """Close the database connection."""
         # TODO: Implement
-        pass
+        self._connected = False
 
     async def execute(self, query: str, params: tuple = ()) -> list:
         """Execute a SQL query and return results."""

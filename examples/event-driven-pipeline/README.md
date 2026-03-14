@@ -14,7 +14,7 @@ Internet → Gateway (Event Ingestion)
          Private Subnet
            ↓        ↓
      Database    Storage
-     (CUBRID)   (Event Store / Blob)
+     (Managed)  (Event Store / Blob)
 ```
 
 ## Components
@@ -23,7 +23,7 @@ Internet → Gateway (Event Ingestion)
 |-------|-----------|--------|-------------|
 | Ingestion | Gateway | Public | Event ingestion endpoint |
 | Processing | Compute | Public | Stream processor / event handler |
-| Persistence | Database | Private | CUBRID for processed results |
+| Persistence | Database | Private | Managed database for processed results |
 | Persistence | Storage | Private | Raw event archive / blob storage |
 
 ## How to Build in CloudBlocks

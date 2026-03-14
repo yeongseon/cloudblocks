@@ -1,96 +1,159 @@
-# CloudBlocks - API Specification
+# CloudBlocks — API Specification
 
 ## Overview
 
-The CloudBlocks API is a **RESTful API** built with Python FastAPI, following Clean Architecture principles. It provides backend services for workspace management, scenario-based learning, and cloud deployment.
+The CloudBlocks API is a **thin orchestration backend** built with Python FastAPI. It handles authentication, code generation orchestration, and GitHub integration — but does NOT store architecture data.
 
 **Base URL**: `/api/v1`
 
+**Design Principle**: The backend is a workflow orchestrator, not a CRUD service. Architecture data lives in GitHub repos.
+
 ## Authentication
 
-JWT-based authentication with httpOnly cookies.
+GitHub App OAuth with JWT session tokens.
 
 ```
-POST /api/v1/auth/register    → Create account
-POST /api/v1/auth/login       → Get JWT token
-POST /api/v1/auth/logout      → Invalidate token
-POST /api/v1/auth/refresh     → Refresh JWT token
-GET  /api/v1/auth/me          → Current user info
+POST /api/v1/auth/github           → Start GitHub OAuth flow
+GET  /api/v1/auth/github/callback  → GitHub OAuth callback
+POST /api/v1/auth/logout           → Invalidate session
+GET  /api/v1/auth/me               → Current user info
+POST /api/v1/auth/refresh          → Refresh JWT token
+```
+
+### Auth Flow
+
+```
+1. User clicks "Sign in with GitHub"
+2. Frontend redirects to GitHub OAuth (via GitHub App)
+3. GitHub redirects back with auth code
+4. Backend exchanges code for access token
+5. Backend creates/updates user in metadata DB
+6. Backend returns JWT session token
+7. Frontend stores JWT (httpOnly cookie)
 ```
 
 ## API Endpoints
 
-### Workspaces
+### Projects
+
+Projects link a CloudBlocks workspace to a GitHub repo. Project metadata is stored in the metadata DB; architecture data is in GitHub.
 
 ```
-GET    /api/v1/workspaces              → List user's workspaces
-POST   /api/v1/workspaces              → Create workspace
-GET    /api/v1/workspaces/:id          → Get workspace details
-PUT    /api/v1/workspaces/:id          → Update workspace
-DELETE /api/v1/workspaces/:id          → Delete workspace
-POST   /api/v1/workspaces/:id/validate → Validate architecture
-POST   /api/v1/workspaces/:id/export   → Export as Terraform
+GET    /api/v1/projects              → List user's projects
+POST   /api/v1/projects              → Create project (+ optional GitHub repo)
+GET    /api/v1/projects/:id          → Get project details
+PUT    /api/v1/projects/:id          → Update project settings
+DELETE /api/v1/projects/:id          → Delete project
 ```
 
-### Scenarios
+### Code Generation
+
+Generate infrastructure code from architecture. The backend reads `architecture.json` from GitHub, runs the generator, and commits the output back.
 
 ```
-GET    /api/v1/scenarios               → List available scenarios
-GET    /api/v1/scenarios/:id           → Get scenario details
-POST   /api/v1/scenarios/:id/start     → Start scenario (create workspace from template)
-POST   /api/v1/scenarios/:id/submit    → Submit solution for evaluation
-GET    /api/v1/scenarios/:id/hint      → Get scenario hint
+POST   /api/v1/projects/:id/generate    → Trigger code generation
+GET    /api/v1/projects/:id/generate/:runId  → Get generation status
+GET    /api/v1/projects/:id/preview     → Preview generated code (no commit)
 ```
 
-### Learning Progress
+### GitHub Integration
+
+Manage GitHub repository connections and sync.
 
 ```
-GET    /api/v1/progress                → Get all progress for current user
-GET    /api/v1/progress/:scenario_id   → Get progress for specific scenario
+GET    /api/v1/github/repos             → List user's GitHub repos
+POST   /api/v1/github/repos             → Create new GitHub repo
+POST   /api/v1/projects/:id/sync        → Sync architecture to GitHub
+POST   /api/v1/projects/:id/pull        → Pull latest from GitHub
+POST   /api/v1/projects/:id/pr          → Create PR with changes
+GET    /api/v1/projects/:id/commits     → List recent commits
 ```
 
-### Deployments (v0.5+)
+### Validation
+
+Validate architecture against rules. Can run client-side or server-side.
 
 ```
-POST   /api/v1/deployments             → Create deployment from workspace
-GET    /api/v1/deployments/:id         → Get deployment status
-GET    /api/v1/deployments/:id/logs    → Get deployment logs
-DELETE /api/v1/deployments/:id         → Destroy deployment
+POST   /api/v1/validate                 → Validate architecture
+```
+
+### Templates
+
+Browse and use architecture templates.
+
+```
+GET    /api/v1/templates                → List available templates
+GET    /api/v1/templates/:id            → Get template details
+POST   /api/v1/templates/:id/use        → Create project from template
 ```
 
 ## Request/Response Formats
 
-### Create Workspace
+### Create Project
 
 **Request:**
 ```json
 {
   "name": "My 3-Tier App",
-  "description": "Learning three-tier architecture"
+  "generator": "terraform",
+  "provider": "azure",
+  "githubRepo": "user/my-infra"
 }
 ```
 
 **Response (201):**
 ```json
 {
-  "id": "ws-a1b2c3d4",
+  "id": "proj-a1b2c3d4",
   "name": "My 3-Tier App",
-  "description": "Learning three-tier architecture",
-  "architecture": {
-    "id": "arch-e5f6g7h8",
-    "name": "Untitled",
-    "version": "1",
-    "plates": [],
-    "blocks": [],
-    "connections": [],
-    "externalActors": [
-      { "id": "ext-internet", "name": "Internet", "type": "internet" }
-    ],
-    "createdAt": "2025-01-01T00:00:00Z",
-    "updatedAt": "2025-01-01T00:00:00Z"
-  },
+  "generator": "terraform",
+  "provider": "azure",
+  "githubRepo": "user/my-infra",
+  "githubBranch": "main",
   "createdAt": "2025-01-01T00:00:00Z",
   "updatedAt": "2025-01-01T00:00:00Z"
+}
+```
+
+### Trigger Code Generation
+
+**Request:**
+```json
+{
+  "generator": "terraform",
+  "provider": "azure",
+  "commitMessage": "Update 3-tier architecture",
+  "createPR": true,
+  "branch": "feature/update-arch"
+}
+```
+
+**Response (202):**
+```json
+{
+  "runId": "run-e5f6g7h8",
+  "status": "queued",
+  "message": "Generation job queued"
+}
+```
+
+### Generation Status
+
+**Response (200):**
+```json
+{
+  "runId": "run-e5f6g7h8",
+  "status": "succeeded",
+  "generator": "terraform",
+  "commitSha": "abc123def456",
+  "files": [
+    "infra/terraform/main.tf",
+    "infra/terraform/variables.tf",
+    "infra/terraform/outputs.tf"
+  ],
+  "pullRequestUrl": "https://github.com/user/my-infra/pull/1",
+  "startedAt": "2025-01-01T00:00:01Z",
+  "completedAt": "2025-01-01T00:00:05Z"
 }
 ```
 
@@ -119,8 +182,8 @@ All errors follow a consistent format:
 ```json
 {
   "error": {
-    "code": "WORKSPACE_NOT_FOUND",
-    "message": "Workspace with id 'ws-abc123' not found",
+    "code": "PROJECT_NOT_FOUND",
+    "message": "Project with id 'proj-abc123' not found",
     "details": {}
   }
 }
@@ -136,10 +199,20 @@ All errors follow a consistent format:
 | `NOT_FOUND` | 404 | Resource not found |
 | `CONFLICT` | 409 | Resource already exists |
 | `RATE_LIMITED` | 429 | Too many requests |
+| `GITHUB_ERROR` | 502 | GitHub API error |
+| `GENERATION_FAILED` | 500 | Code generation failed |
 | `INTERNAL_ERROR` | 500 | Server error |
 
 ## Rate Limiting
 
 - **Authenticated**: 100 requests/minute
 - **Unauthenticated**: 20 requests/minute
-- **Deployments**: 5 requests/hour
+- **Code Generation**: 10 requests/hour
+- **GitHub Sync**: 30 requests/hour
+
+## Health Checks
+
+```
+GET /health        → Basic health check
+GET /health/ready  → Readiness (DB + GitHub API connected)
+```

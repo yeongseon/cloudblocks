@@ -1,6 +1,6 @@
 # CloudBlocks API
 
-Backend API for the CloudBlocks Platform, built with Python FastAPI following Clean Architecture.
+Thin orchestration backend for the CloudBlocks Platform, built with Python FastAPI following Clean Architecture.
 
 ## Quick Start
 
@@ -20,6 +20,8 @@ ruff check .
 
 ## Architecture
 
+The backend is a **thin orchestration layer** — it mediates between the UI, GitHub, and the code generation engine. It does NOT store architecture specs or generated code (those live in GitHub repos).
+
 ```
 app/
 ├── main.py                  # FastAPI application entry point
@@ -28,7 +30,7 @@ app/
 ├── domain/models/           # Domain entities and repository interfaces
 ├── application/use_cases/   # Business logic use cases
 ├── infrastructure/          # External service implementations
-│   ├── db/                  # CUBRID database (custom ORM)
+│   ├── db/                  # Minimal metadata store (SQLite / Supabase)
 │   ├── cache/               # Redis cache
 │   ├── queue/               # Job queue
 │   ├── storage/             # Object storage (S3)
@@ -36,3 +38,18 @@ app/
 ├── engines/                 # Rule validation engine
 └── tests/                   # Unit and integration tests
 ```
+
+## What the Backend Does
+
+- **Auth / Identity** — GitHub App OAuth, Google OAuth
+- **Generator Orchestrator** — Validate → Transform → Generate IaC code
+- **GitHub Integration** — Commit, branch, PR creation
+- **Job Runner** — Async generation and validation tasks
+- **Minimal Metadata DB** — User, workspace index, run status, audit
+
+## What the Backend Does NOT Store
+
+- Architecture specs (→ GitHub repo)
+- Generated Terraform/Bicep/Pulumi (→ GitHub repo)
+- Templates (→ GitHub repo)
+- Full logs (→ GitHub repo or blob storage)

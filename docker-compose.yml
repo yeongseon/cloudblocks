@@ -1,23 +1,6 @@
 version: "3.8"
 
 services:
-  # ─── CUBRID Database ────────────────────────────────────────
-  cubrid:
-    image: cubrid/cubrid:11.2
-    container_name: cloudblocks-cubrid
-    ports:
-      - "33000:33000"
-      - "8001:8001"   # CUBRID Manager
-    environment:
-      CUBRID_DB: cloudblocks
-    volumes:
-      - cubrid-data:/var/lib/cubrid
-    healthcheck:
-      test: ["CMD", "csql", "-u", "dba", "cloudblocks", "-c", "SELECT 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   # ─── Redis (Cache / Session / Queue) ────────────────────────
   redis:
     image: redis:7-alpine
@@ -52,6 +35,5 @@ services:
       retries: 5
 
 volumes:
-  cubrid-data:
   redis-data:
   minio-data:

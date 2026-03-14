@@ -1,8 +1,8 @@
-# CloudBlocks Platform - Domain Model
+# CloudBlocks Platform — Domain Model
 
 This document defines the core domain model used by the CloudBlocks Platform.
 
-The platform represents cloud architecture using a **block-based spatial abstraction model** that allows users to visually construct cloud systems and optionally deploy them to real cloud providers.
+CloudBlocks represents cloud architecture using a **block-based spatial abstraction model**. Users visually construct cloud systems, the platform validates them against architectural rules, and generates deployable infrastructure code (Terraform, Bicep, Pulumi).
 
 ---
 
@@ -16,9 +16,9 @@ Cloud infrastructure is represented as a **spatial block model** composed of:
 - Rules (Compatibility constraints)
 - External Actors (External endpoints)
 
-This model allows beginners to visually understand cloud architecture.
+This model provides a visual abstraction that maps directly to real cloud resources and IaC constructs.
 
-> **교육 단순화 기준**: 이 모델은 클라우드 아키텍처의 핵심 개념을 교육하기 위한 추상화이다. 실제 클라우드 서비스의 모든 세부사항을 반영하지 않으며, 학습에 필요한 수준으로 단순화한다.
+> **교육 단순화 기준**: MVP에서 Compute는 Subnet 내에 배치되는 리소스(VM, Container App)로 간주한다. App Service와 같이 Subnet 외부에 존재하는 서비스는 향후 확장에서 다룬다.
 
 ---
 
@@ -45,8 +45,8 @@ Network Plate
 
 | Plate | Description |
 |------|-------------|
-| NetworkPlate | Represents a cloud network (VNet / VPC) |
-| SubnetPlate | Represents a subnet within a network (Public or Private) |
+| NetworkPlate | Cloud network (VNet / VPC) |
+| SubnetPlate | Subnet within a network (Public or Private) |
 
 ### Plate Properties
 
@@ -60,16 +60,6 @@ children      — child plate/block IDs
 position      — 3D position {x, y, z}
 size          — dimensions {width, height, depth}
 metadata      — additional properties
-```
-
-Example:
-
-```
-NetworkPlate
-  id: plate-vnet01
-  children:
-    - plate-subnet-public
-    - plate-subnet-private
 ```
 
 ---
@@ -183,8 +173,6 @@ type  — 'internet'
 
 Rules define **compatibility and placement constraints**.
 
-These rules help beginners learn correct architecture patterns.
-
 ### Placement Rules
 
 ```
@@ -205,20 +193,9 @@ Database → Gateway    ❌  (database does not initiate requests to gateway)
 Database → Internet   ❌  (database does not initiate external requests)
 ```
 
-### Rule Example
-
-```
-rule: database_private_subnet
-
-if block.category == database
-and plate.subnetAccess == public
-then ERROR "Database는 Public Subnet에 배치할 수 없습니다"
-suggest "Database를 Private Subnet으로 이동하세요"
-```
-
 ### Rule Specification Format
 
-규칙은 JSON 형식으로 정의된다.
+Rules are defined in JSON:
 
 ```json
 {
@@ -284,51 +261,82 @@ Blocks use **visual characteristics** to communicate function.
 
 ---
 
-# 8. Scenario Model
+# 8. Code Generation Model
 
-Scenarios represent **learning missions**.
+The core value of CloudBlocks — transforming visual architecture into deployable infrastructure code.
 
-Example:
-
-### Scenario
-
-Create a 3-tier architecture
-
-Expected structure:
+### Generation Pipeline
 
 ```
-Internet
+Architecture Model (JSON)
 ↓
-Gateway (Public Subnet)
+Schema Validation
 ↓
-App (Private Subnet)
+Provider Adapter (Azure / AWS / GCP)
 ↓
-Database (Private Subnet)
+Generator Plugin (Terraform / Bicep / Pulumi)
+↓
+Generated Code Output
+↓
+GitHub Commit / PR
 ```
 
-Scenario components:
+### Generator Interface
 
+```typescript
+interface Generator {
+  name: string;
+  version: string;
+  supportedProviders: string[];
+  generate(architecture: ArchitectureModel, options: GeneratorOptions): GeneratedOutput;
+}
+
+interface GeneratorOptions {
+  provider: 'azure' | 'aws' | 'gcp';
+  outputFormat: 'terraform' | 'bicep' | 'pulumi';
+  templateOverrides?: Record<string, unknown>;
+}
+
+interface GeneratedOutput {
+  files: GeneratedFile[];
+  metadata: {
+    generator: string;
+    version: string;
+    provider: string;
+    generatedAt: string;
+  };
+}
+
+interface GeneratedFile {
+  path: string;      // e.g., "main.tf"
+  content: string;   // file content
+  language: string;  // e.g., "hcl", "bicep", "typescript"
+}
 ```
-required_plates
-required_blocks
-required_connections
-validation_rules
+
+### Template Model
+
+Templates are pre-built architecture patterns:
+
+```typescript
+interface Template {
+  id: string;
+  name: string;
+  description: string;
+  category: 'webapp' | 'ai-stack' | 'serverless' | 'data-pipeline';
+  architecture: ArchitectureModel;
+  tags: string[];
+}
 ```
 
 ---
 
 # 9. Provider Abstraction
 
-CloudBlocks uses a **provider abstraction layer**.
-
-Generic blocks map to provider-specific resources.
-
-> 교육 단순화 기준: MVP에서 Compute는 Subnet 내에 배치되는 리소스(VM, Container App)로 간주한다. App Service와 같이 Subnet 외부에 존재하는 서비스는 향후 확장에서 다룬다.
-
-Example:
+CloudBlocks uses a **provider abstraction layer** for multi-cloud support.
 
 | Generic | Azure | AWS | GCP |
-|-------|-------|-----|-----|
+|---------|-------|-----|-----|
 | Network (Plate) | VNet | VPC | VPC |
 | Subnet (Plate) | Subnet | Subnet | Subnet |
 | Compute | VM / Container App | EC2 | Compute Engine |
@@ -339,172 +347,101 @@ Example:
 
 ---
 
-# 10. Deployment Model
+# 10. GitHub Integration Model
 
-The platform converts block architecture into deployable infrastructure.
-
-Pipeline:
+Architecture assets are stored in GitHub repos following a standard layout:
 
 ```
-Visual Model
-↓
-Logical Architecture
-↓
-Provider Adapter
-↓
-Infrastructure Code
-↓
-Cloud Deployment
+my-cloud-project/
+├── cloudblocks/
+│   ├── architecture.json       # Architecture model
+│   ├── schemaVersion           # Schema version
+│   └── generator.lock          # Pinned generator versions
+├── infra/
+│   ├── terraform/
+│   │   ├── main.tf
+│   │   ├── variables.tf
+│   │   └── outputs.tf
+│   ├── bicep/
+│   └── pulumi/
+└── .github/
+    └── workflows/
+        └── plan.yml            # Auto terraform plan on PR
 ```
 
-Supported formats:
+### Git Workflow
 
-- Bicep
-- Terraform
-- ARM (optional)
+```
+Edit architecture in UI
+↓
+Commit to branch
+↓
+Open PR (architecture.json + generated code)
+↓
+CI runs terraform plan
+↓
+Review & merge
+↓
+CD applies infrastructure
+```
 
 ---
 
-# 11. Server-Side Data Model (v0.5+)
+# 11. Workspace Model
 
-v0.5 이상에서 CUBRID 도입 시 사용되는 서버 측 데이터 모델.
-
-### Core Entities
+### Client-Side (v0.1)
 
 ```typescript
-// User account
+interface Workspace {
+  id: string;
+  name: string;
+  architectures: ArchitectureModel[];
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+### Server-Side (v0.5+)
+
+```typescript
+// User identity
 interface User {
   id: string;
   email: string;
   name: string;
+  githubId?: string;
   createdAt: string;
   updatedAt: string;
 }
 
-// Workspace contains architecture models
-interface ServerWorkspace {
+// Project links a workspace to a GitHub repo
+interface Project {
   id: string;
   userId: string;
   name: string;
-  architecture: ArchitectureModel;
+  githubRepo: string;          // e.g., "user/my-cloud-project"
+  githubBranch: string;        // default branch
+  generatorConfig: GeneratorOptions;
   createdAt: string;
   updatedAt: string;
 }
 
-// Learning scenario definition
-interface ScenarioDefinition {
+// Generation run record
+interface GenerationRun {
   id: string;
-  name: string;
-  description: string;
-  requiredStructure: {
-    requiredPlates: string[];
-    requiredBlocks: string[];
-    requiredConnections: string[];
-    validationRules: string[];
-  };
-  createdAt: string;
+  projectId: string;
+  status: 'queued' | 'running' | 'succeeded' | 'failed';
+  generator: string;
+  commitSha?: string;
+  errorMessage?: string;
+  startedAt: string;
+  completedAt?: string;
 }
-
-// Per-user learning progress
-interface LearningProgress {
-  id: string;
-  userId: string;
-  scenarioId: string;
-  status: 'not_started' | 'in_progress' | 'completed';
-  completedAt: string | null;
-}
-
-// Deployment history
-interface DeploymentRecord {
-  id: string;
-  workspaceId: string;
-  provider: 'azure' | 'aws' | 'gcp';
-  status: 'queued' | 'provisioning' | 'succeeded' | 'failed' | 'canceled';
-  infrastructureCode: string | null;
-  logs: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-```
-
-### Repository Pattern
-
-```typescript
-interface UserRepository {
-  findById(id: string): Promise<User>;
-  findByEmail(email: string): Promise<User | null>;
-  save(user: User): Promise<void>;
-}
-
-interface WorkspaceRepository {
-  findById(id: string): Promise<ServerWorkspace>;
-  findByUserId(userId: string): Promise<ServerWorkspace[]>;
-  save(workspace: ServerWorkspace): Promise<void>;
-  delete(id: string): Promise<void>;
-}
-
-interface ScenarioRepository {
-  findAll(): Promise<ScenarioDefinition[]>;
-  findById(id: string): Promise<ScenarioDefinition>;
-}
-
-interface DeploymentRepository {
-  findByWorkspaceId(workspaceId: string): Promise<DeploymentRecord[]>;
-  save(deployment: DeploymentRecord): Promise<void>;
-  updateStatus(id: string, status: string): Promise<void>;
-}
-```
-
-> 이 모델들은 커스텀 ORM을 통해 CUBRID와 매핑된다.
-
----
-
-# 12. Future Domain Extensions
-
-### Serverless Architecture (v1.0)
-
-Add:
-
-- FunctionBlock (Serverless compute)
-- QueueBlock (Messaging services)
-- EventBlock (Event triggers)
-- TimerBlock (Scheduled triggers)
-
-Example:
-
-```
-HTTP → Function → Storage
 ```
 
 ---
 
-### Cloud Simulation (v2.5)
-
-Allow architecture execution simulation.
-
-Example:
-
-```
-request flow visualization
-latency simulation
-failure simulation
-```
-
----
-
-### Physical Block Integration (v3.5)
-
-Future extension allowing IoT-enabled physical blocks.
-
-Example:
-
-```
-Physical Block → Sensor Detection → Cloud Model Update
-```
-
----
-
-# 13. Implementation Schema
+# 12. Implementation Schema
 
 도메인 모델의 구현을 위한 TypeScript 타입 정의.
 
@@ -590,18 +527,6 @@ interface ArchitectureModel {
 }
 ```
 
-## Workspace
-
-```typescript
-interface Workspace {
-  id: string;
-  name: string;
-  architectures: ArchitectureModel[];
-  createdAt: string;
-  updatedAt: string;
-}
-```
-
 ## Serialization Format
 
 아키텍처 모델은 JSON으로 직렬화된다. 버전 필드를 포함하여 향후 스키마 마이그레이션을 지원한다.
@@ -627,9 +552,40 @@ interface Workspace {
 
 ---
 
+# 13. Future Domain Extensions
+
+### Serverless Architecture (v1.0)
+
+Add:
+
+- FunctionBlock (Serverless compute)
+- QueueBlock (Messaging services)
+- EventBlock (Event triggers)
+- TimerBlock (Scheduled triggers)
+
+Example:
+
+```
+HTTP → Function → Storage
+```
+
+---
+
+### Architecture Simulation (v2.5)
+
+Allow architecture execution simulation:
+
+```
+request flow visualization
+latency simulation
+failure simulation
+```
+
+---
+
 # 14. Summary
 
-The CloudBlocks Domain Model provides a **visual abstraction layer for cloud architecture**.
+The CloudBlocks Domain Model provides a **visual abstraction layer for cloud architecture** that maps directly to infrastructure code.
 
 Key concepts:
 
@@ -639,12 +595,14 @@ Block           → Cloud resource (service)
 Connection      → Data/Event flow (initiator direction)
 External Actor  → External endpoint (Internet)
 Rule            → Architecture constraints
-Provider Adapter → Cloud mapping
+Provider Adapter → Cloud-specific resource mapping
+Generator       → IaC code output (Terraform / Bicep / Pulumi)
+Template        → Pre-built architecture patterns
 ```
 
 This model enables:
 
-- Cloud learning
-- Architecture design
-- Infrastructure deployment
+- Visual architecture design
+- Automated code generation
 - Multi-cloud abstraction
+- Git-native workflow integration

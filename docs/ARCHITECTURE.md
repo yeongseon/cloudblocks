@@ -1,29 +1,47 @@
-# CloudBlocks Platform - System Architecture
+# CloudBlocks Platform — System Architecture
 
 This document defines the system architecture for the CloudBlocks Platform.
 
-The platform enables users to visually construct cloud architecture using a block-style interface and optionally deploy the resulting architecture to real cloud environments.
+CloudBlocks enables users to visually construct cloud architecture using a 3D block-style interface and generates deployable infrastructure code (Terraform, Bicep, Pulumi). The platform follows a **Git-native architecture** where GitHub repos serve as the primary data store.
 
 ---
 
 # 1. Architecture Overview
 
-The platform consists of the following major layers:
-
 ```
-Frontend (3D Block Builder)
-│
-Core Modeling Engine
-│
-Rule Engine
-│
-Data Layer (CUBRID + Custom ORM)
-│
-Provider Adapter
-│
-Infrastructure Generator
-│
-Cloud Deployment Engine
+┌────────────────────────────────────────────────────────┐
+│                    Frontend (SPA)                       │
+│   React + TypeScript + React Three Fiber + Zustand     │
+│   ┌──────────┐ ┌──────────┐ ┌────────────────────┐    │
+│   │ 3D Scene │ │ Rule     │ │ Local-First Store   │    │
+│   │ Builder  │ │ Engine   │ │ (IndexedDB/localStorage) │
+│   └──────────┘ └──────────┘ └────────────────────┘    │
+└────────────────────┬───────────────────────────────────┘
+                     │
+                     ▼
+┌────────────────────────────────────────────────────────┐
+│           Backend API (Thin Orchestration Layer)        │
+│                  Python FastAPI                         │
+│   ┌──────┐ ┌───────────┐ ┌────────┐ ┌──────────┐     │
+│   │ Auth │ │ Generator │ │ GitHub │ │ Job      │     │
+│   │      │ │ Orchestr. │ │ Integ. │ │ Runner   │     │
+│   └──────┘ └───────────┘ └────────┘ └──────────┘     │
+│                     │                                   │
+│            ┌────────┴────────┐                         │
+│            │ Metadata DB     │                         │
+│            │ (Supabase/PG)   │                         │
+│            └─────────────────┘                         │
+└────────────────────┬───────────────────────────────────┘
+                     │
+                     ▼
+┌────────────────────────────────────────────────────────┐
+│              External Services                          │
+│   ┌────────────┐  ┌──────────────┐  ┌──────────┐     │
+│   │ GitHub     │  │ GitHub       │  │ Redis /  │     │
+│   │ Repos      │  │ Actions      │  │ Upstash  │     │
+│   │ (Data)     │  │ (CI/CD)      │  │ (Cache)  │     │
+│   └────────────┘  └──────────────┘  └──────────┘     │
+└────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -32,35 +50,50 @@ Cloud Deployment Engine
 
 ## 2.1 Frontend Layer
 
-Responsible for:
+The frontend is a **local-first SPA** that works offline and syncs to GitHub when connected.
 
-- Visual block builder interface
+### Responsibilities
+- 3D block builder interface (React Three Fiber)
 - Drag and drop interaction
-- Block placement on Plates
-- Connection visualization
-- Architecture flow display
+- Architecture validation (in-browser Rule Engine)
+- Local persistence (IndexedDB / localStorage)
+- Code generation preview (client-side for simple cases)
+- GitHub sync UI (commit, branch, PR)
 
 ### Technologies
-
-Recommended stack:
-
-- React
-- TypeScript
-- React Three Fiber
-- Three.js
+- React + TypeScript
+- React Three Fiber + Three.js
 - Zustand (state management)
+- Vite (build tool)
 
-### Frontend Responsibilities
+### Frontend Architecture (Feature-Sliced Design)
 
-- Render Plates and Blocks in 3D
-- Manage scene interactions (drag, drop, select, connect)
-- Validate architecture via Rule Engine
-- Display validation feedback
-- Save/load workspace to local storage
+```
+apps/web/src/
+├── main.tsx
+├── app/                 # App shell
+├── shared/              # Types, utils, storage
+│   ├── types/           # Domain types (Plate, Block, Connection)
+│   └── utils/           # ID generation, storage operations
+├── entities/            # Domain entities
+│   ├── store/           # Zustand architecture store
+│   ├── block/           # Block components
+│   ├── plate/           # Plate components
+│   └── connection/      # Connection components
+├── features/            # Feature modules
+│   ├── validate/        # Validation engine
+│   └── generate/        # Code generation (v0.3)
+└── widgets/             # Composite UI widgets
+    ├── toolbar/
+    ├── block-palette/
+    ├── properties-panel/
+    ├── validation-panel/
+    └── scene-canvas/
+```
 
 ## 2.2 MVP Architecture (v0.1)
 
-v0.1은 **프론트엔드 전용 SPA(Single Page Application)**으로 구현한다.
+v0.1은 **프론트엔드 전용 SPA**로 구현한다. 백엔드 불필요.
 
 ```
 Browser (React + R3F)
@@ -70,107 +103,67 @@ Browser (React + R3F)
 └── Local Storage (workspace persistence)
 ```
 
-백엔드는 v0.1에서 불필요하다. 모든 로직이 클라이언트에서 실행된다.
+## 2.3 Backend Layer (v0.5+) — Thin Orchestration Layer
 
-### v0.1 Component Structure
+The backend is **NOT a heavy CRUD service**. It is a **workflow orchestrator** that mediates between the UI, GitHub, and the generation engine.
 
-```
-src/
-├── components/        # React UI components
-│   ├── canvas/        # 3D canvas and scene
-│   ├── panels/        # side panels (block palette, properties)
-│   └── toolbar/       # top toolbar (save, load, validate)
-├── models/            # Domain model types
-│   ├── types.ts       # Plate, Block, Connection, Rule types
-│   └── schema.ts      # Serialization schema
-├── store/             # Zustand state management
-│   ├── architectureStore.ts
-│   └── uiStore.ts
-├── rules/             # Rule engine
-│   ├── engine.ts      # Validation engine
-│   ├── placement.ts   # Placement rules
-│   └── connection.ts  # Connection rules
-├── three/             # Three.js / R3F components
-│   ├── PlateModel.tsx
-│   ├── BlockModel.tsx
-│   └── ConnectionLine.tsx
-└── utils/             # Utilities
-    ├── storage.ts     # localStorage operations
-    └── id.ts          # ID generation
-```
+### What the Backend Does
 
----
+| Responsibility | Description |
+|---------------|-------------|
+| Auth / Identity | GitHub App OAuth, Google login, account linking |
+| Generator Orchestration | Validate → transform → generate IaC code |
+| GitHub Integration | Repo selection, branch creation, commit, PR |
+| Job Runner | Async generation, validation, deployment triggers |
+| Metadata DB | User, workspace index, run status, audit summary |
 
-# 2.5 Data Layer (v0.5+)
+### What the Backend Does NOT Store
 
-v0.5 이상에서 도입되는 데이터 레이어. CUBRID를 주요 관계형 데이터베이스로 사용한다.
+| Data | Where It Lives |
+|------|---------------|
+| Architecture specs (JSON) | GitHub repo |
+| Generated Terraform/Bicep/Pulumi | GitHub repo |
+| Templates | GitHub repo |
+| Full prompt/log history | GitHub / Blob Storage |
+| Deployment artifacts | GitHub / Blob Storage |
 
-### Storage Architecture
+### Backend Architecture
 
 ```
-Application Layer
-│
-├─ Custom ORM Layer
-│   ├─ Repository Pattern (WorkspaceRepository, UserRepository, ...)
-│   ├─ Query Abstraction
-│   └─ Object Mapping
-│
-├─ CUBRID (Primary Database)
-│   ├─ Users, Workspaces, Architecture Models
-│   ├─ Scenario Definitions, Learning Progress
-│   └─ Deployment History, Template Metadata
-│
-├─ Redis (Cache & Session)
-│   ├─ Session storage
-│   ├─ Architecture state cache
-│   └─ Task queues
-│
-└─ Object Storage (Cloud Provider)
-    ├─ Template assets
-    ├─ Deployment artifacts
-    └─ Logs
-```
-
-### Why CUBRID
-
-- 성숙한 관계형 데이터베이스 (ACID, MVCC 지원)
-- 구조화된 워크로드에 적합한 성능
-- SaaS 멀티테넌트 데이터 모델에 적합
-- CUBRID 생태계 레퍼런스 아키텍처 제공 기회
-
-### Custom ORM Layer
-
-커스텀 ORM을 통해 애플리케이션 로직이 데이터베이스 구현에서 분리된다.
-
-```typescript
-// Repository Pattern Example
-interface WorkspaceRepository {
-  findById(id: string): Promise<Workspace>;
-  findByUserId(userId: string): Promise<Workspace[]>;
-  save(workspace: Workspace): Promise<void>;
-  delete(id: string): Promise<void>;
-}
-
-// ORM Layer abstracts CUBRID specifics
-class CubridWorkspaceRepository implements WorkspaceRepository {
-  // CUBRID-specific query implementation
-}
-```
-
-### Data Entity Relationships
-
-```
-User
-└ Workspace
-      └ Architecture Model
-            ├─ Plates
-            ├─ Blocks
-            └─ Connections
-
-Scenario Definition
-└ Learning Progress (per User)
-
-Deployment History (per Architecture)
+apps/api/
+├── app/
+│   ├── main.py                    # FastAPI app
+│   ├── core/
+│   │   ├── config.py              # Environment config
+│   │   └── security.py            # Auth utilities
+│   ├── api/
+│   │   ├── routes/
+│   │   │   ├── auth.py            # OAuth flow
+│   │   │   ├── projects.py        # Project CRUD (metadata only)
+│   │   │   ├── generate.py        # Code generation orchestration
+│   │   │   └── github.py          # GitHub integration
+│   │   └── middleware/
+│   │       ├── auth.py            # JWT verification
+│   │       └── rate_limit.py      # Rate limiting
+│   ├── domain/
+│   │   ├── models.py              # Domain entities
+│   │   └── generators/            # Generator plugins
+│   │       ├── base.py            # Generator interface
+│   │       ├── terraform.py       # Terraform generator
+│   │       ├── bicep.py           # Bicep generator
+│   │       └── pulumi.py          # Pulumi generator
+│   ├── infrastructure/
+│   │   ├── github/                # GitHub API client
+│   │   │   ├── client.py
+│   │   │   └── app.py             # GitHub App management
+│   │   ├── db/                    # Metadata DB
+│   │   │   ├── connection.py      # DB connection pool
+│   │   │   └── migrations/        # Schema migrations
+│   │   └── queue/                 # Job queue (Redis/Upstash)
+│   └── services/
+│       ├── generation.py          # Generation orchestration
+│       ├── github_sync.py         # GitHub sync logic
+│       └── project.py             # Project management
 ```
 
 ---
@@ -179,8 +172,7 @@ Deployment History (per Architecture)
 
 The Core Modeling Engine manages the **CloudBlocks Domain Model**.
 
-This layer is responsible for:
-
+Responsibilities:
 - Constructing the architecture model
 - Managing block placement on plates
 - Maintaining containment hierarchy (Network → Subnet → Block)
@@ -197,10 +189,9 @@ NetworkPlate
 ```
 
 Key responsibilities:
-
-- maintain architecture graph
-- enforce containment relationships
-- serialize model state
+- Maintain architecture graph
+- Enforce containment relationships
+- Serialize model state to JSON
 
 ---
 
@@ -208,11 +199,9 @@ Key responsibilities:
 
 The Rule Engine validates architecture constraints.
 
-It ensures that user-created architectures follow correct cloud design patterns.
-
 ### Rule Categories
 
-Placement Rules
+Placement Rules:
 
 ```
 ComputeBlock must be placed on SubnetPlate
@@ -221,7 +210,7 @@ GatewayBlock must be placed on public SubnetPlate
 StorageBlock must be placed on SubnetPlate
 ```
 
-Connection Rules
+Connection Rules:
 
 ```
 Internet → Gateway    ✔
@@ -231,18 +220,7 @@ Database → Gateway    ❌
 Database → Internet   ❌
 ```
 
-Architecture Rules
-
-```
-3-tier architecture must include:
-  Gateway
-  Compute
-  Database
-```
-
-The Rule Engine returns validation results to the UI.
-
-Example response:
+### Validation Response
 
 ```json
 {
@@ -260,34 +238,79 @@ Example response:
 }
 ```
 
-검증 결과는 severity 레벨을 포함한다:
-- `error`: 규칙 위반. 배포 불가.
-- `warning`: 권장사항 위반. 배포는 가능하나 권장하지 않음.
-
 ### Connection Type Handling
 
-Connection은 DOMAIN_MODEL의 세 가지 타입을 지원한다:
-- **DataFlow**: 요청/응답 통신. 시각화에서 실선 화살표로 표현.
-- **EventFlow**: 이벤트 기반 트리거. 시각화에서 점선 화살표로 표현. (v1.0)
-- **Dependency**: 리소스 의존성. 시각화에서 대시선으로 표현. (v1.0)
+- **DataFlow**: Request/response communication (solid arrow) — MVP
+- **EventFlow**: Event-driven trigger (dotted arrow) — v1.0
+- **Dependency**: Resource dependency (dashed line) — v1.0
 
 MVP (v0.1)에서는 DataFlow만 지원한다.
 
 ---
 
-# 5. Provider Adapter Layer
+# 5. Code Generation Pipeline
+
+The core value delivery — transforming visual architecture into deployable IaC code.
+
+### Pipeline
+
+```
+Architecture Model (JSON)
+↓
+Schema Validation
+↓
+Provider Adapter (Azure / AWS / GCP mapping)
+↓
+Generator Plugin (Terraform / Bicep / Pulumi)
+↓
+Generated Code Output
+↓
+GitHub Commit / PR (via Backend)
+```
+
+### Generator Plugin Architecture
+
+Generators are modular plugins implementing a standard interface:
+
+```typescript
+interface Generator {
+  name: string;
+  version: string;
+  supportedProviders: string[];
+  generate(architecture: ArchitectureModel, options: GeneratorOptions): GeneratedOutput;
+}
+```
+
+| Generator | Format | Priority |
+|-----------|--------|----------|
+| Terraform | HCL | Primary (v0.3) |
+| Bicep | Azure ARM DSL | v0.5 |
+| Pulumi | TypeScript/Python | v1.0 |
+
+### CI/CD Integration
+
+Generated code triggers CI pipelines:
+
+```yaml
+# .github/workflows/plan.yml
+on:
+  pull_request:
+    paths: ['infra/**']
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform init && terraform plan
+```
+
+---
+
+# 6. Provider Adapter Layer
 
 The Provider Adapter translates the generic CloudBlocks model into cloud provider resources.
 
-Supported providers:
-
-- Azure
-- AWS (v2.0)
-- GCP (v2.0)
-
 > 교육 단순화 기준: MVP에서 Compute는 Subnet 내에 배치되는 리소스(VM, Container App)로 간주한다.
-
-Example mapping:
 
 | Generic Resource | Azure | AWS | GCP |
 |------------------|------|-----|-----|
@@ -301,157 +324,111 @@ Example mapping:
 
 ---
 
-# 6. Infrastructure Generator
+# 7. GitHub Integration Architecture
 
-Converts logical architecture into infrastructure definitions.
+## Auth: GitHub App Model
 
-Supported formats:
-
-- Terraform
-- Bicep
-- ARM templates (optional)
-
-Example pipeline:
+CloudBlocks uses a **GitHub App** (not raw OAuth) for:
+- Repo-scoped permissions
+- Short-lived installation tokens (no long-lived user tokens in browser)
+- Easy revocation
+- Webhook support
 
 ```
-CloudBlocks Model
-↓
-Logical Architecture
-↓
-Provider Adapter
-↓
-Infrastructure Code
+User → CloudBlocks UI → Backend API → GitHub App → User's Repos
 ```
 
-Example output:
+## Data Flow
 
 ```
-terraform/
-bicep/
-arm/
+1. User designs architecture in 3D builder
+2. User clicks "Save to GitHub"
+3. Frontend sends architecture JSON to backend
+4. Backend validates and runs generator
+5. Backend commits architecture.json + generated code to GitHub
+6. GitHub Actions runs terraform plan on PR
+7. User reviews and merges
+```
+
+## Conflict Resolution
+
+- PRs as the collaboration primitive
+- Optimistic concurrency using file SHA (fail fast on mismatch)
+- Direct-to-default-branch for solo users (optional)
+
+## Rate Limit Management
+
+- GitHub API: 5000 req/hr (authenticated)
+- Debounce writes, batch into snapshots
+- Use ETags / `If-None-Match` for reads
+- Avoid commit-per-UI-gesture
+
+---
+
+# 8. Storage Architecture
+
+### Data Placement Strategy
+
+| Data Type | Storage | Reason |
+|-----------|---------|--------|
+| Architecture spec | GitHub repo | Version history, diff, collaboration |
+| Generated IaC code | GitHub repo | PR-based review, CI/CD |
+| Templates | GitHub repo | Community contribution |
+| User / Identity | Metadata DB | Auth, OAuth tokens |
+| Workspace index | Metadata DB | Fast lookup |
+| Run status | Metadata DB | Job state tracking |
+| Audit summary | Metadata DB | Lightweight trail |
+| Large artifacts | Blob Storage | Binary assets |
+| Session / Cache | Redis / Upstash | Rate limiting, locks |
+
+### Metadata DB Schema (Minimal)
+
+```sql
+-- User identity (linked to GitHub / Google)
+CREATE TABLE users (
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email       VARCHAR(255) NOT NULL UNIQUE,
+    name        VARCHAR(255) NOT NULL,
+    github_id   VARCHAR(100),
+    avatar_url  VARCHAR(500),
+    created_at  TIMESTAMPTZ DEFAULT NOW(),
+    updated_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Project = workspace + GitHub repo mapping
+CREATE TABLE projects (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id         UUID NOT NULL REFERENCES users(id),
+    name            VARCHAR(200) NOT NULL,
+    github_repo     VARCHAR(500),        -- e.g., "user/my-infra"
+    github_branch   VARCHAR(100) DEFAULT 'main',
+    generator       VARCHAR(50) DEFAULT 'terraform',
+    provider        VARCHAR(50) DEFAULT 'azure',
+    created_at      TIMESTAMPTZ DEFAULT NOW(),
+    updated_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_projects_user ON projects(user_id);
+
+-- Generation run log
+CREATE TABLE generation_runs (
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id      UUID NOT NULL REFERENCES projects(id),
+    status          VARCHAR(20) DEFAULT 'queued',
+    generator       VARCHAR(50) NOT NULL,
+    commit_sha      VARCHAR(40),
+    error_message   TEXT,
+    started_at      TIMESTAMPTZ,
+    completed_at    TIMESTAMPTZ,
+    created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_runs_project ON generation_runs(project_id);
 ```
 
 ---
 
-# 7. Cloud Deployment Engine
-
-Responsible for deploying infrastructure to cloud providers.
-
-Deployment flow:
-
-```
-Infrastructure Code
-↓
-Deployment API
-↓
-Cloud Provider
-↓
-Infrastructure Provisioned
-```
-
-Supported methods:
-
-- Terraform apply
-- Azure Bicep deploy
-- Cloud API execution
-
-Deployment results are returned to the UI.
-
----
-
-# 8. API Contracts (v0.5+)
-
-v0.5 이상에서 백엔드 도입 시 사용할 API 계약.
-
-## Architecture CRUD
-
-```
-POST   /api/architectures          # 새 아키텍처 생성
-GET    /api/architectures           # 아키텍처 목록 조회
-GET    /api/architectures/:id       # 아키텍처 상세 조회
-PUT    /api/architectures/:id       # 아키텍처 업데이트
-DELETE /api/architectures/:id       # 아키텍처 삭제
-```
-
-## Validation
-
-```
-POST   /api/validate                # 아키텍처 검증
-```
-
-Request: `{ architecture: ArchitectureModel }`
-Response: `{ valid: boolean, errors: ValidationError[], warnings: ValidationWarning[] }`
-
-## Deployment (v0.5)
-
-```
-POST   /api/deployments             # 배포 시작
-GET    /api/deployments/:id         # 배포 상태 조회
-GET    /api/deployments/:id/logs    # 배포 로그 조회
-DELETE /api/deployments/:id         # 배포 취소
-```
-
-### Deployment State Machine
-
-```
-queued → provisioning → succeeded
-                      → failed
-         ↓
-       canceled
-```
-
-| State | Description |
-|-------|-------------|
-| queued | 배포 요청 접수됨 |
-| provisioning | 클라우드 리소스 생성 중 |
-| succeeded | 배포 완료 |
-| failed | 배포 실패 |
-| canceled | 사용자에 의해 취소됨 |
-
----
-
-# 9. Serverless Extension (v1.0)
-
-Serverless components can be modeled using event blocks.
-
-Supported blocks:
-
-- Function
-- Queue
-- Event
-- Timer
-
-Example architecture:
-
-```
-HTTP → Function → Storage
-```
-
-This allows teaching event-driven architecture.
-
----
-
-# 10. Scenario Engine (Learning Mode)
-
-Provides guided architecture exercises.
-
-Example:
-
-Mission: Build a 3-tier architecture
-
-Required blocks:
-
-```
-Gateway (on Public Subnet)
-Compute (on Private Subnet)
-Database (on Private Subnet)
-```
-
-Validation checks ensure correct design.
-
----
-
-# 11. State Management
+# 9. State Management
 
 ### v0.1 Storage (Local)
 
@@ -482,146 +459,61 @@ Key: `cloudblocks:workspaces`
 }
 ```
 
-### v0.5+ Storage (CUBRID)
+### v0.3+ Storage (Local-First + GitHub Sync)
 
-CUBRID를 주요 데이터 저장소로 사용한다.
-
-```sql
-CREATE TABLE users (
-  id VARCHAR(36) PRIMARY KEY,
-  email VARCHAR(255) NOT NULL UNIQUE,
-  name VARCHAR(255) NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE workspaces (
-  id VARCHAR(36) PRIMARY KEY,
-  user_id VARCHAR(36) NOT NULL,
-  name VARCHAR(255) NOT NULL,
-  architecture CLOB NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id)
-);
-
-CREATE TABLE scenarios (
-  id VARCHAR(36) PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  description CLOB,
-  required_structure CLOB NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE learning_progress (
-  id VARCHAR(36) PRIMARY KEY,
-  user_id VARCHAR(36) NOT NULL,
-  scenario_id VARCHAR(36) NOT NULL,
-  status VARCHAR(20) NOT NULL DEFAULT 'not_started',
-  completed_at TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (scenario_id) REFERENCES scenarios(id)
-);
-
-CREATE TABLE deployments (
-  id VARCHAR(36) PRIMARY KEY,
-  workspace_id VARCHAR(36) NOT NULL,
-  provider VARCHAR(20) NOT NULL,
-  status VARCHAR(20) NOT NULL DEFAULT 'queued',
-  infrastructure_code CLOB,
-  logs CLOB,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (workspace_id) REFERENCES workspaces(id)
-);
-```
-
-Redis는 세션 캐시 및 임시 상태 저장에 사용한다.
-
----
-
-# 12. Cloud Status Integration (Future)
-
-The platform may reflect real infrastructure state.
-
-Example:
-
-- green → running
-- red → error
-- yellow → deploying
-
-This enables **Cloud Digital Twin visualization**.
-
----
-
-# 13. Physical Block Integration (Future)
-
-Future architecture supports IoT-enabled blocks.
-
-Example architecture:
+IndexedDB for local state + optional GitHub sync:
 
 ```
-Physical Block
-↓
-IoT Sensor
-↓
-Cloud Model Update
-↓
-Deployment Trigger
+Local (IndexedDB)     ←→    GitHub (via Backend API)
+  architecture.json          cloudblocks/architecture.json
+  draft changes              committed versions
+  offline edits              synced on connect
 ```
 
-Possible technologies:
-
-- NFC
-- RFID
-- BLE
-- ESP32 sensors
+- Anonymous/offline editing always works
+- "Connect to GitHub" to sync and collaborate
+- GitHub is "publish/collaborate", not "required to use"
 
 ---
 
-# 14. Security Considerations
+# 10. Security Considerations
 
-Key security features:
-
-- workspace isolation
-- cloud credential protection (v0.5+)
-- sandbox deployment limits (v0.5+)
-- cost protection (v0.5+)
-
-Students should deploy in controlled environments.
+- GitHub App tokens: short-lived, repo-scoped, stored server-side only
+- No long-lived user tokens in the browser
+- OAuth tokens encrypted at rest in metadata DB
+- Workspace isolation: users can only access their own projects
+- Rate limiting: per-user, per-endpoint
+- Content validation: sanitize architecture JSON before processing
 
 ---
 
-# 15. Scalability
+# 11. Scalability
 
-The architecture supports horizontal scalability.
+The architecture supports horizontal scalability:
 
-Key scalable components:
-
-- frontend CDN
-- stateless backend API (v0.5+)
-- containerized deployment engine (v0.5+)
-- provider adapters
+| Component | Strategy |
+|-----------|----------|
+| Frontend | Static hosting / CDN |
+| Backend API | Stateless containers (scale horizontally) |
+| Metadata DB | Managed Postgres (Supabase / RDS) |
+| Job Queue | Redis / Upstash |
+| Storage | GitHub (unlimited repos) + Blob storage |
 
 ---
 
-# 16. Summary
-
-The CloudBlocks Platform architecture separates concerns into modular components:
+# 12. Summary
 
 ```
-Frontend (v0.1: SPA with R3F)
+Frontend (v0.1: SPA with R3F, local-first)
 Core Model (Zustand store)
 Rule Engine (in-browser validation)
-Data Layer (v0.5+: CUBRID + Custom ORM + Redis)
-Provider Adapter (v0.5+)
-Infrastructure Generator (v0.5+)
-Deployment Engine (v0.5+)
+Code Generation (Terraform / Bicep / Pulumi plugins)
+Backend (v0.5+: Thin orchestration layer — FastAPI)
+GitHub Integration (v0.5+: repos as data store)
 ```
 
-This modular architecture enables:
-
-- cloud education
-- infrastructure simulation
-- real cloud deployment
-- multi-cloud expansion
+This architecture enables:
+- Visual architecture design with 3D blocks
+- Automated infrastructure code generation
+- Git-native collaboration and version control
+- Lightweight deployment with minimal infrastructure cost

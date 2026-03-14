@@ -1,20 +1,20 @@
-# CloudBlocks Platform - Development Roadmap
+# CloudBlocks Platform — Development Roadmap
 
 This document defines the staged development roadmap for the CloudBlocks Platform.
 
-The platform aims to evolve from a **visual cloud learning tool** into a **full cloud architecture platform** capable of real deployment, simulation, and physical interaction — while also serving as a **CUBRID ecosystem reference implementation**.
+CloudBlocks evolves from a **visual cloud architecture builder** into a **full architecture-to-code platform** — generating Terraform, Bicep, and Pulumi from 3D visual designs, with Git-native workflow integration.
 
 ---
 
 # Phase 0 — Concept Validation
 
 Goal:
-Validate the CloudBlocks abstraction model.
+Validate the CloudBlocks block-based abstraction model.
 
 Key Objectives:
 
-- Plate based architecture modeling
-- Block based resource representation
+- Plate-based architecture modeling
+- Block-based resource representation
 - Rule-based architecture validation
 
 Deliverables:
@@ -25,283 +25,272 @@ Deliverables:
 
 Outcome:
 
-Proof that the **block abstraction works for cloud architecture education**.
+Proof that the **block abstraction maps cleanly to cloud architecture and IaC constructs**.
 
 ### Exit Criteria
-- [ ] Domain model types implemented in TypeScript
-- [ ] Basic block/plate system compiles without errors
-- [ ] Architecture validation engine returns correct results for 5+ test cases
+- [x] Domain model types implemented in TypeScript
+- [x] Basic block/plate system compiles without errors
+- [x] Architecture validation engine returns correct results for 5+ test cases
 
 ---
 
-# v0.1 — CloudBlocks Builder (MVP)
+# v0.1 — CloudBlocks Builder (MVP) ✅
 
 Goal:
-Create a working **CloudBlocks visual architecture builder**.
+Create a working **3D visual cloud architecture builder**.
 
 Features:
 
-Visual Editor
-
-- Network Plate
-- Subnet Plate (Public / Private)
-- Basic resource blocks
+- Network Plate, Subnet Plate (Public / Private)
+- Compute, Database, Storage, Gateway blocks
 - Drag and drop block placement
-
-Plates
-
-- Network Plate
-- Subnet Plate (Public / Private)
-
-Basic Blocks
-
-- Compute (App)
-- Database
-- Storage
-- Gateway
-
-Rule Engine
-
-Examples:
-
-- Database cannot be placed in public subnet
-- Compute must be inside subnet
-- Gateway must be placed on public subnet
-
-Architecture Flow Visualization
-
-Example:
-
-```
-Internet → Gateway → App → Database
-```
-
-Workspace Persistence
-
-- Save architecture to local storage
-- Load saved architecture
-- Architecture state preserved on reload
+- Rule Engine (placement + connection validation)
+- DataFlow connection visualization
+- Workspace persistence (localStorage)
 
 Deliverables:
 
 - Visual Block Builder (React + React Three Fiber)
-- Basic architecture validation (in-browser Rule Engine)
+- In-browser Rule Engine
 - Workspace save/load (localStorage)
 
-Target Users:
-
-Cloud beginners.
-
 ### Exit Criteria
-- [ ] 3-tier architecture (Gateway → App → Database) can be constructed visually
-- [ ] Placement validation catches 100% of rule violations
-- [ ] Connection validation catches invalid connections
-- [ ] Workspace save/load roundtrip preserves all state
-- [ ] Build passes with zero errors
+- [x] 3-tier architecture (Gateway → App → Database) can be constructed visually
+- [x] Placement validation catches 100% of rule violations
+- [x] Connection validation catches invalid connections
+- [x] Workspace save/load roundtrip preserves all state
+- [x] Build passes with zero errors (`tsc -b && vite build`)
 
 ### Dependencies
 - Phase 0 complete
 
 ---
 
-# v0.5 — Azure Deployment + Data Layer Integration
+# v0.2 — Visual Polish + UX
 
 Goal:
-Allow users to **deploy architecture to Azure** and introduce **CUBRID-based server-side data persistence**.
-
-## Cloud Deployment
-
-Supported Infrastructure:
-
-- Virtual Network
-- Subnet
-- VM / Container App
-- Azure SQL
-- Blob Storage
-- Application Gateway
-
-Pipeline:
-
-```
-Visual Model
-↓
-Provider Adapter (Azure)
-↓
-Infrastructure Code (Bicep / Terraform)
-↓
-Azure Deployment
-```
+Improve the builder experience for daily use.
 
 Features:
 
-- Deploy button
-- Deployment status feedback
-- URL access for deployed apps
-
-## Data Layer Introduction
-
-CUBRID를 주요 데이터베이스로 도입한다.
-
-### CUBRID Integration
-
-- Users, Workspaces, Architecture Models 저장
-- Scenario Definitions, Learning Progress 관리
-- Deployment History 기록
-
-### Custom ORM Layer
-
-- 커스텀 ORM을 통한 CUBRID 접근
-- Repository Pattern 기반 데이터 액세스
-- 객체 매핑 및 쿼리 추상화
-
-### Supporting Infrastructure
-
-- Redis: 세션 캐시, 임시 상태 저장, 태스크 큐
-- Object Storage: 템플릿 에셋, 배포 아티팩트, 로그
-
-Outcome:
-
-Users can see their architecture **running in real cloud infrastructure**, with **server-side persistence powered by CUBRID**.
+- Drag and drop block repositioning
+- Block resize and snap-to-grid
+- Keyboard shortcuts (delete, undo, redo)
+- Improved 3D rendering (shadows, materials)
+- Zoom/pan/orbit camera controls
+- Responsive layout
 
 ### Exit Criteria
-- [ ] Azure deployment succeeds for 3-tier architecture
-- [ ] Deployment status displayed in real-time
-- [ ] Deployed application accessible via URL
-- [ ] Cost guard: deployment limited to sandbox resource group
-- [ ] CUBRID schema created and migrations applied
-- [ ] User/Workspace CRUD via custom ORM functional
-- [ ] Redis session cache operational
-- [ ] Data persistence roundtrip (save → reload → verify) passes
+- [ ] All blocks can be repositioned via drag
+- [ ] Undo/redo works for all state changes
+- [ ] Builder usable on screens ≥ 1280px width
 
 ### Dependencies
 - v0.1 complete
-- Azure credential management implemented
-- Deployment sandbox environment configured
-- CUBRID instance provisioned
-- Custom ORM layer implemented
 
 ---
 
-# v1.0 — Serverless Learning Platform
+# v0.3 — Code Generation (Terraform)
 
 Goal:
-Teach event-driven architecture.
+Generate **Terraform code** from visual architecture — the core value proposition.
 
-New Blocks:
+Features:
 
-- Function
-- Queue
-- Event
-- Timer
+- Terraform HCL generator (Azure provider first)
+- Provider adapter layer (generic → Azure resource mapping)
+- Export to file / clipboard
+- Code preview panel in UI
+- Architecture → `main.tf` + `variables.tf` + `outputs.tf`
 
-Example Scenario:
+Example Output:
+
+```hcl
+resource "azurerm_virtual_network" "main" {
+  name                = "vnet-cloudblocks"
+  address_space       = ["10.0.0.0/16"]
+  location            = var.location
+  resource_group_name = var.resource_group_name
+}
+
+resource "azurerm_subnet" "public" {
+  name                 = "subnet-public"
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = azurerm_virtual_network.main.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+```
+
+### Exit Criteria
+- [ ] 3-tier architecture generates valid Terraform
+- [ ] Generated code passes `terraform validate`
+- [ ] Code preview panel shows generated HCL in real-time
+- [ ] Export to file works
+
+### Dependencies
+- v0.1 complete
+
+---
+
+# v0.4 — Workspace Management + Import/Export
+
+Goal:
+Multiple workspaces, architecture import/export, and template system.
+
+Features:
+
+- Multiple workspace management
+- Import/export architecture as JSON
+- Built-in templates (3-tier, serverless, data pipeline)
+- Template gallery UI
+- Architecture cloning
+
+### Exit Criteria
+- [ ] Users can create, switch, and delete multiple workspaces
+- [ ] Architecture JSON import/export roundtrip preserves all state
+- [ ] 3+ built-in templates available
+
+### Dependencies
+- v0.3 complete
+
+---
+
+# v0.5 — GitHub Integration + Backend API
+
+Goal:
+Connect CloudBlocks to GitHub — architecture and generated code stored in user repos via a **thin orchestration backend**.
+
+## Backend API (Thin Orchestration Layer)
+
+- FastAPI backend for auth, generation orchestration, and GitHub integration
+- GitHub App OAuth (not raw OAuth tokens)
+- Minimal metadata DB (Supabase/Postgres): user, project index, run status
+- **NOT** a heavy CRUD SaaS — backend mediates, does not store architecture data
+
+## GitHub Integration
+
+- Connect GitHub account via GitHub App
+- Select or create target repository
+- Commit `architecture.json` + generated Terraform to repo
+- Create branches and PRs for architecture changes
+- PR-based workflow: architecture change → code generation → review → merge
+
+## GitHub Repo Structure (per project)
+
+```
+my-cloud-project/
+├── cloudblocks/
+│   ├── architecture.json
+│   ├── schemaVersion
+│   └── generator.lock
+├── infra/
+│   └── terraform/
+│       ├── main.tf
+│       ├── variables.tf
+│       └── outputs.tf
+└── .github/
+    └── workflows/
+        └── plan.yml
+```
+
+### Exit Criteria
+- [ ] GitHub App OAuth login works
+- [ ] Architecture + generated code commits to user's GitHub repo
+- [ ] PR creation from UI works
+- [ ] Backend metadata DB operational (user, project, run status)
+- [ ] No architecture data stored in backend DB (all in GitHub)
+
+### Dependencies
+- v0.3 complete (Terraform generator)
+- GitHub App registered and configured
+
+---
+
+# v1.0 — Multi-Generator + Template Marketplace
+
+Goal:
+Support multiple IaC generators and a community template ecosystem.
+
+## Multi-Generator Support
+
+- Bicep generator (Azure-native)
+- Pulumi generator (TypeScript/Python)
+- Generator plugin interface for third-party generators
+- Generator version pinning (`generator.lock`)
+
+## Serverless Blocks
+
+New block types:
+
+- FunctionBlock (Serverless compute)
+- QueueBlock (Messaging services)
+- EventBlock (Event triggers)
+- TimerBlock (Scheduled triggers)
+
+Example:
 
 ```
 HTTP → Function → Storage
 ```
 
-Learning Missions:
+## Template Marketplace
 
-Mission 1
-
-Build a serverless API.
-
-Mission 2
-
-Build an event-driven pipeline.
-
-Mission 3
-
-Build a scheduled job.
-
-Features:
-
-- Event flow visualization
-- Trigger compatibility rules
-- Serverless architecture templates
-
-Outcome:
-
-Platform becomes a **complete cloud learning environment**.
+- Community-contributed architecture templates
+- Template versioning and categorization
+- Template preview and one-click use
 
 ### Exit Criteria
-- [ ] Function, Queue, Event, Timer blocks available
+- [ ] Terraform, Bicep, and Pulumi generators all produce valid output
 - [ ] Serverless architecture (HTTP → Function → Storage) constructable
-- [ ] All 3 learning missions completable
+- [ ] Template marketplace with 5+ community templates
+- [ ] Generator plugin interface documented and usable by third parties
 
 ### Dependencies
 - v0.5 complete
 
 ---
 
-# v1.5 — Scenario Engine
+# v1.5 — Collaboration + CI/CD Integration
 
 Goal:
-Provide guided learning experiences.
+Team collaboration via Git and automated CI/CD pipelines.
 
 Features:
 
-- Learning missions
-- Architecture templates
-- Auto validation
-- Guided hints
-
-Example Missions:
-
-- 3-tier architecture
-- Serverless API
-- Data pipeline
-
-Outcome:
-
-CloudBlocks becomes a **cloud education platform**.
+- Real-time collaboration via PRs (not WebSocket — Git-based)
+- Architecture diff visualization (side-by-side comparison)
+- GitHub Actions integration (auto `terraform plan` on PR)
+- Deployment status tracking
+- Team workspace sharing
 
 ### Exit Criteria
-- [ ] 3+ guided scenarios with step-by-step hints
-- [ ] Auto-validation provides actionable feedback
-- [ ] Scenario completion rate tracked
+- [ ] Architecture diff visualization works
+- [ ] GitHub Actions auto-plan runs on architecture PRs
+- [ ] Team members can collaborate on the same project via GitHub
 
 ### Dependencies
 - v1.0 complete
 
 ---
 
-# v2.0 — Multi Cloud Platform
+# v2.0 — Multi-Cloud Platform
 
 Goal:
-Support multiple cloud providers.
+Support multiple cloud providers from the same architecture.
 
 Providers:
 
-- Azure
+- Azure (existing)
 - AWS
 - GCP
 
-Architecture remains the same.
+Architecture remains the same — provider adapters handle the mapping.
 
-Example mapping:
-
-Network
-
-- Azure → VNet
-- AWS → VPC
-- GCP → VPC
-
-Compute
-
-- Azure → VM / Container App
-- AWS → EC2
-- GCP → Compute Engine
-
-Features:
-
-- Provider switch
-- Multi cloud architecture examples
-- Cross cloud comparison learning
-
-Outcome:
-
-CloudBlocks becomes a **universal cloud learning system**.
+| Generic | Azure | AWS | GCP |
+|---------|-------|-----|-----|
+| Network | VNet | VPC | VPC |
+| Compute | VM / Container App | EC2 | Compute Engine |
+| Database | Azure SQL | RDS | Cloud SQL |
 
 ### Exit Criteria
 - [ ] AWS and GCP provider adapters functional
@@ -313,10 +302,10 @@ CloudBlocks becomes a **universal cloud learning system**.
 
 ---
 
-# v2.5 — Cloud Simulation Engine
+# v2.5 — Architecture Simulation
 
 Goal:
-Simulate architecture behavior.
+Simulate architecture behavior before deployment.
 
 Features:
 
@@ -325,106 +314,50 @@ Features:
 - Failure simulation
 - Scaling simulation
 
-Example:
-
-User request simulation
-
-```
-Internet → Gateway → App → DB
-```
-
-Outcome:
-
-Students can **see how architecture behaves under load**.
-
 ---
 
 # v3.0 — Cloud Digital Twin
 
 Goal:
-Synchronize visual architecture with real infrastructure.
+Synchronize visual architecture with real infrastructure state.
 
 Features:
 
 - Live infrastructure status
-- Real time cloud health visualization
+- Real-time cloud health visualization
 - Deployment monitoring
 
 Example:
-
 - Green block → running
 - Red block → error
 - Yellow block → deploying
 
-Outcome:
-
-Visual architecture becomes a **cloud operations dashboard**.
-
 ---
 
-# v3.5 — Physical Block Integration
+# v3.5 — Template Marketplace + Plugin Ecosystem
 
 Goal:
-Allow real blocks to control cloud architecture.
+Full ecosystem for community contributions.
 
-Technologies:
+Features:
 
-- NFC
-- RFID
-- BLE sensors
-- IoT microcontrollers
-
-Architecture:
-
-```
-Physical Block
-↓
-IoT Sensor Detection
-↓
-CloudBlocks Model Update
-↓
-Infrastructure Deployment
-```
-
-Outcome:
-
-CloudBlocks becomes a **tangible cloud learning system**.
-
----
-
-# CUBRID Ecosystem Contribution
-
-CloudBlocks Platform은 CUBRID 생태계에 다음과 같이 기여한다.
-
-### Planned Contributions
-
-- CUBRID 기반 SaaS 레퍼런스 아키텍처 공개
-- 커스텀 ORM 도구 개선 및 오픈소스화
-- Terraform을 통한 CUBRID 배포 예제
-- 성능 벤치마크 및 튜닝 가이드
-- 개발자 온보딩 문서
-
-### Contribution Timeline
-
-| Version | Contribution |
-|---------|-------------|
-| v0.5 | CUBRID schema 설계 + ORM 기본 구현 |
-| v1.0 | ORM 고도화 + 쿼리 최적화 |
-| v1.5 | 레퍼런스 아키텍처 문서 공개 |
-| v2.0 | 성능 벤치마크 공개 |
+- Generator plugins from third parties
+- Premium template marketplace
+- Architecture review tools
+- Custom rule engine extensions
 
 ---
 
 # Long Term Vision
 
-CloudBlocks Platform evolves into:
+CloudBlocks evolves into:
 
-- Cloud education platform
-- Visual cloud architecture builder
-- Cloud simulator
+- Visual Cloud Architecture Builder
+- Architecture → Code Generation Platform
+- Git-native DevOps workflow tool
+- Multi-cloud infrastructure designer
 - Cloud operations dashboard
-- Physical block cloud interface
-- **CUBRID 생태계 레퍼런스 SaaS 구현**
+- Community-driven template and plugin ecosystem
 
 ---
 
@@ -432,45 +365,39 @@ CloudBlocks Platform evolves into:
 
 Key principles:
 
-1. Start with **small core model**
-2. Validate block abstraction early
-3. Expand through modular layers
-4. Maintain provider abstraction
-5. Prioritize education-first experience
-6. **Validate CUBRID in production-like SaaS workloads**
+1. Start with **visual builder core** (v0.1)
+2. Add **code generation** early (v0.3) — the core value
+3. Integrate **GitHub** as data store (v0.5) — not a traditional DB
+4. Keep backend **thin** — orchestration, not CRUD
+5. **Open-source first** — community drives templates and generators
+6. **Local-first UX** — works offline, syncs when connected
 
 ---
 
 # Success Metrics
 
-Phase 0 + v0.1
-
+v0.1 (Complete)
 - Architecture built successfully
 - Validation engine working
 - Workspace persistence functional
 
-v0.5
+v0.3
+- Terraform generation produces valid HCL
+- Code preview panel functional
 
-- Successful Azure deployments
-- CUBRID data layer operational
-- Custom ORM functional
+v0.5
+- GitHub integration operational
+- Backend API deployed
+- Zero architecture data in backend DB
 
 v1.0
+- Multi-generator support (Terraform + Bicep + Pulumi)
+- Template marketplace launched
 
-- Serverless scenarios completed
-
-v1.5
-
-- Guided learning scenarios operational
-
-v2.0
-
-- Multi cloud architecture support
-
-v2.5+
-
-- Simulation and digital twin operational
-- Physical block prototype working
+v2.0+
+- Multi-cloud architecture support
+- Community contributors > 10
+- GitHub stars growth trajectory
 
 ---
 
@@ -480,14 +407,18 @@ The roadmap evolves CloudBlocks from:
 
 Visual Cloud Builder (v0.1)
 
-→ Cloud Deployment Platform + CUBRID Data Layer (v0.5)
+→ Code Generation Platform (v0.3)
 
-→ Learning Platform (v1.0 / v1.5)
+→ GitHub-Integrated DevOps Tool (v0.5)
 
-→ Multi Cloud Architecture Tool (v2.0)
+→ Multi-Generator Ecosystem (v1.0)
 
-→ Cloud Simulator (v2.5)
+→ Collaboration Platform (v1.5)
+
+→ Multi-Cloud Architecture Tool (v2.0)
+
+→ Architecture Simulator (v2.5)
 
 → Cloud Digital Twin (v3.0)
 
-→ Physical Cloud Interface (v3.5)
+→ Full Plugin Ecosystem (v3.5)
