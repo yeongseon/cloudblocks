@@ -18,6 +18,11 @@ import { validateArchitecture } from '../../features/validate/engine';
 import { saveWorkspaces, loadWorkspaces } from '../../shared/utils/storage';
 import { GRID_CELL } from '../../shared/utils/position';
 
+/**
+ * Architecture state store.
+ * MVP: Single workspace. Multi-workspace support (add/switch/delete) planned for v1.0.
+ * Storage format already supports Workspace[] for forward compatibility.
+ */
 interface ArchitectureState {
   // ── Data ──
   workspace: Workspace;
@@ -51,12 +56,14 @@ interface ArchitectureState {
   renameWorkspace: (name: string) => void;
 }
 
+const DEFAULT_WORKSPACE_NAME = 'My Architecture';
+
 function createDefaultWorkspace(): Workspace {
   const now = new Date().toISOString();
   return {
     id: generateId('ws'),
-    name: 'My Architecture',
-    architecture: createBlankArchitecture(generateId('arch'), '3-Tier Web App'),
+    name: DEFAULT_WORKSPACE_NAME,
+    architecture: createBlankArchitecture(generateId('arch'), DEFAULT_WORKSPACE_NAME),
     createdAt: now,
     updatedAt: now,
   };
@@ -285,6 +292,16 @@ export const useArchitectureStore = create<ArchitectureState>((set, get) => ({
       if (!block) return state;
 
       const oldPlacementId = block.placementId;
+      if (oldPlacementId === newPlacementId) return state;
+
+      const targetPlate = arch.plates.find((p) => p.id === newPlacementId);
+      if (!targetPlate) return state;
+
+      // Recalculate position for the target plate layout
+      const blocksOnTarget = arch.blocks.filter(
+        (b) => b.placementId === newPlacementId
+      );
+      const newPosition = nextGridPosition(blocksOnTarget, targetPlate.size);
 
       return {
         workspace: {
@@ -292,7 +309,9 @@ export const useArchitectureStore = create<ArchitectureState>((set, get) => ({
           architecture: touchModel({
             ...arch,
             blocks: arch.blocks.map((b) =>
-              b.id === blockId ? { ...b, placementId: newPlacementId } : b
+              b.id === blockId
+                ? { ...b, placementId: newPlacementId, position: newPosition }
+                : b
             ),
             plates: arch.plates.map((p) => {
               if (p.id === oldPlacementId) {
@@ -375,7 +394,7 @@ export const useArchitectureStore = create<ArchitectureState>((set, get) => ({
     return result;
   },
 
-  // ── Workspace persistence ──
+  // ── Workspace persistence (MVP: single workspace) ──
 
   saveToStorage: () => {
     const state = get();
@@ -404,6 +423,10 @@ export const useArchitectureStore = create<ArchitectureState>((set, get) => ({
       workspace: {
         ...state.workspace,
         name,
+        architecture: touchModel({
+          ...state.workspace.architecture,
+          name,
+        }),
         updatedAt: new Date().toISOString(),
       },
     }));

@@ -1,73 +1,100 @@
-# React + TypeScript + Vite
+# CloudBlocks Web App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The main frontend application for CloudBlocks — a 2.5D isometric block-style visual cloud architecture builder.
 
-Currently, two official plugins are available:
+## What This Package Does
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+This is the **visual editor** where users design cloud architectures by placing plates (networks, subnets) and blocks (compute, database, storage, gateway) on an isometric canvas. Connections between blocks represent data flow with initiator-direction semantics.
 
-## React Compiler
+## Quick Start
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+# From monorepo root
+pnpm install
+pnpm --filter @cloudblocks/web dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Tech Stack
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- **React 19** + **TypeScript 5.9** (strict mode, `verbatimModuleSyntax`)
+- **Vite 8** — dev server & build
+- **React Three Fiber (R3F)** + **drei** — 2.5D isometric rendering
+- **Three.js** — 3D engine (used as 2.5D projection layer)
+- **Zustand** — state management
+
+## Project Structure (FSD-inspired)
+
 ```
+src/
+├── app/                          # App shell, root layout, global CSS
+│   ├── App.tsx
+│   ├── App.css
+│   └── index.css
+├── entities/                     # Domain entities (models + store)
+│   ├── store/
+│   │   ├── architectureStore.ts  # Main Zustand store (plates, blocks, connections)
+│   │   └── uiStore.ts            # UI state (tool mode, panel visibility)
+│   ├── block/BlockModel.tsx      # R3F block component
+│   ├── plate/PlateModel.tsx      # R3F plate component (with studs)
+│   └── connection/ConnectionLine.tsx  # R3F connection lines + external actor
+├── features/                     # Business logic (stateless)
+│   └── validate/
+│       ├── engine.ts             # Validation orchestrator
+│       ├── placement.ts          # Placement rule validation
+│       └── connection.ts         # Connection rule validation
+├── shared/                       # Shared utilities & types
+│   ├── types/
+│   │   ├── index.ts              # Core domain types
+│   │   └── schema.ts             # Serialization & schema versioning
+│   └── utils/
+│       ├── id.ts                 # ID generation
+│       ├── position.ts           # Unified position calculations
+│       └── storage.ts            # localStorage persistence
+├── widgets/                      # Composed UI panels
+│   ├── scene-canvas/SceneCanvas.tsx   # Main R3F canvas + camera
+│   ├── toolbar/Toolbar.tsx            # Top toolbar
+│   ├── block-palette/BlockPalette.tsx # Block creation palette
+│   ├── properties-panel/PropertiesPanel.tsx  # Selection inspector
+│   └── validation-panel/ValidationPanel.tsx  # Validation results
+└── main.tsx                      # Entry point
+```
+
+## Current Implementation (v0.1 MVP)
+
+- ✅ Isometric camera with fixed 2.5D view
+- ✅ Network plate + public/private subnet plates
+- ✅ Block placement with grid snapping (compute, database, storage, gateway)
+- ✅ Connection lines with initiator-direction semantics
+- ✅ Placement & connection rule validation
+- ✅ Export architecture as JSON
+- ✅ localStorage persistence (save/load/reset)
+- ✅ Properties panel with block move between subnets
+
+## Not Yet Implemented
+
+- Code generation (IaC output)
+- GitHub integration (Git-native storage)
+- Multi-workspace support
+- Backend orchestration layer
+- EventFlow / Dependency connection types
+- Drag-and-drop block placement
+- Undo/redo
+
+## Build
+
+```bash
+# Type check + build
+pnpm --filter @cloudblocks/web build
+
+# Or directly
+npx tsc -b && npx vite build
+```
+
+## Architecture Notes
+
+- The **internal coordinate system is 2D** (x, y grid) with a containment hierarchy. The 2.5D rendering is a visual projection only.
+- **ArchitectureModel** is the source of truth — the visual layer projects from it.
+- **Single workspace** in MVP. Storage format supports `Workspace[]` for forward compatibility.
+- See [docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md) and [docs/PRD.md](../../docs/PRD.md) for full specs.

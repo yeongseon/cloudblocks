@@ -5,6 +5,7 @@
   "description": "CloudBlocks Platform - 2.5D isometric block-style visual cloud architecture builder",
   "type": "module",
   "scripts": {
+    "preinstall": "npx only-allow pnpm",
     "dev": "pnpm --filter @cloudblocks/web dev",
     "build": "pnpm --filter @cloudblocks/web build",
     "lint": "pnpm --filter @cloudblocks/web lint",

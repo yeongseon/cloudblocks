@@ -10,29 +10,29 @@ import type {
  * Connection Rules (from DOMAIN_MODEL.md §6):
  *
  * Connection direction = initiator direction.
+ * Connections are initiator/client → receiver/server.
+ * Responses are implied and do not require a reverse connection.
  *
  * Allowed connections:
- *   Internet → Gateway    ✔
- *   Gateway  → Compute    ✔
- *   Compute  → Database   ✔
- *   Compute  → Storage    ✔
+ *   Internet → Gateway    ✔  (external traffic enters through gateway)
+ *   Gateway  → Compute    ✔  (gateway forwards to compute)
+ *   Compute  → Database   ✔  (app queries database)
+ *   Compute  → Storage    ✔  (app reads/writes storage)
  *
- * Forbidden connections:
- *   Database → Gateway    ❌
- *   Database → Internet   ❌
- *   Storage  → Gateway    ❌
- *   Storage  → Internet   ❌
+ * Database and Storage are receiver-only — they never initiate connections.
+ * Event-driven patterns (e.g., DB change streams, storage triggers) should
+ * be modeled with explicit intermediary services (EventGrid, Streams, etc.)
+ * once EventFlow connection type is available in v1.0.
  */
 
 type EndpointType = BlockCategory | 'internet';
 
-/** Map of allowed connections: source → Set<target> */
+/** Map of allowed connections: source (initiator) → Set<target (receiver)> */
 const ALLOWED_CONNECTIONS: Record<string, Set<string>> = {
   internet: new Set(['gateway']),
   gateway: new Set(['compute']),
   compute: new Set(['database', 'storage']),
-  database: new Set(['compute']), // DB can respond but not initiate to gateway/internet
-  storage: new Set(['compute']),
+  // database and storage are receiver-only — not listed as sources
 };
 
 function getEndpointType(

@@ -191,7 +191,18 @@ Compute  → Database   ✔  (app queries database)
 Compute  → Storage    ✔  (app reads/writes storage)
 Database → Gateway    ❌  (database does not initiate requests to gateway)
 Database → Internet   ❌  (database does not initiate external requests)
+Database → Compute    ❌  (database is receiver-only)
+Storage  → Gateway    ❌  (storage does not initiate requests to gateway)
+Storage  → Internet   ❌  (storage does not initiate external requests)
+Storage  → Compute    ❌  (storage is receiver-only)
 ```
+
+**Database and Storage are receiver-only** — they never appear as connection sources (initiators).
+Responses flow implicitly in the reverse direction and do not require a separate connection.
+
+> **Event-driven patterns** (e.g., Azure Event Grid from Blob Storage, AWS DynamoDB Streams → Lambda)
+> should be modeled with explicit intermediary services once the EventFlow connection type is
+> available in v1.0. In MVP, use polling: `Compute → Database` / `Compute → Storage`.
 
 ### Rule Specification Format
 
