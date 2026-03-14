@@ -97,8 +97,8 @@ my-cloud-project/
         "type": "network",
         "parentId": null,
         "children": ["plate-subnet-pub", "plate-subnet-priv"],
-        "position": { "x": 0, "y": 0 },
-        "size": { "width": 10, "depth": 10 },
+        "position": { "x": 0, "y": 0, "z": 0 },
+        "size": { "width": 10, "height": 0.3, "depth": 10 },
         "metadata": {}
       }
     ],
@@ -113,7 +113,7 @@ my-cloud-project/
 }
 ```
 
-> **Note**: Positions use a 2D coordinate system (`x`, `y`). The z-axis (elevation) is computed at render time based on plate hierarchy — it is not stored in the model. See [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) for details on the "visual layer is a projection" principle.
+> **Note**: Positions use a 3D coordinate system (`x`, `y`, `z`). The x/z plane represents the layout surface, while y represents elevation (plate stacking). The editing model treats placement as 2D (x, z) with containment hierarchy — y is managed programmatically based on plate depth. See [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) for details on the "visual layer is a projection" principle.
 
 Stable key ordering is enforced to keep Git diffs readable.
 

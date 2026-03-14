@@ -52,6 +52,36 @@ Long-term goal:
 
 ---
 
+## Architecture Compiler Concept
+
+CloudBlocks is not a diagram tool — it is an **Architecture Compiler**.
+
+Unlike tools like draw.io or Lucidchart that produce static diagrams, CloudBlocks introduces an intermediate **architecture model layer** between the visual editor and infrastructure code:
+
+```
+Visual Builder (UI)
+    ↓
+Architecture Model (CloudBlocks DSL)
+    ↓
+Rule Engine (validation)
+    ↓
+Generator (provider-specific)
+    ↓
+Infrastructure Code (Terraform / Bicep / Pulumi)
+```
+
+The architecture model is a **provider-agnostic** representation that:
+
+- Captures intent, not just visual layout
+- Can be validated against architectural rules
+- Serves as the input to code generation
+- Is versioned and stored in Git
+
+This compiler approach means every visual element maps to a real infrastructure component, and changes in the visual builder produce deterministic, diffable infrastructure code.
+
+> See also: [model.md](./model.md) for the architecture model specification, [ARCHITECTURE.md](./ARCHITECTURE.md) §Architecture Compiler for system-level details.
+
+
 # 4. Goals
 
 ### Primary Goals

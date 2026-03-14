@@ -57,8 +57,8 @@ type          — 'network' | 'subnet'
 subnetAccess  — 'public' | 'private' (subnet only)
 parentId      — parent plate ID (null for network plate)
 children      — child plate/block IDs
-position      — 2D position {x, y} (internal coordinate system)
-size          — dimensions {width, height}
+position      — position {x, y, z} (x/z = layout plane, y = elevation)
+size          — dimensions {width, height, depth}
 metadata      — additional properties
 ```
 
@@ -98,8 +98,19 @@ Block
   name          — display name
   category      — 'compute' | 'database' | 'storage' | 'gateway'
   placementId   — parent plate ID
-  position      — 2D position relative to parent plate {x, y}
+  position      — position relative to parent plate {x, y, z}
   metadata      — additional properties
+```
+
+Example:
+
+```
+Block
+  id: block-app01
+  name: AppServer
+  category: compute
+  placementId: plate-subnet-private
+  position: { x: 2, y: 0, z: 1 }
 ```
 
 Example:
@@ -496,7 +507,7 @@ interface Block {
 }
 
 // Connection
-type ConnectionType = 'dataflow' | 'eventflow' | 'dependency';
+type ConnectionType = 'dataflow';  // v0.1 — EventFlow and Dependency planned for v1.0
 
 interface Connection {
   id: string;
