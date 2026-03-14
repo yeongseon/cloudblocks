@@ -383,40 +383,17 @@ interface Generator {
 
 > For full interface contracts, options, output format, and determinism guarantees, see [`generator.md`](../engine/generator.md).
 
-### Template Model
-
 > **v0.4+**: Templates are planned for v0.4 (workspace management) and expanded in v1.0 (marketplace). See [`templates.md`](../engine/templates.md) for the template specification.
-
-Templates are pre-built architecture patterns:
-
-```typescript
-interface Template {
-  id: string;
-  name: string;
-  description: string;
-  category: 'webapp' | 'ai-stack' | 'serverless' | 'data-pipeline';
-  architecture: ArchitectureModel;
-  tags: string[];
-}
-```
 
 ---
 
 # 11. Provider Abstraction
 
-> **v0.3+**: Provider adapters are planned for v0.3 (Azure-first). Multi-cloud support is planned for v2.0. See [`provider.md`](../engine/provider.md) for the full provider abstraction design.
+> **v0.3+**: Provider adapters are planned for v0.3 (Azure-first). Multi-cloud support is planned for v2.0.
 
-CloudBlocks uses a **provider abstraction layer** for multi-cloud support. Azure is the primary target.
+CloudBlocks uses a **provider abstraction layer** for multi-cloud support. Azure is the primary target. Each generic block category (compute, database, storage, gateway) maps to provider-specific resources through the adapter layer.
 
-| Generic | Azure | AWS | GCP |
-|---------|-------|-----|-----|
-| Network (Plate) | VNet | VPC | VPC |
-| Subnet (Plate) | Subnet | Subnet | Subnet |
-| Compute | VM / Container App | EC2 | Compute Engine |
-| Database | Azure SQL | RDS | Cloud SQL |
-| Storage | Blob Storage | S3 | Cloud Storage |
-| Gateway | Application Gateway | ALB | Load Balancer |
-| Function (v1.0) | Azure Function | Lambda | Cloud Functions |
+> For the full provider mapping tables (block mapping, plate mapping, connection interpretation) and adapter interface, see [provider.md](../engine/provider.md).
 
 ---
 
@@ -424,43 +401,9 @@ CloudBlocks uses a **provider abstraction layer** for multi-cloud support. Azure
 
 > **v0.5+**: GitHub integration is planned for v0.5. This section describes the target design. No implementation exists yet.
 
-Architecture assets are stored in GitHub repos following a standard layout:
+Architecture assets are stored in GitHub repos following a standard layout. The backend mediates between the UI, GitHub, and the generation engine — it does not store architecture data.
 
-```
-my-cloud-project/
-├── cloudblocks/
-│   ├── architecture.json       # Architecture model
-│   ├── schemaVersion           # Schema version
-│   └── generator.lock          # Pinned generator versions
-├── infra/
-│   ├── terraform/
-│   │   ├── main.tf
-│   │   ├── variables.tf
-│   │   └── outputs.tf
-│   ├── bicep/
-│   └── pulumi/
-└── .github/
-    └── workflows/
-        └── plan.yml            # Auto terraform plan on PR
-```
-
-### Git Workflow
-
-> **v0.5+**: This workflow requires the backend API and GitHub App integration.
-
-```
-Edit architecture in UI
-↓
-Commit to branch
-↓
-Open PR (architecture.json + generated code)
-↓
-CI runs terraform plan
-↓
-Review & merge
-↓
-CD applies infrastructure
-```
+> For the full GitHub repo structure, data placement strategy, metadata DB schema, and migration plan, see [STORAGE_ARCHITECTURE.md](./STORAGE_ARCHITECTURE.md).
 
 ---
 

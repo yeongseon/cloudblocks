@@ -20,133 +20,19 @@ The architecture model provides a **provider-agnostic** representation of infras
 
 ## Core Model
 
-### Workspace
+The CloudBlocks model is composed of the following core entities:
 
-Workspace is the top-level container for architecture projects.
+| Entity | Description | Canonical Reference |
+|--------|-------------|---------------------|
+| **Workspace** | Top-level container for architecture projects | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §13 |
+| **Architecture** | Deployable infrastructure topology (root container) | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §14 |
+| **Plate** | Infrastructure boundary (Network / Subnet) | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §3 |
+| **Block** | Infrastructure resource (compute / database / storage / gateway) | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §4-5 |
+| **Connection** | Communication flow between blocks (initiator model) | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §6 |
+| **External Actor** | External endpoint (e.g., Internet) | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §6.1 |
 
-```json
-{
-  "id": "workspace-1",
-  "name": "My Architecture",
-  "architecture": {
-    "id": "arch-1",
-    "name": "3-Tier Web App",
-    "plates": [],
-    "blocks": [],
-    "connections": [],
-    "externalActors": []
-  }
-}
-```
+> For full TypeScript interfaces, JSON examples, field specifications, and model invariants, see [DOMAIN_MODEL.md](./DOMAIN_MODEL.md).
 
-**Responsibilities:**
-
-- Group architecture projects
-- Manage versions
-- Integrate with Git repositories
-
----
-
-### Architecture
-
-Architecture represents a deployable infrastructure topology.
-
-```json
-{
-  "id": "arch-1",
-  "name": "Three-tier web app",
-  "plates": [],
-  "blocks": [],
-  "connections": []
-}
-```
-
-**Responsibilities:**
-
-- Infrastructure topology definition
-- Validation input
-- Generator input
-
----
-
-### Plate
-
-Plate represents a logical infrastructure boundary.
-
-**Examples:** VPC, Subnet, Resource Group, Network Zone
-
-```json
-{
-  "id": "plate-1",
-  "type": "subnet",
-  "children": []
-}
-```
-
-**Responsibilities:**
-
-- Network boundary
-- Logical grouping
-- Layout container
-
----
-
-### Block
-
-Block represents an infrastructure resource.
-
-**Examples:** Compute, Database, Storage, Gateway
-
-```json
-{
-  "id": "block-1",
-  "category": "compute",
-  "placementId": "plate-1"
-}
-```
-
-**Responsibilities:**
-
-- Infrastructure resource abstraction
-- Generator mapping
-
----
-
-### Connection
-
-Connection represents communication between resources.
-
-```json
-{
-  "sourceId": "block-a",
-  "targetId": "block-b",
-  "type": "dataflow"
-}
-```
-
-**Connection types:**
-
-| Type | Meaning | Version |
-|------|---------|---------|
-| `dataflow` | Request/response communication | v0.1 (MVP) |
-| `eventflow` | Event-driven trigger | v1.0 (planned) |
-| `dependency` | Resource dependency | v1.0 (planned) |
-
-### External Actor
-
-An External Actor represents an endpoint outside the system (e.g., Internet).
-
-```json
-{
-  "id": "ext-internet",
-  "name": "Internet",
-  "type": "internet"
-}
-```
-
-External Actors can be used as a source or target of a Connection, but are not Plates or Blocks.
-
-> **v0.1 supports `dataflow` only.** EventFlow and Dependency are planned for v1.0.
 ---
 
 ## Policy Model
@@ -159,7 +45,7 @@ Policies enforce architecture constraints.
 internet → gateway → compute → database
 ```
 
-Policies are validated by the rule engine. See [rules.md](../engine/rules.md) for details.
+Policies are validated by the rule engine. See [rules.md](../engine/rules.md) for details and [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §7 for the complete rule set.
 
 ---
 
@@ -167,10 +53,10 @@ Policies are validated by the rule engine. See [rules.md](../engine/rules.md) fo
 
 Architecture models contain version metadata.
 
-| Field | Purpose |
-|-------|---------|
-| `schemaVersion` | Storage format version — enables future model migrations |
-| `modelVersion` | User-facing revision counter |
+| Field | Purpose | Canonical Source |
+|-------|---------|-----------------|
+| `schemaVersion` | Storage format version — enables future model migrations | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §9 |
+| `modelVersion` | User-facing revision counter | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §9 |
 
 ---
 
@@ -185,7 +71,9 @@ Planned model extensions:
 ---
 
 > **Cross-references:**
-> - Domain model details: [DOMAIN_MODEL.md](./DOMAIN_MODEL.md)
+> - Domain model (canonical): [DOMAIN_MODEL.md](./DOMAIN_MODEL.md)
+> - DSL specification: [DSL_SPEC.md](../DSL_SPEC.md)
+> - Architecture graph: [ARCHITECTURE_GRAPH.md](../ARCHITECTURE_GRAPH.md)
 > - Rule engine: [rules.md](../engine/rules.md)
 > - Code generation: [generator.md](../engine/generator.md)
 > - Provider mapping: [provider.md](../engine/provider.md)
