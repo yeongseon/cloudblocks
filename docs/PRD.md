@@ -355,7 +355,7 @@ interface Generator {
 
 CloudBlocks uses a **provider abstraction layer** for multi-cloud support.
 
-> 교육 단순화 기준: MVP에서 Compute는 Subnet 내에 배치되는 리소스(VM, Container App)로 간주한다.
+> Simplification for MVP: In the MVP, Compute refers to resources deployed within a Subnet (VM, Container App).
 
 | Generic | Azure | AWS | GCP |
 |---------|-------|-----|-----|

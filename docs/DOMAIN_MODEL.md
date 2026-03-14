@@ -18,7 +18,7 @@ Cloud infrastructure is represented as a **spatial block model** composed of:
 
 This model provides a visual abstraction that maps directly to real cloud resources and IaC constructs.
 
-> **교육 단순화 기준**: MVP에서 Compute는 Subnet 내에 배치되는 리소스(VM, Container App)로 간주한다. App Service와 같이 Subnet 외부에 존재하는 서비스는 향후 확장에서 다룬다.
+> **Simplification for MVP**: In the MVP, Compute refers to resources deployed within a Subnet (VM, Container App). Services that exist outside a Subnet (e.g., App Service) will be addressed in future extensions.
 
 ---
 
@@ -119,11 +119,11 @@ Block
 
 Connections represent **data or event flow** between blocks.
 
-Connection은 **요청 발신 방향(initiator)**을 나타낸다.
+A Connection represents the **request initiation direction (initiator)**.
 
-- 화살표는 "누가 요청을 시작하는가"를 표현한다
-- 응답(response)은 역방향으로 암묵적으로 흐른다
-- `Database → Gateway ❌` 규칙은 "Database가 Gateway에 직접 요청을 보내는 관계는 성립하지 않음"을 의미한다
+- The arrow indicates "who initiates the request"
+- The response flows implicitly in the reverse direction
+- The rule `Database → Gateway ❌` means "Database cannot directly initiate a request to Gateway"
 
 Example:
 
@@ -149,17 +149,17 @@ metadata  — additional properties
 | EventFlow | Event-driven trigger (dotted arrow) | v1.0 |
 | Dependency | Resource dependency (dashed line) | v1.0 |
 
-MVP (v0.1)에서는 DataFlow만 지원한다.
+MVP (v0.1) supports DataFlow only.
 
 ---
 
 # 5.1 External Actor
 
-External Actor는 시스템 외부의 엔드포인트를 나타낸다.
+An External Actor represents an endpoint outside the system.
 
-- Internet (외부 사용자 트래픽의 진입점)
+- Internet (entry point for external user traffic)
 
-External Actor는 Plate나 Block이 아닌 외부 엔티티로, Connection의 source 또는 target으로만 사용된다.
+An External Actor is an external entity (not a Plate or Block) that can only be used as a source or target of a Connection.
 
 ```
 id    — unique identifier ({type}-{uuid})
@@ -207,8 +207,8 @@ Rules are defined in JSON:
     "blockCategory": "database",
     "plateAccess": "public"
   },
-  "message": "Database는 Public Subnet에 배치할 수 없습니다",
-  "suggestion": "Database를 Private Subnet으로 이동하세요"
+  "message": "Database cannot be placed on a Public Subnet",
+  "suggestion": "Move the Database to a Private Subnet"
 }
 ```
 
@@ -443,13 +443,13 @@ interface GenerationRun {
 
 # 12. Implementation Schema
 
-도메인 모델의 구현을 위한 TypeScript 타입 정의.
+TypeScript type definitions for implementing the domain model.
 
 ## ID Convention
 
-모든 엔티티는 `{type}-{uuid}` 형식의 ID를 사용한다.
+All entities use IDs in the format `{type}-{uuid}`.
 
-예: `plate-a1b2c3`, `block-d4e5f6`, `conn-g7h8i9`
+Example: `plate-a1b2c3`, `block-d4e5f6`, `conn-g7h8i9`
 
 ## Core Types
 
@@ -529,7 +529,7 @@ interface ArchitectureModel {
 
 ## Serialization Format
 
-아키텍처 모델은 JSON으로 직렬화된다. 버전 필드를 포함하여 향후 스키마 마이그레이션을 지원한다.
+The architecture model is serialized as JSON. A version field is included to support future schema migrations.
 
 ```json
 {

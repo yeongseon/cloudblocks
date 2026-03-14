@@ -93,7 +93,7 @@ apps/web/src/
 
 ## 2.2 MVP Architecture (v0.1)
 
-v0.1은 **프론트엔드 전용 SPA**로 구현한다. 백엔드 불필요.
+v0.1 is implemented as a **frontend-only SPA**. No backend required.
 
 ```
 Browser (React + R3F)
@@ -244,7 +244,7 @@ Database → Internet   ❌
 - **EventFlow**: Event-driven trigger (dotted arrow) — v1.0
 - **Dependency**: Resource dependency (dashed line) — v1.0
 
-MVP (v0.1)에서는 DataFlow만 지원한다.
+MVP (v0.1) supports DataFlow only.
 
 ---
 
@@ -310,7 +310,7 @@ jobs:
 
 The Provider Adapter translates the generic CloudBlocks model into cloud provider resources.
 
-> 교육 단순화 기준: MVP에서 Compute는 Subnet 내에 배치되는 리소스(VM, Container App)로 간주한다.
+> Simplification for MVP: In the MVP, Compute refers to resources deployed within a Subnet (VM, Container App).
 
 | Generic Resource | Azure | AWS | GCP |
 |------------------|------|-----|-----|
@@ -432,7 +432,7 @@ CREATE INDEX idx_runs_project ON generation_runs(project_id);
 
 ### v0.1 Storage (Local)
 
-v0.1에서는 브라우저 localStorage를 사용한다.
+v0.1 uses browser localStorage for persistence.
 
 Key: `cloudblocks:workspaces`
 
