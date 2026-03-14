@@ -79,19 +79,20 @@ docker build -t cloudblocks-web -f infra/docker/web.Dockerfile .
 # Build backend
 docker build -t cloudblocks-api -f infra/docker/api.Dockerfile .
 
-# Start all services
+# Start supporting services (Redis + MinIO)
 docker compose up -d
 ```
 
-#### docker-compose.yml Services
+> **Note**: The current `docker-compose.yml` provides only supporting services (Redis and MinIO). It does **not** include `web` or `api` service definitions — those are built separately via Dockerfiles listed above. Full-stack Docker Compose orchestration is planned for v0.5+.
+
+#### docker-compose.yml Services (Current)
 
 | Service | Purpose |
 |---------|---------|
-| `web` | Frontend SPA (nginx) |
-| `api` | Backend API (FastAPI) |
 | `redis` | Cache, rate limiting, job queue |
+| `minio` | S3-compatible object storage (dev environment) |
 
-> Note: PostgreSQL is provided by Supabase (hosted) or can be added as a Docker service for self-hosting.
+> PostgreSQL is provided by Supabase (hosted) or can be added as a Docker service for self-hosting.
 
 ### Option 3: Cloud Deployment
 
@@ -153,37 +154,50 @@ VITE_GITHUB_APP_CLIENT_ID=your_github_app_client_id
 ### Backend (.env)
 
 ```bash
-# Server
-HOST=0.0.0.0
-PORT=8000
-ENVIRONMENT=production
+# Application
+APP_ENV=development
+APP_PORT=8000
+APP_DEBUG=true
 
-# Auth
-JWT_SECRET=your-strong-random-string
+# GitHub Integration
 GITHUB_APP_ID=your_github_app_id
-GITHUB_APP_CLIENT_ID=your_github_app_client_id
-GITHUB_APP_CLIENT_SECRET=your_github_app_client_secret
-GITHUB_APP_PRIVATE_KEY_PATH=/path/to/private-key.pem
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+GITHUB_APP_PRIVATE_KEY=/path/to/private-key.pem
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=
+
+# Object Storage (S3-compatible / MinIO)
+STORAGE_ENDPOINT=http://localhost:9000
+STORAGE_ACCESS_KEY=minioadmin
+STORAGE_SECRET_KEY=minioadmin
+STORAGE_BUCKET=cloudblocks
+
+# JWT
+JWT_SECRET=your-strong-random-string
+JWT_EXPIRATION=3600
 
 # Metadata DB (Supabase / Postgres)
-DATABASE_URL=postgresql://user:pass@host:5432/cloudblocks
-
-# Cache (Redis / Upstash)
-REDIS_URL=redis://localhost:6379
-# Or for Upstash:
-# UPSTASH_REDIS_REST_URL=https://your-instance.upstash.io
-# UPSTASH_REDIS_REST_TOKEN=your_token
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your_anon_key
+# Or direct Postgres (for self-hosting):
+# DATABASE_URL=postgresql://user:pass@host:5432/cloudblocks
 ```
+
+> **Important**: The backend config (`apps/api/app/core/config.py`) uses `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` — NOT `GITHUB_APP_CLIENT_ID` / `GITHUB_APP_CLIENT_SECRET`. Use the correct variable names.
 
 ### Production Secrets (set via secret manager)
 
 | Secret | Description |
 |--------|-------------|
 | `JWT_SECRET` | Strong random string for JWT signing |
-| `GITHUB_APP_CLIENT_SECRET` | GitHub App OAuth secret |
+| `GITHUB_CLIENT_SECRET` | GitHub App OAuth secret |
 | `GITHUB_APP_PRIVATE_KEY` | GitHub App private key (PEM) |
-| `DATABASE_URL` | Postgres connection string |
-| `REDIS_URL` | Redis connection string |
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_ANON_KEY` | Supabase anonymous key |
 
 ## CI/CD Pipeline
 

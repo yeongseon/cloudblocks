@@ -2,7 +2,7 @@
 
 ## Overview
 
-CloudBlocks uses a **Git-native storage architecture** — GitHub repos serve as the primary data store for all architecture assets and generated code. A minimal metadata database handles auth, project indexing, and run status only.
+CloudBlocks uses a **Git-native storage architecture** — GitHub repos serve as the primary data store for all architecture assets and generated code. A minimal metadata database handles auth, workspace indexing, and run status only.
 
 This is NOT a traditional database-heavy architecture. The design principle: **DB = index and status only, real data = Git / Blob Storage**.
 
@@ -17,10 +17,10 @@ This is NOT a traditional database-heavy architecture. The design principle: **D
 │   Truth)       │   Supabase)      │                          │
 ├────────────────┼──────────────────┼──────────────────────────┤
 │ architecture   │ users            │ session tokens           │
-│   .json        │ projects         │ rate limits              │
-│ generated IaC  │ generation_runs  │ job queue                │
-│ templates      │ github_tokens    │ cache                    │
-│ schema version │ audit_log        │                          │
+│   .json        │ identities       │ rate limits              │
+│ generated IaC  │ workspaces       │ job queue                │
+│ templates      │ generation_runs  │ cache                    │
+│ schema version │                  │                          │
 │ generator.lock │                  │                          │
 └────────────────┴──────────────────┴──────────────────────────┘
 ```
@@ -43,10 +43,10 @@ This is NOT a traditional database-heavy architecture. The design principle: **D
 
 | Data | Purpose | Why Not GitHub |
 |------|---------|---------------|
-| User identity | Auth, OAuth tokens | Security — tokens must be server-side |
-| Project index | User → repo mapping | Fast lookup without GitHub API calls |
+| User identity | Auth, OAuth tokens (hashed) | Security — tokens must be server-side |
+| Identity providers | Multi-provider auth (GitHub, Google) | Fast lookup, encrypted storage |
+| Workspace index | User → repo mapping | Fast lookup without GitHub API calls |
 | Generation runs | Job status, timestamps | Transient state, not version-controlled |
-| Audit summary | Who did what, when | Lightweight trail, not full logs |
 
 ### What Does NOT Go in Any DB
 
@@ -58,13 +58,13 @@ This is NOT a traditional database-heavy architecture. The design principle: **D
 | Template content | GitHub repo | Community contribution via PRs |
 | Deployment artifacts | GitHub / Blob Storage | Binary assets |
 
-## GitHub Repo Structure (Per Project)
+## GitHub Repo Structure (Per Workspace)
 
 ```
 my-cloud-project/
 ├── cloudblocks/
 │   ├── architecture.json       # Architecture model (source of truth)
-│   ├── schemaVersion           # "0.3.0"
+│   ├── schemaVersion           # "0.1.0"
 │   └── generator.lock          # Pinned generator versions
 ├── infra/
 │   ├── terraform/
@@ -85,7 +85,7 @@ my-cloud-project/
 
 ```json
 {
-  "schemaVersion": "0.3.0",
+  "schemaVersion": "0.1.0",
   "architecture": {
     "id": "arch-abc123",
     "name": "3-Tier Web App",
@@ -97,8 +97,8 @@ my-cloud-project/
         "type": "network",
         "parentId": null,
         "children": ["plate-subnet-pub", "plate-subnet-priv"],
-        "position": { "x": 0, "y": 0, "z": 0 },
-        "size": { "width": 10, "height": 1, "depth": 10 },
+        "position": { "x": 0, "y": 0 },
+        "size": { "width": 10, "depth": 10 },
         "metadata": {}
       }
     ],
@@ -113,67 +113,72 @@ my-cloud-project/
 }
 ```
 
+> **Note**: Positions use a 2D coordinate system (`x`, `y`). The z-axis (elevation) is computed at render time based on plate hierarchy — it is not stored in the model. See [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) for details on the "visual layer is a projection" principle.
+
 Stable key ordering is enforced to keep Git diffs readable.
 
 ## Metadata DB Schema
 
-Minimal Postgres schema (Supabase-hosted or self-managed):
+Minimal Postgres schema (Supabase-hosted or self-managed). This schema matches the actual migration files in `apps/api/app/infrastructure/db/migrations/`.
 
 ```sql
--- User identity (linked to GitHub / Google OAuth)
-CREATE TABLE users (
-    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email       VARCHAR(255) NOT NULL UNIQUE,
-    name        VARCHAR(255) NOT NULL,
-    github_id   VARCHAR(100),
-    avatar_url  VARCHAR(500),
-    created_at  TIMESTAMPTZ DEFAULT NOW(),
-    updated_at  TIMESTAMPTZ DEFAULT NOW()
+-- Migration 001: User identity (linked to GitHub / Google OAuth)
+CREATE TABLE IF NOT EXISTS users (
+    id              TEXT PRIMARY KEY,
+    github_id       TEXT UNIQUE,
+    github_username TEXT,
+    email           TEXT,
+    display_name    TEXT,
+    avatar_url      TEXT,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Project = workspace + GitHub repo mapping
-CREATE TABLE projects (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id         UUID NOT NULL REFERENCES users(id),
-    name            VARCHAR(200) NOT NULL,
-    github_repo     VARCHAR(500),       -- e.g., "user/my-infra"
-    github_branch   VARCHAR(100) DEFAULT 'main',
-    generator       VARCHAR(50) DEFAULT 'terraform',
-    provider        VARCHAR(50) DEFAULT 'azure',
-    created_at      TIMESTAMPTZ DEFAULT NOW(),
-    updated_at      TIMESTAMPTZ DEFAULT NOW()
+-- Migration 001: Identity providers (multi-provider auth)
+CREATE TABLE IF NOT EXISTS identities (
+    id              TEXT PRIMARY KEY,
+    user_id         TEXT NOT NULL REFERENCES users(id),
+    provider        TEXT NOT NULL,   -- 'github', 'google'
+    provider_id     TEXT NOT NULL,
+    access_token_hash TEXT,          -- hashed, not plaintext
+    refresh_token_hash TEXT,         -- hashed, not plaintext
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(provider, provider_id)
 );
 
-CREATE INDEX idx_projects_user ON projects(user_id);
+-- Migration 002: Workspace index — pointers to GitHub repos, not full data
+CREATE TABLE IF NOT EXISTS workspaces (
+    id              TEXT PRIMARY KEY,
+    owner_id        TEXT NOT NULL REFERENCES users(id),
+    name            TEXT NOT NULL,
+    github_repo     TEXT,            -- e.g. 'yeongseon/my-infra'
+    github_branch   TEXT DEFAULT 'main',
+    last_synced_at  TIMESTAMP,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
--- Generation run log (job tracking)
-CREATE TABLE generation_runs (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    project_id      UUID NOT NULL REFERENCES projects(id),
-    status          VARCHAR(20) DEFAULT 'queued',  -- queued, running, succeeded, failed
-    generator       VARCHAR(50) NOT NULL,
-    commit_sha      VARCHAR(40),
+-- Migration 002: Generation run log (job tracking)
+CREATE TABLE IF NOT EXISTS generation_runs (
+    id              TEXT PRIMARY KEY,
+    workspace_id    TEXT NOT NULL REFERENCES workspaces(id),
+    status          TEXT NOT NULL DEFAULT 'pending',  -- pending, running, completed, failed
+    generator       TEXT NOT NULL,                    -- 'terraform', 'bicep', 'pulumi'
+    commit_sha      TEXT,
+    started_at      TIMESTAMP,
+    completed_at    TIMESTAMP,
     error_message   TEXT,
-    started_at      TIMESTAMPTZ,
-    completed_at    TIMESTAMPTZ,
-    created_at      TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE INDEX idx_runs_project ON generation_runs(project_id);
-
--- OAuth token storage (encrypted at rest)
-CREATE TABLE oauth_tokens (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id         UUID NOT NULL REFERENCES users(id) UNIQUE,
-    github_token    TEXT NOT NULL,       -- encrypted
-    refresh_token   TEXT,               -- encrypted
-    expires_at      TIMESTAMPTZ,
-    created_at      TIMESTAMPTZ DEFAULT NOW(),
-    updated_at      TIMESTAMPTZ DEFAULT NOW()
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
-**Total: 4 tables.** That's the entire database. Everything else lives in GitHub.
+**Total: 4 tables** (`users`, `identities`, `workspaces`, `generation_runs`). That's the entire database. Everything else lives in GitHub.
+
+Key differences from a traditional SaaS schema:
+- **TEXT primary keys** (not UUID) — lightweight, no UUID extension needed
+- **No `projects` table** — called `workspaces` to match the frontend model
+- **No `oauth_tokens` table** — tokens are stored as hashed values in the `identities` table
+- **Status enum**: `pending` → `running` → `completed` / `failed` (not `queued` / `succeeded`)
 
 ## Redis / Upstash Schema
 
@@ -189,7 +194,7 @@ queue:generation                  → list of generation job IDs
 job:{job_id}                      → JSON job details (TTL: 1h)
 
 # Cache
-cache:project:{project_id}       → JSON project metadata (TTL: 5m)
+cache:workspace:{workspace_id}    → JSON workspace metadata (TTL: 5m)
 ```
 
 ## GitHub API Considerations

@@ -2,7 +2,7 @@
 
 This document defines the staged development roadmap for the CloudBlocks Platform.
 
-CloudBlocks evolves from a **visual cloud architecture builder** into a **full architecture-to-code platform** — generating Terraform, Bicep, and Pulumi from 3D visual designs, with Git-native workflow integration.
+CloudBlocks evolves from a **2.5D isometric cloud architecture builder** into a **full architecture-to-code platform** — generating Terraform, Bicep, and Pulumi from visual designs, with Git-native workflow integration.
 
 ---
 
@@ -37,20 +37,20 @@ Proof that the **block abstraction maps cleanly to cloud architecture and IaC co
 # v0.1 — CloudBlocks Builder (MVP) ✅
 
 Goal:
-Create a working **3D visual cloud architecture builder**.
+Create a working **2.5D isometric cloud architecture builder**.
 
 Features:
 
 - Network Plate, Subnet Plate (Public / Private)
 - Compute, Database, Storage, Gateway blocks
-- Drag and drop block placement
+- Click-to-add block placement via palette
 - Rule Engine (placement + connection validation)
 - DataFlow connection visualization
 - Workspace persistence (localStorage)
 
 Deliverables:
 
-- Visual Block Builder (React + React Three Fiber)
+- 2.5D Isometric Block Builder (React + React Three Fiber)
 - In-browser Rule Engine
 - Workspace save/load (localStorage)
 
@@ -76,8 +76,8 @@ Features:
 - Drag and drop block repositioning
 - Block resize and snap-to-grid
 - Keyboard shortcuts (delete, undo, redo)
-- Improved 3D rendering (shadows, materials)
-- Zoom/pan/orbit camera controls
+- Improved isometric rendering (shadows, materials)
+- Zoom/pan camera controls
 - Responsive layout
 
 ### Exit Criteria
@@ -352,7 +352,7 @@ Features:
 
 CloudBlocks evolves into:
 
-- Visual Cloud Architecture Builder
+- 2.5D Isometric Cloud Architecture Builder
 - Architecture → Code Generation Platform
 - Git-native DevOps workflow tool
 - Multi-cloud infrastructure designer
@@ -365,7 +365,7 @@ CloudBlocks evolves into:
 
 Key principles:
 
-1. Start with **visual builder core** (v0.1)
+1. Start with **2.5D isometric builder core** (v0.1)
 2. Add **code generation** early (v0.3) — the core value
 3. Integrate **GitHub** as data store (v0.5) — not a traditional DB
 4. Keep backend **thin** — orchestration, not CRUD
@@ -405,7 +405,7 @@ v2.0+
 
 The roadmap evolves CloudBlocks from:
 
-Visual Cloud Builder (v0.1)
+2.5D Isometric Cloud Builder (v0.1)
 
 → Code Generation Platform (v0.3)
 

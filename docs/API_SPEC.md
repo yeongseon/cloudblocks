@@ -1,5 +1,11 @@
 # CloudBlocks — API Specification
 
+> **⚠️ Implementation Status (v0.1)**
+>
+> The backend API is scaffolded but **only health check endpoints are currently implemented**.
+> All other endpoints listed below are **planned** and will be available in future versions.
+> The v0.1 release is frontend-only with localStorage — no backend required.
+
 ## Overview
 
 The CloudBlocks API is a **thin orchestration backend** built with Python FastAPI. It handles authentication, code generation orchestration, and GitHub integration — but does NOT store architecture data.
@@ -8,7 +14,18 @@ The CloudBlocks API is a **thin orchestration backend** built with Python FastAP
 
 **Design Principle**: The backend is a workflow orchestrator, not a CRUD service. Architecture data lives in GitHub repos.
 
-## Authentication
+## Currently Implemented (v0.1)
+
+```
+GET /health        → Basic health check (returns {"status": "ok"})
+GET /health/ready  → Readiness check (returns {"status": "ready"})
+```
+
+These are the **only** endpoints that exist in the current codebase (`apps/api/app/main.py`).
+
+---
+
+## Planned: Authentication (v0.5+)
 
 GitHub App OAuth with JWT session tokens.
 
@@ -32,64 +49,66 @@ POST /api/v1/auth/refresh          → Refresh JWT token
 7. Frontend stores JWT (httpOnly cookie)
 ```
 
-## API Endpoints
+## Planned: Workspaces (v0.5+)
 
-### Projects
-
-Projects link a CloudBlocks workspace to a GitHub repo. Project metadata is stored in the metadata DB; architecture data is in GitHub.
+Workspaces link a CloudBlocks workspace to a GitHub repo. Workspace metadata is stored in the metadata DB; architecture data is in GitHub.
 
 ```
-GET    /api/v1/projects              → List user's projects
-POST   /api/v1/projects              → Create project (+ optional GitHub repo)
-GET    /api/v1/projects/:id          → Get project details
-PUT    /api/v1/projects/:id          → Update project settings
-DELETE /api/v1/projects/:id          → Delete project
+GET    /api/v1/workspaces              → List user's workspaces
+POST   /api/v1/workspaces              → Create workspace (+ optional GitHub repo)
+GET    /api/v1/workspaces/:id          → Get workspace details
+PUT    /api/v1/workspaces/:id          → Update workspace settings
+DELETE /api/v1/workspaces/:id          → Delete workspace
 ```
 
-### Code Generation
+> **Note**: The metadata DB uses `workspaces` (not `projects`). See [STORAGE_ARCHITECTURE.md](./STORAGE_ARCHITECTURE.md) for the actual schema.
+
+## Planned: Code Generation (v0.5+)
 
 Generate infrastructure code from architecture. The backend reads `architecture.json` from GitHub, runs the generator, and commits the output back.
 
 ```
-POST   /api/v1/projects/:id/generate    → Trigger code generation
-GET    /api/v1/projects/:id/generate/:runId  → Get generation status
-GET    /api/v1/projects/:id/preview     → Preview generated code (no commit)
+POST   /api/v1/workspaces/:id/generate    → Trigger code generation
+GET    /api/v1/workspaces/:id/generate/:runId  → Get generation status
+GET    /api/v1/workspaces/:id/preview     → Preview generated code (no commit)
 ```
 
-### GitHub Integration
+## Planned: GitHub Integration (v0.5+)
 
 Manage GitHub repository connections and sync.
 
 ```
 GET    /api/v1/github/repos             → List user's GitHub repos
 POST   /api/v1/github/repos             → Create new GitHub repo
-POST   /api/v1/projects/:id/sync        → Sync architecture to GitHub
-POST   /api/v1/projects/:id/pull        → Pull latest from GitHub
-POST   /api/v1/projects/:id/pr          → Create PR with changes
-GET    /api/v1/projects/:id/commits     → List recent commits
+POST   /api/v1/workspaces/:id/sync      → Sync architecture to GitHub
+POST   /api/v1/workspaces/:id/pull      → Pull latest from GitHub
+POST   /api/v1/workspaces/:id/pr        → Create PR with changes
+GET    /api/v1/workspaces/:id/commits   → List recent commits
 ```
 
-### Validation
+## Planned: Validation (v0.3+)
 
 Validate architecture against rules. Can run client-side or server-side.
 
+> **Note**: Client-side validation is already implemented in v0.1 (`apps/web/src/features/validate/`).
+
 ```
-POST   /api/v1/validate                 → Validate architecture
+POST   /api/v1/validate                 → Validate architecture (server-side)
 ```
 
-### Templates
+## Planned: Templates (v1.0+)
 
 Browse and use architecture templates.
 
 ```
 GET    /api/v1/templates                → List available templates
 GET    /api/v1/templates/:id            → Get template details
-POST   /api/v1/templates/:id/use        → Create project from template
+POST   /api/v1/templates/:id/use        → Create workspace from template
 ```
 
 ## Request/Response Formats
 
-### Create Project
+### Create Workspace (Planned)
 
 **Request:**
 ```json
@@ -104,7 +123,7 @@ POST   /api/v1/templates/:id/use        → Create project from template
 **Response (201):**
 ```json
 {
-  "id": "proj-a1b2c3d4",
+  "id": "ws-a1b2c3d4",
   "name": "My 3-Tier App",
   "generator": "terraform",
   "provider": "azure",
@@ -115,7 +134,7 @@ POST   /api/v1/templates/:id/use        → Create project from template
 }
 ```
 
-### Trigger Code Generation
+### Trigger Code Generation (Planned)
 
 **Request:**
 ```json
@@ -132,18 +151,18 @@ POST   /api/v1/templates/:id/use        → Create project from template
 ```json
 {
   "runId": "run-e5f6g7h8",
-  "status": "queued",
-  "message": "Generation job queued"
+  "status": "pending",
+  "message": "Generation job created"
 }
 ```
 
-### Generation Status
+### Generation Status (Planned)
 
 **Response (200):**
 ```json
 {
   "runId": "run-e5f6g7h8",
-  "status": "succeeded",
+  "status": "completed",
   "generator": "terraform",
   "commitSha": "abc123def456",
   "files": [
@@ -156,6 +175,8 @@ POST   /api/v1/templates/:id/use        → Create project from template
   "completedAt": "2025-01-01T00:00:05Z"
 }
 ```
+
+> **Note**: Status values match the actual migration schema: `pending`, `running`, `completed`, `failed`.
 
 ### Validation Response
 
@@ -182,8 +203,8 @@ All errors follow a consistent format:
 ```json
 {
   "error": {
-    "code": "PROJECT_NOT_FOUND",
-    "message": "Project with id 'proj-abc123' not found",
+    "code": "WORKSPACE_NOT_FOUND",
+    "message": "Workspace with id 'ws-abc123' not found",
     "details": {}
   }
 }
@@ -203,16 +224,16 @@ All errors follow a consistent format:
 | `GENERATION_FAILED` | 500 | Code generation failed |
 | `INTERNAL_ERROR` | 500 | Server error |
 
-## Rate Limiting
+## Rate Limiting (Planned)
 
 - **Authenticated**: 100 requests/minute
 - **Unauthenticated**: 20 requests/minute
 - **Code Generation**: 10 requests/hour
 - **GitHub Sync**: 30 requests/hour
 
-## Health Checks
+## Health Checks (Implemented)
 
 ```
 GET /health        → Basic health check
-GET /health/ready  → Readiness (DB + GitHub API connected)
+GET /health/ready  → Readiness (DB + Redis + GitHub API connected)
 ```
