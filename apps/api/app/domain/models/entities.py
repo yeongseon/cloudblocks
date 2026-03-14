@@ -1,82 +1,78 @@
-"""CloudBlocks API - Domain entities."""
+"""CloudBlocks API - Domain entities matching STORAGE_ARCHITECTURE.md schema.
 
-from dataclasses import dataclass, field
-from datetime import datetime
+Four entities: User, Identity, Workspace, GenerationRun.
+Architecture data is NOT stored here — it lives in GitHub repos.
+"""
+
+from __future__ import annotations
+
+from datetime import datetime, timezone
+from enum import Enum
+
+from pydantic import BaseModel, Field
 
 
-@dataclass
-class User:
-    """User domain entity."""
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+class GenerationStatus(str, Enum):
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class User(BaseModel):
+    """User domain entity — linked to GitHub OAuth."""
 
     id: str
-    email: str
-    display_name: str
-    password_hash: str
-    role: str = "learner"
+    github_id: str | None = None
+    github_username: str | None = None
+    email: str | None = None
+    display_name: str | None = None
     avatar_url: str | None = None
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    updated_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=_utcnow)
+    updated_at: datetime = Field(default_factory=_utcnow)
 
 
-@dataclass
-class Workspace:
-    """Workspace domain entity."""
+class Identity(BaseModel):
+    """OAuth identity provider record (GitHub, Google, etc.)."""
+
+    id: str
+    user_id: str
+    provider: str  # 'github', 'google'
+    provider_id: str
+    access_token_hash: str | None = None
+    refresh_token_hash: str | None = None
+    created_at: datetime = Field(default_factory=_utcnow)
+
+
+class Workspace(BaseModel):
+    """Workspace index — pointer to a GitHub repo, not the architecture itself."""
 
     id: str
     owner_id: str
     name: str
-    architecture: str  # JSON serialized ArchitectureModel
-    description: str | None = None
-    is_public: bool = False
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    updated_at: datetime = field(default_factory=datetime.utcnow)
+    github_repo: str | None = None  # e.g. 'yeongseon/my-infra'
+    github_branch: str = "main"
+    generator: str = "terraform"
+    provider: str = "azure"
+    last_synced_at: datetime | None = None
+    created_at: datetime = Field(default_factory=_utcnow)
+    updated_at: datetime = Field(default_factory=_utcnow)
 
 
-@dataclass
-class Scenario:
-    """Learning scenario domain entity."""
-
-    id: str
-    title: str
-    difficulty: str
-    category: str
-    template: str  # JSON serialized template
-    description: str | None = None
-    solution: str | None = None
-    order_index: int = 0
-    is_active: bool = True
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    updated_at: datetime = field(default_factory=datetime.utcnow)
-
-
-@dataclass
-class LearningProgress:
-    """Learning progress domain entity."""
-
-    id: str
-    user_id: str
-    scenario_id: str
-    status: str = "not_started"
-    score: int | None = None
-    attempts: int = 0
-    last_state: str | None = None  # JSON serialized workspace state
-    completed_at: datetime | None = None
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    updated_at: datetime = field(default_factory=datetime.utcnow)
-
-
-@dataclass
-class Deployment:
-    """Deployment record domain entity."""
+class GenerationRun(BaseModel):
+    """Code generation job tracking record."""
 
     id: str
     workspace_id: str
-    user_id: str
-    provider: str  # azure, aws, gcp
-    status: str = "pending"
-    terraform_plan: str | None = None
-    terraform_state: str | None = None
+    status: GenerationStatus = GenerationStatus.PENDING
+    generator: str  # 'terraform', 'bicep', 'pulumi'
+    commit_sha: str | None = None
+    pull_request_url: str | None = None
     error_message: str | None = None
     started_at: datetime | None = None
     completed_at: datetime | None = None
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=_utcnow)

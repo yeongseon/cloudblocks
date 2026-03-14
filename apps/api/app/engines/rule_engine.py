@@ -86,7 +86,10 @@ def _validate_placement(block: dict, plate: dict | None) -> dict | None:
             return {
                 "ruleId": rule_id,
                 "severity": "error",
-                "message": f'{category.title()} block "{block["name"]}" must be placed on a {target_desc}',
+                "message": (
+                    f'{category.title()} block "{block["name"]}"'
+                    f' must be placed on a {target_desc}'
+                ),
                 "suggestion": f"Move the {category.title()} block to a {target_desc}",
                 "targetId": block["id"],
             }

@@ -1,41 +1,35 @@
-"""CloudBlocks API - Core configuration."""
+"""CloudBlocks API - Core configuration using pydantic-settings."""
 
-from dataclasses import dataclass, field
-import os
+from pydantic_settings import BaseSettings
 
 
-@dataclass
-class Settings:
+class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     # Application
-    app_env: str = field(default_factory=lambda: os.getenv("APP_ENV", "development"))
-    app_port: int = field(default_factory=lambda: int(os.getenv("APP_PORT", "8000")))
-    app_debug: bool = field(default_factory=lambda: os.getenv("APP_DEBUG", "true").lower() == "true")
+    app_env: str = "development"
+    app_port: int = 8000
+    app_debug: bool = True
 
-    # GitHub Integration
-    github_app_id: str = field(default_factory=lambda: os.getenv("GITHUB_APP_ID", ""))
-    github_client_id: str = field(default_factory=lambda: os.getenv("GITHUB_CLIENT_ID", ""))
-    github_client_secret: str = field(default_factory=lambda: os.getenv("GITHUB_CLIENT_SECRET", ""))
-
-    # Redis
-    redis_host: str = field(default_factory=lambda: os.getenv("REDIS_HOST", "localhost"))
-    redis_port: int = field(default_factory=lambda: int(os.getenv("REDIS_PORT", "6379")))
-    redis_password: str = field(default_factory=lambda: os.getenv("REDIS_PASSWORD", ""))
+    # GitHub App OAuth
+    github_app_id: str = ""
+    github_client_id: str = ""
+    github_client_secret: str = ""
+    github_redirect_uri: str = "http://localhost:8000/api/v1/auth/github/callback"
 
     # JWT
-    jwt_secret: str = field(default_factory=lambda: os.getenv("JWT_SECRET", "change-me"))
-    jwt_expiration: int = field(default_factory=lambda: int(os.getenv("JWT_EXPIRATION", "3600")))
+    jwt_secret: str = "change-me-in-production"
+    jwt_algorithm: str = "HS256"
+    jwt_expiration_seconds: int = 3600  # 1 hour
+    jwt_refresh_expiration_seconds: int = 86400 * 7  # 7 days
 
-    # Object Storage
-    storage_endpoint: str = field(default_factory=lambda: os.getenv("STORAGE_ENDPOINT", "http://localhost:9000"))
-    storage_access_key: str = field(default_factory=lambda: os.getenv("STORAGE_ACCESS_KEY", "minioadmin"))
-    storage_secret_key: str = field(default_factory=lambda: os.getenv("STORAGE_SECRET_KEY", "minioadmin"))
-    storage_bucket: str = field(default_factory=lambda: os.getenv("STORAGE_BUCKET", "cloudblocks"))
+    # Database
+    database_url: str = "sqlite+aiosqlite:///cloudblocks.db"
 
-    # Supabase (auth metadata)
-    supabase_url: str = field(default_factory=lambda: os.getenv("SUPABASE_URL", ""))
-    supabase_anon_key: str = field(default_factory=lambda: os.getenv("SUPABASE_ANON_KEY", ""))
+    # CORS
+    cors_origins: list[str] = ["http://localhost:5173"]
+
+    model_config = {"env_prefix": "CLOUDBLOCKS_", "env_file": ".env", "extra": "ignore"}
 
 
 settings = Settings()
