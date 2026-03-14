@@ -73,16 +73,9 @@ Map generic infrastructure blocks to provider-specific resources.
 mapToProvider(normalizedModel, provider) → ProviderMappedModel
 ```
 
-**Example mapping:**
+**Example:** A `compute` block maps to `azurerm_linux_web_app` (Azure), `aws_ecs_service` (AWS), or `google_cloud_run` (GCP).
 
-| Block | Azure | AWS | GCP |
-|-------|-------|-----|-----|
-| `compute` | `azurerm_linux_web_app` | `aws_ecs_service` | `google_cloud_run` |
-| `storage` | `azurerm_storage_account` | `s3_bucket` | `gcs_bucket` |
-| `database` | `azurerm_mssql_server` | `aws_db_instance` | `google_sql_database_instance` |
-| `gateway` | `azurerm_application_gateway` | `aws_lb` | `google_compute_url_map` |
-
-See [provider.md](./provider.md) for full provider abstraction details.
+See [provider.md](./provider.md) for the complete provider mapping table and adapter specification.
 
 **Error handling:** Throws `ProviderMappingError` if a block category has no mapping for the selected provider.
 
@@ -207,6 +200,38 @@ This is a hard requirement, not a guideline. Determinism enables:
 | Format | `FormatError` | Pipeline stops. Returns formatting failure details. |
 
 All errors include enough context for the UI to display actionable feedback to the user.
+
+---
+
+## Azure-First Strategy
+
+CloudBlocks uses **Azure as the reference provider**. All examples, tests, and initial generator implementation target Azure resources first. AWS and GCP adapters follow once the Azure pipeline is validated.
+
+This is a pragmatic decision, not a lock-in — the provider-neutral DSL ensures any architecture can be retargeted to any supported provider.
+
+---
+
+## Generation Modes
+
+The generator supports two modes:
+
+| Mode | Purpose | Output |
+|------|---------|--------|
+| **Draft** | Quick preview during design | Minimal output, no variable extraction, inline values |
+| **Production** | Deployable code for commit | Full module structure, variables, outputs, documentation |
+
+Draft mode enables fast feedback in the UI code preview panel. Production mode generates commit-ready code.
+
+---
+
+## Non-Goals
+
+The generator explicitly does NOT:
+
+- **Execute infrastructure** — generation produces code files, not deployments
+- **Manage state** — Terraform state, Pulumi state, etc. are managed by the IaC tool, not CloudBlocks
+- **Monitor infrastructure** — runtime monitoring is outside the generator scope
+- **Reverse-engineer existing infra** — CloudBlocks is architecture-to-code, not code-to-architecture
 
 ---
 
