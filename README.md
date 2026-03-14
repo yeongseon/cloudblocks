@@ -121,6 +121,8 @@ Internet → Gateway → Compute → Database
 | [Roadmap](docs/concept/ROADMAP.md) | Development roadmap |
 | [Deployment](docs/guides/DEPLOYMENT.md) | Deployment guide |
 | [Tutorials](docs/guides/TUTORIALS.md) | Getting started tutorials |
+| [Contributing](CONTRIBUTING.md) | Contributor guide |
+| [ADRs](docs/adr/) | Architecture Decision Records |
 
 ## Development
 
@@ -156,7 +158,9 @@ cd apps/web && npx tsc -b
 
 ## Contributing
 
-We welcome contributions! Here's how to get started:
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
+
+Quick start:
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/your-feature`

@@ -150,6 +150,15 @@ If a discrepancy exists between a canonical source and another document, the can
 | `templates.md` | `docs/engine/` | Pre-built architecture templates | Design only — not implemented |
 | `provider.md` | `docs/engine/` | Cloud provider resource mappings | Design only — not implemented |
 
+### Architecture Decision Records (ADRs)
+
+| Document | Location | Scope | Status |
+||----------|----------|-------|--------|
+| `0001-architecture-model-as-source-of-truth.md` | `docs/adr/` | Architecture model as canonical representation | Accepted |
+| `0002-git-native-storage.md` | `docs/adr/` | Git repos as primary data store | Accepted |
+| `0003-lego-style-composition-model.md` | `docs/adr/` | Plate/Block/Connection composition model | Accepted |
+| `0004-rule-engine-architecture.md` | `docs/adr/` | Modular validation engine design | Accepted |
+| `0005-2d-first-editor-with-25d-rendering.md` | `docs/adr/` | 2D editing model with isometric projection | Accepted |
 ---
 
 ## Adding New Documentation
@@ -210,6 +219,12 @@ docs/
 │   ├── TUTORIALS.md
 │   ├── DEPLOYMENT.md
 │   └── API_SPEC.md
+├── adr/              # Architecture Decision Records
+│   ├── 0001-architecture-model-as-source-of-truth.md
+│   ├── 0002-git-native-storage.md
+│   ├── 0003-lego-style-composition-model.md
+│   ├── 0004-rule-engine-architecture.md
+│   └── 0005-2d-first-editor-with-25d-rendering.md
 └── system/           # Internal project management
     ├── VERSIONING.md
     └── ARCHITECTURE_REVIEW.md
