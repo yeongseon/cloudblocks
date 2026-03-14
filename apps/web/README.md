@@ -97,4 +97,4 @@ npx tsc -b && npx vite build
 - The **internal coordinate system is 2D** (x, y grid) with a containment hierarchy. The 2.5D rendering is a visual projection only.
 - **ArchitectureModel** is the source of truth — the visual layer projects from it.
 - **Single workspace** in MVP. Storage format supports `Workspace[]` for forward compatibility.
-- See [docs/ARCHITECTURE.md](../../docs/ARCHITECTURE.md) and [docs/PRD.md](../../docs/PRD.md) for full specs.
+- See [docs/ARCHITECTURE.md](../../docs/concept/ARCHITECTURE.md) and [docs/PRD.md](../../docs/concept/PRD.md) for full specs.

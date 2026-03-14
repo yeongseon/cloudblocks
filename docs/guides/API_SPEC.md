@@ -61,7 +61,7 @@ PUT    /api/v1/workspaces/:id          → Update workspace settings
 DELETE /api/v1/workspaces/:id          → Delete workspace
 ```
 
-> **Note**: The metadata DB uses `workspaces` (not `projects`). See [STORAGE_ARCHITECTURE.md](./STORAGE_ARCHITECTURE.md) for the actual schema.
+> **Note**: The metadata DB uses `workspaces` (not `projects`). See [STORAGE_ARCHITECTURE.md](../model/STORAGE_ARCHITECTURE.md) for the actual schema.
 
 ## Planned: Code Generation (v0.5+)
 

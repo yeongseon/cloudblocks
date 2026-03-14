@@ -70,5 +70,5 @@ Providers may be distributed as plugins.
 
 > **Cross-references:**
 > - Generator pipeline: [generator.md](./generator.md)
-> - Architecture model: [model.md](./model.md)
-> - Roadmap timeline: [ROADMAP.md](./ROADMAP.md)
+> - Architecture model: [model.md](../model/model.md)
+> - Roadmap timeline: [ROADMAP.md](../concept/ROADMAP.md)

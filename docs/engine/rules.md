@@ -78,7 +78,7 @@ The MVP rule engine runs in-browser and validates:
 - **Connection rules** — pure initiator model (`internet → gateway → compute → database/storage`)
 - **Auto-validation** — debounced (300ms) after architecture mutations
 
-See [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §Connection Rules for the current rule set.
+See [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md) §Connection Rules for the current rule set.
 
 ---
 
@@ -93,6 +93,6 @@ Potential integrations:
 ---
 
 > **Cross-references:**
-> - Architecture model: [model.md](./model.md)
-> - Domain model rules: [DOMAIN_MODEL.md](./DOMAIN_MODEL.md)
+> - Architecture model: [model.md](../model/model.md)
+> - Domain model rules: [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)
 > - Generator pipeline: [generator.md](./generator.md)

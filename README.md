@@ -113,14 +113,14 @@ Internet → Gateway → Compute → Database
 
 | Document | Description |
 |----------|-------------|
-| [PRD](docs/PRD.md) | Product Requirements Document |
-| [Domain Model](docs/DOMAIN_MODEL.md) | Domain entities and rules |
-| [Architecture](docs/ARCHITECTURE.md) | System architecture |
-| [Storage Architecture](docs/STORAGE_ARCHITECTURE.md) | Git-native storage design |
-| [API Spec](docs/API_SPEC.md) | REST API endpoints (planned) |
-| [Roadmap](docs/ROADMAP.md) | Development roadmap |
-| [Deployment](docs/DEPLOYMENT.md) | Deployment guide |
-| [Tutorials](docs/TUTORIALS.md) | Getting started tutorials |
+| [PRD](docs/concept/PRD.md) | Product Requirements Document |
+| [Domain Model](docs/model/DOMAIN_MODEL.md) | Domain entities and rules |
+| [Architecture](docs/concept/ARCHITECTURE.md) | System architecture |
+| [Storage Architecture](docs/model/STORAGE_ARCHITECTURE.md) | Git-native storage design |
+| [API Spec](docs/guides/API_SPEC.md) | REST API endpoints (planned) |
+| [Roadmap](docs/concept/ROADMAP.md) | Development roadmap |
+| [Deployment](docs/guides/DEPLOYMENT.md) | Deployment guide |
+| [Tutorials](docs/guides/TUTORIALS.md) | Getting started tutorials |
 
 ## Development
 

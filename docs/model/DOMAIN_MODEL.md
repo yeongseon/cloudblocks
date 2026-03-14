@@ -1,6 +1,14 @@
 # CloudBlocks Platform — Domain Model
 
-This document defines the core domain model used by the CloudBlocks Platform.
+> **Canonical Source Declaration**
+>
+> This document is the **canonical specification** for the CloudBlocks domain model. All other documentation must reference and conform to the types, field names, and relationships defined here.
+>
+> - **v0.1 implementation**: `apps/web/src/shared/types/index.ts` is the source of truth for TypeScript types. If a discrepancy exists between this document and the code, the code wins for v0.1.
+> - **Serialization format**: `apps/web/src/shared/types/schema.ts` is the source of truth for storage shape and schema versioning.
+> - **Connection rules**: `apps/web/src/features/validate/connection.ts` is the source of truth for allowed connections.
+> - **Version timelines**: `docs/concept/ROADMAP.md` is the canonical source for when features ship.
+> - **Code generation pipeline**: `docs/engine/generator.md` is the canonical source for the generation pipeline. This document does not define the pipeline.
 
 CloudBlocks represents cloud architecture using a **block-based spatial abstraction model**. Users visually construct cloud systems in a 2.5D isometric environment, the platform validates them against architectural rules, and generates deployable infrastructure code (Terraform, Bicep, Pulumi).
 
@@ -22,9 +30,42 @@ This model provides a visual abstraction that maps directly to real cloud resour
 
 ---
 
-# 2. Core Entities
+# 2. Model Invariants
 
-## 2.1 Plate
+These invariants **must hold at all times** in a valid `ArchitectureModel`. Violations indicate a bug, not user error.
+
+### 2.1 Identity Rules
+
+| Rule | Description |
+|------|-------------|
+| **ID Uniqueness** | All entity IDs within an `ArchitectureModel` are globally unique. No two entities (plates, blocks, connections, external actors) share an ID. |
+| **ID Format** | IDs follow the pattern `{type}-{uuid}` where type is `plate`, `block`, `conn`, or `ext`. Example: `plate-a1b2c3`, `block-d4e5f6`, `conn-g7h8i9`, `ext-internet`. |
+| **ID Immutability** | Once assigned, an entity's ID never changes. IDs are stable across save/load cycles and are used as persistent references (e.g., `placementId`, `sourceId`, `targetId`, `children[]`). |
+| **Referential Integrity** | All ID references must resolve. `Block.placementId` must reference an existing Plate. `Connection.sourceId` and `targetId` must reference an existing Block or ExternalActor. `Plate.children[]` must reference existing child Plates or Blocks. `Plate.parentId` must reference an existing Plate or be `null` (root). |
+
+### 2.2 Structural Invariants
+
+| Rule | Description |
+|------|-------------|
+| **Single Root** | An `ArchitectureModel` has exactly one root Network Plate (`parentId: null`). All other Plates and Blocks are descendants. |
+| **Containment Hierarchy** | Plates form a strict tree: Network → Subnet. No cycles in the containment tree. |
+| **Block Placement** | Every Block has a `placementId` referencing a Subnet Plate. Blocks cannot exist on Network Plates directly or outside the hierarchy. |
+| **Children Consistency** | A Plate's `children[]` must match the set of entities whose `parentId` or `placementId` references that Plate. |
+
+### 2.3 Connection Invariants
+
+| Rule | Description |
+|------|-------------|
+| **No Self-Connections** | `connection.sourceId !== connection.targetId`. |
+| **No Duplicate Connections** | At most one connection exists between any ordered pair `(sourceId, targetId)`. |
+| **No Cycles** | The connection graph is a DAG (directed acyclic graph). Cycles in the dataflow graph are not permitted in v0.1. |
+| **Receiver-Only Enforcement** | `database` and `storage` blocks never appear as `sourceId` in any connection. They are receiver-only. |
+
+---
+
+# 3. Core Entities
+
+## 3.1 Plate
 
 Plates represent **spatial infrastructure regions**.
 
@@ -64,7 +105,7 @@ metadata      — additional properties
 
 ---
 
-# 3. Block
+# 4. Block
 
 Blocks represent **cloud resources**.
 
@@ -81,6 +122,8 @@ They are placed on Plates and represent deployable infrastructure services.
 
 ### Future Block Categories (v1.0+)
 
+> **v1.0+**: These block categories are part of the Architecture Compiler vision and are not yet implemented.
+
 | Category | Description | Version |
 |---------|-------------|---------|
 | FunctionBlock | Serverless compute | v1.0 |
@@ -90,7 +133,7 @@ They are placed on Plates and represent deployable infrastructure services.
 
 ---
 
-# 4. Block Structure
+# 5. Block Structure
 
 ```
 Block
@@ -113,20 +156,9 @@ Block
   position: { x: 2, y: 0, z: 1 }
 ```
 
-Example:
-
-```
-Block
-  id: block-app01
-  name: AppServer
-  category: compute
-  placementId: plate-subnet-private
-  position: { x: 2, y: 1 }
-```
-
 ---
 
-# 5. Connection
+# 6. Connection
 
 Connections represent **data or event flow** between blocks.
 
@@ -142,7 +174,7 @@ Example:
 Internet → Gateway → App → Database
 ```
 
-Connection properties:
+### Connection Properties
 
 ```
 id        — unique identifier ({type}-{uuid})
@@ -151,6 +183,15 @@ targetId  — target block or external actor ID
 type      — connection type
 metadata  — additional properties
 ```
+
+### Connection Semantics
+
+| Property | Rule |
+|----------|------|
+| **Direction** | Source → Target = initiator → receiver. Responses are implicit. |
+| **Cardinality** | One-to-many: a block can have multiple outgoing or incoming connections, but at most one connection per ordered `(source, target)` pair. |
+| **Cycles** | Not permitted. The dataflow graph must be a DAG. |
+| **Receiver-only types** | `database` and `storage` are receiver-only — they never appear as `sourceId`. |
 
 ### Connection Types
 
@@ -164,7 +205,7 @@ MVP (v0.1) supports DataFlow only.
 
 ---
 
-# 5.1 External Actor
+# 6.1 External Actor
 
 An External Actor represents an endpoint outside the system.
 
@@ -180,7 +221,7 @@ type  — 'internet'
 
 ---
 
-# 6. Rule Engine
+# 7. Rule Engine
 
 Rules define **compatibility and placement constraints**.
 
@@ -256,7 +297,7 @@ type ValidationWarning = ValidationError;
 
 ---
 
-# 7. Visual Identity Model
+# 8. Visual Identity Model
 
 Blocks use **visual characteristics** to communicate function in the isometric view.
 
@@ -283,25 +324,51 @@ Blocks use **visual characteristics** to communicate function in the isometric v
 
 ---
 
-# 8. Code Generation Model
+# 9. Schema Versioning & Stability
 
-The core value of CloudBlocks — transforming visual architecture into deployable infrastructure code.
+### Schema Version
 
-### Generation Pipeline
+The storage format uses `schemaVersion` (currently `"0.1.0"`) to track the serialization shape. This is **separate** from `ArchitectureModel.version`, which is a user-facing architecture revision counter.
+
+| Field | Purpose | Canonical Source |
+|-------|---------|-----------------|
+| `schemaVersion` | Storage format version — enables future model migrations | `apps/web/src/shared/types/schema.ts` → `SCHEMA_VERSION` |
+| `ArchitectureModel.version` | User-facing revision counter (incremented on save/export) | `apps/web/src/shared/types/index.ts` |
+
+### Schema Stability Policy
+
+The following types and fields are **frozen for v0.1** and will not change without a schema version bump:
+
+| Frozen Type | Frozen Fields |
+|-------------|---------------|
+| `Plate` | `id`, `name`, `type`, `subnetAccess`, `parentId`, `children`, `position`, `size`, `metadata` |
+| `Block` | `id`, `name`, `category`, `placementId`, `position`, `metadata` |
+| `Connection` | `id`, `sourceId`, `targetId`, `type`, `metadata` |
+| `ExternalActor` | `id`, `name`, `type` |
+| `ArchitectureModel` | `id`, `name`, `version`, `plates`, `blocks`, `connections`, `externalActors`, `createdAt`, `updatedAt` |
+| `Workspace` | `id`, `name`, `architecture`, `createdAt`, `updatedAt` |
+| `SerializedData` | `schemaVersion`, `workspaces` |
+
+### Migration Policy
+
+- Any change to frozen fields requires bumping `SCHEMA_VERSION`.
+- The `deserialize()` function in `schema.ts` must detect version mismatches and either migrate or reject.
+- Additive changes (new optional fields with defaults) may be introduced without a version bump, but must be backward-compatible.
+- Destructive changes (field renames, type changes, removals) always require a version bump and a migration function.
+
+---
+
+# 10. Code Generation Model
+
+> **Canonical source**: The code generation pipeline is fully specified in [`generator.md`](../engine/generator.md). This section provides a brief overview for context.
+
+CloudBlocks transforms visual architecture into deployable infrastructure code through a multi-stage pipeline:
 
 ```
-Architecture Model (JSON)
-↓
-Schema Validation
-↓
-Provider Adapter (Azure / AWS / GCP)
-↓
-Generator Plugin (Terraform / Bicep / Pulumi)
-↓
-Generated Code Output
-↓
-GitHub Commit / PR
+Architecture Model → Normalize → Validate → Provider Map → Generate → Format → Output
 ```
+
+> **v0.3+**: Code generation is not yet implemented. See [`generator.md`](../engine/generator.md) for the pipeline design and [`ROADMAP.md`](../concept/ROADMAP.md) for the implementation timeline.
 
 ### Generator Interface
 
@@ -312,31 +379,13 @@ interface Generator {
   supportedProviders: string[];
   generate(architecture: ArchitectureModel, options: GeneratorOptions): GeneratedOutput;
 }
-
-interface GeneratorOptions {
-  provider: 'azure' | 'aws' | 'gcp';
-  outputFormat: 'terraform' | 'bicep' | 'pulumi';
-  templateOverrides?: Record<string, unknown>;
-}
-
-interface GeneratedOutput {
-  files: GeneratedFile[];
-  metadata: {
-    generator: string;
-    version: string;
-    provider: string;
-    generatedAt: string;
-  };
-}
-
-interface GeneratedFile {
-  path: string;      // e.g., "main.tf"
-  content: string;   // file content
-  language: string;  // e.g., "hcl", "bicep", "typescript"
-}
 ```
 
+> For full interface contracts, options, output format, and determinism guarantees, see [`generator.md`](../engine/generator.md).
+
 ### Template Model
+
+> **v0.4+**: Templates are planned for v0.4 (workspace management) and expanded in v1.0 (marketplace). See [`templates.md`](../engine/templates.md) for the template specification.
 
 Templates are pre-built architecture patterns:
 
@@ -353,7 +402,9 @@ interface Template {
 
 ---
 
-# 9. Provider Abstraction
+# 11. Provider Abstraction
+
+> **v0.3+**: Provider adapters are planned for v0.3 (Azure-first). Multi-cloud support is planned for v2.0. See [`provider.md`](../engine/provider.md) for the full provider abstraction design.
 
 CloudBlocks uses a **provider abstraction layer** for multi-cloud support. Azure is the primary target.
 
@@ -369,7 +420,9 @@ CloudBlocks uses a **provider abstraction layer** for multi-cloud support. Azure
 
 ---
 
-# 10. GitHub Integration Model
+# 12. GitHub Integration Model
+
+> **v0.5+**: GitHub integration is planned for v0.5. This section describes the target design. No implementation exists yet.
 
 Architecture assets are stored in GitHub repos following a standard layout:
 
@@ -393,6 +446,8 @@ my-cloud-project/
 
 ### Git Workflow
 
+> **v0.5+**: This workflow requires the backend API and GitHub App integration.
+
 ```
 Edit architecture in UI
 ↓
@@ -409,7 +464,7 @@ CD applies infrastructure
 
 ---
 
-# 11. Workspace Model
+# 13. Workspace Model
 
 ### Client-Side (v0.1)
 
@@ -424,6 +479,8 @@ interface Workspace {
 ```
 
 ### Server-Side (v0.5+)
+
+> **v0.5+**: Server-side workspace management is planned for v0.5. These interfaces align with the migration files in `apps/api/app/infrastructure/db/migrations/`.
 
 ```typescript
 // User identity
@@ -465,7 +522,7 @@ interface GenerationRun {
 
 ---
 
-# 12. Implementation Schema
+# 14. Implementation Schema
 
 TypeScript type definitions for implementing the domain model.
 
@@ -578,9 +635,11 @@ The architecture model is serialized as JSON. A version field is included to sup
 
 ---
 
-# 13. Future Domain Extensions
+# 15. Future Domain Extensions
 
 ### Serverless Architecture (v1.0)
+
+> **v1.0+**: Not yet implemented.
 
 Add:
 
@@ -599,6 +658,8 @@ HTTP → Function → Storage
 
 ### Architecture Simulation (v2.5)
 
+> **v2.5+**: Not yet implemented.
+
 Allow architecture execution simulation:
 
 ```
@@ -609,7 +670,7 @@ failure simulation
 
 ---
 
-# 14. Summary
+# 16. Summary
 
 The CloudBlocks Domain Model provides a **visual abstraction layer for cloud architecture** that maps directly to infrastructure code.
 

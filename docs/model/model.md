@@ -159,7 +159,7 @@ Policies enforce architecture constraints.
 internet → gateway → compute → database
 ```
 
-Policies are validated by the rule engine. See [rules.md](./rules.md) for details.
+Policies are validated by the rule engine. See [rules.md](../engine/rules.md) for details.
 
 ---
 
@@ -186,6 +186,6 @@ Planned model extensions:
 
 > **Cross-references:**
 > - Domain model details: [DOMAIN_MODEL.md](./DOMAIN_MODEL.md)
-> - Rule engine: [rules.md](./rules.md)
-> - Code generation: [generator.md](./generator.md)
-> - Provider mapping: [provider.md](./provider.md)
+> - Rule engine: [rules.md](../engine/rules.md)
+> - Code generation: [generator.md](../engine/generator.md)
+> - Provider mapping: [provider.md](../engine/provider.md)

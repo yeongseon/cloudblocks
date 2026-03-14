@@ -38,11 +38,11 @@ The working MVP. Everything described as v0.1 **exists in the codebase and can b
 - `apps/web/src/shared/types/index.ts` — Domain model types
 - `apps/web/src/shared/types/schema.ts` — Storage format
 - `apps/web/src/features/validate/connection.ts` — Connection rules
-- `docs/DOMAIN_MODEL.md` — Model specification
+- `docs/model/DOMAIN_MODEL.md` — Model specification
 
 ### v0.2–v0.4 — Visual Polish, Code Generation, Workspace Management
 
-Near-term milestones building on the v0.1 foundation. See `docs/ROADMAP.md` for details.
+Near-term milestones building on the v0.1 foundation. See `docs/concept/ROADMAP.md` for details.
 
 | Version | Key Additions |
 |---------|--------------|
@@ -94,11 +94,28 @@ The five Architecture Compiler documents (`model.md`, `generator.md`, `rules.md`
 
 ### Rule 4: ROADMAP.md Is the Canonical Version Timeline
 
-When there is any question about which version introduces a feature, `docs/ROADMAP.md` is the authoritative source. Other documents may reference version numbers, but ROADMAP.md defines them.
+When there is any question about which version introduces a feature, `docs/concept/ROADMAP.md` is the authoritative source. Other documents may reference version numbers, but ROADMAP.md defines them.
 
 ### Rule 5: DOMAIN_MODEL.md Is the Canonical Model Specification
 
 The domain model (types, field names, relationships) is defined in `DOMAIN_MODEL.md` and implemented in `apps/web/src/shared/types/index.ts`. All other documents must use the same field names and type definitions. If a discrepancy is found, `index.ts` is the source of truth for v0.1, and `DOMAIN_MODEL.md` is the source of truth for the model specification.
+
+### Rule 6: Canonical Source Declaration Prevents Model Drift
+
+Each document that defines authoritative specifications must declare its canonical status at the top. When multiple documents describe the same concept, exactly one document owns the specification and all others must cross-reference it.
+
+**Canonical source declarations:**
+
+| Concept | Canonical Document | Location |
+|---------|-------------------|----------|
+| Domain model (types, fields, relationships) | `DOMAIN_MODEL.md` | `docs/model/` |
+| Code generation pipeline | `generator.md` | `docs/engine/` |
+| Version timelines | `ROADMAP.md` | `docs/concept/` |
+| v0.1 TypeScript types | `index.ts` | `apps/web/src/shared/types/` |
+| Serialization format | `schema.ts` | `apps/web/src/shared/types/` |
+| Connection rules | `connection.ts` | `apps/web/src/features/validate/` |
+
+If a discrepancy exists between a canonical source and another document, the canonical source wins. Contributors must update the non-canonical document to match, not the other way around.
 
 ---
 
@@ -106,32 +123,32 @@ The domain model (types, field names, relationships) is defined in `DOMAIN_MODEL
 
 ### Implementation Documents (must match code)
 
-| Document | Scope | Canonical Source |
-|----------|-------|-----------------|
-| `DOMAIN_MODEL.md` | Domain types, field names, relationships | `index.ts` |
-| `STORAGE_ARCHITECTURE.md` | Persistence format, serialization | `schema.ts` |
-| `API_SPEC.md` | API endpoints, request/response shapes | `apps/api/` |
-| `TUTORIALS.md` (1–5) | Step-by-step guides using v0.1 features | Running application |
-| `DEPLOYMENT.md` | Build and deploy instructions | `package.json`, `Dockerfile` |
+| Document | Location | Scope | Canonical Source |
+|----------|----------|-------|-----------------|
+| `DOMAIN_MODEL.md` | `docs/model/` | Domain types, field names, relationships | `index.ts` |
+| `STORAGE_ARCHITECTURE.md` | `docs/model/` | Persistence format, serialization | `schema.ts` |
+| `API_SPEC.md` | `docs/guides/` | API endpoints, request/response shapes | `apps/api/` |
+| `TUTORIALS.md` (1–5) | `docs/guides/` | Step-by-step guides using v0.1 features | Running application |
+| `DEPLOYMENT.md` | `docs/guides/` | Build and deploy instructions | `package.json`, `Dockerfile` |
 
 ### Architecture Documents (vision + current state)
 
-| Document | Scope | Notes |
-|----------|-------|-------|
-| `ARCHITECTURE.md` | System architecture overview | Sections on v0.1 state + Architecture Compiler vision |
-| `PRD.md` | Product requirements | Covers v0.1 deliverables + future vision |
-| `ROADMAP.md` | Version timeline and exit criteria | Canonical for "when does X ship?" |
-| `ARCHITECTURE_REVIEW.md` | Gap analysis and improvement areas | Status-annotated with what has been addressed |
+| Document | Location | Scope | Notes |
+|----------|----------|-------|-------|
+| `ARCHITECTURE.md` | `docs/concept/` | System architecture overview | Sections on v0.1 state + Architecture Compiler vision |
+| `PRD.md` | `docs/concept/` | Product requirements | Covers v0.1 deliverables + future vision |
+| `ROADMAP.md` | `docs/concept/` | Version timeline and exit criteria | Canonical for "when does X ship?" |
+| `ARCHITECTURE_REVIEW.md` | `docs/system/` | Gap analysis and improvement areas | Status-annotated with what has been addressed |
 
 ### Future Design Documents (v1.x design specs)
 
-| Document | Scope | Implementation Status |
-|----------|-------|--------------------|
-| `model.md` | Architecture model schema (DSL) | Design only — not implemented |
-| `generator.md` | Code generation pipeline | Design only — not implemented |
-| `rules.md` | Validation rule framework | Partial — v0.1 rules exist, extensible framework is v1.x |
-| `templates.md` | Pre-built architecture templates | Design only — not implemented |
-| `provider.md` | Cloud provider resource mappings | Design only — not implemented |
+| Document | Location | Scope | Implementation Status |
+|----------|----------|-------|--------------------|
+| `model.md` | `docs/model/` | Architecture model schema (DSL) | Design only — not implemented |
+| `generator.md` | `docs/engine/` | Code generation pipeline | Design only — not implemented |
+| `rules.md` | `docs/engine/` | Validation rule framework | Partial — v0.1 rules exist, extensible framework is v1.x |
+| `templates.md` | `docs/engine/` | Pre-built architecture templates | Design only — not implemented |
+| `provider.md` | `docs/engine/` | Cloud provider resource mappings | Design only — not implemented |
 
 ---
 
@@ -166,3 +183,36 @@ When creating or updating documentation:
 | **v0.4** | Workspace management milestone. |
 | **v0.5+** | Server-side features (API-based code generation, Git integration). |
 | **v1.0+** | Architecture Compiler vision. Full DSL, multi-provider, templates. |
+
+
+---
+
+## Documentation Directory Structure
+
+All documentation lives under `docs/` organized by purpose:
+
+```
+docs/
+├── concept/          # Product & architecture concepts
+│   ├── PRD.md
+│   ├── ARCHITECTURE.md
+│   └── ROADMAP.md
+├── model/            # Domain model & schema specifications
+│   ├── DOMAIN_MODEL.md
+│   ├── model.md
+│   └── STORAGE_ARCHITECTURE.md
+├── engine/           # Rule engine & code generation
+│   ├── generator.md
+│   ├── rules.md
+│   ├── templates.md
+│   └── provider.md
+├── guides/           # User-facing guides
+│   ├── TUTORIALS.md
+│   ├── DEPLOYMENT.md
+│   └── API_SPEC.md
+└── system/           # Internal project management
+    ├── VERSIONING.md
+    └── ARCHITECTURE_REVIEW.md
+```
+
+**Cross-reference convention:** Documents reference others using relative paths from their own location. For example, a document in `docs/engine/` references `docs/model/DOMAIN_MODEL.md` as `../model/DOMAIN_MODEL.md`.

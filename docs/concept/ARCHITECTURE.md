@@ -44,11 +44,11 @@ The system consists of several subsystems:
 | Subsystem | Responsibility | Details |
 |-----------|---------------|---------|
 | **Web Builder** | Visual diagram editing, architecture visualization, rule feedback | This document |
-| **Architecture Model** | Provider-agnostic architecture representation, versioning, serialization | [model.md](./model.md) |
-| **Rule Engine** | Architecture validation, security checks, topology validation | [rules.md](./rules.md) |
-| **Generator** | Infrastructure code generation, provider abstraction | [generator.md](./generator.md) |
-| **Provider Adapters** | Cloud-specific resource mapping | [provider.md](./provider.md) |
-| **Templates** | Reusable architecture starting points | [templates.md](./templates.md) |
+| **Architecture Model** | Provider-agnostic architecture representation, versioning, serialization | [model.md](../model/model.md) |
+| **Rule Engine** | Architecture validation, security checks, topology validation | [rules.md](../engine/rules.md) |
+| **Generator** | Infrastructure code generation, provider abstraction | [generator.md](../engine/generator.md) |
+| **Provider Adapters** | Cloud-specific resource mapping | [provider.md](../engine/provider.md) |
+| **Templates** | Reusable architecture starting points | [templates.md](../engine/templates.md) |
 
 ### Repository Structure (Actual)
 
@@ -442,7 +442,7 @@ export interface ArchitectureModel {
 
 - Serialization is versioned through `schemaVersion` and currently uses `"0.1.0"` (see `apps/web/src/shared/types/schema.ts`).
 - The persisted root payload shape is `{ schemaVersion, workspaces[] }`, where each workspace contains one `architecture: ArchitectureModel`.
-- For broader domain semantics and lifecycle rules, see `docs/DOMAIN_MODEL.md`.
+- For broader domain semantics and lifecycle rules, see `docs/model/DOMAIN_MODEL.md`.
 
 ---
 
