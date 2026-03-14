@@ -2,7 +2,7 @@
 
 This document defines the system architecture for the CloudBlocks Platform.
 
-CloudBlocks is an **Architecture Compiler** — it enables users to visually construct cloud architecture using a **2.5D isometric interface**, validates designs against architectural rules, and generates deployable infrastructure code (Terraform, Bicep, Pulumi). The long-term architecture follows a **Git-native** model where GitHub repos serve as the primary data store.
+CloudBlocks is an **Architecture Compiler** — it models cloud infrastructure using a **Lego-style composition system**, validates designs against architectural rules, and generates deployable infrastructure code (Terraform, Bicep, Pulumi). The long-term architecture follows a **Git-native** model where GitHub repos serve as the primary data store.
 
 > **Technical approach**: CloudBlocks is a **2D-first editor with 2.5D rendering**, rather than a full 3D engine. The internal model is a 2D coordinate system with containment hierarchy. The rendering layer projects this into an isometric view using React Three Fiber.
 
@@ -10,7 +10,22 @@ CloudBlocks is an **Architecture Compiler** — it enables users to visually con
 
 ## Architecture Compiler — Core Concept
 
-CloudBlocks introduces an intermediate **architecture model layer** between visual diagrams and infrastructure code. This distinguishes it from diagram tools (draw.io) and direct IaC authoring (Terraform).
+### Lego-Style Composition Model
+
+CloudBlocks models infrastructure using a Lego-style architecture system. Users assemble infrastructure by placing visual building blocks — not by drawing diagrams or writing code:
+
+| Concept | Role | Example |
+|---------|------|---------|
+| **Plate** | Infrastructure boundary (container) | Network plate, Subnet plate |
+| **Block** | Infrastructure resource (service) | Compute, Database, Storage, Gateway |
+| **Connection** | Communication flow (dataflow) | Gateway → Compute → Database |
+
+```
+Internet → [Public Subnet: Gateway] → [Private Subnet: Compute → Database]
+                                                             → Storage
+```
+
+This distinguishes CloudBlocks from diagram tools (draw.io) and direct IaC authoring (Terraform). CloudBlocks introduces an intermediate **architecture model layer** between the visual editor and infrastructure code:
 
 ```
 UI Builder

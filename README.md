@@ -4,15 +4,22 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB)](https://react.dev/)
 
-**Open-source 2.5D isometric cloud architecture builder and code generation platform.**
+**CloudBlocks is an architecture compiler that converts visual infrastructure designs into infrastructure-as-code.**
 
-Design cloud infrastructure by placing blocks on plates in an isometric scene, connect components visually, and validate against real-world rules — all from your browser. Code generation (Terraform, Bicep, Pulumi) and GitHub integration are on the roadmap.
+CloudBlocks models cloud infrastructure using a **Lego-style architecture system**. Users assemble infrastructure by placing visual blocks on plates, connect components, and validate against real-world rules — all from the browser. The platform then compiles architecture into deployable code (Terraform, Bicep, Pulumi).
 
 ## Why CloudBlocks?
 
-Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks works **diagram → code** (design visually, generate infra). No YAML. No HCL. Just place, connect, validate.
+Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks works **architecture → code** (model visually, compile to infra). No YAML. No HCL. Just place, connect, validate, generate.
 
-- **Visual-first** — 2.5D isometric builder powered by React Three Fiber
+| | Diagram Tool | CloudBlocks |
+|--|-------------|-------------|
+| Output | Static image | Architecture model + IaC code |
+| Validation | None | Rule engine enforces constraints |
+| Semantics | Visual only | Every element maps to a real resource |
+
+- **Lego-style modeling** — Plates (boundaries) + Blocks (resources) + Connections (dataflow)
+- **Architecture compiler** — Visual design compiles to Terraform, Bicep, Pulumi
 - **Validation engine** — Real-time rule checking for placement and connections
 - **Open source** — MIT licensed, extend and contribute freely
 

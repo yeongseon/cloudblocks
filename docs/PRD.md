@@ -1,14 +1,14 @@
 # CloudBlocks PRD
 
-Build cloud architecture visually and generate production-ready Infrastructure-as-Code.
+Build cloud architecture visually using a Lego-style composition model — and generate production-ready Infrastructure-as-Code.
 
 ---
 
 # 1. Product Summary
 
-CloudBlocks is an **open-source visual cloud architecture builder** that allows users to design infrastructure using a **2.5D isometric block interface** and export the architecture as Infrastructure-as-Code.
+CloudBlocks is an **open-source architecture compiler** that models cloud infrastructure using a **Lego-style composition system**. Users assemble infrastructure by placing visual building blocks on plates in a **2.5D isometric interface**, the platform validates the architecture against real-world rules, and generates Infrastructure-as-Code.
 
-Unlike traditional diagram tools, every visual element represents a **real infrastructure component** and maps directly to deployable code.
+Unlike traditional diagram tools (draw.io, Lucidchart), every visual element in CloudBlocks represents a **real infrastructure component** that maps directly to deployable code. Unlike direct IaC authoring (Terraform, Bicep), users never write infrastructure code — they model architecture visually and the system compiles it.
 
 The system enforces architectural rules and generates infrastructure definitions such as Terraform.
 
@@ -37,6 +37,36 @@ CloudBlocks solves this by making **visual architecture the source of truth**.
 ---
 
 # 3. Product Vision
+
+## Lego-Style Architecture Modeling
+
+CloudBlocks models cloud infrastructure using a **Lego-style architecture system**.
+
+Instead of writing infrastructure code directly, users assemble architecture using visual building blocks:
+
+| Concept | Role | Analogy |
+|---------|------|---------|
+| **Plate** | Infrastructure boundary (network, subnet) | Lego baseplate |
+| **Block** | Infrastructure resource (compute, database, storage, gateway) | Lego brick |
+| **Connection** | Communication flow between blocks (dataflow) | Lego connector |
+
+```
+Internet → [Gateway] → [Compute] → [Database]
+                                 → [Storage]
+```
+
+This is not a diagram tool. This is an **architecture modeling tool**.
+
+The difference:
+
+| | Diagram Tool | CloudBlocks |
+|--|-------------|-------------|
+| Output | Static image | Architecture model + IaC code |
+| Validation | None | Rule engine enforces constraints |
+| Semantics | Visual only | Every element maps to a real resource |
+| Workflow | Design → screenshot → manual coding | Design → validate → generate code |
+
+## Architecture-First Workflow
 
 CloudBlocks enables a new workflow:
 
