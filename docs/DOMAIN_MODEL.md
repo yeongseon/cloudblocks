@@ -2,13 +2,13 @@
 
 This document defines the core domain model used by the CloudBlocks Platform.
 
-CloudBlocks represents cloud architecture using a **block-based spatial abstraction model**. Users visually construct cloud systems, the platform validates them against architectural rules, and generates deployable infrastructure code (Terraform, Bicep, Pulumi).
+CloudBlocks represents cloud architecture using a **block-based spatial abstraction model**. Users visually construct cloud systems in a 2.5D isometric environment, the platform validates them against architectural rules, and generates deployable infrastructure code (Terraform, Bicep, Pulumi).
 
 ---
 
 # 1. Domain Philosophy
 
-Cloud infrastructure is represented as a **spatial block model** composed of:
+Cloud infrastructure is represented as a **layered containment model** composed of:
 
 - Plates (Infrastructure regions)
 - Blocks (Cloud services)
@@ -16,7 +16,7 @@ Cloud infrastructure is represented as a **spatial block model** composed of:
 - Rules (Compatibility constraints)
 - External Actors (External endpoints)
 
-This model provides a visual abstraction that maps directly to real cloud resources and IaC constructs.
+This model provides a visual abstraction that maps directly to real cloud resources and IaC constructs. The internal representation uses a **2D coordinate system with hierarchy** — the 2.5D isometric view is a rendering projection, not the source of truth.
 
 > **Simplification for MVP**: In the MVP, Compute refers to resources deployed within a Subnet (VM, Container App). Services that exist outside a Subnet (e.g., App Service) will be addressed in future extensions.
 
@@ -45,7 +45,7 @@ Network Plate
 
 | Plate | Description |
 |------|-------------|
-| NetworkPlate | Cloud network (VNet / VPC) |
+| NetworkPlate | Cloud network (Azure VNet / AWS VPC) |
 | SubnetPlate | Subnet within a network (Public or Private) |
 
 ### Plate Properties
@@ -57,8 +57,8 @@ type          — 'network' | 'subnet'
 subnetAccess  — 'public' | 'private' (subnet only)
 parentId      — parent plate ID (null for network plate)
 children      — child plate/block IDs
-position      — 3D position {x, y, z}
-size          — dimensions {width, height, depth}
+position      — 2D position {x, y} (internal coordinate system)
+size          — dimensions {width, height}
 metadata      — additional properties
 ```
 
@@ -98,7 +98,7 @@ Block
   name          — display name
   category      — 'compute' | 'database' | 'storage' | 'gateway'
   placementId   — parent plate ID
-  position      — 3D position relative to parent plate {x, y, z}
+  position      — 2D position relative to parent plate {x, y}
   metadata      — additional properties
 ```
 
@@ -110,7 +110,7 @@ Block
   name: AppServer
   category: compute
   placementId: plate-subnet-private
-  position: { x: 2, y: 0, z: 1 }
+  position: { x: 2, y: 1 }
 ```
 
 ---
@@ -236,7 +236,7 @@ type ValidationWarning = ValidationError;
 
 # 7. Visual Identity Model
 
-Blocks use **visual characteristics** to communicate function.
+Blocks use **visual characteristics** to communicate function in the isometric view.
 
 ### Color Coding
 
@@ -333,7 +333,7 @@ interface Template {
 
 # 9. Provider Abstraction
 
-CloudBlocks uses a **provider abstraction layer** for multi-cloud support.
+CloudBlocks uses a **provider abstraction layer** for multi-cloud support. Azure is the primary target.
 
 | Generic | Azure | AWS | GCP |
 |---------|-------|-----|-----|
@@ -395,7 +395,7 @@ CD applies infrastructure
 interface Workspace {
   id: string;
   name: string;
-  architectures: ArchitectureModel[];
+  architecture: ArchitectureModel;  // single architecture per workspace
   createdAt: string;
   updatedAt: string;
 }
@@ -414,14 +414,14 @@ interface User {
   updatedAt: string;
 }
 
-// Project links a workspace to a GitHub repo
-interface Project {
+// Workspace links to a GitHub repo
+interface WorkspaceRecord {
   id: string;
-  userId: string;
+  ownerId: string;
   name: string;
-  githubRepo: string;          // e.g., "user/my-cloud-project"
-  githubBranch: string;        // default branch
-  generatorConfig: GeneratorOptions;
+  githubRepo: string;           // e.g., "user/my-cloud-project"
+  githubBranch: string;         // default branch
+  lastSyncedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -429,8 +429,8 @@ interface Project {
 // Generation run record
 interface GenerationRun {
   id: string;
-  projectId: string;
-  status: 'queued' | 'running' | 'succeeded' | 'failed';
+  workspaceId: string;
+  status: 'pending' | 'running' | 'completed' | 'failed';
   generator: string;
   commitSha?: string;
   errorMessage?: string;
@@ -438,6 +438,8 @@ interface GenerationRun {
   completedAt?: string;
 }
 ```
+
+> **Note**: The server-side models align with the actual migration files in `apps/api/app/infrastructure/db/migrations/`. The table is `workspaces` (not `projects`), and status values are `pending | running | completed | failed` (not `queued | succeeded`).
 
 ---
 
@@ -500,7 +502,7 @@ interface ExternalActor {
   type: 'internet';
 }
 
-// Spatial
+// Spatial (internal 2D coordinate system)
 interface Position {
   x: number;
   y: number;
@@ -526,6 +528,8 @@ interface ArchitectureModel {
   updatedAt: string; // ISO 8601
 }
 ```
+
+> **Note on coordinates**: The `Position` and `Size` types retain `z`/`depth` fields for Three.js rendering compatibility. The editing model treats placement as 2D (x, y) with containment hierarchy. The z-axis is managed by the rendering layer for isometric projection — users do not directly manipulate depth.
 
 ## Serialization Format
 
@@ -602,7 +606,7 @@ Template        → Pre-built architecture patterns
 
 This model enables:
 
-- Visual architecture design
-- Automated code generation
+- Visual architecture design in a 2.5D isometric environment
+- Automated code generation from architecture graph
 - Multi-cloud abstraction
 - Git-native workflow integration

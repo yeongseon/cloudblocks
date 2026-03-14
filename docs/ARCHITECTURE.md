@@ -2,19 +2,38 @@
 
 This document defines the system architecture for the CloudBlocks Platform.
 
-CloudBlocks enables users to visually construct cloud architecture using a 3D block-style interface and generates deployable infrastructure code (Terraform, Bicep, Pulumi). The platform follows a **Git-native architecture** where GitHub repos serve as the primary data store.
+CloudBlocks enables users to visually construct cloud architecture using a **2.5D isometric interface**. The platform validates designs against architectural rules and will generate deployable infrastructure code (Terraform, Bicep, Pulumi) in future versions. The long-term architecture follows a **Git-native** model where GitHub repos serve as the primary data store.
+
+> **Technical approach**: CloudBlocks is a **2D-first editor with 2.5D rendering**, rather than a full 3D engine. The internal model is a 2D coordinate system with containment hierarchy. The rendering layer projects this into an isometric view using React Three Fiber.
 
 ---
 
 # 1. Architecture Overview
+
+## Current (v0.1) — Frontend-Only SPA
 
 ```
 ┌────────────────────────────────────────────────────────┐
 │                    Frontend (SPA)                       │
 │   React + TypeScript + React Three Fiber + Zustand     │
 │   ┌──────────┐ ┌──────────┐ ┌────────────────────┐    │
-│   │ 3D Scene │ │ Rule     │ │ Local-First Store   │    │
-│   │ Builder  │ │ Engine   │ │ (IndexedDB/localStorage) │
+│   │ Isometric│ │ Rule     │ │ localStorage        │    │
+│   │ Builder  │ │ Engine   │ │ (workspace persist.) │    │
+│   └──────────┘ └──────────┘ └────────────────────┘    │
+└────────────────────────────────────────────────────────┘
+```
+
+No backend required. All state lives in the browser.
+
+## Planned (v0.5+) — Full Stack with Git-Native Storage
+
+```
+┌────────────────────────────────────────────────────────┐
+│                    Frontend (SPA)                       │
+│   React + TypeScript + React Three Fiber + Zustand     │
+│   ┌──────────┐ ┌──────────┐ ┌────────────────────┐    │
+│   │ Isometric│ │ Rule     │ │ Local-First Store   │    │
+│   │ Builder  │ │ Engine   │ │ (IndexedDB/lS)      │    │
 │   └──────────┘ └──────────┘ └────────────────────┘    │
 └────────────────────┬───────────────────────────────────┘
                      │
@@ -50,19 +69,23 @@ CloudBlocks enables users to visually construct cloud architecture using a 3D bl
 
 ## 2.1 Frontend Layer
 
-The frontend is a **local-first SPA** that works offline and syncs to GitHub when connected.
+The frontend is a SPA built with React and React Three Fiber. In v0.1, it works entirely standalone with localStorage. In future versions, it will adopt a local-first architecture with optional GitHub sync.
 
-### Responsibilities
-- 3D block builder interface (React Three Fiber)
-- Drag and drop interaction
+### Responsibilities (v0.1 — current)
+- 2.5D isometric builder interface (React Three Fiber)
+- Click-to-add block placement via palette
 - Architecture validation (in-browser Rule Engine)
-- Local persistence (IndexedDB / localStorage)
+- Local persistence (localStorage)
+
+### Responsibilities (v0.5+ — planned)
+- Drag and drop interaction
 - Code generation preview (client-side for simple cases)
 - GitHub sync UI (commit, branch, PR)
+- Local-first store (IndexedDB + localStorage)
 
 ### Technologies
 - React + TypeScript
-- React Three Fiber + Three.js
+- React Three Fiber + Three.js (rendering layer only — editing model is 2D)
 - Zustand (state management)
 - Vite (build tool)
 
@@ -81,15 +104,17 @@ apps/web/src/
 │   ├── plate/           # Plate components
 │   └── connection/      # Connection components
 ├── features/            # Feature modules
-│   ├── validate/        # Validation engine
-│   └── generate/        # Code generation (v0.3)
-└── widgets/             # Composite UI widgets
-    ├── toolbar/
-    ├── block-palette/
-    ├── properties-panel/
-    ├── validation-panel/
-    └── scene-canvas/
+│   └── validate/        # Validation engine
+├── widgets/             # Composite UI widgets
+│   ├── toolbar/
+│   ├── block-palette/
+│   ├── properties-panel/
+│   ├── validation-panel/
+│   └── scene-canvas/
+└── assets/
 ```
+
+> **Note**: `features/generate/` (code generation) is planned for v0.3 and does not exist yet.
 
 ## 2.2 MVP Architecture (v0.1)
 
@@ -97,17 +122,19 @@ v0.1 is implemented as a **frontend-only SPA**. No backend required.
 
 ```
 Browser (React + R3F)
-├── 3D Scene (Three.js)
-├── Domain Model (Zustand Store)
+├── Isometric Scene (Three.js — rendering layer)
+├── Domain Model (Zustand Store — 2D coordinates + hierarchy)
 ├── Rule Engine (in-browser)
-└── Local Storage (workspace persistence)
+└── localStorage (workspace persistence)
 ```
 
 ## 2.3 Backend Layer (v0.5+) — Thin Orchestration Layer
 
 The backend is **NOT a heavy CRUD service**. It is a **workflow orchestrator** that mediates between the UI, GitHub, and the generation engine.
 
-### What the Backend Does
+> **Current status**: The backend is scaffolded with a basic FastAPI app exposing only `/health` and `/health/ready` endpoints. All modules below are planned.
+
+### What the Backend Will Do
 
 | Responsibility | Description |
 |---------------|-------------|
@@ -117,7 +144,7 @@ The backend is **NOT a heavy CRUD service**. It is a **workflow orchestrator** t
 | Job Runner | Async generation, validation, deployment triggers |
 | Metadata DB | User, workspace index, run status, audit summary |
 
-### What the Backend Does NOT Store
+### What the Backend Will NOT Store
 
 | Data | Where It Lives |
 |------|---------------|
@@ -127,24 +154,38 @@ The backend is **NOT a heavy CRUD service**. It is a **workflow orchestrator** t
 | Full prompt/log history | GitHub / Blob Storage |
 | Deployment artifacts | GitHub / Blob Storage |
 
-### Backend Architecture
+### Backend Architecture (Planned — v0.5+)
 
 ```
 apps/api/
 ├── app/
-│   ├── main.py                    # FastAPI app
+│   ├── main.py                    # FastAPI app (currently: health endpoints only)
 │   ├── core/
-│   │   ├── config.py              # Environment config
+│   │   └── config.py              # Environment config
+│   ├── api/
+│   │   └── routes/
+│   │       ├── workspaces.py      # Workspace stubs (placeholder)
+│   │       └── scenarios.py       # Template stubs (placeholder)
+│   └── infrastructure/
+│       └── db/
+│           ├── connection.py      # MetadataDB class (not yet implemented)
+│           └── migrations/
+│               ├── 001_create_users.sql
+│               └── 002_create_workspaces.sql
+```
+
+The following modules are **planned but not yet created**:
+
+```
+# Planned (v0.5+)
+│   ├── core/
 │   │   └── security.py            # Auth utilities
 │   ├── api/
-│   │   ├── routes/
-│   │   │   ├── auth.py            # OAuth flow
-│   │   │   ├── projects.py        # Project CRUD (metadata only)
-│   │   │   ├── generate.py        # Code generation orchestration
-│   │   │   └── github.py          # GitHub integration
-│   │   └── middleware/
-│   │       ├── auth.py            # JWT verification
-│   │       └── rate_limit.py      # Rate limiting
+│   │   └── routes/
+│   │       ├── auth.py            # OAuth flow
+│   │       ├── projects.py        # Project CRUD (metadata only)
+│   │       ├── generate.py        # Code generation orchestration
+│   │       └── github.py          # GitHub integration
 │   ├── domain/
 │   │   ├── models.py              # Domain entities
 │   │   └── generators/            # Generator plugins
@@ -152,14 +193,6 @@ apps/api/
 │   │       ├── terraform.py       # Terraform generator
 │   │       ├── bicep.py           # Bicep generator
 │   │       └── pulumi.py          # Pulumi generator
-│   ├── infrastructure/
-│   │   ├── github/                # GitHub API client
-│   │   │   ├── client.py
-│   │   │   └── app.py             # GitHub App management
-│   │   ├── db/                    # Metadata DB
-│   │   │   ├── connection.py      # DB connection pool
-│   │   │   └── migrations/        # Schema migrations
-│   │   └── queue/                 # Job queue (Redis/Upstash)
 │   └── services/
 │       ├── generation.py          # Generation orchestration
 │       ├── github_sync.py         # GitHub sync logic
@@ -216,6 +249,7 @@ Connection Rules:
 Internet → Gateway    ✔
 Gateway  → Compute    ✔
 Compute  → Database   ✔
+Compute  → Storage    ✔
 Database → Gateway    ❌
 Database → Internet   ❌
 ```
@@ -248,7 +282,9 @@ MVP (v0.1) supports DataFlow only.
 
 ---
 
-# 5. Code Generation Pipeline
+# 5. Code Generation Pipeline (v0.3+)
+
+> **Status**: Not yet implemented. Planned for v0.3.
 
 The core value delivery — transforming visual architecture into deployable IaC code.
 
@@ -265,7 +301,7 @@ Generator Plugin (Terraform / Bicep / Pulumi)
 ↓
 Generated Code Output
 ↓
-GitHub Commit / PR (via Backend)
+GitHub Commit / PR (via Backend, v0.5+)
 ```
 
 ### Generator Plugin Architecture
@@ -287,7 +323,7 @@ interface Generator {
 | Bicep | Azure ARM DSL | v0.5 |
 | Pulumi | TypeScript/Python | v1.0 |
 
-### CI/CD Integration
+### CI/CD Integration (v0.5+)
 
 Generated code triggers CI pipelines:
 
@@ -324,11 +360,13 @@ The Provider Adapter translates the generic CloudBlocks model into cloud provide
 
 ---
 
-# 7. GitHub Integration Architecture
+# 7. GitHub Integration Architecture (v0.5+)
+
+> **Status**: Not yet implemented. Planned for v0.5.
 
 ## Auth: GitHub App Model
 
-CloudBlocks uses a **GitHub App** (not raw OAuth) for:
+CloudBlocks will use a **GitHub App** (not raw OAuth) for:
 - Repo-scoped permissions
 - Short-lived installation tokens (no long-lived user tokens in browser)
 - Easy revocation
@@ -341,7 +379,7 @@ User → CloudBlocks UI → Backend API → GitHub App → User's Repos
 ## Data Flow
 
 ```
-1. User designs architecture in 3D builder
+1. User designs architecture in isometric builder
 2. User clicks "Save to GitHub"
 3. Frontend sends architecture JSON to backend
 4. Backend validates and runs generator
@@ -371,8 +409,8 @@ User → CloudBlocks UI → Backend API → GitHub App → User's Repos
 
 | Data Type | Storage | Reason |
 |-----------|---------|--------|
-| Architecture spec | GitHub repo | Version history, diff, collaboration |
-| Generated IaC code | GitHub repo | PR-based review, CI/CD |
+| Architecture spec | GitHub repo (v0.5+) | Version history, diff, collaboration |
+| Generated IaC code | GitHub repo (v0.5+) | PR-based review, CI/CD |
 | Templates | GitHub repo | Community contribution |
 | User / Identity | Metadata DB | Auth, OAuth tokens |
 | Workspace index | Metadata DB | Fast lookup |
@@ -383,47 +421,55 @@ User → CloudBlocks UI → Backend API → GitHub App → User's Repos
 
 ### Metadata DB Schema (Minimal)
 
+> **Note**: The schema below matches the actual migration files. See `apps/api/app/infrastructure/db/migrations/` for the source of truth.
+
 ```sql
--- User identity (linked to GitHub / Google)
+-- Users and identity (001_create_users.sql)
 CREATE TABLE users (
-    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email       VARCHAR(255) NOT NULL UNIQUE,
-    name        VARCHAR(255) NOT NULL,
-    github_id   VARCHAR(100),
-    avatar_url  VARCHAR(500),
-    created_at  TIMESTAMPTZ DEFAULT NOW(),
-    updated_at  TIMESTAMPTZ DEFAULT NOW()
+    id          TEXT PRIMARY KEY,
+    github_id   TEXT UNIQUE,
+    github_username TEXT,
+    email       TEXT,
+    display_name TEXT,
+    avatar_url  TEXT,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Project = workspace + GitHub repo mapping
-CREATE TABLE projects (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id         UUID NOT NULL REFERENCES users(id),
-    name            VARCHAR(200) NOT NULL,
-    github_repo     VARCHAR(500),        -- e.g., "user/my-infra"
-    github_branch   VARCHAR(100) DEFAULT 'main',
-    generator       VARCHAR(50) DEFAULT 'terraform',
-    provider        VARCHAR(50) DEFAULT 'azure',
-    created_at      TIMESTAMPTZ DEFAULT NOW(),
-    updated_at      TIMESTAMPTZ DEFAULT NOW()
+CREATE TABLE identities (
+    id          TEXT PRIMARY KEY,
+    user_id     TEXT NOT NULL REFERENCES users(id),
+    provider    TEXT NOT NULL,  -- 'github', 'google'
+    provider_id TEXT NOT NULL,
+    access_token_hash TEXT,
+    refresh_token_hash TEXT,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(provider, provider_id)
 );
 
-CREATE INDEX idx_projects_user ON projects(user_id);
+-- Workspaces and generation runs (002_create_workspaces.sql)
+CREATE TABLE workspaces (
+    id          TEXT PRIMARY KEY,
+    owner_id    TEXT NOT NULL REFERENCES users(id),
+    name        TEXT NOT NULL,
+    github_repo TEXT,
+    github_branch TEXT DEFAULT 'main',
+    last_synced_at TIMESTAMP,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
--- Generation run log
 CREATE TABLE generation_runs (
-    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    project_id      UUID NOT NULL REFERENCES projects(id),
-    status          VARCHAR(20) DEFAULT 'queued',
-    generator       VARCHAR(50) NOT NULL,
-    commit_sha      VARCHAR(40),
-    error_message   TEXT,
-    started_at      TIMESTAMPTZ,
-    completed_at    TIMESTAMPTZ,
-    created_at      TIMESTAMPTZ DEFAULT NOW()
+    id            TEXT PRIMARY KEY,
+    workspace_id  TEXT NOT NULL REFERENCES workspaces(id),
+    status        TEXT NOT NULL DEFAULT 'pending',  -- pending, running, completed, failed
+    generator     TEXT NOT NULL,
+    commit_sha    TEXT,
+    started_at    TIMESTAMP,
+    completed_at  TIMESTAMP,
+    error_message TEXT,
+    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
-CREATE INDEX idx_runs_project ON generation_runs(project_id);
 ```
 
 ---
@@ -459,7 +505,9 @@ Key: `cloudblocks:workspaces`
 }
 ```
 
-### v0.3+ Storage (Local-First + GitHub Sync)
+> **Note**: Each workspace contains a single `architecture` object (not an array). This matches the code implementation in `apps/web/src/shared/types/index.ts`.
+
+### v0.3+ Storage (Local-First + GitHub Sync — Planned)
 
 IndexedDB for local state + optional GitHub sync:
 
@@ -476,7 +524,7 @@ Local (IndexedDB)     ←→    GitHub (via Backend API)
 
 ---
 
-# 10. Security Considerations
+# 10. Security Considerations (v0.5+)
 
 - GitHub App tokens: short-lived, repo-scoped, stored server-side only
 - No long-lived user tokens in the browser
@@ -504,16 +552,17 @@ The architecture supports horizontal scalability:
 # 12. Summary
 
 ```
-Frontend (v0.1: SPA with R3F, local-first)
-Core Model (Zustand store)
+Frontend (v0.1: SPA with R3F, 2.5D isometric view, localStorage persistence)
+Core Model (Zustand store — 2D coordinates + hierarchy)
 Rule Engine (in-browser validation)
-Code Generation (Terraform / Bicep / Pulumi plugins)
-Backend (v0.5+: Thin orchestration layer — FastAPI)
-GitHub Integration (v0.5+: repos as data store)
+Code Generation (v0.3+: Terraform / Bicep / Pulumi plugins — planned)
+Backend (v0.5+: Thin orchestration layer — FastAPI — scaffolded)
+GitHub Integration (v0.5+: repos as data store — planned)
 ```
 
 This architecture enables:
-- Visual architecture design with 3D blocks
-- Automated infrastructure code generation
-- Git-native collaboration and version control
+- Visual architecture design with 2.5D isometric blocks
+- Rule-based validation of cloud infrastructure
+- Automated infrastructure code generation (planned)
+- Git-native collaboration and version control (planned)
 - Lightweight deployment with minimal infrastructure cost
