@@ -1,0 +1,92 @@
+.toolbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  background: rgba(15, 15, 30, 0.97);
+  border-bottom: 1px solid #333366;
+  z-index: 100;
+  gap: 4px;
+  overflow-x: auto;
+}
+
+.toolbar-logo {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.toolbar-group-label {
+  font-size: 10px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-right: 4px;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 28px;
+  background: #333366;
+  margin: 0 6px;
+}
+
+.toolbar-btn {
+  padding: 5px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #ccc;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.toolbar-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.toolbar-btn-active {
+  background: rgba(66, 133, 244, 0.3);
+  border-color: #4285f4;
+  color: #ffffff;
+}
+
+.toolbar-btn-public:hover {
+  border-color: #81C784;
+}
+
+.toolbar-btn-private:hover {
+  border-color: #E57373;
+}
+
+.toolbar-badge {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.toolbar-badge-valid {
+  background: rgba(76, 175, 80, 0.2);
+  color: #81C784;
+}
+
+.toolbar-badge-invalid {
+  background: rgba(244, 67, 54, 0.2);
+  color: #ef5350;
+}

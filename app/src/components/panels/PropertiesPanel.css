@@ -1,0 +1,67 @@
+.properties-panel {
+  position: absolute;
+  right: 12px;
+  top: 60px;
+  width: 220px;
+  background: rgba(20, 20, 40, 0.95);
+  border: 1px solid #333366;
+  border-radius: 8px;
+  padding: 12px;
+  color: #e0e0e0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  z-index: 10;
+}
+
+.properties-title {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.properties-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.property-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.property-label {
+  color: #999;
+  font-weight: 500;
+}
+
+.property-value {
+  color: #e0e0e0;
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.properties-delete {
+  margin-top: 8px;
+  padding: 6px 10px;
+  background: rgba(244, 67, 54, 0.2);
+  border: 1px solid rgba(244, 67, 54, 0.4);
+  border-radius: 4px;
+  color: #ef5350;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.properties-delete:hover {
+  background: rgba(244, 67, 54, 0.35);
+}

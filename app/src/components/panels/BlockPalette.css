@@ -1,0 +1,71 @@
+.block-palette {
+  position: absolute;
+  left: 12px;
+  top: 60px;
+  width: 180px;
+  background: rgba(20, 20, 40, 0.95);
+  border: 1px solid #333366;
+  border-radius: 8px;
+  padding: 12px;
+  color: #e0e0e0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  z-index: 10;
+}
+
+.palette-title {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.palette-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.palette-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  border-left: 3px solid;
+  border-radius: 4px;
+  color: #e0e0e0;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.palette-item:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateX(2px);
+}
+
+.palette-item:active {
+  transform: translateX(1px);
+}
+
+.palette-icon {
+  font-size: 16px;
+}
+
+.palette-label {
+  font-weight: 500;
+}
+
+.palette-hint {
+  margin-top: 10px;
+  font-size: 11px;
+  color: #888;
+  padding: 4px 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 3px;
+}
+
+.palette-hint-warning {
+  color: #ffab40;
+}
