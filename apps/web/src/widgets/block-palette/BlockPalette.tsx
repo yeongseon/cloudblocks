@@ -47,22 +47,13 @@ export function BlockPalette() {
 
       {subnetPlates.length > 1 && (
         <div className="palette-target-selector">
-          <label style={{ fontSize: '11px', color: '#999', display: 'block', marginBottom: '4px' }}>
+          <label className="palette-target-label">
             Target Plate:
           </label>
           <select
+            className="palette-select"
             value={targetPlateId ?? ''}
             onChange={(e) => setExplicitTarget(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '4px 6px',
-              background: 'rgba(255, 255, 255, 0.08)',
-              border: '1px solid #444',
-              borderRadius: '3px',
-              color: '#e0e0e0',
-              fontSize: '12px',
-              marginBottom: '8px',
-            }}
           >
             {subnetPlates.map((p) => (
               <option key={p.id} value={p.id}>{p.name}</option>

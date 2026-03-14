@@ -203,6 +203,8 @@ The following modules are **planned but not yet created**:
 
 # 3. Core Modeling Engine
 
+> See also: PRD §8 (Core Concepts), PRD §10 (Layout Model)
+
 The Core Modeling Engine manages the **CloudBlocks Domain Model**.
 
 Responsibilities:
@@ -226,11 +228,181 @@ Key responsibilities:
 - Enforce containment relationships
 - Serialize model state to JSON
 
+## 3.5 Architecture Model Schema (v0.1 — current)
+
+The canonical model types are defined in `apps/web/src/shared/types/index.ts`.
+
+```typescript
+export type PlateType = 'network' | 'subnet';
+export type SubnetAccess = 'public' | 'private';
+export type BlockCategory = 'compute' | 'database' | 'storage' | 'gateway';
+export type ConnectionType = 'dataflow';
+
+export interface Position {
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface Size {
+  width: number;
+  height: number;
+  depth: number;
+}
+
+export interface Plate {
+  id: string;
+  name: string;
+  type: PlateType;
+  subnetAccess?: SubnetAccess;
+  parentId: string | null;
+  children: string[];
+  position: Position;
+  size: Size;
+  metadata: Record<string, unknown>;
+}
+
+export interface Block {
+  id: string;
+  name: string;
+  category: BlockCategory;
+  placementId: string;
+  position: Position;
+  metadata: Record<string, unknown>;
+}
+
+export interface Connection {
+  id: string;
+  sourceId: string;
+  targetId: string;
+  type: ConnectionType;
+  metadata: Record<string, unknown>;
+}
+
+export interface ExternalActor {
+  id: string;
+  name: string;
+  type: 'internet';
+}
+
+export interface ArchitectureModel {
+  id: string;
+  name: string;
+  version: string;
+  plates: Plate[];
+  blocks: Block[];
+  connections: Connection[];
+  externalActors: ExternalActor[];
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+### Example ArchitectureModel JSON
+
+```json
+{
+  "id": "arch-001",
+  "name": "3-Tier Web App",
+  "version": "1",
+  "plates": [
+    {
+      "id": "plate-network-1",
+      "name": "Main Network",
+      "type": "network",
+      "parentId": null,
+      "children": ["plate-subnet-public-1"],
+      "position": { "x": 0, "y": 0, "z": 0 },
+      "size": { "width": 12, "height": 0.3, "depth": 10 },
+      "metadata": {}
+    },
+    {
+      "id": "plate-subnet-public-1",
+      "name": "Public Subnet",
+      "type": "subnet",
+      "subnetAccess": "public",
+      "parentId": "plate-network-1",
+      "children": ["block-gateway-1", "block-compute-1"],
+      "position": { "x": 0, "y": 0.2, "z": 0 },
+      "size": { "width": 5, "height": 0.2, "depth": 8 },
+      "metadata": {}
+    }
+  ],
+  "blocks": [
+    {
+      "id": "block-gateway-1",
+      "name": "App Gateway",
+      "category": "gateway",
+      "placementId": "plate-subnet-public-1",
+      "position": { "x": -1, "y": 0, "z": 0 },
+      "metadata": {}
+    },
+    {
+      "id": "block-compute-1",
+      "name": "Web API",
+      "category": "compute",
+      "placementId": "plate-subnet-public-1",
+      "position": { "x": 1.5, "y": 0, "z": 0 },
+      "metadata": { "runtime": "container" }
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "sourceId": "ext-internet",
+      "targetId": "block-gateway-1",
+      "type": "dataflow",
+      "metadata": {}
+    },
+    {
+      "id": "conn-2",
+      "sourceId": "block-gateway-1",
+      "targetId": "block-compute-1",
+      "type": "dataflow",
+      "metadata": {}
+    }
+  ],
+  "externalActors": [
+    {
+      "id": "ext-internet",
+      "name": "Internet",
+      "type": "internet"
+    }
+  ],
+  "createdAt": "2025-01-01T00:00:00.000Z",
+  "updatedAt": "2025-01-01T00:00:00.000Z"
+}
+```
+
+### Serialization Format
+
+- Serialization is versioned through `schemaVersion` and currently uses `"0.1.0"` (see `apps/web/src/shared/types/schema.ts`).
+- The persisted root payload shape is `{ schemaVersion, workspaces[] }`, where each workspace contains one `architecture: ArchitectureModel`.
+- For broader domain semantics and lifecycle rules, see `docs/DOMAIN_MODEL.md`.
+
 ---
 
 # 4. Rule Engine
 
+> See also: PRD §11 (Architecture Rules)
+
 The Rule Engine validates architecture constraints.
+
+### Module Architecture
+
+The validation engine is split into focused modules:
+
+```
+apps/web/src/features/validate/
+├── engine.ts       # validateArchitecture(model): orchestration entrypoint
+├── placement.ts    # validatePlacement(block, plate): placement rule checks
+└── connection.ts   # validateConnection(connection, blocks, externalActors): flow rule checks
+```
+
+Validation flow in `engine.ts`:
+- Iterate all blocks and run placement rules from `placement.ts`
+- Iterate all connections and run connection rules from `connection.ts`
+- Aggregate errors/warnings into one `ValidationResult`
 
 ### Rule Categories
 
@@ -284,6 +456,8 @@ MVP (v0.1) supports DataFlow only.
 
 # 5. Code Generation Pipeline (v0.3+)
 
+> See also: PRD §12 (MVP Feature Set — Architecture Model Export), PRD §16 (Future Roadmap)
+
 > **Status**: Not yet implemented. Planned for v0.3.
 
 The core value delivery — transforming visual architecture into deployable IaC code.
@@ -295,14 +469,44 @@ Architecture Model (JSON)
 ↓
 Schema Validation
 ↓
+Normalization Layer (canonical model normalization)
+↓
 Provider Adapter (Azure / AWS / GCP mapping)
 ↓
 Generator Plugin (Terraform / Bicep / Pulumi)
+↓
+Formatter (output shaping, file layout)
 ↓
 Generated Code Output
 ↓
 GitHub Commit / PR (via Backend, v0.5+)
 ```
+
+### Planned Module Structure (v0.3+)
+
+```text
+generators/
+  adapters/
+    azure_adapter.ts
+    aws_adapter.ts
+  terraform/
+    network.tf.ts
+    compute.tf.ts
+    database.tf.ts
+  normalization/
+    model_normalizer.ts
+  formatter/
+    output_formatter.ts
+```
+
+### Layer Responsibilities
+
+| Layer | Responsibility |
+|-------|----------------|
+| Normalization | Convert raw architecture JSON into a canonical, generation-safe model (stable IDs, resolved references, defaults). |
+| Provider Adapter | Map CloudBlocks generic entities to provider-specific resource semantics. |
+| Generator | Produce IaC artifacts from normalized, provider-mapped input. |
+| Formatter | Assemble final output files and directory structure for commit/export. |
 
 ### Generator Plugin Architecture
 
@@ -342,7 +546,36 @@ jobs:
 
 ---
 
-# 6. Provider Adapter Layer
+# 6. Rendering Layer Architecture (v0.1 — current)
+
+> See also: PRD §13 (User Interface), PRD §14 (Technical Constraints)
+
+The scene layer is implemented in `apps/web/src/widgets/scene-canvas/SceneCanvas.tsx` and composes entity renderers.
+
+```text
+SceneCanvas (root 3D scene)
+  ├ OrbitControls (zoom/pan only, rotation disabled)
+  ├ Grid
+  ├ PlateModel (network/subnet rendering)
+  ├ BlockModel (infrastructure block rendering)
+  ├ ConnectionLine (data flow arrows)
+  └ Html labels (plate/block names via @react-three/drei)
+```
+
+| Component | Responsibility |
+|-----------|----------------|
+| SceneCanvas | Hosts `Canvas`, camera/lights, controls, and orchestrates rendering of all model entities from Zustand state. |
+| PlateModel | Renders plate geometry (network/subnet), visual state (hover/selection), and plate labels. |
+| BlockModel | Renders block geometry by category, interaction states, and block labels; anchors block position to parent plate. |
+| ConnectionLine | Resolves endpoints and renders curved directional dataflow lines with arrowheads. |
+
+> Rendering is projection only: the authoritative editing model remains 2D coordinates with containment hierarchy, then projected into the 2.5D scene.
+
+---
+
+# 7. Provider Adapter Layer
+
+> See also: PRD §9 (Architecture Elements — Blocks and Plates)
 
 The Provider Adapter translates the generic CloudBlocks model into cloud provider resources.
 
@@ -360,8 +593,9 @@ The Provider Adapter translates the generic CloudBlocks model into cloud provide
 
 ---
 
-# 7. GitHub Integration Architecture (v0.5+)
+# 8. GitHub Integration Architecture (v0.5+)
 
+> See also: PRD §16 (Future Roadmap — v0.5 GitHub Integration)
 > **Status**: Not yet implemented. Planned for v0.5.
 
 ## Auth: GitHub App Model
@@ -403,7 +637,7 @@ User → CloudBlocks UI → Backend API → GitHub App → User's Repos
 
 ---
 
-# 8. Storage Architecture
+# 9. Storage Architecture
 
 ### Data Placement Strategy
 
@@ -474,7 +708,7 @@ CREATE TABLE generation_runs (
 
 ---
 
-# 9. State Management
+# 10. State Management
 
 ### v0.1 Storage (Local)
 
@@ -522,9 +756,19 @@ Local (IndexedDB)     ←→    GitHub (via Backend API)
 - "Connect to GitHub" to sync and collaborate
 - GitHub is "publish/collaborate", not "required to use"
 
+Planned sync behavior (v0.3+):
+- Conflict detection via GitHub file SHA comparison before write operations
+- Offline edits are persisted locally and queued for sync on reconnect
+- Optimistic concurrency model: fast local commits, fail-fast when remote SHA diverges
+
+Future workspace evolution (post-v0.3):
+- Multiple architectures per workspace may be supported
+- Environment variants (dev/staging/prod) may be added
+- Architecture version history may be tracked per workspace
+
 ---
 
-# 10. Security Considerations (v0.5+)
+# 11. Security Considerations (v0.5+)
 
 - GitHub App tokens: short-lived, repo-scoped, stored server-side only
 - No long-lived user tokens in the browser
@@ -535,7 +779,7 @@ Local (IndexedDB)     ←→    GitHub (via Backend API)
 
 ---
 
-# 11. Scalability
+# 12. Scalability
 
 The architecture supports horizontal scalability:
 
@@ -549,7 +793,7 @@ The architecture supports horizontal scalability:
 
 ---
 
-# 12. Summary
+# 13. Summary
 
 ```
 Frontend (v0.1: SPA with R3F, 2.5D isometric view, localStorage persistence)

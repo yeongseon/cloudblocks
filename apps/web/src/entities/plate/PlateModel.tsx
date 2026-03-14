@@ -1,16 +1,17 @@
-import { useRef, useState, type ReactNode } from 'react';
+import { useRef, useState, useMemo, memo, type ReactNode } from 'react';
 import type { ThreeEvent } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import type { Plate } from '../../shared/types/index';
 import { PLATE_COLORS, SUBNET_ACCESS_COLORS } from '../../shared/types/index';
+import { GRID_CELL } from '../../shared/utils/position';
 import { useUIStore } from '../store/uiStore';
 
 interface PlateModelProps {
   plate: Plate;
 }
 
-export function PlateModel({ plate }: PlateModelProps) {
+export const PlateModel = memo(function PlateModel({ plate }: PlateModelProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
   const selectedId = useUIStore((s) => s.selectedId);
@@ -76,7 +77,7 @@ export function PlateModel({ plate }: PlateModelProps) {
       </lineSegments>
 
       {/* Lego studs on top surface */}
-      {generateStuds(plate.size.width, plate.size.depth, plate.size.height, baseColor)}
+      <MemoizedStuds width={plate.size.width} depth={plate.size.depth} height={plate.size.height} color={baseColor} />
 
       {/* Label */}
       <PlateLabel
@@ -86,40 +87,48 @@ export function PlateModel({ plate }: PlateModelProps) {
       />
     </group>
   );
-}
+});
 
-function generateStuds(
-  width: number,
-  depth: number,
-  height: number,
-  color: string
-): ReactNode {
-  const studs: ReactNode[] = [];
-  const studRadius = 0.15;
-  const studHeight = 0.1;
-  const spacing = 1.5;
+const MemoizedStuds = memo(function MemoizedStuds({
+  width,
+  depth,
+  height,
+  color,
+}: {
+  width: number;
+  depth: number;
+  height: number;
+  color: string;
+}) {
+  const studs = useMemo(() => {
+    const result: ReactNode[] = [];
+    const studRadius = 0.15;
+    const studHeight = 0.1;
+    const spacing = GRID_CELL;
 
-  const countX = Math.floor(width / spacing);
-  const countZ = Math.floor(depth / spacing);
+    const countX = Math.floor(width / spacing);
+    const countZ = Math.floor(depth / spacing);
 
-  for (let ix = 0; ix < countX; ix++) {
-    for (let iz = 0; iz < countZ; iz++) {
-      const x = -width / 2 + spacing / 2 + ix * spacing;
-      const z = -depth / 2 + spacing / 2 + iz * spacing;
-      studs.push(
-        <mesh
-          key={`stud-${ix}-${iz}`}
-          position={[x, height / 2 + studHeight / 2, z]}
-        >
-          <cylinderGeometry args={[studRadius, studRadius, studHeight, 8]} />
-          <meshStandardMaterial color={color} />
-        </mesh>
-      );
+    for (let ix = 0; ix < countX; ix++) {
+      for (let iz = 0; iz < countZ; iz++) {
+        const x = -width / 2 + spacing / 2 + ix * spacing;
+        const z = -depth / 2 + spacing / 2 + iz * spacing;
+        result.push(
+          <mesh
+            key={`stud-${ix}-${iz}`}
+            position={[x, height / 2 + studHeight / 2, z]}
+          >
+            <cylinderGeometry args={[studRadius, studRadius, studHeight, 8]} />
+            <meshStandardMaterial color={color} />
+          </mesh>
+        );
+      }
     }
-  }
+    return result;
+  }, [width, depth, height, color]);
 
   return <>{studs}</>;
-}
+});
 
 function PlateLabel({
   name,

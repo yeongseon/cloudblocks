@@ -5,6 +5,7 @@ import { useUIStore } from '../../entities/store/uiStore';
 import { PlateModel } from '../../entities/plate/PlateModel';
 import { BlockModel } from '../../entities/block/BlockModel';
 import { ConnectionLine, ExternalActorModel } from '../../entities/connection/ConnectionLine';
+import { EXTERNAL_ACTOR_LABEL_POSITION } from '../../shared/utils/position';
 
 export function SceneCanvas() {
   const architecture = useArchitectureStore(
@@ -83,7 +84,7 @@ export function SceneCanvas() {
       {architecture.externalActors.map((actor) => (
         <group key={actor.id}>
           <ExternalActorModel actor={actor} />
-          <Html position={[0, 6, -6]} center>
+          <Html position={EXTERNAL_ACTOR_LABEL_POSITION} center>
             <div
               style={{
                 color: '#90CAF9',

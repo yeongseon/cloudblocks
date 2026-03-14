@@ -1,9 +1,10 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, memo } from 'react';
 import type { ThreeEvent } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import type { Block, Plate } from '../../shared/types/index';
 import { BLOCK_COLORS, DEFAULT_BLOCK_SIZE } from '../../shared/types/index';
+import { getBlockWorldPosition } from '../../shared/utils/position';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 
@@ -19,7 +20,7 @@ const BLOCK_SHAPES: Record<string, 'box' | 'cylinder' | 'cone'> = {
   gateway: 'cone',
 };
 
-export function BlockModel({ block, parentPlate }: BlockModelProps) {
+export const BlockModel = memo(function BlockModel({ block, parentPlate }: BlockModelProps) {
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
   const selectedId = useUIStore((s) => s.selectedId);
@@ -34,15 +35,8 @@ export function BlockModel({ block, parentPlate }: BlockModelProps) {
   const color = BLOCK_COLORS[block.category];
   const shape = BLOCK_SHAPES[block.category] ?? 'box';
 
-  // Calculate absolute position: plate position + block relative position
-  const worldPosition: [number, number, number] = [
-    parentPlate.position.x + block.position.x,
-    parentPlate.position.y +
-      parentPlate.size.height / 2 +
-      DEFAULT_BLOCK_SIZE.height / 2 +
-      block.position.y,
-    parentPlate.position.z + block.position.z,
-  ];
+  // Calculate absolute position from shared utility
+  const worldPosition = getBlockWorldPosition(block, parentPlate);
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
@@ -168,4 +162,4 @@ export function BlockModel({ block, parentPlate }: BlockModelProps) {
       </Html>
     </group>
   );
-}
+});

@@ -69,3 +69,21 @@
 .palette-hint-warning {
   color: #ffab40;
 }
+
+.palette-target-label {
+  font-size: 11px;
+  color: #999;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.palette-select {
+  width: 100%;
+  padding: 4px 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid #444;
+  border-radius: 3px;
+  color: #e0e0e0;
+  font-size: 12px;
+  margin-bottom: 8px;
+}

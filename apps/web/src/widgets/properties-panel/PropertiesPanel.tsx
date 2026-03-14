@@ -80,8 +80,8 @@ export function PropertiesPanel() {
             if (targetPlates.length === 0) return null;
 
             return (
-              <div style={{ marginTop: '8px' }}>
-                <label style={{ fontSize: '11px', color: '#999', display: 'block', marginBottom: '4px' }}>
+              <div className="properties-move-section">
+                <label className="properties-field-label">
                   Move to:
                 </label>
                 <select
@@ -89,15 +89,7 @@ export function PropertiesPanel() {
                     if (e.target.value) moveBlock(block.id, e.target.value);
                   }}
                   defaultValue=""
-                  style={{
-                    width: '100%',
-                    padding: '4px 6px',
-                    background: 'rgba(255, 255, 255, 0.08)',
-                    border: '1px solid #444',
-                    borderRadius: '3px',
-                    color: '#e0e0e0',
-                    fontSize: '12px',
-                  }}
+                  className="properties-select"
                 >
                   <option value="" disabled>Select plate...</option>
                   {targetPlates.map((p) => (

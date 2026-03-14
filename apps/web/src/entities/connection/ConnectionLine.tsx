@@ -1,7 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import * as THREE from 'three';
 import type { Block, Connection, ExternalActor, Plate } from '../../shared/types/index';
-import { DEFAULT_BLOCK_SIZE } from '../../shared/types/index';
+import {
+  getEndpointWorldPosition,
+  EXTERNAL_ACTOR_POSITION,
+} from '../../shared/utils/position';
 
 interface ConnectionLineProps {
   connection: Connection;
@@ -10,51 +13,20 @@ interface ConnectionLineProps {
   externalActors: ExternalActor[];
 }
 
-function getEndpointPosition(
-  id: string,
-  blocks: Block[],
-  plates: Plate[],
-  externalActors: ExternalActor[]
-): THREE.Vector3 | null {
-  // Check blocks
-  const block = blocks.find((b) => b.id === id);
-  if (block) {
-    const plate = plates.find((p) => p.id === block.placementId);
-    if (plate) {
-      return new THREE.Vector3(
-        plate.position.x + block.position.x,
-        plate.position.y +
-          plate.size.height / 2 +
-          DEFAULT_BLOCK_SIZE.height / 2 +
-          block.position.y,
-        plate.position.z + block.position.z
-      );
-    }
-  }
-
-  // Check external actors (position above the scene)
-  const actor = externalActors.find((a) => a.id === id);
-  if (actor) {
-    return new THREE.Vector3(0, 5, -6);
-  }
-
-  return null;
-}
-
-export function ConnectionLine({
+export const ConnectionLine = memo(function ConnectionLine({
   connection,
   blocks,
   plates,
   externalActors,
 }: ConnectionLineProps) {
   const { sourcePos, targetPos, midPos } = useMemo(() => {
-    const src = getEndpointPosition(
+    const src = getEndpointWorldPosition(
       connection.sourceId,
       blocks,
       plates,
       externalActors
     );
-    const tgt = getEndpointPosition(
+    const tgt = getEndpointWorldPosition(
       connection.targetId,
       blocks,
       plates,
@@ -63,13 +35,16 @@ export function ConnectionLine({
 
     if (!src || !tgt) return { sourcePos: null, targetPos: null, midPos: null };
 
+    const srcVec = new THREE.Vector3(...src);
+    const tgtVec = new THREE.Vector3(...tgt);
+
     // Create a curved midpoint for the arc
     const mid = new THREE.Vector3()
-      .addVectors(src, tgt)
+      .addVectors(srcVec, tgtVec)
       .multiplyScalar(0.5);
     mid.y += 1.5; // Arc height
 
-    return { sourcePos: src, targetPos: tgt, midPos: mid };
+    return { sourcePos: srcVec, targetPos: tgtVec, midPos: mid };
   }, [connection, blocks, plates, externalActors]);
 
   const curvePoints = useMemo(() => {
@@ -111,16 +86,16 @@ export function ConnectionLine({
       )}
     </group>
   );
-}
+});
 
 /**
  * Render the Internet external actor as a floating globe icon.
  */
-export function ExternalActorModel(_props: {
+export const ExternalActorModel = memo(function ExternalActorModel(_props: {
   actor: ExternalActor;
 }) {
   return (
-    <group position={[0, 5, -6]}>
+    <group position={EXTERNAL_ACTOR_POSITION}>
       <mesh>
         <sphereGeometry args={[0.5, 16, 16]} />
         <meshStandardMaterial
@@ -136,4 +111,4 @@ export function ExternalActorModel(_props: {
       </mesh>
     </group>
   );
-}
+});

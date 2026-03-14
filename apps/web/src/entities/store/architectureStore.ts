@@ -16,6 +16,7 @@ import { createBlankArchitecture } from '../../shared/types/schema';
 import { generateId } from '../../shared/utils/id';
 import { validateArchitecture } from '../../features/validate/engine';
 import { saveWorkspaces, loadWorkspaces } from '../../shared/utils/storage';
+import { GRID_CELL } from '../../shared/utils/position';
 
 interface ArchitectureState {
   // ── Data ──
@@ -65,7 +66,6 @@ function touchModel(model: ArchitectureModel): ArchitectureModel {
   return { ...model, updatedAt: new Date().toISOString() };
 }
 
-const GRID_CELL = 1.5;
 
 function snapToGrid(val: number): number {
   return Math.round(val / GRID_CELL) * GRID_CELL;
