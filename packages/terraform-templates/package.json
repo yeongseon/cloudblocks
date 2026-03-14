@@ -1,0 +1,6 @@
+{
+  "name": "@cloudblocks/terraform-templates",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Infrastructure-as-Code templates for CloudBlocks architectures"
+}

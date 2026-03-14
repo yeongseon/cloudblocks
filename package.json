@@ -1,0 +1,22 @@
+{
+  "name": "cloudblocks",
+  "private": true,
+  "version": "0.1.0",
+  "description": "CloudBlocks Platform - 3D block-style visual cloud architecture builder",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter @cloudblocks/web dev",
+    "build": "pnpm --filter @cloudblocks/web build",
+    "lint": "pnpm --filter @cloudblocks/web lint",
+    "preview": "pnpm --filter @cloudblocks/web preview",
+    "clean": "pnpm -r exec rm -rf node_modules dist .turbo"
+  },
+  "keywords": ["cloud", "architecture", "3d", "visualization", "cubrid"],
+  "author": "yeongseon",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.0"
+}
