@@ -1,5 +1,13 @@
 import type { ArchitectureModel, Workspace } from './index';
 
+/**
+ * SCHEMA_VERSION: Controls the serialization/storage format.
+ * Bump when the shape of SerializedData or Workspace changes.
+ * Used to detect incompatible localStorage data and trigger migrations.
+ *
+ * This is separate from ArchitectureModel.version, which tracks
+ * the user's architecture revision (user-facing, incremented on save/export).
+ */
 export const SCHEMA_VERSION = '0.1.0';
 
 export interface SerializedData {

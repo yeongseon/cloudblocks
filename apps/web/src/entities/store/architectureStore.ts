@@ -432,3 +432,21 @@ export const useArchitectureStore = create<ArchitectureState>((set, get) => ({
     }));
   },
 }));
+
+// ── Auto-validation ──
+// Debounced validation runs automatically after any architecture mutation.
+// Mutations set validationResult to null; this subscriber detects that
+// and schedules a validation pass after a short delay.
+
+let autoValidateTimer: ReturnType<typeof setTimeout> | null = null;
+const AUTO_VALIDATE_DELAY_MS = 300;
+
+useArchitectureStore.subscribe((state, prevState) => {
+  // Only trigger when validationResult was just cleared (mutation occurred)
+  if (state.validationResult === null && prevState.validationResult !== null) {
+    if (autoValidateTimer) clearTimeout(autoValidateTimer);
+    autoValidateTimer = setTimeout(() => {
+      useArchitectureStore.getState().validate();
+    }, AUTO_VALIDATE_DELAY_MS);
+  }
+});

@@ -12,7 +12,7 @@ export interface Plate {
   type: PlateType;
   subnetAccess?: SubnetAccess; // only for subnet type
   parentId: string | null; // null for root (network plate)
-  children: string[]; // child plate/block IDs
+  children: string[]; // mixed list: child plate IDs + block IDs (intentional for MVP; consider splitting to childPlateIds/childBlockIds in v1.0)
   position: Position;
   size: Size;
   metadata: Record<string, unknown>;
@@ -77,7 +77,7 @@ export interface Size {
 export interface ArchitectureModel {
   id: string;
   name: string;
-  version: string;
+  version: string; // user-facing architecture revision (not schema version; see schema.ts)
   plates: Plate[];
   blocks: Block[];
   connections: Connection[];
