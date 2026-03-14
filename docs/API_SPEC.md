@@ -65,7 +65,7 @@ DELETE /api/v1/workspaces/:id          → Delete workspace
 
 ## Planned: Code Generation (v0.5+)
 
-Generate infrastructure code from architecture. The backend reads `architecture.json` from GitHub, runs the generator, and commits the output back.
+Generate infrastructure code from architecture. In v0.3, code generation runs client-side (export to file/clipboard). Starting from v0.5, the backend reads `architecture.json` from GitHub, runs the generator, and commits the output back. The endpoints below are for server-side generation (v0.5+).
 
 ```
 POST   /api/v1/workspaces/:id/generate    → Trigger code generation

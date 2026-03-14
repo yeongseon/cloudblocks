@@ -102,8 +102,6 @@ def _validate_connection(
         "internet": {"gateway"},
         "gateway": {"compute"},
         "compute": {"database", "storage"},
-        "database": {"compute"},
-        "storage": {"compute"},
     }
 
     source_type = _get_endpoint_type(connection["sourceId"], blocks, external_actors)

@@ -2,7 +2,15 @@
 
 This document reviews the current **CloudBlocks System Architecture** and proposes improvements to strengthen the design for clarity, scalability, and long-term maintainability.
 
-Overall assessment: **Strong architecture foundation with several areas for improvement.**
+> **⚠️ Document Status**: This review was written during the early architecture phase. Many of the gaps identified below have since been addressed:
+>
+> - §3.1 (Architecture Model Schema) → Now defined in ARCHITECTURE.md §3.5 and DOMAIN_MODEL.md §12
+> - §3.2 (Generator Pipeline) → Now specified in ARCHITECTURE.md §5 and generator.md
+> - §3.3 (Rule Engine Architecture) → Now specified in ARCHITECTURE.md §4 and rules.md
+> - §3.6 (Rendering Layer) → Now specified in ARCHITECTURE.md §6
+> - §3.4 (Workspace Data Model) and §3.5 (Local-First Sync) remain relevant for future work (v0.3+).
+>
+> The recommendations below remain as historical context. See the current documents for up-to-date specifications.
 
 ---
 

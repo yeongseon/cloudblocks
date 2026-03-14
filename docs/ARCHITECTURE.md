@@ -35,22 +35,25 @@ The system consists of several subsystems:
 | **Provider Adapters** | Cloud-specific resource mapping | [provider.md](./provider.md) |
 | **Templates** | Reusable architecture starting points | [templates.md](./templates.md) |
 
-### Target Repository Structure
+### Repository Structure (Actual)
 
 ```
 cloudblocks/
   apps/
-    web/          # Frontend SPA (React + R3F)
-    api/          # Backend API (Python FastAPI)
+    web/              # Frontend SPA (React + R3F)
+    api/              # Backend API (Python FastAPI)
   packages/
-    model/        # Architecture model DSL
-    rule-engine/  # Validation rules
-    generator/    # IaC code generator
-    providers/    # Cloud provider adapters
-  docs/
-  templates/
-  examples/
+    cloudblocks-domain/    # Domain model (placeholder)
+    cloudblocks-ui/        # UI components (placeholder)
+    schema/                # Schema definitions (placeholder)
+    scenario-library/      # Tutorial scenarios (placeholder)
+    terraform-templates/   # Terraform templates (placeholder)
+  docs/              # Documentation
+  examples/          # Example architecture READMEs
+  infra/             # Deployment scaffolds (Docker, Terraform, k8s)
 ```
+
+> **Note**: The `packages/` directory currently contains placeholder packages. The aspirational modular structure (model, rule-engine, generator, providers) will be extracted from `apps/web/` as the codebase matures.
 
 ---
 

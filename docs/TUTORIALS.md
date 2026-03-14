@@ -78,7 +78,7 @@ resource "azurerm_subnet" "private" {
 
 **Result**:
 ```
-Internet → [Public Subnet: Gateway] → [Private Subnet: Storage]
+Internet → [Public Subnet: Gateway] → [Private Subnet: Compute → Storage]
 ```
 
 ---
@@ -113,7 +113,16 @@ Internet → Gateway → [Compute-A, Compute-B] → Database
 
 **Result**:
 ```
-Internet → Gateway → Storage → Compute → Database
+Internet → Gateway → Compute → Storage → (event-driven processing planned for v1.0)
+```
+
+> **Note (v0.1)**: In the MVP, Storage and Database are receiver-only. The `Storage → Compute` event-driven pattern requires the `EventFlow` connection type planned for v1.0. In v0.1, model this as `Compute → Storage` (polling pattern).
+
+**Revised v0.1-compatible architecture:**
+```
+Internet → Gateway → Compute → Storage
+                      ↓
+                   Compute → Database
 ```
 
 ---
@@ -133,14 +142,17 @@ Internet → Gateway → Storage → Compute → Database
 
 ### Tutorial 6: Serverless API (v1.0+)
 
+> **⚠️ This tutorial requires block types and connection types planned for v1.0+.**
+> FunctionBlock, QueueBlock, and EventFlow connections are not available in v0.1.
+
 **Objective**: Build a serverless API with functions and queues.
 
 **You'll learn**:
-- FunctionBlock usage
-- QueueBlock for async processing
-- Event-driven patterns
+- FunctionBlock usage (v1.0)
+- QueueBlock for async processing (v1.0)
+- EventFlow connection type (v1.0)
 
-**Result**:
+**Result** (v1.0+):
 ```
 HTTP → Function → Queue → Function → Database
 ```
