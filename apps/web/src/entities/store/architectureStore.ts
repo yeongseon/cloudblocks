@@ -14,19 +14,38 @@ import type {
 import { DEFAULT_PLATE_SIZE } from '../../shared/types/index';
 import { createBlankArchitecture } from '../../shared/types/schema';
 import { generateId } from '../../shared/utils/id';
-import { validateArchitecture } from '../../features/validate/engine';
+import { validateArchitecture } from '../validation/engine';
 import { saveWorkspaces, loadWorkspaces } from '../../shared/utils/storage';
 import { GRID_CELL } from '../../shared/utils/position';
+import {
+  createHistory,
+  pushHistory,
+  undo as historyUndo,
+  redo as historyRedo,
+  canUndo as historyCanUndo,
+  canRedo as historyCanRedo,
+  resetHistory,
+} from '../../shared/utils/history';
+import type { ArchitectureTemplate } from '../../shared/types/template';
 
 /**
  * Architecture state store.
- * MVP: Single workspace. Multi-workspace support (add/switch/delete) planned for v1.0.
- * Storage format already supports Workspace[] for forward compatibility.
+ *
+ * v0.2: Undo/redo history at the model level.
+ * v0.4: Multi-workspace support (create/switch/delete/clone).
  */
 interface ArchitectureState {
   // ── Data ──
   workspace: Workspace;
+  workspaces: Workspace[];
   validationResult: ValidationResult | null;
+
+  // ── History (v0.2) ──
+  history: { past: ArchitectureModel[]; future: ArchitectureModel[] };
+  canUndo: boolean;
+  canRedo: boolean;
+  undo: () => void;
+  redo: () => void;
 
   // ── Plate actions ──
   addPlate: (
@@ -54,6 +73,15 @@ interface ArchitectureState {
   loadFromStorage: () => void;
   resetWorkspace: () => void;
   renameWorkspace: (name: string) => void;
+
+  // ── Multi-workspace (v0.4) ──
+  createWorkspace: (name: string) => void;
+  switchWorkspace: (id: string) => void;
+  deleteWorkspace: (id: string) => void;
+  cloneWorkspace: (id: string) => void;
+  importArchitecture: (json: string) => void;
+  exportArchitecture: () => string;
+  loadFromTemplate: (template: ArchitectureTemplate) => void;
 }
 
 const DEFAULT_WORKSPACE_NAME = 'My Architecture';
@@ -72,7 +100,6 @@ function createDefaultWorkspace(): Workspace {
 function touchModel(model: ArchitectureModel): ArchitectureModel {
   return { ...model, updatedAt: new Date().toISOString() };
 }
-
 
 function snapToGrid(val: number): number {
   return Math.round(val / GRID_CELL) * GRID_CELL;
@@ -94,14 +121,77 @@ function nextGridPosition(
   };
 }
 
+/**
+ * Helper: wraps a mutation with undo history tracking.
+ * Pushes current architecture to history before applying the mutation.
+ */
+function withHistory(
+  state: ArchitectureState,
+  newArch: ArchitectureModel
+): Partial<ArchitectureState> {
+  const newHistory = pushHistory(state.history, state.workspace.architecture);
+  return {
+    workspace: {
+      ...state.workspace,
+      architecture: touchModel(newArch),
+      updatedAt: new Date().toISOString(),
+    },
+    history: newHistory,
+    canUndo: historyCanUndo(newHistory),
+    canRedo: historyCanRedo(newHistory),
+    validationResult: null,
+  };
+}
+
 export const useArchitectureStore = create<ArchitectureState>((set, get) => ({
   workspace: createDefaultWorkspace(),
+  workspaces: [],
   validationResult: null,
+
+  // ── History (v0.2) ──
+  history: createHistory(),
+  canUndo: false,
+  canRedo: false,
+
+  undo: () => {
+    const state = get();
+    const result = historyUndo(state.history, state.workspace.architecture);
+    if (!result) return;
+    set({
+      workspace: {
+        ...state.workspace,
+        architecture: result.model,
+        updatedAt: new Date().toISOString(),
+      },
+      history: result.history,
+      canUndo: historyCanUndo(result.history),
+      canRedo: historyCanRedo(result.history),
+      validationResult: null,
+    });
+  },
+
+  redo: () => {
+    const state = get();
+    const result = historyRedo(state.history, state.workspace.architecture);
+    if (!result) return;
+    set({
+      workspace: {
+        ...state.workspace,
+        architecture: result.model,
+        updatedAt: new Date().toISOString(),
+      },
+      history: result.history,
+      canUndo: historyCanUndo(result.history),
+      canRedo: historyCanRedo(result.history),
+      validationResult: null,
+    });
+  },
 
   // ── Plate actions ──
 
   addPlate: (type, name, parentId, subnetAccess) => {
     set((state) => {
+      const arch = state.workspace.architecture;
       const plate: Plate = {
         id: generateId('plate'),
         name,
@@ -115,11 +205,10 @@ export const useArchitectureStore = create<ArchitectureState>((set, get) => ({
       };
 
       // Position plates relative to existing ones
-      const existingPlates = state.workspace.architecture.plates;
       if (type === 'network') {
         plate.position = { x: 0, y: 0, z: 0 };
       } else if (parentId) {
-        const siblingsInParent = existingPlates.filter(
+        const siblingsInParent = arch.plates.filter(
           (p) => p.parentId === parentId
         );
         plate.position = {
@@ -129,10 +218,9 @@ export const useArchitectureStore = create<ArchitectureState>((set, get) => ({
         };
       }
 
-      const updatedPlates = [...existingPlates, plate];
+      let plates = [...arch.plates, plate];
 
       // Add to parent's children
-      let plates = updatedPlates;
       if (parentId) {
         plates = plates.map((p) =>
           p.id === parentId
@@ -141,17 +229,7 @@ export const useArchitectureStore = create<ArchitectureState>((set, get) => ({
         );
       }
 
-      return {
-        workspace: {
-          ...state.workspace,
-          architecture: touchModel({
-            ...state.workspace.architecture,
-            plates,
-          }),
-          updatedAt: new Date().toISOString(),
-        },
-        validationResult: null,
-      };
+      return withHistory(state, { ...arch, plates });
     });
   },
 
@@ -200,19 +278,12 @@ export const useArchitectureStore = create<ArchitectureState>((set, get) => ({
           !removedBlockIds.has(c.sourceId) && !removedBlockIds.has(c.targetId)
       );
 
-      return {
-        workspace: {
-          ...state.workspace,
-          architecture: touchModel({
-            ...arch,
-            plates: newPlates,
-            blocks: newBlocks,
-            connections: newConnections,
-          }),
-          updatedAt: new Date().toISOString(),
-        },
-        validationResult: null,
-      };
+      return withHistory(state, {
+        ...arch,
+        plates: newPlates,
+        blocks: newBlocks,
+        connections: newConnections,
+      });
     });
   },
 
@@ -238,22 +309,15 @@ export const useArchitectureStore = create<ArchitectureState>((set, get) => ({
         metadata: {},
       };
 
-      return {
-        workspace: {
-          ...state.workspace,
-          architecture: touchModel({
-            ...arch,
-            blocks: [...arch.blocks, block],
-            plates: arch.plates.map((p) =>
-              p.id === placementId
-                ? { ...p, children: [...p.children, block.id] }
-                : p
-            ),
-          }),
-          updatedAt: new Date().toISOString(),
-        },
-        validationResult: null,
-      };
+      return withHistory(state, {
+        ...arch,
+        blocks: [...arch.blocks, block],
+        plates: arch.plates.map((p) =>
+          p.id === placementId
+            ? { ...p, children: [...p.children, block.id] }
+            : p
+        ),
+      });
     });
   },
 
@@ -263,25 +327,18 @@ export const useArchitectureStore = create<ArchitectureState>((set, get) => ({
       const block = arch.blocks.find((b) => b.id === id);
       if (!block) return state;
 
-      return {
-        workspace: {
-          ...state.workspace,
-          architecture: touchModel({
-            ...arch,
-            blocks: arch.blocks.filter((b) => b.id !== id),
-            plates: arch.plates.map((p) =>
-              p.id === block.placementId
-                ? { ...p, children: p.children.filter((c) => c !== id) }
-                : p
-            ),
-            connections: arch.connections.filter(
-              (c) => c.sourceId !== id && c.targetId !== id
-            ),
-          }),
-          updatedAt: new Date().toISOString(),
-        },
-        validationResult: null,
-      };
+      return withHistory(state, {
+        ...arch,
+        blocks: arch.blocks.filter((b) => b.id !== id),
+        plates: arch.plates.map((p) =>
+          p.id === block.placementId
+            ? { ...p, children: p.children.filter((c) => c !== id) }
+            : p
+        ),
+        connections: arch.connections.filter(
+          (c) => c.sourceId !== id && c.targetId !== id
+        ),
+      });
     });
   },
 
@@ -303,33 +360,26 @@ export const useArchitectureStore = create<ArchitectureState>((set, get) => ({
       );
       const newPosition = nextGridPosition(blocksOnTarget, targetPlate.size);
 
-      return {
-        workspace: {
-          ...state.workspace,
-          architecture: touchModel({
-            ...arch,
-            blocks: arch.blocks.map((b) =>
-              b.id === blockId
-                ? { ...b, placementId: newPlacementId, position: newPosition }
-                : b
-            ),
-            plates: arch.plates.map((p) => {
-              if (p.id === oldPlacementId) {
-                return {
-                  ...p,
-                  children: p.children.filter((c) => c !== blockId),
-                };
-              }
-              if (p.id === newPlacementId) {
-                return { ...p, children: [...p.children, blockId] };
-              }
-              return p;
-            }),
-          }),
-          updatedAt: new Date().toISOString(),
-        },
-        validationResult: null,
-      };
+      return withHistory(state, {
+        ...arch,
+        blocks: arch.blocks.map((b) =>
+          b.id === blockId
+            ? { ...b, placementId: newPlacementId, position: newPosition }
+            : b
+        ),
+        plates: arch.plates.map((p) => {
+          if (p.id === oldPlacementId) {
+            return {
+              ...p,
+              children: p.children.filter((c) => c !== blockId),
+            };
+          }
+          if (p.id === newPlacementId) {
+            return { ...p, children: [...p.children, blockId] };
+          }
+          return p;
+        }),
+      });
     });
   },
 
@@ -353,35 +403,20 @@ export const useArchitectureStore = create<ArchitectureState>((set, get) => ({
         metadata: {},
       };
 
-      return {
-        workspace: {
-          ...state.workspace,
-          architecture: touchModel({
-            ...arch,
-            connections: [...arch.connections, connection],
-          }),
-          updatedAt: new Date().toISOString(),
-        },
-        validationResult: null,
-      };
+      return withHistory(state, {
+        ...arch,
+        connections: [...arch.connections, connection],
+      });
     });
   },
 
   removeConnection: (id) => {
     set((state) => {
-      return {
-        workspace: {
-          ...state.workspace,
-          architecture: touchModel({
-            ...state.workspace.architecture,
-            connections: state.workspace.architecture.connections.filter(
-              (c) => c.id !== id
-            ),
-          }),
-          updatedAt: new Date().toISOString(),
-        },
-        validationResult: null,
-      };
+      const arch = state.workspace.architecture;
+      return withHistory(state, {
+        ...arch,
+        connections: arch.connections.filter((c) => c.id !== id),
+      });
     });
   },
 
@@ -394,11 +429,20 @@ export const useArchitectureStore = create<ArchitectureState>((set, get) => ({
     return result;
   },
 
-  // ── Workspace persistence (MVP: single workspace) ──
+  // ── Workspace persistence ──
 
   saveToStorage: () => {
     const state = get();
-    saveWorkspaces([state.workspace]);
+    // Save all workspaces, ensuring current workspace is updated
+    const updated = state.workspaces.map((ws) =>
+      ws.id === state.workspace.id ? state.workspace : ws
+    );
+    // If current workspace isn't in the list yet, add it
+    if (!updated.find((ws) => ws.id === state.workspace.id)) {
+      updated.push(state.workspace);
+    }
+    saveWorkspaces(updated);
+    set({ workspaces: updated });
   },
 
   loadFromStorage: () => {
@@ -406,7 +450,11 @@ export const useArchitectureStore = create<ArchitectureState>((set, get) => ({
     if (workspaces.length > 0) {
       set({
         workspace: workspaces[0],
+        workspaces,
         validationResult: null,
+        history: resetHistory(),
+        canUndo: false,
+        canRedo: false,
       });
     }
   },
@@ -415,6 +463,9 @@ export const useArchitectureStore = create<ArchitectureState>((set, get) => ({
     set({
       workspace: createDefaultWorkspace(),
       validationResult: null,
+      history: resetHistory(),
+      canUndo: false,
+      canRedo: false,
     });
   },
 
@@ -431,6 +482,211 @@ export const useArchitectureStore = create<ArchitectureState>((set, get) => ({
       },
     }));
   },
+
+  // ── Multi-workspace (v0.4) ──
+
+  createWorkspace: (name) => {
+    const state = get();
+    const now = new Date().toISOString();
+    const newWs: Workspace = {
+      id: generateId('ws'),
+      name,
+      architecture: createBlankArchitecture(generateId('arch'), name),
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    // Save current workspace to the list before switching
+    const updatedList = state.workspaces.map((ws) =>
+      ws.id === state.workspace.id ? state.workspace : ws
+    );
+    if (!updatedList.find((ws) => ws.id === state.workspace.id)) {
+      updatedList.push(state.workspace);
+    }
+    updatedList.push(newWs);
+
+    set({
+      workspace: newWs,
+      workspaces: updatedList,
+      validationResult: null,
+      history: resetHistory(),
+      canUndo: false,
+      canRedo: false,
+    });
+  },
+
+  switchWorkspace: (id) => {
+    const state = get();
+    const target = state.workspaces.find((ws) => ws.id === id);
+    if (!target || target.id === state.workspace.id) return;
+
+    // Save current workspace state into list
+    const updatedList = state.workspaces.map((ws) =>
+      ws.id === state.workspace.id ? state.workspace : ws
+    );
+
+    set({
+      workspace: target,
+      workspaces: updatedList,
+      validationResult: null,
+      history: resetHistory(),
+      canUndo: false,
+      canRedo: false,
+    });
+  },
+
+  deleteWorkspace: (id) => {
+    const state = get();
+    const filtered = state.workspaces.filter((ws) => ws.id !== id);
+
+    if (state.workspace.id === id) {
+      // Switched to first remaining or create new
+      const next = filtered.length > 0 ? filtered[0] : createDefaultWorkspace();
+      if (filtered.length === 0) filtered.push(next);
+      set({
+        workspace: next,
+        workspaces: filtered,
+        validationResult: null,
+        history: resetHistory(),
+        canUndo: false,
+        canRedo: false,
+      });
+    } else {
+      set({ workspaces: filtered });
+    }
+  },
+
+  cloneWorkspace: (id) => {
+    const state = get();
+    const source = id === state.workspace.id
+      ? state.workspace
+      : state.workspaces.find((ws) => ws.id === id);
+    if (!source) return;
+
+    const now = new Date().toISOString();
+    const cloned: Workspace = {
+      id: generateId('ws'),
+      name: `${source.name} (Copy)`,
+      architecture: {
+        ...JSON.parse(JSON.stringify(source.architecture)),
+        id: generateId('arch'),
+        createdAt: now,
+        updatedAt: now,
+      },
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    // Save current workspace to list, then add clone
+    const updatedList = state.workspaces.map((ws) =>
+      ws.id === state.workspace.id ? state.workspace : ws
+    );
+    if (!updatedList.find((ws) => ws.id === state.workspace.id)) {
+      updatedList.push(state.workspace);
+    }
+    updatedList.push(cloned);
+
+    set({
+      workspace: cloned,
+      workspaces: updatedList,
+      validationResult: null,
+      history: resetHistory(),
+      canUndo: false,
+      canRedo: false,
+    });
+  },
+
+  importArchitecture: (json) => {
+    try {
+      const imported = JSON.parse(json) as Partial<ArchitectureModel>;
+      if (!imported.plates || !imported.blocks) {
+        throw new Error('Invalid architecture format: plates and blocks are required');
+      }
+
+      // Normalize missing fields with sensible defaults
+      const now = new Date().toISOString();
+      const normalized: ArchitectureModel = {
+        id: imported.id || generateId('arch'),
+        name: imported.name || 'Imported Architecture',
+        version: imported.version || '1',
+        plates: imported.plates,
+        blocks: imported.blocks,
+        connections: imported.connections ?? [],
+        externalActors: imported.externalActors ?? [
+          { id: 'ext-internet', name: 'Internet', type: 'internet' },
+        ],
+        createdAt: imported.createdAt || now,
+        updatedAt: now,
+      };
+
+      const newWs: Workspace = {
+        id: generateId('ws'),
+        name: normalized.name,
+        architecture: normalized,
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      const state = get();
+      const updatedList = state.workspaces.map((ws) =>
+        ws.id === state.workspace.id ? state.workspace : ws
+      );
+      if (!updatedList.find((ws) => ws.id === state.workspace.id)) {
+        updatedList.push(state.workspace);
+      }
+      updatedList.push(newWs);
+
+      set({
+        workspace: newWs,
+        workspaces: updatedList,
+        validationResult: null,
+        history: resetHistory(),
+        canUndo: false,
+        canRedo: false,
+      });
+    } catch (error) {
+      console.error('Failed to import architecture:', error);
+    }
+  },
+
+  exportArchitecture: () => {
+    const state = get();
+    return JSON.stringify(state.workspace.architecture, null, 2);
+  },
+
+  loadFromTemplate: (template) => {
+    const now = new Date().toISOString();
+    const newWs: Workspace = {
+      id: generateId('ws'),
+      name: template.name,
+      architecture: {
+        ...JSON.parse(JSON.stringify(template.architecture)),
+        id: generateId('arch'),
+        createdAt: now,
+        updatedAt: now,
+      },
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    const state = get();
+    const updatedList = state.workspaces.map((ws) =>
+      ws.id === state.workspace.id ? state.workspace : ws
+    );
+    if (!updatedList.find((ws) => ws.id === state.workspace.id)) {
+      updatedList.push(state.workspace);
+    }
+    updatedList.push(newWs);
+
+    set({
+      workspace: newWs,
+      workspaces: updatedList,
+      validationResult: null,
+      history: resetHistory(),
+      canUndo: false,
+      canRedo: false,
+    });
+  },
 }));
 
 // ── Auto-validation ──
@@ -442,8 +698,12 @@ let autoValidateTimer: ReturnType<typeof setTimeout> | null = null;
 const AUTO_VALIDATE_DELAY_MS = 300;
 
 useArchitectureStore.subscribe((state, prevState) => {
-  // Only trigger when validationResult was just cleared (mutation occurred)
-  if (state.validationResult === null && prevState.validationResult !== null) {
+  // Trigger when architecture object changed (mutation occurred) and
+  // validationResult was cleared. This handles both the initial null state
+  // and subsequent mutations correctly.
+  const archChanged =
+    state.workspace.architecture !== prevState.workspace.architecture;
+  if (archChanged && state.validationResult === null) {
     if (autoValidateTimer) clearTimeout(autoValidateTimer);
     autoValidateTimer = setTimeout(() => {
       useArchitectureStore.getState().validate();

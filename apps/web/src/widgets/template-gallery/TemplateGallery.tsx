@@ -1,0 +1,75 @@
+import { useArchitectureStore } from '../../entities/store/architectureStore';
+import { useUIStore } from '../../entities/store/uiStore';
+import { listTemplates } from '../../features/templates/registry';
+import type { ArchitectureTemplate, TemplateDifficulty } from '../../shared/types/template';
+import './TemplateGallery.css';
+
+const difficultyColors: Record<TemplateDifficulty, string> = {
+  beginner: '#81C784',
+  intermediate: '#FFB74D',
+  advanced: '#E57373',
+};
+
+export function TemplateGallery() {
+  const show = useUIStore((s) => s.showTemplateGallery);
+  const toggleTemplateGallery = useUIStore((s) => s.toggleTemplateGallery);
+  const loadFromTemplate = useArchitectureStore((s) => s.loadFromTemplate);
+  const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
+
+  if (!show) return null;
+
+  const templates = listTemplates();
+
+  const handleUseTemplate = (template: ArchitectureTemplate) => {
+    saveToStorage();
+    loadFromTemplate(template);
+    toggleTemplateGallery();
+  };
+
+  return (
+    <div className="template-gallery">
+      <div className="template-gallery-header">
+        <h3 className="template-gallery-title">📦 Templates</h3>
+        <button className="template-gallery-close" onClick={toggleTemplateGallery}>
+          ✕
+        </button>
+      </div>
+
+      {templates.length === 0 ? (
+        <div className="template-gallery-empty">No templates available.</div>
+      ) : (
+        <div className="template-gallery-list">
+          {templates.map((template) => (
+            <div key={template.id} className="template-gallery-card">
+              <div className="template-gallery-card-header">
+                <span className="template-gallery-card-name">{template.name}</span>
+                <span
+                  className="template-gallery-badge"
+                  style={{ color: difficultyColors[template.difficulty] }}
+                >
+                  {template.difficulty}
+                </span>
+              </div>
+              <p className="template-gallery-card-desc">{template.description}</p>
+              <div className="template-gallery-card-footer">
+                <div className="template-gallery-tags">
+                  {template.tags.slice(0, 3).map((tag) => (
+                    <span key={tag} className="template-gallery-tag">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                <button
+                  className="template-gallery-use-btn"
+                  onClick={() => handleUseTemplate(template)}
+                >
+                  Use Template
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

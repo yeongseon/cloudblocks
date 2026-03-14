@@ -1,0 +1,66 @@
+name: Feature Request
+description: Suggest a new feature or enhancement
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Please describe your idea clearly so we can evaluate and discuss it.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: Is this related to a problem? Describe the pain point.
+      placeholder: I'm always frustrated when...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like. Be as specific as possible.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you considered any alternative solutions or workarounds?
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      description: Which part of CloudBlocks does this affect?
+      options:
+        - Frontend (Visual Editor)
+        - Code Generation
+        - Templates
+        - Workspace Management
+        - Validation Engine
+        - Backend / API
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority (your assessment)
+      options:
+        - Nice to have
+        - Important
+        - Critical
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any mockups, screenshots, references, or links that help explain the feature.

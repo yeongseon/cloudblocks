@@ -90,3 +90,13 @@
   background: rgba(244, 67, 54, 0.2);
   color: #ef5350;
 }
+
+.toolbar-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.toolbar-btn:disabled:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ccc;
+}

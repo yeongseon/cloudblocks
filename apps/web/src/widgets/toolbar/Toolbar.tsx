@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import type { ToolMode } from '../../entities/store/uiStore';
@@ -10,6 +11,9 @@ export function Toolbar() {
   const toggleProperties = useUIStore((s) => s.toggleProperties);
   const toggleValidation = useUIStore((s) => s.toggleValidation);
   const showValidation = useUIStore((s) => s.showValidation);
+  const toggleCodePreview = useUIStore((s) => s.toggleCodePreview);
+  const toggleWorkspaceManager = useUIStore((s) => s.toggleWorkspaceManager);
+  const toggleTemplateGallery = useUIStore((s) => s.toggleTemplateGallery);
 
   const addPlate = useArchitectureStore((s) => s.addPlate);
   const validate = useArchitectureStore((s) => s.validate);
@@ -18,6 +22,13 @@ export function Toolbar() {
   const resetWorkspace = useArchitectureStore((s) => s.resetWorkspace);
   const validationResult = useArchitectureStore((s) => s.validationResult);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
+  const canUndo = useArchitectureStore((s) => s.canUndo);
+  const canRedo = useArchitectureStore((s) => s.canRedo);
+  const undo = useArchitectureStore((s) => s.undo);
+  const redo = useArchitectureStore((s) => s.redo);
+  const importArchitecture = useArchitectureStore((s) => s.importArchitecture);
+
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddNetwork = () => {
     addPlate('network', 'VNet', null);
@@ -67,6 +78,25 @@ export function Toolbar() {
     a.download = 'architecture.json';
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleImport = () => {
+    importInputRef.current?.click();
+  };
+
+  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result;
+      if (typeof text === 'string') {
+        importArchitecture(text);
+      }
+    };
+    reader.readAsText(file);
+    // Reset input so same file can be re-imported
+    e.target.value = '';
   };
 
   const handleReset = () => {
@@ -121,6 +151,28 @@ export function Toolbar() {
       <div className="toolbar-divider" />
 
       <div className="toolbar-group">
+        <span className="toolbar-group-label">Edit</span>
+        <button
+          className="toolbar-btn"
+          onClick={undo}
+          disabled={!canUndo}
+          title="Undo (Ctrl+Z)"
+        >
+          ↩ Undo
+        </button>
+        <button
+          className="toolbar-btn"
+          onClick={redo}
+          disabled={!canRedo}
+          title="Redo (Ctrl+Shift+Z)"
+        >
+          ↪ Redo
+        </button>
+      </div>
+
+      <div className="toolbar-divider" />
+
+      <div className="toolbar-group">
         <button className="toolbar-btn" onClick={handleValidate} title="Validate Architecture">
           ✅ Validate
         </button>
@@ -147,8 +199,32 @@ export function Toolbar() {
         <button className="toolbar-btn" onClick={handleExport} title="Export architecture.json">
           📤 Export
         </button>
+        <button className="toolbar-btn" onClick={handleImport} title="Import architecture.json">
+          📥 Import
+        </button>
+        <input
+          ref={importInputRef}
+          type="file"
+          accept=".json"
+          style={{ display: 'none' }}
+          onChange={handleImportFile}
+        />
         <button className="toolbar-btn" onClick={handleReset} title="Reset Workspace">
           🔄 Reset
+        </button>
+      </div>
+
+      <div className="toolbar-divider" />
+
+      <div className="toolbar-group">
+        <button className="toolbar-btn" onClick={toggleCodePreview} title="Generate Terraform Code">
+          ⚡ Generate
+        </button>
+        <button className="toolbar-btn" onClick={toggleWorkspaceManager} title="Manage Workspaces">
+          📂 Workspaces
+        </button>
+        <button className="toolbar-btn" onClick={toggleTemplateGallery} title="Browse Templates">
+          📦 Templates
         </button>
       </div>
 

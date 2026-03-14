@@ -162,25 +162,30 @@ apps/web/src/
 ├── main.tsx
 ├── app/                 # App shell
 ├── shared/              # Types, utils, storage
-│   ├── types/           # Domain types (Plate, Block, Connection)
+│   ├── types/           # Domain types (Plate, Block, Connection, Template)
 │   └── utils/           # ID generation, storage operations
 ├── entities/            # Domain entities
 │   ├── store/           # Zustand architecture store
+│   ├── validation/      # Validation engine (placement, connection rules)
 │   ├── block/           # Block components
 │   ├── plate/           # Plate components
 │   └── connection/      # Connection components
 ├── features/            # Feature modules
-│   └── validate/        # Validation engine
+│   ├── generate/        # Code generation pipeline (Terraform)
+│   └── templates/       # Architecture templates
 ├── widgets/             # Composite UI widgets
 │   ├── toolbar/
 │   ├── block-palette/
 │   ├── properties-panel/
 │   ├── validation-panel/
+│   ├── code-preview/    # Code generation preview
+│   ├── template-gallery/ # Template selection gallery
+│   ├── workspace-manager/ # Multi-workspace management
 │   └── scene-canvas/
 └── assets/
 ```
 
-> **Note**: `features/generate/` (code generation) is planned for v0.3 and does not exist yet.
+> **Note**: `features/generate/` implements the Terraform code generation pipeline (v0.3). `features/templates/` implements architecture templates with a gallery UI (v0.4).
 
 ## 2.2 MVP Architecture (v0.1)
 
@@ -325,7 +330,7 @@ The Rule Engine validates architecture constraints.
 The validation engine is split into focused modules:
 
 ```
-apps/web/src/features/validate/
+apps/web/src/entities/validation/
 ├── engine.ts       # validateArchitecture(model): orchestration entrypoint
 ├── placement.ts    # validatePlacement(block, plate): placement rule checks
 └── connection.ts   # validateConnection(connection, blocks, externalActors): flow rule checks
@@ -360,7 +365,7 @@ Validation flow in `engine.ts`:
 
 # 5. Code Generation Pipeline (v0.3+)
 
-> **Status**: Not yet implemented. Planned for v0.3.
+> **Status**: Implemented in v0.3. The Terraform generator is functional.
 
 The core value delivery — transforming visual architecture into deployable IaC code. The pipeline follows a multi-stage process: Normalize → Validate → Provider Map → Generate → Format → Output.
 
@@ -543,7 +548,7 @@ The architecture supports horizontal scalability:
 Frontend (v0.1: SPA with R3F, 2.5D isometric view, localStorage persistence)
 Core Model (Zustand store — 2D coordinates + hierarchy)
 Rule Engine (in-browser validation)
-Code Generation (v0.3+: Terraform / Bicep / Pulumi plugins — planned)
+Code Generation (v0.3: Terraform generator — ✅ implemented)
 Backend (v0.5+: Thin orchestration layer — FastAPI — scaffolded)
 GitHub Integration (v0.5+: repos as data store — planned)
 ```

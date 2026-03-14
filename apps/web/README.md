@@ -36,20 +36,30 @@ src/
 │   ├── store/
 │   │   ├── architectureStore.ts  # Main Zustand store (plates, blocks, connections)
 │   │   └── uiStore.ts            # UI state (tool mode, panel visibility)
+│   ├── validation/               # Validation engine
+│   │   ├── engine.ts             # Validation orchestrator
+│   │   ├── placement.ts          # Placement rule validation
+│   │   └── connection.ts         # Connection rule validation
 │   ├── block/BlockModel.tsx      # R3F block component
 │   ├── plate/PlateModel.tsx      # R3F plate component (with studs)
 │   └── connection/ConnectionLine.tsx  # R3F connection lines + external actor
 ├── features/                     # Business logic (stateless)
-│   └── validate/
-│       ├── engine.ts             # Validation orchestrator
-│       ├── placement.ts          # Placement rule validation
-│       └── connection.ts         # Connection rule validation
+│   ├── generate/                 # Code generation pipeline
+│   │   ├── types.ts              # Generation types
+│   │   ├── provider.ts           # Provider adapter (Azure)
+│   │   ├── terraform.ts          # Terraform HCL generation
+│   │   └── pipeline.ts           # Pipeline orchestrator
+│   └── templates/                # Architecture templates
+│       ├── registry.ts           # Template registry
+│       └── builtin.ts            # Built-in template definitions
 ├── shared/                       # Shared utilities & types
 │   ├── types/
 │   │   ├── index.ts              # Core domain types
-│   │   └── schema.ts             # Serialization & schema versioning
+│   │   ├── schema.ts             # Serialization & schema versioning
+│   │   └── template.ts           # Template types
 │   └── utils/
 │       ├── id.ts                 # ID generation
+│       ├── history.ts            # Undo/redo history
 │       ├── position.ts           # Unified position calculations
 │       └── storage.ts            # localStorage persistence
 ├── widgets/                      # Composed UI panels
@@ -57,11 +67,14 @@ src/
 │   ├── toolbar/Toolbar.tsx            # Top toolbar
 │   ├── block-palette/BlockPalette.tsx # Block creation palette
 │   ├── properties-panel/PropertiesPanel.tsx  # Selection inspector
-│   └── validation-panel/ValidationPanel.tsx  # Validation results
+│   ├── validation-panel/ValidationPanel.tsx  # Validation results
+│   ├── code-preview/CodePreview.tsx   # Code generation preview
+│   ├── template-gallery/TemplateGallery.tsx  # Template selection
+│   └── workspace-manager/WorkspaceManager.tsx # Multi-workspace
 └── main.tsx                      # Entry point
 ```
 
-## Current Implementation (v0.1 MVP)
+## Current Implementation (v0.1–v0.4)
 
 - ✅ Isometric camera with fixed 2.5D view
 - ✅ Network plate + public/private subnet plates
@@ -71,16 +84,18 @@ src/
 - ✅ Export architecture as JSON
 - ✅ localStorage persistence (save/load/reset)
 - ✅ Properties panel with block move between subnets
+- ✅ Undo/redo with keyboard shortcuts (v0.2)
+- ✅ Multi-workspace support (v0.4)
+- ✅ Terraform code generation with preview (v0.3)
+- ✅ Architecture templates with gallery (v0.4)
 
 ## Not Yet Implemented
 
-- Code generation (IaC output)
 - GitHub integration (Git-native storage)
-- Multi-workspace support
 - Backend orchestration layer
 - EventFlow / Dependency connection types
 - Drag-and-drop block placement
-- Undo/redo
+- Bicep / Pulumi generators
 
 ## Build
 

@@ -1,0 +1,305 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import type { ArchitectureModel, Block, Connection, Plate } from '../../shared/types/index';
+import { azureProvider } from './provider';
+import {
+  generateMainTf,
+  generateOutputsTf,
+  generateVariablesTf,
+  normalize,
+} from './terraform';
+
+const basePosition = { x: 0, y: 0, z: 0 };
+const baseSize = { width: 1, height: 1, depth: 1 };
+
+function createPlate(overrides: Partial<Plate>): Plate {
+  return {
+    id: 'plate-default',
+    name: 'Default Plate',
+    type: 'network',
+    parentId: null,
+    children: [],
+    position: basePosition,
+    size: baseSize,
+    metadata: {},
+    ...overrides,
+  };
+}
+
+function createBlock(overrides: Partial<Block>): Block {
+  return {
+    id: 'block-default',
+    name: 'Default Block',
+    category: 'compute',
+    placementId: 'plate-default',
+    position: basePosition,
+    metadata: {},
+    ...overrides,
+  };
+}
+
+function createConnection(overrides: Partial<Connection>): Connection {
+  return {
+    id: 'conn-default',
+    sourceId: 'block-source',
+    targetId: 'block-target',
+    type: 'dataflow',
+    metadata: {},
+    ...overrides,
+  };
+}
+
+function createTestModel(overrides?: Partial<ArchitectureModel>): ArchitectureModel {
+  return {
+    id: 'arch-1',
+    name: 'Test',
+    version: '1',
+    plates: [],
+    blocks: [],
+    connections: [],
+    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+    createdAt: '2025-01-01T00:00:00Z',
+    updatedAt: '2025-01-01T00:00:00Z',
+    ...overrides,
+  };
+}
+
+const defaultOptions = {
+  provider: 'azure' as const,
+  mode: 'draft' as const,
+  projectName: 'My Test Project',
+  region: 'eastus',
+};
+
+describe('normalize', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('maps plates and blocks to unique resource names with suffixes for duplicates', () => {
+    const model = createTestModel({
+      plates: [
+        createPlate({ id: 'net-1', name: 'Main Net', type: 'network', parentId: null }),
+        createPlate({ id: 'net-2', name: 'Main Net', type: 'network', parentId: null }),
+      ],
+      blocks: [
+        createBlock({ id: 'web-1', name: 'App', category: 'compute' }),
+        createBlock({ id: 'web-2', name: 'App', category: 'compute' }),
+        createBlock({ id: 'web-3', name: 'App', category: 'compute' }),
+      ],
+    });
+
+    const normalized = normalize(model, azureProvider);
+
+    expect(normalized.resourceNames.get('net-1')).toBe('vnet_main_net');
+    expect(normalized.resourceNames.get('net-2')).toBe('vnet_main_net_2');
+    expect(normalized.resourceNames.get('web-1')).toBe('webapp_app');
+    expect(normalized.resourceNames.get('web-2')).toBe('webapp_app_2');
+    expect(normalized.resourceNames.get('web-3')).toBe('webapp_app_3');
+  });
+
+  it('sanitizes names by replacing special characters with underscores', () => {
+    const model = createTestModel({
+      plates: [createPlate({ id: 'net-1', name: '*** Core Network ###', type: 'network' })],
+      blocks: [createBlock({ id: 'web-1', name: 'My App ! 01', category: 'compute' })],
+    });
+
+    const normalized = normalize(model, azureProvider);
+
+    expect(normalized.resourceNames.get('net-1')).toBe('vnet_core_network');
+    expect(normalized.resourceNames.get('web-1')).toBe('webapp_my_app_01');
+  });
+});
+
+describe('generateMainTf', () => {
+  it('contains required providers, provider block, resource group, plates, blocks, and connection comments', () => {
+    const model = createTestModel({
+      plates: [
+        createPlate({ id: 'net1', name: 'Core VNet', type: 'network', parentId: null, children: ['sub1'] }),
+        createPlate({
+          id: 'sub1',
+          name: 'Public Subnet',
+          type: 'subnet',
+          subnetAccess: 'public',
+          parentId: 'net1',
+          children: ['web1'],
+        }),
+      ],
+      blocks: [createBlock({ id: 'web1', name: 'Frontend', category: 'compute', placementId: 'sub1' })],
+      connections: [
+        createConnection({
+          id: 'conn-1',
+          sourceId: 'web1',
+          targetId: 'web1',
+        }),
+      ],
+    });
+
+    const normalized = normalize(model, azureProvider);
+    const hcl = generateMainTf(normalized, azureProvider, defaultOptions);
+
+    expect(hcl).toContain('terraform {');
+    expect(hcl).toContain('required_providers {');
+    expect(hcl).toContain('provider "azurerm" {');
+    expect(hcl).toContain('resource "azurerm_resource_group" "main"');
+    expect(hcl).toContain('resource "azurerm_virtual_network" "vnet_core_vnet"');
+    expect(hcl).toContain('resource "azurerm_subnet" "subnet_public_subnet"');
+    expect(hcl).toContain('resource "azurerm_linux_web_app" "webapp_frontend"');
+    expect(hcl).toContain('# ─── Data Flow Connections ─────────────────────');
+    expect(hcl).toContain('# DataFlow: webapp_frontend → webapp_frontend');
+  });
+
+  it('includes service plan when compute blocks exist and excludes it otherwise', () => {
+    const withCompute = createTestModel({
+      blocks: [createBlock({ id: 'web1', name: 'Frontend', category: 'compute', placementId: 'sub1' })],
+    });
+    const withoutCompute = createTestModel({
+      blocks: [createBlock({ id: 'db1', name: 'MainDb', category: 'database', placementId: 'sub1' })],
+    });
+
+    const withComputeHcl = generateMainTf(
+      normalize(withCompute, azureProvider),
+      azureProvider,
+      defaultOptions
+    );
+    const withoutComputeHcl = generateMainTf(
+      normalize(withoutCompute, azureProvider),
+      azureProvider,
+      defaultOptions
+    );
+
+    expect(withComputeHcl).toContain('resource "azurerm_service_plan" "main"');
+    expect(withoutComputeHcl).not.toContain('resource "azurerm_service_plan" "main"');
+  });
+
+  it('generates network plates before subnet plates', () => {
+    const model = createTestModel({
+      plates: [
+        createPlate({
+          id: 'sub1',
+          name: 'App Subnet',
+          type: 'subnet',
+          subnetAccess: 'private',
+          parentId: 'net1',
+        }),
+        createPlate({ id: 'net1', name: 'App Network', type: 'network', parentId: null }),
+      ],
+    });
+
+    const hcl = generateMainTf(normalize(model, azureProvider), azureProvider, defaultOptions);
+    const networkIndex = hcl.indexOf('resource "azurerm_virtual_network" "vnet_app_network"');
+    const subnetIndex = hcl.indexOf('resource "azurerm_subnet" "subnet_app_subnet"');
+
+    expect(networkIndex).toBeGreaterThan(-1);
+    expect(subnetIndex).toBeGreaterThan(-1);
+    expect(networkIndex).toBeLessThan(subnetIndex);
+  });
+
+  it('makes subnet resources reference the parent vnet resource name', () => {
+    const model = createTestModel({
+      plates: [
+        createPlate({ id: 'net1', name: 'Network-A', type: 'network', parentId: null }),
+        createPlate({
+          id: 'sub1',
+          name: 'Public-A',
+          type: 'subnet',
+          subnetAccess: 'public',
+          parentId: 'net1',
+        }),
+      ],
+    });
+
+    const hcl = generateMainTf(normalize(model, azureProvider), azureProvider, defaultOptions);
+
+    expect(hcl).toContain('virtual_network_name = azurerm_virtual_network.vnet_network-a.name');
+    expect(hcl).toContain('address_prefixes     = ["10.0.1.0/24"]');
+  });
+
+  it('generates category-specific hcl for compute, database, storage, and gateway blocks', () => {
+    const model = createTestModel({
+      plates: [createPlate({ id: 'sub1', name: 'Subnet One', type: 'subnet', subnetAccess: 'public' })],
+      blocks: [
+        createBlock({ id: 'cmp', name: 'Compute', category: 'compute', placementId: 'sub1' }),
+        createBlock({ id: 'db', name: 'Database', category: 'database', placementId: 'sub1' }),
+        createBlock({ id: 'st', name: 'Storage', category: 'storage', placementId: 'sub1' }),
+        createBlock({ id: 'gw', name: 'Gateway', category: 'gateway', placementId: 'sub1' }),
+      ],
+    });
+
+    const hcl = generateMainTf(normalize(model, azureProvider), azureProvider, defaultOptions);
+
+    expect(hcl).toContain('service_plan_id     = azurerm_service_plan.main.id');
+    expect(hcl).toContain('administrator_login    = var.db_admin_username');
+    expect(hcl).toContain('account_tier             = "Standard"');
+    expect(hcl).toContain('sku {');
+    expect(hcl).toContain('name     = "Standard_v2"');
+  });
+
+  it('includes connection comments only when connections exist', () => {
+    const withConnections = createTestModel({
+      blocks: [createBlock({ id: 'b1', name: 'Web', category: 'compute', placementId: 'sub1' })],
+      connections: [
+        createConnection({ id: 'c1', sourceId: 'b1', targetId: 'missing-target' }),
+      ],
+    });
+    const withoutConnections = createTestModel({
+      blocks: [createBlock({ id: 'b1', name: 'Web', category: 'compute', placementId: 'sub1' })],
+      connections: [],
+    });
+
+    const hclWithConnections = generateMainTf(
+      normalize(withConnections, azureProvider),
+      azureProvider,
+      defaultOptions
+    );
+    const hclWithoutConnections = generateMainTf(
+      normalize(withoutConnections, azureProvider),
+      azureProvider,
+      defaultOptions
+    );
+
+    expect(hclWithConnections).toContain('# ─── Data Flow Connections ─────────────────────');
+    expect(hclWithConnections).toContain('# DataFlow: webapp_web → missing-target');
+    expect(hclWithoutConnections).not.toContain('# ─── Data Flow Connections ─────────────────────');
+  });
+});
+
+describe('generateVariablesTf', () => {
+  it('includes project_name, location, db_admin_username, and db_admin_password variables', () => {
+    const hcl = generateVariablesTf(defaultOptions);
+
+    expect(hcl).toContain('variable "project_name" {');
+    expect(hcl).toContain('variable "location" {');
+    expect(hcl).toContain('variable "db_admin_username" {');
+    expect(hcl).toContain('variable "db_admin_password" {');
+  });
+
+  it('sanitizes project name in project_name default value', () => {
+    const hcl = generateVariablesTf({
+      ...defaultOptions,
+      projectName: ' Project!!! Name @@@ ',
+    });
+
+    expect(hcl).toContain('default     = "project_name"');
+  });
+});
+
+describe('generateOutputsTf', () => {
+  it('includes resource_group_name output and one output per block', () => {
+    const model = createTestModel({
+      blocks: [
+        createBlock({ id: 'cmp', name: 'Compute', category: 'compute', placementId: 'sub1' }),
+        createBlock({ id: 'db', name: 'Database', category: 'database', placementId: 'sub1' }),
+      ],
+    });
+
+    const normalized = normalize(model, azureProvider);
+    const hcl = generateOutputsTf(normalized, azureProvider);
+
+    expect(hcl).toContain('output "resource_group_name" {');
+    expect(hcl).toContain('output "webapp_compute_id" {');
+    expect(hcl).toContain('value = azurerm_linux_web_app.webapp_compute.id');
+    expect(hcl).toContain('output "pgserver_database_id" {');
+    expect(hcl).toContain('value = azurerm_postgresql_flexible_server.pgserver_database.id');
+  });
+});

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discussions
+    url: https://github.com/yeongseon/cloudblocks/discussions
+    about: Ask questions and share ideas in GitHub Discussions
+  - name: Documentation
+    url: https://github.com/yeongseon/cloudblocks/tree/main/docs
+    about: Read the project documentation before opening an issue

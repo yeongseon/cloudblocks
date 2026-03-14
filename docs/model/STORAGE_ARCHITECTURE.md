@@ -2,7 +2,9 @@
 
 ## Overview
 
-CloudBlocks uses a **Git-native storage architecture** — GitHub repos serve as the primary data store for all architecture assets and generated code. A minimal metadata database handles auth, workspace indexing, and run status only.
+CloudBlocks is designed for a **Git-native storage architecture** — in the target state (v0.5+), GitHub repos will serve as the primary data store for all architecture assets and generated code, with a minimal metadata database for auth, workspace indexing, and run status.
+
+> **Current status (v0.1–v0.4)**: All data is stored in browser **localStorage**. The Git-native architecture described below is the **planned v0.5+ design**. See `apps/web/src/shared/utils/storage.ts` for the current implementation.
 
 This is NOT a traditional database-heavy architecture. The design principle: **DB = index and status only, real data = Git / Blob Storage**.
 
@@ -119,7 +121,7 @@ Stable key ordering is enforced to keep Git diffs readable.
 
 ## Metadata DB Schema
 
-Minimal Postgres schema (Supabase-hosted or self-managed). This schema matches the actual migration files in `apps/api/app/infrastructure/db/migrations/`.
+> **v0.5+ planned schema.** No active database exists in v0.1–v0.4. These tables describe the target migration structure in `apps/api/app/infrastructure/db/migrations/`.
 
 ```sql
 -- Migration 001: User identity (linked to GitHub / Google OAuth)

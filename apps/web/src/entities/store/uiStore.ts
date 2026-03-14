@@ -27,6 +27,12 @@ interface UIState {
   toggleProperties: () => void;
   showValidation: boolean;
   toggleValidation: () => void;
+  showCodePreview: boolean;
+  toggleCodePreview: () => void;
+  showWorkspaceManager: boolean;
+  toggleWorkspaceManager: () => void;
+  showTemplateGallery: boolean;
+  toggleTemplateGallery: () => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -55,4 +61,16 @@ export const useUIStore = create<UIState>((set) => ({
   showValidation: false,
   toggleValidation: () =>
     set((s) => ({ showValidation: !s.showValidation })),
+
+  showCodePreview: false,
+  toggleCodePreview: () =>
+    set((s) => ({ showCodePreview: !s.showCodePreview })),
+
+  showWorkspaceManager: false,
+  toggleWorkspaceManager: () =>
+    set((s) => ({ showWorkspaceManager: !s.showWorkspaceManager })),
+
+  showTemplateGallery: false,
+  toggleTemplateGallery: () =>
+    set((s) => ({ showTemplateGallery: !s.showTemplateGallery })),
 }));

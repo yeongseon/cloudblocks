@@ -17,10 +17,9 @@ Templates are reusable architecture models that serve as starting points for new
 ## Template Structure
 
 ```
-templates/
-  three-tier.json
-  serverless-api.json
-  event-pipeline.json
+src/features/templates/
+  builtin.ts          # Built-in template definitions
+  registry.ts         # Template registry (CRUD operations)
 ```
 
 ---
@@ -66,14 +65,13 @@ Database
 
 ## Built-in Templates
 
-CloudBlocks includes templates for:
+CloudBlocks ships these built-in templates (v0.4):
 
-- Three-tier web architecture
-- Serverless API
-- Event-driven pipelines
-- Microservices architecture
+- **Three-Tier Web Application** — Gateway, Compute, Database, and Storage across public/private subnets
+- **Simple Compute Setup** — Minimal architecture with a single compute instance
+- **Data Storage Backend** — Compute connected to database and blob storage in a private subnet
 
-> **Note (v1.0+):** Serverless API and Event-driven pipeline templates require FunctionBlock and QueueBlock, which are planned for v1.0.
+> **Note (v1.0+):** Additional templates (Serverless API, Event-driven pipeline, Microservices) require FunctionBlock and QueueBlock, which are planned for v1.0. See `features/templates/builtin.ts` for the current implementations.
 > **Note:** Example architectures are available in the [`examples/`](../examples/) directory.
 
 ---

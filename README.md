@@ -18,15 +18,21 @@ Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks
 | Validation | None | Rule engine enforces constraints |
 | Semantics | Visual only | Every element maps to a real resource |
 
+### Current Features
+
 - **Lego-style modeling** — Plates (boundaries) + Blocks (resources) + Connections (dataflow)
-- **Architecture compiler** — Visual design compiles to Terraform, Bicep, Pulumi
+- **Architecture compiler** — Visual design compiles to Terraform (Azure-first)
 - **Validation engine** — Real-time rule checking for placement and connections
+- **Code generation** — Terraform export with draft/production modes (v0.3)
+- **Architecture templates** — Built-in starter templates with gallery UI (v0.4)
+- **Undo/redo** — Full history with keyboard shortcuts (v0.2)
+- **Multi-workspace** — Create, switch, and manage multiple workspaces (v0.4)
 - **Open source** — MIT licensed, extend and contribute freely
 
 ### Planned Features
 
 - **Git-native storage** — Architecture stored in GitHub repos (v0.5)
-- **Code generation** — Export to Terraform, Bicep, or Pulumi (v0.3)
+- **Multi-generator** — Bicep, Pulumi export (v1.0)
 
 ## Quick Start
 
@@ -105,7 +111,7 @@ Internet → Gateway → Compute → Database
 | Backend (v0.5+) | Python, FastAPI (scaffolded) |
 | Storage (v0.1) | Browser localStorage |
 | Storage (v0.5+) | GitHub repos (Git-native), Supabase (auth metadata) |
-| Code Generation (v0.3+) | Terraform, Bicep, Pulumi (planned) |
+| Code Generation | Terraform (Azure-first, v0.3) — Bicep, Pulumi planned for v1.0 |
 | Frontend Architecture | Feature-Sliced Design (FSD) |
 | Monorepo | pnpm workspaces |
 
@@ -151,8 +157,9 @@ cd apps/web && npx tsc -b
 | Version | Milestone | Status |
 |---------|-----------|--------|
 | v0.1 | Frontend MVP — 2.5D isometric builder with validation | ✅ Complete |
-| v0.2 | Enhanced UX — drag & drop repositioning, visual polish | Planned |
-| v0.3 | Code generation — Terraform export (Azure first) | Planned |
+| v0.2 | Enhanced UX — undo/redo, workspace management, visual polish | ✅ Complete |
+| v0.3 | Code generation — Terraform export (Azure first) | ✅ Complete |
+| v0.4 | Architecture templates — built-in starter templates with gallery | ✅ Complete |
 | v0.5 | GitHub integration, backend API | Planned |
 | v1.0 | Multi-generator (Bicep, Pulumi), template marketplace | Planned |
 

@@ -2,7 +2,7 @@
 
 > **This is the canonical source** for the CloudBlocks code generation pipeline. All other documents (DOMAIN_MODEL.md, ARCHITECTURE.md, PRD.md) reference this document for pipeline details.
 >
-> **Status**: Design specification only — not yet implemented. Planned for v0.3.
+> **Status**: Implemented in v0.3. The Terraform generator is functional (`features/generate/`). Bicep and Pulumi generators are planned for v1.0.
 
 CloudBlocks converts architecture models into infrastructure code.
 
@@ -123,33 +123,40 @@ infra/
 ## Generator Interface
 
 ```typescript
-interface Generator {
-  name: string;
-  version: string;
-  supportedProviders: string[];
-  generate(architecture: ArchitectureModel, options: GeneratorOptions): GeneratedOutput;
+interface GeneratorPipeline {
+  generate: (
+    architecture: ArchitectureModel,
+    options: GenerationOptions
+  ) => GeneratedOutput;
 }
 
-interface GeneratorOptions {
-  provider: 'azure' | 'aws' | 'gcp';
-  outputFormat: 'terraform' | 'bicep' | 'pulumi';
-  templateOverrides?: Record<string, unknown>;
+interface GenerationOptions {
+  /** Target cloud provider */
+  provider: 'azure';
+  /** draft = inline preview, production = full module structure */
+  mode: 'draft' | 'production';
+  /** Project name for resource naming */
+  projectName: string;
+  /** Azure region or equivalent */
+  region: string;
 }
 
 interface GeneratedOutput {
   files: GeneratedFile[];
-  metadata: {
-    generator: string;
-    version: string;
-    provider: string;
-    generatedAt: string;
-  };
+  metadata: GenerationMetadata;
 }
 
 interface GeneratedFile {
   path: string;      // e.g., "main.tf"
   content: string;   // file content
-  language: string;  // e.g., "hcl", "bicep", "typescript"
+  language: 'hcl' | 'json';
+}
+
+interface GenerationMetadata {
+  generator: string;
+  version: string;
+  provider: string;
+  generatedAt: string;
 }
 ```
 
@@ -159,12 +166,12 @@ interface GeneratedFile {
 
 Supported generators:
 
-| Generator | Target | Priority |
-|-----------|--------|----------|
-| `terraform` | Multi-cloud | Primary (v0.3) |
-| `bicep` | Azure | v0.5 |
-| `pulumi` | Code-based IaC | v1.0 |
-| `yaml` | Documentation | v1.0 |
+| Generator | Target | Status |
+|-----------|--------|--------|
+| `terraform` | Multi-cloud (Azure-first) | ✅ Implemented (v0.3) |
+| `bicep` | Azure | Planned (v1.0) |
+| `pulumi` | Code-based IaC | Planned (v1.0) |
+| `yaml` | Documentation | Planned (v1.0) |
 
 ---
 

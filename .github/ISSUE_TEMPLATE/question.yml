@@ -1,0 +1,38 @@
+name: Question
+description: Ask a question about CloudBlocks
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a question about CloudBlocks? Ask away! For general discussions, consider using [GitHub Discussions](https://github.com/yeongseon/cloudblocks/discussions) instead.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What would you like to know?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which area does your question relate to?
+      options:
+        - Getting Started / Setup
+        - Architecture / Design
+        - Code Generation
+        - Templates
+        - Contributing
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Any additional context that helps us understand your question (what you've tried, what docs you've read, etc.)

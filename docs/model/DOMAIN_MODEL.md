@@ -368,7 +368,7 @@ CloudBlocks transforms visual architecture into deployable infrastructure code t
 Architecture Model → Normalize → Validate → Provider Map → Generate → Format → Output
 ```
 
-> **v0.3+**: Code generation is not yet implemented. See [`generator.md`](../engine/generator.md) for the pipeline design and [`ROADMAP.md`](../concept/ROADMAP.md) for the implementation timeline.
+> **v0.3**: Code generation is implemented. See [`generator.md`](../engine/generator.md) for the pipeline specification and [`ROADMAP.md`](../concept/ROADMAP.md) for timeline.
 
 ### Generator Interface
 
