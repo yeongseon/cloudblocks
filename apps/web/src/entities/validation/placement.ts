@@ -11,6 +11,10 @@ import type {
  * - DatabaseBlock must be placed on private SubnetPlate
  * - GatewayBlock must be placed on public SubnetPlate
  * - StorageBlock must be placed on SubnetPlate
+ * - FunctionBlock must be placed on NetworkPlate (not Subnet) — v1.0
+ * - QueueBlock must be placed on NetworkPlate (not Subnet) — v1.0
+ * - EventBlock must be placed on NetworkPlate (not Subnet) — v1.0
+ * - TimerBlock must be placed on NetworkPlate (not Subnet) — v1.0
  */
 
 export function validatePlacement(
@@ -74,6 +78,24 @@ export function validatePlacement(
           targetId: block.id,
         };
       }
+      break;
+
+    case 'function':
+    case 'queue':
+    case 'event':
+    case 'timer':
+      if (plate.type !== 'network') {
+        return {
+          ruleId: 'rule-serverless-network',
+          severity: 'error',
+          message: `${block.category.charAt(0).toUpperCase() + block.category.slice(1)} block "${block.name}" must be placed on a Network Plate`,
+          suggestion: `Move the ${block.category.charAt(0).toUpperCase() + block.category.slice(1)} block to a Network Plate (not a Subnet)`,
+          targetId: block.id,
+        };
+      }
+      break;
+
+    default:
       break;
   }
 

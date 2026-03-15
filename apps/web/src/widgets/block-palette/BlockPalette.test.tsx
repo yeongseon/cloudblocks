@@ -75,11 +75,20 @@ describe('BlockPalette', () => {
   it('shows no-subnet warning when no subnet plates exist', () => {
     useUIStore.setState({ showBlockPalette: true });
     render(<BlockPalette />);
-    expect(screen.getByText(/No subnet plates/)).toBeInTheDocument();
+    expect(screen.getByText('⚠️ No subnet plates. Create one first.')).toBeInTheDocument();
   });
 
-  it('renders all four block type buttons', () => {
-    const plates = [makeSubnetPlate('sub-1', 'Public Subnet', 'public')];
+  it('shows updated no subnet plates warning copy', () => {
+    useUIStore.setState({ showBlockPalette: true });
+    render(<BlockPalette />);
+    expect(screen.getByText('⚠️ No subnet plates. Create one first.')).toBeInTheDocument();
+  });
+
+  it('renders all eight block type buttons', () => {
+    const plates = [
+      makeNetworkPlate('net-1', 'VNet'),
+      makeSubnetPlate('sub-1', 'Public Subnet', 'public'),
+    ];
     useUIStore.setState({ showBlockPalette: true });
     useArchitectureStore.setState({
       addBlock: addBlockMock,
@@ -100,6 +109,10 @@ describe('BlockPalette', () => {
     expect(screen.getByText('Compute')).toBeInTheDocument();
     expect(screen.getByText('Database')).toBeInTheDocument();
     expect(screen.getByText('Storage')).toBeInTheDocument();
+    expect(screen.getByText('Function')).toBeInTheDocument();
+    expect(screen.getByText('Queue')).toBeInTheDocument();
+    expect(screen.getByText('Event')).toBeInTheDocument();
+    expect(screen.getByText('Timer')).toBeInTheDocument();
   });
 
   it('calls addBlock with correct category when clicking a block button', async () => {
@@ -134,6 +147,21 @@ describe('BlockPalette', () => {
     await user.click(screen.getByText('Compute'));
     expect(alertMock).toHaveBeenCalledWith(
       'Please create a Subnet Plate first before adding blocks.'
+    );
+    expect(addBlockMock).not.toHaveBeenCalled();
+    alertMock.mockRestore();
+  });
+
+  it('alerts when no network plate is available for serverless block', async () => {
+    const user = userEvent.setup();
+    const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    useUIStore.setState({ showBlockPalette: true });
+    render(<BlockPalette />);
+
+    await user.click(screen.getByText('Function'));
+
+    expect(alertMock).toHaveBeenCalledWith(
+      'Please create a Network Plate first before adding serverless blocks.'
     );
     expect(addBlockMock).not.toHaveBeenCalled();
     alertMock.mockRestore();
@@ -210,7 +238,7 @@ describe('BlockPalette', () => {
     });
     render(<BlockPalette />);
     // The hint should show the selected subnet
-    expect(screen.getByText(/Target: Private Subnet/)).toBeInTheDocument();
+    expect(screen.getByText(/Subnet: Private Subnet/)).toBeInTheDocument();
   });
 
   it('shows target plate hint when targetPlateId is set', () => {
@@ -230,7 +258,7 @@ describe('BlockPalette', () => {
       },
     });
     render(<BlockPalette />);
-    expect(screen.getByText(/Target: Public Subnet/)).toBeInTheDocument();
+    expect(screen.getByText(/Subnet: Public Subnet/)).toBeInTheDocument();
   });
 
   it('does not show selector when only one subnet plate exists', () => {
@@ -275,6 +303,30 @@ describe('BlockPalette', () => {
     render(<BlockPalette />);
     // Only one subnet, so no selector shown
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
-    expect(screen.getByText(/Target: Public Subnet/)).toBeInTheDocument();
+    expect(screen.getByText(/Subnet: Public Subnet/)).toBeInTheDocument();
+  });
+
+  it('shows network hint when network plate exists', () => {
+    const plates = [
+      makeNetworkPlate('net-1', 'VNet'),
+      makeSubnetPlate('sub-1', 'Public Subnet', 'public'),
+    ];
+    useUIStore.setState({ showBlockPalette: true });
+    useArchitectureStore.setState({
+      addBlock: addBlockMock,
+      workspace: {
+        id: 'ws-1', name: 'Test',
+        architecture: {
+          id: 'arch-1', name: 'Test', version: '1.0.0',
+          plates,
+          blocks: [], connections: [], externalActors: [],
+          createdAt: '', updatedAt: '',
+        },
+        createdAt: '', updatedAt: '',
+      },
+    });
+    render(<BlockPalette />);
+
+    expect(screen.getByText(/Network: VNet/)).toBeInTheDocument();
   });
 });

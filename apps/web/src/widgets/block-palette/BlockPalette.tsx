@@ -9,13 +9,29 @@ interface PaletteItem {
   category: BlockCategory;
   label: string;
   icon: string;
+  /** Which plate type this block requires */
+  plateType: 'subnet' | 'network';
 }
 
-const PALETTE_ITEMS: PaletteItem[] = [
-  { category: 'gateway', label: 'Gateway', icon: '🚪' },
-  { category: 'compute', label: 'Compute', icon: '🖥️' },
-  { category: 'database', label: 'Database', icon: '🗄️' },
-  { category: 'storage', label: 'Storage', icon: '📦' },
+/** Blocks placed on subnet plates */
+const SUBNET_PALETTE_ITEMS: PaletteItem[] = [
+  { category: 'gateway', label: 'Gateway', icon: '🚪', plateType: 'subnet' },
+  { category: 'compute', label: 'Compute', icon: '🖥️', plateType: 'subnet' },
+  { category: 'database', label: 'Database', icon: '🗄️', plateType: 'subnet' },
+  { category: 'storage', label: 'Storage', icon: '📦', plateType: 'subnet' },
+];
+
+/** Serverless blocks placed on network plates (v1.0) */
+const SERVERLESS_PALETTE_ITEMS: PaletteItem[] = [
+  { category: 'function', label: 'Function', icon: '⚡', plateType: 'network' },
+  { category: 'queue', label: 'Queue', icon: '📨', plateType: 'network' },
+  { category: 'event', label: 'Event', icon: '🔔', plateType: 'network' },
+  { category: 'timer', label: 'Timer', icon: '⏰', plateType: 'network' },
+];
+
+const ALL_PALETTE_ITEMS: PaletteItem[] = [
+  ...SUBNET_PALETTE_ITEMS,
+  ...SERVERLESS_PALETTE_ITEMS,
 ];
 
 export function BlockPalette() {
@@ -29,18 +45,26 @@ export function BlockPalette() {
   if (!showBlockPalette) return null;
 
   const subnetPlates = plates.filter((p) => p.type === 'subnet');
-  const targetPlateId = explicitTarget && subnetPlates.find((p) => p.id === explicitTarget)
+  const networkPlates = plates.filter((p) => p.type === 'network');
+
+  const targetSubnetId = explicitTarget && subnetPlates.find((p) => p.id === explicitTarget)
     ? explicitTarget
     : subnetPlates.find((p) => p.id === selectedId)?.id ?? subnetPlates[0]?.id;
 
-  const handleAddBlock = (category: BlockCategory) => {
+  const targetNetworkId = networkPlates[0]?.id;
+
+  const handleAddBlock = (item: PaletteItem) => {
+    const targetPlateId = item.plateType === 'network' ? targetNetworkId : targetSubnetId;
     if (!targetPlateId) {
-      alert('Please create a Subnet Plate first before adding blocks.');
+      const msg = item.plateType === 'network'
+        ? 'Please create a Network Plate first before adding serverless blocks.'
+        : 'Please create a Subnet Plate first before adding blocks.';
+      alert(msg);
       return;
     }
     counterRef.current += 1;
-    const name = `${category.charAt(0).toUpperCase() + category.slice(1)} ${counterRef.current}`;
-    addBlock(category, name, targetPlateId);
+    const name = `${item.category.charAt(0).toUpperCase() + item.category.slice(1)} ${counterRef.current}`;
+    addBlock(item.category, name, targetPlateId);
   };
 
   return (
@@ -54,7 +78,7 @@ export function BlockPalette() {
           </label>
           <select
             className="palette-select"
-            value={targetPlateId ?? ''}
+            value={targetSubnetId ?? ''}
             onChange={(e) => setExplicitTarget(e.target.value)}
           >
             {subnetPlates.map((p) => (
@@ -65,13 +89,13 @@ export function BlockPalette() {
       )}
 
       <div className="palette-items">
-        {PALETTE_ITEMS.map((item) => (
+        {ALL_PALETTE_ITEMS.map((item) => (
           <button
             key={item.category}
             className="palette-item"
             style={{ borderLeftColor: BLOCK_COLORS[item.category] }}
-            onClick={() => handleAddBlock(item.category)}
-            title={`Add ${item.label} block`}
+            onClick={() => handleAddBlock(item)}
+            title={`Add ${item.label} block${item.plateType === 'network' ? ' (on Network)' : ''}`}
           >
             <span className="palette-icon">{item.icon}</span>
             <span className="palette-label">{item.label}</span>
@@ -79,12 +103,17 @@ export function BlockPalette() {
         ))}
       </div>
 
-      {targetPlateId && (
+      {targetSubnetId && (
         <div className="palette-hint">
-          Target: {plates.find((p) => p.id === targetPlateId)?.name ?? 'Unknown'}
+          Subnet: {plates.find((p) => p.id === targetSubnetId)?.name ?? 'Unknown'}
         </div>
       )}
-      {!targetPlateId && subnetPlates.length === 0 && (
+      {targetNetworkId && (
+        <div className="palette-hint">
+          Network: {plates.find((p) => p.id === targetNetworkId)?.name ?? 'Unknown'}
+        </div>
+      )}
+      {!targetSubnetId && subnetPlates.length === 0 && (
         <div className="palette-hint palette-hint-warning">
           ⚠️ No subnet plates. Create one first.
         </div>

@@ -20,7 +20,7 @@ export interface Plate {
 
 // ─── Block Types ───────────────────────────────────────────
 
-export type BlockCategory = 'compute' | 'database' | 'storage' | 'gateway';
+export type BlockCategory = 'compute' | 'database' | 'storage' | 'gateway' | 'function' | 'queue' | 'event' | 'timer';
 
 export interface Block {
   id: string;
@@ -130,6 +130,10 @@ export const BLOCK_COLORS: Record<BlockCategory, string> = {
   database: '#FF9800', // Orange
   storage: '#FFEB3B', // Yellow
   gateway: '#9C27B0', // Purple
+  function: '#00BCD4', // Cyan
+  queue: '#E91E63', // Pink
+  event: '#3F51B5', // Indigo
+  timer: '#795548', // Brown
 };
 
 export const PLATE_COLORS: Record<PlateType, string> = {

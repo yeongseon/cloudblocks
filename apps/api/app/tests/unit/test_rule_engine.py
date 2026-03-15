@@ -272,3 +272,185 @@ def test_validate_architecture_collects_warnings_branch(monkeypatch: pytest.Monk
     assert result["errors"] == []
     warnings = cast(list[Json], result["warnings"])
     assert len(warnings) == 2
+
+
+# ============================================================================
+# Serverless Placement Tests (v1.0)
+# ============================================================================
+
+
+def test_validate_placement_function_on_network_is_valid() -> None:
+    block = _block("b-fn", "function", "p-network", name="Function")
+    plate = _plate("p-network", "network")
+
+    assert validate_placement(block, plate) is None
+
+
+def test_validate_placement_function_on_subnet_is_error() -> None:
+    block = _block("b-fn", "function", "p-subnet", name="Function")
+    plate = _plate("p-subnet", "subnet", "private")
+
+    error = validate_placement(block, plate)
+
+    assert error is not None
+    assert error["ruleId"] == "rule-function-network"
+    assert "Network Plate (not Subnet)" in error["message"]
+
+
+def test_validate_placement_queue_on_network_is_valid() -> None:
+    block = _block("b-q", "queue", "p-network", name="Queue")
+    plate = _plate("p-network", "network")
+
+    assert validate_placement(block, plate) is None
+
+
+def test_validate_placement_queue_on_subnet_is_error() -> None:
+    block = _block("b-q", "queue", "p-subnet", name="Queue")
+    plate = _plate("p-subnet", "subnet", "public")
+
+    error = validate_placement(block, plate)
+
+    assert error is not None
+    assert error["ruleId"] == "rule-queue-network"
+    assert "Network Plate (not Subnet)" in error["message"]
+
+
+def test_validate_placement_event_on_network_is_valid() -> None:
+    block = _block("b-ev", "event", "p-network", name="Event")
+    plate = _plate("p-network", "network")
+
+    assert validate_placement(block, plate) is None
+
+
+def test_validate_placement_event_on_subnet_is_error() -> None:
+    block = _block("b-ev", "event", "p-subnet", name="Event")
+    plate = _plate("p-subnet", "subnet", "private")
+
+    error = validate_placement(block, plate)
+
+    assert error is not None
+    assert error["ruleId"] == "rule-event-network"
+    assert "Network Plate (not Subnet)" in error["message"]
+
+
+def test_validate_placement_timer_on_network_is_valid() -> None:
+    block = _block("b-tm", "timer", "p-network", name="Timer")
+    plate = _plate("p-network", "network")
+
+    assert validate_placement(block, plate) is None
+
+
+def test_validate_placement_timer_on_subnet_is_error() -> None:
+    block = _block("b-tm", "timer", "p-subnet", name="Timer")
+    plate = _plate("p-subnet", "subnet", "public")
+
+    error = validate_placement(block, plate)
+
+    assert error is not None
+    assert error["ruleId"] == "rule-timer-network"
+    assert "Network Plate (not Subnet)" in error["message"]
+
+
+# ============================================================================
+# Serverless Connection Tests (v1.0)
+# ============================================================================
+
+
+def test_validate_connection_gateway_to_function_is_valid() -> None:
+    blocks = [
+        {"id": "gw", "category": "gateway"},
+        {"id": "fn", "category": "function"},
+    ]
+    external_actors = []
+
+    assert validate_connection(_conn("c1", "gw", "fn"), blocks, external_actors) is None
+
+
+def test_validate_connection_function_to_storage_is_valid() -> None:
+    blocks = [
+        {"id": "fn", "category": "function"},
+        {"id": "st", "category": "storage"},
+    ]
+    external_actors = []
+
+    assert validate_connection(_conn("c1", "fn", "st"), blocks, external_actors) is None
+
+
+def test_validate_connection_function_to_database_is_valid() -> None:
+    blocks = [
+        {"id": "fn", "category": "function"},
+        {"id": "db", "category": "database"},
+    ]
+    external_actors = []
+
+    assert validate_connection(_conn("c1", "fn", "db"), blocks, external_actors) is None
+
+
+def test_validate_connection_function_to_queue_is_valid() -> None:
+    blocks = [
+        {"id": "fn", "category": "function"},
+        {"id": "q", "category": "queue"},
+    ]
+    external_actors = []
+
+    assert validate_connection(_conn("c1", "fn", "q"), blocks, external_actors) is None
+
+
+def test_validate_connection_queue_to_function_is_valid() -> None:
+    blocks = [
+        {"id": "q", "category": "queue"},
+        {"id": "fn", "category": "function"},
+    ]
+    external_actors = []
+
+    assert validate_connection(_conn("c1", "q", "fn"), blocks, external_actors) is None
+
+
+def test_validate_connection_timer_to_function_is_valid() -> None:
+    blocks = [
+        {"id": "tm", "category": "timer"},
+        {"id": "fn", "category": "function"},
+    ]
+    external_actors = []
+
+    assert validate_connection(_conn("c1", "tm", "fn"), blocks, external_actors) is None
+
+
+def test_validate_connection_event_to_function_is_valid() -> None:
+    blocks = [
+        {"id": "ev", "category": "event"},
+        {"id": "fn", "category": "function"},
+    ]
+    external_actors = []
+
+    assert validate_connection(_conn("c1", "ev", "fn"), blocks, external_actors) is None
+
+
+def test_validate_connection_function_to_compute_is_error() -> None:
+    blocks = [
+        {"id": "fn", "category": "function"},
+        {"id": "cmp", "category": "compute"},
+    ]
+    external_actors = []
+
+    error = validate_connection(_conn("c1", "fn", "cmp"), blocks, external_actors)
+
+    assert error is not None
+    assert error["ruleId"] == "rule-conn-invalid"
+    assert "function" in error["message"]
+    assert "compute" in error["message"]
+
+
+def test_validate_connection_queue_to_storage_is_error() -> None:
+    blocks = [
+        {"id": "q", "category": "queue"},
+        {"id": "st", "category": "storage"},
+    ]
+    external_actors = []
+
+    error = validate_connection(_conn("c1", "q", "st"), blocks, external_actors)
+
+    assert error is not None
+    assert error["ruleId"] == "rule-conn-invalid"
+    assert "queue" in error["message"]
+    assert "storage" in error["message"]

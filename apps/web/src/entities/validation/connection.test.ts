@@ -217,4 +217,152 @@ describe('validateConnection', () => {
       targetId: 'conn-compute-to-internet',
     });
   });
+
+  it('accepts valid gateway -> function connection', () => {
+    const connection = makeConnection({ sourceId: 'gateway-1', targetId: 'func-1' });
+    const blocks = [
+      makeBlock({ id: 'gateway-1', category: 'gateway' }),
+      makeBlock({ id: 'func-1', category: 'function' }),
+    ];
+
+    expect(validateConnection(connection, blocks, [])).toBeNull();
+  });
+
+  it('accepts valid function -> storage connection', () => {
+    const connection = makeConnection({ sourceId: 'func-1', targetId: 'storage-1' });
+    const blocks = [
+      makeBlock({ id: 'func-1', category: 'function' }),
+      makeBlock({ id: 'storage-1', category: 'storage' }),
+    ];
+
+    expect(validateConnection(connection, blocks, [])).toBeNull();
+  });
+
+  it('accepts valid function -> database connection', () => {
+    const connection = makeConnection({ sourceId: 'func-1', targetId: 'db-1' });
+    const blocks = [
+      makeBlock({ id: 'func-1', category: 'function' }),
+      makeBlock({ id: 'db-1', category: 'database' }),
+    ];
+
+    expect(validateConnection(connection, blocks, [])).toBeNull();
+  });
+
+  it('accepts valid function -> queue connection', () => {
+    const connection = makeConnection({ sourceId: 'func-1', targetId: 'queue-1' });
+    const blocks = [
+      makeBlock({ id: 'func-1', category: 'function' }),
+      makeBlock({ id: 'queue-1', category: 'queue' }),
+    ];
+
+    expect(validateConnection(connection, blocks, [])).toBeNull();
+  });
+
+  it('accepts valid queue -> function connection', () => {
+    const connection = makeConnection({ sourceId: 'queue-1', targetId: 'func-1' });
+    const blocks = [
+      makeBlock({ id: 'queue-1', category: 'queue' }),
+      makeBlock({ id: 'func-1', category: 'function' }),
+    ];
+
+    expect(validateConnection(connection, blocks, [])).toBeNull();
+  });
+
+  it('accepts valid timer -> function connection', () => {
+    const connection = makeConnection({ sourceId: 'timer-1', targetId: 'func-1' });
+    const blocks = [
+      makeBlock({ id: 'timer-1', category: 'timer' }),
+      makeBlock({ id: 'func-1', category: 'function' }),
+    ];
+
+    expect(validateConnection(connection, blocks, [])).toBeNull();
+  });
+
+  it('accepts valid event -> function connection', () => {
+    const connection = makeConnection({ sourceId: 'event-1', targetId: 'func-1' });
+    const blocks = [
+      makeBlock({ id: 'event-1', category: 'event' }),
+      makeBlock({ id: 'func-1', category: 'function' }),
+    ];
+
+    expect(validateConnection(connection, blocks, [])).toBeNull();
+  });
+
+  it('rejects invalid function -> gateway connection', () => {
+    const connection = makeConnection({ id: 'conn-func-gw', sourceId: 'func-1', targetId: 'gateway-1' });
+    const blocks = [
+      makeBlock({ id: 'func-1', category: 'function' }),
+      makeBlock({ id: 'gateway-1', category: 'gateway' }),
+    ];
+
+    expect(validateConnection(connection, blocks, [])).toMatchObject({
+      ruleId: 'rule-conn-invalid',
+      targetId: 'conn-func-gw',
+    });
+  });
+
+  it('rejects invalid function -> compute connection', () => {
+    const connection = makeConnection({ id: 'conn-func-compute', sourceId: 'func-1', targetId: 'compute-1' });
+    const blocks = [
+      makeBlock({ id: 'func-1', category: 'function' }),
+      makeBlock({ id: 'compute-1', category: 'compute' }),
+    ];
+
+    expect(validateConnection(connection, blocks, [])).toMatchObject({
+      ruleId: 'rule-conn-invalid',
+      targetId: 'conn-func-compute',
+    });
+  });
+
+  it('rejects invalid queue -> compute connection', () => {
+    const connection = makeConnection({ id: 'conn-queue-compute', sourceId: 'queue-1', targetId: 'compute-1' });
+    const blocks = [
+      makeBlock({ id: 'queue-1', category: 'queue' }),
+      makeBlock({ id: 'compute-1', category: 'compute' }),
+    ];
+
+    expect(validateConnection(connection, blocks, [])).toMatchObject({
+      ruleId: 'rule-conn-invalid',
+      targetId: 'conn-queue-compute',
+    });
+  });
+
+  it('rejects invalid timer -> storage connection', () => {
+    const connection = makeConnection({ id: 'conn-timer-storage', sourceId: 'timer-1', targetId: 'storage-1' });
+    const blocks = [
+      makeBlock({ id: 'timer-1', category: 'timer' }),
+      makeBlock({ id: 'storage-1', category: 'storage' }),
+    ];
+
+    expect(validateConnection(connection, blocks, [])).toMatchObject({
+      ruleId: 'rule-conn-invalid',
+      targetId: 'conn-timer-storage',
+    });
+  });
+
+  it('rejects invalid event -> database connection', () => {
+    const connection = makeConnection({ id: 'conn-event-db', sourceId: 'event-1', targetId: 'db-1' });
+    const blocks = [
+      makeBlock({ id: 'event-1', category: 'event' }),
+      makeBlock({ id: 'db-1', category: 'database' }),
+    ];
+
+    expect(validateConnection(connection, blocks, [])).toMatchObject({
+      ruleId: 'rule-conn-invalid',
+      targetId: 'conn-event-db',
+    });
+  });
+
+  it('rejects invalid queue -> queue connection', () => {
+    const connection = makeConnection({ id: 'conn-queue-queue', sourceId: 'queue-1', targetId: 'queue-2' });
+    const blocks = [
+      makeBlock({ id: 'queue-1', category: 'queue' }),
+      makeBlock({ id: 'queue-2', category: 'queue' }),
+    ];
+
+    expect(validateConnection(connection, blocks, [])).toMatchObject({
+      ruleId: 'rule-conn-invalid',
+      targetId: 'conn-queue-queue',
+    });
+  });
 });

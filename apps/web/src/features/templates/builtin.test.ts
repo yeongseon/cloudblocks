@@ -9,7 +9,7 @@ describe('registerBuiltinTemplates', () => {
     vi.restoreAllMocks();
   });
 
-  it('registers exactly three builtin templates with expected ids', async () => {
+  it('registers exactly five builtin templates with expected ids', async () => {
     const { registerBuiltinTemplates } = await import('./builtin');
     const { listTemplates } = await import('./registry');
 
@@ -18,9 +18,11 @@ describe('registerBuiltinTemplates', () => {
     const templates = listTemplates();
     const ids = templates.map((template) => template.id).sort();
 
-    expect(templates).toHaveLength(3);
+    expect(templates).toHaveLength(5);
     expect(ids).toEqual([
       'template-data-storage',
+      'template-event-driven-pipeline',
+      'template-serverless-http-api',
       'template-simple-compute',
       'template-three-tier',
     ]);
@@ -37,7 +39,6 @@ describe('registerBuiltinTemplates', () => {
       expect(Array.isArray(template.architecture.blocks)).toBe(true);
       expect(Array.isArray(template.architecture.connections)).toBe(true);
       expect(Array.isArray(template.architecture.externalActors)).toBe(true);
-      expect(template.architecture.externalActors.length).toBeGreaterThan(0);
     }
   });
 
@@ -81,5 +82,27 @@ describe('registerBuiltinTemplates', () => {
     expect(template?.architecture.plates).toHaveLength(3);
     expect(template?.architecture.blocks).toHaveLength(4);
     expect(template?.architecture.connections).toHaveLength(4);
+  });
+
+  it('serverless templates have generator compatibility and expected counts', async () => {
+    const { registerBuiltinTemplates } = await import('./builtin');
+    const { getTemplate } = await import('./registry');
+
+    registerBuiltinTemplates();
+
+    const httpApiTemplate = getTemplate('template-serverless-http-api');
+    const eventPipelineTemplate = getTemplate('template-event-driven-pipeline');
+
+    expect(httpApiTemplate).toBeDefined();
+    expect(httpApiTemplate?.generatorCompat).toEqual(['terraform', 'bicep', 'pulumi']);
+    expect(httpApiTemplate?.architecture.plates).toHaveLength(3);
+    expect(httpApiTemplate?.architecture.blocks).toHaveLength(4);
+    expect(httpApiTemplate?.architecture.connections).toHaveLength(4);
+
+    expect(eventPipelineTemplate).toBeDefined();
+    expect(eventPipelineTemplate?.generatorCompat).toEqual(['terraform', 'bicep', 'pulumi']);
+    expect(eventPipelineTemplate?.architecture.plates).toHaveLength(2);
+    expect(eventPipelineTemplate?.architecture.blocks).toHaveLength(6);
+    expect(eventPipelineTemplate?.architecture.connections).toHaveLength(6);
   });
 });

@@ -155,4 +155,84 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, publicSubnet)).toBeNull();
     expect(validatePlacement(block, privateSubnet)).toBeNull();
   });
+
+  it('returns error when function is on subnet plate', () => {
+    const block = makeBlock({ id: 'fn-1', name: 'FuncA', category: 'function' });
+    const plate = makePlate({ type: 'subnet', subnetAccess: 'public' });
+
+    expect(validatePlacement(block, plate)).toEqual({
+      ruleId: 'rule-serverless-network',
+      severity: 'error',
+      message: 'Function block "FuncA" must be placed on a Network Plate',
+      suggestion: 'Move the Function block to a Network Plate (not a Subnet)',
+      targetId: 'fn-1',
+    });
+  });
+
+  it('returns null when function is on network plate', () => {
+    const block = makeBlock({ category: 'function' });
+    const plate = makePlate({ type: 'network', subnetAccess: undefined });
+
+    expect(validatePlacement(block, plate)).toBeNull();
+  });
+
+  it('returns error when queue is on subnet plate', () => {
+    const block = makeBlock({ id: 'queue-1', name: 'QueueA', category: 'queue' });
+    const plate = makePlate({ type: 'subnet', subnetAccess: 'public' });
+
+    expect(validatePlacement(block, plate)).toEqual({
+      ruleId: 'rule-serverless-network',
+      severity: 'error',
+      message: 'Queue block "QueueA" must be placed on a Network Plate',
+      suggestion: 'Move the Queue block to a Network Plate (not a Subnet)',
+      targetId: 'queue-1',
+    });
+  });
+
+  it('returns null when queue is on network plate', () => {
+    const block = makeBlock({ category: 'queue' });
+    const plate = makePlate({ type: 'network', subnetAccess: undefined });
+
+    expect(validatePlacement(block, plate)).toBeNull();
+  });
+
+  it('returns error when event is on subnet plate', () => {
+    const block = makeBlock({ id: 'event-1', name: 'EventA', category: 'event' });
+    const plate = makePlate({ type: 'subnet', subnetAccess: 'public' });
+
+    expect(validatePlacement(block, plate)).toEqual({
+      ruleId: 'rule-serverless-network',
+      severity: 'error',
+      message: 'Event block "EventA" must be placed on a Network Plate',
+      suggestion: 'Move the Event block to a Network Plate (not a Subnet)',
+      targetId: 'event-1',
+    });
+  });
+
+  it('returns null when event is on network plate', () => {
+    const block = makeBlock({ category: 'event' });
+    const plate = makePlate({ type: 'network', subnetAccess: undefined });
+
+    expect(validatePlacement(block, plate)).toBeNull();
+  });
+
+  it('returns error when timer is on subnet plate', () => {
+    const block = makeBlock({ id: 'timer-1', name: 'TimerA', category: 'timer' });
+    const plate = makePlate({ type: 'subnet', subnetAccess: 'public' });
+
+    expect(validatePlacement(block, plate)).toEqual({
+      ruleId: 'rule-serverless-network',
+      severity: 'error',
+      message: 'Timer block "TimerA" must be placed on a Network Plate',
+      suggestion: 'Move the Timer block to a Network Plate (not a Subnet)',
+      targetId: 'timer-1',
+    });
+  });
+
+  it('returns null when timer is on network plate', () => {
+    const block = makeBlock({ category: 'timer' });
+    const plate = makePlate({ type: 'network', subnetAccess: undefined });
+
+    expect(validatePlacement(block, plate)).toBeNull();
+  });
 });

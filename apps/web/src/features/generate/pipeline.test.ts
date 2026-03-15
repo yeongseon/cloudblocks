@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { ArchitectureModel, Plate, Block } from '../../shared/types/index';
 import type { GenerationOptions } from './types';
-import { GenerationError, generateTerraform, terraformPipeline } from './pipeline';
+import { GenerationError, generateTerraform, terraformPipeline, generateCode } from './pipeline';
 
 describe('pipeline', () => {
   beforeEach(() => {
@@ -256,6 +256,139 @@ describe('pipeline', () => {
 
       expect(pipelineResult.files).toEqual(functionResult.files);
       expect(pipelineResult.metadata).toEqual(functionResult.metadata);
+    });
+  });
+
+  describe('generateCode', () => {
+    const validModel: ArchitectureModel = {
+      id: 'arch-generate-code-1',
+      name: 'Test GenerateCode',
+      version: '1',
+      plates: [
+        {
+          id: 'net-1',
+          name: 'VNet',
+          type: 'network',
+          parentId: null,
+          children: ['sub-1'],
+          position: { x: 0, y: 0, z: 0 },
+          size: { width: 12, height: 0.3, depth: 10 },
+          metadata: {},
+        },
+        {
+          id: 'sub-1',
+          name: 'Public',
+          type: 'subnet',
+          subnetAccess: 'public',
+          parentId: 'net-1',
+          children: ['blk-1'],
+          position: { x: 0, y: 0.3, z: 0 },
+          size: { width: 5, height: 0.2, depth: 8 },
+          metadata: {},
+        },
+      ] as Plate[],
+      blocks: [
+        {
+          id: 'blk-1',
+          name: 'WebApp',
+          category: 'compute',
+          placementId: 'sub-1',
+          position: { x: 0, y: 0.5, z: 0 },
+          metadata: {},
+        },
+      ] as Block[],
+      connections: [],
+      externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' }],
+      createdAt: '2025-01-01T00:00:00Z',
+      updatedAt: '2025-01-01T00:00:00Z',
+    };
+
+    const validOptions: GenerationOptions = {
+      provider: 'azure',
+      mode: 'draft',
+      projectName: 'test',
+      region: 'eastus',
+    };
+
+    it('returns terraform files when generator is terraform', () => {
+      const result = generateCode(validModel, { ...validOptions, generator: 'terraform' });
+
+      expect(result.files.map((file) => file.path)).toEqual(['main.tf', 'variables.tf', 'outputs.tf']);
+    });
+
+    it('returns bicep files when generator is bicep', () => {
+      const result = generateCode(validModel, { ...validOptions, generator: 'bicep' });
+
+      expect(result.files.map((file) => file.path)).toEqual(['main.bicep', 'parameters.bicepparam']);
+    });
+
+    it('returns pulumi files when generator is pulumi', () => {
+      const result = generateCode(validModel, { ...validOptions, generator: 'pulumi' });
+
+      expect(result.files.map((file) => file.path)).toEqual(['index.ts', 'Pulumi.yaml']);
+    });
+
+    it('throws GenerationError for unknown generator', () => {
+      const badGeneratorOptions = JSON.parse(
+        '{"provider":"azure","mode":"draft","projectName":"test","region":"eastus","generator":"cdk"}'
+      ) as GenerationOptions;
+
+      expect(() => generateCode(validModel, badGeneratorOptions)).toThrow(GenerationError);
+      expect(() => generateCode(validModel, badGeneratorOptions)).toThrow(/Unknown generator/);
+    });
+
+    it('throws GenerationError for invalid architecture', () => {
+      const invalidModel: ArchitectureModel = {
+        id: 'arch-generate-code-2',
+        name: 'Invalid Architecture',
+        version: '1',
+        plates: [
+          {
+            id: 'net-2',
+            name: 'VNet',
+            type: 'network',
+            parentId: null,
+            children: ['sub-2'],
+            position: { x: 0, y: 0, z: 0 },
+            size: { width: 12, height: 0.3, depth: 10 },
+            metadata: {},
+          },
+          {
+            id: 'sub-2',
+            name: 'Public',
+            type: 'subnet',
+            subnetAccess: 'public',
+            parentId: 'net-2',
+            children: ['db-1'],
+            position: { x: 0, y: 0.3, z: 0 },
+            size: { width: 5, height: 0.2, depth: 8 },
+            metadata: {},
+          },
+        ] as Plate[],
+        blocks: [
+          {
+            id: 'db-1',
+            name: 'Database',
+            category: 'database',
+            placementId: 'sub-2',
+            position: { x: 0, y: 0.5, z: 0 },
+            metadata: {},
+          },
+        ] as Block[],
+        connections: [],
+        externalActors: [{ id: 'ext-2', name: 'Internet', type: 'internet' }],
+        createdAt: '2025-01-01T00:00:00Z',
+        updatedAt: '2025-01-01T00:00:00Z',
+      };
+
+      expect(() => generateCode(invalidModel, validOptions)).toThrow(GenerationError);
+      expect(() => generateCode(invalidModel, validOptions)).toThrow(/Architecture has validation errors/);
+    });
+
+    it('defaults to terraform when generator is undefined', () => {
+      const result = generateCode(validModel, validOptions);
+
+      expect(result.files.map((file) => file.path)).toEqual(['main.tf', 'variables.tf', 'outputs.tf']);
     });
   });
 });

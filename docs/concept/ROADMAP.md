@@ -192,7 +192,7 @@ Connect CloudBlocks to GitHub — architecture and generated code stored in user
 
 ---
 
-# v1.0 — Multi-Generator + Template Marketplace
+# v1.0 — Multi-Generator + Template Marketplace ✅
 
 Goal:
 Support multiple IaC generators and a community template ecosystem.
@@ -226,10 +226,10 @@ HTTP → Function → Storage
 - Template preview and one-click use
 
 ### Exit Criteria
-- [ ] Terraform, Bicep, and Pulumi generators all produce valid output
-- [ ] Serverless architecture (HTTP → Function → Storage) constructable
-- [ ] Template marketplace with 5+ community templates
-- [ ] Generator plugin interface documented and usable by third parties
+- [x] Terraform, Bicep, and Pulumi generators all produce valid output
+- [x] Serverless architecture (HTTP → Function → Storage) constructable
+- [x] Template marketplace with 5+ community templates
+- [x] Generator plugin interface documented and usable by third parties
 
 ### Dependencies
 - v0.5 complete

@@ -21,9 +21,9 @@ Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks
 ### Current Features
 
 - **Lego-style modeling** — Plates (boundaries) + Blocks (resources) + Connections (dataflow)
-- **Architecture compiler** — Visual design compiles to Terraform (Azure-first)
+- **Architecture compiler** — Visual design compiles to Terraform, Bicep, and Pulumi (Azure-first)
 - **Validation engine** — Real-time rule checking for placement and connections
-- **Code generation** — Terraform export with draft/production modes (v0.3)
+- **Code generation** — Multi-generator export: Terraform, Bicep, Pulumi with draft/production modes (v1.0)
 - **Architecture templates** — Built-in starter templates with gallery UI (v0.4)
 - **Undo/redo** — Full history with keyboard shortcuts (v0.2)
 - **Multi-workspace** — Create, switch, and manage multiple workspaces (v0.4)
@@ -33,8 +33,9 @@ Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks
 
 ### Planned Features
 
-- **Multi-generator** — Bicep, Pulumi export (v1.0)
-- **Template marketplace** — Community-contributed architecture templates (v1.0)
+- **Multi-generator** — Terraform, Bicep, and Pulumi export with plugin interface (v1.0)
+- **Template marketplace** — GitHub-backed community architecture templates (v1.0)
+- **Serverless blocks** — Function, Queue, Event, Timer block types (v1.0)
 ## Quick Start
 
 ```bash
@@ -151,7 +152,7 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 | v0.3 | Code generation — Terraform export (Azure first) | ✅ Complete |
 | v0.4 | Architecture templates — built-in starter templates with gallery | ✅ Complete |
 | v0.5 | GitHub integration, backend API | ✅ Complete |
-| v1.0 | Multi-generator (Bicep, Pulumi), template marketplace | Planned |
+| v1.0 | Multi-generator (Bicep, Pulumi), template marketplace | ✅ Complete |
 
 ## Contributing
 

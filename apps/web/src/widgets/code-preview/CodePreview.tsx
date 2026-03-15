@@ -1,10 +1,15 @@
 import { useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { generateTerraform } from '../../features/generate/pipeline';
-import { GenerationError } from '../../features/generate/pipeline';
-import type { GeneratedOutput, GenerationOptions } from '../../features/generate/types';
+import { generateCode, GenerationError } from '../../features/generate/pipeline';
+import type { GeneratedOutput, GenerationOptions, GeneratorId } from '../../features/generate/types';
 import './CodePreview.css';
+
+const GENERATORS: { id: GeneratorId; label: string }[] = [
+  { id: 'terraform', label: 'Terraform (HCL)' },
+  { id: 'bicep', label: 'Bicep (Azure)' },
+  { id: 'pulumi', label: 'Pulumi (TypeScript)' },
+];
 
 export function CodePreview() {
   const show = useUIStore((s) => s.showCodePreview);
@@ -14,6 +19,7 @@ export function CodePreview() {
   const [activeTab, setActiveTab] = useState(0);
   const [projectName, setProjectName] = useState('myproject');
   const [region, setRegion] = useState('eastus');
+  const [generator, setGenerator] = useState<GeneratorId>('terraform');
   const [output, setOutput] = useState<GeneratedOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,8 +34,9 @@ export function CodePreview() {
         mode: 'draft',
         projectName,
         region,
+        generator,
       };
-      const result = generateTerraform(architecture, options);
+      const result = generateCode(architecture, options);
       setOutput(result);
       setActiveTab(0);
     } catch (err) {
@@ -64,6 +71,8 @@ export function CodePreview() {
     });
   };
 
+  const selectedGenerator = GENERATORS.find((g) => g.id === generator);
+
   return (
     <div className="code-preview">
       <div className="code-preview-header">
@@ -74,6 +83,18 @@ export function CodePreview() {
       </div>
 
       <div className="code-preview-options">
+        <label className="code-preview-field">
+          <span className="code-preview-field-label">Generator</span>
+          <select
+            className="code-preview-input"
+            value={generator}
+            onChange={(e) => setGenerator(e.target.value as GeneratorId)}
+          >
+            {GENERATORS.map((g) => (
+              <option key={g.id} value={g.id}>{g.label}</option>
+            ))}
+          </select>
+        </label>
         <label className="code-preview-field">
           <span className="code-preview-field-label">Project</span>
           <input
@@ -93,7 +114,7 @@ export function CodePreview() {
           />
         </label>
         <button className="code-preview-generate-btn" onClick={handleGenerate}>
-          🚀 Generate Terraform
+          🚀 Generate {selectedGenerator?.label ?? 'Code'}
         </button>
       </div>
 
@@ -127,7 +148,7 @@ export function CodePreview() {
           </pre>
 
           <div className="code-preview-meta">
-            v{output.metadata.version} · {output.metadata.provider} ·{' '}
+            {output.metadata.generator} v{output.metadata.version} · {output.metadata.provider} ·{' '}
             {new Date(output.metadata.generatedAt).toLocaleTimeString()}
           </div>
         </>

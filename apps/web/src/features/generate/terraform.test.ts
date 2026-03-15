@@ -262,6 +262,37 @@ describe('generateMainTf', () => {
     expect(hclWithConnections).toContain('# DataFlow: webapp_web → missing-target');
     expect(hclWithoutConnections).not.toContain('# ─── Data Flow Connections ─────────────────────');
   });
+
+  it('generates serverless block resources (function, queue, event, timer)', () => {
+    const model = createTestModel({
+      plates: [createPlate({ id: 'net1', name: 'VNet', type: 'network' })],
+      blocks: [
+        createBlock({ id: 'fn1', name: 'Handler', category: 'function', placementId: 'net1' }),
+        createBlock({ id: 'q1', name: 'TaskQueue', category: 'queue', placementId: 'net1' }),
+        createBlock({ id: 'ev1', name: 'EventSrc', category: 'event', placementId: 'net1' }),
+        createBlock({ id: 'tm1', name: 'Cron', category: 'timer', placementId: 'net1' }),
+      ],
+    });
+
+    const hcl = generateMainTf(normalize(model, azureProvider), azureProvider, defaultOptions);
+
+    expect(hcl).toContain('resource "azurerm_linux_function_app"');
+    expect(hcl).toContain('resource "azurerm_storage_queue"');
+    expect(hcl).toContain('resource "azurerm_eventgrid_topic"');
+    expect(hcl).toContain('resource "azurerm_logic_app_workflow"');
+  });
+
+  it('includes service plan when only function blocks exist', () => {
+    const model = createTestModel({
+      plates: [createPlate({ id: 'net1', name: 'VNet', type: 'network' })],
+      blocks: [createBlock({ id: 'fn1', name: 'Handler', category: 'function', placementId: 'net1' })],
+    });
+
+    const hcl = generateMainTf(normalize(model, azureProvider), azureProvider, defaultOptions);
+
+    expect(hcl).toContain('resource "azurerm_service_plan" "main"');
+    expect(hcl).toContain('resource "azurerm_linux_function_app"');
+  });
 });
 
 describe('generateVariablesTf', () => {

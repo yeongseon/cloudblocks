@@ -2,12 +2,11 @@ import type { ArchitectureTemplate } from '../../shared/types/template';
 import { registerTemplate } from './registry';
 
 /**
- * Built-in Templates (v0.4)
+ * Built-in Templates (v0.4 + v1.0)
  * Based on docs/engine/templates.md
  *
- * Uses only v0.1 block types: compute, database, storage, gateway.
- * Serverless (FunctionBlock) and event-driven (QueueBlock) templates
- * require v1.0 types and are deferred.
+ * v0.4 templates use compute, database, storage, gateway blocks.
+ * v1.0 templates add serverless blocks: function, queue, event, timer.
  */
 
 const threeTierTemplate: ArchitectureTemplate = {
@@ -312,6 +311,258 @@ const dataStorageTemplate: ArchitectureTemplate = {
   },
 };
 
+// ─── v1.0 Serverless Templates ──────────────────────────────
+
+const serverlessHttpApiTemplate: ArchitectureTemplate = {
+  id: 'template-serverless-http-api',
+  name: 'Serverless HTTP API',
+  description:
+    'Serverless architecture for HTTP APIs. Internet traffic enters via Gateway, ' +
+    'triggers a Function, which reads/writes to Storage and Database. ' +
+    'No VMs — fully managed serverless compute.',
+  category: 'serverless',
+  difficulty: 'intermediate',
+  tags: ['serverless', 'function', 'http', 'api', 'gateway'],
+  generatorCompat: ['terraform', 'bicep', 'pulumi'],
+  architecture: {
+    name: 'Serverless HTTP API',
+    version: '1',
+    plates: [
+      {
+        id: 'plate-tmpl-vnet4',
+        name: 'VNet',
+        type: 'network',
+        parentId: null,
+        children: ['plate-tmpl-pub4', 'plate-tmpl-priv4'],
+        position: { x: 0, y: 0, z: 0 },
+        size: { width: 12, height: 0.3, depth: 10 },
+        metadata: {},
+      },
+      {
+        id: 'plate-tmpl-pub4',
+        name: 'Public Subnet',
+        type: 'subnet',
+        subnetAccess: 'public',
+        parentId: 'plate-tmpl-vnet4',
+        children: ['block-tmpl-gw4'],
+        position: { x: -3, y: 0.3, z: 0 },
+        size: { width: 5, height: 0.2, depth: 8 },
+        metadata: {},
+      },
+      {
+        id: 'plate-tmpl-priv4',
+        name: 'Private Subnet',
+        type: 'subnet',
+        subnetAccess: 'private',
+        parentId: 'plate-tmpl-vnet4',
+        children: ['block-tmpl-db4', 'block-tmpl-storage4'],
+        position: { x: 3, y: 0.3, z: 0 },
+        size: { width: 5, height: 0.2, depth: 8 },
+        metadata: {},
+      },
+    ],
+    blocks: [
+      {
+        id: 'block-tmpl-gw4',
+        name: 'API Gateway',
+        category: 'gateway',
+        placementId: 'plate-tmpl-pub4',
+        position: { x: 0, y: 0.5, z: -1.5 },
+        metadata: {},
+      },
+      {
+        id: 'block-tmpl-func4',
+        name: 'HTTP Handler',
+        category: 'function',
+        placementId: 'plate-tmpl-vnet4',
+        position: { x: 0, y: 0.5, z: 1.5 },
+        metadata: {},
+      },
+      {
+        id: 'block-tmpl-storage4',
+        name: 'Blob Storage',
+        category: 'storage',
+        placementId: 'plate-tmpl-priv4',
+        position: { x: -0.75, y: 0.5, z: -1.5 },
+        metadata: {},
+      },
+      {
+        id: 'block-tmpl-db4',
+        name: 'CosmosDB',
+        category: 'database',
+        placementId: 'plate-tmpl-priv4',
+        position: { x: 0.75, y: 0.5, z: -1.5 },
+        metadata: {},
+      },
+    ],
+    connections: [
+      {
+        id: 'conn-tmpl-inet-gw4',
+        sourceId: 'ext-internet',
+        targetId: 'block-tmpl-gw4',
+        type: 'dataflow',
+        metadata: {},
+      },
+      {
+        id: 'conn-tmpl-gw-func4',
+        sourceId: 'block-tmpl-gw4',
+        targetId: 'block-tmpl-func4',
+        type: 'dataflow',
+        metadata: {},
+      },
+      {
+        id: 'conn-tmpl-func-storage4',
+        sourceId: 'block-tmpl-func4',
+        targetId: 'block-tmpl-storage4',
+        type: 'dataflow',
+        metadata: {},
+      },
+      {
+        id: 'conn-tmpl-func-db4',
+        sourceId: 'block-tmpl-func4',
+        targetId: 'block-tmpl-db4',
+        type: 'dataflow',
+        metadata: {},
+      },
+    ],
+    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+  },
+};
+
+const eventDrivenPipelineTemplate: ArchitectureTemplate = {
+  id: 'template-event-driven-pipeline',
+  name: 'Event-Driven Pipeline',
+  description:
+    'Event-driven data processing pipeline. Events trigger a processing function ' +
+    'that reads from a queue and writes results to storage. Timer triggers periodic batch jobs.',
+  category: 'data-pipeline',
+  difficulty: 'advanced',
+  tags: ['event-driven', 'queue', 'function', 'timer', 'pipeline'],
+  generatorCompat: ['terraform', 'bicep', 'pulumi'],
+  architecture: {
+    name: 'Event-Driven Pipeline',
+    version: '1',
+    plates: [
+      {
+        id: 'plate-tmpl-vnet5',
+        name: 'VNet',
+        type: 'network',
+        parentId: null,
+        children: ['plate-tmpl-priv5'],
+        position: { x: 0, y: 0, z: 0 },
+        size: { width: 12, height: 0.3, depth: 10 },
+        metadata: {},
+      },
+      {
+        id: 'plate-tmpl-priv5',
+        name: 'Private Subnet',
+        type: 'subnet',
+        subnetAccess: 'private',
+        parentId: 'plate-tmpl-vnet5',
+        children: ['block-tmpl-storage5'],
+        position: { x: 3, y: 0.3, z: 0 },
+        size: { width: 5, height: 0.2, depth: 8 },
+        metadata: {},
+      },
+    ],
+    blocks: [
+      {
+        id: 'block-tmpl-event5',
+        name: 'Event Source',
+        category: 'event',
+        placementId: 'plate-tmpl-vnet5',
+        position: { x: -2, y: 0.5, z: -2 },
+        metadata: {},
+      },
+      {
+        id: 'block-tmpl-queue5',
+        name: 'Message Queue',
+        category: 'queue',
+        placementId: 'plate-tmpl-vnet5',
+        position: { x: -2, y: 0.5, z: 1 },
+        metadata: {},
+      },
+      {
+        id: 'block-tmpl-timer5',
+        name: 'Batch Timer',
+        category: 'timer',
+        placementId: 'plate-tmpl-vnet5',
+        position: { x: 0, y: 0.5, z: -2 },
+        metadata: {},
+      },
+      {
+        id: 'block-tmpl-func5a',
+        name: 'Event Processor',
+        category: 'function',
+        placementId: 'plate-tmpl-vnet5',
+        position: { x: 0, y: 0.5, z: 1 },
+        metadata: {},
+      },
+      {
+        id: 'block-tmpl-func5b',
+        name: 'Batch Processor',
+        category: 'function',
+        placementId: 'plate-tmpl-vnet5',
+        position: { x: 2, y: 0.5, z: -2 },
+        metadata: {},
+      },
+      {
+        id: 'block-tmpl-storage5',
+        name: 'Data Lake',
+        category: 'storage',
+        placementId: 'plate-tmpl-priv5',
+        position: { x: 0, y: 0.5, z: -1.5 },
+        metadata: {},
+      },
+    ],
+    connections: [
+      {
+        id: 'conn-tmpl-event-func5a',
+        sourceId: 'block-tmpl-event5',
+        targetId: 'block-tmpl-func5a',
+        type: 'dataflow',
+        metadata: {},
+      },
+      {
+        id: 'conn-tmpl-queue-func5a',
+        sourceId: 'block-tmpl-queue5',
+        targetId: 'block-tmpl-func5a',
+        type: 'dataflow',
+        metadata: {},
+      },
+      {
+        id: 'conn-tmpl-func5a-storage',
+        sourceId: 'block-tmpl-func5a',
+        targetId: 'block-tmpl-storage5',
+        type: 'dataflow',
+        metadata: {},
+      },
+      {
+        id: 'conn-tmpl-func5a-queue',
+        sourceId: 'block-tmpl-func5a',
+        targetId: 'block-tmpl-queue5',
+        type: 'dataflow',
+        metadata: {},
+      },
+      {
+        id: 'conn-tmpl-timer-func5b',
+        sourceId: 'block-tmpl-timer5',
+        targetId: 'block-tmpl-func5b',
+        type: 'dataflow',
+        metadata: {},
+      },
+      {
+        id: 'conn-tmpl-func5b-storage',
+        sourceId: 'block-tmpl-func5b',
+        targetId: 'block-tmpl-storage5',
+        type: 'dataflow',
+        metadata: {},
+      },
+    ],
+    externalActors: [],
+  },
+};
+
 /**
  * Initialize all built-in templates.
  * Call this once at app startup.
@@ -320,4 +571,6 @@ export function registerBuiltinTemplates(): void {
   registerTemplate(threeTierTemplate);
   registerTemplate(simpleComputeTemplate);
   registerTemplate(dataStorageTemplate);
+  registerTemplate(serverlessHttpApiTemplate);
+  registerTemplate(eventDrivenPipelineTemplate);
 }

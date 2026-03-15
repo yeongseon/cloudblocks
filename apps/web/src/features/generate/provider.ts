@@ -1,25 +1,29 @@
-import type { ProviderAdapter } from './types';
+import type { ProviderAdapter, ProviderDefinition, ProviderName } from './types';
 
 /**
- * Azure Provider Adapter (v0.3)
+ * Azure Provider Definitions (v1.0)
  * Based on docs/engine/provider.md
  *
- * Maps CloudBlocks domain entities to Azure Terraform resources.
+ * Maps CloudBlocks domain entities to Azure resources for each generator.
  *
  * Block Mappings:
- *   compute  → azurerm_linux_web_app
- *   database → azurerm_postgresql_flexible_server
- *   storage  → azurerm_storage_account
- *   gateway  → azurerm_application_gateway
+ *   compute  → azurerm_linux_web_app / Microsoft.Web/sites / azure-native:web:WebApp
+ *   database → azurerm_postgresql_flexible_server / Microsoft.DBforPostgreSQL/flexibleServers
+ *   storage  → azurerm_storage_account / Microsoft.Storage/storageAccounts
+ *   gateway  → azurerm_application_gateway / Microsoft.Network/applicationGateways
+ *   function → azurerm_linux_function_app / Microsoft.Web/sites (functionapp)
+ *   queue    → azurerm_storage_queue / Microsoft.Storage/storageAccounts/queueServices
+ *   event    → azurerm_eventgrid_topic / Microsoft.EventGrid/topics
+ *   timer    → azurerm_logic_app_workflow / Microsoft.Logic/workflows
  *
  * Plate Mappings:
- *   network  → azurerm_virtual_network
- *   subnet   → azurerm_subnet
+ *   network  → azurerm_virtual_network / Microsoft.Network/virtualNetworks
+ *   subnet   → azurerm_subnet / Microsoft.Network/virtualNetworks/subnets
  */
 
-export const azureProvider: ProviderAdapter = {
+export const azureProviderDefinition: ProviderDefinition = {
   name: 'azure',
-  displayName: 'Azure (azurerm)',
+  displayName: 'Azure',
 
   blockMappings: {
     compute: {
@@ -38,6 +42,22 @@ export const azureProvider: ProviderAdapter = {
       resourceType: 'azurerm_application_gateway',
       namePrefix: 'appgw',
     },
+    function: {
+      resourceType: 'azurerm_linux_function_app',
+      namePrefix: 'func',
+    },
+    queue: {
+      resourceType: 'azurerm_storage_queue',
+      namePrefix: 'queue',
+    },
+    event: {
+      resourceType: 'azurerm_eventgrid_topic',
+      namePrefix: 'evtopic',
+    },
+    timer: {
+      resourceType: 'azurerm_logic_app_workflow',
+      namePrefix: 'timer',
+    },
   },
 
   plateMappings: {
@@ -51,25 +71,48 @@ export const azureProvider: ProviderAdapter = {
     },
   },
 
-  providerBlock: (region: string) =>
-    [
-      'provider "azurerm" {',
-      '  features {}',
-      `  # region: ${region}`,
-      '}',
-    ].join('\n'),
+  generators: {
+    terraform: {
+      requiredProviders: () =>
+        [
+          'terraform {',
+          '  required_providers {',
+          '    azurerm = {',
+          '      source  = "hashicorp/azurerm"',
+          '      version = "~> 3.0"',
+          '    }',
+          '  }',
+          '}',
+        ].join('\n'),
+      providerBlock: (region: string) =>
+        [
+          'provider "azurerm" {',
+          '  features {}',
+          `  # region: ${region}`,
+          '}',
+        ].join('\n'),
+    },
+    bicep: {
+      targetScope: 'resourceGroup',
+    },
+    pulumi: {
+      packageName: '@pulumi/azure-native',
+      runtime: 'nodejs',
+    },
+  },
+};
 
-  requiredProviders: () =>
-    [
-      'terraform {',
-      '  required_providers {',
-      '    azurerm = {',
-      '      source  = "hashicorp/azurerm"',
-      '      version = "~> 3.0"',
-      '    }',
-      '  }',
-      '}',
-    ].join('\n'),
+/**
+ * Legacy ProviderAdapter — wraps ProviderDefinition for backward compat with terraform.ts.
+ * @deprecated Prefer using ProviderDefinition directly via getProviderDefinition().
+ */
+export const azureProvider: ProviderAdapter = {
+  name: azureProviderDefinition.name,
+  displayName: azureProviderDefinition.displayName,
+  blockMappings: azureProviderDefinition.blockMappings,
+  plateMappings: azureProviderDefinition.plateMappings,
+  providerBlock: azureProviderDefinition.generators.terraform.providerBlock,
+  requiredProviders: azureProviderDefinition.generators.terraform.requiredProviders,
 };
 
 /** Provider registry — extensible for future providers */
@@ -77,6 +120,14 @@ const providers: Record<string, ProviderAdapter> = {
   azure: azureProvider,
 };
 
+const providerDefinitions: Record<string, ProviderDefinition> = {
+  azure: azureProviderDefinition,
+};
+
 export function getProvider(name: string): ProviderAdapter | undefined {
   return providers[name];
+}
+
+export function getProviderDefinition(name: ProviderName): ProviderDefinition | undefined {
+  return providerDefinitions[name];
 }

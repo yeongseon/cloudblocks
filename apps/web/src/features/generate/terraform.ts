@@ -141,6 +141,22 @@ function generateBlockResource(
       lines.push(`    capacity = 1`);
       lines.push(`  }`);
       break;
+    case 'function':
+      lines.push(`  service_plan_id            = azurerm_service_plan.main.id`);
+      lines.push(`  storage_account_name       = "\${var.project_name}funcsa"`);
+      lines.push(`  storage_account_access_key = "PLACEHOLDER"`);
+      lines.push(`  site_config {}`);
+      break;
+    case 'queue':
+      lines.push(`  storage_account_name = "\${var.project_name}sa"`);
+      break;
+    case 'event':
+      lines.push(`  # EventGrid topic configuration`);
+      break;
+    case 'timer':
+      lines.push(`  # Logic App workflow with recurrence trigger`);
+      lines.push(`  workflow_parameters = {}`);
+      break;
   }
 
   lines.push('}');
@@ -187,8 +203,8 @@ export function generateMainTf(
   sections.push('}');
   sections.push('');
 
-  // Service plan (if compute blocks exist)
-  const hasCompute = architecture.blocks.some((b) => b.category === 'compute');
+  // Service plan (if compute or function blocks exist)
+  const hasCompute = architecture.blocks.some((b) => b.category === 'compute' || b.category === 'function');
   if (hasCompute) {
     sections.push('resource "azurerm_service_plan" "main" {');
     sections.push(`  name                = "\${var.project_name}-plan"`);

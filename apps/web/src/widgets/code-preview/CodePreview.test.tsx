@@ -15,12 +15,12 @@ vi.mock('../../features/generate/pipeline', () => {
     }
   };
   return {
-    generateTerraform: vi.fn(),
+    generateCode: vi.fn(),
     GenerationError,
   };
 });
 
-import { generateTerraform } from '../../features/generate/pipeline';
+import { generateCode } from '../../features/generate/pipeline';
 import { GenerationError } from '../../features/generate/pipeline';
 
 const mockArch: ArchitectureModel = {
@@ -73,6 +73,17 @@ describe('CodePreview', () => {
     expect(screen.getByDisplayValue('eastus')).toBeInTheDocument();
   });
 
+  it('renders generator selector with three options', () => {
+    useUIStore.setState({ showCodePreview: true });
+    render(<CodePreview />);
+
+    const select = screen.getByRole('combobox');
+    expect(select).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'Terraform (HCL)' })).toHaveAttribute('value', 'terraform');
+    expect(screen.getByRole('option', { name: 'Bicep (Azure)' })).toHaveAttribute('value', 'bicep');
+    expect(screen.getByRole('option', { name: 'Pulumi (TypeScript)' })).toHaveAttribute('value', 'pulumi');
+  });
+
   it('updates project name input', async () => {
     const user = userEvent.setup();
     useUIStore.setState({ showCodePreview: true });
@@ -107,16 +118,17 @@ describe('CodePreview', () => {
         generatedAt: '2026-01-01T00:00:00.000Z',
       },
     };
-    vi.mocked(generateTerraform).mockReturnValue(mockOutput);
+    vi.mocked(generateCode).mockReturnValue(mockOutput);
 
     useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
-    await user.click(screen.getByText(/Generate Terraform/));
-    expect(generateTerraform).toHaveBeenCalledWith(mockArch, {
+    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
+    expect(generateCode).toHaveBeenCalledWith(mockArch, {
       provider: 'azure',
       mode: 'draft',
       projectName: 'myproject',
       region: 'eastus',
+      generator: 'terraform',
     });
     expect(screen.getByText('main.tf')).toBeInTheDocument();
     expect(screen.getByText('variables.tf')).toBeInTheDocument();
@@ -137,11 +149,11 @@ describe('CodePreview', () => {
         generatedAt: '2026-01-01T00:00:00.000Z',
       },
     };
-    vi.mocked(generateTerraform).mockReturnValue(mockOutput);
+    vi.mocked(generateCode).mockReturnValue(mockOutput);
 
     useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
-    await user.click(screen.getByText(/Generate Terraform/));
+    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
     // Default shows first file
     expect(screen.getByText('main content')).toBeInTheDocument();
     // Switch to second tab
@@ -151,25 +163,25 @@ describe('CodePreview', () => {
 
   it('shows error on GenerationError', async () => {
     const user = userEvent.setup();
-    vi.mocked(generateTerraform).mockImplementation(() => {
+    vi.mocked(generateCode).mockImplementation(() => {
       throw new GenerationError('Architecture is empty');
     });
 
     useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
-    await user.click(screen.getByText(/Generate Terraform/));
+    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
     expect(screen.getByText('Architecture is empty')).toBeInTheDocument();
   });
 
   it('shows generic error on unexpected error', async () => {
     const user = userEvent.setup();
-    vi.mocked(generateTerraform).mockImplementation(() => {
+    vi.mocked(generateCode).mockImplementation(() => {
       throw new Error('something unexpected');
     });
 
     useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
-    await user.click(screen.getByText(/Generate Terraform/));
+    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
     expect(screen.getByText('Unexpected error during code generation.')).toBeInTheDocument();
   });
 
@@ -186,11 +198,11 @@ describe('CodePreview', () => {
       files: [{ path: 'main.tf', content: 'resource content', language: 'hcl' as const }],
       metadata: { generator: 'terraform', version: '0.3.0', provider: 'azure' as const, generatedAt: '2026-01-01T00:00:00.000Z' },
     };
-    vi.mocked(generateTerraform).mockReturnValue(mockOutput);
+    vi.mocked(generateCode).mockReturnValue(mockOutput);
 
     useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
-    await user.click(screen.getByText(/Generate Terraform/));
+    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
     await user.click(screen.getByText(/Copy/));
     expect(writeTextMock).toHaveBeenCalledWith('resource content');
   });
@@ -217,11 +229,11 @@ describe('CodePreview', () => {
       ],
       metadata: { generator: 'terraform', version: '0.3.0', provider: 'azure' as const, generatedAt: '2026-01-01T00:00:00.000Z' },
     };
-    vi.mocked(generateTerraform).mockReturnValue(mockOutput);
+    vi.mocked(generateCode).mockReturnValue(mockOutput);
 
     useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
-    await user.click(screen.getByText(/Generate Terraform/));
+    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
     await user.click(screen.getByText(/Download All/));
     expect(clickMock).toHaveBeenCalledTimes(2);
     expect(revokeObjectURLMock).toHaveBeenCalledTimes(2);
@@ -235,11 +247,11 @@ describe('CodePreview', () => {
       files: [{ path: 'main.tf', content: 'content', language: 'hcl' as const }],
       metadata: { generator: 'terraform', version: '0.3.0', provider: 'azure' as const, generatedAt: '2026-03-15T12:00:00.000Z' },
     };
-    vi.mocked(generateTerraform).mockReturnValue(mockOutput);
+    vi.mocked(generateCode).mockReturnValue(mockOutput);
 
     useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
-    await user.click(screen.getByText(/Generate Terraform/));
+    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
     expect(screen.getByText(/v0\.3\.0/)).toBeInTheDocument();
     expect(screen.getByText(/azure/)).toBeInTheDocument();
   });
@@ -247,12 +259,12 @@ describe('CodePreview', () => {
   it('clears previous error and output before generating', async () => {
     const user = userEvent.setup();
     // First: cause an error
-    vi.mocked(generateTerraform).mockImplementation(() => {
+    vi.mocked(generateCode).mockImplementation(() => {
       throw new GenerationError('First error');
     });
     useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
-    await user.click(screen.getByText(/Generate Terraform/));
+    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
     expect(screen.getByText('First error')).toBeInTheDocument();
 
     // Second: succeed
@@ -260,8 +272,8 @@ describe('CodePreview', () => {
       files: [{ path: 'main.tf', content: 'ok', language: 'hcl' as const }],
       metadata: { generator: 'terraform', version: '0.3.0', provider: 'azure' as const, generatedAt: '2026-01-01T00:00:00.000Z' },
     };
-    vi.mocked(generateTerraform).mockReturnValue(mockOutput);
-    await user.click(screen.getByText(/Generate Terraform/));
+    vi.mocked(generateCode).mockReturnValue(mockOutput);
+    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
     expect(screen.queryByText('First error')).not.toBeInTheDocument();
     expect(screen.getByText('main.tf')).toBeInTheDocument();
   });

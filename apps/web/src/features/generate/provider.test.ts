@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { azureProvider, getProvider } from './provider';
+import {
+  azureProvider,
+  azureProviderDefinition,
+  getProvider,
+  getProviderDefinition,
+} from './provider';
 
 describe('azureProvider', () => {
   beforeEach(() => {
@@ -9,7 +14,7 @@ describe('azureProvider', () => {
 
   it('exposes azure provider identity', () => {
     expect(azureProvider.name).toBe('azure');
-    expect(azureProvider.displayName).toBe('Azure (azurerm)');
+    expect(azureProvider.displayName).toBe('Azure');
   });
 
   it('defines all block mappings', () => {
@@ -28,6 +33,22 @@ describe('azureProvider', () => {
     expect(azureProvider.blockMappings.gateway).toEqual({
       resourceType: 'azurerm_application_gateway',
       namePrefix: 'appgw',
+    });
+    expect(azureProvider.blockMappings.function).toEqual({
+      resourceType: 'azurerm_linux_function_app',
+      namePrefix: 'func',
+    });
+    expect(azureProvider.blockMappings.queue).toEqual({
+      resourceType: 'azurerm_storage_queue',
+      namePrefix: 'queue',
+    });
+    expect(azureProvider.blockMappings.event).toEqual({
+      resourceType: 'azurerm_eventgrid_topic',
+      namePrefix: 'evtopic',
+    });
+    expect(azureProvider.blockMappings.timer).toEqual({
+      resourceType: 'azurerm_logic_app_workflow',
+      namePrefix: 'timer',
     });
   });
 
@@ -69,5 +90,15 @@ describe('getProvider', () => {
 
   it('returns undefined for unknown name', () => {
     expect(getProvider('unknown')).toBeUndefined();
+  });
+});
+
+describe('getProviderDefinition', () => {
+  it('returns azure provider definition for azure name', () => {
+    expect(getProviderDefinition('azure')).toBe(azureProviderDefinition);
+  });
+
+  it('returns undefined for unknown name', () => {
+    expect(getProviderDefinition('unknown' as 'azure')).toBeUndefined();
   });
 });

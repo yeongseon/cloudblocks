@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { listTemplates } from '../../features/templates/registry';
-import type { ArchitectureTemplate, TemplateDifficulty } from '../../shared/types/template';
+import { listTemplates, listTemplatesByCategory } from '../../features/templates/registry';
+import type { ArchitectureTemplate, TemplateCategory, TemplateDifficulty } from '../../shared/types/template';
 import './TemplateGallery.css';
 
 const difficultyColors: Record<TemplateDifficulty, string> = {
@@ -10,15 +11,35 @@ const difficultyColors: Record<TemplateDifficulty, string> = {
   advanced: '#E57373',
 };
 
+const categoryLabels: Record<TemplateCategory | 'all', string> = {
+  all: 'All',
+  'web-application': 'Web App',
+  serverless: 'Serverless',
+  'data-pipeline': 'Data Pipeline',
+  general: 'General',
+};
+
+const categoryKeys: Array<TemplateCategory | 'all'> = [
+  'all',
+  'web-application',
+  'serverless',
+  'data-pipeline',
+  'general',
+];
+
 export function TemplateGallery() {
   const show = useUIStore((s) => s.showTemplateGallery);
   const toggleTemplateGallery = useUIStore((s) => s.toggleTemplateGallery);
   const loadFromTemplate = useArchitectureStore((s) => s.loadFromTemplate);
   const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
+  const [activeCategory, setActiveCategory] = useState<TemplateCategory | 'all'>('all');
 
   if (!show) return null;
 
-  const templates = listTemplates();
+  const templates =
+    activeCategory === 'all'
+      ? listTemplates()
+      : listTemplatesByCategory(activeCategory);
 
   const handleUseTemplate = (template: ArchitectureTemplate) => {
     saveToStorage();
@@ -35,8 +56,20 @@ export function TemplateGallery() {
         </button>
       </div>
 
+      <div className="template-gallery-filters">
+        {categoryKeys.map((key) => (
+          <button
+            key={key}
+            className={`template-gallery-filter-btn${activeCategory === key ? ' active' : ''}`}
+            onClick={() => setActiveCategory(key)}
+          >
+            {categoryLabels[key]}
+          </button>
+        ))}
+      </div>
+
       {templates.length === 0 ? (
-        <div className="template-gallery-empty">No templates available.</div>
+        <div className="template-gallery-empty">No templates in this category.</div>
       ) : (
         <div className="template-gallery-list">
           {templates.map((template) => (
@@ -58,6 +91,11 @@ export function TemplateGallery() {
                       {tag}
                     </span>
                   ))}
+                  {template.generatorCompat && (
+                    <span className="template-gallery-tag template-gallery-tag-compat">
+                      {template.generatorCompat.join(' · ')}
+                    </span>
+                  )}
                 </div>
                 <button
                   className="template-gallery-use-btn"

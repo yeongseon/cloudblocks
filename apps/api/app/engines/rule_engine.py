@@ -2,6 +2,9 @@
 
 Server-side implementation of the same rules that run client-side,
 ensuring consistent validation regardless of client behavior.
+
+v1.0: Added serverless block types (function, queue, event, timer)
+      and their placement/connection rules.
 """
 
 from typing import Any
@@ -65,7 +68,8 @@ def _validate_placement(block: dict, plate: dict | None) -> dict | None:
     plate_type = plate["type"]
     subnet_access = plate.get("subnetAccess")
 
-    rules = {
+    # Subnet-based block rules (v0.1)
+    subnet_rules = {
         "compute": (plate_type == "subnet", "rule-compute-subnet", "Subnet Plate"),
         "database": (
             plate_type == "subnet" and subnet_access == "private",
@@ -80,15 +84,53 @@ def _validate_placement(block: dict, plate: dict | None) -> dict | None:
         "storage": (plate_type == "subnet", "rule-storage-subnet", "Subnet Plate"),
     }
 
-    if category in rules:
-        valid, rule_id, target_desc = rules[category]
+    # Serverless block rules (v1.0) — must be on network plate, NOT subnet
+    serverless_rules = {
+        "function": (
+            plate_type == "network",
+            "rule-function-network",
+            "Network Plate (not Subnet)",
+        ),
+        "queue": (
+            plate_type == "network",
+            "rule-queue-network",
+            "Network Plate (not Subnet)",
+        ),
+        "event": (
+            plate_type == "network",
+            "rule-event-network",
+            "Network Plate (not Subnet)",
+        ),
+        "timer": (
+            plate_type == "network",
+            "rule-timer-network",
+            "Network Plate (not Subnet)",
+        ),
+    }
+
+    if category in subnet_rules:
+        valid, rule_id, target_desc = subnet_rules[category]
         if not valid:
             return {
                 "ruleId": rule_id,
                 "severity": "error",
                 "message": (
                     f'{category.title()} block "{block["name"]}"'
-                    f' must be placed on a {target_desc}'
+                    f" must be placed on a {target_desc}"
+                ),
+                "suggestion": f"Move the {category.title()} block to a {target_desc}",
+                "targetId": block["id"],
+            }
+
+    if category in serverless_rules:
+        valid, rule_id, target_desc = serverless_rules[category]
+        if not valid:
+            return {
+                "ruleId": rule_id,
+                "severity": "error",
+                "message": (
+                    f'{category.title()} block "{block["name"]}"'
+                    f" must be placed on a {target_desc}"
                 ),
                 "suggestion": f"Move the {category.title()} block to a {target_desc}",
                 "targetId": block["id"],
@@ -101,10 +143,15 @@ def _validate_connection(
     connection: dict, blocks: list[dict], external_actors: list[dict]
 ) -> dict | None:
     """Validate a connection between endpoints."""
+    # Connection adjacency table (v1.0 — includes serverless)
     allowed = {
         "internet": {"gateway"},
-        "gateway": {"compute"},
+        "gateway": {"compute", "function"},
         "compute": {"database", "storage"},
+        "function": {"storage", "database", "queue"},
+        "queue": {"function"},
+        "timer": {"function"},
+        "event": {"function"},
     }
 
     source_type = _get_endpoint_type(connection["sourceId"], blocks, external_actors)

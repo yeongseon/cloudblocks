@@ -74,4 +74,33 @@ describe('TemplateGallery', () => {
     const tagElements = document.querySelectorAll('.template-gallery-tag');
     expect(tagElements.length).toBeGreaterThan(0);
   });
+
+  it('renders category filter tabs', () => {
+    useUIStore.setState({ showTemplateGallery: true });
+    render(<TemplateGallery />);
+
+    expect(screen.getByRole('button', { name: 'All' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Web App' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Serverless' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Data Pipeline' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'General' })).toBeInTheDocument();
+  });
+
+  it('filters templates when a category tab is clicked', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ showTemplateGallery: true });
+    render(<TemplateGallery />);
+
+    await user.click(screen.getByRole('button', { name: 'Serverless' }));
+
+    expect(screen.getByText('Serverless HTTP API')).toBeInTheDocument();
+    expect(screen.queryByText('Three-Tier Web Application')).not.toBeInTheDocument();
+  });
+
+  it('renders generator compatibility tag for templates that define generatorCompat', () => {
+    useUIStore.setState({ showTemplateGallery: true });
+    render(<TemplateGallery />);
+
+    expect(screen.getAllByText('terraform · bicep · pulumi').length).toBeGreaterThan(0);
+  });
 });

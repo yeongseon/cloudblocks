@@ -102,7 +102,6 @@ src/
 
 - EventFlow / Dependency connection types
 - Drag-and-drop block placement
-- Bicep / Pulumi generators
 
 ## Build
 

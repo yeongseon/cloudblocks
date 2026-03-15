@@ -14,15 +14,20 @@ import type {
  * Responses are implied and do not require a reverse connection.
  *
  * Allowed connections:
- *   Internet → Gateway    ✔  (external traffic enters through gateway)
- *   Gateway  → Compute    ✔  (gateway forwards to compute)
- *   Compute  → Database   ✔  (app queries database)
- *   Compute  → Storage    ✔  (app reads/writes storage)
+ *   Internet  → Gateway               ✔  (external traffic enters through gateway)
+ *   Gateway   → Compute               ✔  (gateway forwards to compute)
+ *   Gateway   → Function              ✔  (HTTP trigger, v1.0)
+ *   Compute   → Database              ✔  (app queries database)
+ *   Compute   → Storage               ✔  (app reads/writes storage)
+ *   Function  → Storage               ✔  (function accesses storage, v1.0)
+ *   Function  → Database              ✔  (function accesses database, v1.0)
+ *   Function  → Queue                 ✔  (function enqueues messages, v1.0)
+ *   Queue     → Function              ✔  (queue trigger, v1.0)
+ *   Timer     → Function              ✔  (timer trigger, v1.0)
+ *   Event     → Function              ✔  (event trigger, v1.0)
  *
  * Database and Storage are receiver-only — they never initiate connections.
- * Event-driven patterns (e.g., DB change streams, storage triggers) should
- * be modeled with explicit intermediary services (EventGrid, Streams, etc.)
- * once EventFlow connection type is available in v1.0.
+ * Queue, Timer, and Event can only connect to Function.
  */
 
 type EndpointType = BlockCategory | 'internet';
@@ -30,8 +35,12 @@ type EndpointType = BlockCategory | 'internet';
 /** Map of allowed connections: source (initiator) → Set<target (receiver)> */
 const ALLOWED_CONNECTIONS: Record<string, Set<string>> = {
   internet: new Set(['gateway']),
-  gateway: new Set(['compute']),
+  gateway: new Set(['compute', 'function']),
   compute: new Set(['database', 'storage']),
+  function: new Set(['storage', 'database', 'queue']),
+  queue: new Set(['function']),
+  timer: new Set(['function']),
+  event: new Set(['function']),
   // database and storage are receiver-only — not listed as sources
 };
 
