@@ -10,7 +10,7 @@ import json
 from datetime import datetime, timezone
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header
 from pydantic import BaseModel
 
 from app.core.dependencies import (
@@ -89,7 +89,7 @@ async def list_repos(
     current_user: Annotated[User, Depends(get_current_user)],
     github: Annotated[GitHubService, Depends(get_github_service)],
     identity_repo: Annotated[IdentityRepository, Depends(get_identity_repo)],
-    x_github_token: str | None = None,
+    x_github_token: Annotated[str | None, Header()] = None,
 ) -> dict:
     """List GitHub repositories the user has access to."""
     token = await _get_github_token_from_header_or_identity(
@@ -116,7 +116,7 @@ async def create_repo(
     current_user: Annotated[User, Depends(get_current_user)],
     github: Annotated[GitHubService, Depends(get_github_service)],
     identity_repo: Annotated[IdentityRepository, Depends(get_identity_repo)],
-    x_github_token: str | None = None,
+    x_github_token: Annotated[str | None, Header()] = None,
 ) -> dict:
     """Create a new GitHub repository."""
     token = await _get_github_token_from_header_or_identity(
@@ -139,7 +139,7 @@ async def sync_to_github(
     workspace_repo: Annotated[WorkspaceRepository, Depends(get_workspace_repo)],
     github: Annotated[GitHubService, Depends(get_github_service)],
     identity_repo: Annotated[IdentityRepository, Depends(get_identity_repo)],
-    x_github_token: str | None = None,
+    x_github_token: Annotated[str | None, Header()] = None,
 ) -> dict:
     """Sync architecture.json to the linked GitHub repository."""
     workspace = await workspace_repo.find_by_id(workspace_id)
@@ -199,7 +199,7 @@ async def pull_from_github(
     workspace_repo: Annotated[WorkspaceRepository, Depends(get_workspace_repo)],
     github: Annotated[GitHubService, Depends(get_github_service)],
     identity_repo: Annotated[IdentityRepository, Depends(get_identity_repo)],
-    x_github_token: str | None = None,
+    x_github_token: Annotated[str | None, Header()] = None,
 ) -> dict:
     """Pull the latest architecture.json from the linked GitHub repository."""
     workspace = await workspace_repo.find_by_id(workspace_id)
@@ -239,7 +239,7 @@ async def create_pull_request(
     workspace_repo: Annotated[WorkspaceRepository, Depends(get_workspace_repo)],
     github: Annotated[GitHubService, Depends(get_github_service)],
     identity_repo: Annotated[IdentityRepository, Depends(get_identity_repo)],
-    x_github_token: str | None = None,
+    x_github_token: Annotated[str | None, Header()] = None,
 ) -> dict:
     """Create a PR with architecture changes on a new branch."""
     workspace = await workspace_repo.find_by_id(workspace_id)
@@ -305,7 +305,7 @@ async def list_commits(
     workspace_repo: Annotated[WorkspaceRepository, Depends(get_workspace_repo)],
     github: Annotated[GitHubService, Depends(get_github_service)],
     identity_repo: Annotated[IdentityRepository, Depends(get_identity_repo)],
-    x_github_token: str | None = None,
+    x_github_token: Annotated[str | None, Header()] = None,
 ) -> dict:
     """List recent commits for the linked repository."""
     workspace = await workspace_repo.find_by_id(workspace_id)

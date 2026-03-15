@@ -92,20 +92,21 @@ describe('App', () => {
     });
   });
 
-  it('renders all child components', () => {
+  it('renders all child components', async () => {
     render(<App />);
     expect(screen.getByTestId('toolbar')).toBeInTheDocument();
     expect(screen.getByTestId('scene-canvas')).toBeInTheDocument();
     expect(screen.getByTestId('block-palette')).toBeInTheDocument();
     expect(screen.getByTestId('properties-panel')).toBeInTheDocument();
     expect(screen.getByTestId('validation-panel')).toBeInTheDocument();
-    expect(screen.getByTestId('code-preview')).toBeInTheDocument();
-    expect(screen.getByTestId('workspace-manager')).toBeInTheDocument();
-    expect(screen.getByTestId('template-gallery')).toBeInTheDocument();
-    expect(screen.getByTestId('github-login')).toBeInTheDocument();
-    expect(screen.getByTestId('github-repos')).toBeInTheDocument();
-    expect(screen.getByTestId('github-sync')).toBeInTheDocument();
-    expect(screen.getByTestId('github-pr')).toBeInTheDocument();
+    // Lazy-loaded widgets (code-split) — need to wait for async load
+    expect(await screen.findByTestId('code-preview')).toBeInTheDocument();
+    expect(await screen.findByTestId('workspace-manager')).toBeInTheDocument();
+    expect(await screen.findByTestId('template-gallery')).toBeInTheDocument();
+    expect(await screen.findByTestId('github-login')).toBeInTheDocument();
+    expect(await screen.findByTestId('github-repos')).toBeInTheDocument();
+    expect(await screen.findByTestId('github-sync')).toBeInTheDocument();
+    expect(await screen.findByTestId('github-pr')).toBeInTheDocument();
   });
 
   it('calls registerBuiltinTemplates and loadFromStorage on mount', () => {

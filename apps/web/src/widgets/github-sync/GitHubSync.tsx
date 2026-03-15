@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
@@ -30,7 +30,7 @@ export function GitHubSync() {
     return workspace.id;
   }, [backendWorkspaceId, workspace.id]);
 
-  const loadCommits = async () => {
+  const loadCommits = useCallback(async () => {
     if (!linkedRepo || !effectiveWorkspaceId) return;
 
     setLoading(true);
@@ -45,12 +45,12 @@ export function GitHubSync() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [linkedRepo, effectiveWorkspaceId]);
 
   useEffect(() => {
     if (!show || !isAuthenticated || !linkedRepo) return;
     void loadCommits();
-  }, [show, isAuthenticated, linkedRepo, effectiveWorkspaceId]);
+  }, [show, isAuthenticated, linkedRepo, effectiveWorkspaceId, loadCommits]);
 
   if (!show) return null;
 

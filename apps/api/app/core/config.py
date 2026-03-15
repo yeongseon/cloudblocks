@@ -1,5 +1,6 @@
 """CloudBlocks API - Core configuration using pydantic-settings."""
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings
 
 
@@ -30,6 +31,19 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["http://localhost:5173"]
 
     model_config = {"env_prefix": "CLOUDBLOCKS_", "env_file": ".env", "extra": "ignore"}
+
+    _WEAK_SECRETS: set[str] = {"change-me-in-production", "secret", "password", ""}
+
+    @model_validator(mode="after")
+    def _validate_jwt_secret_strength(self) -> "Settings":
+        if self.app_env != "development" and (
+            self.jwt_secret in self._WEAK_SECRETS or len(self.jwt_secret) < 32
+        ):
+            raise ValueError(
+                f"JWT secret is too weak for env '{self.app_env}'. "
+                "Set CLOUDBLOCKS_JWT_SECRET to a random string of at least 32 characters."
+            )
+        return self
 
 
 settings = Settings()

@@ -1,16 +1,9 @@
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { SceneCanvas } from '../widgets/scene-canvas/SceneCanvas';
 import { Toolbar } from '../widgets/toolbar/Toolbar';
 import { BlockPalette } from '../widgets/block-palette/BlockPalette';
 import { PropertiesPanel } from '../widgets/properties-panel/PropertiesPanel';
 import { ValidationPanel } from '../widgets/validation-panel/ValidationPanel';
-import { CodePreview } from '../widgets/code-preview/CodePreview';
-import { WorkspaceManager } from '../widgets/workspace-manager/WorkspaceManager';
-import { TemplateGallery } from '../widgets/template-gallery/TemplateGallery';
-import { GitHubLogin } from '../widgets/github-login/GitHubLogin';
-import { GitHubRepos } from '../widgets/github-repos/GitHubRepos';
-import { GitHubSync } from '../widgets/github-sync/GitHubSync';
-import { GitHubPR } from '../widgets/github-pr/GitHubPR';
 import { useArchitectureStore } from '../entities/store/architectureStore';
 import { useAuthStore } from '../entities/store/authStore';
 import { useUIStore } from '../entities/store/uiStore';
@@ -18,6 +11,15 @@ import { registerBuiltinTemplates } from '../features/templates/builtin';
 import { apiGet } from '../shared/api/client';
 import type { AuthResponse } from '../shared/types/api';
 import './App.css';
+
+// Lazy-loaded optional widgets (code-split)
+const CodePreview = lazy(() => import('../widgets/code-preview/CodePreview').then(m => ({ default: m.CodePreview })));
+const WorkspaceManager = lazy(() => import('../widgets/workspace-manager/WorkspaceManager').then(m => ({ default: m.WorkspaceManager })));
+const TemplateGallery = lazy(() => import('../widgets/template-gallery/TemplateGallery').then(m => ({ default: m.TemplateGallery })));
+const GitHubLogin = lazy(() => import('../widgets/github-login/GitHubLogin').then(m => ({ default: m.GitHubLogin })));
+const GitHubRepos = lazy(() => import('../widgets/github-repos/GitHubRepos').then(m => ({ default: m.GitHubRepos })));
+const GitHubSync = lazy(() => import('../widgets/github-sync/GitHubSync').then(m => ({ default: m.GitHubSync })));
+const GitHubPR = lazy(() => import('../widgets/github-pr/GitHubPR').then(m => ({ default: m.GitHubPR })));
 
 function App() {
   const loadFromStorage = useArchitectureStore((s) => s.loadFromStorage);
@@ -117,13 +119,15 @@ function App() {
         <BlockPalette />
         <PropertiesPanel />
         <ValidationPanel />
-        <CodePreview />
-        <WorkspaceManager />
-        <TemplateGallery />
-        <GitHubLogin />
-        <GitHubRepos />
-        <GitHubSync />
-        <GitHubPR />
+        <Suspense fallback={null}>
+          <CodePreview />
+          <WorkspaceManager />
+          <TemplateGallery />
+          <GitHubLogin />
+          <GitHubRepos />
+          <GitHubSync />
+          <GitHubPR />
+        </Suspense>
       </div>
     </div>
   );

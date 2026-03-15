@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { BlockCategory } from '../../shared/types/index';
 import { BLOCK_COLORS } from '../../shared/types/index';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
@@ -24,6 +24,7 @@ export function BlockPalette() {
   const plates = useArchitectureStore((s) => s.workspace.architecture.plates);
   const selectedId = useUIStore((s) => s.selectedId);
   const [explicitTarget, setExplicitTarget] = useState<string | null>(null);
+  const counterRef = useRef(0);
 
   if (!showBlockPalette) return null;
 
@@ -37,7 +38,8 @@ export function BlockPalette() {
       alert('Please create a Subnet Plate first before adding blocks.');
       return;
     }
-    const name = `${category.charAt(0).toUpperCase() + category.slice(1)} ${Date.now().toString(36).slice(-4)}`;
+    counterRef.current += 1;
+    const name = `${category.charAt(0).toUpperCase() + category.slice(1)} ${counterRef.current}`;
     addBlock(category, name, targetPlateId);
   };
 
