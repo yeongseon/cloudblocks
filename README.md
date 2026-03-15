@@ -27,13 +27,14 @@ Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks
 - **Architecture templates** — Built-in starter templates with gallery UI (v0.4)
 - **Undo/redo** — Full history with keyboard shortcuts (v0.2)
 - **Multi-workspace** — Create, switch, and manage multiple workspaces (v0.4)
+- **GitHub integration** — OAuth login, repo sync, pull, and PR creation (v0.5)
+- **Backend API** — FastAPI orchestration layer with GitHub App OAuth (v0.5)
 - **Open source** — MIT licensed, extend and contribute freely
 
 ### Planned Features
 
-- **Git-native storage** — Architecture stored in GitHub repos (v0.5)
 - **Multi-generator** — Bicep, Pulumi export (v1.0)
-
+- **Template marketplace** — Community-contributed architecture templates (v1.0)
 ## Quick Start
 
 ```bash
@@ -50,20 +51,9 @@ cd apps/web && pnpm dev
 
 Open [http://localhost:5173](http://localhost:5173) to start building.
 
-> **Note**: v0.1 is a frontend-only SPA. No backend required.
+> **Note**: The frontend works standalone as an SPA. Start the backend (`apps/api`) for GitHub integration features.
 
-## How It Works (v0.1)
-
-```
-Place blocks on plates  →  Connect components  →  Validate rules  →  Save to localStorage
-```
-
-1. **Place blocks** — Compute, Database, Storage, Gateway on network plates via the palette
-2. **Connect** — Draw data flow connections between components
-3. **Validate** — Built-in rules check subnet placement, security, and connectivity
-4. **Save** — Workspace persisted in browser localStorage
-
-### Planned Workflow (v0.5+)
+### Workflow
 
 ```
 Design in isometric UI  →  architecture.json  →  Generate Terraform  →  Commit to GitHub  →  CI/CD deploys
@@ -71,13 +61,13 @@ Design in isometric UI  →  architecture.json  →  Generate Terraform  →  Co
 
 ## Architecture
 
-CloudBlocks is a monorepo. v0.1 is a frontend-only SPA with local persistence. Backend and GitHub integration are planned for v0.5.
+CloudBlocks is a monorepo with a React frontend and a Python FastAPI backend.
 
 ```
 cloudblocks/
 ├── apps/
 │   ├── web/          # React + Three.js frontend (FSD architecture)
-│   └── api/          # Python FastAPI backend (scaffolded, v0.5+)
+│   └── api/          # Python FastAPI backend (auth, GitHub integration)
 ├── packages/         # Shared packages (scaffolded)
 ├── docs/             # Project documentation
 ├── infra/            # Infrastructure-as-code for self-hosting
@@ -142,8 +132,8 @@ cd apps/web && pnpm build
 # Type check
 cd apps/web && npx tsc -b
 
-# Backend (scaffolded, not required for v0.1)
-# cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
+# Backend
+cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 ```
 
 ## Examples
@@ -160,7 +150,7 @@ cd apps/web && npx tsc -b
 | v0.2 | Enhanced UX — undo/redo, workspace management, visual polish | ✅ Complete |
 | v0.3 | Code generation — Terraform export (Azure first) | ✅ Complete |
 | v0.4 | Architecture templates — built-in starter templates with gallery | ✅ Complete |
-| v0.5 | GitHub integration, backend API | Planned |
+| v0.5 | GitHub integration, backend API | ✅ Complete |
 | v1.0 | Multi-generator (Bicep, Pulumi), template marketplace | Planned |
 
 ## Contributing

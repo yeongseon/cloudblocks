@@ -35,7 +35,8 @@ src/
 ├── entities/                     # Domain entities (models + store)
 │   ├── store/
 │   │   ├── architectureStore.ts  # Main Zustand store (plates, blocks, connections)
-│   │   └── uiStore.ts            # UI state (tool mode, panel visibility)
+│   │   ├── uiStore.ts            # UI state (tool mode, panel visibility)
+│   │   └── authStore.ts          # Auth state (GitHub OAuth)
 │   ├── validation/               # Validation engine
 │   │   ├── engine.ts             # Validation orchestrator
 │   │   ├── placement.ts          # Placement rule validation
@@ -70,11 +71,14 @@ src/
 │   ├── validation-panel/ValidationPanel.tsx  # Validation results
 │   ├── code-preview/CodePreview.tsx   # Code generation preview
 │   ├── template-gallery/TemplateGallery.tsx  # Template selection
-│   └── workspace-manager/WorkspaceManager.tsx # Multi-workspace
-└── main.tsx                      # Entry point
+│   ├── workspace-manager/WorkspaceManager.tsx # Multi-workspace
+│   ├── github-login/GitHubLogin.tsx   # GitHub OAuth login (v0.5)
+│   ├── github-repos/GitHubRepos.tsx   # GitHub repo management (v0.5)
+│   ├── github-sync/GitHubSync.tsx     # Architecture sync to GitHub (v0.5)
+│   └── github-pr/GitHubPR.tsx         # PR creation from UI (v0.5)
 ```
 
-## Current Implementation (v0.1–v0.4)
+## Current Implementation (v0.1–v0.5)
 
 - ✅ Isometric camera with fixed 2.5D view
 - ✅ Network plate + public/private subnet plates
@@ -89,10 +93,13 @@ src/
 - ✅ Terraform code generation with preview (v0.3)
 - ✅ Architecture templates with gallery (v0.4)
 
+- ✅ GitHub OAuth login (v0.5)
+- ✅ GitHub repo sync / pull (v0.5)
+- ✅ PR creation from UI (v0.5)
+- ✅ Typed API client with JWT auth (v0.5)
+
 ## Not Yet Implemented
 
-- GitHub integration (Git-native storage)
-- Backend orchestration layer
 - EventFlow / Dependency connection types
 - Drag-and-drop block placement
 - Bicep / Pulumi generators

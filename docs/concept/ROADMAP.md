@@ -66,7 +66,7 @@ Deliverables:
 
 ---
 
-# v0.2 — Visual Polish + UX
+# v0.2 — Visual Polish + UX ✅
 
 Goal:
 Improve the builder experience for daily use.
@@ -81,16 +81,16 @@ Features:
 - Responsive layout
 
 ### Exit Criteria
-- [ ] All blocks can be repositioned via drag
-- [ ] Undo/redo works for all state changes
-- [ ] Builder usable on screens ≥ 1280px width
+- [x] All blocks can be repositioned via drag
+- [x] Undo/redo works for all state changes
+- [x] Builder usable on screens ≥ 1280px width
 
 ### Dependencies
 - v0.1 complete
 
 ---
 
-# v0.3 — Code Generation (Terraform)
+# v0.3 — Code Generation (Terraform) ✅
 
 Goal:
 Generate **Terraform code** from visual architecture — the core value proposition.
@@ -122,17 +122,17 @@ resource "azurerm_subnet" "public" {
 ```
 
 ### Exit Criteria
-- [ ] 3-tier architecture generates valid Terraform
-- [ ] Generated code passes `terraform validate`
-- [ ] Code preview panel shows generated HCL in real-time
-- [ ] Export to file works
+- [x] 3-tier architecture generates valid Terraform
+- [x] Generated code passes `terraform validate`
+- [x] Code preview panel shows generated HCL in real-time
+- [x] Export to file works
 
 ### Dependencies
 - v0.1 complete
 
 ---
 
-# v0.4 — Workspace Management + Import/Export
+# v0.4 — Workspace Management + Import/Export ✅
 
 Goal:
 Multiple workspaces, architecture import/export, and template system.
@@ -146,16 +146,16 @@ Features:
 - Architecture cloning
 
 ### Exit Criteria
-- [ ] Users can create, switch, and delete multiple workspaces
-- [ ] Architecture JSON import/export roundtrip preserves all state
-- [ ] 3+ built-in templates available
+- [x] Users can create, switch, and delete multiple workspaces
+- [x] Architecture JSON import/export roundtrip preserves all state
+- [x] 3+ built-in templates available
 
 ### Dependencies
 - v0.3 complete
 
 ---
 
-# v0.5 — GitHub Integration + Backend API
+# v0.5 — GitHub Integration + Backend API ✅
 
 Goal:
 Connect CloudBlocks to GitHub — architecture and generated code stored in user repos via a **thin orchestration backend**.
@@ -180,11 +180,11 @@ Connect CloudBlocks to GitHub — architecture and generated code stored in user
 > See [STORAGE_ARCHITECTURE.md](../model/STORAGE_ARCHITECTURE.md) for the complete GitHub repo structure per workspace.
 
 ### Exit Criteria
-- [ ] GitHub App OAuth login works
-- [ ] Architecture + generated code commits to user's GitHub repo
-- [ ] PR creation from UI works
-- [ ] Backend metadata DB operational (user, project, run status)
-- [ ] No architecture data stored in backend DB (all in GitHub)
+- [x] GitHub App OAuth login works
+- [x] Architecture + generated code commits to user's GitHub repo
+- [x] PR creation from UI works
+- [x] Backend metadata DB operational (user, project, run status)
+- [x] No architecture data stored in backend DB (all in GitHub)
 
 ### Dependencies
 - v0.3 complete (Terraform generator)
