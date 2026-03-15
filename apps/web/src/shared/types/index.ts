@@ -205,3 +205,15 @@ export const BLOCK_SHORT_NAMES: Record<BlockCategory, string> = {
   timer: 'Timer',
 };
 
+// Stud grid layout per category: [columns, rows]
+export const STUD_LAYOUTS: Record<BlockCategory, [number, number]> = {
+  gateway: [3, 2],
+  compute: [2, 2],
+  database: [1, 3],
+  storage: [2, 3],
+  function: [1, 1],
+  queue: [1, 4],
+  event: [1, 2],
+  timer: [2, 1],
+};
+

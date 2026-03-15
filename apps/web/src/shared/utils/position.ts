@@ -1,6 +1,3 @@
-// CloudBlocks Platform - Shared Position Utilities
-// Unifies world-position calculation used by BlockModel, ConnectionLine, and ExternalActorModel.
-
 import type { Block, Plate, ExternalActor } from '../types/index';
 import { DEFAULT_BLOCK_SIZE } from '../types/index';
 

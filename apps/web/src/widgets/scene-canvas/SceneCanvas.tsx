@@ -1,104 +1,173 @@
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Grid, Html } from '@react-three/drei';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import type { PointerEvent as ReactPointerEvent } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { PlateModel } from '../../entities/plate/PlateModel';
-import { BlockModel } from '../../entities/block/BlockModel';
-import { ConnectionLine, ExternalActorModel } from '../../entities/connection/ConnectionLine';
-import { EXTERNAL_ACTOR_LABEL_POSITION } from '../../shared/utils/position';
+import { worldToScreen, depthKey } from '../../shared/utils/isometric';
+import { getBlockWorldPosition, EXTERNAL_ACTOR_POSITION } from '../../shared/utils/position';
+
+import { PlateSprite } from '../../entities/plate/PlateSprite';
+import { BlockSprite } from '../../entities/block/BlockSprite';
+import { ConnectionPath } from '../../entities/connection/ConnectionPath';
+import { ExternalActorSprite } from '../../entities/connection/ExternalActorSprite';
+import './SceneCanvas.css';
 
 export function SceneCanvas() {
-  const architecture = useArchitectureStore(
-    (s) => s.workspace.architecture
-  );
+  const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [origin, setOrigin] = useState({ x: 0, y: 0 });
+  
+  const isDragging = useRef(false);
+  const lastMouse = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setOrigin({ x: rect.width / 2, y: rect.height / 3 });
+      setPan({ x: 0, y: 0 });
+    }
+  }, []);
+
+  const handlePointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (e.target === containerRef.current) {
+      isDragging.current = true;
+      lastMouse.current = { x: e.clientX, y: e.clientY };
+      e.currentTarget.setPointerCapture(e.pointerId);
+      setSelectedId(null);
+    }
+  };
+
+  const handlePointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (isDragging.current) {
+      const dx = e.clientX - lastMouse.current.x;
+      const dy = e.clientY - lastMouse.current.y;
+      setPan((p) => ({ x: p.x + dx, y: p.y + dy }));
+      lastMouse.current = { x: e.clientX, y: e.clientY };
+    }
+  };
+
+  const handlePointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
+    isDragging.current = false;
+    e.currentTarget.releasePointerCapture(e.pointerId);
+  };
+
+  const handleWheel = useCallback((e: WheelEvent) => {
+    e.preventDefault();
+    if (!containerRef.current) return;
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const zoomDelta = e.deltaY > 0 ? 0.9 : 1.1;
+    setZoom((prevZoom) => {
+      const newZoom = Math.max(0.3, Math.min(3.0, prevZoom * zoomDelta));
+      const scaleChange = newZoom / prevZoom;
+
+      setPan((p) => ({
+        x: mouseX - (mouseX - p.x) * scaleChange,
+        y: mouseY - (mouseY - p.y) * scaleChange,
+      }));
+
+      return newZoom;
+    });
+  }, []);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (el) {
+      el.addEventListener('wheel', handleWheel, { passive: false });
+      return () => el.removeEventListener('wheel', handleWheel);
+    }
+  }, [handleWheel]);
+
   return (
-      <Canvas
-      camera={{ position: [12, 12, 12], fov: 50 }}
-      shadows
-      style={{ background: '#1a1a2e' }}
-      onPointerMissed={() => setSelectedId(null)}
+    <div 
+      className="scene-viewport" 
+      ref={containerRef}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
     >
-      <ambientLight intensity={0.5} />
-      <directionalLight
-        position={[10, 15, 10]}
-        intensity={1}
-        castShadow
-        shadow-mapSize={[2048, 2048]}
-      />
-      <pointLight position={[-10, 10, -10]} intensity={0.3} />
+      <div 
+        className="scene-world"
+        style={{
+          transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
+        }}
+      >
+        <div className="plate-layer">
+          {architecture.plates.map((plate) => {
+            const screenPos = worldToScreen(plate.position.x, plate.position.y, plate.position.z, origin.x, origin.y);
+            const zIndex = depthKey(plate.position.x, plate.position.z, plate.position.y);
+            return (
+              <PlateSprite 
+                key={plate.id} 
+                plate={plate} 
+                screenX={screenPos.x} 
+                screenY={screenPos.y} 
+                zIndex={zIndex} 
+              />
+            );
+          })}
+        </div>
+        
+        <svg className="connection-layer">
+          <title>Connections</title>
+          {architecture.connections.map((conn) => (
+            <ConnectionPath
+              key={conn.id}
+              connection={conn}
+              blocks={architecture.blocks}
+              plates={architecture.plates}
+              externalActors={architecture.externalActors}
+              originX={origin.x}
+              originY={origin.y}
+            />
+          ))}
+        </svg>
 
-      <OrbitControls
-        makeDefault
-        enableRotate={false}
-        enableDamping
-        dampingFactor={0.1}
-        minDistance={3}
-        maxDistance={30}
-      />
+        <div className="actor-layer">
+          {architecture.externalActors.map((actor) => {
+            const [x, y, z] = EXTERNAL_ACTOR_POSITION;
+            const screenPos = worldToScreen(x, y, z, origin.x, origin.y);
+            const zIndex = depthKey(x, z, y);
+            return (
+              <ExternalActorSprite 
+                key={actor.id} 
+                actor={actor} 
+                screenX={screenPos.x} 
+                screenY={screenPos.y} 
+                zIndex={zIndex} 
+              />
+            );
+          })}
+        </div>
 
-      {/* Ground grid */}
-      <Grid
-        infiniteGrid
-        cellSize={1}
-        sectionSize={5}
-        cellColor="#333366"
-        sectionColor="#666699"
-        fadeDistance={30}
-        fadeStrength={1}
-      />
-
-      {/* Plates */}
-      {architecture.plates.map((plate) => (
-        <PlateModel key={plate.id} plate={plate} />
-      ))}
-
-      {/* Blocks */}
-      {architecture.blocks.map((block) => {
-        const parentPlate = architecture.plates.find(
-          (p) => p.id === block.placementId
-        );
-        if (!parentPlate) return null;
-        return (
-          <BlockModel
-            key={block.id}
-            block={block}
-            parentPlate={parentPlate}
-          />
-        );
-      })}
-
-      {/* Connections */}
-      {architecture.connections.map((conn) => (
-        <ConnectionLine
-          key={conn.id}
-          connection={conn}
-          blocks={architecture.blocks}
-          plates={architecture.plates}
-          externalActors={architecture.externalActors}
-        />
-      ))}
-
-      {/* External Actors */}
-      {architecture.externalActors.map((actor) => (
-        <group key={actor.id}>
-          <ExternalActorModel actor={actor} />
-          <Html position={EXTERNAL_ACTOR_LABEL_POSITION} center>
-            <div
-              style={{
-                color: '#90CAF9',
-                fontSize: '12px',
-                fontFamily: 'monospace',
-                whiteSpace: 'nowrap',
-                userSelect: 'none',
-              }}
-            >
-              🌐 {actor.name}
-            </div>
-          </Html>
-        </group>
-      ))}
-    </Canvas>
+        <div className="block-layer">
+          {architecture.blocks.map((block) => {
+            const parentPlate = architecture.plates.find((p) => p.id === block.placementId);
+            if (!parentPlate) return null;
+            const [x, y, z] = getBlockWorldPosition(block, parentPlate);
+            const screenPos = worldToScreen(x, y, z, origin.x, origin.y);
+            const zIndex = depthKey(x, z, y);
+            return (
+              <BlockSprite 
+                key={block.id} 
+                block={block} 
+                parentPlate={parentPlate} 
+                screenX={screenPos.x} 
+                screenY={screenPos.y} 
+                zIndex={zIndex} 
+              />
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 }

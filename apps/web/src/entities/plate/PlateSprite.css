@@ -1,0 +1,89 @@
+.plate-sprite-container {
+  position: absolute;
+  pointer-events: none;
+  transform-style: preserve-3d;
+}
+
+.plate-svg {
+  position: absolute;
+  overflow: visible;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.plate-face {
+  transition: opacity 0.2s ease, filter 0.2s ease;
+  stroke: rgba(0, 0, 0, 0.1);
+  stroke-width: 1px;
+}
+
+.plate-face-top {
+  opacity: 0.7;
+}
+
+.plate-face-left {
+  filter: brightness(0.85);
+  opacity: 0.9;
+}
+
+.plate-face-right {
+  filter: brightness(0.75);
+  opacity: 0.9;
+}
+
+.plate-stud {
+  fill-opacity: 0.8;
+  stroke: rgba(0, 0, 0, 0.15);
+  stroke-width: 1px;
+  transition: opacity 0.2s ease;
+}
+
+.plate-stud-side {
+  fill-opacity: 0.7;
+  filter: brightness(0.8);
+}
+
+.plate-svg:hover .plate-face-top {
+  opacity: 0.85;
+}
+
+.plate-svg:hover .plate-stud {
+  fill-opacity: 1;
+}
+
+.plate-sprite-container.is-selected .plate-face {
+  stroke: #ffffff;
+  stroke-width: 2px;
+}
+
+.plate-sprite-container.is-selected .plate-face-top {
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
+}
+
+.plate-label-container {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.plate-label {
+  color: #ffffff;
+  font-size: 13px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 2px 8px;
+  border-radius: 3px;
+  white-space: nowrap;
+  user-select: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  backdrop-filter: blur(2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}

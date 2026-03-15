@@ -1,0 +1,57 @@
+.block-sprite {
+  position: absolute;
+  pointer-events: none;
+  transform: translate(-50%, -100%);
+  will-change: transform;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  appearance: none;
+}
+
+.block-sprite svg {
+  pointer-events: visiblePainted;
+  cursor: pointer;
+  transition: filter 0.2s ease, transform 0.1s ease;
+  overflow: visible;
+}
+
+.block-sprite svg:hover {
+  filter: brightness(1.1);
+}
+
+.block-sprite.is-selected svg {
+  filter: drop-shadow(0 0 4px #ffffff) brightness(1.2);
+}
+
+.block-sprite.is-connection-source svg {
+  filter: drop-shadow(0 0 6px #00ff00) brightness(1.1);
+}
+
+.block-sprite.is-delete-mode svg {
+  cursor: not-allowed;
+}
+
+.block-sprite.is-delete-mode svg:hover {
+  filter: sepia(1) hue-rotate(-50deg) saturate(3) brightness(1.1);
+}
+
+.block-sprite-label {
+  pointer-events: none;
+  font-family: 'Varela Round', system-ui, sans-serif;
+  font-weight: bold;
+  font-size: 14px;
+  fill: #ffffff;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+.block-sprite-faces {
+  transition: transform 0.1s ease;
+}
+
+.block-sprite svg:active .block-sprite-faces {
+  transform: translateY(2px);
+}
