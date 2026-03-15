@@ -3,9 +3,13 @@
   inset: 0;
   overflow: hidden;
   cursor: grab;
-  background-color: #f8fbff;
-  background-image: radial-gradient(#d0d8e8 1px, transparent 1px);
-  background-size: 20px 20px;
+  background-color: #D2B48C;
+  background-image: 
+    radial-gradient(circle at 12px 11px, #E0C9A6 2.5px, transparent 3.5px),
+    radial-gradient(circle at 12px 13px, #C4A67A 3.5px, transparent 4.5px),
+    radial-gradient(circle at 12px 12px, #D2B48C 3px, transparent 4px),
+    linear-gradient(135deg, #E8D5B7 0%, #D4BC94 50%, #E2CCA8 100%);
+  background-size: 24px 24px, 24px 24px, 24px 24px, 100% 100%;
 }
 
 .scene-viewport:active {

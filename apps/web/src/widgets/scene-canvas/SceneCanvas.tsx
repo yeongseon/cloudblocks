@@ -18,7 +18,7 @@ export function SceneCanvas() {
   const containerRef = useRef<HTMLDivElement>(null);
   
   const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(0.85);
   const [origin, setOrigin] = useState({ x: 0, y: 0 });
   
   const isDragging = useRef(false);
@@ -27,7 +27,7 @@ export function SceneCanvas() {
   useEffect(() => {
     if (containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
-      setOrigin({ x: rect.width / 2, y: rect.height / 3 });
+      setOrigin({ x: rect.width / 2, y: rect.height * 0.4 });
       setPan({ x: 0, y: 0 });
     }
   }, []);
