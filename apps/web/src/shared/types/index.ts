@@ -137,26 +137,26 @@ export const BLOCK_COLORS: Record<BlockCategory, string> = {
 };
 
 export const PLATE_COLORS: Record<PlateType, string> = {
-  network: '#0078D4',  // Azure Blue
-  subnet: '#E6F2FF',   // Light Azure
+  network: '#2563EB',    // Deep blue (VPC)
+  subnet: '#93C5FD',     // Light blue (default subnet)
 };
 
 export const SUBNET_ACCESS_COLORS: Record<SubnetAccess, string> = {
-  public: '#00A4EF',   // Light Azure Blue
-  private: '#5C2D91',  // Azure Purple
+  public: '#22C55E',     // Bright green
+  private: '#3B82F6',    // Medium blue
 };
 
 // ─── Default Sizes ─────────────────────────────────────────
 
 export const DEFAULT_PLATE_SIZE: Record<PlateType, Size> = {
-  network: { width: 12, height: 0.5, depth: 10 },
-  subnet: { width: 5, height: 0.35, depth: 8 },
+  network: { width: 12, height: 1.2, depth: 10 },
+  subnet: { width: 5, height: 0.8, depth: 8 },
 };
 
 export const DEFAULT_BLOCK_SIZE: Size = {
-  width: 1.2,
-  height: 1.2,
-  depth: 1.2,
+  width: 2.4,
+  height: 2.4,
+  depth: 2.4,
 };
 
 // ─── Educational Metadata ──────────────────────────────────

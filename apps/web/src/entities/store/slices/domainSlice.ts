@@ -33,12 +33,13 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set) => ({
       if (type === 'network') {
         plate.position = { x: 0, y: 0, z: 0 };
       } else if (parentId) {
+        const parentPlate = arch.plates.find((candidate) => candidate.id === parentId);
         const siblingsInParent = arch.plates.filter(
           (candidate) => candidate.parentId === parentId
         );
         plate.position = {
           x: -3 + siblingsInParent.length * 6,
-          y: 0.3,
+          y: parentPlate ? parentPlate.position.y + parentPlate.size.height : 0.3,
           z: 0,
         };
       }

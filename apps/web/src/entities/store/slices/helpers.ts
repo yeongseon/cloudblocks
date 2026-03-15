@@ -37,7 +37,7 @@ export function nextGridPosition(
   existingBlocks: Block[],
   plateSize: { width: number; depth: number }
 ): Position {
-  const maxCols = Math.max(1, Math.floor((plateSize.width - 1) / GRID_CELL));
+  const maxCols = Math.max(1, Math.floor(plateSize.width / GRID_CELL));
   const index = existingBlocks.length;
   const col = index % maxCols;
   const row = Math.floor(index / maxCols);

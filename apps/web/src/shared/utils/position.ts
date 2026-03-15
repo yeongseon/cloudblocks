@@ -3,7 +3,7 @@ import type { Block, Plate, ExternalActor } from '../types/index';
 // ─── Constants ────────────────────────────────────────────
 
 /** Grid cell spacing used for block snap-to-grid placement. */
-export const GRID_CELL = 1.5;
+export const GRID_CELL = 3.0;
 
 /** Fixed world position for ExternalActor entities (above and behind the scene). */
 export const EXTERNAL_ACTOR_POSITION: [number, number, number] = [0, 5, -6];

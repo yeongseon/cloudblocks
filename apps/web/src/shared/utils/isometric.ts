@@ -52,7 +52,7 @@ export function worldSizeToScreen(
   };
 }
 
-export const GRID_CELL = 1.5;
+export const GRID_CELL = 3.0;
 
 export function snapToGrid(worldX: number, worldZ: number): { x: number; z: number } {
   return {
