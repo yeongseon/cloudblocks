@@ -3,38 +3,46 @@
   right: 12px;
   top: 76px;
   width: 260px;
-  background: #FCFCFC;
-  border: 3px solid #E2E8F0;
-  border-radius: var(--radius-container);
+  background: #FFFDF0;
+  border: 4px solid #FFC83D;
+  border-radius: 8px;
   padding: 20px 16px 16px;
-  color: #0F172A;
+  color: #3D2600;
   font-family: 'Varela Round', system-ui, sans-serif;
   z-index: 10;
-  box-shadow: 0 4px 0 0 rgba(0,0,0,0.1), 0 8px 24px rgba(0, 120, 212, 0.1);
+  box-shadow: 
+    0 6px 0 0 rgba(0,0,0,0.15), 
+    0 12px 24px rgba(255, 140, 0, 0.2);
 }
 
 .properties-panel::before {
   content: '';
   position: absolute;
-  top: -8px;
+  top: -12px;
   left: 50%;
   transform: translateX(-50%);
-  width: 24px;
+  width: 80px;
   height: 12px;
-  background: #E2E8F0;
-  border-radius: 12px 12px 0 0;
-  box-shadow: inset 0 2px 0 rgba(255,255,255,0.8), 0 -2px 0 rgba(0,0,0,0.05);
+  background: #FFC83D;
+  border-radius: 4px 4px 0 0;
+  border: 4px solid #D99C1C;
+  border-bottom: none;
+  box-shadow: inset 0 3px 0 rgba(255,255,255,0.6);
+  background-image: 
+    radial-gradient(circle at 25% 4px, rgba(255,255,255,0.7) 3px, transparent 4px),
+    radial-gradient(circle at 75% 4px, rgba(255,255,255,0.7) 3px, transparent 4px);
 }
 
 .properties-title {
   margin: 4px 0 16px 0;
   font-size: 18px;
   font-weight: 800;
-  color: var(--roblox-primary);
+  color: #FF5E00;
   display: flex;
   align-items: center;
   gap: 8px;
-  text-shadow: 0 2px 0 rgba(0, 120, 212, 0.15);
+  text-shadow: 1px 2px 0 rgba(255, 200, 61, 0.4);
+  letter-spacing: 0.5px;
 }
 
 .properties-content {
@@ -48,20 +56,22 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px 12px;
-  background: #F8FAFC;
-  border-radius: 10px;
+  background: #FFF5D6;
+  border-radius: 6px;
   font-size: 13px;
-  border: 2px solid #E2E8F0;
-  box-shadow: inset 0 3px 0 rgba(255,255,255,0.6), 0 2px 0 rgba(0,0,0,0.05);
+  border: 4px solid #FFE4A0;
+  box-shadow: 
+    inset 2px 3px 0 rgba(160, 100, 0, 0.1), 
+    inset -2px -2px 0 rgba(255,255,255,0.9);
 }
 
 .property-label {
-  color: #64748B;
+  color: #8A5A19;
   font-weight: 800;
 }
 
 .property-value {
-  color: #0F172A;
+  color: #3D2600;
   font-family: 'Fira Code', 'SF Mono', monospace;
   font-size: 12px;
   font-weight: 700;
@@ -69,51 +79,58 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  background: #E2E8F0;
+  background: #FFE4A0;
   padding: 4px 8px;
-  border-radius: 6px;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+  border-radius: 4px;
+  border: 2px solid #D99C1C;
+  box-shadow: inset 0 2px 3px rgba(160, 100, 0, 0.15);
 }
 
 .properties-delete {
   margin-top: 16px;
-  padding: 10px 16px;
-  background: #FFFFFF;
-  border: 2px solid var(--roblox-destructive);
-  border-radius: 10px;
-  color: var(--roblox-destructive);
-  font-size: 14px;
+  padding: 12px 16px;
+  background: #FF3B30;
+  border: 4px solid #C41B12;
+  border-radius: 8px;
+  color: #FFFFFF;
+  font-size: 15px;
   font-weight: 800;
   cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
   transition: all 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 3px 0 0 var(--roblox-destructive);
+  box-shadow: 
+    inset 0 3px 0 rgba(255,255,255,0.4), 
+    0 6px 0 0 #A1160F;
   width: 100%;
 }
 
 .properties-delete:hover {
-  background: var(--roblox-destructive);
-  color: #FFFFFF;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 0 0 #D83B01;
-  border-color: #D83B01;
+  background: #FF4F45;
+  transform: translateY(2px);
+  box-shadow: 
+    inset 0 3px 0 rgba(255,255,255,0.5), 
+    0 4px 0 0 #A1160F;
 }
 
 .properties-delete:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 0 #D83B01;
-  background: #D83B01;
+  transform: translateY(6px);
+  box-shadow: 
+    inset 0 1px 0 rgba(255,255,255,0.2), 
+    0 0 0 0 #A1160F;
+  background: #D9251A;
 }
 
 .properties-move-section {
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 3px dashed #E2E8F0;
+  border-top: 4px dotted #FFC83D;
 }
 
 .properties-field-label {
   font-size: 12px;
   font-weight: 800;
-  color: #64748B;
+  color: #8A5A19;
   display: block;
   margin-bottom: 8px;
   text-transform: uppercase;
@@ -124,25 +141,25 @@
   width: 100%;
   padding: 10px 12px;
   background: #FFFFFF;
-  border: 2px solid #CBD5E1;
-  border-radius: 10px;
-  color: #0F172A;
+  border: 4px solid #FFC83D;
+  border-radius: 6px;
+  color: #3D2600;
   font-size: 13px;
   font-weight: 700;
   font-family: 'Varela Round', system-ui, sans-serif;
   cursor: pointer;
-  box-shadow: 0 3px 0 0 #CBD5E1;
+  box-shadow: 0 4px 0 0 #D99C1C;
   transition: all 0.15s;
 }
 
 .properties-select:hover {
-  border-color: #94A3B8;
-  box-shadow: 0 3px 0 0 #94A3B8;
+  border-color: #FFB300;
+  box-shadow: 0 4px 0 0 #D99C1C;
   transform: translateY(-1px);
 }
 
 .properties-select:focus {
   outline: none;
-  border-color: var(--roblox-primary);
-  box-shadow: 0 3px 0 0 var(--roblox-primary);
+  border-color: #FF5E00;
+  box-shadow: 0 4px 0 0 #D94A00;
 }

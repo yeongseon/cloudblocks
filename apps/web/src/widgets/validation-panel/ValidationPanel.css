@@ -6,45 +6,52 @@
   width: 500px;
   max-height: 250px;
   overflow-y: auto;
-  background: #FCFCFC;
-  border: 3px solid #E2E8F0;
-  border-radius: var(--radius-container);
+  background: #FFFDF0;
+  border: 4px solid #FFC83D;
+  border-radius: 8px;
   padding: 16px;
-  color: #0F172A;
+  color: #3D2600;
   font-family: 'Varela Round', system-ui, sans-serif;
   z-index: 10;
-  box-shadow: 0 4px 0 0 rgba(0,0,0,0.1), 0 8px 24px rgba(0, 120, 212, 0.1);
+  box-shadow: 
+    0 6px 0 0 rgba(0,0,0,0.15), 
+    0 12px 24px rgba(255, 140, 0, 0.2);
 }
 
 .validation-title {
   margin: 0 0 12px 0;
   font-size: 16px;
   font-weight: 800;
-  color: var(--roblox-primary);
+  color: #FF5E00;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  text-shadow: 0 2px 0 rgba(0, 120, 212, 0.15);
+  text-shadow: 1px 2px 0 rgba(255, 200, 61, 0.4);
+  letter-spacing: 0.5px;
 }
 
 .validation-status {
   font-size: 12px;
   font-weight: 800;
-  padding: 4px 12px;
-  border-radius: var(--radius-pill);
-  box-shadow: 0 2px 0 0 rgba(0,0,0,0.1);
+  padding: 6px 14px;
+  border-radius: 6px;
+  box-shadow: 
+    0 3px 0 0 rgba(0,0,0,0.15),
+    inset 0 2px 0 rgba(255,255,255,0.4);
 }
 
 .validation-valid {
-  background: #DCFCE7;
-  color: #16A34A;
-  border: 2px solid #86EFAC;
+  background: #34C759;
+  color: #FFFFFF;
+  border: 4px solid #248A3D;
+  text-transform: uppercase;
 }
 
 .validation-invalid {
-  background: #FEE2E2;
-  color: #DC2626;
-  border: 2px solid #FCA5A5;
+  background: #FF3B30;
+  color: #FFFFFF;
+  border: 4px solid #C41B12;
+  text-transform: uppercase;
 }
 
 .validation-section {
@@ -54,7 +61,7 @@
 .validation-section-title {
   margin: 0 0 8px 0;
   font-size: 11px;
-  color: #64748B;
+  color: #8A5A19;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -62,61 +69,82 @@
 
 .validation-item {
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: 6px;
   margin-bottom: 8px;
   font-size: 13px;
-  background: #F8FAFC;
-  border: 2px solid #E2E8F0;
-  box-shadow: inset 0 3px 0 rgba(255,255,255,0.6), 0 2px 0 rgba(0,0,0,0.05);
+  background: #FFF5D6;
+  border: 4px solid #FFE4A0;
+  box-shadow: 
+    inset 2px 3px 0 rgba(160, 100, 0, 0.1), 
+    inset -2px -2px 0 rgba(255,255,255,0.9);
 }
 
 .validation-error {
-  background: #FEF2F2;
-  border-left: 6px solid var(--roblox-destructive);
-  border-color: #FECACA;
-  border-left-color: var(--roblox-destructive);
+  background: #FFEBEB;
+  border-left: 8px solid #FF3B30;
+  border-color: #FFB3B0;
+  border-left-color: #C41B12;
 }
 
 .validation-warning {
-  background: #FFFBEB;
-  border-left: 6px solid #F59E0B;
-  border-color: #FDE68A;
-  border-left-color: #F59E0B;
+  background: #FFF9E6;
+  border-left: 8px solid #FF9500;
+  border-color: #FFD699;
+  border-left-color: #CC7700;
 }
 
 .validation-message {
-  font-weight: 700;
-  color: #0F172A;
+  font-weight: 800;
+  color: #3D2600;
   margin-bottom: 4px;
 }
 
 .validation-suggestion {
-  color: #475569;
+  color: #5C3A00;
   font-size: 12px;
   font-weight: 600;
   margin-top: 2px;
 }
 
 .validation-meta {
-  color: #94A3B8;
+  color: #8A5A19;
   font-size: 11px;
   font-family: 'Fira Code', 'SF Mono', monospace;
-  font-weight: 600;
+  font-weight: 700;
   margin-top: 6px;
   display: inline-block;
-  background: rgba(0,0,0,0.05);
-  padding: 2px 6px;
+  background: #FFE4A0;
+  padding: 4px 8px;
   border-radius: 4px;
+  border: 2px solid #D99C1C;
 }
 
 .validation-success {
-  padding: 16px;
-  background: #DCFCE7;
-  border: 2px solid #86EFAC;
-  border-radius: 12px;
+  padding: 20px;
+  background: #34C759;
+  border: 4px solid #248A3D;
+  border-radius: 8px;
   text-align: center;
-  font-size: 14px;
-  font-weight: 700;
-  color: #16A34A;
-  box-shadow: inset 0 3px 0 rgba(255,255,255,0.6), 0 3px 0 rgba(0,0,0,0.05);
+  font-size: 16px;
+  font-weight: 800;
+  color: #FFFFFF;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 
+    inset 0 4px 0 rgba(255,255,255,0.4),
+    0 6px 0 0 rgba(0,0,0,0.15);
+  position: relative;
+  margin-top: 8px;
+}
+
+.validation-success::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  right: 4px;
+  bottom: 4px;
+  border: 2px dashed rgba(255,255,255,0.3);
+  border-radius: 4px;
+  pointer-events: none;
 }

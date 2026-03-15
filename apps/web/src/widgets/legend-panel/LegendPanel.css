@@ -4,13 +4,16 @@
   top: 50%;
   transform: translateY(-50%);
   width: 240px;
-  background: #FCFCFC;
-  border-radius: var(--radius-container);
-  box-shadow: 0 4px 0 0 rgba(0,0,0,0.1), 0 8px 24px rgba(0, 120, 212, 0.1);
-  border: 3px solid #E2E8F0;
-  padding: 20px 16px 16px;
+  background-color: #FFFAEE;
+  background-image: radial-gradient(circle at center, rgba(220, 100, 0, 0.1) 2px, transparent 2px);
+  background-size: 16px 16px;
+  background-position: center top;
+  border-radius: 4px;
+  box-shadow: 6px 6px 0 0 rgba(150, 50, 0, 0.15);
+  border: 5px solid var(--lego-yellow, #FFD500);
+  padding: 28px 16px 16px;
   z-index: 10;
-  font-family: 'Varela Round', system-ui, sans-serif;
+  font-family: 'Fredoka', system-ui, sans-serif;
   max-height: 80vh;
   overflow-y: auto;
 }
@@ -18,46 +21,60 @@
 .legend-panel::before {
   content: '';
   position: absolute;
-  top: -8px;
+  top: -14px;
   left: 50%;
   transform: translateX(-50%);
   width: 24px;
-  height: 12px;
-  background: #E2E8F0;
-  border-radius: 12px 12px 0 0;
-  box-shadow: inset 0 2px 0 rgba(255,255,255,0.8), 0 -2px 0 rgba(0,0,0,0.05);
+  height: 10px;
+  background: var(--lego-yellow, #FFD500);
+  border-radius: 4px 4px 0 0;
+  box-shadow: 
+    -36px 0 0 var(--lego-yellow, #FFD500), 
+    36px 0 0 var(--lego-yellow, #FFD500),
+    inset 0 3px 0 rgba(255, 255, 255, 0.5),
+    inset 2px 0 0 rgba(255, 255, 255, 0.3),
+    inset -2px 0 0 rgba(200, 80, 0, 0.2);
+  border: 2px solid rgba(200, 80, 0, 0.2);
+  border-bottom: none;
+  z-index: 11;
 }
 
 .legend-title {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 800;
-  color: var(--roblox-primary);
-  margin: 4px 0 4px 0;
+  color: var(--lego-red, #E3000B);
+  margin: 4px 0 12px 0;
   display: flex;
   align-items: center;
   gap: 8px;
-  text-shadow: 0 2px 0 rgba(0, 120, 212, 0.15);
+  text-shadow: 2px 2px 0 rgba(150, 50, 0, 0.15);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .legend-subtitle {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
-  color: #64748B;
-  margin-bottom: 16px;
+  color: #D35400;
+  margin-bottom: 20px;
+  border-bottom: 3px dashed var(--lego-yellow, #FFD500);
+  padding-bottom: 12px;
 }
 
 .legend-section-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
-  color: #64748B;
+  color: #FFFFFF;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  margin: 16px 0 12px 0;
+  letter-spacing: 1.5px;
+  margin: 20px 0 12px 0;
   padding: 6px 12px;
-  background: #F1F5F9;
-  border-radius: var(--radius-pill);
+  background: var(--lego-blue, #0055BF);
+  border-radius: 4px;
+  border: 2px solid #003380;
   display: inline-block;
-  box-shadow: inset 0 2px 0 rgba(255,255,255,0.6), 0 2px 0 rgba(0,0,0,0.05);
+  box-shadow: 0 4px 0 #003380, inset 0 2px 0 rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
 }
 
 .legend-item {
@@ -65,50 +82,58 @@
   align-items: flex-start;
   gap: 12px;
   padding: 8px;
-  border-radius: 8px;
-  transition: all 0.15s;
+  border-radius: 6px;
+  transition: all 0.1s ease-in-out;
   background: transparent;
+  border: 2px solid transparent;
+  margin-bottom: 6px;
 }
 
 .legend-item:hover {
-  transform: translateX(4px) translateY(-1px);
-  background: #F8FAFC;
-  box-shadow: 0 2px 0 0 #E2E8F0;
+  background: #FFF7D6;
+  border: 2px solid var(--lego-yellow, #FFD500);
+  transform: translateY(-2px);
+  box-shadow: 4px 4px 0 rgba(150, 50, 0, 0.1);
 }
 
 .legend-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  background: #FFFFFF;
+  border-radius: 6px;
+  border: 3px solid #001B44;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 4px;
+  box-shadow: 3px 3px 0 rgba(150, 50, 0, 0.15), inset 0 2px 0 rgba(255, 255, 255, 0.8);
 }
 
 .legend-icon img {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  filter: drop-shadow(2px 2px 0 rgba(150, 50, 0, 0.15));
 }
 
 .legend-info {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  margin-top: 2px;
 }
 
 .legend-name {
   font-size: 14px;
-  font-weight: 800;
-  color: #0F172A;
+  font-weight: 700;
+  color: #001B44;
   line-height: 1.2;
 }
 
 .legend-desc {
   font-size: 12px;
   font-weight: 600;
-  color: #64748B;
+  color: #B24000;
   line-height: 1.3;
 }
