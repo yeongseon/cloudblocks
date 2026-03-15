@@ -1,0 +1,184 @@
+.github-sync {
+  position: absolute;
+  right: 300px;
+  top: 60px;
+  width: 360px;
+  max-height: calc(100vh - 80px);
+  background: rgba(20, 20, 40, 0.95);
+  border: 1px solid #333366;
+  border-radius: 8px;
+  padding: 12px;
+  color: #e0e0e0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.github-sync-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.github-sync-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.github-sync-close {
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.github-sync-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.github-sync-loading {
+  padding: 8px;
+  font-size: 12px;
+  color: #9aa4d1;
+  background: rgba(66, 133, 244, 0.12);
+  border: 1px solid rgba(66, 133, 244, 0.35);
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.github-sync-error {
+  padding: 8px;
+  font-size: 12px;
+  color: #ef5350;
+  background: rgba(244, 67, 54, 0.16);
+  border: 1px solid rgba(244, 67, 54, 0.4);
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.github-sync-linker,
+.github-sync-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.github-sync-label {
+  font-size: 11px;
+  color: #aab3dc;
+}
+
+.github-sync-input {
+  padding: 5px 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #e0e0e0;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.github-sync-input:focus {
+  outline: none;
+  border-color: #4285f4;
+}
+
+.github-sync-open-repos,
+.github-sync-primary-btn,
+.github-sync-secondary-btn {
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.github-sync-open-repos,
+.github-sync-secondary-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #444;
+  color: #ccc;
+}
+
+.github-sync-open-repos:hover,
+.github-sync-secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.github-sync-primary-btn {
+  background: rgba(66, 133, 244, 0.28);
+  border: 1px solid rgba(66, 133, 244, 0.5);
+  color: #ffffff;
+}
+
+.github-sync-primary-btn:hover {
+  background: rgba(66, 133, 244, 0.45);
+}
+
+.github-sync-primary-btn:disabled,
+.github-sync-secondary-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.github-sync-meta {
+  font-size: 12px;
+  color: #d7defa;
+}
+
+.github-sync-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.github-sync-commits {
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+
+.github-sync-subtitle {
+  margin: 0;
+  font-size: 12px;
+  color: #ffffff;
+}
+
+.github-sync-commit-item {
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid #333366;
+  border-radius: 4px;
+}
+
+.github-sync-commit-message {
+  font-size: 12px;
+  color: #ffffff;
+}
+
+.github-sync-commit-meta {
+  margin-top: 3px;
+  font-size: 10px;
+  color: #8e95b8;
+}
+
+.github-sync-empty {
+  padding: 10px;
+  text-align: center;
+  color: #8e95b8;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed #333366;
+  border-radius: 4px;
+}

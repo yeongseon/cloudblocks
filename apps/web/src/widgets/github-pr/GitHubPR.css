@@ -1,0 +1,134 @@
+.github-pr {
+  position: absolute;
+  right: 12px;
+  top: 60px;
+  width: 360px;
+  max-height: calc(100vh - 80px);
+  background: rgba(20, 20, 40, 0.95);
+  border: 1px solid #333366;
+  border-radius: 8px;
+  padding: 12px;
+  color: #e0e0e0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.github-pr-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.github-pr-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.github-pr-close {
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.github-pr-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.github-pr-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+}
+
+.github-pr-label {
+  font-size: 11px;
+  color: #aab3dc;
+}
+
+.github-pr-input,
+.github-pr-textarea {
+  padding: 5px 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #e0e0e0;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.github-pr-input:focus,
+.github-pr-textarea:focus {
+  outline: none;
+  border-color: #4285f4;
+}
+
+.github-pr-submit {
+  padding: 6px 10px;
+  background: rgba(66, 133, 244, 0.28);
+  border: 1px solid rgba(66, 133, 244, 0.5);
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.github-pr-submit:hover {
+  background: rgba(66, 133, 244, 0.45);
+}
+
+.github-pr-submit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.github-pr-loading {
+  padding: 8px;
+  font-size: 12px;
+  color: #9aa4d1;
+  background: rgba(66, 133, 244, 0.12);
+  border: 1px solid rgba(66, 133, 244, 0.35);
+  border-radius: 4px;
+}
+
+.github-pr-error {
+  padding: 8px;
+  font-size: 12px;
+  color: #ef5350;
+  background: rgba(244, 67, 54, 0.16);
+  border: 1px solid rgba(244, 67, 54, 0.4);
+  border-radius: 4px;
+}
+
+.github-pr-result-link {
+  font-size: 12px;
+  color: #82b1ff;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.github-pr-result-link:hover {
+  text-decoration: underline;
+}
+
+.github-pr-empty {
+  padding: 10px;
+  text-align: center;
+  color: #8e95b8;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed #333366;
+  border-radius: 4px;
+}

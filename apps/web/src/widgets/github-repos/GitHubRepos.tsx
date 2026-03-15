@@ -1,0 +1,123 @@
+import { useEffect, useState } from 'react';
+import { useAuthStore } from '../../entities/store/authStore';
+import { useUIStore } from '../../entities/store/uiStore';
+import { apiGet, apiPost } from '../../shared/api/client';
+import type { GitHubRepo } from '../../shared/types/api';
+import './GitHubRepos.css';
+
+export function GitHubRepos() {
+  const show = useUIStore((s) => s.showGitHubRepos);
+  const toggleGitHubRepos = useUIStore((s) => s.toggleGitHubRepos);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  const [repos, setRepos] = useState<GitHubRepo[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [newRepoName, setNewRepoName] = useState('');
+  const [isPrivate, setIsPrivate] = useState(false);
+
+  const fetchRepos = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await apiGet<{ repos: GitHubRepo[] }>('/api/v1/github/repos');
+      setRepos(response.repos);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load repositories.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!show || !isAuthenticated) return;
+    void fetchRepos();
+  }, [show, isAuthenticated]);
+
+  if (!show) return null;
+
+  const handleCreateRepo = async () => {
+    const name = newRepoName.trim();
+    if (!name) return;
+
+    setCreating(true);
+    setError(null);
+    try {
+      await apiPost<GitHubRepo>('/api/v1/github/repos', {
+        name,
+        private: isPrivate,
+      });
+      setNewRepoName('');
+      setIsPrivate(false);
+      await fetchRepos();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create repository.');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  return (
+    <div className="github-repos">
+      <div className="github-repos-header">
+        <h3 className="github-repos-title">📦 GitHub Repos</h3>
+        <button className="github-repos-close" onClick={toggleGitHubRepos}>
+          ✕
+        </button>
+      </div>
+
+      {!isAuthenticated ? (
+        <div className="github-repos-empty">GitHub authentication required.</div>
+      ) : (
+        <>
+          {(loading || creating) && <div className="github-repos-loading">Loading...</div>}
+          {error && <div className="github-repos-error">{error}</div>}
+
+          <div className="github-repos-create">
+            <h4 className="github-repos-subtitle">Create New Repo</h4>
+            <input
+              className="github-repos-input"
+              type="text"
+              placeholder="Repository name"
+              value={newRepoName}
+              onChange={(e) => setNewRepoName(e.target.value)}
+            />
+            <label className="github-repos-checkbox-row">
+              <input
+                className="github-repos-checkbox"
+                type="checkbox"
+                checked={isPrivate}
+                onChange={(e) => setIsPrivate(e.target.checked)}
+              />
+              <span>Private repository</span>
+            </label>
+            <button className="github-repos-create-btn" onClick={handleCreateRepo} disabled={creating}>
+              Create
+            </button>
+          </div>
+
+          <div className="github-repos-list">
+            {repos.length === 0 && !loading ? (
+              <div className="github-repos-empty">No repositories found.</div>
+            ) : (
+              repos.map((repo) => (
+                <div key={repo.full_name} className="github-repos-item">
+                  <div className="github-repos-item-main">
+                    <span className="github-repos-name">{repo.name}</span>
+                    <span className={`github-repos-badge ${repo.private ? 'github-repos-badge-private' : 'github-repos-badge-public'}`}>
+                      {repo.private ? 'private' : 'public'}
+                    </span>
+                  </div>
+                  <a className="github-repos-link" href={repo.html_url} target="_blank" rel="noreferrer">
+                    {repo.html_url}
+                  </a>
+                </div>
+              ))
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}

@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
+import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import type { ToolMode } from '../../entities/store/uiStore';
 import './Toolbar.css';
@@ -14,6 +15,13 @@ export function Toolbar() {
   const toggleCodePreview = useUIStore((s) => s.toggleCodePreview);
   const toggleWorkspaceManager = useUIStore((s) => s.toggleWorkspaceManager);
   const toggleTemplateGallery = useUIStore((s) => s.toggleTemplateGallery);
+  const toggleGitHubLogin = useUIStore((s) => s.toggleGitHubLogin);
+  const toggleGitHubRepos = useUIStore((s) => s.toggleGitHubRepos);
+  const toggleGitHubSync = useUIStore((s) => s.toggleGitHubSync);
+  const toggleGitHubPR = useUIStore((s) => s.toggleGitHubPR);
+
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const user = useAuthStore((s) => s.user);
 
   const addPlate = useArchitectureStore((s) => s.addPlate);
   const validate = useArchitectureStore((s) => s.validate);
@@ -168,6 +176,32 @@ export function Toolbar() {
         >
           ↪ Redo
         </button>
+      </div>
+
+      <div className="toolbar-divider" />
+
+      <div className="toolbar-group">
+        <span className="toolbar-group-label">GitHub</span>
+        {isAuthenticated ? (
+          <>
+            <button className="toolbar-btn toolbar-btn-github" onClick={toggleGitHubLogin} title="GitHub Account">
+              🔐 {user?.github_username ?? 'Account'}
+            </button>
+            <button className="toolbar-btn" onClick={toggleGitHubRepos} title="GitHub Repos">
+              📦 Repos
+            </button>
+            <button className="toolbar-btn" onClick={toggleGitHubSync} title="Sync with GitHub">
+              🔄 Sync
+            </button>
+            <button className="toolbar-btn" onClick={toggleGitHubPR} title="Create Pull Request">
+              🔀 PR
+            </button>
+          </>
+        ) : (
+          <button className="toolbar-btn toolbar-btn-github" onClick={toggleGitHubLogin} title="Sign in with GitHub">
+            🔐 Sign In
+          </button>
+        )}
       </div>
 
       <div className="toolbar-divider" />

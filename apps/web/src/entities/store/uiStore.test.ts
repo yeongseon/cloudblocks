@@ -15,6 +15,10 @@ describe('useUIStore', () => {
       showCodePreview: false,
       showWorkspaceManager: false,
       showTemplateGallery: false,
+      showGitHubLogin: false,
+      showGitHubRepos: false,
+      showGitHubSync: false,
+      showGitHubPR: false,
     });
   });
 
@@ -31,6 +35,10 @@ describe('useUIStore', () => {
       expect(state.showCodePreview).toBe(false);
       expect(state.showWorkspaceManager).toBe(false);
       expect(state.showTemplateGallery).toBe(false);
+      expect(state.showGitHubLogin).toBe(false);
+      expect(state.showGitHubRepos).toBe(false);
+      expect(state.showGitHubSync).toBe(false);
+      expect(state.showGitHubPR).toBe(false);
     });
   });
 
@@ -277,6 +285,74 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().showTemplateGallery).toBe(true);
       useUIStore.getState().toggleTemplateGallery();
       expect(useUIStore.getState().showTemplateGallery).toBe(false);
+    });
+  });
+
+  describe('toggleGitHubLogin', () => {
+    it('should default showGitHubLogin to false', () => {
+      expect(useUIStore.getState().showGitHubLogin).toBe(false);
+    });
+
+    it('should toggle showGitHubLogin from false to true', () => {
+      useUIStore.getState().toggleGitHubLogin();
+      expect(useUIStore.getState().showGitHubLogin).toBe(true);
+    });
+
+    it('should toggle showGitHubLogin back to false', () => {
+      useUIStore.getState().toggleGitHubLogin();
+      useUIStore.getState().toggleGitHubLogin();
+      expect(useUIStore.getState().showGitHubLogin).toBe(false);
+    });
+  });
+
+  describe('toggleGitHubRepos', () => {
+    it('should default showGitHubRepos to false', () => {
+      expect(useUIStore.getState().showGitHubRepos).toBe(false);
+    });
+
+    it('should toggle showGitHubRepos from false to true', () => {
+      useUIStore.getState().toggleGitHubRepos();
+      expect(useUIStore.getState().showGitHubRepos).toBe(true);
+    });
+
+    it('should toggle showGitHubRepos back to false', () => {
+      useUIStore.getState().toggleGitHubRepos();
+      useUIStore.getState().toggleGitHubRepos();
+      expect(useUIStore.getState().showGitHubRepos).toBe(false);
+    });
+  });
+
+  describe('toggleGitHubSync', () => {
+    it('should default showGitHubSync to false', () => {
+      expect(useUIStore.getState().showGitHubSync).toBe(false);
+    });
+
+    it('should toggle showGitHubSync from false to true', () => {
+      useUIStore.getState().toggleGitHubSync();
+      expect(useUIStore.getState().showGitHubSync).toBe(true);
+    });
+
+    it('should toggle showGitHubSync back to false', () => {
+      useUIStore.getState().toggleGitHubSync();
+      useUIStore.getState().toggleGitHubSync();
+      expect(useUIStore.getState().showGitHubSync).toBe(false);
+    });
+  });
+
+  describe('toggleGitHubPR', () => {
+    it('should default showGitHubPR to false', () => {
+      expect(useUIStore.getState().showGitHubPR).toBe(false);
+    });
+
+    it('should toggle showGitHubPR from false to true', () => {
+      useUIStore.getState().toggleGitHubPR();
+      expect(useUIStore.getState().showGitHubPR).toBe(true);
+    });
+
+    it('should toggle showGitHubPR back to false', () => {
+      useUIStore.getState().toggleGitHubPR();
+      useUIStore.getState().toggleGitHubPR();
+      expect(useUIStore.getState().showGitHubPR).toBe(false);
     });
   });
 

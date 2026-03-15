@@ -33,6 +33,14 @@ interface UIState {
   toggleWorkspaceManager: () => void;
   showTemplateGallery: boolean;
   toggleTemplateGallery: () => void;
+  showGitHubLogin: boolean;
+  toggleGitHubLogin: () => void;
+  showGitHubRepos: boolean;
+  toggleGitHubRepos: () => void;
+  showGitHubSync: boolean;
+  toggleGitHubSync: () => void;
+  showGitHubPR: boolean;
+  toggleGitHubPR: () => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -73,4 +81,20 @@ export const useUIStore = create<UIState>((set) => ({
   showTemplateGallery: false,
   toggleTemplateGallery: () =>
     set((s) => ({ showTemplateGallery: !s.showTemplateGallery })),
+
+  showGitHubLogin: false,
+  toggleGitHubLogin: () =>
+    set((s) => ({ showGitHubLogin: !s.showGitHubLogin })),
+
+  showGitHubRepos: false,
+  toggleGitHubRepos: () =>
+    set((s) => ({ showGitHubRepos: !s.showGitHubRepos })),
+
+  showGitHubSync: false,
+  toggleGitHubSync: () =>
+    set((s) => ({ showGitHubSync: !s.showGitHubSync })),
+
+  showGitHubPR: false,
+  toggleGitHubPR: () =>
+    set((s) => ({ showGitHubPR: !s.showGitHubPR })),
 }));

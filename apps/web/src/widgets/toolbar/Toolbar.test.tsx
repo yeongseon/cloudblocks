@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Toolbar } from './Toolbar';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
+import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import type { ArchitectureModel, Plate } from '../../shared/types/index';
 
@@ -38,7 +39,12 @@ describe('Toolbar', () => {
       showCodePreview: false,
       showWorkspaceManager: false,
       showTemplateGallery: false,
+      showGitHubLogin: false,
+      showGitHubRepos: false,
+      showGitHubSync: false,
+      showGitHubPR: false,
     });
+    useAuthStore.setState({ isAuthenticated: false, user: null });
     useArchitectureStore.setState({
       addPlate: addPlateMock,
       validate: validateMock,
@@ -76,6 +82,43 @@ describe('Toolbar', () => {
     expect(screen.getByText(/Select/)).toBeInTheDocument();
     expect(screen.getByText(/Connect/)).toBeInTheDocument();
     expect(screen.getByText(/Delete/)).toBeInTheDocument();
+  });
+
+  it('shows Sign In button when not authenticated', () => {
+    render(<Toolbar />);
+    expect(screen.getByTitle('Sign in with GitHub')).toBeInTheDocument();
+  });
+
+  it('shows GitHub username when authenticated', () => {
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: {
+        id: 'user-1',
+        github_username: 'octocat',
+        email: null,
+        display_name: 'The Octocat',
+        avatar_url: null,
+      },
+    });
+    render(<Toolbar />);
+    expect(screen.getByText('🔐 octocat')).toBeInTheDocument();
+  });
+
+  it('shows Repos, Sync, PR buttons when authenticated', () => {
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: {
+        id: 'user-1',
+        github_username: 'octocat',
+        email: null,
+        display_name: 'The Octocat',
+        avatar_url: null,
+      },
+    });
+    render(<Toolbar />);
+    expect(screen.getByTitle('GitHub Repos')).toBeInTheDocument();
+    expect(screen.getByTitle('Sync with GitHub')).toBeInTheDocument();
+    expect(screen.getByTitle('Create Pull Request')).toBeInTheDocument();
   });
 
   // --- Plate actions ---
@@ -486,6 +529,114 @@ describe('Toolbar', () => {
     const user = userEvent.setup();
     render(<Toolbar />);
     await user.click(screen.getByText(/Results/));
+    expect(useUIStore.getState().showValidation).toBe(true);
+  });
+
+  it('shows Account label when authenticated but user has no github_username', () => {
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: {
+        id: 'user-1',
+        github_username: null,
+        email: null,
+        display_name: null,
+        avatar_url: null,
+      },
+    });
+    render(<Toolbar />);
+    expect(screen.getByText('🔐 Account')).toBeInTheDocument();
+  });
+
+  it('shows Account label when authenticated but user is null', () => {
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: null,
+    });
+    render(<Toolbar />);
+    expect(screen.getByText('🔐 Account')).toBeInTheDocument();
+  });
+
+  it('toggles GitHub login when authenticated and account button clicked', async () => {
+    const user = userEvent.setup();
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: {
+        id: 'user-1',
+        github_username: 'octocat',
+        email: null,
+        display_name: null,
+        avatar_url: null,
+      },
+    });
+    render(<Toolbar />);
+    await user.click(screen.getByTitle('GitHub Account'));
+    expect(useUIStore.getState().showGitHubLogin).toBe(true);
+  });
+
+  it('toggles GitHub repos when authenticated', async () => {
+    const user = userEvent.setup();
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: {
+        id: 'user-1',
+        github_username: 'octocat',
+        email: null,
+        display_name: null,
+        avatar_url: null,
+      },
+    });
+    render(<Toolbar />);
+    await user.click(screen.getByTitle('GitHub Repos'));
+    expect(useUIStore.getState().showGitHubRepos).toBe(true);
+  });
+
+  it('toggles GitHub sync when authenticated', async () => {
+    const user = userEvent.setup();
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: {
+        id: 'user-1',
+        github_username: 'octocat',
+        email: null,
+        display_name: null,
+        avatar_url: null,
+      },
+    });
+    render(<Toolbar />);
+    await user.click(screen.getByTitle('Sync with GitHub'));
+    expect(useUIStore.getState().showGitHubSync).toBe(true);
+  });
+
+  it('toggles GitHub PR when authenticated', async () => {
+    const user = userEvent.setup();
+    useAuthStore.setState({
+      isAuthenticated: true,
+      user: {
+        id: 'user-1',
+        github_username: 'octocat',
+        email: null,
+        display_name: null,
+        avatar_url: null,
+      },
+    });
+    render(<Toolbar />);
+    await user.click(screen.getByTitle('Create Pull Request'));
+    expect(useUIStore.getState().showGitHubPR).toBe(true);
+  });
+
+  it('toggles GitHub login when Sign In button clicked', async () => {
+    const user = userEvent.setup();
+    render(<Toolbar />);
+    await user.click(screen.getByTitle('Sign in with GitHub'));
+    expect(useUIStore.getState().showGitHubLogin).toBe(true);
+  });
+
+  it('validates and does not toggle validation if already open', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ showValidation: true });
+    render(<Toolbar />);
+    await user.click(screen.getByTitle('Validate Architecture'));
+    expect(validateMock).toHaveBeenCalled();
     expect(useUIStore.getState().showValidation).toBe(true);
   });
 });

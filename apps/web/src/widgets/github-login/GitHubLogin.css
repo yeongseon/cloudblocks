@@ -1,0 +1,131 @@
+.github-login {
+  position: absolute;
+  right: 12px;
+  top: 60px;
+  width: 320px;
+  max-height: calc(100vh - 80px);
+  background: rgba(20, 20, 40, 0.95);
+  border: 1px solid #333366;
+  border-radius: 8px;
+  padding: 12px;
+  color: #e0e0e0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.github-login-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.github-login-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.github-login-close {
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.github-login-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.github-login-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.github-login-loading {
+  padding: 8px;
+  font-size: 12px;
+  color: #9aa4d1;
+  background: rgba(66, 133, 244, 0.12);
+  border: 1px solid rgba(66, 133, 244, 0.35);
+  border-radius: 4px;
+}
+
+.github-login-error {
+  padding: 8px;
+  font-size: 12px;
+  color: #ef5350;
+  background: rgba(244, 67, 54, 0.16);
+  border: 1px solid rgba(244, 67, 54, 0.4);
+  border-radius: 4px;
+  word-break: break-word;
+}
+
+.github-login-signin,
+.github-login-signout {
+  padding: 7px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #e0e0e0;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.github-login-signin:hover,
+.github-login-signout:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.github-login-signin:disabled,
+.github-login-signout:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.github-login-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.github-login-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid #333366;
+  object-fit: cover;
+}
+
+.github-login-user-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.github-login-user-name {
+  font-size: 12px;
+  color: #ffffff;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.github-login-user-username {
+  font-size: 11px;
+  color: #9aa4d1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

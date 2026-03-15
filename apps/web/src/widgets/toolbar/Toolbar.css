@@ -74,6 +74,16 @@
   border-color: #E57373;
 }
 
+.toolbar-btn-github {
+  border-color: rgba(110, 84, 148, 0.4);
+  background: rgba(110, 84, 148, 0.15);
+}
+
+.toolbar-btn-github:hover {
+  background: rgba(110, 84, 148, 0.3);
+  border-color: rgba(110, 84, 148, 0.6);
+}
+
 .toolbar-badge {
   padding: 2px 8px;
   border-radius: 10px;

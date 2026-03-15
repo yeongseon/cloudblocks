@@ -7,9 +7,16 @@ import { ValidationPanel } from '../widgets/validation-panel/ValidationPanel';
 import { CodePreview } from '../widgets/code-preview/CodePreview';
 import { WorkspaceManager } from '../widgets/workspace-manager/WorkspaceManager';
 import { TemplateGallery } from '../widgets/template-gallery/TemplateGallery';
+import { GitHubLogin } from '../widgets/github-login/GitHubLogin';
+import { GitHubRepos } from '../widgets/github-repos/GitHubRepos';
+import { GitHubSync } from '../widgets/github-sync/GitHubSync';
+import { GitHubPR } from '../widgets/github-pr/GitHubPR';
 import { useArchitectureStore } from '../entities/store/architectureStore';
+import { useAuthStore } from '../entities/store/authStore';
 import { useUIStore } from '../entities/store/uiStore';
 import { registerBuiltinTemplates } from '../features/templates/builtin';
+import { apiGet } from '../shared/api/client';
+import type { AuthResponse } from '../shared/types/api';
 import './App.css';
 
 function App() {
@@ -27,6 +34,28 @@ function App() {
     registerBuiltinTemplates();
     loadFromStorage();
   }, [loadFromStorage]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    const state = params.get('state');
+
+    if (code && state) {
+      const savedState = sessionStorage.getItem('github_oauth_state');
+      if (state === savedState) {
+        sessionStorage.removeItem('github_oauth_state');
+
+        apiGet<AuthResponse>(`/api/v1/auth/github/callback?code=${code}&state=${state}`)
+          .then((data) => {
+            useAuthStore.getState().login(data.access_token, data.refresh_token, data.user);
+            window.history.replaceState({}, '', window.location.pathname);
+          })
+          .catch((err) => {
+            useAuthStore.getState().setError(err instanceof Error ? err.message : 'OAuth failed');
+          });
+      }
+    }
+  }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -91,6 +120,10 @@ function App() {
         <CodePreview />
         <WorkspaceManager />
         <TemplateGallery />
+        <GitHubLogin />
+        <GitHubRepos />
+        <GitHubSync />
+        <GitHubPR />
       </div>
     </div>
   );

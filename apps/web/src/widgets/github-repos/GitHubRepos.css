@@ -1,0 +1,192 @@
+.github-repos {
+  position: absolute;
+  right: 12px;
+  top: 60px;
+  width: 360px;
+  max-height: calc(100vh - 80px);
+  background: rgba(20, 20, 40, 0.95);
+  border: 1px solid #333366;
+  border-radius: 8px;
+  padding: 12px;
+  color: #e0e0e0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.github-repos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.github-repos-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.github-repos-close {
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.github-repos-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.github-repos-loading {
+  padding: 8px;
+  font-size: 12px;
+  color: #9aa4d1;
+  background: rgba(66, 133, 244, 0.12);
+  border: 1px solid rgba(66, 133, 244, 0.35);
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.github-repos-error {
+  padding: 8px;
+  font-size: 12px;
+  color: #ef5350;
+  background: rgba(244, 67, 54, 0.16);
+  border: 1px solid rgba(244, 67, 54, 0.4);
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.github-repos-create {
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid #333366;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.github-repos-subtitle {
+  margin: 0;
+  font-size: 12px;
+  color: #ffffff;
+}
+
+.github-repos-input {
+  padding: 5px 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #e0e0e0;
+  font-size: 12px;
+  font-family: inherit;
+}
+
+.github-repos-input:focus {
+  outline: none;
+  border-color: #4285f4;
+}
+
+.github-repos-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #c9cfe8;
+}
+
+.github-repos-checkbox {
+  margin: 0;
+}
+
+.github-repos-create-btn {
+  padding: 6px 10px;
+  background: rgba(66, 133, 244, 0.28);
+  border: 1px solid rgba(66, 133, 244, 0.5);
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.github-repos-create-btn:hover {
+  background: rgba(66, 133, 244, 0.45);
+}
+
+.github-repos-create-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.github-repos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+
+.github-repos-item {
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid #333366;
+  border-radius: 4px;
+}
+
+.github-repos-item-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.github-repos-name {
+  font-size: 12px;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.github-repos-badge {
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.github-repos-badge-private {
+  background: rgba(244, 67, 54, 0.2);
+  color: #ef5350;
+}
+
+.github-repos-badge-public {
+  background: rgba(76, 175, 80, 0.2);
+  color: #81c784;
+}
+
+.github-repos-link {
+  font-size: 11px;
+  color: #82b1ff;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.github-repos-link:hover {
+  text-decoration: underline;
+}
+
+.github-repos-empty {
+  padding: 10px;
+  text-align: center;
+  color: #8e95b8;
+  font-size: 12px;
+}
