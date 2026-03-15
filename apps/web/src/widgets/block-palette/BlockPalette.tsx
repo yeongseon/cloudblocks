@@ -46,7 +46,7 @@ export function BlockPalette() {
   const addPlate = useArchitectureStore((s) => s.addPlate);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
 
-  const [explicitTarget, setExplicitTarget] = useState<string | null>(null);
+  const [explicitTarget] = useState<string | null>(null);
   const counterRef = useRef(0);
   const { position, handleMouseDown, isDragging } = useDraggable();
 
@@ -106,15 +106,21 @@ export function BlockPalette() {
   return (
     <div 
       className="block-palette"
-      style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
+      style={{ transform: `translateX(-50%) translate(${position.x}px, ${position.y}px)` }}
     >
-      <h3 
-        className="palette-title"
+      <button 
+        type="button"
+        className="palette-drag-grip"
         onMouseDown={handleMouseDown}
-        style={{ cursor: isDragging ? 'grabbing' : 'grab', userSelect: 'none' }}
+        style={{ cursor: isDragging ? 'grabbing' : 'grab', background: 'none', border: 'none', padding: 0 }}
+        title="Drag tray"
       >
-        🧱 Build
-      </h3>
+        <div className="grip-lines">
+          <span />
+          <span />
+          <span />
+        </div>
+      </button>
 
       <div className="build-shelf-section">
         <div className="build-shelf-label">TOOLS</div>
@@ -122,6 +128,7 @@ export function BlockPalette() {
           {tools.map((t) => (
             <button
               key={t.mode}
+              type="button"
               className={`build-shelf-tool-btn ${toolMode === t.mode ? 'active' : ''}`}
               onClick={() => setToolMode(t.mode)}
               title={t.label}
@@ -132,17 +139,19 @@ export function BlockPalette() {
         </div>
       </div>
 
+      <div className="build-shelf-divider" />
+
       <div className="build-shelf-section">
         <div className="build-shelf-label">PLATES</div>
         <div className="build-shelf-plates">
-          <button className="build-shelf-plate-btn" onClick={handleAddNetwork}>
+          <button type="button" className="build-shelf-plate-btn" onClick={handleAddNetwork}>
             <span className="plate-icon">🌐</span> Network
           </button>
-          <button className="build-shelf-plate-btn plate-public" onClick={handleAddPublicSubnet}>
-            <span className="plate-icon">🟢</span> Public Subnet
+          <button type="button" className="build-shelf-plate-btn plate-public" onClick={handleAddPublicSubnet}>
+            <span className="plate-icon">🟢</span> Public
           </button>
-          <button className="build-shelf-plate-btn plate-private" onClick={handleAddPrivateSubnet}>
-            <span className="plate-icon">🔴</span> Private Subnet
+          <button type="button" className="build-shelf-plate-btn plate-private" onClick={handleAddPrivateSubnet}>
+            <span className="plate-icon">🔴</span> Private
           </button>
         </div>
       </div>
@@ -151,25 +160,6 @@ export function BlockPalette() {
 
       <div className="build-shelf-section">
         <div className="build-shelf-label">BLOCKS</div>
-
-        {subnetPlates.length > 1 && (
-          <div className="palette-target-selector">
-            <label htmlFor="target-select" className="palette-target-label">
-              Target Plate:
-            </label>
-            <select
-              id="target-select"
-              className="palette-select"
-              value={targetSubnetId ?? ''}
-              onChange={(e) => setExplicitTarget(e.target.value)}
-            >
-              {subnetPlates.map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
-            </select>
-          </div>
-        )}
-
         <div className="palette-items">
           {ALL_PALETTE_ITEMS.map((item) => (
             <button
@@ -201,7 +191,7 @@ export function BlockPalette() {
             Subnet: {architecture.plates.find((p) => p.id === targetSubnetId)?.name ?? 'Unknown'}
           </div>
         )}
-        {targetNetworkId && (
+        {targetNetworkId && !targetSubnetId && (
           <div className="palette-hint">
             Network: {architecture.plates.find((p) => p.id === targetNetworkId)?.name ?? 'Unknown'}
           </div>
