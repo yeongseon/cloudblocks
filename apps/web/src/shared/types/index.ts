@@ -126,35 +126,82 @@ export interface ValidationResult {
 // ─── Visual Identity ───────────────────────────────────────
 
 export const BLOCK_COLORS: Record<BlockCategory, string> = {
-  compute: '#4CAF50', // Green
-  database: '#FF9800', // Orange
-  storage: '#FFEB3B', // Yellow
-  gateway: '#9C27B0', // Purple
-  function: '#00BCD4', // Cyan
-  queue: '#E91E63', // Pink
-  event: '#3F51B5', // Indigo
-  timer: '#795548', // Brown
+  compute: '#F25022',   // Azure Red/Orange
+  database: '#00A4EF',  // Azure Light Blue
+  storage: '#7FBA00',   // Azure Green
+  gateway: '#0078D4',   // Azure Blue
+  function: '#FFB900',  // Azure Yellow
+  queue: '#737373',     // Azure Gray
+  event: '#D83B01',     // Azure Orange
+  timer: '#5C2D91',     // Azure Purple
 };
 
 export const PLATE_COLORS: Record<PlateType, string> = {
-  network: '#2196F3', // Blue
-  subnet: '#64B5F6', // Light Blue
+  network: '#0078D4',  // Azure Blue
+  subnet: '#E6F2FF',   // Light Azure
 };
 
 export const SUBNET_ACCESS_COLORS: Record<SubnetAccess, string> = {
-  public: '#81C784', // Light Green (public)
-  private: '#E57373', // Light Red (private)
+  public: '#00A4EF',   // Light Azure Blue
+  private: '#5C2D91',  // Azure Purple
 };
 
 // ─── Default Sizes ─────────────────────────────────────────
 
 export const DEFAULT_PLATE_SIZE: Record<PlateType, Size> = {
-  network: { width: 12, height: 0.3, depth: 10 },
-  subnet: { width: 5, height: 0.2, depth: 8 },
+  network: { width: 12, height: 0.5, depth: 10 },
+  subnet: { width: 5, height: 0.35, depth: 8 },
 };
 
 export const DEFAULT_BLOCK_SIZE: Size = {
-  width: 1,
-  height: 1,
-  depth: 1,
+  width: 2.4,
+  height: 2.0,
+  depth: 2.4,
 };
+
+// ─── Educational Metadata ──────────────────────────────────
+
+export const BLOCK_FRIENDLY_NAMES: Record<BlockCategory, string> = {
+  gateway: 'App Gateway',
+  compute: 'Virtual Machine',
+  database: 'SQL Database',
+  storage: 'Blob Storage',
+  function: 'App Service',
+  queue: 'Message Queue',
+  event: 'Event Hub',
+  timer: 'Timer',
+};
+
+export const BLOCK_DESCRIPTIONS: Record<BlockCategory, string> = {
+  gateway: 'Routes web traffic to your app',
+  compute: 'Runs your application code',
+  database: 'Stores structured data in tables',
+  storage: 'Stores files, images, and media',
+  function: 'Hosts web apps and APIs',
+  queue: 'Buffers messages between services',
+  event: 'Routes events to subscribers',
+  timer: 'Triggers actions on a schedule',
+};
+
+export const BLOCK_ICONS: Record<BlockCategory, string> = {
+  gateway: '🛡️',
+  compute: '🖥️',
+  database: '🗄️',
+  storage: '📦',
+  function: '⚡',
+  queue: '📨',
+  event: '🔔',
+  timer: '⏰',
+};
+
+export const BLOCK_SHORT_NAMES: Record<BlockCategory, string> = {
+  gateway: 'App GW',
+  compute: 'VM',
+  database: 'SQL DB',
+  storage: 'Storage',
+  function: 'App Svc',
+  queue: 'Queue',
+  event: 'Event Hub',
+  timer: 'Timer',
+};
+

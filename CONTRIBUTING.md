@@ -306,4 +306,4 @@ See existing ADRs in `docs/adr/` for the template. Each ADR follows:
 
 ## License
 
-By contributing to CloudBlocks, you agree that your contributions will be licensed under the [MIT License](LICENSE).
+By contributing to CloudBlocks, you agree that your contributions will be licensed under the [Apache License 2.0](LICENSE).

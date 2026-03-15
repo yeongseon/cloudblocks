@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { SceneCanvas } from '../widgets/scene-canvas/SceneCanvas';
-import { Toolbar } from '../widgets/toolbar/Toolbar';
+import { MenuBar } from '../widgets/menu-bar/MenuBar';
+import { StatusBar } from '../widgets/status-bar/StatusBar';
 import { BlockPalette } from '../widgets/block-palette/BlockPalette';
 import { PropertiesPanel } from '../widgets/properties-panel/PropertiesPanel';
 import { ValidationPanel } from '../widgets/validation-panel/ValidationPanel';
@@ -10,6 +11,8 @@ import { useUIStore } from '../entities/store/uiStore';
 import { registerBuiltinTemplates } from '../features/templates/builtin';
 import { apiGet } from '../shared/api/client';
 import type { AuthResponse } from '../shared/types/api';
+import { LegendPanel } from '../widgets/legend-panel/LegendPanel';
+import { FlowDiagram } from '../widgets/flow-diagram/FlowDiagram';
 import './App.css';
 
 // Lazy-loaded optional widgets (code-split)
@@ -113,12 +116,14 @@ function App() {
 
   return (
     <div className="app">
-      <Toolbar />
+      <MenuBar />
       <div className="canvas-container">
         <SceneCanvas />
         <BlockPalette />
         <PropertiesPanel />
         <ValidationPanel />
+        <LegendPanel />
+        <FlowDiagram />
         <Suspense fallback={null}>
           <CodePreview />
           <WorkspaceManager />
@@ -129,6 +134,7 @@ function App() {
           <GitHubPR />
         </Suspense>
       </div>
+      <StatusBar />
     </div>
   );
 }

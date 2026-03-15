@@ -1,0 +1,50 @@
+.flow-diagram {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 120, 212, 0.08);
+  border: 1px solid rgba(0, 120, 212, 0.12);
+  padding: 10px 20px;
+  z-index: 10;
+  font-family: 'Varela Round', system-ui, sans-serif;
+  max-width: 90vw;
+  overflow-x: auto;
+}
+
+.flow-node {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  color: #fff;
+}
+
+.flow-node-external {
+  background: #0078D4;
+  color: #fff;
+}
+
+.flow-icon {
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.3);
+  padding: 1px 4px;
+  border-radius: 5px;
+}
+
+.flow-arrow {
+  color: #0078D4;
+  font-size: 16px;
+  font-weight: 300;
+  flex-shrink: 0;
+}

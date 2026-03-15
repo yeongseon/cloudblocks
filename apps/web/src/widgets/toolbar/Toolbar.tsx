@@ -129,14 +129,14 @@ export function Toolbar() {
 
       <div className="toolbar-group">
         <span className="toolbar-group-label">Plates</span>
-        <button className="toolbar-btn" onClick={handleAddNetwork} title="Add Network (VNet)">
+        <button type="button" className="toolbar-btn" onClick={handleAddNetwork} title="Add Network (VNet)">
           🌐 Network
         </button>
-        <button className="toolbar-btn toolbar-btn-public" onClick={handleAddPublicSubnet} title="Add Public Subnet">
-          🟢 Public
+        <button type="button" className="toolbar-btn toolbar-btn-public" onClick={handleAddPublicSubnet} title="Add Public Subnet">
+          🟢 Public Subnet
         </button>
-        <button className="toolbar-btn toolbar-btn-private" onClick={handleAddPrivateSubnet} title="Add Private Subnet">
-          🔴 Private
+        <button type="button" className="toolbar-btn toolbar-btn-private" onClick={handleAddPrivateSubnet} title="Add Private Subnet">
+          🔴 Private Subnet
         </button>
       </div>
 
@@ -146,6 +146,7 @@ export function Toolbar() {
         <span className="toolbar-group-label">Tools</span>
         {tools.map((tool) => (
           <button
+            type="button"
             key={tool.mode}
             className={`toolbar-btn ${toolMode === tool.mode ? 'toolbar-btn-active' : ''}`}
             onClick={() => setToolMode(tool.mode)}
@@ -161,6 +162,7 @@ export function Toolbar() {
       <div className="toolbar-group">
         <span className="toolbar-group-label">Edit</span>
         <button
+          type="button"
           className="toolbar-btn"
           onClick={undo}
           disabled={!canUndo}
@@ -169,6 +171,7 @@ export function Toolbar() {
           ↩ Undo
         </button>
         <button
+          type="button"
           className="toolbar-btn"
           onClick={redo}
           disabled={!canRedo}
@@ -184,21 +187,21 @@ export function Toolbar() {
         <span className="toolbar-group-label">GitHub</span>
         {isAuthenticated ? (
           <>
-            <button className="toolbar-btn toolbar-btn-github" onClick={toggleGitHubLogin} title="GitHub Account">
+            <button type="button" className="toolbar-btn toolbar-btn-github" onClick={toggleGitHubLogin} title="GitHub Account">
               🔐 {user?.github_username ?? 'Account'}
             </button>
-            <button className="toolbar-btn" onClick={toggleGitHubRepos} title="GitHub Repos">
+            <button type="button" className="toolbar-btn" onClick={toggleGitHubRepos} title="GitHub Repos">
               📦 Repos
             </button>
-            <button className="toolbar-btn" onClick={toggleGitHubSync} title="Sync with GitHub">
+            <button type="button" className="toolbar-btn" onClick={toggleGitHubSync} title="Sync with GitHub">
               🔄 Sync
             </button>
-            <button className="toolbar-btn" onClick={toggleGitHubPR} title="Create Pull Request">
+            <button type="button" className="toolbar-btn" onClick={toggleGitHubPR} title="Create Pull Request">
               🔀 PR
             </button>
           </>
         ) : (
-          <button className="toolbar-btn toolbar-btn-github" onClick={toggleGitHubLogin} title="Sign in with GitHub">
+          <button type="button" className="toolbar-btn toolbar-btn-github" onClick={toggleGitHubLogin} title="Sign in with GitHub">
             🔐 Sign In
           </button>
         )}
@@ -207,7 +210,7 @@ export function Toolbar() {
       <div className="toolbar-divider" />
 
       <div className="toolbar-group">
-        <button className="toolbar-btn" onClick={handleValidate} title="Validate Architecture">
+        <button type="button" className="toolbar-btn" onClick={handleValidate} title="Validate Architecture">
           ✅ Validate
         </button>
         {validationResult && (
@@ -224,16 +227,16 @@ export function Toolbar() {
       <div className="toolbar-divider" />
 
       <div className="toolbar-group">
-        <button className="toolbar-btn" onClick={handleSave} title="Save Workspace">
+        <button type="button" className="toolbar-btn" onClick={handleSave} title="Save Workspace">
           💾 Save
         </button>
-        <button className="toolbar-btn" onClick={handleLoad} title="Load Workspace">
+        <button type="button" className="toolbar-btn" onClick={handleLoad} title="Load Workspace">
           📂 Load
         </button>
-        <button className="toolbar-btn" onClick={handleExport} title="Export architecture.json">
+        <button type="button" className="toolbar-btn" onClick={handleExport} title="Export architecture.json">
           📤 Export
         </button>
-        <button className="toolbar-btn" onClick={handleImport} title="Import architecture.json">
+        <button type="button" className="toolbar-btn" onClick={handleImport} title="Import architecture.json">
           📥 Import
         </button>
         <input
@@ -243,7 +246,7 @@ export function Toolbar() {
           style={{ display: 'none' }}
           onChange={handleImportFile}
         />
-        <button className="toolbar-btn" onClick={handleReset} title="Reset Workspace">
+        <button type="button" className="toolbar-btn" onClick={handleReset} title="Reset Workspace">
           🔄 Reset
         </button>
       </div>
@@ -251,13 +254,13 @@ export function Toolbar() {
       <div className="toolbar-divider" />
 
       <div className="toolbar-group">
-        <button className="toolbar-btn" onClick={toggleCodePreview} title="Generate Terraform Code">
+        <button type="button" className="toolbar-btn" onClick={toggleCodePreview} title="Generate Terraform Code">
           ⚡ Generate
         </button>
-        <button className="toolbar-btn" onClick={toggleWorkspaceManager} title="Manage Workspaces">
+        <button type="button" className="toolbar-btn" onClick={toggleWorkspaceManager} title="Manage Workspaces">
           📂 Workspaces
         </button>
-        <button className="toolbar-btn" onClick={toggleTemplateGallery} title="Browse Templates">
+        <button type="button" className="toolbar-btn" onClick={toggleTemplateGallery} title="Browse Templates">
           📦 Templates
         </button>
       </div>
@@ -265,13 +268,13 @@ export function Toolbar() {
       <div className="toolbar-divider" />
 
       <div className="toolbar-group">
-        <button className="toolbar-btn" onClick={toggleBlockPalette}>
+        <button type="button" className="toolbar-btn" onClick={toggleBlockPalette}>
           🧱 Palette
         </button>
-        <button className="toolbar-btn" onClick={toggleProperties}>
+        <button type="button" className="toolbar-btn" onClick={toggleProperties}>
           📋 Props
         </button>
-        <button className="toolbar-btn" onClick={toggleValidation}>
+        <button type="button" className="toolbar-btn" onClick={toggleValidation}>
           📊 Results
         </button>
       </div>

@@ -5,11 +5,14 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: #1a1a2e;
+  background-color: #f8fbff;
+  background-image: radial-gradient(#cce0ff 2px, transparent 2px);
+  background-size: 32px 32px;
 }
 
 .canvas-container {
   position: relative;
   flex: 1;
-  margin-top: 48px; /* toolbar height */
+  margin-top: 40px; /* MenuBar height */
+  margin-bottom: 32px; /* StatusBar height */
 }

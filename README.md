@@ -1,6 +1,6 @@
 # CloudBlocks
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB)](https://react.dev/)
 
@@ -29,7 +29,13 @@ Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks
 - **Multi-workspace** — Create, switch, and manage multiple workspaces (Phase 4)
 - **GitHub integration** — OAuth login, repo sync, pull, and PR creation (Phase 5)
 - **Backend API** — FastAPI orchestration layer with GitHub App OAuth (Phase 5)
-- **Open source** — MIT licensed, extend and contribute freely
+- **Open source** — Apache 2.0 licensed, extend and contribute freely
+
+### Planned Features
+
+- **Multi-generator** — Terraform, Bicep, and Pulumi export with plugin interface (Phase 6)
+- **Template marketplace** — GitHub-backed community architecture templates (Phase 6)
+- **Serverless blocks** — Function, Queue, Event, Timer block types (Phase 6)
 ## Quick Start
 
 ```bash
@@ -164,4 +170,4 @@ Please follow existing code patterns and ensure TypeScript strict mode passes.
 
 ## License
 
-[MIT](LICENSE)
+[Apache 2.0](LICENSE)

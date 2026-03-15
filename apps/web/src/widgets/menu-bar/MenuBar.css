@@ -1,0 +1,253 @@
+.menu-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  background: #FCFCFC;
+  box-shadow: 0 3px 0 0 #E0E0E0, 0 8px 16px rgba(0,0,0,0.05);
+  z-index: 100;
+  font-family: 'Varela Round', system-ui, sans-serif;
+  gap: 16px;
+  user-select: none;
+}
+
+.menu-bar-logo {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--roblox-primary);
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 0 rgba(0, 120, 212, 0.2);
+  display: flex;
+  align-items: center;
+}
+
+.menu-bar-divider {
+  width: 1px;
+  height: 24px;
+  background: #E2E8F0;
+  margin: 0 4px;
+}
+
+
+.workspace-pill {
+  padding: 4px 12px;
+  background: #F0F4F8;
+  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-pill);
+  color: #334155;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 2px 0 0 #CBD5E1;
+}
+
+.workspace-pill:hover {
+  background: #F8FAFC;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 0 #CBD5E1;
+  color: #0F172A;
+}
+
+
+.menu-bar-nav {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.menu-dropdown-container {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.menu-trigger {
+  padding: 4px 10px;
+  background: transparent;
+  border: none;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: var(--radius-item);
+  transition: all 0.15s ease;
+  height: 28px;
+  display: flex;
+  align-items: center;
+}
+
+.menu-trigger:hover,
+.menu-trigger[data-active="true"] {
+  background: #E2E8F0;
+  color: #0F172A;
+}
+
+.menu-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 200px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-item);
+  padding: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 0 0 #CBD5E1;
+  display: none;
+  flex-direction: column;
+}
+
+.menu-dropdown.show {
+  display: flex;
+}
+
+.menu-dropdown.right-aligned {
+  left: auto;
+  right: 0;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: calc(var(--radius-item) - 2px);
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s ease, color 0.1s ease;
+}
+
+.menu-item:hover:not(:disabled) {
+  background: var(--roblox-primary);
+  color: #FFFFFF;
+}
+
+.menu-item:hover:not(:disabled) .menu-shortcut {
+  color: #E0F2FE;
+}
+
+.menu-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.menu-item-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu-shortcut {
+  font-size: 11px;
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+.menu-separator {
+  height: 1px;
+  background: #E2E8F0;
+  margin: 4px 0;
+}
+
+
+.quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto; 
+}
+
+.quick-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  color: #334155;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 2px 0 0 #CBD5E1;
+}
+
+.quick-btn:hover:not(:disabled) {
+  background: #F8FAFC;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 0 0 #CBD5E1;
+  color: #0F172A;
+}
+
+.quick-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: 0 1px 0 0 #E2E8F0;
+  transform: translateY(1px);
+  background: #F1F5F9;
+  color: #94A3B8;
+}
+
+
+.github-section {
+  display: flex;
+  align-items: center;
+  margin-left: 8px;
+}
+
+.github-btn {
+  padding: 4px 12px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-pill);
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 2px 0 0 #CBD5E1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.github-btn:hover {
+  background: #FFFFFF;
+  border-color: #64748B;
+  color: #0F172A;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 0 0 #64748B;
+}
+
+
+.menu-badge {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 10px;
+  font-weight: 800;
+  margin-left: 8px;
+}
+
+.menu-badge-valid {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.menu-badge-invalid {
+  background: #FEE2E2;
+  color: #DC2626;
+}

@@ -14,7 +14,7 @@
   },
   "keywords": ["cloud", "architecture", "2.5d", "isometric", "visualization", "terraform", "infrastructure-as-code"],
   "author": "yeongseon",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"

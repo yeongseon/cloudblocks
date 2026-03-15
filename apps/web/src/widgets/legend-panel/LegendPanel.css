@@ -1,0 +1,114 @@
+.legend-panel {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 240px;
+  background: #FCFCFC;
+  border-radius: var(--radius-container);
+  box-shadow: 0 4px 0 0 rgba(0,0,0,0.1), 0 8px 24px rgba(0, 120, 212, 0.1);
+  border: 3px solid #E2E8F0;
+  padding: 20px 16px 16px;
+  z-index: 10;
+  font-family: 'Varela Round', system-ui, sans-serif;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.legend-panel::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 12px;
+  background: #E2E8F0;
+  border-radius: 12px 12px 0 0;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,0.8), 0 -2px 0 rgba(0,0,0,0.05);
+}
+
+.legend-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--roblox-primary);
+  margin: 4px 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-shadow: 0 2px 0 rgba(0, 120, 212, 0.15);
+}
+
+.legend-subtitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748B;
+  margin-bottom: 16px;
+}
+
+.legend-section-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 16px 0 12px 0;
+  padding: 6px 12px;
+  background: #F1F5F9;
+  border-radius: var(--radius-pill);
+  display: inline-block;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,0.6), 0 2px 0 rgba(0,0,0,0.05);
+}
+
+.legend-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.15s;
+  background: transparent;
+}
+
+.legend-item:hover {
+  transform: translateX(4px) translateY(-1px);
+  background: #F8FAFC;
+  box-shadow: 0 2px 0 0 #E2E8F0;
+}
+
+.legend-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.legend-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.legend-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.legend-name {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0F172A;
+  line-height: 1.2;
+}
+
+.legend-desc {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+  line-height: 1.3;
+}

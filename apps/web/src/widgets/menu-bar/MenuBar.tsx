@@ -1,0 +1,428 @@
+import { useState, useEffect, useRef } from 'react';
+import { useArchitectureStore } from '../../entities/store/architectureStore';
+import { useAuthStore } from '../../entities/store/authStore';
+import { useUIStore } from '../../entities/store/uiStore';
+import './MenuBar.css';
+
+type DropdownMenu = 'file' | 'edit' | 'insert' | 'tools' | 'build' | 'view' | 'github' | null;
+
+export function MenuBar() {
+  const [openMenu, setOpenMenu] = useState<DropdownMenu>(null);
+  
+  const toolMode = useUIStore((s) => s.toolMode);
+  const setToolMode = useUIStore((s) => s.setToolMode);
+  const selectedId = useUIStore((s) => s.selectedId);
+  const toggleBlockPalette = useUIStore((s) => s.toggleBlockPalette);
+  const toggleProperties = useUIStore((s) => s.toggleProperties);
+  const toggleValidation = useUIStore((s) => s.toggleValidation);
+  const showBlockPalette = useUIStore((s) => s.showBlockPalette);
+  const showProperties = useUIStore((s) => s.showProperties);
+  const showValidation = useUIStore((s) => s.showValidation);
+  const toggleCodePreview = useUIStore((s) => s.toggleCodePreview);
+  const toggleWorkspaceManager = useUIStore((s) => s.toggleWorkspaceManager);
+  const toggleTemplateGallery = useUIStore((s) => s.toggleTemplateGallery);
+  const toggleGitHubLogin = useUIStore((s) => s.toggleGitHubLogin);
+  const toggleGitHubRepos = useUIStore((s) => s.toggleGitHubRepos);
+  const toggleGitHubSync = useUIStore((s) => s.toggleGitHubSync);
+  const toggleGitHubPR = useUIStore((s) => s.toggleGitHubPR);
+
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const user = useAuthStore((s) => s.user);
+
+  const addPlate = useArchitectureStore((s) => s.addPlate);
+  const removePlate = useArchitectureStore((s) => s.removePlate);
+  const removeBlock = useArchitectureStore((s) => s.removeBlock);
+  const removeConnection = useArchitectureStore((s) => s.removeConnection);
+  
+  const validate = useArchitectureStore((s) => s.validate);
+  const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
+  const loadFromStorage = useArchitectureStore((s) => s.loadFromStorage);
+  const resetWorkspace = useArchitectureStore((s) => s.resetWorkspace);
+  const validationResult = useArchitectureStore((s) => s.validationResult);
+  const architecture = useArchitectureStore((s) => s.workspace.architecture);
+  const canUndo = useArchitectureStore((s) => s.canUndo);
+  const canRedo = useArchitectureStore((s) => s.canRedo);
+  const undo = useArchitectureStore((s) => s.undo);
+  const redo = useArchitectureStore((s) => s.redo);
+  const importArchitecture = useArchitectureStore((s) => s.importArchitecture);
+
+  const importInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleDocumentClick = (e: MouseEvent) => {
+      if (!(e.target as Element).closest('.menu-dropdown-container')) {
+        setOpenMenu(null);
+      }
+    };
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpenMenu(null);
+    };
+
+    document.addEventListener('click', handleDocumentClick);
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      document.removeEventListener('click', handleDocumentClick);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, []);
+
+  const toggleMenu = (menu: DropdownMenu) => {
+    setOpenMenu((prev) => (prev === menu ? null : menu));
+  };
+
+  const handleAction = (action: () => void) => {
+    action();
+    setOpenMenu(null);
+  };
+
+  const handleAddNetwork = () => {
+    addPlate('network', 'VNet', null);
+  };
+
+  const handleAddPublicSubnet = () => {
+    const network = architecture.plates.find((p) => p.type === 'network');
+    if (!network) {
+      alert('Please create a Network Plate first.');
+      return;
+    }
+    addPlate('subnet', 'Public Subnet', network.id, 'public');
+  };
+
+  const handleAddPrivateSubnet = () => {
+    const network = architecture.plates.find((p) => p.type === 'network');
+    if (!network) {
+      alert('Please create a Network Plate first.');
+      return;
+    }
+    addPlate('subnet', 'Private Subnet', network.id, 'private');
+  };
+
+  const handleDeleteSelection = () => {
+    if (!selectedId) return;
+    if (architecture.plates.some((p) => p.id === selectedId)) {
+      removePlate(selectedId);
+    } else if (architecture.blocks.some((b) => b.id === selectedId)) {
+      removeBlock(selectedId);
+    } else if (architecture.connections.some((c) => c.id === selectedId)) {
+      removeConnection(selectedId);
+    }
+  };
+
+  const handleValidate = () => {
+    validate();
+    if (!showValidation) toggleValidation();
+  };
+
+  const handleSave = () => {
+    saveToStorage();
+    alert('Workspace saved!');
+  };
+
+  const handleLoad = () => {
+    loadFromStorage();
+  };
+
+  const handleExport = () => {
+    const json = JSON.stringify(architecture, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'architecture.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = () => {
+    importInputRef.current?.click();
+  };
+
+  const handleImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result;
+      if (typeof text === 'string') {
+        importArchitecture(text);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+    setOpenMenu(null);
+  };
+
+  const handleReset = () => {
+    if (confirm('Reset workspace? All unsaved changes will be lost.')) {
+      resetWorkspace();
+    }
+  };
+
+  return (
+    <div className="menu-bar">
+      <div className="menu-bar-logo">🧱 CloudBlocks</div>
+
+      <div className="menu-bar-divider" />
+
+      <button
+        type="button"
+        className="workspace-pill"
+        onClick={() => {
+          toggleWorkspaceManager();
+          setOpenMenu(null);
+        }}
+        title="Manage Workspaces"
+      >
+        Workspaces
+      </button>
+
+      <div className="menu-bar-divider" />
+
+      <nav className="menu-bar-nav">
+        <div className="menu-dropdown-container">
+          <button
+            type="button"
+            className="menu-trigger"
+            data-active={openMenu === 'file'}
+            onClick={() => toggleMenu('file')}
+          >
+            File
+          </button>
+          <div className={`menu-dropdown ${openMenu === 'file' ? 'show' : ''}`}>
+            <button type="button" className="menu-item" onClick={() => handleAction(handleSave)}>
+              <span className="menu-item-left">💾 Save Workspace</span>
+              <span className="menu-shortcut">Ctrl+S</span>
+            </button>
+            <button type="button" className="menu-item" onClick={() => handleAction(handleLoad)}>
+              <span className="menu-item-left">📂 Load Workspace</span>
+            </button>
+            <div className="menu-separator" />
+            <button type="button" className="menu-item" onClick={() => handleAction(handleImport)}>
+              <span className="menu-item-left">📥 Import JSON</span>
+            </button>
+            <button type="button" className="menu-item" onClick={() => handleAction(handleExport)}>
+              <span className="menu-item-left">📤 Export JSON</span>
+            </button>
+            <div className="menu-separator" />
+            <button type="button" className="menu-item" onClick={() => handleAction(handleReset)}>
+              <span className="menu-item-left">🔄 Reset Workspace</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="menu-dropdown-container">
+          <button
+            type="button"
+            className="menu-trigger"
+            data-active={openMenu === 'edit'}
+            onClick={() => toggleMenu('edit')}
+          >
+            Edit
+          </button>
+          <div className={`menu-dropdown ${openMenu === 'edit' ? 'show' : ''}`}>
+            <button
+              type="button"
+              className="menu-item"
+              onClick={() => handleAction(undo)}
+              disabled={!canUndo}
+            >
+              <span className="menu-item-left">↩ Undo</span>
+              <span className="menu-shortcut">Ctrl+Z</span>
+            </button>
+            <button
+              type="button"
+              className="menu-item"
+              onClick={() => handleAction(redo)}
+              disabled={!canRedo}
+            >
+              <span className="menu-item-left">↪ Redo</span>
+              <span className="menu-shortcut">Ctrl+Shift+Z</span>
+            </button>
+            <div className="menu-separator" />
+            <button
+              type="button"
+              className="menu-item"
+              onClick={() => handleAction(handleDeleteSelection)}
+              disabled={!selectedId}
+            >
+              <span className="menu-item-left">❌ Delete Selection</span>
+              <span className="menu-shortcut">Del</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="menu-dropdown-container">
+          <button
+            type="button"
+            className="menu-trigger"
+            data-active={openMenu === 'insert'}
+            onClick={() => toggleMenu('insert')}
+          >
+            Insert
+          </button>
+          <div className={`menu-dropdown ${openMenu === 'insert' ? 'show' : ''}`}>
+            <button type="button" className="menu-item" onClick={() => handleAction(handleAddNetwork)}>
+              <span className="menu-item-left">🌐 Network (VNet)</span>
+            </button>
+            <button type="button" className="menu-item" onClick={() => handleAction(handleAddPublicSubnet)}>
+              <span className="menu-item-left">🟢 Public Subnet</span>
+            </button>
+            <button type="button" className="menu-item" onClick={() => handleAction(handleAddPrivateSubnet)}>
+              <span className="menu-item-left">🔴 Private Subnet</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="menu-dropdown-container">
+          <button
+            type="button"
+            className="menu-trigger"
+            data-active={openMenu === 'tools'}
+            onClick={() => toggleMenu('tools')}
+          >
+            Tools
+          </button>
+          <div className={`menu-dropdown ${openMenu === 'tools' ? 'show' : ''}`}>
+            <button type="button" className="menu-item" onClick={() => handleAction(() => setToolMode('select'))}>
+              <span className="menu-item-left">{toolMode === 'select' ? '✓' : ''} 👆 Select Tool</span>
+            </button>
+            <button type="button" className="menu-item" onClick={() => handleAction(() => setToolMode('connect'))}>
+              <span className="menu-item-left">{toolMode === 'connect' ? '✓' : ''} 🔗 Connect Tool</span>
+            </button>
+            <button type="button" className="menu-item" onClick={() => handleAction(() => setToolMode('delete'))}>
+              <span className="menu-item-left">{toolMode === 'delete' ? '✓' : ''} ❌ Delete Tool</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="menu-dropdown-container">
+          <button
+            type="button"
+            className="menu-trigger"
+            data-active={openMenu === 'build'}
+            onClick={() => toggleMenu('build')}
+          >
+            Build
+          </button>
+          <div className={`menu-dropdown ${openMenu === 'build' ? 'show' : ''}`}>
+            <button type="button" className="menu-item" onClick={() => handleAction(handleValidate)}>
+              <span className="menu-item-left">✅ Validate Architecture</span>
+              {validationResult && (
+                <span className={`menu-badge ${validationResult.valid ? 'menu-badge-valid' : 'menu-badge-invalid'}`}>
+                  {validationResult.valid ? 'Valid' : 'Errors'}
+                </span>
+              )}
+            </button>
+            <button type="button" className="menu-item" onClick={() => handleAction(toggleCodePreview)}>
+              <span className="menu-item-left">⚡ Generate Terraform</span>
+            </button>
+            <div className="menu-separator" />
+            <button type="button" className="menu-item" onClick={() => handleAction(toggleTemplateGallery)}>
+              <span className="menu-item-left">📦 Browse Templates</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="menu-dropdown-container">
+          <button
+            type="button"
+            className="menu-trigger"
+            data-active={openMenu === 'view'}
+            onClick={() => toggleMenu('view')}
+          >
+            View
+          </button>
+          <div className={`menu-dropdown ${openMenu === 'view' ? 'show' : ''}`}>
+            <button type="button" className="menu-item" onClick={() => handleAction(toggleBlockPalette)}>
+              <span className="menu-item-left">{showBlockPalette ? '✓ ' : ''}🧱 Block Palette</span>
+            </button>
+            <button type="button" className="menu-item" onClick={() => handleAction(toggleProperties)}>
+              <span className="menu-item-left">{showProperties ? '✓ ' : ''}📋 Properties Panel</span>
+            </button>
+            <button type="button" className="menu-item" onClick={() => handleAction(toggleValidation)}>
+              <span className="menu-item-left">{showValidation ? '✓ ' : ''}📊 Validation Results</span>
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <div className="quick-actions">
+        <button
+          type="button"
+          className="quick-btn"
+          onClick={undo}
+          disabled={!canUndo}
+          title="Undo (Ctrl+Z)"
+        >
+          ↩
+        </button>
+        <button
+          type="button"
+          className="quick-btn"
+          onClick={redo}
+          disabled={!canRedo}
+          title="Redo (Ctrl+Shift+Z)"
+        >
+          ↪
+        </button>
+        <button
+          type="button"
+          className="quick-btn"
+          onClick={handleSave}
+          title="Save Workspace (Ctrl+S)"
+        >
+          💾
+        </button>
+      </div>
+
+      <div className="menu-bar-divider" />
+
+      <div className="github-section menu-dropdown-container">
+        {isAuthenticated ? (
+          <>
+            <button
+              type="button"
+              className="github-btn"
+              data-active={openMenu === 'github'}
+              onClick={() => toggleMenu('github')}
+            >
+              🔐 {user?.github_username ?? 'GitHub'}
+            </button>
+            <div className={`menu-dropdown right-aligned ${openMenu === 'github' ? 'show' : ''}`}>
+              <button type="button" className="menu-item" onClick={() => handleAction(toggleGitHubRepos)}>
+                <span className="menu-item-left">📦 Repos</span>
+              </button>
+              <button type="button" className="menu-item" onClick={() => handleAction(toggleGitHubSync)}>
+                <span className="menu-item-left">🔄 Sync</span>
+              </button>
+              <button type="button" className="menu-item" onClick={() => handleAction(toggleGitHubPR)}>
+                <span className="menu-item-left">🔀 Create PR</span>
+              </button>
+              <div className="menu-separator" />
+              <button type="button" className="menu-item" onClick={() => handleAction(toggleGitHubLogin)}>
+                <span className="menu-item-left">🚪 Sign Out</span>
+              </button>
+            </div>
+          </>
+        ) : (
+          <button
+            type="button"
+            className="github-btn"
+            onClick={toggleGitHubLogin}
+            title="Sign in with GitHub"
+          >
+            🔐 Sign In
+          </button>
+        )}
+      </div>
+
+      <input
+        ref={importInputRef}
+        type="file"
+        accept=".json"
+        style={{ display: 'none' }}
+        onChange={handleImportFile}
+      />
+    </div>
+  );
+}
