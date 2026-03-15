@@ -29,7 +29,7 @@ export const ConnectionPath = memo(function ConnectionPath({
   const tgtScreen = worldToScreen(tgt[0], tgt[1], tgt[2], originX, originY);
 
   const midX = (srcScreen.x + tgtScreen.x) / 2;
-  const midY = Math.min(srcScreen.y, tgtScreen.y) - 60;
+  const midY = Math.min(srcScreen.y, tgtScreen.y) - 30;
 
   const pathD = `M ${srcScreen.x} ${srcScreen.y} Q ${midX} ${midY} ${tgtScreen.x} ${tgtScreen.y}`;
   const arrowId = `arrow-${connection.id}`;
@@ -37,23 +37,43 @@ export const ConnectionPath = memo(function ConnectionPath({
   return (
     <g>
       <defs>
+        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="4" stdDeviation="4" floodOpacity="0.2" floodColor="#000000" />
+        </filter>
         <marker
-          id={arrowId}
-          markerWidth="12"
-          markerHeight="12"
-          refX="8"
-          refY="4"
+          id={`${arrowId}-bg`}
+          markerWidth="16"
+          markerHeight="16"
+          refX="12"
+          refY="8"
           orient="auto"
         >
-          <polygon points="0 0, 8 4, 0 8" fill="#ff6b6b" />
+          <polygon points="0 0, 16 8, 0 16" fill="#1e293b" />
+        </marker>
+        <marker
+          id={arrowId}
+          markerWidth="16"
+          markerHeight="16"
+          refX="12"
+          refY="8"
+          orient="auto"
+        >
+          <polygon points="0 0, 16 8, 0 16" fill="#FFFFFF" />
         </marker>
       </defs>
       <path
         d={pathD}
-        stroke="#ff6b6b"
-        strokeWidth={2.5}
+        stroke="#1e293b"
+        strokeWidth={6}
         fill="none"
-        strokeDasharray="4 2"
+        markerEnd={`url(#${arrowId}-bg)`}
+      />
+      <path
+        d={pathD}
+        stroke="#FFFFFF"
+        strokeWidth={4}
+        fill="none"
+        filter="url(#glow)"
         markerEnd={`url(#${arrowId})`}
       />
     </g>

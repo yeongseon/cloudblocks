@@ -2,7 +2,7 @@ import { memo, useMemo, useState, type ReactNode } from 'react';
 import type { Plate } from '../../shared/types/index';
 import { PLATE_COLORS, SUBNET_ACCESS_COLORS } from '../../shared/types/index';
 import { useUIStore } from '../store/uiStore';
-import { worldToScreen, GRID_CELL, ISO_X, ISO_Y } from '../../shared/utils/isometric';
+import { worldToScreen } from '../../shared/utils/isometric';
 import './PlateSprite.css';
 
 interface PlateSpriteProps {
@@ -62,7 +62,7 @@ export const PlateSprite = memo(function PlateSprite({
     const maxY = Math.max(...allPts.map((p) => p.y));
 
     const studNodes: ReactNode[] = [];
-    const spacing = GRID_CELL;
+    const spacing = 0.75;
     const countX = Math.floor(plate.size.width / spacing);
     const countZ = Math.floor(plate.size.depth / spacing);
 
@@ -73,10 +73,9 @@ export const PlateSprite = memo(function PlateSprite({
         
         const pt = worldToScreen(x, h, z);
         
-        const r = 0.15;
-        const rx = r * ISO_X;
-        const ry = r * ISO_Y;
-        const studH = 4;
+        const rx = 6;
+        const ry = 3;
+        const studH = 3;
 
         studNodes.push(
           <g key={`stud-${ix}-${iz}`}>
@@ -104,7 +103,9 @@ export const PlateSprite = memo(function PlateSprite({
       }
     }
 
-    const labelPos = worldToScreen(0, h, 0);
+    const labelPos = worldToScreen(half_w, 0, half_d);
+    labelPos.y += 15;
+
 
     return {
       points: { bl, br, fr, fl, tbl, tbr, tfr, tfl },
@@ -160,6 +161,12 @@ export const PlateSprite = memo(function PlateSprite({
           viewBox={viewBox}
           aria-hidden="true"
         >
+          <defs>
+            <linearGradient id="top-highlight" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="white" stopOpacity="0.15" />
+              <stop offset="100%" stopColor="black" stopOpacity="0.05" />
+            </linearGradient>
+          </defs>
           <g opacity={hovered ? 0.9 : 1}>
             <polygon
               className="plate-face plate-face-left"
@@ -176,6 +183,12 @@ export const PlateSprite = memo(function PlateSprite({
               points={`${tfl.x},${tfl.y} ${tfr.x},${tfr.y} ${tbr.x},${tbr.y} ${tbl.x},${tbl.y}`}
               fill={baseColor}
             />
+            <polygon
+              className="plate-face-highlight"
+              points={`${tfl.x},${tfl.y} ${tfr.x},${tfr.y} ${tbr.x},${tbr.y} ${tbl.x},${tbl.y}`}
+              fill="url(#top-highlight)"
+              style={{ pointerEvents: 'none' }}
+            />
             {studs}
           </g>
         </svg>
@@ -191,10 +204,13 @@ export const PlateSprite = memo(function PlateSprite({
         <div 
           className="plate-label"
           style={{
-            maxWidth: `${Math.max(80, Math.min(plate.size.width * 42, 220))}px`,
+            maxWidth: `${Math.max(120, Math.min(plate.size.width * 42, 220))}px`,
           }}
         >
-          {plate.name}
+          <span className="plate-label-icon">
+            {plate.type === 'network' ? '🌐' : '🔒'}
+          </span>
+          <span className="plate-label-text">{plate.name}</span>
         </div>
       </div>
     </div>

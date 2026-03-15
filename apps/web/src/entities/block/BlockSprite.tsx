@@ -3,6 +3,7 @@ import type { Block, Plate } from '../../shared/types/index';
 import {
   BLOCK_COLORS,
   BLOCK_SHORT_NAMES,
+  BLOCK_ICONS,
   STUD_LAYOUTS,
   DEFAULT_BLOCK_SIZE,
 } from '../../shared/types/index';
@@ -70,7 +71,7 @@ export const BlockSprite = memo(function BlockSprite({
   const allX = [BL.x, BR.x, FR.x, FL.x, TBL.x, TBR.x, TFR.x, TFL.x];
   const allY = [BL.y, BR.y, FR.y, FL.y, TBL.y, TBR.y, TFR.y, TFL.y];
 
-  const pad = 20;
+  const pad = 30;
   const minX = Math.min(...allX) - pad;
   const maxX = Math.max(...allX) + pad;
   const minY = Math.min(...allY) - pad;
@@ -92,12 +93,12 @@ export const BlockSprite = memo(function BlockSprite({
 
       studs.push(
         <g key={`${c}-${r}`} transform={`translate(${studPos.x}, ${studPos.y})`}>
-          <ellipse cx="0" cy="0" rx="10" ry="5" fill={baseColor} />
+          <ellipse cx="0" cy="0" rx="12" ry="6" fill={baseColor} />
           <path
-            d="M -10 0 L -10 -6 A 10 5 0 0 1 10 -6 L 10 0 A 10 5 0 0 1 -10 0 Z"
+            d="M -12 0 L -12 -8 A 12 6 0 0 1 12 -8 L 12 0 A 12 6 0 0 1 -12 0 Z"
             fill={leftColor}
           />
-          <ellipse cx="0" cy="-6" rx="10" ry="5" fill={studHighlight} />
+          <ellipse cx="0" cy="-8" rx="12" ry="6" fill={`url(#stud-grad-${block.id})`} />
         </g>
       );
     }
@@ -127,6 +128,7 @@ export const BlockSprite = memo(function BlockSprite({
   const cx = (TBR.x + BR.x + FR.x + TFR.x) / 4;
   const cy = (TBR.y + BR.y + FR.y + TFR.y) / 4;
   const labelText = BLOCK_SHORT_NAMES[block.category] || block.category;
+  const iconText = BLOCK_ICONS[block.category] || '';
 
   const className = [
     'block-sprite',
@@ -171,6 +173,12 @@ export const BlockSprite = memo(function BlockSprite({
           viewBox={`${minX - pad} ${minY - pad} ${vbWidth + pad * 2} ${vbHeight + pad * 2}`}
           aria-hidden="true"
         >
+          <defs>
+            <radialGradient id={`stud-grad-${block.id}`} cx="30%" cy="30%" r="70%">
+              <stop offset="0%" stopColor={darken(baseColor, -0.3)} />
+              <stop offset="100%" stopColor={studHighlight} />
+            </radialGradient>
+          </defs>
           <title>{block.name}</title>
           <g className="block-sprite-faces">
             <polygon
@@ -195,18 +203,34 @@ export const BlockSprite = memo(function BlockSprite({
               strokeLinejoin="round"
             />
             {studs}
-            <text
-              x={cx}
-              y={cy}
-              className="block-sprite-label"
+            <g
               style={{
                 transform: `skewY(26.565deg)`,
                 transformOrigin: `${cx}px ${cy}px`,
-                textShadow: '0px 1px 2px rgba(0,0,0,0.5)',
               }}
             >
-              {labelText}
-            </text>
+              <text
+                x={cx}
+                y={cy - 10}
+                className="block-sprite-label"
+                style={{
+                  fontSize: '20px',
+                  textShadow: '0px 1px 2px rgba(0,0,0,0.5)',
+                }}
+              >
+                {iconText}
+              </text>
+              <text
+                x={cx}
+                y={cy + 12}
+                className="block-sprite-label"
+                style={{
+                  textShadow: '0px 1px 2px rgba(0,0,0,0.5)',
+                }}
+              >
+                {labelText}
+              </text>
+            </g>
           </g>
         </svg>
       </button>
