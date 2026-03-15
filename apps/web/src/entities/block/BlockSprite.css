@@ -11,20 +11,22 @@
 .block-svg {
   pointer-events: visiblePainted;
   cursor: pointer;
-  transition: filter 0.2s ease, transform 0.1s ease;
+  transition: filter 0.2s ease, transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
   overflow: visible;
+  filter: drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3)) drop-shadow(0px 10px 15px rgba(0, 0, 0, 0.2));
 }
 
 .block-svg:hover {
-  filter: brightness(1.1);
+  filter: drop-shadow(2px 8px 0px rgba(0, 0, 0, 0.3)) drop-shadow(0px 12px 18px rgba(0, 0, 0, 0.25)) brightness(1.08);
+  transform: translateY(-3px);
 }
 
 .block-sprite.is-selected .block-svg {
-  filter: drop-shadow(0 0 4px #ffffff) brightness(1.2);
+  filter: drop-shadow(0 0 8px #FFD500) drop-shadow(0 0 16px rgba(255, 213, 0, 0.5)) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
 }
 
 .block-sprite.is-connection-source .block-svg {
-  filter: drop-shadow(0 0 6px #00ff00) brightness(1.1);
+  filter: drop-shadow(0 0 10px #00852B) drop-shadow(0 0 20px rgba(0, 133, 43, 0.5)) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
 }
 
 .block-sprite.is-delete-mode .block-svg {
@@ -32,23 +34,23 @@
 }
 
 .block-sprite.is-delete-mode .block-svg:hover {
-  filter: sepia(1) hue-rotate(-50deg) saturate(3) brightness(1.1);
+  filter: drop-shadow(0 0 10px #E3000B) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3)) sepia(1) hue-rotate(-50deg) saturate(3) brightness(1.1);
 }
 
 .block-sprite-label {
   pointer-events: none;
-  font-family: 'Varela Round', system-ui, sans-serif;
-  font-weight: bold;
-  font-size: 9px;
+  font-family: 'Fredoka', 'Varela Round', system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 14px;
   fill: #ffffff;
   text-anchor: middle;
   dominant-baseline: central;
 }
 
 .block-sprite-faces {
-  transition: transform 0.1s ease;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .block-svg:active .block-sprite-faces {
-  transform: translateY(2px);
+  transform: translateY(3px);
 }
