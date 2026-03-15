@@ -17,7 +17,7 @@ This document codifies security-critical boundaries as enforceable design rules.
 | **Request body** | ❌ NEVER — token is transport-layer metadata, not business data |
 | **localStorage** | ❌ NEVER — XSS-accessible storage must not hold GitHub tokens |
 | **sessionStorage** | ⚠️ Acceptable for short-lived session use (frontend only) |
-| **Server-side storage** | Encrypted at rest if stored; hash-only for verification in v0.5 |
+| **Server-side storage** | Encrypted at rest if stored; hash-only for verification in Phase 5 |
 
 ### Implementation
 
@@ -134,7 +134,7 @@ raise ValueError(
 
 - **Workspace ownership**: Users can only access workspaces where `workspace.owner_id == current_user.id`
 - **GitHub operations**: Require both valid JWT (user identity) and X-GitHub-Token (GitHub access)
-- **Rate limiting**: Per-user, per-endpoint (planned for v1.0)
+- **Rate limiting**: Per-user, per-endpoint (planned for Phase 6)
 
 ---
 

@@ -1,10 +1,10 @@
 # CloudBlocks — API Specification
 
-> **⚠️ Implementation Status (v0.1)**
+> **⚠️ Implementation Status (Phase 1)**
 >
 > The backend API is scaffolded but **only health check endpoints are currently implemented**.
 > All other endpoints listed below are **planned** and will be available in future versions.
-> The v0.1 release is frontend-only with localStorage — no backend required.
+> The Phase 1 release is frontend-only with localStorage — no backend required.
 
 ## Overview
 
@@ -14,7 +14,7 @@ The CloudBlocks API is a **thin orchestration backend** built with Python FastAP
 
 **Design Principle**: The backend is a workflow orchestrator, not a CRUD service. Architecture data lives in GitHub repos.
 
-## Currently Implemented (v0.1)
+## Currently Implemented (Phase 1)
 
 ```
 GET /health        → Basic health check (returns {"status": "ok"})
@@ -25,7 +25,7 @@ These are the **only** endpoints that exist in the current codebase (`apps/api/a
 
 ---
 
-## Planned: Authentication (v0.5+)
+## Planned: Authentication (Phase 5+)
 
 GitHub App OAuth with JWT session tokens.
 
@@ -49,7 +49,7 @@ POST /api/v1/auth/refresh          → Refresh JWT token
 7. Frontend stores JWT (httpOnly cookie)
 ```
 
-## Planned: Workspaces (v0.5+)
+## Planned: Workspaces (Phase 5+)
 
 Workspaces link a CloudBlocks workspace to a GitHub repo. Workspace metadata is stored in the metadata DB; architecture data is in GitHub.
 
@@ -63,9 +63,9 @@ DELETE /api/v1/workspaces/:id          → Delete workspace
 
 > **Note**: The metadata DB uses `workspaces` (not `projects`). See [STORAGE_ARCHITECTURE.md](../model/STORAGE_ARCHITECTURE.md) for the actual schema.
 
-## Planned: Code Generation (v0.5+)
+## Planned: Code Generation (Phase 5+)
 
-Generate infrastructure code from architecture. In v0.3, code generation runs client-side (export to file/clipboard). Starting from v0.5, the backend reads `architecture.json` from GitHub, runs the generator, and commits the output back. The endpoints below are for server-side generation (v0.5+).
+Generate infrastructure code from architecture. In Phase 3, code generation runs client-side (export to file/clipboard). Starting from Phase 5, the backend reads `architecture.json` from GitHub, runs the generator, and commits the output back. The endpoints below are for server-side generation (Phase 5+).
 
 ```
 POST   /api/v1/workspaces/:id/generate    → Trigger code generation
@@ -73,7 +73,7 @@ GET    /api/v1/workspaces/:id/generate/:runId  → Get generation status
 GET    /api/v1/workspaces/:id/preview     → Preview generated code (no commit)
 ```
 
-## Planned: GitHub Integration (v0.5+)
+## Planned: GitHub Integration (Phase 5+)
 
 Manage GitHub repository connections and sync.
 
@@ -86,17 +86,17 @@ POST   /api/v1/workspaces/:id/pr        → Create PR with changes
 GET    /api/v1/workspaces/:id/commits   → List recent commits
 ```
 
-## Planned: Validation (v0.3+)
+## Planned: Validation (Phase 3+)
 
 Validate architecture against rules. Can run client-side or server-side.
 
-> **Note**: Client-side validation is already implemented in v0.1 (`apps/web/src/features/validate/`).
+> **Note**: Client-side validation is already implemented in Phase 1 (`apps/web/src/features/validate/`).
 
 ```
 POST   /api/v1/validate                 → Validate architecture (server-side)
 ```
 
-## Planned: Templates (v1.0+)
+## Planned: Templates (Phase 6+)
 
 Browse and use architecture templates.
 

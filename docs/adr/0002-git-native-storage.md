@@ -39,9 +39,9 @@ Option 1 creates a heavy SaaS backend that owns user data. Users lose portabilit
 
 ### Implementation timeline
 
-- **v0.1**: localStorage (frontend-only, no backend)
-- **v0.3+**: Local-first store (IndexedDB) with optional GitHub sync
-- **v0.5+**: Full GitHub integration via backend API
+- **Phase 1**: localStorage (frontend-only, no backend)
+- **Phase 3+**: Local-first store (IndexedDB) with optional GitHub sync
+- **Phase 5+**: Full GitHub integration via backend API
 
 ## Consequences
 

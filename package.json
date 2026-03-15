@@ -1,7 +1,7 @@
 {
   "name": "cloudblocks",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.6.0",
   "description": "CloudBlocks Platform - 2.5D isometric block-style visual cloud architecture builder",
   "type": "module",
   "scripts": {

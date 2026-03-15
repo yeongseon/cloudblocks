@@ -182,7 +182,7 @@ Gate 4 (security) and Gate 5 (documentation) are manual review steps in the PR p
 
 ## 7. Version-Specific Gates
 
-### v0.5 (Current)
+### Phase 5 (Current)
 
 - All 5 CI jobs pass
 - 427+ frontend tests, 146+ backend tests
@@ -190,9 +190,9 @@ Gate 4 (security) and Gate 5 (documentation) are manual review steps in the PR p
 - Store decomposition complete (5 slices)
 - GitHub integration functional
 
-### v1.0 (Planned)
+### Phase 6 (Planned)
 
-All v0.5 gates plus:
+All Phase 5 gates plus:
 
 - Bicep generator produces valid output
 - Pulumi generator produces valid output

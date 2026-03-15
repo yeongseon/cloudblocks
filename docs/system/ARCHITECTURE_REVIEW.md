@@ -8,7 +8,7 @@ This document reviews the current **CloudBlocks System Architecture** and propos
 > - §3.2 (Generator Pipeline) → Now specified in ARCHITECTURE.md §5 and generator.md
 > - §3.3 (Rule Engine Architecture) → Now specified in ARCHITECTURE.md §4 and rules.md
 > - §3.6 (Rendering Layer) → Now specified in ARCHITECTURE.md §6
-> - §3.4 (Workspace Data Model) and §3.5 (Local-First Sync) remain relevant for future work (v0.3+).
+> - §3.4 (Workspace Data Model) and §3.5 (Local-First Sync) remain relevant for future work (Phase 3+).
 >
 > The recommendations below remain as historical context. See the current documents for up-to-date specifications.
 
@@ -334,12 +334,12 @@ Priority Improvements:
 
 | Version | Milestone |
 |---------|-----------|
-| v0.1 | Frontend-only builder |
-| v0.3 | Code generation |
-| v0.5 | GitHub integration + backend orchestration |
-| v1.0 | Template marketplace |
-| v2.0 | Multi-cloud generation |
-| v3.0 | Cloud digital twin |
+| Phase 1 | Frontend-only builder |
+| Phase 3 | Code generation |
+| Phase 5 | GitHub integration + backend orchestration |
+| Phase 6 | Template marketplace |
+| Phase 8 | Multi-cloud generation |
+| Phase 10 | Cloud digital twin |
 
 ---
 

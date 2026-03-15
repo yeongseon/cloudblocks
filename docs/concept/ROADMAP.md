@@ -1,6 +1,6 @@
 # CloudBlocks Platform — Development Roadmap
 
-This document defines the staged development roadmap for the CloudBlocks Platform.
+This document defines the staged development roadmap for the CloudBlocks Platform. Each milestone is a **Phase** (development stage), independent of software release versions.
 
 CloudBlocks evolves from a **2.5D isometric cloud architecture builder** into a **full architecture-to-code platform** — generating Terraform, Bicep, and Pulumi from visual designs, with Git-native workflow integration.
 
@@ -34,7 +34,7 @@ Proof that the **block abstraction maps cleanly to cloud architecture and IaC co
 
 ---
 
-# v0.1 — CloudBlocks Builder (MVP) ✅
+# Phase 1 — CloudBlocks Builder (MVP) ✅
 
 Goal:
 Create a working **2.5D isometric cloud architecture builder**.
@@ -66,7 +66,7 @@ Deliverables:
 
 ---
 
-# v0.2 — Visual Polish + UX ✅
+# Phase 2 — Visual Polish + UX ✅
 
 Goal:
 Improve the builder experience for daily use.
@@ -86,11 +86,11 @@ Features:
 - [x] Builder usable on screens ≥ 1280px width
 
 ### Dependencies
-- v0.1 complete
+- Phase 1 complete
 
 ---
 
-# v0.3 — Code Generation (Terraform) ✅
+# Phase 3 — Code Generation (Terraform) ✅
 
 Goal:
 Generate **Terraform code** from visual architecture — the core value proposition.
@@ -128,11 +128,11 @@ resource "azurerm_subnet" "public" {
 - [x] Export to file works
 
 ### Dependencies
-- v0.1 complete
+- Phase 1 complete
 
 ---
 
-# v0.4 — Workspace Management + Import/Export ✅
+# Phase 4 — Workspace Management + Import/Export ✅
 
 Goal:
 Multiple workspaces, architecture import/export, and template system.
@@ -151,11 +151,11 @@ Features:
 - [x] 3+ built-in templates available
 
 ### Dependencies
-- v0.3 complete
+- Phase 3 complete
 
 ---
 
-# v0.5 — GitHub Integration + Backend API ✅
+# Phase 5 — GitHub Integration + Backend API ✅
 
 Goal:
 Connect CloudBlocks to GitHub — architecture and generated code stored in user repos via a **thin orchestration backend**.
@@ -187,12 +187,12 @@ Connect CloudBlocks to GitHub — architecture and generated code stored in user
 - [x] No architecture data stored in backend DB (all in GitHub)
 
 ### Dependencies
-- v0.3 complete (Terraform generator)
+- Phase 3 complete (Terraform generator)
 - GitHub App registered and configured
 
 ---
 
-# v1.0 — Multi-Generator + Template Marketplace ✅
+# Phase 6 — Multi-Generator + Template Marketplace ✅
 
 Goal:
 Support multiple IaC generators and a community template ecosystem.
@@ -232,11 +232,11 @@ HTTP → Function → Storage
 - [x] Generator plugin interface documented and usable by third parties
 
 ### Dependencies
-- v0.5 complete
+- Phase 5 complete
 
 ---
 
-# v1.5 — Collaboration + CI/CD Integration
+# Phase 7 — Collaboration + CI/CD Integration
 
 Goal:
 Team collaboration via Git and automated CI/CD pipelines.
@@ -255,11 +255,11 @@ Features:
 - [ ] Team members can collaborate on the same project via GitHub
 
 ### Dependencies
-- v1.0 complete
+- Phase 6 complete
 
 ---
 
-# v2.0 — Multi-Cloud Platform
+# Phase 8 — Multi-Cloud Platform
 
 Goal:
 Support multiple cloud providers from the same architecture.
@@ -279,11 +279,11 @@ Architecture remains the same — provider adapters handle the mapping.
 - [ ] Provider comparison view available
 
 ### Dependencies
-- v1.0 complete (can run parallel with v1.5)
+- Phase 6 complete (can run parallel with Phase 7)
 
 ---
 
-# v2.5 — Architecture Simulation
+# Phase 9 — Architecture Simulation
 
 Goal:
 Simulate architecture behavior before deployment.
@@ -297,7 +297,7 @@ Features:
 
 ---
 
-# v3.0 — Cloud Digital Twin
+# Phase 10 — Cloud Digital Twin
 
 Goal:
 Synchronize visual architecture with real infrastructure state.
@@ -315,7 +315,7 @@ Example:
 
 ---
 
-# v3.5 — Template Marketplace + Plugin Ecosystem
+# Phase 11 — Template Marketplace + Plugin Ecosystem
 
 Goal:
 Full ecosystem for community contributions.
@@ -346,9 +346,9 @@ CloudBlocks evolves into:
 
 Key principles:
 
-1. Start with **2.5D isometric builder core** (v0.1)
-2. Add **code generation** early (v0.3) — the core value
-3. Integrate **GitHub** as data store (v0.5) — not a traditional DB
+1. Start with **2.5D isometric builder core** (Phase 1)
+2. Add **code generation** early (Phase 3) — the core value
+3. Integrate **GitHub** as data store (Phase 5) — not a traditional DB
 4. Keep backend **thin** — orchestration, not CRUD
 5. **Open-source first** — community drives templates and generators
 6. **Local-first UX** — works offline, syncs when connected
@@ -357,25 +357,25 @@ Key principles:
 
 # Success Metrics
 
-v0.1 (Complete)
+Phase 1 (Complete)
 - Architecture built successfully
 - Validation engine working
 - Workspace persistence functional
 
-v0.3
+Phase 3
 - Terraform generation produces valid HCL
 - Code preview panel functional
 
-v0.5
+Phase 5
 - GitHub integration operational
 - Backend API deployed
 - Zero architecture data in backend DB
 
-v1.0
+Phase 6
 - Multi-generator support (Terraform + Bicep + Pulumi)
 - Template marketplace launched
 
-v2.0+
+Phase 8+
 - Multi-cloud architecture support
 - Community contributors > 10
 - GitHub stars growth trajectory
@@ -386,20 +386,20 @@ v2.0+
 
 The roadmap evolves CloudBlocks from:
 
-2.5D Isometric Cloud Builder (v0.1)
+2.5D Isometric Cloud Builder (Phase 1)
 
-→ Code Generation Platform (v0.3)
+→ Code Generation Platform (Phase 3)
 
-→ GitHub-Integrated DevOps Tool (v0.5)
+→ GitHub-Integrated DevOps Tool (Phase 5)
 
-→ Multi-Generator Ecosystem (v1.0)
+→ Multi-Generator Ecosystem (Phase 6)
 
-→ Collaboration Platform (v1.5)
+→ Collaboration Platform (Phase 7)
 
-→ Multi-Cloud Architecture Tool (v2.0)
+→ Multi-Cloud Architecture Tool (Phase 8)
 
-→ Architecture Simulator (v2.5)
+→ Architecture Simulator (Phase 9)
 
-→ Cloud Digital Twin (v3.0)
+→ Cloud Digital Twin (Phase 10)
 
-→ Full Plugin Ecosystem (v3.5)
+→ Full Plugin Ecosystem (Phase 11)

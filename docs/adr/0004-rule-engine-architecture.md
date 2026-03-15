@@ -10,7 +10,7 @@ CloudBlocks validates architecture designs against real-world infrastructure con
 Key requirements:
 
 - Real-time validation (sub-100ms response)
-- Runs in the browser (v0.1 is frontend-only)
+- Runs in the browser (Phase 1 is frontend-only)
 - Extensible for future rule categories
 - Deterministic — same model always produces same validation result
 - Clear error messages with actionable suggestions
@@ -45,7 +45,7 @@ apps/web/src/features/validate/
 
 ### Rule categories
 
-**Placement rules** (v0.1):
+**Placement rules** (Phase 1):
 
 | Rule | Constraint |
 |------|-----------|
@@ -54,7 +54,7 @@ apps/web/src/features/validate/
 | Gateway placement | Must be on **public** SubnetPlate |
 | Storage placement | Must be on SubnetPlate |
 
-**Connection rules** (v0.1):
+**Connection rules** (Phase 1):
 
 | Source | Valid Targets |
 |--------|--------------|
@@ -94,14 +94,14 @@ apps/web/src/features/validate/
 - **Real-time feedback** — validation runs on every model change, results appear instantly
 - **Modular** — each rule category is a separate module, easy to add new rules
 - **Testable** — pure functions with clear inputs/outputs, no mocking needed
-- **Portable** — same engine can run on backend for server-side validation (v0.5+)
+- **Portable** — same engine can run on backend for server-side validation (Phase 5+)
 - **Deterministic** — no randomness, no external dependencies, same input → same output
 
 ### Negative
 
 - **Browser performance** — large models with many rules may impact UI responsiveness
 - **Rule conflicts** — as rules grow, interactions between rules may produce confusing results
-- **Limited expressiveness** — v0.1 rules are intentionally simple; complex policies (OPA-style) are v1.x
+- **Limited expressiveness** — Phase 1 rules are intentionally simple; complex policies (OPA-style) are v1.x
 
 ### Related Documents
 

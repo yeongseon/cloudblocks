@@ -2,7 +2,7 @@
 
 > **This is the canonical source** for the CloudBlocks code generation pipeline. All other documents (DOMAIN_MODEL.md, ARCHITECTURE.md, PRD.md) reference this document for pipeline details.
 >
-> **Status**: Implemented in v0.3. The Terraform generator is functional (`features/generate/`). Bicep and Pulumi generators are planned for v1.0.
+> **Status**: Implemented in Phase 3. The Terraform generator is functional (`features/generate/`). Bicep and Pulumi generators are planned for Phase 6.
 
 CloudBlocks converts architecture models into infrastructure code.
 
@@ -168,10 +168,10 @@ Supported generators:
 
 | Generator | Target | Status |
 |-----------|--------|--------|
-| `terraform` | Multi-cloud (Azure-first) | ✅ Implemented (v0.3) |
-| `bicep` | Azure | Planned (v1.0) |
-| `pulumi` | Code-based IaC | Planned (v1.0) |
-| `yaml` | Documentation | Planned (v1.0) |
+| `terraform` | Multi-cloud (Azure-first) | ✅ Implemented (Phase 3) |
+| `bicep` | Azure | Planned (Phase 6) |
+| `pulumi` | Code-based IaC | Planned (Phase 6) |
+| `yaml` | Documentation | Planned (Phase 6) |
 
 ---
 

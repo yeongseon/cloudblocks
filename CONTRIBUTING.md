@@ -31,7 +31,7 @@ This project follows the [Contributor Covenant Code of Conduct](https://www.cont
 
 - **Node.js** >= 20.0.0
 - **pnpm** >= 9.0.0 (enforced — npm/yarn will be rejected)
-- **Python** >= 3.11 (for backend, optional in v0.1)
+- **Python** >= 3.11 (for backend, optional in Phase 1)
 - **Git**
 
 ### Quick Setup
@@ -70,7 +70,7 @@ cd apps/web && pnpm build
 pnpm lint
 ```
 
-### Backend (Optional — scaffolded, not required for v0.1)
+### Backend (Optional — scaffolded, not required for Phase 1)
 
 ```bash
 cd apps/api
@@ -99,7 +99,7 @@ make test        # Run backend tests
 cloudblocks/
 ├── apps/
 │   ├── web/              # React + React Three Fiber frontend (FSD architecture)
-│   └── api/              # Python FastAPI backend (scaffolded, v0.5+)
+│   └── api/              # Python FastAPI backend (scaffolded, Phase 5+)
 ├── packages/             # Shared packages (scaffolded)
 ├── docs/                 # Project documentation
 │   ├── concept/          # PRD, Architecture, Roadmap
@@ -121,7 +121,7 @@ The frontend follows [Feature-Sliced Design](https://feature-sliced.design/) (FS
 apps/web/src/
 ├── app/                 # App shell, providers, routing
 ├── shared/              # Types, utils, storage (used everywhere)
-│   ├── types/           # Domain types — CANONICAL source for v0.1
+│   ├── types/           # Domain types — CANONICAL source for Phase 1
 │   └── utils/           # ID generation, storage operations
 ├── entities/            # Domain entities (store, block, plate, connection)
 ├── features/            # Feature modules (validate/)
@@ -214,8 +214,8 @@ Refactor plate rendering to use shared utils # Refactoring
 
 ### Documentation Rules
 
-1. **v0.1 documents must match code exactly** — verify against canonical source files
-2. **Future features must be labeled** with version markers (`> **v1.0+**: ...`)
+1. **Phase 1 documents must match code exactly** — verify against canonical source files
+2. **Future features must be labeled** with version markers (`> **Phase 6+**: ...`)
 3. **Field names must match** `DOMAIN_MODEL.md` / `index.ts` — never invent your own
 4. **ROADMAP.md is canonical** for version timelines
 5. **DOMAIN_MODEL.md is canonical** for model specification
@@ -227,8 +227,8 @@ See [VERSIONING.md](docs/system/VERSIONING.md) for the full documentation layeri
 
 - [ ] Field names match canonical types (`placementId` not `plateId`, `category` not `type`)
 - [ ] Connection rules follow initiator model (database/storage are receiver-only)
-- [ ] Connection type is `dataflow` (not `network`/`event`) unless labeled v1.0+
-- [ ] `Workspace.architecture` is singular (not `architectures[]`) in v0.1 context
+- [ ] Connection type is `dataflow` (not `network`/`event`) unless labeled Phase 6+
+- [ ] `Workspace.architecture` is singular (not `architectures[]`) in Phase 1 context
 - [ ] Future features have explicit version labels
 - [ ] Cross-references use correct paths (docs are in subdirectories)
 

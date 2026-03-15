@@ -23,19 +23,13 @@ Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks
 - **Lego-style modeling** — Plates (boundaries) + Blocks (resources) + Connections (dataflow)
 - **Architecture compiler** — Visual design compiles to Terraform, Bicep, and Pulumi (Azure-first)
 - **Validation engine** — Real-time rule checking for placement and connections
-- **Code generation** — Multi-generator export: Terraform, Bicep, Pulumi with draft/production modes (v1.0)
-- **Architecture templates** — Built-in starter templates with gallery UI (v0.4)
-- **Undo/redo** — Full history with keyboard shortcuts (v0.2)
-- **Multi-workspace** — Create, switch, and manage multiple workspaces (v0.4)
-- **GitHub integration** — OAuth login, repo sync, pull, and PR creation (v0.5)
-- **Backend API** — FastAPI orchestration layer with GitHub App OAuth (v0.5)
+- **Code generation** — Multi-generator export: Terraform, Bicep, Pulumi with draft/production modes (Phase 6)
+- **Architecture templates** — Built-in starter templates with gallery UI (Phase 4)
+- **Undo/redo** — Full history with keyboard shortcuts (Phase 2)
+- **Multi-workspace** — Create, switch, and manage multiple workspaces (Phase 4)
+- **GitHub integration** — OAuth login, repo sync, pull, and PR creation (Phase 5)
+- **Backend API** — FastAPI orchestration layer with GitHub App OAuth (Phase 5)
 - **Open source** — MIT licensed, extend and contribute freely
-
-### Planned Features
-
-- **Multi-generator** — Terraform, Bicep, and Pulumi export with plugin interface (v1.0)
-- **Template marketplace** — GitHub-backed community architecture templates (v1.0)
-- **Serverless blocks** — Function, Queue, Event, Timer block types (v1.0)
 ## Quick Start
 
 ```bash
@@ -99,10 +93,10 @@ Internet → Gateway → Compute → Database
 | Layer | Technology |
 |-------|-----------|
 | Frontend | React 19, TypeScript, React Three Fiber, Zustand, Vite |
-| Backend (v0.5+) | Python, FastAPI (scaffolded) |
-| Storage (v0.1) | Browser localStorage |
-| Storage (v0.5+) | GitHub repos (Git-native), Supabase (auth metadata) |
-| Code Generation | Terraform (Azure-first, v0.3) — Bicep, Pulumi planned for v1.0 |
+| Backend (Phase 5+) | Python, FastAPI (scaffolded) |
+| Storage (Phase 1) | Browser localStorage |
+| Storage (Phase 5+) | GitHub repos (Git-native), Supabase (auth metadata) |
+| Code Generation | Terraform (Azure-first, Phase 3) — Bicep, Pulumi (Phase 6) |
 | Frontend Architecture | Feature-Sliced Design (FSD) |
 | Monorepo | pnpm workspaces |
 
@@ -145,14 +139,14 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 
 ## Roadmap
 
-| Version | Milestone | Status |
-|---------|-----------|--------|
-| v0.1 | Frontend MVP — 2.5D isometric builder with validation | ✅ Complete |
-| v0.2 | Enhanced UX — undo/redo, workspace management, visual polish | ✅ Complete |
-| v0.3 | Code generation — Terraform export (Azure first) | ✅ Complete |
-| v0.4 | Architecture templates — built-in starter templates with gallery | ✅ Complete |
-| v0.5 | GitHub integration, backend API | ✅ Complete |
-| v1.0 | Multi-generator (Bicep, Pulumi), template marketplace | ✅ Complete |
+| Phase | Milestone | Status |
+|-------|-----------|--------|
+| Phase 1 | Frontend MVP — 2.5D isometric builder with validation | ✅ Complete |
+| Phase 2 | Enhanced UX — undo/redo, workspace management, visual polish | ✅ Complete |
+| Phase 3 | Code generation — Terraform export (Azure first) | ✅ Complete |
+| Phase 4 | Architecture templates — built-in starter templates with gallery | ✅ Complete |
+| Phase 5 | GitHub integration, backend API | ✅ Complete |
+| Phase 6 | Multi-generator (Bicep, Pulumi), template marketplace | ✅ Complete |
 
 ## Contributing
 

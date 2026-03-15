@@ -57,7 +57,7 @@ Examples:
 
 Edges represent directed communication or dependency flow.
 
-In v0.1, the supported edge type is:
+In Phase 1, the supported edge type is:
 
 - dataflow
 

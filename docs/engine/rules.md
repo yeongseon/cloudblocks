@@ -70,7 +70,7 @@ Rules can originate from:
 
 ---
 
-## Current Implementation (v0.1)
+## Current Implementation (Phase 1)
 
 The MVP rule engine runs in-browser and validates:
 

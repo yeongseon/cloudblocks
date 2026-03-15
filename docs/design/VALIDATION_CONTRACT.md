@@ -48,7 +48,7 @@ Placement rules validate that blocks are placed on appropriate plates.
 ### Implementation References
 
 - **Frontend**: `apps/web/src/entities/validation/placement.ts`
-- **Backend**: Not yet implemented (planned for v1.0 server-side validation)
+- **Backend**: Not yet implemented (planned for Phase 6 server-side validation)
 
 ---
 
@@ -76,7 +76,7 @@ Connection rules validate dataflow between blocks. Connections follow **initiato
 ### Implementation References
 
 - **Frontend**: `apps/web/src/entities/validation/connection.ts`
-- **Backend**: Not yet implemented (planned for v1.0 server-side validation)
+- **Backend**: Not yet implemented (planned for Phase 6 server-side validation)
 
 ---
 
@@ -100,12 +100,12 @@ interface ValidationResult {
 
 ## 6. FE/BE Alignment Contract
 
-### Current State (v0.5)
+### Current State (Phase 5)
 
 - **Frontend**: Full validation engine implemented in TypeScript (`entities/validation/`)
 - **Backend**: No server-side validation. The backend is a thin orchestration layer that trusts frontend-validated data.
 
-### Future State (v1.0+)
+### Future State (Phase 6+)
 
 When backend validation is introduced:
 
@@ -136,6 +136,6 @@ When backend validation is introduced:
 
 ## 7. Migration Notes
 
-- When adding new block categories (e.g., `FunctionBlock` in v1.0), add corresponding placement rules to this document first.
+- When adding new block categories (e.g., `FunctionBlock` in Phase 6), add corresponding placement rules to this document first.
 - When adding new connection types (e.g., `EventFlow`), update the allowed connection map here first.
 - Breaking rule changes (removing a rule, changing severity) require a `ruleSchemaVersion` bump.

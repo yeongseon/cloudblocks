@@ -1,6 +1,6 @@
 [project]
 name = "cloudblocks-api"
-version = "0.5.0"
+version = "0.6.0"
 description = "CloudBlocks Platform - Backend API"
 requires-python = ">=3.10"
 license = {text = "MIT"}

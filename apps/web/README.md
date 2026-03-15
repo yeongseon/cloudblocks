@@ -72,13 +72,13 @@ src/
 │   ├── code-preview/CodePreview.tsx   # Code generation preview
 │   ├── template-gallery/TemplateGallery.tsx  # Template selection
 │   ├── workspace-manager/WorkspaceManager.tsx # Multi-workspace
-│   ├── github-login/GitHubLogin.tsx   # GitHub OAuth login (v0.5)
-│   ├── github-repos/GitHubRepos.tsx   # GitHub repo management (v0.5)
-│   ├── github-sync/GitHubSync.tsx     # Architecture sync to GitHub (v0.5)
-│   └── github-pr/GitHubPR.tsx         # PR creation from UI (v0.5)
+│   ├── github-login/GitHubLogin.tsx   # GitHub OAuth login (Phase 5)
+│   ├── github-repos/GitHubRepos.tsx   # GitHub repo management (Phase 5)
+│   ├── github-sync/GitHubSync.tsx     # Architecture sync to GitHub (Phase 5)
+│   └── github-pr/GitHubPR.tsx         # PR creation from UI (Phase 5)
 ```
 
-## Current Implementation (v0.1–v0.5)
+## Current Implementation (Phase 1–Phase 5)
 
 - ✅ Isometric camera with fixed 2.5D view
 - ✅ Network plate + public/private subnet plates
@@ -88,15 +88,15 @@ src/
 - ✅ Export architecture as JSON
 - ✅ localStorage persistence (save/load/reset)
 - ✅ Properties panel with block move between subnets
-- ✅ Undo/redo with keyboard shortcuts (v0.2)
-- ✅ Multi-workspace support (v0.4)
-- ✅ Terraform code generation with preview (v0.3)
-- ✅ Architecture templates with gallery (v0.4)
+- ✅ Undo/redo with keyboard shortcuts (Phase 2)
+- ✅ Multi-workspace support (Phase 4)
+- ✅ Terraform code generation with preview (Phase 3)
+- ✅ Architecture templates with gallery (Phase 4)
 
-- ✅ GitHub OAuth login (v0.5)
-- ✅ GitHub repo sync / pull (v0.5)
-- ✅ PR creation from UI (v0.5)
-- ✅ Typed API client with JWT auth (v0.5)
+- ✅ GitHub OAuth login (Phase 5)
+- ✅ GitHub repo sync / pull (Phase 5)
+- ✅ PR creation from UI (Phase 5)
+- ✅ Typed API client with JWT auth (Phase 5)
 
 ## Not Yet Implemented
 

@@ -29,7 +29,7 @@ Core entities:
 
 ### Workspace
 
-Workspace represents the top-level container for architecture projects. CloudBlocks v0.1 supports a single architecture per workspace.
+Workspace represents the top-level container for architecture projects. CloudBlocks Phase 1 supports a single architecture per workspace.
 
 > For full field specifications, see [DOMAIN_MODEL.md](model/DOMAIN_MODEL.md) §13 (Workspace Model).
 
@@ -53,7 +53,7 @@ Block represents a deployable infrastructure component (compute, database, stora
 
 ### Connection
 
-Connection represents a communication flow between blocks. Direction indicates the request initiator. v0.1 supports `dataflow` only.
+Connection represents a communication flow between blocks. Direction indicates the request initiator. Phase 1 supports `dataflow` only.
 
 > For full field specifications and connection types, see [DOMAIN_MODEL.md](model/DOMAIN_MODEL.md) §6 (Connection).
 

@@ -129,7 +129,7 @@ The store exposes a single hook: `useArchitectureStore` from `entities/store/arc
 
 ## 6. Migration Plan
 
-### Completed (v0.5)
+### Completed (Phase 5)
 
 1. ✅ Split monolithic `architectureStore.ts` (712 lines) into 5 slices
 2. ✅ Created `slices/types.ts` with shared `ArchitectureState` interface
@@ -139,7 +139,7 @@ The store exposes a single hook: `useArchitectureStore` from `entities/store/arc
 6. ✅ All 427 frontend tests pass without modification
 7. ✅ TypeScript strict mode clean
 
-### Future (v1.0+)
+### Future (Phase 6+)
 
 - Consider extracting `entities/store/` into a `packages/cloudblocks-domain/` package
 - Add ESLint rule to enforce FSD layer boundaries (e.g., `eslint-plugin-boundaries`)

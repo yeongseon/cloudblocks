@@ -4,7 +4,7 @@
 >
 > This document is the **canonical specification** for the CloudBlocks domain model. All other documentation must reference and conform to the types, field names, and relationships defined here.
 >
-> - **v0.1 implementation**: `apps/web/src/shared/types/index.ts` is the source of truth for TypeScript types. If a discrepancy exists between this document and the code, the code wins for v0.1.
+> - **Phase 1 implementation**: `apps/web/src/shared/types/index.ts` is the source of truth for TypeScript types. If a discrepancy exists between this document and the code, the code wins for Phase 1.
 > - **Serialization format**: `apps/web/src/shared/types/schema.ts` is the source of truth for storage shape and schema versioning.
 > - **Connection rules**: `apps/web/src/features/validate/connection.ts` is the source of truth for allowed connections.
 > - **Version timelines**: `docs/concept/ROADMAP.md` is the canonical source for when features ship.
@@ -58,7 +58,7 @@ These invariants **must hold at all times** in a valid `ArchitectureModel`. Viol
 |------|-------------|
 | **No Self-Connections** | `connection.sourceId !== connection.targetId`. |
 | **No Duplicate Connections** | At most one connection exists between any ordered pair `(sourceId, targetId)`. |
-| **No Cycles** | The connection graph is a DAG (directed acyclic graph). Cycles in the dataflow graph are not permitted in v0.1. |
+| **No Cycles** | The connection graph is a DAG (directed acyclic graph). Cycles in the dataflow graph are not permitted in Phase 1. |
 | **Receiver-Only Enforcement** | `database` and `storage` blocks never appear as `sourceId` in any connection. They are receiver-only. |
 
 ---
@@ -120,16 +120,16 @@ They are placed on Plates and represent deployable infrastructure services.
 | StorageBlock | Object or file storage |
 | GatewayBlock | Load balancer or gateway |
 
-### Future Block Categories (v1.0+)
+### Future Block Categories (Phase 6+)
 
-> **v1.0+**: These block categories are part of the Architecture Compiler vision and are not yet implemented.
+> **Phase 6+**: These block categories are part of the Architecture Compiler vision and are not yet implemented.
 
 | Category | Description | Version |
 |---------|-------------|---------|
-| FunctionBlock | Serverless compute | v1.0 |
-| QueueBlock | Messaging services | v1.0 |
-| EventBlock | Event triggers | v1.0 |
-| TimerBlock | Scheduled triggers | v1.0 |
+| FunctionBlock | Serverless compute | Phase 6 |
+| QueueBlock | Messaging services | Phase 6 |
+| EventBlock | Event triggers | Phase 6 |
+| TimerBlock | Scheduled triggers | Phase 6 |
 
 ---
 
@@ -198,10 +198,10 @@ metadata  — additional properties
 | Type | Description | Version |
 |-----|-------------|---------|
 | DataFlow | Request/response communication (solid arrow) | MVP |
-| EventFlow | Event-driven trigger (dotted arrow) | v1.0 |
-| Dependency | Resource dependency (dashed line) | v1.0 |
+| EventFlow | Event-driven trigger (dotted arrow) | Phase 6 |
+| Dependency | Resource dependency (dashed line) | Phase 6 |
 
-MVP (v0.1) supports DataFlow only.
+MVP (Phase 1) supports DataFlow only.
 
 ---
 
@@ -254,7 +254,7 @@ Responses flow implicitly in the reverse direction and do not require a separate
 
 > **Event-driven patterns** (e.g., Azure Event Grid from Blob Storage, AWS DynamoDB Streams → Lambda)
 > should be modeled with explicit intermediary services once the EventFlow connection type is
-> available in v1.0. In MVP, use polling: `Compute → Database` / `Compute → Storage`.
+> available in Phase 6. In MVP, use polling: `Compute → Database` / `Compute → Storage`.
 
 ### Rule Specification Format
 
@@ -337,7 +337,7 @@ The storage format uses `schemaVersion` (currently `"0.1.0"`) to track the seria
 
 ### Schema Stability Policy
 
-The following types and fields are **frozen for v0.1** and will not change without a schema version bump:
+The following types and fields are **frozen for Phase 1** and will not change without a schema version bump:
 
 | Frozen Type | Frozen Fields |
 |-------------|---------------|
@@ -368,7 +368,7 @@ CloudBlocks transforms visual architecture into deployable infrastructure code t
 Architecture Model → Normalize → Validate → Provider Map → Generate → Format → Output
 ```
 
-> **v0.3**: Code generation is implemented. See [`generator.md`](../engine/generator.md) for the pipeline specification and [`ROADMAP.md`](../concept/ROADMAP.md) for timeline.
+> **Phase 3**: Code generation is implemented. See [`generator.md`](../engine/generator.md) for the pipeline specification and [`ROADMAP.md`](../concept/ROADMAP.md) for timeline.
 
 ### Generator Interface
 
@@ -383,13 +383,13 @@ interface Generator {
 
 > For full interface contracts, options, output format, and determinism guarantees, see [`generator.md`](../engine/generator.md).
 
-> **v0.4+**: Templates are planned for v0.4 (workspace management) and expanded in v1.0 (marketplace). See [`templates.md`](../engine/templates.md) for the template specification.
+> **Phase 4+**: Templates are planned for Phase 4 (workspace management) and expanded in Phase 6 (marketplace). See [`templates.md`](../engine/templates.md) for the template specification.
 
 ---
 
 # 11. Provider Abstraction
 
-> **v0.3+**: Provider adapters are planned for v0.3 (Azure-first). Multi-cloud support is planned for v2.0.
+> **Phase 3+**: Provider adapters are planned for Phase 3 (Azure-first). Multi-cloud support is planned for Phase 8.
 
 CloudBlocks uses a **provider abstraction layer** for multi-cloud support. Azure is the primary target. Each generic block category (compute, database, storage, gateway) maps to provider-specific resources through the adapter layer.
 
@@ -399,7 +399,7 @@ CloudBlocks uses a **provider abstraction layer** for multi-cloud support. Azure
 
 # 12. GitHub Integration Model
 
-> **v0.5+**: GitHub integration is planned for v0.5. This section describes the target design. No implementation exists yet.
+> **Phase 5+**: GitHub integration is planned for Phase 5. This section describes the target design. No implementation exists yet.
 
 Architecture assets are stored in GitHub repos following a standard layout. The backend mediates between the UI, GitHub, and the generation engine — it does not store architecture data.
 
@@ -409,7 +409,7 @@ Architecture assets are stored in GitHub repos following a standard layout. The 
 
 # 13. Workspace Model
 
-### Client-Side (v0.1)
+### Client-Side (Phase 1)
 
 ```typescript
 interface Workspace {
@@ -421,9 +421,9 @@ interface Workspace {
 }
 ```
 
-### Server-Side (v0.5+)
+### Server-Side (Phase 5+)
 
-> **v0.5+**: Server-side workspace management is planned for v0.5. These interfaces align with the migration files in `apps/api/app/infrastructure/db/migrations/`.
+> **Phase 5+**: Server-side workspace management is planned for Phase 5. These interfaces align with the migration files in `apps/api/app/infrastructure/db/migrations/`.
 
 ```typescript
 // User identity
@@ -507,7 +507,7 @@ interface Block {
 }
 
 // Connection
-type ConnectionType = 'dataflow';  // v0.1 — EventFlow and Dependency planned for v1.0
+type ConnectionType = 'dataflow';  // Phase 1 — EventFlow and Dependency planned for Phase 6
 
 interface Connection {
   id: string;
@@ -580,9 +580,9 @@ The architecture model is serialized as JSON. A version field is included to sup
 
 # 15. Future Domain Extensions
 
-### Serverless Architecture (v1.0)
+### Serverless Architecture (Phase 6)
 
-> **v1.0+**: Not yet implemented.
+> **Phase 6+**: Not yet implemented.
 
 Add:
 
@@ -599,9 +599,9 @@ HTTP → Function → Storage
 
 ---
 
-### Architecture Simulation (v2.5)
+### Architecture Simulation (Phase 9)
 
-> **v2.5+**: Not yet implemented.
+> **Phase 9+**: Not yet implemented.
 
 Allow architecture execution simulation:
 
