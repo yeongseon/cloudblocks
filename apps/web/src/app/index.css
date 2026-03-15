@@ -1,22 +1,54 @@
 /* CloudBlocks Platform - Global Styles */
+/* LEGO Toy Theme - Bright, Chunky, Playful */
+
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap');
 
 :root {
-  --roblox-primary: #0078D4;
-  --roblox-primary-active: #005A9E;
+  /* LEGO Primary Palette */
+  --lego-red: #E3000B;
+  --lego-red-dark: #B80009;
+  --lego-red-light: #FF3333;
+  --lego-yellow: #FFD500;
+  --lego-yellow-dark: #D4B200;
+  --lego-yellow-light: #FFE44D;
+  --lego-blue: #0055BF;
+  --lego-blue-dark: #003D8A;
+  --lego-blue-light: #3385D6;
+  --lego-green: #00852B;
+  --lego-green-dark: #006622;
+  --lego-green-light: #00A63E;
+  --lego-orange: #FE8A18;
+  --lego-orange-dark: #D97200;
+  --lego-white: #FFFFFF;
+  --lego-black: #1B1B1B;
+  
+  /* Baseplate Colors */
+  --lego-baseplate: #D2B48C;
+  --lego-baseplate-dark: #C4A67A;
+  --lego-baseplate-light: #E0C9A6;
+  
+  /* Panel Colors */
+  --lego-panel-bg: #FFF8E7;
+  --lego-panel-border: #FFD500;
+  
+  /* Semantic */
+  --roblox-primary: #0055BF;
+  --roblox-primary-active: #003D8A;
   --roblox-accent: #00A4EF;
-  --roblox-destructive: #F25022;
-  --roblox-destructive-active: #D83B01;
-  --roblox-success: #7FBA00;
-  --roblox-panel-bg: #F8F9FA;
+  --roblox-destructive: #E3000B;
+  --roblox-destructive-active: #B80009;
+  --roblox-success: #00852B;
+  --roblox-panel-bg: #FFF8E7;
   
   --radius-container: 16px;
   --radius-item: 10px;
   --radius-pill: 20px;
   
-  --shadow-panel: 0 4px 0 0 rgba(0,0,0,0.1), 0 6px 24px rgba(0, 120, 212, 0.08);
-  --shadow-btn-base: 0 3px 0 0 rgba(0,0,0,0.15);
-  --shadow-btn-hover: 0 4px 0 0 rgba(0,0,0,0.15);
-  --shadow-btn-active: 0 1px 0 0 rgba(0,0,0,0.15);
+  --shadow-panel: 0 6px 0 0 rgba(0,0,0,0.15), 0 8px 24px rgba(0, 0, 0, 0.1);
+  --shadow-btn-base: 0 4px 0 0 rgba(0,0,0,0.2);
+  --shadow-btn-hover: 0 5px 0 0 rgba(0,0,0,0.2);
+  --shadow-btn-active: 0 1px 0 0 rgba(0,0,0,0.2);
+  --shadow-stud: inset 0 -2px 4px rgba(0,0,0,0.15), 0 1px 2px rgba(255,255,255,0.5);
 }
 
 * {
@@ -29,5 +61,5 @@ html, body, #root {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  font-family: 'Varela Round', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: 'Fredoka', 'Varela Round', 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
