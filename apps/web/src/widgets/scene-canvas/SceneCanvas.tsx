@@ -3,7 +3,7 @@ import type { PointerEvent as ReactPointerEvent } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { worldToScreen, depthKey } from '../../shared/utils/isometric';
-import { getBlockWorldPosition, EXTERNAL_ACTOR_POSITION } from '../../shared/utils/position';
+import { EXTERNAL_ACTOR_POSITION } from '../../shared/utils/position';
 
 import { PlateSprite } from '../../entities/plate/PlateSprite';
 import { BlockSprite } from '../../entities/block/BlockSprite';
@@ -116,7 +116,7 @@ export function SceneCanvas() {
           })}
         </div>
         
-        <svg className="connection-layer">
+        <svg className="connection-layer" style={{ width: 1, height: 1 }}>
           <title>Connections</title>
           {architecture.connections.map((conn) => (
             <ConnectionPath
@@ -152,9 +152,11 @@ export function SceneCanvas() {
           {architecture.blocks.map((block) => {
             const parentPlate = architecture.plates.find((p) => p.id === block.placementId);
             if (!parentPlate) return null;
-            const [x, y, z] = getBlockWorldPosition(block, parentPlate);
-            const screenPos = worldToScreen(x, y, z, origin.x, origin.y);
-            const zIndex = depthKey(x, z, y);
+            const worldX = parentPlate.position.x + block.position.x;
+            const worldY = parentPlate.position.y + parentPlate.size.height;
+            const worldZ = parentPlate.position.z + block.position.z;
+            const screenPos = worldToScreen(worldX, worldY, worldZ, origin.x, origin.y);
+            const zIndex = depthKey(worldX, worldZ, worldY);
             return (
               <BlockSprite 
                 key={block.id} 

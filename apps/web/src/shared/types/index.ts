@@ -154,9 +154,9 @@ export const DEFAULT_PLATE_SIZE: Record<PlateType, Size> = {
 };
 
 export const DEFAULT_BLOCK_SIZE: Size = {
-  width: 2.4,
-  height: 2.0,
-  depth: 2.4,
+  width: 1.2,
+  height: 1.2,
+  depth: 1.2,
 };
 
 // ─── Educational Metadata ──────────────────────────────────

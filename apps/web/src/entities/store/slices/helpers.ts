@@ -45,7 +45,7 @@ export function nextGridPosition(
   return {
     x: snapToGrid(-plateSize.width / 2 + GRID_CELL / 2 + 0.5 + col * GRID_CELL),
     y: 0.5,
-    z: snapToGrid(-plateSize.depth / 2 + GRID_CELL / 2 + 0.5 + row * GRID_CELL),
+    z: snapToGrid(plateSize.depth / 2 - GRID_CELL / 2 - 0.5 - row * GRID_CELL),
   };
 }
 

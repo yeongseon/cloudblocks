@@ -1,5 +1,4 @@
 import type { Block, Plate, ExternalActor } from '../types/index';
-import { DEFAULT_BLOCK_SIZE } from '../types/index';
 
 // ─── Constants ────────────────────────────────────────────
 
@@ -28,10 +27,7 @@ export function getBlockWorldPosition(
 ): [number, number, number] {
   return [
     parentPlate.position.x + block.position.x,
-    parentPlate.position.y +
-      parentPlate.size.height / 2 +
-      DEFAULT_BLOCK_SIZE.height / 2 +
-      block.position.y,
+    parentPlate.position.y + parentPlate.size.height,
     parentPlate.position.z + block.position.z,
   ];
 }

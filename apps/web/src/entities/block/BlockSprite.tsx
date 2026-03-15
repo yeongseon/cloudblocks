@@ -138,9 +138,7 @@ export const BlockSprite = memo(function BlockSprite({
     .join(' ');
 
   return (
-    <button
-      type="button"
-      onClick={handleClick}
+    <div
       className={className}
       style={{
         left: `${screenX}px`,
@@ -148,50 +146,70 @@ export const BlockSprite = memo(function BlockSprite({
         zIndex,
       }}
     >
-      <svg
-        width={vbWidth}
-        height={vbHeight}
-        viewBox={`${minX} ${minY} ${vbWidth} ${vbHeight}`}
-        style={{ display: 'block' }}
+      <button
+        type="button"
+        onClick={handleClick}
+        className="block-button"
+        aria-label={`Block: ${block.name}`}
+        style={{
+          position: 'absolute',
+          left: minX - pad,
+          top: minY - pad,
+          width: vbWidth + pad * 2,
+          height: vbHeight + pad * 2,
+          cursor: 'pointer',
+          background: 'none',
+          border: 'none',
+          padding: 0,
+          margin: 0,
+          outline: 'none',
+        }}
       >
-        <title>{block.name}</title>
-        <g className="block-sprite-faces">
-          <polygon
-            points={`${TBL.x},${TBL.y} ${BL.x},${BL.y} ${BR.x},${BR.y} ${TBR.x},${TBR.y}`}
-            fill={leftColor}
-            stroke={leftColor}
-            strokeWidth="1"
-            strokeLinejoin="round"
-          />
-          <polygon
-            points={`${TBR.x},${TBR.y} ${BR.x},${BR.y} ${FR.x},${FR.y} ${TFR.x},${TFR.y}`}
-            fill={rightColor}
-            stroke={rightColor}
-            strokeWidth="1"
-            strokeLinejoin="round"
-          />
-          <polygon
-            points={`${TFL.x},${TFL.y} ${TBL.x},${TBL.y} ${TBR.x},${TBR.y} ${TFR.x},${TFR.y}`}
-            fill={baseColor}
-            stroke={baseColor}
-            strokeWidth="1"
-            strokeLinejoin="round"
-          />
-          {studs}
-          <text
-            x={cx}
-            y={cy}
-            className="block-sprite-label"
-            style={{
-              transform: `skewY(26.565deg)`,
-              transformOrigin: `${cx}px ${cy}px`,
-              textShadow: '0px 1px 2px rgba(0,0,0,0.5)',
-            }}
-          >
-            {labelText}
-          </text>
-        </g>
-      </svg>
-    </button>
+        <svg
+          className="block-svg"
+          style={{ width: '100%', height: '100%' }}
+          viewBox={`${minX - pad} ${minY - pad} ${vbWidth + pad * 2} ${vbHeight + pad * 2}`}
+          aria-hidden="true"
+        >
+          <title>{block.name}</title>
+          <g className="block-sprite-faces">
+            <polygon
+              points={`${TBL.x},${TBL.y} ${BL.x},${BL.y} ${BR.x},${BR.y} ${TBR.x},${TBR.y}`}
+              fill={leftColor}
+              stroke={leftColor}
+              strokeWidth="1"
+              strokeLinejoin="round"
+            />
+            <polygon
+              points={`${TBR.x},${TBR.y} ${BR.x},${BR.y} ${FR.x},${FR.y} ${TFR.x},${TFR.y}`}
+              fill={rightColor}
+              stroke={rightColor}
+              strokeWidth="1"
+              strokeLinejoin="round"
+            />
+            <polygon
+              points={`${TFL.x},${TFL.y} ${TBL.x},${TBL.y} ${TBR.x},${TBR.y} ${TFR.x},${TFR.y}`}
+              fill={baseColor}
+              stroke={baseColor}
+              strokeWidth="1"
+              strokeLinejoin="round"
+            />
+            {studs}
+            <text
+              x={cx}
+              y={cy}
+              className="block-sprite-label"
+              style={{
+                transform: `skewY(26.565deg)`,
+                transformOrigin: `${cx}px ${cy}px`,
+                textShadow: '0px 1px 2px rgba(0,0,0,0.5)',
+              }}
+            >
+              {labelText}
+            </text>
+          </g>
+        </svg>
+      </button>
+    </div>
   );
 });
