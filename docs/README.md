@@ -69,6 +69,7 @@ Detailed visual and interaction specifications.
 | [SECURITY_BOUNDARIES.md](design/SECURITY_BOUNDARIES.md) | Supporting | Security constraints |
 | [RELEASE_GATES.md](design/RELEASE_GATES.md) | Supporting | Release criteria |
 | [UI_IMPROVEMENT_GAP_ANALYSIS.md](design/UI_IMPROVEMENT_GAP_ANALYSIS.md) | Supporting | UI guide gap analysis, Milestone 6B spec, drag-to-create MVP |
+| [LEARNING_MODE_SPEC.md](design/LEARNING_MODE_SPEC.md) | **Canonical** | Learning Mode design spec — scenarios, validation, engine, UI |
 
 > **UI Single Source of Truth**: All visual/interaction specs are in `VISUAL_DESIGN_SPEC.md`. Section §7 covers the StarCraft-style Bottom Panel layout.
 

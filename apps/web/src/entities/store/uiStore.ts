@@ -1,7 +1,9 @@
 import { create } from 'zustand';
 import type { BlockCategory } from '../../shared/types/index';
+import type { EditorMode } from '../../shared/types/learning';
 
 export type ToolMode = 'select' | 'connect' | 'delete';
+export type { EditorMode } from '../../shared/types/learning';
 
 interface UIState {
   // ── Selection ──
@@ -44,6 +46,16 @@ interface UIState {
   toggleGitHubSync: () => void;
   showGitHubPR: boolean;
   toggleGitHubPR: () => void;
+
+  // ── Editor mode ──
+  editorMode: EditorMode;
+  setEditorMode: (mode: EditorMode) => void;
+
+  // ── Learning panels ──
+  showLearningPanel: boolean;
+  toggleLearningPanel: () => void;
+  showScenarioGallery: boolean;
+  toggleScenarioGallery: () => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -104,4 +116,14 @@ export const useUIStore = create<UIState>((set) => ({
   showGitHubPR: false,
   toggleGitHubPR: () =>
     set((s) => ({ showGitHubPR: !s.showGitHubPR })),
+
+  editorMode: 'build',
+  setEditorMode: (mode) => set({ editorMode: mode }),
+
+  showLearningPanel: false,
+  toggleLearningPanel: () =>
+    set((s) => ({ showLearningPanel: !s.showLearningPanel })),
+  showScenarioGallery: false,
+  toggleScenarioGallery: () =>
+    set((s) => ({ showScenarioGallery: !s.showScenarioGallery })),
 }));

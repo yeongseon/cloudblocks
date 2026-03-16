@@ -271,6 +271,49 @@ Features:
 
 ---
 
+# Milestone 6C — Learning Mode (Duolingo for Cloud Architecture)
+
+Goal:
+Transform CloudBlocks from a pure editor into a **learning platform** with guided, scenario-based missions.
+
+> **Reference**: [LEARNING_MODE_SPEC.md](../design/LEARNING_MODE_SPEC.md)
+
+Features:
+
+- Build/Learn mode switch (editorMode in uiStore)
+- Guided step-by-step scenario system with typed validation rules
+- Scenario engine with state-based step validation
+- Hint engine with idle-timer progressive reveal
+- Learning Panel UI (step progress, hints, completion screen)
+- Scenario Gallery for browsing/starting scenarios
+- 3 built-in scenarios (beginner/intermediate/advanced)
+- Progress tracking per scenario
+
+### Deliverables
+
+| # | Deliverable | Priority | Effort |
+|---|------------|----------|--------|
+| 1 | Learning types + stores | P1 | Low |
+| 2 | Step validator + scenario engine | P1 | Medium |
+| 3 | Hint engine | P2 | Low |
+| 4 | Learning Panel + Scenario Gallery UI | P1 | Medium |
+| 5 | 3 built-in scenarios | P1 | Medium |
+| 6 | App integration + visual feedback | P1 | Low |
+
+### Exit Criteria
+- [ ] Build/Learn mode switch works from toolbar
+- [ ] 3 scenarios completable end-to-end (beginner → advanced)
+- [ ] Step validation correctly evaluates all 7 rule types
+- [ ] Hints display progressively on idle
+- [ ] Scenario reset-to-checkpoint works
+- [ ] All tests pass, build clean
+- [ ] 90%+ test coverage on learning module
+
+### Dependencies
+- Milestone 6B complete
+
+---
+
 # Milestone 7 — Collaboration + CI/CD Integration
 
 Goal:
@@ -430,6 +473,8 @@ The roadmap evolves CloudBlocks from:
 → Multi-Generator Ecosystem (Milestone 6)
 
 → Builder UX Completion (Milestone 6B)
+
+→ Learning Platform (Milestone 6C)
 
 → Collaboration Platform (Milestone 7)
 

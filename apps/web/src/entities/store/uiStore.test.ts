@@ -20,6 +20,9 @@ describe('useUIStore', () => {
       showGitHubRepos: false,
       showGitHubSync: false,
       showGitHubPR: false,
+      editorMode: 'build',
+      showLearningPanel: false,
+      showScenarioGallery: false,
     });
   });
 
@@ -40,6 +43,22 @@ describe('useUIStore', () => {
       expect(state.showGitHubRepos).toBe(false);
       expect(state.showGitHubSync).toBe(false);
       expect(state.showGitHubPR).toBe(false);
+      expect(state.editorMode).toBe('build');
+      expect(state.showLearningPanel).toBe(false);
+      expect(state.showScenarioGallery).toBe(false);
+    });
+  });
+
+  describe('editorMode', () => {
+    it("editorMode defaults to 'build'", () => {
+      expect(useUIStore.getState().editorMode).toBe('build');
+    });
+
+    it("setEditorMode changes mode to 'learn' and back", () => {
+      useUIStore.getState().setEditorMode('learn');
+      expect(useUIStore.getState().editorMode).toBe('learn');
+      useUIStore.getState().setEditorMode('build');
+      expect(useUIStore.getState().editorMode).toBe('build');
     });
   });
 
@@ -403,6 +422,30 @@ describe('useUIStore', () => {
       useUIStore.getState().toggleGitHubPR();
       useUIStore.getState().toggleGitHubPR();
       expect(useUIStore.getState().showGitHubPR).toBe(false);
+    });
+  });
+
+  describe('learning panels', () => {
+    it('showLearningPanel defaults to false', () => {
+      expect(useUIStore.getState().showLearningPanel).toBe(false);
+    });
+
+    it('toggleLearningPanel toggles visibility', () => {
+      useUIStore.getState().toggleLearningPanel();
+      expect(useUIStore.getState().showLearningPanel).toBe(true);
+      useUIStore.getState().toggleLearningPanel();
+      expect(useUIStore.getState().showLearningPanel).toBe(false);
+    });
+
+    it('showScenarioGallery defaults to false', () => {
+      expect(useUIStore.getState().showScenarioGallery).toBe(false);
+    });
+
+    it('toggleScenarioGallery toggles visibility', () => {
+      useUIStore.getState().toggleScenarioGallery();
+      expect(useUIStore.getState().showScenarioGallery).toBe(true);
+      useUIStore.getState().toggleScenarioGallery();
+      expect(useUIStore.getState().showScenarioGallery).toBe(false);
     });
   });
 
