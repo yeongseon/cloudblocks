@@ -1,5 +1,5 @@
 import type { ArchitectureModel, Block, Position, Workspace } from '../../../shared/types/index';
-import { DEFAULT_PLATE_SIZE } from '../../../shared/types/index';
+import { DEFAULT_BLOCK_SIZE, DEFAULT_PLATE_SIZE } from '../../../shared/types/index';
 import { createBlankArchitecture } from '../../../shared/types/schema';
 import {
   canRedo as historyCanRedo,
@@ -8,7 +8,6 @@ import {
   resetHistory,
 } from '../../../shared/utils/history';
 import { generateId } from '../../../shared/utils/id';
-import { GRID_CELL } from '../../../shared/utils/position';
 import type { ArchitectureState } from './types';
 
 const DEFAULT_WORKSPACE_NAME = 'My Architecture';
@@ -29,23 +28,36 @@ export function touchModel(model: ArchitectureModel): ArchitectureModel {
   return { ...model, updatedAt: new Date().toISOString() };
 }
 
-function snapToGrid(value: number): number {
-  return Math.round(value / GRID_CELL) * GRID_CELL;
+function roundToTenth(value: number): number {
+  return Math.round(value * 10) / 10;
 }
 
 export function nextGridPosition(
   existingBlocks: Block[],
   plateSize: { width: number; depth: number }
 ): Position {
-  const maxCols = Math.max(1, Math.floor(plateSize.width / GRID_CELL));
+  const blockWidth = DEFAULT_BLOCK_SIZE.width;
+  const blockDepth = DEFAULT_BLOCK_SIZE.depth;
+  const spacing = 0.2;
+  const stepX = blockWidth + spacing;
+  const stepZ = blockDepth + spacing;
+
+  const maxCols = Math.max(
+    1,
+    Math.floor((plateSize.width - blockWidth) / stepX) + 1
+  );
   const index = existingBlocks.length;
   const col = index % maxCols;
   const row = Math.floor(index / maxCols);
+  const startX = -((maxCols - 1) * stepX) / 2;
+  const startZ = 0;
+  const anchorOffsetX = 3.4;
+  const anchorOffsetZ = 0.8;
 
   return {
-    x: snapToGrid(-plateSize.width / 2 + GRID_CELL / 2 + 0.5 + col * GRID_CELL),
+    x: roundToTenth(startX + col * stepX + anchorOffsetX),
     y: 0.5,
-    z: snapToGrid(plateSize.depth / 2 - GRID_CELL / 2 - 0.5 - row * GRID_CELL),
+    z: roundToTenth(startZ - row * stepZ + anchorOffsetZ),
   };
 }
 

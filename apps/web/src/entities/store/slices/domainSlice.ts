@@ -37,10 +37,12 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set) => ({
         const siblingsInParent = arch.plates.filter(
           (candidate) => candidate.parentId === parentId
         );
+        const subnetSpacing = 5.5;
+        const offsetX = -2.75 + siblingsInParent.length * subnetSpacing;
         plate.position = {
-          x: -3 + siblingsInParent.length * 6,
+          x: parentPlate ? parentPlate.position.x + offsetX : offsetX,
           y: parentPlate ? parentPlate.position.y + parentPlate.size.height : 0.3,
-          z: 0,
+          z: parentPlate ? parentPlate.position.z : 0,
         };
       }
 

@@ -1,6 +1,6 @@
 const ISO_X = 64;
-const ISO_Y = ISO_X * 0.5;
-const ELEV_Y = 48;
+const ISO_Y = ISO_X * 0.38;
+const ELEV_Y = 56;
 
 export interface ScreenPoint {
   x: number;
@@ -38,7 +38,7 @@ export function screenToWorld(
 }
 
 export function depthKey(worldX: number, worldZ: number, worldY = 0): number {
-  return Math.round((worldX + worldZ) * 100 + worldY * 50);
+  return Math.round((worldX + worldZ) * 100 + worldY * 10000);
 }
 
 export function worldSizeToScreen(

@@ -101,19 +101,25 @@ export function SceneCanvas() {
         }}
       >
         <div className="plate-layer">
-          {architecture.plates.map((plate) => {
-            const screenPos = worldToScreen(plate.position.x, plate.position.y, plate.position.z, origin.x, origin.y);
-            const zIndex = depthKey(plate.position.x, plate.position.z, plate.position.y);
-            return (
-              <PlateSprite 
-                key={plate.id} 
-                plate={plate} 
-                screenX={screenPos.x} 
-                screenY={screenPos.y} 
-                zIndex={zIndex} 
-              />
-            );
-          })}
+          {[...architecture.plates]
+            .sort((a, b) => {
+              const depthA = depthKey(a.position.x, a.position.z, a.position.y);
+              const depthB = depthKey(b.position.x, b.position.z, b.position.y);
+              return depthA - depthB;
+            })
+            .map((plate) => {
+              const screenPos = worldToScreen(plate.position.x, 0, plate.position.z, origin.x, origin.y);
+              const zIndex = depthKey(plate.position.x, plate.position.z, plate.position.y);
+              return (
+                <PlateSprite 
+                  key={plate.id} 
+                  plate={plate} 
+                  screenX={screenPos.x} 
+                  screenY={screenPos.y} 
+                  zIndex={zIndex} 
+                />
+              );
+            })}
         </div>
         
         <svg className="connection-layer" style={{ width: 1, height: 1 }}>
