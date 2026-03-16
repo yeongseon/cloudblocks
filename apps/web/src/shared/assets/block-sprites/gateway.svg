@@ -1,54 +1,55 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140">
-  <g>
-    <polygon points="10,25 10,65 60,90 60,50" fill="#3b004e" />
-    <polygon points="60,50 60,90 110,65 110,25" fill="#550768" />
-    <polygon points="60,0 10,25 60,50 110,25" fill="#7B2D8E" />
-    
-    
-      <g transform="translate(42, 15)">
-        <ellipse cx="0" cy="0" rx="14" ry="7" fill="#7B2D8E" />
-        <path d="M -14 0 L -14 -6 A 14 7 0 0 1 14 -6 L 14 0 A 14 7 0 0 1 -14 0 Z" fill="#48005b" />
-        <ellipse cx="0" cy="-6" rx="14" ry="7" fill="#9446a7" />
-      </g>
-    
-      <g transform="translate(78, 15)">
-        <ellipse cx="0" cy="0" rx="14" ry="7" fill="#7B2D8E" />
-        <path d="M -14 0 L -14 -6 A 14 7 0 0 1 14 -6 L 14 0 A 14 7 0 0 1 -14 0 Z" fill="#48005b" />
-        <ellipse cx="0" cy="-6" rx="14" ry="7" fill="#9446a7" />
-      </g>
-    
-      <g transform="translate(42, 33)">
-        <ellipse cx="0" cy="0" rx="14" ry="7" fill="#7B2D8E" />
-        <path d="M -14 0 L -14 -6 A 14 7 0 0 1 14 -6 L 14 0 A 14 7 0 0 1 -14 0 Z" fill="#48005b" />
-        <ellipse cx="0" cy="-6" rx="14" ry="7" fill="#9446a7" />
-      </g>
-    
-      <g transform="translate(78, 33)">
-        <ellipse cx="0" cy="0" rx="14" ry="7" fill="#7B2D8E" />
-        <path d="M -14 0 L -14 -6 A 14 7 0 0 1 14 -6 L 14 0 A 14 7 0 0 1 -14 0 Z" fill="#48005b" />
-        <ellipse cx="0" cy="-6" rx="14" ry="7" fill="#9446a7" />
-      </g>
-    
-    
-    <g transform="translate(34, 64) skewY(-26.565) scale(0.9)">
-      <text
-        x="0"
-        y="0"
-        fill="#FFFFFF"
-        fill-opacity="0.94"
-        font-family="Fredoka, 'Varela Round', Arial, sans-serif"
-        font-size="9"
-        font-weight="800"
-      >
-        APP GW
-      </text>
-    </g>
-
-    <g transform="translate(85, 57.5) skewY(-26.565) scale(0.9)">
-      <g transform="translate(-12, -12)">
-        <path d="M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4zm0 2.18l7 3.12v4.7c0 4.67-2.83 8.94-7 10.02-4.17-1.08-7-5.35-7-10.02v-4.7l7-3.12z" fill="#FFFFFF" fill-opacity="0.9" />
-      </g>
-    </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 158">
+  <!-- Left face -->
+  <polygon points="9.5,64.0 95.0,106.75 95.0,122.75 9.5,80.0" fill="#005A9E" />
+  <!-- Right face -->
+  <polygon points="95.0,106.75 180.5,64.0 180.5,80.0 95.0,122.75" fill="#006CBE" />
   
-  </g>
+  <!-- Text on left face -->
+  <text transform="translate(52.25, 93.375) rotate(26.56505117707799)" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" fill="#ffffff" fill-opacity="0.9" text-anchor="middle" dominant-baseline="middle">🛡️ App GW</text>
+  <!-- Top face -->
+  <polygon points="95.0,21.25 180.5,64.0 95.0,106.75 9.5,64.0" fill="#0078D4" />
+  
+  <!-- Subtle highlight on top-left edge -->
+  <line x1="9.5" y1="64.0" x2="95.0" y2="21.25" stroke="#ffffff" stroke-width="2" stroke-opacity="0.3" />
+  
+  <!-- Stud grid -->
+  <!-- c=0, r=0 -->
+  <path d="M 93.6875 27.2812 L 93.6875 32.2812 A 12 6 0 0 0 117.6875 32.2812 L 117.6875 27.2812 Z" fill="#0069c5" />
+  <ellipse cx="105.6875" cy="27.2812" rx="12" ry="6" fill="#1991ed" />
+  <ellipse cx="105.6875" cy="27.2812" rx="7.2" ry="3.6" fill="#0078D4" fill-opacity="0.7" stroke="#0069c5" stroke-width="1" />
+  
+  <!-- c=1, r=0 -->
+  <path d="M 136.4375 48.6562 L 136.4375 53.6562 A 12 6 0 0 0 160.4375 53.6562 L 160.4375 48.6562 Z" fill="#0069c5" />
+  <ellipse cx="148.4375" cy="48.6562" rx="12" ry="6" fill="#1991ed" />
+  <ellipse cx="148.4375" cy="48.6562" rx="7.2" ry="3.6" fill="#0078D4" fill-opacity="0.7" stroke="#0069c5" stroke-width="1" />
+  
+  <!-- c=0, r=1 -->
+  <path d="M 72.3125 37.9688 L 72.3125 42.9688 A 12 6 0 0 0 96.3125 42.9688 L 96.3125 37.9688 Z" fill="#0069c5" />
+  <ellipse cx="84.3125" cy="37.9688" rx="12" ry="6" fill="#1991ed" />
+  <ellipse cx="84.3125" cy="37.9688" rx="7.2" ry="3.6" fill="#0078D4" fill-opacity="0.7" stroke="#0069c5" stroke-width="1" />
+  
+  <!-- c=1, r=1 -->
+  <path d="M 115.0625 59.3438 L 115.0625 64.3438 A 12 6 0 0 0 139.0625 64.3438 L 139.0625 59.3438 Z" fill="#0069c5" />
+  <ellipse cx="127.0625" cy="59.3438" rx="12" ry="6" fill="#1991ed" />
+  <ellipse cx="127.0625" cy="59.3438" rx="7.2" ry="3.6" fill="#0078D4" fill-opacity="0.7" stroke="#0069c5" stroke-width="1" />
+  
+  <!-- c=0, r=2 -->
+  <path d="M 50.9375 48.6562 L 50.9375 53.6562 A 12 6 0 0 0 74.9375 53.6562 L 74.9375 48.6562 Z" fill="#0069c5" />
+  <ellipse cx="62.9375" cy="48.6562" rx="12" ry="6" fill="#1991ed" />
+  <ellipse cx="62.9375" cy="48.6562" rx="7.2" ry="3.6" fill="#0078D4" fill-opacity="0.7" stroke="#0069c5" stroke-width="1" />
+  
+  <!-- c=1, r=2 -->
+  <path d="M 93.6875 70.0312 L 93.6875 75.0312 A 12 6 0 0 0 117.6875 75.0312 L 117.6875 70.0312 Z" fill="#0069c5" />
+  <ellipse cx="105.6875" cy="70.0312" rx="12" ry="6" fill="#1991ed" />
+  <ellipse cx="105.6875" cy="70.0312" rx="7.2" ry="3.6" fill="#0078D4" fill-opacity="0.7" stroke="#0069c5" stroke-width="1" />
+  
+  <!-- c=0, r=3 -->
+  <path d="M 29.5625 59.3438 L 29.5625 64.3438 A 12 6 0 0 0 53.5625 64.3438 L 53.5625 59.3438 Z" fill="#0069c5" />
+  <ellipse cx="41.5625" cy="59.3438" rx="12" ry="6" fill="#1991ed" />
+  <ellipse cx="41.5625" cy="59.3438" rx="7.2" ry="3.6" fill="#0078D4" fill-opacity="0.7" stroke="#0069c5" stroke-width="1" />
+  
+  <!-- c=1, r=3 -->
+  <path d="M 72.3125 80.7188 L 72.3125 85.7188 A 12 6 0 0 0 96.3125 85.7188 L 96.3125 80.7188 Z" fill="#0069c5" />
+  <ellipse cx="84.3125" cy="80.7188" rx="12" ry="6" fill="#1991ed" />
+  <ellipse cx="84.3125" cy="80.7188" rx="7.2" ry="3.6" fill="#0078D4" fill-opacity="0.7" stroke="#0069c5" stroke-width="1" />
 </svg>

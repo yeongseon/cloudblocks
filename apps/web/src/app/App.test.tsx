@@ -8,17 +8,20 @@ import { useAuthStore } from '../entities/store/authStore';
 vi.mock('../widgets/scene-canvas/SceneCanvas', () => ({
   SceneCanvas: () => <div data-testid="scene-canvas" />,
 }));
-vi.mock('../widgets/toolbar/Toolbar', () => ({
-  Toolbar: () => <div data-testid="toolbar" />,
+vi.mock('../widgets/menu-bar/MenuBar', () => ({
+  MenuBar: () => <div data-testid="menu-bar" />,
 }));
-vi.mock('../widgets/block-palette/BlockPalette', () => ({
-  BlockPalette: () => <div data-testid="block-palette" />,
-}));
-vi.mock('../widgets/properties-panel/PropertiesPanel', () => ({
-  PropertiesPanel: () => <div data-testid="properties-panel" />,
+vi.mock('../widgets/resource-bar/ResourceBar', () => ({
+  ResourceBar: () => <div data-testid="resource-bar" />,
 }));
 vi.mock('../widgets/validation-panel/ValidationPanel', () => ({
   ValidationPanel: () => <div data-testid="validation-panel" />,
+}));
+vi.mock('../widgets/flow-diagram/FlowDiagram', () => ({
+  FlowDiagram: () => <div data-testid="flow-diagram" />,
+}));
+vi.mock('../widgets/bottom-panel', () => ({
+  BottomPanel: () => <div data-testid="bottom-panel" />,
 }));
 vi.mock('../widgets/code-preview/CodePreview', () => ({
   CodePreview: () => <div data-testid="code-preview" />,
@@ -94,11 +97,12 @@ describe('App', () => {
 
   it('renders all child components', async () => {
     render(<App />);
-    expect(screen.getByTestId('toolbar')).toBeInTheDocument();
+    expect(screen.getByTestId('menu-bar')).toBeInTheDocument();
     expect(screen.getByTestId('scene-canvas')).toBeInTheDocument();
-    expect(screen.getByTestId('block-palette')).toBeInTheDocument();
-    expect(screen.getByTestId('properties-panel')).toBeInTheDocument();
+    expect(screen.getByTestId('resource-bar')).toBeInTheDocument();
     expect(screen.getByTestId('validation-panel')).toBeInTheDocument();
+    expect(screen.getByTestId('flow-diagram')).toBeInTheDocument();
+    expect(screen.getByTestId('bottom-panel')).toBeInTheDocument();
     // Lazy-loaded widgets (code-split) — need to wait for async load
     expect(await screen.findByTestId('code-preview')).toBeInTheDocument();
     expect(await screen.findByTestId('workspace-manager')).toBeInTheDocument();

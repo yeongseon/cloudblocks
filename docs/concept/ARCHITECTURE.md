@@ -76,7 +76,7 @@ cloudblocks/
 
 # 1. Architecture Overview
 
-## Current (Phase 1) — Frontend-Only SPA
+## Current (Milestone 1) — Frontend-Only SPA
 
 ```
 ┌────────────────────────────────────────────────────────┐
@@ -91,7 +91,7 @@ cloudblocks/
 
 No backend required. All state lives in the browser.
 
-## Planned (Phase 5+) — Full Stack with Git-Native Storage
+## Planned (Milestone 5+) — Full Stack with Git-Native Storage
 
 ```
 ┌────────────────────────────────────────────────────────┐
@@ -135,15 +135,15 @@ No backend required. All state lives in the browser.
 
 ## 2.1 Frontend Layer
 
-The frontend is a SPA built with React and React Three Fiber. In Phase 1, it works entirely standalone with localStorage. In future versions, it will adopt a local-first architecture with optional GitHub sync.
+The frontend is a SPA built with React and React Three Fiber. In Milestone 1, it works entirely standalone with localStorage. In future versions, it will adopt a local-first architecture with optional GitHub sync.
 
-### Responsibilities (Phase 1 — current)
+### Responsibilities (Milestone 1 — current)
 - 2.5D isometric builder interface (React Three Fiber)
 - Click-to-add block placement via palette
 - Architecture validation (in-browser Rule Engine)
 - Local persistence (localStorage)
 
-### Responsibilities (Phase 5+ — planned)
+### Responsibilities (Milestone 5+ — planned)
 - Drag and drop interaction
 - Code generation preview (client-side for simple cases)
 - GitHub sync UI (commit, branch, PR)
@@ -185,11 +185,11 @@ apps/web/src/
 └── assets/
 ```
 
-> **Note**: `features/generate/` implements the Terraform code generation pipeline (Phase 3). `features/templates/` implements architecture templates with a gallery UI (Phase 4).
+> **Note**: `features/generate/` implements the Terraform code generation pipeline (Milestone 3). `features/templates/` implements architecture templates with a gallery UI (Milestone 4).
 
-## 2.2 MVP Architecture (Phase 1)
+## 2.2 MVP Architecture (Milestone 1)
 
-Phase 1 is implemented as a **frontend-only SPA**. No backend required.
+Milestone 1 is implemented as a **frontend-only SPA**. No backend required.
 
 ```
 Browser (React + R3F)
@@ -199,7 +199,7 @@ Browser (React + R3F)
 └── localStorage (workspace persistence)
 ```
 
-## 2.3 Backend Layer (Phase 5+) — Thin Orchestration Layer
+## 2.3 Backend Layer (Milestone 5+) — Thin Orchestration Layer
 
 The backend is **NOT a heavy CRUD service**. It is a **workflow orchestrator** that mediates between the UI, GitHub, and the generation engine.
 
@@ -225,7 +225,7 @@ The backend is **NOT a heavy CRUD service**. It is a **workflow orchestrator** t
 | Full prompt/log history | GitHub / Blob Storage |
 | Deployment artifacts | GitHub / Blob Storage |
 
-### Backend Architecture (Planned — Phase 5+)
+### Backend Architecture (Planned — Milestone 5+)
 
 ```
 apps/api/
@@ -248,7 +248,7 @@ apps/api/
 The following modules are **planned but not yet created**:
 
 ```
-# Planned (Phase 5+)
+# Planned (Milestone 5+)
 │   ├── core/
 │   │   └── security.py            # Auth utilities
 │   ├── api/
@@ -299,7 +299,7 @@ Key responsibilities:
 - Enforce containment relationships
 - Serialize model state to JSON
 
-## 3.5 Architecture Model Schema (Phase 1 — current)
+## 3.5 Architecture Model Schema (Milestone 1 — current)
 
 The canonical model types are defined in `apps/web/src/shared/types/index.ts`. The domain model consists of the following core entities:
 
@@ -363,9 +363,9 @@ Validation flow in `engine.ts`:
 
 ---
 
-# 5. Code Generation Pipeline (Phase 3+)
+# 5. Code Generation Pipeline (Milestone 3+)
 
-> **Status**: Implemented in Phase 3. The Terraform generator is functional.
+> **Status**: Implemented in Milestone 3. The Terraform generator is functional.
 
 The core value delivery — transforming visual architecture into deployable IaC code. The pipeline follows a multi-stage process: Normalize → Validate → Provider Map → Generate → Format → Output.
 
@@ -373,7 +373,7 @@ The core value delivery — transforming visual architecture into deployable IaC
 >
 > For provider-specific resource mapping, see [provider.md](../engine/provider.md).
 
-### Planned Module Structure (Phase 3+)
+### Planned Module Structure (Milestone 3+)
 
 ```text
 generators/
@@ -401,7 +401,7 @@ generators/
 
 ---
 
-# 6. Rendering Layer Architecture (Phase 1 — current)
+# 6. Rendering Layer Architecture (Milestone 1 — current)
 
 > See also: PRD §13 (User Interface), PRD §14 (Technical Constraints)
 
@@ -436,10 +436,10 @@ The Provider Adapter translates the generic CloudBlocks model into cloud provide
 
 ---
 
-# 8. GitHub Integration Architecture (Phase 5+)
+# 8. GitHub Integration Architecture (Milestone 5+)
 
-> See also: PRD §16 (Future Roadmap — Phase 5 GitHub Integration)
-> **Status**: Not yet implemented. Planned for Phase 5.
+> See also: PRD §16 (Future Roadmap — Milestone 5 GitHub Integration)
+> **Status**: Not yet implemented. Planned for Milestone 5.
 
 ## Auth: GitHub App Model
 
@@ -492,15 +492,15 @@ The storage follows a **Git-native** design: GitHub repos serve as the primary d
 
 # 10. State Management
 
-### Phase 1 Storage (Local)
+### Milestone 1 Storage (Local)
 
-Phase 1 uses browser localStorage for persistence. Storage key: `cloudblocks:workspaces`.
+Milestone 1 uses browser localStorage for persistence. Storage key: `cloudblocks:workspaces`.
 
 The persisted format uses `schemaVersion: "0.1.0"` with a `workspaces[]` array, each containing a single `architecture: ArchitectureModel` object.
 
 > For the full workspace model and serialization format, see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md) §13 (Workspace Model) and §14 (Implementation Schema).
 
-### Phase 3+ Storage (Local-First + GitHub Sync — Planned)
+### Milestone 3+ Storage (Local-First + GitHub Sync — Planned)
 
 IndexedDB for local state + optional GitHub sync:
 
@@ -517,7 +517,7 @@ Local (IndexedDB)     ←→    GitHub (via Backend API)
 
 ---
 
-# 11. Security Considerations (Phase 5+)
+# 11. Security Considerations (Milestone 5+)
 
 - GitHub App tokens: short-lived, repo-scoped, stored server-side only
 - No long-lived user tokens in the browser
@@ -545,12 +545,12 @@ The architecture supports horizontal scalability:
 # 13. Summary
 
 ```
-Frontend (Phase 1: SPA with R3F, 2.5D isometric view, localStorage persistence)
+Frontend (Milestone 1: SPA with R3F, 2.5D isometric view, localStorage persistence)
 Core Model (Zustand store — 2D coordinates + hierarchy)
 Rule Engine (in-browser validation)
-Code Generation (Phase 3: Terraform generator — ✅ implemented)
-Backend (Phase 5+: Thin orchestration layer — FastAPI — scaffolded)
-GitHub Integration (Phase 5+: repos as data store — planned)
+Code Generation (Milestone 3: Terraform generator — ✅ implemented)
+Backend (Milestone 5+: Thin orchestration layer — FastAPI — scaffolded)
+GitHub Integration (Milestone 5+: repos as data store — planned)
 ```
 
 This architecture enables:

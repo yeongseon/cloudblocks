@@ -444,18 +444,18 @@ The system internally uses a 2D coordinate model.
 
 # 16. Future Roadmap
 
-## Phase 3 — Code Generation
+## Milestone 3 — Code Generation
 
 - Terraform generation
 - Architecture → IaC pipeline
 
-## Phase 5 — GitHub Integration
+## Milestone 5 — GitHub Integration
 
 - GitHub OAuth
 - Commit architecture to repo
 - Pull request workflow
 
-## Phase 6 — Template System
+## Milestone 6 — Template System
 
 - Prebuilt architecture templates
 - Serverless patterns

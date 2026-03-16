@@ -48,7 +48,7 @@ Placement rules validate that blocks are placed on appropriate plates.
 ### Implementation References
 
 - **Frontend**: `apps/web/src/entities/validation/placement.ts`
-- **Backend**: Not yet implemented (planned for Phase 6 server-side validation)
+- **Backend**: Not yet implemented (planned for Milestone 6 server-side validation)
 
 ---
 
@@ -76,11 +76,52 @@ Connection rules validate dataflow between blocks. Connections follow **initiato
 ### Implementation References
 
 - **Frontend**: `apps/web/src/entities/validation/connection.ts`
-- **Backend**: Not yet implemented (planned for Phase 6 server-side validation)
+- **Backend**: Not yet implemented (planned for Milestone 6 server-side validation)
 
 ---
 
-## 5. Orchestration
+## 5. Application Placement Rules
+
+Application placement rules validate that applications (software components) are placed only on **hostable** resources.
+
+> **Key principle**: Applications represent user-managed software. They can only be placed on resources that execute user code (`compute`, `function`). Managed services (`gateway`, `queue`, `storage`, `database`) do not host user applications.
+
+| Rule ID | Severity | Condition | Message |
+|---------|----------|-----------|---------|
+| `rule-app-hostable` | error | Application placed on a non-hostable resource | Applications can only be placed on compute or function blocks |
+| `rule-app-capacity` | error | Resource's app capacity exceeded | This resource can hold at most {capacity} applications |
+| `rule-app-resource` | error | Application's parent resource not found | Application must be placed on a valid resource block |
+
+### Hostable Resource Table
+
+| Resource | Hostable | Max Apps | Rationale |
+|----------|----------|----------|-----------|
+| `compute` | ✅ Yes | 3-4 | VMs/containers host user software stack |
+| `function` | ✅ Yes | 1 | Serverless hosts one handler |
+| `gateway` | ❌ No | 0 | Managed load balancer |
+| `queue` | ❌ No | 0 | Managed messaging service |
+| `storage` | ❌ No | 0 | Managed object store |
+| `database` | ❌ No | 0 | Managed database service |
+| `timer` | ❌ No | 0 | Trigger only, no runtime |
+| `event` | ❌ No | 0 | Router only, no runtime |
+
+### Self-hosted vs Managed Pattern
+
+| Scenario | Correct Model | Wrong Model |
+|----------|---------------|-------------|
+| Managed PostgreSQL (RDS, Azure SQL) | `database` block alone | `database` + postgres app ❌ |
+| Self-hosted PostgreSQL on VM | `compute` block + `postgres` app | `database` + postgres app ❌ |
+| Managed Redis (ElastiCache) | `database` block alone | `database` + redis app ❌ |
+| Self-hosted Redis on VM | `compute` block + `redis` app | `database` + redis app ❌ |
+
+### Implementation References
+
+- **Frontend**: `apps/web/src/entities/validation/application.ts` (planned)
+- **Backend**: Not yet implemented (planned for Milestone 6)
+
+---
+
+## 6. Orchestration
 
 The validation engine iterates all blocks and connections, collecting errors and warnings into a single `ValidationResult`:
 
@@ -98,14 +139,14 @@ interface ValidationResult {
 
 ---
 
-## 6. FE/BE Alignment Contract
+## 7. FE/BE Alignment Contract
 
-### Current State (Phase 5)
+### Current State (Milestone 5)
 
 - **Frontend**: Full validation engine implemented in TypeScript (`entities/validation/`)
 - **Backend**: No server-side validation. The backend is a thin orchestration layer that trusts frontend-validated data.
 
-### Future State (Phase 6+)
+### Future State (Milestone 6+)
 
 When backend validation is introduced:
 
@@ -134,8 +175,8 @@ When backend validation is introduced:
 
 ---
 
-## 7. Migration Notes
+## 8. Migration Notes
 
-- When adding new block categories (e.g., `FunctionBlock` in Phase 6), add corresponding placement rules to this document first.
+- When adding new block categories (e.g., `FunctionBlock` in Milestone 6), add corresponding placement rules to this document first.
 - When adding new connection types (e.g., `EventFlow`), update the allowed connection map here first.
 - Breaking rule changes (removing a rule, changing severity) require a `ruleSchemaVersion` bump.

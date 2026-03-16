@@ -143,14 +143,14 @@ export const PLATE_COLORS: Record<PlateType, string> = {
 
 export const SUBNET_ACCESS_COLORS: Record<SubnetAccess, string> = {
   public: '#22C55E',     // Bright green
-  private: '#3B82F6',    // Medium blue
+  private: '#DC2626',    // Dark red (restricted access)
 };
 
 // ─── Default Sizes ─────────────────────────────────────────
 
 export const DEFAULT_PLATE_SIZE: Record<PlateType, Size> = {
-  network: { width: 12, height: 1.2, depth: 10 },
-  subnet: { width: 5, height: 0.8, depth: 8 },
+  network: { width: 16, height: 0.3, depth: 20 },
+  subnet: { width: 6, height: 0.3, depth: 8 },
 };
 
 export const DEFAULT_BLOCK_SIZE: Size = {
@@ -207,13 +207,13 @@ export const BLOCK_SHORT_NAMES: Record<BlockCategory, string> = {
 
 // Stud grid layout per category: [columns, rows]
 export const STUD_LAYOUTS: Record<BlockCategory, [number, number]> = {
-  gateway: [3, 2],
-  compute: [2, 2],
-  database: [1, 3],
-  storage: [2, 3],
-  function: [1, 1],
-  queue: [1, 4],
+  timer: [1, 2],
   event: [1, 2],
-  timer: [2, 1],
+  function: [2, 2],
+  gateway: [2, 4],
+  queue: [2, 4],
+  storage: [2, 4],
+  compute: [3, 4],
+  database: [4, 6],
 };
 

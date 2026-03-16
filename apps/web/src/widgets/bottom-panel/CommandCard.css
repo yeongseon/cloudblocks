@@ -1,0 +1,248 @@
+/* Command Card — Context-Sensitive Action Grid */
+/* Based on VISUAL_DESIGN_SPEC.md §7.5 */
+
+.command-card {
+  display: flex;
+  flex-direction: column;
+  background-color: #FFFDE7;
+  border: 3px solid #D4B200;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.5),
+    0 4px 0 0 #D4B200;
+  font-family: 'Fredoka', system-ui, sans-serif;
+}
+
+/* Header */
+.command-card-header {
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #222222;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background-color: #FFD500;
+  border-bottom: 3px solid #D4B200;
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.5);
+}
+
+.command-card-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 4px 4px 0;
+  background-color: #FFFDE7;
+}
+
+.command-card-tab {
+  flex: 1;
+  padding: 4px 6px;
+  font-size: 10px;
+  font-weight: 800;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  color: #6A5A00;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border: 2px solid #D4B200;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  background-color: #FFEFA3;
+  cursor: pointer;
+  transition: background-color 0.1s ease, color 0.1s ease;
+}
+
+.command-card-tab:hover {
+  background-color: #FFE44D;
+  color: #3D3400;
+}
+
+.command-card-tab.active {
+  background-color: #FFD500;
+  color: #222222;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.45);
+}
+
+/* Grid container */
+.command-card-grid {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+}
+
+/* Row */
+.command-card-row {
+  display: flex;
+  gap: 6px;
+}
+
+/* Button base */
+.command-card-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 64px;
+  min-height: 48px;
+  padding: 6px 4px;
+  background-color: #FFD500;
+  border: 3px solid #D4B200;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.5),
+    0 3px 0 0 #D4B200;
+  color: #222222;
+}
+
+.command-card-btn:hover:not(.disabled):not(.command-card-btn--empty) {
+  background-color: #FFE44D;
+  transform: translateY(-2px);
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.6),
+    0 5px 0 0 #D4B200;
+}
+
+.command-card-btn:active:not(.disabled):not(.command-card-btn--empty) {
+  transform: translateY(2px);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 1px 0 0 #D4B200;
+}
+
+/* Disabled state */
+.command-card-btn.disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+  background-color: #E3000B;
+  border-color: #B80009;
+  color: #FF3333;
+  box-shadow: 0 1px 0 0 #B80009;
+  transform: translateY(2px);
+}
+
+.command-card-btn.disabled .command-btn-label,
+.command-card-btn.disabled .command-btn-icon {
+  color: #FF3333;
+}
+
+/* Empty placeholder */
+.command-card-btn--empty {
+  background-color: rgba(0,0,0,0.05);
+  border-color: rgba(0,0,0,0.1);
+  cursor: default;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+  border-width: 2px;
+}
+
+/* Icon */
+.command-btn-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* Label */
+.command-btn-label {
+  font-size: 10px;
+  font-weight: 800;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Lock indicator for disabled */
+.command-btn-lock {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 10px;
+  opacity: 0.8;
+  color: #FF3333;
+}
+
+/* Hotkey hint */
+.command-btn-hotkey {
+  position: absolute;
+  bottom: 2px;
+  right: 4px;
+  font-size: 9px;
+  color: #8A7500;
+  font-weight: 800;
+}
+
+.command-card-btn.disabled .command-btn-hotkey {
+  color: #B80009;
+}
+
+/* Creation mode specific */
+.command-card-btn:not(.disabled) .command-btn-icon {
+  transition: transform 0.15s ease;
+}
+
+.command-card-btn:hover:not(.disabled) .command-btn-icon {
+  transform: scale(1.1);
+}
+
+/* Action mode specific */
+.command-card-btn[title*="Del"]:not(.disabled) {
+  background-color: #E3000B;
+  border-color: #B80009;
+  color: #FFFFFF;
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.4),
+    0 3px 0 0 #B80009;
+}
+
+.command-card-btn[title*="Del"]:not(.disabled):hover {
+  background-color: #FF3333;
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.5),
+    0 5px 0 0 #B80009;
+}
+
+.command-card-btn[title*="Del"]:not(.disabled):active {
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 1px 0 0 #B80009;
+}
+
+.command-card-btn[title*="Del"] .command-btn-icon,
+.command-card-btn[title*="Del"] .command-btn-label {
+  color: #FFFFFF;
+}
+
+.command-card-btn[title*="Link"]:not(.disabled) {
+  background-color: #00852B;
+  border-color: #00591D;
+  color: #FFFFFF;
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.4),
+    0 3px 0 0 #00591D;
+}
+
+.command-card-btn[title*="Link"]:not(.disabled):hover {
+  background-color: #00A636;
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.5),
+    0 5px 0 0 #00591D;
+}
+
+.command-card-btn[title*="Link"]:not(.disabled):active {
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 1px 0 0 #00591D;
+}
+
+.command-card-btn[title*="Link"] .command-btn-icon,
+.command-card-btn[title*="Link"] .command-btn-label {
+  color: #FFFFFF;
+}

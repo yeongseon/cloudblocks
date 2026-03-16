@@ -7,6 +7,8 @@ import type {
   Plate,
 } from '../../shared/types/index';
 import { validateArchitecture } from './engine';
+import * as placementModule from './placement';
+import * as connectionModule from './connection';
 
 function makePlate(
   overrides: Partial<Plate> = {}
@@ -81,9 +83,7 @@ function makeModel(
 }
 
 afterEach(() => {
-  vi.doUnmock('./placement');
-  vi.doUnmock('./connection');
-  vi.resetModules();
+  vi.restoreAllMocks();
 });
 
 describe('validateArchitecture', () => {
@@ -215,35 +215,29 @@ describe('validateArchitecture', () => {
     expect(result.warnings).toEqual([]);
   });
 
-  it('routes warning severities to warnings array', async () => {
-    vi.doMock('./placement', () => ({
-      validatePlacement: (block: Block) => ({
-        ruleId: 'rule-placement-warning',
-        severity: 'warning' as const,
-        message: `Placement warning for ${block.id}`,
-        suggestion: 'Placement suggestion',
-        targetId: block.id,
-      }),
+  it('routes warning severities to warnings array', () => {
+    vi.spyOn(placementModule, 'validatePlacement').mockImplementation((block: Block) => ({
+      ruleId: 'rule-placement-warning',
+      severity: 'warning' as const,
+      message: `Placement warning for ${block.id}`,
+      suggestion: 'Placement suggestion',
+      targetId: block.id,
     }));
 
-    vi.doMock('./connection', () => ({
-      validateConnection: (connection: Connection) => ({
-        ruleId: 'rule-connection-warning',
-        severity: 'warning' as const,
-        message: `Connection warning for ${connection.id}`,
-        suggestion: 'Connection suggestion',
-        targetId: connection.id,
-      }),
+    vi.spyOn(connectionModule, 'validateConnection').mockImplementation((connection: Connection) => ({
+      ruleId: 'rule-connection-warning',
+      severity: 'warning' as const,
+      message: `Connection warning for ${connection.id}`,
+      suggestion: 'Connection suggestion',
+      targetId: connection.id,
     }));
-
-    const { validateArchitecture: validateArchitectureWithWarnings } = await import('./engine');
 
     const model = makeModel({
       blocks: [makeBlock({ id: 'compute-1' })],
       connections: [makeConnection({ id: 'conn-1', sourceId: 'compute-1', targetId: 'compute-2' })],
     });
 
-    const result = validateArchitectureWithWarnings(model);
+    const result = validateArchitecture(model);
 
     expect(result.valid).toBe(true);
     expect(result.errors).toEqual([]);

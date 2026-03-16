@@ -1,12 +1,12 @@
 # CloudBlocks Platform — Development Roadmap
 
-This document defines the staged development roadmap for the CloudBlocks Platform. Each milestone is a **Phase** (development stage), independent of software release versions.
+This document defines the staged development roadmap for the CloudBlocks Platform. Each milestone is a **Milestone** (development stage), independent of software release versions.
 
 CloudBlocks evolves from a **2.5D isometric cloud architecture builder** into a **full architecture-to-code platform** — generating Terraform, Bicep, and Pulumi from visual designs, with Git-native workflow integration.
 
 ---
 
-# Phase 0 — Concept Validation
+# Milestone 0 — Concept Validation
 
 Goal:
 Validate the CloudBlocks block-based abstraction model.
@@ -34,7 +34,7 @@ Proof that the **block abstraction maps cleanly to cloud architecture and IaC co
 
 ---
 
-# Phase 1 — CloudBlocks Builder (MVP) ✅
+# Milestone 1 — CloudBlocks Builder (MVP) ✅
 
 Goal:
 Create a working **2.5D isometric cloud architecture builder**.
@@ -62,11 +62,11 @@ Deliverables:
 - [x] Build passes with zero errors (`tsc -b && vite build`)
 
 ### Dependencies
-- Phase 0 complete
+- Milestone 0 complete
 
 ---
 
-# Phase 2 — Visual Polish + UX ✅
+# Milestone 2 — Visual Polish + UX ✅
 
 Goal:
 Improve the builder experience for daily use.
@@ -86,11 +86,11 @@ Features:
 - [x] Builder usable on screens ≥ 1280px width
 
 ### Dependencies
-- Phase 1 complete
+- Milestone 1 complete
 
 ---
 
-# Phase 3 — Code Generation (Terraform) ✅
+# Milestone 3 — Code Generation (Terraform) ✅
 
 Goal:
 Generate **Terraform code** from visual architecture — the core value proposition.
@@ -128,11 +128,11 @@ resource "azurerm_subnet" "public" {
 - [x] Export to file works
 
 ### Dependencies
-- Phase 1 complete
+- Milestone 1 complete
 
 ---
 
-# Phase 4 — Workspace Management + Import/Export ✅
+# Milestone 4 — Workspace Management + Import/Export ✅
 
 Goal:
 Multiple workspaces, architecture import/export, and template system.
@@ -151,11 +151,11 @@ Features:
 - [x] 3+ built-in templates available
 
 ### Dependencies
-- Phase 3 complete
+- Milestone 3 complete
 
 ---
 
-# Phase 5 — GitHub Integration + Backend API ✅
+# Milestone 5 — GitHub Integration + Backend API ✅
 
 Goal:
 Connect CloudBlocks to GitHub — architecture and generated code stored in user repos via a **thin orchestration backend**.
@@ -187,12 +187,12 @@ Connect CloudBlocks to GitHub — architecture and generated code stored in user
 - [x] No architecture data stored in backend DB (all in GitHub)
 
 ### Dependencies
-- Phase 3 complete (Terraform generator)
+- Milestone 3 complete (Terraform generator)
 - GitHub App registered and configured
 
 ---
 
-# Phase 6 — Multi-Generator + Template Marketplace ✅
+# Milestone 6 — Multi-Generator + Template Marketplace ✅
 
 Goal:
 Support multiple IaC generators and a community template ecosystem.
@@ -232,11 +232,46 @@ HTTP → Function → Storage
 - [x] Generator plugin interface documented and usable by third parties
 
 ### Dependencies
-- Phase 5 complete
+- Milestone 5 complete
 
 ---
 
-# Phase 7 — Collaboration + CI/CD Integration
+# Milestone 6B — Builder UX Completion
+
+Goal:
+Close remaining UX gaps in the single-user builder experience before adding collaboration features.
+
+> **Reference**: [UI_IMPROVEMENT_GAP_ANALYSIS.md](../design/UI_IMPROVEMENT_GAP_ANALYSIS.md)
+
+Features:
+
+- Drag-to-create: Drag resources from CommandCard palette onto canvas plates (using interactjs)
+- First-screen onboarding: Empty canvas CTA, guided first-click flow
+- Selection visual states: Valid/invalid target highlighting, connected state, warning state
+
+### Deliverables
+
+| # | Deliverable | Priority | Effort |
+|---|------------|----------|--------|
+| 1 | Drag-to-Create MVP | P1 | Medium |
+| 2 | First-Screen Onboarding | P2 | Low |
+| 3 | Selection Visual States | P3 | Low |
+
+### Exit Criteria
+- [ ] Resources can be dragged from CommandCard and dropped onto valid subnet plates
+- [ ] Invalid drops are rejected cleanly (no orphaned blocks, no broken state)
+- [ ] Click-to-create continues to work unchanged
+- [ ] Empty canvas shows a "Get Started" message with link to TemplateGallery
+- [ ] Connect mode highlights valid/invalid targets on blocks
+- [ ] All existing tests continue to pass
+- [ ] Build passes (`pnpm build`)
+
+### Dependencies
+- Milestone 6 complete
+
+---
+
+# Milestone 7 — Collaboration + CI/CD Integration
 
 Goal:
 Team collaboration via Git and automated CI/CD pipelines.
@@ -255,11 +290,11 @@ Features:
 - [ ] Team members can collaborate on the same project via GitHub
 
 ### Dependencies
-- Phase 6 complete
+- Milestone 6B complete
 
 ---
 
-# Phase 8 — Multi-Cloud Platform
+# Milestone 8 — Multi-Cloud Platform
 
 Goal:
 Support multiple cloud providers from the same architecture.
@@ -279,11 +314,11 @@ Architecture remains the same — provider adapters handle the mapping.
 - [ ] Provider comparison view available
 
 ### Dependencies
-- Phase 6 complete (can run parallel with Phase 7)
+- Milestone 6 complete (can run parallel with Milestone 7)
 
 ---
 
-# Phase 9 — Architecture Simulation
+# Milestone 9 — Architecture Simulation
 
 Goal:
 Simulate architecture behavior before deployment.
@@ -297,7 +332,7 @@ Features:
 
 ---
 
-# Phase 10 — Cloud Digital Twin
+# Milestone 10 — Cloud Digital Twin
 
 Goal:
 Synchronize visual architecture with real infrastructure state.
@@ -315,7 +350,7 @@ Example:
 
 ---
 
-# Phase 11 — Template Marketplace + Plugin Ecosystem
+# Milestone 11 — Template Marketplace + Plugin Ecosystem
 
 Goal:
 Full ecosystem for community contributions.
@@ -346,9 +381,9 @@ CloudBlocks evolves into:
 
 Key principles:
 
-1. Start with **2.5D isometric builder core** (Phase 1)
-2. Add **code generation** early (Phase 3) — the core value
-3. Integrate **GitHub** as data store (Phase 5) — not a traditional DB
+1. Start with **2.5D isometric builder core** (Milestone 1)
+2. Add **code generation** early (Milestone 3) — the core value
+3. Integrate **GitHub** as data store (Milestone 5) — not a traditional DB
 4. Keep backend **thin** — orchestration, not CRUD
 5. **Open-source first** — community drives templates and generators
 6. **Local-first UX** — works offline, syncs when connected
@@ -357,25 +392,25 @@ Key principles:
 
 # Success Metrics
 
-Phase 1 (Complete)
+Milestone 1 (Complete)
 - Architecture built successfully
 - Validation engine working
 - Workspace persistence functional
 
-Phase 3
+Milestone 3
 - Terraform generation produces valid HCL
 - Code preview panel functional
 
-Phase 5
+Milestone 5
 - GitHub integration operational
 - Backend API deployed
 - Zero architecture data in backend DB
 
-Phase 6
+Milestone 6
 - Multi-generator support (Terraform + Bicep + Pulumi)
 - Template marketplace launched
 
-Phase 8+
+Milestone 8+
 - Multi-cloud architecture support
 - Community contributors > 10
 - GitHub stars growth trajectory
@@ -386,20 +421,22 @@ Phase 8+
 
 The roadmap evolves CloudBlocks from:
 
-2.5D Isometric Cloud Builder (Phase 1)
+2.5D Isometric Cloud Builder (Milestone 1)
 
-→ Code Generation Platform (Phase 3)
+→ Code Generation Platform (Milestone 3)
 
-→ GitHub-Integrated DevOps Tool (Phase 5)
+→ GitHub-Integrated DevOps Tool (Milestone 5)
 
-→ Multi-Generator Ecosystem (Phase 6)
+→ Multi-Generator Ecosystem (Milestone 6)
 
-→ Collaboration Platform (Phase 7)
+→ Builder UX Completion (Milestone 6B)
 
-→ Multi-Cloud Architecture Tool (Phase 8)
+→ Collaboration Platform (Milestone 7)
 
-→ Architecture Simulator (Phase 9)
+→ Multi-Cloud Architecture Tool (Milestone 8)
 
-→ Cloud Digital Twin (Phase 10)
+→ Architecture Simulator (Milestone 9)
 
-→ Full Plugin Ecosystem (Phase 11)
+→ Cloud Digital Twin (Milestone 10)
+
+→ Full Plugin Ecosystem (Milestone 11)

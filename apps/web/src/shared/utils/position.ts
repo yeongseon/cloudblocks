@@ -6,7 +6,7 @@ import type { Block, Plate, ExternalActor } from '../types/index';
 export const GRID_CELL = 3.0;
 
 /** Fixed world position for ExternalActor entities (above and behind the scene). */
-export const EXTERNAL_ACTOR_POSITION: [number, number, number] = [0, 5, -6];
+export const EXTERNAL_ACTOR_POSITION: [number, number, number] = [-3, 0, 5];
 
 /** Label position offset above ExternalActor (y + 1 from actor position). */
 export const EXTERNAL_ACTOR_LABEL_POSITION: [number, number, number] = [

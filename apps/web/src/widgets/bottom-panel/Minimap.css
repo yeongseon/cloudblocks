@@ -1,0 +1,118 @@
+/* Minimap Panel — Architecture Overview */
+/* Based on VISUAL_DESIGN_SPEC.md §7.2 */
+
+.minimap-panel {
+  display: flex;
+  flex-direction: column;
+  background-color: #222222;
+  border: 3px solid #111111;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.1),
+    0 3px 0 0 rgba(0, 0, 0, 0.5);
+  font-family: 'Fredoka', system-ui, sans-serif;
+}
+
+.minimap-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #252525;
+  padding: 8px;
+}
+
+/* Empty state */
+.minimap-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #6B6B6B;
+}
+
+.minimap-empty-icon {
+  font-size: 24px;
+  opacity: 0.6;
+}
+
+.minimap-empty-text {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* SVG minimap */
+.minimap-svg {
+  width: 100%;
+  height: 100%;
+  max-width: 160px;
+  max-height: 120px;
+}
+
+/* Interactive elements */
+.minimap-plate {
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.minimap-plate:hover {
+  filter: brightness(1.2);
+}
+
+.minimap-plate.selected {
+  stroke-width: 2;
+  filter: brightness(1.3);
+}
+
+.minimap-connection {
+  cursor: pointer;
+  transition: stroke-width 0.15s ease;
+}
+
+.minimap-connection:hover {
+  stroke-width: 2;
+}
+
+.minimap-connection.selected {
+  stroke: #42A5F5;
+  stroke-width: 2;
+}
+
+.minimap-block {
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.minimap-block:hover {
+  transform: scale(1.2);
+}
+
+.minimap-block.selected {
+  stroke: #FFFFFF;
+  stroke-width: 2;
+}
+
+/* Footer */
+.minimap-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  margin: 4px;
+  background: #FFD500;
+  border: 3px solid #D4B200;
+  border-radius: 8px;
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.5),
+    0 3px 0 0 #D4B200;
+}
+
+.minimap-zoom {
+  font-size: 11px;
+  color: #222222;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}

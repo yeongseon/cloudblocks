@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { Block, Plate } from '../../shared/types/index';
-import { validatePlacement } from './placement';
+import { validatePlacement, canPlaceBlock } from './placement';
 
 function makeBlock(
   overrides: Partial<Block> = {}
@@ -234,5 +234,72 @@ describe('validatePlacement', () => {
     const plate = makePlate({ type: 'network', subnetAccess: undefined });
 
     expect(validatePlacement(block, plate)).toBeNull();
+  });
+});
+
+describe('canPlaceBlock', () => {
+  it('returns true when compute is on subnet plate', () => {
+    const plate = makePlate({ type: 'subnet', subnetAccess: 'public' });
+    expect(canPlaceBlock('compute', plate)).toBe(true);
+  });
+
+  it('returns false when compute is on network plate', () => {
+    const plate = makePlate({ type: 'network', subnetAccess: undefined });
+    expect(canPlaceBlock('compute', plate)).toBe(false);
+  });
+
+  it('returns true when database is on private subnet plate', () => {
+    const plate = makePlate({ type: 'subnet', subnetAccess: 'private' });
+    expect(canPlaceBlock('database', plate)).toBe(true);
+  });
+
+  it('returns false when database is on public subnet plate', () => {
+    const plate = makePlate({ type: 'subnet', subnetAccess: 'public' });
+    expect(canPlaceBlock('database', plate)).toBe(false);
+  });
+
+  it('returns true when gateway is on public subnet plate', () => {
+    const plate = makePlate({ type: 'subnet', subnetAccess: 'public' });
+    expect(canPlaceBlock('gateway', plate)).toBe(true);
+  });
+
+  it('returns false when gateway is on private subnet plate', () => {
+    const plate = makePlate({ type: 'subnet', subnetAccess: 'private' });
+    expect(canPlaceBlock('gateway', plate)).toBe(false);
+  });
+
+  it('returns true when storage is on subnet plate', () => {
+    const plate = makePlate({ type: 'subnet', subnetAccess: 'public' });
+    expect(canPlaceBlock('storage', plate)).toBe(true);
+  });
+
+  it('returns false when storage is on network plate', () => {
+    const plate = makePlate({ type: 'network', subnetAccess: undefined });
+    expect(canPlaceBlock('storage', plate)).toBe(false);
+  });
+
+  it('returns true when function is on network plate', () => {
+    const plate = makePlate({ type: 'network', subnetAccess: undefined });
+    expect(canPlaceBlock('function', plate)).toBe(true);
+  });
+
+  it('returns false when function is on subnet plate', () => {
+    const plate = makePlate({ type: 'subnet', subnetAccess: 'public' });
+    expect(canPlaceBlock('function', plate)).toBe(false);
+  });
+
+  it('returns true when queue is on network plate', () => {
+    const plate = makePlate({ type: 'network', subnetAccess: undefined });
+    expect(canPlaceBlock('queue', plate)).toBe(true);
+  });
+
+  it('returns true when event is on network plate', () => {
+    const plate = makePlate({ type: 'network', subnetAccess: undefined });
+    expect(canPlaceBlock('event', plate)).toBe(true);
+  });
+
+  it('returns true when timer is on network plate', () => {
+    const plate = makePlate({ type: 'network', subnetAccess: undefined });
+    expect(canPlaceBlock('timer', plate)).toBe(true);
   });
 });

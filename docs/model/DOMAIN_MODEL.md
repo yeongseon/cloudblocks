@@ -4,7 +4,7 @@
 >
 > This document is the **canonical specification** for the CloudBlocks domain model. All other documentation must reference and conform to the types, field names, and relationships defined here.
 >
-> - **Phase 1 implementation**: `apps/web/src/shared/types/index.ts` is the source of truth for TypeScript types. If a discrepancy exists between this document and the code, the code wins for Phase 1.
+> - **Milestone 1 implementation**: `apps/web/src/shared/types/index.ts` is the source of truth for TypeScript types. If a discrepancy exists between this document and the code, the code wins for Milestone 1.
 > - **Serialization format**: `apps/web/src/shared/types/schema.ts` is the source of truth for storage shape and schema versioning.
 > - **Connection rules**: `apps/web/src/features/validate/connection.ts` is the source of truth for allowed connections.
 > - **Version timelines**: `docs/concept/ROADMAP.md` is the canonical source for when features ship.
@@ -58,7 +58,7 @@ These invariants **must hold at all times** in a valid `ArchitectureModel`. Viol
 |------|-------------|
 | **No Self-Connections** | `connection.sourceId !== connection.targetId`. |
 | **No Duplicate Connections** | At most one connection exists between any ordered pair `(sourceId, targetId)`. |
-| **No Cycles** | The connection graph is a DAG (directed acyclic graph). Cycles in the dataflow graph are not permitted in Phase 1. |
+| **No Cycles** | The connection graph is a DAG (directed acyclic graph). Cycles in the dataflow graph are not permitted in Milestone 1. |
 | **Receiver-Only Enforcement** | `database` and `storage` blocks never appear as `sourceId` in any connection. They are receiver-only. |
 
 ---
@@ -89,6 +89,24 @@ Network Plate
 | NetworkPlate | Cloud network (Azure VNet / AWS VPC) |
 | SubnetPlate | Subnet within a network (Public or Private) |
 
+### Plate Size Tiers
+
+> **Canonical specification**: See [BRICK_SIZE_SPEC.md](../design/BRICK_SIZE_SPEC.md) for detailed SVG specs and pixel dimensions.
+
+Plates are sized for **learning progression**. Each tier represents a complexity level appropriate for different learners:
+
+| Level | Name | Subnet (Studs) | VNet (Studs) | Capacity | Learning Scenario |
+|-------|------|----------------|--------------|----------|-------------------|
+| 입문 (Beginner) | **S** | 4×6 | 8×12 | 1-2 blocks | First VM, basic network |
+| 기초 (Basic) | **M** | 6×8 | 12×16 | 3-4 blocks | Web+DB, public/private |
+| 중급 (Intermediate) | **L** | 8×10 | 16×20 | 5-6 blocks | Hub-Spoke, multi-tier |
+
+**Learning Scenarios:**
+
+- **입문 (S)**: "내 첫 번째 VM" — Single resource, understand VNet/Subnet basics
+- **기초 (M)**: "웹서버-DB 구성" — Public/Private separation, 3-tier architecture
+- **중급 (L)**: "Hub-Spoke 아키텍처" — Multi-VNet, shared services pattern
+
 ### Plate Properties
 
 ```
@@ -107,9 +125,9 @@ metadata      — additional properties
 
 # 4. Block
 
-Blocks represent **cloud resources**.
+Blocks represent **cloud resources** (infrastructure layer).
 
-They are placed on Plates and represent deployable infrastructure services.
+They are placed on Plates and represent deployable infrastructure services. Each block has a **brick size** that determines its visual footprint and application capacity.
 
 ### Block Categories (MVP)
 
@@ -120,16 +138,114 @@ They are placed on Plates and represent deployable infrastructure services.
 | StorageBlock | Object or file storage |
 | GatewayBlock | Load balancer or gateway |
 
-### Future Block Categories (Phase 6+)
+### Future Block Categories (Milestone 6+)
 
-> **Phase 6+**: These block categories are part of the Architecture Compiler vision and are not yet implemented.
+> **Milestone 6+**: These block categories are part of the Architecture Compiler vision and are not yet implemented.
 
 | Category | Description | Version |
 |---------|-------------|---------|
-| FunctionBlock | Serverless compute | Phase 6 |
-| QueueBlock | Messaging services | Phase 6 |
-| EventBlock | Event triggers | Phase 6 |
-| TimerBlock | Scheduled triggers | Phase 6 |
+| FunctionBlock | Serverless compute | Milestone 6 |
+| QueueBlock | Messaging services | Milestone 6 |
+| EventBlock | Event triggers | Milestone 6 |
+| TimerBlock | Scheduled triggers | Milestone 6 |
+
+### Brick Size Tiers
+
+> **Canonical specification**: See [BRICK_SIZE_SPEC.md](../design/BRICK_SIZE_SPEC.md) for detailed SVG specs and pixel dimensions.
+
+Brick size represents **architectural weight** — the resource's importance, statefulness, and operational complexity. Larger bricks are harder to replace and more central to the architecture.
+
+| Tier | Name | Studs | Hostable | Architectural Weight |
+|------|------|-------|----------|---------------------|
+| 1 | **signal** | 1×2 | No | Minimal — ephemeral triggers |
+| 2 | **light** | 2×2 | Yes (1 app) | Low — stateless, replaceable |
+| 3 | **service** | 2×4 | No | Medium — managed services |
+| 4 | **core** | 3×4 | Yes (3-4 apps) | High — primary workload hosts |
+| 5 | **anchor** | 4×6 | No (managed) | Critical — stateful data |
+
+> **Hostable**: Can user applications (nginx, python, etc.) be placed on this resource?
+
+**Resource → Brick Size Mapping:**
+
+| Category | Brick Size | Hostable | Rationale |
+|----------|------------|----------|-----------|
+| `timer`, `event` | signal (1×2) | No | Triggers only |
+| `function` | light (2×2) | Yes | Single runtime |
+| `gateway`, `queue`, `storage` | service (2×4) | No | Managed services |
+| `compute` | core (3×4) | Yes | Full app stack |
+| `database` | anchor (4×6) | No | Cloud-managed data |
+
+---
+
+# 4.5 Application
+
+Applications represent **software you operate** on cloud resources (application layer).
+
+They are visual 1×1 cylindrical pieces that sit ON TOP of **hostable** Block bricks. Applications teach users what software runs on cloud infrastructure.
+
+> **Key distinction**: Applications are only placed on `compute` and `function` resources. Managed services (`gateway`, `queue`, `storage`, managed `database`) are complete resources — they don't host user applications.
+
+### Application Placement Rules
+
+| Resource | Accepts Apps? | Rationale |
+|----------|---------------|-----------|
+| `compute` | ✅ Yes | VMs/containers host your software |
+| `function` | ✅ Yes | Serverless hosts your handler code |
+| `gateway` | ❌ No | Managed load balancer |
+| `queue` | ❌ No | Managed messaging |
+| `storage` | ❌ No | Managed object store |
+| `database` | ❌ No | Managed database |
+| `timer`, `event` | ❌ No | Triggers only |
+
+### Managed vs Self-hosted
+
+| Approach | Example | How to Model |
+|----------|---------|--------------|
+| **Managed DB** | Azure SQL, RDS | `database` block (no apps) |
+| **Self-hosted DB** | PostgreSQL on VM | `compute` block + `postgres` app |
+
+### Application Categories
+
+| Category | Examples | Description | Placed On |
+|----------|----------|-------------|-----------|
+| **web-server** | nginx, apache, caddy | HTTP servers | compute |
+| **runtime** | nodejs, deno, bun | JS/TS runtimes | compute, function |
+| **language** | java, python, go, rust | Language runtimes | compute, function |
+| **database** | postgres, mysql, redis | DB engines (self-hosted) | compute |
+| **package** | npm, docker, k8s | Containers | compute |
+
+### Application Properties
+
+```
+id        — unique identifier (e.g., "nginx", "postgres")
+name      — display name (e.g., "nginx", "PostgreSQL")
+category  — application category
+icon      — emoji or SVG reference
+color     — hex color code
+```
+
+### Application → Block Relationship
+
+```
+Application (1×1 cylinder)
+    ↓ sits on
+Block (brick with studs)
+    ↓ placed on
+Plate (baseplate)
+```
+
+Example:
+```
+┌──┐ ┌──┐          ← Applications: nginx, python
+│🌐│ │🐍│
+└──┘ └──┘
+┌──────────────┐   ← Block: compute (core 3×4)
+│   compute    │
+└──────────────┘
+┌──────────────────┐ ← Plate: Subnet
+│                  │
+└──────────────────┘
+```
 
 ---
 
@@ -198,10 +314,10 @@ metadata  — additional properties
 | Type | Description | Version |
 |-----|-------------|---------|
 | DataFlow | Request/response communication (solid arrow) | MVP |
-| EventFlow | Event-driven trigger (dotted arrow) | Phase 6 |
-| Dependency | Resource dependency (dashed line) | Phase 6 |
+| EventFlow | Event-driven trigger (dotted arrow) | Milestone 6 |
+| Dependency | Resource dependency (dashed line) | Milestone 6 |
 
-MVP (Phase 1) supports DataFlow only.
+MVP (Milestone 1) supports DataFlow only.
 
 ---
 
@@ -254,7 +370,7 @@ Responses flow implicitly in the reverse direction and do not require a separate
 
 > **Event-driven patterns** (e.g., Azure Event Grid from Blob Storage, AWS DynamoDB Streams → Lambda)
 > should be modeled with explicit intermediary services once the EventFlow connection type is
-> available in Phase 6. In MVP, use polling: `Compute → Database` / `Compute → Storage`.
+> available in Milestone 6. In MVP, use polling: `Compute → Database` / `Compute → Storage`.
 
 ### Rule Specification Format
 
@@ -301,6 +417,18 @@ type ValidationWarning = ValidationError;
 
 Blocks use **visual characteristics** to communicate function in the isometric view.
 
+> **Canonical specification**: For detailed visual specs including brick sizes, plate sizes, and SVG templates, see [VISUAL_DESIGN_SPEC.md](../design/VISUAL_DESIGN_SPEC.md) and [BRICK_SIZE_SPEC.md](../design/BRICK_SIZE_SPEC.md).
+
+### 3-Layer Visual Hierarchy
+
+CloudBlocks uses a **3-layer Lego-style visual system**:
+
+| Layer | Element | Size Range | Purpose |
+|-------|---------|------------|---------|
+| **Application** | 1×1 cylinders | 40×40 px | Software on resources (nginx, python, etc.) |
+| **Resource** | Brick (5 sizes) | 40×80 ~ 160×240 px | Cloud resources (compute, database, etc.) |
+| **Plate** | Baseplate (3 tiers) | 160×240 ~ 640×800 px | Network boundaries (VNet, Subnet) |
+
 ### Color Coding
 
 | Color | Category |
@@ -310,17 +438,17 @@ Blocks use **visual characteristics** to communicate function in the isometric v
 | Orange | Database |
 | Yellow | Storage |
 | Purple | Gateway |
+| Cyan | Function |
+| Pink | Queue |
 | Gray | Infrastructure |
 
 ### Shape Coding
 
-| Shape | Meaning |
-|------|---------|
-| Plate | Infrastructure region |
-| Brick | Compute |
-| Cylinder | Database |
-| Box | Storage |
-| Arch | Gateway |
+| Shape | Meaning | Size |
+|------|---------|------|
+| Plate | Infrastructure region | S/M/L by learning level |
+| Brick | Cloud resource | signal/light/service/core/anchor |
+| Cylinder | Application | 1×1 (sits on bricks) |
 
 ---
 
@@ -337,7 +465,7 @@ The storage format uses `schemaVersion` (currently `"0.1.0"`) to track the seria
 
 ### Schema Stability Policy
 
-The following types and fields are **frozen for Phase 1** and will not change without a schema version bump:
+The following types and fields are **frozen for Milestone 1** and will not change without a schema version bump:
 
 | Frozen Type | Frozen Fields |
 |-------------|---------------|
@@ -368,7 +496,7 @@ CloudBlocks transforms visual architecture into deployable infrastructure code t
 Architecture Model → Normalize → Validate → Provider Map → Generate → Format → Output
 ```
 
-> **Phase 3**: Code generation is implemented. See [`generator.md`](../engine/generator.md) for the pipeline specification and [`ROADMAP.md`](../concept/ROADMAP.md) for timeline.
+> **Milestone 3**: Code generation is implemented. See [`generator.md`](../engine/generator.md) for the pipeline specification and [`ROADMAP.md`](../concept/ROADMAP.md) for timeline.
 
 ### Generator Interface
 
@@ -383,13 +511,13 @@ interface Generator {
 
 > For full interface contracts, options, output format, and determinism guarantees, see [`generator.md`](../engine/generator.md).
 
-> **Phase 4+**: Templates are planned for Phase 4 (workspace management) and expanded in Phase 6 (marketplace). See [`templates.md`](../engine/templates.md) for the template specification.
+> **Milestone 4+**: Templates are planned for Milestone 4 (workspace management) and expanded in Milestone 6 (marketplace). See [`templates.md`](../engine/templates.md) for the template specification.
 
 ---
 
 # 11. Provider Abstraction
 
-> **Phase 3+**: Provider adapters are planned for Phase 3 (Azure-first). Multi-cloud support is planned for Phase 8.
+> **Milestone 3+**: Provider adapters are planned for Milestone 3 (Azure-first). Multi-cloud support is planned for Milestone 8.
 
 CloudBlocks uses a **provider abstraction layer** for multi-cloud support. Azure is the primary target. Each generic block category (compute, database, storage, gateway) maps to provider-specific resources through the adapter layer.
 
@@ -399,7 +527,7 @@ CloudBlocks uses a **provider abstraction layer** for multi-cloud support. Azure
 
 # 12. GitHub Integration Model
 
-> **Phase 5+**: GitHub integration is planned for Phase 5. This section describes the target design. No implementation exists yet.
+> **Milestone 5+**: GitHub integration is planned for Milestone 5. This section describes the target design. No implementation exists yet.
 
 Architecture assets are stored in GitHub repos following a standard layout. The backend mediates between the UI, GitHub, and the generation engine — it does not store architecture data.
 
@@ -409,7 +537,7 @@ Architecture assets are stored in GitHub repos following a standard layout. The 
 
 # 13. Workspace Model
 
-### Client-Side (Phase 1)
+### Client-Side (Milestone 1)
 
 ```typescript
 interface Workspace {
@@ -421,9 +549,9 @@ interface Workspace {
 }
 ```
 
-### Server-Side (Phase 5+)
+### Server-Side (Milestone 5+)
 
-> **Phase 5+**: Server-side workspace management is planned for Phase 5. These interfaces align with the migration files in `apps/api/app/infrastructure/db/migrations/`.
+> **Milestone 5+**: Server-side workspace management is planned for Milestone 5. These interfaces align with the migration files in `apps/api/app/infrastructure/db/migrations/`.
 
 ```typescript
 // User identity
@@ -507,7 +635,7 @@ interface Block {
 }
 
 // Connection
-type ConnectionType = 'dataflow';  // Phase 1 — EventFlow and Dependency planned for Phase 6
+type ConnectionType = 'dataflow';  // Milestone 1 — EventFlow and Dependency planned for Milestone 6
 
 interface Connection {
   id: string;
@@ -580,9 +708,9 @@ The architecture model is serialized as JSON. A version field is included to sup
 
 # 15. Future Domain Extensions
 
-### Serverless Architecture (Phase 6)
+### Serverless Architecture (Milestone 6)
 
-> **Phase 6+**: Not yet implemented.
+> **Milestone 6+**: Not yet implemented.
 
 Add:
 
@@ -599,9 +727,9 @@ HTTP → Function → Storage
 
 ---
 
-### Architecture Simulation (Phase 9)
+### Architecture Simulation (Milestone 9)
 
-> **Phase 9+**: Not yet implemented.
+> **Milestone 9+**: Not yet implemented.
 
 Allow architecture execution simulation:
 
@@ -620,8 +748,9 @@ The CloudBlocks Domain Model provides a **visual abstraction layer for cloud arc
 Key concepts:
 
 ```
-Plate           → Infrastructure region (container)
-Block           → Cloud resource (service)
+Application     → Software on resources (nginx, python, postgres...)
+Block           → Cloud resource (compute, database, storage, gateway...)
+Plate           → Infrastructure region (VNet, Subnet)
 Connection      → Data/Event flow (initiator direction)
 External Actor  → External endpoint (Internet)
 Rule            → Architecture constraints
@@ -630,9 +759,20 @@ Generator       → IaC code output (Terraform / Bicep / Pulumi)
 Template        → Pre-built architecture patterns
 ```
 
+3-layer visual hierarchy:
+```
+Application (1×1 cylinder)  ← Software layer
+    ↓ sits on
+Block (brick: signal → anchor)  ← Resource layer
+    ↓ placed on
+Plate (S/M/L by learning level)  ← Network layer
+```
+
 This model enables:
 
 - Visual architecture design in a 2.5D isometric environment
+- Educational progression through plate sizing (입문 → 기초 → 중급)
+- Clear software-to-infrastructure relationship through app cylinders
 - Automated code generation from architecture graph
 - Multi-cloud abstraction
 - Git-native workflow integration

@@ -15,7 +15,7 @@ This document defines measurable non-functional requirement targets for CloudBlo
 | **Largest lazy chunk** | ≤ 100 KB gzipped | Any single lazy-loaded chunk |
 | **Total bundle (uncompressed)** | ≤ 2 MB | `du -sh dist/` |
 
-### Current State (Phase 5)
+### Current State (Milestone 5)
 
 - Main chunk: ~1,124 KB uncompressed (after code splitting)
 - 8 chunks produced via React.lazy (7 optional widgets + main)
@@ -74,7 +74,7 @@ These files are excluded from coverage calculations (documented in `vitest.confi
 
 ### Enforcement
 
-- Performance regression tests planned for Phase 6
+- Performance regression tests planned for Milestone 6
 - If validation exceeds 100ms for any realistic architecture, optimize before release
 
 ---
@@ -116,7 +116,7 @@ These files are excluded from coverage calculations (documented in `vitest.confi
 
 ---
 
-## 6. Accessibility (Planned — Phase 6+)
+## 6. Accessibility (Planned — Milestone 6+)
 
 | Metric | Target |
 |--------|--------|
@@ -127,7 +127,7 @@ These files are excluded from coverage calculations (documented in `vitest.confi
 
 ---
 
-## 7. Observability Minimums (Planned — Phase 6+)
+## 7. Observability Minimums (Planned — Milestone 6+)
 
 | Metric | Target |
 |--------|--------|

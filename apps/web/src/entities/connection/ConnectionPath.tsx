@@ -29,7 +29,7 @@ export const ConnectionPath = memo(function ConnectionPath({
   const tgtScreen = worldToScreen(tgt[0], tgt[1], tgt[2], originX, originY);
 
   const midX = (srcScreen.x + tgtScreen.x) / 2;
-  const midY = Math.min(srcScreen.y, tgtScreen.y) - 30;
+  const midY = Math.min(srcScreen.y, tgtScreen.y) - 40;
 
   const pathD = `M ${srcScreen.x} ${srcScreen.y} Q ${midX} ${midY} ${tgtScreen.x} ${tgtScreen.y}`;
   const arrowId = `arrow-${connection.id}`;

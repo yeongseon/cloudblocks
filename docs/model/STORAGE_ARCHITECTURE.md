@@ -2,9 +2,9 @@
 
 ## Overview
 
-CloudBlocks is designed for a **Git-native storage architecture** — in the target state (Phase 5+), GitHub repos will serve as the primary data store for all architecture assets and generated code, with a minimal metadata database for auth, workspace indexing, and run status.
+CloudBlocks is designed for a **Git-native storage architecture** — in the target state (Milestone 5+), GitHub repos will serve as the primary data store for all architecture assets and generated code, with a minimal metadata database for auth, workspace indexing, and run status.
 
-> **Current status (Phase 1–Phase 4)**: All data is stored in browser **localStorage**. The Git-native architecture described below is the **planned Phase 5+ design**. See `apps/web/src/shared/utils/storage.ts` for the current implementation.
+> **Current status (Milestone 1–Milestone 4)**: All data is stored in browser **localStorage**. The Git-native architecture described below is the **planned Milestone 5+ design**. See `apps/web/src/shared/utils/storage.ts` for the current implementation.
 
 This is NOT a traditional database-heavy architecture. The design principle: **DB = index and status only, real data = Git / Blob Storage**.
 
@@ -121,7 +121,7 @@ Stable key ordering is enforced to keep Git diffs readable.
 
 ## Metadata DB Schema
 
-> **Phase 5+ planned schema.** No active database exists in Phase 1–Phase 4. These tables describe the target migration structure in `apps/api/app/infrastructure/db/migrations/`.
+> **Milestone 5+ planned schema.** No active database exists in Milestone 1–Milestone 4. These tables describe the target migration structure in `apps/api/app/infrastructure/db/migrations/`.
 
 ```sql
 -- Migration 001: User identity (linked to GitHub / Google OAuth)
@@ -221,12 +221,12 @@ cache:workspace:{workspace_id}    → JSON workspace metadata (TTL: 5m)
 
 ## Migration Strategy
 
-### Phase 1 → Phase 3 (localStorage → File Export)
+### Milestone 1 → Milestone 3 (localStorage → File Export)
 1. Add "Export as architecture.json" feature
 2. Download file or copy to clipboard
 3. No backend needed
 
-### Phase 3 → Phase 5 (File Export → GitHub Sync)
+### Milestone 3 → Milestone 5 (File Export → GitHub Sync)
 1. Add GitHub App OAuth
 2. User connects GitHub account
 3. Select or create target repo

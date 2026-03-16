@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CodePreview } from './CodePreview';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
@@ -276,5 +276,28 @@ describe('CodePreview', () => {
     await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
     expect(screen.queryByText('First error')).not.toBeInTheDocument();
     expect(screen.getByText('main.tf')).toBeInTheDocument();
+  });
+
+  it('updates generate button label when selecting bicep and pulumi', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ showCodePreview: true });
+    render(<CodePreview />);
+
+    const select = screen.getByRole('combobox');
+    await user.selectOptions(select, 'bicep');
+    expect(screen.getByText(/Generate Bicep \(Azure\)/)).toBeInTheDocument();
+
+    await user.selectOptions(select, 'pulumi');
+    expect(screen.getByText(/Generate Pulumi \(TypeScript\)/)).toBeInTheDocument();
+  });
+
+  it('falls back to generic generate label for unknown generator value', () => {
+    useUIStore.setState({ showCodePreview: true });
+    render(<CodePreview />);
+
+    const select = screen.getByRole('combobox');
+    fireEvent.change(select, { target: { value: 'unknown-generator' } });
+
+    expect(screen.getByText('🚀 Generate Code')).toBeInTheDocument();
   });
 });

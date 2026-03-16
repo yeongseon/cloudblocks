@@ -109,10 +109,8 @@ describe('architectureStore', () => {
       const sub1 = plates[1];
       const sub2 = plates[2];
 
-      // First subnet: x = -3 + 0*6 = -3
-      expect(sub1.position.x).toBe(-3);
-      // Second subnet: x = -3 + 1*6 = 3
-      expect(sub2.position.x).toBe(3);
+      expect(sub1.position.x).toBe(-2.75);
+      expect(sub2.position.x).toBe(2.75);
     });
 
     it('pushes to undo history', () => {
@@ -337,6 +335,114 @@ describe('architectureStore', () => {
 
       getState().moveBlock(blockId, 'nonexistent');
       expect(getArch().blocks[0].placementId).toBe(subId);
+    });
+  });
+
+  describe('movePlatePosition', () => {
+    it('moves a root plate by the provided delta', () => {
+      getState().addPlate('network', 'VNet', null);
+      const rootPlate = getArch().plates[0];
+
+      getState().movePlatePosition(rootPlate.id, 2, -3);
+
+      const moved = getArch().plates.find((plate) => plate.id === rootPlate.id);
+      expect(moved?.position).toEqual({ x: 2, y: 0, z: -3 });
+    });
+
+    it('clamps child plate movement within parent bounds', () => {
+      getState().addPlate('network', 'VNet', null);
+      const networkId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Public', networkId, 'public');
+      const subnet = getArch().plates[1];
+
+      getState().movePlatePosition(subnet.id, 100, 100);
+
+      const movedSubnet = getArch().plates.find((plate) => plate.id === subnet.id);
+      expect(movedSubnet?.position.x).toBe(5);
+      expect(movedSubnet?.position.z).toBe(6);
+    });
+
+    it('moves direct child plates by the same applied delta', () => {
+      getState().addPlate('network', 'VNet', null);
+      const networkId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Outer', networkId, 'public');
+      const outerSubnetId = getArch().plates[1].id;
+      getState().addPlate('subnet', 'Inner', outerSubnetId, 'private');
+      const outerBefore = getArch().plates.find((plate) => plate.id === outerSubnetId);
+      const innerBefore = getArch().plates.find((plate) => plate.id !== outerSubnetId && plate.parentId === outerSubnetId);
+
+      getState().movePlatePosition(outerSubnetId, 1.25, -1.5);
+
+      const outerAfter = getArch().plates.find((plate) => plate.id === outerSubnetId);
+      const innerAfter = getArch().plates.find((plate) => plate.parentId === outerSubnetId);
+
+      expect(outerAfter?.position.x).toBe((outerBefore?.position.x ?? 0) + 1.25);
+      expect(outerAfter?.position.z).toBe((outerBefore?.position.z ?? 0) - 1.5);
+      expect(innerAfter?.position.x).toBe((innerBefore?.position.x ?? 0) + 1.25);
+      expect(innerAfter?.position.z).toBe((innerBefore?.position.z ?? 0) - 1.5);
+    });
+
+    it('no-ops when moving a non-existent plate', () => {
+      getState().addPlate('network', 'VNet', null);
+      const before = getState().workspace.architecture;
+
+      getState().movePlatePosition('missing-plate', 1, 1);
+
+      expect(getState().workspace.architecture).toBe(before);
+    });
+  });
+
+  describe('moveBlockPosition', () => {
+    it('moves a block and clamps it within parent plate bounds', () => {
+      getState().addPlate('network', 'VNet', null);
+      const networkId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Public', networkId, 'public');
+      const subnetId = getArch().plates[1].id;
+      getState().addBlock('compute', 'VM', subnetId);
+      const blockId = getArch().blocks[0].id;
+
+      getState().moveBlockPosition(blockId, 100, -100);
+
+      const moved = getArch().blocks.find((block) => block.id === blockId);
+      expect(moved?.position.x).toBe(1.8);
+      expect(moved?.position.z).toBe(-2.8);
+    });
+
+    it('no-ops when moving a block whose parent plate is missing', () => {
+      const before = getState().workspace.architecture;
+      const orphaned: ArchitectureModel = {
+        ...before,
+        blocks: [
+          {
+            id: 'orphan-block',
+            name: 'Orphan',
+            category: 'compute',
+            placementId: 'missing-plate',
+            position: { x: 0, y: 0.5, z: 0 },
+            metadata: {},
+          },
+        ],
+      };
+      useArchitectureStore.setState({
+        workspace: {
+          ...getState().workspace,
+          architecture: orphaned,
+        },
+      });
+
+      const archBeforeMove = getState().workspace.architecture;
+      getState().moveBlockPosition('orphan-block', 1, 1);
+
+      expect(getState().workspace.architecture).toBe(archBeforeMove);
+    });
+
+    it('no-ops when moving a non-existent block', () => {
+      getState().addPlate('network', 'VNet', null);
+      const before = getState().workspace.architecture;
+
+      getState().moveBlockPosition('missing-block', 1, 1);
+
+      expect(getState().workspace.architecture).toBe(before);
     });
   });
 
@@ -750,6 +856,309 @@ describe('architectureStore', () => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       getState().importArchitecture(JSON.stringify({ name: 'No data' }));
       expect(spy).toHaveBeenCalled();
+      spy.mockRestore();
+    });
+
+    it('logs error when externalActors is not an array', () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const invalid = {
+        plates: [],
+        blocks: [],
+        externalActors: { id: 'ext-1' },
+      };
+
+      getState().importArchitecture(JSON.stringify(invalid));
+
+      expect(spy).toHaveBeenCalled();
+      expect(String(spy.mock.calls.at(-1)?.[1])).toContain('externalActors must be an array');
+      spy.mockRestore();
+    });
+
+    it('logs error when an external actor is missing id', () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const invalid = {
+        plates: [],
+        blocks: [],
+        externalActors: [{ name: 'Internet', type: 'internet' }],
+      };
+
+      getState().importArchitecture(JSON.stringify(invalid));
+
+      expect(spy).toHaveBeenCalled();
+      expect(String(spy.mock.calls.at(-1)?.[1])).toContain('id must be a string');
+      spy.mockRestore();
+    });
+
+    it('imports with valid externalActors', () => {
+      const valid = {
+        id: 'import-external-actors',
+        name: 'External Actors Valid',
+        version: '1',
+        plates: [
+          {
+            id: 'p1',
+            name: 'Net',
+            type: 'network',
+            parentId: null,
+            children: [],
+            position: { x: 0, y: 0, z: 0 },
+            size: { width: 12, height: 0.3, depth: 10 },
+            metadata: {},
+          },
+        ],
+        blocks: [
+          {
+            id: 'b1',
+            name: 'VM',
+            category: 'compute',
+            placementId: 'p1',
+            position: { x: 0, y: 0.5, z: 0 },
+            metadata: {},
+          },
+        ],
+        externalActors: [
+          { id: 'ext-1', name: 'Internet', type: 'internet' },
+          { id: 'ext-2', name: 'Partner', type: 'internet' },
+        ],
+      };
+
+      getState().importArchitecture(JSON.stringify(valid));
+
+      expect(getArch().externalActors).toHaveLength(2);
+      expect(getArch().externalActors.map((actor) => actor.id)).toEqual(['ext-1', 'ext-2']);
+    });
+
+    it.each([
+      {
+        name: 'id',
+        connection: { sourceId: 'b1', targetId: 'p1', type: 'dataflow' },
+        message: 'id must be a string',
+      },
+      {
+        name: 'sourceId',
+        connection: { id: 'c1', targetId: 'p1', type: 'dataflow' },
+        message: 'sourceId must be a string',
+      },
+      {
+        name: 'targetId',
+        connection: { id: 'c1', sourceId: 'b1', type: 'dataflow' },
+        message: 'targetId must be a string',
+      },
+      {
+        name: 'type',
+        connection: { id: 'c1', sourceId: 'b1', targetId: 'p1' },
+        message: 'type must be a string',
+      },
+    ])('logs error when connection is missing $name', ({ connection, message }) => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const invalid = {
+        plates: [
+          {
+            id: 'p1',
+            name: 'Net',
+            type: 'network',
+            parentId: null,
+            children: [],
+            position: { x: 0, y: 0, z: 0 },
+            size: { width: 12, height: 0.3, depth: 10 },
+            metadata: {},
+          },
+        ],
+        blocks: [
+          {
+            id: 'b1',
+            name: 'VM',
+            category: 'compute',
+            placementId: 'p1',
+            position: { x: 0, y: 0.5, z: 0 },
+            metadata: {},
+          },
+        ],
+        connections: [connection],
+      };
+
+      getState().importArchitecture(JSON.stringify(invalid));
+
+      expect(spy).toHaveBeenCalled();
+      expect(String(spy.mock.calls.at(-1)?.[1])).toContain(message);
+      spy.mockRestore();
+    });
+
+    it('logs error when connection references non-existent endpoints', () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const invalid = {
+        plates: [
+          {
+            id: 'p1',
+            name: 'Net',
+            type: 'network',
+            parentId: null,
+            children: [],
+            position: { x: 0, y: 0, z: 0 },
+            size: { width: 12, height: 0.3, depth: 10 },
+            metadata: {},
+          },
+        ],
+        blocks: [
+          {
+            id: 'b1',
+            name: 'VM',
+            category: 'compute',
+            placementId: 'p1',
+            position: { x: 0, y: 0.5, z: 0 },
+            metadata: {},
+          },
+        ],
+        connections: [
+          { id: 'c1', sourceId: 'missing', targetId: 'b1', type: 'dataflow' },
+        ],
+      };
+
+      getState().importArchitecture(JSON.stringify(invalid));
+
+      expect(spy).toHaveBeenCalled();
+      expect(String(spy.mock.calls.at(-1)?.[1])).toContain('does not reference an existing block, plate, or external actor');
+      spy.mockRestore();
+    });
+
+    it('imports valid connections that reference existing entities', () => {
+      const valid = {
+        id: 'import-connections',
+        name: 'Valid Connections',
+        version: '1',
+        plates: [
+          {
+            id: 'p1',
+            name: 'Net',
+            type: 'network',
+            parentId: null,
+            children: [],
+            position: { x: 0, y: 0, z: 0 },
+            size: { width: 12, height: 0.3, depth: 10 },
+            metadata: {},
+          },
+        ],
+        blocks: [
+          {
+            id: 'b1',
+            name: 'VM',
+            category: 'compute',
+            placementId: 'p1',
+            position: { x: 0, y: 0.5, z: 0 },
+            metadata: {},
+          },
+        ],
+        externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+        connections: [
+          { id: 'c1', sourceId: 'ext-internet', targetId: 'b1', type: 'dataflow' },
+          { id: 'c2', sourceId: 'b1', targetId: 'p1', type: 'dataflow' },
+        ],
+      };
+
+      getState().importArchitecture(JSON.stringify(valid));
+
+      expect(getArch().connections).toHaveLength(2);
+      expect(getArch().connections.map((connection) => connection.id)).toEqual(['c1', 'c2']);
+    });
+
+    it('logs error when block references non-existent plate', () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const invalid = {
+        plates: [
+          {
+            id: 'p1',
+            name: 'Net',
+            type: 'network',
+            parentId: null,
+            children: [],
+            position: { x: 0, y: 0, z: 0 },
+            size: { width: 12, height: 0.3, depth: 10 },
+            metadata: {},
+          },
+        ],
+        blocks: [
+          {
+            id: 'b1',
+            name: 'VM',
+            category: 'compute',
+            placementId: 'missing-plate',
+            position: { x: 0, y: 0.5, z: 0 },
+            metadata: {},
+          },
+        ],
+      };
+
+      getState().importArchitecture(JSON.stringify(invalid));
+
+      expect(spy).toHaveBeenCalled();
+      expect(String(spy.mock.calls.at(-1)?.[1])).toContain('does not reference an existing plate');
+      spy.mockRestore();
+    });
+
+    it('logs error when external actor is not an object', () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const invalid = {
+        plates: [],
+        blocks: [],
+        externalActors: ['not-an-object'],
+      };
+
+      getState().importArchitecture(JSON.stringify(invalid));
+
+      expect(spy).toHaveBeenCalled();
+      expect(String(spy.mock.calls.at(-1)?.[1])).toContain('external actor must be an object');
+      spy.mockRestore();
+    });
+
+    it('logs error when connection is not an object', () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const invalid = {
+        plates: [],
+        blocks: [],
+        connections: ['not-an-object'],
+      };
+
+      getState().importArchitecture(JSON.stringify(invalid));
+
+      expect(spy).toHaveBeenCalled();
+      expect(String(spy.mock.calls.at(-1)?.[1])).toContain('connection must be an object');
+      spy.mockRestore();
+    });
+
+    it('logs error when connection targetId references non-existent endpoint', () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const invalid = {
+        plates: [
+          {
+            id: 'p1',
+            name: 'Net',
+            type: 'network',
+            parentId: null,
+            children: [],
+            position: { x: 0, y: 0, z: 0 },
+            size: { width: 12, height: 0.3, depth: 10 },
+            metadata: {},
+          },
+        ],
+        blocks: [
+          {
+            id: 'b1',
+            name: 'VM',
+            category: 'compute',
+            placementId: 'p1',
+            position: { x: 0, y: 0.5, z: 0 },
+            metadata: {},
+          },
+        ],
+        connections: [
+          { id: 'c1', sourceId: 'b1', targetId: 'missing-target', type: 'dataflow' },
+        ],
+      };
+
+      getState().importArchitecture(JSON.stringify(invalid));
+
+      expect(spy).toHaveBeenCalled();
+      expect(String(spy.mock.calls.at(-1)?.[1])).toContain('does not reference an existing block, plate, or external actor');
       spy.mockRestore();
     });
   });

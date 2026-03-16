@@ -1,0 +1,479 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+import { renderHook } from '@testing-library/react';
+import { useArchitectureStore } from '../../entities/store/architectureStore';
+import type { ArchitectureModel, BlockCategory, Plate } from '../../shared/types/index';
+import * as techTreeModule from './useTechTree';
+import {
+  ACTION_DEFINITIONS,
+  ACTION_GRID,
+  CATEGORY_TABS,
+  RESOURCE_DEFINITIONS,
+  useTechTree,
+} from './useTechTree';
+import type {
+  ActionDefinition,
+  ActionType,
+  ResourceDefinition,
+  ResourceType,
+  TabDefinition,
+  TabId,
+  TechTreeState,
+} from './useTechTree';
+
+const BASE_ARCHITECTURE: ArchitectureModel = {
+  id: 'arch-1',
+  name: 'Test Architecture',
+  version: '1.0.0',
+  plates: [],
+  blocks: [],
+  connections: [],
+  externalActors: [],
+  createdAt: '',
+  updatedAt: '',
+};
+
+const NETWORK_PLATE: Plate = {
+  id: 'net-1',
+  name: 'VNet',
+  type: 'network',
+  parentId: null,
+  children: [],
+  position: { x: 0, y: 0, z: 0 },
+  size: { width: 16, height: 0.3, depth: 20 },
+  metadata: {},
+};
+
+const SUBNET_PLATE: Plate = {
+  id: 'sub-1',
+  name: 'Public Subnet',
+  type: 'subnet',
+  parentId: 'net-1',
+  subnetAccess: 'public',
+  children: [],
+  position: { x: 0, y: 0, z: 0 },
+  size: { width: 6, height: 0.3, depth: 8 },
+  metadata: {},
+};
+
+function buildArchitecture(plates: Plate[], blockCount = 0): ArchitectureModel {
+  const blockCategories: BlockCategory[] = [
+    'compute',
+    'database',
+    'storage',
+    'gateway',
+    'function',
+    'queue',
+    'event',
+    'timer',
+  ];
+
+  return {
+    ...BASE_ARCHITECTURE,
+    plates,
+    blocks: Array.from({ length: blockCount }, (_, index) => ({
+      id: `block-${index + 1}`,
+      name: `Block ${index + 1}`,
+      category: blockCategories[index % blockCategories.length],
+      placementId: plates[0]?.id ?? 'net-1',
+      position: { x: index, y: 0, z: index },
+      metadata: {},
+    })),
+  };
+}
+
+function setArchitectureState(architecture: ArchitectureModel): void {
+  const workspace = useArchitectureStore.getState().workspace;
+  useArchitectureStore.setState({
+    workspace: { ...workspace, architecture },
+    validationResult: null,
+  });
+}
+
+describe('useTechTree constants', () => {
+  it('defines all resource entries with correct fields', () => {
+    const expectedResources: Record<
+      ResourceType,
+      Pick<ResourceDefinition, 'id' | 'label' | 'shortLabel' | 'icon' | 'category' | 'blockCategory'>
+    > = {
+      network: { id: 'network', label: 'Network (VNet)', shortLabel: 'VNet', icon: '🌐', category: 'plate', blockCategory: null },
+      'public-subnet': {
+        id: 'public-subnet',
+        label: 'Public Subnet',
+        shortLabel: 'Public',
+        icon: '🌍',
+        category: 'plate',
+        blockCategory: null,
+      },
+      'private-subnet': {
+        id: 'private-subnet',
+        label: 'Private Subnet',
+        shortLabel: 'Private',
+        icon: '🔒',
+        category: 'plate',
+        blockCategory: null,
+      },
+      storage: { id: 'storage', label: 'Blob Storage', shortLabel: 'Storage', icon: '📦', category: 'always', blockCategory: 'storage' },
+      dns: { id: 'dns', label: 'DNS Zone', shortLabel: 'DNS', icon: '🌐', category: 'always', blockCategory: 'gateway' },
+      cdn: { id: 'cdn', label: 'CDN Profile', shortLabel: 'CDN', icon: '⚡', category: 'always', blockCategory: 'gateway' },
+      'front-door': {
+        id: 'front-door',
+        label: 'Front Door',
+        shortLabel: 'FrontDoor',
+        icon: '🚪',
+        category: 'always',
+        blockCategory: 'gateway',
+      },
+      sql: { id: 'sql', label: 'Azure SQL', shortLabel: 'SQL', icon: '🗄️', category: 'vnet-optional', blockCategory: 'database' },
+      function: {
+        id: 'function',
+        label: 'Azure Functions',
+        shortLabel: 'Func',
+        icon: '⚡',
+        category: 'vnet-optional',
+        blockCategory: 'function',
+      },
+      queue: { id: 'queue', label: 'Queue', shortLabel: 'Queue', icon: '📨', category: 'vnet-optional', blockCategory: 'queue' },
+      event: { id: 'event', label: 'Event Hub', shortLabel: 'Event', icon: '🔔', category: 'vnet-optional', blockCategory: 'event' },
+      timer: { id: 'timer', label: 'Timer', shortLabel: 'Timer', icon: '⏰', category: 'vnet-optional', blockCategory: 'timer' },
+      'app-service': {
+        id: 'app-service',
+        label: 'App Service',
+        shortLabel: 'AppSvc',
+        icon: '🌐',
+        category: 'vnet-optional',
+        blockCategory: 'function',
+      },
+      'container-instances': {
+        id: 'container-instances',
+        label: 'Container Instances',
+        shortLabel: 'ACI',
+        icon: '📦',
+        category: 'vnet-optional',
+        blockCategory: 'compute',
+      },
+      'cosmos-db': {
+        id: 'cosmos-db',
+        label: 'Cosmos DB',
+        shortLabel: 'Cosmos',
+        icon: '🌍',
+        category: 'vnet-optional',
+        blockCategory: 'database',
+      },
+      'key-vault': {
+        id: 'key-vault',
+        label: 'Key Vault',
+        shortLabel: 'KeyVault',
+        icon: '🔐',
+        category: 'vnet-optional',
+        blockCategory: 'storage',
+      },
+      vm: {
+        id: 'vm',
+        label: 'Virtual Machine',
+        shortLabel: 'VM',
+        icon: '🖥️',
+        category: 'vnet-required',
+        blockCategory: 'compute',
+      },
+      aks: {
+        id: 'aks',
+        label: 'Kubernetes (AKS)',
+        shortLabel: 'AKS',
+        icon: '☸️',
+        category: 'vnet-required',
+        blockCategory: 'compute',
+      },
+      'internal-lb': {
+        id: 'internal-lb',
+        label: 'Internal Load Balancer',
+        shortLabel: 'IntLB',
+        icon: '⚖️',
+        category: 'vnet-required',
+        blockCategory: 'gateway',
+      },
+      firewall: {
+        id: 'firewall',
+        label: 'Azure Firewall',
+        shortLabel: 'FW',
+        icon: '🛡️',
+        category: 'vnet-required',
+        blockCategory: 'gateway',
+      },
+      nsg: {
+        id: 'nsg',
+        label: 'Network Security Group',
+        shortLabel: 'NSG',
+        icon: '🔒',
+        category: 'vnet-required',
+        blockCategory: 'gateway',
+      },
+      bastion: {
+        id: 'bastion',
+        label: 'Azure Bastion',
+        shortLabel: 'Bastion',
+        icon: '🏰',
+        category: 'vnet-required',
+        blockCategory: 'gateway',
+      },
+    };
+
+    const resourceTypes: ResourceType[] = [
+      'network',
+      'public-subnet',
+      'private-subnet',
+      'storage',
+      'dns',
+      'cdn',
+      'front-door',
+      'sql',
+      'function',
+      'queue',
+      'event',
+      'timer',
+      'app-service',
+      'container-instances',
+      'cosmos-db',
+      'key-vault',
+      'vm',
+      'aks',
+      'internal-lb',
+      'firewall',
+      'nsg',
+      'bastion',
+    ];
+    expect(resourceTypes).toHaveLength(22);
+
+    for (const resourceType of resourceTypes) {
+      const actual = RESOURCE_DEFINITIONS[resourceType];
+      const expected = expectedResources[resourceType];
+      expect(actual).toMatchObject(expected);
+    }
+  });
+
+  it('defines all category tabs with expected 3x3 resource matrices', () => {
+    const expectedTabOrder: TabId[] = ['infra', 'compute', 'data', 'edge', 'messaging'];
+    const tabIds = CATEGORY_TABS.map((tab) => tab.id);
+
+    expect(CATEGORY_TABS).toHaveLength(5);
+    expect(tabIds).toEqual(expectedTabOrder);
+
+    for (const tab of CATEGORY_TABS) {
+      const typedTab: TabDefinition = tab;
+      expect(typedTab.resources).toHaveLength(3);
+      for (const row of typedTab.resources) {
+        expect(row).toHaveLength(3);
+      }
+    }
+
+    expect(CATEGORY_TABS).toEqual([
+      {
+        id: 'infra',
+        label: 'Infra',
+        resources: [
+          ['network', 'public-subnet', 'private-subnet'],
+          ['firewall', 'nsg', 'bastion'],
+          ['internal-lb', 'dns', null],
+        ],
+      },
+      {
+        id: 'compute',
+        label: 'Compute',
+        resources: [
+          ['vm', 'aks', 'container-instances'],
+          ['function', 'app-service', null],
+          [null, null, null],
+        ],
+      },
+      {
+        id: 'data',
+        label: 'Data',
+        resources: [
+          ['sql', 'cosmos-db', 'storage'],
+          ['key-vault', null, null],
+          [null, null, null],
+        ],
+      },
+      {
+        id: 'edge',
+        label: 'Edge',
+        resources: [
+          ['front-door', 'cdn', null],
+          [null, null, null],
+          [null, null, null],
+        ],
+      },
+      {
+        id: 'messaging',
+        label: 'Messaging',
+        resources: [
+          ['queue', 'event', 'timer'],
+          [null, null, null],
+          [null, null, null],
+        ],
+      },
+    ]);
+  });
+
+  it('keeps deprecated creation grid layout for backward compatibility', () => {
+    const creationGrid = Reflect.get(techTreeModule, 'CREATION_GRID');
+
+    expect(creationGrid).toEqual([
+      ['network', 'storage', 'cdn', 'front-door'],
+      ['sql', 'function', 'app-service', 'cosmos-db'],
+      ['vm', 'aks', 'firewall', 'bastion'],
+    ]);
+  });
+
+  it('defines all action entries with expected metadata', () => {
+    const expectedActions: Record<
+      ActionType,
+      Pick<ActionDefinition, 'id' | 'label' | 'icon' | 'multiSelect'> & { hotkey?: string }
+    > = {
+      link: { id: 'link', label: 'Link', icon: '🔗', hotkey: 'L', multiSelect: false },
+      edit: { id: 'edit', label: 'Edit', icon: '✏️', hotkey: 'E', multiSelect: false },
+      delete: { id: 'delete', label: 'Delete', icon: '🗑️', hotkey: 'Del', multiSelect: true },
+      copy: { id: 'copy', label: 'Copy', icon: '📋', hotkey: 'C', multiSelect: true },
+      config: { id: 'config', label: 'Config', icon: '⚙️', multiSelect: false },
+      'add-app': { id: 'add-app', label: 'Add App', icon: '➕', multiSelect: false },
+      move: { id: 'move', label: 'Move', icon: '↔️', hotkey: 'M', multiSelect: true },
+      rename: { id: 'rename', label: 'Rename', icon: '📝', hotkey: 'R', multiSelect: false },
+    };
+
+    const actionTypes: ActionType[] = ['link', 'edit', 'delete', 'copy', 'config', 'add-app', 'move', 'rename'];
+    expect(actionTypes).toHaveLength(8);
+
+    for (const actionType of actionTypes) {
+      const actual = ACTION_DEFINITIONS[actionType];
+      const expected = expectedActions[actionType];
+      expect(actual).toMatchObject(expected);
+    }
+  });
+
+  it('defines a 3x3 action grid layout', () => {
+    expect(ACTION_GRID).toHaveLength(3);
+    for (const row of ACTION_GRID) {
+      expect(row).toHaveLength(3);
+    }
+    expect(ACTION_GRID).toEqual([
+      ['link', 'edit', 'config'],
+      ['move', 'copy', 'rename'],
+      ['add-app', null, 'delete'],
+    ]);
+  });
+});
+
+describe('useTechTree hook', () => {
+  beforeEach(() => {
+    useArchitectureStore.getState().resetWorkspace();
+    setArchitectureState(buildArchitecture([], 0));
+  });
+
+  it('returns expected state when no plates exist', () => {
+    const { result } = renderHook(() => useTechTree());
+    const techTreeState: TechTreeState = result.current;
+
+    expect(techTreeState.hasVNet).toBe(false);
+    expect(techTreeState.hasSubnet).toBe(false);
+    expect(techTreeState.blockCount).toBe(0);
+    expect(techTreeState.plateCount).toBe(0);
+  });
+
+  it('enables network always, and gates subnet/vm/storage on vnet availability', () => {
+    const { result: emptyResult } = renderHook(() => useTechTree());
+
+    expect(emptyResult.current.isEnabled('network')).toBe(true);
+    expect(emptyResult.current.isEnabled('public-subnet')).toBe(false);
+    expect(emptyResult.current.isEnabled('vm')).toBe(false);
+    expect(emptyResult.current.isEnabled('storage')).toBe(false);
+
+    setArchitectureState(buildArchitecture([NETWORK_PLATE], 2));
+    const { result: vnetResult } = renderHook(() => useTechTree());
+
+    expect(vnetResult.current.hasVNet).toBe(true);
+    expect(vnetResult.current.hasSubnet).toBe(false);
+    expect(vnetResult.current.blockCount).toBe(2);
+    expect(vnetResult.current.plateCount).toBe(1);
+    expect(vnetResult.current.isEnabled('public-subnet')).toBe(true);
+    expect(vnetResult.current.isEnabled('vm')).toBe(true);
+    expect(vnetResult.current.isEnabled('storage')).toBe(true);
+  });
+
+  it('returns null disabled reason for enabled resources and custom reason for disabled ones', () => {
+    const { result: emptyResult } = renderHook(() => useTechTree());
+
+    expect(emptyResult.current.getDisabledReason('vm')).toBe(
+      'Create a Network first. Virtual Machines need a network to connect to.',
+    );
+
+    setArchitectureState(buildArchitecture([NETWORK_PLATE], 0));
+    const { result: enabledResult } = renderHook(() => useTechTree());
+
+    expect(enabledResult.current.getDisabledReason('vm')).toBeNull();
+    expect(enabledResult.current.getDisabledReason('network')).toBeNull();
+  });
+
+  it('falls back to default disabled paths for unexpected resource categories', () => {
+    const originalNetwork = RESOURCE_DEFINITIONS.network;
+    const mutatedNetwork = {
+      ...originalNetwork,
+      category: 'unexpected-category',
+      disabledReason: undefined,
+    };
+
+    Reflect.set(RESOURCE_DEFINITIONS, 'network', mutatedNetwork);
+
+    try {
+      const { result } = renderHook(() => useTechTree());
+
+      expect(result.current.isEnabled('network')).toBe(false);
+      expect(result.current.getDisabledReason('network')).toBe('This resource is not available yet.');
+    } finally {
+      Reflect.set(RESOURCE_DEFINITIONS, 'network', originalNetwork);
+    }
+  });
+
+  it('returns flattened creation resources excluding null slots from category tabs', () => {
+    const { result } = renderHook(() => useTechTree());
+
+    const expectedResourceTypes = CATEGORY_TABS.flatMap((tab) => tab.resources.flat()).filter(
+      (resourceType): resourceType is ResourceType => resourceType !== null,
+    );
+    const creationResources = result.current.getCreationResources();
+    const actualTypes = creationResources.map((entry) => entry.resource.id);
+
+    expect(creationResources).toHaveLength(expectedResourceTypes.length);
+    expect(actualTypes).toEqual(expectedResourceTypes);
+
+    for (const entry of creationResources) {
+      expect(entry.resource).toBe(RESOURCE_DEFINITIONS[entry.resource.id]);
+      expect(entry.enabled).toBe(result.current.isEnabled(entry.resource.id));
+      expect(entry.disabledReason).toBe(result.current.getDisabledReason(entry.resource.id));
+    }
+  });
+
+  it('selects target plate for vm: subnet first, then network, otherwise null', () => {
+    const { result: emptyResult } = renderHook(() => useTechTree());
+    expect(emptyResult.current.getTargetPlateId('vm')).toBeNull();
+
+    setArchitectureState(buildArchitecture([NETWORK_PLATE], 0));
+    const { result: networkOnlyResult } = renderHook(() => useTechTree());
+    expect(networkOnlyResult.current.getTargetPlateId('vm')).toBe('net-1');
+
+    setArchitectureState(buildArchitecture([NETWORK_PLATE, SUBNET_PLATE], 0));
+    const { result: withSubnetResult } = renderHook(() => useTechTree());
+    expect(withSubnetResult.current.getTargetPlateId('vm')).toBe('sub-1');
+  });
+
+  it('selects network plate for non-vnet-required resources like storage', () => {
+    setArchitectureState(buildArchitecture([NETWORK_PLATE], 0));
+    const { result } = renderHook(() => useTechTree());
+
+    expect(result.current.getTargetPlateId('storage')).toBe('net-1');
+  });
+
+  it('returns null target plate for non-vnet-required resources when no network exists', () => {
+    const { result } = renderHook(() => useTechTree());
+
+    expect(result.current.getTargetPlateId('storage')).toBeNull();
+  });
+});

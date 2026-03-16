@@ -23,19 +23,19 @@ Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks
 - **Lego-style modeling** — Plates (boundaries) + Blocks (resources) + Connections (dataflow)
 - **Architecture compiler** — Visual design compiles to Terraform, Bicep, and Pulumi (Azure-first)
 - **Validation engine** — Real-time rule checking for placement and connections
-- **Code generation** — Multi-generator export: Terraform, Bicep, Pulumi with draft/production modes (Phase 6)
-- **Architecture templates** — Built-in starter templates with gallery UI (Phase 4)
-- **Undo/redo** — Full history with keyboard shortcuts (Phase 2)
-- **Multi-workspace** — Create, switch, and manage multiple workspaces (Phase 4)
-- **GitHub integration** — OAuth login, repo sync, pull, and PR creation (Phase 5)
-- **Backend API** — FastAPI orchestration layer with GitHub App OAuth (Phase 5)
+- **Code generation** — Multi-generator export: Terraform, Bicep, Pulumi with draft/production modes (Milestone 6)
+- **Architecture templates** — Built-in starter templates with gallery UI (Milestone 4)
+- **Undo/redo** — Full history with keyboard shortcuts (Milestone 2)
+- **Multi-workspace** — Create, switch, and manage multiple workspaces (Milestone 4)
+- **GitHub integration** — OAuth login, repo sync, pull, and PR creation (Milestone 5)
+- **Backend API** — FastAPI orchestration layer with GitHub App OAuth (Milestone 5)
 - **Open source** — Apache 2.0 licensed, extend and contribute freely
 
 ### Planned Features
 
-- **Multi-generator** — Terraform, Bicep, and Pulumi export with plugin interface (Phase 6)
-- **Template marketplace** — GitHub-backed community architecture templates (Phase 6)
-- **Serverless blocks** — Function, Queue, Event, Timer block types (Phase 6)
+- **Multi-generator** — Terraform, Bicep, and Pulumi export with plugin interface (Milestone 6)
+- **Template marketplace** — GitHub-backed community architecture templates (Milestone 6)
+- **Serverless blocks** — Function, Queue, Event, Timer block types (Milestone 6)
 ## Quick Start
 
 ```bash
@@ -57,7 +57,7 @@ Open [http://localhost:5173](http://localhost:5173) to start building.
 ### Workflow
 
 ```
-Design in isometric UI  →  architecture.json  →  Generate Terraform  →  Commit to GitHub  →  CI/CD deploys
+Design in visual builder  →  architecture.json  →  Generate Terraform  →  Commit to GitHub  →  CI/CD deploys
 ```
 
 ## Architecture
@@ -99,10 +99,10 @@ Internet → Gateway → Compute → Database
 | Layer | Technology |
 |-------|-----------|
 | Frontend | React 19, TypeScript, React Three Fiber, Zustand, Vite |
-| Backend (Phase 5+) | Python, FastAPI (scaffolded) |
-| Storage (Phase 1) | Browser localStorage |
-| Storage (Phase 5+) | GitHub repos (Git-native), Supabase (auth metadata) |
-| Code Generation | Terraform (Azure-first, Phase 3) — Bicep, Pulumi (Phase 6) |
+| Backend (Milestone 5+) | Python, FastAPI (scaffolded) |
+| Storage (Milestone 1) | Browser localStorage |
+| Storage (Milestone 5+) | GitHub repos (Git-native), Supabase (auth metadata) |
+| Code Generation | Terraform (Azure-first, Milestone 3) — Bicep, Pulumi (Milestone 6) |
 | Frontend Architecture | Feature-Sliced Design (FSD) |
 | Monorepo | pnpm workspaces |
 
@@ -145,14 +145,15 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 
 ## Roadmap
 
-| Phase | Milestone | Status |
+| Milestone | Milestone | Status |
 |-------|-----------|--------|
-| Phase 1 | Frontend MVP — 2.5D isometric builder with validation | ✅ Complete |
-| Phase 2 | Enhanced UX — undo/redo, workspace management, visual polish | ✅ Complete |
-| Phase 3 | Code generation — Terraform export (Azure first) | ✅ Complete |
-| Phase 4 | Architecture templates — built-in starter templates with gallery | ✅ Complete |
-| Phase 5 | GitHub integration, backend API | ✅ Complete |
-| Phase 6 | Multi-generator (Bicep, Pulumi), template marketplace | ✅ Complete |
+| Milestone 1 | Frontend MVP — top-down visual builder with validation | ✅ Complete |
+| Milestone 2 | Enhanced UX — undo/redo, workspace management, visual polish | ✅ Complete |
+| Milestone 3 | Code generation — Terraform export (Azure first) | ✅ Complete |
+| Milestone 4 | Architecture templates — built-in starter templates with gallery | ✅ Complete |
+| Milestone 5 | GitHub integration, backend API | ✅ Complete |
+| Milestone 6 | Multi-generator (Bicep, Pulumi), template marketplace | ✅ Complete |
+| Milestone 6B | Builder UX completion — drag-to-create, onboarding, selection states | 🔲 Next |
 
 ## Contributing
 

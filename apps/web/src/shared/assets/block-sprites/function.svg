@@ -1,54 +1,35 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140">
-  <g>
-    <polygon points="10,25 10,65 60,90 60,50" fill="#bf4c00" />
-    <polygon points="60,50 60,90 110,65 110,25" fill="#d96600" />
-    <polygon points="60,0 10,25 60,50 110,25" fill="#FF8C00" />
-    
-    
-      <g transform="translate(42, 15)">
-        <ellipse cx="0" cy="0" rx="14" ry="7" fill="#FF8C00" />
-        <path d="M -14 0 L -14 -6 A 14 7 0 0 1 14 -6 L 14 0 A 14 7 0 0 1 -14 0 Z" fill="#cc5900" />
-        <ellipse cx="0" cy="-6" rx="14" ry="7" fill="#ffa519" />
-      </g>
-    
-      <g transform="translate(78, 15)">
-        <ellipse cx="0" cy="0" rx="14" ry="7" fill="#FF8C00" />
-        <path d="M -14 0 L -14 -6 A 14 7 0 0 1 14 -6 L 14 0 A 14 7 0 0 1 -14 0 Z" fill="#cc5900" />
-        <ellipse cx="0" cy="-6" rx="14" ry="7" fill="#ffa519" />
-      </g>
-    
-      <g transform="translate(42, 33)">
-        <ellipse cx="0" cy="0" rx="14" ry="7" fill="#FF8C00" />
-        <path d="M -14 0 L -14 -6 A 14 7 0 0 1 14 -6 L 14 0 A 14 7 0 0 1 -14 0 Z" fill="#cc5900" />
-        <ellipse cx="0" cy="-6" rx="14" ry="7" fill="#ffa519" />
-      </g>
-    
-      <g transform="translate(78, 33)">
-        <ellipse cx="0" cy="0" rx="14" ry="7" fill="#FF8C00" />
-        <path d="M -14 0 L -14 -6 A 14 7 0 0 1 14 -6 L 14 0 A 14 7 0 0 1 -14 0 Z" fill="#cc5900" />
-        <ellipse cx="0" cy="-6" rx="14" ry="7" fill="#ffa519" />
-      </g>
-    
-    
-    <g transform="translate(32, 64) skewY(-26.565) scale(0.9)">
-      <text
-        x="0"
-        y="0"
-        fill="#FFFFFF"
-        fill-opacity="0.94"
-        font-family="Fredoka, 'Varela Round', Arial, sans-serif"
-        font-size="8"
-        font-weight="800"
-      >
-        APP SVC
-      </text>
-    </g>
-
-    <g transform="translate(85, 57.5) skewY(-26.565) scale(0.9)">
-      <g transform="translate(-12, -12)">
-        <path d="M7 2v11h3v9l7-12h-4l4-8z" fill="#FFFFFF" fill-opacity="0.9" />
-      </g>
-    </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 158 127">
+  <!-- Left face -->
+  <polygon points="7.9,48.5 79.0,84.05 79.0,98.05 7.9,62.5" fill="#CC9400" />
+  <!-- Right face -->
+  <polygon points="79.0,84.05 150.1,48.5 150.1,62.5 79.0,98.05" fill="#E6A700" />
   
-  </g>
+  <!-- Text on left face -->
+  <text transform="translate(43.45, 73.275) rotate(26.56505117707799)" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#ffffff" fill-opacity="0.9" text-anchor="middle" dominant-baseline="middle">⚡ App Svc</text>
+  <!-- Top face -->
+  <polygon points="79.0,12.95 150.1,48.5 79.0,84.05 7.9,48.5" fill="#FFB900" />
+  
+  <!-- Subtle highlight on top-left edge -->
+  <line x1="7.9" y1="48.5" x2="79.0" y2="12.95" stroke="#ffffff" stroke-width="2" stroke-opacity="0.3" />
+  
+  <!-- Stud grid -->
+  <!-- c=0, r=0 -->
+  <path d="M 67.0 20.725 L 67.0 25.725 A 12 6 0 0 0 91.0 25.725 L 91.0 20.725 Z" fill="#f0aa00" />
+  <ellipse cx="79.0" cy="20.725" rx="12" ry="6" fill="#ffd219" />
+  <ellipse cx="79.0" cy="20.725" rx="7.2" ry="3.6" fill="#FFB900" fill-opacity="0.7" stroke="#f0aa00" stroke-width="1" />
+  
+  <!-- c=1, r=0 -->
+  <path d="M 102.55 38.5 L 102.55 43.5 A 12 6 0 0 0 126.55 43.5 L 126.55 38.5 Z" fill="#f0aa00" />
+  <ellipse cx="114.55" cy="38.5" rx="12" ry="6" fill="#ffd219" />
+  <ellipse cx="114.55" cy="38.5" rx="7.2" ry="3.6" fill="#FFB900" fill-opacity="0.7" stroke="#f0aa00" stroke-width="1" />
+  
+  <!-- c=0, r=1 -->
+  <path d="M 31.45 38.5 L 31.45 43.5 A 12 6 0 0 0 55.45 43.5 L 55.45 38.5 Z" fill="#f0aa00" />
+  <ellipse cx="43.45" cy="38.5" rx="12" ry="6" fill="#ffd219" />
+  <ellipse cx="43.45" cy="38.5" rx="7.2" ry="3.6" fill="#FFB900" fill-opacity="0.7" stroke="#f0aa00" stroke-width="1" />
+  
+  <!-- c=1, r=1 -->
+  <path d="M 67.0 56.275 L 67.0 61.275 A 12 6 0 0 0 91.0 61.275 L 91.0 56.275 Z" fill="#f0aa00" />
+  <ellipse cx="79.0" cy="56.275" rx="12" ry="6" fill="#ffd219" />
+  <ellipse cx="79.0" cy="56.275" rx="7.2" ry="3.6" fill="#FFB900" fill-opacity="0.7" stroke="#f0aa00" stroke-width="1" />
 </svg>

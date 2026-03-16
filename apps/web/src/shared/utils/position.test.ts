@@ -40,9 +40,9 @@ describe('position utilities', () => {
   });
 
   it('exports expected constants', () => {
-    expect(GRID_CELL).toBe(1.5);
-    expect(EXTERNAL_ACTOR_POSITION).toEqual([0, 5, -6]);
-    expect(EXTERNAL_ACTOR_LABEL_POSITION).toEqual([0, 6, -6]);
+    expect(GRID_CELL).toBe(3.0);
+    expect(EXTERNAL_ACTOR_POSITION).toEqual([-3, 0, 5]);
+    expect(EXTERNAL_ACTOR_LABEL_POSITION).toEqual([-3, 1, 5]);
   });
 
   it('getBlockWorldPosition adds plate and block positions with height offsets', () => {
@@ -51,7 +51,10 @@ describe('position utilities', () => {
 
     const world = getBlockWorldPosition(block, plate);
 
-    expect(world).toEqual([14, 4.5, -5]);
+    // plate.position.x + block.position.x = 10 + 4 = 14
+    // plate.position.y + plate.size.height = 2 + 2 = 4
+    // plate.position.z + block.position.z = -3 + (-2) = -5
+    expect(world).toEqual([14, 4, -5]);
   });
 
   it('getEndpointWorldPosition resolves block endpoint using parent plate', () => {
@@ -60,7 +63,7 @@ describe('position utilities', () => {
 
     const endpoint = getEndpointWorldPosition(block.id, [block], [plate], []);
 
-    expect(endpoint).toEqual([14, 4.5, -5]);
+    expect(endpoint).toEqual([14, 4, -5]);
   });
 
   it('getEndpointWorldPosition resolves external actor endpoint and returns a copy', () => {

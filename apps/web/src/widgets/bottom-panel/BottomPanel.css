@@ -1,0 +1,82 @@
+/* Bottom Panel — StarCraft-Style 4-Panel Layout */
+/* Based on VISUAL_DESIGN_SPEC.md §7.1 */
+
+.bottom-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 260px;
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+  padding: 0;
+  background-color: transparent;
+  box-shadow: none;
+  border-top: none;
+  z-index: 100;
+  font-family: 'Fredoka', system-ui, sans-serif;
+}
+
+/* Flush section dividers — no gap, border separates panels */
+.bottom-panel > *:not(:last-child) {
+  border-right: 2px solid rgba(0, 0, 0, 0.3);
+}
+
+/* Panel sections */
+.bottom-panel-minimap {
+  width: 200px;
+  flex-shrink: 0;
+}
+
+.bottom-panel-detail {
+  flex: 1;
+  min-width: 200px;
+}
+
+.bottom-panel-portrait {
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.bottom-panel-command {
+  width: 280px;
+  flex-shrink: 0;
+}
+
+/* Responsive behavior — VISUAL_DESIGN_SPEC.md §7.8 */
+
+/* 900-1199px: Hide Minimap */
+@media (max-width: 1199px) {
+  .bottom-panel-minimap {
+    display: none;
+  }
+}
+
+/* 600-899px: Hide Minimap + Portrait */
+@media (max-width: 899px) {
+  .bottom-panel-minimap,
+  .bottom-panel-portrait {
+    display: none;
+  }
+}
+
+/* <600px: Tab bar mode (simplified) */
+@media (max-width: 599px) {
+  .bottom-panel {
+    height: auto;
+    flex-direction: column;
+  }
+
+  .bottom-panel-minimap,
+  .bottom-panel-portrait {
+    display: none;
+  }
+
+  .bottom-panel-detail,
+  .bottom-panel-command {
+    width: 100%;
+    flex: none;
+    height: 120px;
+  }
+}

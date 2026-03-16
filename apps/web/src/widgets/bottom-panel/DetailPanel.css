@@ -1,0 +1,253 @@
+/* Detail Panel — Resource Properties */
+/* Based on VISUAL_DESIGN_SPEC.md §7.3 */
+
+.detail-panel {
+  display: flex;
+  flex-direction: column;
+  background-color: #FFFDE7;
+  border: 3px solid #D4B200;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.5),
+    0 4px 0 0 #D4B200;
+  font-family: 'Fredoka', system-ui, sans-serif;
+}
+
+/* Welcome state (no selection) */
+.detail-panel--welcome {
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+}
+
+.detail-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+}
+
+.detail-welcome-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: #222222;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-welcome-text {
+  margin: 0;
+  font-size: 13px;
+  color: #444444;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.detail-welcome-tip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 6px 16px;
+  background: #FFD500;
+  border: 3px solid #D4B200;
+  border-radius: 8px;
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.5),
+    0 3px 0 0 #D4B200;
+}
+
+.detail-tip-icon {
+  font-size: 14px;
+  color: #222222;
+}
+
+.detail-tip-text {
+  font-size: 12px;
+  color: #222222;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Header */
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background-color: #FFD500;
+  border-bottom: 3px solid #D4B200;
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.5);
+}
+
+.detail-header-icon {
+  font-size: 18px;
+  color: #222222;
+}
+
+.detail-header-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 800;
+  color: #222222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-header-input {
+  flex: 1;
+  padding: 4px 8px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #222222;
+  background: #FFFDE7;
+  border: 3px solid #D4B200;
+  border-radius: 8px;
+  outline: none;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  text-transform: uppercase;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.detail-rename-btn {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #222222;
+  background: #FFD500;
+  border: 3px solid #D4B200;
+  border-radius: 8px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.5),
+    0 3px 0 0 #D4B200;
+  transition: all 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-family: 'Fredoka', system-ui, sans-serif;
+}
+
+.detail-rename-btn:hover {
+  background: #FFE44D;
+  transform: translateY(-2px);
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.6),
+    0 5px 0 0 #D4B200;
+}
+
+.detail-rename-btn:active {
+  transform: translateY(2px);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 1px 0 0 #D4B200;
+}
+
+/* Divider */
+.detail-divider {
+  height: 3px;
+  background-color: #D4B200;
+  margin: 0 12px;
+  border-radius: 2px;
+  opacity: 0.3;
+}
+
+/* Properties list */
+.detail-properties {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.detail-property {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+
+.detail-property-label {
+  font-size: 11px;
+  color: #665500;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-property-value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #222222;
+  font-weight: 800;
+}
+
+.detail-property-hint {
+  cursor: help;
+  opacity: 0.6;
+  font-size: 14px;
+}
+
+.detail-property-hint:hover {
+  opacity: 1;
+}
+
+.detail-property-tag {
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #FFD500;
+  border: 2px solid #D4B200;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,0.5), 0 2px 0 0 #D4B200;
+  color: #222222;
+}
+
+.detail-property-mono {
+  font-family: 'SF Mono', 'Consolas', monospace;
+  font-size: 12px;
+  font-weight: bold;
+  background: rgba(0,0,0,0.05);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+/* Block-specific styles */
+.detail-panel--block .detail-header {
+  background-color: #FFD500;
+}
+
+/* Plate-specific styles */
+.detail-panel--plate .detail-header {
+  background-color: #00852B;
+  border-color: #00591D;
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.3);
+}
+.detail-panel--plate .detail-header-name,
+.detail-panel--plate .detail-header-icon {
+  color: #FFFFFF;
+}
+
+/* Connection-specific styles */
+.detail-panel--connection .detail-header {
+  background-color: #0055BF;
+  border-color: #003D8A;
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.3);
+}
+.detail-panel--connection .detail-header-name,
+.detail-panel--connection .detail-header-icon {
+  color: #FFFFFF;
+}

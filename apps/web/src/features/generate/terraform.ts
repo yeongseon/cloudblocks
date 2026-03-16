@@ -5,6 +5,7 @@ import type {
   ProviderAdapter,
   ResourceMapping,
 } from './types';
+import { sanitizeIaCValue } from './types';
 
 /**
  * Terraform HCL Generator (v0.3)
@@ -278,7 +279,7 @@ export function generateVariablesTf(options: GenerationOptions): string {
   sections.push('variable "location" {');
   sections.push('  description = "Azure region for resource deployment"');
   sections.push('  type        = string');
-  sections.push(`  default     = "${options.region}"`);
+  sections.push(`  default     = "${sanitizeIaCValue(options.region)}"`);
   sections.push('}');
   sections.push('');
   sections.push('variable "db_admin_username" {');

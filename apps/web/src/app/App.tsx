@@ -1,9 +1,10 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { SceneCanvas } from '../widgets/scene-canvas/SceneCanvas';
 import { MenuBar } from '../widgets/menu-bar/MenuBar';
-import { StatusBar } from '../widgets/status-bar/StatusBar';
-import { BlockPalette } from '../widgets/block-palette/BlockPalette';
-import { PropertiesPanel } from '../widgets/properties-panel/PropertiesPanel';
+
+import { ResourceBar } from '../widgets/resource-bar/ResourceBar';
+
+
 import { ValidationPanel } from '../widgets/validation-panel/ValidationPanel';
 import { useArchitectureStore } from '../entities/store/architectureStore';
 import { useAuthStore } from '../entities/store/authStore';
@@ -11,8 +12,8 @@ import { useUIStore } from '../entities/store/uiStore';
 import { registerBuiltinTemplates } from '../features/templates/builtin';
 import { apiGet } from '../shared/api/client';
 import type { AuthResponse } from '../shared/types/api';
-import { LegendPanel } from '../widgets/legend-panel/LegendPanel';
 import { FlowDiagram } from '../widgets/flow-diagram/FlowDiagram';
+import { BottomPanel } from '../widgets/bottom-panel';
 import './App.css';
 
 // Lazy-loaded optional widgets (code-split)
@@ -118,13 +119,12 @@ function App() {
     <div className="app">
       <MenuBar />
       <div className="main-content">
-        <BlockPalette />
         <div className="canvas-container">
+          <ResourceBar />
           <SceneCanvas />
-          <PropertiesPanel />
           <ValidationPanel />
-          <LegendPanel />
           <FlowDiagram />
+          <BottomPanel />
           <Suspense fallback={null}>
             <CodePreview />
             <WorkspaceManager />
@@ -136,7 +136,6 @@ function App() {
           </Suspense>
         </div>
       </div>
-      <StatusBar />
     </div>
   );
 }

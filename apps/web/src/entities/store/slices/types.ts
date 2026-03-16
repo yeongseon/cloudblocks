@@ -31,6 +31,8 @@ export interface ArchitectureState {
   addBlock: (category: BlockCategory, name: string, placementId: string) => void;
   removeBlock: (id: string) => void;
   moveBlock: (blockId: string, newPlacementId: string) => void;
+  movePlatePosition: (id: string, deltaX: number, deltaZ: number) => void;
+  moveBlockPosition: (id: string, deltaX: number, deltaZ: number) => void;
 
   addConnection: (sourceId: string, targetId: string) => void;
   removeConnection: (id: string) => void;

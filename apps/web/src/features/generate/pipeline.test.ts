@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { ArchitectureModel, Plate, Block } from '../../shared/types/index';
-import type { GenerationOptions } from './types';
+import type { GeneratedOutput, GeneratedFile, GenerationOptions, GeneratorPlugin } from './types';
 import { GenerationError, generateTerraform, terraformPipeline, generateCode } from './pipeline';
+import { registerGenerator } from './registry';
 
 describe('pipeline', () => {
   beforeEach(() => {
@@ -389,6 +390,140 @@ describe('pipeline', () => {
       const result = generateCode(validModel, validOptions);
 
       expect(result.files.map((file) => file.path)).toEqual(['main.tf', 'variables.tf', 'outputs.tf']);
+    });
+  });
+
+  describe('generateCode plugin pipeline behavior', () => {
+    const model: ArchitectureModel = {
+      id: 'arch-plugin-1',
+      name: 'Plugin Test',
+      version: '1',
+      plates: [
+        {
+          id: 'net-1',
+          name: 'VNet',
+          type: 'network',
+          parentId: null,
+          children: [],
+          position: { x: 0, y: 0, z: 0 },
+          size: { width: 12, height: 0.3, depth: 10 },
+          metadata: {},
+        },
+      ] as Plate[],
+      blocks: [],
+      connections: [],
+      externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' }],
+      createdAt: '2025-01-01T00:00:00Z',
+      updatedAt: '2025-01-01T00:00:00Z',
+    };
+
+    const options: GenerationOptions = {
+      provider: 'azure',
+      mode: 'draft',
+      projectName: 'plugin-test',
+      region: 'eastus',
+      generator: 'terraform',
+    };
+
+    function buildPlugin(overrides: Partial<GeneratorPlugin>): GeneratorPlugin {
+      return {
+        id: 'terraform',
+        displayName: 'Test Terraform',
+        supportedProviders: ['azure'],
+        normalize: (arch) => ({ architecture: arch, resourceNames: new Map() }),
+        generate: () => ({
+          files: [{ path: 'main.tf', content: 'raw', language: 'hcl' }],
+          metadata: {
+            generator: 'test-generator',
+            version: '1.0.0',
+            provider: 'azure',
+            generatedAt: '2025-01-01T00:00:00.000Z',
+          },
+        }),
+        ...overrides,
+      };
+    }
+
+    it('throws GenerationError when plugin.validate returns errors', () => {
+      const plugin = buildPlugin({
+        validate: () => [{ severity: 'error', message: 'plugin validation failed' }],
+      });
+      registerGenerator(plugin);
+
+      expect(() => generateCode(model, options)).toThrow(GenerationError);
+      expect(() => generateCode(model, options)).toThrow(/Generator validation failed/);
+    });
+
+    it('does not throw when plugin.validate returns warnings only', () => {
+      const normalize = vi.fn((arch: ArchitectureModel) => ({
+        architecture: arch,
+        resourceNames: new Map(),
+      }));
+      const generate = vi.fn<() => GeneratedOutput>(() => ({
+        files: [{ path: 'main.tf', content: 'ok', language: 'hcl' }],
+        metadata: {
+          generator: 'test-generator',
+          version: '1.0.0',
+          provider: 'azure',
+          generatedAt: '2025-01-01T00:00:00.000Z',
+        },
+      }));
+      const plugin = buildPlugin({
+        validate: () => [{ severity: 'warning', message: 'warning only' }],
+        normalize,
+        generate,
+      });
+      registerGenerator(plugin);
+
+      const result = generateCode(model, options);
+
+      expect(result.files).toHaveLength(1);
+      expect(normalize).toHaveBeenCalledTimes(1);
+      expect(generate).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls plugin.format when available', () => {
+      const format = vi.fn((files: GeneratedFile[]) =>
+        files.map((file) => ({ ...file, content: `${file.content}-formatted` }))
+      );
+      const plugin = buildPlugin({
+        format,
+        generate: () => ({
+          files: [{ path: 'main.tf', content: 'content', language: 'hcl' }],
+          metadata: {
+            generator: 'test-generator',
+            version: '1.0.0',
+            provider: 'azure',
+            generatedAt: '2025-01-01T00:00:00.000Z',
+          },
+        }),
+      });
+      registerGenerator(plugin);
+
+      const result = generateCode(model, options);
+
+      expect(format).toHaveBeenCalledTimes(1);
+      expect(result.files[0].content).toBe('content-formatted');
+    });
+
+    it('returns raw output when plugin.format is not provided', () => {
+      const plugin = buildPlugin({
+        format: undefined,
+        generate: () => ({
+          files: [{ path: 'main.tf', content: 'raw-output', language: 'hcl' }],
+          metadata: {
+            generator: 'test-generator',
+            version: '1.0.0',
+            provider: 'azure',
+            generatedAt: '2025-01-01T00:00:00.000Z',
+          },
+        }),
+      });
+      registerGenerator(plugin);
+
+      const result = generateCode(model, options);
+
+      expect(result.files[0].content).toBe('raw-output');
     });
   });
 });

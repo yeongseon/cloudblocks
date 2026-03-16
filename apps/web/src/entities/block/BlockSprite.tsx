@@ -1,7 +1,9 @@
-import { memo } from 'react';
+import { memo, useEffect, useRef } from 'react';
+import interact from 'interactjs';
 import type { Block, Plate } from '../../shared/types/index';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
+import { screenDeltaToWorld } from '../../shared/utils/isometric';
 import './BlockSprite.css';
 
 // Import pre-made sprites
@@ -13,6 +15,17 @@ import functionSvg from '../../shared/assets/block-sprites/function.svg';
 import queueSvg from '../../shared/assets/block-sprites/queue.svg';
 import eventSvg from '../../shared/assets/block-sprites/event.svg';
 import timerSvg from '../../shared/assets/block-sprites/timer.svg';
+
+const BLOCK_SCREEN_SIZES: Record<string, { width: number; height: number }> = {
+  timer:    { width: 95, height: 95 },
+  event:    { width: 95, height: 95 },
+  function: { width: 158, height: 127 },
+  gateway:  { width: 190, height: 158 },
+  queue:    { width: 190, height: 158 },
+  storage:  { width: 190, height: 158 },
+  compute:  { width: 222, height: 190 },
+  database: { width: 285, height: 222 },
+};
 
 const BLOCK_SPRITES: Record<string, string> = {
   gateway: gatewaySvg,
@@ -46,12 +59,68 @@ export const BlockSprite = memo(function BlockSprite({
   const setConnectionSource = useUIStore((s) => s.setConnectionSource);
   const addConnection = useArchitectureStore((s) => s.addConnection);
   const removeBlock = useArchitectureStore((s) => s.removeBlock);
+  const moveBlockPosition = useArchitectureStore((s) => s.moveBlockPosition);
+  const blockRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isSelected = selectedId === block.id;
   const isConnectionSource = connectionSource === block.id;
   const isDeleteMode = toolMode === 'delete';
 
+  useEffect(() => {
+    if (toolMode === 'delete' || toolMode === 'connect' || !blockRef.current) {
+      return;
+    }
+
+    const interactable = interact(blockRef.current).draggable({
+      listeners: {
+        start() {
+          isDragging.current = false;
+        },
+        move(event) {
+          isDragging.current = true;
+
+          const sceneWorld = event.target.closest('.scene-world') as HTMLElement | null;
+          let zoom = 1;
+          if (sceneWorld) {
+            const transform = sceneWorld.style.transform;
+            const scaleMatch = transform.match(/scale\(([\d.]+)\)/);
+            if (scaleMatch?.[1]) {
+              zoom = Number.parseFloat(scaleMatch[1]);
+            }
+          }
+
+          const dxScreen = event.dx / zoom;
+          const dyScreen = event.dy / zoom;
+          const { dWorldX, dWorldZ } = screenDeltaToWorld(dxScreen, dyScreen);
+
+          moveBlockPosition(block.id, dWorldX, dWorldZ);
+        },
+        end() {
+          if (dragResetTimerRef.current) {
+            clearTimeout(dragResetTimerRef.current);
+          }
+          dragResetTimerRef.current = setTimeout(() => {
+            isDragging.current = false;
+          }, 50);
+        },
+      },
+      autoScroll: false,
+    });
+
+    return () => {
+      if (dragResetTimerRef.current) {
+        clearTimeout(dragResetTimerRef.current);
+      }
+      interactable.unset();
+    };
+  }, [block.id, moveBlockPosition, toolMode]);
+
   const handleClick = (e: React.MouseEvent) => {
+    if (isDragging.current) {
+      return;
+    }
     e.stopPropagation();
 
     if (toolMode === 'delete') {
@@ -73,6 +142,7 @@ export const BlockSprite = memo(function BlockSprite({
   };
 
   const spriteSrc = BLOCK_SPRITES[block.category] || computeSvg;
+  const blockSize = BLOCK_SCREEN_SIZES[block.category] || BLOCK_SCREEN_SIZES.compute;
 
   const className = [
     'block-sprite',
@@ -85,6 +155,7 @@ export const BlockSprite = memo(function BlockSprite({
 
   return (
     <div
+      ref={blockRef}
       className={className}
       style={{
         left: `${screenX}px`,
@@ -96,6 +167,12 @@ export const BlockSprite = memo(function BlockSprite({
         type="button"
         onClick={handleClick}
         className="block-button"
+        style={{
+          width: `${blockSize.width}px`,
+          height: `${blockSize.height}px`,
+          left: `-${blockSize.width / 2}px`,
+          top: `-${blockSize.height / 2}px`,
+        }}
         aria-label={`Block: ${block.name}`}
       >
         <img

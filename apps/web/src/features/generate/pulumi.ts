@@ -6,6 +6,7 @@ import type {
   ProviderDefinition,
   ResourceMapping,
 } from './types';
+import { sanitizeIaCValue } from './types';
 
 /**
  * Pulumi Generator (v1.0)
@@ -221,7 +222,7 @@ export function generateIndexTs(
   sections.push('// ─── Configuration ───────────────────────────────────');
   sections.push(`const config = new pulumi.Config();`);
   sections.push(`const projectName = config.get("projectName") ?? "${sanitizeName(options.projectName)}";`);
-  sections.push(`const location = config.get("location") ?? "${options.region}";`);
+  sections.push(`const location = config.get("location") ?? "${sanitizeIaCValue(options.region)}";`);
   const hasDb = architecture.blocks.some((b) => b.category === 'database');
   if (hasDb) {
     sections.push(`const dbAdminPassword = config.requireSecret("dbAdminPassword");`);

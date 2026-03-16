@@ -7,7 +7,7 @@ name = "cloudblocks-api"
 version = "0.1.0"
 description = "CloudBlocks Platform - Backend API"
 readme = "apps/api/README.md"
-license = {text = "MIT"}
+license = {text = "Apache-2.0"}
 requires-python = ">=3.10"
 authors = [{name = "yeongseon"}]
 

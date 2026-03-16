@@ -1,6 +1,9 @@
-import { memo } from 'react';
+import { memo, useEffect, useRef } from 'react';
+import interact from 'interactjs';
 import type { Plate } from '../../shared/types/index';
 import { useUIStore } from '../store/uiStore';
+import { useArchitectureStore } from '../store/architectureStore';
+import { screenDeltaToWorld, worldSizeToScreen } from '../../shared/utils/isometric';
 import './PlateSprite.css';
 
 // Import pre-made plate sprites
@@ -41,9 +44,65 @@ export const PlateSprite = memo(function PlateSprite({
 }: PlateSpriteProps) {
   const selectedId = useUIStore((s) => s.selectedId);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
+  const movePlatePosition = useArchitectureStore((s) => s.movePlatePosition);
   const isSelected = selectedId === plate.id;
+  const plateRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!plateRef.current) {
+      return;
+    }
+
+    const interactable = interact(plateRef.current).draggable({
+      listeners: {
+        start() {
+          isDragging.current = false;
+        },
+        move(event) {
+          isDragging.current = true;
+
+          const sceneWorld = event.target.closest('.scene-world') as HTMLElement | null;
+          let zoom = 1;
+          if (sceneWorld) {
+            const transform = sceneWorld.style.transform;
+            const scaleMatch = transform.match(/scale\(([\d.]+)\)/);
+            if (scaleMatch?.[1]) {
+              zoom = Number.parseFloat(scaleMatch[1]);
+            }
+          }
+
+          const dxScreen = event.dx / zoom;
+          const dyScreen = event.dy / zoom;
+          const { dWorldX, dWorldZ } = screenDeltaToWorld(dxScreen, dyScreen);
+
+          movePlatePosition(plate.id, dWorldX, dWorldZ);
+        },
+        end() {
+          if (dragResetTimerRef.current) {
+            clearTimeout(dragResetTimerRef.current);
+          }
+          dragResetTimerRef.current = setTimeout(() => {
+            isDragging.current = false;
+          }, 50);
+        },
+      },
+      autoScroll: false,
+    });
+
+    return () => {
+      if (dragResetTimerRef.current) {
+        clearTimeout(dragResetTimerRef.current);
+      }
+      interactable.unset();
+    };
+  }, [plate.id, movePlatePosition]);
 
   const handleClick = (e: React.MouseEvent) => {
+    if (isDragging.current) {
+      return;
+    }
     e.stopPropagation();
     setSelectedId(plate.id);
   };
@@ -51,6 +110,8 @@ export const PlateSprite = memo(function PlateSprite({
   const spriteSrc = getPlateSprite(plate);
 
   const sizeClass = plate.type === 'network' ? 'plate-network' : 'plate-subnet';
+
+  const { screenWidth, screenHeight } = worldSizeToScreen(plate.size.width, plate.size.height, plate.size.depth);
 
   const className = [
     'plate-sprite',
@@ -62,6 +123,7 @@ export const PlateSprite = memo(function PlateSprite({
 
   return (
     <div
+      ref={plateRef}
       className={className}
       style={{
         left: `${screenX}px`,
@@ -74,6 +136,12 @@ export const PlateSprite = memo(function PlateSprite({
         onClick={handleClick}
         className="plate-button"
         aria-label={`Plate: ${plate.name}`}
+        style={{
+          left: `${-screenWidth / 2}px`,
+          top: `${-screenHeight / 2}px`,
+          width: `${screenWidth}px`,
+          height: `${screenHeight}px`,
+        }}
       >
         <img
           src={spriteSrc}
@@ -82,12 +150,6 @@ export const PlateSprite = memo(function PlateSprite({
           draggable={false}
         />
       </button>
-      <div className="plate-label">
-        <span className="plate-label-icon">
-          {plate.type === 'network' ? '🌐' : '🔒'}
-        </span>
-        <span className="plate-label-text">{plate.name}</span>
-      </div>
     </div>
   );
 });

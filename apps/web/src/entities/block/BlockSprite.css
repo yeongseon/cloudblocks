@@ -5,10 +5,6 @@
 
 .block-button {
   position: absolute;
-  left: -95px;
-  top: -20px;
-  width: 190px;
-  height: 222px;
   cursor: pointer;
   background: none;
   border: none;
@@ -48,4 +44,33 @@
 .block-sprite.is-delete-mode .block-button:hover .block-img,
 .block-sprite.is-delete-mode .block-img:hover {
   filter: drop-shadow(0 0 10px #E3000B) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3)) sepia(1) hue-rotate(-50deg) saturate(3) brightness(1.1);
+}
+
+.block-sprite.is-valid-target .block-img {
+  filter: drop-shadow(0 0 8px #00852B) drop-shadow(0 0 16px rgba(0, 133, 43, 0.4)) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+  animation: pulse-valid 1.5s ease-in-out infinite;
+}
+
+.block-sprite.is-invalid-target .block-img {
+  filter: drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3)) brightness(0.6) saturate(0.3);
+  cursor: not-allowed;
+}
+
+.block-sprite.is-connected .block-img {
+  filter: drop-shadow(0 0 6px #0078D4) drop-shadow(0 0 12px rgba(0, 120, 212, 0.3)) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+}
+
+.block-sprite.is-warning .block-img {
+  filter: drop-shadow(0 0 8px #FFB900) drop-shadow(0 0 16px rgba(255, 185, 0, 0.4)) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+  animation: pulse-warning 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-valid {
+  0%, 100% { filter: drop-shadow(0 0 8px #00852B) drop-shadow(0 0 16px rgba(0, 133, 43, 0.4)) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3)); }
+  50% { filter: drop-shadow(0 0 12px #00852B) drop-shadow(0 0 24px rgba(0, 133, 43, 0.6)) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3)); }
+}
+
+@keyframes pulse-warning {
+  0%, 100% { filter: drop-shadow(0 0 8px #FFB900) drop-shadow(0 0 16px rgba(255, 185, 0, 0.4)) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3)); }
+  50% { filter: drop-shadow(0 0 12px #FFB900) drop-shadow(0 0 24px rgba(255, 185, 0, 0.6)) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3)); }
 }

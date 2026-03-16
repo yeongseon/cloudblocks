@@ -19,6 +19,9 @@ interface UIState {
   // ── Drag state ──
   draggedBlockCategory: BlockCategory | null;
   setDraggedBlockCategory: (category: BlockCategory | null) => void;
+  draggedResourceName: string | null;
+  setDraggedResourceName: (name: string | null) => void;
+  cancelDrag: () => void;
 
   // ── Panel visibility ──
   showBlockPalette: boolean;
@@ -57,6 +60,10 @@ export const useUIStore = create<UIState>((set) => ({
   draggedBlockCategory: null,
   setDraggedBlockCategory: (category) =>
     set({ draggedBlockCategory: category }),
+  draggedResourceName: null,
+  setDraggedResourceName: (name) => set({ draggedResourceName: name }),
+  cancelDrag: () =>
+    set({ draggedBlockCategory: null, draggedResourceName: null }),
 
   showBlockPalette: true,
   toggleBlockPalette: () =>

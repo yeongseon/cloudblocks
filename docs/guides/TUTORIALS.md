@@ -43,7 +43,7 @@ Each tutorial includes:
 Internet → [Public Subnet: Gateway] → [Private Subnet: Compute → Database]
 ```
 
-**Generated Terraform** (Phase 3+):
+**Generated Terraform** (Milestone 3+):
 ```hcl
 resource "azurerm_virtual_network" "main" {
   name                = "vnet-main"
@@ -113,12 +113,12 @@ Internet → Gateway → [Compute-A, Compute-B] → Database
 
 **Result**:
 ```
-Internet → Gateway → Compute → Storage → (event-driven processing planned for Phase 6)
+Internet → Gateway → Compute → Storage → (event-driven processing planned for Milestone 6)
 ```
 
-> **Note (Phase 1)**: In the MVP, Storage and Database are receiver-only. The `Storage → Compute` event-driven pattern requires the `EventFlow` connection type planned for Phase 6. In Phase 1, model this as `Compute → Storage` (polling pattern).
+> **Note (Milestone 1)**: In the MVP, Storage and Database are receiver-only. The `Storage → Compute` event-driven pattern requires the `EventFlow` connection type planned for Milestone 6. In Milestone 1, model this as `Compute → Storage` (polling pattern).
 
-**Revised Phase 1-compatible architecture:**
+**Revised Milestone 1-compatible architecture:**
 ```
 Internet → Gateway → Compute → Storage
                       ↓
@@ -140,19 +140,19 @@ Internet → Gateway → Compute → Storage
 
 ---
 
-### Tutorial 6: Serverless API (Phase 6+)
+### Tutorial 6: Serverless API (Milestone 6+)
 
-> **⚠️ This tutorial requires block types and connection types planned for Phase 6+.**
-> FunctionBlock, QueueBlock, and EventFlow connections are not available in Phase 1.
+> **⚠️ This tutorial requires block types and connection types planned for Milestone 6+.**
+> FunctionBlock, QueueBlock, and EventFlow connections are not available in Milestone 1.
 
 **Objective**: Build a serverless API with functions and queues.
 
 **You'll learn**:
-- FunctionBlock usage (Phase 6)
-- QueueBlock for async processing (Phase 6)
-- EventFlow connection type (Phase 6)
+- FunctionBlock usage (Milestone 6)
+- QueueBlock for async processing (Milestone 6)
+- EventFlow connection type (Milestone 6)
 
-**Result** (Phase 6+):
+**Result** (Milestone 6+):
 ```
 HTTP → Function → Queue → Function → Database
 ```
@@ -198,7 +198,7 @@ Tutorials are defined as JSON files for programmatic use:
 
 ## Adding Community Tutorials
 
-> **Note**: The tutorial scenario library is planned for Phase 6+. The directory structure below shows the intended organization.
+> **Note**: The tutorial scenario library is planned for Milestone 6+. The directory structure below shows the intended organization.
 
 Tutorial scenarios will live in a dedicated package:
 

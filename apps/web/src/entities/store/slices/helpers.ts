@@ -61,6 +61,26 @@ export function nextGridPosition(
   };
 }
 
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+export function clampWithinParent(
+  relativePosition: { x: number; z: number },
+  parentSize: { width: number; depth: number },
+  childSize: { width: number; depth: number }
+): { x: number; z: number } {
+  const minX = -(parentSize.width / 2) + childSize.width / 2;
+  const maxX = parentSize.width / 2 - childSize.width / 2;
+  const minZ = -(parentSize.depth / 2) + childSize.depth / 2;
+  const maxZ = parentSize.depth / 2 - childSize.depth / 2;
+
+  return {
+    x: clamp(relativePosition.x, minX, maxX),
+    z: clamp(relativePosition.z, minZ, maxZ),
+  };
+}
+
 export function withHistory(
   state: ArchitectureState,
   newArch: ArchitectureModel

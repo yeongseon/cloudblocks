@@ -21,7 +21,7 @@ git clone https://github.com/yeongseon/cloudblocks.git
 cd cloudblocks
 make install
 
-# Start frontend dev server (no backend needed for Phase 1)
+# Start frontend dev server (no backend needed for Milestone 1)
 cd apps/web && pnpm dev
 
 # Or use Makefile
@@ -33,7 +33,7 @@ make dev
 | Service | URL |
 |---------|-----|
 | Frontend | http://localhost:5173 |
-| Backend API (Phase 5+) | http://localhost:8000 |
+| Backend API (Milestone 5+) | http://localhost:8000 |
 | API Docs (Swagger) | http://localhost:8000/docs |
 
 ## Architecture
@@ -51,7 +51,7 @@ Backend API (Thin Orchestration Layer)
 
 ## Deployment Options
 
-### Option 1: Frontend Only (Phase 1)
+### Option 1: Frontend Only (Milestone 1)
 
 Deploy the frontend as a static site. No backend needed.
 
@@ -68,7 +68,7 @@ cd apps/web && pnpm build
 # - S3 + CloudFront
 ```
 
-### Option 2: Full Stack (Phase 5+)
+### Option 2: Full Stack (Milestone 5+)
 
 #### Docker Deployment
 
@@ -83,7 +83,7 @@ docker build -t cloudblocks-api -f infra/docker/api.Dockerfile .
 docker compose up -d
 ```
 
-> **Note**: The current `docker-compose.yml` provides only supporting services (Redis and MinIO). It does **not** include `web` or `api` service definitions — those are built separately via Dockerfiles listed above. Full-stack Docker Compose orchestration is planned for Phase 5+.
+> **Note**: The current `docker-compose.yml` provides only supporting services (Redis and MinIO). It does **not** include `web` or `api` service definitions — those are built separately via Dockerfiles listed above. Full-stack Docker Compose orchestration is planned for Milestone 5+.
 
 #### docker-compose.yml Services (Current)
 

@@ -1,10 +1,10 @@
 # CloudBlocks Web App
 
-The main frontend application for CloudBlocks — a 2.5D isometric block-style visual cloud architecture builder.
+The main frontend application for CloudBlocks — a top-down visual cloud architecture builder.
 
 ## What This Package Does
 
-This is the **visual editor** where users design cloud architectures by placing plates (networks, subnets) and blocks (compute, database, storage, gateway) on an isometric canvas. Connections between blocks represent data flow with initiator-direction semantics.
+This is the **visual editor** where users design cloud architectures by placing plates (networks, subnets) and blocks (compute, database, storage, gateway) on a top-down canvas. Connections between blocks represent data flow with initiator-direction semantics.
 
 ## Quick Start
 
@@ -20,8 +20,8 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 - **React 19** + **TypeScript 5.9** (strict mode, `verbatimModuleSyntax`)
 - **Vite 8** — dev server & build
-- **React Three Fiber (R3F)** + **drei** — 2.5D isometric rendering
-- **Three.js** — 3D engine (used as 2.5D projection layer)
+- **React Three Fiber (R3F)** + **drei** — top-down orthographic rendering
+- **Three.js** — 3D engine (used as top-down projection layer)
 - **Zustand** — state management
 
 ## Project Structure (FSD-inspired)
@@ -72,15 +72,15 @@ src/
 │   ├── code-preview/CodePreview.tsx   # Code generation preview
 │   ├── template-gallery/TemplateGallery.tsx  # Template selection
 │   ├── workspace-manager/WorkspaceManager.tsx # Multi-workspace
-│   ├── github-login/GitHubLogin.tsx   # GitHub OAuth login (Phase 5)
-│   ├── github-repos/GitHubRepos.tsx   # GitHub repo management (Phase 5)
-│   ├── github-sync/GitHubSync.tsx     # Architecture sync to GitHub (Phase 5)
-│   └── github-pr/GitHubPR.tsx         # PR creation from UI (Phase 5)
+│   ├── github-login/GitHubLogin.tsx   # GitHub OAuth login (Milestone 5)
+│   ├── github-repos/GitHubRepos.tsx   # GitHub repo management (Milestone 5)
+│   ├── github-sync/GitHubSync.tsx     # Architecture sync to GitHub (Milestone 5)
+│   └── github-pr/GitHubPR.tsx         # PR creation from UI (Milestone 5)
 ```
 
-## Current Implementation (Phase 1–Phase 5)
+## Current Implementation (Milestone 1–Milestone 5)
 
-- ✅ Isometric camera with fixed 2.5D view
+- ✅ Orthographic camera with top-down view
 - ✅ Network plate + public/private subnet plates
 - ✅ Block placement with grid snapping (compute, database, storage, gateway)
 - ✅ Connection lines with initiator-direction semantics
@@ -88,15 +88,15 @@ src/
 - ✅ Export architecture as JSON
 - ✅ localStorage persistence (save/load/reset)
 - ✅ Properties panel with block move between subnets
-- ✅ Undo/redo with keyboard shortcuts (Phase 2)
-- ✅ Multi-workspace support (Phase 4)
-- ✅ Terraform code generation with preview (Phase 3)
-- ✅ Architecture templates with gallery (Phase 4)
+- ✅ Undo/redo with keyboard shortcuts (Milestone 2)
+- ✅ Multi-workspace support (Milestone 4)
+- ✅ Terraform code generation with preview (Milestone 3)
+- ✅ Architecture templates with gallery (Milestone 4)
 
-- ✅ GitHub OAuth login (Phase 5)
-- ✅ GitHub repo sync / pull (Phase 5)
-- ✅ PR creation from UI (Phase 5)
-- ✅ Typed API client with JWT auth (Phase 5)
+- ✅ GitHub OAuth login (Milestone 5)
+- ✅ GitHub repo sync / pull (Milestone 5)
+- ✅ PR creation from UI (Milestone 5)
+- ✅ Typed API client with JWT auth (Milestone 5)
 
 ## Not Yet Implemented
 
@@ -115,7 +115,7 @@ npx tsc -b && npx vite build
 
 ## Architecture Notes
 
-- The **internal coordinate system is 2D** (x, y grid) with a containment hierarchy. The 2.5D rendering is a visual projection only.
+- The **internal coordinate system is 2D** (x, y grid) with a containment hierarchy. The top-down rendering is a visual projection only.
 - **ArchitectureModel** is the source of truth — the visual layer projects from it.
 - **Single workspace** in MVP. Storage format supports `Workspace[]` for forward compatibility.
 - See [docs/ARCHITECTURE.md](../../docs/concept/ARCHITECTURE.md) and [docs/PRD.md](../../docs/concept/PRD.md) for full specs.

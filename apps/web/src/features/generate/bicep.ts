@@ -6,6 +6,7 @@ import type {
   ProviderDefinition,
   ResourceMapping,
 } from './types';
+import { sanitizeIaCValue } from './types';
 
 /**
  * Bicep Generator (v1.0)
@@ -225,7 +226,7 @@ export function generateMainBicep(
 
   // Parameters
   sections.push(`param projectName string = '${sanitizeName(options.projectName)}'`);
-  sections.push(`param location string = '${options.region}'`);
+  sections.push(`param location string = '${sanitizeIaCValue(options.region)}'`);
   const hasDb = architecture.blocks.some((b) => b.category === 'database');
   if (hasDb) {
     sections.push(`param dbAdminUsername string = 'pgadmin'`);
@@ -304,7 +305,7 @@ export function generateParametersBicepparam(options: GenerationOptions): string
   sections.push('using \'./main.bicep\'');
   sections.push('');
   sections.push(`param projectName = '${sanitizeName(options.projectName)}'`);
-  sections.push(`param location = '${options.region}'`);
+  sections.push(`param location = '${sanitizeIaCValue(options.region)}'`);
   sections.push('');
   return sections.join('\n');
 }

@@ -1,6 +1,7 @@
 .plate-sprite {
   position: absolute;
-  pointer-events: none;
+  pointer-events: auto;
+  touch-action: none;
 }
 
 .plate-button {
@@ -11,30 +12,14 @@
   padding: 0;
   margin: 0;
   outline: none;
-  pointer-events: none;
+  pointer-events: auto;
   appearance: none;
-}
-
-/* VNet: 넓고 낮은 baseplate */
-.plate-network .plate-button {
-  left: -350px;
-  top: -80px;
-  width: 700px;
-  height: 280px;
-}
-
-/* Subnet: 작은 plate */
-.plate-subnet .plate-button {
-  left: -180px;
-  top: -50px;
-  width: 360px;
-  height: 200px;
 }
 
 .plate-img {
   width: 100%;
   height: 100%;
-  pointer-events: visiblePainted;
+  pointer-events: none;
   transition: filter 0.2s ease;
   filter: drop-shadow(3px 6px 0px rgba(0, 0, 0, 0.2));
 }
@@ -50,9 +35,9 @@
 
 .plate-label {
   position: absolute;
-  left: 50%;
-  top: 100%;
-  transform: translate(-50%, 10px);
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
   color: #ffffff;
   font-size: 13px;
   font-family: 'Fredoka', 'Varela Round', system-ui, sans-serif;
@@ -82,4 +67,18 @@
   text-shadow: 0 1px 2px rgba(0,0,0,0.3);
   letter-spacing: 0.5px;
   font-weight: 700;
+}
+
+.plate-sprite.is-drop-target .plate-img {
+  filter: drop-shadow(0 0 10px #00852B) drop-shadow(0 0 20px rgba(0, 133, 43, 0.4)) drop-shadow(3px 6px 0px rgba(0, 0, 0, 0.2));
+  animation: pulse-drop-target 1.5s ease-in-out infinite;
+}
+
+.plate-sprite.is-drop-target-invalid .plate-img {
+  filter: drop-shadow(3px 6px 0px rgba(0, 0, 0, 0.2)) brightness(0.7) saturate(0.4);
+}
+
+@keyframes pulse-drop-target {
+  0%, 100% { filter: drop-shadow(0 0 10px #00852B) drop-shadow(0 0 20px rgba(0, 133, 43, 0.4)) drop-shadow(3px 6px 0px rgba(0, 0, 0, 0.2)); }
+  50% { filter: drop-shadow(0 0 16px #00852B) drop-shadow(0 0 30px rgba(0, 133, 43, 0.6)) drop-shadow(3px 6px 0px rgba(0, 0, 0, 0.2)); }
 }

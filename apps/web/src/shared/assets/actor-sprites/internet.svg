@@ -1,49 +1,48 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 140">
-  <defs>
-    <linearGradient id="cloud-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#5EC4FF" />
-      <stop offset="100%" stop-color="#178EEA" />
-    </linearGradient>
-    <linearGradient id="cloud-shadow-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#0C63B0" />
-      <stop offset="100%" stop-color="#084B86" />
-    </linearGradient>
-    <linearGradient id="plate-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FF3A2A" />
-      <stop offset="100%" stop-color="#D71005" />
-    </linearGradient>
-  </defs>
-
-  <g>
-    <path
-      d="M52 76h73c11.6 0 21-9.4 21-21 0-10-7.1-18.5-16.8-20.5-2.3-13.6-14.1-24-28.3-24-9.7 0-18.5 5-23.5 12.8-3-1-6.1-1.6-9.4-1.6-13.3 0-24.3 9.7-26.4 22.4-11.2 2.2-19.6 12.1-19.6 24 0 10.9 8.9 19.9 19.9 19.9h9.1z"
-      fill="url(#cloud-shadow-grad)"
-      opacity="0.6"
-      transform="translate(0 8)"
-    />
-    <path
-      d="M52 68h73c11.6 0 21-9.4 21-21 0-10-7.1-18.5-16.8-20.5-2.3-13.6-14.1-24-28.3-24-9.7 0-18.5 5-23.5 12.8-3-1-6.1-1.6-9.4-1.6-13.3 0-24.3 9.7-26.4 22.4-11.2 2.2-19.6 12.1-19.6 24 0 10.9 8.9 19.9 19.9 19.9h9.1z"
-      fill="url(#cloud-grad)"
-      stroke="#C9EEFF"
-      stroke-width="2"
-    />
-
-    <rect x="58" y="77" width="64" height="30" rx="6" fill="#B00A00" />
-    <rect x="58" y="73" width="64" height="30" rx="6" fill="url(#plate-grad)" />
-    <circle cx="70" cy="71" r="7" fill="#FF4F43" />
-    <circle cx="110" cy="71" r="7" fill="#FF4F43" />
-
-    <text
-      x="90"
-      y="92"
-      text-anchor="middle"
-      fill="#FFFFFF"
-      font-family="Fredoka, 'Varela Round', Arial, sans-serif"
-      font-size="13"
-      font-weight="800"
-      letter-spacing="0.8"
-    >
-      INTERNET
-    </text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 158 127">
+  <!-- Bottom ellipse (shadow/base) -->
+  <ellipse cx="79" cy="90" rx="70" ry="35" fill="#5A9DBE" />
+  
+  <!-- Cylinder body (connecting top to bottom) -->
+  <path d="M 9 65 L 9 90 A 70 35 0 0 0 149 90 L 149 65 Z" fill="#6BB5D6" />
+  
+  <!-- Top ellipse (main surface) -->
+  <ellipse cx="79" cy="65" rx="70" ry="35" fill="#87CEEB" />
+  
+  <!-- Subtle highlight arc on the upper-left portion of the cylinder (top face) for a 3D plastic look -->
+  <path d="M 14 65 A 65 32.5 0 0 1 79 32.5 A 65 34 0 0 0 18 67 Z" fill="#FFFFFF" opacity="0.4" />
+  
+  <!-- Inner ring on top for depth -->
+  <ellipse cx="79" cy="65" rx="60" ry="30" fill="none" stroke="#A8DCEF" stroke-width="1.5" opacity="0.5" />
+  
+  <!-- 4 studs in 2x2 grid on top face (drawn back to front) -->
+  <!-- Top Stud -->
+  <g class="stud-top">
+    <path d="M 67 48 L 67 53 A 12 6 0 0 0 91 53 L 91 48 Z" fill="#6BB5D6" />
+    <ellipse cx="79" cy="48" rx="12" ry="6" fill="#A8DCEF" />
+    <ellipse cx="79" cy="48" rx="7.2" ry="3.6" fill="#87CEEB" fill-opacity="0.7" stroke="#6BB5D6" stroke-width="1" />
   </g>
+  
+  <!-- Left Stud -->
+  <g class="stud-left">
+    <path d="M 47 58 L 47 63 A 12 6 0 0 0 71 63 L 71 58 Z" fill="#6BB5D6" />
+    <ellipse cx="59" cy="58" rx="12" ry="6" fill="#A8DCEF" />
+    <ellipse cx="59" cy="58" rx="7.2" ry="3.6" fill="#87CEEB" fill-opacity="0.7" stroke="#6BB5D6" stroke-width="1" />
+  </g>
+  
+  <!-- Right Stud -->
+  <g class="stud-right">
+    <path d="M 87 58 L 87 63 A 12 6 0 0 0 111 63 L 111 58 Z" fill="#6BB5D6" />
+    <ellipse cx="99" cy="58" rx="12" ry="6" fill="#A8DCEF" />
+    <ellipse cx="99" cy="58" rx="7.2" ry="3.6" fill="#87CEEB" fill-opacity="0.7" stroke="#6BB5D6" stroke-width="1" />
+  </g>
+  
+  <!-- Bottom Stud -->
+  <g class="stud-bottom">
+    <path d="M 67 68 L 67 73 A 12 6 0 0 0 91 73 L 91 68 Z" fill="#6BB5D6" />
+    <ellipse cx="79" cy="68" rx="12" ry="6" fill="#A8DCEF" />
+    <ellipse cx="79" cy="68" rx="7.2" ry="3.6" fill="#87CEEB" fill-opacity="0.7" stroke="#6BB5D6" stroke-width="1" />
+  </g>
+  
+  <!-- INTERNET label -->
+  <text x="79" y="117" text-anchor="middle" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="700" letter-spacing="0.5">INTERNET</text>
 </svg>

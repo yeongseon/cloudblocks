@@ -5,6 +5,7 @@ import type {
   GeneratorId,
   GeneratorPipeline,
 } from './types';
+import { isValidAzureRegion } from './types';
 import { getProvider, getProviderDefinition } from './provider';
 import { getGenerator, registerGenerator } from './registry';
 import { terraformPlugin } from './terraformPlugin';
@@ -58,6 +59,13 @@ export function generateCode(
       .join('; ');
     throw new GenerationError(
       `Architecture has validation errors: ${errorMessages}`
+    );
+  }
+
+  // Stage 1.5: Validate generation options
+  if (!isValidAzureRegion(options.region)) {
+    throw new GenerationError(
+      `Invalid Azure region: "${options.region}". Use a valid region like "eastus", "westeurope", etc.`
     );
   }
 
@@ -124,6 +132,13 @@ function legacyGenerate(
       .join('; ');
     throw new GenerationError(
       `Architecture has validation errors: ${errorMessages}`
+    );
+  }
+
+  // Stage 1.5: Validate generation options
+  if (!isValidAzureRegion(options.region)) {
+    throw new GenerationError(
+      `Invalid Azure region: "${options.region}". Use a valid region like "eastus", "westeurope", etc.`
     );
   }
 

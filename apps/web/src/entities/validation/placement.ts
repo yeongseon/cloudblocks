@@ -1,5 +1,6 @@
 import type {
   Block,
+  BlockCategory,
   Plate,
   ValidationError,
 } from '../../shared/types/index';
@@ -100,4 +101,26 @@ export function validatePlacement(
   }
 
   return null;
+}
+
+/**
+ * Convenience wrapper for validatePlacement to check if a block can be placed on a plate.
+ * Used in drag-to-create flows to show/hide drop targets.
+ *
+ * @param category - The block category to check
+ * @param plate - The plate to check placement against
+ * @returns true if the block can be placed, false otherwise
+ */
+export function canPlaceBlock(category: BlockCategory, plate: Plate): boolean {
+  const stubBlock: Block = {
+    id: '__preview__',
+    name: '__preview__',
+    category,
+    placementId: plate.id,
+    position: { x: 0, y: 0, z: 0 },
+    metadata: {},
+  };
+
+  const result = validatePlacement(stubBlock, plate);
+  return result === null;
 }

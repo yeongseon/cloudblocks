@@ -103,13 +103,17 @@ export function SceneCanvas() {
         <div className="plate-layer">
           {[...architecture.plates]
             .sort((a, b) => {
-              const depthA = depthKey(a.position.x, a.position.z, a.position.y);
-              const depthB = depthKey(b.position.x, b.position.z, b.position.y);
+              const levelA = a.parentId ? 1 : 0;
+              const levelB = b.parentId ? 1 : 0;
+              if (levelA !== levelB) return levelA - levelB;
+              const depthA = depthKey(a.position.x, a.position.z, a.position.y, 0);
+              const depthB = depthKey(b.position.x, b.position.z, b.position.y, 0);
               return depthA - depthB;
             })
             .map((plate) => {
-              const screenPos = worldToScreen(plate.position.x, 0, plate.position.z, origin.x, origin.y);
-              const zIndex = depthKey(plate.position.x, plate.position.z, plate.position.y);
+              const screenPos = worldToScreen(plate.position.x, plate.position.y, plate.position.z, origin.x, origin.y);
+              const hierarchyBonus = plate.parentId ? 500_000 : 0;
+              const zIndex = depthKey(plate.position.x, plate.position.z, plate.position.y, 0) + hierarchyBonus;
               return (
                 <PlateSprite 
                   key={plate.id} 
@@ -141,7 +145,7 @@ export function SceneCanvas() {
           {architecture.externalActors.map((actor) => {
             const [x, y, z] = EXTERNAL_ACTOR_POSITION;
             const screenPos = worldToScreen(x, y, z, origin.x, origin.y);
-            const zIndex = depthKey(x, z, y);
+            const zIndex = depthKey(x, z, y, 1);
             return (
               <ExternalActorSprite 
                 key={actor.id} 
@@ -162,7 +166,7 @@ export function SceneCanvas() {
             const worldY = parentPlate.position.y + parentPlate.size.height;
             const worldZ = parentPlate.position.z + block.position.z;
             const screenPos = worldToScreen(worldX, worldY, worldZ, origin.x, origin.y);
-            const zIndex = depthKey(worldX, worldZ, worldY);
+            const zIndex = depthKey(worldX, worldZ, worldY, 2);
             return (
               <BlockSprite 
                 key={block.id} 

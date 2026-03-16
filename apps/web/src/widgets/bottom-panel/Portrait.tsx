@@ -1,0 +1,130 @@
+/**
+ * Portrait Panel — Azure Resource Icon Display (StarCraft-style unit portrait)
+ *
+ * Shows the Azure product icon of the selected resource,
+ * like a character face in StarCraft's unit wireframe panel.
+ * Shows CloudBlocks logo when nothing is selected.
+ *
+ * Based on VISUAL_DESIGN_SPEC.md §7.4
+ */
+
+import { useArchitectureStore } from '../../entities/store/architectureStore';
+import { useUIStore } from '../../entities/store/uiStore';
+import {
+  BLOCK_FRIENDLY_NAMES,
+  BLOCK_COLORS,
+  PLATE_COLORS,
+  SUBNET_ACCESS_COLORS,
+} from '../../shared/types/index';
+import vmIcon from '../../shared/assets/azure-icons/virtual-machine.svg';
+import sqlIcon from '../../shared/assets/azure-icons/sql-database.svg';
+import storageIcon from '../../shared/assets/azure-icons/storage-account.svg';
+import gatewayIcon from '../../shared/assets/azure-icons/application-gateway.svg';
+import functionIcon from '../../shared/assets/azure-icons/logic-apps.svg';
+import queueIcon from '../../shared/assets/azure-icons/service-bus.svg';
+import eventIcon from '../../shared/assets/azure-icons/event-hub.svg';
+import vnetIcon from '../../shared/assets/azure-icons/virtual-network.svg';
+import subnetIcon from '../../shared/assets/azure-icons/subnet.svg';
+import './Portrait.css';
+
+interface PortraitProps {
+  className?: string;
+}
+
+const BLOCK_ICONS: Record<string, string> = {
+  compute: vmIcon,
+  database: sqlIcon,
+  storage: storageIcon,
+  gateway: gatewayIcon,
+  function: functionIcon,
+  queue: queueIcon,
+  event: eventIcon,
+  timer: eventIcon,
+};
+
+const PLATE_ICONS: Record<string, Record<string, string>> = {
+  network: { default: vnetIcon },
+  subnet: { public: subnetIcon, private: subnetIcon },
+};
+
+export function Portrait({ className = '' }: PortraitProps) {
+  const selectedId = useUIStore((s) => s.selectedId);
+  const architecture = useArchitectureStore((s) => s.workspace.architecture);
+
+  // Find selected item
+  const selectedBlock = architecture.blocks.find((b) => b.id === selectedId);
+  const selectedPlate = architecture.plates.find((p) => p.id === selectedId);
+  const selectedConnection = architecture.connections.find((c) => c.id === selectedId);
+
+  // No selection — show logo
+  if (!selectedId || (!selectedBlock && !selectedPlate && !selectedConnection)) {
+    return (
+      <div className={`portrait-panel portrait-panel--empty ${className}`}>
+        <div className="portrait-content">
+          <span className="portrait-logo">☁️</span>
+          <span className="portrait-label">CloudBlocks</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Block selected
+  if (selectedBlock) {
+    const color = BLOCK_COLORS[selectedBlock.category];
+    return (
+      <div className={`portrait-panel portrait-panel--block ${className}`}>
+        <div className="portrait-content">
+          <img src={BLOCK_ICONS[selectedBlock.category]} alt={BLOCK_FRIENDLY_NAMES[selectedBlock.category]} className="portrait-icon-img" />
+          <span className="portrait-label">{BLOCK_FRIENDLY_NAMES[selectedBlock.category]}</span>
+        </div>
+        <div className="portrait-badge" style={{ backgroundColor: color }}>
+          {selectedBlock.category}
+        </div>
+      </div>
+    );
+  }
+
+  // Plate selected
+  if (selectedPlate) {
+    const color = selectedPlate.type === 'subnet' && selectedPlate.subnetAccess
+      ? SUBNET_ACCESS_COLORS[selectedPlate.subnetAccess]
+      : PLATE_COLORS[selectedPlate.type];
+
+    const plateIcon = selectedPlate.type === 'network'
+      ? PLATE_ICONS.network.default
+      : PLATE_ICONS.subnet[selectedPlate.subnetAccess ?? 'private'];
+
+    const altText = selectedPlate.type === 'network'
+      ? 'Virtual Network'
+      : `${selectedPlate.subnetAccess === 'public' ? 'Public' : 'Private'} Subnet`;
+
+    return (
+      <div className={`portrait-panel portrait-panel--plate ${className}`}>
+        <div className="portrait-content">
+          <img src={plateIcon} alt={altText} className="portrait-icon-img" />
+          <span className="portrait-label">{selectedPlate.name}</span>
+        </div>
+        <div className="portrait-badge" style={{ backgroundColor: color }}>
+          {selectedPlate.type}
+        </div>
+      </div>
+    );
+  }
+
+  // Connection selected
+  if (selectedConnection) {
+    return (
+      <div className={`portrait-panel portrait-panel--connection ${className}`}>
+        <div className="portrait-content">
+          <span className="portrait-icon" style={{ color: '#42A5F5' }}>🔗</span>
+          <span className="portrait-label">Connection</span>
+        </div>
+        <div className="portrait-badge" style={{ backgroundColor: '#42A5F5' }}>
+          dataflow
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}

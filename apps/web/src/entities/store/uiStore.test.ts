@@ -9,6 +9,7 @@ describe('useUIStore', () => {
       toolMode: 'select',
       connectionSource: null,
       draggedBlockCategory: null,
+      draggedResourceName: null,
       showBlockPalette: true,
       showProperties: true,
       showValidation: false,
@@ -151,6 +152,55 @@ describe('useUIStore', () => {
       useUIStore.getState().setDraggedBlockCategory('compute');
       useUIStore.getState().setDraggedBlockCategory('database');
       expect(useUIStore.getState().draggedBlockCategory).toBe('database');
+    });
+  });
+
+  describe('setDraggedResourceName', () => {
+    it('should set draggedResourceName to a string value', () => {
+      useUIStore.getState().setDraggedResourceName('VM-Instance');
+      expect(useUIStore.getState().draggedResourceName).toBe('VM-Instance');
+    });
+
+    it('should clear draggedResourceName when given null', () => {
+      useUIStore.getState().setDraggedResourceName('VM-Instance');
+      useUIStore.getState().setDraggedResourceName(null);
+      expect(useUIStore.getState().draggedResourceName).toBe(null);
+    });
+
+    it('should overwrite previous draggedResourceName', () => {
+      useUIStore.getState().setDraggedResourceName('VM-Instance');
+      expect(useUIStore.getState().draggedResourceName).toBe('VM-Instance');
+      useUIStore.getState().setDraggedResourceName('SQL-Database');
+      expect(useUIStore.getState().draggedResourceName).toBe('SQL-Database');
+    });
+  });
+
+  describe('cancelDrag', () => {
+    it('should clear both draggedBlockCategory and draggedResourceName', () => {
+      useUIStore.getState().setDraggedBlockCategory('compute');
+      useUIStore.getState().setDraggedResourceName('VM-Instance');
+      expect(useUIStore.getState().draggedBlockCategory).toBe('compute');
+      expect(useUIStore.getState().draggedResourceName).toBe('VM-Instance');
+      useUIStore.getState().cancelDrag();
+      expect(useUIStore.getState().draggedBlockCategory).toBe(null);
+      expect(useUIStore.getState().draggedResourceName).toBe(null);
+    });
+
+    it('should work when both are already null', () => {
+      expect(useUIStore.getState().draggedBlockCategory).toBe(null);
+      expect(useUIStore.getState().draggedResourceName).toBe(null);
+      useUIStore.getState().cancelDrag();
+      expect(useUIStore.getState().draggedBlockCategory).toBe(null);
+      expect(useUIStore.getState().draggedResourceName).toBe(null);
+    });
+
+    it('should clear draggedResourceName even if draggedBlockCategory is already null', () => {
+      useUIStore.getState().setDraggedResourceName('VM-Instance');
+      expect(useUIStore.getState().draggedBlockCategory).toBe(null);
+      expect(useUIStore.getState().draggedResourceName).toBe('VM-Instance');
+      useUIStore.getState().cancelDrag();
+      expect(useUIStore.getState().draggedBlockCategory).toBe(null);
+      expect(useUIStore.getState().draggedResourceName).toBe(null);
     });
   });
 

@@ -153,3 +153,37 @@ export interface GeneratorPipeline {
     options: GenerationOptions
   ) => GeneratedOutput;
 }
+
+// ─── Azure Region Allowlist ─────────────────────────────────
+
+export const AZURE_REGIONS = [
+  'eastus', 'eastus2', 'westus', 'westus2', 'westus3',
+  'centralus', 'northcentralus', 'southcentralus', 'westcentralus',
+  'canadacentral', 'canadaeast',
+  'brazilsouth',
+  'northeurope', 'westeurope', 'uksouth', 'ukwest',
+  'francecentral', 'francesouth',
+  'germanywestcentral',
+  'norwayeast', 'swedencentral', 'switzerlandnorth',
+  'eastasia', 'southeastasia',
+  'japaneast', 'japanwest',
+  'koreacentral', 'koreasouth',
+  'australiaeast', 'australiasoutheast', 'australiacentral',
+  'centralindia', 'southindia', 'westindia',
+  'uaenorth', 'qatarcentral',
+  'southafricanorth',
+] as const;
+
+export type AzureRegion = typeof AZURE_REGIONS[number];
+
+// ─── IaC Value Sanitization ────────────────────────────────
+
+/** Escape a string for safe interpolation into IaC template literals (HCL, Bicep, TypeScript). */
+export function sanitizeIaCValue(value: string): string {
+  return value.replace(/[\\"'`${}]/g, '');
+}
+
+/** Validate that a region string is in the Azure allowlist. */
+export function isValidAzureRegion(region: string): region is AzureRegion {
+  return (AZURE_REGIONS as readonly string[]).includes(region);
+}

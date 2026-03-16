@@ -13,7 +13,7 @@
   flex-direction: row;
   flex: 1;
   margin-top: 40px; /* MenuBar height */
-  margin-bottom: 32px; /* StatusBar height */
+  margin-bottom: 0;
   overflow: hidden;
 }
 
@@ -21,4 +21,5 @@
   position: relative;
   flex: 1;
   overflow: hidden;
+  padding-bottom: 268px;
 }
