@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140">
+  <g>
+    <polygon points="10,25 10,65 60,90 60,50" fill="#3b004e" />
+    <polygon points="60,50 60,90 110,65 110,25" fill="#550768" />
+    <polygon points="60,0 10,25 60,50 110,25" fill="#7B2D8E" />
+    
+    
+      <g transform="translate(42, 15)">
+        <ellipse cx="0" cy="0" rx="14" ry="7" fill="#7B2D8E" />
+        <path d="M -14 0 L -14 -6 A 14 7 0 0 1 14 -6 L 14 0 A 14 7 0 0 1 -14 0 Z" fill="#48005b" />
+        <ellipse cx="0" cy="-6" rx="14" ry="7" fill="#9446a7" />
+      </g>
+    
+      <g transform="translate(78, 15)">
+        <ellipse cx="0" cy="0" rx="14" ry="7" fill="#7B2D8E" />
+        <path d="M -14 0 L -14 -6 A 14 7 0 0 1 14 -6 L 14 0 A 14 7 0 0 1 -14 0 Z" fill="#48005b" />
+        <ellipse cx="0" cy="-6" rx="14" ry="7" fill="#9446a7" />
+      </g>
+    
+      <g transform="translate(42, 33)">
+        <ellipse cx="0" cy="0" rx="14" ry="7" fill="#7B2D8E" />
+        <path d="M -14 0 L -14 -6 A 14 7 0 0 1 14 -6 L 14 0 A 14 7 0 0 1 -14 0 Z" fill="#48005b" />
+        <ellipse cx="0" cy="-6" rx="14" ry="7" fill="#9446a7" />
+      </g>
+    
+      <g transform="translate(78, 33)">
+        <ellipse cx="0" cy="0" rx="14" ry="7" fill="#7B2D8E" />
+        <path d="M -14 0 L -14 -6 A 14 7 0 0 1 14 -6 L 14 0 A 14 7 0 0 1 -14 0 Z" fill="#48005b" />
+        <ellipse cx="0" cy="-6" rx="14" ry="7" fill="#9446a7" />
+      </g>
+    
+    
+    <g transform="translate(34, 64) skewY(-26.565) scale(0.9)">
+      <text
+        x="0"
+        y="0"
+        fill="#FFFFFF"
+        fill-opacity="0.94"
+        font-family="Fredoka, 'Varela Round', Arial, sans-serif"
+        font-size="9"
+        font-weight="800"
+      >
+        APP GW
+      </text>
+    </g>
+
+    <g transform="translate(85, 57.5) skewY(26.565) scale(0.9)">
+      <g transform="translate(-12, -12)">
+        <path d="M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4zm0 2.18l7 3.12v4.7c0 4.67-2.83 8.94-7 10.02-4.17-1.08-7-5.35-7-10.02v-4.7l7-3.12z" fill="#FFFFFF" fill-opacity="0.9" />
+      </g>
+    </g>
+  
+  </g>
+</svg>

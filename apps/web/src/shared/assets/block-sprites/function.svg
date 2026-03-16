@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140">
+  <g>
+    <polygon points="10,25 10,65 60,90 60,50" fill="#bf4c00" />
+    <polygon points="60,50 60,90 110,65 110,25" fill="#d96600" />
+    <polygon points="60,0 10,25 60,50 110,25" fill="#FF8C00" />
+    
+    
+      <g transform="translate(42, 15)">
+        <ellipse cx="0" cy="0" rx="14" ry="7" fill="#FF8C00" />
+        <path d="M -14 0 L -14 -6 A 14 7 0 0 1 14 -6 L 14 0 A 14 7 0 0 1 -14 0 Z" fill="#cc5900" />
+        <ellipse cx="0" cy="-6" rx="14" ry="7" fill="#ffa519" />
+      </g>
+    
+      <g transform="translate(78, 15)">
+        <ellipse cx="0" cy="0" rx="14" ry="7" fill="#FF8C00" />
+        <path d="M -14 0 L -14 -6 A 14 7 0 0 1 14 -6 L 14 0 A 14 7 0 0 1 -14 0 Z" fill="#cc5900" />
+        <ellipse cx="0" cy="-6" rx="14" ry="7" fill="#ffa519" />
+      </g>
+    
+      <g transform="translate(42, 33)">
+        <ellipse cx="0" cy="0" rx="14" ry="7" fill="#FF8C00" />
+        <path d="M -14 0 L -14 -6 A 14 7 0 0 1 14 -6 L 14 0 A 14 7 0 0 1 -14 0 Z" fill="#cc5900" />
+        <ellipse cx="0" cy="-6" rx="14" ry="7" fill="#ffa519" />
+      </g>
+    
+      <g transform="translate(78, 33)">
+        <ellipse cx="0" cy="0" rx="14" ry="7" fill="#FF8C00" />
+        <path d="M -14 0 L -14 -6 A 14 7 0 0 1 14 -6 L 14 0 A 14 7 0 0 1 -14 0 Z" fill="#cc5900" />
+        <ellipse cx="0" cy="-6" rx="14" ry="7" fill="#ffa519" />
+      </g>
+    
+    
+    <g transform="translate(32, 64) skewY(-26.565) scale(0.9)">
+      <text
+        x="0"
+        y="0"
+        fill="#FFFFFF"
+        fill-opacity="0.94"
+        font-family="Fredoka, 'Varela Round', Arial, sans-serif"
+        font-size="8"
+        font-weight="800"
+      >
+        APP SVC
+      </text>
+    </g>
+
+    <g transform="translate(85, 57.5) skewY(26.565) scale(0.9)">
+      <g transform="translate(-12, -12)">
+        <path d="M7 2v11h3v9l7-12h-4l4-8z" fill="#FFFFFF" fill-opacity="0.9" />
+      </g>
+    </g>
+  
+  </g>
+</svg>

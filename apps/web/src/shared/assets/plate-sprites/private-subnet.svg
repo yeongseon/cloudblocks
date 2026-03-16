@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140">
+  <g>
+    <!-- Left face (dark red) -->
+    <polygon points="10,25 10,45 60,70 60,50" fill="#B71C1C" />
+    <!-- Right face (medium red) -->
+    <polygon points="60,50 60,70 110,45 110,25" fill="#C62828" />
+    <!-- Top face (light red) -->
+    <polygon points="60,0 10,25 60,50 110,25" fill="#E53935" />
+    
+    <!-- Studs on top face -->
+    <g transform="translate(35, 12)">
+      <ellipse cx="0" cy="0" rx="8" ry="4" fill="#E53935" />
+      <path d="M -8 0 L -8 -3 A 8 4 0 0 1 8 -3 L 8 0 A 8 4 0 0 1 -8 0 Z" fill="#B71C1C" />
+      <ellipse cx="0" cy="-3" rx="8" ry="4" fill="#EF5350" />
+    </g>
+    <g transform="translate(55, 22)">
+      <ellipse cx="0" cy="0" rx="8" ry="4" fill="#E53935" />
+      <path d="M -8 0 L -8 -3 A 8 4 0 0 1 8 -3 L 8 0 A 8 4 0 0 1 -8 0 Z" fill="#B71C1C" />
+      <ellipse cx="0" cy="-3" rx="8" ry="4" fill="#EF5350" />
+    </g>
+    <g transform="translate(65, 12)">
+      <ellipse cx="0" cy="0" rx="8" ry="4" fill="#E53935" />
+      <path d="M -8 0 L -8 -3 A 8 4 0 0 1 8 -3 L 8 0 A 8 4 0 0 1 -8 0 Z" fill="#B71C1C" />
+      <ellipse cx="0" cy="-3" rx="8" ry="4" fill="#EF5350" />
+    </g>
+    <g transform="translate(85, 22)">
+      <ellipse cx="0" cy="0" rx="8" ry="4" fill="#E53935" />
+      <path d="M -8 0 L -8 -3 A 8 4 0 0 1 8 -3 L 8 0 A 8 4 0 0 1 -8 0 Z" fill="#B71C1C" />
+      <ellipse cx="0" cy="-3" rx="8" ry="4" fill="#EF5350" />
+    </g>
+    <g transform="translate(45, 32)">
+      <ellipse cx="0" cy="0" rx="8" ry="4" fill="#E53935" />
+      <path d="M -8 0 L -8 -3 A 8 4 0 0 1 8 -3 L 8 0 A 8 4 0 0 1 -8 0 Z" fill="#B71C1C" />
+      <ellipse cx="0" cy="-3" rx="8" ry="4" fill="#EF5350" />
+    </g>
+    <g transform="translate(75, 32)">
+      <ellipse cx="0" cy="0" rx="8" ry="4" fill="#E53935" />
+      <path d="M -8 0 L -8 -3 A 8 4 0 0 1 8 -3 L 8 0 A 8 4 0 0 1 -8 0 Z" fill="#B71C1C" />
+      <ellipse cx="0" cy="-3" rx="8" ry="4" fill="#EF5350" />
+    </g>
+    
+    <!-- Label on left face -->
+    <g transform="translate(14, 52) skewY(-26.565) scale(0.7)">
+      <text
+        x="0"
+        y="0"
+        fill="#FFFFFF"
+        fill-opacity="0.94"
+        font-family="Fredoka, 'Varela Round', Arial, sans-serif"
+        font-size="10"
+        font-weight="800"
+      >
+        PRIVATE
+      </text>
+    </g>
+
+    <!-- Lock icon on right face -->
+    <g transform="translate(82, 48) skewY(26.565) scale(0.7)">
+      <rect x="-7" y="-2" width="14" height="10" rx="2" fill="none" stroke="#FFFFFF" stroke-opacity="0.9" stroke-width="2" />
+      <path d="M -4 -2 L -4 -6 A 4 4 0 0 1 4 -6 L 4 -2" fill="none" stroke="#FFFFFF" stroke-opacity="0.9" stroke-width="2" />
+      <circle cx="0" cy="3" r="2" fill="#FFFFFF" fill-opacity="0.9" />
+    </g>
+  </g>
+</svg>

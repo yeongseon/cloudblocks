@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 140">
+  <defs>
+    <linearGradient id="cloud-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#5EC4FF" />
+      <stop offset="100%" stop-color="#178EEA" />
+    </linearGradient>
+    <linearGradient id="cloud-shadow-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0C63B0" />
+      <stop offset="100%" stop-color="#084B86" />
+    </linearGradient>
+    <linearGradient id="plate-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF3A2A" />
+      <stop offset="100%" stop-color="#D71005" />
+    </linearGradient>
+  </defs>
+
+  <g>
+    <path
+      d="M52 76h73c11.6 0 21-9.4 21-21 0-10-7.1-18.5-16.8-20.5-2.3-13.6-14.1-24-28.3-24-9.7 0-18.5 5-23.5 12.8-3-1-6.1-1.6-9.4-1.6-13.3 0-24.3 9.7-26.4 22.4-11.2 2.2-19.6 12.1-19.6 24 0 10.9 8.9 19.9 19.9 19.9h9.1z"
+      fill="url(#cloud-shadow-grad)"
+      opacity="0.6"
+      transform="translate(0 8)"
+    />
+    <path
+      d="M52 68h73c11.6 0 21-9.4 21-21 0-10-7.1-18.5-16.8-20.5-2.3-13.6-14.1-24-28.3-24-9.7 0-18.5 5-23.5 12.8-3-1-6.1-1.6-9.4-1.6-13.3 0-24.3 9.7-26.4 22.4-11.2 2.2-19.6 12.1-19.6 24 0 10.9 8.9 19.9 19.9 19.9h9.1z"
+      fill="url(#cloud-grad)"
+      stroke="#C9EEFF"
+      stroke-width="2"
+    />
+
+    <rect x="58" y="77" width="64" height="30" rx="6" fill="#B00A00" />
+    <rect x="58" y="73" width="64" height="30" rx="6" fill="url(#plate-grad)" />
+    <circle cx="70" cy="71" r="7" fill="#FF4F43" />
+    <circle cx="110" cy="71" r="7" fill="#FF4F43" />
+
+    <text
+      x="90"
+      y="92"
+      text-anchor="middle"
+      fill="#FFFFFF"
+      font-family="Fredoka, 'Varela Round', Arial, sans-serif"
+      font-size="13"
+      font-weight="800"
+      letter-spacing="0.8"
+    >
+      INTERNET
+    </text>
+  </g>
+</svg>
