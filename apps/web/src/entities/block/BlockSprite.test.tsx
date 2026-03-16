@@ -302,4 +302,125 @@ describe('BlockSprite', () => {
     clearTimeoutSpy.mockRestore();
     vi.useRealTimers();
   });
+
+  it('adds is-valid-target class when in connect mode with valid source→target pair (gateway→compute)', () => {
+    const sourceBlock = makeBlock('block-gateway', 'gateway');
+    const targetBlock = makeBlock('block-compute', 'compute');
+
+    useUIStore.setState({ toolMode: 'connect', connectionSource: sourceBlock.id });
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          blocks: [sourceBlock, targetBlock],
+          connections: [],
+        },
+      },
+    });
+
+    const { container } = render(
+      <BlockSprite block={targetBlock} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+    );
+
+    expect(container.firstElementChild).toHaveClass('is-valid-target');
+  });
+
+  it('adds is-invalid-target class when in connect mode with invalid pair (database→compute)', () => {
+    const sourceBlock = makeBlock('block-database', 'database');
+    const targetBlock = makeBlock('block-compute', 'compute');
+
+    useUIStore.setState({ toolMode: 'connect', connectionSource: sourceBlock.id });
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          blocks: [sourceBlock, targetBlock],
+          connections: [],
+        },
+      },
+    });
+
+    const { container } = render(
+      <BlockSprite block={targetBlock} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+    );
+
+    expect(container.firstElementChild).toHaveClass('is-invalid-target');
+  });
+
+  it('adds is-connected class when in connect mode and block has existing connections', () => {
+    const blockWithConn = makeBlock('block-connected', 'compute');
+    const otherBlock = makeBlock('block-other', 'database');
+
+    useUIStore.setState({ toolMode: 'connect' });
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          blocks: [blockWithConn, otherBlock],
+          connections: [
+            {
+              id: 'conn-1',
+              sourceId: blockWithConn.id,
+              targetId: otherBlock.id,
+              type: 'dataflow',
+              metadata: {},
+            },
+          ],
+        },
+      },
+    });
+
+    const { container } = render(
+      <BlockSprite block={blockWithConn} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+    );
+
+    expect(container.firstElementChild).toHaveClass('is-connected');
+  });
+
+  it('adds is-warning class when block has placement validation error (gateway on private subnet)', () => {
+    const privatePlate: Plate = {
+      id: 'plate-private',
+      name: 'Private Subnet',
+      type: 'subnet',
+      subnetAccess: 'private',
+      parentId: 'net-1',
+      children: [],
+      position: { x: 0, y: 0, z: 0 },
+      size: { width: 6, height: 0.3, depth: 8 },
+      metadata: {},
+    };
+
+    const gatewayBlock = makeBlock('block-gateway-warn', 'gateway');
+
+    const { container } = render(
+      <BlockSprite block={gatewayBlock} parentPlate={privatePlate} screenX={0} screenY={0} zIndex={1} />,
+    );
+
+    expect(container.firstElementChild).toHaveClass('is-warning');
+  });
+
+  it('does not add is-warning class when block is correctly placed (compute on public subnet)', () => {
+    const publicPlate: Plate = {
+      id: 'plate-public',
+      name: 'Public Subnet',
+      type: 'subnet',
+      subnetAccess: 'public',
+      parentId: 'net-1',
+      children: [],
+      position: { x: 0, y: 0, z: 0 },
+      size: { width: 6, height: 0.3, depth: 8 },
+      metadata: {},
+    };
+
+    const computeBlock = makeBlock('block-compute-ok', 'compute');
+
+    const { container } = render(
+      <BlockSprite block={computeBlock} parentPlate={publicPlate} screenX={0} screenY={0} zIndex={1} />,
+    );
+
+    expect(container.firstElementChild).not.toHaveClass('is-warning');
+  });
 });

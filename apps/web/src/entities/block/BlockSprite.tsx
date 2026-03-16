@@ -5,6 +5,7 @@ import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import { screenDeltaToWorld } from '../../shared/utils/isometric';
 import { canConnect } from '../validation/connection';
+import { validatePlacement } from '../validation/placement';
 import './BlockSprite.css';
 
 // Import pre-made sprites
@@ -49,6 +50,7 @@ interface BlockSpriteProps {
 
 export const BlockSprite = memo(function BlockSprite({
   block,
+  parentPlate,
   screenX,
   screenY,
   zIndex,
@@ -85,6 +87,8 @@ export const BlockSprite = memo(function BlockSprite({
   const isAlreadyConnected = connections.some(
     (c) => (c.sourceId === block.id || c.targetId === block.id)
   );
+
+  const hasValidationWarning = validatePlacement(block, parentPlate) !== null;
 
   useEffect(() => {
     if (toolMode === 'delete' || toolMode === 'connect' || !blockRef.current) {
@@ -170,6 +174,7 @@ export const BlockSprite = memo(function BlockSprite({
     isValidConnectTarget && 'is-valid-target',
     isInvalidConnectTarget && 'is-invalid-target',
     isAlreadyConnected && isConnectMode && 'is-connected',
+    hasValidationWarning && !isSelected && !isConnectMode && !isDeleteMode && 'is-warning',
   ]
     .filter(Boolean)
     .join(' ');

@@ -153,7 +153,9 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 | Milestone 4 | Architecture templates — built-in starter templates with gallery | ✅ Complete |
 | Milestone 5 | GitHub integration, backend API | ✅ Complete |
 | Milestone 6 | Multi-generator (Bicep, Pulumi), template marketplace | ✅ Complete |
-| Milestone 6B | Builder UX completion — drag-to-create, onboarding, selection states | 🔲 Next |
+| Milestone 6B | Builder UX completion — drag-to-create, onboarding, selection states | ✅ Complete |
+| Milestone 6C | Learning Mode — guided scenarios, step validation, hint engine | ✅ Complete |
+| Milestone 7 | Collaboration + CI/CD — Git-based teamwork, architecture diffs | 🔲 Next |
 
 ## Contributing
 

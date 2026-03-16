@@ -243,4 +243,31 @@ describe('PlateSprite', () => {
     clearTimeoutSpy.mockRestore();
     vi.useRealTimers();
   });
+
+  it('adds is-drop-target class when dragging valid block category', () => {
+    const plate = makeSubnetPlate('public');
+    useUIStore.setState({ draggedBlockCategory: 'compute' });
+    const { container } = render(<PlateSprite plate={plate} screenX={0} screenY={0} zIndex={1} />);
+
+    expect(container.firstElementChild).toHaveClass('is-drop-target');
+    expect(container.firstElementChild).not.toHaveClass('is-drop-target-invalid');
+  });
+
+  it('adds is-drop-target-invalid class when dragging invalid block category', () => {
+    const plate = makeSubnetPlate('private');
+    useUIStore.setState({ draggedBlockCategory: 'gateway' });
+    const { container } = render(<PlateSprite plate={plate} screenX={0} screenY={0} zIndex={1} />);
+
+    expect(container.firstElementChild).toHaveClass('is-drop-target-invalid');
+    expect(container.firstElementChild).not.toHaveClass('is-drop-target');
+  });
+
+  it('does not add drop-target classes when draggedBlockCategory is null', () => {
+    const plate = makeSubnetPlate('public');
+    useUIStore.setState({ draggedBlockCategory: null });
+    const { container } = render(<PlateSprite plate={plate} screenX={0} screenY={0} zIndex={1} />);
+
+    expect(container.firstElementChild).not.toHaveClass('is-drop-target');
+    expect(container.firstElementChild).not.toHaveClass('is-drop-target-invalid');
+  });
 });

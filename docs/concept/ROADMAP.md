@@ -258,13 +258,13 @@ Features:
 | 3 | Selection Visual States | P3 | Low |
 
 ### Exit Criteria
-- [ ] Resources can be dragged from CommandCard and dropped onto valid subnet plates
-- [ ] Invalid drops are rejected cleanly (no orphaned blocks, no broken state)
-- [ ] Click-to-create continues to work unchanged
-- [ ] Empty canvas shows a "Get Started" message with link to TemplateGallery
-- [ ] Connect mode highlights valid/invalid targets on blocks
-- [ ] All existing tests continue to pass
-- [ ] Build passes (`pnpm build`)
+- [x] Resources can be dragged from CommandCard and dropped onto valid subnet plates
+- [x] Invalid drops are rejected cleanly (no orphaned blocks, no broken state)
+- [x] Click-to-create continues to work unchanged
+- [x] Empty canvas shows a "Get Started" message with link to TemplateGallery
+- [x] Connect mode highlights valid/invalid targets on blocks
+- [x] All existing tests continue to pass
+- [x] Build passes (`pnpm build`)
 
 ### Dependencies
 - Milestone 6 complete
@@ -301,13 +301,13 @@ Features:
 | 6 | App integration + visual feedback | P1 | Low |
 
 ### Exit Criteria
-- [ ] Build/Learn mode switch works from toolbar
-- [ ] 3 scenarios completable end-to-end (beginner → advanced)
-- [ ] Step validation correctly evaluates all 7 rule types
-- [ ] Hints display progressively on idle
-- [ ] Scenario reset-to-checkpoint works
-- [ ] All tests pass, build clean
-- [ ] 90%+ test coverage on learning module
+- [x] Build/Learn mode switch works from toolbar
+- [x] 3 scenarios completable end-to-end (beginner → advanced)
+- [x] Step validation correctly evaluates all 7 rule types
+- [x] Hints display progressively on idle
+- [x] Scenario reset-to-checkpoint works
+- [x] All tests pass, build clean
+- [x] 90%+ test coverage on learning module
 
 ### Dependencies
 - Milestone 6B complete
