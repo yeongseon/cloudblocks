@@ -1,20 +1,21 @@
 .block-palette {
   position: absolute;
+  top: 12px;
+  left: 12px;
   bottom: 12px;
-  left: 50%;
-  width: auto;
-  max-width: 90vw;
+  width: 140px;
   background-color: #FFD500;
   background-image: radial-gradient(circle, #D4B200 4px, transparent 4px);
   background-size: 16px 16px;
   border: 4px solid #D4B200;
   border-radius: 10px;
-  padding: 8px 12px;
+  padding: 8px;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: stretch;
-  gap: 2px;
-  overflow-x: auto;
+  gap: 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
   z-index: 10;
   box-shadow: 
     inset 0 4px 6px rgba(255, 255, 255, 0.4), 
@@ -56,11 +57,11 @@
 /* Sections */
 .build-shelf-section {
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
   position: relative;
-  padding: 8px 4px 4px 4px;
+  padding: 20px 4px 8px 4px;
 }
 
 .build-shelf-label {
@@ -82,14 +83,14 @@
 
 /* Divider */
 .build-shelf-divider {
-  width: 4px;
-  height: auto;
+  width: auto;
+  height: 4px;
   background: #D4B200;
-  margin: 0 6px;
+  margin: 6px 0;
   border-radius: 2px;
   box-shadow: 
-    inset 1px 0 1px rgba(180, 150, 0, 0.6), 
-    1px 0 1px rgba(255, 255, 255, 0.5);
+    inset 0 1px 1px rgba(180, 150, 0, 0.6), 
+    0 1px 1px rgba(255, 255, 255, 0.5);
   align-self: stretch;
 }
 
@@ -97,8 +98,9 @@
 .build-shelf-tools {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   gap: 6px;
-  margin-top: 6px;
+  justify-content: center;
 }
 
 .build-shelf-tool-btn {
@@ -155,9 +157,8 @@
 /* Plates */
 .build-shelf-plates {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   gap: 6px;
-  margin-top: 6px;
 }
 
 .build-shelf-plate-btn {
@@ -165,9 +166,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  width: 80px;
-  height: 48px;
+  gap: 2px;
+  width: 100%;
+  min-height: 60px;
+  padding: 6px 4px;
   background: #FFF9D6;
   border: 2px solid #D4B200;
   border-radius: 8px;
@@ -222,32 +224,50 @@
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.1));
 }
 
+.plate-sprite {
+  width: 50px;
+  height: 40px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.15));
+}
+
+.plate-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
 /* Blocks */
 .palette-items {
   display: flex;
-  flex-direction: row;
-  gap: 6px;
-  margin-top: 6px;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .palette-item {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: flex-end;
-  width: 70px;
-  background: transparent;
+  gap: 8px;
+  width: 100%;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.3);
   border: none;
+  border-radius: 6px;
   cursor: pointer;
-  transition: transform 0.15s;
+  transition: transform 0.15s, background 0.15s;
 }
 
 .palette-item:hover {
-  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.5);
+  transform: translateX(2px);
 }
 
 .palette-item:active {
-  transform: translateY(1px);
+  transform: translateX(0);
+  background: rgba(255, 255, 255, 0.6);
 }
 
 .palette-block-wrapper {

@@ -1,35 +1,55 @@
 import { useRef, useState } from 'react';
 import type { BlockCategory } from '../../shared/types/index';
-import { BLOCK_COLORS, BLOCK_ICONS, BLOCK_SHORT_NAMES } from '../../shared/types/index';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import type { ToolMode } from '../../entities/store/uiStore';
 import { useDraggable } from '../../shared/hooks/useDraggable';
+import gatewaySvg from '../../shared/assets/block-sprites/gateway.svg';
+import computeSvg from '../../shared/assets/block-sprites/compute.svg';
+import databaseSvg from '../../shared/assets/block-sprites/database.svg';
+import storageSvg from '../../shared/assets/block-sprites/storage.svg';
+import functionSvg from '../../shared/assets/block-sprites/function.svg';
+import queueSvg from '../../shared/assets/block-sprites/queue.svg';
+import eventSvg from '../../shared/assets/block-sprites/event.svg';
+import timerSvg from '../../shared/assets/block-sprites/timer.svg';
+import networkPlateSvg from '../../shared/assets/plate-sprites/network.svg';
+import publicSubnetSvg from '../../shared/assets/plate-sprites/public-subnet.svg';
+import privateSubnetSvg from '../../shared/assets/plate-sprites/private-subnet.svg';
 import './BlockPalette.css';
 
 interface PaletteItem {
   category: BlockCategory;
   label: string;
-  icon: string;
   /** Which plate type this block requires */
   plateType: 'subnet' | 'network';
 }
 
 /** Blocks placed on subnet plates */
 const SUBNET_PALETTE_ITEMS: PaletteItem[] = [
-  { category: 'gateway', label: 'App Gateway', icon: BLOCK_ICONS.gateway, plateType: 'subnet' },
-  { category: 'compute', label: 'Virtual Machine', icon: BLOCK_ICONS.compute, plateType: 'subnet' },
-  { category: 'database', label: 'SQL Database', icon: BLOCK_ICONS.database, plateType: 'subnet' },
-  { category: 'storage', label: 'Blob Storage', icon: BLOCK_ICONS.storage, plateType: 'subnet' },
+  { category: 'gateway', label: 'App Gateway', plateType: 'subnet' },
+  { category: 'compute', label: 'Virtual Machine', plateType: 'subnet' },
+  { category: 'database', label: 'SQL Database', plateType: 'subnet' },
+  { category: 'storage', label: 'Blob Storage', plateType: 'subnet' },
 ];
 
 /** Serverless blocks placed on network plates (v1.0) */
 const SERVERLESS_PALETTE_ITEMS: PaletteItem[] = [
-  { category: 'function', label: 'App Service', icon: BLOCK_ICONS.function, plateType: 'network' },
-  { category: 'queue', label: 'Message Queue', icon: BLOCK_ICONS.queue, plateType: 'network' },
-  { category: 'event', label: 'Event Hub', icon: BLOCK_ICONS.event, plateType: 'network' },
-  { category: 'timer', label: 'Timer', icon: BLOCK_ICONS.timer, plateType: 'network' },
+  { category: 'function', label: 'App Service', plateType: 'network' },
+  { category: 'queue', label: 'Message Queue', plateType: 'network' },
+  { category: 'event', label: 'Event Hub', plateType: 'network' },
+  { category: 'timer', label: 'Timer', plateType: 'network' },
 ];
+
+const BLOCK_SPRITES: Record<BlockCategory, string> = {
+  gateway: gatewaySvg,
+  compute: computeSvg,
+  database: databaseSvg,
+  storage: storageSvg,
+  function: functionSvg,
+  queue: queueSvg,
+  event: eventSvg,
+  timer: timerSvg,
+};
 
 const ALL_PALETTE_ITEMS: PaletteItem[] = [
   ...SUBNET_PALETTE_ITEMS,
@@ -145,13 +165,16 @@ export function BlockPalette() {
         <div className="build-shelf-label">PLATES</div>
         <div className="build-shelf-plates">
           <button type="button" className="build-shelf-plate-btn" onClick={handleAddNetwork}>
-            <span className="plate-icon">🌐</span> Network
+            <img src={networkPlateSvg} alt="Network" className="plate-sprite" draggable={false} />
+            <span className="plate-label">Network</span>
           </button>
           <button type="button" className="build-shelf-plate-btn plate-public" onClick={handleAddPublicSubnet}>
-            <span className="plate-icon">🟢</span> Public
+            <img src={publicSubnetSvg} alt="Public Subnet" className="plate-sprite" draggable={false} />
+            <span className="plate-label">Public</span>
           </button>
           <button type="button" className="build-shelf-plate-btn plate-private" onClick={handleAddPrivateSubnet}>
-            <span className="plate-icon">🔴</span> Private
+            <img src={privateSubnetSvg} alt="Private Subnet" className="plate-sprite" draggable={false} />
+            <span className="plate-label">Private</span>
           </button>
         </div>
       </div>
@@ -166,21 +189,15 @@ export function BlockPalette() {
               key={item.category}
               type="button"
               className="palette-item"
-              style={{ '--block-color': BLOCK_COLORS[item.category] } as React.CSSProperties}
               onClick={() => handleAddBlock(item)}
               title={`Add ${item.label} block${item.plateType === 'network' ? ' (on Network)' : ''}`}
             >
-              <div className="palette-block-wrapper">
-                <div className="palette-studs">
-                  <span className="palette-stud" />
-                  <span className="palette-stud" />
-                  <span className="palette-stud" />
-                  <span className="palette-stud" />
-                </div>
-                <div className="palette-block-face">
-                  <span className="palette-icon">{BLOCK_SHORT_NAMES[item.category]}</span>
-                </div>
-              </div>
+              <img
+                src={BLOCK_SPRITES[item.category]}
+                alt={item.label}
+                className="palette-sprite"
+                draggable={false}
+              />
               <span className="palette-label">{item.label}</span>
             </button>
           ))}
