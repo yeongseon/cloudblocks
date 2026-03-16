@@ -1,0 +1,314 @@
+.learning-panel-container {
+  position: absolute;
+  right: 16px;
+  top: 60px;
+  width: 320px;
+  max-height: calc(100vh - 120px);
+  z-index: 15;
+  background: #FFFDF0;
+  border: 4px solid #FFC83D;
+  border-radius: 8px;
+  color: #3D2600;
+  font-family: 'Varela Round', system-ui, sans-serif;
+  box-shadow: 0 8px 0 0 rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.learning-panel-header {
+  padding: 16px;
+  border-bottom: 4px solid #FFC83D;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #FFFAEB;
+  border-radius: 4px 4px 0 0;
+}
+
+.learning-panel-title {
+  margin: 0;
+  font-weight: 800;
+  font-size: 1.25rem;
+  text-shadow: 1px 2px 0 rgba(255, 200, 61, 0.4);
+}
+
+.learning-panel-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #3D2600;
+  font-weight: 800;
+  padding: 0 4px;
+}
+
+.learning-panel-close-btn:hover {
+  color: #FF5E00;
+}
+
+.learning-panel-content {
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+
+.learning-panel-card {
+  background: #FFFFFF;
+  border: 4px solid #FFE4A0;
+  border-radius: 8px;
+  box-shadow: 0 4px 0 0 rgba(0,0,0,0.1);
+  padding: 16px;
+}
+
+.learning-panel-card-title {
+  margin: 0 0 8px 0;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.learning-panel-card-text {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+/* Step Progress */
+.step-progress-container {
+  margin-bottom: 8px;
+}
+
+.step-progress-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.step-progress-line {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  right: 12px;
+  height: 4px;
+  background: #FFE4A0;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.step-progress-node {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  border: 4px solid #C7C7CC;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #C7C7CC;
+}
+
+.step-progress-node.completed {
+  background: #34C759;
+  border-color: #248A3D;
+  color: #FFFFFF;
+}
+
+.step-progress-node.active {
+  border-color: #FF5E00;
+  color: #FF5E00;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(255, 94, 0, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(255, 94, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 94, 0, 0); }
+}
+
+.step-progress-title {
+  font-weight: 800;
+  font-size: 0.9rem;
+  text-align: center;
+  margin: 0;
+  color: #FF5E00;
+}
+
+/* Validation Checklist */
+.validation-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.validation-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.validation-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.validation-icon.pass {
+  background: #34C759;
+  color: white;
+}
+
+.validation-icon.fail {
+  background: #FF9500;
+  color: white;
+}
+
+/* Hint Popup */
+.hint-popup-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hint-popup-card {
+  background: #FFF9E6;
+  border-left: 6px solid #FF9500;
+  border-radius: 4px;
+  padding: 12px;
+  animation: slideDownFade 0.3s ease-out forwards;
+}
+
+@keyframes slideDownFade {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hint-popup-title {
+  font-weight: 800;
+  color: #FF9500;
+  margin: 0 0 4px 0;
+  font-size: 0.9rem;
+}
+
+.hint-popup-text {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Buttons */
+.learning-panel-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.learning-panel-btn {
+  background: #FFFFFF;
+  border: 4px solid #FFC83D;
+  border-radius: 8px;
+  color: #3D2600;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 1rem;
+  padding: 12px;
+  cursor: pointer;
+  box-shadow: inset 0 -4px 0 rgba(0,0,0,0.1), 0 4px 0 0 rgba(0,0,0,0.1);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.learning-panel-btn:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: inset 0 0 0 rgba(0,0,0,0.1), 0 0 0 0 rgba(0,0,0,0.1);
+}
+
+.learning-panel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: translateY(4px);
+  box-shadow: inset 0 0 0 rgba(0,0,0,0.1), 0 0 0 0 rgba(0,0,0,0.1);
+}
+
+.learning-panel-btn.primary {
+  background: #FF5E00;
+  border-color: #D94B00;
+  color: #FFFFFF;
+  box-shadow: inset 0 -4px 0 rgba(0,0,0,0.2), 0 4px 0 0 rgba(0,0,0,0.15);
+}
+
+/* Completion Screen */
+.completion-screen {
+  text-align: center;
+  padding: 32px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  border: 8px solid #34C759;
+  border-radius: 8px;
+  background: #FFFFFF;
+  margin: 16px;
+}
+
+.completion-icon {
+  font-size: 4rem;
+  margin: 0;
+  animation: bounce 1s infinite alternate;
+}
+
+@keyframes bounce {
+  from { transform: translateY(0); }
+  to { transform: translateY(-10px); }
+}
+
+.completion-title {
+  color: #248A3D;
+  font-weight: 800;
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.completion-stats {
+  background: #F2F2F7;
+  padding: 16px;
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.completion-stat-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.completion-stat-item:last-child {
+  margin-bottom: 0;
+}
+
+.completion-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-top: 16px;
+}

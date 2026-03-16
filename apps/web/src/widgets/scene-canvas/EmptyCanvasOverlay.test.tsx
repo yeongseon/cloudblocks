@@ -10,7 +10,7 @@ vi.mock('../../entities/store/uiStore');
 const mockAddPlate = vi.fn();
 const mockToggleTemplateGallery = vi.fn();
 
-function setupMocks(plateCount: number) {
+function setupMocks(plateCount: number, showTemplateGallery = false) {
   const plates = Array.from({ length: plateCount }, (_, i) => ({
     id: `plate-${i}`,
     name: `Plate ${i}`,
@@ -31,7 +31,10 @@ function setupMocks(plateCount: number) {
   }) as typeof useArchitectureStore);
 
   vi.mocked(useUIStore).mockImplementation(((selector: unknown) => {
-    const state = { toggleTemplateGallery: mockToggleTemplateGallery };
+    const state = {
+      showTemplateGallery,
+      toggleTemplateGallery: mockToggleTemplateGallery,
+    };
     return (selector as (s: typeof state) => unknown)(state);
   }) as typeof useUIStore);
 }
@@ -43,6 +46,12 @@ describe('EmptyCanvasOverlay', () => {
 
   it('renders nothing when plates exist', () => {
     setupMocks(1);
+    const { container } = render(<EmptyCanvasOverlay />);
+    expect(container.firstChild).toBeNull();
+  });
+
+  it('renders nothing when template gallery is open', () => {
+    setupMocks(0, true);
     const { container } = render(<EmptyCanvasOverlay />);
     expect(container.firstChild).toBeNull();
   });

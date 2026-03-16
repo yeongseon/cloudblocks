@@ -4,10 +4,11 @@ import './EmptyCanvasOverlay.css';
 
 export function EmptyCanvasOverlay() {
   const plates = useArchitectureStore((s) => s.workspace.architecture.plates);
+  const showTemplateGallery = useUIStore((s) => s.showTemplateGallery);
   const addPlate = useArchitectureStore((s) => s.addPlate);
   const toggleTemplateGallery = useUIStore((s) => s.toggleTemplateGallery);
 
-  if (plates.length > 0) return null;
+  if (plates.length > 0 || showTemplateGallery) return null;
 
   return (
     <div className="empty-canvas-overlay">
