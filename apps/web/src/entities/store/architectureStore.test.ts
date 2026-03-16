@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { ArchitectureModel } from '../../shared/types/index';
+import type { ArchitectureSnapshot } from '../../shared/types/learning';
 import type { ArchitectureTemplate } from '../../shared/types/template';
 
 // Mock uuid before importing the store
@@ -1241,6 +1242,104 @@ describe('architectureStore', () => {
 
       getState().loadFromTemplate(template);
       expect(getState().canUndo).toBe(false);
+    });
+  });
+
+  describe('replaceArchitecture', () => {
+    it('replaces architecture content while preserving workspace id and createdAt', () => {
+      getState().addPlate('network', 'Original Network', null);
+
+      const initialArch = getArch();
+      const snapshot: ArchitectureSnapshot = {
+        name: 'Checkpoint Architecture',
+        version: '1',
+        plates: [
+          {
+            id: 'snap-plate-1',
+            name: 'Snap Network',
+            type: 'network',
+            parentId: null,
+            children: ['snap-block-1'],
+            position: { x: 1, y: 0, z: 2 },
+            size: { width: 12, height: 0.3, depth: 10 },
+            metadata: {},
+          },
+        ],
+        blocks: [
+          {
+            id: 'snap-block-1',
+            name: 'Snap VM',
+            category: 'compute',
+            placementId: 'snap-plate-1',
+            position: { x: 0, y: 0.5, z: 0 },
+            metadata: {},
+          },
+        ],
+        connections: [
+          {
+            id: 'snap-conn-1',
+            sourceId: 'snap-block-1',
+            targetId: 'snap-plate-1',
+            type: 'dataflow',
+            metadata: {},
+          },
+        ],
+        externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+      };
+
+      vi.setSystemTime(new Date('2025-01-02T00:00:00Z'));
+      getState().replaceArchitecture(snapshot);
+
+      const replaced = getArch();
+      expect(replaced.id).toBe(initialArch.id);
+      expect(replaced.createdAt).toBe(initialArch.createdAt);
+      expect(replaced.updatedAt).not.toBe(initialArch.updatedAt);
+      expect(replaced.plates).toEqual(snapshot.plates);
+      expect(replaced.blocks).toEqual(snapshot.blocks);
+      expect(replaced.connections).toEqual(snapshot.connections);
+    });
+
+    it('pushes history (undo restores previous architecture)', () => {
+      getState().addPlate('network', 'Original Network', null);
+      const networkId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Original Subnet', networkId, 'public');
+      const subnetId = getArch().plates[1].id;
+      getState().addBlock('compute', 'Original VM', subnetId);
+
+      const beforeReplace = JSON.parse(JSON.stringify(getArch())) as ArchitectureModel;
+      const snapshot: ArchitectureSnapshot = {
+        name: 'Checkpoint',
+        version: '1',
+        plates: [],
+        blocks: [],
+        connections: [],
+        externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+      };
+
+      getState().replaceArchitecture(snapshot);
+      expect(getArch().plates).toHaveLength(0);
+
+      getState().undo();
+      expect(getArch()).toEqual(beforeReplace);
+    });
+
+    it('invalidates validation result', () => {
+      getState().addPlate('network', 'Original Network', null);
+      const validated = getState().validate();
+      expect(validated.valid).toBe(true);
+      expect(getState().validationResult).not.toBeNull();
+
+      const snapshot: ArchitectureSnapshot = {
+        name: 'Checkpoint',
+        version: '1',
+        plates: [],
+        blocks: [],
+        connections: [],
+        externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+      };
+
+      getState().replaceArchitecture(snapshot);
+      expect(getState().validationResult).toBeNull();
     });
   });
 

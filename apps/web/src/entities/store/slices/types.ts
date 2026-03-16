@@ -7,6 +7,7 @@ import type {
   ValidationResult,
   Workspace,
 } from '../../../shared/types/index';
+import type { ArchitectureSnapshot } from '../../../shared/types/learning';
 import type { ArchitectureTemplate } from '../../../shared/types/template';
 
 export interface ArchitectureState {
@@ -51,6 +52,7 @@ export interface ArchitectureState {
   importArchitecture: (json: string) => void;
   exportArchitecture: () => string;
   loadFromTemplate: (template: ArchitectureTemplate) => void;
+  replaceArchitecture: (snapshot: ArchitectureSnapshot) => void;
 }
 
 export type ArchitectureSlice<T> = StateCreator<ArchitectureState, [], [], T>;

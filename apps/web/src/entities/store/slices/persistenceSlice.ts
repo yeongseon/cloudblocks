@@ -4,6 +4,7 @@ import type {
   PlateType,
   Workspace,
 } from '../../../shared/types/index';
+import type { ArchitectureSnapshot } from '../../../shared/types/learning';
 import { saveWorkspaces, loadWorkspaces } from '../../../shared/utils/storage';
 import { generateId } from '../../../shared/utils/id';
 import type { ArchitectureSlice, ArchitectureState } from './types';
@@ -12,6 +13,7 @@ import {
   resetTransientState,
   touchModel,
   upsertCurrentWorkspace,
+  withHistory,
 } from './helpers';
 
 const MAX_IMPORT_SIZE_BYTES = 5 * 1024 * 1024;
@@ -230,6 +232,7 @@ type PersistenceSlice = Pick<
   | 'importArchitecture'
   | 'exportArchitecture'
   | 'loadFromTemplate'
+  | 'replaceArchitecture'
 >;
 
 export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
@@ -351,6 +354,21 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
       workspace: newWorkspace,
       workspaces: updatedList,
       ...resetTransientState(),
+    });
+  },
+
+  replaceArchitecture: (snapshot: ArchitectureSnapshot) => {
+    const state = get();
+    const now = new Date().toISOString();
+    const newArch: ArchitectureModel = {
+      ...JSON.parse(JSON.stringify(snapshot)),
+      id: state.workspace.architecture.id,
+      createdAt: state.workspace.architecture.createdAt,
+      updatedAt: now,
+    };
+
+    set({
+      ...withHistory(state, newArch),
     });
   },
 });
