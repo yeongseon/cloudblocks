@@ -7,52 +7,80 @@
   display: flex;
   align-items: center;
   padding: 0 16px;
-  background: #FCFCFC;
-  box-shadow: 0 3px 0 0 #E0E0E0, 0 8px 16px rgba(0,0,0,0.05);
+  background-color: #E3000B;
+  background-image: 
+    radial-gradient(#B80009 20%, transparent 20%), 
+    radial-gradient(#FF3333 20%, transparent 20%);
+  background-size: 10px 10px;
+  background-position: 0 0, 5px 5px;
+  box-shadow: 
+    inset 0 3px 0 0 rgba(255, 255, 255, 0.4),
+    0 4px 0 0 #B80009, 
+    0 6px 12px rgba(0, 0, 0, 0.15);
+  border-bottom: 3px solid #B80009;
   z-index: 100;
-  font-family: 'Varela Round', system-ui, sans-serif;
+  font-family: 'Fredoka', system-ui, sans-serif;
   gap: 16px;
   user-select: none;
 }
 
 .menu-bar-logo {
-  font-size: 16px;
-  font-weight: 800;
-  color: var(--roblox-primary);
+  font-size: 18px;
+  font-weight: 900;
+  color: #FFFFFF;
   white-space: nowrap;
-  letter-spacing: 0.5px;
-  text-shadow: 0 2px 0 rgba(0, 120, 212, 0.2);
+  letter-spacing: 1px;
+  text-shadow: 
+    -1px -1px 0 #FFD500,  
+     1px -1px 0 #FFD500,
+    -1px  1px 0 #FFD500,
+     1px  1px 0 #FFD500,
+     2px  3px 0 #D4B200;
   display: flex;
   align-items: center;
 }
 
 .menu-bar-divider {
-  width: 1px;
+  width: 3px;
   height: 24px;
-  background: #E2E8F0;
+  background: #B80009;
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.3);
   margin: 0 4px;
+  border-radius: 2px;
 }
 
 
 .workspace-pill {
   padding: 4px 12px;
-  background: #F0F4F8;
-  border: 1px solid #E2E8F0;
-  border-radius: var(--radius-pill);
-  color: #334155;
-  font-size: 12px;
-  font-weight: 700;
+  background: #FFD500;
+  border: 3px solid #D4B200;
+  border-radius: 8px;
+  color: #222;
+  font-size: 13px;
+  font-weight: 800;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 2px 0 0 #CBD5E1;
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.5),
+    0 4px 0 0 #D4B200;
+  text-transform: uppercase;
 }
 
 .workspace-pill:hover {
-  background: #F8FAFC;
-  transform: translateY(-1px);
-  box-shadow: 0 3px 0 0 #CBD5E1;
-  color: #0F172A;
+  background: #FFE44D;
+  transform: translateY(-2px);
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.6),
+    0 6px 0 0 #D4B200;
+  color: #000;
+}
+
+.workspace-pill:active {
+  transform: translateY(3px);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 1px 0 0 #D4B200;
 }
 
 
@@ -71,23 +99,41 @@
 
 .menu-trigger {
   padding: 4px 10px;
-  background: transparent;
-  border: none;
-  color: #475569;
+  background: #FFD500;
+  border: 3px solid #D4B200;
+  color: #222;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
-  border-radius: var(--radius-item);
-  transition: all 0.15s ease;
-  height: 28px;
+  border-radius: 8px;
+  transition: all 0.1s ease;
+  height: 32px;
   display: flex;
   align-items: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.5),
+    0 3px 0 0 #D4B200;
 }
 
 .menu-trigger:hover,
 .menu-trigger[data-active="true"] {
-  background: #E2E8F0;
-  color: #0F172A;
+  background: #FFE44D;
+  border-color: #D4B200;
+  color: #000;
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.6),
+    0 4px 0 0 #D4B200;
+  transform: translateY(-1px);
+}
+
+.menu-trigger:active,
+.menu-trigger[data-active="true"]:active {
+  transform: translateY(2px);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 1px 0 0 #D4B200;
 }
 
 .menu-dropdown {
@@ -95,13 +141,17 @@
   top: 100%;
   left: 0;
   min-width: 200px;
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: var(--radius-item);
-  padding: 4px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 0 0 #CBD5E1;
+  background: #FFFDE7;
+  border: 4px solid #FFD500;
+  border-radius: 10px;
+  padding: 8px;
+  box-shadow: 
+    0 8px 0 0 #D4B200,
+    0 12px 24px rgba(0, 0, 0, 0.2);
   display: none;
   flex-direction: column;
+  margin-top: 8px;
+  z-index: 1000;
 }
 
 .menu-dropdown.show {
@@ -119,23 +169,36 @@
   justify-content: space-between;
   padding: 8px 12px;
   background: transparent;
-  border: none;
-  border-radius: calc(var(--radius-item) - 2px);
-  color: #334155;
-  font-size: 13px;
-  font-weight: 600;
+  border: 3px solid transparent;
+  border-radius: 8px;
+  color: #333;
+  font-size: 14px;
+  font-weight: 800;
   cursor: pointer;
   text-align: left;
-  transition: background 0.1s ease, color 0.1s ease;
+  transition: all 0.1s ease;
+  margin-bottom: 4px;
 }
 
 .menu-item:hover:not(:disabled) {
-  background: var(--roblox-primary);
-  color: #FFFFFF;
+  background: #FFD500;
+  border-color: #D4B200;
+  color: #000;
+  box-shadow: 
+    inset 0 2px 0 rgba(255, 255, 255, 0.5),
+    0 3px 0 0 #D4B200;
+  transform: translateY(-1px);
+}
+
+.menu-item:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 0 0 0 #D4B200;
 }
 
 .menu-item:hover:not(:disabled) .menu-shortcut {
-  color: #E0F2FE;
+  color: #554800;
 }
 
 .menu-item:disabled {
@@ -151,14 +214,15 @@
 
 .menu-shortcut {
   font-size: 11px;
-  color: #94A3B8;
-  font-weight: 500;
+  color: #8A7500;
+  font-weight: 800;
 }
 
 .menu-separator {
-  height: 1px;
-  background: #E2E8F0;
-  margin: 4px 0;
+  height: 3px;
+  background: #FFD500;
+  margin: 6px 0;
+  border-radius: 2px;
 }
 
 
@@ -170,35 +234,47 @@
 }
 
 .quick-btn {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #FFFFFF;
-  border: 2px solid transparent;
-  border-radius: 6px;
-  color: #334155;
+  background: #FFD500;
+  border: 3px solid #D4B200;
+  border-radius: 8px;
+  color: #222;
   font-size: 14px;
   cursor: pointer;
   transition: all 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 2px 0 0 #CBD5E1;
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.5),
+    0 3px 0 0 #D4B200;
 }
 
 .quick-btn:hover:not(:disabled) {
-  background: #F8FAFC;
+  background: #FFE44D;
   transform: translateY(-2px);
-  box-shadow: 0 4px 0 0 #CBD5E1;
-  color: #0F172A;
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.6),
+    0 5px 0 0 #D4B200;
+  color: #000;
+}
+
+.quick-btn:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 
+    inset 0 1px 0 rgba(255,255,255,0.3),
+    0 1px 0 0 #D4B200;
 }
 
 .quick-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  box-shadow: 0 1px 0 0 #E2E8F0;
-  transform: translateY(1px);
-  background: #F1F5F9;
-  color: #94A3B8;
+  box-shadow: 0 1px 0 0 #B80009;
+  transform: translateY(2px);
+  background: #E3000B;
+  border-color: #B80009;
+  color: #FF3333;
 }
 
 
@@ -210,44 +286,62 @@
 
 .github-btn {
   padding: 4px 12px;
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
-  border-radius: var(--radius-pill);
-  color: #475569;
-  font-size: 12px;
-  font-weight: 700;
+  background: #E3000B;
+  border: 3px solid #B80009;
+  border-radius: 8px;
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 800;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 2px 0 0 #CBD5E1;
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.4),
+    0 4px 0 0 #B80009;
   display: flex;
   align-items: center;
   gap: 6px;
+  text-transform: uppercase;
 }
 
 .github-btn:hover {
-  background: #FFFFFF;
-  border-color: #64748B;
-  color: #0F172A;
-  transform: translateY(-1px);
-  box-shadow: 0 3px 0 0 #64748B;
+  background: #FF3333;
+  color: #FFFFFF;
+  transform: translateY(-2px);
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.5),
+    0 6px 0 0 #B80009;
+}
+
+.github-btn:active {
+  transform: translateY(3px);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 1px 0 0 #B80009;
 }
 
 
 .menu-badge {
   padding: 2px 8px;
-  border-radius: var(--radius-pill);
+  border-radius: 6px;
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 900;
   margin-left: 8px;
+  text-transform: uppercase;
+  border: 2px solid rgba(0,0,0,0.1);
+  box-shadow: 0 2px 0 rgba(0,0,0,0.1);
 }
 
 .menu-badge-valid {
-  background: #DCFCE7;
-  color: #16A34A;
+  background: #00852B;
+  color: #FFF;
+  border-color: #00591D;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), 0 3px 0 0 #00591D;
 }
 
 .menu-badge-invalid {
-  background: #FEE2E2;
-  color: #DC2626;
+  background: #E3000B;
+  color: #FFF;
+  border-color: #B80009;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), 0 3px 0 0 #B80009;
 }
