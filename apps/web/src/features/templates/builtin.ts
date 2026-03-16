@@ -563,6 +563,237 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
   },
 };
 
+const fullStackServerlessTemplate: ArchitectureTemplate = {
+  id: 'template-full-stack-serverless',
+  name: 'Full-Stack Serverless with Event Processing',
+  description:
+    'Maximum-complexity architecture using all block types. Internet traffic enters via Gateway ' +
+    'to a Compute frontend and serverless API Function. Events, Queues, and Timers drive ' +
+    'background processing Functions. Data flows to Database and Storage in the private subnet. ' +
+    'Tests all 8 block categories, both subnet types, and 11 connections.',
+  category: 'serverless',
+  difficulty: 'advanced',
+  tags: [
+    'full-stack', 'serverless', 'event-driven', 'queue', 'timer',
+    'function', 'compute', 'gateway', 'database', 'storage', 'advanced',
+  ],
+  generatorCompat: ['terraform', 'bicep', 'pulumi'],
+  architecture: {
+    name: 'Full-Stack Serverless',
+    version: '1',
+    plates: [
+      {
+        id: 'plate-fs-vnet',
+        name: 'VNet',
+        type: 'network',
+        parentId: null,
+        children: ['plate-fs-public', 'plate-fs-private'],
+        position: { x: 0, y: 0, z: 0 },
+        size: { width: 12, height: 0.3, depth: 10 },
+        metadata: {},
+      },
+      {
+        id: 'plate-fs-public',
+        name: 'Public Subnet',
+        type: 'subnet',
+        subnetAccess: 'public',
+        parentId: 'plate-fs-vnet',
+        children: ['block-fs-gw', 'block-fs-web'],
+        position: { x: -3, y: 0.3, z: 0 },
+        size: { width: 5, height: 0.2, depth: 8 },
+        metadata: {},
+      },
+      {
+        id: 'plate-fs-private',
+        name: 'Private Subnet',
+        type: 'subnet',
+        subnetAccess: 'private',
+        parentId: 'plate-fs-vnet',
+        children: ['block-fs-db', 'block-fs-storage'],
+        position: { x: 3, y: 0.3, z: 0 },
+        size: { width: 5, height: 0.2, depth: 8 },
+        metadata: {},
+      },
+    ],
+    blocks: [
+      // Public Subnet
+      {
+        id: 'block-fs-gw',
+        name: 'API Gateway',
+        category: 'gateway',
+        placementId: 'plate-fs-public',
+        position: { x: -0.75, y: 0.5, z: -1.5 },
+        metadata: {},
+      },
+      {
+        id: 'block-fs-web',
+        name: 'Web Frontend',
+        category: 'compute',
+        placementId: 'plate-fs-public',
+        position: { x: 0.75, y: 0.5, z: -1.5 },
+        metadata: {},
+      },
+      // Private Subnet
+      {
+        id: 'block-fs-db',
+        name: 'PostgreSQL',
+        category: 'database',
+        placementId: 'plate-fs-private',
+        position: { x: -0.75, y: 0.5, z: -1.5 },
+        metadata: {},
+      },
+      {
+        id: 'block-fs-storage',
+        name: 'Blob Storage',
+        category: 'storage',
+        placementId: 'plate-fs-private',
+        position: { x: 0.75, y: 0.5, z: -1.5 },
+        metadata: {},
+      },
+      // Serverless (Network Plate)
+      {
+        id: 'block-fs-api',
+        name: 'API Handler',
+        category: 'function',
+        placementId: 'plate-fs-vnet',
+        position: { x: -2, y: 0.5, z: 2 },
+        metadata: {},
+      },
+      {
+        id: 'block-fs-worker',
+        name: 'Queue Worker',
+        category: 'function',
+        placementId: 'plate-fs-vnet',
+        position: { x: 0, y: 0.5, z: 2 },
+        metadata: {},
+      },
+      {
+        id: 'block-fs-batch',
+        name: 'Batch Processor',
+        category: 'function',
+        placementId: 'plate-fs-vnet',
+        position: { x: 2, y: 0.5, z: 2 },
+        metadata: {},
+      },
+      {
+        id: 'block-fs-queue',
+        name: 'Message Queue',
+        category: 'queue',
+        placementId: 'plate-fs-vnet',
+        position: { x: -1, y: 0.5, z: -2 },
+        metadata: {},
+      },
+      {
+        id: 'block-fs-event',
+        name: 'Event Source',
+        category: 'event',
+        placementId: 'plate-fs-vnet',
+        position: { x: 1, y: 0.5, z: -2 },
+        metadata: {},
+      },
+      {
+        id: 'block-fs-timer',
+        name: 'Cron Timer',
+        category: 'timer',
+        placementId: 'plate-fs-vnet',
+        position: { x: 3, y: 0.5, z: -2 },
+        metadata: {},
+      },
+    ],
+    connections: [
+      // Internet → Gateway
+      {
+        id: 'conn-fs-inet-gw',
+        sourceId: 'ext-internet',
+        targetId: 'block-fs-gw',
+        type: 'dataflow',
+        metadata: {},
+      },
+      // Gateway → Compute (web frontend)
+      {
+        id: 'conn-fs-gw-web',
+        sourceId: 'block-fs-gw',
+        targetId: 'block-fs-web',
+        type: 'dataflow',
+        metadata: {},
+      },
+      // Gateway → Function (API handler)
+      {
+        id: 'conn-fs-gw-api',
+        sourceId: 'block-fs-gw',
+        targetId: 'block-fs-api',
+        type: 'dataflow',
+        metadata: {},
+      },
+      // Compute → Database
+      {
+        id: 'conn-fs-web-db',
+        sourceId: 'block-fs-web',
+        targetId: 'block-fs-db',
+        type: 'dataflow',
+        metadata: {},
+      },
+      // Compute → Storage
+      {
+        id: 'conn-fs-web-storage',
+        sourceId: 'block-fs-web',
+        targetId: 'block-fs-storage',
+        type: 'dataflow',
+        metadata: {},
+      },
+      // Function (API) → Database
+      {
+        id: 'conn-fs-api-db',
+        sourceId: 'block-fs-api',
+        targetId: 'block-fs-db',
+        type: 'dataflow',
+        metadata: {},
+      },
+      // Function (API) → Queue
+      {
+        id: 'conn-fs-api-queue',
+        sourceId: 'block-fs-api',
+        targetId: 'block-fs-queue',
+        type: 'dataflow',
+        metadata: {},
+      },
+      // Queue → Function (worker)
+      {
+        id: 'conn-fs-queue-worker',
+        sourceId: 'block-fs-queue',
+        targetId: 'block-fs-worker',
+        type: 'dataflow',
+        metadata: {},
+      },
+      // Event → Function (batch processor)
+      {
+        id: 'conn-fs-event-batch',
+        sourceId: 'block-fs-event',
+        targetId: 'block-fs-batch',
+        type: 'dataflow',
+        metadata: {},
+      },
+      // Timer → Function (batch processor)
+      {
+        id: 'conn-fs-timer-batch',
+        sourceId: 'block-fs-timer',
+        targetId: 'block-fs-batch',
+        type: 'dataflow',
+        metadata: {},
+      },
+      // Function (worker) → Storage
+      {
+        id: 'conn-fs-worker-storage',
+        sourceId: 'block-fs-worker',
+        targetId: 'block-fs-storage',
+        type: 'dataflow',
+        metadata: {},
+      },
+    ],
+    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+  },
+};
+
 /**
  * Initialize all built-in templates.
  * Call this once at app startup.
@@ -573,4 +804,5 @@ export function registerBuiltinTemplates(): void {
   registerTemplate(dataStorageTemplate);
   registerTemplate(serverlessHttpApiTemplate);
   registerTemplate(eventDrivenPipelineTemplate);
+  registerTemplate(fullStackServerlessTemplate);
 }

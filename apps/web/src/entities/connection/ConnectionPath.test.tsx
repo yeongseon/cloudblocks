@@ -128,4 +128,62 @@ describe('ConnectionPath', () => {
     expect(paths[0]?.getAttribute('marker-end')).toBe('url(#arrow-conn-1-bg)');
     expect(paths[1]?.getAttribute('marker-end')).toBe('url(#arrow-conn-1)');
   });
+
+  it('uses userSpaceOnUse markerUnits for consistent arrow sizing', () => {
+    vi.mocked(getEndpointWorldPosition)
+      .mockReturnValueOnce([1, 0, 2])
+      .mockReturnValueOnce([3, 0, 4]);
+
+    vi.mocked(worldToScreen)
+      .mockReturnValueOnce({ x: 100, y: 100 })
+      .mockReturnValueOnce({ x: 200, y: 200 });
+
+    const { container } = render(
+      <svg aria-label="connection-path">
+        <title>Connection path</title>
+        <ConnectionPath
+          connection={connection}
+          blocks={[]}
+          plates={[]}
+          externalActors={[]}
+          originX={0}
+          originY={0}
+        />
+      </svg>,
+    );
+
+    const bgMarker = container.querySelector('marker#arrow-conn-1-bg');
+    const fgMarker = container.querySelector('marker#arrow-conn-1');
+
+    expect(bgMarker?.getAttribute('markerUnits')).toBe('userSpaceOnUse');
+    expect(fgMarker?.getAttribute('markerUnits')).toBe('userSpaceOnUse');
+  });
+
+  it('renders proportional stroke widths for connection lines', () => {
+    vi.mocked(getEndpointWorldPosition)
+      .mockReturnValueOnce([1, 0, 2])
+      .mockReturnValueOnce([3, 0, 4]);
+
+    vi.mocked(worldToScreen)
+      .mockReturnValueOnce({ x: 100, y: 100 })
+      .mockReturnValueOnce({ x: 200, y: 200 });
+
+    const { container } = render(
+      <svg aria-label="connection-path">
+        <title>Connection path</title>
+        <ConnectionPath
+          connection={connection}
+          blocks={[]}
+          plates={[]}
+          externalActors={[]}
+          originX={0}
+          originY={0}
+        />
+      </svg>,
+    );
+
+    const paths = container.querySelectorAll('path');
+    expect(paths[0]?.getAttribute('stroke-width')).toBe('3');
+    expect(paths[1]?.getAttribute('stroke-width')).toBe('1.5');
+  });
 });

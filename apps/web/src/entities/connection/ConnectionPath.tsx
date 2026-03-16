@@ -38,40 +38,42 @@ export const ConnectionPath = memo(function ConnectionPath({
     <g>
       <defs>
         <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="4" stdDeviation="4" floodOpacity="0.2" floodColor="#000000" />
+          <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.15" floodColor="#000000" />
         </filter>
         <marker
           id={`${arrowId}-bg`}
-          markerWidth="16"
-          markerHeight="16"
-          refX="12"
-          refY="8"
+          markerWidth="8"
+          markerHeight="8"
+          markerUnits="userSpaceOnUse"
+          refX="7"
+          refY="4"
           orient="auto"
         >
-          <polygon points="0 0, 16 8, 0 16" fill="#1e293b" />
+          <polygon points="0 0, 8 4, 0 8" fill="#1e293b" />
         </marker>
         <marker
           id={arrowId}
-          markerWidth="16"
-          markerHeight="16"
-          refX="12"
-          refY="8"
+          markerWidth="6"
+          markerHeight="6"
+          markerUnits="userSpaceOnUse"
+          refX="5"
+          refY="3"
           orient="auto"
         >
-          <polygon points="0 0, 16 8, 0 16" fill="#FFFFFF" />
+          <polygon points="0 0, 6 3, 0 6" fill="#94a3b8" />
         </marker>
       </defs>
       <path
         d={pathD}
         stroke="#1e293b"
-        strokeWidth={6}
+        strokeWidth={3}
         fill="none"
         markerEnd={`url(#${arrowId}-bg)`}
       />
       <path
         d={pathD}
-        stroke="#FFFFFF"
-        strokeWidth={4}
+        stroke="#94a3b8"
+        strokeWidth={1.5}
         fill="none"
         filter="url(#glow)"
         markerEnd={`url(#${arrowId})`}
