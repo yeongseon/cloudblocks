@@ -183,7 +183,7 @@ describe('ConnectionPath', () => {
     );
 
     const paths = container.querySelectorAll('path');
-    expect(paths[0]?.getAttribute('stroke-width')).toBe('3');
-    expect(paths[1]?.getAttribute('stroke-width')).toBe('1.5');
+    expect(paths[0]?.getAttribute('stroke-width')).toBe('4');
+    expect(paths[1]?.getAttribute('stroke-width')).toBe('2');
   });
 });

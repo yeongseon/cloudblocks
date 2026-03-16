@@ -62,7 +62,7 @@ const threeTierTemplate: ArchitectureTemplate = {
         name: 'App Gateway',
         category: 'gateway',
         placementId: 'plate-tmpl-public',
-        position: { x: -0.75, y: 0.5, z: -1.5 },
+        position: { x: -1.5, y: 0.5, z: -2 },
         metadata: {},
       },
       {
@@ -70,7 +70,7 @@ const threeTierTemplate: ArchitectureTemplate = {
         name: 'Web App',
         category: 'compute',
         placementId: 'plate-tmpl-public',
-        position: { x: 0.75, y: 0.5, z: -1.5 },
+        position: { x: 1.5, y: 0.5, z: 1 },
         metadata: {},
       },
       {
@@ -78,7 +78,7 @@ const threeTierTemplate: ArchitectureTemplate = {
         name: 'PostgreSQL',
         category: 'database',
         placementId: 'plate-tmpl-private',
-        position: { x: -0.75, y: 0.5, z: -1.5 },
+        position: { x: -1.5, y: 0.5, z: -2 },
         metadata: {},
       },
       {
@@ -86,7 +86,7 @@ const threeTierTemplate: ArchitectureTemplate = {
         name: 'Blob Storage',
         category: 'storage',
         placementId: 'plate-tmpl-private',
-        position: { x: 0.75, y: 0.5, z: -1.5 },
+        position: { x: 1.5, y: 0.5, z: 1 },
         metadata: {},
       },
     ],
@@ -165,7 +165,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
         name: 'Gateway',
         category: 'gateway',
         placementId: 'plate-tmpl-pub2',
-        position: { x: -0.75, y: 0.5, z: -1.5 },
+        position: { x: -1.5, y: 0.5, z: -2 },
         metadata: {},
       },
       {
@@ -173,7 +173,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
         name: 'App Service',
         category: 'compute',
         placementId: 'plate-tmpl-pub2',
-        position: { x: 0.75, y: 0.5, z: -1.5 },
+        position: { x: 1.5, y: 0.5, z: 1 },
         metadata: {},
       },
     ],
@@ -249,7 +249,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
         name: 'API Gateway',
         category: 'gateway',
         placementId: 'plate-tmpl-pub3',
-        position: { x: -0.75, y: 0.5, z: -1.5 },
+        position: { x: -1.5, y: 0.5, z: -2 },
         metadata: {},
       },
       {
@@ -257,7 +257,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
         name: 'API Server',
         category: 'compute',
         placementId: 'plate-tmpl-pub3',
-        position: { x: 0.75, y: 0.5, z: -1.5 },
+        position: { x: 1.5, y: 0.5, z: 1 },
         metadata: {},
       },
       {
@@ -265,7 +265,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
         name: 'Database',
         category: 'database',
         placementId: 'plate-tmpl-priv3',
-        position: { x: -0.75, y: 0.5, z: -1.5 },
+        position: { x: -1.5, y: 0.5, z: -2 },
         metadata: {},
       },
       {
@@ -273,7 +273,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
         name: 'File Storage',
         category: 'storage',
         placementId: 'plate-tmpl-priv3',
-        position: { x: 0.75, y: 0.5, z: -1.5 },
+        position: { x: 1.5, y: 0.5, z: 1 },
         metadata: {},
       },
     ],
@@ -367,7 +367,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
         name: 'API Gateway',
         category: 'gateway',
         placementId: 'plate-tmpl-pub4',
-        position: { x: 0, y: 0.5, z: -1.5 },
+        position: { x: 0, y: 0.5, z: 0 },
         metadata: {},
       },
       {
@@ -375,7 +375,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
         name: 'HTTP Handler',
         category: 'function',
         placementId: 'plate-tmpl-vnet4',
-        position: { x: 0, y: 0.5, z: 1.5 },
+        position: { x: 0, y: 0.5, z: 3 },
         metadata: {},
       },
       {
@@ -383,7 +383,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
         name: 'Blob Storage',
         category: 'storage',
         placementId: 'plate-tmpl-priv4',
-        position: { x: -0.75, y: 0.5, z: -1.5 },
+        position: { x: -1.5, y: 0.5, z: -2 },
         metadata: {},
       },
       {
@@ -391,7 +391,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
         name: 'CosmosDB',
         category: 'database',
         placementId: 'plate-tmpl-priv4',
-        position: { x: 0.75, y: 0.5, z: -1.5 },
+        position: { x: 1.5, y: 0.5, z: 1 },
         metadata: {},
       },
     ],
@@ -471,7 +471,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
         name: 'Event Source',
         category: 'event',
         placementId: 'plate-tmpl-vnet5',
-        position: { x: -2, y: 0.5, z: -2 },
+        position: { x: -3, y: 0.5, z: -3 },
         metadata: {},
       },
       {
@@ -479,7 +479,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
         name: 'Message Queue',
         category: 'queue',
         placementId: 'plate-tmpl-vnet5',
-        position: { x: -2, y: 0.5, z: 1 },
+        position: { x: -3, y: 0.5, z: 1 },
         metadata: {},
       },
       {
@@ -487,7 +487,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
         name: 'Batch Timer',
         category: 'timer',
         placementId: 'plate-tmpl-vnet5',
-        position: { x: 0, y: 0.5, z: -2 },
+        position: { x: 0, y: 0.5, z: -3 },
         metadata: {},
       },
       {
@@ -503,7 +503,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
         name: 'Batch Processor',
         category: 'function',
         placementId: 'plate-tmpl-vnet5',
-        position: { x: 2, y: 0.5, z: -2 },
+        position: { x: 3, y: 0.5, z: -3 },
         metadata: {},
       },
       {
@@ -511,7 +511,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
         name: 'Data Lake',
         category: 'storage',
         placementId: 'plate-tmpl-priv5',
-        position: { x: 0, y: 0.5, z: -1.5 },
+        position: { x: 0, y: 0.5, z: 0 },
         metadata: {},
       },
     ],
@@ -622,7 +622,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         name: 'API Gateway',
         category: 'gateway',
         placementId: 'plate-fs-public',
-        position: { x: -0.75, y: 0.5, z: -1.5 },
+        position: { x: -1.5, y: 0.5, z: -2 },
         metadata: {},
       },
       {
@@ -630,7 +630,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         name: 'Web Frontend',
         category: 'compute',
         placementId: 'plate-fs-public',
-        position: { x: 0.75, y: 0.5, z: -1.5 },
+        position: { x: 1.5, y: 0.5, z: 1 },
         metadata: {},
       },
       // Private Subnet
@@ -639,7 +639,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         name: 'PostgreSQL',
         category: 'database',
         placementId: 'plate-fs-private',
-        position: { x: -0.75, y: 0.5, z: -1.5 },
+        position: { x: -1.5, y: 0.5, z: -2 },
         metadata: {},
       },
       {
@@ -647,7 +647,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         name: 'Blob Storage',
         category: 'storage',
         placementId: 'plate-fs-private',
-        position: { x: 0.75, y: 0.5, z: -1.5 },
+        position: { x: 1.5, y: 0.5, z: 1 },
         metadata: {},
       },
       // Serverless (Network Plate)
@@ -656,7 +656,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         name: 'API Handler',
         category: 'function',
         placementId: 'plate-fs-vnet',
-        position: { x: -2, y: 0.5, z: 2 },
+        position: { x: -4, y: 0.5, z: 3 },
         metadata: {},
       },
       {
@@ -664,7 +664,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         name: 'Queue Worker',
         category: 'function',
         placementId: 'plate-fs-vnet',
-        position: { x: 0, y: 0.5, z: 2 },
+        position: { x: 0, y: 0.5, z: 3 },
         metadata: {},
       },
       {
@@ -672,7 +672,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         name: 'Batch Processor',
         category: 'function',
         placementId: 'plate-fs-vnet',
-        position: { x: 2, y: 0.5, z: 2 },
+        position: { x: 4, y: 0.5, z: 3 },
         metadata: {},
       },
       {
@@ -680,7 +680,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         name: 'Message Queue',
         category: 'queue',
         placementId: 'plate-fs-vnet',
-        position: { x: -1, y: 0.5, z: -2 },
+        position: { x: -3, y: 0.5, z: -3 },
         metadata: {},
       },
       {
@@ -688,7 +688,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         name: 'Event Source',
         category: 'event',
         placementId: 'plate-fs-vnet',
-        position: { x: 1, y: 0.5, z: -2 },
+        position: { x: 0, y: 0.5, z: -3 },
         metadata: {},
       },
       {
@@ -696,7 +696,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         name: 'Cron Timer',
         category: 'timer',
         placementId: 'plate-fs-vnet',
-        position: { x: 3, y: 0.5, z: -2 },
+        position: { x: 3, y: 0.5, z: -3 },
         metadata: {},
       },
     ],

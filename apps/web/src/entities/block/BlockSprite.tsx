@@ -18,14 +18,14 @@ import eventSvg from '../../shared/assets/block-sprites/event.svg';
 import timerSvg from '../../shared/assets/block-sprites/timer.svg';
 
 const BLOCK_SCREEN_SIZES: Record<string, { width: number; height: number }> = {
-  timer:    { width: 48, height: 48 },
-  event:    { width: 48, height: 48 },
-  function: { width: 64, height: 52 },
-  gateway:  { width: 80, height: 66 },
-  queue:    { width: 80, height: 66 },
-  storage:  { width: 80, height: 66 },
-  compute:  { width: 96, height: 80 },
-  database: { width: 112, height: 88 },
+  timer:    { width: 72, height: 72 },
+  event:    { width: 72, height: 72 },
+  function: { width: 95, height: 76 },
+  gateway:  { width: 120, height: 100 },
+  queue:    { width: 120, height: 100 },
+  storage:  { width: 120, height: 100 },
+  compute:  { width: 140, height: 118 },
+  database: { width: 160, height: 126 },
 };
 
 const BLOCK_SPRITES: Record<string, string> = {
