@@ -9,6 +9,7 @@
  */
 
 import { useRef, useCallback, useEffect, useState } from 'react';
+import interact from 'interactjs';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import {
@@ -213,10 +214,74 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
   const techTree = useTechTree();
   const addPlate = useArchitectureStore((s) => s.addPlate);
   const addBlock = useArchitectureStore((s) => s.addBlock);
+  const setDraggedBlockCategory = useUIStore((s) => s.setDraggedBlockCategory);
+  const setDraggedResourceName = useUIStore((s) => s.setDraggedResourceName);
+  const cancelDrag = useUIStore((s) => s.cancelDrag);
   const counterRef = useRef(0);
+  const isDraggingRef = useRef(false);
+  const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
   const tabDefinition = CATEGORY_TABS.find((tab) => tab.id === activeTab) ?? CATEGORY_TABS[0];
 
+  useEffect(() => {
+    if (!gridRef.current) return;
+    if (!activeTab) return;
+
+    const buttons = gridRef.current.querySelectorAll<HTMLButtonElement>(
+      '.command-card-btn:not(.disabled):not(.command-card-btn--empty)',
+    );
+    const interactables = Array.from(buttons).map((button) => interact(button).draggable({
+      listeners: {
+        start() {
+          isDraggingRef.current = false;
+        },
+        move(event) {
+          isDraggingRef.current = true;
+          const buttonEl = event.target as HTMLButtonElement;
+          buttonEl.classList.add('is-dragging');
+
+          const type = buttonEl.dataset.resourceType as ResourceType | undefined;
+          if (!type) return;
+
+          const def = RESOURCE_DEFINITIONS[type];
+          if (!def?.blockCategory) return;
+
+          setDraggedBlockCategory(def.blockCategory);
+          setDraggedResourceName(def.label);
+        },
+        end(event) {
+          const buttonEl = event.target as HTMLButtonElement;
+          buttonEl.classList.remove('is-dragging');
+          cancelDrag();
+
+          if (dragResetTimerRef.current) {
+            clearTimeout(dragResetTimerRef.current);
+          }
+          dragResetTimerRef.current = setTimeout(() => {
+            isDraggingRef.current = false;
+          }, 50);
+        },
+      },
+      autoScroll: false,
+    }));
+
+    return () => {
+      if (dragResetTimerRef.current) {
+        clearTimeout(dragResetTimerRef.current);
+      }
+      buttons.forEach((button) => {
+        button.classList.remove('is-dragging');
+      });
+      cancelDrag();
+      interactables.forEach((interactable) => {
+        interactable.unset();
+      });
+    };
+  }, [activeTab, cancelDrag, setDraggedBlockCategory, setDraggedResourceName]);
+
   const handleCreate = useCallback((type: ResourceType) => {
+    if (isDraggingRef.current) return;
+
     const def = RESOURCE_DEFINITIONS[type];
 
     // Handle plate creation
@@ -248,7 +313,7 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
   }, [addPlate, addBlock, techTree]);
 
   return (
-    <>
+    <div ref={gridRef}>
       {tabDefinition.resources.map((row, rowIdx) => (
         <div key={`${tabDefinition.id}-r${rowIdx}`} className="command-card-row">
           {row.map((type, colIdx) => {
@@ -266,6 +331,7 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
                 key={type}
                 type="button"
                 className={`command-card-btn ${enabled ? '' : 'disabled'}`}
+                data-resource-type={type}
                 onClick={() => enabled && handleCreate(type)}
                 disabled={!enabled}
                 title={enabled ? `Create ${def.label} (${hotkey})` : disabledReason ?? undefined}
@@ -279,7 +345,7 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
           })}
         </div>
       ))}
-    </>
+    </div>
   );
 }
 
@@ -287,7 +353,13 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
   const techTree = useTechTree();
   const addPlate = useArchitectureStore((s) => s.addPlate);
   const addBlock = useArchitectureStore((s) => s.addBlock);
+  const setDraggedBlockCategory = useUIStore((s) => s.setDraggedBlockCategory);
+  const setDraggedResourceName = useUIStore((s) => s.setDraggedResourceName);
+  const cancelDrag = useUIStore((s) => s.cancelDrag);
   const counterRef = useRef(0);
+  const isDraggingRef = useRef(false);
+  const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
 
   const contextResources = selectedPlate.type === 'network'
     ? PLATE_CONTEXT_RESOURCES.network
@@ -295,7 +367,65 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
       ? PLATE_CONTEXT_RESOURCES['subnet-public']
       : PLATE_CONTEXT_RESOURCES['subnet-private'];
 
+  useEffect(() => {
+    if (!gridRef.current) return;
+    if (contextResources.length === 0) return;
+
+    const buttons = gridRef.current.querySelectorAll<HTMLButtonElement>(
+      '.command-card-btn:not(.disabled):not(.command-card-btn--empty)',
+    );
+    const interactables = Array.from(buttons).map((button) => interact(button).draggable({
+      listeners: {
+        start() {
+          isDraggingRef.current = false;
+        },
+        move(event) {
+          isDraggingRef.current = true;
+          const buttonEl = event.target as HTMLButtonElement;
+          buttonEl.classList.add('is-dragging');
+
+          const type = buttonEl.dataset.resourceType as ResourceType | undefined;
+          if (!type) return;
+
+          const def = RESOURCE_DEFINITIONS[type];
+          if (!def?.blockCategory) return;
+
+          setDraggedBlockCategory(def.blockCategory);
+          setDraggedResourceName(def.label);
+        },
+        end(event) {
+          const buttonEl = event.target as HTMLButtonElement;
+          buttonEl.classList.remove('is-dragging');
+          cancelDrag();
+
+          if (dragResetTimerRef.current) {
+            clearTimeout(dragResetTimerRef.current);
+          }
+          dragResetTimerRef.current = setTimeout(() => {
+            isDraggingRef.current = false;
+          }, 50);
+        },
+      },
+      autoScroll: false,
+    }));
+
+    return () => {
+      if (dragResetTimerRef.current) {
+        clearTimeout(dragResetTimerRef.current);
+      }
+      buttons.forEach((button) => {
+        button.classList.remove('is-dragging');
+      });
+      cancelDrag();
+      interactables.forEach((interactable) => {
+        interactable.unset();
+      });
+    };
+  }, [cancelDrag, contextResources, setDraggedBlockCategory, setDraggedResourceName]);
+
   const handleCreate = useCallback((type: ResourceType) => {
+    if (isDraggingRef.current) return;
+
     const def = RESOURCE_DEFINITIONS[type];
 
     if (def.category === 'plate') {
@@ -333,7 +463,7 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
   });
 
   return (
-    <>
+    <div ref={gridRef}>
       {resourcePages.map((page) => {
         const pageKey = page.flat().map((item) => item ?? 'empty').join('-');
         return page.map((row, rowIdx) => {
@@ -355,6 +485,7 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
                   key={`${rowKey}-${type}-${hotkey}`}
                   type="button"
                   className={`command-card-btn ${enabled ? '' : 'disabled'}`}
+                  data-resource-type={type}
                   onClick={() => enabled && handleCreate(type)}
                   disabled={!enabled}
                   title={enabled ? `Create ${def.label} (${hotkey})` : disabledReason ?? undefined}
@@ -370,7 +501,7 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
         );
         });
       })}
-    </>
+    </div>
   );
 }
 

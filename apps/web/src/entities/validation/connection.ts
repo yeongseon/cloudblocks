@@ -30,7 +30,7 @@ import type {
  * Queue, Timer, and Event can only connect to Function.
  */
 
-type EndpointType = BlockCategory | 'internet';
+export type EndpointType = BlockCategory | 'internet';
 
 /** Map of allowed connections: source (initiator) → Set<target (receiver)> */
 const ALLOWED_CONNECTIONS: Record<string, Set<string>> = {
@@ -116,4 +116,13 @@ export function validateConnection(
   }
 
   return null;
+}
+
+/**
+ * Check if a connection from sourceCategory to targetCategory is allowed.
+ * Used for visual feedback during connect mode.
+ */
+export function canConnect(sourceCategory: EndpointType, targetCategory: EndpointType): boolean {
+  const allowed = ALLOWED_CONNECTIONS[sourceCategory];
+  return allowed !== undefined && allowed.has(targetCategory);
 }

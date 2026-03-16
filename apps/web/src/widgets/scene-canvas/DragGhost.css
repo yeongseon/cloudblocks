@@ -1,0 +1,41 @@
+.drag-ghost {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -120%);
+  background: rgba(255, 213, 0, 0.95);
+  border: 3px solid #d4b200;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: ghost-appear 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.drag-ghost-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.drag-ghost-label {
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #222;
+  line-height: 1;
+}
+
+@keyframes ghost-appear {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -120%) scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -120%) scale(1);
+  }
+}

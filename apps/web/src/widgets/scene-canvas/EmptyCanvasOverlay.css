@@ -1,0 +1,79 @@
+.empty-canvas-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.empty-canvas-content {
+  pointer-events: auto;
+  text-align: center;
+  padding: 48px 64px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.empty-canvas-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+}
+
+.empty-canvas-title {
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  font-family: 'Fredoka', 'Varela Round', system-ui, sans-serif;
+}
+
+.empty-canvas-subtitle {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  margin: 0 0 32px 0;
+}
+
+.empty-canvas-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.empty-canvas-btn {
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Fredoka', 'Varela Round', system-ui, sans-serif;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.empty-canvas-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.empty-canvas-btn--template {
+  background: #0078D4;
+  color: white;
+}
+
+.empty-canvas-btn--template:hover {
+  background: #106EBE;
+}
+
+.empty-canvas-btn--scratch {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.empty-canvas-btn--scratch:hover {
+  background: rgba(255, 255, 255, 0.25);
+}

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { canPlaceBlock } from '../../entities/validation/placement';
 import { worldToScreen, depthKey } from '../../shared/utils/isometric';
 import { EXTERNAL_ACTOR_POSITION } from '../../shared/utils/position';
 
@@ -9,11 +10,17 @@ import { PlateSprite } from '../../entities/plate/PlateSprite';
 import { BlockSprite } from '../../entities/block/BlockSprite';
 import { ConnectionPath } from '../../entities/connection/ConnectionPath';
 import { ExternalActorSprite } from '../../entities/connection/ExternalActorSprite';
+import { EmptyCanvasOverlay } from './EmptyCanvasOverlay';
+import { DragGhost } from './DragGhost';
 import './SceneCanvas.css';
 
 export function SceneCanvas() {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
+  const addBlock = useArchitectureStore((s) => s.addBlock);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
+  const draggedBlockCategory = useUIStore((s) => s.draggedBlockCategory);
+  const draggedResourceName = useUIStore((s) => s.draggedResourceName);
+  const cancelDrag = useUIStore((s) => s.cancelDrag);
 
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -53,6 +60,21 @@ export function SceneCanvas() {
   const handlePointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
     isDragging.current = false;
     e.currentTarget.releasePointerCapture(e.pointerId);
+
+    if (draggedBlockCategory && draggedResourceName) {
+      const elements = document.elementsFromPoint(e.clientX, e.clientY);
+      const plateEl = elements.find((el) => el.closest('[data-plate-id]'));
+      const plateContainer = plateEl?.closest('[data-plate-id]');
+      const plateId = plateContainer?.getAttribute('data-plate-id');
+
+      if (plateId) {
+        const plate = architecture.plates.find((p) => p.id === plateId);
+        if (plate && canPlaceBlock(draggedBlockCategory, plate)) {
+          addBlock(draggedBlockCategory, draggedResourceName, plateId);
+        }
+      }
+      cancelDrag();
+    }
   };
 
   const handleWheel = useCallback((e: WheelEvent) => {
@@ -94,6 +116,8 @@ export function SceneCanvas() {
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
     >
+      <EmptyCanvasOverlay />
+      <DragGhost />
       <div 
         className="scene-world"
         style={{

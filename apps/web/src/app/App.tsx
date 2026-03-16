@@ -34,6 +34,8 @@ function App() {
   const removeConnection = useArchitectureStore((s) => s.removeConnection);
   const selectedId = useUIStore((s) => s.selectedId);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
+  const cancelDrag = useUIStore((s) => s.cancelDrag);
+  const draggedBlockCategory = useUIStore((s) => s.draggedBlockCategory);
 
   // Load saved workspace and register templates on mount
   useEffect(() => {
@@ -104,8 +106,12 @@ function App() {
         return;
       }
 
-      // Escape: deselect
+      // Escape: cancel drag first, then deselect
       if (e.key === 'Escape') {
+        if (draggedBlockCategory) {
+          cancelDrag();
+          return;
+        }
         setSelectedId(null);
         return;
       }
@@ -113,7 +119,7 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo, selectedId, removeBlock, removePlate, removeConnection, setSelectedId]);
+  }, [undo, redo, selectedId, removeBlock, removePlate, removeConnection, setSelectedId, cancelDrag, draggedBlockCategory]);
 
   return (
     <div className="app">

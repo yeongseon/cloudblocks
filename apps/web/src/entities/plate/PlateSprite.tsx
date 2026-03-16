@@ -4,6 +4,7 @@ import type { Plate } from '../../shared/types/index';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import { screenDeltaToWorld, worldSizeToScreen } from '../../shared/utils/isometric';
+import { canPlaceBlock } from '../validation/placement';
 import './PlateSprite.css';
 
 // Import pre-made plate sprites
@@ -44,8 +45,12 @@ export const PlateSprite = memo(function PlateSprite({
 }: PlateSpriteProps) {
   const selectedId = useUIStore((s) => s.selectedId);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
+  const draggedBlockCategory = useUIStore((s) => s.draggedBlockCategory);
   const movePlatePosition = useArchitectureStore((s) => s.movePlatePosition);
   const isSelected = selectedId === plate.id;
+  const isDragActive = draggedBlockCategory !== null;
+  const isValidDropTarget = isDragActive && canPlaceBlock(draggedBlockCategory, plate);
+  const isInvalidDropTarget = isDragActive && !canPlaceBlock(draggedBlockCategory, plate);
   const plateRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -117,6 +122,8 @@ export const PlateSprite = memo(function PlateSprite({
     'plate-sprite',
     sizeClass,
     isSelected && 'is-selected',
+    isValidDropTarget && 'is-drop-target',
+    isInvalidDropTarget && 'is-drop-target-invalid',
   ]
     .filter(Boolean)
     .join(' ');
@@ -125,6 +132,7 @@ export const PlateSprite = memo(function PlateSprite({
     <div
       ref={plateRef}
       className={className}
+      data-plate-id={plate.id}
       style={{
         left: `${screenX}px`,
         top: `${screenY}px`,

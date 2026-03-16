@@ -4,6 +4,7 @@ import type { Block, Plate } from '../../shared/types/index';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import { screenDeltaToWorld } from '../../shared/utils/isometric';
+import { canConnect } from '../validation/connection';
 import './BlockSprite.css';
 
 // Import pre-made sprites
@@ -60,6 +61,8 @@ export const BlockSprite = memo(function BlockSprite({
   const addConnection = useArchitectureStore((s) => s.addConnection);
   const removeBlock = useArchitectureStore((s) => s.removeBlock);
   const moveBlockPosition = useArchitectureStore((s) => s.moveBlockPosition);
+  const blocks = useArchitectureStore((s) => s.workspace.architecture.blocks);
+  const connections = useArchitectureStore((s) => s.workspace.architecture.connections);
   const blockRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -67,6 +70,21 @@ export const BlockSprite = memo(function BlockSprite({
   const isSelected = selectedId === block.id;
   const isConnectionSource = connectionSource === block.id;
   const isDeleteMode = toolMode === 'delete';
+
+  // Connect-mode visual states
+  const isConnectMode = toolMode === 'connect';
+  const sourceBlock = isConnectMode && connectionSource
+    ? blocks.find((b) => b.id === connectionSource)
+    : null;
+  const isValidConnectTarget = sourceBlock !== null && sourceBlock !== undefined
+    && block.id !== connectionSource
+    && canConnect(sourceBlock.category, block.category);
+  const isInvalidConnectTarget = isConnectMode && connectionSource !== null
+    && block.id !== connectionSource
+    && !isValidConnectTarget;
+  const isAlreadyConnected = connections.some(
+    (c) => (c.sourceId === block.id || c.targetId === block.id)
+  );
 
   useEffect(() => {
     if (toolMode === 'delete' || toolMode === 'connect' || !blockRef.current) {
@@ -149,6 +167,9 @@ export const BlockSprite = memo(function BlockSprite({
     isSelected && 'is-selected',
     isConnectionSource && 'is-connection-source',
     isDeleteMode && 'is-delete-mode',
+    isValidConnectTarget && 'is-valid-target',
+    isInvalidConnectTarget && 'is-invalid-target',
+    isAlreadyConnected && isConnectMode && 'is-connected',
   ]
     .filter(Boolean)
     .join(' ');
