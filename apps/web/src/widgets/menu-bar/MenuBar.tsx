@@ -4,7 +4,7 @@ import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import './MenuBar.css';
 
-type DropdownMenu = 'file' | 'edit' | 'insert' | 'tools' | 'build' | 'view' | 'github' | null;
+type DropdownMenu = 'file' | 'edit' | 'insert' | 'tools' | 'build' | 'learn' | 'view' | 'github' | null;
 
 export function MenuBar() {
   const [openMenu, setOpenMenu] = useState<DropdownMenu>(null);
@@ -25,6 +25,10 @@ export function MenuBar() {
   const toggleGitHubRepos = useUIStore((s) => s.toggleGitHubRepos);
   const toggleGitHubSync = useUIStore((s) => s.toggleGitHubSync);
   const toggleGitHubPR = useUIStore((s) => s.toggleGitHubPR);
+  const toggleScenarioGallery = useUIStore((s) => s.toggleScenarioGallery);
+  const toggleLearningPanel = useUIStore((s) => s.toggleLearningPanel);
+  const showLearningPanel = useUIStore((s) => s.showLearningPanel);
+  const editorMode = useUIStore((s) => s.editorMode);
 
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
@@ -319,6 +323,26 @@ export function MenuBar() {
             <div className="menu-separator" />
             <button type="button" className="menu-item" onClick={() => handleAction(toggleTemplateGallery)}>
               <span className="menu-item-left">📦 Browse Templates</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="menu-dropdown-container">
+          <button
+            type="button"
+            className="menu-trigger"
+            data-active={openMenu === 'learn'}
+            onClick={() => toggleMenu('learn')}
+          >
+            Learn
+            {editorMode === 'learn' && <span className="menu-badge menu-badge-valid">Learning</span>}
+          </button>
+          <div className={`menu-dropdown ${openMenu === 'learn' ? 'show' : ''}`}>
+            <button type="button" className="menu-item" onClick={() => handleAction(toggleScenarioGallery)}>
+              <span className="menu-item-left">📚 Browse Scenarios</span>
+            </button>
+            <button type="button" className="menu-item" onClick={() => handleAction(toggleLearningPanel)}>
+              <span className="menu-item-left">{showLearningPanel ? '✓ ' : ''}📖 Show Learning Panel</span>
             </button>
           </div>
         </div>

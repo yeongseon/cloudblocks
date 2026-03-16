@@ -1,0 +1,233 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { LearningPanel, StepProgress, HintPopup, CompletionScreen } from './LearningPanel';
+import { useUIStore } from '../../entities/store/uiStore';
+import { useLearningStore } from '../../entities/store/learningStore';
+import { registerBuiltinScenarios } from '../../features/learning/scenarios/builtin';
+import { clearScenarioRegistry, listScenarios } from '../../features/learning/scenarios/registry';
+import {
+  advanceToNextStep,
+  resetCurrentStep,
+  abandonLearning,
+  getValidationDetails,
+} from '../../features/learning/scenario-engine';
+
+vi.mock('../../features/learning/scenario-engine', () => ({
+  advanceToNextStep: vi.fn(),
+  resetCurrentStep: vi.fn(),
+  abandonLearning: vi.fn(),
+  getValidationDetails: vi.fn(),
+}));
+
+function seedActiveScenario(): void {
+  registerBuiltinScenarios();
+  const scenario = listScenarios()[0];
+  if (!scenario) {
+    throw new Error('Expected builtin scenarios to be registered');
+  }
+
+  useLearningStore.getState().startScenario(scenario);
+}
+
+describe('LearningPanel widgets', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    useUIStore.setState({ showLearningPanel: true, showScenarioGallery: false });
+    seedActiveScenario();
+
+    vi.mocked(getValidationDetails).mockReturnValue({
+      passed: false,
+      results: [],
+    });
+  });
+
+  afterEach(() => {
+    useLearningStore.getState().abandonScenario();
+    useUIStore.setState({ showLearningPanel: false, showScenarioGallery: false, editorMode: 'build' });
+    clearScenarioRegistry();
+    vi.clearAllMocks();
+  });
+
+  it('returns null when showLearningPanel is false', () => {
+    useUIStore.setState({ showLearningPanel: false });
+    const { container } = render(<LearningPanel />);
+    expect(container.innerHTML).toBe('');
+  });
+
+  it('returns null when no activeScenario', () => {
+    useLearningStore.setState({ activeScenario: null });
+    const { container } = render(<LearningPanel />);
+    expect(container.innerHTML).toBe('');
+  });
+
+  it('returns null when no progress', () => {
+    useLearningStore.setState({ progress: null });
+    const { container } = render(<LearningPanel />);
+    expect(container.innerHTML).toBe('');
+  });
+
+  it('shows CompletionScreen when progress.completedAt is set', () => {
+    const progress = useLearningStore.getState().progress;
+    if (!progress) {
+      throw new Error('Expected progress to exist');
+    }
+
+    useLearningStore.setState({
+      progress: { ...progress, startedAt: '2026-01-01T00:00:00.000Z', completedAt: '2026-01-01T00:01:30.000Z' },
+    });
+
+    render(<LearningPanel />);
+    expect(screen.getByText('Congratulations!')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Next Step' })).not.toBeInTheDocument();
+  });
+
+  it('displays scenario name in header', () => {
+    const scenarioName = useLearningStore.getState().activeScenario?.name;
+    render(<LearningPanel />);
+    if (!scenarioName) {
+      throw new Error('Expected active scenario name');
+    }
+    expect(screen.getByRole('heading', { name: scenarioName })).toBeInTheDocument();
+  });
+
+  it('shows current step title and instruction', () => {
+    const step = useLearningStore.getState().activeScenario?.steps[0];
+    if (!step) {
+      throw new Error('Expected first step');
+    }
+
+    render(<LearningPanel />);
+    expect(screen.getByRole('heading', { name: step.title })).toBeInTheDocument();
+    expect(screen.getByText(step.instruction)).toBeInTheDocument();
+  });
+
+  it('shows validation rules with pass/fail icons', () => {
+    const progress = useLearningStore.getState().progress;
+    if (!progress) {
+      throw new Error('Expected progress');
+    }
+
+    useLearningStore.setState({
+      progress: {
+        ...progress,
+        currentStepIndex: 1,
+      },
+    });
+
+    const currentStep = useLearningStore.getState().activeScenario?.steps[1];
+    if (!currentStep) {
+      throw new Error('Expected second step');
+    }
+
+    vi.mocked(getValidationDetails).mockReturnValue({
+      passed: false,
+      results: currentStep.validationRules.map((rule, index) => ({ rule, passed: index === 0 })),
+    });
+
+    render(<LearningPanel />);
+    const validationList = document.querySelector('.validation-list');
+    if (!(validationList instanceof HTMLElement)) {
+      throw new Error('Expected validation list');
+    }
+
+    const scoped = within(validationList);
+    expect(scoped.getByText('✓')).toBeInTheDocument();
+    expect(scoped.getByText('✗')).toBeInTheDocument();
+  });
+
+  it('disables Next Step button when current step is incomplete', () => {
+    useLearningStore.setState({ isCurrentStepComplete: false });
+    render(<LearningPanel />);
+    expect(screen.getByRole('button', { name: 'Next Step' })).toBeDisabled();
+  });
+
+  it('enables Next Step button and calls advanceToNextStep when current step is complete', async () => {
+    const user = userEvent.setup();
+    useLearningStore.setState({ isCurrentStepComplete: true });
+
+    render(<LearningPanel />);
+    const nextButton = screen.getByRole('button', { name: 'Next Step' });
+    expect(nextButton).toBeEnabled();
+
+    await user.click(nextButton);
+    expect(advanceToNextStep).toHaveBeenCalledOnce();
+  });
+
+  it('Show Hint button reveals hints and disables when all hints are shown', async () => {
+    const user = userEvent.setup();
+    const showNextHintSpy = vi.spyOn(useLearningStore.getState(), 'showNextHint');
+
+    const { rerender } = render(<LearningPanel />);
+    const hintButton = screen.getByRole('button', { name: 'Show Hint' });
+    expect(hintButton).toBeEnabled();
+
+    await user.click(hintButton);
+    expect(showNextHintSpy).toHaveBeenCalledOnce();
+
+    const currentStep = useLearningStore.getState().activeScenario?.steps[0];
+    if (!currentStep) {
+      throw new Error('Expected first step');
+    }
+    useLearningStore.setState({ currentHintIndex: currentStep.hints.length - 1 });
+    rerender(<LearningPanel />);
+
+    expect(screen.getByRole('button', { name: 'Show Hint' })).toBeDisabled();
+  });
+
+  it('Reset Step button calls resetCurrentStep', async () => {
+    const user = userEvent.setup();
+    render(<LearningPanel />);
+
+    await user.click(screen.getByRole('button', { name: 'Reset Step' }));
+    expect(resetCurrentStep).toHaveBeenCalledOnce();
+  });
+
+  it('close button calls abandonLearning', () => {
+    render(<LearningPanel />);
+    fireEvent.click(screen.getByRole('button', { name: '×' }));
+    expect(abandonLearning).toHaveBeenCalledOnce();
+  });
+
+  it('StepProgress renders correct number of step indicators', () => {
+    render(<LearningPanel />);
+    const stepCount = useLearningStore.getState().activeScenario?.steps.length ?? 0;
+    const indicators = document.querySelectorAll('.step-progress-node');
+    expect(indicators).toHaveLength(stepCount);
+  });
+
+  it('StepProgress returns null when no activeScenario/progress', () => {
+    useLearningStore.setState({ activeScenario: null, progress: null });
+    const { container } = render(<StepProgress />);
+    expect(container.innerHTML).toBe('');
+  });
+
+  it('HintPopup renders all visible hints up to currentHintIndex', () => {
+    useLearningStore.setState({ currentHintIndex: 1 });
+    render(<HintPopup />);
+
+    expect(screen.getByRole('heading', { name: /Hint 1/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Hint 2/i })).toBeInTheDocument();
+  });
+
+  it('CompletionScreen browse and back buttons call expected actions', async () => {
+    const user = userEvent.setup();
+    const progress = useLearningStore.getState().progress;
+    if (!progress) {
+      throw new Error('Expected progress to exist');
+    }
+
+    useLearningStore.setState({
+      progress: { ...progress, startedAt: '2026-01-01T00:00:00.000Z', completedAt: '2026-01-01T00:02:00.000Z' },
+    });
+
+    render(<CompletionScreen />);
+
+    await user.click(screen.getByRole('button', { name: 'Browse Scenarios' }));
+    expect(abandonLearning).toHaveBeenCalledTimes(1);
+    expect(useUIStore.getState().showScenarioGallery).toBe(true);
+
+    await user.click(screen.getByRole('button', { name: 'Back to Build' }));
+    expect(abandonLearning).toHaveBeenCalledTimes(2);
+  });
+});

@@ -23,3 +23,8 @@
   overflow: hidden;
   padding-bottom: 268px;
 }
+
+.canvas-container.learn-mode-active {
+  padding-right: 320px;
+  transition: padding-right 0.3s ease;
+}

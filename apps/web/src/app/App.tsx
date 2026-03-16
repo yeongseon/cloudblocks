@@ -14,12 +14,16 @@ import { apiGet } from '../shared/api/client';
 import type { AuthResponse } from '../shared/types/api';
 import { FlowDiagram } from '../widgets/flow-diagram/FlowDiagram';
 import { BottomPanel } from '../widgets/bottom-panel';
+import { LearningPanel } from '../widgets/learning-panel/LearningPanel';
+import { registerBuiltinScenarios } from '../features/learning/scenarios/builtin';
 import './App.css';
+import './LearnMode.css';
 
 // Lazy-loaded optional widgets (code-split)
 const CodePreview = lazy(() => import('../widgets/code-preview/CodePreview').then(m => ({ default: m.CodePreview })));
 const WorkspaceManager = lazy(() => import('../widgets/workspace-manager/WorkspaceManager').then(m => ({ default: m.WorkspaceManager })));
 const TemplateGallery = lazy(() => import('../widgets/template-gallery/TemplateGallery').then(m => ({ default: m.TemplateGallery })));
+const ScenarioGallery = lazy(() => import('../widgets/scenario-gallery/ScenarioGallery').then(m => ({ default: m.ScenarioGallery })));
 const GitHubLogin = lazy(() => import('../widgets/github-login/GitHubLogin').then(m => ({ default: m.GitHubLogin })));
 const GitHubRepos = lazy(() => import('../widgets/github-repos/GitHubRepos').then(m => ({ default: m.GitHubRepos })));
 const GitHubSync = lazy(() => import('../widgets/github-sync/GitHubSync').then(m => ({ default: m.GitHubSync })));
@@ -36,10 +40,12 @@ function App() {
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const cancelDrag = useUIStore((s) => s.cancelDrag);
   const draggedBlockCategory = useUIStore((s) => s.draggedBlockCategory);
+  const editorMode = useUIStore((s) => s.editorMode);
 
   // Load saved workspace and register templates on mount
   useEffect(() => {
     registerBuiltinTemplates();
+    registerBuiltinScenarios();
     loadFromStorage();
   }, [loadFromStorage]);
 
@@ -125,12 +131,13 @@ function App() {
     <div className="app">
       <MenuBar />
       <div className="main-content">
-        <div className="canvas-container">
+        <div className={`canvas-container${editorMode === 'learn' ? ' learn-mode-active' : ''}`}>
           <ResourceBar />
           <SceneCanvas />
           <ValidationPanel />
           <FlowDiagram />
           <BottomPanel />
+          <LearningPanel />
           <Suspense fallback={null}>
             <CodePreview />
             <WorkspaceManager />
@@ -139,6 +146,7 @@ function App() {
             <GitHubRepos />
             <GitHubSync />
             <GitHubPR />
+            <ScenarioGallery />
           </Suspense>
         </div>
       </div>

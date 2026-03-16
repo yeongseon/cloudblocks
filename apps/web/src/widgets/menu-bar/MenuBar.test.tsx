@@ -153,6 +153,7 @@ describe('MenuBar', () => {
     expect(screen.getByRole('button', { name: 'Insert' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Tools' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Build' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Learn' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'View' })).toBeInTheDocument();
 
     expect(screen.getByTitle('Undo (Ctrl+Z)')).toBeInTheDocument();
@@ -477,6 +478,23 @@ describe('MenuBar', () => {
     render(<MenuBar />);
     const buildDropdown = await openMenu(user, 'Build');
     expect(within(buildDropdown).getByText('Errors')).toBeInTheDocument();
+  });
+
+  it('handles Learn menu scenario gallery and learning panel toggles', async () => {
+    const user = userEvent.setup();
+    render(<MenuBar />);
+
+    let learnDropdown = await openMenu(user, 'Learn');
+    await user.click(within(learnDropdown).getByRole('button', { name: /Browse Scenarios/ }));
+    expect(useUIStore.getState().showScenarioGallery).toBe(true);
+
+    learnDropdown = await openMenu(user, 'Learn');
+    await user.click(within(learnDropdown).getByRole('button', { name: /Show Learning Panel/ }));
+    expect(useUIStore.getState().showLearningPanel).toBe(true);
+
+    learnDropdown = await openMenu(user, 'Learn');
+    const learningPanelButton = within(learnDropdown).getByRole('button', { name: /Show Learning Panel/ });
+    expect(learningPanelButton.textContent).toContain('✓');
   });
 
   it('handles View menu toggles for block palette, properties, and validation', async () => {
