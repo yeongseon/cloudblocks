@@ -44,7 +44,7 @@
       </text>
     </g>
 
-    <g transform="translate(85, 57.5) skewY(26.565) scale(0.9)">
+    <g transform="translate(85, 57.5) skewY(-26.565) scale(0.9)">
       <g transform="translate(-12, -12)">
         <path d="M12 2L3 6v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V6l-9-4zm0 2.18l7 3.12v4.7c0 4.67-2.83 8.94-7 10.02-4.17-1.08-7-5.35-7-10.02v-4.7l7-3.12z" fill="#FFFFFF" fill-opacity="0.9" />
       </g>

@@ -3,7 +3,6 @@ import type { BlockCategory } from '../../shared/types/index';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import type { ToolMode } from '../../entities/store/uiStore';
-import { useDraggable } from '../../shared/hooks/useDraggable';
 import gatewaySvg from '../../shared/assets/block-sprites/gateway.svg';
 import computeSvg from '../../shared/assets/block-sprites/compute.svg';
 import databaseSvg from '../../shared/assets/block-sprites/database.svg';
@@ -68,7 +67,6 @@ export function BlockPalette() {
 
   const [explicitTarget] = useState<string | null>(null);
   const counterRef = useRef(0);
-  const { position, handleMouseDown, isDragging } = useDraggable();
 
   if (!showBlockPalette) return null;
 
@@ -124,24 +122,7 @@ export function BlockPalette() {
   ];
 
   return (
-    <div 
-      className="block-palette"
-      style={{ transform: `translateX(-50%) translate(${position.x}px, ${position.y}px)` }}
-    >
-      <button 
-        type="button"
-        className="palette-drag-grip"
-        onMouseDown={handleMouseDown}
-        style={{ cursor: isDragging ? 'grabbing' : 'grab', background: 'none', border: 'none', padding: 0 }}
-        title="Drag tray"
-      >
-        <div className="grip-lines">
-          <span />
-          <span />
-          <span />
-        </div>
-      </button>
-
+    <div className="block-palette">
       <div className="build-shelf-section">
         <div className="build-shelf-label">TOOLS</div>
         <div className="build-shelf-tools">

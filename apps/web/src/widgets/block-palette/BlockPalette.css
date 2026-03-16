@@ -1,57 +1,23 @@
 .block-palette {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  bottom: 12px;
-  width: 140px;
+  width: 160px;
+  min-width: 160px;
+  height: 100%;
   background-color: #FFD500;
   background-image: radial-gradient(circle, #D4B200 4px, transparent 4px);
   background-size: 16px 16px;
-  border: 4px solid #D4B200;
-  border-radius: 10px;
-  padding: 8px;
+  border-right: 4px solid #D4B200;
+  padding: 12px 8px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 8px;
   overflow-y: auto;
   overflow-x: hidden;
-  z-index: 10;
   box-shadow: 
-    inset 0 4px 6px rgba(255, 255, 255, 0.4), 
-    inset 0 -4px 6px rgba(212, 178, 0, 0.8), 
-    0 8px 20px rgba(212, 178, 0, 0.5);
+    inset -4px 0 6px rgba(212, 178, 0, 0.3),
+    4px 0 12px rgba(0, 0, 0, 0.15);
   font-family: 'Fredoka', system-ui, sans-serif;
   color: #333;
-}
-
-/* Drag Grip */
-.palette-drag-grip {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 8px 0 0;
-  margin-right: 4px;
-  border-right: 4px solid #D4B200;
-  color: #B39200;
-}
-
-.grip-lines {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.grip-lines::before,
-.grip-lines::after,
-.grip-lines span {
-  content: '';
-  display: block;
-  width: 12px;
-  height: 3px;
-  background: #D4B200;
-  border-radius: 2px;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 /* Sections */

@@ -8,9 +8,17 @@
   background-color: #E8D5B7;
 }
 
-.canvas-container {
-  position: relative;
+.main-content {
+  display: flex;
+  flex-direction: row;
   flex: 1;
   margin-top: 40px; /* MenuBar height */
   margin-bottom: 32px; /* StatusBar height */
+  overflow: hidden;
+}
+
+.canvas-container {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
 }

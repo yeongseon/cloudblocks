@@ -117,22 +117,24 @@ function App() {
   return (
     <div className="app">
       <MenuBar />
-      <div className="canvas-container">
-        <SceneCanvas />
+      <div className="main-content">
         <BlockPalette />
-        <PropertiesPanel />
-        <ValidationPanel />
-        <LegendPanel />
-        <FlowDiagram />
-        <Suspense fallback={null}>
-          <CodePreview />
-          <WorkspaceManager />
-          <TemplateGallery />
-          <GitHubLogin />
-          <GitHubRepos />
-          <GitHubSync />
-          <GitHubPR />
-        </Suspense>
+        <div className="canvas-container">
+          <SceneCanvas />
+          <PropertiesPanel />
+          <ValidationPanel />
+          <LegendPanel />
+          <FlowDiagram />
+          <Suspense fallback={null}>
+            <CodePreview />
+            <WorkspaceManager />
+            <TemplateGallery />
+            <GitHubLogin />
+            <GitHubRepos />
+            <GitHubSync />
+            <GitHubPR />
+          </Suspense>
+        </div>
       </div>
       <StatusBar />
     </div>

@@ -5,10 +5,6 @@
 
 .plate-button {
   position: absolute;
-  left: -200px;
-  top: -60px;
-  width: 400px;
-  height: 300px;
   cursor: pointer;
   background: none;
   border: none;
@@ -17,6 +13,22 @@
   outline: none;
   pointer-events: none;
   appearance: none;
+}
+
+/* VNet: 넓고 낮은 baseplate */
+.plate-network .plate-button {
+  left: -350px;
+  top: -80px;
+  width: 700px;
+  height: 280px;
+}
+
+/* Subnet: 작은 plate */
+.plate-subnet .plate-button {
+  left: -180px;
+  top: -50px;
+  width: 360px;
+  height: 200px;
 }
 
 .plate-img {

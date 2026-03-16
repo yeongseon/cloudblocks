@@ -50,8 +50,11 @@ export const PlateSprite = memo(function PlateSprite({
 
   const spriteSrc = getPlateSprite(plate);
 
+  const sizeClass = plate.type === 'network' ? 'plate-network' : 'plate-subnet';
+
   const className = [
     'plate-sprite',
+    sizeClass,
     isSelected && 'is-selected',
   ]
     .filter(Boolean)
