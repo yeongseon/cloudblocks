@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import type { BlockCategory } from '../../shared/types/index';
 import type { EditorMode } from '../../shared/types/learning';
+import type { DiffDelta } from '../../shared/types/diff';
+import type { ArchitectureModel } from '../../shared/types/index';
 
 export type ToolMode = 'select' | 'connect' | 'delete';
 export type { EditorMode } from '../../shared/types/learning';
@@ -56,6 +58,20 @@ interface UIState {
   toggleLearningPanel: () => void;
   showScenarioGallery: boolean;
   toggleScenarioGallery: () => void;
+
+  // ── Diff mode ──
+  diffMode: boolean;
+  diffDelta: DiffDelta | null;
+  diffBaseArchitecture: ArchitectureModel | null;
+  setDiffMode: (
+    mode: boolean,
+    delta?: DiffDelta | null,
+    base?: ArchitectureModel | null,
+  ) => void;
+
+  // ── Collaboration panel ──
+  showCollaboration: boolean;
+  toggleCollaboration: () => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -126,4 +142,18 @@ export const useUIStore = create<UIState>((set) => ({
   showScenarioGallery: false,
   toggleScenarioGallery: () =>
     set((s) => ({ showScenarioGallery: !s.showScenarioGallery })),
+
+  diffMode: false,
+  diffDelta: null,
+  diffBaseArchitecture: null,
+  setDiffMode: (mode, delta, base) =>
+    set({
+      diffMode: mode,
+      diffDelta: delta ?? null,
+      diffBaseArchitecture: base ?? null,
+    }),
+
+  showCollaboration: false,
+  toggleCollaboration: () =>
+    set((s) => ({ showCollaboration: !s.showCollaboration })),
 }));

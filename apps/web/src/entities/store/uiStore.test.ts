@@ -23,6 +23,10 @@ describe('useUIStore', () => {
       editorMode: 'build',
       showLearningPanel: false,
       showScenarioGallery: false,
+      diffMode: false,
+      diffDelta: null,
+      diffBaseArchitecture: null,
+      showCollaboration: false,
     });
   });
 
@@ -46,6 +50,10 @@ describe('useUIStore', () => {
       expect(state.editorMode).toBe('build');
       expect(state.showLearningPanel).toBe(false);
       expect(state.showScenarioGallery).toBe(false);
+      expect(state.diffMode).toBe(false);
+      expect(state.diffDelta).toBe(null);
+      expect(state.diffBaseArchitecture).toBe(null);
+      expect(state.showCollaboration).toBe(false);
     });
   });
 
@@ -446,6 +454,82 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().showScenarioGallery).toBe(true);
       useUIStore.getState().toggleScenarioGallery();
       expect(useUIStore.getState().showScenarioGallery).toBe(false);
+    });
+  });
+
+  describe('diffMode', () => {
+    it('should default diffMode to false', () => {
+      expect(useUIStore.getState().diffMode).toBe(false);
+      expect(useUIStore.getState().diffDelta).toBe(null);
+      expect(useUIStore.getState().diffBaseArchitecture).toBe(null);
+    });
+
+    it('should enable diff mode with delta and base architecture', () => {
+      const mockDelta = {
+        plates: { added: [], removed: [], modified: [] },
+        blocks: { added: [], removed: [], modified: [] },
+        connections: { added: [], removed: [], modified: [] },
+        externalActors: { added: [], removed: [], modified: [] },
+        summary: { totalChanges: 0, hasBreakingChanges: false },
+      };
+      const mockBase = {
+        id: 'base-arch',
+        name: 'Base',
+        version: '1.0',
+        plates: [],
+        blocks: [],
+        connections: [],
+        externalActors: [],
+        createdAt: '2026-01-01',
+        updatedAt: '2026-01-01',
+      };
+
+      useUIStore.getState().setDiffMode(true, mockDelta, mockBase);
+      const state = useUIStore.getState();
+      expect(state.diffMode).toBe(true);
+      expect(state.diffDelta).toEqual(mockDelta);
+      expect(state.diffBaseArchitecture).toEqual(mockBase);
+    });
+
+    it('should disable diff mode and clear delta/base', () => {
+      const mockDelta = {
+        plates: { added: [], removed: [], modified: [] },
+        blocks: { added: [], removed: [], modified: [] },
+        connections: { added: [], removed: [], modified: [] },
+        externalActors: { added: [], removed: [], modified: [] },
+        summary: { totalChanges: 0, hasBreakingChanges: false },
+      };
+      useUIStore.getState().setDiffMode(true, mockDelta, null);
+      useUIStore.getState().setDiffMode(false);
+      const state = useUIStore.getState();
+      expect(state.diffMode).toBe(false);
+      expect(state.diffDelta).toBe(null);
+      expect(state.diffBaseArchitecture).toBe(null);
+    });
+
+    it('should set diffMode without optional params (delta defaults to null)', () => {
+      useUIStore.getState().setDiffMode(true);
+      const state = useUIStore.getState();
+      expect(state.diffMode).toBe(true);
+      expect(state.diffDelta).toBe(null);
+      expect(state.diffBaseArchitecture).toBe(null);
+    });
+  });
+
+  describe('toggleCollaboration', () => {
+    it('should default showCollaboration to false', () => {
+      expect(useUIStore.getState().showCollaboration).toBe(false);
+    });
+
+    it('should toggle showCollaboration from false to true', () => {
+      useUIStore.getState().toggleCollaboration();
+      expect(useUIStore.getState().showCollaboration).toBe(true);
+    });
+
+    it('should toggle showCollaboration back to false', () => {
+      useUIStore.getState().toggleCollaboration();
+      useUIStore.getState().toggleCollaboration();
+      expect(useUIStore.getState().showCollaboration).toBe(false);
     });
   });
 
