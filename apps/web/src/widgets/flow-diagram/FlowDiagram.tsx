@@ -70,7 +70,7 @@ export function FlowDiagram() {
         const block = blockMap.get(id);
         const actor = actorMap.get(id);
 
-        let content = null;
+        let content;
         if (actor) {
           content = (
             <div className="flow-node flow-node-external">

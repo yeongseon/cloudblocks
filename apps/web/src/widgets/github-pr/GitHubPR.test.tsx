@@ -31,11 +31,9 @@ describe('GitHubPR', () => {
     vi.clearAllMocks();
     useUIStore.setState({ showGitHubPR: true });
     useAuthStore.setState({
+      status: 'authenticated',
       user: null,
-      accessToken: null,
-      refreshToken: null,
-      isAuthenticated: true,
-      isLoading: false,
+      hydrated: true,
       error: null,
     });
     useArchitectureStore.setState({
@@ -56,7 +54,7 @@ describe('GitHubPR', () => {
   });
 
   it('shows auth required when not authenticated', () => {
-    useAuthStore.setState({ isAuthenticated: false });
+    useAuthStore.setState({ status: 'anonymous' });
     render(<GitHubPR />);
     expect(screen.getByText('GitHub authentication required.')).toBeInTheDocument();
   });

@@ -44,7 +44,7 @@ describe('Toolbar', () => {
       showGitHubSync: false,
       showGitHubPR: false,
     });
-    useAuthStore.setState({ isAuthenticated: false, user: null });
+    useAuthStore.setState({ status: 'anonymous', user: null, hydrated: true, error: null });
     useArchitectureStore.setState({
       addPlate: addPlateMock,
       validate: validateMock,
@@ -91,7 +91,7 @@ describe('Toolbar', () => {
 
   it('shows GitHub username when authenticated', () => {
     useAuthStore.setState({
-      isAuthenticated: true,
+      status: 'authenticated',
       user: {
         id: 'user-1',
         github_username: 'octocat',
@@ -106,7 +106,7 @@ describe('Toolbar', () => {
 
   it('shows Repos, Sync, PR buttons when authenticated', () => {
     useAuthStore.setState({
-      isAuthenticated: true,
+      status: 'authenticated',
       user: {
         id: 'user-1',
         github_username: 'octocat',
@@ -487,6 +487,37 @@ describe('Toolbar', () => {
     vi.stubGlobal('FileReader', OrigFileReader);
   });
 
+  it('ignores import when FileReader result is not a string', () => {
+    render(<Toolbar />);
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(['{}'], 'test.json', { type: 'application/json' });
+
+    let capturedOnload: ((ev: ProgressEvent<FileReader>) => void) | null = null;
+    const OrigFileReader = window.FileReader;
+    class MockFileReader {
+      set onload(fn: ((ev: ProgressEvent<FileReader>) => void) | null) {
+        capturedOnload = fn;
+      }
+
+      get onload() {
+        return capturedOnload;
+      }
+
+      readAsText = vi.fn();
+    }
+    vi.stubGlobal('FileReader', MockFileReader);
+
+    Object.defineProperty(fileInput, 'files', { value: [file], writable: true, configurable: true });
+    fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+    const onloadFn = capturedOnload as ((ev: ProgressEvent<FileReader>) => void) | null;
+    if (onloadFn) {
+      onloadFn({ target: { result: new ArrayBuffer(8) } } as unknown as ProgressEvent<FileReader>);
+    }
+
+    expect(importArchitectureMock).not.toHaveBeenCalled();
+    vi.stubGlobal('FileReader', OrigFileReader);
+  });
+
   // --- Panel toggles ---
 
   it('toggles code preview on click', async () => {
@@ -534,7 +565,7 @@ describe('Toolbar', () => {
 
   it('shows Account label when authenticated but user has no github_username', () => {
     useAuthStore.setState({
-      isAuthenticated: true,
+      status: 'authenticated',
       user: {
         id: 'user-1',
         github_username: null,
@@ -549,7 +580,7 @@ describe('Toolbar', () => {
 
   it('shows Account label when authenticated but user is null', () => {
     useAuthStore.setState({
-      isAuthenticated: true,
+      status: 'authenticated',
       user: null,
     });
     render(<Toolbar />);
@@ -559,7 +590,7 @@ describe('Toolbar', () => {
   it('toggles GitHub login when authenticated and account button clicked', async () => {
     const user = userEvent.setup();
     useAuthStore.setState({
-      isAuthenticated: true,
+      status: 'authenticated',
       user: {
         id: 'user-1',
         github_username: 'octocat',
@@ -576,7 +607,7 @@ describe('Toolbar', () => {
   it('toggles GitHub repos when authenticated', async () => {
     const user = userEvent.setup();
     useAuthStore.setState({
-      isAuthenticated: true,
+      status: 'authenticated',
       user: {
         id: 'user-1',
         github_username: 'octocat',
@@ -593,7 +624,7 @@ describe('Toolbar', () => {
   it('toggles GitHub sync when authenticated', async () => {
     const user = userEvent.setup();
     useAuthStore.setState({
-      isAuthenticated: true,
+      status: 'authenticated',
       user: {
         id: 'user-1',
         github_username: 'octocat',
@@ -610,7 +641,7 @@ describe('Toolbar', () => {
   it('toggles GitHub PR when authenticated', async () => {
     const user = userEvent.setup();
     useAuthStore.setState({
-      isAuthenticated: true,
+      status: 'authenticated',
       user: {
         id: 'user-1',
         github_username: 'octocat',
@@ -636,6 +667,22 @@ describe('Toolbar', () => {
     useUIStore.setState({ showValidation: true });
     render(<Toolbar />);
     await user.click(screen.getByTitle('Validate Architecture'));
+    expect(validateMock).toHaveBeenCalled();
+    expect(useUIStore.getState().showValidation).toBe(true);
+  });
+
+  it('handles invalid validation result without toggling when already visible', async () => {
+    const user = userEvent.setup();
+    validateMock.mockReturnValue({
+      valid: false,
+      errors: [{ ruleId: 'r1', severity: 'error', message: 'boom', targetId: 'x' }],
+      warnings: [],
+    });
+    useUIStore.setState({ showValidation: true });
+
+    render(<Toolbar />);
+    await user.click(screen.getByTitle('Validate Architecture'));
+
     expect(validateMock).toHaveBeenCalled();
     expect(useUIStore.getState().showValidation).toBe(true);
   });

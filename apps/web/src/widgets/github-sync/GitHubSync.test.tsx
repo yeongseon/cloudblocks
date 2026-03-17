@@ -33,11 +33,9 @@ describe('GitHubSync', () => {
     vi.clearAllMocks();
     useUIStore.setState({ showGitHubSync: true });
     useAuthStore.setState({
+      status: 'authenticated',
       user: null,
-      accessToken: null,
-      refreshToken: null,
-      isAuthenticated: true,
-      isLoading: false,
+      hydrated: true,
       error: null,
     });
     useArchitectureStore.setState({
@@ -60,7 +58,7 @@ describe('GitHubSync', () => {
   });
 
   it('shows auth required when not authenticated', () => {
-    useAuthStore.setState({ isAuthenticated: false });
+    useAuthStore.setState({ status: 'anonymous' });
     render(<GitHubSync />);
     expect(screen.getByText('GitHub authentication required.')).toBeInTheDocument();
   });
@@ -205,6 +203,27 @@ describe('GitHubSync', () => {
 
     await waitFor(() => {
       expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/custom-ws-id/sync', expect.any(Object));
+    });
+  });
+
+  it('updates commit message and sends custom value on sync', async () => {
+    const user = userEvent.setup();
+    mockApiPost.mockResolvedValue({ message: 'ok', commit_sha: 'abc123' });
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+    const commitInput = await screen.findByDisplayValue('Sync architecture from CloudBlocks');
+    await user.clear(commitInput);
+    await user.type(commitInput, 'Custom commit from test');
+    await user.click(screen.getByRole('button', { name: 'Sync to GitHub' }));
+
+    await waitFor(() => {
+      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/sync', {
+        architecture: emptyArch,
+        commit_message: 'Custom commit from test',
+      });
     });
   });
 

@@ -1,6 +1,14 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ApiUser } from '../../shared/types/api';
+
+vi.mock('../../shared/api/client', () => ({
+  apiGet: vi.fn(),
+}));
+
+import { apiGet } from '../../shared/api/client';
 import { useAuthStore } from './authStore';
+
+const mockApiGet = vi.mocked(apiGet);
 
 const mockUser: ApiUser = {
   id: 'user-1',
@@ -12,12 +20,11 @@ const mockUser: ApiUser = {
 
 describe('useAuthStore', () => {
   beforeEach(() => {
+    mockApiGet.mockReset();
     useAuthStore.setState({
+      status: 'unknown',
       user: null,
-      accessToken: null,
-      refreshToken: null,
-      isAuthenticated: false,
-      isLoading: false,
+      hydrated: false,
       error: null,
     });
   });
@@ -25,54 +32,29 @@ describe('useAuthStore', () => {
   it('has expected initial state', () => {
     const state = useAuthStore.getState();
 
+    expect(state.status).toBe('unknown');
     expect(state.user).toBe(null);
-    expect(state.accessToken).toBe(null);
-    expect(state.refreshToken).toBe(null);
-    expect(state.isAuthenticated).toBe(false);
-    expect(state.isLoading).toBe(false);
+    expect(state.hydrated).toBe(false);
     expect(state.error).toBe(null);
   });
 
-  it('login sets user, tokens, and isAuthenticated', () => {
-    useAuthStore.getState().login('access-token', 'refresh-token', mockUser);
+  it('setAuthenticated sets authenticated state', () => {
+    useAuthStore.getState().setAuthenticated(mockUser);
 
     const state = useAuthStore.getState();
+    expect(state.status).toBe('authenticated');
     expect(state.user).toEqual(mockUser);
-    expect(state.accessToken).toBe('access-token');
-    expect(state.refreshToken).toBe('refresh-token');
-    expect(state.isAuthenticated).toBe(true);
     expect(state.error).toBe(null);
   });
 
-  it('logout clears auth state', () => {
-    useAuthStore.getState().login('access-token', 'refresh-token', mockUser);
-    useAuthStore.getState().logout();
+  it('setAnonymous sets anonymous state', () => {
+    useAuthStore.setState({ status: 'authenticated', user: mockUser, error: 'old' });
+    useAuthStore.getState().setAnonymous();
 
     const state = useAuthStore.getState();
+    expect(state.status).toBe('anonymous');
     expect(state.user).toBe(null);
-    expect(state.accessToken).toBe(null);
-    expect(state.refreshToken).toBe(null);
-    expect(state.isAuthenticated).toBe(false);
     expect(state.error).toBe(null);
-  });
-
-  it('setAccessToken updates only access token', () => {
-    useAuthStore.getState().login('access-token', 'refresh-token', mockUser);
-    useAuthStore.getState().setAccessToken('next-access-token');
-
-    const state = useAuthStore.getState();
-    expect(state.accessToken).toBe('next-access-token');
-    expect(state.refreshToken).toBe('refresh-token');
-    expect(state.user).toEqual(mockUser);
-    expect(state.isAuthenticated).toBe(true);
-  });
-
-  it('setLoading updates isLoading', () => {
-    useAuthStore.getState().setLoading(true);
-    expect(useAuthStore.getState().isLoading).toBe(true);
-
-    useAuthStore.getState().setLoading(false);
-    expect(useAuthStore.getState().isLoading).toBe(false);
   });
 
   it('setError updates error', () => {
@@ -81,5 +63,43 @@ describe('useAuthStore', () => {
 
     useAuthStore.getState().setError(null);
     expect(useAuthStore.getState().error).toBe(null);
+  });
+
+  it('checkSession sets authenticated state on success', async () => {
+    mockApiGet.mockResolvedValueOnce(mockUser);
+
+    await useAuthStore.getState().checkSession();
+
+    const state = useAuthStore.getState();
+    expect(mockApiGet).toHaveBeenCalledWith('/api/v1/auth/session');
+    expect(state.status).toBe('authenticated');
+    expect(state.user).toEqual(mockUser);
+    expect(state.hydrated).toBe(true);
+    expect(state.error).toBe(null);
+  });
+
+  it('checkSession sets anonymous state on 401', async () => {
+    const err = Object.assign(new Error('Unauthorized'), { status: 401 });
+    mockApiGet.mockRejectedValueOnce(err);
+
+    await useAuthStore.getState().checkSession();
+
+    const state = useAuthStore.getState();
+    expect(state.status).toBe('anonymous');
+    expect(state.user).toBe(null);
+    expect(state.hydrated).toBe(true);
+    expect(state.error).toBe(null);
+  });
+
+  it('checkSession keeps unknown status on network error', async () => {
+    mockApiGet.mockRejectedValueOnce(new Error('Network error'));
+
+    await useAuthStore.getState().checkSession();
+
+    const state = useAuthStore.getState();
+    expect(state.status).toBe('unknown');
+    expect(state.user).toBe(null);
+    expect(state.hydrated).toBe(true);
+    expect(state.error).toBe('Session check failed');
   });
 });

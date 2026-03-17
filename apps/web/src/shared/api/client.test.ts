@@ -1,15 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ApiUser } from '../types/api';
-import { useAuthStore } from '../../entities/store/authStore';
 import { ApiError, apiDelete, apiFetch, apiGet, apiPost, apiPut } from './client';
-
-const mockUser: ApiUser = {
-  id: 'user-1',
-  github_username: 'octocat',
-  email: 'octocat@example.com',
-  display_name: 'Octo Cat',
-  avatar_url: 'https://example.com/avatar.png',
-};
 
 function jsonResponse(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload), {
@@ -33,15 +23,6 @@ describe('api client', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', fetchMock);
     fetchMock.mockReset();
-
-    useAuthStore.setState({
-      user: null,
-      accessToken: null,
-      refreshToken: null,
-      isAuthenticated: false,
-      isLoading: false,
-      error: null,
-    });
   });
 
   afterEach(() => {
@@ -57,6 +38,7 @@ describe('api client', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0][0]).toBe('/api/v1/test');
     expect((fetchMock.mock.calls[0][1] as RequestInit).method).toBe('GET');
+    expect((fetchMock.mock.calls[0][1] as RequestInit).credentials).toBe('include');
   });
 
   it('handles successful POST request and sets Content-Type', async () => {
@@ -68,6 +50,7 @@ describe('api client', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect((fetchMock.mock.calls[0][1] as RequestInit).method).toBe('POST');
     expect((fetchMock.mock.calls[0][1] as RequestInit).body).toBe('{"name":"repo"}');
+    expect((fetchMock.mock.calls[0][1] as RequestInit).credentials).toBe('include');
     expect(requestHeaders(fetchMock.mock.calls[0]).get('Content-Type')).toBe('application/json');
   });
 
@@ -80,27 +63,20 @@ describe('api client', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect((fetchMock.mock.calls[0][1] as RequestInit).method).toBe('PUT');
     expect((fetchMock.mock.calls[0][1] as RequestInit).body).toBe('{"branch":"main"}');
+    expect((fetchMock.mock.calls[0][1] as RequestInit).credentials).toBe('include');
     expect(requestHeaders(fetchMock.mock.calls[0]).get('Content-Type')).toBe('application/json');
   });
 
-  it('handles successful DELETE request', async () => {
+  it('handles successful DELETE request with 204 empty response', async () => {
     fetchMock.mockResolvedValueOnce(new Response(null, { status: 204 }));
 
     await expect(apiDelete('/api/v1/test')).resolves.toBeUndefined();
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect((fetchMock.mock.calls[0][1] as RequestInit).method).toBe('DELETE');
+    expect((fetchMock.mock.calls[0][1] as RequestInit).credentials).toBe('include');
   });
 
-  it('adds Authorization header when token is present', async () => {
-    useAuthStore.getState().login('access-token', 'refresh-token', mockUser);
-    fetchMock.mockResolvedValueOnce(jsonResponse({ ok: true }));
-
-    await apiGet<{ ok: boolean }>('/api/v1/test');
-
-    expect(requestHeaders(fetchMock.mock.calls[0]).get('Authorization')).toBe('Bearer access-token');
-  });
-
-  it('does not add Authorization header when token is missing', async () => {
+  it('does not add Authorization header', async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ ok: true }));
 
     await apiGet<{ ok: boolean }>('/api/v1/test');
@@ -108,49 +84,19 @@ describe('api client', () => {
     expect(requestHeaders(fetchMock.mock.calls[0]).has('Authorization')).toBe(false);
   });
 
-  it('refreshes token after 401 and retries original request', async () => {
-    useAuthStore.getState().login('stale-token', 'refresh-token', mockUser);
+  it('throws ApiError for 401 and does not retry', async () => {
+    fetchMock.mockResolvedValueOnce(textResponse('Unauthorized', 401));
 
-    fetchMock
-      .mockResolvedValueOnce(textResponse('Unauthorized', 401))
-      .mockResolvedValueOnce(jsonResponse({ access_token: 'fresh-token', token_type: 'bearer' }))
-      .mockResolvedValueOnce(jsonResponse({ ok: true }));
-
-    const result = await apiGet<{ ok: boolean }>('/api/v1/test');
-
-    expect(result).toEqual({ ok: true });
-    expect(fetchMock).toHaveBeenCalledTimes(3);
-
-    expect(fetchMock.mock.calls[0][0]).toBe('/api/v1/test');
-    expect(requestHeaders(fetchMock.mock.calls[0]).get('Authorization')).toBe('Bearer stale-token');
-
-    expect(fetchMock.mock.calls[1][0]).toBe('/api/v1/auth/refresh');
-    expect((fetchMock.mock.calls[1][1] as RequestInit).method).toBe('POST');
-    expect((fetchMock.mock.calls[1][1] as RequestInit).body).toBe('{"refresh_token":"refresh-token"}');
-
-    expect(fetchMock.mock.calls[2][0]).toBe('/api/v1/test');
-    expect(requestHeaders(fetchMock.mock.calls[2]).get('Authorization')).toBe('Bearer fresh-token');
-    expect(useAuthStore.getState().accessToken).toBe('fresh-token');
-    expect(useAuthStore.getState().isAuthenticated).toBe(true);
+    await expect(apiGet('/api/v1/test')).rejects.toMatchObject({
+      name: 'ApiError',
+      message: 'API request failed with status 401',
+      status: 401,
+      body: 'Unauthorized',
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it('logs out when refresh fails after 401', async () => {
-    useAuthStore.getState().login('stale-token', 'refresh-token', mockUser);
-
-    fetchMock
-      .mockResolvedValueOnce(textResponse('Unauthorized', 401))
-      .mockResolvedValueOnce(textResponse('Bad refresh token', 401));
-
-    await expect(apiFetch<{ ok: boolean }>('/api/v1/test')).rejects.toBeInstanceOf(ApiError);
-
-    const state = useAuthStore.getState();
-    expect(state.accessToken).toBe(null);
-    expect(state.refreshToken).toBe(null);
-    expect(state.user).toBe(null);
-    expect(state.isAuthenticated).toBe(false);
-  });
-
-  it('throws ApiError for non-2xx non-401 responses', async () => {
+  it('throws ApiError for 500 responses', async () => {
     fetchMock.mockResolvedValueOnce(textResponse('Server exploded', 500));
 
     await expect(apiGet('/api/v1/test')).rejects.toMatchObject({
@@ -170,23 +116,6 @@ describe('api client', () => {
     expect(error.body).toBe('Teapot');
   });
 
-  it('throws ApiError when 401 and no refresh token available', async () => {
-    useAuthStore.getState().login('stale-token', '', mockUser);
-    // Set refreshToken to null explicitly
-    useAuthStore.setState({ refreshToken: null });
-
-    fetchMock.mockResolvedValueOnce(textResponse('Unauthorized', 401));
-
-    await expect(apiFetch<{ ok: boolean }>('/api/v1/test')).rejects.toMatchObject({
-      name: 'ApiError',
-      message: 'No refresh token available',
-      status: 401,
-    });
-
-    const state = useAuthStore.getState();
-    expect(state.isAuthenticated).toBe(false);
-  });
-
   it('passes body through when already a string', async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ ok: true }));
 
@@ -199,5 +128,6 @@ describe('api client', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const requestInit = fetchMock.mock.calls[0][1] as RequestInit;
     expect(requestInit.body).toBe('{"already":"stringified"}');
+    expect(requestInit.credentials).toBe('include');
   });
 });

@@ -5,17 +5,18 @@ Provides FastAPI dependencies for database, repositories, services, and auth.
 
 from __future__ import annotations
 
+import time
 from typing import Annotated
 
-from fastapi import Depends, Header
+from fastapi import Depends, Request
 
 from app.core.config import settings
 from app.core.errors import UnauthorizedError
-from app.core.security import decode_token
-from app.domain.models.entities import User
+from app.domain.models.entities import Session, User
 from app.domain.models.repositories import (
     GenerationRunRepository,
     IdentityRepository,
+    SessionRepository,
     UserRepository,
     WorkspaceRepository,
 )
@@ -23,6 +24,7 @@ from app.infrastructure.db.connection import Database
 from app.infrastructure.db.repositories import (
     SQLiteGenerationRunRepository,
     SQLiteIdentityRepository,
+    SQLiteSessionRepository,
     SQLiteUserRepository,
     SQLiteWorkspaceRepository,
 )
@@ -62,24 +64,43 @@ def get_generation_run_repo(
     return SQLiteGenerationRunRepository(db)
 
 
+def get_session_repo(db: Annotated[Database, Depends(get_database)]) -> SessionRepository:
+    return SQLiteSessionRepository(db)
+
+
+async def get_current_session(
+    request: Request,
+    session_repo: Annotated[SessionRepository, Depends(get_session_repo)],
+) -> Session:
+    """Extract and validate the current session from the cb_session cookie."""
+    session_token = request.cookies.get(settings.session_cookie_name)
+    if not session_token:
+        raise UnauthorizedError("Missing session cookie")
+
+    session = await session_repo.get_by_id(session_token)
+    if not session:
+        raise UnauthorizedError("Invalid session")
+
+    now = int(time.time())
+    if session.expires_at < now:
+        raise UnauthorizedError("Session expired")
+
+    if session.revoked_at is not None:
+        raise UnauthorizedError("Session revoked")
+
+    await session_repo.update_last_seen(session.id, now)
+    return session
+
+
 async def get_current_user(
-    authorization: Annotated[str | None, Header()] = None,
-    user_repo: Annotated[UserRepository, Depends(get_user_repo)] = None,  # noqa: B008
+    request: Request,
+    session_repo: Annotated[SessionRepository, Depends(get_session_repo)],
+    user_repo: Annotated[UserRepository, Depends(get_user_repo)],
 ) -> User:
-    """Extract and validate the current user from the Authorization header."""
-    if not authorization:
-        raise UnauthorizedError("Missing Authorization header")
+    """Extract and validate the current user from the session cookie."""
+    session = await get_current_session(request, session_repo)
 
-    scheme, _, token = authorization.partition(" ")
-    if scheme.lower() != "bearer" or not token:
-        raise UnauthorizedError("Invalid Authorization header format")
-
-    payload = decode_token(token, expected_type="access")
-    user_id = payload.get("sub")
-    if not user_id:
-        raise UnauthorizedError("Invalid token payload")
-
-    user = await user_repo.find_by_id(user_id)
+    user = await user_repo.find_by_id(session.user_id)
     if not user:
         raise UnauthorizedError("User not found")
 

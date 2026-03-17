@@ -2,20 +2,21 @@ from __future__ import annotations
 
 import base64
 import json
+import time
 from typing import Any
 
 import pytest
 from httpx import AsyncClient
 
 from app.core.errors import GitHubError
-from app.core.security import create_access_token, generate_id
-from app.domain.models.entities import User
-from app.infrastructure.db.repositories import SQLiteUserRepository
+from app.core.security import generate_id, generate_session_token
+from app.domain.models.entities import Session, User
+from app.infrastructure.db.repositories import SQLiteSessionRepository, SQLiteUserRepository
 
 
 async def _create_workspace(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
     **kwargs: Any,
 ) -> dict[str, Any]:
     payload: dict[str, Any] = {
@@ -24,12 +25,12 @@ async def _create_workspace(
         "github_branch": "main",
     }
     payload.update(kwargs)
-    response = await client.post("/api/v1/workspaces/", headers=auth_headers, json=payload)
+    response = await client.post("/api/v1/workspaces/", cookies=auth_cookies, json=payload)
     assert response.status_code == 201
     return response.json()
 
 
-async def _create_other_user_auth(db) -> dict[str, str]:
+async def _create_other_user_cookies(db) -> dict[str, str]:
     repo = SQLiteUserRepository(db)
     other_user = User(
         id=generate_id(),
@@ -39,13 +40,23 @@ async def _create_other_user_auth(db) -> dict[str, str]:
         display_name="Other GitHub User",
     )
     created = await repo.create(other_user)
-    return {"Authorization": f"Bearer {create_access_token(created.id)}"}
+    session_repo = SQLiteSessionRepository(db)
+    token = generate_session_token()
+    now = int(time.time())
+    session = Session(
+        id=token,
+        user_id=created.id,
+        created_at=now,
+        expires_at=now + 7 * 24 * 3600,
+    )
+    await session_repo.create(session)
+    return {"cb_session": token}
 
 
 @pytest.mark.asyncio
 async def test_list_github_repos_returns_formatted_list(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
     mock_github,
     test_identity,
 ) -> None:
@@ -61,7 +72,7 @@ async def test_list_github_repos_returns_formatted_list(
 
     response = await client.get(
         "/api/v1/github/repos",
-        headers=auth_headers,
+        cookies=auth_cookies,
     )
 
     assert response.status_code == 200
@@ -75,9 +86,9 @@ async def test_list_github_repos_returns_formatted_list(
 @pytest.mark.asyncio
 async def test_list_github_repos_without_token_returns_502(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
 ) -> None:
-    response = await client.get("/api/v1/github/repos", headers=auth_headers)
+    response = await client.get("/api/v1/github/repos", cookies=auth_cookies)
 
     assert response.status_code == 502
     assert response.json()["error"]["code"] == "GITHUB_ERROR"
@@ -86,7 +97,7 @@ async def test_list_github_repos_without_token_returns_502(
 @pytest.mark.asyncio
 async def test_create_github_repo_returns_created_repo(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
     mock_github,
     test_identity,
 ) -> None:
@@ -99,7 +110,7 @@ async def test_create_github_repo_returns_created_repo(
 
     response = await client.post(
         "/api/v1/github/repos",
-        headers=auth_headers,
+        cookies=auth_cookies,
         json={"name": "new-repo", "description": "desc", "private": True},
     )
 
@@ -116,11 +127,11 @@ async def test_create_github_repo_returns_created_repo(
 @pytest.mark.asyncio
 async def test_sync_workspace_to_github_with_existing_file_uses_sha(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
     mock_github,
     test_identity,
 ) -> None:
-    workspace = await _create_workspace(client, auth_headers)
+    workspace = await _create_workspace(client, auth_cookies)
     workspace_id = workspace["id"]
     architecture = {"plates": [{"id": "plate-1"}], "blocks": []}
 
@@ -129,7 +140,7 @@ async def test_sync_workspace_to_github_with_existing_file_uses_sha(
 
     response = await client.post(
         f"/api/v1/workspaces/{workspace_id}/sync",
-        headers=auth_headers,
+        cookies=auth_cookies,
         json={"architecture": architecture, "commit_message": "sync update"},
     )
 
@@ -158,11 +169,11 @@ async def test_sync_workspace_to_github_with_existing_file_uses_sha(
 @pytest.mark.asyncio
 async def test_sync_workspace_to_github_with_new_file_uses_none_sha(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
     mock_github,
     test_identity,
 ) -> None:
-    workspace = await _create_workspace(client, auth_headers)
+    workspace = await _create_workspace(client, auth_cookies)
     workspace_id = workspace["id"]
 
     mock_github.get_repo_contents.side_effect = GitHubError("missing")
@@ -170,7 +181,7 @@ async def test_sync_workspace_to_github_with_new_file_uses_none_sha(
 
     response = await client.post(
         f"/api/v1/workspaces/{workspace_id}/sync",
-        headers=auth_headers,
+        cookies=auth_cookies,
         json={"architecture": {"plates": [], "blocks": []}},
     )
 
@@ -182,12 +193,12 @@ async def test_sync_workspace_to_github_with_new_file_uses_none_sha(
 @pytest.mark.asyncio
 async def test_sync_workspace_without_linked_repo_returns_502(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
 ) -> None:
-    workspace = await _create_workspace(client, auth_headers, github_repo=None)
+    workspace = await _create_workspace(client, auth_cookies, github_repo=None)
     response = await client.post(
         f"/api/v1/workspaces/{workspace['id']}/sync",
-        headers=auth_headers,
+        cookies=auth_cookies,
         json={"architecture": {"plates": []}},
     )
 
@@ -198,11 +209,11 @@ async def test_sync_workspace_without_linked_repo_returns_502(
 @pytest.mark.asyncio
 async def test_sync_workspace_not_found_returns_404(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
 ) -> None:
     response = await client.post(
         "/api/v1/workspaces/missing/sync",
-        headers=auth_headers,
+        cookies=auth_cookies,
         json={"architecture": {"plates": []}},
     )
 
@@ -213,15 +224,15 @@ async def test_sync_workspace_not_found_returns_404(
 @pytest.mark.asyncio
 async def test_sync_workspace_not_owner_returns_403(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
     db,
 ) -> None:
-    workspace = await _create_workspace(client, auth_headers)
-    other_headers = await _create_other_user_auth(db)
+    workspace = await _create_workspace(client, auth_cookies)
+    other_cookies = await _create_other_user_cookies(db)
 
     response = await client.post(
         f"/api/v1/workspaces/{workspace['id']}/sync",
-        headers=other_headers,
+        cookies=other_cookies,
         json={"architecture": {"plates": []}},
     )
 
@@ -232,18 +243,18 @@ async def test_sync_workspace_not_owner_returns_403(
 @pytest.mark.asyncio
 async def test_pull_workspace_architecture_from_github(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
     mock_github,
     test_identity,
 ) -> None:
-    workspace = await _create_workspace(client, auth_headers)
+    workspace = await _create_workspace(client, auth_cookies)
     architecture = {"plates": [{"id": "p-1"}], "blocks": [{"id": "b-1"}]}
     encoded = base64.b64encode(json.dumps(architecture).encode()).decode()
     mock_github.get_repo_contents.return_value = {"content": encoded}
 
     response = await client.post(
         f"/api/v1/workspaces/{workspace['id']}/pull",
-        headers=auth_headers,
+        cookies=auth_cookies,
     )
 
     assert response.status_code == 200
@@ -253,16 +264,16 @@ async def test_pull_workspace_architecture_from_github(
 @pytest.mark.asyncio
 async def test_pull_workspace_architecture_file_not_found_returns_404(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
     mock_github,
     test_identity,
 ) -> None:
-    workspace = await _create_workspace(client, auth_headers)
+    workspace = await _create_workspace(client, auth_cookies)
     mock_github.get_repo_contents.side_effect = GitHubError("no file")
 
     response = await client.post(
         f"/api/v1/workspaces/{workspace['id']}/pull",
-        headers=auth_headers,
+        cookies=auth_cookies,
     )
 
     assert response.status_code == 404
@@ -272,16 +283,16 @@ async def test_pull_workspace_architecture_file_not_found_returns_404(
 @pytest.mark.asyncio
 async def test_pull_workspace_architecture_unexpected_format_returns_502(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
     mock_github,
     test_identity,
 ) -> None:
-    workspace = await _create_workspace(client, auth_headers)
+    workspace = await _create_workspace(client, auth_cookies)
     mock_github.get_repo_contents.return_value = ["unexpected"]
 
     response = await client.post(
         f"/api/v1/workspaces/{workspace['id']}/pull",
-        headers=auth_headers,
+        cookies=auth_cookies,
     )
 
     assert response.status_code == 502
@@ -291,11 +302,11 @@ async def test_pull_workspace_architecture_unexpected_format_returns_502(
 @pytest.mark.asyncio
 async def test_create_pull_request_for_workspace_returns_pr_details(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
     mock_github,
     test_identity,
 ) -> None:
-    workspace = await _create_workspace(client, auth_headers)
+    workspace = await _create_workspace(client, auth_cookies)
 
     mock_github.get_default_branch_sha.return_value = "base-sha"
     mock_github.create_branch.return_value = {"ref": "refs/heads/cloudblocks/pr-branch"}
@@ -308,7 +319,7 @@ async def test_create_pull_request_for_workspace_returns_pr_details(
 
     response = await client.post(
         f"/api/v1/workspaces/{workspace['id']}/pr",
-        headers=auth_headers,
+        cookies=auth_cookies,
         json={
             "architecture": {"plates": [], "blocks": []},
             "title": "Update architecture",
@@ -328,11 +339,11 @@ async def test_create_pull_request_for_workspace_returns_pr_details(
 @pytest.mark.asyncio
 async def test_list_workspace_commits_returns_formatted_commits(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
     mock_github,
     test_identity,
 ) -> None:
-    workspace = await _create_workspace(client, auth_headers)
+    workspace = await _create_workspace(client, auth_cookies)
     mock_github.list_commits.return_value = [
         {
             "sha": "abc123",
@@ -345,7 +356,7 @@ async def test_list_workspace_commits_returns_formatted_commits(
 
     response = await client.get(
         f"/api/v1/workspaces/{workspace['id']}/commits",
-        headers=auth_headers,
+        cookies=auth_cookies,
     )
 
     assert response.status_code == 200

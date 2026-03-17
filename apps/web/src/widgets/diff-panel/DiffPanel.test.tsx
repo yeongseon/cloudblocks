@@ -244,4 +244,158 @@ describe('DiffPanel', () => {
     render(<DiffPanel />);
     expect(screen.getByText('+ API Gateway (block-added-1)')).toBeInTheDocument();
   });
+
+  it('shows connection labels with endpoints', () => {
+    render(<DiffPanel />);
+    expect(screen.getByText('+ conn-added-1 (block-added-1 -> block-modified-1)')).toBeInTheDocument();
+  });
+
+  it('falls back to id-only label when entity has no name or endpoints', () => {
+    const delta = makeDiffDelta();
+    delta.plates.added = [{ id: 'plate-id-only' } as unknown as DiffDelta['plates']['added'][number]];
+    delta.plates.removed = [];
+    delta.plates.modified = [];
+    delta.summary.totalChanges =
+      delta.plates.added.length
+      + delta.blocks.added.length
+      + delta.blocks.removed.length
+      + delta.blocks.modified.length
+      + delta.connections.added.length
+      + delta.connections.removed.length
+      + delta.connections.modified.length
+      + delta.externalActors.added.length
+      + delta.externalActors.removed.length
+      + delta.externalActors.modified.length;
+
+    useUIStore.setState({ diffDelta: delta });
+    render(<DiffPanel />);
+
+    expect(screen.getByText('+ plate-id-only')).toBeInTheDocument();
+  });
+
+  it('collapses and expands a section from its header button', async () => {
+    const user = userEvent.setup();
+    render(<DiffPanel />);
+
+    const platesSectionToggle = screen.getByRole('button', { name: /Plates/ });
+    expect(platesSectionToggle).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText('+ Public Subnet (plate-added-1)')).toBeInTheDocument();
+
+    await user.click(platesSectionToggle);
+    expect(platesSectionToggle).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByText('+ Public Subnet (plate-added-1)')).not.toBeInTheDocument();
+
+    await user.click(platesSectionToggle);
+    expect(platesSectionToggle).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText('+ Public Subnet (plate-added-1)')).toBeInTheDocument();
+  });
+
+  it('expands and collapses modified details with varied value types', async () => {
+    const user = userEvent.setup();
+    const delta = makeDiffDelta();
+    delta.plates.added = [];
+    delta.plates.removed = [];
+    delta.plates.modified = [];
+    delta.connections.added = [];
+    delta.connections.removed = [];
+    delta.connections.modified = [];
+    delta.externalActors.added = [];
+    delta.externalActors.removed = [];
+    delta.externalActors.modified = [];
+    delta.blocks.added = [];
+    delta.blocks.removed = [];
+    delta.blocks.modified = [
+      {
+        id: 'block-modified-types',
+        before: {
+          id: 'block-modified-types',
+          name: 'Type Tester',
+          category: 'compute',
+          placementId: 'plate-added-1',
+          position: { x: 0, y: 0, z: 0 },
+          metadata: {},
+        },
+        after: {
+          id: 'block-modified-types',
+          name: 'Type Tester',
+          category: 'compute',
+          placementId: 'plate-added-1',
+          position: { x: 0, y: 0, z: 0 },
+          metadata: {},
+        },
+        changes: [
+          { path: 'string', oldValue: 'old', newValue: 'new' },
+          { path: 'undefined', oldValue: undefined, newValue: 'set' },
+          { path: 'null', oldValue: null, newValue: 'set' },
+          { path: 'number', oldValue: 1, newValue: 2 },
+          { path: 'boolean', oldValue: true, newValue: false },
+          { path: 'object', oldValue: { sku: 'B1' }, newValue: { sku: 'P1v3' } },
+          { path: 'array', oldValue: ['a'], newValue: ['b'] },
+          { path: 'jsonUndefined', oldValue: Symbol('x'), newValue: 'ok' },
+        ],
+      },
+    ];
+    delta.summary.totalChanges = 1;
+    delta.summary.hasBreakingChanges = false;
+    useUIStore.setState({ diffDelta: delta });
+
+    render(<DiffPanel />);
+
+    const toggle = screen.getByRole('button', { name: /Type Tester \(block-modified-types\) \(8 changes\)/ });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText('string')).toBeInTheDocument();
+    expect(screen.getByText(': old -> new')).toBeInTheDocument();
+    expect(screen.getByText('undefined')).toBeInTheDocument();
+    expect(screen.getByText(': undefined -> set')).toBeInTheDocument();
+    expect(screen.getByText('null')).toBeInTheDocument();
+    expect(screen.getByText(': null -> set')).toBeInTheDocument();
+    expect(screen.getByText('number')).toBeInTheDocument();
+    expect(screen.getByText(': 1 -> 2')).toBeInTheDocument();
+    expect(screen.getByText('boolean')).toBeInTheDocument();
+    expect(screen.getByText(': true -> false')).toBeInTheDocument();
+    expect(screen.getByText('object')).toBeInTheDocument();
+    expect(screen.getByText(': {"sku":"B1"} -> {"sku":"P1v3"}')).toBeInTheDocument();
+    expect(screen.getByText('array')).toBeInTheDocument();
+    expect(screen.getByText(': ["a"] -> ["b"]')).toBeInTheDocument();
+    expect(screen.getByText('jsonUndefined')).toBeInTheDocument();
+    expect(screen.getByText(': Symbol(x) -> ok')).toBeInTheDocument();
+
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByText('jsonUndefined')).not.toBeInTheDocument();
+  });
+
+  it('shows section-level empty message when a section has zero changes', () => {
+    const delta = makeDiffDelta();
+    delta.plates.added = [];
+    delta.plates.removed = [];
+    delta.plates.modified = [];
+    delta.summary.totalChanges =
+      delta.blocks.added.length
+      + delta.blocks.removed.length
+      + delta.blocks.modified.length
+      + delta.connections.added.length
+      + delta.connections.removed.length
+      + delta.connections.modified.length
+      + delta.externalActors.added.length
+      + delta.externalActors.removed.length
+      + delta.externalActors.modified.length;
+    useUIStore.setState({ diffDelta: delta });
+
+    render(<DiffPanel />);
+    expect(screen.getByText('No changes in plates.')).toBeInTheDocument();
+  });
+
+  it('shows no-data message when diffDelta is null and omits summary badges', () => {
+    useUIStore.setState({ diffMode: true, diffDelta: null });
+    render(<DiffPanel />);
+
+    expect(screen.getByText('No diff data available.')).toBeInTheDocument();
+    expect(screen.queryByText('+0 added')).not.toBeInTheDocument();
+    expect(screen.queryByText('~0 modified')).not.toBeInTheDocument();
+    expect(screen.queryByText('-0 removed')).not.toBeInTheDocument();
+  });
 });

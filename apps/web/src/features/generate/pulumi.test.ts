@@ -150,6 +150,16 @@ describe('pulumi generator', () => {
     expect(indexTs).toContain('const servicePlan = new azure.web.AppServicePlan("servicePlan", {');
   });
 
+  it('generateIndexTs includes service plan when only function blocks exist', () => {
+    const model = createTestModel({
+      blocks: [createBlock({ id: 'block-func', name: 'Fn', category: 'function' })],
+    });
+    const normalized = normalizePulumi(model, azureProviderDefinition);
+    const indexTs = generateIndexTs(normalized, azureProviderDefinition, defaultOptions);
+
+    expect(indexTs).toContain('const servicePlan = new azure.web.AppServicePlan("servicePlan", {');
+  });
+
   it('generateIndexTs generates all block categories', () => {
     const model = createTestModel({
       blocks: [
@@ -174,6 +184,25 @@ describe('pulumi generator', () => {
     expect(indexTs).toContain('const queueQueue = new azure-native:storage:Queue("queueQueue", {');
     expect(indexTs).toContain('const evtopicEvent = new azure-native:eventgrid:Topic("evtopicEvent", {');
     expect(indexTs).toContain('const timerTimer = new azure-native:logic:Workflow("timerTimer", {');
+  });
+
+  it('generates subnet as top-level resource when parent network is missing', () => {
+    const model = createTestModel({
+      plates: [
+        createPlate({
+          id: 'sub-orphan',
+          name: 'Orphan Subnet',
+          type: 'subnet',
+          subnetAccess: 'private',
+          parentId: 'missing-network',
+        }),
+      ],
+    });
+    const normalized = normalizePulumi(model, azureProviderDefinition);
+    const indexTs = generateIndexTs(normalized, azureProviderDefinition, defaultOptions);
+
+    expect(indexTs).toContain('const subnetOrphanSubnet = new azure-native:network:Subnet("subnetOrphanSubnet", {');
+    expect(indexTs).toContain('virtualNetworkName: `${projectName}-subnetOrphanSubnet`');
   });
 
   it('generatePulumiYaml contains project name and runtime nodejs', () => {

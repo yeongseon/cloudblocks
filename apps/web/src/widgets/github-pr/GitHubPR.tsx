@@ -10,7 +10,7 @@ export function GitHubPR() {
   const show = useUIStore((s) => s.showGitHubPR);
   const toggleGitHubPR = useUIStore((s) => s.toggleGitHubPR);
 
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
   const workspace = useArchitectureStore((s) => s.workspace);
 
   const [title, setTitle] = useState('Update cloud architecture');

@@ -77,3 +77,16 @@ class GenerationRun(BaseModel):
     started_at: datetime | None = None
     completed_at: datetime | None = None
     created_at: datetime = Field(default_factory=_utcnow)
+
+
+class Session(BaseModel):
+    """Server-side session for cookie-based auth."""
+
+    id: str
+    user_id: str
+    created_at: int  # Unix timestamp
+    expires_at: int  # Unix timestamp
+    revoked_at: int | None = None
+    last_seen_at: int | None = None
+    current_workspace_id: str | None = None
+    current_repo_full_name: str | None = None

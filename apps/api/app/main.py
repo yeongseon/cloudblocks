@@ -21,6 +21,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.api.routes.auth import router as auth_router
 from app.api.routes.generation import router as generation_router
 from app.api.routes.github import router as github_router
+from app.api.routes.session import router as session_router
 from app.api.routes.workspaces import router as workspace_router
 from app.core.config import settings
 from app.core.dependencies import get_database
@@ -94,7 +95,7 @@ app.add_middleware(RequestIDMiddleware)
 # Global error handler for AppError
 @app.exception_handler(AppError)
 async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
-    return JSONResponse(
+    response = JSONResponse(
         status_code=exc.status_code,
         content={
             "error": {
@@ -104,6 +105,14 @@ async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
             }
         },
     )
+    # Clear stale session cookie on auth failures
+    if exc.status_code == 401 and request.cookies.get(settings.session_cookie_name):
+        response.delete_cookie(
+            key=settings.session_cookie_name,
+            path=settings.session_cookie_path,
+            domain=settings.session_cookie_domain,
+        )
+    return response
 
 
 # Health endpoints (no auth required)
@@ -126,6 +135,7 @@ async def readiness_check() -> JSONResponse:
 
 # Mount API v1 routers
 app.include_router(auth_router, prefix="/api/v1")
+app.include_router(session_router, prefix="/api/v1")
 app.include_router(workspace_router, prefix="/api/v1")
 app.include_router(github_router, prefix="/api/v1")
 app.include_router(generation_router, prefix="/api/v1")

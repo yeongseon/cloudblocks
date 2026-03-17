@@ -189,4 +189,82 @@ describe('AudioService', () => {
     await svc.loadSound('delete', makeBase64());
     expect(callCount).toBe(1);
   });
+
+  it('onstatechange resumes context when state becomes suspended', async () => {
+    const svc = new AudioService();
+    await svc.loadSound('block-snap', makeBase64());
+
+    mockCtx.state = 'suspended';
+    mockCtx.onstatechange?.();
+
+    expect(mockCtx.resume).toHaveBeenCalledTimes(1);
+  });
+
+  it('onstatechange resumes context when state becomes interrupted', async () => {
+    const svc = new AudioService();
+    await svc.loadSound('block-snap', makeBase64());
+
+    mockCtx.state = 'interrupted';
+    mockCtx.onstatechange?.();
+
+    expect(mockCtx.resume).toHaveBeenCalledTimes(1);
+  });
+
+  it('onstatechange silently ignores resume rejection', async () => {
+    mockCtx = makeMockContext({
+      resume: vi.fn(() => Promise.reject(new Error('resume rejected'))),
+    });
+    stubAudioContext(mockCtx);
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const svc = new AudioService();
+    await svc.loadSound('block-snap', makeBase64());
+
+    mockCtx.state = 'suspended';
+    mockCtx.onstatechange?.();
+    await Promise.resolve();
+
+    expect(mockCtx.resume).toHaveBeenCalledTimes(1);
+    expect(warnSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining('[AudioService] Failed to resume AudioContext'),
+      expect.any(Error),
+    );
+  });
+
+  it('playSound catches errors when createBufferSource throws', async () => {
+    mockCtx = makeMockContext({
+      createBufferSource: vi.fn(() => {
+        throw new Error('source failed');
+      }),
+    });
+    stubAudioContext(mockCtx);
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    const svc = new AudioService();
+    await svc.loadSound('block-snap', makeBase64());
+    svc.setMuted(false);
+    await expect(svc.playSound('block-snap')).resolves.toBeUndefined();
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('[AudioService] Failed to play sound "block-snap"'),
+      expect.any(Error),
+    );
+  });
+
+  it('playSound catches errors when ensureContext fails', async () => {
+    function FailingCtor(this: unknown) {
+      throw new Error('no audio context');
+    }
+    vi.stubGlobal('AudioContext', FailingCtor);
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const svc = new AudioService();
+    const internals = svc as unknown as { bufferCache: Map<SoundName, AudioBuffer> };
+    internals.bufferCache.set('delete', {} as AudioBuffer);
+    svc.setMuted(false);
+
+    await expect(svc.playSound('delete')).resolves.toBeUndefined();
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('[AudioService] Failed to play sound "delete"'),
+      expect.any(Error),
+    );
+  });
 });

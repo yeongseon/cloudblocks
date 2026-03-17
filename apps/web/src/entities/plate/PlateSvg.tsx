@@ -77,7 +77,7 @@ export const PlateSvg = memo(function PlateSvg({
     }
 
     return positions;
-  }, [cx, diamondHeight, screenWidth, studsX, studsY]);
+  }, [cx, diamondHeight, screenWidth, studsX, studsY, topY]);
 
   const studId = useId().replace(/:/g, '_');
 

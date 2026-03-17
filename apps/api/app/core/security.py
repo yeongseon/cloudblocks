@@ -1,13 +1,14 @@
-"""CloudBlocks API - JWT authentication service."""
+"""CloudBlocks API - Session security utilities."""
 
 from __future__ import annotations
 
 import base64
 import hashlib
+import json as json_module
+import secrets
 import uuid
-from datetime import datetime, timedelta, timezone
+from collections.abc import Mapping
 
-import jwt
 from cryptography.fernet import Fernet, InvalidToken
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -53,42 +54,24 @@ def decrypt_token(encrypted: str) -> str:
         raise UnauthorizedError("Failed to decrypt token - key may have rotated") from None
 
 
-def create_access_token(user_id: str, extra_claims: dict | None = None) -> str:
-    """Create a JWT access token."""
-    now = datetime.now(timezone.utc)
-    payload = {
-        "sub": user_id,
-        "iat": now,
-        "exp": now + timedelta(seconds=settings.jwt_expiration_seconds),
-        "type": "access",
-    }
-    if extra_claims:
-        payload.update(extra_claims)
-    return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
+def generate_session_token() -> str:
+    """Generate a cryptographically secure session token."""
+    return secrets.token_urlsafe(32)
 
 
-def create_refresh_token(user_id: str) -> str:
-    """Create a JWT refresh token (longer expiry)."""
-    now = datetime.now(timezone.utc)
-    payload = {
-        "sub": user_id,
-        "iat": now,
-        "exp": now + timedelta(seconds=settings.jwt_refresh_expiration_seconds),
-        "type": "refresh",
-    }
-    return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
+def encrypt_oauth_state(state_data: Mapping[str, object]) -> str:
+    """Encrypt OAuth state data for cookie storage using Fernet."""
+    f = Fernet(_derive_fernet_key())
+    json_bytes = json_module.dumps(state_data).encode()
+    return f.encrypt(json_bytes).decode()
 
 
-def decode_token(token: str, expected_type: str = "access") -> dict:
-    """Decode and validate a JWT token. Raises UnauthorizedError on failure."""
+def decrypt_oauth_state(encrypted: str) -> dict[str, int | str] | None:
+    """Decrypt OAuth state from cookie. Returns None if invalid/expired."""
+    f = Fernet(_derive_fernet_key())
     try:
-        payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
-    except jwt.ExpiredSignatureError:
-        raise UnauthorizedError("Token has expired") from None
-    except jwt.InvalidTokenError:
-        raise UnauthorizedError("Invalid token") from None
+        decrypted = f.decrypt(encrypted.encode())
+        return json_module.loads(decrypted.decode())
+    except (InvalidToken, json_module.JSONDecodeError, UnicodeDecodeError):
+        return None
 
-    if payload.get("type") != expected_type:
-        raise UnauthorizedError(f"Expected {expected_type} token")
-
-    return payload

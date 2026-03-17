@@ -4,9 +4,12 @@ import userEvent from '@testing-library/user-event';
 import interact from 'interactjs';
 import { PlateSprite } from './PlateSprite';
 import { useUIStore } from '../store/uiStore';
-import { screenDeltaToWorld, worldSizeToScreen } from '../../shared/utils/isometric';
+import { screenDeltaToWorld, worldSizeToScreen, snapToGrid } from '../../shared/utils/isometric';
 import { useArchitectureStore } from '../store/architectureStore';
 import type { Plate } from '../../shared/types/index';
+import { audioService } from '../../shared/utils/audioService';
+import type { SoundName } from '../../shared/utils/audioService';
+import type { DiffDelta } from '../../shared/types/diff';
 
 const interactMocks = vi.hoisted(() => ({
   interactFn: vi.fn(),
@@ -44,6 +47,7 @@ vi.mock('./PlateSprite.css', () => ({}));
 vi.mock('../../shared/utils/isometric', () => ({
   screenDeltaToWorld: vi.fn(() => ({ dWorldX: 0, dWorldZ: 0 })),
   worldSizeToScreen: vi.fn(() => ({ screenWidth: 320, screenHeight: 180 })),
+  snapToGrid: vi.fn((x: number, z: number) => ({ x, z })),
 }));
 
 const makeNetworkPlate = (): Plate => ({
@@ -266,6 +270,27 @@ describe('PlateSprite', () => {
     vi.useRealTimers();
   });
 
+  it('removes dropping class after animation end on drag release', () => {
+    const plate = makeNetworkPlate();
+    render(<PlateSprite plate={plate} screenX={0} screenY={0} zIndex={1} />);
+
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+        end: () => void;
+      };
+    };
+
+    const sprite = screen.getByRole('button', { name: `Plate: ${plate.name}` }).closest('.plate-sprite') as HTMLElement;
+    const image = sprite.querySelector('.plate-img') as HTMLElement;
+    draggableConfig.listeners.move({ dx: 1, dy: 1, target: sprite });
+    draggableConfig.listeners.end();
+
+    expect(image).toHaveClass('is-dropping');
+    fireEvent.animationEnd(image);
+    expect(image).not.toHaveClass('is-dropping');
+  });
+
   it('adds is-drop-target class when dragging valid block category', () => {
     const plate = makeSubnetPlate('public');
     useUIStore.setState({ draggedBlockCategory: 'compute' });
@@ -291,5 +316,95 @@ describe('PlateSprite', () => {
 
     expect(container.firstElementChild).not.toHaveClass('is-drop-target');
     expect(container.firstElementChild).not.toHaveClass('is-drop-target-invalid');
+  });
+
+  it('applies diff classes for added, modified, and removed states', () => {
+    const makeDelta = (kind: 'added' | 'modified' | 'removed', id: string): DiffDelta => ({
+      plates: {
+        added: kind === 'added' ? [{ ...makeNetworkPlate(), id }] : [],
+        removed: kind === 'removed' ? [{ ...makeNetworkPlate(), id }] : [],
+        modified: kind === 'modified' ? [{ id, before: makeNetworkPlate(), after: { ...makeNetworkPlate(), id }, changes: [] }] : [],
+      },
+      blocks: { added: [], removed: [], modified: [] },
+      connections: { added: [], removed: [], modified: [] },
+      externalActors: { added: [], removed: [], modified: [] },
+      summary: { totalChanges: 1, hasBreakingChanges: false },
+    });
+
+    useUIStore.setState({ diffMode: true, diffDelta: makeDelta('added', 'plate-added') });
+    const { container, rerender } = render(<PlateSprite plate={{ ...makeNetworkPlate(), id: 'plate-added' }} screenX={0} screenY={0} zIndex={1} />);
+    expect(container.firstElementChild).toHaveClass('diff-added');
+
+    useUIStore.setState({ diffMode: true, diffDelta: makeDelta('modified', 'plate-modified') });
+    rerender(<PlateSprite plate={{ ...makeNetworkPlate(), id: 'plate-modified' }} screenX={0} screenY={0} zIndex={1} />);
+    expect(container.firstElementChild).toHaveClass('diff-modified');
+
+    useUIStore.setState({ diffMode: true, diffDelta: makeDelta('removed', 'plate-removed') });
+    rerender(<PlateSprite plate={{ ...makeNetworkPlate(), id: 'plate-removed' }} screenX={0} screenY={0} zIndex={1} />);
+    expect(container.firstElementChild).toHaveClass('diff-removed');
+  });
+
+  it('snaps on drag end and plays sound when unmuted', () => {
+    const playSoundSpy = vi.spyOn(audioService, 'playSound').mockImplementation(async (_name: SoundName) => undefined);
+    const plate = { ...makeNetworkPlate(), id: 'plate-snap', position: { x: 1.2, y: 0, z: 1.6 } };
+
+    useUIStore.setState({ isSoundMuted: false });
+    useArchitectureStore.setState({
+      movePlatePosition: movePlatePositionMock,
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: { ...useArchitectureStore.getState().workspace.architecture, plates: [plate] },
+      },
+    });
+
+    vi.mocked(snapToGrid).mockReturnValue({ x: 2, z: 3 });
+
+    render(<PlateSprite plate={plate} screenX={0} screenY={0} zIndex={1} />);
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+        end: () => void;
+      };
+    };
+
+    const target = screen.getByRole('button', { name: `Plate: ${plate.name}` }).closest('.plate-sprite') as HTMLElement;
+    draggableConfig.listeners.move({ dx: 1, dy: 1, target });
+    draggableConfig.listeners.end();
+
+    expect(movePlatePositionMock).toHaveBeenCalledWith('plate-snap', 0.8, 1.4);
+    expect(playSoundSpy).toHaveBeenCalledWith('block-snap');
+    playSoundSpy.mockRestore();
+  });
+
+  it('snaps on drag end without sound when muted', async () => {
+    const playSoundSpy = vi.spyOn(audioService, 'playSound').mockImplementation(async (_name: SoundName) => undefined);
+    const plate = { ...makeNetworkPlate(), id: 'plate-muted', position: { x: 0.5, y: 0, z: 0.5 } };
+
+    useUIStore.setState({ isSoundMuted: true });
+    useArchitectureStore.setState({
+      movePlatePosition: movePlatePositionMock,
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: { ...useArchitectureStore.getState().workspace.architecture, plates: [plate] },
+      },
+    });
+
+    vi.mocked(snapToGrid).mockReturnValue({ x: 1, z: 1 });
+
+    render(<PlateSprite plate={plate} screenX={0} screenY={0} zIndex={1} />);
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+        end: () => void;
+      };
+    };
+
+    const target = screen.getByRole('button', { name: `Plate: ${plate.name}` }).closest('.plate-sprite') as HTMLElement;
+    draggableConfig.listeners.move({ dx: 1, dy: 1, target });
+    draggableConfig.listeners.end();
+
+    expect(movePlatePositionMock).toHaveBeenCalledWith('plate-muted', 0.5, 0.5);
+    expect(playSoundSpy).not.toHaveBeenCalled();
+    playSoundSpy.mockRestore();
   });
 });

@@ -300,4 +300,42 @@ describe('CodePreview', () => {
 
     expect(screen.getByText('🚀 Generate Code')).toBeInTheDocument();
   });
+
+  it('swallows clipboard write failure when copying generated file', async () => {
+    const user = userEvent.setup();
+    const writeTextMock = vi.fn().mockRejectedValue(new Error('clipboard denied'));
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: writeTextMock },
+      writable: true,
+      configurable: true,
+    });
+    const mockOutput = {
+      files: [{ path: 'main.tf', content: 'resource content', language: 'hcl' as const }],
+      metadata: { generator: 'terraform', version: '0.3.0', provider: 'azure' as const, generatedAt: '2026-01-01T00:00:00.000Z' },
+    };
+    vi.mocked(generateCode).mockReturnValue(mockOutput);
+
+    useUIStore.setState({ showCodePreview: true });
+    render(<CodePreview />);
+
+    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
+    await expect(user.click(screen.getByText(/Copy/))).resolves.toBeUndefined();
+    expect(writeTextMock).toHaveBeenCalledWith('resource content');
+  });
+
+  it('renders empty code fallback when active tab has no file', async () => {
+    const user = userEvent.setup();
+    const mockOutput = {
+      files: [],
+      metadata: { generator: 'terraform', version: '0.3.0', provider: 'azure' as const, generatedAt: '2026-01-01T00:00:00.000Z' },
+    };
+    vi.mocked(generateCode).mockReturnValue(mockOutput);
+
+    useUIStore.setState({ showCodePreview: true });
+    const { container } = render(<CodePreview />);
+
+    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
+    const codeElement = container.querySelector('.code-preview-code code');
+    expect(codeElement?.textContent).toBe('');
+  });
 });
