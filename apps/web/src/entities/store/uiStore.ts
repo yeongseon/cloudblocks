@@ -5,6 +5,7 @@ import type { DiffDelta } from '../../shared/types/diff';
 import type { ArchitectureModel } from '../../shared/types/index';
 
 export type ToolMode = 'select' | 'connect' | 'delete';
+export type InteractionState = 'idle' | 'selecting' | 'dragging' | 'placing' | 'connecting';
 export type { EditorMode } from '../../shared/types/learning';
 
 interface UIState {
@@ -19,6 +20,15 @@ interface UIState {
   // ── Connection mode ──
   connectionSource: string | null;
   setConnectionSource: (id: string | null) => void;
+
+  // ── Interaction state machine ──
+  interactionState: InteractionState;
+  startPlacing: (category: BlockCategory, resourceName: string) => void;
+  startConnecting: (sourceId: string) => void;
+  startDragging: () => void;
+  startSelecting: () => void;
+  cancelInteraction: () => void;
+  completeInteraction: () => void;
 
   // ── Drag state ──
   draggedBlockCategory: BlockCategory | null;
@@ -88,6 +98,52 @@ export const useUIStore = create<UIState>((set) => ({
 
   connectionSource: null,
   setConnectionSource: (id) => set({ connectionSource: id }),
+
+  interactionState: 'idle',
+
+  startPlacing: (category, resourceName) =>
+    set({
+      interactionState: 'placing',
+      draggedBlockCategory: category,
+      draggedResourceName: resourceName,
+      toolMode: 'select',
+      connectionSource: null,
+    }),
+
+  startConnecting: (sourceId) =>
+    set({
+      interactionState: 'connecting',
+      connectionSource: sourceId,
+      toolMode: 'connect',
+      draggedBlockCategory: null,
+      draggedResourceName: null,
+    }),
+
+  startDragging: () =>
+    set({
+      interactionState: 'dragging',
+    }),
+
+  startSelecting: () =>
+    set({
+      interactionState: 'selecting',
+    }),
+
+  cancelInteraction: () =>
+    set({
+      interactionState: 'idle',
+      connectionSource: null,
+      draggedBlockCategory: null,
+      draggedResourceName: null,
+    }),
+
+  completeInteraction: () =>
+    set({
+      interactionState: 'idle',
+      connectionSource: null,
+      draggedBlockCategory: null,
+      draggedResourceName: null,
+    }),
 
   draggedBlockCategory: null,
   setDraggedBlockCategory: (category) =>

@@ -4,6 +4,7 @@ import { RESOURCE_DEFINITIONS } from '../bottom-panel/useTechTree';
 import './DragGhost.css';
 
 export function DragGhost() {
+  const interactionState = useUIStore((s) => s.interactionState);
   const draggedBlockCategory = useUIStore((s) => s.draggedBlockCategory);
   const draggedResourceName = useUIStore((s) => s.draggedResourceName);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -13,7 +14,7 @@ export function DragGhost() {
       setPosition({ x: e.clientX, y: e.clientY });
     };
 
-    if (!draggedBlockCategory || !draggedResourceName) {
+    if (interactionState !== 'placing' || !draggedBlockCategory || !draggedResourceName) {
       return;
     }
 
@@ -22,9 +23,9 @@ export function DragGhost() {
     return () => {
       document.removeEventListener('pointermove', handlePointerMove);
     };
-  }, [draggedBlockCategory, draggedResourceName]);
+  }, [interactionState, draggedBlockCategory, draggedResourceName]);
 
-  if (!draggedBlockCategory || !draggedResourceName) {
+  if (interactionState !== 'placing' || !draggedBlockCategory || !draggedResourceName) {
     return null;
   }
 

@@ -42,7 +42,8 @@ export const BlockSprite = memo(function BlockSprite({
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const toolMode = useUIStore((s) => s.toolMode);
   const connectionSource = useUIStore((s) => s.connectionSource);
-  const setConnectionSource = useUIStore((s) => s.setConnectionSource);
+  const startConnecting = useUIStore((s) => s.startConnecting);
+  const completeInteraction = useUIStore((s) => s.completeInteraction);
   const addConnection = useArchitectureStore((s) => s.addConnection);
   const removeBlock = useArchitectureStore((s) => s.removeBlock);
   const moveBlockPosition = useArchitectureStore((s) => s.moveBlockPosition);
@@ -184,10 +185,10 @@ export const BlockSprite = memo(function BlockSprite({
 
     if (toolMode === 'connect') {
       if (!connectionSource) {
-        setConnectionSource(block.id);
+        startConnecting(block.id);
       } else if (connectionSource !== block.id) {
         addConnection(connectionSource, block.id);
-        setConnectionSource(null);
+        completeInteraction();
       }
       return;
     }
