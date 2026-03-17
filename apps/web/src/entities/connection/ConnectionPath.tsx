@@ -1,7 +1,9 @@
 import { memo } from 'react';
 import type { Connection, Block, Plate, ExternalActor } from '../../shared/types/index';
+import { getDiffState } from '../../features/diff/engine';
 import { getEndpointWorldPosition } from '../../shared/utils/position';
 import { worldToScreen } from '../../shared/utils/isometric';
+import { useUIStore } from '../store/uiStore';
 
 interface ConnectionPathProps {
   connection: Connection;
@@ -20,6 +22,8 @@ export const ConnectionPath = memo(function ConnectionPath({
   originX,
   originY,
 }: ConnectionPathProps) {
+  const diffMode = useUIStore((s) => s.diffMode);
+  const diffDelta = useUIStore((s) => s.diffDelta);
   const src = getEndpointWorldPosition(connection.sourceId, blocks, plates, externalActors);
   const tgt = getEndpointWorldPosition(connection.targetId, blocks, plates, externalActors);
 
@@ -33,9 +37,21 @@ export const ConnectionPath = memo(function ConnectionPath({
 
   const pathD = `M ${srcScreen.x} ${srcScreen.y} Q ${midX} ${midY} ${tgtScreen.x} ${tgtScreen.y}`;
   const arrowId = `arrow-${connection.id}`;
+  const diffState = diffMode && diffDelta ? getDiffState(connection.id, diffDelta) : 'unchanged';
+
+  const bgStroke = diffState === 'added' ? '#166534'
+    : diffState === 'removed' ? '#991b1b'
+      : diffState === 'modified' ? '#854d0e'
+        : '#1e293b';
+  const fgStroke = diffState === 'added' ? '#22c55e'
+    : diffState === 'removed' ? '#ef4444'
+      : diffState === 'modified' ? '#eab308'
+        : '#64748b';
+  const arrowFillBg = bgStroke;
+  const arrowFillFg = fgStroke;
 
   return (
-    <g>
+    <g opacity={diffState === 'removed' ? 0.4 : 1}>
       <defs>
         <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
           <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.25" floodColor="#000000" />
@@ -49,7 +65,7 @@ export const ConnectionPath = memo(function ConnectionPath({
           refY="5"
           orient="auto"
         >
-          <polygon points="0 0, 12 5, 0 10" fill="#1e293b" />
+          <polygon points="0 0, 12 5, 0 10" fill={arrowFillBg} />
         </marker>
         <marker
           id={arrowId}
@@ -60,19 +76,19 @@ export const ConnectionPath = memo(function ConnectionPath({
           refY="4"
           orient="auto"
         >
-          <polygon points="0 0, 10 4, 0 8" fill="#64748b" />
+          <polygon points="0 0, 10 4, 0 8" fill={arrowFillFg} />
         </marker>
       </defs>
       <path
         d={pathD}
-        stroke="#1e293b"
+        stroke={bgStroke}
         strokeWidth={4}
         fill="none"
         markerEnd={`url(#${arrowId}-bg)`}
       />
       <path
         d={pathD}
-        stroke="#64748b"
+        stroke={fgStroke}
         strokeWidth={2}
         fill="none"
         filter="url(#glow)"

@@ -8,6 +8,8 @@ import {
 } from '../../shared/types/index';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
+import { getDiffState } from '../../features/diff/engine';
+import type { DiffDelta } from '../../shared/types/diff';
 import { screenDeltaToWorld, worldSizeToScreen } from '../../shared/utils/isometric';
 import { canPlaceBlock } from '../validation/placement';
 import { getPlateFaceColors } from './plateFaceColors';
@@ -30,11 +32,14 @@ export const PlateSprite = memo(function PlateSprite({
   const selectedId = useUIStore((s) => s.selectedId);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const draggedBlockCategory = useUIStore((s) => s.draggedBlockCategory);
+  const diffMode = useUIStore((s) => s.diffMode);
+  const diffDelta: DiffDelta | null = useUIStore((s) => s.diffDelta);
   const movePlatePosition = useArchitectureStore((s) => s.movePlatePosition);
   const isSelected = selectedId === plate.id;
   const isDragActive = draggedBlockCategory !== null;
   const isValidDropTarget = isDragActive && canPlaceBlock(draggedBlockCategory, plate);
   const isInvalidDropTarget = isDragActive && !canPlaceBlock(draggedBlockCategory, plate);
+  const diffState = diffMode && diffDelta ? getDiffState(plate.id, diffDelta) : 'unchanged';
   const plateRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -122,6 +127,9 @@ export const PlateSprite = memo(function PlateSprite({
     isSelected && 'is-selected',
     isValidDropTarget && 'is-drop-target',
     isInvalidDropTarget && 'is-drop-target-invalid',
+    diffState === 'added' && 'diff-added',
+    diffState === 'modified' && 'diff-modified',
+    diffState === 'removed' && 'diff-removed',
   ]
     .filter(Boolean)
     .join(' ');

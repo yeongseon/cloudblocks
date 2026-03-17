@@ -3,6 +3,8 @@ import interact from 'interactjs';
 import type { Block, Plate } from '../../shared/types/index';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
+import { getDiffState } from '../../features/diff/engine';
+import type { DiffDelta } from '../../shared/types/diff';
 import { screenDeltaToWorld } from '../../shared/utils/isometric';
 import { canConnect } from '../validation/connection';
 import { validatePlacement } from '../validation/placement';
@@ -45,6 +47,8 @@ export const BlockSprite = memo(function BlockSprite({
   const moveBlockPosition = useArchitectureStore((s) => s.moveBlockPosition);
   const blocks = useArchitectureStore((s) => s.workspace.architecture.blocks);
   const connections = useArchitectureStore((s) => s.workspace.architecture.connections);
+  const diffMode = useUIStore((s) => s.diffMode);
+  const diffDelta: DiffDelta | null = useUIStore((s) => s.diffDelta);
   const blockRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -69,6 +73,7 @@ export const BlockSprite = memo(function BlockSprite({
   );
 
   const hasValidationWarning = validatePlacement(block, parentPlate) !== null;
+  const diffState = diffMode && diffDelta ? getDiffState(block.id, diffDelta) : 'unchanged';
 
   useEffect(() => {
     if (toolMode === 'delete' || toolMode === 'connect' || !blockRef.current) {
@@ -120,6 +125,7 @@ export const BlockSprite = memo(function BlockSprite({
   }, [block.id, moveBlockPosition, toolMode]);
 
   const handleClick = (e: React.MouseEvent) => {
+    if (diffMode && diffState === 'removed') return;
     if (isDragging.current) {
       return;
     }
@@ -154,6 +160,9 @@ export const BlockSprite = memo(function BlockSprite({
     isInvalidConnectTarget && 'is-invalid-target',
     isAlreadyConnected && isConnectMode && 'is-connected',
     hasValidationWarning && !isSelected && !isConnectMode && !isDeleteMode && 'is-warning',
+    diffState === 'added' && 'diff-added',
+    diffState === 'modified' && 'diff-modified',
+    diffState === 'removed' && 'diff-removed',
   ]
     .filter(Boolean)
     .join(' ');
