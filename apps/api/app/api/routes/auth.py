@@ -5,6 +5,7 @@ GitHub App OAuth flow with JWT session tokens.
 
 from __future__ import annotations
 
+import time
 import uuid
 from typing import Annotated
 
@@ -33,8 +34,18 @@ from app.infrastructure.github_service import GitHubService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-# In-memory state store for OAuth CSRF protection (replace with Redis in production)
-_oauth_states: set[str] = set()
+# OAuth state store with TTL for CSRF protection
+# Maps state → expiry_timestamp. States expire after 10 minutes.
+_oauth_states: dict[str, float] = {}
+_OAUTH_STATE_TTL = 600  # 10 minutes in seconds
+
+
+def _cleanup_expired_states() -> None:
+    """Remove expired OAuth states from the dictionary."""
+    current_time = time.time()
+    expired_states = [state for state, expiry in _oauth_states.items() if current_time > expiry]
+    for state in expired_states:
+        _oauth_states.pop(state, None)
 
 
 class AuthResponse(BaseModel):
@@ -66,8 +77,9 @@ async def start_github_oauth(
     github: Annotated[GitHubService, Depends(get_github_service)],
 ) -> dict:
     """Start GitHub OAuth flow — returns the authorization URL."""
+    _cleanup_expired_states()
     state = uuid.uuid4().hex
-    _oauth_states.add(state)
+    _oauth_states[state] = time.time() + _OAUTH_STATE_TTL
     url = github.get_authorize_url(settings.github_redirect_uri, state)
     return {"authorize_url": url, "state": state}
 
@@ -81,9 +93,10 @@ async def github_oauth_callback(
     identity_repo: Annotated[IdentityRepository, Depends(get_identity_repo)],
 ) -> AuthResponse:
     """Handle GitHub OAuth callback — exchange code for tokens, create/update user."""
-    if state not in _oauth_states:
+    _cleanup_expired_states()
+    if state not in _oauth_states or time.time() > _oauth_states[state]:
         raise UnauthorizedError("Invalid OAuth state")
-    _oauth_states.discard(state)
+    _oauth_states.pop(state, None)
 
     # Exchange code for GitHub access token
     token_data = await github.exchange_code(code)
