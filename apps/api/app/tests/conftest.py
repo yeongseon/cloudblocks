@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import time
 from collections.abc import AsyncGenerator
 from unittest.mock import AsyncMock, MagicMock
 
@@ -8,10 +9,14 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 
 from app.core.dependencies import get_database, get_github_service
-from app.core.security import create_access_token, encrypt_token, generate_id, hash_token
-from app.domain.models.entities import Identity, User
+from app.core.security import encrypt_token, generate_id, generate_session_token, hash_token
+from app.domain.models.entities import Identity, Session, User
 from app.infrastructure.db.connection import Database
-from app.infrastructure.db.repositories import SQLiteIdentityRepository, SQLiteUserRepository
+from app.infrastructure.db.repositories import (
+    SQLiteIdentityRepository,
+    SQLiteSessionRepository,
+    SQLiteUserRepository,
+)
 from app.infrastructure.github_service import GitHubService
 from app.main import app
 
@@ -53,6 +58,11 @@ def mock_github() -> AsyncMock:
     return app.dependency_overrides[get_github_service]()
 
 
+@pytest.fixture
+def session_repo(db: Database) -> SQLiteSessionRepository:
+    return SQLiteSessionRepository(db)
+
+
 @pytest_asyncio.fixture
 async def test_user(db: Database) -> User:
     user_repo = SQLiteUserRepository(db)
@@ -82,7 +92,15 @@ async def test_identity(db: Database, test_user: User) -> Identity:
     return await repo.create(identity)
 
 
-@pytest.fixture
-def auth_headers(test_user: User) -> dict[str, str]:
-    token = create_access_token(test_user.id)
-    return {"Authorization": f"Bearer {token}"}
+@pytest_asyncio.fixture
+async def auth_cookies(db: Database, test_user: User) -> dict[str, str]:
+    token = generate_session_token()
+    now = int(time.time())
+    session = Session(
+        id=token,
+        user_id=test_user.id,
+        created_at=now,
+        expires_at=now + 7 * 24 * 3600,
+    )
+    await SQLiteSessionRepository(db).create(session)
+    return {"cb_session": token}

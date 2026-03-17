@@ -1,26 +1,27 @@
 from __future__ import annotations
 
+import time
 from typing import Any
 
 import pytest
 from httpx import AsyncClient
 
-from app.core.security import create_access_token, generate_id
-from app.domain.models.entities import User
-from app.infrastructure.db.repositories import SQLiteUserRepository
+from app.core.security import generate_id, generate_session_token
+from app.domain.models.entities import Session, User
+from app.infrastructure.db.repositories import SQLiteSessionRepository, SQLiteUserRepository
 
 
-async def _create_workspace(client: AsyncClient, auth_headers: dict[str, str]) -> dict[str, Any]:
+async def _create_workspace(client: AsyncClient, auth_cookies: dict[str, str]) -> dict[str, Any]:
     response = await client.post(
         "/api/v1/workspaces/",
-        headers=auth_headers,
+        cookies=auth_cookies,
         json={"name": "Generation Workspace"},
     )
     assert response.status_code == 201
     return response.json()
 
 
-async def _create_other_user_auth(db) -> dict[str, str]:
+async def _create_other_user_cookies(db) -> dict[str, str]:
     repo = SQLiteUserRepository(db)
     other_user = User(
         id=generate_id(),
@@ -30,19 +31,29 @@ async def _create_other_user_auth(db) -> dict[str, str]:
         display_name="Other Generator User",
     )
     created = await repo.create(other_user)
-    return {"Authorization": f"Bearer {create_access_token(created.id)}"}
+    session_repo = SQLiteSessionRepository(db)
+    token = generate_session_token()
+    now = int(time.time())
+    session = Session(
+        id=token,
+        user_id=created.id,
+        created_at=now,
+        expires_at=now + 7 * 24 * 3600,
+    )
+    await session_repo.create(session)
+    return {"cb_session": token}
 
 
 @pytest.mark.asyncio
 async def test_trigger_generation_returns_pending_run(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
 ) -> None:
-    workspace = await _create_workspace(client, auth_headers)
+    workspace = await _create_workspace(client, auth_cookies)
 
     response = await client.post(
         f"/api/v1/workspaces/{workspace['id']}/generate",
-        headers=auth_headers,
+        cookies=auth_cookies,
         json={"generator": "terraform", "provider": "azure"},
     )
 
@@ -57,11 +68,11 @@ async def test_trigger_generation_returns_pending_run(
 @pytest.mark.asyncio
 async def test_trigger_generation_workspace_not_found_returns_404(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
 ) -> None:
     response = await client.post(
         "/api/v1/workspaces/missing/generate",
-        headers=auth_headers,
+        cookies=auth_cookies,
         json={"generator": "terraform", "provider": "azure"},
     )
 
@@ -72,15 +83,15 @@ async def test_trigger_generation_workspace_not_found_returns_404(
 @pytest.mark.asyncio
 async def test_trigger_generation_not_owner_returns_403(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
     db,
 ) -> None:
-    workspace = await _create_workspace(client, auth_headers)
-    other_headers = await _create_other_user_auth(db)
+    workspace = await _create_workspace(client, auth_cookies)
+    other_cookies = await _create_other_user_cookies(db)
 
     response = await client.post(
         f"/api/v1/workspaces/{workspace['id']}/generate",
-        headers=other_headers,
+        cookies=other_cookies,
         json={"generator": "terraform", "provider": "azure"},
     )
 
@@ -91,19 +102,19 @@ async def test_trigger_generation_not_owner_returns_403(
 @pytest.mark.asyncio
 async def test_get_generation_status_returns_run(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
 ) -> None:
-    workspace = await _create_workspace(client, auth_headers)
+    workspace = await _create_workspace(client, auth_cookies)
     create_run = await client.post(
         f"/api/v1/workspaces/{workspace['id']}/generate",
-        headers=auth_headers,
+        cookies=auth_cookies,
         json={"generator": "terraform", "provider": "azure"},
     )
     run_id = create_run.json()["id"]
 
     response = await client.get(
         f"/api/v1/workspaces/{workspace['id']}/generate/{run_id}",
-        headers=auth_headers,
+        cookies=auth_cookies,
     )
 
     assert response.status_code == 200
@@ -116,13 +127,13 @@ async def test_get_generation_status_returns_run(
 @pytest.mark.asyncio
 async def test_get_generation_status_run_not_found_returns_404(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
 ) -> None:
-    workspace = await _create_workspace(client, auth_headers)
+    workspace = await _create_workspace(client, auth_cookies)
 
     response = await client.get(
         f"/api/v1/workspaces/{workspace['id']}/generate/missing-run",
-        headers=auth_headers,
+        cookies=auth_cookies,
     )
 
     assert response.status_code == 404
@@ -132,11 +143,11 @@ async def test_get_generation_status_run_not_found_returns_404(
 @pytest.mark.asyncio
 async def test_get_generation_status_workspace_not_found_returns_404(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
 ) -> None:
     response = await client.get(
         "/api/v1/workspaces/missing/generate/any-run",
-        headers=auth_headers,
+        cookies=auth_cookies,
     )
 
     assert response.status_code == 404
@@ -146,13 +157,13 @@ async def test_get_generation_status_workspace_not_found_returns_404(
 @pytest.mark.asyncio
 async def test_preview_generation_returns_placeholder(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
 ) -> None:
-    workspace = await _create_workspace(client, auth_headers)
+    workspace = await _create_workspace(client, auth_cookies)
 
     response = await client.get(
         f"/api/v1/workspaces/{workspace['id']}/preview",
-        headers=auth_headers,
+        cookies=auth_cookies,
     )
 
     assert response.status_code == 200
@@ -165,9 +176,9 @@ async def test_preview_generation_returns_placeholder(
 @pytest.mark.asyncio
 async def test_preview_generation_workspace_not_found_returns_404(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
 ) -> None:
-    response = await client.get("/api/v1/workspaces/missing/preview", headers=auth_headers)
+    response = await client.get("/api/v1/workspaces/missing/preview", cookies=auth_cookies)
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "NOT_FOUND"
@@ -176,15 +187,15 @@ async def test_preview_generation_workspace_not_found_returns_404(
 @pytest.mark.asyncio
 async def test_preview_generation_not_owner_returns_403(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
     db,
 ) -> None:
-    workspace = await _create_workspace(client, auth_headers)
-    other_headers = await _create_other_user_auth(db)
+    workspace = await _create_workspace(client, auth_cookies)
+    other_cookies = await _create_other_user_cookies(db)
 
     response = await client.get(
         f"/api/v1/workspaces/{workspace['id']}/preview",
-        headers=other_headers,
+        cookies=other_cookies,
     )
 
     assert response.status_code == 403
