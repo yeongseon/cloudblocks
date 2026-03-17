@@ -1,15 +1,17 @@
 from __future__ import annotations
 
+import importlib
 from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 from typing import cast
 
-import jwt
 import pytest
 
 from app.core import security
 from app.core.config import settings
 from app.core.errors import UnauthorizedError
+
+jwt = importlib.import_module("jwt")
 
 Payload = dict[str, object]
 
@@ -126,3 +128,31 @@ def test_decode_token_raises_unauthorized_for_wrong_expected_type() -> None:
 
     with pytest.raises(UnauthorizedError, match="Expected refresh token"):
         _ = decode_token(access, "refresh")
+
+
+def test_encrypt_token_returns_encrypted_string() -> None:
+    encrypted = security.encrypt_token("test-token")
+
+    assert encrypted != "test-token"
+    assert isinstance(encrypted, str)
+
+
+def test_decrypt_token_returns_original_value() -> None:
+    original = "my-github-token-12345"
+    encrypted = security.encrypt_token(original)
+    decrypted = security.decrypt_token(encrypted)
+
+    assert decrypted == original
+
+
+def test_decrypt_token_raises_unauthorized_for_invalid_input() -> None:
+    with pytest.raises(UnauthorizedError, match="Failed to decrypt"):
+        security.decrypt_token("not-a-valid-encrypted-token")
+
+
+def test_encrypt_decrypt_round_trip_with_special_characters() -> None:
+    tokens = ["gho_abc123XYZ", "ghp_some/token+value=", "token with spaces"]
+
+    for token in tokens:
+        encrypted = security.encrypt_token(token)
+        assert security.decrypt_token(encrypted) == token

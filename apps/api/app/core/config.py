@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expiration_seconds: int = 3600  # 1 hour
     jwt_refresh_expiration_seconds: int = 86400 * 7  # 7 days
+    token_encryption_salt: str = "cloudblocks-default-salt"
 
     # Database
     database_url: str = "sqlite+aiosqlite:///cloudblocks.db"
