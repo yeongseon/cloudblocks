@@ -31,7 +31,7 @@ The production-quality builder. All milestones through M7 and Phases 2/3 are com
 | **External Actors** | `internet` (implicit, not user-placed) |
 | **Persistence** | localStorage + GitHub repo sync |
 | **Code Generation** | Terraform, Bicep, Pulumi (Azure-first) |
-| **Backend** | FastAPI with GitHub OAuth, generator orchestration |
+| **Backend** | FastAPI with GitHub OAuth + cookie-based session auth, generator orchestration |
 | **Schema** | `SCHEMA_VERSION = '0.1.0'` |
 
 **Canonical sources for Milestone 1 behavior:**

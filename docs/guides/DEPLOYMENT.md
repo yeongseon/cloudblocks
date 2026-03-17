@@ -2,7 +2,7 @@
 
 ## Overview
 
-CloudBlocks is designed for **lightweight deployment** with minimal infrastructure. The frontend is a static SPA, and the backend is a thin orchestration layer — no heavy database servers required.
+CloudBlocks is designed for **lightweight deployment** with minimal infrastructure. The frontend is a static SPA, and the backend is a thin orchestration layer with SQLite-backed metadata and session storage.
 
 ## Local Development
 
@@ -43,10 +43,11 @@ Static Frontend (SPA)
      ↓
 Backend API (Thin Orchestration Layer)
      ↓
-┌─────────────┬──────────────┬──────────────┐
-│ Supabase/PG │ Redis/Upstash│ GitHub API   │
-│ (metadata)  │ (cache/queue)│ (data store) │
-└─────────────┴──────────────┴──────────────┘
+┌─────────────┬──────────────┐
+│ SQLite      │ GitHub API   │
+│ (metadata + │ (data store) │
+│ sessions)   │              │
+└─────────────┴──────────────┘
 ```
 
 ## Deployment Options
@@ -79,20 +80,19 @@ docker build -t cloudblocks-web -f infra/docker/web.Dockerfile .
 # Build backend
 docker build -t cloudblocks-api -f infra/docker/api.Dockerfile .
 
-# Start supporting services (Redis + MinIO)
+# Start local supporting services (optional)
 docker compose up -d
 ```
 
-> **Note**: The current `docker-compose.yml` provides only supporting services (Redis and MinIO). It does **not** include `web` or `api` service definitions — those are built separately via Dockerfiles listed above. Full-stack Docker Compose orchestration is planned for Milestone 5+.
+> **Note**: The backend deployment model is Docker-first (see `infra/docker/api.Dockerfile`) and is deployed to Azure container infrastructure for production environments. The current `docker-compose.yml` does **not** include `web` or `api` service definitions — those are built separately via Dockerfiles listed above.
 
 #### docker-compose.yml Services (Current)
 
 | Service | Purpose |
 |---------|---------|
-| `redis` | Cache, rate limiting, job queue |
-| `minio` | S3-compatible object storage (dev environment) |
+| *(none required for auth/session flow)* | Current session auth uses SQLite + cookies only |
 
-> PostgreSQL is provided by Supabase (hosted) or can be added as a Docker service for self-hosting.
+> **Phase 8 (planned)**: PostgreSQL + Redis will be introduced for production-scale metadata and cache/queue workloads.
 
 ### Option 3: Cloud Deployment
 
@@ -101,31 +101,32 @@ docker compose up -d
 | Component | Service | Cost |
 |-----------|---------|------|
 | Frontend | Vercel / Cloudflare Pages | Free |
-| Backend API | Railway / Fly.io / Cloud Run | ~$5/mo |
-| Metadata DB | Supabase (free tier) | Free |
-| Cache | Upstash Redis (free tier) | Free |
+| Backend API | Azure Container Apps / Azure App Service | ~$5/mo |
+| Metadata + Session DB | SQLite (backend volume) | Free |
+| Cache/Queue (Phase 8) | Redis | Planned |
 | Data Store | GitHub (user repos) | Free |
 
 **Total initial cost: $0 – $5/month**
 
-#### Vercel + Supabase + Upstash (Recommended)
+#### Vercel + Azure Container Apps + SQLite (Recommended)
 
 ```
 Frontend (Vercel)
      ↓
-Backend API (Railway / Fly.io)
+Backend API (Azure Container Apps)
      ↓
-┌──────────────┬──────────────┬──────────────┐
-│ Supabase     │ Upstash      │ GitHub API   │
-│ (Postgres)   │ (Redis)      │              │
-└──────────────┴──────────────┴──────────────┘
+┌──────────────┬──────────────┐
+│ SQLite       │ GitHub API   │
+│ (session +   │              │
+│ metadata DB) │              │
+└──────────────┴──────────────┘
 ```
 
 1. Deploy frontend to Vercel (auto-deploy from GitHub)
-2. Deploy backend to Railway or Fly.io
-3. Create Supabase project (free tier: 500MB DB)
-4. Create Upstash Redis (free tier: 10K commands/day)
-5. Configure GitHub App for OAuth + repo integration
+2. Deploy backend container to Azure (Container Apps or App Service)
+3. Mount persistent volume for SQLite database
+4. Configure GitHub OAuth app credentials
+5. Configure CORS allowed origins for frontend domains
 
 #### Terraform Deployment (Self-Hosted)
 
@@ -159,45 +160,31 @@ APP_ENV=development
 APP_PORT=8000
 APP_DEBUG=true
 
-# GitHub Integration
-GITHUB_APP_ID=your_github_app_id
+# Session auth
+SESSION_SECRET_KEY=your-32-plus-char-random-string
+SESSION_EXPIRY_HOURS=24
+
+# GitHub OAuth
 GITHUB_CLIENT_ID=your_github_client_id
 GITHUB_CLIENT_SECRET=your_github_client_secret
-GITHUB_APP_PRIVATE_KEY=/path/to/private-key.pem
+GITHUB_REDIRECT_URI=http://localhost:8000/api/v1/auth/github/callback
 
-# Redis
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_PASSWORD=
-
-# Object Storage (S3-compatible / MinIO)
-STORAGE_ENDPOINT=http://localhost:9000
-STORAGE_ACCESS_KEY=minioadmin
-STORAGE_SECRET_KEY=minioadmin
-STORAGE_BUCKET=cloudblocks
-
-# JWT
-JWT_SECRET=your-strong-random-string
-JWT_EXPIRATION=3600
-
-# Metadata DB (Supabase / Postgres)
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your_anon_key
-# Or direct Postgres (for self-hosting):
-# DATABASE_URL=postgresql://user:pass@host:5432/cloudblocks
+# CORS
+ALLOWED_ORIGINS=http://localhost:5173
 ```
 
-> **Important**: The backend config (`apps/api/app/core/config.py`) uses `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` — NOT `GITHUB_APP_CLIENT_ID` / `GITHUB_APP_CLIENT_SECRET`. Use the correct variable names.
+> **Important**: Current session auth uses httpOnly cookies (`cb_oauth`, `cb_session`) and server-side SQLite sessions. Frontend API calls must use `credentials: 'include'`.
 
 ### Production Secrets (set via secret manager)
 
 | Secret | Description |
 |--------|-------------|
-| `JWT_SECRET` | Strong random string for JWT signing |
+| `SESSION_SECRET_KEY` | Strong random string for session signing/encryption |
+| `SESSION_EXPIRY_HOURS` | Session TTL in hours |
 | `GITHUB_CLIENT_SECRET` | GitHub App OAuth secret |
-| `GITHUB_APP_PRIVATE_KEY` | GitHub App private key (PEM) |
-| `SUPABASE_URL` | Supabase project URL |
-| `SUPABASE_ANON_KEY` | Supabase anonymous key |
+| `GITHUB_CLIENT_ID` | GitHub OAuth client ID |
+| `GITHUB_REDIRECT_URI` | OAuth callback URL |
+| `ALLOWED_ORIGINS` | Allowed browser origins for credentialed CORS |
 
 ## CI/CD Pipeline
 
@@ -241,7 +228,7 @@ jobs:
 | Endpoint | Description |
 |----------|-------------|
 | `GET /health` | Basic health check |
-| `GET /health/ready` | Readiness (DB + Redis + GitHub API) |
+| `GET /health/ready` | Readiness (SQLite + GitHub API) |
 
 ## Monitoring
 
@@ -250,4 +237,9 @@ Application logs are written to stdout/stderr and collected by the container pla
 Recommended monitoring:
 - **Uptime**: Better Uptime / UptimeRobot (free tier)
 - **Errors**: Sentry (free tier: 5K events/month)
-- **Metrics**: Supabase dashboard (built-in)
+- **Metrics**: Container platform metrics + application logs
+
+### Phase 8 Infrastructure (Planned)
+
+- PostgreSQL for production-scale relational metadata
+- Redis for distributed cache, rate limiting, and queue primitives

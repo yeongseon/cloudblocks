@@ -40,8 +40,8 @@ Every release to `main` (or tagged release) must pass ALL of the following gates
 | Check | Criteria | Level |
 |-------|----------|-------|
 | No secrets in code | No API keys, tokens, or passwords in source | **Blocker** |
-| JWT secret policy | `model_validator` enforces 32+ char secret in non-dev | **Blocker** |
-| Token transport | GitHub tokens via `X-GitHub-Token` header only | **Blocker** |
+| Session secret policy | Session secret is configured and 32+ chars in non-dev | **Blocker** |
+| Session cookie transport | Auth uses httpOnly `cb_session` cookie with credentialed requests | **Blocker** |
 | Dependency audit | No known critical CVEs in dependencies | **Blocker** |
 | Dependency audit | No known high CVEs in dependencies | **Warning** |
 
@@ -66,7 +66,7 @@ A blocker is any condition that:
 - Causes test failures
 - Drops coverage below 90%
 - Introduces a security vulnerability
-- Violates a design contract (validation rules, token transport, JWT policy)
+- Violates a design contract (validation rules, session cookie transport, session secret policy)
 - Breaks backward compatibility without migration path
 
 **Policy**: Zero tolerance. Fix before release. No exceptions.
@@ -185,10 +185,16 @@ Gate 4 (security) and Gate 5 (documentation) are manual review steps in the PR p
 ### Milestone 5 (Current)
 
 - All 5 CI jobs pass
-- 427+ frontend tests, 146+ backend tests
+- 1015+ frontend tests, 170+ backend tests
 - Coverage ≥ 90% both layers
 - Store decomposition complete (5 slices)
 - GitHub integration functional
+
+### Phase 7 (Completed)
+
+- Session auth migration complete (JWT removed)
+- Cookie-based session flow active (`cb_oauth` + `cb_session`)
+- Server-side session storage active in SQLite
 
 ### Milestone 6 (Planned)
 

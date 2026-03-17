@@ -50,7 +50,7 @@ Features:
 
 Deliverables:
 
-- 2.5D Isometric Block Builder (React + React Three Fiber)
+- 2.5D Isometric Block Builder (React + SVG/CSS)
 - In-browser Rule Engine
 - Workspace save/load (localStorage)
 
@@ -164,7 +164,7 @@ Connect CloudBlocks to GitHub — architecture and generated code stored in user
 
 - FastAPI backend for auth, generation orchestration, and GitHub integration
 - GitHub App OAuth (not raw OAuth tokens)
-- Minimal metadata DB (Supabase/Postgres): user, project index, run status
+- Minimal metadata DB (SQLite): user, project index, run status, sessions
 - **NOT** a heavy CRUD SaaS — backend mediates, does not store architecture data
 
 ## GitHub Integration
@@ -411,6 +411,30 @@ Features:
 
 ### Dependencies
 - Milestone 7 complete
+
+---
+
+# Phase 7 — Session Auth Migration ✅
+
+Goal:
+Replace JWT-style token auth with secure cookie-based server sessions.
+
+Features:
+
+- GitHub OAuth state via encrypted httpOnly `cb_oauth` cookie
+- Server-side SQLite sessions (`sessions` table, Migration 004)
+- Session cookie auth via httpOnly `cb_session` cookie
+- Frontend API calls standardized on `credentials: 'include'`
+- Logout flow deletes server session and clears cookies
+
+### Exit Criteria
+- [x] JWT and refresh-token auth flow removed
+- [x] `GET /api/v1/auth/session` is the canonical session-check endpoint
+- [x] `POST /api/v1/auth/logout` always returns 200 and clears session state
+- [x] Stale sessions are cleared server-side and cookies invalidated
+
+### Dependencies
+- Milestone 5 complete
 
 ---
 

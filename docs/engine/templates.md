@@ -99,5 +99,5 @@ Possible template marketplace for:
 ---
 
 > **Cross-references:**
-> - Architecture model format: [model.md](../model/model.md)
+> - Architecture model format: [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)
 > - Roadmap timeline: [ROADMAP.md](../concept/ROADMAP.md)

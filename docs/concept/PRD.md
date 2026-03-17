@@ -109,7 +109,7 @@ The architecture model is a **provider-agnostic** representation that:
 
 This compiler approach means every visual element maps to a real infrastructure component, and changes in the visual builder produce deterministic, diffable infrastructure code.
 
-> See also: [model.md](../model/model.md) for the architecture model specification, [ARCHITECTURE.md](./ARCHITECTURE.md) §Architecture Compiler for system-level details.
+> See also: [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md) for the architecture model specification, [ARCHITECTURE.md](./ARCHITECTURE.md) §Architecture Compiler for system-level details.
 
 
 # 4. Goals
