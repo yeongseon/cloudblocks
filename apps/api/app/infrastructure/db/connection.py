@@ -83,6 +83,30 @@ class Database:
         self.database_path = database_path
         self._db: aiosqlite.Connection | None = None
 
+    @classmethod
+    def from_url(cls, url: str) -> "Database":
+        """Create a Database instance from a database URL.
+
+        Handles SQLite URL formats:
+        - sqlite+aiosqlite:///cloudblocks.db → cloudblocks.db
+        - sqlite+aiosqlite:////abs/path/db.sqlite → /abs/path/db.sqlite
+        - cloudblocks.db → cloudblocks.db (plain path)
+        """
+        # Handle sqlite+aiosqlite:/// URLs
+        if url.startswith("sqlite+aiosqlite:///"):
+            # Remove the prefix: sqlite+aiosqlite:///
+            path = url[len("sqlite+aiosqlite:///") :]
+            # Handle absolute paths (four slashes in original = one leading slash after removal)
+            if path.startswith("/"):
+                # Four slashes case: sqlite+aiosqlite:////abs/path → /abs/path
+                return cls(path)
+            else:
+                # Three slashes case: sqlite+aiosqlite:///relative/path → relative/path
+                return cls(path)
+        else:
+            # Plain path format
+            return cls(url)
+
     async def connect(self) -> None:
         """Open the database connection and run migrations."""
         self._db = await aiosqlite.connect(self.database_path)

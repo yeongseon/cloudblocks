@@ -29,7 +29,7 @@ from app.infrastructure.db.repositories import (
 from app.infrastructure.github_service import GitHubService
 
 # Singletons
-_db = Database()
+_db = Database.from_url(settings.database_url)
 _github_service = GitHubService(
     client_id=settings.github_client_id,
     client_secret=settings.github_client_secret,
