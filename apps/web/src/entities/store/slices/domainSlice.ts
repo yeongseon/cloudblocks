@@ -45,8 +45,8 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set) => ({
         const siblingsInParent = arch.plates.filter(
           (candidate) => candidate.parentId === parentId
         );
-        const subnetSpacing = 5.5;
-        const offsetX = -2.75 + siblingsInParent.length * subnetSpacing;
+        const subnetSpacing = 7.0;
+        const offsetX = -3.5 + siblingsInParent.length * subnetSpacing;
         const clampedRelativePosition = parentPlate
           ? clampWithinParent(
             { x: offsetX, z: 0 },

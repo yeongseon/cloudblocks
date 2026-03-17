@@ -7,14 +7,14 @@
   background-image:
     /* Stud highlight (top of cylinder) */
     radial-gradient(
-      ellipse 8px 4px at center,
+      ellipse 12px 6px at center,
       #E0C9A6 0%,
       #E0C9A6 60%,
       transparent 61%
     ),
     /* Stud shadow (cylinder edge) */
     radial-gradient(
-      ellipse 9px 4.5px at center,
+      ellipse 13px 6.5px at center,
       #C4A67A 0%,
       #C4A67A 60%,
       transparent 61%
@@ -74,5 +74,5 @@
   left: 0;
   pointer-events: none;
   overflow: visible;
-  z-index: 1;
+  z-index: 3;
 }

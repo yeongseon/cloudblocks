@@ -110,8 +110,8 @@ describe('architectureStore', () => {
       const sub1 = plates[1];
       const sub2 = plates[2];
 
-      expect(sub1.position.x).toBe(-2.75);
-      expect(sub2.position.x).toBe(2.75);
+      expect(sub1.position.x).toBe(-3.5);
+      expect(sub2.position.x).toBe(3.5);
     });
 
     it('pushes to undo history', () => {

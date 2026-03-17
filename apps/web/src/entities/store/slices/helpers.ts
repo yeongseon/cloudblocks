@@ -51,13 +51,11 @@ export function nextGridPosition(
   const row = Math.floor(index / maxCols);
   const startX = -((maxCols - 1) * stepX) / 2;
   const startZ = 0;
-  const anchorOffsetX = 3.4;
-  const anchorOffsetZ = 0.8;
 
   return {
-    x: roundToTenth(startX + col * stepX + anchorOffsetX),
+    x: roundToTenth(startX + col * stepX),
     y: 0.5,
-    z: roundToTenth(startZ - row * stepZ + anchorOffsetZ),
+    z: roundToTenth(startZ - row * stepZ),
   };
 }
 
