@@ -81,7 +81,7 @@ export function generateCode(
   const providerDef = getProviderDefinition(options.provider);
   if (!providerDef) {
     throw new GenerationError(
-      `Unknown provider: "${options.provider}". Available: azure`
+      `Unknown provider: "${options.provider}". Available: azure, aws, gcp`
     );
   }
 
@@ -146,7 +146,7 @@ function legacyGenerate(
   const provider = getProvider(options.provider);
   if (!provider) {
     throw new GenerationError(
-      `Unknown provider: "${options.provider}". Available: azure`
+      `Unknown provider: "${options.provider}". Available: azure, aws, gcp`
     );
   }
 

@@ -179,7 +179,7 @@ describe('pipeline', () => {
 
     it('should throw GenerationError with unknown provider', () => {
       const badOptions = JSON.parse(
-        '{"provider":"gcp","mode":"draft","projectName":"test","region":"eastus"}'
+        '{"provider":"oracle-cloud","mode":"draft","projectName":"test","region":"eastus"}'
       ) as GenerationOptions;
 
       expect(() => generateTerraform(validModel, badOptions)).toThrow(
