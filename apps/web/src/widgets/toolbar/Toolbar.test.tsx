@@ -44,7 +44,7 @@ describe('Toolbar', () => {
       showGitHubSync: false,
       showGitHubPR: false,
     });
-    useAuthStore.setState({ isAuthenticated: false, user: null });
+    useAuthStore.setState({ status: 'anonymous', user: null, hydrated: true, error: null });
     useArchitectureStore.setState({
       addPlate: addPlateMock,
       validate: validateMock,
@@ -91,7 +91,7 @@ describe('Toolbar', () => {
 
   it('shows GitHub username when authenticated', () => {
     useAuthStore.setState({
-      isAuthenticated: true,
+      status: 'authenticated',
       user: {
         id: 'user-1',
         github_username: 'octocat',
@@ -106,7 +106,7 @@ describe('Toolbar', () => {
 
   it('shows Repos, Sync, PR buttons when authenticated', () => {
     useAuthStore.setState({
-      isAuthenticated: true,
+      status: 'authenticated',
       user: {
         id: 'user-1',
         github_username: 'octocat',
@@ -534,7 +534,7 @@ describe('Toolbar', () => {
 
   it('shows Account label when authenticated but user has no github_username', () => {
     useAuthStore.setState({
-      isAuthenticated: true,
+      status: 'authenticated',
       user: {
         id: 'user-1',
         github_username: null,
@@ -549,7 +549,7 @@ describe('Toolbar', () => {
 
   it('shows Account label when authenticated but user is null', () => {
     useAuthStore.setState({
-      isAuthenticated: true,
+      status: 'authenticated',
       user: null,
     });
     render(<Toolbar />);
@@ -559,7 +559,7 @@ describe('Toolbar', () => {
   it('toggles GitHub login when authenticated and account button clicked', async () => {
     const user = userEvent.setup();
     useAuthStore.setState({
-      isAuthenticated: true,
+      status: 'authenticated',
       user: {
         id: 'user-1',
         github_username: 'octocat',
@@ -576,7 +576,7 @@ describe('Toolbar', () => {
   it('toggles GitHub repos when authenticated', async () => {
     const user = userEvent.setup();
     useAuthStore.setState({
-      isAuthenticated: true,
+      status: 'authenticated',
       user: {
         id: 'user-1',
         github_username: 'octocat',
@@ -593,7 +593,7 @@ describe('Toolbar', () => {
   it('toggles GitHub sync when authenticated', async () => {
     const user = userEvent.setup();
     useAuthStore.setState({
-      isAuthenticated: true,
+      status: 'authenticated',
       user: {
         id: 'user-1',
         github_username: 'octocat',
@@ -610,7 +610,7 @@ describe('Toolbar', () => {
   it('toggles GitHub PR when authenticated', async () => {
     const user = userEvent.setup();
     useAuthStore.setState({
-      isAuthenticated: true,
+      status: 'authenticated',
       user: {
         id: 'user-1',
         github_username: 'octocat',

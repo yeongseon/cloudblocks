@@ -18,11 +18,9 @@ describe('GitHubRepos', () => {
     vi.clearAllMocks();
     useUIStore.setState({ showGitHubRepos: true });
     useAuthStore.setState({
+      status: 'authenticated',
       user: null,
-      accessToken: null,
-      refreshToken: null,
-      isAuthenticated: true,
-      isLoading: false,
+      hydrated: true,
       error: null,
     });
   });
@@ -34,7 +32,7 @@ describe('GitHubRepos', () => {
   });
 
   it('shows not authenticated message when not logged in', () => {
-    useAuthStore.setState({ isAuthenticated: false });
+    useAuthStore.setState({ status: 'anonymous' });
     render(<GitHubRepos />);
     expect(screen.getByText('GitHub authentication required.')).toBeInTheDocument();
   });

@@ -127,11 +127,9 @@ describe('MenuBar', () => {
     });
 
     useAuthStore.setState({
-      isAuthenticated: false,
+      status: 'anonymous',
       user: null,
-      accessToken: null,
-      refreshToken: null,
-      isLoading: false,
+      hydrated: true,
       error: null,
     });
 
@@ -166,7 +164,7 @@ describe('MenuBar', () => {
     expect(screen.getByRole('button', { name: /Sign In/ })).toBeInTheDocument();
 
     useAuthStore.setState({
-      isAuthenticated: true,
+      status: 'authenticated',
       user: {
         id: 'user-1',
         github_username: 'octocat',
@@ -517,7 +515,7 @@ describe('MenuBar', () => {
   it('handles authenticated GitHub menu actions', async () => {
     const user = userEvent.setup();
     useAuthStore.setState({
-      isAuthenticated: true,
+      status: 'authenticated',
       user: {
         id: 'user-1',
         github_username: 'octocat',
