@@ -38,10 +38,16 @@ export interface Block {
  * Connection direction represents the **initiator** of the request.
  * Arrow points from the entity that starts communication.
  * Response flows implicitly in the reverse direction.
- *
- * MVP (v0.1): Only DataFlow is supported.
  */
-export type ConnectionType = 'dataflow';
+export type ConnectionType = 'dataflow' | 'http' | 'internal' | 'data' | 'async';
+
+export const CONNECTION_TYPE_LABELS: Record<ConnectionType, string> = {
+  dataflow: 'Data Flow',
+  http: 'HTTP',
+  internal: 'Internal',
+  data: 'Data',
+  async: 'Async',
+};
 
 export interface Connection {
   id: string;
