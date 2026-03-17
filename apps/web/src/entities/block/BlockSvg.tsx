@@ -2,6 +2,19 @@ import { memo, useId, useMemo } from 'react';
 import type { BlockCategory } from '../../shared/types/index';
 import { STUD_LAYOUTS, BLOCK_SHORT_NAMES, BLOCK_ICONS } from '../../shared/types/index';
 import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
+import {
+  BLOCK_MARGIN,
+  BLOCK_PADDING,
+  BLOCK_WORLD_HEIGHT,
+  EDGE_HIGHLIGHT_COLOR,
+  EDGE_HIGHLIGHT_OPACITY,
+  EDGE_HIGHLIGHT_STROKE_WIDTH,
+  TILE_H,
+  TILE_W,
+  TILE_Z,
+  TOP_FACE_STROKE_OPACITY,
+  TOP_FACE_STROKE_WIDTH,
+} from '../../shared/tokens/designTokens';
 import { getBlockFaceColors, getBlockStudColors } from './blockFaceColors';
 
 interface BlockSvgProps {
@@ -15,25 +28,17 @@ export const BlockSvg = memo(function BlockSvg({ category }: BlockSvgProps) {
   const shortName = BLOCK_SHORT_NAMES[category];
   const icon = BLOCK_ICONS[category];
 
-  const TILE_W = 64;
-  const TILE_H = 32;
-  const TILE_Z = 32;
-  const margin = 10;
-  const padding = 10;
-
-  const worldHeight = 0.8;
-
   const screenWidth = (studsX + studsY) * TILE_W / 2;
   const diamondHeight = (studsX + studsY) * TILE_H / 2;
-  const sideWallPx = Math.round(worldHeight * TILE_Z);
-  const svgHeight = diamondHeight + sideWallPx + padding;
+  const sideWallPx = Math.round(BLOCK_WORLD_HEIGHT * TILE_Z);
+  const svgHeight = diamondHeight + sideWallPx + BLOCK_PADDING;
 
   const cx = screenWidth / 2;
-  const topY = padding;
-  const midY = diamondHeight / 2 + padding;
-  const bottomY = diamondHeight + padding;
-  const leftX = margin;
-  const rightX = screenWidth - margin;
+  const topY = BLOCK_PADDING;
+  const midY = diamondHeight / 2 + BLOCK_PADDING;
+  const bottomY = diamondHeight + BLOCK_PADDING;
+  const leftX = BLOCK_MARGIN;
+  const rightX = screenWidth - BLOCK_MARGIN;
 
   const topFacePoints = `${cx},${topY} ${rightX},${midY} ${cx},${bottomY} ${leftX},${midY}`;
   const leftSidePoints = `${leftX},${midY} ${cx},${bottomY} ${cx},${bottomY + sideWallPx} ${leftX},${midY + sideWallPx}`;
@@ -41,7 +46,7 @@ export const BlockSvg = memo(function BlockSvg({ category }: BlockSvgProps) {
 
   const studs = useMemo(() => {
     const positions: Array<{ x: number; y: number; key: string }> = [];
-    const halfW = screenWidth / 2 - margin;
+    const halfW = screenWidth / 2 - BLOCK_MARGIN;
     const halfH = diamondHeight / 2;
 
     const stepXx = halfW / studsX;
@@ -50,7 +55,7 @@ export const BlockSvg = memo(function BlockSvg({ category }: BlockSvgProps) {
     const stepZy = halfH / studsY;
 
     const startX = cx + stepXx * 0.5 + stepZx * 0.5;
-    const startY = topY + stepXy * 0.5 + stepZy * 0.5;
+    const startY = BLOCK_PADDING + stepXy * 0.5 + stepZy * 0.5;
 
     for (let gz = 0; gz < studsY; gz += 1) {
       for (let gx = 0; gx < studsX; gx += 1) {
@@ -65,7 +70,7 @@ export const BlockSvg = memo(function BlockSvg({ category }: BlockSvgProps) {
     }
 
     return positions;
-  }, [cx, diamondHeight, screenWidth, studsX, studsY, topY]);
+  }, [cx, diamondHeight, screenWidth, studsX, studsY]);
 
   const studId = useId().replace(/:/g, '_');
 
@@ -87,10 +92,10 @@ export const BlockSvg = memo(function BlockSvg({ category }: BlockSvgProps) {
     >
       <StudDefs studId={studId} studColors={studColors} />
 
-      <polygon points={topFacePoints} fill={faceColors.topFaceColor} stroke={faceColors.topFaceStroke} strokeWidth="1" strokeOpacity="0.6" />
+      <polygon points={topFacePoints} fill={faceColors.topFaceColor} stroke={faceColors.topFaceStroke} strokeWidth={TOP_FACE_STROKE_WIDTH} strokeOpacity={TOP_FACE_STROKE_OPACITY} />
       <polygon points={leftSidePoints} fill={faceColors.leftSideColor} />
       <polygon points={rightSidePoints} fill={faceColors.rightSideColor} />
-      <line x1={leftX} y1={midY} x2={cx} y2={topY} stroke="#ffffff" strokeWidth="2" strokeOpacity="0.3" />
+      <line x1={leftX} y1={midY} x2={cx} y2={topY} stroke={EDGE_HIGHLIGHT_COLOR} strokeWidth={EDGE_HIGHLIGHT_STROKE_WIDTH} strokeOpacity={EDGE_HIGHLIGHT_OPACITY} />
 
       <StudGrid studId={studId} studs={studs} />
 
