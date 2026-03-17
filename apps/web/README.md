@@ -20,8 +20,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 - **React 19** + **TypeScript 5.9** (strict mode, `verbatimModuleSyntax`)
 - **Vite 8** — dev server & build
-- **React Three Fiber (R3F)** + **drei** — top-down orthographic rendering
-- **Three.js** — 3D engine (used as top-down projection layer)
+- **SVG + CSS transforms** — 2.5D isometric rendering with DOM layering
 - **Zustand** — state management
 
 ## Project Structure (FSD-inspired)
@@ -114,7 +113,7 @@ src/
 - ✅ GitHub OAuth login (Milestone 5)
 - ✅ GitHub repo sync / pull (Milestone 5)
 - ✅ PR creation from UI (Milestone 5)
-- ✅ Typed API client with JWT auth (Milestone 5)
+- ✅ Typed API client with session auth (Milestone 5)
 - ✅ Multi-generator code export: Terraform, Bicep, Pulumi (Milestone 6)
 - ✅ Serverless blocks: Function, Queue, Event, Timer (Milestone 6)
 - ✅ Drag-to-create block placement from palette (Milestone 6B)

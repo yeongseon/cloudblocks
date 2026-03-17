@@ -253,7 +253,7 @@ Future generator capabilities:
 ---
 
 > **Cross-references:**
-> - Architecture model: [model.md](../model/model.md)
+> - Architecture model: [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)
 > - Provider adapters: [provider.md](./provider.md)
 > - Validation before generation: [rules.md](./rules.md)
 > - Domain model: [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)

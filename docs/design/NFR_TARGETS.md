@@ -48,8 +48,8 @@ These files are excluded from coverage calculations (documented in `vitest.confi
 - `src/vite-env.d.ts` — type declarations
 - `src/features/generate/types.ts` — pure type definitions
 - `src/shared/types/template.ts` — pure type definitions
-- R3F/Three.js components (require WebGL, not testable in jsdom):
-  - `BlockModel.tsx`, `PlateModel.tsx`, `ConnectionLine.tsx`, `SceneCanvas.tsx`
+- SVG renderer components (canvas-level integration, not fully testable in jsdom):
+  - `BlockSvg.tsx`, `PlateSvg.tsx`, `ConnectionPath.tsx`, `SceneCanvas.tsx`
 
 ### Enforcement
 

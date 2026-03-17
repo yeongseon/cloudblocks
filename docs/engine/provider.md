@@ -193,7 +193,7 @@ When an exact mapping is impossible, adapters must surface a clear error rather 
 
 > **Cross-references:**
 > - Generator pipeline: [generator.md](./generator.md)
-> - Architecture model: [model.md](../model/model.md)
-> - DSL specification: [DSL_SPEC.md](../DSL_SPEC.md)
-> - Architecture graph: [ARCHITECTURE_GRAPH.md](../ARCHITECTURE_GRAPH.md)
+> - Architecture model: [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)
+> - DSL & pipeline overview: [ARCHITECTURE_MODEL_OVERVIEW.md](../model/ARCHITECTURE_MODEL_OVERVIEW.md)
+> - Architecture model overview: [ARCHITECTURE_MODEL_OVERVIEW.md](../model/ARCHITECTURE_MODEL_OVERVIEW.md)
 > - Roadmap timeline: [ROADMAP.md](../concept/ROADMAP.md)

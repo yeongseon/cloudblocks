@@ -28,7 +28,8 @@ Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks
 - **Undo/redo** — Full history with keyboard shortcuts (Milestone 2)
 - **Multi-workspace** — Create, switch, and manage multiple workspaces (Milestone 4)
 - **GitHub integration** — OAuth login, repo sync, pull, and PR creation (Milestone 5)
-- **Backend API** — FastAPI orchestration layer with GitHub App OAuth (Milestone 5)
+- **Session-based auth** — Cookie-based server sessions (`cb_session`) with GitHub OAuth login (Phase 7)
+- **Backend API** — FastAPI orchestration layer with GitHub OAuth + session auth (Milestone 5+)
 - **Sound effects** — Audio feedback with mute preference (Phase 2)
 - **Magnetic snap & tactile UX** — Grid snapping, dynamic shadows, bounce transitions on drag (Phase 2 UX)
 - **Lego minifigure** — DevOps engineer character with Azure provider branding (Phase 3)
@@ -101,7 +102,7 @@ Internet → Gateway → Compute → Database
 | Frontend | React 19, TypeScript, SVG + CSS, Zustand, Vite |
 | Backend (Milestone 5+) | Python, FastAPI (scaffolded) |
 | Storage (Milestone 1) | Browser localStorage |
-| Storage (Milestone 5+) | GitHub repos (Git-native), Supabase (auth metadata) |
+| Storage (Milestone 5+) | GitHub repos (Git-native), SQLite (auth + session metadata) |
 | Code Generation | Terraform (Azure-first, Milestone 3) — Bicep, Pulumi (Milestone 6) |
 | Frontend Architecture | Feature-Sliced Design (FSD) |
 | Monorepo | pnpm workspaces |
@@ -145,8 +146,8 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 
 ## Roadmap
 
-| Milestone | Milestone | Status |
-|-------|-----------|--------|
+| Phase | Description | Status |
+|-------|-------------|--------|
 | Milestone 1 | Frontend MVP — top-down visual builder with validation | ✅ Complete |
 | Milestone 2 | Enhanced UX — undo/redo, workspace management, visual polish | ✅ Complete |
 | Milestone 3 | Code generation — Terraform export (Azure first) | ✅ Complete |
@@ -157,6 +158,8 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 | Milestone 6C | Learning Mode — guided scenarios, step validation, hint engine | ✅ Complete |
 | Milestone 7 | Collaboration + CI/CD — architecture diff, GitHub Actions template | ✅ Complete |
 | Phase 2 UX | Tactile UX — magnetic snap, dynamic shadows, bounce transitions | ✅ Complete |
+| Phase 7 | Session auth — cookie-based server sessions with GitHub OAuth | ✅ Complete |
+| Phase 8 | Production infra — PostgreSQL, Redis, Docker Compose, multi-replica | 🔄 Planned |
 
 ## Contributing
 
