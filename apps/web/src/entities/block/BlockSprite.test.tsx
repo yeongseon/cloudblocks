@@ -17,14 +17,6 @@ vi.mock('interactjs', () => ({
   default: interactMocks.interactFn,
 }));
 
-vi.mock('../../shared/assets/block-sprites/gateway.svg', () => ({ default: 'gateway.svg' }));
-vi.mock('../../shared/assets/block-sprites/compute.svg', () => ({ default: 'compute.svg' }));
-vi.mock('../../shared/assets/block-sprites/database.svg', () => ({ default: 'database.svg' }));
-vi.mock('../../shared/assets/block-sprites/storage.svg', () => ({ default: 'storage.svg' }));
-vi.mock('../../shared/assets/block-sprites/function.svg', () => ({ default: 'function.svg' }));
-vi.mock('../../shared/assets/block-sprites/queue.svg', () => ({ default: 'queue.svg' }));
-vi.mock('../../shared/assets/block-sprites/event.svg', () => ({ default: 'event.svg' }));
-vi.mock('../../shared/assets/block-sprites/timer.svg', () => ({ default: 'timer.svg' }));
 vi.mock('./BlockSprite.css', () => ({}));
 
 const parentPlate: Plate = {
@@ -76,20 +68,19 @@ describe('BlockSprite', () => {
   });
 
   it.each([
-    ['gateway', 'gateway.svg'],
-    ['compute', 'compute.svg'],
-    ['database', 'database.svg'],
-    ['storage', 'storage.svg'],
-    ['function', 'function.svg'],
-    ['queue', 'queue.svg'],
-    ['event', 'event.svg'],
-    ['timer', 'timer.svg'],
-  ] as const)('renders %s sprite image', (category, spriteName) => {
+    'gateway', 'compute', 'database', 'storage', 'function', 'queue', 'event', 'timer',
+  ] as const)('renders %s as inline SVG', (category) => {
     const block = makeBlock(`block-${category}`, category);
-    render(<BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    const { container } = render(
+      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+    );
 
-    const image = screen.getByAltText(`${category}-block`) as HTMLImageElement;
-    expect(image.src).toContain(spriteName);
+    const svg = container.querySelector('svg');
+    expect(svg).toBeInTheDocument();
+    expect(svg).toHaveAttribute('aria-hidden', 'true');
+
+    const blockImgDiv = container.querySelector('.block-img');
+    expect(blockImgDiv).toBeInTheDocument();
   });
 
   it('click in select mode calls setSelectedId', async () => {
