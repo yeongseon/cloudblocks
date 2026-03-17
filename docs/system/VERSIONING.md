@@ -1,6 +1,6 @@
 # CloudBlocks Documentation — Versioning & Layering Strategy
 
-This document defines how CloudBlocks documentation distinguishes between **current implementation** (Milestone 1) and **future architecture compiler vision** (v1.x), ensuring readers always know what exists today versus what is planned.
+This document defines how CloudBlocks documentation distinguishes between **current implementation** (through Milestone 7 + Phase 2/3) and **future architecture compiler vision** (v1.x), ensuring readers always know what exists today versus what is planned.
 
 ---
 
@@ -8,7 +8,7 @@ This document defines how CloudBlocks documentation distinguishes between **curr
 
 CloudBlocks documentation serves two audiences simultaneously:
 
-1. **Contributors and users of the current Milestone 1 MVP** — who need accurate descriptions of what the code actually does
+1. **Contributors and users of the current implementation (M1–M7 complete)** — who need accurate descriptions of what the code actually does
 2. **Architects and planners** — who need to understand the long-term vision (Architecture Compiler, DSL, multi-provider code generation)
 
 Mixing these two audiences without clear boundaries creates confusion: readers cannot tell whether a feature described in documentation is something they can use today or something planned for the future. This document establishes the rules to prevent that confusion.
@@ -17,21 +17,21 @@ Mixing these two audiences without clear boundaries creates confusion: readers c
 
 ## Version Definitions
 
-### Milestone 1 — CloudBlocks Builder (Current Implementation)
+### M1–M7 + Phase 2/3 — CloudBlocks Builder (Current Implementation)
 
-The working MVP. Everything described as Milestone 1 **exists in the codebase and can be verified**.
+The production-quality builder. All milestones through M7 and Phases 2/3 are complete and verified.
 
 | Aspect | Milestone 1 Reality |
 |--------|-------------|
-| **UI** | 2.5D isometric builder (React + React Three Fiber) |
-| **Blocks** | `compute`, `database`, `storage`, `gateway` |
+| **UI** | 2.5D isometric builder (React + SVG/CSS) |
+| **Blocks** | `compute`, `database`, `storage`, `gateway`, `function`, `queue`, `event`, `timer` |
 | **Plates** | Network plate, Subnet plate (public/private) |
 | **Connections** | `dataflow` type only |
 | **Connection Rules** | Pure initiator model — `internet→gateway`, `gateway→compute`, `compute→database`, `compute→storage` |
 | **External Actors** | `internet` (implicit, not user-placed) |
-| **Persistence** | localStorage (`cloudblocks:workspaces`) |
-| **Code Generation** | Not implemented |
-| **Backend** | FastAPI with in-memory rule engine (no database) |
+| **Persistence** | localStorage + GitHub repo sync |
+| **Code Generation** | Terraform, Bicep, Pulumi (Azure-first) |
+| **Backend** | FastAPI with GitHub OAuth, generator orchestration |
 | **Schema** | `SCHEMA_VERSION = '0.1.0'` |
 
 **Canonical sources for Milestone 1 behavior:**
@@ -40,15 +40,14 @@ The working MVP. Everything described as Milestone 1 **exists in the codebase an
 - `apps/web/src/features/validate/connection.ts` — Connection rules
 - `docs/model/DOMAIN_MODEL.md` — Model specification
 
-### Milestone 2–Milestone 4 — Visual Polish, Code Generation, Workspace Management
+### Milestone 1–7 + Phase 2/3 — Complete Implementation
 
-Near-term milestones building on the Milestone 1 foundation. See `docs/concept/ROADMAP.md` for details.
+These milestones are all complete and verified in the current production codebase. See `docs/concept/ROADMAP.md` for the full historical timeline.
 
-| Version | Key Additions |
+| Version | Key Status |
 |---------|--------------|
-| **Milestone 2** | Drag-and-drop, keyboard shortcuts, camera controls |
-| **Milestone 3** | Terraform code generation (client-side, Azure-first) |
-| **Milestone 4** | Multi-workspace, import/export, template system |
+| **Milestone 1–7** | All core features from UI to CI/CD integration are complete. |
+| **Phase 2/3 UX** | Tactile UX and DevOps minifigure implementation complete. |
 
 ### v1.x — Architecture Compiler (Future Vision)
 

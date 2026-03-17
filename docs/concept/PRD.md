@@ -444,24 +444,7 @@ The system internally uses a 2D coordinate model.
 
 # 16. Future Roadmap
 
-## Milestone 3 — Code Generation
-
-- Terraform generation
-- Architecture → IaC pipeline
-
-## Milestone 5 — GitHub Integration
-
-- GitHub OAuth
-- Commit architecture to repo
-- Pull request workflow
-
-## Milestone 6 — Template System
-
-- Prebuilt architecture templates
-- Serverless patterns
-- Event driven architectures
-
-> See also: ARCHITECTURE.md §5 (Code Generation Pipeline), §8 (GitHub Integration)
+See [ROADMAP.md](ROADMAP.md) for current milestone status. Milestones 1–7 and Phases 2/3 are complete.
 
 ---
 
