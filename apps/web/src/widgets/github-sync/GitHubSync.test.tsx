@@ -94,7 +94,7 @@ describe('GitHubSync', () => {
     await user.click(await screen.findByRole('button', { name: 'Sync to GitHub' }));
 
     await waitFor(() => {
-      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/github/workspaces/ws-1/sync', {
+      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/sync', {
         architecture: emptyArch,
         commit_message: 'Sync architecture from CloudBlocks',
       });
@@ -123,7 +123,7 @@ describe('GitHubSync', () => {
     await user.click(await screen.findByRole('button', { name: 'Pull from GitHub' }));
 
     await waitFor(() => {
-      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/github/workspaces/ws-1/pull');
+      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/pull');
     });
     expect(importArchitectureMock).toHaveBeenCalledWith(JSON.stringify(archPayload));
   });
@@ -204,7 +204,7 @@ describe('GitHubSync', () => {
     await user.click(await screen.findByRole('button', { name: 'Sync to GitHub' }));
 
     await waitFor(() => {
-      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/github/workspaces/custom-ws-id/sync', expect.any(Object));
+      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/custom-ws-id/sync', expect.any(Object));
     });
   });
 

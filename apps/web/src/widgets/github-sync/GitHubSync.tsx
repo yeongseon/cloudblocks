@@ -37,7 +37,7 @@ export function GitHubSync() {
     setError(null);
     try {
       const response = await apiGet<{ commits: GitHubCommit[] }>(
-        `/api/v1/github/workspaces/${encodeURIComponent(effectiveWorkspaceId)}/commits`
+        `/api/v1/workspaces/${encodeURIComponent(effectiveWorkspaceId)}/commits`
       );
       setCommits(response.commits);
     } catch (err) {
@@ -72,7 +72,7 @@ export function GitHubSync() {
     setLoading(true);
     setError(null);
     try {
-      await apiPost<SyncResponse>(`/api/v1/github/workspaces/${encodeURIComponent(effectiveWorkspaceId)}/sync`, {
+      await apiPost<SyncResponse>(`/api/v1/workspaces/${encodeURIComponent(effectiveWorkspaceId)}/sync`, {
         architecture: workspace.architecture,
         commit_message: commitMessage,
       });
@@ -91,7 +91,7 @@ export function GitHubSync() {
     setError(null);
     try {
       const response = await apiPost<PullResponse>(
-        `/api/v1/github/workspaces/${encodeURIComponent(effectiveWorkspaceId)}/pull`
+        `/api/v1/workspaces/${encodeURIComponent(effectiveWorkspaceId)}/pull`
       );
       importArchitecture(JSON.stringify(response.architecture));
       await loadCommits();

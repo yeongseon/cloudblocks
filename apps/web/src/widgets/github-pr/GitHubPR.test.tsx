@@ -82,7 +82,7 @@ describe('GitHubPR', () => {
     await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
 
     await waitFor(() => {
-      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/github/workspaces/ws-1/pr', {
+      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/pr', {
         architecture: emptyArch,
         title: 'Update cloud architecture',
         body: '',
@@ -127,7 +127,7 @@ describe('GitHubPR', () => {
     await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
 
     await waitFor(() => {
-      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/github/workspaces/ws-1/pr', expect.objectContaining({
+      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/pr', expect.objectContaining({
         branch: 'custom-branch',
       }));
     });
