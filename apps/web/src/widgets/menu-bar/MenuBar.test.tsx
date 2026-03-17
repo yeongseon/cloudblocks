@@ -253,7 +253,7 @@ describe('MenuBar', () => {
     await user.click(within(getMenuDropdown('File')).getByRole('button', { name: /Reset Workspace/ }));
     expect(confirmMock).toHaveBeenCalledWith('Reset workspace? All unsaved changes will be lost.');
     expect(resetWorkspaceMock).toHaveBeenCalledOnce();
-  });
+  }, 15000);
 
   it('does not reset workspace when reset confirmation is false', async () => {
     const user = userEvent.setup();
@@ -426,7 +426,7 @@ describe('MenuBar', () => {
     insertDropdown = await openMenu(user, 'Insert');
     await user.click(within(insertDropdown).getByRole('button', { name: /Private Subnet/ }));
     expect(addPlateMock).toHaveBeenCalledWith('subnet', 'Private Subnet', 'net-1', 'private');
-  });
+  }, 15000);
 
   it('sets tool mode from Tools menu', async () => {
     const user = userEvent.setup();

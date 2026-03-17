@@ -64,9 +64,8 @@ function getPlateHeaderText(plate: Plate): string {
 
 export function CommandCard({ className = '' }: CommandCardProps) {
   const [activeTab, setActiveTab] = useState<TabId>('infra');
-  const [plateSubAction, setPlateSubAction] = useState<'deploy' | null>(null);
+  const [plateSubActionState, setPlateSubActionState] = useState<{ selectedId: string | null; action: 'deploy' | null }>({ selectedId: null, action: null });
   const selectedId = useUIStore((s) => s.selectedId);
-  const previousSelectedIdRef = useRef<string | null>(selectedId);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const selectedBlock = selectedId
     ? architecture.blocks.find((b) => b.id === selectedId) ?? null
@@ -75,11 +74,9 @@ export function CommandCard({ className = '' }: CommandCardProps) {
     ? architecture.plates.find((p) => p.id === selectedId) ?? null
     : null;
 
-  useEffect(() => {
-    if (previousSelectedIdRef.current !== selectedId) {
-      setPlateSubAction(null);
-      previousSelectedIdRef.current = selectedId;
-    }
+  const plateSubAction = plateSubActionState.selectedId === selectedId ? plateSubActionState.action : null;
+  const setPlateSubAction = useCallback((action: 'deploy' | null) => {
+    setPlateSubActionState({ selectedId, action });
   }, [selectedId]);
 
   useEffect(() => {
@@ -93,7 +90,7 @@ export function CommandCard({ className = '' }: CommandCardProps) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [plateSubAction]);
+  }, [plateSubAction, setPlateSubAction]);
 
   const headerText = selectedBlock
     ? 'Actions'
