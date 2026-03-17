@@ -1,0 +1,26 @@
+# Azure region for all resources.
+location = "koreacentral"
+
+# Environment suffix used in resource names.
+environment = "dev"
+
+# Project prefix used in resource names.
+project_name = "cloudblocks"
+
+# PostgreSQL admin username (must not be a reserved username).
+postgres_admin_username = "cloudblocksadmin"
+
+# PostgreSQL admin password (use a strong secret in real tfvars file).
+postgres_admin_password = "replace-with-strong-password"
+
+# GitHub OAuth client ID for CloudBlocks API.
+github_client_id = "replace-with-github-client-id"
+
+# GitHub OAuth client secret for CloudBlocks API.
+github_client_secret = "replace-with-github-client-secret"
+
+# JWT signing secret used by CloudBlocks API.
+jwt_secret = "replace-with-long-random-jwt-secret"
+
+# Docker image tag to deploy for API container.
+container_image_tag = "latest"
