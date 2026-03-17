@@ -469,3 +469,5 @@ export const DEFAULT_PLATE_SIZE: Record<PlateType, Size> = {
   network: buildPlateSizeFromProfileId(DEFAULT_PLATE_PROFILE.network),
   subnet: buildPlateSizeFromProfileId(DEFAULT_PLATE_PROFILE.subnet),
 };
+
+export { type BlockVisualProfile, type BrickSizeTier, type BrickSurface, type BrickSilhouette, BLOCK_VISUAL_PROFILES, getBlockVisualProfile } from './visualProfile';
