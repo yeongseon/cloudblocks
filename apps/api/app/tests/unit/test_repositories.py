@@ -11,11 +11,13 @@ from app.infrastructure.db.connection import Database
 from app.infrastructure.db.repositories import (
     SQLiteGenerationRunRepository,
     SQLiteIdentityRepository,
+    SQLiteSessionRepository,
     SQLiteUserRepository,
     SQLiteWorkspaceRepository,
     _fmt_dt,
     _parse_dt,
 )
+from app.domain.models.entities import Session
 
 
 @pytest_asyncio.fixture(name="db")
@@ -283,3 +285,84 @@ async def test_generation_run_repository_create_find_and_update(db: Database) ->
     assert refetched.pull_request_url == "https://github.com/org/repo/pull/1"
     assert refetched.started_at is not None
     assert refetched.completed_at is not None
+
+
+async def test_session_repository_create_get_revoke_and_cleanup(db: Database) -> None:
+    user_repo = SQLiteUserRepository(db)
+    session_repo = SQLiteSessionRepository(db)
+
+    await user_repo.create(
+        User(
+            id="session-user",
+            github_id="gh-session-user",
+            github_username="session-user",
+            email="session@test.com",
+            display_name="Session User",
+        )
+    )
+
+    session = Session(
+        id="session-1",
+        user_id="session-user",
+        created_at=100,
+        expires_at=2_000_000_000,
+    )
+    await session_repo.create(session)
+
+    fetched = await session_repo.get_by_id("session-1")
+    assert fetched is not None
+    assert fetched.id == "session-1"
+    assert fetched.user_id == "session-user"
+
+    await session_repo.update_last_seen("session-1", 12345)
+    seen = await session_repo.get_by_id("session-1")
+    assert seen is not None
+    assert seen.last_seen_at == 12345
+
+    await session_repo.update_workspace("session-1", "ws-1", "acme/repo")
+    scoped = await session_repo.get_by_id("session-1")
+    assert scoped is not None
+    assert scoped.current_workspace_id == "ws-1"
+    assert scoped.current_repo_full_name == "acme/repo"
+
+    await session_repo.revoke("session-1")
+    revoked = await session_repo.get_by_id("session-1")
+    assert revoked is not None
+    assert revoked.revoked_at is not None
+
+    await session_repo.create(
+        Session(
+            id="session-2",
+            user_id="session-user",
+            created_at=200,
+            expires_at=2_000_000_000,
+        )
+    )
+    await session_repo.create(
+        Session(
+            id="session-3",
+            user_id="session-user",
+            created_at=300,
+            expires_at=2_000_000_000,
+        )
+    )
+    await session_repo.revoke_all_for_user("session-user")
+
+    revoked_second = await session_repo.get_by_id("session-2")
+    revoked_third = await session_repo.get_by_id("session-3")
+    assert revoked_second is not None and revoked_second.revoked_at is not None
+    assert revoked_third is not None and revoked_third.revoked_at is not None
+
+    await session_repo.create(
+        Session(
+            id="session-expired",
+            user_id="session-user",
+            created_at=1,
+            expires_at=1,
+        )
+    )
+    deleted_count = await session_repo.cleanup_expired()
+    assert deleted_count >= 1
+    assert await session_repo.get_by_id("session-expired") is None
+
+    assert await session_repo.get_by_id("session-missing") is None
