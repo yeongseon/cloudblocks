@@ -12,6 +12,7 @@ import {
   abandonLearning,
   getValidationDetails,
 } from '../../features/learning/scenario-engine';
+import type { StepValidationRule } from '../../shared/types/learning';
 
 vi.mock('../../features/learning/scenario-engine', () => ({
   advanceToNextStep: vi.fn(),
@@ -63,6 +64,23 @@ describe('LearningPanel widgets', () => {
 
   it('returns null when no progress', () => {
     useLearningStore.setState({ progress: null });
+    const { container } = render(<LearningPanel />);
+    expect(container.innerHTML).toBe('');
+  });
+
+  it('returns null when currentStep index is out of range', () => {
+    const progress = useLearningStore.getState().progress;
+    if (!progress) {
+      throw new Error('Expected progress');
+    }
+
+    useLearningStore.setState({
+      progress: {
+        ...progress,
+        currentStepIndex: 999,
+      },
+    });
+
     const { container } = render(<LearningPanel />);
     expect(container.innerHTML).toBe('');
   });
@@ -136,6 +154,59 @@ describe('LearningPanel widgets', () => {
     expect(scoped.getByText('✗')).toBeInTheDocument();
   });
 
+  it('renders descriptive text for each rule type', () => {
+    const activeScenario = useLearningStore.getState().activeScenario;
+    const progress = useLearningStore.getState().progress;
+    if (!activeScenario || !progress) {
+      throw new Error('Expected active scenario and progress');
+    }
+
+    const ruleSet: StepValidationRule[] = [
+      { type: 'plate-exists', plateType: 'network' },
+      { type: 'plate-exists', plateType: 'subnet', subnetAccess: 'public' },
+      { type: 'block-exists', category: 'compute' },
+      { type: 'connection-exists', sourceCategory: 'gateway', targetCategory: 'compute' },
+      { type: 'entity-on-plate', entityCategory: 'database', plateType: 'subnet' },
+      { type: 'architecture-valid' },
+      { type: 'min-block-count', category: 'storage', count: 2 },
+      { type: 'min-plate-count', plateType: 'subnet', count: 3 },
+      { type: 'unknown-rule' } as unknown as StepValidationRule,
+    ];
+
+    useLearningStore.setState({
+      activeScenario: {
+        ...activeScenario,
+        steps: [
+          {
+            ...activeScenario.steps[0],
+            validationRules: ruleSet,
+          },
+        ],
+      },
+      progress: {
+        ...progress,
+        currentStepIndex: 0,
+      },
+    });
+
+    vi.mocked(getValidationDetails).mockReturnValue({
+      passed: false,
+      results: ruleSet.map((rule, index) => ({ rule, passed: index % 2 === 0 })),
+    });
+
+    render(<LearningPanel />);
+
+    expect(screen.getByText('Add a network plate')).toBeInTheDocument();
+    expect(screen.getByText('Add a public subnet plate')).toBeInTheDocument();
+    expect(screen.getByText('Add a compute block')).toBeInTheDocument();
+    expect(screen.getByText('Connect gateway to compute')).toBeInTheDocument();
+    expect(screen.getByText('Place database on subnet')).toBeInTheDocument();
+    expect(screen.getByText('Fix validation issues')).toBeInTheDocument();
+    expect(screen.getByText('Add at least 2 storage block(s)')).toBeInTheDocument();
+    expect(screen.getByText('Add at least 3 subnet plate(s)')).toBeInTheDocument();
+    expect(screen.getByText('Complete requirement')).toBeInTheDocument();
+  });
+
   it('disables Next Step button when current step is incomplete', () => {
     useLearningStore.setState({ isCurrentStepComplete: false });
     render(<LearningPanel />);
@@ -175,6 +246,28 @@ describe('LearningPanel widgets', () => {
     expect(screen.getByRole('button', { name: 'Show Hint' })).toBeDisabled();
   });
 
+  it('disables Show Hint when current step has no hints', () => {
+    const activeScenario = useLearningStore.getState().activeScenario;
+    if (!activeScenario) {
+      throw new Error('Expected active scenario');
+    }
+
+    useLearningStore.setState({
+      activeScenario: {
+        ...activeScenario,
+        steps: [
+          {
+            ...activeScenario.steps[0],
+            hints: [],
+          },
+        ],
+      },
+    });
+
+    render(<LearningPanel />);
+    expect(screen.getByRole('button', { name: 'Show Hint' })).toBeDisabled();
+  });
+
   it('Reset Step button calls resetCurrentStep', async () => {
     const user = userEvent.setup();
     render(<LearningPanel />);
@@ -194,6 +287,60 @@ describe('LearningPanel widgets', () => {
     const stepCount = useLearningStore.getState().activeScenario?.steps.length ?? 0;
     const indicators = document.querySelectorAll('.step-progress-node');
     expect(indicators).toHaveLength(stepCount);
+  });
+
+  it('StepProgress shows completed checkmark and active class', () => {
+    const progress = useLearningStore.getState().progress;
+    if (!progress) {
+      throw new Error('Expected progress');
+    }
+
+    const updatedSteps = progress.steps.map((step, index) => {
+      if (index === 0) {
+        return { ...step, status: 'completed' as const };
+      }
+      if (index === 1) {
+        return { ...step, status: 'active' as const };
+      }
+      return step;
+    });
+
+    useLearningStore.setState({
+      progress: {
+        ...progress,
+        currentStepIndex: 1,
+        steps: updatedSteps,
+      },
+    });
+
+    render(<StepProgress />);
+
+    expect(screen.getByText('✓')).toBeInTheDocument();
+    const activeNode = document.querySelector('.step-progress-node.active');
+    if (!(activeNode instanceof HTMLElement)) {
+      throw new Error('Expected active step node');
+    }
+    expect(activeNode).toHaveTextContent('2');
+  });
+
+  it('StepProgress falls back to locked state and empty title when indices mismatch', () => {
+    const progress = useLearningStore.getState().progress;
+    if (!progress) {
+      throw new Error('Expected progress');
+    }
+
+    useLearningStore.setState({
+      progress: {
+        ...progress,
+        currentStepIndex: 99,
+        steps: [progress.steps[0]],
+      },
+    });
+
+    render(<StepProgress />);
+
+    expect(screen.getByText('Step 100:')).toBeInTheDocument();
+    expect(screen.getByText('2')).toBeInTheDocument();
   });
 
   it('StepProgress returns null when no activeScenario/progress', () => {

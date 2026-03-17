@@ -165,6 +165,29 @@ describe('evaluateRule', () => {
       const rule: StepValidationRule = { type: 'block-exists', category: 'database', onPlateType: 'network' };
       expect(evaluateRule(rule, model)).toBe(false);
     });
+
+    it('fails when block placement plate is missing', () => {
+      const model = createTestModel();
+      const modelWithMissingPlacement: ArchitectureModel = {
+        ...model,
+        blocks: model.blocks.map((block) =>
+          block.id === 'block-compute' ? { ...block, placementId: 'missing-plate' } : block
+        ),
+      };
+      const rule: StepValidationRule = { type: 'block-exists', category: 'compute', onPlateType: 'subnet' };
+      expect(evaluateRule(rule, modelWithMissingPlacement)).toBe(false);
+    });
+
+    it('fails when block is on subnet with different access than required', () => {
+      const model = createTestModel();
+      const rule: StepValidationRule = {
+        type: 'block-exists',
+        category: 'database',
+        onPlateType: 'subnet',
+        onSubnetAccess: 'public',
+      };
+      expect(evaluateRule(rule, model)).toBe(false);
+    });
   });
 
   describe('connection-exists', () => {
@@ -207,6 +230,31 @@ describe('evaluateRule', () => {
       };
       expect(evaluateRule(rule, model)).toBe(false);
     });
+
+    it('fails when connection endpoint cannot be resolved', () => {
+      const model = createTestModel();
+      const unresolvedEndpointModel: ArchitectureModel = {
+        ...model,
+        connections: [
+          ...model.connections,
+          {
+            id: 'conn-unknown-compute',
+            sourceId: 'unknown-source',
+            targetId: 'block-compute',
+            type: 'dataflow',
+            metadata: {},
+          },
+        ],
+      };
+
+      const rule: StepValidationRule = {
+        type: 'connection-exists',
+        sourceCategory: 'internet',
+        targetCategory: 'compute',
+      };
+
+      expect(evaluateRule(rule, unresolvedEndpointModel)).toBe(false);
+    });
   });
 
   describe('entity-on-plate', () => {
@@ -230,6 +278,35 @@ describe('evaluateRule', () => {
     it('fails when entity is not on specified plate type', () => {
       const model = createTestModel();
       const rule: StepValidationRule = { type: 'entity-on-plate', entityCategory: 'database', plateType: 'network' };
+      expect(evaluateRule(rule, model)).toBe(false);
+    });
+
+    it('fails when entity placement plate cannot be found', () => {
+      const model = createTestModel();
+      const modelWithMissingPlacement: ArchitectureModel = {
+        ...model,
+        blocks: model.blocks.map((block) =>
+          block.id === 'block-db' ? { ...block, placementId: 'missing-plate' } : block
+        ),
+      };
+      const rule: StepValidationRule = {
+        type: 'entity-on-plate',
+        entityCategory: 'database',
+        plateType: 'subnet',
+      };
+
+      expect(evaluateRule(rule, modelWithMissingPlacement)).toBe(false);
+    });
+
+    it('fails when entity subnet access does not match requirement', () => {
+      const model = createTestModel();
+      const rule: StepValidationRule = {
+        type: 'entity-on-plate',
+        entityCategory: 'database',
+        plateType: 'subnet',
+        subnetAccess: 'public',
+      };
+
       expect(evaluateRule(rule, model)).toBe(false);
     });
   });
@@ -280,6 +357,13 @@ describe('evaluateRule', () => {
       const rule: StepValidationRule = { type: 'min-plate-count', plateType: 'subnet', count: 3 };
       expect(evaluateRule(rule, model)).toBe(false);
     });
+  });
+
+  it('returns false for unknown rule type at runtime', () => {
+    const model = createTestModel();
+    const unknownRule = { type: 'unknown-rule' } as unknown as StepValidationRule;
+
+    expect(evaluateRule(unknownRule, model)).toBe(false);
   });
 });
 

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CommandCard } from './CommandCard';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
@@ -7,6 +7,24 @@ import { useUIStore, type ToolMode } from '../../entities/store/uiStore';
 import type { ArchitectureModel, Block, Plate } from '../../shared/types/index';
 
 vi.mock('./CommandCard.css', () => ({}));
+
+type DragListeners = {
+  start?: () => void;
+  move?: (event: { target: EventTarget }) => void;
+  end?: (event: { target: EventTarget }) => void;
+};
+
+const draggableListeners = new WeakMap<HTMLElement, DragListeners>();
+const unsetInteractableMock = vi.fn();
+
+vi.mock('interactjs', () => ({
+  default: (element: HTMLElement) => ({
+    draggable: (options: { listeners: DragListeners }) => {
+      draggableListeners.set(element, options.listeners);
+      return { unset: unsetInteractableMock };
+    },
+  }),
+}));
 
 const baseArchitecture: ArchitectureModel = {
   id: 'arch-1',
@@ -169,6 +187,54 @@ describe('CommandCard', () => {
     expect(within(vmButton).getByText('🔒')).toBeInTheDocument();
   });
 
+  it('handles drag lifecycle in creation mode and cleans up interactables', () => {
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          ...baseArchitecture,
+          plates: [networkPlate],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    const { unmount } = render(<CommandCard />);
+
+    const networkButton = screen.getByTitle('Create Network (VNet) (Q)');
+    const firewallButton = screen.getByTitle('Create Azure Firewall (A)');
+
+    const networkListeners = draggableListeners.get(networkButton);
+    const vmListeners = draggableListeners.get(firewallButton);
+
+    expect(networkListeners).toBeDefined();
+    expect(vmListeners).toBeDefined();
+
+    vmListeners?.start?.();
+    vmListeners?.move?.({ target: firewallButton });
+    expect(firewallButton).toHaveClass('is-dragging');
+    expect(useUIStore.getState().draggedBlockCategory).toBe('gateway');
+    expect(useUIStore.getState().draggedResourceName).toBe('Azure Firewall');
+
+    vmListeners?.end?.({ target: firewallButton });
+    expect(firewallButton).not.toHaveClass('is-dragging');
+    expect(useUIStore.getState().draggedBlockCategory).toBeNull();
+    expect(useUIStore.getState().draggedResourceName).toBeNull();
+
+    networkListeners?.move?.({ target: networkButton });
+    expect(useUIStore.getState().draggedBlockCategory).toBeNull();
+    expect(useUIStore.getState().draggedResourceName).toBeNull();
+
+    const detachedButton = document.createElement('button');
+    vmListeners?.move?.({ target: detachedButton });
+    expect(useUIStore.getState().draggedBlockCategory).toBeNull();
+
+    unmount();
+    expect(unsetInteractableMock).toHaveBeenCalled();
+  });
+
   it('creates private subnet from creation mode when network exists', async () => {
     const user = userEvent.setup();
 
@@ -310,6 +376,178 @@ describe('CommandCard', () => {
     expect(screen.getByRole('button', { name: /Delete/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Move/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Rename/ })).toBeInTheDocument();
+  });
+
+  it('updates header text across none, block, plate, and deploy states', async () => {
+    const user = userEvent.setup();
+
+    const { rerender } = render(<CommandCard />);
+    expect(screen.getByText('Create Resource')).toBeInTheDocument();
+
+    act(() => {
+      useUIStore.setState({ selectedId: 'block-1' });
+      useArchitectureStore.setState({
+        workspace: {
+          id: 'ws-1',
+          name: 'Test Workspace',
+          architecture: {
+            ...baseArchitecture,
+            plates: [networkPlate, publicSubnet],
+            blocks: [computeBlock],
+          },
+          createdAt: '',
+          updatedAt: '',
+        },
+      });
+    });
+    rerender(<CommandCard />);
+    expect(screen.getByText('Actions')).toBeInTheDocument();
+
+    act(() => {
+      useUIStore.setState({ selectedId: 'net-1' });
+      useArchitectureStore.setState({
+        workspace: {
+          id: 'ws-1',
+          name: 'Test Workspace',
+          architecture: {
+            ...baseArchitecture,
+            plates: [networkPlate],
+          },
+          createdAt: '',
+          updatedAt: '',
+        },
+      });
+    });
+    rerender(<CommandCard />);
+    expect(screen.getByText('VNet Actions')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /Deploy/ }));
+    expect(screen.getByRole('button', { name: 'Back from Deploy on VNet' })).toBeInTheDocument();
+  });
+
+  it('resets deploy sub-action when selected plate changes', async () => {
+    const user = userEvent.setup();
+
+    useUIStore.setState({ selectedId: 'net-1' });
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          ...baseArchitecture,
+          plates: [networkPlate, publicSubnet],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    const { rerender } = render(<CommandCard />);
+    await user.click(screen.getByRole('button', { name: /Deploy/ }));
+    expect(screen.getByRole('button', { name: 'Back from Deploy on VNet' })).toBeInTheDocument();
+
+    act(() => {
+      useUIStore.setState({ selectedId: 'subnet-public-1' });
+    });
+    rerender(<CommandCard />);
+
+    expect(screen.queryByRole('button', { name: /Back from/ })).not.toBeInTheDocument();
+    expect(screen.getByText('Public Subnet Actions')).toBeInTheDocument();
+  });
+
+  it('exits deploy mode when Escape is pressed', async () => {
+    const user = userEvent.setup();
+
+    useUIStore.setState({ selectedId: 'net-1' });
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          ...baseArchitecture,
+          plates: [networkPlate],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    render(<CommandCard />);
+    await user.click(screen.getByRole('button', { name: /Deploy/ }));
+    expect(screen.getByRole('button', { name: 'Back from Deploy on VNet' })).toBeInTheDocument();
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+
+    expect(screen.queryByRole('button', { name: /Back from/ })).not.toBeInTheDocument();
+    expect(screen.getByText('VNet Actions')).toBeInTheDocument();
+  });
+
+  it('renders different deploy resource sets for network, public subnet, and private subnet', async () => {
+    const user = userEvent.setup();
+
+    const { rerender } = render(<CommandCard />);
+
+    act(() => {
+      useUIStore.setState({ selectedId: 'net-1' });
+      useArchitectureStore.setState({
+        workspace: {
+          id: 'ws-1',
+          name: 'Test Workspace',
+          architecture: {
+            ...baseArchitecture,
+            plates: [networkPlate],
+          },
+          createdAt: '',
+          updatedAt: '',
+        },
+      });
+    });
+    rerender(<CommandCard />);
+    await user.click(screen.getByRole('button', { name: /Deploy/ }));
+    expect(screen.getByTitle('Create Public Subnet (Q)')).toBeInTheDocument();
+    expect(screen.getByTitle('Create Private Subnet (W)')).toBeInTheDocument();
+    expect(screen.queryByTitle('Create Azure SQL (W)')).not.toBeInTheDocument();
+
+    act(() => {
+      useUIStore.setState({ selectedId: 'subnet-public-1' });
+      useArchitectureStore.setState({
+        workspace: {
+          id: 'ws-1',
+          name: 'Test Workspace',
+          architecture: {
+            ...baseArchitecture,
+            plates: [networkPlate, publicSubnet],
+          },
+          createdAt: '',
+          updatedAt: '',
+        },
+      });
+    });
+    rerender(<CommandCard />);
+    await user.click(screen.getByRole('button', { name: /Deploy/ }));
+    expect(screen.getByTitle('Create DNS Zone (W)')).toBeInTheDocument();
+    expect(screen.getByTitle('Create Virtual Machine (S)')).toBeInTheDocument();
+    expect(screen.queryByTitle('Create Azure SQL (W)')).not.toBeInTheDocument();
+
+    act(() => {
+      useUIStore.setState({ selectedId: 'subnet-private-1' });
+      useArchitectureStore.setState({
+        workspace: {
+          id: 'ws-1',
+          name: 'Test Workspace',
+          architecture: {
+            ...baseArchitecture,
+            plates: [networkPlate, privateSubnet],
+          },
+          createdAt: '',
+          updatedAt: '',
+        },
+      });
+    });
+    rerender(<CommandCard />);
+    await user.click(screen.getByRole('button', { name: /Deploy/ }));
+    expect(screen.getByTitle('Create Azure SQL (W)')).toBeInTheDocument();
+    expect(screen.queryByTitle('Create Public Subnet (Q)')).not.toBeInTheDocument();
   });
 
   it('shows "Public Subnet Actions" header for selected public subnet', () => {

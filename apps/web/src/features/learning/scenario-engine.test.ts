@@ -207,6 +207,27 @@ describe('scenario-engine', () => {
       expect(useLearningStore.getState().progress?.currentStepIndex).toBe(before);
     });
 
+    it('no-ops when progress points to a missing current step', () => {
+      startLearningScenario('scenario-three-tier');
+      const progress = useLearningStore.getState().progress;
+      if (!progress) {
+        throw new Error('Expected progress');
+      }
+
+      useLearningStore.setState({
+        isCurrentStepComplete: true,
+        progress: {
+          ...progress,
+          currentStepIndex: 999,
+        },
+      });
+
+      advanceToNextStep();
+
+      expect(useLearningStore.getState().progress?.currentStepIndex).toBe(999);
+      expect(useLearningStore.getState().progress?.completedAt).toBeUndefined();
+    });
+
     it('advances to next step when current step is complete', () => {
       startLearningScenario('scenario-three-tier');
 
@@ -292,6 +313,27 @@ describe('scenario-engine', () => {
 
       expect(useLearningStore.getState().currentHintIndex).toBe(-1);
     });
+
+    it('no-ops when progress points to a missing current step', () => {
+      startLearningScenario('scenario-three-tier');
+      const progress = useLearningStore.getState().progress;
+      if (!progress) {
+        throw new Error('Expected progress');
+      }
+
+      useLearningStore.setState({
+        currentHintIndex: 1,
+        progress: {
+          ...progress,
+          currentStepIndex: 999,
+        },
+      });
+
+      resetCurrentStep();
+
+      expect(useLearningStore.getState().currentHintIndex).toBe(1);
+      expect(useLearningStore.getState().progress?.currentStepIndex).toBe(999);
+    });
   });
 
   describe('abandonLearning', () => {
@@ -371,6 +413,23 @@ describe('scenario-engine', () => {
       expect(result.results[0]?.rule.type).toBe('plate-exists');
       expect(result.passed).toBe(false);
     });
+
+    it('returns empty failing result when current step is missing', () => {
+      startLearningScenario('scenario-three-tier');
+      const progress = useLearningStore.getState().progress;
+      if (!progress) {
+        throw new Error('Expected progress');
+      }
+
+      useLearningStore.setState({
+        progress: {
+          ...progress,
+          currentStepIndex: 999,
+        },
+      });
+
+      expect(getValidationDetails()).toEqual({ passed: false, results: [] });
+    });
   });
 
   describe('startValidationSubscription', () => {
@@ -388,6 +447,19 @@ describe('scenario-engine', () => {
 
       expect(setStepCompleteSpy).toHaveBeenCalledTimes(1);
       setStepCompleteSpy.mockRestore();
+    });
+
+    it('sets step completion false when architecture changes without active scenario', () => {
+      startLearningScenario('scenario-three-tier');
+      useLearningStore.setState({ isCurrentStepComplete: true });
+      useLearningStore.setState({ activeScenario: null, progress: null });
+
+      useArchitectureStore.getState().replaceArchitecture({
+        ...EMPTY_ARCHITECTURE,
+        name: 'No active scenario architecture',
+      });
+
+      expect(useLearningStore.getState().isCurrentStepComplete).toBe(false);
     });
   });
 
