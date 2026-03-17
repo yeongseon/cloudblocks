@@ -21,6 +21,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.api.routes.auth import router as auth_router
 from app.api.routes.generation import router as generation_router
 from app.api.routes.github import router as github_router
+from app.api.routes.session import router as session_router
 from app.api.routes.workspaces import router as workspace_router
 from app.core.config import settings
 from app.core.dependencies import get_database
@@ -126,6 +127,7 @@ async def readiness_check() -> JSONResponse:
 
 # Mount API v1 routers
 app.include_router(auth_router, prefix="/api/v1")
+app.include_router(session_router, prefix="/api/v1")
 app.include_router(workspace_router, prefix="/api/v1")
 app.include_router(github_router, prefix="/api/v1")
 app.include_router(generation_router, prefix="/api/v1")
