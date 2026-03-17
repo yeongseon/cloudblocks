@@ -40,7 +40,7 @@ export function MenuBar() {
   const toggleSound = useUIStore((s) => s.toggleSound);
   const playSound = (name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); };
 
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
   const user = useAuthStore((s) => s.user);
 
   const addPlate = useArchitectureStore((s) => s.addPlate);

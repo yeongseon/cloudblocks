@@ -8,7 +8,7 @@ import './GitHubRepos.css';
 export function GitHubRepos() {
   const show = useUIStore((s) => s.showGitHubRepos);
   const toggleGitHubRepos = useUIStore((s) => s.toggleGitHubRepos);
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
 
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
   const [loading, setLoading] = useState(false);

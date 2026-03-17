@@ -14,7 +14,7 @@ export function GitHubSync() {
   const workspace = useArchitectureStore((s) => s.workspace);
   const importArchitecture = useArchitectureStore((s) => s.importArchitecture);
 
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
 
   const [repoInput, setRepoInput] = useState('');
   const [backendWorkspaceIdInput, setBackendWorkspaceIdInput] = useState('');

@@ -14,11 +14,10 @@ export function GitHubLogin() {
   const toggleGitHubLogin = useUIStore((s) => s.toggleGitHubLogin);
 
   const user = useAuthStore((s) => s.user);
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const status = useAuthStore((s) => s.status);
   const authError = useAuthStore((s) => s.error);
-  const setLoading = useAuthStore((s) => s.setLoading);
   const setError = useAuthStore((s) => s.setError);
-  const logout = useAuthStore((s) => s.logout);
+  const setAnonymous = useAuthStore((s) => s.setAnonymous);
 
   const [isWorking, setIsWorking] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
@@ -29,7 +28,6 @@ export function GitHubLogin() {
     setIsWorking(true);
     setLocalError(null);
     setError(null);
-    setLoading(true);
 
     try {
       const response = await apiPost<GitHubAuthStartResponse>('/api/v1/auth/github');
@@ -41,7 +39,6 @@ export function GitHubLogin() {
       setError(message);
     } finally {
       setIsWorking(false);
-      setLoading(false);
     }
   };
 
@@ -49,13 +46,11 @@ export function GitHubLogin() {
     setIsWorking(true);
     setLocalError(null);
     setError(null);
-    setLoading(true);
 
     await apiPost<{ message: string }>('/api/v1/auth/logout').catch(() => {});
-    logout();
+    setAnonymous();
 
     setIsWorking(false);
-    setLoading(false);
   };
 
   return (
@@ -71,7 +66,7 @@ export function GitHubLogin() {
         {isWorking && <div className="github-login-loading">Loading...</div>}
         {(localError || authError) && <div className="github-login-error">{localError || authError}</div>}
 
-        {isAuthenticated ? (
+        {status === 'authenticated' ? (
           <div className="github-login-user">
             {user?.avatar_url && (
               <img
