@@ -1,67 +1,36 @@
-"""CloudBlocks API - Authentication routes.
-
-GitHub App OAuth flow with JWT session tokens.
-"""
+"""CloudBlocks API - Authentication routes."""
 
 from __future__ import annotations
 
-import time
-import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
+from fastapi.responses import JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
 from app.core.config import settings
 from app.core.dependencies import (
+    get_current_session,
     get_current_user,
     get_github_service,
     get_identity_repo,
+    get_session_repo,
     get_user_repo,
 )
 from app.core.errors import UnauthorizedError
 from app.core.security import (
-    create_access_token,
-    create_refresh_token,
-    decode_token,
+    decrypt_oauth_state,
+    encrypt_oauth_state,
     encrypt_token,
     generate_id,
+    generate_session_token,
     hash_token,
 )
-from app.domain.models.entities import Identity, User
-from app.domain.models.repositories import IdentityRepository, UserRepository
+from app.domain.models.entities import Identity, Session, User
+from app.domain.models.repositories import IdentityRepository, SessionRepository, UserRepository
 from app.infrastructure.github_service import GitHubService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-
-# OAuth state store with TTL for CSRF protection
-# Maps state → expiry_timestamp. States expire after 10 minutes.
-_oauth_states: dict[str, float] = {}
-_OAUTH_STATE_TTL = 600  # 10 minutes in seconds
-
-
-def _cleanup_expired_states() -> None:
-    """Remove expired OAuth states from the dictionary."""
-    current_time = time.time()
-    expired_states = [state for state, expiry in _oauth_states.items() if current_time > expiry]
-    for state in expired_states:
-        _oauth_states.pop(state, None)
-
-
-class AuthResponse(BaseModel):
-    access_token: str
-    refresh_token: str
-    token_type: str = "bearer"
-    user: dict
-
-
-class RefreshRequest(BaseModel):
-    refresh_token: str
-
-
-class RefreshResponse(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
 
 
 class UserResponse(BaseModel):
@@ -75,45 +44,65 @@ class UserResponse(BaseModel):
 @router.post("/github")
 async def start_github_oauth(
     github: Annotated[GitHubService, Depends(get_github_service)],
-) -> dict:
-    """Start GitHub OAuth flow — returns the authorization URL."""
-    _cleanup_expired_states()
-    state = uuid.uuid4().hex
-    _oauth_states[state] = time.time() + _OAUTH_STATE_TTL
+) -> JSONResponse:
+    import time as time_mod
+
+    state = generate_session_token()
+    state_data = {"state": state, "created_at": int(time_mod.time())}
+    encrypted = encrypt_oauth_state(state_data)
+
     url = github.get_authorize_url(settings.github_redirect_uri, state)
-    return {"authorize_url": url, "state": state}
+
+    response = JSONResponse(content={"authorize_url": url, "state": state})
+    response.set_cookie(
+        key=settings.oauth_cookie_name,
+        value=encrypted,
+        httponly=True,
+        secure=settings.session_cookie_secure,
+        samesite="lax",
+        max_age=settings.oauth_state_ttl_minutes * 60,
+        path=settings.session_cookie_path,
+    )
+    return response
 
 
 @router.get("/github/callback")
 async def github_oauth_callback(
     code: Annotated[str, Query()],
     state: Annotated[str, Query()],
+    request: Request,
     github: Annotated[GitHubService, Depends(get_github_service)],
     user_repo: Annotated[UserRepository, Depends(get_user_repo)],
     identity_repo: Annotated[IdentityRepository, Depends(get_identity_repo)],
-) -> AuthResponse:
-    """Handle GitHub OAuth callback — exchange code for tokens, create/update user."""
-    _cleanup_expired_states()
-    if state not in _oauth_states or time.time() > _oauth_states[state]:
-        raise UnauthorizedError("Invalid OAuth state")
-    _oauth_states.pop(state, None)
+    session_repo: Annotated[SessionRepository, Depends(get_session_repo)],
+) -> RedirectResponse:
+    import time as time_mod
 
-    # Exchange code for GitHub access token
+    encrypted_state = request.cookies.get(settings.oauth_cookie_name)
+    if not encrypted_state:
+        raise UnauthorizedError("Missing OAuth state cookie")
+
+    state_data = decrypt_oauth_state(encrypted_state)
+    if not state_data or state_data.get("state") != state:
+        raise UnauthorizedError("Invalid OAuth state")
+
+    created_raw = state_data.get("created_at", 0)
+    created_at = int(created_raw) if isinstance(created_raw, int | str) else 0
+    if int(time_mod.time()) - created_at > settings.oauth_state_ttl_minutes * 60:
+        raise UnauthorizedError("OAuth state expired")
+
     token_data = await github.exchange_code(code)
     access_token = token_data["access_token"]
 
-    # Get GitHub user profile
     gh_user = await github.get_user(access_token)
     github_id = str(gh_user["id"])
 
-    # Get primary email
     emails = await github.get_user_emails(access_token)
     primary_email = next(
         (e["email"] for e in emails if e.get("primary")),
         gh_user.get("email"),
     )
 
-    # Find or create user
     user = await user_repo.find_by_github_id(github_id)
     if user:
         user.github_username = gh_user.get("login")
@@ -132,7 +121,6 @@ async def github_oauth_callback(
         )
         user = await user_repo.create(user)
 
-    # Store/update identity with hashed access token
     identity = await identity_repo.find_by_provider("github", github_id)
     if identity:
         identity.access_token_hash = hash_token(access_token)
@@ -149,29 +137,94 @@ async def github_oauth_callback(
         )
         await identity_repo.create(identity)
 
-    # Create JWT tokens
-    jwt_access = create_access_token(user.id)
-    jwt_refresh = create_refresh_token(user.id)
+    now = int(time_mod.time())
+    session_token = generate_session_token()
+    session = Session(
+        id=session_token,
+        user_id=user.id,
+        created_at=now,
+        expires_at=now + settings.session_ttl_hours * 3600,
+    )
+    await session_repo.create(session)
 
-    return AuthResponse(
-        access_token=jwt_access,
-        refresh_token=jwt_refresh,
-        user={
-            "id": user.id,
-            "github_username": user.github_username,
-            "email": user.email,
-            "display_name": user.display_name,
-            "avatar_url": user.avatar_url,
-        },
+    response = RedirectResponse(url=settings.frontend_url, status_code=302)
+    response.set_cookie(
+        key=settings.session_cookie_name,
+        value=session_token,
+        httponly=True,
+        secure=settings.session_cookie_secure,
+        samesite="lax",
+        max_age=settings.session_ttl_hours * 3600,
+        path=settings.session_cookie_path,
+        domain=settings.session_cookie_domain,
+    )
+    response.delete_cookie(
+        key=settings.oauth_cookie_name,
+        path=settings.session_cookie_path,
+    )
+    return response
+
+
+@router.get("/session")
+async def get_session(
+    request: Request,
+    session_repo: Annotated[SessionRepository, Depends(get_session_repo)],
+    user_repo: Annotated[UserRepository, Depends(get_user_repo)],
+) -> UserResponse:
+    """Bootstrap endpoint - returns current user if session cookie is valid."""
+    import time as time_mod
+
+    session_token = request.cookies.get(settings.session_cookie_name)
+    if not session_token:
+        raise UnauthorizedError("No active session")
+
+    session = await session_repo.get_by_id(session_token)
+    if not session:
+        raise UnauthorizedError("Invalid session")
+
+    now = int(time_mod.time())
+    if session.expires_at < now:
+        raise UnauthorizedError("Session expired")
+    if session.revoked_at is not None:
+        raise UnauthorizedError("Session revoked")
+
+    await session_repo.update_last_seen(session.id, now)
+
+    user = await user_repo.find_by_id(session.user_id)
+    if not user:
+        raise UnauthorizedError("User not found")
+
+    return UserResponse(
+        id=user.id,
+        github_username=user.github_username,
+        email=user.email,
+        display_name=user.display_name,
+        avatar_url=user.avatar_url,
     )
 
 
 @router.post("/logout")
 async def logout(
-    current_user: Annotated[User, Depends(get_current_user)],
-) -> dict:
-    """Invalidate session. In a stateless JWT setup, the client discards the token."""
-    return {"message": "Logged out successfully"}
+    request: Request,
+    session_repo: Annotated[SessionRepository, Depends(get_session_repo)],
+    session: Annotated[Session, Depends(get_current_session)] | None = None,
+) -> JSONResponse:
+    """Revoke session and clear cookie."""
+    session_token = request.cookies.get(settings.session_cookie_name)
+    if session:
+        await session_repo.revoke(session.id)
+    elif session_token:
+        existing = await session_repo.get_by_id(session_token)
+        if existing:
+            await session_repo.revoke(existing.id)
+
+    response = JSONResponse(content={"message": "Logged out successfully"})
+    response.delete_cookie(
+        key=settings.session_cookie_name,
+        path=settings.session_cookie_path,
+        domain=settings.session_cookie_domain,
+    )
+    return response
 
 
 @router.get("/me")
@@ -186,22 +239,3 @@ async def get_me(
         display_name=current_user.display_name,
         avatar_url=current_user.avatar_url,
     )
-
-
-@router.post("/refresh")
-async def refresh_token(
-    body: RefreshRequest,
-    user_repo: Annotated[UserRepository, Depends(get_user_repo)],
-) -> RefreshResponse:
-    """Refresh an access token using a refresh token."""
-    payload = decode_token(body.refresh_token, expected_type="refresh")
-    user_id = payload.get("sub")
-    if not user_id:
-        raise UnauthorizedError("Invalid refresh token")
-
-    user = await user_repo.find_by_id(user_id)
-    if not user:
-        raise UnauthorizedError("User not found")
-
-    new_access = create_access_token(user.id)
-    return RefreshResponse(access_token=new_access)
