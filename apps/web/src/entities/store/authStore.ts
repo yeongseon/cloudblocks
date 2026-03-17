@@ -1,41 +1,42 @@
 import { create } from 'zustand';
-import type { ApiUser } from '../../shared/types/api';
+import { apiGet } from '../../shared/api/client';
+import type { ApiUser, SessionUserResponse } from '../../shared/types/api';
+
+type AuthStatus = 'unknown' | 'authenticated' | 'anonymous';
 
 interface AuthState {
+  status: AuthStatus;
   user: ApiUser | null;
-  accessToken: string | null;
-  refreshToken: string | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
+  hydrated: boolean;
   error: string | null;
 
-  login: (accessToken: string, refreshToken: string, user: ApiUser) => void;
-  logout: () => void;
-  setAccessToken: (token: string) => void;
-  setLoading: (loading: boolean) => void;
+  setAuthenticated: (user: ApiUser) => void;
+  setAnonymous: () => void;
   setError: (error: string | null) => void;
+  checkSession: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
+  status: 'unknown',
   user: null,
-  accessToken: null,
-  refreshToken: null,
-  isAuthenticated: false,
-  isLoading: false,
+  hydrated: false,
   error: null,
 
-  login: (accessToken, refreshToken, user) =>
-    set({ accessToken, refreshToken, user, isAuthenticated: true, error: null }),
+  setAuthenticated: (user) =>
+    set({ status: 'authenticated', user, error: null }),
 
-  logout: () =>
-    set({ accessToken: null, refreshToken: null, user: null, isAuthenticated: false, error: null }),
-
-  setAccessToken: (token) =>
-    set({ accessToken: token }),
-
-  setLoading: (loading) =>
-    set({ isLoading: loading }),
+  setAnonymous: () =>
+    set({ status: 'anonymous', user: null, error: null }),
 
   setError: (error) =>
     set({ error }),
+
+  checkSession: async () => {
+    try {
+      const user = await apiGet<SessionUserResponse>('/api/v1/auth/session');
+      set({ status: 'authenticated', user, hydrated: true, error: null });
+    } catch {
+      set({ status: 'anonymous', user: null, hydrated: true, error: null });
+    }
+  },
 }));

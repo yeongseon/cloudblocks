@@ -20,7 +20,7 @@ export function Toolbar() {
   const toggleGitHubSync = useUIStore((s) => s.toggleGitHubSync);
   const toggleGitHubPR = useUIStore((s) => s.toggleGitHubPR);
 
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
   const user = useAuthStore((s) => s.user);
 
   const addPlate = useArchitectureStore((s) => s.addPlate);

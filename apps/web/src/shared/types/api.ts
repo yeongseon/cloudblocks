@@ -6,16 +6,12 @@ export interface ApiUser {
   avatar_url: string | null;
 }
 
-export interface AuthResponse {
-  access_token: string;
-  refresh_token: string;
-  token_type: string;
-  user: ApiUser;
-}
-
-export interface RefreshResponse {
-  access_token: string;
-  token_type: string;
+export interface SessionUserResponse {
+  id: string;
+  github_username: string | null;
+  email: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
 }
 
 export interface GitHubRepo {
