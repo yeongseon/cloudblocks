@@ -72,6 +72,10 @@ interface UIState {
   // ── Collaboration panel ──
   showCollaboration: boolean;
   toggleCollaboration: () => void;
+
+  // ── Sound preference ──
+  isSoundMuted: boolean;
+  toggleSound: () => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -156,4 +160,7 @@ export const useUIStore = create<UIState>((set) => ({
   showCollaboration: false,
   toggleCollaboration: () =>
     set((s) => ({ showCollaboration: !s.showCollaboration })),
+
+  isSoundMuted: true,
+  toggleSound: () => set((s) => ({ isSoundMuted: !s.isSoundMuted })),
 }));
