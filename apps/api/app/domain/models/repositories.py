@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 from app.domain.models.entities import (
     GenerationRun,
     Identity,
+    Session,
     User,
     Workspace,
 )
@@ -80,3 +81,33 @@ class GenerationRunRepository(ABC):
 
     @abstractmethod
     async def update(self, run: GenerationRun) -> GenerationRun: ...
+
+
+class SessionRepository(ABC):
+    """Port for session persistence."""
+
+    @abstractmethod
+    async def create(self, session: Session) -> Session: ...
+
+    @abstractmethod
+    async def get_by_id(self, session_id: str) -> Session | None: ...
+
+    @abstractmethod
+    async def revoke(self, session_id: str) -> None: ...
+
+    @abstractmethod
+    async def revoke_all_for_user(self, user_id: str) -> None: ...
+
+    @abstractmethod
+    async def update_last_seen(self, session_id: str, timestamp: int) -> None: ...
+
+    @abstractmethod
+    async def update_workspace(
+        self,
+        session_id: str,
+        workspace_id: str,
+        repo_full_name: str | None,
+    ) -> None: ...
+
+    @abstractmethod
+    async def cleanup_expired(self) -> int: ...
