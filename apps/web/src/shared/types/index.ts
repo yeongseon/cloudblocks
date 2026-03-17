@@ -22,6 +22,7 @@ export interface Plate {
 // ─── Block Types ───────────────────────────────────────────
 
 export type BlockCategory = 'compute' | 'database' | 'storage' | 'gateway' | 'function' | 'queue' | 'event' | 'timer';
+export type ProviderType = 'azure' | 'aws' | 'gcp';
 
 export interface Block {
   id: string;
@@ -30,6 +31,7 @@ export interface Block {
   placementId: string; // parent plate ID
   position: Position; // relative to parent plate
   metadata: Record<string, unknown>;
+  provider?: ProviderType;
 }
 
 // ─── Connection ────────────────────────────────────────────
