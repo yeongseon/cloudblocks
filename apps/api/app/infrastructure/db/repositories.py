@@ -113,14 +113,13 @@ class SQLiteIdentityRepository(IdentityRepository):
             provider=row["provider"],
             provider_id=row["provider_id"],
             access_token_hash=row.get("access_token_hash"),
+            encrypted_access_token=row.get("encrypted_access_token"),
             refresh_token_hash=row.get("refresh_token_hash"),
             created_at=_parse_dt(row.get("created_at")) or datetime.now(timezone.utc),
         )
 
     async def find_by_user_id(self, user_id: str) -> list[Identity]:
-        rows = await self._db.fetch_all(
-            "SELECT * FROM identities WHERE user_id = ?", (user_id,)
-        )
+        rows = await self._db.fetch_all("SELECT * FROM identities WHERE user_id = ?", (user_id,))
         return [self._row_to_identity(row) for row in rows]
 
     async def find_by_provider(self, provider: str, provider_id: str) -> Identity | None:
@@ -133,14 +132,15 @@ class SQLiteIdentityRepository(IdentityRepository):
     async def create(self, identity: Identity) -> Identity:
         await self._db.execute(
             """INSERT INTO identities (id, user_id, provider, provider_id,
-               access_token_hash, refresh_token_hash, created_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+               access_token_hash, encrypted_access_token, refresh_token_hash, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 identity.id,
                 identity.user_id,
                 identity.provider,
                 identity.provider_id,
                 identity.access_token_hash,
+                identity.encrypted_access_token,
                 identity.refresh_token_hash,
                 _fmt_dt(identity.created_at),
             ),
@@ -149,16 +149,20 @@ class SQLiteIdentityRepository(IdentityRepository):
 
     async def update(self, identity: Identity) -> Identity:
         await self._db.execute(
-            """UPDATE identities SET access_token_hash = ?, refresh_token_hash = ?
+            """UPDATE identities SET access_token_hash = ?, encrypted_access_token = ?,
+               refresh_token_hash = ?
                WHERE id = ?""",
-            (identity.access_token_hash, identity.refresh_token_hash, identity.id),
+            (
+                identity.access_token_hash,
+                identity.encrypted_access_token,
+                identity.refresh_token_hash,
+                identity.id,
+            ),
         )
         return identity
 
     async def delete_by_user_id(self, user_id: str) -> int:
-        cursor = await self._db.execute(
-            "DELETE FROM identities WHERE user_id = ?", (user_id,)
-        )
+        cursor = await self._db.execute("DELETE FROM identities WHERE user_id = ?", (user_id,))
         return cursor.rowcount
 
 
@@ -232,9 +236,7 @@ class SQLiteWorkspaceRepository(WorkspaceRepository):
         return workspace
 
     async def delete(self, workspace_id: str) -> bool:
-        cursor = await self._db.execute(
-            "DELETE FROM workspaces WHERE id = ?", (workspace_id,)
-        )
+        cursor = await self._db.execute("DELETE FROM workspaces WHERE id = ?", (workspace_id,))
         return cursor.rowcount > 0
 
 

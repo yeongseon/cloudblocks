@@ -44,6 +44,7 @@ class Identity(BaseModel):
     provider: str  # 'github', 'google'
     provider_id: str
     access_token_hash: str | None = None
+    encrypted_access_token: str | None = None
     refresh_token_hash: str | None = None
     created_at: datetime = Field(default_factory=_utcnow)
 

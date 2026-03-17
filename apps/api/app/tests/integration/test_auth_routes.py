@@ -1,14 +1,16 @@
 from __future__ import annotations
 
+import importlib
 from datetime import datetime, timedelta, timezone
 
-import jwt
 import pytest
 from httpx import AsyncClient
 
 from app.core.config import settings
-from app.core.security import create_refresh_token
-from app.infrastructure.db.repositories import SQLiteUserRepository
+from app.core.security import create_refresh_token, decrypt_token
+from app.infrastructure.db.repositories import SQLiteIdentityRepository, SQLiteUserRepository
+
+jwt = importlib.import_module("jwt")
 
 
 @pytest.mark.asyncio
@@ -41,9 +43,7 @@ async def test_github_callback_creates_new_user_on_first_login(
         "email": None,
         "avatar_url": "https://avatars.example/new-user.png",
     }
-    mock_github.get_user_emails.return_value = [
-        {"email": "new-user@example.com", "primary": True}
-    ]
+    mock_github.get_user_emails.return_value = [{"email": "new-user@example.com", "primary": True}]
 
     response = await client.get(
         "/api/v1/auth/github/callback",
@@ -103,6 +103,44 @@ async def test_github_callback_updates_existing_user_on_relogin(
     assert updated.github_username == "updated-user"
     assert updated.display_name == "Updated Name"
     assert updated.email == "updated@example.com"
+
+
+@pytest.mark.asyncio
+async def test_github_callback_stores_encrypted_access_token(
+    client: AsyncClient,
+    mock_github,
+    db,
+) -> None:
+    start = await client.post("/api/v1/auth/github")
+    state = start.json()["state"]
+
+    mock_github.exchange_code.return_value = {"access_token": "gh-secret-token"}
+    mock_github.get_user.return_value = {
+        "id": 777777,
+        "login": "token-test-user",
+        "name": "Token Test",
+        "email": None,
+        "avatar_url": None,
+    }
+    mock_github.get_user_emails.return_value = [
+        {"email": "token-test@example.com", "primary": True}
+    ]
+
+    response = await client.get(
+        "/api/v1/auth/github/callback",
+        params={"code": "oauth-code", "state": state},
+    )
+    assert response.status_code == 200
+
+    identity_repo = SQLiteIdentityRepository(db)
+    identities = await identity_repo.find_by_user_id(response.json()["user"]["id"])
+    github_identity = next((i for i in identities if i.provider == "github"), None)
+
+    assert github_identity is not None
+    assert github_identity.encrypted_access_token is not None
+    assert github_identity.access_token_hash is not None
+    decrypted = decrypt_token(github_identity.encrypted_access_token)
+    assert decrypted == "gh-secret-token"
 
 
 @pytest.mark.asyncio

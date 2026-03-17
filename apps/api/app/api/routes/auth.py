@@ -23,6 +23,7 @@ from app.core.security import (
     create_access_token,
     create_refresh_token,
     decode_token,
+    encrypt_token,
     generate_id,
     hash_token,
 )
@@ -122,6 +123,7 @@ async def github_oauth_callback(
     identity = await identity_repo.find_by_provider("github", github_id)
     if identity:
         identity.access_token_hash = hash_token(access_token)
+        identity.encrypted_access_token = encrypt_token(access_token)
         await identity_repo.update(identity)
     else:
         identity = Identity(
@@ -130,6 +132,7 @@ async def github_oauth_callback(
             provider="github",
             provider_id=github_id,
             access_token_hash=hash_token(access_token),
+            encrypted_access_token=encrypt_token(access_token),
         )
         await identity_repo.create(identity)
 

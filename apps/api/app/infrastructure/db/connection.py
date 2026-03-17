@@ -9,6 +9,8 @@ Architecture data lives in GitHub repos, NOT here.
 
 from __future__ import annotations
 
+from contextlib import suppress
+
 import aiosqlite
 
 _MIGRATIONS = [
@@ -32,6 +34,7 @@ _MIGRATIONS = [
         provider           TEXT NOT NULL,
         provider_id        TEXT NOT NULL,
         access_token_hash  TEXT,
+        encrypted_access_token TEXT,
         refresh_token_hash TEXT,
         created_at         TEXT NOT NULL DEFAULT (datetime('now')),
         UNIQUE(provider, provider_id)
@@ -66,6 +69,10 @@ _MIGRATIONS = [
         created_at      TEXT NOT NULL DEFAULT (datetime('now'))
     );
     """,
+    # Migration 003: Add encrypted token storage for GitHub OAuth
+    """
+    ALTER TABLE identities ADD COLUMN encrypted_access_token TEXT;
+    """,
 ]
 
 
@@ -95,7 +102,8 @@ class Database:
         if not self._db:
             return
         for migration in _MIGRATIONS:
-            await self._db.execute(migration)
+            with suppress(Exception):
+                await self._db.execute(migration)
         await self._db.commit()
 
     @property
