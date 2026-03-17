@@ -22,7 +22,7 @@ export type FileLanguage = KnownLanguage | (string & {});
 // ─── Generator Options ──────────────────────────────────────
 
 export type GenerationMode = 'draft' | 'production';
-export type ProviderName = 'azure';
+export type ProviderName = 'azure' | 'aws' | 'gcp';
 
 export interface GenerationOptions {
   /** Target cloud provider */
