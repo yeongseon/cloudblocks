@@ -38,6 +38,7 @@ Immutable records of key decisions.
 | [0003](adr/0003-lego-style-composition-model.md) | Historical | Lego-style composition model |
 | [0004](adr/0004-rule-engine-architecture.md) | Historical | Rule engine architecture |
 | [0005](adr/0005-2d-first-editor-with-25d-rendering.md) | Historical | 2D-first with 2.5D rendering |
+| [0006](adr/0006-graph-ir-evolution-approach.md) | Accepted | Graph IR evolution approach |
 
 ---
 
@@ -71,6 +72,8 @@ Detailed visual and interaction specifications.
 | [RELEASE_GATES.md](design/RELEASE_GATES.md) | Supporting | Release criteria |
 | [UI_IMPROVEMENT_GAP_ANALYSIS.md](design/UI_IMPROVEMENT_GAP_ANALYSIS.md) | Supporting | UI guide gap analysis, Milestone 6B spec, drag-to-create MVP |
 | [LEARNING_MODE_SPEC.md](design/LEARNING_MODE_SPEC.md) | **Canonical** | Learning Mode design spec — scenarios, validation, engine, UI |
+| [MILESTONE_7_SPEC.md](design/MILESTONE_7_SPEC.md) | Supporting | Milestone 7 collaboration & CI/CD spec |
+| [GRAPH_IR_SPEC.md](design/GRAPH_IR_SPEC.md) | Supporting | Graph IR specification — typed ports, protocol semantics, evolution plan |
 
 > **UI Single Source of Truth**: All visual/interaction specs are in `VISUAL_DESIGN_SPEC.md`. Section §7 covers the StarCraft-style Bottom Panel layout.
 

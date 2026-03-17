@@ -93,6 +93,6 @@ Potential integrations:
 ---
 
 > **Cross-references:**
-> - Architecture model: [model.md](../model/model.md)
+> - Architecture model: [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)
 > - Domain model rules: [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)
 > - Generator pipeline: [generator.md](./generator.md)

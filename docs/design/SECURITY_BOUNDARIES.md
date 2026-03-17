@@ -6,61 +6,57 @@ This document codifies security-critical boundaries as enforceable design rules.
 
 ---
 
-## 1. Token Transport Contract
+## 1. Session Transport Contract
 
-### GitHub Token
+### Session Cookie
 
 | Rule | Policy |
 |------|--------|
-| **Transport** | `X-GitHub-Token` HTTP header only |
-| **Query params** | ❌ NEVER — tokens must not appear in URLs, logs, or browser history |
-| **Request body** | ❌ NEVER — token is transport-layer metadata, not business data |
-| **localStorage** | ❌ NEVER — XSS-accessible storage must not hold GitHub tokens |
-| **sessionStorage** | ⚠️ Acceptable for short-lived session use (frontend only) |
-| **Server-side storage** | Encrypted at rest if stored; hash-only for verification in Milestone 5 |
+| **Transport** | `cb_session` httpOnly cookie only |
+| **Cookie scope** | Sent automatically with `credentials: 'include'` |
+| **Query params** | ❌ NEVER — session identifiers must not appear in URLs |
+| **Request body** | ❌ NEVER — auth session tokens are transport metadata |
+| **localStorage/sessionStorage** | ❌ NEVER — browser-accessible storage must not hold auth sessions |
+| **Server-side storage** | Session records in SQLite (`sessions` table); token hash only |
 
 ### Implementation
 
-- **Backend**: All 6 GitHub routes in `apps/api/app/api/routes/github.py` use `Annotated[str | None, Header()]` for `x_github_token`
-- **Frontend**: API client sends token via `X-GitHub-Token` header
-- **Tests**: All integration tests in `test_github_routes.py` send tokens via `headers=` dict, never `params=`
+- **Backend**: Session middleware and auth routes read/write `cb_session` cookie
+- **Frontend**: All authenticated API calls include `credentials: 'include'`
+- **OAuth state**: `cb_oauth` cookie stores Fernet-encrypted state payload for callback validation
 
 ### DO ✅
 
-```python
-# Backend route parameter
-x_github_token: Annotated[str | None, Header()] = None
-```
-
 ```typescript
-// Frontend API call
-fetch("/api/v1/github/repos", {
-  headers: { "X-GitHub-Token": token }
+fetch("/api/v1/auth/session", {
+  method: "GET",
+  credentials: "include"
 });
 ```
 
 ### DON'T ❌
 
-```python
-# NEVER: query parameter
-x_github_token: str | None = None  # This reads from query string
+```typescript
+// NEVER: persist auth session token in browser storage
+localStorage.setItem("auth_token", token);
 
-# NEVER: accepting token in request body
-class RepoRequest(BaseModel):
-    github_token: str  # Tokens are not business data
+// NEVER: pass session token manually in custom headers
+fetch("/api/v1/auth/session", {
+  headers: { Authorization: `Bearer ${token}` }
+});
 ```
 
 ---
 
-## 2. JWT Secret Policy Contract
+## 2. Session Security Policy Contract
 
 | Rule | Policy |
 |------|--------|
 | **Minimum length** | 32 characters in non-development environments |
 | **Weak secrets** | `"change-me-in-production"`, `"secret"`, `"password"`, `""` are explicitly blocked |
-| **Algorithm** | `HS256` (symmetric) — upgrade to RS256 when key management is available |
-| **Expiration** | Access token: 1 hour (`jwt_expiration_seconds: 3600`) |
-| **Refresh token** | 7 days (`jwt_refresh_expiration_seconds: 604800`) |
+| **Primary use** | Secret key is used for Fernet key derivation (`cb_oauth` state cookie encryption), not JWT signing |
+| **Session token format** | Random hex token in `cb_session` httpOnly cookie; only token hash is stored in DB |
+| **Session expiry** | Configurable via `session_expiry_hours` |
 | **Development exception** | Weak secrets are allowed when `app_env == "development"` only |
 
 ### Implementation
@@ -70,12 +66,12 @@ class RepoRequest(BaseModel):
 
 ### Failure Behavior
 
-Application **refuses to start** if JWT secret is too weak for the environment. This is a hard fail, not a warning.
+Application **refuses to start** if the session secret is too weak for the environment. This is a hard fail, not a warning.
 
 ```python
 raise ValueError(
-    f"JWT secret is too weak for env '{self.app_env}'. "
-    "Set CLOUDBLOCKS_JWT_SECRET to a random string of at least 32 characters."
+    f"Session secret is too weak for env '{self.app_env}'. "
+    "Set CLOUDBLOCKS_SESSION_SECRET_KEY to a random string of at least 32 characters."
 )
 ```
 
@@ -91,24 +87,24 @@ raise ValueError(
 3. GitHub redirects back with ?code=... and ?state=...
 4. Backend exchanges code for access token
 5. Backend creates/links user identity
-6. Backend issues JWT (access + refresh)
-7. Frontend stores JWT for API calls
+6. Backend creates server-side session + sets httpOnly `cb_session` cookie
+7. Frontend uses cookie automatically on API calls (`credentials: 'include'`)
 ```
 
 | Milestone | Security Rule |
 |-------|--------------|
 | **State parameter** | CSRF protection — random, single-use, time-limited (10 min) |
 | **Code exchange** | Server-side only — client secret never exposed to frontend |
-| **Token storage** | Access token in memory or httpOnly cookie; refresh token in httpOnly cookie |
-| **Token refresh** | Rotate refresh token on each use (one-time use) |
-| **Logout** | Invalidate refresh token server-side; clear frontend state |
+| **Session storage** | Session record in SQLite (`sessions` table), token hash stored server-side |
+| **Session refresh** | N/A (no refresh token flow) |
+| **Logout** | Delete server-side session and clear `cb_session` cookie |
 
 ### DO ✅
 
 - Validate `state` parameter matches the one generated before redirect
 - Exchange authorization code server-side with client secret
-- Use short-lived access tokens (1 hour)
-- Rotate refresh tokens on use
+- Use secure, expiring server-side sessions
+- Set session cookies as httpOnly and include credentials on frontend calls
 
 ### DON'T ❌
 
@@ -124,16 +120,18 @@ raise ValueError(
 | Endpoint Pattern | Auth Required | Token Type |
 |-----------------|---------------|------------|
 | `GET /health`, `GET /health/ready` | No | — |
-| `POST /api/v1/auth/*` | No | — |
-| `GET /api/v1/users/me` | Yes | JWT |
-| `* /api/v1/github/*` | Yes | JWT + X-GitHub-Token |
-| `* /api/v1/workspaces/*` | Yes | JWT |
-| `* /api/v1/generate/*` | Yes | JWT |
+| `POST /api/v1/auth/github`, `GET /api/v1/auth/github/callback` | No | — |
+| `GET /api/v1/auth/session` | Yes | Session Cookie (`cb_session`) |
+| `POST /api/v1/auth/logout` | No (always 200) | Optional Session Cookie (`cb_session`) |
+| `POST /api/v1/session/workspace` | Yes | Session Cookie (`cb_session`) |
+| `* /api/v1/github/*` | Yes | Session Cookie (`cb_session`) |
+| `* /api/v1/workspaces/*` | Yes | Session Cookie (`cb_session`) |
+| `* /api/v1/generate/*` | Yes | Session Cookie (`cb_session`) |
 
 ### Authorization Rules
 
 - **Workspace ownership**: Users can only access workspaces where `workspace.owner_id == current_user.id`
-- **GitHub operations**: Require both valid JWT (user identity) and X-GitHub-Token (GitHub access)
+- **GitHub operations**: Require valid session cookie (user identity) and server-side GitHub token lookup
 - **Rate limiting**: Per-user, per-endpoint (planned for Milestone 6)
 
 ---
@@ -146,7 +144,7 @@ raise ValueError(
 | Generated IaC code | Low | GitHub repo | At-rest (GitHub) |
 | User email | Medium | Metadata DB | At-rest |
 | GitHub access token | High | Server memory / encrypted DB | AES-256 at rest |
-| JWT secret | Critical | Environment variable | Never stored in code or DB |
+| Session secret key | Critical | Environment variable | Never stored in code or DB |
 | OAuth client secret | Critical | Environment variable | Never stored in code or DB |
 
 ---
@@ -155,9 +153,10 @@ raise ValueError(
 
 When reviewing PRs that touch auth or token handling:
 
-- [ ] GitHub tokens transmitted via `X-GitHub-Token` header only
-- [ ] No tokens in query parameters, request bodies, or localStorage
-- [ ] JWT secret validated at startup (model_validator)
+- [ ] Session cookie (`cb_session`) is httpOnly and validated server-side
+- [ ] OAuth state cookie (`cb_oauth`) is encrypted and time-limited
+- [ ] No auth tokens in query parameters, request bodies, or localStorage
+- [ ] Session secret validated at startup (model_validator)
 - [ ] OAuth state parameter is random, single-use, and time-limited
 - [ ] Workspace access checks `owner_id == current_user.id`
 - [ ] No `GITHUB_CLIENT_SECRET` references in frontend code
