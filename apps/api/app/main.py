@@ -76,7 +76,7 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
 app = FastAPI(
     title="CloudBlocks API",
     description="Thin orchestration backend for CloudBlocks Platform",
-    version="0.5.0",
+    version="0.6.0",
     lifespan=lifespan,
 )
 
@@ -114,14 +114,14 @@ async def health_check() -> dict[str, str]:
 
 
 @app.get("/health/ready")
-async def readiness_check() -> dict[str, str]:
-    """Readiness check — verifies database is connected."""
+async def readiness_check() -> JSONResponse:
+    """Readiness check — verifies database is connected. Returns 503 on failure."""
     db = get_database()
     try:
         await db.fetch_one("SELECT 1")
-        return {"status": "ready"}
+        return JSONResponse(content={"status": "ready"}, status_code=200)
     except Exception:
-        return {"status": "not_ready"}
+        return JSONResponse(content={"status": "not_ready"}, status_code=503)
 
 
 # Mount API v1 routers

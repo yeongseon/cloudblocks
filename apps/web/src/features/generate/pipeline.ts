@@ -169,7 +169,7 @@ function legacyGenerate(
     files,
     metadata: {
       generator: 'cloudblocks',
-      version: '0.3.0',
+      version: '0.6.0',
       provider: options.provider,
       generatedAt: new Date().toISOString(),
     },
