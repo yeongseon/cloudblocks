@@ -1,4 +1,4 @@
-import type { ArchitectureModel, BlockCategory, PlateType } from '../../shared/types/index';
+import type { ArchitectureModel, BlockCategory, PlateType, ProviderType } from '../../shared/types/index';
 
 /**
  * Code Generation Types (v1.0)
@@ -22,7 +22,7 @@ export type FileLanguage = KnownLanguage | (string & {});
 // ─── Generator Options ──────────────────────────────────────
 
 export type GenerationMode = 'draft' | 'production';
-export type ProviderName = 'azure';
+export type ProviderName = ProviderType;
 
 export interface GenerationOptions {
   /** Target cloud provider */
