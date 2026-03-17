@@ -94,6 +94,11 @@ export interface Workspace {
   architecture: ArchitectureModel;
   createdAt: string;
   updatedAt: string;
+  // GitHub integration (optional for backward compatibility)
+  repoOwner?: string;
+  repoName?: string;
+  branch?: string;
+  lastSyncAt?: string;
 }
 
 // ─── Rule Engine Types ─────────────────────────────────────
@@ -216,4 +221,3 @@ export const STUD_LAYOUTS: Record<BlockCategory, [number, number]> = {
   compute: [3, 4],
   database: [4, 6],
 };
-

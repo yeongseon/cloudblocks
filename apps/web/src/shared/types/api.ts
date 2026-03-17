@@ -60,3 +60,30 @@ export interface GitHubCommit {
   author: string;
   date: string;
 }
+
+// ─── Milestone 7: Collaboration + CI/CD ────────────────────
+
+export interface PrInfo {
+  number: number;
+  title: string;
+  author: string;
+  state: 'open' | 'closed' | 'merged';
+  createdAt: string;
+  updatedAt: string;
+  headBranch: string;
+  baseBranch: string;
+  htmlUrl: string;
+}
+
+export interface CheckInfo {
+  name: string;
+  status: 'queued' | 'in_progress' | 'completed';
+  conclusion: 'success' | 'failure' | 'neutral' | 'cancelled' | 'skipped' | 'timed_out' | 'action_required' | null;
+  detailsUrl: string;
+}
+
+export interface ArchitectureAtRefResponse {
+  architecture: Record<string, unknown>;
+  ref: string;
+  commitSha: string;
+}
