@@ -31,7 +31,7 @@ This project follows the [Contributor Covenant Code of Conduct](https://www.cont
 
 - **Node.js** >= 20.0.0
 - **pnpm** >= 9.0.0 (enforced — npm/yarn will be rejected)
-- **Python** >= 3.11 (for backend, optional in Milestone 1)
+- **Python** >= 3.11 (for backend)
 - **Git**
 
 ### Quick Setup
@@ -70,7 +70,7 @@ cd apps/web && pnpm build
 pnpm lint
 ```
 
-### Backend (Optional — scaffolded, not required for Milestone 1)
+### Backend (Required for GitHub integration)
 
 ```bash
 cd apps/api
@@ -98,8 +98,8 @@ make test        # Run backend tests
 ```
 cloudblocks/
 ├── apps/
-│   ├── web/              # React + React Three Fiber frontend (FSD architecture)
-│   └── api/              # Python FastAPI backend (scaffolded, Milestone 5+)
+│   ├── web/              # React frontend (FSD architecture)
+│   └── api/              # Python FastAPI backend
 ├── packages/             # Shared packages (scaffolded)
 ├── docs/                 # Project documentation
 │   ├── concept/          # PRD, Architecture, Roadmap
@@ -133,6 +133,26 @@ apps/web/src/
 ---
 
 ## Making Changes
+
+All development follows the Issue → Branch → PR workflow:
+
+1. **Create an Issue** — describe the feature, bug, or task
+2. **Create a branch** from `main`:
+   - `feature/description` — new features
+   - `fix/description` — bug fixes
+   - `docs/description` — documentation changes
+3. **Implement** on the branch
+4. **Push** and create a Pull Request
+5. **CI must pass** — all 6 checks (Web Lint, Type Check, Build, Tests + API Lint, Tests)
+6. **Merge** via squash-and-merge to `main`
+
+### Branch Strategy
+
+`main` branch has the following protections:
+- Required status checks must pass before merge
+- Force pushes are not allowed
+- Branch deletion is not allowed
+- Admin enforcement enabled (no bypassing)
 
 ### 1. Find or Create an Issue
 
@@ -175,9 +195,9 @@ pnpm lint                        # Linting
 - **Never** use `as any`, `@ts-ignore`, or `@ts-expect-error`
 - **Never** use empty catch blocks (`catch(e) {}`)
 
-### React + Three.js
+### React + SVG Rendering
 
-- React Three Fiber `<line>` conflicts with SVG — use `<primitive object={new THREE.Line(...)} />` instead
+- The rendering layer uses SVG sprites with CSS transforms for 2.5D isometric projection
 - The rendering layer is **projection only** — the editing model is 2D coordinates with containment hierarchy
 - State management uses Zustand (not Redux, not Context)
 
