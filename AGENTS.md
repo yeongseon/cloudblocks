@@ -6,7 +6,6 @@
 ## Read First
 - `README.md`
 - `CONTRIBUTING.md`
-- `docs/agent-playbook.md`
 
 ## Working Rules
 - Preserve the existing visual-model vocabulary: plates, blocks, connections, templates.

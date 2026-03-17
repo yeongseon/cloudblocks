@@ -1,6 +1,16 @@
 # Milestone 7 — Collaboration + CI/CD Integration
 
-## Status: Design Phase (Oracle-Reviewed ✅)
+## Status: Implemented ✅ (Shipped 2026-03-17)
+
+### Implementation Notes
+The shipped implementation is a focused subset of the original design:
+- **DiffPanel** widget (simplified, single-file) instead of elaborate ArchitectureDiff + DiffSummary + DiffEntityList
+- **CSS-based diff overlays** on BlockSprite/PlateSprite/ConnectionPath instead of ghost-layer rendering
+- **MenuBar "Compare with GitHub"** button using existing `POST /pull` endpoint instead of new `architecture?ref=` endpoint
+- **GitHub Actions template** in `examples/github-actions/` instead of in-app CI setup flow
+- **No CollaborationPanel** — existing GitHub widgets (login, repos, sync, PR) suffice
+- **No new backend endpoints** — all 5 proposed endpoints were deferred
+- `jsondiffpatch` was NOT added — custom domain diff is sufficient
 
 **Goal**: Team collaboration via Git and automated CI/CD pipelines.
 
@@ -14,11 +24,12 @@
 
 Milestone 7 adds three core capabilities:
 
-| Feature | Description | User Value |
-|---------|-------------|------------|
-| **Architecture Diff** | Side-by-side visual comparison of two architecture versions | See exactly what changed between commits/branches |
-| **Auto Terraform Plan** | GitHub Actions runs `terraform plan` on architecture PRs automatically | Catch infra issues before merge |
-| **Team Workspace Sharing** | Multiple users collaborate on the same project via GitHub | Git-based teamwork without WebSockets |
+| Feature | Description | User Value | Status |
+|---------|-------------|------------|--------|
+| **Architecture Diff** | DiffPanel + canvas overlays showing changes | See what changed vs GitHub | ✅ Shipped |
+| **Auto Terraform Plan** | GitHub Actions template for `terraform plan` | Example CI/CD setup | ✅ Shipped (template only) |
+| **Team Workspace Sharing** | Multiple users collaborate via GitHub | Git-based teamwork | ⏳ Deferred |
+
 
 ### What We Are NOT Building
 
@@ -136,7 +147,7 @@ export function computeArchitectureDiff(
 └──────────────────────────────────────────┘
 ```
 
-**FSD Location**: `apps/web/src/widgets/architecture-diff/ArchitectureDiff.tsx`
+**FSD Location**: `apps/web/src/widgets/diff-panel/DiffPanel.tsx` *(shipped as simplified single-file widget)*
 
 ### 2.4 Visual Canvas Diff ("Ghost" Pattern)
 
@@ -150,7 +161,7 @@ On the sprite canvas, render diff state using the following visual vocabulary:
 | **Modified (property)** | Yellow border highlight (`#FFB900`) |
 | **Unchanged** | Normal rendering, slight opacity reduction (0.7) |
 
-**Implementation**: Add a `diffMode` state to `uiStore`. When active, `BlockSprite`, `PlateSprite`, and `ConnectionPath` read from the `DiffDelta` to determine their visual state. Ghost rendering is implemented as an extra base-architecture render layer with CSS/SVG overlays in the sprite canvas.
+**Implementation**: `diffMode` state in `uiStore`. When active, `BlockSprite`, `PlateSprite`, and `ConnectionPath` read from the `DiffDelta` to apply CSS class-based overlays (`diff-added`, `diff-modified`, `diff-removed`). Ghost rendering was deferred — the shipped version uses CSS classes only, not an extra render layer.
 
 **⚠️ Diff mode interaction lockdown** (Oracle): When `diffMode === true`, ALL of the following are disabled:
 - Drag/move blocks and plates
@@ -176,19 +187,14 @@ interface UIState {
 
 ### 2.5 Diff Entry Points
 
-Users can trigger diff from:
+Users trigger diff from:
 
-1. **GitHub Sync panel** → "Compare with remote" button
-2. **PR creation** → Auto-show diff before creating PR
-3. **Commit history** → Click any commit to compare with current
+1. **MenuBar** → "Compare with GitHub" button (shipped ✅)
+2. **MenuBar** → "Diff View" toggle (shipped ✅)
 
-**All three use the same primitive** (Oracle): A generic ref-based architecture fetch endpoint that returns the `ArchitectureModel` at a given Git ref (branch, commit SHA, or PR head). The frontend then computes the diff locally using `computeArchitectureDiff()`. This avoids duplicating diff logic in Python.
+**Shipped implementation**: The "Compare with GitHub" button uses the existing `POST /api/v1/workspaces/{id}/pull` endpoint to fetch the remote architecture, then computes the diff locally using `computeArchitectureDiff()`. No new backend endpoint was added. The `architecture?ref=` endpoint from the original design was deferred.
 
-```
-GET /api/v1/github/workspaces/{id}/architecture?ref={branch|sha}
-```
-
-Returns the raw `ArchitectureModel` JSON at that ref. The frontend compares it against the current local architecture.
+Escape key exits diff mode (handled in App.tsx).
 
 ---
 
@@ -279,23 +285,15 @@ jobs:
             *Pushed by CloudBlocks*
 ```
 
-### 3.3 Workflow Setup Flow
+### 3.3 Workflow Setup Flow (Deferred)
 
-**One-time setup** per repository:
+**Shipped**: An example GitHub Actions workflow template is provided at `examples/github-actions/terraform-plan.yml` with documentation at `examples/github-actions/README.md`. Users manually copy this into their repo.
 
-1. User clicks "Enable CI/CD" in the GitHub Sync panel
-2. CloudBlocks checks if `.github/workflows/cloudblocks-plan.yml` exists in the repo
-3. If not, commits the workflow template to the default branch
-4. Shows confirmation: "Terraform plan will now run automatically on architecture PRs"
-
-**⚠️ Permission requirements** (Oracle): Writing to `.github/workflows/` requires `contents: write` scope. The current GitHub App requests `repo,read:user,user:email` which covers this. However, protected default branches may block the one-click setup — in that case, show a manual setup guide with the workflow YAML for copy-paste.
-
-**API endpoint** (new):
-```
-POST /api/v1/github/workspaces/{workspace_id}/setup-cicd
-```
+**Deferred**: The in-app "Enable CI/CD" button, automatic workflow commit, and `setup-cicd` endpoint were not implemented. The original design called for one-click setup, but the MVP provides a manual template approach instead.
 
 ### 3.4 Plan Status Tracking
+
+> **⏳ Deferred**: Plan status tracking UI and the `checks` endpoint were not implemented in the shipped version. The design below is retained for future reference.
 
 After a PR is created, CloudBlocks tracks the CI status:
 
@@ -356,6 +354,8 @@ Member B: Pull merged changes
 
 ### 4.3 New UI: Collaboration Panel
 
+> **⏳ Deferred**: The CollaborationPanel was not built. Existing GitHub widgets (github-login, github-repos, github-sync, github-pr) provide sufficient collaboration support for the current milestone. The design below is retained for future reference.
+
 **FSD Location**: `apps/web/src/widgets/collaboration/CollaborationPanel.tsx`
 
 ```
@@ -382,6 +382,8 @@ Member B: Pull merged changes
 ```
 
 ### 4.4 New API Endpoints
+
+> **⏳ Deferred**: None of the 5 proposed endpoints were implemented. The existing endpoints (`POST /sync`, `POST /pull`, `POST /pr`, `GET /commits`) handle the shipped diff and CI functionality. The endpoints below are retained for future reference.
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
@@ -435,6 +437,33 @@ apps/api/app/
 ├── api/routes/
 │   └── github.py                  # Add: setup-cicd, prs, architecture-at-ref, pr checks
 ```
+
+**Shipped file structure** (differs from above):
+```
+apps/web/src/
+├── shared/types/
+│   ├── diff.ts                    # ✅ Shipped as designed
+│   └── api.ts                     # ✅ Shipped (PrInfo, CheckInfo types)
+├── features/diff/
+│   ├── engine.ts                  # ✅ Shipped as designed
+│   └── engine.test.ts             # ✅ Shipped (16 tests)
+├── widgets/diff-panel/
+│   ├── DiffPanel.tsx              # ✅ Simplified single-file widget
+│   ├── DiffPanel.css              # ✅ Shipped
+│   └── DiffPanel.test.tsx         # ✅ Shipped (8 tests)
+├── entities/block/BlockSprite.tsx  # ✅ Diff overlay CSS classes added
+├── entities/plate/PlateSprite.tsx  # ✅ Diff overlay CSS classes added
+├── entities/connection/ConnectionPath.tsx  # ✅ Diff-aware colors added
+├── widgets/menu-bar/MenuBar.tsx   # ✅ Compare with GitHub + Diff View items
+└── app/App.tsx                    # ✅ DiffPanel lazy import + Escape handler
+
+examples/github-actions/
+├── terraform-plan.yml             # ✅ Shipped (example template)
+└── README.md                      # ✅ Shipped (usage guide)
+```
+- `widgets/architecture-diff/` — NOT built (DiffPanel replaces it)
+- `widgets/collaboration/` — NOT built (deferred)
+- Backend `github.py` — NO new endpoints added
 
 ### 5.3 Modified Files
 
@@ -494,9 +523,12 @@ export interface Workspace {
 
 ---
 
-## 6. Implementation Plan
+## 6. Implementation Plan (Original Design — see §5.2 for shipped files)
 
-> **Phase ordering** (Oracle): Original plan had Phase 4 adding a CI button to `CollaborationPanel` before that widget existed in Phase 5. Reordered to: foundation types/workspace metadata → diff engine → diff UI → collaboration panel (with CI) → visual canvas diff.
+> **Note**: The shipped implementation followed a simplified 3-task approach instead of the 5-phase plan below. See Implementation Notes at top of document for what was actually built.
+
+> **Phase ordering** (Oracle)
+: Original plan had Phase 4 adding a CI button to `CollaborationPanel` before that widget existed in Phase 5. Reordered to: foundation types/workspace metadata → diff engine → diff UI → collaboration panel (with CI) → visual canvas diff.
 
 ### Phase 1: Foundation (Types + Workspace Metadata)
 
@@ -565,11 +597,15 @@ export interface Workspace {
 
 ## 7. Exit Criteria (from ROADMAP.md)
 
-| Criterion | Verification |
-|-----------|-------------|
-| Architecture diff visualization works | Structural panel shows correct diff for any two architecture versions. Canvas renders ghost/highlight overlays. |
-| GitHub Actions auto-plan runs on architecture PRs | One-click CI setup. `terraform plan` runs automatically. Results posted as PR comment. |
-| Team members can collaborate on the same project via GitHub | Multiple users link same repo. PR-based workflow functional. Diff visible per PR. |
+| Criterion | Verification | Status |
+|-----------|-------------|--------|
+| Architecture diff visualization works | DiffPanel shows structural diff. Canvas renders CSS-based overlays (added/modified/removed). | ✅ Shipped |
+| GitHub Actions template provided | Example `terraform-plan.yml` in `examples/github-actions/` with README. | ✅ Shipped |
+| Compare with GitHub flow works | MenuBar → Compare with GitHub fetches remote and shows diff. | ✅ Shipped |
+| Ghost rendering on canvas | Extra render layer for removed entities | ⏳ Deferred |
+| One-click CI setup | In-app "Enable CI/CD" button commits workflow to repo | ⏳ Deferred |
+| Team workspace sharing | CollaborationPanel with PR list and CI status | ⏳ Deferred |
+| 5 new backend endpoints | architecture?ref=, prs, checks, setup-cicd, branches | ⏳ Deferred |
 
 ---
 

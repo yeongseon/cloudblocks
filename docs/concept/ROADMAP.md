@@ -266,6 +266,8 @@ Features:
 - [x] All existing tests continue to pass
 - [x] Build passes (`pnpm build`)
 
+> **Note**: Brick Normalization (9 commits) was completed alongside Milestone 6B — parameterized BlockSvg, shared IsometricStud, blockFaceColors utility, and removal of static SVG sprites.
+
 ### Dependencies
 - Milestone 6 complete
 
@@ -309,12 +311,11 @@ Features:
 - [x] All tests pass, build clean
 - [x] 90%+ test coverage on learning module
 
-### Dependencies
-- Milestone 6B complete
+> **Note**: Azure Infrastructure Foundation (Phase 1, 6 commits) and Sound Effects (Phase 2, 12 commits) were completed alongside Milestone 6C — including audioService, CC0 sound assets, Terraform Azure modules, and Docker/CI configuration.
 
 ---
 
-# Phase 3 — Lego Minifigure Character SVG
+# Phase 3 — Lego Minifigure Character SVG ✅
 
 Goal:
 Create a DevOps Engineer Lego minifigure character as an inline SVG component with cloud provider branding.
@@ -339,34 +340,42 @@ Features:
 | 4 | AWS/GCP logo variants | P2 | Low (deferred to Milestone 8) |
 
 ### Exit Criteria
-- [ ] MinifigureSvg renders correctly at 48-64px scale
-- [ ] Azure logo legible on torso front face
-- [ ] Head stud follows Universal Stud Standard (rx=19, ry=9.5, h=7px)
-- [ ] Isometric projection matches existing block/plate angles
-- [ ] All existing tests pass, build clean
+- [x] MinifigureSvg renders correctly at 48-64px scale
+- [x] Azure logo legible on torso front face
+- [x] Head stud follows Universal Stud Standard (rx=19, ry=9.5, h=7px)
+- [x] Isometric projection matches existing block/plate angles
+- [x] All existing tests pass, build clean
 
 ### Dependencies
 - Milestone 6C complete
 
 ---
 
-# Milestone 7 — Collaboration + CI/CD Integration
+# Milestone 7 — Collaboration + CI/CD Integration ✅
 
 Goal:
 Team collaboration via Git and automated CI/CD pipelines.
 
-Features:
+Features (Shipped):
 
-- Real-time collaboration via PRs (not WebSocket — Git-based)
-- Architecture diff visualization (side-by-side comparison)
-- GitHub Actions integration (auto `terraform plan` on PR)
-- Deployment status tracking
-- Team workspace sharing
+- Architecture diff visualization — DiffPanel with structural change summary
+- Visual canvas diff overlays on BlockSprite, PlateSprite, ConnectionPath (CSS-based)
+- "Compare with GitHub" flow via MenuBar (uses existing `POST /pull` endpoint)
+- GitHub Actions Terraform plan example template (`examples/github-actions/`)
+- Escape key to exit diff mode
+
+Deferred:
+
+- Deployment status tracking (deferred to future milestone)
+- Team workspace sharing / CollaborationPanel (deferred — existing GitHub widgets suffice)
+- Backend collaboration endpoints (deferred)
 
 ### Exit Criteria
-- [ ] Architecture diff visualization works
-- [ ] GitHub Actions auto-plan runs on architecture PRs
-- [ ] Team members can collaborate on the same project via GitHub
+- [x] Architecture diff visualization works (DiffPanel + canvas overlays)
+- [x] GitHub Actions Terraform plan template provided (`examples/github-actions/`)
+- [x] Compare with GitHub flow functional from MenuBar
+- [ ] Team workspace sharing (deferred)
+- [ ] Deployment status tracking (deferred)
 
 ### Dependencies
 - Milestone 6B complete

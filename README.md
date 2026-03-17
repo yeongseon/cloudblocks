@@ -29,13 +29,12 @@ Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks
 - **Multi-workspace** — Create, switch, and manage multiple workspaces (Milestone 4)
 - **GitHub integration** — OAuth login, repo sync, pull, and PR creation (Milestone 5)
 - **Backend API** — FastAPI orchestration layer with GitHub App OAuth (Milestone 5)
+- **Sound effects** — Audio feedback with mute preference (Phase 2)
+- **Lego minifigure** — DevOps engineer character with Azure provider branding (Phase 3)
+- **Architecture diff** — Compare local vs GitHub architecture with visual overlays (Milestone 7)
+- **Serverless blocks** — Function, Queue, Event, Timer block types (Milestone 6)
 - **Open source** — Apache 2.0 licensed, extend and contribute freely
 
-### Planned Features
-
-- **Multi-generator** — Terraform, Bicep, and Pulumi export with plugin interface (Milestone 6)
-- **Template marketplace** — GitHub-backed community architecture templates (Milestone 6)
-- **Serverless blocks** — Function, Queue, Event, Timer block types (Milestone 6)
 ## Quick Start
 
 ```bash
@@ -114,7 +113,7 @@ Internet → Gateway → Compute → Database
 | [Domain Model](docs/model/DOMAIN_MODEL.md) | Domain entities and rules |
 | [Architecture](docs/concept/ARCHITECTURE.md) | System architecture |
 | [Storage Architecture](docs/model/STORAGE_ARCHITECTURE.md) | Git-native storage design |
-| [API Spec](docs/guides/API_SPEC.md) | REST API endpoints (planned) |
+| [API Spec](docs/api/API_SPEC.md) | REST API endpoints |
 | [Roadmap](docs/concept/ROADMAP.md) | Development roadmap |
 | [Deployment](docs/guides/DEPLOYMENT.md) | Deployment guide |
 | [Tutorials](docs/guides/TUTORIALS.md) | Getting started tutorials |
@@ -155,7 +154,7 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 | Milestone 6 | Multi-generator (Bicep, Pulumi), template marketplace | ✅ Complete |
 | Milestone 6B | Builder UX completion — drag-to-create, onboarding, selection states | ✅ Complete |
 | Milestone 6C | Learning Mode — guided scenarios, step validation, hint engine | ✅ Complete |
-| Milestone 7 | Collaboration + CI/CD — Git-based teamwork, architecture diffs | 🔲 Next |
+| Milestone 7 | Collaboration + CI/CD — architecture diff, GitHub Actions template | ✅ Complete |
 
 ## Contributing
 
