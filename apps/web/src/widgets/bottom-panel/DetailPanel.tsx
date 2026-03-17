@@ -18,10 +18,13 @@ import {
   BLOCK_DESCRIPTIONS,
   BLOCK_ICONS,
   BLOCK_COLORS,
+  DEFAULT_PLATE_PROFILE,
+  getPlateProfile,
   PLATE_COLORS,
+  PLATE_PROFILES,
   SUBNET_ACCESS_COLORS,
 } from '../../shared/types/index';
-import type { Block, Plate } from '../../shared/types/index';
+import type { Block, Plate, PlateProfileId } from '../../shared/types/index';
 import './DetailPanel.css';
 
 interface DetailPanelProps {
@@ -175,6 +178,13 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
 
 function PlateDetail({ plate, className }: { plate: Plate; className: string }) {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
+  const setPlateProfile = useArchitectureStore((s) => s.setPlateProfile);
+
+  const profileId = plate.profileId ?? DEFAULT_PLATE_PROFILE[plate.type];
+  const profile = getPlateProfile(profileId);
+  const profileOptions = Object.values(PLATE_PROFILES).filter(
+    (candidate) => candidate.type === plate.type
+  );
 
   const parentPlate = plate.parentId
     ? architecture.plates.find((p) => p.id === plate.parentId)
@@ -205,6 +215,29 @@ function PlateDetail({ plate, className }: { plate: Plate; className: string }) 
             {plate.type === 'network' ? 'Virtual Network' : 'Subnet'}
             {plate.subnetAccess && ` (${plate.subnetAccess})`}
           </span>
+        </div>
+
+        <div className="detail-property">
+          <label className="detail-property-label" htmlFor={`plate-profile-${plate.id}`}>Profile</label>
+          <span className="detail-property-value">
+            <select
+              id={`plate-profile-${plate.id}`}
+              className="detail-property-select"
+              value={profileId}
+              onChange={(event) => setPlateProfile(plate.id, event.target.value as PlateProfileId)}
+            >
+              {profileOptions.map((candidate) => (
+                <option key={candidate.id} value={candidate.id}>
+                  {candidate.displayName} ({candidate.displayNameKo}) - {candidate.studsX}x{candidate.studsY}
+                </option>
+              ))}
+            </select>
+          </span>
+        </div>
+
+        <div className="detail-property">
+          <span className="detail-property-label">Profile Note</span>
+          <span className="detail-property-value detail-property-description">{profile.description}</span>
         </div>
 
         {parentPlate && (

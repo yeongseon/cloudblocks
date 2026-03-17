@@ -2,6 +2,7 @@ import type { StateCreator } from 'zustand';
 import type {
   ArchitectureModel,
   BlockCategory,
+  PlateProfileId,
   PlateType,
   SubnetAccess,
   ValidationResult,
@@ -25,13 +26,15 @@ export interface ArchitectureState {
     type: PlateType,
     name: string,
     parentId: string | null,
-    subnetAccess?: SubnetAccess
+    subnetAccess?: SubnetAccess,
+    profileId?: PlateProfileId
   ) => void;
   removePlate: (id: string) => void;
 
   addBlock: (category: BlockCategory, name: string, placementId: string) => void;
   removeBlock: (id: string) => void;
   moveBlock: (blockId: string, newPlacementId: string) => void;
+  setPlateProfile: (plateId: string, profileId: PlateProfileId) => void;
   movePlatePosition: (id: string, deltaX: number, deltaZ: number) => void;
   moveBlockPosition: (id: string, deltaX: number, deltaZ: number) => void;
 

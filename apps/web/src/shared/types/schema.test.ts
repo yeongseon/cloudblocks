@@ -53,6 +53,95 @@ describe('schema utilities', () => {
     expect(parsed).toEqual(workspaces);
   });
 
+  it('migrates legacy plates without profileId', () => {
+    const legacyData = {
+      schemaVersion: SCHEMA_VERSION,
+      workspaces: [
+        {
+          id: 'ws-1',
+          name: 'Test',
+          architecture: {
+            id: 'arch-1',
+            name: 'Test',
+            version: '1',
+            plates: [
+              {
+                id: 'plate-1',
+                name: 'VNet',
+                type: 'network',
+                parentId: null,
+                children: [],
+                position: { x: 0, y: 0, z: 0 },
+                size: { width: 16, height: 0.3, depth: 20 },
+                metadata: {},
+              },
+            ],
+            blocks: [],
+            connections: [],
+            externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    };
+
+    const result = deserialize(JSON.stringify(legacyData));
+    const plate = result[0].architecture.plates[0];
+
+    expect(plate.profileId).toBe('network-platform');
+    expect(plate.size.height).toBe(0.7);
+    expect(plate.size.width).toBe(16);
+    expect(plate.size.depth).toBe(20);
+  });
+
+  it('preserves existing profileId on plates', () => {
+    const data = {
+      schemaVersion: SCHEMA_VERSION,
+      workspaces: [
+        {
+          id: 'ws-1',
+          name: 'Test',
+          architecture: {
+            id: 'arch-1',
+            name: 'Test',
+            version: '1',
+            plates: [
+              {
+                id: 'plate-1',
+                name: 'VNet',
+                type: 'network',
+                profileId: 'network-hub',
+                parentId: null,
+                children: [],
+                position: { x: 0, y: 0, z: 0 },
+                size: { width: 20, height: 0.7, depth: 24 },
+                metadata: {},
+              },
+            ],
+            blocks: [],
+            connections: [],
+            externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    };
+
+    const result = deserialize(JSON.stringify(data));
+    const plate = result[0].architecture.plates[0];
+
+    expect(plate.profileId).toBe('network-hub');
+    expect(plate.size.width).toBe(20);
+    expect(plate.size.depth).toBe(24);
+    expect(plate.size.height).toBe(0.7);
+  });
+
   it('deserialize throws when schemaVersion is missing', () => {
     const json = JSON.stringify({ workspaces: [] });
 

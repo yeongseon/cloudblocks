@@ -79,6 +79,27 @@ describe('architectureStore', () => {
       expect(plates[0].children).toEqual([]);
     });
 
+    it('adds a plate with explicit profileId', () => {
+      getState().addPlate('network', 'Hub', null, undefined, 'network-hub');
+      const plates = getArch().plates;
+      expect(plates).toHaveLength(1);
+      expect(plates[0].profileId).toBe('network-hub');
+      expect(plates[0].size.width).toBe(20);
+      expect(plates[0].size.depth).toBe(24);
+      expect(plates[0].size.height).toBe(0.7);
+    });
+
+    it('adds a subnet plate with explicit profileId', () => {
+      getState().addPlate('network', 'VNet', null);
+      const netId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Scale', netId, 'public', 'subnet-scale');
+      const subnet = getArch().plates[1];
+      expect(subnet.profileId).toBe('subnet-scale');
+      expect(subnet.size.width).toBe(10);
+      expect(subnet.size.depth).toBe(12);
+      expect(subnet.size.height).toBe(0.5);
+    });
+
     it('adds a subnet plate as child of network', () => {
       getState().addPlate('network', 'VNet', null);
       const netId = getArch().plates[0].id;
@@ -92,7 +113,7 @@ describe('architectureStore', () => {
       expect(subnet.type).toBe('subnet');
       expect(subnet.subnetAccess).toBe('public');
       expect(subnet.parentId).toBe(netId);
-      expect(subnet.position.y).toBe(0.3);
+      expect(subnet.position.y).toBe(0.7);
 
       // Network plate should have subnet as child
       const network = plates.find((p) => p.id === netId);

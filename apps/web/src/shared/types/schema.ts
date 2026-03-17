@@ -1,4 +1,5 @@
 import type { ArchitectureModel, Workspace } from './index';
+import { buildPlateSizeFromProfileId, inferLegacyPlateProfileId } from './index';
 
 /**
  * SCHEMA_VERSION: Controls the serialization/storage format.
@@ -43,7 +44,24 @@ export function deserialize(json: string): Workspace[] {
     );
   }
 
-  return data.workspaces ?? [];
+  const workspaces = data.workspaces ?? [];
+
+  for (const ws of workspaces) {
+    if (ws.architecture?.plates) {
+      for (const plate of ws.architecture.plates) {
+        if (!plate.profileId) {
+          plate.profileId = inferLegacyPlateProfileId({
+            type: plate.type,
+            size: { width: plate.size.width, depth: plate.size.depth },
+          });
+          const profileSize = buildPlateSizeFromProfileId(plate.profileId);
+          plate.size = profileSize;
+        }
+      }
+    }
+  }
+
+  return workspaces;
 }
 
 /**

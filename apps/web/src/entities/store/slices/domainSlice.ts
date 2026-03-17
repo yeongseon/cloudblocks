@@ -1,5 +1,5 @@
-import type { Block, Connection, Plate } from '../../../shared/types/index';
-import { DEFAULT_BLOCK_SIZE } from '../../../shared/types/index';
+import type { Block, Connection, Plate, PlateProfileId } from '../../../shared/types/index';
+import { buildPlateSizeFromProfileId, DEFAULT_BLOCK_SIZE } from '../../../shared/types/index';
 import { generateId } from '../../../shared/utils/id';
 import type { ArchitectureSlice, ArchitectureState } from './types';
 import {
@@ -16,6 +16,7 @@ type DomainSlice = Pick<
   | 'addBlock'
   | 'removeBlock'
   | 'moveBlock'
+  | 'setPlateProfile'
   | 'movePlatePosition'
   | 'moveBlockPosition'
   | 'addConnection'
@@ -23,7 +24,7 @@ type DomainSlice = Pick<
 >;
 
 export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set) => ({
-  addPlate: (type, name, parentId, subnetAccess) => {
+  addPlate: (type, name, parentId, subnetAccess, profileId?: PlateProfileId) => {
     set((state) => {
       const arch = state.workspace.architecture;
       const plate: Plate = {
@@ -31,10 +32,11 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set) => ({
         name,
         type,
         subnetAccess: type === 'subnet' ? subnetAccess : undefined,
+        profileId,
         parentId,
         children: [],
         position: { x: 0, y: 0, z: 0 },
-        size: { ...DEFAULT_PLATE_SIZE[type] },
+        size: profileId ? buildPlateSizeFromProfileId(profileId) : { ...DEFAULT_PLATE_SIZE[type] },
         metadata: {},
       };
 
@@ -260,6 +262,58 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set) => ({
           return candidate;
         }),
       });
+    });
+  },
+
+  setPlateProfile: (plateId, profileId) => {
+    set((state) => {
+      const arch = state.workspace.architecture;
+      const plate = arch.plates.find((candidate) => candidate.id === plateId);
+
+      if (!plate || plate.profileId === profileId) {
+        return state;
+      }
+
+      const nextSize = buildPlateSizeFromProfileId(profileId);
+      const resizedPlate = {
+        ...plate,
+        profileId,
+        size: nextSize,
+      };
+
+      let plates = arch.plates.map((candidate) =>
+        candidate.id === plateId ? resizedPlate : candidate
+      );
+
+      if (plate.parentId) {
+        const parentPlate = arch.plates.find((candidate) => candidate.id === plate.parentId);
+        if (parentPlate) {
+          const relativePosition = {
+            x: plate.position.x - parentPlate.position.x,
+            z: plate.position.z - parentPlate.position.z,
+          };
+          const clampedRelativePosition = clampWithinParent(
+            relativePosition,
+            { width: parentPlate.size.width, depth: parentPlate.size.depth },
+            { width: nextSize.width, depth: nextSize.depth }
+          );
+
+          plates = plates.map((candidate) =>
+            candidate.id === plateId
+              ? {
+                ...candidate,
+                position: {
+                  x: parentPlate.position.x + clampedRelativePosition.x,
+                  y: candidate.position.y,
+                  z: parentPlate.position.z + clampedRelativePosition.z,
+                },
+              }
+              : candidate
+          );
+        }
+      }
+
+      return withHistory(state, { ...arch, plates });
     });
   },
 

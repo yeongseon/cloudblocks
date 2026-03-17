@@ -1,34 +1,18 @@
 import { memo, useEffect, useRef } from 'react';
 import interact from 'interactjs';
-import type { Plate } from '../../shared/types/index';
+import {
+  DEFAULT_PLATE_PROFILE,
+  getPlateProfile,
+  getPlateStudColors,
+  type Plate,
+} from '../../shared/types/index';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import { screenDeltaToWorld, worldSizeToScreen } from '../../shared/utils/isometric';
 import { canPlaceBlock } from '../validation/placement';
+import { getPlateFaceColors } from './plateFaceColors';
+import { PlateSvg } from './PlateSvg';
 import './PlateSprite.css';
-
-// Import pre-made plate sprites
-import networkSvg from '../../shared/assets/plate-sprites/network.svg';
-import publicSubnetSvg from '../../shared/assets/plate-sprites/public-subnet.svg';
-import privateSubnetSvg from '../../shared/assets/plate-sprites/private-subnet.svg';
-
-const PLATE_SPRITES: Record<string, string> = {
-  network: networkSvg,
-  'public-subnet': publicSubnetSvg,
-  'private-subnet': privateSubnetSvg,
-};
-
-function getPlateSprite(plate: Plate): string {
-  if (plate.type === 'network') {
-    return PLATE_SPRITES['network'];
-  }
-  if (plate.type === 'subnet') {
-    return plate.subnetAccess === 'public'
-      ? PLATE_SPRITES['public-subnet']
-      : PLATE_SPRITES['private-subnet'];
-  }
-  return PLATE_SPRITES['network'];
-}
 
 interface PlateSpriteProps {
   plate: Plate;
@@ -112,9 +96,23 @@ export const PlateSprite = memo(function PlateSprite({
     setSelectedId(plate.id);
   };
 
-  const spriteSrc = getPlateSprite(plate);
-
   const sizeClass = plate.type === 'network' ? 'plate-network' : 'plate-subnet';
+
+  const profile = plate.profileId
+    ? getPlateProfile(plate.profileId)
+    : getPlateProfile(DEFAULT_PLATE_PROFILE[plate.type]);
+  const studColors = getPlateStudColors(plate);
+  const faceColors = getPlateFaceColors(plate);
+  const label = plate.type === 'network'
+    ? 'Virtual Network'
+    : plate.subnetAccess === 'public'
+      ? 'Public Subnet'
+      : 'Private Subnet';
+  const emoji = plate.type === 'network'
+    ? '🌐'
+    : plate.subnetAccess === 'public'
+      ? '🔓'
+      : '🔒';
 
   const { screenWidth, screenHeight } = worldSizeToScreen(plate.size.width, plate.size.height, plate.size.depth);
 
@@ -151,12 +149,20 @@ export const PlateSprite = memo(function PlateSprite({
           height: `${screenHeight}px`,
         }}
       >
-        <img
-          src={spriteSrc}
-          alt={plate.name}
-          className="plate-img"
-          draggable={false}
-        />
+        <div className="plate-img" aria-hidden="true">
+          <PlateSvg
+            studsX={profile.studsX}
+            studsY={profile.studsY}
+            worldHeight={profile.worldHeight}
+            studColors={studColors}
+            topFaceColor={faceColors.topFaceColor}
+            topFaceStroke={faceColors.topFaceStroke}
+            leftSideColor={faceColors.leftSideColor}
+            rightSideColor={faceColors.rightSideColor}
+            label={label}
+            emoji={emoji}
+          />
+        </div>
       </button>
     </div>
   );

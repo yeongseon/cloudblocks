@@ -18,9 +18,27 @@ vi.mock('interactjs', () => ({
   default: interactMocks.interactFn,
 }));
 
-vi.mock('../../shared/assets/plate-sprites/network.svg', () => ({ default: 'network.svg' }));
-vi.mock('../../shared/assets/plate-sprites/public-subnet.svg', () => ({ default: 'public-subnet.svg' }));
-vi.mock('../../shared/assets/plate-sprites/private-subnet.svg', () => ({ default: 'private-subnet.svg' }));
+vi.mock('./PlateSvg', () => ({
+  PlateSvg: (props: Record<string, unknown>) => (
+    <div
+      data-testid="plate-svg"
+      data-label={props.label}
+      data-emoji={props.emoji}
+      data-top-face-color={props.topFaceColor}
+    />
+  ),
+}));
+vi.mock('./plateFaceColors', () => ({
+  getPlateFaceColors: (plate: { type: string; subnetAccess?: string }) => {
+    if (plate.type === 'network') {
+      return { topFaceColor: '#2563EB', topFaceStroke: '#60A5FA', leftSideColor: '#1D4ED8', rightSideColor: '#1E40AF' };
+    }
+    if (plate.subnetAccess === 'public') {
+      return { topFaceColor: '#22C55E', topFaceStroke: '#4ADE80', leftSideColor: '#16A34A', rightSideColor: '#15803D' };
+    }
+    return { topFaceColor: '#6366F1', topFaceStroke: '#818CF8', leftSideColor: '#4F46E5', rightSideColor: '#4338CA' };
+  },
+}));
 vi.mock('./PlateSprite.css', () => ({}));
 
 vi.mock('../../shared/utils/isometric', () => ({
@@ -73,27 +91,31 @@ describe('PlateSprite', () => {
   });
 
   it.each([
-    ['network', makeNetworkPlate(), 'network.svg'],
-    ['public-subnet', makeSubnetPlate('public'), 'public-subnet.svg'],
-    ['private-subnet', makeSubnetPlate('private'), 'private-subnet.svg'],
-  ] as const)('renders correct sprite for %s', (_, plate, spriteName) => {
+    ['network', makeNetworkPlate(), 'Virtual Network', '#2563EB'],
+    ['public-subnet', makeSubnetPlate('public'), 'Public Subnet', '#22C55E'],
+    ['private-subnet', makeSubnetPlate('private'), 'Private Subnet', '#6366F1'],
+  ] as const)('renders correct PlateSvg for %s', (_, plate, expectedLabel, expectedTopColor) => {
     render(<PlateSprite plate={plate} screenX={0} screenY={0} zIndex={1} />);
 
-    const image = screen.getByAltText(plate.name) as HTMLImageElement;
-    expect(image.src).toContain(spriteName);
+    const svg = screen.getByTestId('plate-svg');
+    expect(svg).toBeInTheDocument();
+    expect(svg).toHaveAttribute('data-label', expectedLabel);
+    expect(svg).toHaveAttribute('data-top-face-color', expectedTopColor);
   });
 
-  it('falls back to network sprite for unknown plate type values', () => {
+  it('falls back to default PlateSvg for unknown plate type values', () => {
     const strangePlate: Plate = {
       ...makeNetworkPlate(),
       id: 'plate-weird',
       name: 'weird plate',
       type: 'mystery' as Plate['type'],
+      profileId: 'network-platform',
     };
 
     render(<PlateSprite plate={strangePlate} screenX={0} screenY={0} zIndex={1} />);
-    const image = screen.getByAltText('weird plate') as HTMLImageElement;
-    expect(image.src).toContain('network.svg');
+    const svg = screen.getByTestId('plate-svg');
+    expect(svg).toBeInTheDocument();
+    expect(svg).toHaveAttribute('data-top-face-color', '#6366F1');
   });
 
   it('click selects the plate', async () => {

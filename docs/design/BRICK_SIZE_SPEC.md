@@ -304,31 +304,59 @@ Larger bricks are harder to replace and more central to the architecture.
 
 ## 4. Plate Layer (Network Boundaries)
 
-### 4.1 Learning-Level Plate Sizes
+#### §4.1 Infrastructure-Based Plate Profiles
 
-Plate sizes are **UI teaching presets**, not infrastructure semantics. They determine canvas size for different learning scenarios.
+Plate profiles are grounded in real cloud infrastructure sizing. Each profile corresponds to a real-world network architecture pattern. This replaces the old S/M/L system.
 
-> **Important**: Plate size = "learning level" for UI purposes. It does NOT affect the architecture model or code generation. Users can place any valid architecture on any plate size.
+**Network (VNet/VPC) Profiles — 4 tiers:**
 
-| Level | Plate Type | Studs (X×Y) | Pixel Size (W×H) | Recommended Capacity | Learning Scenario |
-|-------|------------|-------------|------------------|----------------------|-------------------|
-| 입문 | **Subnet-S** | 4×6 | 160×240 | 1-2 blocks | Single resource placement |
-| 입문 | **VNet-S** | 8×12 | 320×480 | 1-2 subnets | Basic network concept |
-| 기초 | **Subnet-M** | 6×8 | 240×320 | 3-4 blocks | Public/Private separation |
-| 기초 | **VNet-M** | 12×16 | 480×640 | 3-4 subnets | Multi-tier architecture |
-| 중급 | **Subnet-L** | 8×10 | 320×400 | 5-6 blocks | Complex service groups |
-| 중급 | **VNet-L** | 16×20 | 640×800 | 5+ subnets | Hub-Spoke, multi-VNet |
+| Profile | ID | Studs (X×Y) | World Size | Side Height | Capacity | Use Case | Example CIDR |
+|---------|-----|-------------|------------|-------------|----------|----------|--------------|
+| **Sandbox** | `network-sandbox` | 8×12 | 8×12 | 0.7 (thick) | 1-2 subnets | Dev/test isolated network | /24 (256 IPs) |
+| **Application** | `network-application` | 12×16 | 12×16 | 0.7 (thick) | 3-4 subnets | Standard production workload | /20 (4,096 IPs) |
+| **Platform** | `network-platform` | 16×20 | 16×20 | 0.7 (thick) | 5-6 subnets | Multi-tier production platform | /16 (65,536 IPs) |
+| **Hub** | `network-hub` | 20×24 | 20×24 | 0.7 (thick) | 7+ subnets | Enterprise hub for shared services | /8 (16M IPs) |
 
-> **Capacity is a soft guideline**, not a hard limit. The UI should guide learners toward appropriate complexity without blocking valid placements.
+**Subnet Profiles — 4 tiers:**
 
-### 4.2 Learning Scenario Examples
+| Profile | ID | Studs (X×Y) | World Size | Side Height | Capacity | Use Case | Example CIDR |
+|---------|-----|-------------|------------|-------------|----------|----------|--------------|
+| **Utility** | `subnet-utility` | 4×6 | 4×6 | 0.5 (medium) | 1-2 blocks | Gateway, bastion, mgmt | /28 (16 IPs) |
+| **Service** | `subnet-service` | 6×8 | 6×8 | 0.5 (medium) | 3-4 blocks | Standard service group | /26 (64 IPs) |
+| **Workload** | `subnet-workload` | 8×10 | 8×10 | 0.5 (medium) | 5-6 blocks | Compute clusters, multi-service | /24 (256 IPs) |
+| **Scale** | `subnet-scale` | 10×12 | 10×12 | 0.5 (medium) | 7-8 blocks | AKS/EKS, VMSS, large-scale | /22 (1,024 IPs) |
 
-#### 입문 (Beginner): "내 첫 번째 VM"
+#### §4.2 Visual Hierarchy (Side Wall Heights)
+
+Side wall height depends on semantic layer (network vs subnet), NOT on profile size:
+- **Network plates**: worldHeight = 0.7 (thick baseplate, bottom layer)
+- **Subnet plates**: worldHeight = 0.5 (medium plate, sits on network)
+- **Blocks**: ~18px side walls (sits on subnet)
+
+This creates visible depth hierarchy: VNet plates are physically thicker than subnet plates, just like real Lego baseplates are thicker than regular bricks.
+
+#### §4.3 Defaults
+
+- **Network default**: `network-platform` (16×20), most common production scenario
+- **Subnet default**: `subnet-service` (6×8), standard service group
+
+#### §4.4 Multi-Cloud Abstraction
+
+The profile system is cloud-agnostic at the domain model level:
+- Azure: VNet / Subnet
+- AWS: VPC / Subnet
+- GCP: VPC Network / Subnet
+
+The `PlateType` in code uses `network` (not Azure-specific `vnet`) to maintain abstraction.
+
+#### §4.5 Learning Scenario Examples
+
+##### 입문 (Beginner): "내 첫 번째 VM"
 
 ```
-┌─ VNet-S (8×12) ─────────────────┐
+┌─ Sandbox network (8×12) ──────────┐
 │                                  │
-│  ┌─ Subnet-S (4×6) ──────┐      │
+│  ┌─ Utility subnet (4×6) ─┐      │
 │  │                        │      │
 │  │  ┌────────────┐       │      │
 │  │  │  ┌──┐      │       │      │
@@ -349,12 +377,12 @@ Learning goals:
 - App (python) = software running on VM
 ```
 
-#### 기초 (Basic): "웹서버-DB 구성"
+##### 기초 (Basic): "웹서버-DB 구성"
 
 ```
-┌─ VNet-M (12×16) ───────────────────────────────────────────────────┐
+┌─ Application network (12×16) ──────────────────────────────────────┐
 │                                                                     │
-│  ┌─ Subnet-M (6×8) "Public" ────┐  ┌─ Subnet-M (6×8) "Private" ──┐ │
+│  ┌─ Service subnet (6×8) "Public" ┐  ┌─ Service subnet (6×8) "Private" ┐ │
 │  │                               │  │                              │ │
 │  │  ┌────────┐  ┌────────────┐  │  │  ┌────────────────────┐      │ │
 │  │  │  🌐    │  │ 🌐  ☕  🔴 │  │  │  │    🐘   🔧         │      │ │
@@ -373,12 +401,12 @@ Learning goals:
 - App stack: nginx(gateway) → java+redis(compute) → postgres(database)
 ```
 
-#### 중급 (Intermediate): "Hub-Spoke 아키텍처"
+##### 중급 (Intermediate): "Hub-Spoke 아키텍처"
 
 ```
-                    ┌─ VNet-L (16×20) "Hub" ──────────────────┐
+                    ┌─ Platform network (16×20) "Hub" ────────┐
                     │                                          │
-                    │  ┌─ Subnet-L (8×10) ──────────────────┐ │
+                    │  ┌─ Workload subnet (8×10) ───────────┐ │
                     │  │                                     │ │
                     │  │  ┌────────┐    ┌────────┐          │ │
                     │  │  │gateway │    │firewall│          │ │
@@ -389,22 +417,32 @@ Learning goals:
                     │                                          │
                     └──────────────────────────────────────────┘
                            │                    │
-          ┌────────────────┘                    └────────────────┐
-          ▼                                                      ▼
-┌─ VNet-M (12×16) "Spoke-1" ──┐          ┌─ VNet-M (12×16) "Spoke-2" ──┐
-│                              │          │                              │
-│  ┌─ Subnet-M ──┐            │          │  ┌─ Subnet-M ──┐            │
-│  │  compute    │            │          │  │  compute    │            │
-│  │  database   │            │          │  │  storage    │            │
-│  └─────────────┘            │          │  └─────────────┘            │
-│                              │          │                              │
-└──────────────────────────────┘          └──────────────────────────────┘
+           ┌───────────────┘                    └───────────────┐
+           ▼                                                    ▼
+┌─ Application network "Spoke-1" ┐          ┌─ Application network "Spoke-2" ┐
+│                                │          │                                │
+│  ┌─ Service subnet ──┐         │          │  ┌─ Service subnet ──┐         │
+│  │  compute          │         │          │  │  compute          │         │
+│  │  database         │         │          │  │  storage          │         │
+│  └───────────────────┘         │          │  └───────────────────┘         │
+│                                │          │                                │
+└────────────────────────────────┘          └────────────────────────────────┘
 
 Learning goals:
 - Hub = shared services (gateway, firewall, DNS)
 - Spoke = workload isolation per team/app
 - VNet peering = secure cross-network communication
 ```
+
+#### §4.6 Stud Colors per Plate Type
+
+| Plate Type | Stud Main | Stud Shadow | Stud Highlight |
+|------------|-----------|-------------|----------------|
+| Network (all profiles) | #42A5F5 | #1565C0 | #90CAF9 |
+| Public Subnet (all profiles) | #66BB6A | #2E7D32 | #A5D6A7 |
+| Private Subnet (all profiles) | #7986CB | #3949AB | #C5CAE9 |
+
+Note: Stud colors depend on plate TYPE and subnet access, NOT on profile size.
 
 ---
 
@@ -571,32 +609,35 @@ export const resourceBrickSize: Record<BlockCategory, BrickSizeTier> = {
 ### 6.3 Plate Size Types
 
 ```typescript
-// Plate size tier names
-export type PlateSizeTier = "S" | "M" | "L";
+// Plate profile IDs
+export type NetworkProfileId =
+  | 'network-sandbox'
+  | 'network-application'
+  | 'network-platform'
+  | 'network-hub';
 
-// Plate types
-export type PlateType = "vnet" | "subnet";
+export type SubnetProfileId =
+  | 'subnet-utility'
+  | 'subnet-service'
+  | 'subnet-workload'
+  | 'subnet-scale';
 
-// Plate size key (e.g., "vnet-S", "subnet-M")
-export type PlateSizeKey = `${PlateType}-${PlateSizeTier}`;
+export type PlateProfileId = NetworkProfileId | SubnetProfileId;
 
-// Footprint in stud units
-export interface PlateFootprint {
-  studsX: number;
-  studsY: number;
-  maxBlocks: number;
-  learningLevel: "입문" | "기초" | "중급";
-}
+// Profile lookup (8 entries total)
+export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = { ... };
 
-// All plate footprints
-export const plateFootprints: Record<PlateSizeKey, PlateFootprint> = {
-  "subnet-S": { studsX: 4,  studsY: 6,  maxBlocks: 2,  learningLevel: "입문" },
-  "vnet-S":   { studsX: 8,  studsY: 12, maxBlocks: 3,  learningLevel: "입문" },
-  "subnet-M": { studsX: 6,  studsY: 8,  maxBlocks: 4,  learningLevel: "기초" },
-  "vnet-M":   { studsX: 12, studsY: 16, maxBlocks: 8,  learningLevel: "기초" },
-  "subnet-L": { studsX: 8,  studsY: 10, maxBlocks: 6,  learningLevel: "중급" },
-  "vnet-L":   { studsX: 16, studsY: 20, maxBlocks: 12, learningLevel: "중급" },
-} as const;
+// Defaults
+export const DEFAULT_PLATE_PROFILE: Record<PlateType, PlateProfileId> = {
+  network: 'network-platform',
+  subnet: 'subnet-service',
+};
+
+// Helpers
+export function getPlateProfile(profileId: PlateProfileId): PlateProfile;
+export function buildPlateSizeFromProfileId(profileId: PlateProfileId): Size;
+export function inferLegacyPlateProfileId(plate: LegacyPlateShape): PlateProfileId;
+export function getPlateStudColors(plate: { type: PlateType; subnetAccess?: SubnetAccess }): StudColorSpec;
 ```
 
 ### 6.4 Pixel Conversion
@@ -765,12 +806,10 @@ export function canPlaceBlock(
 - [ ] Update resource SVGs to use appropriate brick size
 
 ### Milestone 3: Plate SVGs
-- [ ] Create `plates/subnet-s.svg`
-- [ ] Create `plates/vnet-s.svg`
-- [ ] Create `plates/subnet-m.svg`
-- [ ] Create `plates/vnet-m.svg`
-- [ ] Create `plates/subnet-l.svg`
-- [ ] Create `plates/vnet-l.svg`
+- [ ] Implement `PlateSvg` parameterized React component (replaces static SVGs)
+- [ ] Add plate profile selection UI (creation + properties panel)
+- [ ] Update containment validation for profile-based footprints
+- [ ] Add legacy migration for existing architectures
 
 ### Milestone 4: Type System
 - [ ] Add `AppCategory` and `AppDefinition` types

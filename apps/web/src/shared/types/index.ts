@@ -11,6 +11,7 @@ export interface Plate {
   name: string;
   type: PlateType;
   subnetAccess?: SubnetAccess; // only for subnet type
+  profileId?: PlateProfileId;
   parentId: string | null; // null for root (network plate)
   children: string[]; // mixed list: child plate IDs + block IDs (intentional for MVP; consider splitting to childPlateIds/childBlockIds in v1.0)
   position: Position;
@@ -153,11 +154,6 @@ export const SUBNET_ACCESS_COLORS: Record<SubnetAccess, string> = {
 
 // ─── Default Sizes ─────────────────────────────────────────
 
-export const DEFAULT_PLATE_SIZE: Record<PlateType, Size> = {
-  network: { width: 16, height: 0.3, depth: 20 },
-  subnet: { width: 6, height: 0.3, depth: 8 },
-};
-
 export const DEFAULT_BLOCK_SIZE: Size = {
   width: 2.4,
   height: 2.4,
@@ -220,4 +216,256 @@ export const STUD_LAYOUTS: Record<BlockCategory, [number, number]> = {
   storage: [2, 4],
   compute: [3, 4],
   database: [4, 6],
+};
+
+// ─── Plate Profile System ──────────────────────────────────
+
+export type NetworkProfileId =
+  | 'network-sandbox'
+  | 'network-application'
+  | 'network-platform'
+  | 'network-hub';
+
+export type SubnetProfileId =
+  | 'subnet-utility'
+  | 'subnet-service'
+  | 'subnet-workload'
+  | 'subnet-scale';
+
+export type PlateProfileId = NetworkProfileId | SubnetProfileId;
+
+export interface StudColorSpec {
+  main: string;
+  shadow: string;
+  highlight: string;
+}
+
+export interface PlateProfile {
+  id: PlateProfileId;
+  type: PlateType; // 'network' | 'subnet'
+  displayName: string;
+  displayNameKo: string;
+  description: string;
+  studsX: number;
+  studsY: number;
+  worldWidth: number;  // = studsX (world units match stud count)
+  worldDepth: number;  // = studsY
+  worldHeight: number; // VNet = 0.7 (thick), Subnet = 0.5 (medium)
+  recommendedCapacity: number;
+  exampleCidrs: {
+    azure: string;
+    aws: string;
+    gcp: string;
+  };
+  learningLevel: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  studColors: StudColorSpec;
+}
+
+export const NETWORK_STUD_COLORS: StudColorSpec = {
+  main: '#42A5F5',
+  shadow: '#1565C0',
+  highlight: '#90CAF9',
+};
+
+export const PUBLIC_SUBNET_STUD_COLORS: StudColorSpec = {
+  main: '#66BB6A',
+  shadow: '#2E7D32',
+  highlight: '#A5D6A7',
+};
+
+export const PRIVATE_SUBNET_STUD_COLORS: StudColorSpec = {
+  main: '#7986CB',
+  shadow: '#3949AB',
+  highlight: '#C5CAE9',
+};
+
+export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
+  'network-sandbox': {
+    id: 'network-sandbox',
+    type: 'network',
+    displayName: 'Sandbox',
+    displayNameKo: '샌드박스',
+    description: 'Dev/test isolated network. Minimal footprint for experimentation.',
+    studsX: 8,
+    studsY: 12,
+    worldWidth: 8,
+    worldDepth: 12,
+    worldHeight: 0.7,
+    recommendedCapacity: 2,
+    exampleCidrs: { azure: '10.0.0.0/24', aws: '10.0.0.0/24', gcp: '10.0.0.0/24' },
+    learningLevel: 'beginner',
+    studColors: NETWORK_STUD_COLORS,
+  },
+  'network-application': {
+    id: 'network-application',
+    type: 'network',
+    displayName: 'Application',
+    displayNameKo: '애플리케이션',
+    description: 'Standard application VNet. Hosts a single workload with public/private separation.',
+    studsX: 12,
+    studsY: 16,
+    worldWidth: 12,
+    worldDepth: 16,
+    worldHeight: 0.7,
+    recommendedCapacity: 4,
+    exampleCidrs: { azure: '10.1.0.0/20', aws: '10.1.0.0/20', gcp: '10.1.0.0/20' },
+    learningLevel: 'intermediate',
+    studColors: NETWORK_STUD_COLORS,
+  },
+  'network-platform': {
+    id: 'network-platform',
+    type: 'network',
+    displayName: 'Platform',
+    displayNameKo: '플랫폼',
+    description: 'Production platform VNet. Multi-tier architecture with several subnet groups.',
+    studsX: 16,
+    studsY: 20,
+    worldWidth: 16,
+    worldDepth: 20,
+    worldHeight: 0.7,
+    recommendedCapacity: 6,
+    exampleCidrs: { azure: '10.0.0.0/16', aws: '10.0.0.0/16', gcp: '10.0.0.0/16' },
+    learningLevel: 'advanced',
+    studColors: NETWORK_STUD_COLORS,
+  },
+  'network-hub': {
+    id: 'network-hub',
+    type: 'network',
+    displayName: 'Hub',
+    displayNameKo: '허브',
+    description: 'Enterprise hub VNet. Central network for shared services and spoke connections.',
+    studsX: 20,
+    studsY: 24,
+    worldWidth: 20,
+    worldDepth: 24,
+    worldHeight: 0.7,
+    recommendedCapacity: 8,
+    exampleCidrs: { azure: '10.0.0.0/8', aws: '10.0.0.0/8', gcp: '10.0.0.0/8' },
+    learningLevel: 'expert',
+    studColors: NETWORK_STUD_COLORS,
+  },
+  'subnet-utility': {
+    id: 'subnet-utility',
+    type: 'subnet',
+    displayName: 'Utility',
+    displayNameKo: '유틸리티',
+    description: 'Small utility subnet. Gateway, bastion, or management services.',
+    studsX: 4,
+    studsY: 6,
+    worldWidth: 4,
+    worldDepth: 6,
+    worldHeight: 0.5,
+    recommendedCapacity: 2,
+    exampleCidrs: { azure: '10.0.0.0/28', aws: '10.0.0.0/28', gcp: '10.0.0.0/28' },
+    learningLevel: 'beginner',
+    studColors: PUBLIC_SUBNET_STUD_COLORS, // default; overridden by subnetAccess
+  },
+  'subnet-service': {
+    id: 'subnet-service',
+    type: 'subnet',
+    displayName: 'Service',
+    displayNameKo: '서비스',
+    description: 'Standard service subnet. Hosts a small group of related resources.',
+    studsX: 6,
+    studsY: 8,
+    worldWidth: 6,
+    worldDepth: 8,
+    worldHeight: 0.5,
+    recommendedCapacity: 4,
+    exampleCidrs: { azure: '10.0.1.0/26', aws: '10.0.1.0/26', gcp: '10.0.1.0/26' },
+    learningLevel: 'intermediate',
+    studColors: PUBLIC_SUBNET_STUD_COLORS,
+  },
+  'subnet-workload': {
+    id: 'subnet-workload',
+    type: 'subnet',
+    displayName: 'Workload',
+    displayNameKo: '워크로드',
+    description: 'Large workload subnet. Multi-service deployments, compute clusters.',
+    studsX: 8,
+    studsY: 10,
+    worldWidth: 8,
+    worldDepth: 10,
+    worldHeight: 0.5,
+    recommendedCapacity: 6,
+    exampleCidrs: { azure: '10.0.2.0/24', aws: '10.0.2.0/24', gcp: '10.0.2.0/24' },
+    learningLevel: 'advanced',
+    studColors: PUBLIC_SUBNET_STUD_COLORS,
+  },
+  'subnet-scale': {
+    id: 'subnet-scale',
+    type: 'subnet',
+    displayName: 'Scale',
+    displayNameKo: '스케일',
+    description: 'Extra-large scale subnet. AKS/EKS clusters, VMSS, large-scale workloads.',
+    studsX: 10,
+    studsY: 12,
+    worldWidth: 10,
+    worldDepth: 12,
+    worldHeight: 0.5,
+    recommendedCapacity: 8,
+    exampleCidrs: { azure: '10.0.4.0/22', aws: '10.0.4.0/22', gcp: '10.0.4.0/22' },
+    learningLevel: 'expert',
+    studColors: PUBLIC_SUBNET_STUD_COLORS,
+  },
+};
+
+export const DEFAULT_PLATE_PROFILE: Record<PlateType, PlateProfileId> = {
+  network: 'network-platform',
+  subnet: 'subnet-service',
+};
+
+// ─── Profile Helper Functions ──────────────────────────────
+
+export function getPlateProfile(profileId: PlateProfileId): PlateProfile {
+  return PLATE_PROFILES[profileId];
+}
+
+export function buildPlateSizeFromProfileId(profileId: PlateProfileId): Size {
+  const profile = PLATE_PROFILES[profileId];
+  return {
+    width: profile.worldWidth,
+    height: profile.worldHeight,
+    depth: profile.worldDepth,
+  };
+}
+
+interface LegacyPlateShape {
+  type: PlateType;
+  size: { width: number; depth: number };
+}
+
+export function inferLegacyPlateProfileId(legacyPlate: LegacyPlateShape): PlateProfileId {
+  const { type, size } = legacyPlate;
+  const candidates = Object.values(PLATE_PROFILES).filter((p) => p.type === type);
+
+  // Find exact match first
+  const exact = candidates.find(
+    (p) => p.worldWidth === size.width && p.worldDepth === size.depth
+  );
+  if (exact) return exact.id;
+
+  // Find closest by area
+  const targetArea = size.width * size.depth;
+  let closest = candidates[0];
+  let closestDiff = Math.abs(closest.worldWidth * closest.worldDepth - targetArea);
+  for (const candidate of candidates) {
+    const diff = Math.abs(candidate.worldWidth * candidate.worldDepth - targetArea);
+    if (diff < closestDiff) {
+      closest = candidate;
+      closestDiff = diff;
+    }
+  }
+  return closest.id;
+}
+
+export function getPlateStudColors(plate: { type: PlateType; subnetAccess?: SubnetAccess }): StudColorSpec {
+  if (plate.type === 'network') return NETWORK_STUD_COLORS;
+  if (plate.subnetAccess === 'public') return PUBLIC_SUBNET_STUD_COLORS;
+  return PRIVATE_SUBNET_STUD_COLORS;
+}
+
+export const DEFAULT_PLATE_SIZE: Record<PlateType, Size> = {
+  network: buildPlateSizeFromProfileId(DEFAULT_PLATE_PROFILE.network),
+  subnet: buildPlateSizeFromProfileId(DEFAULT_PLATE_PROFILE.subnet),
 };
