@@ -1,6 +1,24 @@
 version: "3.8"
 
 services:
+  # ─── PostgreSQL Database ──────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: cloudblocks-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: cloudblocks
+      POSTGRES_USER: ${POSTGRES_USER:-cloudblocks}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cloudblocks-dev}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cloudblocks}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # ─── Redis (Cache / Session / Queue) ────────────────────────
   redis:
     image: redis:7-alpine
@@ -15,25 +33,43 @@ services:
       timeout: 5s
       retries: 5
 
-  # ─── MinIO (S3-compatible Object Storage) ───────────────────
-  minio:
-    image: minio/minio:latest
-    container_name: cloudblocks-minio
+  # ─── API Backend ────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: infra/docker/api.Dockerfile
+    container_name: cloudblocks-api
     ports:
-      - "9000:9000"
-      - "9001:9001"   # MinIO Console
+      - "8000:8000"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
-    volumes:
-      - minio-data:/data
-    command: server /data --console-address ":9001"
+      CLOUDBLOCKS_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-cloudblocks}:${POSTGRES_PASSWORD:-cloudblocks-dev}@postgres:5432/cloudblocks
+      CLOUDBLOCKS_APP_ENV: development
+      CLOUDBLOCKS_JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      CLOUDBLOCKS_GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      CLOUDBLOCKS_GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      CLOUDBLOCKS_CORS_ORIGINS: '["http://localhost:5173","http://localhost:80"]'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 10s
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
       timeout: 5s
-      retries: 5
+      retries: 3
+
+  # ─── Web Frontend ───────────────────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: infra/docker/web.Dockerfile
+    container_name: cloudblocks-web
+    ports:
+      - "80:80"
+    depends_on:
+      - api
 
 volumes:
+  postgres-data:
   redis-data:
-  minio-data:
