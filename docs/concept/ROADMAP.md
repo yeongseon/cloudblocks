@@ -414,10 +414,141 @@ Features:
 
 ---
 
+# UX Core Improvements
+
+Goal:
+Establish a robust UX state machine and command-based interaction model.
+
+Status: Partially done (some items in Milestone 6B)
+
+Features:
+
+- **CommandPanel** — Replace BottomPanel with a StarCraft-style command panel for resource placement and actions
+- **DragGhost** — Ghost preview of the resource during the drag-to-create interaction
+- **Connection Preview** — Real-time connection line preview during connect mode
+- **Formal Zustand State Machine** — Explicit states: `idle` | `selecting` | `dragging` | `placing` | `connecting`
+
+### Deliverables
+
+| # | Deliverable | Priority | Effort |
+|---|------------|----------|--------|
+| 1 | CommandPanel component | P1 | Medium |
+| 2 | DragGhost visualization | P1 | Low |
+| 3 | Connection preview line | P1 | Low |
+| 4 | Zustand UX state machine | P1 | Medium |
+
+### Exit Criteria
+- [ ] BottomPanel replaced by CommandPanel with categorical tabs
+- [ ] Drag-to-create shows accurate ghost preview at snap position
+- [ ] Connect mode shows line from source to cursor/target
+- [ ] All UI interactions driven by explicit state machine transitions
+
+> **Reference**: [BRICK_DESIGN_SPEC.md](../design/BRICK_DESIGN_SPEC.md) §10 UX State Machine
+
+---
+
+# Phase 4 — Brick Design System
+
+Goal:
+Expand the visual vocabulary and formalize the brick design tokens.
+
+Status: Not started
+
+Features:
+
+- **Category Taxonomy Expansion** — Future expansion beyond current 8 categories to include Network, Compute, Data, Messaging, Security, and Edge
+- **Shape System** — Unique geometries: Tower (compute), Heavy Block (database/storage), Shield (gateway), Module (function/queue/event/timer)
+- **Height System** — Tiered side wall heights (low/mid/high) to indicate resource scale or tier
+- **Visual Tokens** — Formal extraction of radius, shadow, border, and surface design tokens
+
+### Deliverables
+
+| # | Deliverable | Priority | Effort |
+|---|------------|----------|--------|
+| 1 | Shape System implementation (SVG) | P1 | High |
+| 2 | Height System CSS/SVG logic | P2 | Medium |
+| 3 | Design token extraction | P2 | Low |
+| 4 | Expanded taxonomy mapping | P3 | Low |
+
+### Exit Criteria
+- [ ] Different resource types use distinct shapes (Tower, Shield, etc.)
+- [ ] Wall heights vary based on resource tier/type
+- [ ] All visual properties driven by shared design tokens
+- [ ] Universal Stud Standard maintained across all new shapes
+
+> **Reference**: [BRICK_DESIGN_SPEC.md](../design/BRICK_DESIGN_SPEC.md) §3.7 Shape System, §6.9 Design Tokens
+
+---
+
+# Phase 5 — Core Model & Multi-Cloud Bridge
+
+Goal:
+Update the core domain model to support multi-provider architectures.
+
+Status: Not started (aligns with Milestone 8)
+
+Features:
+
+- **Provider Field** — Add optional `provider?: 'azure' | 'aws' | 'gcp'` to the Block model
+- **Connection Expansion** — New connection types: `http` | `internal` | `data` | `async` (extending beyond `dataflow`)
+- **ProviderAdapter Interface** — Formal interface for mapping generic resources to provider-specific IaC
+- **Provider Directory Structure** — Organize adapters in `core/providers/{azure,aws,gcp}/`
+
+### Deliverables
+
+| # | Deliverable | Priority | Effort |
+|---|------------|----------|--------|
+| 1 | Domain model update (provider field) | P1 | Low |
+| 2 | Connection type expansion | P1 | Medium |
+| 3 | ProviderAdapter interface | P2 | Medium |
+| 4 | Provider directory reorganization | P2 | Low |
+
+### Exit Criteria
+- [ ] Domain model supports explicit provider tags
+- [ ] Connection engine handles multiple protocol types
+- [ ] Provider logic isolated into dedicated directory structure
+- [ ] Zero breaking changes to existing Azure-first workflows
+
+> **Reference**: [BRICK_DESIGN_SPEC.md](../design/BRICK_DESIGN_SPEC.md) §6.7 Planned Multi-Cloud, §9.6 Planned Connection Types
+
+---
+
+# Phase 6 — Provider Integration
+
+Goal:
+Implement visual and functional provider-specific UI elements.
+
+Status: Not started
+
+Features:
+
+- **Provider Color System** — Distinct 3-layer palettes for Azure, AWS, and GCP brick themes
+- **Provider Mode Toggle** — UI switch to filter or focus the builder on specific providers
+- **Provider Extension Mechanism** — Plugin-style system for adding provider-specific properties
+
+### Deliverables
+
+| # | Deliverable | Priority | Effort |
+|---|------------|----------|--------|
+| 1 | Multi-provider color palettes | P1 | Medium |
+| 2 | Provider Mode UI toggle | P2 | Medium |
+| 3 | Provider property extension system | P2 | High |
+
+### Exit Criteria
+- [ ] Bricks change color themes based on selected provider
+- [ ] Builder UI allows switching between cloud provider contexts
+- [ ] Provider-specific metadata correctly handled in IaC generation
+
+> **Reference**: [BRICK_DESIGN_SPEC.md](../design/BRICK_DESIGN_SPEC.md) §6.6 Provider Accent Palette
+
+---
+
 # Milestone 8 — Multi-Cloud Platform
 
 Goal:
 Support multiple cloud providers from the same architecture.
+
+Prerequisite/Overlap: Phase 5 (Core Model & Multi-Cloud Bridge)
 
 Providers:
 
@@ -482,6 +613,8 @@ Features:
 - Architecture review tools
 - Custom rule engine extensions
 
+> **Note**: The Terraform implementation (original Phase 5) and Templates system (original Phase 6) from the user's roadmap were completed in Milestones 3, 4, and 6.
+
 ---
 
 # Long Term Vision
@@ -507,6 +640,7 @@ Key principles:
 4. Keep backend **thin** — orchestration, not CRUD
 5. **Open-source first** — community drives templates and generators
 6. **Local-first UX** — works offline, syncs when connected
+7. **Phased UI/Engine Evolution** — systematic transition from Azure-first to multi-provider visual logic
 
 ---
 
@@ -556,6 +690,14 @@ The roadmap evolves CloudBlocks from:
 → Collaboration Platform (Milestone 7)
 
 → Tactile UX Polish (Phase 2 UX)
+
+→ UX Core Improvements (Phase 1+)
+
+→ Brick Design System (Phase 4)
+
+→ Core Model & Multi-Cloud Bridge (Phase 5)
+
+→ Provider Integration (Phase 6)
 
 → Multi-Cloud Architecture Tool (Milestone 8)
 

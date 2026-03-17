@@ -67,7 +67,7 @@ CloudBlocks is a monorepo with a React frontend and a Python FastAPI backend.
 ```
 cloudblocks/
 ├── apps/
-│   ├── web/          # React + Three.js frontend (FSD architecture)
+│   ├── web/          # React + SVG frontend (FSD architecture)
 │   └── api/          # Python FastAPI backend (auth, GitHub integration)
 ├── packages/         # Shared packages (scaffolded)
 ├── docs/             # Project documentation
@@ -98,7 +98,7 @@ Internet → Gateway → Compute → Database
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | React 19, TypeScript, React Three Fiber, Zustand, Vite |
+| Frontend | React 19, TypeScript, SVG + CSS, Zustand, Vite |
 | Backend (Milestone 5+) | Python, FastAPI (scaffolded) |
 | Storage (Milestone 1) | Browser localStorage |
 | Storage (Milestone 5+) | GitHub repos (Git-native), Supabase (auth metadata) |

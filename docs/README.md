@@ -61,7 +61,8 @@ Detailed visual and interaction specifications.
 
 | Document | Status | Description |
 |----------|--------|-------------|
-| [BRICK_SIZE_SPEC.md](design/BRICK_SIZE_SPEC.md) | **Canonical** | 3-layer Lego system (App → Resource → Plate) |
+| [BRICK_DESIGN_SPEC.md](design/BRICK_DESIGN_SPEC.md) | **Canonical** | Merged brick design system — geometry, profiles, provider themes, connections, UX states |
+| [BRICK_SIZE_SPEC.md](design/BRICK_SIZE_SPEC.md) | **Historical** | Legacy sizing spec — superseded by BRICK_DESIGN_SPEC.md |
 | [VISUAL_DESIGN_SPEC.md](design/VISUAL_DESIGN_SPEC.md) | **Canonical** | Colors, geometry, materials, **Bottom Panel (§7)**, Command Card, Tech Tree |
 | [VALIDATION_CONTRACT.md](design/VALIDATION_CONTRACT.md) | Canonical | Validation rule contracts |
 | [MODULE_BOUNDARIES.md](design/MODULE_BOUNDARIES.md) | Supporting | FSD module structure |
@@ -124,7 +125,7 @@ System-level governance and meta docs.
 | Concern | Canonical Document |
 |---------|-------------------|
 | Domain entities & types | [DOMAIN_MODEL.md](model/DOMAIN_MODEL.md) |
-| Visual sizing & layout | [BRICK_SIZE_SPEC.md](design/BRICK_SIZE_SPEC.md) |
+| Visual sizing & layout | [BRICK_DESIGN_SPEC.md](design/BRICK_DESIGN_SPEC.md) |
 | Colors & materials | [VISUAL_DESIGN_SPEC.md](design/VISUAL_DESIGN_SPEC.md) |
 | TypeScript types | `apps/web/src/shared/types/index.ts` |
 | Validation rules | `apps/web/src/entities/validation/` |
