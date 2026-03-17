@@ -6,17 +6,8 @@ import { useArchitectureStore } from '../store/architectureStore';
 import { screenDeltaToWorld } from '../../shared/utils/isometric';
 import { canConnect } from '../validation/connection';
 import { validatePlacement } from '../validation/placement';
+import { BlockSvg } from './BlockSvg';
 import './BlockSprite.css';
-
-// Import pre-made sprites
-import gatewaySvg from '../../shared/assets/block-sprites/gateway.svg';
-import computeSvg from '../../shared/assets/block-sprites/compute.svg';
-import databaseSvg from '../../shared/assets/block-sprites/database.svg';
-import storageSvg from '../../shared/assets/block-sprites/storage.svg';
-import functionSvg from '../../shared/assets/block-sprites/function.svg';
-import queueSvg from '../../shared/assets/block-sprites/queue.svg';
-import eventSvg from '../../shared/assets/block-sprites/event.svg';
-import timerSvg from '../../shared/assets/block-sprites/timer.svg';
 
 const BLOCK_SCREEN_SIZES: Record<string, { width: number; height: number }> = {
   timer:    { width: 72, height: 72 },
@@ -27,17 +18,6 @@ const BLOCK_SCREEN_SIZES: Record<string, { width: number; height: number }> = {
   storage:  { width: 120, height: 100 },
   compute:  { width: 140, height: 118 },
   database: { width: 160, height: 126 },
-};
-
-const BLOCK_SPRITES: Record<string, string> = {
-  gateway: gatewaySvg,
-  compute: computeSvg,
-  database: databaseSvg,
-  storage: storageSvg,
-  function: functionSvg,
-  queue: queueSvg,
-  event: eventSvg,
-  timer: timerSvg,
 };
 
 interface BlockSpriteProps {
@@ -163,7 +143,6 @@ export const BlockSprite = memo(function BlockSprite({
     setSelectedId(block.id);
   };
 
-  const spriteSrc = BLOCK_SPRITES[block.category] || computeSvg;
   const blockSize = BLOCK_SCREEN_SIZES[block.category] || BLOCK_SCREEN_SIZES.compute;
 
   const className = [
@@ -201,12 +180,9 @@ export const BlockSprite = memo(function BlockSprite({
         }}
         aria-label={`Block: ${block.name}`}
       >
-        <img
-          src={spriteSrc}
-          alt={block.name}
-          className="block-img"
-          draggable={false}
-        />
+        <div className="block-img" draggable={false}>
+          <BlockSvg category={block.category} />
+        </div>
       </button>
     </div>
   );
