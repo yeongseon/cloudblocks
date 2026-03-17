@@ -4,7 +4,7 @@ This document defines the system architecture for the CloudBlocks Platform.
 
 CloudBlocks is an **Architecture Compiler** — it models cloud infrastructure using a **Lego-style composition system**, validates designs against architectural rules, and generates deployable infrastructure code (Terraform, Bicep, Pulumi). The long-term architecture follows a **Git-native** model where GitHub repos serve as the primary data store.
 
-> **Technical approach**: CloudBlocks is a **2D-first editor with 2.5D rendering**, rather than a full 3D engine. The internal model is a 2D coordinate system with containment hierarchy. The rendering layer projects this into an isometric view using React Three Fiber.
+> **Technical approach**: CloudBlocks is a **2D-first editor with 2.5D rendering**, rather than a full 3D engine. The internal model is a 2D coordinate system with containment hierarchy. The rendering layer projects this into an isometric view using SVG + CSS transforms.
 
 ---
 
@@ -45,8 +45,8 @@ The system consists of several subsystems:
 |-----------|---------------|---------|
 | **Web Builder** | Visual diagram editing, architecture visualization, rule feedback | This document |
 | **Architecture Model** | Provider-agnostic architecture representation, versioning, serialization | [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md) |
-| **Architecture Graph** | Graph-based execution model for validation and generation | [ARCHITECTURE_GRAPH.md](../ARCHITECTURE_GRAPH.md) |
-| **DSL Specification** | Language definition for infrastructure modeling | [DSL_SPEC.md](../DSL_SPEC.md) |
+| **Architecture Graph** | Graph-based execution model for validation and generation | [ARCHITECTURE_MODEL_OVERVIEW.md](../model/ARCHITECTURE_MODEL_OVERVIEW.md) |
+| **DSL Specification** | Language definition for infrastructure modeling | [ARCHITECTURE_MODEL_OVERVIEW.md](../model/ARCHITECTURE_MODEL_OVERVIEW.md) |
 | **Rule Engine** | Architecture validation, security checks, topology validation | [rules.md](../engine/rules.md) |
 | **Generator** | Infrastructure code generation pipeline | [generator.md](../engine/generator.md) |
 | **Provider Adapters** | Cloud-specific resource mapping | [provider.md](../engine/provider.md) |
@@ -57,7 +57,7 @@ The system consists of several subsystems:
 ```
 cloudblocks/
   apps/
-    web/              # Frontend SPA (React + R3F)
+    web/              # Frontend SPA (React + SVG/CSS)
     api/              # Backend API (Python FastAPI)
   packages/
     cloudblocks-domain/    # Domain model (placeholder)
@@ -81,7 +81,7 @@ cloudblocks/
 ```
 ┌────────────────────────────────────────────────────────┐
 │                    Frontend (SPA)                       │
-│   React + TypeScript + React Three Fiber + Zustand     │
+│   React + TypeScript + SVG + CSS transforms + Zustand  │
 │   ┌──────────┐ ┌──────────┐ ┌────────────────────┐    │
 │   │ Isometric│ │ Rule     │ │ localStorage        │    │
 │   │ Builder  │ │ Engine   │ │ (workspace persist.) │    │
@@ -91,12 +91,12 @@ cloudblocks/
 
 No backend required. All state lives in the browser.
 
-## Planned (Milestone 5+) — Full Stack with Git-Native Storage
+## Implemented (Milestone 5-7) — Full Stack with Git-Native Storage
 
 ```
 ┌────────────────────────────────────────────────────────┐
 │                    Frontend (SPA)                       │
-│   React + TypeScript + React Three Fiber + Zustand     │
+│   React + TypeScript + SVG + CSS transforms + Zustand  │
 │   ┌──────────┐ ┌──────────┐ ┌────────────────────┐    │
 │   │ Isometric│ │ Rule     │ │ Local-First Store   │    │
 │   │ Builder  │ │ Engine   │ │ (IndexedDB/lS)      │    │
@@ -114,7 +114,7 @@ No backend required. All state lives in the browser.
 │                     │                                   │
 │            ┌────────┴────────┐                         │
 │            │ Metadata DB     │                         │
-│            │ (Supabase/PG)   │                         │
+│            │ (SQLite)        │                         │
 │            └─────────────────┘                         │
 └────────────────────┬───────────────────────────────────┘
                      │
@@ -122,10 +122,10 @@ No backend required. All state lives in the browser.
 ┌────────────────────────────────────────────────────────┐
 │              External Services                          │
 │   ┌────────────┐  ┌──────────────┐  ┌──────────┐     │
-│   │ GitHub     │  │ GitHub       │  │ Redis /  │     │
-│   │ Repos      │  │ Actions      │  │ Upstash  │     │
-│   │ (Data)     │  │ (CI/CD)      │  │ (Cache)  │     │
-│   └────────────┘  └──────────────┘  └──────────┘     │
+│   │ GitHub     │  │ GitHub       │                    │
+│   │ Repos      │  │ Actions      │                    │
+│   │ (Data)     │  │ (CI/CD)      │                    │
+│   └────────────┘  └──────────────┘                    │
 └────────────────────────────────────────────────────────┘
 ```
 
@@ -135,15 +135,15 @@ No backend required. All state lives in the browser.
 
 ## 2.1 Frontend Layer
 
-The frontend is a SPA built with React and React Three Fiber. In Milestone 1, it works entirely standalone with localStorage. In future versions, it will adopt a local-first architecture with optional GitHub sync.
+The frontend is a SPA built with React and SVG + CSS transforms. In Milestone 1, it worked entirely standalone with localStorage. As of Milestone 5-7, it uses a local-first model with optional GitHub sync.
 
 ### Responsibilities (Milestone 1 — current)
-- 2.5D isometric builder interface (React Three Fiber)
+- 2.5D isometric builder interface (SVG + CSS transforms)
 - Click-to-add block placement via palette
 - Architecture validation (in-browser Rule Engine)
 - Local persistence (localStorage)
 
-### Responsibilities (Milestone 5+ — planned)
+### Responsibilities (Milestone 5+ — implemented)
 - Drag and drop interaction
 - Code generation preview (client-side for simple cases)
 - GitHub sync UI (commit, branch, PR)
@@ -151,7 +151,7 @@ The frontend is a SPA built with React and React Three Fiber. In Milestone 1, it
 
 ### Technologies
 - React + TypeScript
-- React Three Fiber + Three.js (rendering layer only — editing model is 2D)
+- SVG + CSS transforms + DOM layering (rendering layer only — editing model is 2D)
 - Zustand (state management)
 - Vite (build tool)
 
@@ -192,8 +192,8 @@ apps/web/src/
 Milestone 1 is implemented as a **frontend-only SPA**. No backend required.
 
 ```
-Browser (React + R3F)
-├── Isometric Scene (Three.js — rendering layer)
+Browser (React + SVG/CSS)
+├── Isometric Scene (SVG + CSS transforms + DOM layering — rendering layer)
 ├── Domain Model (Zustand Store — 2D coordinates + hierarchy)
 ├── Rule Engine (in-browser)
 └── localStorage (workspace persistence)
@@ -203,13 +203,13 @@ Browser (React + R3F)
 
 The backend is **NOT a heavy CRUD service**. It is a **workflow orchestrator** that mediates between the UI, GitHub, and the generation engine.
 
-> **Current status**: The backend is scaffolded with a basic FastAPI app exposing only `/health` and `/health/ready` endpoints. All modules below are planned.
+> **Current status**: Backend auth/session modules are implemented with cookie-based session auth (`cb_oauth`, `cb_session`) and SQLite-backed session persistence.
 
 ### What the Backend Will Do
 
 | Responsibility | Description |
 |---------------|-------------|
-| Auth / Identity | GitHub App OAuth, Google login, account linking |
+| Auth / Identity | GitHub OAuth + cookie-based server sessions |
 | Generator Orchestration | Validate → transform → generate IaC code |
 | GitHub Integration | Repo selection, branch creation, commit, PR |
 | Job Runner | Async generation, validation, deployment triggers |
@@ -225,49 +225,36 @@ The backend is **NOT a heavy CRUD service**. It is a **workflow orchestrator** t
 | Full prompt/log history | GitHub / Blob Storage |
 | Deployment artifacts | GitHub / Blob Storage |
 
-### Backend Architecture (Planned — Milestone 5+)
+### Backend Architecture (Current — Milestone 7)
 
 ```
 apps/api/
 ├── app/
-│   ├── main.py                    # FastAPI app (currently: health endpoints only)
+│   ├── main.py                    # FastAPI app + middleware
 │   ├── core/
 │   │   └── config.py              # Environment config
 │   ├── api/
 │   │   └── routes/
-│   │       ├── workspaces.py      # Workspace stubs (placeholder)
-│   │       └── scenarios.py       # Template stubs (placeholder)
+│   │       ├── auth.py            # GitHub OAuth + session routes
+│   │       ├── session.py         # Session workspace binding
+│   │       ├── workspaces.py      # Workspace APIs
+│   │       └── scenarios.py       # Template/scenario APIs
 │   └── infrastructure/
 │       └── db/
-│           ├── connection.py      # MetadataDB class (not yet implemented)
+│           ├── connection.py      # MetadataDB class
 │           └── migrations/
 │               ├── 001_create_users.sql
 │               └── 002_create_workspaces.sql
 ```
 
-The following modules are **planned but not yet created**:
+Implemented auth/session routes:
 
 ```
-# Planned (Milestone 5+)
-│   ├── core/
-│   │   └── security.py            # Auth utilities
-│   ├── api/
-│   │   └── routes/
-│   │       ├── auth.py            # OAuth flow
-│   │       ├── projects.py        # Project CRUD (metadata only)
-│   │       ├── generate.py        # Code generation orchestration
-│   │       └── github.py          # GitHub integration
-│   ├── domain/
-│   │   ├── models.py              # Domain entities
-│   │   └── generators/            # Generator plugins
-│   │       ├── base.py            # Generator interface
-│   │       ├── terraform.py       # Terraform generator
-│   │       ├── bicep.py           # Bicep generator
-│   │       └── pulumi.py          # Pulumi generator
-│   └── services/
-│       ├── generation.py          # Generation orchestration
-│       ├── github_sync.py         # GitHub sync logic
-│       └── project.py             # Project management
+POST /api/v1/auth/github                     -> returns { authorize_url }, sets cb_oauth cookie
+GET  /api/v1/auth/github/callback?code&state -> redirects, sets cb_session cookie
+GET  /api/v1/auth/session                    -> returns current user; clears stale cookie on 401
+POST /api/v1/auth/logout                     -> always 200; clears server session + cookie
+POST /api/v1/session/workspace               -> binds active workspace to session
 ```
 
 ---
@@ -408,21 +395,21 @@ generators/
 The scene layer is implemented in `apps/web/src/widgets/scene-canvas/SceneCanvas.tsx` and composes entity renderers.
 
 ```text
-SceneCanvas (root 3D scene)
-  ├ OrbitControls (zoom/pan only, rotation disabled)
-  ├ Grid
-  ├ PlateModel (network/subnet rendering)
-  ├ BlockModel (infrastructure block rendering)
-  ├ ConnectionLine (data flow arrows)
-  └ Html labels (plate/block names via @react-three/drei)
+SceneCanvas (root SVG scene)
+  ├ Pan/Zoom controls (CSS transform3d)
+  ├ Grid (SVG pattern)
+  ├ PlateSprite (network/subnet SVG rendering)
+  ├ BlockSprite (infrastructure block SVG rendering)
+  ├ ConnectionPath (data flow SVG arrows)
+  └ Labels (plate/block names via HTML overlay)
 ```
 
 | Component | Responsibility |
 |-----------|----------------|
-| SceneCanvas | Hosts `Canvas`, camera/lights, controls, and orchestrates rendering of all model entities from Zustand state. |
-| PlateModel | Renders plate geometry (network/subnet), visual state (hover/selection), and plate labels. |
-| BlockModel | Renders block geometry by category, interaction states, and block labels; anchors block position to parent plate. |
-| ConnectionLine | Resolves endpoints and renders curved directional dataflow lines with arrowheads. |
+| SceneCanvas | Root SVG container with CSS transform3d pan/zoom; orchestrates rendering of all model entities from Zustand state. |
+| PlateSprite | Renders plate SVG geometry (network/subnet), visual state (hover/selection), studs, and plate labels. |
+| BlockSprite | Renders block SVG geometry by category, interaction states, and block labels; anchors block position to parent plate. |
+| ConnectionPath | Resolves endpoints and renders SVG path directional dataflow lines with arrowheads. |
 
 > Rendering is projection only: the authoritative editing model remains 2D coordinates with containment hierarchy, then projected into the 2.5D scene.
 
@@ -439,18 +426,18 @@ The Provider Adapter translates the generic CloudBlocks model into cloud provide
 # 8. GitHub Integration Architecture (Milestone 5+)
 
 > See also: PRD §16 (Future Roadmap — Milestone 5 GitHub Integration)
-> **Status**: Not yet implemented. Planned for Milestone 5.
+> **Status**: Implemented for Milestone 5-7 with session auth migration completed in Phase 7.
 
-## Auth: GitHub App Model
+## Auth: GitHub OAuth + Session Cookie Model
 
-CloudBlocks will use a **GitHub App** (not raw OAuth) for:
-- Repo-scoped permissions
-- Short-lived installation tokens (no long-lived user tokens in browser)
-- Easy revocation
-- Webhook support
+CloudBlocks uses GitHub OAuth for identity and server-side sessions for authenticated API access:
+- OAuth state is stored in encrypted httpOnly `cb_oauth` cookie
+- Session is stored server-side in SQLite (`sessions` table)
+- Browser receives only httpOnly `cb_session` cookie (no JWT/localStorage token)
+- Frontend calls API with `credentials: 'include'`
 
 ```
-User → CloudBlocks UI → Backend API → GitHub App → User's Repos
+User → CloudBlocks UI → Backend API → GitHub OAuth/API → User's Repos
 ```
 
 ## Data Flow
@@ -459,8 +446,8 @@ User → CloudBlocks UI → Backend API → GitHub App → User's Repos
 1. User designs architecture in isometric builder
 2. User clicks "Save to GitHub"
 3. Frontend sends architecture JSON to backend
-4. Backend validates and runs generator
-5. Backend commits architecture.json + generated code to GitHub
+4. Frontend validates architecture and generates code client-side
+5. Backend syncs architecture.json to GitHub and supports PR workflows
 6. GitHub Actions runs terraform plan on PR
 7. User reviews and merges
 ```
@@ -484,7 +471,7 @@ User → CloudBlocks UI → Backend API → GitHub App → User's Repos
 
 > For the full storage architecture (data placement strategy, metadata DB schema, Redis schema, GitHub repo structure, migration strategy), see [STORAGE_ARCHITECTURE.md](../model/STORAGE_ARCHITECTURE.md).
 
-The storage follows a **Git-native** design: GitHub repos serve as the primary data store for architecture assets and generated code. A minimal metadata database (4 tables: `users`, `identities`, `workspaces`, `generation_runs`) handles auth, workspace indexing, and run status only.
+The storage follows a **Git-native** design: GitHub repos serve as the primary data store for architecture assets and generated code. A minimal metadata database (5 tables: `users`, `identities`, `workspaces`, `generation_runs`, `sessions`) handles auth, workspace indexing, run status, and server-side sessions.
 
 **Design principle**: DB = index and status only, real data = Git / Blob Storage.
 
@@ -519,9 +506,10 @@ Local (IndexedDB)     ←→    GitHub (via Backend API)
 
 # 11. Security Considerations (Milestone 5+)
 
-- GitHub App tokens: short-lived, repo-scoped, stored server-side only
-- No long-lived user tokens in the browser
-- OAuth tokens encrypted at rest in metadata DB
+- Session auth uses httpOnly cookies (`cb_oauth`, `cb_session`) to prevent token access from JS
+- No JWT tokens and no localStorage auth tokens in browser
+- Session rows are validated server-side and revoked on logout
+- OAuth/GitHub tokens are encrypted at rest in metadata DB
 - Workspace isolation: users can only access their own projects
 - Rate limiting: per-user, per-endpoint
 - Content validation: sanitize architecture JSON before processing
@@ -536,8 +524,8 @@ The architecture supports horizontal scalability:
 |-----------|----------|
 | Frontend | Static hosting / CDN |
 | Backend API | Stateless containers (scale horizontally) |
-| Metadata DB | Managed Postgres (Supabase / RDS) |
-| Job Queue | Redis / Upstash |
+| Metadata DB | SQLite (current), PostgreSQL (Phase 8 planned) |
+| Job Queue | In-process/background (current), Redis (Phase 8 planned) |
 | Storage | GitHub (unlimited repos) + Blob storage |
 
 ---
@@ -545,27 +533,27 @@ The architecture supports horizontal scalability:
 # 13. Summary
 
 ```
-Frontend (Milestone 1: SPA with R3F, 2.5D isometric view, localStorage persistence)
+Frontend (Milestone 1: SPA with SVG + CSS transforms + DOM layering, 2.5D isometric view, localStorage persistence)
 Core Model (Zustand store — 2D coordinates + hierarchy)
 Rule Engine (in-browser validation)
 Code Generation (Milestone 3: Terraform generator — ✅ implemented)
-Backend (Milestone 5+: Thin orchestration layer — FastAPI — scaffolded)
-GitHub Integration (Milestone 5+: repos as data store — planned)
+Backend (Milestone 5+: Thin orchestration layer — FastAPI — implemented for auth/session + GitHub integration)
+GitHub Integration (Milestone 5+: repo list/create, sync, pull, PR, commits — implemented)
 ```
 
 This architecture enables:
 - Visual architecture design with 2.5D isometric blocks
 - Rule-based validation of cloud infrastructure
-- Automated infrastructure code generation (planned)
-- Git-native collaboration and version control (planned)
+- Automated infrastructure code generation (implemented client-side; server-side orchestration planned)
+- Git-native collaboration and version control (implemented)
 - Lightweight deployment with minimal infrastructure cost
 
 ---
 
 > **Cross-references:**
 > - Domain model (canonical): [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)
-> - Architecture graph: [ARCHITECTURE_GRAPH.md](../ARCHITECTURE_GRAPH.md)
-> - DSL specification: [DSL_SPEC.md](../DSL_SPEC.md)
+> - Architecture model overview: [ARCHITECTURE_MODEL_OVERVIEW.md](../model/ARCHITECTURE_MODEL_OVERVIEW.md)
+> - DSL & pipeline overview: [ARCHITECTURE_MODEL_OVERVIEW.md](../model/ARCHITECTURE_MODEL_OVERVIEW.md)
 > - Generator pipeline: [generator.md](../engine/generator.md)
 > - Provider adapters: [provider.md](../engine/provider.md)
 > - Storage architecture: [STORAGE_ARCHITECTURE.md](../model/STORAGE_ARCHITECTURE.md)

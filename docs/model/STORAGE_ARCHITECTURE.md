@@ -2,9 +2,9 @@
 
 ## Overview
 
-CloudBlocks is designed for a **Git-native storage architecture** — in the target state (Milestone 5+), GitHub repos will serve as the primary data store for all architecture assets and generated code, with a minimal metadata database for auth, workspace indexing, and run status.
+CloudBlocks uses a **Git-native storage architecture**: GitHub repos are the primary data store for architecture assets and generated code, with a minimal SQLite metadata database for auth, workspace indexing, and run status.
 
-> **Current status (Milestone 1–Milestone 4)**: All data is stored in browser **localStorage**. The Git-native architecture described below is the **planned Milestone 5+ design**. See `apps/web/src/shared/utils/storage.ts` for the current implementation.
+> **Current status (v0.6.0 / Milestone 7)**: Local-first editing persists in browser storage, and backend metadata/session state is stored in SQLite (`users`, `identities`, `workspaces`, `generation_runs`, `sessions`).
 
 This is NOT a traditional database-heavy architecture. The design principle: **DB = index and status only, real data = Git / Blob Storage**.
 
@@ -14,15 +14,15 @@ This is NOT a traditional database-heavy architecture. The design principle: **D
 ┌──────────────────────────────────────────────────────────────┐
 │                      Application Layer                       │
 ├────────────────┬──────────────────┬──────────────────────────┤
-│  GitHub Repos  │  Metadata DB     │  Redis / Upstash         │
-│  (Source of    │  (Postgres /     │  (Cache / Queue)         │
-│   Truth)       │   Supabase)      │                          │
+│  GitHub Repos  │  Metadata DB     │  Redis (Phase 8 Planned) │
+│  (Source of    │  (SQLite)        │  (Cache / Queue)         │
+│   Truth)       │                  │                          │
 ├────────────────┼──────────────────┼──────────────────────────┤
-│ architecture   │ users            │ session tokens           │
+│ architecture   │ users            │ distributed sessions     │
 │   .json        │ identities       │ rate limits              │
 │ generated IaC  │ workspaces       │ job queue                │
 │ templates      │ generation_runs  │ cache                    │
-│ schema version │                  │                          │
+│ schema version │ sessions         │                          │
 │ generator.lock │                  │                          │
 └────────────────┴──────────────────┴──────────────────────────┘
 ```
@@ -45,10 +45,11 @@ This is NOT a traditional database-heavy architecture. The design principle: **D
 
 | Data | Purpose | Why Not GitHub |
 |------|---------|---------------|
-| User identity | Auth, OAuth tokens (hashed) | Security — tokens must be server-side |
+| User identity | Auth, OAuth identity mapping | Security — identity linkage is server-side |
 | Identity providers | Multi-provider auth (GitHub, Google) | Fast lookup, encrypted storage |
 | Workspace index | User → repo mapping | Fast lookup without GitHub API calls |
 | Generation runs | Job status, timestamps | Transient state, not version-controlled |
+| Sessions | Server-side session auth state | Cookie session validation + revocation |
 
 ### What Does NOT Go in Any DB
 
@@ -121,7 +122,7 @@ Stable key ordering is enforced to keep Git diffs readable.
 
 ## Metadata DB Schema
 
-> **Milestone 5+ planned schema.** No active database exists in Milestone 1–Milestone 4. These tables describe the target migration structure in `apps/api/app/infrastructure/db/migrations/`.
+> **Current schema** in `apps/api/app/infrastructure/db/migrations/`. Phase 8 extends this with PostgreSQL/Redis deployment topology.
 
 ```sql
 -- Migration 001: User identity (linked to GitHub / Google OAuth)
@@ -143,7 +144,6 @@ CREATE TABLE IF NOT EXISTS identities (
     provider        TEXT NOT NULL,   -- 'github', 'google'
     provider_id     TEXT NOT NULL,
     access_token_hash TEXT,          -- hashed, not plaintext
-    refresh_token_hash TEXT,         -- hashed, not plaintext
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(provider, provider_id)
 );
@@ -172,21 +172,32 @@ CREATE TABLE IF NOT EXISTS generation_runs (
     error_message   TEXT,
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Migration 004: Session auth storage
+CREATE TABLE IF NOT EXISTS sessions (
+    id                 TEXT PRIMARY KEY,
+    user_id            TEXT NOT NULL REFERENCES users(id),
+    session_token_hash TEXT NOT NULL,
+    github_token_enc   TEXT,
+    expires_at         TIMESTAMP NOT NULL,
+    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_accessed_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 ```
 
-**Total: 4 tables** (`users`, `identities`, `workspaces`, `generation_runs`). That's the entire database. Everything else lives in GitHub.
+**Total: 5 tables** (`users`, `identities`, `workspaces`, `generation_runs`, `sessions`). Everything else lives in GitHub.
 
 Key differences from a traditional SaaS schema:
 - **TEXT primary keys** (not UUID) — lightweight, no UUID extension needed
 - **No `projects` table** — called `workspaces` to match the frontend model
-- **No `oauth_tokens` table** — tokens are stored as hashed values in the `identities` table
+- **No JWT table/mechanism** — auth is server-side session rows + httpOnly `cb_session` cookie
 - **Status enum**: `pending` → `running` → `completed` / `failed` (not `queued` / `succeeded`)
 
-## Redis / Upstash Schema
+## Redis Schema (Phase 8 Planned)
 
 ```
-# Session management
-session:{session_id}              → JSON user session (TTL: 24h)
+# Session cache (optional at scale)
+session:{session_id}              → hot session cache mirror (TTL: 24h)
 
 # Rate limiting
 ratelimit:{user_id}:{endpoint}    → counter (TTL: 60s)

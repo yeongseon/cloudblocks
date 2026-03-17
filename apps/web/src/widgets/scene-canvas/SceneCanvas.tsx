@@ -23,9 +23,10 @@ export function SceneCanvas() {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const addBlock = useArchitectureStore((s) => s.addBlock);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
+  const interactionState = useUIStore((s) => s.interactionState);
   const draggedBlockCategory = useUIStore((s) => s.draggedBlockCategory);
   const draggedResourceName = useUIStore((s) => s.draggedResourceName);
-  const cancelDrag = useUIStore((s) => s.cancelDrag);
+  const completeInteraction = useUIStore((s) => s.completeInteraction);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
   const playSound = (name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); };
 
@@ -68,7 +69,7 @@ export function SceneCanvas() {
     isDragging.current = false;
     e.currentTarget.releasePointerCapture(e.pointerId);
 
-    if (draggedBlockCategory && draggedResourceName) {
+    if (interactionState === 'placing' && draggedBlockCategory && draggedResourceName) {
       const elements = document.elementsFromPoint(e.clientX, e.clientY);
       const plateEl = elements.find((el) => el.closest('[data-plate-id]'));
       const plateContainer = plateEl?.closest('[data-plate-id]');
@@ -81,7 +82,7 @@ export function SceneCanvas() {
             playSound('block-snap');
           }
       }
-      cancelDrag();
+      completeInteraction();
     }
   };
 

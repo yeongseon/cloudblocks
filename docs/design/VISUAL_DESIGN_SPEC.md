@@ -139,7 +139,7 @@ Blocks are rendered as **isometric 3D shapes** with a diamond-shaped top face an
 |----------|-------|-------|
 | Projection | 2:1 Dimetric Isometric | `W=64, H=32` |
 | Stud unit | `40px` (Logical) | Maps to isometric grid units |
-| Corner radius | `0.08` | Rounded edges (RoundedBoxGeometry) |
+| Corner radius | `0.08` | Rounded edges (SVG path corner profile) |
 | Material | `meshStandardMaterial` | `roughness: 0.35`, `metalness: 0.05` — ABS plastic look |
 
 ### 3.3 Studs & Application Slots
@@ -317,7 +317,7 @@ Connections render as thick, colored, straight-segment arrows (not thin Bezier c
 
 | Property | Value |
 |----------|-------|
-| Geometry | `TubeGeometry` following path (radius `0.04`) |
+| Geometry | SVG path with stroked line (`stroke-width` equivalent to radius `0.04`) |
 | Path | Straight with slight vertical lift at midpoint (`+0.3`) |
 | Material | `meshStandardMaterial` with connection color |
 | Segments | 20 |
@@ -958,9 +958,10 @@ All user-facing labels follow this convention:
 
 ### Dependencies
 
-- `@react-three/drei` already provides `RoundedBox` — use for block body
-- `TubeGeometry` from Three.js for thick connection lines
-- `LineDashedMaterial` from Three.js for subnet dashed borders
+- Current renderer uses SVG primitives + CSS transforms + DOM layering
+- Block body corners/studs are implemented with SVG path/ellipse primitives
+- Thick connection lines use SVG path stroke + marker arrowheads
+- Subnet dashed borders use SVG `stroke-dasharray`
 - No new dependencies required
 
 ### File Changes (Estimated)
@@ -968,9 +969,9 @@ All user-facing labels follow this convention:
 | File | Change |
 |------|--------|
 | `shared/types/index.ts` | Update `BLOCK_COLORS`, `PLATE_COLORS`; add `RESOURCE_DEPENDENCIES`, `COMMAND_ACTIONS` |
-| `entities/block/BlockModel.tsx` | RoundedBox, studs, icon overlay, educational tooltip |
+| `entities/block/BlockSvg.tsx` | Rounded SVG block body, studs, icon overlay, educational tooltip |
 | `entities/plate/PlateModel.tsx` | Opaque baseplate, dashed subnet borders |
-| `entities/connection/ConnectionLine.tsx` | TubeGeometry, colored arrows |
+| `entities/connection/ConnectionPath.tsx` | SVG path, colored arrows |
 | `widgets/scene-canvas/SceneCanvas.tsx` | Update lighting, background, camera |
 | `widgets/bottom-panel/BottomPanel.tsx` | **New** — 4-panel container |
 | `widgets/bottom-panel/Minimap.tsx` | **New** — Architecture overview |
@@ -991,7 +992,7 @@ All user-facing labels follow this convention:
 ### Constraints
 
 - **No domain model changes** — visual only, `ArchitectureModel` stays the same
-- **No new npm dependencies** — `@react-three/drei` already has `RoundedBox`
+- **No new npm dependencies** — current SVG + CSS renderer covers required visuals
 - **FSD layer rules apply** — new widgets go in `widgets/`, no upward imports
 - **TypeScript strict mode** — no `as any`, no `@ts-ignore`
 - **2D-first model preserved** — rendering is projection only (ADR-0005)

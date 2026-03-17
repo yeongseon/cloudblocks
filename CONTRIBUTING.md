@@ -78,6 +78,11 @@ pip install -e ".[dev]"
 uvicorn app.main:app --reload --port 8000
 ```
 
+Auth implementation notes (current):
+- Session auth is cookie-based (`cb_session`, httpOnly), not JWT-based
+- OAuth state uses encrypted httpOnly `cb_oauth` cookie
+- Frontend/backend auth calls must use credentialed requests (`credentials: 'include'`)
+
 ### Using the Makefile
 
 Common tasks are available via `make`:

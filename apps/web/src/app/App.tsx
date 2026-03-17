@@ -39,8 +39,8 @@ function App() {
   const removeConnection = useArchitectureStore((s) => s.removeConnection);
   const selectedId = useUIStore((s) => s.selectedId);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
-  const cancelDrag = useUIStore((s) => s.cancelDrag);
-  const draggedBlockCategory = useUIStore((s) => s.draggedBlockCategory);
+  const interactionState = useUIStore((s) => s.interactionState);
+  const cancelInteraction = useUIStore((s) => s.cancelInteraction);
   const editorMode = useUIStore((s) => s.editorMode);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
 
@@ -106,8 +106,8 @@ function App() {
 
       // Escape: cancel drag first, then deselect, then exit diff mode
       if (e.key === 'Escape') {
-        if (draggedBlockCategory) {
-          cancelDrag();
+        if (interactionState === 'placing') {
+          cancelInteraction();
           return;
         }
         const { diffMode, setDiffMode } = useUIStore.getState();
@@ -122,7 +122,7 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo, selectedId, removeBlock, removePlate, removeConnection, setSelectedId, cancelDrag, draggedBlockCategory]);
+  }, [undo, redo, selectedId, removeBlock, removePlate, removeConnection, setSelectedId, interactionState, cancelInteraction]);
 
   return (
     <div className="app">

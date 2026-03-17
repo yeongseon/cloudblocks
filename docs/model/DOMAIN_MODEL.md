@@ -679,7 +679,7 @@ interface ArchitectureModel {
 }
 ```
 
-> **Note on coordinates**: The `Position` and `Size` types retain `z`/`depth` fields for Three.js rendering compatibility. The editing model treats placement as 2D (x, y) with containment hierarchy. The z-axis is managed by the rendering layer for isometric projection — users do not directly manipulate depth.
+> **Note on coordinates**: The `Position` and `Size` types retain `z`/`depth` fields for isometric rendering. The editing model treats placement as 2D (x, y) with containment hierarchy. The z-axis is managed by the rendering layer for isometric projection — users do not directly manipulate depth.
 
 ## Serialization Format
 

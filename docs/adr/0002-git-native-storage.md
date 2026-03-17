@@ -26,7 +26,7 @@ Option 1 creates a heavy SaaS backend that owns user data. Users lose portabilit
 | Architecture specs (JSON) | GitHub repo | Version history, diff, collaboration |
 | Generated IaC code | GitHub repo | PR-based review, CI/CD |
 | Templates | GitHub repo | Community contribution |
-| User identity / OAuth | Metadata DB (Supabase/PG) | Auth, tokens |
+| User identity / OAuth | Metadata DB (SQLite currently; PG planned) | Auth, tokens |
 | Workspace index | Metadata DB | Fast lookup |
 | Run status / audit | Metadata DB | Job state tracking |
 
@@ -42,6 +42,8 @@ Option 1 creates a heavy SaaS backend that owns user data. Users lose portabilit
 - **Milestone 1**: localStorage (frontend-only, no backend)
 - **Milestone 3+**: Local-first store (IndexedDB) with optional GitHub sync
 - **Milestone 5+**: Full GitHub integration via backend API
+
+> **Implementation note (current state)**: The metadata DB is implemented with SQLite, and session auth is implemented with server-side `sessions` table plus httpOnly `cb_session` cookie.
 
 ## Consequences
 
