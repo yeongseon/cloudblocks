@@ -49,14 +49,6 @@ export const ConnectionPath = memo(function ConnectionPath({
         : '#64748b';
   const arrowFillBg = bgStroke;
   const arrowFillFg = fgStroke;
-  const fgStrokeWidth = connection.type === 'http' ? 3 : 2;
-  const fgStrokeDasharray = connection.type === 'internal'
-    ? '4 4'
-    : connection.type === 'data'
-      ? '8 4'
-      : connection.type === 'async'
-        ? '8 4 2 4'
-        : undefined;
 
   return (
     <g opacity={diffState === 'removed' ? 0.4 : 1}>
@@ -97,8 +89,7 @@ export const ConnectionPath = memo(function ConnectionPath({
       <path
         d={pathD}
         stroke={fgStroke}
-        strokeWidth={fgStrokeWidth}
-        strokeDasharray={fgStrokeDasharray}
+        strokeWidth={2}
         fill="none"
         filter="url(#glow)"
         markerEnd={`url(#${arrowId})`}
