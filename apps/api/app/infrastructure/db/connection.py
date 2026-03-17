@@ -73,6 +73,25 @@ _MIGRATIONS = [
     """
     ALTER TABLE identities ADD COLUMN encrypted_access_token TEXT;
     """,
+    # Migration 004: Sessions table for cookie-based auth
+    """
+    CREATE TABLE IF NOT EXISTS sessions (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        created_at INTEGER NOT NULL,
+        expires_at INTEGER NOT NULL,
+        revoked_at INTEGER,
+        last_seen_at INTEGER,
+        current_workspace_id TEXT,
+        current_repo_full_name TEXT
+    );
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
+    """,
 ]
 
 
@@ -137,13 +156,15 @@ class Database:
             raise RuntimeError("Database not connected. Call connect() first.")
         return self._db
 
-    async def execute(self, query: str, params: tuple = ()) -> aiosqlite.Cursor:
+    async def execute(self, query: str, params: tuple[object, ...] = ()) -> aiosqlite.Cursor:
         """Execute a SQL query."""
         cursor = await self.connection.execute(query, params)
         await self.connection.commit()
         return cursor
 
-    async def fetch_one(self, query: str, params: tuple = ()) -> dict | None:
+    async def fetch_one(
+        self, query: str, params: tuple[object, ...] = ()
+    ) -> dict[str, object] | None:
         """Execute a query and return the first row as a dict."""
         cursor = await self.connection.execute(query, params)
         row = await cursor.fetchone()
@@ -151,7 +172,9 @@ class Database:
             return None
         return dict(row)
 
-    async def fetch_all(self, query: str, params: tuple = ()) -> list[dict]:
+    async def fetch_all(
+        self, query: str, params: tuple[object, ...] = ()
+    ) -> list[dict[str, object]]:
         """Execute a query and return all rows as dicts."""
         cursor = await self.connection.execute(query, params)
         rows = await cursor.fetchall()

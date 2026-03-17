@@ -2,18 +2,21 @@
 
 from __future__ import annotations
 
+from typing import Any
 from datetime import datetime, timezone
 
 from app.domain.models.entities import (
     GenerationRun,
     GenerationStatus,
     Identity,
+    Session,
     User,
     Workspace,
 )
 from app.domain.models.repositories import (
     GenerationRunRepository,
     IdentityRepository,
+    SessionRepository,
     UserRepository,
     WorkspaceRepository,
 )
@@ -43,7 +46,7 @@ class SQLiteUserRepository(UserRepository):
     def __init__(self, db: Database) -> None:
         self._db = db
 
-    def _row_to_user(self, row: dict) -> User:
+    def _row_to_user(self, row: dict[str, Any]) -> User:
         return User(
             id=row["id"],
             github_id=row.get("github_id"),
@@ -106,7 +109,7 @@ class SQLiteIdentityRepository(IdentityRepository):
     def __init__(self, db: Database) -> None:
         self._db = db
 
-    def _row_to_identity(self, row: dict) -> Identity:
+    def _row_to_identity(self, row: dict[str, Any]) -> Identity:
         return Identity(
             id=row["id"],
             user_id=row["user_id"],
@@ -172,7 +175,7 @@ class SQLiteWorkspaceRepository(WorkspaceRepository):
     def __init__(self, db: Database) -> None:
         self._db = db
 
-    def _row_to_workspace(self, row: dict) -> Workspace:
+    def _row_to_workspace(self, row: dict[str, Any]) -> Workspace:
         return Workspace(
             id=row["id"],
             owner_id=row["owner_id"],
@@ -246,7 +249,7 @@ class SQLiteGenerationRunRepository(GenerationRunRepository):
     def __init__(self, db: Database) -> None:
         self._db = db
 
-    def _row_to_run(self, row: dict) -> GenerationRun:
+    def _row_to_run(self, row: dict[str, Any]) -> GenerationRun:
         return GenerationRun(
             id=row["id"],
             workspace_id=row["workspace_id"],
@@ -308,3 +311,86 @@ class SQLiteGenerationRunRepository(GenerationRunRepository):
             ),
         )
         return run
+
+
+class SQLiteSessionRepository(SessionRepository):
+    """SQLite implementation of SessionRepository."""
+
+    def __init__(self, db: Database) -> None:
+        self._db = db
+
+    def _row_to_session(self, row: dict[str, Any]) -> Session:
+        return Session(
+            id=row["id"],
+            user_id=row["user_id"],
+            created_at=row["created_at"],
+            expires_at=row["expires_at"],
+            revoked_at=row.get("revoked_at"),
+            last_seen_at=row.get("last_seen_at"),
+            current_workspace_id=row.get("current_workspace_id"),
+            current_repo_full_name=row.get("current_repo_full_name"),
+        )
+
+    async def create(self, session: Session) -> Session:
+        await self._db.execute(
+            """INSERT INTO sessions (id, user_id, created_at, expires_at, revoked_at,
+               last_seen_at, current_workspace_id, current_repo_full_name)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                session.id,
+                session.user_id,
+                session.created_at,
+                session.expires_at,
+                session.revoked_at,
+                session.last_seen_at,
+                session.current_workspace_id,
+                session.current_repo_full_name,
+            ),
+        )
+        return session
+
+    async def get_by_id(self, session_id: str) -> Session | None:
+        row = await self._db.fetch_one("SELECT * FROM sessions WHERE id = ?", (session_id,))
+        return self._row_to_session(row) if row else None
+
+    async def revoke(self, session_id: str) -> None:
+        import time
+
+        await self._db.execute(
+            "UPDATE sessions SET revoked_at = ? WHERE id = ?",
+            (int(time.time()), session_id),
+        )
+
+    async def revoke_all_for_user(self, user_id: str) -> None:
+        import time
+
+        await self._db.execute(
+            "UPDATE sessions SET revoked_at = ? WHERE user_id = ? AND revoked_at IS NULL",
+            (int(time.time()), user_id),
+        )
+
+    async def update_last_seen(self, session_id: str, timestamp: int) -> None:
+        await self._db.execute(
+            "UPDATE sessions SET last_seen_at = ? WHERE id = ?",
+            (timestamp, session_id),
+        )
+
+    async def update_workspace(
+        self,
+        session_id: str,
+        workspace_id: str,
+        repo_full_name: str | None,
+    ) -> None:
+        await self._db.execute(
+            "UPDATE sessions SET current_workspace_id = ?, current_repo_full_name = ? WHERE id = ?",
+            (workspace_id, repo_full_name, session_id),
+        )
+
+    async def cleanup_expired(self) -> int:
+        import time
+
+        cursor = await self._db.execute(
+            "DELETE FROM sessions WHERE expires_at < ?",
+            (int(time.time()),),
+        )
+        return cursor.rowcount
