@@ -156,3 +156,50 @@ def test_encrypt_decrypt_round_trip_with_special_characters() -> None:
     for token in tokens:
         encrypted = security.encrypt_token(token)
         assert security.decrypt_token(encrypted) == token
+
+
+def test_generate_session_token_returns_url_safe_string() -> None:
+    first = security.generate_session_token()
+    second = security.generate_session_token()
+
+    assert isinstance(first, str)
+    assert isinstance(second, str)
+    assert first
+    assert second
+    assert first != second
+
+
+def test_encrypt_oauth_state_returns_encrypted_string() -> None:
+    state_data = {"state": "abc123", "created_at": 1_700_000_000}
+
+    encrypted = security.encrypt_oauth_state(state_data)
+
+    assert isinstance(encrypted, str)
+    assert encrypted
+    assert encrypted != str(state_data)
+    assert "abc123" not in encrypted
+
+
+def test_decrypt_oauth_state_returns_original_data() -> None:
+    state_data = {"state": "oauth-state", "created_at": 1_700_123_456}
+
+    encrypted = security.encrypt_oauth_state(state_data)
+    decrypted = security.decrypt_oauth_state(encrypted)
+
+    assert decrypted == state_data
+
+
+def test_decrypt_oauth_state_returns_none_for_invalid_input() -> None:
+    assert security.decrypt_oauth_state("garbage-value") is None
+
+
+def test_encrypt_decrypt_oauth_state_with_various_data() -> None:
+    samples = [
+        {"state": "s1", "created_at": 1},
+        {"state": "s-2", "created_at": 1_700_000_000, "nonce": "xyz"},
+        {"state": "s3", "created_at": "1700000010", "meta": "info"},
+    ]
+
+    for sample in samples:
+        encrypted = security.encrypt_oauth_state(sample)
+        assert security.decrypt_oauth_state(encrypted) == sample
