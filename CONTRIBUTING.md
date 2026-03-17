@@ -134,53 +134,172 @@ apps/web/src/
 
 ## Making Changes
 
-All development follows the Issue → Branch → PR workflow:
+CloudBlocks uses two planning paths:
 
-1. **Create an Issue** — describe the feature, bug, or task
-2. **Create a branch** from `main`:
+- **Roadmap implementation work**: `Milestone -> Epic -> Sub-issue -> Branch -> PR`
+- **Small fixes, documentation, and maintenance**: `Issue -> Branch -> PR`
+
+Current roadmap work groups Epic issues `#65`-`#68` under the milestone `Phase 9 - Visual Builder Evolution`.
+
+### Labeling Rules
+
+Apply labels before starting work.
+
+#### 1) Size / tracking labels
+
+- `epic` — required for Epic tracking issues only
+
+#### 2) Type labels
+
+Use exactly one type label for every non-Epic issue:
+
+- `enhancement` — feature work
+- `bug` — defect fixes
+- `testing` — test coverage, regression tests, test infrastructure
+- `documentation` — docs-only changes
+
+#### 3) Domain labels
+
+Use one or more domain labels for implementation work:
+
+- `frontend`
+- `backend`
+- `security`
+- `auth`
+- `infrastructure`
+- `ux`
+- `design-system`
+- `domain-model`
+- `cloud-provider`
+
+Documentation issues may omit domain labels when the change is cross-cutting. If the docs clearly belong to one area, add the matching domain label.
+
+#### 4) Required label combinations
+
+| Issue kind | Required labels |
+|---|---|
+| Epic | `epic` + 1 or more domain labels |
+| Sub-issue (feature) | `enhancement` + 1 or more domain labels |
+| Sub-issue (bug) | `bug` + 1 or more domain labels |
+| Sub-issue (testing) | `testing` + 1 or more domain labels |
+| Documentation | `documentation` + optional domain label(s) |
+| Small fix / maintenance | `bug` or `enhancement` + 1 or more domain labels |
+
+### Roadmap Implementation Workflow
+
+Use the full workflow for any feature that spans multiple PRs, multiple domains, or a named roadmap phase.
+
+1. **Create or reuse a milestone**
+   - Create a milestone when the work is a named phase or release, spans multiple Epics, or needs shared tracking across multiple implementation issues.
+   - Milestone names use the format `Phase N - Name`.
+   - Reuse an existing open milestone when the work clearly belongs to it.
+
+2. **Create an Epic issue**
+   - Use the title format `[Epic] <feature area>`.
+   - Assign the Epic to the milestone.
+   - Apply the `epic` label plus one or more domain labels.
+   - Do not apply a type label to an Epic.
+   - The Epic body must use this structure:
+
+   ```md
+   ## Overview
+
+   ## Problems Solved
+   | Problem | Why it matters |
+   |---|---|
+   | ... | ... |
+
+   ## Architecture
+
+   ## Sub-Issues
+   - [ ] #123
+   - [ ] #124
+
+   ## Dependencies
+
+   ## Constraints
+
+   ## Branch Name
+   `feature/<short-description>`
+   ```
+
+3. **Create sub-issues from the Epic**
+   - Break the Epic into focused implementation units that fit in a single branch and a single PR.
+   - A good sub-issue usually covers one entity, one route, one UI slice, one provider integration, one migration, or one test suite.
+   - Assign each sub-issue to the same milestone and link it from the Epic checklist.
+   - Apply exactly one type label and one or more domain labels.
+   - Do not apply the `epic` label to sub-issues.
+
+4. **Sync `main` before starting work**
+   - Always update local `main` before creating or refreshing a branch:
+
+   ```bash
+   git checkout main
+   git pull --ff-only origin main
+   ```
+
+5. **Create a branch from `main`**
    - `feature/description` — new features
    - `fix/description` — bug fixes
    - `docs/description` — documentation changes
-3. **Implement** on the branch
-4. **Push** and create a Pull Request
-5. **CI must pass** — all 6 checks (Web Lint, Type Check, Build, Tests + API Lint, Tests)
-6. **Merge** via squash-and-merge to `main`
+
+6. **Implement and open a PR**
+   - Work on one sub-issue per branch.
+   - Open one PR per branch.
+   - Reference the issue in the PR description with `Closes #<issue-number>`.
+   - Keep each PR focused on one logical change.
+
+7. **Merge requirements**
+   - CI must pass before merge.
+   - Merge via squash-and-merge to `main`.
+
+### Small Changes Workflow
+
+Small bug fixes, documentation updates, and maintenance tasks that do not belong to a milestone may use the simpler `Issue -> Branch -> PR` flow.
+
+1. **Create or find an issue**
+   - Check existing issues first.
+   - Open an issue before starting work unless the change is a trivial documentation fix.
+
+2. **Apply labels**
+   - Use exactly one type label.
+   - Add one or more domain labels for implementation work.
+   - Documentation issues may omit domain labels when the scope is cross-cutting.
+
+3. **Sync `main`**
+   - Always update local `main` first:
+
+   ```bash
+   git checkout main
+   git pull --ff-only origin main
+   ```
+
+4. **Create a branch**
+   - `feature/description` — new features
+   - `fix/description` — bug fixes
+   - `docs/description` — documentation changes
+
+5. **Implement, verify, and open a PR**
+   - Keep changes focused: one logical change per PR.
+   - Reference the issue in the PR description with `Closes #<issue-number>`.
+   - CI must pass before merge.
+   - Merge via squash-and-merge to `main`.
 
 ### Branch Strategy
 
 `main` branch has the following protections:
+
 - Required status checks must pass before merge
 - Force pushes are not allowed
 - Branch deletion is not allowed
 - Admin enforcement enabled (no bypassing)
 
-### 1. Find or Create an Issue
-
-- Check [existing issues](https://github.com/yeongseon/cloudblocks/issues) first
-- For new features, open an issue to discuss before implementing
-- Bug fixes can go directly to a PR with a clear description
-
-### 2. Create a Branch
+### Verify Before Submitting
 
 ```bash
-git checkout -b feature/your-feature    # New feature
-git checkout -b fix/issue-description   # Bug fix
-git checkout -b docs/what-changed       # Documentation
-```
-
-### 3. Make Your Changes
-
-- Keep changes focused — one logical change per PR
-- Follow existing code patterns (see [Coding Standards](#coding-standards))
-- Update documentation if behavior changes
-
-### 4. Verify Before Submitting
-
-```bash
-# MUST pass before submitting
-cd apps/web && npx tsc -b        # TypeScript strict mode
-cd apps/web && npx vite build    # Production build
-pnpm lint                        # Linting
+cd apps/web && npx tsc -b
+cd apps/web && npx vite build
+pnpm lint
 ```
 
 ---
