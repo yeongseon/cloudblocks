@@ -1,3 +1,5 @@
+import { TILE_H, TILE_W, TILE_Z } from '../tokens/designTokens';
+
 /**
  * 2:1 Dimetric Isometric Projection
  *
@@ -17,11 +19,7 @@
  */
 
 /** Pixels per world unit (tile width). */
-export const SCALE = 64;
-
-const TILE_W = SCALE;
-const TILE_H = SCALE / 2;
-const TILE_Z = SCALE / 2;
+export const SCALE = TILE_W;
 
 export interface ScreenPoint {
   x: number;
