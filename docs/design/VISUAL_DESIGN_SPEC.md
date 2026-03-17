@@ -996,3 +996,120 @@ All user-facing labels follow this convention:
 - **TypeScript strict mode** — no `as any`, no `@ts-ignore`
 - **2D-first model preserved** — rendering is projection only (ADR-0005)
 - **Educational tone** — all user-facing text uses plain language; technical terms appear as secondary info
+
+---
+
+## 11. Lego Minifigure Character
+
+CloudBlocks features a **Lego minifigure mascot** that represents DevOps personas and cloud provider identity. The character is rendered as an inline SVG component, matching the isometric Lego aesthetic of the builder.
+
+### 11.1 Design Concept
+
+The minifigure is a simplified, isometric-style Lego person constructed from basic SVG primitives (ellipses, rects, paths). It follows the same visual language as blocks and plates — same color derivation, same stud standard on the head, same isometric projection.
+
+```
+        ╭─────╮
+        │ ⬬   │  ← stud (Universal Stud Standard)
+        │ 😊  │  ← head (cylinder, Bright Yellow #F2CD37)
+        ╰──┬──╯
+      ┌────┴────┐
+      │  LOGO   │  ← torso (cloud provider logo)
+      │ ╭─┤├─╮  │  ← arms + hands
+      └────┬────┘
+        ┌──┴──┐
+        │     │  ← legs (Medium Stone Grey #969696)
+        └─────┘
+```
+
+### 11.2 Cloud Provider Logo Strategy
+
+Each minifigure variant carries a **cloud provider logo on the torso**, establishing visual identity for the target cloud platform.
+
+| Provider | Logo Position | Torso Color | Logo | Status |
+|----------|--------------|-------------|------|--------|
+| **Azure** | Center torso | Dark Azure `#078DCE` | Azure icon (simplified) | **Phase 3 — Active** |
+| **AWS** | Center torso | Dark Orange `#FF9900` | AWS icon (simplified) | **Planned — Phase 3+** |
+| **GCP** | Center torso | White `#FFFFFF` | GCP icon (4-color) | **Planned — Phase 3+** |
+
+> **Implementation order**: Azure first (matches current Azure-first platform focus). AWS and GCP variants follow when multi-cloud support ships (Milestone 8).
+
+#### Logo Rendering Rules
+
+- Logos are simplified geometric SVG — no raster images, no external assets
+- Logo must remain legible at 48px minifigure height
+- Logo colors follow each provider's official brand palette
+- Logo area: approximately 60% of torso front face width
+
+### 11.3 Minifigure Anatomy
+
+| Part | Shape | Color | Notes |
+|------|-------|-------|-------|
+| **Stud** | Ellipse (Universal Stud Standard) | Bright Yellow `#F2CD37` | `rx=19, ry=9.5, h=7px` — same as all studs |
+| **Head** | Cylinder (ellipse top + rect body) | Bright Yellow `#F2CD37` | Simple face: 2 dot eyes + smile arc |
+| **Torso** | Tapered rectangle | Provider-dependent (see §11.2) | Cloud logo on front face |
+| **Arms** | Diagonal rects | Provider torso color | Angled ~30° from torso |
+| **Hands** | Small circles | Bright Yellow `#F2CD37` | "C" hook shape in detailed view |
+| **Legs** | Two rectangles + hip bar | Medium Stone Grey `#969696` | Standard DevOps/engineer pants |
+
+### 11.4 Isometric Rendering
+
+The minifigure follows the same 2:1 dimetric isometric projection as all other elements.
+
+- **Perspective**: 3/4 view — show top of head (stud visible), one side of torso, slight leg offset
+- **Layering** (SVG DOM order, back to front): Back Arm → Back Leg → Torso → Front Leg → Front Arm → Head → Stud
+- **Face shading**: Use `blockFaceColors.ts` pattern — top face lighter, side face 15-20% darker
+- **Scale**: Minifigure height ≈ 1.5× block height for visual proportion
+
+### 11.5 Component Interface
+
+```typescript
+// apps/web/src/entities/character/MinifigureSvg.tsx
+
+interface MinifigureProps {
+  provider: 'azure' | 'aws' | 'gcp';
+  x?: number;
+  y?: number;
+  scale?: number;
+  className?: string;
+}
+```
+
+**FSD Location**: `apps/web/src/entities/character/MinifigureSvg.tsx`
+
+### 11.6 Size & Placement
+
+| Property | Value |
+|----------|-------|
+| Default height | `64px` (SVG viewBox) |
+| Min legible size | `48px` |
+| Canvas placement | Near architecture elements, not overlapping blocks |
+| Depth ordering | Uses `depthKey()` utility for correct z-order |
+
+### 11.7 DevOps Engineer Theme
+
+The default minifigure represents a **DevOps Engineer** persona:
+
+| Accessory | Visual | Status |
+|-----------|--------|--------|
+| Hardhat / Headset | Small helmet shape on head | Optional (v1: bare head) |
+| Laptop / Wrench | Held item in hand | Planned (v2) |
+| Terminal badge | Small `>_` icon on torso | Optional accent |
+
+### 11.8 Future Variants (Planned)
+
+| Variant | Persona | Distinguishing Feature |
+|---------|---------|----------------------|
+| DevOps Engineer | Default | Cloud provider logo torso |
+| Security Engineer | SecOps | Dark Red `#720E0F` torso + shield icon |
+| Data Engineer | DataOps | Indigo `#283593` torso + database icon |
+| Platform Engineer | PlatformOps | Bright Bluish Green `#008F9B` torso + Kubernetes icon |
+
+> **Note**: All variants follow the same anatomy (§11.3). Only torso color and logo differ.
+
+### 11.9 Constraints
+
+- **Universal Stud Standard**: Head stud uses identical dimensions (`rx=19, ry=9.5, h=7px`)
+- **No raster images**: All graphics are inline SVG paths — no PNG/JPG logos
+- **CC0/Apache-compatible assets only**: No trademarked logos — use simplified geometric approximations
+- **No external dependencies**: Raw SVG elements, no icon libraries
+- **Isometric consistency**: Must match existing block/plate projection angles

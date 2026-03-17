@@ -314,6 +314,42 @@ Features:
 
 ---
 
+# Phase 3 — Lego Minifigure Character SVG
+
+Goal:
+Create a DevOps Engineer Lego minifigure character as an inline SVG component with cloud provider branding.
+
+> **Reference**: [VISUAL_DESIGN_SPEC.md §11](../design/VISUAL_DESIGN_SPEC.md#11-lego-minifigure-character)
+
+Features:
+
+- Lego minifigure SVG component (head, torso, arms, legs) in isometric style
+- Azure logo on torso (first provider variant)
+- AWS and GCP logo variants planned for Milestone 8 (multi-cloud)
+- Universal Stud Standard compliant (head stud)
+- DevOps Engineer persona as default character
+
+### Deliverables
+
+| # | Deliverable | Priority | Effort |
+|---|------------|----------|--------|
+| 1 | MinifigureSvg component (Azure variant) | P1 | Medium |
+| 2 | Cloud provider logo SVG paths (Azure) | P1 | Low |
+| 3 | Isometric face shading + depth ordering | P1 | Low |
+| 4 | AWS/GCP logo variants | P2 | Low (deferred to Milestone 8) |
+
+### Exit Criteria
+- [ ] MinifigureSvg renders correctly at 48-64px scale
+- [ ] Azure logo legible on torso front face
+- [ ] Head stud follows Universal Stud Standard (rx=19, ry=9.5, h=7px)
+- [ ] Isometric projection matches existing block/plate angles
+- [ ] All existing tests pass, build clean
+
+### Dependencies
+- Milestone 6C complete
+
+---
+
 # Milestone 7 — Collaboration + CI/CD Integration
 
 Goal:
