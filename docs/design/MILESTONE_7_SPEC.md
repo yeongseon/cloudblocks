@@ -1,10 +1,12 @@
 # Milestone 7 — Collaboration + CI/CD Integration
 
-## Status: Design Phase
+## Status: Design Phase (Oracle-Reviewed ✅)
 
 **Goal**: Team collaboration via Git and automated CI/CD pipelines.
 
 **Dependencies**: Milestone 6B complete ✅, Milestone 5 (GitHub Integration) ✅
+
+**Oracle Review**: Two independent reviews completed 2026-03-17. All critical feedback incorporated below.
 
 ---
 
@@ -25,6 +27,13 @@ Milestone 7 adds three core capabilities:
 - Permission management beyond GitHub's native permissions
 - Conflict resolution UI (PRs handle merge conflicts)
 
+### Key Architectural Constraints (from Oracle Review)
+
+1. **FSD import direction is inviolable**: `entities/ → shared/` only. Diff types MUST live in `shared/types/diff.ts`, NOT `features/diff/types.ts`, because `uiStore` (entities layer) needs them.
+2. **Diff is computed frontend-side only**: The backend provides raw architecture snapshots; the TypeScript diff engine computes deltas. No Python diff logic.
+3. **Diff mode disables interactions**: When `diffMode === true`, drag/delete/connect/create are all disabled to prevent model mutation during comparison.
+4. **Use actual component names**: The renderer uses `BlockSprite`, `PlateSprite`, `ConnectionPath` (sprite canvas), NOT the older `BlockModel`/`PlateModel` names.
+
 ---
 
 ## 2. Architecture Diff Visualization
@@ -37,31 +46,34 @@ When a user opens a PR or compares two commits, they see:
 
 ### 2.2 Diff Engine
 
-**Library**: `jsondiffpatch` (350k weekly downloads, industry standard)
+**Approach**: Custom ID-keyed domain diff with optional `jsondiffpatch` for deep property comparison inside matched entities. Both Oracle reviews recommended against using `jsondiffpatch` as the whole-model diff engine because the model is already stable-ID based and the output is a custom `DiffDelta` — a custom domain diff is simpler, more predictable, and avoids array-reorder noise.
 
 The diff engine compares two `ArchitectureModel` objects and produces a structured delta:
 
 ```typescript
-// New file: apps/web/src/features/diff/engine.ts
+// Types file: apps/web/src/shared/types/diff.ts  (⚠️ MUST be in shared/, not features/)
+// Reason: uiStore (entities layer) imports DiffDelta. entities → features is forbidden by FSD.
 
-import type { ArchitectureModel } from '../../shared/types';
+import type { Plate, Block, Connection, ExternalActor } from './index';
+
+export interface EntityDiff<T> {
+  added: T[];
+  removed: T[];
+  modified: Array<ModifiedEntity<T>>;
+}
+
+export interface ModifiedEntity<T> {
+  id: string;
+  before: T;          // Full snapshot of base state (Oracle: needed for ghost rendering)
+  after: T;           // Full snapshot of head state
+  changes: PropertyChange[];
+}
 
 export interface DiffDelta {
-  plates: {
-    added: Plate[];
-    removed: Plate[];
-    modified: Array<{ id: string; changes: PropertyChange[] }>;
-  };
-  blocks: {
-    added: Block[];
-    removed: Block[];
-    modified: Array<{ id: string; changes: PropertyChange[] }>;
-  };
-  connections: {
-    added: Connection[];
-    removed: Connection[];
-    modified: Array<{ id: string; changes: PropertyChange[] }>;
-  };
+  plates: EntityDiff<Plate>;
+  blocks: EntityDiff<Block>;
+  connections: EntityDiff<Connection>;
+  externalActors: EntityDiff<ExternalActor>;  // ⚠️ Was missing — ArchitectureModel includes this
   summary: {
     totalChanges: number;
     hasBreakingChanges: boolean;
@@ -74,6 +86,16 @@ export interface PropertyChange {
   newValue: unknown;
 }
 
+// Diff state for visual rendering (consumed by BlockSprite, PlateSprite, ConnectionPath)
+export type DiffState = 'added' | 'removed' | 'modified' | 'unchanged';
+```
+
+```typescript
+// Engine file: apps/web/src/features/diff/engine.ts
+
+import type { ArchitectureModel } from '../../shared/types';
+import type { DiffDelta } from '../../shared/types/diff';
+
 export function computeArchitectureDiff(
   base: ArchitectureModel,
   head: ArchitectureModel
@@ -82,7 +104,10 @@ export function computeArchitectureDiff(
 
 **Key design decisions**:
 - Compare entities by stable `id` field (not array index)
-- Use `jsondiffpatch` with `objectHash` config that matches by entity ID
+- **Normalize before diffing**: Sort `plates`, `blocks`, `connections`, `externalActors` arrays by ID; sort `plate.children` arrays. Ignore volatile paths: `createdAt`, `updatedAt` (Oracle: these produce noise that isn't a real architecture change)
+- **ID-keyed maps**: Build `Map<id, entity>` for base and head, then compute added (in head not base), removed (in base not head), modified (in both, with property diff)
+- **Property-level diff**: For modified entities, deep-compare all fields except ignored paths. Use `jsondiffpatch` only as an optional helper for nested `metadata` objects if needed.
+- Include `before`/`after` full snapshots on modified entities (needed for ghost rendering and detailed UI)
 - Produce CloudBlocks-specific `DiffDelta` (not raw jsondiffpatch delta)
 
 ### 2.3 Structural Diff Panel (UI)
@@ -115,7 +140,7 @@ export function computeArchitectureDiff(
 
 ### 2.4 Visual Canvas Diff ("Ghost" Pattern)
 
-On the 3D canvas, render diff state using the following visual vocabulary:
+On the sprite canvas, render diff state using the following visual vocabulary:
 
 | Change Type | Visual Treatment |
 |-------------|-----------------|
@@ -125,10 +150,22 @@ On the 3D canvas, render diff state using the following visual vocabulary:
 | **Modified (property)** | Yellow border highlight (`#FFB900`) |
 | **Unchanged** | Normal rendering, slight opacity reduction (0.7) |
 
-**Implementation**: Add a `diffMode` state to `uiStore`. When active, `BlockModel` and `PlateModel` read from the `DiffDelta` to determine their visual state.
+**Implementation**: Add a `diffMode` state to `uiStore`. When active, `BlockSprite`, `PlateSprite`, and `ConnectionPath` read from the `DiffDelta` to determine their visual state. Ghost rendering is implemented as an extra base-architecture render layer with CSS/SVG overlays in the sprite canvas.
+
+**⚠️ Diff mode interaction lockdown** (Oracle): When `diffMode === true`, ALL of the following are disabled:
+- Drag/move blocks and plates
+- Delete blocks and plates
+- Create new blocks, plates, connections
+- Connect mode
+- Undo/redo (operating on a snapshot, not live model)
+
+This prevents accidental model mutation while comparing architectures.
 
 ```typescript
-// In uiStore.ts
+// In uiStore.ts — entities layer imports from shared/types/diff.ts (FSD-compliant)
+import type { DiffDelta } from '../../shared/types/diff';
+import type { ArchitectureModel } from '../../shared/types';
+
 interface UIState {
   // ... existing fields ...
   diffMode: boolean;
@@ -145,6 +182,14 @@ Users can trigger diff from:
 2. **PR creation** → Auto-show diff before creating PR
 3. **Commit history** → Click any commit to compare with current
 
+**All three use the same primitive** (Oracle): A generic ref-based architecture fetch endpoint that returns the `ArchitectureModel` at a given Git ref (branch, commit SHA, or PR head). The frontend then computes the diff locally using `computeArchitectureDiff()`. This avoids duplicating diff logic in Python.
+
+```
+GET /api/v1/github/workspaces/{id}/architecture?ref={branch|sha}
+```
+
+Returns the raw `ArchitectureModel` JSON at that ref. The frontend compares it against the current local architecture.
+
 ---
 
 ## 3. GitHub Actions Integration (Auto Terraform Plan)
@@ -156,6 +201,14 @@ When a PR is created via CloudBlocks (using the existing `GitHubPR` widget), the
 1. Generates Terraform from the architecture in the PR
 2. Commits a GitHub Actions workflow template to the repo (one-time setup)
 3. The workflow runs `terraform plan` and posts results as a PR comment
+
+**⚠️ Critical gap identified by Oracle**: The current PR flow only commits `cloudblocks/architecture.json`. But `terraform plan` runs against `infra/terraform/`, which would be stale unless the workflow also generates Terraform files from the architecture. Two approaches:
+
+**Option A (Chosen)**: The CI workflow includes a Terraform generation step that reads `cloudblocks/architecture.json` and produces `.tf` files before running `plan`. This requires a lightweight CLI tool or script committed to the repo.
+
+**Option B (Deferred)**: PR creation also commits generated Terraform files alongside `architecture.json`. Simpler but creates larger diffs and potential merge conflicts.
+
+We choose **Option A** because it keeps the PR diff clean (only architecture changes) and ensures Terraform is always regenerated from source.
 
 ### 3.2 Workflow Template
 
@@ -169,6 +222,7 @@ on:
   pull_request:
     paths:
       - 'cloudblocks/architecture.json'
+  workflow_dispatch:  # Oracle: allows manual reruns as secondary trigger
 
 permissions:
   pull-requests: write
@@ -179,6 +233,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Generate Terraform from Architecture
+        run: |
+          # CloudBlocks CLI generates .tf files from architecture.json
+          npx cloudblocks-codegen --input cloudblocks/architecture.json --output infra/terraform/
+        # NOTE: cloudblocks-codegen is a lightweight CLI wrapper around
+        # the same generate pipeline used in the frontend (features/generate/)
 
       - uses: hashicorp/setup-terraform@v3
         with:
@@ -197,6 +258,7 @@ jobs:
         continue-on-error: true
 
       - name: Post Plan to PR
+        if: github.event_name == 'pull_request'
         uses: mshick/add-pr-comment@v2
         with:
           message: |
@@ -225,6 +287,8 @@ jobs:
 2. CloudBlocks checks if `.github/workflows/cloudblocks-plan.yml` exists in the repo
 3. If not, commits the workflow template to the default branch
 4. Shows confirmation: "Terraform plan will now run automatically on architecture PRs"
+
+**⚠️ Permission requirements** (Oracle): Writing to `.github/workflows/` requires `contents: write` scope. The current GitHub App requests `repo,read:user,user:email` which covers this. However, protected default branches may block the one-click setup — in that case, show a manual setup guide with the workflow YAML for copy-paste.
 
 **API endpoint** (new):
 ```
@@ -257,7 +321,7 @@ Returns:
 **Frontend**: The `GitHubPR` widget shows plan status after PR creation:
 
 ```
-✅ Terraform Plan — 2 to add, 0 to change, 0 to destroy
+✅ Terraform Plan — Passed (click to see details)
 ```
 
 or
@@ -265,6 +329,8 @@ or
 ```
 ❌ Terraform Plan — Failed (click to see details)
 ```
+
+> **Note** (Oracle): Showing "2 to add, 0 to change, 0 to destroy" requires parsing plan output server-side. For MVP, show only pass/fail status with a link to the GitHub Actions run. Richer output can be added later by parsing the PR comment body.
 
 ---
 
@@ -319,11 +385,13 @@ Member B: Pull merged changes
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
+| `/workspaces/{id}/architecture?ref={ref}` | GET | Fetch architecture JSON at a Git ref (branch, SHA, PR head) |
 | `/workspaces/{id}/prs` | GET | List open PRs for workspace repo |
-| `/workspaces/{id}/prs/{number}/diff` | GET | Get architecture diff for a PR |
 | `/workspaces/{id}/prs/{number}/checks` | GET | Get CI check status for a PR |
 | `/workspaces/{id}/setup-cicd` | POST | Commit workflow template to repo |
 | `/workspaces/{id}/branches` | GET | List branches |
+
+> **Design note** (Oracle): The original spec had `GET /prs/{number}/diff` which would compute diff server-side. Removed — diff is computed frontend-side using `computeArchitectureDiff()`. The generic `architecture?ref=` endpoint serves all three diff entry points (PR, commit, remote compare).
 
 ---
 
@@ -333,19 +401,22 @@ Member B: Pull merged changes
 
 | Package | Purpose | Size | Weekly Downloads |
 |---------|---------|------|-----------------|
-| `jsondiffpatch` | Architecture model diff | ~38kB | ~350k |
+| `jsondiffpatch` | Deep property diff for nested metadata (optional helper) | ~38kB | ~350k |
 
-No other new dependencies needed. All UI is custom-built using existing React components.
+The core diff logic is a custom ID-keyed domain diff. `jsondiffpatch` is used only as an optional helper for deep property comparison inside matched entities' `metadata` objects. If the metadata diffing proves simple enough, this dependency can be dropped entirely.
 
 ### 5.2 File Structure (New Files)
 
 ```
 apps/web/src/
+├── shared/
+│   └── types/
+│       └── diff.ts                # ⚠️ DiffDelta, PropertyChange, DiffState types
+│                                  # MUST be in shared/ (FSD: entities imports shared)
 ├── features/
 │   └── diff/
-│       ├── engine.ts              # DiffDelta computation
-│       ├── engine.test.ts         # Diff engine tests
-│       └── types.ts               # DiffDelta, PropertyChange types
+│       ├── engine.ts              # computeArchitectureDiff() implementation
+│       └── engine.test.ts         # Diff engine tests
 ├── widgets/
 │   ├── architecture-diff/
 │   │   ├── ArchitectureDiff.tsx   # Structural diff panel
@@ -354,40 +425,42 @@ apps/web/src/
 │   │   ├── DiffEntityList.tsx     # Entity change list
 │   │   └── ArchitectureDiff.test.tsx
 │   └── collaboration/
-│       ├── CollaborationPanel.tsx  # Team panel (replaces separate sync/PR widgets)
+│       ├── CollaborationPanel.tsx  # Team panel (consolidates sync/PR)
 │       ├── CollaborationPanel.css
 │       ├── PullRequestList.tsx    # Open PR list
 │       ├── CISetup.tsx            # CI/CD setup wizard
 │       └── CollaborationPanel.test.tsx
-├── shared/
-│   └── types/
-│       └── api.ts                 # New API response types (PrListResponse, etc.)
-├── entities/
-│   └── store/
-│       └── uiStore.ts             # Add diffMode, diffDelta fields
 
 apps/api/app/
 ├── api/routes/
-│   └── github.py                  # Add: setup-cicd, prs, pr checks endpoints
+│   └── github.py                  # Add: setup-cicd, prs, architecture-at-ref, pr checks
 ```
 
 ### 5.3 Modified Files
 
 | File | Change |
 |------|--------|
-| `entities/store/uiStore.ts` | Add `diffMode`, `diffDelta`, `diffBaseArchitecture`, `showCollaboration` |
-| `entities/block/BlockModel.tsx` | Read `diffMode` + render ghost/highlight overlays |
-| `entities/plate/PlateModel.tsx` | Read `diffMode` + render ghost/highlight overlays |
-| `entities/connection/ConnectionLine.tsx` | Read `diffMode` + render added/removed styles |
+| `shared/types/diff.ts` | **NEW** — `DiffDelta`, `EntityDiff`, `PropertyChange`, `DiffState` types |
+| `shared/types/api.ts` | Add `PrInfo`, `CheckInfo`, `ArchitectureAtRefResponse` types |
+| `shared/types/index.ts` | Extend `Workspace` with optional `repoOwner`, `repoName`, `branch`, `lastSyncAt` fields |
+| `entities/store/uiStore.ts` | Add `diffMode`, `diffDelta`, `diffBaseArchitecture`, `showCollaboration`, `setDiffMode`, `toggleCollaboration` |
+| `widgets/scene-canvas/SceneCanvas.tsx` | Render ghost entities from `diffBaseArchitecture`; add diff overlay layer |
+| `entities/block/BlockSprite.tsx` | Read `diffMode` + render ghost/highlight overlays via CSS/SVG |
+| `entities/plate/PlateSprite.tsx` | Read `diffMode` + render ghost/highlight overlays via CSS/SVG |
+| `entities/connection/ConnectionPath.tsx` | Read `diffMode` + render added/removed styles |
 | `widgets/menu-bar/MenuBar.tsx` | Add "Team" menu with collaboration panel toggle |
-| `shared/types/api.ts` | Add `PrInfo`, `CheckInfo`, `DiffResponse` types |
 | `apps/api/app/api/routes/github.py` | Add 5 new endpoints |
-| `apps/api/app/infrastructure/github_service.py` | Add `list_prs`, `get_pr_files`, `get_check_runs` methods |
+| `apps/api/app/infrastructure/github_service.py` | Add `list_prs`, `get_architecture_at_ref`, `get_check_runs` methods |
+
+> **Workspace metadata** (Oracle): The current `Workspace` type in `shared/types/index.ts` has no repo/branch fields. `GitHubSync` keeps linkage in local component state. Before building the collaboration panel, workspace metadata must be promoted to the store.
 
 ### 5.4 Store Changes
 
 ```typescript
 // uiStore.ts additions
+import type { DiffDelta } from '../../shared/types/diff';  // ✅ FSD-compliant: entities → shared
+import type { ArchitectureModel } from '../../shared/types';
+
 interface UIState {
   // ... existing fields ...
 
@@ -403,73 +476,90 @@ interface UIState {
 }
 ```
 
+```typescript
+// Workspace type extension (shared/types/index.ts)
+export interface Workspace {
+  id: string;
+  name: string;
+  architecture: ArchitectureModel;
+  createdAt: string;
+  updatedAt: string;
+  // New fields for GitHub integration (optional for backward compat)
+  repoOwner?: string;
+  repoName?: string;
+  branch?: string;
+  lastSyncAt?: string;
+}
+```
+
 ---
 
 ## 6. Implementation Plan
 
-### Phase 1: Diff Engine (Backend-agnostic)
+> **Phase ordering** (Oracle): Original plan had Phase 4 adding a CI button to `CollaborationPanel` before that widget existed in Phase 5. Reordered to: foundation types/workspace metadata → diff engine → diff UI → collaboration panel (with CI) → visual canvas diff.
+
+### Phase 1: Foundation (Types + Workspace Metadata)
 
 | # | Task | Effort | Files |
 |---|------|--------|-------|
-| 1.1 | Add `jsondiffpatch` dependency | Trivial | `package.json` |
-| 1.2 | Create diff types (`DiffDelta`, `PropertyChange`) | Low | `features/diff/types.ts` |
-| 1.3 | Implement `computeArchitectureDiff()` | Medium | `features/diff/engine.ts` |
-| 1.4 | Write comprehensive diff engine tests | Medium | `features/diff/engine.test.ts` |
+| 1.1 | Create `shared/types/diff.ts` with `DiffDelta`, `EntityDiff`, `PropertyChange`, `DiffState` | Low | `shared/types/diff.ts` |
+| 1.2 | Extend `Workspace` type with repo/branch metadata fields | Low | `shared/types/index.ts` |
+| 1.3 | Add `diffMode`, `diffDelta`, `diffBaseArchitecture`, `showCollaboration` to `uiStore` | Low | `entities/store/uiStore.ts` |
+| 1.4 | Add new API response types (`PrInfo`, `CheckInfo`, etc.) | Low | `shared/types/api.ts` |
+| 1.5 | Write uiStore diff mode tests | Low | `entities/store/uiStore.test.ts` |
 
-**Exit criteria**: `computeArchitectureDiff(base, head)` correctly identifies all added/removed/modified entities with property-level changes. 95%+ test coverage.
+**Exit criteria**: All types compile. uiStore correctly manages diff mode state. Workspace type supports repo metadata. No FSD violations.
 
-### Phase 2: Diff UI (Structural Panel)
+### Phase 2: Diff Engine
 
 | # | Task | Effort | Files |
 |---|------|--------|-------|
-| 2.1 | Add `diffMode` + `showArchitectureDiff` to `uiStore` | Low | `uiStore.ts` |
-| 2.2 | Build `ArchitectureDiff` panel component | Medium | `widgets/architecture-diff/` |
-| 2.3 | Build `DiffSummary` and `DiffEntityList` sub-components | Medium | `widgets/architecture-diff/` |
-| 2.4 | Add "Compare" button to GitHub Sync panel | Low | `widgets/github-sync/GitHubSync.tsx` |
-| 2.5 | Write panel tests | Medium | `ArchitectureDiff.test.tsx` |
+| 2.1 | Implement `computeArchitectureDiff()` with ID-keyed normalization | Medium | `features/diff/engine.ts` |
+| 2.2 | Write comprehensive diff engine tests | Medium | `features/diff/engine.test.ts` |
+| 2.3 | Add `jsondiffpatch` dependency (if needed for metadata diff) | Trivial | `package.json` |
+
+**Exit criteria**: `computeArchitectureDiff(base, head)` correctly identifies all added/removed/modified entities (plates, blocks, connections, externalActors) with property-level changes. Normalizes away volatile fields. Before/after snapshots included. 95%+ test coverage.
+
+### Phase 3: Diff UI (Structural Panel)
+
+| # | Task | Effort | Files |
+|---|------|--------|-------|
+| 3.1 | Build `ArchitectureDiff` panel component | Medium | `widgets/architecture-diff/` |
+| 3.2 | Build `DiffSummary` and `DiffEntityList` sub-components | Medium | `widgets/architecture-diff/` |
+| 3.3 | Add "Compare" button to GitHub Sync panel | Low | `widgets/github-sync/GitHubSync.tsx` |
+| 3.4 | Add `architecture?ref=` backend endpoint | Medium | `api/routes/github.py`, `github_service.py` |
+| 3.5 | Write panel tests | Medium | `ArchitectureDiff.test.tsx` |
 
 **Exit criteria**: Users can see structural diff between current architecture and a fetched version. Panel shows added/removed/modified entities with property details.
 
-### Phase 3: Visual Canvas Diff
+### Phase 4: Collaboration Panel + CI/CD
 
 | # | Task | Effort | Files |
 |---|------|--------|-------|
-| 3.1 | Add diff visual state to `BlockModel` | Medium | `entities/block/BlockModel.tsx` |
-| 3.2 | Add diff visual state to `PlateModel` | Medium | `entities/plate/PlateModel.tsx` |
-| 3.3 | Add diff visual state to `ConnectionLine` | Low | `entities/connection/ConnectionLine.tsx` |
-| 3.4 | Render "ghost" entities (removed items) | Medium | `widgets/scene-canvas/SceneCanvas.tsx` |
-| 3.5 | Write visual diff tests | Medium | Block/Plate/Connection test files |
+| 4.1 | Build `CollaborationPanel` (unified team view) | Medium | `widgets/collaboration/` |
+| 4.2 | Build `PullRequestList` component | Medium | `widgets/collaboration/PullRequestList.tsx` |
+| 4.3 | Build `CISetup` component | Low | `widgets/collaboration/CISetup.tsx` |
+| 4.4 | Create workflow template string constant | Low | `features/cicd/workflow-template.ts` |
+| 4.5 | Add backend endpoints: `setup-cicd`, `prs`, `prs/{n}/checks`, `branches` | Medium | `api/routes/github.py`, `github_service.py` |
+| 4.6 | Show plan status in PR creation flow | Medium | `widgets/github-pr/GitHubPR.tsx` |
+| 4.7 | Add "Team" menu to MenuBar | Low | `widgets/menu-bar/MenuBar.tsx` |
+| 4.8 | Migrate workspace repo state from GitHubSync local state to store | Medium | `GitHubSync.tsx`, `architectureStore.ts` |
+| 4.9 | Write collaboration panel + backend tests | Medium | `CollaborationPanel.test.tsx`, `tests/` |
 
-**Exit criteria**: Canvas renders diff overlays correctly — green for added, red ghost for removed, yellow for modified. Ghost entities rendered from `diffBaseArchitecture`.
+**Exit criteria**: Users can see open PRs, view architecture diffs for each PR, check CI status, one-click CI setup, and manage team collaboration from a single panel. Existing GitHubSync/GitHubPR widgets still work (gradual deprecation).
 
-### Phase 4: CI/CD Integration
-
-| # | Task | Effort | Files |
-|---|------|--------|-------|
-| 4.1 | Create workflow template string constant | Low | `features/cicd/workflow-template.ts` |
-| 4.2 | Add `setup-cicd` API endpoint (backend) | Medium | `api/routes/github.py` |
-| 4.3 | Add `get_check_runs` to GitHubService | Low | `infrastructure/github_service.py` |
-| 4.4 | Add PR checks API endpoint (backend) | Low | `api/routes/github.py` |
-| 4.5 | Add CI setup button to Collaboration panel | Low | `widgets/collaboration/CISetup.tsx` |
-| 4.6 | Show plan status after PR creation | Medium | `widgets/github-pr/GitHubPR.tsx` |
-| 4.7 | Write backend tests for new endpoints | Medium | `tests/` |
-
-**Exit criteria**: One-click CI setup commits workflow template. PR creation shows terraform plan status. Backend tests pass.
-
-### Phase 5: Collaboration Panel
+### Phase 5: Visual Canvas Diff
 
 | # | Task | Effort | Files |
 |---|------|--------|-------|
-| 5.1 | Build `CollaborationPanel` (unified team view) | Medium | `widgets/collaboration/` |
-| 5.2 | Add PR list endpoint (backend) | Low | `api/routes/github.py` |
-| 5.3 | Add PR diff endpoint (backend) | Medium | `api/routes/github.py` |
-| 5.4 | Build `PullRequestList` component | Medium | `widgets/collaboration/PullRequestList.tsx` |
-| 5.5 | Add "Team" menu to MenuBar | Low | `widgets/menu-bar/MenuBar.tsx` |
-| 5.6 | Add new API types | Low | `shared/types/api.ts` |
-| 5.7 | Write collaboration panel tests | Medium | `CollaborationPanel.test.tsx` |
-| 5.8 | Integration testing (full flow) | High | End-to-end test |
+| 5.1 | Add diff visual state to `BlockSprite` | Medium | `entities/block/BlockSprite.tsx` |
+| 5.2 | Add diff visual state to `PlateSprite` | Medium | `entities/plate/PlateSprite.tsx` |
+| 5.3 | Add diff visual state to `ConnectionPath` | Low | `entities/connection/ConnectionPath.tsx` |
+| 5.4 | Render ghost entities from `diffBaseArchitecture` | Medium | `widgets/scene-canvas/SceneCanvas.tsx` |
+| 5.5 | Disable interactions in diff mode | Low | `uiStore.ts`, interaction handlers |
+| 5.6 | Write visual diff tests | Medium | BlockSprite/PlateSprite/ConnectionPath test files |
 
-**Exit criteria**: Users can see open PRs, view architecture diffs for each PR, check CI status, and manage team collaboration from a single panel.
+**Exit criteria**: Canvas renders diff overlays correctly — green for added, red ghost for removed, yellow for modified. Ghost entities rendered from `diffBaseArchitecture`. All interactions disabled in diff mode.
 
 ---
 
@@ -499,11 +589,16 @@ interface UIState {
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| `jsondiffpatch` bundle size (38kB) | Minor bundle increase | Acceptable — it's the only new dependency |
-| GitHub API rate limits (5000/hr) | Heavy collaboration could hit limits | Debounce diff requests, cache results |
+| `jsondiffpatch` bundle size (38kB) | Minor bundle increase | May be dropped if custom deep diff suffices for metadata |
+| GitHub API rate limits (5000/hr) | Heavy collaboration could hit limits | Debounce diff requests, cache architecture snapshots |
 | Terraform plan requires provider credentials | Users must configure secrets in their repo | Document setup clearly; plan step is `continue-on-error: true` |
 | Large architecture models slow diff | UX degradation | Diff engine operates on ID-indexed maps (O(n), not O(n²)) |
 | PR-based collaboration unfamiliar to non-devs | Low adoption | Learning Mode could add a collaboration tutorial (Milestone 6C extension) |
+| **Protected default branches block CI setup** (Oracle) | One-click setup fails | Fall back to manual setup guide with copy-paste YAML |
+| **GitHub auth token limitations** (Oracle) | All collaboration endpoints inherit current token-passing limitation | Document that GitHub token must be provided; fix token storage in future |
+| **Terraform generation in CI** (Oracle) | Plan runs against stale `.tf` files | Workflow includes codegen step before `terraform plan` |
+| **Array reorder noise in diff** (Oracle) | False positives in diff output | Normalize/sort arrays by ID before diffing; ignore `createdAt`/`updatedAt` |
+| **`architecture.json` format disagreement** (Oracle) | Storage doc vs API route disagree on format | Settle canonical format before building diff parsing |
 
 ---
 
