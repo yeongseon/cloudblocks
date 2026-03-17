@@ -52,8 +52,8 @@ zundo        — Zustand undo/redo middleware
 - Use two planning paths:
   - roadmap implementation: `Milestone -> Epic -> Sub-issue -> Branch -> PR`
   - small fixes, docs, and maintenance: `Issue -> Branch -> PR`
-- Current roadmap work groups Epic issues `#65`-`#68` under the milestone `Phase 9 - Visual Builder Evolution`.
-- Before starting any issue, always sync local `main` first:
+- Current roadmap work is tracked under [open milestones](https://github.com/yeongseon/cloudblocks/milestones). Use `gh milestone list` to find the active milestone and its Epic issues.
+- Before starting work on any issue, always sync local `main` first:
   ```bash
   git checkout main
   git pull --ff-only origin main

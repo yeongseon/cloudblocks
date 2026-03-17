@@ -139,7 +139,7 @@ CloudBlocks uses two planning paths:
 - **Roadmap implementation work**: `Milestone -> Epic -> Sub-issue -> Branch -> PR`
 - **Small fixes, documentation, and maintenance**: `Issue -> Branch -> PR`
 
-Current roadmap work groups Epic issues `#65`-`#68` under the milestone `Phase 9 - Visual Builder Evolution`.
+Current roadmap work is tracked under [open milestones](https://github.com/yeongseon/cloudblocks/milestones). Each milestone contains one or more Epic issues that group related sub-issues.
 
 ### Labeling Rules
 
@@ -259,7 +259,7 @@ Small bug fixes, documentation updates, and maintenance tasks that do not belong
 
 1. **Create or find an issue**
    - Check existing issues first.
-   - Open an issue before starting work unless the change is a trivial documentation fix.
+   - Every PR must reference an issue. Open an issue before starting work.
 
 2. **Apply labels**
    - Use exactly one type label.
@@ -297,8 +297,7 @@ Small bug fixes, documentation updates, and maintenance tasks that do not belong
 ### Verify Before Submitting
 
 ```bash
-cd apps/web && npx tsc -b
-cd apps/web && npx vite build
+pnpm build
 pnpm lint
 ```
 
