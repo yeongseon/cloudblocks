@@ -2,6 +2,7 @@ import { memo, useId, useMemo } from 'react';
 import type {
   StudColorSpec,
 } from '../../shared/types/index';
+import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
 
 interface PlateSvgProps {
   studsX: number;
@@ -92,21 +93,13 @@ export const PlateSvg = memo(function PlateSvg({
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
     >
-      <defs>
-        <g id={studId}>
-          <ellipse cx="0" cy="5" rx="12" ry="6" fill={studColors.shadow} />
-          <ellipse cx="0" cy="0" rx="12" ry="6" fill={studColors.main} />
-          <ellipse cx="0" cy="0" rx="7.2" ry="3.6" fill={studColors.highlight} opacity="0.3" />
-        </g>
-      </defs>
+      <StudDefs studId={studId} studColors={studColors} />
 
       <polygon points={topFacePoints} fill={topFaceColor} stroke={topFaceStroke} strokeWidth="1" strokeOpacity="0.6" />
       <polygon points={leftSidePoints} fill={leftSideColor} />
       <polygon points={rightSidePoints} fill={rightSideColor} />
 
-      {studs.map((stud) => (
-        <use key={stud.key} href={`#${studId}`} x={stud.x} y={stud.y} />
-      ))}
+      <StudGrid studId={studId} studs={studs} />
 
       {label ? (
         <text
