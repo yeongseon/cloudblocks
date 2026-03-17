@@ -12,8 +12,10 @@
 name: Deploy
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:  # Manual trigger until Azure secrets are configured
+  # Uncomment below once AZURE_* secrets are set in repo settings:
+  # push:
+  #   branches: [main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
