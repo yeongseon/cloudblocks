@@ -13,14 +13,14 @@ import { BlockSvg } from './BlockSvg';
 import './BlockSprite.css';
 
 const BLOCK_SCREEN_SIZES: Record<string, { width: number; height: number }> = {
-  timer:    { width: 72, height: 72 },
-  event:    { width: 72, height: 72 },
-  function: { width: 95, height: 76 },
-  gateway:  { width: 120, height: 100 },
-  queue:    { width: 120, height: 100 },
-  storage:  { width: 120, height: 100 },
-  compute:  { width: 140, height: 118 },
-  database: { width: 160, height: 126 },
+  timer:    { width: 72, height: 82 },
+  event:    { width: 72, height: 82 },
+  function: { width: 95, height: 86 },
+  gateway:  { width: 120, height: 110 },
+  queue:    { width: 120, height: 110 },
+  storage:  { width: 120, height: 110 },
+  compute:  { width: 140, height: 128 },
+  database: { width: 160, height: 136 },
 };
 
 interface BlockSpriteProps {

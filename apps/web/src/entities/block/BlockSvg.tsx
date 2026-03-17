@@ -21,7 +21,7 @@ export const BlockSvg = memo(function BlockSvg({ category }: BlockSvgProps) {
   const margin = 10;
   const padding = 10;
 
-  const worldHeight = 0.5;
+  const worldHeight = 0.8;
 
   const screenWidth = (studsX + studsY) * TILE_W / 2;
   const diamondHeight = (studsX + studsY) * TILE_H / 2;
@@ -70,10 +70,12 @@ export const BlockSvg = memo(function BlockSvg({ category }: BlockSvgProps) {
   const studId = useId().replace(/:/g, '_');
 
   const leftLabelX = (leftX + cx) / 2;
+  const rightLabelX = (cx + rightX) / 2;
   const wallCenterY = (midY + bottomY + sideWallPx) / 2;
 
   const minDim = Math.min(studsX, studsY);
   const labelFontSize = minDim <= 1 ? 8 : minDim <= 2 ? 10 : 13;
+  const iconFontSize = minDim <= 1 ? 10 : minDim <= 2 ? 14 : 18;
 
   return (
     <svg
@@ -102,7 +104,17 @@ export const BlockSvg = memo(function BlockSvg({ category }: BlockSvgProps) {
         textAnchor="middle"
         dominantBaseline="middle"
       >
-        {`${icon} ${shortName}`}
+        {shortName}
+      </text>
+
+      <text
+        transform={`matrix(0.8975,-0.4410,0,1,${rightLabelX},${wallCenterY})`}
+        fontFamily="system-ui, -apple-system, sans-serif"
+        fontSize={iconFontSize}
+        textAnchor="middle"
+        dominantBaseline="middle"
+      >
+        {icon}
       </text>
     </svg>
   );
