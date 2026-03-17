@@ -47,6 +47,7 @@ async def test_list_github_repos_returns_formatted_list(
     client: AsyncClient,
     auth_headers: dict[str, str],
     mock_github,
+    test_identity,
 ) -> None:
     mock_github.list_repos.return_value = [
         {
@@ -60,7 +61,7 @@ async def test_list_github_repos_returns_formatted_list(
 
     response = await client.get(
         "/api/v1/github/repos",
-        headers={**auth_headers, "X-GitHub-Token": "fake-token"},
+        headers=auth_headers,
     )
 
     assert response.status_code == 200
@@ -68,7 +69,7 @@ async def test_list_github_repos_returns_formatted_list(
     assert len(payload) == 1
     assert payload[0]["full_name"] == "acme/repo-one"
     assert payload[0]["default_branch"] == "main"
-    mock_github.list_repos.assert_awaited_once_with("fake-token")
+    mock_github.list_repos.assert_awaited_once_with("fake-github-token")
 
 
 @pytest.mark.asyncio
@@ -87,6 +88,7 @@ async def test_create_github_repo_returns_created_repo(
     client: AsyncClient,
     auth_headers: dict[str, str],
     mock_github,
+    test_identity,
 ) -> None:
     mock_github.create_repo.return_value = {
         "full_name": "acme/new-repo",
@@ -97,13 +99,18 @@ async def test_create_github_repo_returns_created_repo(
 
     response = await client.post(
         "/api/v1/github/repos",
-        headers={**auth_headers, "X-GitHub-Token": "fake-token"},
+        headers=auth_headers,
         json={"name": "new-repo", "description": "desc", "private": True},
     )
 
     assert response.status_code == 201
     assert response.json()["full_name"] == "acme/new-repo"
-    mock_github.create_repo.assert_awaited_once_with("fake-token", "new-repo", "desc", True)
+    mock_github.create_repo.assert_awaited_once_with(
+        "fake-github-token",
+        "new-repo",
+        "desc",
+        True,
+    )
 
 
 @pytest.mark.asyncio
@@ -111,6 +118,7 @@ async def test_sync_workspace_to_github_with_existing_file_uses_sha(
     client: AsyncClient,
     auth_headers: dict[str, str],
     mock_github,
+    test_identity,
 ) -> None:
     workspace = await _create_workspace(client, auth_headers)
     workspace_id = workspace["id"]
@@ -121,7 +129,7 @@ async def test_sync_workspace_to_github_with_existing_file_uses_sha(
 
     response = await client.post(
         f"/api/v1/workspaces/{workspace_id}/sync",
-        headers={**auth_headers, "X-GitHub-Token": "fake-token"},
+        headers=auth_headers,
         json={"architecture": architecture, "commit_message": "sync update"},
     )
 
@@ -129,14 +137,14 @@ async def test_sync_workspace_to_github_with_existing_file_uses_sha(
     assert response.json()["commit_sha"] == "commit-sha-1"
 
     mock_github.get_repo_contents.assert_awaited_once_with(
-        "fake-token",
+        "fake-github-token",
         "acme",
         "cloudblocks-arch",
         "cloudblocks/architecture.json",
         "main",
     )
     args = mock_github.create_or_update_file.await_args.args
-    assert args[0] == "fake-token"
+    assert args[0] == "fake-github-token"
     assert args[1] == "acme"
     assert args[2] == "cloudblocks-arch"
     assert args[3] == "cloudblocks/architecture.json"
@@ -152,6 +160,7 @@ async def test_sync_workspace_to_github_with_new_file_uses_none_sha(
     client: AsyncClient,
     auth_headers: dict[str, str],
     mock_github,
+    test_identity,
 ) -> None:
     workspace = await _create_workspace(client, auth_headers)
     workspace_id = workspace["id"]
@@ -161,7 +170,7 @@ async def test_sync_workspace_to_github_with_new_file_uses_none_sha(
 
     response = await client.post(
         f"/api/v1/workspaces/{workspace_id}/sync",
-        headers={**auth_headers, "X-GitHub-Token": "fake-token"},
+        headers=auth_headers,
         json={"architecture": {"plates": [], "blocks": []}},
     )
 
@@ -178,7 +187,7 @@ async def test_sync_workspace_without_linked_repo_returns_502(
     workspace = await _create_workspace(client, auth_headers, github_repo=None)
     response = await client.post(
         f"/api/v1/workspaces/{workspace['id']}/sync",
-        headers={**auth_headers, "X-GitHub-Token": "fake-token"},
+        headers=auth_headers,
         json={"architecture": {"plates": []}},
     )
 
@@ -193,7 +202,7 @@ async def test_sync_workspace_not_found_returns_404(
 ) -> None:
     response = await client.post(
         "/api/v1/workspaces/missing/sync",
-        headers={**auth_headers, "X-GitHub-Token": "fake-token"},
+        headers=auth_headers,
         json={"architecture": {"plates": []}},
     )
 
@@ -212,7 +221,7 @@ async def test_sync_workspace_not_owner_returns_403(
 
     response = await client.post(
         f"/api/v1/workspaces/{workspace['id']}/sync",
-        headers={**other_headers, "X-GitHub-Token": "fake-token"},
+        headers=other_headers,
         json={"architecture": {"plates": []}},
     )
 
@@ -225,6 +234,7 @@ async def test_pull_workspace_architecture_from_github(
     client: AsyncClient,
     auth_headers: dict[str, str],
     mock_github,
+    test_identity,
 ) -> None:
     workspace = await _create_workspace(client, auth_headers)
     architecture = {"plates": [{"id": "p-1"}], "blocks": [{"id": "b-1"}]}
@@ -233,7 +243,7 @@ async def test_pull_workspace_architecture_from_github(
 
     response = await client.post(
         f"/api/v1/workspaces/{workspace['id']}/pull",
-        headers={**auth_headers, "X-GitHub-Token": "fake-token"},
+        headers=auth_headers,
     )
 
     assert response.status_code == 200
@@ -245,13 +255,14 @@ async def test_pull_workspace_architecture_file_not_found_returns_404(
     client: AsyncClient,
     auth_headers: dict[str, str],
     mock_github,
+    test_identity,
 ) -> None:
     workspace = await _create_workspace(client, auth_headers)
     mock_github.get_repo_contents.side_effect = GitHubError("no file")
 
     response = await client.post(
         f"/api/v1/workspaces/{workspace['id']}/pull",
-        headers={**auth_headers, "X-GitHub-Token": "fake-token"},
+        headers=auth_headers,
     )
 
     assert response.status_code == 404
@@ -263,13 +274,14 @@ async def test_pull_workspace_architecture_unexpected_format_returns_502(
     client: AsyncClient,
     auth_headers: dict[str, str],
     mock_github,
+    test_identity,
 ) -> None:
     workspace = await _create_workspace(client, auth_headers)
     mock_github.get_repo_contents.return_value = ["unexpected"]
 
     response = await client.post(
         f"/api/v1/workspaces/{workspace['id']}/pull",
-        headers={**auth_headers, "X-GitHub-Token": "fake-token"},
+        headers=auth_headers,
     )
 
     assert response.status_code == 502
@@ -281,6 +293,7 @@ async def test_create_pull_request_for_workspace_returns_pr_details(
     client: AsyncClient,
     auth_headers: dict[str, str],
     mock_github,
+    test_identity,
 ) -> None:
     workspace = await _create_workspace(client, auth_headers)
 
@@ -295,7 +308,7 @@ async def test_create_pull_request_for_workspace_returns_pr_details(
 
     response = await client.post(
         f"/api/v1/workspaces/{workspace['id']}/pr",
-        headers={**auth_headers, "X-GitHub-Token": "fake-token"},
+        headers=auth_headers,
         json={
             "architecture": {"plates": [], "blocks": []},
             "title": "Update architecture",
@@ -317,6 +330,7 @@ async def test_list_workspace_commits_returns_formatted_commits(
     client: AsyncClient,
     auth_headers: dict[str, str],
     mock_github,
+    test_identity,
 ) -> None:
     workspace = await _create_workspace(client, auth_headers)
     mock_github.list_commits.return_value = [
@@ -331,7 +345,7 @@ async def test_list_workspace_commits_returns_formatted_commits(
 
     response = await client.get(
         f"/api/v1/workspaces/{workspace['id']}/commits",
-        headers={**auth_headers, "X-GitHub-Token": "fake-token"},
+        headers=auth_headers,
     )
 
     assert response.status_code == 200

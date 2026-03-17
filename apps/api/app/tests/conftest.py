@@ -1,19 +1,21 @@
 from __future__ import annotations
 
+import importlib
 from collections.abc import AsyncGenerator
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
 from app.core.dependencies import get_database, get_github_service
-from app.core.security import create_access_token, generate_id
-from app.domain.models.entities import User
+from app.core.security import create_access_token, encrypt_token, generate_id, hash_token
+from app.domain.models.entities import Identity, User
 from app.infrastructure.db.connection import Database
-from app.infrastructure.db.repositories import SQLiteUserRepository
+from app.infrastructure.db.repositories import SQLiteIdentityRepository, SQLiteUserRepository
 from app.infrastructure.github_service import GitHubService
 from app.main import app
+
+pytest_asyncio = importlib.import_module("pytest_asyncio")
 
 
 @pytest_asyncio.fixture
@@ -62,6 +64,22 @@ async def test_user(db: Database) -> User:
         display_name="Test User",
     )
     return await user_repo.create(user)
+
+
+@pytest_asyncio.fixture
+async def test_identity(db: Database, test_user: User) -> Identity:
+    """Create a GitHub identity with encrypted token for test_user."""
+    assert test_user.github_id is not None
+    repo = SQLiteIdentityRepository(db)
+    identity = Identity(
+        id=generate_id(),
+        user_id=test_user.id,
+        provider="github",
+        provider_id=test_user.github_id,
+        access_token_hash=hash_token("fake-github-token"),
+        encrypted_access_token=encrypt_token("fake-github-token"),
+    )
+    return await repo.create(identity)
 
 
 @pytest.fixture

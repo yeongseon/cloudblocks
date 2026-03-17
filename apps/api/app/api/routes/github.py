@@ -10,7 +10,7 @@ import json
 from datetime import datetime, timezone
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Header
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from app.core.dependencies import (
@@ -20,6 +20,7 @@ from app.core.dependencies import (
     get_workspace_repo,
 )
 from app.core.errors import ForbiddenError, GitHubError, NotFoundError
+from app.core.security import decrypt_token
 from app.domain.models.entities import User
 from app.domain.models.repositories import IdentityRepository, WorkspaceRepository
 from app.infrastructure.github_service import GitHubService
@@ -49,39 +50,14 @@ class PullRequestRequest(BaseModel):
 async def _get_github_token(
     user: User,
     identity_repo: IdentityRepository,
-    github: GitHubService,
 ) -> str:
-    """Retrieve the GitHub access token for a user.
-
-    NOTE: In a real implementation, we'd store the actual encrypted token
-    (not just its hash). For v0.5, the OAuth callback returns the token
-    and the frontend should pass it or we store it encrypted. For now,
-    this raises an error explaining the limitation.
-    """
     identities = await identity_repo.find_by_user_id(user.id)
     github_identity = next((i for i in identities if i.provider == "github"), None)
     if not github_identity:
         raise GitHubError("No GitHub identity linked. Please sign in with GitHub first.")
-    # In v0.5, we'd decrypt the stored token. The hash is for verification only.
-    # For the MVP, the frontend sends the GitHub token in a header.
-    raise GitHubError(
-        "GitHub token retrieval not yet implemented. "
-        "Pass the GitHub token via X-GitHub-Token header."
-    )
-
-
-async def _get_github_token_from_header_or_identity(
-    user: User,
-    identity_repo: IdentityRepository,
-    github_token: str | None = None,
-) -> str:
-    """Get GitHub token from header or identity store."""
-    if github_token:
-        return github_token
-    # For v0.5 MVP, require explicit token
-    raise GitHubError(
-        "GitHub token required. Pass via X-GitHub-Token header."
-    )
+    if not github_identity.encrypted_access_token:
+        raise GitHubError("GitHub token not available. Please re-authenticate with GitHub.")
+    return decrypt_token(github_identity.encrypted_access_token)
 
 
 @router.get("/github/repos")
@@ -89,12 +65,9 @@ async def list_repos(
     current_user: Annotated[User, Depends(get_current_user)],
     github: Annotated[GitHubService, Depends(get_github_service)],
     identity_repo: Annotated[IdentityRepository, Depends(get_identity_repo)],
-    x_github_token: Annotated[str | None, Header()] = None,
 ) -> dict:
     """List GitHub repositories the user has access to."""
-    token = await _get_github_token_from_header_or_identity(
-        current_user, identity_repo, x_github_token
-    )
+    token = await _get_github_token(current_user, identity_repo)
     repos = await github.list_repos(token)
     return {
         "repos": [
@@ -116,12 +89,9 @@ async def create_repo(
     current_user: Annotated[User, Depends(get_current_user)],
     github: Annotated[GitHubService, Depends(get_github_service)],
     identity_repo: Annotated[IdentityRepository, Depends(get_identity_repo)],
-    x_github_token: Annotated[str | None, Header()] = None,
 ) -> dict:
     """Create a new GitHub repository."""
-    token = await _get_github_token_from_header_or_identity(
-        current_user, identity_repo, x_github_token
-    )
+    token = await _get_github_token(current_user, identity_repo)
     repo = await github.create_repo(token, body.name, body.description, body.private)
     return {
         "full_name": repo["full_name"],
@@ -139,7 +109,6 @@ async def sync_to_github(
     workspace_repo: Annotated[WorkspaceRepository, Depends(get_workspace_repo)],
     github: Annotated[GitHubService, Depends(get_github_service)],
     identity_repo: Annotated[IdentityRepository, Depends(get_identity_repo)],
-    x_github_token: Annotated[str | None, Header()] = None,
 ) -> dict:
     """Sync architecture.json to the linked GitHub repository."""
     workspace = await workspace_repo.find_by_id(workspace_id)
@@ -150,9 +119,7 @@ async def sync_to_github(
     if not workspace.github_repo:
         raise GitHubError("Workspace is not linked to a GitHub repository")
 
-    token = await _get_github_token_from_header_or_identity(
-        current_user, identity_repo, x_github_token
-    )
+    token = await _get_github_token(current_user, identity_repo)
     owner, repo = workspace.github_repo.split("/", 1)
 
     # Prepare architecture.json content
@@ -199,7 +166,6 @@ async def pull_from_github(
     workspace_repo: Annotated[WorkspaceRepository, Depends(get_workspace_repo)],
     github: Annotated[GitHubService, Depends(get_github_service)],
     identity_repo: Annotated[IdentityRepository, Depends(get_identity_repo)],
-    x_github_token: Annotated[str | None, Header()] = None,
 ) -> dict:
     """Pull the latest architecture.json from the linked GitHub repository."""
     workspace = await workspace_repo.find_by_id(workspace_id)
@@ -210,9 +176,7 @@ async def pull_from_github(
     if not workspace.github_repo:
         raise GitHubError("Workspace is not linked to a GitHub repository")
 
-    token = await _get_github_token_from_header_or_identity(
-        current_user, identity_repo, x_github_token
-    )
+    token = await _get_github_token(current_user, identity_repo)
     owner, repo = workspace.github_repo.split("/", 1)
 
     try:
@@ -239,7 +203,6 @@ async def create_pull_request(
     workspace_repo: Annotated[WorkspaceRepository, Depends(get_workspace_repo)],
     github: Annotated[GitHubService, Depends(get_github_service)],
     identity_repo: Annotated[IdentityRepository, Depends(get_identity_repo)],
-    x_github_token: Annotated[str | None, Header()] = None,
 ) -> dict:
     """Create a PR with architecture changes on a new branch."""
     workspace = await workspace_repo.find_by_id(workspace_id)
@@ -250,17 +213,13 @@ async def create_pull_request(
     if not workspace.github_repo:
         raise GitHubError("Workspace is not linked to a GitHub repository")
 
-    token = await _get_github_token_from_header_or_identity(
-        current_user, identity_repo, x_github_token
-    )
+    token = await _get_github_token(current_user, identity_repo)
     owner, repo = workspace.github_repo.split("/", 1)
-    timestamp = datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
     branch_name = body.branch or f"cloudblocks/update-{timestamp}"
 
     # Get default branch SHA
-    base_sha = await github.get_default_branch_sha(
-        token, owner, repo, workspace.github_branch
-    )
+    base_sha = await github.get_default_branch_sha(token, owner, repo, workspace.github_branch)
 
     # Create new branch
     await github.create_branch(token, owner, repo, branch_name, base_sha)
@@ -281,14 +240,25 @@ async def create_pull_request(
         pass
 
     await github.create_or_update_file(
-        token, owner, repo, "cloudblocks/architecture.json",
-        content_b64, body.commit_message, branch_name, sha,
+        token,
+        owner,
+        repo,
+        "cloudblocks/architecture.json",
+        content_b64,
+        body.commit_message,
+        branch_name,
+        sha,
     )
 
     # Create PR
     pr = await github.create_pull_request(
-        token, owner, repo, body.title, branch_name,
-        workspace.github_branch, body.body,
+        token,
+        owner,
+        repo,
+        body.title,
+        branch_name,
+        workspace.github_branch,
+        body.body,
     )
 
     return {
@@ -305,7 +275,6 @@ async def list_commits(
     workspace_repo: Annotated[WorkspaceRepository, Depends(get_workspace_repo)],
     github: Annotated[GitHubService, Depends(get_github_service)],
     identity_repo: Annotated[IdentityRepository, Depends(get_identity_repo)],
-    x_github_token: Annotated[str | None, Header()] = None,
 ) -> dict:
     """List recent commits for the linked repository."""
     workspace = await workspace_repo.find_by_id(workspace_id)
@@ -316,9 +285,7 @@ async def list_commits(
     if not workspace.github_repo:
         raise GitHubError("Workspace is not linked to a GitHub repository")
 
-    token = await _get_github_token_from_header_or_identity(
-        current_user, identity_repo, x_github_token
-    )
+    token = await _get_github_token(current_user, identity_repo)
     owner, repo = workspace.github_repo.split("/", 1)
     commits = await github.list_commits(token, owner, repo, workspace.github_branch)
 
