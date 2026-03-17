@@ -2,6 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { computeArchitectureDiff } from '../../features/diff/engine';
+import { apiPost } from '../../shared/api/client';
+import type { PullResponse } from '../../shared/types/api';
+import type { ArchitectureModel } from '../../shared/types';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
 import './MenuBar.css';
@@ -27,6 +31,7 @@ export function MenuBar() {
   const toggleGitHubRepos = useUIStore((s) => s.toggleGitHubRepos);
   const toggleGitHubSync = useUIStore((s) => s.toggleGitHubSync);
   const toggleGitHubPR = useUIStore((s) => s.toggleGitHubPR);
+  const diffMode = useUIStore((s) => s.diffMode);
   const toggleScenarioGallery = useUIStore((s) => s.toggleScenarioGallery);
   const toggleLearningPanel = useUIStore((s) => s.toggleLearningPanel);
   const showLearningPanel = useUIStore((s) => s.showLearningPanel);
@@ -177,6 +182,27 @@ export function MenuBar() {
   const handleToggleSound = () => {
     toggleSound();
     audioService.setMuted(!isSoundMuted);
+  };
+
+  const handleCompareWithGitHub = async () => {
+    const wsId = useArchitectureStore.getState().workspace.id;
+    try {
+      const response = await apiPost<PullResponse>(
+        `/api/v1/workspaces/${encodeURIComponent(wsId)}/pull`,
+      );
+      const remoteArch = response.architecture as unknown as ArchitectureModel;
+      const localArch = useArchitectureStore.getState().workspace.architecture;
+      const delta = computeArchitectureDiff(remoteArch, localArch);
+      useUIStore.getState().setDiffMode(true, delta, remoteArch);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to fetch remote architecture');
+    }
+  };
+
+  const handleToggleDiffMode = () => {
+    if (diffMode) {
+      useUIStore.getState().setDiffMode(false);
+    }
   };
 
   return (
@@ -383,6 +409,15 @@ export function MenuBar() {
             <button type="button" className="menu-item" onClick={() => handleAction(toggleValidation)}>
               <span className="menu-item-left">{showValidation ? '✓ ' : ''}📊 Validation Results</span>
             </button>
+            <div className="menu-separator" />
+            <button
+              type="button"
+              className="menu-item"
+              onClick={() => handleAction(handleToggleDiffMode)}
+              disabled={!diffMode}
+            >
+              <span className="menu-item-left">{diffMode ? '✓ ' : ''}🔍 Diff View</span>
+            </button>
           </div>
         </div>
       </nav>
@@ -446,6 +481,9 @@ export function MenuBar() {
               </button>
               <button type="button" className="menu-item" onClick={() => handleAction(toggleGitHubPR)}>
                 <span className="menu-item-left">🔀 Create PR</span>
+              </button>
+              <button type="button" className="menu-item" onClick={() => handleAction(handleCompareWithGitHub)}>
+                <span className="menu-item-left">🔍 Compare with GitHub</span>
               </button>
               <div className="menu-separator" />
               <button type="button" className="menu-item" onClick={() => handleAction(toggleGitHubLogin)}>

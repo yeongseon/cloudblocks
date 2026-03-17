@@ -30,6 +30,7 @@ const GitHubLogin = lazy(() => import('../widgets/github-login/GitHubLogin').the
 const GitHubRepos = lazy(() => import('../widgets/github-repos/GitHubRepos').then(m => ({ default: m.GitHubRepos })));
 const GitHubSync = lazy(() => import('../widgets/github-sync/GitHubSync').then(m => ({ default: m.GitHubSync })));
 const GitHubPR = lazy(() => import('../widgets/github-pr/GitHubPR').then(m => ({ default: m.GitHubPR })));
+const DiffPanel = lazy(() => import('../widgets/diff-panel/DiffPanel').then(m => ({ default: m.DiffPanel })));
 
 function App() {
   const loadFromStorage = useArchitectureStore((s) => s.loadFromStorage);
@@ -123,10 +124,15 @@ function App() {
         return;
       }
 
-      // Escape: cancel drag first, then deselect
+      // Escape: cancel drag first, then deselect, then exit diff mode
       if (e.key === 'Escape') {
         if (draggedBlockCategory) {
           cancelDrag();
+          return;
+        }
+        const { diffMode, setDiffMode } = useUIStore.getState();
+        if (diffMode) {
+          setDiffMode(false);
           return;
         }
         setSelectedId(null);
@@ -157,6 +163,7 @@ function App() {
             <GitHubRepos />
             <GitHubSync />
             <GitHubPR />
+            <DiffPanel />
             <ScenarioGallery />
           </Suspense>
         </div>
