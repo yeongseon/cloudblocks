@@ -4,8 +4,11 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import json as json_module
+import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
+from typing import Any, Mapping
 
 import jwt
 from cryptography.fernet import Fernet, InvalidToken
@@ -53,10 +56,32 @@ def decrypt_token(encrypted: str) -> str:
         raise UnauthorizedError("Failed to decrypt token - key may have rotated") from None
 
 
-def create_access_token(user_id: str, extra_claims: dict | None = None) -> str:
+def generate_session_token() -> str:
+    """Generate a cryptographically secure session token."""
+    return secrets.token_urlsafe(32)
+
+
+def encrypt_oauth_state(state_data: Mapping[str, object]) -> str:
+    """Encrypt OAuth state data for cookie storage using Fernet."""
+    f = Fernet(_derive_fernet_key())
+    json_bytes = json_module.dumps(state_data).encode()
+    return f.encrypt(json_bytes).decode()
+
+
+def decrypt_oauth_state(encrypted: str) -> dict[str, int | str] | None:
+    """Decrypt OAuth state from cookie. Returns None if invalid/expired."""
+    f = Fernet(_derive_fernet_key())
+    try:
+        decrypted = f.decrypt(encrypted.encode())
+        return json_module.loads(decrypted.decode())
+    except (InvalidToken, json_module.JSONDecodeError, Exception):
+        return None
+
+
+def create_access_token(user_id: str, extra_claims: dict[str, object] | None = None) -> str:
     """Create a JWT access token."""
     now = datetime.now(timezone.utc)
-    payload = {
+    payload: dict[str, object] = {
         "sub": user_id,
         "iat": now,
         "exp": now + timedelta(seconds=settings.jwt_expiration_seconds),
@@ -79,7 +104,7 @@ def create_refresh_token(user_id: str) -> str:
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
 
 
-def decode_token(token: str, expected_type: str = "access") -> dict:
+def decode_token(token: str, expected_type: str = "access") -> dict[str, Any]:
     """Decode and validate a JWT token. Raises UnauthorizedError on failure."""
     try:
         payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])

@@ -31,6 +31,16 @@ class Settings(BaseSettings):
     # CORS
     cors_origins: list[str] = ["http://localhost:5173"]
 
+    # Session / Cookie
+    session_cookie_name: str = "cb_session"
+    session_cookie_domain: str | None = None
+    session_cookie_secure: bool = False  # True in production
+    session_cookie_path: str = "/api"
+    session_ttl_hours: int = 24 * 7  # 7 days
+    oauth_state_ttl_minutes: int = 10
+    oauth_cookie_name: str = "cb_oauth"
+    frontend_url: str = "http://localhost:5173"
+
     model_config = {"env_prefix": "CLOUDBLOCKS_", "env_file": ".env", "extra": "ignore"}
 
     _WEAK_SECRETS: set[str] = {"change-me-in-production", "secret", "password", ""}
