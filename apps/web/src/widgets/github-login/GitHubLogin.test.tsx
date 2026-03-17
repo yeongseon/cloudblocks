@@ -15,11 +15,9 @@ describe('GitHubLogin', () => {
     sessionStorage.clear();
     useUIStore.setState({ showGitHubLogin: true });
     useAuthStore.setState({
+      status: 'anonymous',
       user: null,
-      accessToken: null,
-      refreshToken: null,
-      isAuthenticated: false,
-      isLoading: false,
+      hydrated: true,
       error: null,
     });
   });
@@ -37,7 +35,7 @@ describe('GitHubLogin', () => {
 
   it('shows user info when authenticated', () => {
     useAuthStore.setState({
-      isAuthenticated: true,
+      status: 'authenticated',
       user: {
         id: 'user-1',
         github_username: 'octocat',
@@ -68,11 +66,11 @@ describe('GitHubLogin', () => {
     expect(window.location.href).toContain('#oauth-callback');
   });
 
-  it('sign out calls logout', async () => {
+  it('sign out calls setAnonymous', async () => {
     const user = userEvent.setup();
-    const logoutSpy = vi.spyOn(useAuthStore.getState(), 'logout');
+    const setAnonymousSpy = vi.spyOn(useAuthStore.getState(), 'setAnonymous');
     useAuthStore.setState({
-      isAuthenticated: true,
+      status: 'authenticated',
       user: {
         id: 'user-1',
         github_username: 'octocat',
@@ -87,8 +85,8 @@ describe('GitHubLogin', () => {
     await user.click(screen.getByRole('button', { name: 'Sign Out' }));
 
     expect(mockApiPost).toHaveBeenCalledWith('/api/v1/auth/logout');
-    expect(logoutSpy).toHaveBeenCalledOnce();
-    logoutSpy.mockRestore();
+    expect(setAnonymousSpy).toHaveBeenCalledOnce();
+    setAnonymousSpy.mockRestore();
   });
 
   it('shows error when sign in fails', async () => {
@@ -113,7 +111,7 @@ describe('GitHubLogin', () => {
 
   it('shows user info without avatar', () => {
     useAuthStore.setState({
-      isAuthenticated: true,
+      status: 'authenticated',
       user: {
         id: 'user-1',
         github_username: 'octocat',
@@ -131,7 +129,7 @@ describe('GitHubLogin', () => {
 
   it('shows user info without github username', () => {
     useAuthStore.setState({
-      isAuthenticated: true,
+      status: 'authenticated',
       user: {
         id: 'user-1',
         github_username: null,
@@ -167,7 +165,7 @@ describe('GitHubLogin', () => {
 
   it('displays authError from store', () => {
     useAuthStore.setState({
-      isAuthenticated: false,
+      status: 'anonymous',
       error: 'OAuth failed',
     });
     render(<GitHubLogin />);
