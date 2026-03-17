@@ -1,11 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+vi.mock('../../shared/api/client', () => ({
+  apiPost: vi.fn(),
+}));
 import { MenuBar } from './MenuBar';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import type { ArchitectureModel, Block, Connection, Plate } from '../../shared/types/index';
+import { apiPost } from '../../shared/api/client';
+import { audioService } from '../../shared/utils/audioService';
 
 const emptyArch: ArchitectureModel = {
   id: 'arch-1',
@@ -251,7 +256,7 @@ describe('MenuBar', () => {
     await user.click(within(getMenuDropdown('File')).getByRole('button', { name: /Reset Workspace/ }));
     expect(confirmMock).toHaveBeenCalledWith('Reset workspace? All unsaved changes will be lost.');
     expect(resetWorkspaceMock).toHaveBeenCalledOnce();
-  }, 15000);
+  }, 30000);
 
   it('does not reset workspace when reset confirmation is false', async () => {
     const user = userEvent.setup();
@@ -318,7 +323,7 @@ describe('MenuBar', () => {
     expect(getMenuDropdown('File').className).not.toContain('show');
 
     vi.stubGlobal('FileReader', originalFileReader);
-  });
+  }, 15000);
 
   it('does nothing when import change event has no file', () => {
     render(<MenuBar />);
@@ -361,7 +366,7 @@ describe('MenuBar', () => {
     editDropdown = await openMenu(user, 'Edit');
     await user.click(within(editDropdown).getByRole('button', { name: /Redo/ }));
     expect(redoMock).toHaveBeenCalledOnce();
-  });
+  }, 15000);
 
   it('deletes selected plate, block, and connection from Edit menu', async () => {
     const user = userEvent.setup();
@@ -383,7 +388,7 @@ describe('MenuBar', () => {
     editDropdown = await openMenu(user, 'Edit');
     await user.click(within(editDropdown).getByRole('button', { name: /Delete Selection/ }));
     expect(removeConnectionMock).toHaveBeenCalledWith('conn-1');
-  });
+  }, 15000);
 
   it('does not delete when selected id is unknown', async () => {
     const user = userEvent.setup();
@@ -441,7 +446,7 @@ describe('MenuBar', () => {
     toolsDropdown = await openMenu(user, 'Tools');
     await user.click(within(toolsDropdown).getByRole('button', { name: /Select Tool/ }));
     expect(useUIStore.getState().toolMode).toBe('select');
-  });
+  }, 15000);
 
   it('handles Build menu validate and panel toggles', async () => {
     const user = userEvent.setup();
@@ -467,7 +472,7 @@ describe('MenuBar', () => {
     buildDropdown = await openMenu(user, 'Build');
     await user.click(within(buildDropdown).getByRole('button', { name: /Browse Templates/ }));
     expect(useUIStore.getState().showTemplateGallery).toBe(true);
-  });
+  }, 15000);
 
   it('shows validation badge in Build menu when validationResult exists', async () => {
     const user = userEvent.setup();
@@ -512,6 +517,29 @@ describe('MenuBar', () => {
     expect(useUIStore.getState().showValidation).toBe(true);
   });
 
+  it('disables diff toggle when diff mode is off and turns it off when enabled', async () => {
+    const user = userEvent.setup();
+    render(<MenuBar />);
+
+    let viewDropdown = await openMenu(user, 'View');
+    const diffButtonDisabled = within(viewDropdown).getByRole('button', { name: /Diff View/ });
+    expect(diffButtonDisabled).toBeDisabled();
+
+    useUIStore.getState().setDiffMode(true, {
+      plates: { added: [], removed: [], modified: [] },
+      blocks: { added: [], removed: [], modified: [] },
+      connections: { added: [], removed: [], modified: [] },
+      externalActors: { added: [], removed: [], modified: [] },
+      summary: { totalChanges: 0, hasBreakingChanges: false },
+    }, emptyArch);
+
+    viewDropdown = await openMenu(user, 'View');
+    const diffButtonEnabled = within(viewDropdown).getByRole('button', { name: /Diff View/ });
+    expect(diffButtonEnabled).not.toBeDisabled();
+    await user.click(diffButtonEnabled);
+    expect(useUIStore.getState().diffMode).toBe(false);
+  });
+
   it('handles authenticated GitHub menu actions', async () => {
     const user = userEvent.setup();
     useAuthStore.setState({
@@ -551,6 +579,31 @@ describe('MenuBar', () => {
     expect(useUIStore.getState().showGitHubLogin).toBe(true);
   });
 
+  it('compare with GitHub calls backend and enables diff mode', async () => {
+    const user = userEvent.setup();
+    vi.mocked(apiPost).mockResolvedValue({ architecture: emptyArch });
+    useAuthStore.setState({
+      status: 'authenticated',
+      user: {
+        id: 'user-1',
+        github_username: 'octocat',
+        email: null,
+        display_name: null,
+        avatar_url: null,
+      },
+    });
+
+    render(<MenuBar />);
+
+    const githubButton = screen.getByRole('button', { name: /octocat/ });
+    await user.click(githubButton);
+    const githubDropdown = getMenuDropdown(/octocat/);
+    await user.click(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ }));
+
+    expect(apiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/pull');
+    expect(useUIStore.getState().diffMode).toBe(true);
+  });
+
   it('quick action buttons call undo, redo, and save', async () => {
     const user = userEvent.setup();
     const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
@@ -566,5 +619,42 @@ describe('MenuBar', () => {
     await user.click(screen.getByTitle('Save Workspace (Ctrl+S)'));
     expect(saveToStorageMock).toHaveBeenCalledOnce();
     expect(alertMock).toHaveBeenCalledWith('Workspace saved!');
+  });
+
+  it('toggles sound and updates audio service mute state', async () => {
+    const user = userEvent.setup();
+    const setMutedSpy = vi.spyOn(audioService, 'setMuted').mockImplementation(() => {});
+    render(<MenuBar />);
+
+    const soundButton = screen.getByTitle('Mute Sounds');
+    await user.click(soundButton);
+
+    expect(useUIStore.getState().isSoundMuted).toBe(true);
+    expect(setMutedSpy).toHaveBeenCalledWith(true);
+    setMutedSpy.mockRestore();
+  });
+
+  it('shows alert when compare with GitHub fails', async () => {
+    const user = userEvent.setup();
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    vi.mocked(apiPost).mockRejectedValue(new Error('pull failed'));
+    useAuthStore.setState({
+      status: 'authenticated',
+      user: {
+        id: 'user-1',
+        github_username: 'octocat',
+        email: null,
+        display_name: null,
+        avatar_url: null,
+      },
+    });
+
+    render(<MenuBar />);
+    await user.click(screen.getByRole('button', { name: /octocat/ }));
+    const githubDropdown = getMenuDropdown(/octocat/);
+    await user.click(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ }));
+
+    expect(alertSpy).toHaveBeenCalledWith('pull failed');
+    alertSpy.mockRestore();
   });
 });

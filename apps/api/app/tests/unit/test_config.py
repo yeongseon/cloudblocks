@@ -60,11 +60,12 @@ def test_settings_accepts_strong_jwt_secret_in_production() -> None:
     env = {
         "CLOUDBLOCKS_APP_ENV": "production",
         "CLOUDBLOCKS_JWT_SECRET": "a-very-strong-secret-that-is-at-least-32-chars-long",
+        "CLOUDBLOCKS_TOKEN_ENCRYPTION_SALT": "a-strong-salt-at-least-16-chars",
     }
     with patch.dict(os.environ, env, clear=True):
         cfg = Settings()
     assert cfg.jwt_secret == "a-very-strong-secret-that-is-at-least-32-chars-long"
-
+    assert cfg.token_encryption_salt == "a-strong-salt-at-least-16-chars"
 
 def test_settings_allows_weak_jwt_secret_in_development() -> None:
     env = {
@@ -74,3 +75,29 @@ def test_settings_allows_weak_jwt_secret_in_development() -> None:
     with patch.dict(os.environ, env, clear=True):
         cfg = Settings()
     assert cfg.jwt_secret == "change-me-in-production"
+
+
+def test_settings_rejects_weak_salt_in_production() -> None:
+    env = {
+        "CLOUDBLOCKS_APP_ENV": "production",
+        "CLOUDBLOCKS_JWT_SECRET": "a-very-strong-secret-that-is-at-least-32-chars-long",
+        "CLOUDBLOCKS_TOKEN_ENCRYPTION_SALT": "cloudblocks-default-salt",
+    }
+    with (
+        patch.dict(os.environ, env, clear=True),
+        pytest.raises(ValueError, match="Token encryption salt is too weak"),
+    ):
+        Settings()
+
+
+def test_settings_rejects_short_salt_in_production() -> None:
+    env = {
+        "CLOUDBLOCKS_APP_ENV": "production",
+        "CLOUDBLOCKS_JWT_SECRET": "a-very-strong-secret-that-is-at-least-32-chars-long",
+        "CLOUDBLOCKS_TOKEN_ENCRYPTION_SALT": "short",
+    }
+    with (
+        patch.dict(os.environ, env, clear=True),
+        pytest.raises(ValueError, match="Token encryption salt is too weak"),
+    ):
+        Settings()

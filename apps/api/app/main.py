@@ -95,7 +95,7 @@ app.add_middleware(RequestIDMiddleware)
 # Global error handler for AppError
 @app.exception_handler(AppError)
 async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
-    return JSONResponse(
+    response = JSONResponse(
         status_code=exc.status_code,
         content={
             "error": {
@@ -105,6 +105,14 @@ async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
             }
         },
     )
+    # Clear stale session cookie on auth failures
+    if exc.status_code == 401 and request.cookies.get(settings.session_cookie_name):
+        response.delete_cookie(
+            key=settings.session_cookie_name,
+            path=settings.session_cookie_path,
+            domain=settings.session_cookie_domain,
+        )
+    return response
 
 
 # Health endpoints (no auth required)

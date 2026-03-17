@@ -4,7 +4,7 @@ import pytest
 from httpx import AsyncClient
 
 from app.core.config import settings
-from app.core.security import decrypt_token
+from app.core.security import decrypt_oauth_state, decrypt_token
 from app.infrastructure.db.repositories import (
     SQLiteIdentityRepository,
     SQLiteSessionRepository,
@@ -13,12 +13,14 @@ from app.infrastructure.db.repositories import (
 
 
 @pytest.mark.asyncio
-async def test_start_github_oauth_returns_authorize_url_and_sets_cookie(client: AsyncClient) -> None:
+async def test_start_github_oauth_returns_authorize_url_and_sets_cookie(
+    client: AsyncClient,
+) -> None:
     response = await client.post("/api/v1/auth/github")
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["state"]
+    assert "state" not in payload
     assert payload["authorize_url"]
     assert "cb_oauth" in response.cookies
     assert "cb_oauth=" in response.headers.get("set-cookie", "")
@@ -31,8 +33,11 @@ async def test_github_callback_creates_new_user_and_sets_session_cookie(
     db,
 ) -> None:
     start = await client.post("/api/v1/auth/github")
-    state = start.json()["state"]
     oauth_cookie = start.cookies.get("cb_oauth")
+    assert oauth_cookie is not None
+    state_data = decrypt_oauth_state(oauth_cookie)
+    assert state_data is not None
+    state = state_data["state"]
     assert oauth_cookie is not None
 
     mock_github.exchange_code.return_value = {"access_token": "gh-token"}
@@ -75,8 +80,11 @@ async def test_github_callback_updates_existing_user_on_relogin(
     db,
 ) -> None:
     start = await client.post("/api/v1/auth/github")
-    state = start.json()["state"]
     oauth_cookie = start.cookies.get("cb_oauth")
+    assert oauth_cookie is not None
+    state_data = decrypt_oauth_state(oauth_cookie)
+    assert state_data is not None
+    state = state_data["state"]
     assert oauth_cookie is not None
 
     mock_github.exchange_code.return_value = {"access_token": "updated-token"}
@@ -113,9 +121,11 @@ async def test_github_callback_stores_encrypted_access_token(
     db,
 ) -> None:
     start = await client.post("/api/v1/auth/github")
-    state = start.json()["state"]
     oauth_cookie = start.cookies.get("cb_oauth")
     assert oauth_cookie is not None
+    state_data = decrypt_oauth_state(oauth_cookie)
+    assert state_data is not None
+    state = state_data["state"]
 
     mock_github.exchange_code.return_value = {"access_token": "gh-secret-token"}
     mock_github.get_user.return_value = {
@@ -125,7 +135,9 @@ async def test_github_callback_stores_encrypted_access_token(
         "email": None,
         "avatar_url": None,
     }
-    mock_github.get_user_emails.return_value = [{"email": "token-test@example.com", "primary": True}]
+    mock_github.get_user_emails.return_value = [
+        {"email": "token-test@example.com", "primary": True},
+    ]
 
     response = await client.get(
         "/api/v1/auth/github/callback",
@@ -198,8 +210,13 @@ async def test_session_endpoint_returns_401_without_cookie(client: AsyncClient) 
 
 
 @pytest.mark.asyncio
-async def test_session_endpoint_returns_401_for_invalid_session(client: AsyncClient) -> None:
-    response = await client.get("/api/v1/auth/session", cookies={"cb_session": "invalid-session-token"})
+async def test_session_endpoint_returns_401_for_invalid_session(
+    client: AsyncClient,
+) -> None:
+    response = await client.get(
+        "/api/v1/auth/session",
+        cookies={"cb_session": "invalid-session-token"},
+    )
 
     assert response.status_code == 401
     assert response.json()["error"]["code"] == "UNAUTHORIZED"
@@ -227,11 +244,8 @@ async def test_logout_with_session_revokes_and_clears_cookie(
 async def test_logout_without_session_returns_200(client: AsyncClient) -> None:
     response = await client.post("/api/v1/auth/logout")
 
-    assert response.status_code in {200, 401}
-    if response.status_code == 200:
-        assert response.json() == {"message": "Logged out successfully"}
-    else:
-        assert response.json()["error"]["code"] == "UNAUTHORIZED"
+    assert response.status_code == 200
+    assert response.json() == {"message": "Logged out successfully"}
 
 
 @pytest.mark.asyncio

@@ -16,6 +16,8 @@ interface AuthState {
   checkSession: () => Promise<void>;
 }
 
+let _checkSessionSeq = 0;
+
 export const useAuthStore = create<AuthState>((set) => ({
   status: 'unknown',
   user: null,
@@ -32,11 +34,23 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ error }),
 
   checkSession: async () => {
+    const seq = ++_checkSessionSeq;
     try {
       const user = await apiGet<SessionUserResponse>('/api/v1/auth/session');
+      if (seq !== _checkSessionSeq) return; // stale response
       set({ status: 'authenticated', user, hydrated: true, error: null });
-    } catch {
-      set({ status: 'anonymous', user: null, hydrated: true, error: null });
+    } catch (err: unknown) {
+      if (seq !== _checkSessionSeq) return; // stale response
+      // Only treat 401 as "anonymous"; other errors keep status unknown
+      const isUnauthorized =
+        err instanceof Error &&
+        'status' in err &&
+        (err as { status: number }).status === 401;
+      if (isUnauthorized) {
+        set({ status: 'anonymous', user: null, hydrated: true, error: null });
+      } else {
+        set({ hydrated: true, error: 'Session check failed' });
+      }
     }
   },
 }));

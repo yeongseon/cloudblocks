@@ -79,7 +79,8 @@ describe('useAuthStore', () => {
   });
 
   it('checkSession sets anonymous state on 401', async () => {
-    mockApiGet.mockRejectedValueOnce(new Error('Unauthorized'));
+    const err = Object.assign(new Error('Unauthorized'), { status: 401 });
+    mockApiGet.mockRejectedValueOnce(err);
 
     await useAuthStore.getState().checkSession();
 
@@ -87,16 +88,18 @@ describe('useAuthStore', () => {
     expect(state.status).toBe('anonymous');
     expect(state.user).toBe(null);
     expect(state.hydrated).toBe(true);
+    expect(state.error).toBe(null);
   });
 
-  it('checkSession sets anonymous state on network error', async () => {
+  it('checkSession keeps unknown status on network error', async () => {
     mockApiGet.mockRejectedValueOnce(new Error('Network error'));
 
     await useAuthStore.getState().checkSession();
 
     const state = useAuthStore.getState();
-    expect(state.status).toBe('anonymous');
+    expect(state.status).toBe('unknown');
     expect(state.user).toBe(null);
     expect(state.hydrated).toBe(true);
+    expect(state.error).toBe('Session check failed');
   });
 });

@@ -1,4 +1,4 @@
-"""CloudBlocks API - JWT authentication service."""
+"""CloudBlocks API - Session security utilities."""
 
 from __future__ import annotations
 
@@ -7,10 +7,8 @@ import hashlib
 import json as json_module
 import secrets
 import uuid
-from datetime import datetime, timedelta, timezone
-from typing import Any, Mapping
+from collections.abc import Mapping
 
-import jwt
 from cryptography.fernet import Fernet, InvalidToken
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -74,46 +72,6 @@ def decrypt_oauth_state(encrypted: str) -> dict[str, int | str] | None:
     try:
         decrypted = f.decrypt(encrypted.encode())
         return json_module.loads(decrypted.decode())
-    except (InvalidToken, json_module.JSONDecodeError, Exception):
+    except (InvalidToken, json_module.JSONDecodeError, UnicodeDecodeError):
         return None
 
-
-def create_access_token(user_id: str, extra_claims: dict[str, object] | None = None) -> str:
-    """Create a JWT access token."""
-    now = datetime.now(timezone.utc)
-    payload: dict[str, object] = {
-        "sub": user_id,
-        "iat": now,
-        "exp": now + timedelta(seconds=settings.jwt_expiration_seconds),
-        "type": "access",
-    }
-    if extra_claims:
-        payload.update(extra_claims)
-    return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
-
-
-def create_refresh_token(user_id: str) -> str:
-    """Create a JWT refresh token (longer expiry)."""
-    now = datetime.now(timezone.utc)
-    payload = {
-        "sub": user_id,
-        "iat": now,
-        "exp": now + timedelta(seconds=settings.jwt_refresh_expiration_seconds),
-        "type": "refresh",
-    }
-    return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
-
-
-def decode_token(token: str, expected_type: str = "access") -> dict[str, Any]:
-    """Decode and validate a JWT token. Raises UnauthorizedError on failure."""
-    try:
-        payload = jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
-    except jwt.ExpiredSignatureError:
-        raise UnauthorizedError("Token has expired") from None
-    except jwt.InvalidTokenError:
-        raise UnauthorizedError("Invalid token") from None
-
-    if payload.get("type") != expected_type:
-        raise UnauthorizedError(f"Expected {expected_type} token")
-
-    return payload

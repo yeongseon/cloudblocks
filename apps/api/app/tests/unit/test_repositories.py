@@ -6,7 +6,14 @@ from datetime import datetime, timedelta, timezone
 
 import pytest_asyncio
 
-from app.domain.models.entities import GenerationRun, GenerationStatus, Identity, User, Workspace
+from app.domain.models.entities import (
+    GenerationRun,
+    GenerationStatus,
+    Identity,
+    Session,
+    User,
+    Workspace,
+)
 from app.infrastructure.db.connection import Database
 from app.infrastructure.db.repositories import (
     SQLiteGenerationRunRepository,
@@ -17,7 +24,6 @@ from app.infrastructure.db.repositories import (
     _fmt_dt,
     _parse_dt,
 )
-from app.domain.models.entities import Session
 
 
 @pytest_asyncio.fixture(name="db")

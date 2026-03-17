@@ -143,6 +143,16 @@ describe('bicep generator', () => {
     expect(mainBicep).toContain("resource servicePlan 'Microsoft.Web/serverfarms@2023-01-01' = {");
   });
 
+  it('generateMainBicep includes service plan when only function blocks exist', () => {
+    const model = createTestModel({
+      blocks: [createBlock({ id: 'block-func', name: 'Fn', category: 'function' })],
+    });
+    const normalized = normalizeBicep(model, azureProviderDefinition);
+    const mainBicep = generateMainBicep(normalized, azureProviderDefinition, defaultOptions);
+
+    expect(mainBicep).toContain("resource servicePlan 'Microsoft.Web/serverfarms@2023-01-01' = {");
+  });
+
   it('generateMainBicep includes db params when database blocks exist', () => {
     const model = createTestModel({
       blocks: [createBlock({ id: 'block-db', name: 'MainDb', category: 'database' })],
@@ -179,6 +189,26 @@ describe('bicep generator', () => {
     expect(mainBicep).toContain("resource queueQueue 'Microsoft.Storage/storageAccounts/queueServices/queues@2023-01-01' = {");
     expect(mainBicep).toContain("resource evtopicEvent 'Microsoft.EventGrid/topics@2023-12-15-preview' = {");
     expect(mainBicep).toContain("resource timerTimer 'Microsoft.Logic/workflows@2019-05-01' = {");
+  });
+
+  it('generates subnet as top-level resource when parent is missing', () => {
+    const model = createTestModel({
+      plates: [
+        createPlate({
+          id: 'sub-orphan',
+          name: 'Orphan Subnet',
+          type: 'subnet',
+          subnetAccess: 'private',
+          parentId: 'missing-network',
+        }),
+      ],
+    });
+    const normalized = normalizeBicep(model, azureProviderDefinition);
+    const mainBicep = generateMainBicep(normalized, azureProviderDefinition, defaultOptions);
+
+    expect(mainBicep).toContain("resource subnetOrphansubnet 'Microsoft.Network/virtualNetworks/subnets@2023-05-01' = {");
+    expect(mainBicep).toContain('location: location');
+    expect(mainBicep).not.toContain('parent: ');
   });
 
   it('generateParametersBicepparam contains projectName and location values', () => {

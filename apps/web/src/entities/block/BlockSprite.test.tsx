@@ -6,6 +6,10 @@ import { BlockSprite } from './BlockSprite';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import type { Block, BlockCategory, Plate } from '../../shared/types/index';
+import * as isometric from '../../shared/utils/isometric';
+import { audioService } from '../../shared/utils/audioService';
+import type { SoundName } from '../../shared/utils/audioService';
+import type { DiffDelta } from '../../shared/types/diff';
 
 const interactMocks = vi.hoisted(() => ({
   interactFn: vi.fn(),
@@ -292,6 +296,134 @@ describe('BlockSprite', () => {
 
     clearTimeoutSpy.mockRestore();
     vi.useRealTimers();
+  });
+
+  it('removes dropping class after animation end on drag release', () => {
+    const block = makeBlock('block-drop-anim', 'compute');
+    render(<BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+        end: () => void;
+      };
+    };
+
+    const sprite = screen.getByRole('button', { name: 'Block: compute-block' }).closest('.block-sprite') as HTMLElement;
+    const image = sprite.querySelector('.block-img') as HTMLElement;
+    draggableConfig.listeners.move({ dx: 1, dy: 1, target: sprite });
+    draggableConfig.listeners.end();
+
+    expect(image).toHaveClass('is-dropping');
+    fireEvent.animationEnd(image);
+    expect(image).not.toHaveClass('is-dropping');
+  });
+
+  it('does not initialize draggable interaction in connect or delete modes', () => {
+    const block = makeBlock('block-no-drag', 'compute');
+    useUIStore.setState({ toolMode: 'connect' });
+    render(<BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    expect(vi.mocked(interact)).not.toHaveBeenCalled();
+
+    useUIStore.setState({ toolMode: 'delete' });
+    render(<BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    expect(vi.mocked(interact)).not.toHaveBeenCalled();
+  });
+
+  it('applies diff classes for added, modified, and removed states', () => {
+    const makeDelta = (kind: 'added' | 'modified' | 'removed', id: string): DiffDelta => ({
+      plates: { added: [], removed: [], modified: [] },
+      blocks: {
+        added: kind === 'added' ? [{ ...makeBlock(id, 'compute') }] : [],
+        removed: kind === 'removed' ? [{ ...makeBlock(id, 'compute') }] : [],
+        modified: kind === 'modified' ? [{ id, before: makeBlock(id, 'compute'), after: makeBlock(id, 'compute'), changes: [] }] : [],
+      },
+      connections: { added: [], removed: [], modified: [] },
+      externalActors: { added: [], removed: [], modified: [] },
+      summary: { totalChanges: 1, hasBreakingChanges: false },
+    });
+
+    useUIStore.setState({ diffMode: true, diffDelta: makeDelta('added', 'block-added') });
+    const { container, rerender } = render(<BlockSprite block={makeBlock('block-added', 'compute')} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    expect(container.firstElementChild).toHaveClass('diff-added');
+
+    useUIStore.setState({ diffMode: true, diffDelta: makeDelta('modified', 'block-modified') });
+    rerender(<BlockSprite block={makeBlock('block-modified', 'compute')} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    expect(container.firstElementChild).toHaveClass('diff-modified');
+
+    useUIStore.setState({ diffMode: true, diffDelta: makeDelta('removed', 'block-removed') });
+    rerender(<BlockSprite block={makeBlock('block-removed', 'compute')} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    expect(container.firstElementChild).toHaveClass('diff-removed');
+  });
+
+  it('snaps on drag end and plays sound when unmuted', () => {
+    const block = { ...makeBlock('block-snap', 'compute'), position: { x: 1.2, y: 0, z: 0.4 } };
+    const playSoundSpy = vi.spyOn(audioService, 'playSound').mockImplementation(async (_name: SoundName) => undefined);
+    const snapSpy = vi.spyOn(isometric, 'snapToGrid').mockReturnValue({ x: 2, z: 1 });
+    useUIStore.setState({ isSoundMuted: false });
+    useArchitectureStore.setState({
+      moveBlockPosition: moveBlockPositionMock,
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          blocks: [block],
+          connections: [],
+        },
+      },
+    });
+
+    render(<BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+        end: () => void;
+      };
+    };
+
+    const target = screen.getByRole('button', { name: 'Block: compute-block' }).closest('.block-sprite') as HTMLElement;
+    draggableConfig.listeners.move({ dx: 2, dy: 2, target });
+    draggableConfig.listeners.end();
+
+    expect(moveBlockPositionMock).toHaveBeenCalledWith('block-snap', 0.8, 0.6);
+    expect(playSoundSpy).toHaveBeenCalledWith('block-snap');
+    snapSpy.mockRestore();
+    playSoundSpy.mockRestore();
+  });
+
+  it('snaps on drag end without sound when muted', () => {
+    const block = { ...makeBlock('block-snap-muted', 'compute'), position: { x: 0.2, y: 0, z: 0.3 } };
+    const playSoundSpy = vi.spyOn(audioService, 'playSound').mockImplementation(async (_name: SoundName) => undefined);
+    const snapSpy = vi.spyOn(isometric, 'snapToGrid').mockReturnValue({ x: 1, z: 1 });
+    useUIStore.setState({ isSoundMuted: true });
+    useArchitectureStore.setState({
+      moveBlockPosition: moveBlockPositionMock,
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          blocks: [block],
+          connections: [],
+        },
+      },
+    });
+
+    render(<BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+        end: () => void;
+      };
+    };
+
+    const target = screen.getByRole('button', { name: 'Block: compute-block' }).closest('.block-sprite') as HTMLElement;
+    draggableConfig.listeners.move({ dx: 1, dy: 1, target });
+    draggableConfig.listeners.end();
+
+    expect(moveBlockPositionMock).toHaveBeenCalledWith('block-snap-muted', 0.8, 0.7);
+    expect(playSoundSpy).not.toHaveBeenCalled();
+    snapSpy.mockRestore();
+    playSoundSpy.mockRestore();
   });
 
   it('adds is-valid-target class when in connect mode with valid source→target pair (gateway→compute)', () => {

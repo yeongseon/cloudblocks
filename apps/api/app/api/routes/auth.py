@@ -10,7 +10,6 @@ from pydantic import BaseModel
 
 from app.core.config import settings
 from app.core.dependencies import (
-    get_current_session,
     get_current_user,
     get_github_service,
     get_identity_repo,
@@ -53,7 +52,7 @@ async def start_github_oauth(
 
     url = github.get_authorize_url(settings.github_redirect_uri, state)
 
-    response = JSONResponse(content={"authorize_url": url, "state": state})
+    response = JSONResponse(content={"authorize_url": url})
     response.set_cookie(
         key=settings.oauth_cookie_name,
         value=encrypted,
@@ -87,7 +86,7 @@ async def github_oauth_callback(
         raise UnauthorizedError("Invalid OAuth state")
 
     created_raw = state_data.get("created_at", 0)
-    created_at = int(created_raw) if isinstance(created_raw, int | str) else 0
+    created_at = int(created_raw) if isinstance(created_raw, (int, str)) else 0
     if int(time_mod.time()) - created_at > settings.oauth_state_ttl_minutes * 60:
         raise UnauthorizedError("OAuth state expired")
 
@@ -207,15 +206,12 @@ async def get_session(
 async def logout(
     request: Request,
     session_repo: Annotated[SessionRepository, Depends(get_session_repo)],
-    session: Annotated[Session, Depends(get_current_session)] | None = None,
 ) -> JSONResponse:
-    """Revoke session and clear cookie."""
+    """Revoke session and clear cookie. Always returns 200."""
     session_token = request.cookies.get(settings.session_cookie_name)
-    if session:
-        await session_repo.revoke(session.id)
-    elif session_token:
+    if session_token:
         existing = await session_repo.get_by_id(session_token)
-        if existing:
+        if existing and existing.revoked_at is None:
             await session_repo.revoke(existing.id)
 
     response = JSONResponse(content={"message": "Logged out successfully"})

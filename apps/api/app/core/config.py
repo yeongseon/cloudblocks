@@ -44,16 +44,26 @@ class Settings(BaseSettings):
     model_config = {"env_prefix": "CLOUDBLOCKS_", "env_file": ".env", "extra": "ignore"}
 
     _WEAK_SECRETS: set[str] = {"change-me-in-production", "secret", "password", ""}
+    _WEAK_SALTS: set[str] = {"cloudblocks-default-salt", "salt", "default", ""}
 
     @model_validator(mode="after")
-    def _validate_jwt_secret_strength(self) -> "Settings":
-        if self.app_env != "development" and (
-            self.jwt_secret in self._WEAK_SECRETS or len(self.jwt_secret) < 32
-        ):
-            raise ValueError(
-                f"JWT secret is too weak for env '{self.app_env}'. "
-                "Set CLOUDBLOCKS_JWT_SECRET to a random string of at least 32 characters."
+    def _validate_secrets_strength(self) -> "Settings":
+        if self.app_env != "development":
+            if self.jwt_secret in self._WEAK_SECRETS or len(self.jwt_secret) < 32:
+                raise ValueError(
+                    f"JWT secret is too weak for env '{self.app_env}'. "
+                    "Set CLOUDBLOCKS_JWT_SECRET to a random string of at least 32 characters."
+                )
+            salt_weak = (
+                self.token_encryption_salt in self._WEAK_SALTS
+                or len(self.token_encryption_salt) < 16
             )
+            if salt_weak:
+                raise ValueError(
+                    f"Token encryption salt is too weak for env '{self.app_env}'. "
+                    "Set CLOUDBLOCKS_TOKEN_ENCRYPTION_SALT to a"
+                    " random string of at least 16 characters."
+                )
         return self
 
 

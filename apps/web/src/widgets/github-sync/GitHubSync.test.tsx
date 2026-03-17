@@ -206,6 +206,27 @@ describe('GitHubSync', () => {
     });
   });
 
+  it('updates commit message and sends custom value on sync', async () => {
+    const user = userEvent.setup();
+    mockApiPost.mockResolvedValue({ message: 'ok', commit_sha: 'abc123' });
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+    const commitInput = await screen.findByDisplayValue('Sync architecture from CloudBlocks');
+    await user.clear(commitInput);
+    await user.type(commitInput, 'Custom commit from test');
+    await user.click(screen.getByRole('button', { name: 'Sync to GitHub' }));
+
+    await waitFor(() => {
+      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/sync', {
+        architecture: emptyArch,
+        commit_message: 'Custom commit from test',
+      });
+    });
+  });
+
   it('handles sync error with non-Error thrown value', async () => {
     const user = userEvent.setup();
     mockApiPost.mockRejectedValue('string error');

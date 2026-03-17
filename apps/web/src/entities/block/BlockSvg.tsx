@@ -65,7 +65,7 @@ export const BlockSvg = memo(function BlockSvg({ category }: BlockSvgProps) {
     }
 
     return positions;
-  }, [cx, diamondHeight, screenWidth, studsX, studsY]);
+  }, [cx, diamondHeight, screenWidth, studsX, studsY, topY]);
 
   const studId = useId().replace(/:/g, '_');
 

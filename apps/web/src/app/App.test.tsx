@@ -52,6 +52,9 @@ vi.mock('../features/templates/builtin', () => ({
 import App from './App';
 import { registerBuiltinTemplates } from '../features/templates/builtin';
 
+const defaultCancelDrag = useUIStore.getState().cancelDrag;
+const defaultSetDiffMode = useUIStore.getState().setDiffMode;
+
 describe('App', () => {
   const undoMock = vi.fn();
   const redoMock = vi.fn();
@@ -67,6 +70,10 @@ describe('App', () => {
     useUIStore.setState({
       selectedId: null,
       setSelectedId: setSelectedIdMock,
+      cancelDrag: defaultCancelDrag,
+      setDiffMode: defaultSetDiffMode,
+      draggedBlockCategory: null,
+      diffMode: false,
     });
     useAuthStore.setState({
       status: 'unknown',
@@ -239,6 +246,39 @@ describe('App', () => {
     render(<App />);
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(setSelectedIdMock).toHaveBeenCalledWith(null);
+  });
+
+  it('handles Escape key to cancel drag before deselecting', () => {
+    const cancelDragMock = vi.fn();
+    useUIStore.setState({
+      draggedBlockCategory: 'compute',
+      cancelDrag: cancelDragMock,
+      selectedId: 'block-1',
+      setSelectedId: setSelectedIdMock,
+    });
+
+    render(<App />);
+    fireEvent.keyDown(window, { key: 'Escape' });
+
+    expect(cancelDragMock).toHaveBeenCalledOnce();
+    expect(setSelectedIdMock).not.toHaveBeenCalled();
+  });
+
+  it('handles Escape key to exit diff mode before deselecting', () => {
+    const setDiffModeMock = vi.fn();
+    useUIStore.setState({
+      diffMode: true,
+      setDiffMode: setDiffModeMock,
+      draggedBlockCategory: null,
+      selectedId: 'block-1',
+      setSelectedId: setSelectedIdMock,
+    });
+
+    render(<App />);
+    fireEvent.keyDown(window, { key: 'Escape' });
+
+    expect(setDiffModeMock).toHaveBeenCalledWith(false);
+    expect(setSelectedIdMock).not.toHaveBeenCalled();
   });
 
   it('does not intercept keyboard shortcuts when typing in input', () => {

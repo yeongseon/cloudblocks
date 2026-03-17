@@ -487,6 +487,37 @@ describe('Toolbar', () => {
     vi.stubGlobal('FileReader', OrigFileReader);
   });
 
+  it('ignores import when FileReader result is not a string', () => {
+    render(<Toolbar />);
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const file = new File(['{}'], 'test.json', { type: 'application/json' });
+
+    let capturedOnload: ((ev: ProgressEvent<FileReader>) => void) | null = null;
+    const OrigFileReader = window.FileReader;
+    class MockFileReader {
+      set onload(fn: ((ev: ProgressEvent<FileReader>) => void) | null) {
+        capturedOnload = fn;
+      }
+
+      get onload() {
+        return capturedOnload;
+      }
+
+      readAsText = vi.fn();
+    }
+    vi.stubGlobal('FileReader', MockFileReader);
+
+    Object.defineProperty(fileInput, 'files', { value: [file], writable: true, configurable: true });
+    fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+    const onloadFn = capturedOnload as ((ev: ProgressEvent<FileReader>) => void) | null;
+    if (onloadFn) {
+      onloadFn({ target: { result: new ArrayBuffer(8) } } as unknown as ProgressEvent<FileReader>);
+    }
+
+    expect(importArchitectureMock).not.toHaveBeenCalled();
+    vi.stubGlobal('FileReader', OrigFileReader);
+  });
+
   // --- Panel toggles ---
 
   it('toggles code preview on click', async () => {
@@ -636,6 +667,22 @@ describe('Toolbar', () => {
     useUIStore.setState({ showValidation: true });
     render(<Toolbar />);
     await user.click(screen.getByTitle('Validate Architecture'));
+    expect(validateMock).toHaveBeenCalled();
+    expect(useUIStore.getState().showValidation).toBe(true);
+  });
+
+  it('handles invalid validation result without toggling when already visible', async () => {
+    const user = userEvent.setup();
+    validateMock.mockReturnValue({
+      valid: false,
+      errors: [{ ruleId: 'r1', severity: 'error', message: 'boom', targetId: 'x' }],
+      warnings: [],
+    });
+    useUIStore.setState({ showValidation: true });
+
+    render(<Toolbar />);
+    await user.click(screen.getByTitle('Validate Architecture'));
+
     expect(validateMock).toHaveBeenCalled();
     expect(useUIStore.getState().showValidation).toBe(true);
   });

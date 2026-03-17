@@ -103,7 +103,7 @@ class Database:
         self._db: aiosqlite.Connection | None = None
 
     @classmethod
-    def from_url(cls, url: str) -> "Database":
+    def from_url(cls, url: str) -> Database:
         """Create a Database instance from a database URL.
 
         Handles SQLite URL formats:

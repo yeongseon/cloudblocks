@@ -1,9 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render } from '@testing-library/react';
 import { ConnectionPath } from './ConnectionPath';
+import { useUIStore } from '../store/uiStore';
 import { getEndpointWorldPosition } from '../../shared/utils/position';
 import { worldToScreen } from '../../shared/utils/isometric';
+import { getDiffState } from '../../features/diff/engine';
 import type { Connection } from '../../shared/types/index';
+import type { DiffDelta } from '../../shared/types/diff';
 
 vi.mock('../../shared/utils/position', () => ({
   getEndpointWorldPosition: vi.fn(),
@@ -11,6 +14,10 @@ vi.mock('../../shared/utils/position', () => ({
 
 vi.mock('../../shared/utils/isometric', () => ({
   worldToScreen: vi.fn(),
+}));
+
+vi.mock('../../features/diff/engine', () => ({
+  getDiffState: vi.fn(),
 }));
 
 const connection: Connection = {
@@ -24,6 +31,7 @@ const connection: Connection = {
 describe('ConnectionPath', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useUIStore.setState({ diffMode: false, diffDelta: null });
   });
 
   it('returns null when source endpoint position is missing', () => {
@@ -185,5 +193,91 @@ describe('ConnectionPath', () => {
     const paths = container.querySelectorAll('path');
     expect(paths[0]?.getAttribute('stroke-width')).toBe('4');
     expect(paths[1]?.getAttribute('stroke-width')).toBe('2');
+  });
+
+  it('uses added diff colors when diff state is added', () => {
+    useUIStore.setState({ diffMode: true, diffDelta: {} as unknown as DiffDelta });
+    vi.mocked(getDiffState).mockReturnValue('added');
+    vi.mocked(getEndpointWorldPosition)
+      .mockReturnValueOnce([1, 0, 2])
+      .mockReturnValueOnce([3, 0, 4]);
+    vi.mocked(worldToScreen)
+      .mockReturnValueOnce({ x: 100, y: 100 })
+      .mockReturnValueOnce({ x: 200, y: 200 });
+
+    const { container } = render(
+      <svg>
+        <ConnectionPath connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={0} originY={0} />
+      </svg>,
+    );
+
+    const paths = container.querySelectorAll('path');
+    expect(paths[0]?.getAttribute('stroke')).toBe('#166534');
+    expect(paths[1]?.getAttribute('stroke')).toBe('#22c55e');
+    expect(container.querySelector('g')?.getAttribute('opacity')).toBe('1');
+  });
+
+  it('uses removed diff colors and reduced opacity when diff state is removed', () => {
+    useUIStore.setState({ diffMode: true, diffDelta: {} as unknown as DiffDelta });
+    vi.mocked(getDiffState).mockReturnValue('removed');
+    vi.mocked(getEndpointWorldPosition)
+      .mockReturnValueOnce([1, 0, 2])
+      .mockReturnValueOnce([3, 0, 4]);
+    vi.mocked(worldToScreen)
+      .mockReturnValueOnce({ x: 100, y: 100 })
+      .mockReturnValueOnce({ x: 200, y: 200 });
+
+    const { container } = render(
+      <svg>
+        <ConnectionPath connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={0} originY={0} />
+      </svg>,
+    );
+
+    const paths = container.querySelectorAll('path');
+    expect(paths[0]?.getAttribute('stroke')).toBe('#991b1b');
+    expect(paths[1]?.getAttribute('stroke')).toBe('#ef4444');
+    expect(container.querySelector('g')?.getAttribute('opacity')).toBe('0.4');
+  });
+
+  it('uses modified diff colors when diff state is modified', () => {
+    useUIStore.setState({ diffMode: true, diffDelta: {} as unknown as DiffDelta });
+    vi.mocked(getDiffState).mockReturnValue('modified');
+    vi.mocked(getEndpointWorldPosition)
+      .mockReturnValueOnce([1, 0, 2])
+      .mockReturnValueOnce([3, 0, 4]);
+    vi.mocked(worldToScreen)
+      .mockReturnValueOnce({ x: 100, y: 100 })
+      .mockReturnValueOnce({ x: 200, y: 200 });
+
+    const { container } = render(
+      <svg>
+        <ConnectionPath connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={0} originY={0} />
+      </svg>,
+    );
+
+    const paths = container.querySelectorAll('path');
+    expect(paths[0]?.getAttribute('stroke')).toBe('#854d0e');
+    expect(paths[1]?.getAttribute('stroke')).toBe('#eab308');
+  });
+
+  it('uses unchanged colors by default in diff mode without delta', () => {
+    useUIStore.setState({ diffMode: true, diffDelta: null });
+    vi.mocked(getEndpointWorldPosition)
+      .mockReturnValueOnce([1, 0, 2])
+      .mockReturnValueOnce([3, 0, 4]);
+    vi.mocked(worldToScreen)
+      .mockReturnValueOnce({ x: 100, y: 100 })
+      .mockReturnValueOnce({ x: 200, y: 200 });
+
+    const { container } = render(
+      <svg>
+        <ConnectionPath connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={0} originY={0} />
+      </svg>,
+    );
+
+    const paths = container.querySelectorAll('path');
+    expect(paths[0]?.getAttribute('stroke')).toBe('#1e293b');
+    expect(paths[1]?.getAttribute('stroke')).toBe('#64748b');
+    expect(vi.mocked(getDiffState)).not.toHaveBeenCalled();
   });
 });

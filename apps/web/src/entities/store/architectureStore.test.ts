@@ -139,6 +139,16 @@ describe('architectureStore', () => {
       getState().addPlate('network', 'VNet', null);
       expect(getState().canUndo).toBe(true);
     });
+
+    it('adds subnet even when parentId does not exist', () => {
+      getState().addPlate('subnet', 'Orphan Subnet', 'missing-parent', 'public');
+      const subnet = getArch().plates[0];
+
+      expect(subnet.parentId).toBe('missing-parent');
+      expect(subnet.position.x).toBe(-3.5);
+      expect(subnet.position.y).toBe(0.3);
+      expect(subnet.position.z).toBe(0);
+    });
   });
 
   describe('removePlate', () => {
@@ -198,6 +208,24 @@ describe('architectureStore', () => {
       // Architecture should be unchanged (same reference since withHistory wasn't called)
       expect(getArch().plates).toHaveLength(1);
       expect(getArch().plates[0].name).toBe(before.plates[0].name);
+    });
+
+    it('removes deep nested child plates and their blocks recursively', () => {
+      getState().addPlate('network', 'VNet', null);
+      const networkId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Outer', networkId, 'public');
+      const outerId = getArch().plates[1].id;
+      getState().addPlate('subnet', 'Inner', outerId, 'private');
+      const innerId = getArch().plates[2].id;
+
+      getState().addBlock('compute', 'VM', innerId);
+      expect(getArch().plates).toHaveLength(3);
+      expect(getArch().blocks).toHaveLength(1);
+
+      getState().removePlate(networkId);
+
+      expect(getArch().plates).toHaveLength(0);
+      expect(getArch().blocks).toHaveLength(0);
     });
   });
 
@@ -336,6 +364,19 @@ describe('architectureStore', () => {
       expect(getArch().blocks[0].placementId).toBe(subId);
     });
 
+    it('keeps architecture reference when moving to same plate', () => {
+      getState().addPlate('network', 'VNet', null);
+      const netId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Sub1', netId, 'public');
+      const subId = getArch().plates[1].id;
+      getState().addBlock('compute', 'VM', subId);
+      const blockId = getArch().blocks[0].id;
+
+      const before = getState().workspace.architecture;
+      getState().moveBlock(blockId, subId);
+      expect(getState().workspace.architecture).toBe(before);
+    });
+
     it('no-ops on non-existent block', () => {
       getState().addPlate('network', 'VNet', null);
       const netId = getArch().plates[0].id;
@@ -357,6 +398,63 @@ describe('architectureStore', () => {
 
       getState().moveBlock(blockId, 'nonexistent');
       expect(getArch().blocks[0].placementId).toBe(subId);
+    });
+
+    it('keeps architecture reference when target plate does not exist', () => {
+      getState().addPlate('network', 'VNet', null);
+      const netId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Sub', netId, 'public');
+      const subId = getArch().plates[1].id;
+      getState().addBlock('compute', 'VM', subId);
+      const blockId = getArch().blocks[0].id;
+
+      const before = getState().workspace.architecture;
+      getState().moveBlock(blockId, 'missing-target');
+      expect(getState().workspace.architecture).toBe(before);
+    });
+  });
+
+  describe('setPlateProfile', () => {
+    it('resizes child plate and clamps position within parent bounds', () => {
+      getState().addPlate('network', 'VNet', null);
+      const networkId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Public', networkId, 'public');
+      const subnetId = getArch().plates[1].id;
+
+      getState().movePlatePosition(subnetId, 100, 100);
+      const before = getArch().plates.find((plate) => plate.id === subnetId);
+      expect(before?.position.x).toBe(5);
+
+      getState().setPlateProfile(subnetId, 'subnet-scale');
+      const resized = getArch().plates.find((plate) => plate.id === subnetId);
+      expect(resized?.profileId).toBe('subnet-scale');
+      expect(resized?.size.width).toBe(10);
+      expect(resized?.position.x).toBe(3);
+    });
+
+    it('resizes plate even when parentId points to missing parent', () => {
+      const orphan = {
+        id: 'orphan-subnet',
+        name: 'Orphan',
+        type: 'subnet' as const,
+        subnetAccess: 'public' as const,
+        parentId: 'missing-parent',
+        children: [],
+        position: { x: 4, y: 0.3, z: 4 },
+        size: { width: 6, height: 0.3, depth: 8 },
+        metadata: {},
+      };
+      useArchitectureStore.setState({
+        workspace: {
+          ...getState().workspace,
+          architecture: { ...getState().workspace.architecture, plates: [orphan] },
+        },
+      });
+
+      getState().setPlateProfile('orphan-subnet', 'subnet-scale');
+      const resized = getArch().plates.find((plate) => plate.id === 'orphan-subnet');
+      expect(resized?.profileId).toBe('subnet-scale');
+      expect(resized?.position).toEqual({ x: 4, y: 0.3, z: 4 });
     });
   });
 
@@ -1114,6 +1212,70 @@ describe('architectureStore', () => {
 
       expect(spy).toHaveBeenCalled();
       expect(String(spy.mock.calls.at(-1)?.[1])).toContain('does not reference an existing plate');
+      spy.mockRestore();
+    });
+
+    it('logs error when block name is not a string', () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const invalid = {
+        plates: [
+          {
+            id: 'p1',
+            name: 'Net',
+            type: 'network',
+            parentId: null,
+            children: [],
+            position: { x: 0, y: 0, z: 0 },
+            size: { width: 12, height: 0.3, depth: 10 },
+            metadata: {},
+          },
+        ],
+        blocks: [
+          {
+            id: 'b1',
+            name: 123,
+            category: 'compute',
+            placementId: 'p1',
+            position: { x: 0, y: 0.5, z: 0 },
+            metadata: {},
+          },
+        ],
+      };
+
+      getState().importArchitecture(JSON.stringify(invalid));
+      expect(String(spy.mock.calls.at(-1)?.[1])).toContain('name must be a string');
+      spy.mockRestore();
+    });
+
+    it('logs error when block category is invalid', () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const invalid = {
+        plates: [
+          {
+            id: 'p1',
+            name: 'Net',
+            type: 'network',
+            parentId: null,
+            children: [],
+            position: { x: 0, y: 0, z: 0 },
+            size: { width: 12, height: 0.3, depth: 10 },
+            metadata: {},
+          },
+        ],
+        blocks: [
+          {
+            id: 'b1',
+            name: 'VM',
+            category: 'invalid-category',
+            placementId: 'p1',
+            position: { x: 0, y: 0.5, z: 0 },
+            metadata: {},
+          },
+        ],
+      };
+
+      getState().importArchitecture(JSON.stringify(invalid));
+      expect(String(spy.mock.calls.at(-1)?.[1])).toContain('category must be one of compute, database, storage, gateway, function, queue, event, timer');
       spy.mockRestore();
     });
 
