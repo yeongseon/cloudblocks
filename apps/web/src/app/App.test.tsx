@@ -248,11 +248,11 @@ describe('App', () => {
     expect(setSelectedIdMock).toHaveBeenCalledWith(null);
   });
 
-  it('handles Escape key to cancel drag before deselecting', () => {
-    const cancelDragMock = vi.fn();
+  it('handles Escape key to cancel interaction before deselecting', () => {
+    const cancelInteractionMock = vi.fn();
     useUIStore.setState({
-      draggedBlockCategory: 'compute',
-      cancelDrag: cancelDragMock,
+      interactionState: 'placing',
+      cancelInteraction: cancelInteractionMock,
       selectedId: 'block-1',
       setSelectedId: setSelectedIdMock,
     });
@@ -260,13 +260,14 @@ describe('App', () => {
     render(<App />);
     fireEvent.keyDown(window, { key: 'Escape' });
 
-    expect(cancelDragMock).toHaveBeenCalledOnce();
+    expect(cancelInteractionMock).toHaveBeenCalledOnce();
     expect(setSelectedIdMock).not.toHaveBeenCalled();
   });
 
   it('handles Escape key to exit diff mode before deselecting', () => {
     const setDiffModeMock = vi.fn();
     useUIStore.setState({
+      interactionState: 'idle',
       diffMode: true,
       setDiffMode: setDiffModeMock,
       draggedBlockCategory: null,

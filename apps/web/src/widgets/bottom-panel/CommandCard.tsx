@@ -216,9 +216,8 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
   const techTree = useTechTree();
   const addPlate = useArchitectureStore((s) => s.addPlate);
   const addBlock = useArchitectureStore((s) => s.addBlock);
-  const setDraggedBlockCategory = useUIStore((s) => s.setDraggedBlockCategory);
-  const setDraggedResourceName = useUIStore((s) => s.setDraggedResourceName);
-  const cancelDrag = useUIStore((s) => s.cancelDrag);
+  const startPlacing = useUIStore((s) => s.startPlacing);
+  const cancelInteraction = useUIStore((s) => s.cancelInteraction);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
   const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
   const counterRef = useRef(0);
@@ -250,13 +249,12 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
           const def = RESOURCE_DEFINITIONS[type];
           if (!def?.blockCategory) return;
 
-          setDraggedBlockCategory(def.blockCategory);
-          setDraggedResourceName(def.label);
+          startPlacing(def.blockCategory, def.label);
         },
         end(event) {
           const buttonEl = event.target as HTMLButtonElement;
           buttonEl.classList.remove('is-dragging');
-          cancelDrag();
+          cancelInteraction();
 
           if (dragResetTimerRef.current) {
             clearTimeout(dragResetTimerRef.current);
@@ -276,12 +274,12 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
       buttons.forEach((button) => {
         button.classList.remove('is-dragging');
       });
-      cancelDrag();
+      cancelInteraction();
       interactables.forEach((interactable) => {
         interactable.unset();
       });
     };
-  }, [activeTab, cancelDrag, setDraggedBlockCategory, setDraggedResourceName]);
+  }, [activeTab, cancelInteraction, startPlacing]);
 
   const handleCreate = useCallback((type: ResourceType) => {
     if (isDraggingRef.current) return;
@@ -365,9 +363,8 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
   const techTree = useTechTree();
   const addPlate = useArchitectureStore((s) => s.addPlate);
   const addBlock = useArchitectureStore((s) => s.addBlock);
-  const setDraggedBlockCategory = useUIStore((s) => s.setDraggedBlockCategory);
-  const setDraggedResourceName = useUIStore((s) => s.setDraggedResourceName);
-  const cancelDrag = useUIStore((s) => s.cancelDrag);
+  const startPlacing = useUIStore((s) => s.startPlacing);
+  const cancelInteraction = useUIStore((s) => s.cancelInteraction);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
   const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
   const counterRef = useRef(0);
@@ -404,13 +401,12 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
           const def = RESOURCE_DEFINITIONS[type];
           if (!def?.blockCategory) return;
 
-          setDraggedBlockCategory(def.blockCategory);
-          setDraggedResourceName(def.label);
+          startPlacing(def.blockCategory, def.label);
         },
         end(event) {
           const buttonEl = event.target as HTMLButtonElement;
           buttonEl.classList.remove('is-dragging');
-          cancelDrag();
+          cancelInteraction();
 
           if (dragResetTimerRef.current) {
             clearTimeout(dragResetTimerRef.current);
@@ -430,12 +426,12 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
       buttons.forEach((button) => {
         button.classList.remove('is-dragging');
       });
-      cancelDrag();
+      cancelInteraction();
       interactables.forEach((interactable) => {
         interactable.unset();
       });
     };
-  }, [cancelDrag, contextResources, setDraggedBlockCategory, setDraggedResourceName]);
+  }, [cancelInteraction, contextResources, startPlacing]);
 
   const handleCreate = useCallback((type: ResourceType) => {
     if (isDraggingRef.current) return;

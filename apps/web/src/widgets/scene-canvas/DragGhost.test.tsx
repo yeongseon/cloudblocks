@@ -8,6 +8,7 @@ describe('DragGhost', () => {
     useUIStore.setState({
       draggedBlockCategory: null,
       draggedResourceName: null,
+      interactionState: 'idle',
     });
   });
 
@@ -20,6 +21,7 @@ describe('DragGhost', () => {
     useUIStore.setState({
       draggedBlockCategory: 'compute',
       draggedResourceName: 'Virtual Machine',
+      interactionState: 'placing',
     });
     render(<DragGhost />);
     expect(screen.getByText('Virtual Machine')).toBeInTheDocument();
@@ -29,11 +31,12 @@ describe('DragGhost', () => {
     useUIStore.setState({
       draggedBlockCategory: 'compute',
       draggedResourceName: 'Virtual Machine',
+      interactionState: 'placing',
     });
     const { container, rerender } = render(<DragGhost />);
     expect(screen.getByText('Virtual Machine')).toBeInTheDocument();
 
-    useUIStore.getState().cancelDrag();
+    useUIStore.getState().cancelInteraction();
     rerender(<DragGhost />);
 
     expect(container.querySelector('.drag-ghost')).toBeNull();
