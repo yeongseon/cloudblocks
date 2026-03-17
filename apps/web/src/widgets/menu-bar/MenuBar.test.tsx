@@ -129,6 +129,7 @@ describe('MenuBar', () => {
       showGitHubPR: false,
       connectionSource: null,
       draggedBlockCategory: null,
+      isSoundMuted: false,
     });
 
     useAuthStore.setState({
