@@ -30,6 +30,7 @@ Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks
 - **GitHub integration** — OAuth login, repo sync, pull, and PR creation (Milestone 5)
 - **Backend API** — FastAPI orchestration layer with GitHub App OAuth (Milestone 5)
 - **Sound effects** — Audio feedback with mute preference (Phase 2)
+- **Magnetic snap & tactile UX** — Grid snapping, dynamic shadows, bounce transitions on drag (Phase 2 UX)
 - **Lego minifigure** — DevOps engineer character with Azure provider branding (Phase 3)
 - **Architecture diff** — Compare local vs GitHub architecture with visual overlays (Milestone 7)
 - **Serverless blocks** — Function, Queue, Event, Timer block types (Milestone 6)
@@ -155,6 +156,7 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 | Milestone 6B | Builder UX completion — drag-to-create, onboarding, selection states | ✅ Complete |
 | Milestone 6C | Learning Mode — guided scenarios, step validation, hint engine | ✅ Complete |
 | Milestone 7 | Collaboration + CI/CD — architecture diff, GitHub Actions template | ✅ Complete |
+| Phase 2 UX | Tactile UX — magnetic snap, dynamic shadows, bounce transitions | ✅ Complete |
 
 ## Contributing
 

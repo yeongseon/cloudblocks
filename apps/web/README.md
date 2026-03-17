@@ -124,6 +124,7 @@ src/
 - ✅ Lego minifigure DevOps engineer character (Phase 3)
 - ✅ Architecture diff visualization with canvas overlays (Milestone 7)
 - ✅ Compare with GitHub flow (Milestone 7)
+- ✅ Magnetic snap, dynamic shadows, bounce transitions (Phase 2 UX)
 
 ## Not Yet Implemented
 

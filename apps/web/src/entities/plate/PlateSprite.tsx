@@ -10,7 +10,8 @@ import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import { getDiffState } from '../../features/diff/engine';
 import type { DiffDelta } from '../../shared/types/diff';
-import { screenDeltaToWorld, worldSizeToScreen } from '../../shared/utils/isometric';
+import { screenDeltaToWorld, snapToGrid, worldSizeToScreen } from '../../shared/utils/isometric';
+import { audioService } from '../../shared/utils/audioService';
 import { canPlaceBlock } from '../validation/placement';
 import { getPlateFaceColors } from './plateFaceColors';
 import { PlateSvg } from './PlateSvg';
@@ -45,17 +46,21 @@ export const PlateSprite = memo(function PlateSprite({
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (!plateRef.current) {
+    const el = plateRef.current;
+    if (!el) {
       return;
     }
 
-    const interactable = interact(plateRef.current).draggable({
+    const interactable = interact(el).draggable({
       listeners: {
         start() {
           isDragging.current = false;
         },
         move(event) {
           isDragging.current = true;
+
+          const imgEl = plateRef.current?.querySelector('.plate-img') as HTMLElement | null;
+          if (imgEl) imgEl.classList.add('is-dragging');
 
           const sceneWorld = event.target.closest('.scene-world') as HTMLElement | null;
           let zoom = 1;
@@ -74,6 +79,45 @@ export const PlateSprite = memo(function PlateSprite({
           movePlatePosition(plate.id, dWorldX, dWorldZ);
         },
         end() {
+          const imgEl = plateRef.current?.querySelector('.plate-img') as HTMLElement | null;
+          if (imgEl) imgEl.classList.remove('is-dragging');
+
+          if (isDragging.current) {
+            const droppingEl = plateRef.current?.querySelector('.plate-img') as HTMLElement | null;
+            if (droppingEl) {
+              droppingEl.classList.add('is-dropping');
+              const handleAnimEnd = () => {
+                droppingEl.classList.remove('is-dropping');
+                droppingEl.removeEventListener('animationend', handleAnimEnd);
+              };
+              droppingEl.addEventListener('animationend', handleAnimEnd);
+            }
+          }
+
+          if (isDragging.current) {
+            const currentPlate = useArchitectureStore
+              .getState()
+              .workspace
+              .architecture
+              .plates
+              .find((candidate) => candidate.id === plate.id);
+
+            if (currentPlate) {
+              const snappedPosition = snapToGrid(currentPlate.position.x, currentPlate.position.z);
+              const deltaX = snappedPosition.x - currentPlate.position.x;
+              const deltaZ = snappedPosition.z - currentPlate.position.z;
+
+              if (deltaX !== 0 || deltaZ !== 0) {
+                movePlatePosition(plate.id, deltaX, deltaZ);
+
+                const { isSoundMuted } = useUIStore.getState();
+                if (!isSoundMuted) {
+                  audioService.playSound('block-snap');
+                }
+              }
+            }
+          }
+
           if (dragResetTimerRef.current) {
             clearTimeout(dragResetTimerRef.current);
           }
@@ -89,6 +133,8 @@ export const PlateSprite = memo(function PlateSprite({
       if (dragResetTimerRef.current) {
         clearTimeout(dragResetTimerRef.current);
       }
+      el.querySelector('.plate-img')?.classList.remove('is-dragging');
+      el.querySelector('.plate-img')?.classList.remove('is-dropping');
       interactable.unset();
     };
   }, [plate.id, movePlatePosition]);

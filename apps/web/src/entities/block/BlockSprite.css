@@ -29,6 +29,13 @@
   transform: translateY(-3px);
 }
 
+.block-img.is-dragging {
+  filter: drop-shadow(4px 12px 0px rgba(0, 0, 0, 0.35)) drop-shadow(0px 16px 24px rgba(0, 0, 0, 0.25));
+  transform: translateY(-6px) scale(1.05);
+  cursor: grabbing;
+  z-index: 9999;
+}
+
 .block-sprite.is-selected .block-img {
   filter: drop-shadow(0 0 8px #FFD500) drop-shadow(0 0 16px rgba(255, 213, 0, 0.5)) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
 }
@@ -99,4 +106,15 @@
 @keyframes pulse-diff-modified {
   0%, 100% { filter: drop-shadow(0 0 8px #eab308) drop-shadow(0 0 16px rgba(234, 179, 8, 0.5)) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3)); }
   50% { filter: drop-shadow(0 0 14px #eab308) drop-shadow(0 0 28px rgba(234, 179, 8, 0.7)) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3)); }
+}
+
+@keyframes bounce-drop {
+  0% { transform: translateY(-6px) scale(1.05); }
+  40% { transform: translateY(3px) scale(0.98); }
+  70% { transform: translateY(-1px) scale(1.01); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+.block-img.is-dropping {
+  animation: bounce-drop 300ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }

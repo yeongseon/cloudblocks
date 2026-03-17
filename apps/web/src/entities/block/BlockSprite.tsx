@@ -5,7 +5,8 @@ import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import { getDiffState } from '../../features/diff/engine';
 import type { DiffDelta } from '../../shared/types/diff';
-import { screenDeltaToWorld } from '../../shared/utils/isometric';
+import { screenDeltaToWorld, snapToGrid } from '../../shared/utils/isometric';
+import { audioService } from '../../shared/utils/audioService';
 import { canConnect } from '../validation/connection';
 import { validatePlacement } from '../validation/placement';
 import { BlockSvg } from './BlockSvg';
@@ -76,17 +77,21 @@ export const BlockSprite = memo(function BlockSprite({
   const diffState = diffMode && diffDelta ? getDiffState(block.id, diffDelta) : 'unchanged';
 
   useEffect(() => {
-    if (toolMode === 'delete' || toolMode === 'connect' || !blockRef.current) {
+    const el = blockRef.current;
+    if (toolMode === 'delete' || toolMode === 'connect' || !el) {
       return;
     }
 
-    const interactable = interact(blockRef.current).draggable({
+    const interactable = interact(el).draggable({
       listeners: {
         start() {
           isDragging.current = false;
         },
         move(event) {
           isDragging.current = true;
+
+          const imgEl = blockRef.current?.querySelector('.block-img') as HTMLElement | null;
+          if (imgEl) imgEl.classList.add('is-dragging');
 
           const sceneWorld = event.target.closest('.scene-world') as HTMLElement | null;
           let zoom = 1;
@@ -105,6 +110,45 @@ export const BlockSprite = memo(function BlockSprite({
           moveBlockPosition(block.id, dWorldX, dWorldZ);
         },
         end() {
+          const imgEl = blockRef.current?.querySelector('.block-img') as HTMLElement | null;
+          if (imgEl) imgEl.classList.remove('is-dragging');
+
+          if (isDragging.current) {
+            const droppingEl = blockRef.current?.querySelector('.block-img') as HTMLElement | null;
+            if (droppingEl) {
+              droppingEl.classList.add('is-dropping');
+              const handleAnimEnd = () => {
+                droppingEl.classList.remove('is-dropping');
+                droppingEl.removeEventListener('animationend', handleAnimEnd);
+              };
+              droppingEl.addEventListener('animationend', handleAnimEnd);
+            }
+          }
+
+          if (isDragging.current) {
+            const currentBlock = useArchitectureStore
+              .getState()
+              .workspace
+              .architecture
+              .blocks
+              .find((candidate) => candidate.id === block.id);
+
+            if (currentBlock) {
+              const snappedPosition = snapToGrid(currentBlock.position.x, currentBlock.position.z);
+              const deltaX = snappedPosition.x - currentBlock.position.x;
+              const deltaZ = snappedPosition.z - currentBlock.position.z;
+
+              if (deltaX !== 0 || deltaZ !== 0) {
+                moveBlockPosition(block.id, deltaX, deltaZ);
+
+                const { isSoundMuted } = useUIStore.getState();
+                if (!isSoundMuted) {
+                  audioService.playSound('block-snap');
+                }
+              }
+            }
+          }
+
           if (dragResetTimerRef.current) {
             clearTimeout(dragResetTimerRef.current);
           }
@@ -120,6 +164,8 @@ export const BlockSprite = memo(function BlockSprite({
       if (dragResetTimerRef.current) {
         clearTimeout(dragResetTimerRef.current);
       }
+      el.querySelector('.block-img')?.classList.remove('is-dragging');
+      el.querySelector('.block-img')?.classList.remove('is-dropping');
       interactable.unset();
     };
   }, [block.id, moveBlockPosition, toolMode]);

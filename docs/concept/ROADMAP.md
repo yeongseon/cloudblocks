@@ -382,6 +382,38 @@ Deferred:
 
 ---
 
+# Phase 2 UX — Magnetic Snap, Dynamic Shadows, Bounce Transitions ✅
+
+Goal:
+Add tactile, physical-feeling UX polish to block and plate drag interactions.
+
+Features:
+
+- **Magnetic snapping** — Blocks and plates snap to isometric grid on drag-end using `snapToGrid()` from isometric.ts, with audio feedback (`block-snap` sound)
+- **Dynamic shadows** — Elevated shadow + scale effect during drag (CSS classList toggle), milder for plates than blocks
+- **Bouncing transition** — CSS keyframe bounce animation on drop (`@keyframes bounce-drop`), milder variant for plates (`bounce-drop-plate`)
+
+### Deliverables
+
+| # | Deliverable | Priority | Effort |
+|---|------------|----------|--------|
+| 1 | Magnetic snap (BlockSprite + PlateSprite) | P1 | Low |
+| 2 | Dynamic drag shadows (CSS + classList) | P1 | Low |
+| 3 | Bounce-drop animation (CSS keyframes) | P1 | Low |
+
+### Exit Criteria
+- [x] Blocks snap to grid on drag-end with audio feedback
+- [x] Plates snap to grid on drag-end (world coordinates)
+- [x] Dragged blocks show elevated shadow + scale effect
+- [x] Dragged plates show milder shadow + scale effect
+- [x] Drop triggers bounce animation (block: scale 1.05, plate: scale 1.02)
+- [x] All existing tests pass, build clean
+
+### Dependencies
+- Milestone 7 complete
+
+---
+
 # Milestone 8 — Multi-Cloud Platform
 
 Goal:
@@ -522,6 +554,8 @@ The roadmap evolves CloudBlocks from:
 → Learning Platform (Milestone 6C)
 
 → Collaboration Platform (Milestone 7)
+
+→ Tactile UX Polish (Phase 2 UX)
 
 → Multi-Cloud Architecture Tool (Milestone 8)
 
