@@ -12,9 +12,12 @@ import { PlateSprite } from '../../entities/plate/PlateSprite';
 import { BlockSprite } from '../../entities/block/BlockSprite';
 import { ConnectionPath } from '../../entities/connection/ConnectionPath';
 import { ExternalActorSprite } from '../../entities/connection/ExternalActorSprite';
+import { MinifigureSvg } from '../../entities/character';
 import { EmptyCanvasOverlay } from './EmptyCanvasOverlay';
 import { DragGhost } from './DragGhost';
 import './SceneCanvas.css';
+
+const MINIFIGURE_POSITION: [number, number, number] = [-3, 0, -6];
 
 export function SceneCanvas() {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
@@ -185,6 +188,26 @@ export function SceneCanvas() {
               />
             );
           })}
+        </div>
+
+        <div className="character-layer">
+          {(() => {
+            const [x, y, z] = MINIFIGURE_POSITION;
+            const screenPos = worldToScreen(x, y, z, origin.x, origin.y);
+            const zIndex = depthKey(x, z, y, 1);
+            return (
+              <div
+                className="character-sprite"
+                style={{
+                  left: screenPos.x,
+                  top: screenPos.y,
+                  zIndex,
+                }}
+              >
+                <MinifigureSvg provider="azure" />
+              </div>
+            );
+          })()}
         </div>
 
         <div className="block-layer">
