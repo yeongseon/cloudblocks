@@ -16,6 +16,8 @@ import { FlowDiagram } from '../widgets/flow-diagram/FlowDiagram';
 import { BottomPanel } from '../widgets/bottom-panel';
 import { LearningPanel } from '../widgets/learning-panel/LearningPanel';
 import { registerBuiltinScenarios } from '../features/learning/scenarios/builtin';
+import { audioService } from '../shared/utils/audioService';
+import { SOUND_ASSETS } from '../shared/assets/sounds';
 import './App.css';
 import './LearnMode.css';
 
@@ -41,6 +43,15 @@ function App() {
   const cancelDrag = useUIStore((s) => s.cancelDrag);
   const draggedBlockCategory = useUIStore((s) => s.draggedBlockCategory);
   const editorMode = useUIStore((s) => s.editorMode);
+  const isSoundMuted = useUIStore((s) => s.isSoundMuted);
+
+  useEffect(() => {
+    audioService.preloadAll(SOUND_ASSETS).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    audioService.setMuted(isSoundMuted);
+  }, [isSoundMuted]);
 
   // Load saved workspace and register templates on mount
   useEffect(() => {

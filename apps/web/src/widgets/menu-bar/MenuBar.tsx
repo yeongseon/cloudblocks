@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { audioService } from '../../shared/utils/audioService';
+import type { SoundName } from '../../shared/utils/audioService';
 import './MenuBar.css';
 
 type DropdownMenu = 'file' | 'edit' | 'insert' | 'tools' | 'build' | 'learn' | 'view' | 'github' | null;
@@ -29,6 +31,9 @@ export function MenuBar() {
   const toggleLearningPanel = useUIStore((s) => s.toggleLearningPanel);
   const showLearningPanel = useUIStore((s) => s.showLearningPanel);
   const editorMode = useUIStore((s) => s.editorMode);
+  const isSoundMuted = useUIStore((s) => s.isSoundMuted);
+  const toggleSound = useUIStore((s) => s.toggleSound);
+  const playSound = (name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); };
 
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const user = useAuthStore((s) => s.user);
@@ -81,6 +86,7 @@ export function MenuBar() {
 
   const handleAddNetwork = () => {
     addPlate('network', 'VNet', null);
+    playSound('block-snap');
   };
 
   const handleAddPublicSubnet = () => {
@@ -90,6 +96,7 @@ export function MenuBar() {
       return;
     }
     addPlate('subnet', 'Public Subnet', network.id, 'public');
+    playSound('block-snap');
   };
 
   const handleAddPrivateSubnet = () => {
@@ -99,22 +106,27 @@ export function MenuBar() {
       return;
     }
     addPlate('subnet', 'Private Subnet', network.id, 'private');
+    playSound('block-snap');
   };
 
   const handleDeleteSelection = () => {
     if (!selectedId) return;
     if (architecture.plates.some((p) => p.id === selectedId)) {
       removePlate(selectedId);
+      playSound('delete');
     } else if (architecture.blocks.some((b) => b.id === selectedId)) {
       removeBlock(selectedId);
+      playSound('delete');
     } else if (architecture.connections.some((c) => c.id === selectedId)) {
       removeConnection(selectedId);
+      playSound('delete');
     }
   };
 
   const handleValidate = () => {
-    validate();
+    const result = validate();
     if (!showValidation) toggleValidation();
+    playSound(result.valid ? 'validation-success' : 'validation-error');
   };
 
   const handleSave = () => {
@@ -160,6 +172,11 @@ export function MenuBar() {
     if (confirm('Reset workspace? All unsaved changes will be lost.')) {
       resetWorkspace();
     }
+  };
+
+  const handleToggleSound = () => {
+    toggleSound();
+    audioService.setMuted(!isSoundMuted);
   };
 
   return (
@@ -396,6 +413,14 @@ export function MenuBar() {
           title="Save Workspace (Ctrl+S)"
         >
           💾
+        </button>
+        <button
+          type="button"
+          className="quick-btn"
+          onClick={handleToggleSound}
+          title={isSoundMuted ? 'Unmute Sounds' : 'Mute Sounds'}
+        >
+          {isSoundMuted ? '🔇' : '🔊'}
         </button>
       </div>
 

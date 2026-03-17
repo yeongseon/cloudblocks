@@ -5,6 +5,8 @@ import { useUIStore } from '../../entities/store/uiStore';
 import { canPlaceBlock } from '../../entities/validation/placement';
 import { worldToScreen, depthKey } from '../../shared/utils/isometric';
 import { EXTERNAL_ACTOR_POSITION } from '../../shared/utils/position';
+import { audioService } from '../../shared/utils/audioService';
+import type { SoundName } from '../../shared/utils/audioService';
 
 import { PlateSprite } from '../../entities/plate/PlateSprite';
 import { BlockSprite } from '../../entities/block/BlockSprite';
@@ -21,6 +23,8 @@ export function SceneCanvas() {
   const draggedBlockCategory = useUIStore((s) => s.draggedBlockCategory);
   const draggedResourceName = useUIStore((s) => s.draggedResourceName);
   const cancelDrag = useUIStore((s) => s.cancelDrag);
+  const isSoundMuted = useUIStore((s) => s.isSoundMuted);
+  const playSound = (name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); };
 
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -69,9 +73,10 @@ export function SceneCanvas() {
 
       if (plateId) {
         const plate = architecture.plates.find((p) => p.id === plateId);
-        if (plate && canPlaceBlock(draggedBlockCategory, plate)) {
-          addBlock(draggedBlockCategory, draggedResourceName, plateId);
-        }
+          if (plate && canPlaceBlock(draggedBlockCategory, plate)) {
+            addBlock(draggedBlockCategory, draggedResourceName, plateId);
+            playSound('block-snap');
+          }
       }
       cancelDrag();
     }

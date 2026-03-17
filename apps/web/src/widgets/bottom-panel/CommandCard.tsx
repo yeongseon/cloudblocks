@@ -12,6 +12,8 @@ import { useRef, useCallback, useEffect, useState } from 'react';
 import interact from 'interactjs';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { audioService } from '../../shared/utils/audioService';
+import type { SoundName } from '../../shared/utils/audioService';
 import {
   useTechTree,
   CATEGORY_TABS,
@@ -150,6 +152,8 @@ export function CommandCard({ className = '' }: CommandCardProps) {
 function PlateActionMode({ selectedPlate, onDeploy }: { selectedPlate: Plate; onDeploy: () => void }) {
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const removePlate = useArchitectureStore((s) => s.removePlate);
+  const isSoundMuted = useUIStore((s) => s.isSoundMuted);
+  const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
 
   const handleAction = useCallback((action: PlateActionType) => {
     switch (action) {
@@ -159,6 +163,7 @@ function PlateActionMode({ selectedPlate, onDeploy }: { selectedPlate: Plate; on
       case 'delete':
         removePlate(selectedPlate.id);
         setSelectedId(null);
+        playSound('delete');
         break;
       case 'move':
       case 'rename':
@@ -167,7 +172,7 @@ function PlateActionMode({ selectedPlate, onDeploy }: { selectedPlate: Plate; on
       default:
         break;
     }
-  }, [onDeploy, removePlate, selectedPlate.id, setSelectedId]);
+  }, [onDeploy, removePlate, selectedPlate.id, setSelectedId, playSound]);
 
   return (
     <>
@@ -214,6 +219,8 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
   const setDraggedBlockCategory = useUIStore((s) => s.setDraggedBlockCategory);
   const setDraggedResourceName = useUIStore((s) => s.setDraggedResourceName);
   const cancelDrag = useUIStore((s) => s.cancelDrag);
+  const isSoundMuted = useUIStore((s) => s.isSoundMuted);
+  const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
   const counterRef = useRef(0);
   const isDraggingRef = useRef(false);
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -285,12 +292,19 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
     if (def.category === 'plate') {
       if (type === 'network') {
         addPlate('network', 'VNet', null);
+        playSound('block-snap');
       } else if (type === 'public-subnet') {
         const targetId = techTree.getTargetPlateId(type);
-        if (targetId) addPlate('subnet', 'Public Subnet', targetId, 'public');
+        if (targetId) {
+          addPlate('subnet', 'Public Subnet', targetId, 'public');
+          playSound('block-snap');
+        }
       } else if (type === 'private-subnet') {
         const targetId = techTree.getTargetPlateId(type);
-        if (targetId) addPlate('subnet', 'Private Subnet', targetId, 'private');
+        if (targetId) {
+          addPlate('subnet', 'Private Subnet', targetId, 'private');
+          playSound('block-snap');
+        }
       }
       return;
     }
@@ -306,8 +320,9 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
       counterRef.current += 1;
       const name = `${def.label} ${counterRef.current}`;
       addBlock(def.blockCategory, name, targetId);
+      playSound('block-snap');
     }
-  }, [addPlate, addBlock, techTree]);
+  }, [addPlate, addBlock, techTree, playSound]);
 
   return (
     <div ref={gridRef}>
@@ -353,6 +368,8 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
   const setDraggedBlockCategory = useUIStore((s) => s.setDraggedBlockCategory);
   const setDraggedResourceName = useUIStore((s) => s.setDraggedResourceName);
   const cancelDrag = useUIStore((s) => s.cancelDrag);
+  const isSoundMuted = useUIStore((s) => s.isSoundMuted);
+  const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
   const counterRef = useRef(0);
   const isDraggingRef = useRef(false);
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -430,8 +447,10 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
 
       if (type === 'public-subnet') {
         addPlate('subnet', 'Public Subnet', selectedPlate.id, 'public');
+        playSound('block-snap');
       } else if (type === 'private-subnet') {
         addPlate('subnet', 'Private Subnet', selectedPlate.id, 'private');
+        playSound('block-snap');
       }
 
       return;
@@ -444,7 +463,8 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
     counterRef.current += 1;
     const name = `${def.label} ${counterRef.current}`;
     addBlock(def.blockCategory, name, selectedPlate.id);
-  }, [addPlate, addBlock, selectedPlate.id, selectedPlate.type]);
+    playSound('block-snap');
+  }, [addPlate, addBlock, selectedPlate.id, selectedPlate.type, playSound]);
 
   const resourcePages = chunkResources(contextResources, 9).map((page) => {
     const normalizedPage: (ResourceType | null)[] = [...page];
@@ -511,6 +531,8 @@ function BlockActionMode() {
   const removeBlock = useArchitectureStore((s) => s.removeBlock);
   const removePlate = useArchitectureStore((s) => s.removePlate);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
+  const isSoundMuted = useUIStore((s) => s.isSoundMuted);
+  const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
 
   const handleAction = useCallback((action: ActionType) => {
     if (!selectedId) return;
@@ -530,6 +552,7 @@ function BlockActionMode() {
           removePlate(selectedId);
         }
         setSelectedId(null);
+        playSound('delete');
         break;
       }
 
@@ -544,7 +567,7 @@ function BlockActionMode() {
       default:
         break;
     }
-  }, [selectedId, setSelectedId, setToolMode, removeBlock, removePlate, architecture]);
+  }, [selectedId, setSelectedId, setToolMode, removeBlock, removePlate, architecture, playSound]);
 
   return (
     <>
