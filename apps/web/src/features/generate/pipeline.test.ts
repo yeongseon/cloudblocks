@@ -105,9 +105,9 @@ describe('pipeline', () => {
       expect(result.metadata.generator).toBe('cloudblocks');
     });
 
-    it('should set metadata.version to "0.3.0"', () => {
+    it('should set metadata.version to "0.6.0"', () => {
       const result = generateTerraform(validModel, validOptions);
-      expect(result.metadata.version).toBe('0.3.0');
+      expect(result.metadata.version).toBe('0.6.0');
     });
 
     it('should set metadata.provider from options', () => {
