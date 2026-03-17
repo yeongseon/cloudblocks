@@ -267,6 +267,7 @@ describe('App', () => {
   it('handles Escape key to exit diff mode before deselecting', () => {
     const setDiffModeMock = vi.fn();
     useUIStore.setState({
+      interactionState: 'idle',
       diffMode: true,
       setDiffMode: setDiffModeMock,
       draggedBlockCategory: null,
