@@ -1,14 +1,16 @@
 from __future__ import annotations
 
+import time
+
 import pytest
 from httpx import AsyncClient
 
-from app.core.security import create_access_token, generate_id
-from app.domain.models.entities import User
-from app.infrastructure.db.repositories import SQLiteUserRepository
+from app.core.security import generate_id, generate_session_token
+from app.domain.models.entities import Session, User
+from app.infrastructure.db.repositories import SQLiteSessionRepository, SQLiteUserRepository
 
 
-async def _create_other_user_auth(db) -> dict[str, str]:
+async def _create_other_user_cookies(db) -> dict[str, str]:
     repo = SQLiteUserRepository(db)
     other_user = User(
         id=generate_id(),
@@ -18,15 +20,25 @@ async def _create_other_user_auth(db) -> dict[str, str]:
         display_name="Other User",
     )
     created = await repo.create(other_user)
-    return {"Authorization": f"Bearer {create_access_token(created.id)}"}
+    session_repo = SQLiteSessionRepository(db)
+    token = generate_session_token()
+    now = int(time.time())
+    session = Session(
+        id=token,
+        user_id=created.id,
+        created_at=now,
+        expires_at=now + 7 * 24 * 3600,
+    )
+    await session_repo.create(session)
+    return {"cb_session": token}
 
 
 @pytest.mark.asyncio
 async def test_list_workspaces_returns_empty_for_new_user(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
 ) -> None:
-    response = await client.get("/api/v1/workspaces/", headers=auth_headers)
+    response = await client.get("/api/v1/workspaces/", cookies=auth_cookies)
 
     assert response.status_code == 200
     assert response.json() == {"workspaces": []}
@@ -35,20 +47,20 @@ async def test_list_workspaces_returns_empty_for_new_user(
 @pytest.mark.asyncio
 async def test_list_workspaces_returns_created_workspaces(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
 ) -> None:
     await client.post(
         "/api/v1/workspaces/",
-        headers=auth_headers,
+        cookies=auth_cookies,
         json={"name": "Workspace A"},
     )
     await client.post(
         "/api/v1/workspaces/",
-        headers=auth_headers,
+        cookies=auth_cookies,
         json={"name": "Workspace B", "generator": "pulumi", "provider": "aws"},
     )
 
-    response = await client.get("/api/v1/workspaces/", headers=auth_headers)
+    response = await client.get("/api/v1/workspaces/", cookies=auth_cookies)
 
     assert response.status_code == 200
     payload = response.json()["workspaces"]
@@ -60,12 +72,12 @@ async def test_list_workspaces_returns_created_workspaces(
 @pytest.mark.asyncio
 async def test_create_workspace_with_minimal_body_returns_201(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
     test_user,
 ) -> None:
     response = await client.post(
         "/api/v1/workspaces/",
-        headers=auth_headers,
+        cookies=auth_cookies,
         json={"name": "Minimal Workspace"},
     )
 
@@ -80,11 +92,11 @@ async def test_create_workspace_with_minimal_body_returns_201(
 @pytest.mark.asyncio
 async def test_create_workspace_with_all_fields_returns_201(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
 ) -> None:
     response = await client.post(
         "/api/v1/workspaces/",
-        headers=auth_headers,
+        cookies=auth_cookies,
         json={
             "name": "Full Workspace",
             "generator": "bicep",
@@ -112,16 +124,16 @@ async def test_create_workspace_without_auth_returns_401(client: AsyncClient) ->
 @pytest.mark.asyncio
 async def test_get_workspace_returns_workspace_for_owner(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
 ) -> None:
     created = await client.post(
         "/api/v1/workspaces/",
-        headers=auth_headers,
+        cookies=auth_cookies,
         json={"name": "Owned Workspace"},
     )
     workspace_id = created.json()["id"]
 
-    response = await client.get(f"/api/v1/workspaces/{workspace_id}", headers=auth_headers)
+    response = await client.get(f"/api/v1/workspaces/{workspace_id}", cookies=auth_cookies)
 
     assert response.status_code == 200
     assert response.json()["id"] == workspace_id
@@ -130,9 +142,9 @@ async def test_get_workspace_returns_workspace_for_owner(
 @pytest.mark.asyncio
 async def test_get_workspace_non_existent_returns_404(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
 ) -> None:
-    response = await client.get("/api/v1/workspaces/does-not-exist", headers=auth_headers)
+    response = await client.get("/api/v1/workspaces/does-not-exist", cookies=auth_cookies)
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "NOT_FOUND"
@@ -141,18 +153,18 @@ async def test_get_workspace_non_existent_returns_404(
 @pytest.mark.asyncio
 async def test_get_workspace_of_other_user_returns_403(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
     db,
 ) -> None:
     created = await client.post(
         "/api/v1/workspaces/",
-        headers=auth_headers,
+        cookies=auth_cookies,
         json={"name": "Private Workspace"},
     )
     workspace_id = created.json()["id"]
-    other_headers = await _create_other_user_auth(db)
+    other_cookies = await _create_other_user_cookies(db)
 
-    response = await client.get(f"/api/v1/workspaces/{workspace_id}", headers=other_headers)
+    response = await client.get(f"/api/v1/workspaces/{workspace_id}", cookies=other_cookies)
 
     assert response.status_code == 403
     assert response.json()["error"]["code"] == "FORBIDDEN"
@@ -169,18 +181,18 @@ async def test_get_workspace_without_auth_returns_401(client: AsyncClient) -> No
 @pytest.mark.asyncio
 async def test_update_workspace_name_returns_200(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
 ) -> None:
     created = await client.post(
         "/api/v1/workspaces/",
-        headers=auth_headers,
+        cookies=auth_cookies,
         json={"name": "Before"},
     )
     workspace_id = created.json()["id"]
 
     response = await client.put(
         f"/api/v1/workspaces/{workspace_id}",
-        headers=auth_headers,
+        cookies=auth_cookies,
         json={"name": "After"},
     )
 
@@ -191,18 +203,18 @@ async def test_update_workspace_name_returns_200(
 @pytest.mark.asyncio
 async def test_update_workspace_multiple_fields_returns_200(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
 ) -> None:
     created = await client.post(
         "/api/v1/workspaces/",
-        headers=auth_headers,
+        cookies=auth_cookies,
         json={"name": "Original"},
     )
     workspace_id = created.json()["id"]
 
     response = await client.put(
         f"/api/v1/workspaces/{workspace_id}",
-        headers=auth_headers,
+        cookies=auth_cookies,
         json={
             "name": "Updated",
             "generator": "pulumi",
@@ -224,11 +236,11 @@ async def test_update_workspace_multiple_fields_returns_200(
 @pytest.mark.asyncio
 async def test_update_workspace_non_existent_returns_404(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
 ) -> None:
     response = await client.put(
         "/api/v1/workspaces/missing-id",
-        headers=auth_headers,
+        cookies=auth_cookies,
         json={"name": "Nope"},
     )
 
@@ -239,20 +251,20 @@ async def test_update_workspace_non_existent_returns_404(
 @pytest.mark.asyncio
 async def test_update_workspace_not_owner_returns_403(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
     db,
 ) -> None:
     created = await client.post(
         "/api/v1/workspaces/",
-        headers=auth_headers,
+        cookies=auth_cookies,
         json={"name": "Owner Workspace"},
     )
     workspace_id = created.json()["id"]
-    other_headers = await _create_other_user_auth(db)
+    other_cookies = await _create_other_user_cookies(db)
 
     response = await client.put(
         f"/api/v1/workspaces/{workspace_id}",
-        headers=other_headers,
+        cookies=other_cookies,
         json={"name": "Should Fail"},
     )
 
@@ -263,29 +275,29 @@ async def test_update_workspace_not_owner_returns_403(
 @pytest.mark.asyncio
 async def test_delete_workspace_owned_returns_204(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
 ) -> None:
     created = await client.post(
         "/api/v1/workspaces/",
-        headers=auth_headers,
+        cookies=auth_cookies,
         json={"name": "Delete Me"},
     )
     workspace_id = created.json()["id"]
 
-    response = await client.delete(f"/api/v1/workspaces/{workspace_id}", headers=auth_headers)
+    response = await client.delete(f"/api/v1/workspaces/{workspace_id}", cookies=auth_cookies)
 
     assert response.status_code == 204
 
-    get_response = await client.get(f"/api/v1/workspaces/{workspace_id}", headers=auth_headers)
+    get_response = await client.get(f"/api/v1/workspaces/{workspace_id}", cookies=auth_cookies)
     assert get_response.status_code == 404
 
 
 @pytest.mark.asyncio
 async def test_delete_workspace_non_existent_returns_404(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
 ) -> None:
-    response = await client.delete("/api/v1/workspaces/missing-id", headers=auth_headers)
+    response = await client.delete("/api/v1/workspaces/missing-id", cookies=auth_cookies)
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "NOT_FOUND"
@@ -294,18 +306,18 @@ async def test_delete_workspace_non_existent_returns_404(
 @pytest.mark.asyncio
 async def test_delete_workspace_not_owner_returns_403(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
     db,
 ) -> None:
     created = await client.post(
         "/api/v1/workspaces/",
-        headers=auth_headers,
+        cookies=auth_cookies,
         json={"name": "Not Yours"},
     )
     workspace_id = created.json()["id"]
-    other_headers = await _create_other_user_auth(db)
+    other_cookies = await _create_other_user_cookies(db)
 
-    response = await client.delete(f"/api/v1/workspaces/{workspace_id}", headers=other_headers)
+    response = await client.delete(f"/api/v1/workspaces/{workspace_id}", cookies=other_cookies)
 
     assert response.status_code == 403
     assert response.json()["error"]["code"] == "FORBIDDEN"
