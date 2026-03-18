@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import { ConnectionPath } from './ConnectionPath';
 import { useUIStore } from '../store/uiStore';
+import { useArchitectureStore } from '../store/architectureStore';
 import { getEndpointWorldPosition } from '../../shared/utils/position';
 import { worldToScreen } from '../../shared/utils/isometric';
 import { getDiffState } from '../../features/diff/engine';
@@ -29,9 +30,19 @@ const connection: Connection = {
 };
 
 describe('ConnectionPath', () => {
+  const initialUIState = useUIStore.getState();
+  const initialArchitectureState = useArchitectureStore.getState();
+
   beforeEach(() => {
     vi.clearAllMocks();
-    useUIStore.setState({ diffMode: false, diffDelta: null });
+    useUIStore.setState(initialUIState, true);
+    useArchitectureStore.setState(initialArchitectureState, true);
+    useUIStore.setState({
+      diffMode: false,
+      diffDelta: null,
+      selectedId: null,
+      toolMode: 'select',
+    });
   });
 
   it('returns null when source endpoint position is missing', () => {
@@ -102,7 +113,7 @@ describe('ConnectionPath', () => {
     );
 
     expect(container.querySelector('g')).toBeInTheDocument();
-    expect(container.querySelectorAll('path')).toHaveLength(2);
+    expect(container.querySelectorAll('path')).toHaveLength(3);
     expect(container.querySelector('path')?.getAttribute('d')).toBe('M 120 220 Q 200 180 280 320');
   });
 
@@ -133,8 +144,8 @@ describe('ConnectionPath', () => {
     expect(container.querySelector('marker#arrow-conn-1-bg')).toBeInTheDocument();
 
     const paths = container.querySelectorAll('path');
-    expect(paths[0]?.getAttribute('marker-end')).toBe('url(#arrow-conn-1-bg)');
-    expect(paths[1]?.getAttribute('marker-end')).toBe('url(#arrow-conn-1)');
+    expect(paths[1]?.getAttribute('marker-end')).toBe('url(#arrow-conn-1-bg)');
+    expect(paths[2]?.getAttribute('marker-end')).toBe('url(#arrow-conn-1)');
   });
 
   it('uses userSpaceOnUse markerUnits for consistent arrow sizing', () => {
@@ -191,8 +202,8 @@ describe('ConnectionPath', () => {
     );
 
     const paths = container.querySelectorAll('path');
-    expect(paths[0]?.getAttribute('stroke-width')).toBe('4');
-    expect(paths[1]?.getAttribute('stroke-width')).toBe('2');
+    expect(paths[1]?.getAttribute('stroke-width')).toBe('4');
+    expect(paths[2]?.getAttribute('stroke-width')).toBe('2');
   });
 
   it('uses added diff colors when diff state is added', () => {
@@ -212,8 +223,8 @@ describe('ConnectionPath', () => {
     );
 
     const paths = container.querySelectorAll('path');
-    expect(paths[0]?.getAttribute('stroke')).toBe('#166534');
-    expect(paths[1]?.getAttribute('stroke')).toBe('#22c55e');
+    expect(paths[1]?.getAttribute('stroke')).toBe('#166534');
+    expect(paths[2]?.getAttribute('stroke')).toBe('#22c55e');
     expect(container.querySelector('g')?.getAttribute('opacity')).toBe('1');
   });
 
@@ -234,8 +245,8 @@ describe('ConnectionPath', () => {
     );
 
     const paths = container.querySelectorAll('path');
-    expect(paths[0]?.getAttribute('stroke')).toBe('#991b1b');
-    expect(paths[1]?.getAttribute('stroke')).toBe('#ef4444');
+    expect(paths[1]?.getAttribute('stroke')).toBe('#991b1b');
+    expect(paths[2]?.getAttribute('stroke')).toBe('#ef4444');
     expect(container.querySelector('g')?.getAttribute('opacity')).toBe('0.4');
   });
 
@@ -256,8 +267,8 @@ describe('ConnectionPath', () => {
     );
 
     const paths = container.querySelectorAll('path');
-    expect(paths[0]?.getAttribute('stroke')).toBe('#854d0e');
-    expect(paths[1]?.getAttribute('stroke')).toBe('#eab308');
+    expect(paths[1]?.getAttribute('stroke')).toBe('#854d0e');
+    expect(paths[2]?.getAttribute('stroke')).toBe('#eab308');
   });
 
   it('uses unchanged colors by default in diff mode without delta', () => {
@@ -276,8 +287,114 @@ describe('ConnectionPath', () => {
     );
 
     const paths = container.querySelectorAll('path');
-    expect(paths[0]?.getAttribute('stroke')).toBe('#1e293b');
-    expect(paths[1]?.getAttribute('stroke')).toBe('#64748b');
+    expect(paths[1]?.getAttribute('stroke')).toBe('#1e293b');
+    expect(paths[2]?.getAttribute('stroke')).toBe('#64748b');
     expect(vi.mocked(getDiffState)).not.toHaveBeenCalled();
+  });
+
+  it('click in select mode sets selectedId to connection id', () => {
+    vi.mocked(getEndpointWorldPosition)
+      .mockReturnValueOnce([1, 0, 2])
+      .mockReturnValueOnce([3, 0, 4]);
+    vi.mocked(worldToScreen)
+      .mockReturnValueOnce({ x: 100, y: 100 })
+      .mockReturnValueOnce({ x: 200, y: 200 });
+
+    const { container } = render(
+      <svg>
+        <ConnectionPath connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={0} originY={0} />
+      </svg>,
+    );
+
+    fireEvent.click(container.querySelector('g') as SVGGElement);
+
+    expect(useUIStore.getState().selectedId).toBe(connection.id);
+  });
+
+  it('click in delete mode removes the connection', () => {
+    const removeConnectionMock = vi.fn();
+    useUIStore.setState({ toolMode: 'delete' });
+    useArchitectureStore.setState({ removeConnection: removeConnectionMock });
+    vi.mocked(getEndpointWorldPosition)
+      .mockReturnValueOnce([1, 0, 2])
+      .mockReturnValueOnce([3, 0, 4]);
+    vi.mocked(worldToScreen)
+      .mockReturnValueOnce({ x: 100, y: 100 })
+      .mockReturnValueOnce({ x: 200, y: 200 });
+
+    const { container } = render(
+      <svg>
+        <ConnectionPath connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={0} originY={0} />
+      </svg>,
+    );
+
+    fireEvent.click(container.querySelector('g') as SVGGElement);
+
+    expect(removeConnectionMock).toHaveBeenCalledWith(connection.id);
+  });
+
+  it('hovering connection highlights the stroke widths', () => {
+    vi.mocked(getEndpointWorldPosition).mockImplementation((id) => (
+      id === connection.sourceId ? [1, 0, 2] : [3, 0, 4]
+    ));
+    vi.mocked(worldToScreen).mockImplementation((x) => (
+      x === 1 ? { x: 100, y: 100 } : { x: 200, y: 200 }
+    ));
+
+    const { container } = render(
+      <svg>
+        <ConnectionPath connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={0} originY={0} />
+      </svg>,
+    );
+
+    const hitArea = container.querySelector('[data-testid="connection-hit-area"]') as SVGPathElement;
+
+    fireEvent.mouseEnter(hitArea);
+    expect(container.querySelectorAll('path')[1]?.getAttribute('stroke-width')).toBe('6');
+    expect(container.querySelectorAll('path')[2]?.getAttribute('stroke-width')).toBe('4');
+
+    fireEvent.mouseLeave(hitArea);
+    expect(container.querySelectorAll('path')[1]?.getAttribute('stroke-width')).toBe('4');
+    expect(container.querySelectorAll('path')[2]?.getAttribute('stroke-width')).toBe('2');
+  });
+
+  it('selected connection renders highlighted stroke widths', () => {
+    useUIStore.setState({ selectedId: connection.id });
+    vi.mocked(getEndpointWorldPosition)
+      .mockReturnValueOnce([1, 0, 2])
+      .mockReturnValueOnce([3, 0, 4]);
+    vi.mocked(worldToScreen)
+      .mockReturnValueOnce({ x: 100, y: 100 })
+      .mockReturnValueOnce({ x: 200, y: 200 });
+
+    const { container } = render(
+      <svg>
+        <ConnectionPath connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={0} originY={0} />
+      </svg>,
+    );
+
+    const paths = container.querySelectorAll('path');
+    expect(paths[1]?.getAttribute('stroke-width')).toBe('6');
+    expect(paths[2]?.getAttribute('stroke-width')).toBe('4');
+  });
+
+  it('stops propagation when clicking a connection', () => {
+    const parentClick = vi.fn();
+    vi.mocked(getEndpointWorldPosition)
+      .mockReturnValueOnce([1, 0, 2])
+      .mockReturnValueOnce([3, 0, 4]);
+    vi.mocked(worldToScreen)
+      .mockReturnValueOnce({ x: 100, y: 100 })
+      .mockReturnValueOnce({ x: 200, y: 200 });
+
+    const { container } = render(
+      <svg onClick={parentClick}>
+        <ConnectionPath connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={0} originY={0} />
+      </svg>,
+    );
+
+    fireEvent.click(container.querySelector('g') as SVGGElement);
+
+    expect(parentClick).not.toHaveBeenCalled();
   });
 });

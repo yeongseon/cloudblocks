@@ -245,6 +245,33 @@ describe('App', () => {
     expect(setSelectedIdMock).toHaveBeenCalledWith(null);
   });
 
+  it('handles Backspace key to remove selected connection', () => {
+    useUIStore.setState({ selectedId: 'conn-1', setSelectedId: setSelectedIdMock });
+    useArchitectureStore.setState({
+      loadFromStorage: loadFromStorageMock,
+      undo: undoMock,
+      redo: redoMock,
+      removeBlock: removeBlockMock,
+      removePlate: removePlateMock,
+      removeConnection: removeConnectionMock,
+      workspace: {
+        id: 'ws-1', name: 'Test',
+        architecture: {
+          id: 'arch-1', name: 'Test', version: '1.0.0',
+          plates: [], blocks: [],
+          connections: [{ id: 'conn-1', sourceId: 's', targetId: 't', type: 'dataflow', metadata: {} }],
+          externalActors: [],
+          createdAt: '', updatedAt: '',
+        },
+        createdAt: '', updatedAt: '',
+      },
+    });
+    render(<App />);
+    fireEvent.keyDown(window, { key: 'Backspace' });
+    expect(removeConnectionMock).toHaveBeenCalledWith('conn-1');
+    expect(setSelectedIdMock).toHaveBeenCalledWith(null);
+  });
+
   it('handles Escape key to deselect', () => {
     useUIStore.setState({ selectedId: 'block-1', setSelectedId: setSelectedIdMock });
     render(<App />);
