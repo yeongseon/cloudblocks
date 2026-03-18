@@ -7,6 +7,7 @@ export function EmptyCanvasOverlay() {
   const showTemplateGallery = useUIStore((s) => s.showTemplateGallery);
   const addPlate = useArchitectureStore((s) => s.addPlate);
   const toggleTemplateGallery = useUIStore((s) => s.toggleTemplateGallery);
+  const toggleScenarioGallery = useUIStore((s) => s.toggleScenarioGallery);
 
   if (plates.length > 0 || showTemplateGallery) return null;
 
@@ -34,6 +35,13 @@ export function EmptyCanvasOverlay() {
             ✨ Start from Scratch
           </button>
         </div>
+        <button
+          type="button"
+          className="empty-canvas-learn-link"
+          onClick={() => toggleScenarioGallery()}
+        >
+          📖 Learn How
+        </button>
       </div>
     </div>
   );

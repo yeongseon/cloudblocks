@@ -77,3 +77,18 @@
 .empty-canvas-btn--scratch:hover {
   background: rgba(255, 255, 255, 0.25);
 }
+
+.empty-canvas-learn-link {
+  margin-top: 16px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  cursor: pointer;
+  font-family: 'Fredoka', 'Varela Round', system-ui, sans-serif;
+  transition: color 0.15s ease;
+}
+
+.empty-canvas-learn-link:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
