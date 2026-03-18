@@ -292,7 +292,7 @@ describe('ConnectionPath', () => {
     expect(vi.mocked(getDiffState)).not.toHaveBeenCalled();
   });
 
-  it('click in select mode sets selectedId to connection id', async () => {
+  it('click in select mode sets selectedId to connection id', () => {
     vi.mocked(getEndpointWorldPosition)
       .mockReturnValueOnce([1, 0, 2])
       .mockReturnValueOnce([3, 0, 4]);
