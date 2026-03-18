@@ -25,7 +25,7 @@ from app.api.routes.session import router as session_router
 from app.api.routes.workspaces import router as workspace_router
 from app.core import dependencies as dependency_container
 from app.core.config import settings
-from app.core.dependencies import get_database
+from app.core.dependencies import get_database, get_redis_client
 from app.core.errors import AppError
 from app.infrastructure.cache.redis_client import create_redis_client
 
@@ -134,10 +134,17 @@ async def health_check() -> dict[str, str]:
 
 @app.get("/health/ready")
 async def readiness_check() -> JSONResponse:
-    """Readiness check — verifies database is connected. Returns 503 on failure."""
+    """Readiness check — verifies active runtime dependencies. Returns 503 on failure."""
     db = get_database()
     try:
         await db.fetch_one("SELECT 1")
+
+        if settings.session_backend == "redis":
+            redis_client = get_redis_client()
+            if redis_client is None:
+                raise RuntimeError("Redis session backend is enabled but Redis client is missing")
+            await redis_client.client.ping()
+
         return JSONResponse(content={"status": "ready"}, status_code=200)
     except Exception:
         return JSONResponse(content={"status": "not_ready"}, status_code=503)

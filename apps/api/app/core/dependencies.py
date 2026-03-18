@@ -44,6 +44,10 @@ def get_database() -> DatabaseProtocol:
     return _db
 
 
+def get_redis_client() -> RedisClient | None:
+    return _redis_client
+
+
 def get_github_service() -> GitHubService:
     return _github_service
 
