@@ -1,9 +1,10 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import type { Connection, Block, Plate, ExternalActor } from '../../shared/types/index';
 import { getDiffState } from '../../features/diff/engine';
 import { getEndpointWorldPosition } from '../../shared/utils/position';
 import { worldToScreen } from '../../shared/utils/isometric';
 import { useUIStore } from '../store/uiStore';
+import { useArchitectureStore } from '../store/architectureStore';
 
 interface ConnectionPathProps {
   connection: Connection;
@@ -22,8 +23,13 @@ export const ConnectionPath = memo(function ConnectionPath({
   originX,
   originY,
 }: ConnectionPathProps) {
+  const [isHovered, setIsHovered] = useState(false);
+  const selectedId = useUIStore((s) => s.selectedId);
+  const setSelectedId = useUIStore((s) => s.setSelectedId);
+  const toolMode = useUIStore((s) => s.toolMode);
   const diffMode = useUIStore((s) => s.diffMode);
   const diffDelta = useUIStore((s) => s.diffDelta);
+  const removeConnection = useArchitectureStore((s) => s.removeConnection);
   const src = getEndpointWorldPosition(connection.sourceId, blocks, plates, externalActors);
   const tgt = getEndpointWorldPosition(connection.targetId, blocks, plates, externalActors);
 
@@ -50,6 +56,10 @@ export const ConnectionPath = memo(function ConnectionPath({
   const arrowFillBg = bgStroke;
   const arrowFillFg = fgStroke;
   const fgStrokeWidth = connection.type === 'http' ? 3 : 2;
+  const isSelected = selectedId === connection.id;
+  const isHighlighted = isHovered || isSelected;
+  const bgStrokeWidth = isHighlighted ? 6 : 4;
+  const effectiveFgStrokeWidth = isHighlighted ? fgStrokeWidth + 2 : fgStrokeWidth;
   const fgStrokeDasharray = connection.type === 'internal'
     ? '4 4'
     : connection.type === 'data'
@@ -58,8 +68,31 @@ export const ConnectionPath = memo(function ConnectionPath({
         ? '8 4 2 4'
         : undefined;
 
+  const handleClick = (e: React.MouseEvent<SVGGElement>) => {
+    e.stopPropagation();
+
+    if (toolMode === 'delete') {
+      removeConnection(connection.id);
+      return;
+    }
+
+    setSelectedId(connection.id);
+  };
+
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+  };
+
   return (
-    <g opacity={diffState === 'removed' ? 0.4 : 1}>
+    <g
+      opacity={diffState === 'removed' ? 0.4 : 1}
+      style={{ cursor: 'pointer' }}
+      onClick={handleClick}
+    >
       <defs>
         <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
           <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.25" floodColor="#000000" />
@@ -89,18 +122,30 @@ export const ConnectionPath = memo(function ConnectionPath({
       </defs>
       <path
         d={pathD}
-        stroke={bgStroke}
-        strokeWidth={4}
+        stroke="transparent"
+        strokeWidth={14}
         fill="none"
+        pointerEvents="stroke"
+        data-testid="connection-hit-area"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      />
+      <path
+        d={pathD}
+        stroke={bgStroke}
+        strokeWidth={bgStrokeWidth}
+        fill="none"
+        pointerEvents="none"
         markerEnd={`url(#${arrowId}-bg)`}
       />
       <path
         d={pathD}
         stroke={fgStroke}
-        strokeWidth={fgStrokeWidth}
+        strokeWidth={effectiveFgStrokeWidth}
         strokeDasharray={fgStrokeDasharray}
         fill="none"
         filter="url(#glow)"
+        pointerEvents="none"
         markerEnd={`url(#${arrowId})`}
       />
     </g>
