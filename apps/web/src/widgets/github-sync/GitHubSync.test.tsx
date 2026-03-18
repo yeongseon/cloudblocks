@@ -4,12 +4,13 @@ import userEvent from '@testing-library/user-event';
 vi.mock('../../shared/api/client', () => ({
   apiPost: vi.fn(),
   apiGet: vi.fn(),
+  apiPut: vi.fn(),
 }));
 import { GitHubSync } from './GitHubSync';
 import { useUIStore } from '../../entities/store/uiStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import { apiGet, apiPost } from '../../shared/api/client';
+import { apiGet, apiPost, apiPut } from '../../shared/api/client';
 import type { ArchitectureModel } from '../../shared/types/index';
 
 const emptyArch: ArchitectureModel = {
@@ -27,6 +28,7 @@ const emptyArch: ArchitectureModel = {
 describe('GitHubSync', () => {
   const mockApiGet = vi.mocked(apiGet);
   const mockApiPost = vi.mocked(apiPost);
+  const mockApiPut = vi.mocked(apiPut);
   const importArchitectureMock = vi.fn();
 
   beforeEach(() => {
@@ -49,6 +51,18 @@ describe('GitHubSync', () => {
       },
     });
     mockApiGet.mockResolvedValue({ commits: [] });
+    mockApiPut.mockResolvedValue({
+      id: 'ws-1',
+      owner_id: 'user-1',
+      name: 'My Workspace',
+      generator: 'terraform',
+      provider: 'azure',
+      github_repo: 'owner/repo-one',
+      github_branch: 'main',
+      last_synced_at: null,
+      created_at: '',
+      updated_at: '',
+    });
   });
 
   it('renders null when hidden', () => {
@@ -76,6 +90,12 @@ describe('GitHubSync', () => {
 
     await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
     await user.click(screen.getByRole('button', { name: 'Link' }));
+
+    await waitFor(() => {
+      expect(mockApiPut).toHaveBeenCalledWith('/api/v1/workspaces/ws-1', {
+        github_repo: 'owner/repo-one',
+      });
+    });
 
     expect(await screen.findByRole('button', { name: 'Sync to GitHub' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Pull from GitHub' })).toBeInTheDocument();
@@ -107,6 +127,20 @@ describe('GitHubSync', () => {
     await user.click(screen.getByRole('button', { name: 'Link' }));
 
     expect(screen.getByText('Repository must be in owner/repo format.')).toBeInTheDocument();
+  });
+
+  it('stays unlinked and shows error when link API fails', async () => {
+    const user = userEvent.setup();
+    mockApiPut.mockRejectedValueOnce(new Error('Link failed'));
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+
+    expect(await screen.findByText('Link failed')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Sync to GitHub' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Pull from GitHub' })).not.toBeInTheDocument();
   });
 
   it('pull button calls API and imports architecture', async () => {

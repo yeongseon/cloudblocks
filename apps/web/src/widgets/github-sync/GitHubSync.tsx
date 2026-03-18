@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { apiGet, apiPost } from '../../shared/api/client';
+import { apiGet, apiPost, apiPut } from '../../shared/api/client';
 import type { GitHubCommit, PullResponse, SyncResponse } from '../../shared/types/api';
 import './GitHubSync.css';
 
@@ -55,18 +55,30 @@ export function GitHubSync() {
 
   if (!show) return null;
 
-  const handleLinkRepo = () => {
+  const handleLinkRepo = async () => {
     const cleanedRepo = repoInput.trim();
     if (!cleanedRepo || !cleanedRepo.includes('/')) {
       setError('Repository must be in owner/repo format.');
       return;
     }
 
+    setLoading(true);
     setError(null);
-    setLinkedRepo(cleanedRepo);
-    const bwsId = backendWorkspaceIdInput.trim() || workspace.id;
-    setStoreBackendWorkspaceId(workspace.id, bwsId);
-    setBackendWorkspaceIdState(bwsId);
+
+    try {
+      const bwsId = backendWorkspaceIdInput.trim() || workspace.id;
+      await apiPut(`/api/v1/workspaces/${encodeURIComponent(bwsId)}`, {
+        github_repo: cleanedRepo,
+      });
+
+      setLinkedRepo(cleanedRepo);
+      setStoreBackendWorkspaceId(workspace.id, bwsId);
+      setBackendWorkspaceIdState(bwsId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to link repository.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSync = async () => {
@@ -150,7 +162,7 @@ export function GitHubSync() {
                 onChange={(e) => setBackendWorkspaceIdInput(e.target.value)}
               />
 
-              <button className="github-sync-primary-btn" onClick={handleLinkRepo}>
+              <button className="github-sync-primary-btn" onClick={() => void handleLinkRepo()} disabled={loading}>
                 Link
               </button>
             </div>
