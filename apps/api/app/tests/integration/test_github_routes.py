@@ -14,6 +14,19 @@ from app.domain.models.entities import Session, User
 from app.infrastructure.db.repositories import SQLiteSessionRepository, SQLiteUserRepository
 
 
+VALID_ARCHITECTURE: dict[str, Any] = {
+    "id": "arch-1",
+    "name": "Test Architecture",
+    "version": "0.1.0",
+    "plates": [],
+    "blocks": [],
+    "connections": [],
+    "externalActors": [],
+    "createdAt": "2026-01-01T00:00:00Z",
+    "updatedAt": "2026-01-01T00:00:00Z",
+}
+
+
 async def _create_workspace(
     client: AsyncClient,
     auth_cookies: dict[str, str],
@@ -133,7 +146,7 @@ async def test_sync_workspace_to_github_with_existing_file_uses_sha(
 ) -> None:
     workspace = await _create_workspace(client, auth_cookies)
     workspace_id = workspace["id"]
-    architecture = {"plates": [{"id": "plate-1"}], "blocks": []}
+    architecture = {**VALID_ARCHITECTURE, "plates": [{"id": "plate-1"}]}
 
     mock_github.get_repo_contents.return_value = {"sha": "existing-sha"}
     mock_github.create_or_update_file.return_value = {"commit": {"sha": "commit-sha-1"}}
@@ -182,7 +195,7 @@ async def test_sync_workspace_to_github_with_new_file_uses_none_sha(
     response = await client.post(
         f"/api/v1/workspaces/{workspace_id}/sync",
         cookies=auth_cookies,
-        json={"architecture": {"plates": [], "blocks": []}},
+        json={"architecture": VALID_ARCHITECTURE},
     )
 
     assert response.status_code == 200
@@ -199,7 +212,7 @@ async def test_sync_workspace_without_linked_repo_returns_502(
     response = await client.post(
         f"/api/v1/workspaces/{workspace['id']}/sync",
         cookies=auth_cookies,
-        json={"architecture": {"plates": []}},
+        json={"architecture": VALID_ARCHITECTURE},
     )
 
     assert response.status_code == 502
@@ -214,7 +227,7 @@ async def test_sync_workspace_not_found_returns_404(
     response = await client.post(
         "/api/v1/workspaces/missing/sync",
         cookies=auth_cookies,
-        json={"architecture": {"plates": []}},
+        json={"architecture": VALID_ARCHITECTURE},
     )
 
     assert response.status_code == 404
@@ -233,7 +246,7 @@ async def test_sync_workspace_not_owner_returns_403(
     response = await client.post(
         f"/api/v1/workspaces/{workspace['id']}/sync",
         cookies=other_cookies,
-        json={"architecture": {"plates": []}},
+        json={"architecture": VALID_ARCHITECTURE},
     )
 
     assert response.status_code == 403
@@ -321,7 +334,7 @@ async def test_create_pull_request_for_workspace_returns_pr_details(
         f"/api/v1/workspaces/{workspace['id']}/pr",
         cookies=auth_cookies,
         json={
-            "architecture": {"plates": [], "blocks": []},
+            "architecture": VALID_ARCHITECTURE,
             "title": "Update architecture",
             "body": "Automated update",
             "branch": "cloudblocks/pr-branch",
@@ -334,6 +347,88 @@ async def test_create_pull_request_for_workspace_returns_pr_details(
     assert payload["pull_request_url"] == "https://github.com/acme/cloudblocks-arch/pull/7"
     assert payload["number"] == 7
     assert payload["branch"] == "cloudblocks/pr-branch"
+
+
+@pytest.mark.asyncio
+async def test_sync_with_missing_architecture_fields_returns_400(
+    client: AsyncClient,
+    auth_cookies: dict[str, str],
+    mock_github,
+    test_identity,
+) -> None:
+    workspace = await _create_workspace(client, auth_cookies)
+
+    response = await client.post(
+        f"/api/v1/workspaces/{workspace['id']}/sync",
+        cookies=auth_cookies,
+        json={"architecture": {"plates": []}},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "VALIDATION_ERROR"
+
+
+@pytest.mark.asyncio
+async def test_sync_with_invalid_plates_type_returns_400(
+    client: AsyncClient,
+    auth_cookies: dict[str, str],
+    mock_github,
+    test_identity,
+) -> None:
+    workspace = await _create_workspace(client, auth_cookies)
+
+    response = await client.post(
+        f"/api/v1/workspaces/{workspace['id']}/sync",
+        cookies=auth_cookies,
+        json={"architecture": {**VALID_ARCHITECTURE, "plates": "not-a-list"}},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "VALIDATION_ERROR"
+
+
+@pytest.mark.asyncio
+async def test_pr_with_missing_architecture_fields_returns_400(
+    client: AsyncClient,
+    auth_cookies: dict[str, str],
+    mock_github,
+    test_identity,
+) -> None:
+    workspace = await _create_workspace(client, auth_cookies)
+
+    response = await client.post(
+        f"/api/v1/workspaces/{workspace['id']}/pr",
+        cookies=auth_cookies,
+        json={
+            "architecture": {"plates": []},
+            "title": "Update architecture",
+            "body": "Automated update",
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "VALIDATION_ERROR"
+
+
+@pytest.mark.asyncio
+async def test_sync_with_valid_full_architecture_succeeds(
+    client: AsyncClient,
+    auth_cookies: dict[str, str],
+    mock_github,
+    test_identity,
+) -> None:
+    workspace = await _create_workspace(client, auth_cookies)
+    mock_github.get_repo_contents.return_value = {"sha": "existing-sha"}
+    mock_github.create_or_update_file.return_value = {"commit": {"sha": "commit-sha-valid"}}
+
+    response = await client.post(
+        f"/api/v1/workspaces/{workspace['id']}/sync",
+        cookies=auth_cookies,
+        json={"architecture": VALID_ARCHITECTURE},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["commit_sha"] == "commit-sha-valid"
 
 
 @pytest.mark.asyncio
