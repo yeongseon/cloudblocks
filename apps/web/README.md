@@ -1,10 +1,10 @@
 # CloudBlocks Web App
 
-The main frontend application for CloudBlocks — a top-down visual cloud architecture builder.
+The main frontend application for CloudBlocks — a 2.5D isometric visual architecture editor.
 
 ## What This Package Does
 
-This is the **visual editor** where users design cloud architectures by placing plates (networks, subnets) and blocks (compute, database, storage, gateway, function, queue, event, timer) on a 2.5D isometric canvas. Connections between blocks represent data flow with initiator-direction semantics.
+This is the **visual editor** where users design cloud architectures by placing plates (networks, subnets) and blocks (compute, database, storage, gateway, function, queue, event, timer) on a 2D model that is rendered as 2.5D isometric SVG. Connections between blocks represent initiator-direction semantics across typed protocols.
 
 ## Quick Start
 
@@ -20,7 +20,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 - **React 19** + **TypeScript 5.9** (strict mode, `verbatimModuleSyntax`)
 - **Vite 8** — dev server & build
-- **SVG + CSS transforms** — 2.5D isometric rendering with DOM layering
+- **SVG + CSS** — 2.5D isometric projection, no WebGL camera
 - **Zustand** — state management
 
 ## Project Structure (FSD-inspired)
@@ -40,8 +40,8 @@ src/
 │   │   ├── engine.ts             # Validation orchestrator
 │   │   ├── placement.ts          # Placement rule validation
 │   │   └── connection.ts         # Connection rule validation
-│   ├── block/BlockSprite.tsx     # Isometric block SVG sprite
-│   ├── plate/PlateSprite.tsx     # Isometric plate SVG sprite (with studs)
+│   ├── block/BlockSvg.tsx        # Isometric block SVG sprite
+│   ├── plate/PlateSvg.tsx        # Isometric plate SVG sprite (with studs)
 │   ├── connection/ConnectionPath.tsx  # SVG connection paths + external actor
 │   └── character/MinifigureSvg.tsx    # Lego minifigure character (Phase 3)
 ├── features/                     # Business logic (stateless)
@@ -97,10 +97,10 @@ src/
 
 ## Current Implementation (Milestone 1–Milestone 7)
 
-- ✅ Orthographic camera with top-down view
+- ✅ Pure SVG 2.5D isometric projection (no camera, no canvas)
 - ✅ Network plate + public/private subnet plates
 - ✅ Block placement with grid snapping (compute, database, storage, gateway)
-- ✅ Connection lines with initiator-direction semantics
+- ✅ Connection lines with 5 typed connection types (`dataflow`, `http`, `internal`, `data`, `async`)
 - ✅ Placement & connection rule validation
 - ✅ Export architecture as JSON
 - ✅ localStorage persistence (save/load/reset)
@@ -127,7 +127,8 @@ src/
 
 ## Not Yet Implemented
 
-- EventFlow / Dependency connection types
+- Milestone 8+ multi-cloud provider extension beyond Azure/AWS/GCP parity
+- Provider-specific resource coverage beyond the current type set
 
 ## Build
 
@@ -141,7 +142,7 @@ npx tsc -b && npx vite build
 
 ## Architecture Notes
 
-- The **internal coordinate system is 2D** (x, y grid) with a containment hierarchy. The top-down rendering is a visual projection only.
+- The **internal coordinate system is 2D** (x, y grid) with a containment hierarchy. Rendering is projected to a 2.5D isometric view via pure SVG.
 - **ArchitectureModel** is the source of truth — the visual layer projects from it.
 - **Multi-workspace** support with workspace creation, switching, and deletion.
 - See [docs/ARCHITECTURE.md](../../docs/concept/ARCHITECTURE.md) and [docs/PRD.md](../../docs/concept/PRD.md) for full specs.
