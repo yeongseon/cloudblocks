@@ -14,7 +14,9 @@ If you discover a security vulnerability in CloudBlocks, please report it respon
 ### How to Report
 
 1. **Do not** open a public GitHub issue for security vulnerabilities.
-2. Email the maintainers at: **[TODO: add security contact email]**
+2. Use GitHub Security Advisories (private):
+   - **[Report a vulnerability](https://github.com/yeongseon/cloudblocks/security/advisories/new)**
+   - Keep details out of public issues and discussions.
 3. Include:
    - Description of the vulnerability
    - Steps to reproduce
