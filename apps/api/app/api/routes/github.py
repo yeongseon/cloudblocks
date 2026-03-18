@@ -134,8 +134,11 @@ async def sync_to_github(
         )
         if isinstance(existing, dict):
             sha = existing.get("sha")
-    except GitHubError:
-        pass  # File doesn't exist yet
+    except GitHubError as exc:
+        if exc.details.get("status_code") == 404:
+            pass  # File doesn't exist yet
+        else:
+            raise
 
     # Commit the file
     result = await github.create_or_update_file(
@@ -183,8 +186,10 @@ async def pull_from_github(
         content = await github.get_repo_contents(
             token, owner, repo, "cloudblocks/architecture.json", workspace.github_branch
         )
-    except GitHubError:
-        raise NotFoundError("File", "cloudblocks/architecture.json") from None
+    except GitHubError as exc:
+        if exc.details.get("status_code") == 404:
+            raise NotFoundError("File", "cloudblocks/architecture.json") from None
+        raise
 
     if isinstance(content, dict) and content.get("content"):
         decoded = base64.b64decode(content["content"]).decode()
@@ -236,8 +241,11 @@ async def create_pull_request(
         )
         if isinstance(existing, dict):
             sha = existing.get("sha")
-    except GitHubError:
-        pass
+    except GitHubError as exc:
+        if exc.details.get("status_code") == 404:
+            pass
+        else:
+            raise
 
     await github.create_or_update_file(
         token,
