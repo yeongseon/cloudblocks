@@ -356,11 +356,11 @@ On `main`, all blocks share the same high-level visual rules:
 - `silhouette` is always `'standard'`
 - the top face is an isometric diamond
 - the left and right walls are always rendered
-- the side wall height is fixed at `worldHeight = 0.8`
+- `BlockSvg` computes side-wall height via `getBlockWorldHeight(category)` which returns the tier-based height from `TIER_HEIGHTS` (e.g., signal=0.5, core=1.0). The legacy constant `BLOCK_WORLD_HEIGHT = 0.8` exists in `designTokens.ts` but is NOT used by the renderer.
 - the top face always renders a stud grid using the category footprint
 - text label goes on the left wall; emoji icon goes on the right wall
 
-This means the **size tier system is implemented**, but the richer silhouette system from the user's spec is not.
+This means the **size tier system and silhouette taxonomy are fully implemented** — both in profile data and in the renderer via `getBlockWorldHeight(category)`.
 
 ### 3.5 Current Block Visual Profile API
 
