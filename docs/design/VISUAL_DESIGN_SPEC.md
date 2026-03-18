@@ -140,7 +140,7 @@ Blocks are rendered as **isometric 3D shapes** with a diamond-shaped top face an
 | Projection | 2:1 Dimetric Isometric | `W=64, H=32` |
 | Stud unit | `40px` (Logical) | Maps to isometric grid units |
 | Corner radius | `0.08` | Rounded edges (SVG path corner profile) |
-| Material | `meshStandardMaterial` | `roughness: 0.35`, `metalness: 0.05` — ABS plastic look |
+| Surface style | SVG fill + CSS shading layers | Top/side faces use layered color ramps and soft inset highlights for ABS plastic look |
 
 ### 3.3 Studs & Application Slots
 
@@ -189,7 +189,7 @@ Applications are **small cylindrical pieces** that sit on top of resource bricks
 
 ### 3.5 Service Icon
 
-Rendered as an `<Html>` overlay on the block's front face.
+Rendered as an SVG/CSS label badge on the block's front face.
 
 | Property | Value |
 |----------|-------|
@@ -217,8 +217,8 @@ Service icons use Unicode/emoji for MVP (future: custom SVG icons):
 
 | State | Effect |
 |-------|--------|
-| Hover | `emissiveIntensity: 0.15`, cursor: `pointer` |
-| Selected | White outline glow (`emissiveIntensity: 0.25`) + base ring |
+| Hover | Slight brightness boost via CSS filter + cursor: `pointer` |
+| Selected | White outline glow (CSS drop-shadow) + base ring |
 | Connection source | Green glow (`emissive: #4CAF50`, `intensity: 0.3`) |
 
 ---
@@ -242,7 +242,7 @@ Plates render as thick, opaque Lego baseplates with a dense stud grid. Plate siz
 | Property | VNet | Subnet | Notes |
 |----------|------|--------|-------|
 | Height (thickness) | `0.5` | `0.35` | Visible side thickness |
-| Material | `meshStandardMaterial` | same | `roughness: 0.5`, `metalness: 0.0` |
+| Surface style | SVG fill + CSS shading layers | same | Slightly flatter sheen than blocks |
 | Opacity | `1.0` | `1.0` | Fully opaque (not translucent) |
 | Side rendering | Left and Right faces | Isometric 3D depth |
 
@@ -319,7 +319,7 @@ Connections render as thick, colored, straight-segment arrows (not thin Bezier c
 |----------|-------|
 | Geometry | SVG path with stroked line (`stroke-width` equivalent to radius `0.04`) |
 | Path | Straight with slight vertical lift at midpoint (`+0.3`) |
-| Material | `meshStandardMaterial` with connection color |
+| Stroke style | SVG path stroke with connection color |
 | Segments | 20 |
 
 ### 5.2 Arrowhead
@@ -341,8 +341,8 @@ Connections render as thick, colored, straight-segment arrows (not thin Bezier c
 | Property | Value |
 |----------|-------|
 | Position | `[14, 14, 14]` |
-| FOV | `45` |
-| Controls | OrbitControls — zoom + pan only, rotation disabled |
+| View transform | 2:1 dimetric projection via SVG/CSS transforms |
+| Controls | Zoom + pan only (rotation disabled) |
 | Min distance | `5` |
 | Max distance | `35` |
 
@@ -356,8 +356,8 @@ Connections render as thick, colored, straight-segment arrows (not thin Bezier c
 | Point (accent) | `[-10, 10, -10]` | `0.15` | Subtle accent |
 
 Shadow settings:
-- `shadow-mapSize: [2048, 2048]`
-- Soft shadow enabled
+- Soft CSS/SVG shadows enabled for blocks, plates, and connections
+- Shadow blur/spread tuned per element type (block > plate > connection)
 
 ### 6.3 Background
 
@@ -972,7 +972,7 @@ All user-facing labels follow this convention:
 | `entities/block/BlockSvg.tsx` | Rounded SVG block body, studs, icon overlay, educational tooltip |
 | `entities/plate/PlateModel.tsx` | Opaque baseplate, dashed subnet borders |
 | `entities/connection/ConnectionPath.tsx` | SVG path, colored arrows |
-| `widgets/scene-canvas/SceneCanvas.tsx` | Update lighting, background, camera |
+| `widgets/scene-canvas/SceneCanvas.tsx` | Update SVG viewport transforms, background, and pan/zoom behavior |
 | `widgets/bottom-panel/BottomPanel.tsx` | **New** — 4-panel container |
 | `widgets/bottom-panel/Minimap.tsx` | **New** — Architecture overview |
 | `widgets/bottom-panel/DetailPanel.tsx` | **New** — Resource properties |
