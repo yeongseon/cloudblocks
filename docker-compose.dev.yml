@@ -1,0 +1,23 @@
+# Docker Compose — development overrides (hot-reload)
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#
+# Or set COMPOSE_FILE in your shell:
+#   export COMPOSE_FILE=docker-compose.yml:docker-compose.dev.yml
+#   docker compose up
+
+services:
+  api:
+    build:
+      target: builder
+    volumes:
+      - ./apps/api:/app
+    command: >
+      uvicorn app.main:app
+      --host 0.0.0.0
+      --port 8000
+      --reload
+      --reload-dir /app/app
+    environment:
+      CLOUDBLOCKS_APP_DEBUG: "true"

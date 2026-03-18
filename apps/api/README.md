@@ -18,6 +18,17 @@ pytest
 ruff check .
 ```
 
+### Docker Compose (Full Stack)
+
+```bash
+# From the monorepo root:
+cp .env.example .env
+docker compose up -d
+
+# With hot-reload for API development:
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+```
+
 ## Architecture
 
 The backend is a **thin orchestration layer** — it mediates between the UI, GitHub, and the code generation engine. It does NOT store architecture specs or generated code (those live in GitHub repos).

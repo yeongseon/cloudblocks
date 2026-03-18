@@ -1,0 +1,48 @@
+# ── Build artifacts & caches ──────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+node_modules/
+apps/web/dist/
+apps/web/coverage/
+apps/web/coverage-temp/
+
+# ── Dev / test / IDE ─────────────────────────────────────
+.git/
+.github/
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Environment & secrets ────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Data files ───────────────────────────────────────────
+*.db
+*.db-shm
+*.db-wal
+cloudblocks.db*
+
+# ── Documentation (not needed in image) ──────────────────
+docs/
+*.md
+!README.md
+LICENSE
+
+# ── Infrastructure configs (not app code) ────────────────
+infra/terraform/
+infra/k8s/
+
+# ── Misc ─────────────────────────────────────────────────
+cloudblocks-ui-current.png
+examples/
+scripts/
