@@ -62,6 +62,7 @@ export interface ArchitectureState {
   exportArchitecture: () => string;
   loadFromTemplate: (template: ArchitectureTemplate) => void;
   replaceArchitecture: (snapshot: ArchitectureSnapshot) => void;
+  setBackendWorkspaceId: (workspaceId: string, backendId: string) => void;
 }
 
 export type ArchitectureSlice<T> = StateCreator<ArchitectureState, [], [], T>;
