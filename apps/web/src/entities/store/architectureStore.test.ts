@@ -322,6 +322,10 @@ describe('architectureStore', () => {
         y: source.position.y,
         z: source.position.z + 1,
       });
+
+      const plate = getArch().plates.find((p) => p.id === subId);
+      expect(plate?.children).toContain(source.id);
+      expect(plate?.children).toContain(duplicate.id);
     });
 
     it('no-ops on non-existent block id', () => {

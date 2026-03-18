@@ -176,14 +176,14 @@ describe('pulumi generator', () => {
     const normalized = normalizePulumi(model, azureProviderDefinition);
     const indexTs = generateIndexTs(normalized, azureProviderDefinition, defaultOptions);
 
-    expect(indexTs).toContain('const webappCompute = new azure-native:web:WebApp("webappCompute", {');
-    expect(indexTs).toContain('const pgserverDatabase = new azure-native:dbforpostgresql:Server("pgserverDatabase", {');
-    expect(indexTs).toContain('const storageStorage = new azure-native:storage:StorageAccount("storageStorage", {');
-    expect(indexTs).toContain('const appgwGateway = new azure-native:network:ApplicationGateway("appgwGateway", {');
-    expect(indexTs).toContain('const funcFunction = new azure-native:web:WebApp("funcFunction", {');
-    expect(indexTs).toContain('const queueQueue = new azure-native:storage:Queue("queueQueue", {');
-    expect(indexTs).toContain('const evtopicEvent = new azure-native:eventgrid:Topic("evtopicEvent", {');
-    expect(indexTs).toContain('const timerTimer = new azure-native:logic:Workflow("timerTimer", {');
+    expect(indexTs).toContain('const webappCompute = new azure.web.WebApp("webappCompute", {');
+    expect(indexTs).toContain('const pgserverDatabase = new azure.dbforpostgresql.FlexibleServer("pgserverDatabase", {');
+    expect(indexTs).toContain('const storageStorage = new azure.storage.StorageAccount("storageStorage", {');
+    expect(indexTs).toContain('const appgwGateway = new azure.network.ApplicationGateway("appgwGateway", {');
+    expect(indexTs).toContain('const funcFunction = new azure.web.WebApp("funcFunction", {');
+    expect(indexTs).toContain('const queueQueue = new azure.storage.Queue("queueQueue", {');
+    expect(indexTs).toContain('const evtopicEvent = new azure.eventgrid.Topic("evtopicEvent", {');
+    expect(indexTs).toContain('const timerTimer = new azure.logic.Workflow("timerTimer", {');
   });
 
   it('generates subnet as top-level resource when parent network is missing', () => {
@@ -201,7 +201,7 @@ describe('pulumi generator', () => {
     const normalized = normalizePulumi(model, azureProviderDefinition);
     const indexTs = generateIndexTs(normalized, azureProviderDefinition, defaultOptions);
 
-    expect(indexTs).toContain('const subnetOrphanSubnet = new azure-native:network:Subnet("subnetOrphanSubnet", {');
+    expect(indexTs).toContain('const subnetOrphanSubnet = new azure.network.Subnet("subnetOrphanSubnet", {');
     expect(indexTs).toContain('virtualNetworkName: `${projectName}-subnetOrphanSubnet`');
   });
 
