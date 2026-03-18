@@ -1,4 +1,6 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? '';
+const RAW_API_BASE_URL = import.meta.env.VITE_API_URL ?? '';
+/** Strip trailing slashes so `${base}${path}` never produces `//`. */
+const API_BASE_URL = RAW_API_BASE_URL.replace(/\/+$/, '');
 
 export class ApiError extends Error {
   status: number;
