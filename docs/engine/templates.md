@@ -71,7 +71,7 @@ CloudBlocks ships these built-in templates (Milestone 4):
 - **Simple Compute Setup** — Minimal architecture with a single compute instance
 - **Data Storage Backend** — Compute connected to database and blob storage in a private subnet
 
-> **Note (Milestone 6+):** Additional templates (Serverless API, Event-driven pipeline, Microservices) require FunctionBlock and QueueBlock, which are planned for Milestone 6. See `features/templates/builtin.ts` for the current implementations.
+> **Note:** Additional built-in templates (Serverless HTTP API, Event-Driven Pipeline, Full-Stack Serverless) are implemented and use Function/Queue/Event/Timer blocks. See `apps/web/src/features/templates/builtin.ts` for current implementations.
 > **Note:** Example architectures are available in the [`examples/`](../examples/) directory.
 
 ---
