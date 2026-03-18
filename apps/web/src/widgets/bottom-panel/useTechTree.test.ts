@@ -327,13 +327,13 @@ describe('useTechTree constants', () => {
   it('defines all action entries with expected metadata', () => {
     const expectedActions: Record<
       ActionType,
-      Pick<ActionDefinition, 'id' | 'label' | 'icon' | 'multiSelect'> & { hotkey?: string }
+      Pick<ActionDefinition, 'id' | 'label' | 'icon'> & { hotkey?: string }
     > = {
-      link: { id: 'link', label: 'Link', icon: '🔗', hotkey: 'L', multiSelect: false },
-      edit: { id: 'edit', label: 'Edit', icon: '✏️', hotkey: 'E', multiSelect: false },
-      delete: { id: 'delete', label: 'Delete', icon: '🗑️', hotkey: 'Del', multiSelect: true },
-      copy: { id: 'copy', label: 'Copy', icon: '📋', hotkey: 'C', multiSelect: true },
-      rename: { id: 'rename', label: 'Rename', icon: '📝', hotkey: 'R', multiSelect: false },
+      link: { id: 'link', label: 'Link', icon: '🔗', hotkey: 'L' },
+      edit: { id: 'edit', label: 'Edit', icon: '✏️', hotkey: 'E' },
+      delete: { id: 'delete', label: 'Delete', icon: '🗑️', hotkey: 'Del' },
+      copy: { id: 'copy', label: 'Copy', icon: '📋', hotkey: 'C' },
+      rename: { id: 'rename', label: 'Rename', icon: '📝', hotkey: 'R' },
     };
 
     const actionTypes: ActionType[] = ['link', 'edit', 'delete', 'copy', 'rename'];
