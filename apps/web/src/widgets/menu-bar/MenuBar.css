@@ -345,3 +345,51 @@
   border-color: #B80009;
   box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), 0 3px 0 0 #B80009;
 }
+
+.provider-section {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.provider-btn {
+  padding: 4px 10px;
+  background: #FFFDE7;
+  border: 3px solid #D4B200;
+  color: #555;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.1s ease;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.5),
+    0 3px 0 0 #D4B200;
+}
+
+.provider-btn:hover {
+  background: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: 
+    inset 0 3px 0 rgba(255, 255, 255, 0.6),
+    0 4px 0 0 #D4B200;
+}
+
+.provider-btn[data-active="true"] {
+  background: #FFFFFF;
+  transform: translateY(-1px);
+  /* Inline styles handle the active border and shadow colors for the specific provider */
+}
+
+.provider-btn:active,
+.provider-btn[data-active="true"]:active {
+  transform: translateY(2px);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 1px 0 0 inherit;
+}
