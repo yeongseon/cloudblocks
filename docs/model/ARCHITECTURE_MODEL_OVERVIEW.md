@@ -130,7 +130,7 @@ IaC Generation (Terraform, Bicep, Pulumi)
 | Topic | Document |
 |-------|----------|
 | Domain model (canonical) | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) |
-| Visual sizing | [BRICK_SIZE_SPEC.md](../design/BRICK_SIZE_SPEC.md) |
+| Visual sizing | [BRICK_DESIGN_SPEC.md](../design/BRICK_DESIGN_SPEC.md) |
 | Rule engine | [rules.md](../engine/rules.md) |
 | Code generation | [generator.md](../engine/generator.md) |
 | Provider mapping | [provider.md](../engine/provider.md) |

@@ -179,12 +179,12 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 | Phase 10 | Documentation Accuracy — canonical docs aligned with current implementation | ✅ Complete |
 | Phase 11 | UX/UI Improvements — toast notifications, connection selection, performance | ✅ Complete |
 | Milestone 8 | Multi-Cloud Platform — AWS/GCP provider adapters, cross-provider comparison | ✅ Complete |
-| M-A | UX Core Hardening | 🔄 Planned |
-| M-B | External Actors and DevOps UX | 🔄 Planned |
-| M-C | Brick Design System Consolidation | 🔄 Planned |
-| M-D | Core Model and Provider System | 🔄 Planned |
-| M-E | Terraform Pipeline Productization | 🔄 Planned |
-| M-F | AI Roadmap | 🔄 Planned |
+| Milestone 9 | UX Core Hardening | 🔄 Planned |
+| Milestone 10 | External Actors & DevOps UX | 🔄 Planned |
+| Milestone 11 | Brick Design System | 🔄 Planned |
+| Milestone 12 | Core Model & Provider System | 🔄 Planned |
+| Milestone 13 | Terraform Pipeline | 🔄 Planned |
+| Milestone 14 | AI Roadmap | 🔄 Planned |
 
 ## Contributing
 

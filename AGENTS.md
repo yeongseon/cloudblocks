@@ -12,7 +12,7 @@
 - Keep frontend behavior, docs, and any domain model changes synchronized.
 - Treat `apps/web` as the primary production surface unless the task explicitly targets `apps/api`.
 - Avoid incidental refactors in areas that already have unrelated user changes.
-- **UNIVERSAL STUD STANDARD (INVIOLABLE)**: Every stud in the system — background, plates, blocks, any element — uses identical dimensions: rx=12, ry=6, height=5, 3-layer structure (shadow + top + inner ring). Only colors vary. This is the Lego principle: same gauge = assembly possible. See `docs/design/BRICK_SIZE_SPEC.md §0`. Any change that produces non-uniform studs is a blocking defect.
+- **UNIVERSAL STUD STANDARD (INVIOLABLE)**: Every stud in the system — background, plates, blocks, any element — uses identical dimensions: rx=12, ry=6, height=5, 3-layer structure (shadow + top + inner ring). Only colors vary. This is the Lego principle: same gauge = assembly possible. See `docs/design/BRICK_DESIGN_SPEC.md §0`. Any change that produces non-uniform studs is a blocking defect.
 
 ## Implementation Principles
 
