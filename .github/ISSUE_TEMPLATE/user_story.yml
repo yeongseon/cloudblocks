@@ -1,0 +1,93 @@
+name: User Story
+description: A user-facing feature described from the user's perspective with acceptance criteria
+title: "[Story]: "
+labels: ["enhancement", "user-story"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe a feature from the **user's perspective**. Focus on what the user wants to achieve and how we'll verify it works.
+
+  - type: textarea
+    id: story
+    attributes:
+      label: User Story
+      description: |
+        Use the standard format: As a [role], I want [goal], so that [benefit].
+      placeholder: |
+        As a developer,
+        I want to visually build cloud architecture using blocks,
+        So that I can quickly prototype infra without writing Terraform.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: |
+        Concrete, testable conditions that must ALL be true for this story to be complete.
+        Use checkbox format. Each criterion should be independently verifiable.
+      placeholder: |
+        - [ ] User can drag a block from the resource palette onto the canvas
+        - [ ] Block snaps to the nearest grid position on drop
+        - [ ] Block appears with correct category icon and label
+        - [ ] Undo restores canvas to pre-drag state
+        - [ ] Screen reader announces "Block placed on [plate name]"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      description: Which part of CloudBlocks does this affect?
+      options:
+        - Frontend (Visual Editor)
+        - Code Generation
+        - Templates
+        - Workspace Management
+        - Validation Engine
+        - Backend / API
+        - GitHub Integration
+        - Learning Mode
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: design-notes
+    attributes:
+      label: Design & UX Notes
+      description: |
+        Mockups, wireframes, interaction details, or references to existing design specs.
+        Link to VISUAL_DESIGN_SPEC.md sections if applicable.
+
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of Scope
+      description: |
+        Explicitly list what this story does NOT cover to prevent scope creep.
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: |
+        Other issues, PRs, or external factors that must be resolved first.
+      placeholder: |
+        - Depends on #XX (store refactor)
+        - Requires design approval for new icon set
+
+  - type: dropdown
+    id: size
+    attributes:
+      label: Estimated Size
+      description: Rough implementation effort.
+      options:
+        - "S — < 1 day (single file, small change)"
+        - "M — 1-3 days (multiple files, one feature slice)"
+        - "L — 3-5 days (cross-cutting, multiple components)"
+    validations:
+      required: true
