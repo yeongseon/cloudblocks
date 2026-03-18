@@ -68,23 +68,23 @@ export function normalizePulumi(
   return { architecture, resourceNames };
 }
 
-// ─── Pulumi Azure-Native Resource Type Mapping ──────────────
+// ─── Pulumi Azure-Native Constructor Mapping ────────────────
 
-const PULUMI_RESOURCE_TYPES: Record<string, string> = {
-  azurerm_virtual_network: 'azure-native:network:VirtualNetwork',
-  azurerm_subnet: 'azure-native:network:Subnet',
-  azurerm_linux_web_app: 'azure-native:web:WebApp',
-  azurerm_postgresql_flexible_server: 'azure-native:dbforpostgresql:Server',
-  azurerm_storage_account: 'azure-native:storage:StorageAccount',
-  azurerm_application_gateway: 'azure-native:network:ApplicationGateway',
-  azurerm_linux_function_app: 'azure-native:web:WebApp',
-  azurerm_storage_queue: 'azure-native:storage:Queue',
-  azurerm_eventgrid_topic: 'azure-native:eventgrid:Topic',
-  azurerm_logic_app_workflow: 'azure-native:logic:Workflow',
+const PULUMI_CONSTRUCTORS: Record<string, string> = {
+  azurerm_virtual_network: 'azure.network.VirtualNetwork',
+  azurerm_subnet: 'azure.network.Subnet',
+  azurerm_linux_web_app: 'azure.web.WebApp',
+  azurerm_postgresql_flexible_server: 'azure.dbforpostgresql.Server',
+  azurerm_storage_account: 'azure.storage.StorageAccount',
+  azurerm_application_gateway: 'azure.network.ApplicationGateway',
+  azurerm_linux_function_app: 'azure.web.WebApp',
+  azurerm_storage_queue: 'azure.storage.Queue',
+  azurerm_eventgrid_topic: 'azure.eventgrid.Topic',
+  azurerm_logic_app_workflow: 'azure.logic.Workflow',
 };
 
-function getPulumiResourceType(terraformType: string): string {
-  return PULUMI_RESOURCE_TYPES[terraformType] ?? terraformType;
+function getPulumiConstructor(terraformType: string): string {
+  return PULUMI_CONSTRUCTORS[terraformType] ?? 'azure.resources.GenericResource';
 }
 
 // ─── Generate Stage ─────────────────────────────────────────
@@ -95,7 +95,7 @@ function generatePlateResource(
   mapping: ResourceMapping,
   parentResourceName: string | null
 ): string {
-  const pulumiType = getPulumiResourceType(mapping.resourceType);
+  const pulumiType = getPulumiConstructor(mapping.resourceType);
   const lines: string[] = [];
 
   if (plate.type === 'subnet' && parentResourceName) {
@@ -127,7 +127,7 @@ function generateBlockResource(
   resourceName: string,
   mapping: ResourceMapping
 ): string {
-  const pulumiType = getPulumiResourceType(mapping.resourceType);
+  const pulumiType = getPulumiConstructor(mapping.resourceType);
   const lines: string[] = [];
 
   lines.push(`const ${resourceName} = new ${pulumiType}("${resourceName}", {`);
