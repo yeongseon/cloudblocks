@@ -163,6 +163,24 @@ describe('useUIStore', () => {
       useUIStore.getState().setActiveProvider('gcp');
       expect(useUIStore.getState().activeProvider).toBe('gcp');
     });
+
+    it('cycles through all providers and persists across sequential reads', () => {
+      const readActiveProvider = () => useUIStore.getState().activeProvider;
+
+      expect(readActiveProvider()).toBe('azure');
+
+      useUIStore.getState().setActiveProvider('aws');
+      expect(readActiveProvider()).toBe('aws');
+      expect(readActiveProvider()).toBe('aws');
+
+      useUIStore.getState().setActiveProvider('gcp');
+      expect(readActiveProvider()).toBe('gcp');
+      expect(readActiveProvider()).toBe('gcp');
+
+      useUIStore.getState().setActiveProvider('azure');
+      expect(readActiveProvider()).toBe('azure');
+      expect(readActiveProvider()).toBe('azure');
+    });
   });
 
   describe('interaction state machine', () => {
