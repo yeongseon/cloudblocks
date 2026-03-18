@@ -299,7 +299,7 @@ export const CREATION_GRID: ResourceType[][] = [
 
 // ─── Action Definitions ────────────────────────────────────
 
-export type ActionType = 'link' | 'edit' | 'delete' | 'copy' | 'config' | 'add-app' | 'move' | 'rename';
+export type ActionType = 'link' | 'edit' | 'delete' | 'copy' | 'rename';
 
 export interface ActionDefinition {
   id: ActionType;
@@ -315,19 +315,16 @@ export const ACTION_DEFINITIONS: Record<ActionType, ActionDefinition> = {
   edit: { id: 'edit', label: 'Edit', icon: '✏️', hotkey: 'E', multiSelect: false },
   delete: { id: 'delete', label: 'Delete', icon: '🗑️', hotkey: 'Del', multiSelect: true },
   copy: { id: 'copy', label: 'Copy', icon: '📋', hotkey: 'C', multiSelect: true },
-  config: { id: 'config', label: 'Config', icon: '⚙️', multiSelect: false },
-  'add-app': { id: 'add-app', label: 'Add App', icon: '➕', multiSelect: false },
-  move: { id: 'move', label: 'Move', icon: '↔️', hotkey: 'M', multiSelect: true },
   rename: { id: 'rename', label: 'Rename', icon: '📝', hotkey: 'R', multiSelect: false },
 };
 
 export const ACTION_GRID: (ActionType | null)[][] = [
-  ['link', 'edit', 'config'],
-  ['move', 'copy', 'rename'],
-  ['add-app', null, 'delete'],
+  ['link', 'edit', 'copy'],
+  ['rename', null, 'delete'],
+  [null, null, null],
 ];
 
-export type PlateActionType = 'deploy' | 'config' | 'delete' | 'move' | 'rename';
+export type PlateActionType = 'deploy' | 'delete' | 'rename';
 
 export interface PlateActionDefinition {
   id: PlateActionType;
@@ -338,15 +335,13 @@ export interface PlateActionDefinition {
 
 export const PLATE_ACTION_DEFINITIONS: Record<PlateActionType, PlateActionDefinition> = {
   deploy: { id: 'deploy', label: 'Deploy', icon: '🚀', hotkey: 'Q' },
-  config: { id: 'config', label: 'Config', icon: '⚙️', hotkey: 'W' },
   delete: { id: 'delete', label: 'Delete', icon: '🗑️', hotkey: 'E' },
-  move: { id: 'move', label: 'Move', icon: '↔️', hotkey: 'A' },
   rename: { id: 'rename', label: 'Rename', icon: '📝', hotkey: 'S' },
 };
 
 export const PLATE_ACTION_GRID: (PlateActionType | null)[][] = [
-  ['deploy', 'config', 'delete'],
-  ['move', 'rename', null],
+  ['deploy', 'rename', 'delete'],
+  [null, null, null],
   [null, null, null],
 ];
 
