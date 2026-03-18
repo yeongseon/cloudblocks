@@ -37,7 +37,7 @@ The production-quality builder. Exact milestone and phase completion status is d
 **Canonical sources for Milestone 1 behavior:**
 - `apps/web/src/shared/types/index.ts` — Domain model types
 - `apps/web/src/shared/types/schema.ts` — Storage format
-- `apps/web/src/features/validate/connection.ts` — Connection rules
+- `apps/web/src/entities/validation/connection.ts` — Connection rules
 - `docs/model/DOMAIN_MODEL.md` — Model specification
 
 ### Milestone and phase status source
@@ -112,7 +112,7 @@ Each document that defines authoritative specifications must declare its canonic
 | Version timelines | `ROADMAP.md` | `docs/concept/` |
 | Milestone 1 TypeScript types | `index.ts` | `apps/web/src/shared/types/` |
 | Serialization format | `schema.ts` | `apps/web/src/shared/types/` |
-| Connection rules | `connection.ts` | `apps/web/src/features/validate/` |
+| Connection rules | `connection.ts` | `apps/web/src/entities/validation/` |
 
 If a discrepancy exists between a canonical source and another document, the canonical source wins. Contributors must update the non-canonical document to match, not the other way around.
 

@@ -100,7 +100,7 @@ GET    /api/v1/workspaces/:id/commits   → List recent commits
 
 Validate architecture against rules. Can run client-side or server-side.
 
-> **Note**: Client-side validation is already implemented in Milestone 1 (`apps/web/src/features/validate/`).
+> **Note**: Client-side validation is already implemented in Milestone 1 (`apps/web/src/entities/validation/`).
 
 ```
 POST   /api/v1/validate                 → Validate architecture (server-side)
