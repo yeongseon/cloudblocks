@@ -42,6 +42,13 @@ function setupMocks(interactionState: 'idle' | 'connecting', connectionSource: s
               metadata: {},
             },
           ],
+          externalActors: [
+            {
+              id: 'actor-1',
+              name: 'Internet',
+              type: 'internet' as const,
+            },
+          ],
         },
       },
     };
@@ -78,6 +85,19 @@ describe('ConnectionPreview', () => {
 
   it('renders an SVG path when connecting with a source block', async () => {
     setupMocks('connecting', 'block-1');
+
+    render(
+      <svg>
+        <title>Connection preview test canvas</title>
+        <ConnectionPreview originX={0} originY={0} />
+      </svg>
+    );
+
+    expect(await screen.findByTestId('connection-preview-path')).toBeInTheDocument();
+  });
+
+  it('renders an SVG path when connecting with a source external actor', async () => {
+    setupMocks('connecting', 'actor-1');
 
     render(
       <svg>
