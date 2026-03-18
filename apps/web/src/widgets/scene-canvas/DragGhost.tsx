@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useState } from 'react';
 import type { RefObject } from 'react';
 import { useUIStore } from '../../entities/store/uiStore';
 import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
+import { useRafCallback } from '../../shared/hooks/useRafCallback';
 import { STUD_LAYOUTS } from '../../shared/types/index';
 import {
   BLOCK_MARGIN,
@@ -89,29 +90,29 @@ export function DragGhost({
 
   const studId = useId().replace(/:/g, '_');
 
+  const updatePointerPosition = useRafCallback((e: PointerEvent) => {
+    const viewport = containerRef.current;
+    if (!viewport) {
+      return;
+    }
+
+    const rect = viewport.getBoundingClientRect();
+    const localX = (e.clientX - rect.left - panX) / zoom;
+    const localY = (e.clientY - rect.top - panY) / zoom;
+    setPointerPosition({ x: localX, y: localY });
+  });
+
   useEffect(() => {
-    const handlePointerMove = (e: PointerEvent) => {
-      const viewport = containerRef.current;
-      if (!viewport) {
-        return;
-      }
-
-      const rect = viewport.getBoundingClientRect();
-      const localX = (e.clientX - rect.left - panX) / zoom;
-      const localY = (e.clientY - rect.top - panY) / zoom;
-      setPointerPosition({ x: localX, y: localY });
-    };
-
     if (interactionState !== 'placing' || !draggedBlockCategory) {
       return;
     }
 
-    document.addEventListener('pointermove', handlePointerMove);
+    document.addEventListener('pointermove', updatePointerPosition);
 
     return () => {
-      document.removeEventListener('pointermove', handlePointerMove);
+      document.removeEventListener('pointermove', updatePointerPosition);
     };
-  }, [containerRef, interactionState, draggedBlockCategory, panX, panY, zoom]);
+  }, [draggedBlockCategory, interactionState, updatePointerPosition]);
 
   if (interactionState !== 'placing' || !draggedBlockCategory || !pointerPosition) {
     return null;

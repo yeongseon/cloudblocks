@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { useRafCallback } from '../../shared/hooks/useRafCallback';
 import { worldToScreen } from '../../shared/utils/isometric';
 import { EXTERNAL_ACTOR_POSITION } from '../../shared/utils/position';
 
@@ -23,6 +24,24 @@ export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) 
 
   const pathRef = useRef<SVGPathElement>(null);
   const [cursor, setCursor] = useState<Point | null>(null);
+
+  const updateCursor = useRafCallback((event: PointerEvent) => {
+    const svg = pathRef.current?.ownerSVGElement;
+    if (!svg) {
+      return;
+    }
+
+    const ctm = svg.getScreenCTM?.();
+    if (!ctm) {
+      return;
+    }
+
+    const point = svg.createSVGPoint();
+    point.x = event.clientX;
+    point.y = event.clientY;
+    const local = point.matrixTransform(ctm.inverse());
+    setCursor({ x: local.x, y: local.y });
+  });
 
   const sourceScreen = useMemo(() => {
     if (interactionState !== 'connecting' || !connectionSource) {
@@ -56,29 +75,11 @@ export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) 
       return;
     }
 
-    const svg = pathRef.current?.ownerSVGElement;
-    if (!svg) {
-      return;
-    }
-
-    const handlePointerMove = (event: PointerEvent) => {
-      const ctm = svg.getScreenCTM?.();
-      if (!ctm) {
-        return;
-      }
-
-      const point = svg.createSVGPoint();
-      point.x = event.clientX;
-      point.y = event.clientY;
-      const local = point.matrixTransform(ctm.inverse());
-      setCursor({ x: local.x, y: local.y });
-    };
-
-    document.addEventListener('pointermove', handlePointerMove);
+    document.addEventListener('pointermove', updateCursor);
     return () => {
-      document.removeEventListener('pointermove', handlePointerMove);
+      document.removeEventListener('pointermove', updateCursor);
     };
-  }, [sourceScreen]);
+  }, [sourceScreen, updateCursor]);
 
   if (!sourceScreen) {
     return null;
