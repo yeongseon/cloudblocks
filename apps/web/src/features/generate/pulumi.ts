@@ -74,7 +74,7 @@ const PULUMI_CONSTRUCTORS: Record<string, string> = {
   azurerm_virtual_network: 'azure.network.VirtualNetwork',
   azurerm_subnet: 'azure.network.Subnet',
   azurerm_linux_web_app: 'azure.web.WebApp',
-  azurerm_postgresql_flexible_server: 'azure.dbforpostgresql.Server',
+  azurerm_postgresql_flexible_server: 'azure.dbforpostgresql.FlexibleServer',
   azurerm_storage_account: 'azure.storage.StorageAccount',
   azurerm_application_gateway: 'azure.network.ApplicationGateway',
   azurerm_linux_function_app: 'azure.web.WebApp',
@@ -95,11 +95,11 @@ function generatePlateResource(
   mapping: ResourceMapping,
   parentResourceName: string | null
 ): string {
-  const pulumiType = getPulumiConstructor(mapping.resourceType);
+  const constructorPath = getPulumiConstructor(mapping.resourceType);
   const lines: string[] = [];
 
   if (plate.type === 'subnet' && parentResourceName) {
-    lines.push(`const ${resourceName} = new ${pulumiType}("${resourceName}", {`);
+    lines.push(`const ${resourceName} = new ${constructorPath}("${resourceName}", {`);
     lines.push(`    subnetName: \`\${projectName}-${resourceName}\`,`);
     lines.push(`    resourceGroupName: resourceGroup.name,`);
     lines.push(`    virtualNetworkName: ${parentResourceName}.name,`);
@@ -107,7 +107,7 @@ function generatePlateResource(
     lines.push(`    addressPrefix: "10.0.${cidrIndex}.0/24",`);
     lines.push(`});`);
   } else {
-    lines.push(`const ${resourceName} = new ${pulumiType}("${resourceName}", {`);
+    lines.push(`const ${resourceName} = new ${constructorPath}("${resourceName}", {`);
     lines.push(`    virtualNetworkName: \`\${projectName}-${resourceName}\`,`);
     lines.push(`    resourceGroupName: resourceGroup.name,`);
     lines.push(`    location: location,`);
@@ -127,10 +127,10 @@ function generateBlockResource(
   resourceName: string,
   mapping: ResourceMapping
 ): string {
-  const pulumiType = getPulumiConstructor(mapping.resourceType);
+  const constructorPath = getPulumiConstructor(mapping.resourceType);
   const lines: string[] = [];
 
-  lines.push(`const ${resourceName} = new ${pulumiType}("${resourceName}", {`);
+  lines.push(`const ${resourceName} = new ${constructorPath}("${resourceName}", {`);
   lines.push(`    resourceGroupName: resourceGroup.name,`);
   lines.push(`    location: location,`);
 

@@ -177,7 +177,7 @@ describe('pulumi generator', () => {
     const indexTs = generateIndexTs(normalized, azureProviderDefinition, defaultOptions);
 
     expect(indexTs).toContain('const webappCompute = new azure.web.WebApp("webappCompute", {');
-    expect(indexTs).toContain('const pgserverDatabase = new azure.dbforpostgresql.Server("pgserverDatabase", {');
+    expect(indexTs).toContain('const pgserverDatabase = new azure.dbforpostgresql.FlexibleServer("pgserverDatabase", {');
     expect(indexTs).toContain('const storageStorage = new azure.storage.StorageAccount("storageStorage", {');
     expect(indexTs).toContain('const appgwGateway = new azure.network.ApplicationGateway("appgwGateway", {');
     expect(indexTs).toContain('const funcFunction = new azure.web.WebApp("funcFunction", {');
