@@ -514,7 +514,7 @@ Status: ✅ Delivered as part of Phase 9 — Visual Builder Evolution
 
 Features:
 
-- **Provider Field** — `provider: ProviderType` is implemented on the Block model
+- **Provider Field** — `provider?: ProviderType` (optional) is implemented on the Block model
 - **Connection Expansion** — Connection model supports `dataflow` | `http` | `internal` | `data` | `async`
 - **ProviderAdapter Interface** — Formal interface for mapping generic resources to provider-specific IaC
 - **Provider Directory Structure** — Organize adapters in `core/providers/{azure,aws,gcp}/`
