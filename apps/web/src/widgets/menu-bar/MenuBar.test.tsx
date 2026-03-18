@@ -605,6 +605,36 @@ describe('MenuBar', () => {
     expect(useUIStore.getState().diffMode).toBe(true);
   });
 
+  it('compare with GitHub uses backendWorkspaceId when set', async () => {
+    const user = userEvent.setup();
+    vi.mocked(apiPost).mockResolvedValue({ architecture: emptyArch });
+    useAuthStore.setState({
+      status: 'authenticated',
+      user: {
+        id: 'user-1',
+        github_username: 'octocat',
+        email: null,
+        display_name: null,
+        avatar_url: null,
+      },
+    });
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        backendWorkspaceId: 'backend-ws-99',
+      },
+    });
+
+    render(<MenuBar />);
+
+    const githubButton = screen.getByRole('button', { name: /octocat/ });
+    await user.click(githubButton);
+    const githubDropdown = getMenuDropdown(/octocat/);
+    await user.click(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ }));
+
+    expect(apiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-99/pull');
+  });
+
   it('quick action buttons call undo, redo, and save', async () => {
     const user = userEvent.setup();
     const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});

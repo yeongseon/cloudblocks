@@ -108,6 +108,7 @@ export interface Workspace {
   repoName?: string;
   branch?: string;
   lastSyncAt?: string;
+  backendWorkspaceId?: string;
 }
 
 // ─── Rule Engine Types ─────────────────────────────────────

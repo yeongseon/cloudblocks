@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from app.core.dependencies import (
     get_current_user,
@@ -19,7 +19,7 @@ from app.core.dependencies import (
     get_identity_repo,
     get_workspace_repo,
 )
-from app.core.errors import ForbiddenError, GitHubError, NotFoundError
+from app.core.errors import ForbiddenError, GitHubError, NotFoundError, ValidationError
 from app.core.security import decrypt_token
 from app.domain.models.entities import User
 from app.domain.models.repositories import IdentityRepository, WorkspaceRepository
@@ -38,6 +38,11 @@ class SyncRequest(BaseModel):
     architecture: dict[str, Any]
     commit_message: str = "Update architecture"
 
+    @field_validator("architecture")
+    @classmethod
+    def validate_architecture(cls, v: Any) -> dict[str, Any]:
+        return _validate_architecture(v)
+
 
 class PullRequestRequest(BaseModel):
     architecture: dict[str, Any]
@@ -46,6 +51,53 @@ class PullRequestRequest(BaseModel):
     branch: str | None = None
     commit_message: str = "Update architecture via CloudBlocks"
 
+    @field_validator("architecture")
+    @classmethod
+    def validate_architecture(cls, v: Any) -> dict[str, Any]:
+        return _validate_architecture(v)
+
+
+# ─── Architecture payload validation ─────────────────────────
+
+
+class ArchitecturePayload(BaseModel):
+    """Validates the top-level structure of a CloudBlocks architecture document.
+
+    Ensures required collections (plates, blocks, connections) are present
+    and have the correct types. Does not deep-validate individual items
+    because the canonical schema may evolve; we guard against clearly
+    malformed documents (missing keys, wrong types) that would break
+    downstream consumers (diff engine, code generation, pull flows).
+    """
+
+    id: str
+    name: str
+    version: str
+    plates: list[dict[str, Any]]
+    blocks: list[dict[str, Any]]
+    connections: list[dict[str, Any]] = []
+    externalActors: list[dict[str, Any]] = []  # noqa: N815
+    createdAt: str  # noqa: N815
+    updatedAt: str  # noqa: N815
+
+    @field_validator("plates", "blocks", "connections", "externalActors", mode="before")
+    @classmethod
+    def must_be_list(cls, v: Any, info: Any) -> Any:
+        if not isinstance(v, list):
+            raise ValueError(f"{info.field_name} must be a list")
+        return v
+
+
+def _validate_architecture(data: dict[str, Any]) -> dict[str, Any]:
+    """Validate architecture payload, raising ValidationError on failure."""
+    try:
+        ArchitecturePayload.model_validate(data)
+    except Exception as exc:
+        raise ValidationError(
+            f"Invalid architecture payload: {exc}",
+            details={"validation_errors": str(exc)},
+        ) from exc
+    return data
 
 async def _get_github_token(
     user: User,
@@ -65,7 +117,7 @@ async def list_repos(
     current_user: Annotated[User, Depends(get_current_user)],
     github: Annotated[GitHubService, Depends(get_github_service)],
     identity_repo: Annotated[IdentityRepository, Depends(get_identity_repo)],
-) -> dict:
+) -> dict[str, Any]:
     """List GitHub repositories the user has access to."""
     token = await _get_github_token(current_user, identity_repo)
     repos = await github.list_repos(token)
@@ -89,7 +141,7 @@ async def create_repo(
     current_user: Annotated[User, Depends(get_current_user)],
     github: Annotated[GitHubService, Depends(get_github_service)],
     identity_repo: Annotated[IdentityRepository, Depends(get_identity_repo)],
-) -> dict:
+) -> dict[str, Any]:
     """Create a new GitHub repository."""
     token = await _get_github_token(current_user, identity_repo)
     repo = await github.create_repo(token, body.name, body.description, body.private)
@@ -109,7 +161,7 @@ async def sync_to_github(
     workspace_repo: Annotated[WorkspaceRepository, Depends(get_workspace_repo)],
     github: Annotated[GitHubService, Depends(get_github_service)],
     identity_repo: Annotated[IdentityRepository, Depends(get_identity_repo)],
-) -> dict:
+) -> dict[str, Any]:
     """Sync architecture.json to the linked GitHub repository."""
     workspace = await workspace_repo.find_by_id(workspace_id)
     if not workspace:
@@ -169,7 +221,7 @@ async def pull_from_github(
     workspace_repo: Annotated[WorkspaceRepository, Depends(get_workspace_repo)],
     github: Annotated[GitHubService, Depends(get_github_service)],
     identity_repo: Annotated[IdentityRepository, Depends(get_identity_repo)],
-) -> dict:
+) -> dict[str, Any]:
     """Pull the latest architecture.json from the linked GitHub repository."""
     workspace = await workspace_repo.find_by_id(workspace_id)
     if not workspace:
@@ -208,7 +260,7 @@ async def create_pull_request(
     workspace_repo: Annotated[WorkspaceRepository, Depends(get_workspace_repo)],
     github: Annotated[GitHubService, Depends(get_github_service)],
     identity_repo: Annotated[IdentityRepository, Depends(get_identity_repo)],
-) -> dict:
+) -> dict[str, Any]:
     """Create a PR with architecture changes on a new branch."""
     workspace = await workspace_repo.find_by_id(workspace_id)
     if not workspace:
@@ -283,7 +335,7 @@ async def list_commits(
     workspace_repo: Annotated[WorkspaceRepository, Depends(get_workspace_repo)],
     github: Annotated[GitHubService, Depends(get_github_service)],
     identity_repo: Annotated[IdentityRepository, Depends(get_identity_repo)],
-) -> dict:
+) -> dict[str, Any]:
     """List recent commits for the linked repository."""
     workspace = await workspace_repo.find_by_id(workspace_id)
     if not workspace:

@@ -29,7 +29,7 @@ export function GitHubPR() {
     setResult(null);
     try {
       const response = await apiPost<PullRequestResponse>(
-        `/api/v1/workspaces/${encodeURIComponent(workspace.id)}/pr`,
+        `/api/v1/workspaces/${encodeURIComponent(workspace.backendWorkspaceId ?? workspace.id)}/pr`,
         {
           architecture: workspace.architecture,
           title,
