@@ -55,14 +55,13 @@ describe('GitHubLogin', () => {
     const user = userEvent.setup();
     mockApiPost.mockResolvedValueOnce({
       authorize_url: `${window.location.origin}/#oauth-callback`,
-      state: 'state-123',
     });
 
     render(<GitHubLogin />);
     await user.click(screen.getByRole('button', { name: 'Sign in with GitHub' }));
 
     expect(mockApiPost).toHaveBeenCalledWith('/api/v1/auth/github');
-    expect(sessionStorage.getItem('github_oauth_state')).toBe('state-123');
+    expect(sessionStorage.getItem('github_oauth_state')).toBeNull();
     expect(window.location.href).toContain('#oauth-callback');
   });
 
@@ -160,7 +159,7 @@ describe('GitHubLogin', () => {
     await user.click(screen.getByRole('button', { name: 'Sign in with GitHub' }));
 
     expect(screen.getByText('Loading...')).toBeInTheDocument();
-    resolvePost({ authorize_url: 'https://github.com', state: 's' });
+    resolvePost({ authorize_url: 'https://github.com' });
   });
 
   it('displays authError from store', () => {
