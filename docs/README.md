@@ -70,7 +70,7 @@ Detailed visual and interaction specifications.
 | [NFR_TARGETS.md](design/NFR_TARGETS.md) | Supporting | Non-functional requirements |
 | [SECURITY_BOUNDARIES.md](design/SECURITY_BOUNDARIES.md) | Supporting | Security constraints |
 | [RELEASE_GATES.md](design/RELEASE_GATES.md) | Supporting | Release criteria |
-| [UI_IMPROVEMENT_GAP_ANALYSIS.md](design/UI_IMPROVEMENT_GAP_ANALYSIS.md) | Supporting | UI guide gap analysis, Milestone 6B spec, drag-to-create MVP |
+| [UI_IMPROVEMENT_GAP_ANALYSIS.md](design/UI_IMPROVEMENT_GAP_ANALYSIS.md) | Historical | Completed Phase 9 gap analysis archive (reference only) |
 | [LEARNING_MODE_SPEC.md](design/LEARNING_MODE_SPEC.md) | **Canonical** | Learning Mode design spec — scenarios, validation, engine, UI |
 | [MILESTONE_7_SPEC.md](design/MILESTONE_7_SPEC.md) | Supporting | Milestone 7 collaboration & CI/CD spec |
 | [GRAPH_IR_SPEC.md](design/GRAPH_IR_SPEC.md) | Supporting | Graph IR specification — typed ports, protocol semantics, evolution plan |
