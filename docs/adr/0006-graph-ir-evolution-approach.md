@@ -15,9 +15,9 @@ This model has worked well for the Milestone 1-7 scope (builder UX, rule engine,
 
 ### Limitations of the current flat model
 
-1. **Connections lack explicit semantics**
-   - The current `Connection.type` is only `dataflow`.
-   - Multi-cloud (Phase 5 / Milestone 8) needs protocol intent such as `http | internal | data | async` to drive provider mapping (security rules, routing, private endpoints, IAM, etc.).
+1. **Connections still lack full endpoint semantics despite expanded types**
+   - The current `Connection.type` supports `dataflow | http | internal | data | async`.
+   - Multi-cloud (Phase 5 / Milestone 8) still needs richer port-level intent to drive provider mapping (security rules, routing, private endpoints, IAM, etc.).
 
 2. **No port model**
    - Blocks implicitly connect as whole nodes. There is no typed ingress/egress interface.
