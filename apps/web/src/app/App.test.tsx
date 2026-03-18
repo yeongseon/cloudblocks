@@ -3,6 +3,9 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { useArchitectureStore } from '../entities/store/architectureStore';
 import { useUIStore } from '../entities/store/uiStore';
 import { useAuthStore } from '../entities/store/authStore';
+vi.mock('react-hot-toast', () => ({
+  Toaster: () => <div data-testid="app-toaster" />,
+}));
 
 // Mock all child widgets and SceneCanvas
 vi.mock('../widgets/scene-canvas/SceneCanvas', () => ({
@@ -118,6 +121,7 @@ describe('App', () => {
     expect(await screen.findByTestId('github-repos')).toBeInTheDocument();
     expect(await screen.findByTestId('github-sync')).toBeInTheDocument();
     expect(await screen.findByTestId('github-pr')).toBeInTheDocument();
+    expect(screen.getByTestId('app-toaster')).toBeInTheDocument();
   });
 
   it('calls registerBuiltinTemplates and loadFromStorage on mount', () => {
