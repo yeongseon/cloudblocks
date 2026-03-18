@@ -85,8 +85,12 @@ const computeBlock: Block = {
 describe('CommandCard', () => {
   const addPlateMock = vi.fn();
   const addBlockMock = vi.fn();
+  const duplicateBlockMock = vi.fn();
+  const renameBlockMock = vi.fn();
+  const renamePlateMock = vi.fn();
   const removeBlockMock = vi.fn();
   const removePlateMock = vi.fn();
+  const togglePropertiesMock = vi.fn();
   const setSelectedIdMock = vi.fn<(id: string | null) => void>();
   const setToolModeMock = vi.fn<(mode: ToolMode) => void>();
 
@@ -97,6 +101,8 @@ describe('CommandCard', () => {
       selectedId: null,
       setSelectedId: setSelectedIdMock,
       setToolMode: setToolModeMock,
+      toggleProperties: togglePropertiesMock,
+      showProperties: true,
       toolMode: 'select',
       activeProvider: 'azure',
     });
@@ -104,6 +110,9 @@ describe('CommandCard', () => {
     useArchitectureStore.setState({
       addPlate: addPlateMock,
       addBlock: addBlockMock,
+      duplicateBlock: duplicateBlockMock,
+      renameBlock: renameBlockMock,
+      renamePlate: renamePlateMock,
       removeBlock: removeBlockMock,
       removePlate: removePlateMock,
       workspace: {
@@ -376,7 +385,62 @@ describe('CommandCard', () => {
     expect(setToolModeMock).toHaveBeenCalledWith('connect');
   });
 
-  it('handles non-destructive action buttons without errors', async () => {
+  it('shows only implemented block action buttons', () => {
+    useUIStore.setState({ selectedId: 'block-1' });
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          ...baseArchitecture,
+          plates: [networkPlate, publicSubnet],
+          blocks: [computeBlock],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    render(<CommandCard />);
+
+    expect(screen.getByRole('button', { name: /Link/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Edit/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Copy/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Rename/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Delete/ })).toBeInTheDocument();
+
+    expect(screen.queryByRole('button', { name: /Config/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Add App/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Move/ })).not.toBeInTheDocument();
+  });
+
+  it('opens properties panel when edit is clicked and properties are hidden', async () => {
+    const user = userEvent.setup();
+
+    useUIStore.setState({ selectedId: 'block-1' });
+    useUIStore.setState({ showProperties: false });
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          ...baseArchitecture,
+          plates: [networkPlate, publicSubnet],
+          blocks: [computeBlock],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    render(<CommandCard />);
+
+    await user.click(screen.getByRole('button', { name: /Edit/ }));
+
+    expect(togglePropertiesMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('duplicates selected block when copy is clicked', async () => {
     const user = userEvent.setup();
 
     useUIStore.setState({ selectedId: 'block-1' });
@@ -396,14 +460,37 @@ describe('CommandCard', () => {
 
     render(<CommandCard />);
 
-    await user.click(screen.getByRole('button', { name: /Edit/ }));
     await user.click(screen.getByRole('button', { name: /Copy/ }));
-    await user.click(screen.getByRole('button', { name: /Config/ }));
-    await user.click(screen.getByRole('button', { name: /Add App/ }));
-    await user.click(screen.getByRole('button', { name: /Move/ }));
+
+    expect(duplicateBlockMock).toHaveBeenCalledWith('block-1');
+  });
+
+  it('renames selected block when rename is clicked and prompt has value', async () => {
+    const user = userEvent.setup();
+    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('  New Block Name  ');
+
+    useUIStore.setState({ selectedId: 'block-1' });
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          ...baseArchitecture,
+          plates: [networkPlate, publicSubnet],
+          blocks: [computeBlock],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    render(<CommandCard />);
+
     await user.click(screen.getByRole('button', { name: /Rename/ }));
 
-    expect(useUIStore.getState().selectedId).toBe('block-1');
+    expect(promptSpy).toHaveBeenCalledWith('Rename block:', 'App VM');
+    expect(renameBlockMock).toHaveBeenCalledWith('block-1', 'New Block Name');
+    promptSpy.mockRestore();
   });
 
   // ─── PlateActionMode Tests ──────────────────────────────
@@ -431,10 +518,10 @@ describe('CommandCard', () => {
 
     // Should have plate action buttons
     expect(screen.getByRole('button', { name: /Deploy/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Config/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Delete/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Move/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Rename/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Delete/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Config/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Move/ })).not.toBeInTheDocument();
   });
 
   it('updates header text across none, block, plate, and deploy states', async () => {
@@ -764,8 +851,9 @@ describe('CommandCard', () => {
     expect(setSelectedIdMock).toHaveBeenCalledWith(null);
   });
 
-  it('handles plate move, rename, config actions without errors', async () => {
+  it('renames selected plate when rename is clicked and prompt has value', async () => {
     const user = userEvent.setup();
+    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('  Renamed Plate  ');
 
     useUIStore.setState({ selectedId: 'net-1' });
     useArchitectureStore.setState({
@@ -783,11 +871,11 @@ describe('CommandCard', () => {
 
     render(<CommandCard />);
 
-    await user.click(screen.getByRole('button', { name: /Move/ }));
     await user.click(screen.getByRole('button', { name: /Rename/ }));
-    await user.click(screen.getByRole('button', { name: /Config/ }));
 
-    expect(useUIStore.getState().selectedId).toBe('net-1');
+    expect(promptSpy).toHaveBeenCalledWith('Rename plate:', 'VNet');
+    expect(renamePlateMock).toHaveBeenCalledWith('net-1', 'Renamed Plate');
+    promptSpy.mockRestore();
   });
 
   it('transitions to PlateCreationMode for public subnet deploy and creates VM', async () => {

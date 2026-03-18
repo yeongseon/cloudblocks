@@ -14,7 +14,10 @@ type DomainSlice = Pick<
   | 'addPlate'
   | 'removePlate'
   | 'addBlock'
+  | 'duplicateBlock'
   | 'removeBlock'
+  | 'renameBlock'
+  | 'renamePlate'
   | 'moveBlock'
   | 'setPlateProfile'
   | 'movePlatePosition'
@@ -180,6 +183,33 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set) => ({
     });
   },
 
+  duplicateBlock: (blockId) => {
+    set((state) => {
+      const arch = state.workspace.architecture;
+      const sourceBlock = arch.blocks.find((candidate) => candidate.id === blockId);
+
+      if (!sourceBlock) {
+        return state;
+      }
+
+      const newBlock: Block = {
+        ...sourceBlock,
+        id: generateId('block'),
+        name: `${sourceBlock.name} (copy)`,
+        position: {
+          x: sourceBlock.position.x + 1,
+          y: sourceBlock.position.y,
+          z: sourceBlock.position.z + 1,
+        },
+      };
+
+      return withHistory(state, {
+        ...arch,
+        blocks: [...arch.blocks, newBlock],
+      });
+    });
+  },
+
   removeBlock: (id) => {
     set((state) => {
       const arch = state.workspace.architecture;
@@ -202,6 +232,32 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set) => ({
         ),
         connections: arch.connections.filter(
           (connection) => connection.sourceId !== id && connection.targetId !== id
+        ),
+      });
+    });
+  },
+
+  renameBlock: (blockId, newName) => {
+    set((state) => {
+      const arch = state.workspace.architecture;
+
+      return withHistory(state, {
+        ...arch,
+        blocks: arch.blocks.map((candidate) =>
+          candidate.id === blockId ? { ...candidate, name: newName } : candidate
+        ),
+      });
+    });
+  },
+
+  renamePlate: (plateId, newName) => {
+    set((state) => {
+      const arch = state.workspace.architecture;
+
+      return withHistory(state, {
+        ...arch,
+        plates: arch.plates.map((candidate) =>
+          candidate.id === plateId ? { ...candidate, name: newName } : candidate
         ),
       });
     });
