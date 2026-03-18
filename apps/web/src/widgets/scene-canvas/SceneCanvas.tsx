@@ -69,7 +69,9 @@ export function SceneCanvas() {
 
   const handlePointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
     isDragging.current = false;
-    e.currentTarget.releasePointerCapture(e.pointerId);
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
 
     if (interactionState === 'placing' && draggedBlockCategory && draggedResourceName) {
       const elements = document.elementsFromPoint(e.clientX, e.clientY);
