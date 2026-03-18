@@ -1,6 +1,6 @@
 # ADR-0006: Graph IR Evolution Approach
 
-**Status**: Proposed
+**Status**: Accepted
 **Date**: 2026-03
 
 ## Context
