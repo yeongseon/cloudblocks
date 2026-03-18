@@ -4,9 +4,10 @@
 #   AZURE_CLIENT_ID        — Azure AD app (service principal) client ID for OIDC
 #   AZURE_TENANT_ID        — Azure AD tenant ID
 #   AZURE_SUBSCRIPTION_ID  — Azure subscription ID
-#   ACR_NAME               — Azure Container Registry name (e.g. cloudblocksacr)
-#   ACR_LOGIN_SERVER       — ACR login server URL (e.g. cloudblocksacr.azurecr.io)
+#   ACR_NAME               — Azure Container Registry name (e.g. cloudblocksdeyacr)
+#   ACR_LOGIN_SERVER       — ACR login server URL (e.g. cloudblocksdevacr.azurecr.io)
 #   AZURE_RESOURCE_GROUP   — Target resource group name
+#   CONTAINER_APP_NAME     — Container App name (e.g. ca-cloudblocks-api-dev)
 #   AZURE_SWA_TOKEN        — Azure Static Web Apps deployment token
 
 name: Deploy
@@ -25,10 +26,15 @@ permissions:
   id-token: write   # Required for OIDC token exchange with Azure
   contents: read
 
+env:
+  IMAGE_NAME: cloudblocks-api
+
 jobs:
   build-api:
     name: Build & Push API Image
     runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ github.sha }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -43,8 +49,8 @@ jobs:
       - name: Build and push API image to ACR
         run: |
           az acr build --registry ${{ secrets.ACR_NAME }} \
-            --image cloudblocks-api:${{ github.sha }} \
-            --image cloudblocks-api:latest \
+            --image ${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            --image ${{ env.IMAGE_NAME }}:latest \
             --file infra/docker/api.Dockerfile .
 
   deploy-api:
@@ -59,12 +65,47 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Deploy API to Container Apps
+      - name: Deploy new revision
         run: |
           az containerapp update \
-            --name cloudblocks-api \
+            --name ${{ secrets.CONTAINER_APP_NAME }} \
             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-            --image ${{ secrets.ACR_LOGIN_SERVER }}/cloudblocks-api:${{ github.sha }}
+            --image ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Wait for revision to become active
+        run: |
+          echo "Waiting for new revision to become active..."
+          for i in $(seq 1 30); do
+            STATUS=$(az containerapp revision list \
+              --name ${{ secrets.CONTAINER_APP_NAME }} \
+              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+              --query "[?properties.active==\`true\`].properties.healthState" \
+              --output tsv 2>/dev/null || echo "Unknown")
+            echo "  Attempt $i/30: status=$STATUS"
+            if [ "$STATUS" = "Healthy" ]; then
+              echo "✅ Revision is healthy"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "⚠️ Revision health check timed out (5 min). Check Azure Portal."
+          exit 1
+
+      - name: Verify health endpoint
+        run: |
+          APP_URL=$(az containerapp show \
+            --name ${{ secrets.CONTAINER_APP_NAME }} \
+            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+            --query "properties.configuration.ingress.fqdn" \
+            --output tsv)
+          echo "Checking https://${APP_URL}/health ..."
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "https://${APP_URL}/health" --max-time 10 || echo "000")
+          echo "  HTTP status: $HTTP_CODE"
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Health check passed"
+          else
+            echo "⚠️ Health check returned $HTTP_CODE (may still be warming up)"
+          fi
 
   deploy-web:
     name: Deploy Web to Static Web Apps
