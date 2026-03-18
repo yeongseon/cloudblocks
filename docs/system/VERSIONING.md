@@ -1,6 +1,6 @@
 # CloudBlocks Documentation — Versioning & Layering Strategy
 
-This document defines how CloudBlocks documentation distinguishes between **current implementation** (through Milestone 7 + Phase 2/3) and **future architecture compiler vision** (v1.x), ensuring readers always know what exists today versus what is planned.
+This document defines how CloudBlocks documentation distinguishes between **current implementation** and **future architecture compiler vision** (v1.x), ensuring readers always know what exists today versus what is planned.
 
 ---
 
@@ -8,7 +8,7 @@ This document defines how CloudBlocks documentation distinguishes between **curr
 
 CloudBlocks documentation serves two audiences simultaneously:
 
-1. **Contributors and users of the current implementation (M1–M7 complete)** — who need accurate descriptions of what the code actually does
+1. **Contributors and users of the current implementation** — who need accurate descriptions of what the code actually does
 2. **Architects and planners** — who need to understand the long-term vision (Architecture Compiler, DSL, multi-provider code generation)
 
 Mixing these two audiences without clear boundaries creates confusion: readers cannot tell whether a feature described in documentation is something they can use today or something planned for the future. This document establishes the rules to prevent that confusion.
@@ -17,9 +17,9 @@ Mixing these two audiences without clear boundaries creates confusion: readers c
 
 ## Version Definitions
 
-### M1–M7 + Phase 2/3 — CloudBlocks Builder (Current Implementation)
+### Current implementation baseline — CloudBlocks Builder
 
-The production-quality builder. All milestones through M7 and Phases 2/3 are complete and verified.
+The production-quality builder. Exact milestone and phase completion status is defined by `docs/concept/ROADMAP.md`.
 
 | Aspect | Milestone 1 Reality |
 |--------|-------------|
@@ -40,14 +40,14 @@ The production-quality builder. All milestones through M7 and Phases 2/3 are com
 - `apps/web/src/features/validate/connection.ts` — Connection rules
 - `docs/model/DOMAIN_MODEL.md` — Model specification
 
-### Milestone 1–7 + Phase 2/3 — Complete Implementation
+### Milestone and phase status source
 
-These milestones are all complete and verified in the current production codebase. See `docs/concept/ROADMAP.md` for the full historical timeline.
+`docs/concept/ROADMAP.md` is the only source of truth for:
 
-| Version | Key Status |
-|---------|--------------|
-| **Milestone 1–7** | All core features from UI to CI/CD integration are complete. |
-| **Phase 2/3 UX** | Tactile UX and DevOps minifigure implementation complete. |
+- which milestone or phase introduced a feature;
+- whether a milestone or phase is complete, in progress, deferred, or planned.
+
+This document defines versioning rules and documentation layering policy only.
 
 ### v1.x — Architecture Compiler (Future Vision)
 
@@ -183,14 +183,9 @@ When creating or updating documentation:
 
 ## Version Label Reference
 
-| Label | Meaning |
-|-------|---------|
-| **Milestone 1** | Exists in code today. Verified against `index.ts` and `schema.ts`. |
-| **Milestone 2** | Planned for next release. No code exists yet. |
-| **Milestone 3** | Code generation milestone. Design exists in `generator.md`. |
-| **Milestone 4** | Workspace management milestone. |
-| **Milestone 5+** | Server-side features (API-based code generation, Git integration). |
-| **Milestone 6+** | Architecture Compiler vision. Full DSL, multi-provider, templates. |
+For milestone and phase labels, meanings, and current status, always reference `docs/concept/ROADMAP.md`.
+
+Do not duplicate milestone status tables in this document.
 
 
 ---
