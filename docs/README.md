@@ -63,16 +63,13 @@ Detailed visual and interaction specifications.
 | Document | Status | Description |
 |----------|--------|-------------|
 | [BRICK_DESIGN_SPEC.md](design/BRICK_DESIGN_SPEC.md) | **Canonical** | Merged brick design system — geometry, profiles, provider themes, connections, UX states |
-| [BRICK_SIZE_SPEC.md](design/BRICK_SIZE_SPEC.md) | **Historical** | Legacy sizing spec — superseded by BRICK_DESIGN_SPEC.md |
 | [VISUAL_DESIGN_SPEC.md](design/VISUAL_DESIGN_SPEC.md) | **Canonical** | Colors, geometry, materials, **Bottom Panel (§7)**, Command Card, Tech Tree |
 | [VALIDATION_CONTRACT.md](design/VALIDATION_CONTRACT.md) | Canonical | Validation rule contracts |
 | [MODULE_BOUNDARIES.md](design/MODULE_BOUNDARIES.md) | Supporting | FSD module structure |
 | [NFR_TARGETS.md](design/NFR_TARGETS.md) | Supporting | Non-functional requirements |
 | [SECURITY_BOUNDARIES.md](design/SECURITY_BOUNDARIES.md) | Supporting | Security constraints |
 | [RELEASE_GATES.md](design/RELEASE_GATES.md) | Supporting | Release criteria |
-| [UI_IMPROVEMENT_GAP_ANALYSIS.md](design/UI_IMPROVEMENT_GAP_ANALYSIS.md) | Historical | Completed Phase 9 gap analysis archive (reference only) |
 | [LEARNING_MODE_SPEC.md](design/LEARNING_MODE_SPEC.md) | **Canonical** | Learning Mode design spec — scenarios, validation, engine, UI |
-| [MILESTONE_7_SPEC.md](design/MILESTONE_7_SPEC.md) | Supporting | Milestone 7 collaboration & CI/CD spec |
 | [GRAPH_IR_SPEC.md](design/GRAPH_IR_SPEC.md) | Supporting | Graph IR specification — typed ports, protocol semantics, evolution plan |
 
 > **UI Single Source of Truth**: All visual/interaction specs are in `VISUAL_DESIGN_SPEC.md`. Section §7 covers the StarCraft-style Bottom Panel layout.
@@ -110,16 +107,6 @@ User and developer guides.
 |----------|--------|-------------|
 | [DEPLOYMENT.md](guides/DEPLOYMENT.md) | Supporting | Deployment instructions |
 | [TUTORIALS.md](guides/TUTORIALS.md) | Supporting | Getting started tutorials |
-
----
-
-## 8. System
-
-System-level governance and meta docs.
-
-| Document | Status | Description |
-|----------|--------|-------------|
-| [VERSIONING.md](system/VERSIONING.md) | Historical | Redirect to CONTRIBUTING documentation policy |
 
 ---
 
