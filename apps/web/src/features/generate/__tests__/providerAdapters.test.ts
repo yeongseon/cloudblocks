@@ -129,4 +129,64 @@ describe('provider adapters', () => {
     expect(mainTf?.content.trim().length).toBeGreaterThan(0);
     expect(mainTf?.content).toContain('provider "azurerm"');
   });
+
+  it('aws adapter maps compute block to ecs service in terraform output', () => {
+    const architecture: ArchitectureModel = {
+      id: 'arch-adapter-aws-1',
+      name: 'Provider Adapter AWS Terraform Test',
+      version: '1',
+      plates: [
+        {
+          id: 'net-1',
+          name: 'Network',
+          type: 'network',
+          parentId: null,
+          children: ['sub-1'],
+          position: { x: 0, y: 0, z: 0 },
+          size: { width: 12, height: 0.7, depth: 16 },
+          metadata: {},
+        },
+        {
+          id: 'sub-1',
+          name: 'Public Subnet',
+          type: 'subnet',
+          subnetAccess: 'public',
+          parentId: 'net-1',
+          children: ['app-1'],
+          position: { x: 0, y: 0.7, z: 0 },
+          size: { width: 6, height: 0.5, depth: 8 },
+          metadata: {},
+        },
+      ] as Plate[],
+      blocks: [
+        {
+          id: 'app-1',
+          name: 'Compute',
+          category: 'compute',
+          placementId: 'sub-1',
+          position: { x: 1, y: 1.2, z: 1 },
+          metadata: {},
+          provider: 'aws',
+        },
+      ] as Block[],
+      connections: [],
+      externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' }],
+      createdAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-01-01T00:00:00Z',
+    };
+
+    const output = generateCode(architecture, {
+      provider: 'aws',
+      mode: 'draft',
+      projectName: 'adapter-test',
+      region: 'eastus',
+      generator: 'terraform',
+    });
+
+    const mainTf = output.files.find((file) => file.path === 'main.tf');
+
+    expect(mainTf).toBeDefined();
+    expect(mainTf?.content).toContain('provider "aws"');
+    expect(mainTf?.content).toContain('resource "aws_ecs_service" "ecs_compute"');
+  });
 });

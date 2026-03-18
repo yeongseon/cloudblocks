@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+  awsProvider,
+  awsProviderDefinition,
   azureProvider,
   azureProviderDefinition,
   getProvider,
@@ -88,6 +90,10 @@ describe('getProvider', () => {
     expect(getProvider('azure')).toBe(azureProvider);
   });
 
+  it('returns aws provider for aws name', () => {
+    expect(getProvider('aws')).toBe(awsProvider);
+  });
+
   it('returns undefined for unknown name', () => {
     expect(getProvider('unknown')).toBeUndefined();
   });
@@ -98,7 +104,31 @@ describe('getProviderDefinition', () => {
     expect(getProviderDefinition('azure')).toBe(azureProviderDefinition);
   });
 
+  it('returns aws provider definition for aws name', () => {
+    expect(getProviderDefinition('aws')).toBe(awsProviderDefinition);
+  });
+
   it('returns undefined for unknown name', () => {
     expect(getProviderDefinition('unknown' as 'azure')).toBeUndefined();
+  });
+});
+
+describe('awsProvider', () => {
+  it('uses ECS service mapping for compute category', () => {
+    expect(awsProvider.blockMappings.compute).toEqual({
+      resourceType: 'aws_ecs_service',
+      namePrefix: 'ecs',
+    });
+  });
+
+  it('keeps expected network and subnet plate mappings', () => {
+    expect(awsProvider.plateMappings.network).toEqual({
+      resourceType: 'aws_vpc',
+      namePrefix: 'vpc',
+    });
+    expect(awsProvider.plateMappings.subnet).toEqual({
+      resourceType: 'aws_subnet',
+      namePrefix: 'subnet',
+    });
   });
 });
