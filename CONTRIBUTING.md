@@ -426,7 +426,7 @@ Brief description of what this PR does and why.
 
 1. Submit PR against `main`
 2. Automated checks must pass
-3. At least one maintainer review required
+3. Follow current branch protection requirements for approvals (maintainer review is recommended)
 4. Address review feedback
 5. Squash and merge
 
