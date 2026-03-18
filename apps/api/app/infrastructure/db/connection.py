@@ -10,8 +10,12 @@ Architecture data lives in GitHub repos, NOT here.
 from __future__ import annotations
 
 from contextlib import suppress
+from typing import Any, Protocol
 
 import aiosqlite
+import asyncpg
+
+from app.infrastructure.db.pg_migrations import PG_MIGRATIONS
 
 _MIGRATIONS = [
     # Migration 001: Users and identities
@@ -179,3 +183,85 @@ class Database:
         cursor = await self.connection.execute(query, params)
         rows = await cursor.fetchall()
         return [dict(row) for row in rows]
+
+
+class DatabaseProtocol(Protocol):
+    async def connect(self) -> None: ...
+
+    async def disconnect(self) -> None: ...
+
+    async def execute(self, query: str, params: tuple[object, ...] = ()) -> Any: ...
+
+    async def fetch_one(
+        self, query: str, params: tuple[object, ...] = ()
+    ) -> dict[str, object] | None: ...
+
+    async def fetch_all(
+        self, query: str, params: tuple[object, ...] = ()
+    ) -> list[dict[str, object]]: ...
+
+
+class PostgresDatabase:
+    """Async PostgreSQL connection manager for the metadata database."""
+
+    def __init__(self, dsn: str, min_size: int = 2, max_size: int = 10) -> None:
+        self.dsn = dsn
+        self.min_size = min_size
+        self.max_size = max_size
+        self._pool: asyncpg.Pool | None = None
+
+    async def connect(self) -> None:
+        """Create the connection pool and run migrations."""
+        self._pool = await asyncpg.create_pool(
+            dsn=self.dsn,
+            min_size=self.min_size,
+            max_size=self.max_size,
+        )
+        await self._run_migrations()
+
+    async def disconnect(self) -> None:
+        """Close the connection pool."""
+        if self._pool:
+            await self._pool.close()
+            self._pool = None
+
+    async def _run_migrations(self) -> None:
+        """Run all schema migrations."""
+        if not self._pool:
+            return
+        for migration in PG_MIGRATIONS:
+            await self._pool.execute(migration)
+
+    @property
+    def connection(self) -> asyncpg.Pool:
+        """Get the active pool, raising if not connected."""
+        if not self._pool:
+            raise RuntimeError("Database not connected. Call connect() first.")
+        return self._pool
+
+    async def execute(self, query: str, params: tuple[object, ...] = ()) -> str:
+        """Execute a SQL query and return asyncpg status string."""
+        return await self.connection.execute(query, *params)
+
+    async def fetch_one(
+        self, query: str, params: tuple[object, ...] = ()
+    ) -> dict[str, object] | None:
+        """Execute a query and return the first row as a dict."""
+        row = await self.connection.fetchrow(query, *params)
+        if row is None:
+            return None
+        return dict(row)
+
+    async def fetch_all(
+        self, query: str, params: tuple[object, ...] = ()
+    ) -> list[dict[str, object]]:
+        """Execute a query and return all rows as dicts."""
+        rows = await self.connection.fetch(query, *params)
+        return [dict(row) for row in rows]
+
+
+def create_database(url: str) -> Database | PostgresDatabase:
+    """Create database backend from DATABASE_URL."""
+    if url.startswith("postgres://") or url.startswith("postgresql://"):
+        return PostgresDatabase(url)
+    return Database.from_url(url)

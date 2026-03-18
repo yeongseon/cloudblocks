@@ -6,7 +6,7 @@ Provides FastAPI dependencies for database, repositories, services, and auth.
 from __future__ import annotations
 
 import time
-from typing import Annotated
+from typing import Annotated, cast
 
 from fastapi import Depends, Request
 
@@ -20,25 +20,24 @@ from app.domain.models.repositories import (
     UserRepository,
     WorkspaceRepository,
 )
-from app.infrastructure.db.connection import Database
-from app.infrastructure.db.repositories import (
-    SQLiteGenerationRunRepository,
-    SQLiteIdentityRepository,
-    SQLiteSessionRepository,
-    SQLiteUserRepository,
-    SQLiteWorkspaceRepository,
+from app.infrastructure.db.connection import (
+    Database,
+    DatabaseProtocol,
+    PostgresDatabase,
+    create_database,
 )
 from app.infrastructure.github_service import GitHubService
 
-# Singletons
-_db = Database.from_url(settings.database_url)
 _github_service = GitHubService(
     client_id=settings.github_client_id,
     client_secret=settings.github_client_secret,
 )
 
 
-def get_database() -> Database:
+_db = create_database(settings.database_url)
+
+
+def get_database() -> DatabaseProtocol:
     return _db
 
 
@@ -46,26 +45,63 @@ def get_github_service() -> GitHubService:
     return _github_service
 
 
-def get_user_repo(db: Annotated[Database, Depends(get_database)]) -> UserRepository:
-    return SQLiteUserRepository(db)
+def get_user_repo(db: Annotated[DatabaseProtocol, Depends(get_database)]) -> UserRepository:
+    if isinstance(db, PostgresDatabase):
+        from app.infrastructure.db.pg_repositories import PgUserRepository
+
+        return PgUserRepository(db)
+
+    from app.infrastructure.db.repositories import SQLiteUserRepository
+
+    return SQLiteUserRepository(cast(Database, db))
 
 
-def get_identity_repo(db: Annotated[Database, Depends(get_database)]) -> IdentityRepository:
-    return SQLiteIdentityRepository(db)
+def get_identity_repo(db: Annotated[DatabaseProtocol, Depends(get_database)]) -> IdentityRepository:
+    if isinstance(db, PostgresDatabase):
+        from app.infrastructure.db.pg_repositories import PgIdentityRepository
+
+        return PgIdentityRepository(db)
+
+    from app.infrastructure.db.repositories import SQLiteIdentityRepository
+
+    return SQLiteIdentityRepository(cast(Database, db))
 
 
-def get_workspace_repo(db: Annotated[Database, Depends(get_database)]) -> WorkspaceRepository:
-    return SQLiteWorkspaceRepository(db)
+def get_workspace_repo(
+    db: Annotated[DatabaseProtocol, Depends(get_database)],
+) -> WorkspaceRepository:
+    if isinstance(db, PostgresDatabase):
+        from app.infrastructure.db.pg_repositories import PgWorkspaceRepository
+
+        return PgWorkspaceRepository(db)
+
+    from app.infrastructure.db.repositories import SQLiteWorkspaceRepository
+
+    return SQLiteWorkspaceRepository(cast(Database, db))
 
 
 def get_generation_run_repo(
-    db: Annotated[Database, Depends(get_database)],
+    db: Annotated[DatabaseProtocol, Depends(get_database)],
 ) -> GenerationRunRepository:
-    return SQLiteGenerationRunRepository(db)
+    if isinstance(db, PostgresDatabase):
+        from app.infrastructure.db.pg_repositories import PgGenerationRunRepository
+
+        return PgGenerationRunRepository(db)
+
+    from app.infrastructure.db.repositories import SQLiteGenerationRunRepository
+
+    return SQLiteGenerationRunRepository(cast(Database, db))
 
 
-def get_session_repo(db: Annotated[Database, Depends(get_database)]) -> SessionRepository:
-    return SQLiteSessionRepository(db)
+def get_session_repo(db: Annotated[DatabaseProtocol, Depends(get_database)]) -> SessionRepository:
+    if isinstance(db, PostgresDatabase):
+        from app.infrastructure.db.pg_repositories import PgSessionRepository
+
+        return PgSessionRepository(db)
+
+    from app.infrastructure.db.repositories import SQLiteSessionRepository
+
+    return SQLiteSessionRepository(cast(Database, db))
 
 
 async def get_current_session(
