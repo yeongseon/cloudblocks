@@ -1,6 +1,7 @@
 import { memo, useId, useMemo } from 'react';
 import type { BlockCategory } from '../../shared/types/index';
 import { STUD_LAYOUTS, BLOCK_SHORT_NAMES, BLOCK_ICONS } from '../../shared/types/index';
+import { getBlockVisualProfile } from '../../shared/types/visualProfile';
 import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
 import {
   BLOCK_MARGIN,
@@ -16,6 +17,7 @@ import {
   TOP_FACE_STROKE_WIDTH,
 } from '../../shared/tokens/designTokens';
 import { getBlockFaceColors, getBlockStudColors } from './blockFaceColors';
+import { getSilhouettePolygons } from './silhouettes';
 
 interface BlockSvgProps {
   category: BlockCategory;
@@ -27,6 +29,7 @@ export const BlockSvg = memo(function BlockSvg({ category }: BlockSvgProps) {
   const studColors = getBlockStudColors(category);
   const shortName = BLOCK_SHORT_NAMES[category];
   const icon = BLOCK_ICONS[category];
+  const visualProfile = getBlockVisualProfile(category);
 
   const screenWidth = (studsX + studsY) * TILE_W / 2;
   const diamondHeight = (studsX + studsY) * TILE_H / 2;
@@ -40,9 +43,19 @@ export const BlockSvg = memo(function BlockSvg({ category }: BlockSvgProps) {
   const leftX = BLOCK_MARGIN;
   const rightX = screenWidth - BLOCK_MARGIN;
 
-  const topFacePoints = `${cx},${topY} ${rightX},${midY} ${cx},${bottomY} ${leftX},${midY}`;
-  const leftSidePoints = `${leftX},${midY} ${cx},${bottomY} ${cx},${bottomY + sideWallPx} ${leftX},${midY + sideWallPx}`;
-  const rightSidePoints = `${cx},${bottomY} ${rightX},${midY} ${rightX},${midY + sideWallPx} ${cx},${bottomY + sideWallPx}`;
+  const { topFacePoints, leftSidePoints, rightSidePoints } = getSilhouettePolygons(visualProfile.silhouette, {
+    screenWidth,
+    diamondHeight,
+    sideWallPx,
+    cx,
+    topY,
+    midY,
+    bottomY,
+    leftX,
+    rightX,
+    margin: BLOCK_MARGIN,
+    padding: BLOCK_PADDING,
+  });
 
   const studs = useMemo(() => {
     const positions: Array<{ x: number; y: number; key: string }> = [];
