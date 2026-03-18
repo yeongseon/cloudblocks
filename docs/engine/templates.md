@@ -72,7 +72,7 @@ CloudBlocks ships these built-in templates (Milestone 4):
 - **Data Storage Backend** — Compute connected to database and blob storage in a private subnet
 
 > **Note (Milestone 6+):** Additional templates (Serverless API, Event-driven pipeline, Microservices) require FunctionBlock and QueueBlock, which are planned for Milestone 6. See `features/templates/builtin.ts` for the current implementations.
-> **Note:** Example architectures are available in the [`examples/`](../examples/) directory.
+> **Note:** Example architectures are available in the [`examples/`](../../examples/) directory.
 
 ---
 
