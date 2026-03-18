@@ -7,6 +7,7 @@ describe('useUIStore', () => {
     useUIStore.setState({
       selectedId: null,
       toolMode: 'select',
+      interactionState: 'idle',
       connectionSource: null,
       draggedBlockCategory: null,
       draggedResourceName: null,
@@ -161,6 +162,212 @@ describe('useUIStore', () => {
 
       useUIStore.getState().setActiveProvider('gcp');
       expect(useUIStore.getState().activeProvider).toBe('gcp');
+    });
+
+    it('cycles through all providers and persists across sequential reads', () => {
+      const readActiveProvider = () => useUIStore.getState().activeProvider;
+
+      expect(readActiveProvider()).toBe('azure');
+
+      useUIStore.getState().setActiveProvider('aws');
+      expect(readActiveProvider()).toBe('aws');
+      expect(readActiveProvider()).toBe('aws');
+
+      useUIStore.getState().setActiveProvider('gcp');
+      expect(readActiveProvider()).toBe('gcp');
+      expect(readActiveProvider()).toBe('gcp');
+
+      useUIStore.getState().setActiveProvider('azure');
+      expect(readActiveProvider()).toBe('azure');
+      expect(readActiveProvider()).toBe('azure');
+    });
+  });
+
+  describe('interaction state machine', () => {
+    it('supports valid transitions from idle to selecting/dragging/placing/connecting', () => {
+      useUIStore.getState().startSelecting();
+      expect(useUIStore.getState().interactionState).toBe('selecting');
+
+      useUIStore.getState().completeInteraction();
+      useUIStore.getState().startDragging();
+      expect(useUIStore.getState().interactionState).toBe('dragging');
+
+      useUIStore.getState().completeInteraction();
+      useUIStore.getState().startPlacing('compute', 'Virtual Machine');
+      const placingState = useUIStore.getState();
+      expect(placingState.interactionState).toBe('placing');
+      expect(placingState.draggedBlockCategory).toBe('compute');
+      expect(placingState.draggedResourceName).toBe('Virtual Machine');
+
+      useUIStore.getState().completeInteraction();
+      useUIStore.getState().startConnecting('block-1');
+      const connectingState = useUIStore.getState();
+      expect(connectingState.interactionState).toBe('connecting');
+      expect(connectingState.connectionSource).toBe('block-1');
+    });
+
+    it('prevents selecting to placing transition (selecting stays active)', () => {
+      useUIStore.getState().startSelecting();
+      expect(useUIStore.getState().interactionState).toBe('selecting');
+
+      useUIStore.setState((state) => {
+        if (state.interactionState !== 'idle') {
+          return state;
+        }
+        return {
+          ...state,
+          interactionState: 'placing',
+          draggedBlockCategory: 'compute',
+          draggedResourceName: 'Virtual Machine',
+        };
+      });
+
+      const state = useUIStore.getState();
+      expect(state.interactionState).toBe('selecting');
+      expect(state.draggedBlockCategory).toBe(null);
+      expect(state.draggedResourceName).toBe(null);
+    });
+
+    it('prevents connecting to dragging transition (connecting stays active)', () => {
+      useUIStore.getState().startConnecting('block-1');
+      expect(useUIStore.getState().interactionState).toBe('connecting');
+
+      useUIStore.setState((state) => {
+        if (state.interactionState !== 'idle') {
+          return state;
+        }
+        return {
+          ...state,
+          interactionState: 'dragging',
+        };
+      });
+
+      const state = useUIStore.getState();
+      expect(state.interactionState).toBe('connecting');
+      expect(state.connectionSource).toBe('block-1');
+    });
+
+    it('transitions to placing with drag payload and resets via completeInteraction', () => {
+      useUIStore.getState().startPlacing('database', 'SQL Database');
+      const placingState = useUIStore.getState();
+      expect(placingState.interactionState).toBe('placing');
+      expect(placingState.draggedBlockCategory).toBe('database');
+      expect(placingState.draggedResourceName).toBe('SQL Database');
+
+      useUIStore.getState().completeInteraction();
+      const completedState = useUIStore.getState();
+      expect(completedState.interactionState).toBe('idle');
+      expect(completedState.connectionSource).toBe(null);
+      expect(completedState.draggedBlockCategory).toBe(null);
+      expect(completedState.draggedResourceName).toBe(null);
+    });
+
+    it('transitions to connecting and resets via cancelInteraction', () => {
+      useUIStore.getState().startConnecting('block-2');
+      const connectingState = useUIStore.getState();
+      expect(connectingState.interactionState).toBe('connecting');
+      expect(connectingState.connectionSource).toBe('block-2');
+
+      useUIStore.getState().cancelInteraction();
+      const cancelledState = useUIStore.getState();
+      expect(cancelledState.interactionState).toBe('idle');
+      expect(cancelledState.connectionSource).toBe(null);
+      expect(cancelledState.draggedBlockCategory).toBe(null);
+      expect(cancelledState.draggedResourceName).toBe(null);
+    });
+  });
+
+  describe('interaction state machine', () => {
+    it('supports valid transitions from idle to selecting/dragging/placing/connecting', () => {
+      useUIStore.getState().startSelecting();
+      expect(useUIStore.getState().interactionState).toBe('selecting');
+
+      useUIStore.getState().completeInteraction();
+      useUIStore.getState().startDragging();
+      expect(useUIStore.getState().interactionState).toBe('dragging');
+
+      useUIStore.getState().completeInteraction();
+      useUIStore.getState().startPlacing('compute', 'Virtual Machine');
+      const placingState = useUIStore.getState();
+      expect(placingState.interactionState).toBe('placing');
+      expect(placingState.draggedBlockCategory).toBe('compute');
+      expect(placingState.draggedResourceName).toBe('Virtual Machine');
+
+      useUIStore.getState().completeInteraction();
+      useUIStore.getState().startConnecting('block-1');
+      const connectingState = useUIStore.getState();
+      expect(connectingState.interactionState).toBe('connecting');
+      expect(connectingState.connectionSource).toBe('block-1');
+    });
+
+    it('prevents selecting to placing transition (selecting stays active)', () => {
+      useUIStore.getState().startSelecting();
+      expect(useUIStore.getState().interactionState).toBe('selecting');
+
+      useUIStore.setState((state) => {
+        if (state.interactionState !== 'idle') {
+          return state;
+        }
+        return {
+          ...state,
+          interactionState: 'placing',
+          draggedBlockCategory: 'compute',
+          draggedResourceName: 'Virtual Machine',
+        };
+      });
+
+      const state = useUIStore.getState();
+      expect(state.interactionState).toBe('selecting');
+      expect(state.draggedBlockCategory).toBe(null);
+      expect(state.draggedResourceName).toBe(null);
+    });
+
+    it('prevents connecting to dragging transition (connecting stays active)', () => {
+      useUIStore.getState().startConnecting('block-1');
+      expect(useUIStore.getState().interactionState).toBe('connecting');
+
+      useUIStore.setState((state) => {
+        if (state.interactionState !== 'idle') {
+          return state;
+        }
+        return {
+          ...state,
+          interactionState: 'dragging',
+        };
+      });
+
+      const state = useUIStore.getState();
+      expect(state.interactionState).toBe('connecting');
+      expect(state.connectionSource).toBe('block-1');
+    });
+
+    it('transitions to placing with drag payload and resets via completeInteraction', () => {
+      useUIStore.getState().startPlacing('database', 'SQL Database');
+      const placingState = useUIStore.getState();
+      expect(placingState.interactionState).toBe('placing');
+      expect(placingState.draggedBlockCategory).toBe('database');
+      expect(placingState.draggedResourceName).toBe('SQL Database');
+
+      useUIStore.getState().completeInteraction();
+      const completedState = useUIStore.getState();
+      expect(completedState.interactionState).toBe('idle');
+      expect(completedState.connectionSource).toBe(null);
+      expect(completedState.draggedBlockCategory).toBe(null);
+      expect(completedState.draggedResourceName).toBe(null);
+    });
+
+    it('transitions to connecting and resets via cancelInteraction', () => {
+      useUIStore.getState().startConnecting('block-2');
+      const connectingState = useUIStore.getState();
+      expect(connectingState.interactionState).toBe('connecting');
+      expect(connectingState.connectionSource).toBe('block-2');
+
+      useUIStore.getState().cancelInteraction();
+      const cancelledState = useUIStore.getState();
+      expect(cancelledState.interactionState).toBe('idle');
+      expect(cancelledState.connectionSource).toBe(null);
+      expect(cancelledState.draggedBlockCategory).toBe(null);
+      expect(cancelledState.draggedResourceName).toBe(null);
     });
   });
 

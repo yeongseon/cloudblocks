@@ -88,4 +88,48 @@ describe('ConnectionPreview', () => {
 
     expect(await screen.findByTestId('connection-preview-path')).toBeInTheDocument();
   });
+
+  it('renders preview after idle to connecting transition', async () => {
+    setupMocks('idle', 'block-1');
+    const { container, rerender } = render(
+      <svg>
+        <title>Connection preview test canvas</title>
+        <ConnectionPreview originX={0} originY={0} />
+      </svg>
+    );
+
+    expect(container.querySelector('[data-testid="connection-preview-path"]')).toBeNull();
+
+    setupMocks('connecting', 'block-1');
+    rerender(
+      <svg>
+        <title>Connection preview test canvas</title>
+        <ConnectionPreview originX={0} originY={0} />
+      </svg>
+    );
+
+    expect(await screen.findByTestId('connection-preview-path')).toBeInTheDocument();
+  });
+
+  it('does not render preview after connecting to idle transition', async () => {
+    setupMocks('connecting', 'block-1');
+    const { container, rerender } = render(
+      <svg>
+        <title>Connection preview test canvas</title>
+        <ConnectionPreview originX={0} originY={0} />
+      </svg>
+    );
+
+    expect(await screen.findByTestId('connection-preview-path')).toBeInTheDocument();
+
+    setupMocks('idle', 'block-1');
+    rerender(
+      <svg>
+        <title>Connection preview test canvas</title>
+        <ConnectionPreview originX={0} originY={0} />
+      </svg>
+    );
+
+    expect(container.querySelector('[data-testid="connection-preview-path"]')).toBeNull();
+  });
 });
