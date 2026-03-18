@@ -129,7 +129,7 @@ apps/web/src/
 │   ├── types/           # Domain types — CANONICAL source for Milestone 1
 │   └── utils/           # ID generation, storage operations
 ├── entities/            # Domain entities (store, block, plate, connection)
-├── entities/validation/  # Validation engine (placement + connection rules)
+│   └── validation/      # Validation engine (placement + connection rules)
 ├── features/            # Feature modules
 └── widgets/             # Composite UI widgets (toolbar, palette, panels, scene)
 ```
@@ -371,7 +371,7 @@ See [VERSIONING.md](docs/system/VERSIONING.md) for the full documentation layeri
 
 - [ ] Field names match canonical types (`placementId` not `plateId`, `category` not `type`)
 - [ ] Connection rules follow initiator model (database/storage are receiver-only)
-- [ ] Connection types are `dataflow`, `http`, `internal`, `data`, `async`.
+- [ ] Connection types are `dataflow`, `http`, `internal`, `data`, `async`
 - [ ] `Workspace.architecture` is singular (not `architectures[]`) in Milestone 1 context
 - [ ] Future features have explicit version labels
 - [ ] Cross-references use correct paths (docs are in subdirectories)
