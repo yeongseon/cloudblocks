@@ -6,7 +6,6 @@ import './GitHubLogin.css';
 
 interface GitHubAuthStartResponse {
   authorize_url: string;
-  state: string;
 }
 
 export function GitHubLogin() {
@@ -31,7 +30,6 @@ export function GitHubLogin() {
 
     try {
       const response = await apiPost<GitHubAuthStartResponse>('/api/v1/auth/github');
-      sessionStorage.setItem('github_oauth_state', response.state);
       window.location.href = response.authorize_url;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to start GitHub login.';
