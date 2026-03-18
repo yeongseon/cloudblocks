@@ -14,7 +14,6 @@ import './MenuBar.css';
 
 type DropdownMenu = 'file' | 'edit' | 'insert' | 'tools' | 'build' | 'learn' | 'view' | 'github' | null;
 
-
 const PROVIDER_OPTIONS: { id: ProviderType; label: string; color: string }[] = [
   { id: 'azure', label: 'Azure', color: '#0078D4' },
   { id: 'aws', label: 'AWS', color: '#FF9900' },
@@ -23,7 +22,6 @@ const PROVIDER_OPTIONS: { id: ProviderType; label: string; color: string }[] = [
 
 export function MenuBar() {
   const [openMenu, setOpenMenu] = useState<DropdownMenu>(null);
-  
   
   const toolMode = useUIStore((s) => s.toolMode);
   const activeProvider = useUIStore((s) => s.activeProvider);
