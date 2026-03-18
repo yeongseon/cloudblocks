@@ -30,7 +30,7 @@ This merged spec intentionally corrects older documentation drift:
 - The current projection is still **2:1 dimetric isometric**.
 - The current block visual system is **Azure-first**.
 - The current app/application layer is **not implemented**.
-- The current connection model supports only **`dataflow`**.
+- The current connection type model supports **`dataflow | http | internal | data | async`**, while default connection creation still uses `dataflow`.
 - The current provider-neutral abstractions live mostly in **plate profiles**, **example CIDRs**, and the **minifigure provider palette**, not in the brick renderer.
 
 ---
@@ -319,7 +319,7 @@ export type BlockCategory =
 ```ts
 export type BrickSizeTier = 'signal' | 'light' | 'service' | 'core' | 'anchor';
 export type BrickSurface = 'studded';
-export type BrickSilhouette = 'standard';
+export type BrickSilhouette = 'tower' | 'heavy' | 'shield' | 'module';
 ```
 
 Current category-to-tier mapping:
@@ -353,14 +353,15 @@ Current category-to-tier mapping:
 On `main`, all blocks share the same high-level visual rules:
 
 - `surface` is always `'studded'`
-- `silhouette` is always `'standard'`
+- `silhouette` varies by category (`'tower' | 'heavy' | 'shield' | 'module'`)
 - the top face is an isometric diamond
 - the left and right walls are always rendered
-- the side wall height is fixed at `worldHeight = 0.8`
+- `BlockSvg` still uses fixed `worldHeight = 0.8` for side-wall rendering
+- `designTokens.ts` also defines tier-based heights via `TIER_HEIGHTS` (`signal: 0.5`, `light: 0.6`, `service: 0.8`, `core: 1.0`, `anchor: 1.2`)
 - the top face always renders a stud grid using the category footprint
 - text label goes on the left wall; emoji icon goes on the right wall
 
-This means the **size tier system is implemented**, but the richer silhouette system from the user's spec is not.
+This means the **size tier system and silhouette taxonomy are implemented in profile data**, while the current renderer still uses a fixed side-wall height constant.
 
 ### 3.5 Current Block Visual Profile API
 
@@ -379,14 +380,14 @@ Current runtime data:
 
 ```ts
 export const BLOCK_VISUAL_PROFILES: Record<BlockCategory, BlockVisualProfile> = {
-  timer:    { tier: 'signal',  surface: 'studded', silhouette: 'standard', footprint: [1, 2], hostable: false, appCapacity: 0 },
-  event:    { tier: 'signal',  surface: 'studded', silhouette: 'standard', footprint: [1, 2], hostable: false, appCapacity: 0 },
-  function: { tier: 'light',   surface: 'studded', silhouette: 'standard', footprint: [2, 2], hostable: true,  appCapacity: 1 },
-  gateway:  { tier: 'service', surface: 'studded', silhouette: 'standard', footprint: [2, 4], hostable: false, appCapacity: 0 },
-  queue:    { tier: 'service', surface: 'studded', silhouette: 'standard', footprint: [2, 4], hostable: false, appCapacity: 0 },
-  storage:  { tier: 'service', surface: 'studded', silhouette: 'standard', footprint: [2, 4], hostable: false, appCapacity: 0 },
-  compute:  { tier: 'core',    surface: 'studded', silhouette: 'standard', footprint: [3, 4], hostable: true,  appCapacity: 4 },
-  database: { tier: 'anchor',  surface: 'studded', silhouette: 'standard', footprint: [4, 6], hostable: false, appCapacity: 0 },
+  timer:    { tier: 'signal',  surface: 'studded', silhouette: 'module', footprint: [1, 2], hostable: false, appCapacity: 0 },
+  event:    { tier: 'signal',  surface: 'studded', silhouette: 'module', footprint: [1, 2], hostable: false, appCapacity: 0 },
+  function: { tier: 'light',   surface: 'studded', silhouette: 'module', footprint: [2, 2], hostable: true,  appCapacity: 1 },
+  gateway:  { tier: 'service', surface: 'studded', silhouette: 'shield', footprint: [2, 4], hostable: false, appCapacity: 0 },
+  queue:    { tier: 'service', surface: 'studded', silhouette: 'module', footprint: [2, 4], hostable: false, appCapacity: 0 },
+  storage:  { tier: 'service', surface: 'studded', silhouette: 'heavy',  footprint: [2, 4], hostable: false, appCapacity: 0 },
+  compute:  { tier: 'core',    surface: 'studded', silhouette: 'tower',  footprint: [3, 4], hostable: true,  appCapacity: 4 },
+  database: { tier: 'anchor',  surface: 'studded', silhouette: 'heavy',  footprint: [4, 6], hostable: false, appCapacity: 0 },
 };
 ```
 
@@ -433,23 +434,23 @@ For each category:
 
 That shading is implemented per category in `blockFaceColors.ts`.
 
-### 3.7 Planned Shape System
+### 3.7 Shape System Status — Implemented in Visual Profiles
 
-The user's v1.0 spec introduces a richer silhouette language. That system is **not implemented** yet, but it is retained here as the planned extension path.
+The silhouette taxonomy from the v1.0 spec is now implemented in `visualProfile.ts` and assigned per category in `BLOCK_VISUAL_PROFILES`.
 
-| Planned silhouette family | Intended meaning | Planned category assignment |
-|---------------------------|------------------|-----------------------------|
-| `Tower` | vertical workload host | `compute` |
-| `Heavy Block` | durable, weight-bearing, stateful | `database`, `storage` |
-| `Shield` | boundary / protection / ingress | `gateway` |
-| `Module` | compact managed service or trigger | `function`, `queue`, `event`, `timer` |
+| Silhouette family | Meaning | Current category assignment |
+|-------------------|---------|-----------------------------|
+| `tower` | vertical workload host | `compute` |
+| `heavy` | durable, weight-bearing, stateful | `database`, `storage` |
+| `shield` | boundary / protection / ingress | `gateway` |
+| `module` | compact managed service or trigger | `function`, `queue`, `event`, `timer` |
 
-Planned rules:
+Current constraints:
 
 - silhouette must not change stud sizing
-- silhouette may change top-face proportions, wall treatment, or front profile
+- silhouette values are part of runtime profile data and available to renderer logic
 - silhouette must still project cleanly into the same 2:1 dimetric system
-- silhouette changes are blocked until placement hitboxes and selection outlines remain accurate
+- current renderer geometry remains consistent with existing block face/wall structure
 
 ### 3.8 Important Reality Gap: Visual Footprint vs Logical Footprint
 
@@ -659,7 +660,7 @@ Planned requirement:
 
 ### 5.3 Resource Block SVG — Implemented
 
-`apps/web/src/entities/block/BlockSvg.tsx` generates block SVGs dynamically.
+`apps/web/src/entities/block/BlockSvg.tsx` generates block SVGs dynamically, and `apps/web/src/shared/tokens/designTokens.ts` provides shared height tokens.
 
 #### Block Geometry Constants
 
@@ -670,6 +671,14 @@ const TILE_Z = 32;
 const margin = 10;
 const padding = 10;
 const worldHeight = 0.8;
+
+const TIER_HEIGHTS = {
+  signal: 0.5,
+  light: 0.6,
+  service: 0.8,
+  core: 1.0,
+  anchor: 1.2,
+};
 ```
 
 #### Block Face Geometry
@@ -881,6 +890,7 @@ export interface Block {
   placementId: string;
   position: Position;
   metadata: Record<string, unknown>;
+  provider?: ProviderType;
 }
 
 export interface Connection {
@@ -895,13 +905,13 @@ export interface Connection {
 ### 6.2 Connection Type — Implemented
 
 ```ts
-export type ConnectionType = 'dataflow';
+export type ConnectionType = 'dataflow' | 'http' | 'internal' | 'data' | 'async';
 ```
 
 Current rule:
 
-- the architecture model stores only one connection kind
-- semantic distinctions like HTTP vs async are not encoded yet
+- the architecture model supports five connection kinds
+- `addConnection` in `domainSlice.ts` still defaults newly created connections to `type: 'dataflow'`
 
 ### 6.3 Plate Profile Types — Implemented
 
@@ -941,7 +951,7 @@ export function getPlateStudColors(plate: {
 ```ts
 export type BrickSizeTier = 'signal' | 'light' | 'service' | 'core' | 'anchor';
 export type BrickSurface = 'studded';
-export type BrickSilhouette = 'standard';
+export type BrickSilhouette = 'tower' | 'heavy' | 'shield' | 'module';
 
 export interface BlockVisualProfile {
   tier: BrickSizeTier;
@@ -956,6 +966,19 @@ export interface BlockVisualProfile {
 ### 6.5 Provider Types — Partial
 
 There are two separate provider-related type surfaces today.
+
+#### Domain block provider
+
+```ts
+export type ProviderType = 'azure' | 'aws' | 'gcp';
+
+export interface Block {
+  // ...
+  provider?: ProviderType;
+}
+```
+
+This provider field is part of the core `Block` interface in `shared/types/index.ts`.
 
 #### Character / theme accent provider
 
@@ -1304,15 +1327,15 @@ Future provider rules must sit on top of the current abstraction:
 
 ## 9. Connection Model — 🚧 Partial
 
-The current system has a strong directional model and solid rendering, but only one connection type.
+The current system has a strong directional model and solid rendering, with five modeled connection types.
 
 ### 9.1 Current Connection Type
 
 ```ts
-export type ConnectionType = 'dataflow';
+export type ConnectionType = 'dataflow' | 'http' | 'internal' | 'data' | 'async';
 ```
 
-`domainSlice.ts` always creates new connections as:
+`domainSlice.ts` currently creates new connections as:
 
 ```ts
 {
@@ -1380,38 +1403,40 @@ Behavior:
 2. second click on a different valid block creates the connection
 3. invalid targets are highlighted during connect mode
 
-### 9.6 Planned Semantic Connection Types
+### 9.6 Semantic Connection Types — Implemented in Model
 
-The user's v1.0 spec adds richer connection semantics. They are retained here as planned.
+The richer connection semantics are now implemented in `ConnectionType`.
 
 ```ts
-export type PlannedConnectionKind =
+export type ConnectionType =
+  | 'dataflow'
   | 'http'
   | 'internal'
   | 'data'
   | 'async';
 ```
 
-Planned meanings:
+Current meanings:
 
-| Planned kind | Intended meaning | Current fallback |
-|--------------|------------------|------------------|
-| `http` | ingress/API request flow | stored as `dataflow` |
-| `internal` | private service-to-service call | stored as `dataflow` |
-| `data` | database/storage data access | stored as `dataflow` |
-| `async` | queue/event/timer messaging | stored as `dataflow` |
+| Kind | Intended meaning | Current creation behavior |
+|------|------------------|---------------------------|
+| `dataflow` | generic directional flow | default in `addConnection` |
+| `http` | ingress/API request flow | supported by type union |
+| `internal` | private service-to-service call | supported by type union |
+| `data` | database/storage data access | supported by type union |
+| `async` | queue/event/timer messaging | supported by type union |
 
-Implementation rule for the future:
+Current implementation notes:
 
-- semantic type should influence styling, filtering, and teaching copy
+- semantic type is now represented in the model type system
 - initiator direction must remain unchanged
-- backward compatibility should map legacy `dataflow` to a neutral/default semantic view
+- UI creation flow still defaults to `dataflow`
+- semantic-specific styling/filtering UX remains future work
 
 ### 9.7 What Is Missing
 
-- semantic connection enum in the model
 - renderer styling by semantic type
-- migration rules from `dataflow` to richer kinds
+- migration rules from legacy `dataflow` usage to richer kinds
 - validation messages aware of semantic kind
 - UI affordance to choose connection kind at creation time
 
@@ -1543,7 +1568,7 @@ This checklist replaces the old milestone list with a reality-based status board
 - [x] Multi-provider minifigure accents exist
 - [ ] Provider-selectable brick palette exists in the editor
 - [x] Connect mode exists
-- [ ] Semantic connection kinds exist beyond `dataflow`
+- [x] Semantic connection kinds exist beyond `dataflow` (type union is implemented)
 
 ### 11.3 Planned Work
 
@@ -1557,8 +1582,8 @@ This checklist replaces the old milestone list with a reality-based status board
 
 #### Shape System
 
-- [ ] Add non-`standard` silhouettes
-- [ ] Implement `Tower`, `Heavy Block`, `Shield`, `Module`
+- [x] Add non-`standard` silhouettes in visual profile types
+- [x] Implement `tower`, `heavy`, `shield`, `module` silhouette assignments
 - [ ] Preserve current stud grid logic across silhouette variants
 - [ ] Update hitboxes and selection outlines for new shapes
 
@@ -1572,7 +1597,7 @@ This checklist replaces the old milestone list with a reality-based status board
 
 #### Connections
 
-- [ ] Add semantic types: `http`, `internal`, `data`, `async`
+- [x] Add semantic types: `http`, `internal`, `data`, `async`
 - [ ] Style connections by semantic type
 - [ ] Add UI for choosing connection kind
 - [ ] Add migration path from legacy `dataflow`
