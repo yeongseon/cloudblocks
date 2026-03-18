@@ -9,6 +9,7 @@
  */
 
 import { useRef, useCallback, useEffect, useState, type CSSProperties } from 'react';
+import { toast } from 'react-hot-toast';
 import interact from 'interactjs';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
@@ -384,7 +385,7 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
     if (def.blockCategory) {
       const targetId = techTree.getTargetPlateId(type);
       if (!targetId) {
-        alert('Please create a Network first.');
+        toast.error('Please create a Network first.');
         return;
       }
 
