@@ -174,7 +174,8 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 | Phase 7 | Session auth — cookie-based server sessions with GitHub OAuth | ✅ Complete |
 | Phase 8 | Production infra — PostgreSQL, Redis, Docker Compose, multi-replica | 🔄 Planned |
 | Phase 9 | Visual Builder Evolution — UX state machine, brick system, model/provider foundations | ✅ Complete |
-| Phase 10 | Documentation Accuracy — canonical docs aligned with current implementation | 🔄 In Progress |
+| Phase 10 | Documentation Accuracy — canonical docs aligned with current implementation | ✅ Complete |
+| Phase 11 | UX/UI Improvements — toast notifications, connection selection, performance | ✅ Complete |
 
 ## Contributing
 

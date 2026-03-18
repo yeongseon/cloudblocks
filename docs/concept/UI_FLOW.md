@@ -116,12 +116,24 @@ Supported formats:
 
 ---
 
+# Implemented UI Extensions
+
+The following capabilities have been delivered across various milestones:
+
+- ✅ Architecture templates (Milestone 4)
+- ✅ Drag-and-drop from CommandCard palette (Milestone 6B)
+- ✅ Architecture diff view (Milestone 7)
+- ✅ Real-time validation (Milestone 1+)
+- ✅ Toast notifications replacing alert() dialogs (Phase 11)
+- ✅ Connection selection and deletion (Phase 11)
+- ✅ Learning Mode with guided scenarios (Milestone 6C)
+- ✅ BottomPanel / CommandCard interaction model (Phase 9)
+
 # Future UI Extensions
 
 Planned UI capabilities include:
 
-- architecture templates
-- drag-and-drop library
-- architecture diff view
-- collaborative editing
-- real-time validation
+- Collaborative editing
+- Provider mode toggle (multi-cloud context switching)
+- Architecture simulation visualization
+- Deployment status dashboard
