@@ -1,8 +1,10 @@
 import { useRef } from 'react';
+import { toast } from 'react-hot-toast';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import type { ToolMode } from '../../entities/store/uiStore';
+import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import { ProviderToggle } from './ProviderToggle';
 import './Toolbar.css';
 
@@ -46,7 +48,7 @@ export function Toolbar() {
   const handleAddPublicSubnet = () => {
     const network = architecture.plates.find((p) => p.type === 'network');
     if (!network) {
-      alert('Please create a Network Plate first.');
+      toast.error('Please create a Network Plate first.');
       return;
     }
     addPlate('subnet', 'Public Subnet', network.id, 'public');
@@ -55,7 +57,7 @@ export function Toolbar() {
   const handleAddPrivateSubnet = () => {
     const network = architecture.plates.find((p) => p.type === 'network');
     if (!network) {
-      alert('Please create a Network Plate first.');
+      toast.error('Please create a Network Plate first.');
       return;
     }
     addPlate('subnet', 'Private Subnet', network.id, 'private');
@@ -71,7 +73,7 @@ export function Toolbar() {
 
   const handleSave = () => {
     saveToStorage();
-    alert('Workspace saved!');
+    toast.success('Workspace saved!');
   };
 
   const handleLoad = () => {
@@ -108,8 +110,9 @@ export function Toolbar() {
     e.target.value = '';
   };
 
-  const handleReset = () => {
-    if (confirm('Reset workspace? All unsaved changes will be lost.')) {
+  const handleReset = async () => {
+    const confirmed = await confirmDialog('All unsaved changes will be lost.', 'Reset Workspace?');
+    if (confirmed) {
       resetWorkspace();
     }
   };

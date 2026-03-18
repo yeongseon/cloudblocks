@@ -131,3 +131,59 @@ describe('api client', () => {
     expect(requestInit.credentials).toBe('include');
   });
 });
+
+describe('API_BASE_URL normalization', () => {
+  const fetchMock = vi.fn<(input: RequestInfo | URL, init?: RequestInit) => Promise<Response>>();
+
+  beforeEach(() => {
+    vi.resetModules();
+    vi.stubGlobal('fetch', fetchMock);
+    fetchMock.mockReset();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it('strips trailing slash from VITE_API_URL', async () => {
+    vi.stubEnv('VITE_API_URL', 'http://localhost:8000/');
+    const { apiGet } = await import('./client');
+
+    fetchMock.mockResolvedValueOnce(jsonResponse({ ok: true }));
+    await apiGet('/api/v1/test');
+
+    expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:8000/api/v1/test');
+  });
+
+  it('works correctly when VITE_API_URL has no trailing slash', async () => {
+    vi.stubEnv('VITE_API_URL', 'http://localhost:8000');
+    const { apiGet } = await import('./client');
+
+    fetchMock.mockResolvedValueOnce(jsonResponse({ ok: true }));
+    await apiGet('/api/v1/test');
+
+    expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:8000/api/v1/test');
+  });
+
+  it('produces correct URL when VITE_API_URL is empty', async () => {
+    vi.stubEnv('VITE_API_URL', '');
+    const { apiGet } = await import('./client');
+
+    fetchMock.mockResolvedValueOnce(jsonResponse({ ok: true }));
+    await apiGet('/api/v1/test');
+
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/v1/test');
+  });
+
+  it('strips multiple trailing slashes from VITE_API_URL', async () => {
+    vi.stubEnv('VITE_API_URL', 'http://localhost:8000///');
+    const { apiGet } = await import('./client');
+
+    fetchMock.mockResolvedValueOnce(jsonResponse({ ok: true }));
+    await apiGet('/api/v1/test');
+
+    expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:8000/api/v1/test');
+  });
+});
