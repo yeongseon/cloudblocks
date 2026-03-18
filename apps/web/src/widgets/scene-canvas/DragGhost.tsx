@@ -1,20 +1,108 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
+import type { RefObject } from 'react';
 import { useUIStore } from '../../entities/store/uiStore';
-import { RESOURCE_DEFINITIONS } from '../bottom-panel/useTechTree';
-import './DragGhost.css';
+import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
+import { STUD_LAYOUTS } from '../../shared/types/index';
+import {
+  BLOCK_MARGIN,
+  BLOCK_PADDING,
+  BLOCK_WORLD_HEIGHT,
+  EDGE_HIGHLIGHT_COLOR,
+  EDGE_HIGHLIGHT_OPACITY,
+  EDGE_HIGHLIGHT_STROKE_WIDTH,
+  TILE_H,
+  TILE_W,
+  TILE_Z,
+  TOP_FACE_STROKE_OPACITY,
+  TOP_FACE_STROKE_WIDTH,
+} from '../../shared/tokens/designTokens';
+import { screenToWorld, snapToGrid, worldToScreen } from '../../shared/utils/isometric';
+import { getBlockFaceColors, getBlockStudColors } from '../../entities/block/blockFaceColors';
 
-export function DragGhost() {
+interface DragGhostProps {
+  containerRef: RefObject<HTMLDivElement | null>;
+  originX: number;
+  originY: number;
+  panX: number;
+  panY: number;
+  zoom: number;
+}
+
+export function DragGhost({
+  containerRef,
+  originX,
+  originY,
+  panX,
+  panY,
+  zoom,
+}: DragGhostProps) {
   const interactionState = useUIStore((s) => s.interactionState);
   const draggedBlockCategory = useUIStore((s) => s.draggedBlockCategory);
-  const draggedResourceName = useUIStore((s) => s.draggedResourceName);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [pointerPosition, setPointerPosition] = useState<{ x: number; y: number } | null>(null);
+  const activeCategory = draggedBlockCategory ?? 'compute';
+
+  const [studsX, studsY] = STUD_LAYOUTS[activeCategory];
+  const faceColors = getBlockFaceColors(activeCategory);
+  const studColors = getBlockStudColors(activeCategory);
+
+  const screenWidth = (studsX + studsY) * TILE_W / 2;
+  const diamondHeight = (studsX + studsY) * TILE_H / 2;
+  const sideWallPx = Math.round(BLOCK_WORLD_HEIGHT * TILE_Z);
+  const svgHeight = diamondHeight + sideWallPx + BLOCK_PADDING;
+
+  const cx = screenWidth / 2;
+  const topY = BLOCK_PADDING;
+  const midY = diamondHeight / 2 + BLOCK_PADDING;
+  const bottomY = diamondHeight + BLOCK_PADDING;
+  const leftX = BLOCK_MARGIN;
+  const rightX = screenWidth - BLOCK_MARGIN;
+
+  const topFacePoints = `${cx},${topY} ${rightX},${midY} ${cx},${bottomY} ${leftX},${midY}`;
+  const leftSidePoints = `${leftX},${midY} ${cx},${bottomY} ${cx},${bottomY + sideWallPx} ${leftX},${midY + sideWallPx}`;
+  const rightSidePoints = `${cx},${bottomY} ${rightX},${midY} ${rightX},${midY + sideWallPx} ${cx},${bottomY + sideWallPx}`;
+
+  const studs = useMemo(() => {
+    const positions: Array<{ x: number; y: number; key: string }> = [];
+    const halfW = screenWidth / 2 - BLOCK_MARGIN;
+    const halfH = diamondHeight / 2;
+
+    const stepXx = halfW / studsX;
+    const stepXy = halfH / studsX;
+    const stepZx = -halfW / studsY;
+    const stepZy = halfH / studsY;
+
+    const startX = cx + stepXx * 0.5 + stepZx * 0.5;
+    const startY = BLOCK_PADDING + stepXy * 0.5 + stepZy * 0.5;
+
+    for (let gz = 0; gz < studsY; gz += 1) {
+      for (let gx = 0; gx < studsX; gx += 1) {
+        positions.push({
+          key: `${gx}-${gz}`,
+          x: startX + gx * stepXx + gz * stepZx,
+          y: startY + gx * stepXy + gz * stepZy,
+        });
+      }
+    }
+
+    return positions;
+  }, [cx, diamondHeight, screenWidth, studsX, studsY]);
+
+  const studId = useId().replace(/:/g, '_');
 
   useEffect(() => {
     const handlePointerMove = (e: PointerEvent) => {
-      setPosition({ x: e.clientX, y: e.clientY });
+      const viewport = containerRef.current;
+      if (!viewport) {
+        return;
+      }
+
+      const rect = viewport.getBoundingClientRect();
+      const localX = (e.clientX - rect.left - panX) / zoom;
+      const localY = (e.clientY - rect.top - panY) / zoom;
+      setPointerPosition({ x: localX, y: localY });
     };
 
-    if (interactionState !== 'placing' || !draggedBlockCategory || !draggedResourceName) {
+    if (interactionState !== 'placing' || !draggedBlockCategory) {
       return;
     }
 
@@ -23,35 +111,29 @@ export function DragGhost() {
     return () => {
       document.removeEventListener('pointermove', handlePointerMove);
     };
-  }, [interactionState, draggedBlockCategory, draggedResourceName]);
+  }, [containerRef, interactionState, draggedBlockCategory, panX, panY, zoom]);
 
-  if (interactionState !== 'placing' || !draggedBlockCategory || !draggedResourceName) {
+  if (interactionState !== 'placing' || !draggedBlockCategory || !pointerPosition) {
     return null;
   }
 
-  let resourceDef = null;
-  for (const def of Object.values(RESOURCE_DEFINITIONS)) {
-    if (
-      def.blockCategory === draggedBlockCategory &&
-      def.label === draggedResourceName
-    ) {
-      resourceDef = def;
-      break;
-    }
-  }
+  const world = screenToWorld(pointerPosition.x, pointerPosition.y, 0, originX, originY);
+  const snapped = snapToGrid(world.worldX, world.worldZ);
+  const snappedScreen = worldToScreen(snapped.x, 0, snapped.z, originX, originY);
 
   return (
-    <div
+    <g
       className="drag-ghost"
-      style={{
-        left: `${position.x}px`,
-        top: `${position.y}px`,
-      }}
+      transform={`translate(${snappedScreen.x - screenWidth / 2}, ${snappedScreen.y - svgHeight / 2})`}
+      opacity={0.5}
+      pointerEvents="none"
     >
-      {resourceDef && (
-        <div className="drag-ghost-icon">{resourceDef.icon}</div>
-      )}
-      <div className="drag-ghost-label">{draggedResourceName}</div>
-    </div>
+      <StudDefs studId={studId} studColors={studColors} />
+      <polygon points={topFacePoints} fill={faceColors.topFaceColor} stroke={faceColors.topFaceStroke} strokeWidth={TOP_FACE_STROKE_WIDTH} strokeOpacity={TOP_FACE_STROKE_OPACITY} />
+      <polygon points={leftSidePoints} fill={faceColors.leftSideColor} />
+      <polygon points={rightSidePoints} fill={faceColors.rightSideColor} />
+      <line x1={leftX} y1={midY} x2={cx} y2={topY} stroke={EDGE_HIGHLIGHT_COLOR} strokeWidth={EDGE_HIGHLIGHT_STROKE_WIDTH} strokeOpacity={EDGE_HIGHLIGHT_OPACITY} />
+      <StudGrid studId={studId} studs={studs} />
+    </g>
   );
 }
