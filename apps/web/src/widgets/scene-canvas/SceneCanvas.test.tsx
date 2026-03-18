@@ -56,41 +56,47 @@ describe('SceneCanvas pointer capture handling', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     setupStoreMocks();
-    Object.defineProperty(HTMLElement.prototype, 'hasPointerCapture', {
-      configurable: true,
-      value: vi.fn(),
-    });
-    Object.defineProperty(HTMLElement.prototype, 'releasePointerCapture', {
-      configurable: true,
-      value: vi.fn(),
-    });
   });
 
   it('does not release pointer capture when container does not own it', () => {
     const { container } = render(<SceneCanvas />);
     const viewport = container.querySelector('.scene-viewport') as HTMLDivElement;
 
-    const releasePointerCaptureSpy = vi
-      .spyOn(viewport, 'releasePointerCapture')
-      .mockImplementation(() => undefined);
-    vi.spyOn(viewport, 'hasPointerCapture').mockReturnValue(false);
+    const hasPointerCaptureMock = vi.fn().mockReturnValue(false);
+    const releasePointerCaptureMock = vi.fn();
+
+    Object.defineProperty(viewport, 'hasPointerCapture', {
+      configurable: true,
+      value: hasPointerCaptureMock,
+    });
+    Object.defineProperty(viewport, 'releasePointerCapture', {
+      configurable: true,
+      value: releasePointerCaptureMock,
+    });
 
     fireEvent.pointerUp(viewport, { pointerId: 42, clientX: 10, clientY: 10 });
 
-    expect(releasePointerCaptureSpy).not.toHaveBeenCalled();
+    expect(releasePointerCaptureMock).not.toHaveBeenCalled();
   });
 
   it('releases pointer capture when container owns it', () => {
     const { container } = render(<SceneCanvas />);
     const viewport = container.querySelector('.scene-viewport') as HTMLDivElement;
 
-    const releasePointerCaptureSpy = vi
-      .spyOn(viewport, 'releasePointerCapture')
-      .mockImplementation(() => undefined);
-    vi.spyOn(viewport, 'hasPointerCapture').mockReturnValue(true);
+    const hasPointerCaptureMock = vi.fn().mockReturnValue(true);
+    const releasePointerCaptureMock = vi.fn();
+
+    Object.defineProperty(viewport, 'hasPointerCapture', {
+      configurable: true,
+      value: hasPointerCaptureMock,
+    });
+    Object.defineProperty(viewport, 'releasePointerCapture', {
+      configurable: true,
+      value: releasePointerCaptureMock,
+    });
 
     fireEvent.pointerUp(viewport, { pointerId: 7, clientX: 10, clientY: 10 });
 
-    expect(releasePointerCaptureSpy).toHaveBeenCalledWith(7);
+    expect(releasePointerCaptureMock).toHaveBeenCalledWith(7);
   });
 });
