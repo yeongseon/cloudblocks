@@ -227,7 +227,7 @@ Service icons use Unicode/emoji for MVP (future: custom SVG icons):
 
 Plates render as thick, opaque Lego baseplates with a dense stud grid. Plate sizes scale with **learning complexity**.
 
-> **Canonical size specification**: See [BRICK_SIZE_SPEC.md](./BRICK_SIZE_SPEC.md) for detailed stud/pixel dimensions.
+> **Canonical size specification**: See [BRICK_DESIGN_SPEC.md](./BRICK_DESIGN_SPEC.md) for detailed stud/pixel dimensions.
 
 ### 4.1 Plate Size Tiers (Learning Levels)
 
@@ -242,7 +242,7 @@ Plates render as thick, opaque Lego baseplates with a dense stud grid. Plate siz
 | Property | VNet | Subnet | Notes |
 |----------|------|--------|-------|
 | Height (thickness) | `0.5` | `0.35` | Visible side thickness |
-| Material | `meshStandardMaterial` | same | `roughness: 0.5`, `metalness: 0.0` |
+| Material | SVG with CSS | same | Isometric faces with shading |
 | Opacity | `1.0` | `1.0` | Fully opaque (not translucent) |
 | Side rendering | Left and Right faces | Isometric 3D depth |
 
@@ -250,14 +250,14 @@ Plates render as thick, opaque Lego baseplates with a dense stud grid. Plate siz
 
 | Property | Value |
 |----------|-------|
-| Stud rx | `19` (SVG/screen px) — **identical to block studs** |
-| Stud ry | `9.5` (SVG/screen px) |
-| Stud height | `7px` (cylinder extrusion) |
+| Stud rx | `12` (SVG/screen px) — **identical to block studs** |
+| Stud ry | `6` (SVG/screen px) |
+| Stud height | `5` (cylinder extrusion) |
 | Stud structure | 3 layers: shadow ellipse + top ellipse + inner ring |
 | Spacing | 1 SCALE unit (64px) center-to-center, isometric diamond grid |
-| Color | Same hue as plate body; see BRICK_SIZE_SPEC.md §7.3 for exact values |
+| Color | Same hue as plate body; see BRICK_DESIGN_SPEC.md for exact values |
 
-> **INVIOLABLE**: Plate studs are the SAME SIZE as block studs. This is the Lego principle — same gauge enables assembly. See [BRICK_SIZE_SPEC.md §0](./BRICK_SIZE_SPEC.md#0-universal-stud-standard-inviolable).
+> **INVIOLABLE**: Plate studs are the SAME SIZE as block studs. This is the Lego principle — same gauge enables assembly. See [BRICK_DESIGN_SPEC.md](./BRICK_DESIGN_SPEC.md).
 
 ### 4.4 Subnet Boundary
 
@@ -1045,7 +1045,7 @@ Each minifigure variant carries a **cloud provider logo on the torso**, establis
 
 | Part | Shape | Color | Notes |
 |------|-------|-------|-------|
-| **Stud** | Ellipse (Universal Stud Standard) | Bright Yellow `#F2CD37` | `rx=19, ry=9.5, h=7px` — same as all studs |
+| **Stud** | Ellipse (Universal Stud Standard) | Bright Yellow `#F2CD37` | `rx=12, ry=6, h=5` — same as all studs |
 | **Head** | Cylinder (ellipse top + rect body) | Bright Yellow `#F2CD37` | Simple face: 2 dot eyes + smile arc |
 | **Torso** | Tapered rectangle | Provider-dependent (see §11.2) | Cloud logo on front face |
 | **Arms** | Diagonal rects | Provider torso color | Angled ~30° from torso |
@@ -1109,7 +1109,7 @@ The default minifigure represents a **DevOps Engineer** persona:
 
 ### 11.9 Constraints
 
-- **Universal Stud Standard**: Head stud uses identical dimensions (`rx=19, ry=9.5, h=7px`)
+- **Universal Stud Standard**: Head stud uses identical dimensions (`rx=12, ry=6, h=5`)
 - **No raster images**: All graphics are inline SVG paths — no PNG/JPG logos
 - **CC0/Apache-compatible assets only**: No trademarked logos — use simplified geometric approximations
 - **No external dependencies**: Raw SVG elements, no icon libraries
