@@ -8,7 +8,7 @@
  * Based on VISUAL_DESIGN_SPEC.md §7.5
  */
 
-import { useRef, useCallback, useEffect, useState } from 'react';
+import { useRef, useCallback, useEffect, useState, type CSSProperties } from 'react';
 import interact from 'interactjs';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
@@ -27,7 +27,12 @@ import {
   type ActionType,
   type PlateActionType,
 } from './useTechTree';
-import type { Plate } from '../../shared/types/index';
+import {
+  BLOCK_COLORS,
+  BLOCK_FRIENDLY_NAMES,
+  BLOCK_ICONS,
+} from '../../shared/types/index';
+import type { BlockCategory, Plate, ProviderType } from '../../shared/types/index';
 import './CommandCard.css';
 
 interface CommandCardProps {
@@ -46,6 +51,13 @@ const POSITION_HOTKEYS = [
   ['Z', 'X', 'C'],
 ] as const;
 
+const ALL_RESOURCES = Object.keys(RESOURCE_DEFINITIONS) as ResourceType[];
+const PROVIDER_RESOURCE_ALLOWLIST: Record<ProviderType, ReadonlySet<ResourceType>> = {
+  azure: new Set(ALL_RESOURCES),
+  aws: new Set(ALL_RESOURCES),
+  gcp: new Set(ALL_RESOURCES),
+};
+
 function getPositionHotkey(rowIdx: number, colIdx: number): string {
   return POSITION_HOTKEYS[rowIdx]?.[colIdx] ?? '';
 }
@@ -62,6 +74,56 @@ function getPlateHeaderText(plate: Plate): string {
   if (plate.type === 'network') return 'VNet';
   if (plate.subnetAccess === 'public') return 'Public Subnet';
   return 'Private Subnet';
+}
+
+type CreationGroupId = BlockCategory | 'plate';
+
+const CREATION_GROUP_ORDER: CreationGroupId[] = [
+  'plate',
+  'compute',
+  'database',
+  'storage',
+  'gateway',
+  'function',
+  'queue',
+  'event',
+  'timer',
+];
+
+function getCreationGroupMeta(groupId: CreationGroupId): { icon: string; label: string; color: string } {
+  if (groupId === 'plate') {
+    return {
+      icon: '🧭',
+      label: 'Network Foundations',
+      color: '#2563EB',
+    };
+  }
+
+  return {
+    icon: BLOCK_ICONS[groupId],
+    label: BLOCK_FRIENDLY_NAMES[groupId],
+    color: BLOCK_COLORS[groupId],
+  };
+}
+
+function getCreationGroupId(type: ResourceType): CreationGroupId {
+  const blockCategory = RESOURCE_DEFINITIONS[type].blockCategory;
+  return blockCategory ?? 'plate';
+}
+
+function getTabResources(resourcesGrid: (ResourceType | null)[][]): ResourceType[] {
+  return resourcesGrid.flat().filter((resource): resource is ResourceType => resource !== null);
+}
+
+function buildHotkeyLookup(resourcesGrid: (ResourceType | null)[][]): Map<ResourceType, string> {
+  const lookup = new Map<ResourceType, string>();
+  resourcesGrid.forEach((row, rowIdx) => {
+    row.forEach((type, colIdx) => {
+      if (!type) return;
+      lookup.set(type, getPositionHotkey(rowIdx, colIdx));
+    });
+  });
+  return lookup;
 }
 
 export function CommandCard({ className = '' }: CommandCardProps) {
@@ -216,6 +278,7 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
   const techTree = useTechTree();
   const addPlate = useArchitectureStore((s) => s.addPlate);
   const addBlock = useArchitectureStore((s) => s.addBlock);
+  const activeProvider = useUIStore((s) => s.activeProvider);
   const startPlacing = useUIStore((s) => s.startPlacing);
   const cancelInteraction = useUIStore((s) => s.cancelInteraction);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
@@ -225,6 +288,16 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const tabDefinition = CATEGORY_TABS.find((tab) => tab.id === activeTab) ?? CATEGORY_TABS[0];
+  const providerResources = PROVIDER_RESOURCE_ALLOWLIST[activeProvider];
+  const hotkeyLookup = buildHotkeyLookup(tabDefinition.resources);
+  const groupedResources = CREATION_GROUP_ORDER.map((groupId) => {
+    const resources = getTabResources(tabDefinition.resources)
+      .filter((resource) => getCreationGroupId(resource) === groupId)
+      .filter((resource) => providerResources.has(resource))
+      .sort((a, b) => RESOURCE_DEFINITIONS[a].label.localeCompare(RESOURCE_DEFINITIONS[b].label));
+
+    return { groupId, resources };
+  }).filter((group) => group.resources.length > 0);
 
   useEffect(() => {
     if (!gridRef.current) return;
@@ -317,44 +390,51 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
 
       counterRef.current += 1;
       const name = `${def.label} ${counterRef.current}`;
-      addBlock(def.blockCategory, name, targetId);
+      addBlock(def.blockCategory, name, targetId, activeProvider);
       playSound('block-snap');
     }
-  }, [addPlate, addBlock, techTree, playSound]);
+  }, [activeProvider, addPlate, addBlock, techTree, playSound]);
 
   return (
-    <div ref={gridRef}>
-      {tabDefinition.resources.map((row, rowIdx) => (
-        <div key={`${tabDefinition.id}-r${rowIdx}`} className="command-card-row">
-          {row.map((type, colIdx) => {
-            const hotkey = getPositionHotkey(rowIdx, colIdx);
-            if (!type) {
-              return <div key={`${tabDefinition.id}-empty-r${rowIdx}c${colIdx}`} className="command-card-btn command-card-btn--empty" />;
-            }
+    <div ref={gridRef} className="command-card-creation-groups">
+      {groupedResources.map(({ groupId, resources }) => {
+        const groupMeta = getCreationGroupMeta(groupId);
+        return (
+          <section key={groupId} className="command-card-category-group" aria-label={`${groupMeta.label} resource group`}>
+            <header className="command-card-category-header" style={{ '--category-color': groupMeta.color } as CSSProperties}>
+              <span className="command-card-category-icon" aria-hidden="true">{groupMeta.icon}</span>
+              <span className="command-card-category-label">{groupMeta.label}</span>
+            </header>
 
-            const def = RESOURCE_DEFINITIONS[type];
-            const enabled = techTree.isEnabled(type);
-            const disabledReason = techTree.getDisabledReason(type);
+            <div className="command-card-category-grid">
+              {resources.map((type) => {
+                const def = RESOURCE_DEFINITIONS[type];
+                const enabled = techTree.isEnabled(type);
+                const disabledReason = techTree.getDisabledReason(type);
+                const hotkey = hotkeyLookup.get(type) ?? '';
 
-            return (
-              <button
-                key={type}
-                type="button"
-                className={`command-card-btn ${enabled ? '' : 'disabled'}`}
-                data-resource-type={type}
-                onClick={() => enabled && handleCreate(type)}
-                disabled={!enabled}
-                title={enabled ? `Create ${def.label} (${hotkey})` : disabledReason ?? undefined}
-              >
-                <span className="command-btn-icon">{def.icon}</span>
-                <span className="command-btn-label">{def.shortLabel}</span>
-                {hotkey && <span className="command-btn-hotkey">{hotkey}</span>}
-                {!enabled && <span className="command-btn-lock">🔒</span>}
-              </button>
-            );
-          })}
-        </div>
-      ))}
+                return (
+                  <button
+                    key={type}
+                    type="button"
+                    className={`command-card-btn command-card-resource-btn ${enabled ? '' : 'disabled'}`}
+                    data-resource-type={type}
+                    onClick={() => enabled && handleCreate(type)}
+                    disabled={!enabled}
+                    title={enabled ? `Create ${def.label} (${hotkey})` : disabledReason ?? undefined}
+                  >
+                    <span className="command-btn-icon">{def.icon}</span>
+                    <span className="command-btn-label">{def.shortLabel}</span>
+                    {!enabled && disabledReason && <span className="command-btn-requirement">Needs: {disabledReason}</span>}
+                    {hotkey && <span className="command-btn-hotkey">{hotkey}</span>}
+                    {!enabled && <span className="command-btn-lock">🔒</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        );
+      })}
     </div>
   );
 }
@@ -363,6 +443,7 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
   const techTree = useTechTree();
   const addPlate = useArchitectureStore((s) => s.addPlate);
   const addBlock = useArchitectureStore((s) => s.addBlock);
+  const activeProvider = useUIStore((s) => s.activeProvider);
   const startPlacing = useUIStore((s) => s.startPlacing);
   const cancelInteraction = useUIStore((s) => s.cancelInteraction);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
@@ -377,10 +458,12 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
     : selectedPlate.subnetAccess === 'public'
       ? PLATE_CONTEXT_RESOURCES['subnet-public']
       : PLATE_CONTEXT_RESOURCES['subnet-private'];
+  const providerResources = PROVIDER_RESOURCE_ALLOWLIST[activeProvider];
+  const filteredContextResources = contextResources.filter((resource) => providerResources.has(resource));
 
   useEffect(() => {
     if (!gridRef.current) return;
-    if (contextResources.length === 0) return;
+    if (filteredContextResources.length === 0) return;
 
     const buttons = gridRef.current.querySelectorAll<HTMLButtonElement>(
       '.command-card-btn:not(.disabled):not(.command-card-btn--empty)',
@@ -431,7 +514,7 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
         interactable.unset();
       });
     };
-  }, [cancelInteraction, contextResources, startPlacing]);
+  }, [cancelInteraction, filteredContextResources, startPlacing]);
 
   const handleCreate = useCallback((type: ResourceType) => {
     if (isDraggingRef.current) return;
@@ -458,11 +541,11 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
 
     counterRef.current += 1;
     const name = `${def.label} ${counterRef.current}`;
-    addBlock(def.blockCategory, name, selectedPlate.id);
+    addBlock(def.blockCategory, name, selectedPlate.id, activeProvider);
     playSound('block-snap');
-  }, [addPlate, addBlock, selectedPlate.id, selectedPlate.type, playSound]);
+  }, [activeProvider, addPlate, addBlock, selectedPlate.id, selectedPlate.type, playSound]);
 
-  const resourcePages = chunkResources(contextResources, 9).map((page) => {
+  const resourcePages = chunkResources(filteredContextResources, 9).map((page) => {
     const normalizedPage: (ResourceType | null)[] = [...page];
     while (normalizedPage.length < 9) {
       normalizedPage.push(null);

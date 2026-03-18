@@ -260,6 +260,19 @@ describe('architectureStore', () => {
       expect(plate?.children).toContain(blockId);
     });
 
+    it('stores provider when provided during block creation', () => {
+      getState().addPlate('network', 'VNet', null);
+      const netId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Sub', netId, 'public');
+      const subId = getArch().plates[1].id;
+
+      getState().addBlock('compute', 'WebApp', subId, 'aws');
+
+      const blocks = getArch().blocks;
+      expect(blocks).toHaveLength(1);
+      expect(blocks[0].provider).toBe('aws');
+    });
+
     it('no-ops on non-existent plate', () => {
       const blocksBefore = getArch().blocks.length;
       getState().addBlock('compute', 'VM', 'nonexistent');

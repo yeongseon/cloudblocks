@@ -43,6 +43,7 @@ describe('Toolbar', () => {
       showGitHubRepos: false,
       showGitHubSync: false,
       showGitHubPR: false,
+      activeProvider: 'azure',
     });
     useAuthStore.setState({ status: 'anonymous', user: null, hydrated: true, error: null });
     useArchitectureStore.setState({
@@ -75,6 +76,30 @@ describe('Toolbar', () => {
     expect(screen.getByText(/Network/)).toBeInTheDocument();
     expect(screen.getByText(/Public/)).toBeInTheDocument();
     expect(screen.getByText(/Private/)).toBeInTheDocument();
+  });
+
+  it('renders provider toggle with Azure, AWS, and GCP options', () => {
+    render(<Toolbar />);
+    expect(screen.getByRole('tab', { name: 'Azure' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'AWS' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'GCP' })).toBeInTheDocument();
+  });
+
+  it("marks Azure as active provider by default", () => {
+    render(<Toolbar />);
+    expect(screen.getByRole('tab', { name: 'Azure' })).toHaveAttribute('aria-selected', 'true');
+    expect(useUIStore.getState().activeProvider).toBe('azure');
+  });
+
+  it('updates activeProvider when provider tab is clicked', async () => {
+    const user = userEvent.setup();
+    render(<Toolbar />);
+
+    await user.click(screen.getByRole('tab', { name: 'AWS' }));
+    expect(useUIStore.getState().activeProvider).toBe('aws');
+
+    await user.click(screen.getByRole('tab', { name: 'GCP' }));
+    expect(useUIStore.getState().activeProvider).toBe('gcp');
   });
 
   it('renders tool mode buttons', () => {

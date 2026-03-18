@@ -98,6 +98,7 @@ describe('CommandCard', () => {
       setSelectedId: setSelectedIdMock,
       setToolMode: setToolModeMock,
       toolMode: 'select',
+      activeProvider: 'azure',
     });
 
     useArchitectureStore.setState({
@@ -117,7 +118,7 @@ describe('CommandCard', () => {
 
   // ─── CreationMode Tests ──────────────────────────────────
 
-  it('renders creation mode with tabs and 3x3 resource grid', () => {
+  it('renders creation mode with tabs and category-grouped resources', () => {
     const { container } = render(<CommandCard />);
 
     expect(screen.getByText('Create Resource')).toBeInTheDocument();
@@ -127,8 +128,9 @@ describe('CommandCard', () => {
     expect(screen.getByRole('button', { name: 'Edge' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Messaging' })).toBeInTheDocument();
 
-    expect(container.querySelectorAll('.command-card-row')).toHaveLength(3);
-    expect(container.querySelectorAll('.command-card-btn')).toHaveLength(9);
+    expect(container.querySelectorAll('.command-card-category-group').length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('.command-card-resource-btn').length).toBeGreaterThanOrEqual(8);
+    expect(screen.getByText('Network Foundations')).toBeInTheDocument();
   });
 
   it('switches between all category tabs', async () => {
@@ -173,7 +175,7 @@ describe('CommandCard', () => {
     await user.click(screen.getByRole('button', { name: 'Compute' }));
     await user.click(screen.getByTitle('Create Virtual Machine (Q)'));
 
-    expect(addBlockMock).toHaveBeenCalledWith('compute', 'Virtual Machine 1', 'subnet-public-1');
+    expect(addBlockMock).toHaveBeenCalledWith('compute', 'Virtual Machine 1', 'subnet-public-1', 'azure');
   });
 
   it('shows disabled resources with lock icon before network exists', async () => {
@@ -759,7 +761,7 @@ describe('CommandCard', () => {
     // Now in PlateCreationMode — create a VM
     await user.click(screen.getByTitle('Create Virtual Machine (S)'));
 
-    expect(addBlockMock).toHaveBeenCalledWith('compute', 'Virtual Machine 1', 'subnet-public-1');
+    expect(addBlockMock).toHaveBeenCalledWith('compute', 'Virtual Machine 1', 'subnet-public-1', 'azure');
   });
 
   it('transitions to PlateCreationMode for private subnet deploy and creates SQL', async () => {
@@ -790,7 +792,7 @@ describe('CommandCard', () => {
     // Now in PlateCreationMode — create SQL
     await user.click(screen.getByTitle('Create Azure SQL (W)'));
 
-    expect(addBlockMock).toHaveBeenCalledWith('database', 'Azure SQL 1', 'subnet-private-1');
+    expect(addBlockMock).toHaveBeenCalledWith('database', 'Azure SQL 1', 'subnet-private-1', 'azure');
   });
 
   it('creates private subnet via Deploy on network plate', async () => {
