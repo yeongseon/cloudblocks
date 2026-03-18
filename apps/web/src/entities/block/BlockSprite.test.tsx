@@ -5,7 +5,7 @@ import interact from 'interactjs';
 import { BlockSprite } from './BlockSprite';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
-import type { Block, BlockCategory, Plate } from '../../shared/types/index';
+import type { Block, BlockCategory, ExternalActor, Plate } from '../../shared/types/index';
 import * as isometric from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
@@ -53,6 +53,12 @@ const makeBlock = (id: string, category: BlockCategory): Block => ({
   position: { x: 1, y: 0, z: 2 },
   metadata: {},
 });
+
+const internetActor: ExternalActor = {
+  id: 'actor-internet',
+  type: 'internet',
+  name: 'Internet',
+};
 
 describe('BlockSprite', () => {
   const addConnectionMock = vi.fn();
@@ -567,6 +573,52 @@ describe('BlockSprite', () => {
     );
 
     expect(container.firstElementChild).toHaveClass('is-connected');
+  });
+
+  it('adds is-valid-target class when connect source is external actor and target is gateway', () => {
+    const gatewayBlock = makeBlock('block-gateway', 'gateway');
+
+    useUIStore.setState({ toolMode: 'connect', connectionSource: internetActor.id });
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          blocks: [gatewayBlock],
+          externalActors: [internetActor],
+          connections: [],
+        },
+      },
+    });
+
+    const { container } = render(
+      <BlockSprite block={gatewayBlock} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+    );
+
+    expect(container.firstElementChild).toHaveClass('is-valid-target');
+  });
+
+  it('adds is-invalid-target class when connect source is external actor and target is compute', () => {
+    const computeBlock = makeBlock('block-compute', 'compute');
+
+    useUIStore.setState({ toolMode: 'connect', connectionSource: internetActor.id });
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          blocks: [computeBlock],
+          externalActors: [internetActor],
+          connections: [],
+        },
+      },
+    });
+
+    const { container } = render(
+      <BlockSprite block={computeBlock} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+    );
+
+    expect(container.firstElementChild).toHaveClass('is-invalid-target');
   });
 
   it('adds is-warning class when block has placement validation error (gateway on private subnet)', () => {

@@ -55,6 +55,7 @@ export const BlockSprite = memo(function BlockSprite({
   const removeBlock = useArchitectureStore((s) => s.removeBlock);
   const moveBlockPosition = useArchitectureStore((s) => s.moveBlockPosition);
   const blocks = useArchitectureStore((s) => s.workspace.architecture.blocks);
+  const externalActors = useArchitectureStore((s) => s.workspace.architecture.externalActors);
   const connections = useArchitectureStore((s) => s.workspace.architecture.connections);
   const diffMode = useUIStore((s) => s.diffMode);
   const diffDelta: DiffDelta | null = useUIStore((s) => s.diffDelta);
@@ -72,9 +73,13 @@ export const BlockSprite = memo(function BlockSprite({
   const sourceBlock = isConnectMode && connectionSource
     ? blocks.find((b) => b.id === connectionSource)
     : null;
-  const isValidConnectTarget = sourceBlock !== null && sourceBlock !== undefined
+  const sourceActor = isConnectMode && connectionSource
+    ? externalActors.find((actor) => actor.id === connectionSource)
+    : null;
+  const sourceType = sourceBlock?.category ?? sourceActor?.type ?? null;
+  const isValidConnectTarget = sourceType !== null
     && block.id !== connectionSource
-    && canConnect(sourceBlock.category, block.category);
+    && canConnect(sourceType, block.category);
   const isInvalidConnectTarget = isConnectMode && connectionSource !== null
     && block.id !== connectionSource
     && !isValidConnectTarget;
