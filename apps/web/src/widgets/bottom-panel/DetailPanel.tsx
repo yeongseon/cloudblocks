@@ -96,6 +96,12 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
     }
   }, [isRenaming]);
 
+  useEffect(() => {
+    if (!isRenaming) {
+      setNewName(block.name);
+    }
+  }, [block.id, block.name, isRenaming]);
+
   const parentPlate = architecture.plates.find((p) => p.id === block.placementId);
   const networkPlate = parentPlate?.parentId
     ? architecture.plates.find((p) => p.id === parentPlate.parentId)
@@ -105,6 +111,7 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
     const trimmed = newName.trim();
     if (trimmed && trimmed !== block.name) {
       renameBlock(block.id, trimmed);
+      setNewName(trimmed);
     }
     setIsRenaming(false);
   }, [newName, block.id, block.name, renameBlock]);
