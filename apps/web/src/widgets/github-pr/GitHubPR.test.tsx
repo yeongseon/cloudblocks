@@ -162,5 +162,47 @@ describe('GitHubPR', () => {
     await user.clear(commitField);
     await user.type(commitField, 'Custom commit');
     expect(commitField).toHaveValue('Custom commit');
+
+  });
+  it('uses backendWorkspaceId when set on workspace', async () => {
+    const user = userEvent.setup();
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Workspace',
+        architecture: emptyArch,
+        createdAt: '',
+        updatedAt: '',
+        backendWorkspaceId: 'backend-ws-42',
+      },
+    });
+    mockApiPost.mockResolvedValue({
+      pull_request_url: 'https://github.com/owner/repo/pull/42',
+      number: 42,
+      branch: 'main',
+    });
+
+    render(<GitHubPR />);
+    await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
+
+    await waitFor(() => {
+      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-42/pr', expect.any(Object));
+    });
+  });
+
+  it('falls back to workspace.id when backendWorkspaceId is not set', async () => {
+    const user = userEvent.setup();
+    mockApiPost.mockResolvedValue({
+      pull_request_url: 'https://github.com/owner/repo/pull/42',
+      number: 42,
+      branch: 'main',
+    });
+
+    render(<GitHubPR />);
+    await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
+
+    await waitFor(() => {
+      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/pr', expect.any(Object));
+    });
   });
 });

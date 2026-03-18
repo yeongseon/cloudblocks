@@ -267,6 +267,33 @@ describe('GitHubSync', () => {
     expect(useUIStore.getState().showGitHubRepos).toBe(true);
   });
 
+  it('persists backend workspace ID to the store when linking', async () => {
+    const user = userEvent.setup();
+    mockApiPost.mockResolvedValue({ message: 'ok', commit_sha: 'abc123' });
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.type(screen.getByPlaceholderText('ws-1'), 'backend-ws-id');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+
+    const ws = useArchitectureStore.getState().workspace;
+    expect(ws.backendWorkspaceId).toBe('backend-ws-id');
+  });
+
+  it('defaults backend workspace ID to workspace.id when input is empty', async () => {
+    const user = userEvent.setup();
+    mockApiPost.mockResolvedValue({ message: 'ok', commit_sha: 'abc123' });
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+
+    const ws = useArchitectureStore.getState().workspace;
+    expect(ws.backendWorkspaceId).toBe('ws-1');
+  });
+
   it('shows loading indicator while operations are in progress', async () => {
     const user = userEvent.setup();
     let resolvePost!: (value: unknown) => void;
