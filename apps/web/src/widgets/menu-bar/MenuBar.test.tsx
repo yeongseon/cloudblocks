@@ -122,6 +122,42 @@ function setArchitectureState(overrides?: Partial<ArchitectureModel>): void {
 }
 
 describe('MenuBar', () => {
+
+  it('renders provider toggle with Azure, AWS, and GCP tabs', () => {
+    render(<MenuBar />);
+    
+    const tablist = screen.getByRole('tablist', { name: /cloud provider/i });
+    expect(tablist).toBeInTheDocument();
+    
+    expect(screen.getByRole('tab', { name: /azure/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /aws/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /gcp/i })).toBeInTheDocument();
+  });
+
+  it('clicking provider tab switches active provider', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ activeProvider: 'aws' });
+    render(<MenuBar />);
+    
+    const azureTab = screen.getByRole('tab', { name: /azure/i });
+    await user.click(azureTab);
+    
+    expect(useUIStore.getState().activeProvider).toBe('azure');
+  });
+
+  it('active provider tab shows visual indicator', () => {
+    useUIStore.setState({ activeProvider: 'gcp' });
+    render(<MenuBar />);
+    
+    const gcpTab = screen.getByRole('tab', { name: /gcp/i });
+    const awsTab = screen.getByRole('tab', { name: /aws/i });
+    
+    expect(gcpTab).toHaveAttribute('aria-selected', 'true');
+    expect(awsTab).toHaveAttribute('aria-selected', 'false');
+    
+    expect(gcpTab).toHaveStyle('color: #4285F4');
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
 
@@ -140,6 +176,7 @@ describe('MenuBar', () => {
       showGitHubPR: false,
       connectionSource: null,
       draggedBlockCategory: null,
+      activeProvider: 'azure',
       isSoundMuted: false,
     });
 

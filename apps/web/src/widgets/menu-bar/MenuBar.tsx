@@ -7,17 +7,27 @@ import { computeArchitectureDiff } from '../../features/diff/engine';
 import { apiPost } from '../../shared/api/client';
 import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import type { PullResponse } from '../../shared/types/api';
-import type { ArchitectureModel } from '../../shared/types';
+import type { ArchitectureModel, ProviderType } from '../../shared/types';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
 import './MenuBar.css';
 
 type DropdownMenu = 'file' | 'edit' | 'insert' | 'tools' | 'build' | 'learn' | 'view' | 'github' | null;
 
+
+const PROVIDER_OPTIONS: { id: ProviderType; label: string; color: string }[] = [
+  { id: 'azure', label: 'Azure', color: '#0078D4' },
+  { id: 'aws', label: 'AWS', color: '#FF9900' },
+  { id: 'gcp', label: 'GCP', color: '#4285F4' },
+];
+
 export function MenuBar() {
   const [openMenu, setOpenMenu] = useState<DropdownMenu>(null);
   
+  
   const toolMode = useUIStore((s) => s.toolMode);
+  const activeProvider = useUIStore((s) => s.activeProvider);
+  const setActiveProvider = useUIStore((s) => s.setActiveProvider);
   const setToolMode = useUIStore((s) => s.setToolMode);
   const selectedId = useUIStore((s) => s.selectedId);
   const toggleBlockPalette = useUIStore((s) => s.toggleBlockPalette);
@@ -424,7 +434,30 @@ export function MenuBar() {
             </button>
           </div>
         </div>
+      
       </nav>
+
+      <div className="menu-bar-divider" />
+
+      <div className="provider-section" role="tablist" aria-label="Cloud provider">
+        {PROVIDER_OPTIONS.map((provider) => {
+          const isActive = activeProvider === provider.id;
+          return (
+            <button
+              key={provider.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              className="provider-btn"
+              data-active={isActive}
+              onClick={() => setActiveProvider(provider.id)}
+              style={isActive ? { borderColor: provider.color, color: provider.color, boxShadow: `inset 0 3px 0 rgba(255, 255, 255, 0.6), 0 4px 0 0 ${provider.color}` } : undefined}
+            >
+              {provider.label}
+            </button>
+          );
+        })}
+      </div>
 
       <div className="quick-actions">
         <button
