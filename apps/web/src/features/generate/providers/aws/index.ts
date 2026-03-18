@@ -5,8 +5,8 @@ export const awsProviderDefinition: ProviderDefinition = {
   displayName: 'AWS',
   blockMappings: {
     compute: {
-      resourceType: 'aws_instance',
-      namePrefix: 'instance',
+      resourceType: 'aws_ecs_service',
+      namePrefix: 'ecs',
     },
     database: {
       resourceType: 'aws_db_instance',
