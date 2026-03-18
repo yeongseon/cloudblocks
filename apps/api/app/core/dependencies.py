@@ -20,6 +20,8 @@ from app.domain.models.repositories import (
     UserRepository,
     WorkspaceRepository,
 )
+from app.infrastructure.cache.redis_client import RedisClient
+from app.infrastructure.cache.redis_session_repo import RedisSessionRepository
 from app.infrastructure.db.connection import (
     Database,
     DatabaseProtocol,
@@ -35,6 +37,7 @@ _github_service = GitHubService(
 
 
 _db = create_database(settings.database_url)
+_redis_client: RedisClient | None = None
 
 
 def get_database() -> DatabaseProtocol:
@@ -94,6 +97,17 @@ def get_generation_run_repo(
 
 
 def get_session_repo(db: Annotated[DatabaseProtocol, Depends(get_database)]) -> SessionRepository:
+    if settings.session_backend == "redis":
+        if _redis_client is None:
+            raise RuntimeError(
+                "Redis session backend is enabled but Redis client is not initialized."
+            )
+        return RedisSessionRepository(
+            _redis_client,
+            sliding_ttl_days=settings.redis_session_sliding_ttl_days,
+            absolute_ttl_days=settings.redis_session_absolute_ttl_days,
+        )
+
     if isinstance(db, PostgresDatabase):
         from app.infrastructure.db.pg_repositories import PgSessionRepository
 

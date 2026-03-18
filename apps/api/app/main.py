@@ -23,9 +23,11 @@ from app.api.routes.generation import router as generation_router
 from app.api.routes.github import router as github_router
 from app.api.routes.session import router as session_router
 from app.api.routes.workspaces import router as workspace_router
+from app.core import dependencies as dependency_container
 from app.core.config import settings
 from app.core.dependencies import get_database
 from app.core.errors import AppError
+from app.infrastructure.cache.redis_client import create_redis_client
 
 
 @asynccontextmanager
@@ -33,7 +35,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     """Application lifespan — connect/disconnect database."""
     db = get_database()
     await db.connect()
+    redis_client = None
+    if settings.session_backend == "redis":
+        redis_client = create_redis_client(settings.redis_url)
+        await redis_client.connect()
+        dependency_container._redis_client = redis_client
     yield
+    if redis_client is not None:
+        await redis_client.disconnect()
+        dependency_container._redis_client = None
     await db.disconnect()
 
 

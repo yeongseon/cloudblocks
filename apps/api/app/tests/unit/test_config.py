@@ -24,6 +24,10 @@ def test_settings_instantiation_with_defaults() -> None:
     assert cfg.jwt_expiration_seconds == 3600
     assert cfg.jwt_refresh_expiration_seconds == 86400 * 7
     assert cfg.database_url == "sqlite+aiosqlite:///cloudblocks.db"
+    assert cfg.session_backend == "sqlite"
+    assert cfg.redis_url == "redis://localhost:6379/0"
+    assert cfg.redis_session_sliding_ttl_days == 14
+    assert cfg.redis_session_absolute_ttl_days == 30
     assert cfg.cors_origins == ["http://localhost:5173"]
 
 

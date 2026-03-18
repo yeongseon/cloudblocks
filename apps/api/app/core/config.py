@@ -28,6 +28,11 @@ class Settings(BaseSettings):
     # Database
     database_url: str = "sqlite+aiosqlite:///cloudblocks.db"
 
+    session_backend: str = "sqlite"
+    redis_url: str = "redis://localhost:6379/0"
+    redis_session_sliding_ttl_days: int = 14
+    redis_session_absolute_ttl_days: int = 30
+
     # CORS
     cors_origins: list[str] = ["http://localhost:5173"]
 
