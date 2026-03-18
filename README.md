@@ -1,8 +1,11 @@
 # CloudBlocks
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-8-646CFF)](https://vite.dev/)
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688)](https://fastapi.tiangolo.com/)
 
 **CloudBlocks is an architecture compiler that converts visual infrastructure designs into infrastructure-as-code.**
 
@@ -112,13 +115,13 @@ Timer (async) → Function (async) → Event
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | React 19, TypeScript, SVG + CSS, Zustand, Vite |
-| Backend (Milestone 5+) | Python, FastAPI (scaffolded) |
-| Storage (Milestone 1) | Browser localStorage |
-| Storage (Milestone 5+) | GitHub repos (Git-native), SQLite (auth + session metadata) |
-| Code Generation | Terraform (Azure-first, Milestone 3) — Bicep, Pulumi (Milestone 6) |
+| Frontend | React 19, TypeScript 5.9, SVG + CSS, Zustand 5, Vite 8 |
+| Backend | Python 3.10+, FastAPI 0.110+ |
+| Storage (local) | Browser localStorage |
+| Storage (remote) | GitHub repos (Git-native), SQLite (auth + session metadata) |
+| Code Generation | Terraform, Bicep, Pulumi (Azure-first, AWS + GCP adapters) |
 | Frontend Architecture | Feature-Sliced Design (FSD) |
-| Monorepo | pnpm workspaces |
+| Monorepo | pnpm 9 workspaces |
 
 ## Documentation
 
@@ -172,10 +175,16 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 | Milestone 7 | Collaboration + CI/CD — architecture diff, GitHub Actions template | ✅ Complete |
 | Phase 2 UX | Tactile UX — magnetic snap, dynamic shadows, bounce transitions | ✅ Complete |
 | Phase 7 | Session auth — cookie-based server sessions with GitHub OAuth | ✅ Complete |
-| Phase 8 | Production infra — PostgreSQL, Redis, Docker Compose, multi-replica | 🔄 Planned |
 | Phase 9 | Visual Builder Evolution — UX state machine, brick system, model/provider foundations | ✅ Complete |
 | Phase 10 | Documentation Accuracy — canonical docs aligned with current implementation | ✅ Complete |
 | Phase 11 | UX/UI Improvements — toast notifications, connection selection, performance | ✅ Complete |
+| Milestone 8 | Multi-Cloud Platform — AWS/GCP provider adapters, cross-provider comparison | ✅ Complete |
+| M-A | UX Core Hardening | 🔄 Planned |
+| M-B | External Actors and DevOps UX | 🔄 Planned |
+| M-C | Brick Design System Consolidation | 🔄 Planned |
+| M-D | Core Model and Provider System | 🔄 Planned |
+| M-E | Terraform Pipeline Productization | 🔄 Planned |
+| M-F | AI Roadmap | 🔄 Planned |
 
 ## Contributing
 

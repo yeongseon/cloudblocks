@@ -1,9 +1,17 @@
 {
   "name": "cloudblocks",
   "private": true,
-  "version": "0.6.0",
-  "description": "CloudBlocks Platform - 2.5D isometric block-style visual cloud architecture builder",
+  "version": "0.11.0",
+  "description": "Architecture compiler that converts visual infrastructure designs into Terraform, Bicep, and Pulumi code",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yeongseon/cloudblocks.git"
+  },
+  "homepage": "https://github.com/yeongseon/cloudblocks#readme",
+  "bugs": {
+    "url": "https://github.com/yeongseon/cloudblocks/issues"
+  },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "dev": "pnpm --filter @cloudblocks/web dev",
@@ -12,7 +20,20 @@
     "preview": "pnpm --filter @cloudblocks/web preview",
     "clean": "pnpm -r exec rm -rf node_modules dist .turbo"
   },
-  "keywords": ["cloud", "architecture", "2.5d", "isometric", "visualization", "terraform", "infrastructure-as-code"],
+  "keywords": [
+    "cloud-architecture",
+    "infrastructure-as-code",
+    "terraform",
+    "bicep",
+    "pulumi",
+    "visual-builder",
+    "multi-cloud",
+    "azure",
+    "aws",
+    "gcp",
+    "react",
+    "svg"
+  ],
   "author": "yeongseon",
   "license": "Apache-2.0",
   "engines": {

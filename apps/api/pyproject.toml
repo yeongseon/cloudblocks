@@ -1,9 +1,11 @@
 [project]
 name = "cloudblocks-api"
-version = "0.6.0"
-description = "CloudBlocks Platform - Backend API"
+version = "0.11.0"
+description = "CloudBlocks API — orchestration backend for auth, GitHub integration, and code generation"
 requires-python = ">=3.10"
 license = {text = "Apache-2.0"}
+authors = [{name = "yeongseon"}]
+keywords = ["cloud-architecture", "infrastructure-as-code", "fastapi"]
 dependencies = [
     "fastapi>=0.110.0",
     "uvicorn[standard]>=0.27.0",
@@ -16,6 +18,11 @@ dependencies = [
     "cryptography>=42.0.0",
     "redis[hiredis]>=5.0.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/yeongseon/cloudblocks"
+Repository = "https://github.com/yeongseon/cloudblocks"
+Issues = "https://github.com/yeongseon/cloudblocks/issues"
 
 [project.optional-dependencies]
 dev = [
