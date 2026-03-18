@@ -87,6 +87,7 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
   const [newName, setNewName] = useState(block.name);
   const inputRef = useRef<HTMLInputElement>(null);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
+  const renameBlock = useArchitectureStore((s) => s.renameBlock);
 
   useEffect(() => {
     if (isRenaming && inputRef.current) {
@@ -101,8 +102,12 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
     : parentPlate;
 
   const handleRename = useCallback(() => {
+    const trimmed = newName.trim();
+    if (trimmed && trimmed !== block.name) {
+      renameBlock(block.id, trimmed);
+    }
     setIsRenaming(false);
-  }, []);
+  }, [newName, block.id, block.name, renameBlock]);
 
   const color = BLOCK_COLORS[block.category];
 

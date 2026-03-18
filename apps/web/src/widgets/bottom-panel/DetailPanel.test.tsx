@@ -115,6 +115,7 @@ describe('DetailPanel', () => {
     fireEvent.blur(input);
 
     expect(screen.queryByDisplayValue('API VM')).not.toBeInTheDocument();
+    expect(screen.getByText('API VM')).toBeInTheDocument();
   });
 
   it('renders plate detail including size and contents count', () => {
