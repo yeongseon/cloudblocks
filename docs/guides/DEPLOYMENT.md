@@ -2,7 +2,7 @@
 
 ## Overview
 
-CloudBlocks is designed for **lightweight deployment** with minimal infrastructure. The frontend is a static SPA, and the backend is a thin orchestration layer with SQLite-backed metadata and session storage.
+CloudBlocks is designed for **lightweight deployment** with minimal infrastructure. The frontend is a static SPA, and the backend is a thin orchestration layer. Production deployments use PostgreSQL for metadata and Redis for session caching, enabling horizontal scaling with multiple container replicas.
 
 ## Local Development
 
@@ -38,17 +38,48 @@ make dev
 
 ## Architecture
 
+### Single-Replica (Development / Staging)
+
 ```
 Static Frontend (SPA)
      ↓
-Backend API (Thin Orchestration Layer)
+Backend API (Single Container)
      ↓
 ┌─────────────┬──────────────┐
-│ SQLite      │ GitHub API   │
-│ (metadata + │ (data store) │
-│ sessions)   │              │
+│ PostgreSQL  │ GitHub API   │
+│ (metadata)  │ (data store) │
+├─────────────┤              │
+│ Redis       │              │
+│ (sessions)  │              │
 └─────────────┴──────────────┘
 ```
+
+### Multi-Replica (Production)
+
+```
+Azure Static Web App (SPA)
+     ↓ (HTTPS)
+Azure Container Apps
+┌─────────┬─────────┬─────────┐
+│Replica 1│Replica 2│Replica N│  ← HTTP auto-scaling
+└────┬────┴────┬────┴────┬────┘
+     │         │         │
+     ├─────────┼─────────┤
+     ↓         ↓         ↓
+┌──────────────────────────────┐
+│  Azure Database for PostgreSQL│  ← Shared metadata
+│  (Flexible Server)           │
+├──────────────────────────────┤
+│  Azure Cache for Redis        │  ← Shared sessions
+│  (Basic C0)                  │
+└──────────────────────────────┘
+```
+
+**Multi-replica prerequisites** (all met since Phase 8):
+- ✅ All persistent data in PostgreSQL (not SQLite)
+- ✅ Sessions in Redis (not SQLite)
+- ✅ OAuth state is stateless (cookie-based)
+- ✅ No in-memory state in application code
 
 ## Deployment Options
 
@@ -69,7 +100,7 @@ cd apps/web && pnpm build
 # - S3 + CloudFront
 ```
 
-### Option 2: Full Stack (Milestone 5+)
+### Option 2: Full Stack with Docker Compose
 
 #### Docker Compose (Full Stack)
 
@@ -107,54 +138,111 @@ This mounts `apps/api/` into the container so code changes restart the server au
 
 > **Tip**: Set `COMPOSE_FILE=docker-compose.yml:docker-compose.dev.yml` in your shell to avoid typing the `-f` flags every time.
 
-### Option 3: Cloud Deployment
+### Option 3: Azure Container Apps (Production)
 
-#### Recommended Stack
+#### Managed Azure Stack
 
-| Component | Service | Cost |
-|-----------|---------|------|
-| Frontend | Vercel / Cloudflare Pages | Free |
-| Backend API | Azure Container Apps / Azure App Service | ~$5/mo |
-| Metadata DB | PostgreSQL (managed or container) | ~$5/mo |
-| Session Cache | Redis (managed or container) | ~$5/mo |
-| Data Store | GitHub (user repos) | Free |
+| Component | Azure Service | SKU / Tier | Est. Cost |
+|-----------|--------------|------------|-----------|
+| Frontend | Azure Static Web Apps | Free | $0/mo |
+| Backend API | Azure Container Apps | Consumption | ~$5/mo |
+| Metadata DB | Azure Database for PostgreSQL | B_Standard_B1ms | ~$13/mo |
+| Session Cache | Azure Cache for Redis | Basic C0 (250MB) | ~$16/mo |
+| Container Registry | Azure Container Registry | Basic | ~$5/mo |
+| Data Store | GitHub (user repos) | — | Free |
 
-**Total initial cost: $0 – $5/month**
+**Total estimated cost: ~$39/month** (dev environment)
 
-#### Vercel + Azure Container Apps + SQLite (Recommended)
+#### Terraform Provisioning
 
-```
-Frontend (Vercel)
-     ↓
-Backend API (Azure Container Apps)
-     ↓
-┌──────────────┬──────────────┐
-│ SQLite       │ GitHub API   │
-│ (session +   │              │
-│ metadata DB) │              │
-└──────────────┴──────────────┘
-```
-
-1. Deploy frontend to Vercel (auto-deploy from GitHub)
-2. Deploy backend container to Azure (Container Apps or App Service)
-3. Mount persistent volume for SQLite database
-4. Configure GitHub OAuth app credentials
-5. Configure CORS allowed origins for frontend domains
-
-#### Terraform Deployment (Self-Hosted)
+All Azure infrastructure is defined in `infra/terraform/environments/dev/`.
 
 ```bash
-cd infra/terraform/environments/production
+cd infra/terraform/environments/dev
+
+# Copy and fill in variables
+cp terraform.tfvars.example terraform.tfvars
+# Edit terraform.tfvars with your values
 
 # Initialize
 terraform init
 
-# Plan
+# Plan (review changes)
 terraform plan -var-file="terraform.tfvars"
 
 # Apply
 terraform apply -var-file="terraform.tfvars"
 ```
+
+#### Resources Provisioned by Terraform
+
+| Resource | Name Pattern | Purpose |
+|----------|-------------|---------|
+| Resource Group | `rg-cloudblocks-{env}` | Logical grouping |
+| Log Analytics | `law-cloudblocks-{env}` | Container logs & metrics |
+| Container App Environment | `cae-cloudblocks-{env}` | Container Apps hosting |
+| Container Registry | `cloudblocks{env}acr` | Docker image storage |
+| PostgreSQL Flexible Server | `psql-cloudblocks-{env}` | Metadata database |
+| Azure Cache for Redis | `redis-cloudblocks-{env}` | Session cache |
+| Container App (API) | `ca-cloudblocks-api-{env}` | Backend API |
+| Static Web App | `swa-cloudblocks-{env}` | Frontend SPA |
+
+#### Scaling Configuration
+
+The Container App scales horizontally based on HTTP concurrent requests:
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `container_min_replicas` | 1 | Minimum replicas (0 = scale to zero) |
+| `container_max_replicas` | 3 | Maximum replicas |
+| `scaling_concurrent_requests` | 50 | Requests/replica before scaling out |
+| `container_cpu` | 0.5 | CPU cores per replica |
+| `container_memory` | 1Gi | Memory per replica |
+
+To adjust scaling, update `terraform.tfvars`:
+
+```hcl
+container_min_replicas      = 1
+container_max_replicas      = 5
+scaling_concurrent_requests = "100"
+```
+
+#### Health Probes
+
+The Container App configures three probe types:
+
+| Probe | Path | Interval | Purpose |
+|-------|------|----------|---------|
+| Startup | `/health` | 5s | Wait for app to start (up to 50s) |
+| Liveness | `/health` | 30s | Restart unhealthy containers |
+| Readiness | `/health/ready` | 15s | Remove from load balancer if DB unavailable |
+
+## CI/CD Pipeline
+
+### GitHub Actions
+
+The deploy workflow (`.github/workflows/deploy.yml`) runs on manual dispatch (or push to main when configured):
+
+**Required GitHub Secrets:**
+
+| Secret | Description |
+|--------|-------------|
+| `AZURE_CLIENT_ID` | Azure AD service principal client ID (OIDC) |
+| `AZURE_TENANT_ID` | Azure AD tenant ID |
+| `AZURE_SUBSCRIPTION_ID` | Azure subscription ID |
+| `ACR_NAME` | Container Registry name |
+| `ACR_LOGIN_SERVER` | Container Registry login server URL |
+| `AZURE_RESOURCE_GROUP` | Target resource group name |
+| `CONTAINER_APP_NAME` | Container App name (from Terraform output) |
+| `AZURE_SWA_TOKEN` | Static Web Apps deployment token |
+
+**Pipeline jobs:**
+
+1. **build-api** — Builds Docker image via `az acr build` and pushes to ACR (tagged with git SHA + `latest`)
+2. **deploy-api** — Updates Container App with new image, waits for healthy revision, verifies `/health` endpoint
+3. **deploy-web** — Builds frontend SPA and deploys to Azure Static Web Apps
+
+To enable automatic deployment on push to main, uncomment the `push` trigger in `.github/workflows/deploy.yml`.
 
 ## Environment Variables
 
@@ -207,61 +295,31 @@ CLOUDBLOCKS_CORS_ORIGINS=["http://localhost:5173"]
 | `CLOUDBLOCKS_GITHUB_CLIENT_ID` | GitHub OAuth client ID |
 | `CLOUDBLOCKS_CORS_ORIGINS` | JSON array of allowed browser origins |
 
-## CI/CD Pipeline
-
-### GitHub Actions
-
-```yaml
-# .github/workflows/deploy.yml
-on:
-  push:
-    branches: [main]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v2
-      - run: pnpm install
-      - run: pnpm -r build
-      - run: pnpm -r test
-
-  deploy-frontend:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: amondnet/vercel-action@v25
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-
-  deploy-backend:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: railway up --service api
-```
-
 ## Health Checks
 
 | Endpoint | Description |
 |----------|-------------|
-| `GET /health` | Basic health check |
-| `GET /health/ready` | Readiness (SQLite + GitHub API) |
+| `GET /health` | Basic health check (liveness) |
+| `GET /health/ready` | Readiness check (verifies database connectivity) |
 
 ## Monitoring
 
-Application logs are written to stdout/stderr and collected by the container platform's logging driver.
+Application logs are written to stdout/stderr in JSON format and collected by:
+- **Azure Container Apps**: Log Analytics workspace (auto-configured by Terraform)
+- **Docker Compose**: Container logging driver
 
 Recommended monitoring:
 - **Uptime**: Better Uptime / UptimeRobot (free tier)
 - **Errors**: Sentry (free tier: 5K events/month)
-- **Metrics**: Container platform metrics + application logs
+- **Metrics**: Azure Monitor metrics + Log Analytics queries
+- **Scaling**: Azure Portal → Container App → Metrics → Replica Count
 
-### Phase 8 Infrastructure
+### Phase 8 Infrastructure (Complete)
 
-- PostgreSQL for production-scale relational metadata (implemented via `CLOUDBLOCKS_DATABASE_URL`)
-- Redis for session caching with sliding TTL and logout-all support (implemented via `CLOUDBLOCKS_SESSION_BACKEND=redis`)
-- Docker Compose stack with healthchecks and dev hot-reload
+- ✅ PostgreSQL for production-scale relational metadata (`CLOUDBLOCKS_DATABASE_URL`)
+- ✅ Redis for session caching with sliding TTL and logout-all support (`CLOUDBLOCKS_SESSION_BACKEND=redis`)
+- ✅ Docker Compose stack with healthchecks and dev hot-reload
+- ✅ Azure Container Apps multi-replica deployment with auto-scaling
+- ✅ Azure Cache for Redis (Basic C0) for shared session state
+- ✅ CI/CD pipeline with image build, deploy, and health verification
+- ✅ Health probes (startup, liveness, readiness) for container orchestration
