@@ -6,7 +6,6 @@ import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
 import {
   BLOCK_MARGIN,
   BLOCK_PADDING,
-  BLOCK_WORLD_HEIGHT,
   EDGE_HIGHLIGHT_COLOR,
   EDGE_HIGHLIGHT_OPACITY,
   EDGE_HIGHLIGHT_STROKE_WIDTH,
@@ -15,6 +14,7 @@ import {
   TILE_Z,
   TOP_FACE_STROKE_OPACITY,
   TOP_FACE_STROKE_WIDTH,
+  getBlockWorldHeight,
 } from '../../shared/tokens/designTokens';
 import { getBlockFaceColors, getBlockStudColors } from './blockFaceColors';
 import { getSilhouettePolygons } from './silhouettes';
@@ -33,7 +33,7 @@ export const BlockSvg = memo(function BlockSvg({ category }: BlockSvgProps) {
 
   const screenWidth = (studsX + studsY) * TILE_W / 2;
   const diamondHeight = (studsX + studsY) * TILE_H / 2;
-  const sideWallPx = Math.round(BLOCK_WORLD_HEIGHT * TILE_Z);
+  const sideWallPx = Math.round(getBlockWorldHeight(category) * TILE_Z);
   const svgHeight = diamondHeight + sideWallPx + BLOCK_PADDING;
 
   const cx = screenWidth / 2;
