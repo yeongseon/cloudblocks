@@ -15,6 +15,7 @@ import { ExternalActorSprite } from '../../entities/connection/ExternalActorSpri
 import { MinifigureSvg } from '../../entities/character';
 import { EmptyCanvasOverlay } from './EmptyCanvasOverlay';
 import { DragGhost } from './DragGhost';
+import { ConnectionPreview } from './ConnectionPreview';
 import './SceneCanvas.css';
 
 const MINIFIGURE_POSITION: [number, number, number] = [-3, 0, -6];
@@ -172,6 +173,7 @@ export function SceneCanvas() {
               originY={origin.y}
             />
           ))}
+          <ConnectionPreview originX={origin.x} originY={origin.y} />
           <g className="drag-ghost-layer">
             <DragGhost
               containerRef={containerRef}
