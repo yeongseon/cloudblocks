@@ -44,6 +44,14 @@ function makeBase64(): string {
   return btoa('fake-audio-data');
 }
 
+function makeDataUrlBase64(): string {
+  return `data:audio/wav;base64,${makeBase64()}`;
+}
+
+function makeDataUrlWithParamsBase64(): string {
+  return `data:audio/wav;charset=utf-8;codecs=1;base64,${makeBase64()}`;
+}
+
 function stubAudioContext(ctx: MockAudioContext) {
   function MockAudioContextCtor(this: unknown) {
     return ctx;
@@ -113,6 +121,28 @@ describe('AudioService', () => {
     expect(mockCtx.decodeAudioData).toHaveBeenCalledTimes(1);
     svc.setMuted(false);
     await svc.playSound('validation-success');
+    expect(mockCtx.createBufferSource).toHaveBeenCalledTimes(1);
+  });
+
+  it('loadSound decodes data URL base64 and caches the buffer', async () => {
+    const svc = new AudioService();
+    await svc.loadSound('validation-error', makeDataUrlBase64());
+
+    expect(mockCtx.decodeAudioData).toHaveBeenCalledTimes(1);
+
+    svc.setMuted(false);
+    await svc.playSound('validation-error');
+    expect(mockCtx.createBufferSource).toHaveBeenCalledTimes(1);
+  });
+
+  it('loadSound decodes data URL base64 with metadata parameters', async () => {
+    const svc = new AudioService();
+    await svc.loadSound('delete', makeDataUrlWithParamsBase64());
+
+    expect(mockCtx.decodeAudioData).toHaveBeenCalledTimes(1);
+
+    svc.setMuted(false);
+    await svc.playSound('delete');
     expect(mockCtx.createBufferSource).toHaveBeenCalledTimes(1);
   });
 

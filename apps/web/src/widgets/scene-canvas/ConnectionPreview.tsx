@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { worldToScreen } from '../../shared/utils/isometric';
+import { EXTERNAL_ACTOR_POSITION } from '../../shared/utils/position';
 
 interface ConnectionPreviewProps {
   originX: number;
@@ -18,6 +19,7 @@ export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) 
   const connectionSource = useUIStore((s) => s.connectionSource);
   const blocks = useArchitectureStore((s) => s.workspace.architecture.blocks);
   const plates = useArchitectureStore((s) => s.workspace.architecture.plates);
+  const externalActors = useArchitectureStore((s) => s.workspace.architecture.externalActors);
 
   const pathRef = useRef<SVGPathElement>(null);
   const [cursor, setCursor] = useState<Point | null>(null);
@@ -28,20 +30,26 @@ export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) 
     }
 
     const sourceBlock = blocks.find((block) => block.id === connectionSource);
-    if (!sourceBlock) {
+    if (sourceBlock) {
+      const parentPlate = plates.find((plate) => plate.id === sourceBlock.placementId);
+      if (!parentPlate) {
+        return null;
+      }
+
+      const worldX = parentPlate.position.x + sourceBlock.position.x;
+      const worldY = parentPlate.position.y + parentPlate.size.height;
+      const worldZ = parentPlate.position.z + sourceBlock.position.z;
+      return worldToScreen(worldX, worldY, worldZ, originX, originY);
+    }
+
+    const sourceExternalActor = externalActors.find((actor) => actor.id === connectionSource);
+    if (!sourceExternalActor) {
       return null;
     }
 
-    const parentPlate = plates.find((plate) => plate.id === sourceBlock.placementId);
-    if (!parentPlate) {
-      return null;
-    }
-
-    const worldX = parentPlate.position.x + sourceBlock.position.x;
-    const worldY = parentPlate.position.y + parentPlate.size.height;
-    const worldZ = parentPlate.position.z + sourceBlock.position.z;
+    const [worldX, worldY, worldZ] = EXTERNAL_ACTOR_POSITION;
     return worldToScreen(worldX, worldY, worldZ, originX, originY);
-  }, [blocks, connectionSource, interactionState, originX, originY, plates]);
+  }, [blocks, connectionSource, externalActors, interactionState, originX, originY, plates]);
 
   useEffect(() => {
     if (!sourceScreen) {

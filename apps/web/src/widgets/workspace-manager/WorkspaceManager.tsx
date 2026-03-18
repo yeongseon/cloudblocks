@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import './WorkspaceManager.css';
 
 export function WorkspaceManager() {
@@ -31,9 +32,10 @@ export function WorkspaceManager() {
     setNewName('');
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (allWorkspaces.length <= 1) return;
-    if (confirm('Delete this workspace? This cannot be undone.')) {
+    const confirmed = await confirmDialog('This cannot be undone.', 'Delete this workspace?');
+    if (confirmed) {
       deleteWorkspace(id);
     }
   };

@@ -9,6 +9,7 @@
  */
 
 import { useRef, useCallback, useEffect, useState, type CSSProperties } from 'react';
+import { toast } from 'react-hot-toast';
 import interact from 'interactjs';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
@@ -214,6 +215,7 @@ export function CommandCard({ className = '' }: CommandCardProps) {
 function PlateActionMode({ selectedPlate, onDeploy }: { selectedPlate: Plate; onDeploy: () => void }) {
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const removePlate = useArchitectureStore((s) => s.removePlate);
+  const renamePlate = useArchitectureStore((s) => s.renamePlate);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
   const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
 
@@ -222,19 +224,22 @@ function PlateActionMode({ selectedPlate, onDeploy }: { selectedPlate: Plate; on
       case 'deploy':
         onDeploy();
         break;
+      case 'rename': {
+        const newName = window.prompt('Rename plate:', selectedPlate.name);
+        if (newName !== null && newName.trim() !== '') {
+          renamePlate(selectedPlate.id, newName.trim());
+        }
+        break;
+      }
       case 'delete':
         removePlate(selectedPlate.id);
         setSelectedId(null);
         playSound('delete');
         break;
-      case 'move':
-      case 'rename':
-      case 'config':
-        break;
       default:
         break;
     }
-  }, [onDeploy, removePlate, selectedPlate.id, setSelectedId, playSound]);
+  }, [onDeploy, removePlate, renamePlate, selectedPlate.id, selectedPlate.name, setSelectedId, playSound]);
 
   return (
     <>
@@ -384,7 +389,7 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
     if (def.blockCategory) {
       const targetId = techTree.getTargetPlateId(type);
       if (!targetId) {
-        alert('Please create a Network first.');
+        toast.error('Please create a Network first.');
         return;
       }
 
@@ -607,6 +612,9 @@ function BlockActionMode() {
   const selectedId = useUIStore((s) => s.selectedId);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const setToolMode = useUIStore((s) => s.setToolMode);
+  const toggleProperties = useUIStore((s) => s.toggleProperties);
+  const duplicateBlock = useArchitectureStore((s) => s.duplicateBlock);
+  const renameBlock = useArchitectureStore((s) => s.renameBlock);
   const removeBlock = useArchitectureStore((s) => s.removeBlock);
   const removePlate = useArchitectureStore((s) => s.removePlate);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
@@ -620,6 +628,28 @@ function BlockActionMode() {
       case 'link':
         setToolMode('connect');
         break;
+
+      case 'edit':
+        if (!useUIStore.getState().showProperties) {
+          toggleProperties();
+        }
+        break;
+
+      case 'copy':
+        duplicateBlock(selectedId);
+        playSound('block-snap');
+        break;
+
+      case 'rename': {
+        const block = architecture.blocks.find((candidate) => candidate.id === selectedId);
+        if (block) {
+          const newName = window.prompt('Rename block:', block.name);
+          if (newName !== null && newName.trim() !== '') {
+            renameBlock(selectedId, newName.trim());
+          }
+        }
+        break;
+      }
 
       case 'delete': {
         const isBlock = architecture.blocks.some((b) => b.id === selectedId);
@@ -635,18 +665,10 @@ function BlockActionMode() {
         break;
       }
 
-      case 'edit':
-      case 'copy':
-      case 'config':
-      case 'add-app':
-      case 'move':
-      case 'rename':
-        break;
-
       default:
         break;
     }
-  }, [selectedId, setSelectedId, setToolMode, removeBlock, removePlate, architecture, playSound]);
+  }, [selectedId, setSelectedId, setToolMode, toggleProperties, duplicateBlock, renameBlock, removeBlock, removePlate, architecture, playSound]);
 
   return (
     <>
