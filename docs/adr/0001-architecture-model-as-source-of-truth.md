@@ -51,11 +51,11 @@ This means:
 ### Negative
 
 - **Extra abstraction layer** — visual changes must sync to model and vice versa
-- **Schema evolution** — model schema changes require migration strategy (addressed in `VERSIONING.md`)
+- **Schema evolution** — model schema changes require migration strategy (addressed in `CONTRIBUTING.md` documentation policy)
 - **Model completeness** — the model must capture all semantically meaningful information, not just visual layout
 
 ### Related Documents
 
 - [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md) — Canonical model specification
 - [ARCHITECTURE.md](../concept/ARCHITECTURE.md) — System architecture overview
-- [VERSIONING.md](../system/VERSIONING.md) — Schema versioning strategy
+- [CONTRIBUTING.md](../../CONTRIBUTING.md) — Documentation versioning and layering policy

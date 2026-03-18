@@ -365,7 +365,22 @@ Refactor plate rendering to use shared utils # Refactoring
 5. **DOMAIN_MODEL.md is canonical** for model specification
 6. **generator.md is canonical** for code generation pipeline
 
-See [VERSIONING.md](docs/system/VERSIONING.md) for the full documentation layering strategy.
+### Documentation Versioning & Layering Policy
+
+When docs mix implemented behavior and future design, use these rules:
+
+1. **Implementation docs must match code**
+   - Verify claims against canonical source files before merging.
+2. **Future concepts must be explicitly labeled**
+   - Use version markers for non-implemented features (for example: `> **Milestone 6+**: ...`).
+3. **ROADMAP is the canonical timeline**
+   - Milestone/phase status and "when does X ship?" are defined only in `docs/concept/ROADMAP.md`.
+4. **One concept, one canonical owner**
+   - `DOMAIN_MODEL.md` owns domain model semantics.
+   - `generator.md` owns generation pipeline semantics.
+   - `ROADMAP.md` owns timeline semantics.
+5. **Canonical source wins on conflicts**
+   - If two docs disagree, update the non-canonical doc to match the canonical source.
 
 ### Documentation PR Checklist
 

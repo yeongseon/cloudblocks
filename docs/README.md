@@ -119,7 +119,7 @@ System-level governance and meta docs.
 
 | Document | Status | Description |
 |----------|--------|-------------|
-| [VERSIONING.md](system/VERSIONING.md) | Supporting | Versioning policy |
+| [VERSIONING.md](system/VERSIONING.md) | Historical | Redirect to CONTRIBUTING documentation policy |
 
 ---
 
