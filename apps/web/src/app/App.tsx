@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react';
+import { Toaster } from 'react-hot-toast';
 import { SceneCanvas } from '../widgets/scene-canvas/SceneCanvas';
 import { MenuBar } from '../widgets/menu-bar/MenuBar';
 
@@ -148,6 +149,17 @@ function App() {
           </Suspense>
         </div>
       </div>
+      <Toaster
+        position="bottom-center"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#1a1a2e',
+            color: '#e0e0e0',
+            border: '1px solid rgba(255,255,255,0.1)',
+          },
+        }}
+      />
     </div>
   );
 }

@@ -1,6 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+vi.mock('react-hot-toast', () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+vi.mock('../../shared/ui/ConfirmDialog', () => ({
+  confirmDialog: vi.fn(),
+}));
 vi.mock('../../shared/api/client', () => ({
   apiPost: vi.fn(),
 }));
@@ -10,6 +19,8 @@ import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import type { ArchitectureModel, Block, Connection, Plate } from '../../shared/types/index';
 import { apiPost } from '../../shared/api/client';
+import { toast } from 'react-hot-toast';
+import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import { audioService } from '../../shared/utils/audioService';
 
 const emptyArch: ArchitectureModel = {
@@ -219,8 +230,7 @@ describe('MenuBar', () => {
 
   it('handles File menu save, load, import trigger, export, and reset(confirm=true)', async () => {
     const user = userEvent.setup();
-    const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
-    const confirmMock = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.mocked(confirmDialog).mockResolvedValue(true);
     const createObjectURLMock = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test');
     const revokeObjectURLMock = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
     const anchorClickMock = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
@@ -237,7 +247,7 @@ describe('MenuBar', () => {
 
     await user.click(within(fileDropdown).getByRole('button', { name: /Save Workspace/ }));
     expect(saveToStorageMock).toHaveBeenCalledOnce();
-    expect(alertMock).toHaveBeenCalledWith('Workspace saved!');
+    expect(toast.success).toHaveBeenCalledWith('Workspace saved!');
 
     await openMenu(user, 'File');
     await user.click(within(getMenuDropdown('File')).getByRole('button', { name: /Load Workspace/ }));
@@ -255,19 +265,23 @@ describe('MenuBar', () => {
 
     await openMenu(user, 'File');
     await user.click(within(getMenuDropdown('File')).getByRole('button', { name: /Reset Workspace/ }));
-    expect(confirmMock).toHaveBeenCalledWith('Reset workspace? All unsaved changes will be lost.');
-    expect(resetWorkspaceMock).toHaveBeenCalledOnce();
+    expect(confirmDialog).toHaveBeenCalledWith('All unsaved changes will be lost.', 'Reset Workspace?');
+    await waitFor(() => {
+      expect(resetWorkspaceMock).toHaveBeenCalledOnce();
+    });
   }, 30000);
 
   it('does not reset workspace when reset confirmation is false', async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, 'confirm').mockReturnValue(false);
+    vi.mocked(confirmDialog).mockResolvedValue(false);
     render(<MenuBar />);
 
     const fileDropdown = await openMenu(user, 'File');
     await user.click(within(fileDropdown).getByRole('button', { name: /Reset Workspace/ }));
 
-    expect(resetWorkspaceMock).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(resetWorkspaceMock).not.toHaveBeenCalled();
+    });
   });
 
   it('imports selected JSON file with FileReader and closes open menu', async () => {
@@ -406,7 +420,6 @@ describe('MenuBar', () => {
 
   it('handles Insert menu network and subnet actions', async () => {
     const user = userEvent.setup();
-    const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
     render(<MenuBar />);
 
     let insertDropdown = await openMenu(user, 'Insert');
@@ -415,11 +428,11 @@ describe('MenuBar', () => {
 
     insertDropdown = await openMenu(user, 'Insert');
     await user.click(within(insertDropdown).getByRole('button', { name: /Public Subnet/ }));
-    expect(alertMock).toHaveBeenCalledWith('Please create a Network Plate first.');
+    expect(toast.error).toHaveBeenCalledWith('Please create a Network Plate first.');
 
     insertDropdown = await openMenu(user, 'Insert');
     await user.click(within(insertDropdown).getByRole('button', { name: /Private Subnet/ }));
-    expect(alertMock).toHaveBeenCalledWith('Please create a Network Plate first.');
+    expect(toast.error).toHaveBeenCalledWith('Please create a Network Plate first.');
 
     setArchitectureState({ plates: [networkPlate] });
 
@@ -637,7 +650,6 @@ describe('MenuBar', () => {
 
   it('quick action buttons call undo, redo, and save', async () => {
     const user = userEvent.setup();
-    const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
     useArchitectureStore.setState({ canUndo: true, canRedo: true });
     render(<MenuBar />);
 
@@ -649,7 +661,7 @@ describe('MenuBar', () => {
 
     await user.click(screen.getByTitle('Save Workspace (Ctrl+S)'));
     expect(saveToStorageMock).toHaveBeenCalledOnce();
-    expect(alertMock).toHaveBeenCalledWith('Workspace saved!');
+    expect(toast.success).toHaveBeenCalledWith('Workspace saved!');
   });
 
   it('toggles sound and updates audio service mute state', async () => {
@@ -665,9 +677,8 @@ describe('MenuBar', () => {
     setMutedSpy.mockRestore();
   });
 
-  it('shows alert when compare with GitHub fails', async () => {
+  it('shows toast error when compare with GitHub fails', async () => {
     const user = userEvent.setup();
-    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
     vi.mocked(apiPost).mockRejectedValue(new Error('pull failed'));
     useAuthStore.setState({
       status: 'authenticated',
@@ -685,7 +696,6 @@ describe('MenuBar', () => {
     const githubDropdown = getMenuDropdown(/octocat/);
     await user.click(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ }));
 
-    expect(alertSpy).toHaveBeenCalledWith('pull failed');
-    alertSpy.mockRestore();
+    expect(toast.error).toHaveBeenCalledWith('pull failed');
   });
 });

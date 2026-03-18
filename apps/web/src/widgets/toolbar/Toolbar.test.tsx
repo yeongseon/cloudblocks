@@ -1,11 +1,22 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+vi.mock('react-hot-toast', () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+vi.mock('../../shared/ui/ConfirmDialog', () => ({
+  confirmDialog: vi.fn(),
+}));
 import { Toolbar } from './Toolbar';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import type { ArchitectureModel, Plate } from '../../shared/types/index';
+import { toast } from 'react-hot-toast';
+import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 
 const emptyArch: ArchitectureModel = {
   id: 'arch-1', name: 'Test', version: '1.0.0',
@@ -180,14 +191,12 @@ describe('Toolbar', () => {
     expect(addPlateMock).toHaveBeenCalledWith('subnet', 'Public Subnet', 'net-1', 'public');
   });
 
-  it('alerts when adding public subnet without network', async () => {
+  it('shows toast error when adding public subnet without network', async () => {
     const user = userEvent.setup();
-    const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
     render(<Toolbar />);
     await user.click(screen.getByTitle('Add Public Subnet'));
-    expect(alertMock).toHaveBeenCalledWith('Please create a Network Plate first.');
+    expect(toast.error).toHaveBeenCalledWith('Please create a Network Plate first.');
     expect(addPlateMock).not.toHaveBeenCalled();
-    alertMock.mockRestore();
   });
 
   it('adds private subnet when network exists', async () => {
@@ -215,13 +224,11 @@ describe('Toolbar', () => {
     expect(addPlateMock).toHaveBeenCalledWith('subnet', 'Private Subnet', 'net-1', 'private');
   });
 
-  it('alerts when adding private subnet without network', async () => {
+  it('shows toast error when adding private subnet without network', async () => {
     const user = userEvent.setup();
-    const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
     render(<Toolbar />);
     await user.click(screen.getByTitle('Add Private Subnet'));
-    expect(alertMock).toHaveBeenCalledWith('Please create a Network Plate first.');
-    alertMock.mockRestore();
+    expect(toast.error).toHaveBeenCalledWith('Please create a Network Plate first.');
   });
 
   // --- Tool modes ---
@@ -325,14 +332,12 @@ describe('Toolbar', () => {
 
   // --- Save / Load / Reset ---
 
-  it('saves workspace on click and shows alert', async () => {
+  it('saves workspace on click and shows toast success', async () => {
     const user = userEvent.setup();
-    const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
     render(<Toolbar />);
     await user.click(screen.getByTitle('Save Workspace'));
     expect(saveToStorageMock).toHaveBeenCalledOnce();
-    expect(alertMock).toHaveBeenCalledWith('Workspace saved!');
-    alertMock.mockRestore();
+    expect(toast.success).toHaveBeenCalledWith('Workspace saved!');
   });
 
   it('loads workspace on click', async () => {
@@ -344,20 +349,23 @@ describe('Toolbar', () => {
 
   it('resets workspace after confirmation', async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.mocked(confirmDialog).mockResolvedValue(true);
     render(<Toolbar />);
     await user.click(screen.getByTitle('Reset Workspace'));
-    expect(resetWorkspaceMock).toHaveBeenCalledOnce();
-    vi.restoreAllMocks();
+    expect(confirmDialog).toHaveBeenCalledWith('All unsaved changes will be lost.', 'Reset Workspace?');
+    await waitFor(() => {
+      expect(resetWorkspaceMock).toHaveBeenCalledOnce();
+    });
   });
 
   it('does not reset workspace when confirmation cancelled', async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, 'confirm').mockReturnValue(false);
+    vi.mocked(confirmDialog).mockResolvedValue(false);
     render(<Toolbar />);
     await user.click(screen.getByTitle('Reset Workspace'));
-    expect(resetWorkspaceMock).not.toHaveBeenCalled();
-    vi.restoreAllMocks();
+    await waitFor(() => {
+      expect(resetWorkspaceMock).not.toHaveBeenCalled();
+    });
   });
 
   // --- Undo / Redo ---

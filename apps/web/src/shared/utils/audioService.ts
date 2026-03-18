@@ -59,8 +59,19 @@ export class AudioService {
     }
   }
 
+  private normalizeBase64(input: string): string {
+    const trimmed = input.trim();
+    const commaIndex = trimmed.indexOf(',');
+    const withoutPrefix = trimmed.startsWith('data:') && commaIndex >= 0
+      ? trimmed.slice(commaIndex + 1)
+      : trimmed;
+
+    return withoutPrefix.replace(/\s+/g, '');
+  }
+
   private base64ToArrayBuffer(base64: string): ArrayBuffer {
-    const binaryString = atob(base64);
+    const normalized = this.normalizeBase64(base64);
+    const binaryString = atob(normalized);
     const len = binaryString.length;
     const bytes = new Uint8Array(len);
     for (let i = 0; i < len; i++) {

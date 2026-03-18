@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
+import { toast } from 'react-hot-toast';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { computeArchitectureDiff } from '../../features/diff/engine';
 import { apiPost } from '../../shared/api/client';
+import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import type { PullResponse } from '../../shared/types/api';
 import type { ArchitectureModel } from '../../shared/types';
 import { audioService } from '../../shared/utils/audioService';
@@ -84,8 +86,8 @@ export function MenuBar() {
     setOpenMenu((prev) => (prev === menu ? null : menu));
   };
 
-  const handleAction = (action: () => void) => {
-    action();
+  const handleAction = (action: () => void | Promise<void>) => {
+    void action();
     setOpenMenu(null);
   };
 
@@ -97,7 +99,7 @@ export function MenuBar() {
   const handleAddPublicSubnet = () => {
     const network = architecture.plates.find((p) => p.type === 'network');
     if (!network) {
-      alert('Please create a Network Plate first.');
+      toast.error('Please create a Network Plate first.');
       return;
     }
     addPlate('subnet', 'Public Subnet', network.id, 'public');
@@ -107,7 +109,7 @@ export function MenuBar() {
   const handleAddPrivateSubnet = () => {
     const network = architecture.plates.find((p) => p.type === 'network');
     if (!network) {
-      alert('Please create a Network Plate first.');
+      toast.error('Please create a Network Plate first.');
       return;
     }
     addPlate('subnet', 'Private Subnet', network.id, 'private');
@@ -136,7 +138,7 @@ export function MenuBar() {
 
   const handleSave = () => {
     saveToStorage();
-    alert('Workspace saved!');
+    toast.success('Workspace saved!');
   };
 
   const handleLoad = () => {
@@ -173,8 +175,9 @@ export function MenuBar() {
     setOpenMenu(null);
   };
 
-  const handleReset = () => {
-    if (confirm('Reset workspace? All unsaved changes will be lost.')) {
+  const handleReset = async () => {
+    const confirmed = await confirmDialog('All unsaved changes will be lost.', 'Reset Workspace?');
+    if (confirmed) {
       resetWorkspace();
     }
   };
@@ -196,7 +199,7 @@ export function MenuBar() {
       const delta = computeArchitectureDiff(remoteArch, localArch);
       useUIStore.getState().setDiffMode(true, delta, remoteArch);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to fetch remote architecture');
+      toast.error(err instanceof Error ? err.message : 'Failed to fetch remote architecture');
     }
   };
 

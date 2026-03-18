@@ -294,6 +294,70 @@ describe('architectureStore', () => {
     });
   });
 
+  describe('duplicateBlock', () => {
+    it('duplicates a block with a new id, copy suffix, and +1/+1 position offset', () => {
+      getState().addPlate('network', 'VNet', null);
+      const netId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Sub', netId, 'public');
+      const subId = getArch().plates[1].id;
+
+      getState().addBlock('compute', 'VM', subId, 'azure');
+      const source = getArch().blocks[0];
+
+      getState().duplicateBlock(source.id);
+
+      const blocks = getArch().blocks;
+      expect(blocks).toHaveLength(2);
+
+      const duplicate = blocks[1];
+      expect(duplicate.id).not.toBe(source.id);
+      expect(duplicate.name).toBe('VM (copy)');
+      expect(duplicate.category).toBe(source.category);
+      expect(duplicate.placementId).toBe(source.placementId);
+      expect(duplicate.provider).toBe(source.provider);
+      expect(duplicate.position).toEqual({
+        x: source.position.x + 1,
+        y: source.position.y,
+        z: source.position.z + 1,
+      });
+    });
+
+    it('no-ops on non-existent block id', () => {
+      getState().addPlate('network', 'VNet', null);
+      const before = getState().workspace.architecture;
+
+      getState().duplicateBlock('missing-block');
+
+      expect(getState().workspace.architecture).toBe(before);
+    });
+  });
+
+  describe('renameBlock', () => {
+    it('renames a block', () => {
+      getState().addPlate('network', 'VNet', null);
+      const netId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Sub', netId, 'public');
+      const subId = getArch().plates[1].id;
+      getState().addBlock('compute', 'Old Name', subId);
+      const blockId = getArch().blocks[0].id;
+
+      getState().renameBlock(blockId, 'New Name');
+
+      expect(getArch().blocks[0].name).toBe('New Name');
+    });
+  });
+
+  describe('renamePlate', () => {
+    it('renames a plate', () => {
+      getState().addPlate('network', 'Old Plate', null);
+      const plateId = getArch().plates[0].id;
+
+      getState().renamePlate(plateId, 'New Plate');
+
+      expect(getArch().plates[0].name).toBe('New Plate');
+    });
+  });
+
   describe('removeBlock', () => {
     it('removes a block and its connections', () => {
       getState().addPlate('network', 'VNet', null);
