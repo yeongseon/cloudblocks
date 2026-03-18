@@ -185,7 +185,8 @@ export function MenuBar() {
   };
 
   const handleCompareWithGitHub = async () => {
-    const wsId = useArchitectureStore.getState().workspace.id;
+    const ws = useArchitectureStore.getState().workspace;
+    const wsId = ws.backendWorkspaceId ?? ws.id;
     try {
       const response = await apiPost<PullResponse>(
         `/api/v1/workspaces/${encodeURIComponent(wsId)}/pull`,

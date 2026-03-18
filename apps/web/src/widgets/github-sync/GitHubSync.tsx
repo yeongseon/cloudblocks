@@ -13,13 +13,14 @@ export function GitHubSync() {
 
   const workspace = useArchitectureStore((s) => s.workspace);
   const importArchitecture = useArchitectureStore((s) => s.importArchitecture);
+  const setStoreBackendWorkspaceId = useArchitectureStore((s) => s.setBackendWorkspaceId);
 
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
 
   const [repoInput, setRepoInput] = useState('');
   const [backendWorkspaceIdInput, setBackendWorkspaceIdInput] = useState('');
   const [linkedRepo, setLinkedRepo] = useState<string | null>(null);
-  const [backendWorkspaceId, setBackendWorkspaceId] = useState<string | null>(null);
+  const [backendWorkspaceId, setBackendWorkspaceIdState] = useState<string | null>(null);
   const [commitMessage, setCommitMessage] = useState('Sync architecture from CloudBlocks');
   const [commits, setCommits] = useState<GitHubCommit[]>([]);
   const [loading, setLoading] = useState(false);
@@ -63,7 +64,9 @@ export function GitHubSync() {
 
     setError(null);
     setLinkedRepo(cleanedRepo);
-    setBackendWorkspaceId(backendWorkspaceIdInput.trim() || workspace.id);
+    const bwsId = backendWorkspaceIdInput.trim() || workspace.id;
+    setStoreBackendWorkspaceId(workspace.id, bwsId);
+    setBackendWorkspaceIdState(bwsId);
   };
 
   const handleSync = async () => {

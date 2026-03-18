@@ -16,6 +16,7 @@ type WorkspaceSlice = Pick<
   | 'switchWorkspace'
   | 'deleteWorkspace'
   | 'cloneWorkspace'
+  | 'setBackendWorkspaceId'
 >;
 
 export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (
@@ -120,6 +121,20 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (
       workspace: cloned,
       workspaces: updatedList,
       ...resetTransientState(),
+    });
+  },
+
+  setBackendWorkspaceId: (workspaceId, backendId) => {
+    const state = get();
+    if (state.workspace.id === workspaceId) {
+      set({
+        workspace: { ...state.workspace, backendWorkspaceId: backendId },
+      });
+    }
+    set({
+      workspaces: state.workspaces.map((ws) =>
+        ws.id === workspaceId ? { ...ws, backendWorkspaceId: backendId } : ws
+      ),
     });
   },
 });
