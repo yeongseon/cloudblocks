@@ -7,6 +7,10 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688)](https://fastapi.tiangolo.com/)
 
+<p align="center">
+  <img src="docs/images/hero.png" alt="CloudBlocks — visual cloud architecture builder" width="720" />
+</p>
+
 **CloudBlocks is an architecture compiler that converts visual infrastructure designs into infrastructure-as-code.**
 
 CloudBlocks models cloud infrastructure using a **Lego-style architecture system**. Users assemble infrastructure by placing visual blocks on plates, connect components, and validate against real-world rules — all from the browser. The platform then compiles architecture into deployable code (Terraform, Bicep, Pulumi).
@@ -164,21 +168,7 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 
 | Phase | Description | Status |
 |-------|-------------|--------|
-| Milestone 1 | Frontend MVP — top-down visual builder with validation | ✅ Complete |
-| Milestone 2 | Enhanced UX — undo/redo, workspace management, visual polish | ✅ Complete |
-| Milestone 3 | Code generation — Terraform export (Azure first) | ✅ Complete |
-| Milestone 4 | Architecture templates — built-in starter templates with gallery | ✅ Complete |
-| Milestone 5 | GitHub integration, backend API | ✅ Complete |
-| Milestone 6 | Multi-generator (Bicep, Pulumi), template marketplace | ✅ Complete |
-| Milestone 6B | Builder UX completion — drag-to-create, onboarding, selection states | ✅ Complete |
-| Milestone 6C | Learning Mode — guided scenarios, step validation, hint engine | ✅ Complete |
-| Milestone 7 | Collaboration + CI/CD — architecture diff, GitHub Actions template | ✅ Complete |
-| Phase 2 UX | Tactile UX — magnetic snap, dynamic shadows, bounce transitions | ✅ Complete |
-| Phase 7 | Session auth — cookie-based server sessions with GitHub OAuth | ✅ Complete |
-| Phase 9 | Visual Builder Evolution — UX state machine, brick system, model/provider foundations | ✅ Complete |
-| Phase 10 | Documentation Accuracy — canonical docs aligned with current implementation | ✅ Complete |
-| Phase 11 | UX/UI Improvements — toast notifications, connection selection, performance | ✅ Complete |
-| Milestone 8 | Multi-Cloud Platform — AWS/GCP provider adapters, cross-provider comparison | ✅ Complete |
+| Milestones 1–8 | Visual builder, code generation (Terraform/Bicep/Pulumi), templates, GitHub integration, learning mode, multi-cloud, architecture diff | ✅ Complete |
 | Milestone 9 | UX Core Hardening | 🔄 Planned |
 | Milestone 10 | External Actors & DevOps UX | 🔄 Planned |
 | Milestone 11 | Brick Design System | 🔄 Planned |
