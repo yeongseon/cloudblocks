@@ -1,7 +1,8 @@
 # ADR-0005: 2D-First Editor with 2.5D Rendering
 
 **Status**: Accepted
-> **Implementation note (2025-03):** The current implementation uses SVG + CSS transforms + DOM layering, not React Three Fiber. R3F was evaluated but not adopted due to simpler rendering needs. See `apps/web/src/entities/block/BlockSvg.tsx` and `apps/web/src/widgets/scene-canvas/SceneCanvas.tsx`.
+
+**Implementation note (2025-03):** The current implementation uses SVG + CSS transforms + DOM layering, not React Three Fiber. R3F was evaluated but not adopted due to simpler rendering needs. See `apps/web/src/entities/block/BlockSvg.tsx` and `apps/web/src/widgets/scene-canvas/SceneCanvas.tsx`.
 **Date**: 2025-01
 
 ## Context
