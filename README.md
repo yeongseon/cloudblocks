@@ -20,8 +20,9 @@ Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks
 
 ### Current Features
 
-- **Lego-style modeling** — Plates (boundaries) + Blocks (resources) + Connections (dataflow)
-- **Architecture compiler** — Visual design compiles to Terraform, Bicep, and Pulumi (Azure-first)
+- **Lego-style modeling** — Plates (boundaries) + Blocks (resources) + typed Connections
+- **Multi-provider modeling** — Azure, AWS, and GCP support via provider-aware adapters
+- **Architecture compiler** — Visual design compiles to Terraform, Bicep, and Pulumi
 - **Validation engine** — Real-time rule checking for placement and connections
 - **Code generation** — Multi-generator export: Terraform, Bicep, Pulumi with draft/production modes (Milestone 6)
 - **Architecture templates** — Built-in starter templates with gallery UI (Milestone 4)
@@ -34,7 +35,8 @@ Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks
 - **Magnetic snap & tactile UX** — Grid snapping, dynamic shadows, bounce transitions on drag (Phase 2 UX)
 - **Lego minifigure** — DevOps engineer character with Azure provider branding (Phase 3)
 - **Architecture diff** — Compare local vs GitHub architecture with visual overlays (Milestone 7)
-- **Serverless blocks** — Function, Queue, Event, Timer block types (Milestone 6)
+- **Cloud resource blocks (8 categories)** — compute, database, storage, gateway, function, queue, event, timer (Milestone 6)
+- **Block-to-block connections** — `dataflow`, `http`, `internal`, `data`, `async`
 - **Open source** — Apache 2.0 licensed, extend and contribute freely
 
 ## Quick Start
@@ -84,15 +86,26 @@ cloudblocks/
 - **Subnet Plate** — Public or Private subnet within a Network
 
 ### Blocks (Resources)
-- **Compute** — VMs, Container Apps (placed on Subnet)
-- **Database** — Managed database instances (placed on Private Subnet)
-- **Storage** — Blob / object storage (placed on Subnet)
-- **Gateway** — App Gateway, Load Balancer (placed on Public Subnet)
+- **Compute** — Virtual machines and app platforms
+- **Database** — Managed database instances
+- **Storage** — Blob and object stores
+- **Gateway** — Public ingress and routing blocks
+- **Function** — Serverless execution blocks
+- **Queue** — Messaging and buffering blocks
+- **Event** — Event routing blocks
+- **Timer** — Scheduled trigger blocks
 
-### Connections (DataFlow)
+### Connections (5 Types)
+- **dataflow** — Directional traffic flow between components
+- **http** — Request/response interaction across services
+- **internal** — Internal control-plane or admin communication
+- **data** — Data synchronization and state-sharing links
+- **async** — Asynchronous event or callback links
+
 ```
-Internet → Gateway → Compute → Database
-                            → Storage
+Internet → Gateway (dataflow) → Compute (data) → Database
+                             → Storage
+Timer (async) → Function (async) → Event
 ```
 
 ## Tech Stack
@@ -159,7 +172,9 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 | Milestone 7 | Collaboration + CI/CD — architecture diff, GitHub Actions template | ✅ Complete |
 | Phase 2 UX | Tactile UX — magnetic snap, dynamic shadows, bounce transitions | ✅ Complete |
 | Phase 7 | Session auth — cookie-based server sessions with GitHub OAuth | ✅ Complete |
-| Phase 8 | Production infra — PostgreSQL, Redis, Docker Compose, multi-replica | 🔄 Planned |
+| Phase 8 | Production infra — PostgreSQL, Redis, Docker Compose, multi-replica | ✅ Complete |
+| Phase 9 | Documentation accuracy and editor polish — rendering docs, ADR alignment, contributor workflow | ✅ Complete |
+| Phase 10 | Advanced multi-cloud expansion and documentation governance | 🔄 In Progress |
 
 ## Contributing
 
