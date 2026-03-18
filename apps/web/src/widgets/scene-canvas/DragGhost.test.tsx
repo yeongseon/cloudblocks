@@ -94,4 +94,38 @@ describe('DragGhost', () => {
 
     expect(container.querySelector('g.drag-ghost')).toBeNull();
   });
+
+  it('renders when placing is activated through uiStore action', () => {
+    useUIStore.getState().startPlacing('compute', 'Virtual Machine');
+    const { container } = renderDragGhost();
+
+    fireEvent.pointerMove(document, { clientX: 720, clientY: 340 });
+
+    expect(container.querySelector('g.drag-ghost')).not.toBeNull();
+  });
+
+  it('does not render when interaction returns to idle through completeInteraction', () => {
+    useUIStore.getState().startPlacing('compute', 'Virtual Machine');
+    const { container, rerender } = renderDragGhost();
+
+    fireEvent.pointerMove(document, { clientX: 720, clientY: 340 });
+    expect(container.querySelector('g.drag-ghost')).not.toBeNull();
+
+    useUIStore.getState().completeInteraction();
+    rerender(
+      <svg>
+        <title>Drag ghost test root</title>
+        <DragGhost
+          containerRef={createContainerRef()}
+          originX={640}
+          originY={280}
+          panX={0}
+          panY={0}
+          zoom={1}
+        />
+      </svg>
+    );
+
+    expect(container.querySelector('g.drag-ghost')).toBeNull();
+  });
 });
