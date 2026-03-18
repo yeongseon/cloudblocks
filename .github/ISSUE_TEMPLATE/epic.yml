@@ -1,0 +1,93 @@
+name: Epic
+description: A major feature area spanning multiple sub-issues and PRs
+title: "[Epic] "
+labels: ["epic"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Epics group related work under a milestone. Each epic decomposes into focused sub-issues (one branch, one PR each).
+
+        **Naming**: `[Epic] <feature area>`
+        **Labels**: `epic` + one or more domain labels (`frontend`, `backend`, `ux`, etc.)
+        **Milestone**: Assign to a milestone before submitting.
+
+  - type: textarea
+    id: overview
+    attributes:
+      label: Overview
+      description: |
+        What is this epic about? What user problem does it solve?
+        Keep it high-level — details go in sub-issues.
+    validations:
+      required: true
+
+  - type: textarea
+    id: problems-solved
+    attributes:
+      label: Problems Solved
+      description: |
+        What specific problems or gaps does this epic address?
+      placeholder: |
+        1. Users cannot X, which blocks Y
+        2. Current implementation of Z is fragile because...
+    validations:
+      required: true
+
+  - type: textarea
+    id: architecture
+    attributes:
+      label: Architecture
+      description: |
+        High-level technical approach. Which modules/layers are affected?
+        Reference ADRs or design specs if applicable.
+      placeholder: |
+        - New Zustand slice in `entities/store/`
+        - Widget in `widgets/` following FSD structure
+        - Extends existing validation engine in `entities/validation/`
+    validations:
+      required: true
+
+  - type: textarea
+    id: sub-issues
+    attributes:
+      label: Sub-Issues
+      description: |
+        Break down into focused sub-issues. Each should fit in one branch and one PR.
+        Use checkbox format — these become the tracking checklist.
+      placeholder: |
+        - [ ] #XX — Store: add new state slice
+        - [ ] #XX — UI: create widget component
+        - [ ] #XX — Logic: implement business rules
+        - [ ] #XX — Tests: add integration tests
+        - [ ] #XX — Docs: update design spec
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: |
+        Other epics, issues, or external factors this epic depends on.
+
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints
+      description: |
+        Technical constraints, design principles, or invariants that must be respected.
+      placeholder: |
+        - Must follow FSD layer rules (no widget importing from another widget)
+        - Universal stud standard must be maintained (rx=19, ry=9.5)
+        - No new runtime dependencies > 50kb
+
+  - type: input
+    id: branch-name
+    attributes:
+      label: Branch Name
+      description: |
+        Base branch name for this epic's work. Sub-issues branch from this or use their own feature branches.
+      placeholder: "feature/epic-name"
+    validations:
+      required: true
