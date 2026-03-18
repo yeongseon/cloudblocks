@@ -27,7 +27,7 @@ import {
   type ActionType,
   type PlateActionType,
 } from './useTechTree';
-import type { Plate } from '../../shared/types/index';
+import type { Plate, ProviderType } from '../../shared/types/index';
 import './CommandCard.css';
 
 interface CommandCardProps {
@@ -45,6 +45,13 @@ const POSITION_HOTKEYS = [
   ['A', 'S', 'D'],
   ['Z', 'X', 'C'],
 ] as const;
+
+const ALL_RESOURCES = Object.keys(RESOURCE_DEFINITIONS) as ResourceType[];
+const PROVIDER_RESOURCE_ALLOWLIST: Record<ProviderType, ReadonlySet<ResourceType>> = {
+  azure: new Set(ALL_RESOURCES),
+  aws: new Set(ALL_RESOURCES),
+  gcp: new Set(ALL_RESOURCES),
+};
 
 function getPositionHotkey(rowIdx: number, colIdx: number): string {
   return POSITION_HOTKEYS[rowIdx]?.[colIdx] ?? '';
@@ -216,6 +223,7 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
   const techTree = useTechTree();
   const addPlate = useArchitectureStore((s) => s.addPlate);
   const addBlock = useArchitectureStore((s) => s.addBlock);
+  const activeProvider = useUIStore((s) => s.activeProvider);
   const startPlacing = useUIStore((s) => s.startPlacing);
   const cancelInteraction = useUIStore((s) => s.cancelInteraction);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
@@ -225,6 +233,7 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const tabDefinition = CATEGORY_TABS.find((tab) => tab.id === activeTab) ?? CATEGORY_TABS[0];
+  const providerResources = PROVIDER_RESOURCE_ALLOWLIST[activeProvider];
 
   useEffect(() => {
     if (!gridRef.current) return;
@@ -317,10 +326,10 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
 
       counterRef.current += 1;
       const name = `${def.label} ${counterRef.current}`;
-      addBlock(def.blockCategory, name, targetId);
+      addBlock(def.blockCategory, name, targetId, activeProvider);
       playSound('block-snap');
     }
-  }, [addPlate, addBlock, techTree, playSound]);
+  }, [activeProvider, addPlate, addBlock, techTree, playSound]);
 
   return (
     <div ref={gridRef}>
@@ -333,7 +342,8 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
             }
 
             const def = RESOURCE_DEFINITIONS[type];
-            const enabled = techTree.isEnabled(type);
+            const enabledByProvider = providerResources.has(type);
+            const enabled = enabledByProvider && techTree.isEnabled(type);
             const disabledReason = techTree.getDisabledReason(type);
 
             return (
@@ -344,7 +354,7 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
                 data-resource-type={type}
                 onClick={() => enabled && handleCreate(type)}
                 disabled={!enabled}
-                title={enabled ? `Create ${def.label} (${hotkey})` : disabledReason ?? undefined}
+                title={enabled ? `Create ${def.label} (${hotkey})` : enabledByProvider ? disabledReason ?? undefined : `Not available for ${activeProvider.toUpperCase()}`}
               >
                 <span className="command-btn-icon">{def.icon}</span>
                 <span className="command-btn-label">{def.shortLabel}</span>
@@ -363,6 +373,7 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
   const techTree = useTechTree();
   const addPlate = useArchitectureStore((s) => s.addPlate);
   const addBlock = useArchitectureStore((s) => s.addBlock);
+  const activeProvider = useUIStore((s) => s.activeProvider);
   const startPlacing = useUIStore((s) => s.startPlacing);
   const cancelInteraction = useUIStore((s) => s.cancelInteraction);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
@@ -377,10 +388,12 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
     : selectedPlate.subnetAccess === 'public'
       ? PLATE_CONTEXT_RESOURCES['subnet-public']
       : PLATE_CONTEXT_RESOURCES['subnet-private'];
+  const providerResources = PROVIDER_RESOURCE_ALLOWLIST[activeProvider];
+  const filteredContextResources = contextResources.filter((resource) => providerResources.has(resource));
 
   useEffect(() => {
     if (!gridRef.current) return;
-    if (contextResources.length === 0) return;
+    if (filteredContextResources.length === 0) return;
 
     const buttons = gridRef.current.querySelectorAll<HTMLButtonElement>(
       '.command-card-btn:not(.disabled):not(.command-card-btn--empty)',
@@ -431,7 +444,7 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
         interactable.unset();
       });
     };
-  }, [cancelInteraction, contextResources, startPlacing]);
+  }, [cancelInteraction, filteredContextResources, startPlacing]);
 
   const handleCreate = useCallback((type: ResourceType) => {
     if (isDraggingRef.current) return;
@@ -458,11 +471,11 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
 
     counterRef.current += 1;
     const name = `${def.label} ${counterRef.current}`;
-    addBlock(def.blockCategory, name, selectedPlate.id);
+    addBlock(def.blockCategory, name, selectedPlate.id, activeProvider);
     playSound('block-snap');
-  }, [addPlate, addBlock, selectedPlate.id, selectedPlate.type, playSound]);
+  }, [activeProvider, addPlate, addBlock, selectedPlate.id, selectedPlate.type, playSound]);
 
-  const resourcePages = chunkResources(contextResources, 9).map((page) => {
+  const resourcePages = chunkResources(filteredContextResources, 9).map((page) => {
     const normalizedPage: (ResourceType | null)[] = [...page];
     while (normalizedPage.length < 9) {
       normalizedPage.push(null);

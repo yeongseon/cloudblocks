@@ -145,7 +145,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set) => ({
     });
   },
 
-  addBlock: (category, name, placementId) => {
+  addBlock: (category, name, placementId, provider) => {
     set((state) => {
       const arch = state.workspace.architecture;
       const plate = arch.plates.find((candidate) => candidate.id === placementId);
@@ -165,6 +165,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set) => ({
         placementId,
         position: nextGridPosition(existingBlocksOnPlate, plate.size),
         metadata: {},
+        provider,
       };
 
       return withHistory(state, {

@@ -1,5 +1,5 @@
 import { memo, useId, useMemo } from 'react';
-import type { BlockCategory } from '../../shared/types/index';
+import type { BlockCategory, ProviderType } from '../../shared/types/index';
 import { STUD_LAYOUTS, BLOCK_SHORT_NAMES, BLOCK_ICONS } from '../../shared/types/index';
 import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
 import {
@@ -19,12 +19,19 @@ import { getBlockFaceColors, getBlockStudColors } from './blockFaceColors';
 
 interface BlockSvgProps {
   category: BlockCategory;
+  provider?: ProviderType;
 }
 
-export const BlockSvg = memo(function BlockSvg({ category }: BlockSvgProps) {
+type BlockFaceResolver = (category: BlockCategory, provider?: ProviderType) => ReturnType<typeof getBlockFaceColors>;
+type BlockStudResolver = (category: BlockCategory, provider?: ProviderType) => ReturnType<typeof getBlockStudColors>;
+
+const resolveBlockFaceColors = getBlockFaceColors as unknown as BlockFaceResolver;
+const resolveBlockStudColors = getBlockStudColors as unknown as BlockStudResolver;
+
+export const BlockSvg = memo(function BlockSvg({ category, provider }: BlockSvgProps) {
   const [studsX, studsY] = STUD_LAYOUTS[category];
-  const faceColors = getBlockFaceColors(category);
-  const studColors = getBlockStudColors(category);
+  const faceColors = resolveBlockFaceColors(category, provider);
+  const studColors = resolveBlockStudColors(category, provider);
   const shortName = BLOCK_SHORT_NAMES[category];
   const icon = BLOCK_ICONS[category];
 
