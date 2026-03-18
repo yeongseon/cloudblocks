@@ -9,6 +9,7 @@ vi.mock('../../entities/store/uiStore');
 
 const mockAddPlate = vi.fn();
 const mockToggleTemplateGallery = vi.fn();
+const mockToggleScenarioGallery = vi.fn();
 
 function setupMocks(plateCount: number, showTemplateGallery = false) {
   const plates = Array.from({ length: plateCount }, (_, i) => ({
@@ -34,6 +35,7 @@ function setupMocks(plateCount: number, showTemplateGallery = false) {
     const state = {
       showTemplateGallery,
       toggleTemplateGallery: mockToggleTemplateGallery,
+      toggleScenarioGallery: mockToggleScenarioGallery,
     };
     return (selector as (s: typeof state) => unknown)(state);
   }) as typeof useUIStore);
@@ -87,5 +89,18 @@ describe('EmptyCanvasOverlay', () => {
     render(<EmptyCanvasOverlay />);
     fireEvent.click(screen.getByText(/Start from Scratch/));
     expect(mockAddPlate).toHaveBeenCalledWith('network', 'VNet', null);
+  });
+
+  it('shows Learn How link when no plates', () => {
+    setupMocks(0);
+    render(<EmptyCanvasOverlay />);
+    expect(screen.getByText(/Learn How/)).toBeInTheDocument();
+  });
+
+  it('clicking Learn How calls toggleScenarioGallery', () => {
+    setupMocks(0);
+    render(<EmptyCanvasOverlay />);
+    fireEvent.click(screen.getByText(/Learn How/));
+    expect(mockToggleScenarioGallery).toHaveBeenCalledTimes(1);
   });
 });

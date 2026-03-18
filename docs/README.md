@@ -4,6 +4,20 @@
 
 ---
 
+## Getting Started Journey
+
+New to CloudBlocks? Follow this path:
+
+| Step | What to Do | Link |
+|------|-----------|------|
+| 1. Try it | Open the builder and use a template | [Quick Start](../README.md#quick-start) |
+| 2. Learn | Follow a guided scenario in Learning Mode | [Tutorials](guides/TUTORIALS.md) |
+| 3. Build | Design your own architecture from scratch | [UI Flow](concept/UI_FLOW.md) |
+| 4. Generate | Export to Terraform, Bicep, or Pulumi | [Generator](engine/generator.md) |
+| 5. Deploy | Push to GitHub and trigger CI/CD | [Deployment](guides/DEPLOYMENT.md) |
+
+---
+
 ## Document Ownership
 
 | Status | Meaning |

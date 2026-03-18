@@ -1,139 +1,234 @@
 # CloudBlocks UI Flow
 
-This document describes the primary user interaction flows of the CloudBlocks visual architecture builder.
-
-CloudBlocks uses a Lego-style visual builder where users assemble infrastructure components and the system translates them into architecture models.
+> Describes the actual user interaction flows implemented in CloudBlocks (Milestones 1–8).
 
 ---
 
-# High-Level User Flow
+## Overview
 
-Landing
-→ Workspace creation
-→ Visual architecture editor
-→ Architecture validation
-→ Infrastructure generation
+```
+Entry Point  →  Canvas Workspace  →  Build Architecture  →  Validate  →  Generate Code  →  Deploy via GitHub
+```
 
----
-
-# Workspace Creation
-
-Users begin by creating or selecting a workspace.
-
-Flow:
-
-Landing Page  
-→ Create Workspace  
-→ Open Architecture Editor
+CloudBlocks follows a **model → compile → deploy** workflow. Users visually assemble cloud infrastructure, the system validates it in real-time, and then compiles the architecture into deployable infrastructure-as-code.
 
 ---
 
-# Plate Creation
+## 1. Entry Points
 
-Users create infrastructure boundaries using plates.
+When the canvas is empty, users see the **EmptyCanvasOverlay** with three options:
 
-Example plates:
+| Action | What Happens |
+|--------|-------------|
+| **Use Template** | Opens the Template Gallery with pre-built architectures (three-tier web app, serverless API, event-driven pipeline) |
+| **Start from Scratch** | Creates a default Network (VNet) plate on the canvas |
+| **Learn How** | Opens the Scenario Gallery for guided, step-by-step building |
 
-- VPC
-- Subnet
-- Network Zone
-
-Flow:
-
-Add Plate  
-→ Select Plate Type  
-→ Place Plate on Canvas
-
----
-
-# Block Creation
-
-Blocks represent deployable infrastructure components.
-
-Examples:
-
-- compute
-- database
-- storage
-- gateway
-
-Flow:
-
-Add Block  
-→ Select Block Category  
-→ Drag Block into Plate
+Users can also start from the **MenuBar**:
+- `File → New Workspace` — creates a blank workspace
+- `Insert → Network / Subnet` — adds plates directly
+- `Learn → Browse Scenarios` — opens Learning Mode
 
 ---
 
-# Connection Creation
+## 2. Canvas Workspace
 
-Connections represent communication flows.
+The canvas is an SVG-based 2D workspace with 2.5D isometric rendering.
 
-Flow:
+### Plates (Infrastructure Boundaries)
 
-Select Source Block  
-→ Select Target Block  
-→ Create Connection
+| Plate Type | Maps To | Nesting |
+|-----------|---------|---------|
+| **Network** | Azure VNet / AWS VPC / GCP VPC | Top-level container |
+| **Subnet** | Public or Private subnet | Must be inside a Network |
 
-Example:
+Plates are placed via the Insert menu or by dragging from the CommandCard palette.
 
-gateway → compute  
-compute → database  
+### Blocks (Cloud Resources)
 
----
+8 resource categories, placed inside plates:
 
-# Architecture Validation
+| Category | Examples | Initiator? |
+|----------|----------|-----------|
+| **Compute** | VM, App Service | Yes |
+| **Database** | SQL, Cosmos DB | No (receiver-only) |
+| **Storage** | Blob, Data Lake | No (receiver-only) |
+| **Gateway** | API Gateway, Load Balancer | Yes |
+| **Function** | Azure Function, Lambda | Yes |
+| **Queue** | Service Bus, SQS | Yes |
+| **Event** | Event Grid, EventBridge | Yes |
+| **Timer** | Scheduled trigger | Yes |
 
-Users can validate architecture designs before generating infrastructure code.
+Blocks are created by dragging from the **CommandCard** palette in the Bottom Panel, or via `Insert` menu.
 
-Flow:
+### Interaction Model
 
-Edit Architecture  
-→ Run Validation  
-→ Display Errors / Warnings
-
-Example validation message:
-
-database cannot connect to internet
-
----
-
-# Infrastructure Generation
-
-Users generate infrastructure code from architecture models.
-
-Flow:
-
-Generate Infrastructure  
-→ Select Provider  
-→ Export IaC
-
-Supported formats:
-
-- Terraform
-- Bicep
-- Pulumi
+- **Grid snapping** with magnetic alignment (via interactjs)
+- **Dynamic shadows** respond to element depth
+- **Bounce transitions** on drag start/end
+- **Undo/redo** via `Ctrl+Z` / `Ctrl+Shift+Z` (zundo middleware)
+- **Sound effects** with mute preference toggle
 
 ---
 
-# Implemented UI Extensions
+## 3. Connections
 
-The following capabilities have been delivered across various milestones:
+Connections represent communication flows between blocks.
 
-- ✅ Architecture templates (Milestone 4)
-- ✅ Drag-and-drop from CommandCard palette (Milestone 6B)
-- ✅ Architecture diff view (Milestone 7)
-- ✅ Real-time validation (Milestone 1+)
-- ✅ Toast notifications replacing alert() dialogs (Phase 11)
-- ✅ Connection selection and deletion (Phase 11)
-- ✅ Learning Mode with guided scenarios (Milestone 6C)
-- ✅ BottomPanel / CommandCard interaction model (Phase 9)
+### Connection Types
 
-# Future UI Extensions
+| Type | Meaning | Visual |
+|------|---------|--------|
+| `dataflow` | Directional traffic flow | Solid arrow |
+| `http` | Request/response interaction | Dashed arrow |
+| `internal` | Internal control-plane communication | Dotted line |
+| `data` | Data synchronization and state-sharing | Double line |
+| `async` | Asynchronous event or callback | Wavy line |
 
-Planned UI capabilities include:
+### Connection Rules
 
-- Collaborative editing
-- Provider mode toggle (multi-cloud context switching)
-- Architecture simulation visualization
-- Deployment status dashboard
+- **Initiator model**: Source block must have `initiator: true` (compute, gateway, function, queue, event, timer)
+- **Receiver-only**: Database and storage blocks cannot initiate connections
+- Connections are created by clicking a source block's port, then clicking the target block
+
+### Example Topology
+
+```
+Internet → Gateway (dataflow) → Compute (data) → Database
+                              → Storage
+Timer (async) → Function (async) → Event
+```
+
+---
+
+## 4. Validation
+
+The rule engine validates architecture in real-time.
+
+### Validation Levels
+
+| Level | What It Checks |
+|-------|---------------|
+| **Placement** | Blocks must be inside appropriate plates (e.g., compute inside subnet) |
+| **Connection** | Valid source/target pairs, initiator rules |
+| **Architecture** | Cross-cutting constraints (e.g., database cannot connect to internet directly) |
+
+### Validation Feedback
+
+- **Real-time**: Errors appear as the user builds (toast notifications)
+- **On-demand**: `Build → Validate Architecture` runs full validation
+- **Visual**: Invalid elements are highlighted with error indicators
+
+---
+
+## 5. Code Generation
+
+Users generate infrastructure-as-code from their visual architecture.
+
+### Generators
+
+| Generator | Provider | Status |
+|-----------|----------|--------|
+| **Terraform** | Azure, AWS, GCP | Production |
+| **Bicep** | Azure | Production |
+| **Pulumi** | Azure | Production |
+
+### Generation Flow
+
+```
+Visual Architecture → architecture.json → Select Generator → Preview Code → Copy / Export
+```
+
+- **Draft mode**: Quick generation for prototyping
+- **Production mode**: Full resource configuration with best practices
+- **Cross-provider comparison**: View the same architecture in Terraform, Bicep, and Pulumi side-by-side
+
+Access via `Build → Generate` in the MenuBar.
+
+---
+
+## 6. GitHub Integration
+
+CloudBlocks syncs architectures with GitHub repositories.
+
+### Flow
+
+```
+OAuth Login → Link Repository → Push Architecture → Pull / Compare → Create PR
+```
+
+| Action | Description |
+|--------|-------------|
+| **Login** | GitHub OAuth via the backend API |
+| **Link repo** | Connect a workspace to a GitHub repository |
+| **Push** | Save `architecture.json` to the linked repository |
+| **Pull** | Load architecture from GitHub |
+| **Diff** | Compare local vs remote architecture with visual overlays |
+| **PR** | Create a pull request with architecture changes |
+
+Access via `File → GitHub` submenu in the MenuBar.
+
+---
+
+## 7. Learning Mode
+
+Guided scenarios teach users how to build architectures step-by-step.
+
+### Components
+
+| Component | Role |
+|-----------|------|
+| **Scenario Gallery** | Browse available scenarios by difficulty |
+| **Learning Panel** | Shows current step, progress, and hints |
+| **Step Validator** | State-based validation (checks architecture state, not action sequence) |
+| **Hint Engine** | Progressive disclosure — hints appear after inactivity |
+
+### Flow
+
+```
+Learn → Browse Scenarios → Select Scenario → Follow Steps → Complete
+```
+
+- Scenarios range from beginner (place a VNet) to advanced (full three-tier architecture)
+- Validation checks the architecture state at each step, not how the user got there
+- Users can exit Learning Mode at any time and keep their architecture
+
+---
+
+## 8. Workspace Management
+
+### Multiple Workspaces
+
+- Create, rename, and switch between workspaces
+- Each workspace has its own architecture, undo history, and GitHub link
+
+### Bottom Panel (StarCraft-style)
+
+The Bottom Panel provides context-sensitive controls:
+
+| Mode | When Active | Controls |
+|------|------------|----------|
+| **Creation** | No selection | Block category palette (drag to create) |
+| **Block Action** | Block selected | Block details, rename, delete, connection options |
+| **Plate Action** | Plate selected | Plate details, rename, resize, delete |
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+Z` | Undo |
+| `Ctrl+Shift+Z` | Redo |
+| `Delete` | Remove selected element |
+| `Escape` | Deselect / cancel |
+
+---
+
+## Future Extensions
+
+Planned capabilities for upcoming milestones:
+
+- **Provider mode toggle** — Multi-cloud context switching in the toolbar (Milestone 9)
+- **DevOps minifigure** — Interactive worker character with build animations (Milestone 10)
+- **Terraform pipeline** — Direct deployment from the builder (Milestone 13)
+- **AI-powered tutoring** — Intelligent architecture suggestions (Milestone 14)
+- **Collaborative editing** — Real-time multi-user architecture building
