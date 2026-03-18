@@ -1,10 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+vi.mock('../../shared/ui/ConfirmDialog', () => ({
+  confirmDialog: vi.fn(),
+}));
 import { WorkspaceManager } from './WorkspaceManager';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import type { Workspace } from '../../shared/types/index';
+import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 
 const makeWorkspace = (id: string, name: string, blocks = 0, plates = 0): Workspace => ({
   id,
@@ -202,7 +206,7 @@ describe('WorkspaceManager', () => {
 
   it('deletes workspace after confirmation', async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    vi.mocked(confirmDialog).mockResolvedValue(true);
     const ws2 = makeWorkspace('ws-2', 'Second');
     useArchitectureStore.setState({
       workspace: makeWorkspace('ws-1', 'Default'),
@@ -218,13 +222,15 @@ describe('WorkspaceManager', () => {
     const deleteBtns = screen.getAllByTitle('Delete workspace');
     // Click delete on the second workspace
     await user.click(deleteBtns[1]);
-    expect(deleteWorkspaceMock).toHaveBeenCalledWith('ws-2');
-    vi.restoreAllMocks();
+    expect(confirmDialog).toHaveBeenCalledWith('This cannot be undone.', 'Delete this workspace?');
+    await waitFor(() => {
+      expect(deleteWorkspaceMock).toHaveBeenCalledWith('ws-2');
+    });
   });
 
   it('does not delete workspace when confirmation is cancelled', async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, 'confirm').mockReturnValue(false);
+    vi.mocked(confirmDialog).mockResolvedValue(false);
     const ws2 = makeWorkspace('ws-2', 'Second');
     useArchitectureStore.setState({
       workspace: makeWorkspace('ws-1', 'Default'),
@@ -239,8 +245,9 @@ describe('WorkspaceManager', () => {
     render(<WorkspaceManager />);
     const deleteBtns = screen.getAllByTitle('Delete workspace');
     await user.click(deleteBtns[1]);
-    expect(deleteWorkspaceMock).not.toHaveBeenCalled();
-    vi.restoreAllMocks();
+    await waitFor(() => {
+      expect(deleteWorkspaceMock).not.toHaveBeenCalled();
+    });
   });
 
   it('includes current workspace in list even if not in workspaces array', () => {

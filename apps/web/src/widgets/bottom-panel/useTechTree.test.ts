@@ -333,14 +333,11 @@ describe('useTechTree constants', () => {
       edit: { id: 'edit', label: 'Edit', icon: '✏️', hotkey: 'E', multiSelect: false },
       delete: { id: 'delete', label: 'Delete', icon: '🗑️', hotkey: 'Del', multiSelect: true },
       copy: { id: 'copy', label: 'Copy', icon: '📋', hotkey: 'C', multiSelect: true },
-      config: { id: 'config', label: 'Config', icon: '⚙️', multiSelect: false },
-      'add-app': { id: 'add-app', label: 'Add App', icon: '➕', multiSelect: false },
-      move: { id: 'move', label: 'Move', icon: '↔️', hotkey: 'M', multiSelect: true },
       rename: { id: 'rename', label: 'Rename', icon: '📝', hotkey: 'R', multiSelect: false },
     };
 
-    const actionTypes: ActionType[] = ['link', 'edit', 'delete', 'copy', 'config', 'add-app', 'move', 'rename'];
-    expect(actionTypes).toHaveLength(8);
+    const actionTypes: ActionType[] = ['link', 'edit', 'delete', 'copy', 'rename'];
+    expect(actionTypes).toHaveLength(5);
 
     for (const actionType of actionTypes) {
       const actual = ACTION_DEFINITIONS[actionType];
@@ -355,9 +352,9 @@ describe('useTechTree constants', () => {
       expect(row).toHaveLength(3);
     }
     expect(ACTION_GRID).toEqual([
-      ['link', 'edit', 'config'],
-      ['move', 'copy', 'rename'],
-      ['add-app', null, 'delete'],
+      ['link', 'edit', 'copy'],
+      ['rename', null, 'delete'],
+      [null, null, null],
     ]);
   });
 });
