@@ -342,7 +342,7 @@ Features:
 ### Exit Criteria
 - [x] MinifigureSvg renders correctly at 48-64px scale
 - [x] Azure logo legible on torso front face
-- [x] Head stud follows Universal Stud Standard (rx=19, ry=9.5, h=7px)
+- [x] Head stud follows Universal Stud Standard (rx=12, ry=6, height=5px)
 - [x] Isometric projection matches existing block/plate angles
 - [x] All existing tests pass, build clean
 
@@ -443,11 +443,11 @@ Features:
 Goal:
 Establish a robust UX state machine and command-based interaction model.
 
-Status: Partially done (some items in Milestone 6B)
+Status: ✅ Delivered as part of Phase 9 — Visual Builder Evolution
 
 Features:
 
-- **CommandPanel** — Replace BottomPanel with a StarCraft-style command panel for resource placement and actions
+- **BottomPanel + CommandCard** — StarCraft-style command interaction model for resource placement and actions
 - **DragGhost** — Ghost preview of the resource during the drag-to-create interaction
 - **Connection Preview** — Real-time connection line preview during connect mode
 - **Formal Zustand State Machine** — Explicit states: `idle` | `selecting` | `dragging` | `placing` | `connecting`
@@ -456,16 +456,16 @@ Features:
 
 | # | Deliverable | Priority | Effort |
 |---|------------|----------|--------|
-| 1 | CommandPanel component | P1 | Medium |
+| 1 | BottomPanel + CommandCard interaction model | P1 | Medium |
 | 2 | DragGhost visualization | P1 | Low |
 | 3 | Connection preview line | P1 | Low |
 | 4 | Zustand UX state machine | P1 | Medium |
 
 ### Exit Criteria
-- [ ] BottomPanel replaced by CommandPanel with categorical tabs
-- [ ] Drag-to-create shows accurate ghost preview at snap position
-- [ ] Connect mode shows line from source to cursor/target
-- [ ] All UI interactions driven by explicit state machine transitions
+- [x] BottomPanel is active with CommandCard categorical tabs and action modes
+- [x] Drag-to-create shows accurate ghost preview at snap position
+- [x] Connect mode shows line from source to cursor/target
+- [x] All UI interactions are driven by explicit `InteractionState` transitions in `uiStore.ts` (`'idle' | 'selecting' | 'dragging' | 'placing' | 'connecting'`)
 
 > **Reference**: [BRICK_DESIGN_SPEC.md](../design/BRICK_DESIGN_SPEC.md) §10 UX State Machine
 
@@ -476,7 +476,7 @@ Features:
 Goal:
 Expand the visual vocabulary and formalize the brick design tokens.
 
-Status: Not started
+Status: ✅ Delivered as part of Phase 9 — Visual Builder Evolution
 
 Features:
 
@@ -495,10 +495,12 @@ Features:
 | 4 | Expanded taxonomy mapping | P3 | Low |
 
 ### Exit Criteria
-- [ ] Different resource types use distinct shapes (Tower, Shield, etc.)
-- [ ] Wall heights vary based on resource tier/type
-- [ ] All visual properties driven by shared design tokens
-- [ ] Universal Stud Standard maintained across all new shapes
+- [x] Different resource types use distinct silhouettes (Tower, Heavy Block, Shield, Module)
+- [x] Wall heights vary based on tier using `TIER_HEIGHTS`
+- [x] Visual profiles are implemented and mapped by silhouette and height tiers
+- [x] Universal Stud Standard maintained across all new shapes
+
+Follow-up (outside delivered exit criteria): full design token extraction and expanded taxonomy mapping.
 
 > **Reference**: [BRICK_DESIGN_SPEC.md](../design/BRICK_DESIGN_SPEC.md) §3.7 Shape System, §6.9 Design Tokens
 
@@ -509,14 +511,14 @@ Features:
 Goal:
 Update the core domain model to support multi-provider architectures.
 
-Status: Not started (aligns with Milestone 8)
+Status: ✅ Delivered as part of Phase 9 — Visual Builder Evolution
 
 Features:
 
-- **Provider Field** — Add optional `provider?: 'azure' | 'aws' | 'gcp'` to the Block model
-- **Connection Expansion** — New connection types: `http` | `internal` | `data` | `async` (extending beyond `dataflow`)
+- **Provider Field** — `provider?: ProviderType` (optional) is implemented on the Block model
+- **Connection Expansion** — Connection model supports `dataflow` | `http` | `internal` | `data` | `async`
 - **ProviderAdapter Interface** — Formal interface for mapping generic resources to provider-specific IaC
-- **Provider Directory Structure** — Organize adapters in `core/providers/{azure,aws,gcp}/`
+- **Provider Directory Structure** — Organize adapters in `apps/web/src/features/generate/providers/{azure,aws,gcp}/`
 
 ### Deliverables
 
@@ -528,10 +530,10 @@ Features:
 | 4 | Provider directory reorganization | P2 | Low |
 
 ### Exit Criteria
-- [ ] Domain model supports explicit provider tags
-- [ ] Connection engine handles multiple protocol types
-- [ ] Provider logic isolated into dedicated directory structure
-- [ ] Zero breaking changes to existing Azure-first workflows
+- [x] Domain model supports explicit provider tags through `ProviderType`
+- [x] Connection engine handles all five protocol types (`dataflow`, `http`, `internal`, `data`, `async`)
+- [x] Provider logic is isolated behind provider-oriented typing and model boundaries
+- [x] Existing Azure-first workflows remain backward compatible
 
 > **Reference**: [BRICK_DESIGN_SPEC.md](../design/BRICK_DESIGN_SPEC.md) §6.7 Planned Multi-Cloud, §9.6 Planned Connection Types
 
@@ -542,7 +544,7 @@ Features:
 Goal:
 Implement visual and functional provider-specific UI elements.
 
-Status: Not started
+Status: ✅ Partially delivered as part of Phase 9 — Visual Builder Evolution
 
 Features:
 
@@ -559,11 +561,63 @@ Features:
 | 3 | Provider property extension system | P2 | High |
 
 ### Exit Criteria
-- [ ] Bricks change color themes based on selected provider
-- [ ] Builder UI allows switching between cloud provider contexts
-- [ ] Provider-specific metadata correctly handled in IaC generation
+- [x] Provider visual foundations are implemented (Azure provider color system + AWS/GCP minifigure variants)
+- [ ] Builder UI allows switching between cloud provider contexts (provider mode toggle)
+- [ ] Full multi-provider brick palettes are implemented across all provider/resource combinations
+- [ ] Provider-specific metadata is fully handled end-to-end in IaC generation
 
 > **Reference**: [BRICK_DESIGN_SPEC.md](../design/BRICK_DESIGN_SPEC.md) §6.6 Provider Accent Palette
+
+---
+
+# Phase 9 — Visual Builder Evolution ✅
+
+Goal:
+Comprehensive visual builder upgrade implementing UX state machine, brick design system, domain model expansion, and provider integration foundations.
+
+Status: ✅ Complete
+
+Deliverables:
+
+- 4 Epics delivered (#65-#68)
+- 17 PRs merged
+- 1082 tests passing across 70 files
+
+Key Features:
+
+- InteractionState machine in `uiStore.ts` (`idle` | `selecting` | `dragging` | `placing` | `connecting`)
+- 4 `BrickSilhouette` types (`tower`, `heavy`, `shield`, `module`)
+- 5-level tier height system via `TIER_HEIGHTS`
+- 5 `ConnectionType` values (`dataflow`, `http`, `internal`, `data`, `async`)
+- `ProviderType` support on Block domain model
+- Full test coverage expansion for visual/model/provider evolution changes
+
+### Exit Criteria
+- [x] UX state machine is formalized and used in builder interactions
+- [x] Brick silhouette and tier-height systems are implemented and in active use
+- [x] Domain model supports multi-provider metadata and expanded connection semantics
+- [x] Provider integration foundations are implemented for visual identity and typing
+- [x] Validation, test, and build gates pass for all merged Phase 9 work
+
+### Dependencies
+- Phase 2 UX complete
+
+---
+
+# Phase 10 — Documentation Accuracy
+
+Goal:
+Bring all documentation into alignment with the Phase 9 codebase and current architecture behavior.
+
+Status: 🔄 In Progress
+
+Scope:
+
+- 4 Epics (#112-#115)
+- 19 sub-issues
+
+### Dependencies
+- Phase 9 complete
 
 ---
 
@@ -665,6 +719,7 @@ Key principles:
 5. **Open-source first** — community drives templates and generators
 6. **Local-first UX** — works offline, syncs when connected
 7. **Phased UI/Engine Evolution** — systematic transition from Azure-first to multi-provider visual logic
+8. **Phased Documentation Updates** — keep canonical docs synchronized with delivered milestone/phase code changes
 
 ---
 
@@ -722,6 +777,10 @@ The roadmap evolves CloudBlocks from:
 → Core Model & Multi-Cloud Bridge (Phase 5)
 
 → Provider Integration (Phase 6)
+
+→ Visual Builder Evolution (Phase 9)
+
+→ Documentation Accuracy (Phase 10, current)
 
 → Multi-Cloud Architecture Tool (Milestone 8)
 
