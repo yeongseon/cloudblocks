@@ -338,4 +338,44 @@ describe('CodePreview', () => {
     const codeElement = container.querySelector('.code-preview-code code');
     expect(codeElement?.textContent).toBe('');
   });
+
+  it('generates comparison outputs for azure, aws, and gcp when compare mode is enabled', async () => {
+    const user = userEvent.setup();
+    vi.mocked(generateCode).mockImplementation((_, options) => ({
+      files: [{ path: 'main.tf', content: `provider=${options.provider}`, language: 'hcl' as const }],
+      metadata: {
+        generator: 'terraform',
+        version: '0.3.0',
+        provider: options.provider,
+        generatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    }));
+
+    useUIStore.setState({ showCodePreview: true });
+    render(<CodePreview />);
+
+    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByText('🚀 Compare Providers'));
+
+    expect(vi.mocked(generateCode)).toHaveBeenCalledTimes(3);
+    expect(screen.getByText('AZURE')).toBeInTheDocument();
+    expect(screen.getByText('AWS')).toBeInTheDocument();
+    expect(screen.getByText('GCP')).toBeInTheDocument();
+    expect(screen.getByText('provider=azure')).toBeInTheDocument();
+    expect(screen.getByText('provider=aws')).toBeInTheDocument();
+    expect(screen.getByText('provider=gcp')).toBeInTheDocument();
+  });
+
+  it('shows compare-mode restriction error for non-terraform generators', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ showCodePreview: true });
+    render(<CodePreview />);
+
+    const select = screen.getByRole('combobox');
+    await user.selectOptions(select, 'bicep');
+    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByText('🚀 Compare Providers'));
+
+    expect(screen.getByText('Provider comparison is currently available for Terraform only.')).toBeInTheDocument();
+  });
 });
