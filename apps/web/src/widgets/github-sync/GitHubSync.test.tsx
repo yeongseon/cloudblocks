@@ -29,7 +29,7 @@ describe('GitHubSync', () => {
   const mockApiGet = vi.mocked(apiGet);
   const mockApiPost = vi.mocked(apiPost);
   const mockApiPut = vi.mocked(apiPut);
-  const importArchitectureMock = vi.fn();
+  const replaceArchitectureMock = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -41,7 +41,7 @@ describe('GitHubSync', () => {
       error: null,
     });
     useArchitectureStore.setState({
-      importArchitecture: importArchitectureMock,
+      replaceArchitecture: replaceArchitectureMock,
       workspace: {
         id: 'ws-1',
         name: 'My Workspace',
@@ -143,7 +143,7 @@ describe('GitHubSync', () => {
     expect(screen.queryByRole('button', { name: 'Pull from GitHub' })).not.toBeInTheDocument();
   });
 
-  it('pull button calls API and imports architecture', async () => {
+  it('pull button calls API and replaces architecture in-place', async () => {
     const user = userEvent.setup();
     const archPayload = { id: 'pulled', name: 'Pulled', version: '1.0.0', plates: [], blocks: [], connections: [], externalActors: [], createdAt: '', updatedAt: '' };
     mockApiPost.mockResolvedValue({ architecture: archPayload });
@@ -157,7 +157,7 @@ describe('GitHubSync', () => {
     await waitFor(() => {
       expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/pull');
     });
-    expect(importArchitectureMock).toHaveBeenCalledWith(JSON.stringify(archPayload));
+    expect(replaceArchitectureMock).toHaveBeenCalledWith(archPayload);
   });
 
   it('sync shows error when API call fails', async () => {
