@@ -60,6 +60,7 @@ export const BlockSprite = memo(function BlockSprite({
   const blockRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dragZoomRef = useRef(1);
 
   const isSelected = selectedId === block.id;
   const isConnectionSource = connectionSource === block.id;
@@ -91,8 +92,21 @@ export const BlockSprite = memo(function BlockSprite({
 
     const interactable = interact(el).draggable({
       listeners: {
-        start() {
+        start(event) {
           isDragging.current = false;
+
+          dragZoomRef.current = 1;
+          const sceneWorld = event.target.closest('.scene-world') as HTMLElement | null;
+          if (sceneWorld) {
+            const transform = sceneWorld.style.transform;
+            const scaleMatch = transform.match(/scale\(([\d.]+)\)/);
+            if (scaleMatch?.[1]) {
+              const parsedZoom = Number.parseFloat(scaleMatch[1]);
+              if (Number.isFinite(parsedZoom) && parsedZoom > 0) {
+                dragZoomRef.current = parsedZoom;
+              }
+            }
+          }
         },
         move(event) {
           isDragging.current = true;
@@ -100,18 +114,8 @@ export const BlockSprite = memo(function BlockSprite({
           const imgEl = blockRef.current?.querySelector('.block-img') as HTMLElement | null;
           if (imgEl) imgEl.classList.add('is-dragging');
 
-          const sceneWorld = event.target.closest('.scene-world') as HTMLElement | null;
-          let zoom = 1;
-          if (sceneWorld) {
-            const transform = sceneWorld.style.transform;
-            const scaleMatch = transform.match(/scale\(([\d.]+)\)/);
-            if (scaleMatch?.[1]) {
-              zoom = Number.parseFloat(scaleMatch[1]);
-            }
-          }
-
-          const dxScreen = event.dx / zoom;
-          const dyScreen = event.dy / zoom;
+          const dxScreen = event.dx / dragZoomRef.current;
+          const dyScreen = event.dy / dragZoomRef.current;
           const { dWorldX, dWorldZ } = screenDeltaToWorld(dxScreen, dyScreen);
 
           moveBlockPosition(block.id, dWorldX, dWorldZ);

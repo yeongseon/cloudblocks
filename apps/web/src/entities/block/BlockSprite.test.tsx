@@ -201,16 +201,42 @@ describe('BlockSprite', () => {
 
     const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
       listeners: {
-        start: () => void;
+        start: (event: { target: HTMLElement }) => void;
         move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
       };
     };
 
     const target = container.querySelector('.block-sprite') as HTMLElement;
-    draggableConfig.listeners.start();
+    draggableConfig.listeners.start({ target });
     draggableConfig.listeners.move({ dx: 20, dy: 10, target });
 
     expect(moveBlockPositionMock).toHaveBeenCalledWith('block-drag-move', 0.3125, 0);
+  });
+
+  it('caches zoom value at drag start and reuses it during move', () => {
+    const block = makeBlock('block-zoom-cache', 'compute');
+    const { container } = render(
+      <div className="scene-world" style={{ transform: 'scale(2)' }}>
+        <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />
+      </div>,
+    );
+
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        start: (event: { target: HTMLElement }) => void;
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+      };
+    };
+
+    const target = container.querySelector('.block-sprite') as HTMLElement;
+    draggableConfig.listeners.start({ target });
+
+    const sceneWorld = container.querySelector('.scene-world') as HTMLElement;
+    sceneWorld.style.transform = 'scale(4)';
+
+    draggableConfig.listeners.move({ dx: 20, dy: 10, target });
+
+    expect(moveBlockPositionMock).toHaveBeenCalledWith('block-zoom-cache', 0.3125, 0);
   });
 
   it('ignores click while dragging', async () => {
