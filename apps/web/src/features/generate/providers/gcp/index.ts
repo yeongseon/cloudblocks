@@ -5,8 +5,8 @@ export const gcpProviderDefinition: ProviderDefinition = {
   displayName: 'GCP',
   blockMappings: {
     compute: {
-      resourceType: 'google_compute_instance',
-      namePrefix: 'instance',
+      resourceType: 'google_cloud_run_v2_service',
+      namePrefix: 'run',
     },
     database: {
       resourceType: 'google_sql_database_instance',
@@ -17,8 +17,8 @@ export const gcpProviderDefinition: ProviderDefinition = {
       namePrefix: 'bucket',
     },
     gateway: {
-      resourceType: 'google_compute_url_map',
-      namePrefix: 'urlmap',
+      resourceType: 'google_compute_backend_service',
+      namePrefix: 'backend',
     },
     function: {
       resourceType: 'google_cloudfunctions_function',

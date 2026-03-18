@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   awsProvider,
   awsProviderDefinition,
+  gcpProvider,
+  gcpProviderDefinition,
   azureProvider,
   azureProviderDefinition,
   getProvider,
@@ -97,6 +99,10 @@ describe('getProvider', () => {
   it('returns undefined for unknown name', () => {
     expect(getProvider('unknown')).toBeUndefined();
   });
+
+  it('returns gcp provider for gcp name', () => {
+    expect(getProvider('gcp')).toBe(gcpProvider);
+  });
 });
 
 describe('getProviderDefinition', () => {
@@ -106,6 +112,10 @@ describe('getProviderDefinition', () => {
 
   it('returns aws provider definition for aws name', () => {
     expect(getProviderDefinition('aws')).toBe(awsProviderDefinition);
+  });
+
+  it('returns gcp provider definition for gcp name', () => {
+    expect(getProviderDefinition('gcp')).toBe(gcpProviderDefinition);
   });
 
   it('returns undefined for unknown name', () => {
@@ -128,6 +138,30 @@ describe('awsProvider', () => {
     });
     expect(awsProvider.plateMappings.subnet).toEqual({
       resourceType: 'aws_subnet',
+      namePrefix: 'subnet',
+    });
+  });
+});
+
+describe('gcpProvider', () => {
+  it('uses Cloud Run and backend service mappings for compute and gateway', () => {
+    expect(gcpProvider.blockMappings.compute).toEqual({
+      resourceType: 'google_cloud_run_v2_service',
+      namePrefix: 'run',
+    });
+    expect(gcpProvider.blockMappings.gateway).toEqual({
+      resourceType: 'google_compute_backend_service',
+      namePrefix: 'backend',
+    });
+  });
+
+  it('keeps expected network and subnet plate mappings', () => {
+    expect(gcpProvider.plateMappings.network).toEqual({
+      resourceType: 'google_compute_network',
+      namePrefix: 'network',
+    });
+    expect(gcpProvider.plateMappings.subnet).toEqual({
+      resourceType: 'google_compute_subnetwork',
       namePrefix: 'subnet',
     });
   });
