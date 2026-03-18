@@ -6,7 +6,7 @@ CloudBlocks evolves from a **2.5D isometric cloud architecture builder** into a 
 
 ---
 
-# Milestone 0 — Concept Validation
+## Milestone 0 — Concept Validation
 
 Goal:
 Validate the CloudBlocks block-based abstraction model.
@@ -34,7 +34,7 @@ Proof that the **block abstraction maps cleanly to cloud architecture and IaC co
 
 ---
 
-# Milestone 1 — CloudBlocks Builder (MVP) ✅
+## Milestone 1 — CloudBlocks Builder (MVP) ✅
 
 Goal:
 Create a working **2.5D isometric cloud architecture builder**.
@@ -66,7 +66,7 @@ Deliverables:
 
 ---
 
-# Milestone 2 — Visual Polish + UX ✅
+## Milestone 2 — Visual Polish + UX ✅
 
 Goal:
 Improve the builder experience for daily use.
@@ -90,7 +90,7 @@ Features:
 
 ---
 
-# Milestone 3 — Code Generation (Terraform) ✅
+## Milestone 3 — Code Generation (Terraform) ✅
 
 Goal:
 Generate **Terraform code** from visual architecture — the core value proposition.
@@ -132,7 +132,7 @@ resource "azurerm_subnet" "public" {
 
 ---
 
-# Milestone 4 — Workspace Management + Import/Export ✅
+## Milestone 4 — Workspace Management + Import/Export ✅
 
 Goal:
 Multiple workspaces, architecture import/export, and template system.
@@ -155,7 +155,7 @@ Features:
 
 ---
 
-# Milestone 5 — GitHub Integration + Backend API ✅
+## Milestone 5 — GitHub Integration + Backend API ✅
 
 Goal:
 Connect CloudBlocks to GitHub — architecture and generated code stored in user repos via a **thin orchestration backend**.
@@ -192,7 +192,7 @@ Connect CloudBlocks to GitHub — architecture and generated code stored in user
 
 ---
 
-# Milestone 6 — Multi-Generator + Template Marketplace ✅
+## Milestone 6 — Multi-Generator + Template Marketplace ✅
 
 Goal:
 Support multiple IaC generators and a community template ecosystem.
@@ -236,7 +236,7 @@ HTTP → Function → Storage
 
 ---
 
-# Milestone 6B — Builder UX Completion
+## Milestone 6B — Builder UX Completion
 
 Goal:
 Close remaining UX gaps in the single-user builder experience before adding collaboration features.
@@ -273,7 +273,7 @@ Features:
 
 ---
 
-# Milestone 6C — Learning Mode (Duolingo for Cloud Architecture)
+## Milestone 6C — Learning Mode (Duolingo for Cloud Architecture)
 
 Goal:
 Transform CloudBlocks from a pure editor into a **learning platform** with guided, scenario-based missions.
@@ -315,7 +315,7 @@ Features:
 
 ---
 
-# Phase 3 — Lego Minifigure Character SVG ✅
+## Phase 3 — Lego Minifigure Character SVG ✅
 
 Goal:
 Create a DevOps Engineer Lego minifigure character as an inline SVG component with cloud provider branding.
@@ -351,7 +351,7 @@ Features:
 
 ---
 
-# Milestone 7 — Collaboration + CI/CD Integration ✅
+## Milestone 7 — Collaboration + CI/CD Integration ✅
 
 Goal:
 Team collaboration via Git and automated CI/CD pipelines.
@@ -382,7 +382,7 @@ Deferred:
 
 ---
 
-# Phase 2 UX — Magnetic Snap, Dynamic Shadows, Bounce Transitions ✅
+## Phase 2 UX — Magnetic Snap, Dynamic Shadows, Bounce Transitions ✅
 
 Goal:
 Add tactile, physical-feeling UX polish to block and plate drag interactions.
@@ -414,7 +414,7 @@ Features:
 
 ---
 
-# Phase 7 — Session Auth Migration ✅
+## Phase 7 — Session Auth Migration ✅
 
 Goal:
 Replace JWT-style token auth with secure cookie-based server sessions.
@@ -438,7 +438,7 @@ Features:
 
 ---
 
-# UX Core Improvements
+## UX Core Improvements
 
 Goal:
 Establish a robust UX state machine and command-based interaction model.
@@ -471,7 +471,7 @@ Features:
 
 ---
 
-# Phase 4 — Brick Design System
+## Phase 4 — Brick Design System
 
 Goal:
 Expand the visual vocabulary and formalize the brick design tokens.
@@ -506,7 +506,7 @@ Follow-up (outside delivered exit criteria): full design token extraction and ex
 
 ---
 
-# Phase 5 — Core Model & Multi-Cloud Bridge
+## Phase 5 — Core Model & Multi-Cloud Bridge
 
 Goal:
 Update the core domain model to support multi-provider architectures.
@@ -539,7 +539,7 @@ Features:
 
 ---
 
-# Phase 6 — Provider Integration
+## Phase 6 — Provider Integration
 
 Goal:
 Implement visual and functional provider-specific UI elements.
@@ -570,7 +570,7 @@ Features:
 
 ---
 
-# Phase 9 — Visual Builder Evolution ✅
+## Phase 9 — Visual Builder Evolution ✅
 
 Goal:
 Comprehensive visual builder upgrade implementing UX state machine, brick design system, domain model expansion, and provider integration foundations.
@@ -604,7 +604,7 @@ Key Features:
 
 ---
 
-# Phase 10 — Documentation Accuracy
+## Phase 10 — Documentation Accuracy
 
 Goal:
 Bring all documentation into alignment with the Phase 9 codebase and current architecture behavior.
@@ -621,7 +621,7 @@ Scope:
 
 ---
 
-# Milestone 8 — Multi-Cloud Platform
+## Milestone 8 — Multi-Cloud Platform
 
 Goal:
 Support multiple cloud providers from the same architecture.
@@ -647,7 +647,7 @@ Architecture remains the same — provider adapters handle the mapping.
 
 ---
 
-# Milestone 9 — Architecture Simulation
+## Milestone 9 — Architecture Simulation
 
 Goal:
 Simulate architecture behavior before deployment.
@@ -661,7 +661,7 @@ Features:
 
 ---
 
-# Milestone 10 — Cloud Digital Twin
+## Milestone 10 — Cloud Digital Twin
 
 Goal:
 Synchronize visual architecture with real infrastructure state.
@@ -679,7 +679,7 @@ Example:
 
 ---
 
-# Milestone 11 — Template Marketplace + Plugin Ecosystem
+## Milestone 11 — Template Marketplace + Plugin Ecosystem
 
 Goal:
 Full ecosystem for community contributions.
@@ -695,7 +695,7 @@ Features:
 
 ---
 
-# Long Term Vision
+## Long Term Vision
 
 CloudBlocks evolves into:
 
@@ -708,7 +708,7 @@ CloudBlocks evolves into:
 
 ---
 
-# Development Strategy
+## Development Strategy
 
 Key principles:
 
@@ -723,7 +723,7 @@ Key principles:
 
 ---
 
-# Success Metrics
+## Success Metrics
 
 Milestone 1 (Complete)
 - Architecture built successfully
@@ -750,7 +750,7 @@ Milestone 8+
 
 ---
 
-# Summary
+## Summary
 
 The roadmap evolves CloudBlocks from:
 

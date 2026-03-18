@@ -444,7 +444,7 @@ The system internally uses a 2D coordinate model.
 
 # 16. Future Roadmap
 
-See [ROADMAP.md](ROADMAP.md) for current milestone status. Milestones 1–7 and Phases 2/3 are complete.
+See [ROADMAP.md](ROADMAP.md) for the canonical milestone and phase timeline, including current completion status.
 
 ---
 
