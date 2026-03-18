@@ -105,7 +105,7 @@ These map to the `BlockCategory` type in `shared/types/index.ts`.
 
 CloudBlocks uses a **3-layer Lego-style visual system**. Blocks (resource layer) render as realistic Lego bricks with studs on top, where Applications (application layer) can sit.
 
-> **Canonical size specification**: See [BRICK_SIZE_SPEC.md](./BRICK_SIZE_SPEC.md) for detailed stud/pixel dimensions and resource mappings.
+ > **Canonical size specification**: See [BRICK_DESIGN_SPEC.md](./BRICK_DESIGN_SPEC.md) for detailed stud/pixel dimensions and resource mappings.
 
 ### 3.1 Brick Size Tiers (5 Levels)
 
@@ -227,7 +227,7 @@ Service icons use Unicode/emoji for MVP (future: custom SVG icons):
 
 Plates render as thick, opaque Lego baseplates with a dense stud grid. Plate sizes scale with **learning complexity**.
 
-> **Canonical size specification**: See [BRICK_SIZE_SPEC.md](./BRICK_SIZE_SPEC.md) for detailed stud/pixel dimensions.
+ > **Canonical size specification**: See [BRICK_DESIGN_SPEC.md](./BRICK_DESIGN_SPEC.md) for detailed stud/pixel dimensions.
 
 ### 4.1 Plate Size Tiers (Learning Levels)
 
@@ -1045,7 +1045,7 @@ Each minifigure variant carries a **cloud provider logo on the torso**, establis
 
 | Part | Shape | Color | Notes |
 |------|-------|-------|-------|
-| **Stud** | Ellipse (Universal Stud Standard) | Bright Yellow `#F2CD37` | `rx=19, ry=9.5, h=7px` — same as all studs |
+| **Stud** | Ellipse (Universal Stud Standard) | Bright Yellow `#F2CD37` | `rx=12, ry=6, h=5px` — same as all studs |
 | **Head** | Cylinder (ellipse top + rect body) | Bright Yellow `#F2CD37` | Simple face: 2 dot eyes + smile arc |
 | **Torso** | Tapered rectangle | Provider-dependent (see §11.2) | Cloud logo on front face |
 | **Arms** | Diagonal rects | Provider torso color | Angled ~30° from torso |
@@ -1109,7 +1109,7 @@ The default minifigure represents a **DevOps Engineer** persona:
 
 ### 11.9 Constraints
 
-- **Universal Stud Standard**: Head stud uses identical dimensions (`rx=19, ry=9.5, h=7px`)
+- **Universal Stud Standard**: Head stud uses identical dimensions (`rx=12, ry=6, h=5px`)
 - **No raster images**: All graphics are inline SVG paths — no PNG/JPG logos
 - **CC0/Apache-compatible assets only**: No trademarked logos — use simplified geometric approximations
 - **No external dependencies**: Raw SVG elements, no icon libraries
