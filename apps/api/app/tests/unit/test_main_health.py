@@ -5,6 +5,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
+import app.main as main
 from app.main import readiness_check
 
 
@@ -15,7 +16,7 @@ async def test_readiness_check_includes_redis_ping_when_redis_backend(monkeypatc
 
     monkeypatch.setattr("app.main.get_database", lambda: db)
     monkeypatch.setattr("app.main.get_redis_client", lambda: redis_client)
-    monkeypatch.setattr("app.main.settings.session_backend", "redis")
+    monkeypatch.setattr(main.settings, "session_backend", "redis")
 
     response = await readiness_check()
 
@@ -30,7 +31,7 @@ async def test_readiness_check_returns_503_when_redis_backend_missing_client(mon
 
     monkeypatch.setattr("app.main.get_database", lambda: db)
     monkeypatch.setattr("app.main.get_redis_client", lambda: None)
-    monkeypatch.setattr("app.main.settings.session_backend", "redis")
+    monkeypatch.setattr(main.settings, "session_backend", "redis")
 
     response = await readiness_check()
 
@@ -44,7 +45,7 @@ async def test_readiness_check_skips_redis_for_non_redis_backend(monkeypatch) ->
 
     monkeypatch.setattr("app.main.get_database", lambda: db)
     monkeypatch.setattr("app.main.get_redis_client", lambda: redis_client)
-    monkeypatch.setattr("app.main.settings.session_backend", "sqlite")
+    monkeypatch.setattr(main.settings, "session_backend", "sqlite")
 
     response = await readiness_check()
 
