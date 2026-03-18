@@ -20,6 +20,7 @@ describe('useUIStore', () => {
       showGitHubRepos: false,
       showGitHubSync: false,
       showGitHubPR: false,
+      activeProvider: 'azure',
       editorMode: 'build',
       showLearningPanel: false,
       showScenarioGallery: false,
@@ -47,6 +48,7 @@ describe('useUIStore', () => {
       expect(state.showGitHubRepos).toBe(false);
       expect(state.showGitHubSync).toBe(false);
       expect(state.showGitHubPR).toBe(false);
+      expect(state.activeProvider).toBe('azure');
       expect(state.editorMode).toBe('build');
       expect(state.showLearningPanel).toBe(false);
       expect(state.showScenarioGallery).toBe(false);
@@ -145,6 +147,20 @@ describe('useUIStore', () => {
       useUIStore.getState().setConnectionSource('block-1');
       expect(useUIStore.getState().toolMode).toBe('connect');
       expect(useUIStore.getState().connectionSource).toBe('block-1');
+    });
+  });
+
+  describe('activeProvider', () => {
+    it("defaults to 'azure'", () => {
+      expect(useUIStore.getState().activeProvider).toBe('azure');
+    });
+
+    it('setActiveProvider updates provider mode', () => {
+      useUIStore.getState().setActiveProvider('aws');
+      expect(useUIStore.getState().activeProvider).toBe('aws');
+
+      useUIStore.getState().setActiveProvider('gcp');
+      expect(useUIStore.getState().activeProvider).toBe('gcp');
     });
   });
 

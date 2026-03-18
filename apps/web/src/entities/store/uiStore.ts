@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { BlockCategory } from '../../shared/types/index';
+import type { BlockCategory, ProviderType } from '../../shared/types/index';
 import type { EditorMode } from '../../shared/types/learning';
 import type { DiffDelta } from '../../shared/types/diff';
 import type { ArchitectureModel } from '../../shared/types/index';
@@ -16,6 +16,9 @@ interface UIState {
   // ── Tool mode ──
   toolMode: ToolMode;
   setToolMode: (mode: ToolMode) => void;
+
+  activeProvider: ProviderType;
+  setActiveProvider: (provider: ProviderType) => void;
 
   // ── Connection mode ──
   connectionSource: string | null;
@@ -95,6 +98,9 @@ export const useUIStore = create<UIState>((set) => ({
   toolMode: 'select',
   setToolMode: (mode) =>
     set({ toolMode: mode, connectionSource: null }),
+
+  activeProvider: 'azure',
+  setActiveProvider: (provider) => set({ activeProvider: provider }),
 
   connectionSource: null,
   setConnectionSource: (id) => set({ connectionSource: id }),
