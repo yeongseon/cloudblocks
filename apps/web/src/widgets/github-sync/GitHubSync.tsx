@@ -56,6 +56,8 @@ export function GitHubSync() {
   if (!show) return null;
 
   const handleLinkRepo = async () => {
+    if (loading) return;
+
     const cleanedRepo = repoInput.trim();
     if (!cleanedRepo || !cleanedRepo.includes('/')) {
       setError('Repository must be in owner/repo format.');
@@ -162,7 +164,7 @@ export function GitHubSync() {
                 onChange={(e) => setBackendWorkspaceIdInput(e.target.value)}
               />
 
-              <button className="github-sync-primary-btn" onClick={handleLinkRepo}>
+              <button className="github-sync-primary-btn" onClick={() => void handleLinkRepo()} disabled={loading}>
                 Link
               </button>
             </div>

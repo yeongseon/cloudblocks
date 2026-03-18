@@ -129,6 +129,20 @@ describe('GitHubSync', () => {
     expect(screen.getByText('Repository must be in owner/repo format.')).toBeInTheDocument();
   });
 
+  it('stays unlinked and shows error when link API fails', async () => {
+    const user = userEvent.setup();
+    mockApiPut.mockRejectedValueOnce(new Error('Link failed'));
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+
+    expect(await screen.findByText('Link failed')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Sync to GitHub' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Pull from GitHub' })).not.toBeInTheDocument();
+  });
+
   it('pull button calls API and imports architecture', async () => {
     const user = userEvent.setup();
     const archPayload = { id: 'pulled', name: 'Pulled', version: '1.0.0', plates: [], blocks: [], connections: [], externalActors: [], createdAt: '', updatedAt: '' };
