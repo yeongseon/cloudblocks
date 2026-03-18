@@ -241,8 +241,6 @@ HTTP → Function → Storage
 Goal:
 Close remaining UX gaps in the single-user builder experience before adding collaboration features.
 
-> **Reference**: [UI_IMPROVEMENT_GAP_ANALYSIS.md](../design/UI_IMPROVEMENT_GAP_ANALYSIS.md)
-
 Features:
 
 - Drag-to-create: Drag resources from CommandCard palette onto canvas plates (using interactjs)
@@ -688,51 +686,144 @@ Architecture remains the same — provider adapters handle the mapping.
 
 ---
 
-## Milestone 9 — Architecture Simulation
+## Milestone 9 — UX Core Hardening
 
 Goal:
-Simulate architecture behavior before deployment.
+Harden the existing UX to production quality — surface features that already exist but lack discoverability.
 
-Features:
+Key Objectives:
 
-- Request flow simulation
-- Latency modeling
-- Failure simulation
-- Scaling simulation
+- Expose ProviderToggle in MenuBar (currently dead code in Toolbar)
+- EmptyCanvasOverlay CTA improvements (subnet creation, guided tour)
+- Invalid-drop feedback for drag operations
+- Connection valid-target highlighting
+- Experience story: README hero image, UI_FLOW.md rewrite, docs IA improvement
+
+### Exit Criteria
+- [ ] Provider toggle accessible from main UI (not buried in dead Toolbar)
+- [ ] Empty canvas overlay provides contextual next-step guidance
+- [ ] Invalid drop targets show visual rejection feedback
+- [ ] README includes hero image and product screenshots
+- [ ] UI_FLOW.md rewritten as product journey (not concept doc)
+
+### Dependencies
+- Milestone 8 complete
 
 ---
 
-## Milestone 10 — Cloud Digital Twin
+## Milestone 10 — External Actors & DevOps UX
 
 Goal:
-Synchronize visual architecture with real infrastructure state.
+Transform the DevOps minifigure from decoration into an interactive RTS-style worker unit.
 
-Features:
+Key Objectives:
 
-- Live infrastructure status
-- Real-time cloud health visualization
-- Deployment monitoring
+- Minifigure becomes selectable (remove `aria-hidden`, add click handler)
+- Minifigure selection activates CommandCard (StarCraft SCV pattern)
+- Build animation: minifigure moves to resource placement location
+- Multiple worker support (multi-select, parallel build)
+- Build progress indicator on resources under construction
+- External actor (Internet, User) repositioning and interaction
 
-Example:
-- Green block → running
-- Red block → error
-- Yellow block → deploying
+### Exit Criteria
+- [ ] Clicking minifigure selects it and shows build commands in CommandCard
+- [ ] Resource placement triggers minifigure movement animation
+- [ ] Build progress is visually indicated on resources
+- [ ] External actors are user-movable on canvas
+
+### Dependencies
+- Milestone 9 complete (requires ProviderToggle exposure and CommandCard improvements)
 
 ---
 
-## Milestone 11 — Template Marketplace + Plugin Ecosystem
+## Milestone 11 — Brick Design System
 
 Goal:
-Full ecosystem for community contributions.
+Consolidate the brick visual system — align block categories with design tokens.
 
-Features:
+Key Objectives:
 
-- Generator plugins from third parties
-- Premium template marketplace
-- Architecture review tools
-- Custom rule engine extensions
+- Reconcile BlockCategory enum with brick design profiles
+- Unified stud standard enforcement (rx=12, ry=6, height=5)
+- Provider-themed color palettes (Azure blue, AWS orange, GCP multi)
+- Consistent sizing across all brick types
 
-> **Note**: The Terraform implementation (original Phase 5) and Templates system (original Phase 6) from the user's roadmap were completed in Milestones 3, 4, and 6.
+### Exit Criteria
+- [ ] BlockCategory and brick profiles fully aligned
+- [ ] All studs pass uniform dimension validation
+- [ ] Provider themes applied consistently across all block types
+
+### Dependencies
+- Milestone 8 complete (parallel with Milestone 9; no UX dependency)
+
+---
+
+## Milestone 12 — Core Model & Provider System
+
+Goal:
+Extend the domain model to support true multi-cloud semantics.
+
+Key Objectives:
+
+- Add `subtype` and `config` fields to Block type
+- Provider adapter refinement (AWS, GCP resource mappings)
+- Schema migration strategy for existing workspaces
+- Provider-aware validation rules
+
+### Exit Criteria
+- [ ] Block type includes `subtype` and `config` fields
+- [ ] AWS and GCP adapters produce valid IaC output
+- [ ] Existing workspaces migrate cleanly to new schema
+- [ ] Provider-specific validation rules functional
+
+### Dependencies
+- Milestone 9 complete (ProviderToggle must be surfaced for testing)
+- Milestone 11 complete (BlockCategory alignment required before schema changes)
+
+---
+
+## Milestone 13 — Terraform Pipeline
+
+Goal:
+Productionize the code generation pipeline with real-world deployment support.
+
+Key Objectives:
+
+- Terraform plan/apply integration
+- Generated code quality validation (terraform validate, tflint)
+- Private-link template support
+- CI/CD pipeline templates (GitHub Actions, GitLab CI)
+
+### Exit Criteria
+- [ ] Generated Terraform passes `terraform validate` and `tflint`
+- [ ] CI/CD pipeline templates available for major platforms
+- [ ] Private-link architecture template functional
+
+### Dependencies
+- Milestone 12 complete (requires stable multi-cloud model)
+
+---
+
+## Milestone 14 — AI Roadmap
+
+Goal:
+Introduce AI-assisted architecture design and optimization.
+
+Key Objectives:
+
+- Natural language to architecture (describe → generate blocks)
+- Architecture optimization suggestions
+- Cost estimation and comparison
+- Security posture analysis
+
+### Exit Criteria
+- [ ] Natural language input produces valid architecture
+- [ ] AI suggestions improve architecture quality metrics
+- [ ] Cost estimation within 20% of actual cloud pricing
+
+### Dependencies
+- Milestone 12 complete (requires stable domain model)
+- Milestone 13 recommended (AI-generated architectures benefit from validated pipeline)
 
 ---
 
@@ -744,8 +835,10 @@ CloudBlocks evolves into:
 - Architecture → Code Generation Platform
 - Git-native DevOps workflow tool
 - Multi-cloud infrastructure designer
-- Cloud operations dashboard
+- Architecture simulation and failure modeling
+- Cloud Digital Twin (live infrastructure state sync)
 - Community-driven template and plugin ecosystem
+- Cloud operations dashboard
 
 ---
 
@@ -809,26 +902,26 @@ The roadmap evolves CloudBlocks from:
 
 → Collaboration Platform (Milestone 7)
 
-→ Tactile UX Polish (Phase 2 UX)
-
-→ UX Core Improvements (Phase 1+)
-
-→ Brick Design System (Phase 4)
-
-→ Core Model & Multi-Cloud Bridge (Phase 5)
-
-→ Provider Integration (Phase 6)
-
-→ Visual Builder Evolution (Phase 9)
-
-→ Documentation Accuracy (Phase 10)
-
-→ UX/UI Improvements (Phase 11)
-
 → Multi-Cloud Architecture Tool (Milestone 8)
 
-→ Architecture Simulator (Milestone 9)
+→ UX Core Hardening (Milestone 9) ‖ Brick Design System (Milestone 11)
 
-→ Cloud Digital Twin (Milestone 10)
+→ DevOps Worker UX (Milestone 10)
 
-→ Full Plugin Ecosystem (Milestone 11)
+→ Core Model & Provider System (Milestone 12)
+
+→ Terraform Pipeline (Milestone 13)
+
+→ AI-Assisted Architecture (Milestone 14)
+
+### Dependency Graph
+
+```
+Milestone 8 (Complete)
+    ├── Milestone 9 (UX Core Hardening)
+    │       └── Milestone 10 (DevOps UX)
+    │       └── Milestone 12 (Core Model) ←── also requires Milestone 11
+    │               └── Milestone 13 (Terraform Pipeline)
+    │               └── Milestone 14 (AI Roadmap) ←── also benefits from Milestone 13
+    └── Milestone 11 (Brick Design) ──── parallel with Milestone 9
+```
