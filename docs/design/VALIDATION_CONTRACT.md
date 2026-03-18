@@ -44,10 +44,7 @@ Placement rules validate that blocks are placed on appropriate plates.
 | `rule-db-private` | error | Database block not on a `subnet` plate with `subnetAccess: "private"` | Database block must be placed on a private Subnet Plate |
 | `rule-gw-public` | error | Gateway block not on a `subnet` plate with `subnetAccess: "public"` | Gateway block must be placed on a public Subnet Plate |
 | `rule-storage-subnet` | error | Storage block not on a `subnet` plate | Storage block must be placed on a Subnet Plate |
-| `rule-serverless-network` | error | Function block not on a `network` plate | Function block must be placed on a Network Plate |
-| `rule-serverless-network` | error | Queue block not on a `network` plate | Queue block must be placed on a Network Plate |
-| `rule-serverless-network` | error | Event block not on a `network` plate | Event block must be placed on a Network Plate |
-| `rule-serverless-network` | error | Timer block not on a `network` plate | Timer block must be placed on a Network Plate |
+| `rule-serverless-network` | error | `function`, `queue`, `event`, or `timer` block not on a `network` plate | Serverless blocks (function/queue/event/timer) must be placed on a Network Plate |
 
 ### Implementation References
 
@@ -185,6 +182,6 @@ When backend validation is introduced:
 
 ## 8. Migration Notes
 
-- New block categories from Milestone 6 (`FunctionBlock`, `QueueBlock`, `EventBlock`, `TimerBlock`) are implemented and reflected in the placement rules above.
+- Serverless block categories (`FunctionBlock`, `QueueBlock`, `EventBlock`, `TimerBlock`) are implemented and reflected in the placement rules above.
 - When adding new connection types (e.g., `EventFlow`), update the allowed connection map here first.
 - Breaking rule changes (removing a rule, changing severity) require a `ruleSchemaVersion` bump.
