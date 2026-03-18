@@ -163,9 +163,9 @@ Studs on brick top surface serve as **application placement slots** for hostable
 | Stud height | `7px` (cylinder extrusion) |
 | Stud structure | 3 layers: shadow ellipse + top ellipse + inner ring |
 | Spacing | 1 SCALE unit (64px) center-to-center, isometric diamond grid |
-| Color | Same hue as brick body; see BRICK_SIZE_SPEC.md §7.3 for exact values |
+| Color | Same hue as brick body; see BRICK_DESIGN_SPEC.md §3.6 for exact values |
 
-> **INVIOLABLE**: All studs use identical dimensions. See [BRICK_SIZE_SPEC.md §0](./BRICK_SIZE_SPEC.md#0-universal-stud-standard-inviolable) for the canonical standard.
+> **INVIOLABLE**: All studs use identical dimensions. See [BRICK_DESIGN_SPEC.md §0](./BRICK_DESIGN_SPEC.md#0-universal-stud-standard-inviolable) for the canonical standard.
 
 
 ### 3.4 Application Layer (1×1 Cylinders)
@@ -255,9 +255,9 @@ Plates render as thick, opaque Lego baseplates with a dense stud grid. Plate siz
 | Stud height | `7px` (cylinder extrusion) |
 | Stud structure | 3 layers: shadow ellipse + top ellipse + inner ring |
 | Spacing | 1 SCALE unit (64px) center-to-center, isometric diamond grid |
-| Color | Same hue as plate body; see BRICK_SIZE_SPEC.md §7.3 for exact values |
+| Color | Same hue as plate body; see BRICK_DESIGN_SPEC.md §4.5 for exact values |
 
-> **INVIOLABLE**: Plate studs are the SAME SIZE as block studs. This is the Lego principle — same gauge enables assembly. See [BRICK_SIZE_SPEC.md §0](./BRICK_SIZE_SPEC.md#0-universal-stud-standard-inviolable).
+> **INVIOLABLE**: Plate studs are the SAME SIZE as block studs. This is the Lego principle — same gauge enables assembly. See [BRICK_DESIGN_SPEC.md §0](./BRICK_DESIGN_SPEC.md#0-universal-stud-standard-inviolable).
 
 ### 4.4 Subnet Boundary
 

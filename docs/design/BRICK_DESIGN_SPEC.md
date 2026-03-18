@@ -356,12 +356,12 @@ On `main`, all blocks share the same high-level visual rules:
 - `silhouette` varies by category (`'tower' | 'heavy' | 'shield' | 'module'`)
 - the top face is an isometric diamond
 - the left and right walls are always rendered
-- `BlockSvg` still uses fixed `worldHeight = 0.8` for side-wall rendering
-- `designTokens.ts` also defines tier-based heights via `TIER_HEIGHTS` (`signal: 0.5`, `light: 0.6`, `service: 0.8`, `core: 1.0`, `anchor: 1.2`)
+- side-wall height is tier-based via `getBlockWorldHeight(category)` from `designTokens.ts`
+- `TIER_HEIGHTS` in `designTokens.ts` currently maps: `signal: 0.5`, `light: 0.6`, `service: 0.8`, `core: 1.0`, `anchor: 1.2`
 - the top face always renders a stud grid using the category footprint
 - text label goes on the left wall; emoji icon goes on the right wall
 
-This means the **size tier system and silhouette taxonomy are implemented in profile data**, while the current renderer still uses a fixed side-wall height constant.
+This means the **size tier system and silhouette taxonomy are both implemented in runtime rendering/profile data**, while logical placement footprint is still uniform in the store model.
 
 ### 3.5 Current Block Visual Profile API
 
@@ -665,20 +665,14 @@ Planned requirement:
 #### Block Geometry Constants
 
 ```ts
-const TILE_W = 64;
-const TILE_H = 32;
-const TILE_Z = 32;
-const margin = 10;
-const padding = 10;
-const worldHeight = 0.8;
-
-const TIER_HEIGHTS = {
-  signal: 0.5,
-  light: 0.6,
-  service: 0.8,
-  core: 1.0,
-  anchor: 1.2,
-};
+import {
+  BLOCK_MARGIN,
+  BLOCK_PADDING,
+  TILE_H,
+  TILE_W,
+  TILE_Z,
+  getBlockWorldHeight,
+} from '../../shared/tokens/designTokens';
 ```
 
 #### Block Face Geometry
@@ -686,8 +680,8 @@ const TIER_HEIGHTS = {
 ```ts
 const screenWidth = (studsX + studsY) * TILE_W / 2;
 const diamondHeight = (studsX + studsY) * TILE_H / 2;
-const sideWallPx = Math.round(worldHeight * TILE_Z);
-const svgHeight = diamondHeight + sideWallPx + padding;
+const sideWallPx = Math.round(getBlockWorldHeight(category) * TILE_Z);
+const svgHeight = diamondHeight + sideWallPx + BLOCK_PADDING;
 ```
 
 #### Top and Side Faces
