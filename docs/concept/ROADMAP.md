@@ -609,7 +609,7 @@ Key Features:
 Goal:
 Bring all documentation into alignment with the Phase 9 codebase and current architecture behavior.
 
-Status: 🔄 In Progress
+Status: ✅ Complete
 
 Scope:
 
@@ -618,6 +618,47 @@ Scope:
 
 ### Dependencies
 - Phase 9 complete
+
+---
+
+## Phase 11 — UX/UI Improvements ✅
+
+Goal:
+Address validated UX/UI research findings — fix interaction gaps, replace browser-native dialogs, improve performance, and harden connection logic.
+
+Status: ✅ Complete
+
+Scope:
+
+- 8 implementation issues (#141-#148)
+- 8 PRs merged (#149, #151-#156, #163-#164)
+- 1124 tests passing across 72 files
+
+Key Features:
+
+- **API base URL contract** — centralized `API_BASE` constant replacing hardcoded URLs
+- **ExternalActor interactivity** — selectable, connectable external actors with properties panel support
+- **Toast notifications** — `react-hot-toast` replacing all `alert()`/`confirm()` dialogs with ConfirmDialog for destructive actions
+- **CommandCard action implementation** — functional edit/delete/connect actions with proper UX state integration
+- **Multi-select cleanup** — removed phantom `isMultiSelected` flags from domain types
+- **Pointermove throttling** — `requestAnimationFrame`-based throttling via `useRafCallback` hook for 60fps canvas performance
+- **Connection selection/deletion** — clickable connections with invisible 14px hit-area, selection state, keyboard delete support
+- **Connection guard** — `addConnection()` validates against duplicates and self-connections, returns boolean for UI feedback
+
+### Exit Criteria
+- [x] API base URL centralized and all fetch calls use it
+- [x] ExternalActor elements are selectable and connectable in the builder
+- [x] All `alert()`/`confirm()` replaced with toast notifications and ConfirmDialog
+- [x] CommandCard edit/delete/connect actions are functional
+- [x] `isMultiSelected` phantom flags removed from Block and Plate types
+- [x] Pointermove events throttled with rAF (60fps target)
+- [x] Connections are selectable and deletable via click + keyboard
+- [x] `addConnection()` rejects duplicates and self-connections with user feedback
+- [x] All tests pass (1124 tests, 72 files), build clean
+- [x] Coverage: 97%+ statements, 90%+ branches
+
+### Dependencies
+- Phase 10 complete
 
 ---
 
@@ -780,7 +821,9 @@ The roadmap evolves CloudBlocks from:
 
 → Visual Builder Evolution (Phase 9)
 
-→ Documentation Accuracy (Phase 10, current)
+→ Documentation Accuracy (Phase 10)
+
+→ UX/UI Improvements (Phase 11)
 
 → Multi-Cloud Architecture Tool (Milestone 8)
 

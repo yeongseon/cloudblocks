@@ -172,6 +172,8 @@ Brick size represents **architectural weight** — the resource's importance, st
 
 # 4.5 Application
 
+> **Status: Planned — Not Yet Implemented.** The Application entity is part of the domain model design but has no corresponding TypeScript type or UI implementation in the current codebase. The section below describes the intended design for a future milestone.
+
 Applications represent **software you operate** on cloud resources (application layer).
 
 They are visual 1×1 cylindrical pieces that sit ON TOP of **hostable** Block bricks. Applications teach users what software runs on cloud infrastructure.
@@ -531,7 +533,7 @@ CloudBlocks uses a **provider abstraction layer** for multi-cloud support. Azure
 
 # 12. GitHub Integration Model
 
-> **Milestone 5+**: GitHub integration is planned for Milestone 5. This section describes the target design. No implementation exists yet.
+> **Milestone 5+**: GitHub integration is implemented (Milestone 5-7, with session auth migration in Phase 7). Architecture assets are stored in GitHub repos following a standard layout.
 
 Architecture assets are stored in GitHub repos following a standard layout. The backend mediates between the UI, GitHub, and the generation engine — it does not store architecture data.
 

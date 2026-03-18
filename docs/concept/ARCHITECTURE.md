@@ -76,7 +76,7 @@ cloudblocks/
 
 # 1. Architecture Overview
 
-## Current (Milestone 1) — Frontend-Only SPA
+## Frontend-Only SPA (Milestone 1)
 
 ```
 ┌────────────────────────────────────────────────────────┐
@@ -137,7 +137,7 @@ No backend required. All state lives in the browser.
 
 The frontend is a SPA built with React and SVG + CSS transforms. In Milestone 1, it worked entirely standalone with localStorage. As of Milestone 5-7, it uses a local-first model with optional GitHub sync.
 
-### Responsibilities (Milestone 1 — current)
+### Responsibilities (Milestone 1)
 - 2.5D isometric builder interface (SVG + CSS transforms)
 - Click-to-add block placement via palette
 - Architecture validation (in-browser Rule Engine)
@@ -286,7 +286,7 @@ Key responsibilities:
 - Enforce containment relationships
 - Serialize model state to JSON
 
-## 3.5 Architecture Model Schema (Milestone 1 — current)
+## 3.5 Architecture Model Schema
 
 The canonical model types are defined in `apps/web/src/shared/types/index.ts`. The domain model consists of the following core entities:
 
@@ -388,7 +388,7 @@ generators/
 
 ---
 
-# 6. Rendering Layer Architecture (Milestone 1 — current)
+# 6. Rendering Layer Architecture
 
 > See also: PRD §13 (User Interface), PRD §14 (Technical Constraints)
 
