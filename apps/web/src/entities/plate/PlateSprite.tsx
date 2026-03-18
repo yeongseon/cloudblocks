@@ -44,6 +44,7 @@ export const PlateSprite = memo(function PlateSprite({
   const plateRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dragZoomRef = useRef(1);
 
   useEffect(() => {
     const el = plateRef.current;
@@ -55,6 +56,19 @@ export const PlateSprite = memo(function PlateSprite({
       listeners: {
         start() {
           isDragging.current = false;
+
+          dragZoomRef.current = 1;
+          const sceneWorld = plateRef.current?.closest('.scene-world') as HTMLElement | null;
+          if (sceneWorld) {
+            const transform = sceneWorld.style.transform;
+            const scaleMatch = transform.match(/scale\(([\d.]+)\)/);
+            if (scaleMatch?.[1]) {
+              const parsedZoom = Number.parseFloat(scaleMatch[1]);
+              if (Number.isFinite(parsedZoom) && parsedZoom > 0) {
+                dragZoomRef.current = parsedZoom;
+              }
+            }
+          }
         },
         move(event) {
           isDragging.current = true;
@@ -62,18 +76,8 @@ export const PlateSprite = memo(function PlateSprite({
           const imgEl = plateRef.current?.querySelector('.plate-img') as HTMLElement | null;
           if (imgEl) imgEl.classList.add('is-dragging');
 
-          const sceneWorld = event.target.closest('.scene-world') as HTMLElement | null;
-          let zoom = 1;
-          if (sceneWorld) {
-            const transform = sceneWorld.style.transform;
-            const scaleMatch = transform.match(/scale\(([\d.]+)\)/);
-            if (scaleMatch?.[1]) {
-              zoom = Number.parseFloat(scaleMatch[1]);
-            }
-          }
-
-          const dxScreen = event.dx / zoom;
-          const dyScreen = event.dy / zoom;
+          const dxScreen = event.dx / dragZoomRef.current;
+          const dyScreen = event.dy / dragZoomRef.current;
           const { dWorldX, dWorldZ } = screenDeltaToWorld(dxScreen, dyScreen);
 
           movePlatePosition(plate.id, dWorldX, dWorldZ);

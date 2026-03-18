@@ -183,6 +183,33 @@ describe('PlateSprite', () => {
     expect(movePlatePositionMock).toHaveBeenCalledWith(plate.id, 0, 0);
   });
 
+  it('caches zoom value at drag start and reuses it during move', () => {
+    const plate = makeNetworkPlate();
+    const { container } = render(
+      <div className="scene-world" style={{ transform: 'scale(2)' }}>
+        <PlateSprite plate={plate} screenX={0} screenY={0} zIndex={1} />
+      </div>,
+    );
+
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        start: () => void;
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+      };
+    };
+
+    const target = container.querySelector('.plate-sprite') as HTMLElement;
+    draggableConfig.listeners.start();
+
+    const sceneWorld = container.querySelector('.scene-world') as HTMLElement;
+    sceneWorld.style.transform = 'scale(4)';
+
+    draggableConfig.listeners.move({ dx: 20, dy: 12, target });
+
+    expect(vi.mocked(screenDeltaToWorld)).toHaveBeenCalledWith(10, 6);
+    expect(movePlatePositionMock).toHaveBeenCalledWith(plate.id, 0, 0);
+  });
+
   it('ignores click while dragging', async () => {
     const user = userEvent.setup();
     const plate = makeNetworkPlate();
