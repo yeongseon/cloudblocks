@@ -176,7 +176,7 @@ async def test_sync_workspace_to_github_with_new_file_uses_none_sha(
     workspace = await _create_workspace(client, auth_cookies)
     workspace_id = workspace["id"]
 
-    mock_github.get_repo_contents.side_effect = GitHubError("missing")
+    mock_github.get_repo_contents.side_effect = GitHubError("missing", details={"status_code": 404})
     mock_github.create_or_update_file.return_value = {"commit": {"sha": "commit-sha-2"}}
 
     response = await client.post(
@@ -189,6 +189,30 @@ async def test_sync_workspace_to_github_with_new_file_uses_none_sha(
     args = mock_github.create_or_update_file.await_args.args
     assert args[7] is None
 
+
+@pytest.mark.asyncio
+async def test_sync_workspace_non_404_github_error_propagates_as_502(
+    client: AsyncClient,
+    auth_cookies: dict[str, str],
+    mock_github,
+    test_identity,
+) -> None:
+    workspace = await _create_workspace(client, auth_cookies)
+    workspace_id = workspace["id"]
+
+    mock_github.get_repo_contents.side_effect = GitHubError(
+        "rate limit exceeded", details={"status_code": 403}
+    )
+
+    response = await client.post(
+        f"/api/v1/workspaces/{workspace_id}/sync",
+        cookies=auth_cookies,
+        json={"architecture": {"plates": [], "blocks": []}},
+    )
+
+    assert response.status_code == 502
+    assert response.json()["error"]["code"] == "GITHUB_ERROR"
+    assert "rate limit" in response.json()["error"]["message"]
 
 @pytest.mark.asyncio
 async def test_sync_workspace_without_linked_repo_returns_502(
@@ -269,7 +293,7 @@ async def test_pull_workspace_architecture_file_not_found_returns_404(
     test_identity,
 ) -> None:
     workspace = await _create_workspace(client, auth_cookies)
-    mock_github.get_repo_contents.side_effect = GitHubError("no file")
+    mock_github.get_repo_contents.side_effect = GitHubError("no file", details={"status_code": 404})
 
     response = await client.post(
         f"/api/v1/workspaces/{workspace['id']}/pull",
@@ -279,6 +303,27 @@ async def test_pull_workspace_architecture_file_not_found_returns_404(
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "NOT_FOUND"
 
+
+@pytest.mark.asyncio
+async def test_pull_workspace_non_404_github_error_propagates_as_502(
+    client: AsyncClient,
+    auth_cookies: dict[str, str],
+    mock_github,
+    test_identity,
+) -> None:
+    workspace = await _create_workspace(client, auth_cookies)
+    mock_github.get_repo_contents.side_effect = GitHubError(
+        "internal server error", details={"status_code": 500}
+    )
+
+    response = await client.post(
+        f"/api/v1/workspaces/{workspace['id']}/pull",
+        cookies=auth_cookies,
+    )
+
+    assert response.status_code == 502
+    assert response.json()["error"]["code"] == "GITHUB_ERROR"
+    assert "internal server error" in response.json()["error"]["message"]
 
 @pytest.mark.asyncio
 async def test_pull_workspace_architecture_unexpected_format_returns_502(

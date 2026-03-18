@@ -118,7 +118,7 @@ describe('CommandCard', () => {
 
   // ─── CreationMode Tests ──────────────────────────────────
 
-  it('renders creation mode with tabs and 3x3 resource grid', () => {
+  it('renders creation mode with tabs and category-grouped resources', () => {
     const { container } = render(<CommandCard />);
 
     expect(screen.getByText('Create Resource')).toBeInTheDocument();
@@ -128,8 +128,9 @@ describe('CommandCard', () => {
     expect(screen.getByRole('button', { name: 'Edge' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Messaging' })).toBeInTheDocument();
 
-    expect(container.querySelectorAll('.command-card-row')).toHaveLength(3);
-    expect(container.querySelectorAll('.command-card-btn')).toHaveLength(9);
+    expect(container.querySelectorAll('.command-card-category-group').length).toBeGreaterThan(0);
+    expect(container.querySelectorAll('.command-card-resource-btn').length).toBeGreaterThanOrEqual(8);
+    expect(screen.getByText('Network Foundations')).toBeInTheDocument();
   });
 
   it('switches between all category tabs', async () => {

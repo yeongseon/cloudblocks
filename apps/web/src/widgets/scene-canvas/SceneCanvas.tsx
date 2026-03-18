@@ -127,7 +127,6 @@ export function SceneCanvas() {
       onPointerCancel={handlePointerUp}
     >
       <EmptyCanvasOverlay />
-      <DragGhost />
       <div 
         className="scene-world"
         style={{
@@ -173,6 +172,16 @@ export function SceneCanvas() {
               originY={origin.y}
             />
           ))}
+          <g className="drag-ghost-layer">
+            <DragGhost
+              containerRef={containerRef}
+              originX={origin.x}
+              originY={origin.y}
+              panX={pan.x}
+              panY={pan.y}
+              zoom={zoom}
+            />
+          </g>
         </svg>
 
         <div className="actor-layer">
