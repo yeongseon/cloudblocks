@@ -4,6 +4,7 @@ import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { apiGet, apiPost, apiPut } from '../../shared/api/client';
 import type { GitHubCommit, PullResponse, SyncResponse } from '../../shared/types/api';
+import type { ArchitectureSnapshot } from '../../shared/types/learning';
 import './GitHubSync.css';
 
 export function GitHubSync() {
@@ -12,7 +13,7 @@ export function GitHubSync() {
   const toggleGitHubRepos = useUIStore((s) => s.toggleGitHubRepos);
 
   const workspace = useArchitectureStore((s) => s.workspace);
-  const importArchitecture = useArchitectureStore((s) => s.importArchitecture);
+  const replaceArchitecture = useArchitectureStore((s) => s.replaceArchitecture);
   const setStoreBackendWorkspaceId = useArchitectureStore((s) => s.setBackendWorkspaceId);
 
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
@@ -108,7 +109,7 @@ export function GitHubSync() {
       const response = await apiPost<PullResponse>(
         `/api/v1/workspaces/${encodeURIComponent(effectiveWorkspaceId)}/pull`
       );
-      importArchitecture(JSON.stringify(response.architecture));
+      replaceArchitecture(response.architecture as ArchitectureSnapshot);
       await loadCommits();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to pull from GitHub.');
