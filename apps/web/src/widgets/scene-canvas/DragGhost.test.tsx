@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach, type Mock } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach, vi, type Mock } from 'vitest';
 import { fireEvent, render } from '@testing-library/react';
 import { DragGhost } from './DragGhost';
 import { useUIStore } from '../../entities/store/uiStore';
@@ -39,7 +39,16 @@ function renderDragGhost() {
 }
 
 describe('DragGhost', () => {
+  beforeEach(() => {
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+      callback(16);
+      return 1;
+    });
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
+  });
+
   afterEach(() => {
+    vi.unstubAllGlobals();
     useUIStore.setState({
       draggedBlockCategory: null,
       draggedResourceName: null,
