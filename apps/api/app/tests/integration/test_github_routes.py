@@ -13,7 +13,6 @@ from app.core.security import generate_id, generate_session_token
 from app.domain.models.entities import Session, User
 from app.infrastructure.db.repositories import SQLiteSessionRepository, SQLiteUserRepository
 
-
 VALID_ARCHITECTURE: dict[str, Any] = {
     "id": "arch-1",
     "name": "Test Architecture",
@@ -220,7 +219,7 @@ async def test_sync_workspace_non_404_github_error_propagates_as_502(
     response = await client.post(
         f"/api/v1/workspaces/{workspace_id}/sync",
         cookies=auth_cookies,
-        json={"architecture": {"plates": [], "blocks": []}},
+        json={"architecture": VALID_ARCHITECTURE},
     )
 
     assert response.status_code == 502
