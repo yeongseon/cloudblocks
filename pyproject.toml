@@ -3,13 +3,19 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "cloudblocks-api"
-version = "0.1.0"
-description = "CloudBlocks Platform - Backend API"
-readme = "apps/api/README.md"
+name = "cloudblocks"
+version = "0.11.0"
+description = "Architecture compiler that converts visual infrastructure designs into Terraform, Bicep, and Pulumi code"
+readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.10"
 authors = [{name = "yeongseon"}]
+keywords = ["cloud-architecture", "infrastructure-as-code", "terraform", "bicep", "pulumi", "multi-cloud"]
+
+[project.urls]
+Homepage = "https://github.com/yeongseon/cloudblocks"
+Repository = "https://github.com/yeongseon/cloudblocks"
+Issues = "https://github.com/yeongseon/cloudblocks/issues"
 
 [tool.ruff]
 target-version = "py310"
