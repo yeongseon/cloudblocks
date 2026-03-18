@@ -342,7 +342,7 @@ Features:
 ### Exit Criteria
 - [x] MinifigureSvg renders correctly at 48-64px scale
 - [x] Azure logo legible on torso front face
-- [x] Head stud follows Universal Stud Standard (rx=12, ry=6, h=5)
+- [x] Head stud follows Universal Stud Standard (rx=12, ry=6, height=5px)
 - [x] Isometric projection matches existing block/plate angles
 - [x] All existing tests pass, build clean
 
@@ -447,7 +447,7 @@ Status: ✅ Delivered as part of Phase 9 — Visual Builder Evolution
 
 Features:
 
-- **CommandPanel** — Replace BottomPanel with a StarCraft-style command panel for resource placement and actions
+- **BottomPanel + CommandCard** — StarCraft-style command interaction model for resource placement and actions
 - **DragGhost** — Ghost preview of the resource during the drag-to-create interaction
 - **Connection Preview** — Real-time connection line preview during connect mode
 - **Formal Zustand State Machine** — Explicit states: `idle` | `selecting` | `dragging` | `placing` | `connecting`
@@ -456,13 +456,13 @@ Features:
 
 | # | Deliverable | Priority | Effort |
 |---|------------|----------|--------|
-| 1 | CommandPanel component | P1 | Medium |
+| 1 | BottomPanel + CommandCard interaction model | P1 | Medium |
 | 2 | DragGhost visualization | P1 | Low |
 | 3 | Connection preview line | P1 | Low |
 | 4 | Zustand UX state machine | P1 | Medium |
 
 ### Exit Criteria
-- [x] BottomPanel replaced by CommandPanel with categorical tabs
+- [x] BottomPanel is active with CommandCard categorical tabs and action modes
 - [x] Drag-to-create shows accurate ghost preview at snap position
 - [x] Connect mode shows line from source to cursor/target
 - [x] All UI interactions are driven by explicit `InteractionState` transitions in `uiStore.ts` (`'idle' | 'selecting' | 'dragging' | 'placing' | 'connecting'`)
@@ -498,8 +498,9 @@ Features:
 - [x] Different resource types use distinct silhouettes (Tower, Heavy Block, Shield, Module)
 - [x] Wall heights vary based on tier using `TIER_HEIGHTS`
 - [x] Visual profiles are implemented and mapped by silhouette and height tiers
-- [ ] Full design token extraction and expanded taxonomy mapping remain as follow-up work
 - [x] Universal Stud Standard maintained across all new shapes
+
+Follow-up (outside delivered exit criteria): full design token extraction and expanded taxonomy mapping.
 
 > **Reference**: [BRICK_DESIGN_SPEC.md](../design/BRICK_DESIGN_SPEC.md) §3.7 Shape System, §6.9 Design Tokens
 
@@ -517,7 +518,7 @@ Features:
 - **Provider Field** — `provider?: ProviderType` (optional) is implemented on the Block model
 - **Connection Expansion** — Connection model supports `dataflow` | `http` | `internal` | `data` | `async`
 - **ProviderAdapter Interface** — Formal interface for mapping generic resources to provider-specific IaC
-- **Provider Directory Structure** — Organize adapters in `core/providers/{azure,aws,gcp}/`
+- **Provider Directory Structure** — Organize adapters in `apps/web/src/features/generate/providers/{azure,aws,gcp}/`
 
 ### Deliverables
 
