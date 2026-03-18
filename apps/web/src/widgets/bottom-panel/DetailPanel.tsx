@@ -96,11 +96,6 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
     }
   }, [isRenaming]);
 
-  useEffect(() => {
-    if (!isRenaming) {
-      setNewName(block.name);
-    }
-  }, [block.id, block.name, isRenaming]);
 
   const parentPlate = architecture.plates.find((p) => p.id === block.placementId);
   const networkPlate = parentPlate?.parentId
@@ -140,7 +135,10 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
         <button
           type="button"
           className="detail-rename-btn"
-          onClick={() => setIsRenaming(true)}
+          onClick={() => {
+            setNewName(block.name);
+            setIsRenaming(true);
+          }}
           title="Rename"
         >
           Rename
