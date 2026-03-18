@@ -71,28 +71,41 @@ cd apps/web && pnpm build
 
 ### Option 2: Full Stack (Milestone 5+)
 
-#### Docker Deployment
+#### Docker Compose (Full Stack)
+
+The `docker-compose.yml` starts all services: PostgreSQL, Redis, API, and Web frontend.
 
 ```bash
-# Build frontend
-docker build -t cloudblocks-web -f infra/docker/web.Dockerfile .
+# Copy and fill in environment variables
+cp .env.example .env
 
-# Build backend
-docker build -t cloudblocks-api -f infra/docker/api.Dockerfile .
-
-# Start local supporting services (optional)
+# Start all services
 docker compose up -d
+
+# Check service health
+docker compose ps
 ```
 
-> **Note**: The backend deployment model is Docker-first (see `infra/docker/api.Dockerfile`) and is deployed to Azure container infrastructure for production environments. The current `docker-compose.yml` does **not** include `web` or `api` service definitions — those are built separately via Dockerfiles listed above.
+#### docker-compose.yml Services
 
-#### docker-compose.yml Services (Current)
+| Service | Image / Build | Purpose |
+|---------|--------------|---------|
+| `postgres` | `postgres:16-alpine` | Relational metadata store |
+| `redis` | `redis:7-alpine` | Session cache & revocation (sliding TTL) |
+| `api` | `infra/docker/api.Dockerfile` | FastAPI backend |
+| `web` | `infra/docker/web.Dockerfile` | Nginx-served SPA frontend |
 
-| Service | Purpose |
-|---------|---------|
-| *(none required for auth/session flow)* | Current session auth uses SQLite + cookies only |
+#### Development with Hot-Reload
 
-> **Phase 8 (planned)**: PostgreSQL + Redis will be introduced for production-scale metadata and cache/queue workloads.
+Use the dev override to mount the API source and enable `--reload`:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+```
+
+This mounts `apps/api/` into the container so code changes restart the server automatically.
+
+> **Tip**: Set `COMPOSE_FILE=docker-compose.yml:docker-compose.dev.yml` in your shell to avoid typing the `-f` flags every time.
 
 ### Option 3: Cloud Deployment
 
@@ -102,8 +115,8 @@ docker compose up -d
 |-----------|---------|------|
 | Frontend | Vercel / Cloudflare Pages | Free |
 | Backend API | Azure Container Apps / Azure App Service | ~$5/mo |
-| Metadata + Session DB | SQLite (backend volume) | Free |
-| Cache/Queue (Phase 8) | Redis | Planned |
+| Metadata DB | PostgreSQL (managed or container) | ~$5/mo |
+| Session Cache | Redis (managed or container) | ~$5/mo |
 | Data Store | GitHub (user repos) | Free |
 
 **Total initial cost: $0 – $5/month**
@@ -154,37 +167,45 @@ VITE_GITHUB_APP_CLIENT_ID=your_github_app_client_id
 
 ### Backend (.env)
 
+All backend variables use the `CLOUDBLOCKS_` prefix. See `.env.example` for a complete template.
+
 ```bash
 # Application
-APP_ENV=development
-APP_PORT=8000
-APP_DEBUG=true
+CLOUDBLOCKS_APP_ENV=development
+CLOUDBLOCKS_APP_PORT=8000
+CLOUDBLOCKS_APP_DEBUG=true
 
-# Session auth
-SESSION_SECRET_KEY=your-32-plus-char-random-string
-SESSION_EXPIRY_HOURS=24
+# Database (SQLite or PostgreSQL)
+CLOUDBLOCKS_DATABASE_URL=sqlite+aiosqlite:///cloudblocks.db
+# CLOUDBLOCKS_DATABASE_URL=postgresql+asyncpg://user:pass@localhost:5432/cloudblocks
+
+# Session backend (sqlite | redis)
+CLOUDBLOCKS_SESSION_BACKEND=sqlite
+CLOUDBLOCKS_REDIS_URL=redis://localhost:6379/0
 
 # GitHub OAuth
-GITHUB_CLIENT_ID=your_github_client_id
-GITHUB_CLIENT_SECRET=your_github_client_secret
-GITHUB_REDIRECT_URI=http://localhost:8000/api/v1/auth/github/callback
+CLOUDBLOCKS_GITHUB_CLIENT_ID=your_github_client_id
+CLOUDBLOCKS_GITHUB_CLIENT_SECRET=your_github_client_secret
+CLOUDBLOCKS_GITHUB_REDIRECT_URI=http://localhost:8000/api/v1/auth/github/callback
+
+# JWT
+CLOUDBLOCKS_JWT_SECRET=your-32-plus-char-random-string
 
 # CORS
-ALLOWED_ORIGINS=http://localhost:5173
+CLOUDBLOCKS_CORS_ORIGINS=["http://localhost:5173"]
 ```
 
-> **Important**: Current session auth uses httpOnly cookies (`cb_oauth`, `cb_session`) and server-side SQLite sessions. Frontend API calls must use `credentials: 'include'`.
+> **Important**: Session auth uses httpOnly cookies (`cb_oauth`, `cb_session`) and server-side sessions. Frontend API calls must use `credentials: 'include'`.
 
 ### Production Secrets (set via secret manager)
 
 | Secret | Description |
 |--------|-------------|
-| `SESSION_SECRET_KEY` | Strong random string for session signing/encryption |
-| `SESSION_EXPIRY_HOURS` | Session TTL in hours |
-| `GITHUB_CLIENT_SECRET` | GitHub App OAuth secret |
-| `GITHUB_CLIENT_ID` | GitHub OAuth client ID |
-| `GITHUB_REDIRECT_URI` | OAuth callback URL |
-| `ALLOWED_ORIGINS` | Allowed browser origins for credentialed CORS |
+| `CLOUDBLOCKS_JWT_SECRET` | Strong random string (≥32 chars) for JWT signing |
+| `CLOUDBLOCKS_TOKEN_ENCRYPTION_SALT` | Strong random string (≥16 chars) for token encryption |
+| `CLOUDBLOCKS_GITHUB_CLIENT_SECRET` | GitHub App OAuth secret |
+| `CLOUDBLOCKS_GITHUB_CLIENT_ID` | GitHub OAuth client ID |
+| `CLOUDBLOCKS_CORS_ORIGINS` | JSON array of allowed browser origins |
 
 ## CI/CD Pipeline
 
@@ -239,7 +260,8 @@ Recommended monitoring:
 - **Errors**: Sentry (free tier: 5K events/month)
 - **Metrics**: Container platform metrics + application logs
 
-### Phase 8 Infrastructure (Planned)
+### Phase 8 Infrastructure
 
-- PostgreSQL for production-scale relational metadata
-- Redis for distributed cache, rate limiting, and queue primitives
+- PostgreSQL for production-scale relational metadata (implemented via `CLOUDBLOCKS_DATABASE_URL`)
+- Redis for session caching with sliding TTL and logout-all support (implemented via `CLOUDBLOCKS_SESSION_BACKEND=redis`)
+- Docker Compose stack with healthchecks and dev hot-reload
