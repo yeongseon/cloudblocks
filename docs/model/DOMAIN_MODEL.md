@@ -6,7 +6,7 @@
 >
 > - **Milestone 1 implementation**: `apps/web/src/shared/types/index.ts` is the source of truth for TypeScript types. If a discrepancy exists between this document and the code, the code wins for Milestone 1.
 > - **Serialization format**: `apps/web/src/shared/types/schema.ts` is the source of truth for storage shape and schema versioning.
-> - **Connection rules**: `apps/web/src/features/validate/connection.ts` is the source of truth for allowed connections.
+> - **Connection rules**: `apps/web/src/entities/validation/connection.ts` is the source of truth for allowed connections.
 > - **Version timelines**: `docs/concept/ROADMAP.md` is the canonical source for when features ship.
 > - **Code generation pipeline**: `docs/engine/generator.md` is the canonical source for the generation pipeline. This document does not define the pipeline.
 
@@ -49,7 +49,7 @@ These invariants **must hold at all times** in a valid `ArchitectureModel`. Viol
 |------|-------------|
 | **Single Root** | An `ArchitectureModel` has exactly one root Network Plate (`parentId: null`). All other Plates and Blocks are descendants. |
 | **Containment Hierarchy** | Plates form a strict tree: Network → Subnet. No cycles in the containment tree. |
-| **Block Placement** | Every Block has a `placementId` referencing a Subnet Plate. Blocks cannot exist on Network Plates directly or outside the hierarchy. |
+| **Block Placement** | Every Block has a `placementId` referencing a Plate. `compute`, `database`, `storage`, and `gateway` are placed on Subnet Plates; `function`, `queue`, `event`, and `timer` are placed on Network Plates. Blocks cannot exist outside the hierarchy. |
 | **Children Consistency** | A Plate's `children[]` must match the set of entities whose `parentId` or `placementId` references that Plate. |
 
 ### 2.3 Connection Invariants
@@ -59,7 +59,7 @@ These invariants **must hold at all times** in a valid `ArchitectureModel`. Viol
 | **No Self-Connections** | `connection.sourceId !== connection.targetId`. |
 | **No Duplicate Connections** | At most one connection exists between any ordered pair `(sourceId, targetId)`. |
 | **No Cycles** | The connection graph is a DAG (directed acyclic graph). Cycles in the dataflow graph are not permitted in Milestone 1. |
-| **Receiver-Only Enforcement** | `database` and `storage` blocks never appear as `sourceId` in any connection. They are receiver-only. |
+| **Receiver-Only Enforcement** | `database` and `storage` blocks never appear as `sourceId` in any connection. They are receiver-only. `queue`, `timer`, and `event` may appear as `sourceId` only when targeting `function`. |
 
 ---
 
@@ -91,7 +91,7 @@ Network Plate
 
 ### Plate Size Tiers
 
-> **Canonical specification**: See [BRICK_SIZE_SPEC.md](../design/BRICK_SIZE_SPEC.md) for detailed SVG specs and pixel dimensions.
+> **Canonical specification**: See [BRICK_DESIGN_SPEC.md](../design/BRICK_DESIGN_SPEC.md) for detailed SVG specs and pixel dimensions.
 
 Plates are sized for **learning progression**. Each tier represents a complexity level appropriate for different learners:
 
@@ -137,21 +137,14 @@ They are placed on Plates and represent deployable infrastructure services. Each
 | DatabaseBlock | Relational or NoSQL database |
 | StorageBlock | Object or file storage |
 | GatewayBlock | Load balancer or gateway |
-
-### Future Block Categories (Milestone 6+)
-
-> **Milestone 6+**: These block categories are part of the Architecture Compiler vision and are not yet implemented.
-
-| Category | Description | Version |
-|---------|-------------|---------|
-| FunctionBlock | Serverless compute | Milestone 6 |
-| QueueBlock | Messaging services | Milestone 6 |
-| EventBlock | Event triggers | Milestone 6 |
-| TimerBlock | Scheduled triggers | Milestone 6 |
+| FunctionBlock | Serverless compute |
+| QueueBlock | Messaging services |
+| EventBlock | Event triggers |
+| TimerBlock | Scheduled triggers |
 
 ### Brick Size Tiers
 
-> **Canonical specification**: See [BRICK_SIZE_SPEC.md](../design/BRICK_SIZE_SPEC.md) for detailed SVG specs and pixel dimensions.
+> **Canonical specification**: See [BRICK_DESIGN_SPEC.md](../design/BRICK_DESIGN_SPEC.md) for detailed SVG specs and pixel dimensions.
 
 Brick size represents **architectural weight** — the resource's importance, statefulness, and operational complexity. Larger bricks are harder to replace and more central to the architecture.
 
@@ -255,10 +248,11 @@ Example:
 Block
   id            — unique identifier ({type}-{uuid})
   name          — display name
-  category      — 'compute' | 'database' | 'storage' | 'gateway'
+  category      — 'compute' | 'database' | 'storage' | 'gateway' | 'function' | 'queue' | 'event' | 'timer'
   placementId   — parent plate ID
   position      — position relative to parent plate {x, y, z}
   metadata      — additional properties
+  provider      — optional cloud provider ('azure' | 'aws' | 'gcp')
 ```
 
 Example:
@@ -311,13 +305,13 @@ metadata  — additional properties
 
 ### Connection Types
 
-| Type | Description | Version |
-|-----|-------------|---------|
-| DataFlow | Request/response communication (solid arrow) | MVP |
-| EventFlow | Event-driven trigger (dotted arrow) | Milestone 6 |
-| Dependency | Resource dependency (dashed line) | Milestone 6 |
-
-MVP (Milestone 1) supports DataFlow only.
+| Type | Description |
+|-----|-------------|
+| `dataflow` | General request/response communication |
+| `http` | HTTP request path |
+| `internal` | Internal service-to-service communication |
+| `data` | Data access path |
+| `async` | Asynchronous trigger or queue/event-driven path |
 
 ---
 
@@ -348,6 +342,10 @@ ComputeBlock must be placed on SubnetPlate
 DatabaseBlock must be placed on private SubnetPlate
 GatewayBlock must be placed on public SubnetPlate
 StorageBlock must be placed on SubnetPlate
+FunctionBlock must be placed on NetworkPlate
+QueueBlock must be placed on NetworkPlate
+EventBlock must be placed on NetworkPlate
+TimerBlock must be placed on NetworkPlate
 ```
 
 ### Connection Rules
@@ -355,8 +353,15 @@ StorageBlock must be placed on SubnetPlate
 ```
 Internet → Gateway    ✔  (external traffic enters through gateway)
 Gateway  → Compute    ✔  (gateway forwards to compute)
+Gateway  → Function   ✔  (gateway forwards to serverless handlers)
 Compute  → Database   ✔  (app queries database)
 Compute  → Storage    ✔  (app reads/writes storage)
+Function → Storage    ✔  (function accesses storage)
+Function → Database   ✔  (function accesses database)
+Function → Queue      ✔  (function enqueues messages)
+Queue    → Function   ✔  (queue trigger)
+Timer    → Function   ✔  (scheduled trigger)
+Event    → Function   ✔  (event trigger)
 Database → Gateway    ❌  (database does not initiate requests to gateway)
 Database → Internet   ❌  (database does not initiate external requests)
 Database → Compute    ❌  (database is receiver-only)
@@ -366,11 +371,8 @@ Storage  → Compute    ❌  (storage is receiver-only)
 ```
 
 **Database and Storage are receiver-only** — they never appear as connection sources (initiators).
+**Queue, Timer, and Event connect only to Function** when used as initiators.
 Responses flow implicitly in the reverse direction and do not require a separate connection.
-
-> **Event-driven patterns** (e.g., Azure Event Grid from Blob Storage, AWS DynamoDB Streams → Lambda)
-> should be modeled with explicit intermediary services once the EventFlow connection type is
-> available in Milestone 6. In MVP, use polling: `Compute → Database` / `Compute → Storage`.
 
 ### Rule Specification Format
 
@@ -417,7 +419,7 @@ type ValidationWarning = ValidationError;
 
 Blocks use **visual characteristics** to communicate function in the isometric view.
 
-> **Canonical specification**: For detailed visual specs including brick sizes, plate sizes, and SVG templates, see [VISUAL_DESIGN_SPEC.md](../design/VISUAL_DESIGN_SPEC.md) and [BRICK_SIZE_SPEC.md](../design/BRICK_SIZE_SPEC.md).
+> **Canonical specification**: For detailed visual specs including brick sizes, plate sizes, and SVG templates, see [VISUAL_DESIGN_SPEC.md](../design/VISUAL_DESIGN_SPEC.md) and [BRICK_DESIGN_SPEC.md](../design/BRICK_DESIGN_SPEC.md).
 
 ### 3-Layer Visual Hierarchy
 
@@ -431,16 +433,16 @@ CloudBlocks uses a **3-layer Lego-style visual system**:
 
 ### Color Coding
 
-| Color | Category |
+| Category | Hex Color |
 |------|----------|
-| Blue | Network (Plate) |
-| Green | Compute |
-| Orange | Database |
-| Yellow | Storage |
-| Purple | Gateway |
-| Cyan | Function |
-| Pink | Queue |
-| Gray | Infrastructure |
+| `compute` | `#F25022` |
+| `database` | `#00A4EF` |
+| `storage` | `#7FBA00` |
+| `gateway` | `#0078D4` |
+| `function` | `#FFB900` |
+| `queue` | `#737373` |
+| `event` | `#D83B01` |
+| `timer` | `#5C2D91` |
 
 ### Shape Coding
 
@@ -623,7 +625,8 @@ interface Plate {
 }
 
 // Block Types
-type BlockCategory = 'compute' | 'database' | 'storage' | 'gateway';
+type BlockCategory = 'compute' | 'database' | 'storage' | 'gateway' | 'function' | 'queue' | 'event' | 'timer';
+type ProviderType = 'azure' | 'aws' | 'gcp';
 
 interface Block {
   id: string;
@@ -632,10 +635,11 @@ interface Block {
   placementId: string;  // parent plate ID
   position: Position;   // relative to parent plate
   metadata: Record<string, unknown>;
+  provider?: ProviderType;
 }
 
 // Connection
-type ConnectionType = 'dataflow';  // Milestone 1 — EventFlow and Dependency planned for Milestone 6
+type ConnectionType = 'dataflow' | 'http' | 'internal' | 'data' | 'async';
 
 interface Connection {
   id: string;
@@ -708,11 +712,9 @@ The architecture model is serialized as JSON. A version field is included to sup
 
 # 15. Future Domain Extensions
 
-### Serverless Architecture (Milestone 6)
+### Serverless Architecture (Implemented)
 
-> **Milestone 6+**: Not yet implemented.
-
-Add:
+Serverless architecture blocks are implemented and available in the current domain model:
 
 - FunctionBlock (Serverless compute)
 - QueueBlock (Messaging services)

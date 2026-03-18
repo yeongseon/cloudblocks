@@ -105,7 +105,7 @@ These map to the `BlockCategory` type in `shared/types/index.ts`.
 
 CloudBlocks uses a **3-layer Lego-style visual system**. Blocks (resource layer) render as realistic Lego bricks with studs on top, where Applications (application layer) can sit.
 
-> **Canonical size specification**: See [BRICK_SIZE_SPEC.md](./BRICK_SIZE_SPEC.md) for detailed stud/pixel dimensions and resource mappings.
+> **Canonical size specification**: See [BRICK_DESIGN_SPEC.md](./BRICK_DESIGN_SPEC.md) for detailed stud/pixel dimensions and resource mappings.
 
 ### 3.1 Brick Size Tiers (5 Levels)
 
@@ -140,7 +140,7 @@ Blocks are rendered as **isometric 3D shapes** with a diamond-shaped top face an
 | Projection | 2:1 Dimetric Isometric | `W=64, H=32` |
 | Stud unit | `40px` (Logical) | Maps to isometric grid units |
 | Corner radius | `0.08` | Rounded edges (SVG path corner profile) |
-| Material | `meshStandardMaterial` | `roughness: 0.35`, `metalness: 0.05` — ABS plastic look |
+| Material | SVG with CSS | Isometric faces with shading |
 
 ### 3.3 Studs & Application Slots
 
@@ -158,14 +158,14 @@ Studs on brick top surface serve as **application placement slots** for hostable
 
 | Property | Value |
 |----------|-------|
-| Stud rx | `19` (SVG/screen px) |
-| Stud ry | `9.5` (SVG/screen px) |
-| Stud height | `7px` (cylinder extrusion) |
+| Stud rx | `12` (SVG/screen px) |
+| Stud ry | `6` (SVG/screen px) |
+| Stud height | `5` (cylinder extrusion) |
 | Stud structure | 3 layers: shadow ellipse + top ellipse + inner ring |
 | Spacing | 1 SCALE unit (64px) center-to-center, isometric diamond grid |
-| Color | Same hue as brick body; see BRICK_SIZE_SPEC.md §7.3 for exact values |
+| Color | Same hue as brick body; see BRICK_DESIGN_SPEC.md for exact values |
 
-> **INVIOLABLE**: All studs use identical dimensions. See [BRICK_SIZE_SPEC.md §0](./BRICK_SIZE_SPEC.md#0-universal-stud-standard-inviolable) for the canonical standard.
+> **INVIOLABLE**: All studs use identical dimensions. See [BRICK_DESIGN_SPEC.md](./BRICK_DESIGN_SPEC.md) for the canonical standard.
 
 
 ### 3.4 Application Layer (1×1 Cylinders)
@@ -189,7 +189,7 @@ Applications are **small cylindrical pieces** that sit on top of resource bricks
 
 ### 3.5 Service Icon
 
-Rendered as an `<Html>` overlay on the block's front face.
+Rendered as an overlay on the block's front face.
 
 | Property | Value |
 |----------|-------|
@@ -217,9 +217,9 @@ Service icons use Unicode/emoji for MVP (future: custom SVG icons):
 
 | State | Effect |
 |-------|--------|
-| Hover | `emissiveIntensity: 0.15`, cursor: `pointer` |
-| Selected | White outline glow (`emissiveIntensity: 0.25`) + base ring |
-| Connection source | Green glow (`emissive: #4CAF50`, `intensity: 0.3`) |
+| Hover | White outline, cursor: `pointer` |
+| Selected | White outline glow + base ring |
+| Connection source | Green glow (`#4CAF50`) |
 
 ---
 

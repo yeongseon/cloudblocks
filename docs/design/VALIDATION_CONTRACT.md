@@ -13,7 +13,7 @@ This document defines the canonical validation rule contract for CloudBlocks. Al
 | **Rule owner** | This document (`docs/design/VALIDATION_CONTRACT.md`) |
 | **Change process** | PR with updates to this doc + corresponding FE/BE code changes in the same PR |
 | **Versioning** | Semantic — bump `ruleSchemaVersion` when adding/removing/changing rules |
-| **Current version** | `1.0.0` |
+| **Current version** | `1.1.0` |
 
 ---
 
@@ -44,6 +44,10 @@ Placement rules validate that blocks are placed on appropriate plates.
 | `rule-db-private` | error | Database block not on a `subnet` plate with `subnetAccess: "private"` | Database block must be placed on a private Subnet Plate |
 | `rule-gw-public` | error | Gateway block not on a `subnet` plate with `subnetAccess: "public"` | Gateway block must be placed on a public Subnet Plate |
 | `rule-storage-subnet` | error | Storage block not on a `subnet` plate | Storage block must be placed on a Subnet Plate |
+| `rule-serverless-network` | error | Function block not on a `network` plate | Function block must be placed on a Network Plate |
+| `rule-serverless-network` | error | Queue block not on a `network` plate | Queue block must be placed on a Network Plate |
+| `rule-serverless-network` | error | Event block not on a `network` plate | Event block must be placed on a Network Plate |
+| `rule-serverless-network` | error | Timer block not on a `network` plate | Timer block must be placed on a Network Plate |
 
 ### Implementation References
 
@@ -68,10 +72,14 @@ Connection rules validate dataflow between blocks. Connections follow **initiato
 | Source (Initiator) | Allowed Targets (Receiver) |
 |-------------------|---------------------------|
 | `internet` | `gateway` |
-| `gateway` | `compute` |
+| `gateway` | `compute`, `function` |
 | `compute` | `database`, `storage` |
+| `function` | `storage`, `database`, `queue` |
+| `queue` | `function` |
+| `timer` | `function` |
+| `event` | `function` |
 
-`database` and `storage` are receiver-only — they never initiate connections.
+`database` and `storage` are receiver-only. `queue`, `timer`, and `event` can only connect to `function`.
 
 ### Implementation References
 
@@ -159,7 +167,7 @@ When backend validation is introduced:
 
 ```json
 {
-  "ruleSchemaVersion": "1.0.0",
+  "ruleSchemaVersion": "1.1.0",
   "cases": [
     {
       "name": "database-on-public-subnet",
@@ -177,6 +185,6 @@ When backend validation is introduced:
 
 ## 8. Migration Notes
 
-- When adding new block categories (e.g., `FunctionBlock` in Milestone 6), add corresponding placement rules to this document first.
+- New block categories from Milestone 6 (`FunctionBlock`, `QueueBlock`, `EventBlock`, `TimerBlock`) are implemented and reflected in the placement rules above.
 - When adding new connection types (e.g., `EventFlow`), update the allowed connection map here first.
 - Breaking rule changes (removing a rule, changing severity) require a `ruleSchemaVersion` bump.
