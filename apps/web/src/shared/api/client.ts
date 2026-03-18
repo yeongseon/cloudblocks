@@ -1,6 +1,15 @@
 const RAW_API_BASE_URL = import.meta.env.VITE_API_URL ?? '';
-/** Strip trailing slashes so `${base}${path}` never produces `//`. */
-const API_BASE_URL = RAW_API_BASE_URL.replace(/\/+$/, '');
+
+function normalizeApiBaseUrl(rawBaseUrl: string): string {
+  const withoutTrailingSlashes = rawBaseUrl.replace(/\/+$/, '');
+  if (withoutTrailingSlashes.endsWith('/api')) {
+    return withoutTrailingSlashes.slice(0, -4);
+  }
+
+  return withoutTrailingSlashes;
+}
+
+const API_BASE_URL = normalizeApiBaseUrl(RAW_API_BASE_URL);
 
 export class ApiError extends Error {
   status: number;
