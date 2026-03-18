@@ -178,6 +178,63 @@ describe('CommandCard', () => {
     expect(addBlockMock).toHaveBeenCalledWith('compute', 'Virtual Machine 1', 'subnet-public-1', 'azure');
   });
 
+  it('smoke: create VM from Compute tab then show block actions when selected', async () => {
+    const user = userEvent.setup();
+
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          ...baseArchitecture,
+          plates: [networkPlate, publicSubnet],
+          blocks: [],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    const { rerender } = render(<CommandCard />);
+
+    await user.click(screen.getByRole('button', { name: 'Compute' }));
+    await user.click(screen.getByTitle('Create Virtual Machine (Q)'));
+
+    expect(addBlockMock).toHaveBeenCalledWith('compute', 'Virtual Machine 1', 'subnet-public-1', 'azure');
+
+    act(() => {
+      useArchitectureStore.setState({
+        workspace: {
+          id: 'ws-1',
+          name: 'Test Workspace',
+          architecture: {
+            ...baseArchitecture,
+            plates: [networkPlate, publicSubnet],
+            blocks: [
+              {
+                id: 'block-new-1',
+                name: 'Virtual Machine 1',
+                category: 'compute',
+                placementId: 'subnet-public-1',
+                position: { x: 0, y: 0, z: 0 },
+                metadata: {},
+              },
+            ],
+          },
+          createdAt: '',
+          updatedAt: '',
+        },
+      });
+      useUIStore.setState({ selectedId: 'block-new-1' });
+    });
+
+    rerender(<CommandCard />);
+
+    expect(screen.getByText('Actions')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Link/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Delete/ })).toBeInTheDocument();
+  });
+
   it('shows disabled resources with lock icon before network exists', async () => {
     const user = userEvent.setup();
     render(<CommandCard />);
