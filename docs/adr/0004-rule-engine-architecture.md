@@ -30,7 +30,7 @@ Option 1 becomes unmaintainable as rules grow. Option 2 only validates structure
 ### Architecture
 
 ```
-apps/web/src/features/validate/
+apps/web/src/entities/validation/
 ├── engine.ts       # Orchestration entrypoint: validateArchitecture(model)
 ├── placement.ts    # Placement rules: validatePlacement(block, plate)
 └── connection.ts   # Connection rules: validateConnection(connection, blocks, actors)

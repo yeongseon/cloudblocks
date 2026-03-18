@@ -217,4 +217,4 @@ packages/scenario-library/
 └── index.ts
 ```
 
-Community contributions are welcome! See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines on adding new tutorials.
+Community contributions are welcome! See [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines on adding new tutorials.

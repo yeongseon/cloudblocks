@@ -72,7 +72,7 @@ CloudBlocks ships these built-in templates (Milestone 4):
 - **Data Storage Backend** — Compute connected to database and blob storage in a private subnet
 
 > **Note:** Additional built-in templates (Serverless HTTP API, Event-Driven Pipeline, Full-Stack Serverless) are implemented and use Function/Queue/Event/Timer blocks. See `apps/web/src/features/templates/builtin.ts` for current implementations.
-> **Note:** Example architectures are available in the [`examples/`](../examples/) directory.
+> **Note:** Example architectures are available in the [`examples/`](../../examples/) directory.
 
 ---
 
