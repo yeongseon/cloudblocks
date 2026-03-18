@@ -1,9 +1,9 @@
 # ADR-0005: 2D-First Editor with 2.5D Rendering
 
 **Status**: Accepted
-
-**Implementation note (2025-03):** The current implementation uses SVG + CSS transforms + DOM layering, not React Three Fiber. R3F was evaluated but not adopted due to simpler rendering needs. See `apps/web/src/entities/block/BlockSvg.tsx` and `apps/web/src/widgets/scene-canvas/SceneCanvas.tsx`.
 **Date**: 2025-01
+
+**Implementation note (2025-03):** The current implementation uses SVG + CSS transforms + DOM layering, not React Three Fiber. The original ADR rationale and constraints remain valid (2D-first with fixed isometric projection), while renderer implementation details evolved. See `apps/web/src/entities/block/BlockSvg.tsx` and `apps/web/src/widgets/scene-canvas/SceneCanvas.tsx`.
 
 ## Context
 
@@ -39,8 +39,8 @@ interface Position {
 
 ### Rendering layer (2.5D projection)
 
-- React Three Fiber renders an isometric scene
-- OrbitControls: zoom and pan only — **rotation is disabled**
+- SVG components + CSS transforms render an isometric scene
+- View controls support zoom and pan only — **rotation is disabled**
 - Depth is semantic, not physically simulated
 - The visual layer is a **projection** of the 2D model
 
@@ -53,10 +53,10 @@ interface Position {
 
 ### Technology
 
-- **React Three Fiber** — React bindings for Three.js
-- **@react-three/drei** — utility components (OrbitControls, Html labels)
-- **Three.js** — rendering engine
-- **Known constraint**: R3F `<line>` conflicts with SVG — use `<primitive object={new THREE.Line(...)} />` instead
+- **SVG + CSS transforms + DOM layering** — isometric rendering stack
+- **React 19 + TypeScript** — component and interaction architecture
+- **Zustand** — UI/domain state management
+- **Known constraint**: maintain 2D-first interaction semantics and avoid introducing free-rotation 3D interaction complexity
 
 ## Consequences
 
@@ -70,10 +70,10 @@ interface Position {
 
 ### Negative
 
-- **Three.js overhead** — a full WebGL engine for what is essentially 2D editing is heavyweight
+- **Renderer complexity trade-off** — maintaining a polished isometric SVG stack still requires careful geometry/projection consistency
 - **Fixed perspective** — users cannot rotate to view from different angles
 - **Limited depth expression** — y-axis elevation is semantic only, complex vertical stacking is not supported
-- **R3F ecosystem constraints** — some Three.js patterns don't map cleanly to React (e.g., `<line>` conflict)
+- **Projection consistency burden** — visual specs and renderer math must remain synchronized to avoid drift
 
 ### Alternatives Considered but Rejected
 
