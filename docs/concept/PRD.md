@@ -426,7 +426,7 @@ Reasons:
 
 The system internally uses a 2D coordinate model.
 
-> See also: ARCHITECTURE.md §6 (Rendering Layer), §14 (Technical Constraints)
+> See also: ARCHITECTURE.md §6 (Rendering Layer Architecture)
 
 ---
 
