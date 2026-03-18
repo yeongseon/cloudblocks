@@ -306,16 +306,14 @@ export interface ActionDefinition {
   label: string;
   icon: string;
   hotkey?: string;
-  /** Whether this action applies to multi-selection */
-  multiSelect: boolean;
 }
 
 export const ACTION_DEFINITIONS: Record<ActionType, ActionDefinition> = {
-  link: { id: 'link', label: 'Link', icon: '🔗', hotkey: 'L', multiSelect: false },
-  edit: { id: 'edit', label: 'Edit', icon: '✏️', hotkey: 'E', multiSelect: false },
-  delete: { id: 'delete', label: 'Delete', icon: '🗑️', hotkey: 'Del', multiSelect: true },
-  copy: { id: 'copy', label: 'Copy', icon: '📋', hotkey: 'C', multiSelect: true },
-  rename: { id: 'rename', label: 'Rename', icon: '📝', hotkey: 'R', multiSelect: false },
+  link: { id: 'link', label: 'Link', icon: '🔗', hotkey: 'L' },
+  edit: { id: 'edit', label: 'Edit', icon: '✏️', hotkey: 'E' },
+  delete: { id: 'delete', label: 'Delete', icon: '🗑️', hotkey: 'Del' },
+  copy: { id: 'copy', label: 'Copy', icon: '📋', hotkey: 'C' },
+  rename: { id: 'rename', label: 'Rename', icon: '📝', hotkey: 'R' },
 };
 
 export const ACTION_GRID: (ActionType | null)[][] = [
