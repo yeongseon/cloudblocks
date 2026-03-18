@@ -1,5 +1,7 @@
 # CloudBlocks PRD
 
+> Scope note: This document is the original MVP PRD and remains as historical product context. Some items listed as MVP non-goals were implemented in later milestones/phases. For current implementation status and timeline, use [ROADMAP.md](./ROADMAP.md).
+
 Build cloud architecture visually using a Lego-style composition model — and generate production-ready Infrastructure-as-Code.
 
 ---
@@ -426,7 +428,7 @@ Reasons:
 
 The system internally uses a 2D coordinate model.
 
-> See also: ARCHITECTURE.md §6 (Rendering Layer), §14 (Technical Constraints)
+> See also: ARCHITECTURE.md §6 (Rendering Layer Architecture)
 
 ---
 
