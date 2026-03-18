@@ -3,6 +3,7 @@ import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import type { ToolMode } from '../../entities/store/uiStore';
+import { ProviderToggle } from './ProviderToggle';
 import './Toolbar.css';
 
 export function Toolbar() {
@@ -138,6 +139,13 @@ export function Toolbar() {
         <button type="button" className="toolbar-btn toolbar-btn-private" onClick={handleAddPrivateSubnet} title="Add Private Subnet">
           🔴 Private Subnet
         </button>
+      </div>
+
+      <div className="toolbar-divider" />
+
+      <div className="toolbar-group toolbar-group-provider">
+        <span className="toolbar-group-label">Provider</span>
+        <ProviderToggle />
       </div>
 
       <div className="toolbar-divider" />

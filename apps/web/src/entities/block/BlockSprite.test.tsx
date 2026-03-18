@@ -87,6 +87,12 @@ describe('BlockSprite', () => {
     expect(blockImgDiv).toBeInTheDocument();
   });
 
+  it('renders provider badge when block has provider', () => {
+    const block = { ...makeBlock('block-provider', 'compute'), provider: 'gcp' as const };
+    render(<BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    expect(screen.getByText('GCP')).toBeInTheDocument();
+  });
+
   it('click in select mode calls setSelectedId', async () => {
     const user = userEvent.setup();
     const block = makeBlock('block-select', 'compute');

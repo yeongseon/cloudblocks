@@ -23,6 +23,12 @@ const BLOCK_SCREEN_SIZES: Record<string, { width: number; height: number }> = {
   database: { width: 160, height: 136 },
 };
 
+const PROVIDER_BADGES = {
+  azure: { label: 'AZ', color: '#0078D4' },
+  aws: { label: 'AWS', color: '#FF9900' },
+  gcp: { label: 'GCP', color: '#4285F4' },
+} as const;
+
 interface BlockSpriteProps {
   block: Block;
   parentPlate: Plate;
@@ -237,8 +243,17 @@ export const BlockSprite = memo(function BlockSprite({
         aria-label={`Block: ${block.name}`}
       >
         <div className="block-img" draggable={false}>
-          <BlockSvg category={block.category} />
+          <BlockSvg category={block.category} provider={block.provider} />
         </div>
+        {block.provider && (
+          <span
+            className="block-provider-badge"
+            style={{ borderColor: PROVIDER_BADGES[block.provider].color, color: PROVIDER_BADGES[block.provider].color }}
+            title={`Provider: ${block.provider.toUpperCase()}`}
+          >
+            {PROVIDER_BADGES[block.provider].label}
+          </span>
+        )}
       </button>
     </div>
   );
