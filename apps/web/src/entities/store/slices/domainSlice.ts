@@ -208,6 +208,11 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       return withHistory(state, {
         ...arch,
         blocks: [...arch.blocks, newBlock],
+        plates: arch.plates.map((candidate) =>
+          candidate.id === sourceBlock.placementId
+            ? { ...candidate, children: [...candidate.children, newBlock.id] }
+            : candidate
+        ),
       });
     });
   },
