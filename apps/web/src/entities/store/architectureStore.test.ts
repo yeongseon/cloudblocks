@@ -176,11 +176,13 @@ describe('architectureStore', () => {
       const subId = getArch().plates[1].id;
 
       getState().addBlock('compute', 'VM', subId);
-      const blockId = getArch().blocks[0].id;
+      getState().addBlock('database', 'DB', subId);
+      const sourceId = getArch().blocks[0].id;
+      const targetId = getArch().blocks[1].id;
 
-      getState().addConnection(blockId, 'some-target');
+      getState().addConnection(sourceId, targetId);
 
-      expect(getArch().blocks).toHaveLength(1);
+      expect(getArch().blocks).toHaveLength(2);
       expect(getArch().connections).toHaveLength(1);
 
       getState().removePlate(subId);
@@ -365,13 +367,15 @@ describe('architectureStore', () => {
       getState().addPlate('subnet', 'Sub', netId, 'public');
       const subId = getArch().plates[1].id;
 
+      getState().addBlock('gateway', 'Gateway', subId);
       getState().addBlock('compute', 'VM', subId);
-      const blockId = getArch().blocks[0].id;
-      getState().addConnection('ext-src', blockId);
+      const gatewayId = getArch().blocks[0].id;
+      const blockId = getArch().blocks[1].id;
+      getState().addConnection(gatewayId, blockId);
 
       getState().removeBlock(blockId);
 
-      expect(getArch().blocks).toHaveLength(0);
+      expect(getArch().blocks).toHaveLength(1);
       expect(getArch().connections).toHaveLength(0);
     });
 
@@ -646,25 +650,104 @@ describe('architectureStore', () => {
   // ── Connection actions ──
 
   describe('addConnection', () => {
+    const createConnectionFixture = () => {
+      getState().addPlate('network', 'VNet', null);
+      const networkId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Subnet', networkId, 'public');
+      const subnetId = getArch().plates[1].id;
+
+      getState().addBlock('gateway', 'Gateway', subnetId);
+      getState().addBlock('compute', 'Compute', subnetId);
+      getState().addBlock('database', 'Database', subnetId);
+      getState().addBlock('storage', 'Storage', subnetId);
+
+      const [gatewayId, computeId, databaseId, storageId] = getArch().blocks.map((block) => block.id);
+      return { gatewayId, computeId, databaseId, storageId };
+    };
+
     it('creates a dataflow connection', () => {
-      getState().addConnection('source-1', 'target-1');
+      const { gatewayId, computeId } = createConnectionFixture();
+      const success = getState().addConnection(gatewayId, computeId);
+
+      expect(success).toBe(true);
       const conns = getArch().connections;
       expect(conns).toHaveLength(1);
-      expect(conns[0].sourceId).toBe('source-1');
-      expect(conns[0].targetId).toBe('target-1');
+      expect(conns[0].sourceId).toBe(gatewayId);
+      expect(conns[0].targetId).toBe(computeId);
       expect(conns[0].type).toBe('dataflow');
     });
 
     it('prevents duplicate connections', () => {
-      getState().addConnection('source-1', 'target-1');
-      getState().addConnection('source-1', 'target-1');
+      const { gatewayId, computeId } = createConnectionFixture();
+      getState().addConnection(gatewayId, computeId);
+      const success = getState().addConnection(gatewayId, computeId);
+
+      expect(success).toBe(false);
       expect(getArch().connections).toHaveLength(1);
+    });
+
+    it('rejects self-connections', () => {
+      const { computeId } = createConnectionFixture();
+
+      const success = getState().addConnection(computeId, computeId);
+
+      expect(success).toBe(false);
+      expect(getArch().connections).toHaveLength(0);
+    });
+
+    it('rejects invalid category pairs', () => {
+      const { databaseId, computeId, storageId, gatewayId } = createConnectionFixture();
+
+      const dbToCompute = getState().addConnection(databaseId, computeId);
+      const storageToGateway = getState().addConnection(storageId, gatewayId);
+
+      expect(dbToCompute).toBe(false);
+      expect(storageToGateway).toBe(false);
+      expect(getArch().connections).toHaveLength(0);
+    });
+
+    it('accepts valid category pairs', () => {
+      const { gatewayId, computeId, databaseId } = createConnectionFixture();
+
+      const gatewayToCompute = getState().addConnection(gatewayId, computeId);
+      const computeToDatabase = getState().addConnection(computeId, databaseId);
+
+      expect(gatewayToCompute).toBe(true);
+      expect(computeToDatabase).toBe(true);
+      expect(getArch().connections).toHaveLength(2);
+    });
+
+    it('returns false when source block does not exist', () => {
+      const { computeId } = createConnectionFixture();
+
+      const success = getState().addConnection('missing-source', computeId);
+
+      expect(success).toBe(false);
+      expect(getArch().connections).toHaveLength(0);
+    });
+
+    it('returns false when target block does not exist', () => {
+      const { gatewayId } = createConnectionFixture();
+
+      const success = getState().addConnection(gatewayId, 'missing-target');
+
+      expect(success).toBe(false);
+      expect(getArch().connections).toHaveLength(0);
     });
   });
 
   describe('removeConnection', () => {
     it('removes a connection by ID', () => {
-      getState().addConnection('source-1', 'target-1');
+      getState().addPlate('network', 'VNet', null);
+      const networkId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Subnet', networkId, 'public');
+      const subnetId = getArch().plates[1].id;
+      getState().addBlock('gateway', 'Gateway', subnetId);
+      getState().addBlock('compute', 'Compute', subnetId);
+      const sourceId = getArch().blocks[0].id;
+      const targetId = getArch().blocks[1].id;
+
+      getState().addConnection(sourceId, targetId);
       const connId = getArch().connections[0].id;
       getState().removeConnection(connId);
       expect(getArch().connections).toHaveLength(0);
