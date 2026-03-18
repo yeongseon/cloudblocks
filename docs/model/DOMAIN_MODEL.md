@@ -57,8 +57,8 @@ These invariants **must hold at all times** in a valid `ArchitectureModel`. Viol
 | Rule | Description |
 |------|-------------|
 | **No Self-Connections** | `connection.sourceId !== connection.targetId`. |
-| **No Duplicate Connections** | At most one connection exists between any ordered pair `(sourceId, targetId)`. |
-| **No Cycles** | The connection graph is a DAG (directed acyclic graph). Cycles in the dataflow graph are not permitted in Milestone 1. |
+| **No Duplicate Connections** | UI/domain store operations prevent adding duplicate ordered pairs `(sourceId, targetId)` during connection creation. |
+| **No Cycles (Planned Validation)** | The intended architecture constraint is a DAG-style flow, but explicit cycle detection is planned rather than fully enforced in validation rules today. |
 | **Receiver-Only Enforcement** | `database` and `storage` blocks never appear as `sourceId` in any connection. They are receiver-only. `queue`, `timer`, and `event` may appear as `sourceId` only when targeting `function`. |
 
 ---
@@ -129,7 +129,7 @@ Blocks represent **cloud resources** (infrastructure layer).
 
 They are placed on Plates and represent deployable infrastructure services. Each block has a **brick size** that determines its visual footprint and application capacity.
 
-### Block Categories (MVP)
+### Block Categories (Implemented)
 
 | Category | Description |
 |---------|-------------|
@@ -300,7 +300,7 @@ metadata  — additional properties
 |----------|------|
 | **Direction** | Source → Target = initiator → receiver. Responses are implicit. |
 | **Cardinality** | One-to-many: a block can have multiple outgoing or incoming connections, but at most one connection per ordered `(source, target)` pair. |
-| **Cycles** | Not permitted. The dataflow graph must be a DAG. |
+| **Cycles** | Intended constraint is DAG-style flow; explicit cycle detection is planned and not yet fully enforced by current frontend validation rules. |
 | **Receiver-only types** | `database` and `storage` are receiver-only — they never appear as `sourceId`. |
 
 ### Connection Types
@@ -431,7 +431,7 @@ CloudBlocks uses a **3-layer Lego-style visual system**:
 | **Resource** | Brick (5 sizes) | 40×80 ~ 160×240 px | Cloud resources (compute, database, etc.) |
 | **Plate** | Baseplate (3 tiers) | 160×240 ~ 640×800 px | Network boundaries (VNet, Subnet) |
 
-### Color Coding
+### Block Color Coding
 
 | Category | Hex Color |
 |------|----------|
@@ -443,6 +443,8 @@ CloudBlocks uses a **3-layer Lego-style visual system**:
 | `queue` | `#737373` |
 | `event` | `#D83B01` |
 | `timer` | `#5C2D91` |
+
+Plate colors are defined separately in the canonical visual specs and type constants (`PLATE_COLORS` in `apps/web/src/shared/types/index.ts`).
 
 ### Shape Coding
 
@@ -472,7 +474,7 @@ The following types and fields are **frozen for Milestone 1** and will not chang
 | Frozen Type | Frozen Fields |
 |-------------|---------------|
 | `Plate` | `id`, `name`, `type`, `subnetAccess`, `parentId`, `children`, `position`, `size`, `metadata` |
-| `Block` | `id`, `name`, `category`, `placementId`, `position`, `metadata` |
+| `Block` | `id`, `name`, `category`, `placementId`, `position`, `metadata`, `provider?` |
 | `Connection` | `id`, `sourceId`, `targetId`, `type`, `metadata` |
 | `ExternalActor` | `id`, `name`, `type` |
 | `ArchitectureModel` | `id`, `name`, `version`, `plates`, `blocks`, `connections`, `externalActors`, `createdAt`, `updatedAt` |
@@ -710,7 +712,7 @@ The architecture model is serialized as JSON. A version field is included to sup
 
 ---
 
-# 15. Future Domain Extensions
+# 15. Domain Extensions
 
 ### Serverless Architecture (Implemented)
 
