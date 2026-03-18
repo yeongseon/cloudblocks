@@ -47,7 +47,7 @@ export interface ArchitectureState {
   movePlatePosition: (id: string, deltaX: number, deltaZ: number) => void;
   moveBlockPosition: (id: string, deltaX: number, deltaZ: number) => void;
 
-  addConnection: (sourceId: string, targetId: string) => void;
+  addConnection: (sourceId: string, targetId: string) => boolean;
   removeConnection: (id: string) => void;
 
   validate: () => ValidationResult;

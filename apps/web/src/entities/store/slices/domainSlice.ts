@@ -2,6 +2,8 @@ import type { Block, Connection, Plate, PlateProfileId } from '../../../shared/t
 import { buildPlateSizeFromProfileId, DEFAULT_BLOCK_SIZE } from '../../../shared/types/index';
 import { generateId } from '../../../shared/utils/id';
 import type { ArchitectureSlice, ArchitectureState } from './types';
+import { canConnect } from '../../validation/connection';
+import type { EndpointType } from '../../validation/connection';
 import {
   clampWithinParent,
   DEFAULT_PLATE_SIZE,
@@ -26,7 +28,7 @@ type DomainSlice = Pick<
   | 'removeConnection'
 >;
 
-export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set) => ({
+export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => ({
   addPlate: (type, name, parentId, subnetAccess, profileId?: PlateProfileId) => {
     set((state) => {
       const arch = state.workspace.architecture;
@@ -480,17 +482,34 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set) => ({
   },
 
   addConnection: (sourceId, targetId) => {
+    const arch = get().workspace.architecture;
+    const exists = arch.connections.some(
+      (connection) =>
+        connection.sourceId === sourceId && connection.targetId === targetId
+    );
+
+    if (exists) {
+      return false;
+    }
+
+    const sourceBlock = arch.blocks.find((block) => block.id === sourceId);
+    const sourceActor = arch.externalActors.find((actor) => actor.id === sourceId);
+    const sourceType: EndpointType | null = sourceBlock?.category ?? sourceActor?.type ?? null;
+
+    const targetBlock = arch.blocks.find((block) => block.id === targetId);
+    const targetActor = arch.externalActors.find((actor) => actor.id === targetId);
+    const targetType: EndpointType | null = targetBlock?.category ?? targetActor?.type ?? null;
+
+    if (!sourceType || !targetType) {
+      return false;
+    }
+
+    if (!canConnect(sourceType, targetType)) {
+      return false;
+    }
+
     set((state) => {
-      const arch = state.workspace.architecture;
-      const exists = arch.connections.some(
-        (connection) =>
-          connection.sourceId === sourceId && connection.targetId === targetId
-      );
-
-      if (exists) {
-        return state;
-      }
-
+      const nextArch = state.workspace.architecture;
       const connection: Connection = {
         id: generateId('conn'),
         sourceId,
@@ -500,10 +519,11 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set) => ({
       };
 
       return withHistory(state, {
-        ...arch,
-        connections: [...arch.connections, connection],
+        ...nextArch,
+        connections: [...nextArch.connections, connection],
       });
     });
+    return true;
   },
 
   removeConnection: (id) => {

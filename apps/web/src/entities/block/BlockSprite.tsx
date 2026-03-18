@@ -1,5 +1,6 @@
 import { memo, useEffect, useRef } from 'react';
 import interact from 'interactjs';
+import { toast } from 'react-hot-toast';
 import type { Block, Plate } from '../../shared/types/index';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
@@ -197,7 +198,10 @@ export const BlockSprite = memo(function BlockSprite({
       if (!connectionSource) {
         startConnecting(block.id);
       } else if (connectionSource !== block.id) {
-        addConnection(connectionSource, block.id);
+        const success = addConnection(connectionSource, block.id);
+        if (!success) {
+          toast.error('Invalid connection: check allowed connection rules');
+        }
         completeInteraction();
       }
       return;
