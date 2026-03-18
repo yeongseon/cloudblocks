@@ -21,8 +21,8 @@ Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks
 ### Current Features
 
 - **Lego-style modeling** — Plates (boundaries) + Blocks (resources) + typed Connections
-- **Multi-provider modeling** — Azure, AWS, and GCP support via provider-aware adapters
-- **Architecture compiler** — Visual design compiles to Terraform, Bicep, and Pulumi
+- **Multi-provider modeling foundations** — provider-aware domain types and adapter structure (Azure-first generation)
+- **Architecture compiler** — Visual design compiles to Terraform, Bicep, and Pulumi (Bicep/Pulumi are Azure-targeted today)
 - **Validation engine** — Real-time rule checking for placement and connections
 - **Code generation** — Multi-generator export: Terraform, Bicep, Pulumi with draft/production modes (Milestone 6)
 - **Architecture templates** — Built-in starter templates with gallery UI (Milestone 4)
@@ -172,9 +172,9 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 | Milestone 7 | Collaboration + CI/CD — architecture diff, GitHub Actions template | ✅ Complete |
 | Phase 2 UX | Tactile UX — magnetic snap, dynamic shadows, bounce transitions | ✅ Complete |
 | Phase 7 | Session auth — cookie-based server sessions with GitHub OAuth | ✅ Complete |
-| Phase 8 | Production infra — PostgreSQL, Redis, Docker Compose, multi-replica | ✅ Complete |
-| Phase 9 | Documentation accuracy and editor polish — rendering docs, ADR alignment, contributor workflow | ✅ Complete |
-| Phase 10 | Advanced multi-cloud expansion and documentation governance | 🔄 In Progress |
+| Phase 8 | Production infra — PostgreSQL, Redis, Docker Compose, multi-replica | 🔄 Planned |
+| Phase 9 | Visual Builder Evolution — UX state machine, brick system, model/provider foundations | ✅ Complete |
+| Phase 10 | Documentation Accuracy — canonical docs aligned with current implementation | 🔄 In Progress |
 
 ## Contributing
 
