@@ -17,8 +17,18 @@ const interactMocks = vi.hoisted(() => ({
   unsetFn: vi.fn(),
 }));
 
+const toastMocks = vi.hoisted(() => ({
+  error: vi.fn(),
+}));
+
 vi.mock('interactjs', () => ({
   default: interactMocks.interactFn,
+}));
+
+vi.mock('react-hot-toast', () => ({
+  toast: {
+    error: toastMocks.error,
+  },
 }));
 
 vi.mock('./BlockSprite.css', () => ({}));
@@ -51,6 +61,7 @@ describe('BlockSprite', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    addConnectionMock.mockReturnValue(true);
     interactMocks.draggableFn.mockReturnValue({ unset: interactMocks.unsetFn });
     interactMocks.interactFn.mockReturnValue({ draggable: interactMocks.draggableFn });
     useUIStore.setState({ selectedId: null, toolMode: 'select', connectionSource: null });
@@ -149,6 +160,29 @@ describe('BlockSprite', () => {
 
     expect(useUIStore.getState().connectionSource).toBe('block-same');
     expect(addConnectionMock).not.toHaveBeenCalled();
+  });
+
+  it('shows error toast when connect mode rejects an invalid connection', async () => {
+    const user = userEvent.setup();
+    addConnectionMock.mockReturnValue(false);
+    useUIStore.setState({ toolMode: 'connect' });
+
+    const sourceBlock = makeBlock('block-source', 'database');
+    const targetBlock = makeBlock('block-target', 'compute');
+
+    render(
+      <>
+        <BlockSprite block={sourceBlock} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />
+        <BlockSprite block={targetBlock} parentPlate={parentPlate} screenX={10} screenY={20} zIndex={2} />
+      </>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Block: database-block' }));
+    await user.click(screen.getByRole('button', { name: 'Block: compute-block' }));
+
+    expect(addConnectionMock).toHaveBeenCalledWith('block-source', 'block-target');
+    expect(toastMocks.error).toHaveBeenCalledWith('Invalid connection: check allowed connection rules');
+    expect(useUIStore.getState().connectionSource).toBeNull();
   });
 
   it('adds is-selected class when selected', () => {
