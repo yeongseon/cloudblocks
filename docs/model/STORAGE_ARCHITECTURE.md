@@ -4,7 +4,7 @@
 
 CloudBlocks uses a **Git-native storage architecture**: GitHub repos are the primary data store for architecture assets and generated code, with a minimal SQLite metadata database for auth, workspace indexing, and run status.
 
-> **Current status (v0.6.0 / Milestone 7)**: Local-first editing persists in browser storage, and backend metadata/session state is stored in SQLite (`users`, `identities`, `workspaces`, `generation_runs`, `sessions`, `ai_api_keys`).
+> **Current status (Milestone 7+)**: Local-first editing persists in browser storage, and backend metadata/session state is stored in SQLite (`users`, `identities`, `workspaces`, `generation_runs`, `sessions`, `ai_api_keys`).
 
 This is NOT a traditional database-heavy architecture. The design principle: **DB = index and status only, real data = Git / Blob Storage**.
 
@@ -14,7 +14,7 @@ This is NOT a traditional database-heavy architecture. The design principle: **D
 ┌──────────────────────────────────────────────────────────────┐
 │                      Application Layer                       │
 ├────────────────┬──────────────────┬──────────────────────────┤
-│  GitHub Repos  │  Metadata DB     │  Redis (Phase 8 Planned) │
+│  GitHub Repos  │  Metadata DB     │  Redis (Phase 8 ✅)       │
 │  (Source of    │  (SQLite)        │  (Cache / Queue)         │
 │   Truth)       │                  │                          │
 ├────────────────┼──────────────────┼──────────────────────────┤
@@ -210,7 +210,7 @@ Key differences from a traditional SaaS schema:
 - **No JWT table/mechanism** — auth is server-side session rows + httpOnly `cb_session` cookie
 - **Status enum**: `pending` → `running` → `completed` / `failed` (not `queued` / `succeeded`)
 
-## Redis Schema (Phase 8 Planned)
+## Redis Schema (Phase 8 ✅)
 
 ```
 # Session cache (optional at scale)

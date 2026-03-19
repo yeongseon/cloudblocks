@@ -168,7 +168,14 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 
 | Phase | Description | Status |
 |-------|-------------|--------|
-| Milestones 1–8 | Visual builder, code generation (Terraform/Bicep/Pulumi), templates, GitHub integration, learning mode, multi-cloud, architecture diff | ✅ Complete |
+| Milestones 1–7 | Visual builder, code generation (Terraform/Bicep/Pulumi), templates, GitHub integration, learning mode, collaboration, architecture diff | ✅ Complete |
+| Phase 2 UX | Magnetic snap, dynamic shadows, bounce transitions | ✅ Complete |
+| Phase 3 | Lego minifigure character (Azure variant) | ✅ Complete |
+| Phase 7 | Session auth migration (cookie-based sessions) | ✅ Complete |
+| Phase 9 | Visual builder evolution (UX state machine, brick design, provider foundations) | ✅ Complete |
+| Phase 10 | Documentation accuracy | ✅ Complete |
+| Phase 11 | UX/UI improvements | ✅ Complete |
+| Milestone 8 | Multi-cloud platform (AWS, GCP adapters) | 🔄 In Progress |
 | Milestone 9 | UX Core Hardening | 🔄 Planned |
 | Milestone 10 | External Actors & DevOps UX | 🔄 Planned |
 | Milestone 11 | Brick Design System | 🔄 Planned |
