@@ -221,6 +221,7 @@ export const PlateSprite = memo(function PlateSprite({
       >
         <div className="plate-img" aria-hidden="true">
           <PlateSvg
+            plateType={plate.type}
             studsX={profile.studsX}
             studsY={profile.studsY}
             worldHeight={profile.worldHeight}

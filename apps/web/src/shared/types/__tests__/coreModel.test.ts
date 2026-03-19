@@ -176,40 +176,40 @@ describe('SUBTYPE_SIZE_OVERRIDES', () => {
   });
 
   it('maps specific AWS subtypes to expected dimensions', () => {
-    expect(SUBTYPE_SIZE_OVERRIDES['aws:EC2']).toEqual({ width: 2, depth: 2, height: 2 });
-    expect(SUBTYPE_SIZE_OVERRIDES['aws:Lambda']).toEqual({ width: 1, depth: 1, height: 1 });
-    expect(SUBTYPE_SIZE_OVERRIDES['aws:RDS']).toEqual({ width: 3, depth: 3, height: 2 });
-    expect(SUBTYPE_SIZE_OVERRIDES['aws:CloudFront']).toEqual({ width: 4, depth: 1, height: 1 });
+    expect(SUBTYPE_SIZE_OVERRIDES['aws:ec2']).toEqual({ width: 2, depth: 2, height: 2 });
+    expect(SUBTYPE_SIZE_OVERRIDES['aws:lambda']).toEqual({ width: 1, depth: 1, height: 1 });
+    expect(SUBTYPE_SIZE_OVERRIDES['aws:rds-postgres']).toEqual({ width: 3, depth: 3, height: 2 });
+    expect(SUBTYPE_SIZE_OVERRIDES['aws:cloudfront']).toEqual({ width: 4, depth: 1, height: 1 });
   });
 
   it('maps specific Azure subtypes to expected dimensions', () => {
-    expect(SUBTYPE_SIZE_OVERRIDES['azure:Virtual Machine']).toEqual({ width: 2, depth: 2, height: 2 });
-    expect(SUBTYPE_SIZE_OVERRIDES['azure:Function App']).toEqual({ width: 1, depth: 1, height: 1 });
-    expect(SUBTYPE_SIZE_OVERRIDES['azure:Cosmos DB']).toEqual({ width: 3, depth: 3, height: 2 });
-    expect(SUBTYPE_SIZE_OVERRIDES['azure:Front Door']).toEqual({ width: 4, depth: 1, height: 1 });
+    expect(SUBTYPE_SIZE_OVERRIDES['azure:vm']).toEqual({ width: 2, depth: 2, height: 2 });
+    expect(SUBTYPE_SIZE_OVERRIDES['azure:functions']).toEqual({ width: 1, depth: 1, height: 1 });
+    expect(SUBTYPE_SIZE_OVERRIDES['azure:cosmos-db']).toEqual({ width: 3, depth: 3, height: 2 });
+    expect(SUBTYPE_SIZE_OVERRIDES['azure:front-door']).toEqual({ width: 4, depth: 1, height: 1 });
   });
 
   it('maps specific GCP subtypes to expected dimensions', () => {
-    expect(SUBTYPE_SIZE_OVERRIDES['gcp:Compute Engine']).toEqual({ width: 2, depth: 2, height: 2 });
-    expect(SUBTYPE_SIZE_OVERRIDES['gcp:Cloud Functions']).toEqual({ width: 1, depth: 1, height: 1 });
-    expect(SUBTYPE_SIZE_OVERRIDES['gcp:Cloud SQL']).toEqual({ width: 3, depth: 3, height: 2 });
-    expect(SUBTYPE_SIZE_OVERRIDES['gcp:Cloud CDN']).toEqual({ width: 4, depth: 1, height: 1 });
+    expect(SUBTYPE_SIZE_OVERRIDES['gcp:compute-engine']).toEqual({ width: 2, depth: 2, height: 2 });
+    expect(SUBTYPE_SIZE_OVERRIDES['gcp:cloud-functions']).toEqual({ width: 1, depth: 1, height: 1 });
+    expect(SUBTYPE_SIZE_OVERRIDES['gcp:cloud-sql-postgres']).toEqual({ width: 3, depth: 3, height: 2 });
+    expect(SUBTYPE_SIZE_OVERRIDES['gcp:cloud-cdn']).toEqual({ width: 4, depth: 1, height: 1 });
   });
 });
 
 describe('getBlockDimensions', () => {
   it('returns subtype override when provider and subtype match', () => {
-    const dims = getBlockDimensions('compute', 'aws', 'EC2');
+    const dims = getBlockDimensions('compute', 'aws', 'ec2');
     expect(dims).toEqual({ width: 2, depth: 2, height: 2 });
   });
 
   it('returns subtype override for Azure subtypes', () => {
-    const dims = getBlockDimensions('database', 'azure', 'Cosmos DB');
+    const dims = getBlockDimensions('database', 'azure', 'cosmos-db');
     expect(dims).toEqual({ width: 3, depth: 3, height: 2 });
   });
 
   it('returns subtype override for GCP subtypes', () => {
-    const dims = getBlockDimensions('function', 'gcp', 'Cloud Functions');
+    const dims = getBlockDimensions('function', 'gcp', 'cloud-functions');
     expect(dims).toEqual({ width: 1, depth: 1, height: 1 });
   });
 
@@ -246,7 +246,7 @@ describe('getBlockDimensions', () => {
   it('subtype override can differ from category default', () => {
     // aws:Lambda is micro (1×1×1) but 'function' category default is also micro.
     // aws:CloudFront is 4×1×1 — 'gateway' default is wide (3×1×1).
-    const cfDims = getBlockDimensions('gateway', 'aws', 'CloudFront');
+    const cfDims = getBlockDimensions('gateway', 'aws', 'cloudfront');
     const defaultDims = getBlockDimensions('gateway');
     expect(cfDims).toEqual({ width: 4, depth: 1, height: 1 });
     expect(defaultDims).toEqual({ width: 3, depth: 1, height: 1 });
