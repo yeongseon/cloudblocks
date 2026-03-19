@@ -13,7 +13,7 @@ vi.mock('../../entities/plate/PlateSprite', () => ({ PlateSprite: () => null }))
 vi.mock('../../entities/block/BlockSprite', () => ({ BlockSprite: () => null }));
 vi.mock('../../entities/connection/ConnectionPath', () => ({ ConnectionPath: () => null }));
 vi.mock('../../entities/connection/ExternalActorSprite', () => ({ ExternalActorSprite: () => null }));
-vi.mock('../../entities/character', () => ({ MinifigureSvg: () => null }));
+vi.mock('../../entities/character', () => ({ MinifigureSvg: () => null, MinifigureSprite: () => null }));
 vi.mock('./EmptyCanvasOverlay', () => ({ EmptyCanvasOverlay: () => null }));
 vi.mock('./DragGhost', () => ({ DragGhost: () => null }));
 vi.mock('./ConnectionPreview', () => ({ ConnectionPreview: () => null }));
