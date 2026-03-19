@@ -6,7 +6,7 @@ import type {
   ProviderDefinition,
   ResourceMapping,
 } from './types';
-import { sanitizeIaCValue } from './types';
+import { resolveBlockMapping, sanitizeIaCValue } from './types';
 
 /**
  * Pulumi Generator (v1.0)
@@ -60,7 +60,12 @@ export function normalizePulumi(
   }
 
   for (const block of architecture.blocks) {
-    const mapping = provider.blockMappings[block.category];
+    const mapping = resolveBlockMapping(
+      provider.blockMappings,
+      provider.subtypeBlockMappings,
+      block.category,
+      block.subtype,
+    )!;
     const name = uniqueName(mapping.namePrefix, block.name);
     resourceNames.set(block.id, name);
   }
@@ -289,7 +294,12 @@ export function generateIndexTs(
 
   for (const block of architecture.blocks) {
     const resName = resourceNames.get(block.id)!;
-    const mapping = provider.blockMappings[block.category];
+    const mapping = resolveBlockMapping(
+      provider.blockMappings,
+      provider.subtypeBlockMappings,
+      block.category,
+      block.subtype,
+    )!;
     sections.push(generateBlockResource(block, resName, mapping));
     sections.push('');
   }
