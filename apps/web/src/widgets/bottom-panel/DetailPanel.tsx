@@ -33,6 +33,7 @@ interface DetailPanelProps {
 
 export function DetailPanel({ className = '' }: DetailPanelProps) {
   const selectedId = useUIStore((s) => s.selectedId);
+  const showTemplateGallery = useUIStore((s) => s.showTemplateGallery);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
 
   // Find selected item
@@ -41,6 +42,10 @@ export function DetailPanel({ className = '' }: DetailPanelProps) {
   const selectedConnection = architecture.connections.find((c) => c.id === selectedId);
 
   if (!selectedId) {
+    const isEmptyOnboarding = architecture.plates.length === 0 && !showTemplateGallery;
+    if (isEmptyOnboarding) {
+      return <IdleState className={className} />;
+    }
     return <WelcomeState className={className} />;
   }
 
@@ -57,6 +62,19 @@ export function DetailPanel({ className = '' }: DetailPanelProps) {
   }
 
   return <WelcomeState className={className} />;
+}
+
+// ─── Idle State ────────────────────────────────────────────
+
+function IdleState({ className }: { className: string }) {
+  return (
+    <div className={`detail-panel detail-panel--idle ${className}`}>
+      <div className="detail-idle">
+        <span className="detail-idle-icon">📋</span>
+        <p className="detail-idle-text">No selection</p>
+      </div>
+    </div>
+  );
 }
 
 // ─── Welcome State ─────────────────────────────────────────
