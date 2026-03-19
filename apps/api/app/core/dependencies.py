@@ -5,6 +5,7 @@ Provides FastAPI dependencies for database, repositories, services, and auth.
 
 from __future__ import annotations
 
+import importlib
 import time
 from typing import Annotated, cast
 
@@ -14,6 +15,7 @@ from app.core.config import settings
 from app.core.errors import UnauthorizedError
 from app.domain.models.entities import Session, User
 from app.domain.models.repositories import (
+    AIApiKeyRepository,
     GenerationRunRepository,
     IdentityRepository,
     SessionRepository,
@@ -38,6 +40,9 @@ _github_service = GitHubService(
 
 _db = create_database(settings.database_url)
 _redis_client: RedisClient | None = None
+_key_manager = importlib.import_module("app.infrastructure.llm.key_manager").KeyManager(
+    settings.ai_encryption_key
+)
 
 
 def get_database() -> DatabaseProtocol:
@@ -50,6 +55,10 @@ def get_redis_client() -> RedisClient | None:
 
 def get_github_service() -> GitHubService:
     return _github_service
+
+
+def get_key_manager():
+    return _key_manager
 
 
 def get_user_repo(db: Annotated[DatabaseProtocol, Depends(get_database)]) -> UserRepository:
@@ -98,6 +107,19 @@ def get_generation_run_repo(
     from app.infrastructure.db.repositories import SQLiteGenerationRunRepository
 
     return SQLiteGenerationRunRepository(cast(Database, db))
+
+
+def get_ai_api_key_repo(
+    db: Annotated[DatabaseProtocol, Depends(get_database)],
+) -> AIApiKeyRepository:
+    if isinstance(db, PostgresDatabase):
+        from app.infrastructure.db.pg_repositories import PgAIApiKeyRepository
+
+        return PgAIApiKeyRepository(db)
+
+    from app.infrastructure.db.repositories import SQLiteAIApiKeyRepository
+
+    return SQLiteAIApiKeyRepository(cast(Database, db))
 
 
 def get_session_repo(db: Annotated[DatabaseProtocol, Depends(get_database)]) -> SessionRepository:

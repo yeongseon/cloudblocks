@@ -4,6 +4,7 @@ import time
 from datetime import datetime, timezone
 from typing import Any
 
+from app.domain.models.ai_entities import AIApiKey
 from app.domain.models.entities import (
     GenerationRun,
     GenerationStatus,
@@ -13,6 +14,7 @@ from app.domain.models.entities import (
     Workspace,
 )
 from app.domain.models.repositories import (
+    AIApiKeyRepository,
     GenerationRunRepository,
     IdentityRepository,
     SessionRepository,
@@ -312,6 +314,70 @@ class PgGenerationRunRepository(GenerationRunRepository):
             ),
         )
         return run
+
+
+class PgAIApiKeyRepository(AIApiKeyRepository):
+    def __init__(self, db: PostgresDatabase) -> None:
+        self._db = db
+
+    def _row_to_ai_api_key(self, row: dict[str, Any]) -> AIApiKey:
+        return AIApiKey(
+            id=row["id"],
+            user_id=row["user_id"],
+            provider=row["provider"],
+            encrypted_key=row["encrypted_key"],
+            created_at=_parse_dt(row.get("created_at")) or datetime.now(timezone.utc),
+        )
+
+    async def _ensure_table(self) -> None:
+        await self._db.execute(
+            """CREATE TABLE IF NOT EXISTS ai_api_keys (
+               id TEXT PRIMARY KEY,
+               user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+               provider TEXT NOT NULL,
+               encrypted_key TEXT NOT NULL,
+               created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+               UNIQUE(user_id, provider)
+            )"""
+        )
+
+    async def upsert(self, api_key: AIApiKey) -> AIApiKey:
+        await self._ensure_table()
+        row = await self._db.fetch_one(
+            """INSERT INTO ai_api_keys (id, user_id, provider, encrypted_key, created_at)
+               VALUES ($1, $2, $3, $4, $5)
+               ON CONFLICT (user_id, provider) DO UPDATE SET
+                 id = EXCLUDED.id,
+                 encrypted_key = EXCLUDED.encrypted_key,
+                 created_at = EXCLUDED.created_at
+               RETURNING *""",
+            (
+                api_key.id,
+                api_key.user_id,
+                api_key.provider,
+                api_key.encrypted_key,
+                api_key.created_at,
+            ),
+        )
+        if row is None:
+            raise RuntimeError("Failed to persist AI API key")
+        return self._row_to_ai_api_key(row)
+
+    async def list_by_user(self, user_id: str) -> list[AIApiKey]:
+        await self._ensure_table()
+        rows = await self._db.fetch_all(
+            "SELECT * FROM ai_api_keys WHERE user_id = $1 ORDER BY created_at DESC",
+            (user_id,),
+        )
+        return [self._row_to_ai_api_key(row) for row in rows]
+
+    async def delete_by_user_and_provider(self, user_id: str, provider: str) -> bool:
+        await self._ensure_table()
+        status = await self._db.execute(
+            "DELETE FROM ai_api_keys WHERE user_id = $1 AND provider = $2",
+            (user_id, provider),
+        )
+        return _rowcount_from_status(status) > 0
 
 
 class PgSessionRepository(SessionRepository):

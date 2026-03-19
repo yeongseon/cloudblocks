@@ -18,6 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from app.api.routes.ai_keys import router as ai_keys_router
 from app.api.routes.auth import router as auth_router
 from app.api.routes.generation import router as generation_router
 from app.api.routes.github import router as github_router
@@ -156,3 +157,4 @@ app.include_router(session_router, prefix="/api/v1")
 app.include_router(workspace_router, prefix="/api/v1")
 app.include_router(github_router, prefix="/api/v1")
 app.include_router(generation_router, prefix="/api/v1")
+app.include_router(ai_keys_router, prefix="/api/v1")
