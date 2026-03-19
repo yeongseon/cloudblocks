@@ -71,7 +71,7 @@ describe('pipeline', () => {
         },
       ] as Block[],
       connections: [],
-      externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' }],
+      externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       createdAt: '2025-01-01T00:00:00Z',
       updatedAt: '2025-01-01T00:00:00Z',
     };
@@ -167,7 +167,7 @@ describe('pipeline', () => {
           },
         ] as Block[],
         connections: [],
-        externalActors: [{ id: 'ext-2', name: 'Internet', type: 'internet' }],
+        externalActors: [{ id: 'ext-2', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
         createdAt: '2025-01-01T00:00:00Z',
         updatedAt: '2025-01-01T00:00:00Z',
       };
@@ -240,7 +240,7 @@ describe('pipeline', () => {
           },
         ] as Block[],
         connections: [],
-        externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' }],
+        externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
         createdAt: '2025-01-01T00:00:00Z',
         updatedAt: '2025-01-01T00:00:00Z',
       };
@@ -299,7 +299,7 @@ describe('pipeline', () => {
         },
       ] as Block[],
       connections: [],
-      externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' }],
+      externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       createdAt: '2025-01-01T00:00:00Z',
       updatedAt: '2025-01-01T00:00:00Z',
     };
@@ -377,7 +377,7 @@ describe('pipeline', () => {
           },
         ] as Block[],
         connections: [],
-        externalActors: [{ id: 'ext-2', name: 'Internet', type: 'internet' }],
+        externalActors: [{ id: 'ext-2', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
         createdAt: '2025-01-01T00:00:00Z',
         updatedAt: '2025-01-01T00:00:00Z',
       };
@@ -412,7 +412,7 @@ describe('pipeline', () => {
       ] as Plate[],
       blocks: [],
       connections: [],
-      externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' }],
+      externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       createdAt: '2025-01-01T00:00:00Z',
       updatedAt: '2025-01-01T00:00:00Z',
     };

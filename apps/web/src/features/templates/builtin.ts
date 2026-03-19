@@ -120,7 +120,7 @@ const threeTierTemplate: ArchitectureTemplate = {
         metadata: {},
       },
     ],
-    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
   },
 };
 
@@ -193,7 +193,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
         metadata: {},
       },
     ],
-    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
   },
 };
 
@@ -307,7 +307,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
         metadata: {},
       },
     ],
-    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
   },
 };
 
@@ -425,7 +425,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
         metadata: {},
       },
     ],
-    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
   },
 };
 
@@ -790,7 +790,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         metadata: {},
       },
     ],
-    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
   },
 };
 
