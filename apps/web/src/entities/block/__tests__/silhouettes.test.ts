@@ -9,7 +9,7 @@ import {
   BLOCK_VISUAL_PROFILES,
   type BlockCategory,
   type BrickSilhouette,
-  type BrickSizeTier,
+  type BlockTier,
 } from '../../../shared/types/index';
 import type { BlockDimensionsCU } from '../../../shared/types/visualProfile';
 import {
@@ -38,7 +38,7 @@ const blockCategories: BlockCategory[] = [
 ];
 
 const silhouetteTypes: BrickSilhouette[] = ['tower', 'heavy', 'shield', 'module'];
-const sizeTiers: BrickSizeTier[] = ['signal', 'light', 'service', 'core', 'anchor'];
+const sizeTiers: BlockTier[] = ['micro', 'small', 'medium', 'large', 'wide'];
 
 function makeDimensions(sideWallPx: number) {
   return {

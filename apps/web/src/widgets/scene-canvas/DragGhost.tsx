@@ -3,11 +3,10 @@ import type { RefObject } from 'react';
 import { useUIStore } from '../../entities/store/uiStore';
 import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
 import { useRafCallback } from '../../shared/hooks/useRafCallback';
-import { getBlockVisualProfile } from '../../shared/types/visualProfile';
+import { getBlockDimensions, getBlockVisualProfile } from '../../shared/types/visualProfile';
 import {
   BLOCK_MARGIN,
   BLOCK_PADDING,
-  BLOCK_WORLD_HEIGHT,
   EDGE_HIGHLIGHT_COLOR,
   EDGE_HIGHLIGHT_OPACITY,
   EDGE_HIGHLIGHT_STROKE_WIDTH,
@@ -48,7 +47,7 @@ export function DragGhost({
 
   const screenWidth = (studsX + studsY) * TILE_W / 2;
   const diamondHeight = (studsX + studsY) * TILE_H / 2;
-  const sideWallPx = Math.round(BLOCK_WORLD_HEIGHT * TILE_Z);
+  const sideWallPx = getBlockDimensions(activeCategory).height * TILE_Z;
   const svgHeight = diamondHeight + sideWallPx + BLOCK_PADDING;
 
   const cx = screenWidth / 2;

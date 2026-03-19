@@ -140,12 +140,20 @@ export function worldSizeToScreen(
   };
 }
 
-export const GRID_CELL = 3.0;
+/**
+ * Grid cell size in CU (Cloud Units).
+ * v2.0: 1 CU = 1 snap boundary. All positions are integer CU values.
+ */
+export const GRID_CELL = 1;
 
+/**
+ * Snap world coordinates to the nearest CU grid boundary (integer values).
+ * v2.0: All positions must be integer CU — no sub-unit positions allowed.
+ */
 export function snapToGrid(worldX: number, worldZ: number): { x: number; z: number } {
   return {
-    x: Math.round(worldX / GRID_CELL) * GRID_CELL,
-    z: Math.round(worldZ / GRID_CELL) * GRID_CELL,
+    x: Math.round(worldX) || 0,
+    z: Math.round(worldZ) || 0,
   };
 }
 

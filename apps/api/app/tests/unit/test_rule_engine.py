@@ -75,9 +75,9 @@ def test_validate_placement_compute_on_subnet_is_valid() -> None:
     assert validate_placement(block, plate) is None
 
 
-def test_validate_placement_compute_on_network_plate_is_error() -> None:
-    block = _block("b1", "compute", "p-network", name="Compute")
-    plate = _plate("p-network", "network")
+def test_validate_placement_compute_on_region_plate_is_error() -> None:
+    block = _block("b1", "compute", "p-region", name="Compute")
+    plate = _plate("p-region", "region")
 
     error = validate_placement(block, plate)
 
@@ -207,7 +207,7 @@ def test_validate_architecture_integration_mixed_valid_and_invalid() -> None:
         "plates": [
             _plate("p-public", "subnet", "public"),
             _plate("p-private", "subnet", "private"),
-            _plate("p-network", "network"),
+            _plate("p-region", "region"),
         ],
         "blocks": [
             _block("gw", "gateway", "p-public", name="Gateway"),
@@ -275,16 +275,14 @@ def test_validate_architecture_collects_warnings_branch(monkeypatch: pytest.Monk
 
 
 # ============================================================================
-# Serverless Placement Tests (v1.0)
+# Managed-Service Placement Tests (v2.0)
 # ============================================================================
 
-
-def test_validate_placement_function_on_network_is_valid() -> None:
-    block = _block("b-fn", "function", "p-network", name="Function")
-    plate = _plate("p-network", "network")
+def test_validate_placement_function_on_region_is_valid() -> None:
+    block = _block("b-fn", "function", "p-region", name="Function")
+    plate = _plate("p-region", "region")
 
     assert validate_placement(block, plate) is None
-
 
 def test_validate_placement_function_on_subnet_is_error() -> None:
     block = _block("b-fn", "function", "p-subnet", name="Function")
@@ -293,16 +291,14 @@ def test_validate_placement_function_on_subnet_is_error() -> None:
     error = validate_placement(block, plate)
 
     assert error is not None
-    assert error["ruleId"] == "rule-function-network"
-    assert "Network Plate (not Subnet)" in error["message"]
+    assert error["ruleId"] == "rule-function-region"
+    assert "Region/Zone Plate (not Subnet)" in error["message"]
 
-
-def test_validate_placement_queue_on_network_is_valid() -> None:
-    block = _block("b-q", "queue", "p-network", name="Queue")
-    plate = _plate("p-network", "network")
+def test_validate_placement_queue_on_region_is_valid() -> None:
+    block = _block("b-q", "queue", "p-region", name="Queue")
+    plate = _plate("p-region", "region")
 
     assert validate_placement(block, plate) is None
-
 
 def test_validate_placement_queue_on_subnet_is_error() -> None:
     block = _block("b-q", "queue", "p-subnet", name="Queue")
@@ -311,16 +307,14 @@ def test_validate_placement_queue_on_subnet_is_error() -> None:
     error = validate_placement(block, plate)
 
     assert error is not None
-    assert error["ruleId"] == "rule-queue-network"
-    assert "Network Plate (not Subnet)" in error["message"]
+    assert error["ruleId"] == "rule-queue-region"
+    assert "Region/Zone Plate (not Subnet)" in error["message"]
 
-
-def test_validate_placement_event_on_network_is_valid() -> None:
-    block = _block("b-ev", "event", "p-network", name="Event")
-    plate = _plate("p-network", "network")
+def test_validate_placement_event_on_region_is_valid() -> None:
+    block = _block("b-ev", "event", "p-region", name="Event")
+    plate = _plate("p-region", "region")
 
     assert validate_placement(block, plate) is None
-
 
 def test_validate_placement_event_on_subnet_is_error() -> None:
     block = _block("b-ev", "event", "p-subnet", name="Event")
@@ -329,32 +323,66 @@ def test_validate_placement_event_on_subnet_is_error() -> None:
     error = validate_placement(block, plate)
 
     assert error is not None
-    assert error["ruleId"] == "rule-event-network"
-    assert "Network Plate (not Subnet)" in error["message"]
+    assert error["ruleId"] == "rule-event-region"
+    assert "Region/Zone Plate (not Subnet)" in error["message"]
 
 
-def test_validate_placement_timer_on_network_is_valid() -> None:
-    block = _block("b-tm", "timer", "p-network", name="Timer")
-    plate = _plate("p-network", "network")
+def test_validate_placement_analytics_on_region_is_valid() -> None:
+    block = _block("b-an", "analytics", "p-region", name="Analytics")
+    plate = _plate("p-region", "region")
 
     assert validate_placement(block, plate) is None
 
 
-def test_validate_placement_timer_on_subnet_is_error() -> None:
-    block = _block("b-tm", "timer", "p-subnet", name="Timer")
-    plate = _plate("p-subnet", "subnet", "public")
+def test_validate_placement_analytics_on_subnet_is_error() -> None:
+    block = _block("b-an", "analytics", "p-subnet", name="Analytics")
+    plate = _plate("p-subnet", "subnet", "private")
 
     error = validate_placement(block, plate)
 
     assert error is not None
-    assert error["ruleId"] == "rule-timer-network"
-    assert "Network Plate (not Subnet)" in error["message"]
+    assert error["ruleId"] == "rule-analytics-region"
+    assert "Region/Zone Plate (not Subnet)" in error["message"]
 
+
+def test_validate_placement_identity_on_region_is_valid() -> None:
+    block = _block("b-id", "identity", "p-region", name="Identity")
+    plate = _plate("p-region", "region")
+
+    assert validate_placement(block, plate) is None
+
+
+def test_validate_placement_identity_on_subnet_is_error() -> None:
+    block = _block("b-id", "identity", "p-subnet", name="Identity")
+    plate = _plate("p-subnet", "subnet", "private")
+
+    error = validate_placement(block, plate)
+
+    assert error is not None
+    assert error["ruleId"] == "rule-identity-region"
+    assert "Region/Zone Plate (not Subnet)" in error["message"]
+
+
+def test_validate_placement_observability_on_region_is_valid() -> None:
+    block = _block("b-ob", "observability", "p-region", name="Observability")
+    plate = _plate("p-region", "region")
+
+    assert validate_placement(block, plate) is None
+
+
+def test_validate_placement_observability_on_subnet_is_error() -> None:
+    block = _block("b-ob", "observability", "p-subnet", name="Observability")
+    plate = _plate("p-subnet", "subnet", "private")
+
+    error = validate_placement(block, plate)
+
+    assert error is not None
+    assert error["ruleId"] == "rule-observability-region"
+    assert "Region/Zone Plate (not Subnet)" in error["message"]
 
 # ============================================================================
-# Serverless Connection Tests (v1.0)
+# Managed-Service Connection Tests (v2.0)
 # ============================================================================
-
 
 def test_validate_connection_gateway_to_function_is_valid() -> None:
     blocks = [
@@ -406,15 +434,6 @@ def test_validate_connection_queue_to_function_is_valid() -> None:
     assert validate_connection(_conn("c1", "q", "fn"), blocks, external_actors) is None
 
 
-def test_validate_connection_timer_to_function_is_valid() -> None:
-    blocks = [
-        {"id": "tm", "category": "timer"},
-        {"id": "fn", "category": "function"},
-    ]
-    external_actors = []
-
-    assert validate_connection(_conn("c1", "tm", "fn"), blocks, external_actors) is None
-
 
 def test_validate_connection_event_to_function_is_valid() -> None:
     blocks = [
@@ -454,3 +473,38 @@ def test_validate_connection_queue_to_storage_is_error() -> None:
     assert error["ruleId"] == "rule-conn-invalid"
     assert "queue" in error["message"]
     assert "storage" in error["message"]
+
+
+def test_validate_connection_analytics_to_database_is_valid() -> None:
+    blocks = [
+        {"id": "an", "category": "analytics"},
+        {"id": "db", "category": "database"},
+    ]
+    external_actors = []
+
+    assert validate_connection(_conn("c1", "an", "db"), blocks, external_actors) is None
+
+
+def test_validate_connection_analytics_to_storage_is_valid() -> None:
+    blocks = [
+        {"id": "an", "category": "analytics"},
+        {"id": "st", "category": "storage"},
+    ]
+    external_actors = []
+
+    assert validate_connection(_conn("c1", "an", "st"), blocks, external_actors) is None
+
+
+def test_validate_connection_analytics_to_compute_is_error() -> None:
+    blocks = [
+        {"id": "an", "category": "analytics"},
+        {"id": "cmp", "category": "compute"},
+    ]
+    external_actors = []
+
+    error = validate_connection(_conn("c1", "an", "cmp"), blocks, external_actors)
+
+    assert error is not None
+    assert error["ruleId"] == "rule-conn-invalid"
+    assert "analytics" in error["message"]
+    assert "compute" in error["message"]

@@ -10,10 +10,19 @@ const DEFAULT_EXTERNAL_ACTOR_POSITION = { x: -3, y: 0, z: 5 };
  *
  * This is separate from ArchitectureModel.version, which tracks
  * the user's architecture revision (user-facing, incremented on save/export).
+ *
+ * v2.0.0 — Clean start: CU-based dimensions, 6-layer hierarchy,
+ *          10 categories, aggregation, roles. No v1.x migration.
  */
-export const SCHEMA_VERSION = '0.2.0';
+export const SCHEMA_VERSION = '2.0.0';
 
-const SUPPORTED_VERSIONS = ['0.1.0', '0.2.0'];
+/**
+ * v1.x schema versions that are explicitly rejected (clean start, no migration).
+ * See CLOUDBLOCKS_SPEC_V2.md §16.
+ */
+const LEGACY_VERSIONS = ['0.1.0', '0.2.0'];
+
+const SUPPORTED_VERSIONS = [SCHEMA_VERSION];
 
 export interface SerializedData {
   schemaVersion: string;
@@ -41,15 +50,19 @@ export function deserialize(json: string): Workspace[] {
     throw new Error('Missing schemaVersion in serialized data');
   }
 
-  if (data.schemaVersion !== SCHEMA_VERSION) {
-    if (SUPPORTED_VERSIONS.includes(data.schemaVersion)) {
-      console.warn(`Migrating schema from ${data.schemaVersion} to ${SCHEMA_VERSION}.`);
-    } else {
-      console.warn(
-        `Schema version mismatch: expected ${SCHEMA_VERSION}, got ${data.schemaVersion}. ` +
-          'Data may need migration.'
-      );
-    }
+  // Reject legacy v1.x workspaces (clean start — no migration)
+  if (LEGACY_VERSIONS.includes(data.schemaVersion)) {
+    throw new Error(
+      `Incompatible workspace format: v${data.schemaVersion} is no longer supported. ` +
+        'CloudBlocks v2.0 uses a new format. Please create a new workspace.'
+    );
+  }
+
+  if (!SUPPORTED_VERSIONS.includes(data.schemaVersion)) {
+    console.warn(
+      `Schema version mismatch: expected ${SCHEMA_VERSION}, got ${data.schemaVersion}. ` +
+        'Data may need migration.'
+    );
   }
 
   const workspaces = data.workspaces ?? [];
@@ -76,10 +89,6 @@ export function deserialize(json: string): Workspace[] {
         }
       }
     }
-
-    // Migration: 0.1.0 -> 0.2.0 - subtype/config fields on blocks
-    // These fields are optional on Block, so no patching is needed.
-    // Blocks saved without subtype/config naturally deserialize as undefined.
   }
 
   return workspaces;

@@ -58,7 +58,7 @@ Focus on these checks:
 - Public exposure of sensitive resources
 - Single points of failure and missing redundancy
 - Missing WAF or firewall protections
-- Improper subnet placement (public/private)
+- Improper layer placement (blocks should be in correct layer: global, edge, region, zone, subnet)
 - Missing backup or disaster recovery strategy
 - Naming and structural best-practice violations
 
