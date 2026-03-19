@@ -79,7 +79,7 @@ export const MinifigureSvg = memo(function MinifigureSvg({
       height={height * scale}
       className={className}
       xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
+      
     >
       <StudDefs studId={studId} studColors={studColors} />
 

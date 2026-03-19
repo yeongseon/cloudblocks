@@ -1,0 +1,23 @@
+.minifigure-sprite {
+  position: absolute;
+  transform: translate(-50%, -80%);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: filter 0.2s ease;
+}
+
+.minifigure-sprite.is-selected {
+  filter: drop-shadow(0 0 8px #0078D4) drop-shadow(0 0 16px rgba(0, 120, 212, 0.45));
+}
+
+.minifigure-sprite.is-idle {
+  /* default state, no extra styling needed */
+}
+
+.minifigure-sprite.is-moving {
+  /* future: worker bob animation will be added in #231 */
+}
+
+.minifigure-sprite.is-building {
+  /* future: building animation will be added in #231 */
+}

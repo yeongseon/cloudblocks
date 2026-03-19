@@ -11,7 +11,7 @@ import { PlateSprite } from '../../entities/plate/PlateSprite';
 import { BlockSprite } from '../../entities/block/BlockSprite';
 import { ConnectionPath } from '../../entities/connection/ConnectionPath';
 import { ExternalActorSprite } from '../../entities/connection/ExternalActorSprite';
-import { MinifigureSvg } from '../../entities/character';
+import { MinifigureSprite } from '../../entities/character';
 import { EmptyCanvasOverlay } from './EmptyCanvasOverlay';
 import { DragGhost } from './DragGhost';
 import { ConnectionPreview } from './ConnectionPreview';
@@ -210,16 +210,12 @@ export function SceneCanvas() {
             const screenPos = worldToScreen(x, y, z, origin.x, origin.y);
             const zIndex = depthKey(x, z, y, 1);
             return (
-              <div
-                className="character-sprite"
-                style={{
-                  left: screenPos.x,
-                  top: screenPos.y,
-                  zIndex,
-                }}
-              >
-                <MinifigureSvg provider={activeProvider} />
-              </div>
+              <MinifigureSprite
+                provider={activeProvider}
+                screenX={screenPos.x}
+                screenY={screenPos.y}
+                zIndex={zIndex}
+              />
             );
           })()}
         </div>

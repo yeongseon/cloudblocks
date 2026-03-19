@@ -75,12 +75,6 @@
   z-index: 1;
 }
 
-.character-sprite {
-  position: absolute;
-  pointer-events: none;
-  transform: translate(-50%, -80%);
-}
-
 .connection-layer {
   position: absolute;
   top: 0;
