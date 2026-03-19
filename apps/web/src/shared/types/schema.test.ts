@@ -171,6 +171,130 @@ describe('schema utilities', () => {
     expect(result[0].architecture.externalActors[0].position).toEqual({ x: -3, y: 0, z: 5 });
   });
 
+  it('migrates 0.1.0 schema with blocks to 0.2.0 (subtype/config remain undefined)', () => {
+    const oldData = {
+      schemaVersion: '0.1.0',
+      workspaces: [
+        {
+          id: 'ws-1',
+          name: 'Test',
+          architecture: {
+            id: 'arch-1',
+            name: 'Test',
+            version: '1',
+            plates: [
+              {
+                id: 'plate-1',
+                name: 'Subnet',
+                type: 'subnet',
+                profileId: 'subnet-service',
+                parentId: null,
+                children: ['blk-1'],
+                position: { x: 0, y: 0, z: 0 },
+                size: { width: 6, height: 0.5, depth: 8 },
+                metadata: {},
+              },
+            ],
+            blocks: [
+              {
+                id: 'blk-1',
+                name: 'Web Server',
+                category: 'compute',
+                placementId: 'plate-1',
+                position: { x: 1, y: 0.5, z: 1 },
+                metadata: {},
+                provider: 'aws',
+              },
+            ],
+            connections: [],
+            externalActors: [
+              {
+                id: 'ext-internet',
+                name: 'Internet',
+                type: 'internet',
+                position: { x: -3, y: 0, z: 5 },
+              },
+            ],
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    };
+
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const result = deserialize(JSON.stringify(oldData));
+    const block = result[0].architecture.blocks[0];
+
+    expect(block.id).toBe('blk-1');
+    expect(block.category).toBe('compute');
+    expect(block.subtype).toBeUndefined();
+    expect(block.config).toBeUndefined();
+    expect(warnSpy).toHaveBeenCalledWith('Migrating schema from 0.1.0 to 0.2.0.');
+  });
+
+  it('roundtrips blocks with subtype and config via serialize/deserialize', () => {
+    const workspaces: Workspace[] = [
+      {
+        id: 'ws-1',
+        name: 'Test',
+        architecture: {
+          id: 'arch-1',
+          name: 'Test',
+          version: '1',
+          plates: [
+            {
+              id: 'plate-1',
+              name: 'Subnet',
+              type: 'subnet',
+              profileId: 'subnet-service',
+              parentId: null,
+              children: ['blk-1'],
+              position: { x: 0, y: 0, z: 0 },
+              size: { width: 6, height: 0.5, depth: 8 },
+              metadata: {},
+            },
+          ],
+          blocks: [
+            {
+              id: 'blk-1',
+              name: 'Lambda',
+              category: 'compute',
+              placementId: 'plate-1',
+              position: { x: 1, y: 0.5, z: 1 },
+              metadata: {},
+              provider: 'aws',
+              subtype: 'lambda',
+              config: { runtime: 'nodejs20.x', memorySize: 512 },
+            },
+          ],
+          connections: [],
+          externalActors: [
+            {
+              id: 'ext-internet',
+              name: 'Internet',
+              type: 'internet',
+              position: { x: -3, y: 0, z: 5 },
+            },
+          ],
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ];
+
+    const json = serialize(workspaces);
+    const parsed = deserialize(json);
+    const block = parsed[0].architecture.blocks[0];
+
+    expect(block.subtype).toBe('lambda');
+    expect(block.config).toEqual({ runtime: 'nodejs20.x', memorySize: 512 });
+  });
+
   it('deserialize throws when schemaVersion is missing', () => {
     const json = JSON.stringify({ workspaces: [] });
 
