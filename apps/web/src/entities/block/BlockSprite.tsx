@@ -1,7 +1,7 @@
 import { memo, useEffect, useRef } from 'react';
 import interact from 'interactjs';
 import { toast } from 'react-hot-toast';
-import type { Block, BlockCategory, Plate } from '../../shared/types/index';
+import type { Block, BlockCategory, Plate, ProviderType } from '../../shared/types/index';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import { useWorkerStore } from '../store/workerStore';
@@ -18,8 +18,12 @@ import { BlockSvg } from './BlockSvg';
 import './BlockSprite.css';
 
 /** Derive screen size for the block clickable area from CU dimensions. */
-function getBlockScreenSize(category: BlockCategory): { width: number; height: number } {
-  const cu = getBlockDimensions(category);
+function getBlockScreenSize(
+  category: BlockCategory,
+  provider?: ProviderType,
+  subtype?: string,
+): { width: number; height: number } {
+  const cu = getBlockDimensions(category, provider, subtype);
   const dims = cuToSilhouetteDimensions(cu);
   return {
     width: dims.screenWidth,
@@ -221,7 +225,7 @@ export const BlockSprite = memo(function BlockSprite({
     setSelectedId(block.id);
   };
 
-  const blockSize = getBlockScreenSize(block.category);
+  const blockSize = getBlockScreenSize(block.category, block.provider, block.subtype);
 
   const className = [
     'block-sprite',

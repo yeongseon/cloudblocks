@@ -233,7 +233,8 @@ export function getSilhouettePolygons(
  * Formulas:
  *   screenWidth   = (width + depth) × TILE_W / 2
  *   diamondHeight = (width + depth) × TILE_H / 2
- *   sideWallPx    = height × TILE_Z
+ *   sideWallPx    = Math.round(height × TILE_Z)
+ * All results are rounded to integers for pixel-perfect rendering (§1.5).
  */
 export function cuToSilhouetteDimensions(cu: BlockDimensionsCU): SilhouetteDimensions {
   const screenWidth = (cu.width + cu.depth) * TILE_W / 2;

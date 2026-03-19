@@ -215,13 +215,13 @@ describe('getBlockColor', () => {
 
   it('uses subtype-specific mapping when available', () => {
     // AWS EC2 → compute family → #D86613
-    expect(getBlockColor('aws', 'EC2', 'compute')).toBe('#D86613');
+    expect(getBlockColor('aws', 'ec2', 'compute')).toBe('#D86613');
     // AWS S3 → storage family → #3F8624
-    expect(getBlockColor('aws', 'S3', 'storage')).toBe('#3F8624');
+    expect(getBlockColor('aws', 's3', 'storage')).toBe('#3F8624');
     // Azure Function App → serverless → #FF8C00
-    expect(getBlockColor('azure', 'Function App', 'function')).toBe('#FF8C00');
+    expect(getBlockColor('azure', 'functions', 'function')).toBe('#FF8C00');
     // Azure Cosmos DB → database-nosql → #32D4F5
-    expect(getBlockColor('azure', 'Cosmos DB', 'database')).toBe('#32D4F5');
+    expect(getBlockColor('azure', 'cosmos-db', 'database')).toBe('#32D4F5');
   });
 
   it('falls back to category mapping when subtype is not in map', () => {
@@ -246,9 +246,9 @@ describe('getBlockColor', () => {
 
   it('differentiates subtypes within the same category and provider', () => {
     // Azure SQL Database → database → #0078D4
-    const azureSql = getBlockColor('azure', 'Azure SQL Database', 'database');
+    const azureSql = getBlockColor('azure', 'sql-database', 'database');
     // Azure Cosmos DB → database-nosql → #32D4F5
-    const azureCosmos = getBlockColor('azure', 'Cosmos DB', 'database');
+    const azureCosmos = getBlockColor('azure', 'cosmos-db', 'database');
     expect(azureSql).not.toBe(azureCosmos);
   });
 });
@@ -303,7 +303,7 @@ describe('getBlockFaceColors', () => {
   });
 
   it('accepts optional subtype parameter for subtype-specific coloring', () => {
-    const withSubtype = getBlockFaceColors('database', 'azure', 'Cosmos DB');
+    const withSubtype = getBlockFaceColors('database', 'azure', 'cosmos-db');
     const withoutSubtype = getBlockFaceColors('database', 'azure');
 
     // Cosmos DB uses database-nosql (#32D4F5), default database uses database (#0078D4)
@@ -435,7 +435,7 @@ describe('getBlockStudColors', () => {
   });
 
   it('accepts optional subtype parameter for subtype-specific stud colors', () => {
-    const withSubtype = getBlockStudColors('database', 'azure', 'Cosmos DB');
+    const withSubtype = getBlockStudColors('database', 'azure', 'cosmos-db');
     const withoutSubtype = getBlockStudColors('database', 'azure');
 
     // Different base colors → different stud colors

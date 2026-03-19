@@ -89,9 +89,9 @@ describe('BlockSvg provider colors', () => {
 
 describe('BlockSvg subtype colors', () => {
   it('applies subtype-specific colors when subtype is provided', () => {
-    const expected = getBlockFaceColors('database', 'azure', 'Cosmos DB');
+    const expected = getBlockFaceColors('database', 'azure', 'cosmos-db');
     const { container } = render(
-      <BlockSvg category="database" provider="azure" subtype="Cosmos DB" />,
+      <BlockSvg category="database" provider="azure" subtype="cosmos-db" />,
     );
     const polygons = getPolygons(container);
 
@@ -261,11 +261,11 @@ describe('BlockSvg stud grid', () => {
 describe('BlockSvg subtype size overrides', () => {
   it('uses subtype override dimensions when subtype is known', () => {
     // AWS EC2 overrides to 2×2×2 (medium), same as compute default
-    const cu = getBlockDimensions('compute', 'aws', 'EC2');
+    const cu = getBlockDimensions('compute', 'aws', 'ec2');
     const { screenWidth, svgHeight } = expectedDims(cu);
 
     const { container } = render(
-      <BlockSvg category="compute" provider="aws" subtype="EC2" />,
+      <BlockSvg category="compute" provider="aws" subtype="ec2" />,
     );
     const vb = getViewBox(container);
 

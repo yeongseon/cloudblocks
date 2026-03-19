@@ -146,71 +146,71 @@ export function getBlockVisualProfile(category: BlockCategory): BlockVisualProfi
 // ─── v2.0 Subtype Size Overrides (CLOUDBLOCKS_SPEC_V2.md §6) ─────
 
 /**
- * Subtype size override key format: `provider:SubtypeName`.
+ * Subtype size override key format: `provider:registryId` (e.g. `aws:ec2`, `azure:cosmos-db`).
  * When a block has a specific subtype, its CU size may differ from the
  * category default tier size.
  */
 export const SUBTYPE_SIZE_OVERRIDES: Record<string, BlockDimensionsCU> = {
   // ── AWS (§6.1) ──────────────────────────────────────────────────
-  'aws:EC2':           { width: 2, depth: 2, height: 2 },
-  'aws:Lambda':        { width: 1, depth: 1, height: 1 },
-  'aws:ECS':           { width: 2, depth: 2, height: 2 },
-  'aws:EKS':           { width: 2, depth: 2, height: 2 },
-  'aws:RDS':           { width: 3, depth: 3, height: 2 },
-  'aws:DynamoDB':      { width: 3, depth: 3, height: 2 },
-  'aws:S3':            { width: 3, depth: 3, height: 2 },
-  'aws:ALB':           { width: 3, depth: 1, height: 1 },
-  'aws:ELB':           { width: 3, depth: 1, height: 1 },
-  'aws:API Gateway':   { width: 3, depth: 1, height: 1 },
-  'aws:CloudFront':    { width: 4, depth: 1, height: 1 },
-  'aws:NAT Gateway':   { width: 2, depth: 1, height: 1 },
-  'aws:SQS':           { width: 1, depth: 1, height: 1 },
-  'aws:SNS':           { width: 1, depth: 1, height: 1 },
-  'aws:EventBridge':   { width: 1, depth: 1, height: 1 },
-  'aws:Route 53':      { width: 4, depth: 1, height: 1 },
-  'aws:CloudWatch':    { width: 2, depth: 2, height: 1 },
-  'aws:IAM':           { width: 2, depth: 2, height: 1 },
-  'aws:Kinesis':       { width: 3, depth: 3, height: 2 },
-  'aws:Redshift':      { width: 3, depth: 3, height: 2 },
-  'aws:ElastiCache':   { width: 3, depth: 3, height: 2 },
+  'aws:ec2':           { width: 2, depth: 2, height: 2 },
+  'aws:lambda':        { width: 1, depth: 1, height: 1 },
+  'aws:ecs':           { width: 2, depth: 2, height: 2 },
+  'aws:eks':           { width: 2, depth: 2, height: 2 },
+  'aws:rds-postgres':  { width: 3, depth: 3, height: 2 },
+  'aws:dynamodb':      { width: 3, depth: 3, height: 2 },
+  'aws:s3':            { width: 3, depth: 3, height: 2 },
+  'aws:alb':           { width: 3, depth: 1, height: 1 },
+  'aws:elb':           { width: 3, depth: 1, height: 1 },
+  'aws:api-gateway':   { width: 3, depth: 1, height: 1 },
+  'aws:cloudfront':    { width: 4, depth: 1, height: 1 },
+  'aws:nat-gateway':   { width: 2, depth: 1, height: 1 },
+  'aws:sqs':           { width: 1, depth: 1, height: 1 },
+  'aws:sns':           { width: 1, depth: 1, height: 1 },
+  'aws:eventbridge':   { width: 1, depth: 1, height: 1 },
+  'aws:route-53':      { width: 4, depth: 1, height: 1 },
+  'aws:cloudwatch':    { width: 2, depth: 2, height: 1 },
+  'aws:iam':           { width: 2, depth: 2, height: 1 },
+  'aws:kinesis':       { width: 3, depth: 3, height: 2 },
+  'aws:redshift':      { width: 3, depth: 3, height: 2 },
+  'aws:elasticache':   { width: 3, depth: 3, height: 2 },
 
   // ── Azure (§6.2) ───────────────────────────────────────────────
-  'azure:Virtual Machine':       { width: 2, depth: 2, height: 2 },
-  'azure:Function App':          { width: 1, depth: 1, height: 1 },
-  'azure:AKS':                   { width: 2, depth: 2, height: 2 },
-  'azure:Cosmos DB':             { width: 3, depth: 3, height: 2 },
-  'azure:Azure SQL Database':    { width: 3, depth: 3, height: 2 },
-  'azure:Storage Account':       { width: 3, depth: 3, height: 2 },
-  'azure:Application Gateway':   { width: 3, depth: 1, height: 1 },
-  'azure:Front Door':            { width: 4, depth: 1, height: 1 },
-  'azure:Azure Firewall':        { width: 2, depth: 1, height: 1 },
-  'azure:Service Bus':           { width: 1, depth: 1, height: 1 },
-  'azure:Event Grid':            { width: 1, depth: 1, height: 1 },
-  'azure:Event Hubs':            { width: 1, depth: 1, height: 1 },
-  'azure:Azure Monitor':         { width: 2, depth: 2, height: 1 },
-  'azure:Entra ID':              { width: 2, depth: 2, height: 1 },
-  'azure:Azure DNS':             { width: 4, depth: 1, height: 1 },
-  'azure:Azure Cache for Redis': { width: 3, depth: 3, height: 2 },
-  'azure:Azure Synapse':         { width: 3, depth: 3, height: 2 },
+  'azure:vm':                    { width: 2, depth: 2, height: 2 },
+  'azure:functions':             { width: 1, depth: 1, height: 1 },
+  'azure:aks':                   { width: 2, depth: 2, height: 2 },
+  'azure:cosmos-db':             { width: 3, depth: 3, height: 2 },
+  'azure:sql-database':          { width: 3, depth: 3, height: 2 },
+  'azure:blob-storage':          { width: 3, depth: 3, height: 2 },
+  'azure:application-gateway':   { width: 3, depth: 1, height: 1 },
+  'azure:front-door':            { width: 4, depth: 1, height: 1 },
+  'azure:azure-firewall':        { width: 2, depth: 1, height: 1 },
+  'azure:service-bus':           { width: 1, depth: 1, height: 1 },
+  'azure:event-grid':            { width: 1, depth: 1, height: 1 },
+  'azure:event-hubs':            { width: 1, depth: 1, height: 1 },
+  'azure:azure-monitor':         { width: 2, depth: 2, height: 1 },
+  'azure:entra-id':              { width: 2, depth: 2, height: 1 },
+  'azure:azure-dns':             { width: 4, depth: 1, height: 1 },
+  'azure:azure-cache-for-redis': { width: 3, depth: 3, height: 2 },
+  'azure:azure-synapse':         { width: 3, depth: 3, height: 2 },
 
   // ── GCP (§6.3) ─────────────────────────────────────────────────
-  'gcp:Compute Engine':        { width: 2, depth: 2, height: 2 },
-  'gcp:Cloud Functions':       { width: 1, depth: 1, height: 1 },
-  'gcp:GKE':                   { width: 2, depth: 2, height: 2 },
-  'gcp:Cloud SQL':             { width: 3, depth: 3, height: 2 },
-  'gcp:Cloud Spanner':         { width: 3, depth: 3, height: 2 },
-  'gcp:Cloud Storage':         { width: 3, depth: 3, height: 2 },
-  'gcp:Cloud Load Balancing':  { width: 3, depth: 1, height: 1 },
-  'gcp:Cloud CDN':             { width: 4, depth: 1, height: 1 },
-  'gcp:Cloud Armor':           { width: 2, depth: 1, height: 1 },
-  'gcp:Pub/Sub':               { width: 1, depth: 1, height: 1 },
-  'gcp:Eventarc':              { width: 1, depth: 1, height: 1 },
-  'gcp:Cloud Monitoring':      { width: 2, depth: 2, height: 1 },
-  'gcp:Cloud IAM':             { width: 2, depth: 2, height: 1 },
-  'gcp:Cloud DNS':             { width: 4, depth: 1, height: 1 },
-  'gcp:Memorystore':           { width: 3, depth: 3, height: 2 },
-  'gcp:BigQuery':              { width: 3, depth: 3, height: 2 },
-  'gcp:Dataflow':              { width: 3, depth: 3, height: 2 },
+  'gcp:compute-engine':        { width: 2, depth: 2, height: 2 },
+  'gcp:cloud-functions':       { width: 1, depth: 1, height: 1 },
+  'gcp:gke':                   { width: 2, depth: 2, height: 2 },
+  'gcp:cloud-sql-postgres':    { width: 3, depth: 3, height: 2 },
+  'gcp:cloud-spanner':         { width: 3, depth: 3, height: 2 },
+  'gcp:cloud-storage':         { width: 3, depth: 3, height: 2 },
+  'gcp:cloud-load-balancing':  { width: 3, depth: 1, height: 1 },
+  'gcp:cloud-cdn':             { width: 4, depth: 1, height: 1 },
+  'gcp:cloud-armor':           { width: 2, depth: 1, height: 1 },
+  'gcp:pub-sub':               { width: 1, depth: 1, height: 1 },
+  'gcp:eventarc':              { width: 1, depth: 1, height: 1 },
+  'gcp:cloud-monitoring':      { width: 2, depth: 2, height: 1 },
+  'gcp:cloud-iam':             { width: 2, depth: 2, height: 1 },
+  'gcp:cloud-dns':             { width: 4, depth: 1, height: 1 },
+  'gcp:memorystore':           { width: 3, depth: 3, height: 2 },
+  'gcp:bigquery':              { width: 3, depth: 3, height: 2 },
+  'gcp:dataflow':              { width: 3, depth: 3, height: 2 },
 };
 
 /**
@@ -220,7 +220,7 @@ export const SUBTYPE_SIZE_OVERRIDES: Record<string, BlockDimensionsCU> = {
  *
  * @param category  — The block's category (e.g., 'compute', 'database')
  * @param provider  — Optional provider (e.g., 'aws', 'azure', 'gcp')
- * @param subtype   — Optional subtype name (e.g., 'EC2', 'Cosmos DB')
+ * @param subtype   — Optional subtype registry ID (e.g., 'ec2', 'cosmos-db')
  * @returns The resolved CU dimensions
  */
 export function getBlockDimensions(
