@@ -5,14 +5,18 @@ location = "koreacentral"
 project_name = "cloudblocks"
 
 # ---------- Shared ACR ----------
+# All ACR values below come from staging Terraform outputs.
+# Run in staging directory: terraform output -raw acr_login_server
 
 # Shared ACR login server from staging output.
 acr_login_server = "cloudblocksstagingacr.azurecr.io"
 
 # Shared ACR admin username from staging output.
+# Run: cd ../staging && terraform output -raw acr_admin_username
 acr_admin_username = "replace-with-staging-acr-admin-username"
 
 # Shared ACR admin password from secure secret storage.
+# Run: cd ../staging && terraform output -raw acr_admin_password
 acr_admin_password = "replace-with-staging-acr-admin-password"
 
 # ---------- PostgreSQL ----------

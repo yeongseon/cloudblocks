@@ -8,6 +8,18 @@ output "acr_login_server" {
   value       = module.cloudblocks.acr_login_server
 }
 
+output "acr_admin_username" {
+  description = "ACR admin username (needed by production environment)"
+  value       = module.cloudblocks.acr_admin_username
+  sensitive   = true
+}
+
+output "acr_admin_password" {
+  description = "ACR admin password (needed by production environment)"
+  value       = module.cloudblocks.acr_admin_password
+  sensitive   = true
+}
+
 output "container_app_url" {
   description = "Public URL for the API container app"
   value       = module.cloudblocks.container_app_url
