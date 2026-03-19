@@ -8,6 +8,18 @@ output "acr_login_server" {
   value       = var.create_acr ? azurerm_container_registry.this[0].login_server : var.acr_login_server
 }
 
+output "acr_admin_username" {
+  description = "ACR admin username (needed by production to reference staging ACR)"
+  value       = var.create_acr ? azurerm_container_registry.this[0].admin_username : var.acr_admin_username
+  sensitive   = true
+}
+
+output "acr_admin_password" {
+  description = "ACR admin password (needed by production to reference staging ACR)"
+  value       = var.create_acr ? azurerm_container_registry.this[0].admin_password : var.acr_admin_password
+  sensitive   = true
+}
+
 output "container_app_url" {
   description = "Public URL for the API container app"
   value       = "https://${azurerm_container_app.api.ingress[0].fqdn}"
