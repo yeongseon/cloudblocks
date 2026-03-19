@@ -61,6 +61,38 @@ describe('core model type coverage', () => {
     expect(block.provider).toBe('azure');
   });
 
+  it('accepts Block objects with subtype and config', () => {
+    const block: Block = {
+      id: 'blk-subtype-1',
+      name: 'AWS EC2 Instance',
+      category: 'compute',
+      placementId: 'subnet-1',
+      position: { x: 1, y: 0.5, z: 1 },
+      metadata: {},
+      provider: 'aws',
+      subtype: 'ec2',
+      config: { instanceType: 't3.medium', ami: 'ami-12345' },
+    };
+
+    expect(block.subtype).toBe('ec2');
+    expect(block.config).toEqual({ instanceType: 't3.medium', ami: 'ami-12345' });
+  });
+
+  it('accepts Block objects without subtype/config for backward compatibility', () => {
+    const block: Block = {
+      id: 'blk-nosubtype-1',
+      name: 'Generic Compute',
+      category: 'compute',
+      placementId: 'subnet-1',
+      position: { x: 1, y: 0.5, z: 1 },
+      metadata: {},
+      provider: 'aws',
+    };
+
+    expect(block.subtype).toBeUndefined();
+    expect(block.config).toBeUndefined();
+  });
+
   it('defines all connection types and labels', () => {
     expect(connectionTypes).toHaveLength(5);
     expect(Object.keys(CONNECTION_TYPE_LABELS).sort()).toEqual([...connectionTypes].sort());
