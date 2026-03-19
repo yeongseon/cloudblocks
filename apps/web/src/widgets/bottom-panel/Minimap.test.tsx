@@ -10,7 +10,7 @@ vi.mock('./Minimap.css', () => ({}));
 const networkPlate: Plate = {
   id: 'net-1',
   name: 'Main VNet',
-  type: 'network',
+  type: 'region',
   parentId: null,
   children: [],
   position: { x: 0, y: 0, z: 0 },

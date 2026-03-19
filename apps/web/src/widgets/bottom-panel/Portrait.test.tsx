@@ -19,7 +19,7 @@ vi.mock('../../shared/assets/azure-icons/subnet.svg', () => ({ default: 'subnet.
 const networkPlate: Plate = {
   id: 'net-1',
   name: 'Main VNet',
-  type: 'network',
+  type: 'region',
   parentId: null,
   children: [],
   position: { x: 0, y: 0, z: 0 },
@@ -100,12 +100,12 @@ describe('Portrait', () => {
     expect(screen.getByText('Virtual Machine')).toBeInTheDocument();
   });
 
-  it('renders network plate portrait with VNet icon', () => {
+  it('renders region plate portrait with VNet icon', () => {
     useUIStore.setState({ selectedId: 'net-1' });
 
     render(<Portrait />);
 
-    const plateImage = screen.getByRole('img', { name: 'Virtual Network' });
+    const plateImage = screen.getByRole('img', { name: 'Region' });
     expect(plateImage).toBeInTheDocument();
     expect(plateImage).toHaveAttribute('src', 'vnet.svg');
   });
