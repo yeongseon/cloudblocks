@@ -124,6 +124,31 @@ Since viewBox = screen size, every stud in every SVG uses:
 - Visual regression tests should verify stud uniformity across all element types
 - This section (§0) takes **absolute precedence** over any other section in this document or VISUAL_DESIGN_SPEC.md that might contradict it
 
+
+### 0.6 CSS Background Studs — Acceptable Deviation
+
+**Implementation status**: ✅ Implemented — `apps/web/src/widgets/scene-canvas/SceneCanvas.css`
+
+The infinite background stud grid rendered via CSS `radial-gradient` is a **2-layer approximation** of the canonical 3-layer SVG stud. This deviation is intentional and acceptable for the following reasons:
+
+1. **CSS `radial-gradient` cannot render 3 concentric ellipses** in a single `background-image` layer with the required offset positioning. The SVG stud uses `cy="-5"` (vertical offset) which has no CSS gradient equivalent.
+
+2. **The background studs are decorative**, providing a subtle grid texture at small scale. They are never interactive, never connected to blocks, and never inspected closely by users.
+
+3. **Specific dimensional differences**:
+
+| Property | SVG Standard | CSS Background | Reason |
+|----------|-------------|----------------|--------|
+| Layers | 3 (shadow + top + inner ring) | 2 (highlight + shadow) | CSS gradient limitation |
+| Shadow ellipse | 12px × 6px | 13px × 6.5px | Slightly larger for visual shadow effect |
+| Top ellipse | 12px × 6px at cy=-5 | 12px × 6px at cy=0 | No vertical offset in CSS |
+| Inner ring | 7.2px × 3.6px, opacity 0.3 | Not present | Cannot layer in single gradient |
+| Cell spacing | 64px (STUD_SIZE_PX) | 64px | ✅ Matches |
+
+4. **This deviation MUST NOT be "fixed"** by attempting to replicate the 3-layer structure in CSS. The current 2-layer approach is the correct tradeoff between visual fidelity and implementation complexity.
+
+5. **Portrait.css studs** (6px circles in the character portrait UI) are a completely different element — they are UI chrome decorations, not architectural studs, and are explicitly excluded from the Universal Stud Standard.
+
 ---
 
 ## 1. Overview — ✅ Implemented
