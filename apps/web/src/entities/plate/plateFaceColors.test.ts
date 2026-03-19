@@ -2,14 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { getPlateFaceColors } from './plateFaceColors';
 
 describe('getPlateFaceColors', () => {
-  it('returns network colors for network plate type', () => {
-    expect(getPlateFaceColors({ type: 'network' })).toEqual({
-      topFaceColor: '#2563EB',
-      topFaceStroke: '#60A5FA',
-      leftSideColor: '#1D4ED8',
-      rightSideColor: '#1E40AF',
-    });
+it('returns region colors for region plate type', () => {
+  expect(getPlateFaceColors({ type: 'region' })).toEqual({
+      topFaceColor: '#90CAF9',
+      topFaceStroke: '#BBDEFB',
+      leftSideColor: '#64B5F6',
+      rightSideColor: '#42A5F5',
   });
+});
 
   it('returns public subnet colors for subnet with public access', () => {
     expect(getPlateFaceColors({ type: 'subnet', subnetAccess: 'public' })).toEqual({
