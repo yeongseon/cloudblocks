@@ -24,7 +24,10 @@ def _make_async_client(post_side_effect: object) -> AsyncMock:
     client = AsyncMock()
     client.__aenter__.return_value = client
     client.__aexit__.return_value = False
-    client.post.side_effect = post_side_effect
+    if isinstance(post_side_effect, (list, BaseException)):
+        client.post.side_effect = post_side_effect
+    else:
+        client.post.return_value = post_side_effect
     return client
 
 

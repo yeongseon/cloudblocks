@@ -86,7 +86,7 @@ async def github_oauth_callback(
         raise UnauthorizedError("Invalid OAuth state")
 
     created_raw = state_data.get("created_at", 0)
-    created_at = int(created_raw) if isinstance(created_raw, (int, str)) else 0
+    created_at = int(created_raw) if isinstance(created_raw, (int, str)) else 0  # noqa: UP038
     if int(time_mod.time()) - created_at > settings.oauth_state_ttl_minutes * 60:
         raise UnauthorizedError("OAuth state expired")
 
