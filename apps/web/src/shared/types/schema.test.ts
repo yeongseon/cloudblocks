@@ -68,7 +68,7 @@ describe('schema utilities', () => {
               {
                 id: 'plate-1',
                 name: 'VNet',
-                type: 'network',
+                type: 'region',
                 parentId: null,
                 children: [],
                 position: { x: 0, y: 0, z: 0 },
@@ -112,7 +112,7 @@ describe('schema utilities', () => {
               {
                 id: 'plate-1',
                 name: 'VNet',
-                type: 'network',
+                type: 'region',
                 profileId: 'network-hub',
                 parentId: null,
                 children: [],
