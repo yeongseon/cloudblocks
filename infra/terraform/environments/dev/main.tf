@@ -1,3 +1,7 @@
+# ⚠️ DEPRECATED: This environment is kept for reference only.
+# New deployments should use environments/staging or environments/production.
+# See docs/guides/ENVIRONMENT_STRATEGY.md for the multi-environment strategy.
+
 locals {
   resource_group_name = "rg-${var.project_name}-${var.environment}"
   tags = {
