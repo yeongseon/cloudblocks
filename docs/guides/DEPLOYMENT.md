@@ -294,7 +294,7 @@ CLOUDBLOCKS_CORS_ORIGINS=["http://localhost:5173"]
 | Secret | Description |
 |--------|-------------|
 | `CLOUDBLOCKS_JWT_SECRET` | Strong random string (≥32 chars) for session encryption key derivation (Fernet) |
-| `CLOUDBLOCKS_TOKEN_ENCRYPTION_SALT` | Strong random string (≥16 chars) for token encryption |
+| `CLOUDBLOCKS_TOKEN_ENCRYPTION_SALT` | Strong random string (≥16 chars) for PBKDF2 key derivation (with `JWT_SECRET`) to encrypt OAuth state cookies and stored OAuth tokens via Fernet |
 | `CLOUDBLOCKS_GITHUB_CLIENT_SECRET` | GitHub App OAuth secret |
 | `CLOUDBLOCKS_GITHUB_CLIENT_ID` | GitHub OAuth client ID |
 | `CLOUDBLOCKS_CORS_ORIGINS` | JSON array of allowed browser origins |
