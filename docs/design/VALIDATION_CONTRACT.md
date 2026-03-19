@@ -1,8 +1,8 @@
 # Validation Contract — Single Source of Truth
 
-> Covers issues #23 and #24.
+> Covers issues #23, #24, and #357.
 
-This document defines the canonical validation rule contract for CloudBlocks. All frontend and backend validation **must** derive from this specification. No layer may invent rules that are not listed here.
+This document defines the canonical validation rule contract for CloudBlocks. All frontend and backend validation must derive from this specification. No layer may invent rules that are not listed here.
 
 ---
 
@@ -33,7 +33,7 @@ interface ValidationError {
 
 ---
 
-## 3. Placement Rules
+## 3. Placement Rules (Legacy Category-based)
 
 Placement rules validate that blocks are placed on appropriate plates.
 
@@ -48,10 +48,17 @@ Placement rules validate that blocks are placed on appropriate plates.
 
 > **Note on timer-like triggers**: The current model does not define a separate `timer` block category. Timer-based behavior is represented as a subtype/configuration of existing `event` blocks (for example, a timer-triggered event), and such blocks are validated by `rule-serverless-network` like other `event` blocks.
 
-### Implementation References
+> **Note on Timer blocks**: `timer` blocks are not currently validated by `rule-serverless-network` and fall through to the default (unvalidated) state in the current implementation.
 
-- **Frontend**: `apps/web/src/entities/validation/placement.ts`
-- **Backend**: Not yet implemented (planned for Milestone 6 server-side validation)
+### 3.1 v2.0 Layer Hierarchy Rules
+
+These rules are defined for the next-generation layer system but are not yet wired into the main `engine.ts` orchestrator.
+
+| Rule ID | Severity | Condition | Message |
+|---------|----------|-----------|---------|
+| `rule-layer-hierarchy` | error | Block placed on plate that is not a valid parent layer | Invalid layer hierarchy for this block type |
+| `rule-grid-alignment` | error | Block position not CU-aligned (integer coordinates) | Block must be aligned to the grid |
+| `rule-no-overlap` | error | Block overlaps with sibling on same plate (AABB detection) | Block cannot overlap with other blocks |
 
 ---
 
@@ -72,7 +79,7 @@ Connection rules validate dataflow between blocks. Connections follow **initiato
 |-------------------|---------------------------|
 | `internet` | `gateway` |
 | `gateway` | `compute`, `function` |
-| `compute` | `database`, `storage` |
+| `compute` | `database`, `storage`, `analytics`, `identity`, `observability` |
 | `function` | `storage`, `database`, `queue` |
 | `queue` | `function` |
 | `event` | `function` |
@@ -86,11 +93,9 @@ Connection rules validate dataflow between blocks. Connections follow **initiato
 
 ---
 
-## 5. Application Placement Rules
+## 5. Aggregation Rules
 
-Application placement rules validate that applications (software components) are placed only on **hostable** resources.
-
-> **Key principle**: Applications represent user-managed software. They can only be placed on resources that execute user code (`compute`, `function`). Managed services (`gateway`, `queue`, `storage`, `database`) do not host user applications.
+Validation for block clusters and aggregations.
 
 | Rule ID | Severity | Condition | Message |
 |---------|----------|-----------|---------|
@@ -126,9 +131,41 @@ Application placement rules validate that applications (software components) are
 
 ---
 
-## 6. Orchestration
+## 6. Role Rules
 
-The validation engine iterates all blocks and connections, collecting errors and warnings into a single `ValidationResult`:
+Validation for identity and access management roles.
+
+| Rule ID | Severity | Condition | Message |
+|---------|----------|-----------|---------|
+| `rule-role-invalid` | error | Role not in `BLOCK_ROLES` list | Invalid role assigned to block |
+| `rule-role-duplicate` | warning | Same role appears more than once on a block | Duplicate role assigned |
+
+---
+
+## 7. Provider Validation Rules (Warnings)
+
+Specific rules based on cloud provider characteristics.
+
+| Rule ID | Severity | Condition | Message |
+|---------|----------|-----------|---------|
+| `rule-provider-aws-lambda-subnet` | warning | AWS Lambda placed on a subnet (may not need VPC) | AWS Lambda may not require a subnet placement unless VPC access is needed |
+| `rule-provider-gcp-sql-public` | warning | GCP Cloud SQL on a public subnet | GCP Cloud SQL is usually restricted to private access |
+| `rule-provider-unknown-subtype` | warning | Block subtype not in known provider subtypes | Unknown resource subtype for this provider |
+
+### Known Subtypes Table
+Provider validation uses the internal `KNOWN_SUBTYPES` map to verify resource alignment.
+
+---
+
+## 8. Orchestration
+
+The validation engine iterates all blocks and connections, collecting errors and warnings into a single `ValidationResult` through 5 distinct passes:
+
+1. **Placement Pass** (`placement.ts`)
+2. **Aggregation Pass** (`aggregation.ts`)
+3. **Role Pass** (`role.ts`)
+4. **Connection Pass** (`connection.ts`)
+5. **Provider Pass** (`providerValidation.ts`)
 
 ```typescript
 interface ValidationResult {
@@ -148,7 +185,7 @@ interface ValidationResult {
 
 ---
 
-## 7. FE/BE Alignment Contract
+## 9. FE/BE Alignment Contract
 
 ### Current State (Milestone 5)
 
@@ -184,7 +221,7 @@ When backend validation is introduced:
 
 ---
 
-## 8. Migration Notes
+## 10. Migration Notes
 
 - Serverless block categories (`FunctionBlock`, `QueueBlock`, `EventBlock`) are implemented and reflected in the placement rules above. `TimerBlock` is planned but not yet supported in the TypeScript domain model (`BlockCategory`) or placement rules.
 - When adding new connection types (e.g., `EventFlow`), update the allowed connection map here first.
