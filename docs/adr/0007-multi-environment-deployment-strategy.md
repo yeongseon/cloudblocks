@@ -49,7 +49,7 @@ Use these exact strings across ALL layers:
 |---|---|---|---|
 | Local dev (Docker Compose) | `development` | N/A | N/A |
 | Staging (Azure) | `staging` | `staging` | `-staging` |
-| Production (Azure) | `production` | `production` | `-prod` |
+| Production (Azure) | `production` | `production` | `-production` |
 
 The Terraform → app env mapping becomes a direct pass-through (no translation needed):
 
@@ -160,9 +160,9 @@ Environment-specific secrets:
 
 | Concern | Staging | Production |
 |---------|---------|------------|
-| Azure Resource Group | `rg-cloudblocks-staging` | `rg-cloudblocks-prod` |
-| PostgreSQL Server | `psql-cloudblocks-staging` | `psql-cloudblocks-prod` |
-| Redis Cache | `redis-cloudblocks-staging` | `redis-cloudblocks-prod` |
+| Azure Resource Group | `rg-cloudblocks-staging` | `rg-cloudblocks-production` |
+| PostgreSQL Server | `psql-cloudblocks-staging` | `psql-cloudblocks-production` |
+| Redis Cache | `redis-cloudblocks-staging` | `redis-cloudblocks-production` |
 | Container Registry | Shared ACR (same images) | Shared ACR (same images) |
 | GitHub OAuth App | Separate OAuth app | Separate OAuth app |
 | User data | Isolated (separate DB) | Isolated (separate DB) |

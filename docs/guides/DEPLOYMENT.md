@@ -151,7 +151,7 @@ This mounts `apps/api/` into the container so code changes restart the server au
 
 #### Terraform Provisioning
 
-Azure infrastructure is defined in `infra/terraform/environments/` with a shared module. See [ENVIRONMENT_STRATEGY.md](ENVIRONMENT_STRATEGY.md) for the full Terraform structure.
+Azure infrastructure is defined in `infra/terraform/environments/` with a shared module (created in Phase B). See [ENVIRONMENT_STRATEGY.md](ENVIRONMENT_STRATEGY.md) for the full Terraform structure and [Implementation Checklist](ENVIRONMENT_STRATEGY.md#implementation-checklist) for phase status.
 
 ```bash
 cd infra/terraform/environments/staging
@@ -217,7 +217,7 @@ The Container App configures three probe types:
 
 ### GitHub Actions
 
-CloudBlocks uses two deployment workflows:
+CloudBlocks uses two deployment workflows (created in Phase C):
 
 1. **`deploy.yml`** — Automatic deployment to **staging** on push to `main` (after CI passes)
 2. **`promote.yml`** — Manual promotion to **production** (requires reviewer approval)
@@ -245,8 +245,8 @@ See [ENVIRONMENT_STRATEGY.md](ENVIRONMENT_STRATEGY.md) for the full pipeline des
 **Pipeline flow:**
 
 1. **build-api** — Builds Docker image via `az acr build` and pushes to ACR (tagged with git SHA + `latest`)
-2. **deploy-staging** — Updates staging Container App with new image, waits for healthy revision, verifies `/health` endpoint
-3. **deploy-web-staging** — Builds frontend SPA and deploys to staging Static Web Apps
+2. **deploy-api** — Updates staging Container App with new image, waits for healthy revision, verifies `/health` endpoint
+3. **deploy-web** — Builds frontend SPA and deploys to staging Static Web Apps
 4. **promote (manual)** — Deploys the same image to production Container App (requires approval)
 
 ## Environment Variables

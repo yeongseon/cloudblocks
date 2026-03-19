@@ -82,7 +82,7 @@ cd apps/web && pnpm dev
 | Purpose | Live user-facing service |
 | Deployment trigger | Manual promotion from staging |
 | Approval | Required (GitHub Environment protection, 1+ reviewer) |
-| Resource Group | `rg-cloudblocks-prod` |
+| Resource Group | `rg-cloudblocks-production` |
 | Database | Azure PostgreSQL Flexible Server (GP_Standard_D2s_v3) |
 | Cache | Azure Cache for Redis (Standard C1) |
 | Frontend | Azure Static Web Apps (Standard tier) |
@@ -102,7 +102,7 @@ Every layer in the system uses consistent environment identifiers:
 | `CLOUDBLOCKS_APP_ENV` | `development` | `staging` | `production` |
 | Terraform `var.environment` | N/A (not Terraform-managed) | `staging` | `production` |
 | Docker Compose | `docker-compose.yml` | N/A | N/A |
-| Resource name suffix | N/A | `-staging` | `-prod` |
+| Resource name suffix | N/A | `-staging` | `-production` |
 | GitHub Environment | N/A | `staging` | `production` |
 
 **Rule**: Local dev NEVER uses Terraform. Cloud environments NEVER use Docker Compose for deployment.
@@ -133,6 +133,8 @@ Staging is live with latest main
 
 ### Staging to Production (Manual Promotion)
 
+> **Note**: The `promote.yml` workflow described below is created in Phase C. See the [Implementation Checklist](#implementation-checklist) for phase status.
+
 ```
 Verify staging is healthy
         ↓
@@ -155,6 +157,8 @@ Production is live with promoted image
 ## Infrastructure Layout
 
 ### Terraform Structure
+
+> **Note**: The shared module and environment wrappers below are the target layout created in Phase B. See the [Implementation Checklist](#implementation-checklist) for phase status.
 
 ```
 infra/terraform/
@@ -184,14 +188,14 @@ Each environment directory is a thin wrapper that calls the shared module with e
 
 | Resource | Staging | Production |
 |----------|---------|------------|
-| Resource Group | `rg-cloudblocks-staging` | `rg-cloudblocks-prod` |
-| Log Analytics | `law-cloudblocks-staging` | `law-cloudblocks-prod` |
-| Container App Env | `cae-cloudblocks-staging` | `cae-cloudblocks-prod` |
+| Resource Group | `rg-cloudblocks-staging` | `rg-cloudblocks-production` |
+| Log Analytics | `law-cloudblocks-staging` | `law-cloudblocks-production` |
+| Container App Env | `cae-cloudblocks-staging` | `cae-cloudblocks-production` |
 | Container Registry | Shared: `cloudblocksacr` | Shared: `cloudblocksacr` |
-| PostgreSQL Server | `psql-cloudblocks-staging` | `psql-cloudblocks-prod` |
-| Redis Cache | `redis-cloudblocks-staging` | `redis-cloudblocks-prod` |
-| Container App (API) | `ca-cloudblocks-api-staging` | `ca-cloudblocks-api-prod` |
-| Static Web App | `swa-cloudblocks-staging` | `swa-cloudblocks-prod` |
+| PostgreSQL Server | `psql-cloudblocks-staging` | `psql-cloudblocks-production` |
+| Redis Cache | `redis-cloudblocks-staging` | `redis-cloudblocks-production` |
+| Container App (API) | `ca-cloudblocks-api-staging` | `ca-cloudblocks-api-production` |
+| Static Web App | `swa-cloudblocks-staging` | `swa-cloudblocks-production` |
 
 **Container Registry is shared** — both environments pull from the same ACR. Images are promoted by tag, not duplicated.
 
@@ -235,8 +239,8 @@ Production can scale higher and uses more resilient database/cache SKUs. Staging
 |--------|--------------|-----------------|
 | `ACR_NAME` | `cloudblocksacr` | `cloudblocksacr` (shared) |
 | `ACR_LOGIN_SERVER` | `cloudblocksacr.azurecr.io` | `cloudblocksacr.azurecr.io` (shared) |
-| `AZURE_RESOURCE_GROUP` | `rg-cloudblocks-staging` | `rg-cloudblocks-prod` |
-| `CONTAINER_APP_NAME` | `ca-cloudblocks-api-staging` | `ca-cloudblocks-api-prod` |
+| `AZURE_RESOURCE_GROUP` | `rg-cloudblocks-staging` | `rg-cloudblocks-production` |
+| `CONTAINER_APP_NAME` | `ca-cloudblocks-api-staging` | `ca-cloudblocks-api-production` |
 | `AZURE_SWA_TOKEN` | Staging SWA deployment token | Production SWA deployment token |
 
 ### Application Secrets (set in Terraform, stored in Container App secrets)

@@ -13,7 +13,7 @@ CloudBlocks uses two cloud environments. Local development uses Docker Compose (
 | Staging | `environments/staging/` | Pre-production validation, UAT | `staging` |
 | Production | `environments/production/` | Live service | `production` |
 
-> **Note**: The `environments/dev/` directory contains the original monolithic Terraform configuration that will be refactored into the shared module during Phase B of the implementation plan.
+> **Note**: The `environments/dev/` directory contains the original monolithic Terraform configuration. The shared module (`modules/cloudblocks-stack/`) and staging/production wrappers are created in Phase B. Until then, only `environments/dev/` is available.
 
 ## Structure
 
@@ -74,9 +74,15 @@ terraform apply -var-file="terraform.tfvars"
 The Container App scales horizontally based on HTTP concurrent requests. Configure via `terraform.tfvars`:
 
 ```hcl
-container_min_replicas      = 1    # Minimum replicas
-container_max_replicas      = 3    # Maximum replicas (staging: 2, production: 3)
-scaling_concurrent_requests = "50" # Requests/replica threshold
+# Staging
+container_min_replicas      = 1
+container_max_replicas      = 2
+scaling_concurrent_requests = "50"
+
+# Production
+container_min_replicas      = 1
+container_max_replicas      = 3
+scaling_concurrent_requests = "50"
 ```
 
 ## Required Variables
@@ -89,8 +95,8 @@ All resources follow the pattern `{type}-cloudblocks-{env}`:
 
 | Pattern | Staging Example | Production Example |
 |---------|----------------|-------------------|
-| `rg-cloudblocks-{env}` | `rg-cloudblocks-staging` | `rg-cloudblocks-prod` |
-| `psql-cloudblocks-{env}` | `psql-cloudblocks-staging` | `psql-cloudblocks-prod` |
-| `redis-cloudblocks-{env}` | `redis-cloudblocks-staging` | `redis-cloudblocks-prod` |
-| `ca-cloudblocks-api-{env}` | `ca-cloudblocks-api-staging` | `ca-cloudblocks-api-prod` |
-| `swa-cloudblocks-{env}` | `swa-cloudblocks-staging` | `swa-cloudblocks-prod` |
+| `rg-cloudblocks-{env}` | `rg-cloudblocks-staging` | `rg-cloudblocks-production` |
+| `psql-cloudblocks-{env}` | `psql-cloudblocks-staging` | `psql-cloudblocks-production` |
+| `redis-cloudblocks-{env}` | `redis-cloudblocks-staging` | `redis-cloudblocks-production` |
+| `ca-cloudblocks-api-{env}` | `ca-cloudblocks-api-staging` | `ca-cloudblocks-api-production` |
+| `swa-cloudblocks-{env}` | `swa-cloudblocks-staging` | `swa-cloudblocks-production` |
