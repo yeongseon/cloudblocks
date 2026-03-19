@@ -83,6 +83,14 @@ describe('MinifigureSprite', () => {
     expect(container.firstElementChild).toHaveClass('is-moving');
   });
 
+  it('has correct base CSS classes', () => {
+    const { container } = render(
+      <MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />
+    );
+
+    expect(container.firstElementChild).toHaveClass('minifigure-sprite');
+  });
+
   it('shows worker state class is-building', () => {
     useWorkerStore.setState({ workerState: 'building' });
     const { container } = render(
