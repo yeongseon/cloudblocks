@@ -200,6 +200,25 @@ describe('schema utilities', () => {
     expect(parsed).toEqual([]);
   });
 
+  it('deserialize tolerates legacy workspace payloads without architecture', () => {
+    const legacyJson = JSON.stringify({
+      schemaVersion: SCHEMA_VERSION,
+      workspaces: [
+        {
+          id: 'ws-legacy',
+          name: 'Legacy Workspace',
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    });
+
+    const parsed = deserialize(legacyJson);
+
+    expect(parsed).toHaveLength(1);
+    expect(parsed[0].id).toBe('ws-legacy');
+  });
+
   it('createBlankArchitecture returns the expected default structure', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-02-03T04:05:06.000Z'));
