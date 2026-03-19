@@ -136,7 +136,7 @@ const threeTierCheckpointWithBlocks: ArchitectureSnapshot = {
     },
   ],
   connections: [],
-  externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+  externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
 };
 
 const threeTierScenario: Scenario = {
@@ -253,7 +253,7 @@ const serverlessApiInitialArchitecture: ArchitectureSnapshot = {
   ],
   blocks: [],
   connections: [],
-  externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+  externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
 };
 
 const serverlessApiCheckpointWithSubnets: ArchitectureSnapshot = {
@@ -295,7 +295,7 @@ const serverlessApiCheckpointWithSubnets: ArchitectureSnapshot = {
   ],
   blocks: [],
   connections: [],
-  externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+  externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
 };
 
 const serverlessApiScenario: Scenario = {
