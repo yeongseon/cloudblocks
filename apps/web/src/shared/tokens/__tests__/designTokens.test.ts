@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  STUD_HEIGHT,
   BLOCK_WORLD_HEIGHT,
   STUD_RX,
   STUD_RY,
@@ -68,5 +69,13 @@ describe('design tokens - core dimensions and stud compliance', () => {
   it('keeps universal stud rx/ry dimensions consistent', () => {
     expect(STUD_RX).toBe(12);
     expect(STUD_RY).toBe(6);
+  });
+
+  it('validates stud height constant for shadow offset', () => {
+    expect(STUD_HEIGHT).toBe(5);
+  });
+
+  it('validates stud height constant for shadow offset', () => {
+    expect(STUD_HEIGHT).toBe(5);
   });
 });
