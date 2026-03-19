@@ -3,6 +3,7 @@ import type {
   StudColorSpec,
 } from '../../shared/types/index';
 import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
+import { TILE_W, TILE_H, TILE_Z, BLOCK_MARGIN, BLOCK_PADDING } from '../../shared/tokens/designTokens';
 
 interface PlateSvgProps {
   studsX: number;
@@ -29,23 +30,17 @@ export const PlateSvg = memo(function PlateSvg({
   label,
   emoji,
 }: PlateSvgProps) {
-  const TILE_W = 64;
-  const TILE_H = 32;
-  const TILE_Z = 32;
-  const margin = 10;
-  const padding = 10;
-
   const screenWidth = (studsX + studsY) * TILE_W / 2;
   const diamondHeight = (studsX + studsY) * TILE_H / 2;
   const sideWallPx = Math.round(worldHeight * TILE_Z);
-  const svgHeight = diamondHeight + sideWallPx + padding;
+  const svgHeight = diamondHeight + sideWallPx + BLOCK_PADDING;
 
   const cx = screenWidth / 2;
-  const topY = padding;
-  const midY = diamondHeight / 2 + padding;
-  const bottomY = diamondHeight + padding;
-  const leftX = margin;
-  const rightX = screenWidth - margin;
+  const topY = BLOCK_PADDING;
+  const midY = diamondHeight / 2 + BLOCK_PADDING;
+  const bottomY = diamondHeight + BLOCK_PADDING;
+  const leftX = BLOCK_MARGIN;
+  const rightX = screenWidth - BLOCK_MARGIN;
 
   const topFacePoints = `${cx},${topY} ${rightX},${midY} ${cx},${bottomY} ${leftX},${midY}`;
   const leftSidePoints = `${leftX},${midY} ${cx},${bottomY} ${cx},${bottomY + sideWallPx} ${leftX},${midY + sideWallPx}`;
@@ -53,7 +48,7 @@ export const PlateSvg = memo(function PlateSvg({
 
   const studs = useMemo(() => {
     const positions: Array<{ x: number; y: number; key: string }> = [];
-    const halfW = screenWidth / 2 - margin;
+    const halfW = screenWidth / 2 - BLOCK_MARGIN;
     const halfH = diamondHeight / 2;
 
     const stepXx = halfW / studsX;
