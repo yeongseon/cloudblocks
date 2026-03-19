@@ -24,11 +24,12 @@ export const terraformPlugin: GeneratorPlugin = {
       name: ctx.provider.name,
       displayName: ctx.provider.displayName,
       blockMappings: ctx.provider.blockMappings,
+      subtypeBlockMappings: ctx.provider.subtypeBlockMappings,
       plateMappings: ctx.provider.plateMappings,
       providerBlock: ctx.provider.generators.terraform.providerBlock,
       requiredProviders: ctx.provider.generators.terraform.requiredProviders,
     };
-    return normalize(arch, legacyAdapter);
+    return normalize(arch, legacyAdapter, ctx.provider.subtypeBlockMappings);
   },
 
   generate: (model, ctx) => {
@@ -36,14 +37,15 @@ export const terraformPlugin: GeneratorPlugin = {
       name: ctx.provider.name,
       displayName: ctx.provider.displayName,
       blockMappings: ctx.provider.blockMappings,
+      subtypeBlockMappings: ctx.provider.subtypeBlockMappings,
       plateMappings: ctx.provider.plateMappings,
       providerBlock: ctx.provider.generators.terraform.providerBlock,
       requiredProviders: ctx.provider.generators.terraform.requiredProviders,
     };
 
-    const mainTf = generateMainTf(model, legacyAdapter, ctx.options);
+    const mainTf = generateMainTf(model, legacyAdapter, ctx.options, ctx.provider.subtypeBlockMappings);
     const variablesTf = generateVariablesTf(ctx.options);
-    const outputsTf = generateOutputsTf(model, legacyAdapter);
+    const outputsTf = generateOutputsTf(model, legacyAdapter, ctx.provider.subtypeBlockMappings);
 
     return {
       files: [
