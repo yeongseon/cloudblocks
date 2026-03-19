@@ -1,16 +1,34 @@
+# Deploy to Staging — triggers on push to main or manual dispatch
+#
+# Builds API image, pushes to shared ACR, deploys to staging Container App
+# and Static Web App. Uses GitHub Environment "staging" for scoped secrets.
+#
+# Required secrets (configure in GitHub → Settings → Environments → staging):
+#   AZURE_CLIENT_ID        — Azure AD app (service principal) client ID for OIDC
+#   AZURE_TENANT_ID        — Azure AD tenant ID
+#   AZURE_SUBSCRIPTION_ID  — Azure subscription ID
+#   ACR_NAME               — Azure Container Registry name (e.g. cloudblocksstagingacr)
+#   ACR_LOGIN_SERVER       — ACR login server URL (e.g. cloudblocksstagingacr.azurecr.io)
+#   AZURE_RESOURCE_GROUP   — Staging resource group name (e.g. rg-cloudblocks-staging)
+#   CONTAINER_APP_NAME     — Staging Container App name (e.g. ca-cloudblocks-api-staging)
+#   AZURE_SWA_TOKEN        — Staging Static Web Apps deployment token
+
 name: Deploy to Staging
 
 on:
-  push:
-    branches: [main]
-  workflow_dispatch:
+  workflow_dispatch: # Manual trigger for initial setup / reruns
+  # NOTE: Push trigger is intentionally disabled until Azure staging
+  # environment secrets are configured. Enable by uncommenting below:
+  # push:
+  #   branches: [main]
 
 concurrency:
-  group: deploy-staging
+  # Include ref so workflow_dispatch runs from different branches don't cancel each other
+  group: deploy-staging-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
-  id-token: write
+  id-token: write # Required for OIDC token exchange with Azure
   contents: read
 
 env:
@@ -59,7 +77,7 @@ jobs:
           az containerapp update \
             --name ${{ secrets.CONTAINER_APP_NAME }} \
             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-            --image ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            --image "${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
 
       - name: Wait for revision to become active
         run: |
@@ -68,8 +86,8 @@ jobs:
             STATUS=$(az containerapp revision list \
               --name ${{ secrets.CONTAINER_APP_NAME }} \
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-              --query "[?properties.active==\`true\`].properties.healthState" \
-              --output tsv 2>/dev/null || echo "Unknown")
+              --query "[?properties.active==\`true\`].properties.healthState | [0]" \
+              --output tsv || echo "Unknown")
             echo "  Attempt $i/30: status=$STATUS"
             if [ "$STATUS" = "Healthy" ]; then
               echo "✅ Revision is healthy"
@@ -91,14 +109,15 @@ jobs:
           HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "https://${APP_URL}/health" --max-time 10 || echo "000")
           echo "  HTTP status: $HTTP_CODE"
           if [ "$HTTP_CODE" = "200" ]; then
-            echo "✅ Health check passed"
+            echo "✅ Staging health check passed"
           else
             echo "⚠️ Health check returned $HTTP_CODE (may still be warming up)"
           fi
 
   deploy-web:
-    name: Deploy Web to Staging
+    name: Deploy Web to Staging SWA
     runs-on: ubuntu-latest
+    needs: deploy-api # Ensure API is deployed first so frontend talks to latest API
     environment: staging
     steps:
       - name: Checkout

@@ -1,28 +1,88 @@
+# Promote to Production — manual workflow_dispatch with image tag from staging
+#
+# Deploys the SAME image that was validated in staging to production.
+# No rebuild — image tag promotion only. Uses GitHub Environment "production"
+# which should have required reviewers configured.
+#
+# Required secrets (configure in GitHub → Settings → Environments → production):
+#   AZURE_CLIENT_ID        — Azure AD app (service principal) client ID for OIDC
+#   AZURE_TENANT_ID        — Azure AD tenant ID
+#   AZURE_SUBSCRIPTION_ID  — Azure subscription ID
+#   ACR_NAME               — Azure Container Registry name (shared with staging)
+#   ACR_LOGIN_SERVER       — Shared ACR login server URL (same as staging)
+#   AZURE_RESOURCE_GROUP   — Production resource group name (e.g. rg-cloudblocks-production)
+#   CONTAINER_APP_NAME     — Production Container App name (e.g. ca-cloudblocks-api-production)
+#   AZURE_SWA_TOKEN        — Production Static Web Apps deployment token
+
 name: Promote to Production
 
 on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: 'Image tag to deploy (e.g., commit SHA from staging)'
+        description: "Image tag to promote (git SHA from staging deploy)"
         required: true
         type: string
+      skip_web:
+        description: "Skip frontend deployment (API-only promotion)"
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: deploy-production
-  cancel-in-progress: false
+  cancel-in-progress: false # Never cancel in-progress production deploys
 
 permissions:
-  id-token: write
+  id-token: write # Required for OIDC token exchange with Azure
   contents: read
 
 env:
   IMAGE_NAME: cloudblocks-api
 
 jobs:
+  validate-tag:
+    name: Validate Image Tag
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Validate image tag format
+        run: |
+          TAG="${{ inputs.image_tag }}"
+          if ! echo "$TAG" | grep -qE '^[0-9a-f]{40}$'; then
+            echo "❌ Invalid image tag format: '$TAG'"
+            echo "   Expected a 40-character lowercase hex git SHA (e.g., a1b2c3d4...)."
+            echo "   Use the git commit SHA from a successful staging deploy."
+            exit 1
+          fi
+          echo "✅ Image tag format valid: $TAG"
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Verify image exists in ACR
+        run: |
+          TAG="${{ inputs.image_tag }}"
+          echo "Verifying ${{ env.IMAGE_NAME }}:${TAG} exists in ACR..."
+          TAGS=$(az acr repository show-tags \
+            --name ${{ secrets.ACR_NAME }} \
+            --repository ${{ env.IMAGE_NAME }} \
+            --output tsv)
+          if ! echo "$TAGS" | grep -qxF "$TAG"; then
+            echo "❌ Image tag '${TAG}' not found in ACR."
+            echo "   Deploy to staging first, then use the git SHA as the image tag."
+            exit 1
+          fi
+          echo "✅ Image tag verified: ${TAG}"
+
   deploy-api:
     name: Deploy API to Production
     runs-on: ubuntu-latest
+    needs: validate-tag
     environment: production
     steps:
       - name: Login to Azure
@@ -32,22 +92,24 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Deploy image to production
+      - name: Deploy new revision
         run: |
+          TAG="${{ inputs.image_tag }}"
+          echo "🚀 Promoting ${{ env.IMAGE_NAME }}:${TAG} to production..."
           az containerapp update \
             --name ${{ secrets.CONTAINER_APP_NAME }} \
             --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-            --image ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ inputs.image_tag }}
+            --image "${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${TAG}"
 
       - name: Wait for revision to become active
         run: |
-          echo "Waiting for production revision to become active..."
+          echo "Waiting for new revision to become active..."
           for i in $(seq 1 30); do
             STATUS=$(az containerapp revision list \
               --name ${{ secrets.CONTAINER_APP_NAME }} \
               --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-              --query "[?properties.active==\`true\`].properties.healthState" \
-              --output tsv 2>/dev/null || echo "Unknown")
+              --query "[?properties.active==\`true\`].properties.healthState | [0]" \
+              --output tsv || echo "Unknown")
             echo "  Attempt $i/30: status=$STATUS"
             if [ "$STATUS" = "Healthy" ]; then
               echo "✅ Production revision is healthy"
@@ -55,7 +117,7 @@ jobs:
             fi
             sleep 10
           done
-          echo "⚠️ Production revision health check timed out. Check Azure Portal."
+          echo "⚠️ Revision health check timed out (5 min). Check Azure Portal."
           exit 1
 
       - name: Verify health endpoint
@@ -71,16 +133,21 @@ jobs:
           if [ "$HTTP_CODE" = "200" ]; then
             echo "✅ Production health check passed"
           else
-            echo "⚠️ Production health check returned $HTTP_CODE"
+            echo "❌ Health check returned $HTTP_CODE — investigate immediately"
+            exit 1
           fi
 
   deploy-web:
-    name: Deploy Web to Production
+    name: Deploy Web to Production SWA
     runs-on: ubuntu-latest
+    needs: [validate-tag, deploy-api] # Atomic: web deploys only after API succeeds
+    if: ${{ !inputs.skip_web }}
     environment: production
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.image_tag }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
