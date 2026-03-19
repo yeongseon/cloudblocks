@@ -6,7 +6,7 @@ import { registerTemplate } from './registry';
  * Based on docs/engine/templates.md
  *
  * v0.4 templates use compute, database, storage, gateway blocks.
- * v1.0 templates add serverless blocks: function, queue, event, timer.
+ * v1.0 templates add serverless blocks: function, queue, and event.
  */
 
 const threeTierTemplate: ArchitectureTemplate = {
@@ -26,7 +26,7 @@ const threeTierTemplate: ArchitectureTemplate = {
       {
         id: 'plate-tmpl-vnet',
         name: 'VNet',
-        type: 'network',
+        type: 'region',
         parentId: null,
         children: ['plate-tmpl-public', 'plate-tmpl-private'],
         position: { x: 0, y: 0, z: 0 },
@@ -140,7 +140,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
       {
         id: 'plate-tmpl-vnet2',
         name: 'VNet',
-        type: 'network',
+        type: 'region',
         parentId: null,
         children: ['plate-tmpl-pub2'],
         position: { x: 0, y: 0, z: 0 },
@@ -213,7 +213,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
       {
         id: 'plate-tmpl-vnet3',
         name: 'VNet',
-        type: 'network',
+        type: 'region',
         parentId: null,
         children: ['plate-tmpl-pub3', 'plate-tmpl-priv3'],
         position: { x: 0, y: 0, z: 0 },
@@ -331,7 +331,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
       {
         id: 'plate-tmpl-vnet4',
         name: 'VNet',
-        type: 'network',
+        type: 'region',
         parentId: null,
         children: ['plate-tmpl-pub4', 'plate-tmpl-priv4'],
         position: { x: 0, y: 0, z: 0 },
@@ -437,7 +437,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
     'that reads from a queue and writes results to storage. Timer triggers periodic batch jobs.',
   category: 'data-pipeline',
   difficulty: 'advanced',
-  tags: ['event-driven', 'queue', 'function', 'timer', 'pipeline'],
+  tags: ['event-driven', 'queue', 'function', 'event', 'pipeline'],
   generatorCompat: ['terraform', 'bicep', 'pulumi'],
   architecture: {
     name: 'Event-Driven Pipeline',
@@ -446,7 +446,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
       {
         id: 'plate-tmpl-vnet5',
         name: 'VNet',
-        type: 'network',
+        type: 'region',
         parentId: null,
         children: ['plate-tmpl-priv5'],
         position: { x: 0, y: 0, z: 0 },
@@ -485,7 +485,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
       {
         id: 'block-tmpl-timer5',
         name: 'Batch Timer',
-        category: 'timer',
+        category: 'event',
         placementId: 'plate-tmpl-vnet5',
         position: { x: 0, y: 0.5, z: -3 },
         metadata: {},
@@ -574,7 +574,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
   category: 'serverless',
   difficulty: 'advanced',
   tags: [
-    'full-stack', 'serverless', 'event-driven', 'queue', 'timer',
+    'full-stack', 'serverless', 'event-driven', 'queue', 'event',
     'function', 'compute', 'gateway', 'database', 'storage', 'advanced',
   ],
   generatorCompat: ['terraform', 'bicep', 'pulumi'],
@@ -585,7 +585,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       {
         id: 'plate-fs-vnet',
         name: 'VNet',
-        type: 'network',
+        type: 'region',
         parentId: null,
         children: ['plate-fs-public', 'plate-fs-private'],
         position: { x: 0, y: 0, z: 0 },
@@ -694,7 +694,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       {
         id: 'block-fs-timer',
         name: 'Cron Timer',
-        category: 'timer',
+        category: 'event',
         placementId: 'plate-fs-vnet',
         position: { x: 3, y: 0.5, z: -3 },
         metadata: {},
