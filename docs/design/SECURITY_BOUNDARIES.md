@@ -56,7 +56,7 @@ fetch("/api/v1/auth/session", {
 | **Weak secrets** | `"change-me-in-production"`, `"secret"`, `"password"`, `""` are explicitly blocked |
 | **Primary use** | Secret key is used for Fernet key derivation (`cb_oauth` state cookie encryption), not JWT signing |
 | **Session token format** | Random hex token in `cb_session` httpOnly cookie; only token hash is stored in DB |
-| **Session expiry** | Configurable via `session_expiry_hours` |
+| **Session expiry** | Configurable via `session_ttl_hours` (default: 168) |
 | **Development exception** | Weak secrets are allowed when `app_env == "development"` only |
 
 ### Implementation
@@ -71,7 +71,7 @@ Application **refuses to start** if the session secret is too weak for the envir
 ```python
 raise ValueError(
     f"Session secret is too weak for env '{self.app_env}'. "
-    "Set CLOUDBLOCKS_SESSION_SECRET_KEY to a random string of at least 32 characters."
+    "Set CLOUDBLOCKS_JWT_SECRET to a random string of at least 32 characters."
 )
 ```
 

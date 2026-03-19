@@ -280,7 +280,7 @@ CLOUDBLOCKS_GITHUB_CLIENT_ID=your_github_client_id
 CLOUDBLOCKS_GITHUB_CLIENT_SECRET=your_github_client_secret
 CLOUDBLOCKS_GITHUB_REDIRECT_URI=http://localhost:8000/api/v1/auth/github/callback
 
-# JWT
+# Session encryption (Fernet key derivation)
 CLOUDBLOCKS_JWT_SECRET=your-32-plus-char-random-string
 
 # CORS
@@ -293,7 +293,7 @@ CLOUDBLOCKS_CORS_ORIGINS=["http://localhost:5173"]
 
 | Secret | Description |
 |--------|-------------|
-| `CLOUDBLOCKS_JWT_SECRET` | Strong random string (≥32 chars) for JWT signing |
+| `CLOUDBLOCKS_JWT_SECRET` | Strong random string (≥32 chars) for session encryption key derivation (Fernet) |
 | `CLOUDBLOCKS_TOKEN_ENCRYPTION_SALT` | Strong random string (≥16 chars) for token encryption |
 | `CLOUDBLOCKS_GITHUB_CLIENT_SECRET` | GitHub App OAuth secret |
 | `CLOUDBLOCKS_GITHUB_CLIENT_ID` | GitHub OAuth client ID |

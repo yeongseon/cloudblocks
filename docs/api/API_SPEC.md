@@ -83,7 +83,7 @@ POST /api/v1/session/workspace     → Bind workspace to active session
 
 Notes:
 - No JWT access/refresh tokens are issued.
-- Session state is server-side (`sessions` table, Migration 004).
+- Session state is server-side (`sessions` table).
 - Stale sessions return 401 and clear stale session cookies.
 
 ## Workspaces (Implemented: Milestone 5+)
