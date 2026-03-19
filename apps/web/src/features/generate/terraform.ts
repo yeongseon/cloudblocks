@@ -95,7 +95,7 @@ function generatePlateResource(
   lines.push(`  resource_group_name = azurerm_resource_group.main.name`);
   lines.push(`  location            = azurerm_resource_group.main.location`);
 
-  if (plate.type === 'network') {
+  if (plate.type === 'region') {
     lines.push(`  address_space       = ["10.0.0.0/16"]`);
   }
 
@@ -161,10 +161,6 @@ function generateBlockResource(
     case 'event':
       lines.push(`  # EventGrid topic configuration`);
       break;
-    case 'timer':
-      lines.push(`  # Logic App workflow with recurrence trigger`);
-      lines.push(`  workflow_parameters = {}`);
-      break;
   }
 
   lines.push('}');
@@ -225,11 +221,11 @@ export function generateMainTf(
     sections.push('');
   }
 
-  // Plates (networks first, then subnets)
-  const networks = architecture.plates.filter((p) => p.type === 'network');
+  // Plates (regions first, then subnets)
+  const regions = architecture.plates.filter((p) => p.type === 'region');
   const subnets = architecture.plates.filter((p) => p.type === 'subnet');
 
-  for (const plate of networks) {
+  for (const plate of regions) {
     const resName = resourceNames.get(plate.id)!;
     const mapping = provider.plateMappings[plate.type];
     sections.push(
