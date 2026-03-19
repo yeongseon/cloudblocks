@@ -13,7 +13,7 @@ export interface BlockVisualProfile {
   /** Surface treatment - always 'studded' per Universal Stud Standard */
   surface: BrickSurface;
   silhouette: BrickSilhouette;
-  /** Stud grid [columns, rows] - MUST match STUD_LAYOUTS from index.ts */
+  /** Stud grid [columns, rows] - single source of truth for block stud layout */
   footprint: [number, number];
   /** Can user applications be placed on this block? */
   hostable: boolean;
