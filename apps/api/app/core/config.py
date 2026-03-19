@@ -46,6 +46,14 @@ class Settings(BaseSettings):
     oauth_cookie_name: str = "cb_oauth"
     frontend_url: str = "http://localhost:5173"
 
+    # AI / LLM
+    llm_provider_url: str = "https://api.openai.com/v1"
+    llm_model: str = "gpt-4o"
+    llm_max_tokens: int = 4096
+    llm_request_timeout: int = 60
+    infracost_api_key: str = ""
+    ai_encryption_key: str = ""  # Fernet key for encrypting user API keys
+
     model_config = {"env_prefix": "CLOUDBLOCKS_", "env_file": ".env", "extra": "ignore"}
 
     _WEAK_SECRETS: set[str] = {"change-me-in-production", "secret", "password", ""}
