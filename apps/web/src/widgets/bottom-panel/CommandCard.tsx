@@ -13,6 +13,8 @@ import { toast } from 'react-hot-toast';
 import interact from 'interactjs';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { useWorkerStore } from '../../entities/store/workerStore';
+import { BlockSvg } from '../../entities/block/BlockSvg';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
 import {
@@ -132,6 +134,7 @@ export function CommandCard({ className = '' }: CommandCardProps) {
   const [plateSubActionState, setPlateSubActionState] = useState<{ selectedId: string | null; action: 'deploy' | null }>({ selectedId: null, action: null });
   const selectedId = useUIStore((s) => s.selectedId);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
+  const isWorkerSelected = selectedId === 'worker-default';
   const selectedBlock = selectedId
     ? architecture.blocks.find((b) => b.id === selectedId) ?? null
     : null;
@@ -157,22 +160,26 @@ export function CommandCard({ className = '' }: CommandCardProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [plateSubAction, setPlateSubAction]);
 
-  const headerText = selectedBlock
-    ? 'Actions'
-    : selectedPlate
-      ? plateSubAction === 'deploy'
-        ? `Deploy on ${getPlateHeaderText(selectedPlate)}`
-        : `${getPlateHeaderText(selectedPlate)} Actions`
-      : 'Create Resource';
+  const headerText = isWorkerSelected
+    ? 'Build Order'
+    : selectedBlock
+      ? 'Actions'
+      : selectedPlate
+        ? plateSubAction === 'deploy'
+          ? `Deploy on ${getPlateHeaderText(selectedPlate)}`
+          : `${getPlateHeaderText(selectedPlate)} Actions`
+        : 'Create Resource';
 
   const isCreationMode = !selectedBlock && !selectedPlate;
-  const modeContent = selectedBlock
-    ? <BlockActionMode />
-    : selectedPlate
-      ? plateSubAction === 'deploy'
-        ? <PlateCreationMode selectedPlate={selectedPlate} />
-        : <PlateActionMode selectedPlate={selectedPlate} onDeploy={() => setPlateSubAction('deploy')} />
-      : <CreationMode activeTab={activeTab} />;
+  const modeContent = isWorkerSelected
+    ? <WorkerBuildMode activeTab={activeTab} />
+    : selectedBlock
+      ? <BlockActionMode />
+      : selectedPlate
+        ? plateSubAction === 'deploy'
+          ? <PlateCreationMode selectedPlate={selectedPlate} />
+          : <PlateActionMode selectedPlate={selectedPlate} onDeploy={() => setPlateSubAction('deploy')} />
+        : <CreationMode activeTab={activeTab} />;
 
   return (
     <div className={`command-card ${className}`}>
@@ -429,6 +436,98 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
                     title={enabled ? `Create ${def.label} (${hotkey})` : disabledReason ?? undefined}
                   >
                     <span className="command-btn-icon">{def.icon}</span>
+                    <span className="command-btn-label">{def.shortLabel}</span>
+                    {!enabled && disabledReason && <span className="command-btn-requirement">Needs: {disabledReason}</span>}
+                    {hotkey && <span className="command-btn-hotkey">{hotkey}</span>}
+                    {!enabled && <span className="command-btn-lock">🔒</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        );
+      })}
+    </div>
+  );
+}
+
+function WorkerBuildMode({ activeTab }: { activeTab: TabId }) {
+  const techTree = useTechTree();
+  const architecture = useArchitectureStore((s) => s.workspace.architecture);
+  const addBlock = useArchitectureStore((s) => s.addBlock);
+  const activeProvider = useUIStore((s) => s.activeProvider);
+  const startBuild = useWorkerStore((s) => s.startBuild);
+  const workerPosition = useWorkerStore((s) => s.workerPosition);
+  const counterRef = useRef(0);
+  const tabDefinition = CATEGORY_TABS.find((tab) => tab.id === activeTab) ?? CATEGORY_TABS[0];
+  const providerResources = PROVIDER_RESOURCE_ALLOWLIST[activeProvider];
+  const hotkeyLookup = buildHotkeyLookup(tabDefinition.resources);
+  const groupedResources = CREATION_GROUP_ORDER.map((groupId) => {
+    const resources = getTabResources(tabDefinition.resources)
+      .filter((resource) => getCreationGroupId(resource) === groupId)
+      .filter((resource) => providerResources.has(resource))
+      .filter((resource) => Boolean(RESOURCE_DEFINITIONS[resource].blockCategory))
+      .sort((a, b) => RESOURCE_DEFINITIONS[a].label.localeCompare(RESOURCE_DEFINITIONS[b].label));
+
+    return { groupId, resources };
+  }).filter((group) => group.resources.length > 0);
+
+  const handleBuild = useCallback((type: ResourceType) => {
+    const def = RESOURCE_DEFINITIONS[type];
+    if (!def.blockCategory) return;
+
+    const targetId = techTree.getTargetPlateId(type);
+    if (!targetId) {
+      toast.error('Please create a Network first.');
+      return;
+    }
+
+    const knownBlockIds = new Set(architecture.blocks.map((block) => block.id));
+    counterRef.current += 1;
+    const name = `${def.label} ${counterRef.current}`;
+    addBlock(def.blockCategory, name, targetId, activeProvider);
+
+    const nextBlocks = useArchitectureStore.getState().workspace.architecture.blocks;
+    const createdBlock = nextBlocks.find(
+      (block) => !knownBlockIds.has(block.id) && block.name === name && block.placementId === targetId,
+    );
+
+    if (createdBlock) {
+      startBuild(createdBlock.id, workerPosition);
+    }
+  }, [activeProvider, addBlock, architecture.blocks, startBuild, techTree, workerPosition]);
+
+  return (
+    <div className="command-card-creation-groups">
+      {groupedResources.map(({ groupId, resources }) => {
+        const groupMeta = getCreationGroupMeta(groupId);
+        return (
+          <section key={groupId} className="command-card-category-group" aria-label={`${groupMeta.label} resource group`}>
+            <header className="command-card-category-header" style={{ '--category-color': groupMeta.color } as CSSProperties}>
+              <span className="command-card-category-icon" aria-hidden="true">{groupMeta.icon}</span>
+              <span className="command-card-category-label">{groupMeta.label}</span>
+            </header>
+
+            <div className="command-card-category-grid">
+              {resources.map((type) => {
+                const def = RESOURCE_DEFINITIONS[type];
+                const enabled = techTree.isEnabled(type);
+                const disabledReason = techTree.getDisabledReason(type);
+                const hotkey = hotkeyLookup.get(type) ?? '';
+
+                return (
+                  <button
+                    key={type}
+                    type="button"
+                    className={`command-card-btn command-card-resource-btn ${enabled ? '' : 'disabled'}`}
+                    data-resource-type={type}
+                    onClick={() => enabled && handleBuild(type)}
+                    disabled={!enabled}
+                    title={enabled ? `Build ${def.label} (${hotkey})` : disabledReason ?? undefined}
+                  >
+                    <span className="command-btn-icon">
+                      {def.blockCategory && <BlockSvg category={def.blockCategory} provider={activeProvider} />}
+                    </span>
                     <span className="command-btn-label">{def.shortLabel}</span>
                     {!enabled && disabledReason && <span className="command-btn-requirement">Needs: {disabledReason}</span>}
                     {hotkey && <span className="command-btn-hotkey">{hotkey}</span>}
