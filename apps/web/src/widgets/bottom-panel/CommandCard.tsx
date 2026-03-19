@@ -74,9 +74,11 @@ function chunkResources(resources: ResourceType[], chunkSize = 9): ResourceType[
 }
 
 function getPlateHeaderText(plate: Plate): string {
-  if (plate.type === 'region') return 'VNet';
-  if (plate.subnetAccess === 'public') return 'Public Subnet';
-  return 'Private Subnet';
+  if (plate.type === 'subnet') {
+    return plate.subnetAccess === 'public' ? 'Public Subnet' : 'Private Subnet';
+  }
+  // Network-layer plates: global, edge, region, zone
+  return plate.type === 'region' ? 'VNet' : plate.type.charAt(0).toUpperCase() + plate.type.slice(1);
 }
 
 type CreationGroupId = BlockCategory | 'plate';
@@ -559,7 +561,7 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
-      const contextResources = selectedPlate.type === 'region'
+      const contextResources = selectedPlate.type !== 'subnet'
         ? PLATE_CONTEXT_RESOURCES.network
         : selectedPlate.subnetAccess === 'public'
           ? PLATE_CONTEXT_RESOURCES['subnet-public']

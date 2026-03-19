@@ -86,6 +86,9 @@ const BICEP_RESOURCE_TYPES: Record<string, string> = {
   azurerm_storage_queue: 'Microsoft.Storage/storageAccounts/queueServices/queues@2023-01-01',
   azurerm_eventgrid_topic: 'Microsoft.EventGrid/topics@2023-12-15-preview',
   azurerm_logic_app_workflow: 'Microsoft.Logic/workflows@2019-05-01',
+  azurerm_log_analytics_workspace: 'Microsoft.OperationalInsights/workspaces@2023-09-01',
+  azurerm_user_assigned_identity: 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31',
+  azurerm_monitor_workspace: 'Microsoft.Monitor/accounts@2023-04-03',
 };
 
 function getBicepResourceType(terraformType: string): string {
@@ -118,7 +121,7 @@ function generatePlateResource(
     lines.push(`  name: '\${projectName}-${resourceName}'`);
     lines.push(`  location: location`);
     lines.push(`  properties: {`);
-    if (plate.type === 'region') {
+    if (plate.type !== 'subnet') {
       lines.push(`    addressSpace: {`);
       lines.push(`      addressPrefixes: [`);
       lines.push(`        '10.0.0.0/16'`);
@@ -199,6 +202,15 @@ function generateBlockResource(
     case 'event':
       lines.push(`  properties: {}`);
       break;
+    case 'analytics':
+      lines.push(`  properties: {}`);
+      break;
+    case 'identity':
+      lines.push(`  properties: {}`);
+      break;
+    case 'observability':
+      lines.push(`  properties: {}`);
+      break;
   }
 
   lines.push(`}`);
@@ -258,7 +270,7 @@ export function generateMainBicep(
   }
 
   // Plates (regions first, then subnets)
-  const regions = architecture.plates.filter((p) => p.type === 'region');
+  const regions = architecture.plates.filter((p) => p.type !== 'subnet');
   const subnets = architecture.plates.filter((p) => p.type === 'subnet');
 
   for (const plate of regions) {

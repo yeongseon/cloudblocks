@@ -190,9 +190,9 @@ describe('bicep generator', () => {
     expect(mainBicep).toContain("resource funcFunction 'Microsoft.Web/sites@2023-01-01' = {");
     expect(mainBicep).toContain("resource queueQueue 'Microsoft.Storage/storageAccounts/queueServices/queues@2023-01-01' = {");
     expect(mainBicep).toContain("resource evtopicEvent 'Microsoft.EventGrid/topics@2023-12-15-preview' = {");
-    expect(mainBicep).toContain("resource analyticsAnalytics 'azurerm_log_analytics_workspace' = {");
-    expect(mainBicep).toContain("resource identityIdentity 'azurerm_user_assigned_identity' = {");
-    expect(mainBicep).toContain("resource monitorObservability 'azurerm_monitor_workspace' = {");
+    expect(mainBicep).toContain("resource analyticsAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {");
+    expect(mainBicep).toContain("resource identityIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {");
+    expect(mainBicep).toContain("resource monitorObservability 'Microsoft.Monitor/accounts@2023-04-03' = {");
   });
 
   it('generates subnet as top-level resource when parent is missing', () => {

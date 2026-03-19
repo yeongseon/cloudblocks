@@ -559,9 +559,9 @@ const eventPipelineScenario: Scenario = {
       id: 'step-event-pipeline-add-sources',
       order: 1,
       title: 'Add Event Sources',
-      instruction: 'Place an Event source and a Queue on the Network plate.',
+      instruction: 'Place an Event source and a Queue on the Region plate.',
       hints: [
-        'Events and Queues are serverless resources that live on the Network plate.',
+        'Events and Queues are serverless resources that live on the Region plate.',
         'Events trigger functions when something happens. Queues buffer messages for processing.',
       ],
       validationRules: [
@@ -574,10 +574,10 @@ const eventPipelineScenario: Scenario = {
       order: 2,
       title: 'Add Processing Functions',
       instruction:
-        'Place two Function blocks on the Network plate - one for event processing and one for batch processing.',
+        'Place two Function blocks on the Region plate - one for event processing and one for batch processing.',
       hints: [
         'You need at least two functions: one triggered by events and one for batch processing.',
-        'Functions run on the Network plate, not in subnets.',
+        'Functions run on the Region plate, not in subnets.',
       ],
       validationRules: [{ type: 'min-block-count', category: 'function', count: 2 }],
       checkpoint: eventPipelineCheckpointAfterStep2,
@@ -586,7 +586,7 @@ const eventPipelineScenario: Scenario = {
       id: 'step-event-pipeline-add-timer-storage',
       order: 3,
       title: 'Add an Event Trigger and Storage',
-      instruction: 'Place an Event trigger on the Network plate and a Storage block on the Private Subnet.',
+      instruction: 'Place an Event trigger on the Region plate and a Storage block on the Private Subnet.',
       hints: [
         'Event triggers can drive scheduled or asynchronous processing workflows.',
         'Storage in the private subnet keeps your data secure.',
@@ -614,7 +614,6 @@ const eventPipelineScenario: Scenario = {
       validationRules: [
         { type: 'connection-exists', sourceCategory: 'event', targetCategory: 'function' },
         { type: 'connection-exists', sourceCategory: 'queue', targetCategory: 'function' },
-        { type: 'connection-exists', sourceCategory: 'event', targetCategory: 'function' },
         { type: 'connection-exists', sourceCategory: 'function', targetCategory: 'storage' },
       ],
       checkpoint: eventPipelineCheckpointWithAllBlocks,
@@ -625,7 +624,7 @@ const eventPipelineScenario: Scenario = {
       title: 'Final Validation',
       instruction: 'Validate your event-driven pipeline architecture.',
       hints: [
-        'All serverless blocks must be on the Network plate.',
+        'All serverless blocks must be on the Region plate.',
         'Ensure at least 2 functions are present for the dual-processing pattern.',
       ],
       validationRules: [

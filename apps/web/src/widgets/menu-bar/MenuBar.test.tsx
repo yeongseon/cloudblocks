@@ -465,11 +465,11 @@ describe('MenuBar', () => {
 
     insertDropdown = await openMenu(user, 'Insert');
     await user.click(within(insertDropdown).getByRole('button', { name: /Public Subnet/ }));
-    expect(toast.error).toHaveBeenCalledWith('Please create a Network Plate first.');
+    expect(toast.error).toHaveBeenCalledWith('Please create a Region Plate first.');
 
     insertDropdown = await openMenu(user, 'Insert');
     await user.click(within(insertDropdown).getByRole('button', { name: /Private Subnet/ }));
-    expect(toast.error).toHaveBeenCalledWith('Please create a Network Plate first.');
+    expect(toast.error).toHaveBeenCalledWith('Please create a Region Plate first.');
 
     setArchitectureState({ plates: [networkPlate] });
 

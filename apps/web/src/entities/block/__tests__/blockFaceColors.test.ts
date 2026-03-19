@@ -163,7 +163,7 @@ describe('PROVIDER_COLORS', () => {
     expect(aws.networking).toBe('#693BC5');
     expect(aws.security).toBe('#D6232C');
     expect(aws['app-integration']).toBe('#CD2264');
-    expect(aws.analytics).toBe('#693BC5');
+    expect(aws.analytics).toBe('#A166FF');
     expect(aws.ml).toBe('#1B7B67');
     expect(aws.management).toBe('#693BC5');
   });

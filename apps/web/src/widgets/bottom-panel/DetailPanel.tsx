@@ -210,8 +210,9 @@ function PlateDetail({ plate, className }: { plate: Plate; className: string }) 
 
   const profileId = plate.profileId ?? DEFAULT_PLATE_PROFILE[plate.type];
   const profile = getPlateProfile(profileId);
+  const profileFilterType = plate.type === 'subnet' ? 'subnet' : 'region';
   const profileOptions = Object.values(PLATE_PROFILES).filter(
-    (candidate) => candidate.type === plate.type
+    (candidate) => candidate.type === profileFilterType
   );
 
   const parentPlate = plate.parentId

@@ -185,9 +185,9 @@ describe('pulumi generator', () => {
     expect(indexTs).toContain('const funcFunction = new azure.web.WebApp("funcFunction", {');
     expect(indexTs).toContain('const queueQueue = new azure.storage.Queue("queueQueue", {');
     expect(indexTs).toContain('const evtopicEvent = new azure.eventgrid.Topic("evtopicEvent", {');
-    expect(indexTs).toContain('const analyticsAnalytics = new azure.resources.GenericResource("analyticsAnalytics", {');
-    expect(indexTs).toContain('const identityIdentity = new azure.resources.GenericResource("identityIdentity", {');
-    expect(indexTs).toContain('const monitorObservability = new azure.resources.GenericResource("monitorObservability", {');
+    expect(indexTs).toContain('const analyticsAnalytics = new azure.operationalinsights.Workspace("analyticsAnalytics", {');
+    expect(indexTs).toContain('const identityIdentity = new azure.managedidentity.UserAssignedIdentity("identityIdentity", {');
+    expect(indexTs).toContain('const monitorObservability = new azure.monitor.AzureMonitorWorkspace("monitorObservability", {');
   });
 
   it('generates subnet as top-level resource when parent network is missing', () => {

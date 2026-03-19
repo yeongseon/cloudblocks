@@ -195,7 +195,7 @@ describe('Toolbar', () => {
     const user = userEvent.setup();
     render(<Toolbar />);
     await user.click(screen.getByTitle('Add Public Subnet'));
-    expect(toast.error).toHaveBeenCalledWith('Please create a Network Plate first.');
+    expect(toast.error).toHaveBeenCalledWith('Please create a Region Plate first.');
     expect(addPlateMock).not.toHaveBeenCalled();
   });
 
@@ -228,7 +228,7 @@ describe('Toolbar', () => {
     const user = userEvent.setup();
     render(<Toolbar />);
     await user.click(screen.getByTitle('Add Private Subnet'));
-    expect(toast.error).toHaveBeenCalledWith('Please create a Network Plate first.');
+    expect(toast.error).toHaveBeenCalledWith('Please create a Region Plate first.');
   });
 
   // --- Tool modes ---

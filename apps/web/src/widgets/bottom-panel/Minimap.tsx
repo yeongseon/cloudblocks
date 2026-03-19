@@ -71,7 +71,7 @@ export function Minimap({ className = '' }: MinimapProps) {
       color: plate.type === 'subnet' && plate.subnetAccess
         ? SUBNET_ACCESS_COLORS[plate.subnetAccess]
         : PLATE_COLORS[plate.type],
-      isNetwork: plate.type === 'region',
+      isNetwork: plate.type !== 'subnet',
     }));
 
     // Transform blocks

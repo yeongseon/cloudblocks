@@ -434,7 +434,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
   name: 'Event-Driven Pipeline',
   description:
     'Event-driven data processing pipeline. Events trigger a processing function ' +
-    'that reads from a queue and writes results to storage. Timer triggers periodic batch jobs.',
+    'that reads from a queue and writes results to storage. Scheduled events trigger periodic batch jobs.',
   category: 'data-pipeline',
   difficulty: 'advanced',
   tags: ['event-driven', 'queue', 'function', 'event', 'pipeline'],
@@ -484,7 +484,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-tmpl-timer5',
-        name: 'Batch Timer',
+        name: 'Scheduled Trigger',
         category: 'event',
         placementId: 'plate-tmpl-vnet5',
         position: { x: 0, y: 0.5, z: -3 },

@@ -86,6 +86,9 @@ const PULUMI_CONSTRUCTORS: Record<string, string> = {
   azurerm_storage_queue: 'azure.storage.Queue',
   azurerm_eventgrid_topic: 'azure.eventgrid.Topic',
   azurerm_logic_app_workflow: 'azure.logic.Workflow',
+  azurerm_log_analytics_workspace: 'azure.operationalinsights.Workspace',
+  azurerm_user_assigned_identity: 'azure.managedidentity.UserAssignedIdentity',
+  azurerm_monitor_workspace: 'azure.monitor.AzureMonitorWorkspace',
 };
 
 function getPulumiConstructor(terraformType: string): string {
@@ -116,7 +119,7 @@ function generatePlateResource(
     lines.push(`    virtualNetworkName: \`\${projectName}-${resourceName}\`,`);
     lines.push(`    resourceGroupName: resourceGroup.name,`);
     lines.push(`    location: location,`);
-    if (plate.type === 'region') {
+    if (plate.type !== 'subnet') {
       lines.push(`    addressSpace: {`);
       lines.push(`        addressPrefixes: ["10.0.0.0/16"],`);
       lines.push(`    },`);
@@ -191,6 +194,15 @@ function generateBlockResource(
     case 'event':
       lines.push(`    topicName: \`\${projectName}-${resourceName}\`,`);
       break;
+    case 'analytics':
+      lines.push(`    // Log Analytics workspace configuration`);
+      break;
+    case 'identity':
+      lines.push(`    // Managed identity configuration`);
+      break;
+    case 'observability':
+      lines.push(`    // Monitor workspace configuration`);
+      break;
   }
 
   lines.push(`});`);
@@ -257,7 +269,7 @@ export function generateIndexTs(
   }
 
   // Plates (regions first, then subnets)
-  const regions = architecture.plates.filter((p) => p.type === 'region');
+  const regions = architecture.plates.filter((p) => p.type !== 'subnet');
   const subnets = architecture.plates.filter((p) => p.type === 'subnet');
 
   if (regions.length > 0 || subnets.length > 0) {

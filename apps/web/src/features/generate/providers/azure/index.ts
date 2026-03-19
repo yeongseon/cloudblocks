@@ -38,8 +38,8 @@ const azureSubtypeBlockMappings: SubtypeResourceMap = {
  *   observability → azurerm_monitor_workspace / Microsoft.Monitor/accounts
  *
  * Plate Mappings:
- *   network  → azurerm_virtual_network / Microsoft.Network/virtualNetworks
- *   subnet   → azurerm_subnet / Microsoft.Network/virtualNetworks/subnets
+ *   global/edge/region/zone → azurerm_virtual_network / Microsoft.Network/virtualNetworks
+ *   subnet                  → azurerm_subnet / Microsoft.Network/virtualNetworks/subnets
  */
 
 export const azureProviderDefinition: ProviderDefinition = {

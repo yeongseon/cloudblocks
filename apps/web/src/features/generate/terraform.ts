@@ -95,7 +95,7 @@ function generatePlateResource(
   lines.push(`  resource_group_name = azurerm_resource_group.main.name`);
   lines.push(`  location            = azurerm_resource_group.main.location`);
 
-  if (plate.type === 'region') {
+  if (plate.type !== 'subnet') {
     lines.push(`  address_space       = ["10.0.0.0/16"]`);
   }
 
@@ -161,6 +161,15 @@ function generateBlockResource(
     case 'event':
       lines.push(`  # EventGrid topic configuration`);
       break;
+    case 'analytics':
+      lines.push(`  # Log Analytics workspace configuration`);
+      break;
+    case 'identity':
+      lines.push(`  # Managed identity configuration`);
+      break;
+    case 'observability':
+      lines.push(`  # Monitor workspace configuration`);
+      break;
   }
 
   lines.push('}');
@@ -222,7 +231,7 @@ export function generateMainTf(
   }
 
   // Plates (regions first, then subnets)
-  const regions = architecture.plates.filter((p) => p.type === 'region');
+  const regions = architecture.plates.filter((p) => p.type !== 'subnet');
   const subnets = architecture.plates.filter((p) => p.type === 'subnet');
 
   for (const plate of regions) {
