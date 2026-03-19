@@ -70,6 +70,7 @@ zundo        — Zustand undo/redo middleware
   - Non-Epic implementation issues use exactly one type label: `enhancement`, `bug`, or `testing`.
   - Documentation issues use `documentation`; domain labels are recommended and optional when the docs are cross-cutting.
   - Domain labels include `frontend`, `backend`, `security`, `auth`, `infrastructure`, `ux`, `design-system`, `domain-model`, and `cloud-provider`.
+  - Every non-Epic issue must have exactly one size label: `size/S`, `size/M`, `size/L`, or `size/XL`. Assign it at creation time.
 - Use one branch per sub-issue and one PR per branch. Each PR should reference and close its issue.
 
 ## Validation
