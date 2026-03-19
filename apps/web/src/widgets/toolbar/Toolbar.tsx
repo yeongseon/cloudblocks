@@ -42,11 +42,11 @@ export function Toolbar() {
   const importInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddNetwork = () => {
-    addPlate('network', 'VNet', null);
+    addPlate('region', 'VNet', null);
   };
 
   const handleAddPublicSubnet = () => {
-    const network = architecture.plates.find((p) => p.type === 'network');
+    const network = architecture.plates.find((p) => p.type === 'region');
     if (!network) {
       toast.error('Please create a Network Plate first.');
       return;
@@ -55,7 +55,7 @@ export function Toolbar() {
   };
 
   const handleAddPrivateSubnet = () => {
-    const network = architecture.plates.find((p) => p.type === 'network');
+    const network = architecture.plates.find((p) => p.type === 'region');
     if (!network) {
       toast.error('Please create a Network Plate first.');
       return;
