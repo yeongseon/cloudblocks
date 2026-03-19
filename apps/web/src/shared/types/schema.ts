@@ -11,7 +11,9 @@ const DEFAULT_EXTERNAL_ACTOR_POSITION = { x: -3, y: 0, z: 5 };
  * This is separate from ArchitectureModel.version, which tracks
  * the user's architecture revision (user-facing, incremented on save/export).
  */
-export const SCHEMA_VERSION = '0.1.0';
+export const SCHEMA_VERSION = '0.2.0';
+
+const SUPPORTED_VERSIONS = ['0.1.0', '0.2.0'];
 
 export interface SerializedData {
   schemaVersion: string;
@@ -40,10 +42,14 @@ export function deserialize(json: string): Workspace[] {
   }
 
   if (data.schemaVersion !== SCHEMA_VERSION) {
-    console.warn(
-      `Schema version mismatch: expected ${SCHEMA_VERSION}, got ${data.schemaVersion}. ` +
-        'Data may need migration.'
-    );
+    if (SUPPORTED_VERSIONS.includes(data.schemaVersion)) {
+      console.warn(`Migrating schema from ${data.schemaVersion} to ${SCHEMA_VERSION}.`);
+    } else {
+      console.warn(
+        `Schema version mismatch: expected ${SCHEMA_VERSION}, got ${data.schemaVersion}. ` +
+          'Data may need migration.'
+      );
+    }
   }
 
   const workspaces = data.workspaces ?? [];
@@ -70,6 +76,10 @@ export function deserialize(json: string): Workspace[] {
         }
       }
     }
+
+    // Migration: 0.1.0 -> 0.2.0 - subtype/config fields on blocks
+    // These fields are optional on Block, so no patching is needed.
+    // Blocks saved without subtype/config naturally deserialize as undefined.
   }
 
   return workspaces;
