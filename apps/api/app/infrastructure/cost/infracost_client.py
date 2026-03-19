@@ -1,17 +1,15 @@
-"""Infracost integration for cloud cost estimation."""
 from __future__ import annotations
 
 import asyncio
 import json
-import logging
 import os
 import shutil
 from pathlib import Path
-from typing import Any
+from typing import cast
 
 from app.domain.models.ai_entities import CostEstimate, CostResource
 
-logger = logging.getLogger(__name__)
+NUMBER_TYPES = (str, int, float)
 
 
 class InfracostError(Exception):
@@ -23,120 +21,142 @@ class InfracostNotAvailableError(InfracostError):
 
 
 class InfracostClient:
-    """Wrapper around Infracost CLI for cost estimation."""
-
-    def __init__(self, api_key: str = ""):
+    def __init__(self, api_key: str = "") -> None:
         self.api_key: str = api_key
 
     async def is_available(self) -> bool:
-        """Check if infracost binary is available."""
         return shutil.which("infracost") is not None
 
     async def estimate(self, terraform_dir: str) -> CostEstimate:
-        """Run infracost breakdown on a Terraform directory.
-
-        Args:
-            terraform_dir: Path to directory with .tf files
-
-        Returns:
-            CostEstimate with monthly/hourly costs and resource breakdown
-
-        Raises:
-            InfracostNotAvailableError: If infracost binary not found
-            InfracostError: If infracost execution fails
-        """
         if not await self.is_available():
-            raise InfracostNotAvailableError(
-                "Infracost binary not found. Install from https://www.infracost.io/docs/"
-            )
+            raise InfracostNotAvailableError("Infracost binary not found on PATH")
 
-        tf_path = Path(terraform_dir)
-        if not tf_path.exists():
+        directory = Path(terraform_dir)
+        if not directory.exists() or not directory.is_dir():
             raise InfracostError(f"Terraform directory not found: {terraform_dir}")
 
-        env = None
+        env: dict[str, str] | None = None
         if self.api_key:
-            env = {**os.environ, "INFRACOST_API_KEY": self.api_key}
+            env = dict(os.environ)
+            env["INFRACOST_API_KEY"] = self.api_key
 
         try:
             process = await asyncio.create_subprocess_exec(
                 "infracost",
                 "breakdown",
-                "--path",
-                str(tf_path),
                 "--format",
                 "json",
                 "--no-color",
+                "--path",
+                str(directory),
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
                 env=env,
             )
+        except FileNotFoundError as exc:
+            raise InfracostNotAvailableError("Infracost binary not found on PATH") from exc
+        except OSError as exc:
+            raise InfracostError(f"Failed to launch infracost: {exc}") from exc
+
+        try:
             stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=120)
         except asyncio.TimeoutError as exc:
-            raise InfracostError("Infracost timed out after 120s") from exc
-        except OSError as exc:
-            raise InfracostError(f"Failed to execute infracost: {exc}") from exc
+            _ = process.kill()
+            _ = await process.wait()
+            raise InfracostError("Infracost execution timed out after 120 seconds") from exc
 
         if process.returncode != 0:
+            error_output = stderr.decode("utf-8", errors="replace").strip()
             raise InfracostError(
-                f"Infracost failed (exit {process.returncode}): {stderr.decode()}"
+                f"Infracost process failed with exit code {process.returncode}: {error_output}"
             )
 
         try:
-            decoded = json.loads(stdout.decode())
+            parsed = cast(object, json.loads(stdout.decode("utf-8")))
         except json.JSONDecodeError as exc:
-            raise InfracostError(f"Invalid JSON from infracost: {exc}") from exc
+            raise InfracostError(f"Invalid JSON output from infracost: {exc}") from exc
 
-        if not isinstance(decoded, dict):
-            raise InfracostError("Invalid JSON from infracost: root must be an object")
+        if not isinstance(parsed, dict):
+            raise InfracostError("Invalid infracost output: expected JSON object")
 
-        return self._parse_output(decoded)
+        parsed_dict = cast(dict[object, object], parsed)
+        if not all(isinstance(key, str) for key in parsed_dict):
+            raise InfracostError("Invalid infracost output: expected string keys")
 
-    def _parse_output(self, data: dict[str, Any]) -> CostEstimate:
-        """Parse infracost JSON output into CostEstimate."""
-        total_monthly = 0.0
+        payload = cast(dict[str, object], parsed)
+
+        return self._parse_output(payload)
+
+    def _parse_output(self, data: dict[str, object]) -> CostEstimate:
         resources: list[CostResource] = []
+        parsed_monthly_sum = 0.0
 
-        for project_raw in data.get("projects", []):
-            if not isinstance(project_raw, dict):
-                continue
-            breakdown = project_raw.get("breakdown")
-            if not isinstance(breakdown, dict):
-                continue
-            resource_list = breakdown.get("resources")
-            if not isinstance(resource_list, list):
-                continue
-
-            for resource_raw in resource_list:
-                if not isinstance(resource_raw, dict):
+        raw_projects_obj = data.get("projects")
+        if isinstance(raw_projects_obj, list):
+            for raw_project in cast(list[object], raw_projects_obj):
+                if not isinstance(raw_project, dict):
                     continue
-                monthly = resource_raw.get("monthlyCost")
-                if isinstance(monthly, (str, int, float)):
-                    cost = float(monthly)
-                    total_monthly += cost
-                    name = resource_raw.get("name")
-                    resource_type = resource_raw.get("resourceType")
+                raw_project_dict = cast(dict[object, object], raw_project)
+                if not all(isinstance(key, str) for key in raw_project_dict):
+                    continue
+                project = cast(dict[str, object], raw_project)
+
+                raw_breakdown_obj = project.get("breakdown")
+                if not isinstance(raw_breakdown_obj, dict):
+                    continue
+                raw_breakdown_dict = cast(dict[object, object], raw_breakdown_obj)
+                if not all(isinstance(key, str) for key in raw_breakdown_dict):
+                    continue
+                breakdown = cast(dict[str, object], raw_breakdown_obj)
+
+                raw_resources_obj = breakdown.get("resources")
+                if not isinstance(raw_resources_obj, list):
+                    continue
+
+                for raw_resource in cast(list[object], raw_resources_obj):
+                    if not isinstance(raw_resource, dict):
+                        continue
+                    raw_resource_dict = cast(dict[object, object], raw_resource)
+                    if not all(isinstance(key, str) for key in raw_resource_dict):
+                        continue
+                    resource = cast(dict[str, object], raw_resource)
+
+                    raw_monthly = resource.get("monthlyCost", 0)
+                    if isinstance(raw_monthly, NUMBER_TYPES):
+                        try:
+                            monthly_cost = float(raw_monthly)
+                        except ValueError:
+                            monthly_cost = 0.0
+                    else:
+                        monthly_cost = 0.0
+
+                    parsed_monthly_sum += monthly_cost
+                    name = resource.get("name")
+                    resource_type = resource.get("resourceType")
                     resources.append(
                         CostResource(
                             name=name if isinstance(name, str) else "unknown",
-                            monthly_cost=cost,
+                            monthly_cost=monthly_cost,
                             details={
-                                "resource_type": (
+                                "resourceType": (
                                     resource_type if isinstance(resource_type, str) else ""
-                                ),
+                                )
                             },
                         )
                     )
 
-        total_from_data = data.get("totalMonthlyCost")
-        if isinstance(total_from_data, (str, int, float)):
-            total_monthly = float(total_from_data)
-
-        hourly = total_monthly / 730
+        raw_total = data.get("totalMonthlyCost")
+        if isinstance(raw_total, NUMBER_TYPES):
+            try:
+                total_monthly_cost = float(raw_total)
+            except ValueError:
+                total_monthly_cost = parsed_monthly_sum
+        else:
+            total_monthly_cost = parsed_monthly_sum
 
         return CostEstimate(
-            monthly_cost=round(total_monthly, 2),
-            hourly_cost=round(hourly, 4),
+            monthly_cost=total_monthly_cost,
+            hourly_cost=total_monthly_cost / 730,
             currency="USD",
             resources=resources,
         )
