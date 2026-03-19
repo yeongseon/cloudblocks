@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { CommandCard } from './CommandCard';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore, type ToolMode } from '../../entities/store/uiStore';
+import { useWorkerStore } from '../../entities/store/workerStore';
 import type { ArchitectureModel, Block, Plate } from '../../shared/types/index';
 
 vi.mock('./CommandCard.css', () => ({}));
@@ -93,6 +94,7 @@ describe('CommandCard', () => {
   const togglePropertiesMock = vi.fn();
   const setSelectedIdMock = vi.fn<(id: string | null) => void>();
   const setToolModeMock = vi.fn<(mode: ToolMode) => void>();
+  const startBuildMock = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -122,6 +124,11 @@ describe('CommandCard', () => {
         createdAt: '',
         updatedAt: '',
       },
+    });
+
+    useWorkerStore.setState({
+      workerPosition: [2, 0, 3],
+      startBuild: startBuildMock,
     });
   });
 
@@ -324,6 +331,87 @@ describe('CommandCard', () => {
     await user.click(screen.getByTitle('Create Private Subnet (E)'));
 
     expect(addPlateMock).toHaveBeenCalledWith('subnet', 'Private Subnet', 'net-1', 'private');
+  });
+
+  it('shows Build Order header when worker-default is selected', () => {
+    useUIStore.setState({ selectedId: 'worker-default' });
+
+    render(<CommandCard />);
+
+    expect(screen.getByText('Build Order')).toBeInTheDocument();
+  });
+
+  it('shows worker build grid in worker mode', async () => {
+    const user = userEvent.setup();
+
+    useUIStore.setState({ selectedId: 'worker-default' });
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          ...baseArchitecture,
+          plates: [networkPlate, publicSubnet],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    const { container } = render(<CommandCard />);
+
+    await user.click(screen.getByRole('button', { name: 'Compute' }));
+
+    expect(container.querySelectorAll('.command-card-category-group').length).toBeGreaterThan(0);
+    expect(screen.getByTitle('Build Virtual Machine (Q)')).toBeInTheDocument();
+  });
+
+  it('calls startBuild when block is clicked in worker mode', async () => {
+    const user = userEvent.setup();
+
+    useUIStore.setState({ selectedId: 'worker-default' });
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          ...baseArchitecture,
+          plates: [networkPlate, publicSubnet],
+          blocks: [],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    addBlockMock.mockImplementation((category, name, placementId) => {
+      useArchitectureStore.setState((state) => ({
+        workspace: {
+          ...state.workspace,
+          architecture: {
+            ...state.workspace.architecture,
+            blocks: [
+              ...state.workspace.architecture.blocks,
+              {
+                id: 'worker-built-block',
+                name,
+                category,
+                placementId,
+                position: { x: 0, y: 0, z: 0 },
+                metadata: {},
+              },
+            ],
+          },
+        },
+      }));
+    });
+
+    render(<CommandCard />);
+
+    await user.click(screen.getByRole('button', { name: 'Compute' }));
+    await user.click(screen.getByTitle('Build Virtual Machine (Q)'));
+
+    expect(startBuildMock).toHaveBeenCalledWith('worker-built-block', [2, 0, 3]);
   });
 
   // ─── BlockActionMode Tests ───────────────────────────────
