@@ -83,7 +83,7 @@ POST /api/v1/session/workspace     → Bind workspace to active session
 
 Notes:
 - No JWT access/refresh tokens are issued.
-- Session state is server-side (`sessions` table, created at startup).
+- Session state is server-side (`sessions` table, Migration 004).
 - Stale sessions return 401 and clear stale session cookies.
 
 ## Workspaces (Implemented: Milestone 5+)
@@ -125,9 +125,9 @@ POST /api/v1/ai/generate    → Generate architecture from natural language prom
 POST /api/v1/ai/suggest     → Suggest architecture improvements (placeholder: returns empty)
 ```
 
-`POST /api/generate` calls the OpenAI API using the user's stored key. It requires `prompt`, `provider` (default `"azure"`), and `complexity` (default `"medium"`) fields. Returns `{ architecture: {...} }`.
+`POST /api/v1/ai/generate` calls the OpenAI API using the user's stored key. It requires `prompt`, `provider` (default `"aws"`), and `complexity` (default `"intermediate"`) fields. Returns `{ architecture: {...} }`.
 
-`POST /api/suggest` is a placeholder — accepts `{ architecture: {...} }` but returns `{ suggestions: [], score: {} }`.
+`POST /api/v1/ai/suggest` is a placeholder — accepts `{ architecture: {...} }` but returns `{ suggestions: [], score: {} }`.
 
 ### AI Key Management (Implemented)
 
@@ -301,5 +301,5 @@ All errors follow a consistent format:
 
 ```
 GET /health        → Basic health check
-GET /health/ready  → Readiness (DB + GitHub API connected)
+GET /health/ready  → Readiness (DB + optional Redis connected)
 ```

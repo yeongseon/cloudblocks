@@ -24,7 +24,7 @@ This is NOT a traditional database-heavy architecture. The design principle: **D
 │ templates      │ generation_runs  │ cache                    │
 │ schema version │ sessions         │                          │
 │ generator.lock │ ai_api_keys      │                          │
-├────────────────┼──────────────────┼──────────────────────────┤
+└────────────────┴──────────────────┴──────────────────────────┘
 ```
 
 ## Data Placement Strategy
@@ -123,7 +123,7 @@ Stable key ordering is enforced to keep Git diffs readable.
 
 ## Metadata DB Schema
 
-> **Current schema** in `apps/api/app/infrastructure/db/migrations/` (001 users/identities, 002 workspaces/generation_runs, 003 ai_api_keys). The `sessions` table is created programmatically at startup. Phase 8 extends this with PostgreSQL/Redis deployment topology.
+> **Current schema** defined inline in `apps/api/app/infrastructure/db/connection.py` (`_MIGRATIONS` list). Reference `.sql` copies exist in `migrations/` but are not executed at runtime. Migrations: 001 users + identities, 002 workspaces + generation\_runs, 003 ALTER TABLE identities (encrypted token), 004 sessions + indexes. The `ai_api_keys` table is created on-demand by `SQLiteAIApiKeyRepository._ensure_table()`. Phase 8 extends this with PostgreSQL/Redis deployment topology.
 
 ```sql
 -- Migration 001: User identity (linked to GitHub / Google OAuth)
@@ -174,24 +174,30 @@ CREATE TABLE IF NOT EXISTS generation_runs (
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Sessions (created at startup, no migration file)
-CREATE TABLE IF NOT EXISTS sessions (
-    id                 TEXT PRIMARY KEY,
-    user_id            TEXT NOT NULL REFERENCES users(id),
-    session_token_hash TEXT NOT NULL,
-    github_token_enc   TEXT,
-    expires_at         TIMESTAMP NOT NULL,
-    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_accessed_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+-- Migration 003: Add encrypted token storage for GitHub OAuth
+ALTER TABLE identities ADD COLUMN encrypted_access_token TEXT;
 
--- Migration 003: AI API key storage
+-- Migration 004: Session auth storage (cookie-based sessions)
+CREATE TABLE IF NOT EXISTS sessions (
+    id                     TEXT PRIMARY KEY,
+    user_id                TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at             INTEGER NOT NULL,
+    expires_at             INTEGER NOT NULL,
+    revoked_at             INTEGER,
+    last_seen_at           INTEGER,
+    current_workspace_id   TEXT,
+    current_repo_full_name TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
+
+-- On-demand table (created by SQLiteAIApiKeyRepository._ensure_table)
 CREATE TABLE IF NOT EXISTS ai_api_keys (
     id              TEXT PRIMARY KEY,
-    user_id         TEXT NOT NULL REFERENCES users(id),
-    provider        TEXT NOT NULL,   -- 'openai'
+    user_id         TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    provider        TEXT NOT NULL,
     encrypted_key   TEXT NOT NULL,
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at      TEXT NOT NULL DEFAULT (datetime("now")),
     UNIQUE(user_id, provider)
 );
 ```
