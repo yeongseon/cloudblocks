@@ -1,11 +1,25 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import interact from 'interactjs';
 import { ExternalActorSprite } from './ExternalActorSprite';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import type { ExternalActor } from '../../shared/types/index';
 import * as connectionValidation from '../validation/connection';
+import * as isometric from '../../shared/utils/isometric';
+import { audioService } from '../../shared/utils/audioService';
+import type { SoundName } from '../../shared/utils/audioService';
+
+const interactMocks = vi.hoisted(() => ({
+  interactFn: vi.fn(),
+  draggableFn: vi.fn(),
+  unsetFn: vi.fn(),
+}));
+
+vi.mock('interactjs', () => ({
+  default: interactMocks.interactFn,
+}));
 
 vi.mock('../../shared/assets/actor-sprites/internet.svg', () => ({ default: 'internet.svg' }));
 vi.mock('./ExternalActorSprite.css', () => ({}));
@@ -14,15 +28,19 @@ const actor: ExternalActor = {
   id: 'actor-1',
   type: 'internet',
   name: 'Internet',
- position: { x: -3, y: 0, z: 5 } };
+  position: { x: -3, y: 0, z: 5 },
+};
 
 describe('ExternalActorSprite', () => {
   const addConnectionMock = vi.fn();
+  const moveActorPositionMock = vi.fn();
   const initialUIState = useUIStore.getState();
   const initialArchitectureState = useArchitectureStore.getState();
 
   beforeEach(() => {
     vi.clearAllMocks();
+    interactMocks.draggableFn.mockReturnValue({ unset: interactMocks.unsetFn });
+    interactMocks.interactFn.mockReturnValue({ draggable: interactMocks.draggableFn });
     useUIStore.setState(initialUIState, true);
     useArchitectureStore.setState(initialArchitectureState, true);
     useUIStore.setState({
@@ -33,6 +51,7 @@ describe('ExternalActorSprite', () => {
     });
     useArchitectureStore.setState({
       addConnection: addConnectionMock,
+      moveActorPosition: moveActorPositionMock,
       workspace: {
         ...useArchitectureStore.getState().workspace,
         architecture: {
@@ -167,5 +186,121 @@ describe('ExternalActorSprite', () => {
     );
 
     expect(container.firstElementChild).toHaveClass('is-invalid-connect-target');
+  });
+
+  it('initializes draggable interaction in select mode', () => {
+    render(<ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />);
+
+    expect(vi.mocked(interact)).toHaveBeenCalled();
+  });
+
+  it('moves actor position from drag deltas and scene zoom', () => {
+    const { container } = render(
+      <div className="scene-world" style={{ transform: 'scale(2)' }}>
+        <ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />
+      </div>,
+    );
+
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        start: (event: { target: HTMLElement }) => void;
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+      };
+    };
+
+    const target = container.querySelector('.external-actor-sprite') as HTMLElement;
+    draggableConfig.listeners.start({ target });
+    draggableConfig.listeners.move({ dx: 20, dy: 10, target });
+
+    expect(moveActorPositionMock).toHaveBeenCalledWith('actor-1', 0.3125, 0);
+  });
+
+  it('ignores click while dragging', async () => {
+    const user = userEvent.setup();
+    render(<ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />);
+
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+      };
+    };
+
+    const target = screen.getByAltText('Internet').closest('.external-actor-sprite') as HTMLElement;
+    draggableConfig.listeners.move({ dx: 5, dy: 5, target });
+
+    await user.click(screen.getByAltText('Internet'));
+    expect(useUIStore.getState().selectedId).toBeNull();
+  });
+
+  it('snaps actor to grid on drag end and plays sound when unmuted', () => {
+    const actorWithOffset = { ...actor, position: { x: 1.2, y: 0, z: 0.4 } };
+    const playSoundSpy = vi.spyOn(audioService, 'playSound').mockImplementation(async (_name: SoundName) => undefined);
+    const snapSpy = vi.spyOn(isometric, 'snapToGrid').mockReturnValue({ x: 2, z: 1 });
+    useUIStore.setState({ isSoundMuted: false });
+    useArchitectureStore.setState({
+      moveActorPosition: moveActorPositionMock,
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          externalActors: [actorWithOffset],
+        },
+      },
+    });
+
+    render(<ExternalActorSprite actor={actorWithOffset} screenX={0} screenY={0} zIndex={1} />);
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+        end: () => void;
+      };
+    };
+
+    const target = screen.getByAltText('Internet').closest('.external-actor-sprite') as HTMLElement;
+    draggableConfig.listeners.move({ dx: 2, dy: 2, target });
+    draggableConfig.listeners.end();
+
+    expect(moveActorPositionMock).toHaveBeenCalledWith('actor-1', 0.8, 0.6);
+    expect(playSoundSpy).toHaveBeenCalledWith('block-snap');
+    snapSpy.mockRestore();
+    playSoundSpy.mockRestore();
+  });
+
+  it('removes dropping class after animation end on drag release', () => {
+    render(<ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />);
+
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+        end: () => void;
+      };
+    };
+
+    const sprite = screen.getByAltText('Internet').closest('.external-actor-sprite') as HTMLElement;
+    draggableConfig.listeners.move({ dx: 1, dy: 1, target: sprite });
+    draggableConfig.listeners.end();
+
+    expect(sprite).toHaveClass('is-dropping');
+    fireEvent.animationEnd(screen.getByAltText('Internet'));
+    expect(sprite).not.toHaveClass('is-dropping');
+  });
+
+  it('cleans up draggable on unmount', () => {
+    const { unmount } = render(
+      <ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />,
+    );
+
+    unmount();
+    expect(interactMocks.unsetFn).toHaveBeenCalledOnce();
+  });
+
+  it('does not initialize draggable interaction in connect or delete modes', () => {
+    useUIStore.setState({ toolMode: 'connect' });
+    render(<ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />);
+    expect(vi.mocked(interact)).not.toHaveBeenCalled();
+
+    useUIStore.setState({ toolMode: 'delete' });
+    render(<ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />);
+    expect(vi.mocked(interact)).not.toHaveBeenCalled();
   });
 });
