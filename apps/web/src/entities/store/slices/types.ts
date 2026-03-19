@@ -37,6 +37,8 @@ export interface ArchitectureState {
     name: string,
     placementId: string,
     provider?: ProviderType,
+    subtype?: string,
+    config?: Record<string, unknown>,
   ) => void;
   duplicateBlock: (blockId: string) => void;
   removeBlock: (id: string) => void;
