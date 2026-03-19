@@ -15,7 +15,7 @@ function setupMocks(plateCount: number, showTemplateGallery = false) {
   const plates = Array.from({ length: plateCount }, (_, i) => ({
     id: `plate-${i}`,
     name: `Plate ${i}`,
-    type: 'network' as const,
+    type: 'region' as const,
     parentId: null,
     children: [],
     position: { x: 0, y: 0, z: 0 },
@@ -88,7 +88,7 @@ describe('EmptyCanvasOverlay', () => {
     setupMocks(0);
     render(<EmptyCanvasOverlay />);
     fireEvent.click(screen.getByText(/Start from Scratch/));
-    expect(mockAddPlate).toHaveBeenCalledWith('network', 'VNet', null);
+    expect(mockAddPlate).toHaveBeenCalledWith('region', 'VNet', null);
   });
 
   it('shows Learn How link when no plates', () => {
