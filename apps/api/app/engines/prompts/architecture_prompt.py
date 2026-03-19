@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 BLOCK_CATEGORIES = (
     "compute",
     "database",
@@ -35,6 +37,217 @@ SUBTYPE_REGISTRY: dict[str, dict[str, tuple[str, ...]]] = {
     },
 }
 
+EXAMPLE_THREE_TIER = {
+    "plates": [
+        {
+            "id": "plate-1",
+            "name": "Prod VPC",
+            "type": "network",
+            "parentId": None,
+            "children": ["plate-2", "plate-3"],
+            "position": {"x": 0, "y": 0, "z": 0},
+            "size": {"width": 1000, "height": 10, "depth": 700},
+        },
+        {
+            "id": "plate-2",
+            "name": "Public Subnet",
+            "type": "subnet",
+            "subnetAccess": "public",
+            "parentId": "plate-1",
+            "children": ["block-1"],
+            "position": {"x": 100, "y": 0, "z": 100},
+            "size": {"width": 400, "height": 10, "depth": 500},
+        },
+        {
+            "id": "plate-3",
+            "name": "Private Subnet",
+            "type": "subnet",
+            "subnetAccess": "private",
+            "parentId": "plate-1",
+            "children": ["block-2", "block-3"],
+            "position": {"x": 600, "y": 0, "z": 100},
+            "size": {"width": 350, "height": 10, "depth": 500},
+        },
+    ],
+    "blocks": [
+        {
+            "id": "block-1",
+            "name": "Web ALB",
+            "category": "gateway",
+            "placementId": "plate-2",
+            "position": {"x": 50, "y": 0, "z": 50},
+            "provider": "aws",
+            "subtype": "alb",
+        },
+        {
+            "id": "block-2",
+            "name": "App ECS",
+            "category": "compute",
+            "placementId": "plate-3",
+            "position": {"x": 50, "y": 0, "z": 50},
+            "provider": "aws",
+            "subtype": "ecs",
+        },
+        {
+            "id": "block-3",
+            "name": "App DB",
+            "category": "database",
+            "placementId": "plate-3",
+            "position": {"x": 250, "y": 0, "z": 250},
+            "provider": "aws",
+            "subtype": "rds-postgres",
+        },
+        {
+            "id": "block-4",
+            "name": "Assets",
+            "category": "storage",
+            "placementId": "plate-3",
+            "position": {"x": 250, "y": 0, "z": 50},
+            "provider": "aws",
+            "subtype": "s3",
+        },
+    ],
+    "connections": [
+        {
+            "id": "conn-1",
+            "sourceId": "block-1",
+            "targetId": "block-2",
+            "type": "http",
+        },
+        {
+            "id": "conn-2",
+            "sourceId": "block-2",
+            "targetId": "block-3",
+            "type": "data",
+        },
+        {
+            "id": "conn-3",
+            "sourceId": "block-2",
+            "targetId": "block-4",
+            "type": "dataflow",
+        },
+    ],
+    "externalActors": [
+        {
+            "id": "actor-1",
+            "name": "Internet",
+            "type": "internet",
+            "position": {"x": -200, "y": 0, "z": 100},
+        }
+    ],
+}
+
+EXAMPLE_SERVERLESS_EVENT = {
+    "plates": [
+        {
+            "id": "plate-10",
+            "name": "Serverless Network",
+            "type": "network",
+            "parentId": None,
+            "children": ["plate-11"],
+            "position": {"x": 0, "y": 0, "z": 0},
+            "size": {"width": 900, "height": 10, "depth": 600},
+        },
+        {
+            "id": "plate-11",
+            "name": "App Subnet",
+            "type": "subnet",
+            "subnetAccess": "private",
+            "parentId": "plate-10",
+            "children": [
+                "block-10",
+                "block-11",
+                "block-12",
+                "block-13",
+                "block-14",
+            ],
+            "position": {"x": 100, "y": 0, "z": 100},
+            "size": {"width": 700, "height": 10, "depth": 400},
+        },
+    ],
+    "blocks": [
+        {
+            "id": "block-10",
+            "name": "Public API",
+            "category": "gateway",
+            "placementId": "plate-11",
+            "position": {"x": 50, "y": 0, "z": 50},
+            "provider": "aws",
+            "subtype": "api-gateway",
+        },
+        {
+            "id": "block-11",
+            "name": "Ingest Function",
+            "category": "function",
+            "placementId": "plate-11",
+            "position": {"x": 250, "y": 0, "z": 50},
+            "provider": "aws",
+            "subtype": "lambda",
+        },
+        {
+            "id": "block-12",
+            "name": "Work Queue",
+            "category": "queue",
+            "placementId": "plate-11",
+            "position": {"x": 450, "y": 0, "z": 50},
+            "provider": "aws",
+            "subtype": "dynamodb",
+        },
+        {
+            "id": "block-13",
+            "name": "Worker Function",
+            "category": "function",
+            "placementId": "plate-11",
+            "position": {"x": 250, "y": 0, "z": 250},
+            "provider": "aws",
+            "subtype": "lambda",
+        },
+        {
+            "id": "block-14",
+            "name": "Event Store",
+            "category": "database",
+            "placementId": "plate-11",
+            "position": {"x": 450, "y": 0, "z": 250},
+            "provider": "aws",
+            "subtype": "dynamodb",
+        },
+    ],
+    "connections": [
+        {
+            "id": "conn-10",
+            "sourceId": "block-10",
+            "targetId": "block-11",
+            "type": "http",
+        },
+        {
+            "id": "conn-11",
+            "sourceId": "block-11",
+            "targetId": "block-12",
+            "type": "async",
+        },
+        {
+            "id": "conn-12",
+            "sourceId": "block-12",
+            "targetId": "block-13",
+            "type": "async",
+        },
+        {
+            "id": "conn-13",
+            "sourceId": "block-13",
+            "targetId": "block-14",
+            "type": "data",
+        },
+    ],
+    "externalActors": [
+        {
+            "id": "actor-10",
+            "name": "Internet",
+            "type": "internet",
+            "position": {"x": -200, "y": 0, "z": 50},
+        }
+    ],
+}
+
 
 def get_provider_subtypes(provider: str) -> str:
     normalized = provider.lower()
@@ -49,14 +262,16 @@ def get_provider_subtypes(provider: str) -> str:
 
 def _all_provider_subtypes() -> str:
     lines = ["SubtypeRegistry (exact allowed values):"]
-    for provider in PROVIDER_TYPES:
-        lines.append(get_provider_subtypes(provider))
+    for registry_provider in PROVIDER_TYPES:
+        lines.append(get_provider_subtypes(registry_provider))
     return "\n".join(lines)
 
 
 def build_architecture_prompt(provider: str) -> str:
     provider_subtypes = get_provider_subtypes(provider)
     all_provider_subtypes = _all_provider_subtypes()
+    example_one_json = json.dumps(EXAMPLE_THREE_TIER, indent=2)
+    example_two_json = json.dumps(EXAMPLE_SERVERLESS_EVENT, indent=2)
 
     return f"""You are a CloudBlocks architecture model generator.
 
@@ -83,12 +298,20 @@ Output JSON Schema (required shape):
           "position": {{
             "type": "object",
             "required": ["x", "y", "z"],
-            "properties": {{"x": {{"type": "number"}}, "y": {{"type": "number"}}, "z": {{"type": "number"}}}}
+            "properties": {{
+              "x": {{"type": "number"}},
+              "y": {{"type": "number"}},
+              "z": {{"type": "number"}}
+            }}
           }},
           "size": {{
             "type": "object",
             "required": ["width", "height", "depth"],
-            "properties": {{"width": {{"type": "number"}}, "height": {{"type": "number"}}, "depth": {{"type": "number"}}}}
+            "properties": {{
+              "width": {{"type": "number"}},
+              "height": {{"type": "number"}},
+              "depth": {{"type": "number"}}
+            }}
           }}
         }}
       }}
@@ -102,12 +325,28 @@ Output JSON Schema (required shape):
         "properties": {{
           "id": {{"type": "string"}},
           "name": {{"type": "string"}},
-          "category": {{"type": "string", "enum": ["compute", "database", "storage", "gateway", "function", "queue", "event", "timer"]}},
+          "category": {{
+            "type": "string",
+            "enum": [
+              "compute",
+              "database",
+              "storage",
+              "gateway",
+              "function",
+              "queue",
+              "event",
+              "timer"
+            ]
+          }},
           "placementId": {{"type": "string"}},
           "position": {{
             "type": "object",
             "required": ["x", "y", "z"],
-            "properties": {{"x": {{"type": "number"}}, "y": {{"type": "number"}}, "z": {{"type": "number"}}}}
+            "properties": {{
+              "x": {{"type": "number"}},
+              "y": {{"type": "number"}},
+              "z": {{"type": "number"}}
+            }}
           }},
           "provider": {{"type": "string", "enum": ["aws", "azure", "gcp"]}},
           "subtype": {{"type": "string"}},
@@ -140,7 +379,11 @@ Output JSON Schema (required shape):
           "position": {{
             "type": "object",
             "required": ["x", "y", "z"],
-            "properties": {{"x": {{"type": "number"}}, "y": {{"type": "number"}}, "z": {{"type": "number"}}}}
+            "properties": {{
+              "x": {{"type": "number"}},
+              "y": {{"type": "number"}},
+              "z": {{"type": "number"}}
+            }}
           }}
         }}
       }}
@@ -182,49 +425,8 @@ Negative instructions:
 - Always include at least one network plate with at least one subnet.
 
 Few-shot example 1 (three-tier web app):
-{{
-  "plates": [
-    {{"id": "plate-1", "name": "Prod VPC", "type": "network", "parentId": null, "children": ["plate-2", "plate-3"], "position": {{"x": 0, "y": 0, "z": 0}}, "size": {{"width": 1000, "height": 10, "depth": 700}}}},
-    {{"id": "plate-2", "name": "Public Subnet", "type": "subnet", "subnetAccess": "public", "parentId": "plate-1", "children": ["block-1"], "position": {{"x": 100, "y": 0, "z": 100}}, "size": {{"width": 400, "height": 10, "depth": 500}}}},
-    {{"id": "plate-3", "name": "Private Subnet", "type": "subnet", "subnetAccess": "private", "parentId": "plate-1", "children": ["block-2", "block-3"], "position": {{"x": 600, "y": 0, "z": 100}}, "size": {{"width": 350, "height": 10, "depth": 500}}}}
-  ],
-  "blocks": [
-    {{"id": "block-1", "name": "Web ALB", "category": "gateway", "placementId": "plate-2", "position": {{"x": 50, "y": 0, "z": 50}}, "provider": "aws", "subtype": "alb"}},
-    {{"id": "block-2", "name": "App ECS", "category": "compute", "placementId": "plate-3", "position": {{"x": 50, "y": 0, "z": 50}}, "provider": "aws", "subtype": "ecs"}},
-    {{"id": "block-3", "name": "App DB", "category": "database", "placementId": "plate-3", "position": {{"x": 250, "y": 0, "z": 250}}, "provider": "aws", "subtype": "rds-postgres"}},
-    {{"id": "block-4", "name": "Assets", "category": "storage", "placementId": "plate-3", "position": {{"x": 250, "y": 0, "z": 50}}, "provider": "aws", "subtype": "s3"}}
-  ],
-  "connections": [
-    {{"id": "conn-1", "sourceId": "block-1", "targetId": "block-2", "type": "http"}},
-    {{"id": "conn-2", "sourceId": "block-2", "targetId": "block-3", "type": "data"}},
-    {{"id": "conn-3", "sourceId": "block-2", "targetId": "block-4", "type": "dataflow"}}
-  ],
-  "externalActors": [
-    {{"id": "actor-1", "name": "Internet", "type": "internet", "position": {{"x": -200, "y": 0, "z": 100}}}}
-  ]
-}}
+{example_one_json}
 
 Few-shot example 2 (serverless event-driven):
-{{
-  "plates": [
-    {{"id": "plate-10", "name": "Serverless Network", "type": "network", "parentId": null, "children": ["plate-11"], "position": {{"x": 0, "y": 0, "z": 0}}, "size": {{"width": 900, "height": 10, "depth": 600}}}},
-    {{"id": "plate-11", "name": "App Subnet", "type": "subnet", "subnetAccess": "private", "parentId": "plate-10", "children": ["block-10", "block-11", "block-12", "block-13", "block-14"], "position": {{"x": 100, "y": 0, "z": 100}}, "size": {{"width": 700, "height": 10, "depth": 400}}}}
-  ],
-  "blocks": [
-    {{"id": "block-10", "name": "Public API", "category": "gateway", "placementId": "plate-11", "position": {{"x": 50, "y": 0, "z": 50}}, "provider": "aws", "subtype": "api-gateway"}},
-    {{"id": "block-11", "name": "Ingest Function", "category": "function", "placementId": "plate-11", "position": {{"x": 250, "y": 0, "z": 50}}, "provider": "aws", "subtype": "lambda"}},
-    {{"id": "block-12", "name": "Work Queue", "category": "queue", "placementId": "plate-11", "position": {{"x": 450, "y": 0, "z": 50}}, "provider": "aws", "subtype": "dynamodb"}},
-    {{"id": "block-13", "name": "Worker Function", "category": "function", "placementId": "plate-11", "position": {{"x": 250, "y": 0, "z": 250}}, "provider": "aws", "subtype": "lambda"}},
-    {{"id": "block-14", "name": "Event Store", "category": "database", "placementId": "plate-11", "position": {{"x": 450, "y": 0, "z": 250}}, "provider": "aws", "subtype": "dynamodb"}}
-  ],
-  "connections": [
-    {{"id": "conn-10", "sourceId": "block-10", "targetId": "block-11", "type": "http"}},
-    {{"id": "conn-11", "sourceId": "block-11", "targetId": "block-12", "type": "async"}},
-    {{"id": "conn-12", "sourceId": "block-12", "targetId": "block-13", "type": "async"}},
-    {{"id": "conn-13", "sourceId": "block-13", "targetId": "block-14", "type": "data"}}
-  ],
-  "externalActors": [
-    {{"id": "actor-10", "name": "Internet", "type": "internet", "position": {{"x": -200, "y": 0, "z": 50}}}}
-  ]
-}}
+{example_two_json}
 """

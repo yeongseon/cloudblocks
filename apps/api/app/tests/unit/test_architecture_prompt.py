@@ -116,7 +116,10 @@ def test_prompt_contains_placement_rules_text() -> None:
 def test_prompt_contains_connection_rules_text() -> None:
     prompt = build_architecture_prompt("aws")
 
-    assert "sourceId and targetId must reference existing block ids or external actor ids" in prompt
+    assert (
+        "sourceId and targetId must reference existing block ids or external actor ids"
+        in prompt
+    )
     assert "No self-connections" in prompt
     assert "No duplicate connections" in prompt
 
