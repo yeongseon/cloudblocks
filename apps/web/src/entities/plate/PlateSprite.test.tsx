@@ -33,7 +33,7 @@ vi.mock('./PlateSvg', () => ({
 }));
 vi.mock('./plateFaceColors', () => ({
   getPlateFaceColors: (plate: { type: string; subnetAccess?: string }) => {
-    if (plate.type === 'network') {
+    if (plate.type === 'region') {
       return { topFaceColor: '#2563EB', topFaceStroke: '#60A5FA', leftSideColor: '#1D4ED8', rightSideColor: '#1E40AF' };
     }
     if (plate.subnetAccess === 'public') {
@@ -53,7 +53,7 @@ vi.mock('../../shared/utils/isometric', () => ({
 const makeNetworkPlate = (): Plate => ({
   id: 'plate-network',
   name: 'Network Plate',
-  type: 'network',
+  type: 'region',
   parentId: null,
   children: [],
   position: { x: 0, y: 0, z: 0 },
@@ -95,7 +95,7 @@ describe('PlateSprite', () => {
   });
 
   it.each([
-    ['network', makeNetworkPlate(), 'Virtual Network', '#2563EB'],
+    ['region', makeNetworkPlate(), 'Region Layer', '#2563EB'],
     ['public-subnet', makeSubnetPlate('public'), 'Public Subnet', '#22C55E'],
     ['private-subnet', makeSubnetPlate('private'), 'Private Subnet', '#6366F1'],
   ] as const)('renders correct PlateSvg for %s', (_, plate, expectedLabel, expectedTopColor) => {
