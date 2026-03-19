@@ -4,6 +4,8 @@
 
 CloudBlocks is designed for **lightweight deployment** with minimal infrastructure. The frontend is a static SPA, and the backend is a thin orchestration layer. Production deployments use PostgreSQL for metadata and Redis for session caching, enabling horizontal scaling with multiple container replicas.
 
+For the canonical multi-environment cloud strategy (local/staging/production, promotion model, and cost targets), see [ENVIRONMENT_STRATEGY.md](ENVIRONMENT_STRATEGY.md).
+
 ## Local Development
 
 ### Prerequisites
@@ -100,7 +102,7 @@ cd apps/web && pnpm build
 # - S3 + CloudFront
 ```
 
-### Option 2: Full Stack with Docker Compose
+### Option 2: Full Stack with Docker Compose (Local)
 
 #### Docker Compose (Full Stack)
 
@@ -138,7 +140,9 @@ This mounts `apps/api/` into the container so code changes restart the server au
 
 > **Tip**: Set `COMPOSE_FILE=docker-compose.yml:docker-compose.dev.yml` in your shell to avoid typing the `-f` flags every time.
 
-### Option 3: Azure Container Apps (Production)
+### Option 3: Azure Container Apps (Cloud)
+
+> **Cloud deployment note**: `infra/terraform/environments/dev/` is the current implementation baseline. The planned direction is staged environments (`staging` -> `production`) documented in [ENVIRONMENT_STRATEGY.md](ENVIRONMENT_STRATEGY.md). Use this section for current dev-stack provisioning details until the multi-environment Terraform wrappers land.
 
 #### Managed Azure Stack
 
