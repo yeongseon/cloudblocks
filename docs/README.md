@@ -47,13 +47,14 @@ Immutable records of key decisions.
 
 | ADR | Status | Decision |
 |-----|--------|----------|
-| [0001](adr/0001-architecture-model-as-source-of-truth.md) | Historical | Architecture model as source of truth |
-| [0002](adr/0002-git-native-storage.md) | Historical | Git-native storage |
-| [0003](adr/0003-lego-style-composition-model.md) | Historical | Lego-style composition model |
-| [0004](adr/0004-rule-engine-architecture.md) | Historical | Rule engine architecture |
-| [0005](adr/0005-2d-first-editor-with-25d-rendering.md) | Historical | 2D-first with 2.5D rendering |
+| [0001](adr/0001-architecture-model-as-source-of-truth.md) | Accepted | Architecture model as source of truth |
+| [0002](adr/0002-git-native-storage.md) | Accepted | Git-native storage |
+| [0003](adr/0003-lego-style-composition-model.md) | Partially Superseded | Lego-style composition model |
+| [0004](adr/0004-rule-engine-architecture.md) | Accepted | Rule engine architecture |
+| [0005](adr/0005-2d-first-editor-with-25d-rendering.md) | Accepted | 2D-first with 2.5D rendering |
 | [0006](adr/0006-graph-ir-evolution-approach.md) | Accepted | Graph IR evolution approach |
 | [0007](adr/0007-multi-environment-deployment-strategy.md) | Accepted | Multi-environment deployment strategy |
+| [0008](adr/0008-v2-universal-architecture-specification.md) | Accepted | v2.0 Universal Architecture Specification |
 
 ---
 

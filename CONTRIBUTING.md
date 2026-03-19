@@ -31,7 +31,7 @@ This project follows the [Contributor Covenant Code of Conduct](https://www.cont
 
 - **Node.js** >= 20.0.0
 - **pnpm** >= 9.0.0 (enforced — npm/yarn will be rejected)
-- **Python** >= 3.11 (for backend)
+- **Python** >= 3.10 (for backend)
 - **Git**
 
 ### Quick Setup
@@ -110,8 +110,9 @@ cloudblocks/
 │   ├── concept/          # PRD, Architecture, Roadmap
 │   ├── model/            # Domain model, schema specs
 │   ├── engine/           # Generator, rules, templates, provider
-│   ├── guides/           # Tutorials, deployment, API spec
-│   ├── system/           # Versioning, architecture review
+│   ├── design/           # Visual specs, security, release gates
+│   ├── api/              # API specification
+│   ├── guides/           # Tutorials, deployment
 │   └── adr/              # Architecture Decision Records
 ├── examples/             # Example architecture READMEs
 ├── infra/                # Deployment scaffolds
