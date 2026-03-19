@@ -80,6 +80,37 @@ export interface ResourceMapping {
 export type BlockResourceMap = Record<BlockCategory, ResourceMapping>;
 export type PlateResourceMap = Record<PlateType, ResourceMapping>;
 
+// ─── Subtype-Aware Mapping ───────────────────────────────────
+
+/**
+ * Maps BlockCategory → subtype string → ResourceMapping.
+ * Used alongside BlockResourceMap for subtype-specific resource resolution.
+ */
+export type SubtypeResourceMap = Partial<Record<BlockCategory, Record<string, ResourceMapping>>>;
+
+/**
+ * Resolve the correct ResourceMapping for a block based on category and optional subtype.
+ * Resolution order:
+ *   1. If subtype provided AND subtypeMappings has entry → return subtype mapping
+ *   2. Otherwise → fallback to blockMappings[category]
+ *   3. If neither found → return undefined
+ */
+export function resolveBlockMapping(
+  blockMappings: BlockResourceMap,
+  subtypeMappings: SubtypeResourceMap | undefined,
+  category: BlockCategory,
+  subtype?: string,
+): ResourceMapping | undefined {
+  if (subtype && subtypeMappings) {
+    const categorySubtypes = subtypeMappings[category];
+    if (categorySubtypes && categorySubtypes[subtype]) {
+      return categorySubtypes[subtype];
+    }
+  }
+
+  return blockMappings[category];
+}
+
 /** @deprecated Use ProviderDefinition instead. Kept for backward compat with terraform.ts */
 export interface ProviderAdapter {
   name: ProviderName;
