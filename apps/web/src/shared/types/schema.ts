@@ -1,5 +1,7 @@
-import type { ArchitectureModel, Workspace } from './index';
+import type { ArchitectureModel, Position, Workspace } from './index';
 import { buildPlateSizeFromProfileId, inferLegacyPlateProfileId } from './index';
+
+const DEFAULT_EXTERNAL_ACTOR_POSITION = { x: -3, y: 0, z: 5 };
 
 /**
  * SCHEMA_VERSION: Controls the serialization/storage format.
@@ -59,6 +61,15 @@ export function deserialize(json: string): Workspace[] {
         }
       }
     }
+
+    if (ws.architecture?.externalActors) {
+      for (const actor of ws.architecture.externalActors) {
+        const legacyActor = actor as typeof actor & { position?: Position };
+        if (!legacyActor.position) {
+          legacyActor.position = { ...DEFAULT_EXTERNAL_ACTOR_POSITION };
+        }
+      }
+    }
   }
 
   return workspaces;
@@ -80,7 +91,12 @@ export function createBlankArchitecture(
     blocks: [],
     connections: [],
     externalActors: [
-      { id: 'ext-internet', name: 'Internet', type: 'internet' },
+      {
+        id: 'ext-internet',
+        name: 'Internet',
+        type: 'internet',
+        position: { ...DEFAULT_EXTERNAL_ACTOR_POSITION },
+      },
     ],
     createdAt: now,
     updatedAt: now,

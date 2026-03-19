@@ -19,7 +19,7 @@ function createWorkspace(id: string): Workspace {
       plates: [],
       blocks: [],
       connections: [],
-      externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+      externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
     },
@@ -78,7 +78,7 @@ describe('schema utilities', () => {
             ],
             blocks: [],
             connections: [],
-            externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+            externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
             createdAt: '2026-01-01T00:00:00.000Z',
             updatedAt: '2026-01-01T00:00:00.000Z',
           },
@@ -123,7 +123,7 @@ describe('schema utilities', () => {
             ],
             blocks: [],
             connections: [],
-            externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+            externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
             createdAt: '2026-01-01T00:00:00.000Z',
             updatedAt: '2026-01-01T00:00:00.000Z',
           },
@@ -140,6 +140,35 @@ describe('schema utilities', () => {
     expect(plate.size.width).toBe(20);
     expect(plate.size.depth).toBe(24);
     expect(plate.size.height).toBe(0.7);
+  });
+
+  it('migrates legacy external actors without position', () => {
+    const legacyData = {
+      schemaVersion: SCHEMA_VERSION,
+      workspaces: [
+        {
+          id: 'ws-1',
+          name: 'Test',
+          architecture: {
+            id: 'arch-1',
+            name: 'Test',
+            version: '1',
+            plates: [],
+            blocks: [],
+            connections: [],
+            externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    };
+
+    const result = deserialize(JSON.stringify(legacyData));
+
+    expect(result[0].architecture.externalActors[0].position).toEqual({ x: -3, y: 0, z: 5 });
   });
 
   it('deserialize throws when schemaVersion is missing', () => {
@@ -184,7 +213,7 @@ describe('schema utilities', () => {
       plates: [],
       blocks: [],
       connections: [],
-      externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+      externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       createdAt: '2026-02-03T04:05:06.000Z',
       updatedAt: '2026-02-03T04:05:06.000Z',
     });
