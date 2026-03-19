@@ -14,7 +14,6 @@ export type ResourceType =
   | 'function'
   | 'queue'
   | 'event'
-  | 'timer'
   | 'app-service'
   | 'container-instances'
   | 'cosmos-db'
@@ -130,14 +129,6 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🔔',
     category: 'vnet-optional',
     blockCategory: 'event',
-  },
-  timer: {
-    id: 'timer',
-    label: 'Timer',
-    shortLabel: 'Timer',
-    icon: '⏰',
-    category: 'vnet-optional',
-    blockCategory: 'timer',
   },
   'app-service': {
     id: 'app-service',
@@ -280,7 +271,7 @@ export const CATEGORY_TABS: TabDefinition[] = [
     id: 'messaging',
     label: 'Messaging',
     resources: [
-      ['queue', 'event', 'timer'],
+      ['queue', 'event', null],
       [null, null, null],
       [null, null, null],
     ],
@@ -375,7 +366,7 @@ export function useTechTree(): TechTreeState {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
 
   return useMemo(() => {
-    const networkPlates = architecture.plates.filter((p) => p.type === 'network');
+    const networkPlates = architecture.plates.filter((p) => p.type === 'region');
     const subnetPlates = architecture.plates.filter((p) => p.type === 'subnet');
     const hasVNet = networkPlates.length > 0;
     const hasSubnet = subnetPlates.length > 0;

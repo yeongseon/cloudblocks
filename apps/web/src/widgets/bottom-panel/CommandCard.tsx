@@ -43,7 +43,7 @@ interface CommandCardProps {
 }
 
 const PLATE_CONTEXT_RESOURCES: Record<'network' | 'subnet-public' | 'subnet-private', ResourceType[]> = {
-  network: ['public-subnet', 'private-subnet', 'function', 'queue', 'event', 'timer', 'app-service'],
+  network: ['public-subnet', 'private-subnet', 'function', 'queue', 'event', 'app-service'],
   'subnet-public': ['storage', 'dns', 'cdn', 'front-door', 'vm', 'aks', 'container-instances', 'firewall', 'nsg', 'bastion'],
   'subnet-private': ['storage', 'sql', 'cosmos-db', 'key-vault', 'vm', 'aks', 'container-instances'],
 };
@@ -74,7 +74,7 @@ function chunkResources(resources: ResourceType[], chunkSize = 9): ResourceType[
 }
 
 function getPlateHeaderText(plate: Plate): string {
-  if (plate.type === 'network') return 'VNet';
+  if (plate.type === 'region') return 'VNet';
   if (plate.subnetAccess === 'public') return 'Public Subnet';
   return 'Private Subnet';
 }
@@ -90,7 +90,9 @@ const CREATION_GROUP_ORDER: CreationGroupId[] = [
   'function',
   'queue',
   'event',
-  'timer',
+  'analytics',
+  'identity',
+  'observability',
 ];
 
 function getCreationGroupMeta(groupId: CreationGroupId): { icon: string; label: string; color: string } {
@@ -373,8 +375,8 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
 
     // Handle plate creation
     if (def.category === 'plate') {
-      if (type === 'network') {
-        addPlate('network', 'VNet', null);
+    if (type === 'network') {
+      addPlate('region', 'VNet', null);
         playSound('block-snap');
       } else if (type === 'public-subnet') {
         const targetId = techTree.getTargetPlateId(type);
@@ -557,11 +559,11 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
-  const contextResources = selectedPlate.type === 'network'
-    ? PLATE_CONTEXT_RESOURCES.network
-    : selectedPlate.subnetAccess === 'public'
-      ? PLATE_CONTEXT_RESOURCES['subnet-public']
-      : PLATE_CONTEXT_RESOURCES['subnet-private'];
+      const contextResources = selectedPlate.type === 'region'
+        ? PLATE_CONTEXT_RESOURCES.network
+        : selectedPlate.subnetAccess === 'public'
+          ? PLATE_CONTEXT_RESOURCES['subnet-public']
+          : PLATE_CONTEXT_RESOURCES['subnet-private'];
   const providerResources = PROVIDER_RESOURCE_ALLOWLIST[activeProvider];
   const filteredContextResources = contextResources.filter((resource) => providerResources.has(resource));
 
@@ -626,7 +628,7 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
     const def = RESOURCE_DEFINITIONS[type];
 
     if (def.category === 'plate') {
-      if (selectedPlate.type !== 'network') return;
+          if (selectedPlate.type !== 'region') return;
 
       if (type === 'public-subnet') {
         addPlate('subnet', 'Public Subnet', selectedPlate.id, 'public');
