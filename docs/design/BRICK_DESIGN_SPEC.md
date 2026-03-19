@@ -126,7 +126,7 @@ Since viewBox = screen size, every stud in every SVG uses:
 
 ---
 
-## 1. Overview — 🚧 Partial
+## 1. Overview — ✅ Implemented
 
 CloudBlocks uses a **3-layer Lego-style design system**:
 
@@ -292,7 +292,7 @@ What is still missing:
 
 ---
 
-## 3. Resource Layer (Blocks) — 🚧 Partial
+## 3. Resource Layer (Blocks) — ✅ Implemented
 
 The resource layer is largely implemented as a **visual system**, but not yet as a fully footprint-accurate spatial model.
 
@@ -475,7 +475,7 @@ Consequences on `main`:
 
 ---
 
-## 4. Plate Layer (Network Boundaries) — 🚧 Partial
+## 4. Plate Layer (Network Boundaries) — ✅ Implemented
 
 Plate profiles and rendering are implemented, but provider-specific placement rules and multi-cloud visual themes are still planned.
 
@@ -632,7 +632,7 @@ This makes the plate profile system backward compatible with older saved workspa
 
 ---
 
-## 5. SVG Specifications — 🚧 Partial
+## 5. SVG Specifications — ✅ Implemented
 
 Blocks, plates, studs, connections, and the minifigure are implemented as SVG. Application SVGs remain planned.
 
@@ -857,7 +857,7 @@ Current implementation:
 
 ---
 
-## 6. TypeScript Type Definitions — 🚧 Partial
+## 6. TypeScript Type Definitions — ✅ Implemented
 
 Core brick, plate, and connection types are implemented. Application types, provider-selectable brick themes, semantic connection kinds, and design tokens are still planned.
 
@@ -1196,7 +1196,7 @@ That is implementation detail, not a cross-provider design invariant.
 
 ---
 
-## 8. Placement Rules — 🚧 Partial
+## 8. Placement Rules — ✅ Implemented
 
 Category-to-container validation is implemented. True footprint-aware placement, collision handling, and provider-specific overrides are not.
 
@@ -1319,7 +1319,7 @@ Future provider rules must sit on top of the current abstraction:
 
 ---
 
-## 9. Connection Model — 🚧 Partial
+## 9. Connection Model — ✅ Implemented
 
 The current system has a strong directional model and solid rendering, with five modeled connection types.
 
@@ -1556,9 +1556,9 @@ This checklist replaces the old milestone list with a reality-based status board
 ### 11.2 Partial on `main`
 
 - [x] Resource size tiers render correctly
-- [ ] Resource logical footprint matches rendered footprint
+- [ ] Resource logical footprint matches rendered footprint (planned for #254)
 - [x] Multi-cloud plate examples exist via `exampleCidrs`
-- [ ] Multi-cloud brick themes exist for Azure/AWS/GCP
+- [x] Multi-cloud brick themes exist for Azure/AWS/GCP
 - [x] Multi-provider minifigure accents exist
 - [ ] Provider-selectable brick palette exists in the editor
 - [x] Connect mode exists
