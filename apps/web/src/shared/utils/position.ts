@@ -2,8 +2,8 @@ import type { Block, Plate, ExternalActor } from '../types/index';
 
 // ─── Constants ────────────────────────────────────────────
 
-/** Grid cell spacing used for block snap-to-grid placement. */
-export const GRID_CELL = 3.0;
+/** @deprecated Import GRID_CELL from './isometric' instead. Re-exported for backward compatibility. */
+export { GRID_CELL } from './isometric';
 
 /** Fixed world position for ExternalActor entities (above and behind the scene). */
 export const EXTERNAL_ACTOR_POSITION: [number, number, number] = [-3, 0, 5];

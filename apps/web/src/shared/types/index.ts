@@ -540,4 +540,4 @@ export const DEFAULT_PLATE_SIZE: Record<PlateType, Size> = {
   subnet: buildPlateSizeFromProfileId(DEFAULT_PLATE_PROFILE.subnet),
 };
 
-export { type BlockVisualProfile, type BrickSizeTier, type BrickSurface, type BrickSilhouette, type BlockTier, type BlockDimensionsCU, BLOCK_VISUAL_PROFILES, TIER_DIMENSIONS, CATEGORY_TIER_MAP, SUBTYPE_SIZE_OVERRIDES, getBlockVisualProfile, getBlockDimensions } from './visualProfile';
+export { type BlockVisualProfile, type BrickSurface, type BrickSilhouette, type BlockTier, type BlockDimensionsCU, BLOCK_VISUAL_PROFILES, TIER_DIMENSIONS, CATEGORY_TIER_MAP, SUBTYPE_SIZE_OVERRIDES, getBlockVisualProfile, getBlockDimensions } from './visualProfile';

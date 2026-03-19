@@ -40,7 +40,7 @@ describe('position utilities', () => {
   });
 
   it('exports expected constants', () => {
-    expect(GRID_CELL).toBe(3.0);
+    expect(GRID_CELL).toBe(1);
     expect(EXTERNAL_ACTOR_POSITION).toEqual([-3, 0, 5]);
     expect(EXTERNAL_ACTOR_LABEL_POSITION).toEqual([-3, 1, 5]);
   });

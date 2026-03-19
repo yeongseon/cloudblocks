@@ -17,7 +17,7 @@ import {
 describe('isometric constants', () => {
   it('exports expected projection and grid constants', () => {
     expect(SCALE).toBe(64);
-    expect(GRID_CELL).toBe(3);
+    expect(GRID_CELL).toBe(1);
     expect(ISO_X).toBe(64);
     expect(ISO_Y).toBe(32);
     expect(ELEV_Y).toBe(32);
@@ -137,16 +137,22 @@ describe('worldSizeToScreen', () => {
 });
 
 describe('snapToGrid', () => {
-  it('returns unchanged values for exact grid multiples', () => {
+  it('returns unchanged values for exact integer positions', () => {
     expect(snapToGrid(6, -9)).toEqual({ x: 6, z: -9 });
   });
 
-  it('snaps positive and negative values to nearest grid cell', () => {
-    expect(snapToGrid(7.49, 7.51)).toEqual({ x: 6, z: 9 });
-    expect(snapToGrid(-4.4, -4.6)).toEqual({ x: -3, z: -6 });
+  it('snaps positive and negative values to nearest integer CU', () => {
+    expect(snapToGrid(7.49, 7.51)).toEqual({ x: 7, z: 8 });
+    expect(snapToGrid(-4.4, -4.6)).toEqual({ x: -4, z: -5 });
   });
 
-  it('uses Math.round tie behavior on half-cell boundaries', () => {
-    expect(snapToGrid(1.5, 4.5)).toEqual({ x: 3, z: 6 });
+  it('uses Math.round tie behavior on half boundaries', () => {
+    expect(snapToGrid(1.5, 4.5)).toEqual({ x: 2, z: 5 });
+  });
+
+  it('snaps zero and small fractions correctly', () => {
+    expect(snapToGrid(0, 0)).toEqual({ x: 0, z: 0 });
+    expect(snapToGrid(0.1, -0.1)).toEqual({ x: 0, z: 0 });
+    expect(snapToGrid(0.6, -0.6)).toEqual({ x: 1, z: -1 });
   });
 });

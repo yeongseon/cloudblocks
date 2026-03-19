@@ -10,30 +10,50 @@ BLOCK_CATEGORIES = (
     "function",
     "queue",
     "event",
-    "timer",
+    "analytics",
+    "identity",
+    "observability",
 )
 
 CONNECTION_TYPES = ("dataflow", "http", "internal", "data", "async")
 PROVIDER_TYPES = ("aws", "azure", "gcp")
-
+LAYER_TYPES = ("global", "edge", "region", "zone", "subnet")
 SUBTYPE_REGISTRY: dict[str, dict[str, tuple[str, ...]]] = {
     "aws": {
         "compute": ("ec2", "ecs", "lambda"),
-        "database": ("rds-postgres", "dynamodb"),
+        "database": ("rds-postgres", "dynamodb", "elasticache"),
         "storage": ("s3",),
-        "gateway": ("alb", "api-gateway"),
+        "gateway": ("alb", "api-gateway", "nat-gateway"),
+        "function": ("lambda",),
+        "queue": ("sqs",),
+        "event": ("sns", "eventbridge"),
+        "analytics": ("kinesis", "redshift"),
+        "identity": ("iam",),
+        "observability": ("cloudwatch",),
     },
     "azure": {
-        "compute": ("vm", "container-instances", "functions"),
-        "database": ("sql-database", "cosmos-db"),
+        "compute": ("vm", "container-instances", "aks"),
+        "database": ("sql-database", "cosmos-db", "cache-for-redis"),
         "storage": ("blob-storage",),
-        "gateway": ("application-gateway", "api-management"),
+        "gateway": ("application-gateway", "api-management", "firewall"),
+        "function": ("functions",),
+        "queue": ("service-bus",),
+        "event": ("event-grid", "event-hubs"),
+        "analytics": ("synapse",),
+        "identity": ("entra-id",),
+        "observability": ("monitor",),
     },
     "gcp": {
-        "compute": ("compute-engine", "cloud-run", "cloud-functions"),
-        "database": ("cloud-sql-postgres", "firestore"),
+        "compute": ("compute-engine", "cloud-run", "gke"),
+        "database": ("cloud-sql-postgres", "cloud-spanner", "memorystore"),
         "storage": ("cloud-storage",),
-        "gateway": ("cloud-load-balancing", "api-gateway"),
+        "gateway": ("cloud-load-balancing", "api-gateway", "cloud-armor"),
+        "function": ("cloud-functions",),
+        "queue": ("pub-sub",),
+        "event": ("eventarc",),
+        "analytics": ("bigquery", "dataflow"),
+        "identity": ("cloud-iam",),
+        "observability": ("cloud-monitoring",),
     },
 }
 
@@ -42,11 +62,11 @@ EXAMPLE_THREE_TIER = {
         {
             "id": "plate-1",
             "name": "Prod VPC",
-            "type": "network",
+            "type": "region",
             "parentId": None,
             "children": ["plate-2", "plate-3"],
             "position": {"x": 0, "y": 0, "z": 0},
-            "size": {"width": 1000, "height": 10, "depth": 700},
+            "size": {"width": 30, "height": 1, "depth": 20},
         },
         {
             "id": "plate-2",
@@ -55,8 +75,8 @@ EXAMPLE_THREE_TIER = {
             "subnetAccess": "public",
             "parentId": "plate-1",
             "children": ["block-1"],
-            "position": {"x": 100, "y": 0, "z": 100},
-            "size": {"width": 400, "height": 10, "depth": 500},
+            "position": {"x": 2, "y": 0, "z": 2},
+            "size": {"width": 12, "height": 1, "depth": 16},
         },
         {
             "id": "plate-3",
@@ -65,8 +85,8 @@ EXAMPLE_THREE_TIER = {
             "subnetAccess": "private",
             "parentId": "plate-1",
             "children": ["block-2", "block-3"],
-            "position": {"x": 600, "y": 0, "z": 100},
-            "size": {"width": 350, "height": 10, "depth": 500},
+            "position": {"x": 16, "y": 0, "z": 2},
+            "size": {"width": 12, "height": 1, "depth": 16},
         },
     ],
     "blocks": [
@@ -75,7 +95,7 @@ EXAMPLE_THREE_TIER = {
             "name": "Web ALB",
             "category": "gateway",
             "placementId": "plate-2",
-            "position": {"x": 50, "y": 0, "z": 50},
+            "position": {"x": 2, "y": 0, "z": 2},
             "provider": "aws",
             "subtype": "alb",
         },
@@ -84,7 +104,7 @@ EXAMPLE_THREE_TIER = {
             "name": "App ECS",
             "category": "compute",
             "placementId": "plate-3",
-            "position": {"x": 50, "y": 0, "z": 50},
+            "position": {"x": 2, "y": 0, "z": 2},
             "provider": "aws",
             "subtype": "ecs",
         },
@@ -93,7 +113,7 @@ EXAMPLE_THREE_TIER = {
             "name": "App DB",
             "category": "database",
             "placementId": "plate-3",
-            "position": {"x": 250, "y": 0, "z": 250},
+            "position": {"x": 6, "y": 0, "z": 6},
             "provider": "aws",
             "subtype": "rds-postgres",
         },
@@ -102,7 +122,7 @@ EXAMPLE_THREE_TIER = {
             "name": "Assets",
             "category": "storage",
             "placementId": "plate-3",
-            "position": {"x": 250, "y": 0, "z": 50},
+            "position": {"x": 6, "y": 0, "z": 2},
             "provider": "aws",
             "subtype": "s3",
         },
@@ -132,7 +152,7 @@ EXAMPLE_THREE_TIER = {
             "id": "actor-1",
             "name": "Internet",
             "type": "internet",
-            "position": {"x": -200, "y": 0, "z": 100},
+            "position": {"x": -5, "y": 0, "z": 2},
         }
     ],
 }
@@ -141,12 +161,12 @@ EXAMPLE_SERVERLESS_EVENT = {
     "plates": [
         {
             "id": "plate-10",
-            "name": "Serverless Network",
-            "type": "network",
+            "name": "Serverless Region",
+            "type": "region",
             "parentId": None,
             "children": ["plate-11"],
             "position": {"x": 0, "y": 0, "z": 0},
-            "size": {"width": 900, "height": 10, "depth": 600},
+            "size": {"width": 25, "height": 1, "depth": 15},
         },
         {
             "id": "plate-11",
@@ -161,8 +181,8 @@ EXAMPLE_SERVERLESS_EVENT = {
                 "block-13",
                 "block-14",
             ],
-            "position": {"x": 100, "y": 0, "z": 100},
-            "size": {"width": 700, "height": 10, "depth": 400},
+            "position": {"x": 2, "y": 0, "z": 2},
+            "size": {"width": 21, "height": 1, "depth": 11},
         },
     ],
     "blocks": [
@@ -171,7 +191,7 @@ EXAMPLE_SERVERLESS_EVENT = {
             "name": "Public API",
             "category": "gateway",
             "placementId": "plate-11",
-            "position": {"x": 50, "y": 0, "z": 50},
+            "position": {"x": 2, "y": 0, "z": 2},
             "provider": "aws",
             "subtype": "api-gateway",
         },
@@ -180,7 +200,7 @@ EXAMPLE_SERVERLESS_EVENT = {
             "name": "Ingest Function",
             "category": "function",
             "placementId": "plate-11",
-            "position": {"x": 250, "y": 0, "z": 50},
+            "position": {"x": 6, "y": 0, "z": 2},
             "provider": "aws",
             "subtype": "lambda",
         },
@@ -189,16 +209,16 @@ EXAMPLE_SERVERLESS_EVENT = {
             "name": "Work Queue",
             "category": "queue",
             "placementId": "plate-11",
-            "position": {"x": 450, "y": 0, "z": 50},
+            "position": {"x": 10, "y": 0, "z": 2},
             "provider": "aws",
-            "subtype": "dynamodb",
+            "subtype": "sqs",
         },
         {
             "id": "block-13",
             "name": "Worker Function",
             "category": "function",
             "placementId": "plate-11",
-            "position": {"x": 250, "y": 0, "z": 250},
+            "position": {"x": 6, "y": 0, "z": 6},
             "provider": "aws",
             "subtype": "lambda",
         },
@@ -207,7 +227,7 @@ EXAMPLE_SERVERLESS_EVENT = {
             "name": "Event Store",
             "category": "database",
             "placementId": "plate-11",
-            "position": {"x": 450, "y": 0, "z": 250},
+            "position": {"x": 10, "y": 0, "z": 6},
             "provider": "aws",
             "subtype": "dynamodb",
         },
@@ -243,7 +263,7 @@ EXAMPLE_SERVERLESS_EVENT = {
             "id": "actor-10",
             "name": "Internet",
             "type": "internet",
-            "position": {"x": -200, "y": 0, "z": 50},
+            "position": {"x": -5, "y": 0, "z": 2},
         }
     ],
 }
@@ -284,14 +304,14 @@ Output JSON Schema (required shape):
   "properties": {{
     "plates": {{
       "type": "array",
-      "description": "network boundaries",
+      "description": "infrastructure layer boundaries (region, zone, subnet, etc.)",
       "items": {{
         "type": "object",
         "required": ["id", "name", "type", "parentId", "children", "position", "size"],
         "properties": {{
           "id": {{"type": "string"}},
           "name": {{"type": "string"}},
-          "type": {{"type": "string", "enum": ["network", "subnet"]}},
+          "type": {{"type": "string", "enum": ["global", "edge", "region", "zone", "subnet"]}},
           "subnetAccess": {{"type": "string", "enum": ["public", "private"]}},
           "parentId": {{"type": ["string", "null"]}},
           "children": {{"type": "array", "items": {{"type": "string"}}}},
@@ -335,7 +355,9 @@ Output JSON Schema (required shape):
               "function",
               "queue",
               "event",
-              "timer"
+              "analytics",
+              "identity",
+              "observability"
             ]
           }},
           "placementId": {{"type": "string"}},
@@ -395,6 +417,7 @@ Valid Enums:
 - BlockCategory: {", ".join(BLOCK_CATEGORIES)}
 - ConnectionType: {", ".join(CONNECTION_TYPES)}
 - ProviderType: {", ".join(PROVIDER_TYPES)}
+- LayerType: {', '.join(LAYER_TYPES)}
 
 {all_provider_subtypes}
 
@@ -403,9 +426,14 @@ Provider focus for this request:
 
 Placement Rules:
 - Every block's placementId MUST reference an existing plate id.
-- Root plates have parentId: null.
-- Subnet plates have parentId referencing a network plate.
-- Network plates must contain at least one subnet.
+- Root plates (global, edge) have parentId: null.
+- Layer nesting follows a strict hierarchy: global > edge > region > zone > subnet > resource.
+- Valid parent types:
+  - region plates can be children of global or edge plates, or have no parent.
+  - zone plates must be inside a region plate.
+  - subnet plates must be inside a zone or region plate.
+- Blocks (resources) must be placed on a subnet or higher-level plate.
+- Region plates should contain at least one subnet.
 
 Connection Rules:
 - sourceId and targetId must reference existing block ids or external actor ids.
@@ -413,16 +441,19 @@ Connection Rules:
 - No duplicate connections.
 
 Position and layout guidance:
-- Use grid-based positions with x increments of 200 and z increments of 200.
-- Plates should be large enough to contain their blocks.
-- Example plate size: {{"width": 800, "height": 10, "depth": 600}}.
-- Block positions are relative to parent plate and can start at {{"x": 50, "y": 0, "z": 50}}.
+- All positions and sizes use integer CU (Cloud Unit) values.
+- Use grid-based positions with x and z increments of 1 CU.
+- Block spacing: 1 CU between blocks. Plate padding: 2 CU.
+- Plates should be large enough to contain their blocks with 2 CU padding on each side.
+- Example plate size: {{"width": 25, "height": 1, "depth": 15}}.
+- Block positions are relative to parent plate
+  and should start at {{"x": 2, "y": 0, "z": 2}} (2 CU padding).
 
 Negative instructions:
 - Do NOT generate subtypes that are not in the SubtypeRegistry.
 - Do NOT create blocks without a valid placementId.
 - Do NOT use 'name' as an ID — generate unique IDs like 'plate-1', 'block-compute-1'.
-- Always include at least one network plate with at least one subnet.
+- Always include at least one region plate with at least one subnet.
 
 Few-shot example 1 (three-tier web app):
 {example_one_json}

@@ -171,7 +171,7 @@ describe('schema utilities', () => {
     expect(result[0].architecture.externalActors[0].position).toEqual({ x: -3, y: 0, z: 5 });
   });
 
-  it('migrates 0.1.0 schema with blocks to 0.2.0 (subtype/config remain undefined)', () => {
+  it('rejects legacy 0.1.0 schema (clean start — no migration)', () => {
     const oldData = {
       schemaVersion: '0.1.0',
       workspaces: [
@@ -182,19 +182,7 @@ describe('schema utilities', () => {
             id: 'arch-1',
             name: 'Test',
             version: '1',
-            plates: [
-              {
-                id: 'plate-1',
-                name: 'Subnet',
-                type: 'subnet',
-                profileId: 'subnet-service',
-                parentId: null,
-                children: ['blk-1'],
-                position: { x: 0, y: 0, z: 0 },
-                size: { width: 6, height: 0.5, depth: 8 },
-                metadata: {},
-              },
-            ],
+            plates: [],
             blocks: [
               {
                 id: 'blk-1',
@@ -224,15 +212,38 @@ describe('schema utilities', () => {
       ],
     };
 
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-    const result = deserialize(JSON.stringify(oldData));
-    const block = result[0].architecture.blocks[0];
+    expect(() => deserialize(JSON.stringify(oldData))).toThrow(
+      'Incompatible workspace format: v0.1.0 is no longer supported.'
+    );
+  });
 
-    expect(block.id).toBe('blk-1');
-    expect(block.category).toBe('compute');
-    expect(block.subtype).toBeUndefined();
-    expect(block.config).toBeUndefined();
-    expect(warnSpy).toHaveBeenCalledWith('Migrating schema from 0.1.0 to 0.2.0.');
+  it('rejects legacy 0.2.0 schema (clean start — no migration)', () => {
+    const oldData = {
+      schemaVersion: '0.2.0',
+      workspaces: [
+        {
+          id: 'ws-1',
+          name: 'Test',
+          architecture: {
+            id: 'arch-1',
+            name: 'Test',
+            version: '1',
+            plates: [],
+            blocks: [],
+            connections: [],
+            externalActors: [],
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    };
+
+    expect(() => deserialize(JSON.stringify(oldData))).toThrow(
+      'Incompatible workspace format: v0.2.0 is no longer supported.'
+    );
   });
 
   it('roundtrips blocks with subtype and config via serialize/deserialize', () => {

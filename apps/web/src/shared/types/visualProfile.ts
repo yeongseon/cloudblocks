@@ -1,7 +1,6 @@
 import type { BlockCategory, ProviderType } from './index';
 
-// ─── v1.x Legacy Tier System (kept for backward compatibility) ──────
-export type BrickSizeTier = 'signal' | 'light' | 'service' | 'core' | 'anchor';
+// BrickSizeTier removed in v2.0 — use BlockTier instead
 
 // ─── v2.0 Tier System (CU-based) ───────────────────────────────────
 // See CLOUDBLOCKS_SPEC_V2.md §5.2
@@ -44,7 +43,7 @@ export type BrickSilhouette = 'tower' | 'heavy' | 'shield' | 'module';
 
 export interface BlockVisualProfile {
   /** Size tier name for CSS/debugging */
-  tier: BrickSizeTier;
+  tier: BlockTier;
   /** Surface treatment - always 'studded' per Universal Stud Standard */
   surface: BrickSurface;
   silhouette: BrickSilhouette;
@@ -58,7 +57,7 @@ export interface BlockVisualProfile {
 
 export const BLOCK_VISUAL_PROFILES: Record<BlockCategory, BlockVisualProfile> = {
   event: {
-    tier: 'signal',
+    tier: 'micro',
     surface: 'studded',
     silhouette: 'module',
     footprint: [1, 2],
@@ -66,7 +65,7 @@ export const BLOCK_VISUAL_PROFILES: Record<BlockCategory, BlockVisualProfile> = 
     appCapacity: 0,
   },
   function: {
-    tier: 'light',
+    tier: 'micro',
     surface: 'studded',
     silhouette: 'module',
     footprint: [2, 2],
@@ -74,7 +73,7 @@ export const BLOCK_VISUAL_PROFILES: Record<BlockCategory, BlockVisualProfile> = 
     appCapacity: 1,
   },
   queue: {
-    tier: 'service',
+    tier: 'micro',
     surface: 'studded',
     silhouette: 'module',
     footprint: [2, 4],
@@ -82,7 +81,7 @@ export const BLOCK_VISUAL_PROFILES: Record<BlockCategory, BlockVisualProfile> = 
     appCapacity: 0,
   },
   gateway: {
-    tier: 'service',
+    tier: 'wide',
     surface: 'studded',
     silhouette: 'shield',
     footprint: [2, 4],
@@ -90,7 +89,7 @@ export const BLOCK_VISUAL_PROFILES: Record<BlockCategory, BlockVisualProfile> = 
     appCapacity: 0,
   },
   storage: {
-    tier: 'service',
+    tier: 'medium',
     surface: 'studded',
     silhouette: 'heavy',
     footprint: [2, 4],
@@ -98,7 +97,7 @@ export const BLOCK_VISUAL_PROFILES: Record<BlockCategory, BlockVisualProfile> = 
     appCapacity: 0,
   },
   identity: {
-    tier: 'light',
+    tier: 'small',
     surface: 'studded',
     silhouette: 'module',
     footprint: [2, 2],
@@ -106,7 +105,7 @@ export const BLOCK_VISUAL_PROFILES: Record<BlockCategory, BlockVisualProfile> = 
     appCapacity: 0,
   },
   observability: {
-    tier: 'light',
+    tier: 'small',
     surface: 'studded',
     silhouette: 'module',
     footprint: [2, 2],
@@ -114,7 +113,7 @@ export const BLOCK_VISUAL_PROFILES: Record<BlockCategory, BlockVisualProfile> = 
     appCapacity: 0,
   },
   compute: {
-    tier: 'core',
+    tier: 'medium',
     surface: 'studded',
     silhouette: 'tower',
     footprint: [3, 4],
@@ -122,7 +121,7 @@ export const BLOCK_VISUAL_PROFILES: Record<BlockCategory, BlockVisualProfile> = 
     appCapacity: 4,
   },
   database: {
-    tier: 'anchor',
+    tier: 'large',
     surface: 'studded',
     silhouette: 'heavy',
     footprint: [4, 6],
@@ -130,7 +129,7 @@ export const BLOCK_VISUAL_PROFILES: Record<BlockCategory, BlockVisualProfile> = 
     appCapacity: 0,
   },
   analytics: {
-    tier: 'anchor',
+    tier: 'large',
     surface: 'studded',
     silhouette: 'heavy',
     footprint: [4, 6],

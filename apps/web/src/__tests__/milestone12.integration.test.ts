@@ -11,7 +11,7 @@ import { gcpSubtypeRegistry } from '../features/generate/providers/gcp/subtypes'
 import { resolveBlockMapping } from '../features/generate/types';
 import type { ProviderDefinition } from '../features/generate/types';
 import type { ArchitectureModel, Block, Plate, Workspace } from '../shared/types';
-import { SCHEMA_VERSION, deserialize, serialize } from '../shared/types/schema';
+import { deserialize, serialize } from '../shared/types/schema';
 
 function makePlate(overrides: Partial<Plate> = {}): Plate {
   return {
@@ -225,7 +225,7 @@ describe('Milestone 12 Integration Tests', () => {
   });
 
   describe('schema migration', () => {
-    it('migrates 0.1.0 payload with blocks missing subtype fields', () => {
+    it('rejects legacy 0.1.0 payload (clean start — no v1.x migration)', () => {
       const legacyData = {
         schemaVersion: '0.1.0',
         workspaces: [
@@ -247,18 +247,14 @@ describe('Milestone 12 Integration Tests', () => {
         ],
       };
 
-      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-      const migrated = deserialize(JSON.stringify(legacyData));
-      const migratedBlock = migrated[0].architecture.blocks[0];
-
-      expect(migratedBlock.subtype).toBeUndefined();
-      expect(migratedBlock.config).toBeUndefined();
-      expect(warnSpy).toHaveBeenCalledWith('Migrating schema from 0.1.0 to 0.2.0.');
+      expect(() => deserialize(JSON.stringify(legacyData))).toThrow(
+        'Incompatible workspace format: v0.1.0 is no longer supported.'
+      );
     });
 
-    it('re-serializes migrated data using current schema version', () => {
-      const legacyJson = JSON.stringify({
-        schemaVersion: '0.1.0',
+    it('rejects legacy 0.2.0 payload (clean start — no v1.x migration)', () => {
+      const legacyData = {
+        schemaVersion: '0.2.0',
         workspaces: [
           makeWorkspace({
             architecture: makeArchitecture({
@@ -276,19 +272,15 @@ describe('Milestone 12 Integration Tests', () => {
             }),
           }),
         ],
-      });
+      };
 
-      const migratedWorkspaces = deserialize(legacyJson);
-      const serialized = serialize(migratedWorkspaces);
-      const parsed = JSON.parse(serialized) as { schemaVersion: string; workspaces: Workspace[] };
-
-      expect(parsed.schemaVersion).toBe(SCHEMA_VERSION);
-      expect(parsed.workspaces[0].architecture.blocks[0].subtype).toBeUndefined();
-      expect(parsed.workspaces[0].architecture.blocks[0].config).toBeUndefined();
+      expect(() => deserialize(JSON.stringify(legacyData))).toThrow(
+        'Incompatible workspace format: v0.2.0 is no longer supported.'
+      );
     });
 
-    it('keeps existing subtype/config while leaving legacy blocks optional during migration', () => {
-      const legacyJson = JSON.stringify({
+    it('rejects mixed legacy payloads regardless of block content', () => {
+      const legacyData = {
         schemaVersion: '0.1.0',
         workspaces: [
           makeWorkspace({
@@ -318,15 +310,11 @@ describe('Milestone 12 Integration Tests', () => {
             }),
           }),
         ],
-      });
+      };
 
-      const migrated = deserialize(legacyJson);
-      const [legacyBlock, newBlock] = migrated[0].architecture.blocks;
-
-      expect(legacyBlock.subtype).toBeUndefined();
-      expect(legacyBlock.config).toBeUndefined();
-      expect(newBlock.subtype).toBe('lambda');
-      expect(newBlock.config).toEqual({ memorySize: 256 });
+      expect(() => deserialize(JSON.stringify(legacyData))).toThrow(
+        'Incompatible workspace format: v0.1.0 is no longer supported.'
+      );
     });
   });
 

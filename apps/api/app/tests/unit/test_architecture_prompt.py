@@ -27,7 +27,9 @@ def test_prompt_contains_all_block_categories() -> None:
         "function",
         "queue",
         "event",
-        "timer",
+        "analytics",
+        "identity",
+        "observability",
     ):
         assert category in prompt
 
@@ -57,9 +59,18 @@ def test_prompt_contains_all_provider_types() -> None:
                 "lambda",
                 "rds-postgres",
                 "dynamodb",
+                "elasticache",
                 "s3",
                 "alb",
                 "api-gateway",
+                "nat-gateway",
+                "sqs",
+                "sns",
+                "eventbridge",
+                "kinesis",
+                "redshift",
+                "iam",
+                "cloudwatch",
             ),
         ),
         (
@@ -67,12 +78,21 @@ def test_prompt_contains_all_provider_types() -> None:
             (
                 "vm",
                 "container-instances",
-                "functions",
+                "aks",
                 "sql-database",
                 "cosmos-db",
+                "cache-for-redis",
                 "blob-storage",
                 "application-gateway",
                 "api-management",
+                "firewall",
+                "functions",
+                "service-bus",
+                "event-grid",
+                "event-hubs",
+                "synapse",
+                "entra-id",
+                "monitor",
             ),
         ),
         (
@@ -80,12 +100,21 @@ def test_prompt_contains_all_provider_types() -> None:
             (
                 "compute-engine",
                 "cloud-run",
-                "cloud-functions",
+                "gke",
                 "cloud-sql-postgres",
-                "firestore",
+                "cloud-spanner",
+                "memorystore",
                 "cloud-storage",
                 "cloud-load-balancing",
                 "api-gateway",
+                "cloud-armor",
+                "cloud-functions",
+                "pub-sub",
+                "eventarc",
+                "bigquery",
+                "dataflow",
+                "cloud-iam",
+                "cloud-monitoring",
             ),
         ),
     ],
@@ -110,7 +139,7 @@ def test_prompt_contains_placement_rules_text() -> None:
     prompt = build_architecture_prompt("aws")
 
     assert "placementId MUST reference an existing plate id" in prompt
-    assert "Network plates must contain at least one subnet" in prompt
+    assert "Region plates should contain at least one subnet" in prompt
 
 
 def test_prompt_contains_connection_rules_text() -> None:

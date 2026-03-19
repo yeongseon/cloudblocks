@@ -3,8 +3,8 @@
 Server-side implementation of the same rules that run client-side,
 ensuring consistent validation regardless of client behavior.
 
-v1.0: Added serverless block types (function, queue, event, timer)
-      and their placement/connection rules.
+v2.0: Updated for v2.0 plate types (global, edge, region, zone, subnet).
+      Removed timer category. Added analytics, identity, observability.
 """
 
 from typing import Any
@@ -68,7 +68,7 @@ def _validate_placement(block: dict, plate: dict | None) -> dict | None:
     plate_type = plate["type"]
     subnet_access = plate.get("subnetAccess")
 
-    # Subnet-based block rules (v0.1)
+    # Subnet-based block rules
     subnet_rules = {
         "compute": (plate_type == "subnet", "rule-compute-subnet", "Subnet Plate"),
         "database": (
@@ -84,27 +84,37 @@ def _validate_placement(block: dict, plate: dict | None) -> dict | None:
         "storage": (plate_type == "subnet", "rule-storage-subnet", "Subnet Plate"),
     }
 
-    # Serverless block rules (v1.0) — must be on network plate, NOT subnet
-    serverless_rules = {
+    # Managed-service block rules (v2.0) — must NOT be on subnet
+    managed_rules = {
         "function": (
-            plate_type == "network",
-            "rule-function-network",
-            "Network Plate (not Subnet)",
+            plate_type != "subnet",
+            "rule-function-region",
+            "Region/Zone Plate (not Subnet)",
         ),
         "queue": (
-            plate_type == "network",
-            "rule-queue-network",
-            "Network Plate (not Subnet)",
+            plate_type != "subnet",
+            "rule-queue-region",
+            "Region/Zone Plate (not Subnet)",
         ),
         "event": (
-            plate_type == "network",
-            "rule-event-network",
-            "Network Plate (not Subnet)",
+            plate_type != "subnet",
+            "rule-event-region",
+            "Region/Zone Plate (not Subnet)",
         ),
-        "timer": (
-            plate_type == "network",
-            "rule-timer-network",
-            "Network Plate (not Subnet)",
+        "analytics": (
+            plate_type != "subnet",
+            "rule-analytics-region",
+            "Region/Zone Plate (not Subnet)",
+        ),
+        "identity": (
+            plate_type != "subnet",
+            "rule-identity-region",
+            "Region/Zone Plate (not Subnet)",
+        ),
+        "observability": (
+            plate_type != "subnet",
+            "rule-observability-region",
+            "Region/Zone Plate (not Subnet)",
         ),
     }
 
@@ -122,8 +132,8 @@ def _validate_placement(block: dict, plate: dict | None) -> dict | None:
                 "targetId": block["id"],
             }
 
-    if category in serverless_rules:
-        valid, rule_id, target_desc = serverless_rules[category]
+    if category in managed_rules:
+        valid, rule_id, target_desc = managed_rules[category]
         if not valid:
             return {
                 "ruleId": rule_id,
@@ -143,15 +153,17 @@ def _validate_connection(
     connection: dict, blocks: list[dict], external_actors: list[dict]
 ) -> dict | None:
     """Validate a connection between endpoints."""
-    # Connection adjacency table (v1.0 — includes serverless)
+    # Connection adjacency table (v2.0 — includes managed services)
     allowed = {
         "internet": {"gateway"},
         "gateway": {"compute", "function"},
         "compute": {"database", "storage"},
         "function": {"storage", "database", "queue"},
         "queue": {"function"},
-        "timer": {"function"},
         "event": {"function"},
+        "analytics": {"database", "storage"},
+        "identity": set(),
+        "observability": set(),
     }
 
     source_type = _get_endpoint_type(connection["sourceId"], blocks, external_actors)
