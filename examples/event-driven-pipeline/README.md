@@ -28,7 +28,7 @@ Internet → Gateway (Event Ingestion)
 
 ## How to Build in CloudBlocks
 
-1. Create a **Network Plate** (VNet)
+1. Create a **Region Plate** (VNet)
 2. Add **Public** and **Private Subnet Plates**
 3. Place a **Gateway** block on the Public Subnet (event ingestion)
 4. Place a **Compute** block on the Public Subnet (event processor)

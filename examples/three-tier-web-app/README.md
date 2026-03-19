@@ -28,7 +28,7 @@ Internet → Gateway (Application Gateway)
 
 ## How to Build in CloudBlocks
 
-1. Create a **Network Plate** (VNet)
+1. Create a **Region Plate** (VNet)
 2. Add a **Public Subnet Plate** inside the Network
 3. Add a **Private Subnet Plate** inside the Network
 4. Place a **Gateway** block on the Public Subnet

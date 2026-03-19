@@ -9,7 +9,7 @@ Templates are reusable architecture models that serve as starting points for new
 | Term | Definition |
 |------|-----------|
 | **Template** | A reusable, pre-built `ArchitectureModel` JSON that users can instantiate as a new workspace. Templates define the infrastructure topology (plates, blocks, connections). |
-| **Scenario** | A guided tutorial that walks users through building an architecture step-by-step, with validation checks at each stage. Scenarios live in `packages/scenario-library/`. |
+| **Scenario** | A guided tutorial that walks users through building an architecture step-by-step, with validation checks at each stage. Scenarios are defined in `apps/web/src/features/learning/`. |
 
 > Templates provide instant starting points; Scenarios provide learning experiences. Both use the same `ArchitectureModel` format internally.
 ---
@@ -17,9 +17,9 @@ Templates are reusable architecture models that serve as starting points for new
 ## Template Structure
 
 ```
-src/features/templates/
-  builtin.ts          # Built-in template definitions
-  registry.ts         # Template registry (CRUD operations)
+apps/web/src/features/templates/
+  builtin.ts          # Built-in template definitions (6 templates)
+  registry.ts         # Template registry (CRUD + marketplace manifest loader)
 ```
 
 ---
@@ -65,36 +65,48 @@ Database
 
 ## Built-in Templates
 
-CloudBlocks ships these built-in templates (Milestone 4):
+CloudBlocks ships these built-in templates:
 
-- **Three-Tier Web Application** — Gateway, Compute, Database, and Storage across public/private subnets
-- **Simple Compute Setup** — Minimal architecture with a single compute instance
-- **Data Storage Backend** — Compute connected to database and blob storage in a private subnet
+- **Three-Tier Web Application** — Classic three-tier architecture with gateway, compute, database, and storage
+- **Simple Compute Setup** — Minimal architecture with a single compute instance in a public subnet
+- **Data Storage Backend** — Backend architecture where compute connects to database and storage in a private subnet
+- **Serverless HTTP API** — Gateway-triggered function API with storage and database backends
+- **Event-Driven Pipeline** — Event and queue-driven processing functions writing results to storage
+- **Full-Stack Serverless with Event Processing** — End-to-end architecture combining web frontend, API function, queue workers, event processing, database, and storage
 
-> **Note:** Additional built-in templates (Serverless HTTP API, Event-Driven Pipeline, Full-Stack Serverless) are implemented and use Function/Queue/Event/Timer blocks. See `apps/web/src/features/templates/builtin.ts` for current implementations.
 > **Note:** Example architectures are available in the [`examples/`](../../examples/) directory.
 
 ---
 
-## Community Templates
+## Community Templates (Planned)
 
-Templates may be shared via Git repositories.
-
-**Example:**
-
-```
-github.com/cloudblocks/templates
-```
+> Template sharing via Git repositories is planned for a future milestone. The registry API supports loading external marketplace manifests (`loadMarketplaceManifest()` in `registry.ts`), but no community template distribution is implemented yet.
 
 ---
 
-## Future Template Marketplace
+## Template Marketplace (Planned)
 
-Possible template marketplace for:
+TypeScript types (`MarketplaceManifest`, `MarketplaceEntry`) and registry functions are scaffolded in `apps/web/src/shared/types/template.ts` and `registry.ts`, but marketplace UI and distribution are not yet implemented. Planned use cases:
 
 - SaaS architectures
 - AI pipelines
 - Data platforms
+
+---
+
+## Package Structure (Scaffolded)
+
+The `packages/` directory contains scaffolded packages that are **not yet functional**:
+
+| Package | Status | Purpose |
+|---------|--------|---------|
+| `packages/scenario-library/` | Placeholder | Future shared scenario definitions |
+| `packages/schema/` | Placeholder | Shared type definitions between frontend and backend |
+| `packages/terraform-templates/` | Placeholder | Generated Terraform template storage |
+| `packages/cloudblocks-domain/` | Placeholder | Shared domain logic |
+| `packages/cloudblocks-ui/` | Placeholder | Shared React components |
+
+> Current template and scenario logic lives entirely within `apps/web/src/features/`.
 
 ---
 
