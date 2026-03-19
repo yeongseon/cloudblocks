@@ -3,7 +3,21 @@
 
 // ─── Plate Types ───────────────────────────────────────────
 
-export type PlateType = 'network' | 'subnet';
+// ─── Layer Hierarchy (v2.0) ────────────────────────────────
+export type LayerType = 'global' | 'edge' | 'region' | 'zone' | 'subnet' | 'resource';
+
+export const LAYER_HIERARCHY: LayerType[] = ['global', 'edge', 'region', 'zone', 'subnet', 'resource'];
+
+export const VALID_PARENTS: Record<LayerType, LayerType[]> = {
+  global: [],           // root level
+  edge: [],             // root level
+  region: ['global'],   // or root
+  zone: ['region'],
+  subnet: ['zone', 'region'],
+  resource: ['subnet', 'zone', 'region', 'edge', 'global'],
+};
+
+export type PlateType = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
 export type SubnetAccess = 'public' | 'private';
 
 export interface Plate {
@@ -12,7 +26,7 @@ export interface Plate {
   type: PlateType;
   subnetAccess?: SubnetAccess; // only for subnet type
   profileId?: PlateProfileId;
-  parentId: string | null; // null for root (network plate)
+  parentId: string | null; // null for root plate
   children: string[]; // mixed list: child plate IDs + block IDs (intentional for MVP; consider splitting to childPlateIds/childBlockIds in v1.0)
   position: Position;
   size: Size;
@@ -21,7 +35,7 @@ export interface Plate {
 
 // ─── Block Types ───────────────────────────────────────────
 
-export type BlockCategory = 'compute' | 'database' | 'storage' | 'gateway' | 'function' | 'queue' | 'event' | 'timer';
+export type BlockCategory = 'compute' | 'database' | 'storage' | 'gateway' | 'function' | 'queue' | 'event' | 'analytics' | 'identity' | 'observability';
 export type ProviderType = 'azure' | 'aws' | 'gcp';
 
 export interface Block {
@@ -144,19 +158,24 @@ export interface ValidationResult {
 // ─── Visual Identity ───────────────────────────────────────
 
 export const BLOCK_COLORS: Record<BlockCategory, string> = {
-  compute: '#F25022',   // Azure Red/Orange
-  database: '#00A4EF',  // Azure Light Blue
-  storage: '#7FBA00',   // Azure Green
-  gateway: '#0078D4',   // Azure Blue
-  function: '#FFB900',  // Azure Yellow
-  queue: '#737373',     // Azure Gray
-  event: '#D83B01',     // Azure Orange
-  timer: '#5C2D91',     // Azure Purple
+  compute: '#F25022',        // Azure Red/Orange
+  database: '#00A4EF',       // Azure Light Blue
+  storage: '#7FBA00',        // Azure Green
+  gateway: '#0078D4',        // Azure Blue
+  function: '#FFB900',       // Azure Yellow
+  queue: '#737373',          // Azure Gray
+  event: '#D83B01',          // Azure Orange
+  analytics: '#693BC5',      // Azure Purple
+  identity: '#D6232C',       // Azure Security Red
+  observability: '#693BC5',  // Azure Management Purple
 };
 
 export const PLATE_COLORS: Record<PlateType, string> = {
-  network: '#2563EB',    // Deep blue (VPC)
-  subnet: '#93C5FD',     // Light blue (default subnet)
+  global: '#B39DDB',
+  edge: '#80CBC4',
+  region: '#90CAF9',
+  zone: '#A5D6A7',
+  subnet: '#E0E0E0',
 };
 
 export const SUBNET_ACCESS_COLORS: Record<SubnetAccess, string> = {
@@ -182,7 +201,9 @@ export const BLOCK_FRIENDLY_NAMES: Record<BlockCategory, string> = {
   function: 'App Service',
   queue: 'Message Queue',
   event: 'Event Hub',
-  timer: 'Timer',
+  analytics: 'Data Analytics',
+  identity: 'Identity Service',
+  observability: 'Monitoring',
 };
 
 export const BLOCK_DESCRIPTIONS: Record<BlockCategory, string> = {
@@ -193,7 +214,9 @@ export const BLOCK_DESCRIPTIONS: Record<BlockCategory, string> = {
   function: 'Hosts web apps and APIs',
   queue: 'Buffers messages between services',
   event: 'Routes events to subscribers',
-  timer: 'Triggers actions on a schedule',
+  analytics: 'Processes and analyzes large datasets',
+  identity: 'Manages authentication and authorization',
+  observability: 'Monitors and logs system health',
 };
 
 export const BLOCK_ICONS: Record<BlockCategory, string> = {
@@ -204,7 +227,9 @@ export const BLOCK_ICONS: Record<BlockCategory, string> = {
   function: '⚡',
   queue: '📨',
   event: '🔔',
-  timer: '⏰',
+  analytics: '📊',
+  identity: '🔑',
+  observability: '📡',
 };
 
 export const BLOCK_SHORT_NAMES: Record<BlockCategory, string> = {
@@ -215,7 +240,9 @@ export const BLOCK_SHORT_NAMES: Record<BlockCategory, string> = {
   function: 'App Svc',
   queue: 'Queue',
   event: 'Event Hub',
-  timer: 'Timer',
+  analytics: 'Analytics',
+  identity: 'Identity',
+  observability: 'Monitor',
 };
 
 // ─── Plate Profile System ──────────────────────────────────
@@ -242,7 +269,7 @@ export interface StudColorSpec {
 
 export interface PlateProfile {
   id: PlateProfileId;
-  type: PlateType; // 'network' | 'subnet'
+  type: PlateType; // LayerType (minus resource)
   displayName: string;
   displayNameKo: string;
   description: string;
@@ -282,7 +309,7 @@ export const PRIVATE_SUBNET_STUD_COLORS: StudColorSpec = {
 export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
   'network-sandbox': {
     id: 'network-sandbox',
-    type: 'network',
+    type: 'region',
     displayName: 'Sandbox',
     displayNameKo: '샌드박스',
     description: 'Dev/test isolated network. Minimal footprint for experimentation.',
@@ -298,7 +325,7 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
   },
   'network-application': {
     id: 'network-application',
-    type: 'network',
+    type: 'region',
     displayName: 'Application',
     displayNameKo: '애플리케이션',
     description: 'Standard application VNet. Hosts a single workload with public/private separation.',
@@ -314,7 +341,7 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
   },
   'network-platform': {
     id: 'network-platform',
-    type: 'network',
+    type: 'region',
     displayName: 'Platform',
     displayNameKo: '플랫폼',
     description: 'Production platform VNet. Multi-tier architecture with several subnet groups.',
@@ -330,7 +357,7 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
   },
   'network-hub': {
     id: 'network-hub',
-    type: 'network',
+    type: 'region',
     displayName: 'Hub',
     displayNameKo: '허브',
     description: 'Enterprise hub VNet. Central network for shared services and spoke connections.',
@@ -411,7 +438,10 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
 };
 
 export const DEFAULT_PLATE_PROFILE: Record<PlateType, PlateProfileId> = {
-  network: 'network-platform',
+  global: 'network-hub',
+  edge: 'network-sandbox',
+  region: 'network-platform',
+  zone: 'network-application',
   subnet: 'subnet-service',
 };
 
@@ -460,14 +490,18 @@ export function inferLegacyPlateProfileId(legacyPlate: LegacyPlateShape): PlateP
 }
 
 export function getPlateStudColors(plate: { type: PlateType; subnetAccess?: SubnetAccess }): StudColorSpec {
-  if (plate.type === 'network') return NETWORK_STUD_COLORS;
+  if (plate.type === 'region') return NETWORK_STUD_COLORS;
+  if (plate.type === 'global' || plate.type === 'edge' || plate.type === 'zone') return NETWORK_STUD_COLORS;
   if (plate.subnetAccess === 'public') return PUBLIC_SUBNET_STUD_COLORS;
   return PRIVATE_SUBNET_STUD_COLORS;
 }
 
 export const DEFAULT_PLATE_SIZE: Record<PlateType, Size> = {
-  network: buildPlateSizeFromProfileId(DEFAULT_PLATE_PROFILE.network),
+  global: buildPlateSizeFromProfileId(DEFAULT_PLATE_PROFILE.global),
+  edge: buildPlateSizeFromProfileId(DEFAULT_PLATE_PROFILE.edge),
+  region: buildPlateSizeFromProfileId(DEFAULT_PLATE_PROFILE.region),
+  zone: buildPlateSizeFromProfileId(DEFAULT_PLATE_PROFILE.zone),
   subnet: buildPlateSizeFromProfileId(DEFAULT_PLATE_PROFILE.subnet),
 };
 
-export { type BlockVisualProfile, type BrickSizeTier, type BrickSurface, type BrickSilhouette, BLOCK_VISUAL_PROFILES, getBlockVisualProfile } from './visualProfile';
+export { type BlockVisualProfile, type BrickSizeTier, type BrickSurface, type BrickSilhouette, type BlockTier, type BlockDimensionsCU, BLOCK_VISUAL_PROFILES, TIER_DIMENSIONS, CATEGORY_TIER_MAP, SUBTYPE_SIZE_OVERRIDES, getBlockVisualProfile, getBlockDimensions } from './visualProfile';
