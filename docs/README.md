@@ -99,7 +99,7 @@ Infrastructure code generation pipeline.
 |----------|--------|-------------|
 | [generator.md](engine/generator.md) | Canonical | Generation pipeline |
 | [provider.md](engine/provider.md) | Canonical | Provider adapters (Azure) |
-| [rules.md](engine/rules.md) | Canonical | Validation rules |
+| [rules.md](engine/rules.md) | Supporting | Validation overview (see VALIDATION_CONTRACT.md for canonical rules) |
 | [templates.md](engine/templates.md) | Canonical | Architecture templates |
 
 ---

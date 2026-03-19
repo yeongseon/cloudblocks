@@ -1,8 +1,8 @@
 # Validation Contract — Single Source of Truth
 
-> Covers issues #23 and #24.
+> Covers issues #23, #24, and #357.
 
-This document defines the canonical validation rule contract for CloudBlocks. All frontend and backend validation **must** derive from this specification. No layer may invent rules that are not listed here.
+This document defines the canonical validation rule contract for CloudBlocks. All frontend and backend validation must derive from this specification. No layer may invent rules that are not listed here.
 
 ---
 
@@ -13,7 +13,7 @@ This document defines the canonical validation rule contract for CloudBlocks. Al
 | **Rule owner** | This document (`docs/design/VALIDATION_CONTRACT.md`) |
 | **Change process** | PR with updates to this doc + corresponding FE/BE code changes in the same PR |
 | **Versioning** | Semantic — bump `ruleSchemaVersion` when adding/removing/changing rules |
-| **Current version** | `1.1.0` |
+| **Current version** | `2.0.0` |
 
 ---
 
@@ -33,7 +33,7 @@ interface ValidationError {
 
 ---
 
-## 3. Placement Rules
+## 3. Placement Rules (Legacy Category-based)
 
 Placement rules validate that blocks are placed on appropriate plates.
 
@@ -44,12 +44,22 @@ Placement rules validate that blocks are placed on appropriate plates.
 | `rule-db-private` | error | Database block not on a `subnet` plate with `subnetAccess: "private"` | Database block must be placed on a private Subnet Plate |
 | `rule-gw-public` | error | Gateway block not on a `subnet` plate with `subnetAccess: "public"` | Gateway block must be placed on a public Subnet Plate |
 | `rule-storage-subnet` | error | Storage block not on a `subnet` plate | Storage block must be placed on a Subnet Plate |
-| `rule-serverless-network` | error | `function`, `queue`, `event`, or `timer` block not on a `network` plate | Serverless blocks (function/queue/event/timer) must be placed on a Network Plate |
+| `rule-analytics-subnet` | error | Analytics block not on a `subnet` plate | Analytics block must be placed on a Subnet Plate |
+| `rule-identity-subnet` | error | Identity block not on a `subnet` plate | Identity block must be placed on a Subnet Plate |
+| `rule-observability-subnet` | error | Observability block not on a `subnet` plate | Observability block must be placed on a Subnet Plate |
+| `rule-serverless-network` | error | `function`, `queue`, or `event` block not on a **Region Plate** (checks `plate.type !== 'region'`) | Serverless blocks must be placed on a Region Plate |
 
-### Implementation References
+> **Note on Timer blocks**: `timer` blocks are not currently validated by `rule-serverless-network` and fall through to the default (unvalidated) state in the current implementation.
 
-- **Frontend**: `apps/web/src/entities/validation/placement.ts`
-- **Backend**: Not yet implemented (planned for Milestone 6 server-side validation)
+### 3.1 v2.0 Layer Hierarchy Rules
+
+These rules are defined for the next-generation layer system but are not yet wired into the main `engine.ts` orchestrator.
+
+| Rule ID | Severity | Condition | Message |
+|---------|----------|-----------|---------|
+| `rule-layer-hierarchy` | error | Block placed on plate that is not a valid parent layer | Invalid layer hierarchy for this block type |
+| `rule-grid-alignment` | error | Block position not CU-aligned (integer coordinates) | Block must be aligned to the grid |
+| `rule-no-overlap` | error | Block overlaps with sibling on same plate (AABB detection) | Block cannot overlap with other blocks |
 
 ---
 
@@ -70,65 +80,58 @@ Connection rules validate dataflow between blocks. Connections follow **initiato
 |-------------------|---------------------------|
 | `internet` | `gateway` |
 | `gateway` | `compute`, `function` |
-| `compute` | `database`, `storage` |
+| `compute` | `database`, `storage`, `analytics`, `identity`, `observability` |
 | `function` | `storage`, `database`, `queue` |
 | `queue` | `function` |
-| `timer` | `function` |
 | `event` | `function` |
-
-`database` and `storage` are receiver-only. `queue`, `timer`, and `event` can only connect to `function`.
-
-### Implementation References
-
-- **Frontend**: `apps/web/src/entities/validation/connection.ts`
-- **Backend**: Not yet implemented (planned for Milestone 6 server-side validation)
 
 ---
 
-## 5. Application Placement Rules
+## 5. Aggregation Rules
 
-Application placement rules validate that applications (software components) are placed only on **hostable** resources.
-
-> **Key principle**: Applications represent user-managed software. They can only be placed on resources that execute user code (`compute`, `function`). Managed services (`gateway`, `queue`, `storage`, `database`) do not host user applications.
+Validation for block clusters and aggregations.
 
 | Rule ID | Severity | Condition | Message |
 |---------|----------|-----------|---------|
-| `rule-app-hostable` | error | Application placed on a non-hostable resource | Applications can only be placed on compute or function blocks |
-| `rule-app-capacity` | error | Resource's app capacity exceeded | This resource can hold at most {capacity} applications |
-| `rule-app-resource` | error | Application's parent resource not found | Application must be placed on a valid resource block |
-
-### Hostable Resource Table
-
-| Resource | Hostable | Max Apps | Rationale |
-|----------|----------|----------|-----------|
-| `compute` | ✅ Yes | 3-4 | VMs/containers host user software stack |
-| `function` | ✅ Yes | 1 | Serverless hosts one handler |
-| `gateway` | ❌ No | 0 | Managed load balancer |
-| `queue` | ❌ No | 0 | Managed messaging service |
-| `storage` | ❌ No | 0 | Managed object store |
-| `database` | ❌ No | 0 | Managed database service |
-| `timer` | ❌ No | 0 | Trigger only, no runtime |
-| `event` | ❌ No | 0 | Router only, no runtime |
-
-### Self-hosted vs Managed Pattern
-
-| Scenario | Correct Model | Wrong Model |
-|----------|---------------|-------------|
-| Managed PostgreSQL (RDS, Azure SQL) | `database` block alone | `database` + postgres app ❌ |
-| Self-hosted PostgreSQL on VM | `compute` block + `postgres` app | `database` + postgres app ❌ |
-| Managed Redis (ElastiCache) | `database` block alone | `database` + redis app ❌ |
-| Self-hosted Redis on VM | `compute` block + `redis` app | `database` + redis app ❌ |
-
-### Implementation References
-
-- **Frontend**: `apps/web/src/entities/validation/application.ts` (planned)
-- **Backend**: Not yet implemented (planned for Milestone 6)
+| `rule-aggregation-count` | error | Aggregation count < 1 or non-integer | Aggregation count must be a positive integer |
 
 ---
 
-## 6. Orchestration
+## 6. Role Rules
 
-The validation engine iterates all blocks and connections, collecting errors and warnings into a single `ValidationResult`:
+Validation for identity and access management roles.
+
+| Rule ID | Severity | Condition | Message |
+|---------|----------|-----------|---------|
+| `rule-role-invalid` | error | Role not in `BLOCK_ROLES` list | Invalid role assigned to block |
+| `rule-role-duplicate` | warning | Same role appears more than once on a block | Duplicate role assigned |
+
+---
+
+## 7. Provider Validation Rules (Warnings)
+
+Specific rules based on cloud provider characteristics.
+
+| Rule ID | Severity | Condition | Message |
+|---------|----------|-----------|---------|
+| `rule-provider-aws-lambda-subnet` | warning | AWS Lambda placed on a subnet (may not need VPC) | AWS Lambda may not require a subnet placement unless VPC access is needed |
+| `rule-provider-gcp-sql-public` | warning | GCP Cloud SQL on a public subnet | GCP Cloud SQL is usually restricted to private access |
+| `rule-provider-unknown-subtype` | warning | Block subtype not in known provider subtypes | Unknown resource subtype for this provider |
+
+### Known Subtypes Table
+Provider validation uses the internal `KNOWN_SUBTYPES` map to verify resource alignment.
+
+---
+
+## 8. Orchestration
+
+The validation engine iterates all blocks and connections, collecting errors and warnings into a single `ValidationResult` through 5 distinct passes:
+
+1. **Placement Pass** (`placement.ts`)
+2. **Aggregation Pass** (`aggregation.ts`)
+3. **Role Pass** (`role.ts`)
+4. **Connection Pass** (`connection.ts`)
+5. **Provider Pass** (`providerValidation.ts`)
 
 ```typescript
 interface ValidationResult {
@@ -140,11 +143,14 @@ interface ValidationResult {
 
 ### Implementation References
 
-- **Frontend**: `apps/web/src/entities/validation/engine.ts`
+- **Frontend**:
+  - Orchestrator: `apps/web/src/entities/validation/engine.ts`
+  - Rules: `placement.ts`, `connection.ts`, `aggregation.ts`, `role.ts`, `providerValidation.ts`, `hierarchy.ts` (v2.0)
+- **Backend**: Not yet implemented (planned for Milestone 6 server-side validation)
 
 ---
 
-## 7. FE/BE Alignment Contract
+## 9. FE/BE Alignment Contract
 
 ### Current State (Milestone 5)
 
@@ -160,28 +166,10 @@ When backend validation is introduced:
 3. **Rule additions**: Add to this document first, then implement in both layers in the same PR.
 4. **Rule changes**: Update this document, update both implementations, update shared fixtures.
 
-### Compatibility Test Format
-
-```json
-{
-  "ruleSchemaVersion": "1.1.0",
-  "cases": [
-    {
-      "name": "database-on-public-subnet",
-      "input": { "blocks": [...], "plates": [...], "connections": [...] },
-      "expected": {
-        "valid": false,
-        "errors": [{ "ruleId": "rule-db-private", "targetId": "block-db01" }]
-      }
-    }
-  ]
-}
-```
-
 ---
 
-## 8. Migration Notes
+## 10. Migration Notes
 
-- Serverless block categories (`FunctionBlock`, `QueueBlock`, `EventBlock`, `TimerBlock`) are implemented and reflected in the placement rules above.
-- When adding new connection types (e.g., `EventFlow`), update the allowed connection map here first.
-- Breaking rule changes (removing a rule, changing severity) require a `ruleSchemaVersion` bump.
+- Serverless block categories (`FunctionBlock`, `QueueBlock`, `EventBlock`, `TimerBlock`) are implemented and reflected in the placement rules.
+- v2.0 Layer Hierarchy rules (layer-hierarchy, grid-alignment, no-overlap) are defined but not yet wired into the main orchestrator.
+- Breaking rule changes require a `ruleSchemaVersion` bump.
