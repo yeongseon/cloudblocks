@@ -4,8 +4,9 @@ import type {
   NormalizedModel,
   ProviderAdapter,
   ResourceMapping,
+  SubtypeResourceMap,
 } from './types';
-import { sanitizeIaCValue } from './types';
+import { resolveBlockMapping, sanitizeIaCValue } from './types';
 
 /**
  * Terraform HCL Generator (v0.3)
@@ -39,7 +40,8 @@ function buildResourceName(prefix: string, entityName: string): string {
 
 export function normalize(
   architecture: ArchitectureModel,
-  provider: ProviderAdapter
+  provider: ProviderAdapter,
+  subtypeBlockMappings?: SubtypeResourceMap,
 ): NormalizedModel {
   const resourceNames = new Map<string, string>();
   const usedNames = new Set<string>();
@@ -64,7 +66,12 @@ export function normalize(
 
   // Map blocks
   for (const block of architecture.blocks) {
-    const mapping = provider.blockMappings[block.category];
+    const mapping = resolveBlockMapping(
+      provider.blockMappings,
+      subtypeBlockMappings,
+      block.category,
+      block.subtype,
+    )!;
     const name = uniqueName(mapping.namePrefix, block.name);
     resourceNames.set(block.id, name);
   }
@@ -178,7 +185,8 @@ function generateConnectionComment(
 export function generateMainTf(
   normalized: NormalizedModel,
   provider: ProviderAdapter,
-  options: GenerationOptions
+  options: GenerationOptions,
+  subtypeBlockMappings?: SubtypeResourceMap,
 ): string {
   const { architecture, resourceNames } = normalized;
   const sections: string[] = [];
@@ -245,7 +253,12 @@ export function generateMainTf(
   // Blocks
   for (const block of architecture.blocks) {
     const resName = resourceNames.get(block.id)!;
-    const mapping = provider.blockMappings[block.category];
+    const mapping = resolveBlockMapping(
+      provider.blockMappings,
+      subtypeBlockMappings,
+      block.category,
+      block.subtype,
+    )!;
     const subnetName = resourceNames.get(block.placementId) ?? null;
     sections.push(
       generateBlockResource(block, resName, mapping, subnetName)
@@ -299,7 +312,8 @@ export function generateVariablesTf(options: GenerationOptions): string {
 
 export function generateOutputsTf(
   normalized: NormalizedModel,
-  provider: ProviderAdapter
+  provider: ProviderAdapter,
+  subtypeBlockMappings?: SubtypeResourceMap,
 ): string {
   const { architecture, resourceNames } = normalized;
   const sections: string[] = [];
@@ -313,7 +327,12 @@ export function generateOutputsTf(
   // Output each block's key attribute
   for (const block of architecture.blocks) {
     const resName = resourceNames.get(block.id)!;
-    const mapping = provider.blockMappings[block.category];
+    const mapping = resolveBlockMapping(
+      provider.blockMappings,
+      subtypeBlockMappings,
+      block.category,
+      block.subtype,
+    )!;
 
     sections.push('');
     sections.push(`output "${resName}_id" {`);
