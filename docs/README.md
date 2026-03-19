@@ -93,7 +93,7 @@ Detailed visual and interaction specifications.
 | [GRAPH_IR_SPEC.md](design/GRAPH_IR_SPEC.md) | Supporting | Graph IR specification — typed ports, protocol semantics, evolution plan |
 
 > **Historical**: BRICK_DESIGN_SPEC.md and VISUAL_DESIGN_SPEC.md describe the v1.x design system. For current specifications, see CLOUDBLOCKS_SPEC_V2.md (see [ADR-0008](adr/0008-v2-universal-architecture-specification.md)). The v2.0 spec is accepted but not yet fully implemented.
-> **UI Single Source of Truth**: All visual/interaction specs are in `CLOUDBLOCKS_SPEC_V2.md`. Section §7 covers the StarCraft-style Bottom Panel layout.
+> **UI Single Source of Truth**: All visual/interaction specs are in `CLOUDBLOCKS_SPEC_V2.md`. See that spec for the StarCraft-style Bottom Panel layout.
 
 ---
 
