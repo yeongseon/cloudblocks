@@ -154,6 +154,12 @@ Apply labels before starting work.
 #### 1) Size / tracking labels
 
 - `epic` — required for Epic tracking issues only
+- `size/S` — Small: 1–2 files, < 1 hour
+- `size/M` — Medium: 3–5 files, 1–3 hours
+- `size/L` — Large: 6–10 files, 3–8 hours
+- `size/XL` — Extra Large: 10+ files, 8+ hours
+
+Every non-Epic issue should have exactly one `size/*` label. Assign it when the issue is created.
 
 #### 2) Type labels
 
