@@ -128,7 +128,6 @@ export function SceneCanvas() {
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
     >
-      <EmptyCanvasOverlay />
       <div 
         className="scene-world"
         style={{
@@ -242,6 +241,7 @@ export function SceneCanvas() {
           })}
         </div>
       </div>
+      <EmptyCanvasOverlay />
     </div>
   );
 }
