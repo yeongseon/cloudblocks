@@ -13,7 +13,7 @@ function createBaseArchitecture(): ArchitectureModel {
       {
         id: 'plate-1',
         name: 'Network',
-        type: 'network',
+        type: 'region',
         parentId: null,
         children: ['plate-2'],
         position: { x: 0, y: 0, z: 0 },
