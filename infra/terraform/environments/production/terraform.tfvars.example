@@ -1,0 +1,51 @@
+# Azure region for all resources.
+location = "koreacentral"
+
+# Project prefix used in resource names.
+project_name = "cloudblocks"
+
+# ---------- Shared ACR ----------
+
+# Shared ACR login server from staging output.
+acr_login_server = "cloudblocksstagingacr.azurecr.io"
+
+# Shared ACR admin username from staging output.
+acr_admin_username = "replace-with-staging-acr-admin-username"
+
+# Shared ACR admin password from secure secret storage.
+acr_admin_password = "replace-with-staging-acr-admin-password"
+
+# ---------- PostgreSQL ----------
+
+# PostgreSQL admin username (must not be a reserved username).
+postgres_admin_username = "cloudblocksadmin"
+
+# PostgreSQL admin password (use a strong secret in real tfvars file).
+postgres_admin_password = "replace-with-strong-password"
+
+# ---------- Container App ----------
+
+# Docker image tag to deploy for API container.
+container_image_tag = "latest"
+
+# ---------- Auth / Secrets ----------
+
+# GitHub OAuth client ID for CloudBlocks API.
+github_client_id = "replace-with-github-client-id"
+
+# GitHub OAuth client secret for CloudBlocks API.
+github_client_secret = "replace-with-github-client-secret"
+
+# JWT signing secret used by CloudBlocks API (min 32 chars).
+jwt_secret = "replace-with-long-random-jwt-secret"
+
+# Token encryption salt for GitHub OAuth tokens (min 16 chars).
+session_secret = "replace-with-long-random-session-secret"
+
+# ---------- Frontend / CORS ----------
+
+# Production frontend URL (used for OAuth redirect and CORS).
+frontend_url = "https://cloudblocks.example.com"
+
+# Allowed CORS origins for the API.
+cors_origins = ["https://cloudblocks.example.com"]
