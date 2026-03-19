@@ -12,7 +12,7 @@ function createPlate(overrides: Partial<Plate>): Plate {
   return {
     id: 'plate-default',
     name: 'Default',
-    type: 'network',
+    type: 'region',
     parentId: null,
     children: [],
     position: basePosition,
@@ -81,7 +81,7 @@ describe('pulumi generator', () => {
   it('normalizePulumi generates unique resource names', () => {
     const model = createTestModel({
       plates: [
-        createPlate({ id: 'plate-network', name: 'VNet', type: 'network' }),
+        createPlate({ id: 'plate-network', name: 'VNet', type: 'region' }),
         createPlate({
           id: 'plate-subnet',
           name: 'Public Subnet',
@@ -170,7 +170,9 @@ describe('pulumi generator', () => {
         createBlock({ id: 'block-function', name: 'Function', category: 'function' }),
         createBlock({ id: 'block-queue', name: 'Queue', category: 'queue' }),
         createBlock({ id: 'block-event', name: 'Event', category: 'event' }),
-        createBlock({ id: 'block-timer', name: 'Timer', category: 'timer' }),
+        createBlock({ id: 'block-analytics', name: 'Analytics', category: 'analytics' }),
+        createBlock({ id: 'block-identity', name: 'Identity', category: 'identity' }),
+        createBlock({ id: 'block-observability', name: 'Observability', category: 'observability' }),
       ],
     });
     const normalized = normalizePulumi(model, azureProviderDefinition);
@@ -183,7 +185,9 @@ describe('pulumi generator', () => {
     expect(indexTs).toContain('const funcFunction = new azure.web.WebApp("funcFunction", {');
     expect(indexTs).toContain('const queueQueue = new azure.storage.Queue("queueQueue", {');
     expect(indexTs).toContain('const evtopicEvent = new azure.eventgrid.Topic("evtopicEvent", {');
-    expect(indexTs).toContain('const timerTimer = new azure.logic.Workflow("timerTimer", {');
+    expect(indexTs).toContain('const analyticsAnalytics = new azure.operationalinsights.Workspace("analyticsAnalytics", {');
+    expect(indexTs).toContain('const identityIdentity = new azure.managedidentity.UserAssignedIdentity("identityIdentity", {');
+    expect(indexTs).toContain('const monitorObservability = new azure.monitor.AzureMonitorWorkspace("monitorObservability", {');
   });
 
   it('generates subnet as top-level resource when parent network is missing', () => {

@@ -18,7 +18,7 @@ import {
 
 const MAX_IMPORT_SIZE_BYTES = 5 * 1024 * 1024;
 const DEFAULT_EXTERNAL_ACTOR_POSITION = { x: -3, y: 0, z: 5 };
-const VALID_PLATE_TYPES: PlateType[] = ['network', 'subnet'];
+const VALID_PLATE_TYPES: PlateType[] = ['global', 'edge', 'region', 'zone', 'subnet'];
 const VALID_BLOCK_CATEGORIES: BlockCategory[] = [
   'compute',
   'database',
@@ -27,7 +27,9 @@ const VALID_BLOCK_CATEGORIES: BlockCategory[] = [
   'function',
   'queue',
   'event',
-  'timer',
+  'analytics',
+  'identity',
+  'observability',
 ];
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -117,7 +119,7 @@ const validateImportData = (
       throw new Error(`${context}: name must be a string`);
     }
     if (!isValidPlateType(plate.type)) {
-      throw new Error(`${context}: type must be one of network or subnet`);
+      throw new Error(`${context}: type must be one of global, edge, region, zone, or subnet`);
     }
     validatePosition(plate.position, context);
     validateSize(plate.size, context);
@@ -143,7 +145,7 @@ const validateImportData = (
     }
     if (!isValidBlockCategory(block.category)) {
       throw new Error(
-        `${context}: category must be one of compute, database, storage, gateway, function, queue, event, timer`
+        `${context}: category must be one of compute, database, storage, gateway, function, queue, event, analytics, identity, observability`
       );
     }
     if (typeof block.placementId !== 'string') {

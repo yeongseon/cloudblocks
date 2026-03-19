@@ -38,7 +38,7 @@ const emptyArch: ArchitectureModel = {
 const networkPlate: Plate = {
   id: 'net-1',
   name: 'VNet',
-  type: 'network',
+  type: 'region',
   parentId: null,
   children: [],
   position: { x: 0, y: 0, z: 0 },
@@ -461,15 +461,15 @@ describe('MenuBar', () => {
 
     let insertDropdown = await openMenu(user, 'Insert');
     await user.click(within(insertDropdown).getByRole('button', { name: /Network/ }));
-    expect(addPlateMock).toHaveBeenCalledWith('network', 'VNet', null);
+    expect(addPlateMock).toHaveBeenCalledWith('region', 'VNet', null);
 
     insertDropdown = await openMenu(user, 'Insert');
     await user.click(within(insertDropdown).getByRole('button', { name: /Public Subnet/ }));
-    expect(toast.error).toHaveBeenCalledWith('Please create a Network Plate first.');
+    expect(toast.error).toHaveBeenCalledWith('Please create a Region Plate first.');
 
     insertDropdown = await openMenu(user, 'Insert');
     await user.click(within(insertDropdown).getByRole('button', { name: /Private Subnet/ }));
-    expect(toast.error).toHaveBeenCalledWith('Please create a Network Plate first.');
+    expect(toast.error).toHaveBeenCalledWith('Please create a Region Plate first.');
 
     setArchitectureState({ plates: [networkPlate] });
 

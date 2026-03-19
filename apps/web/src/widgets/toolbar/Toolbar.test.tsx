@@ -25,7 +25,7 @@ const emptyArch: ArchitectureModel = {
 };
 
 const networkPlate: Plate = {
-  id: 'net-1', name: 'VNet', type: 'network', parentId: null,
+  id: 'net-1', name: 'VNet', type: 'region', parentId: null,
   children: [], position: { x: 0, y: 0, z: 0 },
   size: { width: 12, height: 0.3, depth: 10 }, metadata: {},
 };
@@ -163,7 +163,7 @@ describe('Toolbar', () => {
     const user = userEvent.setup();
     render(<Toolbar />);
     await user.click(screen.getByTitle('Add Network (VNet)'));
-    expect(addPlateMock).toHaveBeenCalledWith('network', 'VNet', null);
+    expect(addPlateMock).toHaveBeenCalledWith('region', 'VNet', null);
   });
 
   it('adds public subnet when network exists', async () => {
@@ -195,7 +195,7 @@ describe('Toolbar', () => {
     const user = userEvent.setup();
     render(<Toolbar />);
     await user.click(screen.getByTitle('Add Public Subnet'));
-    expect(toast.error).toHaveBeenCalledWith('Please create a Network Plate first.');
+    expect(toast.error).toHaveBeenCalledWith('Please create a Region Plate first.');
     expect(addPlateMock).not.toHaveBeenCalled();
   });
 
@@ -228,7 +228,7 @@ describe('Toolbar', () => {
     const user = userEvent.setup();
     render(<Toolbar />);
     await user.click(screen.getByTitle('Add Private Subnet'));
-    expect(toast.error).toHaveBeenCalledWith('Please create a Network Plate first.');
+    expect(toast.error).toHaveBeenCalledWith('Please create a Region Plate first.');
   });
 
   // --- Tool modes ---

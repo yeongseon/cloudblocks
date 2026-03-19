@@ -42,7 +42,7 @@ const baseArchitecture: ArchitectureModel = {
 const networkPlate: Plate = {
   id: 'net-1',
   name: 'VNet',
-  type: 'network',
+  type: 'region',
   parentId: null,
   children: [],
   position: { x: 0, y: 0, z: 0 },
@@ -167,7 +167,7 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByRole('button', { name: /VNet/i }));
 
-    expect(addPlateMock).toHaveBeenCalledWith('network', 'VNet', null);
+    expect(addPlateMock).toHaveBeenCalledWith('region', 'VNet', null);
   });
 
   it('creates block resource when network and subnet exist', async () => {

@@ -17,7 +17,7 @@ function createPlate(overrides: Partial<Plate>): Plate {
   return {
     id: 'plate-default',
     name: 'Default',
-    type: 'network',
+    type: 'region',
     parentId: null,
     children: [],
     position: basePosition,
@@ -86,7 +86,7 @@ describe('bicep generator', () => {
   it('normalizeBicep generates unique resource names', () => {
     const model = createTestModel({
       plates: [
-        createPlate({ id: 'plate-network', name: 'VNet', type: 'network' }),
+        createPlate({ id: 'plate-network', name: 'VNet', type: 'region' }),
         createPlate({
           id: 'plate-subnet',
           name: 'Public Subnet',
@@ -120,7 +120,7 @@ describe('bicep generator', () => {
 
   it('generateMainBicep contains header, params, and resource definitions', () => {
     const model = createTestModel({
-      plates: [createPlate({ id: 'plate-network', name: 'Core', type: 'network' })],
+      plates: [createPlate({ id: 'plate-network', name: 'Core', type: 'region' })],
       blocks: [createBlock({ id: 'block-web', name: 'Frontend', category: 'compute' })],
     });
     const normalized = normalizeBicep(model, azureProviderDefinition);
@@ -175,7 +175,9 @@ describe('bicep generator', () => {
         createBlock({ id: 'block-function', name: 'Function', category: 'function' }),
         createBlock({ id: 'block-queue', name: 'Queue', category: 'queue' }),
         createBlock({ id: 'block-event', name: 'Event', category: 'event' }),
-        createBlock({ id: 'block-timer', name: 'Timer', category: 'timer' }),
+        createBlock({ id: 'block-analytics', name: 'Analytics', category: 'analytics' }),
+        createBlock({ id: 'block-identity', name: 'Identity', category: 'identity' }),
+        createBlock({ id: 'block-observability', name: 'Observability', category: 'observability' }),
       ],
     });
     const normalized = normalizeBicep(model, azureProviderDefinition);
@@ -188,7 +190,9 @@ describe('bicep generator', () => {
     expect(mainBicep).toContain("resource funcFunction 'Microsoft.Web/sites@2023-01-01' = {");
     expect(mainBicep).toContain("resource queueQueue 'Microsoft.Storage/storageAccounts/queueServices/queues@2023-01-01' = {");
     expect(mainBicep).toContain("resource evtopicEvent 'Microsoft.EventGrid/topics@2023-12-15-preview' = {");
-    expect(mainBicep).toContain("resource timerTimer 'Microsoft.Logic/workflows@2019-05-01' = {");
+    expect(mainBicep).toContain("resource analyticsAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {");
+    expect(mainBicep).toContain("resource identityIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {");
+    expect(mainBicep).toContain("resource monitorObservability 'Microsoft.Monitor/accounts@2023-04-03' = {");
   });
 
   it('generates subnet as top-level resource when parent is missing', () => {

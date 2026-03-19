@@ -46,7 +46,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         metadata: {},
       };
 
-      if (type === 'network') {
+      if (type === 'region') {
         plate.position = { x: 0, y: 0, z: 0 };
       } else if (parentId) {
         const parentPlate = arch.plates.find((candidate) => candidate.id === parentId);

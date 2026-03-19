@@ -39,11 +39,16 @@ const BLOCK_ICONS: Record<string, string> = {
   function: functionIcon,
   queue: queueIcon,
   event: eventIcon,
-  timer: eventIcon,
+  analytics: vmIcon,
+  identity: storageIcon,
+  observability: eventIcon,
 };
 
 const PLATE_ICONS: Record<string, Record<string, string>> = {
-  network: { default: vnetIcon },
+  global: { default: vnetIcon },
+  edge: { default: vnetIcon },
+  region: { default: vnetIcon },
+  zone: { default: vnetIcon },
   subnet: { public: subnetIcon, private: subnetIcon },
 };
 
@@ -90,13 +95,15 @@ export function Portrait({ className = '' }: PortraitProps) {
       ? SUBNET_ACCESS_COLORS[selectedPlate.subnetAccess]
       : PLATE_COLORS[selectedPlate.type];
 
-    const plateIcon = selectedPlate.type === 'network'
-      ? PLATE_ICONS.network.default
-      : PLATE_ICONS.subnet[selectedPlate.subnetAccess ?? 'private'];
+    const plateIcon = selectedPlate.type === 'subnet'
+      ? PLATE_ICONS.subnet[selectedPlate.subnetAccess ?? 'private']
+      : PLATE_ICONS[selectedPlate.type].default;
 
-    const altText = selectedPlate.type === 'network'
-      ? 'Virtual Network'
-      : `${selectedPlate.subnetAccess === 'public' ? 'Public' : 'Private'} Subnet`;
+    const altText = selectedPlate.type === 'subnet'
+      ? `${selectedPlate.subnetAccess === 'public' ? 'Public' : 'Private'} Subnet`
+      : selectedPlate.type === 'region'
+        ? 'Region'
+        : selectedPlate.type.charAt(0).toUpperCase() + selectedPlate.type.slice(1);
 
     return (
       <div className={`portrait-panel portrait-panel--plate ${className}`}>

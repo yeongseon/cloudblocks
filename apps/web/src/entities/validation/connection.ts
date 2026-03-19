@@ -19,15 +19,17 @@ import type {
  *   Gateway   → Function              ✔  (HTTP trigger, v1.0)
  *   Compute   → Database              ✔  (app queries database)
  *   Compute   → Storage               ✔  (app reads/writes storage)
+ *   Compute   → Analytics             ✔  (app emits/query analytics)
+ *   Compute   → Identity              ✔  (app uses identity services)
+ *   Compute   → Observability         ✔  (app publishes metrics/logs)
  *   Function  → Storage               ✔  (function accesses storage, v1.0)
  *   Function  → Database              ✔  (function accesses database, v1.0)
  *   Function  → Queue                 ✔  (function enqueues messages, v1.0)
  *   Queue     → Function              ✔  (queue trigger, v1.0)
- *   Timer     → Function              ✔  (timer trigger, v1.0)
  *   Event     → Function              ✔  (event trigger, v1.0)
  *
- * Database and Storage are receiver-only — they never initiate connections.
- * Queue, Timer, and Event can only connect to Function.
+ * Database, Storage, Analytics, Identity, and Observability are receiver-only — they never initiate connections.
+ * Queue and Event can only connect to Function.
  */
 
 export type EndpointType = BlockCategory | 'internet';
@@ -36,10 +38,9 @@ export type EndpointType = BlockCategory | 'internet';
 const ALLOWED_CONNECTIONS: Record<string, Set<string>> = {
   internet: new Set(['gateway']),
   gateway: new Set(['compute', 'function']),
-  compute: new Set(['database', 'storage']),
+  compute: new Set(['database', 'storage', 'analytics', 'identity', 'observability']),
   function: new Set(['storage', 'database', 'queue']),
   queue: new Set(['function']),
-  timer: new Set(['function']),
   event: new Set(['function']),
   // database and storage are receiver-only — not listed as sources
 };

@@ -150,7 +150,7 @@ describe('scenario-engine', () => {
           {
             id: 'test-network',
             name: 'VNet',
-            type: 'network',
+            type: 'region',
             parentId: null,
             children: [],
             position: { x: 0, y: 0, z: 0 },
@@ -171,7 +171,7 @@ describe('scenario-engine', () => {
           {
             id: 'existing-network',
             name: 'Old Network',
-            type: 'network',
+            type: 'region',
             parentId: null,
             children: [],
             position: { x: 0, y: 0, z: 0 },
@@ -478,7 +478,7 @@ describe('scenario-engine', () => {
           {
             id: 'restart-network',
             name: 'VNet',
-            type: 'network',
+            type: 'region',
             parentId: null,
             children: [],
             position: { x: 0, y: 0, z: 0 },

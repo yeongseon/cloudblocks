@@ -11,7 +11,7 @@ vi.mock('./DetailPanel.css', () => ({}));
 const networkPlate: Plate = {
   id: 'net-1',
   name: 'Main VNet',
-  type: 'network',
+  type: 'region',
   parentId: null,
   children: [],
   position: { x: 0, y: 0, z: 0 },
@@ -149,13 +149,13 @@ describe('DetailPanel', () => {
     expect(screen.getByText('Welcome to CloudBlocks!')).toBeInTheDocument();
   });
 
-  it('renders network plate detail with network icon and no parent row', () => {
+  it('renders region plate detail with network icon and no parent row', () => {
     useUIStore.setState({ selectedId: 'net-1' });
 
     render(<DetailPanel />);
 
     expect(screen.getByText('🌐')).toBeInTheDocument();
-    expect(screen.getByText('Virtual Network')).toBeInTheDocument();
+    expect(screen.getByText('Region')).toBeInTheDocument();
     expect(screen.queryByText('Parent')).not.toBeInTheDocument();
   });
 

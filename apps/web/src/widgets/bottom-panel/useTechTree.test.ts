@@ -35,7 +35,7 @@ const BASE_ARCHITECTURE: ArchitectureModel = {
 const NETWORK_PLATE: Plate = {
   id: 'net-1',
   name: 'VNet',
-  type: 'network',
+  type: 'region',
   parentId: null,
   children: [],
   position: { x: 0, y: 0, z: 0 },
@@ -64,7 +64,9 @@ function buildArchitecture(plates: Plate[], blockCount = 0): ArchitectureModel {
     'function',
     'queue',
     'event',
-    'timer',
+    'analytics',
+    'identity',
+    'observability',
   ];
 
   return {
@@ -134,7 +136,6 @@ describe('useTechTree constants', () => {
       },
       queue: { id: 'queue', label: 'Queue', shortLabel: 'Queue', icon: '📨', category: 'vnet-optional', blockCategory: 'queue' },
       event: { id: 'event', label: 'Event Hub', shortLabel: 'Event', icon: '🔔', category: 'vnet-optional', blockCategory: 'event' },
-      timer: { id: 'timer', label: 'Timer', shortLabel: 'Timer', icon: '⏰', category: 'vnet-optional', blockCategory: 'timer' },
       'app-service': {
         id: 'app-service',
         label: 'App Service',
@@ -229,7 +230,6 @@ describe('useTechTree constants', () => {
       'function',
       'queue',
       'event',
-      'timer',
       'app-service',
       'container-instances',
       'cosmos-db',
@@ -241,7 +241,7 @@ describe('useTechTree constants', () => {
       'nsg',
       'bastion',
     ];
-    expect(resourceTypes).toHaveLength(22);
+    expect(resourceTypes).toHaveLength(21);
 
     for (const resourceType of resourceTypes) {
       const actual = RESOURCE_DEFINITIONS[resourceType];
@@ -306,7 +306,7 @@ describe('useTechTree constants', () => {
         id: 'messaging',
         label: 'Messaging',
         resources: [
-          ['queue', 'event', 'timer'],
+          ['queue', 'event', null],
           [null, null, null],
           [null, null, null],
         ],

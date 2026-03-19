@@ -20,7 +20,7 @@ describe('plate profile helpers', () => {
   it('defines exactly 8 plate profiles with 4 network and 4 subnet', () => {
     const profiles = Object.values(PLATE_PROFILES);
     expect(profiles).toHaveLength(8);
-    expect(profiles.filter((profile) => profile.type === 'network')).toHaveLength(4);
+    expect(profiles.filter((profile) => profile.type === 'region')).toHaveLength(4);
     expect(profiles.filter((profile) => profile.type === 'subnet')).toHaveLength(4);
   });
 
@@ -44,7 +44,7 @@ describe('plate profile helpers', () => {
   it('infers exact legacy profile matches for known dimensions', () => {
     expect(
       inferLegacyPlateProfileId({
-        type: 'network',
+        type: 'region',
         size: { width: 16, depth: 20 },
       })
     ).toBe('network-platform');
@@ -60,7 +60,7 @@ describe('plate profile helpers', () => {
   it('infers the closest network profile by area for non-exact legacy dimensions', () => {
     expect(
       inferLegacyPlateProfileId({
-        type: 'network',
+        type: 'region',
         size: { width: 14, depth: 18 },
       })
     ).toBe('network-application');
@@ -80,7 +80,7 @@ describe('plate profile helpers', () => {
   });
 
   it('returns network stud colors for network plates', () => {
-    expect(getPlateStudColors({ type: 'network' })).toEqual(NETWORK_STUD_COLORS);
+    expect(getPlateStudColors({ type: 'region' })).toEqual(NETWORK_STUD_COLORS);
   });
 
   it('returns public subnet stud colors for public subnet plates', () => {
@@ -100,13 +100,25 @@ describe('plate profile helpers', () => {
   });
 
   it('defines expected default profile ids by plate type', () => {
-    expect(DEFAULT_PLATE_PROFILE.network).toBe('network-platform');
+    expect(DEFAULT_PLATE_PROFILE.global).toBe('network-hub');
+    expect(DEFAULT_PLATE_PROFILE.edge).toBe('network-sandbox');
+    expect(DEFAULT_PLATE_PROFILE.region).toBe('network-platform');
+    expect(DEFAULT_PLATE_PROFILE.zone).toBe('network-application');
     expect(DEFAULT_PLATE_PROFILE.subnet).toBe('subnet-service');
   });
 
   it('defines expected default plate sizes from default profiles', () => {
-    expect(DEFAULT_PLATE_SIZE.network).toEqual(
+    expect(DEFAULT_PLATE_SIZE.global).toEqual(
+      buildPlateSizeFromProfileId('network-hub')
+    );
+    expect(DEFAULT_PLATE_SIZE.edge).toEqual(
+      buildPlateSizeFromProfileId('network-sandbox')
+    );
+    expect(DEFAULT_PLATE_SIZE.region).toEqual(
       buildPlateSizeFromProfileId('network-platform')
+    );
+    expect(DEFAULT_PLATE_SIZE.zone).toEqual(
+      buildPlateSizeFromProfileId('network-application')
     );
     expect(DEFAULT_PLATE_SIZE.subnet).toEqual(buildPlateSizeFromProfileId('subnet-service'));
   });

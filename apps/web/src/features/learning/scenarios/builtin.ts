@@ -17,7 +17,7 @@ const threeTierCheckpointNetworkOnly: ArchitectureSnapshot = {
     {
       id: 'plate-scn3tier-vnet',
       name: 'VNet',
-      type: 'network',
+      type: 'region',
       parentId: null,
       children: [],
       position: { x: 0, y: 0, z: 0 },
@@ -37,7 +37,7 @@ const threeTierCheckpointWithSubnets: ArchitectureSnapshot = {
     {
       id: 'plate-scn3tier-vnet',
       name: 'VNet',
-      type: 'network',
+      type: 'region',
       parentId: null,
       children: ['plate-scn3tier-public', 'plate-scn3tier-private'],
       position: { x: 0, y: 0, z: 0 },
@@ -79,7 +79,7 @@ const threeTierCheckpointWithBlocks: ArchitectureSnapshot = {
     {
       id: 'plate-scn3tier-vnet',
       name: 'VNet',
-      type: 'network',
+      type: 'region',
       parentId: null,
       children: ['plate-scn3tier-public', 'plate-scn3tier-private'],
       position: { x: 0, y: 0, z: 0 },
@@ -159,7 +159,7 @@ const threeTierScenario: Scenario = {
         'A Network plate represents a Virtual Network (VNet) - the isolated network boundary for your cloud resources.',
         'Click the Network plate button in the Command Card to add one to the canvas.',
       ],
-      validationRules: [{ type: 'plate-exists', plateType: 'network' }],
+      validationRules: [{ type: 'plate-exists', plateType: 'region' }],
     },
     {
       id: 'step-three-tier-add-subnets',
@@ -243,7 +243,7 @@ const serverlessApiInitialArchitecture: ArchitectureSnapshot = {
     {
       id: 'plate-scnsls-vnet',
       name: 'VNet',
-      type: 'network',
+      type: 'region',
       parentId: null,
       children: [],
       position: { x: 0, y: 0, z: 0 },
@@ -263,7 +263,7 @@ const serverlessApiCheckpointWithSubnets: ArchitectureSnapshot = {
     {
       id: 'plate-scnsls-vnet',
       name: 'VNet',
-      type: 'network',
+      type: 'region',
       parentId: null,
       children: ['plate-scnsls-public', 'plate-scnsls-private'],
       position: { x: 0, y: 0, z: 0 },
@@ -340,7 +340,7 @@ const serverlessApiScenario: Scenario = {
           onPlateType: 'subnet',
           onSubnetAccess: 'public',
         },
-        { type: 'block-exists', category: 'function', onPlateType: 'network' },
+        { type: 'block-exists', category: 'function', onPlateType: 'region' },
         {
           type: 'block-exists',
           category: 'database',
@@ -386,7 +386,7 @@ const eventPipelineInitialArchitecture: ArchitectureSnapshot = {
     {
       id: 'plate-scnevt-vnet',
       name: 'VNet',
-      type: 'network',
+      type: 'region',
       parentId: null,
       children: ['plate-scnevt-private'],
       position: { x: 0, y: 0, z: 0 },
@@ -417,7 +417,7 @@ const eventPipelineCheckpointAfterStep2: ArchitectureSnapshot = {
     {
       id: 'plate-scnevt-vnet',
       name: 'VNet',
-      type: 'network',
+      type: 'region',
       parentId: null,
       children: ['plate-scnevt-private', 'block-scnevt-event', 'block-scnevt-queue'],
       position: { x: 0, y: 0, z: 0 },
@@ -465,7 +465,7 @@ const eventPipelineCheckpointWithAllBlocks: ArchitectureSnapshot = {
     {
       id: 'plate-scnevt-vnet',
       name: 'VNet',
-      type: 'network',
+      type: 'region',
       parentId: null,
       children: [
         'plate-scnevt-private',
@@ -526,8 +526,8 @@ const eventPipelineCheckpointWithAllBlocks: ArchitectureSnapshot = {
     },
     {
       id: 'block-scnevt-timer',
-      name: 'Timer',
-      category: 'timer',
+      name: 'Scheduled Event',
+      category: 'event',
       placementId: 'plate-scnevt-vnet',
       position: { x: 3.5, y: 0.5, z: -0.2 },
       metadata: {},
@@ -559,14 +559,14 @@ const eventPipelineScenario: Scenario = {
       id: 'step-event-pipeline-add-sources',
       order: 1,
       title: 'Add Event Sources',
-      instruction: 'Place an Event source and a Queue on the Network plate.',
+      instruction: 'Place an Event source and a Queue on the Region plate.',
       hints: [
-        'Events and Queues are serverless resources that live on the Network plate.',
+        'Events and Queues are serverless resources that live on the Region plate.',
         'Events trigger functions when something happens. Queues buffer messages for processing.',
       ],
       validationRules: [
-        { type: 'block-exists', category: 'event', onPlateType: 'network' },
-        { type: 'block-exists', category: 'queue', onPlateType: 'network' },
+        { type: 'block-exists', category: 'event', onPlateType: 'region' },
+        { type: 'block-exists', category: 'queue', onPlateType: 'region' },
       ],
     },
     {
@@ -574,10 +574,10 @@ const eventPipelineScenario: Scenario = {
       order: 2,
       title: 'Add Processing Functions',
       instruction:
-        'Place two Function blocks on the Network plate - one for event processing and one for batch processing.',
+        'Place two Function blocks on the Region plate - one for event processing and one for batch processing.',
       hints: [
         'You need at least two functions: one triggered by events and one for batch processing.',
-        'Functions run on the Network plate, not in subnets.',
+        'Functions run on the Region plate, not in subnets.',
       ],
       validationRules: [{ type: 'min-block-count', category: 'function', count: 2 }],
       checkpoint: eventPipelineCheckpointAfterStep2,
@@ -585,14 +585,14 @@ const eventPipelineScenario: Scenario = {
     {
       id: 'step-event-pipeline-add-timer-storage',
       order: 3,
-      title: 'Add a Timer and Storage',
-      instruction: 'Place a Timer on the Network plate and a Storage block on the Private Subnet.',
+      title: 'Add an Event Trigger and Storage',
+      instruction: 'Place an Event trigger on the Region plate and a Storage block on the Private Subnet.',
       hints: [
-        'Timers trigger functions on a schedule - great for batch processing.',
+        'Event triggers can drive scheduled or asynchronous processing workflows.',
         'Storage in the private subnet keeps your data secure.',
       ],
       validationRules: [
-        { type: 'block-exists', category: 'timer', onPlateType: 'network' },
+        { type: 'block-exists', category: 'event', onPlateType: 'region' },
         {
           type: 'block-exists',
           category: 'storage',
@@ -605,16 +605,15 @@ const eventPipelineScenario: Scenario = {
       id: 'step-event-pipeline-connect',
       order: 4,
       title: 'Connect the Pipeline',
-      instruction: 'Wire: Event -> Function, Queue -> Function, Timer -> Function, and Functions -> Storage.',
+      instruction: 'Wire: Event -> Function, Queue -> Function, Event -> Function, and Functions -> Storage.',
       hints: [
-        'Events, Queues, and Timers all trigger Functions.',
+        'Events and Queues trigger Functions for processing.',
         'Functions process data and write results to Storage.',
         'Each trigger type connects to its designated processing function.',
       ],
       validationRules: [
         { type: 'connection-exists', sourceCategory: 'event', targetCategory: 'function' },
         { type: 'connection-exists', sourceCategory: 'queue', targetCategory: 'function' },
-        { type: 'connection-exists', sourceCategory: 'timer', targetCategory: 'function' },
         { type: 'connection-exists', sourceCategory: 'function', targetCategory: 'storage' },
       ],
       checkpoint: eventPipelineCheckpointWithAllBlocks,
@@ -625,13 +624,13 @@ const eventPipelineScenario: Scenario = {
       title: 'Final Validation',
       instruction: 'Validate your event-driven pipeline architecture.',
       hints: [
-        'All serverless blocks must be on the Network plate.',
+        'All serverless blocks must be on the Region plate.',
         'Ensure at least 2 functions are present for the dual-processing pattern.',
       ],
       validationRules: [
         { type: 'architecture-valid' },
         { type: 'min-block-count', category: 'function', count: 2 },
-        { type: 'min-plate-count', plateType: 'network', count: 1 },
+        { type: 'min-plate-count', plateType: 'region', count: 1 },
       ],
     },
   ],

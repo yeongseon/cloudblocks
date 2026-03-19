@@ -34,7 +34,7 @@ function setupMocks(interactionState: 'idle' | 'connecting', connectionSource: s
             {
               id: 'plate-1',
               name: 'VNet',
-              type: 'network' as const,
+              type: 'region' as const,
               parentId: null,
               children: [],
               position: { x: 0, y: 0, z: 0 },

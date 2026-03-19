@@ -16,7 +16,7 @@ function createPlate(overrides: Partial<Plate>): Plate {
   return {
     id: 'plate-default',
     name: 'Default Plate',
-    type: 'network',
+    type: 'region',
     parentId: null,
     children: [],
     position: basePosition,
@@ -79,8 +79,8 @@ describe('normalize', () => {
   it('maps plates and blocks to unique resource names with suffixes for duplicates', () => {
     const model = createTestModel({
       plates: [
-        createPlate({ id: 'net-1', name: 'Main Net', type: 'network', parentId: null }),
-        createPlate({ id: 'net-2', name: 'Main Net', type: 'network', parentId: null }),
+        createPlate({ id: 'net-1', name: 'Main Net', type: 'region', parentId: null }),
+        createPlate({ id: 'net-2', name: 'Main Net', type: 'region', parentId: null }),
       ],
       blocks: [
         createBlock({ id: 'web-1', name: 'App', category: 'compute' }),
@@ -100,7 +100,7 @@ describe('normalize', () => {
 
   it('sanitizes names by replacing special characters with underscores', () => {
     const model = createTestModel({
-      plates: [createPlate({ id: 'net-1', name: '*** Core Network ###', type: 'network' })],
+      plates: [createPlate({ id: 'net-1', name: '*** Core Network ###', type: 'region' })],
       blocks: [createBlock({ id: 'web-1', name: 'My App ! 01', category: 'compute' })],
     });
 
@@ -115,7 +115,7 @@ describe('generateMainTf', () => {
   it('contains required providers, provider block, resource group, plates, blocks, and connection comments', () => {
     const model = createTestModel({
       plates: [
-        createPlate({ id: 'net1', name: 'Core VNet', type: 'network', parentId: null, children: ['sub1'] }),
+        createPlate({ id: 'net1', name: 'Core VNet', type: 'region', parentId: null, children: ['sub1'] }),
         createPlate({
           id: 'sub1',
           name: 'Public Subnet',
@@ -182,7 +182,7 @@ describe('generateMainTf', () => {
           subnetAccess: 'private',
           parentId: 'net1',
         }),
-        createPlate({ id: 'net1', name: 'App Network', type: 'network', parentId: null }),
+        createPlate({ id: 'net1', name: 'App Network', type: 'region', parentId: null }),
       ],
     });
 
@@ -198,7 +198,7 @@ describe('generateMainTf', () => {
   it('makes subnet resources reference the parent vnet resource name', () => {
     const model = createTestModel({
       plates: [
-        createPlate({ id: 'net1', name: 'Network-A', type: 'network', parentId: null }),
+        createPlate({ id: 'net1', name: 'Network-A', type: 'region', parentId: null }),
         createPlate({
           id: 'sub1',
           name: 'Public-A',
@@ -263,14 +263,16 @@ describe('generateMainTf', () => {
     expect(hclWithoutConnections).not.toContain('# ─── Data Flow Connections ─────────────────────');
   });
 
-  it('generates serverless block resources (function, queue, event, timer)', () => {
+  it('generates serverless and new category resources', () => {
     const model = createTestModel({
-      plates: [createPlate({ id: 'net1', name: 'VNet', type: 'network' })],
+      plates: [createPlate({ id: 'net1', name: 'VNet', type: 'region' })],
       blocks: [
         createBlock({ id: 'fn1', name: 'Handler', category: 'function', placementId: 'net1' }),
         createBlock({ id: 'q1', name: 'TaskQueue', category: 'queue', placementId: 'net1' }),
         createBlock({ id: 'ev1', name: 'EventSrc', category: 'event', placementId: 'net1' }),
-        createBlock({ id: 'tm1', name: 'Cron', category: 'timer', placementId: 'net1' }),
+        createBlock({ id: 'an1', name: 'Analytics', category: 'analytics', placementId: 'net1' }),
+        createBlock({ id: 'id1', name: 'Identity', category: 'identity', placementId: 'net1' }),
+        createBlock({ id: 'ob1', name: 'Monitor', category: 'observability', placementId: 'net1' }),
       ],
     });
 
@@ -279,12 +281,14 @@ describe('generateMainTf', () => {
     expect(hcl).toContain('resource "azurerm_linux_function_app"');
     expect(hcl).toContain('resource "azurerm_storage_queue"');
     expect(hcl).toContain('resource "azurerm_eventgrid_topic"');
-    expect(hcl).toContain('resource "azurerm_logic_app_workflow"');
+    expect(hcl).toContain('resource "azurerm_log_analytics_workspace"');
+    expect(hcl).toContain('resource "azurerm_user_assigned_identity"');
+    expect(hcl).toContain('resource "azurerm_monitor_workspace"');
   });
 
   it('includes service plan when only function blocks exist', () => {
     const model = createTestModel({
-      plates: [createPlate({ id: 'net1', name: 'VNet', type: 'network' })],
+      plates: [createPlate({ id: 'net1', name: 'VNet', type: 'region' })],
       blocks: [createBlock({ id: 'fn1', name: 'Handler', category: 'function', placementId: 'net1' })],
     });
 

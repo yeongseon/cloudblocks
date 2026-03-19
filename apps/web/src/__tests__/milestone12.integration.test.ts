@@ -413,7 +413,7 @@ describe('Milestone 12 Integration Tests', () => {
 
     it('stores provider, subtype, and config when adding block through store slice', () => {
       const state = useArchitectureStore.getState();
-      state.addPlate('network', 'VNet', null);
+      state.addPlate('region', 'VNet', null);
       const networkId = useArchitectureStore.getState().workspace.architecture.plates[0].id;
       state.addPlate('subnet', 'Private Subnet', networkId, 'private');
       const subnetId = useArchitectureStore.getState().workspace.architecture.plates[1].id;
@@ -435,7 +435,7 @@ describe('Milestone 12 Integration Tests', () => {
 
     it('keeps subtype and config undefined when adding block without subtype metadata', () => {
       const state = useArchitectureStore.getState();
-      state.addPlate('network', 'VNet', null);
+      state.addPlate('region', 'VNet', null);
       const networkId = useArchitectureStore.getState().workspace.architecture.plates[0].id;
       state.addPlate('subnet', 'Private Subnet', networkId, 'private');
       const subnetId = useArchitectureStore.getState().workspace.architecture.plates[1].id;

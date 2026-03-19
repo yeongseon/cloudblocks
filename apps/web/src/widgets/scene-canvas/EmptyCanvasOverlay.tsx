@@ -30,7 +30,7 @@ export function EmptyCanvasOverlay() {
           <button
             type="button"
             className="empty-canvas-btn empty-canvas-btn--scratch"
-            onClick={() => addPlate('network', 'VNet', null)}
+            onClick={() => addPlate('region', 'VNet', null)}
           >
             ✨ Start from Scratch
           </button>

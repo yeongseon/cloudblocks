@@ -162,7 +162,7 @@ describe('LearningPanel widgets', () => {
     }
 
     const ruleSet: StepValidationRule[] = [
-      { type: 'plate-exists', plateType: 'network' },
+      { type: 'plate-exists', plateType: 'region' },
       { type: 'plate-exists', plateType: 'subnet', subnetAccess: 'public' },
       { type: 'block-exists', category: 'compute' },
       { type: 'connection-exists', sourceCategory: 'gateway', targetCategory: 'compute' },
@@ -196,7 +196,7 @@ describe('LearningPanel widgets', () => {
 
     render(<LearningPanel />);
 
-    expect(screen.getByText('Add a network plate')).toBeInTheDocument();
+    expect(screen.getByText('Add a region plate')).toBeInTheDocument();
     expect(screen.getByText('Add a public subnet plate')).toBeInTheDocument();
     expect(screen.getByText('Add a compute block')).toBeInTheDocument();
     expect(screen.getByText('Connect gateway to compute')).toBeInTheDocument();

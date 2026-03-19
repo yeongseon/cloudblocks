@@ -51,15 +51,35 @@ export const gcpProviderDefinition: ProviderDefinition = {
       resourceType: 'google_eventarc_trigger',
       namePrefix: 'trigger',
     },
-    timer: {
-      resourceType: 'google_cloud_scheduler_job',
-      namePrefix: 'schedule',
+    analytics: {
+      resourceType: 'google_bigquery_dataset',
+      namePrefix: 'analytics',
+    },
+    identity: {
+      resourceType: 'google_service_account',
+      namePrefix: 'sa',
+    },
+    observability: {
+      resourceType: 'google_monitoring_dashboard',
+      namePrefix: 'dashboard',
     },
   },
   plateMappings: {
-    network: {
+    global: {
+      resourceType: 'google_compute_network',
+      namePrefix: 'global',
+    },
+    edge: {
+      resourceType: 'google_compute_network',
+      namePrefix: 'edge',
+    },
+    region: {
       resourceType: 'google_compute_network',
       namePrefix: 'network',
+    },
+    zone: {
+      resourceType: 'google_compute_network',
+      namePrefix: 'zone',
     },
     subnet: {
       resourceType: 'google_compute_subnetwork',

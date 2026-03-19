@@ -102,4 +102,48 @@ describe('useAuthStore', () => {
     expect(state.hydrated).toBe(true);
     expect(state.error).toBe('Session check failed');
   });
+
+  it('checkSession ignores stale success response when another call follows', async () => {
+    // First call resolves slowly, second call resolves immediately
+    let resolveFirst!: (v: ApiUser) => void;
+    const firstPromise = new Promise<ApiUser>((r) => { resolveFirst = r; });
+    mockApiGet.mockReturnValueOnce(firstPromise as ReturnType<typeof apiGet>);
+    mockApiGet.mockResolvedValueOnce(mockUser);
+
+    // Fire first call (will be stale)
+    const call1 = useAuthStore.getState().checkSession();
+    // Fire second call immediately (supersedes first)
+    const call2 = useAuthStore.getState().checkSession();
+
+    await call2;
+
+    // Now resolve first — should be ignored (stale)
+    resolveFirst(mockUser);
+    await call1;
+
+    const state = useAuthStore.getState();
+    expect(state.status).toBe('authenticated');
+    expect(state.hydrated).toBe(true);
+  });
+
+  it('checkSession ignores stale error response when another call follows', async () => {
+    let rejectFirst!: (e: Error) => void;
+    const firstPromise = new Promise<never>((_, r) => { rejectFirst = r; });
+    mockApiGet.mockReturnValueOnce(firstPromise as ReturnType<typeof apiGet>);
+    mockApiGet.mockResolvedValueOnce(mockUser);
+
+    const call1 = useAuthStore.getState().checkSession();
+    const call2 = useAuthStore.getState().checkSession();
+
+    await call2;
+
+    // Now reject first — should be ignored (stale)
+    rejectFirst(new Error('Network error'));
+    await call1;
+
+    const state = useAuthStore.getState();
+    // Should still be authenticated from call2, not error from call1
+    expect(state.status).toBe('authenticated');
+    expect(state.error).toBe(null);
+  });
 });

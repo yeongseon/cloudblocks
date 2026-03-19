@@ -32,7 +32,7 @@ const scenarioA: Scenario = {
       title: 'Add VNet',
       instruction: 'Create one VNet plate',
       hints: ['Use Infra tab'],
-      validationRules: [{ type: 'plate-exists', plateType: 'network' }],
+      validationRules: [{ type: 'plate-exists', plateType: 'region' }],
     },
   ],
 };

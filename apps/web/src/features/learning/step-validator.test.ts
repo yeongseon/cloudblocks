@@ -13,7 +13,7 @@ const createTestModel = (): ArchitectureModel => ({
     {
       id: 'plate-vnet',
       name: 'VNet',
-      type: 'network',
+      type: 'region',
       parentId: null,
       children: ['plate-public', 'plate-private'],
       position: { x: 0, y: 0, z: 0 },
@@ -99,7 +99,7 @@ describe('evaluateRule', () => {
   describe('plate-exists', () => {
     it('finds network plate', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'plate-exists', plateType: 'network' };
+      const rule: StepValidationRule = { type: 'plate-exists', plateType: 'region' };
       expect(evaluateRule(rule, model)).toBe(true);
     });
 
@@ -115,7 +115,7 @@ describe('evaluateRule', () => {
         ...model,
         plates: model.plates.filter((plate) => plate.type === 'subnet'),
       };
-      const rule: StepValidationRule = { type: 'plate-exists', plateType: 'network' };
+      const rule: StepValidationRule = { type: 'plate-exists', plateType: 'region' };
       expect(evaluateRule(rule, noNetworkModel)).toBe(false);
     });
 
@@ -162,7 +162,7 @@ describe('evaluateRule', () => {
 
     it('fails for block on wrong plate type', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'block-exists', category: 'database', onPlateType: 'network' };
+      const rule: StepValidationRule = { type: 'block-exists', category: 'database', onPlateType: 'region' };
       expect(evaluateRule(rule, model)).toBe(false);
     });
 
@@ -277,7 +277,7 @@ describe('evaluateRule', () => {
 
     it('fails when entity is not on specified plate type', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'entity-on-plate', entityCategory: 'database', plateType: 'network' };
+      const rule: StepValidationRule = { type: 'entity-on-plate', entityCategory: 'database', plateType: 'region' };
       expect(evaluateRule(rule, model)).toBe(false);
     });
 
@@ -348,7 +348,7 @@ describe('evaluateRule', () => {
   describe('min-plate-count', () => {
     it('passes when count is met', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'min-plate-count', plateType: 'network', count: 1 };
+      const rule: StepValidationRule = { type: 'min-plate-count', plateType: 'region', count: 1 };
       expect(evaluateRule(rule, model)).toBe(true);
     });
 
@@ -371,7 +371,7 @@ describe('evaluateRules', () => {
   it('passes when all rules pass', () => {
     const model = createTestModel();
     const rules: StepValidationRule[] = [
-      { type: 'plate-exists', plateType: 'network' },
+      { type: 'plate-exists', plateType: 'region' },
       { type: 'block-exists', category: 'gateway' },
       { type: 'connection-exists', sourceCategory: 'compute', targetCategory: 'database' },
       { type: 'architecture-valid' },
@@ -387,7 +387,7 @@ describe('evaluateRules', () => {
   it('fails when some rules fail and keeps result order', () => {
     const model = createTestModel();
     const rules: StepValidationRule[] = [
-      { type: 'plate-exists', plateType: 'network' },
+      { type: 'plate-exists', plateType: 'region' },
       { type: 'min-block-count', category: 'gateway', count: 2 },
       { type: 'connection-exists', sourceCategory: 'database', targetCategory: 'gateway' },
     ];

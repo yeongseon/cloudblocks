@@ -51,15 +51,35 @@ export const awsProviderDefinition: ProviderDefinition = {
       resourceType: 'aws_sns_topic',
       namePrefix: 'topic',
     },
-    timer: {
-      resourceType: 'aws_cloudwatch_event_rule',
-      namePrefix: 'schedule',
+    analytics: {
+      resourceType: 'aws_athena_workgroup',
+      namePrefix: 'analytics',
+    },
+    identity: {
+      resourceType: 'aws_iam_role',
+      namePrefix: 'role',
+    },
+    observability: {
+      resourceType: 'aws_cloudwatch_dashboard',
+      namePrefix: 'dashboard',
     },
   },
   plateMappings: {
-    network: {
+    global: {
+      resourceType: 'aws_vpc',
+      namePrefix: 'global',
+    },
+    edge: {
+      resourceType: 'aws_vpc',
+      namePrefix: 'edge',
+    },
+    region: {
       resourceType: 'aws_vpc',
       namePrefix: 'vpc',
+    },
+    zone: {
+      resourceType: 'aws_vpc',
+      namePrefix: 'zone',
     },
     subnet: {
       resourceType: 'aws_subnet',

@@ -124,8 +124,8 @@ describe('registerBuiltinTemplates', () => {
 
     const categories = template?.architecture.blocks.map((b) => b.category).sort();
     expect(categories).toEqual([
-      'compute', 'database', 'event', 'function', 'function', 'function',
-      'gateway', 'queue', 'storage', 'timer',
+      'compute', 'database', 'event', 'event', 'function', 'function',
+      'function', 'gateway', 'queue', 'storage',
     ]);
   });
 });

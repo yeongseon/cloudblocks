@@ -101,14 +101,14 @@ export function MenuBar() {
   };
 
   const handleAddNetwork = () => {
-    addPlate('network', 'VNet', null);
+    addPlate('region', 'VNet', null);
     playSound('block-snap');
   };
 
   const handleAddPublicSubnet = () => {
-    const network = architecture.plates.find((p) => p.type === 'network');
+    const network = architecture.plates.find((p) => p.type === 'region');
     if (!network) {
-      toast.error('Please create a Network Plate first.');
+      toast.error('Please create a Region Plate first.');
       return;
     }
     addPlate('subnet', 'Public Subnet', network.id, 'public');
@@ -116,9 +116,9 @@ export function MenuBar() {
   };
 
   const handleAddPrivateSubnet = () => {
-    const network = architecture.plates.find((p) => p.type === 'network');
+    const network = architecture.plates.find((p) => p.type === 'region');
     if (!network) {
-      toast.error('Please create a Network Plate first.');
+      toast.error('Please create a Region Plate first.');
       return;
     }
     addPlate('subnet', 'Private Subnet', network.id, 'private');

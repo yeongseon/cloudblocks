@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import {
   CONNECTION_TYPE_LABELS,
+  SUBTYPE_SIZE_OVERRIDES,
+  CATEGORY_TIER_MAP,
+  TIER_DIMENSIONS,
+  getBlockDimensions,
 } from '../index';
 import { BLOCK_VISUAL_PROFILES } from '../visualProfile';
 import type {
@@ -19,7 +23,9 @@ const blockCategories: BlockCategory[] = [
   'function',
   'queue',
   'event',
-  'timer',
+  'analytics',
+  'identity',
+  'observability',
 ];
 
 const connectionTypes: ConnectionType[] = [
@@ -131,5 +137,119 @@ describe('core model type coverage', () => {
 
     expect(providerTypes.every((provider) => allowedProviders[provider])).toBe(true);
     expect(providerTypes).toEqual(['azure', 'aws', 'gcp']);
+  });
+});
+
+describe('SUBTYPE_SIZE_OVERRIDES', () => {
+  it('contains all AWS subtypes from spec §6.1 (21 entries)', () => {
+    const awsKeys = Object.keys(SUBTYPE_SIZE_OVERRIDES).filter((k) => k.startsWith('aws:'));
+    expect(awsKeys).toHaveLength(21);
+  });
+
+  it('contains all Azure subtypes from spec §6.2 (17 entries)', () => {
+    const azureKeys = Object.keys(SUBTYPE_SIZE_OVERRIDES).filter((k) => k.startsWith('azure:'));
+    expect(azureKeys).toHaveLength(17);
+  });
+
+  it('contains all GCP subtypes from spec §6.3 (17 entries)', () => {
+    const gcpKeys = Object.keys(SUBTYPE_SIZE_OVERRIDES).filter((k) => k.startsWith('gcp:'));
+    expect(gcpKeys).toHaveLength(17);
+  });
+
+  it('all override values have positive integer CU dimensions', () => {
+    for (const [key, dims] of Object.entries(SUBTYPE_SIZE_OVERRIDES)) {
+      expect(Number.isInteger(dims.width), `${key} width`).toBe(true);
+      expect(Number.isInteger(dims.depth), `${key} depth`).toBe(true);
+      expect(Number.isInteger(dims.height), `${key} height`).toBe(true);
+      expect(dims.width, `${key} width > 0`).toBeGreaterThan(0);
+      expect(dims.depth, `${key} depth > 0`).toBeGreaterThan(0);
+      expect(dims.height, `${key} height > 0`).toBeGreaterThan(0);
+    }
+  });
+
+  it('uses provider:Subtype key format for all entries', () => {
+    const validPrefixes = ['aws:', 'azure:', 'gcp:'];
+    for (const key of Object.keys(SUBTYPE_SIZE_OVERRIDES)) {
+      const hasValidPrefix = validPrefixes.some((p) => key.startsWith(p));
+      expect(hasValidPrefix, `key '${key}' should start with aws:, azure:, or gcp:`).toBe(true);
+    }
+  });
+
+  it('maps specific AWS subtypes to expected dimensions', () => {
+    expect(SUBTYPE_SIZE_OVERRIDES['aws:ec2']).toEqual({ width: 2, depth: 2, height: 2 });
+    expect(SUBTYPE_SIZE_OVERRIDES['aws:lambda']).toEqual({ width: 1, depth: 1, height: 1 });
+    expect(SUBTYPE_SIZE_OVERRIDES['aws:rds-postgres']).toEqual({ width: 3, depth: 3, height: 2 });
+    expect(SUBTYPE_SIZE_OVERRIDES['aws:cloudfront']).toEqual({ width: 4, depth: 1, height: 1 });
+  });
+
+  it('maps specific Azure subtypes to expected dimensions', () => {
+    expect(SUBTYPE_SIZE_OVERRIDES['azure:vm']).toEqual({ width: 2, depth: 2, height: 2 });
+    expect(SUBTYPE_SIZE_OVERRIDES['azure:functions']).toEqual({ width: 1, depth: 1, height: 1 });
+    expect(SUBTYPE_SIZE_OVERRIDES['azure:cosmos-db']).toEqual({ width: 3, depth: 3, height: 2 });
+    expect(SUBTYPE_SIZE_OVERRIDES['azure:front-door']).toEqual({ width: 4, depth: 1, height: 1 });
+  });
+
+  it('maps specific GCP subtypes to expected dimensions', () => {
+    expect(SUBTYPE_SIZE_OVERRIDES['gcp:compute-engine']).toEqual({ width: 2, depth: 2, height: 2 });
+    expect(SUBTYPE_SIZE_OVERRIDES['gcp:cloud-functions']).toEqual({ width: 1, depth: 1, height: 1 });
+    expect(SUBTYPE_SIZE_OVERRIDES['gcp:cloud-sql-postgres']).toEqual({ width: 3, depth: 3, height: 2 });
+    expect(SUBTYPE_SIZE_OVERRIDES['gcp:cloud-cdn']).toEqual({ width: 4, depth: 1, height: 1 });
+  });
+});
+
+describe('getBlockDimensions', () => {
+  it('returns subtype override when provider and subtype match', () => {
+    const dims = getBlockDimensions('compute', 'aws', 'ec2');
+    expect(dims).toEqual({ width: 2, depth: 2, height: 2 });
+  });
+
+  it('returns subtype override for Azure subtypes', () => {
+    const dims = getBlockDimensions('database', 'azure', 'cosmos-db');
+    expect(dims).toEqual({ width: 3, depth: 3, height: 2 });
+  });
+
+  it('returns subtype override for GCP subtypes', () => {
+    const dims = getBlockDimensions('function', 'gcp', 'cloud-functions');
+    expect(dims).toEqual({ width: 1, depth: 1, height: 1 });
+  });
+
+  it('falls back to category default when subtype is unknown', () => {
+    const dims = getBlockDimensions('compute', 'aws', 'UnknownService');
+    // compute → medium tier → { width: 2, depth: 2, height: 2 }
+    const expected = TIER_DIMENSIONS[CATEGORY_TIER_MAP['compute']];
+    expect(dims).toEqual(expected);
+  });
+
+  it('falls back to category default when provider is undefined', () => {
+    const dims = getBlockDimensions('database');
+    // database → large tier → { width: 3, depth: 3, height: 2 }
+    const expected = TIER_DIMENSIONS[CATEGORY_TIER_MAP['database']];
+    expect(dims).toEqual(expected);
+  });
+
+  it('falls back to category default when subtype is undefined', () => {
+    const dims = getBlockDimensions('gateway', 'azure');
+    // gateway → wide tier → { width: 3, depth: 1, height: 1 }
+    const expected = TIER_DIMENSIONS[CATEGORY_TIER_MAP['gateway']];
+    expect(dims).toEqual(expected);
+  });
+
+  it('returns correct defaults for all 10 categories', () => {
+    for (const category of blockCategories) {
+      const dims = getBlockDimensions(category);
+      const tier = CATEGORY_TIER_MAP[category];
+      const expected = TIER_DIMENSIONS[tier];
+      expect(dims, `${category} should map to ${tier} tier`).toEqual(expected);
+    }
+  });
+
+  it('subtype override can differ from category default', () => {
+    // aws:Lambda is micro (1×1×1) but 'function' category default is also micro.
+    // aws:CloudFront is 4×1×1 — 'gateway' default is wide (3×1×1).
+    const cfDims = getBlockDimensions('gateway', 'aws', 'cloudfront');
+    const defaultDims = getBlockDimensions('gateway');
+    expect(cfDims).toEqual({ width: 4, depth: 1, height: 1 });
+    expect(defaultDims).toEqual({ width: 3, depth: 1, height: 1 });
+    expect(cfDims).not.toEqual(defaultDims);
   });
 });

@@ -151,23 +151,35 @@ export const PlateSprite = memo(function PlateSprite({
     setSelectedId(plate.id);
   };
 
-  const sizeClass = plate.type === 'network' ? 'plate-network' : 'plate-subnet';
+  const sizeClass = plate.type === 'subnet' ? 'plate-subnet' : 'plate-network';
 
   const profile = plate.profileId
     ? getPlateProfile(plate.profileId)
     : getPlateProfile(DEFAULT_PLATE_PROFILE[plate.type]);
   const studColors = getPlateStudColors(plate);
   const faceColors = getPlateFaceColors(plate);
-  const label = plate.type === 'network'
-    ? 'Virtual Network'
-    : plate.subnetAccess === 'public'
+  const label = plate.type === 'subnet'
+    ? plate.subnetAccess === 'public'
       ? 'Public Subnet'
-      : 'Private Subnet';
-  const emoji = plate.type === 'network'
-    ? '🌐'
-    : plate.subnetAccess === 'public'
+      : 'Private Subnet'
+    : plate.type === 'global'
+      ? 'Global Layer'
+      : plate.type === 'edge'
+        ? 'Edge Layer'
+        : plate.type === 'zone'
+          ? 'Zone Layer'
+          : 'Region Layer';
+  const emoji = plate.type === 'subnet'
+    ? plate.subnetAccess === 'public'
       ? '🔓'
-      : '🔒';
+      : '🔒'
+    : plate.type === 'global'
+      ? '🌎'
+      : plate.type === 'edge'
+        ? '🛰️'
+        : plate.type === 'zone'
+          ? '🧭'
+          : '🌐';
 
   const { screenWidth, screenHeight } = worldSizeToScreen(plate.size.width, plate.size.height, plate.size.depth);
 
@@ -209,6 +221,7 @@ export const PlateSprite = memo(function PlateSprite({
       >
         <div className="plate-img" aria-hidden="true">
           <PlateSvg
+            plateType={plate.type}
             studsX={profile.studsX}
             studsY={profile.studsY}
             worldHeight={profile.worldHeight}

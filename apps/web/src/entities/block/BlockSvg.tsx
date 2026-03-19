@@ -1,7 +1,7 @@
 import { memo, useId, useMemo } from 'react';
 import type { BlockCategory, ProviderType } from '../../shared/types/index';
 import { BLOCK_SHORT_NAMES, BLOCK_ICONS } from '../../shared/types/index';
-import { getBlockVisualProfile } from '../../shared/types/visualProfile';
+import { getBlockDimensions, getBlockVisualProfile } from '../../shared/types/visualProfile';
 import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
 import {
   BLOCK_MARGIN,
@@ -9,60 +9,41 @@ import {
   EDGE_HIGHLIGHT_COLOR,
   EDGE_HIGHLIGHT_OPACITY,
   EDGE_HIGHLIGHT_STROKE_WIDTH,
-  TILE_H,
-  TILE_W,
-  TILE_Z,
   TOP_FACE_STROKE_OPACITY,
   TOP_FACE_STROKE_WIDTH,
-  getBlockWorldHeight,
 } from '../../shared/tokens/designTokens';
 import { getBlockFaceColors, getBlockStudColors } from './blockFaceColors';
-import { getSilhouettePolygons } from './silhouettes';
+import { cuToSilhouetteDimensions, getSilhouetteFromCU } from './silhouettes';
 
 interface BlockSvgProps {
   category: BlockCategory;
   provider?: ProviderType;
+  subtype?: string;
 }
 
-type BlockFaceResolver = (category: BlockCategory, provider?: ProviderType) => ReturnType<typeof getBlockFaceColors>;
-type BlockStudResolver = (category: BlockCategory, provider?: ProviderType) => ReturnType<typeof getBlockStudColors>;
+export const BlockSvg = memo(function BlockSvg({ category, provider, subtype }: BlockSvgProps) {
+  // ─── v2.0: CU-based dimension resolution ───────────────────
+  const cu = getBlockDimensions(category, provider, subtype);
+  const dims = cuToSilhouetteDimensions(cu);
+  const profile = getBlockVisualProfile(category);
 
-const resolveBlockFaceColors = getBlockFaceColors as unknown as BlockFaceResolver;
-const resolveBlockStudColors = getBlockStudColors as unknown as BlockStudResolver;
-
-export const BlockSvg = memo(function BlockSvg({ category, provider }: BlockSvgProps) {
-  const [studsX, studsY] = getBlockVisualProfile(category).footprint;
-  const faceColors = resolveBlockFaceColors(category, provider);
-  const studColors = resolveBlockStudColors(category, provider);
-  const shortName = BLOCK_SHORT_NAMES[category];
-  const icon = BLOCK_ICONS[category];
-  const visualProfile = getBlockVisualProfile(category);
-
-  const screenWidth = (studsX + studsY) * TILE_W / 2;
-  const diamondHeight = (studsX + studsY) * TILE_H / 2;
-  const sideWallPx = Math.round(getBlockWorldHeight(category) * TILE_Z);
+  const { screenWidth, diamondHeight, sideWallPx } = dims;
   const svgHeight = diamondHeight + sideWallPx + BLOCK_PADDING;
 
-  const cx = screenWidth / 2;
-  const topY = BLOCK_PADDING;
-  const midY = diamondHeight / 2 + BLOCK_PADDING;
-  const bottomY = diamondHeight + BLOCK_PADDING;
-  const leftX = BLOCK_MARGIN;
-  const rightX = screenWidth - BLOCK_MARGIN;
+  const faceColors = getBlockFaceColors(category, provider ?? 'azure', subtype);
+  const studColors = getBlockStudColors(category, provider ?? 'azure', subtype);
+  const shortName = BLOCK_SHORT_NAMES[category];
+  const icon = BLOCK_ICONS[category];
 
-  const { topFacePoints, leftSidePoints, rightSidePoints } = getSilhouettePolygons(visualProfile.silhouette, {
-    screenWidth,
-    diamondHeight,
-    sideWallPx,
-    cx,
-    topY,
-    midY,
-    bottomY,
-    leftX,
-    rightX,
-    margin: BLOCK_MARGIN,
-    padding: BLOCK_PADDING,
-  });
+  // ─── v2.0: silhouette from CU dimensions ───────────────────
+  const { topFacePoints, leftSidePoints, rightSidePoints } = getSilhouetteFromCU(
+    profile.silhouette,
+    cu,
+  );
+
+  // ─── v2.0: stud grid = width × depth (1 stud per CU cell) ──
+  const studsX = cu.width;
+  const studsY = cu.depth;
 
   const studs = useMemo(() => {
     const positions: Array<{ x: number; y: number; key: string }> = [];
@@ -74,7 +55,7 @@ export const BlockSvg = memo(function BlockSvg({ category, provider }: BlockSvgP
     const stepZx = -halfW / studsY;
     const stepZy = halfH / studsY;
 
-    const startX = cx + stepXx * 0.5 + stepZx * 0.5;
+    const startX = dims.cx + stepXx * 0.5 + stepZx * 0.5;
     const startY = BLOCK_PADDING + stepXy * 0.5 + stepZy * 0.5;
 
     for (let gz = 0; gz < studsY; gz += 1) {
@@ -90,13 +71,13 @@ export const BlockSvg = memo(function BlockSvg({ category, provider }: BlockSvgP
     }
 
     return positions;
-  }, [cx, diamondHeight, screenWidth, studsX, studsY]);
+  }, [dims.cx, diamondHeight, screenWidth, studsX, studsY]);
 
   const studId = useId().replace(/:/g, '_');
 
-  const leftLabelX = (leftX + cx) / 2;
-  const rightLabelX = (cx + rightX) / 2;
-  const wallCenterY = (midY + bottomY + sideWallPx) / 2;
+  const leftLabelX = (dims.leftX + dims.cx) / 2;
+  const rightLabelX = (dims.cx + dims.rightX) / 2;
+  const wallCenterY = (dims.midY + dims.bottomY + sideWallPx) / 2;
 
   const minDim = Math.min(studsX, studsY);
   const labelFontSize = minDim <= 1 ? 8 : minDim <= 2 ? 10 : 13;
@@ -115,7 +96,7 @@ export const BlockSvg = memo(function BlockSvg({ category, provider }: BlockSvgP
       <polygon points={topFacePoints} fill={faceColors.topFaceColor} stroke={faceColors.topFaceStroke} strokeWidth={TOP_FACE_STROKE_WIDTH} strokeOpacity={TOP_FACE_STROKE_OPACITY} />
       <polygon points={leftSidePoints} fill={faceColors.leftSideColor} />
       <polygon points={rightSidePoints} fill={faceColors.rightSideColor} />
-      <line x1={leftX} y1={midY} x2={cx} y2={topY} stroke={EDGE_HIGHLIGHT_COLOR} strokeWidth={EDGE_HIGHLIGHT_STROKE_WIDTH} strokeOpacity={EDGE_HIGHLIGHT_OPACITY} />
+      <line x1={dims.leftX} y1={dims.midY} x2={dims.cx} y2={dims.topY} stroke={EDGE_HIGHLIGHT_COLOR} strokeWidth={EDGE_HIGHLIGHT_STROKE_WIDTH} strokeOpacity={EDGE_HIGHLIGHT_OPACITY} />
 
       <StudGrid studId={studId} studs={studs} />
 

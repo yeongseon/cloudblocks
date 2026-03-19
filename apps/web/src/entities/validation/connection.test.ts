@@ -142,6 +142,36 @@ describe('validateConnection', () => {
     expect(validateConnection(connection, blocks, [])).toBeNull();
   });
 
+  it('accepts valid compute -> analytics connection', () => {
+    const connection = makeConnection({ sourceId: 'compute-1', targetId: 'analytics-1' });
+    const blocks = [
+      makeBlock({ id: 'compute-1', category: 'compute' }),
+      makeBlock({ id: 'analytics-1', category: 'analytics' }),
+    ];
+
+    expect(validateConnection(connection, blocks, [])).toBeNull();
+  });
+
+  it('accepts valid compute -> identity connection', () => {
+    const connection = makeConnection({ sourceId: 'compute-1', targetId: 'identity-1' });
+    const blocks = [
+      makeBlock({ id: 'compute-1', category: 'compute' }),
+      makeBlock({ id: 'identity-1', category: 'identity' }),
+    ];
+
+    expect(validateConnection(connection, blocks, [])).toBeNull();
+  });
+
+  it('accepts valid compute -> observability connection', () => {
+    const connection = makeConnection({ sourceId: 'compute-1', targetId: 'observability-1' });
+    const blocks = [
+      makeBlock({ id: 'compute-1', category: 'compute' }),
+      makeBlock({ id: 'observability-1', category: 'observability' }),
+    ];
+
+    expect(validateConnection(connection, blocks, [])).toBeNull();
+  });
+
   it('rejects invalid connection pairs with rule-conn-invalid', () => {
     const blocks = [
       makeBlock({ id: 'compute-1', category: 'compute' }),
@@ -268,16 +298,6 @@ describe('validateConnection', () => {
     expect(validateConnection(connection, blocks, [])).toBeNull();
   });
 
-  it('accepts valid timer -> function connection', () => {
-    const connection = makeConnection({ sourceId: 'timer-1', targetId: 'func-1' });
-    const blocks = [
-      makeBlock({ id: 'timer-1', category: 'timer' }),
-      makeBlock({ id: 'func-1', category: 'function' }),
-    ];
-
-    expect(validateConnection(connection, blocks, [])).toBeNull();
-  });
-
   it('accepts valid event -> function connection', () => {
     const connection = makeConnection({ sourceId: 'event-1', targetId: 'func-1' });
     const blocks = [
@@ -324,19 +344,6 @@ describe('validateConnection', () => {
     expect(validateConnection(connection, blocks, [])).toMatchObject({
       ruleId: 'rule-conn-invalid',
       targetId: 'conn-queue-compute',
-    });
-  });
-
-  it('rejects invalid timer -> storage connection', () => {
-    const connection = makeConnection({ id: 'conn-timer-storage', sourceId: 'timer-1', targetId: 'storage-1' });
-    const blocks = [
-      makeBlock({ id: 'timer-1', category: 'timer' }),
-      makeBlock({ id: 'storage-1', category: 'storage' }),
-    ];
-
-    expect(validateConnection(connection, blocks, [])).toMatchObject({
-      ruleId: 'rule-conn-invalid',
-      targetId: 'conn-timer-storage',
     });
   });
 
