@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import type { Block, Connection, ExternalActor } from '../../shared/types/index';
-import { validateConnection } from './connection';
+import type { Block, Connection, ExternalActor, ConnectionType } from '../../shared/types/index';
+import { validateConnection, canConnect, CONNECTION_VISUAL_STYLES } from './connection';
 
 function makeBlock(
   overrides: Partial<Block> = {}
@@ -371,5 +371,75 @@ describe('validateConnection', () => {
       ruleId: 'rule-conn-invalid',
       targetId: 'conn-queue-queue',
     });
+  });
+});
+
+describe('canConnect', () => {
+  it('returns true for allowed connection pairs', () => {
+    expect(canConnect('internet', 'gateway')).toBe(true);
+    expect(canConnect('gateway', 'compute')).toBe(true);
+    expect(canConnect('gateway', 'function')).toBe(true);
+    expect(canConnect('compute', 'database')).toBe(true);
+    expect(canConnect('compute', 'storage')).toBe(true);
+    expect(canConnect('compute', 'analytics')).toBe(true);
+    expect(canConnect('compute', 'identity')).toBe(true);
+    expect(canConnect('compute', 'observability')).toBe(true);
+    expect(canConnect('function', 'storage')).toBe(true);
+    expect(canConnect('function', 'database')).toBe(true);
+    expect(canConnect('function', 'queue')).toBe(true);
+    expect(canConnect('queue', 'function')).toBe(true);
+    expect(canConnect('event', 'function')).toBe(true);
+  });
+
+  it('returns false for disallowed connection pairs', () => {
+    expect(canConnect('database', 'compute')).toBe(false);
+    expect(canConnect('storage', 'gateway')).toBe(false);
+    expect(canConnect('compute', 'gateway')).toBe(false);
+    expect(canConnect('internet', 'compute')).toBe(false);
+    expect(canConnect('queue', 'compute')).toBe(false);
+    expect(canConnect('event', 'database')).toBe(false);
+  });
+
+  it('returns false for receiver-only categories as source', () => {
+    expect(canConnect('database', 'storage')).toBe(false);
+    expect(canConnect('storage', 'database')).toBe(false);
+    expect(canConnect('analytics', 'compute')).toBe(false);
+    expect(canConnect('identity', 'compute')).toBe(false);
+    expect(canConnect('observability', 'compute')).toBe(false);
+  });
+});
+
+describe('CONNECTION_VISUAL_STYLES', () => {
+  it('defines a style for every ConnectionType', () => {
+    const connectionTypes: ConnectionType[] = ['dataflow', 'http', 'internal', 'data', 'async'];
+    for (const type of connectionTypes) {
+      expect(CONNECTION_VISUAL_STYLES[type]).toBeDefined();
+      expect(CONNECTION_VISUAL_STYLES[type].strokeWidth).toBeGreaterThan(0);
+    }
+  });
+
+  it('dataflow has solid style (no dasharray)', () => {
+    expect(CONNECTION_VISUAL_STYLES.dataflow.strokeWidth).toBe(2);
+    expect(CONNECTION_VISUAL_STYLES.dataflow.strokeDasharray).toBeUndefined();
+  });
+
+  it('http has thicker stroke width', () => {
+    expect(CONNECTION_VISUAL_STYLES.http.strokeWidth).toBe(3);
+    expect(CONNECTION_VISUAL_STYLES.http.strokeDasharray).toBeUndefined();
+  });
+
+  it('internal has short dash pattern', () => {
+    expect(CONNECTION_VISUAL_STYLES.internal.strokeWidth).toBe(2);
+    expect(CONNECTION_VISUAL_STYLES.internal.strokeDasharray).toBe('4 4');
+  });
+
+  it('data has long dash pattern', () => {
+    expect(CONNECTION_VISUAL_STYLES.data.strokeWidth).toBe(2);
+    expect(CONNECTION_VISUAL_STYLES.data.strokeDasharray).toBe('8 4');
+  });
+
+  it('async has dot-dash pattern', () => {
+    expect(CONNECTION_VISUAL_STYLES.async.strokeWidth).toBe(2);
+    expect(CONNECTION_VISUAL_STYLES.async.strokeDasharray).toBe('8 4 2 4');
   });
 });
