@@ -16,7 +16,9 @@ const blockCategories: BlockCategory[] = [
   'function',
   'queue',
   'event',
-  'timer',
+  'analytics',
+  'identity',
+  'observability',
 ];
 
 const silhouetteTypes: BrickSilhouette[] = ['tower', 'heavy', 'shield', 'module'];

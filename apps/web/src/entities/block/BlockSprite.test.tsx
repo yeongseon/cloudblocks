@@ -99,7 +99,7 @@ describe('BlockSprite', () => {
   });
 
   it.each([
-    'gateway', 'compute', 'database', 'storage', 'function', 'queue', 'event', 'timer',
+    'gateway', 'compute', 'database', 'storage', 'function', 'queue', 'event', 'analytics', 'identity', 'observability',
   ] as const)('renders %s as inline SVG', (category) => {
     const block = makeBlock(`block-${category}`, category);
     const { container } = render(
