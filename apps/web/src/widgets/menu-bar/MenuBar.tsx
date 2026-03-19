@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { AiPromptBar } from '../../features/ai';
 import { toast } from 'react-hot-toast';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
@@ -209,6 +210,11 @@ export function MenuBar() {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to fetch remote architecture');
     }
+  };
+
+  const handleAiSubmit = (prompt: string, provider: string) => {
+    console.log('AI generate:', { prompt, provider });
+    // TODO: Wire to AI API in T9
   };
 
   const handleToggleDiffMode = () => {
@@ -434,6 +440,8 @@ export function MenuBar() {
         </div>
       
       </nav>
+
+      <AiPromptBar onSubmit={handleAiSubmit} isLoading={false} />
 
       <div className="menu-bar-divider" />
 

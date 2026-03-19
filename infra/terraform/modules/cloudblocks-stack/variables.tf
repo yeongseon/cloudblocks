@@ -24,12 +24,22 @@ variable "acr_login_server" {
   description = "External ACR login server when create_acr is false"
   type        = string
   default     = ""
+
+  validation {
+    condition     = var.create_acr || length(var.acr_login_server) > 0
+    error_message = "acr_login_server is required when create_acr is false."
+  }
 }
 
 variable "acr_admin_username" {
   description = "External ACR admin username when create_acr is false"
   type        = string
   default     = ""
+
+  validation {
+    condition     = var.create_acr || length(var.acr_admin_username) > 0
+    error_message = "acr_admin_username is required when create_acr is false."
+  }
 }
 
 variable "acr_admin_password" {
@@ -37,6 +47,11 @@ variable "acr_admin_password" {
   type        = string
   sensitive   = true
   default     = ""
+
+  validation {
+    condition     = var.create_acr || length(var.acr_admin_password) > 0
+    error_message = "acr_admin_password is required when create_acr is false."
+  }
 }
 
 variable "postgres_admin_username" {

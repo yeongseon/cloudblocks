@@ -2,25 +2,35 @@
 
 Terraform configurations for deploying CloudBlocks to Azure.
 
-## Environments
+> **Strategy**: See [Environment Strategy](../../docs/guides/ENVIRONMENT_STRATEGY.md) for the full deployment model and [ADR-0007](../../docs/adr/0007-multi-environment-deployment-strategy.md) for the decision record.
 
-- `environments/dev/` — Development environment
-
-> Note: `environments/dev/` is the current implementation baseline and is considered legacy for cloud deployment strategy. New multi-environment wrappers are planned for staging and production.
-
-## Planned Structure
-
-The Terraform layout will evolve to a shared module plus thin environment wrappers:
+## Structure
 
 ```text
 infra/terraform/
-|- modules/cloudblocks-stack/    <- Shared stack module (planned)
-|- environments/staging/         <- Staging wrapper (planned)
-|- environments/production/      <- Production wrapper (planned)
-`- environments/dev/             <- Current legacy environment
+├── modules/
+│   └── cloudblocks-stack/          # Shared module (all Azure resources)
+│       ├── main.tf
+│       ├── variables.tf
+│       ├── outputs.tf
+│       └── versions.tf
+└── environments/
+    ├── dev/                        # Legacy — original monolithic config
+    ├── staging/                    # Staging environment wrapper
+    │   └── main.tf                 # module "stack" { source = "../../modules/cloudblocks-stack" }
+    └── production/                 # Production environment wrapper
+        └── main.tf                 # module "stack" { source = "../../modules/cloudblocks-stack" }
 ```
 
-This documentation-only phase defines strategy. Module extraction and wrapper implementation are tracked separately.
+## Environments
+
+| Environment | Directory | Purpose | Terraform `var.environment` |
+|---|---|---|---|
+| Staging | `environments/staging/` | Pre-production validation, UAT | `staging` |
+| Production | `environments/production/` | Live service | `production` |
+| Dev (legacy) | `environments/dev/` | Original monolithic config (deprecated) | — |
+
+> **Note**: `environments/dev/` is the original monolithic Terraform configuration. Use `staging/` or `production/` for new cloud deployments.
 
 ## Resources Provisioned
 
@@ -29,16 +39,25 @@ This documentation-only phase defines strategy. Module extraction and wrapper im
 | Resource Group | `azurerm_resource_group` | Logical grouping for all resources |
 | Log Analytics | `azurerm_log_analytics_workspace` | Container logs and metrics |
 | Container App Environment | `azurerm_container_app_environment` | Hosting environment for Container Apps |
-| Container Registry | `azurerm_container_registry` | Docker image storage (Basic SKU) |
-| PostgreSQL | `azurerm_postgresql_flexible_server` | Relational metadata (B_Standard_B1ms) |
-| Redis | `azurerm_redis_cache` | Session cache (Basic C0, 250MB) |
+| Container Registry | `azurerm_container_registry` | Docker image storage (shared, created by staging) |
+| PostgreSQL | `azurerm_postgresql_flexible_server` | Relational metadata |
+| Redis | `azurerm_redis_cache` | Session cache |
 | Container App | `azurerm_container_app` | Backend API with auto-scaling |
-| Static Web App | `azurerm_static_web_app` | Frontend SPA hosting (Free tier) |
+| Static Web App | `azurerm_static_web_app` | Frontend SPA hosting |
+
+### Environment-Specific SKUs
+
+| Resource | Staging | Production |
+|----------|---------|------------|
+| PostgreSQL | B_Standard_B1ms | GP_Standard_D2s_v3 |
+| Redis | Basic C0 (250MB) | Standard C1 |
+| Static Web App | Free | Standard |
+| Container Registry | Basic (shared, created by staging) | — (references staging ACR) |
 
 ## Quick Start
 
 ```bash
-cd environments/dev
+cd environments/staging  # or environments/production
 
 # Copy and configure variables
 cp terraform.tfvars.example terraform.tfvars
@@ -50,16 +69,40 @@ terraform plan -var-file="terraform.tfvars"
 terraform apply -var-file="terraform.tfvars"
 ```
 
+> **Important (remote state)**: Each environment should use a separate Terraform backend (e.g., Azure Storage Account). Storage account names must be globally unique across all of Azure — choose a name that includes your project and environment, e.g., `tfstatecloudblocksstg`.
+
 ## Scaling
 
-The Container App scales horizontally based on HTTP concurrent requests. Configure via `terraform.tfvars`:
+The Container App scales horizontally based on HTTP concurrent requests. Configure per environment via `terraform.tfvars`:
 
 ```hcl
-container_min_replicas      = 1    # Minimum replicas
-container_max_replicas      = 5    # Maximum replicas
-scaling_concurrent_requests = "50" # Requests/replica threshold
+# Staging
+container_min_replicas      = 0    # Scale to zero allowed
+container_max_replicas      = 3
+scaling_concurrent_requests = "50"
+
+# Production
+container_min_replicas      = 2    # Always warm
+container_max_replicas      = 5
+scaling_concurrent_requests = "50"
 ```
 
 ## Required Variables
 
-See `environments/dev/terraform.tfvars.example` for all variables with descriptions. Sensitive values (passwords, secrets) should use a `.tfvars` file excluded from version control or be passed via environment variables (`TF_VAR_*`).
+See `environments/staging/terraform.tfvars.example` for all variables with descriptions. For production, see `environments/production/terraform.tfvars.example` — ACR values must reference staging outputs.
+
+Sensitive values (passwords, secrets) should use a `.tfvars` file excluded from version control or be passed via environment variables (`TF_VAR_*`).
+
+## Resource Naming
+
+All resources follow the pattern `{type}-cloudblocks-{env}`:
+
+| Pattern | Staging Example | Production Example |
+|---------|----------------|-------------------|
+| `rg-cloudblocks-{env}` | `rg-cloudblocks-staging` | `rg-cloudblocks-production` |
+| `psql-cloudblocks-{env}` | `psql-cloudblocks-staging` | `psql-cloudblocks-production` |
+| `redis-cloudblocks-{env}` | `redis-cloudblocks-staging` | `redis-cloudblocks-production` |
+| `ca-cloudblocks-api-{env}` | `ca-cloudblocks-api-staging` | `ca-cloudblocks-api-production` |
+| `swa-cloudblocks-{env}` | `swa-cloudblocks-staging` | `swa-cloudblocks-production` |
+
+Container Registry uses the pattern `{project}{env}acr` (no hyphens — ACR does not allow them).
