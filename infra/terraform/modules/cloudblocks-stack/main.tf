@@ -1,9 +1,9 @@
-# ⚠️ DEPRECATED: This environment is kept for reference only.
-# New deployments should use environments/staging or environments/production.
-# See docs/guides/ENVIRONMENT_STRATEGY.md for the multi-environment strategy.
-
 locals {
   resource_group_name = "rg-${var.project_name}-${var.environment}"
+  acr_login_server    = var.create_acr ? azurerm_container_registry.this[0].login_server : var.acr_login_server
+  acr_admin_username  = var.create_acr ? azurerm_container_registry.this[0].admin_username : var.acr_admin_username
+  acr_admin_password  = var.create_acr ? azurerm_container_registry.this[0].admin_password : var.acr_admin_password
+
   tags = {
     project     = var.project_name
     environment = var.environment
@@ -35,6 +35,8 @@ resource "azurerm_container_app_environment" "this" {
 }
 
 resource "azurerm_container_registry" "this" {
+  count = var.create_acr ? 1 : 0
+
   name                = "${var.project_name}${var.environment}acr"
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
@@ -52,11 +54,11 @@ resource "azurerm_postgresql_flexible_server" "this" {
   administrator_login    = var.postgres_admin_username
   administrator_password = var.postgres_admin_password
   version                = "16"
-  sku_name               = "B_Standard_B1ms"
-  storage_mb             = 32768
+  sku_name               = var.postgres_sku_name
+  storage_mb             = var.postgres_storage_mb
 
-  backup_retention_days         = 7
-  geo_redundant_backup_enabled  = false
+  backup_retention_days         = var.postgres_backup_retention_days
+  geo_redundant_backup_enabled  = var.postgres_geo_redundant_backup
   public_network_access_enabled = true
 
   tags = local.tags
@@ -88,7 +90,7 @@ resource "azurerm_redis_cache" "this" {
   name                = "redis-${var.project_name}-${var.environment}"
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
-  capacity            = 0
+  capacity            = var.redis_capacity
   family              = "C"
   sku_name            = var.redis_sku
   enable_non_ssl_port = false
@@ -112,7 +114,7 @@ resource "azurerm_container_app" "api" {
 
   secret {
     name  = "acr-password"
-    value = azurerm_container_registry.this.admin_password
+    value = local.acr_admin_password
   }
 
   secret {
@@ -146,8 +148,8 @@ resource "azurerm_container_app" "api" {
   }
 
   registry {
-    server               = azurerm_container_registry.this.login_server
-    username             = azurerm_container_registry.this.admin_username
+    server               = local.acr_login_server
+    username             = local.acr_admin_username
     password_secret_name = "acr-password"
   }
 
@@ -172,7 +174,7 @@ resource "azurerm_container_app" "api" {
 
     container {
       name   = "cloudblocks-api"
-      image  = "${azurerm_container_registry.this.login_server}/cloudblocks-api:${var.container_image_tag}"
+      image  = "${local.acr_login_server}/cloudblocks-api:${var.container_image_tag}"
       cpu    = var.container_cpu
       memory = var.container_memory
 
@@ -248,35 +250,32 @@ resource "azurerm_container_app" "api" {
       }
 
       liveness_probe {
-        transport = "HTTP"
-        path      = "/health"
-        port      = 8000
-
-        initial_delay    = 10
-        interval_seconds = 30
-        timeout          = 5
+        transport               = "HTTP"
+        path                    = "/health"
+        port                    = 8000
+        initial_delay           = 10
+        interval_seconds        = 30
+        timeout                 = 5
         failure_count_threshold = 3
       }
 
       readiness_probe {
-        transport = "HTTP"
-        path      = "/health/ready"
-        port      = 8000
-
-        initial_delay    = 5
-        interval_seconds = 15
-        timeout          = 5
+        transport               = "HTTP"
+        path                    = "/health/ready"
+        port                    = 8000
+        initial_delay           = 5
+        interval_seconds        = 15
+        timeout                 = 5
         failure_count_threshold = 3
       }
 
       startup_probe {
-        transport = "HTTP"
-        path      = "/health"
-        port      = 8000
-
-        initial_delay    = 3
-        interval_seconds = 5
-        timeout          = 5
+        transport               = "HTTP"
+        path                    = "/health"
+        port                    = 8000
+        initial_delay           = 3
+        interval_seconds        = 5
+        timeout                 = 5
         failure_count_threshold = 10
       }
     }
@@ -289,7 +288,7 @@ resource "azurerm_static_web_app" "frontend" {
   name                = "swa-${var.project_name}-${var.environment}"
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
-  sku_tier            = "Free"
-  sku_size            = "Free"
+  sku_tier            = var.swa_sku_tier
+  sku_size            = var.swa_sku_size
   tags                = local.tags
 }
