@@ -5,6 +5,7 @@ import interact from 'interactjs';
 import { BlockSprite } from './BlockSprite';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
+import { useWorkerStore } from '../store/workerStore';
 import type { Block, BlockCategory, ExternalActor, Plate } from '../../shared/types/index';
 import * as isometric from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
@@ -64,9 +65,15 @@ describe('BlockSprite', () => {
   const addConnectionMock = vi.fn();
   const removeBlockMock = vi.fn();
   const moveBlockPositionMock = vi.fn();
+  const initialUIState = useUIStore.getState();
+  const initialArchitectureState = useArchitectureStore.getState();
+  const initialWorkerState = useWorkerStore.getState();
 
   beforeEach(() => {
     vi.clearAllMocks();
+    useUIStore.setState(initialUIState, true);
+    useArchitectureStore.setState(initialArchitectureState, true);
+    useWorkerStore.setState(initialWorkerState, true);
     addConnectionMock.mockReturnValue(true);
     interactMocks.draggableFn.mockReturnValue({ unset: interactMocks.unsetFn });
     interactMocks.interactFn.mockReturnValue({ draggable: interactMocks.draggableFn });
@@ -75,6 +82,9 @@ describe('BlockSprite', () => {
       addConnection: addConnectionMock,
       removeBlock: removeBlockMock,
       moveBlockPosition: moveBlockPositionMock,
+    });
+    useWorkerStore.setState({
+      activeBuild: null,
     });
   });
 
@@ -222,6 +232,61 @@ describe('BlockSprite', () => {
     );
 
     expect(container.firstElementChild).toHaveClass('is-connection-source');
+  });
+
+  it('applies is-building class when block is active build target', () => {
+    const block = makeBlock('block-building', 'compute');
+    useWorkerStore.setState({
+      activeBuild: {
+        blockId: block.id,
+        targetPosition: [0, 0, 0],
+        progress: 0.4,
+        startedAt: Date.now(),
+      },
+    });
+
+    const { container } = render(
+      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+    );
+
+    expect(container.firstElementChild).toHaveClass('is-building');
+  });
+
+  it('sets --build-progress CSS custom property during build', () => {
+    const block = makeBlock('block-build-progress', 'compute');
+    useWorkerStore.setState({
+      activeBuild: {
+        blockId: block.id,
+        targetPosition: [0, 0, 0],
+        progress: 0.65,
+        startedAt: Date.now(),
+      },
+    });
+
+    const { container } = render(
+      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+    );
+
+    const root = container.firstElementChild as HTMLElement;
+    expect(root.style.getPropertyValue('--build-progress')).toBe('0.65');
+  });
+
+  it('does not apply is-building class for non-target blocks', () => {
+    const block = makeBlock('block-not-building', 'compute');
+    useWorkerStore.setState({
+      activeBuild: {
+        blockId: 'different-block',
+        targetPosition: [0, 0, 0],
+        progress: 0.5,
+        startedAt: Date.now(),
+      },
+    });
+
+    const { container } = render(
+      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+    );
+
+    expect(container.firstElementChild).not.toHaveClass('is-building');
   });
 
   it('initializes draggable interaction in select mode', () => {
