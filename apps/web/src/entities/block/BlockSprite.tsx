@@ -1,7 +1,7 @@
 import { memo, useEffect, useRef } from 'react';
 import interact from 'interactjs';
 import { toast } from 'react-hot-toast';
-import type { Block, Plate } from '../../shared/types/index';
+import type { Block, BlockCategory, Plate } from '../../shared/types/index';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import { useWorkerStore } from '../store/workerStore';
@@ -11,21 +11,21 @@ import { screenDeltaToWorld, snapToGrid } from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
 import { canConnect } from '../validation/connection';
 import { validatePlacement } from '../validation/placement';
+import { getBlockDimensions } from '../../shared/types/visualProfile';
+import { cuToSilhouetteDimensions } from './silhouettes';
+import { BLOCK_PADDING } from '../../shared/tokens/designTokens';
 import { BlockSvg } from './BlockSvg';
 import './BlockSprite.css';
 
-const BLOCK_SCREEN_SIZES: Record<string, { width: number; height: number }> = {
-  event:    { width: 72, height: 82 },
-  function: { width: 95, height: 86 },
-  gateway:  { width: 120, height: 110 },
-  queue:    { width: 120, height: 110 },
-  storage:  { width: 120, height: 110 },
-  identity: { width: 120, height: 110 },
-  observability: { width: 120, height: 110 },
-  compute:  { width: 140, height: 128 },
-  database: { width: 160, height: 136 },
-  analytics: { width: 160, height: 136 },
-};
+/** Derive screen size for the block clickable area from CU dimensions. */
+function getBlockScreenSize(category: BlockCategory): { width: number; height: number } {
+  const cu = getBlockDimensions(category);
+  const dims = cuToSilhouetteDimensions(cu);
+  return {
+    width: dims.screenWidth,
+    height: dims.diamondHeight + dims.sideWallPx + BLOCK_PADDING,
+  };
+}
 
 const PROVIDER_BADGES = {
   azure: { label: 'AZ', color: '#0078D4' },
@@ -221,7 +221,7 @@ export const BlockSprite = memo(function BlockSprite({
     setSelectedId(block.id);
   };
 
-  const blockSize = BLOCK_SCREEN_SIZES[block.category] || BLOCK_SCREEN_SIZES.compute;
+  const blockSize = getBlockScreenSize(block.category);
 
   const className = [
     'block-sprite',
@@ -264,7 +264,7 @@ export const BlockSprite = memo(function BlockSprite({
         aria-label={`Block: ${block.name}`}
       >
         <div className="block-img" draggable={false}>
-          <BlockSvg category={block.category} provider={block.provider} />
+          <BlockSvg category={block.category} provider={block.provider} subtype={block.subtype} />
         </div>
         {block.provider && (
           <span
