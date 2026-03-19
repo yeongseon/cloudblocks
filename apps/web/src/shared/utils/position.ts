@@ -15,6 +15,10 @@ export const EXTERNAL_ACTOR_LABEL_POSITION: [number, number, number] = [
   EXTERNAL_ACTOR_POSITION[2],
 ];
 
+function toTuple(position: ExternalActor['position']): [number, number, number] {
+  return [position.x, position.y, position.z];
+}
+
 // ─── Position Calculations ────────────────────────────────
 
 /**
@@ -54,6 +58,10 @@ export function getEndpointWorldPosition(
   // Check external actors (fixed position above the scene)
   const actor = externalActors.find((a) => a.id === id);
   if (actor) {
+    if (actor.position) {
+      return toTuple(actor.position);
+    }
+
     return [...EXTERNAL_ACTOR_POSITION];
   }
 
