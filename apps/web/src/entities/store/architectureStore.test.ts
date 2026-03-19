@@ -69,18 +69,18 @@ describe('architectureStore', () => {
 
   describe('addPlate', () => {
     it('adds a network plate at origin', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const plates = getArch().plates;
       expect(plates).toHaveLength(1);
       expect(plates[0].name).toBe('VNet');
-      expect(plates[0].type).toBe('network');
+      expect(plates[0].type).toBe('region');
       expect(plates[0].position).toEqual({ x: 0, y: 0, z: 0 });
       expect(plates[0].parentId).toBeNull();
       expect(plates[0].children).toEqual([]);
     });
 
     it('adds a plate with explicit profileId', () => {
-      getState().addPlate('network', 'Hub', null, undefined, 'network-hub');
+      getState().addPlate('region', 'Hub', null, undefined, 'network-hub');
       const plates = getArch().plates;
       expect(plates).toHaveLength(1);
       expect(plates[0].profileId).toBe('network-hub');
@@ -90,7 +90,7 @@ describe('architectureStore', () => {
     });
 
     it('adds a subnet plate with explicit profileId', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Scale', netId, 'public', 'subnet-scale');
       const subnet = getArch().plates[1];
@@ -101,7 +101,7 @@ describe('architectureStore', () => {
     });
 
     it('adds a subnet plate as child of network', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Public', netId, 'public');
 
@@ -121,7 +121,7 @@ describe('architectureStore', () => {
     });
 
     it('positions sibling subnets based on count', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
 
       getState().addPlate('subnet', 'Sub1', netId, 'public');
@@ -136,7 +136,7 @@ describe('architectureStore', () => {
     });
 
     it('pushes to undo history', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       expect(getState().canUndo).toBe(true);
     });
 
@@ -153,14 +153,14 @@ describe('architectureStore', () => {
 
   describe('removePlate', () => {
     it('removes a plate', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const plateId = getArch().plates[0].id;
       getState().removePlate(plateId);
       expect(getArch().plates).toHaveLength(0);
     });
 
     it('removes child plates recursively', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub', netId, 'public');
 
@@ -170,7 +170,7 @@ describe('architectureStore', () => {
     });
 
     it('removes blocks on removed plates and their connections', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub', netId, 'public');
       const subId = getArch().plates[1].id;
@@ -192,7 +192,7 @@ describe('architectureStore', () => {
     });
 
     it('removes plate from parent children', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub', netId, 'public');
       const subId = getArch().plates[1].id;
@@ -204,7 +204,7 @@ describe('architectureStore', () => {
     });
 
     it('no-ops on non-existent plate ID', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const before = getArch();
       getState().removePlate('nonexistent-id');
       // Architecture should be unchanged (same reference since withHistory wasn't called)
@@ -213,7 +213,7 @@ describe('architectureStore', () => {
     });
 
     it('removes deep nested child plates and their blocks recursively', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const networkId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Outer', networkId, 'public');
       const outerId = getArch().plates[1].id;
@@ -235,7 +235,7 @@ describe('architectureStore', () => {
 
   describe('addBlock', () => {
     it('adds a block to a plate', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub', netId, 'public');
       const subId = getArch().plates[1].id;
@@ -250,7 +250,7 @@ describe('architectureStore', () => {
     });
 
     it('adds block to plate children', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub', netId, 'public');
       const subId = getArch().plates[1].id;
@@ -263,7 +263,7 @@ describe('architectureStore', () => {
     });
 
     it('stores provider when provided during block creation', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub', netId, 'public');
       const subId = getArch().plates[1].id;
@@ -282,7 +282,7 @@ describe('architectureStore', () => {
     });
 
     it('positions blocks using grid layout', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub', netId, 'public');
       const subId = getArch().plates[1].id;
@@ -298,7 +298,7 @@ describe('architectureStore', () => {
 
   describe('duplicateBlock', () => {
     it('duplicates a block with a new id, copy suffix, and +1/+1 position offset', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub', netId, 'public');
       const subId = getArch().plates[1].id;
@@ -329,7 +329,7 @@ describe('architectureStore', () => {
     });
 
     it('no-ops on non-existent block id', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const before = getState().workspace.architecture;
 
       getState().duplicateBlock('missing-block');
@@ -340,7 +340,7 @@ describe('architectureStore', () => {
 
   describe('renameBlock', () => {
     it('renames a block', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub', netId, 'public');
       const subId = getArch().plates[1].id;
@@ -355,7 +355,7 @@ describe('architectureStore', () => {
 
   describe('renamePlate', () => {
     it('renames a plate', () => {
-      getState().addPlate('network', 'Old Plate', null);
+      getState().addPlate('region', 'Old Plate', null);
       const plateId = getArch().plates[0].id;
 
       getState().renamePlate(plateId, 'New Plate');
@@ -366,7 +366,7 @@ describe('architectureStore', () => {
 
   describe('removeBlock', () => {
     it('removes a block and its connections', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub', netId, 'public');
       const subId = getArch().plates[1].id;
@@ -384,7 +384,7 @@ describe('architectureStore', () => {
     });
 
     it('removes block from plate children', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub', netId, 'public');
       const subId = getArch().plates[1].id;
@@ -399,7 +399,7 @@ describe('architectureStore', () => {
     });
 
     it('no-ops on non-existent block', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const before = getArch().blocks.length;
       getState().removeBlock('nonexistent');
       expect(getArch().blocks).toHaveLength(before);
@@ -408,7 +408,7 @@ describe('architectureStore', () => {
 
   describe('moveBlock', () => {
     it('moves a block between plates', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub1', netId, 'public');
       const sub1Id = getArch().plates[1].id;
@@ -433,7 +433,7 @@ describe('architectureStore', () => {
     });
 
     it('no-ops when moving to same plate', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub1', netId, 'public');
       const subId = getArch().plates[1].id;
@@ -450,7 +450,7 @@ describe('architectureStore', () => {
     });
 
     it('keeps architecture reference when moving to same plate', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub1', netId, 'public');
       const subId = getArch().plates[1].id;
@@ -463,7 +463,7 @@ describe('architectureStore', () => {
     });
 
     it('no-ops on non-existent block', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub', netId, 'public');
       const subId = getArch().plates[1].id;
@@ -473,7 +473,7 @@ describe('architectureStore', () => {
     });
 
     it('no-ops on non-existent target plate', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub', netId, 'public');
       const subId = getArch().plates[1].id;
@@ -486,7 +486,7 @@ describe('architectureStore', () => {
     });
 
     it('keeps architecture reference when target plate does not exist', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub', netId, 'public');
       const subId = getArch().plates[1].id;
@@ -501,7 +501,7 @@ describe('architectureStore', () => {
 
   describe('setPlateProfile', () => {
     it('resizes child plate and clamps position within parent bounds', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const networkId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Public', networkId, 'public');
       const subnetId = getArch().plates[1].id;
@@ -545,7 +545,7 @@ describe('architectureStore', () => {
 
   describe('movePlatePosition', () => {
     it('moves a root plate by the provided delta', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const rootPlate = getArch().plates[0];
 
       getState().movePlatePosition(rootPlate.id, 2, -3);
@@ -555,7 +555,7 @@ describe('architectureStore', () => {
     });
 
     it('clamps child plate movement within parent bounds', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const networkId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Public', networkId, 'public');
       const subnet = getArch().plates[1];
@@ -568,7 +568,7 @@ describe('architectureStore', () => {
     });
 
     it('moves direct child plates by the same applied delta', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const networkId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Outer', networkId, 'public');
       const outerSubnetId = getArch().plates[1].id;
@@ -588,7 +588,7 @@ describe('architectureStore', () => {
     });
 
     it('no-ops when moving a non-existent plate', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const before = getState().workspace.architecture;
 
       getState().movePlatePosition('missing-plate', 1, 1);
@@ -599,7 +599,7 @@ describe('architectureStore', () => {
 
   describe('moveBlockPosition', () => {
     it('moves a block and clamps it within parent plate bounds', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const networkId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Public', networkId, 'public');
       const subnetId = getArch().plates[1].id;
@@ -642,7 +642,7 @@ describe('architectureStore', () => {
     });
 
     it('no-ops when moving a non-existent block', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const before = getState().workspace.architecture;
 
       getState().moveBlockPosition('missing-block', 1, 1);
@@ -674,7 +674,7 @@ describe('architectureStore', () => {
 
   describe('addConnection', () => {
     const createConnectionFixture = () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const networkId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Subnet', networkId, 'public');
       const subnetId = getArch().plates[1].id;
@@ -761,7 +761,7 @@ describe('architectureStore', () => {
 
   describe('removeConnection', () => {
     it('removes a connection by ID', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const networkId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Subnet', networkId, 'public');
       const subnetId = getArch().plates[1].id;
@@ -789,7 +789,7 @@ describe('architectureStore', () => {
 
     it('returns errors for invalid architectures', () => {
       // Add a database block on a public subnet (invalid placement)
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'PubSub', netId, 'public');
       const subId = getArch().plates[1].id;
@@ -805,7 +805,7 @@ describe('architectureStore', () => {
 
   describe('undo/redo', () => {
     it('undoes the last action', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       expect(getArch().plates).toHaveLength(1);
       expect(getState().canUndo).toBe(true);
 
@@ -815,7 +815,7 @@ describe('architectureStore', () => {
     });
 
     it('redoes an undone action', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       getState().undo();
       expect(getArch().plates).toHaveLength(0);
 
@@ -830,14 +830,14 @@ describe('architectureStore', () => {
     });
 
     it('redo is no-op when future is empty', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const archBefore = getArch();
       getState().redo();
       expect(getArch().plates).toHaveLength(archBefore.plates.length);
     });
 
     it('clears validationResult on undo', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       getState().validate();
       expect(getState().validationResult).not.toBeNull();
 
@@ -846,9 +846,9 @@ describe('architectureStore', () => {
     });
 
     it('tracks multiple undo steps', () => {
-      getState().addPlate('network', 'A', null);
-      getState().addPlate('network', 'B', null);
-      getState().addPlate('network', 'C', null);
+      getState().addPlate('region', 'A', null);
+      getState().addPlate('region', 'B', null);
+      getState().addPlate('region', 'C', null);
 
       expect(getArch().plates).toHaveLength(3);
       getState().undo();
@@ -865,7 +865,7 @@ describe('architectureStore', () => {
   describe('saveToStorage / loadFromStorage', () => {
     it('saves and loads workspaces', () => {
       const setItemSpy = vi.spyOn(localStorage, 'setItem');
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       getState().saveToStorage();
 
       expect(setItemSpy).toHaveBeenCalled();
@@ -887,7 +887,7 @@ describe('architectureStore', () => {
     });
 
     it('loadFromStorage resets history', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       getState().saveToStorage();
       expect(getState().canUndo).toBe(true);
 
@@ -899,7 +899,7 @@ describe('architectureStore', () => {
 
   describe('resetWorkspace', () => {
     it('resets to default empty workspace', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       getState().addBlock('compute', 'VM', getArch().plates[0].id);
 
       getState().resetWorkspace();
@@ -940,7 +940,7 @@ describe('architectureStore', () => {
     });
 
     it('saves current workspace to list', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const oldId = getState().workspace.id;
 
       getState().createWorkspace('New Project');
@@ -951,7 +951,7 @@ describe('architectureStore', () => {
     });
 
     it('resets history for the new workspace', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       expect(getState().canUndo).toBe(true);
 
       getState().createWorkspace('New Project');
@@ -961,7 +961,7 @@ describe('architectureStore', () => {
 
   describe('switchWorkspace', () => {
     it('switches to a different workspace', () => {
-      getState().addPlate('network', 'Original', null);
+      getState().addPlate('region', 'Original', null);
       const originalId = getState().workspace.id;
 
       getState().createWorkspace('Second');
@@ -990,7 +990,7 @@ describe('architectureStore', () => {
     it('saves current workspace state into list before switching', () => {
       getState().createWorkspace('Second');
       const secondId = getState().workspace.id;
-      getState().addPlate('network', 'InSecond', null);
+      getState().addPlate('region', 'InSecond', null);
 
       const firstId = getState().workspaces.find((ws) => ws.id !== secondId)?.id;
       if (firstId) {
@@ -1036,7 +1036,7 @@ describe('architectureStore', () => {
 
   describe('cloneWorkspace', () => {
     it('clones the current workspace', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const originalId = getState().workspace.id;
 
       getState().cloneWorkspace(originalId);
@@ -1050,7 +1050,7 @@ describe('architectureStore', () => {
     });
 
     it('clones a non-current workspace from the list', () => {
-      getState().addPlate('network', 'OrigVNet', null);
+      getState().addPlate('region', 'OrigVNet', null);
       const firstId = getState().workspace.id;
 
       getState().createWorkspace('Second');
@@ -1063,13 +1063,13 @@ describe('architectureStore', () => {
     });
 
     it('creates a deep clone (no shared references)', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const originalId = getState().workspace.id;
 
       getState().cloneWorkspace(originalId);
 
       // Modify clone
-      getState().addPlate('network', 'NewPlate', null);
+      getState().addPlate('region', 'NewPlate', null);
 
       // Find original in list — it should still have 1 plate
       const original = getState().workspaces.find((ws) => ws.id === originalId);
@@ -1093,7 +1093,7 @@ describe('architectureStore', () => {
           {
             id: 'p1',
             name: 'Net',
-            type: 'network',
+            type: 'region',
             parentId: null,
             children: [],
             position: { x: 0, y: 0, z: 0 },
@@ -1128,7 +1128,7 @@ describe('architectureStore', () => {
           {
             id: 'p1',
             name: 'Net',
-            type: 'network',
+            type: 'region',
             parentId: null,
             children: [],
             position: { x: 0, y: 0, z: 0 },
@@ -1201,7 +1201,7 @@ describe('architectureStore', () => {
           {
             id: 'p1',
             name: 'Net',
-            type: 'network',
+            type: 'region',
             parentId: null,
             children: [],
             position: { x: 0, y: 0, z: 0 },
@@ -1259,7 +1259,7 @@ describe('architectureStore', () => {
           {
             id: 'p1',
             name: 'Net',
-            type: 'network',
+            type: 'region',
             parentId: null,
             children: [],
             position: { x: 0, y: 0, z: 0 },
@@ -1294,7 +1294,7 @@ describe('architectureStore', () => {
           {
             id: 'p1',
             name: 'Net',
-            type: 'network',
+            type: 'region',
             parentId: null,
             children: [],
             position: { x: 0, y: 0, z: 0 },
@@ -1333,7 +1333,7 @@ describe('architectureStore', () => {
           {
             id: 'p1',
             name: 'Net',
-            type: 'network',
+            type: 'region',
             parentId: null,
             children: [],
             position: { x: 0, y: 0, z: 0 },
@@ -1371,7 +1371,7 @@ describe('architectureStore', () => {
           {
             id: 'p1',
             name: 'Net',
-            type: 'network',
+            type: 'region',
             parentId: null,
             children: [],
             position: { x: 0, y: 0, z: 0 },
@@ -1405,7 +1405,7 @@ describe('architectureStore', () => {
           {
             id: 'p1',
             name: 'Net',
-            type: 'network',
+            type: 'region',
             parentId: null,
             children: [],
             position: { x: 0, y: 0, z: 0 },
@@ -1437,7 +1437,7 @@ describe('architectureStore', () => {
           {
             id: 'p1',
             name: 'Net',
-            type: 'network',
+            type: 'region',
             parentId: null,
             children: [],
             position: { x: 0, y: 0, z: 0 },
@@ -1458,7 +1458,7 @@ describe('architectureStore', () => {
       };
 
       getState().importArchitecture(JSON.stringify(invalid));
-      expect(String(spy.mock.calls.at(-1)?.[1])).toContain('category must be one of compute, database, storage, gateway, function, queue, event, timer');
+      expect(String(spy.mock.calls.at(-1)?.[1])).toContain('category must be one of compute, database, storage, gateway, function, queue, event, analytics, identity, observability');
       spy.mockRestore();
     });
 
@@ -1499,7 +1499,7 @@ describe('architectureStore', () => {
           {
             id: 'p1',
             name: 'Net',
-            type: 'network',
+            type: 'region',
             parentId: null,
             children: [],
             position: { x: 0, y: 0, z: 0 },
@@ -1532,7 +1532,7 @@ describe('architectureStore', () => {
 
   describe('exportArchitecture', () => {
     it('returns JSON string of current architecture', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       const json = getState().exportArchitecture();
       const parsed = JSON.parse(json);
 
@@ -1563,7 +1563,7 @@ describe('architectureStore', () => {
             {
               id: 'tp1',
               name: 'Net',
-              type: 'network',
+              type: 'region',
               parentId: null,
               children: [],
               position: { x: 0, y: 0, z: 0 },
@@ -1586,7 +1586,7 @@ describe('architectureStore', () => {
     });
 
     it('resets history when loading template', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       expect(getState().canUndo).toBe(true);
 
       const template: ArchitectureTemplate = {
@@ -1613,7 +1613,7 @@ describe('architectureStore', () => {
 
   describe('replaceArchitecture', () => {
     it('replaces architecture content while preserving workspace id and createdAt', () => {
-      getState().addPlate('network', 'Original Network', null);
+      getState().addPlate('region', 'Original Network', null);
 
       const initialArch = getArch();
       const snapshot: ArchitectureSnapshot = {
@@ -1623,7 +1623,7 @@ describe('architectureStore', () => {
           {
             id: 'snap-plate-1',
             name: 'Snap Network',
-            type: 'network',
+            type: 'region',
             parentId: null,
             children: ['snap-block-1'],
             position: { x: 1, y: 0, z: 2 },
@@ -1666,7 +1666,7 @@ describe('architectureStore', () => {
     });
 
     it('pushes history (undo restores previous architecture)', () => {
-      getState().addPlate('network', 'Original Network', null);
+      getState().addPlate('region', 'Original Network', null);
       const networkId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Original Subnet', networkId, 'public');
       const subnetId = getArch().plates[1].id;
@@ -1690,7 +1690,7 @@ describe('architectureStore', () => {
     });
 
     it('invalidates validation result', () => {
-      getState().addPlate('network', 'Original Network', null);
+      getState().addPlate('region', 'Original Network', null);
       const validated = getState().validate();
       expect(validated.valid).toBe(true);
       expect(getState().validationResult).not.toBeNull();
@@ -1716,12 +1716,12 @@ describe('architectureStore', () => {
       getState().validate();
       expect(getState().validationResult).not.toBeNull();
 
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       expect(getState().validationResult).toBeNull();
     });
 
     it('runs validation after 300ms delay', () => {
-      getState().addPlate('network', 'VNet', null);
+      getState().addPlate('region', 'VNet', null);
       expect(getState().validationResult).toBeNull();
 
       vi.advanceTimersByTime(300);
@@ -1731,11 +1731,11 @@ describe('architectureStore', () => {
     });
 
     it('debounces rapid mutations', () => {
-      getState().addPlate('network', 'A', null);
+      getState().addPlate('region', 'A', null);
       vi.advanceTimersByTime(100);
-      getState().addPlate('network', 'B', null);
+      getState().addPlate('region', 'B', null);
       vi.advanceTimersByTime(100);
-      getState().addPlate('network', 'C', null);
+      getState().addPlate('region', 'C', null);
 
       // Still null — timer was reset each time
       expect(getState().validationResult).toBeNull();
