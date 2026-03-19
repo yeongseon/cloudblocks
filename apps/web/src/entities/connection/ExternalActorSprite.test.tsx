@@ -189,9 +189,32 @@ describe('ExternalActorSprite', () => {
   });
 
   it('initializes draggable interaction in select mode', () => {
+    const { container } = render(<ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />);
+
+    const root = container.querySelector('.external-actor-sprite') as HTMLElement;
+    expect(vi.mocked(interact)).toHaveBeenCalledWith(root);
+  });
+
+  it('adds ref to root element', () => {
+    const { container } = render(<ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />);
+
+    const root = container.querySelector('.external-actor-sprite') as HTMLElement;
+    expect(root).toBeInTheDocument();
+    expect(vi.mocked(interact)).toHaveBeenCalledWith(root);
+  });
+
+  it('does not set up interactjs in delete mode', () => {
+    useUIStore.setState({ toolMode: 'delete' });
     render(<ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />);
 
-    expect(vi.mocked(interact)).toHaveBeenCalled();
+    expect(vi.mocked(interact)).not.toHaveBeenCalled();
+  });
+
+  it('does not set up interactjs in connect mode', () => {
+    useUIStore.setState({ toolMode: 'connect' });
+    render(<ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />);
+
+    expect(vi.mocked(interact)).not.toHaveBeenCalled();
   });
 
   it('moves actor position from drag deltas and scene zoom', () => {

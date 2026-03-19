@@ -176,6 +176,10 @@ export const ExternalActorSprite = memo(function ExternalActorSprite({
   };
 
   const handleClick = (e: React.MouseEvent) => {
+    if (isDragging.current) {
+      return;
+    }
+
     e.stopPropagation();
     handleActivate();
   };
