@@ -38,6 +38,40 @@ export interface Plate {
 export type BlockCategory = 'compute' | 'database' | 'storage' | 'gateway' | 'function' | 'queue' | 'event' | 'analytics' | 'identity' | 'observability';
 export type ProviderType = 'azure' | 'aws' | 'gcp';
 
+
+// ─── Aggregation (v2.0 §8) ──────────────────────────────────
+
+export type AggregationMode = 'single' | 'count';
+
+export interface Aggregation {
+  mode: AggregationMode;
+  count: number; // must be >= 1
+}
+
+// ─── Role Model (v2.0 §9) ────────────────────────────────────
+
+export type BlockRole = 'primary' | 'secondary' | 'reader' | 'writer' | 'public' | 'private' | 'internal' | 'external';
+
+export const BLOCK_ROLES: readonly BlockRole[] = [
+  'primary', 'secondary', 'reader', 'writer', 'public', 'private', 'internal', 'external',
+] as const;
+
+export interface RoleVisualIndicator {
+  icon: string;       // emoji or symbol badge
+  label: string;      // accessible label
+  borderStyle?: string; // CSS border style override
+}
+
+export const ROLE_VISUAL_INDICATORS: Record<BlockRole, RoleVisualIndicator> = {
+  primary: { icon: '★', label: 'Primary', borderStyle: '2px solid #F59E0B' },
+  secondary: { icon: '☆', label: 'Secondary' },
+  reader: { icon: '👁', label: 'Reader' },
+  writer: { icon: '✏', label: 'Writer' },
+  public: { icon: '🌐', label: 'Public' },
+  private: { icon: '🔒', label: 'Private' },
+  internal: { icon: '⇐', label: 'Internal' },
+  external: { icon: '⇒', label: 'External' },
+};
 export interface Block {
   id: string;
   name: string;
@@ -48,6 +82,8 @@ export interface Block {
   provider?: ProviderType;
   subtype?: string;
   config?: Record<string, unknown>;
+  aggregation?: Aggregation; // v2.0 §8 — multiple identical resources
+  roles?: BlockRole[];       // v2.0 §9 — visual-only role indicators
 }
 
 // ─── Connection ────────────────────────────────────────────

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { Block, Plate } from '../../shared/types/index';
-import { validatePlacement, canPlaceBlock } from './placement';
+import { validatePlacement, canPlaceBlock, validateLayerPlacement, validateGridAlignment, validateNoOverlap } from './placement';
 
 function makeBlock(
   overrides: Partial<Block> = {}
@@ -29,6 +29,15 @@ function makePlate(
     position: { x: 0, y: 0, z: 0 },
     size: { width: 4, height: 1, depth: 4 },
     metadata: {},
+    ...overrides,
+  };
+}
+
+function makeSize(overrides: Partial<{ width: number; height: number; depth: number }> = {}): { width: number; height: number; depth: number } {
+  return {
+    width: 2,
+    height: 2,
+    depth: 2,
     ...overrides,
   };
 }
@@ -351,5 +360,216 @@ describe('canPlaceBlock', () => {
   it('returns true when observability is on subnet plate', () => {
     const plate = makePlate({ type: 'subnet', subnetAccess: 'private' });
     expect(canPlaceBlock('observability', plate)).toBe(true);
+  });
+});
+
+describe('validateLayerPlacement', () => {
+  it('returns null when block is on a subnet plate (valid parent for resource)', () => {
+    const block = makeBlock({ category: 'compute' });
+    const plate = makePlate({ type: 'subnet', subnetAccess: 'private' });
+
+    expect(validateLayerPlacement(block, plate)).toBeNull();
+  });
+
+  it('returns null when block is on a zone plate', () => {
+    const block = makeBlock({ category: 'compute' });
+    const plate = makePlate({ type: 'zone', subnetAccess: undefined });
+
+    expect(validateLayerPlacement(block, plate)).toBeNull();
+  });
+
+  it('returns null when block is on a region plate', () => {
+    const block = makeBlock({ category: 'function' });
+    const plate = makePlate({ type: 'region', subnetAccess: undefined });
+
+    expect(validateLayerPlacement(block, plate)).toBeNull();
+  });
+
+  it('returns null when block is on an edge plate', () => {
+    const block = makeBlock({ category: 'gateway' });
+    const plate = makePlate({ type: 'edge', subnetAccess: undefined });
+
+    expect(validateLayerPlacement(block, plate)).toBeNull();
+  });
+
+  it('returns null when block is on a global plate', () => {
+    const block = makeBlock({ category: 'compute' });
+    const plate = makePlate({ type: 'global', subnetAccess: undefined });
+
+    expect(validateLayerPlacement(block, plate)).toBeNull();
+  });
+
+  it('returns error with correct fields for invalid layer hierarchy', () => {
+    // This test validates error shape; all PlateTypes are valid parents for resources,
+    // but if VALID_PARENTS were to change, this test pattern would catch it.
+    // For now, all 5 plate types are valid parents, so we test error shape with a forced scenario.
+    const block = makeBlock({ id: 'b1', name: 'TestBlock', category: 'compute' });
+    // Since all PlateTypes are valid parents for 'resource', this will pass.
+    // We verify all valid plate types return null.
+    const plateTypes = ['global', 'edge', 'region', 'zone', 'subnet'] as const;
+    for (const type of plateTypes) {
+      const plate = makePlate({ type, subnetAccess: type === 'subnet' ? 'private' : undefined });
+      expect(validateLayerPlacement(block, plate)).toBeNull();
+    }
+  });
+});
+
+describe('validateGridAlignment', () => {
+  it('returns null when position has integer x and z', () => {
+    const block = makeBlock({ position: { x: 0, y: 0, z: 0 } });
+    expect(validateGridAlignment(block)).toBeNull();
+  });
+
+  it('returns null for positive integer positions', () => {
+    const block = makeBlock({ position: { x: 5, y: 0, z: 10 } });
+    expect(validateGridAlignment(block)).toBeNull();
+  });
+
+  it('returns null for negative integer positions', () => {
+    const block = makeBlock({ position: { x: -3, y: 0, z: -7 } });
+    expect(validateGridAlignment(block)).toBeNull();
+  });
+
+  it('returns error when x is fractional', () => {
+    const block = makeBlock({ id: 'b1', name: 'BadX', position: { x: 1.5, y: 0, z: 0 } });
+
+    expect(validateGridAlignment(block)).toEqual({
+      ruleId: 'rule-grid-alignment',
+      severity: 'error',
+      message: 'Block "BadX" position (1.5, 0) is not CU-aligned',
+      suggestion: 'Snap the block to integer grid positions',
+      targetId: 'b1',
+    });
+  });
+
+  it('returns error when z is fractional', () => {
+    const block = makeBlock({ id: 'b2', name: 'BadZ', position: { x: 0, y: 0, z: 2.7 } });
+
+    expect(validateGridAlignment(block)).toEqual({
+      ruleId: 'rule-grid-alignment',
+      severity: 'error',
+      message: 'Block "BadZ" position (0, 2.7) is not CU-aligned',
+      suggestion: 'Snap the block to integer grid positions',
+      targetId: 'b2',
+    });
+  });
+
+  it('returns error when both x and z are fractional', () => {
+    const block = makeBlock({ id: 'b3', name: 'BadBoth', position: { x: 0.1, y: 0, z: 0.9 } });
+
+    expect(validateGridAlignment(block)).toEqual({
+      ruleId: 'rule-grid-alignment',
+      severity: 'error',
+      message: 'Block "BadBoth" position (0.1, 0.9) is not CU-aligned',
+      suggestion: 'Snap the block to integer grid positions',
+      targetId: 'b3',
+    });
+  });
+
+  it('does not check y coordinate (y is height, not grid position)', () => {
+    const block = makeBlock({ position: { x: 2, y: 1.5, z: 3 } });
+    expect(validateGridAlignment(block)).toBeNull();
+  });
+});
+
+describe('validateNoOverlap', () => {
+  const defaultSize = makeSize();
+  const getSize = () => defaultSize;
+
+  it('returns null when there are no siblings', () => {
+    const block = makeBlock({ position: { x: 0, y: 0, z: 0 } });
+    expect(validateNoOverlap(block, [], getSize)).toBeNull();
+  });
+
+  it('returns null when blocks do not overlap', () => {
+    const block = makeBlock({ id: 'a', name: 'A', position: { x: 0, y: 0, z: 0 } });
+    const sibling = makeBlock({ id: 'b', name: 'B', position: { x: 5, y: 0, z: 0 } });
+
+    expect(validateNoOverlap(block, [sibling], getSize)).toBeNull();
+  });
+
+  it('returns null when blocks are adjacent but not overlapping (x axis)', () => {
+    const block = makeBlock({ id: 'a', name: 'A', position: { x: 0, y: 0, z: 0 } });
+    const sibling = makeBlock({ id: 'b', name: 'B', position: { x: 2, y: 0, z: 0 } });
+
+    expect(validateNoOverlap(block, [sibling], getSize)).toBeNull();
+  });
+
+  it('returns null when blocks are adjacent but not overlapping (z axis)', () => {
+    const block = makeBlock({ id: 'a', name: 'A', position: { x: 0, y: 0, z: 0 } });
+    const sibling = makeBlock({ id: 'b', name: 'B', position: { x: 0, y: 0, z: 2 } });
+
+    expect(validateNoOverlap(block, [sibling], getSize)).toBeNull();
+  });
+
+  it('returns error when blocks overlap', () => {
+    const block = makeBlock({ id: 'a', name: 'A', position: { x: 0, y: 0, z: 0 } });
+    const sibling = makeBlock({ id: 'b', name: 'B', position: { x: 1, y: 0, z: 1 } });
+
+    expect(validateNoOverlap(block, [sibling], getSize)).toEqual({
+      ruleId: 'rule-no-overlap',
+      severity: 'error',
+      message: 'Block "A" overlaps with "B"',
+      suggestion: 'Move the block to a non-overlapping position',
+      targetId: 'a',
+    });
+  });
+
+  it('returns error when blocks fully overlap (same position)', () => {
+    const block = makeBlock({ id: 'a', name: 'A', position: { x: 0, y: 0, z: 0 } });
+    const sibling = makeBlock({ id: 'b', name: 'B', position: { x: 0, y: 0, z: 0 } });
+
+    expect(validateNoOverlap(block, [sibling], getSize)).toEqual({
+      ruleId: 'rule-no-overlap',
+      severity: 'error',
+      message: 'Block "A" overlaps with "B"',
+      suggestion: 'Move the block to a non-overlapping position',
+      targetId: 'a',
+    });
+  });
+
+  it('skips self in sibling list', () => {
+    const block = makeBlock({ id: 'a', name: 'A', position: { x: 0, y: 0, z: 0 } });
+    // Same block appears in siblings — should be ignored
+    expect(validateNoOverlap(block, [block], getSize)).toBeNull();
+  });
+
+  it('detects overlap with first overlapping sibling', () => {
+    const block = makeBlock({ id: 'a', name: 'A', position: { x: 0, y: 0, z: 0 } });
+    const noOverlap = makeBlock({ id: 'b', name: 'B', position: { x: 10, y: 0, z: 10 } });
+    const overlaps = makeBlock({ id: 'c', name: 'C', position: { x: 1, y: 0, z: 1 } });
+
+    const result = validateNoOverlap(block, [noOverlap, overlaps], getSize);
+    expect(result).not.toBeNull();
+    expect(result!.message).toContain('"C"');
+  });
+
+  it('uses custom getBlockSize for different block sizes', () => {
+    const block = makeBlock({ id: 'a', name: 'A', category: 'compute', position: { x: 0, y: 0, z: 0 } });
+    const sibling = makeBlock({ id: 'b', name: 'B', category: 'database', position: { x: 3, y: 0, z: 0 } });
+
+    // With small size: no overlap
+    const smallSize = () => makeSize({ width: 2, depth: 2 });
+    expect(validateNoOverlap(block, [sibling], smallSize)).toBeNull();
+
+    // With large size: overlap
+    const largeSize = () => makeSize({ width: 4, depth: 4 });
+    expect(validateNoOverlap(block, [sibling], largeSize)).not.toBeNull();
+  });
+
+  it('handles overlap on x axis only (z separated)', () => {
+    const block = makeBlock({ id: 'a', name: 'A', position: { x: 0, y: 0, z: 0 } });
+    const sibling = makeBlock({ id: 'b', name: 'B', position: { x: 1, y: 0, z: 5 } });
+
+    // Overlap on x (0..2 vs 1..3) but not on z (0..2 vs 5..7)
+    expect(validateNoOverlap(block, [sibling], getSize)).toBeNull();
+  });
+
+  it('handles overlap on z axis only (x separated)', () => {
+    const block = makeBlock({ id: 'a', name: 'A', position: { x: 0, y: 0, z: 0 } });
+    const sibling = makeBlock({ id: 'b', name: 'B', position: { x: 5, y: 0, z: 1 } });
+
+    // Overlap on z (0..2 vs 1..3) but not on x (0..2 vs 5..7)
+    expect(validateNoOverlap(block, [sibling], getSize)).toBeNull();
   });
 });

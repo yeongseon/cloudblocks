@@ -5,6 +5,7 @@ import { getEndpointWorldPosition } from '../../shared/utils/position';
 import { worldToScreen } from '../../shared/utils/isometric';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
+import { CONNECTION_VISUAL_STYLES } from '../validation/connection';
 
 interface ConnectionPathProps {
   connection: Connection;
@@ -55,18 +56,13 @@ export const ConnectionPath = memo(function ConnectionPath({
         : '#64748b';
   const arrowFillBg = bgStroke;
   const arrowFillFg = fgStroke;
-  const fgStrokeWidth = connection.type === 'http' ? 3 : 2;
+  const connStyle = CONNECTION_VISUAL_STYLES[connection.type];
+  const fgStrokeWidth = connStyle.strokeWidth;
   const isSelected = selectedId === connection.id;
   const isHighlighted = isHovered || isSelected;
   const bgStrokeWidth = isHighlighted ? 6 : 4;
   const effectiveFgStrokeWidth = isHighlighted ? fgStrokeWidth + 2 : fgStrokeWidth;
-  const fgStrokeDasharray = connection.type === 'internal'
-    ? '4 4'
-    : connection.type === 'data'
-      ? '8 4'
-      : connection.type === 'async'
-        ? '8 4 2 4'
-        : undefined;
+  const fgStrokeDasharray = connStyle.strokeDasharray;
 
   const handleClick = (e: React.MouseEvent<SVGGElement>) => {
     e.stopPropagation();

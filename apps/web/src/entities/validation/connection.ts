@@ -1,6 +1,7 @@
 import type {
   Block,
   Connection,
+  ConnectionType,
   ExternalActor,
   BlockCategory,
   ValidationError,
@@ -43,6 +44,32 @@ const ALLOWED_CONNECTIONS: Record<string, Set<string>> = {
   queue: new Set(['function']),
   event: new Set(['function']),
   // database and storage are receiver-only — not listed as sources
+};
+
+// ─── Visual Style Constants (v2.0) ──────────────────────────
+
+/**
+ * Visual style for each connection type.
+ * Used by ConnectionPath.tsx for rendering differentiation.
+ *
+ * Spec §11.1:
+ *   dataflow → solid line (default)
+ *   http    → thicker solid line
+ *   internal → short dash
+ *   data    → long dash
+ *   async   → dot-dash
+ */
+export interface ConnectionVisualStyle {
+  strokeWidth: number;
+  strokeDasharray?: string;
+}
+
+export const CONNECTION_VISUAL_STYLES: Record<ConnectionType, ConnectionVisualStyle> = {
+  dataflow: { strokeWidth: 2 },
+  http: { strokeWidth: 3 },
+  internal: { strokeWidth: 2, strokeDasharray: '4 4' },
+  data: { strokeWidth: 2, strokeDasharray: '8 4' },
+  async: { strokeWidth: 2, strokeDasharray: '8 4 2 4' },
 };
 
 function getEndpointType(

@@ -4,7 +4,7 @@ import { render } from '@testing-library/react';
 import { BlockSvg } from '../BlockSvg';
 import { getBlockFaceColors } from '../blockFaceColors';
 import { getBlockDimensions, CATEGORY_TIER_MAP, TIER_DIMENSIONS } from '../../../shared/types/visualProfile';
-import type { BlockCategory, ProviderType } from '../../../shared/types/index';
+import type { BlockCategory, BlockRole, ProviderType } from '../../../shared/types/index';
 import { BLOCK_PADDING, TILE_H, TILE_W, TILE_Z } from '../../../shared/tokens/designTokens';
 
 // ─── Test Helpers ─────────────────────────────────────────────
@@ -363,5 +363,95 @@ describe('BlockSvg category-tier mapping consistency', () => {
     expect(CATEGORY_TIER_MAP.analytics).toBe('large');
     expect(CATEGORY_TIER_MAP.identity).toBe('small');
     expect(CATEGORY_TIER_MAP.observability).toBe('small');
+  });
+});
+
+// ─── Aggregation Badge Tests (v2.0 §8) ───────────────────────
+
+describe('BlockSvg aggregation badge', () => {
+  it('does not render badge when aggregationCount is undefined', () => {
+    const { container } = render(<BlockSvg category="compute" />);
+    const badge = container.querySelector('[data-testid="aggregation-badge"]');
+    expect(badge).toBeNull();
+  });
+
+  it('does not render badge when aggregationCount is 1', () => {
+    const { container } = render(<BlockSvg category="compute" aggregationCount={1} />);
+    const badge = container.querySelector('[data-testid="aggregation-badge"]');
+    expect(badge).toBeNull();
+  });
+
+  it('renders badge with ×N text when aggregationCount > 1', () => {
+    const { container } = render(<BlockSvg category="compute" aggregationCount={5} />);
+    const badge = container.querySelector('[data-testid="aggregation-badge"]');
+    expect(badge).not.toBeNull();
+    const text = badge!.querySelector('text');
+    expect(text!.textContent).toBe('×5');
+  });
+
+  it('renders badge for large count', () => {
+    const { container } = render(<BlockSvg category="database" aggregationCount={100} />);
+    const badge = container.querySelector('[data-testid="aggregation-badge"]');
+    expect(badge).not.toBeNull();
+    const text = badge!.querySelector('text');
+    expect(text!.textContent).toBe('×100');
+  });
+});
+
+// ─── Role Badge Tests (v2.0 §9) ──────────────────────────────
+
+describe('BlockSvg role badges', () => {
+  it('does not render role badges when roles is undefined', () => {
+    const { container } = render(<BlockSvg category="compute" />);
+    const badges = container.querySelector('[data-testid="role-badges"]');
+    expect(badges).toBeNull();
+  });
+
+  it('does not render role badges when roles is empty', () => {
+    const { container } = render(<BlockSvg category="compute" roles={[]} />);
+    const badges = container.querySelector('[data-testid="role-badges"]');
+    expect(badges).toBeNull();
+  });
+
+  it('renders a single role badge', () => {
+    const { container } = render(<BlockSvg category="compute" roles={['primary']} />);
+    const badges = container.querySelector('[data-testid="role-badges"]');
+    expect(badges).not.toBeNull();
+    const primaryBadge = container.querySelector('[data-testid="role-badge-primary"]');
+    expect(primaryBadge).not.toBeNull();
+  });
+
+  it('renders multiple role badges', () => {
+    const roles: BlockRole[] = ['public', 'reader', 'primary'];
+    const { container } = render(<BlockSvg category="compute" roles={roles} />);
+    const badges = container.querySelector('[data-testid="role-badges"]');
+    expect(badges).not.toBeNull();
+    expect(container.querySelector('[data-testid="role-badge-public"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="role-badge-reader"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="role-badge-primary"]')).not.toBeNull();
+  });
+
+  it('renders all 8 roles simultaneously', () => {
+    const allRoles: BlockRole[] = ['primary', 'secondary', 'reader', 'writer', 'public', 'private', 'internal', 'external'];
+    const { container } = render(<BlockSvg category="compute" roles={allRoles} />);
+    allRoles.forEach((role) => {
+      expect(container.querySelector(`[data-testid="role-badge-${role}"]`)).not.toBeNull();
+    });
+  });
+
+  it('does not affect block size (viewBox unchanged with roles)', () => {
+    const { container: without } = render(<BlockSvg category="compute" />);
+    const { container: withRoles } = render(<BlockSvg category="compute" roles={['primary', 'public']} />);
+    const vbWithout = without.querySelector('svg')!.getAttribute('viewBox');
+    const vbWith = withRoles.querySelector('svg')!.getAttribute('viewBox');
+    expect(vbWith).toBe(vbWithout);
+  });
+
+  it('role badges coexist with aggregation badge', () => {
+    const { container } = render(
+      <BlockSvg category="compute" aggregationCount={3} roles={['primary']} />,
+    );
+    expect(container.querySelector('[data-testid="aggregation-badge"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="role-badge-primary"]')).not.toBeNull();
   });
 });
