@@ -41,7 +41,7 @@ const baseArchitecture: ArchitectureModel = {
 const networkPlate: Plate = {
   id: 'net-1',
   name: 'VNet',
-  type: 'network',
+  type: 'region',
   parentId: null,
   children: [],
   position: { x: 0, y: 0, z: 0 },
