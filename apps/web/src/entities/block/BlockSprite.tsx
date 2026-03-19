@@ -4,6 +4,7 @@ import { toast } from 'react-hot-toast';
 import type { Block, Plate } from '../../shared/types/index';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
+import { useWorkerStore } from '../store/workerStore';
 import { getDiffState } from '../../features/diff/engine';
 import type { DiffDelta } from '../../shared/types/diff';
 import { screenDeltaToWorld, snapToGrid } from '../../shared/utils/isometric';
@@ -59,6 +60,7 @@ export const BlockSprite = memo(function BlockSprite({
   const connections = useArchitectureStore((s) => s.workspace.architecture.connections);
   const diffMode = useUIStore((s) => s.diffMode);
   const diffDelta: DiffDelta | null = useUIStore((s) => s.diffDelta);
+  const activeBuild = useWorkerStore((s) => s.activeBuild);
   const blockRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -89,6 +91,8 @@ export const BlockSprite = memo(function BlockSprite({
 
   const hasValidationWarning = validatePlacement(block, parentPlate) !== null;
   const diffState = diffMode && diffDelta ? getDiffState(block.id, diffDelta) : 'unchanged';
+  const isBeingBuilt = activeBuild?.blockId === block.id;
+  const buildProgress = isBeingBuilt ? (activeBuild?.progress ?? 0) : 1;
 
   useEffect(() => {
     const el = blockRef.current;
@@ -229,6 +233,7 @@ export const BlockSprite = memo(function BlockSprite({
     diffState === 'added' && 'diff-added',
     diffState === 'modified' && 'diff-modified',
     diffState === 'removed' && 'diff-removed',
+    isBeingBuilt && 'is-building',
   ]
     .filter(Boolean)
     .join(' ');
@@ -241,7 +246,8 @@ export const BlockSprite = memo(function BlockSprite({
         left: `${screenX}px`,
         top: `${screenY}px`,
         zIndex,
-      }}
+        '--build-progress': buildProgress,
+      } as React.CSSProperties}
     >
       <button
         type="button"
