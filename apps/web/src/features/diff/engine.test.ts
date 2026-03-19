@@ -59,7 +59,7 @@ function createBaseArchitecture(): ArchitectureModel {
         metadata: {},
       },
     ],
-    externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' }],
+    externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
   };
@@ -197,7 +197,7 @@ describe('computeArchitectureDiff', () => {
           metadata: {},
         },
       ],
-      externalActors: [...base.externalActors, { id: 'ext-2', name: 'Partner API', type: 'internet' }],
+      externalActors: [...base.externalActors, { id: 'ext-2', name: 'Partner API', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
     };
 
     const delta = computeArchitectureDiff(base, head);
@@ -413,7 +413,7 @@ describe('computeArchitectureDiff', () => {
           metadata: {},
         },
       ],
-      externalActors: [...base.externalActors, { id: 'ext-2', name: 'Partner API', type: 'internet' }],
+      externalActors: [...base.externalActors, { id: 'ext-2', name: 'Partner API', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
     };
 
     const delta = computeArchitectureDiff(base, head);
@@ -536,7 +536,7 @@ describe('computeArchitectureDiff', () => {
       ],
       externalActors: [
         { ...base.externalActors[0], name: 'Public Internet' },
-        { id: 'ext-2', name: 'Partner API', type: 'internet' },
+        { id: 'ext-2', name: 'Partner API', type: 'internet' , position: { x: -3, y: 0, z: 5 } },
       ],
     };
 
@@ -643,7 +643,7 @@ describe('normalizeArchitecture', () => {
         },
         base.connections[0],
       ],
-      externalActors: [{ id: 'ext-2', name: 'Partner API', type: 'internet' }, base.externalActors[0]],
+      externalActors: [{ id: 'ext-2', name: 'Partner API', type: 'internet' , position: { x: -3, y: 0, z: 5 } }, base.externalActors[0]],
     };
 
     const normalized = normalizeArchitecture(unsorted);
