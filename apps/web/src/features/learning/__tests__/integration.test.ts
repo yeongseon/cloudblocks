@@ -291,7 +291,7 @@ function ensureConnection(sourceCategory: string, targetCategory: string): void 
   const updatedExternalActors =
     sourceCategory === 'internet' &&
     !refreshed.externalActors.some((actor) => actor.id === sourceId)
-      ? [...refreshed.externalActors, { id: sourceId, name: 'Internet', type: 'internet' as const }]
+      ? [...refreshed.externalActors, { id: sourceId, name: 'Internet', type: 'internet' as const , position: { x: -3, y: 0, z: 5 } }]
       : refreshed.externalActors;
 
   replaceArchitectureSnapshot({

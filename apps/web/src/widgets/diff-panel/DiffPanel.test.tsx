@@ -150,13 +150,13 @@ function makeDiffDelta(): DiffDelta {
       ],
     },
     externalActors: {
-      added: [{ id: 'actor-added-1', name: 'Internet', type: 'internet' }],
-      removed: [{ id: 'actor-removed-1', name: 'Legacy Partner', type: 'internet' }],
+      added: [{ id: 'actor-added-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+      removed: [{ id: 'actor-removed-1', name: 'Legacy Partner', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       modified: [
         {
           id: 'actor-modified-1',
-          before: { id: 'actor-modified-1', name: 'Payment Gateway', type: 'internet' },
-          after: { id: 'actor-modified-1', name: 'Payments API', type: 'internet' },
+          before: { id: 'actor-modified-1', name: 'Payment Gateway', type: 'internet' , position: { x: -3, y: 0, z: 5 } },
+          after: { id: 'actor-modified-1', name: 'Payments API', type: 'internet' , position: { x: -3, y: 0, z: 5 } },
           changes: [{ path: 'name', oldValue: 'Payment Gateway', newValue: 'Payments API' }],
         },
       ],

@@ -1,4 +1,4 @@
-import type { Block, Connection, Plate, PlateProfileId } from '../../../shared/types/index';
+import type { Block, Connection, ExternalActor, Plate, PlateProfileId } from '../../../shared/types/index';
 import { buildPlateSizeFromProfileId, DEFAULT_BLOCK_SIZE } from '../../../shared/types/index';
 import { generateId } from '../../../shared/utils/id';
 import type { ArchitectureSlice, ArchitectureState } from './types';
@@ -24,6 +24,7 @@ type DomainSlice = Pick<
   | 'setPlateProfile'
   | 'movePlatePosition'
   | 'moveBlockPosition'
+  | 'moveActorPosition'
   | 'addConnection'
   | 'removeConnection'
 >;
@@ -483,6 +484,34 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       });
 
       return withHistory(state, { ...arch, blocks });
+    });
+  },
+
+  moveActorPosition: (id, deltaX, deltaZ) => {
+    set((state) => {
+      const arch = state.workspace.architecture;
+      const actor = arch.externalActors.find((candidate) => candidate.id === id);
+
+      if (!actor) {
+        return state;
+      }
+
+      const externalActors: ExternalActor[] = arch.externalActors.map((candidate) => {
+        if (candidate.id !== id) {
+          return candidate;
+        }
+
+        return {
+          ...candidate,
+          position: {
+            x: candidate.position.x + deltaX,
+            y: candidate.position.y,
+            z: candidate.position.z + deltaZ,
+          },
+        };
+      });
+
+      return withHistory(state, { ...arch, externalActors });
     });
   },
 

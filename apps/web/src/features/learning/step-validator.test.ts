@@ -92,7 +92,7 @@ const createTestModel = (): ArchitectureModel => ({
       metadata: {},
     },
   ],
-  externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+  externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
 });
 
 describe('evaluateRule', () => {

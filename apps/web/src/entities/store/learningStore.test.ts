@@ -48,7 +48,7 @@ function createTestScenario(): Scenario {
       plates: [],
       blocks: [],
       connections: [],
-      externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+      externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
     },
   };
 }

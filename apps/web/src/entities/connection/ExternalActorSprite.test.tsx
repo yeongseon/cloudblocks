@@ -14,7 +14,7 @@ const actor: ExternalActor = {
   id: 'actor-1',
   type: 'internet',
   name: 'Internet',
-};
+ position: { x: -3, y: 0, z: 5 } };
 
 describe('ExternalActorSprite', () => {
   const addConnectionMock = vi.fn();

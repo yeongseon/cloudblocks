@@ -30,7 +30,7 @@ function createModel(id: string): ArchitectureModel {
     ],
     blocks: [],
     connections: [],
-    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
   };

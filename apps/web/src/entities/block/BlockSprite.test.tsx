@@ -58,7 +58,7 @@ const internetActor: ExternalActor = {
   id: 'actor-internet',
   type: 'internet',
   name: 'Internet',
-};
+ position: { x: -3, y: 0, z: 5 } };
 
 describe('BlockSprite', () => {
   const addConnectionMock = vi.fn();

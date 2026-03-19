@@ -39,6 +39,7 @@ const makeExternalActor = (id: string): ExternalActor => ({
   id,
   type: 'internet',
   name: 'Internet',
+  position: { x: -3, y: 0, z: 5 },
 });
 
 describe('FlowDiagram', () => {

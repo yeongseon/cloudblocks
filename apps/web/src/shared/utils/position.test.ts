@@ -66,21 +66,38 @@ describe('position utilities', () => {
     expect(endpoint).toEqual([14, 4, -5]);
   });
 
-  it('getEndpointWorldPosition resolves external actor endpoint and returns a copy', () => {
-    const actor: ExternalActor = { id: 'ext-internet', name: 'Internet', type: 'internet' };
+  it('getEndpointWorldPosition resolves external actor endpoint from actor position', () => {
+    const actor: ExternalActor = {
+      id: 'ext-internet',
+      name: 'Internet',
+      type: 'internet',
+      position: { x: 42, y: 1, z: -7 },
+    };
 
     const endpoint = getEndpointWorldPosition(actor.id, [], [], [actor]);
 
-    expect(endpoint).toEqual(EXTERNAL_ACTOR_POSITION);
-    expect(endpoint).not.toBe(EXTERNAL_ACTOR_POSITION);
+    expect(endpoint).toEqual([42, 1, -7]);
   });
 
   it('falls back to external actor when block exists but parent plate is missing', () => {
     const id = 'shared-id';
     const block = createBlock(id, 'missing-plate');
-    const actor: ExternalActor = { id, name: 'Internet', type: 'internet' };
+    const actor: ExternalActor = {
+      id,
+      name: 'Internet',
+      type: 'internet',
+      position: { x: -2, y: 3, z: 4 },
+    };
 
     const endpoint = getEndpointWorldPosition(id, [block], [], [actor]);
+
+    expect(endpoint).toEqual([-2, 3, 4]);
+  });
+
+  it('falls back to default external actor position for legacy actor payloads', () => {
+    const legacyActor = { id: 'ext-legacy', name: 'Internet', type: 'internet' } as unknown as ExternalActor;
+
+    const endpoint = getEndpointWorldPosition(legacyActor.id, [], [], [legacyActor]);
 
     expect(endpoint).toEqual(EXTERNAL_ACTOR_POSITION);
   });

@@ -3,7 +3,6 @@ import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { useRafCallback } from '../../shared/hooks/useRafCallback';
 import { worldToScreen } from '../../shared/utils/isometric';
-import { EXTERNAL_ACTOR_POSITION } from '../../shared/utils/position';
 
 interface ConnectionPreviewProps {
   originX: number;
@@ -66,7 +65,7 @@ export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) 
       return null;
     }
 
-    const [worldX, worldY, worldZ] = EXTERNAL_ACTOR_POSITION;
+    const { x: worldX, y: worldY, z: worldZ } = sourceExternalActor.position;
     return worldToScreen(worldX, worldY, worldZ, originX, originY);
   }, [blocks, connectionSource, externalActors, interactionState, originX, originY, plates]);
 

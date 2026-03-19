@@ -17,6 +17,7 @@ import {
 } from './helpers';
 
 const MAX_IMPORT_SIZE_BYTES = 5 * 1024 * 1024;
+const DEFAULT_EXTERNAL_ACTOR_POSITION = { x: -3, y: 0, z: 5 };
 const VALID_PLATE_TYPES: PlateType[] = ['network', 'subnet'];
 const VALID_BLOCK_CATEGORIES: BlockCategory[] = [
   'compute',
@@ -177,6 +178,10 @@ const validateImportData = (
         throw new Error(`${context}: id must be a string`);
       }
 
+      if (actor.position !== undefined) {
+        validatePosition(actor.position, context);
+      }
+
       externalActorIds.add(actor.id);
     });
   }
@@ -297,9 +302,18 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
         plates: imported.plates,
         blocks: imported.blocks,
         connections: imported.connections ?? [],
-        externalActors: imported.externalActors ?? [
-          { id: 'ext-internet', name: 'Internet', type: 'internet' },
-        ],
+        externalActors:
+          imported.externalActors?.map((actor) => ({
+            ...actor,
+            position: actor.position ?? { ...DEFAULT_EXTERNAL_ACTOR_POSITION },
+          })) ?? [
+            {
+              id: 'ext-internet',
+              name: 'Internet',
+              type: 'internet',
+              position: { ...DEFAULT_EXTERNAL_ACTOR_POSITION },
+            },
+          ],
         createdAt: imported.createdAt || now,
         updatedAt: now,
       };
