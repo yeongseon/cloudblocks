@@ -1,4 +1,23 @@
-import type { ProviderAdapter, ProviderDefinition } from '../../types';
+import type { ProviderAdapter, ProviderDefinition, SubtypeResourceMap } from '../../types';
+
+const awsSubtypeBlockMappings: SubtypeResourceMap = {
+  compute: {
+    ec2: { resourceType: 'aws_instance', namePrefix: 'ec2' },
+    ecs: { resourceType: 'aws_ecs_service', namePrefix: 'ecs' },
+    lambda: { resourceType: 'aws_lambda_function', namePrefix: 'fn' },
+  },
+  database: {
+    'rds-postgres': { resourceType: 'aws_db_instance', namePrefix: 'rds' },
+    dynamodb: { resourceType: 'aws_dynamodb_table', namePrefix: 'ddb' },
+  },
+  storage: {
+    s3: { resourceType: 'aws_s3_bucket', namePrefix: 's3' },
+  },
+  gateway: {
+    alb: { resourceType: 'aws_lb', namePrefix: 'alb' },
+    'api-gateway': { resourceType: 'aws_apigatewayv2_api', namePrefix: 'apigw' },
+  },
+};
 
 export const awsProviderDefinition: ProviderDefinition = {
   name: 'aws',
@@ -75,6 +94,7 @@ export const awsProviderDefinition: ProviderDefinition = {
       runtime: 'nodejs',
     },
   },
+  subtypeBlockMappings: awsSubtypeBlockMappings,
 };
 
 export const awsProvider: ProviderAdapter = {

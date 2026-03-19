@@ -1,4 +1,23 @@
-import type { ProviderAdapter, ProviderDefinition } from '../../types';
+import type { ProviderAdapter, ProviderDefinition, SubtypeResourceMap } from '../../types';
+
+const gcpSubtypeBlockMappings: SubtypeResourceMap = {
+  compute: {
+    'compute-engine': { resourceType: 'google_compute_instance', namePrefix: 'gce' },
+    'cloud-run': { resourceType: 'google_cloud_run_v2_service', namePrefix: 'run' },
+    'cloud-functions': { resourceType: 'google_cloudfunctions2_function', namePrefix: 'gcf' },
+  },
+  database: {
+    'cloud-sql-postgres': { resourceType: 'google_sql_database_instance', namePrefix: 'sql' },
+    firestore: { resourceType: 'google_firestore_database', namePrefix: 'fdb' },
+  },
+  storage: {
+    'cloud-storage': { resourceType: 'google_storage_bucket', namePrefix: 'gcs' },
+  },
+  gateway: {
+    'cloud-load-balancing': { resourceType: 'google_compute_url_map', namePrefix: 'lb' },
+    'api-gateway': { resourceType: 'google_api_gateway_api', namePrefix: 'apigw' },
+  },
+};
 
 export const gcpProviderDefinition: ProviderDefinition = {
   name: 'gcp',
@@ -75,6 +94,7 @@ export const gcpProviderDefinition: ProviderDefinition = {
       runtime: 'nodejs',
     },
   },
+  subtypeBlockMappings: gcpSubtypeBlockMappings,
 };
 
 export const gcpProvider: ProviderAdapter = {
