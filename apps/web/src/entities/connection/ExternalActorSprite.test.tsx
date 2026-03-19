@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import interact from 'interactjs';
+import { toast } from 'react-hot-toast';
 import { ExternalActorSprite } from './ExternalActorSprite';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
@@ -19,6 +20,16 @@ const interactMocks = vi.hoisted(() => ({
 
 vi.mock('interactjs', () => ({
   default: interactMocks.interactFn,
+}));
+
+const toastMocks = vi.hoisted(() => ({
+  error: vi.fn(),
+}));
+
+vi.mock('react-hot-toast', () => ({
+  toast: {
+    error: toastMocks.error,
+  },
 }));
 
 vi.mock('../../shared/assets/actor-sprites/internet.svg', () => ({ default: 'internet.svg' }));
@@ -238,6 +249,44 @@ describe('ExternalActorSprite', () => {
     expect(moveActorPositionMock).toHaveBeenCalledWith('actor-1', 0.3125, 0);
   });
 
+  it('uses default zoom when scene-world transform is missing', () => {
+    render(<ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />);
+
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        start: (event: { target: HTMLElement }) => void;
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+      };
+    };
+
+    const target = screen.getByAltText('Internet').closest('.external-actor-sprite') as HTMLElement;
+    draggableConfig.listeners.start({ target });
+    draggableConfig.listeners.move({ dx: 10, dy: 10, target });
+
+    expect(moveActorPositionMock).toHaveBeenCalledWith('actor-1', 0.46875, 0.15625);
+  });
+
+  it('keeps zoom fallback when transform has no usable scale value', () => {
+    const { container } = render(
+      <div className="scene-world" style={{ transform: 'translate(10px, 10px)' }}>
+        <ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />
+      </div>,
+    );
+
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        start: (event: { target: HTMLElement }) => void;
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+      };
+    };
+
+    const target = container.querySelector('.external-actor-sprite') as HTMLElement;
+    draggableConfig.listeners.start({ target });
+    draggableConfig.listeners.move({ dx: 10, dy: 10, target });
+
+    expect(moveActorPositionMock).toHaveBeenCalledWith('actor-1', 0.46875, 0.15625);
+  });
+
   it('ignores click while dragging', async () => {
     const user = userEvent.setup();
     render(<ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />);
@@ -289,6 +338,61 @@ describe('ExternalActorSprite', () => {
     playSoundSpy.mockRestore();
   });
 
+  it('does not snap when actor cannot be found in store', () => {
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          externalActors: [],
+        },
+      },
+    });
+
+    render(<ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />);
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+        end: () => void;
+      };
+    };
+
+    const target = screen.getByAltText('Internet').closest('.external-actor-sprite') as HTMLElement;
+    draggableConfig.listeners.move({ dx: 2, dy: 2, target });
+    draggableConfig.listeners.end();
+
+    expect(moveActorPositionMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not apply snap movement when already on grid', () => {
+    const onGridActor = { ...actor, position: { x: 2, y: 0, z: 2 } };
+    const snapSpy = vi.spyOn(isometric, 'snapToGrid').mockReturnValue({ x: 2, z: 2 });
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          externalActors: [onGridActor],
+        },
+      },
+    });
+
+    render(<ExternalActorSprite actor={onGridActor} screenX={0} screenY={0} zIndex={1} />);
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+        end: () => void;
+      };
+    };
+
+    const target = screen.getByAltText('Internet').closest('.external-actor-sprite') as HTMLElement;
+    draggableConfig.listeners.move({ dx: 2, dy: 2, target });
+    draggableConfig.listeners.end();
+
+    expect(moveActorPositionMock).toHaveBeenCalledTimes(1);
+    snapSpy.mockRestore();
+  });
+
   it('removes dropping class after animation end on drag release', () => {
     render(<ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />);
 
@@ -315,6 +419,113 @@ describe('ExternalActorSprite', () => {
 
     unmount();
     expect(interactMocks.unsetFn).toHaveBeenCalledOnce();
+  });
+
+  it('clears pending drag timeout on unmount', () => {
+    vi.useFakeTimers();
+    const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
+    const { unmount } = render(
+      <ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />,
+    );
+
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: { end: () => void };
+    };
+    draggableConfig.listeners.end();
+
+    unmount();
+    expect(clearTimeoutSpy).toHaveBeenCalled();
+
+    clearTimeoutSpy.mockRestore();
+    vi.useRealTimers();
+  });
+
+  it('clears previous drag timer when drag end fires repeatedly', () => {
+    vi.useFakeTimers();
+    const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
+    render(<ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />);
+
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: { end: () => void };
+    };
+
+    draggableConfig.listeners.end();
+    draggableConfig.listeners.end();
+
+    expect(clearTimeoutSpy).toHaveBeenCalled();
+
+    clearTimeoutSpy.mockRestore();
+    vi.useRealTimers();
+  });
+
+  it('resets dragging after drag end timeout and allows click selection', () => {
+    vi.useFakeTimers();
+    render(<ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />);
+
+    const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
+      listeners: {
+        move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
+        end: () => void;
+      };
+    };
+
+    const sprite = screen.getByAltText('Internet').closest('.external-actor-sprite') as HTMLElement;
+    const button = sprite.querySelector('.external-actor-button') as HTMLButtonElement;
+
+    draggableConfig.listeners.move({ dx: 1, dy: 1, target: sprite });
+    draggableConfig.listeners.end();
+
+    fireEvent.click(button);
+    expect(useUIStore.getState().selectedId).toBeNull();
+
+    vi.runAllTimers();
+    fireEvent.click(button);
+    expect(useUIStore.getState().selectedId).toBe(actor.id);
+
+    vi.useRealTimers();
+  });
+
+  it('click in delete mode does not select actor', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ toolMode: 'delete' });
+
+    render(<ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />);
+    await user.click(screen.getByAltText('Internet'));
+
+    expect(useUIStore.getState().selectedId).toBeNull();
+  });
+
+  it('click in connect mode ignores target when source is the same actor', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ toolMode: 'connect', connectionSource: actor.id });
+
+    render(<ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />);
+    await user.click(screen.getByAltText('Internet'));
+
+    expect(addConnectionMock).not.toHaveBeenCalled();
+    expect(useUIStore.getState().connectionSource).toBe(actor.id);
+  });
+
+  it('shows toast when connect mode addConnection fails', async () => {
+    const user = userEvent.setup();
+    addConnectionMock.mockReturnValueOnce(false);
+    useUIStore.setState({ toolMode: 'connect', connectionSource: 'gateway-1' });
+
+    render(<ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />);
+    await user.click(screen.getByAltText('Internet'));
+
+    expect(toast.error).toHaveBeenCalledWith('Invalid connection: check allowed connection rules');
+  });
+
+  it('does not show toast when connect mode addConnection succeeds', async () => {
+    const user = userEvent.setup();
+    addConnectionMock.mockReturnValueOnce(true);
+    useUIStore.setState({ toolMode: 'connect', connectionSource: 'gateway-1' });
+
+    render(<ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />);
+    await user.click(screen.getByAltText('Internet'));
+
+    expect(toast.error).not.toHaveBeenCalled();
   });
 
   it('does not initialize draggable interaction in connect or delete modes', () => {
