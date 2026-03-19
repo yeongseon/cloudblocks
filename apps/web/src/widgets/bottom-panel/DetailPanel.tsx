@@ -225,7 +225,15 @@ function PlateDetail({ plate, className }: { plate: Plate; className: string }) 
     ? SUBNET_ACCESS_COLORS[plate.subnetAccess]
     : PLATE_COLORS[plate.type];
 
-  const icon = plate.type === 'network' ? '🌐' : plate.subnetAccess === 'public' ? '🌍' : '🔒';
+  const icon = plate.type === 'subnet'
+    ? plate.subnetAccess === 'public' ? '🌍' : '🔒'
+    : plate.type === 'global'
+      ? '🌎'
+      : plate.type === 'edge'
+        ? '🛰️'
+        : plate.type === 'zone'
+          ? '🧭'
+          : '🌐';
 
   return (
     <div className={`detail-panel detail-panel--plate ${className}`}>
@@ -240,7 +248,7 @@ function PlateDetail({ plate, className }: { plate: Plate; className: string }) 
         <div className="detail-property">
           <span className="detail-property-label">Type</span>
           <span className="detail-property-value">
-            {plate.type === 'network' ? 'Virtual Network' : 'Subnet'}
+            {plate.type === 'subnet' ? 'Subnet' : plate.type.charAt(0).toUpperCase() + plate.type.slice(1)}
             {plate.subnetAccess && ` (${plate.subnetAccess})`}
           </span>
         </div>
