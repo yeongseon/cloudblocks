@@ -12,7 +12,9 @@ const categories: BlockCategory[] = [
   'function',
   'queue',
   'event',
-  'timer',
+  'analytics',
+  'identity',
+  'observability',
 ];
 
 const hexColorPattern = /^#[0-9A-Fa-f]{6}$/;
@@ -97,7 +99,7 @@ describe('getBlockStudColors', () => {
   it('has hand-crafted azure stud colors with expected values', () => {
     // Verify a few known azure stud color values to ensure they are hand-crafted
     // not auto-generated
-    const expectedAzureColors: Record<BlockCategory, Partial<StudColorSpec>> = {
+    const expectedAzureColors: Partial<Record<BlockCategory, Partial<StudColorSpec>>> = {
       compute: { main: '#ff693b' },
       database: { main: '#33b8f5' },
       storage: { main: '#99d11a' },
@@ -105,7 +107,6 @@ describe('getBlockStudColors', () => {
       function: { main: '#ffca33' },
       queue: { main: '#8c8c8c' },
       event: { main: '#e16233' },
-      timer: { main: '#7546aa' },
     };
 
     for (const category of categories) {
@@ -164,7 +165,7 @@ describe('getBlockStudColors', () => {
     }
   });
 
-  it('provides complete color coverage for all 24 provider×category combinations', () => {
+  it('provides complete color coverage for all provider×category combinations', () => {
     const results: Array<{ provider: ProviderType; category: BlockCategory; spec: StudColorSpec }> = [];
 
     for (const provider of providers) {
@@ -177,8 +178,8 @@ describe('getBlockStudColors', () => {
       }
     }
 
-    // Should have exactly 3 providers × 8 categories = 24 combinations
-    expect(results).toHaveLength(3 * 8);
+    // Should have exactly 3 providers × 10 categories = 30 combinations
+    expect(results).toHaveLength(3 * 10);
 
     // All results should be valid StudColorSpec
     for (const result of results) {

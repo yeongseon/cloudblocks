@@ -15,7 +15,9 @@ const BLOCK_CATEGORIES: BlockCategory[] = [
   'function',
   'queue',
   'event',
-  'timer',
+  'analytics',
+  'identity',
+  'observability',
 ];
 
 const AZURE_BLOCK_FACE_COLORS: Record<BlockCategory, BlockFaceColors> = {
@@ -61,11 +63,23 @@ const AZURE_BLOCK_FACE_COLORS: Record<BlockCategory, BlockFaceColors> = {
     leftSideColor: '#A82D00',
     rightSideColor: '#C03400',
   },
-  timer: {
-    topFaceColor: '#5C2D91',
-    topFaceStroke: '#7546AA',
-    leftSideColor: '#3E1D63',
-    rightSideColor: '#4D257A',
+  analytics: {
+    topFaceColor: '#693BC5',
+    topFaceStroke: '#8259D0',
+    leftSideColor: '#4E2B94',
+    rightSideColor: '#5B33AC',
+  },
+  identity: {
+    topFaceColor: '#E0301E',
+    topFaceStroke: '#E65A4B',
+    leftSideColor: '#B32618',
+    rightSideColor: '#CC2B1B',
+  },
+  observability: {
+    topFaceColor: '#0078D4',
+    topFaceStroke: '#3393DE',
+    leftSideColor: '#00569A',
+    rightSideColor: '#0066B8',
   },
 };
 
@@ -112,11 +126,23 @@ const AWS_BLOCK_FACE_COLORS: Record<BlockCategory, BlockFaceColors> = {
     leftSideColor: '#B81162',
     rightSideColor: '#D0146F',
   },
-  timer: {
-    topFaceColor: '#7D8998',
-    topFaceStroke: '#7D8998',
-    leftSideColor: '#5E6873',
-    rightSideColor: '#6E7A87',
+  analytics: {
+    topFaceColor: '#A166FF',
+    topFaceStroke: '#A166FF',
+    leftSideColor: '#7B4DC7',
+    rightSideColor: '#8E59E0',
+  },
+  identity: {
+    topFaceColor: '#D6232C',
+    topFaceStroke: '#D6232C',
+    leftSideColor: '#AB1C23',
+    rightSideColor: '#C12028',
+  },
+  observability: {
+    topFaceColor: '#693BC5',
+    topFaceStroke: '#693BC5',
+    leftSideColor: '#4E2B94',
+    rightSideColor: '#5B33AC',
   },
 };
 
@@ -163,11 +189,23 @@ const GCP_BLOCK_FACE_COLORS: Record<BlockCategory, BlockFaceColors> = {
     leftSideColor: '#BB352A',
     rightSideColor: '#D33C2F',
   },
-  timer: {
-    topFaceColor: '#9AA0A6',
-    topFaceStroke: '#9AA0A6',
-    leftSideColor: '#747980',
-    rightSideColor: '#878D93',
+  analytics: {
+    topFaceColor: '#34A853',
+    topFaceStroke: '#34A853',
+    leftSideColor: '#267D3E',
+    rightSideColor: '#2E9648',
+  },
+  identity: {
+    topFaceColor: '#FBBC05',
+    topFaceStroke: '#FBBC05',
+    leftSideColor: '#C99604',
+    rightSideColor: '#E2A905',
+  },
+  observability: {
+    topFaceColor: '#FBBC05',
+    topFaceStroke: '#FBBC05',
+    leftSideColor: '#C99604',
+    rightSideColor: '#E2A905',
   },
 };
 
@@ -213,10 +251,20 @@ const AZURE_BLOCK_STUD_COLORS: Record<BlockCategory, StudColorSpec> = {
     shadow: '#c03400',
     highlight: '#F0B099',
   },
-  timer: {
-    main: '#7546aa',
-    shadow: '#4d1e82',
-    highlight: '#BAA3D5',
+  analytics: {
+    main: '#8259D0',
+    shadow: '#5B33AC',
+    highlight: '#C1ADE8',
+  },
+  identity: {
+    main: '#E65A4B',
+    shadow: '#CC2B1B',
+    highlight: '#F3ADA5',
+  },
+  observability: {
+    main: '#3393DE',
+    shadow: '#0066B8',
+    highlight: '#99C9EE',
   },
 };
 
