@@ -37,7 +37,7 @@ function makeExternalActor(
     name: 'Internet',
     type: 'internet',
     ...overrides,
-  };
+   position: { x: -3, y: 0, z: 5 } };
 }
 
 describe('validateConnection', () => {
