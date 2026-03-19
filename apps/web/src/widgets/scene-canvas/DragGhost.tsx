@@ -3,7 +3,7 @@ import type { RefObject } from 'react';
 import { useUIStore } from '../../entities/store/uiStore';
 import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
 import { useRafCallback } from '../../shared/hooks/useRafCallback';
-import { STUD_LAYOUTS } from '../../shared/types/index';
+import { getBlockVisualProfile } from '../../shared/types/visualProfile';
 import {
   BLOCK_MARGIN,
   BLOCK_PADDING,
@@ -42,7 +42,7 @@ export function DragGhost({
   const [pointerPosition, setPointerPosition] = useState<{ x: number; y: number } | null>(null);
   const activeCategory = draggedBlockCategory ?? 'compute';
 
-  const [studsX, studsY] = STUD_LAYOUTS[activeCategory];
+  const [studsX, studsY] = getBlockVisualProfile(activeCategory).footprint;
   const faceColors = getBlockFaceColors(activeCategory);
   const studColors = getBlockStudColors(activeCategory);
 

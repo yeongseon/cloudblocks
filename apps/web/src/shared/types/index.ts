@@ -216,18 +216,6 @@ export const BLOCK_SHORT_NAMES: Record<BlockCategory, string> = {
   timer: 'Timer',
 };
 
-// Stud grid layout per category: [columns, rows]
-export const STUD_LAYOUTS: Record<BlockCategory, [number, number]> = {
-  timer: [1, 2],
-  event: [1, 2],
-  function: [2, 2],
-  gateway: [2, 4],
-  queue: [2, 4],
-  storage: [2, 4],
-  compute: [3, 4],
-  database: [4, 6],
-};
-
 // ─── Plate Profile System ──────────────────────────────────
 
 export type NetworkProfileId =

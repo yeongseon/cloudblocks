@@ -1,6 +1,6 @@
 import { memo, useId, useMemo } from 'react';
 import type { BlockCategory, ProviderType } from '../../shared/types/index';
-import { STUD_LAYOUTS, BLOCK_SHORT_NAMES, BLOCK_ICONS } from '../../shared/types/index';
+import { BLOCK_SHORT_NAMES, BLOCK_ICONS } from '../../shared/types/index';
 import { getBlockVisualProfile } from '../../shared/types/visualProfile';
 import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
 import {
@@ -31,7 +31,7 @@ const resolveBlockFaceColors = getBlockFaceColors as unknown as BlockFaceResolve
 const resolveBlockStudColors = getBlockStudColors as unknown as BlockStudResolver;
 
 export const BlockSvg = memo(function BlockSvg({ category, provider }: BlockSvgProps) {
-  const [studsX, studsY] = STUD_LAYOUTS[category];
+  const [studsX, studsY] = getBlockVisualProfile(category).footprint;
   const faceColors = resolveBlockFaceColors(category, provider);
   const studColors = resolveBlockStudColors(category, provider);
   const shortName = BLOCK_SHORT_NAMES[category];

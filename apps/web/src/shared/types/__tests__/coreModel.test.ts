@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
   CONNECTION_TYPE_LABELS,
-  STUD_LAYOUTS,
 } from '../index';
+import { BLOCK_VISUAL_PROFILES } from '../visualProfile';
 import type {
   Block,
   BlockCategory,
@@ -75,11 +75,11 @@ describe('core model type coverage', () => {
     }
   });
 
-  it('has stud layout tuples for every block category', () => {
-    expect(Object.keys(STUD_LAYOUTS).sort()).toEqual([...blockCategories].sort());
+  it('has stud footprint in visual profiles for every block category', () => {
+    expect(Object.keys(BLOCK_VISUAL_PROFILES).sort()).toEqual([...blockCategories].sort());
 
     for (const category of blockCategories) {
-      const layout = STUD_LAYOUTS[category];
+      const layout = BLOCK_VISUAL_PROFILES[category].footprint;
 
       expect(layout).toBeDefined();
       expect(layout).toHaveLength(2);
