@@ -16,14 +16,40 @@ The CloudBlocks API is a **thin orchestration backend** built with Python FastAP
 ## Currently Implemented (v0.6.0)
 
 ```
-GET /health        → Basic health check (returns {"status": "ok"})
-GET /health/ready  → Readiness check (returns {"status": "ready"})
+GET  /health                                    → Basic health check
+GET  /health/ready                              → Readiness check (DB + optional Redis)
 
-POST /api/v1/auth/github                  → Returns { authorize_url }, sets cb_oauth cookie
-GET  /api/v1/auth/github/callback?code=X&state=Y  → 302 redirect, sets cb_session cookie
-GET  /api/v1/auth/session                 → Current authenticated session user
-POST /api/v1/auth/logout                  → Always 200, clears session + cookie
-POST /api/v1/session/workspace            → Bind active workspace to session
+POST /api/v1/auth/github                        → Start GitHub OAuth flow (sets cb_oauth cookie)
+GET  /api/v1/auth/github/callback               → GitHub OAuth callback (sets cb_session cookie, 302)
+GET  /api/v1/auth/session                       → Current user from session cookie
+GET  /api/v1/auth/me                            → Current authenticated user (via dependency)
+POST /api/v1/auth/logout                        → Revoke session, clear cookie
+
+POST /api/v1/session/workspace                  → Bind workspace to active session
+
+GET  /api/v1/workspaces/                        → List user's workspaces
+POST /api/v1/workspaces/                        → Create workspace (201)
+GET  /api/v1/workspaces/{workspace_id}          → Get workspace details
+PUT  /api/v1/workspaces/{workspace_id}          → Update workspace settings
+DELETE /api/v1/workspaces/{workspace_id}        → Delete workspace (204)
+
+GET  /api/v1/github/repos                       → List user's GitHub repos
+POST /api/v1/github/repos                       → Create new GitHub repo (201)
+POST /api/v1/workspaces/{workspace_id}/sync     → Sync architecture.json to GitHub
+POST /api/v1/workspaces/{workspace_id}/pull     → Pull architecture.json from GitHub
+POST /api/v1/workspaces/{workspace_id}/pr       → Create PR with architecture changes (201)
+GET  /api/v1/workspaces/{workspace_id}/commits  → List recent commits
+
+POST /api/v1/workspaces/{workspace_id}/generate → Trigger generation (placeholder: creates run record, 202)
+GET  /api/v1/workspaces/{workspace_id}/generate/{run_id} → Get generation run status
+GET  /api/v1/workspaces/{workspace_id}/preview  → Preview generated code (placeholder: returns empty files)
+
+POST /api/v1/ai/generate                        → AI architecture generation (requires stored OpenAI key)
+POST /api/v1/ai/suggest                         → AI improvement suggestions (placeholder: returns empty)
+
+POST /api/v1/ai/keys                            → Store AI API key (encrypted, upsert by provider)
+GET  /api/v1/ai/keys                            → List stored AI key providers
+DELETE /api/v1/ai/keys/{provider}               → Delete AI API key by provider
 ```
 
 Auth, session workspace binding, and GitHub integration routes are implemented in the backend codebase. Server-side generation/validation/template routes remain planned or scaffolded as noted below.
@@ -39,6 +65,7 @@ POST /api/v1/auth/github           → Start GitHub OAuth flow
 GET  /api/v1/auth/github/callback  → GitHub OAuth callback
 POST /api/v1/auth/logout           → Invalidate session
 GET  /api/v1/auth/session          → Current user info from active session
+GET  /api/v1/auth/me               → Current authenticated user
 POST /api/v1/session/workspace     → Bind workspace to active session
 ```
 
@@ -59,9 +86,9 @@ Notes:
 - Session state is server-side (`sessions` table, Migration 004).
 - Stale sessions return 401 and clear stale session cookies.
 
-## Workspaces (Partially Implemented: Milestone 5+)
+## Workspaces (Implemented: Milestone 5+)
 
-Workspaces link a CloudBlocks workspace to a GitHub repo. Session workspace binding is implemented (`POST /api/v1/session/workspace`), and workspace metadata CRUD routes are scaffolded in the API. Architecture data remains in GitHub.
+Workspaces link a CloudBlocks workspace to a GitHub repo. Session workspace binding is implemented (`POST /api/v1/session/workspace`), and workspace metadata CRUD routes are fully implemented. Architecture data remains in GitHub.
 
 ```
 GET    /api/v1/workspaces              → List user's workspaces
@@ -73,15 +100,44 @@ DELETE /api/v1/workspaces/:id          → Delete workspace
 
 > **Note**: The metadata DB uses `workspaces` (not `projects`). See [STORAGE_ARCHITECTURE.md](../model/STORAGE_ARCHITECTURE.md) for the actual schema.
 
-## Planned: Server-side Code Generation (Milestone 5+)
+## Scaffolded (Placeholder): Server-side Code Generation (Milestone 5+)
 
 Generate infrastructure code from architecture. In Milestone 3, code generation runs client-side (export to file/clipboard). Starting from Milestone 5, the backend reads `architecture.json` from GitHub, runs the generator, and commits the output back. The endpoints below are for server-side generation (Milestone 5+).
+
+> **Note**: Routes exist and accept requests, but generation logic is a placeholder. `POST .../generate` creates a run record in `pending` status without executing actual generation. `GET .../preview` returns an empty file list with a placeholder message.
 
 ```
 POST   /api/v1/workspaces/:id/generate    → Trigger code generation
 GET    /api/v1/workspaces/:id/generate/:runId  → Get generation status
 GET    /api/v1/workspaces/:id/preview     → Preview generated code (no commit)
 ```
+
+## AI Routes (Implemented / Placeholder)
+
+AI-assisted architecture generation and suggestions. Requires a stored OpenAI API key.
+
+> **Scope note**: This section documents the route surface only. Detailed AI usage examples, prompt engineering, and the dedicated AI guide are tracked in #320.
+
+### AI Generation (Implemented)
+
+```
+POST /api/v1/ai/generate    → Generate architecture from natural language prompt
+POST /api/v1/ai/suggest     → Suggest architecture improvements (placeholder: returns empty)
+```
+
+`POST /api/v1/ai/generate` calls the OpenAI API using the user's stored key. It requires `prompt`, `provider` (default `"aws"`), and `complexity` (default `"intermediate"`) fields. Returns `{ architecture: {...} }`.
+
+`POST /api/v1/ai/suggest` is a placeholder — accepts `{ architecture: {...} }` but returns `{ suggestions: [], score: {} }`.
+
+### AI Key Management (Implemented)
+
+```
+POST   /api/v1/ai/keys              → Store/update AI API key (encrypted at rest)
+GET    /api/v1/ai/keys              → List stored key providers (no key values returned)
+DELETE /api/v1/ai/keys/{provider}   → Delete stored key by provider name
+```
+
+Keys are encrypted using Fernet before storage. Each user can store one key per provider (upsert semantics).
 
 ## GitHub Integration (Implemented: Milestone 5)
 
@@ -245,5 +301,5 @@ All errors follow a consistent format:
 
 ```
 GET /health        → Basic health check
-GET /health/ready  → Readiness (DB + GitHub API connected)
+GET /health/ready  → Readiness (DB + optional Redis connected)
 ```

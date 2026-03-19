@@ -232,19 +232,77 @@ apps/api/
 ├── app/
 │   ├── main.py                    # FastAPI app + middleware
 │   ├── core/
-│   │   └── config.py              # Environment config
+│   │   ├── config.py              # Environment config
+│   │   ├── dependencies.py        # Dependency injection
+│   │   ├── errors.py              # Error types (AppError hierarchy)
+│   │   └── security.py            # Fernet encryption, token hashing
 │   ├── api/
 │   │   └── routes/
 │   │       ├── auth.py            # GitHub OAuth + session routes
 │   │       ├── session.py         # Session workspace binding
-│   │       ├── workspaces.py      # Workspace APIs
-│   │       └── scenarios.py       # Template/scenario APIs
+│   │       ├── workspaces.py      # Workspace CRUD
+│   │       ├── github.py          # GitHub repo + sync + PR routes
+│   │       ├── generation.py      # Code generation (placeholder)
+│   │       ├── ai.py              # AI generation + suggestions
+│   │       └── ai_keys.py         # AI API key management
+│   ├── domain/
+│   │   └── models/                # Entities and repository interfaces
+│   ├── application/
+│   │   └── use_cases/             # Business logic
+│   ├── engines/                   # Prompt templates for AI
 │   └── infrastructure/
-│       └── db/
-│           ├── connection.py      # MetadataDB class
-│           └── migrations/
-│               ├── 001_create_users.sql
-│               └── 002_create_workspaces.sql
+│       ├── db/
+│       │   ├── connection.py      # MetadataDB class
+│       │   └── migrations/
+│       │       ├── 001_create_users.sql
+│       │       ├── 002_create_workspaces.sql
+│       │       └── 003_create_ai_api_keys.sql
+│       ├── cache/                 # Redis client
+│       ├── llm/                   # OpenAI client + key manager
+│       ├── github_service.py      # GitHub API wrapper
+│       ├── queue/                 # Job queue (scaffolded)
+│       ├── storage/               # Object storage (scaffolded)
+│       └── providers/             # Cloud provider integrations (scaffolded)
+```
+
+Implemented routes (mounted in main.py):
+
+Auth:
+POST /api/v1/auth/github                     → returns { authorize_url }, sets cb_oauth cookie
+GET  /api/v1/auth/github/callback?code&state → redirects, sets cb_session cookie
+GET  /api/v1/auth/session                    → returns current user; clears stale cookie on 401
+GET  /api/v1/auth/me                         → returns current authenticated user
+POST /api/v1/auth/logout                     → always 200; clears server session + cookie
+
+Session:
+POST /api/v1/session/workspace               → binds active workspace to session
+
+Workspaces:
+GET    /api/v1/workspaces/                   → list user's workspaces
+POST   /api/v1/workspaces/                   → create workspace
+GET    /api/v1/workspaces/{id}               → get workspace
+PUT    /api/v1/workspaces/{id}               → update workspace
+DELETE /api/v1/workspaces/{id}               → delete workspace
+
+GitHub Integration:
+GET  /api/v1/github/repos                    → list user's GitHub repos
+POST /api/v1/github/repos                    → create new GitHub repo
+POST /api/v1/workspaces/{id}/sync            → sync architecture.json to GitHub
+POST /api/v1/workspaces/{id}/pull            → pull architecture.json from GitHub
+POST /api/v1/workspaces/{id}/pr              → create PR with architecture changes
+GET  /api/v1/workspaces/{id}/commits         → list recent commits
+
+Generation (placeholder):
+POST /api/v1/workspaces/{id}/generate        → creates run record (pending), no actual generation
+GET  /api/v1/workspaces/{id}/generate/{runId}→ get generation run status
+GET  /api/v1/workspaces/{id}/preview         → placeholder, returns empty files
+
+AI (see #320 for detailed guide):
+POST /api/v1/ai/generate                     → AI architecture generation (OpenAI)
+POST /api/v1/ai/suggest                      → placeholder, returns empty suggestions
+POST /api/v1/ai/keys                         → store AI API key (encrypted)
+GET  /api/v1/ai/keys                         → list stored key providers
+DELETE /api/v1/ai/keys/{provider}            → delete stored key
 ```
 
 Implemented auth/session routes:
@@ -471,7 +529,7 @@ User → CloudBlocks UI → Backend API → GitHub OAuth/API → User's Repos
 
 > For the full storage architecture (data placement strategy, metadata DB schema, Redis schema, GitHub repo structure, migration strategy), see [STORAGE_ARCHITECTURE.md](../model/STORAGE_ARCHITECTURE.md).
 
-The storage follows a **Git-native** design: GitHub repos serve as the primary data store for architecture assets and generated code. A minimal metadata database (5 tables: `users`, `identities`, `workspaces`, `generation_runs`, `sessions`) handles auth, workspace indexing, run status, and server-side sessions.
+The storage follows a **Git-native** design: GitHub repos serve as the primary data store for architecture assets and generated code. A minimal metadata database (6 tables: `users`, `identities`, `workspaces`, `generation_runs`, `sessions`, `ai_api_keys`) handles auth, workspace indexing, run status, and server-side sessions.
 
 **Design principle**: DB = index and status only, real data = Git / Blob Storage.
 

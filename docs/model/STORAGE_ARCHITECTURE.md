@@ -4,7 +4,7 @@
 
 CloudBlocks uses a **Git-native storage architecture**: GitHub repos are the primary data store for architecture assets and generated code, with a minimal SQLite metadata database for auth, workspace indexing, and run status.
 
-> **Current status (v0.6.0 / Milestone 7)**: Local-first editing persists in browser storage, and backend metadata/session state is stored in SQLite (`users`, `identities`, `workspaces`, `generation_runs`, `sessions`).
+> **Current status (v0.6.0 / Milestone 7)**: Local-first editing persists in browser storage, and backend metadata/session state is stored in SQLite (`users`, `identities`, `workspaces`, `generation_runs`, `sessions`, `ai_api_keys`).
 
 This is NOT a traditional database-heavy architecture. The design principle: **DB = index and status only, real data = Git / Blob Storage**.
 
@@ -23,7 +23,7 @@ This is NOT a traditional database-heavy architecture. The design principle: **D
 │ generated IaC  │ workspaces       │ job queue                │
 │ templates      │ generation_runs  │ cache                    │
 │ schema version │ sessions         │                          │
-│ generator.lock │                  │                          │
+│ generator.lock │ ai_api_keys      │                          │
 └────────────────┴──────────────────┴──────────────────────────┘
 ```
 
@@ -50,6 +50,7 @@ This is NOT a traditional database-heavy architecture. The design principle: **D
 | Workspace index | User → repo mapping | Fast lookup without GitHub API calls |
 | Generation runs | Job status, timestamps | Transient state, not version-controlled |
 | Sessions | Server-side session auth state | Cookie session validation + revocation |
+| AI API keys | Encrypted LLM provider keys per user | Security — encrypted at rest, per-user isolation |
 
 ### What Does NOT Go in Any DB
 
@@ -122,7 +123,7 @@ Stable key ordering is enforced to keep Git diffs readable.
 
 ## Metadata DB Schema
 
-> **Current schema** in `apps/api/app/infrastructure/db/migrations/`. Phase 8 extends this with PostgreSQL/Redis deployment topology.
+> **Current schema** defined inline in `apps/api/app/infrastructure/db/connection.py` (`_MIGRATIONS` list). Reference `.sql` copies exist in `migrations/` but are not executed at runtime. Migrations: 001 users + identities, 002 workspaces + generation\_runs, 003 ALTER TABLE identities (encrypted token), 004 sessions + indexes. The `ai_api_keys` table is created on-demand by `SQLiteAIApiKeyRepository._ensure_table()`. Phase 8 extends this with PostgreSQL/Redis deployment topology.
 
 ```sql
 -- Migration 001: User identity (linked to GitHub / Google OAuth)
@@ -173,19 +174,35 @@ CREATE TABLE IF NOT EXISTS generation_runs (
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Migration 004: Session auth storage
+-- Migration 003: Add encrypted token storage for GitHub OAuth
+ALTER TABLE identities ADD COLUMN encrypted_access_token TEXT;
+
+-- Migration 004: Session auth storage (cookie-based sessions)
 CREATE TABLE IF NOT EXISTS sessions (
-    id                 TEXT PRIMARY KEY,
-    user_id            TEXT NOT NULL REFERENCES users(id),
-    session_token_hash TEXT NOT NULL,
-    github_token_enc   TEXT,
-    expires_at         TIMESTAMP NOT NULL,
-    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_accessed_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id                     TEXT PRIMARY KEY,
+    user_id                TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at             INTEGER NOT NULL,
+    expires_at             INTEGER NOT NULL,
+    revoked_at             INTEGER,
+    last_seen_at           INTEGER,
+    current_workspace_id   TEXT,
+    current_repo_full_name TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
+
+-- On-demand table (created by SQLiteAIApiKeyRepository._ensure_table)
+CREATE TABLE IF NOT EXISTS ai_api_keys (
+    id              TEXT PRIMARY KEY,
+    user_id         TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    provider        TEXT NOT NULL,
+    encrypted_key   TEXT NOT NULL,
+    created_at      TEXT NOT NULL DEFAULT (datetime("now")),
+    UNIQUE(user_id, provider)
 );
 ```
 
-**Total: 5 tables** (`users`, `identities`, `workspaces`, `generation_runs`, `sessions`). Everything else lives in GitHub.
+**Total: 6 tables** (`users`, `identities`, `workspaces`, `generation_runs`, `sessions`, `ai_api_keys`). Everything else lives in GitHub.
 
 Key differences from a traditional SaaS schema:
 - **TEXT primary keys** (not UUID) — lightweight, no UUID extension needed
