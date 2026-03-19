@@ -2,8 +2,9 @@
 
 ## Overview
 
-CloudBlocks is designed for **lightweight deployment** with minimal infrastructure. The frontend is a static SPA, and the backend is a thin orchestration layer. Production deployments use PostgreSQL for metadata and Redis for session caching, enabling horizontal scaling with multiple container replicas.
+CloudBlocks is designed for **lightweight deployment** with minimal infrastructure. The frontend is a static SPA, and the backend is a thin orchestration layer. Cloud deployments (staging and production) use PostgreSQL for metadata and Redis for session caching, enabling horizontal scaling with multiple container replicas.
 
+> **Environment strategy**: See [ENVIRONMENT_STRATEGY.md](ENVIRONMENT_STRATEGY.md) for the full multi-environment deployment model (local → staging → production) and [ADR-0007](../adr/0007-multi-environment-deployment-strategy.md) for the decision record.
 ## Local Development
 
 ### Prerequisites
@@ -38,8 +39,7 @@ make dev
 
 ## Architecture
 
-### Single-Replica (Development / Staging)
-
+### Single-Replica (Local Development)
 ```
 Static Frontend (SPA)
      ↓
@@ -54,8 +54,7 @@ Backend API (Single Container)
 └─────────────┴──────────────┘
 ```
 
-### Multi-Replica (Production)
-
+### Multi-Replica (Staging / Production)
 ```
 Azure Static Web App (SPA)
      ↓ (HTTPS)
@@ -82,7 +81,6 @@ Azure Container Apps
 - ✅ No in-memory state in application code
 
 ## Deployment Options
-
 ### Option 1: Frontend Only (Milestone 1)
 
 Deploy the frontend as a static site. No backend needed.
@@ -100,8 +98,7 @@ cd apps/web && pnpm build
 # - S3 + CloudFront
 ```
 
-### Option 2: Full Stack with Docker Compose
-
+### Option 2: Full Stack with Docker Compose (Local Development)
 #### Docker Compose (Full Stack)
 
 The `docker-compose.yml` starts all services: PostgreSQL, Redis, API, and Web frontend.
@@ -138,8 +135,7 @@ This mounts `apps/api/` into the container so code changes restart the server au
 
 > **Tip**: Set `COMPOSE_FILE=docker-compose.yml:docker-compose.dev.yml` in your shell to avoid typing the `-f` flags every time.
 
-### Option 3: Azure Container Apps (Production)
-
+### Option 3: Azure Cloud (Staging & Production)
 #### Managed Azure Stack
 
 | Component | Azure Service | SKU / Tier | Est. Cost |
@@ -151,14 +147,14 @@ This mounts `apps/api/` into the container so code changes restart the server au
 | Container Registry | Azure Container Registry | Basic | ~$5/mo |
 | Data Store | GitHub (user repos) | — | Free |
 
-**Total estimated cost: ~$39/month** (dev environment)
+**Total estimated cost: ~$39/month** (staging environment). See [ENVIRONMENT_STRATEGY.md](ENVIRONMENT_STRATEGY.md) for production costs and scaling configuration.
 
 #### Terraform Provisioning
 
-All Azure infrastructure is defined in `infra/terraform/environments/dev/`.
+Azure infrastructure is defined in `infra/terraform/environments/` with a shared module. See [ENVIRONMENT_STRATEGY.md](ENVIRONMENT_STRATEGY.md) for the full Terraform structure.
 
 ```bash
-cd infra/terraform/environments/dev
+cd infra/terraform/environments/staging
 
 # Copy and fill in variables
 cp terraform.tfvars.example terraform.tfvars
@@ -221,28 +217,37 @@ The Container App configures three probe types:
 
 ### GitHub Actions
 
-The deploy workflow (`.github/workflows/deploy.yml`) runs on manual dispatch (or push to main when configured):
+CloudBlocks uses two deployment workflows:
 
-**Required GitHub Secrets:**
+1. **`deploy.yml`** — Automatic deployment to **staging** on push to `main` (after CI passes)
+2. **`promote.yml`** — Manual promotion to **production** (requires reviewer approval)
+
+See [ENVIRONMENT_STRATEGY.md](ENVIRONMENT_STRATEGY.md) for the full pipeline design, GitHub Environment configuration, and secret management.
+
+**Required GitHub Secrets** (repository level):
 
 | Secret | Description |
 |--------|-------------|
 | `AZURE_CLIENT_ID` | Azure AD service principal client ID (OIDC) |
 | `AZURE_TENANT_ID` | Azure AD tenant ID |
 | `AZURE_SUBSCRIPTION_ID` | Azure subscription ID |
+
+**Environment-specific secrets** (per GitHub Environment: `staging`, `production`):
+
+| Secret | Description |
+|--------|-------------|
 | `ACR_NAME` | Container Registry name |
 | `ACR_LOGIN_SERVER` | Container Registry login server URL |
 | `AZURE_RESOURCE_GROUP` | Target resource group name |
 | `CONTAINER_APP_NAME` | Container App name (from Terraform output) |
 | `AZURE_SWA_TOKEN` | Static Web Apps deployment token |
 
-**Pipeline jobs:**
+**Pipeline flow:**
 
 1. **build-api** — Builds Docker image via `az acr build` and pushes to ACR (tagged with git SHA + `latest`)
-2. **deploy-api** — Updates Container App with new image, waits for healthy revision, verifies `/health` endpoint
-3. **deploy-web** — Builds frontend SPA and deploys to Azure Static Web Apps
-
-To enable automatic deployment on push to main, uncomment the `push` trigger in `.github/workflows/deploy.yml`.
+2. **deploy-staging** — Updates staging Container App with new image, waits for healthy revision, verifies `/health` endpoint
+3. **deploy-web-staging** — Builds frontend SPA and deploys to staging Static Web Apps
+4. **promote (manual)** — Deploys the same image to production Container App (requires approval)
 
 ## Environment Variables
 
@@ -285,7 +290,7 @@ CLOUDBLOCKS_CORS_ORIGINS=["http://localhost:5173"]
 
 > **Important**: Session auth uses httpOnly cookies (`cb_oauth`, `cb_session`) and server-side sessions. Frontend API calls must use `credentials: 'include'`.
 
-### Production Secrets (set via secret manager)
+### Staging / Production Secrets (set via Terraform or Azure Key Vault)
 
 | Secret | Description |
 |--------|-------------|
@@ -295,6 +300,7 @@ CLOUDBLOCKS_CORS_ORIGINS=["http://localhost:5173"]
 | `CLOUDBLOCKS_GITHUB_CLIENT_ID` | GitHub OAuth client ID |
 | `CLOUDBLOCKS_CORS_ORIGINS` | JSON array of allowed browser origins |
 
+> **Note**: Staging and production each require separate GitHub OAuth apps (different callback URLs). See [ENVIRONMENT_STRATEGY.md](ENVIRONMENT_STRATEGY.md#secret-management) for the full secret management strategy.
 ## Health Checks
 
 | Endpoint | Description |

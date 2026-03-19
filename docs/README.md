@@ -120,6 +120,7 @@ User and developer guides.
 | Document | Status | Description |
 |----------|--------|-------------|
 | [DEPLOYMENT.md](guides/DEPLOYMENT.md) | Supporting | Deployment instructions |
+| [ENVIRONMENT_STRATEGY.md](guides/ENVIRONMENT_STRATEGY.md) | **Canonical** | Multi-environment strategy (local → staging → production) |
 | [TUTORIALS.md](guides/TUTORIALS.md) | Supporting | Getting started tutorials |
 
 ---
@@ -134,3 +135,4 @@ User and developer guides.
 | TypeScript types | `apps/web/src/shared/types/index.ts` |
 | Validation rules | `apps/web/src/entities/validation/` |
 | Milestone timeline | [ROADMAP.md](concept/ROADMAP.md) |
+| Environment strategy | [ENVIRONMENT_STRATEGY.md](guides/ENVIRONMENT_STRATEGY.md) |
