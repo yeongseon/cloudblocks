@@ -301,4 +301,60 @@ describe('DetailPanel', () => {
 
     expect(screen.getByText('None')).toBeInTheDocument();
   });
+
+  it("renders idle state when architecture is empty (overlay is visible)", () => {
+    useArchitectureStore.setState({
+      workspace: {
+        id: "ws-1",
+        name: "Test Workspace",
+        architecture: {
+          id: "arch-1",
+          name: "Empty Architecture",
+          version: "1.0.0",
+          plates: [],
+          blocks: [],
+          connections: [],
+          externalActors: [],
+          createdAt: "",
+          updatedAt: "",
+        },
+        createdAt: "",
+        updatedAt: "",
+      },
+    });
+    useUIStore.setState({ selectedId: null, showTemplateGallery: false });
+
+    render(<DetailPanel />);
+
+    expect(screen.getByText("No selection")).toBeInTheDocument();
+    expect(screen.queryByText("Welcome to CloudBlocks!")).not.toBeInTheDocument();
+  });
+
+  it("renders welcome state when template gallery is open even on empty canvas", () => {
+    useArchitectureStore.setState({
+      workspace: {
+        id: "ws-1",
+        name: "Test Workspace",
+        architecture: {
+          id: "arch-1",
+          name: "Empty Architecture",
+          version: "1.0.0",
+          plates: [],
+          blocks: [],
+          connections: [],
+          externalActors: [],
+          createdAt: "",
+          updatedAt: "",
+        },
+        createdAt: "",
+        updatedAt: "",
+      },
+    });
+    useUIStore.setState({ selectedId: null, showTemplateGallery: true });
+
+    render(<DetailPanel />);
+
+    expect(screen.getByText("Welcome to CloudBlocks!")).toBeInTheDocument();
+    expect(screen.queryByText("No selection")).not.toBeInTheDocument();
+  });
 });
