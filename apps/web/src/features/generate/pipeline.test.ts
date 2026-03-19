@@ -41,7 +41,7 @@ describe('pipeline', () => {
         {
           id: 'net-1',
           name: 'VNet',
-          type: 'network',
+          type: 'region',
           parentId: null,
           children: ['sub-1'],
           position: { x: 0, y: 0, z: 0 },
@@ -137,7 +137,7 @@ describe('pipeline', () => {
           {
             id: 'net-2',
             name: 'VNet',
-            type: 'network',
+            type: 'region',
             parentId: null,
             children: ['sub-2'],
             position: { x: 0, y: 0, z: 0 },
@@ -210,7 +210,7 @@ describe('pipeline', () => {
           {
             id: 'net-1',
             name: 'VNet',
-            type: 'network',
+            type: 'region',
             parentId: null,
             children: ['sub-1'],
             position: { x: 0, y: 0, z: 0 },
@@ -269,7 +269,7 @@ describe('pipeline', () => {
         {
           id: 'net-1',
           name: 'VNet',
-          type: 'network',
+          type: 'region',
           parentId: null,
           children: ['sub-1'],
           position: { x: 0, y: 0, z: 0 },
@@ -347,7 +347,7 @@ describe('pipeline', () => {
           {
             id: 'net-2',
             name: 'VNet',
-            type: 'network',
+            type: 'region',
             parentId: null,
             children: ['sub-2'],
             position: { x: 0, y: 0, z: 0 },
@@ -402,7 +402,7 @@ describe('pipeline', () => {
         {
           id: 'net-1',
           name: 'VNet',
-          type: 'network',
+          type: 'region',
           parentId: null,
           children: [],
           position: { x: 0, y: 0, z: 0 },

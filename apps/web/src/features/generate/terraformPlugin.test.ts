@@ -13,7 +13,7 @@ const testArchitecture: ArchitectureModel = {
     {
       id: 'plate-network',
       name: 'Core Network',
-      type: 'network',
+      type: 'region',
       parentId: null,
       children: ['plate-subnet'],
       position: { x: 0, y: 0, z: 0 },
