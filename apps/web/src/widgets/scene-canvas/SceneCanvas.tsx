@@ -4,7 +4,6 @@ import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { canPlaceBlock } from '../../entities/validation/placement';
 import { worldToScreen, depthKey } from '../../shared/utils/isometric';
-import { EXTERNAL_ACTOR_POSITION } from '../../shared/utils/position';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
 
@@ -190,7 +189,7 @@ export function SceneCanvas() {
 
         <div className="actor-layer">
           {architecture.externalActors.map((actor) => {
-            const [x, y, z] = EXTERNAL_ACTOR_POSITION;
+            const { x, y, z } = actor.position;
             const screenPos = worldToScreen(x, y, z, origin.x, origin.y);
             const zIndex = depthKey(x, z, y, 1);
             return (

@@ -47,7 +47,7 @@ function setupMocks(interactionState: 'idle' | 'connecting', connectionSource: s
               id: 'actor-1',
               name: 'Internet',
               type: 'internet' as const,
-            },
+             position: { x: -3, y: 0, z: 5 } },
           ],
         },
       },
