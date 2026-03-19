@@ -1,0 +1,47 @@
+# Azure region for all resources.
+location = "koreacentral"
+
+# Project prefix used in resource names.
+project_name = "cloudblocks"
+
+# ---------- ACR (shared from staging) ----------
+
+# Get these values from staging: `terraform -chdir=../staging output`
+acr_login_server   = "cloudblocksstagingacr.azurecr.io"
+acr_admin_username = "cloudblocksstagingacr"
+acr_admin_password = "replace-with-staging-acr-password"
+
+# ---------- PostgreSQL ----------
+
+# PostgreSQL admin username (must not be a reserved username).
+postgres_admin_username = "cloudblocksadmin"
+
+# PostgreSQL admin password (use a strong, DIFFERENT secret from staging).
+postgres_admin_password = "replace-with-strong-password"
+
+# ---------- Auth / Secrets ----------
+
+# GitHub OAuth client ID for production (separate OAuth app from staging).
+github_client_id = "replace-with-github-client-id"
+
+# GitHub OAuth client secret for production.
+github_client_secret = "replace-with-github-client-secret"
+
+# JWT signing secret (min 32 chars, DIFFERENT from staging).
+jwt_secret = "replace-with-long-random-jwt-secret"
+
+# Token encryption salt (min 16 chars, DIFFERENT from staging).
+session_secret = "replace-with-long-random-session-secret"
+
+# ---------- Container App ----------
+
+# Docker image tag (promoted from staging — use the specific git SHA, not "latest").
+container_image_tag = "replace-with-promoted-sha"
+
+# ---------- Frontend / CORS ----------
+
+# Frontend URL for production.
+frontend_url = "https://cloudblocks.example.com"
+
+# Allowed CORS origins for production API.
+cors_origins = ["https://cloudblocks.example.com"]

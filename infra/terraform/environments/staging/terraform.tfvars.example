@@ -1,0 +1,40 @@
+# Azure region for all resources.
+location = "koreacentral"
+
+# Project prefix used in resource names.
+project_name = "cloudblocks"
+
+# ---------- PostgreSQL ----------
+
+# PostgreSQL admin username (must not be a reserved username).
+postgres_admin_username = "cloudblocksadmin"
+
+# PostgreSQL admin password (use a strong secret — do NOT commit real values).
+postgres_admin_password = "replace-with-strong-password"
+
+# ---------- Auth / Secrets ----------
+
+# GitHub OAuth client ID for staging environment.
+github_client_id = "replace-with-github-client-id"
+
+# GitHub OAuth client secret for staging environment.
+github_client_secret = "replace-with-github-client-secret"
+
+# JWT signing secret (min 32 chars).
+jwt_secret = "replace-with-long-random-jwt-secret"
+
+# Token encryption salt (min 16 chars).
+session_secret = "replace-with-long-random-session-secret"
+
+# ---------- Container App ----------
+
+# Docker image tag to deploy (CI/CD sets this to the git SHA).
+container_image_tag = "latest"
+
+# ---------- Frontend / CORS ----------
+
+# Frontend URL for staging.
+frontend_url = "https://staging.cloudblocks.example.com"
+
+# Allowed CORS origins for staging API.
+cors_origins = ["https://staging.cloudblocks.example.com"]

@@ -1,24 +1,34 @@
-# ============================================================
-# DEPRECATED — Legacy monolithic configuration
-# ============================================================
-# This environment was the original dev config before module
-# extraction. It is kept as a reference only.
+# CloudBlocks Stack — Shared Terraform Module
 #
-# For new deployments, use:
-#   environments/staging/   — calls modules/cloudblocks-stack/
-#   environments/production/ — calls modules/cloudblocks-stack/
+# Provisions the full CloudBlocks infrastructure on Azure:
+#   Resource Group, Log Analytics, Container App Environment,
+#   Container Registry (optional), PostgreSQL, Redis,
+#   Container App (API), Static Web App (Frontend).
 #
-# Local development uses Docker Compose (docker-compose.yml).
-# ============================================================
+# Usage:
+#   module "cloudblocks" {
+#     source      = "../../modules/cloudblocks-stack"
+#     environment = "staging"
+#     location    = "koreacentral"
+#     ...
+#   }
 
 locals {
   resource_group_name = "rg-${var.project_name}-${var.environment}"
-  tags = {
+
+  tags = merge({
     project     = var.project_name
     environment = var.environment
     managed_by  = "terraform"
-  }
+  }, var.tags)
+
+  # ACR: use created registry or external reference
+  acr_login_server   = var.create_acr ? azurerm_container_registry.this[0].login_server : var.acr_login_server
+  acr_admin_username = var.create_acr ? azurerm_container_registry.this[0].admin_username : var.acr_admin_username
+  acr_admin_password = var.create_acr ? azurerm_container_registry.this[0].admin_password : var.acr_admin_password
 }
+
+# ---------- Resource Group ----------
 
 resource "azurerm_resource_group" "this" {
   name     = local.resource_group_name
@@ -26,14 +36,18 @@ resource "azurerm_resource_group" "this" {
   tags     = local.tags
 }
 
+# ---------- Log Analytics ----------
+
 resource "azurerm_log_analytics_workspace" "this" {
   name                = "law-${var.project_name}-${var.environment}"
   location            = azurerm_resource_group.this.location
   resource_group_name = azurerm_resource_group.this.name
   sku                 = "PerGB2018"
-  retention_in_days   = 30
+  retention_in_days   = var.log_retention_days
   tags                = local.tags
 }
+
+# ---------- Container App Environment ----------
 
 resource "azurerm_container_app_environment" "this" {
   name                       = "cae-${var.project_name}-${var.environment}"
@@ -43,11 +57,14 @@ resource "azurerm_container_app_environment" "this" {
   tags                       = local.tags
 }
 
+# ---------- Container Registry (optional — shared across environments) ----------
+
 resource "azurerm_container_registry" "this" {
+  count               = var.create_acr ? 1 : 0
   name                = "${var.project_name}${var.environment}acr"
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
-  sku                 = "Basic"
+  sku                 = var.acr_sku
   admin_enabled       = true
   tags                = local.tags
 }
@@ -61,11 +78,11 @@ resource "azurerm_postgresql_flexible_server" "this" {
   administrator_login    = var.postgres_admin_username
   administrator_password = var.postgres_admin_password
   version                = "16"
-  sku_name               = "B_Standard_B1ms"
-  storage_mb             = 32768
+  sku_name               = var.postgres_sku_name
+  storage_mb             = var.postgres_storage_mb
 
-  backup_retention_days         = 7
-  geo_redundant_backup_enabled  = false
+  backup_retention_days         = var.postgres_backup_retention_days
+  geo_redundant_backup_enabled  = var.postgres_geo_redundant_backup
   public_network_access_enabled = true
 
   tags = local.tags
@@ -97,8 +114,8 @@ resource "azurerm_redis_cache" "this" {
   name                = "redis-${var.project_name}-${var.environment}"
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
-  capacity            = 0
-  family              = "C"
+  capacity            = var.redis_capacity
+  family              = var.redis_family
   sku_name            = var.redis_sku
   enable_non_ssl_port = false
   minimum_tls_version = "1.2"
@@ -121,7 +138,7 @@ resource "azurerm_container_app" "api" {
 
   secret {
     name  = "acr-password"
-    value = azurerm_container_registry.this.admin_password
+    value = local.acr_admin_password
   }
 
   secret {
@@ -155,8 +172,8 @@ resource "azurerm_container_app" "api" {
   }
 
   registry {
-    server               = azurerm_container_registry.this.login_server
-    username             = azurerm_container_registry.this.admin_username
+    server               = local.acr_login_server
+    username             = local.acr_admin_username
     password_secret_name = "acr-password"
   }
 
@@ -181,7 +198,7 @@ resource "azurerm_container_app" "api" {
 
     container {
       name   = "cloudblocks-api"
-      image  = "${azurerm_container_registry.this.login_server}/cloudblocks-api:${var.container_image_tag}"
+      image  = "${local.acr_login_server}/cloudblocks-api:${var.container_image_tag}"
       cpu    = var.container_cpu
       memory = var.container_memory
 
@@ -298,7 +315,7 @@ resource "azurerm_static_web_app" "frontend" {
   name                = "swa-${var.project_name}-${var.environment}"
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
-  sku_tier            = "Free"
-  sku_size            = "Free"
+  sku_tier            = var.swa_sku_tier
+  sku_size            = var.swa_sku_size
   tags                = local.tags
 }
