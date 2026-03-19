@@ -1,7 +1,10 @@
 # Brick Design Specification
 
-**Status**: Canonical draft aligned to `main`  
+> **⚠️ SUPERSEDED** — This document describes the v1.x dimensional system. It is superseded by [CLOUDBLOCKS_SPEC_V2.md](./CLOUDBLOCKS_SPEC_V2.md) and [ADR-0008](../adr/0008-v2-universal-architecture-specification.md). Retained for historical reference only.
+
+**Status**: Superseded  
 **Date**: 2026-03-18  
+**Superseded by**: [CLOUDBLOCKS_SPEC_V2.md](./CLOUDBLOCKS_SPEC_V2.md)  
 **Related**: [VISUAL_DESIGN_SPEC.md](./VISUAL_DESIGN_SPEC.md), [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md), [provider.md](../engine/provider.md), [ADR-0003](../adr/0003-lego-style-composition-model.md), [ADR-0005](../adr/0005-2d-first-editor-with-25d-rendering.md)
 
 ---

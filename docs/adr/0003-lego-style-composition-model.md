@@ -1,7 +1,8 @@
 # ADR-0003: Lego-Style Composition Model
 
-**Status**: Accepted
+**Status**: Partially Superseded
 **Date**: 2025-01
+**Superseded by**: [ADR-0008](0008-v2-universal-architecture-specification.md) — Composition model retained; dimensional system, layer model, and coloring replaced by v2.0 spec.
 
 ## Context
 

@@ -1,7 +1,10 @@
 # Visual Design Spec — Lego-Style Cloud Architecture
 
-**Status**: Accepted
+> **⚠️ SUPERSEDED** — This document describes the v1.x visual design system. It is superseded by [CLOUDBLOCKS_SPEC_V2.md](./CLOUDBLOCKS_SPEC_V2.md) and [ADR-0008](../adr/0008-v2-universal-architecture-specification.md). Retained for historical reference only.
+
+**Status**: Superseded
 **Date**: 2025-03
+**Superseded by**: [CLOUDBLOCKS_SPEC_V2.md](./CLOUDBLOCKS_SPEC_V2.md)
 **Related**: [ADR-0003](../adr/0003-lego-style-composition-model.md), [ADR-0005](../adr/0005-2d-first-editor-with-25d-rendering.md) (Rendering has evolved to 2:1 dimetric isometric projection)
 
 ---
