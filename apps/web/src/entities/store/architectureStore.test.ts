@@ -651,6 +651,25 @@ describe('architectureStore', () => {
     });
   });
 
+  describe('moveActorPosition', () => {
+    it('moves an external actor by the provided delta', () => {
+      const actorId = getArch().externalActors[0].id;
+
+      getState().moveActorPosition(actorId, 2.5, -1.5);
+
+      const moved = getArch().externalActors.find((actor) => actor.id === actorId);
+      expect(moved?.position).toEqual({ x: -0.5, y: 0, z: 3.5 });
+    });
+
+    it('no-ops when moving a non-existent external actor', () => {
+      const before = getState().workspace.architecture;
+
+      getState().moveActorPosition('missing-actor', 1, 1);
+
+      expect(getState().workspace.architecture).toBe(before);
+    });
+  });
+
   // ── Connection actions ──
 
   describe('addConnection', () => {
@@ -1093,7 +1112,7 @@ describe('architectureStore', () => {
           },
         ],
         connections: [],
-        externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' }],
+        externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       };
 
       getState().importArchitecture(JSON.stringify(arch));
@@ -1201,8 +1220,8 @@ describe('architectureStore', () => {
           },
         ],
         externalActors: [
-          { id: 'ext-1', name: 'Internet', type: 'internet' },
-          { id: 'ext-2', name: 'Partner', type: 'internet' },
+          { id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } },
+          { id: 'ext-2', name: 'Partner', type: 'internet' , position: { x: -3, y: 0, z: 5 } },
         ],
       };
 
@@ -1332,7 +1351,7 @@ describe('architectureStore', () => {
             metadata: {},
           },
         ],
-        externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+        externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
         connections: [
           { id: 'c1', sourceId: 'ext-internet', targetId: 'b1', type: 'dataflow' },
           { id: 'c2', sourceId: 'b1', targetId: 'p1', type: 'dataflow' },
@@ -1554,7 +1573,7 @@ describe('architectureStore', () => {
           ],
           blocks: [],
           connections: [],
-          externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' }],
+          externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
         },
       };
 
@@ -1631,7 +1650,7 @@ describe('architectureStore', () => {
             metadata: {},
           },
         ],
-        externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+        externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       };
 
       vi.setSystemTime(new Date('2025-01-02T00:00:00Z'));
@@ -1660,7 +1679,7 @@ describe('architectureStore', () => {
         plates: [],
         blocks: [],
         connections: [],
-        externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+        externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       };
 
       getState().replaceArchitecture(snapshot);
@@ -1682,7 +1701,7 @@ describe('architectureStore', () => {
         plates: [],
         blocks: [],
         connections: [],
-        externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
+        externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       };
 
       getState().replaceArchitecture(snapshot);
