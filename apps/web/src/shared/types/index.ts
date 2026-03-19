@@ -65,6 +65,7 @@ export interface ExternalActor {
   id: string;
   name: string; // e.g., "Internet"
   type: 'internet';
+  position: Position;
 }
 
 // ─── Spatial ───────────────────────────────────────────────
