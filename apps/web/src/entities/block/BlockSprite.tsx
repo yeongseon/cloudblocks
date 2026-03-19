@@ -268,7 +268,7 @@ export const BlockSprite = memo(function BlockSprite({
         aria-label={`Block: ${block.name}`}
       >
         <div className="block-img" draggable={false}>
-          <BlockSvg category={block.category} provider={block.provider} subtype={block.subtype} />
+          <BlockSvg category={block.category} provider={block.provider} subtype={block.subtype} aggregationCount={block.aggregation?.count} roles={block.roles} />
         </div>
         {block.provider && (
           <span

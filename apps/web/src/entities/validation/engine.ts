@@ -5,6 +5,8 @@ import type {
 import { validatePlacement } from './placement';
 import { validateConnection } from './connection';
 import { validateProviderRules } from './providerValidation';
+import { validateAggregation } from './aggregation';
+import { validateRoles } from './role';
 
 /**
  * Rule Engine — validates an entire ArchitectureModel.
@@ -12,6 +14,8 @@ import { validateProviderRules } from './providerValidation';
  * Checks:
  * 1. All blocks satisfy placement rules
  * 2. All connections satisfy connection rules
+ * 3. All blocks satisfy aggregation rules (v2.0 §8)
+ * 4. All blocks satisfy role rules (v2.0 §9)
  */
 export function validateArchitecture(
   model: ArchitectureModel
@@ -28,6 +32,30 @@ export function validateArchitecture(
         errors.push(error);
       } else {
         warnings.push(error);
+      }
+    }
+  }
+
+  // ── Aggregation validation (v2.0 §8) ──
+  for (const block of model.blocks) {
+    const aggError = validateAggregation(block);
+    if (aggError) {
+      if (aggError.severity === 'error') {
+        errors.push(aggError);
+      } else {
+        warnings.push(aggError);
+      }
+    }
+  }
+
+  // ── Role validation (v2.0 §9) ──
+  for (const block of model.blocks) {
+    const roleError = validateRoles(block);
+    if (roleError) {
+      if (roleError.severity === 'error') {
+        errors.push(roleError);
+      } else {
+        warnings.push(roleError);
       }
     }
   }

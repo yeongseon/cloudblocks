@@ -1,6 +1,6 @@
 import { memo, useId, useMemo } from 'react';
-import type { BlockCategory, ProviderType } from '../../shared/types/index';
-import { BLOCK_SHORT_NAMES, BLOCK_ICONS } from '../../shared/types/index';
+import type { BlockCategory, BlockRole, ProviderType } from '../../shared/types/index';
+import { BLOCK_SHORT_NAMES, BLOCK_ICONS, ROLE_VISUAL_INDICATORS } from '../../shared/types/index';
 import { getBlockDimensions, getBlockVisualProfile } from '../../shared/types/visualProfile';
 import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
 import {
@@ -19,9 +19,11 @@ interface BlockSvgProps {
   category: BlockCategory;
   provider?: ProviderType;
   subtype?: string;
+  aggregationCount?: number; // v2.0 §8 — show ×N badge when > 1
+  roles?: BlockRole[];        // v2.0 §9 — visual-only role indicators
 }
 
-export const BlockSvg = memo(function BlockSvg({ category, provider, subtype }: BlockSvgProps) {
+export const BlockSvg = memo(function BlockSvg({ category, provider, subtype, aggregationCount, roles }: BlockSvgProps) {
   // ─── v2.0: CU-based dimension resolution ───────────────────
   const cu = getBlockDimensions(category, provider, subtype);
   const dims = cuToSilhouetteDimensions(cu);
@@ -122,6 +124,63 @@ export const BlockSvg = memo(function BlockSvg({ category, provider, subtype }: 
       >
         {icon}
       </text>
+
+      {aggregationCount != null && aggregationCount > 1 && (
+        <g data-testid="aggregation-badge">
+          <rect
+            x={screenWidth - 28}
+            y={0}
+            width={26}
+            height={16}
+            rx={4}
+            fill="#1e293b"
+            fillOpacity={0.85}
+          />
+          <text
+            x={screenWidth - 15}
+            y={12}
+            fontFamily="system-ui, -apple-system, sans-serif"
+            fontSize={10}
+            fontWeight="700"
+            fill="#ffffff"
+            textAnchor="middle"
+          >
+            {`×${aggregationCount}`}
+          </text>
+        </g>
+      )}
+
+      {roles != null && roles.length > 0 && (
+        <g data-testid="role-badges">
+          {roles.map((role, i) => {
+            const indicator = ROLE_VISUAL_INDICATORS[role];
+            const badgeX = 2 + i * 18;
+            return (
+              <g key={role} data-testid={`role-badge-${role}`}>
+                <rect
+                  x={badgeX}
+                  y={0}
+                  width={16}
+                  height={16}
+                  rx={3}
+                  fill="#334155"
+                  fillOpacity={0.85}
+                />
+                <text
+                  x={badgeX + 8}
+                  y={12}
+                  fontFamily="system-ui, -apple-system, sans-serif"
+                  fontSize={10}
+                  textAnchor="middle"
+                >
+                  {indicator.icon}
+                </text>
+              </g>
+            );
+          })}
+        </g>
+      )}
+
     </svg>
   );
 });
