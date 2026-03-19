@@ -446,7 +446,8 @@ Position and layout guidance:
 - Block spacing: 1 CU between blocks. Plate padding: 2 CU.
 - Plates should be large enough to contain their blocks with 2 CU padding on each side.
 - Example plate size: {{"width": 25, "height": 1, "depth": 15}}.
-- Block positions are relative to parent plate and should start at {{"x": 2, "y": 0, "z": 2}} (2 CU padding).
+- Block positions are relative to parent plate
+  and should start at {{"x": 2, "y": 0, "z": 2}} (2 CU padding).
 
 Negative instructions:
 - Do NOT generate subtypes that are not in the SubtypeRegistry.
