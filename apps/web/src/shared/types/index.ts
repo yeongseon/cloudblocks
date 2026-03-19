@@ -32,6 +32,8 @@ export interface Block {
   position: Position; // relative to parent plate
   metadata: Record<string, unknown>;
   provider?: ProviderType;
+  subtype?: string;
+  config?: Record<string, unknown>;
 }
 
 // ─── Connection ────────────────────────────────────────────
