@@ -96,7 +96,7 @@ function replaceArchitectureSnapshot(snapshot: ArchitectureSnapshot): void {
 }
 
 function findNetworkPlateId(snapshot: ArchitectureSnapshot): string | null {
-  return snapshot.plates.find((plate) => plate.type === 'network')?.id ?? null;
+  return snapshot.plates.find((plate) => plate.type === 'region')?.id ?? null;
 }
 
 function ensureNetworkPlate(): string {
@@ -114,7 +114,7 @@ function ensureNetworkPlate(): string {
       {
         id: networkId,
         name: 'Network',
-        type: 'network',
+        type: 'region',
         parentId: null,
         children: [],
         position: { x: 0, y: 0, z: 0 },
@@ -189,7 +189,7 @@ function getPlacementForCategory(category: BlockCategory): {
     return { plateType: 'subnet', subnetAccess: 'public' };
   }
 
-  return { plateType: 'network' };
+  return { plateType: 'region' };
 }
 
 function ensureBlock(
@@ -228,7 +228,7 @@ function ensureBlock(
     : getPlacementForCategory(category);
 
   let placementId = '';
-  if (placement.plateType === 'network') {
+  if (placement.plateType === 'region') {
     placementId = ensureNetworkPlate();
   } else {
     placementId = ensureSubnet(placement.subnetAccess ?? 'public');
@@ -313,7 +313,7 @@ function ensureConnection(sourceCategory: string, targetCategory: string): void 
 function satisfyRule(rule: StepValidationRule): void {
   switch (rule.type) {
     case 'plate-exists':
-      if (rule.plateType === 'network') {
+      if (rule.plateType === 'region') {
         ensureNetworkPlate();
       } else {
         ensureSubnet(rule.subnetAccess ?? 'public');
@@ -347,7 +347,7 @@ function satisfyRule(rule: StepValidationRule): void {
         architectureSnapshot().plates.filter((plate) => plate.type === rule.plateType).length <
         rule.count
       ) {
-        if (rule.plateType === 'network') {
+        if (rule.plateType === 'region') {
           ensureNetworkPlate();
         } else {
           ensureSubnet('public');
@@ -404,7 +404,7 @@ describe('learning integration flow', () => {
   it('starting a scenario resets previous learning state', () => {
     startLearningScenario('scenario-three-tier');
 
-    satisfyRule({ type: 'plate-exists', plateType: 'network' });
+    satisfyRule({ type: 'plate-exists', plateType: 'region' });
     expect(useLearningStore.getState().isCurrentStepComplete).toBe(true);
     advanceToNextStep();
 
@@ -437,7 +437,7 @@ describe('learning integration flow', () => {
     vi.advanceTimersByTime(30000);
     expect(useLearningStore.getState().currentHintIndex).toBe(0);
 
-    satisfyRule({ type: 'plate-exists', plateType: 'network' });
+    satisfyRule({ type: 'plate-exists', plateType: 'region' });
 
     expect(useLearningStore.getState().isCurrentStepComplete).toBe(true);
     expect(isHintTimerRunning()).toBe(false);
@@ -448,7 +448,7 @@ describe('learning integration flow', () => {
   it('resetting step restores checkpoint architecture', () => {
     startLearningScenario('scenario-three-tier');
 
-    satisfyRule({ type: 'plate-exists', plateType: 'network' });
+    satisfyRule({ type: 'plate-exists', plateType: 'region' });
     expect(useLearningStore.getState().isCurrentStepComplete).toBe(true);
     advanceToNextStep();
 
@@ -467,7 +467,7 @@ describe('learning integration flow', () => {
   it('validation subscription auto-evaluates on architecture changes', () => {
     startLearningScenario('scenario-three-tier');
 
-    satisfyRule({ type: 'plate-exists', plateType: 'network' });
+    satisfyRule({ type: 'plate-exists', plateType: 'region' });
     expect(useLearningStore.getState().isCurrentStepComplete).toBe(true);
     advanceToNextStep();
 
