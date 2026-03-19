@@ -1,4 +1,12 @@
 import type { BrickSilhouette } from '../../shared/types/index';
+import type { BlockDimensionsCU } from '../../shared/types/visualProfile';
+import {
+  BLOCK_MARGIN,
+  BLOCK_PADDING,
+  TILE_H,
+  TILE_W,
+  TILE_Z,
+} from '../../shared/tokens/designTokens';
 
 export interface SilhouetteDimensions {
   screenWidth: number;
@@ -214,4 +222,54 @@ export function getSilhouettePolygons(
   dimensions: SilhouetteDimensions,
 ): SilhouettePolygons {
   return SILHOUETTE_GENERATORS[silhouette](dimensions);
+}
+
+// ─── CU-Based Entry Point (v2.0) ──────────────────────────────
+
+/**
+ * Convert CU dimensions to pixel-based SilhouetteDimensions.
+ * See CLOUDBLOCKS_SPEC_V2.md §13.
+ *
+ * Formulas:
+ *   screenWidth   = (width + depth) × TILE_W / 2
+ *   diamondHeight = (width + depth) × TILE_H / 2
+ *   sideWallPx    = height × TILE_Z
+ */
+export function cuToSilhouetteDimensions(cu: BlockDimensionsCU): SilhouetteDimensions {
+  const screenWidth = (cu.width + cu.depth) * TILE_W / 2;
+  const diamondHeight = (cu.width + cu.depth) * TILE_H / 2;
+  const sideWallPx = Math.round(cu.height * TILE_Z);
+
+  const cx = screenWidth / 2;
+  const topY = BLOCK_PADDING;
+  const midY = diamondHeight / 2 + BLOCK_PADDING;
+  const bottomY = diamondHeight + BLOCK_PADDING;
+  const leftX = BLOCK_MARGIN;
+  const rightX = screenWidth - BLOCK_MARGIN;
+
+  return {
+    screenWidth,
+    diamondHeight,
+    sideWallPx,
+    cx,
+    topY,
+    midY,
+    bottomY,
+    leftX,
+    rightX,
+    margin: BLOCK_MARGIN,
+    padding: BLOCK_PADDING,
+  };
+}
+
+/**
+ * Generate silhouette polygons from CU dimensions.
+ * This is the v2.0 entry point — accepts integer CU dimensions
+ * and derives all pixel values via RENDER_SCALE.
+ */
+export function getSilhouetteFromCU(
+  silhouette: BrickSilhouette,
+  cu: BlockDimensionsCU,
+): SilhouettePolygons {
+  return SILHOUETTE_GENERATORS[silhouette](cuToSilhouetteDimensions(cu));
 }
