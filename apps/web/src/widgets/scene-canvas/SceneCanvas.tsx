@@ -219,7 +219,7 @@ export function SceneCanvas() {
                   zIndex,
                 }}
               >
-                <MinifigureSvg provider="azure" />
+                <MinifigureSvg provider={activeProvider} />
               </div>
             );
           })()}
