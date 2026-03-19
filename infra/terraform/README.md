@@ -6,6 +6,22 @@ Terraform configurations for deploying CloudBlocks to Azure.
 
 - `environments/dev/` — Development environment
 
+> Note: `environments/dev/` is the current implementation baseline and is considered legacy for cloud deployment strategy. New multi-environment wrappers are planned for staging and production.
+
+## Planned Structure
+
+The Terraform layout will evolve to a shared module plus thin environment wrappers:
+
+```text
+infra/terraform/
+|- modules/cloudblocks-stack/    <- Shared stack module (planned)
+|- environments/staging/         <- Staging wrapper (planned)
+|- environments/production/      <- Production wrapper (planned)
+`- environments/dev/             <- Current legacy environment
+```
+
+This documentation-only phase defines strategy. Module extraction and wrapper implementation are tracked separately.
+
 ## Resources Provisioned
 
 | Resource | Azure Service | Purpose |

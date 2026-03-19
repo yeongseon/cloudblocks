@@ -53,6 +53,7 @@ Immutable records of key decisions.
 | [0004](adr/0004-rule-engine-architecture.md) | Historical | Rule engine architecture |
 | [0005](adr/0005-2d-first-editor-with-25d-rendering.md) | Historical | 2D-first with 2.5D rendering |
 | [0006](adr/0006-graph-ir-evolution-approach.md) | Accepted | Graph IR evolution approach |
+| [0007](adr/0007-multi-environment-deployment-strategy.md) | Accepted | Multi-environment deployment strategy |
 
 ---
 
@@ -120,6 +121,7 @@ User and developer guides.
 | Document | Status | Description |
 |----------|--------|-------------|
 | [DEPLOYMENT.md](guides/DEPLOYMENT.md) | Supporting | Deployment instructions |
+| [ENVIRONMENT_STRATEGY.md](guides/ENVIRONMENT_STRATEGY.md) | Canonical | Local/staging/production deployment strategy |
 | [TUTORIALS.md](guides/TUTORIALS.md) | Supporting | Getting started tutorials |
 
 ---

@@ -12,6 +12,7 @@ This directory contains Architecture Decision Records (ADRs) for CloudBlocks. AD
 | [0004](0004-rule-engine-architecture.md) | Rule Engine Architecture | Accepted | 2025-01 |
 | [0005](0005-2d-first-editor-with-25d-rendering.md) | 2D-First Editor with 2.5D Rendering | Accepted | 2025-01 |
 | [0006](0006-graph-ir-evolution-approach.md) | Graph IR evolution approach | Accepted | 2026-03 |
+| [0007](0007-multi-environment-deployment-strategy.md) | Multi-Environment Deployment Strategy | Accepted | 2026-03 |
 
 ## ADR Template
 
