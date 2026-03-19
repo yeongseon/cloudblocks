@@ -118,7 +118,7 @@ function generatePlateResource(
     lines.push(`  name: '\${projectName}-${resourceName}'`);
     lines.push(`  location: location`);
     lines.push(`  properties: {`);
-    if (plate.type === 'network') {
+    if (plate.type === 'region') {
       lines.push(`    addressSpace: {`);
       lines.push(`      addressPrefixes: [`);
       lines.push(`        '10.0.0.0/16'`);
@@ -199,13 +199,6 @@ function generateBlockResource(
     case 'event':
       lines.push(`  properties: {}`);
       break;
-    case 'timer':
-      lines.push(`  properties: {`);
-      lines.push(`    definition: {`);
-      lines.push(`      triggers: {}`);
-      lines.push(`    }`);
-      lines.push(`  }`);
-      break;
   }
 
   lines.push(`}`);
@@ -264,11 +257,11 @@ export function generateMainBicep(
     sections.push('');
   }
 
-  // Plates (networks first, then subnets)
-  const networks = architecture.plates.filter((p) => p.type === 'network');
+  // Plates (regions first, then subnets)
+  const regions = architecture.plates.filter((p) => p.type === 'region');
   const subnets = architecture.plates.filter((p) => p.type === 'subnet');
 
-  for (const plate of networks) {
+  for (const plate of regions) {
     const resName = resourceNames.get(plate.id)!;
     const mapping = provider.plateMappings[plate.type];
     sections.push(generatePlateResource(plate, resName, mapping, null));
