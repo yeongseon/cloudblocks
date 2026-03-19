@@ -26,6 +26,7 @@ New to CloudBlocks? Follow this path:
 | **Canonical (v2.0 Target)** | Accepted v2.0 specification — not yet fully implemented |
 | **Superseded** | v1.x spec replaced by v2.0 — retained for reference |
 | **Supporting** | Reference material — links to canonical |
+| **Accepted** | Active decision — currently in effect |
 | **Historical** | Past decisions — do not update |
 
 ---
@@ -130,9 +131,9 @@ User and developer guides.
 
 ---
 
-## Key Canonical Sources
+## Key Reference Documents
 
-| Concern | Canonical Document |
+| Concern | Reference Document |
 |---------|-------------------|
 | Domain entities & types | [DOMAIN_MODEL.md](model/DOMAIN_MODEL.md) |
 | Visual sizing & layout (v2.0) | [CLOUDBLOCKS_SPEC_V2.md](design/CLOUDBLOCKS_SPEC_V2.md) |
