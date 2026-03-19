@@ -4,6 +4,7 @@ import type {
 } from '../../shared/types/index';
 import { validatePlacement } from './placement';
 import { validateConnection } from './connection';
+import { validateProviderRules } from './providerValidation';
 
 /**
  * Rule Engine — validates an entire ArchitectureModel.
@@ -46,6 +47,9 @@ export function validateArchitecture(
       }
     }
   }
+
+  const providerWarnings = validateProviderRules(model);
+  warnings.push(...providerWarnings);
 
   return {
     valid: errors.length === 0,
