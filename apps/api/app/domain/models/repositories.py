@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 
+from app.domain.models.ai_entities import AIApiKey
 from app.domain.models.entities import (
     GenerationRun,
     Identity,
@@ -111,3 +112,14 @@ class SessionRepository(ABC):
 
     @abstractmethod
     async def cleanup_expired(self) -> int: ...
+
+
+class AIApiKeyRepository(ABC):
+    @abstractmethod
+    async def upsert(self, api_key: AIApiKey) -> AIApiKey: ...
+
+    @abstractmethod
+    async def list_by_user(self, user_id: str) -> list[AIApiKey]: ...
+
+    @abstractmethod
+    async def delete_by_user_and_provider(self, user_id: str, provider: str) -> bool: ...
