@@ -11,6 +11,33 @@ it('returns region colors for region plate type', () => {
   });
 });
 
+  it('returns global colors for global plate type', () => {
+    expect(getPlateFaceColors({ type: 'global' })).toEqual({
+      topFaceColor: '#B39DDB',
+      topFaceStroke: '#D1C4E9',
+      leftSideColor: '#9575CD',
+      rightSideColor: '#7E57C2',
+    });
+  });
+
+  it('returns edge colors for edge plate type', () => {
+    expect(getPlateFaceColors({ type: 'edge' })).toEqual({
+      topFaceColor: '#80CBC4',
+      topFaceStroke: '#B2DFDB',
+      leftSideColor: '#4DB6AC',
+      rightSideColor: '#26A69A',
+    });
+  });
+
+  it('returns zone colors for zone plate type', () => {
+    expect(getPlateFaceColors({ type: 'zone' })).toEqual({
+      topFaceColor: '#A5D6A7',
+      topFaceStroke: '#C8E6C9',
+      leftSideColor: '#81C784',
+      rightSideColor: '#66BB6A',
+    });
+  });
+
   it('returns public subnet colors for subnet with public access', () => {
     expect(getPlateFaceColors({ type: 'subnet', subnetAccess: 'public' })).toEqual({
       topFaceColor: '#22C55E',
