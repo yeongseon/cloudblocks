@@ -10,7 +10,9 @@ const baseBlockMappings: BlockResourceMap = {
   function: { resourceType: 'aws_lambda_function', namePrefix: 'lambda' },
   queue: { resourceType: 'aws_sqs_queue', namePrefix: 'queue' },
   event: { resourceType: 'aws_sns_topic', namePrefix: 'topic' },
-  timer: { resourceType: 'aws_cloudwatch_event_rule', namePrefix: 'schedule' },
+  analytics: { resourceType: 'aws_athena_workgroup', namePrefix: 'analytics' },
+  identity: { resourceType: 'aws_iam_role', namePrefix: 'role' },
+  observability: { resourceType: 'aws_cloudwatch_dashboard', namePrefix: 'dashboard' },
 };
 
 const subtypeMappings: SubtypeResourceMap = {

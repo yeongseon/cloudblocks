@@ -33,7 +33,9 @@ const azureSubtypeBlockMappings: SubtypeResourceMap = {
  *   function → azurerm_linux_function_app / Microsoft.Web/sites (functionapp)
  *   queue    → azurerm_storage_queue / Microsoft.Storage/storageAccounts/queueServices
  *   event    → azurerm_eventgrid_topic / Microsoft.EventGrid/topics
- *   timer    → azurerm_logic_app_workflow / Microsoft.Logic/workflows
+ *   analytics → azurerm_log_analytics_workspace / Microsoft.OperationalInsights/workspaces
+ *   identity → azurerm_user_assigned_identity / Microsoft.ManagedIdentity/userAssignedIdentities
+ *   observability → azurerm_monitor_workspace / Microsoft.Monitor/accounts
  *
  * Plate Mappings:
  *   network  → azurerm_virtual_network / Microsoft.Network/virtualNetworks
@@ -73,16 +75,36 @@ export const azureProviderDefinition: ProviderDefinition = {
       resourceType: 'azurerm_eventgrid_topic',
       namePrefix: 'evtopic',
     },
-    timer: {
-      resourceType: 'azurerm_logic_app_workflow',
-      namePrefix: 'timer',
+    analytics: {
+      resourceType: 'azurerm_log_analytics_workspace',
+      namePrefix: 'analytics',
+    },
+    identity: {
+      resourceType: 'azurerm_user_assigned_identity',
+      namePrefix: 'identity',
+    },
+    observability: {
+      resourceType: 'azurerm_monitor_workspace',
+      namePrefix: 'monitor',
     },
   },
 
   plateMappings: {
-    network: {
+    global: {
+      resourceType: 'azurerm_virtual_network',
+      namePrefix: 'global',
+    },
+    edge: {
+      resourceType: 'azurerm_virtual_network',
+      namePrefix: 'edge',
+    },
+    region: {
       resourceType: 'azurerm_virtual_network',
       namePrefix: 'vnet',
+    },
+    zone: {
+      resourceType: 'azurerm_virtual_network',
+      namePrefix: 'zone',
     },
     subnet: {
       resourceType: 'azurerm_subnet',

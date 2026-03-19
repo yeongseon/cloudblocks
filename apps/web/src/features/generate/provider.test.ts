@@ -50,14 +50,22 @@ describe('azureProvider', () => {
       resourceType: 'azurerm_eventgrid_topic',
       namePrefix: 'evtopic',
     });
-    expect(azureProvider.blockMappings.timer).toEqual({
-      resourceType: 'azurerm_logic_app_workflow',
-      namePrefix: 'timer',
+    expect(azureProvider.blockMappings.analytics).toEqual({
+      resourceType: 'azurerm_log_analytics_workspace',
+      namePrefix: 'analytics',
+    });
+    expect(azureProvider.blockMappings.identity).toEqual({
+      resourceType: 'azurerm_user_assigned_identity',
+      namePrefix: 'identity',
+    });
+    expect(azureProvider.blockMappings.observability).toEqual({
+      resourceType: 'azurerm_monitor_workspace',
+      namePrefix: 'monitor',
     });
   });
 
   it('defines all plate mappings', () => {
-    expect(azureProvider.plateMappings.network).toEqual({
+    expect(azureProvider.plateMappings.region).toEqual({
       resourceType: 'azurerm_virtual_network',
       namePrefix: 'vnet',
     });
@@ -124,15 +132,27 @@ describe('getProviderDefinition', () => {
 });
 
 describe('awsProvider', () => {
-  it('uses ECS service mapping for compute category', () => {
+  it('uses ECS service mapping for compute category and includes new category mappings', () => {
     expect(awsProvider.blockMappings.compute).toEqual({
       resourceType: 'aws_ecs_service',
       namePrefix: 'ecs',
     });
+    expect(awsProvider.blockMappings.analytics).toEqual({
+      resourceType: 'aws_athena_workgroup',
+      namePrefix: 'analytics',
+    });
+    expect(awsProvider.blockMappings.identity).toEqual({
+      resourceType: 'aws_iam_role',
+      namePrefix: 'role',
+    });
+    expect(awsProvider.blockMappings.observability).toEqual({
+      resourceType: 'aws_cloudwatch_dashboard',
+      namePrefix: 'dashboard',
+    });
   });
 
   it('keeps expected network and subnet plate mappings', () => {
-    expect(awsProvider.plateMappings.network).toEqual({
+    expect(awsProvider.plateMappings.region).toEqual({
       resourceType: 'aws_vpc',
       namePrefix: 'vpc',
     });
@@ -144,7 +164,7 @@ describe('awsProvider', () => {
 });
 
 describe('gcpProvider', () => {
-  it('uses Cloud Run and backend service mappings for compute and gateway', () => {
+  it('uses Cloud Run/backend mappings and includes new category mappings', () => {
     expect(gcpProvider.blockMappings.compute).toEqual({
       resourceType: 'google_cloud_run_v2_service',
       namePrefix: 'run',
@@ -153,10 +173,22 @@ describe('gcpProvider', () => {
       resourceType: 'google_compute_backend_service',
       namePrefix: 'backend',
     });
+    expect(gcpProvider.blockMappings.analytics).toEqual({
+      resourceType: 'google_bigquery_dataset',
+      namePrefix: 'analytics',
+    });
+    expect(gcpProvider.blockMappings.identity).toEqual({
+      resourceType: 'google_service_account',
+      namePrefix: 'sa',
+    });
+    expect(gcpProvider.blockMappings.observability).toEqual({
+      resourceType: 'google_monitoring_dashboard',
+      namePrefix: 'dashboard',
+    });
   });
 
   it('keeps expected network and subnet plate mappings', () => {
-    expect(gcpProvider.plateMappings.network).toEqual({
+    expect(gcpProvider.plateMappings.region).toEqual({
       resourceType: 'google_compute_network',
       namePrefix: 'network',
     });
