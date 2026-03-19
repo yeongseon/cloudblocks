@@ -149,6 +149,7 @@ export interface ProviderDefinition {
     bicep: BicepProviderConfig;
     pulumi: PulumiProviderConfig;
   };
+  subtypeBlockMappings?: SubtypeResourceMap;
 }
 
 // ─── Generator Plugin Interface (v1.0) ──────────────────────

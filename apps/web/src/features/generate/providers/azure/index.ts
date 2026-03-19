@@ -1,4 +1,23 @@
-import type { ProviderAdapter, ProviderDefinition } from '../../types';
+import type { ProviderAdapter, ProviderDefinition, SubtypeResourceMap } from '../../types';
+
+const azureSubtypeBlockMappings: SubtypeResourceMap = {
+  compute: {
+    vm: { resourceType: 'azurerm_linux_virtual_machine', namePrefix: 'vm' },
+    'container-instances': { resourceType: 'azurerm_container_group', namePrefix: 'aci' },
+    functions: { resourceType: 'azurerm_linux_function_app', namePrefix: 'func' },
+  },
+  database: {
+    'sql-database': { resourceType: 'azurerm_mssql_database', namePrefix: 'sqldb' },
+    'cosmos-db': { resourceType: 'azurerm_cosmosdb_account', namePrefix: 'cosmos' },
+  },
+  storage: {
+    'blob-storage': { resourceType: 'azurerm_storage_account', namePrefix: 'st' },
+  },
+  gateway: {
+    'application-gateway': { resourceType: 'azurerm_application_gateway', namePrefix: 'appgw' },
+    'api-management': { resourceType: 'azurerm_api_management', namePrefix: 'apim' },
+  },
+};
 
 /**
  * Azure Provider Definitions (v1.0)
@@ -100,6 +119,7 @@ export const azureProviderDefinition: ProviderDefinition = {
       runtime: 'nodejs',
     },
   },
+  subtypeBlockMappings: azureSubtypeBlockMappings,
 };
 
 /**
