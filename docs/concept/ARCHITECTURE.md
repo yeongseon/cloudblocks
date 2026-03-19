@@ -583,7 +583,7 @@ The architecture supports horizontal scalability:
 | Frontend | Static hosting / CDN |
 | Backend API | Stateless containers (scale horizontally) |
 | Metadata DB | SQLite (dev), PostgreSQL (production — Phase 8 ✅) |
-| Job Queue | In-process/background (dev), Redis (production — Phase 8 ✅) |
+| Job Queue | In-process/background (dev), Redis (production — Phase 8 planned) |
 | Storage | GitHub (unlimited repos) + Blob storage |
 
 ---
