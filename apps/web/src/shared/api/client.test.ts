@@ -206,6 +206,26 @@ describe('API_BASE_URL normalization', () => {
 
     expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:8000/api/v1/test');
   });
+
+  it('strips /api/v1 suffix from VITE_API_URL without duplicating path', async () => {
+    vi.stubEnv('VITE_API_URL', 'http://localhost:8000/api/v1');
+    const { apiGet } = await import('./client');
+
+    fetchMock.mockResolvedValueOnce(jsonResponse({ ok: true }));
+    await apiGet('/api/v1/test');
+
+    expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:8000/api/v1/test');
+  });
+
+  it('strips /api/v1/ suffix with trailing slash from VITE_API_URL', async () => {
+    vi.stubEnv('VITE_API_URL', 'http://localhost:8000/api/v1/');
+    const { apiGet } = await import('./client');
+
+    fetchMock.mockResolvedValueOnce(jsonResponse({ ok: true }));
+    await apiGet('/api/v1/test');
+
+    expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:8000/api/v1/test');
+  });
 });
 
 describe('normalizeApiBaseUrl', () => {
