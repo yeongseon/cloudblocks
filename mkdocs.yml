@@ -15,18 +15,22 @@ validation:
 theme:
   name: material
   language: en
+  custom_dir: docs/overrides
+  font:
+    text: Fredoka
+    code: Roboto Mono
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: indigo
-      accent: blue
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: indigo
-      accent: blue
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
@@ -36,6 +40,7 @@ theme:
     - navigation.sections
     - navigation.expand
     - navigation.top
+    - navigation.indexes
     - search.suggest
     - search.highlight
     - content.code.copy
@@ -45,6 +50,9 @@ theme:
 
 plugins:
   - search
+
+extra_css:
+  - stylesheets/lego-theme.css
 
 markdown_extensions:
   - admonition
