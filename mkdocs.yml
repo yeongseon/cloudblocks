@@ -20,15 +20,13 @@ theme:
     text: Fredoka
     code: Roboto Mono
   palette:
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
+    - scheme: default
       primary: custom
       accent: custom
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
+    - scheme: slate
       primary: custom
       accent: custom
       toggle:
@@ -76,33 +74,38 @@ nav:
   - Getting Started:
       - Tutorials (Start Here): guides/TUTORIALS.md
       - Environment & Workspaces: guides/ENVIRONMENT_STRATEGY.md
+      - Deployment: guides/DEPLOYMENT.md
 
-  - Build Architectures:
+  - Build & Design:
       - Using the Editor (UI Flow): concept/UI_FLOW.md
       - Templates: engine/templates.md
-      - Architecture Model Overview: model/ARCHITECTURE_MODEL_OVERVIEW.md
+      - Validation Rules: engine/rules.md
+      - Learning Mode Spec: design/LEARNING_MODE_SPEC.md
 
-  - Generate & Deploy:
+  - Generate & Export:
       - Code Generator: engine/generator.md
       - AI Engine: engine/ai.md
-      - Validation Rules: engine/rules.md
-      - Validation Contract: design/VALIDATION_CONTRACT.md
       - Provider Adapters: engine/provider.md
-      - Deployment: guides/DEPLOYMENT.md
-      - REST API Spec: api/API_SPEC.md
 
   - Reference:
       - CloudBlocks Spec v2.0: design/CLOUDBLOCKS_SPEC_V2.md
       - Domain Model: model/DOMAIN_MODEL.md
-      - Storage Architecture: model/STORAGE_ARCHITECTURE.md
-      - Security Boundaries: design/SECURITY_BOUNDARIES.md
-      - Learning Mode Spec: design/LEARNING_MODE_SPEC.md
+      - Validation Contract: design/VALIDATION_CONTRACT.md
+      - REST API Spec: api/API_SPEC.md
 
-  - Contributing:
+  - Developer:
+      - Architecture: concept/ARCHITECTURE.md
+      - Storage Architecture: model/STORAGE_ARCHITECTURE.md
+      - Architecture Model Overview: model/ARCHITECTURE_MODEL_OVERVIEW.md
+      - Security Boundaries: design/SECURITY_BOUNDARIES.md
+      - Module Boundaries: design/MODULE_BOUNDARIES.md
+      - NFR Targets: design/NFR_TARGETS.md
+      - Release Gates: design/RELEASE_GATES.md
+      - KPI Scorecard: design/KPI_SCORECARD.md
+      - Graph IR Spec: design/GRAPH_IR_SPEC.md
       - Product & Planning:
           - Product Requirements: concept/PRD.md
           - Roadmap: concept/ROADMAP.md
-          - Architecture (Internal): concept/ARCHITECTURE.md
           - Milestone Plans:
               - M16 — Documentation Architecture: concept/M16_DOCUMENTATION_ARCHITECTURE.md
               - M17 — Product Structure: concept/M17_PRODUCT_STRUCTURE.md
@@ -119,12 +122,6 @@ nav:
           - ADR-0007 Multi-Environment Deployment: adr/0007-multi-environment-deployment-strategy.md
           - ADR-0008 v2.0 Universal Architecture Spec: adr/0008-v2-universal-architecture-specification.md
           - ADR-0009 AI-Assisted Architecture: adr/0009-ai-assisted-architecture.md
-      - Engineering Specs:
-          - Module Boundaries: design/MODULE_BOUNDARIES.md
-          - NFR Targets: design/NFR_TARGETS.md
-          - Release Gates: design/RELEASE_GATES.md
-          - KPI Scorecard: design/KPI_SCORECARD.md
-          - Graph IR Spec: design/GRAPH_IR_SPEC.md
       - Historical / Audits:
           - Brick Design Spec (v1.x): design/BRICK_DESIGN_SPEC.md
           - Visual Design Spec (v1.x): design/VISUAL_DESIGN_SPEC.md
