@@ -153,26 +153,25 @@ They are placed on Plates and represent deployable infrastructure services. Each
 
 Brick size represents **architectural weight** — the resource's importance, statefulness, and operational complexity. Larger bricks are harder to replace and more central to the architecture.
 
-| Tier | Name | Studs | Hostable | Architectural Weight |
-|------|------|-------|----------|---------------------|
-| 1 | **signal** | 1×2 | No | Minimal — ephemeral triggers |
-| 2 | **light** | 2×2 | Yes (1 app) | Low — stateless, replaceable |
-| 3 | **service** | 2×4 | No | Medium — managed services |
-| 4 | **core** | 3×4 | Yes (3-4 apps) | High — primary workload hosts |
-| 5 | **anchor** | 4×6 | No (managed) | Critical — stateful data |
+The v2.0 tier system uses **Cloud Unit (CU)-based dimensions** (width × depth × height):
 
-> **Hostable**: Can user applications (nginx, python, etc.) be placed on this resource?
+| Tier | Name | CU Dimensions (W×D×H) | Architectural Weight |
+|------|------|-----------------------|---------------------|
+| 1 | **micro** | 1×1×1 | Minimal — ephemeral triggers, lightweight functions |
+| 2 | **small** | 2×2×1 | Low — simple identity/monitoring modules |
+| 3 | **medium** | 2×2×2 | Medium — compute workloads and storage |
+| 4 | **large** | 3×3×2 | High — databases and analytics |
+| 5 | **wide** | 3×1×1 | Gateway — ingress and routing (wide footprint) |
 
 **Resource → Brick Size Mapping:**
 
-| Category | Brick Size | Hostable | Rationale |
-|----------|------------|----------|-----------|
-| `event`, `analytics`, `identity`, `observability` | signal (1×2) | No | Triggers and signal-oriented services |
-| `function` | light (2×2) | Yes | Single runtime |
-| `gateway`, `queue`, `storage` | service (2×4) | No | Managed services |
-| `compute` | core (3×4) | Yes | Full app stack |
-| `database` | anchor (4×6) | No | Cloud-managed data |
-
+| Category | Tier | CU Dimensions | Hostable | Rationale |
+|----------|------|---------------|----------|-----------|
+| `function`, `queue`, `event` | micro (1×1×1) | 1×1×1 | function: Yes (1 app), others: No | Lightweight serverless components |
+| `identity`, `observability` | small (2×2×1) | 2×2×1 | No | Simple identity/monitoring modules |
+| `compute`, `storage` | medium (2×2×2) | 2×2×2 | compute: Yes (4 apps), storage: No | Core workload hosts and data stores |
+| `database`, `analytics` | large (3×3×2) | 3×3×2 | No | Stateful data and analysis |
+| `gateway` | wide (3×1×1) | 3×1×1 | No | Managed ingress and routing |
 ---
 
 # 4.5 Application
@@ -469,7 +468,7 @@ Plate colors are defined separately in the canonical visual specs and type const
 | Shape | Meaning | Size |
 |------|---------|------|
 | Plate | Infrastructure region | S/M/L by learning level |
-| Brick | Cloud resource | signal/light/service/core/anchor |
+| Brick | Cloud resource | micro/small/medium/large/wide |
 | Cylinder | Application | 1×1 (sits on bricks) |
 
 ---
@@ -576,42 +575,48 @@ interface Workspace {
 > **Milestone 5+**: Server-side workspace management is planned for Milestone 5. These interfaces align with the migration files in `apps/api/app/infrastructure/db/migrations/`.
 
 ```typescript
-// User identity
+// User identity (matches migration 001 — snake_case in Python backend)
 interface User {
   id: string;
+  github_id: string;
+  github_username: string;
   email: string;
-  name: string;
-  githubId?: string;
-  createdAt: string;
-  updatedAt: string;
+  display_name: string;
+  avatar_url: string;
+  created_at: string;
+  updated_at: string;
 }
 
 // Workspace links to a GitHub repo
 interface WorkspaceRecord {
   id: string;
-  ownerId: string;
+  owner_id: string;
   name: string;
-  githubRepo: string;           // e.g., "user/my-cloud-project"
-  githubBranch: string;         // default branch
-  lastSyncedAt?: string;
-  createdAt: string;
-  updatedAt: string;
+  github_repo: string;           // e.g., "user/my-cloud-project"
+  github_branch: string;         // default branch
+  generator: string;             // e.g., "terraform"
+  provider: string;              // e.g., "azure"
+  last_synced_at?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 // Generation run record
 interface GenerationRun {
   id: string;
-  workspaceId: string;
+  workspace_id: string;
   status: 'pending' | 'running' | 'completed' | 'failed';
   generator: string;
-  commitSha?: string;
-  errorMessage?: string;
-  startedAt: string;
-  completedAt?: string;
+  commit_sha?: string;
+  pull_request_url?: string;
+  error_message?: string;
+  started_at: string;
+  completed_at?: string;
+  created_at: string;
 }
 ```
 
-> **Note**: The server-side models align with the actual migration files in `apps/api/app/infrastructure/db/migrations/`. The table is `workspaces` (not `projects`), and status values are `pending | running | completed | failed` (not `queued | succeeded`).
+> **Note**: The server-side models use snake_case naming (Python convention) and align with the actual migration files in `apps/api/app/infrastructure/db/connection.py`. The table is `workspaces` (not `projects`), and status values are `pending | running | completed | failed` (not `queued | succeeded`). The `generation_runs` table includes a `pull_request_url` field not shown in the client-side model.
 
 ---
 
@@ -814,7 +819,7 @@ Template        → Pre-built architecture patterns
 ```
 Application (1×1 cylinder)  ← Software layer
     ↓ sits on
-Block (brick: signal → anchor)  ← Resource layer
+Block (brick: micro → wide)  ← Resource layer
     ↓ placed on
 Plate (S/M/L by learning level)  ← Network layer
 ```

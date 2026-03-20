@@ -83,7 +83,7 @@ Connection rules validate dataflow between blocks. Connections follow **initiato
 | `queue` | `function` |
 | `event` | `function` |
 
-`database` and `storage` are receiver-only. `queue` and `event` can only connect to `function`.
+`database`, `storage`, `analytics`, `identity`, and `observability` are receiver-only. `queue` and `event` can only connect to `function`.
 
 ### Implementation References
 
@@ -111,34 +111,17 @@ Validation for block aggregation (scaling/clustering) configuration.
 
 | Rule ID | Severity | Condition | Message |
 |---------|----------|-----------|---------|
-| `rule-app-hostable` | error | Application placed on a non-hostable resource | Applications can only be placed on compute or function blocks |
-| `rule-app-capacity` | error | Resource's app capacity exceeded | This resource can hold at most {capacity} applications |
-| `rule-app-resource` | error | Application's parent resource not found | Application must be placed on a valid resource block |
+| `rule-aggregation-count` | error | Aggregation count < 1 or non-integer | Block has invalid aggregation count (must be >= 1 integer) |
 
-### Hostable Resource Table
+### Aggregation Behavior
 
-| Resource | Hostable | Max Apps | Rationale |
-|----------|----------|----------|-----------|
-| `compute` | ✅ Yes | 3-4 | VMs/containers host user software stack |
-| `function` | ✅ Yes | 1 | Serverless hosts one handler |
-| `gateway` | ❌ No | 0 | Managed load balancer |
-| `queue` | ❌ No | 0 | Managed messaging service |
-| `storage` | ❌ No | 0 | Managed object store |
-| `database` | ❌ No | 0 | Managed database service |
-| `event` | ❌ No | 0 | Router only, no runtime |
-
-### Self-hosted vs Managed Pattern
-
-| Scenario | Correct Model | Wrong Model |
-|----------|---------------|-------------|
-| Managed PostgreSQL (RDS, Azure SQL) | `database` block alone | `database` + postgres app ❌ |
-| Self-hosted PostgreSQL on VM | `compute` block + `postgres` app | `database` + postgres app ❌ |
-| Managed Redis (ElastiCache) | `database` block alone | `database` + redis app ❌ |
-| Self-hosted Redis on VM | `compute` block + `redis` app | `database` + redis app ❌ |
+- If a block has no `aggregation` field, it is treated as a single instance (valid).
+- Aggregation count must be a positive integer (≥ 1).
+- Block size remains fixed regardless of count — aggregation is visual only (badge "×N").
 
 ### Implementation References (Application)
 
-- **Frontend**: `apps/web/src/entities/validation/application.ts` (planned)
+- **Frontend**: `apps/web/src/entities/validation/aggregation.ts`
 - **Backend**: Not yet implemented (planned for Milestone 6)
 
 ---

@@ -79,7 +79,7 @@ body:
         Technical constraints, design principles, or invariants that must be respected.
       placeholder: |
         - Must follow FSD layer rules (no widget importing from another widget)
-        - Universal stud standard must be maintained (rx=19, ry=9.5)
+        - Universal stud standard must be maintained (rx=12, ry=6)
         - No new runtime dependencies > 50kb
 
   - type: input
