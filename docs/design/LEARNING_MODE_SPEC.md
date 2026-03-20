@@ -2,7 +2,7 @@
 
 > **Status**: Canonical  
 > **Milestone**: 6C — Learning Mode  
-> **Last Updated**: 2026-03-17
+> **Last Updated**: 2026-03-20
 
 ---
 
@@ -101,15 +101,15 @@ Pure function: `evaluateRules(rules: StepValidationRule[], model: ArchitectureMo
 
 - Each rule evaluator is a pure function that reads the ArchitectureModel
 - Returns per-rule pass/fail for UI feedback
-- Reuses existing validators: `validateArchitecture()`, `validatePlacement()`, `canPlaceBlock()`, `canConnect()`
+- Reuses `validateArchitecture()` from the validation engine for the `architecture-valid` rule; all other rule types are self-contained evaluators
 
 ### 4.2 Scenario Engine (`features/learning/scenario-engine.ts`)
 
 Orchestration layer that:
 1. Loads a scenario and seeds `architectureStore` with `replaceArchitecture(initialArchitecture)`
 2. Subscribes to `architectureStore` state changes
-3. On each change, runs step-validator against current step's rules
-4. When all rules pass → advances to next step (auto-advance)
+3. On each change, runs step-validator against current step's rules and sets `isCurrentStepComplete`
+4. When step is complete, the user clicks "Next Step" to advance (`advanceToNextStep()`)
 5. When all steps complete → marks scenario complete
 
 ### 4.3 Hint Engine (`features/learning/hint-engine.ts`)
@@ -127,6 +127,7 @@ registerScenario(scenario: Scenario): void
 getScenario(id: string): Scenario | undefined
 listScenarios(): Scenario[]
 listScenariosByDifficulty(difficulty: ScenarioDifficulty): Scenario[]
+searchScenarios(query: string): Scenario[]
 clearScenarioRegistry(): void
 ```
 
@@ -208,38 +209,32 @@ interface LearningStoreState {
 
 ## 7. Built-in Scenarios
 
+> **Plate terminology**: The user-facing term "Network" maps to `plateType: 'region'` in code. "Subnet" maps to `plateType: 'subnet'`. The scenario validation rules use the code-level plate types.
+
 ### 7.1 Three-Tier Web App (Beginner, ~10 min)
 Steps:
-1. Create a Network Plate (VNet)
-2. Add a Public Subnet to the VNet
-3. Add a Private Subnet to the VNet
-4. Place a Gateway on the Public Subnet
-5. Place a Compute block on the Public Subnet
-6. Place a Database on the Private Subnet
-7. Connect Internet → Gateway
-8. Connect Gateway → Compute
-9. Connect Compute → Database
-10. Validate the architecture
+1. Create a Region Plate (VNet) — `{ type: 'plate-exists', plateType: 'region' }`
+2. Add a Public Subnet and a Private Subnet — `plate-exists` for each subnet access level
+3. Place a Gateway on the Public Subnet, a Compute block, and a Database on the Private Subnet — `block-exists` with placement constraints
+4. Connect Internet → Gateway → Compute → Database — `connection-exists` rules
+5. Validate the architecture — `architecture-valid`
 
-### 7.2 Serverless HTTP API (Intermediate, ~15 min)
+### 7.2 Serverless HTTP API (Intermediate, ~8 min)
+Starts with a pre-built Region Plate and Internet external actor.
 Steps:
-1. Create network infrastructure (VNet + subnets)
-2. Place a Gateway on the Public Subnet
-3. Place a Function block on the Network Plate
-4. Place Storage and Database on the Private Subnet
-5. Connect Internet → Gateway → Function
-6. Connect Function → Storage and Function → Database
-7. Validate the architecture
+1. Set up network zones — add Public and Private Subnets
+2. Deploy serverless components — Gateway on public subnet, Function on Region Plate (`onPlateType: 'region'`), Database on private subnet
+3. Wire the API flow — Internet → Gateway → Function → Database
+4. Validate the architecture
 
-### 7.3 Event-Driven Pipeline (Advanced, ~20 min)
+### 7.3 Event-Driven Data Pipeline (Advanced, ~12 min)
+Starts with a pre-built Region Plate and Private Subnet.
 Steps:
-1. Create network infrastructure
-2. Place Event, Queue, and Timer blocks on the Network Plate
-3. Place two Function blocks (Event Processor, Batch Processor)
-4. Place Storage on the Private Subnet
-5. Wire Event → Function, Queue → Function, Timer → Function
-6. Connect Functions → Storage and Function → Queue (feedback loop)
-7. Validate the complete architecture
+1. Add Event and Queue blocks on the Region Plate — `block-exists` with `onPlateType: 'region'`
+2. Add two Function blocks on the Region Plate — `min-block-count: function ≥ 2`
+3. Add a second Event trigger on the Region Plate and a Storage block on the Private Subnet — uses `event` category (not `timer`; `timer` is not a valid `BlockCategory`)
+4. Connect Event → Function, Queue → Function, Function → Storage — `connection-exists` rules
+5. Final validation — `architecture-valid` + `min-block-count: function ≥ 2` + `min-plate-count: region ≥ 1`
 
 ---
 
