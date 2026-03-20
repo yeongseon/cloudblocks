@@ -1,6 +1,6 @@
 # CloudBlocks — API Specification
 
-> **Implementation Status (v0.6.0 / Phase 7)**
+> **Implementation Status (Phase 7+)**
 >
 > Authentication and GitHub OAuth session flow are implemented with cookie-based sessions.
 > Auth and GitHub integration are implemented; server-side generation, validation, and templates remain planned.
@@ -13,7 +13,7 @@ The CloudBlocks API is a **thin orchestration backend** built with Python FastAP
 
 **Design Principle**: The backend is a workflow orchestrator, not a CRUD service. Architecture data lives in GitHub repos.
 
-## Currently Implemented (v0.6.0)
+## Currently Implemented
 
 ```
 GET  /health                                    → Basic health check

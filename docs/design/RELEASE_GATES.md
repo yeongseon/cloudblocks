@@ -182,7 +182,7 @@ Gate 4 (security) and Gate 5 (documentation) are manual review steps in the PR p
 
 ## 7. Version-Specific Gates
 
-### Milestone 5 (Current)
+### Milestone 5 (Completed)
 
 - All 5 CI jobs pass
 - 1015+ frontend tests, 170+ backend tests
@@ -196,7 +196,7 @@ Gate 4 (security) and Gate 5 (documentation) are manual review steps in the PR p
 - Cookie-based session flow active (`cb_oauth` + `cb_session`)
 - Server-side session storage active in SQLite
 
-### Milestone 6 (Planned)
+### Milestone 6 (Completed)
 
 All Milestone 5 gates plus:
 
