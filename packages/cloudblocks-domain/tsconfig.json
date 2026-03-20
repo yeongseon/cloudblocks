@@ -17,6 +17,9 @@
     "noFallthroughCasesInSwitch": true,
     "composite": true
   },
+  "references": [
+    { "path": "../schema" }
+  ],
   "include": ["src"],
   "exclude": ["src/**/*.test.ts", "src/**/__tests__"]
 }
