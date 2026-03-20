@@ -202,7 +202,7 @@ describe('MenuBar', () => {
     expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Build' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'View' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'View' })).toBeInTheDocument();
+
 
     expect(screen.getByTitle('Undo (Ctrl+Z)')).toBeInTheDocument();
     expect(screen.getByTitle('Redo (Ctrl+Shift+Z)')).toBeInTheDocument();
@@ -690,5 +690,43 @@ describe('MenuBar', () => {
     await user.click(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ }));
 
     expect(toast.error).toHaveBeenCalledWith('pull failed');
+  });
+
+  it('submits AI prompt via AiPromptBar and calls generate', async () => {
+    const user = userEvent.setup();
+    const generateMock = vi.fn().mockResolvedValue(undefined);
+    const { useAiStore } = await import('../../features/ai/store');
+    useAiStore.setState({ generate: generateMock, generateLoading: false, generateError: null });
+    render(<MenuBar />);
+
+    const promptInput = screen.getByPlaceholderText(/describe your cloud architecture/i);
+    await user.type(promptInput, 'Create a 3-tier web app');
+    await user.click(screen.getByTitle('Generate Architecture'));
+
+    expect(generateMock).toHaveBeenCalledWith('Create a 3-tier web app', 'aws');
+  });
+
+  it('shows validation badge with Valid text when validationResult is valid', async () => {
+    const user = userEvent.setup();
+    useArchitectureStore.setState({
+      validationResult: { valid: true, errors: [], warnings: [] },
+    });
+    render(<MenuBar />);
+
+    const buildDropdown = await openMenu(user, 'Build');
+    const badge = within(buildDropdown).getByText('Valid');
+    expect(badge).toHaveClass('menu-badge-valid');
+  });
+
+  it('shows validation badge with Errors text when validationResult is invalid', async () => {
+    const user = userEvent.setup();
+    useArchitectureStore.setState({
+      validationResult: { valid: false, errors: [{ ruleId: 'test', message: 'err', severity: 'error', targetId: 'block-1' }], warnings: [] },
+    });
+    render(<MenuBar />);
+
+    const buildDropdown = await openMenu(user, 'Build');
+    const badge = within(buildDropdown).getByText('Errors');
+    expect(badge).toHaveClass('menu-badge-invalid');
   });
 });
