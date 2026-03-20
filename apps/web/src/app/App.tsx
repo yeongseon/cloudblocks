@@ -33,6 +33,7 @@ const DiffPanel = lazy(() => import('../widgets/diff-panel/DiffPanel').then(m =>
 
 function App() {
   const loadFromStorage = useArchitectureStore((s) => s.loadFromStorage);
+  const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
   const undo = useArchitectureStore((s) => s.undo);
   const redo = useArchitectureStore((s) => s.redo);
   const removeBlock = useArchitectureStore((s) => s.removeBlock);
@@ -71,6 +72,13 @@ function App() {
       // Don't intercept when typing in input/textarea
       const target = e.target as HTMLElement;
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return;
+      }
+
+      // Save: Ctrl+S / Cmd+S
+      if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        saveToStorage();
         return;
       }
 
@@ -124,7 +132,7 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo, selectedId, removeBlock, removePlate, removeConnection, setSelectedId, interactionState, cancelInteraction]);
+  }, [undo, redo, saveToStorage, selectedId, removeBlock, removePlate, removeConnection, setSelectedId, interactionState, cancelInteraction]);
 
   return (
     <div className="app">
