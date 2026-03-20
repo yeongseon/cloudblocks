@@ -1,8 +1,9 @@
-# Deploy frontend demo to GitHub Pages
+# Deploy frontend demo + documentation site to GitHub Pages
 #
-# Triggers on push to main (after CI passes) or manual dispatch.
-# Builds the Vite SPA and deploys to GitHub Pages using the modern
-# actions/deploy-pages approach (no gh-pages branch needed).
+# Triggers on push to main or manual dispatch.
+# Builds:
+#   1. Vite SPA → /cloudblocks/ (root)
+#   2. MkDocs Material docs → /cloudblocks/docs/ (subpath)
 #
 # Prerequisites:
 #   1. Enable GitHub Pages in repo Settings → Pages → Source: "GitHub Actions"
@@ -15,6 +16,8 @@ on:
     branches: [main]
     paths:
       - 'apps/web/**'
+      - 'docs/**'
+      - 'mkdocs.yml'
       - 'pnpm-lock.yaml'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
@@ -36,6 +39,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # ── SPA Build ──────────────────────────────────────────────
       - name: Install pnpm
         uses: pnpm/action-setup@v4
 
@@ -48,9 +52,26 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build
+      - name: Build SPA
         run: npx vite build --base /cloudblocks/
         working-directory: apps/web
+
+      # ── Docs Build ─────────────────────────────────────────────
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install MkDocs Material
+        run: pip install mkdocs-material
+
+      - name: Build docs
+        run: python -m mkdocs build --strict
+
+      # ── Merge & Upload ─────────────────────────────────────────
+      - name: Merge SPA and docs into single artifact
+        run: |
+          cp -r site/ apps/web/dist/docs/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
