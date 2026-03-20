@@ -570,7 +570,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
     'Maximum-complexity architecture using all block types. Internet traffic enters via Gateway ' +
     'to a Compute frontend and serverless API Function. Events, Queues, and Timers drive ' +
     'background processing Functions. Data flows to Database and Storage in the private subnet. ' +
-    'Tests all 8 block categories, both subnet types, and 11 connections.',
+    'Uses 8 of 10 block categories, both subnet types, and 11 connections.',
   category: 'serverless',
   difficulty: 'advanced',
   tags: [
