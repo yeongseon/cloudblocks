@@ -215,7 +215,7 @@ New block types:
 - FunctionBlock (Serverless compute)
 - QueueBlock (Messaging services)
 - EventBlock (Event triggers)
-- TimerBlock (Scheduled triggers)
+
 
 Example:
 
@@ -326,7 +326,7 @@ The sections below retain original Phase labels because they map to completed hi
 Goal:
 Create a DevOps Engineer Lego minifigure character as an inline SVG component with cloud provider branding.
 
-> **Reference**: [VISUAL_DESIGN_SPEC.md §11](../design/VISUAL_DESIGN_SPEC.md#11-lego-minifigure-character)
+> **Reference**: [CLOUDBLOCKS_SPEC_V2.md](../design/CLOUDBLOCKS_SPEC_V2.md)
 
 Features:
 
@@ -473,7 +473,7 @@ Features:
 - [x] Connect mode shows line from source to cursor/target
 - [x] All UI interactions are driven by explicit `InteractionState` transitions in `uiStore.ts` (`'idle' | 'selecting' | 'dragging' | 'placing' | 'connecting'`)
 
-> **Reference**: [BRICK_DESIGN_SPEC.md](../design/BRICK_DESIGN_SPEC.md) §10 UX State Machine
+> **Reference**: [CLOUDBLOCKS_SPEC_V2.md](../design/CLOUDBLOCKS_SPEC_V2.md)
 
 ---
 
@@ -487,7 +487,7 @@ Status: ✅ Delivered as part of Phase 9 — Visual Builder Evolution
 Features:
 
 - **Category Taxonomy Expansion** — Future expansion beyond current 8 categories to include Network, Compute, Data, Messaging, Security, and Edge
-- **Shape System** — Unique geometries: Tower (compute), Heavy Block (database/storage), Shield (gateway), Module (function/queue/event/timer)
+- **Shape System** — Unique geometries: Tower (compute), Heavy Block (database/storage), Shield (gateway), Module (function/queue/event)
 - **Height System** — Tiered side wall heights (low/mid/high) to indicate resource scale or tier
 - **Visual Tokens** — Formal extraction of radius, shadow, border, and surface design tokens
 
@@ -508,7 +508,7 @@ Features:
 
 Follow-up (outside delivered exit criteria): full design token extraction and expanded taxonomy mapping.
 
-> **Reference**: [BRICK_DESIGN_SPEC.md](../design/BRICK_DESIGN_SPEC.md) §3.7 Shape System, §6.9 Design Tokens
+> **Reference**: [CLOUDBLOCKS_SPEC_V2.md](../design/CLOUDBLOCKS_SPEC_V2.md)
 
 ---
 
@@ -541,7 +541,7 @@ Features:
 - [x] Provider logic is isolated behind provider-oriented typing and model boundaries
 - [x] Existing Azure-first workflows remain backward compatible
 
-> **Reference**: [BRICK_DESIGN_SPEC.md](../design/BRICK_DESIGN_SPEC.md) §6.7 Planned Multi-Cloud, §9.6 Planned Connection Types
+> **Reference**: [CLOUDBLOCKS_SPEC_V2.md](../design/CLOUDBLOCKS_SPEC_V2.md)
 
 ---
 
@@ -572,7 +572,7 @@ Features:
 - [ ] Full multi-provider brick palettes are implemented across all provider/resource combinations
 - [ ] Provider-specific metadata is fully handled end-to-end in IaC generation
 
-> **Reference**: [BRICK_DESIGN_SPEC.md](../design/BRICK_DESIGN_SPEC.md) §6.6 Provider Accent Palette
+> **Reference**: [CLOUDBLOCKS_SPEC_V2.md](../design/CLOUDBLOCKS_SPEC_V2.md)
 
 ---
 

@@ -28,7 +28,7 @@ Validated against:
 - `docs/concept/PRD.md`
 - `docs/concept/ROADMAP.md`
 - `docs/design/UI_IMPROVEMENT_GAP_ANALYSIS.md`
-- `docs/design/BRICK_DESIGN_SPEC.md`
+- `docs/design/CLOUDBLOCKS_SPEC_V2.md`
 - `docs/design/MODULE_BOUNDARIES.md`
 
 ### 2.1 Already in progress / partially delivered

@@ -28,7 +28,7 @@ Graph IR exists to:
 
 ## 3. Terminology
 
-- **Containment layer**: plates and placements (NetworkPlate/SubnetPlate containment).
+- **Containment layer**: plates and placements (plate containment hierarchy: global → edge/region → zone → subnet).
 - **Flow layer**: nodes/ports/edges representing directed communication or dependency flow.
 - **Protocol semantics**: `http | internal | data | async` (Phase 5), plus legacy `dataflow` (current model).
 - **Port**: a typed ingress/egress interface on a node. Edges connect ports.
@@ -83,7 +83,7 @@ export interface GraphIR {
 export interface GraphPlate {
   id: string; // same ID as Plate.id
   name: string;
-  type: 'network' | 'subnet';
+  type: 'global' | 'edge' | 'region' | 'zone' | 'subnet';
   subnetAccess?: 'public' | 'private';
   parentId: string | null;
   children: string[]; // IDs of child plates or blocks (mirrors current model)
@@ -133,7 +133,9 @@ export interface GraphNode {
           | 'function'
           | 'queue'
           | 'event'
-          | 'timer';
+          | 'analytics'
+          | 'identity'
+          | 'observability';
         provider?: 'azure' | 'aws' | 'gcp';
         name: string;
         properties: Record<string, unknown>; // derived from Block.metadata

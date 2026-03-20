@@ -6,7 +6,6 @@
 // ─── Layer Hierarchy (v2.0) ────────────────────────────────
 export type LayerType = 'global' | 'edge' | 'region' | 'zone' | 'subnet' | 'resource';
 
-export const LAYER_HIERARCHY: LayerType[] = ['global', 'edge', 'region', 'zone', 'subnet', 'resource'];
 
 export const VALID_PARENTS: Record<LayerType, LayerType[]> = {
   global: [],           // root level
