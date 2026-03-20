@@ -1,0 +1,9 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/schema" },
+    { "path": "packages/cloudblocks-domain" },
+    { "path": "apps/web/tsconfig.app.json" },
+    { "path": "apps/web/tsconfig.node.json" }
+  ]
+}
