@@ -12,7 +12,7 @@ This document defines the canonical validation rule contract for CloudBlocks. Al
 |--------|--------|
 | **Rule owner** | This document (`docs/design/VALIDATION_CONTRACT.md`) |
 | **Change process** | PR with updates to this doc + corresponding FE/BE code changes in the same PR |
-| **Versioning** | Semantic — bump `ruleSchemaVersion` when adding/removing/changing rules |
+| **Versioning** | Semantic — bump this document's Current version when adding/removing/changing rules |
 | **Current version** | `1.1.0` |
 
 ---
@@ -44,7 +44,9 @@ Placement rules validate that blocks are placed on appropriate plates.
 | `rule-db-private` | error | Database block not on a `subnet` plate with `subnetAccess: "private"` | Database block must be placed on a private Subnet Plate |
 | `rule-gw-public` | error | Gateway block not on a `subnet` plate with `subnetAccess: "public"` | Gateway block must be placed on a public Subnet Plate |
 | `rule-storage-subnet` | error | Storage block not on a `subnet` plate | Storage block must be placed on a Subnet Plate |
-| `rule-serverless-network` | error | `function`, `queue`, `event`, or `timer` block not on a `network` plate | Serverless blocks (function/queue/event/timer) must be placed on a Network Plate |
+| `rule-serverless-network` | error | `function`, `queue`, or `event` block not on a `region` plate | Serverless blocks (function/queue/event) must be placed on a Region Plate |
+
+> **Note on timer-like triggers**: The current model does not define a separate `timer` block category. Timer-based behavior is represented as a subtype/configuration of existing `event` blocks (for example, a timer-triggered event), and such blocks are validated by `rule-serverless-network` like other `event` blocks.
 
 ### Implementation References
 
@@ -73,10 +75,9 @@ Connection rules validate dataflow between blocks. Connections follow **initiato
 | `compute` | `database`, `storage` |
 | `function` | `storage`, `database`, `queue` |
 | `queue` | `function` |
-| `timer` | `function` |
 | `event` | `function` |
 
-`database` and `storage` are receiver-only. `queue`, `timer`, and `event` can only connect to `function`.
+`database` and `storage` are receiver-only. `queue` and `event` can only connect to `function`.
 
 ### Implementation References
 
@@ -107,7 +108,6 @@ Application placement rules validate that applications (software components) are
 | `queue` | ❌ No | 0 | Managed messaging service |
 | `storage` | ❌ No | 0 | Managed object store |
 | `database` | ❌ No | 0 | Managed database service |
-| `timer` | ❌ No | 0 | Trigger only, no runtime |
 | `event` | ❌ No | 0 | Router only, no runtime |
 
 ### Self-hosted vs Managed Pattern
@@ -140,7 +140,11 @@ interface ValidationResult {
 
 ### Implementation References
 
-- **Frontend**: `apps/web/src/entities/validation/engine.ts`
+- **Frontend**:
+  - Orchestrator: `apps/web/src/entities/validation/engine.ts`
+  - Rules: `placement.ts`, `connection.ts`, `aggregation.ts`, `role.ts`, `providerValidation.ts`
+  - v2.0 layer rules: defined in `placement.ts` (not yet wired into engine.ts)
+- **Backend**: Not yet implemented (planned for Milestone 6 server-side validation)
 
 ---
 
@@ -164,7 +168,7 @@ When backend validation is introduced:
 
 ```json
 {
-  "ruleSchemaVersion": "1.1.0",
+  "contractVersion": "1.1.0",
   "cases": [
     {
       "name": "database-on-public-subnet",
@@ -182,6 +186,6 @@ When backend validation is introduced:
 
 ## 8. Migration Notes
 
-- Serverless block categories (`FunctionBlock`, `QueueBlock`, `EventBlock`, `TimerBlock`) are implemented and reflected in the placement rules above.
+- Serverless block categories (`FunctionBlock`, `QueueBlock`, `EventBlock`) are implemented and reflected in the placement rules above. `TimerBlock` is planned but not yet supported in the TypeScript domain model (`BlockCategory`) or placement rules.
 - When adding new connection types (e.g., `EventFlow`), update the allowed connection map here first.
-- Breaking rule changes (removing a rule, changing severity) require a `ruleSchemaVersion` bump.
+- Breaking rule changes (removing a rule, changing severity) require a version bump to this document's Current version field.
