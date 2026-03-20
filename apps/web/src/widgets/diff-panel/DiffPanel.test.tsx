@@ -368,6 +368,27 @@ describe('DiffPanel', () => {
     expect(screen.queryByText('jsonUndefined')).not.toBeInTheDocument();
   });
 
+  it('resets local collapsed and expanded state when diffDelta changes', async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<DiffPanel />);
+
+    const platesSectionToggle = screen.getByRole('button', { name: /Plates/ });
+    await user.click(platesSectionToggle);
+    expect(platesSectionToggle).toHaveAttribute('aria-expanded', 'false');
+
+    const modifiedToggle = screen.getByRole('button', { name: /App Service \(block-modified-1\) \(1 changes\)/ });
+    await user.click(modifiedToggle);
+    expect(modifiedToggle).toHaveAttribute('aria-expanded', 'true');
+
+    useUIStore.setState({ diffDelta: makeDiffDelta() });
+    rerender(<DiffPanel />);
+
+    const resetPlatesToggle = screen.getByRole('button', { name: /Plates/ });
+    const resetModifiedToggle = screen.getByRole('button', { name: /App Service \(block-modified-1\) \(1 changes\)/ });
+    expect(resetPlatesToggle).toHaveAttribute('aria-expanded', 'true');
+    expect(resetModifiedToggle).toHaveAttribute('aria-expanded', 'false');
+  });
+
   it('shows section-level empty message when a section has zero changes', () => {
     const delta = makeDiffDelta();
     delta.plates.added = [];

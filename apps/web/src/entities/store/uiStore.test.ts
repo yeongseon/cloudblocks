@@ -753,6 +753,35 @@ describe('useUIStore', () => {
       expect(state.diffDelta).toBe(null);
       expect(state.diffBaseArchitecture).toBe(null);
     });
+
+    it('clearDiffState should clear mode, delta, and base architecture', () => {
+      const mockDelta = {
+        plates: { added: [], removed: [], modified: [] },
+        blocks: { added: [], removed: [], modified: [] },
+        connections: { added: [], removed: [], modified: [] },
+        externalActors: { added: [], removed: [], modified: [] },
+        summary: { totalChanges: 0, hasBreakingChanges: false },
+      };
+      const mockBase = {
+        id: 'base-arch',
+        name: 'Base',
+        version: '1.0',
+        plates: [],
+        blocks: [],
+        connections: [],
+        externalActors: [],
+        createdAt: '2026-01-01',
+        updatedAt: '2026-01-01',
+      };
+
+      useUIStore.getState().setDiffMode(true, mockDelta, mockBase);
+      useUIStore.getState().clearDiffState();
+
+      const state = useUIStore.getState();
+      expect(state.diffMode).toBe(false);
+      expect(state.diffDelta).toBe(null);
+      expect(state.diffBaseArchitecture).toBe(null);
+    });
   });
 
   describe('State isolation', () => {

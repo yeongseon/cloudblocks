@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useUIStore } from '../../entities/store/uiStore';
 import type { DiffDelta } from '../../shared/types/diff';
 import './DiffPanel.css';
@@ -11,6 +11,13 @@ const SECTION_CONFIG: Array<{ key: SectionKey; label: string }> = [
   { key: 'connections', label: 'Connections' },
   { key: 'externalActors', label: 'External Actors' },
 ];
+
+const DEFAULT_COLLAPSED_SECTIONS: Record<SectionKey, boolean> = {
+  plates: false,
+  blocks: false,
+  connections: false,
+  externalActors: false,
+};
 
 function formatValue(value: unknown): string {
   if (typeof value === 'string') return value;
@@ -44,13 +51,13 @@ function getEntityLabel(entity: { id: string }): string {
 export function DiffPanel() {
   const diffMode = useUIStore((s) => s.diffMode);
   const diffDelta = useUIStore((s) => s.diffDelta);
-  const [collapsedSections, setCollapsedSections] = useState<Record<SectionKey, boolean>>({
-    plates: false,
-    blocks: false,
-    connections: false,
-    externalActors: false,
-  });
+  const [collapsedSections, setCollapsedSections] = useState<Record<SectionKey, boolean>>(DEFAULT_COLLAPSED_SECTIONS);
   const [expandedModified, setExpandedModified] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    setCollapsedSections(DEFAULT_COLLAPSED_SECTIONS);
+    setExpandedModified({});
+  }, [diffDelta]);
 
   const summaryCounts = useMemo(() => {
     if (!diffDelta) return { added: 0, modified: 0, removed: 0 };

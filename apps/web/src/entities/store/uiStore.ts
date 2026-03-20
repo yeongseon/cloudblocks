@@ -87,6 +87,7 @@ interface UIState {
     delta?: DiffDelta | null,
     base?: ArchitectureModel | null,
   ) => void;
+  clearDiffState: () => void;
 
   // ── Build Order panel ──
   isBuildOrderOpen: boolean;
@@ -277,6 +278,12 @@ export const useUIStore = create<UIState>((set) => ({
       diffMode: mode,
       diffDelta: delta ?? null,
       diffBaseArchitecture: base ?? null,
+    }),
+  clearDiffState: () =>
+    set({
+      diffMode: false,
+      diffDelta: null,
+      diffBaseArchitecture: null,
     }),
 
   isBuildOrderOpen: true,
