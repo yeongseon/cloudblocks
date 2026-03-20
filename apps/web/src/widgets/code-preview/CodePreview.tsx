@@ -39,6 +39,7 @@ export function CodePreview() {
   const [compareProviders, setCompareProviders] = useState(false);
   const [output, setOutput] = useState<GeneratedOutput | null>(null);
   const [comparisonOutputs, setComparisonOutputs] = useState<Record<ProviderType, GeneratedOutput> | null>(null);
+  const [comparisonErrors, setComparisonErrors] = useState<Partial<Record<ProviderType, string>> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const selectedGenerator = generatorOptions.find((g) => g.id === generator);
   const supportedProviders = selectedGenerator?.supportedProviders ?? [];
@@ -52,6 +53,7 @@ export function CodePreview() {
     setError(null);
     setOutput(null);
     setComparisonOutputs(null);
+    setComparisonErrors(null);
     setActiveTab(0);
   }
 
@@ -61,6 +63,7 @@ export function CodePreview() {
     setError(null);
     setOutput(null);
     setComparisonOutputs(null);
+    setComparisonErrors(null);
     setActiveTab(0);
   };
 
@@ -78,6 +81,7 @@ export function CodePreview() {
     setError(null);
     setOutput(null);
     setComparisonOutputs(null);
+    setComparisonErrors(null);
 
     try {
       const baseOptions = {
@@ -89,14 +93,33 @@ export function CodePreview() {
 
       if (effectiveCompare) {
 
-        const generated = Object.fromEntries(
-          PROVIDERS.map((provider) => {
-            const options: GenerationOptions = { ...baseOptions, provider };
-            return [provider, generateCode(architecture, options)];
-          }),
-        ) as Record<ProviderType, GeneratedOutput>;
+        const generated: Partial<Record<ProviderType, GeneratedOutput>> = {};
+        const errors: Partial<Record<ProviderType, string>> = {};
 
-        setComparisonOutputs(generated);
+        for (const provider of PROVIDERS) {
+          const options: GenerationOptions = { ...baseOptions, provider };
+          try {
+            generated[provider] = generateCode(architecture, options);
+          } catch (providerError) {
+            if (providerError instanceof GenerationError) {
+              errors[provider] = providerError.message;
+            } else {
+              errors[provider] = 'Unexpected error during code generation.';
+            }
+          }
+        }
+
+        if (Object.keys(generated).length === 0) {
+          setComparisonErrors(errors);
+          setError('All provider generations failed.');
+          return;
+        }
+
+        setComparisonOutputs(generated as Record<ProviderType, GeneratedOutput>);
+        setComparisonErrors(Object.keys(errors).length > 0 ? errors : null);
+        if (Object.keys(errors).length > 0) {
+          setError('Some providers failed. Showing partial comparison results.');
+        }
       } else {
         const options: GenerationOptions = {
           ...baseOptions,
@@ -125,6 +148,7 @@ export function CodePreview() {
     } else if (comparisonOutputs) {
       const texts = PROVIDERS.map((provider) => {
         const providerOutput = comparisonOutputs[provider];
+        if (!providerOutput) return '';
         const file = providerOutput.files[clampedTab] ?? providerOutput.files[0];
         return file ? `// --- ${provider.toUpperCase()} ---\n${file.content}` : '';
       }).filter(Boolean).join('\n\n');
@@ -151,7 +175,9 @@ export function CodePreview() {
       }
     } else if (comparisonOutputs) {
       for (const provider of PROVIDERS) {
-        for (const file of comparisonOutputs[provider].files) {
+        const providerFiles = comparisonOutputs[provider]?.files;
+        if (!providerFiles) continue;
+        for (const file of providerFiles) {
           downloadFile(file.content, `${provider}-${file.path}`);
         }
       }
@@ -299,6 +325,22 @@ export function CodePreview() {
           <div className="code-preview-compare-grid">
           {PROVIDERS.map((provider) => {
             const providerOutput = comparisonOutputs[provider];
+            const providerError = comparisonErrors?.[provider];
+
+            if (!providerOutput) {
+              return (
+                <section key={provider} className="code-preview-compare-card">
+                  <header className="code-preview-compare-header">
+                    <strong>{provider.toUpperCase()}</strong>
+                    <span>Error</span>
+                  </header>
+                  <pre className="code-preview-code code-preview-code-compare">
+                    <code>{providerError ?? 'Generation failed.'}</code>
+                  </pre>
+                </section>
+              );
+            }
+
             const activeFile = providerOutput.files[clampedTab] ?? providerOutput.files[0];
 
             return (

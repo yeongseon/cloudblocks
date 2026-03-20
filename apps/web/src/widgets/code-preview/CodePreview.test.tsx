@@ -566,4 +566,135 @@ describe('CodePreview', () => {
     vi.restoreAllMocks();
   });
 
+  it('shows partial comparison results when some providers fail', async () => {
+    const user = userEvent.setup();
+    let callCount = 0;
+    vi.mocked(generateCode).mockImplementation((_, options) => {
+      callCount += 1;
+      if (options.provider === 'gcp') {
+        throw new GenerationError('GCP not supported');
+      }
+      return {
+        files: [{ path: 'main.tf', content: `provider=${options.provider}`, language: 'hcl' as const }],
+        metadata: {
+          generator: 'terraform',
+          version: '0.3.0',
+          provider: options.provider,
+          generatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      };
+    });
+
+    render(<CodePreview />);
+
+    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByText('🚀 Compare Providers'));
+
+    expect(callCount).toBe(3);
+    expect(screen.getByText('provider=azure')).toBeInTheDocument();
+    expect(screen.getByText('provider=aws')).toBeInTheDocument();
+    expect(screen.getByText('GCP not supported')).toBeInTheDocument();
+    expect(screen.getByText('Some providers failed. Showing partial comparison results.')).toBeInTheDocument();
+  });
+
+  it('shows error when all providers fail in comparison mode', async () => {
+    const user = userEvent.setup();
+    vi.mocked(generateCode).mockImplementation(() => {
+      throw new GenerationError('Provider generation failed');
+    });
+
+    render(<CodePreview />);
+
+    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByText('🚀 Compare Providers'));
+
+    expect(screen.getByText('All provider generations failed.')).toBeInTheDocument();
+  });
+
+  it('shows unexpected error message for non-GenerationError in comparison mode', async () => {
+    const user = userEvent.setup();
+    let callCount = 0;
+    vi.mocked(generateCode).mockImplementation((_, options) => {
+      callCount += 1;
+      if (options.provider === 'aws') {
+        throw new Error('unexpected');
+      }
+      return {
+        files: [{ path: 'main.tf', content: `provider=${options.provider}`, language: 'hcl' as const }],
+        metadata: {
+          generator: 'terraform',
+          version: '0.3.0',
+          provider: options.provider,
+          generatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      };
+    });
+
+    render(<CodePreview />);
+
+    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByText('🚀 Compare Providers'));
+
+    expect(callCount).toBe(3);
+    expect(screen.getByText('Unexpected error during code generation.')).toBeInTheDocument();
+  });
+
+  it('copy and download no-op gracefully when no output exists', () => {
+    const writeTextMock = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: writeTextMock },
+      writable: true,
+      configurable: true,
+    });
+
+    render(<CodePreview />);
+
+    expect(screen.queryByText(/Copy/)).not.toBeInTheDocument();
+    expect(writeTextMock).not.toHaveBeenCalled();
+  });
+
+  it('resets region when provider changes', () => {
+    const { rerender } = render(<CodePreview />);
+
+    expect(screen.getByDisplayValue('eastus')).toBeInTheDocument();
+
+    useUIStore.setState({ activeProvider: 'aws' });
+    rerender(<CodePreview />);
+
+    expect(screen.getByDisplayValue('us-east-1')).toBeInTheDocument();
+  });
+
+  it('clears output and errors when generator changes', async () => {
+    const user = userEvent.setup();
+    vi.mocked(generateCode).mockReturnValue({
+      files: [{ path: 'main.tf', content: 'content', language: 'hcl' as const }],
+      metadata: { generator: 'terraform', version: '0.3.0', provider: 'azure' as const, generatedAt: '2026-01-01T00:00:00.000Z' },
+    });
+
+    render(<CodePreview />);
+    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
+    expect(screen.getByText('main.tf')).toBeInTheDocument();
+
+    const select = screen.getByRole('combobox');
+    await user.selectOptions(select, 'bicep');
+
+    expect(screen.queryByText('main.tf')).not.toBeInTheDocument();
+  });
+
+  it('clears output and errors when compare mode toggles', async () => {
+    const user = userEvent.setup();
+    vi.mocked(generateCode).mockReturnValue({
+      files: [{ path: 'main.tf', content: 'content', language: 'hcl' as const }],
+      metadata: { generator: 'terraform', version: '0.3.0', provider: 'azure' as const, generatedAt: '2026-01-01T00:00:00.000Z' },
+    });
+
+    render(<CodePreview />);
+    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
+    expect(screen.getByText('main.tf')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('checkbox'));
+
+    expect(screen.queryByText('main.tf')).not.toBeInTheDocument();
+  });
+
 });

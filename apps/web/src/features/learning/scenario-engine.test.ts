@@ -12,6 +12,7 @@ import {
   getCurrentStepRules,
   getValidationDetails,
 } from './scenario-engine';
+import * as hintEngine from './hint-engine';
 import { registerBuiltinScenarios } from './scenarios/builtin';
 import { clearScenarioRegistry, getScenario } from './scenarios/registry';
 import type { ArchitectureSnapshot } from '../../shared/types/learning';
@@ -495,6 +496,73 @@ describe('scenario-engine', () => {
       });
 
       expect(useLearningStore.getState().isCurrentStepComplete).toBe(true);
+    });
+  });
+
+  describe('hint engine wiring', () => {
+    let startHintSubSpy: ReturnType<typeof vi.spyOn>;
+    let stopHintSubSpy: ReturnType<typeof vi.spyOn>;
+    let startHintTimerSpy: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      startHintSubSpy = vi.spyOn(hintEngine, 'startHintSubscription');
+      stopHintSubSpy = vi.spyOn(hintEngine, 'stopHintSubscription');
+      startHintTimerSpy = vi.spyOn(hintEngine, 'startHintTimer');
+    });
+
+    afterEach(() => {
+      startHintSubSpy.mockRestore();
+      stopHintSubSpy.mockRestore();
+      startHintTimerSpy.mockRestore();
+    });
+
+    it('startLearningScenario calls startHintSubscription and startHintTimer', () => {
+      startLearningScenario('scenario-three-tier');
+
+      expect(startHintSubSpy).toHaveBeenCalledOnce();
+      expect(startHintTimerSpy).toHaveBeenCalledOnce();
+    });
+
+    it('advanceToNextStep calls startHintTimer on non-last step', () => {
+      startLearningScenario('scenario-three-tier');
+      startHintTimerSpy.mockClear();
+
+      completeCurrentStepAndAdvance();
+
+      expect(startHintTimerSpy).toHaveBeenCalledOnce();
+    });
+
+    it('advanceToNextStep calls stopHintSubscription on last step', () => {
+      startLearningScenario('scenario-three-tier');
+      stopHintSubSpy.mockClear();
+
+      const scenario = useLearningStore.getState().activeScenario;
+      for (let i = 0; i < (scenario?.steps.length ?? 1) - 1; i += 1) {
+        completeCurrentStepAndAdvance();
+      }
+      stopHintSubSpy.mockClear();
+
+      completeCurrentStepAndAdvance();
+
+      expect(stopHintSubSpy).toHaveBeenCalledOnce();
+    });
+
+    it('resetCurrentStep calls startHintTimer', () => {
+      startLearningScenario('scenario-three-tier');
+      startHintTimerSpy.mockClear();
+
+      resetCurrentStep();
+
+      expect(startHintTimerSpy).toHaveBeenCalledOnce();
+    });
+
+    it('abandonLearning calls stopHintSubscription', () => {
+      startLearningScenario('scenario-three-tier');
+      stopHintSubSpy.mockClear();
+
+      abandonLearning();
+
+      expect(stopHintSubSpy).toHaveBeenCalledOnce();
     });
   });
 });
