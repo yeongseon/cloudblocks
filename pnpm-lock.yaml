@@ -92,13 +92,7 @@ importers:
 
   packages/cloudblocks-domain: {}
 
-  packages/cloudblocks-ui: {}
-
-  packages/scenario-library: {}
-
   packages/schema: {}
-
-  packages/terraform-templates: {}
 
 packages:
 
