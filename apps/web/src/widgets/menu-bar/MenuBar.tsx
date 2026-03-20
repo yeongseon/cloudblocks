@@ -120,8 +120,12 @@ export function MenuBar() {
   };
 
   const handleSave = () => {
-    saveToStorage();
-    toast.success('Workspace saved!');
+    const success = saveToStorage();
+    if (success) {
+      toast.success('Workspace saved!');
+    } else {
+      toast.error('Failed to save workspace. Storage may be full.');
+    }
   };
 
   const handleLoad = () => {
@@ -150,7 +154,12 @@ export function MenuBar() {
     reader.onload = (ev) => {
       const text = ev.target?.result;
       if (typeof text === 'string') {
-        importArchitecture(text);
+        const error = importArchitecture(text);
+        if (error) {
+          toast.error(`Import failed: ${error}`);
+        } else {
+          toast.success('Architecture imported successfully!');
+        }
       }
     };
     reader.readAsText(file);
