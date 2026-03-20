@@ -105,9 +105,9 @@ describe('pipeline', () => {
       expect(result.metadata.generator).toBe('cloudblocks');
     });
 
-    it('should set metadata.version to "0.6.0"', () => {
+    it('should set metadata.version to "1.0.0"', () => {
       const result = generateTerraform(validModel, validOptions);
-      expect(result.metadata.version).toBe('0.6.0');
+      expect(result.metadata.version).toBe('1.0.0');
     });
 
     it('should set metadata.provider from options', () => {
@@ -390,6 +390,49 @@ describe('pipeline', () => {
       const result = generateCode(validModel, validOptions);
 
       expect(result.files.map((file) => file.path)).toEqual(['main.tf', 'variables.tf', 'outputs.tf']);
+    });
+
+    it('still validates Azure regions against Azure allowlist', () => {
+      expect(() =>
+        generateCode(validModel, {
+          ...validOptions,
+          provider: 'azure',
+          region: 'not-an-azure-region',
+          generator: 'terraform',
+        })
+      ).toThrow(/Invalid Azure region/);
+    });
+
+    it('allows AWS region values outside Azure allowlist when generator is terraform', () => {
+      const result = generateCode(validModel, {
+        ...validOptions,
+        provider: 'aws',
+        region: 'moon-base-1',
+        generator: 'terraform',
+      });
+
+      expect(result.metadata.provider).toBe('aws');
+    });
+
+    it('allows GCP region values outside Azure allowlist when generator is terraform', () => {
+      const result = generateCode(validModel, {
+        ...validOptions,
+        provider: 'gcp',
+        region: 'custom-gcp-region-1',
+        generator: 'terraform',
+      });
+
+      expect(result.metadata.provider).toBe('gcp');
+    });
+
+    it('throws GenerationError when provider is not supported by selected generator', () => {
+      expect(() =>
+        generateCode(validModel, {
+          ...validOptions,
+          provider: 'aws',
+          generator: 'bicep',
+        })
+      ).toThrow(/does not support provider/);
     });
   });
 

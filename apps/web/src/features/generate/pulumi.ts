@@ -6,7 +6,11 @@ import type {
   ProviderDefinition,
   ResourceMapping,
 } from './types';
-import { resolveBlockMapping, sanitizeIaCValue } from './types';
+import {
+  GENERATOR_METADATA_VERSION,
+  resolveBlockMapping,
+  sanitizeIaCValue,
+} from './types';
 
 /**
  * Pulumi Generator (v1.0)
@@ -357,7 +361,7 @@ export const pulumiPlugin: GeneratorPlugin = {
       ],
       metadata: {
         generator: 'pulumi',
-        version: '1.0.0',
+        version: GENERATOR_METADATA_VERSION,
         provider: ctx.options.provider,
         generatedAt: new Date().toISOString(),
       },

@@ -1,18 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { generateCode, GenerationError } from '../../features/generate/pipeline';
-import type { GeneratedOutput, GenerationOptions, GeneratorId } from '../../features/generate/types';
+import {
+  DEFAULT_REGION_BY_PROVIDER,
+  type GeneratedOutput,
+  type GenerationOptions,
+  type GeneratorId,
+} from '../../features/generate/types';
+import { listGenerators } from '../../features/generate/registry';
 import type { ProviderType } from '@cloudblocks/schema';
 import './CodePreview.css';
 
 const PROVIDERS: ProviderType[] = ['azure', 'aws', 'gcp'];
-
-const GENERATORS: { id: GeneratorId; label: string }[] = [
-  { id: 'terraform', label: 'Terraform (HCL)' },
-  { id: 'bicep', label: 'Bicep (Azure)' },
-  { id: 'pulumi', label: 'Pulumi (TypeScript)' },
-];
 
 export function CodePreview() {
   const toggleCodePreview = useUIStore((s) => s.toggleCodePreview);
@@ -24,14 +24,60 @@ export function CodePreview() {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '') || 'myproject';
 
+  const generatorOptions = listGenerators().map((generatorPlugin) => ({
+    id: generatorPlugin.id,
+    label: generatorPlugin.displayName,
+    supportedProviders: generatorPlugin.supportedProviders,
+  }));
   const [activeTab, setActiveTab] = useState(0);
   const [projectName, setProjectName] = useState(sanitizedName);
-  const [region, setRegion] = useState('eastus');
-  const [generator, setGenerator] = useState<GeneratorId>('terraform');
+  const [region, setRegion] = useState(DEFAULT_REGION_BY_PROVIDER[activeProvider]);
+  const [generator, setGenerator] = useState<GeneratorId>(
+    generatorOptions[0]?.id ?? 'terraform'
+  );
   const [compareProviders, setCompareProviders] = useState(false);
   const [output, setOutput] = useState<GeneratedOutput | null>(null);
   const [comparisonOutputs, setComparisonOutputs] = useState<Record<ProviderType, GeneratedOutput> | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const prevProviderRef = useRef(activeProvider);
+  const prevGeneratorRef = useRef(generator);
+  const prevCompareRef = useRef(compareProviders);
+  const selectedGenerator = generatorOptions.find((g) => g.id === generator);
+  const supportedProviders = selectedGenerator?.supportedProviders ?? [];
+  const canCompareProviders = PROVIDERS.every((provider) =>
+    supportedProviders.includes(provider)
+  );
+
+  const clearGeneratedState = () => {
+    setError(null);
+    setOutput(null);
+    setComparisonOutputs(null);
+    setActiveTab(0);
+  };
+
+  useEffect(() => {
+    if (prevProviderRef.current === activeProvider) return;
+    prevProviderRef.current = activeProvider;
+    setRegion(DEFAULT_REGION_BY_PROVIDER[activeProvider]);
+    clearGeneratedState();
+  }, [activeProvider]);
+
+  useEffect(() => {
+    if (prevGeneratorRef.current === generator) return;
+    prevGeneratorRef.current = generator;
+    clearGeneratedState();
+  }, [generator]);
+
+  useEffect(() => {
+    if (prevCompareRef.current === compareProviders) return;
+    prevCompareRef.current = compareProviders;
+    clearGeneratedState();
+  }, [compareProviders]);
+
+  useEffect(() => {
+    if (canCompareProviders) return;
+    setCompareProviders(false);
+  }, [canCompareProviders]);
 
   const handleGenerate = () => {
     setError(null);
@@ -47,8 +93,8 @@ export function CodePreview() {
       } as const;
 
       if (compareProviders) {
-        if (generator !== 'terraform') {
-          setError('Provider comparison is currently available for Terraform only.');
+        if (!canCompareProviders) {
+          setError('Provider comparison is not supported by the selected generator.');
           return;
         }
 
@@ -119,7 +165,26 @@ export function CodePreview() {
     }
   };
 
-  const selectedGenerator = GENERATORS.find((g) => g.id === generator);
+  useEffect(() => {
+    const visibleFiles = output
+      ? output.files
+      : (() => {
+          if (!comparisonOutputs) return [];
+          const firstProvider = PROVIDERS.find((provider) => comparisonOutputs[provider]?.files.length > 0);
+          return firstProvider ? comparisonOutputs[firstProvider].files : [];
+        })();
+
+    if (visibleFiles.length === 0) {
+      if (activeTab !== 0) {
+        setActiveTab(0);
+      }
+      return;
+    }
+
+    if (activeTab >= visibleFiles.length) {
+      setActiveTab(0);
+    }
+  }, [activeTab, comparisonOutputs, output]);
 
   return (
     <div className="code-preview">
@@ -138,7 +203,7 @@ export function CodePreview() {
             value={generator}
             onChange={(e) => setGenerator(e.target.value as GeneratorId)}
           >
-            {GENERATORS.map((g) => (
+            {generatorOptions.map((g) => (
               <option key={g.id} value={g.id}>{g.label}</option>
             ))}
           </select>
@@ -167,6 +232,7 @@ export function CodePreview() {
             <input
               type="checkbox"
               checked={compareProviders}
+              disabled={!canCompareProviders}
               onChange={(e) => setCompareProviders(e.target.checked)}
             />
             Azure / AWS / GCP

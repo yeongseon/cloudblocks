@@ -4,10 +4,11 @@ import type {
   GenerationOptions,
   GeneratorId,
   GeneratorPipeline,
+  ProviderName,
 } from './types';
-import { isValidAzureRegion } from './types';
+import { GENERATOR_METADATA_VERSION, isValidAzureRegion } from './types';
 import { getProvider, getProviderDefinition } from './provider';
-import { getGenerator, registerGenerator } from './registry';
+import { getGenerator, listGeneratorIds, registerGenerator } from './registry';
 import { terraformPlugin } from './terraformPlugin';
 import { bicepPlugin } from './bicep';
 import { pulumiPlugin } from './pulumi';
@@ -40,6 +41,32 @@ export class GenerationError extends Error {
   }
 }
 
+function validateRegion(options: GenerationOptions): void {
+  if (options.provider !== 'azure') {
+    return;
+  }
+
+  if (!isValidAzureRegion(options.region)) {
+    throw new GenerationError(
+      `Invalid Azure region: "${options.region}". Use a valid region like "eastus", "westeurope", etc.`
+    );
+  }
+}
+
+function assertProviderSupportedByGenerator(
+  generatorId: GeneratorId,
+  provider: ProviderName,
+  supportedProviders: readonly ProviderName[]
+): void {
+  if (supportedProviders.includes(provider)) {
+    return;
+  }
+
+  throw new GenerationError(
+    `Generator "${generatorId}" does not support provider "${provider}". Supported providers: ${supportedProviders.join(', ')}`
+  );
+}
+
 /**
  * Generate code using the specified generator plugin.
  * Defaults to 'terraform' for backward compatibility.
@@ -63,17 +90,14 @@ export function generateCode(
   }
 
   // Stage 1.5: Validate generation options
-  if (!isValidAzureRegion(options.region)) {
-    throw new GenerationError(
-      `Invalid Azure region: "${options.region}". Use a valid region like "eastus", "westeurope", etc.`
-    );
-  }
+  validateRegion(options);
 
   // Stage 2: Resolve generator plugin
   const plugin = getGenerator(generatorId);
   if (!plugin) {
+    const availableGenerators = listGeneratorIds();
     throw new GenerationError(
-      `Unknown generator: "${generatorId}". Available: terraform, bicep, pulumi`
+      `Unknown generator: "${generatorId}". Available: ${availableGenerators.join(', ')}`
     );
   }
 
@@ -84,6 +108,12 @@ export function generateCode(
       `Unknown provider: "${options.provider}". Available: azure, aws, gcp`
     );
   }
+
+  assertProviderSupportedByGenerator(
+    plugin.id,
+    options.provider,
+    plugin.supportedProviders
+  );
 
   // Stage 4: Optional generator-level validation
   if (plugin.validate) {
@@ -136,11 +166,7 @@ function legacyGenerate(
   }
 
   // Stage 1.5: Validate generation options
-  if (!isValidAzureRegion(options.region)) {
-    throw new GenerationError(
-      `Invalid Azure region: "${options.region}". Use a valid region like "eastus", "westeurope", etc.`
-    );
-  }
+  validateRegion(options);
 
   // Stage 2: Resolve provider adapter (legacy)
   const provider = getProvider(options.provider);
@@ -167,12 +193,12 @@ function legacyGenerate(
 
   return {
     files,
-    metadata: {
-      generator: 'cloudblocks',
-      version: '0.6.0',
-      provider: options.provider,
-      generatedAt: new Date().toISOString(),
-    },
+      metadata: {
+        generator: 'cloudblocks',
+        version: GENERATOR_METADATA_VERSION,
+        provider: options.provider,
+        generatedAt: new Date().toISOString(),
+      },
   };
 }
 

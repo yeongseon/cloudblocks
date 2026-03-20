@@ -1,4 +1,5 @@
 import type { GeneratorPlugin } from './types';
+import { GENERATOR_METADATA_VERSION } from './types';
 import { normalize, generateMainTf, generateVariablesTf, generateOutputsTf } from './terraform';
 
 /**
@@ -10,7 +11,7 @@ import { normalize, generateMainTf, generateVariablesTf, generateOutputsTf } fro
 export const terraformPlugin: GeneratorPlugin = {
   id: 'terraform',
   displayName: 'Terraform (HCL)',
-  supportedProviders: ['azure'],
+  supportedProviders: ['azure', 'aws', 'gcp'],
 
   filePlan: () => [
     { path: 'main.tf', language: 'hcl' },
@@ -55,7 +56,7 @@ export const terraformPlugin: GeneratorPlugin = {
       ],
       metadata: {
         generator: 'terraform',
-        version: '1.0.0',
+        version: GENERATOR_METADATA_VERSION,
         provider: ctx.options.provider,
         generatedAt: new Date().toISOString(),
       },
