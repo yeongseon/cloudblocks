@@ -953,7 +953,7 @@ Scope:
 ## Milestone 18 — DevOps UX
 
 Goal:
-Add operational control capabilities to CloudBlocks. Introduce an Ops Control Center, standardize deployment terminology, build environment promotion/rollback UX, and add a notification system.
+Add operational control capabilities to CloudBlocks. Introduce an Ops Control Center, standardize deployment terminology, build environment promotion/rollback UX, add a notification system, and replace SVG connection lines with brick-style connector pieces.
 
 > **Reference**: [M18_DEVOPS_UX.md](M18_DEVOPS_UX.md)
 
@@ -963,11 +963,12 @@ Key Objectives:
 - Deploy terminology standardization: canonical definitions for deploy/promote/rollback/release
 - Promote/rollback UX: visual flows with pre-checks, version selection, diff preview
 - Notification system: in-app notification center, toast alerts, deployment event history
+- Brick-style connection rendering: replace thin SVG bezier lines with Lego connector pieces matching the brick visual language
 
 Scope:
 
-- 4 Epics: Ops Control Center (Area A), Deploy Terminology (Area B), Promote/Rollback UX (Area C), Notification System (Area D)
-- Estimated effort: 6-8 weeks
+- 5 Epics: Ops Control Center (Area A), Deploy Terminology (Area B), Promote/Rollback UX (Area C), Notification System (Area D), Brick-Style Connections (Area E)
+- Estimated effort: 8–10 weeks
 
 ### Exit Criteria
 - [ ] Ops Control Center shows real-time deployment status for `local`, `staging`, and `production`
@@ -977,6 +978,7 @@ Scope:
 - [ ] Cost estimation displayed before deployment confirmation
 - [ ] Notification system shows deployment lifecycle events in-app
 - [ ] Deployment history log records all deploys, promotions, and rollbacks
+- [ ] Connections render as brick-style connector pieces matching the Lego visual language
 
 ### Dependencies
 - Milestone 17 complete
