@@ -15,11 +15,12 @@ from scripts.generate_models import GENERATED_MODEL_PATH, SCHEMA_PATH, build_gen
 def main() -> int:
     expected = build_generated_source(SCHEMA_PATH)
 
-    with tempfile.NamedTemporaryFile("w", suffix=".py", delete=False, encoding="utf-8") as handle:
-        temp_path = Path(handle.name)
-        _ = handle.write(expected)
-
     if not GENERATED_MODEL_PATH.exists():
+        with tempfile.NamedTemporaryFile(
+            "w", suffix=".py", delete=False, encoding="utf-8"
+        ) as handle:
+            temp_path = Path(handle.name)
+            _ = handle.write(expected)
         print(f"Missing generated model file: {GENERATED_MODEL_PATH}")
         print(f"Reference regenerated output: {temp_path}")
         return 1
@@ -27,6 +28,10 @@ def main() -> int:
     current = GENERATED_MODEL_PATH.read_text(encoding="utf-8")
     if current == expected:
         return 0
+
+    with tempfile.NamedTemporaryFile("w", suffix=".py", delete=False, encoding="utf-8") as handle:
+        temp_path = Path(handle.name)
+        _ = handle.write(expected)
 
     diff = difflib.unified_diff(
         current.splitlines(),
