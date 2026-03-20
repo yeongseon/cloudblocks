@@ -35,10 +35,10 @@ const makeConnection = (id: string, sourceId: string, targetId: string): Connect
   metadata: {},
 });
 
-const makeExternalActor = (id: string): ExternalActor => ({
+const makeExternalActor = (id: string, name = 'Internet'): ExternalActor => ({
   id,
   type: 'internet',
-  name: 'Internet',
+  name,
   position: { x: -3, y: 0, z: 5 },
 });
 
@@ -106,6 +106,25 @@ describe('FlowDiagram', () => {
     render(<FlowDiagram />);
     expect(screen.getByText('Internet')).toBeInTheDocument();
     expect(screen.getByText('☁')).toBeInTheDocument();
+  });
+
+  it('renders external actor node with custom actor name', () => {
+    const blocks: Block[] = [makeBlock('gateway-1', 'gateway')];
+    const externalActors: ExternalActor[] = [makeExternalActor('external-1', 'Partner API')];
+    const connections: Connection[] = [makeConnection('c1', 'external-1', 'gateway-1')];
+
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Flow WS',
+        architecture: { ...baseArchitecture, blocks, externalActors, connections },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    render(<FlowDiagram />);
+    expect(screen.getByText('Partner API')).toBeInTheDocument();
   });
 
   it('renders arrows between nodes', () => {

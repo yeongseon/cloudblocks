@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, beforeEach, vi, type Mock } from 'vitest';
-import { fireEvent, render } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { DragGhost } from './DragGhost';
 import { useUIStore } from '../../entities/store/uiStore';
 
@@ -74,6 +74,7 @@ describe('DragGhost', () => {
     const ghost = container.querySelector('g.drag-ghost');
     expect(ghost).not.toBeNull();
     expect(ghost?.querySelectorAll('polygon')).toHaveLength(3);
+    expect(screen.getByText('Azure / Virtual Machine')).toBeInTheDocument();
   });
 
   it('renders nothing after drag is cancelled', () => {

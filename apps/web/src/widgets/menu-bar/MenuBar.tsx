@@ -3,6 +3,7 @@ import { AiPromptBar } from '../../features/ai';
 import { useAiStore } from '../../features/ai/store';
 import { toast } from 'react-hot-toast';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
+import { useLearningStore } from '../../entities/store/learningStore';
 import { validateArchitectureShape } from '../../entities/store/slices';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
@@ -46,6 +47,7 @@ export function MenuBar() {
   const toggleScenarioGallery = useUIStore((s) => s.toggleScenarioGallery);
   const toggleLearningPanel = useUIStore((s) => s.toggleLearningPanel);
   const showLearningPanel = useUIStore((s) => s.showLearningPanel);
+  const activeScenario = useLearningStore((s) => s.activeScenario);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
   const toggleSound = useUIStore((s) => s.toggleSound);
   const playSound = (name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); };
@@ -64,6 +66,7 @@ export function MenuBar() {
   const resetWorkspace = useArchitectureStore((s) => s.resetWorkspace);
   const validationResult = useArchitectureStore((s) => s.validationResult);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
+  const backendWorkspaceId = useArchitectureStore((s) => s.workspace.backendWorkspaceId);
   const canUndo = useArchitectureStore((s) => s.canUndo);
   const canRedo = useArchitectureStore((s) => s.canRedo);
   const undo = useArchitectureStore((s) => s.undo);
@@ -71,6 +74,7 @@ export function MenuBar() {
   const importArchitecture = useArchitectureStore((s) => s.importArchitecture);
 
   const importInputRef = useRef<HTMLInputElement>(null);
+  const hasBackendWorkspaceLink = Boolean(backendWorkspaceId);
 
   useEffect(() => {
     const handleDocumentClick = (e: MouseEvent) => {
@@ -187,8 +191,16 @@ export function MenuBar() {
   };
 
   const handleCompareWithGitHub = async () => {
-    const ws = useArchitectureStore.getState().workspace;
-    const wsId = ws.backendWorkspaceId ?? ws.id;
+    if (!backendWorkspaceId) {
+      toast.error('Workspace must be linked to backend before using GitHub compare.');
+      return;
+    }
+
+    const wsId = backendWorkspaceId;
+    if (!wsId) {
+      toast.error('Workspace must be linked to backend before using GitHub compare.');
+      return;
+    }
     try {
       const response = await apiPost<PullResponse>(
         `/api/v1/workspaces/${encodeURIComponent(wsId)}/pull`,
@@ -215,6 +227,22 @@ export function MenuBar() {
     if (diffMode) {
       useUIStore.getState().setDiffMode(false);
     }
+  };
+
+  const handleToggleLearningPanel = () => {
+    if (showLearningPanel) {
+      toggleLearningPanel();
+      return;
+    }
+
+    if (!activeScenario) {
+      if (!useUIStore.getState().showScenarioGallery) {
+        toggleScenarioGallery();
+      }
+      return;
+    }
+
+    toggleLearningPanel();
   };
 
   return (
@@ -339,7 +367,7 @@ export function MenuBar() {
             <button type="button" className="menu-item" onClick={() => handleAction(toggleScenarioGallery)}>
               <span className="menu-item-left">📚 Browse Scenarios</span>
             </button>
-            <button type="button" className="menu-item" onClick={() => handleAction(toggleLearningPanel)}>
+            <button type="button" className="menu-item" onClick={() => handleAction(handleToggleLearningPanel)}>
               <span className="menu-item-left">{showLearningPanel ? '✓ ' : ''}📖 Show Learning Panel</span>
             </button>
           </div>
@@ -457,13 +485,31 @@ export function MenuBar() {
               <button type="button" className="menu-item" onClick={() => handleAction(toggleGitHubRepos)}>
                 <span className="menu-item-left">📦 Repos</span>
               </button>
-              <button type="button" className="menu-item" onClick={() => handleAction(toggleGitHubSync)}>
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => handleAction(toggleGitHubSync)}
+                disabled={!hasBackendWorkspaceLink}
+                title={!hasBackendWorkspaceLink ? 'Link workspace to backend to use GitHub sync.' : undefined}
+              >
                 <span className="menu-item-left">🔄 Sync</span>
               </button>
-              <button type="button" className="menu-item" onClick={() => handleAction(toggleGitHubPR)}>
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => handleAction(toggleGitHubPR)}
+                disabled={!hasBackendWorkspaceLink}
+                title={!hasBackendWorkspaceLink ? 'Link workspace to backend to create pull requests.' : undefined}
+              >
                 <span className="menu-item-left">🔀 Create PR</span>
               </button>
-              <button type="button" className="menu-item" onClick={() => handleAction(handleCompareWithGitHub)}>
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => handleAction(handleCompareWithGitHub)}
+                disabled={!hasBackendWorkspaceLink}
+                title={!hasBackendWorkspaceLink ? 'Link workspace to backend to compare with GitHub.' : undefined}
+              >
                 <span className="menu-item-left">🔍 Compare with GitHub</span>
               </button>
               <div className="menu-separator" />

@@ -79,7 +79,7 @@ export function FlowDiagram() {
           content = (
             <div className="flow-node flow-node-external">
               <span className="flow-icon">☁</span>
-              Internet
+              {actor.name || 'External Actor'}
             </div>
           );
         } else if (block) {

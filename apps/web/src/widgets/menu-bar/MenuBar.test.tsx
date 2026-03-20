@@ -17,6 +17,7 @@ import { MenuBar } from './MenuBar';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { useLearningStore } from '../../entities/store/learningStore';
 import type { ArchitectureModel, Block, Connection, Plate } from '@cloudblocks/schema';
 import { apiPost } from '../../shared/api/client';
 import { toast } from 'react-hot-toast';
@@ -168,6 +169,8 @@ describe('MenuBar', () => {
       showCodePreview: false,
       showWorkspaceManager: false,
       showTemplateGallery: false,
+      showLearningPanel: false,
+      showScenarioGallery: false,
       showGitHubLogin: false,
       showGitHubRepos: false,
       showGitHubSync: false,
@@ -186,6 +189,12 @@ describe('MenuBar', () => {
     });
 
     setArchitectureState();
+    useLearningStore.setState({
+      activeScenario: null,
+      progress: null,
+      currentHintIndex: -1,
+      isCurrentStepComplete: false,
+    });
   });
 
   afterEach(() => {
@@ -497,7 +506,7 @@ describe('MenuBar', () => {
     expect(useUIStore.getState().showTemplateGallery).toBe(true);
   }, 15000);
 
-  it('handles Build menu scenario gallery and learning panel (merged from Learn menu)', async () => {
+  it('routes Show Learning Panel to scenario gallery when no scenario is active', async () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
@@ -507,7 +516,59 @@ describe('MenuBar', () => {
 
     buildDropdown = await openMenu(user, 'Build');
     await user.click(within(buildDropdown).getByRole('button', { name: /Show Learning Panel/ }));
+    expect(useUIStore.getState().showScenarioGallery).toBe(true);
+    expect(useUIStore.getState().showLearningPanel).toBe(false);
+
+    buildDropdown = await openMenu(user, 'Build');
+    const learningPanelButton = within(buildDropdown).getByRole('button', { name: /Show Learning Panel/ });
+    expect(learningPanelButton.textContent).not.toContain('\u2713');
+  });
+
+  it('opens learning panel when an active scenario exists', async () => {
+    const user = userEvent.setup();
+    useLearningStore.setState({
+      activeScenario: {
+        id: 'scenario-1',
+        name: 'Test Scenario',
+        description: 'Scenario for menu test',
+        difficulty: 'beginner',
+        category: 'general',
+        tags: [],
+        estimatedMinutes: 5,
+        steps: [
+          {
+            id: 'step-1',
+            order: 1,
+            title: 'Step 1',
+            instruction: 'Do one thing',
+            hints: [],
+            validationRules: [],
+          },
+        ],
+        initialArchitecture: {
+          name: 'Initial',
+          version: '1.0.0',
+          plates: [],
+          blocks: [],
+          connections: [],
+          externalActors: [],
+        },
+      },
+      progress: {
+        scenarioId: 'scenario-1',
+        currentStepIndex: 0,
+        steps: [{ stepId: 'step-1', status: 'active', hintsUsed: 0 }],
+        startedAt: '2026-01-01T00:00:00.000Z',
+      },
+    });
+
+    render(<MenuBar />);
+
+    let buildDropdown = await openMenu(user, 'Build');
+    await user.click(within(buildDropdown).getByRole('button', { name: /Show Learning Panel/ }));
+
     expect(useUIStore.getState().showLearningPanel).toBe(true);
+    expect(useUIStore.getState().showScenarioGallery).toBe(false);
 
     buildDropdown = await openMenu(user, 'Build');
     const learningPanelButton = within(buildDropdown).getByRole('button', { name: /Show Learning Panel/ });
@@ -567,6 +628,12 @@ describe('MenuBar', () => {
   it('handles authenticated GitHub menu actions', async () => {
     const user = userEvent.setup();
     const logoutMock = vi.fn();
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        backendWorkspaceId: 'backend-ws-1',
+      },
+    });
     useAuthStore.setState({
       status: 'authenticated',
       user: {
@@ -605,9 +672,39 @@ describe('MenuBar', () => {
     expect(logoutMock).toHaveBeenCalledOnce();
   });
 
+  it('disables GitHub sync/pr/compare actions without backend workspace link', async () => {
+    const user = userEvent.setup();
+    useAuthStore.setState({
+      status: 'authenticated',
+      user: {
+        id: 'user-1',
+        github_username: 'octocat',
+        email: null,
+        display_name: null,
+        avatar_url: null,
+      },
+    });
+
+    render(<MenuBar />);
+
+    const githubButton = screen.getByRole('button', { name: /octocat/ });
+    await user.click(githubButton);
+    const githubDropdown = getMenuDropdown(/octocat/);
+
+    expect(within(githubDropdown).getByRole('button', { name: /Sync/ })).toBeDisabled();
+    expect(within(githubDropdown).getByRole('button', { name: /Create PR/ })).toBeDisabled();
+    expect(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ })).toBeDisabled();
+  });
+
   it('compare with GitHub calls backend and enables diff mode', async () => {
     const user = userEvent.setup();
     vi.mocked(apiPost).mockResolvedValue({ architecture: emptyArch });
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        backendWorkspaceId: 'backend-ws-1',
+      },
+    });
     useAuthStore.setState({
       status: 'authenticated',
       user: {
@@ -626,7 +723,7 @@ describe('MenuBar', () => {
     const githubDropdown = getMenuDropdown(/octocat/);
     await user.click(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ }));
 
-    expect(apiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/pull');
+    expect(apiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-1/pull');
     expect(useUIStore.getState().diffMode).toBe(true);
   });
 
@@ -712,6 +809,12 @@ describe('MenuBar', () => {
   it('shows toast error when compare with GitHub fails', async () => {
     const user = userEvent.setup();
     vi.mocked(apiPost).mockRejectedValue(new Error('pull failed'));
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        backendWorkspaceId: 'backend-ws-1',
+      },
+    });
     useAuthStore.setState({
       status: 'authenticated',
       user: {

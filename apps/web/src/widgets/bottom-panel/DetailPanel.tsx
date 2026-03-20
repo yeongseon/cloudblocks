@@ -127,6 +127,10 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
   }, [newName, block.id, block.name, renameBlock]);
 
   const color = getBlockColor(block.provider ?? 'azure', block.subtype, block.category);
+  const providerLabel = block.provider ? block.provider.toUpperCase() : null;
+  const typeIdentity = block.provider || block.subtype
+    ? [providerLabel, block.subtype].filter(Boolean).join(' / ')
+    : BLOCK_FRIENDLY_NAMES[block.category];
 
   return (
     <div className={`detail-panel detail-panel--block ${className}`}>
@@ -166,12 +170,28 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
         <div className="detail-property">
           <span className="detail-property-label">Type</span>
           <span className="detail-property-value">
-            {BLOCK_FRIENDLY_NAMES[block.category]}
+            {typeIdentity}
             <span className="detail-property-hint" title={BLOCK_DESCRIPTIONS[block.category]}>
               ℹ️
             </span>
           </span>
         </div>
+
+        {block.provider && (
+          <div className="detail-property">
+            <span className="detail-property-label">Provider</span>
+            <span className="detail-property-value detail-property-tag" style={{ backgroundColor: `${color}20`, color }}>
+              {providerLabel}
+            </span>
+          </div>
+        )}
+
+        {block.subtype && (
+          <div className="detail-property">
+            <span className="detail-property-label">Subtype</span>
+            <span className="detail-property-value">{block.subtype}</span>
+          </div>
+        )}
 
         <div className="detail-property">
           <span className="detail-property-label">Category</span>

@@ -21,13 +21,24 @@ export function HintPopup() {
   }
 
   const visibleHints = currentStep.hints.slice(0, currentHintIndex + 1);
+  const hintOccurrences = new Map<string, number>();
+  const hintCards = visibleHints.map((hint, index) => {
+    const occurrence = (hintOccurrences.get(hint) ?? 0) + 1;
+    hintOccurrences.set(hint, occurrence);
+
+    return {
+      key: `${currentStep.id}-${hint}-${occurrence}`,
+      hint,
+      order: index + 1,
+    };
+  });
 
   return (
     <div className="hint-popup-container">
-      {visibleHints.map((hint, index) => (
-        <div key={hint} className="hint-popup-card">
-          <h4 className="hint-popup-title">💡 Hint {index + 1}</h4>
-          <p className="hint-popup-text">{hint}</p>
+      {hintCards.map((hintCard) => (
+        <div key={hintCard.key} className="hint-popup-card">
+          <h4 className="hint-popup-title">💡 Hint {hintCard.order}</h4>
+          <p className="hint-popup-text">{hintCard.hint}</p>
         </div>
       ))}
     </div>
