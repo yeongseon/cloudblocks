@@ -13,21 +13,23 @@ const GENERATORS: { id: GeneratorId; label: string }[] = [
 ];
 
 export function CodePreview() {
-  const show = useUIStore((s) => s.showCodePreview);
   const toggleCodePreview = useUIStore((s) => s.toggleCodePreview);
   const activeProvider = useUIStore((s) => s.activeProvider);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
 
+  const sanitizedName = architecture.name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'myproject';
+
   const [activeTab, setActiveTab] = useState(0);
-  const [projectName, setProjectName] = useState('myproject');
+  const [projectName, setProjectName] = useState(sanitizedName);
   const [region, setRegion] = useState('eastus');
   const [generator, setGenerator] = useState<GeneratorId>('terraform');
   const [compareProviders, setCompareProviders] = useState(false);
   const [output, setOutput] = useState<GeneratedOutput | null>(null);
   const [comparisonOutputs, setComparisonOutputs] = useState<Record<ProviderType, GeneratedOutput> | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  if (!show) return null;
 
   const handleGenerate = () => {
     setError(null);
