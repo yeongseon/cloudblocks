@@ -28,7 +28,6 @@ interface AiState {
   generate: (prompt: string, provider: string) => Promise<void>;
   suggest: (provider: string) => Promise<void>;
   estimateCost: (provider: string) => Promise<void>;
-  clearResults: () => void;
 }
 
 export const useAiStore = create<AiState>((set) => ({
@@ -83,14 +82,4 @@ export const useAiStore = create<AiState>((set) => ({
       set({ costError: message, costLoading: false });
     }
   },
-
-  clearResults: () =>
-    set({
-      generateResult: null,
-      generateError: null,
-      suggestResult: null,
-      suggestError: null,
-      costResult: null,
-      costError: null,
-    }),
 }));

@@ -33,34 +33,6 @@ describe('generator registry', () => {
     expect(getGenerator('pulumi')).toBeUndefined();
   });
 
-  it('listGenerators returns all registered plugins', async () => {
-    const { registerGenerator, listGenerators } = await loadRegistry();
-    const bicepPlugin: GeneratorPlugin = {
-      ...mockPlugin,
-      id: 'bicep',
-      displayName: 'Bicep Test Plugin',
-    };
-
-    registerGenerator(mockPlugin);
-    registerGenerator(bicepPlugin);
-
-    expect(listGenerators()).toEqual([mockPlugin, bicepPlugin]);
-  });
-
-  it('listGeneratorIds returns all registered ids', async () => {
-    const { registerGenerator, listGeneratorIds } = await loadRegistry();
-    const pulumiPlugin: GeneratorPlugin = {
-      ...mockPlugin,
-      id: 'pulumi',
-      displayName: 'Pulumi Test Plugin',
-    };
-
-    registerGenerator(mockPlugin);
-    registerGenerator(pulumiPlugin);
-
-    expect(listGeneratorIds()).toEqual(['terraform', 'pulumi']);
-  });
-
   it('registering with same id overwrites previous plugin', async () => {
     const { registerGenerator, getGenerator } = await loadRegistry();
     const replacementPlugin: GeneratorPlugin = {
@@ -76,9 +48,8 @@ describe('generator registry', () => {
   });
 
   it('registry starts empty when freshly imported after resetModules', async () => {
-    const { listGenerators, listGeneratorIds } = await loadRegistry();
+    const { getGenerator } = await loadRegistry();
 
-    expect(listGenerators()).toEqual([]);
-    expect(listGeneratorIds()).toEqual([]);
+    expect(getGenerator('terraform')).toBeUndefined();
   });
 });

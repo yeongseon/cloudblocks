@@ -18,16 +18,6 @@ export function listScenariosByDifficulty(difficulty: ScenarioDifficulty): Scena
   return listScenarios().filter((s) => s.difficulty === difficulty);
 }
 
-export function searchScenarios(query: string): Scenario[] {
-  const q = query.toLowerCase();
-  return listScenarios().filter(
-    (s) =>
-      s.name.toLowerCase().includes(q) ||
-      s.description.toLowerCase().includes(q) ||
-      s.tags.some((tag) => tag.toLowerCase().includes(q))
-  );
-}
-
 /** Clear registry. Used for testing. */
 export function clearScenarioRegistry(): void {
   scenarioRegistry.clear();

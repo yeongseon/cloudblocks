@@ -69,7 +69,7 @@ describe('workerStore', () => {
     const store = useWorkerStore.getState();
 
     store.startBuild('block-1', [1, 1, 1]);
-    store.setWorkerState('building');
+    useWorkerStore.setState({ workerState: 'building' });
     store.tickBuildProgress(0.25);
 
     expect(useWorkerStore.getState().activeBuild?.progress).toBe(0.25);
@@ -79,7 +79,7 @@ describe('workerStore', () => {
     const store = useWorkerStore.getState();
 
     store.startBuild('block-1', [1, 1, 1]);
-    store.setWorkerState('building');
+    useWorkerStore.setState({ workerState: 'building' });
     store.tickBuildProgress(1);
 
     const state = useWorkerStore.getState();
@@ -133,20 +133,6 @@ describe('workerStore', () => {
     expect(state.buildQueue).toHaveLength(0);
   });
 
-  it('clearQueue resets queue and worker state', () => {
-    const store = useWorkerStore.getState();
-
-    store.startBuild('block-1', [1, 1, 1]);
-    store.startBuild('block-2', [2, 2, 2]);
-    store.setWorkerState('building');
-    store.clearQueue();
-
-    const state = useWorkerStore.getState();
-    expect(state.activeBuild).toBeNull();
-    expect(state.buildQueue).toEqual([]);
-    expect(state.workerState).toBe('idle');
-  });
-
   it('setWorkerPosition updates worker position', () => {
     const store = useWorkerStore.getState();
 
@@ -155,11 +141,4 @@ describe('workerStore', () => {
     expect(useWorkerStore.getState().workerPosition).toEqual([9, 8, 7]);
   });
 
-  it('setWorkerState updates worker state', () => {
-    const store = useWorkerStore.getState();
-
-    store.setWorkerState('moving');
-
-    expect(useWorkerStore.getState().workerState).toBe('moving');
-  });
 });

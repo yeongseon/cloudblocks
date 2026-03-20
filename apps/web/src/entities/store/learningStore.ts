@@ -21,7 +21,6 @@ interface LearningStoreState {
   startScenario: (scenario: Scenario) => void;
   advanceStep: () => void;
   completeScenario: () => void;
-  resetToCheckpoint: () => void;
   showNextHint: () => void;
   resetHints: () => void;
   setStepComplete: (complete: boolean) => void;
@@ -116,13 +115,6 @@ export const useLearningStore = create<LearningStoreState>((set, get) => ({
       },
       isCurrentStepComplete: false,
       currentHintIndex: -1,
-    });
-  },
-
-  resetToCheckpoint: () => {
-    set({
-      currentHintIndex: -1,
-      isCurrentStepComplete: false,
     });
   },
 

@@ -6,7 +6,6 @@ import {
   listScenarios,
   listScenariosByDifficulty,
   registerScenario,
-  searchScenarios,
 } from './registry';
 
 const scenarioA: Scenario = {
@@ -87,13 +86,4 @@ describe('scenario registry', () => {
     expect(listScenariosByDifficulty('advanced')).toEqual([]);
   });
 
-  it('searches by name, description, and tags case-insensitively', () => {
-    registerScenario(scenarioA);
-    registerScenario(scenarioB);
-
-    expect(searchScenarios('network')).toEqual([scenarioA]);
-    expect(searchScenarios('HTTP ENTRY')).toEqual([scenarioB]);
-    expect(searchScenarios('EVENT')).toEqual([scenarioB]);
-    expect(searchScenarios('missing-term')).toEqual([]);
-  });
 });
