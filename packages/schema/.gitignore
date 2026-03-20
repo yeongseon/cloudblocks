@@ -1,0 +1,9 @@
+# Build output (TypeScript declarations and JS)
+dist/*.js
+dist/*.d.ts
+dist/*.d.ts.map
+dist/*.js.map
+dist/*.tsbuildinfo
+
+# Keep generated JSON Schema (checked in for auditability)
+!dist/architecture-model.schema.json
