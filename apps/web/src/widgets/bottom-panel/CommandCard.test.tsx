@@ -391,7 +391,7 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByTitle('Build Virtual Machine'));
 
-    expect(startBuildMock).toHaveBeenCalledWith('worker-built-block', [2, 0, 3]);
+    expect(startBuildMock).toHaveBeenCalledWith('worker-built-block', [1, 0.3, 1]);
   });
 
   // ─── BlockActionMode Tests ───────────────────────────────
