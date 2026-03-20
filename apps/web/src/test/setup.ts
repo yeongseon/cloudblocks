@@ -28,10 +28,7 @@ Object.defineProperty(globalThis, 'localStorage', {
 
 // Mock ResizeObserver for tests (not available in jsdom)
 globalThis.ResizeObserver = class ResizeObserver {
-  private cb: ResizeObserverCallback;
-  constructor(cb: ResizeObserverCallback) {
-    this.cb = cb;
-  }
+  constructor(_cb: ResizeObserverCallback) {}
   observe() {}
   unobserve() {}
   disconnect() {}
