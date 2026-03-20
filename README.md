@@ -87,13 +87,17 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 | Phase 9 | Visual builder evolution (UX state machine, brick design, provider foundations) | ✅ Complete |
 | Phase 10 | Documentation accuracy | ✅ Complete |
 | Phase 11 | UX/UI improvements | ✅ Complete |
-| Milestone 8 | Multi-cloud platform (AWS, GCP adapters) | 🔄 Planned |
-| Milestone 9 | UX Core Hardening | 🔄 Planned |
-| Milestone 10 | External Actors & DevOps UX | 🔄 Planned |
-| Milestone 11 | Brick Design System | 🔄 Planned |
-| Milestone 12 | Core Model & Provider System | 🔄 Planned |
-| Milestone 13 | Terraform Pipeline | 🔄 Planned |
-| Milestone 14 | AI Roadmap | 🔄 Planned |
+| Milestone 8 | Multi-cloud platform (AWS, GCP adapters) | ✅ Complete |
+| Milestone 9 | UX Core Hardening | ✅ Complete |
+| Milestone 10 | External Actors & DevOps UX | ✅ Complete |
+| Milestone 11 | Brick Design System | ✅ Complete |
+| Milestone 12 | Core Model & Provider System | ✅ Complete |
+| Milestone 13 | Terraform Pipeline | ✅ Complete |
+| Milestone 14 | AI-Assisted Architecture | ✅ Complete |
+| Milestone 15 | v2.0 Specification Implementation | ✅ Complete |
+| Milestone 16 | Documentation Architecture | ✅ Complete |
+| Milestone 17 | Product Structure | 🔄 Planned |
+| Milestone 18 | DevOps UX | 🔄 Planned |
 
 ## Contributing
 
