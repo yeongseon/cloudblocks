@@ -14,6 +14,43 @@
 - Avoid incidental refactors in areas that already have unrelated user changes.
 - **UNIVERSAL STUD STANDARD (INVIOLABLE)**: Every stud in the system — background, plates, blocks, any element — uses identical dimensions: rx=12, ry=6, height=5, 3-layer structure (shadow + top + inner ring). Only colors vary. This is the Lego principle: same gauge = assembly possible. See `docs/design/BRICK_DESIGN_SPEC.md §0`. Any change that produces non-uniform studs is a blocking defect.
 - **English only**: All documentation, code comments, UI strings, and commit messages must be written in English. Do not introduce Korean or any other non-English text. An i18n system (`react-i18next`) is planned for future localization — until then, English is the single source language.
+- **Historical documents are immutable**: Do NOT edit documents marked "Historical (Superseded)" — including `BRICK_DESIGN_SPEC.md`, `VISUAL_DESIGN_SPEC.md`, and `BRICK_GUIDEBOOK.md`. ADRs (`docs/decisions/ADR-*.md`) are also immutable once merged; create a new ADR to supersede an old one.
+- **SVG asset rules**: All SVG sprites live in `apps/web/src/shared/assets/`. New SVG files must comply with the Universal Stud Standard. Use consistent naming: lowercase kebab-case (e.g., `internet.svg`, `compute-block.svg`). Every SVG must include a `viewBox` attribute and avoid inline `style` elements — use attributes or CSS classes instead.
+- **Zustand store boundaries**: Three stores exist — `architectureStore` (domain model: plates, blocks, connections, external actors), `uiStore` (UI state: tool mode, panel visibility, selection), and `authStore` (auth: GitHub OAuth, session). Add new state to the store that owns the domain. Do not create new stores without discussion.
+- **Test expectations**: New features should include tests. Branch coverage must stay ≥ 90%. Do not delete or skip failing tests to make CI pass — fix the root cause instead.
+
+## Git Conventions
+
+### Branch Naming
+Use the pattern `{type}/{issue#}-{short-desc}` or `{type}/{short-desc}` for branches:
+- `feat/447-menubar-consolidation`
+- `fix/441-external-actor-css`
+- `docs/readme-badges`
+- `chore/release-management`
+- `m14/ai-frontend-integration` (milestone-scoped work)
+
+### Commit Messages
+Follow [Conventional Commits](https://www.conventionalcommits.org/). Format: `{type}({scope}): {description}`.
+
+| Prefix | When to use |
+|--------|-------------|
+| `feat` | New feature or capability |
+| `fix` | Bug fix |
+| `docs` | Documentation only |
+| `test` | Adding or updating tests |
+| `refactor` | Code change that neither fixes nor adds |
+| `style` | Formatting, CSS, whitespace |
+| `chore` | Build, tooling, release management |
+| `perf` | Performance improvement |
+| `ci` | CI/CD pipeline changes |
+
+Scope is optional but recommended: `feat(web):`, `fix(api):`, `docs:`.
+
+### Pull Request Rules
+- `main` is a protected branch — all changes go through PR + CI.
+- Squash-merge every PR with `--delete-branch`: `gh pr merge <number> --squash --admin --delete-branch`.
+- PR title should follow the same Conventional Commits format as commit messages.
+- Each PR should reference and close its issue (e.g., `Fixes #123`).
 
 ## Implementation Principles
 
@@ -72,6 +109,7 @@ zundo        — Zustand undo/redo middleware
   - Documentation issues use `documentation`; domain labels are recommended and optional when the docs are cross-cutting.
   - Domain labels include `frontend`, `backend`, `security`, `auth`, `infrastructure`, `ux`, `design-system`, `domain-model`, and `cloud-provider`.
   - Every non-Epic issue must have exactly one size label: `size/S`, `size/M`, `size/L`, or `size/XL`. Assign it at creation time.
+  - **Mandatory labels on creation**: Every issue must be created with all applicable labels (type + domain + size) in the `gh issue create --label` flag. Never create an issue without labels — add them at creation time, not after the fact.
 - Use one branch per sub-issue and one PR per branch. Each PR should reference and close its issue.
 - **Roadmap synchronization**:
   - When creating a new milestone, consult `docs/concept/ROADMAP.md` first — verify the milestone fits within the current dependency chain, does not duplicate existing scope, and has a clear placement in the evolution summary.
