@@ -376,14 +376,60 @@
   color: var(--lego-black);
 }
 
-/* Header tabs (if enabled) */
+/* Header tabs (navigation.tabs) — high-contrast Lego style */
 .md-tabs {
   background-color: var(--lego-blue-dark);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15);
+  border-bottom: 3px solid var(--lego-yellow);
 }
 
+.md-tabs__list {
+  gap: 0.2rem;
+}
+
+.md-tabs__link {
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.75);
+  padding: 0.6em 1.1em;
+  border-radius: var(--lego-radius-sm) var(--lego-radius-sm) 0 0;
+  transition: color 0.15s ease, background-color 0.15s ease;
+  opacity: 1;
+  white-space: nowrap;
+}
+
+.md-tabs__link:hover {
+  color: var(--lego-white);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Active tab — bright white text + Lego Yellow bottom border */
 .md-tabs__link--active {
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--lego-white);
+  background-color: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 -3px 0 0 var(--lego-yellow);
+}
+
+/* Dark mode tabs */
+[data-md-color-scheme="slate"] .md-tabs {
+  background-color: #141210;
+  border-bottom-color: var(--lego-yellow-dark);
+}
+
+[data-md-color-scheme="slate"] .md-tabs__link {
+  color: rgba(232, 224, 212, 0.65);
+}
+
+[data-md-color-scheme="slate"] .md-tabs__link:hover {
+  color: #E8E0D4;
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+[data-md-color-scheme="slate"] .md-tabs__link--active {
+  color: var(--lego-yellow);
+  box-shadow: inset 0 -3px 0 0 var(--lego-yellow-dark);
 }
 
 /* ---------------------------------------------------------------------------

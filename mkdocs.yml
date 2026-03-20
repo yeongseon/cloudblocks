@@ -41,6 +41,8 @@ theme:
     - navigation.expand
     - navigation.top
     - navigation.indexes
+    - navigation.tabs
+    - navigation.tabs.sticky
     - search.suggest
     - search.highlight
     - content.code.copy
@@ -69,53 +71,61 @@ markdown_extensions:
 
 nav:
   - Home: README.md
-  - Concept:
-      - Product Requirements: concept/PRD.md
-      - Roadmap: concept/ROADMAP.md
-      - Architecture: concept/ARCHITECTURE.md
-      - UI Flow: concept/UI_FLOW.md
-      - Milestone Plans:
-          - M16 — Documentation Architecture: concept/M16_DOCUMENTATION_ARCHITECTURE.md
-          - M17 — Product Structure: concept/M17_PRODUCT_STRUCTURE.md
-          - M18 — DevOps UX: concept/M18_DEVOPS_UX.md
-          - Action Plan Execution: concept/ACTION_PLAN_EXECUTION.md
-  - Architecture Decision Records:
-      - Overview: adr/README.md
-      - ADR-0001 Architecture Model as Source of Truth: adr/0001-architecture-model-as-source-of-truth.md
-      - ADR-0002 Git-Native Storage: adr/0002-git-native-storage.md
-      - ADR-0003 Lego-Style Composition Model: adr/0003-lego-style-composition-model.md
-      - ADR-0004 Rule Engine Architecture: adr/0004-rule-engine-architecture.md
-      - ADR-0005 2D-First with 2.5D Rendering: adr/0005-2d-first-editor-with-25d-rendering.md
-      - ADR-0006 Graph IR Evolution: adr/0006-graph-ir-evolution-approach.md
-      - ADR-0007 Multi-Environment Deployment: adr/0007-multi-environment-deployment-strategy.md
-      - ADR-0008 v2.0 Universal Architecture Spec: adr/0008-v2-universal-architecture-specification.md
-  - Domain Model:
+
+  - Getting Started:
+      - Tutorials (Start Here): guides/TUTORIALS.md
+      - Environment & Workspaces: guides/ENVIRONMENT_STRATEGY.md
+
+  - Build Architectures:
+      - Using the Editor (UI Flow): concept/UI_FLOW.md
+      - Templates: engine/templates.md
+      - Architecture Model Overview: model/ARCHITECTURE_MODEL_OVERVIEW.md
+
+  - Generate & Validate:
+      - Code Generator: engine/generator.md
+      - Validation Rules: engine/rules.md
+      - Validation Contract: design/VALIDATION_CONTRACT.md
+      - Provider Adapters: engine/provider.md
+
+  - Deploy:
+      - Deployment: guides/DEPLOYMENT.md
+      - REST API Spec: api/API_SPEC.md
+
+  - Reference:
+      - CloudBlocks Spec v2.0: design/CLOUDBLOCKS_SPEC_V2.md
       - Domain Model: model/DOMAIN_MODEL.md
       - Storage Architecture: model/STORAGE_ARCHITECTURE.md
-      - Architecture Model Overview: model/ARCHITECTURE_MODEL_OVERVIEW.md
-  - Design Specs:
-      - CloudBlocks Spec v2.0: design/CLOUDBLOCKS_SPEC_V2.md
-      - Validation Contract: design/VALIDATION_CONTRACT.md
-      - Module Boundaries: design/MODULE_BOUNDARIES.md
-      - NFR Targets: design/NFR_TARGETS.md
       - Security Boundaries: design/SECURITY_BOUNDARIES.md
-      - Release Gates: design/RELEASE_GATES.md
       - Learning Mode Spec: design/LEARNING_MODE_SPEC.md
-      - Graph IR Spec: design/GRAPH_IR_SPEC.md
-      - KPI Scorecard: design/KPI_SCORECARD.md
-      - Historical:
+
+  - Developer (Internal):
+      - Product & Planning:
+          - Product Requirements: concept/PRD.md
+          - Roadmap: concept/ROADMAP.md
+          - Architecture (Internal): concept/ARCHITECTURE.md
+          - Milestone Plans:
+              - M16 — Documentation Architecture: concept/M16_DOCUMENTATION_ARCHITECTURE.md
+              - M17 — Product Structure: concept/M17_PRODUCT_STRUCTURE.md
+              - M18 — DevOps UX: concept/M18_DEVOPS_UX.md
+              - Action Plan Execution: concept/ACTION_PLAN_EXECUTION.md
+      - Decision Records:
+          - ADR Overview: adr/README.md
+          - ADR-0001 Architecture Model as Source of Truth: adr/0001-architecture-model-as-source-of-truth.md
+          - ADR-0002 Git-Native Storage: adr/0002-git-native-storage.md
+          - ADR-0003 Lego-Style Composition Model: adr/0003-lego-style-composition-model.md
+          - ADR-0004 Rule Engine Architecture: adr/0004-rule-engine-architecture.md
+          - ADR-0005 2D-First with 2.5D Rendering: adr/0005-2d-first-editor-with-25d-rendering.md
+          - ADR-0006 Graph IR Evolution: adr/0006-graph-ir-evolution-approach.md
+          - ADR-0007 Multi-Environment Deployment: adr/0007-multi-environment-deployment-strategy.md
+          - ADR-0008 v2.0 Universal Architecture Spec: adr/0008-v2-universal-architecture-specification.md
+      - Engineering Specs:
+          - Module Boundaries: design/MODULE_BOUNDARIES.md
+          - NFR Targets: design/NFR_TARGETS.md
+          - Release Gates: design/RELEASE_GATES.md
+          - KPI Scorecard: design/KPI_SCORECARD.md
+          - Graph IR Spec: design/GRAPH_IR_SPEC.md
+      - Historical / Audits:
           - Brick Design Spec (v1.x): design/BRICK_DESIGN_SPEC.md
           - Visual Design Spec (v1.x): design/VISUAL_DESIGN_SPEC.md
           - Brick Guidebook (v1.x): design/BRICK_GUIDEBOOK.md
           - Doc Consistency Audit: design/DOC_CONSISTENCY_AUDIT_2026-03-19.md
-  - Engine:
-      - Code Generator: engine/generator.md
-      - Provider Adapters: engine/provider.md
-      - Validation Rules: engine/rules.md
-      - Templates: engine/templates.md
-  - API:
-      - REST API Spec: api/API_SPEC.md
-  - Guides:
-      - Deployment: guides/DEPLOYMENT.md
-      - Environment Strategy: guides/ENVIRONMENT_STRATEGY.md
-      - Tutorials: guides/TUTORIALS.md
