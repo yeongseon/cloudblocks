@@ -1,5 +1,5 @@
 import type { ArchitectureModel, Block, Connection, ExternalActor, Plate } from '@cloudblocks/schema';
-import type { DiffDelta, DiffState, EntityDiff, PropertyChange } from '../../shared/types/diff';
+import type { DiffDelta, DiffDirection, DiffState, EntityDiff, PropertyChange } from '../../shared/types/diff';
 
 const ROOT_VOLATILE_PATHS = new Set(['createdAt', 'updatedAt']);
 const ROOT_ENTITY_PATHS = new Set(['plates', 'blocks', 'connections', 'externalActors', 'createdAt', 'updatedAt']);
@@ -108,7 +108,7 @@ function compareEntityCollections<T extends DiffableEntity>(
   };
 }
 
-function computeSummary(delta: Omit<DiffDelta, 'summary'>): DiffDelta['summary'] {
+function computeSummary(delta: Omit<DiffDelta, 'summary' | 'direction'>): DiffDelta['summary'] {
   const totalChanges =
     delta.plates.added.length +
     delta.plates.removed.length +
@@ -122,7 +122,7 @@ function computeSummary(delta: Omit<DiffDelta, 'summary'>): DiffDelta['summary']
     delta.externalActors.added.length +
     delta.externalActors.removed.length +
     delta.externalActors.modified.length +
-    delta.rootChanges.length;
+    delta.metadata.length;
 
   return {
     totalChanges,
@@ -172,7 +172,11 @@ export function normalizeArchitecture(model: ArchitectureModel): ArchitectureMod
   };
 }
 
-export function computeArchitectureDiff(base: ArchitectureModel, head: ArchitectureModel): DiffDelta {
+export function computeArchitectureDiff(
+  base: ArchitectureModel,
+  head: ArchitectureModel,
+  direction: DiffDirection = 'local-to-local',
+): DiffDelta {
   const normalizedBase = normalizeArchitecture(base);
   const normalizedHead = normalizeArchitecture(head);
 
@@ -183,31 +187,32 @@ export function computeArchitectureDiff(base: ArchitectureModel, head: Architect
       blocks: createEmptyEntityDiff<Block>(),
       connections: createEmptyEntityDiff<Connection>(),
       externalActors: createEmptyEntityDiff<ExternalActor>(),
-      rootChanges: [],
+      metadata: [],
       summary: {
         totalChanges: 0,
         hasBreakingChanges: false,
       },
+      direction,
     };
   }
 
-  const rootChanges = diffValues(normalizedBase, normalizedHead, '', ROOT_VOLATILE_PATHS)
-    .filter((change) => {
-      const rootKey = change.path.split('.')[0];
-      return !ROOT_ENTITY_PATHS.has(rootKey);
-    });
+  const metadata = modelChanges.filter((change) => {
+    const rootKey = change.path.split('.')[0];
+    return !ROOT_ENTITY_PATHS.has(rootKey);
+  });
 
   const deltaWithoutSummary = {
     plates: compareEntityCollections(normalizedBase.plates, normalizedHead.plates),
     blocks: compareEntityCollections(normalizedBase.blocks, normalizedHead.blocks),
     connections: compareEntityCollections(normalizedBase.connections, normalizedHead.connections),
     externalActors: compareEntityCollections(normalizedBase.externalActors, normalizedHead.externalActors),
-    rootChanges,
+    metadata,
   };
 
   return {
     ...deltaWithoutSummary,
     summary: computeSummary(deltaWithoutSummary),
+    direction,
   };
 }
 

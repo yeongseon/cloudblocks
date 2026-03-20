@@ -59,6 +59,7 @@ import { registerBuiltinTemplates } from '../features/templates/builtin';
 
 const defaultCancelDrag = useUIStore.getState().cancelDrag;
 const defaultSetDiffMode = useUIStore.getState().setDiffMode;
+const defaultClearDiffState = useUIStore.getState().clearDiffState;
 
 describe('App', () => {
   const undoMock = vi.fn();
@@ -78,6 +79,7 @@ describe('App', () => {
       setSelectedId: setSelectedIdMock,
       cancelDrag: defaultCancelDrag,
       setDiffMode: defaultSetDiffMode,
+      clearDiffState: defaultClearDiffState,
       draggedBlockCategory: null,
       diffMode: false,
       showCodePreview: true,
@@ -333,11 +335,11 @@ describe('App', () => {
   });
 
   it('handles Escape key to exit diff mode before deselecting', () => {
-    const setDiffModeMock = vi.fn();
+    const clearDiffStateMock = vi.fn();
     useUIStore.setState({
       interactionState: 'idle',
       diffMode: true,
-      setDiffMode: setDiffModeMock,
+      clearDiffState: clearDiffStateMock,
       draggedBlockCategory: null,
       selectedId: 'block-1',
       setSelectedId: setSelectedIdMock,
@@ -346,7 +348,7 @@ describe('App', () => {
     render(<App />);
     fireEvent.keyDown(window, { key: 'Escape' });
 
-    expect(setDiffModeMock).toHaveBeenCalledWith(false);
+    expect(clearDiffStateMock).toHaveBeenCalledOnce();
     expect(setSelectedIdMock).not.toHaveBeenCalled();
   });
 

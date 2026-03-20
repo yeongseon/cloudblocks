@@ -249,7 +249,14 @@ async def pull_from_github(
     else:
         raise GitHubError("Unexpected response format from GitHub")
 
-    return {"architecture": architecture}
+    # Include revision metadata so the frontend knows the remote ref (#743)
+    file_sha = content.get("sha", "") if isinstance(content, dict) else ""
+
+    return {
+        "architecture": architecture,
+        "branch": workspace.github_branch,
+        "commit_sha": file_sha,
+    }
 
 
 @router.post("/workspaces/{workspace_id}/pr", status_code=201)
@@ -356,6 +363,7 @@ async def list_commits(
                 "message": c["commit"]["message"],
                 "author": c["commit"]["author"]["name"],
                 "date": c["commit"]["author"]["date"],
+                "html_url": c.get("html_url", ""),
             }
             for c in commits
         ]

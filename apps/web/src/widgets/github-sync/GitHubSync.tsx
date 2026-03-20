@@ -304,10 +304,10 @@ export function GitHubSync() {
                       <div className="github-sync-commit-message">{commit.message}</div>
                       <div className="github-sync-commit-meta">
                         {commit.author} · {new Date(commit.date).toLocaleString()} ·{' '}
-                        {commitLinkUrl ? (
+                        {(commit.html_url || commitLinkUrl) ? (
                           <a
                             className="github-sync-commit-link"
-                            href={`${commitLinkUrl}${commit.sha}`}
+                            href={commit.html_url || `${commitLinkUrl}${commit.sha}`}
                             target="_blank"
                             rel="noreferrer"
                           >

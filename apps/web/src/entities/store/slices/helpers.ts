@@ -121,7 +121,7 @@ export function resetTransientState(): Pick<
   'validationResult' | 'history' | 'canUndo' | 'canRedo'
 > {
   useWorkerStore.getState().resetWorker();
-  useUIStore.getState().setDiffMode(false);
+  useUIStore.getState().clearDiffState();
   return {
     validationResult: null,
     history: resetHistory(),

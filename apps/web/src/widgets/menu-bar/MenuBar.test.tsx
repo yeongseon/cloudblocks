@@ -619,8 +619,9 @@ describe('MenuBar', () => {
       blocks: { added: [], removed: [], modified: [] },
       connections: { added: [], removed: [], modified: [] },
       externalActors: { added: [], removed: [], modified: [] },
-      rootChanges: [],
+      metadata: [],
       summary: { totalChanges: 0, hasBreakingChanges: false },
+      direction: 'local-to-local',
     }, emptyArch);
 
     viewDropdown = await openMenu(user, 'View');

@@ -709,7 +709,7 @@ describe('useUIStore', () => {
         blocks: { added: [], removed: [], modified: [] },
         connections: { added: [], removed: [], modified: [] },
         externalActors: { added: [], removed: [], modified: [] },
-        rootChanges: [],
+        metadata: [], direction: 'local-to-local',
         summary: { totalChanges: 0, hasBreakingChanges: false },
       };
       const mockBase = {
@@ -737,7 +737,7 @@ describe('useUIStore', () => {
         blocks: { added: [], removed: [], modified: [] },
         connections: { added: [], removed: [], modified: [] },
         externalActors: { added: [], removed: [], modified: [] },
-        rootChanges: [],
+        metadata: [], direction: 'local-to-local',
         summary: { totalChanges: 0, hasBreakingChanges: false },
       };
       useUIStore.getState().setDiffMode(true, mockDelta, null);

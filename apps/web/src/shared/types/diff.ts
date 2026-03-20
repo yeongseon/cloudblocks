@@ -16,16 +16,22 @@ export interface ModifiedEntity<T> {
   changes: PropertyChange[];
 }
 
+/** Describes the comparison direction so the UI can label sides correctly. */
+export type DiffDirection = 'github-to-local' | 'local-to-local';
+
 export interface DiffDelta {
   plates: EntityDiff<Plate>;
   blocks: EntityDiff<Block>;
   connections: EntityDiff<Connection>;
   externalActors: EntityDiff<ExternalActor>;
-  rootChanges: PropertyChange[];
+  /** Root-level architecture metadata changes (name, version, etc.). */
+  metadata: PropertyChange[];
   summary: {
     totalChanges: number;
     hasBreakingChanges: boolean;
   };
+  /** Describes the comparison direction so diff badges/labels are unambiguous. */
+  direction: DiffDirection;
 }
 
 export interface PropertyChange {

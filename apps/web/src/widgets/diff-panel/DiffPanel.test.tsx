@@ -161,11 +161,12 @@ function makeDiffDelta(): DiffDelta {
         },
       ],
     },
-    rootChanges: [],
+    metadata: [],
     summary: {
       totalChanges: 12,
       hasBreakingChanges: true,
     },
+    direction: 'local-to-local',
   };
 }
 
@@ -173,6 +174,7 @@ describe('DiffPanel', () => {
   beforeEach(() => {
     useUIStore.setState({
       diffMode: true,
+      diffPanelVisible: true,
       diffDelta: makeDiffDelta(),
     });
   });
@@ -185,7 +187,7 @@ describe('DiffPanel', () => {
 
   it('renders panel when diffMode is true with valid diffDelta', () => {
     render(<DiffPanel />);
-    expect(screen.getByText('🔍 Architecture Diff')).toBeInTheDocument();
+    expect(screen.getByText('Architecture Diff')).toBeInTheDocument();
   });
 
   it('shows "No changes" when totalChanges is 0', () => {
@@ -232,13 +234,15 @@ describe('DiffPanel', () => {
     expect(screen.queryByText('Breaking changes detected. Review removed or modified entities carefully.')).not.toBeInTheDocument();
   });
 
-  it('close button calls setDiffMode(false)', async () => {
+  it('close button hides panel without discarding diff session', async () => {
     const user = userEvent.setup();
     render(<DiffPanel />);
 
     await user.click(screen.getByRole('button', { name: 'Close architecture diff panel' }));
 
-    expect(useUIStore.getState().diffMode).toBe(false);
+    expect(useUIStore.getState().diffPanelVisible).toBe(false);
+    expect(useUIStore.getState().diffMode).toBe(true);
+    expect(useUIStore.getState().diffDelta).not.toBeNull();
   });
 
   it('shows entity names for added blocks', () => {
@@ -246,9 +250,9 @@ describe('DiffPanel', () => {
     expect(screen.getByText('+ API Gateway (block-added-1)')).toBeInTheDocument();
   });
 
-  it('shows connection labels with endpoints', () => {
+  it('shows connection labels with resolved endpoint names', () => {
     render(<DiffPanel />);
-    expect(screen.getByText('+ conn-added-1 (block-added-1 -> block-modified-1)')).toBeInTheDocument();
+    expect(screen.getByText('+ conn-added-1 (API Gateway -> App Service)')).toBeInTheDocument();
   });
 
   it('falls back to id-only label when entity has no name or endpoints', () => {
@@ -348,21 +352,21 @@ describe('DiffPanel', () => {
     await user.click(toggle);
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByText('string')).toBeInTheDocument();
-    expect(screen.getByText(': old -> new')).toBeInTheDocument();
+    expect(screen.getByText(/old.*new/)).toBeInTheDocument();
     expect(screen.getByText('undefined')).toBeInTheDocument();
-    expect(screen.getByText(': undefined -> set')).toBeInTheDocument();
+    expect(screen.getByText(/undefined.*set/)).toBeInTheDocument();
     expect(screen.getByText('null')).toBeInTheDocument();
-    expect(screen.getByText(': null -> set')).toBeInTheDocument();
+    expect(screen.getByText(/null.*set/)).toBeInTheDocument();
     expect(screen.getByText('number')).toBeInTheDocument();
-    expect(screen.getByText(': 1 -> 2')).toBeInTheDocument();
+    expect(screen.getByText(/1.*2/)).toBeInTheDocument();
     expect(screen.getByText('boolean')).toBeInTheDocument();
-    expect(screen.getByText(': true -> false')).toBeInTheDocument();
+    expect(screen.getByText(/true.*false/)).toBeInTheDocument();
     expect(screen.getByText('object')).toBeInTheDocument();
-    expect(screen.getByText(': {"sku":"B1"} -> {"sku":"P1v3"}')).toBeInTheDocument();
+    expect(screen.getByText(/B1.*P1v3/)).toBeInTheDocument();
     expect(screen.getByText('array')).toBeInTheDocument();
-    expect(screen.getByText(': ["a"] -> ["b"]')).toBeInTheDocument();
+    expect(screen.getByText(/\["a"\].*\["b"\]/)).toBeInTheDocument();
     expect(screen.getByText('jsonUndefined')).toBeInTheDocument();
-    expect(screen.getByText(': Symbol(x) -> ok')).toBeInTheDocument();
+    expect(screen.getByText(/Symbol\(x\).*ok/)).toBeInTheDocument();
 
     await user.click(toggle);
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
@@ -391,7 +395,7 @@ describe('DiffPanel', () => {
   });
 
   it('shows no-data message when diffDelta is null and omits summary badges', () => {
-    useUIStore.setState({ diffMode: true, diffDelta: null });
+    useUIStore.setState({ diffMode: true, diffPanelVisible: true, diffDelta: null });
     render(<DiffPanel />);
 
     expect(screen.getByText('No diff data available.')).toBeInTheDocument();

@@ -80,13 +80,21 @@ interface UIState {
 
   // ── Diff mode ──
   diffMode: boolean;
+  diffPanelVisible: boolean;
   diffDelta: DiffDelta | null;
   diffBaseArchitecture: ArchitectureModel | null;
+  /** Remote source context shown in the DiffPanel header for GitHub compares. */
+  diffSourceContext: { repo: string; branch: string; commitSha: string } | null;
   setDiffMode: (
     mode: boolean,
     delta?: DiffDelta | null,
     base?: ArchitectureModel | null,
   ) => void;
+  setDiffSourceContext: (ctx: { repo: string; branch: string; commitSha: string } | null) => void;
+  /** Hide the panel without discarding the diff session. */
+  setDiffPanelVisible: (visible: boolean) => void;
+  /** Fully clear all diff state (workspace lifecycle, explicit discard). */
+  clearDiffState: () => void;
 
   // ── Build Order panel ──
   isBuildOrderOpen: boolean;
@@ -270,13 +278,35 @@ export const useUIStore = create<UIState>((set) => ({
   setShowScenarioGallery: (show) => set({ showScenarioGallery: show }),
 
   diffMode: false,
+  diffPanelVisible: false,
   diffDelta: null,
   diffBaseArchitecture: null,
+  diffSourceContext: null,
   setDiffMode: (mode, delta, base) =>
+    set(mode
+      ? {
+          diffMode: true,
+          diffPanelVisible: true,
+          diffDelta: delta ?? null,
+          diffBaseArchitecture: base ?? null,
+        }
+      : {
+          diffMode: false,
+          diffPanelVisible: false,
+          diffDelta: null,
+          diffBaseArchitecture: null,
+          diffSourceContext: null,
+        },
+    ),
+  setDiffSourceContext: (ctx) => set({ diffSourceContext: ctx }),
+  setDiffPanelVisible: (visible) => set({ diffPanelVisible: visible }),
+  clearDiffState: () =>
     set({
-      diffMode: mode,
-      diffDelta: delta ?? null,
-      diffBaseArchitecture: base ?? null,
+      diffMode: false,
+      diffPanelVisible: false,
+      diffDelta: null,
+      diffBaseArchitecture: null,
+      diffSourceContext: null,
     }),
 
   isBuildOrderOpen: true,

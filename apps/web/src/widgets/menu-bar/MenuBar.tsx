@@ -209,8 +209,15 @@ export function MenuBar() {
       validateArchitectureShape(response.architecture);
       const remoteArch = response.architecture as unknown as ArchitectureModel;
       const localArch = useArchitectureStore.getState().workspace.architecture;
-      const delta = computeArchitectureDiff(remoteArch, localArch);
-      useUIStore.getState().setDiffMode(true, delta, remoteArch);
+      const delta = computeArchitectureDiff(remoteArch, localArch, 'github-to-local');
+      const uiState = useUIStore.getState();
+      uiState.setDiffMode(true, delta, remoteArch);
+      const linkedRepo = useArchitectureStore.getState().workspace.githubRepo;
+      uiState.setDiffSourceContext({
+        repo: linkedRepo ?? '',
+        branch: response.branch ?? '',
+        commitSha: response.commit_sha ?? '',
+      });
     } catch (err) {
       toast.error(getApiErrorMessage(err, 'Failed to fetch remote architecture'));
     }
@@ -226,7 +233,7 @@ export function MenuBar() {
 
   const handleToggleDiffMode = () => {
     if (diffMode) {
-      useUIStore.getState().setDiffMode(false);
+      useUIStore.getState().clearDiffState();
     }
   };
 

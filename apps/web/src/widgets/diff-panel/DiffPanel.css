@@ -185,3 +185,57 @@
   border: 1px dashed #333366;
   border-radius: 4px;
 }
+
+.diff-panel-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.diff-panel-discard {
+  background: none;
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  color: #fca5a5;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+
+.diff-panel-discard:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fff;
+}
+
+.diff-direction-legend {
+  padding: 6px 8px;
+  font-size: 11px;
+  color: #a5b4fc;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.diff-source-context {
+  margin-top: 2px;
+  font-size: 10px;
+  color: #818cf8;
+}
+
+.diff-item-clickable {
+  cursor: pointer;
+}
+
+.diff-item-clickable:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.diff-value-label {
+  color: #a5b4fc;
+  font-weight: 600;
+}
+
+.diff-entity-header-static {
+  cursor: default;
+}

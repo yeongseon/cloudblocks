@@ -1,6 +1,7 @@
 import { useState } from 'react';
+import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import type { DiffDelta } from '../../shared/types/diff';
+import type { DiffDelta, DiffDirection } from '../../shared/types/diff';
 import './DiffPanel.css';
 
 type SectionKey = 'plates' | 'blocks' | 'connections' | 'externalActors';
@@ -35,14 +36,45 @@ function hasEndpoints(entity: { id: string }): entity is { id: string; sourceId:
   );
 }
 
-function getEntityLabel(entity: { id: string }): string {
+/** Build a name-lookup map for resolving connection endpoint ids to human-readable names. */
+function buildNameMap(delta: DiffDelta): Map<string, string> {
+  const map = new Map<string, string>();
+  const sections: SectionKey[] = ['plates', 'blocks', 'externalActors'];
+  for (const key of sections) {
+    const section = delta[key];
+    for (const entity of section.added) {
+      if (hasName(entity)) map.set(entity.id, entity.name);
+    }
+    for (const entity of section.removed) {
+      if (hasName(entity)) map.set(entity.id, entity.name);
+    }
+    for (const entity of section.modified) {
+      if (hasName(entity.after)) map.set(entity.id, entity.after.name);
+    }
+  }
+  return map;
+}
+
+function getEntityLabel(entity: { id: string }, nameMap?: Map<string, string>): string {
   if (hasName(entity)) return `${entity.name} (${entity.id})`;
-  if (hasEndpoints(entity)) return `${entity.id} (${entity.sourceId} -> ${entity.targetId})`;
+  if (hasEndpoints(entity)) {
+    const sourceName = nameMap?.get(entity.sourceId) ?? entity.sourceId;
+    const targetName = nameMap?.get(entity.targetId) ?? entity.targetId;
+    return `${entity.id} (${sourceName} -> ${targetName})`;
+  }
   return entity.id;
+}
+
+function directionLabels(direction: DiffDirection): { base: string; head: string } {
+  if (direction === 'github-to-local') {
+    return { base: 'GitHub', head: 'Local' };
+  }
+  return { base: 'Base', head: 'Head' };
 }
 
 export function DiffPanel() {
   const diffMode = useUIStore((s) => s.diffMode);
+  const diffPanelVisible = useUIStore((s) => s.diffPanelVisible);
   const diffDelta = useUIStore((s) => s.diffDelta);
   const [trackedDelta, setTrackedDelta] = useState(diffDelta);
   const [trackedMode, setTrackedMode] = useState(diffMode);
@@ -54,17 +86,21 @@ export function DiffPanel() {
     setGeneration((g) => g + 1);
   }
 
-  if (!diffMode) return null;
+  if (!diffMode || !diffPanelVisible) return null;
 
   const handleClose = () => {
-    useUIStore.getState().setDiffMode(false);
+    useUIStore.getState().setDiffPanelVisible(false);
+  };
+
+  const handleDiscard = () => {
+    useUIStore.getState().clearDiffState();
   };
 
   if (!diffDelta) {
     return (
       <div className="diff-panel">
         <div className="diff-panel-header">
-          <h3 className="diff-panel-title">🔍 Architecture Diff</h3>
+          <h3 className="diff-panel-title">Architecture Diff</h3>
           <button type="button" className="diff-panel-close" onClick={handleClose} aria-label="Close architecture diff panel">
             ✕
           </button>
@@ -74,10 +110,13 @@ export function DiffPanel() {
     );
   }
 
-  return <DiffPanelContent key={generation} diffDelta={diffDelta} onClose={handleClose} />;
+  return <DiffPanelContent key={generation} diffDelta={diffDelta} onClose={handleClose} onDiscard={handleDiscard} />;
 }
 
-function DiffPanelContent({ diffDelta, onClose }: { diffDelta: DiffDelta; onClose: () => void }) {
+function DiffPanelContent({ diffDelta, onClose, onDiscard }: { diffDelta: DiffDelta; onClose: () => void; onDiscard: () => void }) {
+  const diffSourceContext = useUIStore((s) => s.diffSourceContext);
+  const setSelectedId = useUIStore((s) => s.setSelectedId);
+  const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const [collapsedSections, setCollapsedSections] = useState<Record<SectionKey, boolean>>({
     plates: false,
     blocks: false,
@@ -94,6 +133,32 @@ function DiffPanelContent({ diffDelta, onClose }: { diffDelta: DiffDelta; onClos
     setExpandedModified((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  /** Try to select an entity on the canvas if it exists in the current architecture. */
+  const handleSelectEntity = (entityId: string) => {
+    const allIds = [
+      ...architecture.plates.map((p) => p.id),
+      ...architecture.blocks.map((b) => b.id),
+      ...architecture.connections.map((c) => c.id),
+      ...architecture.externalActors.map((e) => e.id),
+    ];
+    if (allIds.includes(entityId)) {
+      setSelectedId(entityId);
+    }
+  };
+
+  const nameMap = buildNameMap(diffDelta);
+
+  // Also populate nameMap from current architecture for connection endpoint resolution
+  for (const plate of architecture.plates) {
+    if (!nameMap.has(plate.id)) nameMap.set(plate.id, plate.name);
+  }
+  for (const block of architecture.blocks) {
+    if (!nameMap.has(block.id)) nameMap.set(block.id, block.name);
+  }
+  for (const actor of architecture.externalActors) {
+    if (!nameMap.has(actor.id)) nameMap.set(actor.id, actor.name);
+  }
+
   const entities: Array<DiffDelta[SectionKey]> = [
     diffDelta.plates,
     diffDelta.blocks,
@@ -109,14 +174,34 @@ function DiffPanelContent({ diffDelta, onClose }: { diffDelta: DiffDelta; onClos
     { added: 0, modified: 0, removed: 0 },
   );
 
+  const isGitHub = diffDelta.direction === 'github-to-local';
+  const labels = directionLabels(diffDelta.direction);
+
   return (
     <div className="diff-panel">
       <div className="diff-panel-header">
-        <h3 className="diff-panel-title">🔍 Architecture Diff</h3>
-        <button type="button" className="diff-panel-close" onClick={onClose} aria-label="Close architecture diff panel">
-          ✕
-        </button>
+        <h3 className="diff-panel-title">Architecture Diff</h3>
+        <div className="diff-panel-header-actions">
+          <button type="button" className="diff-panel-discard" onClick={onDiscard} title="Discard diff session">
+            Discard
+          </button>
+          <button type="button" className="diff-panel-close" onClick={onClose} aria-label="Close architecture diff panel">
+            ✕
+          </button>
+        </div>
       </div>
+
+      {isGitHub && (
+        <div className="diff-direction-legend">
+          Comparing: {labels.base} → {labels.head}
+          {diffSourceContext && (
+            <div className="diff-source-context">
+              {diffSourceContext.repo} @ {diffSourceContext.branch}
+              {diffSourceContext.commitSha && ` (${diffSourceContext.commitSha.slice(0, 7)})`}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="diff-summary-bar">
         <span className="diff-badge diff-badge-added">+{summaryCounts.added} added</span>
@@ -132,17 +217,19 @@ function DiffPanelContent({ diffDelta, onClose }: { diffDelta: DiffDelta; onClos
         <div className="diff-no-changes">No changes</div>
       ) : (
         <div className="diff-sections">
-          {diffDelta.rootChanges.length > 0 && (
+          {diffDelta.metadata.length > 0 && (
             <section className="diff-entity-section">
               <div className="diff-entity-header diff-entity-header-static">
                 <span>Metadata</span>
-                <span>{diffDelta.rootChanges.length}</span>
+                <span>{diffDelta.metadata.length}</span>
               </div>
               <div className="diff-entity-items">
-                {diffDelta.rootChanges.map((change) => (
+                {diffDelta.metadata.map((change) => (
                   <div key={change.path} className="diff-property-change-row">
                     <span className="diff-property-path">{change.path}</span>
-                    <span className="diff-property-arrow">: {formatValue(change.oldValue)} -&gt; {formatValue(change.newValue)}</span>
+                    <span className="diff-property-arrow">
+                      : <span className="diff-value-label">{labels.base}:</span> {formatValue(change.oldValue)} → <span className="diff-value-label">{labels.head}:</span> {formatValue(change.newValue)}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -169,14 +256,28 @@ function DiffPanelContent({ diffDelta, onClose }: { diffDelta: DiffDelta; onClos
                 {!isCollapsed && (
                   <div className="diff-entity-items">
                     {section.added.map((entity) => (
-                      <div key={`added-${entity.id}`} className="diff-item diff-item-added">
-                        + {getEntityLabel(entity)}
+                      <div
+                        key={`added-${entity.id}`}
+                        className="diff-item diff-item-added diff-item-clickable"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => handleSelectEntity(entity.id)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSelectEntity(entity.id); }}
+                      >
+                        + {getEntityLabel(entity, nameMap)}
                       </div>
                     ))}
 
                     {section.removed.map((entity) => (
-                      <div key={`removed-${entity.id}`} className="diff-item diff-item-removed">
-                        - {getEntityLabel(entity)}
+                      <div
+                        key={`removed-${entity.id}`}
+                        className="diff-item diff-item-removed diff-item-clickable"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => handleSelectEntity(entity.id)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSelectEntity(entity.id); }}
+                      >
+                        - {getEntityLabel(entity, nameMap)}
                       </div>
                     ))}
 
@@ -184,22 +285,35 @@ function DiffPanelContent({ diffDelta, onClose }: { diffDelta: DiffDelta; onClos
                       const modifiedKey = `${key}-${entity.id}`;
                       const isExpanded = expandedModified[modifiedKey] ?? false;
 
+                      // Detect renames: show both old and new label if name changed (#757)
+                      const beforeLabel = hasName(entity.before) ? entity.before.name : entity.id;
+                      const afterLabel = hasName(entity.after) ? entity.after.name : entity.id;
+                      const renamed = beforeLabel !== afterLabel;
+                      const displayLabel = renamed
+                        ? `${beforeLabel} → ${afterLabel} (${entity.id})`
+                        : getEntityLabel(entity.after, nameMap);
+
                       return (
                         <div key={`modified-${entity.id}`} className="diff-item diff-item-modified">
                           <button
                             type="button"
                             className="diff-modified-toggle"
-                            onClick={() => toggleModifiedDetails(modifiedKey)}
+                            onClick={() => {
+                              toggleModifiedDetails(modifiedKey);
+                              handleSelectEntity(entity.id);
+                            }}
                             aria-expanded={isExpanded}
                           >
-                            ~ {getEntityLabel(entity.after)} ({entity.changes.length} changes)
+                            ~ {displayLabel} ({entity.changes.length} changes)
                           </button>
                           {isExpanded && (
                             <div className="diff-property-changes">
                               {entity.changes.map((change) => (
                                 <div key={`${entity.id}-${change.path}`} className="diff-property-change-row">
                                   <span className="diff-property-path">{change.path}</span>
-                                  <span className="diff-property-arrow">: {formatValue(change.oldValue)} -&gt; {formatValue(change.newValue)}</span>
+                                  <span className="diff-property-arrow">
+                                    : <span className="diff-value-label">{labels.base}:</span> {formatValue(change.oldValue)} → <span className="diff-value-label">{labels.head}:</span> {formatValue(change.newValue)}
+                                  </span>
                                 </div>
                               ))}
                             </div>

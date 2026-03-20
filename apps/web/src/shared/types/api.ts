@@ -42,6 +42,8 @@ export interface SyncResponse {
 
 export interface PullResponse {
   architecture: Record<string, unknown>;
+  branch: string;
+  commit_sha: string;
 }
 
 export interface PullRequestResponse {
@@ -55,6 +57,7 @@ export interface GitHubCommit {
   message: string;
   author: string;
   date: string;
+  html_url: string;
 }
 
 // ─── Milestone 7: Collaboration + CI/CD ────────────────────

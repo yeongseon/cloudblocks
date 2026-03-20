@@ -108,7 +108,7 @@ describe('computeArchitectureDiff', () => {
     expect(delta.blocks).toEqual({ added: [], removed: [], modified: [] });
     expect(delta.connections).toEqual({ added: [], removed: [], modified: [] });
     expect(delta.externalActors).toEqual({ added: [], removed: [], modified: [] });
-    expect(delta.rootChanges).toEqual([]);
+    expect(delta.metadata).toEqual([]);
     expect(delta.summary).toEqual({ totalChanges: 0, hasBreakingChanges: false });
   });
 
@@ -139,7 +139,7 @@ describe('computeArchitectureDiff', () => {
     expect(delta.blocks.removed).toHaveLength(0);
     expect(delta.connections.removed).toHaveLength(0);
     expect(delta.externalActors.removed).toHaveLength(0);
-    expect(delta.rootChanges).toHaveLength(2);
+    expect(delta.metadata).toHaveLength(2);
     expect(delta.summary).toEqual({ totalChanges: 8, hasBreakingChanges: false });
   });
 
@@ -157,7 +157,7 @@ describe('computeArchitectureDiff', () => {
     expect(delta.blocks.added).toHaveLength(0);
     expect(delta.connections.added).toHaveLength(0);
     expect(delta.externalActors.added).toHaveLength(0);
-    expect(delta.rootChanges).toHaveLength(2);
+    expect(delta.metadata).toHaveLength(2);
     expect(delta.summary).toEqual({ totalChanges: 8, hasBreakingChanges: true });
   });
 
@@ -624,7 +624,7 @@ describe('computeArchitectureDiff', () => {
     expect(paths).not.toContain('metadata.optional');
     expect(paths).not.toContain('metadata.nested.keep');
   });
-  it('tracks root-level metadata changes in rootChanges', () => {
+  it('tracks root-level metadata changes in metadata', () => {
     const base = createBaseArchitecture();
     const head: ArchitectureModel = {
       ...base,
@@ -634,13 +634,13 @@ describe('computeArchitectureDiff', () => {
 
     const delta = computeArchitectureDiff(base, head);
 
-    expect(delta.rootChanges).toHaveLength(2);
-    expect(delta.rootChanges.find((c) => c.path === 'id')).toEqual({
+    expect(delta.metadata).toHaveLength(2);
+    expect(delta.metadata.find((c) => c.path === 'id')).toEqual({
       path: 'id',
       oldValue: 'arch-1',
       newValue: 'arch-2',
     });
-    expect(delta.rootChanges.find((c) => c.path === 'name')).toEqual({
+    expect(delta.metadata.find((c) => c.path === 'name')).toEqual({
       path: 'name',
       oldValue: 'Test Architecture',
       newValue: 'Renamed Architecture',
@@ -648,7 +648,7 @@ describe('computeArchitectureDiff', () => {
     expect(delta.summary.totalChanges).toBe(2);
   });
 
-  it('includes rootChanges count in summary totalChanges', () => {
+  it('includes metadata count in summary totalChanges', () => {
     const base = createBaseArchitecture();
     const head: ArchitectureModel = {
       ...base,
@@ -668,7 +668,7 @@ describe('computeArchitectureDiff', () => {
 
     const delta = computeArchitectureDiff(base, head);
 
-    expect(delta.rootChanges).toHaveLength(1);
+    expect(delta.metadata).toHaveLength(1);
     expect(delta.blocks.added).toHaveLength(1);
     expect(delta.summary.totalChanges).toBe(2);
   });
@@ -685,7 +685,7 @@ describe('computeArchitectureDiff', () => {
     expect(delta.summary.hasBreakingChanges).toBe(true);
   });
 
-  it('does not include entity paths or volatile paths in rootChanges', () => {
+  it('does not include entity paths or volatile paths in metadata', () => {
     const base = createBaseArchitecture();
     const head: ArchitectureModel = {
       ...base,
@@ -696,9 +696,9 @@ describe('computeArchitectureDiff', () => {
 
     const delta = computeArchitectureDiff(base, head);
 
-    expect(delta.rootChanges).toHaveLength(1);
-    expect(delta.rootChanges[0]?.path).toBe('version');
-    const rootPaths = delta.rootChanges.map((c) => c.path);
+    expect(delta.metadata).toHaveLength(1);
+    expect(delta.metadata[0]?.path).toBe('version');
+    const rootPaths = delta.metadata.map((c) => c.path);
     expect(rootPaths).not.toContain('createdAt');
     expect(rootPaths).not.toContain('updatedAt');
     expect(rootPaths).not.toContain('plates');

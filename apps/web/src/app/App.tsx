@@ -137,9 +137,9 @@ function App() {
           cancelInteraction();
           return;
         }
-        const { diffMode, setDiffMode } = useUIStore.getState();
+        const { diffMode, clearDiffState } = useUIStore.getState();
         if (diffMode) {
-          setDiffMode(false);
+          clearDiffState();
           return;
         }
         setSelectedId(null);
