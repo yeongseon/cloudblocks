@@ -26,6 +26,14 @@ Object.defineProperty(globalThis, 'localStorage', {
   value: localStorageMock,
 });
 
+// Mock ResizeObserver for tests (not available in jsdom)
+globalThis.ResizeObserver = class ResizeObserver {
+  constructor(_cb: ResizeObserverCallback) {}
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
 // Reset localStorage between tests
 beforeEach(() => {
   localStorage.clear();

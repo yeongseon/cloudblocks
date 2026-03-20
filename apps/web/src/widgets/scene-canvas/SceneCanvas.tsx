@@ -41,11 +41,42 @@ export function SceneCanvas() {
   const lastMouse = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      setOrigin({ x: rect.width / 2, y: rect.height * 0.4 });
-      setPan({ x: 0, y: 0 });
+    const el = containerRef.current;
+    if (!el) return;
+
+    const updateOriginFromRect = (width: number, height: number) => {
+      setOrigin({ x: width / 2, y: height * 0.4 });
+    };
+
+    const rect = el.getBoundingClientRect();
+    updateOriginFromRect(rect.width, rect.height);
+
+    let resizeObserver: ResizeObserver | null = null;
+
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver((entries) => {
+        const entry = entries[0];
+        if (entry) {
+          const { width, height } = entry.contentRect;
+          updateOriginFromRect(width, height);
+        }
+      });
+      resizeObserver.observe(el);
+    } else if (typeof window !== 'undefined') {
+      // Fallback for environments without ResizeObserver
+      const handleWindowResize = () => {
+        const r = el.getBoundingClientRect();
+        updateOriginFromRect(r.width, r.height);
+      };
+      window.addEventListener('resize', handleWindowResize);
+      return () => window.removeEventListener('resize', handleWindowResize);
     }
+
+    return () => {
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+    };
   }, []);
 
   const handlePointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
