@@ -19,11 +19,12 @@ interface BlockSvgProps {
   category: BlockCategory;
   provider?: ProviderType;
   subtype?: string;
+  name?: string;              // user-given resource name (overrides shortName on left wall)
   aggregationCount?: number; // v2.0 §8 — show ×N badge when > 1
   roles?: BlockRole[];        // v2.0 §9 — visual-only role indicators
 }
 
-export const BlockSvg = memo(function BlockSvg({ category, provider, subtype, aggregationCount, roles }: BlockSvgProps) {
+export const BlockSvg = memo(function BlockSvg({ category, provider, subtype, name, aggregationCount, roles }: BlockSvgProps) {
   // ─── v2.0: CU-based dimension resolution ───────────────────
   const cu = getBlockDimensions(category, provider, subtype);
   const dims = cuToSilhouetteDimensions(cu);
@@ -112,7 +113,7 @@ export const BlockSvg = memo(function BlockSvg({ category, provider, subtype, ag
         textAnchor="middle"
         dominantBaseline="middle"
       >
-        {shortName}
+        {name ?? shortName}
       </text>
 
       <text

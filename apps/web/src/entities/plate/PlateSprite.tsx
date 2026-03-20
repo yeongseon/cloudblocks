@@ -154,7 +154,7 @@ export const PlateSprite = memo(function PlateSprite({
     : getPlateProfile(DEFAULT_PLATE_PROFILE[plate.type]);
   const studColors = getPlateStudColors(plate);
   const faceColors = getPlateFaceColors(plate);
-  const label = plate.type === 'subnet'
+  const typeLabel = plate.type === 'subnet'
     ? plate.subnetAccess === 'public'
       ? 'Public Subnet'
       : 'Private Subnet'
@@ -165,6 +165,7 @@ export const PlateSprite = memo(function PlateSprite({
         : plate.type === 'zone'
           ? 'Zone Layer'
           : 'Region Layer';
+  const label = plate.name || typeLabel;
   const emoji = plate.type === 'subnet'
     ? plate.subnetAccess === 'public'
       ? '🔓'

@@ -30,6 +30,8 @@ const GitHubRepos = lazy(() => import('../widgets/github-repos/GitHubRepos').the
 const GitHubSync = lazy(() => import('../widgets/github-sync/GitHubSync').then(m => ({ default: m.GitHubSync })));
 const GitHubPR = lazy(() => import('../widgets/github-pr/GitHubPR').then(m => ({ default: m.GitHubPR })));
 const DiffPanel = lazy(() => import('../widgets/diff-panel/DiffPanel').then(m => ({ default: m.DiffPanel })));
+const SuggestionsPanel = lazy(() => import('../features/ai/components/SuggestionsPanel').then(m => ({ default: m.SuggestionsPanel })));
+const CostPanel = lazy(() => import('../features/ai/components/CostPanel').then(m => ({ default: m.CostPanel })));
 
 function App() {
   const loadFromStorage = useArchitectureStore((s) => s.loadFromStorage);
@@ -53,6 +55,8 @@ function App() {
   const showGitHubPR = useUIStore((s) => s.showGitHubPR);
   const showTemplateGallery = useUIStore((s) => s.showTemplateGallery);
   const showScenarioGallery = useUIStore((s) => s.showScenarioGallery);
+  const showSuggestionsPanel = useUIStore((s) => s.showSuggestionsPanel);
+  const showCostPanel = useUIStore((s) => s.showCostPanel);
   const workspaceId = useArchitectureStore((s) => s.workspace.id);
 
   useEffect(() => {
@@ -168,6 +172,8 @@ function App() {
             {showGitHubPR && <GitHubPR key={`pr-${workspaceId}`} />}
             <DiffPanel />
             {showScenarioGallery && <ScenarioGallery />}
+            {showSuggestionsPanel && <SuggestionsPanel />}
+            {showCostPanel && <CostPanel />}
           </Suspense>
         </div>
       </div>

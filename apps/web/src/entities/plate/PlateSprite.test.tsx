@@ -95,9 +95,9 @@ describe('PlateSprite', () => {
   });
 
   it.each([
-    ['region', makeNetworkPlate(), 'Region Layer', '#2563EB'],
-    ['public-subnet', makeSubnetPlate('public'), 'Public Subnet', '#22C55E'],
-    ['private-subnet', makeSubnetPlate('private'), 'Private Subnet', '#6366F1'],
+    ['region', makeNetworkPlate(), 'Network Plate', '#2563EB'],
+    ['public-subnet', makeSubnetPlate('public'), 'public subnet', '#22C55E'],
+    ['private-subnet', makeSubnetPlate('private'), 'private subnet', '#6366F1'],
   ] as const)('renders correct PlateSvg for %s', (_, plate, expectedLabel, expectedTopColor) => {
     render(<PlateSprite plate={plate} screenX={0} screenY={0} zIndex={1} />);
 

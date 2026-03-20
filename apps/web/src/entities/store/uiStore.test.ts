@@ -21,6 +21,8 @@ describe('useUIStore', () => {
       showGitHubRepos: false,
       showGitHubSync: false,
       showGitHubPR: false,
+      showSuggestionsPanel: false,
+      showCostPanel: false,
       activeProvider: 'azure',
       editorMode: 'build',
       showLearningPanel: false,
@@ -48,6 +50,8 @@ describe('useUIStore', () => {
       expect(state.showGitHubRepos).toBe(false);
       expect(state.showGitHubSync).toBe(false);
       expect(state.showGitHubPR).toBe(false);
+      expect(state.showSuggestionsPanel).toBe(false);
+      expect(state.showCostPanel).toBe(false);
       expect(state.activeProvider).toBe('azure');
       expect(state.editorMode).toBe('build');
       expect(state.showLearningPanel).toBe(false);
@@ -754,7 +758,7 @@ describe('useUIStore', () => {
   describe('State isolation', () => {
     it('should not affect other state properties when setting one property', () => {
       const initialState = useUIStore.getState();
-      useUIStore.getState().setSelectedId('id-1');
+      useUIStore.getState().setSelectedId('some-id');
       expect(useUIStore.getState().toolMode).toBe(initialState.toolMode);
       expect(useUIStore.getState().showBlockPalette).toBe(initialState.showBlockPalette);
     });
@@ -772,6 +776,108 @@ describe('useUIStore', () => {
       useUIStore.getState().toggleProperties();
       expect(useUIStore.getState().showBlockPalette).toBe(false);
       expect(useUIStore.getState().showProperties).toBe(false);
+    });
+  });
+
+  describe('right-panel mutual exclusion', () => {
+    it('opening CodePreview closes other right panels', () => {
+      useUIStore.getState().toggleGitHubLogin();
+      expect(useUIStore.getState().showGitHubLogin).toBe(true);
+
+      useUIStore.getState().toggleCodePreview();
+      expect(useUIStore.getState().showCodePreview).toBe(true);
+      expect(useUIStore.getState().showGitHubLogin).toBe(false);
+    });
+
+    it('opening GitHubLogin closes other right panels', () => {
+      useUIStore.getState().toggleCodePreview();
+      expect(useUIStore.getState().showCodePreview).toBe(true);
+
+      useUIStore.getState().toggleGitHubLogin();
+      expect(useUIStore.getState().showGitHubLogin).toBe(true);
+      expect(useUIStore.getState().showCodePreview).toBe(false);
+    });
+
+    it('opening GitHubRepos closes other right panels', () => {
+      useUIStore.getState().toggleGitHubPR();
+      expect(useUIStore.getState().showGitHubPR).toBe(true);
+
+      useUIStore.getState().toggleGitHubRepos();
+      expect(useUIStore.getState().showGitHubRepos).toBe(true);
+      expect(useUIStore.getState().showGitHubPR).toBe(false);
+    });
+
+    it('opening SuggestionsPanel closes other right panels', () => {
+      useUIStore.getState().toggleCodePreview();
+      expect(useUIStore.getState().showCodePreview).toBe(true);
+
+      useUIStore.getState().toggleSuggestionsPanel();
+      expect(useUIStore.getState().showSuggestionsPanel).toBe(true);
+      expect(useUIStore.getState().showCodePreview).toBe(false);
+    });
+
+    it('opening CostPanel closes other right panels', () => {
+      useUIStore.getState().toggleGitHubSync();
+      expect(useUIStore.getState().showGitHubSync).toBe(true);
+
+      useUIStore.getState().toggleCostPanel();
+      expect(useUIStore.getState().showCostPanel).toBe(true);
+      expect(useUIStore.getState().showGitHubSync).toBe(false);
+    });
+
+    it('closing a right panel does not open others', () => {
+      useUIStore.getState().toggleCodePreview();
+      expect(useUIStore.getState().showCodePreview).toBe(true);
+
+      useUIStore.getState().toggleCodePreview();
+      expect(useUIStore.getState().showCodePreview).toBe(false);
+      expect(useUIStore.getState().showGitHubLogin).toBe(false);
+      expect(useUIStore.getState().showGitHubRepos).toBe(false);
+      expect(useUIStore.getState().showSuggestionsPanel).toBe(false);
+      expect(useUIStore.getState().showCostPanel).toBe(false);
+    });
+
+    it('does not affect left-side or center panels', () => {
+      useUIStore.getState().toggleWorkspaceManager();
+      expect(useUIStore.getState().showWorkspaceManager).toBe(true);
+
+      useUIStore.getState().toggleCodePreview();
+      expect(useUIStore.getState().showCodePreview).toBe(true);
+      expect(useUIStore.getState().showWorkspaceManager).toBe(true);
+    });
+  });
+
+  describe('toggleSuggestionsPanel', () => {
+    it('defaults to false', () => {
+      expect(useUIStore.getState().showSuggestionsPanel).toBe(false);
+    });
+
+    it('toggles from false to true', () => {
+      useUIStore.getState().toggleSuggestionsPanel();
+      expect(useUIStore.getState().showSuggestionsPanel).toBe(true);
+    });
+
+    it('toggles back to false', () => {
+      useUIStore.getState().toggleSuggestionsPanel();
+      useUIStore.getState().toggleSuggestionsPanel();
+      expect(useUIStore.getState().showSuggestionsPanel).toBe(false);
+    });
+  });
+
+  describe('toggleCostPanel', () => {
+    it('defaults to false', () => {
+      expect(useUIStore.getState().showCostPanel).toBe(false);
+    });
+
+    it('toggles from false to true', () => {
+      useUIStore.getState().toggleCostPanel();
+      expect(useUIStore.getState().showCostPanel).toBe(true);
+    });
+
+    it('toggles back to false', () => {
+      useUIStore.getState().toggleCostPanel();
+      useUIStore.getState().toggleCostPanel();
+      expect(useUIStore.getState().showCostPanel).toBe(false);
     });
   });
 });
