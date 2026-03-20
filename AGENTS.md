@@ -73,6 +73,9 @@ zundo        — Zustand undo/redo middleware
   - Domain labels include `frontend`, `backend`, `security`, `auth`, `infrastructure`, `ux`, `design-system`, `domain-model`, and `cloud-provider`.
   - Every non-Epic issue must have exactly one size label: `size/S`, `size/M`, `size/L`, or `size/XL`. Assign it at creation time.
 - Use one branch per sub-issue and one PR per branch. Each PR should reference and close its issue.
+- **Roadmap synchronization**:
+  - When creating a new milestone, consult `docs/concept/ROADMAP.md` first — verify the milestone fits within the current dependency chain, does not duplicate existing scope, and has a clear placement in the evolution summary.
+  - When all issues in a milestone are closed, update `docs/concept/ROADMAP.md`: mark exit criteria as checked (`[x]`), add a ✅ marker to the heading, update the Summary chain and Dependency Graph, and add or revise the Success Metrics entry.
 
 ## Validation
 - `pnpm build`
