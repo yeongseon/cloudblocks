@@ -13,7 +13,8 @@
 import { useMemo } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { BLOCK_COLORS, PLATE_COLORS, SUBNET_ACCESS_COLORS } from '../../shared/types/index';
+import { PLATE_COLORS, SUBNET_ACCESS_COLORS } from '../../shared/types/index';
+import { getBlockColor } from '../../entities/block/blockFaceColors';
 import './Minimap.css';
 
 interface MinimapProps {
@@ -84,7 +85,7 @@ export function Minimap({ className = '' }: MinimapProps) {
         id: block.id,
         x: (baseX + block.position.x + 1) * scale + offsetX,
         y: (baseY + block.position.z + 1) * scale + offsetY,
-        color: BLOCK_COLORS[block.category],
+        color: getBlockColor(block.provider ?? 'azure', block.subtype, block.category),
       };
     });
 

@@ -79,19 +79,6 @@ export interface Workspace {
 
 // ─── Visual Identity ───────────────────────────────────────
 
-export const BLOCK_COLORS: Record<BlockCategory, string> = {
-  compute: '#F25022',        // Azure Red/Orange
-  database: '#00A4EF',       // Azure Light Blue
-  storage: '#7FBA00',        // Azure Green
-  gateway: '#0078D4',        // Azure Blue
-  function: '#FFB900',       // Azure Yellow
-  queue: '#737373',          // Azure Gray
-  event: '#D83B01',          // Azure Orange
-  analytics: '#693BC5',      // Azure Purple
-  identity: '#D6232C',       // Azure Security Red
-  observability: '#693BC5',  // Azure Management Purple
-};
-
 export const PLATE_COLORS: Record<PlateType, string> = {
   global: '#B39DDB',
   edge: '#80CBC4',
