@@ -437,7 +437,6 @@ function WorkerBuildMode() {
   const addBlock = useArchitectureStore((s) => s.addBlock);
   const activeProvider = useUIStore((s) => s.activeProvider);
   const startBuild = useWorkerStore((s) => s.startBuild);
-  const workerPosition = useWorkerStore((s) => s.workerPosition);
   const counterRef = useRef(0);
   const providerResources = PROVIDER_RESOURCE_ALLOWLIST[activeProvider];
   const groupedResources = CREATION_GROUP_ORDER.map((groupId) => {
@@ -471,9 +470,10 @@ function WorkerBuildMode() {
     );
 
     if (createdBlock) {
-      startBuild(createdBlock.id, workerPosition);
+      const { x, y, z } = createdBlock.position;
+      startBuild(createdBlock.id, [x, y, z]);
     }
-  }, [activeProvider, addBlock, architecture.blocks, startBuild, techTree, workerPosition]);
+  }, [activeProvider, addBlock, architecture.blocks, startBuild, techTree]);
 
   return (
     <div className="command-card-creation-groups">
