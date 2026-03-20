@@ -81,8 +81,9 @@ export function GitHubSync() {
       if (!canApply()) return;
       setError(err instanceof Error ? err.message : 'Failed to load commits.');
     } finally {
-      if (!canApply()) return;
-      setLoading(false);
+      if (canApply()) {
+        setLoading(false);
+      }
     }
   }, [effectiveWorkspaceId, linkedRepo, workspace.id]);
 
