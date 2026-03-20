@@ -10,6 +10,7 @@
 
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { useWorkerStore } from '../../entities/store/workerStore';
 import { getPlateFaceColors } from '../../entities/plate/plateFaceColors';
 import { BLOCK_FRIENDLY_NAMES, CONNECTION_TYPE_LABELS, PLATE_COLORS, SUBNET_ACCESS_COLORS } from '../../shared/types/index';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
@@ -57,6 +58,23 @@ export function Portrait({ className = '' }: PortraitProps) {
   const selectedBlock = architecture.blocks.find((b) => b.id === selectedId);
   const selectedPlate = architecture.plates.find((p) => p.id === selectedId);
   const selectedConnection = architecture.connections.find((c) => c.id === selectedId);
+
+  const workerState = useWorkerStore((s) => s.workerState);
+
+  // Worker selected
+  if (selectedId === 'worker-default') {
+    return (
+      <div className={`portrait-panel portrait-panel--worker ${className}`}>
+        <div className="portrait-content">
+          <span className="portrait-icon">🧑‍🔧</span>
+          <span className="portrait-label">Worker</span>
+        </div>
+        <div className="portrait-badge" style={{ backgroundColor: '#FF9800' }}>
+          {workerState}
+        </div>
+      </div>
+    );
+  }
 
   // No selection — show logo
   if (!selectedId || (!selectedBlock && !selectedPlate && !selectedConnection)) {
