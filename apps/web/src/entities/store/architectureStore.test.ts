@@ -1122,6 +1122,33 @@ describe('architectureStore', () => {
       expect(getArch().blocks).toHaveLength(1);
     });
 
+    it('returns success result on valid import', () => {
+      const arch = {
+        name: 'Test',
+        plates: [{ id: 'p1', name: 'Net', type: 'region', parentId: null, children: [], position: { x: 0, y: 0, z: 0 }, size: { width: 10, height: 0.3, depth: 10 }, metadata: {} }],
+        blocks: [],
+        connections: [],
+      };
+      const result = getState().importArchitecture(JSON.stringify(arch));
+      expect(result).toEqual({ success: true });
+    });
+
+    it('returns error result on invalid JSON', () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const result = getState().importArchitecture('not-valid-json');
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+      spy.mockRestore();
+    });
+
+    it('returns error result when plates/blocks are missing', () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const result = getState().importArchitecture(JSON.stringify({ name: 'No data' }));
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('plates');
+      spy.mockRestore();
+    });
+
     it('normalizes missing fields with defaults', () => {
       const minimal = {
         plates: [

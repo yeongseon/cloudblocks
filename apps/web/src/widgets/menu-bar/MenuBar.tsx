@@ -150,7 +150,10 @@ export function MenuBar() {
     reader.onload = (ev) => {
       const text = ev.target?.result;
       if (typeof text === 'string') {
-        importArchitecture(text);
+        const result = importArchitecture(text);
+        if (!result.success) {
+          window.alert(`Import failed: ${result.error}`);
+        }
       }
     };
     reader.readAsText(file);

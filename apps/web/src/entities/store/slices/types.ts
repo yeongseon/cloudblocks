@@ -57,7 +57,7 @@ export interface ArchitectureState {
   switchWorkspace: (id: string) => void;
   deleteWorkspace: (id: string) => void;
   cloneWorkspace: (id: string) => void;
-  importArchitecture: (json: string) => void;
+  importArchitecture: (json: string) => { success: boolean; error?: string };
   exportArchitecture: () => string;
   loadFromTemplate: (template: ArchitectureTemplate) => void;
   replaceArchitecture: (snapshot: ArchitectureSnapshot) => void;

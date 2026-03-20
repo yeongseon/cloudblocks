@@ -72,7 +72,7 @@ const loadFromStorageMock = vi.fn();
 const resetWorkspaceMock = vi.fn();
 const undoMock = vi.fn();
 const redoMock = vi.fn();
-const importArchitectureMock = vi.fn();
+const importArchitectureMock = vi.fn().mockReturnValue({ success: true });
 
 function getMenuDropdown(triggerLabel: RegExp | string): HTMLElement {
   const trigger = screen.getByRole('button', { name: triggerLabel });
@@ -372,6 +372,48 @@ describe('MenuBar', () => {
 
     vi.stubGlobal('FileReader', originalFileReader);
   }, 15000);
+
+  it('shows alert when import fails', () => {
+    importArchitectureMock.mockReturnValueOnce({ success: false, error: 'plates is required' });
+    const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+
+    render(<MenuBar />);
+    const fileInput = document.querySelector('input[type="file"]');
+    if (!(fileInput instanceof HTMLInputElement)) {
+      throw new Error('Expected hidden file input to be present');
+    }
+
+    let capturedOnload: ((ev: ProgressEvent<FileReader>) => void) | null = null;
+    const originalFileReader = window.FileReader;
+    class MockFileReader {
+      set onload(handler: ((ev: ProgressEvent<FileReader>) => void) | null) {
+        capturedOnload = handler;
+      }
+      get onload(): ((ev: ProgressEvent<FileReader>) => void) | null {
+        return capturedOnload;
+      }
+      readAsText(): void { /* noop */ }
+    }
+    vi.stubGlobal('FileReader', MockFileReader);
+
+    Object.defineProperty(fileInput, 'files', {
+      value: [new File(['{}'], 'bad.json', { type: 'application/json' })],
+      writable: true,
+      configurable: true,
+    });
+    fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+
+    const onloadHandler = capturedOnload as ((ev: ProgressEvent<FileReader>) => void) | null;
+    if (onloadHandler !== null) {
+      onloadHandler({ target: { result: '{}' } } as unknown as ProgressEvent<FileReader>);
+    }
+
+    expect(importArchitectureMock).toHaveBeenCalledWith('{}');
+    expect(alertSpy).toHaveBeenCalledWith('Import failed: plates is required');
+
+    alertSpy.mockRestore();
+    vi.stubGlobal('FileReader', originalFileReader);
+  });
 
   it('does nothing when import change event has no file', () => {
     render(<MenuBar />);

@@ -339,8 +339,11 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
         workspaces: updatedList,
         ...resetTransientState(),
       });
+      return { success: true };
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
       console.error('Failed to import architecture:', error);
+      return { success: false, error: message };
     }
   },
 
