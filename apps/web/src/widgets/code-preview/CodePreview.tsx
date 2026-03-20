@@ -217,7 +217,7 @@ export function CodePreview() {
         <>
           <div className="code-preview-tabs">
             {(() => {
-              const firstProvider = (['azure', 'aws', 'gcp'] as ProviderType[]).find(
+              const firstProvider = PROVIDERS.find(
                 (p) => comparisonOutputs[p]?.files.length > 0
               );
               const files = firstProvider ? comparisonOutputs[firstProvider].files : [];
@@ -233,8 +233,18 @@ export function CodePreview() {
               ));
             })()}
           </div>
+
+          <div className="code-preview-actions">
+            <button type="button" className="code-preview-action-btn" onClick={handleCopyFile}>
+              📋 Copy
+            </button>
+            <button type="button" className="code-preview-action-btn" onClick={handleDownloadAll}>
+              💾 Download All
+            </button>
+          </div>
+
           <div className="code-preview-compare-grid">
-          {(['azure', 'aws', 'gcp'] as ProviderType[]).map((provider) => {
+          {PROVIDERS.map((provider) => {
             const providerOutput = comparisonOutputs[provider];
             const activeFile = providerOutput.files[activeTab] ?? providerOutput.files[0];
 
