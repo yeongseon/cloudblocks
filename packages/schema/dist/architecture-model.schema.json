@@ -1,0 +1,376 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/ArchitectureModel",
+  "definitions": {
+    "ArchitectureModel": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string",
+          "description": "User-facing architecture revision (not schema version)"
+        },
+        "plates": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Plate"
+          }
+        },
+        "blocks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Block"
+          }
+        },
+        "connections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Connection"
+          }
+        },
+        "externalActors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ExternalActor"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO 8601"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO 8601"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "version",
+        "plates",
+        "blocks",
+        "connections",
+        "externalActors",
+        "createdAt",
+        "updatedAt"
+      ],
+      "additionalProperties": false,
+      "description": "The root ArchitectureModel — the single most important type. This is the canonical JSON wire format exchanged between frontend persistence, backend validation, and code generation."
+    },
+    "Plate": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/PlateType"
+        },
+        "subnetAccess": {
+          "$ref": "#/definitions/SubnetAccess",
+          "description": "Only for subnet type"
+        },
+        "profileId": {
+          "type": "string",
+          "description": "Profile preset identifier (frontend concern, but part of the serialized model)"
+        },
+        "parentId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "null for root plate"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Mixed list: child plate IDs + block IDs. (Intentional for MVP; consider splitting to childPlateIds/childBlockIds in v1.0)"
+        },
+        "position": {
+          "$ref": "#/definitions/Position"
+        },
+        "size": {
+          "$ref": "#/definitions/Size"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": {}
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "type",
+        "parentId",
+        "children",
+        "position",
+        "size",
+        "metadata"
+      ],
+      "additionalProperties": false,
+      "description": "A plate is a logical container (VPC, resource group, subnet). Plates nest hierarchically according to LayerType parentage rules."
+    },
+    "PlateType": {
+      "type": "string",
+      "enum": [
+        "global",
+        "edge",
+        "region",
+        "zone",
+        "subnet"
+      ],
+      "description": "Plate types — a subset of LayerType (excludes 'resource'). Plates are visual containers that hold blocks and child plates."
+    },
+    "SubnetAccess": {
+      "type": "string",
+      "enum": [
+        "public",
+        "private"
+      ],
+      "description": "Subnet access visibility."
+    },
+    "Position": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "z": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y",
+        "z"
+      ],
+      "additionalProperties": false,
+      "description": "2D position with z-layer ordering."
+    },
+    "Size": {
+      "type": "object",
+      "properties": {
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        },
+        "depth": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "width",
+        "height",
+        "depth"
+      ],
+      "additionalProperties": false,
+      "description": "3D bounding size."
+    },
+    "Block": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "category": {
+          "$ref": "#/definitions/BlockCategory"
+        },
+        "placementId": {
+          "type": "string",
+          "description": "Parent plate ID"
+        },
+        "position": {
+          "$ref": "#/definitions/Position",
+          "description": "Position relative to parent plate"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "provider": {
+          "$ref": "#/definitions/ProviderType"
+        },
+        "subtype": {
+          "type": "string"
+        },
+        "config": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "aggregation": {
+          "$ref": "#/definitions/Aggregation",
+          "description": "v2.0 §8 — multiple identical resources"
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/BlockRole"
+          },
+          "description": "v2.0 §9 — visual-only role indicators"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "category",
+        "placementId",
+        "position",
+        "metadata"
+      ],
+      "additionalProperties": false,
+      "description": "A block is a cloud resource (VM, database, storage, etc.). Blocks sit on plates and connect to other blocks."
+    },
+    "BlockCategory": {
+      "type": "string",
+      "enum": [
+        "compute",
+        "database",
+        "storage",
+        "gateway",
+        "function",
+        "queue",
+        "event",
+        "analytics",
+        "identity",
+        "observability"
+      ],
+      "description": "Block resource categories — the 10 canonical resource types."
+    },
+    "ProviderType": {
+      "type": "string",
+      "enum": [
+        "azure",
+        "aws",
+        "gcp"
+      ],
+      "description": "Cloud provider identifiers (alphabetical order — canonical)."
+    },
+    "Aggregation": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "$ref": "#/definitions/AggregationMode"
+        },
+        "count": {
+          "type": "number",
+          "description": "Must be >= 1"
+        }
+      },
+      "required": [
+        "mode",
+        "count"
+      ],
+      "additionalProperties": false,
+      "description": "Aggregation descriptor for block instances (v2.0 §8)."
+    },
+    "AggregationMode": {
+      "type": "string",
+      "enum": [
+        "single",
+        "count"
+      ],
+      "description": "Aggregation mode for block instances (v2.0 §8)."
+    },
+    "BlockRole": {
+      "type": "string",
+      "enum": [
+        "primary",
+        "secondary",
+        "reader",
+        "writer",
+        "public",
+        "private",
+        "internal",
+        "external"
+      ],
+      "description": "Block role indicators (v2.0 §9). Visual-only annotations that describe the function of a block."
+    },
+    "Connection": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "sourceId": {
+          "type": "string",
+          "description": "Block or external actor ID (initiator)"
+        },
+        "targetId": {
+          "type": "string",
+          "description": "Block or external actor ID (receiver)"
+        },
+        "type": {
+          "$ref": "#/definitions/ConnectionType"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": {}
+        }
+      },
+      "required": [
+        "id",
+        "sourceId",
+        "targetId",
+        "type",
+        "metadata"
+      ],
+      "additionalProperties": false,
+      "description": "A typed connection between two blocks or external actors. Direction represents the **initiator** of the request; response flows implicitly in the reverse direction."
+    },
+    "ConnectionType": {
+      "type": "string",
+      "enum": [
+        "dataflow",
+        "http",
+        "internal",
+        "data",
+        "async"
+      ],
+      "description": "Connection protocol/type between blocks. Direction represents the **initiator** of the request."
+    },
+    "ExternalActor": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "const": "internet"
+        },
+        "position": {
+          "$ref": "#/definitions/Position"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "type",
+        "position"
+      ],
+      "additionalProperties": false,
+      "description": "An external actor represents an entity outside the architecture that initiates or receives connections (e.g., \"Internet\")."
+    }
+  }
+}

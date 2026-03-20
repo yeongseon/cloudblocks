@@ -11,6 +11,11 @@ build/
 *.tsbuildinfo
 site/
 
+# Keep generated JSON Schema (checked in for auditability)
+!packages/schema/dist/
+packages/schema/dist/*
+!packages/schema/dist/architecture-model.schema.json
+
 # ─── Python ───────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
