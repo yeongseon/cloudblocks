@@ -1,152 +1,141 @@
-# CloudBlocks Documentation Index
+# Welcome to CloudBlocks
 
-> **Reading Order**: concept → adr → model/design → engine → guides
+**CloudBlocks** is an architecture compiler — a visual IDE for cloud infrastructure that turns designs into infrastructure-as-code. Place blocks, connect resources, validate constraints, and generate Terraform, Bicep, or Pulumi — all from the browser.
 
----
+<div class="grid cards" markdown>
 
-## Getting Started Journey
+-   :material-rocket-launch:{ .lg .middle } **Quick Start**
 
-New to CloudBlocks? Follow this path:
+    ---
 
-| Step | What to Do | Link |
-|------|-----------|------|
-| 1. Try it | Open the builder and use a template | [Quick Start](../README.md#quick-start) |
-| 2. Learn | Follow a guided scenario in Learning Mode | [Tutorials](guides/TUTORIALS.md) |
-| 3. Build | Design your own architecture from scratch | [UI Flow](concept/UI_FLOW.md) |
-| 4. Generate | Export to Terraform, Bicep, or Pulumi | [Generator](engine/generator.md) |
-| 5. Deploy | Push to GitHub and trigger CI/CD | [Deployment](guides/DEPLOYMENT.md) |
+    Clone the repo, run `pnpm dev`, and open the builder in under 2 minutes.
 
----
+    [:octicons-arrow-right-24: Get started](guides/TUTORIALS.md)
 
-## Document Ownership
+-   :material-puzzle:{ .lg .middle } **Templates**
 
-| Status | Meaning |
-|--------|---------|
-| **Canonical** | Source of truth — code must conform |
-| **Canonical (v2.0 Target)** | Accepted v2.0 specification — not yet fully implemented |
-| **Superseded** | v1.x spec replaced by v2.0 — retained for reference |
-| **Supporting** | Reference material — links to canonical |
-| **Accepted** | Active decision — currently in effect |
-| **Historical** | Past decisions — do not update |
+    ---
 
----
+    Start from a pre-built architecture — three-tier web app, serverless API, or event pipeline.
 
-## 1. Concept (Start Here)
+    [:octicons-arrow-right-24: Browse templates](engine/templates.md)
 
-High-level product vision and roadmap.
+-   :material-code-braces:{ .lg .middle } **Code Generation**
 
-| Document | Status | Description |
-|----------|--------|-------------|
-| [PRD.md](concept/PRD.md) | Canonical | Product requirements |
-| [ROADMAP.md](concept/ROADMAP.md) | Canonical | Milestone timeline & milestones |
-| [ARCHITECTURE.md](concept/ARCHITECTURE.md) | Supporting | System architecture overview |
-| [UI_FLOW.md](concept/UI_FLOW.md) | Supporting | User interaction flows |
-| [M16_DOCUMENTATION_ARCHITECTURE.md](concept/M16_DOCUMENTATION_ARCHITECTURE.md) | Supporting | Documentation architecture & cleanup plan |
-| [M17_PRODUCT_STRUCTURE.md](concept/M17_PRODUCT_STRUCTURE.md) | Supporting | Product structure & package extraction plan |
-| [M18_DEVOPS_UX.md](concept/M18_DEVOPS_UX.md) | Supporting | DevOps UX & deployment orchestration plan |
+    ---
+
+    Export your design to Terraform, Bicep, or Pulumi with one click.
+
+    [:octicons-arrow-right-24: Learn how](engine/generator.md)
+
+-   :material-shield-check:{ .lg .middle } **Validation Rules**
+
+    ---
+
+    Real-time constraint checking ensures your architecture is valid before you export.
+
+    [:octicons-arrow-right-24: View rules](engine/rules.md)
+
+</div>
 
 ---
 
-## 2. Architecture Decision Records (ADR)
+## Your First Architecture in 5 Steps
 
-Immutable records of key decisions.
-
-| ADR | Status | Decision |
-|-----|--------|----------|
-| [0001](adr/0001-architecture-model-as-source-of-truth.md) | Accepted | Architecture model as source of truth |
-| [0002](adr/0002-git-native-storage.md) | Accepted | Git-native storage |
-| [0003](adr/0003-lego-style-composition-model.md) | Partially Superseded | Lego-style composition model |
-| [0004](adr/0004-rule-engine-architecture.md) | Accepted | Rule engine architecture |
-| [0005](adr/0005-2d-first-editor-with-25d-rendering.md) | Accepted | 2D-first with 2.5D rendering |
-| [0006](adr/0006-graph-ir-evolution-approach.md) | Accepted | Graph IR evolution approach |
-| [0007](adr/0007-multi-environment-deployment-strategy.md) | Accepted | Multi-environment deployment strategy |
-| [0008](adr/0008-v2-universal-architecture-specification.md) | Accepted | v2.0 Universal Architecture Specification |
-| [0009](adr/0009-ai-assisted-architecture.md) | Accepted | AI-assisted architecture |
+| Step | What You Do | Guide |
+|:----:|-------------|-------|
+| **1** | Install and launch the builder | [Installation](guides/DEPLOYMENT.md#quick-start) |
+| **2** | Follow a guided tutorial in Learning Mode | [Tutorials](guides/TUTORIALS.md) |
+| **3** | Design your own architecture | [Using the Editor](concept/UI_FLOW.md) |
+| **4** | Generate infrastructure code | [Code Generator](engine/generator.md) |
+| **5** | Deploy to your cloud environment | [Deployment](guides/DEPLOYMENT.md) |
 
 ---
 
-## 3. Domain Model
+## Key Concepts
 
-Core domain entities and rules.
+CloudBlocks uses a **Lego-style composition model** where everything snaps together:
 
-| Document | Status | Description |
-|----------|--------|-------------|
-| [DOMAIN_MODEL.md](model/DOMAIN_MODEL.md) | **Canonical** | Entities, invariants, type specs |
-| [STORAGE_ARCHITECTURE.md](model/STORAGE_ARCHITECTURE.md) | Canonical | Git-native storage design |
-| [ARCHITECTURE_MODEL_OVERVIEW.md](model/ARCHITECTURE_MODEL_OVERVIEW.md) | Supporting | DSL & pipeline overview |
+- **Plates** — Logical boundaries (VPC, resource group, subnet). Plates hold blocks.
+- **Blocks** — Cloud resources (VM, database, storage, function). Blocks sit on plates.
+- **Connections** — Typed links between blocks (network, data, event, IAM).
+- **Templates** — Pre-built architecture patterns you can load and customize.
 
-> **Code source of truth**: `apps/web/src/shared/types/index.ts`
-
----
-
-## 4. Design Specs
-
-Detailed visual and interaction specifications.
-
-| Document | Status | Description |
-|----------|--------|-------------|
-| [CLOUDBLOCKS_SPEC_V2.md](design/CLOUDBLOCKS_SPEC_V2.md) | **Canonical (v2.0 Target)** | v2.0 universal architecture specification — unified geometry, provider system, visual tokens |
-| [BRICK_DESIGN_SPEC.md](design/BRICK_DESIGN_SPEC.md) | Historical (Superseded) | v1.x merged brick design system (superseded by CLOUDBLOCKS_SPEC_V2.md) |
-| [VISUAL_DESIGN_SPEC.md](design/VISUAL_DESIGN_SPEC.md) | Historical (Superseded) | v1.x colors, geometry, materials (superseded by CLOUDBLOCKS_SPEC_V2.md) |
-| [VALIDATION_CONTRACT.md](design/VALIDATION_CONTRACT.md) | Canonical | Validation rule contracts |
-| [MODULE_BOUNDARIES.md](design/MODULE_BOUNDARIES.md) | Supporting | FSD module structure |
-| [NFR_TARGETS.md](design/NFR_TARGETS.md) | Supporting | Non-functional requirements |
-| [SECURITY_BOUNDARIES.md](design/SECURITY_BOUNDARIES.md) | Supporting | Security constraints |
-| [RELEASE_GATES.md](design/RELEASE_GATES.md) | Supporting | Release criteria |
-| [LEARNING_MODE_SPEC.md](design/LEARNING_MODE_SPEC.md) | **Canonical** | Learning Mode design spec — scenarios, validation, engine, UI |
-| [GRAPH_IR_SPEC.md](design/GRAPH_IR_SPEC.md) | Supporting | Graph IR specification — typed ports, protocol semantics, evolution plan |
-| [KPI_SCORECARD.md](design/KPI_SCORECARD.md) | Supporting | Product & engineering KPI metrics |
-| [BRICK_GUIDEBOOK.md](design/BRICK_GUIDEBOOK.md) | Historical (Superseded) | v1.x visual guidebook (Korean) — superseded by CLOUDBLOCKS_SPEC_V2.md |
-
-> **Historical**: BRICK_DESIGN_SPEC.md and VISUAL_DESIGN_SPEC.md describe the v1.x design system. For current specifications, see CLOUDBLOCKS_SPEC_V2.md (see [ADR-0008](adr/0008-v2-universal-architecture-specification.md)). The v2.0 spec is accepted but not yet fully implemented.
-> **UI Single Source of Truth**: All visual/interaction specs are in `CLOUDBLOCKS_SPEC_V2.md`. See that spec for the StarCraft-style Bottom Panel layout.
+> New to cloud architecture? Start with the [Tutorials](guides/TUTORIALS.md) — they walk you through real-world patterns step by step.
 
 ---
 
-## 5. Engine (Code Generation & AI)
+## What Can You Build?
 
-Infrastructure code generation pipeline and AI-assisted architecture.
-
-| Document | Status | Description |
-|----------|--------|-------------|
-| [generator.md](engine/generator.md) | Canonical | Generation pipeline |
-| [ai.md](engine/ai.md) | Canonical | AI-assisted architecture (NL→architecture, suggestions, cost) |
-| [provider.md](engine/provider.md) | Canonical | Provider adapters (Azure) |
-| [rules.md](engine/rules.md) | Supporting | Validation overview (see VALIDATION_CONTRACT.md for canonical rules) |
-| [templates.md](engine/templates.md) | Canonical | Architecture templates |
+| Pattern | Description | Template |
+|---------|-------------|----------|
+| Three-Tier Web App | Frontend + API + database with networking | Built-in |
+| Serverless API | Functions + API gateway + storage | Built-in |
+| Event-Driven Pipeline | Queues + event hubs + processing | Built-in |
+| Custom Architecture | Start from scratch — any cloud pattern | Blank canvas |
 
 ---
 
-## 6. API
+## Features at a Glance
 
-REST API specification.
-
-| Document | Status | Description |
-|----------|--------|-------------|
-| [API_SPEC.md](api/API_SPEC.md) | Canonical | REST API endpoints |
-
----
-
-## 7. Guides
-
-User and developer guides.
-
-| Document | Status | Description |
-|----------|--------|-------------|
-| [DEPLOYMENT.md](guides/DEPLOYMENT.md) | Supporting | Deployment instructions |
-| [ENVIRONMENT_STRATEGY.md](guides/ENVIRONMENT_STRATEGY.md) | Canonical | Local/staging/production deployment strategy |
-| [TUTORIALS.md](guides/TUTORIALS.md) | Supporting | Getting started tutorials |
+| Feature | Description |
+|---------|-------------|
+| **Visual Builder** | Drag-and-drop editor with grid snapping and auto-layout |
+| **10 Resource Categories** | Compute, database, storage, gateway, function, queue, event, analytics, identity, observability |
+| **Multi-Cloud Output** | Generate Terraform (HCL — HashiCorp Configuration Language), Bicep (Azure Resource Manager), or Pulumi (TypeScript) |
+| **Validation Engine** | Real-time rule checking for placement, connections, and constraints |
+| **AI Assistant** | Natural language to architecture, smart suggestions, cost estimation (requires backend) |
+| **GitHub Integration** | OAuth login, repo sync, PR creation, architecture diff |
+| **Learning Mode** | Guided scenarios to learn cloud architecture patterns |
+| **Multi-Environment** | Design for dev, staging, and production in one project |
 
 ---
 
-## Key Reference Documents
+## Learn More
 
-| Concern | Reference Document |
-|---------|-------------------|
-| Domain entities & types | [DOMAIN_MODEL.md](model/DOMAIN_MODEL.md) |
-| Visual sizing & layout | [CLOUDBLOCKS_SPEC_V2.md](design/CLOUDBLOCKS_SPEC_V2.md) |
-| Colors & materials | [CLOUDBLOCKS_SPEC_V2.md](design/CLOUDBLOCKS_SPEC_V2.md) |
-| TypeScript types | `apps/web/src/shared/types/index.ts` |
-| Validation rules | `apps/web/src/entities/validation/` |
-| Milestone timeline | [ROADMAP.md](concept/ROADMAP.md) |
-| KPI metrics | [KPI_SCORECARD.md](design/KPI_SCORECARD.md) |
+<div class="grid cards" markdown>
+
+-   :material-book-open-variant:{ .lg .middle } **Guides**
+
+    ---
+
+    Environment setup, deployment strategies, and workspace configuration.
+
+    [:octicons-arrow-right-24: Guides](guides/ENVIRONMENT_STRATEGY.md)
+
+-   :material-robot:{ .lg .middle } **AI Engine**
+
+    ---
+
+    Use natural language to generate architectures, get suggestions, and estimate costs.
+
+    [:octicons-arrow-right-24: AI docs](engine/ai.md)
+
+-   :material-file-document:{ .lg .middle } **Spec Reference**
+
+    ---
+
+    Full CloudBlocks v2.0 specification — geometry, providers, visual tokens.
+
+    [:octicons-arrow-right-24: Spec v2.0](design/CLOUDBLOCKS_SPEC_V2.md)
+
+-   :material-api:{ .lg .middle } **REST API**
+
+    ---
+
+    Backend API endpoints for architectures, templates, AI, and GitHub integration.
+
+    [:octicons-arrow-right-24: API spec](api/API_SPEC.md)
+
+</div>
+
+---
+
+## For Developers
+
+Building or contributing to CloudBlocks? Head to the **[Developer](concept/ARCHITECTURE.md)** section for architecture docs, ADRs, module boundaries, and milestone plans.
+
+- [Architecture Overview](concept/ARCHITECTURE.md)
+- [Domain Model](model/DOMAIN_MODEL.md)
+- [Decision Records (ADRs)](adr/README.md)
+- [Contributing Guide](https://github.com/yeongseon/cloudblocks/blob/main/CONTRIBUTING.md)

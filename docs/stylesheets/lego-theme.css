@@ -97,44 +97,70 @@
    --------------------------------------------------------------------------- */
 
 [data-md-color-scheme="slate"] {
-  /* Neutral hue — no warm/brown tint */
-  --md-hue: 220;
+  --md-hue: 0;
 
-  /* Primary = Lego Blue (brighter for contrast on dark) */
-  --md-primary-fg-color: var(--lego-blue-light);
-  --md-primary-fg-color--light: #5599DD;
-  --md-primary-fg-color--dark: var(--lego-blue);
-  --md-primary-bg-color: #1a1a2e;
-  --md-primary-bg-color--light: #22223a;
+  --md-primary-fg-color: var(--lego-blue);
+  --md-primary-fg-color--light: var(--lego-blue-light);
+  --md-primary-fg-color--dark: var(--lego-blue-dark);
+  --md-primary-bg-color: #ffffff;
+  --md-primary-bg-color--light: rgba(255, 255, 255, 0.7);
 
-  /* Accent = Lego Blue-Light (subtle, not yellow) */
-  --md-accent-fg-color: var(--lego-blue-light);
-  --md-accent-fg-color--transparent: rgba(51, 133, 214, 0.1);
-  --md-accent-bg-color: var(--lego-blue);
+  --md-accent-fg-color: var(--lego-yellow);
+  --md-accent-fg-color--transparent: rgba(255, 213, 0, 0.15);
+  --md-accent-bg-color: var(--lego-yellow-dark);
+  --md-accent-bg-color--light: rgba(255, 213, 0, 0.2);
 
-  /* Background = neutral dark (no brown) */
-  --md-default-bg-color: #1a1a2e;
-  --md-default-bg-color--light: #20203a;
-  --md-default-bg-color--lighter: #2a2a44;
-  --md-default-bg-color--lightest: #35354f;
+  --md-default-bg-color: #2d2d2d;
+  --md-default-bg-color--light: #353535;
+  --md-default-bg-color--lighter: #3e3e3e;
+  --md-default-bg-color--lightest: #4a4a4a;
 
-  /* Text = high-contrast neutral white */
-  --md-default-fg-color: #e0e0e8;
-  --md-default-fg-color--light: rgba(224, 224, 232, 0.72);
-  --md-default-fg-color--lighter: rgba(224, 224, 232, 0.42);
-  --md-default-fg-color--lightest: rgba(224, 224, 232, 0.12);
+  --md-default-fg-color: rgba(255, 255, 255, 0.92);
+  --md-default-fg-color--light: rgba(255, 255, 255, 0.72);
+  --md-default-fg-color--lighter: rgba(255, 255, 255, 0.48);
+  --md-default-fg-color--lightest: rgba(255, 255, 255, 0.18);
 
-  /* Footer */
-  --md-footer-bg-color: #12121f;
-  --md-footer-bg-color--dark: #0a0a14;
-
-  /* Code */
-  --md-code-bg-color: #22223a;
-  --md-code-fg-color: #e0e0e8;
-  --md-code-hl-color: rgba(51, 133, 214, 0.2);
-
-  /* Typeset links */
+  --md-typeset-color: rgba(255, 255, 255, 0.92);
   --md-typeset-a-color: #6eaaef;
+
+  --md-footer-bg-color: #1a1a1a;
+  --md-footer-bg-color--dark: #111111;
+  --md-footer-fg-color: rgba(255, 255, 255, 0.7);
+  --md-footer-fg-color--light: rgba(255, 255, 255, 0.5);
+  --md-footer-fg-color--lighter: rgba(255, 255, 255, 0.3);
+
+  --md-code-bg-color: #242424;
+  --md-code-fg-color: rgba(255, 255, 255, 0.88);
+  --md-code-hl-color: rgba(51, 133, 214, 0.25);
+  --md-code-hl-color--light: rgba(51, 133, 214, 0.08);
+  --md-code-hl-number-color: #e6695b;
+  --md-code-hl-special-color: #f06090;
+  --md-code-hl-function-color: #c973d9;
+  --md-code-hl-constant-color: #9383e2;
+  --md-code-hl-keyword-color: #6791e0;
+  --md-code-hl-string-color: #2fb170;
+  --md-code-hl-name-color: var(--md-code-fg-color);
+  --md-code-hl-operator-color: var(--md-default-fg-color--light);
+  --md-code-hl-punctuation-color: var(--md-default-fg-color--light);
+  --md-code-hl-comment-color: var(--md-default-fg-color--lighter);
+  --md-code-hl-generic-color: var(--md-default-fg-color--light);
+  --md-code-hl-variable-color: var(--md-default-fg-color--light);
+
+  --md-admonition-fg-color: var(--md-default-fg-color);
+  --md-admonition-bg-color: var(--md-default-bg-color--light);
+
+  --md-typeset-kbd-color: rgba(255, 255, 255, 0.12);
+  --md-typeset-kbd-accent-color: rgba(255, 255, 255, 0.2);
+  --md-typeset-kbd-border-color: #2d2d2d;
+  --md-typeset-mark-color: rgba(255, 213, 0, 0.30);
+  --md-typeset-table-color: rgba(255, 255, 255, 0.12);
+  --md-typeset-table-color--light: rgba(255, 255, 255, 0.04);
+
+  --md-shadow-z1: 0 0.2rem 0.5rem rgba(0,0,0,0.25), 0 0 0.05rem rgba(0,0,0,0.35);
+  --md-shadow-z2: 0 0.2rem 0.5rem rgba(0,0,0,0.45), 0 0 0.05rem rgba(0,0,0,0.55);
+  --md-shadow-z3: 0 0.2rem 0.5rem rgba(0,0,0,0.65), 0 0 0.05rem rgba(0,0,0,0.75);
+
+  color-scheme: dark;
 }
 
 /* ---------------------------------------------------------------------------
@@ -161,8 +187,8 @@
 }
 
 [data-md-color-scheme="slate"] .md-typeset h1 {
-  color: #f0f0f5;
-  border-bottom-color: rgba(224, 224, 232, 0.3);
+  color: #ffffff;
+  border-bottom-color: var(--lego-red);
 }
 
 /* h2 — Stud accent divider */
@@ -188,11 +214,13 @@
 }
 
 [data-md-color-scheme="slate"] .md-typeset h2 {
-  border-bottom-color: rgba(224, 224, 232, 0.2);
+  border-bottom-color: var(--lego-yellow-dark);
 }
 
 [data-md-color-scheme="slate"] .md-typeset h2::after {
-  display: none;
+  background-image:
+    radial-gradient(ellipse 8px 4px at 8px 2px, var(--lego-yellow-dark) 60%, transparent 60%);
+  opacity: 0.4;
 }
 
 /* h3 — Lego green left accent */
@@ -215,8 +243,8 @@
 }
 
 [data-md-color-scheme="slate"] .md-header {
-  background-color: #12121f;
-  box-shadow: 0 4px 0 0 #0a0a14, 0 6px 12px rgba(0, 0, 0, 0.3);
+  background-color: var(--lego-blue-dark);
+  box-shadow: 0 4px 0 0 #001f4d, 0 6px 12px rgba(0, 0, 0, 0.4);
 }
 
 .md-header__title {
@@ -251,7 +279,7 @@
 }
 
 [data-md-color-scheme="slate"] .md-nav__item--active > .md-nav__link {
-  color: var(--lego-blue-light);
+  color: var(--lego-yellow);
 }
 
 /* Section labels */
@@ -413,24 +441,25 @@
   box-shadow: inset 0 -3px 0 0 var(--lego-red);
 }
 
-/* Dark mode tabs — muted gold banner */
 [data-md-color-scheme="slate"] .md-tabs {
-  background-color: #20203a;
-  border-bottom-color: #2a2a44;
+  background-color: var(--lego-yellow-dark);
+  border-bottom-color: #b89800;
 }
 
 [data-md-color-scheme="slate"] .md-tabs__link {
-  color: rgba(224, 224, 232, 0.7);
+  color: rgba(0, 30, 80, 0.75);
 }
 
 [data-md-color-scheme="slate"] .md-tabs__link:hover {
-  color: #e0e0e8;
-  background-color: rgba(255, 255, 255, 0.06);
+  color: var(--lego-blue-dark);
+  background-color: rgba(255, 255, 255, 0.3);
 }
 
 [data-md-color-scheme="slate"] .md-tabs__link--active {
-  color: #e0e0e8;
-  box-shadow: inset 0 -2px 0 0 var(--lego-blue-light);
+  color: var(--lego-blue-dark);
+  font-weight: 700;
+  background-color: rgba(255, 255, 255, 0.25);
+  box-shadow: inset 0 -3px 0 0 var(--lego-red);
 }
 
 /* ---------------------------------------------------------------------------
@@ -453,24 +482,34 @@
 .md-header::after {
   content: "";
   display: block;
-  height: 4px;
+  height: 6px;
   background-image:
-    radial-gradient(ellipse 5px 2px at 5px 2px, rgba(255, 255, 255, 0.1) 50%, transparent 50%);
-  background-size: 14px 4px;
+    radial-gradient(ellipse 6px 3px at 6px 3px, rgba(255, 255, 255, 0.15) 50%, transparent 50%);
+  background-size: 16px 6px;
   background-repeat: repeat-x;
   background-position: 0 0;
+}
+
+[data-md-color-scheme="slate"] .md-header::after {
+  background-image:
+    radial-gradient(ellipse 6px 3px at 6px 3px, rgba(255, 255, 255, 0.25) 50%, transparent 50%);
 }
 
 /* Stud row above footer */
 .md-footer::before {
   content: "";
   display: block;
-  height: 4px;
+  height: 6px;
   background-image:
-    radial-gradient(ellipse 5px 2px at 5px 2px, rgba(255, 213, 0, 0.15) 50%, transparent 50%);
-  background-size: 14px 4px;
+    radial-gradient(ellipse 6px 3px at 6px 3px, rgba(255, 213, 0, 0.25) 50%, transparent 50%);
+  background-size: 16px 6px;
   background-repeat: repeat-x;
   background-position: 0 0;
+}
+
+[data-md-color-scheme="slate"] .md-footer::before {
+  background-image:
+    radial-gradient(ellipse 6px 3px at 6px 3px, rgba(255, 213, 0, 0.35) 50%, transparent 50%);
 }
 
 /* ---------------------------------------------------------------------------
@@ -514,7 +553,7 @@
 
 [data-md-color-scheme="slate"] .md-typeset a:focus,
 [data-md-color-scheme="slate"] .md-nav__link:focus-visible {
-  outline-color: var(--lego-blue-light);
+  outline-color: var(--lego-yellow);
 }
 
 /* ---------------------------------------------------------------------------
@@ -537,8 +576,8 @@
 }
 
 [data-md-color-scheme="slate"] .md-nav--secondary .md-nav__link--active {
-  color: var(--lego-blue-light);
-  border-left-color: var(--lego-blue);
+  color: var(--lego-yellow);
+  border-left-color: var(--lego-red);
 }
 
 /* ---------------------------------------------------------------------------
