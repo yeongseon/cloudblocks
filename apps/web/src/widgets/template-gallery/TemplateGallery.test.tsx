@@ -8,24 +8,16 @@ import { registerBuiltinTemplates } from '../../features/templates/builtin';
 
 describe('TemplateGallery', () => {
   beforeEach(() => {
-    useUIStore.setState({ showTemplateGallery: false });
     // Register builtin templates so listTemplates() returns data
     registerBuiltinTemplates();
   });
 
-  it('returns null when showTemplateGallery is false', () => {
-    const { container } = render(<TemplateGallery />);
-    expect(container.innerHTML).toBe('');
-  });
-
-  it('renders template gallery with title when visible', () => {
-    useUIStore.setState({ showTemplateGallery: true });
+  it('renders template gallery with title', () => {
     render(<TemplateGallery />);
     expect(screen.getByText(/Templates/)).toBeInTheDocument();
   });
 
   it('renders template cards with name, description, and tags', () => {
-    useUIStore.setState({ showTemplateGallery: true });
     render(<TemplateGallery />);
     // Should have at least one template card with "Use Template" button
     const useButtons = screen.getAllByText('Use Template');
@@ -33,7 +25,6 @@ describe('TemplateGallery', () => {
   });
 
   it('renders difficulty badges', () => {
-    useUIStore.setState({ showTemplateGallery: true });
     render(<TemplateGallery />);
     // Built-in templates should have difficulty text
     const badges = screen.getAllByText(/beginner|intermediate|advanced/i);
@@ -67,8 +58,35 @@ describe('TemplateGallery', () => {
     expect(useUIStore.getState().showTemplateGallery).toBe(false);
   });
 
-  it('renders tags for templates (up to 3)', () => {
+  it('calls loadFromTemplate before saveToStorage on use template', async () => {
+    const user = userEvent.setup();
     useUIStore.setState({ showTemplateGallery: true });
+
+    const callOrder: string[] = [];
+    const saveToStorageSpy = vi.fn(() => { callOrder.push('saveToStorage'); return true; });
+    const loadFromTemplateSpy = vi.fn(() => { callOrder.push('loadFromTemplate'); });
+
+    useArchitectureStore.setState({
+      saveToStorage: saveToStorageSpy,
+      loadFromTemplate: loadFromTemplateSpy,
+    });
+
+    render(<TemplateGallery />);
+    const useButtons = screen.getAllByText('Use Template');
+    await user.click(useButtons[0]);
+
+    // Verify both functions were called
+    expect(loadFromTemplateSpy).toHaveBeenCalledOnce();
+    expect(saveToStorageSpy).toHaveBeenCalledOnce();
+
+    // Verify saveToStorage is called AFTER loadFromTemplate
+    expect(callOrder).toEqual(['loadFromTemplate', 'saveToStorage']);
+
+    // Gallery should be toggled off
+    expect(useUIStore.getState().showTemplateGallery).toBe(false);
+  });
+
+  it('renders tags for templates (up to 3)', () => {
     render(<TemplateGallery />);
     // Tags are displayed as spans with class template-gallery-tag
     const tagElements = document.querySelectorAll('.template-gallery-tag');
@@ -76,7 +94,6 @@ describe('TemplateGallery', () => {
   });
 
   it('renders category filter tabs', () => {
-    useUIStore.setState({ showTemplateGallery: true });
     render(<TemplateGallery />);
 
     expect(screen.getByRole('button', { name: 'All' })).toBeInTheDocument();
@@ -88,7 +105,6 @@ describe('TemplateGallery', () => {
 
   it('filters templates when a category tab is clicked', async () => {
     const user = userEvent.setup();
-    useUIStore.setState({ showTemplateGallery: true });
     render(<TemplateGallery />);
 
     await user.click(screen.getByRole('button', { name: 'Serverless' }));
@@ -98,9 +114,26 @@ describe('TemplateGallery', () => {
   });
 
   it('renders generator compatibility tag for templates that define generatorCompat', () => {
-    useUIStore.setState({ showTemplateGallery: true });
     render(<TemplateGallery />);
 
     expect(screen.getAllByText('terraform · bicep · pulumi').length).toBeGreaterThan(0);
+  });
+
+  it('resets category filter on remount', async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<TemplateGallery />);
+
+    // Select a non-default category
+    await user.click(screen.getByRole('button', { name: 'Serverless' }));
+    expect(screen.getByText('Serverless HTTP API')).toBeInTheDocument();
+    expect(screen.queryByText('Three-Tier Web Application')).not.toBeInTheDocument();
+
+    // Remount (simulates close/reopen via conditional rendering)
+    unmount();
+    render(<TemplateGallery />);
+
+    // After remount, all templates should be visible again (All filter)
+    expect(screen.getByText('Three-Tier Web Application')).toBeInTheDocument();
+    expect(screen.getByText('Serverless HTTP API')).toBeInTheDocument();
   });
 });
