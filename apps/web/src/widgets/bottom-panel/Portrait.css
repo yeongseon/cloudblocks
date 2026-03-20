@@ -116,12 +116,10 @@
   filter: drop-shadow(0 2px 0 rgba(0,0,0,0.4));
 }
 
-/* Plate state */
+/* Plate state — background-color and border-color set via inline style per plate type */
 .portrait-panel--plate {
-  background-color: #00852B;
-  border-color: #00591D;
   background-image: 
-    radial-gradient(circle at 6px 6px, #00A636 2.5px, transparent 3px),
+    radial-gradient(circle at 6px 6px, rgba(255,255,255,0.18) 2.5px, transparent 3px),
     radial-gradient(circle at 6px 7px, rgba(0,0,0,0.15) 3px, transparent 3.5px);
   background-size: 12px 12px;
 }

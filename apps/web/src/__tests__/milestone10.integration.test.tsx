@@ -152,8 +152,7 @@ describe('Milestone 10 integration', () => {
     expect(useUIStore.getState().selectedId).toBe('worker-default');
     expect(screen.getByText('Build Order')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Compute' }));
-    await user.click(screen.getByTitle('Build Virtual Machine (Q)'));
+    await user.click(screen.getByTitle('Build Virtual Machine'));
 
     await waitFor(() => {
       expect(useArchitectureStore.getState().workspace.architecture.blocks).toHaveLength(1);
