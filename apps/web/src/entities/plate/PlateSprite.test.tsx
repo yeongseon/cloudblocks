@@ -26,7 +26,7 @@ vi.mock('./PlateSvg', () => ({
     <div
       data-testid="plate-svg"
       data-label={props.label}
-      data-emoji={props.emoji}
+      data-icon-url={props.iconUrl}
       data-top-face-color={props.topFaceColor}
     />
   ),

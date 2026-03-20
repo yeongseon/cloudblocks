@@ -1,9 +1,8 @@
 /**
- * Portrait Panel — Azure Resource Icon Display (StarCraft-style unit portrait)
+ * Portrait Panel — Resource Icon Display (StarCraft-style unit portrait)
  *
- * Shows the Azure product icon of the selected resource,
- * like a character face in StarCraft's unit wireframe panel.
- * Shows CloudBlocks logo when nothing is selected.
+ * Shows the product icon of the selected resource using provider-aware
+ * icon resolution. Shows CloudBlocks logo when nothing is selected.
  *
  * Based on VISUAL_DESIGN_SPEC.md §7.4
  */
@@ -14,41 +13,12 @@ import { useWorkerStore } from '../../entities/store/workerStore';
 import { getPlateFaceColors } from '../../entities/plate/plateFaceColors';
 import { BLOCK_FRIENDLY_NAMES, CONNECTION_TYPE_LABELS, PLATE_COLORS, SUBNET_ACCESS_COLORS } from '../../shared/types/index';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
-import vmIcon from '../../shared/assets/azure-icons/virtual-machine.svg';
-import sqlIcon from '../../shared/assets/azure-icons/sql-database.svg';
-import storageIcon from '../../shared/assets/azure-icons/storage-account.svg';
-import gatewayIcon from '../../shared/assets/azure-icons/application-gateway.svg';
-import functionIcon from '../../shared/assets/azure-icons/logic-apps.svg';
-import queueIcon from '../../shared/assets/azure-icons/service-bus.svg';
-import eventIcon from '../../shared/assets/azure-icons/event-hub.svg';
-import vnetIcon from '../../shared/assets/azure-icons/virtual-network.svg';
-import subnetIcon from '../../shared/assets/azure-icons/subnet.svg';
+import { getBlockIconUrl, getPlateIconUrl } from '../../shared/utils/iconResolver';
 import './Portrait.css';
 
 interface PortraitProps {
   className?: string;
 }
-
-const BLOCK_ICONS: Record<string, string> = {
-  compute: vmIcon,
-  database: sqlIcon,
-  storage: storageIcon,
-  gateway: gatewayIcon,
-  function: functionIcon,
-  queue: queueIcon,
-  event: eventIcon,
-  analytics: vmIcon,
-  identity: storageIcon,
-  observability: eventIcon,
-};
-
-const PLATE_ICONS: Record<string, Record<string, string>> = {
-  global: { default: vnetIcon },
-  edge: { default: vnetIcon },
-  region: { default: vnetIcon },
-  zone: { default: vnetIcon },
-  subnet: { public: subnetIcon, private: subnetIcon },
-};
 
 export function Portrait({ className = '' }: PortraitProps) {
   const selectedId = useUIStore((s) => s.selectedId);
@@ -94,7 +64,7 @@ export function Portrait({ className = '' }: PortraitProps) {
     return (
       <div className={`portrait-panel portrait-panel--block ${className}`}>
         <div className="portrait-content">
-          <img src={BLOCK_ICONS[selectedBlock.category]} alt={BLOCK_FRIENDLY_NAMES[selectedBlock.category]} className="portrait-icon-img" />
+          <img src={getBlockIconUrl(selectedBlock.provider ?? 'azure', selectedBlock.category, selectedBlock.subtype)} alt={BLOCK_FRIENDLY_NAMES[selectedBlock.category]} className="portrait-icon-img" />
           <span className="portrait-label">{selectedBlock.name}</span>
         </div>
         <div className="portrait-badge" style={{ backgroundColor: color }}>
@@ -112,9 +82,7 @@ export function Portrait({ className = '' }: PortraitProps) {
 
     const faceColors = getPlateFaceColors(selectedPlate);
 
-    const plateIcon = selectedPlate.type === 'subnet'
-      ? PLATE_ICONS.subnet[selectedPlate.subnetAccess ?? 'private']
-      : PLATE_ICONS[selectedPlate.type].default;
+    const plateIcon = getPlateIconUrl(selectedPlate.type, selectedPlate.subnetAccess);
 
     const altText = selectedPlate.type === 'subnet'
       ? `${selectedPlate.subnetAccess === 'public' ? 'Public' : 'Private'} Subnet`

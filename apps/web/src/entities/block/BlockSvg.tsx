@@ -1,6 +1,7 @@
 import { memo, useId, useMemo } from 'react';
 import type { BlockCategory, BlockRole, ProviderType } from '@cloudblocks/schema';
-import { BLOCK_SHORT_NAMES, BLOCK_ICONS, ROLE_VISUAL_INDICATORS } from '../../shared/types/index';
+import { BLOCK_SHORT_NAMES, ROLE_VISUAL_INDICATORS } from '../../shared/types/index';
+import { getBlockIconUrl } from '../../shared/utils/iconResolver';
 import { getBlockDimensions, getBlockVisualProfile } from '../../shared/types/visualProfile';
 import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
 import {
@@ -36,7 +37,7 @@ export const BlockSvg = memo(function BlockSvg({ category, provider, subtype, na
   const faceColors = getBlockFaceColors(category, provider ?? 'azure', subtype);
   const studColors = getBlockStudColors(category, provider ?? 'azure', subtype);
   const shortName = BLOCK_SHORT_NAMES[category];
-  const icon = BLOCK_ICONS[category];
+  const iconUrl = getBlockIconUrl(provider ?? 'azure', category, subtype);
 
   // ─── v2.0: silhouette from CU dimensions ───────────────────
   const { topFacePoints, leftSidePoints, rightSidePoints } = getSilhouetteFromCU(
@@ -84,7 +85,7 @@ export const BlockSvg = memo(function BlockSvg({ category, provider, subtype, na
 
   const minDim = Math.min(studsX, studsY);
   const labelFontSize = minDim <= 1 ? 8 : minDim <= 2 ? 10 : 13;
-  const iconFontSize = minDim <= 1 ? 10 : minDim <= 2 ? 14 : 18;
+  const iconSize = minDim <= 1 ? 12 : minDim <= 2 ? 16 : 20;
 
   return (
     <svg
@@ -116,15 +117,14 @@ export const BlockSvg = memo(function BlockSvg({ category, provider, subtype, na
         {name ?? shortName}
       </text>
 
-      <text
+      <image
+        href={iconUrl}
+        width={iconSize}
+        height={iconSize}
+        x={-iconSize / 2}
+        y={-iconSize / 2}
         transform={`matrix(0.8975,-0.4410,0,1,${rightLabelX},${wallCenterY})`}
-        fontFamily="system-ui, -apple-system, sans-serif"
-        fontSize={iconFontSize}
-        textAnchor="middle"
-        dominantBaseline="middle"
-      >
-        {icon}
-      </text>
+      />
 
       {aggregationCount != null && aggregationCount > 1 && (
         <g data-testid="aggregation-badge">

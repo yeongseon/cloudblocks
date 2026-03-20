@@ -307,10 +307,12 @@ describe('BlockSvg SVG structure', () => {
     expect(lines.length).toBe(1);
   });
 
-  it('renders short name and icon text elements', () => {
+  it('renders short name text and icon image elements', () => {
     const { container } = render(<BlockSvg category="compute" />);
     const texts = container.querySelectorAll('text');
-    expect(texts.length).toBe(2);
+    const images = container.querySelectorAll('image');
+    expect(texts.length).toBe(1); // name on left wall
+    expect(images.length).toBe(1); // icon on right wall
   });
 
   it('has aria-hidden for decorative SVG', () => {
@@ -477,6 +479,7 @@ describe('BlockSvg name prop', () => {
     const { container } = render(<BlockSvg category="database" name="ProdDB" />);
     const texts = container.querySelectorAll('text');
     expect(texts[0].textContent).toBe('ProdDB');
-    expect(texts[1].textContent).not.toBe('ProdDB');
+    const images = container.querySelectorAll('image');
+    expect(images.length).toBe(1);
   });
 });

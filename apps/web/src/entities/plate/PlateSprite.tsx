@@ -6,6 +6,7 @@ import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import { getDiffState } from '../../features/diff/engine';
 import type { DiffDelta } from '../../shared/types/diff';
+import { getPlateIconUrl } from '../../shared/utils/iconResolver';
 import { screenDeltaToWorld, snapToGrid, worldSizeToScreen } from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
 import { canPlaceBlock } from '../validation/placement';
@@ -166,17 +167,7 @@ export const PlateSprite = memo(function PlateSprite({
           ? 'Zone Layer'
           : 'Region Layer';
   const label = plate.name || typeLabel;
-  const emoji = plate.type === 'subnet'
-    ? plate.subnetAccess === 'public'
-      ? '🔓'
-      : '🔒'
-    : plate.type === 'global'
-      ? '🌎'
-      : plate.type === 'edge'
-        ? '🛰️'
-        : plate.type === 'zone'
-          ? '🧭'
-          : '🌐';
+  const iconUrl = getPlateIconUrl(plate.type, plate.subnetAccess);
 
   const { screenWidth, screenHeight } = worldSizeToScreen(plate.size.width, plate.size.height, plate.size.depth);
 
@@ -228,7 +219,7 @@ export const PlateSprite = memo(function PlateSprite({
             leftSideColor={faceColors.leftSideColor}
             rightSideColor={faceColors.rightSideColor}
             label={label}
-            emoji={emoji}
+            iconUrl={iconUrl}
           />
         </div>
       </button>
