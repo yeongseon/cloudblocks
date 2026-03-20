@@ -6,7 +6,7 @@ const resetStore = () => {
   useWorkerStore.setState({
     workerId: 'worker-default',
     workerState: 'idle',
-    workerPosition: [0, 0, 0],
+    workerPosition: [-3, 0, -6],
     buildQueue: [],
     activeBuild: null,
   });
@@ -22,7 +22,7 @@ describe('workerStore', () => {
 
     expect(state.workerId).toBe('worker-default');
     expect(state.workerState).toBe('idle');
-    expect(state.workerPosition).toEqual([0, 0, 0]);
+    expect(state.workerPosition).toEqual([-3, 0, -6]);
     expect(state.buildQueue).toEqual([]);
     expect(state.activeBuild).toBeNull();
   });

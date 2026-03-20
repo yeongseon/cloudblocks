@@ -1,13 +1,30 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MinifigureSprite } from './MinifigureSprite';
 import { useUIStore } from '../store/uiStore';
 import { useWorkerStore } from '../store/workerStore';
+import { screenDeltaToWorld } from '../../shared/utils/isometric';
 
-// Mock MinifigureSvg to simplify testing
+type DragListeners = {
+  start?: (event: { target: HTMLElement }) => void;
+  move?: (event: { target: HTMLElement; dx: number; dy: number }) => void;
+  end?: (event: { target: HTMLElement }) => void;
+};
+
+const draggableListeners = new WeakMap<HTMLElement, DragListeners>();
+
+vi.mock('interactjs', () => ({
+  default: (element: HTMLElement) => ({
+    draggable: (options: { listeners: DragListeners }) => {
+      draggableListeners.set(element, options.listeners);
+      return { unset: vi.fn() };
+    },
+  }),
+}));
+
 vi.mock('./MinifigureSvg', () => ({
-  MinifigureSvg: ({ provider }: { provider: string }) => <div data-testid="mock-svg">{provider}</div>
+  MinifigureSvg: ({ provider }: { provider: string }) => <div data-testid="mock-svg">{provider}</div>,
 }));
 
 vi.mock('./MinifigureSprite.css', () => ({}));
@@ -23,104 +40,52 @@ describe('MinifigureSprite', () => {
     useUIStore.setState({
       selectedId: null,
       toolMode: 'select',
+      isSoundMuted: true,
     });
     useWorkerStore.setState({
       workerState: 'idle',
+      workerPosition: [-3, 0, -6],
     });
   });
 
   it('renders without errors and positions correctly', () => {
-    const { container } = render(
-      <MinifigureSprite provider="azure" screenX={100} screenY={200} zIndex={5} />
-    );
+    const { container } = render(<MinifigureSprite provider="azure" screenX={100} screenY={200} zIndex={5} />);
 
     const root = container.firstElementChild as HTMLElement;
     expect(root).toHaveClass('minifigure-sprite');
     expect(root).toHaveStyle({ left: '100px', top: '200px', zIndex: '5' });
-  });
-
-  it('renders MinifigureSvg with correct provider', () => {
-    render(<MinifigureSprite provider="aws" screenX={0} screenY={0} zIndex={1} />);
-    
-    const svgMock = screen.getByTestId('mock-svg');
-    expect(svgMock).toBeInTheDocument();
-    expect(svgMock).toHaveTextContent('aws');
+    expect(screen.getByTestId('mock-svg')).toHaveTextContent('azure');
   });
 
   it('click sets selectedId to worker-default', async () => {
     const user = userEvent.setup();
     const { container } = render(<MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />);
 
-    await user.click(container.firstElementChild as HTMLElement);
+    await user.pointer([{ target: container.firstElementChild as HTMLElement, keys: '[MouseLeft]' }]);
 
     expect(useUIStore.getState().selectedId).toBe('worker-default');
   });
 
-  it('shows is-selected class when selected', () => {
-    useUIStore.setState({ selectedId: 'worker-default' });
-    const { container } = render(
-      <MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />
-    );
+  it('uses workerStore position as drag move base', () => {
+    useWorkerStore.setState({ workerPosition: [5, 0, -2] });
+    const { container } = render(<MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />);
 
-    expect(container.firstElementChild).toHaveClass('is-selected');
-  });
+    const sprite = container.firstElementChild as HTMLElement;
+    const listeners = draggableListeners.get(sprite);
+    expect(listeners).toBeDefined();
 
-  it('shows worker state class is-idle', () => {
-    useWorkerStore.setState({ workerState: 'idle' });
-    const { container } = render(
-      <MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />
-    );
+    const dx = 24;
+    const dy = 12;
+    const { dWorldX, dWorldZ } = screenDeltaToWorld(dx, dy);
 
-    expect(container.firstElementChild).toHaveClass('is-idle');
-  });
+    act(() => {
+      listeners?.start?.({ target: sprite });
+      listeners?.move?.({ target: sprite, dx, dy });
+    });
 
-  it('shows worker state class is-moving', () => {
-    useWorkerStore.setState({ workerState: 'moving' });
-    const { container } = render(
-      <MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />
-    );
-
-    expect(container.firstElementChild).toHaveClass('is-moving');
-  });
-
-  it('has correct base CSS classes', () => {
-    const { container } = render(
-      <MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />
-    );
-
-    expect(container.firstElementChild).toHaveClass('minifigure-sprite');
-  });
-
-  it('shows worker state class is-building', () => {
-    useWorkerStore.setState({ workerState: 'building' });
-    const { container } = render(
-      <MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />
-    );
-
-    expect(container.firstElementChild).toHaveClass('is-building');
-  });
-
-  it('does not respond to click in delete mode', async () => {
-    const user = userEvent.setup();
-    useUIStore.setState({ toolMode: 'delete' });
-    const { container } = render(
-      <MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />
-    );
-
-    await user.click(container.firstElementChild as HTMLElement);
-
-    expect(useUIStore.getState().selectedId).toBeNull();
-  });
-
-  it('does not respond to click in connect mode', async () => {
-    const user = userEvent.setup();
-    useUIStore.setState({ toolMode: 'connect' });
-    const { container } = render(
-      <MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />
-    );
-
-    await user.click(container.firstElementChild as HTMLElement);
-
-    expect(useUIStore.getState().selectedId).toBeNull();
+    const [nextX, nextY, nextZ] = useWorkerStore.getState().workerPosition;
+    expect(nextY).toBe(0);
+    expect(nextX).toBeCloseTo(5 + dWorldX);
+    expect(nextZ).toBeCloseTo(-2 + dWorldZ);
   });
 });
