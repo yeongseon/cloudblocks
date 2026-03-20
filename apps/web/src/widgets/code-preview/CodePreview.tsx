@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { generateCode, GenerationError } from '../../features/generate/pipeline';
@@ -14,10 +14,19 @@ const GENERATORS: { id: GeneratorId; label: string }[] = [
 
 export function CodePreview() {
   const show = useUIStore((s) => s.showCodePreview);
+  const workspaceId = useArchitectureStore((s) => s.workspace.id);
+
+  if (!show) return null;
+
+  // key={workspaceId} forces remount when workspace changes,
+  // resetting all local state without useEffect+setState
+  return <CodePreviewContent key={workspaceId} />;
+}
+
+function CodePreviewContent() {
   const toggleCodePreview = useUIStore((s) => s.toggleCodePreview);
   const activeProvider = useUIStore((s) => s.activeProvider);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
-  const workspaceId = useArchitectureStore((s) => s.workspace.id);
 
   const [activeTab, setActiveTab] = useState(0);
   const [projectName, setProjectName] = useState('myproject');
@@ -27,28 +36,6 @@ export function CodePreview() {
   const [output, setOutput] = useState<GeneratedOutput | null>(null);
   const [comparisonOutputs, setComparisonOutputs] = useState<Record<ProviderType, GeneratedOutput> | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  // Reset local state when panel transitions from closed to open or workspace changes
-  const prevShowRef = useRef(show);
-  const prevWorkspaceIdRef = useRef(workspaceId);
-  useEffect(() => {
-    const panelOpened = show && !prevShowRef.current;
-    const workspaceChanged = workspaceId !== prevWorkspaceIdRef.current;
-    if (panelOpened || workspaceChanged) {
-      setActiveTab(0);
-      setProjectName('myproject');
-      setRegion('eastus');
-      setGenerator('terraform');
-      setCompareProviders(false);
-      setOutput(null);
-      setComparisonOutputs(null);
-      setError(null);
-    }
-    prevShowRef.current = show;
-    prevWorkspaceIdRef.current = workspaceId;
-  }, [show, workspaceId]);
-
-  if (!show) return null;
 
   const handleGenerate = () => {
     setError(null);
