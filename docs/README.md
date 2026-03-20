@@ -61,6 +61,7 @@ Immutable records of key decisions.
 | [0006](adr/0006-graph-ir-evolution-approach.md) | Accepted | Graph IR evolution approach |
 | [0007](adr/0007-multi-environment-deployment-strategy.md) | Accepted | Multi-environment deployment strategy |
 | [0008](adr/0008-v2-universal-architecture-specification.md) | Accepted | v2.0 Universal Architecture Specification |
+| [0009](adr/0009-ai-assisted-architecture.md) | Accepted | AI-assisted architecture |
 
 ---
 
@@ -102,13 +103,14 @@ Detailed visual and interaction specifications.
 
 ---
 
-## 5. Engine (Code Generation)
+## 5. Engine (Code Generation & AI)
 
-Infrastructure code generation pipeline.
+Infrastructure code generation pipeline and AI-assisted architecture.
 
 | Document | Status | Description |
 |----------|--------|-------------|
 | [generator.md](engine/generator.md) | Canonical | Generation pipeline |
+| [ai.md](engine/ai.md) | Canonical | AI-assisted architecture (NL→architecture, suggestions, cost) |
 | [provider.md](engine/provider.md) | Canonical | Provider adapters (Azure) |
 | [rules.md](engine/rules.md) | Supporting | Validation overview (see VALIDATION_CONTRACT.md for canonical rules) |
 | [templates.md](engine/templates.md) | Canonical | Architecture templates |

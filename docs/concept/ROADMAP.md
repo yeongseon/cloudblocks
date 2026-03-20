@@ -807,7 +807,7 @@ Key Objectives:
 
 ---
 
-## Milestone 14 — AI Roadmap (In Progress)
+## Milestone 14 — AI Roadmap ✅
 
 Goal:
 Introduce AI-assisted architecture design and optimization.
@@ -819,16 +819,23 @@ Key Objectives:
 - Cost estimation and comparison
 - Security posture analysis
 
+Scope:
+
+- 1 Epic (#293), 15 sub-issues (all closed)
+- Backend: LLM client abstraction, BYOK key management, architecture generation, post-generation validation, suggestion engine, cost estimation via Infracost
+- Frontend: AI prompt bar, API client, Zustand store, suggestions panel, cost panel
+- Documentation: ADR-0009, AI engine guide
+
 ### Exit Criteria
-- [ ] Natural language input produces valid architecture
-- [ ] AI suggestions improve architecture quality metrics
-- [ ] Cost estimation within 20% of actual cloud pricing
+- [x] Natural language input produces valid architecture
+- [x] AI suggestions improve architecture quality metrics
+- [x] Cost estimation within 20% of actual cloud pricing
 
 ### Dependencies
 - Milestone 12 complete (requires stable domain model)
 - Milestone 13 recommended (AI-generated architectures benefit from validated pipeline)
 
-> **Status**: Partially complete — 6 of 15 issues closed. Epic #293 open. Closed issues: #294-#296, #302-#304 (data model, prompt templates, provider suggestions). Open issues: #313-#320 (frontend AI panel, cost estimation, E2E tests, documentation).
+> **Reference**: [ADR-0009](../adr/0009-ai-assisted-architecture.md), [AI Engine Guide](../engine/ai.md)
 
 ---
 
@@ -1065,9 +1072,11 @@ Milestone 15-16 (Complete)
 - v2.0 specification fully implemented
 - Documentation architecture restored to coherence
 
-Milestone 14 (In Progress)
+Milestone 14 (Complete)
 - AI-assisted architecture design
 - Natural language → architecture generation
+- Architecture suggestions and cost estimation
+- BYOK API key management with Fernet encryption
 
 Milestone 17+ (Planned)
 - Modular monorepo structure with extracted packages
@@ -1110,7 +1119,7 @@ The roadmap evolves CloudBlocks from:
 
 → Documentation Architecture (Milestone 16) ✅
 
-→ AI-Assisted Architecture (Milestone 14) 🔄
+→ AI-Assisted Architecture (Milestone 14) ✅
 
 → Product Structure (Milestone 17)
 
@@ -1130,7 +1139,7 @@ Milestone 8 (Complete) ✅
     │                               └── Milestone 16 (Doc Architecture) ✅
     │                                       └── Milestone 17 (Product Structure)
     │                                               └── Milestone 18 (DevOps UX)
-    │               └── Milestone 14 (AI Roadmap) 🔄 ←── also benefits from Milestone 13
+    │               └── Milestone 14 (AI Roadmap) ✅ ←── also benefits from Milestone 13
     └── Milestone 11 (Brick Design) ✅ ──── parallel with Milestone 9
 
 i18n (Internationalization) ──── independent, can run in parallel

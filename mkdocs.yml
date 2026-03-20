@@ -84,6 +84,7 @@ nav:
 
   - Generate & Deploy:
       - Code Generator: engine/generator.md
+      - AI Engine: engine/ai.md
       - Validation Rules: engine/rules.md
       - Validation Contract: design/VALIDATION_CONTRACT.md
       - Provider Adapters: engine/provider.md
@@ -117,6 +118,7 @@ nav:
           - ADR-0006 Graph IR Evolution: adr/0006-graph-ir-evolution-approach.md
           - ADR-0007 Multi-Environment Deployment: adr/0007-multi-environment-deployment-strategy.md
           - ADR-0008 v2.0 Universal Architecture Spec: adr/0008-v2-universal-architecture-specification.md
+          - ADR-0009 AI-Assisted Architecture: adr/0009-ai-assisted-architecture.md
       - Engineering Specs:
           - Module Boundaries: design/MODULE_BOUNDARIES.md
           - NFR Targets: design/NFR_TARGETS.md

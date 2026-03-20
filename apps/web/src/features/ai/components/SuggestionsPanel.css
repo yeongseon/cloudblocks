@@ -1,0 +1,156 @@
+.suggestions-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  font-family: 'Fredoka', system-ui, sans-serif;
+}
+
+.suggestions-section-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #333;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.suggestions-scores {
+  background: #FFFDE7;
+  border: 2px solid #D4B200;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.score-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.score-row:last-child {
+  margin-bottom: 0;
+}
+
+.score-label {
+  flex: 0 0 90px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #555;
+  text-transform: capitalize;
+}
+
+.score-track {
+  flex: 1;
+  height: 8px;
+  background: #E8E5D0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.score-fill {
+  height: 100%;
+  background: #FFD500;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.score-value {
+  flex: 0 0 28px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #333;
+  text-align: right;
+}
+
+.suggestions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.suggestion-item {
+  background: #FFF;
+  border: 2px solid #E0E0E0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  transition: border-color 0.15s ease;
+}
+
+.suggestion-item[data-severity="critical"] {
+  border-color: #E3000B;
+  background: #FFF5F5;
+}
+
+.suggestion-item[data-severity="warning"] {
+  border-color: #F5A623;
+  background: #FFFAF0;
+}
+
+.suggestion-item[data-severity="info"] {
+  border-color: #4A90D9;
+  background: #F0F7FF;
+}
+
+.suggestion-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.suggestion-severity {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.suggestion-category {
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #666;
+  letter-spacing: 0.5px;
+}
+
+.suggestion-message {
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.4;
+}
+
+.suggestion-action {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #666;
+  font-style: italic;
+}
+
+.suggestions-loading {
+  text-align: center;
+  padding: 24px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #998C40;
+}
+
+.suggestions-error {
+  text-align: center;
+  padding: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #E3000B;
+  background: #FFF5F5;
+  border: 2px solid #E3000B;
+  border-radius: 8px;
+}
+
+.suggestions-empty {
+  text-align: center;
+  padding: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #888;
+}
