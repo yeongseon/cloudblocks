@@ -419,4 +419,38 @@ describe('CodePreview', () => {
     render(<CodePreview />);
     expect(screen.getByDisplayValue('myproject')).toBeInTheDocument();
   });
+
+  it('renders file tabs and navigates between files in compare mode', async () => {
+    const user = userEvent.setup();
+    vi.mocked(generateCode).mockImplementation((_, options) => ({
+      files: [
+        { path: 'main.tf', content: `main-${options.provider}`, language: 'hcl' as const },
+        { path: 'variables.tf', content: `vars-${options.provider}`, language: 'hcl' as const },
+      ],
+      metadata: {
+        generator: 'terraform',
+        version: '0.3.0',
+        provider: options.provider,
+        generatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    }));
+
+    render(<CodePreview />);
+
+    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByText('🚀 Compare Providers'));
+
+    expect(screen.getByText('main.tf')).toBeInTheDocument();
+    expect(screen.getByText('variables.tf')).toBeInTheDocument();
+
+    expect(screen.getByText('main-azure')).toBeInTheDocument();
+    expect(screen.getByText('main-aws')).toBeInTheDocument();
+    expect(screen.getByText('main-gcp')).toBeInTheDocument();
+
+    await user.click(screen.getByText('variables.tf'));
+
+    expect(screen.getByText('vars-azure')).toBeInTheDocument();
+    expect(screen.getByText('vars-aws')).toBeInTheDocument();
+    expect(screen.getByText('vars-gcp')).toBeInTheDocument();
+  });
 });
