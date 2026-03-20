@@ -11,6 +11,8 @@
 
 Design cloud infrastructure by placing blocks on plates, connect components, validate against real-world rules, and generate Terraform, Bicep, or Pulumi — all from the browser. No YAML. No HCL. Just place, connect, validate, generate.
 
+> **[▶ Try the Live Demo](https://yeongseon.github.io/cloudblocks/)** — Frontend-only playground. Visual builder, code generation, and templates work instantly. AI and GitHub features require the backend ([setup guide](docs/guides/TUTORIALS.md)).
+
 ## Why CloudBlocks?
 
 Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks works **architecture → code** (model visually, compile to infra).
