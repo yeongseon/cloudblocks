@@ -5,6 +5,7 @@ This document defines the system architecture for the CloudBlocks Platform.
 CloudBlocks is an **Architecture Compiler** — it models cloud infrastructure using a **Lego-style composition system**, validates designs against architectural rules, and generates deployable infrastructure code (Terraform, Bicep, Pulumi). The long-term architecture follows a **Git-native** model where GitHub repos serve as the primary data store.
 
 > **Technical approach**: CloudBlocks is a **2D-first editor with 2.5D rendering**, rather than a full 3D engine. The internal model is a 2D coordinate system with containment hierarchy. The rendering layer projects this into an isometric view using SVG + CSS transforms.
+> See [ADR-0010](../adr/0010-svg-only-rendering-model.md) for the definitive rendering technology decision.
 
 ---
 
@@ -477,6 +478,7 @@ SceneCanvas (root SVG scene)
 | ConnectionPath | Resolves endpoints and renders SVG path directional dataflow lines with arrowheads. |
 
 > Rendering is projection only: the authoritative editing model remains 2D coordinates with containment hierarchy, then projected into the 2.5D scene.
+> See [ADR-0010](../adr/0010-svg-only-rendering-model.md) for the full rendering technology rationale.
 
 ---
 
