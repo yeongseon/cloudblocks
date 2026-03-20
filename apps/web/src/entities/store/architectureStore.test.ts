@@ -1709,6 +1709,69 @@ describe('architectureStore', () => {
     });
   });
 
+  describe('replaceArchitecture – validation', () => {
+    it('throws when snapshot is not an object', () => {
+      expect(() => getState().replaceArchitecture('not-an-object' as unknown as ArchitectureSnapshot))
+        .toThrow('root must be an object');
+    });
+
+    it('throws when plates is missing', () => {
+      const invalid = { blocks: [], connections: [] } as unknown as ArchitectureSnapshot;
+      expect(() => getState().replaceArchitecture(invalid))
+        .toThrow('plates must be an array');
+    });
+
+    it('throws when blocks is missing', () => {
+      const invalid = { plates: [], connections: [] } as unknown as ArchitectureSnapshot;
+      expect(() => getState().replaceArchitecture(invalid))
+        .toThrow('blocks must be an array');
+    });
+
+    it('throws when a plate has invalid type', () => {
+      const invalid = {
+        plates: [{
+          id: 'p1', name: 'Net', type: 'invalid-type',
+          parentId: null, children: [],
+          position: { x: 0, y: 0, z: 0 },
+          size: { width: 12, height: 0.3, depth: 10 },
+        }],
+        blocks: [],
+        connections: [],
+      } as unknown as ArchitectureSnapshot;
+      expect(() => getState().replaceArchitecture(invalid))
+        .toThrow('type must be one of');
+    });
+
+    it('throws when a block references non-existent plate', () => {
+      const invalid = {
+        plates: [{
+          id: 'p1', name: 'Net', type: 'region',
+          parentId: null, children: [],
+          position: { x: 0, y: 0, z: 0 },
+          size: { width: 12, height: 0.3, depth: 10 },
+        }],
+        blocks: [{
+          id: 'b1', name: 'VM', category: 'compute',
+          placementId: 'missing-plate',
+          position: { x: 0, y: 0.5, z: 0 },
+        }],
+        connections: [],
+      } as unknown as ArchitectureSnapshot;
+      expect(() => getState().replaceArchitecture(invalid))
+        .toThrow('does not reference an existing plate');
+    });
+
+    it('does not modify state when validation fails', () => {
+      getState().addPlate('region', 'Original', null);
+      const archBefore = JSON.parse(JSON.stringify(getArch())) as ArchitectureModel;
+
+      const invalid = { blocks: [] } as unknown as ArchitectureSnapshot;
+      expect(() => getState().replaceArchitecture(invalid)).toThrow();
+
+      expect(getArch()).toEqual(archBefore);
+    });
+  });
+
   // ── Auto-validation subscriber ──
 
   describe('auto-validation', () => {
