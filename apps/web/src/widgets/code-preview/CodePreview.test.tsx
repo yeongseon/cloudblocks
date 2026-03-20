@@ -378,4 +378,25 @@ describe('CodePreview', () => {
 
     expect(screen.getByText('Provider comparison is currently available for Terraform only.')).toBeInTheDocument();
   });
+
+  it('resets generated output on remount (simulating panel close and reopen)', async () => {
+    const user = userEvent.setup();
+    const mockOutput = {
+      files: [{ path: 'main.tf', content: 'resource content', language: 'hcl' as const }],
+      metadata: { generator: 'terraform', version: '0.3.0', provider: 'azure' as const, generatedAt: '2026-01-01T00:00:00.000Z' },
+    };
+    vi.mocked(generateCode).mockReturnValue(mockOutput);
+
+    useUIStore.setState({ showCodePreview: true });
+    const { unmount } = render(<CodePreview />);
+    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
+    expect(screen.getByText('main.tf')).toBeInTheDocument();
+
+    unmount();
+    useUIStore.setState({ showCodePreview: true });
+    render(<CodePreview />);
+
+    expect(screen.queryByText('main.tf')).not.toBeInTheDocument();
+    expect(screen.queryByText('resource content')).not.toBeInTheDocument();
+  });
 });

@@ -78,6 +78,11 @@ describe('App', () => {
       setDiffMode: defaultSetDiffMode,
       draggedBlockCategory: null,
       diffMode: false,
+      showCodePreview: true,
+      showWorkspaceManager: true,
+      showGitHubLogin: true,
+      showGitHubRepos: true,
+      showGitHubPR: true,
     });
     useAuthStore.setState({
       status: 'unknown',
