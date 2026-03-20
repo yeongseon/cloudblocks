@@ -55,8 +55,8 @@ Plates are placed via the Insert menu or by dragging from the CommandCard palett
 | **Storage** | Blob, Data Lake | No (receiver-only) |
 | **Gateway** | API Gateway, Load Balancer | Yes |
 | **Function** | Azure Function, Lambda | Yes |
-| **Queue** | Service Bus, SQS | Yes |
-| **Event** | Event Grid, EventBridge | Yes |
+| **Queue** | Service Bus, SQS | Yes (to function only) |
+| **Event** | Event Grid, EventBridge | Yes (to function only) |
 | **Analytics** | Log Analytics, CloudWatch | No (receiver-only) |
 | **Identity** | Entra ID, IAM | No (receiver-only) |
 | **Observability** | Azure Monitor, CloudWatch | No (receiver-only) |
@@ -89,7 +89,7 @@ Connections represent communication flows between blocks.
 
 ### Connection Rules
 
-- **Initiator model**: Source block must have `initiator: true` (compute, gateway, function, queue, event)
+- **Initiator model**: Source block must be an initiator (compute, gateway, function, queue, event)
 - **Receiver-only**: Database, storage, analytics, identity, and observability blocks cannot initiate connections
 - Connections are created by clicking a source block's port, then clicking the target block
 

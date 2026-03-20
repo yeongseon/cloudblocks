@@ -171,21 +171,33 @@ apps/web/src/
 │   ├── plate/           # Plate components
 │   └── connection/      # Connection components
 ├── features/            # Feature modules
-│   ├── generate/        # Code generation pipeline (Terraform)
+│   ├── ai/              # AI architecture generation
+│   ├── diff/            # Architecture diff engine
+│   ├── generate/        # Code generation pipeline (Terraform, Bicep, Pulumi)
+│   ├── learning/        # Learning Mode engine
 │   └── templates/       # Architecture templates
 ├── widgets/             # Composite UI widgets
 │   ├── toolbar/
-│   ├── block-palette/
-│   ├── properties-panel/
+│   ├── menu-bar/
+│   ├── resource-bar/         # Resource palette (drag-to-create)
+│   ├── bottom-panel/         # StarCraft-style context panel
 │   ├── validation-panel/
-│   ├── code-preview/    # Code generation preview
-│   ├── template-gallery/ # Template selection gallery
-│   ├── workspace-manager/ # Multi-workspace management
-│   └── scene-canvas/
+│   ├── code-preview/         # Code generation preview
+│   ├── template-gallery/     # Template selection gallery
+│   ├── workspace-manager/    # Multi-workspace management
+│   ├── scene-canvas/
+│   ├── diff-panel/           # Architecture diff panel
+│   ├── flow-diagram/         # Architecture flow diagram
+│   ├── github-login/         # GitHub OAuth login
+│   ├── github-pr/            # PR creation from UI
+│   ├── github-repos/         # GitHub repo management
+│   ├── github-sync/          # Architecture sync to GitHub
+│   ├── learning-panel/       # Learning Mode step panel
+│   └── scenario-gallery/     # Learning scenario gallery
 └── assets/
 ```
 
-> **Note**: `features/generate/` implements the Terraform code generation pipeline (Milestone 3). `features/templates/` implements architecture templates with a gallery UI (Milestone 4).
+> **Note**: `features/generate/` implements the Terraform/Bicep/Pulumi code generation pipeline (Milestone 3+). `features/templates/` implements architecture templates with a gallery UI (Milestone 4). `features/ai/` provides AI architecture generation. `features/diff/` implements architecture diff (Milestone 7). `features/learning/` provides Learning Mode (Milestone 6C).
 
 ## 2.2 MVP Architecture (Milestone 1)
 
@@ -252,7 +264,7 @@ apps/api/
 │   ├── engines/                   # Prompt templates for AI
 │   └── infrastructure/
 │       ├── db/
-│       │   ├── connection.py      # MetadataDB class
+│       │   ├── connection.py      # Database and PostgresDatabase classes
 │       │   └── migrations/
 │       │       ├── 001_create_users.sql
 │       │       ├── 002_create_workspaces.sql

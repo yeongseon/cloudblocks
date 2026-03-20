@@ -44,7 +44,7 @@ app/
 │   ├── db/                  # Minimal metadata store (SQLite / Supabase)
 │   ├── cache/               # Redis cache
 │   ├── queue/               # Job queue
-│   ├── storage/             # Object storage (S3)
+│   ├── storage/               # Object storage (scaffolded)
 │   └── providers/           # Cloud provider integrations
 ├── engines/                 # Rule validation engine
 └── tests/                   # Unit and integration tests
@@ -52,7 +52,7 @@ app/
 
 ## What the Backend Does
 
-- **Auth / Identity** — GitHub App OAuth, Google OAuth
+- **Auth / Identity** — GitHub OAuth + cookie-based server sessions
 - **Generator Orchestrator** — Validate → Transform → Generate IaC code
 - **GitHub Integration** — Commit, branch, PR creation
 - **Job Runner** — Async generation and validation tasks
