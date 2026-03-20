@@ -55,7 +55,7 @@ describe('CodePreview', () => {
     const user = userEvent.setup();
     useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
-    await user.click(screen.getByText('✕'));
+    await user.click(screen.getByRole('button', { name: 'Close code preview panel' }));
     expect(useUIStore.getState().showCodePreview).toBe(false);
   });
 

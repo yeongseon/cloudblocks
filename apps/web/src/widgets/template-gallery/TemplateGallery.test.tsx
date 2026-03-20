@@ -35,7 +35,7 @@ describe('TemplateGallery', () => {
     const user = userEvent.setup();
     useUIStore.setState({ showTemplateGallery: true });
     render(<TemplateGallery />);
-    const closeBtn = screen.getByText('✕');
+    const closeBtn = screen.getByRole('button', { name: 'Close template gallery' });
     await user.click(closeBtn);
     expect(useUIStore.getState().showTemplateGallery).toBe(false);
   });
@@ -133,6 +133,35 @@ describe('TemplateGallery', () => {
     render(<TemplateGallery />);
 
     // After remount, all templates should be visible again (All filter)
+    expect(screen.getByText('Three-Tier Web Application')).toBeInTheDocument();
+    expect(screen.getByText('Serverless HTTP API')).toBeInTheDocument();
+  });
+
+  it('resets category filter to All after using a template', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ showTemplateGallery: true });
+    const saveToStorageSpy = vi.fn();
+    const loadFromTemplateSpy = vi.fn();
+    useArchitectureStore.setState({
+      saveToStorage: saveToStorageSpy,
+      loadFromTemplate: loadFromTemplateSpy,
+    });
+
+    const { unmount } = render(<TemplateGallery />);
+
+    // Select a non-default filter
+    await user.click(screen.getByRole('button', { name: 'Serverless' }));
+    expect(screen.queryByText('Three-Tier Web Application')).not.toBeInTheDocument();
+
+    // Use the template — this should reset the filter
+    const useButtons = screen.getAllByText('Use Template');
+    await user.click(useButtons[0]);
+
+    // Remount and verify all templates are visible
+    unmount();
+    useUIStore.setState({ showTemplateGallery: true });
+    render(<TemplateGallery />);
+
     expect(screen.getByText('Three-Tier Web Application')).toBeInTheDocument();
     expect(screen.getByText('Serverless HTTP API')).toBeInTheDocument();
   });

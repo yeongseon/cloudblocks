@@ -50,7 +50,7 @@ export function GitHubPR() {
     <div className="github-pr">
       <div className="github-pr-header">
         <h3 className="github-pr-title">🔀 Pull Request</h3>
-        <button className="github-pr-close" onClick={toggleGitHubPR}>
+        <button className="github-pr-close" onClick={toggleGitHubPR} aria-label="Close pull request panel">
           ✕
         </button>
       </div>

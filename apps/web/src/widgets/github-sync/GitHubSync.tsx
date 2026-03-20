@@ -122,7 +122,7 @@ export function GitHubSync() {
     <div className="github-sync">
       <div className="github-sync-header">
         <h3 className="github-sync-title">🔄 GitHub Sync</h3>
-        <button className="github-sync-close" onClick={toggleGitHubSync}>
+        <button className="github-sync-close" onClick={toggleGitHubSync} aria-label="Close GitHub sync panel">
           ✕
         </button>
       </div>

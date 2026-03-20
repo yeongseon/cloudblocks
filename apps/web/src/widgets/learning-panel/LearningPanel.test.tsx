@@ -278,7 +278,7 @@ describe('LearningPanel widgets', () => {
 
   it('close button calls abandonLearning', () => {
     render(<LearningPanel />);
-    fireEvent.click(screen.getByRole('button', { name: '×' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Close learning panel' }));
     expect(abandonLearning).toHaveBeenCalledOnce();
   });
 

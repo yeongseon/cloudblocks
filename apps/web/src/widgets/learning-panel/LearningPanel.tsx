@@ -82,7 +82,7 @@ export function LearningPanel() {
     <div className="learning-panel-container">
       <div className="learning-panel-header">
         <h3 className="learning-panel-title">{activeScenario.name}</h3>
-        <button type="button" className="learning-panel-close-btn" onClick={handleClose}>
+        <button type="button" className="learning-panel-close-btn" onClick={handleClose} aria-label="Close learning panel">
           ×
         </button>
       </div>
