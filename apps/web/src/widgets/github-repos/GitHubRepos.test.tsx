@@ -183,6 +183,30 @@ describe('GitHubRepos', () => {
     expect(createButton).toBeEnabled();
   });
 
+  it('sends trimmed description when creating repository', async () => {
+    const user = userEvent.setup();
+    mockApiGet.mockResolvedValueOnce({ repos: [] }).mockResolvedValueOnce({ repos: [] });
+    mockApiPost.mockResolvedValueOnce({
+      full_name: 'owner/new-repo',
+      name: 'new-repo',
+      private: true,
+      default_branch: 'main',
+      html_url: 'https://github.com/owner/new-repo',
+    });
+
+    render(<GitHubRepos />);
+
+    await user.type(screen.getByPlaceholderText('Repository name'), 'new-repo');
+    await user.type(screen.getByPlaceholderText('Description (optional)'), '  test description  ');
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+
+    expect(mockApiPost).toHaveBeenCalledWith('/api/v1/github/repos', {
+      name: 'new-repo',
+      description: 'test description',
+      private: true,
+    });
+  });
+
   it('shows error when create repo fails', async () => {
     const user = userEvent.setup();
     mockApiGet.mockResolvedValueOnce({ repos: [] });

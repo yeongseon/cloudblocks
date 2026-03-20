@@ -25,8 +25,9 @@ export function GitHubPR() {
   const [result, setResult] = useState<PullRequestResponse | null>(null);
   const cleanedTitle = title.trim();
   const cleanedBranch = branch.trim();
+  const cleanedCommitMessage = commitMessage.trim();
   const branchIsValid = !cleanedBranch || isValidGitBranchName(cleanedBranch);
-  const canSubmit = !loading && cleanedTitle.length > 0 && commitMessage.trim().length > 0 && branchIsValid && hasBackendWorkspaceLink;
+  const canSubmit = !loading && cleanedTitle.length > 0 && cleanedCommitMessage.length > 0 && branchIsValid && hasBackendWorkspaceLink;
 
   if (!show) return null;
 
@@ -44,6 +45,10 @@ export function GitHubPR() {
       setError('Branch name contains invalid characters or format.');
       return;
     }
+    if (!cleanedCommitMessage) {
+      setError('Commit message is required.');
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -56,7 +61,7 @@ export function GitHubPR() {
           title: cleanedTitle,
           body,
           branch: cleanedBranch || undefined,
-          commit_message: commitMessage,
+          commit_message: cleanedCommitMessage,
         }
       );
       setResult(response);
