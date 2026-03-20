@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import type { Root } from 'react-dom/client';
+import { useEffect, useRef } from 'react';
 import './ConfirmDialog.css';
 
 interface ConfirmDialogProps {
@@ -10,8 +11,16 @@ interface ConfirmDialogProps {
   onConfirm: () => void;
 }
 
-function renderDialogPortal({ title, message, onCancel, onConfirm }: ConfirmDialogProps) {
-  return createPortal(
+// Internal-only component used by the imperative confirmDialog() API below.
+// eslint-disable-next-line react-refresh/only-export-components
+function ConfirmDialogContent({ title, message, onCancel, onConfirm }: ConfirmDialogProps) {
+  const cancelRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    cancelRef.current?.focus();
+  }, []);
+
+  return (
     <div className="confirm-dialog-overlay" role="presentation" onClick={onCancel}>
       <div
         className="confirm-dialog"
@@ -20,6 +29,11 @@ function renderDialogPortal({ title, message, onCancel, onConfirm }: ConfirmDial
         aria-labelledby="confirm-dialog-title"
         aria-describedby="confirm-dialog-message"
         onClick={(event) => event.stopPropagation()}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') {
+            onCancel();
+          }
+        }}
       >
         <h3 id="confirm-dialog-title" className="confirm-dialog-title">
           {title}
@@ -28,7 +42,7 @@ function renderDialogPortal({ title, message, onCancel, onConfirm }: ConfirmDial
           {message}
         </p>
         <div className="confirm-dialog-actions">
-          <button type="button" className="confirm-dialog-btn" onClick={onCancel}>
+          <button ref={cancelRef} type="button" className="confirm-dialog-btn" onClick={onCancel}>
             Cancel
           </button>
           <button
@@ -40,9 +54,12 @@ function renderDialogPortal({ title, message, onCancel, onConfirm }: ConfirmDial
           </button>
         </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   );
+}
+
+function renderDialogPortal(props: ConfirmDialogProps) {
+  return createPortal(<ConfirmDialogContent {...props} />, document.body);
 }
 
 let dialogRoot: Root | null = null;
@@ -78,7 +95,7 @@ export function confirmDialog(message: string, title = 'Confirm'): Promise<boole
   }
 
   if (resolver) {
-    resolver(false);
+    settle(false);
   }
 
   return new Promise<boolean>((resolve) => {
