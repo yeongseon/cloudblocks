@@ -81,7 +81,7 @@ export function CodePreview() {
   const handleCopyFile = () => {
     if (!output) return;
     const file = output.files[activeTab];
-    if (file) {
+    if (file && navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(file.content).catch(() => {
         // Clipboard API may fail in some contexts
       });
