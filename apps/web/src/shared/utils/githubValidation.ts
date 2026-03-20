@@ -1,4 +1,5 @@
 const GITHUB_NAME_PART_REGEX = /^[A-Za-z0-9._-]+$/;
+// eslint-disable-next-line no-control-regex, no-useless-escape
 const GIT_FORBIDDEN_BRANCH_CHARS_REGEX = /[\u0000-\u001F\u007F~^:?*\[\\]/;
 
 export function isValidGitHubRepoName(value: string): boolean {
