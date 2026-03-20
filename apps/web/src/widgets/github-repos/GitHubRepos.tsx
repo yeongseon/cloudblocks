@@ -20,6 +20,7 @@ export function GitHubRepos() {
   const [newRepoDescription, setNewRepoDescription] = useState('');
   const [isPrivate, setIsPrivate] = useState(true);
   const cleanedRepoName = newRepoName.trim();
+  const cleanedRepoDescription = newRepoDescription.trim();
   const canCreateRepo = isValidGitHubRepoName(cleanedRepoName);
 
   const fetchRepos = useCallback(async () => {
@@ -53,7 +54,7 @@ export function GitHubRepos() {
     try {
       await apiPost<GitHubRepo>('/api/v1/github/repos', {
         name: cleanedRepoName,
-        description: newRepoDescription.trim() || undefined,
+        description: cleanedRepoDescription || undefined,
         private: isPrivate,
       });
       setNewRepoName('');

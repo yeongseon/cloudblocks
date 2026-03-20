@@ -213,7 +213,13 @@ describe('GitHubSync', () => {
     const user = userEvent.setup();
     mockApiGet.mockResolvedValue({
       commits: [
-        { sha: 'abc1234567890', message: 'Initial commit', author: 'octocat', date: '2025-01-01T00:00:00Z' },
+        {
+          sha: 'abc1234567890',
+          message: 'Initial commit',
+          author: 'octocat',
+          date: '2025-01-01T00:00:00Z',
+          html_url: 'https://github.com/owner/repo-one/commit/abc1234567890',
+        },
       ],
     });
 
@@ -223,7 +229,11 @@ describe('GitHubSync', () => {
     await user.click(screen.getByRole('button', { name: 'Link' }));
 
     expect(await screen.findByText('Initial commit')).toBeInTheDocument();
-    expect(screen.getByText(/abc1234/)).toBeInTheDocument();
+    const shaLink = screen.getByRole('link', { name: 'abc1234' });
+    expect(shaLink).toBeInTheDocument();
+    expect(shaLink).toHaveAttribute('href', 'https://github.com/owner/repo-one/commit/abc1234567890');
+    expect(shaLink).toHaveAttribute('target', '_blank');
+    expect(shaLink).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
   it('uses backend workspace ID input when provided', async () => {
@@ -261,6 +271,38 @@ describe('GitHubSync', () => {
         commit_message: 'Custom commit from test',
       });
     });
+  });
+
+  it('disables sync button when commit message is empty or whitespace', async () => {
+    const user = userEvent.setup();
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+
+    const commitInput = await screen.findByDisplayValue('Sync architecture from CloudBlocks');
+    const syncButton = screen.getByRole('button', { name: 'Sync to GitHub' });
+
+    await user.clear(commitInput);
+    expect(syncButton).toBeDisabled();
+
+    await user.type(commitInput, '   ');
+    expect(syncButton).toBeDisabled();
+  });
+
+  it('allows unlinking and returns to repository form', async () => {
+    const user = userEvent.setup();
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+    await screen.findByRole('button', { name: 'Sync to GitHub' });
+
+    await user.click(screen.getByRole('button', { name: 'Unlink' }));
+
+    expect(screen.getByText('No GitHub repo linked.')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('owner/repo')).toBeInTheDocument();
+    expect(useArchitectureStore.getState().workspace.githubRepo).toBeUndefined();
   });
 
   it('handles sync error with non-Error thrown value', async () => {
@@ -342,13 +384,56 @@ describe('GitHubSync', () => {
     await user.click(screen.getByRole('button', { name: 'Link' }));
     await user.click(await screen.findByRole('button', { name: 'Sync to GitHub' }));
 
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.getByText('Syncing to GitHub...')).toBeInTheDocument();
     resolvePost({ message: 'ok', commit_sha: 'abc' });
+  });
+
+  it('shows action-specific loading messages', async () => {
+    const user = userEvent.setup();
+    let resolvePut!: (value: unknown) => void;
+    let resolvePull!: (value: unknown) => void;
+    mockApiPut.mockReturnValueOnce(new Promise((r) => { resolvePut = r; }));
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+    expect(screen.getByText('Linking repository...')).toBeInTheDocument();
+    resolvePut({});
+
+    await screen.findByRole('button', { name: 'Pull from GitHub' });
+    await user.click(screen.getByRole('button', { name: 'Pull from GitHub' }));
+    mockApiPost.mockReturnValueOnce(new Promise((r) => { resolvePull = r; }));
+    await user.click(await screen.findByRole('button', { name: 'Confirm Pull' }));
+    expect(screen.getByText('Pulling from GitHub...')).toBeInTheDocument();
+    resolvePull({ architecture: emptyArch });
+  });
+
+  it('disables sync controls while syncing is in progress', async () => {
+    const user = userEvent.setup();
+    let resolveSync!: (value: unknown) => void;
+    mockApiPost.mockReturnValueOnce(new Promise((r) => { resolveSync = r; }));
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+
+    const syncButton = await screen.findByRole('button', { name: 'Sync to GitHub' });
+    const pullButton = screen.getByRole('button', { name: 'Pull from GitHub' });
+    const commitInput = screen.getByLabelText('Commit message');
+
+    await user.click(syncButton);
+
+    expect(syncButton).toBeDisabled();
+    expect(pullButton).toBeDisabled();
+    expect(commitInput).toBeDisabled();
+    resolveSync({ message: 'ok', commit_sha: 'abc' });
   });
 
   it('ignores stale commit responses after workspace changes', async () => {
     const user = userEvent.setup();
-    let resolveCommits!: (value: { commits: Array<{ sha: string; message: string; author: string; date: string }> }) => void;
+    let resolveCommits!: (value: { commits: Array<{ sha: string; message: string; author: string; date: string; html_url: string }> }) => void;
     mockApiGet.mockImplementationOnce(
       () => new Promise((resolve) => {
         resolveCommits = resolve;
@@ -379,6 +464,7 @@ describe('GitHubSync', () => {
           message: 'stale commit',
           author: 'octocat',
           date: '2026-01-01T00:00:00.000Z',
+          html_url: 'https://github.com/owner/repo-one/commit/abc1234567890',
         },
       ],
     });

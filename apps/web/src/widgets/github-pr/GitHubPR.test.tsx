@@ -158,7 +158,7 @@ describe('GitHubPR', () => {
     expect(submitButton).toBeDisabled();
   });
 
-  it('disables submit button when commit message is empty', async () => {
+  it('disables submit button when commit message is empty or whitespace', async () => {
     const user = userEvent.setup();
     render(<GitHubPR />);
 
@@ -166,6 +166,8 @@ describe('GitHubPR', () => {
     const submitButton = screen.getByRole('button', { name: 'Create Pull Request' });
 
     await user.clear(commitField);
+    expect(submitButton).toBeDisabled();
+    await user.type(commitField, '   ');
     expect(submitButton).toBeDisabled();
   });
 
