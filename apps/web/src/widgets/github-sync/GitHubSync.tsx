@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
@@ -16,14 +16,16 @@ export function GitHubSync() {
   const workspace = useArchitectureStore((s) => s.workspace);
   const replaceArchitecture = useArchitectureStore((s) => s.replaceArchitecture);
   const setStoreBackendWorkspaceId = useArchitectureStore((s) => s.setBackendWorkspaceId);
+  const setStoreGithubRepo = useArchitectureStore((s) => s.setGithubRepo);
 
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
   const authStatus = useAuthStore((s) => s.status);
 
+  const linkedRepo = workspace.githubRepo ?? null;
+  const backendWorkspaceId = workspace.backendWorkspaceId ?? null;
+
   const [repoInput, setRepoInput] = useState('');
   const [backendWorkspaceIdInput, setBackendWorkspaceIdInput] = useState('');
-  const [linkedRepo, setLinkedRepo] = useState<string | null>(null);
-  const [backendWorkspaceId, setBackendWorkspaceIdState] = useState<string | null>(null);
   const [commitMessage, setCommitMessage] = useState('Sync architecture from CloudBlocks');
   const [commits, setCommits] = useState<GitHubCommit[]>([]);
   const [loading, setLoading] = useState(false);
@@ -41,10 +43,7 @@ export function GitHubSync() {
     requestSeqRef.current += 1;
   }, []);
 
-  const effectiveWorkspaceId = useMemo(() => {
-    if (backendWorkspaceId) return backendWorkspaceId;
-    return null;
-  }, [backendWorkspaceId]);
+  const effectiveWorkspaceId = backendWorkspaceId;
 
   showRef.current = show;
   authRef.current = isAuthenticated;
@@ -94,7 +93,7 @@ export function GitHubSync() {
     return () => {
       requestSeqRef.current += 1;
     };
-  }, [show, isAuthenticated, linkedRepo, effectiveWorkspaceId, loadCommits]);
+  }, [show, isAuthenticated, linkedRepo, loadCommits]);
 
   if (!show) return null;
 
@@ -115,9 +114,8 @@ export function GitHubSync() {
         github_repo: cleanedRepo,
       });
 
-      setLinkedRepo(cleanedRepo);
+      setStoreGithubRepo(workspace.id, cleanedRepo);
       setStoreBackendWorkspaceId(workspace.id, bwsId);
-      setBackendWorkspaceIdState(bwsId);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to link repository.');
     } finally {
@@ -165,7 +163,7 @@ export function GitHubSync() {
     <div className="github-sync">
       <div className="github-sync-header">
         <h3 className="github-sync-title">🔄 GitHub Sync</h3>
-        <button className="github-sync-close" onClick={toggleGitHubSync} aria-label="Close GitHub sync panel">
+        <button type="button" className="github-sync-close" onClick={toggleGitHubSync} aria-label="Close GitHub sync panel">
           ✕
         </button>
       </div>
@@ -182,7 +180,7 @@ export function GitHubSync() {
           {!linkedRepo ? (
             <div className="github-sync-linker">
               <div className="github-sync-empty">No GitHub repo linked.</div>
-              <button className="github-sync-open-repos" onClick={toggleGitHubRepos}>
+              <button type="button" className="github-sync-open-repos" onClick={toggleGitHubRepos}>
                 Open GitHub Repos
               </button>
 
@@ -208,7 +206,7 @@ export function GitHubSync() {
                 onChange={(e) => setBackendWorkspaceIdInput(e.target.value)}
               />
 
-              <button className="github-sync-primary-btn" onClick={() => void handleLinkRepo()} disabled={loading}>
+              <button type="button" className="github-sync-primary-btn" onClick={() => void handleLinkRepo()} disabled={loading}>
                 Link
               </button>
             </div>
@@ -229,10 +227,10 @@ export function GitHubSync() {
               />
 
               <div className="github-sync-actions">
-                <button className="github-sync-primary-btn" onClick={handleSync} disabled={loading}>
+                <button type="button" className="github-sync-primary-btn" onClick={handleSync} disabled={loading}>
                   Sync to GitHub
                 </button>
-                <button className="github-sync-secondary-btn" onClick={handlePull} disabled={loading}>
+                <button type="button" className="github-sync-secondary-btn" onClick={handlePull} disabled={loading}>
                   Pull from GitHub
                 </button>
               </div>

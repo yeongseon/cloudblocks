@@ -85,6 +85,34 @@ describe('useAiStore', () => {
 
       expect(useAiStore.getState().generateError).toBe('Failed to generate architecture');
     });
+
+    it('sets error and skips replaceArchitecture when result has warnings', async () => {
+      const response = {
+        architecture: { plates: [], blocks: [], connections: [] },
+        explanation: 'done',
+        warnings: ['missing region plate'],
+      };
+      mockGenerate.mockResolvedValueOnce(response);
+
+      await useAiStore.getState().generate('test', 'aws');
+
+      expect(useAiStore.getState().generateError).toBe('AI output has warnings: missing region plate');
+      expect(mockReplaceArchitecture).not.toHaveBeenCalled();
+    });
+
+    it('sets error when architecture shape is invalid', async () => {
+      const response = {
+        architecture: { plates: 'not-an-array', blocks: [], connections: [] },
+        explanation: 'done',
+        warnings: [],
+      };
+      mockGenerate.mockResolvedValueOnce(response);
+
+      await useAiStore.getState().generate('test', 'aws');
+
+      expect(useAiStore.getState().generateError).toBe('AI generated an invalid architecture that cannot be loaded.');
+      expect(mockReplaceArchitecture).not.toHaveBeenCalled();
+    });
   });
 
   describe('suggest', () => {

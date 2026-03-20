@@ -657,6 +657,45 @@ describe('architectureStore', () => {
       expect(resized?.profileId).toBe('subnet-scale');
       expect(resized?.position).toEqual({ x: 4, y: 0.3, z: 4 });
     });
+
+    it('clamps child plates and blocks when parent plate shrinks', () => {
+      // Region default (network-platform): 16 x 20
+      getState().addPlate('region', 'VNet', null);
+      const regionId = getArch().plates[0].id;
+
+      // Subnet default (subnet-service): 6 x 8
+      getState().addPlate('subnet', 'Public', regionId, 'public');
+      const subnetId = getArch().plates[1].id;
+
+      // Add a block on the region
+      getState().addBlock('compute', 'VM', regionId);
+      const blockId = getArch().blocks[0].id;
+
+      // Move subnet and block to the far edge (will be beyond bounds after resize)
+      getState().movePlatePosition(subnetId, 100, 100);
+      getState().moveBlockPosition(blockId, 100, 100);
+
+      // Verify they are clamped to region edges before resize
+      const subnetBefore = getArch().plates.find((p) => p.id === subnetId)!;
+      const blockBefore = getArch().blocks.find((b) => b.id === blockId)!;
+      expect(subnetBefore.position.x).toBeGreaterThan(0);
+      expect(blockBefore.position.x).toBeGreaterThan(0);
+
+      // Shrink the region from network-platform (16x20) to network-sandbox (8x12)
+      getState().setPlateProfile(regionId, 'network-sandbox');
+
+      // After resize, children should be clamped within the new smaller bounds
+      const subnetAfter = getArch().plates.find((p) => p.id === subnetId)!;
+      const blockAfter = getArch().blocks.find((b) => b.id === blockId)!;
+      const regionAfter = getArch().plates.find((p) => p.id === regionId)!;
+
+      // Subnet relative position should be clamped: max relative x = (8/2) - (6/2) = 1
+      const subnetRelX = subnetAfter.position.x - regionAfter.position.x;
+      expect(subnetRelX).toBeLessThanOrEqual(1);
+
+      // Block position should be within new bounds: max x = (8/2) - (2.4/2) = 2.8
+      expect(blockAfter.position.x).toBeLessThanOrEqual(2.8);
+    });
   });
 
   describe('movePlatePosition', () => {
@@ -701,6 +740,32 @@ describe('architectureStore', () => {
       expect(outerAfter?.position.z).toBe((outerBefore?.position.z ?? 0) - 1.5);
       expect(innerAfter?.position.x).toBe((innerBefore?.position.x ?? 0) + 1.25);
       expect(innerAfter?.position.z).toBe((innerBefore?.position.z ?? 0) - 1.5);
+    });
+
+    it('moves deeply nested descendant plates recursively', () => {
+      getState().addPlate('region', 'VNet', null);
+      const regionId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Outer', regionId, 'public');
+      const outerId = getArch().plates[1].id;
+      getState().addPlate('subnet', 'Inner', outerId, 'private');
+      const innerId = getArch().plates[2].id;
+
+      const regionBefore = getArch().plates.find((p) => p.id === regionId)!;
+      const outerBefore = getArch().plates.find((p) => p.id === outerId)!;
+      const innerBefore = getArch().plates.find((p) => p.id === innerId)!;
+
+      getState().movePlatePosition(regionId, 3, -2);
+
+      const regionAfter = getArch().plates.find((p) => p.id === regionId)!;
+      const outerAfter = getArch().plates.find((p) => p.id === outerId)!;
+      const innerAfter = getArch().plates.find((p) => p.id === innerId)!;
+
+      expect(regionAfter.position.x).toBe(regionBefore.position.x + 3);
+      expect(regionAfter.position.z).toBe(regionBefore.position.z - 2);
+      expect(outerAfter.position.x).toBe(outerBefore.position.x + 3);
+      expect(outerAfter.position.z).toBe(outerBefore.position.z - 2);
+      expect(innerAfter.position.x).toBe(innerBefore.position.x + 3);
+      expect(innerAfter.position.z).toBe(innerBefore.position.z - 2);
     });
 
     it('no-ops when moving a non-existent plate', () => {
@@ -1388,6 +1453,47 @@ describe('architectureStore', () => {
       const workspaceCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:workspaces');
       expect(workspaceCalls.length).toBeGreaterThan(0);
       spy.mockRestore();
+    });
+  });
+
+  describe('setGithubRepo', () => {
+    it('sets githubRepo on the current workspace', () => {
+      const wsId = getState().workspace.id;
+      getState().setGithubRepo(wsId, 'owner/repo');
+
+      expect(getState().workspace.githubRepo).toBe('owner/repo');
+    });
+
+    it('does not modify current workspace when updating a non-current workspace', () => {
+      getState().createWorkspace('Second');
+      const secondId = getState().workspace.id;
+      const firstId = getState().workspaces.find((ws) => ws.id !== secondId)!.id;
+
+      getState().setGithubRepo(firstId, 'owner/other-repo');
+
+      expect(getState().workspace.githubRepo).toBeUndefined();
+      const firstInList = getState().workspaces.find((ws) => ws.id === firstId);
+      expect(firstInList?.githubRepo).toBe('owner/other-repo');
+    });
+
+    it('persists the update to storage', () => {
+      const spy = vi.spyOn(localStorage, 'setItem');
+      const wsId = getState().workspace.id;
+
+      getState().setGithubRepo(wsId, 'owner/repo');
+
+      const workspaceCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:workspaces');
+      expect(workspaceCalls.length).toBeGreaterThan(0);
+      spy.mockRestore();
+    });
+
+    it('clears githubRepo when set to undefined', () => {
+      const wsId = getState().workspace.id;
+      getState().setGithubRepo(wsId, 'owner/repo');
+      expect(getState().workspace.githubRepo).toBe('owner/repo');
+
+      getState().setGithubRepo(wsId, undefined);
+      expect(getState().workspace.githubRepo).toBeUndefined();
     });
   });
 
