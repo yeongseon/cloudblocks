@@ -119,6 +119,37 @@ describe('TemplateGallery', () => {
     expect(screen.getAllByText('terraform · bicep · pulumi').length).toBeGreaterThan(0);
   });
 
+  it('resets category filter to "all" after Use Template', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ showTemplateGallery: true });
+    const saveToStorageSpy = vi.fn();
+    const loadFromTemplateSpy = vi.fn();
+    useArchitectureStore.setState({
+      saveToStorage: saveToStorageSpy,
+      loadFromTemplate: loadFromTemplateSpy,
+    });
+
+    const { unmount } = render(<TemplateGallery />);
+
+    // Filter to Serverless
+    await user.click(screen.getByRole('button', { name: 'Serverless' }));
+    expect(screen.getByText('Serverless HTTP API')).toBeInTheDocument();
+    expect(screen.queryByText('Three-Tier Web Application')).not.toBeInTheDocument();
+
+    // Click "Use Template" on the visible card
+    const useButtons = screen.getAllByText('Use Template');
+    await user.click(useButtons[0]);
+
+    // Re-render (simulates reopening the gallery)
+    unmount();
+    useUIStore.setState({ showTemplateGallery: true });
+    render(<TemplateGallery />);
+
+    // All templates should be visible — filter was reset to "all"
+    expect(screen.getByText('Three-Tier Web Application')).toBeInTheDocument();
+    expect(screen.getByText('Serverless HTTP API')).toBeInTheDocument();
+  });
+
   it('resets category filter on remount', async () => {
     const user = userEvent.setup();
     const { unmount } = render(<TemplateGallery />);
