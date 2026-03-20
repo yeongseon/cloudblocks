@@ -31,6 +31,7 @@ import {
 } from './useTechTree';
 import { BLOCK_FRIENDLY_NAMES, BLOCK_ICONS } from '../../shared/types/index';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
+import { getBlockWorldPosition } from '../../shared/utils/position';
 import type { BlockCategory, Plate, ProviderType } from '@cloudblocks/schema';
 import './CommandCard.css';
 
@@ -470,8 +471,11 @@ function WorkerBuildMode() {
     );
 
     if (createdBlock) {
-      const { x, y, z } = createdBlock.position;
-      startBuild(createdBlock.id, [x, y, z]);
+      const nextPlates = useArchitectureStore.getState().workspace.architecture.plates;
+      const parentPlate = nextPlates.find((p) => p.id === createdBlock.placementId);
+      if (parentPlate) {
+        startBuild(createdBlock.id, getBlockWorldPosition(createdBlock, parentPlate));
+      }
     }
   }, [activeProvider, addBlock, architecture.blocks, startBuild, techTree]);
 
