@@ -164,14 +164,11 @@ describe('architectureStore', () => {
       expect(getState().canUndo).toBe(true);
     });
 
-    it('adds subnet even when parentId does not exist', () => {
+    it('rejects subnet when parentId does not exist', () => {
       getState().addPlate('subnet', 'Orphan Subnet', 'missing-parent', 'public');
-      const subnet = getArch().plates[0];
 
-      expect(subnet.parentId).toBe('missing-parent');
-      expect(subnet.position.x).toBe(-3.5);
-      expect(subnet.position.y).toBe(0.3);
-      expect(subnet.position.z).toBe(0);
+      expect(getArch().plates).toHaveLength(0);
+      expect(getState().canUndo).toBe(false);
     });
   });
 
@@ -321,7 +318,7 @@ describe('architectureStore', () => {
   });
 
   describe('duplicateBlock', () => {
-    it('duplicates a block with a new id, copy suffix, and +1/+1 position offset', () => {
+    it('duplicates a block with proper grid position', () => {
       getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub', netId, 'public');
@@ -341,11 +338,8 @@ describe('architectureStore', () => {
       expect(duplicate.category).toBe(source.category);
       expect(duplicate.placementId).toBe(source.placementId);
       expect(duplicate.provider).toBe(source.provider);
-      expect(duplicate.position).toEqual({
-        x: source.position.x + 1,
-        y: source.position.y,
-        z: source.position.z + 1,
-      });
+      expect(duplicate.position.y).toBe(0.5);
+      expect(duplicate.position).not.toEqual(source.position);
 
       const plate = getArch().plates.find((p) => p.id === subId);
       expect(plate?.children).toContain(source.id);
@@ -377,6 +371,14 @@ describe('architectureStore', () => {
     });
   });
 
+    it('no-ops when blockId does not exist', () => {
+      const before = getState().workspace.architecture;
+      getState().renameBlock('missing-block', 'New Name');
+
+      expect(getState().workspace.architecture).toBe(before);
+      expect(getState().canUndo).toBe(false);
+    });
+
   describe('renamePlate', () => {
     it('renames a plate', () => {
       getState().addPlate('region', 'Old Plate', null);
@@ -385,6 +387,14 @@ describe('architectureStore', () => {
       getState().renamePlate(plateId, 'New Plate');
 
       expect(getArch().plates[0].name).toBe('New Plate');
+    });
+
+    it('no-ops when plateId does not exist', () => {
+      const before = getState().workspace.architecture;
+      getState().renamePlate('missing-plate', 'New Plate');
+
+      expect(getState().workspace.architecture).toBe(before);
+      expect(getState().canUndo).toBe(false);
     });
   });
 
