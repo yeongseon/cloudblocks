@@ -245,7 +245,7 @@ describe('FlowDiagram', () => {
     // Both nodes should be present despite forming a cycle
     const nodes = Array.from(container.querySelectorAll('.flow-node')).map((node) => node.textContent?.trim());
     expect(nodes).toHaveLength(2);
-    expect(nodes).toContain('⚡App Service');
-    expect(nodes).toContain('📨Message Queue');
+    expect(nodes).toContain('⚡function-1-name');
+    expect(nodes).toContain('📨queue-1-name');
   });
 });
