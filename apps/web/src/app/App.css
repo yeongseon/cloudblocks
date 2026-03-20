@@ -28,3 +28,15 @@
   padding-right: 320px;
   transition: padding-right 0.3s ease;
 }
+
+/* Worker mode: Build Order panel is fixed-right, shift canvas content left */
+.canvas-container:has(.bottom-panel--worker-mode) {
+  padding-right: 380px;
+  transition: padding-right 0.3s ease;
+}
+
+@media (max-width: 899px) {
+  .canvas-container:has(.bottom-panel--worker-mode) {
+    padding-right: 0;
+  }
+}

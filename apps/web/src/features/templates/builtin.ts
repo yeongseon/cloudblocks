@@ -67,7 +67,7 @@ const threeTierTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-tmpl-compute',
-        name: 'Web App',
+        name: 'Virtual Machine',
         category: 'compute',
         placementId: 'plate-tmpl-public',
         position: { x: 1.5, y: 0.5, z: 1 },

@@ -86,6 +86,11 @@ interface UIState {
   showCollaboration: boolean;
   toggleCollaboration: () => void;
 
+  // ── Build Order panel ──
+  isBuildOrderOpen: boolean;
+  toggleBuildOrder: () => void;
+  setBuildOrderOpen: (open: boolean) => void;
+
   // ── Sound preference ──
   isSoundMuted: boolean;
   toggleSound: () => void;
@@ -222,6 +227,11 @@ export const useUIStore = create<UIState>((set) => ({
   showCollaboration: false,
   toggleCollaboration: () =>
     set((s) => ({ showCollaboration: !s.showCollaboration })),
+
+  isBuildOrderOpen: true,
+  toggleBuildOrder: () =>
+    set((s) => ({ isBuildOrderOpen: !s.isBuildOrderOpen })),
+  setBuildOrderOpen: (open) => set({ isBuildOrderOpen: open }),
 
   isSoundMuted: true,
   toggleSound: () => set((s) => ({ isSoundMuted: !s.isSoundMuted })),

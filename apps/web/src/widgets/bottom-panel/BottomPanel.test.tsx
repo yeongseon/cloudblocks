@@ -1,5 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { useUIStore } from '../../entities/store/uiStore';
 
 vi.mock('./BottomPanel.css', () => ({}));
 
@@ -22,6 +23,10 @@ vi.mock('./CommandCard', () => ({
 import { BottomPanel } from './BottomPanel';
 
 describe('BottomPanel', () => {
+  beforeEach(() => {
+    useUIStore.setState({ selectedId: null, isBuildOrderOpen: true });
+  });
+
   it('renders all child widgets', () => {
     render(<BottomPanel />);
 
@@ -34,7 +39,42 @@ describe('BottomPanel', () => {
   it('applies className to root wrapper', () => {
     const { container } = render(<BottomPanel className="custom-bottom" />);
 
-    expect(container.firstElementChild).toHaveClass('bottom-panel');
-    expect(container.firstElementChild).toHaveClass('custom-bottom');
+    const panel = container.querySelector('.bottom-panel');
+    expect(panel).toHaveClass('bottom-panel');
+    expect(panel).toHaveClass('custom-bottom');
+  });
+
+  it('adds worker mode class when build order is open', () => {
+    useUIStore.setState({ isBuildOrderOpen: true });
+
+    const { container } = render(<BottomPanel />);
+
+    expect(container.querySelector('.bottom-panel')).toHaveClass('bottom-panel--worker-mode');
+  });
+
+  it('removes worker mode class when build order is closed', () => {
+    useUIStore.setState({ isBuildOrderOpen: false });
+
+    const { container } = render(<BottomPanel />);
+
+    expect(container.querySelector('.bottom-panel')).not.toHaveClass('bottom-panel--worker-mode');
+  });
+
+  it('shows expand tab when build order is closed', () => {
+    useUIStore.setState({ isBuildOrderOpen: false });
+
+    render(<BottomPanel />);
+
+    expect(screen.getByRole('button', { name: /open build order/i })).toBeInTheDocument();
+    expect(screen.queryByTestId('command-card')).not.toBeInTheDocument();
+  });
+
+  it('hides expand tab when build order is open', () => {
+    useUIStore.setState({ isBuildOrderOpen: true });
+
+    render(<BottomPanel />);
+
+    expect(screen.queryByRole('button', { name: /open build order/i })).not.toBeInTheDocument();
+    expect(screen.getByTestId('command-card')).toBeInTheDocument();
   });
 });
