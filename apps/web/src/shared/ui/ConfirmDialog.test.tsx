@@ -50,4 +50,42 @@ describe('confirmDialog', () => {
 
     await expect(promise).resolves.toBe(false);
   });
+
+  it('focuses Cancel button when opened', async () => {
+    render(<div />);
+
+    confirmDialog('Keep editing?', 'Discard draft?');
+    await screen.findByRole('dialog');
+
+    expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
+  });
+
+  it('resolves false when Escape is pressed', async () => {
+    render(<div />);
+    const user = userEvent.setup();
+
+    const promise = confirmDialog('Keep editing?', 'Discard draft?');
+    await screen.findByRole('dialog');
+
+    await user.keyboard('{Escape}');
+
+    await expect(promise).resolves.toBe(false);
+  });
+
+  it('settles existing dialog before rendering a new one', async () => {
+    render(<div />);
+    const user = userEvent.setup();
+
+    const firstPromise = confirmDialog('First message', 'First title');
+    await screen.findByText('First message');
+
+    const secondPromise = confirmDialog('Second message', 'Second title');
+    await screen.findByText('Second message');
+
+    await expect(firstPromise).resolves.toBe(false);
+    expect(screen.queryByText('First message')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Confirm' }));
+    await expect(secondPromise).resolves.toBe(true);
+  });
 });

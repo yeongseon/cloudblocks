@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import type { Root } from 'react-dom/client';
@@ -10,8 +11,25 @@ interface ConfirmDialogProps {
   onConfirm: () => void;
 }
 
-function renderDialogPortal({ title, message, onCancel, onConfirm }: ConfirmDialogProps) {
-  return createPortal(
+function ConfirmDialogContent({ title, message, onCancel, onConfirm }: ConfirmDialogProps) {
+  const cancelButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    cancelButtonRef.current?.focus();
+
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') {
+        onCancel();
+      }
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [onCancel]);
+
+  return (
     <div className="confirm-dialog-overlay" role="presentation" onClick={onCancel}>
       <div
         className="confirm-dialog"
@@ -28,7 +46,12 @@ function renderDialogPortal({ title, message, onCancel, onConfirm }: ConfirmDial
           {message}
         </p>
         <div className="confirm-dialog-actions">
-          <button type="button" className="confirm-dialog-btn" onClick={onCancel}>
+          <button
+            ref={cancelButtonRef}
+            type="button"
+            className="confirm-dialog-btn"
+            onClick={onCancel}
+          >
             Cancel
           </button>
           <button
@@ -40,7 +63,18 @@ function renderDialogPortal({ title, message, onCancel, onConfirm }: ConfirmDial
           </button>
         </div>
       </div>
-    </div>,
+    </div>
+  );
+}
+
+function renderDialogPortal({ title, message, onCancel, onConfirm }: ConfirmDialogProps) {
+  return createPortal(
+    <ConfirmDialogContent
+      title={title}
+      message={message}
+      onCancel={onCancel}
+      onConfirm={onConfirm}
+    />,
     document.body,
   );
 }
@@ -78,7 +112,7 @@ export function confirmDialog(message: string, title = 'Confirm'): Promise<boole
   }
 
   if (resolver) {
-    resolver(false);
+    settle(false);
   }
 
   return new Promise<boolean>((resolve) => {

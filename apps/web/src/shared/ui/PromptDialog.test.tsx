@@ -8,18 +8,19 @@ describe('promptDialog', () => {
     render(<div />);
     const user = userEvent.setup();
 
-    const promise = promptDialog('Rename plate:', 'Rename', 'My VNet');
+    const message = 'Rename plate:';
+    const promise = promptDialog(message, 'Rename', 'My VNet');
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('Rename')).toBeInTheDocument();
-    expect(screen.getByText('Rename plate:')).toBeInTheDocument();
+    expect(screen.getByText(message)).toBeInTheDocument();
 
-    const input = document.querySelector<HTMLInputElement>('.prompt-dialog-input');
+    const input = screen.getByRole('textbox', { name: message });
     expect(input).toBeInTheDocument();
-    expect(input?.value).toBe('My VNet');
+    expect(input).toHaveValue('My VNet');
 
-    await user.clear(input!);
-    await user.type(input!, 'New Name');
+    await user.clear(input);
+    await user.type(input, 'New Name');
 
     await user.click(screen.getByRole('button', { name: 'OK' }));
 
@@ -62,27 +63,56 @@ describe('promptDialog', () => {
     render(<div />);
     const user = userEvent.setup();
 
-    const promise = promptDialog('Rename block:', 'Rename', 'App VM');
+    const message = 'Rename block:';
+    const promise = promptDialog(message, 'Rename', 'App VM');
     await screen.findByRole('dialog');
 
-    const input = document.querySelector<HTMLInputElement>('.prompt-dialog-input');
-    await user.clear(input!);
-    await user.type(input!, 'Web Server{Enter}');
+    const input = screen.getByRole('textbox', { name: message });
+    await user.clear(input);
+    await user.type(input, 'Web Server{Enter}');
 
     await expect(promise).resolves.toBe('Web Server');
   });
 
-  it('resolves null when Escape is pressed', async () => {
+  it('resolves null when Escape is pressed from anywhere in dialog', async () => {
     render(<div />);
     const user = userEvent.setup();
 
     const promise = promptDialog('Rename block:', 'Rename', 'App VM');
     await screen.findByRole('dialog');
 
-    const input = document.querySelector<HTMLInputElement>('.prompt-dialog-input');
-    await user.click(input!);
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
     await user.keyboard('{Escape}');
 
     await expect(promise).resolves.toBeNull();
+  });
+
+  it('exposes input accessible name from message', async () => {
+    render(<div />);
+
+    const message = 'Enter workspace name:';
+    promptDialog(message, 'Rename workspace', 'Main Workspace');
+
+    expect(await screen.findByRole('textbox', { name: message })).toBeInTheDocument();
+  });
+
+  it('settles existing prompt before rendering a new one', async () => {
+    render(<div />);
+    const user = userEvent.setup();
+
+    const firstPromise = promptDialog('First prompt', 'Rename', 'One');
+    await screen.findByText('First prompt');
+
+    const secondPromise = promptDialog('Second prompt', 'Rename', 'Two');
+    const secondInput = await screen.findByRole('textbox', { name: 'Second prompt' });
+
+    await expect(firstPromise).resolves.toBeNull();
+    expect(screen.queryByText('First prompt')).not.toBeInTheDocument();
+
+    await user.clear(secondInput);
+    await user.type(secondInput, 'Updated Two');
+    await user.click(screen.getByRole('button', { name: 'OK' }));
+
+    await expect(secondPromise).resolves.toBe('Updated Two');
   });
 });
