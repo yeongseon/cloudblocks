@@ -265,4 +265,24 @@ describe('WorkspaceManager', () => {
     render(<WorkspaceManager />);
     expect(screen.getByText(/New Workspace/)).toBeInTheDocument();
   });
+
+  it('resets draft input when panel is reopened', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ showWorkspaceManager: true });
+    const { rerender } = render(<WorkspaceManager />);
+    const input = screen.getByPlaceholderText('New workspace name...');
+    await user.type(input, 'Partial draft');
+    expect(input).toHaveValue('Partial draft');
+
+    // Close the panel
+    useUIStore.setState({ showWorkspaceManager: false });
+    rerender(<WorkspaceManager />);
+
+    // Reopen the panel
+    useUIStore.setState({ showWorkspaceManager: true });
+    rerender(<WorkspaceManager />);
+
+    const inputAfterReopen = screen.getByPlaceholderText('New workspace name...');
+    expect(inputAfterReopen).toHaveValue('');
+  });
 });

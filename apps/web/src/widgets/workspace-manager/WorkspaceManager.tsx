@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { confirmDialog } from '../../shared/ui/ConfirmDialog';
@@ -17,6 +17,13 @@ export function WorkspaceManager() {
   const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
 
   const [newName, setNewName] = useState('');
+
+  // Reset draft input when panel opens
+  useEffect(() => {
+    if (show) {
+      setNewName('');
+    }
+  }, [show]);
 
   if (!show) return null;
 
