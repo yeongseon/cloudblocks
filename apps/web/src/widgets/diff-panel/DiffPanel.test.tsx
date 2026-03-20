@@ -383,7 +383,7 @@ describe('DiffPanel', () => {
     await user.click(modifiedToggle);
     expect(modifiedToggle).toHaveAttribute('aria-expanded', 'true');
 
-    useUIStore.setState({ diffDelta: makeDiffDelta() });
+    useUIStore.getState().setDiffMode(true, makeDiffDelta());
     rerender(<DiffPanel />);
 
     const resetPlatesToggle = screen.getByRole('button', { name: /Plates/ });
