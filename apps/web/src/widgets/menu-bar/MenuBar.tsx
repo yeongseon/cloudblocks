@@ -209,6 +209,7 @@ export function MenuBar() {
 
   const aiLoading = useAiStore((s) => s.generateLoading);
   const aiError = useAiStore((s) => s.generateError);
+  const aiResult = useAiStore((s) => s.generateResult);
 
   const handleToggleDiffMode = () => {
     if (diffMode) {
@@ -378,7 +379,7 @@ export function MenuBar() {
       
       </nav>
 
-      <AiPromptBar onSubmit={handleAiSubmit} isLoading={aiLoading} error={aiError ?? undefined} />
+      <AiPromptBar onSubmit={handleAiSubmit} isLoading={aiLoading} error={aiError ?? undefined} explanation={aiResult?.explanation} warnings={aiResult?.warnings} />
 
       <div className="menu-bar-divider" />
 

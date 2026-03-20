@@ -6,9 +6,17 @@ interface AiPromptBarProps {
   onSubmit: (prompt: string, provider: string) => void;
   isLoading: boolean;
   error?: string;
+  explanation?: string;
+  warnings?: string[];
 }
 
-export const AiPromptBar: React.FC<AiPromptBarProps> = ({ onSubmit, isLoading, error }) => {
+export const AiPromptBar: React.FC<AiPromptBarProps> = ({
+  onSubmit,
+  isLoading,
+  error,
+  explanation,
+  warnings,
+}) => {
   const [prompt, setPrompt] = useState('');
   const [provider, setProvider] = useState('aws');
 
@@ -61,6 +69,14 @@ export const AiPromptBar: React.FC<AiPromptBarProps> = ({ onSubmit, isLoading, e
         </button>
       </div>
       {error && <div className="ai-error-message">{error}</div>}
+      {explanation && <div className="ai-explanation">{explanation}</div>}
+      {warnings && warnings.length > 0 && (
+        <div className="ai-warnings">
+          {warnings.map((w, i) => (
+            <div key={i} className="ai-warning-item">⚠️ {w}</div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
