@@ -165,6 +165,44 @@ describe('App', () => {
     expect(redoMock).toHaveBeenCalledOnce();
   });
 
+  it('handles Ctrl+S for save', () => {
+    const saveToStorageMock = vi.fn();
+    useArchitectureStore.setState({
+      loadFromStorage: loadFromStorageMock,
+      undo: undoMock,
+      redo: redoMock,
+      removeBlock: removeBlockMock,
+      removePlate: removePlateMock,
+      removeConnection: removeConnectionMock,
+      saveToStorage: saveToStorageMock,
+    });
+    render(<App />);
+    const event = new KeyboardEvent('keydown', { key: 's', ctrlKey: true, bubbles: true });
+    const preventDefaultSpy = vi.spyOn(event, 'preventDefault');
+    window.dispatchEvent(event);
+    expect(preventDefaultSpy).toHaveBeenCalled();
+    expect(saveToStorageMock).toHaveBeenCalledOnce();
+  });
+
+  it('handles Meta+S for save (macOS)', () => {
+    const saveToStorageMock = vi.fn();
+    useArchitectureStore.setState({
+      loadFromStorage: loadFromStorageMock,
+      undo: undoMock,
+      redo: redoMock,
+      removeBlock: removeBlockMock,
+      removePlate: removePlateMock,
+      removeConnection: removeConnectionMock,
+      saveToStorage: saveToStorageMock,
+    });
+    render(<App />);
+    const event = new KeyboardEvent('keydown', { key: 's', metaKey: true, bubbles: true });
+    const preventDefaultSpy = vi.spyOn(event, 'preventDefault');
+    window.dispatchEvent(event);
+    expect(preventDefaultSpy).toHaveBeenCalled();
+    expect(saveToStorageMock).toHaveBeenCalledOnce();
+  });
+
   it('handles Delete key to remove selected block', () => {
     useUIStore.setState({ selectedId: 'block-1', setSelectedId: setSelectedIdMock });
     useArchitectureStore.setState({
