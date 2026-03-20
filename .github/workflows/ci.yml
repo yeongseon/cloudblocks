@@ -31,9 +31,9 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build shared packages
-        run: pnpm --filter @cloudblocks/schema build && pnpm --filter @cloudblocks/domain build
+        run: pnpm run build:packages
 
-      - name: Lint
+      - name: Lint all packages
         run: pnpm lint
 
   web-build:
@@ -58,13 +58,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Type check
-        run: npx tsc -b
-        working-directory: apps/web
+      - name: Type check all packages
+        run: pnpm run typecheck
 
       - name: Build
-        run: npx vite build
-        working-directory: apps/web
+        run: pnpm run build
 
   web-test:
     name: Web Tests
@@ -86,11 +84,39 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build shared packages
-        run: pnpm --filter @cloudblocks/schema build && pnpm --filter @cloudblocks/domain build
+        run: pnpm run build:packages
 
       - name: Run tests with coverage
         run: npx vitest run --coverage
         working-directory: apps/web
+
+  package-tests:
+    name: Package Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build shared packages
+        run: pnpm run build:packages
+
+      - name: Test @cloudblocks/schema
+        run: pnpm --filter @cloudblocks/schema test
+
+      - name: Test @cloudblocks/domain
+        run: pnpm --filter @cloudblocks/domain test
 
   api-lint:
     name: API Lint

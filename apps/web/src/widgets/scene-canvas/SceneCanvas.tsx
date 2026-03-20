@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { useWorkerStore } from '../../entities/store/workerStore';
 import { canPlaceBlock } from '../../entities/validation/placement';
 import { worldToScreen, depthKey } from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
@@ -17,8 +18,6 @@ import { DragGhost } from './DragGhost';
 import { ConnectionPreview } from './ConnectionPreview';
 import './SceneCanvas.css';
 
-const MINIFIGURE_POSITION: [number, number, number] = [-3, 0, -6];
-
 export function SceneCanvas() {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const addBlock = useArchitectureStore((s) => s.addBlock);
@@ -29,6 +28,7 @@ export function SceneCanvas() {
   const activeProvider = useUIStore((s) => s.activeProvider);
   const completeInteraction = useUIStore((s) => s.completeInteraction);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
+  const workerPosition = useWorkerStore((s) => s.workerPosition);
   const playSound = (name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); };
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -205,7 +205,7 @@ export function SceneCanvas() {
 
         <div className="character-layer">
           {(() => {
-            const [x, y, z] = MINIFIGURE_POSITION;
+            const [x, y, z] = workerPosition;
             const screenPos = worldToScreen(x, y, z, origin.x, origin.y);
             const zIndex = depthKey(x, z, y, 1);
             return (

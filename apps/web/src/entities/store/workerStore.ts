@@ -37,7 +37,7 @@ const createBuildTask = (
 export const useWorkerStore = create<WorkerStoreState>((set, get) => ({
   workerId: 'worker-default',
   workerState: 'idle',
-  workerPosition: [0, 0, 0],
+  workerPosition: [-3, 0, -6],
   buildQueue: [],
   activeBuild: null,
 

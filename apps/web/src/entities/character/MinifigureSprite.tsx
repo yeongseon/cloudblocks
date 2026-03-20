@@ -1,8 +1,11 @@
-import { memo } from 'react';
+import { memo, useEffect, useRef } from 'react';
+import interact from 'interactjs';
 import type { CloudProvider } from './minifigureFaceColors';
 import { MinifigureSvg } from './MinifigureSvg';
 import { useUIStore } from '../store/uiStore';
 import { useWorkerStore } from '../store/workerStore';
+import { screenDeltaToWorld, snapToGrid } from '../../shared/utils/isometric';
+import { audioService } from '../../shared/utils/audioService';
 import './MinifigureSprite.css';
 
 interface MinifigureSpriteProps {
@@ -13,33 +16,126 @@ interface MinifigureSpriteProps {
 }
 
 export const MinifigureSprite = memo(function MinifigureSprite({
-  provider, screenX, screenY, zIndex,
+  provider,
+  screenX,
+  screenY,
+  zIndex,
 }: MinifigureSpriteProps) {
   const selectedId = useUIStore((s) => s.selectedId);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const toolMode = useUIStore((s) => s.toolMode);
-  // Read workerState from workerStore
   const workerState = useWorkerStore((s) => s.workerState);
-  
+  const setWorkerPosition = useWorkerStore((s) => s.setWorkerPosition);
+  const spriteRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dragZoomRef = useRef(1);
+
   const workerId = 'worker-default';
   const isSelected = selectedId === workerId;
 
-  const handleClick = (e: React.MouseEvent) => {
+  useEffect(() => {
+    const el = spriteRef.current;
+    if (toolMode === 'delete' || !el) {
+      return;
+    }
+
+    const interactable = interact(el).draggable({
+      listeners: {
+        start(event) {
+          isDragging.current = false;
+          dragZoomRef.current = 1;
+
+          const sceneWorld = event.target.closest('.scene-world') as HTMLElement | null;
+          if (sceneWorld) {
+            const transform = sceneWorld.style.transform;
+            const scaleMatch = transform.match(/scale\(([\d.]+)\)/);
+            if (scaleMatch?.[1]) {
+              const parsedZoom = Number.parseFloat(scaleMatch[1]);
+              if (Number.isFinite(parsedZoom) && parsedZoom > 0) {
+                dragZoomRef.current = parsedZoom;
+              }
+            }
+          }
+        },
+        move(event) {
+          isDragging.current = true;
+          el.classList.add('is-dragging');
+
+          const dxScreen = event.dx / dragZoomRef.current;
+          const dyScreen = event.dy / dragZoomRef.current;
+          const { dWorldX, dWorldZ } = screenDeltaToWorld(dxScreen, dyScreen);
+          const [currentX, currentY, currentZ] = useWorkerStore.getState().workerPosition;
+
+          setWorkerPosition([currentX + dWorldX, currentY, currentZ + dWorldZ]);
+        },
+        end() {
+          el.classList.remove('is-dragging');
+
+          if (isDragging.current) {
+            el.classList.add('is-dropping');
+            const handleAnimEnd = () => {
+              el.classList.remove('is-dropping');
+              el.removeEventListener('animationend', handleAnimEnd);
+            };
+            el.addEventListener('animationend', handleAnimEnd);
+
+            const [currentX, currentY, currentZ] = useWorkerStore.getState().workerPosition;
+            const snappedPosition = snapToGrid(currentX, currentZ);
+
+            if (snappedPosition.x !== currentX || snappedPosition.z !== currentZ) {
+              setWorkerPosition([snappedPosition.x, currentY, snappedPosition.z]);
+
+              const { isSoundMuted } = useUIStore.getState();
+              if (!isSoundMuted) {
+                audioService.playSound('block-snap');
+              }
+            }
+          }
+
+          if (dragResetTimerRef.current) {
+            clearTimeout(dragResetTimerRef.current);
+          }
+          dragResetTimerRef.current = setTimeout(() => {
+            isDragging.current = false;
+          }, 50);
+        },
+      },
+      autoScroll: false,
+    });
+
+    return () => {
+      if (dragResetTimerRef.current) {
+        clearTimeout(dragResetTimerRef.current);
+      }
+      el.classList.remove('is-dragging');
+      el.classList.remove('is-dropping');
+      interactable.unset();
+    };
+  }, [setWorkerPosition, toolMode]);
+
+  const handleClick = (e: React.PointerEvent) => {
+    if (isDragging.current) {
+      return;
+    }
+
     e.stopPropagation();
     if (toolMode === 'delete') return;
-    if (toolMode === 'connect') return; // minifigure is not connectable
+    if (toolMode === 'connect') return;
     setSelectedId(workerId);
   };
 
-  const className = [
-    'minifigure-sprite',
-    isSelected && 'is-selected',
-    `is-${workerState}`, // 'is-idle', 'is-moving', 'is-building'
-  ].filter(Boolean).join(' ');
+  const className = ['minifigure-sprite', isSelected && 'is-selected', `is-${workerState}`]
+    .filter(Boolean)
+    .join(' ');
 
   return (
-    <div className={className} onClick={handleClick}
-      style={{ left: screenX, top: screenY, zIndex }}>
+    <div
+      ref={spriteRef}
+      className={className}
+      onPointerUp={handleClick}
+      style={{ left: screenX, top: screenY, zIndex }}
+    >
       <MinifigureSvg provider={provider} />
     </div>
   );
