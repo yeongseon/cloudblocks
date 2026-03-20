@@ -54,7 +54,7 @@ interface PromoteState {
   loadHistory: () => Promise<void>;
 }
 
-export const usePromoteStore = create<PromoteState>((set, get) => ({
+export const usePromoteStore = create<PromoteState>((set) => ({
   // Promote
   showPromoteDialog: false,
   promotionChecklist: { ...DEFAULT_CHECKLIST },
