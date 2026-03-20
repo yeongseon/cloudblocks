@@ -19,10 +19,7 @@ export default defineConfig({
         'src/vite-env.d.ts',
         'src/features/generate/types.ts',
         'src/shared/types/template.ts',
-        // R3F/Three.js components - require WebGL context, not testable in jsdom
-        'src/entities/block/BlockModel.tsx',
-        'src/entities/plate/PlateModel.tsx',
-        'src/entities/connection/ConnectionLine.tsx',
+        // SceneCanvas — complex canvas interactions (zoom, pan, drag) need full DOM; excluded from coverage
         'src/widgets/scene-canvas/SceneCanvas.tsx',
       ],
       thresholds: {
