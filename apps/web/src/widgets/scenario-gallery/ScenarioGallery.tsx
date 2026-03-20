@@ -26,11 +26,8 @@ const categoryKeys: Array<ScenarioDifficulty | 'all'> = [
 ];
 
 export function ScenarioGallery() {
-  const show = useUIStore((s) => s.showScenarioGallery);
   const toggleScenarioGallery = useUIStore((s) => s.toggleScenarioGallery);
   const [activeDifficulty, setActiveDifficulty] = useState<ScenarioDifficulty | 'all'>('all');
-
-  if (!show) return null;
 
   const scenarios =
     activeDifficulty === 'all'
