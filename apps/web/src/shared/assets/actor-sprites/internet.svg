@@ -1,48 +1,52 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 158 127">
-  <!-- Bottom ellipse (shadow/base) -->
-  <ellipse cx="79" cy="90" rx="70" ry="35" fill="#5A9DBE" />
-  
-  <!-- Cylinder body (connecting top to bottom) -->
-  <path d="M 9 65 L 9 90 A 70 35 0 0 0 149 90 L 149 65 Z" fill="#6BB5D6" />
-  
-  <!-- Top ellipse (main surface) -->
-  <ellipse cx="79" cy="65" rx="70" ry="35" fill="#87CEEB" />
-  
-  <!-- Subtle highlight arc on the upper-left portion of the cylinder (top face) for a 3D plastic look -->
-  <path d="M 14 65 A 65 32.5 0 0 1 79 32.5 A 65 34 0 0 0 18 67 Z" fill="#FFFFFF" opacity="0.4" />
-  
-  <!-- Inner ring on top for depth -->
-  <ellipse cx="79" cy="65" rx="60" ry="30" fill="none" stroke="#A8DCEF" stroke-width="1.5" opacity="0.5" />
-  
-  <!-- 4 studs in 2x2 grid on top face (drawn back to front) -->
-  <!-- Top Stud -->
-  <g class="stud-top">
-    <path d="M 67 48 L 67 53 A 12 6 0 0 0 91 53 L 91 48 Z" fill="#6BB5D6" />
-    <ellipse cx="79" cy="48" rx="12" ry="6" fill="#A8DCEF" />
-    <ellipse cx="79" cy="48" rx="7.2" ry="3.6" fill="#87CEEB" fill-opacity="0.7" stroke="#6BB5D6" stroke-width="1" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 158 140">
+  <defs>
+    <linearGradient id="globe-body" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4DA8DA" />
+      <stop offset="50%" stop-color="#2E86C1" />
+      <stop offset="100%" stop-color="#1B4F72" />
+    </linearGradient>
+    <linearGradient id="globe-highlight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <!-- Base shadow ellipse -->
+  <ellipse cx="79" cy="118" rx="58" ry="18" fill="rgba(0,0,0,0.2)" />
+
+  <!-- Globe body (dome/sphere) -->
+  <ellipse cx="79" cy="72" rx="56" ry="56" fill="url(#globe-body)" />
+
+  <!-- Latitude lines (horizontal arcs across the sphere) -->
+  <ellipse cx="79" cy="42" rx="42" ry="8" fill="none" stroke="#5DADE2" stroke-width="0.8" opacity="0.6" />
+  <ellipse cx="79" cy="58" rx="52" ry="10" fill="none" stroke="#5DADE2" stroke-width="0.8" opacity="0.6" />
+  <ellipse cx="79" cy="72" rx="56" ry="11" fill="none" stroke="#5DADE2" stroke-width="0.8" opacity="0.5" />
+  <ellipse cx="79" cy="86" rx="52" ry="10" fill="none" stroke="#5DADE2" stroke-width="0.8" opacity="0.5" />
+  <ellipse cx="79" cy="100" rx="42" ry="8" fill="none" stroke="#5DADE2" stroke-width="0.8" opacity="0.4" />
+
+  <!-- Longitude lines (vertical arcs) -->
+  <ellipse cx="79" cy="72" rx="12" ry="56" fill="none" stroke="#5DADE2" stroke-width="0.8" opacity="0.6" />
+  <ellipse cx="79" cy="72" rx="32" ry="56" fill="none" stroke="#5DADE2" stroke-width="0.8" opacity="0.5" />
+  <ellipse cx="79" cy="72" rx="48" ry="56" fill="none" stroke="#5DADE2" stroke-width="0.8" opacity="0.4" />
+
+  <!-- Globe highlight (glossy reflection) -->
+  <ellipse cx="62" cy="48" rx="22" ry="26" fill="url(#globe-highlight)" />
+
+  <!-- Flat top platform for studs -->
+  <ellipse cx="79" cy="22" rx="30" ry="10" fill="#2E86C1" />
+  <ellipse cx="79" cy="22" rx="30" ry="10" fill="none" stroke="#1A5276" stroke-width="0.8" opacity="0.4" />
+
+  <!-- Left Stud (Universal Stud Standard: rx=12, ry=6, height=5) -->
+  <g>
+    <path d="M 55 12 L 55 17 A 12 6 0 0 0 79 17 L 79 12 Z" fill="#1A5276" />
+    <ellipse cx="67" cy="12" rx="12" ry="6" fill="#3498DB" />
+    <ellipse cx="67" cy="12" rx="7.2" ry="3.6" fill="#2E86C1" fill-opacity="0.7" stroke="#1A5276" stroke-width="1" />
   </g>
-  
-  <!-- Left Stud -->
-  <g class="stud-left">
-    <path d="M 47 58 L 47 63 A 12 6 0 0 0 71 63 L 71 58 Z" fill="#6BB5D6" />
-    <ellipse cx="59" cy="58" rx="12" ry="6" fill="#A8DCEF" />
-    <ellipse cx="59" cy="58" rx="7.2" ry="3.6" fill="#87CEEB" fill-opacity="0.7" stroke="#6BB5D6" stroke-width="1" />
+
+  <!-- Right Stud (Universal Stud Standard: rx=12, ry=6, height=5) -->
+  <g>
+    <path d="M 79 12 L 79 17 A 12 6 0 0 0 103 17 L 103 12 Z" fill="#1A5276" />
+    <ellipse cx="91" cy="12" rx="12" ry="6" fill="#3498DB" />
+    <ellipse cx="91" cy="12" rx="7.2" ry="3.6" fill="#2E86C1" fill-opacity="0.7" stroke="#1A5276" stroke-width="1" />
   </g>
-  
-  <!-- Right Stud -->
-  <g class="stud-right">
-    <path d="M 87 58 L 87 63 A 12 6 0 0 0 111 63 L 111 58 Z" fill="#6BB5D6" />
-    <ellipse cx="99" cy="58" rx="12" ry="6" fill="#A8DCEF" />
-    <ellipse cx="99" cy="58" rx="7.2" ry="3.6" fill="#87CEEB" fill-opacity="0.7" stroke="#6BB5D6" stroke-width="1" />
-  </g>
-  
-  <!-- Bottom Stud -->
-  <g class="stud-bottom">
-    <path d="M 67 68 L 67 73 A 12 6 0 0 0 91 73 L 91 68 Z" fill="#6BB5D6" />
-    <ellipse cx="79" cy="68" rx="12" ry="6" fill="#A8DCEF" />
-    <ellipse cx="79" cy="68" rx="7.2" ry="3.6" fill="#87CEEB" fill-opacity="0.7" stroke="#6BB5D6" stroke-width="1" />
-  </g>
-  
-  <!-- INTERNET label -->
-  <text x="79" y="117" text-anchor="middle" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="700" letter-spacing="0.5">INTERNET</text>
 </svg>
