@@ -8,6 +8,7 @@ vi.mock('../../shared/api/client', () => ({
 import { GitHubRepos } from './GitHubRepos';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { apiGet, apiPost } from '../../shared/api/client';
 
 describe('GitHubRepos', () => {
@@ -22,6 +23,12 @@ describe('GitHubRepos', () => {
       user: null,
       hydrated: true,
       error: null,
+    });
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        githubRepo: undefined,
+      },
     });
   });
 
@@ -292,5 +299,67 @@ describe('GitHubRepos', () => {
 
     expect(screen.getByPlaceholderText('Repository name')).toHaveValue('');
     expect(screen.queryByText('repo')).not.toBeInTheDocument();
+  });
+
+  it('renders full_name and default_branch in repo list', async () => {
+    mockApiGet.mockResolvedValueOnce({
+      repos: [
+        {
+          full_name: 'owner/repo-one',
+          name: 'repo-one',
+          private: false,
+          default_branch: 'develop',
+          html_url: 'https://github.com/owner/repo-one',
+        },
+      ],
+    });
+
+    render(<GitHubRepos />);
+
+    expect(await screen.findByText('owner/repo-one')).toBeInTheDocument();
+    expect(screen.getByText('Default branch: develop')).toBeInTheDocument();
+  });
+
+  it('keeps create success message when refresh fails after creation', async () => {
+    const user = userEvent.setup();
+    mockApiGet.mockResolvedValueOnce({ repos: [] }).mockRejectedValueOnce(new Error('Refresh failed'));
+    mockApiPost.mockResolvedValueOnce({
+      full_name: 'owner/new-repo',
+      name: 'new-repo',
+      private: true,
+      default_branch: 'main',
+      html_url: 'https://github.com/owner/new-repo',
+    });
+
+    render(<GitHubRepos />);
+    await user.type(screen.getByPlaceholderText('Repository name'), 'new-repo');
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+
+    expect(await screen.findByText('Repository new-repo created successfully.')).toBeInTheDocument();
+    expect(await screen.findByText('Refresh failed')).toBeInTheDocument();
+  });
+
+  it('marks linked repository in the list', async () => {
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        githubRepo: 'owner/repo-one',
+      },
+    });
+    mockApiGet.mockResolvedValueOnce({
+      repos: [
+        {
+          full_name: 'owner/repo-one',
+          name: 'repo-one',
+          private: false,
+          default_branch: 'main',
+          html_url: 'https://github.com/owner/repo-one',
+        },
+      ],
+    });
+
+    render(<GitHubRepos />);
+
+    expect(await screen.findByText('Linked')).toBeInTheDocument();
   });
 });

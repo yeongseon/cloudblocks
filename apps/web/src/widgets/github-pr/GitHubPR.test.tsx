@@ -48,6 +48,7 @@ describe('GitHubPR', () => {
         createdAt: '',
         updatedAt: '',
         backendWorkspaceId: 'backend-ws-1',
+        githubRepo: 'owner/repo-one',
       },
     });
   });
@@ -182,6 +183,23 @@ describe('GitHubPR', () => {
     expect(screen.getByText('Branch name contains invalid characters or format.')).toBeInTheDocument();
   });
 
+  it('disables submit when head branch matches base branch', async () => {
+    const user = userEvent.setup();
+    render(<GitHubPR />);
+
+    const branchField = screen.getByLabelText('Branch name (optional)');
+    await user.type(branchField, 'main');
+
+    expect(screen.getByRole('button', { name: 'Create Pull Request' })).toBeDisabled();
+    expect(screen.getByText('Head branch must be different from the base branch.')).toBeInTheDocument();
+  });
+
+  it('shows effective backend workspace id in the form', () => {
+    render(<GitHubPR />);
+
+    expect(screen.getByText('backend-ws-1')).toBeInTheDocument();
+  });
+
   it('trims PR title before submission', async () => {
     const user = userEvent.setup();
     mockApiPost.mockResolvedValue({
@@ -301,5 +319,29 @@ describe('GitHubPR', () => {
 
     expect(screen.getByText('Workspace must be linked to backend before creating a pull request.')).toBeInTheDocument();
     expect(mockApiPost).not.toHaveBeenCalled();
+  });
+
+  it('resets result when linked repository changes', async () => {
+    const user = userEvent.setup();
+    mockApiPost.mockResolvedValue({
+      pull_request_url: 'https://github.com/owner/repo/pull/42',
+      number: 42,
+      branch: 'cloudblocks/update',
+    });
+
+    render(<GitHubPR />);
+    await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
+    expect(await screen.findByText('https://github.com/owner/repo/pull/42')).toBeInTheDocument();
+
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        githubRepo: 'owner/repo-two',
+      },
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText('https://github.com/owner/repo/pull/42')).not.toBeInTheDocument();
+    });
   });
 });
