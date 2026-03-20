@@ -137,32 +137,16 @@ describe('CommandCard', () => {
 
   // ─── CreationMode Tests ──────────────────────────────────
 
-  it('renders creation mode with tabs and category-grouped resources', () => {
+  it('renders creation mode with category-grouped resources', () => {
     const { container } = render(<CommandCard />);
 
     expect(screen.getByText('Create Resource')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Infra' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Compute' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Data' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Edge' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Messaging' })).toBeInTheDocument();
 
     expect(container.querySelectorAll('.command-card-category-group').length).toBeGreaterThan(0);
     expect(container.querySelectorAll('.command-card-resource-btn').length).toBeGreaterThanOrEqual(8);
     expect(screen.getByText('Network Foundations')).toBeInTheDocument();
   });
 
-  it('switches between all category tabs', async () => {
-    const user = userEvent.setup();
-    render(<CommandCard />);
-
-    const tabs = ['Infra', 'Compute', 'Data', 'Edge', 'Messaging'];
-
-    for (const tab of tabs) {
-      await user.click(screen.getByRole('button', { name: tab }));
-      expect(screen.getByRole('button', { name: tab })).toHaveAttribute('aria-pressed', 'true');
-    }
-  });
 
   it('creates network plate from creation mode', async () => {
     const user = userEvent.setup();
@@ -191,8 +175,7 @@ describe('CommandCard', () => {
 
     render(<CommandCard />);
 
-    await user.click(screen.getByRole('button', { name: 'Compute' }));
-    await user.click(screen.getByTitle('Create Virtual Machine (Q)'));
+    await user.click(screen.getByTitle('Create Virtual Machine'));
 
     expect(addBlockMock).toHaveBeenCalledWith('compute', 'Virtual Machine 1', 'subnet-public-1', 'azure');
   });
@@ -216,8 +199,7 @@ describe('CommandCard', () => {
 
     const { rerender } = render(<CommandCard />);
 
-    await user.click(screen.getByRole('button', { name: 'Compute' }));
-    await user.click(screen.getByTitle('Create Virtual Machine (Q)'));
+    await user.click(screen.getByTitle('Create Virtual Machine'));
 
     expect(addBlockMock).toHaveBeenCalledWith('compute', 'Virtual Machine 1', 'subnet-public-1', 'azure');
 
@@ -254,11 +236,9 @@ describe('CommandCard', () => {
     expect(screen.getByRole('button', { name: /Delete/ })).toBeInTheDocument();
   });
 
-  it('shows disabled resources with lock icon before network exists', async () => {
-    const user = userEvent.setup();
+  it('shows disabled resources with lock icon before network exists', () => {
     render(<CommandCard />);
 
-    await user.click(screen.getByRole('button', { name: 'Compute' }));
     const vmButton = screen.getByTitle('Create a Network first. Virtual Machines need a network to connect to.');
 
     expect(vmButton).toBeDisabled();
@@ -281,8 +261,8 @@ describe('CommandCard', () => {
 
     const { unmount } = render(<CommandCard />);
 
-    const networkButton = screen.getByTitle('Create Network (VNet) (Q)');
-    const firewallButton = screen.getByTitle('Create Azure Firewall (A)');
+    const networkButton = screen.getByTitle('Create Network (VNet)');
+    const firewallButton = screen.getByTitle('Create Azure Firewall');
 
     const networkListeners = draggableListeners.get(networkButton);
     const vmListeners = draggableListeners.get(firewallButton);
@@ -331,7 +311,7 @@ describe('CommandCard', () => {
 
     render(<CommandCard />);
 
-    await user.click(screen.getByTitle('Create Private Subnet (E)'));
+    await user.click(screen.getByTitle('Create Private Subnet'));
 
     expect(addPlateMock).toHaveBeenCalledWith('subnet', 'Private Subnet', 'net-1', 'private');
   });
@@ -344,8 +324,7 @@ describe('CommandCard', () => {
     expect(screen.getByText('Build Order')).toBeInTheDocument();
   });
 
-  it('shows worker build grid in worker mode', async () => {
-    const user = userEvent.setup();
+  it('shows worker build grid in worker mode', () => {
 
     useUIStore.setState({ selectedId: 'worker-default' });
     useArchitectureStore.setState({
@@ -363,10 +342,9 @@ describe('CommandCard', () => {
 
     const { container } = render(<CommandCard />);
 
-    await user.click(screen.getByRole('button', { name: 'Compute' }));
 
     expect(container.querySelectorAll('.command-card-category-group').length).toBeGreaterThan(0);
-    expect(screen.getByTitle('Build Virtual Machine (Q)')).toBeInTheDocument();
+    expect(screen.getByTitle('Build Virtual Machine')).toBeInTheDocument();
   });
 
   it('calls startBuild when block is clicked in worker mode', async () => {
@@ -411,8 +389,7 @@ describe('CommandCard', () => {
 
     render(<CommandCard />);
 
-    await user.click(screen.getByRole('button', { name: 'Compute' }));
-    await user.click(screen.getByTitle('Build Virtual Machine (Q)'));
+    await user.click(screen.getByTitle('Build Virtual Machine'));
 
     expect(startBuildMock).toHaveBeenCalledWith('worker-built-block', [2, 0, 3]);
   });
