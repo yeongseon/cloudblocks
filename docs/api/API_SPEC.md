@@ -3,15 +3,21 @@
 > **Implementation Status (Phase 7+)**
 >
 > Authentication and GitHub OAuth session flow are implemented with cookie-based sessions.
-> Auth and GitHub integration are implemented; server-side generation, validation, and templates remain planned.
+> Auth and GitHub integration are implemented. AI generation/suggestion/cost endpoints are implemented. Generation routes currently track run metadata and status.
 
 ## Overview
 
-The CloudBlocks API is a **thin orchestration backend** built with Python FastAPI. It handles authentication, code generation orchestration, and GitHub integration — but does NOT store architecture data.
+The CloudBlocks API is a FastAPI backend for authenticated integrations. It handles GitHub OAuth/session auth, workspace/repo operations, and AI integration endpoints — but does NOT store architecture source-of-truth data.
 
 **Base URL**: `/api/v1`
 
-**Design Principle**: The backend is a workflow orchestrator, not a CRUD service. Architecture data lives in GitHub repos.
+**Design Principle**: The backend owns integration/session concerns. Architecture modeling, validation, generation, and template runtime behavior live in the frontend app (`apps/web`). Architecture data lives in GitHub repos.
+
+## Contract Boundaries
+
+- Frontend-owned (`apps/web`): validation engine, code generation pipeline, and template system.
+- Shared model contract: TypeScript schema in `packages/schema` (`@cloudblocks/schema`).
+- Backend model contract: Python models in `apps/api/app/models/generated/` generated from `packages/schema/dist/architecture-model.schema.json`.
 
 ## Currently Implemented
 
@@ -45,14 +51,15 @@ GET  /api/v1/workspaces/{workspace_id}/generate/{run_id} → Get generation run 
 GET  /api/v1/workspaces/{workspace_id}/preview  → Preview generated code (placeholder: returns empty files)
 
 POST /api/v1/ai/generate                        → AI architecture generation (requires stored OpenAI key)
-POST /api/v1/ai/suggest                         → AI improvement suggestions (placeholder: returns empty)
+POST /api/v1/ai/suggest                         → AI improvement suggestions
+POST /api/v1/ai/cost                            → Infrastructure cost estimation
 
 POST /api/v1/ai/keys                            → Store AI API key (encrypted, upsert by provider)
 GET  /api/v1/ai/keys                            → List stored AI key providers
 DELETE /api/v1/ai/keys/{provider}               → Delete AI API key by provider
 ```
 
-Auth, session workspace binding, and GitHub integration routes are implemented in the backend codebase. Server-side generation/validation/template routes remain planned or scaffolded as noted below.
+Auth, session workspace binding, GitHub integration, and AI routes are implemented in the backend codebase. Generation routes are scaffolded for run tracking and status.
 
 ---
 
@@ -100,11 +107,11 @@ DELETE /api/v1/workspaces/:id          → Delete workspace
 
 > **Note**: The metadata DB uses `workspaces` (not `projects`). See [STORAGE_ARCHITECTURE.md](../model/STORAGE_ARCHITECTURE.md) for the actual schema.
 
-## Scaffolded (Placeholder): Server-side Code Generation (Milestone 5+)
+## Generation Run Tracking (Current Backend Surface)
 
-Generate infrastructure code from architecture. In Milestone 3, code generation runs client-side (export to file/clipboard). Starting from Milestone 5, the backend reads `architecture.json` from GitHub, runs the generator, and commits the output back. The endpoints below are for server-side generation (Milestone 5+).
+Code generation execution is frontend-owned in `apps/web`. Backend generation routes currently provide authenticated run tracking/status records and a preview placeholder.
 
-> **Note**: Routes exist and accept requests, but generation logic is a placeholder. `POST .../generate` creates a run record in `pending` status without executing actual generation. `GET .../preview` returns an empty file list with a placeholder message.
+> **Note**: `POST .../generate` creates a run record in `pending` status without executing the frontend generator pipeline. `GET .../preview` currently returns an empty file list with a placeholder message.
 
 ```
 POST   /api/v1/workspaces/:id/generate    → Trigger code generation
@@ -112,22 +119,25 @@ GET    /api/v1/workspaces/:id/generate/:runId  → Get generation status
 GET    /api/v1/workspaces/:id/preview     → Preview generated code (no commit)
 ```
 
-## AI Routes (Implemented / Placeholder)
+## AI Routes (Implemented)
 
 AI-assisted architecture generation and suggestions. Requires a stored OpenAI API key.
 
 > **Scope note**: This section documents the route surface only. Detailed AI usage examples, prompt engineering, and the dedicated AI guide are tracked in #320.
 
-### AI Generation (Implemented)
+### AI Generation and Suggestions (Implemented)
 
 ```
 POST /api/v1/ai/generate    → Generate architecture from natural language prompt
-POST /api/v1/ai/suggest     → Suggest architecture improvements (placeholder: returns empty)
+POST /api/v1/ai/suggest     → Suggest architecture improvements
+POST /api/v1/ai/cost        → Estimate infrastructure cost
 ```
 
 `POST /api/v1/ai/generate` calls the OpenAI API using the user's stored key. It requires `prompt`, `provider` (default `"aws"`), and `complexity` (default `"intermediate"`) fields. Returns `{ architecture: {...} }`.
 
-`POST /api/v1/ai/suggest` is a placeholder — accepts `{ architecture: {...} }` but returns `{ suggestions: [], score: {} }`.
+`POST /api/v1/ai/suggest` analyzes architecture payloads and returns structured suggestions.
+
+`POST /api/v1/ai/cost` converts architecture blocks to Terraform JSON mappings and returns cost estimates via Infracost.
 
 ### AI Key Management (Implemented)
 
@@ -152,29 +162,17 @@ POST   /api/v1/workspaces/:id/pr        → Create PR with changes
 GET    /api/v1/workspaces/:id/commits   → List recent commits
 ```
 
-## Planned: Server-side Validation (Milestone 3+)
+## Not in Backend API Contract
 
-Validate architecture against rules. Can run client-side or server-side.
+The following capabilities are intentionally frontend-owned in the current architecture and are not exposed as backend routes:
 
-> **Note**: Client-side validation is already implemented in Milestone 1 (`apps/web/src/entities/validation/`).
-
-```
-POST   /api/v1/validate                 → Validate architecture (server-side)
-```
-
-## Planned: Server-side Templates (Milestone 6+)
-
-Browse and use architecture templates.
-
-```
-GET    /api/v1/templates                → List available templates
-GET    /api/v1/templates/:id            → Get template details
-POST   /api/v1/templates/:id/use        → Create workspace from template
-```
+- Validation engine execution (`apps/web/src/entities/validation/`)
+- Template registry/application flow (`apps/web/src/features/templates/`)
+- Runtime generation pipeline (`apps/web/src/features/generate/`)
 
 ## Request/Response Formats
 
-### Create Workspace (Scaffolded)
+### Create Workspace (Implemented)
 
 **Request:**
 ```json
@@ -182,7 +180,7 @@ POST   /api/v1/templates/:id/use        → Create workspace from template
   "name": "My 3-Tier App",
   "generator": "terraform",
   "provider": "azure",
-  "githubRepo": "user/my-infra"
+  "github_repo": "user/my-infra"
 }
 ```
 
@@ -190,25 +188,27 @@ POST   /api/v1/templates/:id/use        → Create workspace from template
 ```json
 {
   "id": "ws-a1b2c3d4",
+  "owner_id": "user-123",
   "name": "My 3-Tier App",
   "generator": "terraform",
   "provider": "azure",
-  "githubRepo": "user/my-infra",
-  "githubBranch": "main",
-  "createdAt": "2025-01-01T00:00:00Z",
-  "updatedAt": "2025-01-01T00:00:00Z"
+  "github_repo": "user/my-infra",
+  "github_branch": "main",
+  "last_synced_at": null,
+  "created_at": "2025-01-01T00:00:00Z",
+  "updated_at": "2025-01-01T00:00:00Z"
 }
 ```
 
-### Trigger Code Generation (Planned)
+### Trigger Code Generation (Current Placeholder Route)
 
 **Request:**
 ```json
 {
   "generator": "terraform",
   "provider": "azure",
-  "commitMessage": "Update 3-tier architecture",
-  "createPR": true,
+  "commit_message": "Update 3-tier architecture",
+  "create_pr": true,
   "branch": "feature/update-arch"
 }
 ```
@@ -216,51 +216,40 @@ POST   /api/v1/templates/:id/use        → Create workspace from template
 **Response (202):**
 ```json
 {
-  "runId": "run-e5f6g7h8",
+  "id": "run-e5f6g7h8",
+  "workspace_id": "ws-a1b2c3d4",
   "status": "pending",
-  "message": "Generation job created"
+  "generator": "terraform",
+  "commit_sha": null,
+  "pull_request_url": null,
+  "error_message": null,
+  "started_at": "2025-01-01T00:00:01Z",
+  "completed_at": null,
+  "created_at": "2025-01-01T00:00:01Z"
 }
 ```
 
-### Generation Status (Planned)
+### Generation Status (Implemented Route)
+
+> **Current behavior**: Run records are created in `pending` status. Background worker transitions are not wired in the current backend implementation.
 
 **Response (200):**
 ```json
 {
-  "runId": "run-e5f6g7h8",
+  "id": "run-e5f6g7h8",
+  "workspace_id": "ws-a1b2c3d4",
   "status": "completed",
   "generator": "terraform",
-  "commitSha": "abc123def456",
-  "files": [
-    "infra/terraform/main.tf",
-    "infra/terraform/variables.tf",
-    "infra/terraform/outputs.tf"
-  ],
-  "pullRequestUrl": "https://github.com/user/my-infra/pull/1",
-  "startedAt": "2025-01-01T00:00:01Z",
-  "completedAt": "2025-01-01T00:00:05Z"
+  "commit_sha": "abc123def456",
+  "pull_request_url": "https://github.com/user/my-infra/pull/1",
+  "error_message": null,
+  "started_at": "2025-01-01T00:00:01Z",
+  "completed_at": "2025-01-01T00:00:05Z",
+  "created_at": "2025-01-01T00:00:01Z"
 }
 ```
 
 > **Note**: Status values match the actual migration schema: `pending`, `running`, `completed`, `failed`.
-
-### Validation Response
-
-```json
-{
-  "valid": false,
-  "errors": [
-    {
-      "ruleId": "rule-compute-subnet",
-      "severity": "error",
-      "message": "Compute block must be placed on a Subnet Plate",
-      "suggestion": "Move the Compute block to a Subnet Plate",
-      "targetId": "block-abc123"
-    }
-  ],
-  "warnings": []
-}
-```
 
 ## Error Format
 
@@ -290,7 +279,7 @@ All errors follow a consistent format:
 | `GENERATION_FAILED` | 500 | Code generation failed |
 | `INTERNAL_ERROR` | 500 | Server error |
 
-## Rate Limiting (Planned)
+## Rate Limiting (Target Policy)
 
 - **Authenticated**: 100 requests/minute
 - **Unauthenticated**: 20 requests/minute

@@ -19,6 +19,20 @@ Design cloud infrastructure by placing blocks on plates, connect components, val
 
 > **[▶ Try the Live Demo](https://yeongseon.github.io/cloudblocks/)** — Frontend-only playground. Visual builder, code generation, and templates work instantly. AI and GitHub features require the backend ([setup guide](docs/guides/TUTORIALS.md)).
 
+## Monorepo Layout
+
+CloudBlocks uses a monorepo with one frontend app, one backend app, and shared TypeScript packages:
+
+| Path | Package | Current role |
+|--|--|--|
+| `apps/web` | `@cloudblocks/web` | Frontend SPA. Owns validation engine, generation pipeline, and template system. |
+| `apps/api` | - | FastAPI backend. Handles GitHub OAuth/session auth, workspace/repo operations, and AI integration proxying. |
+| `packages/schema` | `@cloudblocks/schema` | Canonical architecture model types/enums and JSON Schema output. |
+| `packages/cloudblocks-domain` | `@cloudblocks/domain` | Shared domain helpers (hierarchy rules, labels, validation types). |
+
+The frontend imports architecture/domain types from `@cloudblocks/schema` and `@cloudblocks/domain` instead of defining local model types.
+Python models in `apps/api/app/models/generated/` are auto-generated from the TypeScript schema (`packages/schema/dist/architecture-model.schema.json`).
+
 ## Why CloudBlocks?
 
 Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks works **architecture → code** (model visually, compile to infra).
@@ -35,7 +49,7 @@ Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks
 - ⚡ **Architecture compiler** — Visual designs compile to Terraform, Bicep, and Pulumi
 - ✅ **Validation engine** — Real-time rule checking for placement and connections
 - 📦 **10 resource categories** — Compute, database, storage, gateway, function, queue, event, analytics, identity, observability
-- 🔗 **GitHub integration** — OAuth login, repo sync, PR creation, architecture diff
+- 🔗 **GitHub integration** — OAuth login, repo sync, PR creation, architecture diff (backend API)
 - 📚 **Learning mode** — Guided scenarios to learn cloud architecture patterns
 
 ## Quick Start

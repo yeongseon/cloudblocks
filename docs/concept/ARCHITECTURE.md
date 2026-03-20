@@ -2,7 +2,7 @@
 
 This document defines the system architecture for the CloudBlocks Platform.
 
-CloudBlocks is an **Architecture Compiler** — it models cloud infrastructure using a **Lego-style composition system**, validates designs against architectural rules, and generates deployable infrastructure code (Terraform, Bicep, Pulumi). The long-term architecture follows a **Git-native** model where GitHub repos serve as the primary data store.
+CloudBlocks is an **Architecture Compiler** — it models cloud infrastructure using a **Lego-style composition system**, validates designs against architectural rules, and generates deployable infrastructure code (Terraform, Bicep, Pulumi). The current architecture is **Git-native**: GitHub repos are the source of truth for architecture payloads and generated artifacts.
 
 > **Technical approach**: CloudBlocks is a **2D-first editor with 2.5D rendering**, rather than a full 3D engine. The internal model is a 2D coordinate system with containment hierarchy. The rendering layer projects this into an isometric view using SVG + CSS transforms.
 > See [ADR-0010](../adr/0010-svg-only-rendering-model.md) for the definitive rendering technology decision.
@@ -61,17 +61,12 @@ cloudblocks/
     web/              # Frontend SPA (React + SVG/CSS)
     api/              # Backend API (Python FastAPI)
   packages/
-    cloudblocks-domain/    # Domain model (placeholder)
-    cloudblocks-ui/        # UI components (placeholder)
-    schema/                # Schema definitions (placeholder)
-    scenario-library/      # Tutorial scenarios (placeholder)
-    terraform-templates/   # Terraform templates (placeholder)
+    schema/                # @cloudblocks/schema (canonical model types + enums + JSON Schema)
+    cloudblocks-domain/    # @cloudblocks/domain (hierarchy rules, labels, validation types)
   docs/              # Documentation
   examples/          # Example architecture READMEs
   infra/             # Deployment scaffolds (Docker, Terraform, k8s)
 ```
-
-> **Note**: The `packages/` directory currently contains placeholder packages. The aspirational modular structure (model, rule-engine, generator, providers) will be extracted from `apps/web/` as the codebase matures.
 
 ---
 
@@ -106,11 +101,11 @@ No backend required. All state lives in the browser.
                      │
                      ▼
 ┌────────────────────────────────────────────────────────┐
-│           Backend API (Thin Orchestration Layer)        │
+│      Backend API (Integration + Session Layer)          │
 │                  Python FastAPI                         │
 │   ┌──────┐ ┌───────────┐ ┌────────┐ ┌──────────┐     │
-│   │ Auth │ │ Generator │ │ GitHub │ │ Job      │     │
-│   │      │ │ Orchestr. │ │ Integ. │ │ Runner   │     │
+│   │ Auth │ │ Workspace │ │ GitHub │ │ AI       │     │
+│   │      │ │ Metadata  │ │ Integ. │ │ Proxy    │     │
 │   └──────┘ └───────────┘ └────────┘ └──────────┘     │
 │                     │                                   │
 │            ┌────────┴────────┐                         │
@@ -144,9 +139,11 @@ The frontend is a SPA built with React and SVG + CSS transforms. In Milestone 1,
 - Architecture validation (in-browser Rule Engine)
 - Local persistence (localStorage)
 
-### Responsibilities (Milestone 5+ — implemented)
+### Responsibilities (Current)
 - Drag and drop interaction
-- Code generation preview (client-side for simple cases)
+- Validation engine execution (placement, aggregation, role, connection, provider warnings)
+- Code generation pipeline and preview (Terraform, Bicep, Pulumi)
+- Template registry and template application flow
 - GitHub sync UI (commit, branch, PR)
 - Local-first store (localStorage)
 
@@ -162,8 +159,8 @@ The frontend is a SPA built with React and SVG + CSS transforms. In Milestone 1,
 apps/web/src/
 ├── main.tsx
 ├── app/                 # App shell
-├── shared/              # Types, utils, storage
-│   ├── types/           # Domain types (Plate, Block, Connection, Template)
+├── shared/              # Type re-exports, utils, storage
+│   ├── types/           # Re-exports from @cloudblocks/schema and @cloudblocks/domain
 │   └── utils/           # ID generation, storage operations
 ├── entities/            # Domain entities
 │   ├── store/           # Zustand architecture store
@@ -198,7 +195,8 @@ apps/web/src/
 └── assets/
 ```
 
-> **Note**: `features/generate/` implements the Terraform/Bicep/Pulumi code generation pipeline (Milestone 3+). `features/templates/` implements architecture templates with a gallery UI (Milestone 4). `features/ai/` provides AI architecture generation. `features/diff/` implements architecture diff (Milestone 7). `features/learning/` provides Learning Mode (Milestone 6C).
+> **Package boundary**: `apps/web` imports canonical model/domain definitions from `@cloudblocks/schema` and `@cloudblocks/domain`; it does not maintain an independent local schema package.
+> `features/generate/` and `features/templates/` are frontend-owned runtime modules.
 
 ## 2.2 MVP Architecture (Milestone 1)
 
@@ -212,27 +210,27 @@ Browser (React + SVG/CSS)
 └── localStorage (workspace persistence)
 ```
 
-## 2.3 Backend Layer (Milestone 5+) — Thin Orchestration Layer
+## 2.3 Backend Layer (Milestone 5+) — Integration and Session Layer
 
-The backend is **NOT a heavy CRUD service**. It is a **workflow orchestrator** that mediates between the UI, GitHub, and the generation engine.
+The backend is **NOT a heavy CRUD service**. It provides authenticated integration endpoints for GitHub and AI services, plus workspace/session metadata.
 
 > **Current status**: Backend auth/session modules are implemented with cookie-based session auth (`cb_oauth`, `cb_session`) and SQLite-backed session persistence.
 
-### What the Backend Will Do
+### What the Backend Does
 
 | Responsibility | Description |
 |---------------|-------------|
 | Auth / Identity | GitHub OAuth + cookie-based server sessions |
-| Generator Orchestration | Validate → transform → generate IaC code |
-| GitHub Integration | Repo selection, branch creation, commit, PR |
-| Job Runner | Async generation, validation, deployment triggers |
-| Metadata DB | User, workspace index, run status, audit summary |
+| GitHub Integration | Repo listing/creation, architecture sync/pull, commit history, PR creation |
+| AI Integration Proxy | AI generation/suggestions/cost endpoints backed by stored provider API keys |
+| Workspace Metadata | Workspace index and settings (linked to GitHub repos) |
+| Metadata DB | User/session/workspace/run/key metadata |
 
 ### What the Backend Will NOT Store
 
 | Data | Where It Lives |
 |------|---------------|
-| Architecture specs (JSON) | GitHub repo |
+| Architecture specs (`architecture.json`) | GitHub repo |
 | Generated Terraform/Bicep/Pulumi | GitHub repo |
 | Templates | GitHub repo |
 | Full prompt/log history | GitHub / Blob Storage |
@@ -312,7 +310,8 @@ GET  /api/v1/workspaces/{id}/preview         → placeholder, returns empty file
 
 AI (see #320 for detailed guide):
 POST /api/v1/ai/generate                     → AI architecture generation (OpenAI)
-POST /api/v1/ai/suggest                      → placeholder, returns empty suggestions
+POST /api/v1/ai/suggest                      → AI architecture suggestion engine
+POST /api/v1/ai/cost                         → Infrastructure cost estimation
 POST /api/v1/ai/keys                         → store AI API key (encrypted)
 GET  /api/v1/ai/keys                         → list stored key providers
 DELETE /api/v1/ai/keys/{provider}            → delete stored key
@@ -349,7 +348,7 @@ Key responsibilities:
 
 ## 3.5 Architecture Model Schema
 
-The canonical model types are defined in `apps/web/src/shared/types/index.ts`. The domain model consists of the following core entities:
+The canonical model types are defined in `packages/schema` (`@cloudblocks/schema`) and re-exported for frontend usage from `apps/web/src/shared/types/index.ts`. The domain model consists of the following core entities:
 
 - **Plate** — Infrastructure boundary (network / subnet), with containment hierarchy (`parentId`, `children`)
 - **Block** — Infrastructure resource (`category`: compute / database / storage / gateway / function / queue / event / analytics / identity / observability), placed on a plate via `placementId`
@@ -357,11 +356,12 @@ The canonical model types are defined in `apps/web/src/shared/types/index.ts`. T
 - **ExternalActor** — External endpoint (e.g., Internet)
 - **ArchitectureModel** — Root container for all entities
 
+> The backend uses generated Python models in `apps/api/app/models/generated/architecture_model.py`, built from `packages/schema/dist/architecture-model.schema.json`.
 > For full TypeScript interfaces, field specifications, and JSON examples, see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md) §14 (Implementation Schema).
 
 ### Serialization Format
 
-- Serialization is versioned through `schemaVersion` and currently uses `"2.0.0"` (see `apps/web/src/shared/types/schema.ts`).
+- Serialization is versioned through `schemaVersion` and currently uses `"2.0.0"` (source constant: `packages/schema/src/index.ts`).
 - The persisted root payload shape is `{ schemaVersion, workspaces[] }`, where each workspace contains one `architecture: ArchitectureModel`.
 - For broader domain semantics and lifecycle rules, see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md).
 
@@ -418,7 +418,7 @@ Validation flow in `engine.ts`:
 
 # 5. Code Generation Pipeline (Milestone 3+)
 
-> **Status**: Implemented in Milestone 3. The Terraform generator is functional.
+> **Status**: Implemented in the frontend (`apps/web/src/features/generate`). Terraform, Bicep, and Pulumi generators are available in the web app.
 
 The core value delivery — transforming visual architecture into deployable IaC code. The pipeline follows a multi-stage process: Normalize → Validate → Provider Map → Generate → Format → Output.
 
@@ -426,21 +426,19 @@ The core value delivery — transforming visual architecture into deployable IaC
 >
 > For provider-specific resource mapping, see [provider.md](../engine/provider.md).
 
-### Planned Module Structure (Milestone 3+)
+### Current Module Structure
 
 ```text
-generators/
-  adapters/
-    azure_adapter.ts
-    aws_adapter.ts
-  terraform/
-    network.tf.ts
-    compute.tf.ts
-    database.tf.ts
-  normalization/
-    model_normalizer.ts
-  formatter/
-    output_formatter.ts
+apps/web/src/features/generate/
+  pipeline.ts
+  terraform.ts
+  bicep.ts
+  pulumi.ts
+  provider.ts
+  providers/
+    aws/
+    azure/
+    gcp/
 ```
 
 ### Layer Responsibilities
@@ -554,7 +552,7 @@ The persisted format uses `schemaVersion: "2.0.0"` with a `workspaces[]` array, 
 
 > For the full workspace model and serialization format, see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md) §13 (Workspace Model) and §14 (Implementation Schema).
 
-### Milestone 3+ Storage (Local-First + GitHub Sync — Planned)
+### Milestone 3+ Storage (Local-First + GitHub Sync)
 
 localStorage for local state + optional GitHub sync:
 
@@ -603,15 +601,15 @@ The architecture supports horizontal scalability:
 Frontend (Milestone 1: SPA with SVG + CSS transforms + DOM layering, 2.5D isometric view, localStorage persistence)
 Core Model (Zustand store — 2D coordinates + hierarchy)
 Rule Engine (in-browser validation)
-Code Generation (Milestone 3: Terraform generator — ✅ implemented)
-Backend (Milestone 5+: Thin orchestration layer — FastAPI — implemented for auth/session + GitHub integration)
+Code Generation (frontend-owned pipeline in apps/web/features/generate)
+Backend (FastAPI integration/session API — auth/session + GitHub + AI proxying)
 GitHub Integration (Milestone 5+: repo list/create, sync, pull, PR, commits — implemented)
 ```
 
 This architecture enables:
 - Visual architecture design with 2.5D isometric blocks
 - Rule-based validation of cloud infrastructure
-- Automated infrastructure code generation (implemented client-side; server-side orchestration planned)
+- Automated infrastructure code generation in the frontend pipeline
 - Git-native collaboration and version control (implemented)
 - Lightweight deployment with minimal infrastructure cost
 
