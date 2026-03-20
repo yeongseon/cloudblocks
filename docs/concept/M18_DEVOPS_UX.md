@@ -2,7 +2,7 @@
 
 ## Goal
 
-Add operational control capabilities to CloudBlocks. Introduce an Ops Control Center, standardize deployment terminology, build environment promotion/rollback UX, and add a notification system. Transform CloudBlocks from "design and generate" into "design, deploy, and operate."
+Add operational control capabilities to CloudBlocks. Introduce an Ops Control Center, standardize deployment terminology, build environment promotion/rollback UX, add a notification system, and replace thin SVG connection lines with brick-style connector pieces. Transform CloudBlocks from "design and generate" into "design, deploy, and operate."
 
 ---
 
@@ -121,6 +121,21 @@ In-app notifications for deployment lifecycle events.
 - Notification history (filterable by environment, event type, date)
 - Optional future extension: webhook integration for external services (Slack, Teams) — not in M18 scope, but the notification data model should support it
 
+### Area E: Brick-Style Connection Rendering
+
+Replace thin SVG bezier connection lines with Lego-style brick connector pieces.
+
+**Problem**: Connections currently render as generic SVG paths — visually disconnected from the Lego brick aesthetic used by blocks and plates. Everything on the canvas looks like Lego except the wires connecting them.
+
+**Current state**: `ConnectionPath.tsx` draws a quadratic bezier SVG path with two-layer stroke (background + foreground) and arrow markers. 5 connection types are distinguished by stroke style (solid, dashed, dotted, double, wavy). Connections support diff-aware coloring and click/hover selection.
+
+**Target**: Brick connector pieces (Technic beam / flat tile visual metaphor) that:
+- Conform to the Universal Stud Standard (rx=12, ry=6, height=5, 3-layer structure)
+- Render correctly in 2.5D isometric projection
+- Distinguish 5 connection types via color, pattern, or connector shape
+- Preserve directional semantics, diff-aware coloring, and selection interactions
+- Route around blocks and plates to avoid visual clutter
+
 ---
 
 ## User Stories
@@ -133,6 +148,7 @@ In-app notifications for deployment lifecycle events.
 | 4 | As an architect, I want to see estimated Azure costs before triggering a deployment |
 | 5 | As a developer, I want consistent deploy terminology so I do not confuse "promote" with "deploy" |
 | 6 | As a user, I want to be notified when a deployment succeeds or fails without watching the pipeline |
+| 7 | As an architect, I want connections between resources to look like Lego connector pieces so the entire canvas maintains a consistent brick aesthetic |
 
 ---
 
@@ -176,6 +192,50 @@ In-app notifications for deployment lifecycle events.
 | 3 | Add toast notifications for real-time deployment events | M |
 | 4 | Build notification history with filtering | M |
 
+### [Epic] Brick-Style Connection Rendering (Area E)
+
+Replace the current thin SVG bezier connection lines with Lego-style brick connector pieces that match the visual language of blocks and plates.
+
+**Problem**: Connections are currently rendered as generic SVG quadratic bezier paths with arrow markers — visually disconnected from the Lego brick aesthetic used by blocks and plates. This breaks the visual metaphor: blocks and plates look like Lego, but connections look like a diagram tool.
+
+**Current implementation** (`ConnectionPath.tsx`):
+- SVG `<path>` with quadratic bezier curve (`M ... Q ...`)
+- Two-layer stroke (4px background + 2px foreground) with arrow markers
+- 14px transparent hit area for click/hover detection
+- 5 connection types with distinct stroke styles (solid, dashed, dotted, double, wavy)
+- Diff-aware coloring (added/removed/modified/unchanged)
+
+**Target design**: Brick-style connector pieces that:
+- Use the Lego connector / Technic beam visual metaphor — flat rectangular pieces with studs or pin holes
+- Conform to the **Universal Stud Standard** (rx=12, ry=6, height=5, 3-layer structure)
+- Maintain directional semantics (arrow/flow indication via asymmetric connector shape or stud placement)
+- Distinguish the 5 connection types visually (color, pattern, or shape variation — not just stroke style)
+- Preserve diff-aware coloring capability
+- Preserve click/hover selection and delete interaction
+
+**Key design decisions**:
+- Connector geometry: straight segmented pieces vs. L-shaped / routed pieces that follow grid lines
+- Routing algorithm: direct point-to-point vs. orthogonal (Manhattan) routing vs. A* pathfinding around blocks
+- Connection type differentiation: color-only vs. shape variation (e.g., rounded beam for dataflow, angular for internal)
+- Stud placement on connectors: decorative vs. functional (snap points for future branching/splitting)
+- Isometric projection: connectors must render correctly in the 2.5D isometric view
+
+**Features**:
+- Brick connector SVG component replacing `ConnectionPath.tsx`
+- Isometric-aware routing that avoids overlapping blocks and plates
+- Visual distinction for all 5 connection types (`dataflow`, `http`, `internal`, `data`, `async`)
+- Selection state with Lego-consistent highlight (matching block selection style)
+- Diff-aware coloring preserved from current implementation
+- External actor connections (Internet → block) rendered with the same brick connector style
+
+| # | Title | Size |
+|---|-------|------|
+| 1 | Design brick connector geometry and connection type visual language | M |
+| 2 | Implement brick connector SVG component with isometric projection | L |
+| 3 | Implement connection routing algorithm (avoid block/plate overlap) | L |
+| 4 | Migrate existing connection interactions (select, delete, hover) to brick connectors | M |
+| 5 | Update diff-aware coloring and external actor connections for brick connectors | M |
+
 ---
 
 ## Exit Criteria
@@ -188,6 +248,7 @@ In-app notifications for deployment lifecycle events.
 - [ ] Notification system shows deployment lifecycle events in-app
 - [ ] Deployment history log records all deploys, promotions, and rollbacks
 - [ ] Cross-environment architecture diff is viewable in Ops Control Center
+- [ ] Connections render as brick-style connector pieces matching the Lego visual language
 
 ---
 
@@ -208,6 +269,7 @@ In-app notifications for deployment lifecycle events.
 - CI/CD through GitHub Actions — no custom deployment scripts
 - Pre-1.0: no stability guarantees
 - Always design/document first, then implement
+- Brick connectors must conform to the Universal Stud Standard (rx=12, ry=6, height=5, 3-layer structure) — only colors vary
 
 ---
 
@@ -220,6 +282,7 @@ In-app notifications for deployment lifecycle events.
 | Promote/rollback complexity varies by IaC tool (Terraform state vs Bicep) | Inconsistent behavior across generators | Start with Terraform-first approach; add Bicep/Pulumi support incrementally |
 | Notification volume overwhelms users on active projects | Notification fatigue | Default to meaningful events only; allow per-event-type mute settings |
 | Cross-environment diff requires deployed architecture snapshots | Data availability gap | Store architecture snapshot on each successful deployment |
+| Brick connector routing complexity for dense architectures | Visual clutter, overlapping connectors | Start with direct point-to-point; add orthogonal routing as enhancement |
 
 ---
 
@@ -229,5 +292,6 @@ In-app notifications for deployment lifecycle events.
 - **Area B** (Terminology): ~2–3 days (docs and naming review)
 - **Area C** (Promote/Rollback): ~2 weeks (UI flows, workflow integration)
 - **Area D** (Notifications): ~1.5 weeks
-- **Total**: ~6–8 weeks
+- **Area E** (Brick Connectors): ~2 weeks (connector design, SVG component, routing)
+- **Total**: ~8–10 weeks
 - Design documents and wireframes are produced first for each area before implementation begins
