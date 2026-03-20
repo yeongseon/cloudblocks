@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { Block, Connection, ExternalActor, ConnectionType } from '../../shared/types/index';
+import type { Block, Connection, ExternalActor, ConnectionType } from '@cloudblocks/schema';
 import { validateConnection, canConnect, CONNECTION_VISUAL_STYLES } from './connection';
 
 function makeBlock(

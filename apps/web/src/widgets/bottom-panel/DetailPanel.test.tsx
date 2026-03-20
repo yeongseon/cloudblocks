@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { DetailPanel } from './DetailPanel';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import type { ArchitectureModel, Block, Connection, Plate } from '../../shared/types/index';
+import type { ArchitectureModel, Block, Connection, Plate } from '@cloudblocks/schema';
 
 vi.mock('./DetailPanel.css', () => ({}));
 

@@ -1,4 +1,4 @@
-.PHONY: help install dev build test lint clean docker-up docker-down
+.PHONY: help install dev build test lint test-api lint-api generate-api-models check-api-model-drift clean docker-up docker-down
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -33,8 +33,20 @@ lint: ## Run linters
 	pnpm --filter @cloudblocks/web lint
 	cd apps/api && ruff check .
 
+lint-api: ## Run backend linter only
+	cd apps/api && python3 -m ruff check app/
+
 test: ## Run all tests
 	cd apps/api && pytest
+
+test-api: ## Run backend tests only
+	cd apps/api && python3 -m pytest app/tests/ -v
+
+generate-api-models: ## Generate Pydantic models from schema
+	cd apps/api && python3 scripts/generate_models.py
+
+check-api-model-drift: ## Verify generated models match schema
+	cd apps/api && python3 scripts/check_schema_drift.py
 
 # ─── Infrastructure ──────────────────────────────────────────
 

@@ -1,11 +1,7 @@
 import { memo, useEffect, useRef } from 'react';
 import interact from 'interactjs';
-import {
-  DEFAULT_PLATE_PROFILE,
-  getPlateProfile,
-  getPlateStudColors,
-  type Plate,
-} from '../../shared/types/index';
+import { DEFAULT_PLATE_PROFILE, getPlateProfile, getPlateStudColors, isPlateProfileId } from '../../shared/types/index';
+import type { Plate } from '@cloudblocks/schema';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import { getDiffState } from '../../features/diff/engine';
@@ -153,7 +149,7 @@ export const PlateSprite = memo(function PlateSprite({
 
   const sizeClass = plate.type === 'subnet' ? 'plate-subnet' : 'plate-network';
 
-  const profile = plate.profileId
+  const profile = plate.profileId && isPlateProfileId(plate.profileId)
     ? getPlateProfile(plate.profileId)
     : getPlateProfile(DEFAULT_PLATE_PROFILE[plate.type]);
   const studColors = getPlateStudColors(plate);

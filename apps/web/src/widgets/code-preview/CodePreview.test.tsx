@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { CodePreview } from './CodePreview';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import type { ArchitectureModel } from '../../shared/types/index';
+import type { ArchitectureModel } from '@cloudblocks/schema';
 
 // Mock the pipeline module
 vi.mock('../../features/generate/pipeline', () => {

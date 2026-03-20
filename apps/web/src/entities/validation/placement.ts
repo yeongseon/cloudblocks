@@ -1,12 +1,7 @@
-import type {
-  Block,
-  BlockCategory,
-  Plate,
-  Size,
-  ValidationError,
-} from '../../shared/types/index';
-import { VALID_PARENTS } from '../../shared/types/index';
-import type { LayerType } from '../../shared/types/index';
+import type { Block, BlockCategory, Plate, Size } from '@cloudblocks/schema';
+import type { ValidationError } from '@cloudblocks/domain';
+import { VALID_PARENTS } from '@cloudblocks/domain';
+import type { LayerType } from '@cloudblocks/schema';
 
 /**
  * Placement Rules (v2.0 — CLOUDBLOCKS_SPEC_V2.md §10, §15):

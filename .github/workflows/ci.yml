@@ -30,6 +30,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build shared packages
+        run: pnpm --filter @cloudblocks/schema build && pnpm --filter @cloudblocks/domain build
+
       - name: Lint
         run: pnpm lint
 
@@ -81,6 +84,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build shared packages
+        run: pnpm --filter @cloudblocks/schema build && pnpm --filter @cloudblocks/domain build
 
       - name: Run tests with coverage
         run: npx vitest run --coverage

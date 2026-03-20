@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { ArchitectureModel, Plate, Block } from '../../shared/types/index';
+import type { ArchitectureModel, Plate, Block } from '@cloudblocks/schema';
 import type { GeneratedOutput, GeneratedFile, GenerationOptions, GeneratorPlugin } from './types';
 import { GenerationError, generateTerraform, terraformPipeline, generateCode } from './pipeline';
 import { registerGenerator } from './registry';

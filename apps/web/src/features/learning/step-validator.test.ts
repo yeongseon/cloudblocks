@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { ArchitectureModel } from '../../shared/types/index';
+import type { ArchitectureModel } from '@cloudblocks/schema';
 import type { StepValidationRule } from '../../shared/types/learning';
 import { evaluateRule, evaluateRules } from './step-validator';
 

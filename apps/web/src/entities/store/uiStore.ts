@@ -1,8 +1,8 @@
 import { create } from 'zustand';
-import type { BlockCategory, ProviderType } from '../../shared/types/index';
+import type { BlockCategory, ProviderType } from '@cloudblocks/schema';
 import type { EditorMode } from '../../shared/types/learning';
 import type { DiffDelta } from '../../shared/types/diff';
-import type { ArchitectureModel } from '../../shared/types/index';
+import type { ArchitectureModel } from '@cloudblocks/schema';
 
 export type ToolMode = 'select' | 'connect' | 'delete';
 export type InteractionState = 'idle' | 'selecting' | 'dragging' | 'placing' | 'connecting';

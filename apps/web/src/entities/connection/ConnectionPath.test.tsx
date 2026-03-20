@@ -6,7 +6,7 @@ import { useArchitectureStore } from '../store/architectureStore';
 import { getEndpointWorldPosition } from '../../shared/utils/position';
 import { worldToScreen } from '../../shared/utils/isometric';
 import { getDiffState } from '../../features/diff/engine';
-import type { Connection } from '../../shared/types/index';
+import type { Connection } from '@cloudblocks/schema';
 import type { DiffDelta } from '../../shared/types/diff';
 
 vi.mock('../../shared/utils/position', () => ({

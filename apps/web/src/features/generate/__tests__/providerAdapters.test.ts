@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { ArchitectureModel, Block, Plate } from '../../../shared/types/index';
+import type { ArchitectureModel, Block, Plate } from '@cloudblocks/schema';
 import type { ProviderName } from '../types';
 import { generateCode } from '../pipeline';
 import { getProvider } from '../provider';

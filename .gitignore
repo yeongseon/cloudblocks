@@ -73,3 +73,10 @@ docker-compose.override.yml
 *.tgz
 .turbo/
 apps/web/coverage/
+
+# ─── Stale artifacts ──────────────────────────────────────────
+*.png
+!docs/**/*.png
+apps/api/*.db
+apps/api/*.db-shm
+apps/api/*.db-wal

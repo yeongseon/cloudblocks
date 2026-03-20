@@ -1,8 +1,6 @@
 import { memo, useId, useMemo } from 'react';
-import type {
-  PlateType,
-  StudColorSpec,
-} from '../../shared/types/index';
+import type { StudColorSpec } from '../../shared/types/index';
+import type { PlateType } from '@cloudblocks/schema';
 import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
 import { TILE_W, TILE_H, TILE_Z, BLOCK_MARGIN, BLOCK_PADDING } from '../../shared/tokens/designTokens';
 

@@ -1,8 +1,6 @@
-import type {
-  Block,
-  ValidationError,
-} from '../../shared/types/index';
-import { BLOCK_ROLES } from '../../shared/types/index';
+import type { Block } from '@cloudblocks/schema';
+import type { ValidationError } from '@cloudblocks/domain';
+import { BLOCK_ROLES } from '@cloudblocks/domain';
 
 /**
  * Role Validation (v2.0 — CLOUDBLOCKS_SPEC_V2.md §9):

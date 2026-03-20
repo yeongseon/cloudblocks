@@ -13,18 +13,9 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import {
-  BLOCK_FRIENDLY_NAMES,
-  BLOCK_DESCRIPTIONS,
-  BLOCK_ICONS,
-  BLOCK_COLORS,
-  DEFAULT_PLATE_PROFILE,
-  getPlateProfile,
-  PLATE_COLORS,
-  PLATE_PROFILES,
-  SUBNET_ACCESS_COLORS,
-} from '../../shared/types/index';
-import type { Block, Plate, PlateProfileId } from '../../shared/types/index';
+import { BLOCK_FRIENDLY_NAMES, BLOCK_DESCRIPTIONS, BLOCK_ICONS, BLOCK_COLORS, DEFAULT_PLATE_PROFILE, getPlateProfile, isPlateProfileId, PLATE_COLORS, PLATE_PROFILES, SUBNET_ACCESS_COLORS } from '../../shared/types/index';
+import type { PlateProfileId } from '../../shared/types/index';
+import type { Block, Plate } from '@cloudblocks/schema';
 import './DetailPanel.css';
 
 interface DetailPanelProps {
@@ -208,7 +199,9 @@ function PlateDetail({ plate, className }: { plate: Plate; className: string }) 
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const setPlateProfile = useArchitectureStore((s) => s.setPlateProfile);
 
-  const profileId = plate.profileId ?? DEFAULT_PLATE_PROFILE[plate.type];
+  const profileId = plate.profileId && isPlateProfileId(plate.profileId)
+    ? plate.profileId
+    : DEFAULT_PLATE_PROFILE[plate.type];
   const profile = getPlateProfile(profileId);
   const profileFilterType = plate.type === 'subnet' ? 'subnet' : 'region';
   const profileOptions = Object.values(PLATE_PROFILES).filter(

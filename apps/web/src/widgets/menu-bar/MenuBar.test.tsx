@@ -17,7 +17,7 @@ import { MenuBar } from './MenuBar';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import type { ArchitectureModel, Block, Connection, Plate } from '../../shared/types/index';
+import type { ArchitectureModel, Block, Connection, Plate } from '@cloudblocks/schema';
 import { apiPost } from '../../shared/api/client';
 import { toast } from 'react-hot-toast';
 import { confirmDialog } from '../../shared/ui/ConfirmDialog';

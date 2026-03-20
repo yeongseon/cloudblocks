@@ -1,4 +1,5 @@
-import type { ArchitectureModel, Block, Position, Workspace } from '../../../shared/types/index';
+import type { Workspace } from '../../../shared/types/index';
+import type { ArchitectureModel, Block, Position } from '@cloudblocks/schema';
 import { DEFAULT_BLOCK_SIZE, DEFAULT_PLATE_SIZE } from '../../../shared/types/index';
 import { createBlankArchitecture } from '../../../shared/types/schema';
 import {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { Block, Plate } from '../../shared/types/index';
+import type { Block, Plate } from '@cloudblocks/schema';
 import { validatePlacement, canPlaceBlock, validateLayerPlacement, validateGridAlignment, validateNoOverlap } from './placement';
 
 function makeBlock(

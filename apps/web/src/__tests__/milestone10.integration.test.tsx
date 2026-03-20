@@ -6,7 +6,7 @@ import { CommandCard } from '../widgets/bottom-panel/CommandCard';
 import { useArchitectureStore } from '../entities/store/architectureStore';
 import { useUIStore } from '../entities/store/uiStore';
 import { useWorkerStore } from '../entities/store/workerStore';
-import type { ArchitectureModel, ExternalActor, Plate } from '../shared/types/index';
+import type { ArchitectureModel, ExternalActor, Plate } from '@cloudblocks/schema';
 
 type DragListeners = {
   start?: (event: { target: HTMLElement }) => void;

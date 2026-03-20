@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { normalizePulumi, generateIndexTs, generatePulumiYaml, pulumiPlugin } from './pulumi';
 import { azureProviderDefinition } from './provider';
-import type { ArchitectureModel, Block, Plate } from '../../shared/types/index';
+import type { ArchitectureModel, Block, Plate } from '@cloudblocks/schema';
 import type { GenerationOptions } from './types';
 
 const basePosition = { x: 0, y: 0, z: 0 };

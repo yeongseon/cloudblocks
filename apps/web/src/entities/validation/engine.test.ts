@@ -1,11 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type {
-  ArchitectureModel,
-  Block,
-  Connection,
-  ExternalActor,
-  Plate,
-} from '../../shared/types/index';
+import type { ArchitectureModel, Block, Connection, ExternalActor, Plate } from '@cloudblocks/schema';
 import { validateArchitecture } from './engine';
 import * as placementModule from './placement';
 import * as connectionModule from './connection';

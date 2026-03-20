@@ -1,11 +1,5 @@
-import type {
-  Block,
-  Connection,
-  ConnectionType,
-  ExternalActor,
-  BlockCategory,
-  ValidationError,
-} from '../../shared/types/index';
+import type { Block, Connection, ConnectionType, ExternalActor, BlockCategory } from '@cloudblocks/schema';
+import type { ValidationError } from '@cloudblocks/domain';
 
 /**
  * Connection Rules (from DOMAIN_MODEL.md §6):

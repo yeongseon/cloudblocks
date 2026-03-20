@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { terraformPlugin } from './terraformPlugin';
 import { azureProviderDefinition } from './provider';
-import type { ArchitectureModel } from '../../shared/types/index';
+import type { ArchitectureModel } from '@cloudblocks/schema';
 import type { GenerationOptions } from './types';
 
 const testArchitecture: ArchitectureModel = {

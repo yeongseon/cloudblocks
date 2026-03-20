@@ -5,7 +5,7 @@ import { CommandCard } from './CommandCard';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore, type ToolMode } from '../../entities/store/uiStore';
 import { useWorkerStore } from '../../entities/store/workerStore';
-import type { ArchitectureModel, Block, Plate } from '../../shared/types/index';
+import type { ArchitectureModel, Block, Plate } from '@cloudblocks/schema';
 
 vi.mock('./CommandCard.css', () => ({}));
 vi.mock('../../shared/ui/PromptDialog', () => ({

@@ -22,7 +22,7 @@ import type {
   ArchitectureSnapshot,
   StepValidationRule,
 } from '../../../shared/types/learning';
-import type { BlockCategory, PlateType, SubnetAccess } from '../../../shared/types';
+import type { BlockCategory, PlateType, SubnetAccess } from '@cloudblocks/schema';
 
 const EMPTY_ARCHITECTURE: ArchitectureSnapshot = {
   name: 'Empty Test Architecture',

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import type { BlockCategory } from '../../shared/types/index';
+import type { BlockCategory } from '@cloudblocks/schema';
 
 export type ResourceType =
   | 'network'

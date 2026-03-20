@@ -1,9 +1,5 @@
-import type {
-  ArchitectureModel,
-  Block,
-  Plate,
-  ValidationError,
-} from '../../shared/types/index';
+import type { ArchitectureModel, Block, Plate } from '@cloudblocks/schema';
+import type { ValidationError } from '@cloudblocks/domain';
 
 const KNOWN_SUBTYPES: Record<string, Record<string, string[]>> = {
   aws: {

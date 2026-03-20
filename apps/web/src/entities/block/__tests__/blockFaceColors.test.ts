@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import type { BlockCategory, ProviderType, StudColorSpec } from '../../../shared/types/index';
+import type { StudColorSpec } from '../../../shared/types/index';
+import type { BlockCategory, ProviderType } from '@cloudblocks/schema';
 import {
   darken,
   deriveFaceColors,

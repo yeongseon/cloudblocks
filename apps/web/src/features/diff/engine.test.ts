@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { ArchitectureModel } from '../../shared/types';
+import type { ArchitectureModel } from '@cloudblocks/schema';
 import type { ModifiedEntity, PropertyChange } from '../../shared/types/diff';
 import { computeArchitectureDiff, getDiffState, normalizeArchitecture } from './engine';
 

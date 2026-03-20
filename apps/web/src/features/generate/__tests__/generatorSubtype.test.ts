@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { ArchitectureModel } from '../../../shared/types/index';
+import type { ArchitectureModel } from '@cloudblocks/schema';
 import { normalizeBicep } from '../bicep';
 import { normalizePulumi } from '../pulumi';
 import { awsProvider, awsProviderDefinition } from '../providers/aws';

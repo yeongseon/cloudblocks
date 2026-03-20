@@ -1,5 +1,5 @@
 import { memo, useId, useMemo } from 'react';
-import type { BlockCategory, BlockRole, ProviderType } from '../../shared/types/index';
+import type { BlockCategory, BlockRole, ProviderType } from '@cloudblocks/schema';
 import { BLOCK_SHORT_NAMES, BLOCK_ICONS, ROLE_VISUAL_INDICATORS } from '../../shared/types/index';
 import { getBlockDimensions, getBlockVisualProfile } from '../../shared/types/visualProfile';
 import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';

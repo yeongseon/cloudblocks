@@ -1,4 +1,4 @@
-import type { ArchitectureModel, BlockCategory, PlateType, ProviderType } from '../../shared/types/index';
+import type { ArchitectureModel, BlockCategory, PlateType, ProviderType } from '@cloudblocks/schema';
 
 /**
  * Code Generation Types (v1.0)

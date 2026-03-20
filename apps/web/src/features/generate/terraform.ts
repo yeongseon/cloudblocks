@@ -1,4 +1,4 @@
-import type { ArchitectureModel, Block, Plate, Connection } from '../../shared/types/index';
+import type { ArchitectureModel, Block, Plate, Connection } from '@cloudblocks/schema';
 import type {
   GenerationOptions,
   NormalizedModel,
