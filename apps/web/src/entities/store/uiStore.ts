@@ -61,6 +61,10 @@ interface UIState {
   toggleGitHubSync: () => void;
   showGitHubPR: boolean;
   toggleGitHubPR: () => void;
+  showSuggestionsPanel: boolean;
+  toggleSuggestionsPanel: () => void;
+  showCostPanel: boolean;
+  toggleCostPanel: () => void;
 
   // ── Editor mode ──
   editorMode: EditorMode;
@@ -92,6 +96,28 @@ interface UIState {
   // ── Sound preference ──
   isSoundMuted: boolean;
   toggleSound: () => void;
+}
+
+/** Keys that occupy the right-side panel slot — only one may be open. */
+const RIGHT_PANEL_KEYS = [
+  'showCodePreview',
+  'showGitHubLogin',
+  'showGitHubRepos',
+  'showGitHubSync',
+  'showGitHubPR',
+  'showSuggestionsPanel',
+  'showCostPanel',
+] as const;
+
+type RightPanelKey = (typeof RIGHT_PANEL_KEYS)[number];
+
+/** Returns a partial state that closes every right panel except the given key. */
+function closeOtherRightPanels(except: RightPanelKey): Partial<UIState> {
+  const patch: Record<string, boolean> = {};
+  for (const key of RIGHT_PANEL_KEYS) {
+    if (key !== except) patch[key] = false;
+  }
+  return patch as Partial<UIState>;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -176,7 +202,10 @@ export const useUIStore = create<UIState>((set) => ({
 
   showCodePreview: false,
   toggleCodePreview: () =>
-    set((s) => ({ showCodePreview: !s.showCodePreview })),
+    set((s) => ({
+      showCodePreview: !s.showCodePreview,
+      ...(!s.showCodePreview ? closeOtherRightPanels('showCodePreview') : {}),
+    })),
 
   showWorkspaceManager: false,
   toggleWorkspaceManager: () =>
@@ -188,19 +217,45 @@ export const useUIStore = create<UIState>((set) => ({
 
   showGitHubLogin: false,
   toggleGitHubLogin: () =>
-    set((s) => ({ showGitHubLogin: !s.showGitHubLogin })),
+    set((s) => ({
+      showGitHubLogin: !s.showGitHubLogin,
+      ...(!s.showGitHubLogin ? closeOtherRightPanels('showGitHubLogin') : {}),
+    })),
 
   showGitHubRepos: false,
   toggleGitHubRepos: () =>
-    set((s) => ({ showGitHubRepos: !s.showGitHubRepos })),
+    set((s) => ({
+      showGitHubRepos: !s.showGitHubRepos,
+      ...(!s.showGitHubRepos ? closeOtherRightPanels('showGitHubRepos') : {}),
+    })),
 
   showGitHubSync: false,
   toggleGitHubSync: () =>
-    set((s) => ({ showGitHubSync: !s.showGitHubSync })),
+    set((s) => ({
+      showGitHubSync: !s.showGitHubSync,
+      ...(!s.showGitHubSync ? closeOtherRightPanels('showGitHubSync') : {}),
+    })),
 
   showGitHubPR: false,
   toggleGitHubPR: () =>
-    set((s) => ({ showGitHubPR: !s.showGitHubPR })),
+    set((s) => ({
+      showGitHubPR: !s.showGitHubPR,
+      ...(!s.showGitHubPR ? closeOtherRightPanels('showGitHubPR') : {}),
+    })),
+
+  showSuggestionsPanel: false,
+  toggleSuggestionsPanel: () =>
+    set((s) => ({
+      showSuggestionsPanel: !s.showSuggestionsPanel,
+      ...(!s.showSuggestionsPanel ? closeOtherRightPanels('showSuggestionsPanel') : {}),
+    })),
+
+  showCostPanel: false,
+  toggleCostPanel: () =>
+    set((s) => ({
+      showCostPanel: !s.showCostPanel,
+      ...(!s.showCostPanel ? closeOtherRightPanels('showCostPanel') : {}),
+    })),
 
   editorMode: 'build',
   setEditorMode: (mode) => set({ editorMode: mode }),

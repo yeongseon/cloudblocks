@@ -43,6 +43,8 @@ export function MenuBar() {
   const toggleGitHubRepos = useUIStore((s) => s.toggleGitHubRepos);
   const toggleGitHubSync = useUIStore((s) => s.toggleGitHubSync);
   const toggleGitHubPR = useUIStore((s) => s.toggleGitHubPR);
+  const toggleSuggestionsPanel = useUIStore((s) => s.toggleSuggestionsPanel);
+  const toggleCostPanel = useUIStore((s) => s.toggleCostPanel);
   const diffMode = useUIStore((s) => s.diffMode);
   const toggleScenarioGallery = useUIStore((s) => s.toggleScenarioGallery);
   const toggleLearningPanel = useUIStore((s) => s.toggleLearningPanel);
@@ -361,6 +363,12 @@ export function MenuBar() {
             <div className="menu-separator" />
             <button type="button" className="menu-item" onClick={() => handleAction(toggleTemplateGallery)}>
               <span className="menu-item-left">📦 Browse Templates</span>
+            </button>
+            <button type="button" className="menu-item" onClick={() => handleAction(toggleSuggestionsPanel)}>
+              <span className="menu-item-left">🤖 AI Suggestions</span>
+            </button>
+            <button type="button" className="menu-item" onClick={() => handleAction(toggleCostPanel)}>
+              <span className="menu-item-left">💰 Cost Estimate</span>
             </button>
             <div className="menu-separator" />
             <button type="button" className="menu-item" onClick={() => handleAction(toggleScenarioGallery)}>

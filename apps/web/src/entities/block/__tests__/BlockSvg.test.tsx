@@ -7,6 +7,8 @@ import { getBlockDimensions, CATEGORY_TIER_MAP, TIER_DIMENSIONS } from '../../..
 import type { BlockCategory, BlockRole, ProviderType } from '@cloudblocks/schema';
 import { BLOCK_PADDING, TILE_H, TILE_W, TILE_Z } from '../../../shared/tokens/designTokens';
 
+import { BLOCK_SHORT_NAMES } from '../../../shared/types/index';
+
 // ─── Test Helpers ─────────────────────────────────────────────
 
 /** Extract all polygon elements from rendered SVG. */
@@ -453,5 +455,28 @@ describe('BlockSvg role badges', () => {
     );
     expect(container.querySelector('[data-testid="aggregation-badge"]')).not.toBeNull();
     expect(container.querySelector('[data-testid="role-badge-primary"]')).not.toBeNull();
+  });
+});
+
+// ─── Name Prop Tests ──────────────────────────────────────────
+
+describe('BlockSvg name prop', () => {
+  it('renders shortName on left wall when name is not provided', () => {
+    const { container } = render(<BlockSvg category="compute" />);
+    const texts = container.querySelectorAll('text');
+    expect(texts[0].textContent).toBe(BLOCK_SHORT_NAMES.compute);
+  });
+
+  it('renders custom name on left wall when name is provided', () => {
+    const { container } = render(<BlockSvg category="compute" name="MyVM" />);
+    const texts = container.querySelectorAll('text');
+    expect(texts[0].textContent).toBe('MyVM');
+  });
+
+  it('does not affect icon on right wall', () => {
+    const { container } = render(<BlockSvg category="database" name="ProdDB" />);
+    const texts = container.querySelectorAll('text');
+    expect(texts[0].textContent).toBe('ProdDB');
+    expect(texts[1].textContent).not.toBe('ProdDB');
   });
 });
