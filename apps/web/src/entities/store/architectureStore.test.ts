@@ -31,11 +31,35 @@ describe('architectureStore', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2025-01-01T00:00:00Z'));
-    uuidState.counter = 0;
-    getState().resetWorkspace();
-    // resetWorkspace doesn't clear the workspaces array, so clear it manually
-    useArchitectureStore.setState({ workspaces: [] });
     localStorage.clear();
+    uuidState.counter = 0;
+    // Build a fresh default workspace directly to avoid resetWorkspace side effects
+    // (resetWorkspace persists to localStorage and consumes UUID counters)
+    const now = new Date().toISOString();
+    const freshWorkspace = {
+      id: 'ws-test',
+      name: 'My Architecture',
+      architecture: {
+        id: 'arch-test',
+        name: 'My Architecture',
+        version: '2',
+        plates: [] as ArchitectureModel['plates'],
+        blocks: [] as ArchitectureModel['blocks'],
+        connections: [] as ArchitectureModel['connections'],
+        externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' as const, position: { x: -3, y: 0, z: 5 } }],
+        createdAt: now,
+        updatedAt: now,
+      },
+      createdAt: now,
+      updatedAt: now,
+    };
+    useArchitectureStore.setState({
+      workspace: freshWorkspace,
+      workspaces: [],
+      validationResult: null,
+      canUndo: false,
+      canRedo: false,
+    });
   });
 
   afterEach(() => {
@@ -871,12 +895,53 @@ describe('architectureStore', () => {
       expect(setItemSpy).toHaveBeenCalled();
       setItemSpy.mockRestore();
 
-      // Reset and reload
-      getState().resetWorkspace();
+      // Manually clear in-memory state without persisting, then reload from storage
+      useArchitectureStore.setState({
+        workspace: {
+          ...getState().workspace,
+          architecture: { ...getState().workspace.architecture, plates: [], blocks: [], connections: [] },
+        },
+      });
       expect(getArch().plates).toHaveLength(0);
 
       getState().loadFromStorage();
       expect(getArch().plates).toHaveLength(1);
+    });
+
+    it('saveToStorage returns true on success', () => {
+      const result = getState().saveToStorage();
+      expect(result).toBe(true);
+    });
+
+    it('saveToStorage returns false when localStorage throws', () => {
+      const spy = vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
+        throw new Error('QuotaExceededError');
+      });
+
+      const result = getState().saveToStorage();
+      expect(result).toBe(false);
+      spy.mockRestore();
+    });
+
+    it('loadFromStorage restores last active workspace', () => {
+      getState().addPlate('region', 'First', null);
+      getState().saveToStorage();
+
+      getState().createWorkspace('Second WS');
+      getState().addPlate('region', 'SecondPlate', null);
+      getState().saveToStorage();
+
+      const secondId = getState().workspace.id;
+
+      // Reset and reload — should restore Second WS (last active)
+      useArchitectureStore.setState({
+        workspace: { ...getState().workspace, id: 'temp', name: 'Temp' },
+        workspaces: [],
+      });
+
+      getState().loadFromStorage();
+      expect(getState().workspace.id).toBe(secondId);
+      expect(getState().workspace.name).toBe('Second WS');
     });
 
     it('loadFromStorage is no-op when localStorage is empty', () => {
@@ -898,9 +963,11 @@ describe('architectureStore', () => {
   });
 
   describe('resetWorkspace', () => {
-    it('resets to default empty workspace', () => {
+    it('resets to default empty workspace while preserving workspace identity', () => {
       getState().addPlate('region', 'VNet', null);
       getState().addBlock('compute', 'VM', getArch().plates[0].id);
+      const workspaceId = getState().workspace.id;
+      const workspaceName = getState().workspace.name;
 
       getState().resetWorkspace();
 
@@ -909,6 +976,8 @@ describe('architectureStore', () => {
       expect(getState().validationResult).toBeNull();
       expect(getState().canUndo).toBe(false);
       expect(getState().canRedo).toBe(false);
+      expect(getState().workspace.id).toBe(workspaceId);
+      expect(getState().workspace.name).toBe(workspaceName);
     });
   });
 
@@ -1084,7 +1153,7 @@ describe('architectureStore', () => {
   });
 
   describe('importArchitecture', () => {
-    it('imports a valid architecture JSON', () => {
+    it('imports a valid architecture JSON and returns null', () => {
       const arch = {
         id: 'imported-1',
         name: 'Imported Arch',
@@ -1115,8 +1184,9 @@ describe('architectureStore', () => {
         externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       };
 
-      getState().importArchitecture(JSON.stringify(arch));
+      const result = getState().importArchitecture(JSON.stringify(arch));
 
+      expect(result).toBeNull();
       expect(getArch().name).toBe('Imported Arch');
       expect(getArch().plates).toHaveLength(1);
       expect(getArch().blocks).toHaveLength(1);
@@ -1148,16 +1218,18 @@ describe('architectureStore', () => {
       expect(getArch().externalActors[0].type).toBe('internet');
     });
 
-    it('logs error on invalid JSON without crashing', () => {
+    it('returns error string on invalid JSON without crashing', () => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      getState().importArchitecture('not-valid-json');
+      const result = getState().importArchitecture('not-valid-json');
+      expect(result).toBeTypeOf('string');
       expect(spy).toHaveBeenCalled();
       spy.mockRestore();
     });
 
-    it('logs error when plates/blocks are missing', () => {
+    it('returns error string when plates/blocks are missing', () => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      getState().importArchitecture(JSON.stringify({ name: 'No data' }));
+      const result = getState().importArchitecture(JSON.stringify({ name: 'No data' }));
+      expect(result).toBeTypeOf('string');
       expect(spy).toHaveBeenCalled();
       spy.mockRestore();
     });

@@ -16,7 +16,7 @@ export function GitHubLogin() {
   const status = useAuthStore((s) => s.status);
   const authError = useAuthStore((s) => s.error);
   const setError = useAuthStore((s) => s.setError);
-  const setAnonymous = useAuthStore((s) => s.setAnonymous);
+  const logout = useAuthStore((s) => s.logout);
 
   const [isWorking, setIsWorking] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
@@ -45,8 +45,7 @@ export function GitHubLogin() {
     setLocalError(null);
     setError(null);
 
-    await apiPost<{ message: string }>('/api/v1/auth/logout').catch(() => {});
-    setAnonymous();
+    await logout();
 
     setIsWorking(false);
   };

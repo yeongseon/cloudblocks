@@ -3,9 +3,11 @@ import { render, fireEvent } from '@testing-library/react';
 import { SceneCanvas } from './SceneCanvas';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { useWorkerStore } from '../../entities/store/workerStore';
 
 vi.mock('../../entities/store/architectureStore');
 vi.mock('../../entities/store/uiStore');
+vi.mock('../../entities/store/workerStore');
 vi.mock('../../shared/utils/audioService', () => ({
   audioService: { playSound: vi.fn() },
 }));
@@ -50,6 +52,13 @@ function setupStoreMocks() {
     };
     return (selector as (s: typeof state) => unknown)(state);
   }) as typeof useUIStore);
+
+  vi.mocked(useWorkerStore).mockImplementation(((selector: unknown) => {
+    const state = {
+      workerPosition: [-3, 0, -6] as [number, number, number],
+    };
+    return (selector as (s: typeof state) => unknown)(state);
+  }) as typeof useWorkerStore);
 }
 
 describe('SceneCanvas pointer capture handling', () => {

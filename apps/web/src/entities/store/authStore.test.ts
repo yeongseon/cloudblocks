@@ -3,12 +3,14 @@ import type { ApiUser } from '../../shared/types/api';
 
 vi.mock('../../shared/api/client', () => ({
   apiGet: vi.fn(),
+  apiPost: vi.fn(),
 }));
 
-import { apiGet } from '../../shared/api/client';
+import { apiGet, apiPost } from '../../shared/api/client';
 import { useAuthStore } from './authStore';
 
 const mockApiGet = vi.mocked(apiGet);
+const mockApiPost = vi.mocked(apiPost);
 
 const mockUser: ApiUser = {
   id: 'user-1',
@@ -21,6 +23,7 @@ const mockUser: ApiUser = {
 describe('useAuthStore', () => {
   beforeEach(() => {
     mockApiGet.mockReset();
+    mockApiPost.mockReset();
     useAuthStore.setState({
       status: 'unknown',
       user: null,
@@ -145,5 +148,33 @@ describe('useAuthStore', () => {
     // Should still be authenticated from call2, not error from call1
     expect(state.status).toBe('authenticated');
     expect(state.error).toBe(null);
+  });
+
+  it('logout sets anonymous state on success', async () => {
+    useAuthStore.setState({ status: 'authenticated', user: mockUser });
+    mockApiPost.mockResolvedValueOnce({ message: 'ok' });
+
+    await useAuthStore.getState().logout();
+
+    const state = useAuthStore.getState();
+    expect(mockApiPost).toHaveBeenCalledWith('/api/v1/auth/logout');
+    expect(state.status).toBe('anonymous');
+    expect(state.user).toBe(null);
+    expect(state.error).toBe(null);
+  });
+
+  it('logout calls checkSession on failure', async () => {
+    useAuthStore.setState({ status: 'authenticated', user: mockUser });
+    mockApiPost.mockRejectedValueOnce(new Error('Network error'));
+    // checkSession will be called as fallback — mock a successful session check
+    mockApiGet.mockResolvedValueOnce(mockUser);
+
+    await useAuthStore.getState().logout();
+
+    const state = useAuthStore.getState();
+    expect(mockApiPost).toHaveBeenCalledWith('/api/v1/auth/logout');
+    // checkSession was called as recovery, which sets authenticated
+    expect(mockApiGet).toHaveBeenCalledWith('/api/v1/auth/session');
+    expect(state.status).toBe('authenticated');
   });
 });

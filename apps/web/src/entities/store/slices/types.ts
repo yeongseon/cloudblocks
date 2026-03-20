@@ -48,7 +48,7 @@ export interface ArchitectureState {
 
   validate: () => ValidationResult;
 
-  saveToStorage: () => void;
+  saveToStorage: () => boolean;
   loadFromStorage: () => void;
   resetWorkspace: () => void;
   renameWorkspace: (name: string) => void;
@@ -57,7 +57,7 @@ export interface ArchitectureState {
   switchWorkspace: (id: string) => void;
   deleteWorkspace: (id: string) => void;
   cloneWorkspace: (id: string) => void;
-  importArchitecture: (json: string) => void;
+  importArchitecture: (json: string) => string | null;
   exportArchitecture: () => string;
   loadFromTemplate: (template: ArchitectureTemplate) => void;
   replaceArchitecture: (snapshot: ArchitectureSnapshot) => void;
