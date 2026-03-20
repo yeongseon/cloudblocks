@@ -6,8 +6,10 @@ import { startHintSubscription, startHintTimer, stopHintSubscription } from './h
 import { evaluateRules } from './step-validator';
 import type { ValidationResult } from './step-validator';
 import type { StepValidationRule } from '../../shared/types/learning';
+import type { ArchitectureModel } from '@cloudblocks/schema';
 
 let unsubscribe: (() => void) | null = null;
+let preLearningSnapshot: ArchitectureModel | null = null;
 
 function hasActiveScenario(): boolean {
   const { activeScenario, progress } = useLearningStore.getState();
@@ -32,6 +34,9 @@ export function startLearningScenario(scenarioId: string): void {
     throw new Error(`Scenario not found: ${scenarioId}`);
   }
 
+  preLearningSnapshot = JSON.parse(
+    JSON.stringify(useArchitectureStore.getState().workspace.architecture),
+  );
   useArchitectureStore.getState().replaceArchitecture(scenario.initialArchitecture);
   useUIStore.getState().setEditorMode('learn');
   useLearningStore.getState().startScenario(scenario);
@@ -97,6 +102,11 @@ export function resetCurrentStep(): void {
 
 export function abandonLearning(): void {
   useLearningStore.getState().abandonScenario();
+
+  if (preLearningSnapshot) {
+    useArchitectureStore.getState().replaceArchitecture(preLearningSnapshot);
+    preLearningSnapshot = null;
+  }
 
   const uiState = useUIStore.getState();
   uiState.setEditorMode('build');

@@ -385,7 +385,7 @@ function CreationMode() {
 
       counterRef.current += 1;
       const name = `${def.label} ${counterRef.current}`;
-      addBlock(def.blockCategory, name, targetId, activeProvider);
+      addBlock(def.blockCategory, name, targetId, activeProvider, def.id);
       playSound('block-snap');
     }
   }, [activeProvider, addPlate, addBlock, techTree, playSound]);

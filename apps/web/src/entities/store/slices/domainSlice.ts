@@ -5,6 +5,7 @@ import { generateId } from '../../../shared/utils/id';
 import type { ArchitectureSlice, ArchitectureState } from './types';
 import { canConnect } from '../../validation/connection';
 import type { EndpointType } from '../../validation/connection';
+import { validatePlacement } from '../../validation/placement';
 import {
   clampWithinParent,
   DEFAULT_PLATE_SIZE,
@@ -337,6 +338,10 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       );
 
       if (!targetPlate) {
+        return state;
+      }
+
+      if (validatePlacement(block, targetPlate) !== null) {
         return state;
       }
 

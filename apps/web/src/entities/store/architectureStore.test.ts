@@ -296,6 +296,17 @@ describe('architectureStore', () => {
       expect(blocks[0].provider).toBe('aws');
     });
 
+    it('persists subtype when provided', () => {
+      getState().addPlate('region', 'VNet', null);
+      const netId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Sub', netId, 'public');
+      const subId = getArch().plates[1].id;
+
+      getState().addBlock('compute', 'VM', subId, 'azure', 'vm');
+
+      expect(getArch().blocks[0].subtype).toBe('vm');
+    });
+
     it('no-ops on non-existent plate', () => {
       const blocksBefore = getArch().blocks.length;
       getState().addBlock('compute', 'VM', 'nonexistent');
@@ -585,6 +596,22 @@ describe('architectureStore', () => {
       const before = getState().workspace.architecture;
       getState().moveBlock(blockId, 'missing-target');
       expect(getState().workspace.architecture).toBe(before);
+    });
+
+    it('rejects move when placement rules are violated', () => {
+      getState().addPlate('region', 'VNet', null);
+      const netId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Sub', netId, 'private');
+      const privateSubId = getArch().plates[1].id;
+
+      getState().addBlock('gateway', 'FW', privateSubId);
+      const blockId = getArch().blocks[0].id;
+
+      const before = getState().workspace.architecture;
+      getState().moveBlock(blockId, netId);
+
+      expect(getState().workspace.architecture).toBe(before);
+      expect(getArch().blocks[0].placementId).toBe(privateSubId);
     });
   });
 
