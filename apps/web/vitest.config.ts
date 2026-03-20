@@ -1,8 +1,15 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
+import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    alias: {
+      '@cloudblocks/domain': path.resolve(__dirname, '../../packages/cloudblocks-domain/src/index.ts'),
+      '@cloudblocks/schema': path.resolve(__dirname, '../../packages/schema/src/index.ts'),
+    },
+  },
   test: {
     globals: true,
     environment: 'jsdom',

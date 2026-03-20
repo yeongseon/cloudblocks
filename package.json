@@ -14,8 +14,9 @@
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "dev": "pnpm --filter @cloudblocks/web dev",
-    "build": "pnpm --filter @cloudblocks/web build",
+    "build:packages": "pnpm --filter @cloudblocks/schema build && pnpm --filter @cloudblocks/domain build",
+    "dev": "pnpm run build:packages && pnpm --filter @cloudblocks/web dev",
+    "build": "pnpm run build:packages && pnpm --filter @cloudblocks/web build",
     "lint": "pnpm --filter @cloudblocks/web lint",
     "preview": "pnpm --filter @cloudblocks/web preview",
     "clean": "pnpm -r exec rm -rf node_modules dist .turbo"
