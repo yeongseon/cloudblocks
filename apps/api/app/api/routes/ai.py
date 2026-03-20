@@ -101,11 +101,7 @@ async def suggest_improvements(
         timeout=settings.llm_request_timeout,
     )
     engine = SuggestionEngine(client)
-
-    try:
-        return await engine.analyze(request.architecture, request.provider)
-    except LLMError as exc:
-        raise GenerationError(f"AI suggestion failed: {exc}") from exc
+    return await engine.analyze(request.architecture, request.provider)
 
 
 SUBTYPE_TO_TF_RESOURCE: dict[str, str] = {
