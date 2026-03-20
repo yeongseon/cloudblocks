@@ -277,6 +277,28 @@
   color: #FF3333;
 }
 
+.notification-bell-btn {
+  position: relative;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  background: #ff4444;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  border-radius: 8px;
+  border: 1px solid #B80009;
+  pointer-events: none;
+}
+
 
 .github-section {
   display: flex;

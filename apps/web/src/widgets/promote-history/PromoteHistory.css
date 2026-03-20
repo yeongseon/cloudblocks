@@ -1,0 +1,173 @@
+.promote-history {
+  position: absolute;
+  right: 16px;
+  top: 60px;
+  width: 480px;
+  max-height: calc(100vh - 80px);
+  background: rgba(20, 20, 40, 0.95);
+  border: 1px solid #333366;
+  border-radius: 8px;
+  padding: 14px;
+  color: #e0e0e0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.promote-history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.promote-history-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.promote-history-close {
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.promote-history-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.promote-history-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+
+.promote-history-empty {
+  text-align: center;
+  color: #777;
+  font-size: 12px;
+  padding: 20px 0;
+}
+
+/* Timeline entry */
+.promote-history-entry {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  transition: background 0.15s;
+}
+
+.promote-history-entry:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Type icon */
+.promote-history-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.promote-history-icon.promote {
+  background: rgba(66, 133, 244, 0.15);
+  color: #4285f4;
+}
+
+.promote-history-icon.rollback {
+  background: rgba(255, 152, 0, 0.15);
+  color: #ff9800;
+}
+
+/* Entry details */
+.promote-history-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.promote-history-entry-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.promote-history-entry-type {
+  font-size: 12px;
+  font-weight: 600;
+  color: #ccc;
+}
+
+.promote-history-status {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.promote-history-status.success {
+  background: rgba(76, 175, 80, 0.15);
+  color: #4caf50;
+}
+
+.promote-history-status.failed {
+  background: rgba(239, 83, 80, 0.15);
+  color: #ef5350;
+}
+
+.promote-history-status.pending {
+  background: rgba(255, 152, 0, 0.15);
+  color: #ff9800;
+}
+
+.promote-history-status.in_progress {
+  background: rgba(66, 133, 244, 0.15);
+  color: #4285f4;
+}
+
+.promote-history-env {
+  font-size: 11px;
+  color: #999;
+  margin-bottom: 2px;
+}
+
+.promote-history-tag {
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 11px;
+  color: #8ab4f8;
+  margin-bottom: 2px;
+}
+
+.promote-history-meta {
+  font-size: 10px;
+  color: #777;
+  display: flex;
+  gap: 10px;
+}
+
+/* Loading */
+.promote-history-loading {
+  text-align: center;
+  color: #777;
+  font-size: 12px;
+  padding: 20px 0;
+}

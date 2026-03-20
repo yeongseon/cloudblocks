@@ -81,6 +81,7 @@ interface UIState {
   // ── Diff mode ──
   diffMode: boolean;
   diffDelta: DiffDelta | null;
+  diffVersion: number;
   diffBaseArchitecture: ArchitectureModel | null;
   setDiffMode: (
     mode: boolean,
@@ -272,13 +273,15 @@ export const useUIStore = create<UIState>((set) => ({
 
   diffMode: false,
   diffDelta: null,
+  diffVersion: 0,
   diffBaseArchitecture: null,
   setDiffMode: (mode, delta, base) =>
-    set({
+    set((s) => ({
       diffMode: mode,
       diffDelta: delta ?? null,
       diffBaseArchitecture: base ?? null,
-    }),
+      diffVersion: s.diffVersion + 1,
+    })),
   clearDiffState: () =>
     set({
       diffMode: false,
