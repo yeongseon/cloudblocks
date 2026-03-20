@@ -6,6 +6,67 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 
 ---
 
+## [v0.17.0] — 2026-03-21
+
+**Milestone 17 — Product Structure**
+
+Restructured the monorepo from a scaffolded prototype into a modular, separation-ready architecture. Resolved rendering model ambiguity, extracted shared packages with real consumers, redefined backend responsibilities, and established version alignment policy.
+
+### Architecture & Packages
+- SVG-only rendering model confirmed and documented (ADR-0010); unused Three.js dependencies removed
+- `@cloudblocks/schema` extracted as single source of truth for ArchitectureModel contract
+- `@cloudblocks/domain` extracted with shared domain helpers (hierarchy rules, labels, validation types)
+- Empty placeholder packages removed from `packages/`
+- All package versions aligned with root version under documented versioning policy
+
+### Domain Model Fixes
+- Deep-copy nested block fields when duplicating blocks (#644)
+- Move all descendant plates when a parent plate moves, not just direct children (#643)
+- Decouple workspace renaming from architecture name mutation (#645)
+
+### Code Generation & Providers
+- Provider-aware region input in CodePreview — each provider gets its own region in compare mode (#564)
+- Clear stale single-provider output when the selected generator changes (#642)
+- Do not preserve stale generated code after changing the active provider (#639)
+- Derive CodePreview generator options from the generator registry instead of a hardcoded list (#657)
+- Use actual generated metadata version consistently across generator plugins and UI (#654)
+- Preserve file tab selection semantics across provider comparison mode (#653)
+
+### Workspace & Persistence
+- Persist and restore the active workspace id using existing storage helpers (#648)
+- Persist the new active workspace id after switchWorkspace (#666)
+- Make switchWorkspace self-contained instead of relying on callers to save first (#667)
+- Persist backendWorkspaceId updates instead of keeping them in memory only (#672)
+- Upsert the current workspace before persisting non-current workspace deletion (#671)
+- Avoid updating the active workspace id key when workspace persistence fails (#650)
+- Do not ignore saveWorkspaces failures in workspace lifecycle actions (#651)
+- Persist workspace renames or make renameWorkspace explicitly in-memory only (#670)
+- Remove or wire dead repoOwner/repoName/branch/lastSyncAt workspace fields (#673)
+- Do not keep dead active-workspace storage helpers if the runtime will not use them (#647)
+
+### UI & UX
+- Redesign Internet external actor as globe brick (#451)
+- Provider-aware SVG icons for blocks and plates (#526, #495)
+- Give Ctrl+S/Cmd+S save the same success/failure feedback as the menu save action (#675)
+- Use explicit ScenarioGallery open/close semantics instead of blind toggle (#676)
+- Route 'Show Learning Panel' to a real entry flow when no scenario is active (#640)
+- Expose or remove dead generator registry listing APIs from the runtime surface (#656)
+- Align importArchitecture return type with its string-or-null implementation (#655)
+
+### Dialog & Accessibility
+- Support Escape-key dismissal in ConfirmDialog (#660)
+- Focus an action button when ConfirmDialog opens (#659)
+- Close or unmount the previous ConfirmDialog before resolving a new one (#661)
+- Add Escape-key dismissal parity to PromptDialog overlay interactions (#664)
+- Use the same cleanup path in PromptDialog when replacing an in-flight dialog (#665)
+- Give PromptDialog input an explicit accessible label (#668)
+- Avoid global document.querySelector coupling in PromptDialog value lookup (#669)
+
+### Stats
+- 4 Epics, 30 issues closed, 1697 tests passing, branch coverage 90.12%
+
+---
+
 ## [v0.16.0] — 2026-03-20
 
 **Milestone 16 — Documentation Architecture & Canonical Cleanup**
