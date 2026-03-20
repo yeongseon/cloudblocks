@@ -82,10 +82,6 @@ interface UIState {
     base?: ArchitectureModel | null,
   ) => void;
 
-  // ── Collaboration panel ──
-  showCollaboration: boolean;
-  toggleCollaboration: () => void;
-
   // ── Build Order panel ──
   isBuildOrderOpen: boolean;
   toggleBuildOrder: () => void;
@@ -223,10 +219,6 @@ export const useUIStore = create<UIState>((set) => ({
       diffDelta: delta ?? null,
       diffBaseArchitecture: base ?? null,
     }),
-
-  showCollaboration: false,
-  toggleCollaboration: () =>
-    set((s) => ({ showCollaboration: !s.showCollaboration })),
 
   isBuildOrderOpen: true,
   toggleBuildOrder: () =>

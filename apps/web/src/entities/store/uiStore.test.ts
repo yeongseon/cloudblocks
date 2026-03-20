@@ -28,7 +28,6 @@ describe('useUIStore', () => {
       diffMode: false,
       diffDelta: null,
       diffBaseArchitecture: null,
-      showCollaboration: false,
     });
   });
 
@@ -56,7 +55,6 @@ describe('useUIStore', () => {
       expect(state.diffMode).toBe(false);
       expect(state.diffDelta).toBe(null);
       expect(state.diffBaseArchitecture).toBe(null);
-      expect(state.showCollaboration).toBe(false);
     });
   });
 
@@ -736,23 +734,6 @@ describe('useUIStore', () => {
       expect(state.diffMode).toBe(true);
       expect(state.diffDelta).toBe(null);
       expect(state.diffBaseArchitecture).toBe(null);
-    });
-  });
-
-  describe('toggleCollaboration', () => {
-    it('should default showCollaboration to false', () => {
-      expect(useUIStore.getState().showCollaboration).toBe(false);
-    });
-
-    it('should toggle showCollaboration from false to true', () => {
-      useUIStore.getState().toggleCollaboration();
-      expect(useUIStore.getState().showCollaboration).toBe(true);
-    });
-
-    it('should toggle showCollaboration back to false', () => {
-      useUIStore.getState().toggleCollaboration();
-      useUIStore.getState().toggleCollaboration();
-      expect(useUIStore.getState().showCollaboration).toBe(false);
     });
   });
 

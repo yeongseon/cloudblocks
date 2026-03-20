@@ -172,7 +172,7 @@ describe('Milestone 10 integration', () => {
     expect(blockSprite.style.getPropertyValue('--build-progress')).toBe('0');
 
     act(() => {
-      useWorkerStore.getState().setWorkerState('building');
+      useWorkerStore.setState({ workerState: 'building' });
       useWorkerStore.getState().tickBuildProgress(0.5);
     });
 

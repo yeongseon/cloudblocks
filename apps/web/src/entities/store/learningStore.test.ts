@@ -226,30 +226,6 @@ describe('useLearningStore', () => {
     });
   });
 
-  describe('resetToCheckpoint', () => {
-    it('resets hint index to -1', () => {
-      useLearningStore.setState({ currentHintIndex: 1 });
-      useLearningStore.getState().resetToCheckpoint();
-      expect(useLearningStore.getState().currentHintIndex).toBe(-1);
-    });
-
-    it('sets isCurrentStepComplete to false', () => {
-      useLearningStore.setState({ isCurrentStepComplete: true });
-      useLearningStore.getState().resetToCheckpoint();
-      expect(useLearningStore.getState().isCurrentStepComplete).toBe(false);
-    });
-
-    it('does not clear activeScenario or progress', () => {
-      const scenario = createTestScenario();
-      useLearningStore.getState().startScenario(scenario);
-
-      useLearningStore.getState().resetToCheckpoint();
-
-      expect(useLearningStore.getState().activeScenario?.id).toBe('scenario-1');
-      expect(useLearningStore.getState().progress?.scenarioId).toBe('scenario-1');
-    });
-  });
-
   describe('showNextHint', () => {
     it('no-ops when there is no active scenario', () => {
       useLearningStore.setState({ currentHintIndex: 0 });

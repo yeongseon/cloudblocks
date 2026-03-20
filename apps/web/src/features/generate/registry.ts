@@ -16,11 +16,3 @@ export function registerGenerator(plugin: GeneratorPlugin): void {
 export function getGenerator(id: GeneratorId): GeneratorPlugin | undefined {
   return registry.get(id);
 }
-
-export function listGenerators(): GeneratorPlugin[] {
-  return Array.from(registry.values());
-}
-
-export function listGeneratorIds(): GeneratorId[] {
-  return Array.from(registry.keys());
-}

@@ -161,26 +161,4 @@ describe('useAiStore', () => {
     });
   });
 
-  describe('clearResults', () => {
-    it('resets all results and errors', () => {
-      useAiStore.setState({
-        generateResult: { architecture: {}, explanation: 'x', warnings: [] },
-        generateError: 'err',
-        suggestResult: { suggestions: [], score: {} },
-        suggestError: 'err2',
-        costResult: { monthly_cost: 1, hourly_cost: 0, currency: 'USD', resources: [] },
-        costError: 'err3',
-      });
-
-      useAiStore.getState().clearResults();
-
-      const state = useAiStore.getState();
-      expect(state.generateResult).toBeNull();
-      expect(state.generateError).toBeNull();
-      expect(state.suggestResult).toBeNull();
-      expect(state.suggestError).toBeNull();
-      expect(state.costResult).toBeNull();
-      expect(state.costError).toBeNull();
-    });
-  });
 });

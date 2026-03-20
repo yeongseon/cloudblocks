@@ -4,10 +4,9 @@ import { useUIStore } from '../../entities/store/uiStore';
 import { getScenario } from './scenarios/registry';
 import { evaluateRules } from './step-validator';
 import type { ValidationResult } from './step-validator';
-import type { ArchitectureSnapshot, StepValidationRule } from '../../shared/types/learning';
+import type { StepValidationRule } from '../../shared/types/learning';
 
 let unsubscribe: (() => void) | null = null;
-const checkpointCache = new Map<string, ArchitectureSnapshot>();
 
 function hasActiveScenario(): boolean {
   const { activeScenario, progress } = useLearningStore.getState();
@@ -26,19 +25,6 @@ function syncCurrentStepCompletion(): ValidationResult {
   return validation;
 }
 
-function cacheStepCheckpoint(stepId: string, checkpoint?: ArchitectureSnapshot): void {
-  if (!checkpoint) {
-    return;
-  }
-
-  checkpointCache.set(stepId, checkpoint);
-}
-
-function captureCurrentArchitecture(): ArchitectureSnapshot {
-  const { workspace } = useArchitectureStore.getState();
-  return JSON.parse(JSON.stringify(workspace.architecture));
-}
-
 export function startLearningScenario(scenarioId: string): void {
   const scenario = getScenario(scenarioId);
   if (!scenario) {
@@ -48,11 +34,6 @@ export function startLearningScenario(scenarioId: string): void {
   useArchitectureStore.getState().replaceArchitecture(scenario.initialArchitecture);
   useUIStore.getState().setEditorMode('learn');
   useLearningStore.getState().startScenario(scenario);
-
-  const firstStep = scenario.steps[0];
-  if (firstStep) {
-    checkpointCache.set(firstStep.id, captureCurrentArchitecture());
-  }
 
   const uiState = useUIStore.getState();
   if (!uiState.showLearningPanel) {
@@ -76,17 +57,10 @@ export function advanceToNextStep(): void {
     return;
   }
 
-  cacheStepCheckpoint(currentStep.id, currentStep.checkpoint);
-
   const isLastStep = progress.currentStepIndex >= activeScenario.steps.length - 1;
   if (isLastStep) {
     learningState.completeScenario();
     return;
-  }
-
-  const nextStep = activeScenario.steps[progress.currentStepIndex + 1];
-  if (nextStep && !checkpointCache.has(nextStep.id)) {
-    checkpointCache.set(nextStep.id, captureCurrentArchitecture());
   }
 
   learningState.advanceStep();
@@ -106,7 +80,7 @@ export function resetCurrentStep(): void {
     return;
   }
 
-  const snapshot = currentStep.checkpoint ?? checkpointCache.get(currentStep.id);
+  const snapshot = currentStep.checkpoint ?? activeScenario.initialArchitecture;
   if (snapshot) {
     useArchitectureStore.getState().replaceArchitecture(snapshot);
   }

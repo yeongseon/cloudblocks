@@ -3,7 +3,6 @@ export {
   getScenario,
   listScenarios,
   listScenariosByDifficulty,
-  searchScenarios,
   clearScenarioRegistry,
 } from './registry';
 
