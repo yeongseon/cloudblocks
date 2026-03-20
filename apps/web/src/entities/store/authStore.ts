@@ -50,7 +50,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       if (isUnauthorized) {
         set({ status: 'anonymous', user: null, hydrated: true, error: null });
       } else {
-        set({ hydrated: true, error: 'Session check failed' });
+        set({ status: 'anonymous', user: null, hydrated: true, error: 'Session check failed' });
       }
     }
   },
