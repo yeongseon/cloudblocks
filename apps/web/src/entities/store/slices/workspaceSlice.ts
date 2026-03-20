@@ -1,6 +1,7 @@
 import type { Workspace } from '../../../shared/types/index';
 import { createBlankArchitecture } from '../../../shared/types/schema';
 import { generateId } from '../../../shared/utils/id';
+import { saveWorkspaces, saveActiveWorkspaceId } from '../../../shared/utils/storage';
 import type { ArchitectureSlice, ArchitectureState } from './types';
 import {
   createDefaultWorkspace,
@@ -40,6 +41,9 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (
     const updatedList = upsertCurrentWorkspace(state.workspaces, state.workspace);
     updatedList.push(newWorkspace);
 
+    saveWorkspaces(updatedList);
+    saveActiveWorkspaceId(newWorkspace.id);
+
     set({
       workspace: newWorkspace,
       workspaces: updatedList,
@@ -77,6 +81,9 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (
         filtered.push(next);
       }
 
+      saveWorkspaces(filtered);
+      saveActiveWorkspaceId(next.id);
+
       set({
         workspace: next,
         workspaces: filtered,
@@ -86,6 +93,7 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (
       return;
     }
 
+    saveWorkspaces(filtered);
     set({ workspaces: filtered });
   },
 
@@ -116,6 +124,9 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (
 
     const updatedList = upsertCurrentWorkspace(state.workspaces, state.workspace);
     updatedList.push(cloned);
+
+    saveWorkspaces(updatedList);
+    saveActiveWorkspaceId(cloned.id);
 
     set({
       workspace: cloned,
