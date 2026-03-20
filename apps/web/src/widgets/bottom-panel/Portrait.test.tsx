@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { Portrait } from './Portrait';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { useWorkerStore } from '../../entities/store/workerStore';
 import type { ArchitectureModel, Block, Connection, Plate } from '@cloudblocks/schema';
 
 vi.mock('./Portrait.css', () => ({}));
@@ -206,5 +207,15 @@ describe('Portrait', () => {
 
     expect(screen.getByText('Async')).toBeInTheDocument();
     expect(screen.getByText('async')).toBeInTheDocument();
+  });
+
+  it('renders worker portrait when selectedId is worker-default', () => {
+    useUIStore.setState({ selectedId: 'worker-default' });
+    useWorkerStore.setState({ workerState: 'idle' });
+
+    render(<Portrait />);
+
+    expect(screen.getByText('Worker')).toBeInTheDocument();
+    expect(screen.getByText('idle')).toBeInTheDocument();
   });
 });
