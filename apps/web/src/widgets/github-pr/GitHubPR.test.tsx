@@ -43,6 +43,7 @@ describe('GitHubPR', () => {
         architecture: emptyArch,
         createdAt: '',
         updatedAt: '',
+        backendWorkspaceId: 'backend-ws-1',
       },
     });
   });
@@ -80,7 +81,7 @@ describe('GitHubPR', () => {
     await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
 
     await waitFor(() => {
-      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/pr', {
+      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-1/pr', {
         architecture: emptyArch,
         title: 'Update cloud architecture',
         body: '',
@@ -125,8 +126,55 @@ describe('GitHubPR', () => {
     await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
 
     await waitFor(() => {
-      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/pr', expect.objectContaining({
+      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-1/pr', expect.objectContaining({
         branch: 'custom-branch',
+      }));
+    });
+  });
+
+  it('disables submit button when title is empty or whitespace', async () => {
+    const user = userEvent.setup();
+    render(<GitHubPR />);
+
+    const titleField = screen.getByLabelText('Title');
+    const submitButton = screen.getByRole('button', { name: 'Create Pull Request' });
+
+    await user.clear(titleField);
+    expect(submitButton).toBeDisabled();
+
+    await user.type(titleField, '   ');
+    expect(submitButton).toBeDisabled();
+  });
+
+  it('disables submit button and shows error text when branch is invalid', async () => {
+    const user = userEvent.setup();
+    render(<GitHubPR />);
+
+    const branchField = screen.getByLabelText('Branch name (optional)');
+    await user.type(branchField, 'feature bad');
+
+    expect(screen.getByRole('button', { name: 'Create Pull Request' })).toBeDisabled();
+    expect(screen.getByText('Branch name contains invalid characters or format.')).toBeInTheDocument();
+  });
+
+  it('trims PR title before submission', async () => {
+    const user = userEvent.setup();
+    mockApiPost.mockResolvedValue({
+      pull_request_url: 'https://github.com/owner/repo/pull/42',
+      number: 42,
+      branch: 'main',
+    });
+
+    render(<GitHubPR />);
+
+    const titleField = screen.getByLabelText('Title');
+    await user.clear(titleField);
+    await user.type(titleField, '  Trimmed title  ');
+    await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
+
+    await waitFor(() => {
+      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-1/pr', expect.objectContaining({
+        title: 'Trimmed title',
       }));
     });
   });
@@ -211,8 +259,13 @@ describe('GitHubPR', () => {
     });
   });
 
-  it('falls back to workspace.id when backendWorkspaceId is not set', async () => {
-    const user = userEvent.setup();
+  it('blocks submission when backendWorkspaceId is not set', async () => {
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        backendWorkspaceId: undefined,
+      },
+    });
     mockApiPost.mockResolvedValue({
       pull_request_url: 'https://github.com/owner/repo/pull/42',
       number: 42,
@@ -220,10 +273,8 @@ describe('GitHubPR', () => {
     });
 
     render(<GitHubPR />);
-    await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
 
-    await waitFor(() => {
-      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/pr', expect.any(Object));
-    });
+    expect(screen.getByText('Workspace must be linked to backend before creating a pull request.')).toBeInTheDocument();
+    expect(mockApiPost).not.toHaveBeenCalled();
   });
 });
