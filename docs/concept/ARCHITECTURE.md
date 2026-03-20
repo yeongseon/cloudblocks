@@ -339,7 +339,7 @@ Key responsibilities:
 The canonical model types are defined in `apps/web/src/shared/types/index.ts`. The domain model consists of the following core entities:
 
 - **Plate** — Infrastructure boundary (network / subnet), with containment hierarchy (`parentId`, `children`)
-- **Block** — Infrastructure resource (`category`: compute / database / storage / gateway), placed on a plate via `placementId`
+- **Block** — Infrastructure resource (`category`: compute / database / storage / gateway / function / queue / event / analytics / identity / observability), placed on a plate via `placementId`
 - **Connection** — Dataflow between blocks (`sourceId` → `targetId`), initiator model
 - **ExternalActor** — External endpoint (e.g., Internet)
 - **ArchitectureModel** — Root container for all entities

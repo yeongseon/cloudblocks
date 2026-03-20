@@ -26,7 +26,7 @@ Cloud infrastructure is represented as a **layered containment model** composed 
 
 This model provides a visual abstraction that maps directly to real cloud resources and IaC constructs. The internal representation uses a **2D coordinate system with hierarchy** — the 2.5D isometric view is a rendering projection, not the source of truth.
 
-> **Current scope note**: Compute refers to resources deployed within a Subnet (VM, Container App). Serverless categories (`function`, `queue`, `event`, `timer`) are deployed on the Network Plate.
+> **Current scope note**: Compute refers to resources deployed within a Subnet (VM, Container App). Serverless categories (`function`, `queue`, `event`) are deployed on Region Plates.
 
 ---
 
@@ -48,8 +48,8 @@ These invariants **must hold at all times** in a valid `ArchitectureModel`. Viol
 | Rule | Description |
 |------|-------------|
 | **Single Root** | An `ArchitectureModel` has exactly one root Network Plate (`parentId: null`). All other Plates and Blocks are descendants. |
-| **Containment Hierarchy** | Plates form a strict tree: Network → Subnet. No cycles in the containment tree. |
-| **Block Placement** | Every Block has a `placementId` referencing a Plate. `compute`, `database`, `storage`, and `gateway` are placed on Subnet Plates; `function`, `queue`, `event`, and `timer` are placed on Network Plates. Blocks cannot exist outside the hierarchy. |
+| **Containment Hierarchy** | Plates form a strict tree across plate layers (`global`/`edge` roots, then `region` → `zone` → `subnet`). No cycles in the containment tree. |
+| **Block Placement** | Every Block has a `placementId` referencing a Plate. `compute`, `database`, `storage`, `gateway`, `analytics`, `identity`, and `observability` are placed on Subnet Plates; `function`, `queue`, and `event` are placed on Region Plates. Blocks cannot exist outside the hierarchy. |
 | **Children Consistency** | A Plate's `children[]` must match the set of entities whose `parentId` or `placementId` references that Plate. |
 
 ### 2.3 Connection Invariants
@@ -59,7 +59,7 @@ These invariants **must hold at all times** in a valid `ArchitectureModel`. Viol
 | **No Self-Connections** | `connection.sourceId !== connection.targetId`. |
 | **No Duplicate Connections** | UI/domain store operations prevent adding duplicate ordered pairs `(sourceId, targetId)` during connection creation. |
 | **No Cycles (Planned Validation)** | The intended architecture constraint is a DAG-style flow, but explicit cycle detection is planned rather than fully enforced in validation rules today. |
-| **Receiver-Only Enforcement** | `database` and `storage` blocks never appear as `sourceId` in any connection. They are receiver-only. `queue`, `timer`, and `event` may appear as `sourceId` only when targeting `function`. |
+| **Receiver-Only Enforcement** | `database` and `storage` blocks never appear as `sourceId` in any connection. They are receiver-only. `queue` and `event` may appear as `sourceId` only when targeting `function`. |
 
 ---
 
@@ -86,12 +86,15 @@ Network Plate
 
 | Plate | Description |
 |------|-------------|
-| NetworkPlate | Cloud network (Azure VNet / AWS VPC) |
+| GlobalPlate | Global boundary plate (top-level network scope) |
+| EdgePlate | Edge boundary plate (internet/perimeter scope) |
+| RegionPlate | Regional network boundary plate |
+| ZonePlate | Availability zone boundary plate |
 | SubnetPlate | Subnet within a network (Public or Private) |
 
 ### Plate Size Tiers
 
-> **Canonical specification**: See [BRICK_DESIGN_SPEC.md](../design/BRICK_DESIGN_SPEC.md) for detailed SVG specs and pixel dimensions.
+> **Canonical specification**: See [CLOUDBLOCKS_SPEC_V2.md](../design/CLOUDBLOCKS_SPEC_V2.md) for detailed SVG specs and pixel dimensions.
 
 Plates are sized for **learning progression**. Each tier represents a complexity level appropriate for different learners:
 
@@ -112,9 +115,9 @@ Plates are sized for **learning progression**. Each tier represents a complexity
 ```
 id            — unique identifier ({type}-{uuid})
 name          — display name
-type          — 'network' | 'subnet'
+type          — 'global' | 'edge' | 'region' | 'zone' | 'subnet'
 subnetAccess  — 'public' | 'private' (subnet only)
-parentId      — parent plate ID (null for network plate)
+parentId      — parent plate ID (null for root plate)
 children      — child plate/block IDs
 position      — position {x, y, z} (x/z = layout plane, y = elevation)
 size          — dimensions {width, height, depth}
@@ -140,11 +143,13 @@ They are placed on Plates and represent deployable infrastructure services. Each
 | FunctionBlock | Serverless compute |
 | QueueBlock | Messaging services |
 | EventBlock | Event triggers |
-| TimerBlock | Scheduled triggers |
+| AnalyticsBlock | Log and telemetry analysis |
+| IdentityBlock | Identity and access management |
+| ObservabilityBlock | Monitoring and signal aggregation |
 
 ### Brick Size Tiers
 
-> **Canonical specification**: See [BRICK_DESIGN_SPEC.md](../design/BRICK_DESIGN_SPEC.md) for detailed SVG specs and pixel dimensions.
+> **Canonical specification**: See [CLOUDBLOCKS_SPEC_V2.md](../design/CLOUDBLOCKS_SPEC_V2.md) for detailed SVG specs and pixel dimensions.
 
 Brick size represents **architectural weight** — the resource's importance, statefulness, and operational complexity. Larger bricks are harder to replace and more central to the architecture.
 
@@ -162,7 +167,7 @@ Brick size represents **architectural weight** — the resource's importance, st
 
 | Category | Brick Size | Hostable | Rationale |
 |----------|------------|----------|-----------|
-| `timer`, `event` | signal (1×2) | No | Triggers only |
+| `event`, `analytics`, `identity`, `observability` | signal (1×2) | No | Triggers and signal-oriented services |
 | `function` | light (2×2) | Yes | Single runtime |
 | `gateway`, `queue`, `storage` | service (2×4) | No | Managed services |
 | `compute` | core (3×4) | Yes | Full app stack |
@@ -190,7 +195,7 @@ They are visual 1×1 cylindrical pieces that sit ON TOP of **hostable** Block br
 | `queue` | ❌ No | Managed messaging |
 | `storage` | ❌ No | Managed object store |
 | `database` | ❌ No | Managed database |
-| `timer`, `event` | ❌ No | Triggers only |
+| `event` | ❌ No | Triggers only |
 
 ### Managed vs Self-hosted
 
@@ -250,7 +255,7 @@ Example:
 Block
   id            — unique identifier ({type}-{uuid})
   name          — display name
-  category      — 'compute' | 'database' | 'storage' | 'gateway' | 'function' | 'queue' | 'event' | 'timer'
+  category      — 'compute' | 'database' | 'storage' | 'gateway' | 'function' | 'queue' | 'event' | 'analytics' | 'identity' | 'observability'
   placementId   — parent plate ID
   position      — position relative to parent plate {x, y, z}
   metadata      — additional properties
@@ -303,7 +308,7 @@ metadata  — additional properties
 | **Direction** | Source → Target = initiator → receiver. Responses are implicit. |
 | **Cardinality** | One-to-many: a block can have multiple outgoing or incoming connections, but at most one connection per ordered `(source, target)` pair. |
 | **Cycles** | Intended constraint is DAG-style flow; explicit cycle detection is planned and not yet fully enforced by current frontend validation rules. |
-| **Receiver-only types** | `database` and `storage` are receiver-only — they never appear as `sourceId`. |
+| **Receiver-only types** | `database`, `storage`, `analytics`, `identity`, and `observability` are receiver-only — they never appear as `sourceId`. |
 
 ### Connection Types
 
@@ -329,6 +334,7 @@ An External Actor is an external entity (not a Plate or Block) that can only be 
 id    — unique identifier ({type}-{uuid})
 name  — display name (e.g., "Internet")
 type  — 'internet'
+position — position {x, y, z}
 ```
 
 ---
@@ -344,10 +350,12 @@ ComputeBlock must be placed on SubnetPlate
 DatabaseBlock must be placed on private SubnetPlate
 GatewayBlock must be placed on public SubnetPlate
 StorageBlock must be placed on SubnetPlate
-FunctionBlock must be placed on NetworkPlate
-QueueBlock must be placed on NetworkPlate
-EventBlock must be placed on NetworkPlate
-TimerBlock must be placed on NetworkPlate
+AnalyticsBlock must be placed on SubnetPlate
+IdentityBlock must be placed on SubnetPlate
+ObservabilityBlock must be placed on SubnetPlate
+FunctionBlock must be placed on a Region Plate
+QueueBlock must be placed on a Region Plate
+EventBlock must be placed on a Region Plate
 ```
 
 ### Connection Rules
@@ -358,11 +366,13 @@ Gateway  → Compute    ✔  (gateway forwards to compute)
 Gateway  → Function   ✔  (gateway forwards to serverless handlers)
 Compute  → Database   ✔  (app queries database)
 Compute  → Storage    ✔  (app reads/writes storage)
+Compute  → Analytics  ✔  (app emits/query analytics)
+Compute  → Identity   ✔  (app uses identity services)
+Compute  → Observability ✔  (app publishes metrics/logs)
 Function → Storage    ✔  (function accesses storage)
 Function → Database   ✔  (function accesses database)
 Function → Queue      ✔  (function enqueues messages)
 Queue    → Function   ✔  (queue trigger)
-Timer    → Function   ✔  (scheduled trigger)
 Event    → Function   ✔  (event trigger)
 Database → Gateway    ❌  (database does not initiate requests to gateway)
 Database → Internet   ❌  (database does not initiate external requests)
@@ -372,8 +382,8 @@ Storage  → Internet   ❌  (storage does not initiate external requests)
 Storage  → Compute    ❌  (storage is receiver-only)
 ```
 
-**Database and Storage are receiver-only** — they never appear as connection sources (initiators).
-**Queue, Timer, and Event connect only to Function** when used as initiators.
+**Database, Storage, Analytics, Identity, and Observability are receiver-only** — they never appear as connection sources (initiators).
+**Queue and Event connect only to Function** when used as initiators.
 Responses flow implicitly in the reverse direction and do not require a separate connection.
 
 ### Rule Specification Format
@@ -421,7 +431,7 @@ type ValidationWarning = ValidationError;
 
 Blocks use **visual characteristics** to communicate function in the isometric view.
 
-> **Canonical specification**: For detailed visual specs including brick sizes, plate sizes, and SVG templates, see [VISUAL_DESIGN_SPEC.md](../design/VISUAL_DESIGN_SPEC.md) and [BRICK_DESIGN_SPEC.md](../design/BRICK_DESIGN_SPEC.md).
+> **Canonical specification**: For detailed visual specs including brick sizes, plate sizes, and SVG templates, see [CLOUDBLOCKS_SPEC_V2.md](../design/CLOUDBLOCKS_SPEC_V2.md).
 
 ### 3-Layer Visual Hierarchy
 
@@ -444,7 +454,9 @@ CloudBlocks uses a **3-layer Lego-style visual system**:
 | `function` | `#FFB900` |
 | `queue` | `#737373` |
 | `event` | `#D83B01` |
-| `timer` | `#5C2D91` |
+| `analytics` | `#693BC5` |
+| `identity` | `#D6232C` |
+| `observability` | `#693BC5` |
 
 Plate colors are defined separately in the canonical visual specs and type constants (`PLATE_COLORS` in `apps/web/src/shared/types/index.ts`).
 
@@ -462,7 +474,7 @@ Plate colors are defined separately in the canonical visual specs and type const
 
 ### Schema Version
 
-The storage format uses `schemaVersion` (currently `"0.1.0"`) to track the serialization shape. This is **separate** from `ArchitectureModel.version`, which is a user-facing architecture revision counter.
+The storage format uses `schemaVersion` (currently `"2.0.0"`) to track the serialization shape. This is **separate** from `ArchitectureModel.version`, which is a user-facing architecture revision counter.
 
 | Field | Purpose | Canonical Source |
 |-------|---------|-----------------|
@@ -476,9 +488,9 @@ The following types and fields are **frozen for Milestone 1** and will not chang
 | Frozen Type | Frozen Fields |
 |-------------|---------------|
 | `Plate` | `id`, `name`, `type`, `subnetAccess`, `parentId`, `children`, `position`, `size`, `metadata` |
-| `Block` | `id`, `name`, `category`, `placementId`, `position`, `metadata`, `provider?` |
+| `Block` | `id`, `name`, `category`, `placementId`, `position`, `metadata`, `provider?`, `subtype?`, `config?`, `aggregation?`, `roles?` |
 | `Connection` | `id`, `sourceId`, `targetId`, `type`, `metadata` |
-| `ExternalActor` | `id`, `name`, `type` |
+| `ExternalActor` | `id`, `name`, `type`, `position` |
 | `ArchitectureModel` | `id`, `name`, `version`, `plates`, `blocks`, `connections`, `externalActors`, `createdAt`, `updatedAt` |
 | `Workspace` | `id`, `name`, `architecture`, `createdAt`, `updatedAt` |
 | `SerializedData` | `schemaVersion`, `workspaces` |
@@ -613,7 +625,7 @@ Example: `plate-a1b2c3`, `block-d4e5f6`, `conn-g7h8i9`
 
 ```typescript
 // Plate Types
-type PlateType = 'network' | 'subnet';
+type PlateType = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
 type SubnetAccess = 'public' | 'private';
 
 interface Plate {
@@ -621,7 +633,7 @@ interface Plate {
   name: string;
   type: PlateType;
   subnetAccess?: SubnetAccess; // only for subnet type
-  parentId: string | null;     // null for root (network plate)
+  parentId: string | null;     // null for root plate
   children: string[];          // child plate/block IDs
   position: Position;
   size: Size;
@@ -629,7 +641,7 @@ interface Plate {
 }
 
 // Block Types
-type BlockCategory = 'compute' | 'database' | 'storage' | 'gateway' | 'function' | 'queue' | 'event' | 'timer';
+type BlockCategory = 'compute' | 'database' | 'storage' | 'gateway' | 'function' | 'queue' | 'event' | 'analytics' | 'identity' | 'observability';
 type ProviderType = 'azure' | 'aws' | 'gcp';
 
 interface Block {
@@ -640,7 +652,20 @@ interface Block {
   position: Position;   // relative to parent plate
   metadata: Record<string, unknown>;
   provider?: ProviderType;
+  subtype?: string;
+  config?: Record<string, unknown>;
+  aggregation?: Aggregation;
+  roles?: BlockRole[];
 }
+
+type AggregationMode = 'single' | 'count';
+
+interface Aggregation {
+  mode: AggregationMode;
+  count: number;
+}
+
+type BlockRole = 'primary' | 'secondary' | 'reader' | 'writer' | 'public' | 'private' | 'internal' | 'external';
 
 // Connection
 type ConnectionType = 'dataflow' | 'http' | 'internal' | 'data' | 'async';
@@ -658,6 +683,7 @@ interface ExternalActor {
   id: string;
   name: string;   // e.g., "Internet"
   type: 'internet';
+  position: Position;
 }
 
 // Spatial (internal 2D coordinate system)
@@ -695,20 +721,33 @@ The architecture model is serialized as JSON. A version field is included to sup
 
 ```json
 {
-  "schemaVersion": "0.1.0",
-  "architecture": {
-    "id": "arch-abc123",
-    "name": "3-Tier Web App",
-    "version": "1",
-    "plates": [],
-    "blocks": [],
-    "connections": [],
-    "externalActors": [
-      { "id": "ext-internet", "name": "Internet", "type": "internet" }
-    ],
-    "createdAt": "2025-01-01T00:00:00Z",
-    "updatedAt": "2025-01-01T00:00:00Z"
-  }
+  "schemaVersion": "2.0.0",
+  "workspaces": [
+    {
+      "id": "ws-abc123",
+      "name": "My Workspace",
+      "architecture": {
+        "id": "arch-abc123",
+        "name": "3-Tier Web App",
+        "version": "1",
+        "plates": [],
+        "blocks": [],
+        "connections": [],
+        "externalActors": [
+          {
+            "id": "ext-internet",
+            "name": "Internet",
+            "type": "internet",
+            "position": { "x": -3, "y": 0, "z": 5 }
+          }
+        ],
+        "createdAt": "2025-01-01T00:00:00Z",
+        "updatedAt": "2025-01-01T00:00:00Z"
+      },
+      "createdAt": "2025-01-01T00:00:00Z",
+      "updatedAt": "2025-01-01T00:00:00Z"
+    }
+  ]
 }
 ```
 
@@ -723,7 +762,9 @@ Serverless architecture blocks are implemented and available in the current doma
 - FunctionBlock (Serverless compute)
 - QueueBlock (Messaging services)
 - EventBlock (Event triggers)
-- TimerBlock (Scheduled triggers)
+- AnalyticsBlock (Log and telemetry analysis)
+- IdentityBlock (Identity and access management)
+- ObservabilityBlock (Monitoring and signal aggregation)
 
 Example:
 
