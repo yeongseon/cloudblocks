@@ -989,6 +989,23 @@ describe('architectureStore', () => {
       expect(getState().workspace.id).toBe(workspaceId);
       expect(getState().workspace.name).toBe(workspaceName);
     });
+
+    it('skips saveActiveWorkspaceId when saveWorkspaces fails', () => {
+      const spy = vi.spyOn(localStorage, 'setItem').mockImplementation((key) => {
+        if (key === 'cloudblocks:workspaces') {
+          throw new Error('QuotaExceededError');
+        }
+      });
+
+      getState().resetWorkspace();
+
+      // State should still be updated even when persistence fails
+      expect(getArch().plates).toHaveLength(0);
+      // saveActiveWorkspaceId should NOT have been called
+      const activeIdCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:activeWorkspaceId');
+      expect(activeIdCalls).toHaveLength(0);
+      spy.mockRestore();
+    });
   });
 
   describe('renameWorkspace', () => {
@@ -1003,6 +1020,14 @@ describe('architectureStore', () => {
       vi.setSystemTime(new Date('2025-06-01T00:00:00Z'));
       getState().renameWorkspace('Renamed');
       expect(getState().workspace.updatedAt).not.toBe(before);
+    });
+
+    it('persists the renamed workspace to storage', () => {
+      const spy = vi.spyOn(localStorage, 'setItem');
+      getState().renameWorkspace('Persisted Name');
+      const workspaceCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:workspaces');
+      expect(workspaceCalls.length).toBeGreaterThan(0);
+      spy.mockRestore();
     });
   });
 
@@ -1035,6 +1060,21 @@ describe('architectureStore', () => {
 
       getState().createWorkspace('New Project');
       expect(getState().canUndo).toBe(false);
+    });
+
+    it('skips saveActiveWorkspaceId when saveWorkspaces fails', () => {
+      const spy = vi.spyOn(localStorage, 'setItem').mockImplementation((key) => {
+        if (key === 'cloudblocks:workspaces') {
+          throw new Error('QuotaExceededError');
+        }
+      });
+
+      getState().createWorkspace('Fail Project');
+
+      expect(getState().workspace.name).toBe('Fail Project');
+      const activeIdCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:activeWorkspaceId');
+      expect(activeIdCalls).toHaveLength(0);
+      spy.mockRestore();
     });
   });
 
@@ -1079,6 +1119,26 @@ describe('architectureStore', () => {
         expect(secondInList?.architecture.plates).toHaveLength(1);
       }
     });
+
+    it('skips saveActiveWorkspaceId when saveWorkspaces fails', () => {
+      getState().createWorkspace('Second');
+      const secondId = getState().workspace.id;
+      const firstId = getState().workspaces.find((ws) => ws.id !== secondId)?.id;
+
+      const spy = vi.spyOn(localStorage, 'setItem').mockImplementation((key) => {
+        if (key === 'cloudblocks:workspaces') {
+          throw new Error('QuotaExceededError');
+        }
+      });
+
+      if (firstId) {
+        getState().switchWorkspace(firstId);
+        expect(getState().workspace.id).toBe(firstId);
+        const activeIdCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:activeWorkspaceId');
+        expect(activeIdCalls).toHaveLength(0);
+      }
+      spy.mockRestore();
+    });
   });
 
   describe('deleteWorkspace', () => {
@@ -1110,6 +1170,24 @@ describe('architectureStore', () => {
       expect(getState().workspace).toBeDefined();
       expect(getState().workspace.id).not.toBe(onlyId);
       expect(getState().workspaces).toHaveLength(1);
+    });
+
+    it('skips saveActiveWorkspaceId when saveWorkspaces fails on current deletion', () => {
+      getState().createWorkspace('Second');
+      const secondId = getState().workspace.id;
+
+      const spy = vi.spyOn(localStorage, 'setItem').mockImplementation((key) => {
+        if (key === 'cloudblocks:workspaces') {
+          throw new Error('QuotaExceededError');
+        }
+      });
+
+      getState().deleteWorkspace(secondId);
+
+      expect(getState().workspace.id).not.toBe(secondId);
+      const activeIdCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:activeWorkspaceId');
+      expect(activeIdCalls).toHaveLength(0);
+      spy.mockRestore();
     });
   });
 
@@ -1159,6 +1237,55 @@ describe('architectureStore', () => {
       const before = getState().workspace.id;
       getState().cloneWorkspace('nonexistent');
       expect(getState().workspace.id).toBe(before);
+    });
+
+    it('skips saveActiveWorkspaceId when saveWorkspaces fails', () => {
+      const originalId = getState().workspace.id;
+
+      const spy = vi.spyOn(localStorage, 'setItem').mockImplementation((key) => {
+        if (key === 'cloudblocks:workspaces') {
+          throw new Error('QuotaExceededError');
+        }
+      });
+
+      getState().cloneWorkspace(originalId);
+
+      expect(getState().workspace.id).not.toBe(originalId);
+      const activeIdCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:activeWorkspaceId');
+      expect(activeIdCalls).toHaveLength(0);
+      spy.mockRestore();
+    });
+  });
+
+  describe('setBackendWorkspaceId', () => {
+    it('sets backendWorkspaceId on the current workspace', () => {
+      const wsId = getState().workspace.id;
+      getState().setBackendWorkspaceId(wsId, 'backend-123');
+
+      expect(getState().workspace.backendWorkspaceId).toBe('backend-123');
+    });
+
+    it('does not modify current workspace when updating a non-current workspace', () => {
+      getState().createWorkspace('Second');
+      const secondId = getState().workspace.id;
+      const firstId = getState().workspaces.find((ws) => ws.id !== secondId)!.id;
+
+      getState().setBackendWorkspaceId(firstId, 'backend-first');
+
+      expect(getState().workspace.backendWorkspaceId).toBeUndefined();
+      const firstInList = getState().workspaces.find((ws) => ws.id === firstId);
+      expect(firstInList?.backendWorkspaceId).toBe('backend-first');
+    });
+
+    it('persists the update to storage', () => {
+      const spy = vi.spyOn(localStorage, 'setItem');
+      const wsId = getState().workspace.id;
+
+      getState().setBackendWorkspaceId(wsId, 'backend-456');
+
+      const workspaceCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:workspaces');
+      expect(workspaceCalls.length).toBeGreaterThan(0);
+      spy.mockRestore();
     });
   });
 
@@ -1610,6 +1737,34 @@ describe('architectureStore', () => {
       expect(String(spy.mock.calls.at(-1)?.[1])).toContain('does not reference an existing block, plate, or external actor');
       spy.mockRestore();
     });
+
+    it('skips saveActiveWorkspaceId when saveWorkspaces fails', () => {
+      const spy = vi.spyOn(localStorage, 'setItem').mockImplementation((key) => {
+        if (key === 'cloudblocks:workspaces') {
+          throw new Error('QuotaExceededError');
+        }
+      });
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      const arch = {
+        plates: [
+          {
+            id: 'p1', name: 'Net', type: 'region', parentId: null,
+            children: [], position: { x: 0, y: 0, z: 0 },
+            size: { width: 12, height: 0.3, depth: 10 }, metadata: {},
+          },
+        ],
+        blocks: [],
+      };
+
+      const result = getState().importArchitecture(JSON.stringify(arch));
+
+      expect(result).toBeNull();
+      const activeIdCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:activeWorkspaceId');
+      expect(activeIdCalls).toHaveLength(0);
+      spy.mockRestore();
+      vi.mocked(console.error).mockRestore();
+    });
   });
 
   describe('exportArchitecture', () => {
@@ -1690,6 +1845,38 @@ describe('architectureStore', () => {
 
       getState().loadFromTemplate(template);
       expect(getState().canUndo).toBe(false);
+    });
+
+    it('skips saveActiveWorkspaceId when saveWorkspaces fails', () => {
+      const spy = vi.spyOn(localStorage, 'setItem').mockImplementation((key) => {
+        if (key === 'cloudblocks:workspaces') {
+          throw new Error('QuotaExceededError');
+        }
+      });
+
+      const template: ArchitectureTemplate = {
+        id: 'tmpl-fail',
+        name: 'Fail Template',
+        description: 'desc',
+        category: 'general',
+        difficulty: 'beginner',
+        tags: [],
+        architecture: {
+          name: 'FT',
+          version: '1',
+          plates: [],
+          blocks: [],
+          connections: [],
+          externalActors: [],
+        },
+      };
+
+      getState().loadFromTemplate(template);
+
+      expect(getState().workspace.name).toBe('Fail Template');
+      const activeIdCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:activeWorkspaceId');
+      expect(activeIdCalls).toHaveLength(0);
+      spy.mockRestore();
     });
   });
 
