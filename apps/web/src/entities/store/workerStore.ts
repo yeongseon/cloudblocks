@@ -20,6 +20,7 @@ interface WorkerStoreState {
   completeBuild: () => void;
   cancelBuild: () => void;
   setWorkerPosition: (pos: [number, number, number]) => void;
+  resetWorker: () => void;
 }
 
 const createBuildTask = (
@@ -106,5 +107,14 @@ export const useWorkerStore = create<WorkerStoreState>((set, get) => ({
 
   setWorkerPosition: (pos) => {
     set({ workerPosition: pos });
+  },
+
+  resetWorker: () => {
+    set({
+      workerState: 'idle',
+      workerPosition: [-3, 0, -6],
+      buildQueue: [],
+      activeBuild: null,
+    });
   },
 }));

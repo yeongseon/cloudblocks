@@ -177,7 +177,7 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByTitle('Create Virtual Machine'));
 
-    expect(addBlockMock).toHaveBeenCalledWith('compute', 'Virtual Machine 1', 'subnet-public-1', 'azure');
+    expect(addBlockMock).toHaveBeenCalledWith('compute', 'Virtual Machine 1', 'subnet-public-1', 'azure', 'vm');
   });
 
   it('smoke: create VM from Compute tab then show block actions when selected', async () => {
@@ -201,7 +201,7 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByTitle('Create Virtual Machine'));
 
-    expect(addBlockMock).toHaveBeenCalledWith('compute', 'Virtual Machine 1', 'subnet-public-1', 'azure');
+    expect(addBlockMock).toHaveBeenCalledWith('compute', 'Virtual Machine 1', 'subnet-public-1', 'azure', 'vm');
 
     act(() => {
       useArchitectureStore.setState({

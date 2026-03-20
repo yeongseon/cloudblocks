@@ -344,6 +344,26 @@ describe('scenario-engine', () => {
   });
 
   describe('abandonLearning', () => {
+    it('restores pre-learning architecture', () => {
+      const customArch: ArchitectureSnapshot = {
+        name: 'User Work',
+        version: '1',
+        plates: [],
+        blocks: [],
+        connections: [],
+        externalActors: [],
+      };
+      useArchitectureStore.getState().replaceArchitecture(customArch);
+
+      startLearningScenario('scenario-three-tier');
+      const scenarioArch = architectureSnapshot();
+      expect(scenarioArch.name).not.toBe('User Work');
+
+      abandonLearning();
+
+      expect(architectureSnapshot().name).toBe('User Work');
+    });
+
     it('clears learning store via abandonScenario', () => {
       startLearningScenario('scenario-three-tier');
       const abandonSpy = vi.spyOn(useLearningStore.getState(), 'abandonScenario');

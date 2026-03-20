@@ -141,4 +141,19 @@ describe('workerStore', () => {
     expect(useWorkerStore.getState().workerPosition).toEqual([9, 8, 7]);
   });
 
+  it('resetWorker clears build state and restores default position', () => {
+    const store = useWorkerStore.getState();
+    store.startBuild('block-1', [1, 1, 1]);
+    store.startBuild('block-2', [2, 2, 2]);
+    store.setWorkerPosition([5, 5, 5]);
+
+    store.resetWorker();
+
+    const state = useWorkerStore.getState();
+    expect(state.workerState).toBe('idle');
+    expect(state.workerPosition).toEqual([-3, 0, -6]);
+    expect(state.buildQueue).toEqual([]);
+    expect(state.activeBuild).toBeNull();
+  });
+
 });
