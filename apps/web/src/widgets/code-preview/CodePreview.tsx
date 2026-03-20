@@ -107,7 +107,7 @@ export function CodePreview() {
     <div className="code-preview">
       <div className="code-preview-header">
         <h3 className="code-preview-title">⚡ Code Generation</h3>
-        <button type="button" className="code-preview-close" onClick={toggleCodePreview}>
+        <button type="button" className="code-preview-close" onClick={toggleCodePreview} aria-label="Close code preview panel">
           ✕
         </button>
       </div>
@@ -197,7 +197,26 @@ export function CodePreview() {
       )}
 
       {comparisonOutputs && (
-        <div className="code-preview-compare-grid">
+        <>
+          <div className="code-preview-tabs">
+            {(() => {
+              const firstProvider = (['azure', 'aws', 'gcp'] as ProviderType[]).find(
+                (p) => comparisonOutputs[p]?.files.length > 0
+              );
+              const files = firstProvider ? comparisonOutputs[firstProvider].files : [];
+              return files.map((file, i) => (
+                <button
+                  type="button"
+                  key={file.path}
+                  className={`code-preview-tab ${i === activeTab ? 'code-preview-tab-active' : ''}`}
+                  onClick={() => setActiveTab(i)}
+                >
+                  {file.path}
+                </button>
+              ));
+            })()}
+          </div>
+          <div className="code-preview-compare-grid">
           {(['azure', 'aws', 'gcp'] as ProviderType[]).map((provider) => {
             const providerOutput = comparisonOutputs[provider];
             const activeFile = providerOutput.files[activeTab] ?? providerOutput.files[0];
@@ -214,7 +233,8 @@ export function CodePreview() {
               </section>
             );
           })}
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

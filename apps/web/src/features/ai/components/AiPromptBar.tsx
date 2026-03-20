@@ -5,6 +5,7 @@ import './AiPromptBar.css';
 interface AiPromptBarProps {
   onSubmit: (prompt: string, provider: string) => void;
   isLoading: boolean;
+  provider: string;
   error?: string;
   explanation?: string;
   warnings?: string[];
@@ -13,12 +14,12 @@ interface AiPromptBarProps {
 export const AiPromptBar: React.FC<AiPromptBarProps> = ({
   onSubmit,
   isLoading,
+  provider,
   error,
   explanation,
   warnings,
 }) => {
   const [prompt, setPrompt] = useState('');
-  const [provider, setProvider] = useState('aws');
 
   const handleSubmit = () => {
     if (prompt.trim() && !isLoading) {
@@ -44,16 +45,7 @@ export const AiPromptBar: React.FC<AiPromptBarProps> = ({
           onKeyDown={handleKeyDown}
           disabled={isLoading}
         />
-        <select
-          className="ai-provider-select"
-          value={provider}
-          onChange={(e) => setProvider(e.target.value)}
-          disabled={isLoading}
-        >
-          <option value="aws">AWS</option>
-          <option value="azure">Azure</option>
-          <option value="gcp">GCP</option>
-        </select>
+        <span className="ai-provider-label">{provider.toUpperCase()}</span>
         <button
           className="ai-submit-btn"
           onClick={handleSubmit}

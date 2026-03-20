@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
 import { SceneCanvas } from './SceneCanvas';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
@@ -60,6 +60,52 @@ function setupStoreMocks() {
     return (selector as (s: typeof state) => unknown)(state);
   }) as typeof useWorkerStore);
 }
+
+describe('SceneCanvas ResizeObserver origin update', () => {
+  let capturedCallback: ResizeObserverCallback | null = null;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    setupStoreMocks();
+    capturedCallback = null;
+
+    globalThis.ResizeObserver = class MockResizeObserver {
+      constructor(cb: ResizeObserverCallback) {
+        capturedCallback = cb;
+      }
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    } as unknown as typeof ResizeObserver;
+  });
+
+  afterEach(() => {
+    globalThis.ResizeObserver = class ResizeObserver {
+      constructor(_cb: ResizeObserverCallback) {}
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    } as unknown as typeof ResizeObserver;
+  });
+
+  it('recomputes origin when ResizeObserver fires', () => {
+    const { container } = render(<SceneCanvas />);
+    expect(capturedCallback).not.toBeNull();
+
+    const viewport = container.querySelector('.scene-viewport') as HTMLDivElement;
+    Object.defineProperty(viewport, 'getBoundingClientRect', {
+      configurable: true,
+      value: () => ({ width: 800, height: 600, top: 0, left: 0, right: 800, bottom: 600, x: 0, y: 0, toJSON: () => ({}) }),
+    });
+
+    capturedCallback!(
+      [{ contentRect: { width: 800, height: 600 } } as ResizeObserverEntry],
+      {} as ResizeObserver,
+    );
+
+    expect(container.querySelector('.scene-viewport')).toBeTruthy();
+  });
+});
 
 describe('SceneCanvas pointer capture handling', () => {
   beforeEach(() => {

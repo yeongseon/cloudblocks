@@ -34,6 +34,11 @@ function cacheStepCheckpoint(stepId: string, checkpoint?: ArchitectureSnapshot):
   checkpointCache.set(stepId, checkpoint);
 }
 
+function captureCurrentArchitecture(): ArchitectureSnapshot {
+  const { workspace } = useArchitectureStore.getState();
+  return JSON.parse(JSON.stringify(workspace.architecture));
+}
+
 export function startLearningScenario(scenarioId: string): void {
   const scenario = getScenario(scenarioId);
   if (!scenario) {
@@ -43,6 +48,11 @@ export function startLearningScenario(scenarioId: string): void {
   useArchitectureStore.getState().replaceArchitecture(scenario.initialArchitecture);
   useUIStore.getState().setEditorMode('learn');
   useLearningStore.getState().startScenario(scenario);
+
+  const firstStep = scenario.steps[0];
+  if (firstStep) {
+    checkpointCache.set(firstStep.id, captureCurrentArchitecture());
+  }
 
   const uiState = useUIStore.getState();
   if (!uiState.showLearningPanel) {
@@ -74,6 +84,11 @@ export function advanceToNextStep(): void {
     return;
   }
 
+  const nextStep = activeScenario.steps[progress.currentStepIndex + 1];
+  if (nextStep && !checkpointCache.has(nextStep.id)) {
+    checkpointCache.set(nextStep.id, captureCurrentArchitecture());
+  }
+
   learningState.advanceStep();
   syncCurrentStepCompletion();
 }
@@ -91,8 +106,9 @@ export function resetCurrentStep(): void {
     return;
   }
 
-  if (currentStep.checkpoint) {
-    useArchitectureStore.getState().replaceArchitecture(currentStep.checkpoint);
+  const snapshot = currentStep.checkpoint ?? checkpointCache.get(currentStep.id);
+  if (snapshot) {
+    useArchitectureStore.getState().replaceArchitecture(snapshot);
   }
 
   learningState.resetHints();

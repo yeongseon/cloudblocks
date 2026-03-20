@@ -48,13 +48,14 @@ export function GitHubLogin() {
     await logout();
 
     setIsWorking(false);
+    toggleGitHubLogin();
   };
 
   return (
     <div className="github-login">
       <div className="github-login-header">
         <h3 className="github-login-title">🔐 GitHub Login</h3>
-        <button className="github-login-close" onClick={toggleGitHubLogin}>
+        <button className="github-login-close" onClick={toggleGitHubLogin} aria-label="Close GitHub login panel">
           ✕
         </button>
       </div>
@@ -73,7 +74,7 @@ export function GitHubLogin() {
               />
             )}
             <div className="github-login-user-info">
-              <div className="github-login-user-name">{user?.display_name ?? 'Unknown User'}</div>
+              <div className="github-login-user-name">{user?.display_name ?? user?.github_username ?? 'Unknown User'}</div>
               <div className="github-login-user-username">@{user?.github_username ?? 'unknown'}</div>
             </div>
             <button className="github-login-signout" onClick={handleSignOut} disabled={isWorking}>
