@@ -236,9 +236,9 @@ Plates render as thick, opaque Lego baseplates with a dense stud grid. Plate siz
 
 | Level | Name | Subnet (Studs) | VNet (Studs) | Capacity | Learning Scenario |
 |-------|------|----------------|--------------|----------|-------------------|
-| 입문 (Beginner) | **S** | 4×6 | 8×12 | 1-2 blocks | "내 첫 번째 VM" |
-| 기초 (Basic) | **M** | 6×8 | 12×16 | 3-4 blocks | "웹서버-DB 구성" |
-| 중급 (Intermediate) | **L** | 8×10 | 16×20 | 5-6 blocks | "Hub-Spoke 아키텍처" |
+| Beginner | **S** | 4×6 | 8×12 | 1-2 blocks | "My First VM" |
+| Basic | **M** | 6×8 | 12×16 | 3-4 blocks | "Web Server + DB Setup" |
+| Intermediate | **L** | 8×10 | 16×20 | 5-6 blocks | "Hub-Spoke Architecture" |
 
 ### 4.2 Baseplate Body
 
@@ -285,7 +285,7 @@ Subnets inside a Network plate use a **dashed border** instead of solid edges:
 
 ### 4.6 Learning Scenario Examples
 
-#### 입문 (S): "내 첫 번째 VM"
+#### Beginner (S): "My First VM"
 ```
 ┌─ VNet-S (8×12) ───────────┐
 │  ┌─ Subnet-S (4×6) ────┐  │
@@ -299,7 +299,7 @@ Subnets inside a Network plate use a **dashed border** instead of solid edges:
 └───────────────────────────┘
 ```
 
-#### 기초 (M): "웹서버-DB 구성"
+#### Basic (M): "Web Server + DB Setup"
 ```
 ┌─ VNet-M (12×16) ─────────────────────────────────────┐
 │  ┌─ Subnet-M "Public" ───┐  ┌─ Subnet-M "Private" ──┐│
@@ -691,34 +691,34 @@ Command Card uses a **Tech Tree** system inspired by RTS build orders. Resources
 #### 7.6.2 Azure Tech Tree Matrix
 
 ```
-ALWAYS ENABLED (처음부터 생성 가능)
-├── Network (VNet)      → VM, AKS, FW, LB, NSG 등 unlock
-├── Storage (Blob)      → 독립적
-├── Edge (DNS/CDN)      → 독립적
-└── Monitor             → 독립적
+ALWAYS ENABLED (Available from the start)
+├── Network (VNet)      → Unlocks VM, AKS, FW, LB, NSG, etc.
+├── Storage (Blob)      → Independent (standalone)
+├── Edge (DNS/CDN)      → Independent (standalone)
+└── Monitor             → Independent (standalone)
 
-REQUIRES VNET (VNet 생성 후)
-├── Virtual Machines    → NIC가 Subnet에 연결
-├── AKS (Kubernetes)    → 항상 Azure 네트워킹 사용
-├── Internal LB         → Subnet 내 IP 필요
-├── Azure Firewall      → 전용 Subnet 필요
-├── NSG                 → Subnet/NIC에 연결
-├── Bastion             → VNet 필요
-├── VPN Gateway         → VNet 필요
-└── Private Endpoint    → Subnet에 배치
+REQUIRES VNET (After VNet creation)
+├── Virtual Machines    → NIC connects to Subnet
+├── AKS (Kubernetes)    → Always uses Azure networking
+├── Internal LB         → Requires IP within Subnet
+├── Azure Firewall      → Requires dedicated Subnet
+├── NSG                 → Attached to Subnet/NIC
+├── Bastion             → Requires VNet
+├── VPN Gateway         → Requires VNet
+└── Private Endpoint    → Deployed in Subnet
 
-VNET OPTIONAL (Public 먼저, Private 나중에)
-├── Azure SQL Database  → Public 기본, Private Endpoint 선택
-├── Azure Functions     → VNet 통합 선택적
-├── App Service         → VNet 통합 선택적
-├── Container Instances → VNet 배포 선택적
-├── Cosmos DB           → Public 기본
-└── Key Vault           → Private Endpoint 선택적
+VNET OPTIONAL (Public first, Private later)
+├── Azure SQL Database  → Public by default, Private Endpoint optional
+├── Azure Functions     → VNet integration optional
+├── App Service         → VNet integration optional
+├── Container Instances → VNet deployment optional
+├── Cosmos DB           → Public by default
+└── Key Vault           → Private Endpoint optional
 ```
 
 #### 7.6.3 Educational Value
 
-> **핵심 교훈**: Azure에서 많은 PaaS 서비스는 Public으로 시작하고, 나중에 Private Endpoint로 보안을 강화합니다.
+> **Key takeaway**: In Azure, many PaaS services start as Public and can later be hardened with Private Endpoints for security.
 
 This teaches users the real Azure pattern: start simple (public), harden later (private networking).
 

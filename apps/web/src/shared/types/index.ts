@@ -306,7 +306,6 @@ export interface PlateProfile {
   id: PlateProfileId;
   type: PlateType; // LayerType (minus resource)
   displayName: string;
-  displayNameKo: string;
   description: string;
   studsX: number;
   studsY: number;
@@ -346,7 +345,6 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     id: 'network-sandbox',
     type: 'region',
     displayName: 'Sandbox',
-    displayNameKo: '샌드박스',
     description: 'Dev/test isolated network. Minimal footprint for experimentation.',
     studsX: 8,
     studsY: 12,
@@ -362,7 +360,6 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     id: 'network-application',
     type: 'region',
     displayName: 'Application',
-    displayNameKo: '애플리케이션',
     description: 'Standard application VNet. Hosts a single workload with public/private separation.',
     studsX: 12,
     studsY: 16,
@@ -378,7 +375,6 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     id: 'network-platform',
     type: 'region',
     displayName: 'Platform',
-    displayNameKo: '플랫폼',
     description: 'Production platform VNet. Multi-tier architecture with several subnet groups.',
     studsX: 16,
     studsY: 20,
@@ -394,7 +390,6 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     id: 'network-hub',
     type: 'region',
     displayName: 'Hub',
-    displayNameKo: '허브',
     description: 'Enterprise hub VNet. Central network for shared services and spoke connections.',
     studsX: 20,
     studsY: 24,
@@ -410,7 +405,6 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     id: 'subnet-utility',
     type: 'subnet',
     displayName: 'Utility',
-    displayNameKo: '유틸리티',
     description: 'Small utility subnet. Gateway, bastion, or management services.',
     studsX: 4,
     studsY: 6,
@@ -426,7 +420,6 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     id: 'subnet-service',
     type: 'subnet',
     displayName: 'Service',
-    displayNameKo: '서비스',
     description: 'Standard service subnet. Hosts a small group of related resources.',
     studsX: 6,
     studsY: 8,
@@ -442,7 +435,6 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     id: 'subnet-workload',
     type: 'subnet',
     displayName: 'Workload',
-    displayNameKo: '워크로드',
     description: 'Large workload subnet. Multi-service deployments, compute clusters.',
     studsX: 8,
     studsY: 10,
@@ -458,7 +450,6 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     id: 'subnet-scale',
     type: 'subnet',
     displayName: 'Scale',
-    displayNameKo: '스케일',
     description: 'Extra-large scale subnet. AKS/EKS clusters, VMSS, large-scale workloads.',
     studsX: 10,
     studsY: 12,
