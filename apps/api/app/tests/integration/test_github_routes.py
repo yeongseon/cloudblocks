@@ -286,7 +286,7 @@ async def test_pull_workspace_architecture_from_github(
     workspace = await _create_workspace(client, auth_cookies)
     architecture = {"plates": [{"id": "p-1"}], "blocks": [{"id": "b-1"}]}
     encoded = base64.b64encode(json.dumps(architecture).encode()).decode()
-    mock_github.get_repo_contents.return_value = {"content": encoded}
+    mock_github.get_repo_contents.return_value = {"content": encoded, "sha": "abc123"}
 
     response = await client.post(
         f"/api/v1/workspaces/{workspace['id']}/pull",
@@ -294,7 +294,10 @@ async def test_pull_workspace_architecture_from_github(
     )
 
     assert response.status_code == 200
-    assert response.json() == {"architecture": architecture}
+    body = response.json()
+    assert body["architecture"] == architecture
+    assert body["branch"] == "main"
+    assert body["commit_sha"] == "abc123"
 
 
 @pytest.mark.asyncio

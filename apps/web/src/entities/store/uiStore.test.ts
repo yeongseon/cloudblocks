@@ -709,7 +709,7 @@ describe('useUIStore', () => {
         blocks: { added: [], removed: [], modified: [] },
         connections: { added: [], removed: [], modified: [] },
         externalActors: { added: [], removed: [], modified: [] },
-        metadata: [], direction: 'local-to-local',
+        metadata: [], direction: 'local-to-local' as const,
         summary: { totalChanges: 0, hasBreakingChanges: false },
       };
       const mockBase = {
@@ -737,7 +737,7 @@ describe('useUIStore', () => {
         blocks: { added: [], removed: [], modified: [] },
         connections: { added: [], removed: [], modified: [] },
         externalActors: { added: [], removed: [], modified: [] },
-        metadata: [], direction: 'local-to-local',
+        metadata: [], direction: 'local-to-local' as const,
         summary: { totalChanges: 0, hasBreakingChanges: false },
       };
       useUIStore.getState().setDiffMode(true, mockDelta, null);
@@ -754,6 +754,43 @@ describe('useUIStore', () => {
       expect(state.diffMode).toBe(true);
       expect(state.diffDelta).toBe(null);
       expect(state.diffBaseArchitecture).toBe(null);
+    });
+  });
+
+  describe('clearDiffState', () => {
+    it('should reset all diff-related state to defaults', () => {
+      const mockDelta = {
+        plates: { added: [], removed: [], modified: [] },
+        blocks: { added: [], removed: [], modified: [] },
+        connections: { added: [], removed: [], modified: [] },
+        externalActors: { added: [], removed: [], modified: [] },
+        metadata: [], direction: 'local-to-local' as const,
+        summary: { totalChanges: 0, hasBreakingChanges: false },
+      };
+      useUIStore.getState().setDiffMode(true, mockDelta, null);
+      useUIStore.getState().setDiffPanelVisible(true);
+
+      useUIStore.getState().clearDiffState();
+
+      const state = useUIStore.getState();
+      expect(state.diffMode).toBe(false);
+      expect(state.diffPanelVisible).toBe(false);
+      expect(state.diffDelta).toBe(null);
+      expect(state.diffBaseArchitecture).toBe(null);
+      expect(state.diffSourceContext).toBe(null);
+    });
+  });
+
+  describe('setDiffPanelVisible', () => {
+    it('should set diffPanelVisible to true', () => {
+      useUIStore.getState().setDiffPanelVisible(true);
+      expect(useUIStore.getState().diffPanelVisible).toBe(true);
+    });
+
+    it('should set diffPanelVisible to false', () => {
+      useUIStore.getState().setDiffPanelVisible(true);
+      useUIStore.getState().setDiffPanelVisible(false);
+      expect(useUIStore.getState().diffPanelVisible).toBe(false);
     });
   });
 

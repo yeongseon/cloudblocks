@@ -685,6 +685,24 @@ describe('computeArchitectureDiff', () => {
     expect(delta.summary.hasBreakingChanges).toBe(true);
   });
 
+  it('passes through the direction parameter', () => {
+    const base = createBaseArchitecture();
+    const head = createBaseArchitecture();
+
+    const delta = computeArchitectureDiff(base, head, 'github-to-local');
+
+    expect(delta.direction).toBe('github-to-local');
+  });
+
+  it('defaults direction to local-to-local', () => {
+    const base = createBaseArchitecture();
+    const head = createBaseArchitecture();
+
+    const delta = computeArchitectureDiff(base, head);
+
+    expect(delta.direction).toBe('local-to-local');
+  });
+
   it('does not include entity paths or volatile paths in metadata', () => {
     const base = createBaseArchitecture();
     const head: ArchitectureModel = {
