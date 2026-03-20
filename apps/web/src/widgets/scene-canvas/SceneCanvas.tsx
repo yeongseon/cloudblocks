@@ -114,6 +114,16 @@ export function SceneCanvas() {
           if (plate && canPlaceBlock(draggedBlockCategory, plate)) {
             addBlock(draggedBlockCategory, draggedResourceName, plateId, activeProvider);
             playSound('block-snap');
+
+            // Compute the new block's world position and dispatch to SCV worker
+            const updatedBlocks = useArchitectureStore.getState().workspace.architecture.blocks;
+            const newBlock = updatedBlocks[updatedBlocks.length - 1];
+            if (newBlock) {
+              const worldX = plate.position.x + newBlock.position.x;
+              const worldY = plate.position.y + plate.size.height;
+              const worldZ = plate.position.z + newBlock.position.z;
+              useWorkerStore.getState().startBuild(newBlock.id, [worldX, worldY, worldZ]);
+            }
           }
       }
       completeInteraction();

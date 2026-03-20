@@ -2,6 +2,9 @@ import { create } from 'zustand';
 
 export type WorkerState = 'idle' | 'moving' | 'building';
 
+export const IDLE_POSITION: [number, number, number] = [-3, 0, -6];
+export const BUILD_DURATION_MS = 1500;
+
 export interface BuildTask {
   blockId: string;
   targetPosition: [number, number, number];
@@ -36,7 +39,7 @@ const createBuildTask = (
 export const useWorkerStore = create<WorkerStoreState>((set, get) => ({
   workerId: 'worker-default',
   workerState: 'idle',
-  workerPosition: [-3, 0, -6],
+  workerPosition: IDLE_POSITION,
   buildQueue: [],
   activeBuild: null,
 
@@ -52,6 +55,7 @@ export const useWorkerStore = create<WorkerStoreState>((set, get) => ({
     set({
       activeBuild: nextTask,
       workerState: 'moving',
+      workerPosition: targetPosition,
     });
   },
 
@@ -84,6 +88,7 @@ export const useWorkerStore = create<WorkerStoreState>((set, get) => ({
       set({
         activeBuild: null,
         workerState: 'idle',
+        workerPosition: IDLE_POSITION,
       });
       return;
     }
@@ -94,6 +99,7 @@ export const useWorkerStore = create<WorkerStoreState>((set, get) => ({
       activeBuild: nextTask,
       buildQueue: remainingQueue,
       workerState: 'moving',
+      workerPosition: nextTask.targetPosition,
     });
   },
 
@@ -112,7 +118,7 @@ export const useWorkerStore = create<WorkerStoreState>((set, get) => ({
   resetWorker: () => {
     set({
       workerState: 'idle',
-      workerPosition: [-3, 0, -6],
+      workerPosition: IDLE_POSITION,
       buildQueue: [],
       activeBuild: null,
     });
