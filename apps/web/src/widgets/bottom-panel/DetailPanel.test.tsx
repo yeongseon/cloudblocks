@@ -274,6 +274,41 @@ describe('DetailPanel', () => {
     expect(screen.getByText(/Internet/)).toBeInTheDocument();
   });
 
+  it('renders non-default external actor name in connection source', () => {
+    const actor: ExternalActor = {
+      id: 'ext-partner',
+      name: 'Partner API',
+      type: 'internet',
+      position: { x: -3, y: 0, z: 5 },
+    };
+    const externalConnection: Connection = {
+      id: 'ext-conn',
+      sourceId: 'ext-partner',
+      targetId: 'block-1',
+      type: 'dataflow',
+      metadata: {},
+    };
+
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          ...architectureWithResources,
+          externalActors: [actor],
+          connections: [externalConnection],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+    useUIStore.setState({ selectedId: 'ext-conn' });
+
+    render(<DetailPanel />);
+
+    expect(screen.getByText(/Partner API/)).toBeInTheDocument();
+  });
+
   it('renders Unknown when connection source is neither block nor external actor', () => {
     const externalConnection: Connection = {
       id: 'ext-conn',
@@ -290,6 +325,7 @@ describe('DetailPanel', () => {
         architecture: {
           ...architectureWithResources,
           connections: [externalConnection],
+          externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: 0, y: 0, z: 0 } }],
         },
         createdAt: '',
         updatedAt: '',
@@ -300,6 +336,35 @@ describe('DetailPanel', () => {
     render(<DetailPanel />);
 
     expect(screen.getByText('Unknown')).toBeInTheDocument();
+  });
+
+  it('renders unknown source when connection source id is invalid', () => {
+    const badSourceConnection: Connection = {
+      id: 'bad-source-conn',
+      sourceId: 'nonexistent-id',
+      targetId: 'block-1',
+      type: 'dataflow',
+      metadata: {},
+    };
+
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          ...architectureWithResources,
+          connections: [badSourceConnection],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+    useUIStore.setState({ selectedId: 'bad-source-conn' });
+
+    render(<DetailPanel />);
+
+    expect(screen.getByText('Unknown')).toBeInTheDocument();
+    expect(screen.queryByText('☁️ Internet')).not.toBeInTheDocument();
   });
 
   it('renders unknown target when connection target block is missing', () => {
