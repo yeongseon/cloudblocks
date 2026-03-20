@@ -209,10 +209,11 @@ function PlateDetail({ plate, className }: { plate: Plate; className: string }) 
     ? plate.profileId
     : DEFAULT_PLATE_PROFILE[plate.type];
   const profile = getPlateProfile(profileId);
+  const hasProfileSupport = plate.type === 'region' || plate.type === 'subnet';
   const profileFilterType = plate.type === 'subnet' ? 'subnet' : 'region';
-  const profileOptions = Object.values(PLATE_PROFILES).filter(
-    (candidate) => candidate.type === profileFilterType
-  );
+  const profileOptions = hasProfileSupport
+    ? Object.values(PLATE_PROFILES).filter((candidate) => candidate.type === profileFilterType)
+    : [];
 
   const parentPlate = plate.parentId
     ? architecture.plates.find((p) => p.id === plate.parentId)
@@ -253,28 +254,32 @@ function PlateDetail({ plate, className }: { plate: Plate; className: string }) 
           </span>
         </div>
 
-        <div className="detail-property">
-          <label className="detail-property-label" htmlFor={`plate-profile-${plate.id}`}>Profile</label>
-          <span className="detail-property-value">
-            <select
-              id={`plate-profile-${plate.id}`}
-              className="detail-property-select"
-              value={profileId}
-              onChange={(event) => setPlateProfile(plate.id, event.target.value as PlateProfileId)}
-            >
-              {profileOptions.map((candidate) => (
-                <option key={candidate.id} value={candidate.id}>
-                  {candidate.displayName} - {candidate.studsX}x{candidate.studsY}
-                </option>
-              ))}
-            </select>
-          </span>
-        </div>
+        {hasProfileSupport && (
+          <>
+            <div className="detail-property">
+              <label className="detail-property-label" htmlFor={`plate-profile-${plate.id}`}>Profile</label>
+              <span className="detail-property-value">
+                <select
+                  id={`plate-profile-${plate.id}`}
+                  className="detail-property-select"
+                  value={profileId}
+                  onChange={(event) => setPlateProfile(plate.id, event.target.value as PlateProfileId)}
+                >
+                  {profileOptions.map((candidate) => (
+                    <option key={candidate.id} value={candidate.id}>
+                      {candidate.displayName} - {candidate.studsX}x{candidate.studsY}
+                    </option>
+                  ))}
+                </select>
+              </span>
+            </div>
 
-        <div className="detail-property">
-          <span className="detail-property-label">Profile Note</span>
-          <span className="detail-property-value detail-property-description">{profile.description}</span>
-        </div>
+            <div className="detail-property">
+              <span className="detail-property-label">Profile Note</span>
+              <span className="detail-property-value detail-property-description">{profile.description}</span>
+            </div>
+          </>
+        )}
 
         {parentPlate && (
           <div className="detail-property">

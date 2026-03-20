@@ -453,4 +453,91 @@ describe('CodePreview', () => {
     expect(screen.getByText('vars-aws')).toBeInTheDocument();
     expect(screen.getByText('vars-gcp')).toBeInTheDocument();
   });
+
+  it('copy button copies all provider files with headers when in comparison mode', async () => {
+    const user = userEvent.setup();
+    const writeTextMock = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: writeTextMock },
+      writable: true,
+      configurable: true,
+    });
+
+    vi.mocked(generateCode).mockImplementation((_, options) => ({
+      files: [{ path: 'main.tf', content: `provider=${options.provider}`, language: 'hcl' as const }],
+      metadata: {
+        generator: 'terraform',
+        version: '0.3.0',
+        provider: options.provider,
+        generatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    }));
+
+    render(<CodePreview />);
+
+    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByText('🚀 Compare Providers'));
+    await user.click(screen.getByText(/Copy/));
+
+    expect(writeTextMock).toHaveBeenCalledWith(
+      expect.stringContaining('// --- AZURE ---')
+    );
+    expect(writeTextMock).toHaveBeenCalledWith(
+      expect.stringContaining('// --- AWS ---')
+    );
+    expect(writeTextMock).toHaveBeenCalledWith(
+      expect.stringContaining('// --- GCP ---')
+    );
+    expect(writeTextMock).toHaveBeenCalledWith(
+      expect.stringContaining('provider=azure')
+    );
+    expect(writeTextMock).toHaveBeenCalledWith(
+      expect.stringContaining('provider=aws')
+    );
+    expect(writeTextMock).toHaveBeenCalledWith(
+      expect.stringContaining('provider=gcp')
+    );
+  });
+
+  it('download all creates download links for each provider file when in comparison mode', async () => {
+    const user = userEvent.setup();
+    const createObjectURLMock = vi.fn().mockReturnValue('blob:test');
+    const revokeObjectURLMock = vi.fn();
+    URL.createObjectURL = createObjectURLMock;
+    URL.revokeObjectURL = revokeObjectURLMock;
+    const clickMock = vi.fn();
+    const origCreate = document.createElement.bind(document);
+    vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
+      if (tag === 'a') {
+        return { href: '', download: '', click: clickMock } as unknown as HTMLElement;
+      }
+      return origCreate(tag);
+    });
+
+    vi.mocked(generateCode).mockImplementation((_, options) => ({
+      files: [
+        { path: 'main.tf', content: `provider=${options.provider}`, language: 'hcl' as const },
+        { path: 'vars.tf', content: `vars=${options.provider}`, language: 'hcl' as const },
+      ],
+      metadata: {
+        generator: 'terraform',
+        version: '0.3.0',
+        provider: options.provider,
+        generatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    }));
+
+    render(<CodePreview />);
+
+    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByText('🚀 Compare Providers'));
+    await user.click(screen.getByText(/Download All/));
+
+    // 3 providers × 2 files each = 6 downloads
+    expect(clickMock).toHaveBeenCalledTimes(6);
+    expect(revokeObjectURLMock).toHaveBeenCalledTimes(6);
+
+    vi.restoreAllMocks();
+  });
+
 });
