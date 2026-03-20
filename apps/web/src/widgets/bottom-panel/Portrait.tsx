@@ -77,7 +77,7 @@ export function Portrait({ className = '' }: PortraitProps) {
       <div className={`portrait-panel portrait-panel--block ${className}`}>
         <div className="portrait-content">
           <img src={BLOCK_ICONS[selectedBlock.category]} alt={BLOCK_FRIENDLY_NAMES[selectedBlock.category]} className="portrait-icon-img" />
-          <span className="portrait-label">{BLOCK_FRIENDLY_NAMES[selectedBlock.category]}</span>
+          <span className="portrait-label">{selectedBlock.name}</span>
         </div>
         <div className="portrait-badge" style={{ backgroundColor: color }}>
           {selectedBlock.category}
