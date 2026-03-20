@@ -86,7 +86,7 @@ describe('AiPromptBar', () => {
   });
 
   it('displays explanation when provided', () => {
-    render(<AiPromptBar onSubmit={vi.fn()} isLoading={false} explanation="Created a 3-tier web app" />);
+    render(<AiPromptBar onSubmit={vi.fn()} isLoading={false} provider="aws" explanation="Created a 3-tier web app" />);
 
     expect(screen.getByText('Created a 3-tier web app')).toBeInTheDocument();
   });
@@ -96,6 +96,7 @@ describe('AiPromptBar', () => {
       <AiPromptBar
         onSubmit={vi.fn()}
         isLoading={false}
+        provider="aws"
         warnings={['No load balancer added', 'Database has no backup']}
       />
     );
@@ -105,7 +106,7 @@ describe('AiPromptBar', () => {
   });
 
   it('does not display warnings section when warnings array is empty', () => {
-    render(<AiPromptBar onSubmit={vi.fn()} isLoading={false} warnings={[]} />);
+    render(<AiPromptBar onSubmit={vi.fn()} isLoading={false} provider="aws" warnings={[]} />);
 
     expect(screen.queryByText(/⚠️/)).not.toBeInTheDocument();
   });
