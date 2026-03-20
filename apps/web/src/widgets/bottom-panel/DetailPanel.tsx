@@ -186,7 +186,7 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
         <div className="detail-property">
           <span className="detail-property-label">Position</span>
           <span className="detail-property-value detail-property-mono">
-            ({block.position.x.toFixed(1)}, {block.position.y.toFixed(1)})
+            ({block.position.x.toFixed(1)}, {block.position.y.toFixed(1)}, {block.position.z.toFixed(1)})
           </span>
         </div>
       </div>
