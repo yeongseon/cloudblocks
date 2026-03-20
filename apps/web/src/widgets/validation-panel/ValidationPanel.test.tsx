@@ -146,6 +146,28 @@ describe('ValidationPanel', () => {
     expect(screen.getByText(/Target: block-3/)).toBeInTheDocument();
   });
 
+  it('shows a fallback when targetId is missing', () => {
+    const result: ValidationResult = {
+      valid: false,
+      errors: [
+        {
+          ruleId: 'placement-unknown-target',
+          severity: 'error',
+          message: 'Resource placement is invalid',
+          targetId: '',
+        },
+      ],
+      warnings: [],
+    };
+
+    useUIStore.setState({ showValidation: true });
+    useArchitectureStore.setState({ validationResult: result });
+    render(<ValidationPanel />);
+
+    expect(screen.getByText(/Rule: placement-unknown-target/)).toBeInTheDocument();
+    expect(screen.getByText(/Target: Unknown target/)).toBeInTheDocument();
+  });
+
   it('shows success message when valid and no errors/warnings', () => {
     useUIStore.setState({ showValidation: true });
     useArchitectureStore.setState({

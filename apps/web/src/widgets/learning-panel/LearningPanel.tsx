@@ -7,6 +7,27 @@ import { StepProgress } from './StepProgress';
 import { HintPopup } from './HintPopup';
 import { CompletionScreen } from './CompletionScreen';
 
+function getRuleIdentifier(rule: StepValidationRule): string {
+  switch (rule.type) {
+    case 'plate-exists':
+      return `plate-exists:${rule.plateType}:${rule.subnetAccess ?? 'any'}`;
+    case 'block-exists':
+      return `block-exists:${rule.category}:${rule.onPlateType ?? 'any'}:${rule.onSubnetAccess ?? 'any'}`;
+    case 'connection-exists':
+      return `connection-exists:${rule.sourceCategory}:${rule.targetCategory}`;
+    case 'entity-on-plate':
+      return `entity-on-plate:${rule.entityCategory}:${rule.plateType}:${rule.subnetAccess ?? 'any'}`;
+    case 'architecture-valid':
+      return 'architecture-valid';
+    case 'min-block-count':
+      return `min-block-count:${rule.category}:${rule.count}`;
+    case 'min-plate-count':
+      return `min-plate-count:${rule.plateType}:${rule.count}`;
+    default:
+      return 'unknown-rule';
+  }
+}
+
 function describeRule(rule: StepValidationRule): string {
   switch (rule.type) {
     case 'plate-exists':
@@ -59,6 +80,9 @@ export function LearningPanel() {
 
   const validationDetails = getValidationDetails();
   const rules = currentStep.validationRules || [];
+  const validationResultByRuleId = new Map(
+    validationDetails.results.map((result) => [getRuleIdentifier(result.rule), result.passed]),
+  );
   const maxHints = currentStep.hints ? currentStep.hints.length : 0;
   const allHintsShown = currentHintIndex >= maxHints - 1;
 
@@ -97,9 +121,10 @@ export function LearningPanel() {
           {rules.length > 0 && (
             <ul className="validation-list">
               {rules.map((rule, index) => {
-                const isPass = validationDetails.results[index]?.passed ?? false;
+                const ruleId = getRuleIdentifier(rule);
+                const isPass = validationResultByRuleId.get(ruleId) ?? false;
                 return (
-                  <li key={`${rule.type}-${index}`} className="validation-item">
+                  <li key={`${ruleId}-${index}`} className="validation-item">
                     <span className={`validation-icon ${isPass ? 'pass' : 'fail'}`}>
                       {isPass ? '✓' : '✗'}
                     </span>

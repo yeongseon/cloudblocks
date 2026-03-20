@@ -10,6 +10,7 @@ export function StepProgress() {
 
   const currentStepIndex = progress.currentStepIndex;
   const steps = activeScenario.steps;
+  const stepStatusByStepId = new Map(progress.steps.map((step) => [step.stepId, step.status]));
   const currentStepTitle = steps[currentStepIndex]?.title || '';
 
   return (
@@ -17,7 +18,7 @@ export function StepProgress() {
       <div className="step-progress-bar">
         <div className="step-progress-line" />
         {steps.map((step, index) => {
-          const stepStatus = progress.steps[index]?.status || 'locked';
+          const stepStatus = stepStatusByStepId.get(step.id) ?? 'locked';
           const isActive = index === currentStepIndex;
           
           let nodeClass = 'step-progress-node';

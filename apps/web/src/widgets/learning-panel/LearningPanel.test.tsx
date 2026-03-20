@@ -207,6 +207,55 @@ describe('LearningPanel widgets', () => {
     expect(screen.getByText('Complete requirement')).toBeInTheDocument();
   });
 
+  it('matches validation outcomes to rules by rule identity, not result index', () => {
+    const activeScenario = useLearningStore.getState().activeScenario;
+    const progress = useLearningStore.getState().progress;
+    if (!activeScenario || !progress) {
+      throw new Error('Expected active scenario and progress');
+    }
+
+    const rules: StepValidationRule[] = [
+      { type: 'plate-exists', plateType: 'region' },
+      { type: 'architecture-valid' },
+    ];
+
+    useLearningStore.setState({
+      activeScenario: {
+        ...activeScenario,
+        steps: [
+          {
+            ...activeScenario.steps[0],
+            validationRules: rules,
+          },
+        ],
+      },
+      progress: {
+        ...progress,
+        currentStepIndex: 0,
+      },
+    });
+
+    vi.mocked(getValidationDetails).mockReturnValue({
+      passed: false,
+      results: [
+        { rule: rules[1], passed: true },
+        { rule: rules[0], passed: false },
+      ],
+    });
+
+    render(<LearningPanel />);
+
+    const regionRuleItem = screen.getByText('Add a region plate').closest('li');
+    const validRuleItem = screen.getByText('Fix validation issues').closest('li');
+
+    if (!(regionRuleItem instanceof HTMLElement) || !(validRuleItem instanceof HTMLElement)) {
+      throw new Error('Expected validation list items');
+    }
+
+    expect(regionRuleItem).toHaveTextContent('✗');
+    expect(validRuleItem).toHaveTextContent('✓');
+  });
+
   it('disables Next Step button when current step is incomplete', () => {
     useLearningStore.setState({ isCurrentStepComplete: false });
     render(<LearningPanel />);
@@ -321,6 +370,37 @@ describe('LearningPanel widgets', () => {
       throw new Error('Expected active step node');
     }
     expect(activeNode).toHaveTextContent('2');
+  });
+
+  it('StepProgress maps step status by stepId even when progress order differs', () => {
+    const progress = useLearningStore.getState().progress;
+    const activeScenario = useLearningStore.getState().activeScenario;
+    if (!progress || !activeScenario) {
+      throw new Error('Expected progress and active scenario');
+    }
+
+    const firstStepId = activeScenario.steps[0]?.id;
+    const secondStepId = activeScenario.steps[1]?.id;
+    if (!firstStepId || !secondStepId) {
+      throw new Error('Expected first two step ids');
+    }
+
+    useLearningStore.setState({
+      progress: {
+        ...progress,
+        currentStepIndex: 1,
+        steps: [
+          { stepId: secondStepId, status: 'active', hintsUsed: 0 },
+          { stepId: firstStepId, status: 'completed', hintsUsed: 0 },
+        ],
+      },
+    });
+
+    render(<StepProgress />);
+
+    const nodes = Array.from(document.querySelectorAll('.step-progress-node'));
+    expect(nodes[0]).toHaveTextContent('✓');
+    expect(nodes[1]).toHaveClass('active');
   });
 
   it('StepProgress falls back to locked state and empty title when indices mismatch', () => {

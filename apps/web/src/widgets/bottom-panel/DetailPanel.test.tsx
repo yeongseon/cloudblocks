@@ -119,6 +119,35 @@ describe('DetailPanel', () => {
     expect(screen.getByText('API VM')).toBeInTheDocument();
   });
 
+  it('shows provider and subtype identity for provider-specific blocks', () => {
+    const providerSpecificBlock: Block = {
+      ...sourceBlock,
+      id: 'block-provider-specific',
+      provider: 'aws',
+      subtype: 'ec2',
+    };
+
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          ...architectureWithResources,
+          blocks: [providerSpecificBlock],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+    useUIStore.setState({ selectedId: 'block-provider-specific' });
+
+    render(<DetailPanel />);
+
+    expect(screen.getByText('AWS / ec2')).toBeInTheDocument();
+    expect(screen.getByText('Provider')).toBeInTheDocument();
+    expect(screen.getByText('Subtype')).toBeInTheDocument();
+  });
+
   it('renders plate detail including size and contents count', () => {
     useUIStore.setState({ selectedId: 'subnet-1' });
 

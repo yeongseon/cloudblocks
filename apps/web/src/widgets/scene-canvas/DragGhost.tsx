@@ -4,6 +4,7 @@ import { useUIStore } from '../../entities/store/uiStore';
 import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
 import { useRafCallback } from '../../shared/hooks/useRafCallback';
 import { getBlockDimensions, getBlockVisualProfile } from '../../shared/types/visualProfile';
+import { BLOCK_FRIENDLY_NAMES } from '../../shared/types/index';
 import {
   BLOCK_MARGIN,
   BLOCK_PADDING,
@@ -38,6 +39,8 @@ export function DragGhost({
 }: DragGhostProps) {
   const interactionState = useUIStore((s) => s.interactionState);
   const draggedBlockCategory = useUIStore((s) => s.draggedBlockCategory);
+  const draggedResourceName = useUIStore((s) => s.draggedResourceName);
+  const activeProvider = useUIStore((s) => s.activeProvider);
   const [pointerPosition, setPointerPosition] = useState<{ x: number; y: number } | null>(null);
   const activeCategory = draggedBlockCategory ?? 'compute';
 
@@ -60,6 +63,8 @@ export function DragGhost({
   const topFacePoints = `${cx},${topY} ${rightX},${midY} ${cx},${bottomY} ${leftX},${midY}`;
   const leftSidePoints = `${leftX},${midY} ${cx},${bottomY} ${cx},${bottomY + sideWallPx} ${leftX},${midY + sideWallPx}`;
   const rightSidePoints = `${cx},${bottomY} ${rightX},${midY} ${rightX},${midY + sideWallPx} ${cx},${bottomY + sideWallPx}`;
+  const providerName = activeProvider === 'azure' ? 'Azure' : activeProvider === 'aws' ? 'AWS' : 'GCP';
+  const dragIdentityLabel = `${providerName} / ${draggedResourceName ?? BLOCK_FRIENDLY_NAMES[activeCategory]}`;
 
   const studs = useMemo(() => {
     const positions: Array<{ x: number; y: number; key: string }> = [];
@@ -134,6 +139,9 @@ export function DragGhost({
       <polygon points={rightSidePoints} fill={faceColors.rightSideColor} />
       <line x1={leftX} y1={midY} x2={cx} y2={topY} stroke={EDGE_HIGHLIGHT_COLOR} strokeWidth={EDGE_HIGHLIGHT_STROKE_WIDTH} strokeOpacity={EDGE_HIGHLIGHT_OPACITY} />
       <StudGrid studId={studId} studs={studs} />
+      <text x={cx} y={svgHeight + 12} textAnchor="middle" fontSize={10} fill="#D1D5DB">
+        {dragIdentityLabel}
+      </text>
     </g>
   );
 }

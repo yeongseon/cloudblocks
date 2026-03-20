@@ -22,8 +22,8 @@ export function ValidationPanel() {
       {validationResult.errors.length > 0 && (
         <div className="validation-section">
           <h4 className="validation-section-title">Errors ({validationResult.errors.length})</h4>
-          {validationResult.errors.map((error, i) => (
-            <div key={i} className="validation-item validation-error">
+          {validationResult.errors.map((error) => (
+            <div key={`${error.ruleId}-${error.targetId ?? 'unknown'}`} className="validation-item validation-error">
               <div className="validation-message">{error.message}</div>
               {error.suggestion && (
                 <div className="validation-suggestion">
@@ -31,7 +31,7 @@ export function ValidationPanel() {
                 </div>
               )}
               <div className="validation-meta">
-                Rule: {error.ruleId} | Target: {error.targetId}
+                Rule: {error.ruleId} | Target: {error.targetId && error.targetId.length > 0 ? error.targetId : 'Unknown target'}
               </div>
             </div>
           ))}
@@ -41,8 +41,8 @@ export function ValidationPanel() {
       {validationResult.warnings.length > 0 && (
         <div className="validation-section">
           <h4 className="validation-section-title">Warnings ({validationResult.warnings.length})</h4>
-          {validationResult.warnings.map((warning, i) => (
-            <div key={i} className="validation-item validation-warning">
+          {validationResult.warnings.map((warning) => (
+            <div key={`${warning.ruleId}-${warning.targetId ?? 'unknown'}`} className="validation-item validation-warning">
               <div className="validation-message">{warning.message}</div>
               {warning.suggestion && (
                 <div className="validation-suggestion">
@@ -50,7 +50,7 @@ export function ValidationPanel() {
                 </div>
               )}
               <div className="validation-meta">
-                Rule: {warning.ruleId} | Target: {warning.targetId}
+                Rule: {warning.ruleId} | Target: {warning.targetId && warning.targetId.length > 0 ? warning.targetId : 'Unknown target'}
               </div>
             </div>
           ))}
