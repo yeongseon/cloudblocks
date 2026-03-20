@@ -11,7 +11,8 @@
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { getPlateFaceColors } from '../../entities/plate/plateFaceColors';
-import { BLOCK_FRIENDLY_NAMES, BLOCK_COLORS, PLATE_COLORS, SUBNET_ACCESS_COLORS } from '../../shared/types/index';
+import { BLOCK_FRIENDLY_NAMES, PLATE_COLORS, SUBNET_ACCESS_COLORS } from '../../shared/types/index';
+import { getBlockColor } from '../../entities/block/blockFaceColors';
 import vmIcon from '../../shared/assets/azure-icons/virtual-machine.svg';
 import sqlIcon from '../../shared/assets/azure-icons/sql-database.svg';
 import storageIcon from '../../shared/assets/azure-icons/storage-account.svg';
@@ -71,7 +72,7 @@ export function Portrait({ className = '' }: PortraitProps) {
 
   // Block selected
   if (selectedBlock) {
-    const color = BLOCK_COLORS[selectedBlock.category];
+    const color = getBlockColor(selectedBlock.provider ?? 'azure', selectedBlock.subtype, selectedBlock.category);
     return (
       <div className={`portrait-panel portrait-panel--block ${className}`}>
         <div className="portrait-content">

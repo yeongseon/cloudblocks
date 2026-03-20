@@ -74,14 +74,9 @@ const validateSize = (value: unknown, context: string): void => {
   }
 };
 
-const validateImportData = (
+export const validateArchitectureShape = (
   imported: unknown,
-  jsonLength: number
 ): { valid: true } => {
-  if (jsonLength > MAX_IMPORT_SIZE_BYTES) {
-    throw new Error('Import exceeds 5MB limit');
-  }
-
   if (!isRecord(imported)) {
     throw new Error('Invalid architecture format: root must be an object');
   }
@@ -224,6 +219,17 @@ const validateImportData = (
   });
 
   return { valid: true };
+};
+
+const validateImportData = (
+  imported: unknown,
+  jsonLength: number,
+): { valid: true } => {
+  if (jsonLength > MAX_IMPORT_SIZE_BYTES) {
+    throw new Error('Import exceeds 5MB limit');
+  }
+
+  return validateArchitectureShape(imported);
 };
 
 type PersistenceSlice = Pick<
@@ -370,6 +376,8 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
   },
 
   replaceArchitecture: (snapshot: ArchitectureSnapshot) => {
+    validateArchitectureShape(snapshot);
+
     const state = get();
     const now = new Date().toISOString();
     const newArch: ArchitectureModel = {

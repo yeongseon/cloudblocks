@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import { BLOCK_COLORS, BLOCK_FRIENDLY_NAMES, BLOCK_ICONS } from '../../shared/types/index';
+import { BLOCK_FRIENDLY_NAMES, BLOCK_ICONS } from '../../shared/types/index';
 import type { Block, Connection, ExternalActor } from '@cloudblocks/schema';
+import { getBlockColor } from '../../entities/block/blockFaceColors';
 import './FlowDiagram.css';
 
 function buildFlowChain(
@@ -66,7 +67,7 @@ export function FlowDiagram() {
         const block = blockMap.get(id);
         const actor = actorMap.get(id);
 
-        let content;
+        let content: React.ReactNode;
         if (actor) {
           content = (
             <div className="flow-node flow-node-external">
@@ -75,7 +76,7 @@ export function FlowDiagram() {
             </div>
           );
         } else if (block) {
-          const color = BLOCK_COLORS[block.category] || '#607D8B';
+          const color = getBlockColor(block.provider ?? 'azure', block.subtype, block.category);
           const icon = BLOCK_ICONS[block.category] || '■';
           const name = BLOCK_FRIENDLY_NAMES[block.category] || block.category;
           

@@ -3,6 +3,7 @@ import { AiPromptBar } from '../../features/ai';
 import { useAiStore } from '../../features/ai/store';
 import { toast } from 'react-hot-toast';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
+import { validateArchitectureShape } from '../../entities/store/slices';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { computeArchitectureDiff } from '../../features/diff/engine';
@@ -176,6 +177,7 @@ export function MenuBar() {
       const response = await apiPost<PullResponse>(
         `/api/v1/workspaces/${encodeURIComponent(wsId)}/pull`,
       );
+      validateArchitectureShape(response.architecture);
       const remoteArch = response.architecture as unknown as ArchitectureModel;
       const localArch = useArchitectureStore.getState().workspace.architecture;
       const delta = computeArchitectureDiff(remoteArch, localArch);
