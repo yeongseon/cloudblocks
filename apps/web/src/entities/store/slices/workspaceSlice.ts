@@ -5,6 +5,7 @@ import { saveWorkspaces, saveActiveWorkspaceId } from '../../../shared/utils/sto
 import type { ArchitectureSlice, ArchitectureState } from './types';
 import {
   createDefaultWorkspace,
+  deduplicateWorkspaceName,
   resetTransientState,
   upsertCurrentWorkspace,
 } from './helpers';
@@ -29,25 +30,26 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (
 
   createWorkspace: (name) => {
     const state = get();
+    const allWorkspaces = upsertCurrentWorkspace(state.workspaces, state.workspace);
+    const uniqueName = deduplicateWorkspaceName(name, allWorkspaces);
     const now = new Date().toISOString();
     const newWorkspace: Workspace = {
       id: generateId('ws'),
-      name,
-      architecture: createBlankArchitecture(generateId('arch'), name),
+      name: uniqueName,
+      architecture: createBlankArchitecture(generateId('arch'), uniqueName),
       createdAt: now,
       updatedAt: now,
     };
 
-    const updatedList = upsertCurrentWorkspace(state.workspaces, state.workspace);
-    updatedList.push(newWorkspace);
+    allWorkspaces.push(newWorkspace);
 
-    if (saveWorkspaces(updatedList)) {
+    if (saveWorkspaces(allWorkspaces)) {
       saveActiveWorkspaceId(newWorkspace.id);
     }
 
     set({
       workspace: newWorkspace,
-      workspaces: updatedList,
+      workspaces: allWorkspaces,
       ...resetTransientState(),
     });
   },
@@ -114,9 +116,11 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (
     }
 
     const now = new Date().toISOString();
+    const updatedList = upsertCurrentWorkspace(state.workspaces, state.workspace);
+    const cloneName = deduplicateWorkspaceName(`${source.name} (Copy)`, updatedList);
     const cloned: Workspace = {
       id: generateId('ws'),
-      name: `${source.name} (Copy)`,
+      name: cloneName,
       architecture: {
         ...JSON.parse(JSON.stringify(source.architecture)),
         id: generateId('arch'),
@@ -127,7 +131,6 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (
       updatedAt: now,
     };
 
-    const updatedList = upsertCurrentWorkspace(state.workspaces, state.workspace);
     updatedList.push(cloned);
 
     if (saveWorkspaces(updatedList)) {

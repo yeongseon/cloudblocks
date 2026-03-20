@@ -354,6 +354,61 @@ describe('architectureStore', () => {
 
       expect(getState().workspace.architecture).toBe(before);
     });
+
+    it('deep-copies nested block fields so source and duplicate are independent', () => {
+      getState().addPlate('region', 'VNet', null);
+      const netId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Sub', netId, 'public');
+      const subId = getArch().plates[1].id;
+
+      getState().addBlock('compute', 'VM', subId, 'azure', 'vm', { sku: 'Standard_B2s' });
+      const source = getArch().blocks[0];
+
+      getState().duplicateBlock(source.id);
+
+      const blocks = getArch().blocks;
+      expect(blocks).toHaveLength(2);
+
+      const duplicate = blocks[1];
+      expect(duplicate.config).toEqual({ sku: 'Standard_B2s' });
+      expect(duplicate.config).not.toBe(source.config);
+      expect(duplicate.metadata).not.toBe(source.metadata);
+    });
+
+    it('deep-copies aggregation and roles when present', () => {
+      getState().addPlate('region', 'VNet', null);
+      const netId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Sub', netId, 'public');
+      const subId = getArch().plates[1].id;
+
+      getState().addBlock('compute', 'VM', subId, 'azure');
+      const sourceId = getArch().blocks[0].id;
+
+      // Inject aggregation and roles via setState (addBlock doesn't support them)
+      const arch = getState().workspace.architecture;
+      const enrichedBlock = {
+        ...arch.blocks[0],
+        aggregation: { mode: 'count' as const, count: 3 },
+        roles: ['primary' as const, 'writer' as const],
+      };
+      useArchitectureStore.setState({
+        workspace: {
+          ...getState().workspace,
+          architecture: { ...arch, blocks: [enrichedBlock] },
+        },
+      });
+
+      getState().duplicateBlock(sourceId);
+
+      const blocks = getArch().blocks;
+      expect(blocks).toHaveLength(2);
+
+      const duplicate = blocks[1];
+      expect(duplicate.aggregation).toEqual({ mode: 'count', count: 3 });
+      expect(duplicate.aggregation).not.toBe(enrichedBlock.aggregation);
+      expect(duplicate.roles).toEqual(['primary', 'writer']);
+      expect(duplicate.roles).not.toBe(enrichedBlock.roles);
+    });
   });
 
   describe('renameBlock', () => {
@@ -1009,10 +1064,11 @@ describe('architectureStore', () => {
   });
 
   describe('renameWorkspace', () => {
-    it('updates workspace and architecture name', () => {
+    it('updates workspace name without changing architecture name', () => {
+      const originalArchName = getArch().name;
       getState().renameWorkspace('New Name');
       expect(getState().workspace.name).toBe('New Name');
-      expect(getArch().name).toBe('New Name');
+      expect(getArch().name).toBe(originalArchName);
     });
 
     it('updates updatedAt timestamp', () => {
@@ -1028,6 +1084,14 @@ describe('architectureStore', () => {
       const workspaceCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:workspaces');
       expect(workspaceCalls.length).toBeGreaterThan(0);
       spy.mockRestore();
+    });
+
+    it('auto-suffixes name when renaming to an existing workspace name', () => {
+      getState().createWorkspace('Other');
+      getState().renameWorkspace('My Architecture');
+      const names = getState().workspaces.map((ws) => ws.name);
+      expect(names).toContain('My Architecture');
+      expect(getState().workspace.name).toBe('My Architecture (2)');
     });
   });
 
@@ -1075,6 +1139,17 @@ describe('architectureStore', () => {
       const activeIdCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:activeWorkspaceId');
       expect(activeIdCalls).toHaveLength(0);
       spy.mockRestore();
+    });
+
+    it('auto-suffixes name when a workspace with the same name exists', () => {
+      getState().createWorkspace('Alpha');
+      expect(getState().workspace.name).toBe('Alpha');
+
+      getState().createWorkspace('Alpha');
+      expect(getState().workspace.name).toBe('Alpha (2)');
+
+      getState().createWorkspace('Alpha');
+      expect(getState().workspace.name).toBe('Alpha (3)');
     });
   });
 
@@ -1763,7 +1838,6 @@ describe('architectureStore', () => {
       const activeIdCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:activeWorkspaceId');
       expect(activeIdCalls).toHaveLength(0);
       spy.mockRestore();
-      vi.mocked(console.error).mockRestore();
     });
   });
 
