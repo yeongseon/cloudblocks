@@ -144,6 +144,9 @@ export function CommandCard({ className = '' }: CommandCardProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [plateSubAction, setPlateSubAction]);
 
+  const isBuildOrderOpen = useUIStore((s) => s.isBuildOrderOpen);
+  const toggleBuildOrder = useUIStore((s) => s.toggleBuildOrder);
+
   const headerText = isWorkerSelected
     ? 'Build Order'
     : selectedBlock
@@ -165,19 +168,32 @@ export function CommandCard({ className = '' }: CommandCardProps) {
         : <CreationMode />;
 
   return (
-    <div className={`command-card ${className}`}>
+    <div className={`command-card ${isWorkerSelected ? 'command-card--worker-mode' : ''} ${className}`}>
       <div className="command-card-header">
-        {selectedPlate && plateSubAction === 'deploy' ? (
+        <span className="command-card-header-text">
+          {selectedPlate && plateSubAction === 'deploy' ? (
+            <button
+              type="button"
+              onClick={() => setPlateSubAction(null)}
+              style={{ background: 'none', border: 'none', padding: 0, color: 'inherit', font: 'inherit', cursor: 'pointer' }}
+              aria-label={`Back from ${headerText}`}
+            >
+              {`← ${headerText}`}
+            </button>
+          ) : (
+            headerText
+          )}
+        </span>
+        {isBuildOrderOpen && (
           <button
             type="button"
-            onClick={() => setPlateSubAction(null)}
-            style={{ background: 'none', border: 'none', padding: 0, color: 'inherit', font: 'inherit', cursor: 'pointer' }}
-            aria-label={`Back from ${headerText}`}
+            className="command-card-collapse-btn"
+            onClick={toggleBuildOrder}
+            aria-label="Collapse Build Order panel"
+            title="Collapse"
           >
-            {`← ${headerText}`}
+            »
           </button>
-        ) : (
-          headerText
         )}
       </div>
       <div className="command-card-grid">

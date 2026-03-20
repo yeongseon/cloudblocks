@@ -985,6 +985,40 @@ Scope:
 
 ---
 
+## Milestone 19 — MVP Polish & Launch
+
+Goal:
+Deliver a promotion-ready MVP that is stable in production, easy to demo, and measurable after launch. Focus on launch quality and deployment operations over major feature expansion.
+
+> **Reference**: [M19_MVP_POLISH_LAUNCH.md](M19_MVP_POLISH_LAUNCH.md)
+
+Key Objectives:
+
+- Launch UX polish: first-run onboarding, one-click demo loading, launch-ready CTA flow
+- Deployment hardening: preview/production separation, tag-gated production release, rollback runbook
+- Runtime configuration discipline: environment schema standardization and callback/endpoint validation
+- Observability baseline: runtime error tracking and launch metrics funnel
+- Stability and release readiness: performance gates, browser/viewport checks, release packet preparation
+
+Scope:
+
+- 6 Epics: Launch UX Polish, Deployment Pipeline, Runtime Configuration, Observability, Performance & Stability Gate, Release Ops
+- Includes launch-critical additions: demo resilience mode, security hygiene checks, and analytics funnel instrumentation
+
+### Exit Criteria
+- [ ] Onboarding and one-click demo flow work on production URL
+- [ ] Preview and production deployment paths are separated and reproducible
+- [ ] Production deployment is tag-gated for `v0.19.0` with rollback playbook
+- [ ] Runtime configuration validates across all release environments
+- [ ] Runtime error tracking and minimal launch metrics funnel are operational
+- [ ] Performance and compatibility gates pass before release
+- [ ] `v0.19.0` release checklist, changelog entry, and launch packet are complete
+
+### Dependencies
+- Milestone 18 complete
+
+---
+
 ## i18n — Internationalization
 
 Goal:
@@ -1087,6 +1121,7 @@ Milestone 14 (Complete)
 Milestone 17+ (Planned)
 - Modular monorepo structure with extracted packages
 - DevOps operational control center
+- MVP polish and launch operations with deployment hardening
 - Internationalization support
 - Community contributors > 10
 - GitHub stars growth trajectory
@@ -1131,6 +1166,8 @@ The roadmap evolves CloudBlocks from:
 
 → DevOps UX (Milestone 18)
 
+→ MVP Polish & Launch (Milestone 19)
+
 → Internationalization (i18n)
 
 ### Dependency Graph
@@ -1145,6 +1182,7 @@ Milestone 8 (Complete) ✅
     │                               └── Milestone 16 (Doc Architecture) ✅
     │                                       └── Milestone 17 (Product Structure)
     │                                               └── Milestone 18 (DevOps UX)
+    │                                                       └── Milestone 19 (MVP Polish & Launch)
     │               └── Milestone 14 (AI Roadmap) ✅ ←── also benefits from Milestone 13
     └── Milestone 11 (Brick Design) ✅ ──── parallel with Milestone 9
 
