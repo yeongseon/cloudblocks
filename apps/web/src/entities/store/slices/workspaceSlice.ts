@@ -41,8 +41,9 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (
     const updatedList = upsertCurrentWorkspace(state.workspaces, state.workspace);
     updatedList.push(newWorkspace);
 
-    saveWorkspaces(updatedList);
-    saveActiveWorkspaceId(newWorkspace.id);
+    if (saveWorkspaces(updatedList)) {
+      saveActiveWorkspaceId(newWorkspace.id);
+    }
 
     set({
       workspace: newWorkspace,
@@ -59,9 +60,11 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (
       return;
     }
 
-    const updatedList = state.workspaces.map((workspace) =>
-      workspace.id === state.workspace.id ? state.workspace : workspace
-    );
+    const updatedList = upsertCurrentWorkspace(state.workspaces, state.workspace);
+
+    if (saveWorkspaces(updatedList)) {
+      saveActiveWorkspaceId(target.id);
+    }
 
     set({
       workspace: target,
@@ -72,7 +75,8 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (
 
   deleteWorkspace: (id) => {
     const state = get();
-    const filtered = state.workspaces.filter((workspace) => workspace.id !== id);
+    const withCurrent = upsertCurrentWorkspace(state.workspaces, state.workspace);
+    const filtered = withCurrent.filter((workspace) => workspace.id !== id);
 
     if (state.workspace.id === id) {
       const next = filtered.length > 0 ? filtered[0] : createDefaultWorkspace();
@@ -81,8 +85,9 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (
         filtered.push(next);
       }
 
-      saveWorkspaces(filtered);
-      saveActiveWorkspaceId(next.id);
+      if (saveWorkspaces(filtered)) {
+        saveActiveWorkspaceId(next.id);
+      }
 
       set({
         workspace: next,
@@ -125,8 +130,9 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (
     const updatedList = upsertCurrentWorkspace(state.workspaces, state.workspace);
     updatedList.push(cloned);
 
-    saveWorkspaces(updatedList);
-    saveActiveWorkspaceId(cloned.id);
+    if (saveWorkspaces(updatedList)) {
+      saveActiveWorkspaceId(cloned.id);
+    }
 
     set({
       workspace: cloned,
@@ -137,15 +143,22 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (
 
   setBackendWorkspaceId: (workspaceId, backendId) => {
     const state = get();
-    if (state.workspace.id === workspaceId) {
-      set({
-        workspace: { ...state.workspace, backendWorkspaceId: backendId },
-      });
-    }
+    const updatedWorkspace =
+      state.workspace.id === workspaceId
+        ? { ...state.workspace, backendWorkspaceId: backendId }
+        : state.workspace;
+
+    const updatedList = state.workspaces.map((ws) =>
+      ws.id === workspaceId ? { ...ws, backendWorkspaceId: backendId } : ws
+    );
+
+    saveWorkspaces(
+      upsertCurrentWorkspace(updatedList, updatedWorkspace)
+    );
+
     set({
-      workspaces: state.workspaces.map((ws) =>
-        ws.id === workspaceId ? { ...ws, backendWorkspaceId: backendId } : ws
-      ),
+      workspace: updatedWorkspace,
+      workspaces: updatedList,
     });
   },
 });

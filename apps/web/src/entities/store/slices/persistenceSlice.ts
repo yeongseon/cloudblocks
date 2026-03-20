@@ -288,8 +288,9 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
     };
 
     const updatedList = upsertCurrentWorkspace(state.workspaces, cleared);
-    saveWorkspaces(updatedList);
-    saveActiveWorkspaceId(cleared.id);
+    if (saveWorkspaces(updatedList)) {
+      saveActiveWorkspaceId(cleared.id);
+    }
 
     set({
       workspace: cleared,
@@ -299,17 +300,24 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
   },
 
   renameWorkspace: (name) => {
-    set((state) => ({
-      workspace: {
-        ...state.workspace,
+    const state = get();
+    const renamed: Workspace = {
+      ...state.workspace,
+      name,
+      architecture: touchModel({
+        ...state.workspace.architecture,
         name,
-        architecture: touchModel({
-          ...state.workspace.architecture,
-          name,
-        }),
-        updatedAt: new Date().toISOString(),
-      },
-    }));
+      }),
+      updatedAt: new Date().toISOString(),
+    };
+
+    const updatedList = upsertCurrentWorkspace(state.workspaces, renamed);
+    saveWorkspaces(updatedList);
+
+    set({
+      workspace: renamed,
+      workspaces: updatedList,
+    });
   },
 
   importArchitecture: (json) => {
@@ -355,8 +363,9 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
       const updatedList = upsertCurrentWorkspace(state.workspaces, state.workspace);
       updatedList.push(newWorkspace);
 
-      saveWorkspaces(updatedList);
-      saveActiveWorkspaceId(newWorkspace.id);
+      if (saveWorkspaces(updatedList)) {
+        saveActiveWorkspaceId(newWorkspace.id);
+      }
 
       set({
         workspace: newWorkspace,
@@ -396,8 +405,9 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
     const updatedList = upsertCurrentWorkspace(state.workspaces, state.workspace);
     updatedList.push(newWorkspace);
 
-    saveWorkspaces(updatedList);
-    saveActiveWorkspaceId(newWorkspace.id);
+    if (saveWorkspaces(updatedList)) {
+      saveActiveWorkspaceId(newWorkspace.id);
+    }
 
     set({
       workspace: newWorkspace,
