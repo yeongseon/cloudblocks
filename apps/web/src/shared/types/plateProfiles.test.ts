@@ -81,6 +81,9 @@ describe('plate profile helpers', () => {
 
   it('returns network stud colors for network plates', () => {
     expect(getPlateStudColors({ type: 'region' })).toEqual(NETWORK_STUD_COLORS);
+    expect(getPlateStudColors({ type: 'global' })).toEqual(NETWORK_STUD_COLORS);
+    expect(getPlateStudColors({ type: 'edge' })).toEqual(NETWORK_STUD_COLORS);
+    expect(getPlateStudColors({ type: 'zone' })).toEqual(NETWORK_STUD_COLORS);
   });
 
   it('returns public subnet stud colors for public subnet plates', () => {

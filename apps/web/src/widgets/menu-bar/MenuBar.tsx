@@ -212,8 +212,7 @@ export function MenuBar() {
     }
   };
 
-  const handleAiSubmit = (prompt: string, provider: string) => {
-    console.log('AI generate:', { prompt, provider });
+  const handleAiSubmit = (_prompt: string, _provider: string) => {
     // TODO: Wire to AI API in T9
   };
 

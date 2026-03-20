@@ -17,6 +17,7 @@ import { useWorkerStore } from '../../entities/store/workerStore';
 import { BlockSvg } from '../../entities/block/BlockSvg';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
+import { promptDialog } from '../../shared/ui/PromptDialog';
 import {
   useTechTree,
   CATEGORY_TABS,
@@ -230,13 +231,13 @@ function PlateActionMode({ selectedPlate, onDeploy }: { selectedPlate: Plate; on
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
   const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
 
-  const handleAction = useCallback((action: PlateActionType) => {
+  const handleAction = useCallback(async (action: PlateActionType) => {
     switch (action) {
       case 'deploy':
         onDeploy();
         break;
       case 'rename': {
-        const newName = window.prompt('Rename plate:', selectedPlate.name);
+        const newName = await promptDialog('Rename plate:', 'Rename', selectedPlate.name);
         if (newName !== null && newName.trim() !== '') {
           renamePlate(selectedPlate.id, newName.trim());
         }
@@ -724,7 +725,7 @@ function BlockActionMode() {
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
   const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
 
-  const handleAction = useCallback((action: ActionType) => {
+  const handleAction = useCallback(async (action: ActionType) => {
     if (!selectedId) return;
 
     switch (action) {
@@ -746,7 +747,7 @@ function BlockActionMode() {
       case 'rename': {
         const block = architecture.blocks.find((candidate) => candidate.id === selectedId);
         if (block) {
-          const newName = window.prompt('Rename block:', block.name);
+          const newName = await promptDialog('Rename block:', 'Rename', block.name);
           if (newName !== null && newName.trim() !== '') {
             renameBlock(selectedId, newName.trim());
           }

@@ -8,6 +8,9 @@ import { useWorkerStore } from '../../entities/store/workerStore';
 import type { ArchitectureModel, Block, Plate } from '../../shared/types/index';
 
 vi.mock('./CommandCard.css', () => ({}));
+vi.mock('../../shared/ui/PromptDialog', () => ({
+  promptDialog: vi.fn(),
+}));
 
 type DragListeners = {
   start?: () => void;
@@ -555,7 +558,8 @@ describe('CommandCard', () => {
 
   it('renames selected block when rename is clicked and prompt has value', async () => {
     const user = userEvent.setup();
-    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('  New Block Name  ');
+    const { promptDialog } = await import('../../shared/ui/PromptDialog');
+    const promptMock = vi.mocked(promptDialog).mockResolvedValue('  New Block Name  ');
 
     useUIStore.setState({ selectedId: 'block-1' });
     useArchitectureStore.setState({
@@ -576,9 +580,92 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByRole('button', { name: /Rename/ }));
 
-    expect(promptSpy).toHaveBeenCalledWith('Rename block:', 'App VM');
+    expect(promptMock).toHaveBeenCalledWith('Rename block:', 'Rename', 'App VM');
     expect(renameBlockMock).toHaveBeenCalledWith('block-1', 'New Block Name');
-    promptSpy.mockRestore();
+    promptMock.mockRestore();
+  });
+
+  it('does not rename block when prompt is cancelled (returns null)', async () => {
+    const user = userEvent.setup();
+    const { promptDialog } = await import('../../shared/ui/PromptDialog');
+    const promptMock = vi.mocked(promptDialog).mockResolvedValue(null);
+
+    useUIStore.setState({ selectedId: 'block-1' });
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          ...baseArchitecture,
+          plates: [networkPlate, publicSubnet],
+          blocks: [computeBlock],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    render(<CommandCard />);
+
+    await user.click(screen.getByRole('button', { name: /Rename/ }));
+
+    expect(promptMock).toHaveBeenCalledWith('Rename block:', 'Rename', 'App VM');
+    expect(renameBlockMock).not.toHaveBeenCalled();
+    promptMock.mockRestore();
+  });
+
+  it('does not rename block when prompt returns only whitespace', async () => {
+    const user = userEvent.setup();
+    const { promptDialog } = await import('../../shared/ui/PromptDialog');
+    const promptMock = vi.mocked(promptDialog).mockResolvedValue('   ');
+
+    useUIStore.setState({ selectedId: 'block-1' });
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          ...baseArchitecture,
+          plates: [networkPlate, publicSubnet],
+          blocks: [computeBlock],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    render(<CommandCard />);
+
+    await user.click(screen.getByRole('button', { name: /Rename/ }));
+
+    expect(promptMock).toHaveBeenCalledWith('Rename block:', 'Rename', 'App VM');
+    expect(renameBlockMock).not.toHaveBeenCalled();
+    promptMock.mockRestore();
+  });
+
+  it('does not call toggleProperties when edit is clicked and properties are already shown', async () => {
+    const user = userEvent.setup();
+
+    useUIStore.setState({ selectedId: 'block-1', showProperties: true });
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          ...baseArchitecture,
+          plates: [networkPlate, publicSubnet],
+          blocks: [computeBlock],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    render(<CommandCard />);
+
+    await user.click(screen.getByRole('button', { name: /Edit/ }));
+
+    expect(togglePropertiesMock).not.toHaveBeenCalled();
   });
 
   // ─── PlateActionMode Tests ──────────────────────────────
@@ -941,7 +1028,8 @@ describe('CommandCard', () => {
 
   it('renames selected plate when rename is clicked and prompt has value', async () => {
     const user = userEvent.setup();
-    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('  Renamed Plate  ');
+    const { promptDialog } = await import('../../shared/ui/PromptDialog');
+    const promptMock = vi.mocked(promptDialog).mockResolvedValue('  Renamed Plate  ');
 
     useUIStore.setState({ selectedId: 'net-1' });
     useArchitectureStore.setState({
@@ -961,9 +1049,65 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByRole('button', { name: /Rename/ }));
 
-    expect(promptSpy).toHaveBeenCalledWith('Rename plate:', 'VNet');
+    expect(promptMock).toHaveBeenCalledWith('Rename plate:', 'Rename', 'VNet');
     expect(renamePlateMock).toHaveBeenCalledWith('net-1', 'Renamed Plate');
-    promptSpy.mockRestore();
+    promptMock.mockRestore();
+  });
+
+  it('does not rename plate when prompt is cancelled (returns null)', async () => {
+    const user = userEvent.setup();
+    const { promptDialog } = await import('../../shared/ui/PromptDialog');
+    const promptMock = vi.mocked(promptDialog).mockResolvedValue(null);
+
+    useUIStore.setState({ selectedId: 'net-1' });
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          ...baseArchitecture,
+          plates: [networkPlate],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    render(<CommandCard />);
+
+    await user.click(screen.getByRole('button', { name: /Rename/ }));
+
+    expect(promptMock).toHaveBeenCalledWith('Rename plate:', 'Rename', 'VNet');
+    expect(renamePlateMock).not.toHaveBeenCalled();
+    promptMock.mockRestore();
+  });
+
+  it('does not rename plate when prompt returns only whitespace', async () => {
+    const user = userEvent.setup();
+    const { promptDialog } = await import('../../shared/ui/PromptDialog');
+    const promptMock = vi.mocked(promptDialog).mockResolvedValue('   ');
+
+    useUIStore.setState({ selectedId: 'net-1' });
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          ...baseArchitecture,
+          plates: [networkPlate],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    render(<CommandCard />);
+
+    await user.click(screen.getByRole('button', { name: /Rename/ }));
+
+    expect(promptMock).toHaveBeenCalledWith('Rename plate:', 'Rename', 'VNet');
+    expect(renamePlateMock).not.toHaveBeenCalled();
+    promptMock.mockRestore();
   });
 
   it('transitions to PlateCreationMode for public subnet deploy and creates VM', async () => {
