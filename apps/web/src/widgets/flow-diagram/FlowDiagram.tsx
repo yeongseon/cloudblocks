@@ -78,7 +78,7 @@ export function FlowDiagram() {
         } else if (block) {
           const color = getBlockColor(block.provider ?? 'azure', block.subtype, block.category);
           const icon = BLOCK_ICONS[block.category] || '■';
-          const name = BLOCK_FRIENDLY_NAMES[block.category] || block.category;
+          const name = block.name || BLOCK_FRIENDLY_NAMES[block.category] || block.category;
           
           content = (
             <div className="flow-node" style={{ backgroundColor: color }}>
