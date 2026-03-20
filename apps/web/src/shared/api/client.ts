@@ -1,11 +1,13 @@
 const RAW_API_BASE_URL = import.meta.env.VITE_API_URL ?? '';
 
-function normalizeApiBaseUrl(rawBaseUrl: string): string {
+export function normalizeApiBaseUrl(rawBaseUrl: string): string {
   const withoutTrailingSlashes = rawBaseUrl.replace(/\/+$/, '');
+  if (withoutTrailingSlashes.endsWith('/api/v1')) {
+    return withoutTrailingSlashes.slice(0, -7);
+  }
   if (withoutTrailingSlashes.endsWith('/api')) {
     return withoutTrailingSlashes.slice(0, -4);
   }
-
   return withoutTrailingSlashes;
 }
 

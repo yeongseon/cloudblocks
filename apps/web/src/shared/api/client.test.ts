@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ApiError, apiDelete, apiFetch, apiGet, apiPost, apiPut } from './client';
+import { ApiError, apiDelete, apiFetch, apiGet, apiPost, apiPut, normalizeApiBaseUrl } from './client';
 
 function jsonResponse(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload), {
@@ -205,5 +205,27 @@ describe('API_BASE_URL normalization', () => {
     await apiGet('/api/v1/test');
 
     expect(fetchMock.mock.calls[0][0]).toBe('http://localhost:8000/api/v1/test');
+  });
+});
+
+describe('normalizeApiBaseUrl', () => {
+  it('strips trailing slashes', () => {
+    expect(normalizeApiBaseUrl('http://localhost:8000///')).toBe('http://localhost:8000');
+  });
+
+  it('strips /api suffix', () => {
+    expect(normalizeApiBaseUrl('http://localhost:8000/api')).toBe('http://localhost:8000');
+  });
+
+  it('strips /api/v1 suffix', () => {
+    expect(normalizeApiBaseUrl('http://localhost:8000/api/v1')).toBe('http://localhost:8000');
+  });
+
+  it('preserves base URL without /api suffix', () => {
+    expect(normalizeApiBaseUrl('http://localhost:8000')).toBe('http://localhost:8000');
+  });
+
+  it('handles empty string', () => {
+    expect(normalizeApiBaseUrl('')).toBe('');
   });
 });
