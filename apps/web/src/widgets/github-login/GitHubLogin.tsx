@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { apiPost } from '../../shared/api/client';
@@ -20,6 +20,17 @@ export function GitHubLogin() {
 
   const [isWorking, setIsWorking] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
+
+  // Reset local state when panel transitions from closed to open
+  const prevShowRef = useRef(show);
+  useEffect(() => {
+    if (show && !prevShowRef.current) {
+      setIsWorking(false);
+      setLocalError(null);
+      setError(null);
+    }
+    prevShowRef.current = show;
+  }, [show, setError]);
 
   if (!show) return null;
 

@@ -170,4 +170,24 @@ describe('GitHubLogin', () => {
     render(<GitHubLogin />);
     expect(screen.getByText('OAuth failed')).toBeInTheDocument();
   });
+
+  it('resets local error and loading state on reopen', async () => {
+    const user = userEvent.setup();
+    mockApiPost.mockRejectedValueOnce(new Error('Network error'));
+
+    const { rerender } = render(<GitHubLogin />);
+    await user.click(screen.getByRole('button', { name: 'Sign in with GitHub' }));
+    expect(await screen.findByText('Network error')).toBeInTheDocument();
+
+    // Close the panel
+    useUIStore.setState({ showGitHubLogin: false });
+    rerender(<GitHubLogin />);
+
+    // Reopen the panel
+    useUIStore.setState({ showGitHubLogin: true });
+    rerender(<GitHubLogin />);
+
+    expect(screen.queryByText('Network error')).not.toBeInTheDocument();
+    expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+  });
 });
