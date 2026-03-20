@@ -23,7 +23,10 @@ New to CloudBlocks? Follow this path:
 | Status | Meaning |
 |--------|---------|
 | **Canonical** | Source of truth — code must conform |
+| **Canonical (v2.0 Target)** | Accepted v2.0 specification — not yet fully implemented |
+| **Superseded** | v1.x spec replaced by v2.0 — retained for reference |
 | **Supporting** | Reference material — links to canonical |
+| **Accepted** | Active decision — currently in effect |
 | **Historical** | Past decisions — do not update |
 
 ---
@@ -78,8 +81,9 @@ Detailed visual and interaction specifications.
 
 | Document | Status | Description |
 |----------|--------|-------------|
-| [BRICK_DESIGN_SPEC.md](design/BRICK_DESIGN_SPEC.md) | **Canonical** | Merged brick design system — geometry, profiles, provider themes, connections, UX states |
-| [VISUAL_DESIGN_SPEC.md](design/VISUAL_DESIGN_SPEC.md) | **Canonical** | Colors, geometry, materials, **Bottom Panel (§7)**, Command Card, Tech Tree |
+| [CLOUDBLOCKS_SPEC_V2.md](design/CLOUDBLOCKS_SPEC_V2.md) | **Canonical (v2.0 Target)** | v2.0 universal architecture specification — unified geometry, provider system, visual tokens |
+| [BRICK_DESIGN_SPEC.md](design/BRICK_DESIGN_SPEC.md) | Superseded | v1.x brick design system — geometry, profiles, provider themes, connections, UX states |
+| [VISUAL_DESIGN_SPEC.md](design/VISUAL_DESIGN_SPEC.md) | Superseded | v1.x colors, geometry, materials, Bottom Panel (§7), Command Card, Tech Tree |
 | [VALIDATION_CONTRACT.md](design/VALIDATION_CONTRACT.md) | Canonical | Validation rule contracts |
 | [MODULE_BOUNDARIES.md](design/MODULE_BOUNDARIES.md) | Supporting | FSD module structure |
 | [NFR_TARGETS.md](design/NFR_TARGETS.md) | Supporting | Non-functional requirements |
@@ -88,7 +92,7 @@ Detailed visual and interaction specifications.
 | [LEARNING_MODE_SPEC.md](design/LEARNING_MODE_SPEC.md) | **Canonical** | Learning Mode design spec — scenarios, validation, engine, UI |
 | [GRAPH_IR_SPEC.md](design/GRAPH_IR_SPEC.md) | Supporting | Graph IR specification — typed ports, protocol semantics, evolution plan |
 
-> **UI Single Source of Truth**: All visual/interaction specs are in `VISUAL_DESIGN_SPEC.md`. Section §7 covers the StarCraft-style Bottom Panel layout.
+> **Note**: `BRICK_DESIGN_SPEC.md` and `VISUAL_DESIGN_SPEC.md` are superseded by `CLOUDBLOCKS_SPEC_V2.md` (see [ADR-0008](adr/0008-v2-universal-architecture-specification.md)). They are retained for v1.x reference. The v2.0 spec is accepted but not yet fully implemented.
 
 ---
 
@@ -127,13 +131,15 @@ User and developer guides.
 
 ---
 
-## Key Canonical Sources
+## Key Reference Documents
 
-| Concern | Canonical Document |
+| Concern | Reference Document |
 |---------|-------------------|
 | Domain entities & types | [DOMAIN_MODEL.md](model/DOMAIN_MODEL.md) |
-| Visual sizing & layout | [BRICK_DESIGN_SPEC.md](design/BRICK_DESIGN_SPEC.md) |
-| Colors & materials | [VISUAL_DESIGN_SPEC.md](design/VISUAL_DESIGN_SPEC.md) |
+| Visual sizing & layout (v2.0) | [CLOUDBLOCKS_SPEC_V2.md](design/CLOUDBLOCKS_SPEC_V2.md) |
+| Visual sizing & layout (v1.x) | [BRICK_DESIGN_SPEC.md](design/BRICK_DESIGN_SPEC.md) *(superseded)* |
+| Colors & materials (v2.0) | [CLOUDBLOCKS_SPEC_V2.md](design/CLOUDBLOCKS_SPEC_V2.md) |
+| Colors & materials (v1.x) | [VISUAL_DESIGN_SPEC.md](design/VISUAL_DESIGN_SPEC.md) *(superseded)* |
 | TypeScript types | `apps/web/src/shared/types/index.ts` |
 | Validation rules | `apps/web/src/entities/validation/` |
 | Milestone timeline | [ROADMAP.md](concept/ROADMAP.md) |
