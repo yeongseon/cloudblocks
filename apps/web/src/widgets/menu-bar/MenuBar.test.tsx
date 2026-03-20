@@ -619,6 +619,7 @@ describe('MenuBar', () => {
       blocks: { added: [], removed: [], modified: [] },
       connections: { added: [], removed: [], modified: [] },
       externalActors: { added: [], removed: [], modified: [] },
+      rootChanges: [],
       summary: { totalChanges: 0, hasBreakingChanges: false },
     }, emptyArch);
 

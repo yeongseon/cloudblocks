@@ -2,6 +2,7 @@ import type { ArchitectureModel, Block, Connection, ExternalActor, Plate } from 
 import type { DiffDelta, DiffState, EntityDiff, PropertyChange } from '../../shared/types/diff';
 
 const ROOT_VOLATILE_PATHS = new Set(['createdAt', 'updatedAt']);
+const ROOT_ENTITY_PATHS = new Set(['plates', 'blocks', 'connections', 'externalActors', 'createdAt', 'updatedAt']);
 const NO_IGNORED_ROOT_PATHS = new Set<string>();
 
 type DiffableEntity = Plate | Block | Connection | ExternalActor;
@@ -120,11 +121,15 @@ function computeSummary(delta: Omit<DiffDelta, 'summary'>): DiffDelta['summary']
     delta.connections.modified.length +
     delta.externalActors.added.length +
     delta.externalActors.removed.length +
-    delta.externalActors.modified.length;
+    delta.externalActors.modified.length +
+    delta.rootChanges.length;
 
   return {
     totalChanges,
-    hasBreakingChanges: delta.blocks.removed.length > 0 || delta.connections.removed.length > 0,
+    hasBreakingChanges:
+      delta.plates.removed.length > 0 ||
+      delta.blocks.removed.length > 0 ||
+      delta.connections.removed.length > 0,
   };
 }
 
@@ -178,6 +183,7 @@ export function computeArchitectureDiff(base: ArchitectureModel, head: Architect
       blocks: createEmptyEntityDiff<Block>(),
       connections: createEmptyEntityDiff<Connection>(),
       externalActors: createEmptyEntityDiff<ExternalActor>(),
+      rootChanges: [],
       summary: {
         totalChanges: 0,
         hasBreakingChanges: false,
@@ -185,11 +191,18 @@ export function computeArchitectureDiff(base: ArchitectureModel, head: Architect
     };
   }
 
+  const rootChanges = diffValues(normalizedBase, normalizedHead, '', ROOT_VOLATILE_PATHS)
+    .filter((change) => {
+      const rootKey = change.path.split('.')[0];
+      return !ROOT_ENTITY_PATHS.has(rootKey);
+    });
+
   const deltaWithoutSummary = {
     plates: compareEntityCollections(normalizedBase.plates, normalizedHead.plates),
     blocks: compareEntityCollections(normalizedBase.blocks, normalizedHead.blocks),
     connections: compareEntityCollections(normalizedBase.connections, normalizedHead.connections),
     externalActors: compareEntityCollections(normalizedBase.externalActors, normalizedHead.externalActors),
+    rootChanges,
   };
 
   return {

@@ -26,7 +26,7 @@ export function GitHubPR() {
   const cleanedTitle = title.trim();
   const cleanedBranch = branch.trim();
   const branchIsValid = !cleanedBranch || isValidGitBranchName(cleanedBranch);
-  const canSubmit = !loading && cleanedTitle.length > 0 && branchIsValid && hasBackendWorkspaceLink;
+  const canSubmit = !loading && cleanedTitle.length > 0 && commitMessage.trim().length > 0 && branchIsValid && hasBackendWorkspaceLink;
 
   if (!show) return null;
 
@@ -71,7 +71,7 @@ export function GitHubPR() {
     <div className="github-pr">
       <div className="github-pr-header">
         <h3 className="github-pr-title">🔀 Pull Request</h3>
-        <button className="github-pr-close" onClick={toggleGitHubPR} aria-label="Close pull request panel">
+        <button type="button" className="github-pr-close" onClick={toggleGitHubPR} aria-label="Close pull request panel">
           ✕
         </button>
       </div>
@@ -130,14 +130,19 @@ export function GitHubPR() {
             onChange={(e) => setCommitMessage(e.target.value)}
           />
 
-          <button className="github-pr-submit" onClick={handleSubmit} disabled={!canSubmit}>
+          <button type="button" className="github-pr-submit" onClick={handleSubmit} disabled={!canSubmit}>
             Create Pull Request
           </button>
 
           {result && (
-            <a className="github-pr-result-link" href={result.pull_request_url} target="_blank" rel="noreferrer">
-              {result.pull_request_url}
-            </a>
+            <div className="github-pr-result">
+              <div className="github-pr-result-info">
+                PR #{result.number} · Branch: <code>{result.branch}</code>
+              </div>
+              <a className="github-pr-result-link" href={result.pull_request_url} target="_blank" rel="noreferrer">
+                {result.pull_request_url}
+              </a>
+            </div>
           )}
         </div>
       )}

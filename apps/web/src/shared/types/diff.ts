@@ -21,6 +21,7 @@ export interface DiffDelta {
   blocks: EntityDiff<Block>;
   connections: EntityDiff<Connection>;
   externalActors: EntityDiff<ExternalActor>;
+  rootChanges: PropertyChange[];
   summary: {
     totalChanges: number;
     hasBreakingChanges: boolean;
