@@ -99,11 +99,7 @@ export const useWorkerStore = create<WorkerStoreState>((set, get) => ({
   },
 
   cancelBuild: () => {
-    set({
-      activeBuild: null,
-      buildQueue: [],
-      workerState: 'idle',
-    });
+    get().clearQueue();
   },
 
   setWorkerPosition: (pos) => {
