@@ -6,6 +6,8 @@ import type { GeneratedOutput, GenerationOptions, GeneratorId } from '../../feat
 import type { ProviderType } from '@cloudblocks/schema';
 import './CodePreview.css';
 
+const PROVIDERS: ProviderType[] = ['azure', 'aws', 'gcp'];
+
 const GENERATORS: { id: GeneratorId; label: string }[] = [
   { id: 'terraform', label: 'Terraform (HCL)' },
   { id: 'bicep', label: 'Bicep (Azure)' },
@@ -50,9 +52,8 @@ export function CodePreview() {
           return;
         }
 
-        const providers: ProviderType[] = ['azure', 'aws', 'gcp'];
         const generated = Object.fromEntries(
-          providers.map((provider) => {
+          PROVIDERS.map((provider) => {
             const options: GenerationOptions = { ...baseOptions, provider };
             return [provider, generateCode(architecture, options)];
           }),
@@ -85,7 +86,7 @@ export function CodePreview() {
         navigator.clipboard.writeText(file.content).catch(() => {});
       }
     } else if (comparisonOutputs) {
-      const texts = (['azure', 'aws', 'gcp'] as ProviderType[]).map((provider) => {
+      const texts = PROVIDERS.map((provider) => {
         const providerOutput = comparisonOutputs[provider];
         const file = providerOutput.files[activeTab] ?? providerOutput.files[0];
         return file ? `// --- ${provider.toUpperCase()} ---\n${file.content}` : '';
@@ -110,7 +111,7 @@ export function CodePreview() {
     if (output) {
       output.files.forEach((file) => downloadFile(file.content, file.path));
     } else if (comparisonOutputs) {
-      (['azure', 'aws', 'gcp'] as ProviderType[]).forEach((provider) => {
+      PROVIDERS.forEach((provider) => {
         comparisonOutputs[provider].files.forEach((file) =>
           downloadFile(file.content, `${provider}-${file.path}`)
         );
