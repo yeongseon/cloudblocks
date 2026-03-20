@@ -12,7 +12,7 @@ interface LayerVisuals {
   strokeWidth: number;       // border thickness (wider = more prominent)
   strokeOpacity: number;     // border visibility
   labelFontSize: number;     // label text size
-  emojiFontSize: number;     // emoji text size
+  emojiFontSize: number;     // icon display size (px)
   cornerRadius: number;      // 0 = sharp diamond, unused today (future use)
 }
 
@@ -67,7 +67,7 @@ export interface PlateSvgProps {
   leftSideColor: string;
   rightSideColor: string;
   label?: string;
-  emoji?: string;
+  iconUrl?: string;
 }
 
 // ─── Component ─────────────────────────────────────────────
@@ -83,7 +83,7 @@ export const PlateSvg = memo(function PlateSvg({
   leftSideColor,
   rightSideColor,
   label,
-  emoji,
+  iconUrl,
 }: PlateSvgProps) {
   // CU-based pixel conversion: 1 CU = 1 stud, rendered via TILE_W/H/Z
   const screenWidth = (studsX + studsY) * TILE_W / 2;
@@ -180,16 +180,15 @@ export const PlateSvg = memo(function PlateSvg({
         </text>
       ) : null}
 
-      {emoji ? (
-        <text
+      {iconUrl ? (
+        <image
+          href={iconUrl}
+          width={visuals.emojiFontSize}
+          height={visuals.emojiFontSize}
+          x={-visuals.emojiFontSize / 2}
+          y={-visuals.emojiFontSize / 2}
           transform={`matrix(0.8975,-0.4410,0,1,${rightLabelX},${wallCenterY})`}
-          fontFamily="system-ui, -apple-system, sans-serif"
-          fontSize={visuals.emojiFontSize}
-          textAnchor="middle"
-          dominantBaseline="middle"
-        >
-          {emoji}
-        </text>
+        />
       ) : null}
     </svg>
   );
