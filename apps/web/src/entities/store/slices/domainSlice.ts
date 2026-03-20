@@ -34,7 +34,10 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
   addPlate: (type, name, parentId, subnetAccess, profileId?: PlateProfileId) => {
     set((state) => {
       const arch = state.workspace.architecture;
-      if (parentId && !arch.plates.find((candidate) => candidate.id === parentId)) {
+      const parentPlate = parentId
+        ? arch.plates.find((candidate) => candidate.id === parentId)
+        : undefined;
+      if (parentId && !parentPlate) {
         return state;
       }
       const plate: Plate = {
@@ -53,7 +56,6 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       if (type === 'region') {
         plate.position = { x: 0, y: 0, z: 0 };
       } else if (parentId) {
-        const parentPlate = arch.plates.find((candidate) => candidate.id === parentId);
         const siblingsInParent = arch.plates.filter(
           (candidate) => candidate.parentId === parentId
         );
@@ -213,10 +215,22 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         (candidate) => candidate.placementId === sourceBlock.placementId
       );
 
-      const position = nextGridPosition(siblingsOnPlate, {
+      const unclampedPosition = nextGridPosition(siblingsOnPlate, {
         width: parentPlate.size.width,
         depth: parentPlate.size.depth,
       });
+
+      const clampedXZ = clampWithinParent(
+        { x: unclampedPosition.x, z: unclampedPosition.z },
+        parentPlate.size,
+        DEFAULT_BLOCK_SIZE,
+      );
+
+      const position = {
+        x: clampedXZ.x,
+        y: unclampedPosition.y,
+        z: clampedXZ.z,
+      };
 
       const newBlock: Block = {
         ...sourceBlock,
