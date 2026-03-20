@@ -486,7 +486,7 @@ Status: ✅ Delivered as part of Phase 9 — Visual Builder Evolution
 
 Features:
 
-- **Category Taxonomy Expansion** — Future expansion beyond current 8 categories to include Network, Compute, Data, Messaging, Security, and Edge
+- **Category Taxonomy Expansion** — Future expansion beyond current 10 categories to include Network, Compute, Data, Messaging, Security, and Edge
 - **Shape System** — Unique geometries: Tower (compute), Heavy Block (database/storage), Shield (gateway), Module (function/queue/event)
 - **Height System** — Tiered side wall heights (low/mid/high) to indicate resource scale or tier
 - **Visual Tokens** — Formal extraction of radius, shadow, border, and surface design tokens

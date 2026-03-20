@@ -113,7 +113,7 @@ my-cloud-project/
         "blocks": [],
         "connections": [],
         "externalActors": [
-          { "id": "ext-internet", "name": "Internet", "type": "internet" }
+          { "id": "ext-internet", "name": "Internet", "type": "internet", "position": { "x": -3, "y": 0, "z": 5 } }
         ],
         "createdAt": "2025-01-01T00:00:00Z",
         "updatedAt": "2025-01-01T00:00:00Z"
