@@ -89,6 +89,7 @@ nav:
       - ADR-0006 Graph IR Evolution: adr/0006-graph-ir-evolution-approach.md
       - ADR-0007 Multi-Environment Deployment: adr/0007-multi-environment-deployment-strategy.md
       - ADR-0008 v2.0 Universal Architecture Spec: adr/0008-v2-universal-architecture-specification.md
+      - ADR-0009 AI-Assisted Architecture: adr/0009-ai-assisted-architecture.md
   - Domain Model:
       - Domain Model: model/DOMAIN_MODEL.md
       - Storage Architecture: model/STORAGE_ARCHITECTURE.md
@@ -110,6 +111,7 @@ nav:
           - Doc Consistency Audit: design/DOC_CONSISTENCY_AUDIT_2026-03-19.md
   - Engine:
       - Code Generator: engine/generator.md
+      - AI Engine: engine/ai.md
       - Provider Adapters: engine/provider.md
       - Validation Rules: engine/rules.md
       - Templates: engine/templates.md

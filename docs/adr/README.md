@@ -14,6 +14,7 @@ This directory contains Architecture Decision Records (ADRs) for CloudBlocks. AD
 | [0006](0006-graph-ir-evolution-approach.md) | Graph IR evolution approach | Accepted | 2026-03 |
 | [0007](0007-multi-environment-deployment-strategy.md) | Multi-Environment Deployment Strategy | Accepted | 2026-03 |
 | [0008](0008-v2-universal-architecture-specification.md) | v2.0 Universal Architecture Specification | Accepted | 2026-03 |
+| [0009](0009-ai-assisted-architecture.md) | AI-Assisted Architecture | Accepted | 2026-03 |
 
 ## ADR Template
 
