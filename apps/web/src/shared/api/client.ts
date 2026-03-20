@@ -1,11 +1,16 @@
 const RAW_API_BASE_URL = import.meta.env.VITE_API_URL ?? '';
 
-function normalizeApiBaseUrl(rawBaseUrl: string): string {
-  const withoutTrailingSlashes = rawBaseUrl.replace(/\/+$/, '');
-  if (withoutTrailingSlashes.endsWith('/api')) {
-    return withoutTrailingSlashes.slice(0, -4);
-  }
+const API_V1_SUFFIX = '/api/v1';
+const API_SUFFIX = '/api';
 
+export function normalizeApiBaseUrl(rawBaseUrl: string): string {
+  const withoutTrailingSlashes = rawBaseUrl.replace(/\/+$/, '');
+  if (withoutTrailingSlashes.endsWith(API_V1_SUFFIX)) {
+    return withoutTrailingSlashes.slice(0, -API_V1_SUFFIX.length);
+  }
+  if (withoutTrailingSlashes.endsWith(API_SUFFIX)) {
+    return withoutTrailingSlashes.slice(0, -API_SUFFIX.length);
+  }
   return withoutTrailingSlashes;
 }
 
