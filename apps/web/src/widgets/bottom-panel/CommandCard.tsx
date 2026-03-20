@@ -29,7 +29,8 @@ import {
   type ActionType,
   type PlateActionType,
 } from './useTechTree';
-import { BLOCK_COLORS, BLOCK_FRIENDLY_NAMES, BLOCK_ICONS } from '../../shared/types/index';
+import { BLOCK_FRIENDLY_NAMES, BLOCK_ICONS } from '../../shared/types/index';
+import { getBlockColor } from '../../entities/block/blockFaceColors';
 import type { BlockCategory, Plate, ProviderType } from '@cloudblocks/schema';
 import './CommandCard.css';
 
@@ -104,7 +105,7 @@ function getCreationGroupMeta(groupId: CreationGroupId): { icon: string; label: 
   return {
     icon: BLOCK_ICONS[groupId],
     label: BLOCK_FRIENDLY_NAMES[groupId],
-    color: BLOCK_COLORS[groupId],
+    color: getBlockColor('azure', undefined, groupId),
   };
 }
 
