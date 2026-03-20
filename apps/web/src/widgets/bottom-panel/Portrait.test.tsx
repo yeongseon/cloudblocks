@@ -89,7 +89,7 @@ describe('Portrait', () => {
     expect(screen.getByText('CloudBlocks')).toBeInTheDocument();
   });
 
-  it('renders block portrait icon and friendly name', () => {
+  it('renders block portrait with actual block name and category icon', () => {
     useUIStore.setState({ selectedId: 'block-1' });
 
     render(<Portrait />);
@@ -97,9 +97,28 @@ describe('Portrait', () => {
     const blockImage = screen.getByRole('img', { name: 'Virtual Machine' });
     expect(blockImage).toBeInTheDocument();
     expect(blockImage).toHaveAttribute('src', 'vm.svg');
-    expect(screen.getByText('Virtual Machine')).toBeInTheDocument();
+    expect(screen.getByText('App VM')).toBeInTheDocument();
+    expect(screen.getByText('compute')).toBeInTheDocument();
   });
 
+  it('renders renamed block name in portrait', () => {
+    const renamedBlock: Block = { ...computeBlock, id: 'block-2', name: 'My Custom Server' };
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: { ...architectureFixture, blocks: [...architectureFixture.blocks, renamedBlock] },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+    useUIStore.setState({ selectedId: 'block-2' });
+
+    render(<Portrait />);
+
+    expect(screen.getByText('My Custom Server')).toBeInTheDocument();
+    expect(screen.getByText('compute')).toBeInTheDocument();
+  });
   it('renders region plate portrait with VNet icon', () => {
     useUIStore.setState({ selectedId: 'net-1' });
 
