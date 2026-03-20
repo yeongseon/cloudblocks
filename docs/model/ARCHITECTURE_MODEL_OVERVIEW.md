@@ -32,7 +32,7 @@ The architecture model provides a **provider-agnostic** representation of infras
 | **Workspace** | Top-level container for architecture projects | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §13 |
 | **Architecture** | Deployable infrastructure topology | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §14 |
 | **Plate** | Infrastructure boundary (Network / Subnet) | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §3 |
-| **Block** | Infrastructure resource (compute, database, storage, gateway) | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §4-5 |
+| **Block** | Infrastructure resource (compute, database, storage, gateway, function, queue, event, analytics, identity, observability) | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §4-5 |
 | **Application** | Software on hostable resources (nginx, nodejs, postgres) | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §4.5 |
 | **Connection** | Communication flow between blocks (initiator model) | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §6 |
 | **External Actor** | External endpoint (e.g., Internet) | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §6.1 |
@@ -130,7 +130,7 @@ IaC Generation (Terraform, Bicep, Pulumi)
 | Topic | Document |
 |-------|----------|
 | Domain model (canonical) | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) |
-| Visual sizing | [BRICK_DESIGN_SPEC.md](../design/BRICK_DESIGN_SPEC.md) |
+| Visual sizing | [CLOUDBLOCKS_SPEC_V2.md](../design/CLOUDBLOCKS_SPEC_V2.md) |
 | Rule engine | [rules.md](../engine/rules.md) |
 | Code generation | [generator.md](../engine/generator.md) |
 | Provider mapping | [provider.md](../engine/provider.md) |

@@ -42,7 +42,7 @@ Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks
 - **Magnetic snap & tactile UX** — Grid snapping, dynamic shadows, bounce transitions on drag (Phase 2 UX)
 - **Lego minifigure** — DevOps engineer character with Azure provider branding (Phase 3)
 - **Architecture diff** — Compare local vs GitHub architecture with visual overlays (Milestone 7)
-- **Cloud resource blocks (8 categories)** — compute, database, storage, gateway, function, queue, event, timer (Milestone 6)
+- **Cloud resource blocks (10 categories)** — compute, database, storage, gateway, function, queue, event, analytics, identity, observability (Milestone 6+)
 - **Block-to-block connections** — `dataflow`, `http`, `internal`, `data`, `async`
 - **Open source** — Apache 2.0 licensed, extend and contribute freely
 
@@ -99,8 +99,10 @@ cloudblocks/
 - **Gateway** — Public ingress and routing blocks
 - **Function** — Serverless execution blocks
 - **Queue** — Messaging and buffering blocks
-- **Event** — Event routing blocks
-- **Timer** — Scheduled trigger blocks
+- **Event** — Event routing and scheduled trigger blocks
+- **Analytics** — Data analytics and monitoring resources
+- **Identity** — Identity and access management resources
+- **Observability** — Logging, tracing, and observability resources
 
 ### Connections (5 Types)
 - **dataflow** — Directional traffic flow between components
@@ -112,7 +114,7 @@ cloudblocks/
 ```
 Internet → Gateway (dataflow) → Compute (data) → Database
                              → Storage
-Timer (async) → Function (async) → Event
+Event (dataflow) → Function (dataflow) → Storage
 ```
 
 ## Tech Stack

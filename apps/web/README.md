@@ -4,7 +4,7 @@ The main frontend application for CloudBlocks — a 2.5D isometric visual archit
 
 ## What This Package Does
 
-This is the **visual editor** where users design cloud architectures by placing plates (networks, subnets) and blocks (compute, database, storage, gateway, function, queue, event, timer) on a 2D model that is rendered as 2.5D isometric SVG. Connections between blocks represent initiator-direction semantics across typed protocols.
+This is the **visual editor** where users design cloud architectures by placing plates (networks, subnets) and blocks (compute, database, storage, gateway, function, queue, event, analytics, identity, observability) on a 2D model that is rendered as 2.5D isometric SVG. Connections between blocks represent initiator-direction semantics across typed protocols.
 
 ## Quick Start
 

@@ -62,6 +62,9 @@ Example:
 | database | azurerm_postgresql_flexible_server | aws_db_instance | google_sql_database_instance |
 | storage | azurerm_storage_account | aws_s3_bucket | google_storage_bucket |
 | gateway | azurerm_application_gateway | aws_lb | google_compute_backend_service |
+| function | azurerm_function_app | aws_lambda_function | google_cloudfunctions2_function |
+| queue | azurerm_servicebus_queue | aws_sqs_queue | google_pubsub_topic |
+| event | azurerm_eventgrid_topic | aws_eventbridge_rule | google_eventarc_trigger |
 
 ---
 

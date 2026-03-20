@@ -149,8 +149,11 @@ interface GeneratedOutput {
 interface GeneratedFile {
   path: string;      // e.g., "main.tf"
   content: string;   // file content
-  language: 'hcl' | 'json';
+  language: FileLanguage;
 }
+
+type KnownLanguage = 'hcl' | 'json' | 'bicep' | 'typescript';
+type FileLanguage = KnownLanguage | (string & {});  // extensible for yaml, etc.
 
 interface GenerationMetadata {
   generator: string;

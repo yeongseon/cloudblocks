@@ -99,7 +99,7 @@ No backend required. All state lives in the browser.
 │   React + TypeScript + SVG + CSS transforms + Zustand  │
 │   ┌──────────┐ ┌──────────┐ ┌────────────────────┐    │
 │   │ Isometric│ │ Rule     │ │ Local-First Store   │    │
-│   │ Builder  │ │ Engine   │ │ (IndexedDB/lS)      │    │
+│   │ Builder  │ │ Engine   │ │ (localStorage)      │    │
 │   └──────────┘ └──────────┘ └────────────────────┘    │
 └────────────────────┬───────────────────────────────────┘
                      │
@@ -147,7 +147,7 @@ The frontend is a SPA built with React and SVG + CSS transforms. In Milestone 1,
 - Drag and drop interaction
 - Code generation preview (client-side for simple cases)
 - GitHub sync UI (commit, branch, PR)
-- Local-first store (IndexedDB + localStorage)
+- Local-first store (localStorage)
 
 ### Technologies
 - React + TypeScript
@@ -305,16 +305,6 @@ GET  /api/v1/ai/keys                         → list stored key providers
 DELETE /api/v1/ai/keys/{provider}            → delete stored key
 ```
 
-Implemented auth/session routes:
-
-```
-POST /api/v1/auth/github                     -> returns { authorize_url }, sets cb_oauth cookie
-GET  /api/v1/auth/github/callback?code&state -> redirects, sets cb_session cookie
-GET  /api/v1/auth/session                    -> returns current user; clears stale cookie on 401
-POST /api/v1/auth/logout                     -> always 200; clears server session + cookie
-POST /api/v1/session/workspace               -> binds active workspace to session
-```
-
 ---
 
 # 3. Core Modeling Engine
@@ -358,7 +348,7 @@ The canonical model types are defined in `apps/web/src/shared/types/index.ts`. T
 
 ### Serialization Format
 
-- Serialization is versioned through `schemaVersion` and currently uses `"0.1.0"` (see `apps/web/src/shared/types/schema.ts`).
+- Serialization is versioned through `schemaVersion` and currently uses `"2.0.0"` (see `apps/web/src/shared/types/schema.ts`). Legacy versions `0.1.0`/`0.2.0` are explicitly rejected.
 - The persisted root payload shape is `{ schemaVersion, workspaces[] }`, where each workspace contains one `architecture: ArchitectureModel`.
 - For broader domain semantics and lifecycle rules, see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md).
 
@@ -376,15 +366,22 @@ The validation engine is split into focused modules:
 
 ```
 apps/web/src/entities/validation/
-├── engine.ts       # validateArchitecture(model): orchestration entrypoint
-├── placement.ts    # validatePlacement(block, plate): placement rule checks
-└── connection.ts   # validateConnection(connection, blocks, externalActors): flow rule checks
+├── engine.ts              # validateArchitecture(model): orchestration entrypoint
+├── placement.ts           # validatePlacement(block, plate): placement rule checks
+├── connection.ts          # validateConnection(conn, blocks, actors): flow rule checks
+├── aggregation.ts         # validateAggregation(block): cluster count checks
+├── role.ts                # validateRoles(block): role validity and uniqueness
+└── providerValidation.ts  # validateProviderRules(model): provider-specific hints
 ```
 
-Validation flow in `engine.ts`:
-- Iterate all blocks and run placement rules from `placement.ts`
-- Iterate all connections and run connection rules from `connection.ts`
-- Aggregate errors/warnings into one `ValidationResult`
+Validation flow in `engine.ts` (5-pass pipeline):
+1. **Placement** — iterate all blocks and run placement rules (`placement.ts`)
+2. **Aggregation** — validate block aggregation counts (`aggregation.ts`)
+3. **Roles** — check role validity and uniqueness (`role.ts`)
+4. **Connection** — validate all connections for initiator semantics (`connection.ts`)
+5. **Provider** — run provider-specific hints and warnings (`providerValidation.ts`)
+
+Results are merged into one `ValidationResult`.
 
 > For the complete rule set (placement rules, connection rules, and connection semantics), see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md) §7 (Rule Engine).
 
@@ -541,19 +538,19 @@ The storage follows a **Git-native** design: GitHub repos serve as the primary d
 
 Milestone 1 uses browser localStorage for persistence. Storage key: `cloudblocks:workspaces`.
 
-The persisted format uses `schemaVersion: "0.1.0"` with a `workspaces[]` array, each containing a single `architecture: ArchitectureModel` object.
+The persisted format uses `schemaVersion: "2.0.0"` with a `workspaces[]` array, each containing a single `architecture: ArchitectureModel` object. Legacy versions `0.1.0`/`0.2.0` are rejected at load time.
 
 > For the full workspace model and serialization format, see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md) §13 (Workspace Model) and §14 (Implementation Schema).
 
 ### Milestone 3+ Storage (Local-First + GitHub Sync — Planned)
 
-IndexedDB for local state + optional GitHub sync:
+Planned: IndexedDB for local state + optional GitHub sync (not yet implemented — currently localStorage only):
 
 ```
-Local (IndexedDB)     ←→    GitHub (via Backend API)
-  architecture.json          cloudblocks/architecture.json
-  draft changes              committed versions
-  offline edits              synced on connect
+Local (planned: IndexedDB)  ←→    GitHub (via Backend API)
+  architecture.json               cloudblocks/architecture.json
+  draft changes                   committed versions
+  offline edits                   synced on connect
 ```
 
 - Anonymous/offline editing always works

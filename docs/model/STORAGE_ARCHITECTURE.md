@@ -89,31 +89,37 @@ my-cloud-project/
 
 ```json
 {
-  "schemaVersion": "0.1.0",
-  "architecture": {
-    "id": "arch-abc123",
-    "name": "3-Tier Web App",
-    "version": "1",
-    "plates": [
-      {
-        "id": "plate-vnet01",
-        "name": "Main Network",
-        "type": "network",
-        "parentId": null,
-        "children": ["plate-subnet-pub", "plate-subnet-priv"],
-        "position": { "x": 0, "y": 0, "z": 0 },
-        "size": { "width": 10, "height": 0.3, "depth": 10 },
-        "metadata": {}
+  "schemaVersion": "2.0.0",
+  "workspaces": [
+    {
+      "id": "ws-abc123",
+      "name": "My Workspace",
+      "architecture": {
+        "id": "arch-abc123",
+        "name": "3-Tier Web App",
+        "version": "1",
+        "plates": [
+          {
+            "id": "plate-vnet01",
+            "name": "Main Network",
+            "type": "region",
+            "parentId": null,
+            "children": ["plate-subnet-pub", "plate-subnet-priv"],
+            "position": { "x": 0, "y": 0, "z": 0 },
+            "size": { "width": 12, "height": 0.3, "depth": 10 },
+            "metadata": {}
+          }
+        ],
+        "blocks": [],
+        "connections": [],
+        "externalActors": [
+          { "id": "ext-internet", "name": "Internet", "type": "internet", "position": { "x": -3, "y": 0, "z": 5 } }
+        ],
+        "createdAt": "2025-01-01T00:00:00Z",
+        "updatedAt": "2025-01-01T00:00:00Z"
       }
-    ],
-    "blocks": [],
-    "connections": [],
-    "externalActors": [
-      { "id": "ext-internet", "name": "Internet", "type": "internet" }
-    ],
-    "createdAt": "2025-01-01T00:00:00Z",
-    "updatedAt": "2025-01-01T00:00:00Z"
-  }
+    }
+  ]
 }
 ```
 
@@ -134,44 +140,49 @@ CREATE TABLE IF NOT EXISTS users (
     email           TEXT,
     display_name    TEXT,
     avatar_url      TEXT,
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 -- Migration 001: Identity providers (multi-provider auth)
 CREATE TABLE IF NOT EXISTS identities (
-    id              TEXT PRIMARY KEY,
-    user_id         TEXT NOT NULL REFERENCES users(id),
-    provider        TEXT NOT NULL,   -- 'github', 'google'
-    provider_id     TEXT NOT NULL,
-    access_token_hash TEXT,          -- hashed, not plaintext
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    id                     TEXT PRIMARY KEY,
+    user_id                TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    provider               TEXT NOT NULL,   -- 'github', 'google'
+    provider_id            TEXT NOT NULL,
+    access_token_hash      TEXT,
+    encrypted_access_token TEXT,
+    refresh_token_hash     TEXT,
+    created_at             TEXT NOT NULL DEFAULT (datetime('now')),
     UNIQUE(provider, provider_id)
 );
 
 -- Migration 002: Workspace index — pointers to GitHub repos, not full data
 CREATE TABLE IF NOT EXISTS workspaces (
     id              TEXT PRIMARY KEY,
-    owner_id        TEXT NOT NULL REFERENCES users(id),
+    owner_id        TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name            TEXT NOT NULL,
     github_repo     TEXT,            -- e.g. 'yeongseon/my-infra'
     github_branch   TEXT DEFAULT 'main',
-    last_synced_at  TIMESTAMP,
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    generator       TEXT DEFAULT 'terraform',
+    provider        TEXT DEFAULT 'azure',
+    last_synced_at  TEXT,
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 -- Migration 002: Generation run log (job tracking)
 CREATE TABLE IF NOT EXISTS generation_runs (
     id              TEXT PRIMARY KEY,
-    workspace_id    TEXT NOT NULL REFERENCES workspaces(id),
+    workspace_id    TEXT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     status          TEXT NOT NULL DEFAULT 'pending',  -- pending, running, completed, failed
     generator       TEXT NOT NULL,                    -- 'terraform', 'bicep', 'pulumi'
     commit_sha      TEXT,
-    started_at      TIMESTAMP,
-    completed_at    TIMESTAMP,
+    pull_request_url TEXT,
     error_message   TEXT,
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    started_at      TEXT,
+    completed_at    TEXT,
+    created_at      TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 -- Migration 003: Add encrypted token storage for GitHub OAuth

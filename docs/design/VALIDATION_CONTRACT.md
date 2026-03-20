@@ -45,10 +45,11 @@ Placement rules validate that blocks are placed on appropriate plates.
 | `rule-gw-public` | error | Gateway block not on a `subnet` plate with `subnetAccess: "public"` | Gateway block must be placed on a public Subnet Plate |
 | `rule-storage-subnet` | error | Storage block not on a `subnet` plate | Storage block must be placed on a Subnet Plate |
 | `rule-serverless-network` | error | `function`, `queue`, or `event` block not on a `region` plate | Serverless blocks (function/queue/event) must be placed on a Region Plate |
+| `rule-analytics-subnet` | error | `analytics` block not on a `subnet` plate | Analytics block must be placed on a Subnet Plate |
+| `rule-identity-subnet` | error | `identity` block not on a `subnet` plate | Identity block must be placed on a Subnet Plate |
+| `rule-observability-subnet` | error | `observability` block not on a `subnet` plate | Observability block must be placed on a Subnet Plate |
 
-> **Note on timer-like triggers**: The current model does not define a separate `timer` block category. Timer-based behavior is represented as a subtype/configuration of existing `event` blocks (for example, a timer-triggered event), and such blocks are validated by `rule-serverless-network` like other `event` blocks.
-
-> **Note on Timer blocks**: `timer` blocks are not currently validated by `rule-serverless-network` and fall through to the default (unvalidated) state in the current implementation.
+> **Note on timer-like triggers**: The domain model does not define a separate `timer` block category (`BlockCategory` has no `timer` value). Timer-based behavior is represented as `event` blocks with a timer subtype/name (e.g., `category: 'event'`, `name: 'Scheduled Trigger'`), and such blocks are validated by `rule-serverless-network` like any other `event` block.
 
 ### 3.1 v2.0 Layer Hierarchy Rules
 
