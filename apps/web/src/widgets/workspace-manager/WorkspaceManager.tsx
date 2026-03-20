@@ -44,7 +44,7 @@ export function WorkspaceManager() {
     <div className="workspace-manager">
       <div className="workspace-manager-header">
         <h3 className="workspace-manager-title">📂 Workspaces</h3>
-        <button className="workspace-manager-close" onClick={toggleWorkspaceManager}>
+        <button className="workspace-manager-close" onClick={toggleWorkspaceManager} aria-label="Close workspace manager panel">
           ✕
         </button>
       </div>
@@ -60,7 +60,7 @@ export function WorkspaceManager() {
             if (e.key === 'Enter') handleCreate();
           }}
         />
-        <button className="workspace-manager-create-btn" onClick={handleCreate}>
+        <button className="workspace-manager-create-btn" onClick={handleCreate} disabled={!newName.trim()}>
           + Create
         </button>
       </div>

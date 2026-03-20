@@ -62,7 +62,7 @@ export function GitHubRepos() {
     <div className="github-repos">
       <div className="github-repos-header">
         <h3 className="github-repos-title">📦 GitHub Repos</h3>
-        <button className="github-repos-close" onClick={toggleGitHubRepos}>
+        <button className="github-repos-close" onClick={toggleGitHubRepos} aria-label="Close GitHub repos panel">
           ✕
         </button>
       </div>
@@ -92,7 +92,7 @@ export function GitHubRepos() {
               />
               <span>Private repository</span>
             </label>
-            <button className="github-repos-create-btn" onClick={handleCreateRepo} disabled={creating}>
+            <button className="github-repos-create-btn" onClick={handleCreateRepo} disabled={creating || !newRepoName.trim()}>
               Create
             </button>
           </div>

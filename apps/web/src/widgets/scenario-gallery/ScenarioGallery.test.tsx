@@ -151,7 +151,7 @@ describe('ScenarioGallery', () => {
   it('close button toggles gallery off', () => {
     useUIStore.setState({ showScenarioGallery: true });
     render(<ScenarioGallery />);
-    fireEvent.click(screen.getByRole('button', { name: '✕' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Close scenario gallery' }));
     expect(useUIStore.getState().showScenarioGallery).toBe(false);
   });
 
@@ -175,6 +175,30 @@ describe('ScenarioGallery', () => {
     expect(screen.queryByText('Serverless HTTP API')).not.toBeInTheDocument();
 
     unmount();
+    render(<ScenarioGallery />);
+
+    expect(screen.getByText('Build a Three-Tier Web Application')).toBeInTheDocument();
+    expect(screen.getByText('Serverless HTTP API')).toBeInTheDocument();
+    expect(screen.getByText('Event-Driven Data Pipeline')).toBeInTheDocument();
+  });
+
+  it('resets difficulty filter to All after starting a scenario', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ showScenarioGallery: true });
+    const { unmount } = render(<ScenarioGallery />);
+
+    await user.click(screen.getByRole('button', { name: 'Beginner' }));
+    expect(screen.queryByText('Serverless HTTP API')).not.toBeInTheDocument();
+
+    const card = screen.getByText('Build a Three-Tier Web Application').closest('.scenario-gallery-card');
+    if (!(card instanceof HTMLElement)) {
+      throw new Error('Expected scenario card');
+    }
+    await user.click(within(card).getByRole('button', { name: 'Start' }));
+
+    unmount();
+    useUIStore.setState({ showScenarioGallery: true });
+    registerBuiltinScenarios();
     render(<ScenarioGallery />);
 
     expect(screen.getByText('Build a Three-Tier Web Application')).toBeInTheDocument();

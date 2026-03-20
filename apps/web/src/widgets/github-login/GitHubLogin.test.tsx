@@ -65,7 +65,7 @@ describe('GitHubLogin', () => {
     expect(window.location.href).toContain('#oauth-callback');
   });
 
-  it('sign out calls logout from authStore', async () => {
+  it('sign out calls logout from authStore and closes panel', async () => {
     const user = userEvent.setup();
     const logoutMock = vi.fn();
     useAuthStore.setState({
@@ -84,6 +84,7 @@ describe('GitHubLogin', () => {
     await user.click(screen.getByRole('button', { name: 'Sign Out' }));
 
     expect(logoutMock).toHaveBeenCalledOnce();
+    expect(useUIStore.getState().showGitHubLogin).toBe(false);
   });
 
   it('shows error when sign in fails', async () => {
@@ -106,7 +107,7 @@ describe('GitHubLogin', () => {
     expect(await screen.findByText('Failed to start GitHub login.')).toBeInTheDocument();
   });
 
-  it('shows user info without avatar', () => {
+  it('shows user info without avatar, falls back to github_username', () => {
     useAuthStore.setState({
       status: 'authenticated',
       user: {
@@ -119,9 +120,25 @@ describe('GitHubLogin', () => {
     });
 
     render(<GitHubLogin />);
-    expect(screen.getByText('Unknown User')).toBeInTheDocument();
+    expect(screen.getByText('octocat')).toBeInTheDocument();
     expect(screen.getByText('@octocat')).toBeInTheDocument();
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
+  });
+
+  it('shows Unknown User when both display_name and github_username are null', () => {
+    useAuthStore.setState({
+      status: 'authenticated',
+      user: {
+        id: 'user-1',
+        github_username: null,
+        email: null,
+        display_name: null,
+        avatar_url: null,
+      },
+    });
+
+    render(<GitHubLogin />);
+    expect(screen.getByText('Unknown User')).toBeInTheDocument();
   });
 
   it('shows user info without github username', () => {
@@ -141,10 +158,11 @@ describe('GitHubLogin', () => {
     expect(screen.getByText('@unknown')).toBeInTheDocument();
   });
 
-  it('close button toggles panel', async () => {
+  it('close button has accessible label and toggles panel', async () => {
     const user = userEvent.setup();
     render(<GitHubLogin />);
-    await user.click(screen.getByText('✕'));
+    const closeBtn = screen.getByRole('button', { name: 'Close GitHub login panel' });
+    await user.click(closeBtn);
     expect(useUIStore.getState().showGitHubLogin).toBe(false);
   });
 
