@@ -79,26 +79,43 @@ export function CodePreview() {
   };
 
   const handleCopyFile = () => {
-    if (!output) return;
-    const file = output.files[activeTab];
-    if (file && navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(file.content).catch(() => {
-        // Clipboard API may fail in some contexts
-      });
+    if (output) {
+      const file = output.files[activeTab];
+      if (file && navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(file.content).catch(() => {});
+      }
+    } else if (comparisonOutputs) {
+      const texts = (['azure', 'aws', 'gcp'] as ProviderType[]).map((provider) => {
+        const providerOutput = comparisonOutputs[provider];
+        const file = providerOutput.files[activeTab] ?? providerOutput.files[0];
+        return file ? `// --- ${provider.toUpperCase()} ---\n${file.content}` : '';
+      }).filter(Boolean).join('\n\n');
+      if (texts && navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(texts).catch(() => {});
+      }
     }
   };
 
   const handleDownloadAll = () => {
-    if (!output) return;
-    output.files.forEach((file) => {
-      const blob = new Blob([file.content], { type: 'text/plain' });
+    const downloadFile = (content: string, path: string) => {
+      const blob = new Blob([content], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = file.path;
+      a.download = path;
       a.click();
       URL.revokeObjectURL(url);
-    });
+    };
+
+    if (output) {
+      output.files.forEach((file) => downloadFile(file.content, file.path));
+    } else if (comparisonOutputs) {
+      (['azure', 'aws', 'gcp'] as ProviderType[]).forEach((provider) => {
+        comparisonOutputs[provider].files.forEach((file) =>
+          downloadFile(file.content, `${provider}-${file.path}`)
+        );
+      });
+    }
   };
 
   const selectedGenerator = GENERATORS.find((g) => g.id === generator);
