@@ -62,6 +62,15 @@ export function CodePreview() {
 
   const effectiveCompare = compareProviders && canCompareProviders;
 
+  const mismatchedProviders = architecture.blocks
+    .filter((block) => block.provider && block.provider !== activeProvider)
+    .reduce((acc, block) => {
+      const p = block.provider ?? 'unknown';
+      acc.set(p, (acc.get(p) ?? 0) + 1);
+      return acc;
+    }, new Map<string, number>());
+  const hasMismatch = mismatchedProviders.size > 0;
+
   const clearGeneratedState = () => {
     setError(null);
     setOutput(null);
@@ -215,6 +224,11 @@ export function CodePreview() {
       </div>
 
       <div className="code-preview-options">
+        {hasMismatch && (
+          <div className="code-preview-mismatch-warning" role="alert">
+            ⚠️ Canvas has {Array.from(mismatchedProviders.entries()).map(([p, count]) => `${count} ${p.toUpperCase()}`).join(', ')} block(s) but generating for {activeProvider.toUpperCase()}. Use &quot;Compare&quot; to see all providers.
+          </div>
+        )}
         <label className="code-preview-field">
           <span className="code-preview-field-label">Generator</span>
           <select

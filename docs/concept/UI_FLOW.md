@@ -1,6 +1,6 @@
 # CloudBlocks UI Flow
 
-> Describes the actual user interaction flows implemented in CloudBlocks (Milestones 1–8).
+> Describes the actual user interaction flows implemented in CloudBlocks (Milestones 1–18).
 
 ---
 
@@ -225,12 +225,56 @@ The Bottom Panel provides context-sensitive controls:
 
 ---
 
+## 9. Cloud Provider Switching
+
+CloudBlocks supports three cloud providers: **Azure**, **AWS**, and **GCP**. The active provider is a global UI toggle that controls which resources are available and how new blocks are tagged.
+
+### Provider Toggle
+
+The **MenuBar** displays three provider tabs (Azure / AWS / GCP). Clicking a tab switches the active provider context.
+
+| What Changes | Description |
+|-------------|-------------|
+| **Resource palette** | CommandCard filters available resources by provider |
+| **New blocks** | Newly created blocks are tagged with the active provider |
+| **Minifigure** | Worker character changes appearance to match the active provider |
+| **Code generation** | CodePreview generates IaC for the active provider |
+| **Drag ghost** | Shows the active provider name during drag operations |
+
+### Provider Safety Guards
+
+| Guard | When |
+|-------|------|
+| **Switch confirmation dialog** | Shown when canvas has blocks from a provider other than the one being switched to |
+| **Block provider badge** | Each block displays a small provider indicator (Az / AW / GC) on its sprite |
+| **CodePreview mismatch warning** | Shown when the active provider differs from existing blocks' provider tags |
+
+### Existing Block Behavior
+
+- **Blocks retain their original provider** — switching providers does NOT change existing blocks
+- **Mixed-provider architectures** are allowed — the system warns but does not prevent mixing
+- Each block's provider is set at creation time and stored in the architecture model (`Block.provider`)
+
+### Architecture
+
+```
+activeProvider (uiStore — global UI toggle)
+  ├── MenuBar          → Provider tab buttons (with confirmation dialog)
+  ├── SceneCanvas      → New blocks tagged with activeProvider
+  ├── CommandCard      → Resource list filtered by provider
+  ├── CodePreview      → IaC generation + mismatch warning
+  ├── MinifigureSprite → Character appearance matches provider
+  └── DragGhost        → Provider name during drag
+```
+
+---
+
 ## Future Extensions
 
 Planned capabilities for upcoming milestones:
 
-- **Provider mode toggle** — Multi-cloud context switching in the toolbar (Milestone 9)
-- **DevOps minifigure** — Interactive worker character with build animations (Milestone 10)
+- **Plate-level provider binding** — Each plate (VPC/resource group) owns its provider, blocks inherit from parent plate
+- **Cross-provider validation** — Warnings for invalid cross-provider connections
 - **Terraform pipeline** — Direct deployment from the builder (Milestone 13)
 - **AI-powered tutoring** — Intelligent architecture suggestions (Milestone 14)
 - **Collaborative editing** — Real-time multi-user architecture building
