@@ -54,9 +54,15 @@ export function ValidationPanel() {
         </div>
       )}
 
-      {validationResult.valid && (
+      {validationResult.valid && validationResult.warnings.length === 0 && (
         <div className="validation-success">
           ✅ Architecture is valid! No rule violations detected.
+        </div>
+      )}
+
+      {validationResult.valid && validationResult.warnings.length > 0 && (
+        <div className="validation-success">
+          ✅ No blocking errors detected.
         </div>
       )}
     </div>

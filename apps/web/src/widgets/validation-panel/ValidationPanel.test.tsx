@@ -171,6 +171,30 @@ describe('ValidationPanel', () => {
     expect(screen.queryByText(/Warnings/)).not.toBeInTheDocument();
   });
 
+  it('shows "No blocking errors detected" when valid with warnings', () => {
+    const result: ValidationResult = {
+      valid: true,
+      errors: [],
+      warnings: [
+        {
+          ruleId: 'warn-001',
+          severity: 'warning',
+          message: 'Database has no connections',
+          targetId: 'block-2',
+        },
+      ],
+    };
+    useUIStore.setState({ showValidation: true });
+    useArchitectureStore.setState({ validationResult: result });
+    render(<ValidationPanel />);
+    expect(
+      screen.getByText(/No blocking errors detected/)
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/No rule violations detected/)
+    ).not.toBeInTheDocument();
+  });
+
   it('renders multiple errors', () => {
     const result: ValidationResult = {
       valid: false,
