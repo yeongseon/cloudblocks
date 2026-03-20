@@ -1,98 +1,63 @@
 # Architecture Rule Engine
 
-CloudBlocks validates architecture models using a rule engine.
+> **Status**: Supporting — see [VALIDATION_CONTRACT.md](../design/VALIDATION_CONTRACT.md) for the canonical rule set.
 
-**Goal:** Detect invalid or insecure architectures before infrastructure deployment.
+CloudBlocks validates architecture models using a rules-based system. This document provides a high-level overview of the engine's purpose and architecture. For the complete list of implemented validation rules, refer to the [Validation Contract](../design/VALIDATION_CONTRACT.md).
 
 ---
 
-## Rule Types
+## Purpose
 
-### Network Rules
-
-**Example invalid pattern:**
-
-```
-database → internet
-```
-
-Database should not be publicly exposed.
-
-### Security Rules
-
-**Example:**
-
-```
-database must be inside private subnet
-```
-
-### Architecture Rules
-
-**Example best practice:**
-
-```
-internet → gateway → compute → database
-```
+The goal of the rule engine is to detect invalid or insecure architectures during the design phase, before any infrastructure-as-code is generated or deployed.
 
 ---
 
 ## Rule Execution Flow
 
 ```
-model
-  ↓
-rule-engine
-  ↓
-validation result
+Visual Architecture Model
+          ↓
+  Rule Engine (Orchestrator)
+          ↓
+  Validation Passes (Placement, Role, Connection, etc.)
+          ↓
+  Validation Result (Errors and Warnings)
 ```
 
 ---
 
-## Rule Result
+## Validation Result
 
-```json
-{
-  "valid": false,
-  "errors": [],
-  "warnings": []
-}
-```
+The engine produces a unified `ValidationResult` containing:
+
+- **valid**: boolean (true if zero errors)
+- **errors**: blocking violations that prevent code generation
+- **warnings**: non-blocking suggestions or security hints
 
 ---
 
-## Rule Sources
+## Current Implementation
 
-Rules can originate from:
+The rule engine is implemented as a set of focused modules that run in-browser after any architecture mutation.
 
-- **Built-in rules** — shipped with CloudBlocks
-- **Custom organization rules** — defined per-team or per-project
-- **Security frameworks** — external policy integrations
+- **Placement validation** — ensures blocks are on compatible plates.
+- **Connection validation** — enforces client-server initiator semantics.
+- **Role and Aggregation validation** — checks resource identity and scaling.
+- **Provider-specific hints** — warns about provider-specific best practices.
 
----
+### Implementation Reference
 
-## Current Implementation (Milestone 1)
-
-The MVP rule engine runs in-browser and validates:
-
-- **Placement rules** — blocks must be on valid plate types (e.g., database on private subnet)
-- **Connection rules** — pure initiator model (`internet → gateway → compute → database/storage`)
-- **Auto-validation** — debounced (300ms) after architecture mutations
-
-See [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md) §Connection Rules for the current rule set.
-
----
-
-## Future Direction
-
-Potential integrations:
-
-- Open Policy Agent (OPA)
-- Security scanning
-- Cloud best practice frameworks
+For the full implementation, see the following source files:
+- `apps/web/src/entities/validation/engine.ts` (Orchestrator)
+- `apps/web/src/entities/validation/placement.ts`
+- `apps/web/src/entities/validation/connection.ts`
+- `apps/web/src/entities/validation/aggregation.ts`
+- `apps/web/src/entities/validation/role.ts`
+- `apps/web/src/entities/validation/providerValidation.ts`
 
 ---
 
 > **Cross-references:**
-> - Architecture model: [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)
-> - Domain model rules: [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)
-> - Generator pipeline: [generator.md](./generator.md)
+> - Canonical Rule Set: [VALIDATION_CONTRACT.md](../design/VALIDATION_CONTRACT.md)
+> - Domain Model: [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)
+> - Generator Pipeline: [generator.md](./generator.md)
