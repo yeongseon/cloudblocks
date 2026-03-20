@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { confirmDialog } from '../../shared/ui/ConfirmDialog';
@@ -6,6 +6,13 @@ import './WorkspaceManager.css';
 
 export function WorkspaceManager() {
   const show = useUIStore((s) => s.showWorkspaceManager);
+
+  if (!show) return null;
+
+  return <WorkspaceManagerContent />;
+}
+
+function WorkspaceManagerContent() {
   const toggleWorkspaceManager = useUIStore((s) => s.toggleWorkspaceManager);
 
   const workspace = useArchitectureStore((s) => s.workspace);
@@ -17,15 +24,6 @@ export function WorkspaceManager() {
   const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
 
   const [newName, setNewName] = useState('');
-
-  // Reset draft input when panel opens
-  useEffect(() => {
-    if (show) {
-      setNewName('');
-    }
-  }, [show]);
-
-  if (!show) return null;
 
   // Build a combined list: current workspace is always included
   const allWorkspaces = workspaces.find((ws) => ws.id === workspace.id)
