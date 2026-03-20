@@ -78,9 +78,26 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 
 ## Roadmap
 
-Current version: **v0.16.0** — 16 milestones completed covering visual builder, multi-cloud code generation (Terraform/Bicep/Pulumi), AI-assisted architecture, brick design system, and documentation site.
+| Version | Milestone | Status |
+|---------|-----------|--------|
+| v0.0.0 | Concept Validation | ✅ |
+| v0.4.0 | Milestones 1–4 (MVP → Workspace Management) | ✅ |
+| v0.5.0 | GitHub Integration & Backend API | ✅ |
+| v0.6.0 | Multi-Generator + Template Marketplace | ✅ |
+| v0.7.0 | Collaboration + UX Polish + Auth Migration | ✅ |
+| v0.8.0 | Multi-Cloud Platform | ✅ |
+| v0.9.0 | UX Core Hardening | ✅ |
+| v0.10.0 | External Actors & DevOps UX | ✅ |
+| v0.11.0 | Brick Design System | ✅ |
+| v0.12.0 | Core Model & Provider System | ✅ |
+| v0.13.0 | Terraform Pipeline | ✅ |
+| v0.14.0 | AI-Assisted Architecture | ✅ |
+| v0.15.0 | v2.0 Specification Implementation | ✅ |
+| v0.16.0 | Documentation Architecture | ✅ |
+| v0.17.0 | Product Structure | 🔄 |
+| v0.18.0 | DevOps UX | 🔄 |
 
-See [CHANGELOG.md](CHANGELOG.md) for release history and [full roadmap](docs/concept/ROADMAP.md) for milestone details.
+See [CHANGELOG.md](CHANGELOG.md) for release details and [full roadmap](docs/concept/ROADMAP.md) for milestone breakdown.
 
 ## Contributing
 
