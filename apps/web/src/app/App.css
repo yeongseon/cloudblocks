@@ -28,3 +28,15 @@
   padding-right: 320px;
   transition: padding-right 0.3s ease;
 }
+
+/* Build Order open: shift canvas content left */
+.canvas-container.build-order-active {
+  padding-right: 380px;
+  transition: padding-right 0.3s ease;
+}
+
+@media (max-width: 899px) {
+  .canvas-container.build-order-active {
+    padding-right: 0;
+  }
+}

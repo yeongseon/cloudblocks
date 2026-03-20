@@ -16,6 +16,9 @@
 
 /* Header */
 .command-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 8px 12px;
   font-size: 12px;
   font-weight: 800;
@@ -25,6 +28,34 @@
   background-color: #FFD500;
   border-bottom: 3px solid #D4B200;
   box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.5);
+}
+
+.command-card-header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.command-card-collapse-btn {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 800;
+  color: #222222;
+  line-height: 1;
+  padding: 0;
+  transition: background 0.15s ease;
+}
+
+.command-card-collapse-btn:hover {
+  background: rgba(0, 0, 0, 0.2);
 }
 
 /* Grid container */
@@ -116,6 +147,34 @@
   align-items: flex-start;
   gap: 3px;
   padding: 7px 8px;
+}
+
+.command-card--worker-mode .command-card-grid {
+  gap: 4px;
+  padding: 6px;
+}
+
+.command-card--worker-mode .command-card-creation-groups {
+  gap: 6px;
+}
+
+.command-card--worker-mode .command-card-category-group {
+  gap: 4px;
+  padding: 4px;
+}
+
+.command-card--worker-mode .command-card-category-header {
+  padding: 2px 5px;
+}
+
+.command-card--worker-mode .command-card-resource-btn {
+  min-height: 50px;
+  gap: 2px;
+  padding: 5px 6px;
+}
+
+.command-card--worker-mode .command-btn-icon {
+  font-size: 16px;
 }
 
 .command-card-resource-btn .command-btn-hotkey {
