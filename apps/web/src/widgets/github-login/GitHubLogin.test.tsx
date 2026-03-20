@@ -65,9 +65,9 @@ describe('GitHubLogin', () => {
     expect(window.location.href).toContain('#oauth-callback');
   });
 
-  it('sign out calls setAnonymous', async () => {
+  it('sign out calls logout from authStore', async () => {
     const user = userEvent.setup();
-    const setAnonymousSpy = vi.spyOn(useAuthStore.getState(), 'setAnonymous');
+    const logoutMock = vi.fn();
     useAuthStore.setState({
       status: 'authenticated',
       user: {
@@ -77,15 +77,13 @@ describe('GitHubLogin', () => {
         display_name: 'The Octocat',
         avatar_url: null,
       },
+      logout: logoutMock,
     });
-    mockApiPost.mockResolvedValueOnce({ message: 'ok' });
 
     render(<GitHubLogin />);
     await user.click(screen.getByRole('button', { name: 'Sign Out' }));
 
-    expect(mockApiPost).toHaveBeenCalledWith('/api/v1/auth/logout');
-    expect(setAnonymousSpy).toHaveBeenCalledOnce();
-    setAnonymousSpy.mockRestore();
+    expect(logoutMock).toHaveBeenCalledOnce();
   });
 
   it('shows error when sign in fails', async () => {
@@ -169,5 +167,21 @@ describe('GitHubLogin', () => {
     });
     render(<GitHubLogin />);
     expect(screen.getByText('OAuth failed')).toBeInTheDocument();
+  });
+
+  it('resets local state on remount (simulating panel close and reopen)', async () => {
+    const user = userEvent.setup();
+    mockApiPost.mockRejectedValueOnce(new Error('Server down'));
+
+    const { unmount } = render(<GitHubLogin />);
+    await user.click(screen.getByRole('button', { name: 'Sign in with GitHub' }));
+    expect(await screen.findByText('Server down')).toBeInTheDocument();
+
+    unmount();
+    useAuthStore.setState({ error: null });
+    render(<GitHubLogin />);
+
+    expect(screen.queryByText('Server down')).not.toBeInTheDocument();
+    expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
   });
 });

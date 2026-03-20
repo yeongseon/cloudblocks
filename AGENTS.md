@@ -91,6 +91,7 @@ zundo        — Zustand undo/redo middleware
   - roadmap implementation: `Milestone -> Epic -> Sub-issue -> Branch -> PR`
   - small fixes, docs, and maintenance: `Issue -> Branch -> PR`
 - Current roadmap work is tracked under [open milestones](https://github.com/yeongseon/cloudblocks/milestones). Use `gh milestone list` to find the active milestone and its Epic issues.
+- Before starting work on any issue, always check the assignee first. If the issue is already assigned to someone else, do not pick it up — choose a different issue or ask the user. If unassigned, assign yourself (`gh issue edit <number> --add-assignee @me`) before starting work.
 - Before starting work on any issue, always sync local `main` first:
   ```bash
   git checkout main
