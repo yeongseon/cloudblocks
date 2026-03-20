@@ -12,6 +12,8 @@ vi.mock('../../shared/ui/ConfirmDialog', () => ({
 }));
 vi.mock('../../shared/api/client', () => ({
   apiPost: vi.fn(),
+  getApiErrorMessage: (error: unknown, fallback: string) =>
+    error instanceof Error ? error.message : fallback,
 }));
 import { MenuBar } from './MenuBar';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
@@ -111,6 +113,7 @@ function setArchitectureState(overrides?: Partial<ArchitectureModel>): void {
     validationResult: null,
     workspace: {
       id: 'ws-1',
+      backendWorkspaceId: 'backend-ws-1',
       name: 'Test',
       architecture: { ...emptyArch, ...overrides },
       createdAt: '',
@@ -120,6 +123,7 @@ function setArchitectureState(overrides?: Partial<ArchitectureModel>): void {
 }
 
 describe('MenuBar', () => {
+  const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
 
   it('renders provider toggle with Azure, AWS, and GCP tabs', () => {
     render(<MenuBar />);
@@ -166,6 +170,8 @@ describe('MenuBar', () => {
       showBlockPalette: true,
       showProperties: true,
       showCodePreview: false,
+      showSuggestionsPanel: false,
+      showCostPanel: false,
       showWorkspaceManager: false,
       showTemplateGallery: false,
       showGitHubLogin: false,
@@ -493,8 +499,19 @@ describe('MenuBar', () => {
     expect(useUIStore.getState().showCodePreview).toBe(true);
 
     buildDropdown = await openMenu(user, 'Build');
+    await user.click(within(buildDropdown).getByRole('button', { name: /AI Suggestions Panel/ }));
+    expect(useUIStore.getState().showSuggestionsPanel).toBe(true);
+    expect(useUIStore.getState().showCodePreview).toBe(false);
+
+    buildDropdown = await openMenu(user, 'Build');
+    await user.click(within(buildDropdown).getByRole('button', { name: /AI Cost Panel/ }));
+    expect(useUIStore.getState().showCostPanel).toBe(true);
+    expect(useUIStore.getState().showSuggestionsPanel).toBe(false);
+
+    buildDropdown = await openMenu(user, 'Build');
     await user.click(within(buildDropdown).getByRole('button', { name: /Browse Templates/ }));
     expect(useUIStore.getState().showTemplateGallery).toBe(true);
+    expect(useUIStore.getState().showCostPanel).toBe(false);
   }, 15000);
 
   it('handles Build menu scenario gallery and learning panel (merged from Learn menu)', async () => {
@@ -626,7 +643,7 @@ describe('MenuBar', () => {
     const githubDropdown = getMenuDropdown(/octocat/);
     await user.click(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ }));
 
-    expect(apiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/pull');
+    expect(apiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-1/pull');
     expect(useUIStore.getState().diffMode).toBe(true);
   });
 
@@ -729,6 +746,37 @@ describe('MenuBar', () => {
     await user.click(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ }));
 
     expect(toast.error).toHaveBeenCalledWith('pull failed');
+    expect(alertMock).toHaveBeenCalledWith('pull failed');
+  });
+
+  it('shows clear error and skips compare call when backendWorkspaceId is missing', async () => {
+    const user = userEvent.setup();
+    useAuthStore.setState({
+      status: 'authenticated',
+      user: {
+        id: 'user-1',
+        github_username: 'octocat',
+        email: null,
+        display_name: null,
+        avatar_url: null,
+      },
+    });
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        backendWorkspaceId: undefined,
+      },
+    });
+
+    render(<MenuBar />);
+    await user.click(screen.getByRole('button', { name: /octocat/ }));
+    const githubDropdown = getMenuDropdown(/octocat/);
+    await user.click(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ }));
+
+    const message = 'Missing backend workspace ID. Open Workspace Manager and connect this workspace to the backend first.';
+    expect(apiPost).not.toHaveBeenCalled();
+    expect(toast.error).toHaveBeenCalledWith(message);
+    expect(alertMock).toHaveBeenCalledWith(message);
   });
 
   it('submits AI prompt via AiPromptBar and calls generate', async () => {

@@ -2,10 +2,26 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { apiGet, apiPost, apiPut } from '../../shared/api/client';
+import { apiGet, apiPost, apiPut, getApiErrorMessage } from '../../shared/api/client';
 import type { GitHubCommit, PullResponse, SyncResponse } from '../../shared/types/api';
 import type { ArchitectureSnapshot } from '../../shared/types/learning';
 import './GitHubSync.css';
+
+function parseRepoName(repo: string): { owner: string; name: string } | null {
+  const trimmed = repo.trim();
+  const [owner, name, ...rest] = trimmed.split('/');
+  if (owner == null || name == null || owner.length === 0 || name.length === 0 || rest.length > 0) {
+    return null;
+  }
+
+  return { owner, name };
+}
+
+function notifyError(message: string): void {
+  try {
+    window.alert(message);
+  } catch {}
+}
 
 export function GitHubSync() {
   const show = useUIStore((s) => s.showGitHubSync);
@@ -14,23 +30,44 @@ export function GitHubSync() {
 
   const workspace = useArchitectureStore((s) => s.workspace);
   const replaceArchitecture = useArchitectureStore((s) => s.replaceArchitecture);
-  const setStoreBackendWorkspaceId = useArchitectureStore((s) => s.setBackendWorkspaceId);
 
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
 
   const [repoInput, setRepoInput] = useState('');
-  const [backendWorkspaceIdInput, setBackendWorkspaceIdInput] = useState('');
-  const [linkedRepo, setLinkedRepo] = useState<string | null>(null);
-  const [backendWorkspaceId, setBackendWorkspaceIdState] = useState<string | null>(null);
   const [commitMessage, setCommitMessage] = useState('Sync architecture from CloudBlocks');
   const [commits, setCommits] = useState<GitHubCommit[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const effectiveWorkspaceId = useMemo(() => {
-    if (backendWorkspaceId) return backendWorkspaceId;
-    return workspace.id;
-  }, [backendWorkspaceId, workspace.id]);
+  const linkedRepo = useMemo(() => {
+    if (workspace.repoOwner == null || workspace.repoName == null) {
+      return null;
+    }
+
+    return `${workspace.repoOwner}/${workspace.repoName}`;
+  }, [workspace.repoOwner, workspace.repoName]);
+
+  const effectiveWorkspaceId = useMemo(
+    () => workspace.backendWorkspaceId ?? null,
+    [workspace.backendWorkspaceId],
+  );
+
+  const requireBackendWorkspaceId = useCallback((): string | null => {
+    if (effectiveWorkspaceId) {
+      return effectiveWorkspaceId;
+    }
+
+    const message = 'Missing backend workspace ID. Open Workspace Manager and connect this workspace to the backend first.';
+    setError(message);
+    notifyError(message);
+    return null;
+  }, [effectiveWorkspaceId]);
+
+  useEffect(() => {
+    if (linkedRepo != null) {
+      setRepoInput(linkedRepo);
+    }
+  }, [linkedRepo]);
 
   const loadCommits = useCallback(async () => {
     if (!linkedRepo || !effectiveWorkspaceId) return;
@@ -43,7 +80,9 @@ export function GitHubSync() {
       );
       setCommits(response.commits);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load commits.');
+      const message = getApiErrorMessage(err, 'Failed to load commits.');
+      setError(message);
+      notifyError(message);
     } finally {
       setLoading(false);
     }
@@ -63,56 +102,93 @@ export function GitHubSync() {
       return;
     }
 
+    const backendWorkspaceId = requireBackendWorkspaceId();
+    if (!backendWorkspaceId) {
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      const bwsId = backendWorkspaceIdInput.trim() || workspace.id;
-      await apiPut(`/api/v1/workspaces/${encodeURIComponent(bwsId)}`, {
+      const repoInfo = parseRepoName(cleanedRepo);
+      if (repoInfo == null) {
+        setError('Repository must be in owner/repo format.');
+        return;
+      }
+
+      await apiPut(`/api/v1/workspaces/${encodeURIComponent(backendWorkspaceId)}`, {
         github_repo: cleanedRepo,
       });
 
-      setLinkedRepo(cleanedRepo);
-      setStoreBackendWorkspaceId(workspace.id, bwsId);
-      setBackendWorkspaceIdState(bwsId);
+      useArchitectureStore.setState((state) => ({
+        workspace: state.workspace.id === workspace.id
+          ? {
+            ...state.workspace,
+            repoOwner: repoInfo.owner,
+            repoName: repoInfo.name,
+          }
+          : state.workspace,
+        workspaces: state.workspaces.map((currentWorkspace) =>
+          currentWorkspace.id === workspace.id
+            ? {
+              ...currentWorkspace,
+              repoOwner: repoInfo.owner,
+              repoName: repoInfo.name,
+            }
+            : currentWorkspace,
+        ),
+      }));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to link repository.');
+      const message = getApiErrorMessage(err, 'Failed to link repository.');
+      setError(message);
+      notifyError(message);
     } finally {
       setLoading(false);
     }
   };
 
   const handleSync = async () => {
-    if (!effectiveWorkspaceId) return;
+    const backendWorkspaceId = requireBackendWorkspaceId();
+    if (!backendWorkspaceId) {
+      return;
+    }
 
     setLoading(true);
     setError(null);
     try {
-      await apiPost<SyncResponse>(`/api/v1/workspaces/${encodeURIComponent(effectiveWorkspaceId)}/sync`, {
+      await apiPost<SyncResponse>(`/api/v1/workspaces/${encodeURIComponent(backendWorkspaceId)}/sync`, {
         architecture: workspace.architecture,
         commit_message: commitMessage,
       });
       await loadCommits();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sync workspace.');
+      const message = getApiErrorMessage(err, 'Failed to sync workspace.');
+      setError(message);
+      notifyError(message);
     } finally {
       setLoading(false);
     }
   };
 
   const handlePull = async () => {
-    if (!effectiveWorkspaceId) return;
+    const backendWorkspaceId = requireBackendWorkspaceId();
+    if (!backendWorkspaceId) {
+      return;
+    }
 
     setLoading(true);
     setError(null);
     try {
       const response = await apiPost<PullResponse>(
-        `/api/v1/workspaces/${encodeURIComponent(effectiveWorkspaceId)}/pull`
+        `/api/v1/workspaces/${encodeURIComponent(backendWorkspaceId)}/pull`
       );
       replaceArchitecture(response.architecture as ArchitectureSnapshot);
       await loadCommits();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to pull from GitHub.');
+      const message = getApiErrorMessage(err, 'Failed to pull from GitHub.');
+      setError(message);
+      notifyError(message);
     } finally {
       setLoading(false);
     }
@@ -150,17 +226,6 @@ export function GitHubSync() {
                 placeholder="owner/repo"
                 value={repoInput}
                 onChange={(e) => setRepoInput(e.target.value)}
-              />
-
-              <label className="github-sync-label" htmlFor="github-sync-backend-id-input">
-                Backend Workspace ID (optional)
-              </label>
-              <input
-                id="github-sync-backend-id-input"
-                className="github-sync-input"
-                placeholder={workspace.id}
-                value={backendWorkspaceIdInput}
-                onChange={(e) => setBackendWorkspaceIdInput(e.target.value)}
               />
 
               <button className="github-sync-primary-btn" onClick={() => void handleLinkRepo()} disabled={loading}>

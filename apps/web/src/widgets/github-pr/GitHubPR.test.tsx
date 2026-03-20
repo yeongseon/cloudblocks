@@ -4,6 +4,8 @@ import userEvent from '@testing-library/user-event';
 vi.mock('../../shared/api/client', () => ({
   apiPost: vi.fn(),
   apiGet: vi.fn(),
+  getApiErrorMessage: (error: unknown, fallback: string) =>
+    error instanceof Error ? error.message : fallback,
 }));
 import { GitHubPR } from './GitHubPR';
 import { useUIStore } from '../../entities/store/uiStore';
@@ -26,6 +28,7 @@ const emptyArch: ArchitectureModel = {
 
 describe('GitHubPR', () => {
   const mockApiPost = vi.mocked(apiPost);
+  const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -39,6 +42,7 @@ describe('GitHubPR', () => {
     useArchitectureStore.setState({
       workspace: {
         id: 'ws-1',
+        backendWorkspaceId: 'backend-ws-1',
         name: 'Workspace',
         architecture: emptyArch,
         createdAt: '',
@@ -80,7 +84,7 @@ describe('GitHubPR', () => {
     await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
 
     await waitFor(() => {
-      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/pr', {
+      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-1/pr', {
         architecture: emptyArch,
         title: 'Update cloud architecture',
         body: '',
@@ -100,6 +104,7 @@ describe('GitHubPR', () => {
     await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
 
     expect(await screen.findByText('API error')).toBeInTheDocument();
+    expect(alertMock).toHaveBeenCalledWith('API error');
   });
 
   it('shows fallback error for non-Error thrown value', async () => {
@@ -110,6 +115,7 @@ describe('GitHubPR', () => {
     await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
 
     expect(await screen.findByText('Failed to create pull request.')).toBeInTheDocument();
+    expect(alertMock).toHaveBeenCalledWith('Failed to create pull request.');
   });
 
   it('sends custom branch name when provided', async () => {
@@ -125,7 +131,7 @@ describe('GitHubPR', () => {
     await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
 
     await waitFor(() => {
-      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/pr', expect.objectContaining({
+      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-1/pr', expect.objectContaining({
         branch: 'custom-branch',
       }));
     });
@@ -189,12 +195,12 @@ describe('GitHubPR', () => {
     const user = userEvent.setup();
     useArchitectureStore.setState({
       workspace: {
+        backendWorkspaceId: 'backend-ws-42',
         id: 'ws-1',
         name: 'Workspace',
         architecture: emptyArch,
         createdAt: '',
         updatedAt: '',
-        backendWorkspaceId: 'backend-ws-42',
       },
     });
     mockApiPost.mockResolvedValue({
@@ -211,19 +217,21 @@ describe('GitHubPR', () => {
     });
   });
 
-  it('falls back to workspace.id when backendWorkspaceId is not set', async () => {
+  it('shows clear error and does not call API when backendWorkspaceId is not set', async () => {
     const user = userEvent.setup();
-    mockApiPost.mockResolvedValue({
-      pull_request_url: 'https://github.com/owner/repo/pull/42',
-      number: 42,
-      branch: 'main',
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        backendWorkspaceId: undefined,
+      },
     });
 
     render(<GitHubPR />);
     await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
 
-    await waitFor(() => {
-      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/pr', expect.any(Object));
-    });
+    const message = 'Missing backend workspace ID. Open Workspace Manager and connect this workspace to the backend first.';
+    expect(mockApiPost).not.toHaveBeenCalled();
+    expect(await screen.findByText(message)).toBeInTheDocument();
+    expect(alertMock).toHaveBeenCalledWith(message);
   });
 });

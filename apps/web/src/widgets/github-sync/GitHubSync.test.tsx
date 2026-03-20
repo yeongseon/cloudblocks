@@ -5,6 +5,8 @@ vi.mock('../../shared/api/client', () => ({
   apiPost: vi.fn(),
   apiGet: vi.fn(),
   apiPut: vi.fn(),
+  getApiErrorMessage: (error: unknown, fallback: string) =>
+    error instanceof Error ? error.message : fallback,
 }));
 import { GitHubSync } from './GitHubSync';
 import { useUIStore } from '../../entities/store/uiStore';
@@ -30,6 +32,7 @@ describe('GitHubSync', () => {
   const mockApiPost = vi.mocked(apiPost);
   const mockApiPut = vi.mocked(apiPut);
   const replaceArchitectureMock = vi.fn();
+  const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -44,6 +47,7 @@ describe('GitHubSync', () => {
       replaceArchitecture: replaceArchitectureMock,
       workspace: {
         id: 'ws-1',
+        backendWorkspaceId: 'backend-ws-1',
         name: 'My Workspace',
         architecture: emptyArch,
         createdAt: '',
@@ -92,7 +96,7 @@ describe('GitHubSync', () => {
     await user.click(screen.getByRole('button', { name: 'Link' }));
 
     await waitFor(() => {
-      expect(mockApiPut).toHaveBeenCalledWith('/api/v1/workspaces/ws-1', {
+      expect(mockApiPut).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-1', {
         github_repo: 'owner/repo-one',
       });
     });
@@ -112,7 +116,7 @@ describe('GitHubSync', () => {
     await user.click(await screen.findByRole('button', { name: 'Sync to GitHub' }));
 
     await waitFor(() => {
-      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/sync', {
+      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-1/sync', {
         architecture: emptyArch,
         commit_message: 'Sync architecture from CloudBlocks',
       });
@@ -155,7 +159,7 @@ describe('GitHubSync', () => {
     await user.click(await screen.findByRole('button', { name: 'Pull from GitHub' }));
 
     await waitFor(() => {
-      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/pull');
+      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-1/pull');
     });
     expect(replaceArchitectureMock).toHaveBeenCalledWith(archPayload);
   });
@@ -171,6 +175,7 @@ describe('GitHubSync', () => {
     await user.click(await screen.findByRole('button', { name: 'Sync to GitHub' }));
 
     expect(await screen.findByText('Network down')).toBeInTheDocument();
+    expect(alertMock).toHaveBeenCalledWith('Network down');
   });
 
   it('pull shows error when API call fails', async () => {
@@ -184,6 +189,7 @@ describe('GitHubSync', () => {
     await user.click(await screen.findByRole('button', { name: 'Pull from GitHub' }));
 
     expect(await screen.findByText('Network down')).toBeInTheDocument();
+    expect(alertMock).toHaveBeenCalledWith('Network down');
   });
 
   it('shows error when loadCommits fails', async () => {
@@ -205,6 +211,7 @@ describe('GitHubSync', () => {
     await waitFor(() => {
       expect(screen.getByText('Commit fetch failed')).toBeInTheDocument();
     });
+    expect(alertMock).toHaveBeenCalledWith('Commit fetch failed');
   });
 
   it('shows recent commits when available', async () => {
@@ -224,22 +231,6 @@ describe('GitHubSync', () => {
     expect(screen.getByText(/abc1234/)).toBeInTheDocument();
   });
 
-  it('uses backend workspace ID input when provided', async () => {
-    const user = userEvent.setup();
-    mockApiPost.mockResolvedValue({ message: 'ok', commit_sha: 'abc123' });
-
-    render(<GitHubSync />);
-
-    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
-    await user.type(screen.getByPlaceholderText('ws-1'), 'custom-ws-id');
-    await user.click(screen.getByRole('button', { name: 'Link' }));
-    await user.click(await screen.findByRole('button', { name: 'Sync to GitHub' }));
-
-    await waitFor(() => {
-      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/custom-ws-id/sync', expect.any(Object));
-    });
-  });
-
   it('updates commit message and sends custom value on sync', async () => {
     const user = userEvent.setup();
     mockApiPost.mockResolvedValue({ message: 'ok', commit_sha: 'abc123' });
@@ -254,7 +245,7 @@ describe('GitHubSync', () => {
     await user.click(screen.getByRole('button', { name: 'Sync to GitHub' }));
 
     await waitFor(() => {
-      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/sync', {
+      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-1/sync', {
         architecture: emptyArch,
         commit_message: 'Custom commit from test',
       });
@@ -272,6 +263,7 @@ describe('GitHubSync', () => {
     await user.click(await screen.findByRole('button', { name: 'Sync to GitHub' }));
 
     expect(await screen.findByText('Failed to sync workspace.')).toBeInTheDocument();
+    expect(alertMock).toHaveBeenCalledWith('Failed to sync workspace.');
   });
 
   it('handles pull error with non-Error thrown value', async () => {
@@ -285,6 +277,7 @@ describe('GitHubSync', () => {
     await user.click(await screen.findByRole('button', { name: 'Pull from GitHub' }));
 
     expect(await screen.findByText('Failed to pull from GitHub.')).toBeInTheDocument();
+    expect(alertMock).toHaveBeenCalledWith('Failed to pull from GitHub.');
   });
 
   it('close button toggles panel', async () => {
@@ -301,31 +294,24 @@ describe('GitHubSync', () => {
     expect(useUIStore.getState().showGitHubRepos).toBe(true);
   });
 
-  it('persists backend workspace ID to the store when linking', async () => {
+  it('shows clear error and blocks calls when backendWorkspaceId is missing', async () => {
     const user = userEvent.setup();
-    mockApiPost.mockResolvedValue({ message: 'ok', commit_sha: 'abc123' });
-
-    render(<GitHubSync />);
-
-    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
-    await user.type(screen.getByPlaceholderText('ws-1'), 'backend-ws-id');
-    await user.click(screen.getByRole('button', { name: 'Link' }));
-
-    const ws = useArchitectureStore.getState().workspace;
-    expect(ws.backendWorkspaceId).toBe('backend-ws-id');
-  });
-
-  it('defaults backend workspace ID to workspace.id when input is empty', async () => {
-    const user = userEvent.setup();
-    mockApiPost.mockResolvedValue({ message: 'ok', commit_sha: 'abc123' });
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        backendWorkspaceId: undefined,
+      },
+    });
 
     render(<GitHubSync />);
 
     await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
     await user.click(screen.getByRole('button', { name: 'Link' }));
 
-    const ws = useArchitectureStore.getState().workspace;
-    expect(ws.backendWorkspaceId).toBe('ws-1');
+    const message = 'Missing backend workspace ID. Open Workspace Manager and connect this workspace to the backend first.';
+    expect(mockApiPut).not.toHaveBeenCalled();
+    expect(await screen.findByText(message)).toBeInTheDocument();
+    expect(alertMock).toHaveBeenCalledWith(message);
   });
 
   it('shows loading indicator while operations are in progress', async () => {

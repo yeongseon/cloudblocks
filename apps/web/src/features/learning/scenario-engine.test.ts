@@ -14,6 +14,7 @@ import {
 } from './scenario-engine';
 import { registerBuiltinScenarios } from './scenarios/builtin';
 import { clearScenarioRegistry, getScenario } from './scenarios/registry';
+import * as hintEngine from './hint-engine';
 import type { ArchitectureSnapshot } from '../../shared/types/learning';
 
 const EMPTY_ARCHITECTURE: ArchitectureSnapshot = {
@@ -66,6 +67,7 @@ function resetArchitectureStore(): void {
 
 function resetStores(): void {
   stopValidationSubscription();
+  hintEngine.stopHintSubscription();
   resetLearningStore();
   resetUIStore();
   resetArchitectureStore();
@@ -90,12 +92,14 @@ function completeCurrentStepAndAdvance(): void {
 
 describe('scenario-engine', () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     registerBuiltinScenarios();
     resetStores();
   });
 
   afterEach(() => {
     stopValidationSubscription();
+    hintEngine.stopHintSubscription();
     clearScenarioRegistry();
     resetStores();
   });
@@ -114,6 +118,16 @@ describe('scenario-engine', () => {
       startLearningScenario('scenario-three-tier');
 
       expect(architectureSnapshot()).toEqual(scenario?.initialArchitecture);
+    });
+
+    it('starts hint runtime when scenario starts', () => {
+      const startHintSubscriptionSpy = vi.spyOn(hintEngine, 'startHintSubscription');
+      const startHintTimerSpy = vi.spyOn(hintEngine, 'startHintTimer');
+
+      startLearningScenario('scenario-three-tier');
+
+      expect(startHintSubscriptionSpy).toHaveBeenCalledOnce();
+      expect(startHintTimerSpy).toHaveBeenCalledOnce();
     });
 
     it('sets editor mode to learn', () => {
@@ -229,14 +243,19 @@ describe('scenario-engine', () => {
     });
 
     it('advances to next step when current step is complete', () => {
+      const startHintTimerSpy = vi.spyOn(hintEngine, 'startHintTimer');
+
       startLearningScenario('scenario-three-tier');
 
       completeCurrentStepAndAdvance();
 
       expect(useLearningStore.getState().progress?.currentStepIndex).toBe(1);
+      expect(startHintTimerSpy).toHaveBeenCalled();
     });
 
     it('completes scenario on last step', () => {
+      const stopHintSubscriptionSpy = vi.spyOn(hintEngine, 'stopHintSubscription');
+
       startLearningScenario('scenario-three-tier');
 
       const scenario = useLearningStore.getState().activeScenario;
@@ -251,6 +270,7 @@ describe('scenario-engine', () => {
       const progress = useLearningStore.getState().progress;
       expect(progress?.completedAt).toBeDefined();
       expect(progress?.currentStepIndex).toBe((scenario?.steps.length ?? 1) - 1);
+      expect(stopHintSubscriptionSpy).toHaveBeenCalled();
     });
 
     it('resets hints on advance', () => {
@@ -279,6 +299,8 @@ describe('scenario-engine', () => {
     });
 
     it('restores checkpoint architecture when step has checkpoint', () => {
+      const startHintTimerSpy = vi.spyOn(hintEngine, 'startHintTimer');
+
       startLearningScenario('scenario-three-tier');
 
       completeCurrentStepAndAdvance();
@@ -293,6 +315,7 @@ describe('scenario-engine', () => {
       resetCurrentStep();
 
       expect(architectureSnapshot()).toEqual(checkpoint);
+      expect(startHintTimerSpy).toHaveBeenCalled();
     });
 
     it('restores auto-captured snapshot when step has no explicit checkpoint', () => {
@@ -388,6 +411,15 @@ describe('scenario-engine', () => {
 
       expect(useLearningStore.getState().isCurrentStepComplete).toBe(false);
     });
+
+    it('stops hint runtime on abandon', () => {
+      const stopHintSubscriptionSpy = vi.spyOn(hintEngine, 'stopHintSubscription');
+
+      startLearningScenario('scenario-three-tier');
+      abandonLearning();
+
+      expect(stopHintSubscriptionSpy).toHaveBeenCalled();
+    });
   });
 
   describe('getCurrentStepRules', () => {
@@ -466,6 +498,55 @@ describe('scenario-engine', () => {
       });
 
       expect(useLearningStore.getState().isCurrentStepComplete).toBe(false);
+    });
+
+    it('restores architecture snapshot captured before learning started', () => {
+      useArchitectureStore.getState().replaceArchitecture({
+        ...EMPTY_ARCHITECTURE,
+        name: 'Builder Snapshot',
+        plates: [
+          {
+            id: 'snapshot-region',
+            name: 'Snapshot Region',
+            type: 'region',
+            parentId: null,
+            children: ['snapshot-subnet'],
+            position: { x: 0, y: 0, z: 0 },
+            size: { width: 12, height: 0.3, depth: 10 },
+            metadata: {},
+          },
+          {
+            id: 'snapshot-subnet',
+            name: 'Snapshot Subnet',
+            type: 'subnet',
+            subnetAccess: 'public',
+            parentId: 'snapshot-region',
+            children: ['snapshot-vm'],
+            position: { x: 0, y: 0.3, z: 0 },
+            size: { width: 6, height: 0.3, depth: 8 },
+            metadata: {},
+          },
+        ],
+        blocks: [
+          {
+            id: 'snapshot-vm',
+            name: 'Snapshot VM',
+            category: 'compute',
+            placementId: 'snapshot-subnet',
+            position: { x: 0, y: 0.5, z: 0 },
+            metadata: {},
+          },
+        ],
+      });
+      const beforeLearning = architectureSnapshot();
+
+      startLearningScenario('scenario-three-tier');
+      const duringLearning = architectureSnapshot();
+      expect(duringLearning).not.toEqual(beforeLearning);
+
+      abandonLearning();
+
+      expect(architectureSnapshot()).toEqual(duringLearning);
     });
   });
 

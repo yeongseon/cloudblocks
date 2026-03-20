@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ApiError, apiDelete, apiFetch, apiGet, apiPost, apiPut, normalizeApiBaseUrl } from './client';
+import { ApiError, apiDelete, apiFetch, apiGet, apiPost, apiPut, getApiErrorMessage, normalizeApiBaseUrl } from './client';
 
 function jsonResponse(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload), {
@@ -104,6 +104,16 @@ describe('api client', () => {
       message: 'API request failed with status 500',
       status: 500,
       body: 'Server exploded',
+    });
+  });
+
+  it('uses FastAPI detail message for ApiError message', async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ detail: 'Repository not linked' }, 400));
+
+    await expect(apiGet('/api/v1/test')).rejects.toMatchObject({
+      name: 'ApiError',
+      message: 'Repository not linked',
+      status: 400,
     });
   });
 
@@ -247,5 +257,21 @@ describe('normalizeApiBaseUrl', () => {
 
   it('handles empty string', () => {
     expect(normalizeApiBaseUrl('')).toBe('');
+  });
+});
+
+describe('getApiErrorMessage', () => {
+  it('extracts FastAPI detail from ApiError body', () => {
+    const error = new ApiError('API request failed with status 400', 400, '{"detail":"Missing backend workspace ID"}');
+
+    expect(getApiErrorMessage(error, 'Fallback')).toBe('Missing backend workspace ID');
+  });
+
+  it('falls back to Error.message for non-ApiError', () => {
+    expect(getApiErrorMessage(new Error('Network down'), 'Fallback')).toBe('Network down');
+  });
+
+  it('falls back to supplied message when thrown value is not Error', () => {
+    expect(getApiErrorMessage('bad', 'Fallback')).toBe('Fallback');
   });
 });

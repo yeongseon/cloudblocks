@@ -2,9 +2,15 @@ import { useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { apiPost } from '../../shared/api/client';
+import { apiPost, getApiErrorMessage } from '../../shared/api/client';
 import type { PullRequestResponse } from '../../shared/types/api';
 import './GitHubPR.css';
+
+function notifyError(message: string): void {
+  try {
+    window.alert(message);
+  } catch {}
+}
 
 export function GitHubPR() {
   const show = useUIStore((s) => s.showGitHubPR);
@@ -24,12 +30,20 @@ export function GitHubPR() {
   if (!show) return null;
 
   const handleSubmit = async () => {
+    const backendWorkspaceId = workspace.backendWorkspaceId;
+    if (!backendWorkspaceId) {
+      const message = 'Missing backend workspace ID. Open Workspace Manager and connect this workspace to the backend first.';
+      setError(message);
+      notifyError(message);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setResult(null);
     try {
       const response = await apiPost<PullRequestResponse>(
-        `/api/v1/workspaces/${encodeURIComponent(workspace.backendWorkspaceId ?? workspace.id)}/pr`,
+        `/api/v1/workspaces/${encodeURIComponent(backendWorkspaceId)}/pr`,
         {
           architecture: workspace.architecture,
           title,
@@ -40,7 +54,9 @@ export function GitHubPR() {
       );
       setResult(response);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create pull request.');
+      const message = getApiErrorMessage(err, 'Failed to create pull request.');
+      setError(message);
+      notifyError(message);
     } finally {
       setLoading(false);
     }

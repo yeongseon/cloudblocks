@@ -12,8 +12,6 @@ import {
 } from '../scenario-engine';
 import {
   isHintTimerRunning,
-  startHintSubscription,
-  startHintTimer,
   stopHintSubscription,
 } from '../hint-engine';
 import { registerBuiltinScenarios } from '../scenarios/builtin';
@@ -431,8 +429,6 @@ describe('learning integration flow', () => {
     vi.useFakeTimers();
 
     startLearningScenario('scenario-three-tier');
-    startHintSubscription();
-    startHintTimer();
 
     vi.advanceTimersByTime(30000);
     expect(useLearningStore.getState().currentHintIndex).toBe(0);

@@ -14,6 +14,18 @@ const GENERATORS: { id: GeneratorId; label: string }[] = [
   { id: 'pulumi', label: 'Pulumi (TypeScript)' },
 ];
 
+const DEFAULT_REGION_BY_PROVIDER: Record<ProviderType, string> = {
+  azure: 'eastus',
+  aws: 'us-east-1',
+  gcp: 'us-central1',
+};
+
+const REGION_OPTIONS: Record<ProviderType, readonly string[]> = {
+  azure: ['eastus', 'eastus2', 'westus2', 'westeurope', 'northeurope'],
+  aws: ['us-east-1', 'us-west-2', 'eu-west-1', 'ap-northeast-1', 'ap-southeast-1'],
+  gcp: ['us-central1', 'us-east1', 'europe-west1', 'asia-northeast1', 'australia-southeast1'],
+};
+
 export function CodePreview() {
   const toggleCodePreview = useUIStore((s) => s.toggleCodePreview);
   const activeProvider = useUIStore((s) => s.activeProvider);
@@ -26,17 +38,20 @@ export function CodePreview() {
 
   const [activeTab, setActiveTab] = useState(0);
   const [projectName, setProjectName] = useState(sanitizedName);
-  const [region, setRegion] = useState('eastus');
+  const [regionProvider, setRegionProvider] = useState<ProviderType>(activeProvider);
+  const [region, setRegion] = useState(DEFAULT_REGION_BY_PROVIDER[activeProvider]);
   const [generator, setGenerator] = useState<GeneratorId>('terraform');
   const [compareProviders, setCompareProviders] = useState(false);
   const [output, setOutput] = useState<GeneratedOutput | null>(null);
   const [comparisonOutputs, setComparisonOutputs] = useState<Record<ProviderType, GeneratedOutput> | null>(null);
+  const [comparisonErrors, setComparisonErrors] = useState<Partial<Record<ProviderType, string>> | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleGenerate = () => {
     setError(null);
     setOutput(null);
     setComparisonOutputs(null);
+    setComparisonErrors(null);
 
     try {
       const baseOptions = {
@@ -52,14 +67,36 @@ export function CodePreview() {
           return;
         }
 
-        const generated = Object.fromEntries(
-          PROVIDERS.map((provider) => {
-            const options: GenerationOptions = { ...baseOptions, provider };
-            return [provider, generateCode(architecture, options)];
-          }),
-        ) as Record<ProviderType, GeneratedOutput>;
+        const generated: Partial<Record<ProviderType, GeneratedOutput>> = {};
+        const errors: Partial<Record<ProviderType, string>> = {};
 
-        setComparisonOutputs(generated);
+        PROVIDERS.forEach((provider) => {
+          const selectedRegion = provider === regionProvider
+            ? region
+            : DEFAULT_REGION_BY_PROVIDER[provider];
+          const options: GenerationOptions = { ...baseOptions, provider, region: selectedRegion };
+          try {
+            generated[provider] = generateCode(architecture, options);
+          } catch (providerError) {
+            if (providerError instanceof GenerationError) {
+              errors[provider] = providerError.message;
+            } else {
+              errors[provider] = 'Unexpected error during code generation.';
+            }
+          }
+        });
+
+        if (Object.keys(generated).length === 0) {
+          setComparisonErrors(errors);
+          setError('All provider generations failed.');
+          return;
+        }
+
+        setComparisonOutputs(generated as Record<ProviderType, GeneratedOutput>);
+        setComparisonErrors(errors);
+        if (Object.keys(errors).length > 0) {
+          setError('Some providers failed. Showing partial comparison results.');
+        }
       } else {
         const options: GenerationOptions = {
           ...baseOptions,
@@ -88,6 +125,9 @@ export function CodePreview() {
     } else if (comparisonOutputs) {
       const texts = PROVIDERS.map((provider) => {
         const providerOutput = comparisonOutputs[provider];
+        if (!providerOutput) {
+          return '';
+        }
         const file = providerOutput.files[activeTab] ?? providerOutput.files[0];
         return file ? `// --- ${provider.toUpperCase()} ---\n${file.content}` : '';
       }).filter(Boolean).join('\n\n');
@@ -112,7 +152,7 @@ export function CodePreview() {
       output.files.forEach((file) => downloadFile(file.content, file.path));
     } else if (comparisonOutputs) {
       PROVIDERS.forEach((provider) => {
-        comparisonOutputs[provider].files.forEach((file) =>
+        comparisonOutputs[provider]?.files.forEach((file) =>
           downloadFile(file.content, `${provider}-${file.path}`)
         );
       });
@@ -154,12 +194,31 @@ export function CodePreview() {
         </label>
         <label className="code-preview-field">
           <span className="code-preview-field-label">Region</span>
-          <input
+          <select
             className="code-preview-input"
-            type="text"
             value={region}
             onChange={(e) => setRegion(e.target.value)}
-          />
+          >
+            {REGION_OPTIONS[regionProvider].map((regionOption) => (
+              <option key={regionOption} value={regionOption}>{regionOption}</option>
+            ))}
+          </select>
+        </label>
+        <label className="code-preview-field">
+          <span className="code-preview-field-label">Region Provider</span>
+          <select
+            className="code-preview-input"
+            value={regionProvider}
+            onChange={(e) => {
+              const nextProvider = e.target.value as ProviderType;
+              setRegionProvider(nextProvider);
+              setRegion(DEFAULT_REGION_BY_PROVIDER[nextProvider]);
+            }}
+          >
+            {PROVIDERS.map((providerOption) => (
+              <option key={providerOption} value={providerOption}>{providerOption.toUpperCase()}</option>
+            ))}
+          </select>
         </label>
         <label className="code-preview-field code-preview-field-checkbox">
           <span className="code-preview-field-label">Compare</span>
@@ -247,17 +306,22 @@ export function CodePreview() {
           <div className="code-preview-compare-grid">
           {PROVIDERS.map((provider) => {
             const providerOutput = comparisonOutputs[provider];
-            const activeFile = providerOutput.files[activeTab] ?? providerOutput.files[0];
+            const activeFile = providerOutput?.files[activeTab] ?? providerOutput?.files[0];
+            const providerError = comparisonErrors?.[provider];
 
             return (
               <section key={provider} className="code-preview-compare-card">
                 <header className="code-preview-compare-header">
                   <strong>{provider.toUpperCase()}</strong>
-                  <span>{providerOutput.files.length} files</span>
+                  <span>{providerOutput?.files.length ?? 0} files</span>
                 </header>
-                <pre className="code-preview-code code-preview-code-compare">
-                  <code>{activeFile?.content ?? ''}</code>
-                </pre>
+                {providerError ? (
+                  <div className="code-preview-error" role="alert">{providerError}</div>
+                ) : (
+                  <pre className="code-preview-code code-preview-code-compare">
+                    <code>{activeFile?.content ?? ''}</code>
+                  </pre>
+                )}
               </section>
             );
           })}

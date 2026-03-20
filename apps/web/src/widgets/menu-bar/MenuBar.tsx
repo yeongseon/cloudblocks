@@ -7,7 +7,7 @@ import { validateArchitectureShape } from '../../entities/store/slices';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { computeArchitectureDiff } from '../../features/diff/engine';
-import { apiPost } from '../../shared/api/client';
+import { apiPost, getApiErrorMessage } from '../../shared/api/client';
 import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import type { PullResponse } from '../../shared/types/api';
 import type { ArchitectureModel, ProviderType } from '@cloudblocks/schema';
@@ -23,6 +23,12 @@ const PROVIDER_OPTIONS: { id: ProviderType; label: string; color: string }[] = [
   { id: 'gcp', label: 'GCP', color: '#4285F4' },
 ];
 
+function notifyError(message: string): void {
+  try {
+    window.alert(message);
+  } catch {}
+}
+
 export function MenuBar() {
   const [openMenu, setOpenMenu] = useState<DropdownMenu>(null);
   
@@ -36,6 +42,10 @@ export function MenuBar() {
   const activeProvider = useUIStore((s) => s.activeProvider);
   const setActiveProvider = useUIStore((s) => s.setActiveProvider);
   const toggleCodePreview = useUIStore((s) => s.toggleCodePreview);
+  const showSuggestionsPanel = useUIStore((s) => s.showSuggestionsPanel);
+  const toggleSuggestionsPanel = useUIStore((s) => s.toggleSuggestionsPanel);
+  const showCostPanel = useUIStore((s) => s.showCostPanel);
+  const toggleCostPanel = useUIStore((s) => s.toggleCostPanel);
   const toggleWorkspaceManager = useUIStore((s) => s.toggleWorkspaceManager);
   const toggleTemplateGallery = useUIStore((s) => s.toggleTemplateGallery);
   const toggleGitHubLogin = useUIStore((s) => s.toggleGitHubLogin);
@@ -188,7 +198,14 @@ export function MenuBar() {
 
   const handleCompareWithGitHub = async () => {
     const ws = useArchitectureStore.getState().workspace;
-    const wsId = ws.backendWorkspaceId ?? ws.id;
+    const wsId = ws.backendWorkspaceId;
+    if (!wsId) {
+      const message = 'Missing backend workspace ID. Open Workspace Manager and connect this workspace to the backend first.';
+      toast.error(message);
+      notifyError(message);
+      return;
+    }
+
     try {
       const response = await apiPost<PullResponse>(
         `/api/v1/workspaces/${encodeURIComponent(wsId)}/pull`,
@@ -199,7 +216,9 @@ export function MenuBar() {
       const delta = computeArchitectureDiff(remoteArch, localArch);
       useUIStore.getState().setDiffMode(true, delta, remoteArch);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to fetch remote architecture');
+      const message = getApiErrorMessage(err, 'Failed to fetch remote architecture');
+      toast.error(message);
+      notifyError(message);
     }
   };
 
@@ -330,6 +349,12 @@ export function MenuBar() {
             </button>
             <button type="button" className="menu-item" onClick={() => handleAction(toggleCodePreview)}>
               <span className="menu-item-left">⚡ Generate Terraform</span>
+            </button>
+            <button type="button" className="menu-item" onClick={() => handleAction(toggleSuggestionsPanel)}>
+              <span className="menu-item-left">{showSuggestionsPanel ? '✓ ' : ''}AI Suggestions Panel</span>
+            </button>
+            <button type="button" className="menu-item" onClick={() => handleAction(toggleCostPanel)}>
+              <span className="menu-item-left">{showCostPanel ? '✓ ' : ''}AI Cost Panel</span>
             </button>
             <div className="menu-separator" />
             <button type="button" className="menu-item" onClick={() => handleAction(toggleTemplateGallery)}>

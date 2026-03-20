@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CodePreview } from './CodePreview';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
@@ -38,6 +38,10 @@ const mockArch: ArchitectureModel = {
 describe('CodePreview', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useUIStore.setState({
+      activeProvider: 'azure',
+      showCodePreview: true,
+    });
     useArchitectureStore.setState({
       workspace: {
         id: 'ws-1', name: 'Test', architecture: mockArch,
@@ -68,7 +72,7 @@ describe('CodePreview', () => {
   it('renders generator selector with three options', () => {
     render(<CodePreview />);
 
-    const select = screen.getByRole('combobox');
+    const select = screen.getByRole('combobox', { name: 'Generator' });
     expect(select).toBeInTheDocument();
     expect(screen.getByRole('option', { name: 'Terraform (HCL)' })).toHaveAttribute('value', 'terraform');
     expect(screen.getByRole('option', { name: 'Bicep (Azure)' })).toHaveAttribute('value', 'bicep');
@@ -87,10 +91,25 @@ describe('CodePreview', () => {
   it('updates region input', async () => {
     const user = userEvent.setup();
     render(<CodePreview />);
-    const input = screen.getByDisplayValue('eastus');
-    await user.clear(input);
-    await user.type(input, 'westus');
-    expect(screen.getByDisplayValue('westus')).toBeInTheDocument();
+    const input = screen.getByRole('combobox', { name: 'Region' });
+    await user.selectOptions(input, 'westus2');
+    expect(screen.getByDisplayValue('westus2')).toBeInTheDocument();
+  });
+
+  it('switches region options by selected region provider', async () => {
+    const user = userEvent.setup();
+    render(<CodePreview />);
+
+    const regionProviderSelect = screen.getByRole('combobox', { name: 'Region Provider' });
+    const regionSelect = screen.getByRole('combobox', { name: 'Region' });
+
+    await user.selectOptions(regionProviderSelect, 'aws');
+    expect(screen.getByDisplayValue('us-east-1')).toBeInTheDocument();
+    expect(within(regionSelect).getByRole('option', { name: 'us-west-2' })).toBeInTheDocument();
+
+    await user.selectOptions(regionProviderSelect, 'gcp');
+    expect(screen.getByDisplayValue('us-central1')).toBeInTheDocument();
+    expect(within(regionSelect).getByRole('option', { name: 'europe-west1' })).toBeInTheDocument();
   });
 
   it('generates terraform and displays output', async () => {
@@ -198,12 +217,12 @@ describe('CodePreview', () => {
     URL.createObjectURL = createObjectURLMock;
     URL.revokeObjectURL = revokeObjectURLMock;
     const clickMock = vi.fn();
-    const origCreate = document.createElement.bind(document);
-    vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
+    const originalCreateElement = Document.prototype.createElement;
+    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
       if (tag === 'a') {
         return { href: '', download: '', click: clickMock } as unknown as HTMLElement;
       }
-      return origCreate(tag);
+      return originalCreateElement.call(document, tag);
     });
 
     const mockOutput = {
@@ -221,7 +240,7 @@ describe('CodePreview', () => {
     expect(clickMock).toHaveBeenCalledTimes(2);
     expect(revokeObjectURLMock).toHaveBeenCalledTimes(2);
 
-    vi.restoreAllMocks();
+    createElementSpy.mockRestore();
   });
 
   it('renders metadata section with version, provider and time', async () => {
@@ -263,7 +282,7 @@ describe('CodePreview', () => {
     const user = userEvent.setup();
     render(<CodePreview />);
 
-    const select = screen.getByRole('combobox');
+    const select = screen.getByRole('combobox', { name: 'Generator' });
     await user.selectOptions(select, 'bicep');
     expect(screen.getByText(/Generate Bicep \(Azure\)/)).toBeInTheDocument();
 
@@ -274,7 +293,7 @@ describe('CodePreview', () => {
   it('falls back to generic generate label for unknown generator value', () => {
     render(<CodePreview />);
 
-    const select = screen.getByRole('combobox');
+    const select = screen.getByRole('combobox', { name: 'Generator' });
     fireEvent.change(select, { target: { value: 'unknown-generator' } });
 
     expect(screen.getByText('🚀 Generate Code')).toBeInTheDocument();
@@ -350,6 +369,8 @@ describe('CodePreview', () => {
     render(<CodePreview />);
 
     await user.click(screen.getByRole('checkbox'));
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Region Provider' }), 'aws');
+    await user.selectOptions(screen.getByRole('combobox', { name: 'Region' }), 'us-west-2');
     await user.click(screen.getByText('🚀 Compare Providers'));
 
     expect(vi.mocked(generateCode)).toHaveBeenCalledTimes(3);
@@ -359,13 +380,43 @@ describe('CodePreview', () => {
     expect(screen.getByText('provider=azure')).toBeInTheDocument();
     expect(screen.getByText('provider=aws')).toBeInTheDocument();
     expect(screen.getByText('provider=gcp')).toBeInTheDocument();
+    expect(vi.mocked(generateCode)).toHaveBeenCalledWith(mockArch, expect.objectContaining({ provider: 'aws', region: 'us-west-2' }));
+  });
+
+  it('shows partial comparison output when one provider fails', async () => {
+    const user = userEvent.setup();
+    vi.mocked(generateCode).mockImplementation((_, options) => {
+      if (options.provider === 'aws') {
+        throw new GenerationError('AWS generation failed');
+      }
+
+      return {
+        files: [{ path: 'main.tf', content: `provider=${options.provider}`, language: 'hcl' as const }],
+        metadata: {
+          generator: 'terraform',
+          version: '0.3.0',
+          provider: options.provider,
+          generatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      };
+    });
+
+    render(<CodePreview />);
+
+    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByText('🚀 Compare Providers'));
+
+    expect(screen.getByText('Some providers failed. Showing partial comparison results.')).toBeInTheDocument();
+    expect(screen.getByText('provider=azure')).toBeInTheDocument();
+    expect(screen.getByText('provider=gcp')).toBeInTheDocument();
+    expect(screen.getByText('AWS generation failed')).toBeInTheDocument();
   });
 
   it('shows compare-mode restriction error for non-terraform generators', async () => {
     const user = userEvent.setup();
     render(<CodePreview />);
 
-    const select = screen.getByRole('combobox');
+    const select = screen.getByRole('combobox', { name: 'Generator' });
     await user.selectOptions(select, 'bicep');
     await user.click(screen.getByRole('checkbox'));
     await user.click(screen.getByText('🚀 Compare Providers'));
@@ -506,12 +557,12 @@ describe('CodePreview', () => {
     URL.createObjectURL = createObjectURLMock;
     URL.revokeObjectURL = revokeObjectURLMock;
     const clickMock = vi.fn();
-    const origCreate = document.createElement.bind(document);
-    vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
+    const originalCreateElement = Document.prototype.createElement;
+    const createElementSpy = vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
       if (tag === 'a') {
         return { href: '', download: '', click: clickMock } as unknown as HTMLElement;
       }
-      return origCreate(tag);
+      return originalCreateElement.call(document, tag);
     });
 
     vi.mocked(generateCode).mockImplementation((_, options) => ({
@@ -537,7 +588,7 @@ describe('CodePreview', () => {
     expect(clickMock).toHaveBeenCalledTimes(6);
     expect(revokeObjectURLMock).toHaveBeenCalledTimes(6);
 
-    vi.restoreAllMocks();
+    createElementSpy.mockRestore();
   });
 
 });
