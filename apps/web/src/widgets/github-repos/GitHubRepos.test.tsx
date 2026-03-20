@@ -83,7 +83,6 @@ describe('GitHubRepos', () => {
     render(<GitHubRepos />);
 
     await user.type(screen.getByPlaceholderText('Repository name'), 'new-repo');
-    await user.click(screen.getByLabelText('Private repository'));
     await user.click(screen.getByRole('button', { name: 'Create' }));
 
     expect(mockApiPost).toHaveBeenCalledWith('/api/v1/github/repos', {

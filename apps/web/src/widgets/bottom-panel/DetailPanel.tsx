@@ -306,6 +306,7 @@ function ConnectionDetail({ connectionId, className }: { connectionId: string; c
   if (!connection) return null;
 
   const sourceBlock = architecture.blocks.find((b) => b.id === connection.sourceId);
+  const sourceActor = architecture.externalActors.find((a) => a.id === connection.sourceId);
   const targetBlock = architecture.blocks.find((b) => b.id === connection.targetId);
 
   return (
@@ -330,8 +331,12 @@ function ConnectionDetail({ connectionId, className }: { connectionId: string; c
               <>
                 {BLOCK_ICONS[sourceBlock.category]} {sourceBlock.name}
               </>
+            ) : sourceActor ? (
+              <>
+                {sourceActor.type === 'internet' ? '☁️' : '👤'} {sourceActor.name}
+              </>
             ) : (
-              '☁️ Internet'
+              'Unknown'
             )}
           </span>
         </div>

@@ -288,6 +288,37 @@ describe('MinifigureSprite', () => {
     expect(useUIStore.getState().selectedId).toBeNull();
   });
 
+  it('selects worker on Enter key press', async () => {
+    const user = userEvent.setup();
+    render(<MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />);
+
+    const sprite = screen.getByRole('button', { name: 'Select worker' });
+    await user.type(sprite, '{Enter}');
+
+    expect(useUIStore.getState().selectedId).toBe('worker-default');
+  });
+
+  it('selects worker on Space key press', async () => {
+    const user = userEvent.setup();
+    render(<MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />);
+
+    const sprite = screen.getByRole('button', { name: 'Select worker' });
+    await user.type(sprite, ' ');
+
+    expect(useUIStore.getState().selectedId).toBe('worker-default');
+  });
+
+  it('does not select worker on Enter in delete mode', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ toolMode: 'delete' });
+    render(<MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />);
+
+    const sprite = screen.getByRole('button', { name: 'Select worker' });
+    await user.type(sprite, '{Enter}');
+
+    expect(useUIStore.getState().selectedId).toBeNull();
+  });
+
   it('applies is-selected class when selectedId is worker-default', () => {
     useUIStore.setState({ selectedId: 'worker-default' });
     const { container } = render(<MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />);

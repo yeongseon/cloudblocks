@@ -15,7 +15,7 @@ export function GitHubRepos() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [newRepoName, setNewRepoName] = useState('');
-  const [isPrivate, setIsPrivate] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(true);
 
   const fetchRepos = async () => {
     setLoading(true);
