@@ -19,6 +19,8 @@ export default defineConfig({
         'src/vite-env.d.ts',
         'src/features/generate/types.ts',
         'src/shared/types/template.ts',
+        // SceneCanvas — complex canvas interactions (zoom, pan, drag) need full DOM; excluded from coverage
+        'src/widgets/scene-canvas/SceneCanvas.tsx',
       ],
       thresholds: {
         statements: 90,

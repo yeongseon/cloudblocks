@@ -42,8 +42,8 @@ No 3D asset files exist anywhere in the repository:
 The rendering stack is:
 
 ```
-ArchitectureModel (2D coordinates)
-    ↓ worldToScreen() isometric projection
+ArchitectureModel (3D world coordinates: x, y, z)
+    ↓ worldToScreen(worldX, worldY, worldZ) — isometric projection to 2D screen coords
 SVG Components (React)
     ↓ CSS transforms (zoom, pan)
 DOM (browser rendering)
@@ -65,7 +65,7 @@ DOM (browser rendering)
 
 ### 5. Stale References Found
 
-`vitest.config.ts` contains coverage exclusions referencing **deleted files** from the former Three.js/R3F era:
+The original `vitest.config.ts` contained coverage exclusions referencing **deleted files** from the former Three.js/R3F era:
 
 ```typescript
 // R3F/Three.js components - require WebGL context, not testable in jsdom
@@ -74,7 +74,9 @@ DOM (browser rendering)
 'src/entities/connection/ConnectionLine.tsx', // ← DELETED
 ```
 
-These exclusions and the comment are stale and should be removed. The current SVG components (`BlockSvg.tsx`, `PlateSvg.tsx`, `ConnectionPath.tsx`) are fully testable in jsdom and already have test coverage.
+These three stale exclusions and their R3F comment have been removed by this PR.
+
+`SceneCanvas.tsx` remains excluded with an updated comment — it is a **live production component** whose complex canvas interactions (zoom, pan, drag) require a full DOM environment not available in jsdom. Its exclusion is unrelated to Three.js.
 
 ## Conclusion
 
