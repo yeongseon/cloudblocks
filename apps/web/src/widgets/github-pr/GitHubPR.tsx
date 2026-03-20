@@ -3,6 +3,7 @@ import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { apiPost } from '../../shared/api/client';
+import { isValidGitBranchName } from '../../shared/utils/githubValidation';
 import type { PullRequestResponse } from '../../shared/types/api';
 import './GitHubPR.css';
 
@@ -12,6 +13,7 @@ export function GitHubPR() {
 
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
   const workspace = useArchitectureStore((s) => s.workspace);
+  const hasBackendWorkspaceLink = Boolean(workspace.backendWorkspaceId);
 
   const [title, setTitle] = useState('Update cloud architecture');
   const [body, setBody] = useState('');
@@ -20,21 +22,39 @@ export function GitHubPR() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PullRequestResponse | null>(null);
+  const cleanedTitle = title.trim();
+  const cleanedBranch = branch.trim();
+  const branchIsValid = !cleanedBranch || isValidGitBranchName(cleanedBranch);
+  const canSubmit = !loading && cleanedTitle.length > 0 && branchIsValid && hasBackendWorkspaceLink;
 
   if (!show) return null;
 
   const handleSubmit = async () => {
+    const backendWorkspaceId = workspace.backendWorkspaceId;
+    if (!backendWorkspaceId) {
+      setError('Workspace must be linked to backend before creating a pull request.');
+      return;
+    }
+    if (!cleanedTitle) {
+      setError('Pull request title is required.');
+      return;
+    }
+    if (cleanedBranch && !isValidGitBranchName(cleanedBranch)) {
+      setError('Branch name contains invalid characters or format.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setResult(null);
     try {
       const response = await apiPost<PullRequestResponse>(
-        `/api/v1/workspaces/${encodeURIComponent(workspace.backendWorkspaceId ?? workspace.id)}/pr`,
+        `/api/v1/workspaces/${encodeURIComponent(backendWorkspaceId)}/pr`,
         {
           architecture: workspace.architecture,
-          title,
+          title: cleanedTitle,
           body,
-          branch: branch.trim() || undefined,
+          branch: cleanedBranch || undefined,
           commit_message: commitMessage,
         }
       );
@@ -57,6 +77,8 @@ export function GitHubPR() {
 
       {!isAuthenticated ? (
         <div className="github-pr-empty">GitHub authentication required.</div>
+      ) : !hasBackendWorkspaceLink ? (
+        <div className="github-pr-empty">Workspace must be linked to backend before creating a pull request.</div>
       ) : (
         <div className="github-pr-content">
           {loading && <div className="github-pr-loading">Loading...</div>}
@@ -93,6 +115,7 @@ export function GitHubPR() {
             onChange={(e) => setBranch(e.target.value)}
             placeholder="cloudblocks/update-architecture"
           />
+          {!branchIsValid && <div className="github-pr-error">Branch name contains invalid characters or format.</div>}
 
           <label className="github-pr-label" htmlFor="github-pr-commit-message">
             Commit message
@@ -104,7 +127,7 @@ export function GitHubPR() {
             onChange={(e) => setCommitMessage(e.target.value)}
           />
 
-          <button className="github-pr-submit" onClick={handleSubmit} disabled={loading}>
+          <button className="github-pr-submit" onClick={handleSubmit} disabled={!canSubmit}>
             Create Pull Request
           </button>
 
