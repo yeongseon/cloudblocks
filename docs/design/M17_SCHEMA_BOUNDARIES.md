@@ -58,7 +58,7 @@ Contains a mix of:
 
 | Divergence | Severity | Impact |
 |-----------|----------|--------|
-| `LAYER_TYPES` missing `'resource'` | **HIGH** | Backend rejects `resource`-type plates that frontend allows |
+| `LAYER_TYPES` missing `'resource'` | **LOW** | `'resource'` is not a plate type — it is used as a logical layer in frontend block placement validation (`placement.ts`). Backend `LAYER_TYPES` correctly matches the 5-value `PlateType` union. Not a true divergence. |
 | `PROVIDER_TYPES` order | Low | Functional no-op but inconsistent |
 | Suggestion severity vocab | Medium | `critical/info` not in frontend `RuleSeverity` |
 
@@ -106,7 +106,7 @@ These are constants and validation types that encode business rules shared betwe
 | `ValidationError` | interface | 179–185 | Validation result item |
 | `ValidationResult` | interface | 187–191 | Validation output |
 
-**Total**: 8 exports (3 types/interfaces + 2 consts + 3 interfaces)
+**Total**: 8 exports (2 types + 3 consts + 3 interfaces)
 
 **Note**: `RuleSeverity` uses `'error' | 'warning'`. The backend `suggestions.py` uses `'critical' | 'warning' | 'info'` — this is a **separate suggestion severity** (not a validation severity). The suggestion system should either:
 1. Map to `RuleSeverity` (recommended: `critical` → `error`, `info` → drop or add to `RuleSeverity`), or
@@ -170,7 +170,7 @@ After extraction, backend files should import from generated Python models inste
 | `BLOCK_CATEGORIES` | `@cloudblocks/schema` → generated Python | Replace with import from generated models |
 | `CONNECTION_TYPES` | `@cloudblocks/schema` → generated Python | Replace with import from generated models |
 | `PROVIDER_TYPES` | `@cloudblocks/schema` → generated Python | Replace with import from generated models |
-| `LAYER_TYPES` | `@cloudblocks/schema` → generated Python | Replace with import; **add `'resource'`** to fix divergence |
+| `LAYER_TYPES` | `@cloudblocks/schema` → generated Python | Replace with import; keep aligned with 5-value `PlateType` (no `'resource'`). Introduce separate backend constant for the 6-layer hierarchy if block placement rules need it |
 | `SUBTYPE_REGISTRY` | Backend-only | Keep in backend; validate keys against schema enums |
 | Inline JSON Schema | `@cloudblocks/schema` → generated JSON | Replace with import of generated `.json` schema file |
 
@@ -278,10 +278,10 @@ packages/schema/
     └── generate-schema.ts  # ts-json-schema-generator invocation
 ```
 
-### 6.2 `packages/domain/`
+### 6.2 `packages/cloudblocks-domain/`
 
 ```
-packages/domain/
+packages/cloudblocks-domain/
 ├── package.json          # @cloudblocks/domain
 ├── tsconfig.json
 ├── src/
