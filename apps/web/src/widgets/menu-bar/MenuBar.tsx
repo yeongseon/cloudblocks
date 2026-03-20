@@ -52,6 +52,7 @@ export function MenuBar() {
 
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
   const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
 
   const removePlate = useArchitectureStore((s) => s.removePlate);
   const removeBlock = useArchitectureStore((s) => s.removeBlock);
@@ -128,8 +129,14 @@ export function MenuBar() {
     }
   };
 
-  const handleLoad = () => {
-    loadFromStorage();
+  const handleLoad = async () => {
+    const confirmed = await confirmDialog(
+      'Loading will replace current workspace with saved data. Unsaved changes will be lost.',
+      'Load Workspace?',
+    );
+    if (confirmed) {
+      loadFromStorage();
+    }
   };
 
   const handleExport = () => {
@@ -459,7 +466,7 @@ export function MenuBar() {
                 <span className="menu-item-left">🔍 Compare with GitHub</span>
               </button>
               <div className="menu-separator" />
-              <button type="button" className="menu-item" onClick={() => handleAction(toggleGitHubLogin)}>
+              <button type="button" className="menu-item" onClick={() => handleAction(logout)}>
                 <span className="menu-item-left">🚪 Sign Out</span>
               </button>
             </div>
