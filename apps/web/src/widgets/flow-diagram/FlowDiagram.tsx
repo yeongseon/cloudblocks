@@ -37,6 +37,12 @@ function buildFlowChain(
       inDegree.set(next, deg);
       if (deg === 0) queue.push(next);
     }
+
+  // Add any remaining nodes (involved in cycles) that weren't processed
+  for (const nodeId of allIds) {
+    if (!sorted.includes(nodeId)) {
+      sorted.push(nodeId);
+    }
   }
 
   return sorted;
