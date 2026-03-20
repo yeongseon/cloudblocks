@@ -13,7 +13,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { BLOCK_FRIENDLY_NAMES, BLOCK_DESCRIPTIONS, BLOCK_ICONS, DEFAULT_PLATE_PROFILE, getPlateProfile, isPlateProfileId, PLATE_COLORS, PLATE_PROFILES, SUBNET_ACCESS_COLORS } from '../../shared/types/index';
+import { BLOCK_FRIENDLY_NAMES, BLOCK_DESCRIPTIONS, BLOCK_ICONS, CONNECTION_TYPE_LABELS, DEFAULT_PLATE_PROFILE, getPlateProfile, isPlateProfileId, PLATE_COLORS, PLATE_PROFILES, SUBNET_ACCESS_COLORS } from '../../shared/types/index';
 import type { PlateProfileId } from '../../shared/types/index';
 import type { Block, Plate } from '@cloudblocks/schema';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
@@ -312,7 +312,7 @@ function ConnectionDetail({ connectionId, className }: { connectionId: string; c
     <div className={`detail-panel detail-panel--connection ${className}`}>
       <div className="detail-header">
         <span className="detail-header-icon">🔗</span>
-        <span className="detail-header-name">Connection</span>
+        <span className="detail-header-name">{CONNECTION_TYPE_LABELS[connection.type]} Connection</span>
       </div>
 
       <div className="detail-divider" />
@@ -320,7 +320,7 @@ function ConnectionDetail({ connectionId, className }: { connectionId: string; c
       <div className="detail-properties">
         <div className="detail-property">
           <span className="detail-property-label">Type</span>
-          <span className="detail-property-value">Data Flow</span>
+          <span className="detail-property-value">{CONNECTION_TYPE_LABELS[connection.type]}</span>
         </div>
 
         <div className="detail-property">

@@ -11,7 +11,7 @@
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { getPlateFaceColors } from '../../entities/plate/plateFaceColors';
-import { BLOCK_FRIENDLY_NAMES, PLATE_COLORS, SUBNET_ACCESS_COLORS } from '../../shared/types/index';
+import { BLOCK_FRIENDLY_NAMES, CONNECTION_TYPE_LABELS, PLATE_COLORS, SUBNET_ACCESS_COLORS } from '../../shared/types/index';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
 import vmIcon from '../../shared/assets/azure-icons/virtual-machine.svg';
 import sqlIcon from '../../shared/assets/azure-icons/sql-database.svg';
@@ -128,10 +128,10 @@ export function Portrait({ className = '' }: PortraitProps) {
       <div className={`portrait-panel portrait-panel--connection ${className}`}>
         <div className="portrait-content">
           <span className="portrait-icon" style={{ color: '#42A5F5' }}>🔗</span>
-          <span className="portrait-label">Connection</span>
+          <span className="portrait-label">{CONNECTION_TYPE_LABELS[selectedConnection.type]}</span>
         </div>
         <div className="portrait-badge" style={{ backgroundColor: '#42A5F5' }}>
-          dataflow
+          {selectedConnection.type}
         </div>
       </div>
     );

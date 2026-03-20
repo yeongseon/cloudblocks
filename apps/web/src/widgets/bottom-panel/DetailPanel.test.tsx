@@ -130,15 +130,34 @@ describe('DetailPanel', () => {
     expect(screen.getByText('2 blocks')).toBeInTheDocument();
   });
 
-  it('renders connection detail with source and target resources', () => {
+  it('renders connection detail with actual type and source/target resources', () => {
     useUIStore.setState({ selectedId: 'conn-1' });
 
     render(<DetailPanel />);
 
-    expect(screen.getByText('Connection')).toBeInTheDocument();
+    expect(screen.getByText('Data Flow Connection')).toBeInTheDocument();
     expect(screen.getByText('Data Flow')).toBeInTheDocument();
     expect(screen.getByText(/App VM/)).toBeInTheDocument();
     expect(screen.getByText(/SQL DB/)).toBeInTheDocument();
+  });
+
+  it('renders http connection type in detail panel', () => {
+    const httpConnection: Connection = { ...connection, id: 'conn-http', type: 'http' };
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: { ...architectureWithResources, connections: [httpConnection] },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+    useUIStore.setState({ selectedId: 'conn-http' });
+
+    render(<DetailPanel />);
+
+    expect(screen.getByText('HTTP Connection')).toBeInTheDocument();
+    expect(screen.getByText('HTTP')).toBeInTheDocument();
   });
 
   it('falls back to welcome state when selected id does not exist', () => {
