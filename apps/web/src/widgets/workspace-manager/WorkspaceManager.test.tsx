@@ -4,11 +4,15 @@ import userEvent from '@testing-library/user-event';
 vi.mock('../../shared/ui/ConfirmDialog', () => ({
   confirmDialog: vi.fn(),
 }));
+vi.mock('../../shared/ui/PromptDialog', () => ({
+  promptDialog: vi.fn(),
+}));
 import { WorkspaceManager } from './WorkspaceManager';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import type { Workspace } from '../../shared/types/index';
 import { confirmDialog } from '../../shared/ui/ConfirmDialog';
+import { promptDialog } from '../../shared/ui/PromptDialog';
 
 const makeWorkspace = (id: string, name: string, blocks = 0, plates = 0): Workspace => ({
   id,
@@ -50,6 +54,7 @@ describe('WorkspaceManager', () => {
   const deleteWorkspaceMock = vi.fn();
   const cloneWorkspaceMock = vi.fn();
   const saveToStorageMock = vi.fn();
+  const renameWorkspaceMock = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -61,6 +66,7 @@ describe('WorkspaceManager', () => {
       switchWorkspace: switchWorkspaceMock,
       deleteWorkspace: deleteWorkspaceMock,
       cloneWorkspace: cloneWorkspaceMock,
+      renameWorkspace: renameWorkspaceMock,
       saveToStorage: saveToStorageMock,
     });
   });
@@ -163,6 +169,7 @@ describe('WorkspaceManager', () => {
       switchWorkspace: switchWorkspaceMock,
       deleteWorkspace: deleteWorkspaceMock,
       cloneWorkspace: cloneWorkspaceMock,
+      renameWorkspace: renameWorkspaceMock,
       saveToStorage: saveToStorageMock,
     });
     useUIStore.setState({ showWorkspaceManager: true });
@@ -185,6 +192,7 @@ describe('WorkspaceManager', () => {
       switchWorkspace: switchWorkspaceMock,
       deleteWorkspace: deleteWorkspaceMock,
       cloneWorkspace: cloneWorkspaceMock,
+      renameWorkspace: renameWorkspaceMock,
       saveToStorage: saveToStorageMock,
     });
     useUIStore.setState({ showWorkspaceManager: true });
@@ -222,6 +230,7 @@ describe('WorkspaceManager', () => {
       switchWorkspace: switchWorkspaceMock,
       deleteWorkspace: deleteWorkspaceMock,
       cloneWorkspace: cloneWorkspaceMock,
+      renameWorkspace: renameWorkspaceMock,
       saveToStorage: saveToStorageMock,
     });
     useUIStore.setState({ showWorkspaceManager: true });
@@ -246,6 +255,7 @@ describe('WorkspaceManager', () => {
       switchWorkspace: switchWorkspaceMock,
       deleteWorkspace: deleteWorkspaceMock,
       cloneWorkspace: cloneWorkspaceMock,
+      renameWorkspace: renameWorkspaceMock,
       saveToStorage: saveToStorageMock,
     });
     useUIStore.setState({ showWorkspaceManager: true });
@@ -265,6 +275,7 @@ describe('WorkspaceManager', () => {
       switchWorkspace: switchWorkspaceMock,
       deleteWorkspace: deleteWorkspaceMock,
       cloneWorkspace: cloneWorkspaceMock,
+      renameWorkspace: renameWorkspaceMock,
       saveToStorage: saveToStorageMock,
     });
     useUIStore.setState({ showWorkspaceManager: true });
@@ -286,5 +297,54 @@ describe('WorkspaceManager', () => {
     render(<WorkspaceManager />);
 
     expect(screen.getByPlaceholderText('New workspace name...')).toHaveValue('');
+  });
+
+  it('renames workspace when user confirms with a new name', async () => {
+    const user = userEvent.setup();
+    vi.mocked(promptDialog).mockResolvedValue('Renamed Workspace');
+    useUIStore.setState({ showWorkspaceManager: true });
+    render(<WorkspaceManager />);
+    const renameBtn = screen.getByTitle('Rename workspace');
+    await user.click(renameBtn);
+    expect(promptDialog).toHaveBeenCalledWith('Rename workspace:', 'Rename', 'Default Workspace');
+    await waitFor(() => {
+      expect(renameWorkspaceMock).toHaveBeenCalledWith('Renamed Workspace');
+    });
+  });
+
+  it('does not rename workspace when user cancels prompt', async () => {
+    const user = userEvent.setup();
+    vi.mocked(promptDialog).mockResolvedValue(null);
+    useUIStore.setState({ showWorkspaceManager: true });
+    render(<WorkspaceManager />);
+    const renameBtn = screen.getByTitle('Rename workspace');
+    await user.click(renameBtn);
+    await waitFor(() => {
+      expect(renameWorkspaceMock).not.toHaveBeenCalled();
+    });
+  });
+
+  it('does not rename workspace when user enters same name', async () => {
+    const user = userEvent.setup();
+    vi.mocked(promptDialog).mockResolvedValue('Default Workspace');
+    useUIStore.setState({ showWorkspaceManager: true });
+    render(<WorkspaceManager />);
+    const renameBtn = screen.getByTitle('Rename workspace');
+    await user.click(renameBtn);
+    await waitFor(() => {
+      expect(renameWorkspaceMock).not.toHaveBeenCalled();
+    });
+  });
+
+  it('does not rename workspace when user enters empty string', async () => {
+    const user = userEvent.setup();
+    vi.mocked(promptDialog).mockResolvedValue('');
+    useUIStore.setState({ showWorkspaceManager: true });
+    render(<WorkspaceManager />);
+    const renameBtn = screen.getByTitle('Rename workspace');
+    await user.click(renameBtn);
+    await waitFor(() => {
+      expect(renameWorkspaceMock).not.toHaveBeenCalled();
+    });
   });
 });

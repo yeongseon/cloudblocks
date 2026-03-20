@@ -64,6 +64,12 @@ describe('GitHubPR', () => {
     expect(screen.getByText('GitHub authentication required.')).toBeInTheDocument();
   });
 
+  it('shows checking authentication when auth status is unknown', () => {
+    useAuthStore.setState({ status: 'unknown' });
+    render(<GitHubPR />);
+    expect(screen.getByText('Checking authentication...')).toBeInTheDocument();
+  });
+
   it('shows form fields', () => {
     render(<GitHubPR />);
     expect(screen.getByLabelText('Title')).toBeInTheDocument();

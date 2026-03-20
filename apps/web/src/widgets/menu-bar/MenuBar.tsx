@@ -53,6 +53,7 @@ export function MenuBar() {
   const playSound = (name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); };
 
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
+  const authStatus = useAuthStore((s) => s.status);
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
 
@@ -172,6 +173,9 @@ export function MenuBar() {
           toast.success('Architecture imported successfully!');
         }
       }
+    };
+    reader.onerror = () => {
+      toast.error('Failed to read file.');
     };
     reader.readAsText(file);
     e.target.value = '';
@@ -466,7 +470,16 @@ export function MenuBar() {
       <div className="menu-bar-divider" />
 
       <div className="github-section menu-dropdown-container">
-        {isAuthenticated ? (
+        {authStatus === 'unknown' ? (
+          <button
+            type="button"
+            className="github-btn"
+            disabled
+            title="Checking authentication..."
+          >
+            🔐 ...
+          </button>
+        ) : isAuthenticated ? (
           <>
             <button
               type="button"

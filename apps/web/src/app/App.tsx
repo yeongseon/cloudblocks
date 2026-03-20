@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react';
-import { Toaster } from 'react-hot-toast';
+import { toast, Toaster } from 'react-hot-toast';
 import { SceneCanvas } from '../widgets/scene-canvas/SceneCanvas';
 import { MenuBar } from '../widgets/menu-bar/MenuBar';
 
@@ -86,7 +86,12 @@ function App() {
       // Save: Ctrl+S / Cmd+S
       if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
-        saveToStorage();
+        const success = saveToStorage();
+        if (success) {
+          toast.success('Workspace saved!');
+        } else {
+          toast.error('Failed to save workspace. Storage may be full.');
+        }
         return;
       }
 

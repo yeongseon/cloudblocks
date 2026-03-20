@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { confirmDialog } from '../../shared/ui/ConfirmDialog';
+import { promptDialog } from '../../shared/ui/PromptDialog';
 import './WorkspaceManager.css';
 
 export function WorkspaceManager() {
@@ -14,6 +15,7 @@ export function WorkspaceManager() {
   const switchWorkspace = useArchitectureStore((s) => s.switchWorkspace);
   const deleteWorkspace = useArchitectureStore((s) => s.deleteWorkspace);
   const cloneWorkspace = useArchitectureStore((s) => s.cloneWorkspace);
+  const renameWorkspace = useArchitectureStore((s) => s.renameWorkspace);
   const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
 
   const [newName, setNewName] = useState('');
@@ -40,11 +42,18 @@ export function WorkspaceManager() {
     }
   };
 
+  const handleRename = async (currentName: string) => {
+    const newName = await promptDialog('Rename workspace:', 'Rename', currentName);
+    if (newName && newName.trim() && newName.trim() !== currentName) {
+      renameWorkspace(newName.trim());
+    }
+  };
+
   return (
     <div className="workspace-manager">
       <div className="workspace-manager-header">
         <h3 className="workspace-manager-title">📂 Workspaces</h3>
-        <button className="workspace-manager-close" onClick={toggleWorkspaceManager} aria-label="Close workspace manager panel">
+        <button type="button" className="workspace-manager-close" onClick={toggleWorkspaceManager} aria-label="Close workspace manager panel">
           ✕
         </button>
       </div>
@@ -60,7 +69,7 @@ export function WorkspaceManager() {
             if (e.key === 'Enter') handleCreate();
           }}
         />
-        <button className="workspace-manager-create-btn" onClick={handleCreate} disabled={!newName.trim()}>
+        <button type="button" className="workspace-manager-create-btn" onClick={handleCreate} disabled={!newName.trim()}>
           + Create
         </button>
       </div>
@@ -85,8 +94,19 @@ export function WorkspaceManager() {
                 </span>
               </div>
               <div className="workspace-manager-item-actions">
+                {isActive && (
+                  <button
+                    type="button"
+                    className="workspace-manager-action"
+                    onClick={() => handleRename(ws.name)}
+                    title="Rename workspace"
+                  >
+                    ✏️
+                  </button>
+                )}
                 {!isActive && (
                   <button
+                    type="button"
                     className="workspace-manager-action"
                     onClick={() => {
                       saveToStorage();
@@ -98,6 +118,7 @@ export function WorkspaceManager() {
                   </button>
                 )}
                 <button
+                  type="button"
                   className="workspace-manager-action"
                   onClick={() => cloneWorkspace(ws.id)}
                   title="Clone workspace"
@@ -105,6 +126,7 @@ export function WorkspaceManager() {
                   📋
                 </button>
                 <button
+                  type="button"
                   className="workspace-manager-action workspace-manager-action-delete"
                   onClick={() => handleDelete(ws.id)}
                   title="Delete workspace"
