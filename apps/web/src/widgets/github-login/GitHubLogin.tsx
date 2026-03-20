@@ -55,7 +55,7 @@ export function GitHubLogin() {
     <div className="github-login">
       <div className="github-login-header">
         <h3 className="github-login-title">🔐 GitHub Login</h3>
-        <button className="github-login-close" onClick={toggleGitHubLogin} aria-label="Close GitHub login panel">
+        <button type="button" className="github-login-close" onClick={toggleGitHubLogin} aria-label="Close GitHub login panel">
           ✕
         </button>
       </div>
@@ -64,7 +64,9 @@ export function GitHubLogin() {
         {isWorking && <div className="github-login-loading">Loading...</div>}
         {(localError || authError) && <div className="github-login-error">{localError || authError}</div>}
 
-        {status === 'authenticated' ? (
+        {status === 'unknown' ? (
+          <div className="github-login-loading">Checking authentication...</div>
+        ) : status === 'authenticated' ? (
           <div className="github-login-user">
             {user?.avatar_url && (
               <img
@@ -77,12 +79,12 @@ export function GitHubLogin() {
               <div className="github-login-user-name">{user?.display_name ?? user?.github_username ?? 'Unknown User'}</div>
               <div className="github-login-user-username">@{user?.github_username ?? 'unknown'}</div>
             </div>
-            <button className="github-login-signout" onClick={handleSignOut} disabled={isWorking}>
+            <button type="button" className="github-login-signout" onClick={handleSignOut} disabled={isWorking}>
               Sign Out
             </button>
           </div>
         ) : (
-          <button className="github-login-signin" onClick={handleSignIn} disabled={isWorking}>
+          <button type="button" className="github-login-signin" onClick={handleSignIn} disabled={isWorking}>
             Sign in with GitHub
           </button>
         )}

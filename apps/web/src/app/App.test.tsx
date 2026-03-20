@@ -3,7 +3,9 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { useArchitectureStore } from '../entities/store/architectureStore';
 import { useUIStore } from '../entities/store/uiStore';
 import { useAuthStore } from '../entities/store/authStore';
+const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
 vi.mock('react-hot-toast', () => ({
+  toast: toastMock,
   Toaster: () => <div data-testid="app-toaster" />,
 }));
 
@@ -144,18 +146,30 @@ describe('App', () => {
     expect(checkSessionMock).toHaveBeenCalledOnce();
   });
 
-  it('handles Ctrl+S for save', () => {
+  it('handles Ctrl+S for save with success toast', () => {
+    saveToStorageMock.mockReturnValue(true);
     render(<App />);
     const preventDefaultMock = vi.fn();
     fireEvent.keyDown(window, { key: 's', ctrlKey: true, preventDefault: preventDefaultMock });
     expect(saveToStorageMock).toHaveBeenCalledOnce();
+    expect(toastMock.success).toHaveBeenCalledWith('Workspace saved!');
   });
 
-  it('handles Meta+S for save (macOS)', () => {
+  it('handles Meta+S for save (macOS) with success toast', () => {
+    saveToStorageMock.mockReturnValue(true);
     render(<App />);
     const preventDefaultMock = vi.fn();
     fireEvent.keyDown(window, { key: 's', metaKey: true, preventDefault: preventDefaultMock });
     expect(saveToStorageMock).toHaveBeenCalledOnce();
+    expect(toastMock.success).toHaveBeenCalledWith('Workspace saved!');
+  });
+
+  it('handles Ctrl+S for save with failure toast', () => {
+    saveToStorageMock.mockReturnValue(false);
+    render(<App />);
+    fireEvent.keyDown(window, { key: 's', ctrlKey: true });
+    expect(saveToStorageMock).toHaveBeenCalledOnce();
+    expect(toastMock.error).toHaveBeenCalledWith('Failed to save workspace. Storage may be full.');
   });
 
   it('handles Ctrl+Z for undo', () => {

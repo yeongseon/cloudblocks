@@ -18,6 +18,7 @@ export function GitHubSync() {
   const setStoreBackendWorkspaceId = useArchitectureStore((s) => s.setBackendWorkspaceId);
 
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
+  const authStatus = useAuthStore((s) => s.status);
 
   const [repoInput, setRepoInput] = useState('');
   const [backendWorkspaceIdInput, setBackendWorkspaceIdInput] = useState('');
@@ -169,7 +170,9 @@ export function GitHubSync() {
         </button>
       </div>
 
-      {!isAuthenticated ? (
+      {authStatus === 'unknown' ? (
+        <div className="github-sync-loading">Checking authentication...</div>
+      ) : !isAuthenticated ? (
         <div className="github-sync-empty">GitHub authentication required.</div>
       ) : (
         <>

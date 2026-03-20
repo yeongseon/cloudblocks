@@ -10,6 +10,7 @@ export function GitHubRepos() {
   const show = useUIStore((s) => s.showGitHubRepos);
   const toggleGitHubRepos = useUIStore((s) => s.toggleGitHubRepos);
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
+  const authStatus = useAuthStore((s) => s.status);
 
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
   const [loading, setLoading] = useState(false);
@@ -72,7 +73,9 @@ export function GitHubRepos() {
         </button>
       </div>
 
-      {!isAuthenticated ? (
+      {authStatus === 'unknown' ? (
+        <div className="github-repos-loading">Checking authentication...</div>
+      ) : !isAuthenticated ? (
         <div className="github-repos-empty">GitHub authentication required.</div>
       ) : (
         <>

@@ -12,6 +12,7 @@ export function GitHubPR() {
   const toggleGitHubPR = useUIStore((s) => s.toggleGitHubPR);
 
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
+  const authStatus = useAuthStore((s) => s.status);
   const workspace = useArchitectureStore((s) => s.workspace);
   const hasBackendWorkspaceLink = Boolean(workspace.backendWorkspaceId);
 
@@ -75,7 +76,9 @@ export function GitHubPR() {
         </button>
       </div>
 
-      {!isAuthenticated ? (
+      {authStatus === 'unknown' ? (
+        <div className="github-pr-loading">Checking authentication...</div>
+      ) : !isAuthenticated ? (
         <div className="github-pr-empty">GitHub authentication required.</div>
       ) : !hasBackendWorkspaceLink ? (
         <div className="github-pr-empty">Workspace must be linked to backend before creating a pull request.</div>

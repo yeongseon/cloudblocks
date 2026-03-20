@@ -676,6 +676,20 @@ describe('useUIStore', () => {
       useUIStore.getState().toggleScenarioGallery();
       expect(useUIStore.getState().showScenarioGallery).toBe(false);
     });
+
+    it('setShowLearningPanel sets visibility explicitly', () => {
+      useUIStore.getState().setShowLearningPanel(true);
+      expect(useUIStore.getState().showLearningPanel).toBe(true);
+      useUIStore.getState().setShowLearningPanel(false);
+      expect(useUIStore.getState().showLearningPanel).toBe(false);
+    });
+
+    it('setShowScenarioGallery sets visibility explicitly', () => {
+      useUIStore.getState().setShowScenarioGallery(true);
+      expect(useUIStore.getState().showScenarioGallery).toBe(true);
+      useUIStore.getState().setShowScenarioGallery(false);
+      expect(useUIStore.getState().showScenarioGallery).toBe(false);
+    });
   });
 
   describe('diffMode', () => {

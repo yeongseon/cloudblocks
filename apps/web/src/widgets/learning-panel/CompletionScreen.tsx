@@ -5,7 +5,7 @@ import { abandonLearning } from '../../features/learning/scenario-engine';
 export function CompletionScreen() {
   const activeScenario = useLearningStore((state) => state.activeScenario);
   const progress = useLearningStore((state) => state.progress);
-  const toggleScenarioGallery = useUIStore((state) => state.toggleScenarioGallery);
+  const setShowScenarioGallery = useUIStore((state) => state.setShowScenarioGallery);
 
   if (!activeScenario || !progress || !progress.completedAt) {
     return null;
@@ -21,7 +21,7 @@ export function CompletionScreen() {
 
   const handleBrowse = () => {
     abandonLearning();
-    toggleScenarioGallery();
+    setShowScenarioGallery(true);
   };
 
   const handleBack = () => {

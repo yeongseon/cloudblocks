@@ -69,8 +69,10 @@ interface UIState {
   // ── Learning panels ──
   showLearningPanel: boolean;
   toggleLearningPanel: () => void;
+  setShowLearningPanel: (show: boolean) => void;
   showScenarioGallery: boolean;
   toggleScenarioGallery: () => void;
+  setShowScenarioGallery: (show: boolean) => void;
 
   // ── Diff mode ──
   diffMode: boolean;
@@ -206,9 +208,11 @@ export const useUIStore = create<UIState>((set) => ({
   showLearningPanel: false,
   toggleLearningPanel: () =>
     set((s) => ({ showLearningPanel: !s.showLearningPanel })),
+  setShowLearningPanel: (show) => set({ showLearningPanel: show }),
   showScenarioGallery: false,
   toggleScenarioGallery: () =>
     set((s) => ({ showScenarioGallery: !s.showScenarioGallery })),
+  setShowScenarioGallery: (show) => set({ showScenarioGallery: show }),
 
   diffMode: false,
   diffDelta: null,
