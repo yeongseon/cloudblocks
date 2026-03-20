@@ -378,4 +378,63 @@ describe('CodePreview', () => {
 
     expect(screen.getByText('Provider comparison is currently available for Terraform only.')).toBeInTheDocument();
   });
+
+  it('resets local state on reopen after generating code', async () => {
+    const user = userEvent.setup();
+    const mockOutput = {
+      files: [{ path: 'main.tf', content: 'resource content', language: 'hcl' as const }],
+      metadata: { generator: 'terraform', version: '0.3.0', provider: 'azure' as const, generatedAt: '2026-01-01T00:00:00.000Z' },
+    };
+    vi.mocked(generateCode).mockReturnValue(mockOutput);
+
+    useUIStore.setState({ showCodePreview: true });
+    const { rerender } = render(<CodePreview />);
+
+    // Change project name and generate
+    const input = screen.getByDisplayValue('myproject');
+    await user.clear(input);
+    await user.type(input, 'changed');
+    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
+    expect(screen.getByText('main.tf')).toBeInTheDocument();
+
+    // Close the panel
+    useUIStore.setState({ showCodePreview: false });
+    rerender(<CodePreview />);
+
+    // Reopen the panel
+    useUIStore.setState({ showCodePreview: true });
+    rerender(<CodePreview />);
+
+    // Output should be cleared and form reset
+    expect(screen.queryByText('main.tf')).not.toBeInTheDocument();
+    expect(screen.getByDisplayValue('myproject')).toBeInTheDocument();
+  });
+
+  it('resets local state when workspace changes', async () => {
+    const user = userEvent.setup();
+    const mockOutput = {
+      files: [{ path: 'main.tf', content: 'resource content', language: 'hcl' as const }],
+      metadata: { generator: 'terraform', version: '0.3.0', provider: 'azure' as const, generatedAt: '2026-01-01T00:00:00.000Z' },
+    };
+    vi.mocked(generateCode).mockReturnValue(mockOutput);
+
+    useUIStore.setState({ showCodePreview: true });
+    const { rerender } = render(<CodePreview />);
+
+    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
+    expect(screen.getByText('main.tf')).toBeInTheDocument();
+
+    // Switch workspace
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-2', name: 'Other', architecture: mockArch,
+        createdAt: '', updatedAt: '',
+      },
+    });
+    rerender(<CodePreview />);
+
+    // Output should be cleared
+    expect(screen.queryByText('main.tf')).not.toBeInTheDocument();
+    expect(screen.getByDisplayValue('myproject')).toBeInTheDocument();
+  });
 });
