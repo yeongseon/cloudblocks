@@ -63,7 +63,6 @@ const connection: Connection = {
   metadata: {},
 };
 
-const addPlateMock = vi.fn();
 const removePlateMock = vi.fn();
 const removeBlockMock = vi.fn();
 const removeConnectionMock = vi.fn();
@@ -97,7 +96,6 @@ async function openMenu(user: ReturnType<typeof userEvent.setup>, label: string)
 
 function setArchitectureState(overrides?: Partial<ArchitectureModel>): void {
   useArchitectureStore.setState({
-    addPlate: addPlateMock,
     removePlate: removePlateMock,
     removeBlock: removeBlockMock,
     removeConnection: removeConnectionMock,
@@ -202,10 +200,8 @@ describe('MenuBar', () => {
 
     expect(screen.getByRole('button', { name: 'File' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Insert' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Tools' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Build' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Learn' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'View' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'View' })).toBeInTheDocument();
 
     expect(screen.getByTitle('Undo (Ctrl+Z)')).toBeInTheDocument();
@@ -455,49 +451,6 @@ describe('MenuBar', () => {
     expect(removeConnectionMock).not.toHaveBeenCalled();
   });
 
-  it('handles Insert menu network and subnet actions', async () => {
-    const user = userEvent.setup();
-    render(<MenuBar />);
-
-    let insertDropdown = await openMenu(user, 'Insert');
-    await user.click(within(insertDropdown).getByRole('button', { name: /Network/ }));
-    expect(addPlateMock).toHaveBeenCalledWith('region', 'VNet', null);
-
-    insertDropdown = await openMenu(user, 'Insert');
-    await user.click(within(insertDropdown).getByRole('button', { name: /Public Subnet/ }));
-    expect(toast.error).toHaveBeenCalledWith('Please create a Region Plate first.');
-
-    insertDropdown = await openMenu(user, 'Insert');
-    await user.click(within(insertDropdown).getByRole('button', { name: /Private Subnet/ }));
-    expect(toast.error).toHaveBeenCalledWith('Please create a Region Plate first.');
-
-    setArchitectureState({ plates: [networkPlate] });
-
-    insertDropdown = await openMenu(user, 'Insert');
-    await user.click(within(insertDropdown).getByRole('button', { name: /Public Subnet/ }));
-    expect(addPlateMock).toHaveBeenCalledWith('subnet', 'Public Subnet', 'net-1', 'public');
-
-    insertDropdown = await openMenu(user, 'Insert');
-    await user.click(within(insertDropdown).getByRole('button', { name: /Private Subnet/ }));
-    expect(addPlateMock).toHaveBeenCalledWith('subnet', 'Private Subnet', 'net-1', 'private');
-  }, 15000);
-
-  it('sets tool mode from Tools menu', async () => {
-    const user = userEvent.setup();
-    render(<MenuBar />);
-
-    let toolsDropdown = await openMenu(user, 'Tools');
-    await user.click(within(toolsDropdown).getByRole('button', { name: /Connect Tool/ }));
-    expect(useUIStore.getState().toolMode).toBe('connect');
-
-    toolsDropdown = await openMenu(user, 'Tools');
-    await user.click(within(toolsDropdown).getByRole('button', { name: /Delete Tool/ }));
-    expect(useUIStore.getState().toolMode).toBe('delete');
-
-    toolsDropdown = await openMenu(user, 'Tools');
-    await user.click(within(toolsDropdown).getByRole('button', { name: /Select Tool/ }));
-    expect(useUIStore.getState().toolMode).toBe('select');
-  }, 15000);
 
   it('handles Build menu validate and panel toggles', async () => {
     const user = userEvent.setup();
@@ -525,45 +478,28 @@ describe('MenuBar', () => {
     expect(useUIStore.getState().showTemplateGallery).toBe(true);
   }, 15000);
 
-  it('shows validation badge in Build menu when validationResult exists', async () => {
-    const user = userEvent.setup();
-    useArchitectureStore.setState({ validationResult: { valid: false, errors: [{ ruleId: 'r1', severity: 'error', message: 'err', targetId: 'x' }], warnings: [] } });
-
-    render(<MenuBar />);
-    const buildDropdown = await openMenu(user, 'Build');
-    expect(within(buildDropdown).getByText('Errors')).toBeInTheDocument();
-  });
-
-  it('handles Learn menu scenario gallery and learning panel toggles', async () => {
+  it('handles Build menu scenario gallery and learning panel (merged from Learn menu)', async () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    let learnDropdown = await openMenu(user, 'Learn');
-    await user.click(within(learnDropdown).getByRole('button', { name: /Browse Scenarios/ }));
+    let buildDropdown = await openMenu(user, 'Build');
+    await user.click(within(buildDropdown).getByRole('button', { name: /Browse Scenarios/ }));
     expect(useUIStore.getState().showScenarioGallery).toBe(true);
 
-    learnDropdown = await openMenu(user, 'Learn');
-    await user.click(within(learnDropdown).getByRole('button', { name: /Show Learning Panel/ }));
+    buildDropdown = await openMenu(user, 'Build');
+    await user.click(within(buildDropdown).getByRole('button', { name: /Show Learning Panel/ }));
     expect(useUIStore.getState().showLearningPanel).toBe(true);
 
-    learnDropdown = await openMenu(user, 'Learn');
-    const learningPanelButton = within(learnDropdown).getByRole('button', { name: /Show Learning Panel/ });
-    expect(learningPanelButton.textContent).toContain('✓');
+    buildDropdown = await openMenu(user, 'Build');
+    const learningPanelButton = within(buildDropdown).getByRole('button', { name: /Show Learning Panel/ });
+    expect(learningPanelButton.textContent).toContain('\u2713');
   });
 
-  it('handles View menu toggles for block palette, properties, and validation', async () => {
+  it('handles View menu toggle for validation results', async () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    let viewDropdown = await openMenu(user, 'View');
-    await user.click(within(viewDropdown).getByRole('button', { name: /Block Palette/ }));
-    expect(useUIStore.getState().showBlockPalette).toBe(false);
-
-    viewDropdown = await openMenu(user, 'View');
-    await user.click(within(viewDropdown).getByRole('button', { name: /Properties Panel/ }));
-    expect(useUIStore.getState().showProperties).toBe(false);
-
-    viewDropdown = await openMenu(user, 'View');
+    const viewDropdown = await openMenu(user, 'View');
     await user.click(within(viewDropdown).getByRole('button', { name: /Validation Results/ }));
     expect(useUIStore.getState().showValidation).toBe(true);
   });
