@@ -10,6 +10,7 @@
 
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { getPlateFaceColors } from '../../entities/plate/plateFaceColors';
 import {
   BLOCK_FRIENDLY_NAMES,
   BLOCK_COLORS,
@@ -95,6 +96,8 @@ export function Portrait({ className = '' }: PortraitProps) {
       ? SUBNET_ACCESS_COLORS[selectedPlate.subnetAccess]
       : PLATE_COLORS[selectedPlate.type];
 
+    const faceColors = getPlateFaceColors(selectedPlate);
+
     const plateIcon = selectedPlate.type === 'subnet'
       ? PLATE_ICONS.subnet[selectedPlate.subnetAccess ?? 'private']
       : PLATE_ICONS[selectedPlate.type].default;
@@ -105,8 +108,13 @@ export function Portrait({ className = '' }: PortraitProps) {
         ? 'Region'
         : selectedPlate.type.charAt(0).toUpperCase() + selectedPlate.type.slice(1);
 
+    const plateStyle: React.CSSProperties = {
+      backgroundColor: faceColors.leftSideColor,
+      borderColor: faceColors.rightSideColor,
+    };
+
     return (
-      <div className={`portrait-panel portrait-panel--plate ${className}`}>
+      <div className={`portrait-panel portrait-panel--plate ${className}`} style={plateStyle}>
         <div className="portrait-content">
           <img src={plateIcon} alt={altText} className="portrait-icon-img" />
           <span className="portrait-label">{selectedPlate.name}</span>

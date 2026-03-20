@@ -20,13 +20,11 @@ import type { SoundName } from '../../shared/utils/audioService';
 import { promptDialog } from '../../shared/ui/PromptDialog';
 import {
   useTechTree,
-  CATEGORY_TABS,
   ACTION_GRID,
   ACTION_DEFINITIONS,
   PLATE_ACTION_GRID,
   PLATE_ACTION_DEFINITIONS,
   RESOURCE_DEFINITIONS,
-  type TabId,
   type ResourceType,
   type ActionType,
   type PlateActionType,
@@ -119,23 +117,8 @@ function getCreationGroupId(type: ResourceType): CreationGroupId {
   return blockCategory ?? 'plate';
 }
 
-function getTabResources(resourcesGrid: (ResourceType | null)[][]): ResourceType[] {
-  return resourcesGrid.flat().filter((resource): resource is ResourceType => resource !== null);
-}
-
-function buildHotkeyLookup(resourcesGrid: (ResourceType | null)[][]): Map<ResourceType, string> {
-  const lookup = new Map<ResourceType, string>();
-  resourcesGrid.forEach((row, rowIdx) => {
-    row.forEach((type, colIdx) => {
-      if (!type) return;
-      lookup.set(type, getPositionHotkey(rowIdx, colIdx));
-    });
-  });
-  return lookup;
-}
 
 export function CommandCard({ className = '' }: CommandCardProps) {
-  const [activeTab, setActiveTab] = useState<TabId>('infra');
   const [plateSubActionState, setPlateSubActionState] = useState<{ selectedId: string | null; action: 'deploy' | null }>({ selectedId: null, action: null });
   const selectedId = useUIStore((s) => s.selectedId);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
@@ -175,16 +158,15 @@ export function CommandCard({ className = '' }: CommandCardProps) {
           : `${getPlateHeaderText(selectedPlate)} Actions`
         : 'Create Resource';
 
-  const isCreationMode = !selectedBlock && !selectedPlate;
   const modeContent = isWorkerSelected
-    ? <WorkerBuildMode activeTab={activeTab} />
+    ? <WorkerBuildMode />
     : selectedBlock
       ? <BlockActionMode />
       : selectedPlate
         ? plateSubAction === 'deploy'
           ? <PlateCreationMode selectedPlate={selectedPlate} />
           : <PlateActionMode selectedPlate={selectedPlate} onDeploy={() => setPlateSubAction('deploy')} />
-        : <CreationMode activeTab={activeTab} />;
+        : <CreationMode />;
 
   return (
     <div className={`command-card ${className}`}>
@@ -202,21 +184,6 @@ export function CommandCard({ className = '' }: CommandCardProps) {
           headerText
         )}
       </div>
-      {isCreationMode && (
-        <div className="command-card-tabs">
-          {CATEGORY_TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              className={`command-card-tab ${activeTab === tab.id ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
-              aria-pressed={activeTab === tab.id}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      )}
       <div className="command-card-grid">
         {modeContent}
       </div>
@@ -291,7 +258,7 @@ function PlateActionMode({ selectedPlate, onDeploy }: { selectedPlate: Plate; on
 
 // ─── Creation Mode ─────────────────────────────────────────
 
-function CreationMode({ activeTab }: { activeTab: TabId }) {
+function CreationMode() {
   const techTree = useTechTree();
   const addPlate = useArchitectureStore((s) => s.addPlate);
   const addBlock = useArchitectureStore((s) => s.addBlock);
@@ -304,11 +271,9 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
   const isDraggingRef = useRef(false);
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
-  const tabDefinition = CATEGORY_TABS.find((tab) => tab.id === activeTab) ?? CATEGORY_TABS[0];
   const providerResources = PROVIDER_RESOURCE_ALLOWLIST[activeProvider];
-  const hotkeyLookup = buildHotkeyLookup(tabDefinition.resources);
   const groupedResources = CREATION_GROUP_ORDER.map((groupId) => {
-    const resources = getTabResources(tabDefinition.resources)
+    const resources = ALL_RESOURCES
       .filter((resource) => getCreationGroupId(resource) === groupId)
       .filter((resource) => providerResources.has(resource))
       .sort((a, b) => RESOURCE_DEFINITIONS[a].label.localeCompare(RESOURCE_DEFINITIONS[b].label));
@@ -318,7 +283,6 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
 
   useEffect(() => {
     if (!gridRef.current) return;
-    if (!activeTab) return;
 
     const buttons = gridRef.current.querySelectorAll<HTMLButtonElement>(
       '.command-card-btn:not(.disabled):not(.command-card-btn--empty)',
@@ -369,7 +333,7 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
         interactable.unset();
       });
     };
-  }, [activeTab, cancelInteraction, startPlacing]);
+  }, [cancelInteraction, startPlacing]);
 
   const handleCreate = useCallback((type: ResourceType) => {
     if (isDraggingRef.current) return;
@@ -428,7 +392,6 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
                 const def = RESOURCE_DEFINITIONS[type];
                 const enabled = techTree.isEnabled(type);
                 const disabledReason = techTree.getDisabledReason(type);
-                const hotkey = hotkeyLookup.get(type) ?? '';
 
                 return (
                   <button
@@ -438,12 +401,11 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
                     data-resource-type={type}
                     onClick={() => enabled && handleCreate(type)}
                     disabled={!enabled}
-                    title={enabled ? `Create ${def.label} (${hotkey})` : disabledReason ?? undefined}
+                    title={enabled ? `Create ${def.label}` : disabledReason ?? undefined}
                   >
                     <span className="command-btn-icon">{def.icon}</span>
                     <span className="command-btn-label">{def.shortLabel}</span>
                     {!enabled && disabledReason && <span className="command-btn-requirement">Needs: {disabledReason}</span>}
-                    {hotkey && <span className="command-btn-hotkey">{hotkey}</span>}
                     {!enabled && <span className="command-btn-lock">🔒</span>}
                   </button>
                 );
@@ -456,7 +418,7 @@ function CreationMode({ activeTab }: { activeTab: TabId }) {
   );
 }
 
-function WorkerBuildMode({ activeTab }: { activeTab: TabId }) {
+function WorkerBuildMode() {
   const techTree = useTechTree();
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const addBlock = useArchitectureStore((s) => s.addBlock);
@@ -464,11 +426,9 @@ function WorkerBuildMode({ activeTab }: { activeTab: TabId }) {
   const startBuild = useWorkerStore((s) => s.startBuild);
   const workerPosition = useWorkerStore((s) => s.workerPosition);
   const counterRef = useRef(0);
-  const tabDefinition = CATEGORY_TABS.find((tab) => tab.id === activeTab) ?? CATEGORY_TABS[0];
   const providerResources = PROVIDER_RESOURCE_ALLOWLIST[activeProvider];
-  const hotkeyLookup = buildHotkeyLookup(tabDefinition.resources);
   const groupedResources = CREATION_GROUP_ORDER.map((groupId) => {
-    const resources = getTabResources(tabDefinition.resources)
+    const resources = ALL_RESOURCES
       .filter((resource) => getCreationGroupId(resource) === groupId)
       .filter((resource) => providerResources.has(resource))
       .filter((resource) => Boolean(RESOURCE_DEFINITIONS[resource].blockCategory))
@@ -518,7 +478,6 @@ function WorkerBuildMode({ activeTab }: { activeTab: TabId }) {
                 const def = RESOURCE_DEFINITIONS[type];
                 const enabled = techTree.isEnabled(type);
                 const disabledReason = techTree.getDisabledReason(type);
-                const hotkey = hotkeyLookup.get(type) ?? '';
 
                 return (
                   <button
@@ -528,14 +487,13 @@ function WorkerBuildMode({ activeTab }: { activeTab: TabId }) {
                     data-resource-type={type}
                     onClick={() => enabled && handleBuild(type)}
                     disabled={!enabled}
-                    title={enabled ? `Build ${def.label} (${hotkey})` : disabledReason ?? undefined}
+                    title={enabled ? `Build ${def.label}` : disabledReason ?? undefined}
                   >
                     <span className="command-btn-icon">
                       {def.blockCategory && <BlockSvg category={def.blockCategory} provider={activeProvider} />}
                     </span>
                     <span className="command-btn-label">{def.shortLabel}</span>
                     {!enabled && disabledReason && <span className="command-btn-requirement">Needs: {disabledReason}</span>}
-                    {hotkey && <span className="command-btn-hotkey">{hotkey}</span>}
                     {!enabled && <span className="command-btn-lock">🔒</span>}
                   </button>
                 );

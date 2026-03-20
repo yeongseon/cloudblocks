@@ -222,71 +222,6 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
 
 // ─── Command Card Grid Layout ──────────────────────────────
 
-export type TabId = 'infra' | 'compute' | 'data' | 'edge' | 'messaging';
-
-export interface TabDefinition {
-  id: TabId;
-  label: string;
-  resources: (ResourceType | null)[][];
-}
-
-export const CATEGORY_TABS: TabDefinition[] = [
-  {
-    id: 'infra',
-    label: 'Infra',
-    resources: [
-      ['network', 'public-subnet', 'private-subnet'],
-      ['firewall', 'nsg', 'bastion'],
-      ['internal-lb', 'dns', null],
-    ],
-  },
-  {
-    id: 'compute',
-    label: 'Compute',
-    resources: [
-      ['vm', 'aks', 'container-instances'],
-      ['function', 'app-service', null],
-      [null, null, null],
-    ],
-  },
-  {
-    id: 'data',
-    label: 'Data',
-    resources: [
-      ['sql', 'cosmos-db', 'storage'],
-      ['key-vault', null, null],
-      [null, null, null],
-    ],
-  },
-  {
-    id: 'edge',
-    label: 'Edge',
-    resources: [
-      ['front-door', 'cdn', null],
-      [null, null, null],
-      [null, null, null],
-    ],
-  },
-  {
-    id: 'messaging',
-    label: 'Messaging',
-    resources: [
-      ['queue', 'event', null],
-      [null, null, null],
-      [null, null, null],
-    ],
-  },
-];
-
-/**
- * @deprecated Use CATEGORY_TABS for tabbed 3×3 creation layout.
- * Retained for backward compatibility.
- */
-export const CREATION_GRID: ResourceType[][] = [
-  ['network', 'storage', 'cdn', 'front-door'],
-  ['sql', 'function', 'app-service', 'cosmos-db'],
-  ['vm', 'aks', 'firewall', 'bastion'],
-];
 
 // ─── Action Definitions ────────────────────────────────────
 
@@ -416,8 +351,7 @@ export function useTechTree(): TechTreeState {
     };
 
     const getCreationResources = () => {
-      return CATEGORY_TABS.flatMap((tab) => tab.resources.flat())
-        .filter((type): type is ResourceType => type !== null)
+      return (Object.keys(RESOURCE_DEFINITIONS) as ResourceType[])
         .map((type) => ({
         resource: RESOURCE_DEFINITIONS[type],
         enabled: isEnabled(type),

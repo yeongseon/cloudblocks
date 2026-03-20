@@ -2,11 +2,9 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import type { ArchitectureModel, BlockCategory, Plate } from '../../shared/types/index';
-import * as techTreeModule from './useTechTree';
 import {
   ACTION_DEFINITIONS,
   ACTION_GRID,
-  CATEGORY_TABS,
   RESOURCE_DEFINITIONS,
   useTechTree,
 } from './useTechTree';
@@ -15,8 +13,6 @@ import type {
   ActionType,
   ResourceDefinition,
   ResourceType,
-  TabDefinition,
-  TabId,
   TechTreeState,
 } from './useTechTree';
 
@@ -250,79 +246,6 @@ describe('useTechTree constants', () => {
     }
   });
 
-  it('defines all category tabs with expected 3x3 resource matrices', () => {
-    const expectedTabOrder: TabId[] = ['infra', 'compute', 'data', 'edge', 'messaging'];
-    const tabIds = CATEGORY_TABS.map((tab) => tab.id);
-
-    expect(CATEGORY_TABS).toHaveLength(5);
-    expect(tabIds).toEqual(expectedTabOrder);
-
-    for (const tab of CATEGORY_TABS) {
-      const typedTab: TabDefinition = tab;
-      expect(typedTab.resources).toHaveLength(3);
-      for (const row of typedTab.resources) {
-        expect(row).toHaveLength(3);
-      }
-    }
-
-    expect(CATEGORY_TABS).toEqual([
-      {
-        id: 'infra',
-        label: 'Infra',
-        resources: [
-          ['network', 'public-subnet', 'private-subnet'],
-          ['firewall', 'nsg', 'bastion'],
-          ['internal-lb', 'dns', null],
-        ],
-      },
-      {
-        id: 'compute',
-        label: 'Compute',
-        resources: [
-          ['vm', 'aks', 'container-instances'],
-          ['function', 'app-service', null],
-          [null, null, null],
-        ],
-      },
-      {
-        id: 'data',
-        label: 'Data',
-        resources: [
-          ['sql', 'cosmos-db', 'storage'],
-          ['key-vault', null, null],
-          [null, null, null],
-        ],
-      },
-      {
-        id: 'edge',
-        label: 'Edge',
-        resources: [
-          ['front-door', 'cdn', null],
-          [null, null, null],
-          [null, null, null],
-        ],
-      },
-      {
-        id: 'messaging',
-        label: 'Messaging',
-        resources: [
-          ['queue', 'event', null],
-          [null, null, null],
-          [null, null, null],
-        ],
-      },
-    ]);
-  });
-
-  it('keeps deprecated creation grid layout for backward compatibility', () => {
-    const creationGrid = Reflect.get(techTreeModule, 'CREATION_GRID');
-
-    expect(creationGrid).toEqual([
-      ['network', 'storage', 'cdn', 'front-door'],
-      ['sql', 'function', 'app-service', 'cosmos-db'],
-      ['vm', 'aks', 'firewall', 'bastion'],
-    ]);
-  });
 
   it('defines all action entries with expected metadata', () => {
     const expectedActions: Record<
@@ -429,12 +352,10 @@ describe('useTechTree hook', () => {
     }
   });
 
-  it('returns flattened creation resources excluding null slots from category tabs', () => {
+  it('returns all creation resources from RESOURCE_DEFINITIONS', () => {
     const { result } = renderHook(() => useTechTree());
 
-    const expectedResourceTypes = CATEGORY_TABS.flatMap((tab) => tab.resources.flat()).filter(
-      (resourceType): resourceType is ResourceType => resourceType !== null,
-    );
+    const expectedResourceTypes = (Object.keys(RESOURCE_DEFINITIONS) as ResourceType[]);
     const creationResources = result.current.getCreationResources();
     const actualTypes = creationResources.map((entry) => entry.resource.id);
 
