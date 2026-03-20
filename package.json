@@ -20,8 +20,12 @@
     "build:web": "pnpm --filter @cloudblocks/web build",
     "typecheck": "tsc -b",
     "lint": "pnpm -r --filter './packages/*' --filter @cloudblocks/web lint",
-    "test": "pnpm --filter @cloudblocks/web test",
+    "lint:api": "cd apps/api && python3 -m ruff check .",
+    "lint:all": "pnpm run lint && pnpm run lint:api",
+    "test": "pnpm run build:packages && pnpm -r --parallel run test",
     "test:web": "pnpm --filter @cloudblocks/web test",
+    "test:api": "cd apps/api && python3 -m pytest",
+    "test:all": "pnpm run test && pnpm run test:api",
     "preview": "pnpm --filter @cloudblocks/web preview",
     "clean": "pnpm -r exec rm -rf node_modules dist .turbo"
   },

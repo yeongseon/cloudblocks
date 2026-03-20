@@ -42,8 +42,8 @@ export function TemplateGallery() {
       : listTemplatesByCategory(activeCategory);
 
   const handleUseTemplate = (template: ArchitectureTemplate) => {
-    saveToStorage();
     loadFromTemplate(template);
+    saveToStorage();
     toggleTemplateGallery();
   };
 

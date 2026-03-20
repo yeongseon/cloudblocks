@@ -164,6 +164,27 @@ describe('GitHubPR', () => {
     expect(commitField).toHaveValue('Custom commit');
 
   });
+
+  it('resets form state on remount (simulating panel close and reopen)', async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<GitHubPR />);
+
+    const bodyField = screen.getByLabelText('Body (optional)');
+    await user.type(bodyField, 'Modified body');
+
+    const branchField = screen.getByLabelText('Branch name (optional)');
+    await user.type(branchField, 'my-branch');
+
+    unmount();
+    render(<GitHubPR />);
+
+    expect(screen.getByLabelText('Title')).toHaveValue('Update cloud architecture');
+    expect(screen.getByLabelText('Body (optional)')).toHaveValue('');
+    expect(screen.getByLabelText('Branch name (optional)')).toHaveValue('');
+    expect(screen.getByLabelText('Commit message')).toHaveValue('Update architecture via CloudBlocks');
+    expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+  });
+
   it('uses backendWorkspaceId when set on workspace', async () => {
     const user = userEvent.setup();
     useArchitectureStore.setState({

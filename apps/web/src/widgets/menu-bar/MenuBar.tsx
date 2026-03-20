@@ -52,6 +52,7 @@ export function MenuBar() {
 
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
   const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
 
   const removePlate = useArchitectureStore((s) => s.removePlate);
   const removeBlock = useArchitectureStore((s) => s.removeBlock);
@@ -120,12 +121,22 @@ export function MenuBar() {
   };
 
   const handleSave = () => {
-    saveToStorage();
-    toast.success('Workspace saved!');
+    const success = saveToStorage();
+    if (success) {
+      toast.success('Workspace saved!');
+    } else {
+      toast.error('Failed to save workspace. Storage may be full.');
+    }
   };
 
-  const handleLoad = () => {
-    loadFromStorage();
+  const handleLoad = async () => {
+    const confirmed = await confirmDialog(
+      'Loading will replace current workspace with saved data. Unsaved changes will be lost.',
+      'Load Workspace?',
+    );
+    if (confirmed) {
+      loadFromStorage();
+    }
   };
 
   const handleExport = () => {
@@ -150,7 +161,12 @@ export function MenuBar() {
     reader.onload = (ev) => {
       const text = ev.target?.result;
       if (typeof text === 'string') {
-        importArchitecture(text);
+        const error = importArchitecture(text);
+        if (error) {
+          toast.error(`Import failed: ${error}`);
+        } else {
+          toast.success('Architecture imported successfully!');
+        }
       }
     };
     reader.readAsText(file);
@@ -450,7 +466,7 @@ export function MenuBar() {
                 <span className="menu-item-left">🔍 Compare with GitHub</span>
               </button>
               <div className="menu-separator" />
-              <button type="button" className="menu-item" onClick={() => handleAction(toggleGitHubLogin)}>
+              <button type="button" className="menu-item" onClick={() => handleAction(logout)}>
                 <span className="menu-item-left">🚪 Sign Out</span>
               </button>
             </div>

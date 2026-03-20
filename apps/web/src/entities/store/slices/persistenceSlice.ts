@@ -1,7 +1,7 @@
 import type { Workspace } from '../../../shared/types/index';
 import type { ArchitectureModel, BlockCategory, PlateType } from '@cloudblocks/schema';
 import type { ArchitectureSnapshot } from '../../../shared/types/learning';
-import { saveWorkspaces, loadWorkspaces } from '../../../shared/utils/storage';
+import { saveWorkspaces, loadWorkspaces, saveActiveWorkspaceId, loadActiveWorkspaceId } from '../../../shared/utils/storage';
 import { generateId } from '../../../shared/utils/id';
 import type { ArchitectureSlice, ArchitectureState } from './types';
 import {
@@ -252,8 +252,12 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
     const state = get();
     const updated = upsertCurrentWorkspace(state.workspaces, state.workspace);
 
-    saveWorkspaces(updated);
-    set({ workspaces: updated });
+    const success = saveWorkspaces(updated);
+    if (success) {
+      saveActiveWorkspaceId(state.workspace.id);
+      set({ workspaces: updated });
+    }
+    return success;
   },
 
   loadFromStorage: () => {
@@ -263,16 +267,33 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
       return;
     }
 
+    const activeId = loadActiveWorkspaceId();
+    const active = workspaces.find((ws) => ws.id === activeId) ?? workspaces[0];
+
     set({
-      workspace: workspaces[0],
+      workspace: active,
       workspaces,
       ...resetTransientState(),
     });
   },
 
   resetWorkspace: () => {
+    const state = get();
+    const now = new Date().toISOString();
+    const blank = createDefaultWorkspace();
+    const cleared: Workspace = {
+      ...state.workspace,
+      architecture: blank.architecture,
+      updatedAt: now,
+    };
+
+    const updatedList = upsertCurrentWorkspace(state.workspaces, cleared);
+    saveWorkspaces(updatedList);
+    saveActiveWorkspaceId(cleared.id);
+
     set({
-      workspace: createDefaultWorkspace(),
+      workspace: cleared,
+      workspaces: updatedList,
       ...resetTransientState(),
     });
   },
@@ -334,13 +355,20 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
       const updatedList = upsertCurrentWorkspace(state.workspaces, state.workspace);
       updatedList.push(newWorkspace);
 
+      saveWorkspaces(updatedList);
+      saveActiveWorkspaceId(newWorkspace.id);
+
       set({
         workspace: newWorkspace,
         workspaces: updatedList,
         ...resetTransientState(),
       });
+
+      return null;
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown import error';
       console.error('Failed to import architecture:', error);
+      return message;
     }
   },
 
@@ -367,6 +395,9 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
     const state = get();
     const updatedList = upsertCurrentWorkspace(state.workspaces, state.workspace);
     updatedList.push(newWorkspace);
+
+    saveWorkspaces(updatedList);
+    saveActiveWorkspaceId(newWorkspace.id);
 
     set({
       workspace: newWorkspace,

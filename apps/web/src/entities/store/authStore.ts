@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { apiGet } from '../../shared/api/client';
+import { apiGet, apiPost } from '../../shared/api/client';
 import type { ApiUser, SessionUserResponse } from '../../shared/types/api';
 
 type AuthStatus = 'unknown' | 'authenticated' | 'anonymous';
@@ -14,6 +14,7 @@ interface AuthState {
   setAnonymous: () => void;
   setError: (error: string | null) => void;
   checkSession: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 let _checkSessionSeq = 0;
@@ -51,6 +52,16 @@ export const useAuthStore = create<AuthState>((set) => ({
       } else {
         set({ hydrated: true, error: 'Session check failed' });
       }
+    }
+  },
+
+  logout: async () => {
+    try {
+      await apiPost<{ message: string }>('/api/v1/auth/logout');
+      set({ status: 'anonymous', user: null, error: null });
+    } catch {
+      set({ error: 'Logout failed. Checking session…' });
+      await useAuthStore.getState().checkSession();
     }
   },
 }));

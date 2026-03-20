@@ -65,6 +65,7 @@ describe('App', () => {
   const removePlateMock = vi.fn();
   const removeConnectionMock = vi.fn();
   const loadFromStorageMock = vi.fn();
+  const saveToStorageMock = vi.fn();
   const setSelectedIdMock = vi.fn();
   const checkSessionMock = vi.fn();
 
@@ -77,6 +78,11 @@ describe('App', () => {
       setDiffMode: defaultSetDiffMode,
       draggedBlockCategory: null,
       diffMode: false,
+      showCodePreview: true,
+      showWorkspaceManager: true,
+      showGitHubLogin: true,
+      showGitHubRepos: true,
+      showGitHubPR: true,
     });
     useAuthStore.setState({
       status: 'unknown',
@@ -87,6 +93,7 @@ describe('App', () => {
     });
     useArchitectureStore.setState({
       loadFromStorage: loadFromStorageMock,
+      saveToStorage: saveToStorageMock,
       undo: undoMock,
       redo: redoMock,
       removeBlock: removeBlockMock,
@@ -133,6 +140,20 @@ describe('App', () => {
   it('calls checkSession on mount', () => {
     render(<App />);
     expect(checkSessionMock).toHaveBeenCalledOnce();
+  });
+
+  it('handles Ctrl+S for save', () => {
+    render(<App />);
+    const preventDefaultMock = vi.fn();
+    fireEvent.keyDown(window, { key: 's', ctrlKey: true, preventDefault: preventDefaultMock });
+    expect(saveToStorageMock).toHaveBeenCalledOnce();
+  });
+
+  it('handles Meta+S for save (macOS)', () => {
+    render(<App />);
+    const preventDefaultMock = vi.fn();
+    fireEvent.keyDown(window, { key: 's', metaKey: true, preventDefault: preventDefaultMock });
+    expect(saveToStorageMock).toHaveBeenCalledOnce();
   });
 
   it('handles Ctrl+Z for undo', () => {

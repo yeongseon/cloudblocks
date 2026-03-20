@@ -219,4 +219,33 @@ describe('FlowDiagram', () => {
     expect(nodes.indexOf('🖥️compute-1-name')).toBeGreaterThan(nodes.indexOf('📦storage-1-name'));
     expect(nodes.indexOf('🗄️database-1-name')).toBeGreaterThan(nodes.indexOf('🖥️compute-1-name'));
   });
+
+  it('renders flow diagram with cyclic connections (function <-> queue)', () => {
+    const blocks: Block[] = [
+      makeBlock('function-1', 'function'),
+      makeBlock('queue-1', 'queue'),
+    ];
+    const connections: Connection[] = [
+      makeConnection('c1', 'function-1', 'queue-1'),
+      makeConnection('c2', 'queue-1', 'function-1'),
+    ];
+
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Flow WS',
+        architecture: { ...baseArchitecture, blocks, connections },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    const { container } = render(<FlowDiagram />);
+
+    // Both nodes should be present despite forming a cycle
+    const nodes = Array.from(container.querySelectorAll('.flow-node')).map((node) => node.textContent?.trim());
+    expect(nodes).toHaveLength(2);
+    expect(nodes).toContain('⚡App Service');
+    expect(nodes).toContain('📨Message Queue');
+  });
 });
