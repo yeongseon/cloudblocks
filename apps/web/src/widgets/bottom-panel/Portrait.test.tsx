@@ -119,6 +119,27 @@ describe('Portrait', () => {
     expect(subnetImage).toBeInTheDocument();
     expect(subnetImage).toHaveAttribute('src', 'subnet.svg');
   });
+  it('renders region plate portrait with correct plate-type background color', () => {
+    useUIStore.setState({ selectedId: 'net-1' });
+
+    const { container } = render(<Portrait />);
+
+    const panel = container.querySelector('.portrait-panel--plate');
+    expect(panel).toBeInTheDocument();
+    // Region plate uses leftSideColor=#64B5F6, rightSideColor=#42A5F5 from getPlateFaceColors
+    expect(panel).toHaveStyle({ backgroundColor: '#64B5F6', borderColor: '#42A5F5' });
+  });
+
+  it('renders subnet plate portrait with correct subnet-type background color', () => {
+    useUIStore.setState({ selectedId: 'subnet-1' });
+
+    const { container } = render(<Portrait />);
+
+    const panel = container.querySelector('.portrait-panel--plate');
+    expect(panel).toBeInTheDocument();
+    // Public subnet uses leftSideColor=#16A34A, rightSideColor=#15803D from getPlateFaceColors
+    expect(panel).toHaveStyle({ backgroundColor: '#16A34A', borderColor: '#15803D' });
+  });
 
   it('renders connection portrait with link icon', () => {
     useUIStore.setState({ selectedId: 'conn-1' });
