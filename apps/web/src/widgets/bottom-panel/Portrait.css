@@ -46,6 +46,31 @@
   filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
 }
 
+.portrait-provider-glyph {
+  min-width: 88px;
+  min-height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  background: rgba(18, 18, 18, 0.32);
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+.portrait-provider-glyph[data-provider="aws"] {
+  border-color: rgba(255, 153, 0, 0.7);
+}
+
+.portrait-provider-glyph[data-provider="gcp"] {
+  border-color: rgba(66, 133, 244, 0.75);
+}
+
 .portrait-logo {
   font-size: 48px;
   line-height: 1;

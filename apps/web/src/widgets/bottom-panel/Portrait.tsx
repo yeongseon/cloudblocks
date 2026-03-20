@@ -14,6 +14,7 @@ import { useWorkerStore } from '../../entities/store/workerStore';
 import { getPlateFaceColors } from '../../entities/plate/plateFaceColors';
 import { BLOCK_FRIENDLY_NAMES, CONNECTION_TYPE_LABELS, PLATE_COLORS, SUBNET_ACCESS_COLORS } from '../../shared/types/index';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
+import type { ProviderType } from '@cloudblocks/schema';
 import vmIcon from '../../shared/assets/azure-icons/virtual-machine.svg';
 import sqlIcon from '../../shared/assets/azure-icons/sql-database.svg';
 import storageIcon from '../../shared/assets/azure-icons/storage-account.svg';
@@ -42,6 +43,12 @@ const BLOCK_ICONS: Record<string, string> = {
   observability: eventIcon,
 };
 
+const PROVIDER_LABELS: Record<ProviderType, string> = {
+  azure: 'AZURE',
+  aws: 'AWS',
+  gcp: 'GCP',
+};
+
 const PLATE_ICONS: Record<string, Record<string, string>> = {
   global: { default: vnetIcon },
   edge: { default: vnetIcon },
@@ -52,6 +59,7 @@ const PLATE_ICONS: Record<string, Record<string, string>> = {
 
 export function Portrait({ className = '' }: PortraitProps) {
   const selectedId = useUIStore((s) => s.selectedId);
+  const activeProvider = useUIStore((s) => s.activeProvider);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
 
   // Find selected item
@@ -90,11 +98,20 @@ export function Portrait({ className = '' }: PortraitProps) {
 
   // Block selected
   if (selectedBlock) {
-    const color = getBlockColor(selectedBlock.provider ?? 'azure', selectedBlock.subtype, selectedBlock.category);
+    const provider = selectedBlock.provider ?? activeProvider;
+    const color = getBlockColor(provider, selectedBlock.subtype, selectedBlock.category);
+    const isAzureProvider = provider === 'azure';
+
     return (
       <div className={`portrait-panel portrait-panel--block ${className}`}>
         <div className="portrait-content">
-          <img src={BLOCK_ICONS[selectedBlock.category]} alt={BLOCK_FRIENDLY_NAMES[selectedBlock.category]} className="portrait-icon-img" />
+          {isAzureProvider ? (
+            <img src={BLOCK_ICONS[selectedBlock.category]} alt={BLOCK_FRIENDLY_NAMES[selectedBlock.category]} className="portrait-icon-img" />
+          ) : (
+            <span className="portrait-provider-glyph" data-provider={provider} aria-label={`${PROVIDER_LABELS[provider]} ${BLOCK_FRIENDLY_NAMES[selectedBlock.category]}`}>
+              {`${PROVIDER_LABELS[provider]} ${selectedBlock.category.toUpperCase()}`}
+            </span>
+          )}
           <span className="portrait-label">{selectedBlock.name}</span>
         </div>
         <div className="portrait-badge" style={{ backgroundColor: color }}>

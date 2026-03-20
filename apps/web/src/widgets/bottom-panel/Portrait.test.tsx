@@ -71,7 +71,7 @@ const architectureFixture: ArchitectureModel = {
 
 describe('Portrait', () => {
   beforeEach(() => {
-    useUIStore.setState({ selectedId: null });
+    useUIStore.setState({ selectedId: null, activeProvider: 'azure' });
     useArchitectureStore.setState({
       workspace: {
         id: 'ws-1',
@@ -119,6 +119,25 @@ describe('Portrait', () => {
 
     expect(screen.getByText('My Custom Server')).toBeInTheDocument();
     expect(screen.getByText('compute')).toBeInTheDocument();
+  });
+
+  it('renders provider-aware text glyph for non-azure providers', () => {
+    const awsBlock: Block = { ...computeBlock, id: 'block-aws', name: 'AWS Worker', provider: 'aws' };
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: { ...architectureFixture, blocks: [...architectureFixture.blocks, awsBlock] },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+    useUIStore.setState({ selectedId: 'block-aws' });
+
+    render(<Portrait />);
+
+    expect(screen.getByLabelText('AWS Virtual Machine')).toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: 'Virtual Machine' })).not.toBeInTheDocument();
   });
   it('renders region plate portrait with VNet icon', () => {
     useUIStore.setState({ selectedId: 'net-1' });
