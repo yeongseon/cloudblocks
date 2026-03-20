@@ -295,13 +295,19 @@ describe('scenario-engine', () => {
       expect(architectureSnapshot()).toEqual(checkpoint);
     });
 
-    it('does not change architecture when step has no checkpoint', () => {
+    it('restores auto-captured snapshot when step has no explicit checkpoint', () => {
       startLearningScenario('scenario-three-tier');
-      const before = architectureSnapshot();
+      const initial = architectureSnapshot();
+
+      // Mutate architecture after starting
+      useArchitectureStore.getState().replaceArchitecture({
+        ...initial,
+        name: 'User Mutation',
+      });
 
       resetCurrentStep();
 
-      expect(architectureSnapshot()).toEqual(before);
+      expect(architectureSnapshot()).toEqual(initial);
     });
 
     it('resets hints', () => {
