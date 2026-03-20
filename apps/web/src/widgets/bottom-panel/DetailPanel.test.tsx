@@ -98,7 +98,7 @@ describe('DetailPanel', () => {
     expect(screen.getByText('App VM')).toBeInTheDocument();
     expect(screen.getByText('Virtual Machine')).toBeInTheDocument();
     expect(screen.getByText('compute')).toBeInTheDocument();
-    expect(screen.getByText('(1.2, 2.4)')).toBeInTheDocument();
+    expect(screen.getByText('(1.2, 2.4, 0.0)')).toBeInTheDocument();
   });
 
   it('supports rename flow on block detail', async () => {
