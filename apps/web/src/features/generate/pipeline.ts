@@ -1,4 +1,4 @@
-import type { ArchitectureModel } from '../../shared/types/index';
+import type { ArchitectureModel } from '@cloudblocks/schema';
 import type {
   GeneratedOutput,
   GenerationOptions,

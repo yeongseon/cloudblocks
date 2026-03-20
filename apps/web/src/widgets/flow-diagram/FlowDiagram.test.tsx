@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { FlowDiagram } from './FlowDiagram';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import type { ArchitectureModel, Block, Connection, ExternalActor } from '../../shared/types/index';
+import type { ArchitectureModel, Block, Connection, ExternalActor } from '@cloudblocks/schema';
 
 vi.mock('./FlowDiagram.css', () => ({}));
 

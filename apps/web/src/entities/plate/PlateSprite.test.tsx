@@ -6,7 +6,7 @@ import { PlateSprite } from './PlateSprite';
 import { useUIStore } from '../store/uiStore';
 import { screenDeltaToWorld, worldSizeToScreen, snapToGrid } from '../../shared/utils/isometric';
 import { useArchitectureStore } from '../store/architectureStore';
-import type { Plate } from '../../shared/types/index';
+import type { Plate } from '@cloudblocks/schema';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
 import type { DiffDelta } from '../../shared/types/diff';

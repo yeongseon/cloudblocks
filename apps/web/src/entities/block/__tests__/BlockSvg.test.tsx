@@ -4,7 +4,7 @@ import { render } from '@testing-library/react';
 import { BlockSvg } from '../BlockSvg';
 import { getBlockFaceColors } from '../blockFaceColors';
 import { getBlockDimensions, CATEGORY_TIER_MAP, TIER_DIMENSIONS } from '../../../shared/types/visualProfile';
-import type { BlockCategory, BlockRole, ProviderType } from '../../../shared/types/index';
+import type { BlockCategory, BlockRole, ProviderType } from '@cloudblocks/schema';
 import { BLOCK_PADDING, TILE_H, TILE_W, TILE_Z } from '../../../shared/tokens/designTokens';
 
 // ─── Test Helpers ─────────────────────────────────────────────

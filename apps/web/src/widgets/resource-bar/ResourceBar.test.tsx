@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ResourceBar } from './ResourceBar';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import type { ArchitectureModel, Block, Connection, Plate } from '../../shared/types/index';
+import type { ArchitectureModel, Block, Connection, Plate } from '@cloudblocks/schema';
 
 const createArchitecture = (
   plates: Plate[] = [],

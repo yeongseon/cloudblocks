@@ -4,7 +4,7 @@ import { toast } from 'react-hot-toast';
 import { useArchitectureStore } from '../store/architectureStore';
 import { useUIStore } from '../store/uiStore';
 import { canConnect } from '../validation/connection';
-import type { ExternalActor } from '../../shared/types/index';
+import type { ExternalActor } from '@cloudblocks/schema';
 import { screenDeltaToWorld, snapToGrid } from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
 import internetSprite from '../../shared/assets/actor-sprites/internet.svg';

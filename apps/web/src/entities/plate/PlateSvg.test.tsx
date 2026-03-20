@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { ComponentProps } from 'react';
 import { PlateSvg } from './PlateSvg';
-import type { PlateType, StudColorSpec } from '../../shared/types/index';
+import type { StudColorSpec } from '../../shared/types/index';
+import type { PlateType } from '@cloudblocks/schema';
 import { TILE_W, TILE_H, TILE_Z, BLOCK_PADDING } from '../../shared/tokens/designTokens';
 
 const studColors: StudColorSpec = {

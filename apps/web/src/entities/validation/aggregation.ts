@@ -1,7 +1,5 @@
-import type {
-  Block,
-  ValidationError,
-} from '../../shared/types/index';
+import type { Block } from '@cloudblocks/schema';
+import type { ValidationError } from '@cloudblocks/domain';
 
 /**
  * Aggregation Validation (v2.0 — CLOUDBLOCKS_SPEC_V2.md §8, §15):

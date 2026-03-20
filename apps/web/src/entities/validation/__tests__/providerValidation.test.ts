@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { ArchitectureModel, Block, Plate } from '../../../shared/types/index';
+import type { ArchitectureModel, Block, Plate } from '@cloudblocks/schema';
 import { validateProviderRules } from '../providerValidation';
 
 function makePlate(overrides: Partial<Plate> = {}): Plate {

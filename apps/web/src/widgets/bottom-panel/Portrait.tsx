@@ -11,12 +11,7 @@
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { getPlateFaceColors } from '../../entities/plate/plateFaceColors';
-import {
-  BLOCK_FRIENDLY_NAMES,
-  BLOCK_COLORS,
-  PLATE_COLORS,
-  SUBNET_ACCESS_COLORS,
-} from '../../shared/types/index';
+import { BLOCK_FRIENDLY_NAMES, BLOCK_COLORS, PLATE_COLORS, SUBNET_ACCESS_COLORS } from '../../shared/types/index';
 import vmIcon from '../../shared/assets/azure-icons/virtual-machine.svg';
 import sqlIcon from '../../shared/assets/azure-icons/sql-database.svg';
 import storageIcon from '../../shared/assets/azure-icons/storage-account.svg';

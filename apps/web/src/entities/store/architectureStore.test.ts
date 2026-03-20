@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { ArchitectureModel } from '../../shared/types/index';
+import type { ArchitectureModel } from '@cloudblocks/schema';
 import type { ArchitectureSnapshot } from '../../shared/types/learning';
 import type { ArchitectureTemplate } from '../../shared/types/template';
 

@@ -3,7 +3,7 @@ import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { generateCode, GenerationError } from '../../features/generate/pipeline';
 import type { GeneratedOutput, GenerationOptions, GeneratorId } from '../../features/generate/types';
-import type { ProviderType } from '../../shared/types/index';
+import type { ProviderType } from '@cloudblocks/schema';
 import './CodePreview.css';
 
 const GENERATORS: { id: GeneratorId; label: string }[] = [

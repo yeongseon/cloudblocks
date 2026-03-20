@@ -29,12 +29,8 @@ import {
   type ActionType,
   type PlateActionType,
 } from './useTechTree';
-import {
-  BLOCK_COLORS,
-  BLOCK_FRIENDLY_NAMES,
-  BLOCK_ICONS,
-} from '../../shared/types/index';
-import type { BlockCategory, Plate, ProviderType } from '../../shared/types/index';
+import { BLOCK_COLORS, BLOCK_FRIENDLY_NAMES, BLOCK_ICONS } from '../../shared/types/index';
+import type { BlockCategory, Plate, ProviderType } from '@cloudblocks/schema';
 import './CommandCard.css';
 
 interface CommandCardProps {

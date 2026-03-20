@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { Block } from '../../shared/types/index';
+import type { Block } from '@cloudblocks/schema';
 import { validateAggregation } from './aggregation';
 
 function makeBlock(overrides: Partial<Block> = {}): Block {

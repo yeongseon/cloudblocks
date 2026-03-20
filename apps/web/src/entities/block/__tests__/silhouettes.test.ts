@@ -5,12 +5,9 @@ import {
   getSilhouetteFromCU,
   SILHOUETTE_GENERATORS,
 } from '../silhouettes';
-import {
-  BLOCK_VISUAL_PROFILES,
-  type BlockCategory,
-  type BrickSilhouette,
-  type BlockTier,
-} from '../../../shared/types/index';
+import { BLOCK_VISUAL_PROFILES } from '../../../shared/types/index';
+import type { BrickSilhouette, BlockTier } from '../../../shared/types/index';
+import type { BlockCategory } from '@cloudblocks/schema';
 import type { BlockDimensionsCU } from '../../../shared/types/visualProfile';
 import {
   CATEGORY_TIER_MAP,

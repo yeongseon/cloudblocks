@@ -1,59 +1,49 @@
 // CloudBlocks Platform - Core Domain Types
 // Based on DOMAIN_MODEL.md §12
 
-// ─── Plate Types ───────────────────────────────────────────
+import type {
+  ArchitectureModel,
+  BlockCategory,
+  BlockRole,
+  PlateType,
+  Size,
+  SubnetAccess,
+} from '@cloudblocks/schema';
 
-// ─── Layer Hierarchy (v2.0) ────────────────────────────────
-export type LayerType = 'global' | 'edge' | 'region' | 'zone' | 'subnet' | 'resource';
+export type {
+  Aggregation,
+  AggregationMode,
+  ArchitectureModel,
+  Block,
+  BlockCategory,
+  BlockRole,
+  Connection,
+  ConnectionType,
+  ExternalActor,
+  LayerType,
+  Plate,
+  PlateType,
+  Position,
+  ProviderType,
+  Size,
+  SubnetAccess,
+} from '@cloudblocks/schema';
 
+export {
+  BLOCK_ROLES,
+  CONNECTION_TYPE_LABELS,
+  VALID_PARENTS,
+} from '@cloudblocks/domain';
 
-export const VALID_PARENTS: Record<LayerType, LayerType[]> = {
-  global: [],           // root level
-  edge: [],             // root level
-  region: ['global'],   // or root
-  zone: ['region'],
-  subnet: ['zone', 'region'],
-  resource: ['subnet', 'zone', 'region', 'edge', 'global'],
-};
-
-export type PlateType = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
-export type SubnetAccess = 'public' | 'private';
-
-export interface Plate {
-  id: string;
-  name: string;
-  type: PlateType;
-  subnetAccess?: SubnetAccess; // only for subnet type
-  profileId?: PlateProfileId;
-  parentId: string | null; // null for root plate
-  children: string[]; // mixed list: child plate IDs + block IDs (intentional for MVP; consider splitting to childPlateIds/childBlockIds in v1.0)
-  position: Position;
-  size: Size;
-  metadata: Record<string, unknown>;
-}
-
-// ─── Block Types ───────────────────────────────────────────
-
-export type BlockCategory = 'compute' | 'database' | 'storage' | 'gateway' | 'function' | 'queue' | 'event' | 'analytics' | 'identity' | 'observability';
-export type ProviderType = 'azure' | 'aws' | 'gcp';
-
-
-// ─── Aggregation (v2.0 §8) ──────────────────────────────────
-
-export type AggregationMode = 'single' | 'count';
-
-export interface Aggregation {
-  mode: AggregationMode;
-  count: number; // must be >= 1
-}
+export type {
+  RuleDefinition,
+  RuleSeverity,
+  RuleType,
+  ValidationError,
+  ValidationResult,
+} from '@cloudblocks/domain';
 
 // ─── Role Model (v2.0 §9) ────────────────────────────────────
-
-export type BlockRole = 'primary' | 'secondary' | 'reader' | 'writer' | 'public' | 'private' | 'internal' | 'external';
-
-export const BLOCK_ROLES: readonly BlockRole[] = [
-  'primary', 'secondary', 'reader', 'writer', 'public', 'private', 'internal', 'external',
-] as const;
 
 export interface RoleVisualIndicator {
   icon: string;       // emoji or symbol badge
@@ -71,82 +61,6 @@ export const ROLE_VISUAL_INDICATORS: Record<BlockRole, RoleVisualIndicator> = {
   internal: { icon: '⇐', label: 'Internal' },
   external: { icon: '⇒', label: 'External' },
 };
-export interface Block {
-  id: string;
-  name: string;
-  category: BlockCategory;
-  placementId: string; // parent plate ID
-  position: Position; // relative to parent plate
-  metadata: Record<string, unknown>;
-  provider?: ProviderType;
-  subtype?: string;
-  config?: Record<string, unknown>;
-  aggregation?: Aggregation; // v2.0 §8 — multiple identical resources
-  roles?: BlockRole[];       // v2.0 §9 — visual-only role indicators
-}
-
-// ─── Connection ────────────────────────────────────────────
-
-/**
- * Connection direction represents the **initiator** of the request.
- * Arrow points from the entity that starts communication.
- * Response flows implicitly in the reverse direction.
- */
-export type ConnectionType = 'dataflow' | 'http' | 'internal' | 'data' | 'async';
-
-export const CONNECTION_TYPE_LABELS: Record<ConnectionType, string> = {
-  dataflow: 'Data Flow',
-  http: 'HTTP',
-  internal: 'Internal',
-  data: 'Data',
-  async: 'Async',
-};
-
-export interface Connection {
-  id: string;
-  sourceId: string; // block or external actor ID (initiator)
-  targetId: string; // block or external actor ID (receiver)
-  type: ConnectionType;
-  metadata: Record<string, unknown>;
-}
-
-// ─── External Actor ────────────────────────────────────────
-
-export interface ExternalActor {
-  id: string;
-  name: string; // e.g., "Internet"
-  type: 'internet';
-  position: Position;
-}
-
-// ─── Spatial ───────────────────────────────────────────────
-
-export interface Position {
-  x: number;
-  y: number;
-  z: number;
-}
-
-export interface Size {
-  width: number;
-  height: number;
-  depth: number;
-}
-
-// ─── Architecture Model (root) ─────────────────────────────
-
-export interface ArchitectureModel {
-  id: string;
-  name: string;
-  version: string; // user-facing architecture revision (not schema version; see schema.ts)
-  plates: Plate[];
-  blocks: Block[];
-  connections: Connection[];
-  externalActors: ExternalActor[];
-  createdAt: string; // ISO 8601
-  updatedAt: string; // ISO 8601
-}
-
 // ─── Workspace ─────────────────────────────────────────────
 
 export interface Workspace {
@@ -161,33 +75,6 @@ export interface Workspace {
   branch?: string;
   lastSyncAt?: string;
   backendWorkspaceId?: string;
-}
-
-// ─── Rule Engine Types ─────────────────────────────────────
-
-export type RuleSeverity = 'error' | 'warning';
-export type RuleType = 'placement' | 'connection';
-
-export interface RuleDefinition {
-  id: string;
-  name: string;
-  type: RuleType;
-  severity: RuleSeverity;
-  description: string;
-}
-
-export interface ValidationError {
-  ruleId: string;
-  severity: RuleSeverity;
-  message: string;
-  suggestion?: string;
-  targetId: string; // block or connection ID
-}
-
-export interface ValidationResult {
-  valid: boolean;
-  errors: ValidationError[];
-  warnings: ValidationError[];
 }
 
 // ─── Visual Identity ───────────────────────────────────────
@@ -475,6 +362,10 @@ export const DEFAULT_PLATE_PROFILE: Record<PlateType, PlateProfileId> = {
 
 export function getPlateProfile(profileId: PlateProfileId): PlateProfile {
   return PLATE_PROFILES[profileId];
+}
+
+export function isPlateProfileId(value: string): value is PlateProfileId {
+  return value in PLATE_PROFILES;
 }
 
 export function buildPlateSizeFromProfileId(profileId: PlateProfileId): Size {

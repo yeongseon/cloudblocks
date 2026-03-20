@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { Portrait } from './Portrait';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import type { ArchitectureModel, Block, Connection, Plate } from '../../shared/types/index';
+import type { ArchitectureModel, Block, Connection, Plate } from '@cloudblocks/schema';
 
 vi.mock('./Portrait.css', () => ({}));
 vi.mock('../../shared/assets/azure-icons/virtual-machine.svg', () => ({ default: 'vm.svg' }));

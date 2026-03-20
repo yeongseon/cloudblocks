@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import type { ArchitectureModel, BlockCategory, Plate } from '../../shared/types/index';
+import type { ArchitectureModel, BlockCategory, Plate } from '@cloudblocks/schema';
 import {
   ACTION_DEFINITIONS,
   ACTION_GRID,
