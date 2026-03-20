@@ -6,6 +6,8 @@ import type { GeneratedOutput, GenerationOptions, GeneratorId } from '../../feat
 import type { ProviderType } from '@cloudblocks/schema';
 import './CodePreview.css';
 
+const PROVIDERS: ProviderType[] = ['azure', 'aws', 'gcp'];
+
 const GENERATORS: { id: GeneratorId; label: string }[] = [
   { id: 'terraform', label: 'Terraform (HCL)' },
   { id: 'bicep', label: 'Bicep (Azure)' },
@@ -50,9 +52,8 @@ export function CodePreview() {
           return;
         }
 
-        const providers: ProviderType[] = ['azure', 'aws', 'gcp'];
         const generated = Object.fromEntries(
-          providers.map((provider) => {
+          PROVIDERS.map((provider) => {
             const options: GenerationOptions = { ...baseOptions, provider };
             return [provider, generateCode(architecture, options)];
           }),
@@ -79,26 +80,43 @@ export function CodePreview() {
   };
 
   const handleCopyFile = () => {
-    if (!output) return;
-    const file = output.files[activeTab];
-    if (file && navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(file.content).catch(() => {
-        // Clipboard API may fail in some contexts
-      });
+    if (output) {
+      const file = output.files[activeTab];
+      if (file && navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(file.content).catch(() => {});
+      }
+    } else if (comparisonOutputs) {
+      const texts = PROVIDERS.map((provider) => {
+        const providerOutput = comparisonOutputs[provider];
+        const file = providerOutput.files[activeTab] ?? providerOutput.files[0];
+        return file ? `// --- ${provider.toUpperCase()} ---\n${file.content}` : '';
+      }).filter(Boolean).join('\n\n');
+      if (texts && navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(texts).catch(() => {});
+      }
     }
   };
 
   const handleDownloadAll = () => {
-    if (!output) return;
-    output.files.forEach((file) => {
-      const blob = new Blob([file.content], { type: 'text/plain' });
+    const downloadFile = (content: string, path: string) => {
+      const blob = new Blob([content], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = file.path;
+      a.download = path;
       a.click();
       URL.revokeObjectURL(url);
-    });
+    };
+
+    if (output) {
+      output.files.forEach((file) => downloadFile(file.content, file.path));
+    } else if (comparisonOutputs) {
+      PROVIDERS.forEach((provider) => {
+        comparisonOutputs[provider].files.forEach((file) =>
+          downloadFile(file.content, `${provider}-${file.path}`)
+        );
+      });
+    }
   };
 
   const selectedGenerator = GENERATORS.find((g) => g.id === generator);
@@ -200,7 +218,7 @@ export function CodePreview() {
         <>
           <div className="code-preview-tabs">
             {(() => {
-              const firstProvider = (['azure', 'aws', 'gcp'] as ProviderType[]).find(
+              const firstProvider = PROVIDERS.find(
                 (p) => comparisonOutputs[p]?.files.length > 0
               );
               const files = firstProvider ? comparisonOutputs[firstProvider].files : [];
@@ -216,8 +234,18 @@ export function CodePreview() {
               ));
             })()}
           </div>
+
+          <div className="code-preview-actions">
+            <button type="button" className="code-preview-action-btn" onClick={handleCopyFile}>
+              📋 Copy
+            </button>
+            <button type="button" className="code-preview-action-btn" onClick={handleDownloadAll}>
+              💾 Download All
+            </button>
+          </div>
+
           <div className="code-preview-compare-grid">
-          {(['azure', 'aws', 'gcp'] as ProviderType[]).map((provider) => {
+          {PROVIDERS.map((provider) => {
             const providerOutput = comparisonOutputs[provider];
             const activeFile = providerOutput.files[activeTab] ?? providerOutput.files[0];
 

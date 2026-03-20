@@ -34,6 +34,12 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
   addPlate: (type, name, parentId, subnetAccess, profileId?: PlateProfileId) => {
     set((state) => {
       const arch = state.workspace.architecture;
+      const parentPlate = parentId
+        ? arch.plates.find((candidate) => candidate.id === parentId)
+        : undefined;
+      if (parentId && !parentPlate) {
+        return state;
+      }
       const plate: Plate = {
         id: generateId('plate'),
         name,
@@ -50,7 +56,6 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       if (type === 'region') {
         plate.position = { x: 0, y: 0, z: 0 };
       } else if (parentId) {
-        const parentPlate = arch.plates.find((candidate) => candidate.id === parentId);
         const siblingsInParent = arch.plates.filter(
           (candidate) => candidate.parentId === parentId
         );
@@ -198,15 +203,40 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         return state;
       }
 
+      const parentPlate = arch.plates.find(
+        (candidate) => candidate.id === sourceBlock.placementId
+      );
+
+      if (!parentPlate) {
+        return state;
+      }
+
+      const siblingsOnPlate = arch.blocks.filter(
+        (candidate) => candidate.placementId === sourceBlock.placementId
+      );
+
+      const unclampedPosition = nextGridPosition(siblingsOnPlate, {
+        width: parentPlate.size.width,
+        depth: parentPlate.size.depth,
+      });
+
+      const clampedXZ = clampWithinParent(
+        { x: unclampedPosition.x, z: unclampedPosition.z },
+        parentPlate.size,
+        DEFAULT_BLOCK_SIZE,
+      );
+
+      const position = {
+        x: clampedXZ.x,
+        y: unclampedPosition.y,
+        z: clampedXZ.z,
+      };
+
       const newBlock: Block = {
         ...sourceBlock,
         id: generateId('block'),
         name: `${sourceBlock.name} (copy)`,
-        position: {
-          x: sourceBlock.position.x + 1,
-          y: sourceBlock.position.y,
-          z: sourceBlock.position.z + 1,
-        },
+        position,
       };
 
       return withHistory(state, {
@@ -251,6 +281,11 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
   renameBlock: (blockId, newName) => {
     set((state) => {
       const arch = state.workspace.architecture;
+      const block = arch.blocks.find((candidate) => candidate.id === blockId);
+
+      if (!block) {
+        return state;
+      }
 
       return withHistory(state, {
         ...arch,
@@ -264,6 +299,11 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
   renamePlate: (plateId, newName) => {
     set((state) => {
       const arch = state.workspace.architecture;
+      const plate = arch.plates.find((candidate) => candidate.id === plateId);
+
+      if (!plate) {
+        return state;
+      }
 
       return withHistory(state, {
         ...arch,
