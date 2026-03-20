@@ -1,8 +1,11 @@
 import { useArchitectureStore } from '../../entities/store/architectureStore';
+import { useUIStore } from '../../entities/store/uiStore';
 import './ResourceBar.css';
 
 export function ResourceBar() {
+  const showBlockPalette = useUIStore((s) => s.showBlockPalette);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
+  if (!showBlockPalette) return null;
 
   return (
     <div className="resource-bar">

@@ -10,6 +10,7 @@ interface BottomPanelProps {
 }
 
 export function BottomPanel({ className = '' }: BottomPanelProps) {
+  const showProperties = useUIStore((s) => s.showProperties);
   const isBuildOrderOpen = useUIStore((s) => s.isBuildOrderOpen);
   const toggleBuildOrder = useUIStore((s) => s.toggleBuildOrder);
 
@@ -17,7 +18,7 @@ export function BottomPanel({ className = '' }: BottomPanelProps) {
     <>
       <div className={`bottom-panel ${isBuildOrderOpen ? 'bottom-panel--build-order-open' : ''} ${className}`}>
         <Minimap className="bottom-panel-minimap" />
-        <DetailPanel className="bottom-panel-detail" />
+        {showProperties && <DetailPanel className="bottom-panel-detail" />}
         <Portrait className="bottom-panel-portrait" />
         {isBuildOrderOpen && <CommandCard className="bottom-panel-command" />}
       </div>

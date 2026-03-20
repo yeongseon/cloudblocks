@@ -504,6 +504,24 @@ describe('MenuBar', () => {
     expect(useUIStore.getState().showValidation).toBe(true);
   });
 
+  it('handles View menu toggle for Block Palette', async () => {
+    const user = userEvent.setup();
+    render(<MenuBar />);
+
+    const viewDropdown = await openMenu(user, 'View');
+    await user.click(within(viewDropdown).getByRole('button', { name: /Block Palette/ }));
+    expect(useUIStore.getState().showBlockPalette).toBe(false);
+  });
+
+  it('handles View menu toggle for Properties Panel', async () => {
+    const user = userEvent.setup();
+    render(<MenuBar />);
+
+    const viewDropdown = await openMenu(user, 'View');
+    await user.click(within(viewDropdown).getByRole('button', { name: /Properties Panel/ }));
+    expect(useUIStore.getState().showProperties).toBe(false);
+  });
+
   it('disables diff toggle when diff mode is off and turns it off when enabled', async () => {
     const user = userEvent.setup();
     render(<MenuBar />);

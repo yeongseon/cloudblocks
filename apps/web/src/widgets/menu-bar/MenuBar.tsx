@@ -28,6 +28,10 @@ export function MenuBar() {
   const selectedId = useUIStore((s) => s.selectedId);
   const showValidation = useUIStore((s) => s.showValidation);
   const toggleValidation = useUIStore((s) => s.toggleValidation);
+  const showBlockPalette = useUIStore((s) => s.showBlockPalette);
+  const toggleBlockPalette = useUIStore((s) => s.toggleBlockPalette);
+  const showProperties = useUIStore((s) => s.showProperties);
+  const toggleProperties = useUIStore((s) => s.toggleProperties);
   const activeProvider = useUIStore((s) => s.activeProvider);
   const setActiveProvider = useUIStore((s) => s.setActiveProvider);
   const toggleCodePreview = useUIStore((s) => s.toggleCodePreview);
@@ -332,6 +336,13 @@ export function MenuBar() {
             View
           </button>
           <div className={`menu-dropdown ${openMenu === 'view' ? 'show' : ''}`}>
+            <button type="button" className="menu-item" onClick={() => handleAction(toggleBlockPalette)}>
+              <span className="menu-item-left">{showBlockPalette ? '✓ ' : '  '}🧰 Block Palette</span>
+            </button>
+            <button type="button" className="menu-item" onClick={() => handleAction(toggleProperties)}>
+              <span className="menu-item-left">{showProperties ? '✓ ' : '  '}⚙️ Properties Panel</span>
+            </button>
+            <div className="menu-separator" />
             <button type="button" className="menu-item" onClick={() => handleAction(toggleValidation)}>
               <span className="menu-item-left">{showValidation ? '✓ ' : ''}📊 Validation Results</span>
             </button>
