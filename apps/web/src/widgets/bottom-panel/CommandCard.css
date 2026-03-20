@@ -27,41 +27,6 @@
   box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.5);
 }
 
-.command-card-tabs {
-  display: flex;
-  gap: 2px;
-  padding: 4px 4px 0;
-  background-color: #FFFDE7;
-}
-
-.command-card-tab {
-  flex: 1;
-  padding: 4px 6px;
-  font-size: 10px;
-  font-weight: 800;
-  font-family: 'Fredoka', system-ui, sans-serif;
-  color: #6A5A00;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  border: 2px solid #D4B200;
-  border-bottom: none;
-  border-radius: 6px 6px 0 0;
-  background-color: #FFEFA3;
-  cursor: pointer;
-  transition: background-color 0.1s ease, color 0.1s ease;
-}
-
-.command-card-tab:hover {
-  background-color: #FFE44D;
-  color: #3D3400;
-}
-
-.command-card-tab.active {
-  background-color: #FFD500;
-  color: #222222;
-  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.45);
-}
-
 /* Grid container */
 .command-card-grid {
   flex: 1;
