@@ -295,9 +295,6 @@ export function GitHubSync() {
                   Unlink
                 </button>
               </div>
-              <button type="button" className="github-sync-secondary-btn" onClick={handleUnlink} disabled={busy}>
-                Unlink
-              </button>
 
               <label className="github-sync-label" htmlFor="github-sync-commit-message">
                 Commit message

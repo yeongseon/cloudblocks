@@ -402,8 +402,9 @@ describe('GitHubSync', () => {
     resolvePut({});
 
     await screen.findByRole('button', { name: 'Pull from GitHub' });
-    mockApiPost.mockReturnValueOnce(new Promise((r) => { resolvePull = r; }));
     await user.click(screen.getByRole('button', { name: 'Pull from GitHub' }));
+    mockApiPost.mockReturnValueOnce(new Promise((r) => { resolvePull = r; }));
+    await user.click(await screen.findByRole('button', { name: 'Confirm Pull' }));
     expect(screen.getByText('Pulling from GitHub...')).toBeInTheDocument();
     resolvePull({ architecture: emptyArch });
   });
