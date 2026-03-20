@@ -20,6 +20,9 @@ type WorkspaceSlice = Pick<
   | 'cloneWorkspace'
   | 'setBackendWorkspaceId'
   | 'setGithubRepo'
+  | 'setGithubBranch'
+  | 'setWorkspaceProvider'
+  | 'setLastSyncedAt'
 >;
 
 export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (
@@ -175,6 +178,69 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (
 
     const updatedList = state.workspaces.map((ws) =>
       ws.id === workspaceId ? { ...ws, githubRepo: repo } : ws
+    );
+
+    saveWorkspaces(
+      upsertCurrentWorkspace(updatedList, updatedWorkspace)
+    );
+
+    set({
+      workspace: updatedWorkspace,
+      workspaces: updatedList,
+    });
+  },
+
+  setGithubBranch: (workspaceId, branch) => {
+    const state = get();
+    const updatedWorkspace =
+      state.workspace.id === workspaceId
+        ? { ...state.workspace, githubBranch: branch }
+        : state.workspace;
+
+    const updatedList = state.workspaces.map((ws) =>
+      ws.id === workspaceId ? { ...ws, githubBranch: branch } : ws
+    );
+
+    saveWorkspaces(
+      upsertCurrentWorkspace(updatedList, updatedWorkspace)
+    );
+
+    set({
+      workspace: updatedWorkspace,
+      workspaces: updatedList,
+    });
+  },
+
+  setWorkspaceProvider: (workspaceId, provider) => {
+    const state = get();
+    const updatedWorkspace =
+      state.workspace.id === workspaceId
+        ? { ...state.workspace, provider }
+        : state.workspace;
+
+    const updatedList = state.workspaces.map((ws) =>
+      ws.id === workspaceId ? { ...ws, provider } : ws
+    );
+
+    saveWorkspaces(
+      upsertCurrentWorkspace(updatedList, updatedWorkspace)
+    );
+
+    set({
+      workspace: updatedWorkspace,
+      workspaces: updatedList,
+    });
+  },
+
+  setLastSyncedAt: (workspaceId, timestamp) => {
+    const state = get();
+    const updatedWorkspace =
+      state.workspace.id === workspaceId
+        ? { ...state.workspace, lastSyncedAt: timestamp }
+        : state.workspace;
+
+    const updatedList = state.workspaces.map((ws) =>
+      ws.id === workspaceId ? { ...ws, lastSyncedAt: timestamp } : ws
     );
 
     saveWorkspaces(

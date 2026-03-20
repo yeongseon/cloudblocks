@@ -108,6 +108,9 @@ function compareEntityCollections<T extends DiffableEntity>(
   };
 }
 
+/** Paths that indicate a provider/subtype replacement — high-impact change (#797). */
+const PROVIDER_BREAKING_PATHS = new Set(['provider', 'subtype']);
+
 function computeSummary(delta: Omit<DiffDelta, 'summary'>): DiffDelta['summary'] {
   const totalChanges =
     delta.plates.added.length +
@@ -124,12 +127,17 @@ function computeSummary(delta: Omit<DiffDelta, 'summary'>): DiffDelta['summary']
     delta.externalActors.modified.length +
     delta.rootChanges.length;
 
+  const hasProviderDrift = delta.blocks.modified.some((mod) =>
+    mod.changes.some((c) => PROVIDER_BREAKING_PATHS.has(c.path)),
+  );
+
   return {
     totalChanges,
     hasBreakingChanges:
       delta.plates.removed.length > 0 ||
       delta.blocks.removed.length > 0 ||
-      delta.connections.removed.length > 0,
+      delta.connections.removed.length > 0 ||
+      hasProviderDrift,
   };
 }
 
@@ -172,9 +180,21 @@ export function normalizeArchitecture(model: ArchitectureModel): ArchitectureMod
   };
 }
 
+/** Extract unique provider strings from blocks. */
+function extractProviderSet(blocks: Block[]): string[] {
+  const set = new Set<string>();
+  for (const b of blocks) {
+    if (b.provider) set.add(b.provider);
+  }
+  return Array.from(set).sort();
+}
+
 export function computeArchitectureDiff(base: ArchitectureModel, head: ArchitectureModel): DiffDelta {
   const normalizedBase = normalizeArchitecture(base);
   const normalizedHead = normalizeArchitecture(head);
+
+  const baseProviders = extractProviderSet(normalizedBase.blocks);
+  const localProviders = extractProviderSet(normalizedHead.blocks);
 
   const modelChanges = diffValues(normalizedBase, normalizedHead, '', ROOT_VOLATILE_PATHS);
   if (modelChanges.length === 0) {
@@ -187,6 +207,8 @@ export function computeArchitectureDiff(base: ArchitectureModel, head: Architect
       summary: {
         totalChanges: 0,
         hasBreakingChanges: false,
+        localProviders,
+        baseProviders,
       },
     };
   }
@@ -205,9 +227,11 @@ export function computeArchitectureDiff(base: ArchitectureModel, head: Architect
     rootChanges,
   };
 
+  const summary = computeSummary(deltaWithoutSummary);
+
   return {
     ...deltaWithoutSummary,
-    summary: computeSummary(deltaWithoutSummary),
+    summary: { ...summary, localProviders, baseProviders },
   };
 }
 

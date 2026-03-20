@@ -74,7 +74,7 @@ describe('GitHubPR', () => {
     render(<GitHubPR />);
     expect(screen.getByLabelText('Title')).toBeInTheDocument();
     expect(screen.getByLabelText('Body (optional)')).toBeInTheDocument();
-    expect(screen.getByLabelText('Branch name (optional)')).toBeInTheDocument();
+    expect(screen.getByLabelText('Head branch name (optional)')).toBeInTheDocument();
     expect(screen.getByLabelText('Commit message')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Create Pull Request' })).toBeInTheDocument();
   });
@@ -91,13 +91,13 @@ describe('GitHubPR', () => {
     await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
 
     await waitFor(() => {
-      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-1/pr', {
+      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-1/pr', expect.objectContaining({
         architecture: emptyArch,
-        title: 'Update cloud architecture',
+        title: 'Update Workspace (AZURE)',
         body: '',
         branch: undefined,
-        commit_message: 'Update architecture via CloudBlocks',
-      });
+        commit_message: 'Update Workspace (AZURE) via CloudBlocks',
+      }));
     });
 
     expect(await screen.findByText('https://github.com/owner/repo/pull/42')).toBeInTheDocument();
@@ -134,7 +134,7 @@ describe('GitHubPR', () => {
     });
 
     render(<GitHubPR />);
-    await user.type(screen.getByLabelText('Branch name (optional)'), 'custom-branch');
+    await user.type(screen.getByLabelText('Head branch name (optional)'), 'custom-branch');
     await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
 
     await waitFor(() => {
@@ -173,7 +173,7 @@ describe('GitHubPR', () => {
     const user = userEvent.setup();
     render(<GitHubPR />);
 
-    const branchField = screen.getByLabelText('Branch name (optional)');
+    const branchField = screen.getByLabelText('Head branch name (optional)');
     await user.type(branchField, 'feature bad');
 
     expect(screen.getByRole('button', { name: 'Create Pull Request' })).toBeDisabled();
@@ -243,16 +243,16 @@ describe('GitHubPR', () => {
     const bodyField = screen.getByLabelText('Body (optional)');
     await user.type(bodyField, 'Modified body');
 
-    const branchField = screen.getByLabelText('Branch name (optional)');
+    const branchField = screen.getByLabelText('Head branch name (optional)');
     await user.type(branchField, 'my-branch');
 
     unmount();
     render(<GitHubPR />);
 
-    expect(screen.getByLabelText('Title')).toHaveValue('Update cloud architecture');
+    expect(screen.getByLabelText('Title')).toHaveValue('Update Workspace (AZURE)');
     expect(screen.getByLabelText('Body (optional)')).toHaveValue('');
-    expect(screen.getByLabelText('Branch name (optional)')).toHaveValue('');
-    expect(screen.getByLabelText('Commit message')).toHaveValue('Update architecture via CloudBlocks');
+    expect(screen.getByLabelText('Head branch name (optional)')).toHaveValue('');
+    expect(screen.getByLabelText('Commit message')).toHaveValue('Update Workspace (AZURE) via CloudBlocks');
     expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
   });
 

@@ -84,6 +84,92 @@
   margin-bottom: 10px;
 }
 
+/* Provider mix summary (#803) */
+.diff-provider-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 8px;
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid #333366;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.diff-provider-summary-label {
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.diff-provider-summary-local,
+.diff-provider-summary-base {
+  color: #c8d0ee;
+}
+
+/* Provider filter chips (#812) */
+.diff-provider-filter {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.diff-filter-chip {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid #444;
+  color: #ccc;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.diff-filter-chip:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.diff-filter-chip-active {
+  background: rgba(66, 133, 244, 0.2);
+  border-color: #4285f4;
+  color: #ffffff;
+}
+
+/* Provider badge (#813) */
+.diff-provider-badge {
+  display: inline-block;
+  padding: 1px 4px;
+  border: 1px solid;
+  border-radius: 3px;
+  font-size: 9px;
+  font-weight: 700;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+/* Provider drift tag (#797) */
+.diff-provider-drift-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 5px;
+  font-size: 9px;
+  font-weight: 700;
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.3);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  border-radius: 3px;
+}
+
+.diff-item-provider-change {
+  border-left-color: #ef4444 !important;
+}
+
+.diff-property-breaking {
+  color: #fca5a5 !important;
+  font-weight: 600;
+}
+
 .diff-sections {
   display: flex;
   flex-direction: column;
@@ -184,4 +270,30 @@
   background: rgba(255, 255, 255, 0.02);
   border: 1px dashed #333366;
   border-radius: 4px;
+}
+
+/* Next-step actions (#825) */
+.diff-panel-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #333366;
+}
+
+.diff-action-btn {
+  flex: 1;
+  padding: 5px 8px;
+  background: rgba(66, 133, 244, 0.2);
+  border: 1px solid rgba(66, 133, 244, 0.4);
+  border-radius: 4px;
+  color: #b4ccff;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.diff-action-btn:hover {
+  background: rgba(66, 133, 244, 0.35);
+  color: #ffffff;
 }

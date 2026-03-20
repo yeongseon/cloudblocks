@@ -114,7 +114,7 @@ describe('GitHubSync', () => {
     await waitFor(() => {
       expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/sync', {
         architecture: emptyArch,
-        commit_message: 'Sync architecture from CloudBlocks',
+        commit_message: 'Sync My Workspace (azure) from CloudBlocks',
       });
     });
   });
@@ -250,7 +250,7 @@ describe('GitHubSync', () => {
 
     await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
     await user.click(screen.getByRole('button', { name: 'Link' }));
-    const commitInput = await screen.findByDisplayValue('Sync architecture from CloudBlocks');
+    const commitInput = await screen.findByDisplayValue('Sync My Workspace (azure) from CloudBlocks');
     await user.clear(commitInput);
     await user.type(commitInput, 'Custom commit from test');
     await user.click(screen.getByRole('button', { name: 'Sync to GitHub' }));

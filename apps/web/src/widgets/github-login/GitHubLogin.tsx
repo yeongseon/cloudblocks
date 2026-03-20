@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { apiPost } from '../../shared/api/client';
+import { persistPendingGitHubAction } from './pendingAction';
 import './GitHubLogin.css';
 
 interface GitHubAuthStartResponse {
@@ -28,6 +29,18 @@ export function GitHubLogin() {
     setLocalError(null);
     setError(null);
 
+    // Persist the pending action so we can resume after OAuth (#836)
+    const ui = useUIStore.getState();
+    if (ui.showGitHubSync) {
+      persistPendingGitHubAction('sync');
+    } else if (ui.showGitHubPR) {
+      persistPendingGitHubAction('pr');
+    } else if (ui.showGitHubRepos) {
+      persistPendingGitHubAction('repos');
+    } else {
+      persistPendingGitHubAction('login');
+    }
+
     try {
       const response = await apiPost<GitHubAuthStartResponse>('/api/v1/auth/github');
       window.location.href = response.authorize_url;
@@ -35,6 +48,7 @@ export function GitHubLogin() {
       const message = error instanceof Error ? error.message : 'Failed to start GitHub login.';
       setLocalError(message);
       setError(message);
+      persistPendingGitHubAction(null);
     } finally {
       setIsWorking(false);
     }
@@ -48,15 +62,22 @@ export function GitHubLogin() {
     await logout();
 
     setIsWorking(false);
-    toggleGitHubLogin();
+
+    // Only close if logout actually succeeded (#838)
+    const currentStatus = useAuthStore.getState().status;
+    const currentError = useAuthStore.getState().error;
+    if (currentStatus !== 'authenticated' && !currentError) {
+      toggleGitHubLogin();
+    }
+    // If still authenticated or error set, panel stays open so user sees the problem
   };
 
   return (
     <div className="github-login">
       <div className="github-login-header">
-        <h3 className="github-login-title">🔐 GitHub Login</h3>
+        <h3 className="github-login-title">GitHub Login</h3>
         <button type="button" className="github-login-close" onClick={toggleGitHubLogin} aria-label="Close GitHub login panel">
-          ✕
+          x
         </button>
       </div>
 

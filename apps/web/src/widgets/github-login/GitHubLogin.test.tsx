@@ -67,7 +67,10 @@ describe('GitHubLogin', () => {
 
   it('sign out calls logout from authStore and closes panel', async () => {
     const user = userEvent.setup();
-    const logoutMock = vi.fn();
+    const logoutMock = vi.fn(async () => {
+      // Simulate successful logout — status transitions to anonymous (#838)
+      useAuthStore.setState({ status: 'anonymous', user: null, error: null });
+    });
     useAuthStore.setState({
       status: 'authenticated',
       user: {

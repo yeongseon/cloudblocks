@@ -63,6 +63,9 @@ export interface ArchitectureState {
   replaceArchitecture: (snapshot: ArchitectureSnapshot) => void;
   setBackendWorkspaceId: (workspaceId: string, backendId: string) => void;
   setGithubRepo: (workspaceId: string, repo: string | undefined) => void;
+  setGithubBranch: (workspaceId: string, branch: string | undefined) => void;
+  setWorkspaceProvider: (workspaceId: string, provider: string | undefined) => void;
+  setLastSyncedAt: (workspaceId: string, timestamp: string | null) => void;
 }
 
 export type ArchitectureSlice<T> = StateCreator<ArchitectureState, [], [], T>;

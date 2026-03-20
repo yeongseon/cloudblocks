@@ -109,7 +109,7 @@ describe('computeArchitectureDiff', () => {
     expect(delta.connections).toEqual({ added: [], removed: [], modified: [] });
     expect(delta.externalActors).toEqual({ added: [], removed: [], modified: [] });
     expect(delta.rootChanges).toEqual([]);
-    expect(delta.summary).toEqual({ totalChanges: 0, hasBreakingChanges: false });
+    expect(delta.summary).toEqual({ totalChanges: 0, hasBreakingChanges: false, localProviders: [], baseProviders: [] });
   });
 
   it('ignores root-level createdAt and updatedAt changes', () => {
@@ -122,7 +122,7 @@ describe('computeArchitectureDiff', () => {
 
     const delta = computeArchitectureDiff(base, head);
 
-    expect(delta.summary).toEqual({ totalChanges: 0, hasBreakingChanges: false });
+    expect(delta.summary).toEqual({ totalChanges: 0, hasBreakingChanges: false, localProviders: [], baseProviders: [] });
   });
 
   it('marks all entities as added when base is empty', () => {
@@ -140,7 +140,7 @@ describe('computeArchitectureDiff', () => {
     expect(delta.connections.removed).toHaveLength(0);
     expect(delta.externalActors.removed).toHaveLength(0);
     expect(delta.rootChanges).toHaveLength(2);
-    expect(delta.summary).toEqual({ totalChanges: 8, hasBreakingChanges: false });
+    expect(delta.summary).toEqual({ totalChanges: 8, hasBreakingChanges: false, localProviders: [], baseProviders: [] });
   });
 
   it('marks all entities as removed when head is empty', () => {
@@ -158,7 +158,7 @@ describe('computeArchitectureDiff', () => {
     expect(delta.connections.added).toHaveLength(0);
     expect(delta.externalActors.added).toHaveLength(0);
     expect(delta.rootChanges).toHaveLength(2);
-    expect(delta.summary).toEqual({ totalChanges: 8, hasBreakingChanges: true });
+    expect(delta.summary).toEqual({ totalChanges: 8, hasBreakingChanges: true, localProviders: [], baseProviders: [] });
   });
 
   it('detects added entities across all entity types', () => {
@@ -209,7 +209,7 @@ describe('computeArchitectureDiff', () => {
     expect(delta.blocks.added.map((block) => block.id)).toEqual(['block-3']);
     expect(delta.connections.added.map((connection) => connection.id)).toEqual(['conn-2']);
     expect(delta.externalActors.added.map((actor) => actor.id)).toEqual(['ext-2']);
-    expect(delta.summary).toEqual({ totalChanges: 4, hasBreakingChanges: false });
+    expect(delta.summary).toEqual({ totalChanges: 4, hasBreakingChanges: false, localProviders: [], baseProviders: [] });
   });
 
   it('detects removed entities across all entity types', () => {
@@ -228,7 +228,7 @@ describe('computeArchitectureDiff', () => {
     expect(delta.blocks.removed.map((block) => block.id)).toEqual(['block-2']);
     expect(delta.connections.removed.map((connection) => connection.id)).toEqual(['conn-1']);
     expect(delta.externalActors.removed.map((actor) => actor.id)).toEqual(['ext-1']);
-    expect(delta.summary).toEqual({ totalChanges: 4, hasBreakingChanges: true });
+    expect(delta.summary).toEqual({ totalChanges: 4, hasBreakingChanges: true, localProviders: [], baseProviders: [] });
   });
 
   it('detects modified entities across all entity types', () => {
@@ -395,7 +395,7 @@ describe('computeArchitectureDiff', () => {
 
     const delta = computeArchitectureDiff(base, head);
 
-    expect(delta.summary).toEqual({ totalChanges: 0, hasBreakingChanges: false });
+    expect(delta.summary).toEqual({ totalChanges: 0, hasBreakingChanges: false, localProviders: [], baseProviders: [] });
   });
 
   it('computes summary totalChanges correctly', () => {
@@ -421,7 +421,7 @@ describe('computeArchitectureDiff', () => {
 
     const delta = computeArchitectureDiff(base, head);
 
-    expect(delta.summary).toEqual({ totalChanges: 4, hasBreakingChanges: true });
+    expect(delta.summary).toEqual({ totalChanges: 4, hasBreakingChanges: true, localProviders: [], baseProviders: [] });
   });
 
   it('flags breaking changes when blocks are removed', () => {
@@ -554,7 +554,7 @@ describe('computeArchitectureDiff', () => {
     expect(delta.connections.removed).toHaveLength(1);
     expect(delta.externalActors.added).toHaveLength(1);
     expect(delta.externalActors.modified).toHaveLength(1);
-    expect(delta.summary).toEqual({ totalChanges: 10, hasBreakingChanges: true });
+    expect(delta.summary).toEqual({ totalChanges: 10, hasBreakingChanges: true, localProviders: [], baseProviders: [] });
   });
 
   it('detects plate children membership changes', () => {

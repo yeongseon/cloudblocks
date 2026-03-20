@@ -185,7 +185,7 @@ describe('DiffPanel', () => {
 
   it('renders panel when diffMode is true with valid diffDelta', () => {
     render(<DiffPanel />);
-    expect(screen.getByText('🔍 Architecture Diff')).toBeInTheDocument();
+    expect(screen.getByText('Architecture Diff')).toBeInTheDocument();
   });
 
   it('shows "No changes" when totalChanges is 0', () => {

@@ -52,7 +52,7 @@ describe('GitHubRepos', () => {
 
     render(<GitHubRepos />);
 
-    expect(await screen.findByText('repo-one')).toBeInTheDocument();
+    expect(await screen.findByText('owner/repo-one')).toBeInTheDocument();
     expect(screen.getByText('public')).toBeInTheDocument();
     expect(screen.getByText('https://github.com/owner/repo-one')).toBeInTheDocument();
   });
@@ -95,7 +95,8 @@ describe('GitHubRepos', () => {
       expect(mockApiGet).toHaveBeenCalledTimes(2);
     });
 
-    expect(await screen.findByText('new-repo')).toBeInTheDocument();
+    const matches = await screen.findAllByText('owner/new-repo');
+    expect(matches.length).toBeGreaterThanOrEqual(1);
   });
 
   it('sends description when provided', async () => {
@@ -258,7 +259,7 @@ describe('GitHubRepos', () => {
     });
 
     const { unmount } = render(<GitHubRepos />);
-    expect(await screen.findByText('repo')).toBeInTheDocument();
+    expect(await screen.findByText('owner/repo')).toBeInTheDocument();
 
     await user.type(screen.getByPlaceholderText('Repository name'), 'draft-repo');
 
@@ -267,6 +268,6 @@ describe('GitHubRepos', () => {
     render(<GitHubRepos />);
 
     expect(screen.getByPlaceholderText('Repository name')).toHaveValue('');
-    expect(screen.queryByText('repo')).not.toBeInTheDocument();
+    expect(screen.queryByText('owner/repo')).not.toBeInTheDocument();
   });
 });

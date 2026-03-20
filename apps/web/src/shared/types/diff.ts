@@ -25,6 +25,9 @@ export interface DiffDelta {
   summary: {
     totalChanges: number;
     hasBreakingChanges: boolean;
+    /** Provider sets derived from local and base architectures (#803). */
+    localProviders?: string[];
+    baseProviders?: string[];
   };
 }
 
