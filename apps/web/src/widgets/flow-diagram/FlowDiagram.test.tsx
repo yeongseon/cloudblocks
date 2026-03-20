@@ -185,7 +185,7 @@ describe('FlowDiagram', () => {
     expect(screen.getByText('■')).toBeInTheDocument();
     const node = container.querySelector('.flow-node') as HTMLElement;
     expect(node).toHaveTextContent('unknown');
-    expect(node).toHaveStyle({ backgroundColor: 'rgb(96, 125, 139)' });
+    expect(node).toHaveStyle({ backgroundColor: 'rgb(0, 120, 212)' });
   });
 
   it('handles converging dependencies in Kahn sorting order', () => {

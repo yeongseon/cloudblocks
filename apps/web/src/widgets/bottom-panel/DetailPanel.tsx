@@ -13,9 +13,10 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { BLOCK_FRIENDLY_NAMES, BLOCK_DESCRIPTIONS, BLOCK_ICONS, BLOCK_COLORS, DEFAULT_PLATE_PROFILE, getPlateProfile, isPlateProfileId, PLATE_COLORS, PLATE_PROFILES, SUBNET_ACCESS_COLORS } from '../../shared/types/index';
+import { BLOCK_FRIENDLY_NAMES, BLOCK_DESCRIPTIONS, BLOCK_ICONS, DEFAULT_PLATE_PROFILE, getPlateProfile, isPlateProfileId, PLATE_COLORS, PLATE_PROFILES, SUBNET_ACCESS_COLORS } from '../../shared/types/index';
 import type { PlateProfileId } from '../../shared/types/index';
 import type { Block, Plate } from '@cloudblocks/schema';
+import { getBlockColor } from '../../entities/block/blockFaceColors';
 import './DetailPanel.css';
 
 interface DetailPanelProps {
@@ -120,7 +121,7 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
     setIsRenaming(false);
   }, [newName, block.id, block.name, renameBlock]);
 
-  const color = BLOCK_COLORS[block.category];
+  const color = getBlockColor(block.provider ?? 'azure', block.subtype, block.category);
 
   return (
     <div className={`detail-panel detail-panel--block ${className}`}>
