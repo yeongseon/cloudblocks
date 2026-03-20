@@ -65,9 +65,9 @@ describe('GitHubLogin', () => {
     expect(window.location.href).toContain('#oauth-callback');
   });
 
-  it('sign out calls setAnonymous', async () => {
+  it('sign out calls logout from authStore', async () => {
     const user = userEvent.setup();
-    const setAnonymousSpy = vi.spyOn(useAuthStore.getState(), 'setAnonymous');
+    const logoutMock = vi.fn();
     useAuthStore.setState({
       status: 'authenticated',
       user: {
@@ -77,15 +77,13 @@ describe('GitHubLogin', () => {
         display_name: 'The Octocat',
         avatar_url: null,
       },
+      logout: logoutMock,
     });
-    mockApiPost.mockResolvedValueOnce({ message: 'ok' });
 
     render(<GitHubLogin />);
     await user.click(screen.getByRole('button', { name: 'Sign Out' }));
 
-    expect(mockApiPost).toHaveBeenCalledWith('/api/v1/auth/logout');
-    expect(setAnonymousSpy).toHaveBeenCalledOnce();
-    setAnonymousSpy.mockRestore();
+    expect(logoutMock).toHaveBeenCalledOnce();
   });
 
   it('shows error when sign in fails', async () => {

@@ -284,6 +284,12 @@ describe('MenuBar', () => {
 
     await openMenu(user, 'File');
     await user.click(within(getMenuDropdown('File')).getByRole('button', { name: /Load Workspace/ }));
+    await waitFor(() => {
+      expect(confirmDialog).toHaveBeenCalledWith(
+        'Loading will replace current workspace with saved data. Unsaved changes will be lost.',
+        'Load Workspace?',
+      );
+    });
     expect(loadFromStorageMock).toHaveBeenCalledOnce();
 
     await openMenu(user, 'File');
@@ -314,6 +320,19 @@ describe('MenuBar', () => {
 
     await waitFor(() => {
       expect(resetWorkspaceMock).not.toHaveBeenCalled();
+    });
+  });
+
+  it('does not load workspace when load confirmation is canceled', async () => {
+    const user = userEvent.setup();
+    vi.mocked(confirmDialog).mockResolvedValue(false);
+    render(<MenuBar />);
+
+    const fileDropdown = await openMenu(user, 'File');
+    await user.click(within(fileDropdown).getByRole('button', { name: /Load Workspace/ }));
+
+    await waitFor(() => {
+      expect(loadFromStorageMock).not.toHaveBeenCalled();
     });
   });
 
@@ -547,6 +566,7 @@ describe('MenuBar', () => {
 
   it('handles authenticated GitHub menu actions', async () => {
     const user = userEvent.setup();
+    const logoutMock = vi.fn();
     useAuthStore.setState({
       status: 'authenticated',
       user: {
@@ -556,6 +576,7 @@ describe('MenuBar', () => {
         display_name: null,
         avatar_url: null,
       },
+      logout: logoutMock,
     });
 
     render(<MenuBar />);
@@ -581,7 +602,7 @@ describe('MenuBar', () => {
     await user.click(githubButton);
     githubDropdown = getMenuDropdown(/octocat/);
     await user.click(within(githubDropdown).getByRole('button', { name: /Sign Out/ }));
-    expect(useUIStore.getState().showGitHubLogin).toBe(true);
+    expect(logoutMock).toHaveBeenCalledOnce();
   });
 
   it('compare with GitHub calls backend and enables diff mode', async () => {
