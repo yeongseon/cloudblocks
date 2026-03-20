@@ -3,7 +3,7 @@ import interact from 'interactjs';
 import type { CloudProvider } from './minifigureFaceColors';
 import { MinifigureSvg } from './MinifigureSvg';
 import { useUIStore } from '../store/uiStore';
-import { useWorkerStore } from '../store/workerStore';
+import { useWorkerStore, BUILD_DURATION_MS } from '../store/workerStore';
 import { screenDeltaToWorld, snapToGrid } from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
 import './MinifigureSprite.css';
@@ -113,6 +113,38 @@ export const MinifigureSprite = memo(function MinifigureSprite({
       interactable.unset();
     };
   }, [setWorkerPosition, toolMode]);
+
+  // Phase 1 & 2: Walk to block → build → return
+  useEffect(() => {
+    const el = spriteRef.current;
+    if (!el) return;
+
+    const handleTransitionEnd = (e: TransitionEvent) => {
+      // Only react to left/top transitions (the walk)
+      if (e.propertyName !== 'left' && e.propertyName !== 'top') return;
+      const state = useWorkerStore.getState();
+      if (state.workerState === 'moving' && state.activeBuild) {
+        // Arrived at block — start building
+        useWorkerStore.setState({ workerState: 'building' });
+        const { isSoundMuted } = useUIStore.getState();
+        if (!isSoundMuted) {
+          audioService.playSound('block-snap');
+        }
+      }
+    };
+
+    el.addEventListener('transitionend', handleTransitionEnd);
+    return () => el.removeEventListener('transitionend', handleTransitionEnd);
+  }, []);
+
+  // Build timer: when building starts, complete after BUILD_DURATION_MS
+  useEffect(() => {
+    if (workerState !== 'building') return;
+    const timer = setTimeout(() => {
+      useWorkerStore.getState().completeBuild();
+    }, BUILD_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [workerState]);
 
   const handleClick = (e: React.PointerEvent) => {
     if (isDragging.current) {

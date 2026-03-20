@@ -114,6 +114,15 @@ export function SceneCanvas() {
           if (plate && canPlaceBlock(draggedBlockCategory, plate)) {
             addBlock(draggedBlockCategory, draggedResourceName, plateId, activeProvider);
             playSound('block-snap');
+            // Trigger SCV walk-to-block animation
+            const arch = useArchitectureStore.getState().workspace.architecture;
+            const newBlock = arch.blocks[arch.blocks.length - 1];
+            if (newBlock && newBlock.placementId === plateId) {
+              const worldX = plate.position.x + newBlock.position.x;
+              const worldY = plate.position.y + plate.size.height;
+              const worldZ = plate.position.z + newBlock.position.z;
+              useWorkerStore.getState().startBuild(newBlock.id, [worldX, worldY, worldZ]);
+            }
           }
       }
       completeInteraction();
