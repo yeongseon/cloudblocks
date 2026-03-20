@@ -162,7 +162,7 @@
 
 [data-md-color-scheme="slate"] .md-typeset h1 {
   color: #f0f0f5;
-  border-bottom-color: var(--lego-blue-light);
+  border-bottom-color: rgba(224, 224, 232, 0.3);
 }
 
 /* h2 — Stud accent divider */
@@ -188,7 +188,7 @@
 }
 
 [data-md-color-scheme="slate"] .md-typeset h2 {
-  border-bottom-color: rgba(224, 224, 232, 0.15);
+  border-bottom-color: rgba(224, 224, 232, 0.2);
 }
 
 [data-md-color-scheme="slate"] .md-typeset h2::after {
@@ -415,22 +415,22 @@
 
 /* Dark mode tabs — muted gold banner */
 [data-md-color-scheme="slate"] .md-tabs {
-  background-color: var(--lego-yellow-dark);
-  border-bottom-color: #B89800;
+  background-color: #20203a;
+  border-bottom-color: #2a2a44;
 }
 
 [data-md-color-scheme="slate"] .md-tabs__link {
-  color: #1A1A2E;
+  color: rgba(224, 224, 232, 0.7);
 }
 
 [data-md-color-scheme="slate"] .md-tabs__link:hover {
-  color: #1A1A2E;
-  background-color: rgba(255, 255, 255, 0.2);
+  color: #e0e0e8;
+  background-color: rgba(255, 255, 255, 0.06);
 }
 
 [data-md-color-scheme="slate"] .md-tabs__link--active {
-  color: var(--lego-white);
-  box-shadow: inset 0 -3px 0 0 var(--lego-red-dark);
+  color: #e0e0e8;
+  box-shadow: inset 0 -2px 0 0 var(--lego-blue-light);
 }
 
 /* ---------------------------------------------------------------------------
