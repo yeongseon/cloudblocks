@@ -191,4 +191,23 @@ describe('GitHubRepos', () => {
     expect(screen.getByText('Loading...')).toBeInTheDocument();
     resolvePost({ full_name: 'owner/new-repo', name: 'new-repo', private: false, default_branch: 'main', html_url: 'https://github.com/owner/new-repo' });
   });
+
+  it('resets local state on remount (simulating panel close and reopen)', async () => {
+    const user = userEvent.setup();
+    mockApiGet.mockResolvedValueOnce({
+      repos: [{ full_name: 'owner/repo', name: 'repo', private: false, default_branch: 'main', html_url: 'https://github.com/owner/repo' }],
+    });
+
+    const { unmount } = render(<GitHubRepos />);
+    expect(await screen.findByText('repo')).toBeInTheDocument();
+
+    await user.type(screen.getByPlaceholderText('Repository name'), 'draft-repo');
+
+    mockApiGet.mockResolvedValueOnce({ repos: [] });
+    unmount();
+    render(<GitHubRepos />);
+
+    expect(screen.getByPlaceholderText('Repository name')).toHaveValue('');
+    expect(screen.queryByText('repo')).not.toBeInTheDocument();
+  });
 });

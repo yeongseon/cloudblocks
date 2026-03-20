@@ -251,10 +251,9 @@ describe('WorkspaceManager', () => {
   });
 
   it('includes current workspace in list even if not in workspaces array', () => {
-    // This tests the allWorkspaces merge logic
     useArchitectureStore.setState({
       workspace: makeWorkspace('ws-new', 'New Workspace'),
-      workspaces: [], // Current workspace not in list
+      workspaces: [],
       createWorkspace: createWorkspaceMock,
       switchWorkspace: switchWorkspaceMock,
       deleteWorkspace: deleteWorkspaceMock,
@@ -264,5 +263,21 @@ describe('WorkspaceManager', () => {
     useUIStore.setState({ showWorkspaceManager: true });
     render(<WorkspaceManager />);
     expect(screen.getByText(/New Workspace/)).toBeInTheDocument();
+  });
+
+  it('resets draft input on remount (simulating panel close and reopen)', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ showWorkspaceManager: true });
+    const { unmount } = render(<WorkspaceManager />);
+
+    const input = screen.getByPlaceholderText('New workspace name...');
+    await user.type(input, 'Draft workspace');
+    expect(input).toHaveValue('Draft workspace');
+
+    unmount();
+    useUIStore.setState({ showWorkspaceManager: true });
+    render(<WorkspaceManager />);
+
+    expect(screen.getByPlaceholderText('New workspace name...')).toHaveValue('');
   });
 });

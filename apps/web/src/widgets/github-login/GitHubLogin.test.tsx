@@ -168,4 +168,20 @@ describe('GitHubLogin', () => {
     render(<GitHubLogin />);
     expect(screen.getByText('OAuth failed')).toBeInTheDocument();
   });
+
+  it('resets local state on remount (simulating panel close and reopen)', async () => {
+    const user = userEvent.setup();
+    mockApiPost.mockRejectedValueOnce(new Error('Server down'));
+
+    const { unmount } = render(<GitHubLogin />);
+    await user.click(screen.getByRole('button', { name: 'Sign in with GitHub' }));
+    expect(await screen.findByText('Server down')).toBeInTheDocument();
+
+    unmount();
+    useAuthStore.setState({ error: null });
+    render(<GitHubLogin />);
+
+    expect(screen.queryByText('Server down')).not.toBeInTheDocument();
+    expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+  });
 });

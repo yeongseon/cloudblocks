@@ -46,6 +46,12 @@ function App() {
   const editorMode = useUIStore((s) => s.editorMode);
   const isBuildOrderOpen = useUIStore((s) => s.isBuildOrderOpen);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
+  const showCodePreview = useUIStore((s) => s.showCodePreview);
+  const showWorkspaceManager = useUIStore((s) => s.showWorkspaceManager);
+  const showGitHubLogin = useUIStore((s) => s.showGitHubLogin);
+  const showGitHubRepos = useUIStore((s) => s.showGitHubRepos);
+  const showGitHubPR = useUIStore((s) => s.showGitHubPR);
+  const workspaceId = useArchitectureStore((s) => s.workspace.id);
 
   useEffect(() => {
     audioService.preloadAll(SOUND_ASSETS).catch(() => {});
@@ -146,13 +152,13 @@ function App() {
           <BottomPanel />
           <LearningPanel />
           <Suspense fallback={null}>
-            <CodePreview />
-            <WorkspaceManager />
+            {showCodePreview && <CodePreview key={`code-${workspaceId}`} />}
+            {showWorkspaceManager && <WorkspaceManager />}
             <TemplateGallery />
-            <GitHubLogin />
-            <GitHubRepos />
+            {showGitHubLogin && <GitHubLogin />}
+            {showGitHubRepos && <GitHubRepos />}
             <GitHubSync />
-            <GitHubPR />
+            {showGitHubPR && <GitHubPR key={`pr-${workspaceId}`} />}
             <DiffPanel />
             <ScenarioGallery />
           </Suspense>
