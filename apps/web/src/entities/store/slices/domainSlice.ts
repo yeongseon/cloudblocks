@@ -5,6 +5,7 @@ import { generateId } from '../../../shared/utils/id';
 import type { ArchitectureSlice, ArchitectureState } from './types';
 import { canConnect } from '../../validation/connection';
 import type { EndpointType } from '../../validation/connection';
+import { validatePlacement } from '../../validation/placement';
 import {
   clampWithinParent,
   DEFAULT_PLATE_SIZE,
@@ -29,6 +30,56 @@ type DomainSlice = Pick<
   | 'addConnection'
   | 'removeConnection'
 >;
+
+function collectDescendantPlateIds(plates: Plate[], rootId: string): Set<string> {
+  const descendants = new Set<string>();
+  const stack = [rootId];
+
+  while (stack.length > 0) {
+    const current = stack.pop();
+    if (!current) {
+      continue;
+    }
+
+    plates.forEach((plate) => {
+      if (plate.parentId === current && !descendants.has(plate.id)) {
+        descendants.add(plate.id);
+        stack.push(plate.id);
+      }
+    });
+  }
+
+  return descendants;
+}
+
+function shiftPlateSubtree(
+  plates: Plate[],
+  rootId: string,
+  deltaX: number,
+  deltaZ: number
+): Plate[] {
+  if (deltaX === 0 && deltaZ === 0) {
+    return plates;
+  }
+
+  const subtreeIds = collectDescendantPlateIds(plates, rootId);
+  subtreeIds.add(rootId);
+
+  return plates.map((candidate) => {
+    if (!subtreeIds.has(candidate.id)) {
+      return candidate;
+    }
+
+    return {
+      ...candidate,
+      position: {
+        x: candidate.position.x + deltaX,
+        y: candidate.position.y,
+        z: candidate.position.z + deltaZ,
+      },
+    };
+  });
+}
 
 export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => ({
   addPlate: (type, name, parentId, subnetAccess, profileId?: PlateProfileId) => {
@@ -336,6 +387,18 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         return state;
       }
 
+      const nextBlock = {
+        ...block,
+        placementId: newPlacementId,
+      };
+      const placementError = validatePlacement(nextBlock, targetPlate);
+      if (placementError) {
+        if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+          window.alert(placementError.message);
+        }
+        return state;
+      }
+
       const blocksOnTarget = arch.blocks.filter(
         (candidate) => candidate.placementId === newPlacementId
       );
@@ -392,6 +455,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       let plates = arch.plates.map((candidate) =>
         candidate.id === plateId ? resizedPlate : candidate
       );
+      let blocks = arch.blocks;
 
       if (plate.parentId) {
         const parentPlate = arch.plates.find((candidate) => candidate.id === plate.parentId);
@@ -421,7 +485,57 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         }
       }
 
-      return withHistory(state, { ...arch, plates });
+      const effectivePlate = plates.find((candidate) => candidate.id === plateId);
+      if (effectivePlate) {
+        plates
+          .filter((candidate) => candidate.parentId === plateId)
+          .forEach((childPlate) => {
+            const relativePosition = {
+              x: childPlate.position.x - effectivePlate.position.x,
+              z: childPlate.position.z - effectivePlate.position.z,
+            };
+            const clampedRelativePosition = clampWithinParent(
+              relativePosition,
+              { width: effectivePlate.size.width, depth: effectivePlate.size.depth },
+              { width: childPlate.size.width, depth: childPlate.size.depth }
+            );
+            const deltaX = clampedRelativePosition.x - relativePosition.x;
+            const deltaZ = clampedRelativePosition.z - relativePosition.z;
+            if (deltaX !== 0 || deltaZ !== 0) {
+              plates = shiftPlateSubtree(plates, childPlate.id, deltaX, deltaZ);
+            }
+          });
+
+        blocks = arch.blocks.map((candidate) => {
+          if (candidate.placementId !== plateId) {
+            return candidate;
+          }
+
+          const clampedPosition = clampWithinParent(
+            { x: candidate.position.x, z: candidate.position.z },
+            { width: effectivePlate.size.width, depth: effectivePlate.size.depth },
+            { width: DEFAULT_BLOCK_SIZE.width, depth: DEFAULT_BLOCK_SIZE.depth }
+          );
+
+          if (
+            clampedPosition.x === candidate.position.x &&
+            clampedPosition.z === candidate.position.z
+          ) {
+            return candidate;
+          }
+
+          return {
+            ...candidate,
+            position: {
+              x: clampedPosition.x,
+              y: candidate.position.y,
+              z: clampedPosition.z,
+            },
+          };
+        });
+      }
+
+      return withHistory(state, { ...arch, plates, blocks });
     });
   },
 
@@ -466,8 +580,9 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         }
       }
 
+      const descendantPlateIds = collectDescendantPlateIds(arch.plates, id);
       const plates = arch.plates.map((candidate) => {
-        if (candidate.id === id || candidate.parentId === id) {
+        if (candidate.id === id || descendantPlateIds.has(candidate.id)) {
           return {
             ...candidate,
             position: {

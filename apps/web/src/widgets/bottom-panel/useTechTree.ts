@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import type { BlockCategory } from '@cloudblocks/schema';
+import type { BlockCategory, ProviderType } from '@cloudblocks/schema';
 
 export type ResourceType =
   | 'network'
@@ -32,6 +32,7 @@ export interface ResourceDefinition {
   icon: string;
   category: 'plate' | 'always' | 'vnet-optional' | 'vnet-required';
   blockCategory: BlockCategory | null;
+  subtype?: string;
   disabledReason?: string;
 }
 
@@ -71,6 +72,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '📦',
     category: 'always',
     blockCategory: 'storage',
+    subtype: 'blob-storage',
   },
   dns: {
     id: 'dns',
@@ -105,6 +107,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🗄️',
     category: 'vnet-optional',
     blockCategory: 'database',
+    subtype: 'sql-database',
   },
   function: {
     id: 'function',
@@ -113,6 +116,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '⚡',
     category: 'vnet-optional',
     blockCategory: 'function',
+    subtype: 'functions',
   },
   queue: {
     id: 'queue',
@@ -121,6 +125,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '📨',
     category: 'vnet-optional',
     blockCategory: 'queue',
+    subtype: 'service-bus',
   },
   event: {
     id: 'event',
@@ -129,6 +134,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🔔',
     category: 'vnet-optional',
     blockCategory: 'event',
+    subtype: 'event-grid',
   },
   'app-service': {
     id: 'app-service',
@@ -137,6 +143,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🌐',
     category: 'vnet-optional',
     blockCategory: 'function',
+    subtype: 'app-service',
   },
   'container-instances': {
     id: 'container-instances',
@@ -145,6 +152,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '📦',
     category: 'vnet-optional',
     blockCategory: 'compute',
+    subtype: 'container-instances',
   },
   'cosmos-db': {
     id: 'cosmos-db',
@@ -153,6 +161,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🌍',
     category: 'vnet-optional',
     blockCategory: 'database',
+    subtype: 'cosmos-db',
   },
   'key-vault': {
     id: 'key-vault',
@@ -160,7 +169,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'KeyVault',
     icon: '🔐',
     category: 'vnet-optional',
-    blockCategory: 'storage',
+    blockCategory: 'identity',
   },
 
   // VNet required
@@ -171,6 +180,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🖥️',
     category: 'vnet-required',
     blockCategory: 'compute',
+    subtype: 'vm',
     disabledReason: 'Create a Network first. Virtual Machines need a network to connect to.',
   },
   aks: {
@@ -219,6 +229,44 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     disabledReason: 'Create a Network first. Bastion provides secure VM access through a virtual network.',
   },
 };
+
+const PROVIDER_SUBTYPE_BY_RESOURCE: Record<ProviderType, Partial<Record<ResourceType, string>>> = {
+  azure: {
+    vm: 'vm',
+    'container-instances': 'container-instances',
+    function: 'functions',
+    sql: 'sql-database',
+    'cosmos-db': 'cosmos-db',
+    storage: 'blob-storage',
+    'front-door': 'application-gateway',
+  },
+  aws: {
+    vm: 'ec2',
+    'container-instances': 'ecs',
+    function: 'lambda',
+    sql: 'rds-postgres',
+    'cosmos-db': 'dynamodb',
+    storage: 's3',
+    'front-door': 'alb',
+  },
+  gcp: {
+    vm: 'compute-engine',
+    'container-instances': 'cloud-run',
+    function: 'cloud-functions',
+    sql: 'cloud-sql-postgres',
+    'cosmos-db': 'firestore',
+    storage: 'cloud-storage',
+    'front-door': 'cloud-load-balancing',
+  },
+};
+
+export function resolvePaletteSubtype(provider: ProviderType, resourceType: ResourceType): string | undefined {
+  return PROVIDER_SUBTYPE_BY_RESOURCE[provider][resourceType] ?? RESOURCE_DEFINITIONS[resourceType].subtype;
+}
+
+export function findResourceDefinitionByLabel(label: string): ResourceDefinition | undefined {
+  return Object.values(RESOURCE_DEFINITIONS).find((resource) => resource.label === label);
+}
 
 // ─── Command Card Grid Layout ──────────────────────────────
 

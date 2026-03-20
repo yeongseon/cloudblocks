@@ -2,11 +2,25 @@ import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useLearningStore } from '../../entities/store/learningStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { getScenario } from './scenarios/registry';
+import { startHintSubscription, startHintTimer, stopHintSubscription } from './hint-engine';
 import { evaluateRules } from './step-validator';
 import type { ValidationResult } from './step-validator';
-import type { StepValidationRule } from '../../shared/types/learning';
+import type { ArchitectureSnapshot, StepValidationRule } from '../../shared/types/learning';
 
 let unsubscribe: (() => void) | null = null;
+let preLearningArchitecture: ArchitectureSnapshot | null = null;
+
+function captureCurrentArchitecture(): ArchitectureSnapshot {
+  const architecture = useArchitectureStore.getState().workspace.architecture;
+  return {
+    name: architecture.name,
+    version: architecture.version,
+    plates: JSON.parse(JSON.stringify(architecture.plates)),
+    blocks: JSON.parse(JSON.stringify(architecture.blocks)),
+    connections: JSON.parse(JSON.stringify(architecture.connections)),
+    externalActors: JSON.parse(JSON.stringify(architecture.externalActors)),
+  };
+}
 
 function hasActiveScenario(): boolean {
   const { activeScenario, progress } = useLearningStore.getState();
@@ -31,6 +45,8 @@ export function startLearningScenario(scenarioId: string): void {
     throw new Error(`Scenario not found: ${scenarioId}`);
   }
 
+  preLearningArchitecture = captureCurrentArchitecture();
+
   useArchitectureStore.getState().replaceArchitecture(scenario.initialArchitecture);
   useUIStore.getState().setEditorMode('learn');
   useLearningStore.getState().startScenario(scenario);
@@ -41,7 +57,9 @@ export function startLearningScenario(scenarioId: string): void {
   }
 
   startValidationSubscription();
+  startHintSubscription();
   syncCurrentStepCompletion();
+  startHintTimer();
 }
 
 export function advanceToNextStep(): void {
@@ -60,11 +78,13 @@ export function advanceToNextStep(): void {
   const isLastStep = progress.currentStepIndex >= activeScenario.steps.length - 1;
   if (isLastStep) {
     learningState.completeScenario();
+    stopHintSubscription();
     return;
   }
 
   learningState.advanceStep();
   syncCurrentStepCompletion();
+  startHintTimer();
 }
 
 export function resetCurrentStep(): void {
@@ -87,9 +107,16 @@ export function resetCurrentStep(): void {
 
   learningState.resetHints();
   syncCurrentStepCompletion();
+  startHintTimer();
 }
 
 export function abandonLearning(): void {
+  const snapshotToRestore = preLearningArchitecture;
+  preLearningArchitecture = null;
+  if (snapshotToRestore) {
+    useArchitectureStore.getState().replaceArchitecture(snapshotToRestore);
+  }
+
   useLearningStore.getState().abandonScenario();
 
   const uiState = useUIStore.getState();
@@ -99,6 +126,7 @@ export function abandonLearning(): void {
   }
 
   stopValidationSubscription();
+  stopHintSubscription();
 }
 
 export function startValidationSubscription(): void {

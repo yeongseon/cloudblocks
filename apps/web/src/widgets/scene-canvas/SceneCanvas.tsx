@@ -16,6 +16,7 @@ import { MinifigureSprite } from '../../entities/character';
 import { EmptyCanvasOverlay } from './EmptyCanvasOverlay';
 import { DragGhost } from './DragGhost';
 import { ConnectionPreview } from './ConnectionPreview';
+import { findResourceDefinitionByLabel, resolvePaletteSubtype } from '../bottom-panel/useTechTree';
 import './SceneCanvas.css';
 
 export function SceneCanvas() {
@@ -112,7 +113,20 @@ export function SceneCanvas() {
       if (plateId) {
           const plate = architecture.plates.find((p) => p.id === plateId);
           if (plate && canPlaceBlock(draggedBlockCategory, plate)) {
-            addBlock(draggedBlockCategory, draggedResourceName, plateId, activeProvider);
+            const paletteResource = findResourceDefinitionByLabel(draggedResourceName);
+            const resourceType = paletteResource?.id;
+            const subtype = resourceType
+              ? resolvePaletteSubtype(activeProvider, resourceType)
+              : paletteResource?.subtype;
+
+            addBlock(
+              draggedBlockCategory,
+              draggedResourceName,
+              plateId,
+              activeProvider,
+              subtype,
+              resourceType ? { resourceType } : undefined
+            );
             playSound('block-snap');
           }
       }

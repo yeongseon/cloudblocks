@@ -177,7 +177,14 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByTitle('Create Virtual Machine'));
 
-    expect(addBlockMock).toHaveBeenCalledWith('compute', 'Virtual Machine 1', 'subnet-public-1', 'azure');
+    expect(addBlockMock).toHaveBeenCalledWith(
+      'compute',
+      'Virtual Machine 1',
+      'subnet-public-1',
+      'azure',
+      'vm',
+      { resourceType: 'vm' }
+    );
   });
 
   it('smoke: create VM from Compute tab then show block actions when selected', async () => {
@@ -201,7 +208,14 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByTitle('Create Virtual Machine'));
 
-    expect(addBlockMock).toHaveBeenCalledWith('compute', 'Virtual Machine 1', 'subnet-public-1', 'azure');
+    expect(addBlockMock).toHaveBeenCalledWith(
+      'compute',
+      'Virtual Machine 1',
+      'subnet-public-1',
+      'azure',
+      'vm',
+      { resourceType: 'vm' }
+    );
 
     act(() => {
       useArchitectureStore.setState({
@@ -1115,7 +1129,14 @@ describe('CommandCard', () => {
     // Now in PlateCreationMode — create a VM
     await user.click(screen.getByTitle('Create Virtual Machine (S)'));
 
-    expect(addBlockMock).toHaveBeenCalledWith('compute', 'Virtual Machine 1', 'subnet-public-1', 'azure');
+    expect(addBlockMock).toHaveBeenCalledWith(
+      'compute',
+      'Virtual Machine 1',
+      'subnet-public-1',
+      'azure',
+      'vm',
+      { resourceType: 'vm' }
+    );
   });
 
   it('transitions to PlateCreationMode for private subnet deploy and creates SQL', async () => {
@@ -1146,7 +1167,14 @@ describe('CommandCard', () => {
     // Now in PlateCreationMode — create SQL
     await user.click(screen.getByTitle('Create Azure SQL (W)'));
 
-    expect(addBlockMock).toHaveBeenCalledWith('database', 'Azure SQL 1', 'subnet-private-1', 'azure');
+    expect(addBlockMock).toHaveBeenCalledWith(
+      'database',
+      'Azure SQL 1',
+      'subnet-private-1',
+      'azure',
+      'sql-database',
+      { resourceType: 'sql' }
+    );
   });
 
   it('creates private subnet via Deploy on network plate', async () => {

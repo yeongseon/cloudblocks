@@ -4,11 +4,16 @@ import { useAiStore } from './store';
 const mockGenerate = vi.fn();
 const mockSuggest = vi.fn();
 const mockEstimateCost = vi.fn();
+const mockValidateArchitecture = vi.fn();
 
 vi.mock('./api', () => ({
   generateArchitecture: (...args: unknown[]) => mockGenerate(...args),
   suggestImprovements: (...args: unknown[]) => mockSuggest(...args),
   estimateCost: (...args: unknown[]) => mockEstimateCost(...args),
+}));
+
+vi.mock('../../entities/validation/engine', () => ({
+  validateArchitecture: (...args: unknown[]) => mockValidateArchitecture(...args),
 }));
 
 const mockReplaceArchitecture = vi.fn();
@@ -25,6 +30,7 @@ vi.mock('../../entities/store/architectureStore', () => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockValidateArchitecture.mockReturnValue({ valid: true, errors: [], warnings: [] });
   useAiStore.setState({
     generateLoading: false,
     generateError: null,
@@ -66,6 +72,28 @@ describe('useAiStore', () => {
 
       await useAiStore.getState().generate('test', 'aws');
       expect(mockReplaceArchitecture).toHaveBeenCalledWith(arch);
+    });
+
+    it('rejects invalid generated architecture, alerts user, and keeps local state', async () => {
+      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+      mockGenerate.mockResolvedValueOnce({
+        architecture: { plates: [], blocks: [], connections: [] },
+        explanation: '',
+        warnings: [],
+      });
+      mockValidateArchitecture.mockReturnValueOnce({
+        valid: false,
+        errors: [{ message: 'Gateway block must be placed on a public Subnet Plate' }],
+        warnings: [],
+      });
+
+      await useAiStore.getState().generate('invalid architecture', 'aws');
+
+      expect(mockReplaceArchitecture).not.toHaveBeenCalled();
+      expect(useAiStore.getState().generateResult).toBeNull();
+      expect(useAiStore.getState().generateError).toContain('public Subnet Plate');
+      expect(alertSpy).toHaveBeenCalledOnce();
+      alertSpy.mockRestore();
     });
 
     it('sets error on failure', async () => {

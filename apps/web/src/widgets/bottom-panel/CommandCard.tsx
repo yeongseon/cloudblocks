@@ -25,6 +25,7 @@ import {
   PLATE_ACTION_GRID,
   PLATE_ACTION_DEFINITIONS,
   RESOURCE_DEFINITIONS,
+  resolvePaletteSubtype,
   type ResourceType,
   type ActionType,
   type PlateActionType,
@@ -385,7 +386,8 @@ function CreationMode() {
 
       counterRef.current += 1;
       const name = `${def.label} ${counterRef.current}`;
-      addBlock(def.blockCategory, name, targetId, activeProvider);
+      const subtype = resolvePaletteSubtype(activeProvider, type);
+      addBlock(def.blockCategory, name, targetId, activeProvider, subtype, { resourceType: type });
       playSound('block-snap');
     }
   }, [activeProvider, addPlate, addBlock, techTree, playSound]);
@@ -463,7 +465,8 @@ function WorkerBuildMode() {
     const knownBlockIds = new Set(architecture.blocks.map((block) => block.id));
     counterRef.current += 1;
     const name = `${def.label} ${counterRef.current}`;
-    addBlock(def.blockCategory, name, targetId, activeProvider);
+    const subtype = resolvePaletteSubtype(activeProvider, type);
+    addBlock(def.blockCategory, name, targetId, activeProvider, subtype, { resourceType: type });
 
     const nextBlocks = useArchitectureStore.getState().workspace.architecture.blocks;
     const createdBlock = nextBlocks.find(
@@ -625,7 +628,8 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
 
     counterRef.current += 1;
     const name = `${def.label} ${counterRef.current}`;
-    addBlock(def.blockCategory, name, selectedPlate.id, activeProvider);
+    const subtype = resolvePaletteSubtype(activeProvider, type);
+    addBlock(def.blockCategory, name, selectedPlate.id, activeProvider, subtype, { resourceType: type });
     playSound('block-snap');
   }, [activeProvider, addPlate, addBlock, selectedPlate.id, selectedPlate.type, playSound]);
 

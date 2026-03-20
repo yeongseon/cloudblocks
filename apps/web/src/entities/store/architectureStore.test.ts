@@ -18,6 +18,7 @@ vi.mock('uuid', () => ({
 }));
 
 import { useArchitectureStore } from './architectureStore';
+import { useWorkerStore } from './workerStore';
 
 function getState() {
   return useArchitectureStore.getState();
@@ -466,6 +467,28 @@ describe('architectureStore', () => {
       expect(newPlate?.children).toContain(blockId);
     });
 
+    it('rejects move when placement validation fails and alerts user', () => {
+      const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+
+      getState().addPlate('region', 'VNet', null);
+      const netId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Public', netId, 'public');
+      const publicSubId = getArch().plates[1].id;
+      getState().addPlate('subnet', 'Private', netId, 'private');
+      const privateSubId = getArch().plates[2].id;
+
+      getState().addBlock('gateway', 'Gateway', publicSubId);
+      const blockId = getArch().blocks[0].id;
+      const before = getState().workspace.architecture;
+      getState().moveBlock(blockId, privateSubId);
+
+      expect(getState().workspace.architecture).toBe(before);
+      expect(getArch().blocks[0].placementId).toBe(publicSubId);
+      expect(alertSpy).toHaveBeenCalledOnce();
+      expect(String(alertSpy.mock.calls[0]?.[0])).toContain('must be placed on a public Subnet Plate');
+      alertSpy.mockRestore();
+    });
+
     it('no-ops when moving to same plate', () => {
       getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
@@ -575,6 +598,55 @@ describe('architectureStore', () => {
       expect(resized?.profileId).toBe('subnet-scale');
       expect(resized?.position).toEqual({ x: 4, y: 0.3, z: 4 });
     });
+
+    it('clamps child blocks when resized profile shrinks available space', () => {
+      getState().addPlate('region', 'VNet', null);
+      const networkId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Public', networkId, 'public');
+      const subnetId = getArch().plates[1].id;
+      getState().addBlock('compute', 'VM', subnetId);
+      const blockId = getArch().blocks[0].id;
+
+      getState().moveBlockPosition(blockId, 100, 100);
+      const before = getArch().blocks.find((block) => block.id === blockId);
+      expect(before?.position.x).toBe(1.8);
+      expect(before?.position.z).toBe(2.8);
+
+      getState().setPlateProfile(subnetId, 'subnet-scale');
+      const resized = getArch().blocks.find((block) => block.id === blockId);
+      expect(resized?.position.x).toBe(1.8);
+      expect(resized?.position.z).toBe(2.8);
+    });
+
+    it('shifts nested child plate subtree when parent resize clamps child plate', () => {
+      getState().addPlate('region', 'VNet', null);
+      const networkId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Outer', networkId, 'public');
+      const outerId = getArch().plates[1].id;
+      getState().addPlate('subnet', 'Inner', outerId, 'private');
+      const innerId = getArch().plates[2].id;
+
+      getState().addPlate('subnet', 'Leaf', innerId, 'private');
+      const leafId = getArch().plates[3].id;
+
+      getState().movePlatePosition(innerId, 100, 100);
+      const innerBefore = getArch().plates.find((plate) => plate.id === innerId);
+      const leafBefore = getArch().plates.find((plate) => plate.id === leafId);
+      const innerBeforeX = innerBefore?.position.x ?? 0;
+      const innerBeforeZ = innerBefore?.position.z ?? 0;
+      const leafBeforeX = leafBefore?.position.x ?? 0;
+      const leafBeforeZ = leafBefore?.position.z ?? 0;
+
+      getState().setPlateProfile(outerId, 'subnet-scale');
+
+      const innerAfter = getArch().plates.find((plate) => plate.id === innerId);
+      const leafAfter = getArch().plates.find((plate) => plate.id === leafId);
+
+      expect(innerAfter?.position.x).toBe(innerBeforeX);
+      expect(innerAfter?.position.z).toBe(innerBeforeZ);
+      expect(leafAfter?.position.x).toBe(leafBeforeX);
+      expect(leafAfter?.position.z).toBe(leafBeforeZ);
+    });
   });
 
   describe('movePlatePosition', () => {
@@ -619,6 +691,40 @@ describe('architectureStore', () => {
       expect(outerAfter?.position.z).toBe((outerBefore?.position.z ?? 0) - 1.5);
       expect(innerAfter?.position.x).toBe((innerBefore?.position.x ?? 0) + 1.25);
       expect(innerAfter?.position.z).toBe((innerBefore?.position.z ?? 0) - 1.5);
+    });
+
+    it('moves all descendant plates recursively when parent plate moves', () => {
+      getState().addPlate('region', 'VNet', null);
+      const networkId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Outer', networkId, 'public');
+      const outerId = getArch().plates[1].id;
+      getState().addPlate('subnet', 'Inner', outerId, 'private');
+      const innerId = getArch().plates[2].id;
+      getState().addPlate('subnet', 'Leaf', innerId, 'private');
+      const leafId = getArch().plates[3].id;
+
+      const outerBefore = getArch().plates.find((plate) => plate.id === outerId);
+      const innerBefore = getArch().plates.find((plate) => plate.id === innerId);
+      const leafBefore = getArch().plates.find((plate) => plate.id === leafId);
+      const outerBeforeX = outerBefore?.position.x ?? 0;
+      const outerBeforeZ = outerBefore?.position.z ?? 0;
+      const innerBeforeX = innerBefore?.position.x ?? 0;
+      const innerBeforeZ = innerBefore?.position.z ?? 0;
+      const leafBeforeX = leafBefore?.position.x ?? 0;
+      const leafBeforeZ = leafBefore?.position.z ?? 0;
+
+      getState().movePlatePosition(outerId, 1.25, -1.5);
+
+      const outerAfter = getArch().plates.find((plate) => plate.id === outerId);
+      const innerAfter = getArch().plates.find((plate) => plate.id === innerId);
+      const leafAfter = getArch().plates.find((plate) => plate.id === leafId);
+
+      expect(outerAfter?.position.x).toBe(outerBeforeX + 1.25);
+      expect(outerAfter?.position.z).toBe(outerBeforeZ - 1.5);
+      expect(innerAfter?.position.x).toBe(innerBeforeX + 1.25);
+      expect(innerAfter?.position.z).toBe(innerBeforeZ - 1.5);
+      expect(leafAfter?.position.x).toBe(leafBeforeX + 1.25);
+      expect(leafAfter?.position.z).toBe(leafBeforeZ - 1.5);
     });
 
     it('no-ops when moving a non-existent plate', () => {
@@ -989,6 +1095,65 @@ describe('architectureStore', () => {
       expect(getState().workspace.id).toBe(workspaceId);
       expect(getState().workspace.name).toBe(workspaceName);
     });
+
+    it('skips saveActiveWorkspaceId when saveWorkspaces fails', () => {
+      const spy = vi.spyOn(localStorage, 'setItem').mockImplementation((key) => {
+        if (key === 'cloudblocks:workspaces') {
+          throw new Error('QuotaExceededError');
+        }
+      });
+
+      getState().resetWorkspace();
+
+      // State should still be updated even when persistence fails
+      expect(getArch().plates).toHaveLength(0);
+      // saveActiveWorkspaceId should NOT have been called
+      const activeIdCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:activeWorkspaceId');
+      expect(activeIdCalls).toHaveLength(0);
+      spy.mockRestore();
+    });
+
+    it('clears worker queue and resets worker state', () => {
+      useWorkerStore.setState({
+        workerState: 'building',
+        activeBuild: {
+          blockId: 'b1',
+          targetPosition: [0, 0, 0],
+          progress: 0.4,
+          startedAt: Date.now(),
+        },
+        buildQueue: [
+          {
+            blockId: 'b2',
+            targetPosition: [1, 0, 1],
+            progress: 0,
+            startedAt: Date.now(),
+          },
+        ],
+      });
+
+      getState().resetWorkspace();
+
+      const worker = useWorkerStore.getState();
+      expect(worker.workerState).toBe('idle');
+      expect(worker.activeBuild).toBeNull();
+      expect(worker.buildQueue).toEqual([]);
+    });
+
+    it('logs an error when workspace save fails during reset', () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const spy = vi.spyOn(localStorage, 'setItem').mockImplementation((key) => {
+        if (key === 'cloudblocks:workspaces') {
+          throw new Error('QuotaExceededError');
+        }
+      });
+
+      getState().resetWorkspace();
+
+      expect(consoleSpy.mock.calls.some((call) => String(call[0]).includes('resetWorkspace'))).toBe(true);
+      spy.mockRestore();
+      consoleSpy.mockRestore();
+    });
   });
 
   describe('renameWorkspace', () => {
@@ -1003,6 +1168,14 @@ describe('architectureStore', () => {
       vi.setSystemTime(new Date('2025-06-01T00:00:00Z'));
       getState().renameWorkspace('Renamed');
       expect(getState().workspace.updatedAt).not.toBe(before);
+    });
+
+    it('persists the renamed workspace to storage', () => {
+      const spy = vi.spyOn(localStorage, 'setItem');
+      getState().renameWorkspace('Persisted Name');
+      const workspaceCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:workspaces');
+      expect(workspaceCalls.length).toBeGreaterThan(0);
+      spy.mockRestore();
     });
   });
 
@@ -1035,6 +1208,21 @@ describe('architectureStore', () => {
 
       getState().createWorkspace('New Project');
       expect(getState().canUndo).toBe(false);
+    });
+
+    it('skips saveActiveWorkspaceId when saveWorkspaces fails', () => {
+      const spy = vi.spyOn(localStorage, 'setItem').mockImplementation((key) => {
+        if (key === 'cloudblocks:workspaces') {
+          throw new Error('QuotaExceededError');
+        }
+      });
+
+      getState().createWorkspace('Fail Project');
+
+      expect(getState().workspace.name).toBe('Fail Project');
+      const activeIdCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:activeWorkspaceId');
+      expect(activeIdCalls).toHaveLength(0);
+      spy.mockRestore();
     });
   });
 
@@ -1079,6 +1267,82 @@ describe('architectureStore', () => {
         expect(secondInList?.architecture.plates).toHaveLength(1);
       }
     });
+
+    it('skips saveActiveWorkspaceId when saveWorkspaces fails', () => {
+      getState().createWorkspace('Second');
+      const secondId = getState().workspace.id;
+      const firstId = getState().workspaces.find((ws) => ws.id !== secondId)?.id;
+
+      const spy = vi.spyOn(localStorage, 'setItem').mockImplementation((key) => {
+        if (key === 'cloudblocks:workspaces') {
+          throw new Error('QuotaExceededError');
+        }
+      });
+
+      if (firstId) {
+        getState().switchWorkspace(firstId);
+        expect(getState().workspace.id).toBe(firstId);
+        const activeIdCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:activeWorkspaceId');
+        expect(activeIdCalls).toHaveLength(0);
+      }
+      spy.mockRestore();
+    });
+
+    it('clears worker queue when switching workspace', () => {
+      getState().createWorkspace('Second');
+      const secondId = getState().workspace.id;
+      const firstId = getState().workspaces.find((ws) => ws.id !== secondId)?.id;
+      if (!firstId) {
+        throw new Error('Expected first workspace id');
+      }
+
+      useWorkerStore.setState({
+        workerState: 'moving',
+        activeBuild: {
+          blockId: 'b1',
+          targetPosition: [0, 0, 0],
+          progress: 0,
+          startedAt: Date.now(),
+        },
+        buildQueue: [
+          {
+            blockId: 'b2',
+            targetPosition: [1, 0, 1],
+            progress: 0,
+            startedAt: Date.now(),
+          },
+        ],
+      });
+
+      getState().switchWorkspace(firstId);
+
+      const worker = useWorkerStore.getState();
+      expect(worker.workerState).toBe('idle');
+      expect(worker.activeBuild).toBeNull();
+      expect(worker.buildQueue).toEqual([]);
+    });
+
+    it('logs an error when workspace save fails during switch', () => {
+      getState().createWorkspace('Second');
+      const secondId = getState().workspace.id;
+      const firstId = getState().workspaces.find((ws) => ws.id !== secondId)?.id;
+      if (!firstId) {
+        throw new Error('Expected first workspace id');
+      }
+
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const spy = vi.spyOn(localStorage, 'setItem').mockImplementation((key) => {
+        if (key === 'cloudblocks:workspaces') {
+          throw new Error('QuotaExceededError');
+        }
+      });
+
+      getState().switchWorkspace(firstId);
+
+      expect(consoleSpy.mock.calls.some((call) => String(call[0]).includes('switchWorkspace'))).toBe(true);
+      spy.mockRestore();
+      consoleSpy.mockRestore();
+    });
   });
 
   describe('deleteWorkspace', () => {
@@ -1110,6 +1374,24 @@ describe('architectureStore', () => {
       expect(getState().workspace).toBeDefined();
       expect(getState().workspace.id).not.toBe(onlyId);
       expect(getState().workspaces).toHaveLength(1);
+    });
+
+    it('skips saveActiveWorkspaceId when saveWorkspaces fails on current deletion', () => {
+      getState().createWorkspace('Second');
+      const secondId = getState().workspace.id;
+
+      const spy = vi.spyOn(localStorage, 'setItem').mockImplementation((key) => {
+        if (key === 'cloudblocks:workspaces') {
+          throw new Error('QuotaExceededError');
+        }
+      });
+
+      getState().deleteWorkspace(secondId);
+
+      expect(getState().workspace.id).not.toBe(secondId);
+      const activeIdCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:activeWorkspaceId');
+      expect(activeIdCalls).toHaveLength(0);
+      spy.mockRestore();
     });
   });
 
@@ -1159,6 +1441,55 @@ describe('architectureStore', () => {
       const before = getState().workspace.id;
       getState().cloneWorkspace('nonexistent');
       expect(getState().workspace.id).toBe(before);
+    });
+
+    it('skips saveActiveWorkspaceId when saveWorkspaces fails', () => {
+      const originalId = getState().workspace.id;
+
+      const spy = vi.spyOn(localStorage, 'setItem').mockImplementation((key) => {
+        if (key === 'cloudblocks:workspaces') {
+          throw new Error('QuotaExceededError');
+        }
+      });
+
+      getState().cloneWorkspace(originalId);
+
+      expect(getState().workspace.id).not.toBe(originalId);
+      const activeIdCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:activeWorkspaceId');
+      expect(activeIdCalls).toHaveLength(0);
+      spy.mockRestore();
+    });
+  });
+
+  describe('setBackendWorkspaceId', () => {
+    it('sets backendWorkspaceId on the current workspace', () => {
+      const wsId = getState().workspace.id;
+      getState().setBackendWorkspaceId(wsId, 'backend-123');
+
+      expect(getState().workspace.backendWorkspaceId).toBe('backend-123');
+    });
+
+    it('does not modify current workspace when updating a non-current workspace', () => {
+      getState().createWorkspace('Second');
+      const secondId = getState().workspace.id;
+      const firstId = getState().workspaces.find((ws) => ws.id !== secondId)!.id;
+
+      getState().setBackendWorkspaceId(firstId, 'backend-first');
+
+      expect(getState().workspace.backendWorkspaceId).toBeUndefined();
+      const firstInList = getState().workspaces.find((ws) => ws.id === firstId);
+      expect(firstInList?.backendWorkspaceId).toBe('backend-first');
+    });
+
+    it('persists the update to storage', () => {
+      const spy = vi.spyOn(localStorage, 'setItem');
+      const wsId = getState().workspace.id;
+
+      getState().setBackendWorkspaceId(wsId, 'backend-456');
+
+      const workspaceCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:workspaces');
+      expect(workspaceCalls.length).toBeGreaterThan(0);
+      spy.mockRestore();
     });
   });
 
@@ -1610,6 +1941,34 @@ describe('architectureStore', () => {
       expect(String(spy.mock.calls.at(-1)?.[1])).toContain('does not reference an existing block, plate, or external actor');
       spy.mockRestore();
     });
+
+    it('skips saveActiveWorkspaceId when saveWorkspaces fails', () => {
+      const spy = vi.spyOn(localStorage, 'setItem').mockImplementation((key) => {
+        if (key === 'cloudblocks:workspaces') {
+          throw new Error('QuotaExceededError');
+        }
+      });
+      vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      const arch = {
+        plates: [
+          {
+            id: 'p1', name: 'Net', type: 'region', parentId: null,
+            children: [], position: { x: 0, y: 0, z: 0 },
+            size: { width: 12, height: 0.3, depth: 10 }, metadata: {},
+          },
+        ],
+        blocks: [],
+      };
+
+      const result = getState().importArchitecture(JSON.stringify(arch));
+
+      expect(result).toBeNull();
+      const activeIdCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:activeWorkspaceId');
+      expect(activeIdCalls).toHaveLength(0);
+      spy.mockRestore();
+      vi.mocked(console.error).mockRestore();
+    });
   });
 
   describe('exportArchitecture', () => {
@@ -1690,6 +2049,38 @@ describe('architectureStore', () => {
 
       getState().loadFromTemplate(template);
       expect(getState().canUndo).toBe(false);
+    });
+
+    it('skips saveActiveWorkspaceId when saveWorkspaces fails', () => {
+      const spy = vi.spyOn(localStorage, 'setItem').mockImplementation((key) => {
+        if (key === 'cloudblocks:workspaces') {
+          throw new Error('QuotaExceededError');
+        }
+      });
+
+      const template: ArchitectureTemplate = {
+        id: 'tmpl-fail',
+        name: 'Fail Template',
+        description: 'desc',
+        category: 'general',
+        difficulty: 'beginner',
+        tags: [],
+        architecture: {
+          name: 'FT',
+          version: '1',
+          plates: [],
+          blocks: [],
+          connections: [],
+          externalActors: [],
+        },
+      };
+
+      getState().loadFromTemplate(template);
+
+      expect(getState().workspace.name).toBe('Fail Template');
+      const activeIdCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:activeWorkspaceId');
+      expect(activeIdCalls).toHaveLength(0);
+      spy.mockRestore();
     });
   });
 

@@ -3,6 +3,7 @@ import type { ArchitectureModel, BlockCategory, PlateType } from '@cloudblocks/s
 import type { ArchitectureSnapshot } from '../../../shared/types/learning';
 import { saveWorkspaces, loadWorkspaces, saveActiveWorkspaceId, loadActiveWorkspaceId } from '../../../shared/utils/storage';
 import { generateId } from '../../../shared/utils/id';
+import { useWorkerStore } from '../workerStore';
 import type { ArchitectureSlice, ArchitectureState } from './types';
 import {
   createDefaultWorkspace,
@@ -232,6 +233,14 @@ const validateImportData = (
   return validateArchitectureShape(imported);
 };
 
+function saveWorkspacesWithError(workspaces: Workspace[], action: string): boolean {
+  const saved = saveWorkspaces(workspaces);
+  if (!saved) {
+    console.error(`Failed to save workspaces during ${action}.`);
+  }
+  return saved;
+}
+
 type PersistenceSlice = Pick<
   ArchitectureState,
   | 'saveToStorage'
@@ -252,7 +261,7 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
     const state = get();
     const updated = upsertCurrentWorkspace(state.workspaces, state.workspace);
 
-    const success = saveWorkspaces(updated);
+    const success = saveWorkspacesWithError(updated, 'saveToStorage');
     if (success) {
       saveActiveWorkspaceId(state.workspace.id);
       set({ workspaces: updated });
@@ -288,8 +297,10 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
     };
 
     const updatedList = upsertCurrentWorkspace(state.workspaces, cleared);
-    saveWorkspaces(updatedList);
-    saveActiveWorkspaceId(cleared.id);
+    if (saveWorkspacesWithError(updatedList, 'resetWorkspace')) {
+      saveActiveWorkspaceId(cleared.id);
+    }
+    useWorkerStore.getState().clearQueue();
 
     set({
       workspace: cleared,
@@ -299,17 +310,24 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
   },
 
   renameWorkspace: (name) => {
-    set((state) => ({
-      workspace: {
-        ...state.workspace,
+    const state = get();
+    const renamed: Workspace = {
+      ...state.workspace,
+      name,
+      architecture: touchModel({
+        ...state.workspace.architecture,
         name,
-        architecture: touchModel({
-          ...state.workspace.architecture,
-          name,
-        }),
-        updatedAt: new Date().toISOString(),
-      },
-    }));
+      }),
+      updatedAt: new Date().toISOString(),
+    };
+
+    const updatedList = upsertCurrentWorkspace(state.workspaces, renamed);
+    saveWorkspacesWithError(updatedList, 'renameWorkspace');
+
+    set({
+      workspace: renamed,
+      workspaces: updatedList,
+    });
   },
 
   importArchitecture: (json) => {
@@ -355,8 +373,9 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
       const updatedList = upsertCurrentWorkspace(state.workspaces, state.workspace);
       updatedList.push(newWorkspace);
 
-      saveWorkspaces(updatedList);
-      saveActiveWorkspaceId(newWorkspace.id);
+      if (saveWorkspacesWithError(updatedList, 'importArchitecture')) {
+        saveActiveWorkspaceId(newWorkspace.id);
+      }
 
       set({
         workspace: newWorkspace,
@@ -396,8 +415,9 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
     const updatedList = upsertCurrentWorkspace(state.workspaces, state.workspace);
     updatedList.push(newWorkspace);
 
-    saveWorkspaces(updatedList);
-    saveActiveWorkspaceId(newWorkspace.id);
+    if (saveWorkspacesWithError(updatedList, 'loadFromTemplate')) {
+      saveActiveWorkspaceId(newWorkspace.id);
+    }
 
     set({
       workspace: newWorkspace,

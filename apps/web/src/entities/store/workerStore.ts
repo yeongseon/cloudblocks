@@ -19,6 +19,7 @@ interface WorkerStoreState {
   tickBuildProgress: (deltaProgress: number) => void;
   completeBuild: () => void;
   cancelBuild: () => void;
+  clearQueue: () => void;
   setWorkerPosition: (pos: [number, number, number]) => void;
 }
 
@@ -97,6 +98,14 @@ export const useWorkerStore = create<WorkerStoreState>((set, get) => ({
   },
 
   cancelBuild: () => {
+    set({
+      buildQueue: [],
+      activeBuild: null,
+      workerState: 'idle',
+    });
+  },
+
+  clearQueue: () => {
     set({
       buildQueue: [],
       activeBuild: null,

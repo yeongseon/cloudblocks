@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import type { ArchitectureSnapshot } from '../../shared/types/learning';
+import type { ArchitectureModel } from '@cloudblocks/schema';
+import { validateArchitecture } from '../../entities/validation/engine';
 import {
   generateArchitecture,
   suggestImprovements,
@@ -47,9 +49,28 @@ export const useAiStore = create<AiState>((set) => ({
     set({ generateLoading: true, generateError: null });
     try {
       const result = await generateArchitecture({ prompt, provider });
-      set({ generateResult: result, generateLoading: false });
-
       const arch = result.architecture as unknown as ArchitectureSnapshot;
+      const currentArch = useArchitectureStore.getState().workspace.architecture;
+      const candidate: ArchitectureModel = {
+        ...currentArch,
+        ...arch,
+        id: currentArch.id,
+        createdAt: currentArch.createdAt,
+        updatedAt: currentArch.updatedAt,
+      };
+      const validation = validateArchitecture(candidate);
+
+      if (!validation.valid) {
+        const firstError = validation.errors[0];
+        const message = firstError?.message ?? 'AI generated an invalid architecture';
+        set({ generateError: message, generateLoading: false, generateResult: null });
+        if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+          window.alert(message);
+        }
+        return;
+      }
+
+      set({ generateResult: result, generateLoading: false });
       useArchitectureStore.getState().replaceArchitecture(arch);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to generate architecture';

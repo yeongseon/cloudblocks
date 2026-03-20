@@ -69,7 +69,6 @@ export interface Workspace {
   architecture: ArchitectureModel;
   createdAt: string;
   updatedAt: string;
-  // GitHub integration (optional for backward compatibility)
   repoOwner?: string;
   repoName?: string;
   branch?: string;
