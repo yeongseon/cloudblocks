@@ -100,15 +100,15 @@ Plates are sized for **learning progression**. Each tier represents a complexity
 
 | Level | Name | Subnet (Studs) | VNet (Studs) | Capacity | Learning Scenario |
 |-------|------|----------------|--------------|----------|-------------------|
-| 입문 (Beginner) | **S** | 4×6 | 8×12 | 1-2 blocks | First VM, basic network |
-| 기초 (Basic) | **M** | 6×8 | 12×16 | 3-4 blocks | Web+DB, public/private |
-| 중급 (Intermediate) | **L** | 8×10 | 16×20 | 5-6 blocks | Hub-Spoke, multi-tier |
+| Beginner | **S** | 4×6 | 8×12 | 1-2 blocks | First VM, basic network |
+| Basic | **M** | 6×8 | 12×16 | 3-4 blocks | Web+DB, public/private |
+| Intermediate | **L** | 8×10 | 16×20 | 5-6 blocks | Hub-Spoke, multi-tier |
 
 **Learning Scenarios:**
 
-- **입문 (S)**: "내 첫 번째 VM" — Single resource, understand VNet/Subnet basics
-- **기초 (M)**: "웹서버-DB 구성" — Public/Private separation, 3-tier architecture
-- **중급 (L)**: "Hub-Spoke 아키텍처" — Multi-VNet, shared services pattern
+- **Beginner (S)**: "My First VM" — Single resource, understand VNet/Subnet basics
+- **Basic (M)**: "Web Server + DB Setup" — Public/Private separation, 3-tier architecture
+- **Intermediate (L)**: "Hub-Spoke Architecture" — Multi-VNet, shared services pattern
 
 ### Plate Properties
 
@@ -822,7 +822,7 @@ Plate (S/M/L by learning level)  ← Network layer
 This model enables:
 
 - Visual architecture design in a 2.5D isometric environment
-- Educational progression through plate sizing (입문 → 기초 → 중급)
+- Educational progression through plate sizing (Beginner → Basic → Intermediate)
 - Clear software-to-infrastructure relationship through app cylinders
 - Automated code generation from architecture graph
 - Multi-cloud abstraction

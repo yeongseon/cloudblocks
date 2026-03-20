@@ -265,7 +265,7 @@ function PlateDetail({ plate, className }: { plate: Plate; className: string }) 
             >
               {profileOptions.map((candidate) => (
                 <option key={candidate.id} value={candidate.id}>
-                  {candidate.displayName} ({candidate.displayNameKo}) - {candidate.studsX}x{candidate.studsY}
+                  {candidate.displayName} - {candidate.studsX}x{candidate.studsY}
                 </option>
               ))}
             </select>

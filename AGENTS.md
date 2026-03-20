@@ -13,6 +13,7 @@
 - Treat `apps/web` as the primary production surface unless the task explicitly targets `apps/api`.
 - Avoid incidental refactors in areas that already have unrelated user changes.
 - **UNIVERSAL STUD STANDARD (INVIOLABLE)**: Every stud in the system — background, plates, blocks, any element — uses identical dimensions: rx=12, ry=6, height=5, 3-layer structure (shadow + top + inner ring). Only colors vary. This is the Lego principle: same gauge = assembly possible. See `docs/design/BRICK_DESIGN_SPEC.md §0`. Any change that produces non-uniform studs is a blocking defect.
+- **English only**: All documentation, code comments, UI strings, and commit messages must be written in English. Do not introduce Korean or any other non-English text. An i18n system (`react-i18next`) is planned for future localization — until then, English is the single source language.
 
 ## Implementation Principles
 
