@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { apiPost } from '../../shared/api/client';
@@ -10,6 +10,13 @@ interface GitHubAuthStartResponse {
 
 export function GitHubLogin() {
   const show = useUIStore((s) => s.showGitHubLogin);
+
+  if (!show) return null;
+
+  return <GitHubLoginContent />;
+}
+
+function GitHubLoginContent() {
   const toggleGitHubLogin = useUIStore((s) => s.toggleGitHubLogin);
 
   const user = useAuthStore((s) => s.user);
@@ -21,18 +28,8 @@ export function GitHubLogin() {
   const [isWorking, setIsWorking] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
 
-  // Reset local state when panel transitions from closed to open
-  const prevShowRef = useRef(show);
-  useEffect(() => {
-    if (show && !prevShowRef.current) {
-      setIsWorking(false);
-      setLocalError(null);
-      setError(null);
-    }
-    prevShowRef.current = show;
-  }, [show, setError]);
-
-  if (!show) return null;
+  // Clear stale auth-store error on mount (panel open)
+  useEffect(() => { setError(null); }, [setError]);
 
   const handleSignIn = async () => {
     setIsWorking(true);

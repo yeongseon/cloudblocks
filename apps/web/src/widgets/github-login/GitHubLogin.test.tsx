@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 vi.mock('../../shared/api/client', () => ({ apiPost: vi.fn(), apiGet: vi.fn() }));
 import { GitHubLogin } from './GitHubLogin';
@@ -163,11 +163,9 @@ describe('GitHubLogin', () => {
   });
 
   it('displays authError from store', () => {
-    useAuthStore.setState({
-      status: 'anonymous',
-      error: 'OAuth failed',
-    });
     render(<GitHubLogin />);
+    // Set auth error after mount (simulates external auth failure while panel is open)
+    act(() => { useAuthStore.setState({ error: 'OAuth failed' }); });
     expect(screen.getByText('OAuth failed')).toBeInTheDocument();
   });
 
