@@ -121,7 +121,7 @@ Systematic verification that every canonical document matches the post-M15 codeb
 - TypeScript types in `apps/web/src/shared/types/index.ts` vs DOMAIN_MODEL.md
 - Validation rules in `apps/web/src/entities/validation/` vs VALIDATION_CONTRACT.md
 - API routes in `apps/api/app/api/routes/` vs API_SPEC.md
-- Design tokens in `apps/web/src/shared/tokens/designTokens.ts` vs BRICK_DESIGN_SPEC.md
+- Design tokens in `apps/web/src/shared/tokens/designTokens.ts` vs CLOUDBLOCKS_SPEC_V2.md
 - Rendering approach in code vs ARCHITECTURE.md and README.md
 
 **Size**: L

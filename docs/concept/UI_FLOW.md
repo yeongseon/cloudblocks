@@ -87,8 +87,8 @@ Connections represent communication flows between blocks.
 
 ### Connection Rules
 
-- **Initiator model**: Source block must have `initiator: true` (compute, gateway, function, queue, event, timer)
-- **Receiver-only**: Database and storage blocks cannot initiate connections
+- **Initiator model**: Source block must have `initiator: true` (compute, gateway, function, queue, event)
+- **Receiver-only**: Database, storage, analytics, identity, and observability blocks cannot initiate connections
 - Connections are created by clicking a source block's port, then clicking the target block
 
 ### Example Topology
@@ -96,7 +96,7 @@ Connections represent communication flows between blocks.
 ```
 Internet → Gateway (dataflow) → Compute (data) → Database
                               → Storage
-Timer (async) → Function (async) → Event
+Event (async) → Function (async) → Queue
 ```
 
 ---
