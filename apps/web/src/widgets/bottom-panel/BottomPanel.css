@@ -44,15 +44,15 @@
   flex-shrink: 0;
 }
 
-.bottom-panel--worker-mode {
+.bottom-panel--build-order-open {
   right: 380px;
 }
 
-.bottom-panel--worker-mode .bottom-panel-portrait {
+.bottom-panel--build-order-open .bottom-panel-portrait {
   display: none;
 }
 
-.bottom-panel--worker-mode .bottom-panel-command {
+.bottom-panel--build-order-open .bottom-panel-command {
   position: fixed;
   top: 40px;
   right: 0;
@@ -95,6 +95,19 @@
   background-color: #FFE44D;
 }
 
+/* Learn mode: offset Build Order sidebar so it doesn't overlap LearningPanel (320px + 16px margin) */
+.learn-mode-active .bottom-panel--build-order-open {
+  right: 716px;
+}
+
+.learn-mode-active .bottom-panel--build-order-open .bottom-panel-command {
+  right: 336px;
+}
+
+.learn-mode-active .build-order-expand-tab {
+  right: 336px;
+}
+
 /* Responsive behavior — VISUAL_DESIGN_SPEC.md §7.8 */
 
 /* 900-1199px: Hide Minimap */
@@ -111,11 +124,11 @@
     display: none;
   }
 
-  .bottom-panel--worker-mode {
+  .bottom-panel--build-order-open {
     right: 0;
   }
 
-  .bottom-panel--worker-mode .bottom-panel-command {
+  .bottom-panel--build-order-open .bottom-panel-command {
     position: static;
     width: 280px;
   }

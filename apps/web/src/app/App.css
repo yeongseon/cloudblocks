@@ -29,14 +29,14 @@
   transition: padding-right 0.3s ease;
 }
 
-/* Worker mode: Build Order panel is fixed-right, shift canvas content left */
-.canvas-container:has(.bottom-panel--worker-mode) {
+/* Build Order open: shift canvas content left */
+.canvas-container.build-order-active {
   padding-right: 380px;
   transition: padding-right 0.3s ease;
 }
 
 @media (max-width: 899px) {
-  .canvas-container:has(.bottom-panel--worker-mode) {
+  .canvas-container.build-order-active {
     padding-right: 0;
   }
 }

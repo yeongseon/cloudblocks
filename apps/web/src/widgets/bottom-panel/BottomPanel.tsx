@@ -15,7 +15,7 @@ export function BottomPanel({ className = '' }: BottomPanelProps) {
 
   return (
     <>
-      <div className={`bottom-panel ${isBuildOrderOpen ? 'bottom-panel--worker-mode' : ''} ${className}`}>
+      <div className={`bottom-panel ${isBuildOrderOpen ? 'bottom-panel--build-order-open' : ''} ${className}`}>
         <Minimap className="bottom-panel-minimap" />
         <DetailPanel className="bottom-panel-detail" />
         <Portrait className="bottom-panel-portrait" />

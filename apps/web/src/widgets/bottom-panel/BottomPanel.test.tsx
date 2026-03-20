@@ -44,20 +44,20 @@ describe('BottomPanel', () => {
     expect(panel).toHaveClass('custom-bottom');
   });
 
-  it('adds worker mode class when build order is open', () => {
+  it('adds build-order-open class when build order is open', () => {
     useUIStore.setState({ isBuildOrderOpen: true });
 
     const { container } = render(<BottomPanel />);
 
-    expect(container.querySelector('.bottom-panel')).toHaveClass('bottom-panel--worker-mode');
+    expect(container.querySelector('.bottom-panel')).toHaveClass('bottom-panel--build-order-open');
   });
 
-  it('removes worker mode class when build order is closed', () => {
+  it('removes build-order-open class when build order is closed', () => {
     useUIStore.setState({ isBuildOrderOpen: false });
 
     const { container } = render(<BottomPanel />);
 
-    expect(container.querySelector('.bottom-panel')).not.toHaveClass('bottom-panel--worker-mode');
+    expect(container.querySelector('.bottom-panel')).not.toHaveClass('bottom-panel--build-order-open');
   });
 
   it('shows expand tab when build order is closed', () => {
