@@ -43,6 +43,7 @@ theme:
     - navigation.indexes
     - navigation.tabs
     - navigation.tabs.sticky
+    - header.autohide
     - search.suggest
     - search.highlight
     - content.code.copy
@@ -81,13 +82,11 @@ nav:
       - Templates: engine/templates.md
       - Architecture Model Overview: model/ARCHITECTURE_MODEL_OVERVIEW.md
 
-  - Generate & Validate:
+  - Generate & Deploy:
       - Code Generator: engine/generator.md
       - Validation Rules: engine/rules.md
       - Validation Contract: design/VALIDATION_CONTRACT.md
       - Provider Adapters: engine/provider.md
-
-  - Deploy:
       - Deployment: guides/DEPLOYMENT.md
       - REST API Spec: api/API_SPEC.md
 
@@ -98,7 +97,7 @@ nav:
       - Security Boundaries: design/SECURITY_BOUNDARIES.md
       - Learning Mode Spec: design/LEARNING_MODE_SPEC.md
 
-  - Developer (Internal):
+  - Contributing:
       - Product & Planning:
           - Product Requirements: concept/PRD.md
           - Roadmap: concept/ROADMAP.md
