@@ -160,7 +160,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'KeyVault',
     icon: '🔐',
     category: 'vnet-optional',
-    blockCategory: 'storage',
+    blockCategory: 'identity',
   },
 
   // VNet required

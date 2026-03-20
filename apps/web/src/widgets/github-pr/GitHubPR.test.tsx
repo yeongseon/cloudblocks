@@ -4,6 +4,10 @@ import userEvent from '@testing-library/user-event';
 vi.mock('../../shared/api/client', () => ({
   apiPost: vi.fn(),
   apiGet: vi.fn(),
+  getApiErrorMessage: vi.fn((err: unknown, fallback: string) => {
+    if (err instanceof Error) return err.message;
+    return fallback;
+  }),
 }));
 import { GitHubPR } from './GitHubPR';
 import { useUIStore } from '../../entities/store/uiStore';

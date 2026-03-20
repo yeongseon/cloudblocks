@@ -162,7 +162,7 @@ describe('useTechTree constants', () => {
         shortLabel: 'KeyVault',
         icon: '🔐',
         category: 'vnet-optional',
-        blockCategory: 'storage',
+        blockCategory: 'identity',
       },
       vm: {
         id: 'vm',

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { apiPost } from '../../shared/api/client';
+import { apiPost, getApiErrorMessage } from '../../shared/api/client';
 import { isValidGitBranchName } from '../../shared/utils/githubValidation';
 import type { PullRequestResponse } from '../../shared/types/api';
 import './GitHubPR.css';
@@ -60,7 +60,7 @@ export function GitHubPR() {
       );
       setResult(response);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create pull request.');
+      setError(getApiErrorMessage(err, 'Failed to create pull request.'));
     } finally {
       setLoading(false);
     }

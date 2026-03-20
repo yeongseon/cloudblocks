@@ -28,6 +28,43 @@ export class ApiError extends Error {
   }
 }
 
+interface FastApiErrorEnvelope {
+  detail?: string;
+}
+
+function parseFastApiDetail(body: string): string | null {
+  if (body.length === 0) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(body) as FastApiErrorEnvelope;
+    if (typeof parsed.detail === 'string' && parsed.detail.trim().length > 0) {
+      return parsed.detail;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+export function getApiErrorMessage(error: unknown, fallbackMessage: string): string {
+  if (error instanceof ApiError) {
+    const detail = parseFastApiDetail(error.body);
+    if (detail) {
+      return detail;
+    }
+    return error.message;
+  }
+
+  if (error instanceof Error && error.message.trim().length > 0) {
+    return error.message;
+  }
+
+  return fallbackMessage;
+}
+
 function normalizeBody(body: BodyInit | null | undefined, headers: Headers): BodyInit | null | undefined {
   if (body === undefined || body === null) {
     return body;
@@ -70,7 +107,8 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
 
   if (!response.ok) {
     const responseBody = await parseResponseBody(response);
-    throw new ApiError(`API request failed with status ${response.status}`, response.status, responseBody);
+    const detail = parseFastApiDetail(responseBody);
+    throw new ApiError(detail ?? `API request failed with status ${response.status}`, response.status, responseBody);
   }
 
   return parseJson<T>(response);

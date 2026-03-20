@@ -2,6 +2,7 @@ import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useLearningStore } from '../../entities/store/learningStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { getScenario } from './scenarios/registry';
+import { startHintSubscription, startHintTimer, stopHintSubscription } from './hint-engine';
 import { evaluateRules } from './step-validator';
 import type { ValidationResult } from './step-validator';
 import type { StepValidationRule } from '../../shared/types/learning';
@@ -41,7 +42,9 @@ export function startLearningScenario(scenarioId: string): void {
   }
 
   startValidationSubscription();
+  startHintSubscription();
   syncCurrentStepCompletion();
+  startHintTimer();
 }
 
 export function advanceToNextStep(): void {
@@ -60,11 +63,13 @@ export function advanceToNextStep(): void {
   const isLastStep = progress.currentStepIndex >= activeScenario.steps.length - 1;
   if (isLastStep) {
     learningState.completeScenario();
+    stopHintSubscription();
     return;
   }
 
   learningState.advanceStep();
   syncCurrentStepCompletion();
+  startHintTimer();
 }
 
 export function resetCurrentStep(): void {
@@ -87,6 +92,7 @@ export function resetCurrentStep(): void {
 
   learningState.resetHints();
   syncCurrentStepCompletion();
+  startHintTimer();
 }
 
 export function abandonLearning(): void {
@@ -99,6 +105,7 @@ export function abandonLearning(): void {
   }
 
   stopValidationSubscription();
+  stopHintSubscription();
 }
 
 export function startValidationSubscription(): void {

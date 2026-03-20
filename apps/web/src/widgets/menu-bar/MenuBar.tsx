@@ -8,7 +8,7 @@ import { validateArchitectureShape } from '../../entities/store/slices';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { computeArchitectureDiff } from '../../features/diff/engine';
-import { apiPost } from '../../shared/api/client';
+import { apiPost, getApiErrorMessage } from '../../shared/api/client';
 import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import type { PullResponse } from '../../shared/types/api';
 import type { ArchitectureModel, ProviderType } from '@cloudblocks/schema';
@@ -196,14 +196,9 @@ export function MenuBar() {
       return;
     }
 
-    const wsId = backendWorkspaceId;
-    if (!wsId) {
-      toast.error('Workspace must be linked to backend before using GitHub compare.');
-      return;
-    }
     try {
       const response = await apiPost<PullResponse>(
-        `/api/v1/workspaces/${encodeURIComponent(wsId)}/pull`,
+        `/api/v1/workspaces/${encodeURIComponent(backendWorkspaceId)}/pull`,
       );
       validateArchitectureShape(response.architecture);
       const remoteArch = response.architecture as unknown as ArchitectureModel;
@@ -211,7 +206,7 @@ export function MenuBar() {
       const delta = computeArchitectureDiff(remoteArch, localArch);
       useUIStore.getState().setDiffMode(true, delta, remoteArch);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to fetch remote architecture');
+      toast.error(getApiErrorMessage(err, 'Failed to fetch remote architecture'));
     }
   };
 

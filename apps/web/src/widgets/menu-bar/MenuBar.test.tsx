@@ -12,6 +12,10 @@ vi.mock('../../shared/ui/ConfirmDialog', () => ({
 }));
 vi.mock('../../shared/api/client', () => ({
   apiPost: vi.fn(),
+  getApiErrorMessage: vi.fn((err: unknown, fallback: string) => {
+    if (err instanceof Error) return err.message;
+    return fallback;
+  }),
 }));
 import { MenuBar } from './MenuBar';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
