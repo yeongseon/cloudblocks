@@ -42,7 +42,7 @@ Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks
 - **Magnetic snap & tactile UX** — Grid snapping, dynamic shadows, bounce transitions on drag (Phase 2 UX)
 - **Lego minifigure** — DevOps engineer character with Azure provider branding (Phase 3)
 - **Architecture diff** — Compare local vs GitHub architecture with visual overlays (Milestone 7)
-- **Cloud resource blocks (8 categories)** — compute, database, storage, gateway, function, queue, event, timer (Milestone 6)
+- **Cloud resource blocks (10 categories)** — compute, database, storage, gateway, function, queue, event, analytics, identity, observability (Milestone 6)
 - **Block-to-block connections** — `dataflow`, `http`, `internal`, `data`, `async`
 - **Open source** — Apache 2.0 licensed, extend and contribute freely
 
@@ -100,7 +100,9 @@ cloudblocks/
 - **Function** — Serverless execution blocks
 - **Queue** — Messaging and buffering blocks
 - **Event** — Event routing blocks
-- **Timer** — Scheduled trigger blocks
+- **Analytics** — Log and telemetry analysis blocks
+- **Identity** — Identity and access management blocks
+- **Observability** — Monitoring workspace and signal aggregation blocks
 
 ### Connections (5 Types)
 - **dataflow** — Directional traffic flow between components
@@ -112,7 +114,7 @@ cloudblocks/
 ```
 Internet → Gateway (dataflow) → Compute (data) → Database
                              → Storage
-Timer (async) → Function (async) → Event
+Event (async) → Function (async) → Queue
 ```
 
 ## Tech Stack
@@ -166,7 +168,9 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 
 ## Roadmap
 
-| Phase | Description | Status |
+> Phases are historical development stage labels from early milestones. All new work uses Milestone numbering.
+
+| Milestone | Description | Status |
 |-------|-------------|--------|
 | Milestones 1–7 | Visual builder, code generation (Terraform/Bicep/Pulumi), templates, GitHub integration, learning mode, collaboration, architecture diff | ✅ Complete |
 | Phase 2 UX | Magnetic snap, dynamic shadows, bounce transitions | ✅ Complete |

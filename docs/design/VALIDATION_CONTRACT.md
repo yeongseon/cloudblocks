@@ -44,11 +44,10 @@ Placement rules validate that blocks are placed on appropriate plates.
 | `rule-db-private` | error | Database block not on a `subnet` plate with `subnetAccess: "private"` | Database block must be placed on a private Subnet Plate |
 | `rule-gw-public` | error | Gateway block not on a `subnet` plate with `subnetAccess: "public"` | Gateway block must be placed on a public Subnet Plate |
 | `rule-storage-subnet` | error | Storage block not on a `subnet` plate | Storage block must be placed on a Subnet Plate |
+| `rule-analytics-subnet` | error | Analytics block not on a `subnet` plate | Analytics block must be placed on a Subnet Plate |
+| `rule-identity-subnet` | error | Identity block not on a `subnet` plate | Identity block must be placed on a Subnet Plate |
+| `rule-observability-subnet` | error | Observability block not on a `subnet` plate | Observability block must be placed on a Subnet Plate |
 | `rule-serverless-network` | error | `function`, `queue`, or `event` block not on a `region` plate | Serverless blocks (function/queue/event) must be placed on a Region Plate |
-
-> **Note on timer-like triggers**: The current model does not define a separate `timer` block category. Timer-based behavior is represented as a subtype/configuration of existing `event` blocks (for example, a timer-triggered event), and such blocks are validated by `rule-serverless-network` like other `event` blocks.
-
-> **Note on Timer blocks**: `timer` blocks are not currently validated by `rule-serverless-network` and fall through to the default (unvalidated) state in the current implementation.
 
 ### 3.1 v2.0 Layer Hierarchy Rules
 
@@ -223,6 +222,6 @@ When backend validation is introduced:
 
 ## 10. Migration Notes
 
-- Serverless block categories (`FunctionBlock`, `QueueBlock`, `EventBlock`) are implemented and reflected in the placement rules above. `TimerBlock` is planned but not yet supported in the TypeScript domain model (`BlockCategory`) or placement rules.
+- Serverless block categories (`FunctionBlock`, `QueueBlock`, `EventBlock`) are implemented and reflected in the placement rules above.
 - When adding new connection types (e.g., `EventFlow`), update the allowed connection map here first.
 - Breaking rule changes (removing a rule, changing severity) require a version bump to this document's Current version field.

@@ -1,6 +1,10 @@
 # CloudBlocks Platform — Development Roadmap
 
-This document defines the staged development roadmap for the CloudBlocks Platform. Each milestone is a **Milestone** (development stage), independent of software release versions.
+This document defines the staged development roadmap for the CloudBlocks Platform. Official planning is tracked with GitHub milestones, independent of software release versions.
+
+> **Terminology**
+> - **Milestone** = official planning container (GitHub milestone) used for all new planning work.
+> - **Phase** = legacy label from early development, retained only in completed historical sections for traceability.
 
 CloudBlocks evolves from a **2.5D isometric cloud architecture builder** into a **full architecture-to-code platform** — generating Terraform, Bicep, and Pulumi from visual designs, with Git-native workflow integration.
 
@@ -312,6 +316,10 @@ Features:
 > **Note**: Azure Infrastructure Foundation (Phase 1, 6 commits) and Sound Effects (Phase 2, 12 commits) were completed alongside Milestone 6C — including audioService, CC0 sound assets, Terraform Azure modules, and Docker/CI configuration.
 
 ---
+
+## Historical Phase References (Completed)
+
+The sections below retain original Phase labels because they map to completed historical work in git history.
 
 ## Phase 3 — Lego Minifigure Character SVG ✅
 
@@ -852,8 +860,8 @@ Key principles:
 4. Keep backend **thin** — orchestration, not CRUD
 5. **Open-source first** — community drives templates and generators
 6. **Local-first UX** — works offline, syncs when connected
-7. **Phased UI/Engine Evolution** — systematic transition from Azure-first to multi-provider visual logic
-8. **Phased Documentation Updates** — keep canonical docs synchronized with delivered milestone/phase code changes
+7. **Milestone-aligned UI/Engine Evolution** — systematic transition from Azure-first to multi-provider visual logic
+8. **Milestone-aligned Documentation Updates** — keep canonical docs synchronized with delivered milestone work while preserving historical phase references
 
 ---
 
