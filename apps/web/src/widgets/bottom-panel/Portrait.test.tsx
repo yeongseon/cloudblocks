@@ -160,13 +160,51 @@ describe('Portrait', () => {
     expect(panel).toHaveStyle({ backgroundColor: '#16A34A', borderColor: '#15803D' });
   });
 
-  it('renders connection portrait with link icon', () => {
+  it('renders connection portrait with actual type label', () => {
     useUIStore.setState({ selectedId: 'conn-1' });
 
     render(<Portrait />);
 
     expect(screen.getByText('🔗')).toBeInTheDocument();
-    expect(screen.getByText('Connection')).toBeInTheDocument();
+    expect(screen.getByText('Data Flow')).toBeInTheDocument();
     expect(screen.getByText('dataflow')).toBeInTheDocument();
+  });
+
+  it('renders http connection type in portrait', () => {
+    const httpConnection: Connection = { ...connection, id: 'conn-http', type: 'http' };
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: { ...architectureFixture, connections: [httpConnection] },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+    useUIStore.setState({ selectedId: 'conn-http' });
+
+    render(<Portrait />);
+
+    expect(screen.getByText('HTTP')).toBeInTheDocument();
+    expect(screen.getByText('http')).toBeInTheDocument();
+  });
+
+  it('renders async connection type in portrait', () => {
+    const asyncConnection: Connection = { ...connection, id: 'conn-async', type: 'async' };
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: { ...architectureFixture, connections: [asyncConnection] },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+    useUIStore.setState({ selectedId: 'conn-async' });
+
+    render(<Portrait />);
+
+    expect(screen.getByText('Async')).toBeInTheDocument();
+    expect(screen.getByText('async')).toBeInTheDocument();
   });
 });
