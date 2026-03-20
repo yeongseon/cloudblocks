@@ -14,7 +14,7 @@ import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
 import './MenuBar.css';
 
-type DropdownMenu = 'file' | 'edit' | 'insert' | 'tools' | 'build' | 'learn' | 'view' | 'github' | null;
+type DropdownMenu = 'file' | 'edit' | 'build' | 'view' | 'github' | null;
 
 const PROVIDER_OPTIONS: { id: ProviderType; label: string; color: string }[] = [
   { id: 'azure', label: 'Azure', color: '#0078D4' },
@@ -25,17 +25,11 @@ const PROVIDER_OPTIONS: { id: ProviderType; label: string; color: string }[] = [
 export function MenuBar() {
   const [openMenu, setOpenMenu] = useState<DropdownMenu>(null);
   
-  const toolMode = useUIStore((s) => s.toolMode);
+  const selectedId = useUIStore((s) => s.selectedId);
+  const showValidation = useUIStore((s) => s.showValidation);
+  const toggleValidation = useUIStore((s) => s.toggleValidation);
   const activeProvider = useUIStore((s) => s.activeProvider);
   const setActiveProvider = useUIStore((s) => s.setActiveProvider);
-  const setToolMode = useUIStore((s) => s.setToolMode);
-  const selectedId = useUIStore((s) => s.selectedId);
-  const toggleBlockPalette = useUIStore((s) => s.toggleBlockPalette);
-  const toggleProperties = useUIStore((s) => s.toggleProperties);
-  const toggleValidation = useUIStore((s) => s.toggleValidation);
-  const showBlockPalette = useUIStore((s) => s.showBlockPalette);
-  const showProperties = useUIStore((s) => s.showProperties);
-  const showValidation = useUIStore((s) => s.showValidation);
   const toggleCodePreview = useUIStore((s) => s.toggleCodePreview);
   const toggleWorkspaceManager = useUIStore((s) => s.toggleWorkspaceManager);
   const toggleTemplateGallery = useUIStore((s) => s.toggleTemplateGallery);
@@ -47,7 +41,6 @@ export function MenuBar() {
   const toggleScenarioGallery = useUIStore((s) => s.toggleScenarioGallery);
   const toggleLearningPanel = useUIStore((s) => s.toggleLearningPanel);
   const showLearningPanel = useUIStore((s) => s.showLearningPanel);
-  const editorMode = useUIStore((s) => s.editorMode);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
   const toggleSound = useUIStore((s) => s.toggleSound);
   const playSound = (name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); };
@@ -55,7 +48,6 @@ export function MenuBar() {
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
   const user = useAuthStore((s) => s.user);
 
-  const addPlate = useArchitectureStore((s) => s.addPlate);
   const removePlate = useArchitectureStore((s) => s.removePlate);
   const removeBlock = useArchitectureStore((s) => s.removeBlock);
   const removeConnection = useArchitectureStore((s) => s.removeConnection);
@@ -101,30 +93,6 @@ export function MenuBar() {
     setOpenMenu(null);
   };
 
-  const handleAddNetwork = () => {
-    addPlate('region', 'VNet', null);
-    playSound('block-snap');
-  };
-
-  const handleAddPublicSubnet = () => {
-    const network = architecture.plates.find((p) => p.type === 'region');
-    if (!network) {
-      toast.error('Please create a Region Plate first.');
-      return;
-    }
-    addPlate('subnet', 'Public Subnet', network.id, 'public');
-    playSound('block-snap');
-  };
-
-  const handleAddPrivateSubnet = () => {
-    const network = architecture.plates.find((p) => p.type === 'region');
-    if (!network) {
-      toast.error('Please create a Region Plate first.');
-      return;
-    }
-    addPlate('subnet', 'Private Subnet', network.id, 'private');
-    playSound('block-snap');
-  };
 
   const handleDeleteSelection = () => {
     if (!selectedId) return;
@@ -323,50 +291,6 @@ export function MenuBar() {
           <button
             type="button"
             className="menu-trigger"
-            data-active={openMenu === 'insert'}
-            onClick={() => toggleMenu('insert')}
-          >
-            Insert
-          </button>
-          <div className={`menu-dropdown ${openMenu === 'insert' ? 'show' : ''}`}>
-            <button type="button" className="menu-item" onClick={() => handleAction(handleAddNetwork)}>
-              <span className="menu-item-left">🌐 Network (VNet)</span>
-            </button>
-            <button type="button" className="menu-item" onClick={() => handleAction(handleAddPublicSubnet)}>
-              <span className="menu-item-left">🟢 Public Subnet</span>
-            </button>
-            <button type="button" className="menu-item" onClick={() => handleAction(handleAddPrivateSubnet)}>
-              <span className="menu-item-left">🔴 Private Subnet</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="menu-dropdown-container">
-          <button
-            type="button"
-            className="menu-trigger"
-            data-active={openMenu === 'tools'}
-            onClick={() => toggleMenu('tools')}
-          >
-            Tools
-          </button>
-          <div className={`menu-dropdown ${openMenu === 'tools' ? 'show' : ''}`}>
-            <button type="button" className="menu-item" onClick={() => handleAction(() => setToolMode('select'))}>
-              <span className="menu-item-left">{toolMode === 'select' ? '✓' : ''} 👆 Select Tool</span>
-            </button>
-            <button type="button" className="menu-item" onClick={() => handleAction(() => setToolMode('connect'))}>
-              <span className="menu-item-left">{toolMode === 'connect' ? '✓' : ''} 🔗 Connect Tool</span>
-            </button>
-            <button type="button" className="menu-item" onClick={() => handleAction(() => setToolMode('delete'))}>
-              <span className="menu-item-left">{toolMode === 'delete' ? '✓' : ''} ❌ Delete Tool</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="menu-dropdown-container">
-          <button
-            type="button"
-            className="menu-trigger"
             data-active={openMenu === 'build'}
             onClick={() => toggleMenu('build')}
           >
@@ -388,20 +312,7 @@ export function MenuBar() {
             <button type="button" className="menu-item" onClick={() => handleAction(toggleTemplateGallery)}>
               <span className="menu-item-left">📦 Browse Templates</span>
             </button>
-          </div>
-        </div>
-
-        <div className="menu-dropdown-container">
-          <button
-            type="button"
-            className="menu-trigger"
-            data-active={openMenu === 'learn'}
-            onClick={() => toggleMenu('learn')}
-          >
-            Learn
-            {editorMode === 'learn' && <span className="menu-badge menu-badge-valid">Learning</span>}
-          </button>
-          <div className={`menu-dropdown ${openMenu === 'learn' ? 'show' : ''}`}>
+            <div className="menu-separator" />
             <button type="button" className="menu-item" onClick={() => handleAction(toggleScenarioGallery)}>
               <span className="menu-item-left">📚 Browse Scenarios</span>
             </button>
@@ -421,12 +332,6 @@ export function MenuBar() {
             View
           </button>
           <div className={`menu-dropdown ${openMenu === 'view' ? 'show' : ''}`}>
-            <button type="button" className="menu-item" onClick={() => handleAction(toggleBlockPalette)}>
-              <span className="menu-item-left">{showBlockPalette ? '✓ ' : ''}🧱 Block Palette</span>
-            </button>
-            <button type="button" className="menu-item" onClick={() => handleAction(toggleProperties)}>
-              <span className="menu-item-left">{showProperties ? '✓ ' : ''}📋 Properties Panel</span>
-            </button>
             <button type="button" className="menu-item" onClick={() => handleAction(toggleValidation)}>
               <span className="menu-item-left">{showValidation ? '✓ ' : ''}📊 Validation Results</span>
             </button>
