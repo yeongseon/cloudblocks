@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import difflib
+import os
 import sys
 import tempfile
 from pathlib import Path
@@ -19,25 +20,32 @@ def main() -> int:
         temp_path = Path(handle.name)
         _ = handle.write(expected)
 
-    if not GENERATED_MODEL_PATH.exists():
-        print(f"Missing generated model file: {GENERATED_MODEL_PATH}")
-        print(f"Reference regenerated output: {temp_path}")
+    try:
+        if not GENERATED_MODEL_PATH.exists():
+            print(f"Missing generated model file: {GENERATED_MODEL_PATH}")
+            print(f"Reference regenerated output: {temp_path}")
+            return 1
+
+        current = GENERATED_MODEL_PATH.read_text(encoding="utf-8")
+        if current == expected:
+            return 0
+
+        diff = difflib.unified_diff(
+            current.splitlines(),
+            expected.splitlines(),
+            fromfile=str(GENERATED_MODEL_PATH),
+            tofile=str(temp_path),
+            lineterm="",
+        )
+        print("Schema drift detected between checked-in and regenerated models:")
+        print("\n".join(diff))
         return 1
-
-    current = GENERATED_MODEL_PATH.read_text(encoding="utf-8")
-    if current == expected:
-        return 0
-
-    diff = difflib.unified_diff(
-        current.splitlines(),
-        expected.splitlines(),
-        fromfile=str(GENERATED_MODEL_PATH),
-        tofile=str(temp_path),
-        lineterm="",
-    )
-    print("Schema drift detected between checked-in and regenerated models:")
-    print("\n".join(diff))
-    return 1
+    finally:
+        # Clean up temp file, unless we're returning it as reference for drift debugging
+        try:
+            os.unlink(temp_path)
+        except OSError:
+            pass
 
 
 if __name__ == "__main__":
