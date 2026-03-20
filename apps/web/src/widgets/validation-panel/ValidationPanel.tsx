@@ -49,6 +49,9 @@ export function ValidationPanel() {
                   💡 {warning.suggestion}
                 </div>
               )}
+              <div className="validation-meta">
+                Rule: {warning.ruleId} | Target: {warning.targetId}
+              </div>
             </div>
           ))}
         </div>
