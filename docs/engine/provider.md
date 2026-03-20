@@ -27,6 +27,12 @@ Examples of generic categories:
 - database
 - storage
 - gateway
+- function
+- queue
+- event
+- analytics
+- identity
+- observability
 
 Examples of provider-specific resources:
 
@@ -62,6 +68,12 @@ Example:
 | database | azurerm_postgresql_flexible_server | aws_db_instance | google_sql_database_instance |
 | storage | azurerm_storage_account | aws_s3_bucket | google_storage_bucket |
 | gateway | azurerm_application_gateway | aws_lb | google_compute_backend_service |
+| function | azurerm_linux_function_app | - | - |
+| queue | azurerm_storage_queue | - | - |
+| event | azurerm_eventgrid_topic | - | - |
+| analytics | azurerm_log_analytics_workspace | - | - |
+| identity | azurerm_user_assigned_identity | - | - |
+| observability | azurerm_monitor_workspace | - | - |
 
 ---
 

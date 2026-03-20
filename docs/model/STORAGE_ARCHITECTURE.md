@@ -68,7 +68,7 @@ This is NOT a traditional database-heavy architecture. The design principle: **D
 my-cloud-project/
 ├── cloudblocks/
 │   ├── architecture.json       # Architecture model (source of truth)
-│   ├── schemaVersion           # "0.1.0"
+│   ├── schemaVersion           # "2.0.0"
 │   └── generator.lock          # Pinned generator versions
 ├── infra/
 │   ├── terraform/
@@ -89,31 +89,37 @@ my-cloud-project/
 
 ```json
 {
-  "schemaVersion": "0.1.0",
-  "architecture": {
-    "id": "arch-abc123",
-    "name": "3-Tier Web App",
-    "version": "1",
-    "plates": [
-      {
-        "id": "plate-vnet01",
-        "name": "Main Network",
-        "type": "network",
-        "parentId": null,
-        "children": ["plate-subnet-pub", "plate-subnet-priv"],
-        "position": { "x": 0, "y": 0, "z": 0 },
-        "size": { "width": 10, "height": 0.3, "depth": 10 },
-        "metadata": {}
+  "schemaVersion": "2.0.0",
+  "workspaces": [
+    {
+      "id": "workspace-main",
+      "name": "3-Tier Web App",
+      "architecture": {
+        "id": "arch-abc123",
+        "name": "3-Tier Web App",
+        "version": "1",
+        "plates": [
+          {
+            "id": "plate-region01",
+            "name": "Main Region",
+            "type": "region",
+            "parentId": null,
+            "children": ["plate-subnet-pub", "plate-subnet-priv"],
+            "position": { "x": 0, "y": 0, "z": 0 },
+            "size": { "width": 10, "height": 0.3, "depth": 10 },
+            "metadata": {}
+          }
+        ],
+        "blocks": [],
+        "connections": [],
+        "externalActors": [
+          { "id": "ext-internet", "name": "Internet", "type": "internet" }
+        ],
+        "createdAt": "2025-01-01T00:00:00Z",
+        "updatedAt": "2025-01-01T00:00:00Z"
       }
-    ],
-    "blocks": [],
-    "connections": [],
-    "externalActors": [
-      { "id": "ext-internet", "name": "Internet", "type": "internet" }
-    ],
-    "createdAt": "2025-01-01T00:00:00Z",
-    "updatedAt": "2025-01-01T00:00:00Z"
-  }
+    }
+  ]
 }
 ```
 
@@ -123,7 +129,7 @@ Stable key ordering is enforced to keep Git diffs readable.
 
 ## Metadata DB Schema
 
-> **Current schema** defined inline in `apps/api/app/infrastructure/db/connection.py` (`_MIGRATIONS` list). Reference `.sql` copies exist in `migrations/` but are not executed at runtime. Migrations: 001 users + identities, 002 workspaces + generation\_runs, 003 ALTER TABLE identities (encrypted token), 004 sessions + indexes. The `ai_api_keys` table is created on-demand by `SQLiteAIApiKeyRepository._ensure_table()`. Phase 8 extends this with PostgreSQL/Redis deployment topology.
+> **Current schema** is tracked in SQL migrations under `apps/api/app/infrastructure/db/migrations/`: `001_create_users.sql`, `002_create_workspaces.sql`, and `003_create_ai_api_keys.sql`.
 
 ```sql
 -- Migration 001: User identity (linked to GitHub / Google OAuth)
@@ -145,6 +151,7 @@ CREATE TABLE IF NOT EXISTS identities (
     provider        TEXT NOT NULL,   -- 'github', 'google'
     provider_id     TEXT NOT NULL,
     access_token_hash TEXT,          -- hashed, not plaintext
+    refresh_token_hash TEXT,
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(provider, provider_id)
 );
@@ -174,9 +181,6 @@ CREATE TABLE IF NOT EXISTS generation_runs (
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Migration 003: Add encrypted token storage for GitHub OAuth
-ALTER TABLE identities ADD COLUMN encrypted_access_token TEXT;
-
 -- Migration 004: Session auth storage (cookie-based, no token hash)
 CREATE TABLE IF NOT EXISTS sessions (
     id                     TEXT PRIMARY KEY,
@@ -197,7 +201,7 @@ CREATE TABLE IF NOT EXISTS ai_api_keys (
     user_id         TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     provider        TEXT NOT NULL,
     encrypted_key   TEXT NOT NULL,
-    created_at      TEXT NOT NULL DEFAULT (datetime("now")),
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, provider)
 );
 ```
@@ -265,7 +269,7 @@ cache:workspace:{workspace_id}    → JSON workspace metadata (TTL: 5m)
 ### Local-First Principle
 
 CloudBlocks is **local-first**:
-- Works fully offline with localStorage/IndexedDB
+- Works fully offline with localStorage
 - GitHub sync is optional (but recommended for teams)
 - No data loss if GitHub is down
 - Graceful degradation: edit locally → sync when online

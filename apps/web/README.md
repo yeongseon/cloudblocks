@@ -4,7 +4,7 @@ The main frontend application for CloudBlocks — a 2.5D isometric visual archit
 
 ## What This Package Does
 
-This is the **visual editor** where users design cloud architectures by placing plates (networks, subnets) and blocks (compute, database, storage, gateway, function, queue, event, timer) on a 2D model that is rendered as 2.5D isometric SVG. Connections between blocks represent initiator-direction semantics across typed protocols.
+This is the **visual editor** where users design cloud architectures by placing plates (global, edge, region, zone, subnet) and blocks (compute, database, storage, gateway, function, queue, event, analytics, identity, observability) on a 2D model that is rendered as 2.5D isometric SVG. Connections between blocks represent initiator-direction semantics across typed protocols.
 
 ## Quick Start
 
@@ -115,7 +115,7 @@ src/
 - ✅ PR creation from UI (Milestone 5)
 - ✅ Typed API client with session auth (Milestone 5)
 - ✅ Multi-generator code export: Terraform, Bicep, Pulumi (Milestone 6)
-- ✅ Serverless blocks: Function, Queue, Event, Timer (Milestone 6)
+- ✅ Extended block set: Function, Queue, Event, Analytics, Identity, Observability (Milestone 6)
 - ✅ Drag-to-create block placement from palette (Milestone 6B)
 - ✅ First-screen onboarding and selection states (Milestone 6B)
 - ✅ Learning Mode with guided scenarios (Milestone 6C)

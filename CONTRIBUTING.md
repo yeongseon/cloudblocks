@@ -50,6 +50,11 @@ cd apps/web && pnpm dev
 
 Open [http://localhost:5173](http://localhost:5173) to verify the app is running.
 
+### Terminology
+
+- **Milestone** = official planning container (GitHub milestone). Use this term for all new planning work.
+- **Phase** = legacy label from early development. Keep it only when referencing completed historical work for traceability.
+
 ---
 
 ## Development Setup
@@ -200,11 +205,11 @@ Documentation issues may omit domain labels when the change is cross-cutting. If
 
 ### Roadmap Implementation Workflow
 
-Use the full workflow for any feature that spans multiple PRs, multiple domains, or a named roadmap phase.
+Use the full workflow for any feature that spans multiple PRs, multiple domains, or a named roadmap milestone.
 
 1. **Create or reuse a milestone**
-   - Create a milestone when the work is a named phase or release, spans multiple Epics, or needs shared tracking across multiple implementation issues.
-   - Milestone names use the format `Phase N - Name`.
+   - Create a milestone when the work is a named roadmap milestone or release, spans multiple Epics, or needs shared tracking across multiple implementation issues.
+   - Milestone names use the format `Milestone N - Name`.
    - Reuse an existing open milestone when the work clearly belongs to it.
 
 2. **Create an Epic issue**
@@ -389,6 +394,31 @@ When docs mix implemented behavior and future design, use these rules:
 5. **Canonical source wins on conflicts**
    - If two docs disagree, update the non-canonical doc to match the canonical source.
 
+### Documentation Lifecycle Policy
+
+Status labels and meanings must stay consistent with the Document Ownership table in `docs/README.md`.
+
+| Status | Meaning | Handling rule |
+|---|---|---|
+| **Canonical** | Source of truth for active behavior | Update in place when behavior changes; other docs must align to it |
+| **Canonical (v2.0 Target)** | Accepted target spec not yet fully implemented | Keep as forward-looking target; do not rewrite as implemented behavior |
+| **Supporting** | Reference material that explains canonical docs | Keep concise; update links and examples to match canonical docs |
+| **Historical** | Past decisions/specs kept for traceability | Do not evolve behavior here; keep read-only historical context |
+| **Superseded** | Replaced by a newer canonical source | Do not continue active edits; add/keep clear pointer to replacement |
+| **Accepted** (ADR) | Active architectural decision in effect | Keep immutable; create a new ADR if the decision changes |
+
+Decision rules for already-merged documentation:
+
+1. **Update in place** when the doc is Canonical and behavior has changed.
+2. **Demote to Supporting** when a doc duplicates canonical content and mainly adds explanation.
+3. **Archive as Historical/Superseded** when content reflects past behavior or is replaced by a newer source.
+4. **Merge duplicates** when two active docs cover the same canonical concept; keep one owner and convert the other to Supporting or Superseded.
+
+### Documentation Update Requirement
+
+All code changes that affect documented behavior **MUST** include corresponding documentation updates in the same PR.
+If no docs change is needed, the PR description must explicitly state why.
+
 ### Documentation PR Checklist
 
 - [ ] Field names match canonical types (`placementId` not `plateId`, `category` not `type`)
@@ -426,7 +456,7 @@ Brief description of what this PR does and why.
 - [ ] `tsc -b` passes
 - [ ] `vite build` succeeds
 - [ ] Linting clean
-- [ ] Docs updated (if applicable)
+- [ ] Docs updated for any behavior changes (REQUIRED for code changes)
 ```
 
 ### Review Process

@@ -99,7 +99,7 @@ No backend required. All state lives in the browser.
 │   React + TypeScript + SVG + CSS transforms + Zustand  │
 │   ┌──────────┐ ┌──────────┐ ┌────────────────────┐    │
 │   │ Isometric│ │ Rule     │ │ Local-First Store   │    │
-│   │ Builder  │ │ Engine   │ │ (IndexedDB/lS)      │    │
+│   │ Builder  │ │ Engine   │ │ (localStorage)      │    │
 │   └──────────┘ └──────────┘ └────────────────────┘    │
 └────────────────────┬───────────────────────────────────┘
                      │
@@ -147,7 +147,7 @@ The frontend is a SPA built with React and SVG + CSS transforms. In Milestone 1,
 - Drag and drop interaction
 - Code generation preview (client-side for simple cases)
 - GitHub sync UI (commit, branch, PR)
-- Local-first store (IndexedDB + localStorage)
+- Local-first store (localStorage)
 
 ### Technologies
 - React + TypeScript
@@ -305,16 +305,6 @@ GET  /api/v1/ai/keys                         → list stored key providers
 DELETE /api/v1/ai/keys/{provider}            → delete stored key
 ```
 
-Implemented auth/session routes:
-
-```
-POST /api/v1/auth/github                     -> returns { authorize_url }, sets cb_oauth cookie
-GET  /api/v1/auth/github/callback?code&state -> redirects, sets cb_session cookie
-GET  /api/v1/auth/session                    -> returns current user; clears stale cookie on 401
-POST /api/v1/auth/logout                     -> always 200; clears server session + cookie
-POST /api/v1/session/workspace               -> binds active workspace to session
-```
-
 ---
 
 # 3. Core Modeling Engine
@@ -358,7 +348,7 @@ The canonical model types are defined in `apps/web/src/shared/types/index.ts`. T
 
 ### Serialization Format
 
-- Serialization is versioned through `schemaVersion` and currently uses `"0.1.0"` (see `apps/web/src/shared/types/schema.ts`).
+- Serialization is versioned through `schemaVersion` and currently uses `"2.0.0"` (see `apps/web/src/shared/types/schema.ts`).
 - The persisted root payload shape is `{ schemaVersion, workspaces[] }`, where each workspace contains one `architecture: ArchitectureModel`.
 - For broader domain semantics and lifecycle rules, see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md).
 
@@ -378,13 +368,18 @@ The validation engine is split into focused modules:
 apps/web/src/entities/validation/
 ├── engine.ts       # validateArchitecture(model): orchestration entrypoint
 ├── placement.ts    # validatePlacement(block, plate): placement rule checks
-└── connection.ts   # validateConnection(connection, blocks, externalActors): flow rule checks
+├── connection.ts   # validateConnection(connection, blocks, externalActors): flow rule checks
+├── providerValidation.ts # validateProviderRules(block, plate): provider warnings
+├── aggregation.ts  # validateAggregation(model, block): aggregation constraints
+└── role.ts         # validateBlockRoles(block): role constraints
 ```
 
 Validation flow in `engine.ts`:
-- Iterate all blocks and run placement rules from `placement.ts`
-- Iterate all connections and run connection rules from `connection.ts`
-- Aggregate errors/warnings into one `ValidationResult`
+- Placement validation (per block) via `placement.ts`
+- Aggregation validation (per block, v2.0 section 8) via `aggregation.ts`
+- Role validation (per block, v2.0 section 9) via `role.ts`
+- Connection validation (per connection) via `connection.ts`
+- Provider-specific validation (warnings) via `providerValidation.ts`
 
 > For the complete rule set (placement rules, connection rules, and connection semantics), see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md) §7 (Rule Engine).
 
@@ -484,7 +479,7 @@ The Provider Adapter translates the generic CloudBlocks model into cloud provide
 # 8. GitHub Integration Architecture (Milestone 5+)
 
 > See also: PRD §16 (Future Roadmap — Milestone 5 GitHub Integration)
-> **Status**: Implemented for Milestone 5-7 with session auth migration completed in Phase 7.
+> **Status**: Implemented for Milestone 5-7, with session auth migration completed during historical Phase 7.
 
 ## Auth: GitHub OAuth + Session Cookie Model
 
@@ -541,16 +536,16 @@ The storage follows a **Git-native** design: GitHub repos serve as the primary d
 
 Milestone 1 uses browser localStorage for persistence. Storage key: `cloudblocks:workspaces`.
 
-The persisted format uses `schemaVersion: "0.1.0"` with a `workspaces[]` array, each containing a single `architecture: ArchitectureModel` object.
+The persisted format uses `schemaVersion: "2.0.0"` with a `workspaces[]` array, each containing a single `architecture: ArchitectureModel` object.
 
 > For the full workspace model and serialization format, see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md) §13 (Workspace Model) and §14 (Implementation Schema).
 
 ### Milestone 3+ Storage (Local-First + GitHub Sync — Planned)
 
-IndexedDB for local state + optional GitHub sync:
+localStorage for local state + optional GitHub sync:
 
 ```
-Local (IndexedDB)     ←→    GitHub (via Backend API)
+Local (localStorage)  ←→    GitHub (via Backend API)
   architecture.json          cloudblocks/architecture.json
   draft changes              committed versions
   offline edits              synced on connect
@@ -582,8 +577,8 @@ The architecture supports horizontal scalability:
 |-----------|----------|
 | Frontend | Static hosting / CDN |
 | Backend API | Stateless containers (scale horizontally) |
-| Metadata DB | SQLite (dev), PostgreSQL (production — Phase 8 ✅) |
-| Job Queue | In-process/background (dev), Redis (production — Phase 8 planned) |
+| Metadata DB | SQLite (dev), PostgreSQL (production — Milestone 8 ✅) |
+| Job Queue | In-process/background (dev), Redis (production — Milestone 8 planned) |
 | Storage | GitHub (unlimited repos) + Blob storage |
 
 ---

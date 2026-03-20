@@ -41,6 +41,9 @@ High-level product vision and roadmap.
 | [ROADMAP.md](concept/ROADMAP.md) | Canonical | Milestone timeline & milestones |
 | [ARCHITECTURE.md](concept/ARCHITECTURE.md) | Supporting | System architecture overview |
 | [UI_FLOW.md](concept/UI_FLOW.md) | Supporting | User interaction flows |
+| [M16_DOCUMENTATION_ARCHITECTURE.md](concept/M16_DOCUMENTATION_ARCHITECTURE.md) | Supporting | Documentation architecture & cleanup plan |
+| [M17_PRODUCT_STRUCTURE.md](concept/M17_PRODUCT_STRUCTURE.md) | Supporting | Product structure & package extraction plan |
+| [M18_DEVOPS_UX.md](concept/M18_DEVOPS_UX.md) | Supporting | DevOps UX & deployment orchestration plan |
 
 ---
 
@@ -91,6 +94,8 @@ Detailed visual and interaction specifications.
 | [RELEASE_GATES.md](design/RELEASE_GATES.md) | Supporting | Release criteria |
 | [LEARNING_MODE_SPEC.md](design/LEARNING_MODE_SPEC.md) | **Canonical** | Learning Mode design spec — scenarios, validation, engine, UI |
 | [GRAPH_IR_SPEC.md](design/GRAPH_IR_SPEC.md) | Supporting | Graph IR specification — typed ports, protocol semantics, evolution plan |
+| [KPI_SCORECARD.md](design/KPI_SCORECARD.md) | Supporting | Product & engineering KPI metrics |
+| [BRICK_GUIDEBOOK.md](design/BRICK_GUIDEBOOK.md) | Historical (Superseded) | v1.x visual guidebook (Korean) — superseded by CLOUDBLOCKS_SPEC_V2.md |
 
 > **Historical**: BRICK_DESIGN_SPEC.md and VISUAL_DESIGN_SPEC.md describe the v1.x design system. For current specifications, see CLOUDBLOCKS_SPEC_V2.md (see [ADR-0008](adr/0008-v2-universal-architecture-specification.md)). The v2.0 spec is accepted but not yet fully implemented.
 > **UI Single Source of Truth**: All visual/interaction specs are in `CLOUDBLOCKS_SPEC_V2.md`. See that spec for the StarCraft-style Bottom Panel layout.
@@ -142,3 +147,4 @@ User and developer guides.
 | TypeScript types | `apps/web/src/shared/types/index.ts` |
 | Validation rules | `apps/web/src/entities/validation/` |
 | Milestone timeline | [ROADMAP.md](concept/ROADMAP.md) |
+| KPI metrics | [KPI_SCORECARD.md](design/KPI_SCORECARD.md) |
