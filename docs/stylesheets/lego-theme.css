@@ -376,14 +376,62 @@
   color: var(--lego-black);
 }
 
-/* Header tabs (if enabled) */
+/* Header tabs (navigation.tabs) — Lego Yellow banner style */
 .md-tabs {
-  background-color: var(--lego-blue-dark);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15);
+  background-color: var(--lego-yellow);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+  border-bottom: 3px solid var(--lego-yellow-dark);
 }
 
-.md-tabs__link--active {
+.md-tabs__list {
+  gap: 0.2rem;
+}
+
+.md-tabs__link {
+  font-size: 0.82rem;
   font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--lego-blue-dark);
+  padding: 0.6em 1.1em;
+  border-radius: var(--lego-radius-sm) var(--lego-radius-sm) 0 0;
+  transition: color 0.15s ease, background-color 0.15s ease;
+  opacity: 0.75;
+  white-space: nowrap;
+}
+
+.md-tabs__link:hover {
+  color: var(--lego-blue-dark);
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.35);
+}
+
+/* Active tab — Lego Blue text with Red bottom accent on yellow background */
+.md-tabs__link--active {
+  font-weight: 700;
+  color: var(--lego-blue-dark);
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.3);
+  box-shadow: inset 0 -3px 0 0 var(--lego-red);
+}
+
+/* Dark mode tabs — muted gold banner */
+[data-md-color-scheme="slate"] .md-tabs {
+  background-color: var(--lego-yellow-dark);
+  border-bottom-color: #B89800;
+}
+
+[data-md-color-scheme="slate"] .md-tabs__link {
+  color: #1A1A2E;
+}
+
+[data-md-color-scheme="slate"] .md-tabs__link:hover {
+  color: #1A1A2E;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+[data-md-color-scheme="slate"] .md-tabs__link--active {
+  color: var(--lego-white);
+  box-shadow: inset 0 -3px 0 0 var(--lego-red-dark);
 }
 
 /* ---------------------------------------------------------------------------
