@@ -1,0 +1,89 @@
+import React from 'react';
+import { useAiStore } from '../store';
+import './CostPanel.css';
+
+function formatCurrency(value: number, currency: string): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+export const CostPanel: React.FC = () => {
+  const loading = useAiStore((s) => s.costLoading);
+  const error = useAiStore((s) => s.costError);
+  const result = useAiStore((s) => s.costResult);
+
+  if (loading) {
+    return (
+      <div className="cost-panel" data-testid="cost-panel">
+        <div className="cost-loading">Estimating costs…</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="cost-panel" data-testid="cost-panel">
+        <div className="cost-error">{error}</div>
+      </div>
+    );
+  }
+
+  if (!result) {
+    return (
+      <div className="cost-panel" data-testid="cost-panel">
+        <div className="cost-empty">
+          Run cost estimation to see infrastructure pricing.
+        </div>
+      </div>
+    );
+  }
+
+  const { monthly_cost, hourly_cost, currency, resources } = result;
+
+  return (
+    <div className="cost-panel" data-testid="cost-panel">
+      <div className="cost-summary">
+        <div className="cost-total">
+          <span className="cost-total-label">Monthly</span>
+          <span className="cost-total-value">
+            {formatCurrency(monthly_cost, currency)}
+          </span>
+        </div>
+        <div className="cost-hourly">
+          <span className="cost-hourly-label">Hourly</span>
+          <span className="cost-hourly-value">
+            {formatCurrency(hourly_cost, currency)}
+          </span>
+        </div>
+      </div>
+
+      {resources.length > 0 && (
+        <div className="cost-resources">
+          <h4 className="cost-section-title">Resource Breakdown</h4>
+          <table className="cost-table">
+            <thead>
+              <tr>
+                <th>Resource</th>
+                <th>Monthly</th>
+              </tr>
+            </thead>
+            <tbody>
+              {resources.map((r) => (
+                <tr key={r.name}>
+                  <td className="cost-resource-name">{r.name}</td>
+                  <td className="cost-resource-price">
+                    {formatCurrency(r.monthly_cost, currency)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+};

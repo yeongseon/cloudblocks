@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { AiPromptBar } from '../../features/ai';
+import { useAiStore } from '../../features/ai/store';
 import { toast } from 'react-hot-toast';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
@@ -212,9 +213,12 @@ export function MenuBar() {
     }
   };
 
-  const handleAiSubmit = (_prompt: string, _provider: string) => {
-    // TODO: Wire to AI API in T9
+  const handleAiSubmit = (prompt: string, provider: string) => {
+    useAiStore.getState().generate(prompt, provider);
   };
+
+  const aiLoading = useAiStore((s) => s.generateLoading);
+  const aiError = useAiStore((s) => s.generateError);
 
   const handleToggleDiffMode = () => {
     if (diffMode) {
@@ -440,7 +444,7 @@ export function MenuBar() {
       
       </nav>
 
-      <AiPromptBar onSubmit={handleAiSubmit} isLoading={false} />
+      <AiPromptBar onSubmit={handleAiSubmit} isLoading={aiLoading} error={aiError ?? undefined} />
 
       <div className="menu-bar-divider" />
 
