@@ -13,7 +13,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { BLOCK_FRIENDLY_NAMES, BLOCK_DESCRIPTIONS, BLOCK_ICONS, DEFAULT_PLATE_PROFILE, getPlateProfile, isPlateProfileId, PLATE_COLORS, PLATE_PROFILES, SUBNET_ACCESS_COLORS } from '../../shared/types/index';
+import { BLOCK_FRIENDLY_NAMES, BLOCK_DESCRIPTIONS, BLOCK_ICONS, CONNECTION_TYPE_LABELS, DEFAULT_PLATE_PROFILE, getPlateProfile, isPlateProfileId, PLATE_COLORS, PLATE_PROFILES, SUBNET_ACCESS_COLORS } from '../../shared/types/index';
 import type { PlateProfileId } from '../../shared/types/index';
 import type { Block, Plate } from '@cloudblocks/schema';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
@@ -186,7 +186,7 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
         <div className="detail-property">
           <span className="detail-property-label">Position</span>
           <span className="detail-property-value detail-property-mono">
-            ({block.position.x.toFixed(1)}, {block.position.y.toFixed(1)})
+            ({block.position.x.toFixed(1)}, {block.position.y.toFixed(1)}, {block.position.z.toFixed(1)})
           </span>
         </div>
       </div>
@@ -306,13 +306,14 @@ function ConnectionDetail({ connectionId, className }: { connectionId: string; c
   if (!connection) return null;
 
   const sourceBlock = architecture.blocks.find((b) => b.id === connection.sourceId);
+  const sourceActor = architecture.externalActors.find((a) => a.id === connection.sourceId);
   const targetBlock = architecture.blocks.find((b) => b.id === connection.targetId);
 
   return (
     <div className={`detail-panel detail-panel--connection ${className}`}>
       <div className="detail-header">
         <span className="detail-header-icon">🔗</span>
-        <span className="detail-header-name">Connection</span>
+        <span className="detail-header-name">{CONNECTION_TYPE_LABELS[connection.type]} Connection</span>
       </div>
 
       <div className="detail-divider" />
@@ -320,7 +321,7 @@ function ConnectionDetail({ connectionId, className }: { connectionId: string; c
       <div className="detail-properties">
         <div className="detail-property">
           <span className="detail-property-label">Type</span>
-          <span className="detail-property-value">Data Flow</span>
+          <span className="detail-property-value">{CONNECTION_TYPE_LABELS[connection.type]}</span>
         </div>
 
         <div className="detail-property">
@@ -330,8 +331,12 @@ function ConnectionDetail({ connectionId, className }: { connectionId: string; c
               <>
                 {BLOCK_ICONS[sourceBlock.category]} {sourceBlock.name}
               </>
+            ) : sourceActor ? (
+              <>
+                {sourceActor.type === 'internet' ? '☁️' : '👤'} {sourceActor.name}
+              </>
             ) : (
-              '☁️ Internet'
+              'Unknown'
             )}
           </span>
         </div>

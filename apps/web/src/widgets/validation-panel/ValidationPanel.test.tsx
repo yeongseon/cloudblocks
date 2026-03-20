@@ -121,6 +121,8 @@ describe('ValidationPanel', () => {
     expect(screen.getByText('Warnings (1)')).toBeInTheDocument();
     expect(screen.getByText('Database has no connections')).toBeInTheDocument();
     expect(screen.getByText(/Connect compute to database/)).toBeInTheDocument();
+    expect(screen.getByText(/Rule: warn-001/)).toBeInTheDocument();
+    expect(screen.getByText(/Target: block-2/)).toBeInTheDocument();
   });
 
   it('renders warning without suggestion', () => {
@@ -140,6 +142,8 @@ describe('ValidationPanel', () => {
     useArchitectureStore.setState({ validationResult: result });
     render(<ValidationPanel />);
     expect(screen.getByText('Isolated block detected')).toBeInTheDocument();
+    expect(screen.getByText(/Rule: warn-002/)).toBeInTheDocument();
+    expect(screen.getByText(/Target: block-3/)).toBeInTheDocument();
   });
 
   it('shows success message when valid and no errors/warnings', () => {

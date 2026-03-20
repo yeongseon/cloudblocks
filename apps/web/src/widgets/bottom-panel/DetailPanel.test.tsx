@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { DetailPanel } from './DetailPanel';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import type { ArchitectureModel, Block, Connection, Plate } from '@cloudblocks/schema';
+import type { ArchitectureModel, Block, Connection, ExternalActor, Plate } from '@cloudblocks/schema';
 
 vi.mock('./DetailPanel.css', () => ({}));
 
@@ -98,7 +98,7 @@ describe('DetailPanel', () => {
     expect(screen.getByText('App VM')).toBeInTheDocument();
     expect(screen.getByText('Virtual Machine')).toBeInTheDocument();
     expect(screen.getByText('compute')).toBeInTheDocument();
-    expect(screen.getByText('(1.2, 2.4)')).toBeInTheDocument();
+    expect(screen.getByText('(1.2, 2.4, 0.0)')).toBeInTheDocument();
   });
 
   it('supports rename flow on block detail', async () => {
@@ -130,15 +130,34 @@ describe('DetailPanel', () => {
     expect(screen.getByText('2 blocks')).toBeInTheDocument();
   });
 
-  it('renders connection detail with source and target resources', () => {
+  it('renders connection detail with actual type and source/target resources', () => {
     useUIStore.setState({ selectedId: 'conn-1' });
 
     render(<DetailPanel />);
 
-    expect(screen.getByText('Connection')).toBeInTheDocument();
+    expect(screen.getByText('Data Flow Connection')).toBeInTheDocument();
     expect(screen.getByText('Data Flow')).toBeInTheDocument();
     expect(screen.getByText(/App VM/)).toBeInTheDocument();
     expect(screen.getByText(/SQL DB/)).toBeInTheDocument();
+  });
+
+  it('renders http connection type in detail panel', () => {
+    const httpConnection: Connection = { ...connection, id: 'conn-http', type: 'http' };
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: { ...architectureWithResources, connections: [httpConnection] },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+    useUIStore.setState({ selectedId: 'conn-http' });
+
+    render(<DetailPanel />);
+
+    expect(screen.getByText('HTTP Connection')).toBeInTheDocument();
+    expect(screen.getByText('HTTP')).toBeInTheDocument();
   });
 
   it('falls back to welcome state when selected id does not exist', () => {
@@ -220,10 +239,45 @@ describe('DetailPanel', () => {
     expect(screen.getByText(/1 subnet$/)).toBeInTheDocument();
   });
 
-  it('renders internet source when connection source block is missing', () => {
+  it('renders external actor name when connection source is an external actor', () => {
+    const actor: ExternalActor = {
+      id: 'ext-internet',
+      name: 'Internet',
+      type: 'internet',
+      position: { x: -3, y: 0, z: 5 },
+    };
     const externalConnection: Connection = {
       id: 'ext-conn',
       sourceId: 'ext-internet',
+      targetId: 'block-1',
+      type: 'dataflow',
+      metadata: {},
+    };
+
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          ...architectureWithResources,
+          externalActors: [actor],
+          connections: [externalConnection],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+    useUIStore.setState({ selectedId: 'ext-conn' });
+
+    render(<DetailPanel />);
+
+    expect(screen.getByText(/Internet/)).toBeInTheDocument();
+  });
+
+  it('renders Unknown when connection source is neither block nor external actor', () => {
+    const externalConnection: Connection = {
+      id: 'ext-conn',
+      sourceId: 'nonexistent-id',
       targetId: 'block-1',
       type: 'dataflow',
       metadata: {},
@@ -245,7 +299,7 @@ describe('DetailPanel', () => {
 
     render(<DetailPanel />);
 
-    expect(screen.getByText('☁️ Internet')).toBeInTheDocument();
+    expect(screen.getByText('Unknown')).toBeInTheDocument();
   });
 
   it('renders unknown target when connection target block is missing', () => {

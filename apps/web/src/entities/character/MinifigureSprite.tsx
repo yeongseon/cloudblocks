@@ -125,6 +125,15 @@ export const MinifigureSprite = memo(function MinifigureSprite({
     setSelectedId(workerId);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (toolMode === 'delete') return;
+      if (toolMode === 'connect') return;
+      setSelectedId(workerId);
+    }
+  };
+
   const className = ['minifigure-sprite', isSelected && 'is-selected', `is-${workerState}`]
     .filter(Boolean)
     .join(' ');
@@ -133,7 +142,11 @@ export const MinifigureSprite = memo(function MinifigureSprite({
     <div
       ref={spriteRef}
       className={className}
+      role="button"
+      tabIndex={0}
+      aria-label="Select worker"
       onPointerUp={handleClick}
+      onKeyDown={handleKeyDown}
       style={{ left: screenX, top: screenY, zIndex }}
     >
       <MinifigureSvg provider={provider} />
