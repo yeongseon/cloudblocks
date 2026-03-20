@@ -83,6 +83,8 @@ describe('App', () => {
       showGitHubLogin: true,
       showGitHubRepos: true,
       showGitHubPR: true,
+      showTemplateGallery: true,
+      showScenarioGallery: true,
     });
     useAuthStore.setState({
       status: 'unknown',

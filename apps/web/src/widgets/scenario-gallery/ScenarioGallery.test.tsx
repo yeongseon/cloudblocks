@@ -47,7 +47,6 @@ const beginnerOnlyScenario: Scenario = {
 describe('ScenarioGallery', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    useUIStore.setState({ showScenarioGallery: true });
     registerBuiltinScenarios();
   });
 
@@ -55,12 +54,6 @@ describe('ScenarioGallery', () => {
     useUIStore.setState({ showScenarioGallery: false, editorMode: 'build' });
     clearScenarioRegistry();
     vi.clearAllMocks();
-  });
-
-  it('returns null when showScenarioGallery is false', () => {
-    useUIStore.setState({ showScenarioGallery: false });
-    const { container } = render(<ScenarioGallery />);
-    expect(container.innerHTML).toBe('');
   });
 
   it('shows gallery title "Scenario Gallery"', () => {
@@ -141,6 +134,7 @@ describe('ScenarioGallery', () => {
 
   it('Start button calls startLearningScenario and closes gallery', async () => {
     const user = userEvent.setup();
+    useUIStore.setState({ showScenarioGallery: true });
     render(<ScenarioGallery />);
 
     const card = screen.getByText('Build a Three-Tier Web Application').closest('.scenario-gallery-card');
@@ -155,6 +149,7 @@ describe('ScenarioGallery', () => {
   });
 
   it('close button toggles gallery off', () => {
+    useUIStore.setState({ showScenarioGallery: true });
     render(<ScenarioGallery />);
     fireEvent.click(screen.getByRole('button', { name: '✕' }));
     expect(useUIStore.getState().showScenarioGallery).toBe(false);
@@ -169,5 +164,21 @@ describe('ScenarioGallery', () => {
 
     await user.click(screen.getByRole('button', { name: 'Advanced' }));
     expect(screen.getByText('No scenarios in this category.')).toBeInTheDocument();
+  });
+
+  it('resets difficulty filter on remount', async () => {
+    const user = userEvent.setup();
+    const { unmount } = render(<ScenarioGallery />);
+
+    await user.click(screen.getByRole('button', { name: 'Beginner' }));
+    expect(screen.getByText('Build a Three-Tier Web Application')).toBeInTheDocument();
+    expect(screen.queryByText('Serverless HTTP API')).not.toBeInTheDocument();
+
+    unmount();
+    render(<ScenarioGallery />);
+
+    expect(screen.getByText('Build a Three-Tier Web Application')).toBeInTheDocument();
+    expect(screen.getByText('Serverless HTTP API')).toBeInTheDocument();
+    expect(screen.getByText('Event-Driven Data Pipeline')).toBeInTheDocument();
   });
 });
