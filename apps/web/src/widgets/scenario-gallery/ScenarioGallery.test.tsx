@@ -166,6 +166,33 @@ describe('ScenarioGallery', () => {
     expect(screen.getByText('No scenarios in this category.')).toBeInTheDocument();
   });
 
+  it('resets difficulty filter to "all" after Start', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ showScenarioGallery: true });
+
+    const { unmount } = render(<ScenarioGallery />);
+
+    // Filter to Beginner
+    await user.click(screen.getByRole('button', { name: 'Beginner' }));
+    expect(screen.getByText('Build a Three-Tier Web Application')).toBeInTheDocument();
+    expect(screen.queryByText('Serverless HTTP API')).not.toBeInTheDocument();
+
+    // Click Start on the visible card
+    const card = screen.getByText('Build a Three-Tier Web Application').closest('.scenario-gallery-card');
+    if (!(card instanceof HTMLElement)) throw new Error('Expected scenario card');
+    await user.click(within(card).getByRole('button', { name: 'Start' }));
+
+    // Re-render (simulates reopening the gallery)
+    unmount();
+    useUIStore.setState({ showScenarioGallery: true });
+    render(<ScenarioGallery />);
+
+    // All scenarios should be visible — filter was reset to "all"
+    expect(screen.getByText('Build a Three-Tier Web Application')).toBeInTheDocument();
+    expect(screen.getByText('Serverless HTTP API')).toBeInTheDocument();
+    expect(screen.getByText('Event-Driven Data Pipeline')).toBeInTheDocument();
+  });
+
   it('resets difficulty filter on remount', async () => {
     const user = userEvent.setup();
     const { unmount } = render(<ScenarioGallery />);
