@@ -124,6 +124,14 @@ describe('GitHubRepos', () => {
     expect(mockApiPost).not.toHaveBeenCalled();
   });
 
+  it('disables create button when repository name is empty', async () => {
+    mockApiGet.mockResolvedValueOnce({ repos: [] });
+    render(<GitHubRepos />);
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Create' })).toBeDisabled();
+    });
+  });
+
   it('shows error when create repo fails', async () => {
     const user = userEvent.setup();
     mockApiGet.mockResolvedValueOnce({ repos: [] });
@@ -168,11 +176,12 @@ describe('GitHubRepos', () => {
     expect(await screen.findByText('private')).toBeInTheDocument();
   });
 
-  it('close button toggles panel', async () => {
+  it('close button has accessible label and toggles panel', async () => {
     const user = userEvent.setup();
     mockApiGet.mockResolvedValueOnce({ repos: [] });
     render(<GitHubRepos />);
-    await user.click(screen.getByText('✕'));
+    const closeBtn = screen.getByRole('button', { name: 'Close GitHub repos panel' });
+    await user.click(closeBtn);
     expect(useUIStore.getState().showGitHubRepos).toBe(false);
   });
 

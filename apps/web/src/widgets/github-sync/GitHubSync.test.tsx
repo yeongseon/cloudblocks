@@ -290,7 +290,7 @@ describe('GitHubSync', () => {
   it('close button toggles panel', async () => {
     const user = userEvent.setup();
     render(<GitHubSync />);
-    await user.click(screen.getByText('✕'));
+    await user.click(screen.getByRole('button', { name: 'Close GitHub sync panel' }));
     expect(useUIStore.getState().showGitHubSync).toBe(false);
   });
 

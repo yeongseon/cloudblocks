@@ -146,7 +146,7 @@ describe('GitHubPR', () => {
   it('close button toggles panel', async () => {
     const user = userEvent.setup();
     render(<GitHubPR />);
-    await user.click(screen.getByText('✕'));
+    await user.click(screen.getByRole('button', { name: 'Close pull request panel' }));
     expect(useUIStore.getState().showGitHubPR).toBe(false);
   });
 

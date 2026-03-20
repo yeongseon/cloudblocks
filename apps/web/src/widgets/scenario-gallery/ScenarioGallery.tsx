@@ -36,6 +36,7 @@ export function ScenarioGallery() {
 
   const handleStart = (id: string) => {
     startLearningScenario(id);
+    setActiveDifficulty('all');
     toggleScenarioGallery();
   };
 
@@ -43,7 +44,7 @@ export function ScenarioGallery() {
     <div className="scenario-gallery">
       <div className="scenario-gallery-header">
         <h2 className="scenario-gallery-title">Scenario Gallery</h2>
-        <button type="button" className="scenario-gallery-close" onClick={toggleScenarioGallery}>
+        <button type="button" className="scenario-gallery-close" onClick={toggleScenarioGallery} aria-label="Close scenario gallery">
           ✕
         </button>
       </div>

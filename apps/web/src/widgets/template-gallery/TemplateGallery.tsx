@@ -41,6 +41,7 @@ export function TemplateGallery() {
   const handleUseTemplate = (template: ArchitectureTemplate) => {
     loadFromTemplate(template);
     saveToStorage();
+    setActiveCategory('all');
     toggleTemplateGallery();
   };
 
@@ -48,7 +49,7 @@ export function TemplateGallery() {
     <div className="template-gallery">
       <div className="template-gallery-header">
         <h3 className="template-gallery-title">📦 Templates</h3>
-        <button className="template-gallery-close" onClick={toggleTemplateGallery}>
+        <button className="template-gallery-close" onClick={toggleTemplateGallery} aria-label="Close template gallery">
           ✕
         </button>
       </div>

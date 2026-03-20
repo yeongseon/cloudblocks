@@ -80,7 +80,8 @@ describe('WorkspaceManager', () => {
     const user = userEvent.setup();
     useUIStore.setState({ showWorkspaceManager: true });
     render(<WorkspaceManager />);
-    await user.click(screen.getByText('✕'));
+    const closeBtn = screen.getByRole('button', { name: 'Close workspace manager panel' });
+    await user.click(closeBtn);
     expect(useUIStore.getState().showWorkspaceManager).toBe(false);
   });
 
@@ -122,6 +123,12 @@ describe('WorkspaceManager', () => {
     render(<WorkspaceManager />);
     await user.click(screen.getByText('+ Create'));
     expect(createWorkspaceMock).not.toHaveBeenCalled();
+  });
+
+  it('disables create button when name input is empty', () => {
+    useUIStore.setState({ showWorkspaceManager: true });
+    render(<WorkspaceManager />);
+    expect(screen.getByRole('button', { name: '+ Create' })).toBeDisabled();
   });
 
   it('does not create workspace with whitespace-only name', async () => {

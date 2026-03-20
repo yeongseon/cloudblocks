@@ -107,7 +107,7 @@ export function CodePreview() {
     <div className="code-preview">
       <div className="code-preview-header">
         <h3 className="code-preview-title">⚡ Code Generation</h3>
-        <button type="button" className="code-preview-close" onClick={toggleCodePreview}>
+        <button type="button" className="code-preview-close" onClick={toggleCodePreview} aria-label="Close code preview panel">
           ✕
         </button>
       </div>

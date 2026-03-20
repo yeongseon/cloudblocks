@@ -42,7 +42,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ status: 'authenticated', user, hydrated: true, error: null });
     } catch (err: unknown) {
       if (seq !== _checkSessionSeq) return; // stale response
-      // Only treat 401 as "anonymous"; other errors keep status unknown
+      // 401 = clear session quietly; other errors = set anonymous with error message
       const isUnauthorized =
         err instanceof Error &&
         'status' in err &&
@@ -50,7 +50,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       if (isUnauthorized) {
         set({ status: 'anonymous', user: null, hydrated: true, error: null });
       } else {
-        set({ hydrated: true, error: 'Session check failed' });
+        set({ status: 'anonymous', user: null, hydrated: true, error: 'Session check failed' });
       }
     }
   },
