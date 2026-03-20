@@ -43,7 +43,7 @@ DOM (browser rendering)
 | `BlockSvg` | Isometric block (resource) rendering by category |
 | `ConnectionPath` | SVG path connections between blocks with directional arrowheads |
 | `MinifigureSvg` | Lego minifigure character sprite |
-| `IsometricStud` | Reusable stud component (Universal Stud Standard) |
+| `StudDefs` / `StudGrid` | Reusable stud SVG definitions and grid layout (Universal Stud Standard), defined in the `IsometricStud` module |
 | `DragGhost` | SVG ghost during drag-to-place interactions |
 | `ConnectionPreview` | SVG preview path during connection creation |
 | `Minimap` | Miniature SVG overview of the canvas |
@@ -53,7 +53,7 @@ DOM (browser rendering)
 - **Fixed isometric projection** — no camera rotation, no perspective switching.
 - **2D interaction model** — click targets resolved in screen coordinates, no raycasting.
 - **No WebGL** — no `<canvas>` 3D context anywhere in the rendering pipeline.
-- **Grid-aligned** — positions snap to a grid (`GRID_CELL = 1.5`).
+- **Grid-aligned** — positions snap to an integer grid (`GRID_CELL = 1`).
 
 ### Options Considered
 
