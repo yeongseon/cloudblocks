@@ -2,17 +2,17 @@ import { useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { generateCode, GenerationError } from '../../features/generate/pipeline';
-import type { GeneratedOutput, GenerationOptions, GeneratorId } from '../../features/generate/types';
+import {
+  DEFAULT_REGION_BY_PROVIDER,
+  type GeneratedOutput,
+  type GenerationOptions,
+  type GeneratorId,
+} from '../../features/generate/types';
+import { listGenerators } from '../../features/generate/registry';
 import type { ProviderType } from '@cloudblocks/schema';
 import './CodePreview.css';
 
 const PROVIDERS: ProviderType[] = ['azure', 'aws', 'gcp'];
-
-const GENERATORS: { id: GeneratorId; label: string }[] = [
-  { id: 'terraform', label: 'Terraform (HCL)' },
-  { id: 'bicep', label: 'Bicep (Azure)' },
-  { id: 'pulumi', label: 'Pulumi (TypeScript)' },
-];
 
 export function CodePreview() {
   const toggleCodePreview = useUIStore((s) => s.toggleCodePreview);
@@ -24,14 +24,55 @@ export function CodePreview() {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '') || 'myproject';
 
+  const generatorOptions = listGenerators().map((generatorPlugin) => ({
+    id: generatorPlugin.id,
+    label: generatorPlugin.displayName,
+    supportedProviders: generatorPlugin.supportedProviders,
+  }));
   const [activeTab, setActiveTab] = useState(0);
   const [projectName, setProjectName] = useState(sanitizedName);
-  const [region, setRegion] = useState('eastus');
-  const [generator, setGenerator] = useState<GeneratorId>('terraform');
+  const [region, setRegion] = useState(DEFAULT_REGION_BY_PROVIDER[activeProvider]);
+  const [prevProvider, setPrevProvider] = useState(activeProvider);
+  const [generator, setGenerator] = useState<GeneratorId>(
+    generatorOptions[0]?.id ?? 'terraform'
+  );
   const [compareProviders, setCompareProviders] = useState(false);
   const [output, setOutput] = useState<GeneratedOutput | null>(null);
   const [comparisonOutputs, setComparisonOutputs] = useState<Record<ProviderType, GeneratedOutput> | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const selectedGenerator = generatorOptions.find((g) => g.id === generator);
+  const supportedProviders = selectedGenerator?.supportedProviders ?? [];
+  const canCompareProviders = PROVIDERS.every((provider) =>
+    supportedProviders.includes(provider)
+  );
+
+  if (activeProvider !== prevProvider) {
+    setPrevProvider(activeProvider);
+    setRegion(DEFAULT_REGION_BY_PROVIDER[activeProvider]);
+    setError(null);
+    setOutput(null);
+    setComparisonOutputs(null);
+    setActiveTab(0);
+  }
+
+  const effectiveCompare = compareProviders && canCompareProviders;
+
+  const clearGeneratedState = () => {
+    setError(null);
+    setOutput(null);
+    setComparisonOutputs(null);
+    setActiveTab(0);
+  };
+
+  const handleGeneratorChange = (newGenerator: GeneratorId) => {
+    setGenerator(newGenerator);
+    clearGeneratedState();
+  };
+
+  const handleCompareChange = (checked: boolean) => {
+    setCompareProviders(checked);
+    clearGeneratedState();
+  };
 
   const handleGenerate = () => {
     setError(null);
@@ -46,11 +87,7 @@ export function CodePreview() {
         generator,
       } as const;
 
-      if (compareProviders) {
-        if (generator !== 'terraform') {
-          setError('Provider comparison is currently available for Terraform only.');
-          return;
-        }
+      if (effectiveCompare) {
 
         const generated = Object.fromEntries(
           PROVIDERS.map((provider) => {
@@ -81,14 +118,14 @@ export function CodePreview() {
 
   const handleCopyFile = () => {
     if (output) {
-      const file = output.files[activeTab];
+      const file = output.files[clampedTab];
       if (file && navigator.clipboard?.writeText) {
         navigator.clipboard.writeText(file.content).catch(() => {});
       }
     } else if (comparisonOutputs) {
       const texts = PROVIDERS.map((provider) => {
         const providerOutput = comparisonOutputs[provider];
-        const file = providerOutput.files[activeTab] ?? providerOutput.files[0];
+        const file = providerOutput.files[clampedTab] ?? providerOutput.files[0];
         return file ? `// --- ${provider.toUpperCase()} ---\n${file.content}` : '';
       }).filter(Boolean).join('\n\n');
       if (texts && navigator.clipboard?.writeText) {
@@ -109,17 +146,31 @@ export function CodePreview() {
     };
 
     if (output) {
-      output.files.forEach((file) => downloadFile(file.content, file.path));
+      for (const file of output.files) {
+        downloadFile(file.content, file.path);
+      }
     } else if (comparisonOutputs) {
-      PROVIDERS.forEach((provider) => {
-        comparisonOutputs[provider].files.forEach((file) =>
-          downloadFile(file.content, `${provider}-${file.path}`)
-        );
-      });
+      for (const provider of PROVIDERS) {
+        for (const file of comparisonOutputs[provider].files) {
+          downloadFile(file.content, `${provider}-${file.path}`);
+        }
+      }
     }
   };
 
-  const selectedGenerator = GENERATORS.find((g) => g.id === generator);
+  const visibleFiles = output
+    ? output.files
+    : (() => {
+        if (!comparisonOutputs) return [];
+        const firstProvider = PROVIDERS.find((provider) => comparisonOutputs[provider]?.files.length > 0);
+        return firstProvider ? comparisonOutputs[firstProvider].files : [];
+      })();
+
+  const clampedTab = visibleFiles.length === 0
+    ? 0
+    : activeTab >= visibleFiles.length
+      ? 0
+      : activeTab;
 
   return (
     <div className="code-preview">
@@ -136,9 +187,9 @@ export function CodePreview() {
           <select
             className="code-preview-input"
             value={generator}
-            onChange={(e) => setGenerator(e.target.value as GeneratorId)}
+            onChange={(e) => handleGeneratorChange(e.target.value as GeneratorId)}
           >
-            {GENERATORS.map((g) => (
+            {generatorOptions.map((g) => (
               <option key={g.id} value={g.id}>{g.label}</option>
             ))}
           </select>
@@ -166,14 +217,15 @@ export function CodePreview() {
           <label className="code-preview-checkbox-label">
             <input
               type="checkbox"
-              checked={compareProviders}
-              onChange={(e) => setCompareProviders(e.target.checked)}
+              checked={effectiveCompare}
+              disabled={!canCompareProviders}
+              onChange={(e) => handleCompareChange(e.target.checked)}
             />
             Azure / AWS / GCP
           </label>
         </label>
         <button type="button" className="code-preview-generate-btn" onClick={handleGenerate}>
-          🚀 {compareProviders ? 'Compare Providers' : `Generate ${selectedGenerator?.label ?? 'Code'}`}
+          🚀 {effectiveCompare ? 'Compare Providers' : `Generate ${selectedGenerator?.label ?? 'Code'}`}
         </button>
       </div>
 
@@ -186,8 +238,8 @@ export function CodePreview() {
                 <button
                   type="button"
                   key={file.path}
-                  className={`code-preview-tab ${i === activeTab ? 'code-preview-tab-active' : ''}`}
-                  onClick={() => setActiveTab(i)}
+                   className={`code-preview-tab ${i === clampedTab ? 'code-preview-tab-active' : ''}`}
+                   onClick={() => setActiveTab(i)}
                 >
                 {file.path}
               </button>
@@ -204,7 +256,7 @@ export function CodePreview() {
           </div>
 
           <pre className="code-preview-code">
-            <code>{output.files[activeTab]?.content ?? ''}</code>
+            <code>{output.files[clampedTab]?.content ?? ''}</code>
           </pre>
 
           <div className="code-preview-meta">
@@ -226,7 +278,7 @@ export function CodePreview() {
                 <button
                   type="button"
                   key={file.path}
-                  className={`code-preview-tab ${i === activeTab ? 'code-preview-tab-active' : ''}`}
+                   className={`code-preview-tab ${i === clampedTab ? 'code-preview-tab-active' : ''}`}
                   onClick={() => setActiveTab(i)}
                 >
                   {file.path}
@@ -247,7 +299,7 @@ export function CodePreview() {
           <div className="code-preview-compare-grid">
           {PROVIDERS.map((provider) => {
             const providerOutput = comparisonOutputs[provider];
-            const activeFile = providerOutput.files[activeTab] ?? providerOutput.files[0];
+            const activeFile = providerOutput.files[clampedTab] ?? providerOutput.files[0];
 
             return (
               <section key={provider} className="code-preview-compare-card">

@@ -6,6 +6,14 @@ import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import type { ArchitectureModel } from '@cloudblocks/schema';
 
+const { listGeneratorsMock } = vi.hoisted(() => ({
+  listGeneratorsMock: vi.fn(() => [
+    { id: 'terraform', displayName: 'Terraform (HCL)', supportedProviders: ['azure', 'aws', 'gcp'] },
+    { id: 'bicep', displayName: 'Bicep (Azure)', supportedProviders: ['azure'] },
+    { id: 'pulumi', displayName: 'Pulumi (TypeScript)', supportedProviders: ['azure'] },
+  ]),
+}));
+
 // Mock the pipeline module
 vi.mock('../../features/generate/pipeline', () => {
   const GenerationError = class extends Error {
@@ -20,8 +28,13 @@ vi.mock('../../features/generate/pipeline', () => {
   };
 });
 
+vi.mock('../../features/generate/registry', () => ({
+  listGenerators: listGeneratorsMock,
+}));
+
 import { generateCode } from '../../features/generate/pipeline';
 import { GenerationError } from '../../features/generate/pipeline';
+import { listGenerators } from '../../features/generate/registry';
 
 const mockArch: ArchitectureModel = {
   id: 'arch-1',
@@ -38,6 +51,7 @@ const mockArch: ArchitectureModel = {
 describe('CodePreview', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useUIStore.setState({ activeProvider: 'azure' });
     useArchitectureStore.setState({
       workspace: {
         id: 'ws-1', name: 'Test', architecture: mockArch,
@@ -49,6 +63,7 @@ describe('CodePreview', () => {
   it('renders code preview with title', () => {
     render(<CodePreview />);
     expect(screen.getByText(/Code Generation/)).toBeInTheDocument();
+    expect(listGenerators).toHaveBeenCalled();
   });
 
   it('closes code preview when close button clicked', async () => {
@@ -63,6 +78,18 @@ describe('CodePreview', () => {
     render(<CodePreview />);
     expect(screen.getByDisplayValue('test')).toBeInTheDocument();
     expect(screen.getByDisplayValue('eastus')).toBeInTheDocument();
+  });
+
+  it('defaults region to us-east-1 for AWS provider', () => {
+    useUIStore.setState({ activeProvider: 'aws' });
+    render(<CodePreview />);
+    expect(screen.getByDisplayValue('us-east-1')).toBeInTheDocument();
+  });
+
+  it('defaults region to us-central1 for GCP provider', () => {
+    useUIStore.setState({ activeProvider: 'gcp' });
+    render(<CodePreview />);
+    expect(screen.getByDisplayValue('us-central1')).toBeInTheDocument();
   });
 
   it('renders generator selector with three options', () => {
@@ -361,16 +388,15 @@ describe('CodePreview', () => {
     expect(screen.getByText('provider=gcp')).toBeInTheDocument();
   });
 
-  it('shows compare-mode restriction error for non-terraform generators', async () => {
+  it('disables compare checkbox for generators without multi-provider support', async () => {
     const user = userEvent.setup();
     render(<CodePreview />);
 
     const select = screen.getByRole('combobox');
     await user.selectOptions(select, 'bicep');
-    await user.click(screen.getByRole('checkbox'));
-    await user.click(screen.getByText('🚀 Compare Providers'));
+    const compareCheckbox = screen.getByRole('checkbox');
 
-    expect(screen.getByText('Provider comparison is currently available for Terraform only.')).toBeInTheDocument();
+    expect(compareCheckbox).toBeDisabled();
   });
 
   it('resets generated output on remount (simulating panel close and reopen)', async () => {

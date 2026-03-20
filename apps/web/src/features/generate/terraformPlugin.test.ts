@@ -64,8 +64,8 @@ describe('terraformPlugin', () => {
     expect(terraformPlugin.displayName).toBe('Terraform (HCL)');
   });
 
-  it('supports azure provider', () => {
-    expect(terraformPlugin.supportedProviders).toEqual(['azure']);
+  it('supports azure, aws, and gcp providers', () => {
+    expect(terraformPlugin.supportedProviders).toEqual(['azure', 'aws', 'gcp']);
   });
 
   it('filePlan returns main.tf, variables.tf, outputs.tf with hcl language', () => {

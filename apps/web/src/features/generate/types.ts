@@ -24,6 +24,14 @@ export type FileLanguage = KnownLanguage | (string & {});
 export type GenerationMode = 'draft' | 'production';
 export type ProviderName = ProviderType;
 
+export const DEFAULT_REGION_BY_PROVIDER: Record<ProviderName, string> = {
+  azure: 'eastus',
+  aws: 'us-east-1',
+  gcp: 'us-central1',
+};
+
+export const GENERATOR_METADATA_VERSION = '1.0.0';
+
 export interface GenerationOptions {
   /** Target cloud provider */
   provider: ProviderName;

@@ -6,7 +6,11 @@ import type {
   ProviderDefinition,
   ResourceMapping,
 } from './types';
-import { resolveBlockMapping, sanitizeIaCValue } from './types';
+import {
+  GENERATOR_METADATA_VERSION,
+  resolveBlockMapping,
+  sanitizeIaCValue,
+} from './types';
 
 /**
  * Bicep Generator (v1.0)
@@ -350,7 +354,7 @@ export const bicepPlugin: GeneratorPlugin = {
       ],
       metadata: {
         generator: 'bicep',
-        version: '1.0.0',
+        version: GENERATOR_METADATA_VERSION,
         provider: ctx.options.provider,
         generatedAt: new Date().toISOString(),
       },
