@@ -1,6 +1,8 @@
 # CloudBlocks Platform — Development Roadmap
 
-This document defines the staged development roadmap for the CloudBlocks Platform. Official planning is tracked with GitHub milestones, independent of software release versions.
+This document defines the staged development roadmap for the CloudBlocks Platform. Official planning is tracked with GitHub milestones.
+
+> **Release versioning**: Each milestone maps to a minor version — **Milestone N = v0.N.0**. Patch versions (v0.N.1, v0.N.2) are reserved for hotfixes. See `AGENTS.md § Release Workflow` and `docs/design/RELEASE_GATES.md` for the full release process.
 
 > **Terminology**
 > - **Milestone** = official planning container (GitHub milestone) used for all new planning work.
@@ -894,9 +896,11 @@ Key Objectives:
 
 Scope:
 
-- 2 Epics: Documentation Architecture Cleanup (Epic #356), Code/Document Consistency
-- 19 issues total (all closed)
+- 3 Epics: Documentation Architecture Cleanup (Epic #356, #370), Lego-Themed Documentation Site (Epic #398)
+- 30 issues total (all closed)
+- 10 PRs merged (#376, #377, #387, #402, #406, #409, #410, #412, #413, #415)
 - 3 Waves: Foundation (conventions) → Reconciliation (content) → Alignment & Archive
+- Lego-Themed Docs: custom CSS theme, user-centric nav, dark mode baseplate theme, homepage rewrite
 
 ### Exit Criteria
 - [x] All 12 Epic #356 sub-issues closed

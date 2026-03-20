@@ -206,3 +206,71 @@ All Milestone 5 gates plus:
 - Generator plugin interface documented
 - Shared validation test fixtures exist (FE/BE compatibility)
 - Performance regression tests pass (validation latency targets)
+
+### Milestone 7 (Completed)
+
+All Milestone 6 gates plus:
+
+- Learning mode with guided scenarios functional
+- Collaboration workspace operational
+- Architecture diff visualization working
+
+### Milestone 8 (Completed)
+
+- AWS and GCP provider adapters functional
+- Provider registry supports dynamic registration
+- Multi-cloud code generation produces valid output per provider
+
+### Milestone 9 (Completed)
+
+- UX state machine refactored for reliable mode transitions
+- Grid snapping via interactjs snap modifiers
+- Undo/redo via zundo middleware
+- Core interaction patterns hardened (drag, resize, connect)
+
+### Milestone 10 (Completed)
+
+- External actor blocks (user, device, external service) functional
+- DevOps-oriented UX flows for deployment pipeline visualization
+- Exit criteria flow covered in integration tests
+
+### Milestone 11 (Completed)
+
+- Brick design system formalized (BRICK_DESIGN_SPEC.md)
+- Universal stud standard enforced (rx=12, ry=6, height=5)
+- BLOCK_VISUAL_PROFILES consolidated from STUD_LAYOUTS
+- Visual consistency validated across all block types
+
+### Milestone 12 (Completed)
+
+- Core model refactored for provider-aware resource types
+- Provider system supports Azure, AWS, GCP resource categories
+- Brick design guidebook published
+
+### Milestone 13 (Completed)
+
+- Terraform pipeline end-to-end functional
+- GitHub Pages deployment workflow active
+- Infrastructure CI/CD operational
+
+### Milestone 14 (Completed)
+
+- AI-assisted architecture generation via LLM integration
+- Natural language to architecture conversion
+- Smart suggestions and cost estimation
+- E2E integration tests for AI workflow
+
+### Milestone 15 (Completed)
+
+- CloudBlocks Specification v2.0 implemented (ADR-0008)
+- Foundation layer: geometry constants, provider registry, visual token system
+- Wave 1–4 integration complete
+- Backward compatibility preserved via migration path
+
+### Milestone 16 (Completed)
+
+- Documentation architecture restored and canonical lifecycle established
+- Lego-themed MkDocs documentation site with dark mode
+- User-centric navigation restructure (6-tab layout)
+- Release management: CHANGELOG.md, annotated tags, GitHub Releases
+- Versioning convention: Milestone N = v0.N.0

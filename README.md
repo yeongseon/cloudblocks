@@ -78,28 +78,26 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 
 ## Roadmap
 
-> Phases are historical development stage labels from early milestones. All new work uses Milestone numbering.
+| Version | Milestone | Status |
+|---------|-----------|--------|
+| v0.0.0 | Concept Validation | ✅ |
+| v0.4.0 | Milestones 1–4 (MVP → Workspace Management) | ✅ |
+| v0.5.0 | GitHub Integration & Backend API | ✅ |
+| v0.6.0 | Multi-Generator + Template Marketplace | ✅ |
+| v0.7.0 | Collaboration + UX Polish + Auth Migration | ✅ |
+| v0.8.0 | Multi-Cloud Platform | ✅ |
+| v0.9.0 | UX Core Hardening | ✅ |
+| v0.10.0 | External Actors & DevOps UX | ✅ |
+| v0.11.0 | Brick Design System | ✅ |
+| v0.12.0 | Core Model & Provider System | ✅ |
+| v0.13.0 | Terraform Pipeline | ✅ |
+| v0.14.0 | AI-Assisted Architecture | ✅ |
+| v0.15.0 | v2.0 Specification Implementation | ✅ |
+| v0.16.0 | Documentation Architecture | ✅ |
+| v0.17.0 | Product Structure | 🔄 |
+| v0.18.0 | DevOps UX | 🔄 |
 
-| Milestone | Description | Status |
-|-------|-------------|--------|
-| Milestones 1–7 | Visual builder, code generation (Terraform/Bicep/Pulumi), templates, GitHub integration, learning mode, collaboration, architecture diff | ✅ Complete |
-| Phase 2 UX | Magnetic snap, dynamic shadows, bounce transitions | ✅ Complete |
-| Phase 3 | Lego minifigure character (Azure variant) | ✅ Complete |
-| Phase 7 | Session auth migration (cookie-based sessions) | ✅ Complete |
-| Phase 9 | Visual builder evolution (UX state machine, brick design, provider foundations) | ✅ Complete |
-| Phase 10 | Documentation accuracy | ✅ Complete |
-| Phase 11 | UX/UI improvements | ✅ Complete |
-| Milestone 8 | Multi-cloud platform (AWS, GCP adapters) | ✅ Complete |
-| Milestone 9 | UX Core Hardening | ✅ Complete |
-| Milestone 10 | External Actors & DevOps UX | ✅ Complete |
-| Milestone 11 | Brick Design System | ✅ Complete |
-| Milestone 12 | Core Model & Provider System | ✅ Complete |
-| Milestone 13 | Terraform Pipeline | ✅ Complete |
-| Milestone 14 | AI-Assisted Architecture | ✅ Complete |
-| Milestone 15 | v2.0 Specification Implementation | ✅ Complete |
-| Milestone 16 | Documentation Architecture | ✅ Complete |
-| Milestone 17 | Product Structure | 🔄 Planned |
-| Milestone 18 | DevOps UX | 🔄 Planned |
+See [CHANGELOG.md](CHANGELOG.md) for release details and [full roadmap](docs/concept/ROADMAP.md) for milestone breakdown.
 
 ## Contributing
 

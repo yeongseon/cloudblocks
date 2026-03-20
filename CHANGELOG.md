@@ -1,0 +1,263 @@
+# Changelog
+
+All notable changes to CloudBlocks are documented in this file.
+
+This project uses [Semantic Versioning](https://semver.org/). Version numbers follow the convention `v0.{milestone}.{patch}` — each milestone maps directly to a minor version.
+
+---
+
+## [v0.16.0] — 2026-03-20
+
+**Milestone 16 — Documentation Architecture & Canonical Cleanup**
+
+- Restore documentation coherence across the project after v2.0 spec implementation
+- Establish canonical vs superseded document lifecycle policy
+- Standardize Milestone vs Phase terminology across all active docs
+- Archive superseded v1.x specs with clear historical labels
+- Lego-themed MkDocs documentation site with custom CSS
+- User-centric navigation restructure (6-tab layout)
+- Dark mode Lego baseplate theme and light mode default
+- Homepage rewrite with card grids and 5-step onboarding
+- Dead code removal (unreachable `except LLMError`)
+- Live demo link added to README
+- 3 Epics, 30 issues closed, 10 PRs merged
+
+## [v0.15.0] — 2026-03-20
+
+**Milestone 15 — v2.0 Specification Implementation**
+
+- Universal Architecture Specification v2.0 (ADR-0008)
+- Foundation layer: geometry constants, provider registry, visual token system
+- Model layer: v2 Block/Plate/Connection types with migration support
+- Rules layer: v2 validation engine with provider-aware constraints
+- Integration layer: generators, UI components, and persistence updated for v2 types
+- 4-wave implementation (Foundation → Model & Rules → Integration → Integration)
+
+## [v0.14.0] — 2026-03-20
+
+**Milestone 14 — AI-Assisted Architecture**
+
+- Natural language → architecture generation via LLM
+- Architecture suggestion engine with context-aware analysis
+- Cost estimation endpoint with Infracost integration
+- Encrypted API key management (BYOK with Fernet encryption)
+- AI prompt bar component for natural language input
+- Architecture validation post-processor for LLM output
+- Frontend AI integration (API client, store, suggestion panel, cost display)
+- E2E integration tests for AI workflow
+- ADR-0009 documenting AI architecture decisions
+
+## [v0.13.0] — 2026-03-19
+
+**Milestone 13 — Terraform Pipeline**
+
+- Shared Terraform module extracted with staging and production wrappers
+- Multi-environment deployment strategy documented
+- Staging auto-deploy and production promotion CI/CD workflows
+- GitHub Pages deployment workflow for frontend demo
+- GitHub Actions Terraform plan/apply integration
+
+## [v0.12.0] — 2026-03-19
+
+**Milestone 12 — Core Model & Provider System**
+
+- `subtype` and `config` fields added to Block domain type
+- SubtypeResourceMap and resolveBlockMapping for provider-specific resource resolution
+- Subtype registries for AWS, GCP, and Azure
+- Schema bump to 0.2.0 with subtype/config migration support
+- Provider-specific validation rules with warning-only diagnostics
+- Generators updated to use subtype-aware resource mapping
+- Brick design guidebook for non-developers
+
+## [v0.11.0] — 2026-03-19
+
+**Milestone 11 — Brick Design System**
+
+- BlockCategory and brick visual profiles fully aligned
+- Universal stud standard enforcement (rx=12, ry=6, height=5)
+- Full provider×category stud color test matrix
+- PlateSvg constants extracted to designTokens
+- STUD_LAYOUTS consolidated into BLOCK_VISUAL_PROFILES
+- BRICK_DESIGN_SPEC status markers updated
+
+## [v0.10.0] — 2026-03-19
+
+**Milestone 10 — External Actors & DevOps UX**
+
+- Minifigure becomes interactive (selectable, activates CommandCard)
+- Worker store for build queue state machine
+- ExternalActor position field in domain model
+- External actor dragging with zoom compensation
+- CommandCard worker mode for build commands
+- Build progress indicator on resources
+- Worker movement and building animations
+- Milestone 10 exit criteria integration tests
+
+## [v0.9.0] — 2026-03-19
+
+**Milestone 9 — UX Core Hardening**
+
+- Provider toggle exposed in MenuBar
+- Experience story: hero image, user journey, UI flow rewrite
+- Empty canvas overlay with contextual guidance
+- Invalid drop target visual feedback
+- Milestone rename and superseded document cleanup
+- Bump to 0.11.0 and project metadata update
+
+## [v0.8.0] — 2026-03-18
+
+**Milestone 8 — Multi-Cloud Platform**
+
+- AWS and GCP provider adapters functional
+- Provider integration tests
+- Same architecture deployable to any supported provider
+- Provider comparison view
+- Documentation audit and overhaul
+- Planning workflow and label tagging rules
+
+## [v0.7.0] — 2026-03-19
+
+**Milestone 7 — Collaboration + Phases 2 UX, 7, 9, 10, 11**
+
+This release consolidates Milestone 7 and all historical Phase work (Phase 2 UX, Phase 3, Phase 7, Phase 9, Phase 10, Phase 11) into a single version.
+
+Milestone 7:
+- Architecture diff visualization (DiffPanel + canvas overlays)
+- GitHub Actions Terraform plan template
+- Compare with GitHub flow from MenuBar
+
+Phase 2 UX:
+- Magnetic snapping with audio feedback
+- Dynamic drag shadows (CSS classList toggle)
+- Bounce-drop animation on block/plate placement
+
+Phase 3:
+- Lego minifigure character SVG component (Azure variant)
+- Cloud provider logo on torso
+- Universal Stud Standard compliant head stud
+
+Phase 7:
+- Cookie-based session auth migration (JWT removed)
+- Server-side SQLite sessions
+- httpOnly `cb_session` and `cb_oauth` cookies
+
+Phase 9 (Visual Builder Evolution):
+- InteractionState machine (idle/selecting/dragging/placing/connecting)
+- 4 BrickSilhouette types (tower/heavy/shield/module)
+- 5-level tier height system
+- 5 ConnectionType values
+- ProviderType support on Block model
+
+Phase 10 (Documentation Accuracy):
+- 4 Epics, 19 sub-issues for doc alignment
+
+Phase 11 (UX/UI Improvements):
+- API base URL contract centralized
+- ExternalActor interactivity
+- Toast notifications replacing alert/confirm
+- CommandCard action implementation
+- Pointermove throttling (60fps via rAF)
+- Connection selection/deletion with hit-area
+- Connection guard (duplicate/self-connection rejection)
+
+## [v0.6.0] — 2026-03-15
+
+**Milestone 6 — Multi-Generator + Template Marketplace**
+
+This release includes Milestones 6, 6B, and 6C.
+
+Milestone 6:
+- Terraform, Bicep, and Pulumi generators
+- Serverless blocks (FunctionBlock, QueueBlock, EventBlock)
+- Template marketplace with 5+ templates
+- Generator plugin interface
+
+Milestone 6B (Builder UX Completion):
+- Drag-to-create from CommandCard palette
+- Drop target validation and rejection
+- Connect-mode visual highlighting
+- Empty canvas overlay with Get Started CTA
+- Warning visual state for blocks
+
+Milestone 6C (Learning Mode):
+- Build/Learn mode switch
+- Guided step-by-step scenario system
+- Scenario engine with state-based validation
+- Hint engine with idle-timer progressive reveal
+- 3 built-in scenarios (beginner/intermediate/advanced)
+- Progress tracking per scenario
+
+## [v0.5.0] — 2026-03-15
+
+**Milestone 5 — GitHub Integration + Backend API**
+
+- FastAPI backend for auth, generation orchestration, GitHub integration
+- GitHub App OAuth login
+- Connect GitHub account, select/create target repository
+- Commit architecture.json + generated Terraform to user repo
+- PR creation from UI
+- Backend metadata DB (SQLite): user, project index, run status
+
+## [v0.4.0] — 2026-03-15
+
+**Milestones 1–4 — Builder MVP through Workspace Management**
+
+This release consolidates the first four milestones into a single version, as they were implemented together.
+
+Milestone 1 (Builder MVP):
+- 2.5D isometric block builder (React + SVG/CSS)
+- Network Plate, Subnet Plate (Public/Private)
+- Compute, Database, Storage, Gateway blocks
+- Rule Engine for placement and connection validation
+- DataFlow connection visualization
+- Workspace persistence (localStorage)
+
+Milestone 2 (Visual Polish + UX):
+- Drag and drop block repositioning
+- Block resize and snap-to-grid
+- Keyboard shortcuts (delete, undo, redo)
+- Zoom/pan camera controls
+
+Milestone 3 (Code Generation):
+- Terraform HCL generator (Azure provider)
+- Provider adapter layer
+- Code preview panel with real-time HCL
+- Export to file/clipboard
+
+Milestone 4 (Workspace Management):
+- Multiple workspace management
+- Import/export architecture as JSON
+- 3+ built-in templates (3-tier, serverless, data pipeline)
+- Template gallery UI
+
+## [v0.0.0] — 2026-03-15
+
+**Milestone 0 — Concept Validation**
+
+- Foundation documents (PRD, domain model, architecture, roadmap)
+- Vite React TypeScript project scaffold
+- Domain model types and schema serialization
+- Rule engine for placement and connection validation
+- Zustand state management with localStorage persistence
+- UI panels, toolbar, and canvas scene components
+- Monorepo restructure (FSD frontend, FastAPI backend)
+- 2.5D isometric builder pivot
+- CONTRIBUTING.md, ADRs (0001–0005)
+- Documentation structure (docs/ subdirectories)
+
+---
+
+[v0.16.0]: https://github.com/yeongseon/cloudblocks/compare/v0.15.0...v0.16.0
+[v0.15.0]: https://github.com/yeongseon/cloudblocks/compare/v0.14.0...v0.15.0
+[v0.14.0]: https://github.com/yeongseon/cloudblocks/compare/v0.13.0...v0.14.0
+[v0.13.0]: https://github.com/yeongseon/cloudblocks/compare/v0.12.0...v0.13.0
+[v0.12.0]: https://github.com/yeongseon/cloudblocks/compare/v0.11.0...v0.12.0
+[v0.11.0]: https://github.com/yeongseon/cloudblocks/compare/v0.10.0...v0.11.0
+[v0.10.0]: https://github.com/yeongseon/cloudblocks/compare/v0.9.0...v0.10.0
+[v0.9.0]: https://github.com/yeongseon/cloudblocks/compare/v0.8.0...v0.9.0
+[v0.8.0]: https://github.com/yeongseon/cloudblocks/compare/v0.7.0...v0.8.0
+[v0.7.0]: https://github.com/yeongseon/cloudblocks/compare/v0.6.0...v0.7.0
+[v0.6.0]: https://github.com/yeongseon/cloudblocks/compare/v0.5.0...v0.6.0
+[v0.5.0]: https://github.com/yeongseon/cloudblocks/compare/v0.4.0...v0.5.0
+[v0.4.0]: https://github.com/yeongseon/cloudblocks/compare/v0.0.0...v0.4.0
+[v0.0.0]: https://github.com/yeongseon/cloudblocks/releases/tag/v0.0.0
