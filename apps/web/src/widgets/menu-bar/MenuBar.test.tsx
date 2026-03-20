@@ -742,7 +742,7 @@ describe('MenuBar', () => {
     await user.type(promptInput, 'Create a 3-tier web app');
     await user.click(screen.getByTitle('Generate Architecture'));
 
-    expect(generateMock).toHaveBeenCalledWith('Create a 3-tier web app', 'aws');
+    expect(generateMock).toHaveBeenCalledWith('Create a 3-tier web app', 'azure');
   });
 
   it('shows validation badge with Valid text when validationResult is valid', async () => {
