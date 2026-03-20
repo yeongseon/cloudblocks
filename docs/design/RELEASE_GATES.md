@@ -274,3 +274,16 @@ All Milestone 6 gates plus:
 - User-centric navigation restructure (6-tab layout)
 - Release management: CHANGELOG.md, annotated tags, GitHub Releases
 - Versioning convention: Milestone N = v0.N.0
+
+### Milestone 17 (In Progress)
+
+All Milestone 16 gates plus:
+
+- SVG-only rendering model confirmed and documented (ADR-0010)
+- Empty placeholder packages removed
+- @cloudblocks/schema and @cloudblocks/domain extracted with real code
+- Backend role accurately documented, FastAPI version mismatch fixed
+- Validation rule ownership decided and implemented
+- Root-level build/test/lint covers all modules
+- CI pipeline builds and tests extracted packages
+- Version alignment policy enforced: all packages at single version
