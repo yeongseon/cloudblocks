@@ -40,25 +40,7 @@ describe('TemplateGallery', () => {
     expect(useUIStore.getState().showTemplateGallery).toBe(false);
   });
 
-  it('loads template, saves current workspace, and closes gallery on use', async () => {
-    const user = userEvent.setup();
-    useUIStore.setState({ showTemplateGallery: true });
-    const saveToStorageSpy = vi.fn();
-    const loadFromTemplateSpy = vi.fn();
-    useArchitectureStore.setState({
-      saveToStorage: saveToStorageSpy,
-      loadFromTemplate: loadFromTemplateSpy,
-    });
-    render(<TemplateGallery />);
-    const useButtons = screen.getAllByText('Use Template');
-    await user.click(useButtons[0]);
-    expect(saveToStorageSpy).toHaveBeenCalledOnce();
-    expect(loadFromTemplateSpy).toHaveBeenCalledOnce();
-    // Gallery should be toggled off
-    expect(useUIStore.getState().showTemplateGallery).toBe(false);
-  });
-
-  it('calls loadFromTemplate before saveToStorage on use template', async () => {
+  it('applies template then persists in loadFromTemplate → saveToStorage order', async () => {
     const user = userEvent.setup();
     useUIStore.setState({ showTemplateGallery: true });
 
@@ -75,14 +57,9 @@ describe('TemplateGallery', () => {
     const useButtons = screen.getAllByText('Use Template');
     await user.click(useButtons[0]);
 
-    // Verify both functions were called
     expect(loadFromTemplateSpy).toHaveBeenCalledOnce();
     expect(saveToStorageSpy).toHaveBeenCalledOnce();
-
-    // Verify saveToStorage is called AFTER loadFromTemplate
     expect(callOrder).toEqual(['loadFromTemplate', 'saveToStorage']);
-
-    // Gallery should be toggled off
     expect(useUIStore.getState().showTemplateGallery).toBe(false);
   });
 
