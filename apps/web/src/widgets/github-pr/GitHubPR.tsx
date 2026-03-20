@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
@@ -20,6 +20,21 @@ export function GitHubPR() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PullRequestResponse | null>(null);
+
+  // Reset local form/result/error state when panel transitions from closed to open
+  const prevShowRef = useRef(show);
+  useEffect(() => {
+    if (show && !prevShowRef.current) {
+      setTitle('Update cloud architecture');
+      setBody('');
+      setBranch('');
+      setCommitMessage('Update architecture via CloudBlocks');
+      setLoading(false);
+      setError(null);
+      setResult(null);
+    }
+    prevShowRef.current = show;
+  }, [show]);
 
   if (!show) return null;
 

@@ -205,4 +205,31 @@ describe('GitHubPR', () => {
       expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/pr', expect.any(Object));
     });
   });
+
+  it('resets form and error state on reopen', async () => {
+    const user = userEvent.setup();
+    mockApiPost.mockRejectedValueOnce(new Error('PR failed'));
+
+    const { rerender } = render(<GitHubPR />);
+
+    // Edit form and trigger an error
+    await user.clear(screen.getByLabelText('Title'));
+    await user.type(screen.getByLabelText('Title'), 'Custom title');
+    await user.type(screen.getByLabelText('Body (optional)'), 'Some body');
+    await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
+    expect(await screen.findByText('PR failed')).toBeInTheDocument();
+
+    // Close the panel
+    useUIStore.setState({ showGitHubPR: false });
+    rerender(<GitHubPR />);
+
+    // Reopen the panel
+    useUIStore.setState({ showGitHubPR: true });
+    rerender(<GitHubPR />);
+
+    // Form should be reset to defaults
+    expect(screen.getByLabelText('Title')).toHaveValue('Update cloud architecture');
+    expect(screen.getByLabelText('Body (optional)')).toHaveValue('');
+    expect(screen.queryByText('PR failed')).not.toBeInTheDocument();
+  });
 });
