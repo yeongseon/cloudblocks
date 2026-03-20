@@ -342,4 +342,46 @@ describe('GitHubSync', () => {
     expect(screen.getByText('Loading...')).toBeInTheDocument();
     resolvePost({ message: 'ok', commit_sha: 'abc' });
   });
+
+  it('ignores stale commit responses after workspace changes', async () => {
+    const user = userEvent.setup();
+    let resolveCommits!: (value: { commits: Array<{ sha: string; message: string; author: string; date: string }> }) => void;
+    mockApiGet.mockImplementationOnce(
+      () => new Promise((resolve) => {
+        resolveCommits = resolve;
+      })
+    );
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+
+    await waitFor(() => {
+      expect(mockApiGet).toHaveBeenCalledTimes(1);
+    });
+
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        id: 'ws-2',
+        backendWorkspaceId: 'backend-ws-2',
+      },
+    });
+
+    resolveCommits({
+      commits: [
+        {
+          sha: 'abc1234567890',
+          message: 'stale commit',
+          author: 'octocat',
+          date: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText('stale commit')).not.toBeInTheDocument();
+    });
+  });
 });

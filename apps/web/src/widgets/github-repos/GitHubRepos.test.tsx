@@ -132,6 +132,30 @@ describe('GitHubRepos', () => {
     });
   });
 
+  it('disables create button for invalid repository name characters', async () => {
+    const user = userEvent.setup();
+    mockApiGet.mockResolvedValueOnce({ repos: [] });
+    render(<GitHubRepos />);
+
+    await user.type(screen.getByPlaceholderText('Repository name'), 'repo with spaces');
+
+    expect(screen.getByRole('button', { name: 'Create' })).toBeDisabled();
+  });
+
+  it('keeps create button disabled for invalid name and enabled for valid name', async () => {
+    const user = userEvent.setup();
+    mockApiGet.mockResolvedValueOnce({ repos: [] });
+    render(<GitHubRepos />);
+
+    const createButton = screen.getByRole('button', { name: 'Create' });
+    await user.type(screen.getByPlaceholderText('Repository name'), 'repo!name');
+    expect(createButton).toBeDisabled();
+
+    await user.clear(screen.getByPlaceholderText('Repository name'));
+    await user.type(screen.getByPlaceholderText('Repository name'), 'repo-name');
+    expect(createButton).toBeEnabled();
+  });
+
   it('shows error when create repo fails', async () => {
     const user = userEvent.setup();
     mockApiGet.mockResolvedValueOnce({ repos: [] });
