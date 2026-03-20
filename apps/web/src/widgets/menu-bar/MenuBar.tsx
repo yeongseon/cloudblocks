@@ -378,7 +378,7 @@ export function MenuBar() {
       
       </nav>
 
-      <AiPromptBar onSubmit={handleAiSubmit} isLoading={aiLoading} error={aiError ?? undefined} />
+      <AiPromptBar onSubmit={handleAiSubmit} isLoading={aiLoading} provider={activeProvider} error={aiError ?? undefined} />
 
       <div className="menu-bar-divider" />
 
