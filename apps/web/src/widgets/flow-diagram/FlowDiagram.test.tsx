@@ -85,7 +85,7 @@ describe('FlowDiagram', () => {
     const { container } = render(<FlowDiagram />);
 
     const nodes = Array.from(container.querySelectorAll('.flow-node')).map((node) => node.textContent?.trim());
-    expect(nodes).toEqual(['🛡️App Gateway', '🖥️Virtual Machine', '🗄️SQL Database']);
+    expect(nodes).toEqual(['🛡️gateway-1-name', '🖥️compute-1-name', '🗄️database-1-name']);
   });
 
   it('renders external actor node (Internet)', () => {
@@ -151,7 +151,7 @@ describe('FlowDiagram', () => {
     const nodes = container.querySelectorAll('.flow-node');
 
     expect(nodes).toHaveLength(1);
-    expect(screen.getByText('Virtual Machine')).toBeInTheDocument();
+    expect(nodes[0]).toHaveTextContent('compute-1-name');
     expect(screen.queryByText('ghost-1')).not.toBeInTheDocument();
   });
 
@@ -184,7 +184,7 @@ describe('FlowDiagram', () => {
 
     expect(screen.getByText('■')).toBeInTheDocument();
     const node = container.querySelector('.flow-node') as HTMLElement;
-    expect(node).toHaveTextContent('unknown');
+    expect(node).toHaveTextContent('weird-name');
     expect(node).toHaveStyle({ backgroundColor: 'rgb(0, 120, 212)' });
   });
 
@@ -214,10 +214,10 @@ describe('FlowDiagram', () => {
     const { container } = render(<FlowDiagram />);
     const nodes = Array.from(container.querySelectorAll('.flow-node')).map((node) => node.textContent?.trim());
 
-    expect(nodes).toContain('🖥️Virtual Machine');
-    expect(nodes.indexOf('🖥️Virtual Machine')).toBeGreaterThan(nodes.indexOf('🛡️App Gateway'));
-    expect(nodes.indexOf('🖥️Virtual Machine')).toBeGreaterThan(nodes.indexOf('📦Blob Storage'));
-    expect(nodes.indexOf('🗄️SQL Database')).toBeGreaterThan(nodes.indexOf('🖥️Virtual Machine'));
+    expect(nodes).toContain('🖥️compute-1-name');
+    expect(nodes.indexOf('🖥️compute-1-name')).toBeGreaterThan(nodes.indexOf('🛡️gateway-1-name'));
+    expect(nodes.indexOf('🖥️compute-1-name')).toBeGreaterThan(nodes.indexOf('📦storage-1-name'));
+    expect(nodes.indexOf('🗄️database-1-name')).toBeGreaterThan(nodes.indexOf('🖥️compute-1-name'));
   });
 
   it('renders flow diagram with cyclic connections (function <-> queue)', () => {
@@ -245,7 +245,7 @@ describe('FlowDiagram', () => {
     // Both nodes should be present despite forming a cycle
     const nodes = Array.from(container.querySelectorAll('.flow-node')).map((node) => node.textContent?.trim());
     expect(nodes).toHaveLength(2);
-    expect(nodes).toContain('⚡App Service');
-    expect(nodes).toContain('📨Message Queue');
+    expect(nodes).toContain('⚡function-1-name');
+    expect(nodes).toContain('📨queue-1-name');
   });
 });
