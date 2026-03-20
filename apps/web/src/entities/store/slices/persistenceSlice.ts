@@ -6,6 +6,7 @@ import { generateId } from '../../../shared/utils/id';
 import type { ArchitectureSlice, ArchitectureState } from './types';
 import {
   createDefaultWorkspace,
+  deduplicateWorkspaceName,
   resetTransientState,
   touchModel,
   upsertCurrentWorkspace,
@@ -301,13 +302,12 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
 
   renameWorkspace: (name) => {
     const state = get();
+    const allWorkspaces = upsertCurrentWorkspace(state.workspaces, state.workspace);
+    const uniqueName = deduplicateWorkspaceName(name, allWorkspaces, state.workspace.id);
     const renamed: Workspace = {
       ...state.workspace,
-      name,
-      architecture: touchModel({
-        ...state.workspace.architecture,
-        name,
-      }),
+      name: uniqueName,
+      architecture: touchModel(state.workspace.architecture),
       updatedAt: new Date().toISOString(),
     };
 

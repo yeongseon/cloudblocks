@@ -127,3 +127,28 @@ export function resetTransientState(): Pick<
 }
 
 export { DEFAULT_PLATE_SIZE };
+
+/**
+ * Auto-suffix a workspace name if it already exists in the list.
+ * "My Project" → "My Project (2)", "My Project (3)", etc.
+ * If excludeId is provided, that workspace is excluded from the collision check
+ * (useful for rename where the current workspace already has a slot).
+ */
+export function deduplicateWorkspaceName(
+  name: string,
+  workspaces: Workspace[],
+  excludeId?: string,
+): string {
+  const existing = new Set(
+    workspaces
+      .filter((ws) => !excludeId || ws.id !== excludeId)
+      .map((ws) => ws.name),
+  );
+  if (!existing.has(name)) return name;
+
+  let counter = 2;
+  while (existing.has(`${name} (${counter})`)) {
+    counter++;
+  }
+  return `${name} (${counter})`;
+}
