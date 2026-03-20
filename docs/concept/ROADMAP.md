@@ -668,7 +668,7 @@ Key Features:
 
 ---
 
-## Milestone 8 — Multi-Cloud Platform
+## Milestone 8 — Multi-Cloud Platform ✅
 
 Goal:
 Support multiple cloud providers from the same architecture.
@@ -685,16 +685,15 @@ Architecture remains the same — provider adapters handle the mapping.
 
 > See [provider.md](../engine/provider.md) for the complete provider mapping table (block and plate mappings per cloud provider).
 ### Exit Criteria
-- [ ] AWS and GCP provider adapters functional
-- [ ] Same architecture deployable to any supported provider
-- [ ] Provider comparison view available
-
+- [x] AWS and GCP provider adapters functional
+- [x] Same architecture deployable to any supported provider
+- [x] Provider comparison view available
 ### Dependencies
 - Milestone 6 complete (can run parallel with Milestone 7)
 
 ---
 
-## Milestone 9 — UX Core Hardening
+## Milestone 9 — UX Core Hardening ✅
 
 Goal:
 Harden the existing UX to production quality — surface features that already exist but lack discoverability.
@@ -708,18 +707,18 @@ Key Objectives:
 - Experience story: README hero image, UI_FLOW.md rewrite, docs IA improvement
 
 ### Exit Criteria
-- [ ] Provider toggle accessible from main UI (not buried in dead Toolbar)
-- [ ] Empty canvas overlay provides contextual next-step guidance
-- [ ] Invalid drop targets show visual rejection feedback
-- [ ] README includes hero image and product screenshots
-- [ ] UI_FLOW.md rewritten as product journey (not concept doc)
+- [x] Provider toggle accessible from main UI (not buried in dead Toolbar)
+- [x] Empty canvas overlay provides contextual next-step guidance
+- [x] Invalid drop targets show visual rejection feedback
+- [x] README includes hero image and product screenshots
+- [x] UI_FLOW.md rewritten as product journey (not concept doc)
 
 ### Dependencies
 - Milestone 8 complete
 
 ---
 
-## Milestone 10 — External Actors & DevOps UX
+## Milestone 10 — External Actors & DevOps UX ✅
 
 Goal:
 Transform the DevOps minifigure from decoration into an interactive RTS-style worker unit.
@@ -734,17 +733,16 @@ Key Objectives:
 - External actor (Internet, User) repositioning and interaction
 
 ### Exit Criteria
-- [ ] Clicking minifigure selects it and shows build commands in CommandCard
-- [ ] Resource placement triggers minifigure movement animation
-- [ ] Build progress is visually indicated on resources
-- [ ] External actors are user-movable on canvas
-
+- [x] Clicking minifigure selects it and shows build commands in CommandCard
+- [x] Resource placement triggers minifigure movement animation
+- [x] Build progress is visually indicated on resources
+- [x] External actors are user-movable on canvas
 ### Dependencies
 - Milestone 9 complete (requires ProviderToggle exposure and CommandCard improvements)
 
 ---
 
-## Milestone 11 — Brick Design System
+## Milestone 11 — Brick Design System ✅
 
 Goal:
 Consolidate the brick visual system — align block categories with design tokens.
@@ -757,16 +755,15 @@ Key Objectives:
 - Consistent sizing across all brick types
 
 ### Exit Criteria
-- [ ] BlockCategory and brick profiles fully aligned
-- [ ] All studs pass uniform dimension validation
-- [ ] Provider themes applied consistently across all block types
-
+- [x] BlockCategory and brick profiles fully aligned
+- [x] All studs pass uniform dimension validation
+- [x] Provider themes applied consistently across all block types
 ### Dependencies
 - Milestone 8 complete (parallel with Milestone 9; no UX dependency)
 
 ---
 
-## Milestone 12 — Core Model & Provider System
+## Milestone 12 — Core Model & Provider System ✅
 
 Goal:
 Extend the domain model to support true multi-cloud semantics.
@@ -779,18 +776,17 @@ Key Objectives:
 - Provider-aware validation rules
 
 ### Exit Criteria
-- [ ] Block type includes `subtype` and `config` fields
-- [ ] AWS and GCP adapters produce valid IaC output
-- [ ] Existing workspaces migrate cleanly to new schema
-- [ ] Provider-specific validation rules functional
-
+- [x] Block type includes `subtype` and `config` fields
+- [x] AWS and GCP adapters produce valid IaC output
+- [x] Existing workspaces migrate cleanly to new schema
+- [x] Provider-specific validation rules functional
 ### Dependencies
 - Milestone 9 complete (ProviderToggle must be surfaced for testing)
 - Milestone 11 complete (BlockCategory alignment required before schema changes)
 
 ---
 
-## Milestone 13 — Terraform Pipeline
+## Milestone 13 — Terraform Pipeline ✅
 
 Goal:
 Productionize the code generation pipeline with real-world deployment support.
@@ -803,16 +799,15 @@ Key Objectives:
 - CI/CD pipeline templates (GitHub Actions, GitLab CI)
 
 ### Exit Criteria
-- [ ] Generated Terraform passes `terraform validate` and `tflint`
-- [ ] CI/CD pipeline templates available for major platforms
-- [ ] Private-link architecture template functional
-
+- [x] Generated Terraform passes `terraform validate` and `tflint`
+- [x] CI/CD pipeline templates available for major platforms
+- [x] Private-link architecture template functional
 ### Dependencies
 - Milestone 12 complete (requires stable multi-cloud model)
 
 ---
 
-## Milestone 14 — AI Roadmap
+## Milestone 14 — AI Roadmap (In Progress)
 
 Goal:
 Introduce AI-assisted architecture design and optimization.
@@ -832,6 +827,179 @@ Key Objectives:
 ### Dependencies
 - Milestone 12 complete (requires stable domain model)
 - Milestone 13 recommended (AI-generated architectures benefit from validated pipeline)
+
+> **Status**: Partially complete — 6 of 15 issues closed. Epic #293 open. Closed issues: #294-#296, #302-#304 (data model, prompt templates, provider suggestions). Open issues: #313-#320 (frontend AI panel, cost estimation, E2E tests, documentation).
+
+---
+
+## Milestone 15 — v2.0 Specification Implementation ✅
+
+Goal:
+Implement the CloudBlocks v2.0 Universal Architecture Specification across all layers — foundation, visual system, model & rules, and integration.
+
+> **Reference**: [CLOUDBLOCKS_SPEC_V2.md](../design/CLOUDBLOCKS_SPEC_V2.md), [ADR-0008](../adr/0008-v2-universal-architecture-specification.md)
+
+Key Objectives:
+
+- CU-based deterministic grid system with mandatory snap
+- Pixel precision rendering (no sub-pixel, integer coordinates only)
+- Universal Stud Standard enforcement across all elements
+- 2:1 dimetric isometric projection with depth sorting
+- v2.0 visual token system (geometry, colors, materials)
+- Updated validation contracts for v2.0 rules
+- Integration layer updates (generator pipeline, storage schema)
+
+Scope:
+
+- 4 Epics: Foundation, Visual System, Model & Rules, Integration
+- 22 issues total (all closed)
+
+### Exit Criteria
+- [x] CU grid system implemented with mandatory snap
+- [x] Pixel precision rules enforced (integer coordinates, +0.5 stroke alignment)
+- [x] Universal Stud Standard validated across all elements (rx=12, ry=6, height=5)
+- [x] 2:1 dimetric projection with depth sorting implemented
+- [x] v2.0 visual tokens extracted and applied
+- [x] Validation contracts updated for v2.0 rules
+- [x] Generator pipeline and storage schema aligned with v2.0
+- [x] All 22 issues closed, build and tests pass
+
+### Dependencies
+- Milestone 13 complete
+
+---
+
+## Milestone 16 — Documentation Architecture & Canonical Cleanup ✅
+
+Goal:
+Restore documentation coherence across the project. Establish clear canonical ownership, resolve runtime-vs-target architecture confusion, and verify code/document consistency after M15.
+
+> **Reference**: [M16_DOCUMENTATION_ARCHITECTURE.md](M16_DOCUMENTATION_ARCHITECTURE.md)
+
+Key Objectives:
+
+- Resolve canonical vs superseded document ownership conflicts
+- Standardize Milestone vs Phase terminology across all active docs
+- Define and apply document lifecycle policy (update/demote/archive)
+- Reconcile all major canonical documents with post-M15 codebase
+- Archive superseded v1.x specs with clear historical labels
+- Verify code-document consistency across types, validation, API, and design tokens
+
+Scope:
+
+- 2 Epics: Documentation Architecture Cleanup (Epic #356), Code/Document Consistency
+- 19 issues total (all closed)
+- 3 Waves: Foundation (conventions) → Reconciliation (content) → Alignment & Archive
+
+### Exit Criteria
+- [x] All 12 Epic #356 sub-issues closed
+- [x] All open documentation PRs resolved
+- [x] Zero documents with incorrect canonical/superseded status
+- [x] docs/README.md accurately reflects current project state with valid links
+- [x] Code-document consistency audit passes with no critical gaps
+- [x] Milestone vs Phase terminology standardized across all active docs
+- [x] Document lifecycle policy documented and applied
+
+### Dependencies
+- Milestone 15 complete
+
+---
+
+## Milestone 17 — Product Structure
+
+Goal:
+Restructure the monorepo from a scaffolded prototype into a modular, separation-ready architecture. Resolve rendering model ambiguity, extract shared packages, redefine backend responsibilities, and establish version policy.
+
+> **Reference**: [M17_PRODUCT_STRUCTURE.md](M17_PRODUCT_STRUCTURE.md)
+
+Key Objectives:
+
+- Rendering model decision (SVG-only vs hybrid) documented in ADR; unused Three.js dependencies resolved
+- Package extraction: `@cloudblocks/schema` and `@cloudblocks/domain` with actual consumers
+- Backend role redefinition: accurate documentation of actual responsibilities beyond "thin orchestration"
+- Monorepo infrastructure cleanup: workspace config, root-level build/test/lint, CI alignment
+- Version alignment policy: all packages track root version
+
+Scope:
+
+- 4 Epics: Rendering Model Resolution, Package Extraction & Boundaries, Backend Role & API Contract, Monorepo Infrastructure
+- 5 Areas (A-E) covering rendering, packages, backend, monorepo, and versioning
+
+### Exit Criteria
+- [ ] Rendering model documented in ADR; unused dependencies removed or justified
+- [ ] `packages/` contains real extracted code with actual consumers
+- [ ] `@cloudblocks/schema` is the single source of truth for the ArchitectureModel contract
+- [ ] Backend role accurately documented; API surface defined as explicit contract
+- [ ] All package versions aligned with documented versioning policy
+- [ ] `pnpm build`, `pnpm lint`, and tests pass from root for all apps and packages
+- [ ] No placeholder/empty packages remain in `packages/`
+
+### Dependencies
+- Milestone 16 complete
+
+---
+
+## Milestone 18 — DevOps UX
+
+Goal:
+Add operational control capabilities to CloudBlocks. Introduce an Ops Control Center, standardize deployment terminology, build environment promotion/rollback UX, and add a notification system.
+
+> **Reference**: [M18_DEVOPS_UX.md](M18_DEVOPS_UX.md)
+
+Key Objectives:
+
+- Ops Control Center dashboard: deployment status, pipeline integration, environment health, cost estimation
+- Deploy terminology standardization: canonical definitions for deploy/promote/rollback/release
+- Promote/rollback UX: visual flows with pre-checks, version selection, diff preview
+- Notification system: in-app notification center, toast alerts, deployment event history
+
+Scope:
+
+- 4 Epics: Ops Control Center (Area A), Deploy Terminology (Area B), Promote/Rollback UX (Area C), Notification System (Area D)
+- Estimated effort: 6-8 weeks
+
+### Exit Criteria
+- [ ] Ops Control Center shows real-time deployment status for `local`, `staging`, and `production`
+- [ ] Deploy/promote/rollback terminology consistent across all docs, workflows, and UI
+- [ ] Promote flow works end-to-end: staging to production with pre-promotion checklist
+- [ ] Rollback to a previous version works from Ops Control Center
+- [ ] Cost estimation displayed before deployment confirmation
+- [ ] Notification system shows deployment lifecycle events in-app
+- [ ] Deployment history log records all deploys, promotions, and rollbacks
+
+### Dependencies
+- Milestone 17 complete
+
+---
+
+## i18n — Internationalization
+
+Goal:
+Add multi-language support to CloudBlocks using react-i18next, enabling localization of all user-facing strings.
+
+Key Objectives:
+
+- Install and configure react-i18next with namespace-based translation organization
+- Extract all hardcoded English UI strings to translation JSON files
+- Create English (en) base translation as the default locale
+- Add Korean (ko) translation as the first additional locale
+- Implement language switcher UI component
+
+Scope:
+
+- 1 Epic (#392) with 5 sub-issues (#393-#397)
+- Covers: setup, string extraction, base locale, Korean locale, language switcher
+
+### Exit Criteria
+- [ ] react-i18next configured with namespace-based organization
+- [ ] All user-facing strings extracted to translation files
+- [ ] English (en) base translation complete and functional
+- [ ] Korean (ko) translation complete for all namespaces
+- [ ] Language switcher accessible from UI settings
+- [ ] Build passes with i18n integration
+
+### Dependencies
+- No hard dependency on other milestones (can run in parallel with M17 or M18)
 
 ---
 
@@ -872,21 +1040,39 @@ Milestone 1 (Complete)
 - Validation engine working
 - Workspace persistence functional
 
-Milestone 3
+Milestone 3 (Complete)
 - Terraform generation produces valid HCL
 - Code preview panel functional
 
-Milestone 5
+Milestone 5 (Complete)
 - GitHub integration operational
 - Backend API deployed
 - Zero architecture data in backend DB
 
-Milestone 6
+Milestone 6 (Complete)
 - Multi-generator support (Terraform + Bicep + Pulumi)
 - Template marketplace launched
 
-Milestone 8+
-- Multi-cloud architecture support
+Milestone 8-13 (Complete)
+- Multi-cloud architecture support (AWS, GCP, Azure)
+- UX hardened to production quality
+- External actors interactive with RTS-style worker pattern
+- Brick design system consolidated with stud validation
+- Core domain model extended with subtypes and provider semantics
+- Terraform pipeline productionized with CI/CD templates
+
+Milestone 15-16 (Complete)
+- v2.0 specification fully implemented
+- Documentation architecture restored to coherence
+
+Milestone 14 (In Progress)
+- AI-assisted architecture design
+- Natural language → architecture generation
+
+Milestone 17+ (Planned)
+- Modular monorepo structure with extracted packages
+- DevOps operational control center
+- Internationalization support
 - Community contributors > 10
 - GitHub stars growth trajectory
 
@@ -910,26 +1096,42 @@ The roadmap evolves CloudBlocks from:
 
 → Collaboration Platform (Milestone 7)
 
-→ Multi-Cloud Architecture Tool (Milestone 8)
+→ Multi-Cloud Architecture Tool (Milestone 8) ✅
 
-→ UX Core Hardening (Milestone 9) ‖ Brick Design System (Milestone 11)
+→ UX Core Hardening (Milestone 9) ✅ ‖ Brick Design System (Milestone 11) ✅
 
-→ DevOps Worker UX (Milestone 10)
+→ DevOps Worker UX (Milestone 10) ✅
 
-→ Core Model & Provider System (Milestone 12)
+→ Core Model & Provider System (Milestone 12) ✅
 
-→ Terraform Pipeline (Milestone 13)
+→ Terraform Pipeline (Milestone 13) ✅
 
-→ AI-Assisted Architecture (Milestone 14)
+→ v2.0 Specification Implementation (Milestone 15) ✅
+
+→ Documentation Architecture (Milestone 16) ✅
+
+→ AI-Assisted Architecture (Milestone 14) 🔄
+
+→ Product Structure (Milestone 17)
+
+→ DevOps UX (Milestone 18)
+
+→ Internationalization (i18n)
 
 ### Dependency Graph
 
 ```
-Milestone 8 (Complete)
-    ├── Milestone 9 (UX Core Hardening)
-    │       └── Milestone 10 (DevOps UX)
-    │       └── Milestone 12 (Core Model) ←── also requires Milestone 11
-    │               └── Milestone 13 (Terraform Pipeline)
-    │               └── Milestone 14 (AI Roadmap) ←── also benefits from Milestone 13
-    └── Milestone 11 (Brick Design) ──── parallel with Milestone 9
+Milestone 8 (Complete) ✅
+    ├── Milestone 9 (UX Core Hardening) ✅
+    │       └── Milestone 10 (DevOps Worker UX) ✅
+    │       └── Milestone 12 (Core Model) ✅ ←── also requires Milestone 11 ✅
+    │               └── Milestone 13 (Terraform Pipeline) ✅
+    │                       └── Milestone 15 (v2.0 Spec) ✅
+    │                               └── Milestone 16 (Doc Architecture) ✅
+    │                                       └── Milestone 17 (Product Structure)
+    │                                               └── Milestone 18 (DevOps UX)
+    │               └── Milestone 14 (AI Roadmap) 🔄 ←── also benefits from Milestone 13
+    └── Milestone 11 (Brick Design) ✅ ──── parallel with Milestone 9
+
+i18n (Internationalization) ──── independent, can run in parallel
 ```
