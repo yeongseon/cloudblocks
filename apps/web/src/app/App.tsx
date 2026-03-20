@@ -51,6 +51,8 @@ function App() {
   const showGitHubLogin = useUIStore((s) => s.showGitHubLogin);
   const showGitHubRepos = useUIStore((s) => s.showGitHubRepos);
   const showGitHubPR = useUIStore((s) => s.showGitHubPR);
+  const showTemplateGallery = useUIStore((s) => s.showTemplateGallery);
+  const showScenarioGallery = useUIStore((s) => s.showScenarioGallery);
   const workspaceId = useArchitectureStore((s) => s.workspace.id);
 
   useEffect(() => {
@@ -154,13 +156,13 @@ function App() {
           <Suspense fallback={null}>
             {showCodePreview && <CodePreview key={`code-${workspaceId}`} />}
             {showWorkspaceManager && <WorkspaceManager />}
-            <TemplateGallery />
+            {showTemplateGallery && <TemplateGallery />}
             {showGitHubLogin && <GitHubLogin />}
             {showGitHubRepos && <GitHubRepos />}
             <GitHubSync />
             {showGitHubPR && <GitHubPR key={`pr-${workspaceId}`} />}
             <DiffPanel />
-            <ScenarioGallery />
+            {showScenarioGallery && <ScenarioGallery />}
           </Suspense>
         </div>
       </div>

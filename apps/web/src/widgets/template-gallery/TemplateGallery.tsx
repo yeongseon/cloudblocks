@@ -28,13 +28,10 @@ const categoryKeys: Array<TemplateCategory | 'all'> = [
 ];
 
 export function TemplateGallery() {
-  const show = useUIStore((s) => s.showTemplateGallery);
   const toggleTemplateGallery = useUIStore((s) => s.toggleTemplateGallery);
   const loadFromTemplate = useArchitectureStore((s) => s.loadFromTemplate);
   const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
   const [activeCategory, setActiveCategory] = useState<TemplateCategory | 'all'>('all');
-
-  if (!show) return null;
 
   const templates =
     activeCategory === 'all'

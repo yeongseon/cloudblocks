@@ -38,7 +38,6 @@ const mockArch: ArchitectureModel = {
 describe('CodePreview', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    useUIStore.setState({ showCodePreview: false });
     useArchitectureStore.setState({
       workspace: {
         id: 'ws-1', name: 'Test', architecture: mockArch,
@@ -47,13 +46,7 @@ describe('CodePreview', () => {
     });
   });
 
-  it('returns null when showCodePreview is false', () => {
-    const { container } = render(<CodePreview />);
-    expect(container.innerHTML).toBe('');
-  });
-
-  it('renders code preview with title when visible', () => {
-    useUIStore.setState({ showCodePreview: true });
+  it('renders code preview with title', () => {
     render(<CodePreview />);
     expect(screen.getByText(/Code Generation/)).toBeInTheDocument();
   });
@@ -67,14 +60,12 @@ describe('CodePreview', () => {
   });
 
   it('renders project and region input fields', () => {
-    useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
-    expect(screen.getByDisplayValue('myproject')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('test')).toBeInTheDocument();
     expect(screen.getByDisplayValue('eastus')).toBeInTheDocument();
   });
 
   it('renders generator selector with three options', () => {
-    useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
 
     const select = screen.getByRole('combobox');
@@ -86,9 +77,8 @@ describe('CodePreview', () => {
 
   it('updates project name input', async () => {
     const user = userEvent.setup();
-    useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
-    const input = screen.getByDisplayValue('myproject');
+    const input = screen.getByDisplayValue('test');
     await user.clear(input);
     await user.type(input, 'newproject');
     expect(screen.getByDisplayValue('newproject')).toBeInTheDocument();
@@ -96,7 +86,6 @@ describe('CodePreview', () => {
 
   it('updates region input', async () => {
     const user = userEvent.setup();
-    useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
     const input = screen.getByDisplayValue('eastus');
     await user.clear(input);
@@ -120,13 +109,12 @@ describe('CodePreview', () => {
     };
     vi.mocked(generateCode).mockReturnValue(mockOutput);
 
-    useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
     await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
     expect(generateCode).toHaveBeenCalledWith(mockArch, {
       provider: 'azure',
       mode: 'draft',
-      projectName: 'myproject',
+      projectName: 'test',
       region: 'eastus',
       generator: 'terraform',
     });
@@ -151,7 +139,6 @@ describe('CodePreview', () => {
     };
     vi.mocked(generateCode).mockReturnValue(mockOutput);
 
-    useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
     await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
     // Default shows first file
@@ -167,7 +154,6 @@ describe('CodePreview', () => {
       throw new GenerationError('Architecture is empty');
     });
 
-    useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
     await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
     expect(screen.getByText('Architecture is empty')).toBeInTheDocument();
@@ -179,7 +165,6 @@ describe('CodePreview', () => {
       throw new Error('something unexpected');
     });
 
-    useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
     await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
     expect(screen.getByText('Unexpected error during code generation.')).toBeInTheDocument();
@@ -200,7 +185,6 @@ describe('CodePreview', () => {
     };
     vi.mocked(generateCode).mockReturnValue(mockOutput);
 
-    useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
     await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
     await user.click(screen.getByText(/Copy/));
@@ -231,7 +215,6 @@ describe('CodePreview', () => {
     };
     vi.mocked(generateCode).mockReturnValue(mockOutput);
 
-    useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
     await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
     await user.click(screen.getByText(/Download All/));
@@ -249,7 +232,6 @@ describe('CodePreview', () => {
     };
     vi.mocked(generateCode).mockReturnValue(mockOutput);
 
-    useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
     await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
     expect(screen.getByText(/v0\.3\.0/)).toBeInTheDocument();
@@ -262,7 +244,6 @@ describe('CodePreview', () => {
     vi.mocked(generateCode).mockImplementation(() => {
       throw new GenerationError('First error');
     });
-    useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
     await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
     expect(screen.getByText('First error')).toBeInTheDocument();
@@ -280,7 +261,6 @@ describe('CodePreview', () => {
 
   it('updates generate button label when selecting bicep and pulumi', async () => {
     const user = userEvent.setup();
-    useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
 
     const select = screen.getByRole('combobox');
@@ -292,7 +272,6 @@ describe('CodePreview', () => {
   });
 
   it('falls back to generic generate label for unknown generator value', () => {
-    useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
 
     const select = screen.getByRole('combobox');
@@ -315,7 +294,6 @@ describe('CodePreview', () => {
     };
     vi.mocked(generateCode).mockReturnValue(mockOutput);
 
-    useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
 
     await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
@@ -331,7 +309,6 @@ describe('CodePreview', () => {
     };
     vi.mocked(generateCode).mockReturnValue(mockOutput);
 
-    useUIStore.setState({ showCodePreview: true });
     const { container } = render(<CodePreview />);
 
     await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
@@ -351,7 +328,6 @@ describe('CodePreview', () => {
       },
     }));
 
-    useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
 
     await user.click(screen.getByRole('checkbox'));
@@ -368,7 +344,6 @@ describe('CodePreview', () => {
 
   it('shows compare-mode restriction error for non-terraform generators', async () => {
     const user = userEvent.setup();
-    useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
 
     const select = screen.getByRole('combobox');
@@ -387,16 +362,42 @@ describe('CodePreview', () => {
     };
     vi.mocked(generateCode).mockReturnValue(mockOutput);
 
-    useUIStore.setState({ showCodePreview: true });
     const { unmount } = render(<CodePreview />);
     await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
     expect(screen.getByText('main.tf')).toBeInTheDocument();
 
     unmount();
-    useUIStore.setState({ showCodePreview: true });
     render(<CodePreview />);
 
     expect(screen.queryByText('main.tf')).not.toBeInTheDocument();
     expect(screen.queryByText('resource content')).not.toBeInTheDocument();
+  });
+
+  it('derives default project name from architecture name', () => {
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-2', name: 'Custom', architecture: {
+          ...mockArch,
+          name: 'My Cool App',
+        },
+        createdAt: '', updatedAt: '',
+      },
+    });
+    render(<CodePreview />);
+    expect(screen.getByDisplayValue('my-cool-app')).toBeInTheDocument();
+  });
+
+  it('falls back to myproject when architecture name sanitizes to empty', () => {
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-3', name: 'Empty', architecture: {
+          ...mockArch,
+          name: '!!!',
+        },
+        createdAt: '', updatedAt: '',
+      },
+    });
+    render(<CodePreview />);
+    expect(screen.getByDisplayValue('myproject')).toBeInTheDocument();
   });
 });
