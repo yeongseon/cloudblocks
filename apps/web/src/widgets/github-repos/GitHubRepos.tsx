@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { apiGet, apiPost } from '../../shared/api/client';
@@ -9,8 +10,15 @@ import './GitHubRepos.css';
 export function GitHubRepos() {
   const show = useUIStore((s) => s.showGitHubRepos);
   const toggleGitHubRepos = useUIStore((s) => s.toggleGitHubRepos);
+  const toggleGitHubSync = useUIStore((s) => s.toggleGitHubSync);
+  const toggleGitHubLogin = useUIStore((s) => s.toggleGitHubLogin);
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
   const authStatus = useAuthStore((s) => s.status);
+
+  // #783: Access store to pre-fill repo input in GitHubSync
+  const workspace = useArchitectureStore((s) => s.workspace);
+  const setStoreGithubRepo = useArchitectureStore((s) => s.setGithubRepo);
+  const setStoreBackendWorkspaceId = useArchitectureStore((s) => s.setBackendWorkspaceId);
 
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
   const [loading, setLoading] = useState(false);
@@ -67,10 +75,25 @@ export function GitHubRepos() {
     }
   };
 
+  // #783: Select a repo and hand it to GitHubSync
+  const handleSelectRepo = (fullName: string) => {
+    // Set the repo directly in the store if there's a backend workspace id
+    // Otherwise just open the Sync panel pre-linked
+    if (workspace.backendWorkspaceId) {
+      setStoreGithubRepo(workspace.id, fullName);
+    } else {
+      // Set the repo + use workspace.id as fallback backend workspace id
+      setStoreGithubRepo(workspace.id, fullName);
+      setStoreBackendWorkspaceId(workspace.id, workspace.id);
+    }
+    toggleGitHubRepos();
+    toggleGitHubSync();
+  };
+
   return (
     <div className="github-repos">
       <div className="github-repos-header">
-        <h3 className="github-repos-title">📦 GitHub Repos</h3>
+        <h3 className="github-repos-title">GitHub Repos</h3>
         <button type="button" className="github-repos-close" onClick={toggleGitHubRepos} aria-label="Close GitHub repos panel">
           ✕
         </button>
@@ -79,7 +102,13 @@ export function GitHubRepos() {
       {authStatus === 'unknown' ? (
         <div className="github-repos-loading">Checking authentication...</div>
       ) : !isAuthenticated ? (
-        <div className="github-repos-empty">GitHub authentication required.</div>
+        <div className="github-repos-empty">
+          GitHub authentication required.
+          {/* #786: Sign-in action from unauth state */}
+          <button type="button" className="github-repos-signin-btn" onClick={toggleGitHubLogin}>
+            Sign in with GitHub
+          </button>
+        </div>
       ) : (
         <>
           {(loading || creating) && <div className="github-repos-loading">Loading...</div>}
@@ -127,9 +156,20 @@ export function GitHubRepos() {
                       {repo.private ? 'private' : 'public'}
                     </span>
                   </div>
-                  <a className="github-repos-link" href={repo.html_url} target="_blank" rel="noreferrer">
-                    {repo.html_url}
-                  </a>
+                  <div className="github-repos-item-actions">
+                    <a className="github-repos-link" href={repo.html_url} target="_blank" rel="noreferrer">
+                      {repo.html_url}
+                    </a>
+                    {/* #783: Use this repo button */}
+                    <button
+                      type="button"
+                      className="github-repos-select-btn"
+                      onClick={() => handleSelectRepo(repo.full_name)}
+                      title={`Link ${repo.full_name} to this workspace`}
+                    >
+                      Use
+                    </button>
+                  </div>
                 </div>
               ))
             )}

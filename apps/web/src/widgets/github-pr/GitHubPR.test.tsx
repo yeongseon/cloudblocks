@@ -48,6 +48,7 @@ describe('GitHubPR', () => {
         createdAt: '',
         updatedAt: '',
         backendWorkspaceId: 'backend-ws-1',
+        githubRepo: 'owner/repo',
       },
     });
   });
@@ -210,7 +211,7 @@ describe('GitHubPR', () => {
     render(<GitHubPR />);
     await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
 
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.getByText('Creating pull request...')).toBeInTheDocument();
     resolvePost({ pull_request_url: 'https://github.com/owner/repo/pull/42', number: 42, branch: 'main' });
   });
 
@@ -266,6 +267,7 @@ describe('GitHubPR', () => {
         createdAt: '',
         updatedAt: '',
         backendWorkspaceId: 'backend-ws-42',
+        githubRepo: 'owner/repo',
       },
     });
     mockApiPost.mockResolvedValue({

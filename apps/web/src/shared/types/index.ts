@@ -71,6 +71,7 @@ export interface Workspace {
   updatedAt: string;
   backendWorkspaceId?: string;
   githubRepo?: string;
+  githubBranch?: string;
 }
 
 // ─── Visual Identity ───────────────────────────────────────

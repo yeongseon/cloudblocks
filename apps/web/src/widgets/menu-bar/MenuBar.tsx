@@ -26,7 +26,9 @@ const PROVIDER_OPTIONS: { id: ProviderType; label: string; color: string }[] = [
 
 export function MenuBar() {
   const [openMenu, setOpenMenu] = useState<DropdownMenu>(null);
-  
+  // #768: Compare loading state
+  const [compareLoading, setCompareLoading] = useState(false);
+
   const selectedId = useUIStore((s) => s.selectedId);
   const showValidation = useUIStore((s) => s.showValidation);
   const toggleValidation = useUIStore((s) => s.toggleValidation);
@@ -62,7 +64,7 @@ export function MenuBar() {
   const removePlate = useArchitectureStore((s) => s.removePlate);
   const removeBlock = useArchitectureStore((s) => s.removeBlock);
   const removeConnection = useArchitectureStore((s) => s.removeConnection);
-  
+
   const validate = useArchitectureStore((s) => s.validate);
   const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
   const loadFromStorage = useArchitectureStore((s) => s.loadFromStorage);
@@ -70,6 +72,7 @@ export function MenuBar() {
   const validationResult = useArchitectureStore((s) => s.validationResult);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const backendWorkspaceId = useArchitectureStore((s) => s.workspace.backendWorkspaceId);
+  const githubRepo = useArchitectureStore((s) => s.workspace.githubRepo);
   const canUndo = useArchitectureStore((s) => s.canUndo);
   const canRedo = useArchitectureStore((s) => s.canRedo);
   const undo = useArchitectureStore((s) => s.undo);
@@ -77,7 +80,9 @@ export function MenuBar() {
   const importArchitecture = useArchitectureStore((s) => s.importArchitecture);
 
   const importInputRef = useRef<HTMLInputElement>(null);
+  // #791: Require both backend workspace id and github repo for compare/PR/sync
   const hasBackendWorkspaceLink = Boolean(backendWorkspaceId);
+  const hasFullGitHubLink = hasBackendWorkspaceLink && Boolean(githubRepo);
 
   useEffect(() => {
     const handleDocumentClick = (e: MouseEvent) => {
@@ -202,17 +207,50 @@ export function MenuBar() {
       return;
     }
 
+    // #768: Prevent duplicate submissions
+    if (compareLoading) return;
+
+    // #767: Capture workspace context for stale-response guard
+    const capturedWorkspaceId = useArchitectureStore.getState().workspace.id;
+    const capturedBackendId = backendWorkspaceId;
+
+    // #769: Snapshot local architecture at compare start
+    const localArchSnapshot = useArchitectureStore.getState().workspace.architecture;
+
+    setCompareLoading(true);
+    toast.loading('Comparing with GitHub...', { id: 'compare-loading' });
+
     try {
       const response = await apiPost<PullResponse>(
-        `/api/v1/workspaces/${encodeURIComponent(backendWorkspaceId)}/pull`,
+        `/api/v1/workspaces/${encodeURIComponent(capturedBackendId)}/pull`,
       );
+
+      // #767: Check if workspace changed during request
+      const currentState = useArchitectureStore.getState();
+      if (currentState.workspace.id !== capturedWorkspaceId
+        || currentState.workspace.backendWorkspaceId !== capturedBackendId) {
+        toast.dismiss('compare-loading');
+        toast.error('Workspace changed during compare. Please try again.');
+        return;
+      }
+
       validateArchitectureShape(response.architecture);
       const remoteArch = response.architecture as unknown as ArchitectureModel;
-      const localArch = useArchitectureStore.getState().workspace.architecture;
-      const delta = computeArchitectureDiff(remoteArch, localArch);
+      // #769: Use the snapshotted local architecture, not current
+      const delta = computeArchitectureDiff(remoteArch, localArchSnapshot);
       useUIStore.getState().setDiffMode(true, delta, remoteArch);
+      toast.dismiss('compare-loading');
     } catch (err) {
-      toast.error(getApiErrorMessage(err, 'Failed to fetch remote architecture'));
+      // #775: Invalidate stale diff on compare failure
+      if (useUIStore.getState().diffMode) {
+        useUIStore.getState().setDiffMode(false);
+        toast.error('Compare failed. Previous diff view has been cleared.');
+      } else {
+        toast.error(getApiErrorMessage(err, 'Failed to fetch remote architecture'));
+      }
+      toast.dismiss('compare-loading');
+    } finally {
+      setCompareLoading(false);
     }
   };
 
@@ -248,7 +286,7 @@ export function MenuBar() {
 
   return (
     <div className="menu-bar">
-      <div className="menu-bar-logo">🧱 CloudBlocks</div>
+      <div className="menu-bar-logo">CloudBlocks</div>
 
       <div className="menu-bar-divider" />
 
@@ -278,22 +316,22 @@ export function MenuBar() {
           </button>
           <div className={`menu-dropdown ${openMenu === 'file' ? 'show' : ''}`}>
             <button type="button" className="menu-item" onClick={() => handleAction(handleSave)}>
-              <span className="menu-item-left">💾 Save Workspace</span>
+              <span className="menu-item-left">Save Workspace</span>
               <span className="menu-shortcut">Ctrl+S</span>
             </button>
             <button type="button" className="menu-item" onClick={() => handleAction(handleLoad)}>
-              <span className="menu-item-left">📂 Load Workspace</span>
+              <span className="menu-item-left">Load Workspace</span>
             </button>
             <div className="menu-separator" />
             <button type="button" className="menu-item" onClick={() => handleAction(handleImport)}>
-              <span className="menu-item-left">📥 Import JSON</span>
+              <span className="menu-item-left">Import JSON</span>
             </button>
             <button type="button" className="menu-item" onClick={() => handleAction(handleExport)}>
-              <span className="menu-item-left">📤 Export JSON</span>
+              <span className="menu-item-left">Export JSON</span>
             </button>
             <div className="menu-separator" />
             <button type="button" className="menu-item" onClick={() => handleAction(handleReset)}>
-              <span className="menu-item-left">🔄 Reset Workspace</span>
+              <span className="menu-item-left">Reset Workspace</span>
             </button>
           </div>
         </div>
@@ -314,7 +352,7 @@ export function MenuBar() {
               onClick={() => handleAction(undo)}
               disabled={!canUndo}
             >
-              <span className="menu-item-left">↩ Undo</span>
+              <span className="menu-item-left">Undo</span>
               <span className="menu-shortcut">Ctrl+Z</span>
             </button>
             <button
@@ -323,7 +361,7 @@ export function MenuBar() {
               onClick={() => handleAction(redo)}
               disabled={!canRedo}
             >
-              <span className="menu-item-left">↪ Redo</span>
+              <span className="menu-item-left">Redo</span>
               <span className="menu-shortcut">Ctrl+Shift+Z</span>
             </button>
             <div className="menu-separator" />
@@ -333,7 +371,7 @@ export function MenuBar() {
               onClick={() => handleAction(handleDeleteSelection)}
               disabled={!selectedId}
             >
-              <span className="menu-item-left">❌ Delete Selection</span>
+              <span className="menu-item-left">Delete Selection</span>
               <span className="menu-shortcut">Del</span>
             </button>
           </div>
@@ -350,7 +388,7 @@ export function MenuBar() {
           </button>
           <div className={`menu-dropdown ${openMenu === 'build' ? 'show' : ''}`}>
             <button type="button" className="menu-item" onClick={() => handleAction(handleValidate)}>
-              <span className="menu-item-left">✅ Validate Architecture</span>
+              <span className="menu-item-left">Validate Architecture</span>
               {validationResult && (
                 <span className={`menu-badge ${validationResult.valid ? 'menu-badge-valid' : 'menu-badge-invalid'}`}>
                   {validationResult.valid ? 'Valid' : 'Errors'}
@@ -358,24 +396,24 @@ export function MenuBar() {
               )}
             </button>
             <button type="button" className="menu-item" onClick={() => handleAction(toggleCodePreview)}>
-              <span className="menu-item-left">⚡ Generate Terraform</span>
+              <span className="menu-item-left">Generate Terraform</span>
             </button>
             <div className="menu-separator" />
             <button type="button" className="menu-item" onClick={() => handleAction(toggleTemplateGallery)}>
-              <span className="menu-item-left">📦 Browse Templates</span>
+              <span className="menu-item-left">Browse Templates</span>
             </button>
             <button type="button" className="menu-item" onClick={() => handleAction(toggleSuggestionsPanel)}>
-              <span className="menu-item-left">🤖 AI Suggestions</span>
+              <span className="menu-item-left">AI Suggestions</span>
             </button>
             <button type="button" className="menu-item" onClick={() => handleAction(toggleCostPanel)}>
-              <span className="menu-item-left">💰 Cost Estimate</span>
+              <span className="menu-item-left">Cost Estimate</span>
             </button>
             <div className="menu-separator" />
             <button type="button" className="menu-item" onClick={() => handleAction(toggleScenarioGallery)}>
-              <span className="menu-item-left">📚 Browse Scenarios</span>
+              <span className="menu-item-left">Browse Scenarios</span>
             </button>
             <button type="button" className="menu-item" onClick={() => handleAction(handleToggleLearningPanel)}>
-              <span className="menu-item-left">{showLearningPanel ? '✓ ' : ''}📖 Show Learning Panel</span>
+              <span className="menu-item-left">{showLearningPanel ? '✓ ' : ''}Show Learning Panel</span>
             </button>
           </div>
         </div>
@@ -391,14 +429,14 @@ export function MenuBar() {
           </button>
           <div className={`menu-dropdown ${openMenu === 'view' ? 'show' : ''}`}>
             <button type="button" className="menu-item" onClick={() => handleAction(toggleBlockPalette)}>
-              <span className="menu-item-left">{showBlockPalette ? '✓ ' : '  '}🧰 Block Palette</span>
+              <span className="menu-item-left">{showBlockPalette ? '✓ ' : '  '}Block Palette</span>
             </button>
             <button type="button" className="menu-item" onClick={() => handleAction(toggleProperties)}>
-              <span className="menu-item-left">{showProperties ? '✓ ' : '  '}⚙️ Properties Panel</span>
+              <span className="menu-item-left">{showProperties ? '✓ ' : '  '}Properties Panel</span>
             </button>
             <div className="menu-separator" />
             <button type="button" className="menu-item" onClick={() => handleAction(toggleValidation)}>
-              <span className="menu-item-left">{showValidation ? '✓ ' : ''}📊 Validation Results</span>
+              <span className="menu-item-left">{showValidation ? '✓ ' : ''}Validation Results</span>
             </button>
             <div className="menu-separator" />
             <button
@@ -407,11 +445,11 @@ export function MenuBar() {
               onClick={() => handleAction(handleToggleDiffMode)}
               disabled={!diffMode}
             >
-              <span className="menu-item-left">{diffMode ? '✓ ' : ''}🔍 Diff View</span>
+              <span className="menu-item-left">{diffMode ? '✓ ' : ''}Diff View</span>
             </button>
           </div>
         </div>
-      
+
       </nav>
 
       <AiPromptBar onSubmit={handleAiSubmit} isLoading={aiLoading} provider={activeProvider} error={aiError ?? undefined} explanation={aiResult?.explanation} warnings={aiResult?.warnings} />
@@ -485,7 +523,7 @@ export function MenuBar() {
             disabled
             title="Checking authentication..."
           >
-            🔐 ...
+            ...
           </button>
         ) : isAuthenticated ? (
           <>
@@ -495,42 +533,41 @@ export function MenuBar() {
               data-active={openMenu === 'github'}
               onClick={() => toggleMenu('github')}
             >
-              🔐 {user?.github_username ?? 'GitHub'}
+              {user?.github_username ?? 'GitHub'}
             </button>
             <div className={`menu-dropdown right-aligned ${openMenu === 'github' ? 'show' : ''}`}>
               <button type="button" className="menu-item" onClick={() => handleAction(toggleGitHubRepos)}>
-                <span className="menu-item-left">📦 Repos</span>
+                <span className="menu-item-left">Repos</span>
               </button>
+              {/* #770: Allow opening Sync without backend workspace link */}
               <button
                 type="button"
                 className="menu-item"
                 onClick={() => handleAction(toggleGitHubSync)}
-                disabled={!hasBackendWorkspaceLink}
-                title={!hasBackendWorkspaceLink ? 'Link workspace to backend to use GitHub sync.' : undefined}
               >
-                <span className="menu-item-left">🔄 Sync</span>
+                <span className="menu-item-left">Sync</span>
               </button>
               <button
                 type="button"
                 className="menu-item"
                 onClick={() => handleAction(toggleGitHubPR)}
-                disabled={!hasBackendWorkspaceLink}
-                title={!hasBackendWorkspaceLink ? 'Link workspace to backend to create pull requests.' : undefined}
+                disabled={!hasFullGitHubLink}
+                title={!hasFullGitHubLink ? 'Link workspace to a GitHub repo to create pull requests.' : undefined}
               >
-                <span className="menu-item-left">🔀 Create PR</span>
+                <span className="menu-item-left">Create PR</span>
               </button>
               <button
                 type="button"
                 className="menu-item"
                 onClick={() => handleAction(handleCompareWithGitHub)}
-                disabled={!hasBackendWorkspaceLink}
-                title={!hasBackendWorkspaceLink ? 'Link workspace to backend to compare with GitHub.' : undefined}
+                disabled={!hasFullGitHubLink || compareLoading}
+                title={!hasFullGitHubLink ? 'Link workspace to a GitHub repo to compare.' : compareLoading ? 'Comparing...' : undefined}
               >
-                <span className="menu-item-left">🔍 Compare with GitHub</span>
+                <span className="menu-item-left">{compareLoading ? 'Comparing...' : 'Compare with GitHub'}</span>
               </button>
               <div className="menu-separator" />
               <button type="button" className="menu-item" onClick={() => handleAction(logout)}>
-                <span className="menu-item-left">🚪 Sign Out</span>
+                <span className="menu-item-left">Sign Out</span>
               </button>
             </div>
           </>
@@ -541,7 +578,7 @@ export function MenuBar() {
             onClick={toggleGitHubLogin}
             title="Sign in with GitHub"
           >
-            🔐 Sign In
+            Sign In
           </button>
         )}
       </div>

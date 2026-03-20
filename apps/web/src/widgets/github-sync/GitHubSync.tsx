@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { apiGet, apiPost, apiPut } from '../../shared/api/client';
+import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import { isValidGitHubRepoFullName } from '../../shared/utils/githubValidation';
 import type { GitHubCommit, PullResponse, SyncResponse } from '../../shared/types/api';
 import type { ArchitectureSnapshot } from '../../shared/types/learning';
@@ -12,18 +14,22 @@ export function GitHubSync() {
   const show = useUIStore((s) => s.showGitHubSync);
   const toggleGitHubSync = useUIStore((s) => s.toggleGitHubSync);
   const toggleGitHubRepos = useUIStore((s) => s.toggleGitHubRepos);
+  const toggleGitHubLogin = useUIStore((s) => s.toggleGitHubLogin);
+  const diffMode = useUIStore((s) => s.diffMode);
 
   const workspace = useArchitectureStore((s) => s.workspace);
   const replaceArchitecture = useArchitectureStore((s) => s.replaceArchitecture);
   const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
   const setStoreBackendWorkspaceId = useArchitectureStore((s) => s.setBackendWorkspaceId);
   const setStoreGithubRepo = useArchitectureStore((s) => s.setGithubRepo);
+  const setStoreGithubBranch = useArchitectureStore((s) => s.setGithubBranch);
 
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
   const authStatus = useAuthStore((s) => s.status);
 
   const linkedRepo = workspace.githubRepo ?? null;
   const backendWorkspaceId = workspace.backendWorkspaceId ?? null;
+  const githubBranch = workspace.githubBranch ?? null;
 
   const [repoInput, setRepoInput] = useState('');
   const [backendWorkspaceIdInput, setBackendWorkspaceIdInput] = useState('');
@@ -43,6 +49,8 @@ export function GitHubSync() {
   const workspaceIdRef = useRef(workspace.id);
   const linkedRepoRef = useRef(linkedRepo);
   const effectiveWorkspaceIdRef = useRef<string | null>(null);
+  const prevWorkspaceIdRef = useRef(workspace.id);
+  const prevShowRef = useRef(show);
 
   useEffect(() => () => {
     mountedRef.current = false;
@@ -58,6 +66,28 @@ export function GitHubSync() {
   workspaceIdRef.current = workspace.id;
   linkedRepoRef.current = linkedRepo;
   effectiveWorkspaceIdRef.current = effectiveWorkspaceId;
+
+  // #773 / #774: Reset draft state when workspace changes or panel reopens
+  useEffect(() => {
+    const workspaceChanged = prevWorkspaceIdRef.current !== workspace.id;
+    const panelReopened = !prevShowRef.current && show;
+
+    prevWorkspaceIdRef.current = workspace.id;
+    prevShowRef.current = show;
+
+    if (workspaceChanged || panelReopened) {
+      setRepoInput('');
+      setBackendWorkspaceIdInput('');
+      setCommitMessage('Sync architecture from CloudBlocks');
+      setError(null);
+      setCommitRefreshError(null);
+      setPullConfirmPending(false);
+      // #756 / #774: Clear stale commits immediately on workspace switch
+      if (workspaceChanged) {
+        setCommits([]);
+      }
+    }
+  }, [workspace.id, show]);
 
   const loadCommits = useCallback(async () => {
     if (!linkedRepo || !effectiveWorkspaceId) return;
@@ -105,6 +135,21 @@ export function GitHubSync() {
 
   if (!show) return null;
 
+  // #772: Create a stale-response guard for action handlers
+  const createActionGuard = () => {
+    const capturedWorkspaceId = workspace.id;
+    const capturedLinkedRepo = linkedRepo;
+    const capturedBackendId = effectiveWorkspaceId;
+    return () => (
+      mountedRef.current
+      && showRef.current
+      && authRef.current
+      && workspaceIdRef.current === capturedWorkspaceId
+      && linkedRepoRef.current === capturedLinkedRepo
+      && effectiveWorkspaceIdRef.current === capturedBackendId
+    );
+  };
+
   const handleLinkRepo = async () => {
     const cleanedRepo = repoInput.trim();
     if (!isValidGitHubRepoFullName(cleanedRepo)) {
@@ -112,8 +157,12 @@ export function GitHubSync() {
       return;
     }
 
-    const bwsId = backendWorkspaceIdInput.trim() || workspace.id;
+    // #771: Prefer existing backendWorkspaceId, then input, then workspace.id
+    const bwsId = backendWorkspaceIdInput.trim()
+      || workspace.backendWorkspaceId
+      || workspace.id;
 
+    const isStale = createActionGuard();
     setLinkLoading(true);
     setError(null);
 
@@ -122,45 +171,88 @@ export function GitHubSync() {
         github_repo: cleanedRepo,
       });
 
+      if (!isStale()) return;
+
       setStoreGithubRepo(workspace.id, cleanedRepo);
       setStoreBackendWorkspaceId(workspace.id, bwsId);
+      // #779: Success feedback
+      toast.success(`Linked to ${cleanedRepo} (workspace: ${bwsId})`);
     } catch (err) {
+      if (!isStale()) return;
       setError(err instanceof Error ? err.message : 'Failed to link repository.');
     } finally {
-      setLinkLoading(false);
+      if (isStale()) {
+        setLinkLoading(false);
+      }
     }
   };
 
-  const handleUnlink = () => {
+  // #761: Confirm before unlink; #754: Send backend update
+  const handleUnlink = async () => {
+    const confirmed = await confirmDialog(
+      'This will remove the GitHub repository link for this workspace.',
+      'Unlink Repository?',
+    );
+    if (!confirmed) return;
+
+    // #754: Clear on backend
+    if (effectiveWorkspaceId) {
+      try {
+        await apiPut(`/api/v1/workspaces/${encodeURIComponent(effectiveWorkspaceId)}`, {
+          github_repo: '',
+        });
+      } catch {
+        // Best-effort backend clear; local state is authoritative for UI
+      }
+    }
+
+    // #751: Clear both repo and backend workspace id
     setStoreGithubRepo(workspace.id, undefined as unknown as string);
+    setStoreGithubBranch(workspace.id, undefined);
     setCommits([]);
     setError(null);
     setCommitRefreshError(null);
+    toast.success('Repository unlinked.');
   };
 
   const handleSync = async () => {
     if (!effectiveWorkspaceId || !canSync) return;
 
+    const isStale = createActionGuard();
     setSyncLoading(true);
     setError(null);
     try {
-      await apiPost<SyncResponse>(`/api/v1/workspaces/${encodeURIComponent(effectiveWorkspaceId)}/sync`, {
-        architecture: workspace.architecture,
-        commit_message: commitMessage,
-      });
+      // #744: Surface commit SHA from sync response
+      const response = await apiPost<SyncResponse>(
+        `/api/v1/workspaces/${encodeURIComponent(effectiveWorkspaceId)}/sync`, {
+          architecture: workspace.architecture,
+          commit_message: commitMessage,
+        }
+      );
+      if (!isStale()) return;
+      const shortSha = response.commit_sha?.slice(0, 7) ?? '';
+      toast.success(`Synced to GitHub${shortSha ? ` (${shortSha})` : ''}`);
       try {
         await loadCommits();
       } catch {
         // commit refresh failure is non-critical
       }
     } catch (err) {
+      if (!isStale()) return;
       setError(err instanceof Error ? err.message : 'Failed to sync workspace.');
     } finally {
-      setSyncLoading(false);
+      if (isStale()) {
+        setSyncLoading(false);
+      }
     }
   };
 
+  // #755: Block pull during diff review
   const handlePullRequest = () => {
+    if (diffMode) {
+      toast.error('Exit diff review before pulling from GitHub.');
+      return;
+    }
     setPullConfirmPending(true);
   };
 
@@ -168,23 +260,30 @@ export function GitHubSync() {
     setPullConfirmPending(false);
     if (!effectiveWorkspaceId) return;
 
+    const isStale = createActionGuard();
     setPullLoading(true);
     setError(null);
     try {
       const response = await apiPost<PullResponse>(
         `/api/v1/workspaces/${encodeURIComponent(effectiveWorkspaceId)}/pull`
       );
+      if (!isStale()) return;
       replaceArchitecture(response.architecture as ArchitectureSnapshot);
       saveToStorage();
+      // #778: Explicit pull success feedback
+      toast.success('Pulled latest architecture from GitHub.');
       try {
         await loadCommits();
       } catch {
         // commit refresh failure is non-critical
       }
     } catch (err) {
+      if (!isStale()) return;
       setError(err instanceof Error ? err.message : 'Failed to pull from GitHub.');
     } finally {
-      setPullLoading(false);
+      if (isStale()) {
+        setPullLoading(false);
+      }
     }
   };
 
@@ -199,7 +298,8 @@ export function GitHubSync() {
   return (
     <div className="github-sync">
       <div className="github-sync-header">
-        <h3 className="github-sync-title">🔄 GitHub Sync</h3>
+        {/* #794: Show workspace name in header */}
+        <h3 className="github-sync-title">GitHub Sync &mdash; {workspace.name}</h3>
         <button type="button" className="github-sync-close" onClick={toggleGitHubSync} aria-label="Close GitHub sync panel">
           ✕
         </button>
@@ -208,11 +308,18 @@ export function GitHubSync() {
       {authStatus === 'unknown' ? (
         <div className="github-sync-loading">Checking authentication...</div>
       ) : !isAuthenticated ? (
-        <div className="github-sync-empty">GitHub authentication required.</div>
+        <div className="github-sync-empty">
+          GitHub authentication required.
+          {/* #781: Sign-in action from unauth state */}
+          <button type="button" className="github-sync-signin-btn" onClick={toggleGitHubLogin}>
+            Sign in with GitHub
+          </button>
+        </div>
       ) : (
         <>
           {anyLoading && <div className="github-sync-loading">Loading...</div>}
           {error && <div className="github-sync-error">{error}</div>}
+          {/* #793: Show commit refresh error separately */}
           {commitRefreshError && (
             <div className="github-sync-warning">Commit list refresh failed: {commitRefreshError}</div>
           )}
@@ -241,7 +348,7 @@ export function GitHubSync() {
               <input
                 id="github-sync-backend-id-input"
                 className="github-sync-input"
-                placeholder={workspace.id}
+                placeholder={workspace.backendWorkspaceId || workspace.id}
                 value={backendWorkspaceIdInput}
                 onChange={(e) => setBackendWorkspaceIdInput(e.target.value)}
               />
@@ -254,7 +361,15 @@ export function GitHubSync() {
             <div className="github-sync-content">
               <div className="github-sync-meta">
                 Linked repo: <strong>{linkedRepo}</strong>
-                <button type="button" className="github-sync-unlink-btn" onClick={handleUnlink}>
+                {/* #765: Show backend workspace id */}
+                {backendWorkspaceId && (
+                  <span className="github-sync-backend-id"> (backend: {backendWorkspaceId})</span>
+                )}
+                {/* #748: Show linked branch */}
+                {githubBranch && (
+                  <span className="github-sync-branch"> &middot; branch: <code>{githubBranch}</code></span>
+                )}
+                <button type="button" className="github-sync-unlink-btn" onClick={() => void handleUnlink()}>
                   Unlink
                 </button>
               </div>

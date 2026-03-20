@@ -5,6 +5,8 @@ vi.mock('react-hot-toast', () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
+    loading: vi.fn(),
+    dismiss: vi.fn(),
   },
 }));
 vi.mock('../../shared/ui/ConfirmDialog', () => ({
@@ -183,6 +185,9 @@ describe('MenuBar', () => {
       draggedBlockCategory: null,
       activeProvider: 'azure',
       isSoundMuted: false,
+      diffMode: false,
+      diffDelta: null,
+      diffBaseArchitecture: null,
     });
 
     useAuthStore.setState({
@@ -637,6 +642,7 @@ describe('MenuBar', () => {
       workspace: {
         ...useArchitectureStore.getState().workspace,
         backendWorkspaceId: 'backend-ws-1',
+        githubRepo: 'owner/repo',
       },
     });
     useAuthStore.setState({
@@ -677,7 +683,7 @@ describe('MenuBar', () => {
     expect(logoutMock).toHaveBeenCalledOnce();
   });
 
-  it('disables GitHub sync/pr/compare actions without backend workspace link', async () => {
+  it('disables GitHub pr/compare actions without full GitHub link, but sync is always enabled', async () => {
     const user = userEvent.setup();
     useAuthStore.setState({
       status: 'authenticated',
@@ -696,7 +702,8 @@ describe('MenuBar', () => {
     await user.click(githubButton);
     const githubDropdown = getMenuDropdown(/octocat/);
 
-    expect(within(githubDropdown).getByRole('button', { name: /Sync/ })).toBeDisabled();
+    // #770: Sync is always enabled so users can set up their link
+    expect(within(githubDropdown).getByRole('button', { name: /Sync/ })).not.toBeDisabled();
     expect(within(githubDropdown).getByRole('button', { name: /Create PR/ })).toBeDisabled();
     expect(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ })).toBeDisabled();
   });
@@ -708,6 +715,7 @@ describe('MenuBar', () => {
       workspace: {
         ...useArchitectureStore.getState().workspace,
         backendWorkspaceId: 'backend-ws-1',
+        githubRepo: 'owner/repo',
       },
     });
     useAuthStore.setState({
@@ -749,6 +757,7 @@ describe('MenuBar', () => {
       workspace: {
         ...useArchitectureStore.getState().workspace,
         backendWorkspaceId: 'backend-ws-99',
+        githubRepo: 'owner/repo',
       },
     });
 
@@ -818,6 +827,7 @@ describe('MenuBar', () => {
       workspace: {
         ...useArchitectureStore.getState().workspace,
         backendWorkspaceId: 'backend-ws-1',
+        githubRepo: 'owner/repo',
       },
     });
     useAuthStore.setState({
