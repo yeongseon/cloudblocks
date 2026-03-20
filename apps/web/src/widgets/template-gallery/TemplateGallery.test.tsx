@@ -67,6 +67,34 @@ describe('TemplateGallery', () => {
     expect(useUIStore.getState().showTemplateGallery).toBe(false);
   });
 
+  it('calls loadFromTemplate before saveToStorage on use template', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ showTemplateGallery: true });
+
+    const callOrder: string[] = [];
+    const saveToStorageSpy = vi.fn(() => callOrder.push('saveToStorage'));
+    const loadFromTemplateSpy = vi.fn(() => callOrder.push('loadFromTemplate'));
+
+    useArchitectureStore.setState({
+      saveToStorage: saveToStorageSpy,
+      loadFromTemplate: loadFromTemplateSpy,
+    });
+
+    render(<TemplateGallery />);
+    const useButtons = screen.getAllByText('Use Template');
+    await user.click(useButtons[0]);
+
+    // Verify both functions were called
+    expect(loadFromTemplateSpy).toHaveBeenCalledOnce();
+    expect(saveToStorageSpy).toHaveBeenCalledOnce();
+
+    // Verify saveToStorage is called AFTER loadFromTemplate
+    expect(callOrder).toEqual(['loadFromTemplate', 'saveToStorage']);
+
+    // Gallery should be toggled off
+    expect(useUIStore.getState().showTemplateGallery).toBe(false);
+  });
+
   it('renders tags for templates (up to 3)', () => {
     useUIStore.setState({ showTemplateGallery: true });
     render(<TemplateGallery />);
