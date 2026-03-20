@@ -84,4 +84,30 @@ describe('AiPromptBar', () => {
 
     expect(screen.getByText('Failed to generate architecture')).toBeInTheDocument();
   });
+
+  it('displays explanation when provided', () => {
+    render(<AiPromptBar onSubmit={vi.fn()} isLoading={false} provider="aws" explanation="Created a 3-tier web app" />);
+
+    expect(screen.getByText('Created a 3-tier web app')).toBeInTheDocument();
+  });
+
+  it('displays warnings when provided', () => {
+    render(
+      <AiPromptBar
+        onSubmit={vi.fn()}
+        isLoading={false}
+        provider="aws"
+        warnings={['No load balancer added', 'Database has no backup']}
+      />
+    );
+
+    expect(screen.getByText(/No load balancer added/)).toBeInTheDocument();
+    expect(screen.getByText(/Database has no backup/)).toBeInTheDocument();
+  });
+
+  it('does not display warnings section when warnings array is empty', () => {
+    render(<AiPromptBar onSubmit={vi.fn()} isLoading={false} provider="aws" warnings={[]} />);
+
+    expect(screen.queryByText(/⚠️/)).not.toBeInTheDocument();
+  });
 });
