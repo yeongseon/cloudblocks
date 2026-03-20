@@ -344,4 +344,39 @@ describe('GitHubPR', () => {
       expect(screen.queryByText('https://github.com/owner/repo/pull/42')).not.toBeInTheDocument();
     });
   });
+
+  it('uses workspace.github_branch as base branch when set', async () => {
+    const user = userEvent.setup();
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        github_branch: 'develop',
+      } as ReturnType<typeof useArchitectureStore.getState>['workspace'],
+    });
+
+    render(<GitHubPR />);
+
+    const branchField = screen.getByLabelText('Branch name (optional)');
+    await user.type(branchField, 'develop');
+
+    expect(screen.getByRole('button', { name: 'Create Pull Request' })).toBeDisabled();
+    expect(screen.getByText('Head branch must be different from the base branch.')).toBeInTheDocument();
+  });
+
+  it('shows repo name in meta section when githubRepo is set', () => {
+    render(<GitHubPR />);
+    expect(screen.getByText('owner/repo-one')).toBeInTheDocument();
+  });
+
+  it('does not show repo in meta section when githubRepo is not set', () => {
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        githubRepo: undefined,
+      },
+    });
+
+    render(<GitHubPR />);
+    expect(screen.queryByText('owner/repo-one')).not.toBeInTheDocument();
+  });
 });
