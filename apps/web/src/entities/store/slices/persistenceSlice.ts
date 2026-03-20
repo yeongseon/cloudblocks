@@ -7,7 +7,6 @@ import type { ArchitectureSlice, ArchitectureState } from './types';
 import {
   createDefaultWorkspace,
   resetTransientState,
-  touchModel,
   upsertCurrentWorkspace,
   withHistory,
 } from './helpers';
@@ -288,8 +287,10 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
     };
 
     const updatedList = upsertCurrentWorkspace(state.workspaces, cleared);
-    saveWorkspaces(updatedList);
-    saveActiveWorkspaceId(cleared.id);
+    const saved = saveWorkspaces(updatedList);
+    if (saved) {
+      saveActiveWorkspaceId(cleared.id);
+    }
 
     set({
       workspace: cleared,
@@ -299,20 +300,22 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
   },
 
   renameWorkspace: (name) => {
-    set((state) => ({
-      workspace: {
-        ...state.workspace,
-        name,
-        architecture: touchModel({
-          ...state.workspace.architecture,
-          name,
-        }),
-        updatedAt: new Date().toISOString(),
-      },
-    }));
+    const state = get();
+    const renamed: Workspace = {
+      ...state.workspace,
+      name,
+      updatedAt: new Date().toISOString(),
+    };
+    const updatedList = upsertCurrentWorkspace(state.workspaces, renamed);
+    saveWorkspaces(updatedList);
+
+    set({
+      workspace: renamed,
+      workspaces: updatedList,
+    });
   },
 
-  importArchitecture: (json) => {
+  importArchitecture: (json): string | null => {
     try {
       const importedRaw = JSON.parse(json) as unknown;
       validateImportData(importedRaw, json.length);
@@ -355,8 +358,10 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
       const updatedList = upsertCurrentWorkspace(state.workspaces, state.workspace);
       updatedList.push(newWorkspace);
 
-      saveWorkspaces(updatedList);
-      saveActiveWorkspaceId(newWorkspace.id);
+      const saved = saveWorkspaces(updatedList);
+      if (saved) {
+        saveActiveWorkspaceId(newWorkspace.id);
+      }
 
       set({
         workspace: newWorkspace,
@@ -396,8 +401,10 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
     const updatedList = upsertCurrentWorkspace(state.workspaces, state.workspace);
     updatedList.push(newWorkspace);
 
-    saveWorkspaces(updatedList);
-    saveActiveWorkspaceId(newWorkspace.id);
+    const saved = saveWorkspaces(updatedList);
+    if (saved) {
+      saveActiveWorkspaceId(newWorkspace.id);
+    }
 
     set({
       workspace: newWorkspace,

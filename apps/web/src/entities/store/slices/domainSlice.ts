@@ -237,6 +237,19 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         id: generateId('block'),
         name: `${sourceBlock.name} (copy)`,
         position,
+        metadata: structuredClone(sourceBlock.metadata),
+        config:
+          sourceBlock.config === undefined
+            ? undefined
+            : structuredClone(sourceBlock.config),
+        aggregation:
+          sourceBlock.aggregation === undefined
+            ? undefined
+            : structuredClone(sourceBlock.aggregation),
+        roles:
+          sourceBlock.roles === undefined
+            ? undefined
+            : structuredClone(sourceBlock.roles),
       };
 
       return withHistory(state, {

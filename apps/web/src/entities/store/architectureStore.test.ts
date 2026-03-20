@@ -354,6 +354,41 @@ describe('architectureStore', () => {
 
       expect(getState().workspace.architecture).toBe(before);
     });
+
+    it('deep-copies nested config, aggregation, and roles', () => {
+      getState().addPlate('region', 'VNet', null);
+      const netId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Sub', netId, 'public');
+      const subId = getArch().plates[1].id;
+
+      getState().addBlock('compute', 'VM', subId, 'azure', 'vm', { nested: { sku: 'B2ms' } });
+      const sourceId = getArch().blocks[0].id;
+
+      useArchitectureStore.setState((state) => ({
+        workspace: {
+          ...state.workspace,
+          architecture: {
+            ...state.workspace.architecture,
+            blocks: state.workspace.architecture.blocks.map((block) =>
+              block.id === sourceId
+                ? { ...block, aggregation: { mode: 'count', count: 2 }, roles: ['primary', 'secondary'] }
+                : block
+            ),
+          },
+        },
+      }));
+
+      getState().duplicateBlock(sourceId);
+
+      const source = getArch().blocks[0];
+      const duplicate = getArch().blocks[1];
+      expect(duplicate.config).toEqual(source.config);
+      expect(duplicate.config).not.toBe(source.config);
+      expect(duplicate.aggregation).toEqual(source.aggregation);
+      expect(duplicate.aggregation).not.toBe(source.aggregation);
+      expect(duplicate.roles).toEqual(source.roles);
+      expect(duplicate.roles).not.toBe(source.roles);
+    });
   });
 
   describe('renameBlock', () => {
@@ -970,6 +1005,36 @@ describe('architectureStore', () => {
       expect(getState().canUndo).toBe(false);
       expect(getState().canRedo).toBe(false);
     });
+
+    it('loadFromStorage falls back to first workspace when active ID is missing', () => {
+      getState().saveToStorage();
+      localStorage.setItem('cloudblocks:activeWorkspaceId', 'missing-id');
+
+      useArchitectureStore.setState({
+        workspace: { ...getState().workspace, id: 'temp' },
+        workspaces: [],
+      });
+
+      getState().loadFromStorage();
+      const stored = JSON.parse(localStorage.getItem('cloudblocks:workspaces') as string) as {
+        workspaces: Array<{ id: string }>;
+      };
+      expect(getState().workspace.id).toBe(stored.workspaces[0].id);
+    });
+
+    it('does not save active workspace ID when saveWorkspaces fails', () => {
+      const setItemSpy = vi.spyOn(localStorage, 'setItem').mockImplementation((key, value) => {
+        if (key === 'cloudblocks:workspaces') {
+          throw new Error('save failed');
+        }
+        Storage.prototype.setItem.call(localStorage, key, value);
+      });
+
+      const success = getState().saveToStorage();
+      expect(success).toBe(false);
+      expect(setItemSpy).not.toHaveBeenCalledWith('cloudblocks:activeWorkspaceId', expect.any(String));
+      setItemSpy.mockRestore();
+    });
   });
 
   describe('resetWorkspace', () => {
@@ -989,13 +1054,27 @@ describe('architectureStore', () => {
       expect(getState().workspace.id).toBe(workspaceId);
       expect(getState().workspace.name).toBe(workspaceName);
     });
+
+    it('does not save active workspace ID when saveWorkspaces fails', () => {
+      const setItemSpy = vi.spyOn(localStorage, 'setItem').mockImplementation((key, value) => {
+        if (key === 'cloudblocks:workspaces') {
+          throw new Error('save failed');
+        }
+        Storage.prototype.setItem.call(localStorage, key, value);
+      });
+
+      getState().resetWorkspace();
+      expect(setItemSpy).not.toHaveBeenCalledWith('cloudblocks:activeWorkspaceId', expect.any(String));
+      setItemSpy.mockRestore();
+    });
   });
 
   describe('renameWorkspace', () => {
-    it('updates workspace and architecture name', () => {
+    it('updates workspace name without mutating architecture name', () => {
+      const previousArchitectureName = getArch().name;
       getState().renameWorkspace('New Name');
       expect(getState().workspace.name).toBe('New Name');
-      expect(getArch().name).toBe('New Name');
+      expect(getArch().name).toBe(previousArchitectureName);
     });
 
     it('updates updatedAt timestamp', () => {
@@ -1003,6 +1082,15 @@ describe('architectureStore', () => {
       vi.setSystemTime(new Date('2025-06-01T00:00:00Z'));
       getState().renameWorkspace('Renamed');
       expect(getState().workspace.updatedAt).not.toBe(before);
+    });
+
+    it('persists renamed workspace', () => {
+      getState().renameWorkspace('Persisted Rename');
+      const stored = JSON.parse(localStorage.getItem('cloudblocks:workspaces') as string) as {
+        workspaces: Array<{ id: string; name: string }>;
+      };
+      const savedWorkspace = stored.workspaces.find((workspace) => workspace.id === getState().workspace.id);
+      expect(savedWorkspace?.name).toBe('Persisted Rename');
     });
   });
 
@@ -1079,6 +1167,30 @@ describe('architectureStore', () => {
         expect(secondInList?.architecture.plates).toHaveLength(1);
       }
     });
+
+    it('persists outgoing workspace before switching', () => {
+      getState().createWorkspace('Second');
+      const secondId = getState().workspace.id;
+      getState().addPlate('region', 'Second Plate', null);
+      const firstId = getState().workspaces.find((ws) => ws.id !== secondId)?.id;
+
+      getState().switchWorkspace(firstId as string);
+
+      const stored = JSON.parse(localStorage.getItem('cloudblocks:workspaces') as string) as {
+        workspaces: Array<{ id: string; architecture: { plates: unknown[] } }>;
+      };
+      expect(stored.workspaces.find((ws) => ws.id === secondId)?.architecture.plates).toHaveLength(1);
+    });
+
+    it('saves active workspace ID after switching', () => {
+      const setItemSpy = vi.spyOn(localStorage, 'setItem');
+      const firstId = getState().workspace.id;
+      getState().createWorkspace('Second');
+      getState().switchWorkspace(firstId);
+
+      expect(setItemSpy).toHaveBeenCalledWith('cloudblocks:activeWorkspaceId', firstId);
+      setItemSpy.mockRestore();
+    });
   });
 
   describe('deleteWorkspace', () => {
@@ -1110,6 +1222,32 @@ describe('architectureStore', () => {
       expect(getState().workspace).toBeDefined();
       expect(getState().workspace.id).not.toBe(onlyId);
       expect(getState().workspaces).toHaveLength(1);
+    });
+
+    it('persists current workspace when deleting non-current workspace', () => {
+      const firstId = getState().workspace.id;
+      getState().createWorkspace('Second');
+      const currentId = getState().workspace.id;
+
+      getState().deleteWorkspace(firstId);
+
+      const stored = JSON.parse(localStorage.getItem('cloudblocks:workspaces') as string) as {
+        workspaces: Array<{ id: string }>;
+      };
+      expect(stored.workspaces.some((workspace) => workspace.id === currentId)).toBe(true);
+    });
+  });
+
+  describe('setBackendWorkspaceId', () => {
+    it('updates and persists backendWorkspaceId for current workspace', () => {
+      const workspaceId = getState().workspace.id;
+      getState().setBackendWorkspaceId(workspaceId, 'backend-123');
+
+      expect(getState().workspace.backendWorkspaceId).toBe('backend-123');
+      const stored = JSON.parse(localStorage.getItem('cloudblocks:workspaces') as string) as {
+        workspaces: Array<{ id: string; backendWorkspaceId?: string }>;
+      };
+      expect(stored.workspaces.find((workspace) => workspace.id === workspaceId)?.backendWorkspaceId).toBe('backend-123');
     });
   });
 
