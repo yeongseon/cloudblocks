@@ -71,11 +71,12 @@ export function deserialize(json: string): Workspace[] {
     if (ws.architecture?.plates) {
       for (const plate of ws.architecture.plates) {
         if (!plate.profileId) {
-          plate.profileId = inferLegacyPlateProfileId({
+          const inferredProfileId = inferLegacyPlateProfileId({
             type: plate.type,
             size: { width: plate.size.width, depth: plate.size.depth },
           });
-          const profileSize = buildPlateSizeFromProfileId(plate.profileId);
+          plate.profileId = inferredProfileId;
+          const profileSize = buildPlateSizeFromProfileId(inferredProfileId);
           plate.size = profileSize;
         }
       }

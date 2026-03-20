@@ -1,11 +1,7 @@
 import { useMemo } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import {
-  BLOCK_COLORS,
-  BLOCK_FRIENDLY_NAMES,
-  BLOCK_ICONS,
-} from '../../shared/types/index';
-import type { Block, Connection, ExternalActor } from '../../shared/types/index';
+import { BLOCK_COLORS, BLOCK_FRIENDLY_NAMES, BLOCK_ICONS } from '../../shared/types/index';
+import type { Block, Connection, ExternalActor } from '@cloudblocks/schema';
 import './FlowDiagram.css';
 
 function buildFlowChain(

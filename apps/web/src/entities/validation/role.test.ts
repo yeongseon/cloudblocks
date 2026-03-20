@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import type { Block, BlockRole } from '../../shared/types/index';
-import { BLOCK_ROLES } from '../../shared/types/index';
+import type { Block, BlockRole } from '@cloudblocks/schema';
+import { BLOCK_ROLES } from '@cloudblocks/domain';
 import { validateRoles } from './role';
 
 function makeBlock(overrides: Partial<Block> = {}): Block {

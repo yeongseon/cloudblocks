@@ -1,4 +1,5 @@
-import type { BlockCategory, ProviderType, StudColorSpec } from '../../shared/types/index';
+import type { StudColorSpec } from '../../shared/types/index';
+import type { BlockCategory, ProviderType } from '@cloudblocks/schema';
 
 // ═══════════════════════════════════════════════════════════════
 // Block Face Color System — v2.0

@@ -1,7 +1,7 @@
 import { memo, useEffect, useRef } from 'react';
 import interact from 'interactjs';
 import { toast } from 'react-hot-toast';
-import type { Block, BlockCategory, Plate, ProviderType } from '../../shared/types/index';
+import type { Block, BlockCategory, Plate, ProviderType } from '@cloudblocks/schema';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import { useWorkerStore } from '../store/workerStore';

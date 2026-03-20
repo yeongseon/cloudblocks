@@ -1,14 +1,7 @@
 import type { StateCreator } from 'zustand';
-import type {
-  ArchitectureModel,
-  BlockCategory,
-  ProviderType,
-  PlateProfileId,
-  PlateType,
-  SubnetAccess,
-  ValidationResult,
-  Workspace,
-} from '../../../shared/types/index';
+import type { PlateProfileId, Workspace } from '../../../shared/types/index';
+import type { ArchitectureModel, BlockCategory, ProviderType, PlateType, SubnetAccess } from '@cloudblocks/schema';
+import type { ValidationResult } from '@cloudblocks/domain';
 import type { ArchitectureSnapshot } from '../../../shared/types/learning';
 import type { ArchitectureTemplate } from '../../../shared/types/template';
 

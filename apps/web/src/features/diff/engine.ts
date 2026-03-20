@@ -1,10 +1,4 @@
-import type {
-  ArchitectureModel,
-  Block,
-  Connection,
-  ExternalActor,
-  Plate,
-} from '../../shared/types';
+import type { ArchitectureModel, Block, Connection, ExternalActor, Plate } from '@cloudblocks/schema';
 import type { DiffDelta, DiffState, EntityDiff, PropertyChange } from '../../shared/types/diff';
 
 const ROOT_VOLATILE_PATHS = new Set(['createdAt', 'updatedAt']);

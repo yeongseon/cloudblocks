@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast';
 import { ExternalActorSprite } from './ExternalActorSprite';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
-import type { ExternalActor } from '../../shared/types/index';
+import type { ExternalActor } from '@cloudblocks/schema';
 import * as connectionValidation from '../validation/connection';
 import * as isometric from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';

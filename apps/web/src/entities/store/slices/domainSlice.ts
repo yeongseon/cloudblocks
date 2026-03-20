@@ -1,4 +1,5 @@
-import type { Block, Connection, ExternalActor, Plate, PlateProfileId } from '../../../shared/types/index';
+import type { PlateProfileId } from '../../../shared/types/index';
+import type { Block, Connection, ExternalActor, Plate } from '@cloudblocks/schema';
 import { buildPlateSizeFromProfileId, DEFAULT_BLOCK_SIZE } from '../../../shared/types/index';
 import { generateId } from '../../../shared/utils/id';
 import type { ArchitectureSlice, ArchitectureState } from './types';

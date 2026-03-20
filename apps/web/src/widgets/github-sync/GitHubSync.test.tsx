@@ -11,7 +11,7 @@ import { useUIStore } from '../../entities/store/uiStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { apiGet, apiPost, apiPut } from '../../shared/api/client';
-import type { ArchitectureModel } from '../../shared/types/index';
+import type { ArchitectureModel } from '@cloudblocks/schema';
 
 const emptyArch: ArchitectureModel = {
   id: 'arch-1',

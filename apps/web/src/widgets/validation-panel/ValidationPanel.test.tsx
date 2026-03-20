@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { ValidationPanel } from './ValidationPanel';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import type { ValidationResult } from '../../shared/types/index';
+import type { ValidationResult } from '@cloudblocks/domain';
 
 describe('ValidationPanel', () => {
   beforeEach(() => {

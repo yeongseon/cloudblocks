@@ -1,9 +1,5 @@
-import type {
-  ArchitectureModel,
-  BlockCategory,
-  PlateType,
-  Workspace,
-} from '../../../shared/types/index';
+import type { Workspace } from '../../../shared/types/index';
+import type { ArchitectureModel, BlockCategory, PlateType } from '@cloudblocks/schema';
 import type { ArchitectureSnapshot } from '../../../shared/types/learning';
 import { saveWorkspaces, loadWorkspaces } from '../../../shared/utils/storage';
 import { generateId } from '../../../shared/utils/id';

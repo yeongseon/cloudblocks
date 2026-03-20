@@ -1,5 +1,5 @@
 import { memo, useState } from 'react';
-import type { Connection, Block, Plate, ExternalActor } from '../../shared/types/index';
+import type { Connection, Block, Plate, ExternalActor } from '@cloudblocks/schema';
 import { getDiffState } from '../../features/diff/engine';
 import { getEndpointWorldPosition } from '../../shared/utils/position';
 import { worldToScreen } from '../../shared/utils/isometric';

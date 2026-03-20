@@ -1,4 +1,4 @@
-import type { BlockCategory } from '../../../../shared/types/index';
+import type { BlockCategory } from '@cloudblocks/schema';
 
 export interface SubtypeEntry {
   displayName: string;

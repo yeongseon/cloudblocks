@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ArchitectureModel, Block, Connection, Plate } from '../../shared/types/index';
+import type { ArchitectureModel, Block, Connection, Plate } from '@cloudblocks/schema';
 import { azureProvider } from './provider';
 import {
   generateMainTf,

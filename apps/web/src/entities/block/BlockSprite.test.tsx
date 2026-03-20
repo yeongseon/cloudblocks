@@ -6,7 +6,7 @@ import { BlockSprite } from './BlockSprite';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import { useWorkerStore } from '../store/workerStore';
-import type { Block, BlockCategory, ExternalActor, Plate } from '../../shared/types/index';
+import type { Block, BlockCategory, ExternalActor, Plate } from '@cloudblocks/schema';
 import * as isometric from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';

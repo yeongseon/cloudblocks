@@ -1,7 +1,5 @@
-import type {
-  ArchitectureModel,
-  ValidationResult,
-} from '../../shared/types/index';
+import type { ArchitectureModel } from '@cloudblocks/schema';
+import type { ValidationResult } from '@cloudblocks/domain';
 import { validatePlacement } from './placement';
 import { validateConnection } from './connection';
 import { validateProviderRules } from './providerValidation';

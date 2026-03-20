@@ -1,7 +1,4 @@
-import type {
-  PlateType,
-  SubnetAccess,
-} from '../../shared/types/index';
+import type { PlateType, SubnetAccess } from '@cloudblocks/schema';
 
 export interface PlateFaceColors {
   topFaceColor: string;

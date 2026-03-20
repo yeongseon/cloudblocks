@@ -10,7 +10,8 @@ import { gcpProviderDefinition } from '../features/generate/providers/gcp';
 import { gcpSubtypeRegistry } from '../features/generate/providers/gcp/subtypes';
 import { resolveBlockMapping } from '../features/generate/types';
 import type { ProviderDefinition } from '../features/generate/types';
-import type { ArchitectureModel, Block, Plate, Workspace } from '../shared/types';
+import type { Workspace } from '../shared/types';
+import type { ArchitectureModel, Block, Plate } from '@cloudblocks/schema';
 import { deserialize, serialize } from '../shared/types/schema';
 
 function makePlate(overrides: Partial<Plate> = {}): Plate {

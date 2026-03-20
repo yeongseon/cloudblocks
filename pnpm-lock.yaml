@@ -10,6 +10,12 @@ importers:
 
   apps/web:
     dependencies:
+      '@cloudblocks/domain':
+        specifier: workspace:*
+        version: link:../../packages/cloudblocks-domain
+      '@cloudblocks/schema':
+        specifier: workspace:*
+        version: link:../../packages/schema
       interactjs:
         specifier: ^1.10.27
         version: 1.10.27

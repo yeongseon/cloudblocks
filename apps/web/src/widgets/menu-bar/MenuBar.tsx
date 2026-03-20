@@ -9,7 +9,7 @@ import { computeArchitectureDiff } from '../../features/diff/engine';
 import { apiPost } from '../../shared/api/client';
 import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import type { PullResponse } from '../../shared/types/api';
-import type { ArchitectureModel, ProviderType } from '../../shared/types';
+import type { ArchitectureModel, ProviderType } from '@cloudblocks/schema';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
 import './MenuBar.css';
