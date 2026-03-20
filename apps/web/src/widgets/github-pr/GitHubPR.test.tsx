@@ -101,6 +101,8 @@ describe('GitHubPR', () => {
     });
 
     expect(await screen.findByText('https://github.com/owner/repo/pull/42')).toBeInTheDocument();
+    expect(screen.getByText(/PR #42/)).toBeInTheDocument();
+    expect(screen.getByText('cloudblocks/update')).toBeInTheDocument();
   });
 
   it('shows error when PR creation fails', async () => {
@@ -153,6 +155,17 @@ describe('GitHubPR', () => {
     expect(submitButton).toBeDisabled();
 
     await user.type(titleField, '   ');
+    expect(submitButton).toBeDisabled();
+  });
+
+  it('disables submit button when commit message is empty', async () => {
+    const user = userEvent.setup();
+    render(<GitHubPR />);
+
+    const commitField = screen.getByLabelText('Commit message');
+    const submitButton = screen.getByRole('button', { name: 'Create Pull Request' });
+
+    await user.clear(commitField);
     expect(submitButton).toBeDisabled();
   });
 

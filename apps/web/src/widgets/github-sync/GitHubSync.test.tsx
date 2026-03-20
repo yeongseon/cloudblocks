@@ -153,6 +153,7 @@ describe('GitHubSync', () => {
     await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
     await user.click(screen.getByRole('button', { name: 'Link' }));
     await user.click(await screen.findByRole('button', { name: 'Pull from GitHub' }));
+    await user.click(await screen.findByRole('button', { name: 'Confirm Pull' }));
 
     await waitFor(() => {
       expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/pull');
@@ -182,6 +183,7 @@ describe('GitHubSync', () => {
     await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
     await user.click(screen.getByRole('button', { name: 'Link' }));
     await user.click(await screen.findByRole('button', { name: 'Pull from GitHub' }));
+    await user.click(await screen.findByRole('button', { name: 'Confirm Pull' }));
 
     expect(await screen.findByText('Network down')).toBeInTheDocument();
   });
@@ -201,9 +203,9 @@ describe('GitHubSync', () => {
     mockApiPost.mockResolvedValue({ message: 'ok', commit_sha: 'abc' });
     await user.click(await screen.findByRole('button', { name: 'Sync to GitHub' }));
 
-    // The sync succeeds but loadCommits after sync fails
+    // The sync succeeds but loadCommits after sync fails — shown in commit refresh error
     await waitFor(() => {
-      expect(screen.getByText('Commit fetch failed')).toBeInTheDocument();
+      expect(screen.getByText(/Commit list refresh failed/)).toBeInTheDocument();
     });
   });
 
@@ -283,6 +285,7 @@ describe('GitHubSync', () => {
     await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
     await user.click(screen.getByRole('button', { name: 'Link' }));
     await user.click(await screen.findByRole('button', { name: 'Pull from GitHub' }));
+    await user.click(await screen.findByRole('button', { name: 'Confirm Pull' }));
 
     expect(await screen.findByText('Failed to pull from GitHub.')).toBeInTheDocument();
   });

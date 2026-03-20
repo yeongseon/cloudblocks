@@ -10,6 +10,7 @@ import {
 } from '../../../shared/utils/history';
 import { generateId } from '../../../shared/utils/id';
 import { useWorkerStore } from '../workerStore';
+import { useUIStore } from '../uiStore';
 import type { ArchitectureState } from './types';
 
 const DEFAULT_WORKSPACE_NAME = 'My Architecture';
@@ -120,6 +121,7 @@ export function resetTransientState(): Pick<
   'validationResult' | 'history' | 'canUndo' | 'canRedo'
 > {
   useWorkerStore.getState().resetWorker();
+  useUIStore.getState().setDiffMode(false);
   return {
     validationResult: null,
     history: resetHistory(),

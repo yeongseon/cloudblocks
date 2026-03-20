@@ -161,6 +161,7 @@ function makeDiffDelta(): DiffDelta {
         },
       ],
     },
+    rootChanges: [],
     summary: {
       totalChanges: 12,
       hasBreakingChanges: true,

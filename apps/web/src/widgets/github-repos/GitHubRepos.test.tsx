@@ -87,6 +87,7 @@ describe('GitHubRepos', () => {
 
     expect(mockApiPost).toHaveBeenCalledWith('/api/v1/github/repos', {
       name: 'new-repo',
+      description: undefined,
       private: true,
     });
 
@@ -95,6 +96,32 @@ describe('GitHubRepos', () => {
     });
 
     expect(await screen.findByText('new-repo')).toBeInTheDocument();
+  });
+
+  it('sends description when provided', async () => {
+    const user = userEvent.setup();
+    mockApiGet
+      .mockResolvedValueOnce({ repos: [] })
+      .mockResolvedValueOnce({ repos: [] });
+    mockApiPost.mockResolvedValueOnce({
+      full_name: 'owner/described-repo',
+      name: 'described-repo',
+      private: false,
+      default_branch: 'main',
+      html_url: 'https://github.com/owner/described-repo',
+    });
+
+    render(<GitHubRepos />);
+
+    await user.type(screen.getByPlaceholderText('Repository name'), 'described-repo');
+    await user.type(screen.getByPlaceholderText('Description (optional)'), 'A test repo');
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+
+    expect(mockApiPost).toHaveBeenCalledWith('/api/v1/github/repos', {
+      name: 'described-repo',
+      description: 'A test repo',
+      private: true,
+    });
   });
 
   it('shows error when fetch repos fails', async () => {

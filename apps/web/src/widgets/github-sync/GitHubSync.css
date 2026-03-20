@@ -182,3 +182,55 @@
   border: 1px dashed #333366;
   border-radius: 4px;
 }
+
+.github-sync-warning {
+  padding: 8px;
+  font-size: 12px;
+  color: #ffb74d;
+  background: rgba(255, 152, 0, 0.12);
+  border: 1px solid rgba(255, 152, 0, 0.35);
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.github-sync-unlink-btn {
+  background: none;
+  border: none;
+  color: #ef5350;
+  cursor: pointer;
+  font-size: 11px;
+  margin-left: 8px;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.github-sync-unlink-btn:hover {
+  background: rgba(244, 67, 54, 0.16);
+}
+
+.github-sync-confirm {
+  padding: 8px;
+  background: rgba(255, 152, 0, 0.08);
+  border: 1px solid rgba(255, 152, 0, 0.35);
+  border-radius: 4px;
+}
+
+.github-sync-confirm-message {
+  font-size: 12px;
+  color: #ffb74d;
+  margin-bottom: 8px;
+}
+
+.github-sync-confirm-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.github-sync-commit-link {
+  color: #4285f4;
+  text-decoration: none;
+}
+
+.github-sync-commit-link:hover {
+  text-decoration: underline;
+}

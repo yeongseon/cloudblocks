@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { apiGet, apiPost } from '../../shared/api/client';
@@ -17,11 +17,12 @@ export function GitHubRepos() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [newRepoName, setNewRepoName] = useState('');
+  const [newRepoDescription, setNewRepoDescription] = useState('');
   const [isPrivate, setIsPrivate] = useState(true);
   const cleanedRepoName = newRepoName.trim();
   const canCreateRepo = isValidGitHubRepoName(cleanedRepoName);
 
-  const fetchRepos = async () => {
+  const fetchRepos = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -32,12 +33,12 @@ export function GitHubRepos() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (!show || !isAuthenticated) return;
     void fetchRepos();
-  }, [show, isAuthenticated]);
+  }, [show, isAuthenticated, fetchRepos]);
 
   if (!show) return null;
 
@@ -52,9 +53,11 @@ export function GitHubRepos() {
     try {
       await apiPost<GitHubRepo>('/api/v1/github/repos', {
         name: cleanedRepoName,
+        description: newRepoDescription.trim() || undefined,
         private: isPrivate,
       });
       setNewRepoName('');
+      setNewRepoDescription('');
       setIsPrivate(false);
       await fetchRepos();
     } catch (err) {
@@ -68,7 +71,7 @@ export function GitHubRepos() {
     <div className="github-repos">
       <div className="github-repos-header">
         <h3 className="github-repos-title">📦 GitHub Repos</h3>
-        <button className="github-repos-close" onClick={toggleGitHubRepos} aria-label="Close GitHub repos panel">
+        <button type="button" className="github-repos-close" onClick={toggleGitHubRepos} aria-label="Close GitHub repos panel">
           ✕
         </button>
       </div>
@@ -91,6 +94,13 @@ export function GitHubRepos() {
               value={newRepoName}
               onChange={(e) => setNewRepoName(e.target.value)}
             />
+            <input
+              className="github-repos-input"
+              type="text"
+              placeholder="Description (optional)"
+              value={newRepoDescription}
+              onChange={(e) => setNewRepoDescription(e.target.value)}
+            />
             <label className="github-repos-checkbox-row">
               <input
                 className="github-repos-checkbox"
@@ -100,7 +110,7 @@ export function GitHubRepos() {
               />
               <span>Private repository</span>
             </label>
-            <button className="github-repos-create-btn" onClick={handleCreateRepo} disabled={creating || !canCreateRepo}>
+            <button type="button" className="github-repos-create-btn" onClick={handleCreateRepo} disabled={creating || !canCreateRepo}>
               Create
             </button>
           </div>
