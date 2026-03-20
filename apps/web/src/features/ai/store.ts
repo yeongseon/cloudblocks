@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
+import { validateArchitectureShape } from '../../entities/store/slices/index';
 import type { ArchitectureSnapshot } from '../../shared/types/learning';
 import {
   generateArchitecture,
@@ -48,6 +49,18 @@ export const useAiStore = create<AiState>((set) => ({
     try {
       const result = await generateArchitecture({ prompt, provider });
       set({ generateResult: result, generateLoading: false });
+
+      if (result.warnings.length > 0) {
+        set({ generateError: `AI output has warnings: ${result.warnings.join('; ')}` });
+        return;
+      }
+
+      try {
+        validateArchitectureShape(result.architecture);
+      } catch {
+        set({ generateError: 'AI generated an invalid architecture that cannot be loaded.' });
+        return;
+      }
 
       const arch = result.architecture as unknown as ArchitectureSnapshot;
       useArchitectureStore.getState().replaceArchitecture(arch);

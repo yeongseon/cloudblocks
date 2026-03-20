@@ -430,7 +430,43 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         }
       }
 
-      return withHistory(state, { ...arch, plates });
+      const finalPlate = plates.find((candidate) => candidate.id === plateId)!;
+
+      plates = plates.map((candidate) => {
+        if (candidate.parentId !== plateId) return candidate;
+        const relPos = {
+          x: candidate.position.x - finalPlate.position.x,
+          z: candidate.position.z - finalPlate.position.z,
+        };
+        const clamped = clampWithinParent(
+          relPos,
+          { width: nextSize.width, depth: nextSize.depth },
+          { width: candidate.size.width, depth: candidate.size.depth },
+        );
+        return {
+          ...candidate,
+          position: {
+            x: finalPlate.position.x + clamped.x,
+            y: candidate.position.y,
+            z: finalPlate.position.z + clamped.z,
+          },
+        };
+      });
+
+      const blocks = arch.blocks.map((block) => {
+        if (block.placementId !== plateId) return block;
+        const clamped = clampWithinParent(
+          { x: block.position.x, z: block.position.z },
+          { width: nextSize.width, depth: nextSize.depth },
+          DEFAULT_BLOCK_SIZE,
+        );
+        return {
+          ...block,
+          position: { x: clamped.x, y: block.position.y, z: clamped.z },
+        };
+      });
+
+      return withHistory(state, { ...arch, plates, blocks });
     });
   },
 
@@ -475,8 +511,19 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         }
       }
 
+      const descendantIds = new Set<string>([id]);
+      const collectDescendants = (parentId: string) => {
+        for (const candidate of arch.plates) {
+          if (candidate.parentId === parentId && !descendantIds.has(candidate.id)) {
+            descendantIds.add(candidate.id);
+            collectDescendants(candidate.id);
+          }
+        }
+      };
+      collectDescendants(id);
+
       const plates = arch.plates.map((candidate) => {
-        if (candidate.id === id || candidate.parentId === id) {
+        if (descendantIds.has(candidate.id)) {
           return {
             ...candidate,
             position: {
