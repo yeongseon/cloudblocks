@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { apiGet, apiPost } from '../../shared/api/client';
@@ -16,6 +16,18 @@ export function GitHubRepos() {
   const [error, setError] = useState<string | null>(null);
   const [newRepoName, setNewRepoName] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
+
+  // Reset local form/error state when panel transitions from closed to open
+  const prevShowRef = useRef(show);
+  useEffect(() => {
+    if (show && !prevShowRef.current) {
+      setError(null);
+      setNewRepoName('');
+      setIsPrivate(false);
+      setCreating(false);
+    }
+    prevShowRef.current = show;
+  }, [show]);
 
   const fetchRepos = async () => {
     setLoading(true);

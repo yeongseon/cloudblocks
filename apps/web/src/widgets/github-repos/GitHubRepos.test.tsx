@@ -191,4 +191,32 @@ describe('GitHubRepos', () => {
     expect(screen.getByText('Loading...')).toBeInTheDocument();
     resolvePost({ full_name: 'owner/new-repo', name: 'new-repo', private: false, default_branch: 'main', html_url: 'https://github.com/owner/new-repo' });
   });
+
+  it('resets form and error state on reopen', async () => {
+    const user = userEvent.setup();
+    mockApiGet
+      .mockResolvedValueOnce({ repos: [] }) // initial fetch
+      .mockRejectedValueOnce(new Error('Create failed')) // create fails — sets error
+      .mockResolvedValueOnce({ repos: [] }); // re-fetch on reopen
+    mockApiPost.mockRejectedValueOnce(new Error('Create failed'));
+
+    const { rerender } = render(<GitHubRepos />);
+
+    // Type a repo name and trigger a create error
+    await user.type(screen.getByPlaceholderText('Repository name'), 'my-repo');
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+    expect(await screen.findByText('Create failed')).toBeInTheDocument();
+
+    // Close the panel
+    useUIStore.setState({ showGitHubRepos: false });
+    rerender(<GitHubRepos />);
+
+    // Reopen the panel
+    useUIStore.setState({ showGitHubRepos: true });
+    rerender(<GitHubRepos />);
+
+    // Error and form state should be cleared
+    expect(screen.queryByText('Create failed')).not.toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Repository name')).toHaveValue('');
+  });
 });
