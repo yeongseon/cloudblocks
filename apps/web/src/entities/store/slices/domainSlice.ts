@@ -34,6 +34,9 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
   addPlate: (type, name, parentId, subnetAccess, profileId?: PlateProfileId) => {
     set((state) => {
       const arch = state.workspace.architecture;
+      if (parentId && !arch.plates.find((candidate) => candidate.id === parentId)) {
+        return state;
+      }
       const plate: Plate = {
         id: generateId('plate'),
         name,
@@ -198,15 +201,28 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         return state;
       }
 
+      const parentPlate = arch.plates.find(
+        (candidate) => candidate.id === sourceBlock.placementId
+      );
+
+      if (!parentPlate) {
+        return state;
+      }
+
+      const siblingsOnPlate = arch.blocks.filter(
+        (candidate) => candidate.placementId === sourceBlock.placementId
+      );
+
+      const position = nextGridPosition(siblingsOnPlate, {
+        width: parentPlate.size.width,
+        depth: parentPlate.size.depth,
+      });
+
       const newBlock: Block = {
         ...sourceBlock,
         id: generateId('block'),
         name: `${sourceBlock.name} (copy)`,
-        position: {
-          x: sourceBlock.position.x + 1,
-          y: sourceBlock.position.y,
-          z: sourceBlock.position.z + 1,
-        },
+        position,
       };
 
       return withHistory(state, {
@@ -251,6 +267,11 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
   renameBlock: (blockId, newName) => {
     set((state) => {
       const arch = state.workspace.architecture;
+      const block = arch.blocks.find((candidate) => candidate.id === blockId);
+
+      if (!block) {
+        return state;
+      }
 
       return withHistory(state, {
         ...arch,
@@ -264,6 +285,11 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
   renamePlate: (plateId, newName) => {
     set((state) => {
       const arch = state.workspace.architecture;
+      const plate = arch.plates.find((candidate) => candidate.id === plateId);
+
+      if (!plate) {
+        return state;
+      }
 
       return withHistory(state, {
         ...arch,
