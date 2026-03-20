@@ -3,6 +3,7 @@ import type { ArchitectureModel, BlockCategory, PlateType } from '@cloudblocks/s
 import type { ArchitectureSnapshot } from '../../../shared/types/learning';
 import { saveWorkspaces, loadWorkspaces, saveActiveWorkspaceId, loadActiveWorkspaceId } from '../../../shared/utils/storage';
 import { generateId } from '../../../shared/utils/id';
+import { useUIStore } from '../uiStore';
 import type { ArchitectureSlice, ArchitectureState } from './types';
 import {
   createDefaultWorkspace,
@@ -271,6 +272,8 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
     const activeId = loadActiveWorkspaceId();
     const active = workspaces.find((ws) => ws.id === activeId) ?? workspaces[0];
 
+    useUIStore.getState().clearDiffState();
+
     set({
       workspace: active,
       workspaces,
@@ -292,6 +295,8 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
     if (saveWorkspaces(updatedList)) {
       saveActiveWorkspaceId(cleared.id);
     }
+
+    useUIStore.getState().clearDiffState();
 
     set({
       workspace: cleared,
@@ -367,6 +372,8 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
         saveActiveWorkspaceId(newWorkspace.id);
       }
 
+      useUIStore.getState().clearDiffState();
+
       set({
         workspace: newWorkspace,
         workspaces: updatedList,
@@ -408,6 +415,8 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
     if (saveWorkspaces(updatedList)) {
       saveActiveWorkspaceId(newWorkspace.id);
     }
+
+    useUIStore.getState().clearDiffState();
 
     set({
       workspace: newWorkspace,
