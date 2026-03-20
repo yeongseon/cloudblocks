@@ -10,8 +10,14 @@
   filter: drop-shadow(0 0 8px #0078D4) drop-shadow(0 0 16px rgba(0, 120, 212, 0.45));
 }
 
-.minifigure-sprite.is-idle {
-  /* default state */
+.minifigure-sprite.is-dragging {
+  cursor: grabbing;
+  z-index: 999999;
+}
+
+.minifigure-sprite.is-dragging svg {
+  opacity: 0.85;
+  filter: drop-shadow(0 0 12px rgba(0, 120, 212, 0.6));
 }
 
 @keyframes worker-bob {
@@ -32,8 +38,18 @@
   animation: worker-pulse 1.5s ease-in-out infinite;
 }
 
-/* When both selected AND building, combine effects */
 .minifigure-sprite.is-selected.is-building {
   animation: worker-pulse 1.5s ease-in-out infinite;
   filter: drop-shadow(0 0 8px #0078D4) drop-shadow(0 0 16px rgba(0, 120, 212, 0.45));
+}
+
+@keyframes minifigure-bounce-drop {
+  0% { transform: translate(-50%, -80%) translateY(-6px) scale(1.05); }
+  40% { transform: translate(-50%, -80%) translateY(3px) scale(0.98); }
+  70% { transform: translate(-50%, -80%) translateY(-1px) scale(1.01); }
+  100% { transform: translate(-50%, -80%) translateY(0) scale(1); }
+}
+
+.minifigure-sprite.is-dropping {
+  animation: minifigure-bounce-drop 300ms ease-out;
 }
