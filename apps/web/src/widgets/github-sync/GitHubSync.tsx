@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { apiGet, apiPost, apiPut } from '../../shared/api/client';
+import { isValidGitHubRepoFullName } from '../../shared/utils/githubValidation';
 import type { GitHubCommit, PullResponse, SyncResponse } from '../../shared/types/api';
 import type { ArchitectureSnapshot } from '../../shared/types/learning';
 import './GitHubSync.css';
@@ -26,14 +27,47 @@ export function GitHubSync() {
   const [commits, setCommits] = useState<GitHubCommit[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const requestSeqRef = useRef(0);
+  const mountedRef = useRef(true);
+  const showRef = useRef(show);
+  const authRef = useRef(isAuthenticated);
+  const workspaceIdRef = useRef(workspace.id);
+  const linkedRepoRef = useRef(linkedRepo);
+  const effectiveWorkspaceIdRef = useRef<string | null>(null);
+
+  useEffect(() => () => {
+    mountedRef.current = false;
+    requestSeqRef.current += 1;
+  }, []);
 
   const effectiveWorkspaceId = useMemo(() => {
     if (backendWorkspaceId) return backendWorkspaceId;
-    return workspace.id;
-  }, [backendWorkspaceId, workspace.id]);
+    return null;
+  }, [backendWorkspaceId]);
+
+  showRef.current = show;
+  authRef.current = isAuthenticated;
+  workspaceIdRef.current = workspace.id;
+  linkedRepoRef.current = linkedRepo;
+  effectiveWorkspaceIdRef.current = effectiveWorkspaceId;
 
   const loadCommits = useCallback(async () => {
     if (!linkedRepo || !effectiveWorkspaceId) return;
+
+    const requestSeq = ++requestSeqRef.current;
+    const requestWorkspaceId = workspace.id;
+    const requestLinkedRepo = linkedRepo;
+    const requestBackendWorkspaceId = effectiveWorkspaceId;
+
+    const canApply = () => (
+      mountedRef.current
+      && requestSeq === requestSeqRef.current
+      && showRef.current
+      && authRef.current
+      && workspaceIdRef.current === requestWorkspaceId
+      && linkedRepoRef.current === requestLinkedRepo
+      && effectiveWorkspaceIdRef.current === requestBackendWorkspaceId
+    );
 
     setLoading(true);
     setError(null);
@@ -41,33 +75,40 @@ export function GitHubSync() {
       const response = await apiGet<{ commits: GitHubCommit[] }>(
         `/api/v1/workspaces/${encodeURIComponent(effectiveWorkspaceId)}/commits`
       );
+      if (!canApply()) return;
       setCommits(response.commits);
     } catch (err) {
+      if (!canApply()) return;
       setError(err instanceof Error ? err.message : 'Failed to load commits.');
     } finally {
+      if (!canApply()) return;
       setLoading(false);
     }
-  }, [linkedRepo, effectiveWorkspaceId]);
+  }, [effectiveWorkspaceId, linkedRepo, workspace.id]);
 
   useEffect(() => {
     if (!show || !isAuthenticated || !linkedRepo) return;
     void loadCommits();
+    return () => {
+      requestSeqRef.current += 1;
+    };
   }, [show, isAuthenticated, linkedRepo, effectiveWorkspaceId, loadCommits]);
 
   if (!show) return null;
 
   const handleLinkRepo = async () => {
     const cleanedRepo = repoInput.trim();
-    if (!cleanedRepo || !cleanedRepo.includes('/')) {
+    if (!isValidGitHubRepoFullName(cleanedRepo)) {
       setError('Repository must be in owner/repo format.');
       return;
     }
+
+    const bwsId = backendWorkspaceIdInput.trim() || workspace.id;
 
     setLoading(true);
     setError(null);
 
     try {
-      const bwsId = backendWorkspaceIdInput.trim() || workspace.id;
       await apiPut(`/api/v1/workspaces/${encodeURIComponent(bwsId)}`, {
         github_repo: cleanedRepo,
       });

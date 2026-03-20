@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { apiGet, apiPost } from '../../shared/api/client';
+import { isValidGitHubRepoName } from '../../shared/utils/githubValidation';
 import type { GitHubRepo } from '../../shared/types/api';
 import './GitHubRepos.css';
 
@@ -16,6 +17,8 @@ export function GitHubRepos() {
   const [error, setError] = useState<string | null>(null);
   const [newRepoName, setNewRepoName] = useState('');
   const [isPrivate, setIsPrivate] = useState(true);
+  const cleanedRepoName = newRepoName.trim();
+  const canCreateRepo = isValidGitHubRepoName(cleanedRepoName);
 
   const fetchRepos = async () => {
     setLoading(true);
@@ -38,14 +41,16 @@ export function GitHubRepos() {
   if (!show) return null;
 
   const handleCreateRepo = async () => {
-    const name = newRepoName.trim();
-    if (!name) return;
+    if (!canCreateRepo) {
+      setError('Repository name can only include letters, numbers, hyphens, underscores, and dots.');
+      return;
+    }
 
     setCreating(true);
     setError(null);
     try {
       await apiPost<GitHubRepo>('/api/v1/github/repos', {
-        name,
+        name: cleanedRepoName,
         private: isPrivate,
       });
       setNewRepoName('');
@@ -92,7 +97,7 @@ export function GitHubRepos() {
               />
               <span>Private repository</span>
             </label>
-            <button className="github-repos-create-btn" onClick={handleCreateRepo} disabled={creating || !newRepoName.trim()}>
+            <button className="github-repos-create-btn" onClick={handleCreateRepo} disabled={creating || !canCreateRepo}>
               Create
             </button>
           </div>
