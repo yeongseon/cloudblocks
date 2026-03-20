@@ -50,4 +50,49 @@ describe('confirmDialog', () => {
 
     await expect(promise).resolves.toBe(false);
   });
+
+  it('resolves false when Escape is pressed', async () => {
+    render(<div />);
+    const user = userEvent.setup();
+
+    const promise = confirmDialog('Discard changes?', 'Confirm');
+    await screen.findByRole('dialog');
+
+    await user.keyboard('{Escape}');
+
+    await expect(promise).resolves.toBe(false);
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+
+  it('focuses the Cancel button when the dialog opens', async () => {
+    render(<div />);
+
+    confirmDialog('Are you sure?', 'Confirm');
+    await screen.findByRole('dialog');
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
+    });
+  });
+
+  it('uses settle path when replacing an in-flight dialog', async () => {
+    render(<div />);
+
+    const first = confirmDialog('First?', 'First');
+    await screen.findByRole('dialog');
+
+    const second = confirmDialog('Second?', 'Second');
+
+    await expect(first).resolves.toBe(false);
+
+    await waitFor(() => {
+      expect(screen.getByText('Second?')).toBeInTheDocument();
+    });
+
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Confirm' }));
+    await expect(second).resolves.toBe(true);
+  });
 });

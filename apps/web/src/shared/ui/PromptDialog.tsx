@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import type { Root } from 'react-dom/client';
+import { useEffect, useRef } from 'react';
 import './PromptDialog.css';
 
 interface PromptDialogProps {
@@ -11,18 +12,26 @@ interface PromptDialogProps {
   onConfirm: (value: string) => void;
 }
 
-function getInputValue(): string {
-  return document.querySelector<HTMLInputElement>('.prompt-dialog-input')?.value ?? '';
-}
-
-function renderDialogPortal({
+// Internal-only component used by the imperative promptDialog() API below.
+// eslint-disable-next-line react-refresh/only-export-components
+function PromptDialogContent({
   title,
   message,
   defaultValue,
   onCancel,
   onConfirm,
 }: PromptDialogProps) {
-  return createPortal(
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const input = inputRef.current;
+    if (input) {
+      input.focus();
+      input.select();
+    }
+  }, []);
+
+  return (
     <div className="confirm-dialog-overlay" role="presentation" onClick={onCancel}>
       <div
         className="confirm-dialog"
@@ -31,6 +40,11 @@ function renderDialogPortal({
         aria-labelledby="prompt-dialog-title"
         aria-describedby="prompt-dialog-message"
         onClick={(event) => event.stopPropagation()}
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') {
+            onCancel();
+          }
+        }}
       >
         <h3 id="prompt-dialog-title" className="confirm-dialog-title">
           {title}
@@ -39,14 +53,14 @@ function renderDialogPortal({
           {message}
         </p>
         <input
+          ref={inputRef}
           className="prompt-dialog-input"
           type="text"
           defaultValue={defaultValue}
+          aria-label={title}
           onKeyDown={(event) => {
             if (event.key === 'Enter') {
-              onConfirm(getInputValue());
-            } else if (event.key === 'Escape') {
-              onCancel();
+              onConfirm(inputRef.current?.value ?? '');
             }
           }}
         />
@@ -57,15 +71,18 @@ function renderDialogPortal({
           <button
             type="button"
             className="confirm-dialog-btn confirm-dialog-btn-confirm"
-            onClick={() => onConfirm(getInputValue())}
+            onClick={() => onConfirm(inputRef.current?.value ?? '')}
           >
             OK
           </button>
         </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   );
+}
+
+function renderDialogPortal(props: PromptDialogProps) {
+  return createPortal(<PromptDialogContent {...props} />, document.body);
 }
 
 let dialogRoot: Root | null = null;
@@ -93,16 +110,6 @@ function settle(value: string | null): void {
   unmountDialog();
 }
 
-function focusInput(): void {
-  requestAnimationFrame(() => {
-    const input = document.querySelector<HTMLInputElement>('.prompt-dialog-input');
-    if (input) {
-      input.focus();
-      input.select();
-    }
-  });
-}
-
 export function promptDialog(
   message: string,
   title = 'Prompt',
@@ -115,7 +122,7 @@ export function promptDialog(
   }
 
   if (resolver) {
-    resolver(null);
+    settle(null);
   }
 
   return new Promise<string | null>((resolve) => {
@@ -129,6 +136,5 @@ export function promptDialog(
         onConfirm: (value: string) => settle(value),
       }),
     );
-    focusInput();
   });
 }
