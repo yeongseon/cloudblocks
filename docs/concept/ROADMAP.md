@@ -916,7 +916,7 @@ Scope:
 
 ---
 
-## Milestone 17 — Product Structure
+## Milestone 17 — Product Structure ✅
 
 Goal:
 Restructure the monorepo from a scaffolded prototype into a modular, separation-ready architecture. Resolve rendering model ambiguity, extract shared packages, redefine backend responsibilities, and establish version policy.
@@ -937,13 +937,13 @@ Scope:
 - 5 Areas (A-E) covering rendering, packages, backend, monorepo, and versioning
 
 ### Exit Criteria
-- [ ] Rendering model documented in ADR; unused dependencies removed or justified
-- [ ] `packages/` contains real extracted code with actual consumers
-- [ ] `@cloudblocks/schema` is the single source of truth for the ArchitectureModel contract
-- [ ] Backend role accurately documented; API surface defined as explicit contract
-- [ ] All package versions aligned with documented versioning policy
-- [ ] `pnpm build`, `pnpm lint`, and tests pass from root for all apps and packages
-- [ ] No placeholder/empty packages remain in `packages/`
+- [x] Rendering model documented in ADR; unused dependencies removed or justified
+- [x] `packages/` contains real extracted code with actual consumers
+- [x] `@cloudblocks/schema` is the single source of truth for the ArchitectureModel contract
+- [x] Backend role accurately documented; API surface defined as explicit contract
+- [x] All package versions aligned with documented versioning policy
+- [x] `pnpm build`, `pnpm lint`, and tests pass from root for all apps and packages
+- [x] No placeholder/empty packages remain in `packages/`
 
 ### Dependencies
 - Milestone 16 complete
@@ -1119,12 +1119,18 @@ Milestone 14 (Complete)
 - BYOK API key management with Fernet encryption
 
 Milestone 17+ (Planned)
-- Modular monorepo structure with extracted packages
 - DevOps operational control center
 - MVP polish and launch operations with deployment hardening
 - Internationalization support
 - Community contributors > 10
 - GitHub stars growth trajectory
+
+Milestone 17 (Complete)
+- Modular monorepo structure with extracted packages
+- SVG-only rendering model confirmed (ADR-0010)
+- @cloudblocks/schema and @cloudblocks/domain extracted with real consumers
+- 30 bug fixes across domain model, workspace persistence, dialogs, and code generation
+- Version alignment policy enforced
 
 ---
 
@@ -1162,7 +1168,7 @@ The roadmap evolves CloudBlocks from:
 
 → AI-Assisted Architecture (Milestone 14) ✅
 
-→ Product Structure (Milestone 17)
+→ Product Structure (Milestone 17) ✅
 
 → DevOps UX (Milestone 18)
 
@@ -1180,7 +1186,7 @@ Milestone 8 (Complete) ✅
     │               └── Milestone 13 (Terraform Pipeline) ✅
     │                       └── Milestone 15 (v2.0 Spec) ✅
     │                               └── Milestone 16 (Doc Architecture) ✅
-    │                                       └── Milestone 17 (Product Structure)
+    │                                       └── Milestone 17 (Product Structure) ✅
     │                                               └── Milestone 18 (DevOps UX)
     │                                                       └── Milestone 19 (MVP Polish & Launch)
     │               └── Milestone 14 (AI Roadmap) ✅ ←── also benefits from Milestone 13
