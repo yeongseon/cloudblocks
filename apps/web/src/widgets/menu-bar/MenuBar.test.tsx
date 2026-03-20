@@ -701,6 +701,26 @@ describe('MenuBar', () => {
     expect(toast.success).toHaveBeenCalledWith('Workspace saved!');
   });
 
+  it('shows "GitHub" fallback when authenticated user has no username', () => {
+    useAuthStore.setState({
+      status: 'authenticated',
+      user: {
+        id: 'user-2',
+        github_username: null,
+        email: null,
+        display_name: null,
+        avatar_url: null,
+      },
+    });
+
+    render(<MenuBar />);
+
+    const githubBtn = document.querySelector('.github-btn') as HTMLElement;
+    expect(githubBtn).toBeInTheDocument();
+    expect(githubBtn.textContent).toContain('GitHub');
+    expect(screen.queryByRole('button', { name: /Sign In/ })).not.toBeInTheDocument();
+  });
+
   it('toggles sound and updates audio service mute state', async () => {
     const user = userEvent.setup();
     const setMutedSpy = vi.spyOn(audioService, 'setMuted').mockImplementation(() => {});
