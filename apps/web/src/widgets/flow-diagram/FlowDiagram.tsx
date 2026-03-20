@@ -39,6 +39,13 @@ function buildFlowChain(
     }
   }
 
+  // Add any remaining nodes (involved in cycles) that weren't processed
+  for (const nodeId of allIds) {
+    if (!sorted.includes(nodeId)) {
+      sorted.push(nodeId);
+    }
+  }
+
   return sorted;
 }
 

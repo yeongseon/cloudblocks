@@ -120,6 +120,13 @@ function App() {
         setSelectedId(null);
         return;
       }
+
+      // Save: Ctrl+S or Cmd+S
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        useArchitectureStore.getState().saveToStorage();
+        return;
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
