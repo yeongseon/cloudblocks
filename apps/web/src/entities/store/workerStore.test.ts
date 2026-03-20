@@ -120,7 +120,7 @@ describe('workerStore', () => {
     expect(state.workerState).toBe('idle');
   });
 
-  it('cancelBuild clears active build and does not dequeue next task', () => {
+  it('cancelBuild clears active build and queued tasks', () => {
     const store = useWorkerStore.getState();
 
     store.startBuild('block-1', [1, 1, 1]);
@@ -130,8 +130,7 @@ describe('workerStore', () => {
     const state = useWorkerStore.getState();
     expect(state.activeBuild).toBeNull();
     expect(state.workerState).toBe('idle');
-    expect(state.buildQueue).toHaveLength(1);
-    expect(state.buildQueue[0].blockId).toBe('block-2');
+    expect(state.buildQueue).toHaveLength(0);
   });
 
   it('clearQueue resets queue and worker state', () => {
