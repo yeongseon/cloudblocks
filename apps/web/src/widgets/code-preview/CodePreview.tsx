@@ -31,7 +31,7 @@ export function CodePreview() {
   }));
   const [activeTab, setActiveTab] = useState(0);
   const [projectName, setProjectName] = useState(sanitizedName);
-  const [region, setRegion] = useState(DEFAULT_REGION_BY_PROVIDER[activeProvider]);
+  const [regions, setRegions] = useState<Record<ProviderType, string>>({ ...DEFAULT_REGION_BY_PROVIDER });
   const [prevProvider, setPrevProvider] = useState(activeProvider);
   const [generator, setGenerator] = useState<GeneratorId>(
     generatorOptions[0]?.id ?? 'terraform'
@@ -49,7 +49,10 @@ export function CodePreview() {
 
   if (activeProvider !== prevProvider) {
     setPrevProvider(activeProvider);
-    setRegion(DEFAULT_REGION_BY_PROVIDER[activeProvider]);
+    setRegions((prev) => ({
+      ...prev,
+      [activeProvider]: DEFAULT_REGION_BY_PROVIDER[activeProvider],
+    }));
     setError(null);
     setOutput(null);
     setComparisonOutputs(null);
@@ -87,7 +90,6 @@ export function CodePreview() {
       const baseOptions = {
         mode: 'draft',
         projectName,
-        region,
         generator,
       } as const;
 
@@ -97,7 +99,11 @@ export function CodePreview() {
         const errors: Partial<Record<ProviderType, string>> = {};
 
         for (const provider of PROVIDERS) {
-          const options: GenerationOptions = { ...baseOptions, provider };
+          const options: GenerationOptions = {
+            ...baseOptions,
+            provider,
+            region: regions[provider],
+          };
           try {
             generated[provider] = generateCode(architecture, options);
           } catch (providerError) {
@@ -124,6 +130,7 @@ export function CodePreview() {
         const options: GenerationOptions = {
           ...baseOptions,
           provider: activeProvider,
+          region: regions[activeProvider],
         };
         const result = generateCode(architecture, options);
         setOutput(result);
@@ -229,15 +236,38 @@ export function CodePreview() {
             onChange={(e) => setProjectName(e.target.value)}
           />
         </label>
-        <label className="code-preview-field">
-          <span className="code-preview-field-label">Region</span>
-          <input
-            className="code-preview-input"
-            type="text"
-            value={region}
-            onChange={(e) => setRegion(e.target.value)}
-          />
-        </label>
+        {effectiveCompare ? (
+          <div className="code-preview-region-group">
+            <span className="code-preview-field-label">Regions</span>
+            <div className="code-preview-region-row">
+              {PROVIDERS.map((provider) => (
+                <label key={provider} className="code-preview-region-field">
+                  <span className="code-preview-region-provider-label">{provider.toUpperCase()}</span>
+                  <input
+                    className="code-preview-input"
+                    type="text"
+                    value={regions[provider]}
+                    onChange={(e) =>
+                      setRegions((prev) => ({ ...prev, [provider]: e.target.value }))
+                    }
+                  />
+                </label>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <label className="code-preview-field">
+            <span className="code-preview-field-label">Region</span>
+            <input
+              className="code-preview-input"
+              type="text"
+              value={regions[activeProvider]}
+              onChange={(e) =>
+                setRegions((prev) => ({ ...prev, [activeProvider]: e.target.value }))
+              }
+            />
+          </label>
+        )}
         <label className="code-preview-field code-preview-field-checkbox">
           <span className="code-preview-field-label">Compare</span>
           <label className="code-preview-checkbox-label">

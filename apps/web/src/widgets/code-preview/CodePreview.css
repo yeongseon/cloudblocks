@@ -223,3 +223,30 @@
   margin: 0;
   max-height: 180px;
 }
+
+.code-preview-region-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+}
+
+.code-preview-region-row {
+  display: flex;
+  gap: 6px;
+}
+
+.code-preview-region-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.code-preview-region-provider-label {
+  font-size: 9px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}

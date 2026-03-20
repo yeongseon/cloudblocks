@@ -380,9 +380,9 @@ describe('CodePreview', () => {
     await user.click(screen.getByText('🚀 Compare Providers'));
 
     expect(vi.mocked(generateCode)).toHaveBeenCalledTimes(3);
-    expect(screen.getByText('AZURE')).toBeInTheDocument();
-    expect(screen.getByText('AWS')).toBeInTheDocument();
-    expect(screen.getByText('GCP')).toBeInTheDocument();
+    expect(screen.getAllByText('AZURE').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('AWS').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('GCP').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('provider=azure')).toBeInTheDocument();
     expect(screen.getByText('provider=aws')).toBeInTheDocument();
     expect(screen.getByText('provider=gcp')).toBeInTheDocument();
@@ -662,6 +662,77 @@ describe('CodePreview', () => {
     rerender(<CodePreview />);
 
     expect(screen.getByDisplayValue('us-east-1')).toBeInTheDocument();
+  });
+
+  it('passes provider-specific regions in compare mode', async () => {
+    const user = userEvent.setup();
+    vi.mocked(generateCode).mockImplementation((_, options) => ({
+      files: [{ path: 'main.tf', content: `region=${options.region}`, language: 'hcl' as const }],
+      metadata: {
+        generator: 'terraform',
+        version: '0.3.0',
+        provider: options.provider,
+        generatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    }));
+
+    render(<CodePreview />);
+
+    await user.click(screen.getByRole('checkbox'));
+
+    // Verify per-provider region inputs are rendered
+    expect(screen.getByDisplayValue('eastus')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('us-east-1')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('us-central1')).toBeInTheDocument();
+
+    await user.click(screen.getByText('🚀 Compare Providers'));
+
+    // Verify each provider received its own default region
+    expect(vi.mocked(generateCode)).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ provider: 'azure', region: 'eastus' }),
+    );
+    expect(vi.mocked(generateCode)).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ provider: 'aws', region: 'us-east-1' }),
+    );
+    expect(vi.mocked(generateCode)).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ provider: 'gcp', region: 'us-central1' }),
+    );
+  });
+
+  it('allows editing per-provider region inputs in compare mode', async () => {
+    const user = userEvent.setup();
+    vi.mocked(generateCode).mockImplementation((_, options) => ({
+      files: [{ path: 'main.tf', content: `region=${options.region}`, language: 'hcl' as const }],
+      metadata: {
+        generator: 'terraform',
+        version: '0.3.0',
+        provider: options.provider,
+        generatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    }));
+
+    render(<CodePreview />);
+
+    await user.click(screen.getByRole('checkbox'));
+
+    // Edit the Azure region
+    const azureInput = screen.getByDisplayValue('eastus');
+    await user.clear(azureInput);
+    await user.type(azureInput, 'westus2');
+
+    await user.click(screen.getByText('🚀 Compare Providers'));
+
+    expect(vi.mocked(generateCode)).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ provider: 'azure', region: 'westus2' }),
+    );
+    expect(vi.mocked(generateCode)).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ provider: 'aws', region: 'us-east-1' }),
+    );
   });
 
   it('clears output and errors when generator changes', async () => {
