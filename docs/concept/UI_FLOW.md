@@ -46,7 +46,7 @@ Plates are placed via the Insert menu or by dragging from the CommandCard palett
 
 ### Blocks (Cloud Resources)
 
-8 resource categories, placed inside plates:
+10 resource categories, placed inside plates:
 
 | Category | Examples | Initiator? |
 |----------|----------|-----------|
@@ -57,7 +57,9 @@ Plates are placed via the Insert menu or by dragging from the CommandCard palett
 | **Function** | Azure Function, Lambda | Yes |
 | **Queue** | Service Bus, SQS | Yes |
 | **Event** | Event Grid, EventBridge | Yes |
-| **Timer** | Scheduled trigger | Yes |
+| **Analytics** | Log Analytics, CloudWatch | No (receiver-only) |
+| **Identity** | Entra ID, IAM | No (receiver-only) |
+| **Observability** | Azure Monitor, CloudWatch | No (receiver-only) |
 
 Blocks are created by dragging from the **CommandCard** palette in the Bottom Panel, or via `Insert` menu.
 

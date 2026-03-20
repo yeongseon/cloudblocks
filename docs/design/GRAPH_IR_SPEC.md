@@ -258,7 +258,7 @@ Recommended derived ports:
 - `in:data` (protocols: `data`)
 - No outbound ports in Phase 1 (enforces receiver-only invariant)
 
-### 5.6 Serverless categories (Function/Queue/Event/Timer)
+### 5.6 Serverless categories (Function/Queue/Event)
 
 Recommended derived ports (Phase 1 compatibility, Phase 6+ usage):
 
@@ -267,7 +267,7 @@ Recommended derived ports (Phase 1 compatibility, Phase 6+ usage):
   - `in:async` (protocols: `async`)
   - `out:data` (protocols: `data`)
   - `out:async` (protocols: `async`)
-- Queue/Event/Timer:
+- Queue/Event:
   - Primarily `async` semantics
 
 Note: Phase 1 may derive only a conservative subset and leave protocol as `unknown` when not inferable from the legacy model.

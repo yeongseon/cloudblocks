@@ -47,7 +47,7 @@ These invariants **must hold at all times** in a valid `ArchitectureModel`. Viol
 
 | Rule | Description |
 |------|-------------|
-| **Single Root** | An `ArchitectureModel` has exactly one root Network Plate (`parentId: null`). All other Plates and Blocks are descendants. |
+| **Root Plates** | An `ArchitectureModel` has one or more root Plates (`parentId: null`). Valid root plate types are `global` and `edge`. All other Plates and Blocks are descendants of root plates. |
 | **Containment Hierarchy** | Plates form a strict tree across plate layers (`global`/`edge` roots, then `region` → `zone` → `subnet`). No cycles in the containment tree. |
 | **Block Placement** | Every Block has a `placementId` referencing a Plate. `compute`, `database`, `storage`, `gateway`, `analytics`, `identity`, and `observability` are placed on Subnet Plates; `function`, `queue`, and `event` are placed on Region Plates. Blocks cannot exist outside the hierarchy. |
 | **Children Consistency** | A Plate's `children[]` must match the set of entities whose `parentId` or `placementId` references that Plate. |
@@ -59,7 +59,7 @@ These invariants **must hold at all times** in a valid `ArchitectureModel`. Viol
 | **No Self-Connections** | `connection.sourceId !== connection.targetId`. |
 | **No Duplicate Connections** | UI/domain store operations prevent adding duplicate ordered pairs `(sourceId, targetId)` during connection creation. |
 | **No Cycles (Planned Validation)** | The intended architecture constraint is a DAG-style flow, but explicit cycle detection is planned rather than fully enforced in validation rules today. |
-| **Receiver-Only Enforcement** | `database` and `storage` blocks never appear as `sourceId` in any connection. They are receiver-only. `queue` and `event` may appear as `sourceId` only when targeting `function`. |
+| **Receiver-Only Enforcement** | `database`, `storage`, `analytics`, `identity`, and `observability` blocks never appear as `sourceId` in any connection. They are receiver-only. `queue` and `event` may appear as `sourceId` only when targeting `function`. |
 
 ---
 
@@ -260,6 +260,10 @@ Block
   position      — position relative to parent plate {x, y, z}
   metadata      — additional properties
   provider?: ProviderType  — optional cloud provider
+  subtype?: string  — provider-specific resource subtype (e.g., 'vm', 'container-app')
+  config?: Record<string, unknown>  — provider-specific configuration
+  aggregation?: Aggregation  — cluster/scaling configuration (mode + count)
+  roles?: BlockRole[]  — identity and access management roles
 ```
 
 Example:

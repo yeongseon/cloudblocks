@@ -94,7 +94,20 @@ Connection rules validate dataflow between blocks. Connections follow **initiato
 
 ## 5. Aggregation Rules
 
-Validation for block clusters and aggregations.
+Validation for block aggregation (scaling/clustering) configuration.
+
+| Rule ID | Severity | Condition | Message |
+|---------|----------|-----------|---------|
+| `rule-aggregation-count` | error | `block.aggregation.count < 1` or count is not an integer | Aggregation count must be a positive integer |
+
+### Implementation References
+
+- **Frontend**: `apps/web/src/entities/validation/aggregation.ts`
+- **Backend**: Not yet implemented (planned for Milestone 6)
+
+### 5.1 Application Placement Rules (Planned — Not Yet Implemented)
+
+> **Status: Planned.** The Application entity and its placement rules are designed but have no corresponding implementation. The rules below describe the intended behavior for a future milestone. See [DOMAIN_MODEL.md §4.5](../model/DOMAIN_MODEL.md#45-application) for the Application entity design.
 
 | Rule ID | Severity | Condition | Message |
 |---------|----------|-----------|---------|
@@ -123,7 +136,7 @@ Validation for block clusters and aggregations.
 | Managed Redis (ElastiCache) | `database` block alone | `database` + redis app ❌ |
 | Self-hosted Redis on VM | `compute` block + `redis` app | `database` + redis app ❌ |
 
-### Implementation References
+### Implementation References (Application)
 
 - **Frontend**: `apps/web/src/entities/validation/application.ts` (planned)
 - **Backend**: Not yet implemented (planned for Milestone 6)
