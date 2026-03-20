@@ -380,6 +380,60 @@ describe('MinifigureSprite', () => {
     expect(sprite).not.toHaveClass('is-dropping');
   });
 
+  it('is keyboard-focusable and selectable via Enter', async () => {
+    const user = userEvent.setup();
+    render(<MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />);
+
+    const sprite = screen.getByRole('button', { name: 'Select worker' });
+    await user.tab();
+    expect(sprite).toHaveFocus();
+    await user.keyboard('{Enter}');
+    expect(useUIStore.getState().selectedId).toBe('worker-default');
+  });
+
+  it('is selectable via Space key', async () => {
+    const user = userEvent.setup();
+    render(<MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />);
+
+    const sprite = screen.getByRole('button', { name: 'Select worker' });
+    sprite.focus();
+    await user.keyboard(' ');
+    expect(useUIStore.getState().selectedId).toBe('worker-default');
+  });
+
+  it('keyboard selection is blocked in delete mode', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ toolMode: 'delete' });
+    render(<MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />);
+
+    const sprite = screen.getByRole('button', { name: 'Select worker' });
+    sprite.focus();
+    await user.keyboard('{Enter}');
+    expect(useUIStore.getState().selectedId).toBeNull();
+  });
+
+  it('keyboard selection is blocked in connect mode', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ toolMode: 'connect' });
+    render(<MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />);
+
+    const sprite = screen.getByRole('button', { name: 'Select worker' });
+    expect(sprite).toHaveAttribute('aria-disabled', 'true');
+    expect(sprite).toHaveAttribute('tabindex', '-1');
+    sprite.focus();
+    await user.keyboard('{Enter}');
+    expect(useUIStore.getState().selectedId).toBeNull();
+  });
+
+  it('sets aria-disabled and tabIndex=-1 in delete mode', () => {
+    useUIStore.setState({ toolMode: 'delete' });
+    render(<MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />);
+
+    const sprite = screen.getByRole('button', { name: 'Select worker' });
+    expect(sprite).toHaveAttribute('aria-disabled', 'true');
+    expect(sprite).toHaveAttribute('tabindex', '-1');
+  });
+
   it('calls interactable.unset on unmount cleanup', () => {
     const { unmount } = render(<MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />);
 
