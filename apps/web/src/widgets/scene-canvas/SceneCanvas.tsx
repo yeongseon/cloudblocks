@@ -41,11 +41,20 @@ export function SceneCanvas() {
   const lastMouse = useRef({ x: 0, y: 0 });
 
   useEffect(() => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
+    const el = containerRef.current;
+    if (!el) return;
+
+    const updateOrigin = () => {
+      const rect = el.getBoundingClientRect();
       setOrigin({ x: rect.width / 2, y: rect.height * 0.4 });
-      setPan({ x: 0, y: 0 });
-    }
+    };
+
+    updateOrigin();
+
+    const observer = new ResizeObserver(updateOrigin);
+    observer.observe(el);
+
+    return () => observer.disconnect();
   }, []);
 
   const handlePointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
