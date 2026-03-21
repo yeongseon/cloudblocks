@@ -124,7 +124,11 @@ function closeOtherRightPanels(except: RightPanelKey): Partial<UIState> {
 
 export const useUIStore = create<UIState>((set) => ({
   selectedId: null,
-  setSelectedId: (id) => set({ selectedId: id }),
+  setSelectedId: (id) => set({
+    selectedId: id,
+    // Auto-open properties panel when a block/plate is selected
+    ...(id && id !== 'worker-default' ? { showProperties: true } : {}),
+  }),
 
   toolMode: 'select',
   setToolMode: (mode) =>

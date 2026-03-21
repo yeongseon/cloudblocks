@@ -19,6 +19,7 @@ import type { PlateProfileId } from '../../shared/types/index';
 import type { Block, Plate } from '@cloudblocks/schema';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
 import { getBlockIconUrl, getPlateIconUrl } from '../../shared/utils/iconResolver';
+import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import './DetailPanel.css';
 
 interface DetailPanelProps {
@@ -104,6 +105,9 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
   const inputRef = useRef<HTMLInputElement>(null);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const renameBlock = useArchitectureStore((s) => s.renameBlock);
+  const removeBlock = useArchitectureStore((s) => s.removeBlock);
+  const duplicateBlock = useArchitectureStore((s) => s.duplicateBlock);
+  const setSelectedId = useUIStore((s) => s.setSelectedId);
 
   useEffect(() => {
     if (isRenaming && inputRef.current) {
@@ -218,6 +222,36 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
           </span>
         </div>
       </div>
+
+      <div className="detail-divider" />
+
+      <div className="detail-actions">
+        <button
+          type="button"
+          className="detail-action-btn"
+          onClick={() => duplicateBlock(block.id)}
+          title="Duplicate this block"
+        >
+          📋 Copy
+        </button>
+        <button
+          type="button"
+          className="detail-action-btn detail-action-btn--danger"
+          onClick={async () => {
+            const confirmed = await confirmDialog(
+              `Delete "${block.name}"? This cannot be undone.`,
+              'Delete Block',
+            );
+            if (confirmed) {
+              removeBlock(block.id);
+              setSelectedId(null);
+            }
+          }}
+          title="Delete this block"
+        >
+          🗑️ Delete
+        </button>
+      </div>
     </div>
   );
 }
@@ -227,6 +261,28 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
 function PlateDetail({ plate, className }: { plate: Plate; className: string }) {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const setPlateProfile = useArchitectureStore((s) => s.setPlateProfile);
+  const renamePlate = useArchitectureStore((s) => s.renamePlate);
+  const removePlate = useArchitectureStore((s) => s.removePlate);
+  const setSelectedId = useUIStore((s) => s.setSelectedId);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [newPlateName, setNewPlateName] = useState(plate.name);
+  const plateInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isRenaming && plateInputRef.current) {
+      plateInputRef.current.focus();
+      plateInputRef.current.select();
+    }
+  }, [isRenaming]);
+
+  const handlePlateRename = useCallback(() => {
+    const trimmed = newPlateName.trim();
+    if (trimmed && trimmed !== plate.name) {
+      renamePlate(plate.id, trimmed);
+      setNewPlateName(trimmed);
+    }
+    setIsRenaming(false);
+  }, [newPlateName, plate.id, plate.name, renamePlate]);
 
   const profileId = plate.profileId && isPlateProfileId(plate.profileId)
     ? plate.profileId
@@ -259,7 +315,30 @@ function PlateDetail({ plate, className }: { plate: Plate; className: string }) 
           alt={altText}
           className="detail-header-icon-img"
         />
-        <span className="detail-header-name">{plate.name}</span>
+        {isRenaming ? (
+          <input
+            ref={plateInputRef}
+            type="text"
+            className="detail-header-input"
+            value={newPlateName}
+            onChange={(e) => setNewPlateName(e.target.value)}
+            onBlur={handlePlateRename}
+            onKeyDown={(e) => e.key === 'Enter' && handlePlateRename()}
+          />
+        ) : (
+          <span className="detail-header-name">{plate.name}</span>
+        )}
+        <button
+          type="button"
+          className="detail-rename-btn"
+          onClick={() => {
+            setNewPlateName(plate.name);
+            setIsRenaming(true);
+          }}
+          title="Rename"
+        >
+          Rename
+        </button>
       </div>
 
       <div className="detail-divider" />
@@ -321,6 +400,28 @@ function PlateDetail({ plate, className }: { plate: Plate; className: string }) 
             {childPlates.length > 0 && `, ${childPlates.length} subnet${childPlates.length !== 1 ? 's' : ''}`}
           </span>
         </div>
+      </div>
+
+      <div className="detail-divider" />
+
+      <div className="detail-actions">
+        <button
+          type="button"
+          className="detail-action-btn detail-action-btn--danger"
+          onClick={async () => {
+            const confirmed = await confirmDialog(
+              `Delete "${plate.name}"? All blocks inside will also be removed.`,
+              'Delete Plate',
+            );
+            if (confirmed) {
+              removePlate(plate.id);
+              setSelectedId(null);
+            }
+          }}
+          title="Delete this plate"
+        >
+          🗑️ Delete
+        </button>
       </div>
     </div>
   );
