@@ -1,5 +1,6 @@
 import { usePromoteStore } from '../../entities/store/promoteStore';
 import type { PromotionChecklist } from '../../shared/types/ops';
+import { timeAgo } from '../../shared/utils/timeAgo';
 import './PromoteDialog.css';
 
 const CURRENT_STAGING = {
@@ -16,13 +17,7 @@ const CHECKLIST_LABELS: Record<keyof PromotionChecklist, string> = {
   manualApproval: 'Manual approval confirmed',
 };
 
-function timeAgo(dateStr: string): string {
-  const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
-  if (seconds < 60) return 'just now';
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-  return `${Math.floor(seconds / 86400)}d ago`;
-}
+
 
 export function PromoteDialog() {
   const show = usePromoteStore((s) => s.showPromoteDialog);

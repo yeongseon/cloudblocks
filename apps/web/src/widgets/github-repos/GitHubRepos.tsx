@@ -59,7 +59,7 @@ export function GitHubRepos() {
       });
       setNewRepoName('');
       setNewRepoDescription('');
-      setIsPrivate(false);
+      setIsPrivate(true);
       await fetchRepos();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create repository.');

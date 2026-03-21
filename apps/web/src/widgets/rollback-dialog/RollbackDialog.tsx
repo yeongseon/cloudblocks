@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { usePromoteStore } from '../../entities/store/promoteStore';
 import type { DeploymentVersion } from '../../shared/types/ops';
+import { timeAgo } from '../../shared/utils/timeAgo';
 import './RollbackDialog.css';
 
 const CURRENT_PRODUCTION = {
@@ -9,14 +10,6 @@ const CURRENT_PRODUCTION = {
   commitMessage: 'feat: add dashboard widgets',
   deployedAt: new Date(Date.now() - 3600_000).toISOString(),
 };
-
-function timeAgo(dateStr: string): string {
-  const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
-  if (seconds < 60) return 'just now';
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-  return `${Math.floor(seconds / 86400)}d ago`;
-}
 
 export function RollbackDialog() {
   const show = usePromoteStore((s) => s.showRollbackDialog);

@@ -126,45 +126,49 @@ export const usePromoteStore = create<PromoteState>((set) => ({
     set({ selectedRollbackVersion: version }),
 
   loadAvailableVersions: async () => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    const versions: DeploymentVersion[] = [
-      {
-        imageTag: 'v1.4.2-sha-e3f9a01',
-        commitSha: 'e3f9a01',
-        commitMessage: 'fix: resolve memory leak in worker pool',
-        deployedAt: new Date(Date.now() - 2 * 3600_000).toISOString(),
-        environment: 'production',
-      },
-      {
-        imageTag: 'v1.4.1-sha-b7c2d44',
-        commitSha: 'b7c2d44',
-        commitMessage: 'feat: add rate limiting to API gateway',
-        deployedAt: new Date(Date.now() - 26 * 3600_000).toISOString(),
-        environment: 'production',
-      },
-      {
-        imageTag: 'v1.4.0-sha-91a8f33',
-        commitSha: '91a8f33',
-        commitMessage: 'feat: implement batch processing endpoint',
-        deployedAt: new Date(Date.now() - 72 * 3600_000).toISOString(),
-        environment: 'production',
-      },
-      {
-        imageTag: 'v1.3.9-sha-4de56cc',
-        commitSha: '4de56cc',
-        commitMessage: 'fix: correct timezone handling in scheduler',
-        deployedAt: new Date(Date.now() - 168 * 3600_000).toISOString(),
-        environment: 'production',
-      },
-      {
-        imageTag: 'v1.3.8-sha-f0a12bb',
-        commitSha: 'f0a12bb',
-        commitMessage: 'chore: upgrade database driver to v3.2',
-        deployedAt: new Date(Date.now() - 336 * 3600_000).toISOString(),
-        environment: 'production',
-      },
-    ];
-    set({ availableVersions: versions });
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      const versions: DeploymentVersion[] = [
+        {
+          imageTag: 'v1.4.2-sha-e3f9a01',
+          commitSha: 'e3f9a01',
+          commitMessage: 'fix: resolve memory leak in worker pool',
+          deployedAt: new Date(Date.now() - 2 * 3600_000).toISOString(),
+          environment: 'production',
+        },
+        {
+          imageTag: 'v1.4.1-sha-b7c2d44',
+          commitSha: 'b7c2d44',
+          commitMessage: 'feat: add rate limiting to API gateway',
+          deployedAt: new Date(Date.now() - 26 * 3600_000).toISOString(),
+          environment: 'production',
+        },
+        {
+          imageTag: 'v1.4.0-sha-91a8f33',
+          commitSha: '91a8f33',
+          commitMessage: 'feat: implement batch processing endpoint',
+          deployedAt: new Date(Date.now() - 72 * 3600_000).toISOString(),
+          environment: 'production',
+        },
+        {
+          imageTag: 'v1.3.9-sha-4de56cc',
+          commitSha: '4de56cc',
+          commitMessage: 'fix: correct timezone handling in scheduler',
+          deployedAt: new Date(Date.now() - 168 * 3600_000).toISOString(),
+          environment: 'production',
+        },
+        {
+          imageTag: 'v1.3.8-sha-f0a12bb',
+          commitSha: 'f0a12bb',
+          commitMessage: 'chore: upgrade database driver to v3.2',
+          deployedAt: new Date(Date.now() - 336 * 3600_000).toISOString(),
+          environment: 'production',
+        },
+      ];
+      set({ availableVersions: versions });
+    } catch {
+      set({ rollbackError: 'Failed to load available versions.' });
+    }
   },
 
   rollback: async (version: DeploymentVersion, reason: string) => {
@@ -199,64 +203,68 @@ export const usePromoteStore = create<PromoteState>((set) => ({
 
   loadHistory: async () => {
     set({ loadingHistory: true });
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    const promotions: PromotionRecord[] = [
-      {
-        id: 'hist-p1',
-        fromEnvironment: 'staging',
-        toEnvironment: 'production',
-        imageTag: 'v1.4.3-sha-abc1234',
-        commitSha: 'abc1234',
-        commitMessage: 'feat: add dashboard widgets',
-        promotedBy: 'alice',
-        promotedAt: new Date(Date.now() - 3600_000).toISOString(),
-        status: 'success',
-      },
-      {
-        id: 'hist-p2',
-        fromEnvironment: 'staging',
-        toEnvironment: 'production',
-        imageTag: 'v1.4.2-sha-e3f9a01',
-        commitSha: 'e3f9a01',
-        commitMessage: 'fix: resolve memory leak in worker pool',
-        promotedBy: 'bob',
-        promotedAt: new Date(Date.now() - 86400_000).toISOString(),
-        status: 'success',
-      },
-      {
-        id: 'hist-p3',
-        fromEnvironment: 'staging',
-        toEnvironment: 'production',
-        imageTag: 'v1.4.1-sha-b7c2d44',
-        commitSha: 'b7c2d44',
-        commitMessage: 'feat: add rate limiting to API gateway',
-        promotedBy: 'alice',
-        promotedAt: new Date(Date.now() - 172800_000).toISOString(),
-        status: 'failed',
-      },
-    ];
-    const rollbacks: RollbackRecord[] = [
-      {
-        id: 'hist-r1',
-        environment: 'production',
-        fromImageTag: 'v1.4.1-sha-b7c2d44',
-        toImageTag: 'v1.4.0-sha-91a8f33',
-        reason: 'Rate limiter caused 502 errors under load',
-        rolledBackBy: 'bob',
-        rolledBackAt: new Date(Date.now() - 162000_000).toISOString(),
-        status: 'success',
-      },
-      {
-        id: 'hist-r2',
-        environment: 'production',
-        fromImageTag: 'v1.3.5-sha-dd00ee1',
-        toImageTag: 'v1.3.4-sha-cc99ff2',
-        reason: 'Database migration timeout in production',
-        rolledBackBy: 'alice',
-        rolledBackAt: new Date(Date.now() - 604800_000).toISOString(),
-        status: 'success',
-      },
-    ];
-    set({ promotionHistory: promotions, rollbackHistory: rollbacks, loadingHistory: false });
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      const promotions: PromotionRecord[] = [
+        {
+          id: 'hist-p1',
+          fromEnvironment: 'staging',
+          toEnvironment: 'production',
+          imageTag: 'v1.4.3-sha-abc1234',
+          commitSha: 'abc1234',
+          commitMessage: 'feat: add dashboard widgets',
+          promotedBy: 'alice',
+          promotedAt: new Date(Date.now() - 3600_000).toISOString(),
+          status: 'success',
+        },
+        {
+          id: 'hist-p2',
+          fromEnvironment: 'staging',
+          toEnvironment: 'production',
+          imageTag: 'v1.4.2-sha-e3f9a01',
+          commitSha: 'e3f9a01',
+          commitMessage: 'fix: resolve memory leak in worker pool',
+          promotedBy: 'bob',
+          promotedAt: new Date(Date.now() - 86400_000).toISOString(),
+          status: 'success',
+        },
+        {
+          id: 'hist-p3',
+          fromEnvironment: 'staging',
+          toEnvironment: 'production',
+          imageTag: 'v1.4.1-sha-b7c2d44',
+          commitSha: 'b7c2d44',
+          commitMessage: 'feat: add rate limiting to API gateway',
+          promotedBy: 'alice',
+          promotedAt: new Date(Date.now() - 172800_000).toISOString(),
+          status: 'failed',
+        },
+      ];
+      const rollbacks: RollbackRecord[] = [
+        {
+          id: 'hist-r1',
+          environment: 'production',
+          fromImageTag: 'v1.4.1-sha-b7c2d44',
+          toImageTag: 'v1.4.0-sha-91a8f33',
+          reason: 'Rate limiter caused 502 errors under load',
+          rolledBackBy: 'bob',
+          rolledBackAt: new Date(Date.now() - 162000_000).toISOString(),
+          status: 'success',
+        },
+        {
+          id: 'hist-r2',
+          environment: 'production',
+          fromImageTag: 'v1.3.5-sha-dd00ee1',
+          toImageTag: 'v1.3.4-sha-cc99ff2',
+          reason: 'Database migration timeout in production',
+          rolledBackBy: 'alice',
+          rolledBackAt: new Date(Date.now() - 604800_000).toISOString(),
+          status: 'success',
+        },
+      ];
+      set({ promotionHistory: promotions, rollbackHistory: rollbacks, loadingHistory: false });
+    } catch {
+      set({ loadingHistory: false });
+    }
   },
 }));
