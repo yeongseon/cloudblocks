@@ -9,7 +9,7 @@ function createTestScenario(): Scenario {
     description: 'Build and validate a simple three-tier architecture.',
     difficulty: 'beginner',
     category: 'web-application',
-    tags: ['network', 'compute', 'database'],
+    tags: ['network', 'compute', 'data'],
     estimatedMinutes: 20,
     steps: [
       {
@@ -45,8 +45,7 @@ function createTestScenario(): Scenario {
     initialArchitecture: {
       name: 'Learning Workspace',
       version: '1',
-      plates: [],
-      blocks: [],
+      nodes: [],
       connections: [],
       externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
     },

@@ -1,6 +1,6 @@
 import type { StateCreator } from 'zustand';
 import type { LastPrResult, PlateProfileId, Workspace } from '../../../shared/types/index';
-import type { ArchitectureModel, BlockCategory, ProviderType, PlateType, SubnetAccess } from '@cloudblocks/schema';
+import type { ArchitectureModel, ProviderType, PlateType, ResourceCategory, SubnetAccess } from '@cloudblocks/schema';
 import type { ValidationResult } from '@cloudblocks/domain';
 import type { ArchitectureSnapshot } from '../../../shared/types/learning';
 import type { ArchitectureTemplate } from '../../../shared/types/template';
@@ -26,7 +26,7 @@ export interface ArchitectureState {
   removePlate: (id: string) => void;
 
   addBlock: (
-    category: BlockCategory,
+    category: ResourceCategory,
     name: string,
     placementId: string,
     provider?: ProviderType,
@@ -42,8 +42,6 @@ export interface ArchitectureState {
   movePlatePosition: (id: string, deltaX: number, deltaZ: number) => void;
   moveBlockPosition: (id: string, deltaX: number, deltaZ: number) => void;
   moveActorPosition: (id: string, deltaX: number, deltaZ: number) => void;
-
-  updateBlockConfig: (blockId: string, config: Record<string, unknown>) => void;
 
   addConnection: (sourceId: string, targetId: string) => boolean;
   removeConnection: (id: string) => void;

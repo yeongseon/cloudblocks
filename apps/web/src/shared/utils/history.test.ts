@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ArchitectureModel } from '../types';
+import type { ArchitectureModel, ContainerNode } from '../types';
 import {
   canRedo,
   canUndo,
@@ -12,23 +12,25 @@ import {
 } from './history';
 
 function createModel(id: string): ArchitectureModel {
+  const container: ContainerNode = {
+    id: `plate-${id}`,
+    name: `Plate ${id}`,
+    kind: 'container',
+    layer: 'region',
+    resourceType: 'virtual_network',
+    category: 'network',
+    provider: 'azure',
+    parentId: null,
+    position: { x: 0, y: 0, z: 0 },
+    size: { width: 10, height: 0.3, depth: 10 },
+    metadata: { nested: { value: id } },
+  };
+
   return {
     id,
     name: `Architecture ${id}`,
     version: '1',
-    plates: [
-      {
-        id: `plate-${id}`,
-        name: `Plate ${id}`,
-        type: 'region',
-        parentId: null,
-        children: [],
-        position: { x: 0, y: 0, z: 0 },
-        size: { width: 10, height: 0.3, depth: 10 },
-        metadata: { nested: { value: id } },
-      },
-    ],
-    blocks: [],
+    nodes: [container],
     connections: [],
     externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
     createdAt: '2026-01-01T00:00:00.000Z',
@@ -131,13 +133,21 @@ describe('history utilities', () => {
     const pushed = pushHistory(createHistory(), original);
 
     original.name = 'mutated';
-    original.plates[0].metadata = { nested: { value: 'changed' } };
+    const originalContainer = original.nodes.find((node): node is ContainerNode => node.kind === 'container');
+    if (!originalContainer) {
+      throw new Error('Expected container node in test model');
+    }
+    originalContainer.metadata = { nested: { value: 'changed' } };
 
     const undoResult = undo(pushed, createModel('current'));
 
     expect(undoResult).not.toBeNull();
+    const undoContainer = undoResult!.model.nodes.find((node): node is ContainerNode => node.kind === 'container');
+    if (!undoContainer) {
+      throw new Error('Expected container node after undo');
+    }
     expect(undoResult!.model.name).toBe('Architecture orig');
-    expect(undoResult!.model.plates[0].metadata).toEqual({ nested: { value: 'orig' } });
+    expect(undoContainer.metadata).toEqual({ nested: { value: 'orig' } });
 
     const current = createModel('current-2');
     const withFuture = undo(pushHistory(createHistory(), createModel('prev')), current);
@@ -145,13 +155,21 @@ describe('history utilities', () => {
     expect(withFuture).not.toBeNull();
 
     current.name = 'current mutated after undo';
-    current.plates[0].metadata = { nested: { value: 'mutated current' } };
+    const currentContainer = current.nodes.find((node): node is ContainerNode => node.kind === 'container');
+    if (!currentContainer) {
+      throw new Error('Expected container node in current model');
+    }
+    currentContainer.metadata = { nested: { value: 'mutated current' } };
 
     const redoResult = redo(withFuture!.history, withFuture!.model);
 
     expect(redoResult).not.toBeNull();
+    const redoContainer = redoResult!.model.nodes.find((node): node is ContainerNode => node.kind === 'container');
+    if (!redoContainer) {
+      throw new Error('Expected container node after redo');
+    }
     expect(redoResult!.model.name).toBe('Architecture current-2');
-    expect(redoResult!.model.plates[0].metadata).toEqual({ nested: { value: 'current-2' } });
+    expect(redoContainer.metadata).toEqual({ nested: { value: 'current-2' } });
   });
 
   it('resetHistory clears all stacks', () => {

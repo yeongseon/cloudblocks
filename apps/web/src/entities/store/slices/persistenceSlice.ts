@@ -1,5 +1,5 @@
 import type { Workspace } from '../../../shared/types/index';
-import type { ArchitectureModel, BlockCategory, PlateType } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerNode, LeafNode, PlateType, ResourceCategory } from '@cloudblocks/schema';
 import type { ArchitectureSnapshot } from '../../../shared/types/learning';
 import { saveWorkspaces, loadWorkspaces, saveActiveWorkspaceId, loadActiveWorkspaceId } from '../../../shared/utils/storage';
 import { generateId } from '../../../shared/utils/id';
@@ -17,17 +17,14 @@ import {
 const MAX_IMPORT_SIZE_BYTES = 5 * 1024 * 1024;
 const DEFAULT_EXTERNAL_ACTOR_POSITION = { x: -3, y: 0, z: 5 };
 const VALID_PLATE_TYPES: PlateType[] = ['global', 'edge', 'region', 'zone', 'subnet'];
-const VALID_BLOCK_CATEGORIES: BlockCategory[] = [
+const VALID_BLOCK_CATEGORIES: ResourceCategory[] = [
+  'network',
+  'security',
+  'edge',
   'compute',
-  'database',
-  'storage',
-  'gateway',
-  'function',
-  'queue',
-  'event',
-  'analytics',
-  'identity',
-  'observability',
+  'data',
+  'messaging',
+  'operations',
 ];
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -36,13 +33,16 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const isFiniteNumber = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value);
 
+const isValidNodeKind = (value: unknown): value is 'container' | 'resource' =>
+  value === 'container' || value === 'resource';
 const isValidPlateType = (value: unknown): value is PlateType =>
   typeof value === 'string' &&
   VALID_PLATE_TYPES.includes(value as PlateType);
 
-const isValidBlockCategory = (value: unknown): value is BlockCategory =>
+const isValidBlockCategory = (value: unknown): value is ResourceCategory =>
   typeof value === 'string' &&
-  VALID_BLOCK_CATEGORIES.includes(value as BlockCategory);
+  VALID_BLOCK_CATEGORIES.includes(value as ResourceCategory);
+
 
 const validatePosition = (value: unknown, context: string): void => {
   if (!isRecord(value)) {
@@ -83,12 +83,10 @@ export const validateArchitectureShape = (
     throw new Error('Invalid architecture format: root must be an object');
   }
 
-  if (!Array.isArray(imported.plates)) {
-    throw new Error('Invalid architecture format: plates must be an array');
-  }
-
-  if (!Array.isArray(imported.blocks)) {
-    throw new Error('Invalid architecture format: blocks must be an array');
+  const hasNodes = Array.isArray(imported.nodes);
+  const hasLegacy = Array.isArray(imported.plates) && Array.isArray(imported.blocks);
+  if (!hasNodes && !hasLegacy) {
+    throw new Error('Invalid architecture format: expected nodes[] or legacy plates[] + blocks[]');
   }
 
   if (
@@ -98,62 +96,122 @@ export const validateArchitectureShape = (
     throw new Error('Invalid architecture format: connections must be an array');
   }
 
-  const plateIds = new Set<string>();
-  imported.plates.forEach((plate, index) => {
-    const context = `Invalid plate at index ${index}`;
-    if (!isRecord(plate)) {
-      throw new Error(`${context}: plate must be an object`);
-    }
+  const containerIds = new Set<string>();
+  const resourceIds = new Set<string>();
 
-    if (typeof plate.id !== 'string') {
-      throw new Error(`${context}: id must be a string`);
-    }
-    if (typeof plate.name !== 'string') {
-      throw new Error(`${context}: name must be a string`);
-    }
-    if (!isValidPlateType(plate.type)) {
-      throw new Error(`${context}: type must be one of global, edge, region, zone, or subnet`);
-    }
-    validatePosition(plate.position, context);
-    validateSize(plate.size, context);
-    if (!Array.isArray(plate.children)) {
-      throw new Error(`${context}: children must be an array`);
-    }
+  if (hasNodes) {
+    const nodes = (imported as Record<string, unknown>).nodes as unknown[];
+    nodes.forEach((node, index) => {
+      const context = `Invalid node at index ${index}`;
+      if (!isRecord(node)) {
+        throw new Error(`${context}: node must be an object`);
+      }
 
-    plateIds.add(plate.id);
-  });
+      if (typeof node.id !== 'string') {
+        throw new Error(`${context}: id must be a string`);
+      }
+      if (typeof node.name !== 'string') {
+        throw new Error(`${context}: name must be a string`);
+      }
+      if (!isValidNodeKind(node.kind)) {
+        throw new Error(`${context}: kind must be "container" or "resource"`);
+      }
+      validatePosition(node.position, context);
 
-  const blockIds = new Set<string>();
-  imported.blocks.forEach((block, index) => {
-    const context = `Invalid block at index ${index}`;
-    if (!isRecord(block)) {
-      throw new Error(`${context}: block must be an object`);
-    }
+      if (node.kind === 'container') {
+        if (!isValidPlateType(node.layer)) {
+          throw new Error(`${context}: layer must be one of global, edge, region, zone, or subnet`);
+        }
+        validateSize(node.size, context);
+        if (node.parentId !== null && node.parentId !== undefined && typeof node.parentId !== 'string') {
+          throw new Error(`${context}: parentId must be a string or null`);
+        }
+        containerIds.add(node.id);
+        return;
+      }
 
-    if (typeof block.id !== 'string') {
-      throw new Error(`${context}: id must be a string`);
-    }
-    if (typeof block.name !== 'string') {
-      throw new Error(`${context}: name must be a string`);
-    }
-    if (!isValidBlockCategory(block.category)) {
-      throw new Error(
-        `${context}: category must be one of compute, database, storage, gateway, function, queue, event, analytics, identity, observability`
-      );
-    }
-    if (typeof block.placementId !== 'string') {
-      throw new Error(`${context}: placementId must be a string`);
-    }
-    validatePosition(block.position, context);
+      if (!isValidBlockCategory(node.category)) {
+        throw new Error(
+          `${context}: category must be one of network, security, edge, compute, data, messaging, operations`
+        );
+      }
+      if (typeof node.parentId !== 'string') {
+        throw new Error(`${context}: resource node parentId must be a string`);
+      }
+      resourceIds.add(node.id);
+    });
 
-    if (!plateIds.has(block.placementId)) {
-      throw new Error(
-        `${context}: placementId "${block.placementId}" does not reference an existing plate`
-      );
-    }
+    nodes.forEach((node, index) => {
+      const context = `Invalid node at index ${index}`;
+      if (!isRecord(node)) {
+        return;
+      }
 
-    blockIds.add(block.id);
-  });
+      if (node.kind === 'container' && typeof node.parentId === 'string' && !containerIds.has(node.parentId)) {
+        throw new Error(`${context}: parentId "${node.parentId}" does not reference an existing container node`);
+      }
+
+      if (node.kind === 'resource' && typeof node.parentId === 'string' && !containerIds.has(node.parentId)) {
+        throw new Error(`${context}: parentId "${node.parentId}" does not reference an existing container node`);
+      }
+    });
+  }
+
+  const legacyPlateIds = new Set<string>();
+  const legacyBlockIds = new Set<string>();
+  if (hasLegacy) {
+    ((imported as Record<string, unknown>).plates as unknown[]).forEach((plate, index) => {
+      const context = `Invalid plate at index ${index}`;
+      if (!isRecord(plate)) {
+        throw new Error(`${context}: plate must be an object`);
+      }
+
+      if (typeof plate.id !== 'string') {
+        throw new Error(`${context}: id must be a string`);
+      }
+      if (typeof plate.name !== 'string') {
+        throw new Error(`${context}: name must be a string`);
+      }
+      if (!isValidPlateType(plate.type)) {
+        throw new Error(`${context}: type must be one of global, edge, region, zone, or subnet`);
+      }
+      validatePosition(plate.position, context);
+      validateSize(plate.size, context);
+
+      legacyPlateIds.add(plate.id);
+    });
+
+    ((imported as Record<string, unknown>).blocks as unknown[]).forEach((block, index) => {
+      const context = `Invalid block at index ${index}`;
+      if (!isRecord(block)) {
+        throw new Error(`${context}: block must be an object`);
+      }
+
+      if (typeof block.id !== 'string') {
+        throw new Error(`${context}: id must be a string`);
+      }
+      if (typeof block.name !== 'string') {
+        throw new Error(`${context}: name must be a string`);
+      }
+      if (!isValidBlockCategory(block.category)) {
+        throw new Error(
+          `${context}: category must be one of network, security, edge, compute, data, messaging, operations`
+        );
+      }
+      if (typeof block.placementId !== 'string') {
+        throw new Error(`${context}: placementId must be a string`);
+      }
+      validatePosition(block.position, context);
+
+      if (!legacyPlateIds.has(block.placementId)) {
+        throw new Error(
+          `${context}: placementId "${block.placementId}" does not reference an existing plate`
+        );
+      }
+
+      legacyBlockIds.add(block.id);
+    });
+  }
 
   const externalActorIds = new Set<string>();
   if (imported.externalActors === undefined) {
@@ -182,8 +240,10 @@ export const validateArchitectureShape = (
   }
 
   const validConnectionEndpointIds = new Set<string>([
-    ...plateIds,
-    ...blockIds,
+    ...containerIds,
+    ...resourceIds,
+    ...legacyPlateIds,
+    ...legacyBlockIds,
     ...externalActorIds,
   ]);
 
@@ -329,19 +389,59 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
     try {
       const importedRaw = JSON.parse(json) as unknown;
       validateImportData(importedRaw, json.length);
-      const imported = importedRaw as Partial<ArchitectureModel> &
-        Pick<ArchitectureModel, 'plates' | 'blocks'>;
+      const imported = importedRaw as Record<string, unknown>;
 
       const now = new Date().toISOString();
+
+      // Handle legacy (plates+blocks) or new (nodes) format
+      let nodes: (ContainerNode | LeafNode)[];
+      const importedAny = imported as Record<string, unknown>;
+      if (Array.isArray(importedAny.nodes)) {
+        nodes = importedAny.nodes as (ContainerNode | LeafNode)[];
+      } else if (Array.isArray(importedAny.plates) && Array.isArray(importedAny.blocks)) {
+        // Migrate legacy format
+        const containerNodes = (importedAny.plates as Record<string, unknown>[]).map((plate): ContainerNode => ({
+          id: plate.id as string,
+          name: plate.name as string,
+          kind: 'container',
+          layer: plate.type as ContainerNode['layer'],
+          resourceType: ((plate.type as string) === 'region' ? 'virtual_network' : plate.type === 'subnet' ? 'subnet' : 'virtual_network') as ContainerNode['resourceType'],
+          category: 'network',
+          provider: 'azure',
+          parentId: (plate.parentId as string | null | undefined) ?? null,
+          position: plate.position as ContainerNode['position'],
+          size: plate.size as ContainerNode['size'],
+          metadata: (plate.metadata as Record<string, unknown>) ?? {},
+          ...(typeof plate.subnetAccess === 'string' ? { subnetAccess: plate.subnetAccess as 'public' | 'private' } : {}),
+          ...(typeof plate.profileId === 'string' ? { profileId: plate.profileId } : {}),
+        }));
+        const leafNodes = (importedAny.blocks as Record<string, unknown>[]).map((block): LeafNode => ({
+          id: block.id as string,
+          name: block.name as string,
+          kind: 'resource',
+          layer: 'resource',
+          resourceType: (block.subtype as string | undefined) ?? (block.category as string),
+          category: block.category as ResourceCategory,
+          provider: (block.provider as LeafNode['provider'] | undefined) ?? 'azure',
+          parentId: block.placementId as string,
+          position: block.position as LeafNode['position'],
+          metadata: (block.metadata as Record<string, unknown>) ?? {},
+          ...(typeof block.subtype === 'string' ? { subtype: block.subtype } : {}),
+          ...((block.config && typeof block.config === 'object') ? { config: block.config as Record<string, unknown> } : {}),
+        }));
+        nodes = [...containerNodes, ...leafNodes];
+      } else {
+        nodes = [];
+      }
+
       const normalized: ArchitectureModel = {
-        id: imported.id || generateId('arch'),
-        name: imported.name || 'Imported Architecture',
-        version: imported.version || '1',
-        plates: imported.plates,
-        blocks: imported.blocks,
-        connections: imported.connections ?? [],
+        id: (imported.id as string) || generateId('arch'),
+        name: (imported.name as string) || 'Imported Architecture',
+        version: (imported.version as string) || '1',
+        nodes,
+        connections: (imported.connections as ArchitectureModel['connections']) ?? [],
         externalActors:
-          imported.externalActors?.map((actor) => ({
+          (imported.externalActors as ArchitectureModel['externalActors'])?.map((actor) => ({
             ...actor,
             position: actor.position ?? { ...DEFAULT_EXTERNAL_ACTOR_POSITION },
           })) ?? [
@@ -352,7 +452,7 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
               position: { ...DEFAULT_EXTERNAL_ACTOR_POSITION },
             },
           ],
-        createdAt: imported.createdAt || now,
+        createdAt: (imported.createdAt as string) || now,
         updatedAt: now,
       };
 

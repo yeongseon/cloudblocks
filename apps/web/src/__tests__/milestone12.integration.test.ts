@@ -11,44 +11,76 @@ import { gcpSubtypeRegistry } from '../features/generate/providers/gcp/subtypes'
 import { resolveBlockMapping } from '../features/generate/types';
 import type { ProviderDefinition } from '../features/generate/types';
 import type { Workspace } from '../shared/types';
-import type { ArchitectureModel, Block, Plate } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
 import { deserialize, serialize } from '../shared/types/schema';
 
-function makePlate(overrides: Partial<Plate> = {}): Plate {
+type ContainerOverrides = Partial<Omit<ContainerNode, 'kind' | 'layer' | 'resourceType' | 'category' | 'provider'>>;
+
+type LeafOverrides = Partial<Omit<LeafNode, 'kind' | 'layer' | 'resourceType' | 'category' | 'provider' | 'parentId'>> & {
+  category?: LeafNode['category'];
+  provider?: LeafNode['provider'];
+  parentId?: string | null;
+};
+
+type ResourceInput = LeafOverrides & Pick<LeafNode, 'id' | 'name' | 'position' | 'metadata'>;
+
+type ArchitectureOverrides = Omit<Partial<ArchitectureModel>, 'nodes' | 'plates' | 'blocks'> & {
+  nodes?: ArchitectureModel['nodes'];
+  containers?: ContainerNode[];
+  resources?: Array<LeafNode | ResourceInput>;
+};
+
+const platesOf = (architecture: ArchitectureModel): ContainerNode[] => architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+const blocksOf = (architecture: ArchitectureModel): LeafNode[] => architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
+
+function makePlate(overrides: ContainerOverrides = {}): ContainerNode {
   return {
     id: 'plate-subnet-private',
     name: 'Private Subnet',
-    type: 'subnet',
+    kind: 'container',
+    layer: 'subnet',
+    resourceType: 'subnet',
+    category: 'network',
+    provider: 'azure',
     subnetAccess: 'private',
     profileId: 'subnet-service',
     parentId: 'plate-network-1',
-    children: [],
     position: { x: 0, y: 0.7, z: 0 },
     size: { width: 8, height: 0.5, depth: 8 },
     metadata: {},
     ...overrides,
   };
-}
+};
 
-function makeBlock(overrides: Partial<Block> = {}): Block {
+function makeBlock(overrides: LeafOverrides = {}): LeafNode {
   return {
     id: 'block-1',
     name: 'Block One',
+    kind: 'resource',
+    layer: 'resource',
+    resourceType: 'web_compute',
     category: 'compute',
-    placementId: 'plate-subnet-private',
+    provider: 'azure',
+    parentId: overrides.parentId ?? 'plate-subnet-private',
     position: { x: 1, y: 0.5, z: 1 },
     metadata: {},
     ...overrides,
   };
 }
 
-function makeArchitecture(overrides: Partial<ArchitectureModel> = {}): ArchitectureModel {
+function makeArchitecture(overrides: ArchitectureOverrides = {}): ArchitectureModel {
+  const { containers = [makePlate()], resources = [], nodes = [], ...rest } = overrides;
+  const normalizedResources: LeafNode[] = resources.map((resource) => {
+    if ('kind' in resource && resource.kind === 'resource') {
+      return resource;
+    }
+    return makeBlock(resource);
+  });
   return {
     id: 'arch-1',
     name: 'Milestone 12 Integration',
     version: '1',
-    plates: [makePlate()],
-    blocks: [],
+    nodes: [...containers, ...normalizedResources, ...nodes],
     connections: [],
     externalActors: [
       {
@@ -60,7 +92,7 @@ function makeArchitecture(overrides: Partial<ArchitectureModel> = {}): Architect
     ],
     createdAt: '2026-03-01T00:00:00.000Z',
     updatedAt: '2026-03-01T00:00:00.000Z',
-    ...overrides,
+    ...rest,
   };
 }
 
@@ -100,7 +132,7 @@ describe('Milestone 12 Integration Tests', () => {
   describe('serialization roundtrip with subtypes', () => {
     it('preserves subtype and config through serialize and deserialize', () => {
       const architecture = makeArchitecture({
-        blocks: [
+        resources: [
           makeBlock({
             id: 'aws-lambda-1',
             name: 'Lambda API',
@@ -111,7 +143,7 @@ describe('Milestone 12 Integration Tests', () => {
           makeBlock({
             id: 'gcp-sql-1',
             name: 'Cloud SQL',
-            category: 'database',
+            category: 'data',
             provider: 'gcp',
             subtype: 'cloud-sql-postgres',
             config: { tier: 'db-f1-micro', databaseVersion: 'POSTGRES_15' },
@@ -122,13 +154,13 @@ describe('Milestone 12 Integration Tests', () => {
       const workspaces = [makeWorkspace({ architecture })];
       const roundtripped = deserialize(serialize(workspaces));
 
-      expect(roundtripped[0].architecture.blocks[0].subtype).toBe('lambda');
-      expect(roundtripped[0].architecture.blocks[0].config).toEqual({
+      expect(blocksOf(roundtripped[0].architecture)[0].subtype).toBe('lambda');
+      expect(blocksOf(roundtripped[0].architecture)[0].config).toEqual({
         runtime: 'nodejs20.x',
         memorySize: 512,
       });
-      expect(roundtripped[0].architecture.blocks[1].subtype).toBe('cloud-sql-postgres');
-      expect(roundtripped[0].architecture.blocks[1].config).toEqual({
+      expect(blocksOf(roundtripped[0].architecture)[1].subtype).toBe('cloud-sql-postgres');
+      expect(blocksOf(roundtripped[0].architecture)[1].config).toEqual({
         tier: 'db-f1-micro',
         databaseVersion: 'POSTGRES_15',
       });
@@ -136,7 +168,7 @@ describe('Milestone 12 Integration Tests', () => {
 
     it('keeps mixed subtype and non-subtype blocks stable through roundtrip', () => {
       const architecture = makeArchitecture({
-        blocks: [
+        resources: [
           makeBlock({ id: 'compute-legacy-1', name: 'Legacy Compute', provider: 'aws' }),
           makeBlock({
             id: 'compute-subtyped-1',
@@ -149,7 +181,7 @@ describe('Milestone 12 Integration Tests', () => {
       });
 
       const parsed = deserialize(serialize([makeWorkspace({ architecture })]));
-      const [legacyBlock, subtypedBlock] = parsed[0].architecture.blocks;
+      const [legacyBlock, subtypedBlock] = blocksOf(parsed[0].architecture);
 
       expect(legacyBlock.subtype).toBeUndefined();
       expect(legacyBlock.config).toBeUndefined();
@@ -161,7 +193,7 @@ describe('Milestone 12 Integration Tests', () => {
   describe('validation with provider-specific rules', () => {
     it('returns warnings for AWS Lambda on subnet and unknown subtype in one architecture', () => {
       const architecture = makeArchitecture({
-        blocks: [
+        resources: [
           makeBlock({
             id: 'lambda-subnet-1',
             name: 'Lambda Worker',
@@ -192,7 +224,7 @@ describe('Milestone 12 Integration Tests', () => {
 
     it('does not warn for provider block when subtype is omitted', () => {
       const architecture = makeArchitecture({
-        blocks: [
+        resources: [
           makeBlock({ id: 'aws-compute-1', name: 'AWS Compute', provider: 'aws', category: 'compute' }),
         ],
       });
@@ -206,7 +238,7 @@ describe('Milestone 12 Integration Tests', () => {
 
     it('does not warn for known provider subtype outside special warning rules', () => {
       const architecture = makeArchitecture({
-        blocks: [
+        resources: [
           makeBlock({
             id: 'gcp-run-1',
             name: 'Cloud Run',
@@ -232,12 +264,13 @@ describe('Milestone 12 Integration Tests', () => {
         workspaces: [
           makeWorkspace({
             architecture: makeArchitecture({
-              blocks: [
+              resources: [
                 {
                   id: 'legacy-block-1',
                   name: 'Legacy Compute',
+                  resourceType: 'web_compute',
                   category: 'compute',
-                  placementId: 'plate-subnet-private',
+                  parentId: 'plate-subnet-private',
                   position: { x: 1, y: 0.5, z: 1 },
                   metadata: {},
                   provider: 'aws',
@@ -259,12 +292,13 @@ describe('Milestone 12 Integration Tests', () => {
         workspaces: [
           makeWorkspace({
             architecture: makeArchitecture({
-              blocks: [
+              resources: [
                 {
                   id: 'legacy-block-2',
                   name: 'Legacy Database',
-                  category: 'database',
-                  placementId: 'plate-subnet-private',
+                  resourceType: 'relational_database',
+                  category: 'data',
+                  parentId: 'plate-subnet-private',
                   position: { x: 2, y: 0.5, z: 2 },
                   metadata: {},
                   provider: 'aws',
@@ -286,12 +320,13 @@ describe('Milestone 12 Integration Tests', () => {
         workspaces: [
           makeWorkspace({
             architecture: makeArchitecture({
-              blocks: [
+              resources: [
                 {
                   id: 'legacy-block-3',
                   name: 'Legacy Block',
+                  resourceType: 'web_compute',
                   category: 'compute',
-                  placementId: 'plate-subnet-private',
+                  parentId: 'plate-subnet-private',
                   position: { x: 1, y: 0.5, z: 1 },
                   metadata: {},
                   provider: 'aws',
@@ -299,8 +334,9 @@ describe('Milestone 12 Integration Tests', () => {
                 {
                   id: 'new-block-3',
                   name: 'New Block',
+                  resourceType: 'web_compute',
                   category: 'compute',
-                  placementId: 'plate-subnet-private',
+                  parentId: 'plate-subnet-private',
                   position: { x: 2, y: 0.5, z: 2 },
                   metadata: {},
                   provider: 'aws',
@@ -360,9 +396,9 @@ describe('Milestone 12 Integration Tests', () => {
   describe('backward compatibility without subtypes', () => {
     it('keeps pipeline behavior intact for architecture without subtype fields', () => {
       const architecture = makeArchitecture({
-        blocks: [
+        resources: [
           makeBlock({ id: 'legacy-compute-4', name: 'Legacy Compute', provider: 'aws', category: 'compute' }),
-          makeBlock({ id: 'legacy-storage-4', name: 'Legacy Storage', provider: 'aws', category: 'storage' }),
+          makeBlock({ id: 'legacy-storage-4', name: 'Legacy Storage', provider: 'aws', category: 'data' }),
         ],
       });
 
@@ -371,12 +407,12 @@ describe('Milestone 12 Integration Tests', () => {
       const resolvedCompute = resolveBlockMapping(
         awsProviderDefinition.blockMappings,
         awsProviderDefinition.subtypeBlockMappings,
-        roundtripped.blocks[0].category,
-        roundtripped.blocks[0].subtype,
+        blocksOf(roundtripped)[0].category,
+        blocksOf(roundtripped)[0].subtype,
       );
 
-      expect(roundtripped.blocks.every((block) => block.subtype === undefined)).toBe(true);
-      expect(roundtripped.blocks.every((block) => block.config === undefined)).toBe(true);
+      expect(blocksOf(roundtripped).every((block) => block.subtype === undefined)).toBe(true);
+      expect(blocksOf(roundtripped).every((block) => block.config === undefined)).toBe(true);
       expect(validation.valid).toBe(true);
       expect(validation.errors).toEqual([]);
       expect(validation.warnings).toEqual([]);
@@ -403,9 +439,9 @@ describe('Milestone 12 Integration Tests', () => {
     it('stores provider, subtype, and config when adding block through store slice', () => {
       const state = useArchitectureStore.getState();
       state.addPlate('region', 'VNet', null);
-      const networkId = useArchitectureStore.getState().workspace.architecture.plates[0].id;
+      const networkId = platesOf(useArchitectureStore.getState().workspace.architecture)[0].id;
       state.addPlate('subnet', 'Private Subnet', networkId, 'private');
-      const subnetId = useArchitectureStore.getState().workspace.architecture.plates[1].id;
+      const subnetId = platesOf(useArchitectureStore.getState().workspace.architecture)[1].id;
 
       state.addBlock('compute', 'Lambda API', subnetId, 'aws', 'lambda', {
         runtime: 'nodejs20.x',
@@ -413,25 +449,25 @@ describe('Milestone 12 Integration Tests', () => {
       });
 
       const architecture = useArchitectureStore.getState().workspace.architecture;
-      const block = architecture.blocks[0];
-      const parentPlate = architecture.plates.find((plate) => plate.id === subnetId);
+      const block = blocksOf(architecture)[0];
+      const parentPlate = platesOf(architecture).find((plate) => plate.id === subnetId);
 
       expect(block.provider).toBe('aws');
       expect(block.subtype).toBe('lambda');
       expect(block.config).toEqual({ runtime: 'nodejs20.x', memorySize: 512 });
-      expect(parentPlate?.children).toContain(block.id);
+      expect(block.parentId).toBe(parentPlate?.id);
     });
 
     it('keeps subtype and config undefined when adding block without subtype metadata', () => {
       const state = useArchitectureStore.getState();
       state.addPlate('region', 'VNet', null);
-      const networkId = useArchitectureStore.getState().workspace.architecture.plates[0].id;
+      const networkId = platesOf(useArchitectureStore.getState().workspace.architecture)[0].id;
       state.addPlate('subnet', 'Private Subnet', networkId, 'private');
-      const subnetId = useArchitectureStore.getState().workspace.architecture.plates[1].id;
+      const subnetId = platesOf(useArchitectureStore.getState().workspace.architecture)[1].id;
 
       state.addBlock('compute', 'Generic Compute', subnetId, 'aws');
 
-      const block = useArchitectureStore.getState().workspace.architecture.blocks[0];
+      const block = blocksOf(useArchitectureStore.getState().workspace.architecture)[0];
       expect(block.provider).toBe('aws');
       expect(block.subtype).toBeUndefined();
       expect(block.config).toBeUndefined();
