@@ -356,10 +356,14 @@ function CreationMode() {
 
     const def = RESOURCE_DEFINITIONS[type];
 
-    // Handle plate creation
+    // Handle plate creation — minifigure walks and builds
     if (def.category === 'plate') {
-    if (type === 'network') {
-      addPlate('region', 'VNet', null);
+      const platesBefore = new Set(
+        useArchitectureStore.getState().workspace.architecture.plates.map((p) => p.id),
+      );
+
+      if (type === 'network') {
+        addPlate('region', 'VNet', null);
         playSound('block-snap');
       } else if (type === 'public-subnet') {
         const targetId = techTree.getTargetPlateId(type);
@@ -374,6 +378,15 @@ function CreationMode() {
           playSound('block-snap');
         }
       }
+
+      // Trigger minifigure walk-build animation for the new plate
+      const updatedPlates = useArchitectureStore.getState().workspace.architecture.plates;
+      const newPlate = updatedPlates.find((p) => !platesBefore.has(p.id));
+      if (newPlate) {
+        const { x, y, z } = newPlate.position;
+        useWorkerStore.getState().startBuild(newPlate.id, [x, y, z]);
+      }
+
       return;
     }
 
@@ -608,7 +621,11 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
     const def = RESOURCE_DEFINITIONS[type];
 
     if (def.category === 'plate') {
-          if (selectedPlate.type !== 'region') return;
+      if (selectedPlate.type !== 'region') return;
+
+      const platesBefore = new Set(
+        useArchitectureStore.getState().workspace.architecture.plates.map((p) => p.id),
+      );
 
       if (type === 'public-subnet') {
         addPlate('subnet', 'Public Subnet', selectedPlate.id, 'public');
@@ -616,6 +633,14 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
       } else if (type === 'private-subnet') {
         addPlate('subnet', 'Private Subnet', selectedPlate.id, 'private');
         playSound('block-snap');
+      }
+
+      // Trigger minifigure walk-build animation for the new plate
+      const updatedPlates = useArchitectureStore.getState().workspace.architecture.plates;
+      const newPlate = updatedPlates.find((p) => !platesBefore.has(p.id));
+      if (newPlate) {
+        const { x, y, z } = newPlate.position;
+        useWorkerStore.getState().startBuild(newPlate.id, [x, y, z]);
       }
 
       return;
