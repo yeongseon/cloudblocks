@@ -118,7 +118,7 @@ export function SceneCanvas() {
             addBlock(draggedBlockCategory, draggedResourceName, plateId, activeProvider);
             playSound('block-snap');
 
-            // Compute the new block's world position and dispatch to SCV worker
+            // Compute the new block's world position and dispatch to minifigure worker
             const updatedBlocks = useArchitectureStore.getState().workspace.architecture.blocks;
             const newBlock = updatedBlocks.find((b) => !blocksBefore.has(b.id));
             if (newBlock) {

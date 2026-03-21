@@ -728,7 +728,7 @@ Transform the DevOps minifigure from decoration into an interactive RTS-style wo
 Key Objectives:
 
 - Minifigure becomes selectable (remove `aria-hidden`, add click handler)
-- Minifigure selection activates CommandCard (StarCraft SCV pattern)
+- Minifigure selection activates CommandCard (RTS worker pattern)
 - Build animation: minifigure moves to resource placement location
 - Multiple worker support (multi-select, parallel build)
 - Build progress indicator on resources under construction
