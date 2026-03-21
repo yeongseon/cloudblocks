@@ -1,16 +1,134 @@
 import type { ArchitectureSnapshot, Scenario } from '../../../shared/types/learning';
+import type {
+  ContainerCapableResourceType,
+  ContainerNode,
+  LeafNode,
+  PlateType,
+  ProviderType,
+  ResourceCategory,
+} from '@cloudblocks/schema';
 import { registerScenario } from './registry';
 
-const threeTierInitialArchitecture: ArchitectureSnapshot = {
+type LegacyBlockCategory =
+  | ResourceCategory
+  | 'database'
+  | 'storage'
+  | 'gateway'
+  | 'function'
+  | 'queue'
+  | 'event'
+  | 'analytics'
+  | 'identity'
+  | 'observability';
+
+interface LegacyPlate {
+  id: string;
+  name: string;
+  type: PlateType;
+  parentId: string | null;
+  children: string[];
+  position: { x: number; y: number; z: number };
+  size: { width: number; height: number; depth: number };
+  metadata: Record<string, unknown>;
+  subnetAccess?: 'public' | 'private';
+}
+
+interface LegacyBlock {
+  id: string;
+  name: string;
+  category: LegacyBlockCategory;
+  provider?: ProviderType;
+  subtype?: string;
+  placementId: string;
+  position: { x: number; y: number; z: number };
+  metadata: Record<string, unknown>;
+}
+
+interface LegacyArchitecture {
+  name: string;
+  version: string;
+  plates: LegacyPlate[];
+  blocks: LegacyBlock[];
+  connections: ArchitectureSnapshot['connections'];
+  externalActors: ArchitectureSnapshot['externalActors'];
+}
+
+const LEGACY_CATEGORY_MAP: Record<LegacyBlockCategory, ResourceCategory> = {
+  network: 'network',
+  security: 'security',
+  edge: 'edge',
+  compute: 'compute',
+  data: 'data',
+  messaging: 'messaging',
+  operations: 'operations',
+  database: 'data',
+  storage: 'data',
+  gateway: 'edge',
+  function: 'compute',
+  queue: 'messaging',
+  event: 'messaging',
+  analytics: 'operations',
+  identity: 'security',
+  observability: 'operations',
+};
+
+const CONTAINER_RESOURCE_TYPE: Record<PlateType, ContainerCapableResourceType> = {
+  global: 'virtual_network',
+  edge: 'virtual_network',
+  region: 'virtual_network',
+  zone: 'virtual_network',
+  subnet: 'subnet',
+};
+
+function toArchitectureSnapshot(legacy: LegacyArchitecture): ArchitectureSnapshot {
+  const containers: ContainerNode[] = legacy.plates.map((plate) => ({
+    id: plate.id,
+    name: plate.name,
+    kind: 'container',
+    layer: plate.type,
+    resourceType: CONTAINER_RESOURCE_TYPE[plate.type],
+    category: 'network',
+    provider: 'azure',
+    parentId: plate.parentId,
+    position: plate.position,
+    size: plate.size,
+    metadata: plate.metadata,
+    subnetAccess: plate.subnetAccess,
+  }));
+
+  const resources: LeafNode[] = legacy.blocks.map((block) => ({
+    id: block.id,
+    name: block.name,
+    kind: 'resource',
+    layer: 'resource',
+    resourceType: block.subtype ?? LEGACY_CATEGORY_MAP[block.category],
+    category: LEGACY_CATEGORY_MAP[block.category],
+    provider: block.provider ?? 'azure',
+    parentId: block.placementId,
+    position: block.position,
+    metadata: block.metadata,
+    subtype: block.subtype,
+  }));
+
+  return {
+    name: legacy.name,
+    version: legacy.version,
+    nodes: [...containers, ...resources],
+    connections: legacy.connections,
+    externalActors: legacy.externalActors,
+  };
+}
+
+const threeTierInitialArchitecture: ArchitectureSnapshot = toArchitectureSnapshot({
   name: 'Three-Tier Learning Scenario',
   version: '1',
   plates: [],
   blocks: [],
   connections: [],
   externalActors: [],
-};
+});
 
-const threeTierCheckpointNetworkOnly: ArchitectureSnapshot = {
+const threeTierCheckpointNetworkOnly: ArchitectureSnapshot = toArchitectureSnapshot({
   name: 'Three-Tier Learning Scenario',
   version: '1',
   plates: [
@@ -28,9 +146,9 @@ const threeTierCheckpointNetworkOnly: ArchitectureSnapshot = {
   blocks: [],
   connections: [],
   externalActors: [],
-};
+});
 
-const threeTierCheckpointWithSubnets: ArchitectureSnapshot = {
+const threeTierCheckpointWithSubnets: ArchitectureSnapshot = toArchitectureSnapshot({
   name: 'Three-Tier Learning Scenario',
   version: '1',
   plates: [
@@ -70,9 +188,9 @@ const threeTierCheckpointWithSubnets: ArchitectureSnapshot = {
   blocks: [],
   connections: [],
   externalActors: [],
-};
+});
 
-const threeTierCheckpointWithBlocks: ArchitectureSnapshot = {
+const threeTierCheckpointWithBlocks: ArchitectureSnapshot = toArchitectureSnapshot({
   name: 'Three-Tier Learning Scenario',
   version: '1',
   plates: [
@@ -137,7 +255,7 @@ const threeTierCheckpointWithBlocks: ArchitectureSnapshot = {
   ],
   connections: [],
   externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
-};
+});
 
 const threeTierScenario: Scenario = {
   id: 'scenario-three-tier',
@@ -191,14 +309,14 @@ const threeTierScenario: Scenario = {
       validationRules: [
         {
           type: 'block-exists',
-          category: 'gateway',
+          category: 'edge',
           onPlateType: 'subnet',
           onSubnetAccess: 'public',
         },
         { type: 'block-exists', category: 'compute' },
         {
           type: 'block-exists',
-          category: 'database',
+          category: 'data',
           onPlateType: 'subnet',
           onSubnetAccess: 'private',
         },
@@ -216,9 +334,9 @@ const threeTierScenario: Scenario = {
         'Click the source block first, then click the target block to create a connection.',
       ],
       validationRules: [
-        { type: 'connection-exists', sourceCategory: 'internet', targetCategory: 'gateway' },
-        { type: 'connection-exists', sourceCategory: 'gateway', targetCategory: 'compute' },
-        { type: 'connection-exists', sourceCategory: 'compute', targetCategory: 'database' },
+        { type: 'connection-exists', sourceCategory: 'internet', targetCategory: 'edge' },
+        { type: 'connection-exists', sourceCategory: 'edge', targetCategory: 'compute' },
+        { type: 'connection-exists', sourceCategory: 'compute', targetCategory: 'data' },
       ],
       checkpoint: threeTierCheckpointWithBlocks,
     },
@@ -236,7 +354,7 @@ const threeTierScenario: Scenario = {
   ],
 };
 
-const serverlessApiInitialArchitecture: ArchitectureSnapshot = {
+const serverlessApiInitialArchitecture: ArchitectureSnapshot = toArchitectureSnapshot({
   name: 'Serverless API Learning Scenario',
   version: '1',
   plates: [
@@ -254,9 +372,9 @@ const serverlessApiInitialArchitecture: ArchitectureSnapshot = {
   blocks: [],
   connections: [],
   externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
-};
+});
 
-const serverlessApiCheckpointWithSubnets: ArchitectureSnapshot = {
+const serverlessApiCheckpointWithSubnets: ArchitectureSnapshot = toArchitectureSnapshot({
   name: 'Serverless API Learning Scenario',
   version: '1',
   plates: [
@@ -296,7 +414,7 @@ const serverlessApiCheckpointWithSubnets: ArchitectureSnapshot = {
   blocks: [],
   connections: [],
   externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
-};
+});
 
 const serverlessApiScenario: Scenario = {
   id: 'scenario-serverless-api',
@@ -336,14 +454,14 @@ const serverlessApiScenario: Scenario = {
       validationRules: [
         {
           type: 'block-exists',
-          category: 'gateway',
+          category: 'edge',
           onPlateType: 'subnet',
           onSubnetAccess: 'public',
         },
-        { type: 'block-exists', category: 'function', onPlateType: 'region' },
+        { type: 'block-exists', category: 'compute', onPlateType: 'region' },
         {
           type: 'block-exists',
-          category: 'database',
+          category: 'data',
           onPlateType: 'subnet',
           onSubnetAccess: 'private',
         },
@@ -360,9 +478,9 @@ const serverlessApiScenario: Scenario = {
         'Functions can connect to databases, storage, and queues.',
       ],
       validationRules: [
-        { type: 'connection-exists', sourceCategory: 'internet', targetCategory: 'gateway' },
-        { type: 'connection-exists', sourceCategory: 'gateway', targetCategory: 'function' },
-        { type: 'connection-exists', sourceCategory: 'function', targetCategory: 'database' },
+        { type: 'connection-exists', sourceCategory: 'internet', targetCategory: 'edge' },
+        { type: 'connection-exists', sourceCategory: 'edge', targetCategory: 'compute' },
+        { type: 'connection-exists', sourceCategory: 'compute', targetCategory: 'data' },
       ],
     },
     {
@@ -379,7 +497,7 @@ const serverlessApiScenario: Scenario = {
   ],
 };
 
-const eventPipelineInitialArchitecture: ArchitectureSnapshot = {
+const eventPipelineInitialArchitecture: ArchitectureSnapshot = toArchitectureSnapshot({
   name: 'Event Pipeline Learning Scenario',
   version: '1',
   plates: [
@@ -408,9 +526,9 @@ const eventPipelineInitialArchitecture: ArchitectureSnapshot = {
   blocks: [],
   connections: [],
   externalActors: [],
-};
+});
 
-const eventPipelineCheckpointAfterStep2: ArchitectureSnapshot = {
+const eventPipelineCheckpointAfterStep2: ArchitectureSnapshot = toArchitectureSnapshot({
   name: 'Event Pipeline Learning Scenario',
   version: '1',
   plates: [
@@ -456,9 +574,9 @@ const eventPipelineCheckpointAfterStep2: ArchitectureSnapshot = {
   ],
   connections: [],
   externalActors: [],
-};
+});
 
-const eventPipelineCheckpointWithAllBlocks: ArchitectureSnapshot = {
+const eventPipelineCheckpointWithAllBlocks: ArchitectureSnapshot = toArchitectureSnapshot({
   name: 'Event Pipeline Learning Scenario',
   version: '1',
   plates: [
@@ -543,7 +661,7 @@ const eventPipelineCheckpointWithAllBlocks: ArchitectureSnapshot = {
   ],
   connections: [],
   externalActors: [],
-};
+});
 
 const eventPipelineScenario: Scenario = {
   id: 'scenario-event-pipeline',
@@ -565,8 +683,8 @@ const eventPipelineScenario: Scenario = {
         'Events trigger functions when something happens. Queues buffer messages for processing.',
       ],
       validationRules: [
-        { type: 'block-exists', category: 'event', onPlateType: 'region' },
-        { type: 'block-exists', category: 'queue', onPlateType: 'region' },
+        { type: 'block-exists', category: 'messaging', onPlateType: 'region' },
+        { type: 'block-exists', category: 'messaging', onPlateType: 'region' },
       ],
     },
     {
@@ -579,7 +697,7 @@ const eventPipelineScenario: Scenario = {
         'You need at least two functions: one triggered by events and one for batch processing.',
         'Functions run on the Region plate, not in subnets.',
       ],
-      validationRules: [{ type: 'min-block-count', category: 'function', count: 2 }],
+      validationRules: [{ type: 'min-block-count', category: 'compute', count: 2 }],
       checkpoint: eventPipelineCheckpointAfterStep2,
     },
     {
@@ -592,10 +710,10 @@ const eventPipelineScenario: Scenario = {
         'Storage in the private subnet keeps your data secure.',
       ],
       validationRules: [
-        { type: 'block-exists', category: 'event', onPlateType: 'region' },
+        { type: 'block-exists', category: 'messaging', onPlateType: 'region' },
         {
           type: 'block-exists',
-          category: 'storage',
+          category: 'data',
           onPlateType: 'subnet',
           onSubnetAccess: 'private',
         },
@@ -612,9 +730,9 @@ const eventPipelineScenario: Scenario = {
         'Each trigger type connects to its designated processing function.',
       ],
       validationRules: [
-        { type: 'connection-exists', sourceCategory: 'event', targetCategory: 'function' },
-        { type: 'connection-exists', sourceCategory: 'queue', targetCategory: 'function' },
-        { type: 'connection-exists', sourceCategory: 'function', targetCategory: 'storage' },
+        { type: 'connection-exists', sourceCategory: 'messaging', targetCategory: 'compute' },
+        { type: 'connection-exists', sourceCategory: 'messaging', targetCategory: 'compute' },
+        { type: 'connection-exists', sourceCategory: 'compute', targetCategory: 'data' },
       ],
       checkpoint: eventPipelineCheckpointWithAllBlocks,
     },
@@ -629,7 +747,7 @@ const eventPipelineScenario: Scenario = {
       ],
       validationRules: [
         { type: 'architecture-valid' },
-        { type: 'min-block-count', category: 'function', count: 2 },
+        { type: 'min-block-count', category: 'compute', count: 2 },
         { type: 'min-plate-count', plateType: 'region', count: 1 },
       ],
     },

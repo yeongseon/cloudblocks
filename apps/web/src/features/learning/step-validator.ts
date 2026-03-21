@@ -16,21 +16,24 @@ export function evaluateRule(
   rule: StepValidationRule,
   model: ArchitectureModel
 ): boolean {
+  const containers = model.nodes.filter((n) => n.kind === 'container');
+  const resources = model.nodes.filter((n) => n.kind === 'resource');
+
   switch (rule.type) {
     case 'plate-exists':
-      return model.plates.some(
+      return containers.some(
         (p) =>
-          p.type === rule.plateType &&
+          p.layer === rule.plateType &&
           (rule.subnetAccess === undefined || p.subnetAccess === rule.subnetAccess)
       );
 
     case 'block-exists':
-      return model.blocks.some((b) => {
+      return resources.some((b) => {
         if (b.category !== rule.category) return false;
         if (rule.onPlateType === undefined) return true;
-        const plate = model.plates.find((p) => p.id === b.placementId);
+        const plate = containers.find((p) => p.id === b.parentId);
         if (!plate) return false;
-        if (plate.type !== rule.onPlateType) return false;
+        if (plate.layer !== rule.onPlateType) return false;
         if (rule.onSubnetAccess !== undefined && plate.subnetAccess !== rule.onSubnetAccess) return false;
         return true;
       });
@@ -43,11 +46,11 @@ export function evaluateRule(
       });
 
     case 'entity-on-plate':
-      return model.blocks.some((b) => {
+      return resources.some((b) => {
         if (b.category !== rule.entityCategory) return false;
-        const plate = model.plates.find((p) => p.id === b.placementId);
+        const plate = containers.find((p) => p.id === b.parentId);
         if (!plate) return false;
-        if (plate.type !== rule.plateType) return false;
+        if (plate.layer !== rule.plateType) return false;
         if (rule.subnetAccess !== undefined && plate.subnetAccess !== rule.subnetAccess) return false;
         return true;
       });
@@ -56,10 +59,10 @@ export function evaluateRule(
       return validateArchitecture(model).valid;
 
     case 'min-block-count':
-      return model.blocks.filter((b) => b.category === rule.category).length >= rule.count;
+      return resources.filter((b) => b.category === rule.category).length >= rule.count;
 
     case 'min-plate-count':
-      return model.plates.filter((p) => p.type === rule.plateType).length >= rule.count;
+      return containers.filter((p) => p.layer === rule.plateType).length >= rule.count;
 
     default:
       return false;
@@ -85,7 +88,7 @@ function getEndpointType(
   id: string,
   model: ArchitectureModel
 ): string | null {
-  const block = model.blocks.find((b) => b.id === id);
+  const block = model.nodes.find((n) => n.kind === 'resource' && n.id === id);
   if (block) return block.category;
 
   const actor = model.externalActors.find((a) => a.id === id);
