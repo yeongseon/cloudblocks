@@ -206,6 +206,7 @@ describe('DetailPanel', () => {
     expect(screen.getByRole('img', { name: 'Region' })).toBeInTheDocument();
     expect(screen.getByText('Region')).toBeInTheDocument();
     expect(screen.queryByText('Parent')).not.toBeInTheDocument();
+    expect(screen.getByText(/1 subnet/)).toBeInTheDocument();
   });
 
   it('renders private subnet plate with lock icon', () => {
@@ -337,6 +338,41 @@ describe('DetailPanel', () => {
     render(<DetailPanel />);
 
     expect(screen.getByText(/Partner API/)).toBeInTheDocument();
+  });
+
+  it('renders user emoji for non-internet external actor type', () => {
+    const actor = {
+      id: 'ext-user',
+      name: 'Admin',
+      type: 'user',
+      position: { x: 0, y: 0, z: 0 },
+    } as unknown as ExternalActor;
+    const conn: Connection = {
+      id: 'ext-conn-user',
+      sourceId: 'ext-user',
+      targetId: 'block-1',
+      type: 'dataflow',
+      metadata: {},
+    };
+
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          ...architectureWithResources,
+          externalActors: [actor],
+          connections: [conn],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+    useUIStore.setState({ selectedId: 'ext-conn-user' });
+
+    render(<DetailPanel />);
+
+    expect(screen.getByText(/Admin/)).toBeInTheDocument();
   });
 
   it('renders Unknown when connection source is neither block nor external actor', () => {
@@ -523,5 +559,90 @@ describe('DetailPanel', () => {
     expect(screen.getByText('(2.0, 0.0, 3.0)')).toBeInTheDocument();
     expect(screen.getByText(/block-1.*50%/)).toBeInTheDocument();
     expect(screen.getByText('0 task(s)')).toBeInTheDocument();
+  });
+
+  it('renders worker detail with no active build', () => {
+    useUIStore.setState({ selectedId: 'worker-default' });
+    useWorkerStore.setState({
+      workerState: 'idle',
+      workerPosition: [0, 0, 0],
+      activeBuild: null,
+      buildQueue: [],
+    });
+
+    render(<DetailPanel />);
+
+    expect(screen.getByText('Worker')).toBeInTheDocument();
+    expect(screen.getByText('idle')).toBeInTheDocument();
+    expect(screen.getByText('None')).toBeInTheDocument();
+  });
+
+  it('renames block via Enter key', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ selectedId: 'block-1' });
+
+    render(<DetailPanel />);
+
+    await user.click(screen.getByRole('button', { name: 'Rename' }));
+    const input = screen.getByDisplayValue('App VM');
+    await user.clear(input);
+    await user.type(input, 'New VM');
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(screen.getByText('New VM')).toBeInTheDocument();
+  });
+
+  it('does not rename block when name is unchanged', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ selectedId: 'block-1' });
+
+    render(<DetailPanel />);
+
+    await user.click(screen.getByRole('button', { name: 'Rename' }));
+    const input = screen.getByDisplayValue('App VM');
+    fireEvent.blur(input);
+
+    expect(screen.getByText('App VM')).toBeInTheDocument();
+  });
+
+  it('renders zone plate with capitalized type name', () => {
+    const zonePlate: Plate = {
+      id: 'zone-1',
+      name: 'Zone A',
+      type: 'zone',
+      parentId: 'net-1',
+      children: [],
+      position: { x: 0, y: 0, z: 0 },
+      size: { width: 4, height: 0.3, depth: 4 },
+      metadata: {},
+    };
+
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          ...architectureWithResources,
+          plates: [...architectureWithResources.plates, zonePlate],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+    useUIStore.setState({ selectedId: 'zone-1' });
+
+    render(<DetailPanel />);
+
+    expect(screen.getByRole('img', { name: 'Zone' })).toBeInTheDocument();
+    expect(screen.getByText('Zone A')).toBeInTheDocument();
+  });
+
+  it('renders public subnet plate with globe icon', () => {
+    useUIStore.setState({ selectedId: 'subnet-1' });
+
+    render(<DetailPanel />);
+
+    expect(screen.getByRole('img', { name: 'Public Subnet' })).toBeInTheDocument();
+    expect(screen.getByText('Subnet (public)')).toBeInTheDocument();
   });
 });
