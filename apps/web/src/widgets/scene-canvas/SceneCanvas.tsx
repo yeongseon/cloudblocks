@@ -112,12 +112,15 @@ export function SceneCanvas() {
       if (plateId) {
           const plate = architecture.plates.find((p) => p.id === plateId);
           if (plate && canPlaceBlock(draggedBlockCategory, plate)) {
+            const blocksBefore = new Set(
+              useArchitectureStore.getState().workspace.architecture.blocks.map((b) => b.id),
+            );
             addBlock(draggedBlockCategory, draggedResourceName, plateId, activeProvider);
             playSound('block-snap');
 
             // Compute the new block's world position and dispatch to SCV worker
             const updatedBlocks = useArchitectureStore.getState().workspace.architecture.blocks;
-            const newBlock = updatedBlocks[updatedBlocks.length - 1];
+            const newBlock = updatedBlocks.find((b) => !blocksBefore.has(b.id));
             if (newBlock) {
               const worldX = plate.position.x + newBlock.position.x;
               const worldY = plate.position.y + plate.size.height;
@@ -159,6 +162,10 @@ export function SceneCanvas() {
       return () => el.removeEventListener('wheel', handleWheel);
     }
   }, [handleWheel]);
+
+  const [wx, wy, wz] = workerPosition;
+  const workerScreen = worldToScreen(wx, wy, wz, origin.x, origin.y);
+  const workerZIndex = depthKey(wx, wz, wy, 1);
 
   return (
     <div 
@@ -245,19 +252,12 @@ export function SceneCanvas() {
         </div>
 
         <div className="character-layer">
-          {(() => {
-            const [x, y, z] = workerPosition;
-            const screenPos = worldToScreen(x, y, z, origin.x, origin.y);
-            const zIndex = depthKey(x, z, y, 1);
-            return (
-              <MinifigureSprite
-                provider={activeProvider}
-                screenX={screenPos.x}
-                screenY={screenPos.y}
-                zIndex={zIndex}
-              />
-            );
-          })()}
+          <MinifigureSprite
+            provider={activeProvider}
+            screenX={workerScreen.x}
+            screenY={workerScreen.y}
+            zIndex={workerZIndex}
+          />
         </div>
 
         <div className="block-layer">

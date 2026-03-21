@@ -28,23 +28,32 @@ interface NotificationState {
   setFilter: (filter: NotificationFilter) => void;
   toggleNotificationCenter: () => void;
   setShowNotificationCenter: (show: boolean) => void;
-
-  // Derived
-  unreadCount: () => number;
-  filteredNotifications: () => AppNotification[];
 }
 
-export const useNotificationStore = create<NotificationState>((set, get) => ({
+/** Derive unread count at the call site for proper reactivity. */
+export function selectUnreadCount(s: NotificationState): number {
+  return s.notifications.filter((n) => !n.read).length;
+}
+
+/** Derive filtered list at the call site for proper reactivity. */
+export function selectFilteredNotifications(s: NotificationState): AppNotification[] {
+  const { notifications, filter } = s;
+  return notifications.filter((n) => {
+    if (filter.level && n.level !== filter.level) return false;
+    if (filter.category && n.category !== filter.category) return false;
+    if (filter.readStatus === 'read' && !n.read) return false;
+    if (filter.readStatus === 'unread' && n.read) return false;
+    return true;
+  });
+}
+
+export const useNotificationStore = create<NotificationState>((set) => ({
   notifications: [],
   filter: {},
   showNotificationCenter: false,
 
   addNotification: (notification) => {
-    const id =
-      'notif-' +
-      Date.now() +
-      '-' +
-      Math.random().toString(36).slice(2, 7);
+    const id = crypto.randomUUID();
 
     const newNotification: AppNotification = {
       ...notification,
@@ -55,7 +64,6 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
     set((state) => {
       const updated = [newNotification, ...state.notifications];
-      // Evict oldest when exceeding max
       if (updated.length > MAX_NOTIFICATIONS) {
         return { notifications: updated.slice(0, MAX_NOTIFICATIONS) };
       }
@@ -99,20 +107,5 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 
   setShowNotificationCenter: (show) => {
     set({ showNotificationCenter: show });
-  },
-
-  unreadCount: () => {
-    return get().notifications.filter((n) => !n.read).length;
-  },
-
-  filteredNotifications: () => {
-    const { notifications, filter } = get();
-    return notifications.filter((n) => {
-      if (filter.level && n.level !== filter.level) return false;
-      if (filter.category && n.category !== filter.category) return false;
-      if (filter.readStatus === 'read' && !n.read) return false;
-      if (filter.readStatus === 'unread' && n.read) return false;
-      return true;
-    });
   },
 }));

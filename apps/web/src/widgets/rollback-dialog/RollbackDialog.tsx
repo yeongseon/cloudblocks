@@ -1,15 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { usePromoteStore } from '../../entities/store/promoteStore';
 import type { DeploymentVersion } from '../../shared/types/ops';
 import { timeAgo } from '../../shared/utils/timeAgo';
 import './RollbackDialog.css';
-
-const CURRENT_PRODUCTION = {
-  imageTag: 'v1.4.3-sha-abc1234',
-  commitSha: 'abc1234',
-  commitMessage: 'feat: add dashboard widgets',
-  deployedAt: new Date(Date.now() - 3600_000).toISOString(),
-};
 
 export function RollbackDialog() {
   const show = usePromoteStore((s) => s.showRollbackDialog);
@@ -25,11 +18,39 @@ export function RollbackDialog() {
   const [reason, setReason] = useState('');
   const [confirming, setConfirming] = useState(false);
 
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  // TODO: replace with live environment data
+  const [currentProduction] = useState(() => ({
+    imageTag: 'v1.4.3-sha-abc1234',
+    commitSha: 'abc1234',
+    commitMessage: 'feat: add dashboard widgets',
+    deployedAt: new Date(Date.now() - 3600_000).toISOString(),
+  }));
+
   useEffect(() => {
     if (show && availableVersions.length === 0) {
       void loadAvailableVersions();
     }
   }, [show, availableVersions.length, loadAvailableVersions]);
+
+  useEffect(() => {
+    if (show) {
+      closeButtonRef.current?.focus();
+    }
+  }, [show]);
+
+  useEffect(() => {
+    if (!show) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleClose();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [show, setShowRollbackDialog, selectRollbackVersion]);
 
   if (!show) return null;
 
@@ -66,134 +87,147 @@ export function RollbackDialog() {
   };
 
   return (
-    <div className="rollback-dialog" role="dialog" aria-label="Rollback Production">
-      <div className="rollback-dialog-header">
-        <h3 className="rollback-dialog-title">Rollback Production</h3>
-        <button
-          type="button"
-          className="rollback-dialog-close"
-          onClick={handleClose}
-          aria-label="Close"
-        >
-          X
-        </button>
-      </div>
-
-      <div className="rollback-dialog-content">
-        {/* Current production version */}
-        <div className="rollback-current-card">
-          <div className="rollback-current-label">Current Production Version</div>
-          <div className="rollback-current-tag">{CURRENT_PRODUCTION.imageTag}</div>
-          <div className="rollback-current-meta">
-            {CURRENT_PRODUCTION.commitSha} - {CURRENT_PRODUCTION.commitMessage}
-          </div>
+    <>
+      <div className="rollback-dialog-backdrop" onClick={handleClose} />
+      <div className="rollback-dialog" role="dialog" aria-label="Rollback Production">
+        <div className="rollback-dialog-header">
+          <h3 className="rollback-dialog-title">Rollback Production</h3>
+          <button
+            ref={closeButtonRef}
+            type="button"
+            className="rollback-dialog-close"
+            onClick={handleClose}
+            aria-label="Close"
+          >
+            X
+          </button>
         </div>
 
-        {/* Version selector */}
-        <div>
-          <div className="rollback-versions-title">Select Version to Rollback To</div>
-          <div className="rollback-version-list">
-            {availableVersions.map((v) => (
-              <div
-                key={v.imageTag}
-                className={`rollback-version-item${selectedVersion?.imageTag === v.imageTag ? ' selected' : ''}`}
-                onClick={() => handleSelectVersion(v)}
-              >
-                <input
-                  type="radio"
-                  name="rollback-version"
-                  checked={selectedVersion?.imageTag === v.imageTag}
-                  onChange={() => handleSelectVersion(v)}
-                />
-                <div className="rollback-version-info">
-                  <span className="rollback-version-tag">{v.imageTag}</span>
-                  <span className="rollback-version-msg">{v.commitMessage}</span>
-                  <span className="rollback-version-time">{timeAgo(v.deployedAt)}</span>
+        <div className="rollback-dialog-content">
+          {/* Current production version */}
+          <div className="rollback-current-card">
+            <div className="rollback-current-label">Current Production Version</div>
+            <div className="rollback-current-tag">{currentProduction.imageTag}</div>
+            <div className="rollback-current-meta">
+              {currentProduction.commitSha} - {currentProduction.commitMessage}
+            </div>
+          </div>
+
+          {/* Version selector */}
+          <div>
+            <div className="rollback-versions-title">Select Version to Rollback To</div>
+            <div className="rollback-version-list" role="radiogroup" aria-label="Available versions">
+              {availableVersions.map((v) => (
+                <div
+                  key={v.imageTag}
+                  className={`rollback-version-item${selectedVersion?.imageTag === v.imageTag ? ' selected' : ''}`}
+                  onClick={() => handleSelectVersion(v)}
+                  role="radio"
+                  aria-checked={selectedVersion?.imageTag === v.imageTag}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleSelectVersion(v);
+                    }
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="rollback-version"
+                    checked={selectedVersion?.imageTag === v.imageTag}
+                    readOnly
+                  />
+                  <div className="rollback-version-info">
+                    <span className="rollback-version-tag">{v.imageTag}</span>
+                    <span className="rollback-version-msg">{v.commitMessage}</span>
+                    <span className="rollback-version-time">{timeAgo(v.deployedAt)}</span>
+                  </div>
                 </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Reason input */}
+          <div>
+            <div className="rollback-reason-label">Rollback Reason (required)</div>
+            <textarea
+              className="rollback-reason-textarea"
+              placeholder="Describe why you are rolling back..."
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+            />
+          </div>
+
+          {/* Diff preview (when version selected) */}
+          {selectedVersion && (
+            <div className="rollback-diff">
+              <div className="rollback-diff-title">Version Change Preview</div>
+              <div className="rollback-diff-row">
+                <span className="rollback-diff-from">{currentProduction.imageTag}</span>
+                <span className="rollback-diff-arrow">&rarr;</span>
+                <span className="rollback-diff-to">{selectedVersion.imageTag}</span>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Reason input */}
-        <div>
-          <div className="rollback-reason-label">Rollback Reason (required)</div>
-          <textarea
-            className="rollback-reason-textarea"
-            placeholder="Describe why you are rolling back..."
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-          />
-        </div>
-
-        {/* Diff preview (when version selected) */}
-        {selectedVersion && (
-          <div className="rollback-diff">
-            <div className="rollback-diff-title">Version Change Preview</div>
-            <div className="rollback-diff-row">
-              <span className="rollback-diff-from">{CURRENT_PRODUCTION.imageTag}</span>
-              <span className="rollback-diff-arrow">&rarr;</span>
-              <span className="rollback-diff-to">{selectedVersion.imageTag}</span>
+              <div className="rollback-diff-row">
+                <span className="rollback-diff-from">{currentProduction.commitSha}</span>
+                <span className="rollback-diff-arrow">&rarr;</span>
+                <span className="rollback-diff-to">{selectedVersion.commitSha}</span>
+              </div>
             </div>
-            <div className="rollback-diff-row">
-              <span className="rollback-diff-from">{CURRENT_PRODUCTION.commitSha}</span>
-              <span className="rollback-diff-arrow">&rarr;</span>
-              <span className="rollback-diff-to">{selectedVersion.commitSha}</span>
-            </div>
-          </div>
-        )}
+          )}
 
-        {/* Error display */}
-        {rollbackError && (
-          <div className="rollback-error">{rollbackError}</div>
-        )}
+          {/* Error display */}
+          {rollbackError && (
+            <div className="rollback-error">{rollbackError}</div>
+          )}
 
-        {/* Confirmation step */}
-        {confirming ? (
-          <div className="rollback-confirm">
-            <div className="rollback-confirm-text">Are you sure you want to rollback?</div>
-            <div className="rollback-confirm-detail">
-              {CURRENT_PRODUCTION.imageTag} &rarr; {selectedVersion?.imageTag}
+          {/* Confirmation step */}
+          {confirming ? (
+            <div className="rollback-confirm">
+              <div className="rollback-confirm-text">Are you sure you want to rollback?</div>
+              <div className="rollback-confirm-detail">
+                {currentProduction.imageTag} &rarr; {selectedVersion?.imageTag}
+              </div>
+              <div className="rollback-confirm-actions">
+                <button
+                  type="button"
+                  className="rollback-btn-cancel-confirm"
+                  onClick={handleCancelConfirm}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="rollback-btn-confirm"
+                  onClick={handleConfirmRollback}
+                  disabled={rollingBack}
+                >
+                  {rollingBack && <span className="rollback-spinner" />}
+                  {rollingBack ? 'Rolling back...' : 'Confirm Rollback'}
+                </button>
+              </div>
             </div>
-            <div className="rollback-confirm-actions">
+          ) : (
+            <div className="rollback-dialog-actions">
               <button
                 type="button"
-                className="rollback-btn-cancel-confirm"
-                onClick={handleCancelConfirm}
+                className="rollback-btn-secondary"
+                onClick={handleClose}
               >
                 Cancel
               </button>
               <button
                 type="button"
-                className="rollback-btn-confirm"
-                onClick={handleConfirmRollback}
-                disabled={rollingBack}
+                className="rollback-btn-primary"
+                disabled={!canRollback}
+                onClick={handleRollbackClick}
               >
-                {rollingBack && <span className="rollback-spinner" />}
-                {rollingBack ? 'Rolling back...' : 'Confirm Rollback'}
+                Rollback Production
               </button>
             </div>
-          </div>
-        ) : (
-          <div className="rollback-dialog-actions">
-            <button
-              type="button"
-              className="rollback-btn-secondary"
-              onClick={handleClose}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              className="rollback-btn-primary"
-              disabled={!canRollback}
-              onClick={handleRollbackClick}
-            >
-              Rollback Production
-            </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
