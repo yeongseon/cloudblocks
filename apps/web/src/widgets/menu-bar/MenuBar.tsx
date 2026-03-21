@@ -7,7 +7,7 @@ import { useLearningStore } from '../../entities/store/learningStore';
 import { validateArchitectureShape } from '../../entities/store/slices';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { useNotificationStore } from '../../entities/store/notificationStore';
+import { useNotificationStore, selectUnreadCount } from '../../entities/store/notificationStore';
 import { useOpsStore } from '../../entities/store/opsStore';
 import { usePromoteStore } from '../../entities/store/promoteStore';
 import { computeArchitectureDiff } from '../../features/diff/engine';
@@ -57,7 +57,7 @@ export function MenuBar() {
   const toggleSound = useUIStore((s) => s.toggleSound);
   const playSound = (name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); };
 
-  const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const unreadCount = useNotificationStore(selectUnreadCount);
   const toggleOpsCenter = useOpsStore((s) => s.toggleOpsCenter);
   const togglePromoteDialog = usePromoteStore((s) => s.togglePromoteDialog);
   const toggleRollbackDialog = usePromoteStore((s) => s.toggleRollbackDialog);
@@ -544,8 +544,8 @@ export function MenuBar() {
           title="Notifications"
         >
           🔔
-          {unreadCount() > 0 && (
-            <span className="notification-badge">{unreadCount() > 99 ? '99+' : unreadCount()}</span>
+          {unreadCount > 0 && (
+            <span className="notification-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
           )}
         </button>
         <button

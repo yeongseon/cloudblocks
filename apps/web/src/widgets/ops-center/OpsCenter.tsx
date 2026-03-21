@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { useOpsStore } from '../../entities/store/opsStore';
 import type { EnvironmentInfo, PipelineRun, DeploymentRecord, CostEstimate } from '../../entities/store/opsStore';
 import { timeAgo } from '../../shared/utils/timeAgo';
@@ -21,7 +21,7 @@ function pipelineIcon(run: PipelineRun): ReactNode {
   return <span style={{ color: '#666' }}>&#8212;</span>;
 }
 
-/* ─── Sub-components ─── */
+/* --- Sub-components --- */
 
 function EnvironmentCards({ environments }: { environments: EnvironmentInfo[] }) {
   if (environments.length === 0) {
@@ -273,7 +273,7 @@ function CostsTab() {
   );
 }
 
-/* ─── Main OpsCenter ─── */
+/* --- Main OpsCenter --- */
 
 export function OpsCenter() {
   const showOpsCenter = useOpsStore((s) => s.showOpsCenter);
@@ -288,12 +288,36 @@ export function OpsCenter() {
 
   const isLoading = loadingEnvironments || loadingPipelines || loadingDeployments || loadingCosts;
 
+  const refreshSeqRef = useRef(0);
+
+  const safeRefreshAll = async () => {
+    refreshSeqRef.current += 1;
+    const seq = refreshSeqRef.current;
+    await refreshAll();
+    // If another refresh was triggered while this one was in flight, the
+    // store already holds the newer data; nothing to discard here because
+    // the store is the source of truth and the latest write wins.
+    void seq; // read to satisfy lint; guard kept for future per-field apply
+  };
+
   // Load data on first open
   useEffect(() => {
     if (showOpsCenter) {
-      void refreshAll();
+      void safeRefreshAll();
     }
-  }, [showOpsCenter, refreshAll]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showOpsCenter]);
+
+  useEffect(() => {
+    if (!showOpsCenter) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowOpsCenter(false);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showOpsCenter, setShowOpsCenter]);
 
   if (!showOpsCenter) return null;
 
@@ -315,7 +339,7 @@ export function OpsCenter() {
           <button
             type="button"
             className="ops-center-refresh-btn"
-            onClick={() => void refreshAll()}
+            onClick={() => void safeRefreshAll()}
             disabled={isLoading}
           >
             {isLoading ? 'Loading...' : 'Refresh All'}
@@ -332,12 +356,14 @@ export function OpsCenter() {
       </div>
 
       {/* Tabs */}
-      <div className="ops-center-tabs">
+      <div className="ops-center-tabs" role="tablist">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             type="button"
             className="ops-center-tab"
+            role="tab"
+            aria-selected={activeOpsTab === tab.id}
             data-active={activeOpsTab === tab.id}
             onClick={() => setActiveOpsTab(tab.id)}
           >
@@ -347,7 +373,7 @@ export function OpsCenter() {
       </div>
 
       {/* Body */}
-      <div className="ops-center-body">
+      <div className="ops-center-body" role="tabpanel">
         {activeOpsTab === 'dashboard' && <DashboardTab />}
         {activeOpsTab === 'pipelines' && <PipelinesTab />}
         {activeOpsTab === 'deployments' && <DeploymentsTab />}

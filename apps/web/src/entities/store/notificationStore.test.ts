@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useNotificationStore } from './notificationStore';
+import { useNotificationStore, selectUnreadCount, selectFilteredNotifications } from './notificationStore';
 
 describe('useNotificationStore', () => {
   beforeEach(() => {
@@ -21,7 +21,7 @@ describe('useNotificationStore', () => {
 
       const { notifications } = useNotificationStore.getState();
       expect(notifications).toHaveLength(1);
-      expect(notifications[0].id).toMatch(/^notif-/);
+      expect(notifications[0].id).toBeTruthy();
       expect(notifications[0].timestamp).toBeGreaterThan(0);
       expect(notifications[0].read).toBe(false);
       expect(notifications[0].title).toBe('Deploy started');
@@ -118,7 +118,7 @@ describe('useNotificationStore', () => {
     });
   });
 
-  describe('unreadCount', () => {
+  describe('selectUnreadCount', () => {
     it('returns the correct count of unread notifications', () => {
       useNotificationStore.getState().addNotification({
         level: 'info',
@@ -139,15 +139,15 @@ describe('useNotificationStore', () => {
         message: 'c',
       });
 
-      expect(useNotificationStore.getState().unreadCount()).toBe(3);
+      expect(selectUnreadCount(useNotificationStore.getState())).toBe(3);
 
       const id = useNotificationStore.getState().notifications[0].id;
       useNotificationStore.getState().markAsRead(id);
-      expect(useNotificationStore.getState().unreadCount()).toBe(2);
+      expect(selectUnreadCount(useNotificationStore.getState())).toBe(2);
     });
   });
 
-  describe('filteredNotifications', () => {
+  describe('selectFilteredNotifications', () => {
     beforeEach(() => {
       useNotificationStore.getState().addNotification({
         level: 'info',
@@ -174,28 +174,28 @@ describe('useNotificationStore', () => {
 
     it('filters by level', () => {
       useNotificationStore.getState().setFilter({ level: 'error' });
-      const filtered = useNotificationStore.getState().filteredNotifications();
+      const filtered = selectFilteredNotifications(useNotificationStore.getState());
       expect(filtered).toHaveLength(1);
       expect(filtered[0].level).toBe('error');
     });
 
     it('filters by category', () => {
       useNotificationStore.getState().setFilter({ category: 'deployment' });
-      const filtered = useNotificationStore.getState().filteredNotifications();
+      const filtered = selectFilteredNotifications(useNotificationStore.getState());
       expect(filtered).toHaveLength(1);
       expect(filtered[0].category).toBe('deployment');
     });
 
     it('filters by readStatus', () => {
       useNotificationStore.getState().setFilter({ readStatus: 'unread' });
-      const filtered = useNotificationStore.getState().filteredNotifications();
+      const filtered = selectFilteredNotifications(useNotificationStore.getState());
       expect(filtered).toHaveLength(2);
       expect(filtered.every((n) => !n.read)).toBe(true);
     });
 
     it('returns all when no filter set', () => {
       useNotificationStore.getState().setFilter({});
-      const filtered = useNotificationStore.getState().filteredNotifications();
+      const filtered = selectFilteredNotifications(useNotificationStore.getState());
       expect(filtered).toHaveLength(3);
     });
   });

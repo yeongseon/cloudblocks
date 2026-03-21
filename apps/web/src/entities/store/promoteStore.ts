@@ -98,9 +98,9 @@ export const usePromoteStore = create<PromoteState>((set) => ({
         fromEnvironment: 'staging',
         toEnvironment: 'production',
         imageTag,
-        commitSha: 'abc1234',
+        commitSha: 'abc1234', // TODO: resolve from actual staging deployment
         commitMessage: `Promote ${imageTag} to production`,
-        promotedBy: 'current-user',
+        promotedBy: 'current-user', // TODO: resolve from authenticated user
         promotedAt: new Date().toISOString(),
         status: 'success',
       };
