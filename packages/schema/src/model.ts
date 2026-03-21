@@ -3,17 +3,19 @@
 
 import type {
   AggregationMode,
-  BlockCategory,
   BlockRole,
   ConnectionType,
-  PlateType,
+  LayerType,
+  NodeKind,
   ProviderType,
+  ResourceCategory,
   SubnetAccess,
 } from './enums.js';
 import type { Position, Size } from './spatial.js';
+import type { CanvasTier, ContainerCapableResourceType } from './rules.js';
 
 /**
- * Aggregation descriptor for block instances (v2.0 §8).
+ * Aggregation descriptor for node instances (v2.0 §8).
  */
 export interface Aggregation {
   mode: AggregationMode;
@@ -21,62 +23,87 @@ export interface Aggregation {
   count: number;
 }
 
-/**
- * A plate is a logical container (VPC, resource group, subnet).
- * Plates nest hierarchically according to LayerType parentage rules.
- */
-export interface Plate {
-  id: string;
-  name: string;
-  type: PlateType;
-  /** Only for subnet type */
-  subnetAccess?: SubnetAccess;
-  /** Profile preset identifier (frontend concern, but part of the serialized model) */
-  profileId?: string;
-  /** null for root plate */
-  parentId: string | null;
-  /**
-   * Mixed list: child plate IDs + block IDs.
-   * (Intentional for MVP; consider splitting to childPlateIds/childBlockIds in v1.0)
-   */
-  children: string[];
-  position: Position;
-  size: Size;
-  metadata: Record<string, unknown>;
-}
+// ---------------------------------------------------------------------------
+// ResourceNode — Unified model replacing Plate + Block
+// ---------------------------------------------------------------------------
 
 /**
- * A block is a cloud resource (VM, database, storage, etc.).
- * Blocks sit on plates and connect to other blocks.
+ * Shared fields for every node in the architecture graph.
+ *
+ * Every node has a layer (for hierarchy rules), a category (for grouping),
+ * a kind (container vs resource), and a resourceType (specific resource).
  */
-export interface Block {
+interface NodeBase {
   id: string;
   name: string;
-  category: BlockCategory;
-  /** Parent plate ID */
-  placementId: string;
-  /** Position relative to parent plate */
+  kind: NodeKind;
+  /** Hierarchy layer — used for containment validation */
+  layer: LayerType;
+  /** Specific resource identifier, e.g. 'virtual_network', 'web_compute', 'relational_database' */
+  resourceType: string;
+  /** One of the 7 resource categories */
+  category: ResourceCategory;
+  provider: ProviderType;
+  /** Parent node ID. null for root-level nodes. */
+  parentId: string | null;
   position: Position;
   metadata: Record<string, unknown>;
-  provider?: ProviderType;
-  subtype?: string;
+  /** Provider-specific configuration */
   config?: Record<string, unknown>;
+  /** Resource subtype (e.g. 'linux' for compute, 'postgresql' for data) */
+  subtype?: string;
   /** v2.0 §8 — multiple identical resources */
   aggregation?: Aggregation;
   /** v2.0 §9 — visual-only role indicators */
   roles?: BlockRole[];
+  /** Subnet access visibility — only meaningful for subnet-layer containers */
+  subnetAccess?: SubnetAccess;
+  /** Visual profile preset identifier (frontend concern, serialized for persistence) */
+  profileId?: string;
+  /**
+   * Canvas structural tier — orthogonal to category (domain) and layer (hierarchy).
+   * Determines visual grouping on the canvas: shared, web, app, data.
+   * Optional during migration; defaults derived from RESOURCE_RULES.
+   */
+  canvasTier?: CanvasTier;
 }
 
 /**
- * A typed connection between two blocks or external actors.
+ * A container node holds child nodes (VNet, Subnet, Resource Group, etc.).
+ * Containers have a size for visual rendering and can nest other containers
+ * or leaf resources.
+ */
+export interface ContainerNode extends NodeBase {
+  kind: 'container';
+  /** Only container-capable resource types (virtual_network, subnet) */
+  resourceType: ContainerCapableResourceType;
+  size: Size;
+}
+
+/**
+ * A leaf resource node (VM, SQL Database, Redis Cache, etc.).
+ * Cannot contain children.
+ */
+export interface LeafNode extends NodeBase {
+  kind: 'resource';
+}
+
+/**
+ * Discriminated union of all node types in the architecture.
+ * Discriminant: `kind` field ('container' | 'resource').
+ */
+export type ResourceNode = ContainerNode | LeafNode;
+
+/**
+ * A typed connection between two resource nodes or external actors.
  * Direction represents the **initiator** of the request;
  * response flows implicitly in the reverse direction.
  */
 export interface Connection {
   id: string;
-  /** Block or external actor ID (initiator) */
+  /** ResourceNode or ExternalActor ID (initiator) */
   sourceId: string;
-  /** Block or external actor ID (receiver) */
+  /** ResourceNode or ExternalActor ID (receiver) */
   targetId: string;
   type: ConnectionType;
   metadata: Record<string, unknown>;
@@ -103,8 +130,8 @@ export interface ArchitectureModel {
   name: string;
   /** User-facing architecture revision (not schema version) */
   version: string;
-  plates: Plate[];
-  blocks: Block[];
+  /** All nodes — containers and resources in a flat array */
+  nodes: ResourceNode[];
   connections: Connection[];
   externalActors: ExternalActor[];
   /** ISO 8601 */
@@ -112,3 +139,13 @@ export interface ArchitectureModel {
   /** ISO 8601 */
   updatedAt: string;
 }
+
+// ---------------------------------------------------------------------------
+// Deprecated aliases — kept temporarily for migration, will be removed post-M19
+// ---------------------------------------------------------------------------
+
+/** @deprecated Use ContainerNode instead. */
+export type Plate = ContainerNode;
+
+/** @deprecated Use LeafNode instead. */
+export type Block = LeafNode;

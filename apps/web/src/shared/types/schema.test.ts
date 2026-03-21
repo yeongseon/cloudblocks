@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Workspace } from './index';
+import type { ContainerNode, LeafNode, Workspace } from './index';
 import {
   SCHEMA_VERSION,
   createBlankArchitecture,
@@ -16,8 +16,7 @@ function createWorkspace(id: string): Workspace {
       id: `arch-${id}`,
       name: `Architecture ${id}`,
       version: '1',
-      plates: [],
-      blocks: [],
+      nodes: [],
       connections: [],
       externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       createdAt: '2026-01-01T00:00:00.000Z',
@@ -89,8 +88,12 @@ describe('schema utilities', () => {
     };
 
     const result = deserialize(JSON.stringify(legacyData));
-    const plate = result[0].architecture.plates[0];
+    const plate = result[0].architecture.nodes.find((node): node is ContainerNode => node.kind === 'container');
 
+    expect(plate).toBeDefined();
+    if (!plate) {
+      throw new Error('Expected migrated container node');
+    }
     expect(plate.profileId).toBe('network-platform');
     expect(plate.size.height).toBe(0.7);
     expect(plate.size.width).toBe(16);
@@ -134,8 +137,12 @@ describe('schema utilities', () => {
     };
 
     const result = deserialize(JSON.stringify(data));
-    const plate = result[0].architecture.plates[0];
+    const plate = result[0].architecture.nodes.find((node): node is ContainerNode => node.kind === 'container');
 
+    expect(plate).toBeDefined();
+    if (!plate) {
+      throw new Error('Expected migrated container node');
+    }
     expect(plate.profileId).toBe('network-hub');
     expect(plate.size.width).toBe(20);
     expect(plate.size.depth).toBe(24);
@@ -247,6 +254,36 @@ describe('schema utilities', () => {
   });
 
   it('roundtrips blocks with subtype and config via serialize/deserialize', () => {
+    const container: ContainerNode = {
+      id: 'plate-1',
+      name: 'Subnet',
+      kind: 'container',
+      layer: 'subnet',
+      resourceType: 'subnet',
+      category: 'network',
+      provider: 'azure',
+      parentId: null,
+      position: { x: 0, y: 0, z: 0 },
+      size: { width: 6, height: 0.5, depth: 8 },
+      metadata: {},
+      subnetAccess: 'public',
+      profileId: 'subnet-service',
+    };
+    const leaf: LeafNode = {
+      id: 'blk-1',
+      name: 'Lambda',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'web_compute',
+      category: 'compute',
+      provider: 'aws',
+      parentId: 'plate-1',
+      position: { x: 1, y: 0.5, z: 1 },
+      metadata: {},
+      subtype: 'lambda',
+      config: { runtime: 'nodejs20.x', memorySize: 512 },
+    };
+
     const workspaces: Workspace[] = [
       {
         id: 'ws-1',
@@ -255,32 +292,7 @@ describe('schema utilities', () => {
           id: 'arch-1',
           name: 'Test',
           version: '1',
-          plates: [
-            {
-              id: 'plate-1',
-              name: 'Subnet',
-              type: 'subnet',
-              profileId: 'subnet-service',
-              parentId: null,
-              children: ['blk-1'],
-              position: { x: 0, y: 0, z: 0 },
-              size: { width: 6, height: 0.5, depth: 8 },
-              metadata: {},
-            },
-          ],
-          blocks: [
-            {
-              id: 'blk-1',
-              name: 'Lambda',
-              category: 'compute',
-              placementId: 'plate-1',
-              position: { x: 1, y: 0.5, z: 1 },
-              metadata: {},
-              provider: 'aws',
-              subtype: 'lambda',
-              config: { runtime: 'nodejs20.x', memorySize: 512 },
-            },
-          ],
+          nodes: [container, leaf],
           connections: [],
           externalActors: [
             {
@@ -300,8 +312,12 @@ describe('schema utilities', () => {
 
     const json = serialize(workspaces);
     const parsed = deserialize(json);
-    const block = parsed[0].architecture.blocks[0];
+    const block = parsed[0].architecture.nodes.find((node): node is LeafNode => node.kind === 'resource');
 
+    expect(block).toBeDefined();
+    if (!block) {
+      throw new Error('Expected roundtripped resource node');
+    }
     expect(block.subtype).toBe('lambda');
     expect(block.config).toEqual({ runtime: 'nodejs20.x', memorySize: 512 });
   });
@@ -364,8 +380,7 @@ describe('schema utilities', () => {
       id: 'arch-1',
       name: 'My Architecture',
       version: '1',
-      plates: [],
-      blocks: [],
+      nodes: [],
       connections: [],
       externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       createdAt: '2026-02-03T04:05:06.000Z',

@@ -8,24 +8,22 @@ import {
   getBlockDimensions,
 } from '../index';
 import { BLOCK_VISUAL_PROFILES } from '../visualProfile';
+import { makeTestBlock } from '../../../__tests__/legacyModelTestUtils';
 import type {
-  Block,
-  BlockCategory,
+  LeafNode,
   ConnectionType,
   ProviderType,
+  ResourceCategory,
 } from '../index';
 
-const blockCategories: BlockCategory[] = [
+const blockCategories: ResourceCategory[] = [
   'compute',
-  'database',
-  'storage',
-  'gateway',
-  'function',
-  'queue',
-  'event',
-  'analytics',
-  'identity',
-  'observability',
+  'data',
+  'edge',
+  'messaging',
+  'network',
+  'operations',
+  'security',
 ];
 
 const connectionTypes: ConnectionType[] = [
@@ -39,61 +37,60 @@ const connectionTypes: ConnectionType[] = [
 const providerTypes: ProviderType[] = ['azure', 'aws', 'gcp'];
 
 describe('core model type coverage', () => {
-  it('accepts Block objects without provider for backward compatibility', () => {
-    const block: Block = {
+  it('uses azure as default provider in test block factory', () => {
+    const block: LeafNode = makeTestBlock({
       id: 'blk-legacy-1',
       name: 'Legacy Web App',
       category: 'compute',
-      placementId: 'subnet-1',
+      parentId: 'subnet-1',
       position: { x: 1, y: 0.5, z: 1 },
       metadata: {},
-    };
+    });
 
-    expect(block.provider).toBeUndefined();
-    expect('provider' in block).toBe(false);
+    expect(block.provider).toBe('azure');
   });
 
   it('accepts Block objects with provider set to azure', () => {
-    const block: Block = {
+    const block: LeafNode = makeTestBlock({
       id: 'blk-provider-1',
       name: 'Azure Web App',
       category: 'compute',
-      placementId: 'subnet-1',
+      parentId: 'subnet-1',
       position: { x: 2, y: 0.5, z: 2 },
       metadata: {},
       provider: 'azure',
-    };
+    });
 
     expect(block.provider).toBe('azure');
   });
 
   it('accepts Block objects with subtype and config', () => {
-    const block: Block = {
+    const block: LeafNode = makeTestBlock({
       id: 'blk-subtype-1',
       name: 'AWS EC2 Instance',
       category: 'compute',
-      placementId: 'subnet-1',
+      parentId: 'subnet-1',
       position: { x: 1, y: 0.5, z: 1 },
       metadata: {},
       provider: 'aws',
       subtype: 'ec2',
       config: { instanceType: 't3.medium', ami: 'ami-12345' },
-    };
+    });
 
     expect(block.subtype).toBe('ec2');
     expect(block.config).toEqual({ instanceType: 't3.medium', ami: 'ami-12345' });
   });
 
   it('accepts Block objects without subtype/config for backward compatibility', () => {
-    const block: Block = {
+    const block: LeafNode = makeTestBlock({
       id: 'blk-nosubtype-1',
       name: 'Generic Compute',
       category: 'compute',
-      placementId: 'subnet-1',
+      parentId: 'subnet-1',
       position: { x: 1, y: 0.5, z: 1 },
       metadata: {},
       provider: 'aws',
-    };
+    });
 
     expect(block.subtype).toBeUndefined();
     expect(block.config).toBeUndefined();
@@ -204,12 +201,12 @@ describe('getBlockDimensions', () => {
   });
 
   it('returns subtype override for Azure subtypes', () => {
-    const dims = getBlockDimensions('database', 'azure', 'cosmos-db');
+    const dims = getBlockDimensions('data', 'azure', 'cosmos-db');
     expect(dims).toEqual({ width: 3, depth: 3, height: 2 });
   });
 
   it('returns subtype override for GCP subtypes', () => {
-    const dims = getBlockDimensions('function', 'gcp', 'cloud-functions');
+    const dims = getBlockDimensions('compute', 'gcp', 'cloud-functions');
     expect(dims).toEqual({ width: 1, depth: 1, height: 1 });
   });
 
@@ -221,16 +218,16 @@ describe('getBlockDimensions', () => {
   });
 
   it('falls back to category default when provider is undefined', () => {
-    const dims = getBlockDimensions('database');
+    const dims = getBlockDimensions('data');
     // database → large tier → { width: 3, depth: 3, height: 2 }
-    const expected = TIER_DIMENSIONS[CATEGORY_TIER_MAP['database']];
+    const expected = TIER_DIMENSIONS[CATEGORY_TIER_MAP['data']];
     expect(dims).toEqual(expected);
   });
 
   it('falls back to category default when subtype is undefined', () => {
-    const dims = getBlockDimensions('gateway', 'azure');
+    const dims = getBlockDimensions('edge', 'azure');
     // gateway → wide tier → { width: 3, depth: 1, height: 1 }
-    const expected = TIER_DIMENSIONS[CATEGORY_TIER_MAP['gateway']];
+    const expected = TIER_DIMENSIONS[CATEGORY_TIER_MAP['edge']];
     expect(dims).toEqual(expected);
   });
 
@@ -246,8 +243,8 @@ describe('getBlockDimensions', () => {
   it('subtype override can differ from category default', () => {
     // aws:Lambda is micro (1×1×1) but 'function' category default is also micro.
     // aws:CloudFront is 4×1×1 — 'gateway' default is wide (3×1×1).
-    const cfDims = getBlockDimensions('gateway', 'aws', 'cloudfront');
-    const defaultDims = getBlockDimensions('gateway');
+    const cfDims = getBlockDimensions('edge', 'aws', 'cloudfront');
+    const defaultDims = getBlockDimensions('edge');
     expect(cfDims).toEqual({ width: 4, depth: 1, height: 1 });
     expect(defaultDims).toEqual({ width: 3, depth: 1, height: 1 });
     expect(cfDims).not.toEqual(defaultDims);

@@ -3,9 +3,9 @@
 
 import type {
   ArchitectureModel,
-  BlockCategory,
   BlockRole,
   PlateType,
+  ResourceCategory,
   Size,
   SubnetAccess,
 } from '@cloudblocks/schema';
@@ -17,14 +17,19 @@ export type {
   Block,
   BlockCategory,
   BlockRole,
+  ContainerNode,
   Connection,
   ConnectionType,
   ExternalActor,
+  LeafNode,
   LayerType,
+  NodeKind,
   Plate,
   PlateType,
   Position,
   ProviderType,
+  ResourceCategory,
+  ResourceNode,
   Size,
   SubnetAccess,
 } from '@cloudblocks/schema';
@@ -106,56 +111,44 @@ export const DEFAULT_BLOCK_SIZE: Size = {
 
 // ─── Educational Metadata ──────────────────────────────────
 
-export const BLOCK_FRIENDLY_NAMES: Record<BlockCategory, string> = {
-  gateway: 'App Gateway',
-  compute: 'Virtual Machine',
-  database: 'SQL Database',
-  storage: 'Blob Storage',
-  function: 'App Service',
-  queue: 'Message Queue',
-  event: 'Event Hub',
-  analytics: 'Data Analytics',
-  identity: 'Identity Service',
-  observability: 'Monitoring',
+export const BLOCK_FRIENDLY_NAMES: Record<ResourceCategory, string> = {
+  network: 'Virtual Network',
+  security: 'Security Service',
+  edge: 'Load Balancer',
+  compute: 'Compute Instance',
+  data: 'Data Store',
+  messaging: 'Message Service',
+  operations: 'Monitoring',
 };
 
-export const BLOCK_DESCRIPTIONS: Record<BlockCategory, string> = {
-  gateway: 'Routes web traffic to your app',
-  compute: 'Runs your application code',
-  database: 'Stores structured data in tables',
-  storage: 'Stores files, images, and media',
-  function: 'Hosts web apps and APIs',
-  queue: 'Buffers messages between services',
-  event: 'Routes events to subscribers',
-  analytics: 'Processes and analyzes large datasets',
-  identity: 'Manages authentication and authorization',
-  observability: 'Monitors and logs system health',
+export const BLOCK_DESCRIPTIONS: Record<ResourceCategory, string> = {
+  network: 'Defines private network boundaries and segmented traffic paths',
+  security: 'Enforces identity, access controls, and workload protection',
+  edge: 'Handles ingress routing, balancing, and edge delivery',
+  compute: 'Executes application workloads and runtime services',
+  data: 'Stores and serves persistent structured or unstructured data',
+  messaging: 'Connects services through asynchronous event and queue flows',
+  operations: 'Observes health, performance, and operational telemetry',
 };
 
-export const BLOCK_ICONS: Record<BlockCategory, string> = {
-  gateway: '🛡️',
+export const BLOCK_ICONS: Record<ResourceCategory, string> = {
+  network: '🌐',
+  security: '🔒',
+  edge: '⚖️',
   compute: '🖥️',
-  database: '🗄️',
-  storage: '📦',
-  function: '⚡',
-  queue: '📨',
-  event: '🔔',
-  analytics: '📊',
-  identity: '🔑',
-  observability: '📡',
+  data: '🗄️',
+  messaging: '📨',
+  operations: '📡',
 };
 
-export const BLOCK_SHORT_NAMES: Record<BlockCategory, string> = {
-  gateway: 'App GW',
-  compute: 'VM',
-  database: 'SQL DB',
-  storage: 'Storage',
-  function: 'App Svc',
-  queue: 'Queue',
-  event: 'Event Hub',
-  analytics: 'Analytics',
-  identity: 'Identity',
-  observability: 'Monitor',
+export const BLOCK_SHORT_NAMES: Record<ResourceCategory, string> = {
+  network: 'Virtual Net',
+  security: 'Security',
+  edge: 'Load Bal',
+  compute: 'Compute',
+  data: 'Data Store',
+  messaging: 'Messaging',
+  operations: 'Ops Monitor',
 };
 
 // ─── Plate Profile System ──────────────────────────────────
