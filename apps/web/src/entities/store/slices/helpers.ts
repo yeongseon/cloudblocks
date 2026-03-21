@@ -1,5 +1,5 @@
 import type { Workspace } from '../../../shared/types/index';
-import type { ArchitectureModel, Block, Position } from '@cloudblocks/schema';
+import type { ArchitectureModel, LeafNode, Position } from '@cloudblocks/schema';
 import { DEFAULT_BLOCK_SIZE, DEFAULT_PLATE_SIZE } from '../../../shared/types/index';
 import { createBlankArchitecture } from '../../../shared/types/schema';
 import {
@@ -36,7 +36,7 @@ function roundToTenth(value: number): number {
 }
 
 export function nextGridPosition(
-  existingBlocks: Block[],
+  existingBlocks: LeafNode[],
   plateSize: { width: number; depth: number }
 ): Position {
   const blockWidth = DEFAULT_BLOCK_SIZE.width;
