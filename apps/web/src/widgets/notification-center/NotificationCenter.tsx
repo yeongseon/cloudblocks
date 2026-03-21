@@ -154,6 +154,24 @@ export function NotificationCenter() {
             </option>
           ))}
         </select>
+
+        <select
+          className="notification-center-filter-select"
+          value={filter.readStatus ?? 'all'}
+          onChange={(e) =>
+            setFilter({
+              ...filter,
+              readStatus: (e.target.value === 'all' ? undefined : e.target.value) as
+                | 'read'
+                | 'unread'
+                | undefined,
+            })
+          }
+        >
+          <option value="all">All status</option>
+          <option value="unread">Unread</option>
+          <option value="read">Read</option>
+        </select>
       </div>
 
       <div className="notification-center-list">

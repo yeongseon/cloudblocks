@@ -40,11 +40,11 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   showNotificationCenter: false,
 
   addNotification: (notification) => {
+    // Use crypto.randomUUID for collision-safe ID generation (#930)
     const id =
-      'notif-' +
-      Date.now() +
-      '-' +
-      Math.random().toString(36).slice(2, 7);
+      typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+        ? `notif-${crypto.randomUUID()}`
+        : `notif-${Date.now()}-${Math.random().toString(36).slice(2, 10)}-${Math.random().toString(36).slice(2, 10)}`;
 
     const newNotification: AppNotification = {
       ...notification,

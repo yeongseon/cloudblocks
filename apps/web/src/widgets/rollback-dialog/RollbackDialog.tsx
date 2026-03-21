@@ -1,15 +1,9 @@
 import { useState, useEffect } from 'react';
 import { usePromoteStore } from '../../entities/store/promoteStore';
+import { useOpsStore } from '../../entities/store/opsStore';
 import type { DeploymentVersion } from '../../shared/types/ops';
 import { timeAgo } from '../../shared/utils/timeAgo';
 import './RollbackDialog.css';
-
-const CURRENT_PRODUCTION = {
-  imageTag: 'v1.4.3-sha-abc1234',
-  commitSha: 'abc1234',
-  commitMessage: 'feat: add dashboard widgets',
-  deployedAt: new Date(Date.now() - 3600_000).toISOString(),
-};
 
 export function RollbackDialog() {
   const show = usePromoteStore((s) => s.showRollbackDialog);
@@ -17,19 +11,27 @@ export function RollbackDialog() {
   const selectedVersion = usePromoteStore((s) => s.selectedRollbackVersion);
   const rollingBack = usePromoteStore((s) => s.rollingBack);
   const rollbackError = usePromoteStore((s) => s.rollbackError);
+  const loadingVersions = usePromoteStore((s) => s.loadingVersions);
   const selectRollbackVersion = usePromoteStore((s) => s.selectRollbackVersion);
   const loadAvailableVersions = usePromoteStore((s) => s.loadAvailableVersions);
   const rollback = usePromoteStore((s) => s.rollback);
   const setShowRollbackDialog = usePromoteStore((s) => s.setShowRollbackDialog);
+  const clearRollbackError = usePromoteStore((s) => s.clearRollbackError);
+
+  // Read production metadata from ops store instead of hardcoded constants (#918, #938)
+  const environments = useOpsStore((s) => s.environments);
+  const productionEnv = environments.find((e) => e.name === 'production');
 
   const [reason, setReason] = useState('');
   const [confirming, setConfirming] = useState(false);
 
+  // Refresh versions on every open (#915) and clear errors (#921, #935)
   useEffect(() => {
-    if (show && availableVersions.length === 0) {
+    if (show) {
+      clearRollbackError();
       void loadAvailableVersions();
     }
-  }, [show, availableVersions.length, loadAvailableVersions]);
+  }, [show, loadAvailableVersions, clearRollbackError]);
 
   if (!show) return null;
 
@@ -39,6 +41,7 @@ export function RollbackDialog() {
     selectRollbackVersion(null);
     setReason('');
     setConfirming(false);
+    clearRollbackError();
     setShowRollbackDialog(false);
   };
 
@@ -80,38 +83,64 @@ export function RollbackDialog() {
       </div>
 
       <div className="rollback-dialog-content">
-        {/* Current production version */}
+        {/* Current production version - reads from live ops store (#918, #938) */}
         <div className="rollback-current-card">
           <div className="rollback-current-label">Current Production Version</div>
-          <div className="rollback-current-tag">{CURRENT_PRODUCTION.imageTag}</div>
-          <div className="rollback-current-meta">
-            {CURRENT_PRODUCTION.commitSha} - {CURRENT_PRODUCTION.commitMessage}
-          </div>
+          {productionEnv?.imageTag ? (
+            <>
+              <div className="rollback-current-tag">{productionEnv.imageTag}</div>
+              <div className="rollback-current-meta">
+                {productionEnv.commitSha ? productionEnv.commitSha.slice(0, 7) : 'unknown'}
+                {productionEnv.version ? ` - ${productionEnv.version}` : ''}
+              </div>
+            </>
+          ) : (
+            <div className="rollback-current-unavailable">
+              Production deployment data unavailable. Refresh Ops Center.
+            </div>
+          )}
         </div>
 
-        {/* Version selector */}
+        {/* Version selector with loading indicator (#922) and a11y (#932) */}
         <div>
           <div className="rollback-versions-title">Select Version to Rollback To</div>
           <div className="rollback-version-list">
-            {availableVersions.map((v) => (
-              <div
-                key={v.imageTag}
-                className={`rollback-version-item${selectedVersion?.imageTag === v.imageTag ? ' selected' : ''}`}
-                onClick={() => handleSelectVersion(v)}
-              >
-                <input
-                  type="radio"
-                  name="rollback-version"
-                  checked={selectedVersion?.imageTag === v.imageTag}
-                  onChange={() => handleSelectVersion(v)}
-                />
-                <div className="rollback-version-info">
-                  <span className="rollback-version-tag">{v.imageTag}</span>
-                  <span className="rollback-version-msg">{v.commitMessage}</span>
-                  <span className="rollback-version-time">{timeAgo(v.deployedAt)}</span>
+            {loadingVersions ? (
+              <div className="rollback-versions-loading">Loading available versions...</div>
+            ) : availableVersions.length === 0 ? (
+              <div className="rollback-versions-empty">No previous versions available.</div>
+            ) : (
+              availableVersions.map((v) => (
+                <div
+                  key={v.imageTag}
+                  className={`rollback-version-item${selectedVersion?.imageTag === v.imageTag ? ' selected' : ''}`}
+                  role="radio"
+                  aria-checked={selectedVersion?.imageTag === v.imageTag}
+                  tabIndex={0}
+                  onClick={() => handleSelectVersion(v)}
+                  onKeyDown={(e) => {
+                    if (e.key === ' ' || e.key === 'Enter') {
+                      e.preventDefault();
+                      handleSelectVersion(v);
+                    }
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="rollback-version"
+                    checked={selectedVersion?.imageTag === v.imageTag}
+                    onChange={() => handleSelectVersion(v)}
+                    onClick={(e) => e.stopPropagation()}
+                    tabIndex={-1}
+                  />
+                  <div className="rollback-version-info">
+                    <span className="rollback-version-tag">{v.imageTag}</span>
+                    <span className="rollback-version-msg">{v.commitMessage}</span>
+                    <span className="rollback-version-time">{timeAgo(v.deployedAt)}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
@@ -131,12 +160,12 @@ export function RollbackDialog() {
           <div className="rollback-diff">
             <div className="rollback-diff-title">Version Change Preview</div>
             <div className="rollback-diff-row">
-              <span className="rollback-diff-from">{CURRENT_PRODUCTION.imageTag}</span>
+              <span className="rollback-diff-from">{productionEnv?.imageTag ?? 'unknown'}</span>
               <span className="rollback-diff-arrow">&rarr;</span>
               <span className="rollback-diff-to">{selectedVersion.imageTag}</span>
             </div>
             <div className="rollback-diff-row">
-              <span className="rollback-diff-from">{CURRENT_PRODUCTION.commitSha}</span>
+              <span className="rollback-diff-from">{productionEnv?.commitSha?.slice(0, 7) ?? 'unknown'}</span>
               <span className="rollback-diff-arrow">&rarr;</span>
               <span className="rollback-diff-to">{selectedVersion.commitSha}</span>
             </div>
@@ -148,18 +177,19 @@ export function RollbackDialog() {
           <div className="rollback-error">{rollbackError}</div>
         )}
 
-        {/* Confirmation step */}
+        {/* Confirmation step - with failure recovery (#936) */}
         {confirming ? (
           <div className="rollback-confirm">
             <div className="rollback-confirm-text">Are you sure you want to rollback?</div>
             <div className="rollback-confirm-detail">
-              {CURRENT_PRODUCTION.imageTag} &rarr; {selectedVersion?.imageTag}
+              {productionEnv?.imageTag ?? 'current'} &rarr; {selectedVersion?.imageTag}
             </div>
             <div className="rollback-confirm-actions">
               <button
                 type="button"
                 className="rollback-btn-cancel-confirm"
                 onClick={handleCancelConfirm}
+                disabled={rollingBack}
               >
                 Cancel
               </button>

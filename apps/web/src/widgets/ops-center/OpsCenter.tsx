@@ -71,12 +71,21 @@ function CompareEnvironments({ environments }: { environments: EnvironmentInfo[]
     return null;
   }
 
-  const inSync = staging.imageTag !== null && staging.imageTag === production.imageTag;
+  const bothNotDeployed = staging.imageTag === null && production.imageTag === null;
+  const inSync =
+    bothNotDeployed ||
+    (staging.imageTag !== null &&
+      staging.imageTag === production.imageTag &&
+      staging.commitSha === production.commitSha);
 
   return (
     <div className="ops-compare-section">
       <h4 className="ops-section-title">Compare Environments</h4>
-      {inSync ? (
+      {bothNotDeployed ? (
+        <p className="ops-compare-status ops-compare-neutral">
+          Neither Staging nor Production is deployed
+        </p>
+      ) : inSync ? (
         <p className="ops-compare-status ops-compare-synced">
           Staging and Production are in sync
         </p>
@@ -116,11 +125,29 @@ function QuickPipelineStatus({ runs }: { runs: PipelineRun[] }) {
   );
 }
 
+function OpsErrorBanner({ error, onRetry }: { error: string | null; onRetry?: () => void }) {
+  if (!error) return null;
+  return (
+    <div className="ops-error-banner" role="alert">
+      <span className="ops-error-message">{error}</span>
+      {onRetry && (
+        <button type="button" className="ops-error-retry" onClick={onRetry}>
+          Retry
+        </button>
+      )}
+    </div>
+  );
+}
+
 function DashboardTab() {
   const environments = useOpsStore((s) => s.environments);
   const pipelineRuns = useOpsStore((s) => s.pipelineRuns);
   const loadingEnvironments = useOpsStore((s) => s.loadingEnvironments);
   const loadingPipelines = useOpsStore((s) => s.loadingPipelines);
+  const environmentsError = useOpsStore((s) => s.environmentsError);
+  const pipelinesError = useOpsStore((s) => s.pipelinesError);
+  const refreshEnvironments = useOpsStore((s) => s.refreshEnvironments);
+  const refreshPipelines = useOpsStore((s) => s.refreshPipelines);
 
   if (loadingEnvironments || loadingPipelines) {
     return <div className="ops-center-loading">Loading dashboard...</div>;
@@ -128,6 +155,8 @@ function DashboardTab() {
 
   return (
     <>
+      <OpsErrorBanner error={environmentsError} onRetry={() => void refreshEnvironments()} />
+      <OpsErrorBanner error={pipelinesError} onRetry={() => void refreshPipelines()} />
       <h4 className="ops-section-title">Environment Status</h4>
       <EnvironmentCards environments={environments} />
       <CompareEnvironments environments={environments} />
@@ -139,9 +168,15 @@ function DashboardTab() {
 function PipelinesTab() {
   const pipelineRuns = useOpsStore((s) => s.pipelineRuns);
   const loading = useOpsStore((s) => s.loadingPipelines);
+  const pipelinesError = useOpsStore((s) => s.pipelinesError);
+  const refreshPipelines = useOpsStore((s) => s.refreshPipelines);
 
   if (loading) {
     return <div className="ops-center-loading">Loading pipelines...</div>;
+  }
+
+  if (pipelinesError) {
+    return <OpsErrorBanner error={pipelinesError} onRetry={() => void refreshPipelines()} />;
   }
 
   if (pipelineRuns.length === 0) {
@@ -177,14 +212,20 @@ function PipelinesTab() {
                   ? formatDuration(duration)
                   : ''}
             </span>
-            <a
-              className="ops-pipeline-link"
-              href={run.url}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Details
-            </a>
+            {run.url ? (
+              <a
+                className="ops-pipeline-link"
+                href={run.url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Details
+              </a>
+            ) : (
+              <span className="ops-pipeline-link ops-pipeline-link-unavailable">
+                Details
+              </span>
+            )}
           </div>
         );
       })}
@@ -195,9 +236,15 @@ function PipelinesTab() {
 function DeploymentsTab() {
   const deploymentHistory = useOpsStore((s) => s.deploymentHistory);
   const loading = useOpsStore((s) => s.loadingDeployments);
+  const deploymentsError = useOpsStore((s) => s.deploymentsError);
+  const refreshDeployments = useOpsStore((s) => s.refreshDeployments);
 
   if (loading) {
     return <div className="ops-center-loading">Loading deployment history...</div>;
+  }
+
+  if (deploymentsError) {
+    return <OpsErrorBanner error={deploymentsError} onRetry={() => void refreshDeployments()} />;
   }
 
   if (deploymentHistory.length === 0) {
@@ -231,36 +278,63 @@ function DeploymentsTab() {
 function CostsTab() {
   const costEstimates = useOpsStore((s) => s.costEstimates);
   const loading = useOpsStore((s) => s.loadingCosts);
+  const costsError = useOpsStore((s) => s.costsError);
+  const refreshCosts = useOpsStore((s) => s.refreshCosts);
 
   if (loading) {
     return <div className="ops-center-loading">Loading cost estimates...</div>;
+  }
+
+  if (costsError) {
+    return <OpsErrorBanner error={costsError} onRetry={() => void refreshCosts()} />;
   }
 
   if (costEstimates.length === 0) {
     return <div className="ops-empty">No cost data. Click Refresh to load.</div>;
   }
 
-  const total = costEstimates.reduce((sum, c) => sum + c.monthlyEstimate, 0);
+  const currencies = new Set(costEstimates.map((c) => c.currency));
+  const isMixedCurrency = currencies.size > 1;
+
+  const formatCost = (amount: number, currency: string): string => {
+    try {
+      return new Intl.NumberFormat(undefined, { style: 'currency', currency }).format(amount);
+    } catch {
+      return `${currency} ${amount.toFixed(2)}`;
+    }
+  };
+
+  // Only show total when all entries share the same currency
+  const total = isMixedCurrency
+    ? null
+    : costEstimates.reduce((sum, c) => sum + c.monthlyEstimate, 0);
+  const sharedCurrency = isMixedCurrency ? null : (costEstimates[0]?.currency ?? 'USD');
 
   return (
     <div className="ops-cost-section">
-      <div className="ops-cost-total">
-        ${total.toFixed(2)}
-        <span className="ops-cost-total-label">/ month (total)</span>
-      </div>
+      {total !== null && sharedCurrency !== null ? (
+        <div className="ops-cost-total">
+          {formatCost(total, sharedCurrency)}
+          <span className="ops-cost-total-label">/ month (total)</span>
+        </div>
+      ) : (
+        <div className="ops-cost-total ops-cost-total-mixed">
+          <span className="ops-cost-total-label">Mixed currencies &mdash; totals shown per environment</span>
+        </div>
+      )}
       {costEstimates.map((cost: CostEstimate) => (
         <div key={cost.environment} className="ops-cost-env">
           <div className="ops-cost-env-header">
             <span className="ops-cost-env-name">{cost.environment}</span>
             <span className="ops-cost-env-total">
-              ${cost.monthlyEstimate.toFixed(2)}/mo
+              {formatCost(cost.monthlyEstimate, cost.currency)}/mo
             </span>
           </div>
           <div className="ops-cost-breakdown">
             {cost.breakdown.map((item) => (
               <div key={item.resource} className="ops-cost-row">
                 <span className="ops-cost-resource">{item.resource}</span>
-                <span className="ops-cost-amount">${item.monthlyCost.toFixed(2)}</span>
+                <span className="ops-cost-amount">{formatCost(item.monthlyCost, cost.currency)}</span>
               </div>
             ))}
           </div>

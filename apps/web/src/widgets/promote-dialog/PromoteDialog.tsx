@@ -1,14 +1,9 @@
+import { useEffect } from 'react';
 import { usePromoteStore } from '../../entities/store/promoteStore';
+import { useOpsStore } from '../../entities/store/opsStore';
 import type { PromotionChecklist } from '../../shared/types/ops';
 import { timeAgo } from '../../shared/utils/timeAgo';
 import './PromoteDialog.css';
-
-const CURRENT_STAGING = {
-  imageTag: 'v1.4.3-sha-abc1234',
-  commitSha: 'abc1234',
-  commitMessage: 'feat: add dashboard widgets',
-  deployedAt: new Date(Date.now() - 7200_000).toISOString(),
-};
 
 const CHECKLIST_LABELS: Record<keyof PromotionChecklist, string> = {
   stagingHealthy: 'Staging environment is healthy',
@@ -28,19 +23,33 @@ export function PromoteDialog() {
   const promote = usePromoteStore((s) => s.promote);
   const setShowPromoteDialog = usePromoteStore((s) => s.setShowPromoteDialog);
   const resetChecklist = usePromoteStore((s) => s.resetChecklist);
+  const clearPromotionError = usePromoteStore((s) => s.clearPromotionError);
+
+  // Read staging metadata from ops store instead of hardcoded constants (#917, #937)
+  const environments = useOpsStore((s) => s.environments);
+  const stagingEnv = environments.find((e) => e.name === 'staging');
+
+  // Clear error state on dialog open (#920, #933)
+  useEffect(() => {
+    if (show) {
+      clearPromotionError();
+    }
+  }, [show, clearPromotionError]);
 
   if (!show) return null;
 
   const allChecked = Object.values(checklist).every(Boolean);
+  const hasStagingData = stagingEnv?.imageTag != null;
 
   const handleClose = () => {
     resetChecklist();
+    clearPromotionError();
     setShowPromoteDialog(false);
   };
 
   const handlePromote = () => {
-    if (allChecked && !promoting) {
-      void promote(CURRENT_STAGING.imageTag);
+    if (allChecked && !promoting && stagingEnv?.imageTag) {
+      void promote(stagingEnv.imageTag);
     }
   };
 
@@ -59,30 +68,53 @@ export function PromoteDialog() {
       </div>
 
       <div className="promote-dialog-content">
-        {/* Source info card */}
+        {/* Source info card - reads from live ops store (#917, #937) */}
         <div className="promote-source-card">
           <div className="promote-source-label">Staging Environment</div>
-          <div className="promote-source-tag">{CURRENT_STAGING.imageTag}</div>
-          <div className="promote-source-meta">
-            <span>Commit: {CURRENT_STAGING.commitSha} - {CURRENT_STAGING.commitMessage}</span>
-            <span>Deployed {timeAgo(CURRENT_STAGING.deployedAt)}</span>
-          </div>
+          {hasStagingData ? (
+            <>
+              <div className="promote-source-tag">{stagingEnv.imageTag}</div>
+              <div className="promote-source-meta">
+                {stagingEnv.commitSha && (
+                  <span>Commit: {stagingEnv.commitSha.slice(0, 7)}</span>
+                )}
+                {stagingEnv.lastDeployedAt && (
+                  <span>Deployed {timeAgo(stagingEnv.lastDeployedAt)}</span>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="promote-source-unavailable">
+              Staging deployment data unavailable. Refresh Ops Center.
+            </div>
+          )}
         </div>
 
-        {/* Pre-promotion checklist */}
+        {/* Pre-promotion checklist - fixed double-toggle (#914) and a11y (#931) */}
         <div className="promote-checklist">
           <div className="promote-checklist-title">Pre-Promotion Checklist</div>
           {(Object.keys(CHECKLIST_LABELS) as (keyof PromotionChecklist)[]).map((key) => (
             <div
               key={key}
               className={`promote-checklist-item${checklist[key] ? ' checked' : ''}`}
+              role="checkbox"
+              aria-checked={checklist[key]}
+              tabIndex={0}
               onClick={() => updateChecklist(key, !checklist[key])}
+              onKeyDown={(e) => {
+                if (e.key === ' ' || e.key === 'Enter') {
+                  e.preventDefault();
+                  updateChecklist(key, !checklist[key]);
+                }
+              }}
             >
               <input
                 type="checkbox"
                 checked={checklist[key]}
                 onChange={(e) => updateChecklist(key, e.target.checked)}
+                onClick={(e) => e.stopPropagation()}
                 id={`checklist-${key}`}
+                tabIndex={-1}
               />
               <label htmlFor={`checklist-${key}`}>{CHECKLIST_LABELS[key]}</label>
             </div>
@@ -98,7 +130,7 @@ export function PromoteDialog() {
             <span className="promote-diff-to">production</span>
           </div>
           <div className="promote-diff-row" style={{ marginTop: 4 }}>
-            <span className="promote-diff-from">{CURRENT_STAGING.imageTag}</span>
+            <span className="promote-diff-from">{stagingEnv?.imageTag ?? 'unknown'}</span>
             <span className="promote-diff-arrow">&rarr;</span>
             <span className="promote-diff-to">production:latest</span>
           </div>
@@ -121,7 +153,7 @@ export function PromoteDialog() {
           <button
             type="button"
             className="promote-btn-primary"
-            disabled={!allChecked || promoting}
+            disabled={!allChecked || promoting || !hasStagingData}
             onClick={handlePromote}
           >
             {promoting && <span className="promote-spinner" />}

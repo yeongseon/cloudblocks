@@ -13,8 +13,13 @@ const DEFAULT_CHECKLIST: PromotionChecklist = {
   manualApproval: false,
 };
 
+// Use crypto.randomUUID for collision-safe ID generation (#930, #939)
 function generateId(): string {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  // Fallback with higher entropy
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 interface PromoteState {
@@ -30,12 +35,14 @@ interface PromoteState {
   selectedRollbackVersion: DeploymentVersion | null;
   rollingBack: boolean;
   rollbackError: string | null;
+  loadingVersions: boolean;
 
   // History
   promotionHistory: PromotionRecord[];
   rollbackHistory: RollbackRecord[];
   showPromoteHistory: boolean;
   loadingHistory: boolean;
+  _historyLoadedAt: number;
 
   // Actions
   togglePromoteDialog: () => void;
@@ -43,18 +50,22 @@ interface PromoteState {
   updateChecklist: (key: keyof PromotionChecklist, value: boolean) => void;
   resetChecklist: () => void;
   promote: (imageTag: string) => Promise<void>;
+  clearPromotionError: () => void;
 
   toggleRollbackDialog: () => void;
   setShowRollbackDialog: (show: boolean) => void;
   selectRollbackVersion: (version: DeploymentVersion | null) => void;
   loadAvailableVersions: () => Promise<void>;
   rollback: (version: DeploymentVersion, reason: string) => Promise<void>;
+  clearRollbackError: () => void;
 
   togglePromoteHistory: () => void;
   loadHistory: () => Promise<void>;
 }
 
-export const usePromoteStore = create<PromoteState>((set) => ({
+const HISTORY_CACHE_TTL = 30_000; // 30 seconds
+
+export const usePromoteStore = create<PromoteState>((set, get) => ({
   // Promote
   showPromoteDialog: false,
   promotionChecklist: { ...DEFAULT_CHECKLIST },
@@ -67,12 +78,14 @@ export const usePromoteStore = create<PromoteState>((set) => ({
   selectedRollbackVersion: null,
   rollingBack: false,
   rollbackError: null,
+  loadingVersions: false,
 
   // History
   promotionHistory: [],
   rollbackHistory: [],
   showPromoteHistory: false,
   loadingHistory: false,
+  _historyLoadedAt: 0,
 
   // ── Promote actions ──────────────────────────────────────
 
@@ -88,6 +101,8 @@ export const usePromoteStore = create<PromoteState>((set) => ({
 
   resetChecklist: () =>
     set({ promotionChecklist: { ...DEFAULT_CHECKLIST } }),
+
+  clearPromotionError: () => set({ promotionError: null }),
 
   promote: async (imageTag: string) => {
     set({ promoting: true, promotionError: null });
@@ -125,7 +140,10 @@ export const usePromoteStore = create<PromoteState>((set) => ({
   selectRollbackVersion: (version) =>
     set({ selectedRollbackVersion: version }),
 
+  clearRollbackError: () => set({ rollbackError: null }),
+
   loadAvailableVersions: async () => {
+    set({ loadingVersions: true });
     try {
       await new Promise((resolve) => setTimeout(resolve, 500));
       const versions: DeploymentVersion[] = [
@@ -165,9 +183,9 @@ export const usePromoteStore = create<PromoteState>((set) => ({
           environment: 'production',
         },
       ];
-      set({ availableVersions: versions });
+      set({ availableVersions: versions, loadingVersions: false });
     } catch {
-      set({ rollbackError: 'Failed to load available versions.' });
+      set({ rollbackError: 'Failed to load available versions.', loadingVersions: false });
     }
   },
 
@@ -178,7 +196,7 @@ export const usePromoteStore = create<PromoteState>((set) => ({
       const record: RollbackRecord = {
         id: generateId(),
         environment: 'production',
-        fromImageTag: 'v1.4.3-sha-abc1234',
+        fromImageTag: 'current',
         toImageTag: version.imageTag,
         reason,
         rolledBackBy: 'current-user',
@@ -192,6 +210,7 @@ export const usePromoteStore = create<PromoteState>((set) => ({
         showRollbackDialog: false,
       }));
     } catch {
+      // On failure, keep dialog open and show error for recovery (#936)
       set({ rollingBack: false, rollbackError: 'Rollback failed. Please try again.' });
     }
   },
@@ -202,6 +221,11 @@ export const usePromoteStore = create<PromoteState>((set) => ({
     set((s) => ({ showPromoteHistory: !s.showPromoteHistory })),
 
   loadHistory: async () => {
+    // Skip redundant refetching if recently loaded (#928)
+    const now = Date.now();
+    if (now - get()._historyLoadedAt < HISTORY_CACHE_TTL) {
+      return;
+    }
     set({ loadingHistory: true });
     try {
       await new Promise((resolve) => setTimeout(resolve, 500));
@@ -262,7 +286,12 @@ export const usePromoteStore = create<PromoteState>((set) => ({
           status: 'success',
         },
       ];
-      set({ promotionHistory: promotions, rollbackHistory: rollbacks, loadingHistory: false });
+      set({
+        promotionHistory: promotions,
+        rollbackHistory: rollbacks,
+        loadingHistory: false,
+        _historyLoadedAt: Date.now(),
+      });
     } catch {
       set({ loadingHistory: false });
     }

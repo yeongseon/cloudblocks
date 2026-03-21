@@ -62,12 +62,18 @@ function CodePreviewContent() {
     }, new Map<string, number>());
   const hasMismatch = mismatchedProviders.size > 0;
 
+  // Track architecture snapshot at generation time to detect staleness (#934)
+  const [generatedArch, setGeneratedArch] = useState<unknown>(null);
+  const hasGeneratedOutput = output !== null || comparisonOutputs !== null;
+  const staleWarning = hasGeneratedOutput && generatedArch !== null && generatedArch !== architecture;
+
   const clearGeneratedState = () => {
     setError(null);
     setOutput(null);
     setComparisonOutputs(null);
     setComparisonErrors(null);
     setActiveTab(0);
+    setGeneratedArch(null);
   };
 
   const handleGeneratorChange = (newGenerator: GeneratorId) => {
@@ -85,6 +91,7 @@ function CodePreviewContent() {
     setOutput(null);
     setComparisonOutputs(null);
     setComparisonErrors(null);
+    setGeneratedArch(architecture);
 
     try {
       const baseOptions = {
@@ -289,6 +296,12 @@ function CodePreviewContent() {
           🚀 {effectiveCompare ? 'Compare Providers' : `Generate ${selectedGenerator?.label ?? 'Code'}`}
         </button>
       </div>
+
+      {staleWarning && (
+        <div className="code-preview-stale-warning" role="alert">
+          Architecture has changed since code was generated. Re-generate to see updated output.
+        </div>
+      )}
 
       {error && <div className="code-preview-error">{error}</div>}
 

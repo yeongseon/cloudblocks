@@ -52,22 +52,29 @@ interface OpsState {
   // Environment status
   environments: EnvironmentInfo[];
   loadingEnvironments: boolean;
+  environmentsError: string | null;
 
   // Pipeline status
   pipelineRuns: PipelineRun[];
   loadingPipelines: boolean;
+  pipelinesError: string | null;
 
   // Deployment history
   deploymentHistory: DeploymentRecord[];
   loadingDeployments: boolean;
+  deploymentsError: string | null;
 
   // Cost estimation
   costEstimates: CostEstimate[];
   loadingCosts: boolean;
+  costsError: string | null;
 
   // Panel visibility
   showOpsCenter: boolean;
   activeOpsTab: 'dashboard' | 'pipelines' | 'deployments' | 'costs';
+
+  // Request sequencing
+  _refreshSeq: number;
 
   // Actions
   toggleOpsCenter: () => void;
@@ -100,25 +107,31 @@ function minutesAgo(minutes: number): string {
 export const useOpsStore = create<OpsState>((set, get) => ({
   environments: [],
   loadingEnvironments: false,
+  environmentsError: null,
 
   pipelineRuns: [],
   loadingPipelines: false,
+  pipelinesError: null,
 
   deploymentHistory: [],
   loadingDeployments: false,
+  deploymentsError: null,
 
   costEstimates: [],
   loadingCosts: false,
+  costsError: null,
 
   showOpsCenter: false,
   activeOpsTab: 'dashboard',
+
+  _refreshSeq: 0,
 
   toggleOpsCenter: () => set((s) => ({ showOpsCenter: !s.showOpsCenter })),
   setShowOpsCenter: (show) => set({ showOpsCenter: show }),
   setActiveOpsTab: (tab) => set({ activeOpsTab: tab }),
 
   refreshEnvironments: async () => {
-    set({ loadingEnvironments: true });
+    set({ loadingEnvironments: true, environmentsError: null });
     try {
       await mockDelay();
       set({
@@ -151,12 +164,12 @@ export const useOpsStore = create<OpsState>((set, get) => ({
         ],
       });
     } catch {
-      set({ loadingEnvironments: false });
+      set({ loadingEnvironments: false, environmentsError: 'Failed to load environments. Please retry.' });
     }
   },
 
   refreshPipelines: async () => {
-    set({ loadingPipelines: true });
+    set({ loadingPipelines: true, pipelinesError: null });
     try {
       await mockDelay();
       set({
@@ -172,7 +185,8 @@ export const useOpsStore = create<OpsState>((set, get) => ({
             commitMessage: 'feat(web): add Ops Control Center widget',
             startedAt: minutesAgo(3),
             completedAt: null,
-            url: 'https://github.com/cloudblocks/cloudblocks/actions/runs/1001',
+            // TODO(#919): Replace mock URL with backend-provided run URL
+            url: '',
           },
           {
             id: 1000,
@@ -184,7 +198,7 @@ export const useOpsStore = create<OpsState>((set, get) => ({
             commitMessage: 'fix(web): refine provider portrait visuals',
             startedAt: hoursAgo(1),
             completedAt: minutesAgo(55),
-            url: 'https://github.com/cloudblocks/cloudblocks/actions/runs/1000',
+            url: '',
           },
           {
             id: 999,
@@ -196,7 +210,7 @@ export const useOpsStore = create<OpsState>((set, get) => ({
             commitMessage: 'fix(web): refine provider portrait visuals',
             startedAt: hoursAgo(1),
             completedAt: minutesAgo(50),
-            url: 'https://github.com/cloudblocks/cloudblocks/actions/runs/999',
+            url: '',
           },
           {
             id: 998,
@@ -208,7 +222,7 @@ export const useOpsStore = create<OpsState>((set, get) => ({
             commitMessage: 'feat(web): add cost estimation panel',
             startedAt: hoursAgo(3),
             completedAt: hoursAgo(3),
-            url: 'https://github.com/cloudblocks/cloudblocks/actions/runs/998',
+            url: '',
           },
           {
             id: 997,
@@ -220,17 +234,17 @@ export const useOpsStore = create<OpsState>((set, get) => ({
             commitMessage: 'release: v0.17.0',
             startedAt: daysAgo(1),
             completedAt: daysAgo(1),
-            url: 'https://github.com/cloudblocks/cloudblocks/actions/runs/997',
+            url: '',
           },
         ],
       });
     } catch {
-      set({ loadingPipelines: false });
+      set({ loadingPipelines: false, pipelinesError: 'Failed to load pipelines. Please retry.' });
     }
   },
 
   refreshDeployments: async () => {
-    set({ loadingDeployments: true });
+    set({ loadingDeployments: true, deploymentsError: null });
     try {
       await mockDelay();
       set({
@@ -327,12 +341,12 @@ export const useOpsStore = create<OpsState>((set, get) => ({
         ],
       });
     } catch {
-      set({ loadingDeployments: false });
+      set({ loadingDeployments: false, deploymentsError: 'Failed to load deployments. Please retry.' });
     }
   },
 
   refreshCosts: async () => {
-    set({ loadingCosts: true });
+    set({ loadingCosts: true, costsError: null });
     try {
       await mockDelay();
       set({
@@ -376,11 +390,14 @@ export const useOpsStore = create<OpsState>((set, get) => ({
         ],
       });
     } catch {
-      set({ loadingCosts: false });
+      set({ loadingCosts: false, costsError: 'Failed to load cost estimates. Please retry.' });
     }
   },
 
   refreshAll: async () => {
+    // Increment sequence number to allow stale-response detection (#926)
+    const seq = get()._refreshSeq + 1;
+    set({ _refreshSeq: seq });
     const state = get();
     await Promise.all([
       state.refreshEnvironments(),
