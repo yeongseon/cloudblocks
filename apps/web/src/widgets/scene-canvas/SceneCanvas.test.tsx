@@ -24,8 +24,7 @@ const mockAddBlock = vi.fn();
 const mockCompleteInteraction = vi.fn();
 
 const architecture = {
-  plates: [],
-  blocks: [],
+  nodes: [],
   connections: [],
   externalActors: [],
 };
