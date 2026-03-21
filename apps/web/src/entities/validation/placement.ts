@@ -1,198 +1,169 @@
-import type { Block, BlockCategory, Plate, Size } from '@cloudblocks/schema';
+import type { LeafNode, ContainerNode, ResourceCategory, Size } from '@cloudblocks/schema';
+import { RESOURCE_RULES } from '@cloudblocks/schema';
+import type { ResourceRuleEntry } from '@cloudblocks/schema';
 import type { ValidationError } from '@cloudblocks/domain';
 import { VALID_PARENTS } from '@cloudblocks/domain';
 import type { LayerType } from '@cloudblocks/schema';
 
 /**
- * Placement Rules (v2.0 — CLOUDBLOCKS_SPEC_V2.md §10, §15):
+ * Placement Rules (v3.0 — 7-category ResourceNode model):
  *
- * Legacy category-based rules (§6 v1.x):
- * - ComputeBlock must be placed on SubnetPlate
- * - DatabaseBlock must be placed on private SubnetPlate
- * - GatewayBlock must be placed on public SubnetPlate
- * - StorageBlock must be placed on SubnetPlate
- * - AnalyticsBlock must be placed on SubnetPlate
- * - IdentityBlock must be placed on SubnetPlate
- * - ObservabilityBlock must be placed on SubnetPlate
- * - FunctionBlock must be placed on NetworkPlate (not Subnet)
- * - QueueBlock must be placed on NetworkPlate (not Subnet)
- * - EventBlock must be placed on NetworkPlate (not Subnet)
+ * Rules are derived from RESOURCE_RULES (single source of truth).
+ * At module load time we build a category → required-parent-layer map
+ * so that `validatePlacement` and `canPlaceBlock` stay consistent
+ * with the canonical constraint table.
  *
- * v2.0 layer hierarchy rules (§10):
- * - Global resources cannot be inside subnet
- * - Edge resources cannot be inside zone
- * - Zone resources must belong to a zone
- * - Subnet resources must belong to a subnet
- * - Blocks must stay inside parent plate
+ * Additional UI-level constraints:
+ * - edge resources require `subnetAccess: 'public'` on the parent container
+ *
+ * Layer hierarchy rules:
+ * - Resources must be placed on valid parent layers
+ * - All positions must be CU-aligned (integer)
  * - No overlapping blocks
- * - Grid snap: all positions must be CU-aligned (integer)
  */
 
+// ---------------------------------------------------------------------------
+// Derived placement map from RESOURCE_RULES
+// ---------------------------------------------------------------------------
+
+/**
+ * Maps parent resourceType → corresponding container layer.
+ * This lets us translate RESOURCE_RULES' `allowedParents` (resourceType-based)
+ * into layer-based checks that match how containers are rendered in the UI.
+ */
+const PARENT_RESOURCE_TYPE_TO_LAYER: Record<string, LayerType> = {
+  subnet: 'subnet',
+  virtual_network: 'region',
+};
+
+/**
+ * Build a map of category → required parent layer from RESOURCE_RULES.
+ * Only non-container resource types are included (containers don't need placement validation).
+ *
+ * For each category, we pick the first allowedParents entry and map it to a layer.
+ * If all resources in a category have the same allowedParents, the result is deterministic.
+ */
+function buildCategoryPlacementMap(): Map<ResourceCategory, LayerType> {
+  const map = new Map<ResourceCategory, LayerType>();
+  const rules = RESOURCE_RULES as Record<string, ResourceRuleEntry>;
+
+  for (const [, rule] of Object.entries(rules)) {
+    if (rule.containerCapable) continue; // Skip containers
+    if (map.has(rule.category)) continue; // First rule per category wins
+
+    const parentType = rule.allowedParents[0];
+    if (parentType === null) continue; // Root-level resources don't need placement validation
+
+    const layer = PARENT_RESOURCE_TYPE_TO_LAYER[parentType];
+    if (layer) {
+      map.set(rule.category, layer);
+    }
+  }
+
+  return map;
+}
+
+/** Category → required parent layer, derived from RESOURCE_RULES. */
+const CATEGORY_REQUIRED_PARENT_LAYER = buildCategoryPlacementMap();
+
+// ---------------------------------------------------------------------------
+// Placement validation
+// ---------------------------------------------------------------------------
+
 export function validatePlacement(
-  block: Block,
-  plate: Plate | undefined
+  resource: LeafNode,
+  parent: ContainerNode | undefined
 ): ValidationError | null {
-  if (!plate) {
+  if (!parent) {
     return {
       ruleId: 'rule-plate-exists',
       severity: 'error',
-      message: `Block "${block.name}" is not placed on any plate`,
-      suggestion: 'Place the block on a valid subnet plate',
-      targetId: block.id,
+      message: `Resource "${resource.name}" is not placed on any container`,
+      suggestion: 'Place the resource on a valid subnet container',
+      targetId: resource.id,
     };
   }
 
-  switch (block.category) {
-    case 'compute':
-      if (plate.type !== 'subnet') {
-        return {
-          ruleId: 'rule-compute-subnet',
-          severity: 'error',
-          message: `Compute block "${block.name}" must be placed on a Subnet Plate`,
-          suggestion: 'Move the Compute block to a Subnet Plate',
-          targetId: block.id,
-        };
-      }
-      break;
+  // ── Edge-specific: require public subnetAccess ──
+  if (resource.category === 'edge') {
+    if (parent.layer !== 'subnet' || parent.subnetAccess !== 'public') {
+      return {
+        ruleId: 'rule-edge-public',
+        severity: 'error',
+        message: `Edge resource "${resource.name}" must be placed on a public Subnet`,
+        suggestion: 'Move the Edge resource to a Public Subnet',
+        targetId: resource.id,
+      };
+    }
+    return null;
+  }
 
-    case 'database':
-      if (plate.type !== 'subnet' || plate.subnetAccess !== 'private') {
-        return {
-          ruleId: 'rule-db-private',
-          severity: 'error',
-          message: `Database block "${block.name}" must be placed on a private Subnet Plate`,
-          suggestion: 'Move the Database block to a Private Subnet Plate',
-          targetId: block.id,
-        };
-      }
-      break;
-
-    case 'gateway':
-      if (plate.type !== 'subnet' || plate.subnetAccess !== 'public') {
-        return {
-          ruleId: 'rule-gw-public',
-          severity: 'error',
-          message: `Gateway block "${block.name}" must be placed on a public Subnet Plate`,
-          suggestion: 'Move the Gateway block to a Public Subnet Plate',
-          targetId: block.id,
-        };
-      }
-      break;
-
-    case 'storage':
-      if (plate.type !== 'subnet') {
-        return {
-          ruleId: 'rule-storage-subnet',
-          severity: 'error',
-          message: `Storage block "${block.name}" must be placed on a Subnet Plate`,
-          suggestion: 'Move the Storage block to a Subnet Plate',
-          targetId: block.id,
-        };
-      }
-      break;
-
-    case 'analytics':
-      if (plate.type !== 'subnet') {
-        return {
-          ruleId: 'rule-analytics-subnet',
-          severity: 'error',
-          message: `Analytics block "${block.name}" must be placed on a Subnet Plate`,
-          suggestion: 'Move the Analytics block to a Subnet Plate',
-          targetId: block.id,
-        };
-      }
-      break;
-
-    case 'identity':
-      if (plate.type !== 'subnet') {
-        return {
-          ruleId: 'rule-identity-subnet',
-          severity: 'error',
-          message: `Identity block "${block.name}" must be placed on a Subnet Plate`,
-          suggestion: 'Move the Identity block to a Subnet Plate',
-          targetId: block.id,
-        };
-      }
-      break;
-
-    case 'observability':
-      if (plate.type !== 'subnet') {
-        return {
-          ruleId: 'rule-observability-subnet',
-          severity: 'error',
-          message: `Observability block "${block.name}" must be placed on a Subnet Plate`,
-          suggestion: 'Move the Observability block to a Subnet Plate',
-          targetId: block.id,
-        };
-      }
-      break;
-
-    case 'function':
-    case 'queue':
-    case 'event':
-      if (plate.type !== 'region') {
-        return {
-          ruleId: 'rule-serverless-network',
-          severity: 'error',
-          message: `${block.category.charAt(0).toUpperCase() + block.category.slice(1)} block "${block.name}" must be placed on a Region Plate`,
-          suggestion: `Move the ${block.category.charAt(0).toUpperCase() + block.category.slice(1)} block to a Region Plate (not a Subnet)`,
-          targetId: block.id,
-        };
-      }
-      break;
-
-    default:
-      break;
+  // ── RESOURCE_RULES-driven placement check ──
+  const requiredLayer = CATEGORY_REQUIRED_PARENT_LAYER.get(resource.category);
+  if (requiredLayer && parent.layer !== requiredLayer) {
+    const layerLabel = requiredLayer === 'subnet' ? 'Subnet' : 'Region container';
+    const cat = resource.category.charAt(0).toUpperCase() + resource.category.slice(1);
+    return {
+      ruleId: `rule-${resource.category}-${requiredLayer}`,
+      severity: 'error',
+      message: `${cat} resource "${resource.name}" must be placed on a ${layerLabel}`,
+      suggestion: `Move the ${cat} resource to a ${layerLabel}`,
+      targetId: resource.id,
+    };
   }
 
   return null;
 }
 
 /**
- * Convenience wrapper for validatePlacement to check if a block can be placed on a plate.
+ * Convenience wrapper for validatePlacement to check if a resource can be placed on a container.
  * Used in drag-to-create flows to show/hide drop targets.
  *
- * @param category - The block category to check
- * @param plate - The plate to check placement against
- * @returns true if the block can be placed, false otherwise
+ * @param category - The resource category to check
+ * @param container - The container to check placement against
+ * @returns true if the resource can be placed, false otherwise
  */
-export function canPlaceBlock(category: BlockCategory, plate: Plate): boolean {
-  const stubBlock: Block = {
+export function canPlaceBlock(category: ResourceCategory, container: ContainerNode): boolean {
+  const stubResource: LeafNode = {
     id: '__preview__',
     name: '__preview__',
+    kind: 'resource',
+    layer: 'resource',
+    resourceType: category,
     category,
-    placementId: plate.id,
+    provider: 'azure',
+    parentId: container.id,
     position: { x: 0, y: 0, z: 0 },
     metadata: {},
   };
 
-  const result = validatePlacement(stubBlock, plate);
+  const result = validatePlacement(stubResource, container);
   return result === null;
 }
 
 // ─── v2.0 Layer Hierarchy Validation ────────────────────────────
 
 /**
- * Validate that a plate's layer type is a valid parent for the 'resource' layer
+ * Validate that a container's layer type is a valid parent for the 'resource' layer
  * according to the v2.0 6-layer hierarchy (VALID_PARENTS).
  *
- * Resources (blocks) can be placed on: subnet, zone, region, edge, global.
- * This validates that the plate type is in the allowed parent list for resources.
+ * Resources can be placed on: subnet, zone, region, edge, global.
+ * This validates that the container's layer is in the allowed parent list for resources.
  */
 export function validateLayerPlacement(
-  block: Block,
-  plate: Plate,
+  resource: LeafNode,
+  container: ContainerNode,
 ): ValidationError | null {
   const blockLayer: LayerType = 'resource';
   const validParents = VALID_PARENTS[blockLayer];
 
-  if (!validParents.includes(plate.type as LayerType)) {
+  if (!validParents.includes(container.layer as LayerType)) {
     return {
       ruleId: 'rule-layer-hierarchy',
       severity: 'error',
-      message: `Block "${block.name}" cannot be placed on a "${plate.type}" plate (invalid layer hierarchy)`,
+      message: `Resource "${resource.name}" cannot be placed on a "${container.layer}" container (invalid layer hierarchy)`,
       suggestion: `Valid parent layers for resources: ${validParents.join(', ')}`,
-      targetId: block.id,
+      targetId: resource.id,
     };
   }
 
@@ -200,22 +171,22 @@ export function validateLayerPlacement(
 }
 
 /**
- * Validate that a block's position is CU-aligned (integer coordinates).
+ * Validate that a resource's position is CU-aligned (integer coordinates).
  * Spec §10: "All positions must be CU-aligned"
  * Spec §15: "Position not aligned to CU grid" → must reject
  */
 export function validateGridAlignment(
-  block: Block,
+  resource: LeafNode,
 ): ValidationError | null {
-  const { x, z } = block.position;
+  const { x, z } = resource.position;
 
   if (!Number.isInteger(x) || !Number.isInteger(z)) {
     return {
       ruleId: 'rule-grid-alignment',
       severity: 'error',
-      message: `Block "${block.name}" position (${x}, ${z}) is not CU-aligned`,
-      suggestion: 'Snap the block to integer grid positions',
-      targetId: block.id,
+      message: `Resource "${resource.name}" position (${x}, ${z}) is not CU-aligned`,
+      suggestion: 'Snap the resource to integer grid positions',
+      targetId: resource.id,
     };
   }
 
@@ -223,28 +194,28 @@ export function validateGridAlignment(
 }
 
 /**
- * Validate that a block does not overlap with any sibling block on the same plate.
- * Spec §10: "Blocks must not overlap"
- * Spec §15: "Block overlapping another block" → must reject
+ * Validate that a resource does not overlap with any sibling resource on the same container.
+ * Spec §10: "Resources must not overlap"
+ * Spec §15: "Resource overlapping another resource" → must reject
  *
  * Uses axis-aligned bounding box (AABB) overlap detection
  * in world coordinates (x, z plane).
  */
 export function validateNoOverlap(
-  block: Block,
-  siblingBlocks: Block[],
-  getBlockSize: (block: Block) => Size,
+  resource: LeafNode,
+  siblingResources: LeafNode[],
+  getResourceSize: (resource: LeafNode) => Size,
 ): ValidationError | null {
-  const blockSize = getBlockSize(block);
-  const bx1 = block.position.x;
-  const bz1 = block.position.z;
+  const blockSize = getResourceSize(resource);
+  const bx1 = resource.position.x;
+  const bz1 = resource.position.z;
   const bx2 = bx1 + blockSize.width;
   const bz2 = bz1 + blockSize.depth;
 
-  for (const sibling of siblingBlocks) {
-    if (sibling.id === block.id) continue;
+  for (const sibling of siblingResources) {
+    if (sibling.id === resource.id) continue;
 
-    const siblingSize = getBlockSize(sibling);
+    const siblingSize = getResourceSize(sibling);
     const sx1 = sibling.position.x;
     const sz1 = sibling.position.z;
     const sx2 = sx1 + siblingSize.width;
@@ -258,9 +229,9 @@ export function validateNoOverlap(
       return {
         ruleId: 'rule-no-overlap',
         severity: 'error',
-        message: `Block "${block.name}" overlaps with "${sibling.name}"`,
-        suggestion: 'Move the block to a non-overlapping position',
-        targetId: block.id,
+        message: `Resource "${resource.name}" overlaps with "${sibling.name}"`,
+        suggestion: 'Move the resource to a non-overlapping position',
+        targetId: resource.id,
       };
     }
   }

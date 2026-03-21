@@ -1,4 +1,4 @@
-import type { Block } from '@cloudblocks/schema';
+import type { LeafNode } from '@cloudblocks/schema';
 import type { ValidationError } from '@cloudblocks/domain';
 
 /**
@@ -9,7 +9,7 @@ import type { ValidationError } from '@cloudblocks/domain';
  */
 
 export function validateAggregation(
-  block: Block,
+  block: LeafNode,
 ): ValidationError | null {
   const aggregation = block.aggregation;
 

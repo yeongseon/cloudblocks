@@ -1,24 +1,31 @@
 import { describe, expect, it } from 'vitest';
-import type { ArchitectureModel, Block, Plate } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
 import { validateProviderRules } from '../providerValidation';
+import {
+  makeTestArchitecture,
+  makeTestBlock,
+  makeTestPlate,
+  type LegacyArchitectureOverrides,
+  type LegacyBlockOverrides,
+  type LegacyPlateOverrides,
+} from '../../../__tests__/legacyModelTestUtils';
 
-function makePlate(overrides: Partial<Plate> = {}): Plate {
-  return {
+function makePlate(overrides: LegacyPlateOverrides = {}): ContainerNode {
+  return makeTestPlate({
     id: 'subnet-private-1',
     name: 'Private Subnet',
     type: 'subnet',
     subnetAccess: 'private',
     parentId: 'network-1',
-    children: [],
     position: { x: 0, y: 0, z: 0 },
     size: { width: 8, height: 1, depth: 8 },
     metadata: {},
     ...overrides,
-  };
+  });
 }
 
-function makeBlock(overrides: Partial<Block> = {}): Block {
-  return {
+function makeBlock(overrides: LegacyBlockOverrides = {}): LeafNode {
+  return makeTestBlock({
     id: 'block-1',
     name: 'Block One',
     category: 'compute',
@@ -26,13 +33,13 @@ function makeBlock(overrides: Partial<Block> = {}): Block {
     position: { x: 0, y: 0, z: 0 },
     metadata: {},
     ...overrides,
-  };
+  });
 }
 
 function makeModel(
-  overrides: Partial<ArchitectureModel> = {}
+  overrides: LegacyArchitectureOverrides = {}
 ): ArchitectureModel {
-  return {
+  return makeTestArchitecture({
     id: 'arch-1',
     name: 'Architecture',
     version: '1.0.0',
@@ -43,7 +50,7 @@ function makeModel(
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
     ...overrides,
-  };
+  });
 }
 
 describe('validateProviderRules', () => {
@@ -93,7 +100,7 @@ describe('validateProviderRules', () => {
         makeBlock({
           id: 'sql-1',
           name: 'Cloud SQL',
-          category: 'database',
+          category: 'data',
           provider: 'gcp',
           subtype: 'cloud-sql-postgres',
           placementId: 'subnet-public-1',
@@ -118,7 +125,7 @@ describe('validateProviderRules', () => {
         makeBlock({
           id: 'sql-2',
           name: 'Cloud SQL Private',
-          category: 'database',
+          category: 'data',
           provider: 'gcp',
           subtype: 'cloud-sql-postgres',
           placementId: 'subnet-private-2',
@@ -172,7 +179,7 @@ describe('validateProviderRules', () => {
     expect(warnings).toEqual([]);
   });
 
-  it('returns no warnings for block without provider', () => {
+  it('returns warning when default provider and subtype mismatch', () => {
     const model = makeModel({
       blocks: [
         makeBlock({
@@ -185,7 +192,12 @@ describe('validateProviderRules', () => {
 
     const warnings = validateProviderRules(model);
 
-    expect(warnings).toEqual([]);
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]).toMatchObject({
+      ruleId: 'rule-provider-unknown-subtype',
+      severity: 'warning',
+      targetId: 'no-provider-1',
+    });
   });
 
   it('returns no warnings for block without subtype', () => {
@@ -223,7 +235,7 @@ describe('validateProviderRules', () => {
           id: 'sql-public-1',
           name: 'Cloud SQL Public',
           provider: 'gcp',
-          category: 'database',
+          category: 'data',
           subtype: 'cloud-sql-postgres',
           placementId: 'subnet-public-1',
         }),
@@ -231,7 +243,7 @@ describe('validateProviderRules', () => {
           id: 'unknown-2',
           name: 'Unknown Gateway',
           provider: 'azure',
-          category: 'gateway',
+          category: 'edge',
           subtype: 'unknown-gateway',
         }),
       ],
