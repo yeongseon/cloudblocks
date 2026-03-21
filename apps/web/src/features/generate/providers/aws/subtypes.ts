@@ -1,4 +1,4 @@
-import type { BlockCategory } from '@cloudblocks/schema';
+import type { ResourceCategory } from '@cloudblocks/schema';
 
 export interface SubtypeEntry {
   displayName: string;
@@ -6,7 +6,7 @@ export interface SubtypeEntry {
   defaultConfig?: Record<string, unknown>;
 }
 
-export type SubtypeRegistry = Partial<Record<BlockCategory, Record<string, SubtypeEntry>>>;
+export type SubtypeRegistry = Partial<Record<ResourceCategory, Record<string, SubtypeEntry>>>;
 
 export const awsSubtypeRegistry: SubtypeRegistry = {
   compute: {
@@ -26,7 +26,7 @@ export const awsSubtypeRegistry: SubtypeRegistry = {
       defaultConfig: { runtime: 'nodejs20.x', memorySize: 256 },
     },
   },
-  database: {
+  data: {
     'rds-postgres': {
       displayName: 'RDS PostgreSQL',
       description: 'Managed PostgreSQL database',
@@ -38,13 +38,7 @@ export const awsSubtypeRegistry: SubtypeRegistry = {
       defaultConfig: { billingMode: 'PAY_PER_REQUEST' },
     },
   },
-  storage: {
-    s3: {
-      displayName: 'S3 Bucket',
-      description: 'Object storage service',
-    },
-  },
-  gateway: {
+  edge: {
     alb: {
       displayName: 'Application Load Balancer',
       description: 'Layer 7 load balancer for HTTP/HTTPS',
@@ -52,6 +46,32 @@ export const awsSubtypeRegistry: SubtypeRegistry = {
     'api-gateway': {
       displayName: 'API Gateway',
       description: 'Managed API endpoint',
+    },
+  },
+  messaging: {
+    sqs: {
+      displayName: 'SQS Queue',
+      description: 'Managed message queue service',
+    },
+    sns: {
+      displayName: 'SNS Topic',
+      description: 'Managed pub/sub messaging service',
+    },
+  },
+  security: {
+    iam: {
+      displayName: 'IAM Role',
+      description: 'Identity and access management role',
+    },
+  },
+  operations: {
+    cloudwatch: {
+      displayName: 'CloudWatch Dashboard',
+      description: 'Operational metrics and dashboards',
+    },
+    athena: {
+      displayName: 'Athena Workgroup',
+      description: 'Serverless query and analytics workgroup',
     },
   },
 };

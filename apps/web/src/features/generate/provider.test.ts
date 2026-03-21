@@ -26,41 +26,25 @@ describe('azureProvider', () => {
       resourceType: 'azurerm_linux_web_app',
       namePrefix: 'webapp',
     });
-    expect(azureProvider.blockMappings.database).toEqual({
+    expect(azureProvider.blockMappings.data).toEqual({
       resourceType: 'azurerm_postgresql_flexible_server',
       namePrefix: 'pgserver',
     });
-    expect(azureProvider.blockMappings.storage).toEqual({
-      resourceType: 'azurerm_storage_account',
-      namePrefix: 'storage',
-    });
-    expect(azureProvider.blockMappings.gateway).toEqual({
+    expect(azureProvider.blockMappings.edge).toEqual({
       resourceType: 'azurerm_application_gateway',
       namePrefix: 'appgw',
     });
-    expect(azureProvider.blockMappings.function).toEqual({
-      resourceType: 'azurerm_linux_function_app',
-      namePrefix: 'func',
-    });
-    expect(azureProvider.blockMappings.queue).toEqual({
+    expect(azureProvider.blockMappings.messaging).toEqual({
       resourceType: 'azurerm_storage_queue',
       namePrefix: 'queue',
     });
-    expect(azureProvider.blockMappings.event).toEqual({
-      resourceType: 'azurerm_eventgrid_topic',
-      namePrefix: 'evtopic',
-    });
-    expect(azureProvider.blockMappings.analytics).toEqual({
-      resourceType: 'azurerm_log_analytics_workspace',
-      namePrefix: 'analytics',
-    });
-    expect(azureProvider.blockMappings.identity).toEqual({
+    expect(azureProvider.blockMappings.security).toEqual({
       resourceType: 'azurerm_user_assigned_identity',
       namePrefix: 'identity',
     });
-    expect(azureProvider.blockMappings.observability).toEqual({
-      resourceType: 'azurerm_monitor_workspace',
-      namePrefix: 'monitor',
+    expect(azureProvider.blockMappings.operations).toEqual({
+      resourceType: 'azurerm_log_analytics_workspace',
+      namePrefix: 'analytics',
     });
   });
 
@@ -137,17 +121,13 @@ describe('awsProvider', () => {
       resourceType: 'aws_ecs_service',
       namePrefix: 'ecs',
     });
-    expect(awsProvider.blockMappings.analytics).toEqual({
+    expect(awsProvider.blockMappings.operations).toEqual({
       resourceType: 'aws_athena_workgroup',
       namePrefix: 'analytics',
     });
-    expect(awsProvider.blockMappings.identity).toEqual({
+    expect(awsProvider.blockMappings.security).toEqual({
       resourceType: 'aws_iam_role',
       namePrefix: 'role',
-    });
-    expect(awsProvider.blockMappings.observability).toEqual({
-      resourceType: 'aws_cloudwatch_dashboard',
-      namePrefix: 'dashboard',
     });
   });
 
@@ -169,21 +149,17 @@ describe('gcpProvider', () => {
       resourceType: 'google_cloud_run_v2_service',
       namePrefix: 'run',
     });
-    expect(gcpProvider.blockMappings.gateway).toEqual({
+    expect(gcpProvider.blockMappings.edge).toEqual({
       resourceType: 'google_compute_backend_service',
       namePrefix: 'backend',
     });
-    expect(gcpProvider.blockMappings.analytics).toEqual({
+    expect(gcpProvider.blockMappings.operations).toEqual({
       resourceType: 'google_bigquery_dataset',
       namePrefix: 'analytics',
     });
-    expect(gcpProvider.blockMappings.identity).toEqual({
+    expect(gcpProvider.blockMappings.security).toEqual({
       resourceType: 'google_service_account',
       namePrefix: 'sa',
-    });
-    expect(gcpProvider.blockMappings.observability).toEqual({
-      resourceType: 'google_monitoring_dashboard',
-      namePrefix: 'dashboard',
     });
   });
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { ArchitectureModel, Block, Plate } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
 import type { ProviderName } from '../types';
 import { generateCode } from '../pipeline';
 import { getProvider } from '../provider';
@@ -34,6 +34,39 @@ function getRequiredAdapter(name: ProviderName) {
   }
 
   return adapter;
+}
+
+function createContainer(overrides: Partial<ContainerNode>): ContainerNode {
+  return {
+    id: 'plate-1',
+    name: 'Container',
+    kind: 'container',
+    layer: 'subnet',
+    resourceType: 'subnet',
+    category: 'network',
+    provider: 'azure',
+    parentId: null,
+    position: { x: 0, y: 0, z: 0 },
+    size: { width: 8, height: 1, depth: 6 },
+    metadata: {},
+    ...overrides,
+  };
+}
+
+function createResource(overrides: Partial<LeafNode>): LeafNode {
+  return {
+    id: 'block-1',
+    name: 'Resource',
+    kind: 'resource',
+    layer: 'resource',
+    resourceType: 'web_compute',
+    category: 'compute',
+    provider: 'azure',
+    parentId: 'sub-1',
+    position: { x: 1, y: 1.2, z: 1 },
+    metadata: {},
+    ...overrides,
+  };
 }
 
 describe('provider adapters', () => {
@@ -75,40 +108,38 @@ describe('provider adapters', () => {
       id: 'arch-adapter-1',
       name: 'Provider Adapter Terraform Test',
       version: '1',
-      plates: [
-        {
+      nodes: [
+        createContainer({
           id: 'net-1',
           name: 'Network',
-          type: 'region',
+          layer: 'region',
+          resourceType: 'virtual_network',
+          provider: 'azure',
           parentId: null,
-          children: ['sub-1'],
           position: { x: 0, y: 0, z: 0 },
           size: { width: 12, height: 0.7, depth: 16 },
-          metadata: {},
-        },
-        {
+        }),
+        createContainer({
           id: 'sub-1',
           name: 'Public Subnet',
-          type: 'subnet',
+          layer: 'subnet',
+          resourceType: 'subnet',
+          provider: 'azure',
           subnetAccess: 'public',
           parentId: 'net-1',
-          children: ['app-1'],
           position: { x: 0, y: 0.7, z: 0 },
           size: { width: 6, height: 0.5, depth: 8 },
-          metadata: {},
-        },
-      ] as Plate[],
-      blocks: [
-        {
+        }),
+        createResource({
           id: 'app-1',
           name: 'App Service',
           category: 'compute',
-          placementId: 'sub-1',
-          position: { x: 1, y: 1.2, z: 1 },
-          metadata: {},
+          resourceType: 'web_compute',
           provider: 'azure',
-        },
-      ] as Block[],
+          parentId: 'sub-1',
+          position: { x: 1, y: 1.2, z: 1 },
+        }),
+      ],
       connections: [],
       externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       createdAt: '2026-01-01T00:00:00Z',
@@ -135,40 +166,38 @@ describe('provider adapters', () => {
       id: 'arch-adapter-aws-1',
       name: 'Provider Adapter AWS Terraform Test',
       version: '1',
-      plates: [
-        {
+      nodes: [
+        createContainer({
           id: 'net-1',
           name: 'Network',
-          type: 'region',
+          layer: 'region',
+          resourceType: 'virtual_network',
+          provider: 'aws',
           parentId: null,
-          children: ['sub-1'],
           position: { x: 0, y: 0, z: 0 },
           size: { width: 12, height: 0.7, depth: 16 },
-          metadata: {},
-        },
-        {
+        }),
+        createContainer({
           id: 'sub-1',
           name: 'Public Subnet',
-          type: 'subnet',
+          layer: 'subnet',
+          resourceType: 'subnet',
+          provider: 'aws',
           subnetAccess: 'public',
           parentId: 'net-1',
-          children: ['app-1'],
           position: { x: 0, y: 0.7, z: 0 },
           size: { width: 6, height: 0.5, depth: 8 },
-          metadata: {},
-        },
-      ] as Plate[],
-      blocks: [
-        {
+        }),
+        createResource({
           id: 'app-1',
           name: 'Compute',
           category: 'compute',
-          placementId: 'sub-1',
-          position: { x: 1, y: 1.2, z: 1 },
-          metadata: {},
+          resourceType: 'web_compute',
           provider: 'aws',
-        },
-      ] as Block[],
+          parentId: 'sub-1',
+          position: { x: 1, y: 1.2, z: 1 },
+        }),
+      ],
       connections: [],
       externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       createdAt: '2026-01-01T00:00:00Z',
@@ -195,49 +224,47 @@ describe('provider adapters', () => {
       id: 'arch-adapter-gcp-1',
       name: 'Provider Adapter GCP Terraform Test',
       version: '1',
-      plates: [
-        {
+      nodes: [
+        createContainer({
           id: 'net-1',
           name: 'Network',
-          type: 'region',
+          layer: 'region',
+          resourceType: 'virtual_network',
+          provider: 'gcp',
           parentId: null,
-          children: ['sub-1'],
           position: { x: 0, y: 0, z: 0 },
           size: { width: 12, height: 0.7, depth: 16 },
-          metadata: {},
-        },
-        {
+        }),
+        createContainer({
           id: 'sub-1',
           name: 'Public Subnet',
-          type: 'subnet',
+          layer: 'subnet',
+          resourceType: 'subnet',
+          provider: 'gcp',
           subnetAccess: 'public',
           parentId: 'net-1',
-          children: ['app-1', 'gw-1'],
           position: { x: 0, y: 0.7, z: 0 },
           size: { width: 6, height: 0.5, depth: 8 },
-          metadata: {},
-        },
-      ] as Plate[],
-      blocks: [
-        {
+        }),
+        createResource({
           id: 'app-1',
           name: 'Compute',
           category: 'compute',
-          placementId: 'sub-1',
-          position: { x: 1, y: 1.2, z: 1 },
-          metadata: {},
+          resourceType: 'web_compute',
           provider: 'gcp',
-        },
-        {
+          parentId: 'sub-1',
+          position: { x: 1, y: 1.2, z: 1 },
+        }),
+        createResource({
           id: 'gw-1',
           name: 'Gateway',
-          category: 'gateway',
-          placementId: 'sub-1',
-          position: { x: 2, y: 1.2, z: 1 },
-          metadata: {},
+          category: 'edge',
+          resourceType: 'load_balancer',
           provider: 'gcp',
-        },
-      ] as Block[],
+          parentId: 'sub-1',
+          position: { x: 2, y: 1.2, z: 1 },
+        }),
+      ],
       connections: [],
       externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       createdAt: '2026-01-01T00:00:00Z',

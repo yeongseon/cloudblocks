@@ -1,4 +1,4 @@
-import type { BlockCategory } from '@cloudblocks/schema';
+import type { ResourceCategory } from '@cloudblocks/schema';
 
 export interface SubtypeEntry {
   displayName: string;
@@ -6,7 +6,7 @@ export interface SubtypeEntry {
   defaultConfig?: Record<string, unknown>;
 }
 
-export type SubtypeRegistry = Partial<Record<BlockCategory, Record<string, SubtypeEntry>>>;
+export type SubtypeRegistry = Partial<Record<ResourceCategory, Record<string, SubtypeEntry>>>;
 
 export const azureSubtypeRegistry: SubtypeRegistry = {
   compute: {
@@ -26,7 +26,7 @@ export const azureSubtypeRegistry: SubtypeRegistry = {
       defaultConfig: { runtime: 'node', runtimeVersion: '~20' },
     },
   },
-  database: {
+  data: {
     'sql-database': {
       displayName: 'SQL Database',
       description: 'Managed SQL database',
@@ -38,13 +38,7 @@ export const azureSubtypeRegistry: SubtypeRegistry = {
       defaultConfig: { kind: 'GlobalDocumentDB', consistencyLevel: 'Session' },
     },
   },
-  storage: {
-    'blob-storage': {
-      displayName: 'Blob Storage',
-      description: 'Object storage for unstructured data',
-    },
-  },
-  gateway: {
+  edge: {
     'application-gateway': {
       displayName: 'Application Gateway',
       description: 'Web traffic load balancer',
@@ -52,6 +46,32 @@ export const azureSubtypeRegistry: SubtypeRegistry = {
     'api-management': {
       displayName: 'API Management',
       description: 'Managed API gateway',
+    },
+  },
+  messaging: {
+    'service-bus': {
+      displayName: 'Service Bus',
+      description: 'Managed message queue service',
+    },
+    'event-grid': {
+      displayName: 'Event Grid',
+      description: 'Managed event routing service',
+    },
+  },
+  security: {
+    'managed-identity': {
+      displayName: 'Managed Identity',
+      description: 'Managed service identity for authentication',
+    },
+  },
+  operations: {
+    'log-analytics': {
+      displayName: 'Log Analytics',
+      description: 'Centralized log and query workspace',
+    },
+    monitor: {
+      displayName: 'Azure Monitor',
+      description: 'Metrics and monitoring workspace',
     },
   },
 };

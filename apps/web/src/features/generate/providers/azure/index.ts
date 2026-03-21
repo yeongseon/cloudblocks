@@ -6,16 +6,25 @@ const azureSubtypeBlockMappings: SubtypeResourceMap = {
     'container-instances': { resourceType: 'azurerm_container_group', namePrefix: 'aci' },
     functions: { resourceType: 'azurerm_linux_function_app', namePrefix: 'func' },
   },
-  database: {
+  data: {
     'sql-database': { resourceType: 'azurerm_mssql_database', namePrefix: 'sqldb' },
     'cosmos-db': { resourceType: 'azurerm_cosmosdb_account', namePrefix: 'cosmos' },
-  },
-  storage: {
     'blob-storage': { resourceType: 'azurerm_storage_account', namePrefix: 'st' },
   },
-  gateway: {
+  edge: {
     'application-gateway': { resourceType: 'azurerm_application_gateway', namePrefix: 'appgw' },
     'api-management': { resourceType: 'azurerm_api_management', namePrefix: 'apim' },
+  },
+  messaging: {
+    'service-bus': { resourceType: 'azurerm_storage_queue', namePrefix: 'queue' },
+    'event-grid': { resourceType: 'azurerm_eventgrid_topic', namePrefix: 'evtopic' },
+  },
+  security: {
+    'managed-identity': { resourceType: 'azurerm_user_assigned_identity', namePrefix: 'identity' },
+  },
+  operations: {
+    'log-analytics': { resourceType: 'azurerm_log_analytics_workspace', namePrefix: 'analytics' },
+    monitor: { resourceType: 'azurerm_monitor_workspace', namePrefix: 'monitor' },
   },
 };
 
@@ -47,45 +56,33 @@ export const azureProviderDefinition: ProviderDefinition = {
   displayName: 'Azure',
 
   blockMappings: {
+    network: {
+      resourceType: 'azurerm_virtual_network',
+      namePrefix: 'network',
+    },
+    security: {
+      resourceType: 'azurerm_user_assigned_identity',
+      namePrefix: 'identity',
+    },
+    edge: {
+      resourceType: 'azurerm_application_gateway',
+      namePrefix: 'appgw',
+    },
     compute: {
       resourceType: 'azurerm_linux_web_app',
       namePrefix: 'webapp',
     },
-    database: {
+    data: {
       resourceType: 'azurerm_postgresql_flexible_server',
       namePrefix: 'pgserver',
     },
-    storage: {
-      resourceType: 'azurerm_storage_account',
-      namePrefix: 'storage',
-    },
-    gateway: {
-      resourceType: 'azurerm_application_gateway',
-      namePrefix: 'appgw',
-    },
-    function: {
-      resourceType: 'azurerm_linux_function_app',
-      namePrefix: 'func',
-    },
-    queue: {
+    messaging: {
       resourceType: 'azurerm_storage_queue',
       namePrefix: 'queue',
     },
-    event: {
-      resourceType: 'azurerm_eventgrid_topic',
-      namePrefix: 'evtopic',
-    },
-    analytics: {
+    operations: {
       resourceType: 'azurerm_log_analytics_workspace',
       namePrefix: 'analytics',
-    },
-    identity: {
-      resourceType: 'azurerm_user_assigned_identity',
-      namePrefix: 'identity',
-    },
-    observability: {
-      resourceType: 'azurerm_monitor_workspace',
-      namePrefix: 'monitor',
     },
   },
 

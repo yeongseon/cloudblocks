@@ -4,26 +4,33 @@ import { normalizePulumi, generateIndexTs, generatePulumiYaml, pulumiPlugin } fr
 import { azureProviderDefinition } from './provider';
 import type { ArchitectureModel, Block, Plate } from '@cloudblocks/schema';
 import type { GenerationOptions } from './types';
+import {
+  makeTestArchitecture,
+  makeTestBlock,
+  makeTestPlate,
+  type LegacyArchitectureOverrides,
+  type LegacyBlockOverrides,
+  type LegacyPlateOverrides,
+} from '../../__tests__/legacyModelTestUtils';
 
 const basePosition = { x: 0, y: 0, z: 0 };
 const baseSize = { width: 1, height: 1, depth: 1 };
 
-function createPlate(overrides: Partial<Plate>): Plate {
-  return {
+function createPlate(overrides: LegacyPlateOverrides): Plate {
+  return makeTestPlate({
     id: 'plate-default',
     name: 'Default',
     type: 'region',
     parentId: null,
-    children: [],
     position: basePosition,
     size: baseSize,
     metadata: {},
     ...overrides,
-  };
+  });
 }
 
-function createBlock(overrides: Partial<Block>): Block {
-  return {
+function createBlock(overrides: LegacyBlockOverrides): Block {
+  return makeTestBlock({
     id: 'block-default',
     name: 'Default',
     category: 'compute',
@@ -31,22 +38,22 @@ function createBlock(overrides: Partial<Block>): Block {
     position: basePosition,
     metadata: {},
     ...overrides,
-  };
+  });
 }
 
-function createTestModel(overrides?: Partial<ArchitectureModel>): ArchitectureModel {
-  return {
+function createTestModel(overrides?: LegacyArchitectureOverrides): ArchitectureModel {
+  return makeTestArchitecture({
     id: 'arch-1',
     name: 'Test',
     version: '1',
     plates: [],
     blocks: [],
     connections: [],
-    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } }],
     createdAt: '2025-01-01T00:00:00Z',
     updatedAt: '2025-01-01T00:00:00Z',
     ...overrides,
-  };
+  });
 }
 
 const defaultOptions: GenerationOptions = {
@@ -152,7 +159,7 @@ describe('pulumi generator', () => {
 
   it('generateIndexTs includes service plan when only function blocks exist', () => {
     const model = createTestModel({
-      blocks: [createBlock({ id: 'block-func', name: 'Fn', category: 'function' })],
+      blocks: [createBlock({ id: 'block-func', name: 'Fn', category: 'compute' })],
     });
     const normalized = normalizePulumi(model, azureProviderDefinition);
     const indexTs = generateIndexTs(normalized, azureProviderDefinition, defaultOptions);
@@ -164,15 +171,15 @@ describe('pulumi generator', () => {
     const model = createTestModel({
       blocks: [
         createBlock({ id: 'block-compute', name: 'Compute', category: 'compute' }),
-        createBlock({ id: 'block-database', name: 'Database', category: 'database' }),
-        createBlock({ id: 'block-storage', name: 'Storage', category: 'storage' }),
-        createBlock({ id: 'block-gateway', name: 'Gateway', category: 'gateway' }),
-        createBlock({ id: 'block-function', name: 'Function', category: 'function' }),
-        createBlock({ id: 'block-queue', name: 'Queue', category: 'queue' }),
-        createBlock({ id: 'block-event', name: 'Event', category: 'event' }),
-        createBlock({ id: 'block-analytics', name: 'Analytics', category: 'analytics' }),
-        createBlock({ id: 'block-identity', name: 'Identity', category: 'identity' }),
-        createBlock({ id: 'block-observability', name: 'Observability', category: 'observability' }),
+        createBlock({ id: 'block-database', name: 'Database', category: 'data' }),
+        createBlock({ id: 'block-storage', name: 'Storage', category: 'data' }),
+        createBlock({ id: 'block-gateway', name: 'Gateway', category: 'edge' }),
+        createBlock({ id: 'block-function', name: 'Function', category: 'compute' }),
+        createBlock({ id: 'block-queue', name: 'Queue', category: 'messaging' }),
+        createBlock({ id: 'block-event', name: 'Event', category: 'messaging' }),
+        createBlock({ id: 'block-analytics', name: 'Analytics', category: 'operations' }),
+        createBlock({ id: 'block-identity', name: 'Identity', category: 'security' }),
+        createBlock({ id: 'block-observability', name: 'Observability', category: 'operations' }),
       ],
     });
     const normalized = normalizePulumi(model, azureProviderDefinition);
@@ -180,14 +187,14 @@ describe('pulumi generator', () => {
 
     expect(indexTs).toContain('const webappCompute = new azure.web.WebApp("webappCompute", {');
     expect(indexTs).toContain('const pgserverDatabase = new azure.dbforpostgresql.FlexibleServer("pgserverDatabase", {');
-    expect(indexTs).toContain('const storageStorage = new azure.storage.StorageAccount("storageStorage", {');
+    expect(indexTs).toContain('const pgserverStorage = new azure.dbforpostgresql.FlexibleServer("pgserverStorage", {');
     expect(indexTs).toContain('const appgwGateway = new azure.network.ApplicationGateway("appgwGateway", {');
-    expect(indexTs).toContain('const funcFunction = new azure.web.WebApp("funcFunction", {');
+    expect(indexTs).toContain('const webappFunction = new azure.web.WebApp("webappFunction", {');
     expect(indexTs).toContain('const queueQueue = new azure.storage.Queue("queueQueue", {');
-    expect(indexTs).toContain('const evtopicEvent = new azure.eventgrid.Topic("evtopicEvent", {');
+    expect(indexTs).toContain('const queueEvent = new azure.storage.Queue("queueEvent", {');
     expect(indexTs).toContain('const analyticsAnalytics = new azure.operationalinsights.Workspace("analyticsAnalytics", {');
     expect(indexTs).toContain('const identityIdentity = new azure.managedidentity.UserAssignedIdentity("identityIdentity", {');
-    expect(indexTs).toContain('const monitorObservability = new azure.monitor.AzureMonitorWorkspace("monitorObservability", {');
+    expect(indexTs).toContain('const analyticsObservability = new azure.operationalinsights.Workspace("analyticsObservability", {');
   });
 
   it('generates subnet as top-level resource when parent network is missing', () => {

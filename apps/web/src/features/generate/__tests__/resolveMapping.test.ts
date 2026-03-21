@@ -4,15 +4,12 @@ import { resolveBlockMapping } from '../types';
 
 const baseBlockMappings: BlockResourceMap = {
   compute: { resourceType: 'aws_ecs_service', namePrefix: 'ecs' },
-  database: { resourceType: 'aws_db_instance', namePrefix: 'db' },
-  storage: { resourceType: 'aws_s3_bucket', namePrefix: 'bucket' },
-  gateway: { resourceType: 'aws_lb', namePrefix: 'lb' },
-  function: { resourceType: 'aws_lambda_function', namePrefix: 'lambda' },
-  queue: { resourceType: 'aws_sqs_queue', namePrefix: 'queue' },
-  event: { resourceType: 'aws_sns_topic', namePrefix: 'topic' },
-  analytics: { resourceType: 'aws_athena_workgroup', namePrefix: 'analytics' },
-  identity: { resourceType: 'aws_iam_role', namePrefix: 'role' },
-  observability: { resourceType: 'aws_cloudwatch_dashboard', namePrefix: 'dashboard' },
+  data: { resourceType: 'aws_db_instance', namePrefix: 'db' },
+  edge: { resourceType: 'aws_lb', namePrefix: 'lb' },
+  security: { resourceType: 'aws_iam_role', namePrefix: 'role' },
+  messaging: { resourceType: 'aws_sqs_queue', namePrefix: 'messaging' },
+  operations: { resourceType: 'aws_athena_workgroup', namePrefix: 'operations' },
+  network: { resourceType: 'aws_vpc', namePrefix: 'vpc' },
 };
 
 const subtypeMappings: SubtypeResourceMap = {
@@ -21,7 +18,7 @@ const subtypeMappings: SubtypeResourceMap = {
     ecs: { resourceType: 'aws_ecs_service', namePrefix: 'ecs' },
     lambda: { resourceType: 'aws_lambda_function', namePrefix: 'fn' },
   },
-  database: {
+  data: {
     'rds-postgres': { resourceType: 'aws_db_instance', namePrefix: 'rds' },
     dynamodb: { resourceType: 'aws_dynamodb_table', namePrefix: 'ddb' },
   },
@@ -49,17 +46,17 @@ describe('resolveBlockMapping', () => {
   });
 
   it('falls back to category mapping when category has no subtypes defined', () => {
-    const result = resolveBlockMapping(baseBlockMappings, subtypeMappings, 'storage', 's3');
-    expect(result).toEqual({ resourceType: 'aws_s3_bucket', namePrefix: 'bucket' });
+    const result = resolveBlockMapping(baseBlockMappings, subtypeMappings, 'data', 's3');
+    expect(result).toEqual({ resourceType: 'aws_db_instance', namePrefix: 'db' });
   });
 
   it('returns category mapping for categories without any subtype entries', () => {
-    const result = resolveBlockMapping(baseBlockMappings, subtypeMappings, 'gateway');
+    const result = resolveBlockMapping(baseBlockMappings, subtypeMappings, 'edge');
     expect(result).toEqual({ resourceType: 'aws_lb', namePrefix: 'lb' });
   });
 
   it('returns subtype mapping for database subtypes', () => {
-    const result = resolveBlockMapping(baseBlockMappings, subtypeMappings, 'database', 'dynamodb');
+    const result = resolveBlockMapping(baseBlockMappings, subtypeMappings, 'data', 'dynamodb');
     expect(result).toEqual({ resourceType: 'aws_dynamodb_table', namePrefix: 'ddb' });
   });
 

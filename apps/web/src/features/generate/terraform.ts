@@ -1,4 +1,4 @@
-import type { ArchitectureModel, Block, Plate, Connection } from '@cloudblocks/schema';
+import type { ArchitectureModel, Connection, ContainerNode, LeafNode } from '@cloudblocks/schema';
 import type {
   GenerationOptions,
   NormalizedModel,
@@ -36,6 +36,13 @@ function buildResourceName(prefix: string, entityName: string): string {
   return `${prefix}_${sanitized}`;
 }
 
+function getPlateType(plate: ContainerNode): 'global' | 'edge' | 'region' | 'zone' | 'subnet' {
+  if (plate.layer === 'resource') {
+    return 'region';
+  }
+  return plate.layer;
+}
+
 // ─── Normalize Stage ────────────────────────────────────────
 
 export function normalize(
@@ -43,6 +50,8 @@ export function normalize(
   provider: ProviderAdapter,
   subtypeBlockMappings?: SubtypeResourceMap,
 ): NormalizedModel {
+  const containers = architecture.nodes.filter((n): n is ContainerNode => n.kind === 'container');
+  const resources = architecture.nodes.filter((n): n is LeafNode => n.kind === 'resource');
   const resourceNames = new Map<string, string>();
   const usedNames = new Set<string>();
 
@@ -58,14 +67,14 @@ export function normalize(
   }
 
   // Map plates
-  for (const plate of architecture.plates) {
-    const mapping = provider.plateMappings[plate.type];
+  for (const plate of containers) {
+    const mapping = provider.plateMappings[getPlateType(plate)];
     const name = uniqueName(mapping.namePrefix, plate.name);
     resourceNames.set(plate.id, name);
   }
 
   // Map blocks
-  for (const block of architecture.blocks) {
+  for (const block of resources) {
     const mapping = resolveBlockMapping(
       provider.blockMappings,
       subtypeBlockMappings,
@@ -82,7 +91,7 @@ export function normalize(
 // ─── Generate Stage ─────────────────────────────────────────
 
 function generatePlateResource(
-  plate: Plate,
+  plate: ContainerNode,
   resourceName: string,
   mapping: ResourceMapping,
   _projectName: string,
@@ -95,11 +104,11 @@ function generatePlateResource(
   lines.push(`  resource_group_name = azurerm_resource_group.main.name`);
   lines.push(`  location            = azurerm_resource_group.main.location`);
 
-  if (plate.type !== 'subnet') {
+  if (plate.layer !== 'subnet') {
     lines.push(`  address_space       = ["10.0.0.0/16"]`);
   }
 
-  if (plate.type === 'subnet' && parentResourceName) {
+  if (plate.layer === 'subnet' && parentResourceName) {
     lines.push(
       `  virtual_network_name = azurerm_virtual_network.${parentResourceName}.name`
     );
@@ -112,7 +121,7 @@ function generatePlateResource(
 }
 
 function generateBlockResource(
-  block: Block,
+  block: LeafNode,
   resourceName: string,
   mapping: ResourceMapping,
   _subnetResourceName: string | null
@@ -129,18 +138,17 @@ function generateBlockResource(
       lines.push(`  service_plan_id     = azurerm_service_plan.main.id`);
       lines.push(`  site_config {}`);
       break;
-    case 'database':
+    case 'data':
       lines.push(`  administrator_login    = var.db_admin_username`);
       lines.push(`  administrator_password = var.db_admin_password`);
       lines.push(`  sku_name               = "B_Standard_B1ms"`);
       lines.push(`  version                = "14"`);
       lines.push(`  storage_mb             = 32768`);
       break;
-    case 'storage':
-      lines.push(`  account_tier             = "Standard"`);
-      lines.push(`  account_replication_type = "LRS"`);
+    case 'network':
+      lines.push(`  # Network resource configuration`);
       break;
-    case 'gateway':
+    case 'edge':
       lines.push(`  # Application Gateway configuration`);
       lines.push(`  # Requires additional subnet, frontend IP, and backend pool configuration`);
       lines.push(`  sku {`);
@@ -149,26 +157,15 @@ function generateBlockResource(
       lines.push(`    capacity = 1`);
       lines.push(`  }`);
       break;
-    case 'function':
-      lines.push(`  service_plan_id            = azurerm_service_plan.main.id`);
-      lines.push(`  storage_account_name       = "\${var.project_name}funcsa"`);
-      lines.push(`  storage_account_access_key = "PLACEHOLDER"`);
-      lines.push(`  site_config {}`);
+    case 'messaging':
+      lines.push(`  account_tier             = "Standard"`);
+      lines.push(`  account_replication_type = "LRS"`);
       break;
-    case 'queue':
-      lines.push(`  storage_account_name = "\${var.project_name}sa"`);
+    case 'operations':
+      lines.push(`  # Operations and observability resource configuration`);
       break;
-    case 'event':
-      lines.push(`  # EventGrid topic configuration`);
-      break;
-    case 'analytics':
-      lines.push(`  # Log Analytics workspace configuration`);
-      break;
-    case 'identity':
+    case 'security':
       lines.push(`  # Managed identity configuration`);
-      break;
-    case 'observability':
-      lines.push(`  # Monitor workspace configuration`);
       break;
   }
 
@@ -194,6 +191,8 @@ export function generateMainTf(
   subtypeBlockMappings?: SubtypeResourceMap,
 ): string {
   const { architecture, resourceNames } = normalized;
+  const containers = architecture.nodes.filter((n): n is ContainerNode => n.kind === 'container');
+  const resources = architecture.nodes.filter((n): n is LeafNode => n.kind === 'resource');
   const sections: string[] = [];
 
   // Header
@@ -218,7 +217,7 @@ export function generateMainTf(
   sections.push('');
 
   // Service plan (if compute or function blocks exist)
-  const hasCompute = architecture.blocks.some((b) => b.category === 'compute' || b.category === 'function');
+  const hasCompute = resources.some((b) => b.category === 'compute');
   if (hasCompute) {
     sections.push('resource "azurerm_service_plan" "main" {');
     sections.push(`  name                = "\${var.project_name}-plan"`);
@@ -231,12 +230,12 @@ export function generateMainTf(
   }
 
   // Plates (regions first, then subnets)
-  const regions = architecture.plates.filter((p) => p.type !== 'subnet');
-  const subnets = architecture.plates.filter((p) => p.type === 'subnet');
+  const regions = containers.filter((p) => p.layer !== 'subnet');
+  const subnets = containers.filter((p) => p.layer === 'subnet');
 
   for (const plate of regions) {
     const resName = resourceNames.get(plate.id)!;
-    const mapping = provider.plateMappings[plate.type];
+    const mapping = provider.plateMappings[getPlateType(plate)];
     sections.push(
       generatePlateResource(plate, resName, mapping, options.projectName, null)
     );
@@ -245,7 +244,7 @@ export function generateMainTf(
 
   for (const plate of subnets) {
     const resName = resourceNames.get(plate.id)!;
-    const mapping = provider.plateMappings[plate.type];
+    const mapping = provider.plateMappings[getPlateType(plate)];
     const parentName = plate.parentId
       ? resourceNames.get(plate.parentId) ?? null
       : null;
@@ -256,7 +255,7 @@ export function generateMainTf(
   }
 
   // Blocks
-  for (const block of architecture.blocks) {
+  for (const block of resources) {
     const resName = resourceNames.get(block.id)!;
     const mapping = resolveBlockMapping(
       provider.blockMappings,
@@ -264,7 +263,7 @@ export function generateMainTf(
       block.category,
       block.subtype,
     )!;
-    const subnetName = resourceNames.get(block.placementId) ?? null;
+    const subnetName = resourceNames.get(block.parentId ?? '') ?? null;
     sections.push(
       generateBlockResource(block, resName, mapping, subnetName)
     );
@@ -321,6 +320,7 @@ export function generateOutputsTf(
   subtypeBlockMappings?: SubtypeResourceMap,
 ): string {
   const { architecture, resourceNames } = normalized;
+  const resources = architecture.nodes.filter((n): n is LeafNode => n.kind === 'resource');
   const sections: string[] = [];
 
   sections.push('# Generated by CloudBlocks');
@@ -330,7 +330,7 @@ export function generateOutputsTf(
   sections.push('}');
 
   // Output each block's key attribute
-  for (const block of architecture.blocks) {
+  for (const block of resources) {
     const resName = resourceNames.get(block.id)!;
     const mapping = resolveBlockMapping(
       provider.blockMappings,
