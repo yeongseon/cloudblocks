@@ -203,7 +203,7 @@ describe('DetailPanel', () => {
 
     render(<DetailPanel />);
 
-    expect(screen.getByText('🌐')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Region' })).toBeInTheDocument();
     expect(screen.getByText('Region')).toBeInTheDocument();
     expect(screen.queryByText('Parent')).not.toBeInTheDocument();
   });
@@ -237,7 +237,7 @@ describe('DetailPanel', () => {
 
     render(<DetailPanel />);
 
-    expect(screen.getByText('🔒')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Private Subnet' })).toBeInTheDocument();
     expect(screen.getByText('Subnet (private)')).toBeInTheDocument();
   });
 

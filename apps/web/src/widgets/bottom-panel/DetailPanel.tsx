@@ -14,10 +14,11 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { useWorkerStore } from '../../entities/store/workerStore';
-import { BLOCK_FRIENDLY_NAMES, BLOCK_DESCRIPTIONS, BLOCK_ICONS, CONNECTION_TYPE_LABELS, DEFAULT_PLATE_PROFILE, getPlateProfile, isPlateProfileId, PLATE_COLORS, PLATE_PROFILES, SUBNET_ACCESS_COLORS } from '../../shared/types/index';
+import { BLOCK_FRIENDLY_NAMES, BLOCK_DESCRIPTIONS, BLOCK_ICONS, CONNECTION_TYPE_LABELS, DEFAULT_PLATE_PROFILE, getPlateProfile, isPlateProfileId, PLATE_PROFILES } from '../../shared/types/index';
 import type { PlateProfileId } from '../../shared/types/index';
 import type { Block, Plate } from '@cloudblocks/schema';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
+import { getBlockIconUrl, getPlateIconUrl } from '../../shared/utils/iconResolver';
 import './DetailPanel.css';
 
 interface DetailPanelProps {
@@ -135,9 +136,11 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
   return (
     <div className={`detail-panel detail-panel--block ${className}`}>
       <div className="detail-header">
-        <span className="detail-header-icon" style={{ color }}>
-          {BLOCK_ICONS[block.category]}
-        </span>
+        <img
+          src={getBlockIconUrl(block.provider ?? 'azure', block.category, block.subtype)}
+          alt={BLOCK_FRIENDLY_NAMES[block.category]}
+          className="detail-header-icon-img"
+        />
         {isRenaming ? (
           <input
             ref={inputRef}
@@ -242,24 +245,20 @@ function PlateDetail({ plate, className }: { plate: Plate; className: string }) 
   const childBlocks = architecture.blocks.filter((b) => b.placementId === plate.id);
   const childPlates = architecture.plates.filter((p) => p.parentId === plate.id);
 
-  const color = plate.type === 'subnet' && plate.subnetAccess
-    ? SUBNET_ACCESS_COLORS[plate.subnetAccess]
-    : PLATE_COLORS[plate.type];
-
-  const icon = plate.type === 'subnet'
-    ? plate.subnetAccess === 'public' ? '🌍' : '🔒'
-    : plate.type === 'global'
-      ? '🌎'
-      : plate.type === 'edge'
-        ? '🛰️'
-        : plate.type === 'zone'
-          ? '🧭'
-          : '🌐';
+  const altText = plate.type === 'subnet'
+    ? `${plate.subnetAccess === 'public' ? 'Public' : 'Private'} Subnet`
+    : plate.type === 'region'
+      ? 'Region'
+      : plate.type.charAt(0).toUpperCase() + plate.type.slice(1);
 
   return (
     <div className={`detail-panel detail-panel--plate ${className}`}>
       <div className="detail-header">
-        <span className="detail-header-icon" style={{ color }}>{icon}</span>
+        <img
+          src={getPlateIconUrl(plate.type, plate.subnetAccess)}
+          alt={altText}
+          className="detail-header-icon-img"
+        />
         <span className="detail-header-name">{plate.name}</span>
       </div>
 
