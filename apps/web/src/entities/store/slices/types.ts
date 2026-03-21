@@ -1,5 +1,5 @@
 import type { StateCreator } from 'zustand';
-import type { PlateProfileId, Workspace } from '../../../shared/types/index';
+import type { LastPrResult, PlateProfileId, Workspace } from '../../../shared/types/index';
 import type { ArchitectureModel, BlockCategory, ProviderType, PlateType, SubnetAccess } from '@cloudblocks/schema';
 import type { ValidationResult } from '@cloudblocks/domain';
 import type { ArchitectureSnapshot } from '../../../shared/types/learning';
@@ -63,6 +63,7 @@ export interface ArchitectureState {
   replaceArchitecture: (snapshot: ArchitectureSnapshot) => void;
   setBackendWorkspaceId: (workspaceId: string, backendId: string) => void;
   setGithubRepo: (workspaceId: string, repo: string | undefined) => void;
+  setLastPrResult: (workspaceId: string, result: LastPrResult) => void;
 }
 
 export type ArchitectureSlice<T> = StateCreator<ArchitectureState, [], [], T>;

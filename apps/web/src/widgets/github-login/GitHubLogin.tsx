@@ -48,7 +48,9 @@ export function GitHubLogin() {
     await logout();
 
     setIsWorking(false);
-    toggleGitHubLogin();
+    if (useAuthStore.getState().status !== 'authenticated') {
+      toggleGitHubLogin();
+    }
   };
 
   return (

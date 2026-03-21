@@ -1,7 +1,18 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
+import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import type { ArchitectureModel } from '@cloudblocks/schema';
 import type { DiffDelta } from '../../shared/types/diff';
 import './DiffPanel.css';
+
+function summarizeArchitecture(arch: ArchitectureModel) {
+  return {
+    plates: arch.plates.length,
+    blocks: arch.blocks.length,
+    connections: arch.connections.length,
+    externalActors: arch.externalActors?.length ?? 0,
+  };
+}
 
 type SectionKey = 'plates' | 'blocks' | 'connections' | 'externalActors';
 
@@ -44,46 +55,22 @@ function getEntityLabel(entity: { id: string }): string {
 export function DiffPanel() {
   const diffMode = useUIStore((s) => s.diffMode);
   const diffDelta = useUIStore((s) => s.diffDelta);
-  const [collapsedSections, setCollapsedSections] = useState<Record<SectionKey, boolean>>({
-    plates: false,
-    blocks: false,
-    connections: false,
-    externalActors: false,
-  });
-  const [expandedModified, setExpandedModified] = useState<Record<string, boolean>>({});
+  const diffBaseArchitecture = useUIStore((s) => s.diffBaseArchitecture);
+  const workspaceName = useArchitectureStore((s) => s.workspace.name);
+  const [trackedDelta, setTrackedDelta] = useState(diffDelta);
+  const [trackedMode, setTrackedMode] = useState(diffMode);
+  const [generation, setGeneration] = useState(0);
 
-  const summaryCounts = useMemo(() => {
-    if (!diffDelta) return { added: 0, modified: 0, removed: 0 };
-
-    const entities: Array<DiffDelta[SectionKey]> = [
-      diffDelta.plates,
-      diffDelta.blocks,
-      diffDelta.connections,
-      diffDelta.externalActors,
-    ];
-
-    return entities.reduce(
-      (acc, section) => ({
-        added: acc.added + section.added.length,
-        modified: acc.modified + section.modified.length,
-        removed: acc.removed + section.removed.length,
-      }),
-      { added: 0, modified: 0, removed: 0 },
-    );
-  }, [diffDelta]);
+  if (trackedDelta !== diffDelta || trackedMode !== diffMode) {
+    setTrackedDelta(diffDelta);
+    setTrackedMode(diffMode);
+    setGeneration((g) => g + 1);
+  }
 
   if (!diffMode) return null;
 
   const handleClose = () => {
     useUIStore.getState().setDiffMode(false);
-  };
-
-  const toggleSection = (key: SectionKey) => {
-    setCollapsedSections((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const toggleModifiedDetails = (key: string) => {
-    setExpandedModified((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   if (!diffDelta) {
@@ -101,13 +88,77 @@ export function DiffPanel() {
   }
 
   return (
+    <DiffPanelContent
+      key={generation}
+      diffDelta={diffDelta}
+      diffBaseArchitecture={diffBaseArchitecture}
+      workspaceName={workspaceName}
+      onClose={handleClose}
+    />
+  );
+}
+
+function DiffPanelContent({
+  diffDelta,
+  diffBaseArchitecture,
+  workspaceName,
+  onClose,
+}: {
+  diffDelta: DiffDelta;
+  diffBaseArchitecture: ArchitectureModel | null;
+  workspaceName: string;
+  onClose: () => void;
+}) {
+  const [collapsedSections, setCollapsedSections] = useState<Record<SectionKey, boolean>>({
+    plates: false,
+    blocks: false,
+    connections: false,
+    externalActors: false,
+  });
+  const [expandedModified, setExpandedModified] = useState<Record<string, boolean>>({});
+
+  const toggleSection = (key: SectionKey) => {
+    setCollapsedSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const toggleModifiedDetails = (key: string) => {
+    setExpandedModified((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const entities: Array<DiffDelta[SectionKey]> = [
+    diffDelta.plates,
+    diffDelta.blocks,
+    diffDelta.connections,
+    diffDelta.externalActors,
+  ];
+  const summaryCounts = entities.reduce(
+    (acc, section) => ({
+      added: acc.added + section.added.length,
+      modified: acc.modified + section.modified.length,
+      removed: acc.removed + section.removed.length,
+    }),
+    { added: 0, modified: 0, removed: 0 },
+  );
+
+  return (
     <div className="diff-panel">
       <div className="diff-panel-header">
         <h3 className="diff-panel-title">🔍 Architecture Diff</h3>
-        <button type="button" className="diff-panel-close" onClick={handleClose} aria-label="Close architecture diff panel">
+        <button type="button" className="diff-panel-close" onClick={onClose} aria-label="Close architecture diff panel">
           ✕
         </button>
       </div>
+
+      <div className="diff-panel-context">Comparing: {workspaceName}</div>
+
+      {diffBaseArchitecture && (() => {
+        const s = summarizeArchitecture(diffBaseArchitecture);
+        return (
+          <div className="diff-panel-remote-summary">
+            Remote: {s.plates} plates · {s.blocks} blocks · {s.connections} connections · {s.externalActors} actors
+          </div>
+        );
+      })()}
 
       <div className="diff-summary-bar">
         <span className="diff-badge diff-badge-added">+{summaryCounts.added} added</span>
@@ -123,6 +174,23 @@ export function DiffPanel() {
         <div className="diff-no-changes">No changes</div>
       ) : (
         <div className="diff-sections">
+          {diffDelta.rootChanges.length > 0 && (
+            <section className="diff-entity-section">
+              <div className="diff-entity-header diff-entity-header-static">
+                <span>Metadata</span>
+                <span>{diffDelta.rootChanges.length}</span>
+              </div>
+              <div className="diff-entity-items">
+                {diffDelta.rootChanges.map((change) => (
+                  <div key={change.path} className="diff-property-change-row">
+                    <span className="diff-property-path">{change.path}</span>
+                    <span className="diff-property-arrow">: {formatValue(change.oldValue)} -&gt; {formatValue(change.newValue)}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {SECTION_CONFIG.map(({ key, label }) => {
             const section = diffDelta[key];
             const sectionTotal = section.added.length + section.modified.length + section.removed.length;

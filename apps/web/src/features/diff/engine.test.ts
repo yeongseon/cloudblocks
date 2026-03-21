@@ -108,6 +108,7 @@ describe('computeArchitectureDiff', () => {
     expect(delta.blocks).toEqual({ added: [], removed: [], modified: [] });
     expect(delta.connections).toEqual({ added: [], removed: [], modified: [] });
     expect(delta.externalActors).toEqual({ added: [], removed: [], modified: [] });
+    expect(delta.rootChanges).toEqual([]);
     expect(delta.summary).toEqual({ totalChanges: 0, hasBreakingChanges: false });
   });
 
@@ -138,7 +139,8 @@ describe('computeArchitectureDiff', () => {
     expect(delta.blocks.removed).toHaveLength(0);
     expect(delta.connections.removed).toHaveLength(0);
     expect(delta.externalActors.removed).toHaveLength(0);
-    expect(delta.summary).toEqual({ totalChanges: 6, hasBreakingChanges: false });
+    expect(delta.rootChanges).toHaveLength(2);
+    expect(delta.summary).toEqual({ totalChanges: 8, hasBreakingChanges: false });
   });
 
   it('marks all entities as removed when head is empty', () => {
@@ -155,7 +157,8 @@ describe('computeArchitectureDiff', () => {
     expect(delta.blocks.added).toHaveLength(0);
     expect(delta.connections.added).toHaveLength(0);
     expect(delta.externalActors.added).toHaveLength(0);
-    expect(delta.summary).toEqual({ totalChanges: 6, hasBreakingChanges: true });
+    expect(delta.rootChanges).toHaveLength(2);
+    expect(delta.summary).toEqual({ totalChanges: 8, hasBreakingChanges: true });
   });
 
   it('detects added entities across all entity types', () => {
@@ -418,7 +421,7 @@ describe('computeArchitectureDiff', () => {
 
     const delta = computeArchitectureDiff(base, head);
 
-    expect(delta.summary).toEqual({ totalChanges: 4, hasBreakingChanges: false });
+    expect(delta.summary).toEqual({ totalChanges: 4, hasBreakingChanges: true });
   });
 
   it('flags breaking changes when blocks are removed', () => {
@@ -620,6 +623,86 @@ describe('computeArchitectureDiff', () => {
     expect(paths).toContain('metadata.nested.region');
     expect(paths).not.toContain('metadata.optional');
     expect(paths).not.toContain('metadata.nested.keep');
+  });
+  it('tracks root-level metadata changes in rootChanges', () => {
+    const base = createBaseArchitecture();
+    const head: ArchitectureModel = {
+      ...base,
+      id: 'arch-2',
+      name: 'Renamed Architecture',
+    };
+
+    const delta = computeArchitectureDiff(base, head);
+
+    expect(delta.rootChanges).toHaveLength(2);
+    expect(delta.rootChanges.find((c) => c.path === 'id')).toEqual({
+      path: 'id',
+      oldValue: 'arch-1',
+      newValue: 'arch-2',
+    });
+    expect(delta.rootChanges.find((c) => c.path === 'name')).toEqual({
+      path: 'name',
+      oldValue: 'Test Architecture',
+      newValue: 'Renamed Architecture',
+    });
+    expect(delta.summary.totalChanges).toBe(2);
+  });
+
+  it('includes rootChanges count in summary totalChanges', () => {
+    const base = createBaseArchitecture();
+    const head: ArchitectureModel = {
+      ...base,
+      name: 'Updated Name',
+      blocks: [
+        ...base.blocks,
+        {
+          id: 'block-3',
+          name: 'New Block',
+          category: 'storage',
+          placementId: 'plate-2',
+          position: { x: 3, y: 0, z: 1 },
+          metadata: {},
+        },
+      ],
+    };
+
+    const delta = computeArchitectureDiff(base, head);
+
+    expect(delta.rootChanges).toHaveLength(1);
+    expect(delta.blocks.added).toHaveLength(1);
+    expect(delta.summary.totalChanges).toBe(2);
+  });
+
+  it('flags breaking changes when plates are removed', () => {
+    const base = createBaseArchitecture();
+    const head: ArchitectureModel = {
+      ...base,
+      plates: base.plates.filter((plate) => plate.id !== 'plate-2'),
+    };
+
+    const delta = computeArchitectureDiff(base, head);
+
+    expect(delta.summary.hasBreakingChanges).toBe(true);
+  });
+
+  it('does not include entity paths or volatile paths in rootChanges', () => {
+    const base = createBaseArchitecture();
+    const head: ArchitectureModel = {
+      ...base,
+      version: '2.0',
+      createdAt: '2026-12-31T00:00:00Z',
+      updatedAt: '2026-12-31T00:00:00Z',
+    };
+
+    const delta = computeArchitectureDiff(base, head);
+
+    expect(delta.rootChanges).toHaveLength(1);
+    expect(delta.rootChanges[0]?.path).toBe('version');
+    const rootPaths = delta.rootChanges.map((c) => c.path);
+    expect(rootPaths).not.toContain('createdAt');
+    expect(rootPaths).not.toContain('updatedAt');
+    expect(rootPaths).not.toContain('plates');
+    expect(rootPaths).not.toContain('blocks');
   });
 });
 

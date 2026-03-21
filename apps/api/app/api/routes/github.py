@@ -356,6 +356,7 @@ async def list_commits(
                 "message": c["commit"]["message"],
                 "author": c["commit"]["author"]["name"],
                 "date": c["commit"]["author"]["date"],
+                "html_url": c["html_url"],
             }
             for c in commits
         ]

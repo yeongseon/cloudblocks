@@ -1,12 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { apiGet, apiPost, apiPut } from '../../shared/api/client';
+import { validateArchitectureShape } from '../../entities/store/slices';
+import { computeArchitectureDiff } from '../../features/diff/engine';
+import { apiGet, apiPost, apiPut, getApiErrorMessage } from '../../shared/api/client';
 import { isValidGitHubRepoFullName } from '../../shared/utils/githubValidation';
 import type { GitHubCommit, PullResponse, SyncResponse } from '../../shared/types/api';
 import type { ArchitectureSnapshot } from '../../shared/types/learning';
+import type { ArchitectureModel } from '@cloudblocks/schema';
 import './GitHubSync.css';
+
+interface LinkedRepoState {
+  repo: string;
+  backendWorkspaceId: string;
+}
 
 export function GitHubSync() {
   const show = useUIStore((s) => s.showGitHubSync);
@@ -15,21 +24,36 @@ export function GitHubSync() {
 
   const workspace = useArchitectureStore((s) => s.workspace);
   const replaceArchitecture = useArchitectureStore((s) => s.replaceArchitecture);
+  const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
   const setStoreBackendWorkspaceId = useArchitectureStore((s) => s.setBackendWorkspaceId);
   const setStoreGithubRepo = useArchitectureStore((s) => s.setGithubRepo);
 
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
   const authStatus = useAuthStore((s) => s.status);
 
-  const linkedRepo = workspace.githubRepo ?? null;
-  const backendWorkspaceId = workspace.backendWorkspaceId ?? null;
+  const [linkedRepoState, setLinkedRepoState] = useState<LinkedRepoState | null>(
+    workspace.githubRepo
+      ? {
+        repo: workspace.githubRepo,
+        backendWorkspaceId: workspace.backendWorkspaceId ?? workspace.id,
+      }
+      : null
+  );
+  const linkedRepo = linkedRepoState?.repo ?? null;
+  const backendWorkspaceId = linkedRepoState?.backendWorkspaceId ?? null;
 
   const [repoInput, setRepoInput] = useState('');
   const [backendWorkspaceIdInput, setBackendWorkspaceIdInput] = useState('');
   const [commitMessage, setCommitMessage] = useState('Sync architecture from CloudBlocks');
   const [commits, setCommits] = useState<GitHubCommit[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [linking, setLinking] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [pulling, setPulling] = useState(false);
+  const [loadingCommits, setLoadingCommits] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [commitRefreshError, setCommitRefreshError] = useState<string | null>(null);
+  const [pullConfirmPending, setPullConfirmPending] = useState(false);
+  const [comparing, setComparing] = useState(false);
   const requestSeqRef = useRef(0);
   const mountedRef = useRef(true);
   const showRef = useRef(show);
@@ -38,12 +62,29 @@ export function GitHubSync() {
   const linkedRepoRef = useRef(linkedRepo);
   const effectiveWorkspaceIdRef = useRef<string | null>(null);
 
+  const trimmedCommitMessage = commitMessage.trim();
+  const busy = linking || syncing || pulling || comparing;
+
+  useEffect(() => {
+    if (workspace.githubRepo) {
+      setLinkedRepoState({
+        repo: workspace.githubRepo,
+        backendWorkspaceId: workspace.backendWorkspaceId ?? workspace.id,
+      });
+      return;
+    }
+
+    setLinkedRepoState(null);
+  }, [workspace.githubRepo, workspace.backendWorkspaceId, workspace.id]);
+
   useEffect(() => () => {
     mountedRef.current = false;
     requestSeqRef.current += 1;
   }, []);
 
   const effectiveWorkspaceId = backendWorkspaceId;
+  const anyLoading = busy || loadingCommits;
+  const canSync = !anyLoading && trimmedCommitMessage.length > 0;
 
   showRef.current = show;
   authRef.current = isAuthenticated;
@@ -69,8 +110,8 @@ export function GitHubSync() {
       && effectiveWorkspaceIdRef.current === requestBackendWorkspaceId
     );
 
-    setLoading(true);
-    setError(null);
+    setLoadingCommits(true);
+    setCommitRefreshError(null);
     try {
       const response = await apiGet<{ commits: GitHubCommit[] }>(
         `/api/v1/workspaces/${encodeURIComponent(effectiveWorkspaceId)}/commits`
@@ -79,10 +120,10 @@ export function GitHubSync() {
       setCommits(response.commits);
     } catch (err) {
       if (!canApply()) return;
-      setError(err instanceof Error ? err.message : 'Failed to load commits.');
+      setCommitRefreshError(err instanceof Error ? err.message : 'Failed to load commits.');
     } finally {
       if (canApply()) {
-        setLoading(false);
+        setLoadingCommits(false);
       }
     }
   }, [effectiveWorkspaceId, linkedRepo, workspace.id]);
@@ -106,7 +147,7 @@ export function GitHubSync() {
 
     const bwsId = backendWorkspaceIdInput.trim() || workspace.id;
 
-    setLoading(true);
+    setLinking(true);
     setError(null);
 
     try {
@@ -114,50 +155,106 @@ export function GitHubSync() {
         github_repo: cleanedRepo,
       });
 
+      setLinkedRepoState({ repo: cleanedRepo, backendWorkspaceId: bwsId });
       setStoreGithubRepo(workspace.id, cleanedRepo);
       setStoreBackendWorkspaceId(workspace.id, bwsId);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to link repository.');
     } finally {
-      setLoading(false);
+      setLinking(false);
     }
   };
 
-  const handleSync = async () => {
-    if (!effectiveWorkspaceId) return;
+  const handleUnlink = () => {
+    requestSeqRef.current += 1;
+    setLinkedRepoState(null);
+    setRepoInput('');
+    setBackendWorkspaceIdInput('');
+    setCommits([]);
+    setError(null);
+    setCommitRefreshError(null);
+    setPullConfirmPending(false);
+    setStoreGithubRepo(workspace.id, undefined);
+  };
 
-    setLoading(true);
+  const handleSync = async () => {
+    if (!effectiveWorkspaceId || !canSync) return;
+
+    setSyncing(true);
     setError(null);
     try {
       await apiPost<SyncResponse>(`/api/v1/workspaces/${encodeURIComponent(effectiveWorkspaceId)}/sync`, {
         architecture: workspace.architecture,
-        commit_message: commitMessage,
+        commit_message: trimmedCommitMessage,
       });
-      await loadCommits();
+      try {
+        await loadCommits();
+      } catch {
+        // commit refresh failure is non-critical
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sync workspace.');
     } finally {
-      setLoading(false);
+      setSyncing(false);
     }
   };
 
-  const handlePull = async () => {
+  const handlePullRequest = () => {
+    setPullConfirmPending(true);
+  };
+
+  const handlePullConfirm = async () => {
+    setPullConfirmPending(false);
     if (!effectiveWorkspaceId) return;
 
-    setLoading(true);
+    setPulling(true);
     setError(null);
     try {
       const response = await apiPost<PullResponse>(
         `/api/v1/workspaces/${encodeURIComponent(effectiveWorkspaceId)}/pull`
       );
       replaceArchitecture(response.architecture as ArchitectureSnapshot);
-      await loadCommits();
+      saveToStorage();
+      try {
+        await loadCommits();
+      } catch {
+        // commit refresh failure is non-critical
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to pull from GitHub.');
     } finally {
-      setLoading(false);
+      setPulling(false);
     }
   };
+
+  const handlePullCancel = () => {
+    setPullConfirmPending(false);
+  };
+
+  const handleCompareWithGitHub = async () => {
+    if (!effectiveWorkspaceId) return;
+
+    setComparing(true);
+    setError(null);
+    try {
+      const response = await apiPost<PullResponse>(
+        `/api/v1/workspaces/${encodeURIComponent(effectiveWorkspaceId)}/pull`,
+      );
+      validateArchitectureShape(response.architecture);
+      const remoteArch = response.architecture as unknown as ArchitectureModel;
+      const localArch = useArchitectureStore.getState().workspace.architecture;
+      const delta = computeArchitectureDiff(remoteArch, localArch);
+      useUIStore.getState().setDiffMode(true, delta, remoteArch);
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to fetch remote architecture'));
+    } finally {
+      setComparing(false);
+    }
+  };
+
+  const commitLinkUrl = linkedRepo
+    ? `https://github.com/${linkedRepo}/commit/`
+    : null;
 
   return (
     <div className="github-sync">
@@ -174,8 +271,15 @@ export function GitHubSync() {
         <div className="github-sync-empty">GitHub authentication required.</div>
       ) : (
         <>
-          {loading && <div className="github-sync-loading">Loading...</div>}
+          {linking && <div className="github-sync-loading">Linking repository...</div>}
+          {syncing && <div className="github-sync-loading">Syncing to GitHub...</div>}
+          {pulling && <div className="github-sync-loading">Pulling from GitHub...</div>}
+          {comparing && <div className="github-sync-loading">Comparing with GitHub...</div>}
+          {loadingCommits && <div className="github-sync-loading">Loading recent commits...</div>}
           {error && <div className="github-sync-error">{error}</div>}
+          {commitRefreshError && (
+            <div className="github-sync-warning">Commit list refresh failed: {commitRefreshError}</div>
+          )}
 
           {!linkedRepo ? (
             <div className="github-sync-linker">
@@ -206,7 +310,7 @@ export function GitHubSync() {
                 onChange={(e) => setBackendWorkspaceIdInput(e.target.value)}
               />
 
-              <button type="button" className="github-sync-primary-btn" onClick={() => void handleLinkRepo()} disabled={loading}>
+              <button type="button" className="github-sync-primary-btn" onClick={() => void handleLinkRepo()} disabled={busy}>
                 Link
               </button>
             </div>
@@ -214,6 +318,17 @@ export function GitHubSync() {
             <div className="github-sync-content">
               <div className="github-sync-meta">
                 Linked repo: <strong>{linkedRepo}</strong>
+                <button type="button" className="github-sync-unlink-btn" onClick={handleUnlink}>
+                  Unlink
+                </button>
+              </div>
+
+              <div className="github-sync-arch-summary">
+                Local: {workspace.architecture.plates.length} plates · {workspace.architecture.blocks.length} blocks · {workspace.architecture.connections.length} connections
+              </div>
+
+              <div className="github-sync-reconciliation">
+                {commits.length > 0 ? '✓ Previously synced' : '⚠ Never synced with remote'}
               </div>
 
               <label className="github-sync-label" htmlFor="github-sync-commit-message">
@@ -224,16 +339,36 @@ export function GitHubSync() {
                 className="github-sync-input"
                 value={commitMessage}
                 onChange={(e) => setCommitMessage(e.target.value)}
+                disabled={busy}
               />
 
               <div className="github-sync-actions">
-                <button type="button" className="github-sync-primary-btn" onClick={handleSync} disabled={loading}>
+                <button type="button" className="github-sync-primary-btn" onClick={handleSync} disabled={!canSync}>
                   Sync to GitHub
                 </button>
-                <button type="button" className="github-sync-secondary-btn" onClick={handlePull} disabled={loading}>
+                <button type="button" className="github-sync-secondary-btn" onClick={handlePullRequest} disabled={anyLoading}>
                   Pull from GitHub
                 </button>
+                <button type="button" className="github-sync-secondary-btn" onClick={() => void handleCompareWithGitHub()} disabled={anyLoading || comparing}>
+                  Compare with GitHub
+                </button>
               </div>
+
+              {pullConfirmPending && (
+                <div className="github-sync-confirm">
+                  <div className="github-sync-confirm-message">
+                    Pull will overwrite your local workspace. Continue?
+                  </div>
+                  <div className="github-sync-confirm-actions">
+                    <button type="button" className="github-sync-primary-btn" onClick={() => void handlePullConfirm()}>
+                      Confirm Pull
+                    </button>
+                    <button type="button" className="github-sync-secondary-btn" onClick={handlePullCancel}>
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <div className="github-sync-commits">
                 <h4 className="github-sync-subtitle">Recent commits</h4>
@@ -244,7 +379,10 @@ export function GitHubSync() {
                     <div key={commit.sha} className="github-sync-commit-item">
                       <div className="github-sync-commit-message">{commit.message}</div>
                       <div className="github-sync-commit-meta">
-                        {commit.author} · {new Date(commit.date).toLocaleString()} · {commit.sha.slice(0, 7)}
+                        {commit.author} · {new Date(commit.date).toLocaleString()} · {' '}
+                        <a className="github-sync-commit-link" href={commit.html_url || `${commitLinkUrl ?? ''}${commit.sha}`} target="_blank" rel="noopener noreferrer">
+                          {commit.sha.slice(0, 7)}
+                        </a>
                       </div>
                     </div>
                   ))
