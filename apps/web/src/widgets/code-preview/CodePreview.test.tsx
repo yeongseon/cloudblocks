@@ -40,8 +40,7 @@ const mockArch: ArchitectureModel = {
   id: 'arch-1',
   name: 'Test',
   version: '1.0.0',
-  plates: [],
-  blocks: [],
+  nodes: [],
   connections: [],
   externalActors: [],
   createdAt: '',
@@ -758,9 +757,9 @@ describe('CodePreview', () => {
       workspace: {
         id: 'ws-1', name: 'Test', architecture: {
           ...mockArch,
-          blocks: [
-            { id: 'b1', name: 'B1', category: 'compute', placementId: '', position: { x: 0, y: 0, z: 0 }, metadata: {}, provider: 'aws' as const },
-            { id: 'b2', name: 'B2', category: 'database', placementId: '', position: { x: 0, y: 0, z: 0 }, metadata: {}, provider: 'aws' as const },
+          nodes: [
+            { id: 'b1', name: 'B1', kind: 'resource', layer: 'resource', resourceType: 'web_compute', category: 'compute', provider: 'aws' as const, parentId: null, position: { x: 0, y: 0, z: 0 }, metadata: {} },
+            { id: 'b2', name: 'B2', kind: 'resource', layer: 'resource', resourceType: 'relational_database', category: 'data', provider: 'aws' as const, parentId: null, position: { x: 0, y: 0, z: 0 }, metadata: {} },
           ],
         },
         createdAt: '', updatedAt: '',
@@ -780,8 +779,8 @@ describe('CodePreview', () => {
       workspace: {
         id: 'ws-1', name: 'Test', architecture: {
           ...mockArch,
-          blocks: [
-            { id: 'b1', name: 'B1', category: 'compute', placementId: '', position: { x: 0, y: 0, z: 0 }, metadata: {}, provider: 'azure' as const },
+          nodes: [
+            { id: 'b1', name: 'B1', kind: 'resource', layer: 'resource', resourceType: 'web_compute', category: 'compute', provider: 'azure' as const, parentId: null, position: { x: 0, y: 0, z: 0 }, metadata: {} },
           ],
         },
         createdAt: '', updatedAt: '',
@@ -798,8 +797,8 @@ describe('CodePreview', () => {
       workspace: {
         id: 'ws-1', name: 'Test', architecture: {
           ...mockArch,
-          blocks: [
-            { id: 'b1', name: 'B1', category: 'compute', placementId: '', position: { x: 0, y: 0, z: 0 }, metadata: {} },
+          nodes: [
+            { id: 'b1', name: 'B1', kind: 'resource', layer: 'resource', resourceType: 'web_compute', category: 'compute', provider: 'azure', parentId: null, position: { x: 0, y: 0, z: 0 }, metadata: {} },
           ],
         },
         createdAt: '', updatedAt: '',
