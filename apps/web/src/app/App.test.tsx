@@ -49,9 +49,6 @@ vi.mock('../widgets/github-sync/GitHubSync', () => ({
 vi.mock('../widgets/github-pr/GitHubPR', () => ({
   GitHubPR: () => <div data-testid="github-pr" />,
 }));
-vi.mock('../widgets/notification-center/NotificationCenter', () => ({
-  NotificationCenter: () => <div data-testid="notification-center" />,
-}));
 
 vi.mock('../widgets/promote-dialog/PromoteDialog', () => ({
   PromoteDialog: () => <div data-testid="promote-dialog" />,
@@ -429,10 +426,8 @@ describe('App', () => {
   });
 
   it('renders ops widgets when their show flags are true', async () => {
-    const { useNotificationStore } = await import('../entities/store/notificationStore');
     const { usePromoteStore } = await import('../entities/store/promoteStore');
 
-    useNotificationStore.setState({ showNotificationCenter: true });
     usePromoteStore.setState({
       showPromoteDialog: true,
       showRollbackDialog: true,
@@ -441,7 +436,6 @@ describe('App', () => {
 
     render(<App />);
 
-    expect(await screen.findByTestId('notification-center')).toBeInTheDocument();
     expect(await screen.findByTestId('promote-dialog')).toBeInTheDocument();
     expect(await screen.findByTestId('rollback-dialog')).toBeInTheDocument();
     expect(await screen.findByTestId('promote-history')).toBeInTheDocument();

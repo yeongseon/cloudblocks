@@ -974,46 +974,6 @@ describe('MenuBar', () => {
     expect(usePromoteStore.getState().showPromoteHistory).toBe(true);
   });
 
-  it('notification bell shows badge when unread count > 0', async () => {
-    const { useNotificationStore } = await import('../../entities/store/notificationStore');
-    useNotificationStore.getState().addNotification({
-      level: 'info',
-      category: 'system',
-      title: 'Test',
-      message: 'msg',
-    });
-    render(<MenuBar />);
-
-    const badge = screen.getByText('1');
-    expect(badge).toHaveClass('notification-badge');
-  });
-
-  it('notification bell click toggles notification center', async () => {
-    const { container } = render(<MenuBar />);
-
-    const bellButton = container.querySelector('.notification-bell-btn') as HTMLElement;
-    await userEvent.setup().click(bellButton);
-
-    const { useNotificationStore } = await import('../../entities/store/notificationStore');
-    expect(useNotificationStore.getState().showNotificationCenter).toBe(true);
-  });
-
-  it('notification bell closes other panels when opening', async () => {
-    const { useNotificationStore } = await import('../../entities/store/notificationStore');
-    useNotificationStore.setState({ showNotificationCenter: false });
-    useUIStore.setState({
-      showCodePreview: true,
-      showGitHubRepos: true,
-    });
-    const { container } = render(<MenuBar />);
-
-    const bellButton = container.querySelector('.notification-bell-btn') as HTMLElement;
-    await userEvent.setup().click(bellButton);
-
-    expect(useUIStore.getState().showCodePreview).toBe(false);
-    expect(useUIStore.getState().showGitHubRepos).toBe(false);
-  });
-
   it('show learning panel toggles off when already shown', async () => {
     useUIStore.setState({ showLearningPanel: true });
     const user = userEvent.setup();

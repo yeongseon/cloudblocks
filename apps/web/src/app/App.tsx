@@ -10,7 +10,7 @@ import { ValidationPanel } from '../widgets/validation-panel/ValidationPanel';
 import { useArchitectureStore } from '../entities/store/architectureStore';
 import { useAuthStore } from '../entities/store/authStore';
 import { useUIStore } from '../entities/store/uiStore';
-import { useNotificationStore } from '../entities/store/notificationStore';
+
 
 import { usePromoteStore } from '../entities/store/promoteStore';
 import { registerBuiltinTemplates } from '../features/templates/builtin';
@@ -34,7 +34,6 @@ const GitHubSync = lazy(() => import('../widgets/github-sync/GitHubSync').then(m
 const GitHubPR = lazy(() => import('../widgets/github-pr/GitHubPR').then(m => ({ default: m.GitHubPR })));
 const DiffPanel = lazy(() => import('../widgets/diff-panel/DiffPanel').then(m => ({ default: m.DiffPanel })));
 
-const NotificationCenter = lazy(() => import('../widgets/notification-center/NotificationCenter').then(m => ({ default: m.NotificationCenter })));
 
 const PromoteDialog = lazy(() => import('../widgets/promote-dialog/PromoteDialog').then(m => ({ default: m.PromoteDialog })));
 const RollbackDialog = lazy(() => import('../widgets/rollback-dialog/RollbackDialog').then(m => ({ default: m.RollbackDialog })));
@@ -63,7 +62,6 @@ function App() {
   const showScenarioGallery = useUIStore((s) => s.showScenarioGallery);
 
   const workspaceId = useArchitectureStore((s) => s.workspace.id);
-  const showNotificationCenter = useNotificationStore((s) => s.showNotificationCenter);
 
   const showPromoteDialog = usePromoteStore((s) => s.showPromoteDialog);
   const showRollbackDialog = usePromoteStore((s) => s.showRollbackDialog);
@@ -76,7 +74,6 @@ function App() {
     showGitHubLogin ||
     showGitHubRepos ||
     showGitHubPR ||
-    showNotificationCenter ||
     showPromoteDialog ||
     showRollbackDialog;
   const rightPanelClass = isWideRightPanel
@@ -198,8 +195,6 @@ function App() {
             {showGitHubPR && <GitHubPR key={`pr-${workspaceId}`} />}
             <DiffPanel />
             {showScenarioGallery && <ScenarioGallery />}
-            {showNotificationCenter && <NotificationCenter />}
-
             {showPromoteDialog && <PromoteDialog />}
             {showRollbackDialog && <RollbackDialog />}
             {showPromoteHistory && <PromoteHistory />}
