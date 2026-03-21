@@ -10,7 +10,7 @@ import type { SoundName } from '../../shared/utils/audioService';
 
 import { PlateSprite } from '../../entities/plate/PlateSprite';
 import { BlockSprite } from '../../entities/block/BlockSprite';
-import { ConnectionPath } from '../../entities/connection/ConnectionPath';
+import { BrickConnector } from '../../entities/connection/BrickConnector';
 import { ExternalActorSprite } from '../../entities/connection/ExternalActorSprite';
 import { MinifigureSprite } from '../../entities/character';
 import { EmptyCanvasOverlay } from './EmptyCanvasOverlay';
@@ -118,7 +118,7 @@ export function SceneCanvas() {
             addBlock(draggedBlockCategory, draggedResourceName, plateId, activeProvider);
             playSound('block-snap');
 
-            // Compute the new block's world position and dispatch to SCV worker
+            // Compute the new block's world position and dispatch to minifigure worker
             const updatedBlocks = useArchitectureStore.getState().workspace.architecture.blocks;
             const newBlock = updatedBlocks.find((b) => !blocksBefore.has(b.id));
             if (newBlock) {
@@ -211,7 +211,7 @@ export function SceneCanvas() {
         <svg className="connection-layer" style={{ width: 1, height: 1 }}>
           <title>Connections</title>
           {architecture.connections.map((conn) => (
-            <ConnectionPath
+            <BrickConnector
               key={conn.id}
               connection={conn}
               blocks={architecture.blocks}
