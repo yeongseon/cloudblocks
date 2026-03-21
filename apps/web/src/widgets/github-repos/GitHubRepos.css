@@ -190,3 +190,26 @@
   color: #8e95b8;
   font-size: 12px;
 }
+
+/* Linked repo indicator (#845) */
+.github-repos-item-linked {
+  border-color: #4285f4;
+  background: rgba(66, 133, 244, 0.08);
+}
+
+.github-repos-badges {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.github-repos-badge-linked {
+  background: rgba(66, 133, 244, 0.25);
+  color: #82b1ff;
+}
+
+.github-repos-default-branch {
+  font-size: 10px;
+  color: #8e95b8;
+  font-weight: 400;
+}

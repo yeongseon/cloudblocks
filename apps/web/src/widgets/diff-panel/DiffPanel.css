@@ -21,6 +21,12 @@
   margin-bottom: 10px;
 }
 
+.diff-panel-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .diff-panel-title {
   margin: 0;
   font-size: 14px;
@@ -41,6 +47,58 @@
 .diff-panel-close:hover {
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
+}
+
+.diff-panel-action-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #444;
+  color: #ccc;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.diff-panel-action-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.diff-panel-action-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Context and freshness (#852, #863) */
+.diff-panel-context {
+  font-size: 11px;
+  color: #9aa4d1;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
+.diff-panel-context-link {
+  color: #82b1ff;
+  text-decoration: none;
+}
+
+.diff-panel-context-link:hover {
+  text-decoration: underline;
+}
+
+.diff-panel-freshness {
+  font-size: 10px;
+  color: #8e95b8;
+  margin-bottom: 6px;
+}
+
+/* Export actions (#875) */
+.diff-panel-export-actions {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .diff-summary-bar {
@@ -82,6 +140,58 @@
   border: 1px solid rgba(239, 68, 68, 0.55);
   border-radius: 4px;
   margin-bottom: 10px;
+}
+
+/* Validation warnings overlay (#859) */
+.diff-validation-warning {
+  padding: 8px;
+  font-size: 11px;
+  color: #ffb74d;
+  background: rgba(255, 152, 0, 0.12);
+  border: 1px solid rgba(255, 152, 0, 0.35);
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.diff-validation-toggle {
+  background: none;
+  border: none;
+  color: #ffb74d;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 0;
+}
+
+.diff-validation-toggle:hover {
+  text-decoration: underline;
+}
+
+.diff-validation-list {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.diff-validation-item {
+  font-size: 10px;
+  color: #ffcc80;
+  padding-left: 8px;
+  border-left: 2px solid rgba(255, 152, 0, 0.4);
+}
+
+/* Entity warning badge (#860) */
+.diff-entity-warning-badge {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffb74d;
+  background: rgba(255, 152, 0, 0.2);
+  border: 1px solid rgba(255, 152, 0, 0.4);
+  border-radius: 3px;
+  padding: 0 4px;
+  vertical-align: middle;
 }
 
 .diff-sections {

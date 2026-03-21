@@ -8,7 +8,7 @@ import { validateArchitectureShape } from '../../entities/store/slices';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { computeArchitectureDiff } from '../../features/diff/engine';
-import { apiPost, getApiErrorMessage } from '../../shared/api/client';
+import { apiPost, getApiErrorMessage, ApiError } from '../../shared/api/client';
 import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import type { PullResponse } from '../../shared/types/api';
 import type { ArchitectureModel, ProviderType } from '@cloudblocks/schema';
@@ -107,7 +107,9 @@ export function MenuBar() {
   };
 
 
+  // #846: Block mutations during diff mode
   const handleDeleteSelection = () => {
+    if (diffMode) { toast.error('Exit compare mode before editing.'); return; }
     if (!selectedId) return;
     if (architecture.plates.some((p) => p.id === selectedId)) {
       removePlate(selectedId);
@@ -128,6 +130,7 @@ export function MenuBar() {
   };
 
   const handleSave = () => {
+    if (diffMode) { toast.error('Exit compare mode before saving.'); return; }
     const success = saveToStorage();
     if (success) {
       toast.success('Workspace saved!');
@@ -136,7 +139,15 @@ export function MenuBar() {
     }
   };
 
+  // #847: Warn if active compare review will be discarded
   const handleLoad = async () => {
+    if (diffMode) {
+      const discardReview = await confirmDialog(
+        'Loading will discard the active compare review. Continue?',
+        'Discard Compare Review?',
+      );
+      if (!discardReview) return;
+    }
     const confirmed = await confirmDialog(
       'Loading will replace current workspace with saved data. Unsaved changes will be lost.',
       'Load Workspace?',
@@ -158,6 +169,7 @@ export function MenuBar() {
   };
 
   const handleImport = () => {
+    if (diffMode) { toast.error('Exit compare mode before importing.'); return; }
     importInputRef.current?.click();
   };
 
@@ -185,6 +197,13 @@ export function MenuBar() {
   };
 
   const handleReset = async () => {
+    if (diffMode) {
+      const discardReview = await confirmDialog(
+        'Resetting will discard the active compare review. Continue?',
+        'Discard Compare Review?',
+      );
+      if (!discardReview) return;
+    }
     const confirmed = await confirmDialog('All unsaved changes will be lost.', 'Reset Workspace?');
     if (confirmed) {
       resetWorkspace();
@@ -210,8 +229,17 @@ export function MenuBar() {
       const remoteArch = response.architecture as unknown as ArchitectureModel;
       const localArch = useArchitectureStore.getState().workspace.architecture;
       const delta = computeArchitectureDiff(remoteArch, localArch);
-      useUIStore.getState().setDiffMode(true, delta, remoteArch);
+      const repo = useArchitectureStore.getState().workspace.githubRepo;
+      useUIStore.getState().setDiffMode(true, delta, remoteArch, new Date().toISOString(), repo ? { repo, branch: 'main' } : null);
+      // #874: activity trail
+      useUIStore.getState().addActivity('compare', `Compared with GitHub (${delta.summary.totalChanges} changes)`);
     } catch (err) {
+      // #867: Route auth failures to login
+      if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
+        toast.error('Authentication expired. Please sign in again.');
+        useUIStore.getState().toggleGitHubLogin();
+        return;
+      }
       toast.error(getApiErrorMessage(err, 'Failed to fetch remote architecture'));
     }
   };
@@ -312,7 +340,7 @@ export function MenuBar() {
               type="button"
               className="menu-item"
               onClick={() => handleAction(undo)}
-              disabled={!canUndo}
+              disabled={!canUndo || diffMode}
             >
               <span className="menu-item-left">↩ Undo</span>
               <span className="menu-shortcut">Ctrl+Z</span>
@@ -321,7 +349,7 @@ export function MenuBar() {
               type="button"
               className="menu-item"
               onClick={() => handleAction(redo)}
-              disabled={!canRedo}
+              disabled={!canRedo || diffMode}
             >
               <span className="menu-item-left">↪ Redo</span>
               <span className="menu-shortcut">Ctrl+Shift+Z</span>
@@ -331,7 +359,7 @@ export function MenuBar() {
               type="button"
               className="menu-item"
               onClick={() => handleAction(handleDeleteSelection)}
-              disabled={!selectedId}
+              disabled={!selectedId || diffMode}
             >
               <span className="menu-item-left">❌ Delete Selection</span>
               <span className="menu-shortcut">Del</span>
@@ -443,7 +471,7 @@ export function MenuBar() {
           type="button"
           className="quick-btn"
           onClick={undo}
-          disabled={!canUndo}
+          disabled={!canUndo || diffMode}
           title="Undo (Ctrl+Z)"
         >
           ↩
@@ -452,7 +480,7 @@ export function MenuBar() {
           type="button"
           className="quick-btn"
           onClick={redo}
-          disabled={!canRedo}
+          disabled={!canRedo || diffMode}
           title="Redo (Ctrl+Shift+Z)"
         >
           ↪
@@ -461,6 +489,7 @@ export function MenuBar() {
           type="button"
           className="quick-btn"
           onClick={handleSave}
+          disabled={diffMode}
           title="Save Workspace (Ctrl+S)"
         >
           💾

@@ -40,6 +40,7 @@ export function GitHubLogin() {
     }
   };
 
+  // #838: Keep panel open when sign-out fails or session remains authenticated
   const handleSignOut = async () => {
     setIsWorking(true);
     setLocalError(null);
@@ -48,13 +49,17 @@ export function GitHubLogin() {
     await logout();
 
     setIsWorking(false);
-    toggleGitHubLogin();
+    // Only close panel if sign-out succeeded (status became anonymous)
+    const currentStatus = useAuthStore.getState().status;
+    if (currentStatus === 'anonymous') {
+      toggleGitHubLogin();
+    }
   };
 
   return (
     <div className="github-login">
       <div className="github-login-header">
-        <h3 className="github-login-title">🔐 GitHub Login</h3>
+        <h3 className="github-login-title">GitHub Login</h3>
         <button type="button" className="github-login-close" onClick={toggleGitHubLogin} aria-label="Close GitHub login panel">
           ✕
         </button>

@@ -1,5 +1,12 @@
 import { useState } from 'react';
+import { toast } from 'react-hot-toast';
+import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { computeArchitectureDiff } from '../../features/diff/engine';
+import { validateArchitectureShape } from '../../entities/store/slices';
+import { apiPost, getApiErrorMessage } from '../../shared/api/client';
+import type { PullResponse } from '../../shared/types/api';
+import type { ArchitectureModel } from '@cloudblocks/schema';
 import type { DiffDelta } from '../../shared/types/diff';
 import './DiffPanel.css';
 
@@ -41,9 +48,43 @@ function getEntityLabel(entity: { id: string }): string {
   return entity.id;
 }
 
+/** Build a plaintext summary of the diff for copy/export (#875) */
+function buildDiffText(delta: DiffDelta): string {
+  const lines: string[] = ['Architecture Diff Summary', '========================', ''];
+  const { added, modified, removed } = ['plates', 'blocks', 'connections', 'externalActors'].reduce(
+    (acc, key) => {
+      const section = delta[key as keyof DiffDelta] as { added: { id: string }[]; modified: { id: string }[]; removed: { id: string }[] };
+      return {
+        added: acc.added + section.added.length,
+        modified: acc.modified + section.modified.length,
+        removed: acc.removed + section.removed.length,
+      };
+    },
+    { added: 0, modified: 0, removed: 0 },
+  );
+  lines.push(`+${added} added, ~${modified} modified, -${removed} removed`);
+  if (delta.summary.hasBreakingChanges) lines.push('!! Breaking changes detected');
+  lines.push('');
+
+  for (const { key, label } of SECTION_CONFIG) {
+    const section = delta[key];
+    const total = section.added.length + section.modified.length + section.removed.length;
+    if (total === 0) continue;
+    lines.push(`${label}:`);
+    for (const e of section.added) lines.push(`  + ${getEntityLabel(e)}`);
+    for (const e of section.removed) lines.push(`  - ${getEntityLabel(e)}`);
+    for (const e of section.modified) lines.push(`  ~ ${getEntityLabel(e.after)} (${e.changes.length} changes)`);
+    lines.push('');
+  }
+
+  return lines.join('\n');
+}
+
 export function DiffPanel() {
   const diffMode = useUIStore((s) => s.diffMode);
   const diffDelta = useUIStore((s) => s.diffDelta);
+  const diffFetchedAt = useUIStore((s) => s.diffFetchedAt);
+  const diffRepoContext = useUIStore((s) => s.diffRepoContext);
   const [trackedDelta, setTrackedDelta] = useState(diffDelta);
   const [trackedMode, setTrackedMode] = useState(diffMode);
   const [generation, setGeneration] = useState(0);
@@ -64,7 +105,7 @@ export function DiffPanel() {
     return (
       <div className="diff-panel">
         <div className="diff-panel-header">
-          <h3 className="diff-panel-title">🔍 Architecture Diff</h3>
+          <h3 className="diff-panel-title">Architecture Diff</h3>
           <button type="button" className="diff-panel-close" onClick={handleClose} aria-label="Close architecture diff panel">
             ✕
           </button>
@@ -74,10 +115,25 @@ export function DiffPanel() {
     );
   }
 
-  return <DiffPanelContent key={generation} diffDelta={diffDelta} onClose={handleClose} />;
+  return (
+    <DiffPanelContent
+      key={generation}
+      diffDelta={diffDelta}
+      fetchedAt={diffFetchedAt}
+      repoContext={diffRepoContext}
+      onClose={handleClose}
+    />
+  );
 }
 
-function DiffPanelContent({ diffDelta, onClose }: { diffDelta: DiffDelta; onClose: () => void }) {
+interface DiffPanelContentProps {
+  diffDelta: DiffDelta;
+  fetchedAt: string | null;
+  repoContext: { repo: string; branch: string } | null;
+  onClose: () => void;
+}
+
+function DiffPanelContent({ diffDelta, fetchedAt, repoContext, onClose }: DiffPanelContentProps) {
   const [collapsedSections, setCollapsedSections] = useState<Record<SectionKey, boolean>>({
     plates: false,
     blocks: false,
@@ -85,6 +141,10 @@ function DiffPanelContent({ diffDelta, onClose }: { diffDelta: DiffDelta; onClos
     externalActors: false,
   });
   const [expandedModified, setExpandedModified] = useState<Record<string, boolean>>({});
+  const [refreshing, setRefreshing] = useState(false);
+  const [showWarnings, setShowWarnings] = useState(false);
+  const validationResult = useArchitectureStore((s) => s.validationResult);
+  const addActivity = useUIStore((s) => s.addActivity);
 
   const toggleSection = (key: SectionKey) => {
     setCollapsedSections((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -93,6 +153,14 @@ function DiffPanelContent({ diffDelta, onClose }: { diffDelta: DiffDelta; onClos
   const toggleModifiedDetails = (key: string) => {
     setExpandedModified((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+  // Collect entity IDs that have validation warnings (#859, #860)
+  const warningEntityIds = new Set<string>();
+  if (validationResult && !validationResult.valid) {
+    for (const err of validationResult.errors) {
+      if (err.targetId) warningEntityIds.add(err.targetId);
+    }
+  }
 
   const entities: Array<DiffDelta[SectionKey]> = [
     diffDelta.plates,
@@ -109,14 +177,99 @@ function DiffPanelContent({ diffDelta, onClose }: { diffDelta: DiffDelta; onClos
     { added: 0, modified: 0, removed: 0 },
   );
 
+  // #853: Refresh action
+  const handleRefresh = async () => {
+    const backendWorkspaceId = useArchitectureStore.getState().workspace.backendWorkspaceId;
+    if (!backendWorkspaceId) {
+      toast.error('Workspace must be linked to backend.');
+      return;
+    }
+    setRefreshing(true);
+    try {
+      const response = await apiPost<PullResponse>(
+        `/api/v1/workspaces/${encodeURIComponent(backendWorkspaceId)}/pull`,
+      );
+      validateArchitectureShape(response.architecture);
+      const remoteArch = response.architecture as unknown as ArchitectureModel;
+      const localArch = useArchitectureStore.getState().workspace.architecture;
+      const delta = computeArchitectureDiff(remoteArch, localArch);
+      const repo = useArchitectureStore.getState().workspace.githubRepo;
+      useUIStore.getState().setDiffMode(true, delta, remoteArch, new Date().toISOString(), repo ? { repo, branch: 'main' } : null);
+      toast.success('Compare refreshed');
+      addActivity('compare-refresh', 'Refreshed GitHub compare');
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to refresh compare'));
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  // #875: Copy diff summary
+  const handleCopyDiff = () => {
+    const text = buildDiffText(diffDelta);
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).then(
+        () => toast.success('Diff summary copied'),
+        () => toast.error('Failed to copy'),
+      );
+    }
+  };
+
+  // #875: Export diff summary as file
+  const handleExportDiff = () => {
+    const text = buildDiffText(diffDelta);
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'architecture-diff.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // GitHub context links (#863)
+  const repoUrl = repoContext ? `https://github.com/${repoContext.repo}` : null;
+  const branchUrl = repoContext ? `https://github.com/${repoContext.repo}/tree/${repoContext.branch}` : null;
+
   return (
     <div className="diff-panel">
       <div className="diff-panel-header">
-        <h3 className="diff-panel-title">🔍 Architecture Diff</h3>
-        <button type="button" className="diff-panel-close" onClick={onClose} aria-label="Close architecture diff panel">
-          ✕
-        </button>
+        <h3 className="diff-panel-title">Architecture Diff</h3>
+        <div className="diff-panel-header-actions">
+          <button type="button" className="diff-panel-action-btn" onClick={() => void handleRefresh()} disabled={refreshing} title="Refresh compare">
+            {refreshing ? '...' : 'Refresh'}
+          </button>
+          <button type="button" className="diff-panel-close" onClick={onClose} aria-label="Close architecture diff panel">
+            ✕
+          </button>
+        </div>
       </div>
+
+      {/* Repo/branch context with direct links (#863) */}
+      {repoContext && (
+        <div className="diff-panel-context">
+          {repoUrl && (
+            <a className="diff-panel-context-link" href={repoUrl} target="_blank" rel="noopener noreferrer">
+              {repoContext.repo}
+            </a>
+          )}
+          {branchUrl && (
+            <>
+              {' / '}
+              <a className="diff-panel-context-link" href={branchUrl} target="_blank" rel="noopener noreferrer">
+                {repoContext.branch}
+              </a>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Freshness timestamp (#852) */}
+      {fetchedAt && (
+        <div className="diff-panel-freshness">
+          Fetched: {new Date(fetchedAt).toLocaleString()}
+        </div>
+      )}
 
       <div className="diff-summary-bar">
         <span className="diff-badge diff-badge-added">+{summaryCounts.added} added</span>
@@ -124,8 +277,34 @@ function DiffPanelContent({ diffDelta, onClose }: { diffDelta: DiffDelta; onClos
         <span className="diff-badge diff-badge-removed">-{summaryCounts.removed} removed</span>
       </div>
 
+      {/* Copy/Export actions (#875) */}
+      <div className="diff-panel-export-actions">
+        <button type="button" className="diff-panel-action-btn" onClick={handleCopyDiff}>
+          Copy Summary
+        </button>
+        <button type="button" className="diff-panel-action-btn" onClick={handleExportDiff}>
+          Export
+        </button>
+      </div>
+
       {diffDelta.summary.hasBreakingChanges && (
         <div className="diff-breaking-warning">Breaking changes detected. Review removed or modified entities carefully.</div>
+      )}
+
+      {/* Validation warnings toggle (#859) */}
+      {warningEntityIds.size > 0 && (
+        <div className="diff-validation-warning">
+          <button type="button" className="diff-validation-toggle" onClick={() => setShowWarnings((v) => !v)}>
+            {warningEntityIds.size} entity warning(s) overlap with diff changes {showWarnings ? '(hide)' : '(show)'}
+          </button>
+          {showWarnings && validationResult && (
+            <div className="diff-validation-list">
+              {validationResult.errors.filter((e) => e.targetId && warningEntityIds.has(e.targetId)).map((e, i) => (
+                <div key={i} className="diff-validation-item">{e.message}</div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       {diffDelta.summary.totalChanges === 0 ? (
@@ -163,7 +342,7 @@ function DiffPanelContent({ diffDelta, onClose }: { diffDelta: DiffDelta; onClos
                   aria-expanded={!isCollapsed}
                 >
                   <span>{label}</span>
-                  <span>{isCollapsed ? '▸' : '▾'} {sectionTotal}</span>
+                  <span>{isCollapsed ? '>' : 'v'} {sectionTotal}</span>
                 </button>
 
                 {!isCollapsed && (
@@ -171,12 +350,15 @@ function DiffPanelContent({ diffDelta, onClose }: { diffDelta: DiffDelta; onClos
                     {section.added.map((entity) => (
                       <div key={`added-${entity.id}`} className="diff-item diff-item-added">
                         + {getEntityLabel(entity)}
+                        {/* #860: badge entities with warnings */}
+                        {warningEntityIds.has(entity.id) && <span className="diff-entity-warning-badge" title="Has validation warnings">!</span>}
                       </div>
                     ))}
 
                     {section.removed.map((entity) => (
                       <div key={`removed-${entity.id}`} className="diff-item diff-item-removed">
                         - {getEntityLabel(entity)}
+                        {warningEntityIds.has(entity.id) && <span className="diff-entity-warning-badge" title="Has validation warnings">!</span>}
                       </div>
                     ))}
 
@@ -193,6 +375,7 @@ function DiffPanelContent({ diffDelta, onClose }: { diffDelta: DiffDelta; onClos
                             aria-expanded={isExpanded}
                           >
                             ~ {getEntityLabel(entity.after)} ({entity.changes.length} changes)
+                            {warningEntityIds.has(entity.id) && <span className="diff-entity-warning-badge" title="Has validation warnings">!</span>}
                           </button>
                           {isExpanded && (
                             <div className="diff-property-changes">

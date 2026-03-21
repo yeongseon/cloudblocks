@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { generateCode, GenerationError } from '../../features/generate/pipeline';
@@ -9,6 +9,7 @@ import {
   type GeneratorId,
 } from '../../features/generate/types';
 import { listGenerators } from '../../features/generate/registry';
+import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import type { ProviderType } from '@cloudblocks/schema';
 import './CodePreview.css';
 
@@ -47,17 +48,26 @@ export function CodePreview() {
     supportedProviders.includes(provider)
   );
 
+  // Track user-modified regions to avoid overwriting (#872)
+  const userModifiedRegions = useRef<Set<ProviderType>>(new Set());
+
+  // #872: Only reset region when the user has not manually set it
   if (activeProvider !== prevProvider) {
     setPrevProvider(activeProvider);
-    setRegions((prev) => ({
-      ...prev,
-      [activeProvider]: DEFAULT_REGION_BY_PROVIDER[activeProvider],
-    }));
-    setError(null);
-    setOutput(null);
-    setComparisonOutputs(null);
-    setComparisonErrors(null);
-    setActiveTab(0);
+    if (!userModifiedRegions.current.has(activeProvider)) {
+      setRegions((prev) => ({
+        ...prev,
+        [activeProvider]: DEFAULT_REGION_BY_PROVIDER[activeProvider],
+      }));
+    }
+    // #873: Don't clear compare results when switching provider tab in compare mode
+    if (!compareProviders) {
+      setError(null);
+      setOutput(null);
+      setComparisonOutputs(null);
+      setComparisonErrors(null);
+      setActiveTab(0);
+    }
   }
 
   const effectiveCompare = compareProviders && canCompareProviders;
@@ -75,9 +85,22 @@ export function CodePreview() {
     clearGeneratedState();
   };
 
-  const handleCompareChange = (checked: boolean) => {
+  // #873: Confirm before clearing compare results
+  const handleCompareChange = async (checked: boolean) => {
+    if (!checked && comparisonOutputs) {
+      const ok = await confirmDialog(
+        'Disabling compare mode will discard the current multi-cloud comparison results.',
+        'Discard Comparison?',
+      );
+      if (!ok) return;
+    }
     setCompareProviders(checked);
     clearGeneratedState();
+  };
+
+  const handleRegionChange = (provider: ProviderType, value: string) => {
+    userModifiedRegions.current.add(provider);
+    setRegions((prev) => ({ ...prev, [provider]: value }));
   };
 
   const handleGenerate = () => {
@@ -115,9 +138,10 @@ export function CodePreview() {
           }
         }
 
+        // #871: Always show per-provider errors, even when all fail
         if (Object.keys(generated).length === 0) {
           setComparisonErrors(errors);
-          setError('All provider generations failed.');
+          setError('All provider generations failed. See details below.');
           return;
         }
 
@@ -191,12 +215,22 @@ export function CodePreview() {
     }
   };
 
+  // #869: Merge file sets from all providers instead of using only the first
   const visibleFiles = output
     ? output.files
     : (() => {
         if (!comparisonOutputs) return [];
-        const firstProvider = PROVIDERS.find((provider) => comparisonOutputs[provider]?.files.length > 0);
-        return firstProvider ? comparisonOutputs[firstProvider].files : [];
+        const allPaths = new Map<string, { path: string; content: string }>();
+        for (const provider of PROVIDERS) {
+          const files = comparisonOutputs[provider]?.files;
+          if (!files) continue;
+          for (const file of files) {
+            if (!allPaths.has(file.path)) {
+              allPaths.set(file.path, file);
+            }
+          }
+        }
+        return Array.from(allPaths.values());
       })();
 
   const clampedTab = visibleFiles.length === 0
@@ -208,7 +242,7 @@ export function CodePreview() {
   return (
     <div className="code-preview">
       <div className="code-preview-header">
-        <h3 className="code-preview-title">⚡ Code Generation</h3>
+        <h3 className="code-preview-title">Code Generation</h3>
         <button type="button" className="code-preview-close" onClick={toggleCodePreview} aria-label="Close code preview panel">
           ✕
         </button>
@@ -247,9 +281,7 @@ export function CodePreview() {
                     className="code-preview-input"
                     type="text"
                     value={regions[provider]}
-                    onChange={(e) =>
-                      setRegions((prev) => ({ ...prev, [provider]: e.target.value }))
-                    }
+                    onChange={(e) => handleRegionChange(provider, e.target.value)}
                   />
                 </label>
               ))}
@@ -262,9 +294,7 @@ export function CodePreview() {
               className="code-preview-input"
               type="text"
               value={regions[activeProvider]}
-              onChange={(e) =>
-                setRegions((prev) => ({ ...prev, [activeProvider]: e.target.value }))
-              }
+              onChange={(e) => handleRegionChange(activeProvider, e.target.value)}
             />
           </label>
         )}
@@ -275,17 +305,38 @@ export function CodePreview() {
               type="checkbox"
               checked={effectiveCompare}
               disabled={!canCompareProviders}
-              onChange={(e) => handleCompareChange(e.target.checked)}
+              onChange={(e) => void handleCompareChange(e.target.checked)}
             />
             Azure / AWS / GCP
           </label>
         </label>
         <button type="button" className="code-preview-generate-btn" onClick={handleGenerate}>
-          🚀 {effectiveCompare ? 'Compare Providers' : `Generate ${selectedGenerator?.label ?? 'Code'}`}
+          {effectiveCompare ? 'Compare Providers' : `Generate ${selectedGenerator?.label ?? 'Code'}`}
         </button>
       </div>
 
       {error && <div className="code-preview-error">{error}</div>}
+
+      {/* #871: Show per-provider error details even when all fail */}
+      {!comparisonOutputs && comparisonErrors && Object.keys(comparisonErrors).length > 0 && (
+        <div className="code-preview-compare-grid">
+          {PROVIDERS.map((provider) => {
+            const providerError = comparisonErrors[provider];
+            if (!providerError) return null;
+            return (
+              <section key={provider} className="code-preview-compare-card">
+                <header className="code-preview-compare-header">
+                  <strong>{provider.toUpperCase()}</strong>
+                  <span>Error</span>
+                </header>
+                <pre className="code-preview-code code-preview-code-compare">
+                  <code>{providerError}</code>
+                </pre>
+              </section>
+            );
+          })}
+        </div>
+      )}
 
       {output && (
         <>
@@ -304,10 +355,10 @@ export function CodePreview() {
 
           <div className="code-preview-actions">
             <button type="button" className="code-preview-action-btn" onClick={handleCopyFile}>
-              📋 Copy
+              Copy
             </button>
             <button type="button" className="code-preview-action-btn" onClick={handleDownloadAll}>
-              💾 Download All
+              Download All
             </button>
           </div>
 
@@ -324,31 +375,26 @@ export function CodePreview() {
 
       {comparisonOutputs && (
         <>
+          {/* #869: Merged file tabs from all providers */}
           <div className="code-preview-tabs">
-            {(() => {
-              const firstProvider = PROVIDERS.find(
-                (p) => comparisonOutputs[p]?.files.length > 0
-              );
-              const files = firstProvider ? comparisonOutputs[firstProvider].files : [];
-              return files.map((file, i) => (
-                <button
-                  type="button"
-                  key={file.path}
-                   className={`code-preview-tab ${i === clampedTab ? 'code-preview-tab-active' : ''}`}
-                  onClick={() => setActiveTab(i)}
-                >
-                  {file.path}
-                </button>
-              ));
-            })()}
+            {visibleFiles.map((file, i) => (
+              <button
+                type="button"
+                key={file.path}
+                className={`code-preview-tab ${i === clampedTab ? 'code-preview-tab-active' : ''}`}
+                onClick={() => setActiveTab(i)}
+              >
+                {file.path}
+              </button>
+            ))}
           </div>
 
           <div className="code-preview-actions">
             <button type="button" className="code-preview-action-btn" onClick={handleCopyFile}>
-              📋 Copy
+              Copy
             </button>
             <button type="button" className="code-preview-action-btn" onClick={handleDownloadAll}>
-              💾 Download All
+              Download All
             </button>
           </div>
 
@@ -371,7 +417,9 @@ export function CodePreview() {
               );
             }
 
-            const activeFile = providerOutput.files[clampedTab] ?? providerOutput.files[0];
+            // #869: Find file matching the selected tab by path
+            const selectedPath = visibleFiles[clampedTab]?.path;
+            const activeFile = providerOutput.files.find((f) => f.path === selectedPath) ?? providerOutput.files[0];
 
             return (
               <section key={provider} className="code-preview-compare-card">
@@ -379,8 +427,13 @@ export function CodePreview() {
                   <strong>{provider.toUpperCase()}</strong>
                   <span>{providerOutput.files.length} files</span>
                 </header>
+                {/* #868: Per-provider generation metadata */}
+                <div className="code-preview-compare-meta">
+                  {providerOutput.metadata.generator} v{providerOutput.metadata.version} · {regions[provider]} ·{' '}
+                  {new Date(providerOutput.metadata.generatedAt).toLocaleTimeString()}
+                </div>
                 <pre className="code-preview-code code-preview-code-compare">
-                  <code>{activeFile?.content ?? ''}</code>
+                  <code>{activeFile?.content ?? `(no ${selectedPath ?? 'file'} for ${provider})`}</code>
                 </pre>
               </section>
             );

@@ -234,3 +234,143 @@
 .github-sync-commit-link:hover {
   text-decoration: underline;
 }
+
+/* Account context (#861) */
+.github-sync-account {
+  font-size: 11px;
+  color: #9aa4d1;
+  padding: 4px 8px;
+  background: rgba(66, 133, 244, 0.08);
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+/* Repo link (#862) */
+.github-sync-repo-link {
+  color: #82b1ff;
+  text-decoration: none;
+}
+
+.github-sync-repo-link:hover {
+  text-decoration: underline;
+}
+
+/* Visibility badge (#848) */
+.github-sync-visibility-badge {
+  display: inline-block;
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-left: 6px;
+  font-weight: 600;
+}
+
+.github-sync-badge-private {
+  color: #ffb74d;
+  background: rgba(255, 152, 0, 0.18);
+  border: 1px solid rgba(255, 152, 0, 0.35);
+}
+
+.github-sync-badge-public {
+  color: #81c784;
+  background: rgba(76, 175, 80, 0.18);
+  border: 1px solid rgba(76, 175, 80, 0.35);
+}
+
+/* Branch context (#851, #855, #856) */
+.github-sync-branch-context {
+  font-size: 11px;
+  color: #aab3dc;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+}
+
+.github-sync-branch-context code {
+  font-family: 'Consolas', 'Monaco', monospace;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+
+.github-sync-branch-warning {
+  color: #ffb74d;
+}
+
+.github-sync-branch-label {
+  font-weight: 400;
+  color: #9aa4d1;
+}
+
+.github-sync-branch-label code {
+  font-family: 'Consolas', 'Monaco', monospace;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 10px;
+}
+
+/* Dirty indicator (#854) */
+.github-sync-dirty-indicator {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.github-sync-dirty {
+  color: #ffb74d;
+  background: rgba(255, 152, 0, 0.12);
+  border: 1px solid rgba(255, 152, 0, 0.25);
+}
+
+.github-sync-clean {
+  color: #81c784;
+  background: rgba(76, 175, 80, 0.08);
+  border: 1px solid rgba(76, 175, 80, 0.2);
+}
+
+.github-sync-sync-time {
+  color: #8e95b8;
+}
+
+/* Pull summary (#864) */
+.github-sync-pull-summary {
+  padding: 8px;
+  font-size: 12px;
+  color: #a5d6a7;
+  background: rgba(76, 175, 80, 0.12);
+  border: 1px solid rgba(76, 175, 80, 0.35);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.github-sync-pull-summary-text {
+  font-size: 12px;
+}
+
+/* Sync point marker (#849) */
+.github-sync-commit-sync-point {
+  border-left: 3px solid #4285f4;
+}
+
+.github-sync-sync-marker {
+  color: #4285f4;
+  font-weight: 600;
+}
+
+/* CloudBlocks commit badge (#865) */
+.github-sync-cb-badge {
+  display: inline-block;
+  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-right: 4px;
+  color: #82b1ff;
+  background: rgba(66, 133, 244, 0.18);
+  border: 1px solid rgba(66, 133, 244, 0.35);
+  font-weight: 700;
+  vertical-align: middle;
+}

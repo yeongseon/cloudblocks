@@ -82,11 +82,19 @@ interface UIState {
   diffMode: boolean;
   diffDelta: DiffDelta | null;
   diffBaseArchitecture: ArchitectureModel | null;
+  diffFetchedAt: string | null;
+  diffRepoContext: { repo: string; branch: string } | null;
   setDiffMode: (
     mode: boolean,
     delta?: DiffDelta | null,
     base?: ArchitectureModel | null,
+    fetchedAt?: string | null,
+    repoContext?: { repo: string; branch: string } | null,
   ) => void;
+
+  // ── Activity trail ──
+  activityTrail: Array<{ timestamp: string; action: string; detail: string }>;
+  addActivity: (action: string, detail: string) => void;
 
   // ── Build Order panel ──
   isBuildOrderOpen: boolean;
@@ -272,12 +280,25 @@ export const useUIStore = create<UIState>((set) => ({
   diffMode: false,
   diffDelta: null,
   diffBaseArchitecture: null,
-  setDiffMode: (mode, delta, base) =>
+  diffFetchedAt: null,
+  diffRepoContext: null,
+  setDiffMode: (mode, delta, base, fetchedAt, repoContext) =>
     set({
       diffMode: mode,
       diffDelta: delta ?? null,
       diffBaseArchitecture: base ?? null,
+      diffFetchedAt: fetchedAt ?? null,
+      diffRepoContext: repoContext ?? null,
     }),
+
+  activityTrail: [],
+  addActivity: (action, detail) =>
+    set((s) => ({
+      activityTrail: [
+        { timestamp: new Date().toISOString(), action, detail },
+        ...s.activityTrail,
+      ].slice(0, 50),
+    })),
 
   isBuildOrderOpen: true,
   toggleBuildOrder: () =>

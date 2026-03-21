@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { apiGet, apiPost } from '../../shared/api/client';
@@ -11,6 +12,7 @@ export function GitHubRepos() {
   const toggleGitHubRepos = useUIStore((s) => s.toggleGitHubRepos);
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
   const authStatus = useAuthStore((s) => s.status);
+  const linkedRepo = useArchitectureStore((s) => s.workspace.githubRepo);
 
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
   const [loading, setLoading] = useState(false);
@@ -71,7 +73,7 @@ export function GitHubRepos() {
   return (
     <div className="github-repos">
       <div className="github-repos-header">
-        <h3 className="github-repos-title">📦 GitHub Repos</h3>
+        <h3 className="github-repos-title">GitHub Repos</h3>
         <button type="button" className="github-repos-close" onClick={toggleGitHubRepos} aria-label="Close GitHub repos panel">
           ✕
         </button>
@@ -120,19 +122,32 @@ export function GitHubRepos() {
             {repos.length === 0 && !loading ? (
               <div className="github-repos-empty">No repositories found.</div>
             ) : (
-              repos.map((repo) => (
-                <div key={repo.full_name} className="github-repos-item">
-                  <div className="github-repos-item-main">
-                    <span className="github-repos-name">{repo.name}</span>
-                    <span className={`github-repos-badge ${repo.private ? 'github-repos-badge-private' : 'github-repos-badge-public'}`}>
-                      {repo.private ? 'private' : 'public'}
-                    </span>
+              repos.map((repo) => {
+                const isLinked = linkedRepo === repo.full_name;
+                return (
+                  <div key={repo.full_name} className={`github-repos-item ${isLinked ? 'github-repos-item-linked' : ''}`}>
+                    <div className="github-repos-item-main">
+                      <span className="github-repos-name">
+                        {repo.full_name}
+                        {repo.default_branch && (
+                          <span className="github-repos-default-branch"> ({repo.default_branch})</span>
+                        )}
+                      </span>
+                      <span className="github-repos-badges">
+                        {isLinked && (
+                          <span className="github-repos-badge github-repos-badge-linked">linked</span>
+                        )}
+                        <span className={`github-repos-badge ${repo.private ? 'github-repos-badge-private' : 'github-repos-badge-public'}`}>
+                          {repo.private ? 'private' : 'public'}
+                        </span>
+                      </span>
+                    </div>
+                    <a className="github-repos-link" href={repo.html_url} target="_blank" rel="noreferrer">
+                      {repo.html_url}
+                    </a>
                   </div>
-                  <a className="github-repos-link" href={repo.html_url} target="_blank" rel="noreferrer">
-                    {repo.html_url}
-                  </a>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </>

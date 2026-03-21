@@ -55,6 +55,9 @@
 .github-pr-label {
   font-size: 11px;
   color: #aab3dc;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .github-pr-input,
@@ -155,4 +158,64 @@
   background: rgba(255, 255, 255, 0.02);
   border: 1px dashed #333366;
   border-radius: 4px;
+}
+
+/* Account context (#861) */
+.github-pr-account {
+  font-size: 11px;
+  color: #9aa4d1;
+  padding: 4px 8px;
+  background: rgba(66, 133, 244, 0.08);
+  border-radius: 4px;
+}
+
+/* Meta section (#844, #862) */
+.github-pr-meta {
+  font-size: 11px;
+  color: #9aa4d1;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.github-pr-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.github-pr-meta code {
+  font-family: 'Consolas', 'Monaco', monospace;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 10px;
+}
+
+.github-pr-repo-link {
+  color: #82b1ff;
+  text-decoration: none;
+}
+
+.github-pr-repo-link:hover {
+  text-decoration: underline;
+}
+
+/* Prefill from compare (#876) */
+.github-pr-prefill-btn {
+  background: none;
+  border: 1px solid rgba(66, 133, 244, 0.4);
+  color: #82b1ff;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.github-pr-prefill-btn:hover {
+  background: rgba(66, 133, 244, 0.15);
 }

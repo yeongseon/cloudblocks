@@ -250,3 +250,11 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
+/* Per-provider metadata (#868) */
+.code-preview-compare-meta {
+  font-size: 10px;
+  color: #8e95b8;
+  padding: 3px 8px;
+  background: rgba(0, 0, 0, 0.15);
+}
