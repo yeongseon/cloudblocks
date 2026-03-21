@@ -10,17 +10,29 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, RootModel
 
 
-class PlateType(Enum):
+class LayerType(Enum):
     global_ = 'global'
     edge = 'edge'
     region = 'region'
     zone = 'zone'
     subnet = 'subnet'
+    resource = 'resource'
 
 
-class SubnetAccess(Enum):
-    public = 'public'
-    private = 'private'
+class ResourceCategory(Enum):
+    network = 'network'
+    security = 'security'
+    edge = 'edge'
+    compute = 'compute'
+    data = 'data'
+    messaging = 'messaging'
+    operations = 'operations'
+
+
+class ProviderType(Enum):
+    azure = 'azure'
+    aws = 'aws'
+    gcp = 'gcp'
 
 
 class Position(BaseModel):
@@ -30,34 +42,6 @@ class Position(BaseModel):
     x: float
     y: float
     z: float
-
-
-class Size(BaseModel):
-    model_config = ConfigDict(
-        extra='forbid',
-    )
-    width: float
-    height: float
-    depth: float
-
-
-class BlockCategory(Enum):
-    compute = 'compute'
-    database = 'database'
-    storage = 'storage'
-    gateway = 'gateway'
-    function = 'function'
-    queue = 'queue'
-    event = 'event'
-    analytics = 'analytics'
-    identity = 'identity'
-    observability = 'observability'
-
-
-class ProviderType(Enum):
-    azure = 'azure'
-    aws = 'aws'
-    gcp = 'gcp'
 
 
 class AggregationMode(Enum):
@@ -74,6 +58,20 @@ class BlockRole(Enum):
     private = 'private'
     internal = 'internal'
     external = 'external'
+
+
+class SubnetAccess(Enum):
+    public = 'public'
+    private = 'private'
+
+
+class Size(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    width: float
+    height: float
+    depth: float
 
 
 class ConnectionType(Enum):
@@ -94,28 +92,6 @@ class ExternalActor(BaseModel):
     position: Position
 
 
-class Plate(BaseModel):
-    model_config = ConfigDict(
-        extra='forbid',
-    )
-    id: str
-    name: str
-    type: PlateType
-    subnetAccess: SubnetAccess | None = Field(None, description='Only for subnet type')
-    profileId: str | None = Field(
-        None,
-        description='Profile preset identifier (frontend concern, but part of the serialized model)',
-    )
-    parentId: str | None = Field(..., description='null for root plate')
-    children: list[str] = Field(
-        ...,
-        description='Mixed list: child plate IDs + block IDs. (Intentional for MVP; consider splitting to childPlateIds/childBlockIds in v1.0)',
-    )
-    position: Position
-    size: Size
-    metadata: dict[str, Any]
-
-
 class Aggregation(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
@@ -124,35 +100,118 @@ class Aggregation(BaseModel):
     count: float = Field(..., description='Must be >= 1')
 
 
-class Connection(BaseModel):
-    model_config = ConfigDict(
-        extra='forbid',
-    )
-    id: str
-    sourceId: str = Field(..., description='Block or external actor ID (initiator)')
-    targetId: str = Field(..., description='Block or external actor ID (receiver)')
-    type: ConnectionType
-    metadata: dict[str, Any]
-
-
-class Block(BaseModel):
+class LeafNode(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
     id: str
     name: str
-    category: BlockCategory
-    placementId: str = Field(..., description='Parent plate ID')
-    position: Position = Field(..., description='Position relative to parent plate')
+    kind: Literal['resource']
+    layer: LayerType = Field(
+        ..., description='Hierarchy layer — used for containment validation'
+    )
+    resourceType: str = Field(
+        ...,
+        description="Specific resource identifier, e.g. 'virtual_network', 'vm', 'sql_database'",
+    )
+    category: ResourceCategory = Field(
+        ..., description='One of the 7 resource categories'
+    )
+    provider: ProviderType
+    parentId: str | None = Field(
+        ..., description='Parent node ID. null for root-level nodes.'
+    )
+    position: Position
     metadata: dict[str, Any]
-    provider: ProviderType | None = None
-    subtype: str | None = None
-    config: dict[str, Any] | None = None
+    config: dict[str, Any] | None = Field(
+        None, description='Provider-specific configuration'
+    )
+    subtype: str | None = Field(
+        None,
+        description="Resource subtype (e.g. 'linux' for compute, 'postgresql' for data)",
+    )
     aggregation: Aggregation | None = Field(
         None, description='v2.0 §8 — multiple identical resources'
     )
     roles: list[BlockRole] | None = Field(
         None, description='v2.0 §9 — visual-only role indicators'
+    )
+    subnetAccess: SubnetAccess | None = Field(
+        None,
+        description='Subnet access visibility — only meaningful for subnet-layer containers',
+    )
+    profileId: str | None = Field(
+        None,
+        description='Visual profile preset identifier (frontend concern, serialized for persistence)',
+    )
+
+
+class Connection(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    id: str
+    sourceId: str = Field(
+        ..., description='ResourceNode or ExternalActor ID (initiator)'
+    )
+    targetId: str = Field(
+        ..., description='ResourceNode or ExternalActor ID (receiver)'
+    )
+    type: ConnectionType
+    metadata: dict[str, Any]
+
+
+class ContainerNode(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    id: str
+    name: str
+    kind: Literal['container']
+    layer: LayerType = Field(
+        ..., description='Hierarchy layer — used for containment validation'
+    )
+    resourceType: str = Field(
+        ...,
+        description="Specific resource identifier, e.g. 'virtual_network', 'vm', 'sql_database'",
+    )
+    category: ResourceCategory = Field(
+        ..., description='One of the 7 resource categories'
+    )
+    provider: ProviderType
+    parentId: str | None = Field(
+        ..., description='Parent node ID. null for root-level nodes.'
+    )
+    position: Position
+    metadata: dict[str, Any]
+    config: dict[str, Any] | None = Field(
+        None, description='Provider-specific configuration'
+    )
+    subtype: str | None = Field(
+        None,
+        description="Resource subtype (e.g. 'linux' for compute, 'postgresql' for data)",
+    )
+    aggregation: Aggregation | None = Field(
+        None, description='v2.0 §8 — multiple identical resources'
+    )
+    roles: list[BlockRole] | None = Field(
+        None, description='v2.0 §9 — visual-only role indicators'
+    )
+    subnetAccess: SubnetAccess | None = Field(
+        None,
+        description='Subnet access visibility — only meaningful for subnet-layer containers',
+    )
+    profileId: str | None = Field(
+        None,
+        description='Visual profile preset identifier (frontend concern, serialized for persistence)',
+    )
+    size: Size
+
+
+class ResourceNode(RootModel[ContainerNode | LeafNode]):
+    root: ContainerNode | LeafNode = Field(
+        ...,
+        description="Discriminated union of all node types in the architecture. Discriminant: `kind` field ('container' | 'resource').",
     )
 
 
@@ -165,8 +224,9 @@ class ArchitectureModel(BaseModel):
     version: str = Field(
         ..., description='User-facing architecture revision (not schema version)'
     )
-    plates: list[Plate]
-    blocks: list[Block]
+    nodes: list[ResourceNode] = Field(
+        ..., description='All nodes — containers and resources in a flat array'
+    )
     connections: list[Connection]
     externalActors: list[ExternalActor]
     createdAt: str = Field(..., description='ISO 8601')

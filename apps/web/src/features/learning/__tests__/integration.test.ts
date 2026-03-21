@@ -245,12 +245,9 @@ function ensureBlock(
     ? { plateType: onPlateType, subnetAccess: onSubnetAccess }
     : getPlacementForCategory(category);
 
-  let placementId = '';
-  if (placement.plateType === 'region') {
-    placementId = ensureNetworkPlate();
-  } else {
-    placementId = ensureSubnet(placement.subnetAccess ?? 'public');
-  }
+  const placementId = placement.plateType === 'region'
+    ? ensureNetworkPlate()
+    : ensureSubnet(placement.subnetAccess ?? 'public');
 
   const refreshed = architectureSnapshot();
   const blockId = `block-${category}-test`;

@@ -9,16 +9,17 @@ from app.models.generated.architecture_model import (
     Aggregation,
     AggregationMode,
     ArchitectureModel,
-    Block,
-    BlockCategory,
     BlockRole,
     Connection,
     ConnectionType,
+    ContainerNode,
     ExternalActor,
-    Plate,
-    PlateType,
+    LayerType,
+    LeafNode,
     Position,
     ProviderType,
+    ResourceCategory,
+    ResourceNode,
     Size,
     SubnetAccess,
 )
@@ -43,13 +44,14 @@ def _load_schema() -> SchemaDefinitions:
 def test_expected_generated_model_symbols_exist() -> None:
     expected_symbols = {
         "ArchitectureModel",
-        "Plate",
-        "Block",
+        "ContainerNode",
+        "LeafNode",
+        "ResourceNode",
         "Connection",
         "ExternalActor",
-        "PlateType",
+        "LayerType",
+        "ResourceCategory",
         "SubnetAccess",
-        "BlockCategory",
         "ProviderType",
         "ConnectionType",
         "AggregationMode",
@@ -64,42 +66,50 @@ def test_expected_generated_model_symbols_exist() -> None:
 
 
 def test_architecture_model_round_trip_serialization() -> None:
+    container = ContainerNode(
+        id="node-vnet",
+        name="Main VNet",
+        kind="container",
+        layer=LayerType.region,
+        resourceType="virtual_network",
+        category=ResourceCategory.network,
+        provider=ProviderType.azure,
+        parentId=None,
+        position=Position(x=0, y=0, z=0),
+        size=Size(width=100, height=20, depth=100),
+        metadata={},
+        subnetAccess=None,
+        profileId=None,
+    )
+
+    leaf = LeafNode(
+        id="node-vm",
+        name="Web VM",
+        kind="resource",
+        layer=LayerType.resource,
+        resourceType="vm",
+        category=ResourceCategory.compute,
+        provider=ProviderType.azure,
+        parentId="node-vnet",
+        position=Position(x=10, y=10, z=1),
+        metadata={"tier": "web"},
+        aggregation=Aggregation(mode=AggregationMode.single, count=1),
+        roles=[BlockRole.public],
+    )
+
     architecture = ArchitectureModel(
         id="arch-1",
         name="Demo",
         version="v1",
-        plates=[
-            Plate(
-                id="plate-1",
-                name="Region A",
-                type=PlateType.region,
-                subnetAccess=SubnetAccess.public,
-                profileId=None,
-                parentId=None,
-                children=["block-1"],
-                position=Position(x=0, y=0, z=0),
-                size=Size(width=100, height=20, depth=100),
-                metadata={},
-            )
-        ],
-        blocks=[
-            Block(
-                id="block-1",
-                name="Web",
-                category=BlockCategory.compute,
-                placementId="plate-1",
-                position=Position(x=10, y=10, z=1),
-                metadata={"tier": "web"},
-                provider=ProviderType.aws,
-                aggregation=Aggregation(mode=AggregationMode.single, count=1),
-                roles=[BlockRole.public],
-            )
+        nodes=[
+            ResourceNode(root=container),
+            ResourceNode(root=leaf),
         ],
         connections=[
             Connection(
                 id="conn-1",
                 sourceId="actor-1",
-                targetId="block-1",
+                targetId="node-vm",
                 type=ConnectionType.http,
                 metadata={},
             )
@@ -127,9 +137,9 @@ def test_generated_enum_values_match_json_schema() -> None:
     definitions = schema["definitions"]
 
     enum_map = {
-        "PlateType": PlateType,
+        "LayerType": LayerType,
+        "ResourceCategory": ResourceCategory,
         "SubnetAccess": SubnetAccess,
-        "BlockCategory": BlockCategory,
         "ProviderType": ProviderType,
         "ConnectionType": ConnectionType,
         "AggregationMode": AggregationMode,
