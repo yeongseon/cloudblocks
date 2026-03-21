@@ -68,12 +68,6 @@
   z-index: 1;
 }
 
-.character-layer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1;
-}
 
 .connection-layer {
   position: absolute;

@@ -12,7 +12,6 @@ import { PlateSprite } from '../../entities/plate/PlateSprite';
 import { BlockSprite } from '../../entities/block/BlockSprite';
 import { BrickConnector } from '../../entities/connection/BrickConnector';
 import { ExternalActorSprite } from '../../entities/connection/ExternalActorSprite';
-import { MinifigureSprite } from '../../entities/character';
 import { EmptyCanvasOverlay } from './EmptyCanvasOverlay';
 import { DragGhost } from './DragGhost';
 import { ConnectionPreview } from './ConnectionPreview';
@@ -28,7 +27,6 @@ export function SceneCanvas() {
   const activeProvider = useUIStore((s) => s.activeProvider);
   const completeInteraction = useUIStore((s) => s.completeInteraction);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
-  const workerPosition = useWorkerStore((s) => s.workerPosition);
   const playSound = (name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); };
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -118,7 +116,7 @@ export function SceneCanvas() {
             addBlock(draggedBlockCategory, draggedResourceName, plateId, activeProvider);
             playSound('block-snap');
 
-            // Compute the new block's world position and dispatch to minifigure worker
+            // Compute the new block's world position
             const updatedBlocks = useArchitectureStore.getState().workspace.architecture.blocks;
             const newBlock = updatedBlocks.find((b) => !blocksBefore.has(b.id));
             if (newBlock) {
@@ -163,9 +161,6 @@ export function SceneCanvas() {
     }
   }, [handleWheel]);
 
-  const [wx, wy, wz] = workerPosition;
-  const workerScreen = worldToScreen(wx, wy, wz, origin.x, origin.y);
-  const workerZIndex = depthKey(wx, wz, wy, 1);
 
   return (
     <div 
@@ -251,14 +246,6 @@ export function SceneCanvas() {
           })}
         </div>
 
-        <div className="character-layer">
-          <MinifigureSprite
-            provider={activeProvider}
-            screenX={workerScreen.x}
-            screenY={workerScreen.y}
-            zIndex={workerZIndex}
-          />
-        </div>
 
         <div className="block-layer">
           {architecture.blocks.map((block) => {

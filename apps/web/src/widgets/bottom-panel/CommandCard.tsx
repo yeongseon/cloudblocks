@@ -356,7 +356,7 @@ function CreationMode() {
 
     const def = RESOURCE_DEFINITIONS[type];
 
-    // Handle plate creation — minifigure walks and builds
+    // Handle plate creation
     if (def.category === 'plate') {
       const platesBefore = new Set(
         useArchitectureStore.getState().workspace.architecture.plates.map((p) => p.id),
@@ -379,7 +379,7 @@ function CreationMode() {
         }
       }
 
-      // Trigger minifigure walk-build animation for the new plate
+      // Trigger walk-build animation for the new plate
       const updatedPlates = useArchitectureStore.getState().workspace.architecture.plates;
       const newPlate = updatedPlates.find((p) => !platesBefore.has(p.id));
       if (newPlate) {
@@ -635,7 +635,7 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
         playSound('block-snap');
       }
 
-      // Trigger minifigure walk-build animation for the new plate
+      // Trigger walk-build animation for the new plate
       const updatedPlates = useArchitectureStore.getState().workspace.architecture.plates;
       const newPlate = updatedPlates.find((p) => !platesBefore.has(p.id));
       if (newPlate) {
