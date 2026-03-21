@@ -590,13 +590,6 @@ describe('MenuBar', () => {
     await user.click(within(buildDropdown).getByRole('button', { name: /Browse Templates/ }));
     expect(useUIStore.getState().showTemplateGallery).toBe(true);
 
-    buildDropdown = await openMenu(user, 'Build');
-    await user.click(within(buildDropdown).getByRole('button', { name: /AI Suggestions/ }));
-    expect(useUIStore.getState().showSuggestionsPanel).toBe(true);
-
-    buildDropdown = await openMenu(user, 'Build');
-    await user.click(within(buildDropdown).getByRole('button', { name: /Cost Estimate/ }));
-    expect(useUIStore.getState().showCostPanel).toBe(true);
   }, 15000);
 
   it('routes Show Learning Panel to scenario gallery when no scenario is active', async () => {
@@ -948,55 +941,6 @@ describe('MenuBar', () => {
     expect(toast.error).toHaveBeenCalledWith('pull failed');
   });
 
-  it('submits AI prompt via AiPromptBar and calls generate', async () => {
-    const user = userEvent.setup();
-    const generateMock = vi.fn().mockResolvedValue(undefined);
-    const { useAiStore } = await import('../../features/ai/store');
-    useAiStore.setState({ generate: generateMock, generateLoading: false, generateError: null });
-    render(<MenuBar />);
-
-    const promptInput = screen.getByPlaceholderText(/describe your cloud architecture/i);
-    await user.type(promptInput, 'Create a 3-tier web app');
-    await user.click(screen.getByTitle('Generate Architecture'));
-
-    expect(generateMock).toHaveBeenCalledWith('Create a 3-tier web app', 'azure');
-  });
-
-  it('shows validation badge with Valid text when validationResult is valid', async () => {
-    const user = userEvent.setup();
-    useArchitectureStore.setState({
-      validationResult: { valid: true, errors: [], warnings: [] },
-    });
-    render(<MenuBar />);
-
-    const buildDropdown = await openMenu(user, 'Build');
-    const badge = within(buildDropdown).getByText('Valid');
-    expect(badge).toHaveClass('menu-badge-valid');
-  });
-
-  it('shows validation badge with Errors text when validationResult is invalid', async () => {
-    const user = userEvent.setup();
-    useArchitectureStore.setState({
-      validationResult: { valid: false, errors: [{ ruleId: 'test', message: 'err', severity: 'error', targetId: 'block-1' }], warnings: [] },
-    });
-    render(<MenuBar />);
-
-    const buildDropdown = await openMenu(user, 'Build');
-    const badge = within(buildDropdown).getByText('Errors');
-    expect(badge).toHaveClass('menu-badge-invalid');
-  });
-
-  it('Ops Center button toggles ops center visibility', async () => {
-    const user = userEvent.setup();
-    render(<MenuBar />);
-
-    const buildDropdown = await openMenu(user, 'Build');
-    await user.click(within(buildDropdown).getByRole('button', { name: /Ops Center/ }));
-
-    const { useOpsStore } = await import('../../entities/store/opsStore');
-    expect(useOpsStore.getState().showOpsCenter).toBe(true);
-  });
-
   it('Promote to Production button toggles promote dialog', async () => {
     const user = userEvent.setup();
     render(<MenuBar />);
@@ -1030,26 +974,6 @@ describe('MenuBar', () => {
     expect(usePromoteStore.getState().showPromoteHistory).toBe(true);
   });
 
-  it('AI Suggestions button toggles suggestions panel', async () => {
-    const user = userEvent.setup();
-    render(<MenuBar />);
-
-    const buildDropdown = await openMenu(user, 'Build');
-    await user.click(within(buildDropdown).getByRole('button', { name: /AI Suggestions/ }));
-
-    expect(useUIStore.getState().showSuggestionsPanel).toBe(true);
-  });
-
-  it('Cost Estimate button toggles cost panel', async () => {
-    const user = userEvent.setup();
-    render(<MenuBar />);
-
-    const buildDropdown = await openMenu(user, 'Build');
-    await user.click(within(buildDropdown).getByRole('button', { name: /Cost Estimate/ }));
-
-    expect(useUIStore.getState().showCostPanel).toBe(true);
-  });
-
   it('notification bell shows badge when unread count > 0', async () => {
     const { useNotificationStore } = await import('../../entities/store/notificationStore');
     useNotificationStore.getState().addNotification({
@@ -1080,8 +1004,6 @@ describe('MenuBar', () => {
     useUIStore.setState({
       showCodePreview: true,
       showGitHubRepos: true,
-      showSuggestionsPanel: true,
-      showCostPanel: true,
     });
     const { container } = render(<MenuBar />);
 
@@ -1090,8 +1012,6 @@ describe('MenuBar', () => {
 
     expect(useUIStore.getState().showCodePreview).toBe(false);
     expect(useUIStore.getState().showGitHubRepos).toBe(false);
-    expect(useUIStore.getState().showSuggestionsPanel).toBe(false);
-    expect(useUIStore.getState().showCostPanel).toBe(false);
   });
 
   it('show learning panel toggles off when already shown', async () => {

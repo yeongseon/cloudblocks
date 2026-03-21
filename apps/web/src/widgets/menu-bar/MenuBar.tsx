@@ -1,6 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { AiPromptBar } from '../../features/ai';
-import { useAiStore } from '../../features/ai/store';
 import { toast } from 'react-hot-toast';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useLearningStore } from '../../entities/store/learningStore';
@@ -8,7 +6,7 @@ import { validateArchitectureShape } from '../../entities/store/slices';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { useNotificationStore, selectUnreadCount } from '../../entities/store/notificationStore';
-import { useOpsStore } from '../../entities/store/opsStore';
+
 import { usePromoteStore } from '../../entities/store/promoteStore';
 import { computeArchitectureDiff } from '../../features/diff/engine';
 import { apiPost, getApiErrorMessage } from '../../shared/api/client';
@@ -46,8 +44,6 @@ export function MenuBar() {
   const toggleGitHubRepos = useUIStore((s) => s.toggleGitHubRepos);
   const toggleGitHubSync = useUIStore((s) => s.toggleGitHubSync);
   const toggleGitHubPR = useUIStore((s) => s.toggleGitHubPR);
-  const toggleSuggestionsPanel = useUIStore((s) => s.toggleSuggestionsPanel);
-  const toggleCostPanel = useUIStore((s) => s.toggleCostPanel);
   const diffMode = useUIStore((s) => s.diffMode);
   const toggleScenarioGallery = useUIStore((s) => s.toggleScenarioGallery);
   const toggleLearningPanel = useUIStore((s) => s.toggleLearningPanel);
@@ -58,7 +54,7 @@ export function MenuBar() {
   const playSound = (name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); };
 
   const unreadCount = useNotificationStore(selectUnreadCount);
-  const toggleOpsCenter = useOpsStore((s) => s.toggleOpsCenter);
+
   const togglePromoteDialog = usePromoteStore((s) => s.togglePromoteDialog);
   const toggleRollbackDialog = usePromoteStore((s) => s.toggleRollbackDialog);
   const togglePromoteHistory = usePromoteStore((s) => s.togglePromoteHistory);
@@ -241,8 +237,7 @@ export function MenuBar() {
       if (ui.showCodePreview) ui.toggleCodePreview();
       if (ui.showGitHubRepos) ui.toggleGitHubRepos();
       if (ui.showGitHubPR) ui.toggleGitHubPR();
-      if (ui.showSuggestionsPanel) ui.toggleSuggestionsPanel();
-      if (ui.showCostPanel) ui.toggleCostPanel();
+
     }
     toggleNotificationCenter();
   };
@@ -266,14 +261,6 @@ export function MenuBar() {
       toast.error(getApiErrorMessage(err, 'Failed to fetch remote architecture'));
     }
   };
-
-  const handleAiSubmit = (prompt: string, provider: string) => {
-    useAiStore.getState().generate(prompt, provider);
-  };
-
-  const aiLoading = useAiStore((s) => s.generateLoading);
-  const aiError = useAiStore((s) => s.generateError);
-  const aiResult = useAiStore((s) => s.generateResult);
 
   const handleToggleDiffMode = () => {
     if (diffMode) {
@@ -415,15 +402,7 @@ export function MenuBar() {
             <button type="button" className="menu-item" onClick={() => handleAction(toggleTemplateGallery)}>
               <span className="menu-item-left">📦 Browse Templates</span>
             </button>
-            <button type="button" className="menu-item" onClick={() => handleAction(toggleSuggestionsPanel)}>
-              <span className="menu-item-left">🤖 AI Suggestions</span>
-            </button>
-            <button type="button" className="menu-item" onClick={() => handleAction(toggleCostPanel)}>
-              <span className="menu-item-left">💰 Cost Estimate</span>
-            </button>
-            <button type="button" className="menu-item" onClick={() => handleAction(toggleOpsCenter)}>
-              <span className="menu-item-left">&#9881; Ops Center</span>
-            </button>
+
             <div className="menu-separator" />
             <button type="button" className="menu-item" onClick={() => handleAction(togglePromoteDialog)}>
               <span className="menu-item-left">&#x2B06; Promote to Production</span>
@@ -478,8 +457,6 @@ export function MenuBar() {
       
       </nav>
 
-      <AiPromptBar onSubmit={handleAiSubmit} isLoading={aiLoading} provider={activeProvider} error={aiError ?? undefined} explanation={aiResult?.explanation} warnings={aiResult?.warnings} />
-
       <div className="menu-bar-divider" />
 
       <div className="provider-section" role="tablist" aria-label="Cloud provider">
@@ -529,14 +506,7 @@ export function MenuBar() {
         >
           💾
         </button>
-        <button
-          type="button"
-          className="quick-btn"
-          onClick={toggleOpsCenter}
-          title="Ops Center"
-        >
-          &#9881;
-        </button>
+
         <button
           type="button"
           className="quick-btn notification-bell-btn"

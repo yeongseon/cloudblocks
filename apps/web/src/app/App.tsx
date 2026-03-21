@@ -11,7 +11,7 @@ import { useArchitectureStore } from '../entities/store/architectureStore';
 import { useAuthStore } from '../entities/store/authStore';
 import { useUIStore } from '../entities/store/uiStore';
 import { useNotificationStore } from '../entities/store/notificationStore';
-import { useOpsStore } from '../entities/store/opsStore';
+
 import { usePromoteStore } from '../entities/store/promoteStore';
 import { registerBuiltinTemplates } from '../features/templates/builtin';
 import { FlowDiagram } from '../widgets/flow-diagram/FlowDiagram';
@@ -33,10 +33,9 @@ const GitHubRepos = lazy(() => import('../widgets/github-repos/GitHubRepos').the
 const GitHubSync = lazy(() => import('../widgets/github-sync/GitHubSync').then(m => ({ default: m.GitHubSync })));
 const GitHubPR = lazy(() => import('../widgets/github-pr/GitHubPR').then(m => ({ default: m.GitHubPR })));
 const DiffPanel = lazy(() => import('../widgets/diff-panel/DiffPanel').then(m => ({ default: m.DiffPanel })));
-const SuggestionsPanel = lazy(() => import('../features/ai/components/SuggestionsPanel').then(m => ({ default: m.SuggestionsPanel })));
-const CostPanel = lazy(() => import('../features/ai/components/CostPanel').then(m => ({ default: m.CostPanel })));
+
 const NotificationCenter = lazy(() => import('../widgets/notification-center/NotificationCenter').then(m => ({ default: m.NotificationCenter })));
-const OpsCenter = lazy(() => import('../widgets/ops-center/OpsCenter').then(m => ({ default: m.OpsCenter })));
+
 const PromoteDialog = lazy(() => import('../widgets/promote-dialog/PromoteDialog').then(m => ({ default: m.PromoteDialog })));
 const RollbackDialog = lazy(() => import('../widgets/rollback-dialog/RollbackDialog').then(m => ({ default: m.RollbackDialog })));
 const PromoteHistory = lazy(() => import('../widgets/promote-history/PromoteHistory').then(m => ({ default: m.PromoteHistory })));
@@ -62,24 +61,21 @@ function App() {
   const showGitHubPR = useUIStore((s) => s.showGitHubPR);
   const showTemplateGallery = useUIStore((s) => s.showTemplateGallery);
   const showScenarioGallery = useUIStore((s) => s.showScenarioGallery);
-  const showSuggestionsPanel = useUIStore((s) => s.showSuggestionsPanel);
-  const showCostPanel = useUIStore((s) => s.showCostPanel);
+
   const workspaceId = useArchitectureStore((s) => s.workspace.id);
   const showNotificationCenter = useNotificationStore((s) => s.showNotificationCenter);
-  const showOpsCenter = useOpsStore((s) => s.showOpsCenter);
+
   const showPromoteDialog = usePromoteStore((s) => s.showPromoteDialog);
   const showRollbackDialog = usePromoteStore((s) => s.showRollbackDialog);
   const showPromoteHistory = usePromoteStore((s) => s.showPromoteHistory);
 
   // Determine right-panel CSS class so canvas viewport shrinks accordingly
-  const isWideRightPanel = showOpsCenter || showPromoteHistory;
+  const isWideRightPanel = showPromoteHistory;
   const isNarrowRightPanel =
     showCodePreview ||
     showGitHubLogin ||
     showGitHubRepos ||
     showGitHubPR ||
-    showSuggestionsPanel ||
-    showCostPanel ||
     showNotificationCenter ||
     showPromoteDialog ||
     showRollbackDialog;
@@ -202,10 +198,8 @@ function App() {
             {showGitHubPR && <GitHubPR key={`pr-${workspaceId}`} />}
             <DiffPanel />
             {showScenarioGallery && <ScenarioGallery />}
-            {showSuggestionsPanel && <SuggestionsPanel />}
-            {showCostPanel && <CostPanel />}
             {showNotificationCenter && <NotificationCenter />}
-            {showOpsCenter && <OpsCenter />}
+
             {showPromoteDialog && <PromoteDialog />}
             {showRollbackDialog && <RollbackDialog />}
             {showPromoteHistory && <PromoteHistory />}
