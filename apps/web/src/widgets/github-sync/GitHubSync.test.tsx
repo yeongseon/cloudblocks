@@ -94,6 +94,7 @@ describe('GitHubSync', () => {
     await waitFor(() => {
       expect(mockApiPut).toHaveBeenCalledWith('/api/v1/workspaces/ws-1', {
         github_repo: 'owner/repo-one',
+        github_branch: null,
       });
     });
 

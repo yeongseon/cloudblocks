@@ -11,6 +11,7 @@ vi.mock('../../shared/ui/ConfirmDialog', () => ({
   confirmDialog: vi.fn(),
 }));
 vi.mock('../../shared/api/client', () => ({
+  apiGet: vi.fn(),
   apiPost: vi.fn(),
   getApiErrorMessage: vi.fn((err: unknown, fallback: string) => {
     if (err instanceof Error) return err.message;
@@ -23,7 +24,7 @@ import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { useLearningStore } from '../../entities/store/learningStore';
 import type { ArchitectureModel, Block, Connection, Plate } from '@cloudblocks/schema';
-import { apiPost } from '../../shared/api/client';
+import { apiGet } from '../../shared/api/client';
 import { toast } from 'react-hot-toast';
 import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import { audioService } from '../../shared/utils/audioService';
@@ -802,7 +803,7 @@ describe('MenuBar', () => {
 
   it('compare with GitHub calls backend and enables diff mode', async () => {
     const user = userEvent.setup();
-    vi.mocked(apiPost).mockResolvedValue({ architecture: emptyArch });
+    vi.mocked(apiGet).mockResolvedValue({ architecture: emptyArch });
     useArchitectureStore.setState({
       workspace: {
         ...useArchitectureStore.getState().workspace,
@@ -827,13 +828,13 @@ describe('MenuBar', () => {
     const githubDropdown = getMenuDropdown(/octocat/);
     await user.click(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ }));
 
-    expect(apiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-1/pull');
+    expect(apiGet).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-1/compare');
     expect(useUIStore.getState().diffMode).toBe(true);
   });
 
   it('compare with GitHub uses backendWorkspaceId when set', async () => {
     const user = userEvent.setup();
-    vi.mocked(apiPost).mockResolvedValue({ architecture: emptyArch });
+    vi.mocked(apiGet).mockResolvedValue({ architecture: emptyArch });
     useAuthStore.setState({
       status: 'authenticated',
       user: {
@@ -858,7 +859,7 @@ describe('MenuBar', () => {
     const githubDropdown = getMenuDropdown(/octocat/);
     await user.click(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ }));
 
-    expect(apiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-99/pull');
+    expect(apiGet).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-99/compare');
   });
 
   it('quick action buttons call undo, redo, and save', async () => {
@@ -922,7 +923,7 @@ describe('MenuBar', () => {
 
   it('shows toast error when compare with GitHub fails', async () => {
     const user = userEvent.setup();
-    vi.mocked(apiPost).mockRejectedValue(new Error('pull failed'));
+    vi.mocked(apiGet).mockRejectedValue(new Error('compare failed'));
     useArchitectureStore.setState({
       workspace: {
         ...useArchitectureStore.getState().workspace,
@@ -945,7 +946,7 @@ describe('MenuBar', () => {
     const githubDropdown = getMenuDropdown(/octocat/);
     await user.click(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ }));
 
-    expect(toast.error).toHaveBeenCalledWith('pull failed');
+    expect(toast.error).toHaveBeenCalledWith('compare failed');
   });
 
   it('submits AI prompt via AiPromptBar and calls generate', async () => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { AiPromptBar } from '../../features/ai';
 import { useAiStore } from '../../features/ai/store';
 import { toast } from 'react-hot-toast';
@@ -11,7 +11,7 @@ import { useNotificationStore } from '../../entities/store/notificationStore';
 import { useOpsStore } from '../../entities/store/opsStore';
 import { usePromoteStore } from '../../entities/store/promoteStore';
 import { computeArchitectureDiff } from '../../features/diff/engine';
-import { apiPost, getApiErrorMessage } from '../../shared/api/client';
+import { apiGet, getApiErrorMessage } from '../../shared/api/client';
 import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import type { PullResponse } from '../../shared/types/api';
 import type { ArchitectureModel, ProviderType } from '@cloudblocks/schema';
@@ -247,25 +247,37 @@ export function MenuBar() {
     toggleNotificationCenter();
   };
 
-  const handleCompareWithGitHub = async () => {
+  const compareSeqRef = useRef(0);
+  const [comparing, setComparing] = useState(false);
+
+  const handleCompareWithGitHub = useCallback(async () => {
     if (!backendWorkspaceId) {
       toast.error('Workspace must be linked to backend before using GitHub compare.');
       return;
     }
+    if (comparing) return;
 
+    const seq = ++compareSeqRef.current;
+    setComparing(true);
     try {
-      const response = await apiPost<PullResponse>(
-        `/api/v1/workspaces/${encodeURIComponent(backendWorkspaceId)}/pull`,
+      const response = await apiGet<PullResponse>(
+        `/api/v1/workspaces/${encodeURIComponent(backendWorkspaceId)}/compare`,
       );
+      if (seq !== compareSeqRef.current) return;
       validateArchitectureShape(response.architecture);
       const remoteArch = response.architecture as unknown as ArchitectureModel;
       const localArch = useArchitectureStore.getState().workspace.architecture;
       const delta = computeArchitectureDiff(remoteArch, localArch);
       useUIStore.getState().setDiffMode(true, delta, remoteArch);
     } catch (err) {
+      if (seq !== compareSeqRef.current) return;
       toast.error(getApiErrorMessage(err, 'Failed to fetch remote architecture'));
+    } finally {
+      if (seq === compareSeqRef.current) {
+        setComparing(false);
+      }
     }
-  };
+  }, [backendWorkspaceId, comparing]);
 
   const handleAiSubmit = (prompt: string, provider: string) => {
     useAiStore.getState().generate(prompt, provider);

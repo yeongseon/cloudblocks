@@ -31,6 +31,10 @@ interface PromoteState {
   rollingBack: boolean;
   rollbackError: string | null;
 
+  // Current environment snapshots
+  currentStaging: DeploymentVersion | null;
+  currentProduction: DeploymentVersion | null;
+
   // History
   promotionHistory: PromotionRecord[];
   rollbackHistory: RollbackRecord[];
@@ -43,6 +47,7 @@ interface PromoteState {
   updateChecklist: (key: keyof PromotionChecklist, value: boolean) => void;
   resetChecklist: () => void;
   promote: (imageTag: string) => Promise<void>;
+  loadCurrentEnvironments: () => Promise<void>;
 
   toggleRollbackDialog: () => void;
   setShowRollbackDialog: (show: boolean) => void;
@@ -68,6 +73,10 @@ export const usePromoteStore = create<PromoteState>((set) => ({
   rollingBack: false,
   rollbackError: null,
 
+  // Current environment snapshots
+  currentStaging: null,
+  currentProduction: null,
+
   // History
   promotionHistory: [],
   rollbackHistory: [],
@@ -88,6 +97,31 @@ export const usePromoteStore = create<PromoteState>((set) => ({
 
   resetChecklist: () =>
     set({ promotionChecklist: { ...DEFAULT_CHECKLIST } }),
+
+  loadCurrentEnvironments: async () => {
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      // Simulated live data -- in production this would call an API
+      set({
+        currentStaging: {
+          imageTag: 'v1.4.3-sha-abc1234',
+          commitSha: 'abc1234',
+          commitMessage: 'feat: add dashboard widgets',
+          deployedAt: new Date(Date.now() - 7200_000).toISOString(),
+          environment: 'staging',
+        },
+        currentProduction: {
+          imageTag: 'v1.4.2-sha-e3f9a01',
+          commitSha: 'e3f9a01',
+          commitMessage: 'fix: resolve memory leak in worker pool',
+          deployedAt: new Date(Date.now() - 3600_000).toISOString(),
+          environment: 'production',
+        },
+      });
+    } catch {
+      // best effort - dialogs will show "no data" state
+    }
+  },
 
   promote: async (imageTag: string) => {
     set({ promoting: true, promotionError: null });

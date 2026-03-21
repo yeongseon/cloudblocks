@@ -74,15 +74,26 @@ class GitHubService:
             return resp.json()
 
     async def list_repos(self, access_token: str) -> list[dict[str, Any]]:
-        """List repositories the authenticated user has access to."""
+        """List repositories the authenticated user has access to (paginated)."""
+        all_repos: list[dict[str, Any]] = []
+        page = 1
+        per_page = 100
         async with httpx.AsyncClient() as client:
-            resp = await client.get(
-                f"{GITHUB_API_URL}/user/repos",
-                params={"sort": "updated", "per_page": 50},
-                headers=self._auth_headers(access_token),
-            )
-            self._check_response(resp)
-            return resp.json()
+            while True:
+                resp = await client.get(
+                    f"{GITHUB_API_URL}/user/repos",
+                    params={"sort": "updated", "per_page": per_page, "page": page},
+                    headers=self._auth_headers(access_token),
+                )
+                self._check_response(resp)
+                batch = resp.json()
+                if not batch:
+                    break
+                all_repos.extend(batch)
+                if len(batch) < per_page:
+                    break
+                page += 1
+        return all_repos
 
     async def create_repo(
         self, access_token: str, name: str, description: str = "", private: bool = True
@@ -187,17 +198,37 @@ class GitHubService:
             return resp.json()
 
     async def list_commits(
-        self, access_token: str, owner: str, repo: str, branch: str = "main", per_page: int = 20
+        self,
+        access_token: str,
+        owner: str,
+        repo: str,
+        branch: str = "main",
+        per_page: int = 20,
+        path: str | None = None,
     ) -> list[dict[str, Any]]:
-        """List recent commits on a branch."""
+        """List recent commits on a branch, optionally filtered to a file path."""
+        params: dict[str, Any] = {"sha": branch, "per_page": per_page}
+        if path:
+            params["path"] = path
         async with httpx.AsyncClient() as client:
             resp = await client.get(
                 f"{GITHUB_API_URL}/repos/{owner}/{repo}/commits",
-                params={"sha": branch, "per_page": per_page},
+                params=params,
                 headers=self._auth_headers(access_token),
             )
             self._check_response(resp)
             return resp.json()
+
+    async def delete_branch(
+        self, access_token: str, owner: str, repo: str, branch: str
+    ) -> None:
+        """Delete a branch by ref name."""
+        async with httpx.AsyncClient() as client:
+            resp = await client.delete(
+                f"{GITHUB_API_URL}/repos/{owner}/{repo}/git/refs/heads/{branch}",
+                headers=self._auth_headers(access_token),
+            )
+            self._check_response(resp)
 
     def _auth_headers(self, access_token: str) -> dict[str, str]:
         return {

@@ -52,22 +52,10 @@ function getEntityLabel(entity: { id: string }): string {
   return entity.id;
 }
 
-export function DiffPanel() {
-  const diffMode = useUIStore((s) => s.diffMode);
+function DiffPanelOuter() {
   const diffDelta = useUIStore((s) => s.diffDelta);
   const diffBaseArchitecture = useUIStore((s) => s.diffBaseArchitecture);
   const workspaceName = useArchitectureStore((s) => s.workspace.name);
-  const [trackedDelta, setTrackedDelta] = useState(diffDelta);
-  const [trackedMode, setTrackedMode] = useState(diffMode);
-  const [generation, setGeneration] = useState(0);
-
-  if (trackedDelta !== diffDelta || trackedMode !== diffMode) {
-    setTrackedDelta(diffDelta);
-    setTrackedMode(diffMode);
-    setGeneration((g) => g + 1);
-  }
-
-  if (!diffMode) return null;
 
   const handleClose = () => {
     useUIStore.getState().setDiffMode(false);
@@ -89,13 +77,23 @@ export function DiffPanel() {
 
   return (
     <DiffPanelContent
-      key={generation}
       diffDelta={diffDelta}
       diffBaseArchitecture={diffBaseArchitecture}
       workspaceName={workspaceName}
       onClose={handleClose}
     />
   );
+}
+
+export function DiffPanel() {
+  const diffMode = useUIStore((s) => s.diffMode);
+  const diffVersion = useUIStore((s) => s.diffVersion);
+
+  if (!diffMode) return null;
+
+  // Use diffVersion as key so DiffPanelContent remounts when diff data changes,
+  // resetting collapsed/expanded state to defaults.
+  return <DiffPanelOuter key={diffVersion} />;
 }
 
 function DiffPanelContent({

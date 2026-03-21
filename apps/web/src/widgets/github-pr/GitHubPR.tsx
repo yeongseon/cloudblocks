@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
@@ -23,6 +23,7 @@ export function GitHubPR() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PullRequestResponse | null>(null);
+  const requestSeqRef = useRef(0);
   const cleanedTitle = title.trim();
   const cleanedBranch = branch.trim();
   const cleanedCommitMessage = commitMessage.trim();
@@ -50,6 +51,8 @@ export function GitHubPR() {
       return;
     }
 
+    const seq = ++requestSeqRef.current;
+    const capturedBackendId = backendWorkspaceId;
     setLoading(true);
     setError(null);
     setResult(null);
@@ -64,11 +67,17 @@ export function GitHubPR() {
           commit_message: cleanedCommitMessage,
         }
       );
+      if (seq !== requestSeqRef.current) return;
+      const currentBwsId = useArchitectureStore.getState().workspace.backendWorkspaceId;
+      if (currentBwsId !== capturedBackendId) return;
       setResult(response);
     } catch (err) {
+      if (seq !== requestSeqRef.current) return;
       setError(getApiErrorMessage(err, 'Failed to create pull request.'));
     } finally {
-      setLoading(false);
+      if (seq === requestSeqRef.current) {
+        setLoading(false);
+      }
     }
   };
 

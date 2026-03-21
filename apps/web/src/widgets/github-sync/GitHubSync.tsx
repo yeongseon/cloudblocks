@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { validateArchitectureShape } from '../../entities/store/slices';
 import { apiGet, apiPost, apiPut } from '../../shared/api/client';
 import { isValidGitHubRepoFullName } from '../../shared/utils/githubValidation';
 import type { GitHubCommit, PullResponse, SyncResponse } from '../../shared/types/api';
@@ -27,10 +28,10 @@ export function GitHubSync() {
   const authStatus = useAuthStore((s) => s.status);
 
   const [linkedRepoState, setLinkedRepoState] = useState<LinkedRepoState | null>(
-    workspace.githubRepo
+    workspace.githubRepo && workspace.backendWorkspaceId
       ? {
         repo: workspace.githubRepo,
-        backendWorkspaceId: workspace.backendWorkspaceId ?? workspace.id,
+        backendWorkspaceId: workspace.backendWorkspaceId,
       }
       : null
   );
@@ -58,16 +59,16 @@ export function GitHubSync() {
   const busy = linking || syncing || pulling;
 
   useEffect(() => {
-    if (workspace.githubRepo) {
+    if (workspace.githubRepo && workspace.backendWorkspaceId) {
       setLinkedRepoState({
         repo: workspace.githubRepo,
-        backendWorkspaceId: workspace.backendWorkspaceId ?? workspace.id,
+        backendWorkspaceId: workspace.backendWorkspaceId,
       });
       return;
     }
 
     setLinkedRepoState(null);
-  }, [workspace.githubRepo, workspace.backendWorkspaceId, workspace.id]);
+  }, [workspace.githubRepo, workspace.backendWorkspaceId]);
 
   useEffect(() => () => {
     mountedRef.current = false;
@@ -143,6 +144,7 @@ export function GitHubSync() {
     try {
       await apiPut(`/api/v1/workspaces/${encodeURIComponent(bwsId)}`, {
         github_repo: cleanedRepo,
+        github_branch: null,
       });
 
       setLinkedRepoState({ repo: cleanedRepo, backendWorkspaceId: bwsId });
@@ -192,6 +194,7 @@ export function GitHubSync() {
       const response = await apiPost<PullResponse>(
         `/api/v1/workspaces/${encodeURIComponent(effectiveWorkspaceId)}/pull`
       );
+      validateArchitectureShape(response.architecture);
       replaceArchitecture(response.architecture as ArchitectureSnapshot);
       await loadCommits();
     } catch (err) {

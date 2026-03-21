@@ -1,14 +1,8 @@
+import { useEffect } from 'react';
 import { usePromoteStore } from '../../entities/store/promoteStore';
 import type { PromotionChecklist } from '../../shared/types/ops';
 import { timeAgo } from '../../shared/utils/timeAgo';
 import './PromoteDialog.css';
-
-const CURRENT_STAGING = {
-  imageTag: 'v1.4.3-sha-abc1234',
-  commitSha: 'abc1234',
-  commitMessage: 'feat: add dashboard widgets',
-  deployedAt: new Date(Date.now() - 7200_000).toISOString(),
-};
 
 const CHECKLIST_LABELS: Record<keyof PromotionChecklist, string> = {
   stagingHealthy: 'Staging environment is healthy',
@@ -28,6 +22,14 @@ export function PromoteDialog() {
   const promote = usePromoteStore((s) => s.promote);
   const setShowPromoteDialog = usePromoteStore((s) => s.setShowPromoteDialog);
   const resetChecklist = usePromoteStore((s) => s.resetChecklist);
+  const currentStaging = usePromoteStore((s) => s.currentStaging);
+  const loadCurrentEnvironments = usePromoteStore((s) => s.loadCurrentEnvironments);
+
+  useEffect(() => {
+    if (show) {
+      void loadCurrentEnvironments();
+    }
+  }, [show, loadCurrentEnvironments]);
 
   if (!show) return null;
 
@@ -39,8 +41,8 @@ export function PromoteDialog() {
   };
 
   const handlePromote = () => {
-    if (allChecked && !promoting) {
-      void promote(CURRENT_STAGING.imageTag);
+    if (allChecked && !promoting && currentStaging) {
+      void promote(currentStaging.imageTag);
     }
   };
 
@@ -62,21 +64,27 @@ export function PromoteDialog() {
         {/* Source info card */}
         <div className="promote-source-card">
           <div className="promote-source-label">Staging Environment</div>
-          <div className="promote-source-tag">{CURRENT_STAGING.imageTag}</div>
-          <div className="promote-source-meta">
-            <span>Commit: {CURRENT_STAGING.commitSha} - {CURRENT_STAGING.commitMessage}</span>
-            <span>Deployed {timeAgo(CURRENT_STAGING.deployedAt)}</span>
-          </div>
+          {currentStaging ? (
+            <>
+              <div className="promote-source-tag">{currentStaging.imageTag}</div>
+              <div className="promote-source-meta">
+                <span>Commit: {currentStaging.commitSha} - {currentStaging.commitMessage}</span>
+                <span>Deployed {timeAgo(currentStaging.deployedAt)}</span>
+              </div>
+            </>
+          ) : (
+            <div className="promote-source-tag">Loading...</div>
+          )}
         </div>
 
         {/* Pre-promotion checklist */}
         <div className="promote-checklist">
           <div className="promote-checklist-title">Pre-Promotion Checklist</div>
           {(Object.keys(CHECKLIST_LABELS) as (keyof PromotionChecklist)[]).map((key) => (
-            <div
+            <label
               key={key}
               className={`promote-checklist-item${checklist[key] ? ' checked' : ''}`}
-              onClick={() => updateChecklist(key, !checklist[key])}
+              htmlFor={`checklist-${key}`}
             >
               <input
                 type="checkbox"
@@ -84,8 +92,8 @@ export function PromoteDialog() {
                 onChange={(e) => updateChecklist(key, e.target.checked)}
                 id={`checklist-${key}`}
               />
-              <label htmlFor={`checklist-${key}`}>{CHECKLIST_LABELS[key]}</label>
-            </div>
+              <span>{CHECKLIST_LABELS[key]}</span>
+            </label>
           ))}
         </div>
 
@@ -98,7 +106,7 @@ export function PromoteDialog() {
             <span className="promote-diff-to">production</span>
           </div>
           <div className="promote-diff-row" style={{ marginTop: 4 }}>
-            <span className="promote-diff-from">{CURRENT_STAGING.imageTag}</span>
+            <span className="promote-diff-from">{currentStaging?.imageTag ?? '...'}</span>
             <span className="promote-diff-arrow">&rarr;</span>
             <span className="promote-diff-to">production:latest</span>
           </div>
@@ -121,7 +129,7 @@ export function PromoteDialog() {
           <button
             type="button"
             className="promote-btn-primary"
-            disabled={!allChecked || promoting}
+            disabled={!allChecked || promoting || !currentStaging}
             onClick={handlePromote}
           >
             {promoting && <span className="promote-spinner" />}

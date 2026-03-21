@@ -5,6 +5,7 @@ Workspace metadata CRUD. Architecture data lives in GitHub repos.
 
 from __future__ import annotations
 
+from enum import Enum
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
@@ -19,6 +20,15 @@ from app.domain.models.repositories import WorkspaceRepository
 router = APIRouter(prefix="/workspaces", tags=["workspaces"])
 
 
+class _Unset(Enum):
+    """Sentinel that distinguishes 'field omitted' from 'field set to null'."""
+
+    UNSET = "UNSET"
+
+
+_UNSET = _Unset.UNSET
+
+
 class CreateWorkspaceRequest(BaseModel):
     name: str
     generator: str = "terraform"
@@ -30,8 +40,8 @@ class UpdateWorkspaceRequest(BaseModel):
     name: str | None = None
     generator: str | None = None
     provider: str | None = None
-    github_repo: str | None = None
-    github_branch: str | None = None
+    github_repo: str | None | _Unset = _UNSET
+    github_branch: str | None | _Unset = _UNSET
 
 
 class WorkspaceResponse(BaseModel):
@@ -126,9 +136,9 @@ async def update_workspace(
         workspace.generator = body.generator
     if body.provider is not None:
         workspace.provider = body.provider
-    if body.github_repo is not None:
+    if body.github_repo is not _UNSET:
         workspace.github_repo = body.github_repo
-    if body.github_branch is not None:
+    if body.github_branch is not _UNSET:
         workspace.github_branch = body.github_branch
 
     workspace = await workspace_repo.update(workspace)

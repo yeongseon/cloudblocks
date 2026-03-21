@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { apiGet, apiPost } from '../../shared/api/client';
@@ -11,6 +12,7 @@ export function GitHubRepos() {
   const toggleGitHubRepos = useUIStore((s) => s.toggleGitHubRepos);
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
   const authStatus = useAuthStore((s) => s.status);
+  const linkedRepo = useArchitectureStore((s) => s.workspace.githubRepo);
 
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
   const [loading, setLoading] = useState(false);
@@ -22,23 +24,46 @@ export function GitHubRepos() {
   const cleanedRepoName = newRepoName.trim();
   const cleanedRepoDescription = newRepoDescription.trim();
   const canCreateRepo = isValidGitHubRepoName(cleanedRepoName);
+  const requestSeqRef = useRef(0);
+  const mountedRef = useRef(true);
+  const showRef = useRef(show);
+  const authRef = useRef(isAuthenticated);
+
+  showRef.current = show;
+  authRef.current = isAuthenticated;
+
+  useEffect(() => () => {
+    mountedRef.current = false;
+    requestSeqRef.current += 1;
+  }, []);
 
   const fetchRepos = async () => {
+    const seq = ++requestSeqRef.current;
+    const canApply = () =>
+      mountedRef.current && seq === requestSeqRef.current && showRef.current && authRef.current;
+
     setLoading(true);
     setError(null);
     try {
       const response = await apiGet<{ repos: GitHubRepo[] }>('/api/v1/github/repos');
+      if (!canApply()) return;
       setRepos(response.repos);
     } catch (err) {
+      if (!canApply()) return;
       setError(err instanceof Error ? err.message : 'Failed to load repositories.');
     } finally {
-      setLoading(false);
+      if (canApply()) {
+        setLoading(false);
+      }
     }
   };
 
   useEffect(() => {
     if (!show || !isAuthenticated) return;
     void fetchRepos();
+    return () => {
+      requestSeqRef.current += 1;
+    };
   }, [show, isAuthenticated]);
 
   if (!show) return null;
@@ -67,6 +92,9 @@ export function GitHubRepos() {
       setCreating(false);
     }
   };
+
+  const isLinkedRepo = (fullName: string): boolean =>
+    Boolean(linkedRepo) && linkedRepo!.toLowerCase() === fullName.toLowerCase();
 
   return (
     <div className="github-repos">
@@ -124,6 +152,9 @@ export function GitHubRepos() {
                 <div key={repo.full_name} className="github-repos-item">
                   <div className="github-repos-item-main">
                     <span className="github-repos-name">{repo.name}</span>
+                    {isLinkedRepo(repo.full_name) && (
+                      <span className="github-repos-badge github-repos-badge-linked">Linked</span>
+                    )}
                     <span className={`github-repos-badge ${repo.private ? 'github-repos-badge-private' : 'github-repos-badge-public'}`}>
                       {repo.private ? 'private' : 'public'}
                     </span>

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import base64
 import json
+import uuid
 from datetime import datetime, timezone
 from typing import Annotated, Any
 
@@ -244,10 +245,76 @@ async def pull_from_github(
         raise
 
     if isinstance(content, dict) and content.get("content"):
-        decoded = base64.b64decode(content["content"]).decode()
-        architecture = json.loads(decoded)
+        try:
+            decoded = base64.b64decode(content["content"]).decode()
+        except Exception as exc:
+            raise GitHubError(
+                "Failed to decode architecture file from GitHub (invalid base64)",
+                details={"decode_error": str(exc)},
+            ) from exc
+        try:
+            architecture = json.loads(decoded)
+        except json.JSONDecodeError as exc:
+            raise GitHubError(
+                "Remote architecture.json contains invalid JSON",
+                details={"parse_error": str(exc)},
+            ) from exc
     else:
         raise GitHubError("Unexpected response format from GitHub")
+
+    _validate_architecture(architecture)
+
+    return {"architecture": architecture}
+
+
+@router.get("/workspaces/{workspace_id}/compare")
+async def compare_with_github(
+    workspace_id: str,
+    current_user: Annotated[User, Depends(get_current_user)],
+    workspace_repo: Annotated[WorkspaceRepository, Depends(get_workspace_repo)],
+    github: Annotated[GitHubService, Depends(get_github_service)],
+    identity_repo: Annotated[IdentityRepository, Depends(get_identity_repo)],
+) -> dict[str, Any]:
+    """Read-only compare: fetch remote architecture without side effects."""
+    workspace = await workspace_repo.find_by_id(workspace_id)
+    if not workspace:
+        raise NotFoundError("Workspace", workspace_id)
+    if workspace.owner_id != current_user.id:
+        raise ForbiddenError("You do not own this workspace")
+    if not workspace.github_repo:
+        raise GitHubError("Workspace is not linked to a GitHub repository")
+
+    token = await _get_github_token(current_user, identity_repo)
+    owner, repo = workspace.github_repo.split("/", 1)
+
+    try:
+        content = await github.get_repo_contents(
+            token, owner, repo, "cloudblocks/architecture.json", workspace.github_branch
+        )
+    except GitHubError as exc:
+        if exc.details.get("status_code") == 404:
+            raise NotFoundError("File", "cloudblocks/architecture.json") from None
+        raise
+
+    if isinstance(content, dict) and content.get("content"):
+        try:
+            decoded = base64.b64decode(content["content"]).decode()
+        except Exception as exc:
+            raise GitHubError(
+                "Failed to decode architecture file from GitHub (invalid base64)",
+                details={"decode_error": str(exc)},
+            ) from exc
+        try:
+            architecture = json.loads(decoded)
+        except json.JSONDecodeError as exc:
+            raise GitHubError(
+                "Remote architecture.json contains invalid JSON",
+                details={"parse_error": str(exc)},
+            ) from exc
+    else:
+        raise GitHubError("Unexpected response format from GitHub")
+
+    _validate_architecture(architecture)
 
     return {"architecture": architecture}
 
@@ -273,13 +340,23 @@ async def create_pull_request(
     token = await _get_github_token(current_user, identity_repo)
     owner, repo = workspace.github_repo.split("/", 1)
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
-    branch_name = body.branch or f"cloudblocks/update-{timestamp}"
+    unique_suffix = uuid.uuid4().hex[:6]
+    branch_name = body.branch or f"cloudblocks/update-{timestamp}-{unique_suffix}"
 
     # Get default branch SHA
     base_sha = await github.get_default_branch_sha(token, owner, repo, workspace.github_branch)
 
-    # Create new branch
-    await github.create_branch(token, owner, repo, branch_name, base_sha)
+    # Create new branch (handle collision by reusing existing branch)
+    branch_created = False
+    try:
+        await github.create_branch(token, owner, repo, branch_name, base_sha)
+        branch_created = True
+    except GitHubError as exc:
+        if exc.details.get("status_code") == 422:
+            # Branch already exists - reuse it
+            pass
+        else:
+            raise
 
     # Commit architecture.json to the new branch
     arch_json = json.dumps(body.architecture, indent=2, sort_keys=True)
@@ -299,27 +376,45 @@ async def create_pull_request(
         else:
             raise
 
-    await github.create_or_update_file(
-        token,
-        owner,
-        repo,
-        "cloudblocks/architecture.json",
-        content_b64,
-        body.commit_message,
-        branch_name,
-        sha,
-    )
+    try:
+        await github.create_or_update_file(
+            token,
+            owner,
+            repo,
+            "cloudblocks/architecture.json",
+            content_b64,
+            body.commit_message,
+            branch_name,
+            sha,
+        )
+    except GitHubError:
+        # Clean up orphan branch if we created it and the file commit failed
+        if branch_created:
+            try:
+                await github.delete_branch(token, owner, repo, branch_name)
+            except GitHubError:
+                pass  # best-effort cleanup
+        raise
 
     # Create PR
-    pr = await github.create_pull_request(
-        token,
-        owner,
-        repo,
-        body.title,
-        branch_name,
-        workspace.github_branch,
-        body.body,
-    )
+    try:
+        pr = await github.create_pull_request(
+            token,
+            owner,
+            repo,
+            body.title,
+            branch_name,
+            workspace.github_branch,
+            body.body,
+        )
+    except GitHubError:
+        # Clean up orphan branch if we created it and the PR creation failed
+        if branch_created:
+            try:
+                await github.delete_branch(token, owner, repo, branch_name)
+            except GitHubError:
+                pass  # best-effort cleanup
+        raise
 
     return {
         "pull_request_url": pr["html_url"],
@@ -347,7 +442,9 @@ async def list_commits(
 
     token = await _get_github_token(current_user, identity_repo)
     owner, repo = workspace.github_repo.split("/", 1)
-    commits = await github.list_commits(token, owner, repo, workspace.github_branch)
+    commits = await github.list_commits(
+        token, owner, repo, workspace.github_branch, path="cloudblocks/architecture.json"
+    )
 
     return {
         "commits": [

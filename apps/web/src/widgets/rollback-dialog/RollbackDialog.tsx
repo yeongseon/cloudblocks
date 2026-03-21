@@ -4,13 +4,6 @@ import type { DeploymentVersion } from '../../shared/types/ops';
 import { timeAgo } from '../../shared/utils/timeAgo';
 import './RollbackDialog.css';
 
-const CURRENT_PRODUCTION = {
-  imageTag: 'v1.4.3-sha-abc1234',
-  commitSha: 'abc1234',
-  commitMessage: 'feat: add dashboard widgets',
-  deployedAt: new Date(Date.now() - 3600_000).toISOString(),
-};
-
 export function RollbackDialog() {
   const show = usePromoteStore((s) => s.showRollbackDialog);
   const availableVersions = usePromoteStore((s) => s.availableVersions);
@@ -21,15 +14,18 @@ export function RollbackDialog() {
   const loadAvailableVersions = usePromoteStore((s) => s.loadAvailableVersions);
   const rollback = usePromoteStore((s) => s.rollback);
   const setShowRollbackDialog = usePromoteStore((s) => s.setShowRollbackDialog);
+  const currentProduction = usePromoteStore((s) => s.currentProduction);
+  const loadCurrentEnvironments = usePromoteStore((s) => s.loadCurrentEnvironments);
 
   const [reason, setReason] = useState('');
   const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
-    if (show && availableVersions.length === 0) {
+    if (show) {
       void loadAvailableVersions();
+      void loadCurrentEnvironments();
     }
-  }, [show, availableVersions.length, loadAvailableVersions]);
+  }, [show, loadAvailableVersions, loadCurrentEnvironments]);
 
   if (!show) return null;
 
@@ -83,10 +79,16 @@ export function RollbackDialog() {
         {/* Current production version */}
         <div className="rollback-current-card">
           <div className="rollback-current-label">Current Production Version</div>
-          <div className="rollback-current-tag">{CURRENT_PRODUCTION.imageTag}</div>
-          <div className="rollback-current-meta">
-            {CURRENT_PRODUCTION.commitSha} - {CURRENT_PRODUCTION.commitMessage}
-          </div>
+          {currentProduction ? (
+            <>
+              <div className="rollback-current-tag">{currentProduction.imageTag}</div>
+              <div className="rollback-current-meta">
+                {currentProduction.commitSha} - {currentProduction.commitMessage}
+              </div>
+            </>
+          ) : (
+            <div className="rollback-current-tag">Loading...</div>
+          )}
         </div>
 
         {/* Version selector */}
@@ -94,10 +96,9 @@ export function RollbackDialog() {
           <div className="rollback-versions-title">Select Version to Rollback To</div>
           <div className="rollback-version-list">
             {availableVersions.map((v) => (
-              <div
+              <label
                 key={v.imageTag}
                 className={`rollback-version-item${selectedVersion?.imageTag === v.imageTag ? ' selected' : ''}`}
-                onClick={() => handleSelectVersion(v)}
               >
                 <input
                   type="radio"
@@ -110,7 +111,7 @@ export function RollbackDialog() {
                   <span className="rollback-version-msg">{v.commitMessage}</span>
                   <span className="rollback-version-time">{timeAgo(v.deployedAt)}</span>
                 </div>
-              </div>
+              </label>
             ))}
           </div>
         </div>
@@ -127,16 +128,16 @@ export function RollbackDialog() {
         </div>
 
         {/* Diff preview (when version selected) */}
-        {selectedVersion && (
+        {selectedVersion && currentProduction && (
           <div className="rollback-diff">
             <div className="rollback-diff-title">Version Change Preview</div>
             <div className="rollback-diff-row">
-              <span className="rollback-diff-from">{CURRENT_PRODUCTION.imageTag}</span>
+              <span className="rollback-diff-from">{currentProduction.imageTag}</span>
               <span className="rollback-diff-arrow">&rarr;</span>
               <span className="rollback-diff-to">{selectedVersion.imageTag}</span>
             </div>
             <div className="rollback-diff-row">
-              <span className="rollback-diff-from">{CURRENT_PRODUCTION.commitSha}</span>
+              <span className="rollback-diff-from">{currentProduction.commitSha}</span>
               <span className="rollback-diff-arrow">&rarr;</span>
               <span className="rollback-diff-to">{selectedVersion.commitSha}</span>
             </div>
@@ -153,7 +154,7 @@ export function RollbackDialog() {
           <div className="rollback-confirm">
             <div className="rollback-confirm-text">Are you sure you want to rollback?</div>
             <div className="rollback-confirm-detail">
-              {CURRENT_PRODUCTION.imageTag} &rarr; {selectedVersion?.imageTag}
+              {currentProduction?.imageTag ?? '...'} &rarr; {selectedVersion?.imageTag}
             </div>
             <div className="rollback-confirm-actions">
               <button
