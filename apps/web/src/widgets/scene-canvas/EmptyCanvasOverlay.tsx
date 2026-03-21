@@ -19,7 +19,7 @@ export function EmptyCanvasOverlay() {
         <p className="empty-canvas-subtitle">
           Start designing your cloud infrastructure
         </p>
-        <div className="empty-canvas-actions">
+        <div className="empty-canvas-grid">
           <button
             type="button"
             className="empty-canvas-btn empty-canvas-btn--template"
@@ -41,6 +41,9 @@ export function EmptyCanvasOverlay() {
           >
             📖 Learn How
           </button>
+          <div className="empty-canvas-btn empty-canvas-btn--placeholder" aria-hidden="true">
+            🎮 Coming Soon
+          </div>
         </div>
       </div>
     </div>
