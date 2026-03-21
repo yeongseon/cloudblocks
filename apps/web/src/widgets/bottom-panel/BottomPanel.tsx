@@ -12,6 +12,7 @@ interface BottomPanelProps {
 
 export function BottomPanel({ className = '' }: BottomPanelProps) {
   const selectedId = useUIStore((s) => s.selectedId);
+  const showProperties = useUIStore((s) => s.showProperties);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
 
   const selectedBlock = selectedId
@@ -42,7 +43,7 @@ export function BottomPanel({ className = '' }: BottomPanelProps) {
       <div className="bottom-panel-context">
         <p className="bottom-panel-context-text">{contextDescription}</p>
       </div>
-      <DetailPanel className="bottom-panel-detail" />
+      {showProperties && <DetailPanel className="bottom-panel-detail" />}
     </div>
   );
 }

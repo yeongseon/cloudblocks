@@ -124,10 +124,7 @@ function closeOtherRightPanels(except: RightPanelKey): Partial<UIState> {
 
 export const useUIStore = create<UIState>((set) => ({
   selectedId: null,
-  setSelectedId: (id) => set({
-    selectedId: id,
-    ...(id && id !== 'worker-default' ? { showProperties: true } : {}),
-  }),
+  setSelectedId: (id) => set({ selectedId: id }),
 
   toolMode: 'select',
   setToolMode: (mode) =>
