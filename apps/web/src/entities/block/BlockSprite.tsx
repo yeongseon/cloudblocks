@@ -99,6 +99,8 @@ export const BlockSprite = memo(function BlockSprite({
   const diffState = diffMode && diffDelta ? getDiffState(block.id, diffDelta) : 'unchanged';
   const isBeingBuilt = activeBuild?.blockId === block.id;
   const buildProgress = isBeingBuilt ? (activeBuild?.progress ?? 0) : 1;
+  const upgradingBlockId = useUIStore((s) => s.upgradingBlockId);
+  const isUpgrading = upgradingBlockId === block.id;
 
   useEffect(() => {
     const el = blockRef.current;
@@ -240,6 +242,7 @@ export const BlockSprite = memo(function BlockSprite({
     diffState === 'modified' && 'diff-modified',
     diffState === 'removed' && 'diff-removed',
     isBeingBuilt && 'is-building',
+    isUpgrading && 'is-upgrading',
   ]
     .filter(Boolean)
     .join(' ');
