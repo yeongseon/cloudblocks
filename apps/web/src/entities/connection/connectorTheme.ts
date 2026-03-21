@@ -3,6 +3,9 @@ import type { ConnectionType } from '@cloudblocks/schema';
 // ─── Connector Color Themes ─────────────────────────────────
 // See BRICK_CONNECTOR_SPEC.md §3.1
 
+/** Physically distinct beam shapes — each connection type uses a unique shape */
+export type BeamShape = 'standard' | 'doubleRail' | 'segmented' | 'wide' | 'zigzag';
+
 export interface ConnectorTheme {
   /** Top face / tile color */
   tile: string;
@@ -12,8 +15,10 @@ export interface ConnectorTheme {
   dark: string;
   /** Accent for patterns and stud inner ring */
   accent: string;
-  /** SVG pattern type */
+  /** SVG pattern type rendered on the beam surface */
   pattern: 'solid' | 'double' | 'dashed' | 'dotted' | 'zigzag';
+  /** Physical beam shape — determines the geometry of the connector */
+  beamShape: BeamShape;
 }
 
 export const CONNECTOR_THEMES: Record<ConnectionType, ConnectorTheme> = {
@@ -23,6 +28,7 @@ export const CONNECTOR_THEMES: Record<ConnectionType, ConnectorTheme> = {
     dark: '#334155',
     accent: '#94a3b8',
     pattern: 'solid',
+    beamShape: 'standard',
   },
   http: {
     tile: '#3b82f6',
@@ -30,6 +36,7 @@ export const CONNECTOR_THEMES: Record<ConnectionType, ConnectorTheme> = {
     dark: '#1d4ed8',
     accent: '#60a5fa',
     pattern: 'double',
+    beamShape: 'doubleRail',
   },
   internal: {
     tile: '#8b5cf6',
@@ -37,6 +44,7 @@ export const CONNECTOR_THEMES: Record<ConnectionType, ConnectorTheme> = {
     dark: '#6d28d9',
     accent: '#a78bfa',
     pattern: 'dashed',
+    beamShape: 'segmented',
   },
   data: {
     tile: '#f59e0b',
@@ -44,6 +52,7 @@ export const CONNECTOR_THEMES: Record<ConnectionType, ConnectorTheme> = {
     dark: '#b45309',
     accent: '#fbbf24',
     pattern: 'dotted',
+    beamShape: 'wide',
   },
   async: {
     tile: '#10b981',
@@ -51,6 +60,7 @@ export const CONNECTOR_THEMES: Record<ConnectionType, ConnectorTheme> = {
     dark: '#047857',
     accent: '#34d399',
     pattern: 'zigzag',
+    beamShape: 'zigzag',
   },
 };
 

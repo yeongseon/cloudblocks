@@ -309,3 +309,109 @@ Complete SVG for a single isometric flat tile segment along the world X-axis:
   stroke-width="0.5"
 />
 ```
+
+---
+
+## 11. Technic Beam Redesign (M18)
+
+**Date**: 2026-03-21  
+**Issue**: #1060
+
+### 11.1 Motivation
+
+The original flat tile design (§2.1) used surface pattern overlays (§3.2) to distinguish connection types. While functionally correct, the thin lines and dash patterns were subtle and hard to read at typical zoom levels. The Technic Beam redesign replaces pattern overlays with **physically distinct beam geometries** — each connection type now has a unique 3D shape, making them instantly recognizable.
+
+This follows the Lego Technic principle: different beam pieces are physically different shapes, not painted-on decorations.
+
+### 11.2 BeamShape Type
+
+A new `BeamShape` type is added to `connectorTheme.ts`:
+
+```typescript
+type BeamShape = 'standard' | 'doubleRail' | 'segmented' | 'wide' | 'zigzag';
+```
+
+Each connector theme gains a `beamShape` field. The mapping is:
+
+| Connection Type | BeamShape | Visual Description |
+|----------------|-----------|-------------------|
+| `dataflow` | `standard` | Classic smooth beam — single 3D extrusion |
+| `http` | `doubleRail` | Two parallel track beams — rail pair |
+| `internal` | `segmented` | Beam with visible gaps — dashed physical form |
+| `data` | `wide` | 1.5× width beam — broad data pipe |
+| `async` | `zigzag` | Sawtooth path — physically jagged beam |
+
+### 11.3 Beam Geometry Constants
+
+```
+BEAM_HALF_WIDTH  = 8     (half-width of standard beam, screen px)
+BEAM_THICKNESS   = 6     (3D depth, up from 3px flat tiles)
+WIDE_HALF_WIDTH  = 12    (1.5× for 'data' type)
+RAIL_HALF_WIDTH  = 3     (each rail in double-rail)
+RAIL_GAP         = 4     (gap between rails)
+SEGMENT_CHUNK    = 20    (chunk length before gap)
+SEGMENT_GAP      = 4     (gap between chunks)
+ZIGZAG_AMPLITUDE = 6     (zigzag offset)
+ZIGZAG_WAVELENGTH= 16    (zigzag period)
+ARROW_LENGTH     = 12    (unchanged)
+HIT_AREA_WIDTH   = 20    (widened from 16px for easier clicking)
+```
+
+### 11.4 Beam Renderers
+
+Each beam shape has a dedicated renderer function:
+
+1. **`renderStandardBeam`** — 3 polygons per segment (top face + right side + front side). Identical geometry to the original flat tile but thicker (6px vs 3px).
+
+2. **`renderDoubleRailBeam`** — 6 polygons per segment (3 per rail × 2). Two parallel beams with `RAIL_GAP` spacing, each using `RAIL_HALF_WIDTH`.
+
+3. **`renderSegmentedBeam`** — Variable polygon count. Beam is split into chunks of `SEGMENT_CHUNK` length with `SEGMENT_GAP` gaps. Each chunk is a standard 3-polygon beam piece.
+
+4. **`renderWideBeam`** — 3 polygons per segment using `WIDE_HALF_WIDTH` (12px vs standard 8px). Visually reads as a wider data channel.
+
+5. **`renderZigzagBeam`** — Multiple sub-segments per route segment. The beam path zigzags with `ZIGZAG_AMPLITUDE` offset at `ZIGZAG_WAVELENGTH` intervals. Each zig/zag is a standard 3-polygon piece.
+
+### 11.5 3D Elbow Joints
+
+Elbow joints (bend points) are upgraded from single-polygon diamonds to **3-polygon 3D pieces**:
+
+```svg
+<g data-elbow pointer-events="none">
+  <!-- Top face: diamond -->
+  <polygon points="{top-diamond}" fill="{tile}" stroke="{shadow}" stroke-width="0.5" />
+  <!-- Right side face -->
+  <polygon points="{right-side}" fill="{shadow}" />
+  <!-- Front side face -->
+  <polygon points="{front-side}" fill="{dark}" />
+</g>
+```
+
+Elbow size scales with beam width via `getBeamHalfWidth(beamShape)`.
+
+### 11.6 3D Arrow Tip
+
+The directional arrow at the target end now includes a side face for 3D depth:
+
+```svg
+<g pointer-events="none">
+  <!-- Top face: triangle -->
+  <polygon points="{tip-triangle}" fill="{tile}" stroke="{shadow}" stroke-width="0.5" />
+  <!-- Side face: parallelogram -->
+  <polygon points="{side-face}" fill="{shadow}" />
+</g>
+```
+
+### 11.7 Pattern Overlay Removal
+
+The `renderPattern` function from the original implementation is **removed**. Pattern differentiation is now achieved through beam geometry alone — no SVG line overlays are needed.
+
+The `pattern` field in `ConnectorTheme` is **retained** for backward compatibility and documentation reference, but is not rendered visually.
+
+### 11.8 Test Coverage
+
+Beam-shape-specific tests validate:
+- Each connection type renders with the correct `data-beam-shape` attribute
+- Each beam type produces the expected SVG structure (polygon counts, group nesting)
+- `beamShape` values are unique across all 5 connection types
+- Elbow joints have `data-elbow` attribute and 3-polygon structure
+- Arrow tip renders with side face
