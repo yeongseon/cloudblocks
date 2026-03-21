@@ -1,7 +1,18 @@
 import { useState } from 'react';
+import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import type { ArchitectureModel } from '@cloudblocks/schema';
 import type { DiffDelta } from '../../shared/types/diff';
 import './DiffPanel.css';
+
+function summarizeArchitecture(arch: ArchitectureModel) {
+  return {
+    plates: arch.plates.length,
+    blocks: arch.blocks.length,
+    connections: arch.connections.length,
+    externalActors: arch.externalActors?.length ?? 0,
+  };
+}
 
 type SectionKey = 'plates' | 'blocks' | 'connections' | 'externalActors';
 
@@ -44,6 +55,8 @@ function getEntityLabel(entity: { id: string }): string {
 export function DiffPanel() {
   const diffMode = useUIStore((s) => s.diffMode);
   const diffDelta = useUIStore((s) => s.diffDelta);
+  const diffBaseArchitecture = useUIStore((s) => s.diffBaseArchitecture);
+  const workspaceName = useArchitectureStore((s) => s.workspace.name);
   const [trackedDelta, setTrackedDelta] = useState(diffDelta);
   const [trackedMode, setTrackedMode] = useState(diffMode);
   const [generation, setGeneration] = useState(0);
@@ -74,10 +87,28 @@ export function DiffPanel() {
     );
   }
 
-  return <DiffPanelContent key={generation} diffDelta={diffDelta} onClose={handleClose} />;
+  return (
+    <DiffPanelContent
+      key={generation}
+      diffDelta={diffDelta}
+      diffBaseArchitecture={diffBaseArchitecture}
+      workspaceName={workspaceName}
+      onClose={handleClose}
+    />
+  );
 }
 
-function DiffPanelContent({ diffDelta, onClose }: { diffDelta: DiffDelta; onClose: () => void }) {
+function DiffPanelContent({
+  diffDelta,
+  diffBaseArchitecture,
+  workspaceName,
+  onClose,
+}: {
+  diffDelta: DiffDelta;
+  diffBaseArchitecture: ArchitectureModel | null;
+  workspaceName: string;
+  onClose: () => void;
+}) {
   const [collapsedSections, setCollapsedSections] = useState<Record<SectionKey, boolean>>({
     plates: false,
     blocks: false,
@@ -117,6 +148,17 @@ function DiffPanelContent({ diffDelta, onClose }: { diffDelta: DiffDelta; onClos
           ✕
         </button>
       </div>
+
+      <div className="diff-panel-context">Comparing: {workspaceName}</div>
+
+      {diffBaseArchitecture && (() => {
+        const s = summarizeArchitecture(diffBaseArchitecture);
+        return (
+          <div className="diff-panel-remote-summary">
+            Remote: {s.plates} plates · {s.blocks} blocks · {s.connections} connections · {s.externalActors} actors
+          </div>
+        );
+      })()}
 
       <div className="diff-summary-bar">
         <span className="diff-badge diff-badge-added">+{summaryCounts.added} added</span>

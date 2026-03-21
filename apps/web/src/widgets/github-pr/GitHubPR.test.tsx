@@ -9,6 +9,22 @@ vi.mock('../../shared/api/client', () => ({
     return fallback;
   }),
 }));
+vi.mock('react-hot-toast', () => ({
+  toast: { error: vi.fn() },
+}));
+vi.mock('../../entities/store/slices', () => ({
+  validateArchitectureShape: vi.fn(),
+}));
+vi.mock('../../features/diff/engine', () => ({
+  computeArchitectureDiff: vi.fn(() => ({
+    plates: { added: [], removed: [], modified: [] },
+    blocks: { added: [], removed: [], modified: [] },
+    connections: { added: [], removed: [], modified: [] },
+    externalActors: { added: [], removed: [], modified: [] },
+    rootChanges: [],
+    summary: { totalChanges: 0, hasBreakingChanges: false },
+  })),
+}));
 import { GitHubPR } from './GitHubPR';
 import { useUIStore } from '../../entities/store/uiStore';
 import { useAuthStore } from '../../entities/store/authStore';
@@ -365,7 +381,8 @@ describe('GitHubPR', () => {
 
   it('shows repo name in meta section when githubRepo is set', () => {
     render(<GitHubPR />);
-    expect(screen.getByText('owner/repo-one')).toBeInTheDocument();
+    const repoElements = screen.getAllByText('owner/repo-one');
+    expect(repoElements.length).toBeGreaterThanOrEqual(1);
   });
 
   it('does not show repo in meta section when githubRepo is not set', () => {
@@ -378,5 +395,45 @@ describe('GitHubPR', () => {
 
     render(<GitHubPR />);
     expect(screen.queryByText('owner/repo-one')).not.toBeInTheDocument();
+  });
+
+  it('shows local architecture summary (#878)', () => {
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...emptyArch,
+          plates: [{ id: 'p1' }, { id: 'p2' }] as typeof emptyArch.plates,
+          blocks: [{ id: 'b1' }] as typeof emptyArch.blocks,
+          connections: [{ id: 'c1' }] as typeof emptyArch.connections,
+        },
+      },
+    });
+
+    render(<GitHubPR />);
+    expect(screen.getByText('Local: 2 plates · 1 blocks · 1 connections')).toBeInTheDocument();
+  });
+
+  it('shows remote baseline context with base branch (#880)', () => {
+    render(<GitHubPR />);
+    expect(screen.getByText('main')).toBeInTheDocument();
+  });
+
+  it('shows Compare with GitHub button (#882)', () => {
+    render(<GitHubPR />);
+    expect(screen.getByRole('button', { name: 'Compare with GitHub' })).toBeInTheDocument();
+  });
+
+  it('compare button calls API and opens diff mode (#882)', async () => {
+    const user = userEvent.setup();
+    const remoteArch = { ...emptyArch, id: 'remote' };
+    mockApiPost.mockResolvedValueOnce({ architecture: remoteArch });
+
+    render(<GitHubPR />);
+    await user.click(screen.getByRole('button', { name: 'Compare with GitHub' }));
+
+    await waitFor(() => {
+      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-1/pull');
+    });
   });
 });

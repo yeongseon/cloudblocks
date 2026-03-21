@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { apiGet, apiPost, apiPut } from '../../shared/api/client';
+import { validateArchitectureShape } from '../../entities/store/slices';
+import { computeArchitectureDiff } from '../../features/diff/engine';
+import { apiGet, apiPost, apiPut, getApiErrorMessage } from '../../shared/api/client';
 import { isValidGitHubRepoFullName } from '../../shared/utils/githubValidation';
 import type { GitHubCommit, PullResponse, SyncResponse } from '../../shared/types/api';
 import type { ArchitectureSnapshot } from '../../shared/types/learning';
+import type { ArchitectureModel } from '@cloudblocks/schema';
 import './GitHubSync.css';
 
 interface LinkedRepoState {
@@ -49,6 +53,7 @@ export function GitHubSync() {
   const [error, setError] = useState<string | null>(null);
   const [commitRefreshError, setCommitRefreshError] = useState<string | null>(null);
   const [pullConfirmPending, setPullConfirmPending] = useState(false);
+  const [comparing, setComparing] = useState(false);
   const requestSeqRef = useRef(0);
   const mountedRef = useRef(true);
   const showRef = useRef(show);
@@ -58,7 +63,7 @@ export function GitHubSync() {
   const effectiveWorkspaceIdRef = useRef<string | null>(null);
 
   const trimmedCommitMessage = commitMessage.trim();
-  const busy = linking || syncing || pulling;
+  const busy = linking || syncing || pulling || comparing;
 
   useEffect(() => {
     if (workspace.githubRepo) {
@@ -226,6 +231,27 @@ export function GitHubSync() {
     setPullConfirmPending(false);
   };
 
+  const handleCompareWithGitHub = async () => {
+    if (!effectiveWorkspaceId) return;
+
+    setComparing(true);
+    setError(null);
+    try {
+      const response = await apiPost<PullResponse>(
+        `/api/v1/workspaces/${encodeURIComponent(effectiveWorkspaceId)}/pull`,
+      );
+      validateArchitectureShape(response.architecture);
+      const remoteArch = response.architecture as unknown as ArchitectureModel;
+      const localArch = useArchitectureStore.getState().workspace.architecture;
+      const delta = computeArchitectureDiff(remoteArch, localArch);
+      useUIStore.getState().setDiffMode(true, delta, remoteArch);
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to fetch remote architecture'));
+    } finally {
+      setComparing(false);
+    }
+  };
+
   const commitLinkUrl = linkedRepo
     ? `https://github.com/${linkedRepo}/commit/`
     : null;
@@ -248,6 +274,7 @@ export function GitHubSync() {
           {linking && <div className="github-sync-loading">Linking repository...</div>}
           {syncing && <div className="github-sync-loading">Syncing to GitHub...</div>}
           {pulling && <div className="github-sync-loading">Pulling from GitHub...</div>}
+          {comparing && <div className="github-sync-loading">Comparing with GitHub...</div>}
           {loadingCommits && <div className="github-sync-loading">Loading recent commits...</div>}
           {error && <div className="github-sync-error">{error}</div>}
           {commitRefreshError && (
@@ -296,6 +323,14 @@ export function GitHubSync() {
                 </button>
               </div>
 
+              <div className="github-sync-arch-summary">
+                Local: {workspace.architecture.plates.length} plates · {workspace.architecture.blocks.length} blocks · {workspace.architecture.connections.length} connections
+              </div>
+
+              <div className="github-sync-reconciliation">
+                {commits.length > 0 ? '✓ Previously synced' : '⚠ Never synced with remote'}
+              </div>
+
               <label className="github-sync-label" htmlFor="github-sync-commit-message">
                 Commit message
               </label>
@@ -313,6 +348,9 @@ export function GitHubSync() {
                 </button>
                 <button type="button" className="github-sync-secondary-btn" onClick={handlePullRequest} disabled={anyLoading}>
                   Pull from GitHub
+                </button>
+                <button type="button" className="github-sync-secondary-btn" onClick={() => void handleCompareWithGitHub()} disabled={anyLoading || comparing}>
+                  Compare with GitHub
                 </button>
               </div>
 

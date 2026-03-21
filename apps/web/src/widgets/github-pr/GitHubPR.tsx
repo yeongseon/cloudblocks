@@ -1,10 +1,14 @@
 import { useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { validateArchitectureShape } from '../../entities/store/slices';
+import { computeArchitectureDiff } from '../../features/diff/engine';
 import { apiPost, getApiErrorMessage } from '../../shared/api/client';
 import { isValidGitBranchName } from '../../shared/utils/githubValidation';
-import type { PullRequestResponse } from '../../shared/types/api';
+import type { PullRequestResponse, PullResponse } from '../../shared/types/api';
+import type { ArchitectureModel } from '@cloudblocks/schema';
 import './GitHubPR.css';
 
 export function GitHubPR() {
@@ -28,6 +32,7 @@ function GitHubPRContent() {
   const [branch, setBranch] = useState('');
   const [commitMessage, setCommitMessage] = useState('Update architecture via CloudBlocks');
   const [loading, setLoading] = useState(false);
+  const [comparing, setComparing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PullRequestResponse | null>(null);
   const cleanedTitle = title.trim();
@@ -39,7 +44,7 @@ function GitHubPRContent() {
       : 'main';
   const headMatchesBaseBranch = cleanedBranch.length > 0 && cleanedBranch === baseBranch;
   const branchIsValid = !cleanedBranch || isValidGitBranchName(cleanedBranch);
-  const canSubmit = !loading && cleanedTitle.length > 0 && cleanedCommitMessage.length > 0 && branchIsValid && !headMatchesBaseBranch && hasBackendWorkspaceLink;
+  const canSubmit = !loading && !comparing && cleanedTitle.length > 0 && cleanedCommitMessage.length > 0 && branchIsValid && !headMatchesBaseBranch && hasBackendWorkspaceLink;
   const effectiveWorkspaceId = workspace.backendWorkspaceId || workspace.id;
 
   if (!show) return null;
@@ -89,6 +94,28 @@ function GitHubPRContent() {
     }
   };
 
+  const handleCompareWithGitHub = async () => {
+    const backendWorkspaceId = workspace.backendWorkspaceId;
+    if (!backendWorkspaceId) return;
+
+    setComparing(true);
+    setError(null);
+    try {
+      const response = await apiPost<PullResponse>(
+        `/api/v1/workspaces/${encodeURIComponent(backendWorkspaceId)}/pull`,
+      );
+      validateArchitectureShape(response.architecture);
+      const remoteArch = response.architecture as unknown as ArchitectureModel;
+      const localArch = useArchitectureStore.getState().workspace.architecture;
+      const delta = computeArchitectureDiff(remoteArch, localArch);
+      useUIStore.getState().setDiffMode(true, delta, remoteArch);
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to fetch remote architecture'));
+    } finally {
+      setComparing(false);
+    }
+  };
+
   return (
     <div className="github-pr">
       <div className="github-pr-header">
@@ -107,6 +134,7 @@ function GitHubPRContent() {
       ) : (
         <div className="github-pr-content">
           {loading && <div className="github-pr-loading">Loading...</div>}
+          {comparing && <div className="github-pr-loading">Comparing with GitHub...</div>}
           {error && <div className="github-pr-error">{error}</div>}
           <div className="github-pr-meta">
             Workspace ID: <code>{effectiveWorkspaceId}</code>
@@ -115,6 +143,15 @@ function GitHubPRContent() {
                 {' · '}Repo: <code>{workspace.githubRepo}</code>
               </>
             ) : null}
+          </div>
+
+          <div className="github-pr-arch-summary">
+            Local: {workspace.architecture.plates.length} plates · {workspace.architecture.blocks.length} blocks · {workspace.architecture.connections.length} connections
+          </div>
+
+          <div className="github-pr-baseline">
+            Base branch: <code>{baseBranch}</code>
+            {workspace.githubRepo ? <> · Repo: <code>{workspace.githubRepo}</code></> : null}
           </div>
 
           <label className="github-pr-label" htmlFor="github-pr-title">
@@ -161,9 +198,14 @@ function GitHubPRContent() {
             onChange={(e) => setCommitMessage(e.target.value)}
           />
 
-          <button type="button" className="github-pr-submit" onClick={handleSubmit} disabled={!canSubmit}>
-            Create Pull Request
-          </button>
+          <div className="github-pr-actions">
+            <button type="button" className="github-pr-submit" onClick={handleSubmit} disabled={!canSubmit}>
+              Create Pull Request
+            </button>
+            <button type="button" className="github-pr-compare-btn" onClick={() => void handleCompareWithGitHub()} disabled={loading || comparing}>
+              Compare with GitHub
+            </button>
+          </div>
 
           {result && (
             <div className="github-pr-result">
