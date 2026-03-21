@@ -988,7 +988,7 @@ Scope:
 ## Milestone 19 — MVP Polish & Launch
 
 Goal:
-Deliver a promotion-ready MVP that is stable in production, easy to demo, and measurable after launch. Focus on launch quality and deployment operations over major feature expansion.
+Deliver a promotion-ready MVP that is stable in production, easy to demo, and measurable after launch. Focus on launch quality, deployment operations, IaC abstraction, and multi-persona positioning.
 
 > **Reference**: [M19_MVP_POLISH_LAUNCH.md](M19_MVP_POLISH_LAUNCH.md)
 
@@ -999,11 +999,13 @@ Key Objectives:
 - Runtime configuration discipline: environment schema standardization and callback/endpoint validation
 - Observability baseline: runtime error tracking and launch metrics funnel
 - Stability and release readiness: performance gates, browser/viewport checks, release packet preparation
+- IaC abstraction: hide Terraform/Bicep/Pulumi names behind "Deploy Infrastructure" in UI; preserve internal pipeline
+- Multi-persona positioning: "Cloud Architecture Tool for Everyone" with persona-aware onboarding and UI complexity levels
 
 Scope:
 
-- 6 Epics: Launch UX Polish, Deployment Pipeline, Runtime Configuration, Observability, Performance & Stability Gate, Release Ops
-- Includes launch-critical additions: demo resilience mode, security hygiene checks, and analytics funnel instrumentation
+- 8 Epics: Launch UX Polish, Deployment Pipeline, Runtime Configuration, Observability, Performance & Stability Gate, Release Ops, IaC Abstraction, Multi-Persona Positioning
+- Includes launch-critical additions: demo resilience mode, security hygiene checks, analytics funnel instrumentation, persona-based UX, and IaC name abstraction
 
 ### Exit Criteria
 - [ ] Onboarding and one-click demo flow work on production URL
@@ -1013,6 +1015,10 @@ Scope:
 - [ ] Runtime error tracking and minimal launch metrics funnel are operational
 - [ ] Performance and compatibility gates pass before release
 - [ ] `v0.19.0` release checklist, changelog entry, and launch packet are complete
+- [ ] UI does not expose IaC tool names (Terraform, Bicep, Pulumi) in default view
+- [ ] Advanced/Expert toggle allows DevOps users to access generator selection
+- [ ] Persona selection is available in onboarding and adjusts UI complexity
+- [ ] All four personas (DevOps, Backend, PM, Student) have appropriate default views
 
 ### Dependencies
 - Milestone 18 complete
