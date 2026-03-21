@@ -72,6 +72,8 @@ export function MenuBar() {
   const resetWorkspace = useArchitectureStore((s) => s.resetWorkspace);
   const validationResult = useArchitectureStore((s) => s.validationResult);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
+  const plates = architecture.nodes.filter((node) => node.kind === 'container');
+  const blocks = architecture.nodes.filter((node) => node.kind === 'resource');
   const backendWorkspaceId = useArchitectureStore((s) => s.workspace.backendWorkspaceId);
   const canUndo = useArchitectureStore((s) => s.canUndo);
   const canRedo = useArchitectureStore((s) => s.canRedo);
@@ -112,10 +114,10 @@ export function MenuBar() {
 
   const handleDeleteSelection = () => {
     if (!selectedId) return;
-    if (architecture.plates.some((p) => p.id === selectedId)) {
+    if (plates.some((p) => p.id === selectedId)) {
       removePlate(selectedId);
       playSound('delete');
-    } else if (architecture.blocks.some((b) => b.id === selectedId)) {
+    } else if (blocks.some((b) => b.id === selectedId)) {
       removeBlock(selectedId);
       playSound('delete');
     } else if (architecture.connections.some((c) => c.id === selectedId)) {
@@ -133,7 +135,7 @@ export function MenuBar() {
   const handleProviderSwitch = async (newProvider: ProviderType) => {
     if (newProvider === activeProvider) return;
 
-    const blocksFromOtherProvider = architecture.blocks.filter(
+    const blocksFromOtherProvider = blocks.filter(
       (block) => block.provider && block.provider !== newProvider
     );
 

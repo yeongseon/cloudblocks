@@ -22,7 +22,7 @@ import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { useLearningStore } from '../../entities/store/learningStore';
-import type { ArchitectureModel, Block, Connection, Plate } from '@cloudblocks/schema';
+import type { ArchitectureModel, Connection, ContainerNode, LeafNode } from '@cloudblocks/schema';
 import { apiPost } from '../../shared/api/client';
 import { toast } from 'react-hot-toast';
 import { confirmDialog } from '../../shared/ui/ConfirmDialog';
@@ -32,30 +32,36 @@ const emptyArch: ArchitectureModel = {
   id: 'arch-1',
   name: 'Test',
   version: '1.0.0',
-  plates: [],
-  blocks: [],
+  nodes: [],
   connections: [],
   externalActors: [],
   createdAt: '',
   updatedAt: '',
 };
 
-const networkPlate: Plate = {
+const networkPlate: ContainerNode = {
   id: 'net-1',
   name: 'VNet',
-  type: 'region',
+  kind: 'container',
+  layer: 'region',
+  resourceType: 'virtual_network',
+  category: 'network',
+  provider: 'azure',
   parentId: null,
-  children: [],
   position: { x: 0, y: 0, z: 0 },
   size: { width: 12, height: 0.3, depth: 10 },
   metadata: {},
 };
 
-const block: Block = {
+const block: LeafNode = {
   id: 'block-1',
   name: 'Compute',
+  kind: 'resource',
+  layer: 'resource',
+  resourceType: 'web_compute',
   category: 'compute',
-  placementId: 'subnet-1',
+  provider: 'azure',
+  parentId: 'subnet-1',
   position: { x: 0, y: 0, z: 0 },
   metadata: {},
 };
@@ -150,7 +156,7 @@ describe('MenuBar', () => {
 
   it('does not show confirm dialog when switching provider with no blocks', async () => {
     const user = userEvent.setup();
-    setArchitectureState({ blocks: [] });
+    setArchitectureState({ nodes: [] });
     useUIStore.setState({ activeProvider: 'azure' });
     render(<MenuBar />);
 
@@ -163,7 +169,7 @@ describe('MenuBar', () => {
   it('does not switch when clicking already active provider tab', async () => {
     const user = userEvent.setup();
     useUIStore.setState({ activeProvider: 'azure' });
-    setArchitectureState({ blocks: [{ ...block, provider: 'azure' }] });
+    setArchitectureState({ nodes: [{ ...block, provider: 'azure' }] });
     render(<MenuBar />);
 
     await user.click(screen.getByRole('tab', { name: /azure/i }));
@@ -176,7 +182,7 @@ describe('MenuBar', () => {
     const user = userEvent.setup();
     vi.mocked(confirmDialog).mockResolvedValue(true);
     setArchitectureState({
-      blocks: [
+      nodes: [
         { ...block, id: 'block-1', provider: 'azure' },
         { ...block, id: 'block-2', provider: 'azure' },
       ],
@@ -199,7 +205,7 @@ describe('MenuBar', () => {
     const user = userEvent.setup();
     vi.mocked(confirmDialog).mockResolvedValue(false);
     setArchitectureState({
-      blocks: [{ ...block, id: 'block-1', provider: 'azure' }],
+      nodes: [{ ...block, id: 'block-1', provider: 'azure' }],
     });
     useUIStore.setState({ activeProvider: 'azure' });
     render(<MenuBar />);
@@ -215,18 +221,21 @@ describe('MenuBar', () => {
     expect(useUIStore.getState().activeProvider).toBe('azure');
   });
 
-  it('does not show confirm dialog when blocks have no provider set', async () => {
+  it('shows confirm dialog when switching from default azure blocks', async () => {
     const user = userEvent.setup();
     setArchitectureState({
-      blocks: [{ ...block, id: 'block-1' }],
+      nodes: [{ ...block, id: 'block-1', provider: 'azure' }],
     });
     useUIStore.setState({ activeProvider: 'azure' });
     render(<MenuBar />);
 
     await user.click(screen.getByRole('tab', { name: /aws/i }));
 
-    expect(confirmDialog).not.toHaveBeenCalled();
-    expect(useUIStore.getState().activeProvider).toBe('aws');
+    expect(confirmDialog).toHaveBeenCalledWith(
+      expect.stringContaining('1 AZURE'),
+      'Switch Cloud Provider?',
+    );
+    expect(useUIStore.getState().activeProvider).toBe('azure');
   });
 
   it('active provider tab shows visual indicator', () => {
@@ -532,7 +541,7 @@ describe('MenuBar', () => {
   it('deletes selected plate, block, and connection from Edit menu', async () => {
     const user = userEvent.setup();
 
-    setArchitectureState({ plates: [networkPlate], blocks: [block], connections: [connection] });
+    setArchitectureState({ nodes: [networkPlate, block], connections: [connection] });
     useUIStore.setState({ selectedId: 'net-1' });
     render(<MenuBar />);
 
@@ -553,7 +562,7 @@ describe('MenuBar', () => {
 
   it('does not delete when selected id is unknown', async () => {
     const user = userEvent.setup();
-    setArchitectureState({ plates: [networkPlate], blocks: [block], connections: [connection] });
+    setArchitectureState({ nodes: [networkPlate, block], connections: [connection] });
     useUIStore.setState({ selectedId: 'unknown-id' });
     render(<MenuBar />);
 
@@ -644,8 +653,7 @@ describe('MenuBar', () => {
         initialArchitecture: {
           name: 'Initial',
           version: '1.0.0',
-          plates: [],
-          blocks: [],
+          nodes: [],
           connections: [],
           externalActors: [],
         },

@@ -17,8 +17,7 @@ const emptyArch: ArchitectureModel = {
   id: 'arch-1',
   name: 'Test',
   version: '1.0.0',
-  plates: [],
-  blocks: [],
+  nodes: [],
   connections: [],
   externalActors: [],
   createdAt: '',
@@ -145,7 +144,7 @@ describe('GitHubSync', () => {
 
   it('pull button calls API and replaces architecture in-place', async () => {
     const user = userEvent.setup();
-    const archPayload = { id: 'pulled', name: 'Pulled', version: '1.0.0', plates: [], blocks: [], connections: [], externalActors: [], createdAt: '', updatedAt: '' };
+    const archPayload = { id: 'pulled', name: 'Pulled', version: '1.0.0', nodes: [], connections: [], externalActors: [], createdAt: '', updatedAt: '' };
     mockApiPost.mockResolvedValue({ architecture: archPayload });
 
     render(<GitHubSync />);
