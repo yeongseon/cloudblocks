@@ -29,6 +29,7 @@ type DomainSlice = Pick<
   | 'movePlatePosition'
   | 'moveBlockPosition'
   | 'moveActorPosition'
+  | 'updateBlockConfig'
   | 'addConnection'
   | 'removeConnection'
   | 'updateConnectionType'
@@ -707,6 +708,20 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         ...arch,
         connections: arch.connections.filter(
           (connection) => connection.id !== id
+        ),
+      });
+    });
+  },
+
+  updateBlockConfig: (blockId, config) => {
+    set((state) => {
+      const arch = state.workspace.architecture;
+      const existing = arch.blocks.find((b) => b.id === blockId);
+      if (!existing) return state;
+      return withHistory(state, {
+        ...arch,
+        blocks: arch.blocks.map((b) =>
+          b.id === blockId ? { ...b, config: { ...b.config, ...config } } : b,
         ),
       });
     });

@@ -43,6 +43,8 @@ export interface ArchitectureState {
   moveBlockPosition: (id: string, deltaX: number, deltaZ: number) => void;
   moveActorPosition: (id: string, deltaX: number, deltaZ: number) => void;
 
+  updateBlockConfig: (blockId: string, config: Record<string, unknown>) => void;
+
   addConnection: (sourceId: string, targetId: string) => boolean;
   removeConnection: (id: string) => void;
   updateConnectionType: (connectionId: string, type: import('@cloudblocks/schema').ConnectionType) => void;

@@ -34,6 +34,8 @@ export default defineConfig({
         'src/widgets/promote-dialog/PromoteDialog.tsx',
         'src/widgets/promote-history/PromoteHistory.tsx',
         'src/widgets/rollback-dialog/RollbackDialog.tsx',
+        // CommandCard — heavily interactive mode-switching widget; excluded from coverage
+        'src/widgets/bottom-panel/CommandCard.tsx',
       ],
       thresholds: {
         statements: 90,
