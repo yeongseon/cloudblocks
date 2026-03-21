@@ -5,11 +5,15 @@ vi.mock('../../shared/api/client', () => ({
   apiPost: vi.fn(),
   apiGet: vi.fn(),
 }));
+vi.mock('../../shared/ui/ConfirmDialog', () => ({
+  confirmDialog: vi.fn(),
+}));
 import { GitHubRepos } from './GitHubRepos';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { apiGet, apiPost } from '../../shared/api/client';
+import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 
 describe('GitHubRepos', () => {
   const mockApiGet = vi.mocked(apiGet);
@@ -361,5 +365,131 @@ describe('GitHubRepos', () => {
     render(<GitHubRepos />);
 
     expect(await screen.findByText('Linked')).toBeInTheDocument();
+  });
+
+  it('keeps isPrivate true after successful repo creation', async () => {
+    const user = userEvent.setup();
+    mockApiGet
+      .mockResolvedValueOnce({ repos: [] })
+      .mockResolvedValueOnce({ repos: [] });
+    mockApiPost.mockResolvedValueOnce({
+      full_name: 'owner/new-repo',
+      name: 'new-repo',
+      private: true,
+      default_branch: 'main',
+      html_url: 'https://github.com/owner/new-repo',
+    });
+
+    render(<GitHubRepos />);
+
+    const checkbox = screen.getByRole('checkbox');
+    expect(checkbox).toBeChecked();
+
+    await user.type(screen.getByPlaceholderText('Repository name'), 'new-repo');
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Repository new-repo created successfully.')).toBeInTheDocument();
+    });
+
+    expect(checkbox).toBeChecked();
+  });
+
+  it('shows authenticated GitHub username in account context', async () => {
+    useAuthStore.setState({
+      status: 'authenticated',
+      user: {
+        id: 'user-1',
+        github_username: 'octocat',
+        email: 'octocat@github.com',
+        display_name: 'Octocat',
+        avatar_url: null,
+      },
+      hydrated: true,
+      error: null,
+    });
+    mockApiGet.mockResolvedValueOnce({ repos: [] });
+
+    render(<GitHubRepos />);
+
+    expect(screen.getByText('octocat')).toBeInTheDocument();
+    expect(screen.getByText(/Signed in as/)).toBeInTheDocument();
+  });
+
+  it('does not show account context when user has no github_username', async () => {
+    useAuthStore.setState({
+      status: 'authenticated',
+      user: {
+        id: 'user-1',
+        github_username: null,
+        email: null,
+        display_name: null,
+        avatar_url: null,
+      },
+      hydrated: true,
+      error: null,
+    });
+    mockApiGet.mockResolvedValueOnce({ repos: [] });
+
+    render(<GitHubRepos />);
+
+    expect(screen.queryByText(/Signed in as/)).not.toBeInTheDocument();
+  });
+
+  it('confirms before closing when draft has repo name', async () => {
+    const user = userEvent.setup();
+    vi.mocked(confirmDialog).mockResolvedValue(true);
+    mockApiGet.mockResolvedValueOnce({ repos: [] });
+
+    render(<GitHubRepos />);
+
+    await user.type(screen.getByPlaceholderText('Repository name'), 'draft-repo');
+    await user.click(screen.getByRole('button', { name: 'Close GitHub repos panel' }));
+
+    expect(confirmDialog).toHaveBeenCalledWith(
+      'You have unsaved changes in the repository creation form. Discard them?',
+      'Discard draft?',
+    );
+    expect(useUIStore.getState().showGitHubRepos).toBe(false);
+  });
+
+  it('does not close when draft confirmation is cancelled', async () => {
+    const user = userEvent.setup();
+    vi.mocked(confirmDialog).mockResolvedValue(false);
+    mockApiGet.mockResolvedValueOnce({ repos: [] });
+
+    render(<GitHubRepos />);
+
+    await user.type(screen.getByPlaceholderText('Repository name'), 'draft-repo');
+    await user.click(screen.getByRole('button', { name: 'Close GitHub repos panel' }));
+
+    expect(confirmDialog).toHaveBeenCalled();
+    expect(useUIStore.getState().showGitHubRepos).toBe(true);
+  });
+
+  it('closes without confirmation when draft is empty', async () => {
+    const user = userEvent.setup();
+    mockApiGet.mockResolvedValueOnce({ repos: [] });
+
+    render(<GitHubRepos />);
+
+    await user.click(screen.getByRole('button', { name: 'Close GitHub repos panel' }));
+
+    expect(confirmDialog).not.toHaveBeenCalled();
+    expect(useUIStore.getState().showGitHubRepos).toBe(false);
+  });
+
+  it('confirms before closing when draft has description only', async () => {
+    const user = userEvent.setup();
+    vi.mocked(confirmDialog).mockResolvedValue(true);
+    mockApiGet.mockResolvedValueOnce({ repos: [] });
+
+    render(<GitHubRepos />);
+
+    await user.type(screen.getByPlaceholderText('Description (optional)'), 'some description');
+    await user.click(screen.getByRole('button', { name: 'Close GitHub repos panel' }));
+
+    expect(confirmDialog).toHaveBeenCalled();
+    expect(useUIStore.getState().showGitHubRepos).toBe(false);
   });
 });

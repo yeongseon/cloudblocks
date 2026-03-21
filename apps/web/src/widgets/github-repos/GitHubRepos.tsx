@@ -4,6 +4,7 @@ import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { apiGet, apiPost } from '../../shared/api/client';
 import { isValidGitHubRepoName } from '../../shared/utils/githubValidation';
+import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import type { GitHubRepo } from '../../shared/types/api';
 import './GitHubRepos.css';
 
@@ -12,6 +13,7 @@ export function GitHubRepos() {
   const toggleGitHubRepos = useUIStore((s) => s.toggleGitHubRepos);
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
   const authStatus = useAuthStore((s) => s.status);
+  const authUser = useAuthStore((s) => s.user);
   const linkedRepo = useArchitectureStore((s) => s.workspace.githubRepo);
 
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
@@ -25,6 +27,18 @@ export function GitHubRepos() {
   const cleanedRepoName = newRepoName.trim();
   const cleanedRepoDescription = newRepoDescription.trim();
   const canCreateRepo = isValidGitHubRepoName(cleanedRepoName);
+  const hasDraft = cleanedRepoName.length > 0 || cleanedRepoDescription.length > 0;
+
+  const handleClose = async () => {
+    if (hasDraft) {
+      const confirmed = await confirmDialog(
+        'You have unsaved changes in the repository creation form. Discard them?',
+        'Discard draft?',
+      );
+      if (!confirmed) return;
+    }
+    toggleGitHubRepos();
+  };
 
   const fetchRepos = useCallback(async () => {
     setLoading(true);
@@ -64,7 +78,7 @@ export function GitHubRepos() {
       setSuccess(`Repository ${cleanedRepoName} created successfully.`);
       setNewRepoName('');
       setNewRepoDescription('');
-      setIsPrivate(false);
+      setIsPrivate(true);
       try {
         await fetchRepos();
       } catch {
@@ -81,7 +95,7 @@ export function GitHubRepos() {
     <div className="github-repos">
       <div className="github-repos-header">
         <h3 className="github-repos-title">📦 GitHub Repos</h3>
-        <button type="button" className="github-repos-close" onClick={toggleGitHubRepos} aria-label="Close GitHub repos panel">
+        <button type="button" className="github-repos-close" onClick={handleClose} aria-label="Close GitHub repos panel">
           ✕
         </button>
       </div>
@@ -92,6 +106,11 @@ export function GitHubRepos() {
         <div className="github-repos-empty">GitHub authentication required.</div>
       ) : (
         <>
+          {authUser?.github_username && (
+            <div className="github-repos-account">
+              Signed in as <strong>{authUser.github_username}</strong>
+            </div>
+          )}
           {(loading || creating) && <div className="github-repos-loading">Loading...</div>}
           {error && <div className="github-repos-error">{error}</div>}
           {success && <div className="github-repos-success">{success}</div>}
