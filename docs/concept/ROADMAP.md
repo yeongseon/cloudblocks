@@ -998,40 +998,31 @@ Scope inflation with agentic coding led to most exit criteria being deferred. Th
 
 ---
 
-## Milestone 19 — MVP Polish & Launch
+## Milestone 19 — MVP Polish & Launch ✅
 
 Goal:
-Deliver a promotion-ready MVP that is stable in production, easy to demo, and measurable after launch. Focus on launch quality, deployment operations, IaC abstraction, and multi-persona positioning.
+Unify the resource model, clean up legacy subsystems, and harden CI for release readiness. Deliver a stable, well-tested codebase ready for community launch preparation.
 
-> **Reference**: [M19_MVP_POLISH_LAUNCH.md](M19_MVP_POLISH_LAUNCH.md)
+> **Note**: Scope was reduced from the original 8-Epic plan to focus on model unification, cleanup, and hardening. Deferred items moved to M20+.
 
 Key Objectives:
 
-- Launch UX polish: first-run onboarding, one-click demo loading, launch-ready CTA flow
-- Deployment hardening: preview/production separation, tag-gated production release, rollback runbook
-- Runtime configuration discipline: environment schema standardization and callback/endpoint validation
-- Observability baseline: runtime error tracking and launch metrics funnel
-- Stability and release readiness: performance gates, browser/viewport checks, release packet preparation
-- IaC abstraction: hide Terraform/Bicep/Pulumi names behind "Deploy Infrastructure" in UI; preserve internal pipeline
-- Multi-persona positioning: "Cloud Architecture Tool for Everyone" with persona-aware onboarding and UI complexity levels
-
-Scope:
-
-- 8 Epics: Launch UX Polish, Deployment Pipeline, Runtime Configuration, Observability, Performance & Stability Gate, Release Ops, IaC Abstraction, Multi-Persona Positioning
-- Includes launch-critical additions: demo resilience mode, security hygiene checks, analytics funnel instrumentation, persona-based UX, and IaC name abstraction
+- Unify Plate/Block → single ResourceNode type with `kind: "container" | "resource"`
+- Realign 10 resource categories → 7 (Network, Security, Edge, Compute, Data, Messaging, Operations)
+- Remove minifigure worker system entirely
+- Fix provider label bugs and workspace state leaks
+- Add demo resilience mode for backend-unavailable state
+- Harden CI with build-output secret scanning
 
 ### Exit Criteria
-- [ ] Onboarding and one-click demo flow work on production URL
-- [ ] Preview and production deployment paths are separated and reproducible
-- [ ] Production deployment is tag-gated for `v0.19.0` with rollback playbook
-- [ ] Runtime configuration validates across all release environments
-- [ ] Runtime error tracking and minimal launch metrics funnel are operational
-- [ ] Performance and compatibility gates pass before release
-- [ ] `v0.19.0` release checklist, changelog entry, and launch packet are complete
-- [ ] UI does not expose IaC tool names (Terraform, Bicep, Pulumi) in default view
-- [ ] Advanced/Expert toggle allows DevOps users to access generator selection
-- [ ] Persona selection is available in onboarding and adjusts UI complexity
-- [ ] All four personas (DevOps, Backend, PM, Student) have appropriate default views
+- [x] ResourceNode unification complete — single type replaces Plate + Block (#1099)
+- [x] 7-category resource model implemented and validated (#1102)
+- [x] Minifigure worker system fully removed (#1088)
+- [x] Provider-neutral labels in CreationGrid (#1096)
+- [x] Demo resilience mode operational (#478)
+- [x] CI secret scanning integrated into all deployment pipelines (#479)
+- [x] `v0.19.0` release published with CHANGELOG and version alignment
+- [x] 1811 tests passing, 90.27% branch coverage
 
 ### Dependencies
 - Milestone 18 complete
@@ -1158,6 +1149,12 @@ Milestone 18 (Complete)
 - UI simplified: OpsCenter, AI, NotificationCenter deferred to M20+
 - 47 commits, 23 PRs, 1854 tests passing
 
+Milestone 19 (Complete)
+- Unified Plate/Block → ResourceNode with 7 categories (121+ files migrated)
+- Minifigure worker system fully removed
+- Demo resilience mode for backend-unavailable state
+- CI secret scanning in all deployment pipelines
+- 28 issues closed, 1811 tests passing, 90.27% branch coverage
 ---
 
 ## Summary
@@ -1198,7 +1195,7 @@ The roadmap evolves CloudBlocks from:
 
 → DevOps UX (Milestone 18) ✅
 
-→ MVP Polish & Launch (Milestone 19)
+→ MVP Polish & Launch (Milestone 19) ✅
 
 → Internationalization (i18n)
 
@@ -1214,7 +1211,7 @@ Milestone 8 (Complete) ✅
     │                               └── Milestone 16 (Doc Architecture) ✅
     │                                       └── Milestone 17 (Product Structure) ✅
     │                                               └── Milestone 18 (DevOps UX) ✅
-    │                                                       └── Milestone 19 (MVP Polish & Launch)
+    │                                                       └── Milestone 19 (MVP Polish & Launch) ✅
     │               └── Milestone 14 (AI Roadmap) ✅ ←── also benefits from Milestone 13
     └── Milestone 11 (Brick Design) ✅ ──── parallel with Milestone 9
 
