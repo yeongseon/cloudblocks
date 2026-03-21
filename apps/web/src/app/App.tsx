@@ -54,7 +54,6 @@ function App() {
   const interactionState = useUIStore((s) => s.interactionState);
   const cancelInteraction = useUIStore((s) => s.cancelInteraction);
   const editorMode = useUIStore((s) => s.editorMode);
-  const isBuildOrderOpen = useUIStore((s) => s.isBuildOrderOpen);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
   const showCodePreview = useUIStore((s) => s.showCodePreview);
   const showWorkspaceManager = useUIStore((s) => s.showWorkspaceManager);
@@ -186,7 +185,7 @@ function App() {
     <div className="app">
       <MenuBar />
       <div className="main-content">
-        <div className={`canvas-container${editorMode === 'learn' ? ' learn-mode-active' : ''}${isBuildOrderOpen ? ' build-order-active' : ''}${rightPanelClass}`}>
+        <div className={`canvas-container${editorMode === 'learn' ? ' learn-mode-active' : ''}${rightPanelClass}`}>
           <ResourceBar />
           <SceneCanvas />
           <ValidationPanel />

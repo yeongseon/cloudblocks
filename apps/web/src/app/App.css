@@ -1,56 +1,12 @@
 /* CloudBlocks Platform - App Layout */
 
-.app {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  background-color: #E8D5B7;
-}
-
-.main-content {
-  display: flex;
-  flex-direction: row;
-  flex: 1;
-  margin-top: 40px; /* MenuBar height */
-  margin-bottom: 0;
-  overflow: hidden;
-}
-
-.canvas-container {
-  position: relative;
-  flex: 1;
-  overflow: hidden;
-  padding-bottom: 268px;
-}
-
-.canvas-container.learn-mode-active {
-  padding-right: 320px;
-  transition: padding-right 0.3s ease;
-}
-
-/* Build Order open: shift canvas content left */
-.canvas-container.build-order-active {
-  padding-right: 380px;
-  transition: padding-right 0.3s ease;
-}
-
-.canvas-container.right-panel-open {
-  padding-right: 450px;
-  transition: padding-right 0.3s ease;
-}
-
-.canvas-container.right-panel-wide {
-  padding-right: 630px;
-  transition: padding-right 0.3s ease;
-}
+.app { width: 100%; height: 100%; display: flex; flex-direction: column; background-color: #E8D5B7; }
+.main-content { display: flex; flex-direction: row; flex: 1; margin-top: 40px; margin-bottom: 0; overflow: hidden; }
+.canvas-container { position: relative; flex: 1; overflow: hidden; padding-bottom: 268px; }
+.canvas-container.learn-mode-active { padding-right: 320px; transition: padding-right 0.3s ease; }
+.canvas-container.right-panel-open { padding-right: 450px; transition: padding-right 0.3s ease; }
+.canvas-container.right-panel-wide { padding-right: 630px; transition: padding-right 0.3s ease; }
 
 @media (max-width: 899px) {
-  .canvas-container.build-order-active {
-    padding-right: 0;
-  }
-  .canvas-container.right-panel-open,
-  .canvas-container.right-panel-wide {
-    padding-right: 0;
-  }
+  .canvas-container.right-panel-open, .canvas-container.right-panel-wide { padding-right: 0; }
 }

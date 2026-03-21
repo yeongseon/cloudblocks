@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SceneCanvas } from '../widgets/scene-canvas/SceneCanvas';
-import { CommandCard } from '../widgets/bottom-panel/CommandCard';
+import { DetailPanel } from '../widgets/bottom-panel/DetailPanel';
 import { useArchitectureStore } from '../entities/store/architectureStore';
 import { useUIStore } from '../entities/store/uiStore';
 import { useWorkerStore } from '../entities/store/workerStore';
@@ -72,7 +72,7 @@ function IntegrationHarness() {
   return (
     <>
       <SceneCanvas />
-      <CommandCard />
+      <DetailPanel />
     </>
   );
 }

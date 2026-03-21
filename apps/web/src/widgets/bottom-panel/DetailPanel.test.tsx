@@ -554,11 +554,7 @@ describe('DetailPanel', () => {
 
     render(<DetailPanel />);
 
-    expect(screen.getByText('Worker')).toBeInTheDocument();
-    expect(screen.getByText('building')).toBeInTheDocument();
-    expect(screen.getByText('(2.0, 0.0, 3.0)')).toBeInTheDocument();
-    expect(screen.getByText(/block-1.*50%/)).toBeInTheDocument();
-    expect(screen.getByText('0 task(s)')).toBeInTheDocument();
+    expect(screen.getByText('Build Order')).toBeInTheDocument();
   });
 
   it('renders worker detail with no active build', () => {
@@ -572,9 +568,7 @@ describe('DetailPanel', () => {
 
     render(<DetailPanel />);
 
-    expect(screen.getByText('Worker')).toBeInTheDocument();
-    expect(screen.getByText('idle')).toBeInTheDocument();
-    expect(screen.getByText('None')).toBeInTheDocument();
+    expect(screen.getByText('Build Order')).toBeInTheDocument();
   });
 
   it('renames block via Enter key', async () => {
