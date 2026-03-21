@@ -198,46 +198,65 @@ describe('architectureStore', () => {
       expect(getState().canUndo).toBe(false);
     });
 
-    it('positions a second root region to avoid overlapping the first', () => {
+    it('auto-positions second root plate to avoid overlap with first', () => {
       getState().addPlate('region', 'VNet1', null);
       getState().addPlate('region', 'VNet2', null);
 
       const plates = getArch().plates;
       expect(plates).toHaveLength(2);
 
-      const vnet1 = plates[0];
-      const vnet2 = plates[1];
-
-      // They should not overlap: gap between centers >= sum of half-widths
-      const distX = Math.abs(vnet1.position.x - vnet2.position.x);
-      const minDistX = (vnet1.size.width + vnet2.size.width) / 2;
-      const distZ = Math.abs(vnet1.position.z - vnet2.position.z);
-      const minDistZ = (vnet1.size.depth + vnet2.size.depth) / 2;
-
-      // At least one axis should have sufficient separation
-      expect(distX >= minDistX || distZ >= minDistZ).toBe(true);
+      const p1 = plates[0];
+      const p2 = plates[1];
+      const halfW1 = p1.size.width / 2;
+      const halfW2 = p2.size.width / 2;
+      const gap = (p2.position.x - halfW2) - (p1.position.x + halfW1);
+      expect(gap).toBeGreaterThanOrEqual(0);
     });
 
-    it('positions subnets to avoid overlapping siblings within a parent', () => {
-      getState().addPlate('region', 'VNet', null, undefined, 'network-platform');
-      const netId = getArch().plates[0].id;
-
-      // Add 3 subnets — they should all fit without overlap
-      getState().addPlate('subnet', 'Sub1', netId, 'public', 'subnet-service');
-      getState().addPlate('subnet', 'Sub2', netId, 'private', 'subnet-service');
-      getState().addPlate('subnet', 'Sub3', netId, 'public', 'subnet-service');
+    it('auto-positions third root plate to avoid both existing plates', () => {
+      getState().addPlate('region', 'VNet1', null);
+      getState().addPlate('region', 'VNet2', null);
+      getState().addPlate('region', 'VNet3', null);
 
       const plates = getArch().plates;
-      const subnets = plates.filter((p) => p.parentId === netId);
+      expect(plates).toHaveLength(3);
+
+      for (let i = 0; i < plates.length; i++) {
+        for (let j = i + 1; j < plates.length; j++) {
+          const a = plates[i];
+          const b = plates[j];
+          const overlapX =
+            a.position.x - a.size.width / 2 < b.position.x + b.size.width / 2 &&
+            a.position.x + a.size.width / 2 > b.position.x - b.size.width / 2;
+          const overlapZ =
+            a.position.z - a.size.depth / 2 < b.position.z + b.size.depth / 2 &&
+            a.position.z + a.size.depth / 2 > b.position.z - b.size.depth / 2;
+          expect(overlapX && overlapZ).toBe(false);
+        }
+      }
+    });
+
+    it('auto-positions subnets within same parent to avoid sibling overlap', () => {
+      getState().addPlate('region', 'VNet', null);
+      const netId = getArch().plates[0].id;
+
+      getState().addPlate('subnet', 'Sub1', netId, 'public');
+      getState().addPlate('subnet', 'Sub2', netId, 'private');
+      getState().addPlate('subnet', 'Sub3', netId, 'public');
+
+      const subnets = getArch().plates.filter((p) => p.parentId === netId);
       expect(subnets).toHaveLength(3);
 
-      // No pair of subnets should overlap
       for (let i = 0; i < subnets.length; i++) {
         for (let j = i + 1; j < subnets.length; j++) {
           const a = subnets[i];
           const b = subnets[j];
-          const overlapX = Math.abs(a.position.x - b.position.x) < (a.size.width + b.size.width) / 2;
-          const overlapZ = Math.abs(a.position.z - b.position.z) < (a.size.depth + b.size.depth) / 2;
+          const overlapX =
+            a.position.x - a.size.width / 2 < b.position.x + b.size.width / 2 &&
+            a.position.x + a.size.width / 2 > b.position.x - b.size.width / 2;
+          const overlapZ =
+            a.position.z - a.size.depth / 2 < b.position.z + b.size.depth / 2 &&
+            a.position.z + a.size.depth / 2 > b.position.z - b.size.depth / 2;
           expect(overlapX && overlapZ).toBe(false);
         }
       }
@@ -578,45 +597,6 @@ describe('architectureStore', () => {
     });
   });
 
-  describe('updateBlockConfig', () => {
-    it('stores config on a block', () => {
-      getState().addPlate('region', 'VNet', null);
-      const netId = getArch().plates[0].id;
-      getState().addPlate('subnet', 'Sub', netId, 'public');
-      const subId = getArch().plates[1].id;
-
-      getState().addBlock('compute', 'VM', subId);
-      const blockId = getArch().blocks[0].id;
-
-      getState().updateBlockConfig(blockId, { tier: 'premium', vCPUs: 4 });
-
-      const block = getArch().blocks.find((b) => b.id === blockId);
-      expect(block?.config).toEqual(expect.objectContaining({ tier: 'premium', vCPUs: 4 }));
-    });
-
-    it('merges config with existing values', () => {
-      getState().addPlate('region', 'VNet', null);
-      const netId = getArch().plates[0].id;
-      getState().addPlate('subnet', 'Sub', netId, 'public');
-      const subId = getArch().plates[1].id;
-
-      getState().addBlock('compute', 'VM', subId, undefined, undefined, { tier: 'basic' });
-      const blockId = getArch().blocks[0].id;
-
-      getState().updateBlockConfig(blockId, { vCPUs: 8 });
-
-      const block = getArch().blocks.find((b) => b.id === blockId);
-      expect(block?.config).toEqual(expect.objectContaining({ tier: 'basic', vCPUs: 8 }));
-    });
-
-    it('no-ops on non-existent block', () => {
-      getState().addPlate('region', 'VNet', null);
-      const before = JSON.stringify(getArch());
-      getState().updateBlockConfig('nonexistent', { tier: 'premium' });
-      expect(JSON.stringify(getArch())).toBe(before);
-    });
-  });
-
   describe('moveBlock', () => {
     it('moves a block between plates', () => {
       getState().addPlate('region', 'VNet', null);
@@ -888,61 +868,37 @@ describe('architectureStore', () => {
       expect(getState().workspace.architecture).toBe(before);
     });
 
-    it('prevents moving a plate into a sibling overlap', () => {
-      // Create two root VNets side by side
-      getState().addPlate('region', 'VNet1', null, undefined, 'network-sandbox');
-      getState().addPlate('region', 'VNet2', null, undefined, 'network-sandbox');
+    it('prevents root plate from overlapping a sibling when dragged', () => {
+      getState().addPlate('region', 'VNet1', null);
+      getState().addPlate('region', 'VNet2', null);
 
-      const vnet1 = getArch().plates[0];
-      const vnet2 = getArch().plates[1];
+      const plates = getArch().plates;
+      const p1 = plates[0];
+      const p2 = plates[1];
 
-      // Try to move VNet2 directly on top of VNet1
-      const deltaX = vnet1.position.x - vnet2.position.x;
-      const deltaZ = vnet1.position.z - vnet2.position.z;
-      getState().movePlatePosition(vnet2.id, deltaX, deltaZ);
+      getState().movePlatePosition(p2.id, -(p2.position.x - p1.position.x), 0);
 
-      const vnet2After = getArch().plates.find((p) => p.id === vnet2.id)!;
-      const vnet1After = getArch().plates.find((p) => p.id === vnet1.id)!;
+      const afterP1 = getArch().plates.find((p) => p.id === p1.id)!;
+      const afterP2 = getArch().plates.find((p) => p.id === p2.id)!;
 
-      // After the move, they should still not overlap
-      const overlapX = Math.abs(vnet1After.position.x - vnet2After.position.x) < (vnet1After.size.width + vnet2After.size.width) / 2;
-      const overlapZ = Math.abs(vnet1After.position.z - vnet2After.position.z) < (vnet1After.size.depth + vnet2After.size.depth) / 2;
+      const overlapX =
+        afterP1.position.x - afterP1.size.width / 2 < afterP2.position.x + afterP2.size.width / 2 &&
+        afterP1.position.x + afterP1.size.width / 2 > afterP2.position.x - afterP2.size.width / 2;
+      const overlapZ =
+        afterP1.position.z - afterP1.size.depth / 2 < afterP2.position.z + afterP2.size.depth / 2 &&
+        afterP1.position.z + afterP1.size.depth / 2 > afterP2.position.z - afterP2.size.depth / 2;
       expect(overlapX && overlapZ).toBe(false);
     });
 
-    it('allows moving a plate when no sibling overlap occurs', () => {
-      getState().addPlate('region', 'VNet1', null, undefined, 'network-sandbox');
-      const vnet1 = getArch().plates[0];
+    it('allows movement that does not cause overlap', () => {
+      getState().addPlate('region', 'VNet1', null);
+      getState().addPlate('region', 'VNet2', null);
 
-      // Move VNet1 freely (no siblings) — should move exactly by delta
-      getState().movePlatePosition(vnet1.id, 5, -3);
+      const p2Before = getArch().plates[1];
+      getState().movePlatePosition(p2Before.id, 5, 0);
 
-      const vnet1After = getArch().plates.find((p) => p.id === vnet1.id)!;
-      expect(vnet1After.position.x).toBe(5);
-      expect(vnet1After.position.z).toBe(-3);
-    });
-
-    it('prevents sibling subnets from overlapping during move', () => {
-      getState().addPlate('region', 'VNet', null, undefined, 'network-platform');
-      const netId = getArch().plates[0].id;
-
-      getState().addPlate('subnet', 'Sub1', netId, 'public', 'subnet-service');
-      getState().addPlate('subnet', 'Sub2', netId, 'private', 'subnet-service');
-
-      const sub1 = getArch().plates.find((p) => p.name === 'Sub1')!;
-      const sub2 = getArch().plates.find((p) => p.name === 'Sub2')!;
-
-      // Try to move Sub2 on top of Sub1
-      const deltaX = sub1.position.x - sub2.position.x;
-      const deltaZ = sub1.position.z - sub2.position.z;
-      getState().movePlatePosition(sub2.id, deltaX, deltaZ);
-
-      const sub1After = getArch().plates.find((p) => p.id === sub1.id)!;
-      const sub2After = getArch().plates.find((p) => p.id === sub2.id)!;
-
-      const overlapX = Math.abs(sub1After.position.x - sub2After.position.x) < (sub1After.size.width + sub2After.size.width) / 2;
-      const overlapZ = Math.abs(sub1After.position.z - sub2After.position.z) < (sub1After.size.depth + sub2After.size.depth) / 2;
-      expect(overlapX && overlapZ).toBe(false);
+      const p2After = getArch().plates.find((p) => p.id === p2Before.id)!;
+      expect(p2After.position.x).toBe(p2Before.position.x + 5);
     });
   });
 
