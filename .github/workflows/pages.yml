@@ -56,6 +56,9 @@ jobs:
         run: npx vite build --base /cloudblocks/
         working-directory: apps/web
 
+      - name: Scan build output for leaked secrets
+        run: ./scripts/check-build-secrets.sh apps/web/dist
+
       # ── Docs Build ─────────────────────────────────────────────
       - name: Setup Python
         uses: actions/setup-python@v5
