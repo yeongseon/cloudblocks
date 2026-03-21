@@ -130,6 +130,113 @@ export function resetTransientState(): Pick<
   };
 }
 
+/** AABB overlap on XZ plane (touching edges excluded). */
+export function platesOverlap(
+  posA: { x: number; z: number },
+  sizeA: { width: number; depth: number },
+  posB: { x: number; z: number },
+  sizeB: { width: number; depth: number },
+): boolean {
+  const halfWA = sizeA.width / 2;
+  const halfDA = sizeA.depth / 2;
+  const halfWB = sizeB.width / 2;
+  const halfDB = sizeB.depth / 2;
+
+  const overlapX =
+    posA.x - halfWA < posB.x + halfWB && posA.x + halfWA > posB.x - halfWB;
+  const overlapZ =
+    posA.z - halfDA < posB.z + halfDB && posA.z + halfDA > posB.z - halfDB;
+
+  return overlapX && overlapZ;
+}
+
+export function overlapsSibling(
+  candidatePos: { x: number; z: number },
+  candidateSize: { width: number; depth: number },
+  siblings: ReadonlyArray<{
+    id: string;
+    position: { x: number; z: number };
+    size: { width: number; depth: number };
+  }>,
+  excludeId?: string,
+): boolean {
+  return siblings.some(
+    (sibling) =>
+      sibling.id !== excludeId &&
+      platesOverlap(candidatePos, candidateSize, sibling.position, sibling.size),
+  );
+}
+
+export function findNonOverlappingPosition(
+  initialPos: { x: number; z: number },
+  plateSize: { width: number; depth: number },
+  siblings: ReadonlyArray<{
+    id: string;
+    position: { x: number; z: number };
+    size: { width: number; depth: number };
+  }>,
+): { x: number; z: number } {
+  const pos = { ...initialPos };
+  const step = plateSize.width + 1.0;
+  const maxAttempts = 50;
+
+  for (let i = 0; i < maxAttempts; i++) {
+    if (!overlapsSibling(pos, plateSize, siblings)) {
+      return pos;
+    }
+    pos.x += step;
+  }
+
+  return pos;
+}
+
+/** Binary-search refinement: reduces delta to last non-overlapping fraction. */
+export function resolveMoveDelta(
+  plate: {
+    id: string;
+    position: { x: number; z: number };
+    size: { width: number; depth: number };
+  },
+  deltaX: number,
+  deltaZ: number,
+  siblings: ReadonlyArray<{
+    id: string;
+    position: { x: number; z: number };
+    size: { width: number; depth: number };
+  }>,
+): { deltaX: number; deltaZ: number } {
+  const targetPos = {
+    x: plate.position.x + deltaX,
+    z: plate.position.z + deltaZ,
+  };
+
+  if (!overlapsSibling(targetPos, plate.size, siblings, plate.id)) {
+    return { deltaX, deltaZ };
+  }
+
+  let lo = 0;
+  let hi = 1;
+  const iterations = 10;
+
+  for (let i = 0; i < iterations; i++) {
+    const mid = (lo + hi) / 2;
+    const testPos = {
+      x: plate.position.x + deltaX * mid,
+      z: plate.position.z + deltaZ * mid,
+    };
+    if (overlapsSibling(testPos, plate.size, siblings, plate.id)) {
+      hi = mid;
+    } else {
+      lo = mid;
+    }
+  }
+
+  return {
+    deltaX: deltaX * lo,
+    deltaZ: deltaZ * lo,
+  };
+}
+
 export { DEFAULT_PLATE_SIZE };
 
 /**

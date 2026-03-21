@@ -9,7 +9,9 @@ import { validatePlacement } from '../../validation/placement';
 import {
   clampWithinParent,
   DEFAULT_PLATE_SIZE,
+  findNonOverlappingPosition,
   nextGridPosition,
+  resolveMoveDelta,
   withHistory,
 } from './helpers';
 
@@ -80,6 +82,22 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
             : clampedRelativePosition.z,
         };
       }
+
+      const sameLevelSiblings = arch.plates
+        .filter((candidate) => candidate.parentId === (parentId ?? null))
+        .map((candidate) => ({
+          id: candidate.id,
+          position: { x: candidate.position.x, z: candidate.position.z },
+          size: { width: candidate.size.width, depth: candidate.size.depth },
+        }));
+
+      const nonOverlapping = findNonOverlappingPosition(
+        { x: plate.position.x, z: plate.position.z },
+        { width: plate.size.width, depth: plate.size.depth },
+        sameLevelSiblings,
+      );
+      plate.position.x = nonOverlapping.x;
+      plate.position.z = nonOverlapping.z;
 
       let plates = [...arch.plates, plate];
 
@@ -510,6 +528,27 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
           appliedDeltaZ = clampedWorldPosition.z - plate.position.z;
         }
       }
+
+      const sameLevelSiblings = arch.plates
+        .filter((candidate) => candidate.parentId === (plate.parentId ?? null) && candidate.id !== id)
+        .map((candidate) => ({
+          id: candidate.id,
+          position: { x: candidate.position.x, z: candidate.position.z },
+          size: { width: candidate.size.width, depth: candidate.size.depth },
+        }));
+
+      const resolved = resolveMoveDelta(
+        {
+          id: plate.id,
+          position: { x: plate.position.x, z: plate.position.z },
+          size: { width: plate.size.width, depth: plate.size.depth },
+        },
+        appliedDeltaX,
+        appliedDeltaZ,
+        sameLevelSiblings,
+      );
+      appliedDeltaX = resolved.deltaX;
+      appliedDeltaZ = resolved.deltaZ;
 
       const descendantIds = new Set<string>([id]);
       const collectDescendants = (parentId: string) => {
