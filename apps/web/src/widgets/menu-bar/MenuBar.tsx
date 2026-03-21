@@ -418,10 +418,10 @@ export function MenuBar() {
           </button>
           <div className={`menu-dropdown ${openMenu === 'view' ? 'show' : ''}`}>
             <button type="button" className="menu-item" onClick={() => handleAction(toggleBlockPalette)}>
-              <span className="menu-item-left">{showBlockPalette ? '✓ ' : '  '}🧰 Block Palette</span>
+              <span className="menu-item-left">{showBlockPalette ? '✓ ' : '  '}📊 Resource Counter</span>
             </button>
             <button type="button" className="menu-item" onClick={() => handleAction(toggleProperties)}>
-              <span className="menu-item-left">{showProperties ? '✓ ' : '  '}⚙️ Properties Panel</span>
+              <span className="menu-item-left">{showProperties ? '✓ ' : '  '}🔎 Inspector</span>
             </button>
             <div className="menu-separator" />
             <button type="button" className="menu-item" onClick={() => handleAction(toggleValidation)}>

@@ -90,6 +90,10 @@ interface UIState {
   ) => void;
   clearDiffState: () => void;
 
+  // ── Onboarding ──
+  showOnboarding: boolean;
+  setShowOnboarding: (show: boolean) => void;
+
   // ── Sound preference ──
   isSoundMuted: boolean;
   toggleSound: () => void;
@@ -290,6 +294,9 @@ export const useUIStore = create<UIState>((set) => ({
 
   isSoundMuted: true,
   toggleSound: () => set((s) => ({ isSoundMuted: !s.isSoundMuted })),
+
+  showOnboarding: false,
+  setShowOnboarding: (show) => set({ showOnboarding: show }),
 
   upgradingBlockId: null,
   triggerUpgradeAnimation: (blockId) => {

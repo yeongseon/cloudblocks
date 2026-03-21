@@ -1,0 +1,119 @@
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: auto;
+}
+
+.onboarding-overlay--visible {
+  opacity: 1;
+}
+
+.onboarding-spotlight {
+  position: fixed;
+  border-radius: 8px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+  transition: top 0.3s ease, left 0.3s ease, width 0.3s ease, height 0.3s ease;
+  pointer-events: none;
+}
+
+.onboarding-tooltip {
+  position: fixed;
+  background: #1a1a2e;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 20px 24px;
+  max-width: 340px;
+  width: 340px;
+  color: #e0e0e0;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  transition: top 0.3s ease, left 0.3s ease;
+  z-index: 10001;
+}
+
+.onboarding-tooltip-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #fff;
+}
+
+.onboarding-tooltip-desc {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #b0b0b0;
+}
+
+.onboarding-skip {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  color: #666;
+  font-size: 13px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 4px 8px;
+}
+
+.onboarding-skip:hover {
+  color: #999;
+}
+
+.onboarding-dots {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.onboarding-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transition: background 0.2s ease;
+}
+
+.onboarding-dot--active {
+  background: #3b82f6;
+}
+
+.onboarding-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.onboarding-btn {
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.onboarding-btn--primary {
+  background: #3b82f6;
+  color: #fff;
+  border: none;
+}
+
+.onboarding-btn--primary:hover {
+  background: #2563eb;
+}
+
+.onboarding-btn--secondary {
+  background: transparent;
+  color: #999;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.onboarding-btn--secondary:hover {
+  color: #ccc;
+  border-color: rgba(255, 255, 255, 0.2);
+}
