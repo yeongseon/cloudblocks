@@ -6,7 +6,11 @@ vi.mock('../../shared/api/client', () => ({
   apiGet: vi.fn(),
   apiPut: vi.fn(),
 }));
+vi.mock('../../shared/ui/ConfirmDialog', () => ({
+  confirmDialog: vi.fn(),
+}));
 import { GitHubSync } from './GitHubSync';
+import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import { useUIStore } from '../../entities/store/uiStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
@@ -515,5 +519,67 @@ describe('GitHubSync', () => {
     await waitFor(() => {
       expect(screen.queryByText('stale commit')).not.toBeInTheDocument();
     });
+  });
+
+  it('unlink button clears repo link when confirmed', async () => {
+    const user = userEvent.setup();
+    vi.mocked(confirmDialog).mockResolvedValue(true);
+    mockApiPut.mockResolvedValue({});
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('owner/repo-one')).toBeInTheDocument();
+    });
+
+    const unlinkBtn = screen.getByRole('button', { name: 'Unlink' });
+    await user.click(unlinkBtn);
+
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('owner/repo')).toBeInTheDocument();
+    });
+  });
+
+  it('pull cancel hides the confirm dialog', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ diffMode: false });
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+
+    // Wait for linked state
+    const pullBtn = await screen.findByRole('button', { name: /Pull from GitHub/ });
+
+    // Trigger pull confirm
+    await user.click(pullBtn);
+    expect(screen.getByText('Pull will overwrite your local workspace. Continue?')).toBeInTheDocument();
+
+    // Cancel
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.queryByText('Pull will overwrite your local workspace. Continue?')).not.toBeInTheDocument();
+  });
+
+  it('unlink does nothing when user cancels confirmation', async () => {
+    const user = userEvent.setup();
+    vi.mocked(confirmDialog).mockResolvedValue(false);
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('owner/repo-one')).toBeInTheDocument();
+    });
+
+    const unlinkBtn = screen.getByRole('button', { name: 'Unlink' });
+    await user.click(unlinkBtn);
+
+    // Still linked
+    expect(screen.getByText('owner/repo-one')).toBeInTheDocument();
   });
 });

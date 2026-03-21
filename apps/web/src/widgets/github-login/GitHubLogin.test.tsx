@@ -202,4 +202,26 @@ describe('GitHubLogin', () => {
     expect(screen.queryByText('Server down')).not.toBeInTheDocument();
     expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
   });
+
+  it('shows checking authentication when status is unknown', () => {
+    useAuthStore.setState({ status: 'unknown' });
+    render(<GitHubLogin />);
+    expect(screen.getByText('Checking authentication...')).toBeInTheDocument();
+  });
+
+  it('avatar uses GitHub user fallback alt text when display_name is null', () => {
+    useAuthStore.setState({
+      status: 'authenticated',
+      user: {
+        id: 'user-1',
+        github_username: 'octocat',
+        email: null,
+        display_name: null,
+        avatar_url: 'https://example.com/avatar.png',
+      },
+    });
+    render(<GitHubLogin />);
+    const img = screen.getByRole('img');
+    expect(img).toHaveAttribute('alt', 'octocat');
+  });
 });
