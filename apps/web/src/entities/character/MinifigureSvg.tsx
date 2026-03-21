@@ -21,45 +21,70 @@ export const MinifigureSvg = memo(function MinifigureSvg({
   const height = 130;
   
   const renderLogo = () => {
+    // Logo is placed on the torso front face, centered around (38, 66).
+    // The skewY(26.5) aligns the logo with the isometric torso angle.
+    // Each logo is ~14×14 simplified vector mark of the cloud provider.
     switch (provider) {
       case 'azure':
+        // Simplified Azure logo — the iconic right-leaning quadrilateral shape
         return (
-          <g transform="translate(38, 65)">
-            <polygon points="0,-6 -6,6 6,6" fill="#FFFFFF" opacity="0.9" />
-            <polygon points="-3,2 3,2 4,4 -4,4" fill={colors.torso.front} />
+          <g data-part="logo" transform="translate(38, 66) skewY(26.5)" opacity="0.92">
+            <path
+              d="M -5 -5 L 0 -7 L 5 -1 L 2 0 Z"
+              fill="#FFFFFF"
+            />
+            <path
+              d="M -2 0 L 2 0 L 5 5 L -5 5 L -3 1 Z"
+              fill="#FFFFFF"
+              opacity="0.7"
+            />
           </g>
         );
       case 'aws':
+        // Simplified AWS logo — smile arrow swoosh under text
         return (
-          <text
-            x="38"
-            y="68"
-            fill="#FFFFFF"
-            fontSize="9"
-            fontFamily="system-ui, sans-serif"
-            fontWeight="bold"
-            textAnchor="middle"
-            transform="rotate(26.5 38 68)"
-            opacity="0.9"
-          >
-            AWS
-          </text>
+          <g data-part="logo" transform="translate(38, 64) skewY(26.5)" opacity="0.92">
+            <text
+              x="0"
+              y="0"
+              fill="#FFFFFF"
+              fontSize="7"
+              fontFamily="system-ui, sans-serif"
+              fontWeight="bold"
+              textAnchor="middle"
+              dominantBaseline="central"
+            >
+              AWS
+            </text>
+            <path
+              d="M -6 4 Q 0 7 6 4"
+              stroke="#FF9900"
+              strokeWidth="1.2"
+              fill="none"
+              strokeLinecap="round"
+            />
+            <path
+              d="M 3 3 L 7 3.5 L 4 5.5"
+              fill="#FF9900"
+            />
+          </g>
         );
       case 'gcp':
+        // Simplified GCP logo — Google Cloud hexagonal shape with 4-color accents
         return (
-          <text
-            x="38"
-            y="68"
-            fill="#555555"
-            fontSize="9"
-            fontFamily="system-ui, sans-serif"
-            fontWeight="bold"
-            textAnchor="middle"
-            transform="rotate(26.5 38 68)"
-            opacity="0.9"
-          >
-            GCP
-          </text>
+          <g data-part="logo" transform="translate(38, 66) skewY(26.5)" opacity="0.92">
+            <polygon
+              points="0,-6 5.2,-3 5.2,3 0,6 -5.2,3 -5.2,-3"
+              fill="none"
+              stroke="#4285F4"
+              strokeWidth="1.5"
+              strokeLinejoin="round"
+            />
+            <line x1="0" y1="-6" x2="0" y2="-3" stroke="#EA4335" strokeWidth="1.5" strokeLinecap="round" />
+            <line x1="5.2" y1="3" x2="2.6" y2="1.5" stroke="#FBBC05" strokeWidth="1.5" strokeLinecap="round" />
+            <line x1="-5.2" y1="3" x2="-2.6" y2="1.5" stroke="#34A853" strokeWidth="1.5" strokeLinecap="round" />
+            <circle cx="0" cy="0" r="2" fill="#4285F4" />
+          </g>
         );
       default:
         return null;
