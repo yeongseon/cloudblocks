@@ -22,16 +22,12 @@
   flex: 1;
   overflow: hidden;
   padding-bottom: 268px;
+  padding-right: 380px; /* CommandCard always-open sidebar width */
+  transition: padding-right 0.3s ease;
 }
 
 .canvas-container.learn-mode-active {
   padding-right: 320px;
-  transition: padding-right 0.3s ease;
-}
-
-/* Build Order open: shift canvas content left */
-.canvas-container.build-order-active {
-  padding-right: 380px;
   transition: padding-right 0.3s ease;
 }
 
@@ -46,7 +42,7 @@
 }
 
 @media (max-width: 899px) {
-  .canvas-container.build-order-active {
+  .canvas-container {
     padding-right: 0;
   }
   .canvas-container.right-panel-open,

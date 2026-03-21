@@ -2,7 +2,6 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { useWorkerStore } from '../../entities/store/workerStore';
 import { canPlaceBlock } from '../../entities/validation/placement';
 import { worldToScreen, depthKey } from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
@@ -10,12 +9,9 @@ import type { SoundName } from '../../shared/utils/audioService';
 
 import { PlateSprite } from '../../entities/plate/PlateSprite';
 import { BlockSprite } from '../../entities/block/BlockSprite';
-import { BrickConnector } from '../../entities/connection/BrickConnector';
 import { ExternalActorSprite } from '../../entities/connection/ExternalActorSprite';
-import { MinifigureSprite } from '../../entities/character';
 import { EmptyCanvasOverlay } from './EmptyCanvasOverlay';
 import { DragGhost } from './DragGhost';
-import { ConnectionPreview } from './ConnectionPreview';
 import './SceneCanvas.css';
 
 export function SceneCanvas() {
@@ -28,7 +24,6 @@ export function SceneCanvas() {
   const activeProvider = useUIStore((s) => s.activeProvider);
   const completeInteraction = useUIStore((s) => s.completeInteraction);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
-  const workerPosition = useWorkerStore((s) => s.workerPosition);
   const playSound = (name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); };
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -112,21 +107,8 @@ export function SceneCanvas() {
       if (plateId) {
           const plate = architecture.plates.find((p) => p.id === plateId);
           if (plate && canPlaceBlock(draggedBlockCategory, plate)) {
-            const blocksBefore = new Set(
-              useArchitectureStore.getState().workspace.architecture.blocks.map((b) => b.id),
-            );
             addBlock(draggedBlockCategory, draggedResourceName, plateId, activeProvider);
             playSound('block-snap');
-
-            // Compute the new block's world position and dispatch to minifigure worker
-            const updatedBlocks = useArchitectureStore.getState().workspace.architecture.blocks;
-            const newBlock = updatedBlocks.find((b) => !blocksBefore.has(b.id));
-            if (newBlock) {
-              const worldX = plate.position.x + newBlock.position.x;
-              const worldY = plate.position.y + plate.size.height;
-              const worldZ = plate.position.z + newBlock.position.z;
-              useWorkerStore.getState().startBuild(newBlock.id, [worldX, worldY, worldZ]);
-            }
           }
       }
       completeInteraction();
@@ -162,10 +144,6 @@ export function SceneCanvas() {
       return () => el.removeEventListener('wheel', handleWheel);
     }
   }, [handleWheel]);
-
-  const [wx, wy, wz] = workerPosition;
-  const workerScreen = worldToScreen(wx, wy, wz, origin.x, origin.y);
-  const workerZIndex = depthKey(wx, wz, wy, 1);
 
   return (
     <div 
@@ -210,18 +188,6 @@ export function SceneCanvas() {
         
         <svg className="connection-layer" style={{ width: 1, height: 1 }}>
           <title>Connections</title>
-          {architecture.connections.map((conn) => (
-            <BrickConnector
-              key={conn.id}
-              connection={conn}
-              blocks={architecture.blocks}
-              plates={architecture.plates}
-              externalActors={architecture.externalActors}
-              originX={origin.x}
-              originY={origin.y}
-            />
-          ))}
-          <ConnectionPreview originX={origin.x} originY={origin.y} />
           <g className="drag-ghost-layer">
             <DragGhost
               containerRef={containerRef}
@@ -249,15 +215,6 @@ export function SceneCanvas() {
               />
             );
           })}
-        </div>
-
-        <div className="character-layer">
-          <MinifigureSprite
-            provider={activeProvider}
-            screenX={workerScreen.x}
-            screenY={workerScreen.y}
-            zIndex={workerZIndex}
-          />
         </div>
 
         <div className="block-layer">

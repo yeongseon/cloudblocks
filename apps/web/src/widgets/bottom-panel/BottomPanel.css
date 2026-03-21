@@ -39,11 +39,12 @@
   flex-shrink: 0;
 }
 
-.bottom-panel--build-order-open {
+/* CommandCard always open on right side (full-height sidebar) */
+.bottom-panel--command-open {
   right: 380px;
 }
 
-.bottom-panel--build-order-open .bottom-panel-command {
+.bottom-panel--command-open .bottom-panel-command {
   position: fixed;
   top: 40px;
   right: 0;
@@ -54,48 +55,12 @@
   border-right: none;
 }
 
-.build-order-expand-tab {
-  position: fixed;
-  top: 50%;
-  right: 0;
-  transform: translateY(-50%);
-  z-index: 140;
-  width: 28px;
-  height: 72px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #FFD500;
-  border: 3px solid #D4B200;
-  border-right: none;
-  border-radius: 8px 0 0 8px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 800;
-  color: #222222;
-  padding: 0;
-  box-shadow:
-    inset 0 3px 0 rgba(255, 255, 255, 0.5),
-    -2px 2px 4px rgba(0, 0, 0, 0.15);
-  transition: width 0.15s ease, background-color 0.15s ease;
-  font-family: 'Fredoka', system-ui, sans-serif;
-}
-
-.build-order-expand-tab:hover {
-  width: 34px;
-  background-color: #FFE44D;
-}
-
-/* Learn mode: offset Build Order sidebar so it doesn't overlap LearningPanel (320px + 16px margin) */
-.learn-mode-active .bottom-panel--build-order-open {
+/* Learn mode: offset CommandCard sidebar so it doesn't overlap LearningPanel (320px + 16px margin) */
+.learn-mode-active .bottom-panel--command-open {
   right: 716px;
 }
 
-.learn-mode-active .bottom-panel--build-order-open .bottom-panel-command {
-  right: 336px;
-}
-
-.learn-mode-active .build-order-expand-tab {
+.learn-mode-active .bottom-panel--command-open .bottom-panel-command {
   right: 336px;
 }
 
@@ -108,17 +73,17 @@
   }
 }
 
-/* 600-899px: Hide Minimap */
+/* 600-899px: Hide Minimap, collapse CommandCard back to inline */
 @media (max-width: 899px) {
   .bottom-panel-minimap {
     display: none;
   }
 
-  .bottom-panel--build-order-open {
+  .bottom-panel--command-open {
     right: 0;
   }
 
-  .bottom-panel--build-order-open .bottom-panel-command {
+  .bottom-panel--command-open .bottom-panel-command {
     position: static;
     width: 280px;
   }

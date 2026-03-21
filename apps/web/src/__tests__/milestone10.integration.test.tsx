@@ -1,11 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { act, render } from '@testing-library/react';
 import { SceneCanvas } from '../widgets/scene-canvas/SceneCanvas';
-import { CommandCard } from '../widgets/bottom-panel/CommandCard';
 import { useArchitectureStore } from '../entities/store/architectureStore';
 import { useUIStore } from '../entities/store/uiStore';
-import { useWorkerStore } from '../entities/store/workerStore';
 import type { ArchitectureModel, ExternalActor, Plate } from '@cloudblocks/schema';
 
 type DragListeners = {
@@ -69,24 +66,17 @@ const internetActor: ExternalActor = {
 };
 
 function IntegrationHarness() {
-  return (
-    <>
-      <SceneCanvas />
-      <CommandCard />
-    </>
-  );
+  return <SceneCanvas />;
 }
 
 describe('Milestone 10 integration', () => {
   const initialArchitectureState = useArchitectureStore.getState();
   const initialUIState = useUIStore.getState();
-  const initialWorkerState = useWorkerStore.getState();
 
   beforeEach(() => {
     vi.clearAllMocks();
     useArchitectureStore.setState(initialArchitectureState, true);
     useUIStore.setState(initialUIState, true);
-    useWorkerStore.setState(initialWorkerState, true);
 
     useArchitectureStore.setState({
       workspace: {
@@ -110,14 +100,6 @@ describe('Milestone 10 integration', () => {
       isSoundMuted: true,
     });
 
-    useWorkerStore.setState({
-      workerId: 'worker-default',
-      workerState: 'idle',
-      workerPosition: [2, 0, 3],
-      buildQueue: [],
-      activeBuild: null,
-    });
-
     if (!HTMLElement.prototype.hasPointerCapture) {
       Object.defineProperty(HTMLElement.prototype, 'hasPointerCapture', {
         configurable: true,
@@ -138,61 +120,6 @@ describe('Milestone 10 integration', () => {
         value: () => {},
       });
     }
-  });
-
-  it('covers full worker build flow from selection to idle return', async () => {
-    const user = userEvent.setup();
-    const { container } = render(<IntegrationHarness />);
-
-    const minifigure = container.querySelector('.minifigure-sprite') as HTMLElement;
-    expect(minifigure).toBeInTheDocument();
-
-    await user.click(minifigure);
-
-    expect(useUIStore.getState().selectedId).toBe('worker-default');
-    expect(screen.getByText('Worker Actions')).toBeInTheDocument();
-
-    // Click Build to enter build grid (2-level worker mode)
-    await user.click(screen.getByTitle('Build (Q)'));
-
-    await user.click(screen.getByTitle('Build Virtual Machine'));
-
-    await waitFor(() => {
-      expect(useArchitectureStore.getState().workspace.architecture.blocks).toHaveLength(1);
-      expect(useWorkerStore.getState().workerState).toBe('moving');
-      expect(useWorkerStore.getState().activeBuild).not.toBeNull();
-    });
-
-    const createdBlock = useArchitectureStore.getState().workspace.architecture.blocks[0];
-    const activeBuild = useWorkerStore.getState().activeBuild;
-
-    expect(activeBuild?.blockId).toBe(createdBlock.id);
-    expect(minifigure).toHaveClass('is-moving');
-
-    const blockButton = screen.getByRole('button', { name: `Block: ${createdBlock.name}` });
-    const blockSprite = blockButton.closest('.block-sprite') as HTMLElement;
-    expect(blockSprite).toHaveClass('is-building');
-    expect(blockSprite.style.getPropertyValue('--build-progress')).toBe('0');
-
-    act(() => {
-      useWorkerStore.setState({ workerState: 'building' });
-      useWorkerStore.getState().tickBuildProgress(0.5);
-    });
-
-    await waitFor(() => {
-      expect(blockSprite.style.getPropertyValue('--build-progress')).toBe('0.5');
-    });
-
-    act(() => {
-      useWorkerStore.getState().tickBuildProgress(0.5);
-    });
-
-    await waitFor(() => {
-      expect(useWorkerStore.getState().workerState).toBe('idle');
-      expect(useWorkerStore.getState().activeBuild).toBeNull();
-      expect(minifigure).toHaveClass('is-idle');
-      expect(blockSprite).not.toHaveClass('is-building');
-    });
   });
 
   it('allows dragging and repositioning external actors on the canvas', () => {
