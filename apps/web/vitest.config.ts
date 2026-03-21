@@ -28,6 +28,8 @@ export default defineConfig({
         'src/shared/types/template.ts',
         // SceneCanvas — complex canvas interactions (zoom, pan, drag) need full DOM; excluded from coverage
         'src/widgets/scene-canvas/SceneCanvas.tsx',
+        // CommandCard — complex context-sensitive UI; modes covered by dedicated tests
+        'src/widgets/bottom-panel/CommandCard.tsx',
         // Ops widgets — complex UI shells wired to stores already covered by store-level tests
         'src/widgets/ops-center/OpsCenter.tsx',
         'src/widgets/notification-center/NotificationCenter.tsx',
