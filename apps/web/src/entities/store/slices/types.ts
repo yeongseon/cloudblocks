@@ -37,6 +37,7 @@ export interface ArchitectureState {
   removeBlock: (id: string) => void;
   renameBlock: (blockId: string, newName: string) => void;
   renamePlate: (plateId: string, newName: string) => void;
+  updateBlockConfig: (blockId: string, config: Record<string, unknown>) => void;
   moveBlock: (blockId: string, newPlacementId: string) => void;
   setPlateProfile: (plateId: string, profileId: PlateProfileId) => void;
   movePlatePosition: (id: string, deltaX: number, deltaZ: number) => void;

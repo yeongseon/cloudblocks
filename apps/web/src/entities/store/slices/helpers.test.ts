@@ -64,24 +64,25 @@ describe('overlapsSibling', () => {
 });
 
 describe('findNonOverlappingPosition', () => {
+  const makePlate = (id: string, x: number, z: number, w = 6, d = 8) => ({
+    id, name: id, type: 'region' as const, parentId: null, children: [] as string[], metadata: {},
+    position: { x, y: 0, z }, size: { width: w, depth: d, height: 1 },
+  });
+
   it('returns initial position when no siblings exist', () => {
-    const result = findNonOverlappingPosition({ x: 0, z: 0 }, { width: 6, depth: 8 }, []);
-    expect(result).toEqual({ x: 0, z: 0 });
+    const result = findNonOverlappingPosition({ x: 0, y: 0, z: 0 }, { width: 6, depth: 8 }, []);
+    expect(result).toEqual({ x: 0, y: 0, z: 0 });
   });
 
   it('returns initial position when it does not overlap', () => {
-    const siblings = [
-      { id: 's1', position: { x: 20, z: 0 }, size: { width: 6, depth: 8 } },
-    ];
-    const result = findNonOverlappingPosition({ x: 0, z: 0 }, { width: 6, depth: 8 }, siblings);
-    expect(result).toEqual({ x: 0, z: 0 });
+    const siblings = [makePlate('s1', 20, 0)];
+    const result = findNonOverlappingPosition({ x: 0, y: 0, z: 0 }, { width: 6, depth: 8 }, siblings);
+    expect(result).toEqual({ x: 0, y: 0, z: 0 });
   });
 
   it('shifts rightward when initial position overlaps', () => {
-    const siblings = [
-      { id: 's1', position: { x: 0, z: 0 }, size: { width: 6, depth: 8 } },
-    ];
-    const result = findNonOverlappingPosition({ x: 0, z: 0 }, { width: 6, depth: 8 }, siblings);
+    const siblings = [makePlate('s1', 0, 0)];
+    const result = findNonOverlappingPosition({ x: 0, y: 0, z: 0 }, { width: 6, depth: 8 }, siblings);
     expect(result.x).toBeGreaterThan(0);
     expect(
       platesOverlap(result, { width: 6, depth: 8 }, { x: 0, z: 0 }, { width: 6, depth: 8 }),
