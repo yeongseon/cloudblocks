@@ -61,6 +61,9 @@ jobs:
       - name: Build
         run: pnpm run build
 
+      - name: Scan build output for leaked secrets
+        run: ./scripts/check-build-secrets.sh apps/web/dist
+
   web-test:
     name: Web Tests
     runs-on: ubuntu-latest
