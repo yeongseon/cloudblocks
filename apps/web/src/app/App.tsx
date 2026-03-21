@@ -164,11 +164,29 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [undo, redo, saveToStorage, selectedId, removeBlock, removePlate, removeConnection, setSelectedId, interactionState, cancelInteraction]);
 
+  // Determine right-panel CSS class for canvas viewport adjustment
+  const isWideRightPanel = showOpsCenter || showPromoteHistory;
+  const isStandardRightPanel =
+    showCodePreview ||
+    showGitHubLogin ||
+    showGitHubRepos ||
+    showGitHubPR ||
+    showNotificationCenter ||
+    showPromoteDialog ||
+    showRollbackDialog ||
+    showSuggestionsPanel ||
+    showCostPanel;
+  const rightPanelClass = isWideRightPanel
+    ? ' right-panel-wide'
+    : isStandardRightPanel
+      ? ' right-panel-open'
+      : '';
+
   return (
     <div className="app">
       <MenuBar />
       <div className="main-content">
-        <div className={`canvas-container${editorMode === 'learn' ? ' learn-mode-active' : ''}${isBuildOrderOpen ? ' build-order-active' : ''}`}>
+        <div className={`canvas-container${editorMode === 'learn' ? ' learn-mode-active' : ''}${isBuildOrderOpen ? ' build-order-active' : ''}${rightPanelClass}`}>
           <ResourceBar />
           <SceneCanvas />
           <ValidationPanel />

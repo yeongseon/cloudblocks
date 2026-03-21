@@ -40,3 +40,22 @@
     padding-right: 0;
   }
 }
+
+/* Right-side panel open: shift canvas to avoid overlay */
+.canvas-container.right-panel-open {
+  padding-right: 450px;
+  transition: padding-right 0.3s ease;
+}
+
+/* Wide right-side panel (OpsCenter, PromoteHistory) */
+.canvas-container.right-panel-wide {
+  padding-right: 630px;
+  transition: padding-right 0.3s ease;
+}
+
+@media (max-width: 899px) {
+  .canvas-container.right-panel-open,
+  .canvas-container.right-panel-wide {
+    padding-right: 0;
+  }
+}
