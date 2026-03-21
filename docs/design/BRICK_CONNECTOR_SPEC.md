@@ -511,54 +511,79 @@ This contrasts with §11's approach which used arbitrary extrusions with no Lego
    └─────────────────────────────┘
 ```
 
-### 12.3 World-Space Isometric Routing (Critical Fix)
+### 12.3 Screen-Space Orthogonal Routing
 
-**§11 Bug**: Routing computed elbows in screen-space (`{ x: tgt.x, y: src.y }`) which produces non-isometric diagonals. Beams must follow isometric grid axes to look like physical Lego pieces.
+**§11 Bug**: Routing computed elbows in screen-space with arbitrary diagonals.
+**§12 v1 Bug**: World-space axis routing (X-first then Z) still produced screen diagonals because a single world-axis movement maps to a diagonal in isometric projection.
+
+**Solution**: Route in **screen coordinates** — segments are strictly screen-vertical (constant screenX) or screen-horizontal (constant screenY). This guarantees visually clean right-angle connections regardless of isometric projection geometry.
 
 #### 12.3.1 Algorithm
 
-1. Convert source and target screen positions back to **world coordinates** using `screenToWorld()`
-2. Route along **world X-axis** first, then **world Z-axis** (L-shaped)
-3. Convert each route point back to **screen coordinates** for rendering
-4. Each segment aligns with an isometric axis — no arbitrary screen-space angles
+1. Convert source and target **world coordinates** to **screen coordinates** using isometric projection:
+   ```
+   screenX = originX + (worldX - worldZ) × TILE_W / 2
+   screenY = originY + (worldX + worldZ) × TILE_H / 2 - worldY × TILE_Z
+   ```
+2. Compare screen positions (with `SAME_PX_TOLERANCE = 2`):
+   - Same screenX → single **screen-v** segment (vertical line)
+   - Same screenY → single **screen-h** segment (horizontal line)
+   - Otherwise → L-route with height normalization
+3. L-route uses `normalizedY = Math.min(srcScreen.y, tgtScreen.y)` (the higher point on screen)
+4. Direction depends on which endpoint is lower on screen (higher Y value):
+   - Source lower → **vertical-first**: src → elbow(srcX, normalizedY) → tgt
+   - Source higher → **horizontal-first**: src → elbow(tgtX, normalizedY) → tgt
 
 ```
-World-space routing:
+Screen-space routing:
 
-Source (wx1, wz1)
+Source (sx1, sy1)        ← lower on screen (larger Y)
   │
-  ├── Segment 1: walk along world X to (wx2, wz1)    ← renders as ╲ or ╱
+  ├── Segment 1: screen-v (constant screenX = sx1)    ← vertical line ↑
   │
-  Elbow (wx2, wz1)
+  Elbow (sx1, normalizedY)
   │
-  ├── Segment 2: walk along world Z to (wx2, wz2)    ← renders as ╱ or ╲
+  ├── Segment 2: screen-h (constant screenY = normalizedY)  ← horizontal line →
   │
-Target (wx2, wz2)
+Target (sx2, sy2)        ← higher on screen (smaller Y)
 ```
 
-In isometric projection, world X-axis renders as a line going **right-down** (slope +0.5), and world Z-axis renders as a line going **left-down** (slope -0.5). This produces clean, recognizable isometric paths.
+#### 12.3.2 Elbow Selection (Height Normalization)
 
-#### 12.3.2 Elbow Selection
+The elbow is always placed at the **height of the topmost endpoint** (smallest screenY). This ensures beams rise to the higher resource before connecting horizontally, producing a clean "up then across" or "across then down" visual.
 
-Two possible L-shapes for any source→target pair:
-- **X-first**: walk X, then Z (elbow at `(tgt.worldX, src.worldZ)`)
-- **Z-first**: walk Z, then X (elbow at `(src.worldX, tgt.worldZ)`)
-
-Default: **X-first**. Future: pick the path with less visual occlusion.
+- Source is lower (srcScreen.y > tgtScreen.y): elbow at `(srcScreen.x, normalizedY)` — vertical-first
+- Source is higher (srcScreen.y ≤ tgtScreen.y): elbow at `(tgtScreen.x, normalizedY)` — horizontal-first
 
 #### 12.3.3 Straight Segments
 
-If source and target share the same world X or Z coordinate (within tolerance), use a single straight segment along the shared axis.
+If source and target align within `SAME_PX_TOLERANCE` (2px) on either screen axis, a single straight segment is used:
+- Same screenX (within tolerance) → `screen-v` segment
+- Same screenY (within tolerance) → `screen-h` segment
+- Both within tolerance → degenerate, treated as `screen-v`
+
+#### 12.3.4 Segment Types
+
+| Direction | Constant | Varies | Visual |
+|-----------|----------|--------|--------|
+| `screen-v` | screenX | screenY | Vertical line on screen |
+| `screen-h` | screenY | screenX | Horizontal line on screen |
+
+Each `ScreenSegment` contains `start: ScreenPoint`, `end: ScreenPoint`, and `direction: 'screen-v' | 'screen-h'`.
+
+#### 12.3.5 Length Calculations
+
+Segment lengths are computed directly from screen coordinates:
+- `screen-v`: `|end.y - start.y|` pixels, converted to CU by dividing by `TILE_H`
+- `screen-h`: `|end.x - start.x|` pixels, converted to CU by dividing by `TILE_W`
 
 ### 12.4 Beam Geometry Constants (Derived from Lego)
 
 All values derived from `RENDER_SCALE` and Lego ratios:
 
 ```typescript
-// Beam is 0.5 CU wide (half a stud pitch — thin liftarm)
-const BEAM_HALF_WIDTH_CU = 0.25;
-const BEAM_HALF_WIDTH_X = TILE_W / 2 * BEAM_HALF_WIDTH_CU;   // 8px in iso-X
-const BEAM_HALF_WIDTH_Y = TILE_H / 2 * BEAM_HALF_WIDTH_CU;   // 4px in iso-Y
+// Screen-space beam half-thickness (perpendicular to beam direction)
+const BEAM_HALF_THICKNESS = 4;   // pixels
 
 // Beam thickness = 1 plate height = 0.33 CU
 const BEAM_THICKNESS_CU = 1 / 3;
@@ -570,8 +595,11 @@ const PIN_HOLE_SPACING_CU = 1.0;
 // Pin hole radius = 0.3 CU (= 0.6 × stud pitch / 2)
 const PIN_HOLE_RADIUS_CU = 0.3;
 
-// Rounded end radius = beam half-width
-const END_RADIUS_CU = BEAM_HALF_WIDTH_CU;
+// Rounded end radius = beam half-thickness
+const END_RADIUS = BEAM_HALF_THICKNESS;
+
+// Alignment tolerance
+const SAME_PX_TOLERANCE = 2;     // pixels, for screen-aligned detection
 ```
 
 ### 12.5 Connection Type Differentiation
@@ -592,14 +620,14 @@ Types are differentiated by **beam color** (primary) and **pin hole style** (sec
 
 #### 12.6.1 Per-Segment Rendering
 
-Each segment renders as a **3D isometric liftarm piece** along one world axis:
+Each segment renders as a **3D liftarm piece** along a screen axis:
 
 ```svg
-<g data-connector-segment data-axis="x|z">
+<g data-connector-segment data-direction="screen-v|screen-h">
   <!-- 1. Side face (plate-height thick, drawn first for depth) -->
   <polygon points="{side-face}" fill="{dark}" />
 
-  <!-- 2. Top face (isometric parallelogram, beam width × segment length) -->
+  <!-- 2. Top face (rectangle, beam thickness × segment length) -->
   <polygon points="{top-face}" fill="{tile}" stroke="{shadow}" stroke-width="0.5" />
 
   <!-- 3. Pin holes along beam (1 per CU of length) -->
@@ -609,22 +637,21 @@ Each segment renders as a **3D isometric liftarm piece** along one world axis:
 </g>
 ```
 
-The parallelogram direction depends on which world axis the segment follows:
-- **World X segment**: top face is a parallelogram slanting right-down
-- **World Z segment**: top face is a parallelogram slanting left-down
+The rectangle orientation depends on which screen direction the segment follows:
+- **screen-v segment**: top face is a tall rectangle (constant X, varying Y)
+- **screen-h segment**: top face is a wide rectangle (varying X, constant Y)
 
 #### 12.6.2 Elbow Joint
 
-At the bend point, a **square connector piece** (1×1 CU) joins the two segments:
+At the bend point, a **square connector piece** joins the two segments:
 
 ```svg
 <g data-connector-elbow>
-  <!-- Isometric diamond (1 CU × 1 CU top face) -->
-  <polygon points="{diamond}" fill="{tile}" stroke="{shadow}" stroke-width="0.5" />
-  <!-- Right side face -->
-  <polygon points="{right-side}" fill="{shadow}" />
-  <!-- Front side face -->
-  <polygon points="{front-side}" fill="{dark}" />
+  <!-- Square top face (screen-aligned) -->
+  <rect x="..." y="..." width="{beam-width}" height="{beam-width}"
+        fill="{tile}" stroke="{shadow}" stroke-width="0.5" />
+  <!-- Side face -->
+  <polygon points="{side}" fill="{dark}" />
   <!-- Center pin hole -->
   <ellipse cx="..." cy="..." rx="{hole-rx}" ry="{hole-ry}"
            fill="{accent}" opacity="0.4" />
@@ -654,7 +681,7 @@ To avoid the "pillar through block" artifact from §11:
 | Concern | Mitigation |
 |---|---|
 | Pin holes add SVG elements | Max ~5 holes per segment. Clipped to visible viewport. |
-| World↔screen conversions | Pre-computed at route time, cached in `useMemo`. |
+| World→screen conversions | One-time at route computation; results cached as `ScreenPoint` in `useMemo`. |
 | 30+ connections | `React.memo` on component. Route only recomputes on endpoint change. |
 | Rendering order | Depth key computation is O(1) per segment. |
 
@@ -666,33 +693,36 @@ New tokens added to `designTokens.ts`, all derived from `RENDER_SCALE`:
 
 ```typescript
 // -- Technic Liftarm (Connector Beam) --
-// Derived from Lego Technic liftarm proportions
-export const BEAM_WIDTH_CU = 0.5;                              // beam is half a stud wide
+// Screen-space beam dimensions
+export const BEAM_HALF_THICKNESS = 4;                           // screen pixels
 export const BEAM_THICKNESS_CU = 1 / 3;                        // plate height = ⅓ brick
 export const BEAM_THICKNESS_PX = RENDER_SCALE * BEAM_THICKNESS_CU; // ~11px
 export const PIN_HOLE_SPACING_CU = 1.0;                        // 1 hole per stud pitch
-export const PIN_HOLE_RX = RENDER_SCALE * 3 / 20;              // 4.8 (iso X radius)
-export const PIN_HOLE_RY = PIN_HOLE_RX / 2;                    // 2.4 (iso Y radius)
+export const PIN_HOLE_RX = RENDER_SCALE * 3 / 20;              // 4.8 (hole X radius)
+export const PIN_HOLE_RY = PIN_HOLE_RX / 2;                    // 2.4 (hole Y radius)
+export const SAME_PX_TOLERANCE = 2;                             // alignment detection
 ```
 
 ### 12.10 Migration from §11
 
 | §11 Artifact | §12 Replacement |
 |---|---|
-| `buildBeamFaces()` — screen-space polygon | `buildIsoBeamFaces()` — axis-aligned isometric parallelogram |
-| `computeRoute()` — screen-space elbow | `computeWorldRoute()` — world-space X/Z routing |
+| `buildBeamFaces()` — screen-space polygon | `renderLiftarmSegment()` — screen-axis-aligned rectangle with depth face |
+| `computeRoute()` — screen-space elbow | `computeWorldRoute()` — world→screen conversion then screen-orthogonal routing |
+| `WorldSegment` with `axis: 'x' \| 'z'` | `ScreenSegment` with `direction: 'screen-v' \| 'screen-h'` |
 | 5 beam shape renderers | 1 universal liftarm renderer with pin hole style variants |
-| `BEAM_HALF_WIDTH = 8` (magic number) | `BEAM_WIDTH_CU = 0.5` (derived from Lego ratio) |
+| `BEAM_HALF_WIDTH = 8` (magic number) | `BEAM_HALF_THICKNESS = 4` (screen pixels) |
 | `BEAM_THICKNESS = 6` (magic number) | `BEAM_THICKNESS_CU = 1/3` (= plate height ratio) |
 | Protruding arrow tip | Flush end with directional pin hole |
-| Screen-space hit path | World-space routed hit path |
+| World-space axis hit path | Screen-orthogonal hit path via `buildHitPath(route)` |
 
 ### 12.11 Acceptance Criteria
 
-- [ ] Connectors visually resemble Lego Technic liftarms with visible pin holes
-- [ ] All segments align with isometric X or Z axes — no screen-space diagonals
-- [ ] Beam proportions match Lego ratios (width = 0.5 CU, thickness = plate height)
-- [ ] 5 connection types differentiated by color (pin hole style is bonus)
+- [x] Connectors visually resemble Lego Technic liftarms with visible pin holes
+- [x] All segments are screen-vertical or screen-horizontal — no diagonals
+- [x] L-routes use height normalization (elbow at topmost endpoint height)
+- [x] Beam proportions match Lego ratios (thickness = plate height)
+- [x] 5 connection types differentiated by color (pin hole style is bonus)
 - [ ] No "pillar through block" artifacts — correct depth ordering
-- [ ] All existing interactions preserved (select, hover, delete, diff)
-- [ ] Tests pass, lint clean, build succeeds
+- [x] All existing interactions preserved (select, hover, delete, diff)
+- [x] Tests pass, lint clean, build succeeds

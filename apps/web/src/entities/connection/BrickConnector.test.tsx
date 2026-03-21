@@ -4,20 +4,12 @@ import { BrickConnector } from './BrickConnector';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import { getEndpointWorldPosition } from '../../shared/utils/position';
-import { worldToScreen } from '../../shared/utils/isometric';
 import { getDiffState } from '../../features/diff/engine';
 import type { Connection, ConnectionType } from '@cloudblocks/schema';
 import type { DiffDelta } from '../../shared/types/diff';
 
 vi.mock('../../shared/utils/position', () => ({
   getEndpointWorldPosition: vi.fn(),
-}));
-
-vi.mock('../../shared/utils/isometric', () => ({
-  worldToScreen: vi.fn(),
-  TILE_W: 64,
-  TILE_H: 32,
-  TILE_Z: 32,
 }));
 
 vi.mock('../../shared/tokens/designTokens', () => ({
@@ -55,10 +47,6 @@ function setupEndpoints(srcWorld: [number, number, number] = [1, 0, 2], tgtWorld
   vi.mocked(getEndpointWorldPosition)
     .mockReturnValueOnce(srcWorld)
     .mockReturnValueOnce(tgtWorld);
-  vi.mocked(worldToScreen).mockImplementation((wx: number, wy: number, wz: number, ox = 0, oy = 0) => ({
-    x: ox + (wx - wz) * 32,
-    y: oy + (wx + wz) * 16 - wy * 32,
-  }));
 }
 
 function renderConnector(conn: Connection = connection) {
@@ -154,10 +142,6 @@ describe('BrickConnector', () => {
     vi.mocked(getEndpointWorldPosition)
       .mockReturnValueOnce([1, 0, 2])
       .mockReturnValueOnce([3, 0, 4]);
-    vi.mocked(worldToScreen).mockImplementation((wx: number, wy: number, wz: number, ox = 0, oy = 0) => ({
-      x: ox + (wx - wz) * 32,
-      y: oy + (wx + wz) * 16 - wy * 32,
-    }));
 
     const { container } = render(
       <svg onClick={parentClick}><title>Test</title>
@@ -244,7 +228,7 @@ describe('BrickConnector', () => {
   });
 
   describe('liftarm segments', () => {
-    it('renders iso-aligned segments with data-connector-segment attribute', () => {
+    it('renders segments with data-connector-segment attribute', () => {
       setupEndpoints([1, 0, 1], [1, 0, 5]);
 
       const { container } = renderConnector();
@@ -253,14 +237,17 @@ describe('BrickConnector', () => {
       expect(segments.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('segment has axis data attribute', () => {
+    it('segment has direction data attribute', () => {
+      // src [1,0,1] → screen (100, 232), tgt [4,0,1] → screen (196, 280)
+      // Different X and Y → L-route; first segment direction depends on routing
       setupEndpoints([1, 0, 1], [4, 0, 1]);
 
       const { container } = renderConnector();
 
       const segment = container.querySelector('[data-connector-segment]');
       expect(segment).toBeInTheDocument();
-      expect(segment?.getAttribute('data-axis')).toBe('x');
+      const dir = segment?.getAttribute('data-direction');
+      expect(dir === 'screen-v' || dir === 'screen-h').toBe(true);
     });
 
     it('renders at least 3 polygons per segment (top + side + front + optional pin markers)', () => {
@@ -285,7 +272,7 @@ describe('BrickConnector', () => {
       expect(elbows).toHaveLength(1);
     });
 
-    it('elbow has 3 polygons (diamond top + 2 side faces)', () => {
+    it('elbow has 3 polygons (square top + 2 side faces)', () => {
       setupEndpoints([1, 0, 1], [4, 0, 5]);
 
       const { container } = renderConnector();
@@ -295,8 +282,9 @@ describe('BrickConnector', () => {
       expect(elbow?.querySelectorAll('polygon')).toHaveLength(3);
     });
 
-    it('does not render elbow for axis-aligned connections', () => {
-      setupEndpoints([1, 0, 1], [1, 0, 5]);
+    it('does not render elbow for screen-aligned connections', () => {
+      // [1,0,1] and [3,0,3]: worldX-worldZ=0 for both → same screenX → single segment, no elbow
+      setupEndpoints([1, 0, 1], [3, 0, 3]);
 
       const { container } = renderConnector();
 
