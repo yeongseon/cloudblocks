@@ -950,7 +950,7 @@ Scope:
 
 ---
 
-## Milestone 18 — DevOps UX
+## Milestone 18 — DevOps UX ✅
 
 Goal:
 Add operational control capabilities to CloudBlocks. Introduce an Ops Control Center, standardize deployment terminology, build environment promotion/rollback UX, add a notification system, and replace SVG connection lines with brick-style connector pieces.
@@ -971,14 +971,27 @@ Scope:
 - Estimated effort: 8–10 weeks
 
 ### Exit Criteria
-- [ ] Ops Control Center shows real-time deployment status for `local`, `staging`, and `production`
-- [ ] Deploy/promote/rollback terminology consistent across all docs, workflows, and UI
-- [ ] Promote flow works end-to-end: staging to production with pre-promotion checklist
-- [ ] Rollback to a previous version works from Ops Control Center
-- [ ] Cost estimation displayed before deployment confirmation
-- [ ] Notification system shows deployment lifecycle events in-app
-- [ ] Deployment history log records all deploys, promotions, and rollbacks
-- [ ] Connections render as brick-style connector pieces matching the Lego visual language
+- [ ] Ops Control Center shows real-time deployment status for `local`, `staging`, and `production` — **deferred to M20+**
+- [ ] Deploy/promote/rollback terminology consistent across all docs, workflows, and UI — **partially done (docs only)**
+- [ ] Promote flow works end-to-end: staging to production with pre-promotion checklist — **deferred to M20+**
+- [ ] Rollback to a previous version works from Ops Control Center — **deferred to M20+**
+- [ ] Cost estimation displayed before deployment confirmation — **deferred to M20+**
+- [ ] Notification system shows deployment lifecycle events in-app — **deferred to M20+ (infinite loop bug)**
+- [ ] Deployment history log records all deploys, promotions, and rollbacks — **deferred to M20+**
+- [x] Connections render as brick-style connector pieces matching the Lego visual language
+
+### Delivered (not in original exit criteria)
+- [x] Screen-space orthogonal connector routing with height normalization
+- [x] BRICK_CONNECTOR_SPEC.md §12 with full geometry and algorithm documentation
+- [x] Provider-specific block palette, icon mappings, and learning mode content
+- [x] Plate overlap prevention
+- [x] 24+ GitHub integration bug fixes
+- [x] UI simplification: OpsCenter, AI, NotificationCenter hidden; Portrait panel removed
+- [x] Minifigure worker concept evaluated and removed (paradigm mismatch)
+- [x] CI cost optimization
+
+### Retrospective
+Scope inflation with agentic coding led to most exit criteria being deferred. The milestone's primary value was the brick-style connector system and clarifying product direction (design tool, not RTS). See CHANGELOG v0.18.0 for details.
 
 ### Dependencies
 - Milestone 17 complete
@@ -1138,6 +1151,13 @@ Milestone 17 (Complete)
 - 30 bug fixes across domain model, workspace persistence, dialogs, and code generation
 - Version alignment policy enforced
 
+Milestone 18 (Complete)
+- Brick-style Technic Beam connectors with screen-space orthogonal routing
+- Provider-specific block palette and learning mode fixes
+- Product direction clarified: design tool identity (minifigure worker removed)
+- UI simplified: OpsCenter, AI, NotificationCenter deferred to M20+
+- 47 commits, 23 PRs, 1854 tests passing
+
 ---
 
 ## Summary
@@ -1176,7 +1196,7 @@ The roadmap evolves CloudBlocks from:
 
 → Product Structure (Milestone 17) ✅
 
-→ DevOps UX (Milestone 18)
+→ DevOps UX (Milestone 18) ✅
 
 → MVP Polish & Launch (Milestone 19)
 
@@ -1193,7 +1213,7 @@ Milestone 8 (Complete) ✅
     │                       └── Milestone 15 (v2.0 Spec) ✅
     │                               └── Milestone 16 (Doc Architecture) ✅
     │                                       └── Milestone 17 (Product Structure) ✅
-    │                                               └── Milestone 18 (DevOps UX)
+    │                                               └── Milestone 18 (DevOps UX) ✅
     │                                                       └── Milestone 19 (MVP Polish & Launch)
     │               └── Milestone 14 (AI Roadmap) ✅ ←── also benefits from Milestone 13
     └── Milestone 11 (Brick Design) ✅ ──── parallel with Milestone 9

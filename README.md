@@ -115,7 +115,7 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 | v0.15.0 | v2.0 Specification Implementation | ✅ |
 | v0.16.0 | Documentation Architecture | ✅ |
 | v0.17.0 | Product Structure | ✅ |
-| v0.18.0 | DevOps UX | 🔄 |
+| v0.18.0 | DevOps UX | ✅ |
 
 See [CHANGELOG.md](CHANGELOG.md) for release details and [full roadmap](docs/concept/ROADMAP.md) for milestone breakdown.
 
