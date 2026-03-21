@@ -26,10 +26,13 @@ function adaptSnapshot(
   const terms = NETWORK_TERMS[provider];
   return {
     ...snapshot,
-    plates: snapshot.plates.map((plate) => ({
-      ...plate,
-      name: plate.name === 'VNet' ? terms.vnet : plate.name,
-    })),
+    nodes: snapshot.nodes.map((node) => {
+      if (node.kind !== 'container') return node;
+      return {
+        ...node,
+        name: node.name === 'VNet' ? terms.vnet : node.name,
+      };
+    }),
   };
 }
 
