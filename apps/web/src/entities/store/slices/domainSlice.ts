@@ -21,6 +21,7 @@ type DomainSlice = Pick<
   | 'duplicateBlock'
   | 'removeBlock'
   | 'renameBlock'
+  | 'updateBlockConfig'
   | 'renamePlate'
   | 'moveBlock'
   | 'setPlateProfile'
@@ -296,6 +297,26 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         ...arch,
         blocks: arch.blocks.map((candidate) =>
           candidate.id === blockId ? { ...candidate, name: newName } : candidate
+        ),
+      });
+    });
+  },
+
+  updateBlockConfig: (blockId, config) => {
+    set((state) => {
+      const arch = state.workspace.architecture;
+      const block = arch.blocks.find((candidate) => candidate.id === blockId);
+
+      if (!block) {
+        return state;
+      }
+
+      return withHistory(state, {
+        ...arch,
+        blocks: arch.blocks.map((candidate) =>
+          candidate.id === blockId
+            ? { ...candidate, config: { ...candidate.config, ...config } }
+            : candidate
         ),
       });
     });

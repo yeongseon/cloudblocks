@@ -218,6 +218,119 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
           </span>
         </div>
       </div>
+
+      <div className="detail-divider" />
+
+      <InfraSettings block={block} />
+    </div>
+  );
+}
+
+// ─── Infrastructure Settings ──────────────────────────────
+
+/** Category-specific infrastructure setting definitions. */
+const INFRA_SETTING_DEFS: Record<string, { key: string; label: string; type: 'select' | 'number'; options?: string[] }[]> = {
+  compute: [
+    { key: 'tier', label: 'Tier / SKU', type: 'select', options: ['Basic', 'Standard', 'Premium'] },
+    { key: 'vcpus', label: 'vCPUs', type: 'number' },
+    { key: 'memoryGb', label: 'Memory (GB)', type: 'number' },
+  ],
+  database: [
+    { key: 'tier', label: 'Tier', type: 'select', options: ['Basic', 'Standard', 'Premium'] },
+    { key: 'storageSizeGb', label: 'Storage (GB)', type: 'number' },
+  ],
+  function: [
+    { key: 'tier', label: 'Plan', type: 'select', options: ['Consumption', 'Premium', 'Dedicated'] },
+  ],
+  gateway: [
+    { key: 'tier', label: 'Tier', type: 'select', options: ['Basic', 'Standard', 'Premium'] },
+  ],
+  storage: [
+    { key: 'replication', label: 'Replication', type: 'select', options: ['LRS', 'GRS', 'ZRS', 'GZRS'] },
+    { key: 'storageSizeGb', label: 'Size (GB)', type: 'number' },
+  ],
+};
+
+function InfraSettings({ block }: { block: Block }) {
+  const updateBlockConfig = useArchitectureStore((s) => s.updateBlockConfig);
+  const [draft, setDraft] = useState<Record<string, string>>({});
+  const [hasChanges, setHasChanges] = useState(false);
+
+  const settings = INFRA_SETTING_DEFS[block.category] ?? [];
+
+  // Reset draft when block changes
+  useEffect(() => {
+    const initial: Record<string, string> = {};
+    for (const setting of settings) {
+      initial[setting.key] = String(block.config?.[setting.key] ?? '');
+    }
+    setDraft(initial);
+    setHasChanges(false);
+  }, [block.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (settings.length === 0) {
+    return null;
+  }
+
+  const handleChange = (key: string, value: string) => {
+    setDraft((prev) => ({ ...prev, [key]: value }));
+    setHasChanges(true);
+  };
+
+  const handleApply = () => {
+    const config: Record<string, unknown> = {};
+    for (const setting of settings) {
+      const value = draft[setting.key];
+      if (value !== '') {
+        config[setting.key] = setting.type === 'number' ? Number(value) : value;
+      }
+    }
+    updateBlockConfig(block.id, config);
+    setHasChanges(false);
+  };
+
+  return (
+    <div className="detail-infra-settings">
+      <h4 className="detail-infra-title">Infrastructure Settings</h4>
+      {settings.map((setting) => (
+        <div key={setting.key} className="detail-property">
+          <label className="detail-property-label" htmlFor={`infra-${block.id}-${setting.key}`}>
+            {setting.label}
+          </label>
+          <span className="detail-property-value">
+            {setting.type === 'select' && setting.options ? (
+              <select
+                id={`infra-${block.id}-${setting.key}`}
+                className="detail-property-select"
+                value={draft[setting.key] ?? ''}
+                onChange={(e) => handleChange(setting.key, e.target.value)}
+              >
+                <option value="">—</option>
+                {setting.options.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                id={`infra-${block.id}-${setting.key}`}
+                type="number"
+                className="detail-property-input"
+                value={draft[setting.key] ?? ''}
+                onChange={(e) => handleChange(setting.key, e.target.value)}
+                min={0}
+              />
+            )}
+          </span>
+        </div>
+      ))}
+      <button
+        type="button"
+        className="detail-infra-apply-btn"
+        onClick={handleApply}
+        disabled={!hasChanges}
+      >
+        Apply
+      </button>
     </div>
   );
 }
