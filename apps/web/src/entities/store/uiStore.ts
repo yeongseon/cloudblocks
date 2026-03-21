@@ -90,11 +90,6 @@ interface UIState {
   ) => void;
   clearDiffState: () => void;
 
-  // ── Build Order panel ──
-  isBuildOrderOpen: boolean;
-  toggleBuildOrder: () => void;
-  setBuildOrderOpen: (open: boolean) => void;
-
   // ── Sound preference ──
   isSoundMuted: boolean;
   toggleSound: () => void;
@@ -292,11 +287,6 @@ export const useUIStore = create<UIState>((set) => ({
       diffDelta: null,
       diffBaseArchitecture: null,
     }),
-
-  isBuildOrderOpen: true,
-  toggleBuildOrder: () =>
-    set((s) => ({ isBuildOrderOpen: !s.isBuildOrderOpen })),
-  setBuildOrderOpen: (open) => set({ isBuildOrderOpen: open }),
 
   isSoundMuted: true,
   toggleSound: () => set((s) => ({ isSoundMuted: !s.isSoundMuted })),

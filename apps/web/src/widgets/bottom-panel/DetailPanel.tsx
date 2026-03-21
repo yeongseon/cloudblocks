@@ -14,7 +14,6 @@
 
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { useWorkerStore } from '../../entities/store/workerStore';
 import { BLOCK_FRIENDLY_NAMES, BLOCK_DESCRIPTIONS, BLOCK_ICONS, CONNECTION_TYPE_LABELS } from '../../shared/types/index';
 import type { Block, Plate } from '@cloudblocks/schema';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
@@ -41,10 +40,6 @@ export function DetailPanel({ className = '' }: DetailPanelProps) {
       return <IdleState className={className} />;
     }
     return <WelcomeState className={className} />;
-  }
-
-  if (selectedId === 'worker-default') {
-    return <WorkerDetail className={className} />;
   }
 
   if (selectedBlock) {
@@ -242,52 +237,6 @@ function PlateDetail({ plate, className }: { plate: Plate; className: string }) 
             {childBlocks.length} block{childBlocks.length !== 1 ? 's' : ''}
             {childPlates.length > 0 && `, ${childPlates.length} subnet${childPlates.length !== 1 ? 's' : ''}`}
           </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// --- Worker Detail ----
-
-function WorkerDetail({ className }: { className: string }) {
-  const workerState = useWorkerStore((s) => s.workerState);
-  const workerPosition = useWorkerStore((s) => s.workerPosition);
-  const activeBuild = useWorkerStore((s) => s.activeBuild);
-  const buildQueue = useWorkerStore((s) => s.buildQueue);
-
-  return (
-    <div className={`detail-panel detail-panel--worker ${className}`}>
-      <div className="detail-header">
-        <span className="detail-header-icon">{'\u{1F9D1}\u200D\u{1F527}'}</span>
-        <span className="detail-header-name">Worker</span>
-      </div>
-
-      <div className="detail-divider" />
-
-      <div className="detail-properties">
-        <div className="detail-property">
-          <span className="detail-property-label">State</span>
-          <span className="detail-property-value">{workerState}</span>
-        </div>
-
-        <div className="detail-property">
-          <span className="detail-property-label">Position</span>
-          <span className="detail-property-value detail-property-mono">
-            ({workerPosition[0].toFixed(1)}, {workerPosition[1].toFixed(1)}, {workerPosition[2].toFixed(1)})
-          </span>
-        </div>
-
-        <div className="detail-property">
-          <span className="detail-property-label">Active Build</span>
-          <span className="detail-property-value">
-            {activeBuild ? `${activeBuild.blockId} (${Math.round(activeBuild.progress * 100)}%)` : 'None'}
-          </span>
-        </div>
-
-        <div className="detail-property">
-          <span className="detail-property-label">Queued</span>
-          <span className="detail-property-value">{buildQueue.length} task(s)</span>
         </div>
       </div>
     </div>

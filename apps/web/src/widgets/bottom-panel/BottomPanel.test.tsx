@@ -20,7 +20,7 @@ import { BottomPanel } from './BottomPanel';
 
 describe('BottomPanel', () => {
   beforeEach(() => {
-    useUIStore.setState({ selectedId: null, isBuildOrderOpen: true });
+    useUIStore.setState({ selectedId: null });
   });
 
   it('renders all child widgets', () => {
@@ -39,37 +39,10 @@ describe('BottomPanel', () => {
     expect(panel).toHaveClass('custom-bottom');
   });
 
-  it('adds build-order-open class when build order is open', () => {
-    useUIStore.setState({ isBuildOrderOpen: true });
-
+  it('always applies bottom-panel--command-open class', () => {
     const { container } = render(<BottomPanel />);
 
-    expect(container.querySelector('.bottom-panel')).toHaveClass('bottom-panel--build-order-open');
-  });
-
-  it('removes build-order-open class when build order is closed', () => {
-    useUIStore.setState({ isBuildOrderOpen: false });
-
-    const { container } = render(<BottomPanel />);
-
-    expect(container.querySelector('.bottom-panel')).not.toHaveClass('bottom-panel--build-order-open');
-  });
-
-  it('shows expand tab when build order is closed', () => {
-    useUIStore.setState({ isBuildOrderOpen: false });
-
-    render(<BottomPanel />);
-
-    expect(screen.getByRole('button', { name: /open build order/i })).toBeInTheDocument();
-    expect(screen.queryByTestId('command-card')).not.toBeInTheDocument();
-  });
-
-  it('hides expand tab when build order is open', () => {
-    useUIStore.setState({ isBuildOrderOpen: true });
-
-    render(<BottomPanel />);
-
-    expect(screen.queryByRole('button', { name: /open build order/i })).not.toBeInTheDocument();
-    expect(screen.getByTestId('command-card')).toBeInTheDocument();
+    const panel = container.querySelector('.bottom-panel');
+    expect(panel).toHaveClass('bottom-panel--command-open');
   });
 });

@@ -149,33 +149,6 @@
   padding: 7px 8px;
 }
 
-.command-card--worker-mode .command-card-grid {
-  gap: 4px;
-  padding: 6px;
-}
-
-.command-card--worker-mode .command-card-creation-groups {
-  gap: 6px;
-}
-
-.command-card--worker-mode .command-card-category-group {
-  gap: 4px;
-  padding: 4px;
-}
-
-.command-card--worker-mode .command-card-category-header {
-  padding: 2px 5px;
-}
-
-.command-card--worker-mode .command-card-resource-btn {
-  min-height: 50px;
-  gap: 2px;
-  padding: 5px 6px;
-}
-
-.command-card--worker-mode .command-btn-icon {
-  font-size: 16px;
-}
 
 .command-card-resource-btn .command-btn-hotkey {
   bottom: 3px;
@@ -226,6 +199,18 @@
 .command-btn-icon {
   font-size: 18px;
   line-height: 1;
+}
+
+.command-card-resource-btn .command-btn-icon {
+  display: block;
+  width: 36px;
+  height: 28px;
+}
+
+.command-card-resource-btn .command-btn-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 /* Label */

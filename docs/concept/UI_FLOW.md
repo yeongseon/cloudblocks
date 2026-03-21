@@ -210,9 +210,9 @@ The Bottom Panel provides context-sensitive controls:
 
 | Mode | When Active | Controls |
 |------|------------|----------|
-| **Creation** | No selection | Block category palette (drag to create) |
 | **Block Action** | Block selected | Block details, rename, delete, connection options |
 | **Plate Action** | Plate selected | Plate details, rename, resize, delete |
+| **Connection Action** | Connection selected | Connection type, delete |
 
 ### Keyboard Shortcuts
 
@@ -237,7 +237,7 @@ The **MenuBar** displays three provider tabs (Azure / AWS / GCP). Clicking a tab
 |-------------|-------------|
 | **Resource palette** | CommandCard filters available resources by provider |
 | **New blocks** | Newly created blocks are tagged with the active provider |
-| **Minifigure** | Worker character changes appearance to match the active provider |
+| **Visual cues** | UI elements update to reflect the active provider |
 | **Code generation** | CodePreview generates IaC for the active provider |
 | **Drag ghost** | Shows the active provider name during drag operations |
 
@@ -263,7 +263,6 @@ activeProvider (uiStore — global UI toggle)
   ├── SceneCanvas      → New blocks tagged with activeProvider
   ├── CommandCard      → Resource list filtered by provider
   ├── CodePreview      → IaC generation + mismatch warning
-  ├── MinifigureSprite → Character appearance matches provider
   └── DragGhost        → Provider name during drag
 ```
 

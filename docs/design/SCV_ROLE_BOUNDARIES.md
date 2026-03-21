@@ -1,33 +1,20 @@
-# Minifigure Worker Role Boundaries
+# CommandCard Role Boundaries
 
-> Issue: #1030, #1035 | Milestone: 18
+> Issue: #1088 | Milestone: 19
 
 ## Design Principle
 
-**The minifigure is a builder -- it only creates things.**
-
-Like a StarCraft worker that builds structures then walks away, the minifigure's sole job is construction. Everything else -- upgrades, configuration, settings -- happens through the resource itself via the CommandCard.
+**The CommandCard is a context-sensitive action panel** — it displays relevant actions and settings based on what the user has selected on the canvas.
 
 ### Decision Rule
 
-> "Is this **creating** something new?"
-> - **Yes** -- Minifigure walks to site, builds it
-> - **No** -- Happens via CommandCard settings panel on the resource
+> "What is currently selected?"
+> - **Block** — Show block actions (rename, copy, delete) and configuration form
+> - **Plate** — Show plate actions (rename, delete) and settings form
+> - **Connection** — Show connection actions (delete) and type dropdown
+> - **Nothing** — Show an empty hint prompting the user to select something
 
 ## CommandCard Modes
-
-### Worker Selected: 2-Level
-
-**Level 1 (Worker Commands):**
-- Build (Q): Enter build grid (Level 2)
-- Connect (W): setToolMode('connect')
-- Move (E): Hint -- drag minifigure on canvas
-- Relocate (R): Hint -- drag a resource to reposition
-
-**Level 2 (Build Grid):**
-- Back button returns to Level 1
-- Resource creation grid (blocks only, no plates)
-- Escape key returns to Level 1
 
 ### Block Selected
 - Row 1: Rename(Q), Copy(W), Delete(E)
@@ -44,8 +31,8 @@ Like a StarCraft worker that builds structures then walks away, the minifigure's
 - Row 2: Type dropdown (dataflow/http/internal/async)
 - Row 3: Apply button (green)
 
-### Nothing Selected: Creation Grid
-Resource buttons with provider-specific labels.
+### Nothing Selected: Empty Hint
+Displays a message prompting the user to select a block, plate, or connection.
 
 ## DetailPanel: Read-Only
 
@@ -53,7 +40,6 @@ The DetailPanel shows resource properties in read-only form:
 - Block: Type, Description, Provider, Subtype, Category, Network, Position
 - Plate: Type, Profile (text), Profile Note, Parent, Size, Contents
 - Connection: Type, From, To
-- Worker: State, Position, Active Build, Queued
 
 All editing is done via CommandCard actions and settings.
 
@@ -67,7 +53,6 @@ All editing is done via CommandCard actions and settings.
 
 | Trigger | Animation | Duration |
 |---------|-----------|----------|
-| Block/Plate create | Minifigure walk, build pulse, return | ~2.5s |
 | Upgrade/Scale/Config Apply | Block/plate self-glow/pulse (is-upgrading) | ~1.6s |
 | Delete | Instant fade-out + sound | ~0.3s |
 | Rename/Copy | None | Instant |

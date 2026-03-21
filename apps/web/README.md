@@ -42,8 +42,7 @@ src/
 │   │   └── connection.ts         # Connection rule validation
 │   ├── block/BlockSvg.tsx        # Isometric block SVG sprite
 │   ├── plate/PlateSvg.tsx        # Isometric plate SVG sprite (with studs)
-│   ├── connection/ConnectionPath.tsx  # SVG connection paths + external actor
-│   └── character/MinifigureSvg.tsx    # Lego minifigure character (Phase 3)
+│   └── connection/ConnectionPath.tsx  # SVG connection paths + external actor
 ├── features/                     # Business logic (stateless)
 │   ├── generate/                 # Code generation pipeline (Terraform, Bicep, Pulumi)
 │   │   ├── types.ts              # Generation types
@@ -120,7 +119,6 @@ src/
 - ✅ First-screen onboarding and selection states (Milestone 6B)
 - ✅ Learning Mode with guided scenarios (Milestone 6C)
 - ✅ Sound effects with mute preference (Phase 2)
-- ✅ Lego minifigure DevOps engineer character (Phase 3)
 - ✅ Architecture diff visualization with canvas overlays (Milestone 7)
 - ✅ Compare with GitHub flow (Milestone 7)
 - ✅ Magnetic snap, dynamic shadows, bounce transitions (Phase 2 UX)
