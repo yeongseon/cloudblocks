@@ -34,7 +34,7 @@ import {
 import { BLOCK_FRIENDLY_NAMES, BLOCK_ICONS } from '../../shared/types/index';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
 import { getBlockWorldPosition } from '../../shared/utils/position';
-import type { BlockCategory, Plate, ProviderType } from '@cloudblocks/schema';
+import type { ContainerNode, LeafNode, ProviderType, ResourceCategory } from '@cloudblocks/schema';
 import './CommandCard.css';
 
 interface CommandCardProps {
@@ -60,6 +60,8 @@ const PROVIDER_RESOURCE_ALLOWLIST: Record<ProviderType, ReadonlySet<ResourceType
   gcp: new Set(ALL_RESOURCES),
 };
 
+type ContainerLayer = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
+
 function getPositionHotkey(rowIdx: number, colIdx: number): string {
   return POSITION_HOTKEYS[rowIdx]?.[colIdx] ?? '';
 }
@@ -72,28 +74,25 @@ function chunkResources(resources: ResourceType[], chunkSize = 9): ResourceType[
   return chunks;
 }
 
-function getPlateHeaderText(plate: Plate): string {
-  if (plate.type === 'subnet') {
+function getPlateHeaderText(plate: ContainerNode): string {
+  const plateType: ContainerLayer = plate.layer === 'resource' ? 'region' : plate.layer;
+  if (plateType === 'subnet') {
     return plate.subnetAccess === 'public' ? 'Public Subnet' : 'Private Subnet';
   }
   // Network-layer plates: global, edge, region, zone
-  return plate.type === 'region' ? 'VNet' : plate.type.charAt(0).toUpperCase() + plate.type.slice(1);
+  return plateType === 'region' ? 'VNet' : plateType.charAt(0).toUpperCase() + plateType.slice(1);
 }
 
-type CreationGroupId = BlockCategory | 'plate';
+type CreationGroupId = ResourceCategory | 'plate';
 
 const CREATION_GROUP_ORDER: CreationGroupId[] = [
   'plate',
   'compute',
-  'database',
-  'storage',
-  'gateway',
-  'function',
-  'queue',
-  'event',
-  'analytics',
-  'identity',
-  'observability',
+  'data',
+  'edge',
+  'security',
+  'messaging',
+  'operations',
 ];
 
 function getCreationGroupMeta(groupId: CreationGroupId): { icon: string; label: string; color: string } {
@@ -122,12 +121,14 @@ export function CommandCard({ className = '' }: CommandCardProps) {
   const [plateSubActionState, setPlateSubActionState] = useState<{ selectedId: string | null; action: 'deploy' | null }>({ selectedId: null, action: null });
   const selectedId = useUIStore((s) => s.selectedId);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
+  const resources = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
+  const containers = architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
   const isWorkerSelected = selectedId === 'worker-default';
   const selectedBlock = selectedId
-    ? architecture.blocks.find((b) => b.id === selectedId) ?? null
+    ? resources.find((b) => b.id === selectedId) ?? null
     : null;
   const selectedPlate = selectedId
-    ? architecture.plates.find((p) => p.id === selectedId) ?? null
+    ? containers.find((p) => p.id === selectedId) ?? null
     : null;
 
   const plateSubAction = plateSubActionState.selectedId === selectedId ? plateSubActionState.action : null;
@@ -207,7 +208,7 @@ export function CommandCard({ className = '' }: CommandCardProps) {
   );
 }
 
-function PlateActionMode({ selectedPlate, onDeploy }: { selectedPlate: Plate; onDeploy: () => void }) {
+function PlateActionMode({ selectedPlate, onDeploy }: { selectedPlate: ContainerNode; onDeploy: () => void }) {
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const removePlate = useArchitectureStore((s) => s.removePlate);
   const renamePlate = useArchitectureStore((s) => s.renamePlate);
@@ -349,7 +350,7 @@ function CreationMode() {
         interactable.unset();
       });
     };
-  }, [cancelInteraction, startPlacing]);
+  }, [activeProvider, cancelInteraction, startPlacing]);
 
   const handleCreate = useCallback((type: ResourceType) => {
     if (isDraggingRef.current) return;
@@ -359,7 +360,9 @@ function CreationMode() {
     // Handle plate creation
     if (def.category === 'plate') {
       const platesBefore = new Set(
-        useArchitectureStore.getState().workspace.architecture.plates.map((p) => p.id),
+        useArchitectureStore.getState().workspace.architecture.nodes
+          .filter((node): node is ContainerNode => node.kind === 'container')
+          .map((p) => p.id),
       );
 
       if (type === 'network') {
@@ -380,7 +383,8 @@ function CreationMode() {
       }
 
       // Trigger walk-build animation for the new plate
-      const updatedPlates = useArchitectureStore.getState().workspace.architecture.plates;
+      const updatedPlates = useArchitectureStore.getState().workspace.architecture.nodes
+        .filter((node): node is ContainerNode => node.kind === 'container');
       const newPlate = updatedPlates.find((p) => !platesBefore.has(p.id));
       if (newPlate) {
         const { x, y, z } = newPlate.position;
@@ -475,24 +479,30 @@ function WorkerBuildMode() {
       return;
     }
 
-    const knownBlockIds = new Set(architecture.blocks.map((block) => block.id));
+    const knownBlockIds = new Set(
+      architecture.nodes
+        .filter((node): node is LeafNode => node.kind === 'resource')
+        .map((block) => block.id),
+    );
     counterRef.current += 1;
     const name = `${getResourceLabel(type, activeProvider)} ${counterRef.current}`;
     addBlock(def.blockCategory, name, targetId, activeProvider);
 
-    const nextBlocks = useArchitectureStore.getState().workspace.architecture.blocks;
+    const nextBlocks = useArchitectureStore.getState().workspace.architecture.nodes
+      .filter((node): node is LeafNode => node.kind === 'resource');
     const createdBlock = nextBlocks.find(
-      (block) => !knownBlockIds.has(block.id) && block.name === name && block.placementId === targetId,
+      (block) => !knownBlockIds.has(block.id) && block.name === name && block.parentId === targetId,
     );
 
     if (createdBlock) {
-      const nextPlates = useArchitectureStore.getState().workspace.architecture.plates;
-      const parentPlate = nextPlates.find((p) => p.id === createdBlock.placementId);
+      const nextPlates = useArchitectureStore.getState().workspace.architecture.nodes
+        .filter((node): node is ContainerNode => node.kind === 'container');
+      const parentPlate = nextPlates.find((p) => p.id === createdBlock.parentId);
       if (parentPlate) {
         startBuild(createdBlock.id, getBlockWorldPosition(createdBlock, parentPlate));
       }
     }
-  }, [activeProvider, addBlock, architecture.blocks, startBuild, techTree]);
+  }, [activeProvider, addBlock, architecture.nodes, startBuild, techTree]);
 
   return (
     <div className="command-card-creation-groups">
@@ -538,7 +548,7 @@ function WorkerBuildMode() {
   );
 }
 
-function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
+function PlateCreationMode({ selectedPlate }: { selectedPlate: ContainerNode }) {
   const techTree = useTechTree();
   const addPlate = useArchitectureStore((s) => s.addPlate);
   const addBlock = useArchitectureStore((s) => s.addBlock);
@@ -552,7 +562,7 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
-      const contextResources = selectedPlate.type !== 'subnet'
+      const contextResources = selectedPlate.layer !== 'subnet'
         ? PLATE_CONTEXT_RESOURCES.network
         : selectedPlate.subnetAccess === 'public'
           ? PLATE_CONTEXT_RESOURCES['subnet-public']
@@ -613,7 +623,7 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
         interactable.unset();
       });
     };
-  }, [cancelInteraction, filteredContextResources, startPlacing]);
+  }, [activeProvider, cancelInteraction, filteredContextResources, startPlacing]);
 
   const handleCreate = useCallback((type: ResourceType) => {
     if (isDraggingRef.current) return;
@@ -621,10 +631,12 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
     const def = RESOURCE_DEFINITIONS[type];
 
     if (def.category === 'plate') {
-      if (selectedPlate.type !== 'region') return;
+      if (selectedPlate.layer !== 'region') return;
 
       const platesBefore = new Set(
-        useArchitectureStore.getState().workspace.architecture.plates.map((p) => p.id),
+        useArchitectureStore.getState().workspace.architecture.nodes
+          .filter((node): node is ContainerNode => node.kind === 'container')
+          .map((p) => p.id),
       );
 
       if (type === 'public-subnet') {
@@ -636,7 +648,8 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
       }
 
       // Trigger walk-build animation for the new plate
-      const updatedPlates = useArchitectureStore.getState().workspace.architecture.plates;
+      const updatedPlates = useArchitectureStore.getState().workspace.architecture.nodes
+        .filter((node): node is ContainerNode => node.kind === 'container');
       const newPlate = updatedPlates.find((p) => !platesBefore.has(p.id));
       if (newPlate) {
         const { x, y, z } = newPlate.position;
@@ -654,7 +667,7 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
     const name = `${getResourceLabel(type, activeProvider)} ${counterRef.current}`;
     addBlock(def.blockCategory, name, selectedPlate.id, activeProvider);
     playSound('block-snap');
-  }, [activeProvider, addPlate, addBlock, selectedPlate.id, selectedPlate.type, playSound]);
+  }, [activeProvider, addPlate, addBlock, selectedPlate.id, selectedPlate.layer, playSound]);
 
   const resourcePages = chunkResources(filteredContextResources, 9).map((page) => {
     const normalizedPage: (ResourceType | null)[] = [...page];
@@ -725,7 +738,9 @@ function BlockActionMode() {
   const removePlate = useArchitectureStore((s) => s.removePlate);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
-  const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
+    const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
+  const blocks = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
+  const plates = architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
 
   const handleAction = useCallback(async (action: ActionType) => {
     if (!selectedId) return;
@@ -747,7 +762,7 @@ function BlockActionMode() {
         break;
 
       case 'rename': {
-        const block = architecture.blocks.find((candidate) => candidate.id === selectedId);
+        const block = blocks.find((candidate) => candidate.id === selectedId);
         if (block) {
           const newName = await promptDialog('Rename block:', 'Rename', block.name);
           if (newName !== null && newName.trim() !== '') {
@@ -758,8 +773,8 @@ function BlockActionMode() {
       }
 
       case 'delete': {
-        const isBlock = architecture.blocks.some((b) => b.id === selectedId);
-        const isPlate = architecture.plates.some((p) => p.id === selectedId);
+        const isBlock = blocks.some((b) => b.id === selectedId);
+        const isPlate = plates.some((p) => p.id === selectedId);
 
         if (isBlock) {
           removeBlock(selectedId);
@@ -774,7 +789,7 @@ function BlockActionMode() {
       default:
         break;
     }
-  }, [selectedId, setSelectedId, setToolMode, toggleProperties, duplicateBlock, renameBlock, removeBlock, removePlate, architecture, playSound]);
+  }, [selectedId, setSelectedId, setToolMode, toggleProperties, duplicateBlock, renameBlock, removeBlock, removePlate, playSound, blocks, plates]);
 
   return (
     <>

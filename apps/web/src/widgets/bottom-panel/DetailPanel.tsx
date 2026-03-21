@@ -16,7 +16,7 @@ import { useUIStore } from '../../entities/store/uiStore';
 import { useWorkerStore } from '../../entities/store/workerStore';
 import { BLOCK_FRIENDLY_NAMES, BLOCK_DESCRIPTIONS, BLOCK_ICONS, CONNECTION_TYPE_LABELS, DEFAULT_PLATE_PROFILE, getPlateProfile, isPlateProfileId, PLATE_PROFILES } from '../../shared/types/index';
 import type { PlateProfileId } from '../../shared/types/index';
-import type { Block, Plate } from '@cloudblocks/schema';
+import type { ContainerNode, LeafNode } from '@cloudblocks/schema';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
 import { getBlockIconUrl, getPlateIconUrl } from '../../shared/utils/iconResolver';
 import './DetailPanel.css';
@@ -25,18 +25,22 @@ interface DetailPanelProps {
   className?: string;
 }
 
+type ContainerLayer = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
+
 export function DetailPanel({ className = '' }: DetailPanelProps) {
   const selectedId = useUIStore((s) => s.selectedId);
   const showTemplateGallery = useUIStore((s) => s.showTemplateGallery);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
+  const containers = architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+  const resources = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
 
   // Find selected item
-  const selectedBlock = architecture.blocks.find((b) => b.id === selectedId);
-  const selectedPlate = architecture.plates.find((p) => p.id === selectedId);
+  const selectedBlock = resources.find((b) => b.id === selectedId);
+  const selectedPlate = containers.find((p) => p.id === selectedId);
   const selectedConnection = architecture.connections.find((c) => c.id === selectedId);
 
   if (!selectedId) {
-    const isEmptyOnboarding = architecture.plates.length === 0 && !showTemplateGallery;
+    const isEmptyOnboarding = containers.length === 0 && !showTemplateGallery;
     if (isEmptyOnboarding) {
       return <IdleState className={className} />;
     }
@@ -98,7 +102,7 @@ function WelcomeState({ className }: { className: string }) {
 
 // ─── Block Detail ──────────────────────────────────────────
 
-function BlockDetail({ block, className }: { block: Block; className: string }) {
+function BlockDetail({ block, className }: { block: LeafNode; className: string }) {
   const [isRenaming, setIsRenaming] = useState(false);
   const [newName, setNewName] = useState(block.name);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -112,10 +116,10 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
     }
   }, [isRenaming]);
 
-
-  const parentPlate = architecture.plates.find((p) => p.id === block.placementId);
+  const containers = architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+  const parentPlate = containers.find((p) => p.id === block.parentId);
   const networkPlate = parentPlate?.parentId
-    ? architecture.plates.find((p) => p.id === parentPlate.parentId)
+    ? containers.find((p) => p.id === parentPlate.parentId)
     : parentPlate;
 
   const handleRename = useCallback(() => {
@@ -224,38 +228,41 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
 
 // ─── Plate Detail ──────────────────────────────────────────
 
-function PlateDetail({ plate, className }: { plate: Plate; className: string }) {
+function PlateDetail({ plate, className }: { plate: ContainerNode; className: string }) {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const setPlateProfile = useArchitectureStore((s) => s.setPlateProfile);
+  const containers = architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+  const resources = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
+  const plateType: ContainerLayer = plate.layer === 'resource' ? 'region' : plate.layer;
 
   const profileId = plate.profileId && isPlateProfileId(plate.profileId)
     ? plate.profileId
-    : DEFAULT_PLATE_PROFILE[plate.type];
+    : DEFAULT_PLATE_PROFILE[plateType];
   const profile = getPlateProfile(profileId);
-  const hasProfileSupport = plate.type === 'region' || plate.type === 'subnet';
-  const profileFilterType = plate.type === 'subnet' ? 'subnet' : 'region';
+  const hasProfileSupport = plateType === 'region' || plateType === 'subnet';
+  const profileFilterType = plateType === 'subnet' ? 'subnet' : 'region';
   const profileOptions = hasProfileSupport
     ? Object.values(PLATE_PROFILES).filter((candidate) => candidate.type === profileFilterType)
     : [];
 
   const parentPlate = plate.parentId
-    ? architecture.plates.find((p) => p.id === plate.parentId)
+    ? containers.find((p) => p.id === plate.parentId)
     : null;
 
-  const childBlocks = architecture.blocks.filter((b) => b.placementId === plate.id);
-  const childPlates = architecture.plates.filter((p) => p.parentId === plate.id);
+  const childBlocks = resources.filter((b) => b.parentId === plate.id);
+  const childPlates = containers.filter((p) => p.parentId === plate.id);
 
-  const altText = plate.type === 'subnet'
+  const altText = plateType === 'subnet'
     ? `${plate.subnetAccess === 'public' ? 'Public' : 'Private'} Subnet`
-    : plate.type === 'region'
+    : plateType === 'region'
       ? 'Region'
-      : plate.type.charAt(0).toUpperCase() + plate.type.slice(1);
+      : plateType.charAt(0).toUpperCase() + plateType.slice(1);
 
   return (
     <div className={`detail-panel detail-panel--plate ${className}`}>
       <div className="detail-header">
         <img
-          src={getPlateIconUrl(plate.type, plate.subnetAccess)}
+          src={getPlateIconUrl(plateType, plate.subnetAccess)}
           alt={altText}
           className="detail-header-icon-img"
         />
@@ -268,7 +275,7 @@ function PlateDetail({ plate, className }: { plate: Plate; className: string }) 
         <div className="detail-property">
           <span className="detail-property-label">Type</span>
           <span className="detail-property-value">
-            {plate.type === 'subnet' ? 'Subnet' : plate.type.charAt(0).toUpperCase() + plate.type.slice(1)}
+            {plateType === 'subnet' ? 'Subnet' : plateType.charAt(0).toUpperCase() + plateType.slice(1)}
             {plate.subnetAccess && ` (${plate.subnetAccess})`}
           </span>
         </div>
@@ -377,12 +384,13 @@ function WorkerDetail({ className }: { className: string }) {
 function ConnectionDetail({ connectionId, className }: { connectionId: string; className: string }) {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const connection = architecture.connections.find((c) => c.id === connectionId);
+  const resources = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
 
   if (!connection) return null;
 
-  const sourceBlock = architecture.blocks.find((b) => b.id === connection.sourceId);
+  const sourceBlock = resources.find((b) => b.id === connection.sourceId);
   const sourceActor = architecture.externalActors.find((a) => a.id === connection.sourceId);
-  const targetBlock = architecture.blocks.find((b) => b.id === connection.targetId);
+  const targetBlock = resources.find((b) => b.id === connection.targetId);
 
   return (
     <div className={`detail-panel detail-panel--connection ${className}`}>

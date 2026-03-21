@@ -15,6 +15,7 @@ import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { PLATE_COLORS, SUBNET_ACCESS_COLORS } from '../../shared/types/index';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
+import type { ContainerNode, LeafNode } from '@cloudblocks/schema';
 import './Minimap.css';
 
 interface MinimapProps {
@@ -28,7 +29,9 @@ export function Minimap({ className = '' }: MinimapProps) {
 
   // Calculate bounds and scale
   const viewData = useMemo(() => {
-    const { plates, blocks, connections } = architecture;
+    const plates = architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+    const blocks = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
+    const { connections } = architecture;
 
     if (plates.length === 0) {
       return { plates: [], blocks: [], connections: [], scale: 1, offsetX: 0, offsetY: 0 };
@@ -64,20 +67,21 @@ export function Minimap({ className = '' }: MinimapProps) {
 
     // Transform plates
     const transformedPlates = plates.map((plate) => ({
+      layer: plate.layer === 'resource' ? 'region' : plate.layer,
       id: plate.id,
       x: plate.position.x * scale + offsetX,
       y: plate.position.z * scale + offsetY,
       width: plate.size.width * scale,
       height: plate.size.depth * scale,
-      color: plate.type === 'subnet' && plate.subnetAccess
+      color: (plate.layer === 'subnet' && plate.subnetAccess)
         ? SUBNET_ACCESS_COLORS[plate.subnetAccess]
-        : PLATE_COLORS[plate.type],
-      isNetwork: plate.type !== 'subnet',
+        : PLATE_COLORS[(plate.layer === 'resource' ? 'region' : plate.layer)],
+      isNetwork: plate.layer !== 'subnet',
     }));
 
     // Transform blocks
     const transformedBlocks = blocks.map((block) => {
-      const parentPlate = plates.find((p) => p.id === block.placementId);
+      const parentPlate = plates.find((p) => p.id === block.parentId);
       const baseX = parentPlate ? parentPlate.position.x : 0;
       const baseY = parentPlate ? parentPlate.position.z : 0;
 
@@ -96,8 +100,8 @@ export function Minimap({ className = '' }: MinimapProps) {
 
       if (!sourceBlock || !targetBlock) return null;
 
-      const sourcePlate = plates.find((p) => p.id === sourceBlock.placementId);
-      const targetPlate = plates.find((p) => p.id === targetBlock.placementId);
+      const sourcePlate = plates.find((p) => p.id === sourceBlock.parentId);
+      const targetPlate = plates.find((p) => p.id === targetBlock.parentId);
 
       const sx = ((sourcePlate?.position.x ?? 0) + sourceBlock.position.x + 1) * scale + offsetX;
       const sy = ((sourcePlate?.position.z ?? 0) + sourceBlock.position.z + 1) * scale + offsetY;
@@ -121,7 +125,7 @@ export function Minimap({ className = '' }: MinimapProps) {
     setSelectedId(id);
   };
 
-  const isEmpty = architecture.plates.length === 0 && architecture.blocks.length === 0;
+  const isEmpty = architecture.nodes.length === 0;
 
   return (
     <div className={`minimap-panel ${className}`}>

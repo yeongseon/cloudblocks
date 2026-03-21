@@ -5,7 +5,7 @@ import { CommandCard } from './CommandCard';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore, type ToolMode } from '../../entities/store/uiStore';
 import { useWorkerStore } from '../../entities/store/workerStore';
-import type { ArchitectureModel, Block, Plate } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
 
 vi.mock('./CommandCard.css', () => ({}));
 vi.mock('../../shared/ui/PromptDialog', () => ({
@@ -34,54 +34,66 @@ const baseArchitecture: ArchitectureModel = {
   id: 'arch-1',
   name: 'Test Architecture',
   version: '1.0.0',
-  plates: [],
-  blocks: [],
+  nodes: [],
   connections: [],
   externalActors: [],
   createdAt: '',
   updatedAt: '',
 };
 
-const networkPlate: Plate = {
+const networkPlate: ContainerNode = {
   id: 'net-1',
   name: 'VNet',
-  type: 'region',
+  kind: 'container',
+  layer: 'region',
+  resourceType: 'virtual_network',
+  category: 'network',
+  provider: 'azure',
   parentId: null,
-  children: [],
   position: { x: 0, y: 0, z: 0 },
   size: { width: 16, height: 0.3, depth: 20 },
   metadata: {},
 };
 
-const publicSubnet: Plate = {
+const publicSubnet: ContainerNode = {
   id: 'subnet-public-1',
   name: 'Public Subnet',
-  type: 'subnet',
+  kind: 'container',
+  layer: 'subnet',
+  resourceType: 'subnet',
+  category: 'network',
+  provider: 'azure',
   subnetAccess: 'public',
   parentId: 'net-1',
-  children: [],
   position: { x: 1, y: 0, z: 1 },
   size: { width: 6, height: 0.3, depth: 8 },
   metadata: {},
 };
 
-const privateSubnet: Plate = {
+const privateSubnet: ContainerNode = {
   id: 'subnet-private-1',
   name: 'Private Subnet',
-  type: 'subnet',
+  kind: 'container',
+  layer: 'subnet',
+  resourceType: 'subnet',
+  category: 'network',
+  provider: 'azure',
   subnetAccess: 'private',
   parentId: 'net-1',
-  children: [],
   position: { x: 8, y: 0, z: 1 },
   size: { width: 6, height: 0.3, depth: 8 },
   metadata: {},
 };
 
-const computeBlock: Block = {
+const computeBlock: LeafNode = {
   id: 'block-1',
   name: 'App VM',
+  kind: 'resource',
+  layer: 'resource',
+  resourceType: 'web_compute',
   category: 'compute',
-  placementId: 'subnet-public-1',
+  provider: 'azure',
+  parentId: 'subnet-public-1',
   position: { x: 1, y: 0, z: 2 },
   metadata: {},
 };
@@ -166,7 +178,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate, publicSubnet],
+          nodes: [networkPlate, publicSubnet],
         },
         createdAt: '',
         updatedAt: '',
@@ -189,8 +201,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate, publicSubnet],
-          blocks: [],
+          nodes: [networkPlate, publicSubnet],
         },
         createdAt: '',
         updatedAt: '',
@@ -210,13 +221,18 @@ describe('CommandCard', () => {
           name: 'Test Workspace',
           architecture: {
             ...baseArchitecture,
-            plates: [networkPlate, publicSubnet],
-            blocks: [
+            nodes: [
+              networkPlate,
+              publicSubnet,
               {
                 id: 'block-new-1',
                 name: 'Virtual Machine 1',
+                kind: 'resource',
+                layer: 'resource',
+                resourceType: 'web_compute',
                 category: 'compute',
-                placementId: 'subnet-public-1',
+                provider: 'azure',
+                parentId: 'subnet-public-1',
                 position: { x: 0, y: 0, z: 0 },
                 metadata: {},
               },
@@ -252,7 +268,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate],
+          nodes: [networkPlate],
         },
         createdAt: '',
         updatedAt: '',
@@ -273,7 +289,7 @@ describe('CommandCard', () => {
     vmListeners?.start?.();
     vmListeners?.move?.({ target: firewallButton });
     expect(firewallButton).toHaveClass('is-dragging');
-    expect(useUIStore.getState().draggedBlockCategory).toBe('gateway');
+    expect(useUIStore.getState().draggedBlockCategory).toBe('edge');
     expect(useUIStore.getState().draggedResourceName).toBe('Azure Firewall');
 
     vmListeners?.end?.({ target: firewallButton });
@@ -302,7 +318,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate],
+          nodes: [networkPlate],
         },
         createdAt: '',
         updatedAt: '',
@@ -333,7 +349,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate, publicSubnet],
+          nodes: [networkPlate, publicSubnet],
         },
         createdAt: '',
         updatedAt: '',
@@ -357,8 +373,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate, publicSubnet],
-          blocks: [],
+          nodes: [networkPlate, publicSubnet],
         },
         createdAt: '',
         updatedAt: '',
@@ -371,13 +386,17 @@ describe('CommandCard', () => {
           ...state.workspace,
           architecture: {
             ...state.workspace.architecture,
-            blocks: [
-              ...state.workspace.architecture.blocks,
+            nodes: [
+              ...state.workspace.architecture.nodes,
               {
                 id: 'worker-built-block',
                 name,
+                kind: 'resource',
+                layer: 'resource',
+                resourceType: 'web_compute',
                 category,
-                placementId,
+                provider: 'azure',
+                parentId: placementId,
                 position: { x: 0, y: 0, z: 0 },
                 metadata: {},
               },
@@ -406,8 +425,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate, publicSubnet],
-          blocks: [computeBlock],
+          nodes: [networkPlate, publicSubnet, computeBlock],
         },
         createdAt: '',
         updatedAt: '',
@@ -438,8 +456,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate, publicSubnet],
-          blocks: [computeBlock],
+          nodes: [networkPlate, publicSubnet, computeBlock],
         },
         createdAt: '',
         updatedAt: '',
@@ -461,8 +478,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate, publicSubnet],
-          blocks: [computeBlock],
+          nodes: [networkPlate, publicSubnet, computeBlock],
         },
         createdAt: '',
         updatedAt: '',
@@ -493,8 +509,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate, publicSubnet],
-          blocks: [computeBlock],
+          nodes: [networkPlate, publicSubnet, computeBlock],
         },
         createdAt: '',
         updatedAt: '',
@@ -518,8 +533,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate, publicSubnet],
-          blocks: [computeBlock],
+          nodes: [networkPlate, publicSubnet, computeBlock],
         },
         createdAt: '',
         updatedAt: '',
@@ -545,8 +559,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate, publicSubnet],
-          blocks: [computeBlock],
+          nodes: [networkPlate, publicSubnet, computeBlock],
         },
         createdAt: '',
         updatedAt: '',
@@ -574,8 +587,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate, publicSubnet],
-          blocks: [computeBlock],
+          nodes: [networkPlate, publicSubnet, computeBlock],
         },
         createdAt: '',
         updatedAt: '',
@@ -603,8 +615,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate, publicSubnet],
-          blocks: [computeBlock],
+          nodes: [networkPlate, publicSubnet, computeBlock],
         },
         createdAt: '',
         updatedAt: '',
@@ -630,8 +641,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate, publicSubnet],
-          blocks: [computeBlock],
+          nodes: [networkPlate, publicSubnet, computeBlock],
         },
         createdAt: '',
         updatedAt: '',
@@ -655,7 +665,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate],
+          nodes: [networkPlate],
         },
         createdAt: '',
         updatedAt: '',
@@ -690,8 +700,7 @@ describe('CommandCard', () => {
           name: 'Test Workspace',
           architecture: {
             ...baseArchitecture,
-            plates: [networkPlate, publicSubnet],
-            blocks: [computeBlock],
+            nodes: [networkPlate, publicSubnet, computeBlock],
           },
           createdAt: '',
           updatedAt: '',
@@ -709,7 +718,7 @@ describe('CommandCard', () => {
           name: 'Test Workspace',
           architecture: {
             ...baseArchitecture,
-            plates: [networkPlate],
+            nodes: [networkPlate],
           },
           createdAt: '',
           updatedAt: '',
@@ -733,7 +742,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate, publicSubnet],
+          nodes: [networkPlate, publicSubnet],
         },
         createdAt: '',
         updatedAt: '',
@@ -763,7 +772,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate],
+          nodes: [networkPlate],
         },
         createdAt: '',
         updatedAt: '',
@@ -793,7 +802,7 @@ describe('CommandCard', () => {
           name: 'Test Workspace',
           architecture: {
             ...baseArchitecture,
-            plates: [networkPlate],
+            nodes: [networkPlate],
           },
           createdAt: '',
           updatedAt: '',
@@ -814,7 +823,7 @@ describe('CommandCard', () => {
           name: 'Test Workspace',
           architecture: {
             ...baseArchitecture,
-            plates: [networkPlate, publicSubnet],
+            nodes: [networkPlate, publicSubnet],
           },
           createdAt: '',
           updatedAt: '',
@@ -835,7 +844,7 @@ describe('CommandCard', () => {
           name: 'Test Workspace',
           architecture: {
             ...baseArchitecture,
-            plates: [networkPlate, privateSubnet],
+            nodes: [networkPlate, privateSubnet],
           },
           createdAt: '',
           updatedAt: '',
@@ -856,7 +865,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate, publicSubnet],
+          nodes: [networkPlate, publicSubnet],
         },
         createdAt: '',
         updatedAt: '',
@@ -876,7 +885,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate, privateSubnet],
+          nodes: [networkPlate, privateSubnet],
         },
         createdAt: '',
         updatedAt: '',
@@ -898,7 +907,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate],
+          nodes: [networkPlate],
         },
         createdAt: '',
         updatedAt: '',
@@ -929,7 +938,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate],
+          nodes: [networkPlate],
         },
         createdAt: '',
         updatedAt: '',
@@ -957,7 +966,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate],
+          nodes: [networkPlate],
         },
         createdAt: '',
         updatedAt: '',
@@ -988,7 +997,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate],
+          nodes: [networkPlate],
         },
         createdAt: '',
         updatedAt: '',
@@ -1015,7 +1024,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate],
+          nodes: [networkPlate],
         },
         createdAt: '',
         updatedAt: '',
@@ -1043,7 +1052,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate],
+          nodes: [networkPlate],
         },
         createdAt: '',
         updatedAt: '',
@@ -1071,7 +1080,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate],
+          nodes: [networkPlate],
         },
         createdAt: '',
         updatedAt: '',
@@ -1097,7 +1106,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate, publicSubnet],
+          nodes: [networkPlate, publicSubnet],
         },
         createdAt: '',
         updatedAt: '',
@@ -1128,7 +1137,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate, privateSubnet],
+          nodes: [networkPlate, privateSubnet],
         },
         createdAt: '',
         updatedAt: '',
@@ -1146,7 +1155,7 @@ describe('CommandCard', () => {
     // Now in PlateCreationMode — create SQL
     await user.click(screen.getByTitle('Create Azure SQL (W)'));
 
-    expect(addBlockMock).toHaveBeenCalledWith('database', 'Azure SQL 1', 'subnet-private-1', 'azure');
+    expect(addBlockMock).toHaveBeenCalledWith('data', 'Azure SQL 1', 'subnet-private-1', 'azure');
   });
 
   it('creates private subnet via Deploy on network plate', async () => {
@@ -1159,7 +1168,7 @@ describe('CommandCard', () => {
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate],
+          nodes: [networkPlate],
         },
         createdAt: '',
         updatedAt: '',

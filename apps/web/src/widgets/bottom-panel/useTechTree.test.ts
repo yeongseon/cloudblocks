@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import type { ArchitectureModel, BlockCategory, Plate } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerNode, ResourceCategory } from '@cloudblocks/schema';
+import { makeTestBlock, makeTestPlate } from '../../__tests__/legacyModelTestUtils';
 import {
   ACTION_DEFINITIONS,
   ACTION_GRID,
@@ -20,15 +21,14 @@ const BASE_ARCHITECTURE: ArchitectureModel = {
   id: 'arch-1',
   name: 'Test Architecture',
   version: '1.0.0',
-  plates: [],
-  blocks: [],
+  nodes: [],
   connections: [],
   externalActors: [],
   createdAt: '',
   updatedAt: '',
 };
 
-const NETWORK_PLATE: Plate = {
+const NETWORK_PLATE: ContainerNode = makeTestPlate({
   id: 'net-1',
   name: 'VNet',
   type: 'region',
@@ -37,9 +37,9 @@ const NETWORK_PLATE: Plate = {
   position: { x: 0, y: 0, z: 0 },
   size: { width: 16, height: 0.3, depth: 20 },
   metadata: {},
-};
+});
 
-const SUBNET_PLATE: Plate = {
+const SUBNET_PLATE: ContainerNode = makeTestPlate({
   id: 'sub-1',
   name: 'Public Subnet',
   type: 'subnet',
@@ -49,33 +49,47 @@ const SUBNET_PLATE: Plate = {
   position: { x: 0, y: 0, z: 0 },
   size: { width: 6, height: 0.3, depth: 8 },
   metadata: {},
-};
+});
 
-function buildArchitecture(plates: Plate[], blockCount = 0): ArchitectureModel {
-  const blockCategories: BlockCategory[] = [
+function buildArchitecture(plates: ContainerNode[], blockCount = 0): ArchitectureModel {
+  const blockCategories: ResourceCategory[] = [
     'compute',
-    'database',
-    'storage',
-    'gateway',
-    'function',
-    'queue',
-    'event',
-    'analytics',
-    'identity',
-    'observability',
+    'data',
+    'data',
+    'edge',
+    'compute',
+    'messaging',
+    'messaging',
+    'operations',
+    'security',
+    'operations',
   ];
 
-  return {
-    ...BASE_ARCHITECTURE,
-    plates,
-    blocks: Array.from({ length: blockCount }, (_, index) => ({
+  const resourceTypeByCategory: Record<ResourceCategory, string> = {
+    network: 'virtual_network',
+    security: 'firewall_security',
+    edge: 'load_balancer',
+    compute: 'web_compute',
+    data: 'relational_database',
+    messaging: 'message_queue',
+    operations: 'monitoring',
+  };
+
+  const blocks = Array.from({ length: blockCount }, (_, index) =>
+    makeTestBlock({
       id: `block-${index + 1}`,
       name: `Block ${index + 1}`,
       category: blockCategories[index % blockCategories.length],
+      resourceType: resourceTypeByCategory[blockCategories[index % blockCategories.length]],
       placementId: plates[0]?.id ?? 'net-1',
       position: { x: index, y: 0, z: index },
       metadata: {},
-    })),
+    }),
+  );
+
+  return {
+    ...BASE_ARCHITECTURE,
+    nodes: [...plates, ...blocks],
   };
 }
 
@@ -90,7 +104,7 @@ function setArchitectureState(architecture: ArchitectureModel): void {
 describe('useTechTree constants', () => {
   it('defines all resource entries with correct fields', () => {
     const expectedResources: Record<
-      ResourceType,
+      string,
       Pick<ResourceDefinition, 'id' | 'label' | 'shortLabel' | 'icon' | 'category' | 'blockCategory'>
     > = {
       network: { id: 'network', label: 'Network (VNet)', shortLabel: 'VNet', icon: '🌐', category: 'plate', blockCategory: null },
@@ -110,35 +124,35 @@ describe('useTechTree constants', () => {
         category: 'plate',
         blockCategory: null,
       },
-      storage: { id: 'storage', label: 'Blob Storage', shortLabel: 'Storage', icon: '📦', category: 'always', blockCategory: 'storage' },
-      dns: { id: 'dns', label: 'DNS Zone', shortLabel: 'DNS', icon: '🌐', category: 'always', blockCategory: 'gateway' },
-      cdn: { id: 'cdn', label: 'CDN Profile', shortLabel: 'CDN', icon: '⚡', category: 'always', blockCategory: 'gateway' },
+      storage: { id: 'storage', label: 'Blob Storage', shortLabel: 'Storage', icon: '📦', category: 'always', blockCategory: 'data' },
+      dns: { id: 'dns', label: 'DNS Zone', shortLabel: 'DNS', icon: '🌐', category: 'always', blockCategory: 'edge' },
+      cdn: { id: 'cdn', label: 'CDN Profile', shortLabel: 'CDN', icon: '⚡', category: 'always', blockCategory: 'edge' },
       'front-door': {
         id: 'front-door',
         label: 'Front Door',
         shortLabel: 'FrontDoor',
         icon: '🚪',
         category: 'always',
-        blockCategory: 'gateway',
+        blockCategory: 'edge',
       },
-      sql: { id: 'sql', label: 'Azure SQL', shortLabel: 'SQL', icon: '🗄️', category: 'vnet-optional', blockCategory: 'database' },
+      sql: { id: 'sql', label: 'Azure SQL', shortLabel: 'SQL', icon: '🗄️', category: 'vnet-optional', blockCategory: 'data' },
       function: {
         id: 'function',
         label: 'Azure Functions',
         shortLabel: 'Func',
         icon: '⚡',
         category: 'vnet-optional',
-        blockCategory: 'function',
+        blockCategory: 'compute',
       },
-      queue: { id: 'queue', label: 'Queue', shortLabel: 'Queue', icon: '📨', category: 'vnet-optional', blockCategory: 'queue' },
-      event: { id: 'event', label: 'Event Hub', shortLabel: 'Event', icon: '🔔', category: 'vnet-optional', blockCategory: 'event' },
+      queue: { id: 'queue', label: 'Queue', shortLabel: 'Queue', icon: '📨', category: 'vnet-optional', blockCategory: 'messaging' },
+      event: { id: 'event', label: 'Event Hub', shortLabel: 'Event', icon: '🔔', category: 'vnet-optional', blockCategory: 'messaging' },
       'app-service': {
         id: 'app-service',
         label: 'App Service',
         shortLabel: 'AppSvc',
         icon: '🌐',
         category: 'vnet-optional',
-        blockCategory: 'function',
+        blockCategory: 'compute',
       },
       'container-instances': {
         id: 'container-instances',
@@ -154,7 +168,7 @@ describe('useTechTree constants', () => {
         shortLabel: 'Cosmos',
         icon: '🌍',
         category: 'vnet-optional',
-        blockCategory: 'database',
+        blockCategory: 'data',
       },
       'key-vault': {
         id: 'key-vault',
@@ -162,7 +176,7 @@ describe('useTechTree constants', () => {
         shortLabel: 'KeyVault',
         icon: '🔐',
         category: 'vnet-optional',
-        blockCategory: 'identity',
+        blockCategory: 'security',
       },
       vm: {
         id: 'vm',
@@ -186,7 +200,7 @@ describe('useTechTree constants', () => {
         shortLabel: 'IntLB',
         icon: '⚖️',
         category: 'vnet-required',
-        blockCategory: 'gateway',
+        blockCategory: 'edge',
       },
       firewall: {
         id: 'firewall',
@@ -194,7 +208,7 @@ describe('useTechTree constants', () => {
         shortLabel: 'FW',
         icon: '🛡️',
         category: 'vnet-required',
-        blockCategory: 'gateway',
+        blockCategory: 'edge',
       },
       nsg: {
         id: 'nsg',
@@ -202,7 +216,7 @@ describe('useTechTree constants', () => {
         shortLabel: 'NSG',
         icon: '🔒',
         category: 'vnet-required',
-        blockCategory: 'gateway',
+        blockCategory: 'edge',
       },
       bastion: {
         id: 'bastion',
@@ -210,11 +224,11 @@ describe('useTechTree constants', () => {
         shortLabel: 'Bastion',
         icon: '🏰',
         category: 'vnet-required',
-        blockCategory: 'gateway',
+        blockCategory: 'edge',
       },
     };
 
-    const resourceTypes: ResourceType[] = [
+    const resourceTypes = [
       'network',
       'public-subnet',
       'private-subnet',
@@ -240,7 +254,7 @@ describe('useTechTree constants', () => {
     expect(resourceTypes).toHaveLength(21);
 
     for (const resourceType of resourceTypes) {
-      const actual = RESOURCE_DEFINITIONS[resourceType];
+      const actual = RESOURCE_DEFINITIONS[resourceType as ResourceType];
       const expected = expectedResources[resourceType];
       expect(actual).toMatchObject(expected);
     }
