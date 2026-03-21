@@ -30,7 +30,54 @@ export const SCHEMA_VERSION = '3.0.0';
  */
 const LEGACY_VERSIONS = ['0.1.0', '0.2.0'];
 
-const SUPPORTED_VERSIONS = [SCHEMA_VERSION];
+const SUPPORTED_VERSIONS = [SCHEMA_VERSION, '2.0.0'];
+
+/**
+ * Maps old 10-category names (v2.0.0) to new 7-category names (v3.0.0).
+ * Categories that already exist in the new system map to themselves.
+ */
+type LegacyBlockCategory =
+  | ResourceCategory
+  | 'database'
+  | 'storage'
+  | 'gateway'
+  | 'function'
+  | 'queue'
+  | 'event'
+  | 'analytics'
+  | 'identity'
+  | 'observability';
+
+const LEGACY_CATEGORY_MAP: Record<LegacyBlockCategory, ResourceCategory> = {
+  network: 'network',
+  security: 'security',
+  edge: 'edge',
+  compute: 'compute',
+  data: 'data',
+  messaging: 'messaging',
+  operations: 'operations',
+  database: 'data',
+  storage: 'data',
+  gateway: 'edge',
+  function: 'compute',
+  queue: 'messaging',
+  event: 'messaging',
+  analytics: 'operations',
+  identity: 'security',
+  observability: 'operations',
+};
+
+/**
+ * Remap a potentially-legacy category string to the current 7-category system.
+ * Returns the input unchanged if it's already a valid ResourceCategory.
+ * Returns 'compute' as a safe fallback for completely unknown values.
+ */
+function remapCategory(raw: string): ResourceCategory {
+  const mapped = LEGACY_CATEGORY_MAP[raw as LegacyBlockCategory];
+  if (mapped) return mapped;
+  console.warn(`Unknown legacy category "${raw}", falling back to "compute".`);
+  return 'compute';
+}
 
 interface LegacyPlate {
   id: string;
@@ -148,7 +195,7 @@ export function deserialize(json: string): Workspace[] {
         kind: 'resource' as const,
         layer: 'resource' as const,
         resourceType: (block.subtype as string | undefined) ?? (block.category as string),
-        category: block.category as ResourceCategory,
+        category: remapCategory(block.category as string),
         provider: (block.provider as LeafNode['provider'] | undefined) ?? 'azure',
         parentId: block.placementId as string,
         position: block.position as LeafNode['position'],
@@ -168,6 +215,12 @@ export function deserialize(json: string): Workspace[] {
       for (const node of architectureUnknown.nodes) {
         if (!isRecord(node)) {
           continue;
+        }
+
+        // Remap legacy categories on all nodes (covers both freshly-migrated
+        // and already-persisted nodes that have old category names)
+        if (typeof node.category === 'string') {
+          node.category = remapCategory(node.category as string);
         }
 
         if (node.kind === 'container' && isRecord(node.size) && !node.profileId) {

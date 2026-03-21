@@ -112,7 +112,12 @@ export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile>
 };
 
 export function getBlockVisualProfile(category: ResourceCategory): BlockVisualProfile {
-  return BLOCK_VISUAL_PROFILES[category];
+  const profile = BLOCK_VISUAL_PROFILES[category];
+  if (!profile) {
+    console.warn(`Unknown resource category "${category}", falling back to "compute" profile.`);
+    return BLOCK_VISUAL_PROFILES.compute;
+  }
+  return profile;
 }
 
 // ─── v2.0 Subtype Size Overrides (CLOUDBLOCKS_SPEC_V2.md §6) ─────
@@ -208,6 +213,6 @@ export function getBlockDimensions(
   }
 
   // 2. Fall back to category default tier size
-  const tier = CATEGORY_TIER_MAP[category];
+  const tier = CATEGORY_TIER_MAP[category] ?? CATEGORY_TIER_MAP.compute;
   return TIER_DIMENSIONS[tier];
 }

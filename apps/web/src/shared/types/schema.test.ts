@@ -397,3 +397,227 @@ describe('schema utilities', () => {
     expect(parsed).toEqual(workspaces);
   });
 });
+
+  it('remaps legacy 10-category names to 7-category names during plates+blocks migration', () => {
+    const legacyData = {
+      schemaVersion: '2.0.0',
+      workspaces: [
+        {
+          id: 'ws-1',
+          name: 'Test',
+          architecture: {
+            id: 'arch-1',
+            name: 'Test',
+            version: '1',
+            plates: [
+              {
+                id: 'plate-1',
+                name: 'VNet',
+                type: 'region',
+                parentId: null,
+                children: [],
+                position: { x: 0, y: 0, z: 0 },
+                size: { width: 16, height: 0.3, depth: 20 },
+                metadata: {},
+              },
+            ],
+            blocks: [
+              {
+                id: 'blk-db',
+                name: 'Database',
+                category: 'database',
+                placementId: 'plate-1',
+                position: { x: 1, y: 0.5, z: 1 },
+                metadata: {},
+              },
+              {
+                id: 'blk-gw',
+                name: 'Gateway',
+                category: 'gateway',
+                placementId: 'plate-1',
+                position: { x: 3, y: 0.5, z: 1 },
+                metadata: {},
+              },
+              {
+                id: 'blk-fn',
+                name: 'Function',
+                category: 'function',
+                placementId: 'plate-1',
+                position: { x: 5, y: 0.5, z: 1 },
+                metadata: {},
+              },
+              {
+                id: 'blk-q',
+                name: 'Queue',
+                category: 'queue',
+                placementId: 'plate-1',
+                position: { x: 7, y: 0.5, z: 1 },
+                metadata: {},
+              },
+              {
+                id: 'blk-ev',
+                name: 'Event',
+                category: 'event',
+                placementId: 'plate-1',
+                position: { x: 9, y: 0.5, z: 1 },
+                metadata: {},
+              },
+              {
+                id: 'blk-st',
+                name: 'Storage',
+                category: 'storage',
+                placementId: 'plate-1',
+                position: { x: 1, y: 0.5, z: 3 },
+                metadata: {},
+              },
+              {
+                id: 'blk-an',
+                name: 'Analytics',
+                category: 'analytics',
+                placementId: 'plate-1',
+                position: { x: 3, y: 0.5, z: 3 },
+                metadata: {},
+              },
+              {
+                id: 'blk-id',
+                name: 'Identity',
+                category: 'identity',
+                placementId: 'plate-1',
+                position: { x: 5, y: 0.5, z: 3 },
+                metadata: {},
+              },
+              {
+                id: 'blk-ob',
+                name: 'Observability',
+                category: 'observability',
+                placementId: 'plate-1',
+                position: { x: 7, y: 0.5, z: 3 },
+                metadata: {},
+              },
+              {
+                id: 'blk-cp',
+                name: 'Compute',
+                category: 'compute',
+                placementId: 'plate-1',
+                position: { x: 9, y: 0.5, z: 3 },
+                metadata: {},
+              },
+            ],
+            connections: [],
+            externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } }],
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    };
+
+    const result = deserialize(JSON.stringify(legacyData));
+    const nodes = result[0].architecture.nodes;
+
+    const findNode = (id: string) => nodes.find((n) => n.id === id)!;
+
+    // Legacy categories should be remapped to new 7-category system
+    expect(findNode('blk-db').category).toBe('data');
+    expect(findNode('blk-gw').category).toBe('edge');
+    expect(findNode('blk-fn').category).toBe('compute');
+    expect(findNode('blk-q').category).toBe('messaging');
+    expect(findNode('blk-ev').category).toBe('messaging');
+    expect(findNode('blk-st').category).toBe('data');
+    expect(findNode('blk-an').category).toBe('operations');
+    expect(findNode('blk-id').category).toBe('security');
+    expect(findNode('blk-ob').category).toBe('operations');
+    expect(findNode('blk-cp').category).toBe('compute');
+  });
+
+  it('remaps legacy categories on already-migrated nodes[] with old category names', () => {
+    // Simulate data that was already converted to nodes[] format
+    // but still has old 10-category names
+    const data = {
+      schemaVersion: '3.0.0',
+      workspaces: [
+        {
+          id: 'ws-1',
+          name: 'Test',
+          architecture: {
+            id: 'arch-1',
+            name: 'Test',
+            version: '1',
+            nodes: [
+              {
+                id: 'blk-1',
+                name: 'DB',
+                kind: 'resource',
+                layer: 'resource',
+                resourceType: 'sql-database',
+                category: 'database',
+                provider: 'azure',
+                parentId: 'plate-1',
+                position: { x: 1, y: 0.5, z: 1 },
+                metadata: {},
+              },
+              {
+                id: 'blk-2',
+                name: 'Storage',
+                kind: 'resource',
+                layer: 'resource',
+                resourceType: 'blob-storage',
+                category: 'storage',
+                provider: 'azure',
+                parentId: 'plate-1',
+                position: { x: 3, y: 0.5, z: 1 },
+                metadata: {},
+              },
+            ],
+            connections: [],
+            externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } }],
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    };
+
+    const result = deserialize(JSON.stringify(data));
+    const nodes = result[0].architecture.nodes;
+
+    expect(nodes[0].category).toBe('data');
+    expect(nodes[1].category).toBe('data');
+  });
+
+  it('accepts schema version 2.0.0 without warning', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const data = {
+      schemaVersion: '2.0.0',
+      workspaces: [
+        {
+          id: 'ws-1',
+          name: 'Test',
+          architecture: {
+            id: 'arch-1',
+            name: 'Test',
+            version: '1',
+            plates: [],
+            blocks: [],
+            connections: [],
+            externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } }],
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    };
+
+    const result = deserialize(JSON.stringify(data));
+    expect(result).toHaveLength(1);
+    // Should NOT emit schema mismatch warning since 2.0.0 is now supported
+    expect(warnSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining('Schema version mismatch')
+    );
+  });
