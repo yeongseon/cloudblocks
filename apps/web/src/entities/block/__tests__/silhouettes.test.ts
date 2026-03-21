@@ -23,15 +23,12 @@ import {
 
 const blockCategories: BlockCategory[] = [
   'compute',
-  'database',
-  'storage',
-  'gateway',
-  'function',
-  'queue',
-  'event',
-  'analytics',
-  'identity',
-  'observability',
+  'data',
+  'edge',
+  'messaging',
+  'operations',
+  'security',
+  'network',
 ];
 
 const silhouetteTypes: BrickSilhouette[] = ['tower', 'heavy', 'shield', 'module'];
