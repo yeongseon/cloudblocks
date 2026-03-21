@@ -1,5 +1,6 @@
 // CloudBlocks Domain — Layer hierarchy rules
-// Defines which plate types can be nested inside which other plate types.
+// Defines which layer types can be nested inside which other layer types.
+// Used by both container nodes (kind='container') and leaf nodes (kind='resource').
 
 import type { LayerType } from '@cloudblocks/schema';
 
