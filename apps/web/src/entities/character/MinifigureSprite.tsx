@@ -3,7 +3,7 @@ import interact from 'interactjs';
 import type { CloudProvider } from './minifigureFaceColors';
 import { MinifigureSvg } from './MinifigureSvg';
 import { useUIStore } from '../store/uiStore';
-import { useWorkerStore } from '../store/workerStore';
+import { useWorkerStore, BUILD_DURATION_MS } from '../store/workerStore';
 import { screenDeltaToWorld, snapToGrid } from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
 import './MinifigureSprite.css';
@@ -113,6 +113,41 @@ export const MinifigureSprite = memo(function MinifigureSprite({
       interactable.unset();
     };
   }, [setWorkerPosition, toolMode]);
+
+  // Transition-end listener: when CSS left/top transition finishes and worker is
+  // moving toward an active build target, switch state to 'building'.
+  useEffect(() => {
+    const el = spriteRef.current;
+    if (!el) return;
+
+    const onTransitionEnd = (e: TransitionEvent) => {
+      if (e.propertyName !== 'left' && e.propertyName !== 'top') return;
+
+      const { workerState: currentState, activeBuild } = useWorkerStore.getState();
+      if (currentState === 'moving' && activeBuild) {
+        useWorkerStore.setState({ workerState: 'building' });
+        const { isSoundMuted } = useUIStore.getState();
+        if (!isSoundMuted) {
+          audioService.playSound('block-snap');
+        }
+      }
+    };
+
+    el.addEventListener('transitionend', onTransitionEnd);
+    return () => el.removeEventListener('transitionend', onTransitionEnd);
+  }, []);
+
+  // Building timer: when workerState becomes 'building', wait BUILD_DURATION_MS
+  // then call completeBuild() to process the next queued task or return to idle.
+  useEffect(() => {
+    if (workerState !== 'building') return;
+
+    const timer = setTimeout(() => {
+      useWorkerStore.getState().completeBuild();
+    }, BUILD_DURATION_MS);
+
+    return () => clearTimeout(timer);
+  }, [workerState]);
 
   const handleClick = (e: React.PointerEvent) => {
     if (isDragging.current) {

@@ -440,4 +440,110 @@ describe('MinifigureSprite', () => {
     unmount();
     expect(interactMocks.unsetFn).toHaveBeenCalledOnce();
   });
+
+  it('transitionend on left/top switches moving worker to building', () => {
+    useWorkerStore.setState({
+      workerState: 'moving',
+      activeBuild: { blockId: 'b1', targetPosition: [1, 1, 1], progress: 0, startedAt: 0 },
+    });
+    const { container } = render(<MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />);
+    const sprite = container.firstElementChild as HTMLElement;
+
+    act(() => {
+      fireEvent.transitionEnd(sprite, { propertyName: 'left' });
+    });
+
+    expect(useWorkerStore.getState().workerState).toBe('building');
+  });
+
+  it('transitionend plays sound when unmuted', () => {
+    useWorkerStore.setState({
+      workerState: 'moving',
+      activeBuild: { blockId: 'b1', targetPosition: [1, 1, 1], progress: 0, startedAt: 0 },
+    });
+    useUIStore.setState({ isSoundMuted: false });
+    const playSoundSpy = vi
+      .spyOn(audioService, 'playSound')
+      .mockImplementation(async (_name: SoundName) => undefined);
+    const { container } = render(<MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />);
+    const sprite = container.firstElementChild as HTMLElement;
+
+    act(() => {
+      fireEvent.transitionEnd(sprite, { propertyName: 'left' });
+    });
+
+    expect(playSoundSpy).toHaveBeenCalledWith('block-snap');
+    playSoundSpy.mockRestore();
+  });
+
+  it('transitionend ignores non-position properties', () => {
+    useWorkerStore.setState({
+      workerState: 'moving',
+      activeBuild: { blockId: 'b1', targetPosition: [1, 1, 1], progress: 0, startedAt: 0 },
+    });
+    const { container } = render(<MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />);
+    const sprite = container.firstElementChild as HTMLElement;
+
+    act(() => {
+      fireEvent.transitionEnd(sprite, { propertyName: 'opacity' });
+    });
+
+    expect(useWorkerStore.getState().workerState).toBe('moving');
+  });
+
+  it('transitionend does not switch to building when not moving', () => {
+    useWorkerStore.setState({
+      workerState: 'idle',
+      activeBuild: null,
+    });
+    const { container } = render(<MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />);
+    const sprite = container.firstElementChild as HTMLElement;
+
+    act(() => {
+      fireEvent.transitionEnd(sprite, { propertyName: 'left' });
+    });
+
+    expect(useWorkerStore.getState().workerState).toBe('idle');
+  });
+
+  it('building timer calls completeBuild after BUILD_DURATION_MS', () => {
+    vi.useFakeTimers();
+    useWorkerStore.setState({
+      workerState: 'building',
+      activeBuild: { blockId: 'b1', targetPosition: [1, 1, 1], progress: 0, startedAt: 0 },
+    });
+    render(<MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />);
+
+    act(() => {
+      vi.advanceTimersByTime(1500);
+    });
+
+    expect(useWorkerStore.getState().workerState).toBe('idle');
+    expect(useWorkerStore.getState().activeBuild).toBeNull();
+    vi.useRealTimers();
+  });
+
+  it('drag reset timer clears isDragging after timeout', () => {
+    vi.useFakeTimers();
+    const { container } = render(<MinifigureSprite provider="azure" screenX={0} screenY={0} zIndex={1} />);
+    const sprite = container.firstElementChild as HTMLElement;
+    const draggableConfig = getDraggableConfig();
+
+    act(() => {
+      draggableConfig.listeners.move({ dx: 2, dy: 2, target: sprite });
+      draggableConfig.listeners.end();
+    });
+
+    // After drag end, click should be ignored (isDragging still true)
+    act(() => {
+      vi.advanceTimersByTime(50);
+    });
+
+    // Now isDragging should be false, click should work
+    act(() => {
+      sprite.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+    });
+
+    vi.useRealTimers();
+  });
 });
