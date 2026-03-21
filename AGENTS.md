@@ -8,7 +8,8 @@
 - `CONTRIBUTING.md`
 
 ## Working Rules
-- Preserve the existing visual-model vocabulary: plates, blocks, connections, templates.
+- **Always work on latest code**: Before starting any work, always sync with the remote. Run `git pull origin main` (or rebase onto `main` if on a feature branch) to ensure you are working against the latest codebase. Stale code causes merge conflicts and wasted effort.
+- Preserve the existing visual-model vocabulary: nodes (ContainerNode, LeafNode), connections, templates. The legacy terms "plate" and "block" may appear in historical documents and UI labels but the data model uses `ResourceNode` (see `DESIGN.md §2`).
 - Keep frontend behavior, docs, and any domain model changes synchronized.
 - Treat `apps/web` as the primary production surface unless the task explicitly targets `apps/api`.
 - Avoid incidental refactors in areas that already have unrelated user changes.
@@ -16,7 +17,7 @@
 - **English only**: All documentation, code comments, UI strings, and commit messages must be written in English. Do not introduce Korean or any other non-English text. An i18n system (`react-i18next`) is planned for future localization — until then, English is the single source language.
 - **Historical documents are immutable**: Do NOT edit documents marked "Historical (Superseded)" — including `BRICK_DESIGN_SPEC.md`, `VISUAL_DESIGN_SPEC.md`, and `BRICK_GUIDEBOOK.md`. ADRs (`docs/decisions/ADR-*.md`) are also immutable once merged; create a new ADR to supersede an old one.
 - **SVG asset rules**: All SVG sprites live in `apps/web/src/shared/assets/`. New SVG files must comply with the Universal Stud Standard. Use consistent naming: lowercase kebab-case (e.g., `internet.svg`, `compute-block.svg`). Every SVG must include a `viewBox` attribute and avoid inline `style` elements — use attributes or CSS classes instead.
-- **Zustand store boundaries**: Three stores exist — `architectureStore` (domain model: plates, blocks, connections, external actors), `uiStore` (UI state: tool mode, panel visibility, selection), and `authStore` (auth: GitHub OAuth, session). Add new state to the store that owns the domain. Do not create new stores without discussion.
+- **Zustand store boundaries**: Three stores exist — `architectureStore` (domain model: nodes, connections, external actors), `uiStore` (UI state: tool mode, panel visibility, selection), and `authStore` (auth: GitHub OAuth, session). Add new state to the store that owns the domain. Do not create new stores without discussion.
 - **Test expectations**: New features should include tests. Branch coverage must stay ≥ 90%. Do not delete or skip failing tests to make CI pass — fix the root cause instead.
 
 ## Git Conventions
