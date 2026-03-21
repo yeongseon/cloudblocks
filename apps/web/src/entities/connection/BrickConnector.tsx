@@ -2,20 +2,18 @@ import { memo, useState, useMemo } from 'react';
 import type { Connection, Block, Plate, ExternalActor } from '@cloudblocks/schema';
 import { getDiffState } from '../../features/diff/engine';
 import { getEndpointWorldPosition } from '../../shared/utils/position';
-import { worldToScreen } from '../../shared/utils/isometric';
 import type { ScreenPoint } from '../../shared/utils/isometric';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import {
-  TILE_W, TILE_H,
-  BEAM_WIDTH_CU, BEAM_THICKNESS_PX,
+  BEAM_THICKNESS_PX,
   PIN_HOLE_SPACING_CU, PIN_HOLE_RX, PIN_HOLE_RY,
   STUD_RX, STUD_RY, STUD_HEIGHT, STUD_INNER_RX, STUD_INNER_RY, STUD_INNER_OPACITY,
 } from '../../shared/tokens/designTokens';
 import { CONNECTOR_THEMES, DIFF_THEMES, lightenColor } from './connectorTheme';
-import { computeWorldRoute, worldSegmentToScreen, worldSegmentLengthCU } from './routing';
+import { computeWorldRoute, screenSegmentLengthCU } from './routing';
 import type { ConnectorTheme, PinHoleStyle } from './connectorTheme';
-import type { WorldSegment } from './routing';
+import type { ScreenSegment } from './routing';
 
 interface BrickConnectorProps {
   connection: Connection;
@@ -34,8 +32,7 @@ interface BeamColors {
   opacity: number;
 }
 
-const BEAM_HALF_W_X = TILE_W / 2 * BEAM_WIDTH_CU / 2;
-const BEAM_HALF_W_Y = TILE_H / 2 * BEAM_WIDTH_CU / 2;
+const BEAM_HALF_THICKNESS = 4;
 const HIT_AREA_WIDTH = 20;
 
 function getColors(
@@ -64,52 +61,34 @@ function getColors(
   return { tile: baseTile, shadow: baseShadow, dark: baseDark, accent, opacity: baseOpacity };
 }
 
-function buildIsoBeamTopFace(
-  startScreen: ScreenPoint,
-  endScreen: ScreenPoint,
-  axis: 'x' | 'z',
-): string {
-  const hw = axis === 'x'
-    ? { dx: 0, dy: -BEAM_HALF_W_Y, dx2: 0, dy2: BEAM_HALF_W_Y }
-    : { dx: -BEAM_HALF_W_X, dy: 0, dx2: BEAM_HALF_W_X, dy2: 0 };
+function buildBeamTopFace(seg: ScreenSegment): string {
+  const { start: s, end: e, direction } = seg;
+  const hw = BEAM_HALF_THICKNESS;
 
-  const p1 = { x: startScreen.x + hw.dx, y: startScreen.y + hw.dy };
-  const p2 = { x: startScreen.x + hw.dx2, y: startScreen.y + hw.dy2 };
-  const p3 = { x: endScreen.x + hw.dx2, y: endScreen.y + hw.dy2 };
-  const p4 = { x: endScreen.x + hw.dx, y: endScreen.y + hw.dy };
-
-  return `${p1.x},${p1.y} ${p4.x},${p4.y} ${p3.x},${p3.y} ${p2.x},${p2.y}`;
+  if (direction === 'screen-v') {
+    return `${s.x - hw},${s.y} ${s.x + hw},${s.y} ${e.x + hw},${e.y} ${e.x - hw},${e.y}`;
+  }
+  return `${s.x},${s.y - hw} ${e.x},${e.y - hw} ${e.x},${e.y + hw} ${s.x},${s.y + hw}`;
 }
 
-function buildIsoBeamSideFace(
-  startScreen: ScreenPoint,
-  endScreen: ScreenPoint,
-  axis: 'x' | 'z',
-  thickness: number,
-): string {
-  if (axis === 'x') {
-    const p1 = { x: startScreen.x, y: startScreen.y + BEAM_HALF_W_Y };
-    const p2 = { x: endScreen.x, y: endScreen.y + BEAM_HALF_W_Y };
-    return `${p1.x},${p1.y} ${p2.x},${p2.y} ${p2.x},${p2.y + thickness} ${p1.x},${p1.y + thickness}`;
+function buildBeamSideFace(seg: ScreenSegment, thickness: number): string {
+  const { start: s, end: e, direction } = seg;
+  const hw = BEAM_HALF_THICKNESS;
+
+  if (direction === 'screen-v') {
+    return `${s.x + hw},${s.y} ${e.x + hw},${e.y} ${e.x + hw},${e.y + thickness} ${s.x + hw},${s.y + thickness}`;
   }
-  const p1 = { x: startScreen.x + BEAM_HALF_W_X, y: startScreen.y };
-  const p2 = { x: endScreen.x + BEAM_HALF_W_X, y: endScreen.y };
-  return `${p1.x},${p1.y} ${p2.x},${p2.y} ${p2.x},${p2.y + thickness} ${p1.x},${p1.y + thickness}`;
+  return `${s.x},${s.y + hw} ${e.x},${e.y + hw} ${e.x},${e.y + hw + thickness} ${s.x},${s.y + hw + thickness}`;
 }
 
-function buildIsoBeamFrontFace(
-  endScreen: ScreenPoint,
-  axis: 'x' | 'z',
-  thickness: number,
-): string {
-  if (axis === 'x') {
-    const left = { x: endScreen.x, y: endScreen.y - BEAM_HALF_W_Y };
-    const right = { x: endScreen.x, y: endScreen.y + BEAM_HALF_W_Y };
-    return `${left.x},${left.y} ${right.x},${right.y} ${right.x},${right.y + thickness} ${left.x},${left.y + thickness}`;
+function buildBeamFrontFace(seg: ScreenSegment, thickness: number): string {
+  const { end: e, direction } = seg;
+  const hw = BEAM_HALF_THICKNESS;
+
+  if (direction === 'screen-v') {
+    return `${e.x - hw},${e.y} ${e.x + hw},${e.y} ${e.x + hw},${e.y + thickness} ${e.x - hw},${e.y + thickness}`;
   }
-  const left = { x: endScreen.x - BEAM_HALF_W_X, y: endScreen.y };
-  const right = { x: endScreen.x + BEAM_HALF_W_X, y: endScreen.y };
-  return `${left.x},${left.y} ${right.x},${right.y} ${right.x},${right.y + thickness} ${left.x},${left.y + thickness}`;
+  return `${e.x},${e.y - hw} ${e.x},${e.y + hw} ${e.x},${e.y + hw + thickness} ${e.x},${e.y - hw + thickness}`;
 }
 
 function renderPinHole(
@@ -171,12 +150,8 @@ function renderDirectionMarker(
   );
 }
 
-function getPinHolePositions(
-  seg: WorldSegment,
-  startScreen: ScreenPoint,
-  endScreen: ScreenPoint,
-): ScreenPoint[] {
-  const lengthCU = worldSegmentLengthCU(seg);
+function getPinHolePositions(seg: ScreenSegment): ScreenPoint[] {
+  const lengthCU = screenSegmentLengthCU(seg);
   if (lengthCU < PIN_HOLE_SPACING_CU) return [];
 
   const holeCount = Math.floor(lengthCU / PIN_HOLE_SPACING_CU);
@@ -185,8 +160,8 @@ function getPinHolePositions(
   for (let i = 1; i <= holeCount; i++) {
     const t = (i * PIN_HOLE_SPACING_CU) / lengthCU;
     positions.push({
-      x: startScreen.x + (endScreen.x - startScreen.x) * t,
-      y: startScreen.y + (endScreen.y - startScreen.y) * t,
+      x: seg.start.x + (seg.end.x - seg.start.x) * t,
+      y: seg.start.y + (seg.end.y - seg.start.y) * t,
     });
   }
 
@@ -194,24 +169,20 @@ function getPinHolePositions(
 }
 
 function renderLiftarmSegment(
-  seg: WorldSegment,
+  seg: ScreenSegment,
   colors: BeamColors,
   pinHoleStyle: PinHoleStyle,
-  originX: number,
-  originY: number,
   segId: string,
   isLastSegment: boolean,
 ): React.ReactNode {
-  const { start: startScreen, end: endScreen } = worldSegmentToScreen(seg, originX, originY);
+  const topFace = buildBeamTopFace(seg);
+  const sideFace = buildBeamSideFace(seg, BEAM_THICKNESS_PX);
+  const frontFace = buildBeamFrontFace(seg, BEAM_THICKNESS_PX);
 
-  const topFace = buildIsoBeamTopFace(startScreen, endScreen, seg.axis);
-  const sideFace = buildIsoBeamSideFace(startScreen, endScreen, seg.axis, BEAM_THICKNESS_PX);
-  const frontFace = buildIsoBeamFrontFace(endScreen, seg.axis, BEAM_THICKNESS_PX);
-
-  const pinHoles = getPinHolePositions(seg, startScreen, endScreen);
+  const pinHoles = getPinHolePositions(seg);
 
   return (
-    <g key={segId} pointerEvents="none" data-connector-segment data-axis={seg.axis}>
+    <g key={segId} pointerEvents="none" data-connector-segment data-direction={seg.direction}>
       <polygon points={sideFace} fill={colors.dark} />
       <polygon points={frontFace} fill={colors.shadow} />
       <polygon points={topFace} fill={colors.tile} stroke={colors.shadow} strokeWidth={0.5} />
@@ -232,30 +203,34 @@ function renderElbowJoint(
   pinHoleStyle: PinHoleStyle,
   id: string,
 ): React.ReactNode {
-  const hw = TILE_W / 2 * 0.5;
-  const hh = TILE_H / 2 * 0.5;
+  const hw = BEAM_HALF_THICKNESS;
 
-  const diamond = `${elbowScreen.x},${elbowScreen.y - hh} ${elbowScreen.x + hw},${elbowScreen.y} ${elbowScreen.x},${elbowScreen.y + hh} ${elbowScreen.x - hw},${elbowScreen.y}`;
-
-  const rightSide = [
-    `${elbowScreen.x + hw},${elbowScreen.y}`,
-    `${elbowScreen.x},${elbowScreen.y + hh}`,
-    `${elbowScreen.x},${elbowScreen.y + hh + BEAM_THICKNESS_PX}`,
-    `${elbowScreen.x + hw},${elbowScreen.y + BEAM_THICKNESS_PX}`,
+  const topFace = [
+    `${elbowScreen.x - hw},${elbowScreen.y - hw}`,
+    `${elbowScreen.x + hw},${elbowScreen.y - hw}`,
+    `${elbowScreen.x + hw},${elbowScreen.y + hw}`,
+    `${elbowScreen.x - hw},${elbowScreen.y + hw}`,
   ].join(' ');
 
-  const frontSide = [
-    `${elbowScreen.x},${elbowScreen.y + hh}`,
-    `${elbowScreen.x - hw},${elbowScreen.y}`,
-    `${elbowScreen.x - hw},${elbowScreen.y + BEAM_THICKNESS_PX}`,
-    `${elbowScreen.x},${elbowScreen.y + hh + BEAM_THICKNESS_PX}`,
+  const rightSide = [
+    `${elbowScreen.x + hw},${elbowScreen.y - hw}`,
+    `${elbowScreen.x + hw},${elbowScreen.y + hw}`,
+    `${elbowScreen.x + hw},${elbowScreen.y + hw + BEAM_THICKNESS_PX}`,
+    `${elbowScreen.x + hw},${elbowScreen.y - hw + BEAM_THICKNESS_PX}`,
+  ].join(' ');
+
+  const bottomSide = [
+    `${elbowScreen.x - hw},${elbowScreen.y + hw}`,
+    `${elbowScreen.x + hw},${elbowScreen.y + hw}`,
+    `${elbowScreen.x + hw},${elbowScreen.y + hw + BEAM_THICKNESS_PX}`,
+    `${elbowScreen.x - hw},${elbowScreen.y + hw + BEAM_THICKNESS_PX}`,
   ].join(' ');
 
   return (
     <g key={id} pointerEvents="none" data-connector-elbow>
-      <polygon points={frontSide} fill={colors.dark} />
+      <polygon points={bottomSide} fill={colors.dark} />
       <polygon points={rightSide} fill={colors.shadow} />
-      <polygon points={diamond} fill={colors.tile} stroke={colors.shadow} strokeWidth={0.5} />
+      <polygon points={topFace} fill={colors.tile} stroke={colors.shadow} strokeWidth={0.5} />
       {renderPinHole(elbowScreen.x, elbowScreen.y, pinHoleStyle, colors.accent, `${id}-hole`)}
     </g>
   );
@@ -276,17 +251,11 @@ function renderStud(
   );
 }
 
-function buildHitPath(
-  route: ReturnType<typeof computeWorldRoute>,
-  originX: number,
-  originY: number,
-): string {
+function buildHitPath(route: ReturnType<typeof computeWorldRoute>): string {
   if (route.segments.length === 0) return '';
-  const first = worldSegmentToScreen(route.segments[0], originX, originY);
-  let d = `M ${first.start.x} ${first.start.y}`;
+  let d = `M ${route.segments[0].start.x} ${route.segments[0].start.y}`;
   for (const seg of route.segments) {
-    const screen = worldSegmentToScreen(seg, originX, originY);
-    d += ` L ${screen.end.x} ${screen.end.y}`;
+    d += ` L ${seg.end.x} ${seg.end.y}`;
   }
   return d;
 }
@@ -323,11 +292,9 @@ export const BrickConnector = memo(function BrickConnector({
   if (!src || !tgt || !route) return null;
 
   const colors = getColors(theme, diffState, isHighlighted);
-  const hitPath = buildHitPath(route, originX, originY);
+  const hitPath = buildHitPath(route);
 
-  const elbowScreen = route.elbow
-    ? worldToScreen(route.elbow.worldX, route.elbow.worldY, route.elbow.worldZ, originX, originY)
-    : null;
+  const elbowScreen = route.elbow ?? null;
 
   const handleClick = (e: React.MouseEvent<SVGGElement>) => {
     e.stopPropagation();
@@ -349,7 +316,7 @@ export const BrickConnector = memo(function BrickConnector({
         <path
           d={hitPath}
           stroke="#ffffff"
-          strokeWidth={BEAM_HALF_W_X * 2 + 4}
+          strokeWidth={BEAM_HALF_THICKNESS * 2 + 4}
           strokeOpacity={0.5}
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -374,8 +341,6 @@ export const BrickConnector = memo(function BrickConnector({
           seg,
           colors,
           theme.pinHoleStyle,
-          originX,
-          originY,
           `seg-${connection.id}-${i}`,
           i === route.segments.length - 1,
         ),

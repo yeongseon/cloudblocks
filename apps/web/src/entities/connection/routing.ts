@@ -7,20 +7,34 @@ export interface WorldPoint {
   worldY: number;
 }
 
+/**
+ * Screen-space segment direction.
+ * - 'screen-v': constant screenX, varying screenY
+ * - 'screen-h': constant screenY, varying screenX
+ */
+export type SegmentDirection = 'screen-v' | 'screen-h';
+
+export interface ScreenSegment {
+  start: ScreenPoint;
+  end: ScreenPoint;
+  direction: SegmentDirection;
+}
+
+export interface ConnectorRoute {
+  segments: ScreenSegment[];
+  elbow: ScreenPoint | null;
+  srcScreen: ScreenPoint;
+  tgtScreen: ScreenPoint;
+}
+
+/** @deprecated Use ScreenSegment instead. */
 export interface WorldSegment {
   start: WorldPoint;
   end: WorldPoint;
   axis: 'x' | 'z';
 }
 
-export interface ConnectorRoute {
-  segments: WorldSegment[];
-  elbow: WorldPoint | null;
-  srcScreen: ScreenPoint;
-  tgtScreen: ScreenPoint;
-}
-
-const SAME_AXIS_TOLERANCE = 0.1;
+const SAME_PX_TOLERANCE = 2;
 
 function worldToScreen(
   wp: WorldPoint,
@@ -33,6 +47,11 @@ function worldToScreen(
   };
 }
 
+/**
+ * Screen-space L-route between two world-space endpoints.
+ * Height-normalizes to the higher endpoint, then routes as
+ * screen-vertical + screen-horizontal segments.
+ */
 export function computeWorldRoute(
   srcWorld: [number, number, number],
   tgtWorld: [number, number, number],
@@ -45,47 +64,44 @@ export function computeWorldRoute(
   const srcScreen = worldToScreen(src, originX, originY);
   const tgtScreen = worldToScreen(tgt, originX, originY);
 
-  const dx = Math.abs(tgt.worldX - src.worldX);
-  const dz = Math.abs(tgt.worldZ - src.worldZ);
+  const dx = Math.abs(tgtScreen.x - srcScreen.x);
+  const dy = Math.abs(tgtScreen.y - srcScreen.y);
 
-  // Same position or nearly same — single degenerate segment
-  if (dx < SAME_AXIS_TOLERANCE && dz < SAME_AXIS_TOLERANCE) {
+  if (dx < SAME_PX_TOLERANCE && dy < SAME_PX_TOLERANCE) {
     return {
-      segments: [{ start: src, end: tgt, axis: 'x' }],
+      segments: [{ start: srcScreen, end: tgtScreen, direction: 'screen-v' }],
       elbow: null,
       srcScreen,
       tgtScreen,
     };
   }
 
-  // Aligned on X — single Z segment
-  if (dx < SAME_AXIS_TOLERANCE) {
+  if (dx < SAME_PX_TOLERANCE) {
     return {
-      segments: [{ start: src, end: tgt, axis: 'z' }],
+      segments: [{ start: srcScreen, end: tgtScreen, direction: 'screen-v' }],
       elbow: null,
       srcScreen,
       tgtScreen,
     };
   }
 
-  // Aligned on Z — single X segment
-  if (dz < SAME_AXIS_TOLERANCE) {
+  if (dy < SAME_PX_TOLERANCE) {
     return {
-      segments: [{ start: src, end: tgt, axis: 'x' }],
+      segments: [{ start: srcScreen, end: tgtScreen, direction: 'screen-h' }],
       elbow: null,
       srcScreen,
       tgtScreen,
     };
   }
 
-  const srcBelow = srcScreen.y > tgtScreen.y;
+  const normalizedY = Math.min(srcScreen.y, tgtScreen.y);
 
-  if (srcBelow) {
-    const elbow: WorldPoint = { worldX: src.worldX, worldZ: tgt.worldZ, worldY: src.worldY };
+  if (srcScreen.y > tgtScreen.y) {
+    const elbow: ScreenPoint = { x: srcScreen.x, y: normalizedY };
     return {
       segments: [
-        { start: src, end: elbow, axis: 'z' },
-        { start: elbow, end: tgt, axis: 'x' },
+        { start: srcScreen, end: elbow, direction: 'screen-v' },
+        { start: elbow, end: tgtScreen, direction: 'screen-h' },
       ],
       elbow,
       srcScreen,
@@ -93,12 +109,11 @@ export function computeWorldRoute(
     };
   }
 
-  const elbow: WorldPoint = { worldX: tgt.worldX, worldZ: src.worldZ, worldY: src.worldY };
-
+  const elbow: ScreenPoint = { x: tgtScreen.x, y: normalizedY };
   return {
     segments: [
-      { start: src, end: elbow, axis: 'x' },
-      { start: elbow, end: tgt, axis: 'z' },
+      { start: srcScreen, end: elbow, direction: 'screen-h' },
+      { start: elbow, end: tgtScreen, direction: 'screen-v' },
     ],
     elbow,
     srcScreen,
@@ -106,6 +121,22 @@ export function computeWorldRoute(
   };
 }
 
+export function screenSegmentLength(seg: ScreenSegment): number {
+  if (seg.direction === 'screen-v') {
+    return Math.abs(seg.end.y - seg.start.y);
+  }
+  return Math.abs(seg.end.x - seg.start.x);
+}
+
+/** screen-v: px / TILE_H → CU;  screen-h: px / TILE_W → CU */
+export function screenSegmentLengthCU(seg: ScreenSegment): number {
+  if (seg.direction === 'screen-v') {
+    return Math.abs(seg.end.y - seg.start.y) / TILE_H;
+  }
+  return Math.abs(seg.end.x - seg.start.x) / TILE_W;
+}
+
+/** @deprecated Use screen-space segments directly. */
 export function worldSegmentToScreen(
   seg: WorldSegment,
   originX: number,
@@ -117,6 +148,7 @@ export function worldSegmentToScreen(
   };
 }
 
+/** @deprecated Use screenSegmentLengthCU instead. */
 export function worldSegmentLengthCU(seg: WorldSegment): number {
   if (seg.axis === 'x') {
     return Math.abs(seg.end.worldX - seg.start.worldX);
