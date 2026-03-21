@@ -1,4 +1,5 @@
-import { useNotificationStore } from '../../entities/store/notificationStore';
+import { useEffect } from 'react';
+import { useNotificationStore, selectFilteredNotifications } from '../../entities/store/notificationStore';
 import type { AppNotification, NotificationCategory, NotificationLevel } from '../../shared/types/notification';
 import './NotificationCenter.css';
 
@@ -25,6 +26,9 @@ const LEVEL_LABELS: Record<NotificationLevel, string> = {
   error: 'Error',
 };
 
+const VALID_CATEGORIES = new Set<string>(Object.keys(CATEGORY_LABELS));
+const VALID_LEVELS = new Set<string>(Object.keys(LEVEL_LABELS));
+
 function formatRelativeTime(timestamp: number): string {
   const diff = Date.now() - timestamp;
   const seconds = Math.floor(diff / 1000);
@@ -50,6 +54,14 @@ function NotificationItem({
     <div
       className={`notification-item${notification.read ? '' : ' notification-item--unread'}`}
       onClick={() => onRead(notification.id)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onRead(notification.id);
+        }
+      }}
     >
       <div className="notification-item-icon">
         {LEVEL_ICONS[notification.level]}
@@ -70,7 +82,7 @@ function NotificationItem({
         }}
         title="Dismiss"
       >
-        \u2715
+        ✕
       </button>
     </div>
   );
@@ -85,11 +97,17 @@ export function NotificationCenter() {
   const setShowNotificationCenter = useNotificationStore(
     (s) => s.setShowNotificationCenter,
   );
-  const filteredNotifications = useNotificationStore(
-    (s) => s.filteredNotifications,
-  );
+  const items = useNotificationStore(selectFilteredNotifications);
 
-  const items = filteredNotifications();
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowNotificationCenter(false);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [setShowNotificationCenter]);
 
   return (
     <div className="notification-center">
@@ -109,7 +127,7 @@ export function NotificationCenter() {
             onClick={() => setShowNotificationCenter(false)}
             title="Close"
           >
-            \u2715
+            ✕
           </button>
         </div>
       </div>
@@ -118,14 +136,15 @@ export function NotificationCenter() {
         <select
           className="notification-center-filter-select"
           value={filter.category ?? ''}
-          onChange={(e) =>
+          onChange={(e) => {
+            const value = e.target.value;
             setFilter({
               ...filter,
-              category: (e.target.value || undefined) as
+              category: (value && VALID_CATEGORIES.has(value) ? value : undefined) as
                 | NotificationCategory
                 | undefined,
-            })
-          }
+            });
+          }}
         >
           <option value="">All categories</option>
           {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
@@ -138,14 +157,15 @@ export function NotificationCenter() {
         <select
           className="notification-center-filter-select"
           value={filter.level ?? ''}
-          onChange={(e) =>
+          onChange={(e) => {
+            const value = e.target.value;
             setFilter({
               ...filter,
-              level: (e.target.value || undefined) as
+              level: (value && VALID_LEVELS.has(value) ? value : undefined) as
                 | NotificationLevel
                 | undefined,
-            })
-          }
+            });
+          }}
         >
           <option value="">All levels</option>
           {Object.entries(LEVEL_LABELS).map(([value, label]) => (

@@ -382,7 +382,7 @@ export const useOpsStore = create<OpsState>((set, get) => ({
 
   refreshAll: async () => {
     const state = get();
-    await Promise.all([
+    await Promise.allSettled([
       state.refreshEnvironments(),
       state.refreshPipelines(),
       state.refreshDeployments(),

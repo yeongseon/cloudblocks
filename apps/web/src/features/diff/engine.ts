@@ -26,6 +26,7 @@ function diffValues(
   }
 
   if (Array.isArray(beforeValue) && Array.isArray(afterValue)) {
+    // JSON.stringify comparison is acceptable at current scale (small arrays)
     if (JSON.stringify(beforeValue) === JSON.stringify(afterValue)) {
       return [];
     }
@@ -191,7 +192,7 @@ export function computeArchitectureDiff(base: ArchitectureModel, head: Architect
     };
   }
 
-  const rootChanges = diffValues(normalizedBase, normalizedHead, '', ROOT_VOLATILE_PATHS)
+  const rootChanges = modelChanges
     .filter((change) => {
       const rootKey = change.path.split('.')[0];
       return !ROOT_ENTITY_PATHS.has(rootKey);

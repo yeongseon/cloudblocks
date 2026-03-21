@@ -4,6 +4,9 @@ import type { NotificationLevel, NotificationCategory } from '../../shared/types
 
 /**
  * Add a notification to the store AND show a toast.
+ *
+ * Note: Requires a `<Toaster />` provider (from react-hot-toast) to be
+ * mounted in the component tree for toast messages to be visible.
  */
 export function notifyDeployment(
   title: string,
