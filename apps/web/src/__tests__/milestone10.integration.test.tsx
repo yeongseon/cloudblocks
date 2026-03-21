@@ -3,6 +3,7 @@ import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SceneCanvas } from '../widgets/scene-canvas/SceneCanvas';
 import { DetailPanel } from '../widgets/bottom-panel/DetailPanel';
+import { CommandCard } from '../widgets/bottom-panel/CommandCard';
 import { useArchitectureStore } from '../entities/store/architectureStore';
 import { useUIStore } from '../entities/store/uiStore';
 import { useWorkerStore } from '../entities/store/workerStore';
@@ -72,6 +73,7 @@ function IntegrationHarness() {
   return (
     <>
       <SceneCanvas />
+      <CommandCard />
       <DetailPanel />
     </>
   );
@@ -150,7 +152,11 @@ describe('Milestone 10 integration', () => {
     await user.click(minifigure);
 
     expect(useUIStore.getState().selectedId).toBe('worker-default');
-    expect(screen.getByText('Build Order')).toBeInTheDocument();
+    expect(screen.getByText('Worker Actions')).toBeInTheDocument();
+
+    // Enter build sub-menu
+    await user.click(screen.getByRole('button', { name: /Build/ }));
+    expect(screen.getByText('Build Resource')).toBeInTheDocument();
 
     await user.click(screen.getByTitle('Build Virtual Machine'));
 

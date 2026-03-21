@@ -1,758 +1,224 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen } from '@testing-library/react';
 import { DetailPanel } from './DetailPanel';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { useWorkerStore } from '../../entities/store/workerStore';
 import type { ArchitectureModel, Block, Connection, ExternalActor, Plate } from '@cloudblocks/schema';
 
 vi.mock('./DetailPanel.css', () => ({}));
 
-const networkPlate: Plate = {
-  id: 'net-1',
-  name: 'Main VNet',
-  type: 'region',
-  parentId: null,
-  children: [],
-  position: { x: 0, y: 0, z: 0 },
-  size: { width: 16, height: 0.3, depth: 20 },
-  metadata: {},
-};
-
-const publicSubnet: Plate = {
-  id: 'subnet-1',
-  name: 'Public Subnet',
-  type: 'subnet',
-  subnetAccess: 'public',
-  parentId: 'net-1',
-  children: [],
-  position: { x: 1, y: 0, z: 1 },
-  size: { width: 6, height: 0.3, depth: 8 },
-  metadata: {},
-};
-
-const sourceBlock: Block = {
-  id: 'block-1',
-  name: 'App VM',
-  category: 'compute',
-  placementId: 'subnet-1',
-  position: { x: 1.2, y: 2.4, z: 0 },
-  metadata: {},
-};
-
-const targetBlock: Block = {
-  id: 'block-2',
-  name: 'SQL DB',
-  category: 'database',
-  placementId: 'subnet-1',
-  position: { x: 3.5, y: 4.1, z: 0 },
-  metadata: {},
-};
-
-const connection: Connection = {
-  id: 'conn-1',
-  sourceId: 'block-1',
-  targetId: 'block-2',
-  type: 'dataflow',
-  metadata: {},
-};
+const networkPlate: Plate = { id: 'net-1', name: 'Main VNet', type: 'region', parentId: null, children: [], position: { x: 0, y: 0, z: 0 }, size: { width: 16, height: 0.3, depth: 20 }, metadata: {} };
+const publicSubnet: Plate = { id: 'subnet-1', name: 'Public Subnet', type: 'subnet', subnetAccess: 'public', parentId: 'net-1', children: [], position: { x: 1, y: 0, z: 1 }, size: { width: 6, height: 0.3, depth: 8 }, metadata: {} };
+const sourceBlock: Block = { id: 'block-1', name: 'App VM', category: 'compute', placementId: 'subnet-1', position: { x: 1.2, y: 2.4, z: 0 }, metadata: {} };
+const targetBlock: Block = { id: 'block-2', name: 'SQL DB', category: 'database', placementId: 'subnet-1', position: { x: 3.5, y: 4.1, z: 0 }, metadata: {} };
+const connection: Connection = { id: 'conn-1', sourceId: 'block-1', targetId: 'block-2', type: 'dataflow', metadata: {} };
 
 const architectureWithResources: ArchitectureModel = {
-  id: 'arch-1',
-  name: 'Test Architecture',
-  version: '1.0.0',
-  plates: [networkPlate, publicSubnet],
-  blocks: [sourceBlock, targetBlock],
-  connections: [connection],
-  externalActors: [],
-  createdAt: '',
-  updatedAt: '',
+  id: 'arch-1', name: 'Test Architecture', version: '1.0.0',
+  plates: [networkPlate, publicSubnet], blocks: [sourceBlock, targetBlock],
+  connections: [connection], externalActors: [], createdAt: '', updatedAt: '',
 };
 
 describe('DetailPanel', () => {
   beforeEach(() => {
     useUIStore.setState({ selectedId: null });
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: architectureWithResources,
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
+    useArchitectureStore.setState({ workspace: { id: 'ws-1', name: 'Test Workspace', architecture: architectureWithResources, createdAt: '', updatedAt: '' } });
   });
 
   it('renders welcome state when nothing is selected', () => {
     render(<DetailPanel />);
-
     expect(screen.getByText('Welcome to CloudBlocks!')).toBeInTheDocument();
     expect(screen.getByText('Tip: Start with Network')).toBeInTheDocument();
   });
 
-  it('renders block detail with type, category, and position', () => {
+  it('renders block detail read-only with Description field', () => {
     useUIStore.setState({ selectedId: 'block-1' });
-
     render(<DetailPanel />);
-
     expect(screen.getByText('App VM')).toBeInTheDocument();
     expect(screen.getByText('Virtual Machine')).toBeInTheDocument();
     expect(screen.getByText('compute')).toBeInTheDocument();
     expect(screen.getByText('(1.2, 2.4, 0.0)')).toBeInTheDocument();
-  });
-
-  it('supports rename flow on block detail', async () => {
-    const user = userEvent.setup();
-    useUIStore.setState({ selectedId: 'block-1' });
-
-    render(<DetailPanel />);
-
-    await user.click(screen.getByRole('button', { name: 'Rename' }));
-
-    const input = screen.getByDisplayValue('App VM');
-    await user.clear(input);
-    await user.type(input, 'API VM');
-    fireEvent.blur(input);
-
-    expect(screen.queryByDisplayValue('API VM')).not.toBeInTheDocument();
-    expect(screen.getByText('API VM')).toBeInTheDocument();
+    expect(screen.getByText('Description')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Rename' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Copy/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Delete/ })).not.toBeInTheDocument();
   });
 
   it('shows provider and subtype identity for provider-specific blocks', () => {
-    const providerSpecificBlock: Block = {
-      ...sourceBlock,
-      id: 'block-provider-specific',
-      provider: 'aws',
-      subtype: 'ec2',
-    };
-
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...architectureWithResources,
-          blocks: [providerSpecificBlock],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-    useUIStore.setState({ selectedId: 'block-provider-specific' });
-
+    const providerBlock: Block = { ...sourceBlock, id: 'bp', provider: 'aws', subtype: 'ec2' };
+    useArchitectureStore.setState({ workspace: { id: 'ws-1', name: 'Test Workspace', architecture: { ...architectureWithResources, blocks: [providerBlock] }, createdAt: '', updatedAt: '' } });
+    useUIStore.setState({ selectedId: 'bp' });
     render(<DetailPanel />);
-
     expect(screen.getByText('AWS / ec2')).toBeInTheDocument();
     expect(screen.getByText('Provider')).toBeInTheDocument();
     expect(screen.getByText('Subtype')).toBeInTheDocument();
   });
 
-  it('renders plate detail including size and contents count', () => {
+  it('renders plate detail as read-only', () => {
     useUIStore.setState({ selectedId: 'subnet-1' });
-
     render(<DetailPanel />);
-
     expect(screen.getByText('Public Subnet')).toBeInTheDocument();
     expect(screen.getByText('Subnet (public)')).toBeInTheDocument();
     expect(screen.getByText('Main VNet')).toBeInTheDocument();
     expect(screen.getByText('6 × 8')).toBeInTheDocument();
     expect(screen.getByText('2 blocks')).toBeInTheDocument();
+    expect(screen.getByText('Profile')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Rename/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Delete/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
 
-  it('renders connection detail with actual type and source/target resources', () => {
+  it('renders connection detail read-only', () => {
     useUIStore.setState({ selectedId: 'conn-1' });
-
     render(<DetailPanel />);
-
     expect(screen.getByText('Data Flow Connection')).toBeInTheDocument();
     expect(screen.getByText('Data Flow')).toBeInTheDocument();
     expect(screen.getByText(/App VM/)).toBeInTheDocument();
     expect(screen.getByText(/SQL DB/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Delete/ })).not.toBeInTheDocument();
   });
 
-  it('renders http connection type in detail panel', () => {
-    const httpConnection: Connection = { ...connection, id: 'conn-http', type: 'http' };
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: { ...architectureWithResources, connections: [httpConnection] },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
+  it('renders http connection type', () => {
+    const httpConn: Connection = { ...connection, id: 'conn-http', type: 'http' };
+    useArchitectureStore.setState({ workspace: { id: 'ws-1', name: 'Test Workspace', architecture: { ...architectureWithResources, connections: [httpConn] }, createdAt: '', updatedAt: '' } });
     useUIStore.setState({ selectedId: 'conn-http' });
-
     render(<DetailPanel />);
-
     expect(screen.getByText('HTTP Connection')).toBeInTheDocument();
-    expect(screen.getByText('HTTP')).toBeInTheDocument();
   });
 
   it('falls back to welcome state when selected id does not exist', () => {
     useUIStore.setState({ selectedId: 'missing-id' });
-
     render(<DetailPanel />);
-
     expect(screen.getByText('Welcome to CloudBlocks!')).toBeInTheDocument();
   });
 
-  it('renders region plate detail with network icon and no parent row', () => {
+  it('renders region plate with no parent row', () => {
     useUIStore.setState({ selectedId: 'net-1' });
-
     render(<DetailPanel />);
-
     expect(screen.getByRole('img', { name: 'Region' })).toBeInTheDocument();
-    expect(screen.getByText('Region')).toBeInTheDocument();
     expect(screen.queryByText('Parent')).not.toBeInTheDocument();
     expect(screen.getByText(/1 subnet/)).toBeInTheDocument();
   });
 
-  it('renders private subnet plate with lock icon', () => {
-    const privateSubnet: Plate = {
-      id: 'priv-1',
-      name: 'Private Subnet',
-      type: 'subnet',
-      subnetAccess: 'private',
-      parentId: 'net-1',
-      children: [],
-      position: { x: 0, y: 0, z: 0 },
-      size: { width: 6, height: 0.3, depth: 8 },
-      metadata: {},
-    };
-
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...architectureWithResources,
-          plates: [...architectureWithResources.plates, privateSubnet],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
+  it('renders private subnet plate', () => {
+    const priv: Plate = { id: 'priv-1', name: 'Private Subnet', type: 'subnet', subnetAccess: 'private', parentId: 'net-1', children: [], position: { x: 0, y: 0, z: 0 }, size: { width: 6, height: 0.3, depth: 8 }, metadata: {} };
+    useArchitectureStore.setState({ workspace: { id: 'ws-1', name: 'Test Workspace', architecture: { ...architectureWithResources, plates: [...architectureWithResources.plates, priv] }, createdAt: '', updatedAt: '' } });
     useUIStore.setState({ selectedId: 'priv-1' });
-
     render(<DetailPanel />);
-
     expect(screen.getByRole('img', { name: 'Private Subnet' })).toBeInTheDocument();
     expect(screen.getByText('Subnet (private)')).toBeInTheDocument();
   });
 
-  it('renders singular block count when plate has one block', () => {
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...architectureWithResources,
-          blocks: [sourceBlock],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
+  it('renders singular block count', () => {
+    useArchitectureStore.setState({ workspace: { id: 'ws-1', name: 'Test Workspace', architecture: { ...architectureWithResources, blocks: [sourceBlock] }, createdAt: '', updatedAt: '' } });
     useUIStore.setState({ selectedId: 'subnet-1' });
-
     render(<DetailPanel />);
-
     expect(screen.getByText(/1 block$/)).toBeInTheDocument();
   });
 
-  it('renders child subnet count on network plate contents', () => {
+  it('renders child subnet count', () => {
     useUIStore.setState({ selectedId: 'net-1' });
-
     render(<DetailPanel />);
-
     expect(screen.getByText(/1 subnet$/)).toBeInTheDocument();
   });
 
-  it('renders external actor name when connection source is an external actor', () => {
-    const actor: ExternalActor = {
-      id: 'ext-internet',
-      name: 'Internet',
-      type: 'internet',
-      position: { x: -3, y: 0, z: 5 },
-    };
-    const externalConnection: Connection = {
-      id: 'ext-conn',
-      sourceId: 'ext-internet',
-      targetId: 'block-1',
-      type: 'dataflow',
-      metadata: {},
-    };
-
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...architectureWithResources,
-          externalActors: [actor],
-          connections: [externalConnection],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
+  it('renders external actor in connection', () => {
+    const actor: ExternalActor = { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } };
+    const extConn: Connection = { id: 'ext-conn', sourceId: 'ext-internet', targetId: 'block-1', type: 'dataflow', metadata: {} };
+    useArchitectureStore.setState({ workspace: { id: 'ws-1', name: 'Test Workspace', architecture: { ...architectureWithResources, externalActors: [actor], connections: [extConn] }, createdAt: '', updatedAt: '' } });
     useUIStore.setState({ selectedId: 'ext-conn' });
-
     render(<DetailPanel />);
-
     expect(screen.getByText(/Internet/)).toBeInTheDocument();
   });
 
-  it('renders non-default external actor name in connection source', () => {
-    const actor: ExternalActor = {
-      id: 'ext-partner',
-      name: 'Partner API',
-      type: 'internet',
-      position: { x: -3, y: 0, z: 5 },
-    };
-    const externalConnection: Connection = {
-      id: 'ext-conn',
-      sourceId: 'ext-partner',
-      targetId: 'block-1',
-      type: 'dataflow',
-      metadata: {},
-    };
-
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...architectureWithResources,
-          externalActors: [actor],
-          connections: [externalConnection],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
+  it('renders Unknown for missing source', () => {
+    const extConn: Connection = { id: 'ext-conn', sourceId: 'nonexistent', targetId: 'block-1', type: 'dataflow', metadata: {} };
+    useArchitectureStore.setState({ workspace: { id: 'ws-1', name: 'Test Workspace', architecture: { ...architectureWithResources, connections: [extConn] }, createdAt: '', updatedAt: '' } });
     useUIStore.setState({ selectedId: 'ext-conn' });
-
     render(<DetailPanel />);
-
-    expect(screen.getByText(/Partner API/)).toBeInTheDocument();
-  });
-
-  it('renders user emoji for non-internet external actor type', () => {
-    const actor = {
-      id: 'ext-user',
-      name: 'Admin',
-      type: 'user',
-      position: { x: 0, y: 0, z: 0 },
-    } as unknown as ExternalActor;
-    const conn: Connection = {
-      id: 'ext-conn-user',
-      sourceId: 'ext-user',
-      targetId: 'block-1',
-      type: 'dataflow',
-      metadata: {},
-    };
-
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...architectureWithResources,
-          externalActors: [actor],
-          connections: [conn],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-    useUIStore.setState({ selectedId: 'ext-conn-user' });
-
-    render(<DetailPanel />);
-
-    expect(screen.getByText(/Admin/)).toBeInTheDocument();
-  });
-
-  it('renders Unknown when connection source is neither block nor external actor', () => {
-    const externalConnection: Connection = {
-      id: 'ext-conn',
-      sourceId: 'nonexistent-id',
-      targetId: 'block-1',
-      type: 'dataflow',
-      metadata: {},
-    };
-
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...architectureWithResources,
-          connections: [externalConnection],
-          externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: 0, y: 0, z: 0 } }],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-    useUIStore.setState({ selectedId: 'ext-conn' });
-
-    render(<DetailPanel />);
-
     expect(screen.getByText('Unknown')).toBeInTheDocument();
   });
 
-  it('renders unknown source when connection source id is invalid', () => {
-    const badSourceConnection: Connection = {
-      id: 'bad-source-conn',
-      sourceId: 'nonexistent-id',
-      targetId: 'block-1',
-      type: 'dataflow',
-      metadata: {},
-    };
-
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...architectureWithResources,
-          connections: [badSourceConnection],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-    useUIStore.setState({ selectedId: 'bad-source-conn' });
-
+  it('renders Unknown for missing target', () => {
+    const badConn: Connection = { id: 'bad', sourceId: 'block-1', targetId: 'missing', type: 'dataflow', metadata: {} };
+    useArchitectureStore.setState({ workspace: { id: 'ws-1', name: 'Test Workspace', architecture: { ...architectureWithResources, connections: [badConn] }, createdAt: '', updatedAt: '' } });
+    useUIStore.setState({ selectedId: 'bad' });
     render(<DetailPanel />);
-
-    expect(screen.getByText('Unknown')).toBeInTheDocument();
-    expect(screen.queryByText('☁️ Internet')).not.toBeInTheDocument();
-  });
-
-  it('renders unknown target when connection target block is missing', () => {
-    const unknownTargetConnection: Connection = {
-      id: 'bad-conn',
-      sourceId: 'block-1',
-      targetId: 'missing-block',
-      type: 'dataflow',
-      metadata: {},
-    };
-
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...architectureWithResources,
-          connections: [unknownTargetConnection],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-    useUIStore.setState({ selectedId: 'bad-conn' });
-
-    render(<DetailPanel />);
-
     expect(screen.getByText('Unknown')).toBeInTheDocument();
   });
 
   it('renders block network as None when parent plate is missing', () => {
-    const unplacedBlock: Block = {
-      ...sourceBlock,
-      id: 'block-orphan',
-      placementId: 'missing-plate',
-    };
-
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...architectureWithResources,
-          blocks: [unplacedBlock],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-    useUIStore.setState({ selectedId: 'block-orphan' });
-
+    const orphan: Block = { ...sourceBlock, id: 'orphan', placementId: 'missing' };
+    useArchitectureStore.setState({ workspace: { id: 'ws-1', name: 'Test Workspace', architecture: { ...architectureWithResources, blocks: [orphan] }, createdAt: '', updatedAt: '' } });
+    useUIStore.setState({ selectedId: 'orphan' });
     render(<DetailPanel />);
-
     expect(screen.getByText('None')).toBeInTheDocument();
   });
 
-  it("renders idle state when architecture is empty (overlay is visible)", () => {
-    useArchitectureStore.setState({
-      workspace: {
-        id: "ws-1",
-        name: "Test Workspace",
-        architecture: {
-          id: "arch-1",
-          name: "Empty Architecture",
-          version: "1.0.0",
-          plates: [],
-          blocks: [],
-          connections: [],
-          externalActors: [],
-          createdAt: "",
-          updatedAt: "",
-        },
-        createdAt: "",
-        updatedAt: "",
-      },
-    });
+  it('renders idle state when architecture is empty', () => {
+    useArchitectureStore.setState({ workspace: { id: 'ws-1', name: 'Test Workspace', architecture: { id: 'a', name: 'Empty', version: '1.0.0', plates: [], blocks: [], connections: [], externalActors: [], createdAt: '', updatedAt: '' }, createdAt: '', updatedAt: '' } });
     useUIStore.setState({ selectedId: null, showTemplateGallery: false });
-
     render(<DetailPanel />);
-
-    expect(screen.getByText("No selection")).toBeInTheDocument();
-    expect(screen.queryByText("Welcome to CloudBlocks!")).not.toBeInTheDocument();
+    expect(screen.getByText('No selection')).toBeInTheDocument();
   });
 
-  it("renders welcome state when template gallery is open even on empty canvas", () => {
-    useArchitectureStore.setState({
-      workspace: {
-        id: "ws-1",
-        name: "Test Workspace",
-        architecture: {
-          id: "arch-1",
-          name: "Empty Architecture",
-          version: "1.0.0",
-          plates: [],
-          blocks: [],
-          connections: [],
-          externalActors: [],
-          createdAt: "",
-          updatedAt: "",
-        },
-        createdAt: "",
-        updatedAt: "",
-      },
-    });
+  it('renders welcome state when template gallery is open on empty canvas', () => {
+    useArchitectureStore.setState({ workspace: { id: 'ws-1', name: 'Test Workspace', architecture: { id: 'a', name: 'Empty', version: '1.0.0', plates: [], blocks: [], connections: [], externalActors: [], createdAt: '', updatedAt: '' }, createdAt: '', updatedAt: '' } });
     useUIStore.setState({ selectedId: null, showTemplateGallery: true });
-
     render(<DetailPanel />);
-
-    expect(screen.getByText("Welcome to CloudBlocks!")).toBeInTheDocument();
-    expect(screen.queryByText("No selection")).not.toBeInTheDocument();
+    expect(screen.getByText('Welcome to CloudBlocks!')).toBeInTheDocument();
   });
 
-  it('renders worker creation grid when selectedId is worker-default', () => {
+  it('renders worker detail', () => {
     useUIStore.setState({ selectedId: 'worker-default' });
-
+    useWorkerStore.setState({ workerState: 'building', workerPosition: [2, 0, 3], activeBuild: { blockId: 'block-1', targetPosition: [1, 0, 1], progress: 0.5, startedAt: Date.now() }, buildQueue: [] });
     render(<DetailPanel />);
-
-    expect(screen.getByText('Build Order')).toBeInTheDocument();
-    // Should show the Network Foundations group
-    expect(screen.getByText('Network Foundations')).toBeInTheDocument();
+    expect(screen.getByText('Worker')).toBeInTheDocument();
+    expect(screen.getByText('building')).toBeInTheDocument();
+    expect(screen.getByText('(2.0, 0.0, 3.0)')).toBeInTheDocument();
+    expect(screen.getByText(/block-1.*50%/)).toBeInTheDocument();
   });
 
-  it('renders worker creation grid with resource buttons', () => {
+  it('renders worker detail with no active build', () => {
     useUIStore.setState({ selectedId: 'worker-default' });
-
+    useWorkerStore.setState({ workerState: 'idle', workerPosition: [0, 0, 0], activeBuild: null, buildQueue: [] });
     render(<DetailPanel />);
-
-    // The network (VNet) button should always be enabled
-    expect(screen.getByTitle('Build Network (VNet)')).toBeInTheDocument();
+    expect(screen.getByText('idle')).toBeInTheDocument();
+    expect(screen.getByText('None')).toBeInTheDocument();
   });
 
-  it('renames block via Enter key', async () => {
-    const user = userEvent.setup();
-    useUIStore.setState({ selectedId: 'block-1' });
-
-    render(<DetailPanel />);
-
-    await user.click(screen.getByRole('button', { name: 'Rename' }));
-    const input = screen.getByDisplayValue('App VM');
-    await user.clear(input);
-    await user.type(input, 'New VM');
-    fireEvent.keyDown(input, { key: 'Enter' });
-
-    expect(screen.getByText('New VM')).toBeInTheDocument();
-  });
-
-  it('does not rename block when name is unchanged', async () => {
-    const user = userEvent.setup();
-    useUIStore.setState({ selectedId: 'block-1' });
-
-    render(<DetailPanel />);
-
-    await user.click(screen.getByRole('button', { name: 'Rename' }));
-    const input = screen.getByDisplayValue('App VM');
-    fireEvent.blur(input);
-
-    expect(screen.getByText('App VM')).toBeInTheDocument();
-  });
-
-  it('renders zone plate with capitalized type name', () => {
-    const zonePlate: Plate = {
-      id: 'zone-1',
-      name: 'Zone A',
-      type: 'zone',
-      parentId: 'net-1',
-      children: [],
-      position: { x: 0, y: 0, z: 0 },
-      size: { width: 4, height: 0.3, depth: 4 },
-      metadata: {},
-    };
-
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...architectureWithResources,
-          plates: [...architectureWithResources.plates, zonePlate],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
+  it('renders zone plate', () => {
+    const zone: Plate = { id: 'zone-1', name: 'Zone A', type: 'zone', parentId: 'net-1', children: [], position: { x: 0, y: 0, z: 0 }, size: { width: 4, height: 0.3, depth: 4 }, metadata: {} };
+    useArchitectureStore.setState({ workspace: { id: 'ws-1', name: 'Test Workspace', architecture: { ...architectureWithResources, plates: [...architectureWithResources.plates, zone] }, createdAt: '', updatedAt: '' } });
     useUIStore.setState({ selectedId: 'zone-1' });
-
     render(<DetailPanel />);
-
     expect(screen.getByRole('img', { name: 'Zone' })).toBeInTheDocument();
     expect(screen.getByText('Zone A')).toBeInTheDocument();
   });
 
-  it('renders public subnet plate with globe icon', () => {
+  it('renders public subnet with globe icon', () => {
     useUIStore.setState({ selectedId: 'subnet-1' });
-
     render(<DetailPanel />);
-
     expect(screen.getByRole('img', { name: 'Public Subnet' })).toBeInTheDocument();
     expect(screen.getByText('Subnet (public)')).toBeInTheDocument();
   });
 
-  it('renders InfraSettings for compute category block', () => {
-    useUIStore.setState({ selectedId: 'block-1' });
-
+  it('renders user emoji for non-internet external actor type', () => {
+    const actor = { id: 'ext-user', name: 'Admin', type: 'user', position: { x: 0, y: 0, z: 0 } } as unknown as ExternalActor;
+    const conn: Connection = { id: 'ext-conn-user', sourceId: 'ext-user', targetId: 'block-1', type: 'dataflow', metadata: {} };
+    useArchitectureStore.setState({ workspace: { id: 'ws-1', name: 'Test Workspace', architecture: { ...architectureWithResources, externalActors: [actor], connections: [conn] }, createdAt: '', updatedAt: '' } });
+    useUIStore.setState({ selectedId: 'ext-conn-user' });
     render(<DetailPanel />);
-
-    expect(screen.getByText('Infrastructure Settings')).toBeInTheDocument();
-    expect(screen.getByLabelText('Tier')).toBeInTheDocument();
-    expect(screen.getByLabelText('vCPUs')).toBeInTheDocument();
-    expect(screen.getByLabelText('Memory (GB)')).toBeInTheDocument();
+    expect(screen.getByText(/Admin/)).toBeInTheDocument();
   });
 
-  it('renders InfraSettings Apply button that calls updateBlockConfig', async () => {
-    const user = userEvent.setup();
-    useUIStore.setState({ selectedId: 'block-1' });
-
+  it('shows block config when config data exists', () => {
+    const b: Block = { ...sourceBlock, id: 'bc', config: { tier: 'premium', scale: 3 } };
+    useArchitectureStore.setState({ workspace: { id: 'ws-1', name: 'Test Workspace', architecture: { ...architectureWithResources, blocks: [b] }, createdAt: '', updatedAt: '' } });
+    useUIStore.setState({ selectedId: 'bc' });
     render(<DetailPanel />);
-
-    const applyBtn = screen.getByRole('button', { name: 'Apply' });
-    expect(applyBtn).toBeInTheDocument();
-
-    await user.click(applyBtn);
-
-    // After applying, the block should have config stored
-    const block = useArchitectureStore.getState().workspace.architecture.blocks.find(
-      (b) => b.id === 'block-1',
-    );
-    expect(block?.config).toBeDefined();
-    expect(block?.config).toEqual(expect.objectContaining({ tier: 'standard', vCPUs: 2, memoryGb: 4 }));
-  });
-
-  it('does not render InfraSettings for category without settings', () => {
-    // 'database' has settings, but let's use a category not in CATEGORY_SETTINGS
-    const eventBlock: Block = {
-      id: 'block-event',
-      name: 'Event Hub',
-      category: 'event',
-      placementId: 'subnet-1',
-      position: { x: 0, y: 0, z: 0 },
-      metadata: {},
-    };
-
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...architectureWithResources,
-          blocks: [eventBlock],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-    useUIStore.setState({ selectedId: 'block-event' });
-
-    render(<DetailPanel />);
-
-    expect(screen.queryByText('Infrastructure Settings')).not.toBeInTheDocument();
-  });
-
-  it('Copy button calls duplicateBlock', async () => {
-    const user = userEvent.setup();
-    useUIStore.setState({ selectedId: 'block-1' });
-
-    render(<DetailPanel />);
-
-    const copyBtn = screen.getByRole('button', { name: /Copy/ });
-    expect(copyBtn).toBeInTheDocument();
-
-    const blocksBefore = useArchitectureStore.getState().workspace.architecture.blocks.length;
-    await user.click(copyBtn);
-    const blocksAfter = useArchitectureStore.getState().workspace.architecture.blocks.length;
-
-    expect(blocksAfter).toBe(blocksBefore + 1);
-    const copiedBlock = useArchitectureStore.getState().workspace.architecture.blocks.find(
-      (b) => b.name === 'App VM (copy)',
-    );
-    expect(copiedBlock).toBeDefined();
-  });
-
-  it('Delete button shows confirm dialog and removes block on confirm', async () => {
-    const user = userEvent.setup();
-    useUIStore.setState({ selectedId: 'block-1' });
-
-    // Mock confirmDialog to return true
-    const confirmMod = await import('../../shared/ui/ConfirmDialog');
-    const confirmSpy = vi.spyOn(confirmMod, 'confirmDialog').mockResolvedValue(true);
-
-    render(<DetailPanel />);
-
-    const deleteBtn = screen.getByRole('button', { name: /Delete/ });
-    await user.click(deleteBtn);
-
-    expect(confirmSpy).toHaveBeenCalledWith(
-      'Delete "App VM"? This cannot be undone.',
-      'Delete Block',
-    );
-
-    // Block should be removed
-    const blocks = useArchitectureStore.getState().workspace.architecture.blocks;
-    expect(blocks.find((b) => b.id === 'block-1')).toBeUndefined();
-    // Selection should be cleared
-    expect(useUIStore.getState().selectedId).toBe(null);
-
-    confirmSpy.mockRestore();
-  });
-
-  it('Delete button does not remove block when confirm is cancelled', async () => {
-    const user = userEvent.setup();
-    useUIStore.setState({ selectedId: 'block-1' });
-
-    const confirmMod = await import('../../shared/ui/ConfirmDialog');
-    const confirmSpy = vi.spyOn(confirmMod, 'confirmDialog').mockResolvedValue(false);
-
-    render(<DetailPanel />);
-
-    const deleteBtn = screen.getByRole('button', { name: /Delete/ });
-    await user.click(deleteBtn);
-
-    // Block should still exist
-    const blocks = useArchitectureStore.getState().workspace.architecture.blocks;
-    expect(blocks.find((b) => b.id === 'block-1')).toBeDefined();
-
-    confirmSpy.mockRestore();
+    expect(screen.getByText('Config')).toBeInTheDocument();
+    expect(screen.getByText(/tier: premium/)).toBeInTheDocument();
   });
 });

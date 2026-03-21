@@ -14,6 +14,10 @@ vi.mock('./DetailPanel', () => ({
   DetailPanel: ({ className = '' }: { className?: string }) => <div data-testid="detail-panel" className={className}>DetailPanel</div>,
 }));
 
+vi.mock('./CommandCard', () => ({
+  CommandCard: ({ className = '' }: { className?: string }) => <div data-testid="command-card" className={className}>CommandCard</div>,
+}));
+
 import { BottomPanel } from './BottomPanel';
 
 const baseArchitecture: ArchitectureModel = {

@@ -1,5 +1,6 @@
 import { Minimap } from './Minimap';
 import { DetailPanel } from './DetailPanel';
+import { CommandCard } from './CommandCard';
 import { useUIStore } from '../../entities/store/uiStore';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { BLOCK_DESCRIPTIONS } from '../../shared/types/index';
@@ -43,6 +44,7 @@ export function BottomPanel({ className = '' }: BottomPanelProps) {
       <div className="bottom-panel-context">
         <p className="bottom-panel-context-text">{contextDescription}</p>
       </div>
+      <CommandCard className="bottom-panel-command" />
       {showProperties && <DetailPanel className="bottom-panel-detail" />}
     </div>
   );

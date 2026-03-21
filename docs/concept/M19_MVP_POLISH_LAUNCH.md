@@ -2,19 +2,21 @@
 
 ## Goal
 
-Deliver a promotion-ready MVP that is stable in production, easy to demo, and measurable after launch. M19 focuses on launch quality and deployment operations rather than major new feature expansion.
+Deliver a promotion-ready MVP that is stable in production, easy to demo, and measurable after launch. M19 focuses on launch quality, deployment operations, IaC abstraction, and multi-persona positioning rather than major new feature expansion.
 
 ---
 
 ## Background
 
-CloudBlocks already provides core visual architecture design, validation, and IaC generation. However, launch readiness still depends on product polish, deployment reliability, and operational visibility.
+CloudBlocks already provides core visual architecture design, validation, and IaC generation. However, launch readiness still depends on product polish, deployment reliability, operational visibility, and a clear product identity that resonates across different user personas.
 
 ### Why this milestone now
 
 - M17 and M18 establish product structure and operational UX foundations.
 - User feedback highlighted launch-risk UX issues (menu clutter, external actor clarity, interaction reliability).
 - A public launch requires reproducible deployment, runtime configuration discipline, and error visibility.
+- Starting with Terraform was a good strategic choice — but the UI should not expose IaC tool names to non-DevOps users.
+- CloudBlocks must position itself as "Cloud Architecture Tool for Everyone" — not just a Terraform GUI.
 
 ---
 
@@ -56,13 +58,39 @@ CloudBlocks already provides core visual architecture design, validation, and Ia
 - Changelog structure for user-facing release communication
 - Launch packet (URL, GIF, 3-line intro, known limitations)
 
+### Area G: IaC Abstraction
+
+Hide infrastructure-as-code implementation details (Terraform, Bicep, Pulumi) behind a provider-agnostic "Deploy Infrastructure" abstraction in the UI. The generation pipeline and provider definitions remain intact internally — only user-facing labels and interaction flows change.
+
+- Replace "Generate Terraform" menu entry with "Deploy Infrastructure" or neutral equivalent
+- Replace generator-specific labels in CodePreview (dropdown, button, metadata) with abstract descriptions
+- Keep generator selection available in an "Advanced" or "Expert" toggle for DevOps users
+- Ensure architecture diff remains IaC-independent (already the case — `computeArchitectureDiff` operates on `ArchitectureModel`)
+- Emphasize the ProviderDefinition abstraction as core intellectual property — the adapter layer that maps visual architecture to any IaC backend
+
+### Area H: Multi-Persona Positioning
+
+Position CloudBlocks as a "Cloud Architecture Tool for Everyone" by tailoring the experience to four distinct user personas. Each persona has a different relationship with the tool:
+
+| Persona | Relationship | Key Feature Focus |
+|---------|-------------|-------------------|
+| DevOps Engineer | Execute — deploy and manage infrastructure | Full pipeline access, IaC output, diff, promote/rollback |
+| Backend Developer | Use — design architectures without IaC expertise | Visual builder, validation, abstracted deployment |
+| Product Manager | Understand — review and communicate architecture decisions | Read-only views, architecture diagrams, cost estimation |
+| Student / Learner | Learn — understand cloud architecture patterns | Learning mode, guided scenarios, progressive complexity |
+
+- Add persona-aware onboarding that asks "What describes you best?" and adjusts initial UI complexity
+- Show/hide advanced features (generator selection, raw IaC output, diff details) based on persona
+- Ensure Learning Mode (already built) is prominently accessible for Student persona
+- Simplify the default view for PM and Backend personas — hide deployment operations, show architecture overview
+
 ---
 
 ## Additional Launch Requirements
 
 - **Demo resilience mode**: fallback local demo path when backend-dependent features are unavailable
 - **Security hygiene**: environment variable leakage checks and OAuth callback integrity checks
-- **Analytics funnel**: track at least `landing_visit`, `canvas_first_action`, `terraform_generate`, `export_action`
+- **Analytics funnel**: track at least `landing_visit`, `canvas_first_action`, `deploy_infrastructure`, `export_action`
 
 ---
 
@@ -114,6 +142,24 @@ CloudBlocks already provides core visual architecture design, validation, and Ia
 | 2 | Standardize changelog template for launch notes | S |
 | 3 | Prepare launch packet artifacts and known limitations list | S |
 
+### [Epic] M19 IaC Abstraction
+
+| # | Title | Size |
+|---|-------|------|
+| 1 | Replace generator-specific UI labels with neutral "Deploy Infrastructure" terminology | M |
+| 2 | Add Advanced/Expert toggle for generator selection in CodePreview | S |
+| 3 | Update MenuBar Build menu to use abstracted action label | S |
+| 4 | Document ProviderDefinition as the canonical provider abstraction layer | S |
+
+### [Epic] M19 Multi-Persona Positioning
+
+| # | Title | Size |
+|---|-------|------|
+| 1 | Add persona selection to first-run onboarding flow | M |
+| 2 | Implement persona-based UI complexity levels (beginner/standard/advanced) | L |
+| 3 | Adjust default panel visibility and feature access per persona | M |
+| 4 | Promote Learning Mode as primary entry point for Student persona | S |
+
 ---
 
 ## Exit Criteria
@@ -127,6 +173,10 @@ CloudBlocks already provides core visual architecture design, validation, and Ia
 - [ ] Performance gates pass defined threshold checks
 - [ ] Browser/viewport compatibility checklist is complete
 - [ ] Release checklist, changelog, and launch packet are ready
+- [ ] UI does not expose IaC tool names (Terraform, Bicep, Pulumi) in default view
+- [ ] Advanced/Expert toggle allows DevOps users to access generator selection
+- [ ] Persona selection is available in onboarding and adjusts UI complexity
+- [ ] All four personas (DevOps, Backend, PM, Student) have appropriate default views
 
 ---
 
