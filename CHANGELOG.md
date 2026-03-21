@@ -6,6 +6,63 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 
 ---
 
+## [v0.18.0] — 2026-03-22
+
+**Milestone 18 — DevOps UX**
+
+Introduced Lego Technic Beam connectors, fixed provider-specific UX issues, and clarified product direction by removing features that didn't fit the "architecture compiler" identity. Several originally planned features (OpsCenter, Notification System, AI panel) were deferred after evaluation showed they added complexity without immediate user value.
+
+### Brick-Style Connectors (Area E)
+- Redesigned connection lines as Lego Technic liftarm beams with pin holes, side faces, and typed color differentiation
+- Screen-space orthogonal routing: all beams are strictly horizontal or vertical on screen with clean right-angle elbows
+- Height normalization: L-routes connect at the topmost endpoint height
+- BRICK_CONNECTOR_SPEC.md §12 written with full geometry, routing algorithm, and design token documentation
+- 5 connection types differentiated by beam color (dataflow, http, internal, data, async)
+
+### Provider & Block Fixes
+- Provider-specific resource names in block palette when switching Azure/AWS/GCP (#1023)
+- Correct icon mappings with subtype-aware resolution (#1025)
+- Hide provider badge on blocks in single-provider mode (#1026)
+- Learning mode adapts scenario content to active cloud provider (#1067)
+- Plate overlap prevention on add and move (#1057)
+
+### UI Cleanup & Simplification
+- Unified overlay panels to Lego brick design system (#1021)
+- EmptyCanvasOverlay CTA buttons consolidated into 2×2 grid (#989)
+- Portrait panel removed; canvas viewport adjusts for right-side panels (#1033)
+- OpsCenter and AI features hidden from UI — deferred to M20+ (#1066)
+- NotificationCenter hidden to fix infinite re-render loop — deferred to M20+ (#1071)
+- Overlay z-index fix above BottomPanel (#987)
+
+### GitHub Integration Fixes
+- 24 bug fixes across diff engine, GitHub widgets, and store helpers (#816, #866, #890, #891, #892)
+- Contextual info added to GitHub widgets (repo status, sync state, PR context)
+- PR result persistence per workspace
+
+### Worker Role (Implemented then Removed)
+- Minifigure worker role designed, documented (SCV_ROLE_BOUNDARIES.md), and partially implemented
+- CommandCard modes, store actions, and plate creation animation built
+- **Decision: minifigure concept removed entirely** — CloudBlocks is a design tool (SimCity/ArchiCAD paradigm), not an RTS (StarCraft paradigm). Workers add complexity without value. 7 related issues closed, full removal tracked in #1088 (M19)
+
+### Infrastructure
+- GitHub Actions CI optimized to reduce storage and cost (#1059)
+- 24 code quality findings addressed from M18 review (#991)
+
+### Deferred to Future Milestones
+- Ops Control Center dashboard (M20+)
+- Deploy promote/rollback UX (M20+)
+- Notification system (M20+)
+- AI features UI (M20+)
+- Minifigure code removal (#1088, M19)
+
+### Retrospective
+This milestone revealed the cost of scope inflation in agentic coding: 324 issues closed but most exit criteria unmet. Connectors were rewritten 3 times before arriving at the correct screen-space approach. The minifigure concept was built before validating product fit. Key lesson: validate direction before executing at scale.
+
+### Stats
+- 47 commits, 23 merged PRs, 1854 tests passing, branch coverage ~90%
+
+---
+
 ## [v0.17.0] — 2026-03-21
 
 **Milestone 17 — Product Structure**
