@@ -40,25 +40,19 @@ describe('CONNECTOR_THEMES', () => {
       expect(theme).toHaveProperty('shadow');
       expect(theme).toHaveProperty('dark');
       expect(theme).toHaveProperty('accent');
-      expect(theme).toHaveProperty('pattern');
-      expect(theme).toHaveProperty('beamShape');
+      expect(theme).toHaveProperty('pinHoleStyle');
     }
   });
 
-  it('each pattern is unique across types', () => {
-    const patterns = Object.values(CONNECTOR_THEMES).map((t) => t.pattern);
-    expect(new Set(patterns).size).toBe(5);
+  it('each pinHoleStyle is unique across types', () => {
+    const styles = Object.values(CONNECTOR_THEMES).map((t) => t.pinHoleStyle);
+    expect(new Set(styles).size).toBe(5);
   });
 
-  it('each beamShape is unique across types', () => {
-    const shapes = Object.values(CONNECTOR_THEMES).map((t) => t.beamShape);
-    expect(new Set(shapes).size).toBe(5);
-  });
-
-  it('beamShape values are valid BeamShape literals', () => {
-    const validShapes = new Set(['standard', 'doubleRail', 'segmented', 'wide', 'zigzag']);
+  it('pinHoleStyle values are valid literals', () => {
+    const validStyles = new Set(['open', 'filled', 'cross', 'double', 'dashed']);
     for (const theme of Object.values(CONNECTOR_THEMES)) {
-      expect(validShapes.has(theme.beamShape)).toBe(true);
+      expect(validStyles.has(theme.pinHoleStyle)).toBe(true);
     }
   });
 });

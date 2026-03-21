@@ -415,3 +415,284 @@ Beam-shape-specific tests validate:
 - `beamShape` values are unique across all 5 connection types
 - Elbow joints have `data-elbow` attribute and 3-polygon structure
 - Arrow tip renders with side face
+
+---
+
+## 12. Lego-Faithful Connector Redesign (Supersedes §11)
+
+**Date**: 2026-03-21  
+**Status**: Active — supersedes §11 (Technic Beam Redesign)  
+**Problem**: §11 produced connectors that look like dark pillars and pipes — nothing like real Lego. The routing used screen-space coordinates instead of isometric axes, and beam proportions were arbitrary rather than grounded in actual Lego measurements.
+
+### 12.1 Real Lego Measurement System
+
+All connector dimensions derive from the **official Lego measurement system**, translated into our coordinate system. This is the single source of truth.
+
+#### 12.1.1 Lego Physical Dimensions (Reference)
+
+```
+Stud pitch (center-to-center):     8.0 mm
+Stud diameter:                     4.8 mm  (= 0.6 × pitch)
+Stud height:                       1.7 mm
+Brick height (with stud):          9.6 mm  (= 1.2 × pitch)
+Brick height (without stud):       7.8 mm
+Plate height:                      3.2 mm  (= ⅓ brick height)
+Brick wall thickness:              1.5 mm
+Technic beam thickness (thick):    7.8 mm  (≈ 1 stud width, 7:8 aspect)
+Technic beam thickness (thin):     3.9 mm  (= ½ thick beam)
+Technic pin hole diameter:         4.8 mm  (same as stud diameter)
+Technic pin hole spacing:          8.0 mm  (= stud pitch)
+```
+
+#### 12.1.2 Key Lego Ratios
+
+```
+brick height : stud pitch     = 6:5  (9.6:8.0)
+plate height : brick height   = 1:3  (3.2:9.6)
+stud diameter : stud pitch    = 3:5  (4.8:8.0)
+beam thickness : stud pitch   = ~1:1 (7.8:8.0)
+thin beam : thick beam        = 1:2  (3.9:7.8)
+pin hole : stud pitch         = 3:5  (4.8:8.0)
+```
+
+#### 12.1.3 Mapping to CloudBlocks Coordinate System
+
+CloudBlocks uses `RENDER_SCALE = 32` where 1 CU (Cloud Unit) = 1 stud pitch.
+
+```
+1 CU = 1 stud pitch
+TILE_W = 64px (isometric tile width = 2 × RENDER_SCALE)
+TILE_H = 32px (isometric tile height = RENDER_SCALE)
+TILE_Z = 32px (elevation per CU)
+```
+
+The isometric projection is 2:1 dimetric:
+```
+screenX = originX + (worldX - worldZ) × TILE_W / 2
+screenY = originY + (worldX + worldZ) × TILE_H / 2 - worldY × TILE_Z
+```
+
+**Connector dimensions, derived from Lego ratios:**
+
+| Lego Concept | Lego mm | CU Equivalent | Screen px (approx) |
+|---|---|---|---|
+| Beam width (1 stud) | 8.0 | 1.0 CU | 32 iso-X or 16 iso-Y |
+| Beam thickness (plate height) | 3.2 | 0.4 CU | 13 elevation |
+| Pin hole spacing | 8.0 | 1.0 CU | 1 grid cell |
+| Pin hole diameter | 4.8 | 0.6 CU | ~19 iso-X |
+| Stud on beam | 4.8 dia | — | Standard stud (STUD_RX=12) |
+
+### 12.2 Design: Technic Liftarm (Flat Beam with Pin Holes)
+
+Connectors use the **Lego Technic Liftarm** metaphor — flat beams with visible pin holes at regular intervals. This is what makes them instantly recognizable as Lego.
+
+#### 12.2.1 Why Liftarms
+
+Real Lego Technic liftarms are:
+- **Flat** — 1 plate height thick (3.2mm), lying on the isometric ground plane
+- **Studless** — no studs on top, only pin holes along the beam
+- **Rounded ends** — semi-circular terminations at both ends
+- **Pin holes visible** — evenly spaced holes are the defining visual feature
+
+This contrasts with §11's approach which used arbitrary extrusions with no Lego-recognizable features.
+
+#### 12.2.2 Liftarm Cross-Section in Isometric
+
+```
+   Top view (isometric diamond):
+   ╭─── beam width (0.5 CU) ───╮
+   ◇ ○ ─── ○ ─── ○ ─── ○ ─── ◇   ← pin holes at 1 CU intervals
+   ╰───────────────────────────╯
+
+   Side view (isometric):
+   ┌─────────────────────────────┐  ← top face (tile color)
+   │  ○     ○     ○     ○     ○ │  ← pin holes (accent circles)
+   ├─────────────────────────────┤  ← side face (shadow color, plate height thick)
+   └─────────────────────────────┘
+```
+
+### 12.3 World-Space Isometric Routing (Critical Fix)
+
+**§11 Bug**: Routing computed elbows in screen-space (`{ x: tgt.x, y: src.y }`) which produces non-isometric diagonals. Beams must follow isometric grid axes to look like physical Lego pieces.
+
+#### 12.3.1 Algorithm
+
+1. Convert source and target screen positions back to **world coordinates** using `screenToWorld()`
+2. Route along **world X-axis** first, then **world Z-axis** (L-shaped)
+3. Convert each route point back to **screen coordinates** for rendering
+4. Each segment aligns with an isometric axis — no arbitrary screen-space angles
+
+```
+World-space routing:
+
+Source (wx1, wz1)
+  │
+  ├── Segment 1: walk along world X to (wx2, wz1)    ← renders as ╲ or ╱
+  │
+  Elbow (wx2, wz1)
+  │
+  ├── Segment 2: walk along world Z to (wx2, wz2)    ← renders as ╱ or ╲
+  │
+Target (wx2, wz2)
+```
+
+In isometric projection, world X-axis renders as a line going **right-down** (slope +0.5), and world Z-axis renders as a line going **left-down** (slope -0.5). This produces clean, recognizable isometric paths.
+
+#### 12.3.2 Elbow Selection
+
+Two possible L-shapes for any source→target pair:
+- **X-first**: walk X, then Z (elbow at `(tgt.worldX, src.worldZ)`)
+- **Z-first**: walk Z, then X (elbow at `(src.worldX, tgt.worldZ)`)
+
+Default: **X-first**. Future: pick the path with less visual occlusion.
+
+#### 12.3.3 Straight Segments
+
+If source and target share the same world X or Z coordinate (within tolerance), use a single straight segment along the shared axis.
+
+### 12.4 Beam Geometry Constants (Derived from Lego)
+
+All values derived from `RENDER_SCALE` and Lego ratios:
+
+```typescript
+// Beam is 0.5 CU wide (half a stud pitch — thin liftarm)
+const BEAM_HALF_WIDTH_CU = 0.25;
+const BEAM_HALF_WIDTH_X = TILE_W / 2 * BEAM_HALF_WIDTH_CU;   // 8px in iso-X
+const BEAM_HALF_WIDTH_Y = TILE_H / 2 * BEAM_HALF_WIDTH_CU;   // 4px in iso-Y
+
+// Beam thickness = 1 plate height = 0.33 CU
+const BEAM_THICKNESS_CU = 1 / 3;
+const BEAM_THICKNESS_PX = TILE_Z * BEAM_THICKNESS_CU;         // ~11px elevation
+
+// Pin hole spacing = 1 CU (= 1 stud pitch)
+const PIN_HOLE_SPACING_CU = 1.0;
+
+// Pin hole radius = 0.3 CU (= 0.6 × stud pitch / 2)
+const PIN_HOLE_RADIUS_CU = 0.3;
+
+// Rounded end radius = beam half-width
+const END_RADIUS_CU = BEAM_HALF_WIDTH_CU;
+```
+
+### 12.5 Connection Type Differentiation
+
+Types are differentiated by **beam color** (primary) and **pin hole style** (secondary). Beam shape is uniform — all types use the same liftarm geometry. This matches real Lego where the same beam part comes in different colors.
+
+| Type | Beam Color | Pin Hole Style | Lego Analogy |
+|---|---|---|---|
+| `dataflow` | Slate gray `#64748b` | Open circle | Standard liftarm |
+| `http` | Blue `#3b82f6` | Filled dot (pin inserted) | Beam with pins |
+| `internal` | Violet `#8b5cf6` | Cross (axle hole) | Beam with axle holes |
+| `data` | Amber `#f59e0b` | Double circle | Wide beam (2-stud) |
+| `async` | Emerald `#10b981` | Dashed circle | Thin beam (half-height) |
+
+**Color is the primary differentiator.** Pin hole style adds secondary recognition at close zoom but is not required for identification.
+
+### 12.6 Rendering Pipeline
+
+#### 12.6.1 Per-Segment Rendering
+
+Each segment renders as a **3D isometric liftarm piece** along one world axis:
+
+```svg
+<g data-connector-segment data-axis="x|z">
+  <!-- 1. Side face (plate-height thick, drawn first for depth) -->
+  <polygon points="{side-face}" fill="{dark}" />
+
+  <!-- 2. Top face (isometric parallelogram, beam width × segment length) -->
+  <polygon points="{top-face}" fill="{tile}" stroke="{shadow}" stroke-width="0.5" />
+
+  <!-- 3. Pin holes along beam (1 per CU of length) -->
+  <ellipse cx="..." cy="..." rx="{hole-rx}" ry="{hole-ry}"
+           fill="{accent}" opacity="0.4" />
+  <!-- repeat per hole -->
+</g>
+```
+
+The parallelogram direction depends on which world axis the segment follows:
+- **World X segment**: top face is a parallelogram slanting right-down
+- **World Z segment**: top face is a parallelogram slanting left-down
+
+#### 12.6.2 Elbow Joint
+
+At the bend point, a **square connector piece** (1×1 CU) joins the two segments:
+
+```svg
+<g data-connector-elbow>
+  <!-- Isometric diamond (1 CU × 1 CU top face) -->
+  <polygon points="{diamond}" fill="{tile}" stroke="{shadow}" stroke-width="0.5" />
+  <!-- Right side face -->
+  <polygon points="{right-side}" fill="{shadow}" />
+  <!-- Front side face -->
+  <polygon points="{front-side}" fill="{dark}" />
+  <!-- Center pin hole -->
+  <ellipse cx="..." cy="..." rx="{hole-rx}" ry="{hole-ry}"
+           fill="{accent}" opacity="0.4" />
+</g>
+```
+
+#### 12.6.3 Directional Arrow
+
+Direction is indicated by the **last pin hole being a filled triangle** (arrow shape) instead of a circle. No protruding arrow tip — the beam terminates flush, with only the pin hole shape changing.
+
+This is more Lego-faithful than a protruding arrow — real Lego pieces don't have arrows.
+
+#### 12.6.4 Endpoint Studs
+
+Source and target endpoints render the **Universal Stud Standard** stud on top of the beam at the connection point. This represents the stud that "plugs into" the block's anti-stud.
+
+### 12.7 Rendering Order
+
+To avoid the "pillar through block" artifact from §11:
+
+1. Connectors render at **layer 0.5** — between plates (layer 0) and blocks (layer 2)
+2. Connector segments get depth keys based on their world position: `depthKey(worldX, worldZ, 0, 0.5)`
+3. Segments closer to the camera (higher worldX + worldZ) render later (painter's algorithm)
+
+### 12.8 Performance
+
+| Concern | Mitigation |
+|---|---|
+| Pin holes add SVG elements | Max ~5 holes per segment. Clipped to visible viewport. |
+| World↔screen conversions | Pre-computed at route time, cached in `useMemo`. |
+| 30+ connections | `React.memo` on component. Route only recomputes on endpoint change. |
+| Rendering order | Depth key computation is O(1) per segment. |
+
+Target: **<16ms frame time** with 30 simultaneous connections.
+
+### 12.9 Design Token Additions
+
+New tokens added to `designTokens.ts`, all derived from `RENDER_SCALE`:
+
+```typescript
+// -- Technic Liftarm (Connector Beam) --
+// Derived from Lego Technic liftarm proportions
+export const BEAM_WIDTH_CU = 0.5;                              // beam is half a stud wide
+export const BEAM_THICKNESS_CU = 1 / 3;                        // plate height = ⅓ brick
+export const BEAM_THICKNESS_PX = RENDER_SCALE * BEAM_THICKNESS_CU; // ~11px
+export const PIN_HOLE_SPACING_CU = 1.0;                        // 1 hole per stud pitch
+export const PIN_HOLE_RX = RENDER_SCALE * 3 / 20;              // 4.8 (iso X radius)
+export const PIN_HOLE_RY = PIN_HOLE_RX / 2;                    // 2.4 (iso Y radius)
+```
+
+### 12.10 Migration from §11
+
+| §11 Artifact | §12 Replacement |
+|---|---|
+| `buildBeamFaces()` — screen-space polygon | `buildIsoBeamFaces()` — axis-aligned isometric parallelogram |
+| `computeRoute()` — screen-space elbow | `computeWorldRoute()` — world-space X/Z routing |
+| 5 beam shape renderers | 1 universal liftarm renderer with pin hole style variants |
+| `BEAM_HALF_WIDTH = 8` (magic number) | `BEAM_WIDTH_CU = 0.5` (derived from Lego ratio) |
+| `BEAM_THICKNESS = 6` (magic number) | `BEAM_THICKNESS_CU = 1/3` (= plate height ratio) |
+| Protruding arrow tip | Flush end with directional pin hole |
+| Screen-space hit path | World-space routed hit path |
+
+### 12.11 Acceptance Criteria
+
+- [ ] Connectors visually resemble Lego Technic liftarms with visible pin holes
+- [ ] All segments align with isometric X or Z axes — no screen-space diagonals
+- [ ] Beam proportions match Lego ratios (width = 0.5 CU, thickness = plate height)
+- [ ] 5 connection types differentiated by color (pin hole style is bonus)
+- [ ] No "pillar through block" artifacts — correct depth ordering
+- [ ] All existing interactions preserved (select, hover, delete, diff)
+- [ ] Tests pass, lint clean, build succeeds
