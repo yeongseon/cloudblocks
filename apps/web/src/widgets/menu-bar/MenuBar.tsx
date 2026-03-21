@@ -127,6 +127,33 @@ export function MenuBar() {
     playSound(result.valid ? 'validation-success' : 'validation-error');
   };
 
+  const handleProviderSwitch = async (newProvider: ProviderType) => {
+    if (newProvider === activeProvider) return;
+
+    const blocksFromOtherProvider = architecture.blocks.filter(
+      (block) => block.provider && block.provider !== newProvider
+    );
+
+    if (blocksFromOtherProvider.length > 0) {
+      const providerCounts = new Map<string, number>();
+      for (const block of blocksFromOtherProvider) {
+        const p = block.provider ?? 'unknown';
+        providerCounts.set(p, (providerCounts.get(p) ?? 0) + 1);
+      }
+      const summary = Array.from(providerCounts.entries())
+        .map(([p, count]) => `${count} ${p.toUpperCase()}`)
+        .join(', ');
+
+      const confirmed = await confirmDialog(
+        `Your canvas has ${summary} block(s). New blocks will be created as ${newProvider.toUpperCase()} resources. Existing blocks keep their original provider.\n\nSwitch to ${newProvider.toUpperCase()}?`,
+        'Switch Cloud Provider?',
+      );
+      if (!confirmed) return;
+    }
+
+    setActiveProvider(newProvider);
+  };
+
   const handleSave = () => {
     const success = saveToStorage();
     if (success) {
@@ -429,7 +456,7 @@ export function MenuBar() {
               aria-selected={isActive}
               className="provider-btn"
               data-active={isActive}
-              onClick={() => setActiveProvider(provider.id)}
+              onClick={() => handleProviderSwitch(provider.id)}
               style={isActive ? { borderColor: provider.color, color: provider.color, boxShadow: `inset 0 3px 0 rgba(255, 255, 255, 0.6), 0 4px 0 0 ${provider.color}` } : undefined}
             >
               {provider.label}

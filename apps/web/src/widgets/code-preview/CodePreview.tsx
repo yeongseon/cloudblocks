@@ -15,6 +15,11 @@ import './CodePreview.css';
 const PROVIDERS: ProviderType[] = ['azure', 'aws', 'gcp'];
 
 export function CodePreview() {
+  const activeProvider = useUIStore((s) => s.activeProvider);
+  return <CodePreviewContent key={activeProvider} />;
+}
+
+function CodePreviewContent() {
   const toggleCodePreview = useUIStore((s) => s.toggleCodePreview);
   const activeProvider = useUIStore((s) => s.activeProvider);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
@@ -32,7 +37,6 @@ export function CodePreview() {
   const [activeTab, setActiveTab] = useState(0);
   const [projectName, setProjectName] = useState(sanitizedName);
   const [regions, setRegions] = useState<Record<ProviderType, string>>({ ...DEFAULT_REGION_BY_PROVIDER });
-  const [prevProvider, setPrevProvider] = useState(activeProvider);
   const [generator, setGenerator] = useState<GeneratorId>(
     generatorOptions[0]?.id ?? 'terraform'
   );
@@ -47,20 +51,16 @@ export function CodePreview() {
     supportedProviders.includes(provider)
   );
 
-  if (activeProvider !== prevProvider) {
-    setPrevProvider(activeProvider);
-    setRegions((prev) => ({
-      ...prev,
-      [activeProvider]: DEFAULT_REGION_BY_PROVIDER[activeProvider],
-    }));
-    setError(null);
-    setOutput(null);
-    setComparisonOutputs(null);
-    setComparisonErrors(null);
-    setActiveTab(0);
-  }
-
   const effectiveCompare = compareProviders && canCompareProviders;
+
+  const mismatchedProviders = architecture.blocks
+    .filter((block) => block.provider && block.provider !== activeProvider)
+    .reduce((acc, block) => {
+      const p = block.provider ?? 'unknown';
+      acc.set(p, (acc.get(p) ?? 0) + 1);
+      return acc;
+    }, new Map<string, number>());
+  const hasMismatch = mismatchedProviders.size > 0;
 
   const clearGeneratedState = () => {
     setError(null);
@@ -215,6 +215,11 @@ export function CodePreview() {
       </div>
 
       <div className="code-preview-options">
+        {hasMismatch && (
+          <div className="code-preview-mismatch-warning" role="alert">
+            ⚠️ Canvas has {Array.from(mismatchedProviders.entries()).map(([p, count]) => `${count} ${p.toUpperCase()}`).join(', ')} block(s) but generating for {activeProvider.toUpperCase()}. Use &quot;Compare&quot; to see all providers.
+          </div>
+        )}
         <label className="code-preview-field">
           <span className="code-preview-field-label">Generator</span>
           <select

@@ -55,6 +55,7 @@ export interface GitHubCommit {
   message: string;
   author: string;
   date: string;
+  html_url: string;
 }
 
 // ─── Milestone 7: Collaboration + CI/CD ────────────────────

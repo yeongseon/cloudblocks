@@ -63,6 +63,13 @@ export const ROLE_VISUAL_INDICATORS: Record<BlockRole, RoleVisualIndicator> = {
 };
 // ─── Workspace ─────────────────────────────────────────────
 
+export interface LastPrResult {
+  url: string;
+  number: number;
+  branch: string;
+  createdAt: string;
+}
+
 export interface Workspace {
   id: string;
   name: string;
@@ -71,6 +78,7 @@ export interface Workspace {
   updatedAt: string;
   backendWorkspaceId?: string;
   githubRepo?: string;
+  lastPrResult?: LastPrResult;
 }
 
 // ─── Visual Identity ───────────────────────────────────────

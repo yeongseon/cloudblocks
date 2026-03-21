@@ -20,6 +20,7 @@ type WorkspaceSlice = Pick<
   | 'cloneWorkspace'
   | 'setBackendWorkspaceId'
   | 'setGithubRepo'
+  | 'setLastPrResult'
 >;
 
 export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (
@@ -175,6 +176,27 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (
 
     const updatedList = state.workspaces.map((ws) =>
       ws.id === workspaceId ? { ...ws, githubRepo: repo } : ws
+    );
+
+    saveWorkspaces(
+      upsertCurrentWorkspace(updatedList, updatedWorkspace)
+    );
+
+    set({
+      workspace: updatedWorkspace,
+      workspaces: updatedList,
+    });
+  },
+
+  setLastPrResult: (workspaceId, result) => {
+    const state = get();
+    const updatedWorkspace =
+      state.workspace.id === workspaceId
+        ? { ...state.workspace, lastPrResult: result }
+        : state.workspace;
+
+    const updatedList = state.workspaces.map((ws) =>
+      ws.id === workspaceId ? { ...ws, lastPrResult: result } : ws
     );
 
     saveWorkspaces(

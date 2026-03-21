@@ -123,6 +123,30 @@
   text-decoration: underline;
 }
 
+.github-pr-result {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  background: rgba(76, 175, 80, 0.12);
+  border: 1px solid rgba(76, 175, 80, 0.35);
+  border-radius: 4px;
+}
+
+.github-pr-result-info {
+  font-size: 12px;
+  color: #a5d6a7;
+  font-weight: 500;
+}
+
+.github-pr-result-info code {
+  font-family: 'Consolas', 'Monaco', monospace;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+
 .github-pr-empty {
   padding: 10px;
   text-align: center;
@@ -131,4 +155,84 @@
   background: rgba(255, 255, 255, 0.02);
   border: 1px dashed #333366;
   border-radius: 4px;
+}
+
+.github-pr-arch-summary {
+  font-size: 11px;
+  color: #8e95b8;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid #333366;
+  border-radius: 4px;
+}
+
+.github-pr-baseline {
+  font-size: 11px;
+  color: #9aa4d1;
+  padding: 4px 8px;
+}
+
+.github-pr-baseline code {
+  font-family: 'Consolas', 'Monaco', monospace;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+
+.github-pr-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.github-pr-compare-btn {
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #ccc;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.github-pr-compare-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.github-pr-compare-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.github-pr-recent-pr {
+  font-size: 11px;
+  color: #a5d6a7;
+  padding: 6px 8px;
+  background: rgba(76, 175, 80, 0.08);
+  border: 1px solid rgba(76, 175, 80, 0.25);
+  border-radius: 4px;
+}
+
+.github-pr-recent-pr-label {
+  font-weight: 600;
+  color: #81c784;
+}
+
+.github-pr-recent-pr a {
+  color: #82b1ff;
+  text-decoration: none;
+}
+
+.github-pr-recent-pr a:hover {
+  text-decoration: underline;
+}
+
+.github-pr-recent-pr code {
+  font-family: 'Consolas', 'Monaco', monospace;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 11px;
 }

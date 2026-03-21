@@ -486,6 +486,7 @@ async def test_list_workspace_commits_returns_formatted_commits(
     mock_github.list_commits.return_value = [
         {
             "sha": "abc123",
+            "html_url": "https://github.com/acme/cloudblocks-arch/commit/abc123",
             "commit": {
                 "message": "Update architecture",
                 "author": {"name": "CloudBlocks Bot", "date": "2026-03-14T10:00:00Z"},
@@ -503,3 +504,4 @@ async def test_list_workspace_commits_returns_formatted_commits(
     assert len(payload) == 1
     assert payload[0]["sha"] == "abc123"
     assert payload[0]["author"] == "CloudBlocks Bot"
+    assert payload[0]["html_url"] == "https://github.com/acme/cloudblocks-arch/commit/abc123"

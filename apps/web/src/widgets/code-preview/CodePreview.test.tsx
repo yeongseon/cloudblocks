@@ -752,6 +752,64 @@ describe('CodePreview', () => {
     expect(screen.queryByText('main.tf')).not.toBeInTheDocument();
   });
 
+  it('shows mismatch warning when blocks have different provider than active', () => {
+    useUIStore.setState({ activeProvider: 'azure' });
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1', name: 'Test', architecture: {
+          ...mockArch,
+          blocks: [
+            { id: 'b1', name: 'B1', category: 'compute', placementId: '', position: { x: 0, y: 0, z: 0 }, metadata: {}, provider: 'aws' as const },
+            { id: 'b2', name: 'B2', category: 'database', placementId: '', position: { x: 0, y: 0, z: 0 }, metadata: {}, provider: 'aws' as const },
+          ],
+        },
+        createdAt: '', updatedAt: '',
+      },
+    });
+    render(<CodePreview />);
+
+    const warning = screen.getByRole('alert');
+    expect(warning).toBeInTheDocument();
+    expect(warning.textContent).toContain('2 AWS');
+    expect(warning.textContent).toContain('AZURE');
+  });
+
+  it('does not show mismatch warning when all blocks match active provider', () => {
+    useUIStore.setState({ activeProvider: 'azure' });
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1', name: 'Test', architecture: {
+          ...mockArch,
+          blocks: [
+            { id: 'b1', name: 'B1', category: 'compute', placementId: '', position: { x: 0, y: 0, z: 0 }, metadata: {}, provider: 'azure' as const },
+          ],
+        },
+        createdAt: '', updatedAt: '',
+      },
+    });
+    render(<CodePreview />);
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('does not show mismatch warning when blocks have no provider set', () => {
+    useUIStore.setState({ activeProvider: 'azure' });
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1', name: 'Test', architecture: {
+          ...mockArch,
+          blocks: [
+            { id: 'b1', name: 'B1', category: 'compute', placementId: '', position: { x: 0, y: 0, z: 0 }, metadata: {} },
+          ],
+        },
+        createdAt: '', updatedAt: '',
+      },
+    });
+    render(<CodePreview />);
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
   it('clears output and errors when compare mode toggles', async () => {
     const user = userEvent.setup();
     vi.mocked(generateCode).mockReturnValue({
