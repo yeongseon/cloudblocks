@@ -98,6 +98,10 @@ interface UIState {
   // ── Sound preference ──
   isSoundMuted: boolean;
   toggleSound: () => void;
+
+  // ── Resource self-animation ──
+  upgradingBlockId: string | null;
+  triggerUpgradeAnimation: (blockId: string) => void;
 }
 
 /** Keys that occupy the right-side panel slot — only one may be open. */
@@ -296,4 +300,12 @@ export const useUIStore = create<UIState>((set) => ({
 
   isSoundMuted: true,
   toggleSound: () => set((s) => ({ isSoundMuted: !s.isSoundMuted })),
+
+  upgradingBlockId: null,
+  triggerUpgradeAnimation: (blockId) => {
+    set({ upgradingBlockId: blockId });
+    setTimeout(() => {
+      set((s) => s.upgradingBlockId === blockId ? { upgradingBlockId: null } : s);
+    }, 1600);
+  },
 }));
