@@ -160,6 +160,42 @@ describe('CommandCard', () => {
     expect(updateConnectionTypeMock).toHaveBeenCalledWith('conn-1', 'dataflow');
   });
 
+  it('calls updateBlockConfig and triggerUpgradeAnimation on block Apply', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ selectedId: 'block-1' });
+    useArchitectureStore.setState({ workspace: { id: 'ws-1', name: 'Test Workspace', architecture: { ...baseArchitecture, plates: [networkPlate, publicSubnet], blocks: [computeBlock] }, createdAt: '', updatedAt: '' } });
+    render(<CommandCard />);
+    await user.click(screen.getByRole('button', { name: /Apply/ }));
+    expect(updateBlockConfigMock).toHaveBeenCalled();
+    expect(triggerUpgradeAnimationMock).toHaveBeenCalledWith('block-1');
+  });
+
+  it('calls duplicateBlock on Copy click', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ selectedId: 'block-1' });
+    useArchitectureStore.setState({ workspace: { id: 'ws-1', name: 'Test Workspace', architecture: { ...baseArchitecture, plates: [networkPlate, publicSubnet], blocks: [computeBlock] }, createdAt: '', updatedAt: '' } });
+    render(<CommandCard />);
+    await user.click(screen.getByRole('button', { name: /Copy/ }));
+    expect(duplicateBlockMock).toHaveBeenCalledWith('block-1');
+  });
+
+  it('shows plate actions with Rename, Delete, Apply', () => {
+    useUIStore.setState({ selectedId: 'net-1' });
+    useArchitectureStore.setState({ workspace: { id: 'ws-1', name: 'Test Workspace', architecture: { ...baseArchitecture, plates: [networkPlate] }, createdAt: '', updatedAt: '' } });
+    render(<CommandCard />);
+    expect(screen.getByRole('button', { name: /Rename/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Delete/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Apply/ })).toBeInTheDocument();
+  });
+
+  it('sets connect tool mode on Connect click', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ selectedId: 'worker-default' });
+    render(<CommandCard />);
+    await user.click(screen.getByRole('button', { name: /Connect/ }));
+    expect(setToolModeMock).toHaveBeenCalledWith('connect');
+  });
+
   it('calls startBuild when resource is clicked in worker build grid', async () => {
     const user = userEvent.setup();
     useUIStore.setState({ selectedId: 'worker-default' });
