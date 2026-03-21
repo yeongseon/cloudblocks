@@ -1,9 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import type { Block } from '@cloudblocks/schema';
 import { validateAggregation } from './aggregation';
+import { makeTestBlock, type LegacyBlockOverrides } from '../../__tests__/legacyModelTestUtils';
 
-function makeBlock(overrides: Partial<Block> = {}): Block {
-  return {
+function makeBlock(overrides: LegacyBlockOverrides = {}): Block {
+  return makeTestBlock({
     id: 'block-1',
     name: 'Block One',
     category: 'compute',
@@ -11,7 +12,7 @@ function makeBlock(overrides: Partial<Block> = {}): Block {
     position: { x: 0, y: 0, z: 0 },
     metadata: {},
     ...overrides,
-  };
+  });
 }
 
 describe('validateAggregation', () => {

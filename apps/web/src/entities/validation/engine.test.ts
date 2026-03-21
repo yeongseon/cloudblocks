@@ -1,30 +1,37 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { ArchitectureModel, Block, Connection, ExternalActor, Plate } from '@cloudblocks/schema';
+import type { ArchitectureModel, Connection, ContainerNode, ExternalActor, LeafNode } from '@cloudblocks/schema';
 import { validateArchitecture } from './engine';
 import * as placementModule from './placement';
 import * as connectionModule from './connection';
+import {
+  makeTestArchitecture,
+  makeTestBlock,
+  makeTestPlate,
+  type LegacyArchitectureOverrides,
+  type LegacyBlockOverrides,
+  type LegacyPlateOverrides,
+} from '../../__tests__/legacyModelTestUtils';
 
 function makePlate(
-  overrides: Partial<Plate> = {}
-): Plate {
-  return {
+  overrides: LegacyPlateOverrides = {}
+): ContainerNode {
+  return makeTestPlate({
     id: 'subnet-private-1',
     name: 'Private Subnet',
     type: 'subnet',
     subnetAccess: 'private',
     parentId: 'network-1',
-    children: [],
     position: { x: 0, y: 0, z: 0 },
     size: { width: 8, height: 1, depth: 8 },
     metadata: {},
     ...overrides,
-  };
+  });
 }
 
 function makeBlock(
-  overrides: Partial<Block> = {}
-): Block {
-  return {
+  overrides: LegacyBlockOverrides = {}
+): LeafNode {
+  return makeTestBlock({
     id: 'block-1',
     name: 'Block One',
     category: 'compute',
@@ -32,7 +39,7 @@ function makeBlock(
     position: { x: 0, y: 0, z: 0 },
     metadata: {},
     ...overrides,
-  };
+  });
 }
 
 function makeConnection(
@@ -60,9 +67,9 @@ function makeExternalActor(
 }
 
 function makeModel(
-  overrides: Partial<ArchitectureModel> = {}
+  overrides: LegacyArchitectureOverrides = {}
 ): ArchitectureModel {
-  return {
+  return makeTestArchitecture({
     id: 'arch-1',
     name: 'Architecture',
     version: '1.0.0',
@@ -73,7 +80,7 @@ function makeModel(
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
     ...overrides,
-  };
+  });
 }
 
 afterEach(() => {
@@ -95,10 +102,10 @@ describe('validateArchitecture', () => {
     const publicSubnet = makePlate({ id: 'subnet-public-1', subnetAccess: 'public' });
     const privateSubnet = makePlate({ id: 'subnet-private-1', subnetAccess: 'private' });
 
-    const gateway = makeBlock({ id: 'gateway-1', category: 'gateway', placementId: 'subnet-public-1' });
+    const gateway = makeBlock({ id: 'gateway-1', category: 'edge', placementId: 'subnet-public-1' });
     const compute = makeBlock({ id: 'compute-1', category: 'compute', placementId: 'subnet-private-1' });
-    const database = makeBlock({ id: 'database-1', category: 'database', placementId: 'subnet-private-1' });
-    const storage = makeBlock({ id: 'storage-1', category: 'storage', placementId: 'subnet-private-1' });
+    const database = makeBlock({ id: 'database-1', category: 'data', placementId: 'subnet-private-1' });
+    const storage = makeBlock({ id: 'storage-1', category: 'data', placementId: 'subnet-private-1' });
 
     const internet = makeExternalActor({ id: 'internet-1' });
 
@@ -122,15 +129,15 @@ describe('validateArchitecture', () => {
   });
 
   it('returns invalid result with placement error', () => {
-    const publicSubnet = makePlate({ id: 'subnet-public-1', subnetAccess: 'public' });
+    const region = makePlate({ id: 'region-1', type: 'region', subnetAccess: undefined });
     const model = makeModel({
-      plates: [publicSubnet],
+      plates: [region],
       blocks: [
         makeBlock({
           id: 'db-1',
           name: 'Database A',
-          category: 'database',
-          placementId: 'subnet-public-1',
+          category: 'data',
+          placementId: 'region-1',
         }),
       ],
     });
@@ -140,7 +147,7 @@ describe('validateArchitecture', () => {
     expect(result.valid).toBe(false);
     expect(result.errors).toHaveLength(1);
     expect(result.errors[0]).toMatchObject({
-      ruleId: 'rule-db-private',
+      ruleId: 'rule-data-subnet',
       severity: 'error',
       targetId: 'db-1',
     });
@@ -150,7 +157,7 @@ describe('validateArchitecture', () => {
   it('returns invalid result with connection error', () => {
     const publicSubnet = makePlate({ id: 'subnet-public-1', subnetAccess: 'public' });
     const privateSubnet = makePlate({ id: 'subnet-private-1', subnetAccess: 'private' });
-    const gateway = makeBlock({ id: 'gateway-1', category: 'gateway', placementId: 'subnet-public-1' });
+    const gateway = makeBlock({ id: 'gateway-1', category: 'edge', placementId: 'subnet-public-1' });
     const compute = makeBlock({ id: 'compute-1', category: 'compute', placementId: 'subnet-private-1' });
 
     const model = makeModel({
@@ -181,9 +188,9 @@ describe('validateArchitecture', () => {
     const publicSubnet = makePlate({ id: 'subnet-public-1', subnetAccess: 'public' });
     const privateSubnet = makePlate({ id: 'subnet-private-1', subnetAccess: 'private' });
 
-    const gateway = makeBlock({ id: 'gateway-1', category: 'gateway', placementId: 'subnet-private-1' });
-    const database = makeBlock({ id: 'db-1', category: 'database', placementId: 'subnet-public-1' });
-    const storage = makeBlock({ id: 'storage-1', category: 'storage', placementId: 'subnet-public-1' });
+    const gateway = makeBlock({ id: 'gateway-1', category: 'edge', placementId: 'subnet-private-1' });
+    const database = makeBlock({ id: 'db-1', category: 'data', placementId: 'subnet-public-1' });
+    const storage = makeBlock({ id: 'storage-1', category: 'data', placementId: 'subnet-public-1' });
 
     const model = makeModel({
       plates: [publicSubnet, privateSubnet],
@@ -200,17 +207,16 @@ describe('validateArchitecture', () => {
     const result = validateArchitecture(model);
 
     expect(result.valid).toBe(false);
-    expect(result.errors).toHaveLength(3);
+    expect(result.errors).toHaveLength(2);
     expect(result.errors.map((error) => error.ruleId).sort()).toEqual([
       'rule-conn-invalid',
-      'rule-db-private',
-      'rule-gw-public',
+      'rule-edge-public',
     ]);
     expect(result.warnings).toEqual([]);
   });
 
   it('routes warning severities to warnings array', () => {
-    vi.spyOn(placementModule, 'validatePlacement').mockImplementation((block: Block) => ({
+    vi.spyOn(placementModule, 'validatePlacement').mockImplementation((block: LeafNode) => ({
       ruleId: 'rule-placement-warning',
       severity: 'warning' as const,
       message: `Placement warning for ${block.id}`,

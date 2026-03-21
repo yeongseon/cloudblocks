@@ -1,4 +1,4 @@
-import type { Block } from '@cloudblocks/schema';
+import type { LeafNode } from '@cloudblocks/schema';
 import type { ValidationError } from '@cloudblocks/domain';
 import { BLOCK_ROLES } from '@cloudblocks/domain';
 
@@ -11,7 +11,7 @@ import { BLOCK_ROLES } from '@cloudblocks/domain';
  */
 
 export function validateRoles(
-  block: Block,
+  block: LeafNode,
 ): ValidationError | null {
   const roles = block.roles;
 
