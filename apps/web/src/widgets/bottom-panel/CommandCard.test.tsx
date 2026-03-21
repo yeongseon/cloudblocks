@@ -272,7 +272,7 @@ describe('CommandCard', () => {
     const { unmount } = render(<CommandCard />);
 
     const networkButton = screen.getByTitle('Create Network (VNet)');
-    const firewallButton = screen.getByTitle('Create Azure Firewall');
+    const firewallButton = screen.getByTitle('Create Firewall');
 
     const networkListeners = draggableListeners.get(networkButton);
     const vmListeners = draggableListeners.get(firewallButton);
@@ -284,7 +284,7 @@ describe('CommandCard', () => {
     vmListeners?.move?.({ target: firewallButton });
     expect(firewallButton).toHaveClass('is-dragging');
     expect(useUIStore.getState().draggedBlockCategory).toBe('edge');
-    expect(useUIStore.getState().draggedResourceName).toBe('Azure Firewall');
+    expect(useUIStore.getState().draggedResourceName).toBe('Firewall');
 
     vmListeners?.end?.({ target: firewallButton });
     expect(firewallButton).not.toHaveClass('is-dragging');
@@ -726,7 +726,7 @@ describe('CommandCard', () => {
     await user.click(screen.getByRole('button', { name: /Deploy/ }));
     expect(screen.getByTitle('Create Public Subnet (Q)')).toBeInTheDocument();
     expect(screen.getByTitle('Create Private Subnet (W)')).toBeInTheDocument();
-    expect(screen.queryByTitle('Create Azure SQL (W)')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Create SQL Database (W)')).not.toBeInTheDocument();
 
     act(() => {
       useUIStore.setState({ selectedId: 'subnet-public-1' });
@@ -747,7 +747,7 @@ describe('CommandCard', () => {
     await user.click(screen.getByRole('button', { name: /Deploy/ }));
     expect(screen.getByTitle('Create DNS Zone (W)')).toBeInTheDocument();
     expect(screen.getByTitle('Create Virtual Machine (S)')).toBeInTheDocument();
-    expect(screen.queryByTitle('Create Azure SQL (W)')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Create SQL Database (W)')).not.toBeInTheDocument();
 
     act(() => {
       useUIStore.setState({ selectedId: 'subnet-private-1' });
@@ -766,7 +766,7 @@ describe('CommandCard', () => {
     });
     rerender(<CommandCard />);
     await user.click(screen.getByRole('button', { name: /Deploy/ }));
-    expect(screen.getByTitle('Create Azure SQL (W)')).toBeInTheDocument();
+    expect(screen.getByTitle('Create SQL Database (W)')).toBeInTheDocument();
     expect(screen.queryByTitle('Create Public Subnet (Q)')).not.toBeInTheDocument();
   });
 
@@ -1066,9 +1066,9 @@ describe('CommandCard', () => {
     await user.click(screen.getByRole('button', { name: /Deploy/ }));
 
     // Now in PlateCreationMode — create SQL
-    await user.click(screen.getByTitle('Create Azure SQL (W)'));
+    await user.click(screen.getByTitle('Create SQL Database (W)'));
 
-    expect(addBlockMock).toHaveBeenCalledWith('data', 'Azure SQL 1', 'subnet-private-1', 'azure');
+    expect(addBlockMock).toHaveBeenCalledWith('data', 'SQL Database 1', 'subnet-private-1', 'azure');
   });
 
   it('creates private subnet via Deploy on network plate', async () => {

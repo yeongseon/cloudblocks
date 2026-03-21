@@ -135,10 +135,10 @@ describe('useTechTree constants', () => {
         category: 'always',
         blockCategory: 'edge',
       },
-      sql: { id: 'sql', label: 'Azure SQL', shortLabel: 'SQL', icon: '🗄️', category: 'vnet-optional', blockCategory: 'data' },
+      sql: { id: 'sql', label: 'SQL Database', shortLabel: 'SQL', icon: '🗄️', category: 'vnet-optional', blockCategory: 'data' },
       function: {
         id: 'function',
-        label: 'Azure Functions',
+        label: 'Functions',
         shortLabel: 'Func',
         icon: '⚡',
         category: 'vnet-optional',
@@ -204,7 +204,7 @@ describe('useTechTree constants', () => {
       },
       firewall: {
         id: 'firewall',
-        label: 'Azure Firewall',
+        label: 'Firewall',
         shortLabel: 'FW',
         icon: '🛡️',
         category: 'vnet-required',
@@ -220,7 +220,7 @@ describe('useTechTree constants', () => {
       },
       bastion: {
         id: 'bastion',
-        label: 'Azure Bastion',
+        label: 'Bastion',
         shortLabel: 'Bastion',
         icon: '🏰',
         category: 'vnet-required',
