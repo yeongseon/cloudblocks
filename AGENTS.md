@@ -18,6 +18,8 @@
 - **SVG asset rules**: All SVG sprites live in `apps/web/src/shared/assets/`. New SVG files must comply with the Universal Stud Standard. Use consistent naming: lowercase kebab-case (e.g., `internet.svg`, `compute-block.svg`). Every SVG must include a `viewBox` attribute and avoid inline `style` elements — use attributes or CSS classes instead.
 - **Zustand store boundaries**: Three stores exist — `architectureStore` (domain model: plates, blocks, connections, external actors), `uiStore` (UI state: tool mode, panel visibility, selection), and `authStore` (auth: GitHub OAuth, session). Add new state to the store that owns the domain. Do not create new stores without discussion.
 - **Test expectations**: New features should include tests. Branch coverage must stay ≥ 90%. Do not delete or skip failing tests to make CI pass — fix the root cause instead.
+- **NEVER auto-create GitHub issues**: Agents and sub-agents must NEVER run `gh issue create` unless the user explicitly asks to create a specific issue. When fixing bugs, only fix code — do not file new issues for problems discovered along the way. Report findings as text in your response instead. The user decides what becomes an issue.
+- **Small, sequential PRs**: Process at most 5–10 issues per PR. Merge each PR before starting the next batch. Do not open 7+ parallel PRs that touch overlapping files — this causes merge conflicts, cascading CI failures, and unmanageable review burden.
 
 ## Git Conventions
 
