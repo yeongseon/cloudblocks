@@ -1,5 +1,123 @@
 import type { ArchitectureTemplate } from '../../shared/types/template';
+import type {
+  ContainerCapableResourceType,
+  ContainerNode,
+  LeafNode,
+  PlateType,
+  ProviderType,
+  ResourceCategory,
+} from '@cloudblocks/schema';
 import { registerTemplate } from './registry';
+
+type LegacyBlockCategory =
+  | ResourceCategory
+  | 'database'
+  | 'storage'
+  | 'gateway'
+  | 'function'
+  | 'queue'
+  | 'event'
+  | 'analytics'
+  | 'identity'
+  | 'observability';
+
+interface LegacyPlate {
+  id: string;
+  name: string;
+  type: PlateType;
+  parentId: string | null;
+  children: string[];
+  position: { x: number; y: number; z: number };
+  size: { width: number; height: number; depth: number };
+  metadata: Record<string, unknown>;
+  subnetAccess?: 'public' | 'private';
+}
+
+interface LegacyBlock {
+  id: string;
+  name: string;
+  category: LegacyBlockCategory;
+  provider?: ProviderType;
+  subtype?: string;
+  placementId: string;
+  position: { x: number; y: number; z: number };
+  metadata: Record<string, unknown>;
+}
+
+interface LegacyArchitecture {
+  name: string;
+  version: string;
+  plates: LegacyPlate[];
+  blocks: LegacyBlock[];
+  connections: ArchitectureTemplate['architecture']['connections'];
+  externalActors: ArchitectureTemplate['architecture']['externalActors'];
+}
+
+const LEGACY_CATEGORY_MAP: Record<LegacyBlockCategory, ResourceCategory> = {
+  network: 'network',
+  security: 'security',
+  edge: 'edge',
+  compute: 'compute',
+  data: 'data',
+  messaging: 'messaging',
+  operations: 'operations',
+  database: 'data',
+  storage: 'data',
+  gateway: 'edge',
+  function: 'compute',
+  queue: 'messaging',
+  event: 'messaging',
+  analytics: 'operations',
+  identity: 'security',
+  observability: 'operations',
+};
+
+const CONTAINER_RESOURCE_TYPE: Record<PlateType, ContainerCapableResourceType> = {
+  global: 'virtual_network',
+  edge: 'virtual_network',
+  region: 'virtual_network',
+  zone: 'virtual_network',
+  subnet: 'subnet',
+};
+
+function toArchitectureSnapshot(legacy: LegacyArchitecture): ArchitectureTemplate['architecture'] {
+  const containers: ContainerNode[] = legacy.plates.map((plate) => ({
+    id: plate.id,
+    name: plate.name,
+    kind: 'container',
+    layer: plate.type,
+    resourceType: CONTAINER_RESOURCE_TYPE[plate.type],
+    category: 'network',
+    provider: 'azure',
+    parentId: plate.parentId,
+    position: plate.position,
+    size: plate.size,
+    metadata: plate.metadata,
+    subnetAccess: plate.subnetAccess,
+  }));
+
+  const resources: LeafNode[] = legacy.blocks.map((block) => ({
+    id: block.id,
+    name: block.name,
+    kind: 'resource',
+    layer: 'resource',
+    resourceType: block.subtype ?? LEGACY_CATEGORY_MAP[block.category],
+    category: LEGACY_CATEGORY_MAP[block.category],
+    provider: block.provider ?? 'azure',
+    parentId: block.placementId,
+    position: block.position,
+    metadata: block.metadata,
+    subtype: block.subtype,
+  }));
+
+  return {
+    name: legacy.name,
+    version: legacy.version,
+    nodes: [...containers, ...resources],
+    connections: legacy.connections,
+    externalActors: legacy.externalActors,
+  };
+}
 
 /**
  * Built-in Templates (v0.4 + v1.0)
@@ -19,7 +137,7 @@ const threeTierTemplate: ArchitectureTemplate = {
   category: 'web-application',
   difficulty: 'beginner',
   tags: ['three-tier', 'web', 'gateway', 'database', 'beginner'],
-  architecture: {
+  architecture: toArchitectureSnapshot({
     name: 'Three-Tier Web App',
     version: '1',
     plates: [
@@ -129,7 +247,7 @@ const threeTierTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
-  },
+  }),
 };
 
 const simpleComputeTemplate: ArchitectureTemplate = {
@@ -141,7 +259,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
   category: 'web-application',
   difficulty: 'beginner',
   tags: ['simple', 'compute', 'minimal', 'beginner'],
-  architecture: {
+  architecture: toArchitectureSnapshot({
     name: 'Simple Compute',
     version: '1',
     plates: [
@@ -206,7 +324,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
-  },
+  }),
 };
 
 const dataStorageTemplate: ArchitectureTemplate = {
@@ -218,7 +336,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
   category: 'data-pipeline',
   difficulty: 'intermediate',
   tags: ['data', 'storage', 'database', 'private', 'intermediate'],
-  architecture: {
+  architecture: toArchitectureSnapshot({
     name: 'Data Storage Backend',
     version: '1',
     plates: [
@@ -328,7 +446,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
-  },
+  }),
 };
 
 // ─── v1.0 Serverless Templates ──────────────────────────────
@@ -344,7 +462,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
   difficulty: 'intermediate',
   tags: ['serverless', 'function', 'http', 'api', 'gateway'],
   generatorCompat: ['terraform', 'bicep', 'pulumi'],
-  architecture: {
+  architecture: toArchitectureSnapshot({
     name: 'Serverless HTTP API',
     version: '1',
     plates: [
@@ -454,7 +572,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
-  },
+  }),
 };
 
 const eventDrivenPipelineTemplate: ArchitectureTemplate = {
@@ -467,7 +585,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
   difficulty: 'advanced',
   tags: ['event-driven', 'queue', 'function', 'event', 'pipeline'],
   generatorCompat: ['terraform', 'bicep', 'pulumi'],
-  architecture: {
+  architecture: toArchitectureSnapshot({
     name: 'Event-Driven Pipeline',
     version: '1',
     plates: [
@@ -600,7 +718,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [],
-  },
+  }),
 };
 
 const fullStackServerlessTemplate: ArchitectureTemplate = {
@@ -618,7 +736,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
     'function', 'compute', 'gateway', 'database', 'storage', 'advanced',
   ],
   generatorCompat: ['terraform', 'bicep', 'pulumi'],
-  architecture: {
+  architecture: toArchitectureSnapshot({
     name: 'Full-Stack Serverless',
     version: '1',
     plates: [
@@ -851,7 +969,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
-  },
+  }),
 };
 
 /**
