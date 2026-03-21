@@ -3,7 +3,9 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DiffPanel } from './DiffPanel';
 import { useUIStore } from '../../entities/store/uiStore';
+import { useArchitectureStore } from '../../entities/store/architectureStore';
 import type { DiffDelta } from '../../shared/types/diff';
+import type { ArchitectureModel } from '@cloudblocks/schema';
 
 vi.mock('./DiffPanel.css', () => ({}));
 
@@ -398,5 +400,39 @@ describe('DiffPanel', () => {
     expect(screen.queryByText('+0 added')).not.toBeInTheDocument();
     expect(screen.queryByText('~0 modified')).not.toBeInTheDocument();
     expect(screen.queryByText('-0 removed')).not.toBeInTheDocument();
+  });
+
+  it('shows workspace name context line (#877)', () => {
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        name: 'Production Environment',
+      },
+    });
+    render(<DiffPanel />);
+    expect(screen.getByText('Comparing: Production Environment')).toBeInTheDocument();
+  });
+
+  it('shows remote architecture summary when diffBaseArchitecture is provided (#879)', () => {
+    const remoteArch: ArchitectureModel = {
+      id: 'remote-arch',
+      name: 'Remote',
+      version: '1.0.0',
+      plates: [{ id: 'p1' }, { id: 'p2' }] as ArchitectureModel['plates'],
+      blocks: [{ id: 'b1' }] as ArchitectureModel['blocks'],
+      connections: [{ id: 'c1' }, { id: 'c2' }, { id: 'c3' }] as ArchitectureModel['connections'],
+      externalActors: [{ id: 'a1' }] as ArchitectureModel['externalActors'],
+      createdAt: '',
+      updatedAt: '',
+    };
+    useUIStore.setState({ diffBaseArchitecture: remoteArch });
+    render(<DiffPanel />);
+    expect(screen.getByText('Remote: 2 plates · 1 blocks · 3 connections · 1 actors')).toBeInTheDocument();
+  });
+
+  it('hides remote summary when diffBaseArchitecture is null (#879)', () => {
+    useUIStore.setState({ diffBaseArchitecture: null });
+    render(<DiffPanel />);
+    expect(screen.queryByText(/^Remote:/)).not.toBeInTheDocument();
   });
 });

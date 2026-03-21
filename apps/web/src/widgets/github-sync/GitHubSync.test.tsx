@@ -5,6 +5,26 @@ vi.mock('../../shared/api/client', () => ({
   apiPost: vi.fn(),
   apiGet: vi.fn(),
   apiPut: vi.fn(),
+  getApiErrorMessage: vi.fn((err: unknown, fallback: string) => {
+    if (err instanceof Error) return err.message;
+    return fallback;
+  }),
+}));
+vi.mock('react-hot-toast', () => ({
+  toast: { error: vi.fn() },
+}));
+vi.mock('../../entities/store/slices', () => ({
+  validateArchitectureShape: vi.fn(),
+}));
+vi.mock('../../features/diff/engine', () => ({
+  computeArchitectureDiff: vi.fn(() => ({
+    plates: { added: [], removed: [], modified: [] },
+    blocks: { added: [], removed: [], modified: [] },
+    connections: { added: [], removed: [], modified: [] },
+    externalActors: { added: [], removed: [], modified: [] },
+    rootChanges: [],
+    summary: { totalChanges: 0, hasBreakingChanges: false },
+  })),
 }));
 import { GitHubSync } from './GitHubSync';
 import { useUIStore } from '../../entities/store/uiStore';
@@ -471,6 +491,81 @@ describe('GitHubSync', () => {
 
     await waitFor(() => {
       expect(screen.queryByText('stale commit')).not.toBeInTheDocument();
+    });
+  });
+
+  it('shows local architecture summary when repo is linked (#878)', async () => {
+    const user = userEvent.setup();
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        architecture: {
+          ...emptyArch,
+          plates: [{ id: 'p1' }, { id: 'p2' }] as typeof emptyArch.plates,
+          blocks: [{ id: 'b1' }] as typeof emptyArch.blocks,
+          connections: [{ id: 'c1' }, { id: 'c2' }] as typeof emptyArch.connections,
+        },
+      },
+    });
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+
+    expect(await screen.findByText('Local: 2 plates · 1 blocks · 2 connections')).toBeInTheDocument();
+  });
+
+  it('shows "Never synced" when no commits exist (#881)', async () => {
+    const user = userEvent.setup();
+    mockApiGet.mockResolvedValue({ commits: [] });
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+
+    expect(await screen.findByText('⚠ Never synced with remote')).toBeInTheDocument();
+  });
+
+  it('shows "Previously synced" when commits exist (#881)', async () => {
+    const user = userEvent.setup();
+    mockApiGet.mockResolvedValue({
+      commits: [{ sha: 'abc', message: 'commit', author: 'octocat', date: '2025-01-01T00:00:00Z', html_url: '' }],
+    });
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+
+    expect(await screen.findByText('✓ Previously synced')).toBeInTheDocument();
+  });
+
+  it('shows Compare with GitHub button when repo is linked (#882)', async () => {
+    const user = userEvent.setup();
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+
+    expect(await screen.findByRole('button', { name: 'Compare with GitHub' })).toBeInTheDocument();
+  });
+
+  it('compare button calls API and opens diff mode (#882)', async () => {
+    const user = userEvent.setup();
+    const remoteArch = { ...emptyArch, id: 'remote' };
+    mockApiPost.mockResolvedValueOnce({ message: 'ok', commit_sha: 'abc' });
+    mockApiPost.mockResolvedValueOnce({ architecture: remoteArch });
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+    await user.click(await screen.findByRole('button', { name: 'Compare with GitHub' }));
+
+    await waitFor(() => {
+      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/pull');
     });
   });
 });
