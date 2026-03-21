@@ -45,6 +45,7 @@ export interface ArchitectureState {
 
   addConnection: (sourceId: string, targetId: string) => boolean;
   removeConnection: (id: string) => void;
+  updateConnectionType: (connectionId: string, type: import('@cloudblocks/schema').ConnectionType) => void;
 
   validate: () => ValidationResult;
 

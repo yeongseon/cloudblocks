@@ -31,6 +31,7 @@ type DomainSlice = Pick<
   | 'moveActorPosition'
   | 'addConnection'
   | 'removeConnection'
+  | 'updateConnectionType'
 >;
 
 export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => ({
@@ -708,6 +709,15 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
           (connection) => connection.id !== id
         ),
       });
+    });
+  },
+
+  updateConnectionType: (connectionId, type) => {
+    set((state) => {
+      const arch = state.workspace.architecture;
+      const existing = arch.connections.find((c) => c.id === connectionId);
+      if (!existing) return state;
+      return withHistory(state, { ...arch, connections: arch.connections.map((c) => c.id === connectionId ? { ...c, type } : c) });
     });
   },
 });
