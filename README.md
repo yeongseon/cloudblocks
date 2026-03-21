@@ -48,7 +48,7 @@ Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks
 - 🧱 **Lego-style modeling** — Plates (boundaries) + Blocks (resources) + typed Connections
 - ⚡ **Architecture compiler** — Visual designs compile to Terraform, Bicep, and Pulumi
 - ✅ **Validation engine** — Real-time rule checking for placement and connections
-- 📦 **10 resource categories** — Compute, database, storage, gateway, function, queue, event, analytics, identity, observability
+- 📦 **7 resource categories** — Network, security, edge, compute, data, messaging, operations
 - 🔗 **GitHub integration** — OAuth login, repo sync, PR creation, architecture diff (backend API)
 - 📚 **Learning mode** — Guided scenarios to learn cloud architecture patterns
 
