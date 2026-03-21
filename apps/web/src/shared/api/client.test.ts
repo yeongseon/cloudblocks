@@ -107,6 +107,17 @@ describe('api client', () => {
     });
   });
 
+  it('throws ApiError with status 0 on fetch network failure', async () => {
+    fetchMock.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+
+    await expect(apiGet('/api/v1/test')).rejects.toMatchObject({
+      name: 'ApiError',
+      message: 'Network request failed',
+      status: 0,
+      body: '',
+    });
+  });
+
   it('uses FastAPI detail message for ApiError message', async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ detail: 'Repository not linked' }, 400));
 

@@ -269,6 +269,7 @@ describe('MenuBar', () => {
       showGitHubRepos: false,
       showGitHubSync: false,
       showGitHubPR: false,
+      backendStatus: 'available',
       connectionSource: null,
       draggedBlockCategory: null,
       activeProvider: 'azure',
@@ -329,6 +330,24 @@ describe('MenuBar', () => {
 
     rerender(<MenuBar />);
     expect(screen.getByRole('button', { name: /octocat/ })).toBeInTheDocument();
+  });
+
+  it('shows demo mode button when backend is not available for anonymous users', () => {
+    useUIStore.setState({ backendStatus: 'not_configured' });
+
+    render(<MenuBar />);
+
+    const demoButton = screen.getByRole('button', { name: /Demo Mode/ });
+    expect(demoButton).toBeDisabled();
+    expect(demoButton).toHaveAttribute('title', 'Backend API required for GitHub features. Run the backend server to enable.');
+  });
+
+  it('keeps loading state when backend status is unknown', () => {
+    useUIStore.setState({ backendStatus: 'unknown' });
+
+    render(<MenuBar />);
+
+    expect(screen.getByTitle('Checking authentication...')).toBeDisabled();
   });
 
   it('toggles workspace manager from Workspaces button', async () => {

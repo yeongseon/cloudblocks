@@ -16,6 +16,10 @@ export function normalizeApiBaseUrl(rawBaseUrl: string): string {
 
 const API_BASE_URL = normalizeApiBaseUrl(RAW_API_BASE_URL);
 
+export function isApiConfigured(): boolean {
+  return Boolean(API_BASE_URL?.trim());
+}
+
 export class ApiError extends Error {
   status: number;
   body: string;
@@ -98,12 +102,17 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   }
   const body = normalizeBody(init?.body, headers);
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    headers,
-    body,
-    credentials: 'include',
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...init,
+      headers,
+      body,
+      credentials: 'include',
+    });
+  } catch {
+    throw new ApiError('Network request failed', 0, '');
+  }
 
   if (!response.ok) {
     const responseBody = await parseResponseBody(response);

@@ -6,6 +6,7 @@ import type { ArchitectureModel } from '@cloudblocks/schema';
 
 export type ToolMode = 'select' | 'connect' | 'delete';
 export type InteractionState = 'idle' | 'selecting' | 'dragging' | 'placing' | 'connecting';
+export type BackendStatus = 'unknown' | 'not_configured' | 'available' | 'unavailable';
 export type { EditorMode } from '../../shared/types/learning';
 
 interface UIState {
@@ -65,6 +66,9 @@ interface UIState {
   toggleSuggestionsPanel: () => void;
   showCostPanel: boolean;
   toggleCostPanel: () => void;
+
+  backendStatus: BackendStatus;
+  setBackendStatus: (status: BackendStatus) => void;
 
   // ── Editor mode ──
   editorMode: EditorMode;
@@ -261,6 +265,9 @@ export const useUIStore = create<UIState>((set) => ({
       showCostPanel: !s.showCostPanel,
       ...(!s.showCostPanel ? closeOtherRightPanels('showCostPanel') : {}),
     })),
+
+  backendStatus: 'unknown',
+  setBackendStatus: (status) => set({ backendStatus: status }),
 
   editorMode: 'build',
   setEditorMode: (mode) => set({ editorMode: mode }),

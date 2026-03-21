@@ -13,6 +13,7 @@ import { apiPost, getApiErrorMessage } from '../../shared/api/client';
 import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import type { PullResponse } from '../../shared/types/api';
 import type { ArchitectureModel, ProviderType } from '@cloudblocks/schema';
+import type { BackendStatus } from '../../entities/store/uiStore';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
 import './MenuBar.css';
@@ -59,6 +60,8 @@ export function MenuBar() {
 
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
   const authStatus = useAuthStore((s) => s.status);
+  const backendStatus: BackendStatus = useUIStore((s) => s.backendStatus);
+  const backendAvailable = backendStatus === 'available';
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
 
@@ -506,16 +509,7 @@ export function MenuBar() {
       <div className="menu-bar-divider" />
 
       <div className="github-section menu-dropdown-container">
-        {authStatus === 'unknown' ? (
-          <button
-            type="button"
-            className="github-btn"
-            disabled
-            title="Checking authentication..."
-          >
-            🔐 ...
-          </button>
-        ) : isAuthenticated ? (
+        {isAuthenticated ? (
           <>
             <button
               type="button"
@@ -562,6 +556,24 @@ export function MenuBar() {
               </button>
             </div>
           </>
+        ) : authStatus === 'unknown' || backendStatus === 'unknown' ? (
+          <button
+            type="button"
+            className="github-btn"
+            disabled
+            title="Checking authentication..."
+          >
+            🔐 ...
+          </button>
+        ) : !backendAvailable ? (
+          <button
+            type="button"
+            className="github-btn"
+            disabled
+            title="Backend API required for GitHub features. Run the backend server to enable."
+          >
+            🔐 Demo Mode
+          </button>
         ) : (
           <button
             type="button"

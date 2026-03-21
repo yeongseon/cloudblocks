@@ -20,6 +20,7 @@ import { LearningPanel } from '../widgets/learning-panel/LearningPanel';
 import { registerBuiltinScenarios } from '../features/learning/scenarios/builtin';
 import { audioService } from '../shared/utils/audioService';
 import { SOUND_ASSETS } from '../shared/assets/sounds';
+import { isApiConfigured } from '../shared/api/client';
 import type { ContainerNode, LeafNode } from '@cloudblocks/schema';
 import './App.css';
 import './LearnMode.css';
@@ -99,6 +100,9 @@ function App() {
   }, [loadFromStorage]);
 
   useEffect(() => {
+    if (!isApiConfigured()) {
+      useUIStore.getState().setBackendStatus('not_configured');
+    }
     void useAuthStore.getState().checkSession();
   }, []);
 

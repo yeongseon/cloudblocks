@@ -2,15 +2,29 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ApiUser } from '../../shared/types/api';
 
 vi.mock('../../shared/api/client', () => ({
+  ApiError: class ApiError extends Error {
+    status: number;
+    body: string;
+
+    constructor(message: string, status: number, body: string) {
+      super(message);
+      this.name = 'ApiError';
+      this.status = status;
+      this.body = body;
+    }
+  },
   apiGet: vi.fn(),
   apiPost: vi.fn(),
+  isApiConfigured: vi.fn(),
 }));
 
-import { apiGet, apiPost } from '../../shared/api/client';
+import { ApiError, apiGet, apiPost, isApiConfigured } from '../../shared/api/client';
 import { useAuthStore } from './authStore';
+import { useUIStore } from './uiStore';
 
 const mockApiGet = vi.mocked(apiGet);
 const mockApiPost = vi.mocked(apiPost);
+const mockIsApiConfigured = vi.mocked(isApiConfigured);
 
 const mockUser: ApiUser = {
   id: 'user-1',
@@ -24,12 +38,15 @@ describe('useAuthStore', () => {
   beforeEach(() => {
     mockApiGet.mockReset();
     mockApiPost.mockReset();
+    mockIsApiConfigured.mockReset();
+    mockIsApiConfigured.mockReturnValue(true);
     useAuthStore.setState({
       status: 'unknown',
       user: null,
       hydrated: false,
       error: null,
     });
+    useUIStore.setState({ backendStatus: 'unknown' });
   });
 
   it('has expected initial state', () => {
@@ -79,6 +96,7 @@ describe('useAuthStore', () => {
     expect(state.user).toEqual(mockUser);
     expect(state.hydrated).toBe(true);
     expect(state.error).toBe(null);
+    expect(useUIStore.getState().backendStatus).toBe('available');
   });
 
   it('checkSession sets anonymous state on 401', async () => {
@@ -92,10 +110,24 @@ describe('useAuthStore', () => {
     expect(state.user).toBe(null);
     expect(state.hydrated).toBe(true);
     expect(state.error).toBe(null);
+    expect(useUIStore.getState().backendStatus).toBe('available');
   });
 
-  it('checkSession clears auth on network error', async () => {
-    mockApiGet.mockRejectedValueOnce(new Error('Network error'));
+  it('checkSession returns anonymous without API calls when backend is not configured', async () => {
+    mockIsApiConfigured.mockReturnValue(false);
+
+    await useAuthStore.getState().checkSession();
+
+    expect(mockApiGet).not.toHaveBeenCalled();
+    const state = useAuthStore.getState();
+    expect(state.status).toBe('anonymous');
+    expect(state.user).toBe(null);
+    expect(state.hydrated).toBe(true);
+    expect(state.error).toBe(null);
+  });
+
+  it('checkSession clears auth silently on network ApiError', async () => {
+    mockApiGet.mockRejectedValueOnce(new ApiError('Network request failed', 0, ''));
 
     await useAuthStore.getState().checkSession();
 
@@ -103,7 +135,21 @@ describe('useAuthStore', () => {
     expect(state.status).toBe('anonymous');
     expect(state.user).toBe(null);
     expect(state.hydrated).toBe(true);
-    expect(state.error).toBe('Session check failed');
+    expect(state.error).toBe(null);
+    expect(useUIStore.getState().backendStatus).toBe('unavailable');
+  });
+
+  it('checkSession clears auth silently on fetch TypeError', async () => {
+    mockApiGet.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+
+    await useAuthStore.getState().checkSession();
+
+    const state = useAuthStore.getState();
+    expect(state.status).toBe('anonymous');
+    expect(state.user).toBe(null);
+    expect(state.hydrated).toBe(true);
+    expect(state.error).toBe(null);
+    expect(useUIStore.getState().backendStatus).toBe('unavailable');
   });
 
   it('checkSession clears stale authenticated state on non-401 error', async () => {
@@ -122,6 +168,7 @@ describe('useAuthStore', () => {
     expect(state.status).toBe('anonymous');
     expect(state.user).toBe(null);
     expect(state.error).toBe('Session check failed');
+    expect(useUIStore.getState().backendStatus).toBe('available');
   });
 
   it('checkSession ignores stale success response when another call follows', async () => {
