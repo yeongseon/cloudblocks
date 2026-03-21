@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { apiGet, apiPost } from '../../shared/api/client';
@@ -11,11 +12,13 @@ export function GitHubRepos() {
   const toggleGitHubRepos = useUIStore((s) => s.toggleGitHubRepos);
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
   const authStatus = useAuthStore((s) => s.status);
+  const linkedRepo = useArchitectureStore((s) => s.workspace.githubRepo);
 
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [newRepoName, setNewRepoName] = useState('');
   const [newRepoDescription, setNewRepoDescription] = useState('');
   const [isPrivate, setIsPrivate] = useState(true);
@@ -51,16 +54,22 @@ export function GitHubRepos() {
 
     setCreating(true);
     setError(null);
+    setSuccess(null);
     try {
       await apiPost<GitHubRepo>('/api/v1/github/repos', {
         name: cleanedRepoName,
         description: cleanedRepoDescription || undefined,
         private: isPrivate,
       });
+      setSuccess(`Repository ${cleanedRepoName} created successfully.`);
       setNewRepoName('');
       setNewRepoDescription('');
       setIsPrivate(false);
-      await fetchRepos();
+      try {
+        await fetchRepos();
+      } catch {
+        setSuccess((prev) => prev);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create repository.');
     } finally {
@@ -85,6 +94,7 @@ export function GitHubRepos() {
         <>
           {(loading || creating) && <div className="github-repos-loading">Loading...</div>}
           {error && <div className="github-repos-error">{error}</div>}
+          {success && <div className="github-repos-success">{success}</div>}
 
           <div className="github-repos-create">
             <h4 className="github-repos-subtitle">Create New Repo</h4>
@@ -123,10 +133,17 @@ export function GitHubRepos() {
               repos.map((repo) => (
                 <div key={repo.full_name} className="github-repos-item">
                   <div className="github-repos-item-main">
+                    <span className="github-repos-name">{repo.full_name}</span>
                     <span className="github-repos-name">{repo.name}</span>
                     <span className={`github-repos-badge ${repo.private ? 'github-repos-badge-private' : 'github-repos-badge-public'}`}>
                       {repo.private ? 'private' : 'public'}
                     </span>
+                    {linkedRepo === repo.full_name && (
+                      <span className="github-repos-badge github-repos-badge-public">Linked</span>
+                    )}
+                  </div>
+                  <div className="github-repos-item-main">
+                    <span className="github-repos-name">Default branch: {repo.default_branch}</span>
                   </div>
                   <a className="github-repos-link" href={repo.html_url} target="_blank" rel="noreferrer">
                     {repo.html_url}

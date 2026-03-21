@@ -8,6 +8,13 @@ import type { PullRequestResponse } from '../../shared/types/api';
 import './GitHubPR.css';
 
 export function GitHubPR() {
+  const workspace = useArchitectureStore((s) => s.workspace);
+  const remountKey = `${workspace.githubRepo ?? ''}:${workspace.backendWorkspaceId ?? ''}`;
+
+  return <GitHubPRContent key={remountKey} />;
+}
+
+function GitHubPRContent() {
   const show = useUIStore((s) => s.showGitHubPR);
   const toggleGitHubPR = useUIStore((s) => s.toggleGitHubPR);
 
@@ -26,8 +33,14 @@ export function GitHubPR() {
   const cleanedTitle = title.trim();
   const cleanedBranch = branch.trim();
   const cleanedCommitMessage = commitMessage.trim();
+  const baseBranch =
+    'github_branch' in workspace && typeof workspace.github_branch === 'string' && workspace.github_branch.trim().length > 0
+      ? workspace.github_branch.trim()
+      : 'main';
+  const headMatchesBaseBranch = cleanedBranch.length > 0 && cleanedBranch === baseBranch;
   const branchIsValid = !cleanedBranch || isValidGitBranchName(cleanedBranch);
-  const canSubmit = !loading && cleanedTitle.length > 0 && cleanedCommitMessage.length > 0 && branchIsValid && hasBackendWorkspaceLink;
+  const canSubmit = !loading && cleanedTitle.length > 0 && cleanedCommitMessage.length > 0 && branchIsValid && !headMatchesBaseBranch && hasBackendWorkspaceLink;
+  const effectiveWorkspaceId = workspace.backendWorkspaceId || workspace.id;
 
   if (!show) return null;
 
@@ -43,6 +56,10 @@ export function GitHubPR() {
     }
     if (cleanedBranch && !isValidGitBranchName(cleanedBranch)) {
       setError('Branch name contains invalid characters or format.');
+      return;
+    }
+    if (cleanedBranch === baseBranch) {
+      setError('Head branch must be different from the base branch.');
       return;
     }
     if (!cleanedCommitMessage) {
@@ -91,6 +108,14 @@ export function GitHubPR() {
         <div className="github-pr-content">
           {loading && <div className="github-pr-loading">Loading...</div>}
           {error && <div className="github-pr-error">{error}</div>}
+          <div className="github-pr-meta">
+            Workspace ID: <code>{effectiveWorkspaceId}</code>
+            {workspace.githubRepo ? (
+              <>
+                {' · '}Repo: <code>{workspace.githubRepo}</code>
+              </>
+            ) : null}
+          </div>
 
           <label className="github-pr-label" htmlFor="github-pr-title">
             Title
@@ -124,6 +149,7 @@ export function GitHubPR() {
             placeholder="cloudblocks/update-architecture"
           />
           {!branchIsValid && <div className="github-pr-error">Branch name contains invalid characters or format.</div>}
+          {headMatchesBaseBranch && <div className="github-pr-error">Head branch must be different from the base branch.</div>}
 
           <label className="github-pr-label" htmlFor="github-pr-commit-message">
             Commit message
