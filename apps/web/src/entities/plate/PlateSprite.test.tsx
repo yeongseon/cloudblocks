@@ -6,7 +6,7 @@ import { PlateSprite } from './PlateSprite';
 import { useUIStore } from '../store/uiStore';
 import { screenDeltaToWorld, worldSizeToScreen, snapToGrid } from '../../shared/utils/isometric';
 import { useArchitectureStore } from '../store/architectureStore';
-import type { Plate } from '@cloudblocks/schema';
+import type { ContainerNode, ResourceNode } from '@cloudblocks/schema';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
 import type { DiffDelta } from '../../shared/types/diff';
@@ -34,7 +34,7 @@ vi.mock('./PlateSvg', () => ({
 vi.mock('./plateFaceColors', () => ({
   getPlateFaceColors: (plate: { type: string; subnetAccess?: string }) => {
     if (plate.type === 'region') {
-      return { topFaceColor: '#2563EB', topFaceStroke: '#60A5FA', leftSideColor: '#1D4ED8', rightSideColor: '#1E40AF' };
+      return { topFaceColor: '#6366F1', topFaceStroke: '#818CF8', leftSideColor: '#4F46E5', rightSideColor: '#4338CA' };
     }
     if (plate.subnetAccess === 'public') {
       return { topFaceColor: '#22C55E', topFaceStroke: '#4ADE80', leftSideColor: '#16A34A', rightSideColor: '#15803D' };
@@ -50,24 +50,30 @@ vi.mock('../../shared/utils/isometric', () => ({
   snapToGrid: vi.fn((x: number, z: number) => ({ x, z })),
 }));
 
-const makeNetworkPlate = (): Plate => ({
+const makeNetworkPlate = (): ContainerNode => ({
   id: 'plate-network',
   name: 'Network Plate',
-  type: 'region',
+  kind: 'container',
+  layer: 'region',
+  resourceType: 'virtual_network',
+  category: 'network',
+  provider: 'azure',
   parentId: null,
-  children: [],
   position: { x: 0, y: 0, z: 0 },
   size: { width: 16, height: 0.3, depth: 20 },
   metadata: {},
 });
 
-const makeSubnetPlate = (access: 'public' | 'private'): Plate => ({
+const makeSubnetPlate = (access: 'public' | 'private'): ContainerNode => ({
   id: `plate-${access}`,
   name: `${access} subnet`,
-  type: 'subnet',
+  kind: 'container',
+  layer: 'subnet',
+  resourceType: 'subnet',
+  category: 'network',
+  provider: 'azure',
   subnetAccess: access,
   parentId: 'plate-network',
-  children: [],
   position: { x: 1, y: 0, z: 2 },
   size: { width: 6, height: 0.3, depth: 8 },
   metadata: {},
@@ -95,7 +101,7 @@ describe('PlateSprite', () => {
   });
 
   it.each([
-    ['region', makeNetworkPlate(), 'Network Plate', '#2563EB'],
+    ['region', makeNetworkPlate(), 'Network Plate', '#6366F1'],
     ['public-subnet', makeSubnetPlate('public'), 'public subnet', '#22C55E'],
     ['private-subnet', makeSubnetPlate('private'), 'private subnet', '#6366F1'],
   ] as const)('renders correct PlateSvg for %s', (_, plate, expectedLabel, expectedTopColor) => {
@@ -108,11 +114,11 @@ describe('PlateSprite', () => {
   });
 
   it('falls back to default PlateSvg for unknown plate type values', () => {
-    const strangePlate: Plate = {
+    const strangePlate: ContainerNode = {
       ...makeNetworkPlate(),
       id: 'plate-weird',
       name: 'weird plate',
-      type: 'mystery' as Plate['type'],
+      layer: 'mystery' as ContainerNode['layer'],
       profileId: 'network-platform',
     };
 
@@ -329,7 +335,7 @@ describe('PlateSprite', () => {
 
   it('adds is-drop-target-invalid class when dragging invalid block category', () => {
     const plate = makeSubnetPlate('private');
-    useUIStore.setState({ draggedBlockCategory: 'gateway' });
+    useUIStore.setState({ draggedBlockCategory: 'edge' });
     const { container } = render(<PlateSprite plate={plate} screenX={0} screenY={0} zIndex={1} />);
 
     expect(container.firstElementChild).toHaveClass('is-drop-target-invalid');
@@ -381,7 +387,7 @@ describe('PlateSprite', () => {
       movePlatePosition: movePlatePositionMock,
       workspace: {
         ...useArchitectureStore.getState().workspace,
-        architecture: { ...useArchitectureStore.getState().workspace.architecture, plates: [plate] },
+        architecture: { ...useArchitectureStore.getState().workspace.architecture, nodes: [plate] as ResourceNode[] },
       },
     });
 
@@ -413,7 +419,7 @@ describe('PlateSprite', () => {
       movePlatePosition: movePlatePositionMock,
       workspace: {
         ...useArchitectureStore.getState().workspace,
-        architecture: { ...useArchitectureStore.getState().workspace.architecture, plates: [plate] },
+        architecture: { ...useArchitectureStore.getState().workspace.architecture, nodes: [plate] as ResourceNode[] },
       },
     });
 

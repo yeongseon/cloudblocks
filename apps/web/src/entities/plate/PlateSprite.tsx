@@ -1,7 +1,7 @@
 import { memo, useEffect, useRef } from 'react';
 import interact from 'interactjs';
 import { DEFAULT_PLATE_PROFILE, getPlateProfile, getPlateStudColors, isPlateProfileId } from '../../shared/types/index';
-import type { Plate } from '@cloudblocks/schema';
+import type { ContainerNode, LayerType } from '@cloudblocks/schema';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import { getDiffState } from '../../features/diff/engine';
@@ -15,7 +15,7 @@ import { PlateSvg } from './PlateSvg';
 import './PlateSprite.css';
 
 interface PlateSpriteProps {
-  plate: Plate;
+  plate: ContainerNode;
   screenX: number;
   screenY: number;
   zIndex: number;
@@ -27,6 +27,8 @@ export const PlateSprite = memo(function PlateSprite({
   screenY,
   zIndex,
 }: PlateSpriteProps) {
+  type PlateLayer = Exclude<LayerType, 'resource'>;
+
   const selectedId = useUIStore((s) => s.selectedId);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const draggedBlockCategory = useUIStore((s) => s.draggedBlockCategory);
@@ -100,7 +102,8 @@ export const PlateSprite = memo(function PlateSprite({
               .getState()
               .workspace
               .architecture
-              .plates
+              .nodes
+              .filter((node): node is ContainerNode => node.kind === 'container')
               .find((candidate) => candidate.id === plate.id);
 
             if (currentPlate) {
@@ -148,26 +151,28 @@ export const PlateSprite = memo(function PlateSprite({
     setSelectedId(plate.id);
   };
 
-  const sizeClass = plate.type === 'subnet' ? 'plate-subnet' : 'plate-network';
+  const plateType = plate.layer as PlateLayer;
+  const sizeClass = plateType === 'subnet' ? 'plate-subnet' : 'plate-network';
 
   const profile = plate.profileId && isPlateProfileId(plate.profileId)
     ? getPlateProfile(plate.profileId)
-    : getPlateProfile(DEFAULT_PLATE_PROFILE[plate.type]);
-  const studColors = getPlateStudColors(plate);
-  const faceColors = getPlateFaceColors(plate);
-  const typeLabel = plate.type === 'subnet'
+    : getPlateProfile(DEFAULT_PLATE_PROFILE[plateType]);
+  const plateColorInput = { type: plateType, subnetAccess: plate.subnetAccess };
+  const studColors = getPlateStudColors(plateColorInput);
+  const faceColors = getPlateFaceColors(plateColorInput);
+  const typeLabel = plateType === 'subnet'
     ? plate.subnetAccess === 'public'
       ? 'Public Subnet'
       : 'Private Subnet'
-    : plate.type === 'global'
+    : plateType === 'global'
       ? 'Global Layer'
-      : plate.type === 'edge'
+      : plateType === 'edge'
         ? 'Edge Layer'
-        : plate.type === 'zone'
+        : plateType === 'zone'
           ? 'Zone Layer'
           : 'Region Layer';
   const label = plate.name || typeLabel;
-  const iconUrl = getPlateIconUrl(plate.type, plate.subnetAccess);
+  const iconUrl = getPlateIconUrl(plateType, plate.subnetAccess);
 
   const { screenWidth, screenHeight } = worldSizeToScreen(plate.size.width, plate.size.height, plate.size.depth);
 
@@ -209,7 +214,7 @@ export const PlateSprite = memo(function PlateSprite({
       >
         <div className="plate-img" aria-hidden="true">
           <PlateSvg
-            plateType={plate.type}
+            plateType={plateType}
             studsX={profile.studsX}
             studsY={profile.studsY}
             worldHeight={profile.worldHeight}
