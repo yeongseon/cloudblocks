@@ -8,6 +8,17 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 
 
 
+
+## [v0.19.2] — 2026-03-22
+
+**Hotfix — App Load Crash (React #185)**
+
+Fixed a crash on initial app load caused by a Zustand selector in `ExternalActorSprite` creating a new array reference on every `getSnapshot` call via `.filter()` inside the selector. React 19's `useSyncExternalStore` detected the unstable snapshot and threw an infinite loop error (React error #185), rendering the entire app blank.
+
+### Bug Fix
+- Move `.filter()` call outside the Zustand selector in `ExternalActorSprite` to avoid creating new array references on each snapshot (#1128)
+
+
 ## [v0.19.1] — 2026-03-22
 
 **Hotfix — Schema Migration Crash**

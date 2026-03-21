@@ -31,9 +31,8 @@ export const ExternalActorSprite = memo(function ExternalActorSprite({
   const completeInteraction = useUIStore((s) => s.completeInteraction);
   const addConnection = useArchitectureStore((s) => s.addConnection);
   const moveActorPosition = useArchitectureStore((s) => s.moveActorPosition);
-  const blocks = useArchitectureStore((s) =>
-    s.workspace.architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource')
-  );
+  const nodes = useArchitectureStore((s) => s.workspace.architecture.nodes);
+  const blocks = nodes.filter((node): node is LeafNode => node.kind === 'resource');
   const externalActors = useArchitectureStore((s) => s.workspace.architecture.externalActors);
   const actorRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
