@@ -1,5 +1,5 @@
 import type { Workspace } from '../../../shared/types/index';
-import type { ArchitectureModel, Block, Position } from '@cloudblocks/schema';
+import type { ArchitectureModel, Block, Plate, Position } from '@cloudblocks/schema';
 import { DEFAULT_BLOCK_SIZE, DEFAULT_PLATE_SIZE } from '../../../shared/types/index';
 import { createBlankArchitecture } from '../../../shared/types/schema';
 import {
@@ -80,6 +80,134 @@ export function clampWithinParent(
     x: clamp(relativePosition.x, minX, maxX),
     z: clamp(relativePosition.z, minZ, maxZ),
   };
+}
+
+/**
+ * Check whether two axis-aligned bounding boxes overlap in the x/z plane.
+ * Positions are centers; sizes define full width/depth.
+ */
+function boxesOverlap(
+  aPos: { x: number; z: number },
+  aSize: { width: number; depth: number },
+  bPos: { x: number; z: number },
+  bSize: { width: number; depth: number },
+): boolean {
+  const overlapX =
+    Math.abs(aPos.x - bPos.x) < (aSize.width + bSize.width) / 2;
+  const overlapZ =
+    Math.abs(aPos.z - bPos.z) < (aSize.depth + bSize.depth) / 2;
+  return overlapX && overlapZ;
+}
+
+/**
+ * Return whether a plate at `position` with `size` would overlap any of the given siblings.
+ */
+export function checkSiblingOverlap(
+  position: { x: number; z: number },
+  size: { width: number; depth: number },
+  siblings: Plate[],
+  excludeId?: string,
+): boolean {
+  return siblings.some(
+    (sibling) =>
+      sibling.id !== excludeId &&
+      boxesOverlap(position, size, sibling.position, sibling.size),
+  );
+}
+
+/**
+ * Find a non-overlapping position for a new plate among its siblings.
+ * Tries the preferred position first; if that overlaps, scans in a grid pattern
+ * along the X axis (positive direction), then wraps to the next Z row.
+ */
+export function findNonOverlappingPosition(
+  preferred: { x: number; y: number; z: number },
+  size: { width: number; depth: number },
+  siblings: Plate[],
+  parentBounds?: { position: { x: number; z: number }; size: { width: number; depth: number } },
+): { x: number; y: number; z: number } {
+  if (!checkSiblingOverlap(preferred, size, siblings)) {
+    return preferred;
+  }
+
+  const spacingX = size.width + 1.0;
+  const spacingZ = size.depth + 1.0;
+  const maxAttempts = 50;
+
+  // Determine scan origin — center of parent or preferred position
+  const originX = parentBounds ? parentBounds.position.x : preferred.x;
+  const originZ = parentBounds ? parentBounds.position.z : preferred.z;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    // Spiral-like scan: row by row, left to right
+    const cols = Math.ceil(Math.sqrt(maxAttempts));
+    const row = Math.floor(attempt / cols);
+    const col = attempt % cols;
+    const candidateX = originX + col * spacingX;
+    const candidateZ = originZ - row * spacingZ;
+    const candidate = { x: candidateX, z: candidateZ };
+
+    // If parent bounds exist, clamp within parent
+    if (parentBounds) {
+      const clamped = clampWithinParent(
+        {
+          x: candidate.x - parentBounds.position.x,
+          z: candidate.z - parentBounds.position.z,
+        },
+        parentBounds.size,
+        size,
+      );
+      candidate.x = parentBounds.position.x + clamped.x;
+      candidate.z = parentBounds.position.z + clamped.z;
+    }
+
+    if (!checkSiblingOverlap(candidate, size, siblings)) {
+      return { x: candidate.x, y: preferred.y, z: candidate.z };
+    }
+  }
+
+  // Fallback: push far right to avoid overlap
+  const rightmostX = siblings.reduce(
+    (max, s) => Math.max(max, s.position.x + s.size.width / 2),
+    preferred.x,
+  );
+  return { x: rightmostX + size.width / 2 + 1.0, y: preferred.y, z: preferred.z };
+}
+
+/**
+ * Clamp a move delta so the plate being moved does not overlap any sibling.
+ * Returns the adjusted (deltaX, deltaZ). If the move would cause overlap,
+ * the delta is reduced to zero on the offending axis.
+ */
+export function clampDeltaToAvoidSiblingOverlap(
+  plate: Plate,
+  deltaX: number,
+  deltaZ: number,
+  siblings: Plate[],
+): { deltaX: number; deltaZ: number } {
+  const newPos = {
+    x: plate.position.x + deltaX,
+    z: plate.position.z + deltaZ,
+  };
+
+  if (!checkSiblingOverlap(newPos, plate.size, siblings, plate.id)) {
+    return { deltaX, deltaZ };
+  }
+
+  // Try moving only on X axis
+  const xOnly = { x: plate.position.x + deltaX, z: plate.position.z };
+  if (!checkSiblingOverlap(xOnly, plate.size, siblings, plate.id)) {
+    return { deltaX, deltaZ: 0 };
+  }
+
+  // Try moving only on Z axis
+  const zOnly = { x: plate.position.x, z: plate.position.z + deltaZ };
+  if (!checkSiblingOverlap(zOnly, plate.size, siblings, plate.id)) {
+    return { deltaX: 0, deltaZ };
+  }
+
+  // Both axes cause overlap — block the entire move
+  return { deltaX: 0, deltaZ: 0 };
 }
 
 export function withHistory(

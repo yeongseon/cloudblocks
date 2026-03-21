@@ -7,11 +7,11 @@ import { canConnect } from '../../validation/connection';
 import type { EndpointType } from '../../validation/connection';
 import { validatePlacement } from '../../validation/placement';
 import {
+  clampDeltaToAvoidSiblingOverlap,
   clampWithinParent,
   DEFAULT_PLATE_SIZE,
   findNonOverlappingPosition,
   nextGridPosition,
-  resolveMoveDelta,
   withHistory,
 } from './helpers';
 
@@ -24,6 +24,7 @@ type DomainSlice = Pick<
   | 'removeBlock'
   | 'renameBlock'
   | 'renamePlate'
+  | 'updateBlockConfig'
   | 'moveBlock'
   | 'setPlateProfile'
   | 'movePlatePosition'
@@ -83,21 +84,19 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         };
       }
 
-      const sameLevelSiblings = arch.plates
-        .filter((candidate) => candidate.parentId === (parentId ?? null))
-        .map((candidate) => ({
-          id: candidate.id,
-          position: { x: candidate.position.x, z: candidate.position.z },
-          size: { width: candidate.size.width, depth: candidate.size.depth },
-        }));
-
-      const nonOverlapping = findNonOverlappingPosition(
-        { x: plate.position.x, z: plate.position.z },
-        { width: plate.size.width, depth: plate.size.depth },
-        sameLevelSiblings,
+      // Prevent sibling overlap: find a non-overlapping position
+      const siblingPlates = arch.plates.filter(
+        (candidate) => candidate.parentId === (parentId ?? null)
       );
-      plate.position.x = nonOverlapping.x;
-      plate.position.z = nonOverlapping.z;
+      const parentBounds = parentPlate
+        ? { position: parentPlate.position, size: parentPlate.size }
+        : undefined;
+      plate.position = findNonOverlappingPosition(
+        plate.position,
+        plate.size,
+        siblingPlates,
+        parentBounds,
+      );
 
       let plates = [...arch.plates, plate];
 
@@ -337,6 +336,26 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
     });
   },
 
+  updateBlockConfig: (blockId, config) => {
+    set((state) => {
+      const arch = state.workspace.architecture;
+      const block = arch.blocks.find((candidate) => candidate.id === blockId);
+
+      if (!block) {
+        return state;
+      }
+
+      return withHistory(state, {
+        ...arch,
+        blocks: arch.blocks.map((candidate) =>
+          candidate.id === blockId
+            ? { ...candidate, config: { ...candidate.config, ...config } }
+            : candidate
+        ),
+      });
+    });
+  },
+
   moveBlock: (blockId, newPlacementId) => {
     set((state) => {
       const arch = state.workspace.architecture;
@@ -529,26 +548,22 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         }
       }
 
-      const sameLevelSiblings = arch.plates
-        .filter((candidate) => candidate.parentId === (plate.parentId ?? null) && candidate.id !== id)
-        .map((candidate) => ({
-          id: candidate.id,
-          position: { x: candidate.position.x, z: candidate.position.z },
-          size: { width: candidate.size.width, depth: candidate.size.depth },
-        }));
-
-      const resolved = resolveMoveDelta(
-        {
-          id: plate.id,
-          position: { x: plate.position.x, z: plate.position.z },
-          size: { width: plate.size.width, depth: plate.size.depth },
-        },
-        appliedDeltaX,
-        appliedDeltaZ,
-        sameLevelSiblings,
+      // Prevent sibling overlap during move
+      const siblingPlates = arch.plates.filter(
+        (candidate) =>
+          candidate.parentId === (plate.parentId ?? null) &&
+          candidate.id !== id
       );
-      appliedDeltaX = resolved.deltaX;
-      appliedDeltaZ = resolved.deltaZ;
+      if (siblingPlates.length > 0) {
+        const clamped = clampDeltaToAvoidSiblingOverlap(
+          plate,
+          appliedDeltaX,
+          appliedDeltaZ,
+          siblingPlates,
+        );
+        appliedDeltaX = clamped.deltaX;
+        appliedDeltaZ = clamped.deltaZ;
+      }
 
       const descendantIds = new Set<string>([id]);
       const collectDescendants = (parentId: string) => {

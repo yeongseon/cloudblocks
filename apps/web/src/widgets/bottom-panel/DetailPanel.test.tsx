@@ -4,7 +4,6 @@ import userEvent from '@testing-library/user-event';
 import { DetailPanel } from './DetailPanel';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { useWorkerStore } from '../../entities/store/workerStore';
 import type { ArchitectureModel, Block, Connection, ExternalActor, Plate } from '@cloudblocks/schema';
 
 vi.mock('./DetailPanel.css', () => ({}));
@@ -543,38 +542,23 @@ describe('DetailPanel', () => {
     expect(screen.queryByText("No selection")).not.toBeInTheDocument();
   });
 
-  it('renders worker detail when selectedId is worker-default', () => {
+  it('renders worker creation grid when selectedId is worker-default', () => {
     useUIStore.setState({ selectedId: 'worker-default' });
-    useWorkerStore.setState({
-      workerState: 'building',
-      workerPosition: [2, 0, 3],
-      activeBuild: { blockId: 'block-1', targetPosition: [1, 0, 1], progress: 0.5, startedAt: Date.now() },
-      buildQueue: [],
-    });
 
     render(<DetailPanel />);
 
-    expect(screen.getByText('Worker')).toBeInTheDocument();
-    expect(screen.getByText('building')).toBeInTheDocument();
-    expect(screen.getByText('(2.0, 0.0, 3.0)')).toBeInTheDocument();
-    expect(screen.getByText(/block-1.*50%/)).toBeInTheDocument();
-    expect(screen.getByText('0 task(s)')).toBeInTheDocument();
+    expect(screen.getByText('Build Order')).toBeInTheDocument();
+    // Should show the Network Foundations group
+    expect(screen.getByText('Network Foundations')).toBeInTheDocument();
   });
 
-  it('renders worker detail with no active build', () => {
+  it('renders worker creation grid with resource buttons', () => {
     useUIStore.setState({ selectedId: 'worker-default' });
-    useWorkerStore.setState({
-      workerState: 'idle',
-      workerPosition: [0, 0, 0],
-      activeBuild: null,
-      buildQueue: [],
-    });
 
     render(<DetailPanel />);
 
-    expect(screen.getByText('Worker')).toBeInTheDocument();
-    expect(screen.getByText('idle')).toBeInTheDocument();
-    expect(screen.getByText('None')).toBeInTheDocument();
+    // The network (VNet) button should always be enabled
+    expect(screen.getByTitle('Build Network (VNet)')).toBeInTheDocument();
   });
 
   it('renames block via Enter key', async () => {
