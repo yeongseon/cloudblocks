@@ -25,6 +25,8 @@ import {
   PLATE_ACTION_GRID,
   PLATE_ACTION_DEFINITIONS,
   RESOURCE_DEFINITIONS,
+  getResourceLabel,
+  getResourceShortLabel,
   type ResourceType,
   type ActionType,
   type PlateActionType,
@@ -317,7 +319,7 @@ function CreationMode() {
           const def = RESOURCE_DEFINITIONS[type];
           if (!def?.blockCategory) return;
 
-          startPlacing(def.blockCategory, def.label);
+          startPlacing(def.blockCategory, getResourceLabel(type, activeProvider));
         },
         end(event) {
           const buttonEl = event.target as HTMLButtonElement;
@@ -384,7 +386,7 @@ function CreationMode() {
       }
 
       counterRef.current += 1;
-      const name = `${def.label} ${counterRef.current}`;
+      const name = `${getResourceLabel(type, activeProvider)} ${counterRef.current}`;
       addBlock(def.blockCategory, name, targetId, activeProvider, def.id);
       playSound('block-snap');
     }
@@ -415,10 +417,10 @@ function CreationMode() {
                     data-resource-type={type}
                     onClick={() => enabled && handleCreate(type)}
                     disabled={!enabled}
-                    title={enabled ? `Create ${def.label}` : disabledReason ?? undefined}
+                    title={enabled ? `Create ${getResourceLabel(type, activeProvider)}` : disabledReason ?? undefined}
                   >
                     <span className="command-btn-icon">{def.icon}</span>
-                    <span className="command-btn-label">{def.shortLabel}</span>
+                    <span className="command-btn-label">{getResourceShortLabel(type, activeProvider)}</span>
                     {!enabled && disabledReason && <span className="command-btn-requirement">Needs: {disabledReason}</span>}
                     {!enabled && <span className="command-btn-lock">🔒</span>}
                   </button>
@@ -462,7 +464,7 @@ function WorkerBuildMode() {
 
     const knownBlockIds = new Set(architecture.blocks.map((block) => block.id));
     counterRef.current += 1;
-    const name = `${def.label} ${counterRef.current}`;
+    const name = `${getResourceLabel(type, activeProvider)} ${counterRef.current}`;
     addBlock(def.blockCategory, name, targetId, activeProvider);
 
     const nextBlocks = useArchitectureStore.getState().workspace.architecture.blocks;
@@ -504,12 +506,12 @@ function WorkerBuildMode() {
                     data-resource-type={type}
                     onClick={() => enabled && handleBuild(type)}
                     disabled={!enabled}
-                    title={enabled ? `Build ${def.label}` : disabledReason ?? undefined}
+                    title={enabled ? `Build ${getResourceLabel(type, activeProvider)}` : disabledReason ?? undefined}
                   >
                     <span className="command-btn-icon">
                       {def.blockCategory && <BlockSvg category={def.blockCategory} provider={activeProvider} />}
                     </span>
-                    <span className="command-btn-label">{def.shortLabel}</span>
+                    <span className="command-btn-label">{getResourceShortLabel(type, activeProvider)}</span>
                     {!enabled && disabledReason && <span className="command-btn-requirement">Needs: {disabledReason}</span>}
                     {!enabled && <span className="command-btn-lock">🔒</span>}
                   </button>
@@ -568,7 +570,7 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
           const def = RESOURCE_DEFINITIONS[type];
           if (!def?.blockCategory) return;
 
-          startPlacing(def.blockCategory, def.label);
+          startPlacing(def.blockCategory, getResourceLabel(type, activeProvider));
         },
         end(event) {
           const buttonEl = event.target as HTMLButtonElement;
@@ -624,7 +626,7 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
     }
 
     counterRef.current += 1;
-    const name = `${def.label} ${counterRef.current}`;
+    const name = `${getResourceLabel(type, activeProvider)} ${counterRef.current}`;
     addBlock(def.blockCategory, name, selectedPlate.id, activeProvider);
     playSound('block-snap');
   }, [activeProvider, addPlate, addBlock, selectedPlate.id, selectedPlate.type, playSound]);
@@ -668,10 +670,10 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: Plate }) {
                   data-resource-type={type}
                   onClick={() => enabled && handleCreate(type)}
                   disabled={!enabled}
-                  title={enabled ? `Create ${def.label} (${hotkey})` : disabledReason ?? undefined}
+                  title={enabled ? `Create ${getResourceLabel(type, activeProvider)} (${hotkey})` : disabledReason ?? undefined}
                 >
                   <span className="command-btn-icon">{def.icon}</span>
-                  <span className="command-btn-label">{def.shortLabel}</span>
+                  <span className="command-btn-label">{getResourceShortLabel(type, activeProvider)}</span>
                   {hotkey && <span className="command-btn-hotkey">{hotkey}</span>}
                   {!enabled && <span className="command-btn-lock">🔒</span>}
                 </button>

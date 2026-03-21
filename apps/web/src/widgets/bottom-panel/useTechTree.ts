@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import type { BlockCategory } from '@cloudblocks/schema';
+import type { BlockCategory, ProviderType } from '@cloudblocks/schema';
 
 export type ResourceType =
   | 'network'
@@ -219,6 +219,69 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     disabledReason: 'Create a Network first. Bastion provides secure VM access through a virtual network.',
   },
 };
+
+// ─── Provider-Specific Labels ─────────────────────────────
+
+interface ProviderLabel {
+  label: string;
+  shortLabel: string;
+}
+
+const PROVIDER_LABELS: Record<ProviderType, Partial<Record<ResourceType, ProviderLabel>>> = {
+  azure: {}, // Azure uses RESOURCE_DEFINITIONS defaults
+  aws: {
+    network:              { label: 'VPC',                  shortLabel: 'VPC' },
+    storage:              { label: 'S3',                   shortLabel: 'S3' },
+    dns:                  { label: 'Route 53',             shortLabel: 'R53' },
+    cdn:                  { label: 'CloudFront',           shortLabel: 'CF' },
+    'front-door':         { label: 'Global Accelerator',   shortLabel: 'GA' },
+    sql:                  { label: 'Amazon RDS',           shortLabel: 'RDS' },
+    function:             { label: 'Lambda',               shortLabel: 'Lambda' },
+    queue:                { label: 'SQS',                  shortLabel: 'SQS' },
+    event:                { label: 'EventBridge',          shortLabel: 'EvBridge' },
+    'app-service':        { label: 'Elastic Beanstalk',    shortLabel: 'EB' },
+    'container-instances': { label: 'ECS Fargate',         shortLabel: 'Fargate' },
+    'cosmos-db':          { label: 'DynamoDB',             shortLabel: 'DynamoDB' },
+    'key-vault':          { label: 'Secrets Manager',      shortLabel: 'Secrets' },
+    vm:                   { label: 'EC2',                  shortLabel: 'EC2' },
+    aks:                  { label: 'EKS',                  shortLabel: 'EKS' },
+    'internal-lb':        { label: 'Internal ALB',         shortLabel: 'IntALB' },
+    firewall:             { label: 'Network Firewall',     shortLabel: 'NFW' },
+    nsg:                  { label: 'Security Group',       shortLabel: 'SG' },
+    bastion:              { label: 'Session Manager',      shortLabel: 'SSM' },
+  },
+  gcp: {
+    network:              { label: 'VPC Network',          shortLabel: 'VPC' },
+    storage:              { label: 'Cloud Storage',        shortLabel: 'GCS' },
+    dns:                  { label: 'Cloud DNS',            shortLabel: 'DNS' },
+    cdn:                  { label: 'Cloud CDN',            shortLabel: 'CDN' },
+    'front-door':         { label: 'Cloud Load Balancing', shortLabel: 'CLB' },
+    sql:                  { label: 'Cloud SQL',            shortLabel: 'CloudSQL' },
+    function:             { label: 'Cloud Functions',      shortLabel: 'GCF' },
+    queue:                { label: 'Cloud Tasks',          shortLabel: 'Tasks' },
+    event:                { label: 'Pub/Sub',              shortLabel: 'PubSub' },
+    'app-service':        { label: 'App Engine',           shortLabel: 'GAE' },
+    'container-instances': { label: 'Cloud Run',           shortLabel: 'Run' },
+    'cosmos-db':          { label: 'Firestore',            shortLabel: 'Firestore' },
+    'key-vault':          { label: 'Secret Manager',       shortLabel: 'SecMgr' },
+    vm:                   { label: 'Compute Engine',       shortLabel: 'GCE' },
+    aks:                  { label: 'GKE',                  shortLabel: 'GKE' },
+    'internal-lb':        { label: 'Internal LB',          shortLabel: 'IntLB' },
+    firewall:             { label: 'Cloud Firewall',       shortLabel: 'FW' },
+    nsg:                  { label: 'Firewall Rules',       shortLabel: 'FWRules' },
+    bastion:              { label: 'IAP Tunnel',           shortLabel: 'IAP' },
+  },
+};
+
+/** Get the display label for a resource type, respecting the active provider. */
+export function getResourceLabel(type: ResourceType, provider: ProviderType): string {
+  return PROVIDER_LABELS[provider]?.[type]?.label ?? RESOURCE_DEFINITIONS[type].label;
+}
+
+/** Get the short display label for a resource type, respecting the active provider. */
+export function getResourceShortLabel(type: ResourceType, provider: ProviderType): string {
+  return PROVIDER_LABELS[provider]?.[type]?.shortLabel ?? RESOURCE_DEFINITIONS[type].shortLabel;
+}
 
 // ─── Command Card Grid Layout ──────────────────────────────
 
