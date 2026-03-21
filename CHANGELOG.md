@@ -6,6 +6,39 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 
 ---
 
+## [v0.18.0] — 2026-03-21
+
+**Milestone 18 — DevOps UX**
+
+Hardened the builder’s visual language and interaction model. Replaced thin SVG bezier connection lines with Lego Technic Beam connectors, added minifigure walk-build animations for plate creation, and resolved a batch of GitHub widget and diff engine bugs.
+
+### Visual & Interaction
+- Brick-style Technic Beam connection rendering with 5 distinct beam shapes (#1050, #1062, #1070)
+- Screen-space orthogonal L-routing for clean connector paths (#1074)
+- Minifigure worker role with walk-build animation for plate creation (#1054, #1061, #1072)
+- Provider-specific inline SVG logos on minifigure clothing (#1051)
+- Resource self-animation for block upgrades (#1063)
+
+### GitHub & Diff Hardening
+- GitHub widget UX improvements: contextual info, PR persistence per workspace (#866, #891, #892)
+- Provider switch safety guards (#850)
+- Clear stale diff state on workspace changes (#706, #712)
+- Learning scenario content adapts to active cloud provider (#1068)
+
+### UI Polish & Bug Fixes
+- Plate overlap prevention on add and move (#1057)
+- Provider-specific resource names in block palette (#1029)
+- Provider badge hidden in single-provider mode (#1027)
+- 24 code quality findings addressed (#991)
+- Overlay panels unified to Lego brick design system (#1021)
+- OpsCenter and AI features hidden from UI (deferred to future milestones) (#1066)
+- NotificationCenter removed to fix infinite loop crash (#1071)
+
+### Infrastructure
+- GitHub Actions optimized to reduce storage and cost (#1059)
+
+---
+
 ## [v0.17.0] — 2026-03-21
 
 **Milestone 17 — Product Structure**

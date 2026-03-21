@@ -950,193 +950,336 @@ Scope:
 
 ---
 
-## Milestone 18 — DevOps UX
+## Milestone 18 — DevOps UX ✅
 
 Goal:
-Add operational control capabilities to CloudBlocks. Introduce an Ops Control Center, standardize deployment terminology, build environment promotion/rollback UX, add a notification system, and replace SVG connection lines with brick-style connector pieces.
+Harden the DevOps experience with brick-style connector rendering, minifigure worker interactions, and bug fixes across GitHub integration and diff engine.
 
 > **Reference**: [M18_DEVOPS_UX.md](M18_DEVOPS_UX.md)
 
 Key Objectives:
 
-- Ops Control Center dashboard: deployment status, pipeline integration, environment health, cost estimation
-- Deploy terminology standardization: canonical definitions for deploy/promote/rollback/release
-- Promote/rollback UX: visual flows with pre-checks, version selection, diff preview
-- Notification system: in-app notification center, toast alerts, deployment event history
-- Brick-style connection rendering: replace thin SVG bezier lines with Lego connector pieces matching the brick visual language
+- Brick-style connection rendering: replace thin SVG bezier lines with Lego Technic Beam connector pieces
+- Minifigure worker role: walk-build animation, provider-aware clothing, unified right panel
+- GitHub widget UX hardening: contextual info, PR persistence, provider switch safety
+- Connector routing: screen-space orthogonal L-routing for clean connection paths
+- Bug fixes: plate overlap prevention, icon mapping corrections, diff engine stability
 
 Scope:
 
-- 5 Epics: Ops Control Center (Area A), Deploy Terminology (Area B), Promote/Rollback UX (Area C), Notification System (Area D), Brick-Style Connections (Area E)
-- Estimated effort: 8–10 weeks
+- 3 focus areas: Brick-Style Connections, Minifigure Worker, GitHub/Diff Hardening
+- OpsCenter, Promote/Rollback UX, Notification System, and Cost Estimation deferred to future milestones
 
 ### Exit Criteria
-- [ ] Ops Control Center shows real-time deployment status for `local`, `staging`, and `production`
-- [ ] Deploy/promote/rollback terminology consistent across all docs, workflows, and UI
-- [ ] Promote flow works end-to-end: staging to production with pre-promotion checklist
-- [ ] Rollback to a previous version works from Ops Control Center
-- [ ] Cost estimation displayed before deployment confirmation
-- [ ] Notification system shows deployment lifecycle events in-app
-- [ ] Deployment history log records all deploys, promotions, and rollbacks
-- [ ] Connections render as brick-style connector pieces matching the Lego visual language
+- [x] Connections render as brick-style Technic Beam connector pieces with 5 distinct beam shapes
+- [x] Connector routing uses screen-space orthogonal L-routing
+- [x] Minifigure worker role implemented with walk-build animation for plate creation
+- [x] Provider-specific inline SVG logos on minifigure clothing
+- [x] GitHub widget UX bugs resolved (PR persistence, contextual info, provider switch guards)
+- [x] Plate overlap prevention on add and move
+- [x] Provider-specific resource names shown in block palette
 
 ### Dependencies
 - Milestone 17 complete
 
 ---
 
-## Milestone 19 — MVP Polish & Launch
+## Milestone 19 — Resource Category Realignment + Cleanup
 
 Goal:
-Deliver a promotion-ready MVP that is stable in production, easy to demo, and measurable after launch. Focus on launch quality, deployment operations, IaC abstraction, and multi-persona positioning.
-
-> **Reference**: [M19_MVP_POLISH_LAUNCH.md](M19_MVP_POLISH_LAUNCH.md)
+Introduce the 11-category resource taxonomy from the Resource Category Strategy, remove the deprecated minifigure worker feature, and fix menu/validation UI issues.
 
 Key Objectives:
 
-- Launch UX polish: first-run onboarding, one-click demo loading, launch-ready CTA flow
-- Deployment hardening: preview/production separation, tag-gated production release, rollback runbook
-- Runtime configuration discipline: environment schema standardization and callback/endpoint validation
-- Observability baseline: runtime error tracking and launch metrics funnel
-- Stability and release readiness: performance gates, browser/viewport checks, release packet preparation
-- IaC abstraction: hide Terraform/Bicep/Pulumi names behind "Deploy Infrastructure" in UI; preserve internal pipeline
-- Multi-persona positioning: "Cloud Architecture Tool for Everyone" with persona-aware onboarding and UI complexity levels
+- Replace the 10-category `BlockCategory` with the 11-category strategy model (`compute | storage | database | network | gateway | messaging | security | observability | integration | identity | external`)
+- Add backward-compatible normalization layer for legacy data (`function→compute`, `queue/event→messaging`, `analytics→observability`)
+- Remove minifigure character code, assets, tests, and documentation references
+- Fix stale validation results (re-validate on every architecture change, not only when result is null)
+- Fix empty validation panel (trigger `validate()` when View→Validation Results is clicked with no existing result)
+- Move validation status badge to be persistently visible outside the Build dropdown
+- Clean up menu bar UI (spacing, alignment, visual polish)
+- Ensure existing saved architectures and templates load without errors
 
 Scope:
 
-- 8 Epics: Launch UX Polish, Deployment Pipeline, Runtime Configuration, Observability, Performance & Stability Gate, Release Ops, IaC Abstraction, Multi-Persona Positioning
-- Includes launch-critical additions: demo resilience mode, security hygiene checks, analytics funnel instrumentation, persona-based UX, and IaC name abstraction
+- Schema + domain layer: `packages/schema`, `packages/cloudblocks-domain`, and shared types in `apps/web/src/shared/types/`
+- Minifigure removal: `entities/character/` directory, SceneCanvas/CommandCard references, related tests
+- Menu/Validation UI: `architectureStore.ts` subscription, `MenuBar.tsx`, `MenuBar.css`, `ValidationPanel.tsx`
+- Out of scope: UI palette/tech tree redesign, generator behavior changes, new Azure resource mappings
 
 ### Exit Criteria
-- [ ] Onboarding and one-click demo flow work on production URL
-- [ ] Preview and production deployment paths are separated and reproducible
-- [ ] Production deployment is tag-gated for `v0.19.0` with rollback playbook
-- [ ] Runtime configuration validates across all release environments
-- [ ] Runtime error tracking and minimal launch metrics funnel are operational
-- [ ] Performance and compatibility gates pass before release
-- [ ] `v0.19.0` release checklist, changelog entry, and launch packet are complete
-- [ ] UI does not expose IaC tool names (Terraform, Bicep, Pulumi) in default view
-- [ ] Advanced/Expert toggle allows DevOps users to access generator selection
-- [ ] Persona selection is available in onboarding and adjusts UI complexity
-- [ ] All four personas (DevOps, Backend, PM, Student) have appropriate default views
+- [ ] `BlockCategory` type uses 11 new categories; `pnpm build` succeeds
+- [ ] Normalization function converts legacy categories to new categories (unit tests pass)
+- [ ] Existing saved architectures and templates load with no runtime errors (snapshot tests pass)
+- [ ] Minifigure code, assets, and tests are fully removed; no dead imports remain
+- [ ] Validation re-runs automatically on every architecture change (verified in tests)
+- [ ] View→Validation Results shows current results even on first click (verified manually or in tests)
+- [ ] Validation status badge is visible without opening Build dropdown
+- [ ] Menu bar UI is visually clean (consistent spacing, alignment)
 
 ### Dependencies
 - Milestone 18 complete
-
 ---
 
-## i18n — Internationalization
+## Milestone 20 — Resource Category UI + Pipeline Migration
 
 Goal:
-Add multi-language support to CloudBlocks using react-i18next, enabling localization of all user-facing strings.
+Make the new 11-category taxonomy the primary system across all user-facing surfaces and the generation pipeline.
 
 Key Objectives:
 
-- Install and configure react-i18next with namespace-based translation organization
-- Extract all hardcoded English UI strings to translation JSON files
-- Create English (en) base translation as the default locale
-- Add Korean (ko) translation as the first additional locale
-- Implement language switcher UI component
+- Update tech tree, block palette, category badges, and filter UI to show the 11 new categories
+- Migrate built-in templates (6) and learning scenarios (3) to use new category values
+- Update generation pipeline inputs and provider adapter mappings
+- Keep import-time migration for legacy project data
 
 Scope:
 
-- 1 Epic (#392) with 5 sub-issues (#393-#397)
-- Covers: setup, string extraction, base locale, Korean locale, language switcher
+- Frontend layer: `useTechTree.ts`, `CommandCard.tsx`, `visualProfile.ts`, `BLOCK_FRIENDLY_NAMES`, `BLOCK_ICONS`
+- Templates: `features/templates/builtin.ts`, `features/learning/scenarios/builtin.ts`
+- Generation: `features/generate/types.ts`, provider adapters (`azure/`, `aws/`, `gcp/`)
+- Out of scope: Net-new Azure resources; i18n; deployment work
 
 ### Exit Criteria
-- [ ] react-i18next configured with namespace-based organization
-- [ ] All user-facing strings extracted to translation files
-- [ ] English (en) base translation complete and functional
-- [ ] Korean (ko) translation complete for all namespaces
-- [ ] Language switcher accessible from UI settings
-- [ ] Build passes with i18n integration
+- [ ] UI shows only the 11 new categories in palette and filters
+- [ ] Legacy projects auto-migrate on load (migration covered by tests)
+- [ ] All 6 templates and 3 scenarios load and render correctly with new categories
+- [ ] `pnpm lint` and `pnpm build` succeed
 
 ### Dependencies
-- No hard dependency on other milestones (can run in parallel with M17 or M18)
+- Milestone 19 complete
 
 ---
 
-## Long Term Vision
+## Milestone 21 — Azure v1 Resource Catalog
 
-CloudBlocks evolves into:
+Goal:
+Define provider-agnostic "kinds" per category and map a concrete Azure resource set for v1.
 
-- 2.5D Isometric Cloud Architecture Builder
-- Architecture → Code Generation Platform
-- Git-native DevOps workflow tool
-- Multi-cloud infrastructure designer
-- Architecture simulation and failure modeling
-- Cloud Digital Twin (live infrastructure state sync)
-- Community-driven template and plugin ecosystem
-- Cloud operations dashboard
+Key Objectives:
+
+- Define a `kind` list for each of the 11 categories (provider-agnostic subtypes)
+- Map a minimal, explicit Azure resource set to each kind
+- Mark non-Azure providers as unsupported in UI (hidden or "coming soon")
+- Update validation and generation to use the kind-based resource catalog
+
+Scope:
+
+- Resource catalog definition in schema/domain layer
+- Azure provider adapter updates in generation pipeline
+- UI resource picker scoped to Azure-supported kinds only
+- Out of scope: Expanding AWS/GCP coverage; new diagram primitives
+
+### Exit Criteria
+- [ ] Kind list exists per category; validation and generation reference it (tests pass)
+- [ ] Azure mappings produce correct output for each supported kind (snapshot tests)
+- [ ] UI prevents selecting unsupported resources (clear disabled/hidden state)
+- [ ] `pnpm build` succeeds
+
+### Dependencies
+- Milestone 20 complete
 
 ---
 
-## Development Strategy
+## Milestone 22 — Generator UX Abstraction
 
-Key principles:
+Goal:
+Present infrastructure code generation without exposing Terraform/Bicep/Pulumi branding in the primary UX.
 
-1. Start with **2.5D isometric builder core** (Milestone 1)
-2. Add **code generation** early (Milestone 3) — the core value
-3. Integrate **GitHub** as data store (Milestone 5) — not a traditional DB
-4. Keep backend **thin** — orchestration, not CRUD
-5. **Open-source first** — community drives templates and generators
-6. **Local-first UX** — works offline, syncs when connected
-7. **Milestone-aligned UI/Engine Evolution** — systematic transition from Azure-first to multi-provider visual logic
-8. **Milestone-aligned Documentation Updates** — keep canonical docs synchronized with delivered milestone work while preserving historical phase references
+Key Objectives:
+
+- Rename UI strings from tool-specific names to generic "Infrastructure Code" language
+- Keep generator selection functional in a secondary/advanced view
+- Update help text and docs to match the new abstraction
+
+Scope:
+
+- UI string changes in code preview, menu bar, and generation panels
+- Route/component adjustments for advanced generator selection
+- Out of scope: Adding a new generator; refactoring generator internals
+
+### Exit Criteria
+- [ ] Primary UI strings do not mention Terraform, Bicep, or Pulumi (verified by string search)
+- [ ] Users can still generate each supported output format (smoke test)
+- [ ] `pnpm build` succeeds
+
+### Dependencies
+- Milestone 21 complete
 
 ---
 
-## Success Metrics
+## Milestone 23 — Onboarding + Demo Flow
 
-Milestone 1 (Complete)
-- Architecture built successfully
-- Validation engine working
-- Workspace persistence functional
+Goal:
+Enable a first-time user to reach a working generated output in under 3 minutes.
 
-Milestone 3 (Complete)
-- Terraform generation produces valid HCL
-- Code preview panel functional
+> **Community Launch Gate**: After M23 completion, the product is ready for community launch (Product Hunt, social media, developer communities).
 
-Milestone 5 (Complete)
-- GitHub integration operational
-- Backend API deployed
-- Zero architecture data in backend DB
+Key Objectives:
 
-Milestone 6 (Complete)
-- Multi-generator support (Terraform + Bicep + Pulumi)
-- Template marketplace launched
+- Implement first-run detection and onboarding entry (modal or page)
+- Provide a "Start from demo" one-click template load
+- Add guided next-step CTAs after each major action
+- Ensure every onboarding step has a next action and a back/exit option
 
-Milestone 8-13 (Complete)
-- Multi-cloud architecture support (AWS, GCP, Azure)
-- UX hardened to production quality
-- External actors interactive with RTS-style worker pattern
-- Brick design system consolidated with stud validation
-- Core domain model extended with subtypes and provider semantics
-- Terraform pipeline productionized with CI/CD templates
+Scope:
 
-Milestone 15-16 (Complete)
-- v2.0 specification fully implemented
-- Documentation architecture restored to coherence
+- Onboarding flow UI in `apps/web`
+- Demo template integration with existing template system
+- Out of scope: i18n; deep UX redesign; new backend features
 
-Milestone 14 (Complete)
-- AI-assisted architecture design
-- Natural language → architecture generation
-- Architecture suggestions and cost estimation
-- BYOK API key management with Fernet encryption
+### Exit Criteria
+- [ ] First-run flow triggers deterministically and can be disabled/reset
+- [ ] Demo architecture loads and generates output successfully
+- [ ] No dead-ends in onboarding: every step has next action and back/exit
+- [ ] `pnpm build` succeeds
 
-Milestone 17+ (Planned)
-- DevOps operational control center
-- MVP polish and launch operations with deployment hardening
-- Internationalization support
-- Community contributors > 10
-- GitHub stars growth trajectory
+### Dependencies
+- Milestone 22 complete
 
-Milestone 17 (Complete)
-- Modular monorepo structure with extracted packages
-- SVG-only rendering model confirmed (ADR-0010)
-- @cloudblocks/schema and @cloudblocks/domain extracted with real consumers
-- 30 bug fixes across domain model, workspace persistence, dialogs, and code generation
-- Version alignment policy enforced
+---
+
+## Milestone 24 — Runtime Configuration + GitHub Hardening
+
+Goal:
+Centralize build/runtime configuration with explicit environment validation for preview and production, and harden the GitHub integration for production reliability.
+
+Key Objectives:
+
+- Centralize runtime config (API base URL, OAuth settings, feature flags)
+- Add `.env.example` with documented minimal env set
+- Add build-time validation that fails fast on missing/invalid config
+- Support preview vs production values without code changes
+- Add httpx request timeouts, retry/backoff, and rate-limit parsing to `github_service.py`
+- Add try/except error mapping in `auth.py` and `github.py` API routes
+- Unify frontend error handling: adopt `getApiErrorMessage` across all 4 GitHub widgets and `authStore`
+- Centralize API endpoint paths in `endpoints.ts` (remove hardcoded paths from widgets)
+- Enforce production secret validation and add deployment documentation
+- Implement AsyncClient connection reuse via dependency injection
+- Add encryption key rotation support in `security.py`
+
+Scope:
+
+- Configuration centralization in `apps/web` and `apps/api`
+- Environment schema documentation
+- GitHub integration backend: `github_service.py`, `auth.py`, `github.py`, `config.py`, `security.py`
+- GitHub integration frontend: `GitHubLogin.tsx`, `GitHubRepos.tsx`, `GitHubSync.tsx`, `GitHubPR.tsx`, `authStore.ts`
+- Out of scope: Changing hosting provider; secret management beyond env vars; new GitHub API features
+
+### Exit Criteria
+- [ ] App runs with a documented minimal env set (local + production)
+- [ ] Missing or invalid config fails fast with an actionable error message
+- [ ] Preview and production values are supported without code changes
+- [ ] GitHub API calls have timeouts and retry logic (unit tests pass)
+- [ ] All 4 GitHub widgets use unified error handling via `getApiErrorMessage`
+- [ ] API endpoint paths are centralized in one file (no hardcoded paths in widgets)
+- [ ] Production deployment requires real secrets (validated at startup)
+- [ ] `pnpm build` succeeds; `cd apps/api && pytest` passes
+
+### Dependencies
+- Milestone 23 complete
+
+---
+
+## Milestone 25 — Observability Baseline
+
+Goal:
+When something breaks in production, make it diagnosable without local reproduction.
+
+Key Objectives:
+
+- Add frontend error boundary with structured client error reporting
+- Add API health endpoint and request logging with correlation IDs
+- Ensure errors are capturable and traceable across frontend and API
+
+Scope:
+
+- Frontend error boundary in `apps/web`
+- API health endpoint and structured logging in `apps/api`
+- Out of scope: Third-party monitoring vendors; full metrics dashboards
+
+### Exit Criteria
+- [ ] A deliberate frontend error produces a captured report (dev/test verified)
+- [ ] API exposes a health endpoint returning status (verified)
+- [ ] API logs include request IDs for key routes (verified in dev)
+- [ ] `pnpm build` and `cd apps/api && pytest` succeed
+
+### Dependencies
+- Milestone 24 complete
+
+---
+
+## Milestone 26 — Release Gates
+
+Goal:
+Prevent obvious regressions from landing on `main` with automated CI gates.
+
+Key Objectives:
+
+- Strengthen CI pipeline: build, lint, unit tests, one e2e smoke path
+- Add a lightweight bundle-size budget check with baseline threshold
+- Ensure the same gate suite runs locally with a single command
+
+Scope:
+
+- CI workflow updates in `.github/workflows/`
+- Bundle-size budget configuration
+- Smoke e2e test (loads app, generates output)
+- Out of scope: Full Lighthouse/perf CI; broad cross-browser matrix
+
+### Exit Criteria
+- [ ] CI runs `pnpm lint`, `pnpm build`, tests, and a smoke e2e that loads the app and generates output
+- [ ] Bundle-size budget check exists and fails CI when exceeded (threshold recorded in repo)
+- [ ] A single command runs the full gate suite locally
+
+### Dependencies
+- Milestone 25 complete
+
+---
+
+## Milestone 27 — i18n Scaffolding
+
+Goal:
+Introduce i18n framework plumbing and extract strings from high-traffic surfaces (English-only; no translations yet).
+
+Key Objectives:
+
+- Install and configure react-i18next with namespace-based organization
+- Extract hardcoded strings in onboarding, generator, and core menus into English resource files
+- Verify app renders correctly with i18n enabled using English resources
+
+Scope:
+
+- i18n framework setup in `apps/web`
+- String extraction for onboarding flow, generation panel, and main menus
+- Out of scope: Non-English translations; extracting every string in the app; language switcher UI
+
+### Exit Criteria
+- [ ] App renders with i18n enabled using English resource files
+- [ ] Key flows (onboarding + generation) have no hardcoded user-facing strings (verified by grep)
+- [ ] `pnpm build` succeeds
+
+### Dependencies
+- Milestone 26 complete
+
+---
+
+## North Star
+
+CloudBlocks is an **architecture compiler** — visual designs in, infrastructure code out.
+
+**Product Direction:**
+- Universal resource categories, Azure-only supported resources (v1)
+- Domain model stays multi-cloud ready; UI scoped to Azure until v1 is solid
+- After Azure v1 stabilizes: re-enable AWS/GCP in UI, expand resource catalog
+
+**Non-Goals (current scope):**
+- CloudBlocks is not a runtime monitoring tool
+- CloudBlocks is not a CI/CD pipeline manager
+- CloudBlocks does not manage live infrastructure state (no "digital twin" in v1)
+
+**Milestone Sizing Rule:**
+Every milestone must be completable in **1 day of AI agent coding** (4–8 hours). If a milestone requires more, split it.
 
 ---
 
@@ -1176,11 +1319,25 @@ The roadmap evolves CloudBlocks from:
 
 → Product Structure (Milestone 17) ✅
 
-→ DevOps UX (Milestone 18)
+→ DevOps UX (Milestone 18) ✅
 
-→ MVP Polish & Launch (Milestone 19)
+→ Resource Category Realignment + Cleanup (Milestone 19)
 
-→ Internationalization (i18n)
+→ Resource Category UI + Pipeline Migration (Milestone 20)
+
+→ Azure v1 Resource Catalog (Milestone 21)
+
+→ Generator UX Abstraction (Milestone 22)
+
+→ Onboarding + Demo Flow (Milestone 23) ← **Community Launch Gate**
+
+→ Runtime Configuration + GitHub Hardening (Milestone 24)
+
+→ Observability Baseline (Milestone 25)
+
+→ Release Gates (Milestone 26)
+
+→ i18n Scaffolding (Milestone 27)
 
 ### Dependency Graph
 
@@ -1193,10 +1350,16 @@ Milestone 8 (Complete) ✅
     │                       └── Milestone 15 (v2.0 Spec) ✅
     │                               └── Milestone 16 (Doc Architecture) ✅
     │                                       └── Milestone 17 (Product Structure) ✅
-    │                                               └── Milestone 18 (DevOps UX)
-    │                                                       └── Milestone 19 (MVP Polish & Launch)
+    │                                               └── Milestone 18 (DevOps UX) ✅
+    │                                                       └── Milestone 19 (Categories + Cleanup)
+    │                                                               └── Milestone 20 (UI Migration)
+    │                                                                       └── Milestone 21 (Azure Catalog)
+    │                                                                               └── Milestone 22 (Generator UX)
+    │                                                                                       └── Milestone 23 (Onboarding) ← Community Launch
+    │                                                                                               └── Milestone 24 (Runtime Config + GitHub Hardening)
+    │                                                                                                       └── Milestone 25 (Observability)
+    │                                                                                                               └── Milestone 26 (Release Gates)
+    │                                                                                                                       └── Milestone 27 (i18n)
     │               └── Milestone 14 (AI Roadmap) ✅ ←── also benefits from Milestone 13
     └── Milestone 11 (Brick Design) ✅ ──── parallel with Milestone 9
-
-i18n (Internationalization) ──── independent, can run in parallel
 ```
