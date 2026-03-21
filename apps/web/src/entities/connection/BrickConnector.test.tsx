@@ -6,7 +6,7 @@ import { useArchitectureStore } from '../store/architectureStore';
 import { getEndpointWorldPosition } from '../../shared/utils/position';
 import { worldToScreen } from '../../shared/utils/isometric';
 import { getDiffState } from '../../features/diff/engine';
-import type { Connection } from '@cloudblocks/schema';
+import type { Connection, ConnectionType } from '@cloudblocks/schema';
 import type { DiffDelta } from '../../shared/types/diff';
 
 vi.mock('../../shared/utils/position', () => ({
@@ -29,6 +29,30 @@ const connection: Connection = {
   metadata: {},
 };
 
+function setupEndpoints(srcScreen = { x: 120, y: 220 }, tgtScreen = { x: 280, y: 320 }) {
+  vi.mocked(getEndpointWorldPosition)
+    .mockReturnValueOnce([1, 0, 2])
+    .mockReturnValueOnce([3, 0, 4]);
+  vi.mocked(worldToScreen)
+    .mockReturnValueOnce(srcScreen)
+    .mockReturnValueOnce(tgtScreen);
+}
+
+function renderConnector(conn: Connection = connection) {
+  return render(
+    <svg><title>Test</title>
+      <BrickConnector
+        connection={conn}
+        blocks={[]}
+        plates={[]}
+        externalActors={[]}
+        originX={100}
+        originY={200}
+      />
+    </svg>,
+  );
+}
+
 describe('BrickConnector', () => {
   const initialUIState = useUIStore.getState();
   const initialArchitectureState = useArchitectureStore.getState();
@@ -50,19 +74,7 @@ describe('BrickConnector', () => {
       .mockReturnValueOnce(null)
       .mockReturnValueOnce([3, 0, 4]);
 
-    const { container } = render(
-      <svg><title>Test</title>
-        <BrickConnector
-          connection={connection}
-          blocks={[]}
-          plates={[]}
-          externalActors={[]}
-          originX={100}
-          originY={200}
-        />
-      </svg>,
-    );
-
+    const { container } = renderConnector();
     expect(container.querySelector('g')).toBeNull();
   });
 
@@ -71,80 +83,34 @@ describe('BrickConnector', () => {
       .mockReturnValueOnce([1, 0, 2])
       .mockReturnValueOnce(null);
 
-    const { container } = render(
-      <svg><title>Test</title>
-        <BrickConnector
-          connection={connection}
-          blocks={[]}
-          plates={[]}
-          externalActors={[]}
-          originX={100}
-          originY={200}
-        />
-      </svg>,
-    );
-
+    const { container } = renderConnector();
     expect(container.querySelector('g')).toBeNull();
   });
 
   it('renders svg group with polygons and ellipses when endpoints exist', () => {
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce([3, 0, 4]);
-    vi.mocked(worldToScreen)
-      .mockReturnValueOnce({ x: 120, y: 220 })
-      .mockReturnValueOnce({ x: 280, y: 320 });
+    setupEndpoints();
 
-    const { container } = render(
-      <svg><title>Test</title>
-        <BrickConnector
-          connection={connection}
-          blocks={[]}
-          plates={[]}
-          externalActors={[]}
-          originX={100}
-          originY={200}
-        />
-      </svg>,
-    );
+    const { container } = renderConnector();
 
     expect(container.querySelector('g')).toBeInTheDocument();
     const polygons = container.querySelectorAll('polygon');
     expect(polygons.length).toBeGreaterThanOrEqual(4);
     const ellipses = container.querySelectorAll('ellipse');
-    expect(ellipses.length).toBe(6);
+    expect(ellipses).toHaveLength(6);
   });
 
   it('renders hit area with data-testid', () => {
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce([3, 0, 4]);
-    vi.mocked(worldToScreen)
-      .mockReturnValueOnce({ x: 100, y: 100 })
-      .mockReturnValueOnce({ x: 200, y: 200 });
+    setupEndpoints({ x: 100, y: 100 }, { x: 200, y: 200 });
 
-    const { container } = render(
-      <svg><title>Test</title>
-        <BrickConnector connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={100} originY={200} />
-      </svg>,
-    );
+    const { container } = renderConnector();
 
     expect(container.querySelector('[data-testid="connection-hit-area"]')).toBeInTheDocument();
   });
 
   it('click in select mode sets selectedId to connection id', () => {
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce([3, 0, 4]);
-    vi.mocked(worldToScreen)
-      .mockReturnValueOnce({ x: 100, y: 100 })
-      .mockReturnValueOnce({ x: 200, y: 200 });
+    setupEndpoints({ x: 100, y: 100 }, { x: 200, y: 200 });
 
-    const { container } = render(
-      <svg><title>Test</title>
-        <BrickConnector connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={100} originY={200} />
-      </svg>,
-    );
+    const { container } = renderConnector();
 
     fireEvent.click(container.querySelector('g') as SVGGElement);
     expect(useUIStore.getState().selectedId).toBe(connection.id);
@@ -154,18 +120,9 @@ describe('BrickConnector', () => {
     const removeConnectionMock = vi.fn();
     useUIStore.setState({ toolMode: 'delete' });
     useArchitectureStore.setState({ removeConnection: removeConnectionMock });
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce([3, 0, 4]);
-    vi.mocked(worldToScreen)
-      .mockReturnValueOnce({ x: 100, y: 100 })
-      .mockReturnValueOnce({ x: 200, y: 200 });
+    setupEndpoints({ x: 100, y: 100 }, { x: 200, y: 200 });
 
-    const { container } = render(
-      <svg><title>Test</title>
-        <BrickConnector connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={100} originY={200} />
-      </svg>,
-    );
+    const { container } = renderConnector();
 
     fireEvent.click(container.querySelector('g') as SVGGElement);
     expect(removeConnectionMock).toHaveBeenCalledWith(connection.id);
@@ -193,20 +150,12 @@ describe('BrickConnector', () => {
   it('uses diff colors when diff state is added', () => {
     useUIStore.setState({ diffMode: true, diffDelta: {} as unknown as DiffDelta });
     vi.mocked(getDiffState).mockReturnValue('added');
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce([3, 0, 4]);
-    vi.mocked(worldToScreen)
-      .mockReturnValueOnce({ x: 100, y: 100 })
-      .mockReturnValueOnce({ x: 200, y: 200 });
+    setupEndpoints({ x: 100, y: 100 }, { x: 200, y: 200 });
 
-    const { container } = render(
-      <svg><title>Test</title>
-        <BrickConnector connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={100} originY={200} />
-      </svg>,
-    );
+    const { container } = renderConnector();
 
-    const topFace = container.querySelectorAll('polygon')[2];
+    const polygons = container.querySelectorAll('polygon');
+    const topFace = polygons[2];
     expect(topFace?.getAttribute('fill')).toBe('#22c55e');
     expect(container.querySelector('g')?.getAttribute('opacity')).toBe('1');
   });
@@ -214,36 +163,18 @@ describe('BrickConnector', () => {
   it('uses removed diff opacity when diff state is removed', () => {
     useUIStore.setState({ diffMode: true, diffDelta: {} as unknown as DiffDelta });
     vi.mocked(getDiffState).mockReturnValue('removed');
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce([3, 0, 4]);
-    vi.mocked(worldToScreen)
-      .mockReturnValueOnce({ x: 100, y: 100 })
-      .mockReturnValueOnce({ x: 200, y: 200 });
+    setupEndpoints({ x: 100, y: 100 }, { x: 200, y: 200 });
 
-    const { container } = render(
-      <svg><title>Test</title>
-        <BrickConnector connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={100} originY={200} />
-      </svg>,
-    );
+    const { container } = renderConnector();
 
     expect(container.querySelector('g')?.getAttribute('opacity')).toBe('0.4');
   });
 
   it('renders selection glow when connection is selected', () => {
     useUIStore.setState({ selectedId: connection.id });
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce([3, 0, 4]);
-    vi.mocked(worldToScreen)
-      .mockReturnValueOnce({ x: 100, y: 100 })
-      .mockReturnValueOnce({ x: 200, y: 200 });
+    setupEndpoints({ x: 100, y: 100 }, { x: 200, y: 200 });
 
-    const { container } = render(
-      <svg><title>Test</title>
-        <BrickConnector connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={100} originY={200} />
-      </svg>,
-    );
+    const { container } = renderConnector();
 
     const glowPath = container.querySelectorAll('path')[0];
     expect(glowPath?.getAttribute('stroke')).toBe('#ffffff');
@@ -251,18 +182,9 @@ describe('BrickConnector', () => {
   });
 
   it('renders studs at source and target endpoints', () => {
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce([3, 0, 4]);
-    vi.mocked(worldToScreen)
-      .mockReturnValueOnce({ x: 100, y: 100 })
-      .mockReturnValueOnce({ x: 200, y: 200 });
+    setupEndpoints({ x: 100, y: 100 }, { x: 200, y: 200 });
 
-    const { container } = render(
-      <svg><title>Test</title>
-        <BrickConnector connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={100} originY={200} />
-      </svg>,
-    );
+    const { container } = renderConnector();
 
     const ellipses = container.querySelectorAll('ellipse');
     expect(ellipses).toHaveLength(6);
@@ -273,52 +195,114 @@ describe('BrickConnector', () => {
     expect(ellipses[2]?.getAttribute('ry')).toBe('3.6');
   });
 
-  it('renders different pattern for http connection type', () => {
-    const httpConnection: Connection = {
-      ...connection,
-      id: 'conn-http',
-      type: 'http',
+  describe('beam shapes', () => {
+    const beamShapeMap: Record<ConnectionType, string> = {
+      dataflow: 'standard',
+      http: 'doubleRail',
+      internal: 'segmented',
+      data: 'wide',
+      async: 'zigzag',
     };
 
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce([3, 0, 4]);
-    vi.mocked(worldToScreen)
-      .mockReturnValueOnce({ x: 100, y: 100 })
-      .mockReturnValueOnce({ x: 250, y: 200 });
+    for (const [type, beamShape] of Object.entries(beamShapeMap)) {
+      it(`renders ${beamShape} beam for ${type} connection type`, () => {
+        const conn: Connection = {
+          ...connection,
+          id: `conn-${type}`,
+          type: type as ConnectionType,
+        };
+        setupEndpoints({ x: 100, y: 100 }, { x: 250, y: 200 });
 
-    const { container } = render(
-      <svg><title>Test</title>
-        <BrickConnector connection={httpConnection} blocks={[]} plates={[]} externalActors={[]} originX={100} originY={200} />
-      </svg>,
-    );
+        const { container } = renderConnector(conn);
 
-    const lines = container.querySelectorAll('line');
-    expect(lines.length).toBeGreaterThanOrEqual(2);
+        const rootGroup = container.querySelector('g');
+        expect(rootGroup).toBeInTheDocument();
+        expect(rootGroup?.getAttribute('data-beam-shape')).toBe(beamShape);
+      });
+    }
+
+    it('standard beam renders 3 polygons per segment (top + 2 sides)', () => {
+      setupEndpoints({ x: 100, y: 100 }, { x: 100, y: 250 });
+
+      const { container } = renderConnector({
+        ...connection,
+        type: 'dataflow',
+      });
+
+      const standardBeam = container.querySelector('[data-beam="standard"]');
+      expect(standardBeam).toBeInTheDocument();
+      expect(standardBeam?.querySelectorAll('polygon')).toHaveLength(3);
+    });
+
+    it('doubleRail beam renders 6 polygons per segment (3 per rail × 2)', () => {
+      const conn: Connection = { ...connection, id: 'conn-http', type: 'http' };
+      setupEndpoints({ x: 100, y: 100 }, { x: 100, y: 250 });
+
+      const { container } = renderConnector(conn);
+
+      const railBeam = container.querySelector('[data-beam="doubleRail"]');
+      expect(railBeam).toBeInTheDocument();
+      expect(railBeam?.querySelectorAll('polygon')).toHaveLength(6);
+    });
+
+    it('segmented beam renders multiple chunks with gaps', () => {
+      const conn: Connection = { ...connection, id: 'conn-int', type: 'internal' };
+      setupEndpoints({ x: 100, y: 100 }, { x: 100, y: 300 });
+
+      const { container } = renderConnector(conn);
+
+      const segmentedBeam = container.querySelector('[data-beam="segmented"]');
+      expect(segmentedBeam).toBeInTheDocument();
+      const chunkGroups = segmentedBeam?.querySelectorAll('g');
+      expect(chunkGroups?.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('wide beam renders wider polygons than standard', () => {
+      const conn: Connection = { ...connection, id: 'conn-data', type: 'data' };
+      setupEndpoints({ x: 100, y: 100 }, { x: 100, y: 250 });
+
+      const { container } = renderConnector(conn);
+
+      const wideBeam = container.querySelector('[data-beam="wide"]');
+      expect(wideBeam).toBeInTheDocument();
+      expect(wideBeam?.querySelectorAll('polygon')).toHaveLength(3);
+    });
+
+    it('zigzag beam renders multiple zig-zag sub-segments', () => {
+      const conn: Connection = { ...connection, id: 'conn-async', type: 'async' };
+      setupEndpoints({ x: 100, y: 100 }, { x: 100, y: 300 });
+
+      const { container } = renderConnector(conn);
+
+      const zigzagBeam = container.querySelector('[data-beam="zigzag"]');
+      expect(zigzagBeam).toBeInTheDocument();
+      const zigGroups = zigzagBeam?.querySelectorAll('g');
+      expect(zigGroups?.length).toBeGreaterThanOrEqual(2);
+    });
   });
 
-  it('renders dashed pattern for internal connection type', () => {
-    const internalConnection: Connection = {
-      ...connection,
-      id: 'conn-int',
-      type: 'internal',
-    };
+  describe('elbow joints', () => {
+    it('renders 3D elbow with side faces at bend points', () => {
+      setupEndpoints({ x: 100, y: 100 }, { x: 300, y: 250 });
 
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce([3, 0, 4]);
-    vi.mocked(worldToScreen)
-      .mockReturnValueOnce({ x: 100, y: 100 })
-      .mockReturnValueOnce({ x: 250, y: 200 });
+      const { container } = renderConnector();
 
-    const { container } = render(
-      <svg><title>Test</title>
-        <BrickConnector connection={internalConnection} blocks={[]} plates={[]} externalActors={[]} originX={100} originY={200} />
-      </svg>,
-    );
+      const elbowGroups = container.querySelectorAll('[data-elbow]');
+      const elbowPolygons = Array.from(elbowGroups).flatMap((g) =>
+        Array.from(g.querySelectorAll('polygon')),
+      );
+      expect(elbowPolygons.length).toBeGreaterThanOrEqual(3);
+    });
+  });
 
-    const lines = container.querySelectorAll('line');
-    expect(lines.length).toBeGreaterThanOrEqual(1);
-    expect(lines[0]?.getAttribute('stroke-dasharray')).toBe('4 3');
+  describe('arrow tip', () => {
+    it('renders arrow with side face for 3D effect', () => {
+      setupEndpoints({ x: 100, y: 100 }, { x: 100, y: 250 });
+
+      const { container } = renderConnector();
+
+      const allPolygons = container.querySelectorAll('polygon');
+      expect(allPolygons.length).toBeGreaterThanOrEqual(5);
+    });
   });
 });

@@ -41,12 +41,25 @@ describe('CONNECTOR_THEMES', () => {
       expect(theme).toHaveProperty('dark');
       expect(theme).toHaveProperty('accent');
       expect(theme).toHaveProperty('pattern');
+      expect(theme).toHaveProperty('beamShape');
     }
   });
 
   it('each pattern is unique across types', () => {
     const patterns = Object.values(CONNECTOR_THEMES).map((t) => t.pattern);
     expect(new Set(patterns).size).toBe(5);
+  });
+
+  it('each beamShape is unique across types', () => {
+    const shapes = Object.values(CONNECTOR_THEMES).map((t) => t.beamShape);
+    expect(new Set(shapes).size).toBe(5);
+  });
+
+  it('beamShape values are valid BeamShape literals', () => {
+    const validShapes = new Set(['standard', 'doubleRail', 'segmented', 'wide', 'zigzag']);
+    for (const theme of Object.values(CONNECTOR_THEMES)) {
+      expect(validShapes.has(theme.beamShape)).toBe(true);
+    }
   });
 });
 
