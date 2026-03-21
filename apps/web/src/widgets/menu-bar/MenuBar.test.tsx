@@ -148,6 +148,87 @@ describe('MenuBar', () => {
     expect(useUIStore.getState().activeProvider).toBe('azure');
   });
 
+  it('does not show confirm dialog when switching provider with no blocks', async () => {
+    const user = userEvent.setup();
+    setArchitectureState({ blocks: [] });
+    useUIStore.setState({ activeProvider: 'azure' });
+    render(<MenuBar />);
+
+    await user.click(screen.getByRole('tab', { name: /aws/i }));
+
+    expect(confirmDialog).not.toHaveBeenCalled();
+    expect(useUIStore.getState().activeProvider).toBe('aws');
+  });
+
+  it('does not switch when clicking already active provider tab', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ activeProvider: 'azure' });
+    setArchitectureState({ blocks: [{ ...block, provider: 'azure' }] });
+    render(<MenuBar />);
+
+    await user.click(screen.getByRole('tab', { name: /azure/i }));
+
+    expect(confirmDialog).not.toHaveBeenCalled();
+    expect(useUIStore.getState().activeProvider).toBe('azure');
+  });
+
+  it('shows confirm dialog when switching provider with mixed-provider blocks and switches on confirm', async () => {
+    const user = userEvent.setup();
+    vi.mocked(confirmDialog).mockResolvedValue(true);
+    setArchitectureState({
+      blocks: [
+        { ...block, id: 'block-1', provider: 'azure' },
+        { ...block, id: 'block-2', provider: 'azure' },
+      ],
+    });
+    useUIStore.setState({ activeProvider: 'azure' });
+    render(<MenuBar />);
+
+    await user.click(screen.getByRole('tab', { name: /aws/i }));
+
+    await waitFor(() => {
+      expect(confirmDialog).toHaveBeenCalledWith(
+        expect.stringContaining('2 AZURE'),
+        'Switch Cloud Provider?',
+      );
+    });
+    expect(useUIStore.getState().activeProvider).toBe('aws');
+  });
+
+  it('does not switch provider when confirm dialog is canceled', async () => {
+    const user = userEvent.setup();
+    vi.mocked(confirmDialog).mockResolvedValue(false);
+    setArchitectureState({
+      blocks: [{ ...block, id: 'block-1', provider: 'azure' }],
+    });
+    useUIStore.setState({ activeProvider: 'azure' });
+    render(<MenuBar />);
+
+    await user.click(screen.getByRole('tab', { name: /gcp/i }));
+
+    await waitFor(() => {
+      expect(confirmDialog).toHaveBeenCalledWith(
+        expect.stringContaining('1 AZURE'),
+        'Switch Cloud Provider?',
+      );
+    });
+    expect(useUIStore.getState().activeProvider).toBe('azure');
+  });
+
+  it('does not show confirm dialog when blocks have no provider set', async () => {
+    const user = userEvent.setup();
+    setArchitectureState({
+      blocks: [{ ...block, id: 'block-1' }],
+    });
+    useUIStore.setState({ activeProvider: 'azure' });
+    render(<MenuBar />);
+
+    await user.click(screen.getByRole('tab', { name: /aws/i }));
+
+    expect(confirmDialog).not.toHaveBeenCalled();
+    expect(useUIStore.getState().activeProvider).toBe('aws');
+  });
+
   it('active provider tab shows visual indicator', () => {
     useUIStore.setState({ activeProvider: 'gcp' });
     render(<MenuBar />);
@@ -508,6 +589,14 @@ describe('MenuBar', () => {
     buildDropdown = await openMenu(user, 'Build');
     await user.click(within(buildDropdown).getByRole('button', { name: /Browse Templates/ }));
     expect(useUIStore.getState().showTemplateGallery).toBe(true);
+
+    buildDropdown = await openMenu(user, 'Build');
+    await user.click(within(buildDropdown).getByRole('button', { name: /AI Suggestions/ }));
+    expect(useUIStore.getState().showSuggestionsPanel).toBe(true);
+
+    buildDropdown = await openMenu(user, 'Build');
+    await user.click(within(buildDropdown).getByRole('button', { name: /Cost Estimate/ }));
+    expect(useUIStore.getState().showCostPanel).toBe(true);
   }, 15000);
 
   it('routes Show Learning Panel to scenario gallery when no scenario is active', async () => {
@@ -526,6 +615,16 @@ describe('MenuBar', () => {
     buildDropdown = await openMenu(user, 'Build');
     const learningPanelButton = within(buildDropdown).getByRole('button', { name: /Show Learning Panel/ });
     expect(learningPanelButton.textContent).not.toContain('\u2713');
+  });
+
+  it('does not re-toggle scenario gallery when already visible and no scenario active', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ showScenarioGallery: true });
+    render(<MenuBar />);
+
+    const buildDropdown = await openMenu(user, 'Build');
+    await user.click(within(buildDropdown).getByRole('button', { name: /Show Learning Panel/ }));
+    expect(useUIStore.getState().showScenarioGallery).toBe(true);
   });
 
   it('opens learning panel when an active scenario exists', async () => {
@@ -776,6 +875,16 @@ describe('MenuBar', () => {
     await user.click(screen.getByTitle('Save Workspace (Ctrl+S)'));
     expect(saveToStorageMock).toHaveBeenCalledOnce();
     expect(toast.success).toHaveBeenCalledWith('Workspace saved!');
+  });
+
+  it('shows error toast when save fails', async () => {
+    const user = userEvent.setup();
+    saveToStorageMock.mockReturnValueOnce(false);
+    render(<MenuBar />);
+
+    await user.click(screen.getByTitle('Save Workspace (Ctrl+S)'));
+    expect(saveToStorageMock).toHaveBeenCalledOnce();
+    expect(toast.error).toHaveBeenCalledWith('Failed to save workspace. Storage may be full.');
   });
 
   it('shows "GitHub" fallback when authenticated user has no username', () => {

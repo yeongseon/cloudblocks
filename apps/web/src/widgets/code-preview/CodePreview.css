@@ -250,3 +250,14 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
+.code-preview-mismatch-warning {
+  width: 100%;
+  padding: 6px 10px;
+  background: rgba(255, 152, 0, 0.15);
+  border: 1px solid rgba(255, 152, 0, 0.4);
+  border-radius: 4px;
+  color: #ffb74d;
+  font-size: 11px;
+  line-height: 1.4;
+}
