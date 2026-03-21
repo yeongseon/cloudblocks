@@ -15,6 +15,11 @@ import './CodePreview.css';
 const PROVIDERS: ProviderType[] = ['azure', 'aws', 'gcp'];
 
 export function CodePreview() {
+  const activeProvider = useUIStore((s) => s.activeProvider);
+  return <CodePreviewContent key={activeProvider} />;
+}
+
+function CodePreviewContent() {
   const toggleCodePreview = useUIStore((s) => s.toggleCodePreview);
   const activeProvider = useUIStore((s) => s.activeProvider);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
@@ -32,7 +37,6 @@ export function CodePreview() {
   const [activeTab, setActiveTab] = useState(0);
   const [projectName, setProjectName] = useState(sanitizedName);
   const [regions, setRegions] = useState<Record<ProviderType, string>>({ ...DEFAULT_REGION_BY_PROVIDER });
-  const [prevProvider, setPrevProvider] = useState(activeProvider);
   const [generator, setGenerator] = useState<GeneratorId>(
     generatorOptions[0]?.id ?? 'terraform'
   );
@@ -46,19 +50,6 @@ export function CodePreview() {
   const canCompareProviders = PROVIDERS.every((provider) =>
     supportedProviders.includes(provider)
   );
-
-  if (activeProvider !== prevProvider) {
-    setPrevProvider(activeProvider);
-    setRegions((prev) => ({
-      ...prev,
-      [activeProvider]: DEFAULT_REGION_BY_PROVIDER[activeProvider],
-    }));
-    setError(null);
-    setOutput(null);
-    setComparisonOutputs(null);
-    setComparisonErrors(null);
-    setActiveTab(0);
-  }
 
   const effectiveCompare = compareProviders && canCompareProviders;
 
