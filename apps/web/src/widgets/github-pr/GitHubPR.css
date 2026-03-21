@@ -205,3 +205,34 @@
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+.github-pr-recent-pr {
+  font-size: 11px;
+  color: #a5d6a7;
+  padding: 6px 8px;
+  background: rgba(76, 175, 80, 0.08);
+  border: 1px solid rgba(76, 175, 80, 0.25);
+  border-radius: 4px;
+}
+
+.github-pr-recent-pr-label {
+  font-weight: 600;
+  color: #81c784;
+}
+
+.github-pr-recent-pr a {
+  color: #82b1ff;
+  text-decoration: none;
+}
+
+.github-pr-recent-pr a:hover {
+  text-decoration: underline;
+}
+
+.github-pr-recent-pr code {
+  font-family: 'Consolas', 'Monaco', monospace;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 11px;
+}
