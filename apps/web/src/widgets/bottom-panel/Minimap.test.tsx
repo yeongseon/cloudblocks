@@ -3,47 +3,61 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { Minimap } from './Minimap';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import type { ArchitectureModel, Block, Connection, Plate } from '@cloudblocks/schema';
+import type { ArchitectureModel, Connection, ContainerNode, LeafNode } from '@cloudblocks/schema';
 
 vi.mock('./Minimap.css', () => ({}));
 
-const networkPlate: Plate = {
+const networkPlate: ContainerNode = {
   id: 'net-1',
   name: 'Main VNet',
-  type: 'region',
+  kind: 'container',
+  layer: 'region',
+  resourceType: 'virtual_network',
+  category: 'network',
+  provider: 'azure',
   parentId: null,
-  children: [],
   position: { x: 0, y: 0, z: 0 },
   size: { width: 16, height: 0.3, depth: 20 },
   metadata: {},
 };
 
-const publicSubnet: Plate = {
+const publicSubnet: ContainerNode = {
   id: 'subnet-1',
   name: 'Public Subnet',
-  type: 'subnet',
+  kind: 'container',
+  layer: 'subnet',
+  resourceType: 'subnet',
+  category: 'network',
+  provider: 'azure',
   subnetAccess: 'public',
   parentId: 'net-1',
-  children: [],
   position: { x: 2, y: 0, z: 2 },
   size: { width: 6, height: 0.3, depth: 8 },
   metadata: {},
 };
 
-const sourceBlock: Block = {
+const sourceBlock: LeafNode = {
   id: 'block-1',
   name: 'App VM',
+  kind: 'resource',
+  layer: 'resource',
+  resourceType: 'web_compute',
   category: 'compute',
-  placementId: 'subnet-1',
+  provider: 'azure',
+  parentId: 'subnet-1',
   position: { x: 1, y: 0, z: 1 },
   metadata: {},
 };
 
-const targetBlock: Block = {
+const targetBlock: LeafNode = {
   id: 'block-2',
   name: 'SQL DB',
-  category: 'database',
-  placementId: 'subnet-1',
+  kind: 'resource',
+  layer: 'resource',
+  resourceType: 'relational_database',
+  category: 'data',
+  provider: 'azure',
+  parentId: 'subnet-1',
   position: { x: 3, y: 0, z: 4 },
   metadata: {},
 };
@@ -60,8 +74,7 @@ const emptyArchitecture: ArchitectureModel = {
   id: 'arch-empty',
   name: 'Empty Architecture',
   version: '1.0.0',
-  plates: [],
-  blocks: [],
+  nodes: [],
   connections: [],
   externalActors: [],
   createdAt: '',
@@ -105,7 +118,7 @@ describe('Minimap', () => {
         name: 'Test Workspace',
         architecture: {
           ...emptyArchitecture,
-          plates: [networkPlate, publicSubnet],
+          nodes: [networkPlate, publicSubnet],
         },
         createdAt: '',
         updatedAt: '',
@@ -125,8 +138,7 @@ describe('Minimap', () => {
         name: 'Test Workspace',
         architecture: {
           ...emptyArchitecture,
-          plates: [networkPlate, publicSubnet],
-          blocks: [sourceBlock, targetBlock],
+          nodes: [networkPlate, publicSubnet, sourceBlock, targetBlock],
         },
         createdAt: '',
         updatedAt: '',
@@ -145,8 +157,7 @@ describe('Minimap', () => {
         name: 'Test Workspace',
         architecture: {
           ...emptyArchitecture,
-          plates: [networkPlate, publicSubnet],
-          blocks: [sourceBlock, targetBlock],
+          nodes: [networkPlate, publicSubnet, sourceBlock, targetBlock],
           connections: [connection],
         },
         createdAt: '',
@@ -166,7 +177,7 @@ describe('Minimap', () => {
         name: 'Test Workspace',
         architecture: {
           ...emptyArchitecture,
-          plates: [networkPlate],
+          nodes: [networkPlate],
         },
         createdAt: '',
         updatedAt: '',
@@ -193,7 +204,7 @@ describe('Minimap', () => {
         name: 'Test Workspace',
         architecture: {
           ...emptyArchitecture,
-          plates: [networkPlate],
+          nodes: [networkPlate],
         },
         createdAt: '',
         updatedAt: '',
@@ -214,8 +225,7 @@ describe('Minimap', () => {
         name: 'Test Workspace',
         architecture: {
           ...emptyArchitecture,
-          plates: [networkPlate, publicSubnet],
-          blocks: [sourceBlock, targetBlock],
+          nodes: [networkPlate, publicSubnet, sourceBlock, targetBlock],
         },
         createdAt: '',
         updatedAt: '',
@@ -236,8 +246,7 @@ describe('Minimap', () => {
         name: 'Test Workspace',
         architecture: {
           ...emptyArchitecture,
-          plates: [networkPlate, publicSubnet],
-          blocks: [sourceBlock, targetBlock],
+          nodes: [networkPlate, publicSubnet, sourceBlock, targetBlock],
           connections: [connection],
         },
         createdAt: '',
@@ -266,7 +275,7 @@ describe('Minimap', () => {
         name: 'Test Workspace',
         architecture: {
           ...emptyArchitecture,
-          plates: [networkPlate],
+          nodes: [networkPlate],
           connections: [orphanConnection],
         },
         createdAt: '',
@@ -286,8 +295,7 @@ describe('Minimap', () => {
         name: 'Test Workspace',
         architecture: {
           ...emptyArchitecture,
-          plates: [networkPlate, publicSubnet],
-          blocks: [sourceBlock, targetBlock],
+          nodes: [networkPlate, publicSubnet, sourceBlock, targetBlock],
           connections: [connection],
         },
         createdAt: '',
@@ -314,8 +322,7 @@ describe('Minimap', () => {
         name: 'Test Workspace',
         architecture: {
           ...emptyArchitecture,
-          plates: [networkPlate, publicSubnet],
-          blocks: [sourceBlock, targetBlock],
+          nodes: [networkPlate, publicSubnet, sourceBlock, targetBlock],
         },
         createdAt: '',
         updatedAt: '',
@@ -335,15 +342,15 @@ describe('Minimap', () => {
   });
 
   it('renders blocks and connections when parent plates are missing', () => {
-    const floatingSource: Block = {
+    const floatingSource: LeafNode = {
       ...sourceBlock,
       id: 'floating-1',
-      placementId: 'missing-plate-1',
+      parentId: 'missing-plate-1',
     };
-    const floatingTarget: Block = {
+    const floatingTarget: LeafNode = {
       ...targetBlock,
       id: 'floating-2',
-      placementId: 'missing-plate-2',
+      parentId: 'missing-plate-2',
     };
     const floatingConnection: Connection = {
       id: 'floating-conn',
@@ -359,8 +366,7 @@ describe('Minimap', () => {
         name: 'Test Workspace',
         architecture: {
           ...emptyArchitecture,
-          plates: [networkPlate],
-          blocks: [floatingSource, floatingTarget],
+          nodes: [networkPlate, floatingSource, floatingTarget],
           connections: [floatingConnection],
         },
         createdAt: '',

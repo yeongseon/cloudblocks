@@ -22,8 +22,7 @@ const mockAddBlock = vi.fn();
 const mockCompleteInteraction = vi.fn();
 
 const architecture = {
-  plates: [],
-  blocks: [],
+  nodes: [],
   connections: [],
   externalActors: [],
 };
@@ -49,6 +48,7 @@ function setupStoreMocks() {
     };
     return (selector as (s: typeof state) => unknown)(state);
   }) as typeof useUIStore);
+
 }
 
 describe('SceneCanvas ResizeObserver origin update', () => {

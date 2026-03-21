@@ -3,13 +3,13 @@ import { useUIStore } from '../../entities/store/uiStore';
 import './EmptyCanvasOverlay.css';
 
 export function EmptyCanvasOverlay() {
-  const plates = useArchitectureStore((s) => s.workspace.architecture.plates);
+  const containerCount = useArchitectureStore((s) => s.workspace.architecture.nodes.filter((node) => node.kind === 'container').length);
   const showTemplateGallery = useUIStore((s) => s.showTemplateGallery);
   const addPlate = useArchitectureStore((s) => s.addPlate);
   const toggleTemplateGallery = useUIStore((s) => s.toggleTemplateGallery);
   const toggleScenarioGallery = useUIStore((s) => s.toggleScenarioGallery);
 
-  if (plates.length > 0 || showTemplateGallery) return null;
+  if (containerCount > 0 || showTemplateGallery) return null;
 
   return (
     <div className="empty-canvas-overlay">

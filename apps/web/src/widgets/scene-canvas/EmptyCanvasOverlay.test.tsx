@@ -12,12 +12,15 @@ const mockToggleTemplateGallery = vi.fn();
 const mockToggleScenarioGallery = vi.fn();
 
 function setupMocks(plateCount: number, showTemplateGallery = false) {
-  const plates = Array.from({ length: plateCount }, (_, i) => ({
+  const nodes = Array.from({ length: plateCount }, (_, i) => ({
     id: `plate-${i}`,
     name: `Plate ${i}`,
-    type: 'region' as const,
+    kind: 'container' as const,
+    layer: 'region' as const,
+    resourceType: 'virtual_network' as const,
+    category: 'network' as const,
+    provider: 'azure' as const,
     parentId: null,
-    children: [],
     position: { x: 0, y: 0, z: 0 },
     size: { width: 16, height: 0.3, depth: 20 },
     metadata: {},
@@ -25,7 +28,7 @@ function setupMocks(plateCount: number, showTemplateGallery = false) {
 
   vi.mocked(useArchitectureStore).mockImplementation(((selector: unknown) => {
     const state = {
-      workspace: { architecture: { plates } },
+      workspace: { architecture: { nodes } },
       addPlate: mockAddPlate,
     };
     return (selector as (s: typeof state) => unknown)(state);

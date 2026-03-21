@@ -20,6 +20,7 @@ import { LearningPanel } from '../widgets/learning-panel/LearningPanel';
 import { registerBuiltinScenarios } from '../features/learning/scenarios/builtin';
 import { audioService } from '../shared/utils/audioService';
 import { SOUND_ASSETS } from '../shared/assets/sounds';
+import type { ContainerNode, LeafNode } from '@cloudblocks/schema';
 import './App.css';
 import './LearnMode.css';
 
@@ -143,9 +144,11 @@ function App() {
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
         e.preventDefault();
         const arch = useArchitectureStore.getState().workspace.architecture;
-        if (arch.blocks.find((b) => b.id === selectedId)) {
+        const resources = arch.nodes.filter((node): node is LeafNode => node.kind === 'resource');
+        const containers = arch.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+        if (resources.find((resource) => resource.id === selectedId)) {
           removeBlock(selectedId);
-        } else if (arch.plates.find((p) => p.id === selectedId)) {
+        } else if (containers.find((container) => container.id === selectedId)) {
           removePlate(selectedId);
         } else if (arch.connections.find((c) => c.id === selectedId)) {
           removeConnection(selectedId);

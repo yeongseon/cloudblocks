@@ -1,43 +1,54 @@
 /**
- * Command Card -- Context-Sensitive Action Grid
+ * Command Card — Context-Sensitive Action Grid
  *
- * Modes:
- * - Block selected: Rename, Copy, Delete + config form (tier, scale, config, Apply)
- * - Plate selected: Rename, Delete + profile/address form + Apply
- * - Nothing selected: creation grid (resource buttons grouped by category)
+ * The core interaction mechanism:
+ * - Creation mode (nothing selected): Resource creation buttons with Tech Tree
+ * - Action mode (resource selected): Action buttons (Link, Edit, Delete, etc.)
  *
- * Based on VISUAL_DESIGN_SPEC.md SS7.5
+ * Based on VISUAL_DESIGN_SPEC.md §7.5
  */
 
-import { useRef, useCallback, useState, type CSSProperties } from 'react';
+import { useRef, useCallback, useEffect, useState, type CSSProperties } from 'react';
 import { toast } from 'react-hot-toast';
+import interact from 'interactjs';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { BlockSvg } from '../../entities/block/BlockSvg';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
 import { promptDialog } from '../../shared/ui/PromptDialog';
-import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import {
   useTechTree,
+  ACTION_GRID,
+  ACTION_DEFINITIONS,
+  PLATE_ACTION_GRID,
+  PLATE_ACTION_DEFINITIONS,
   RESOURCE_DEFINITIONS,
   getResourceLabel,
   getResourceShortLabel,
   type ResourceType,
+  type ActionType,
+  type PlateActionType,
 } from './useTechTree';
 import { BLOCK_FRIENDLY_NAMES, BLOCK_ICONS } from '../../shared/types/index';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
-import type { BlockCategory, ProviderType } from '@cloudblocks/schema';
-import type { PlateProfileId } from '../../shared/types/index';
+import type { ContainerNode, LeafNode, ProviderType, ResourceCategory } from '@cloudblocks/schema';
 import './CommandCard.css';
 
 interface CommandCardProps {
   className?: string;
 }
 
-// ---- Helpers ----------------------------------------------------------------
+const PLATE_CONTEXT_RESOURCES: Record<'network' | 'subnet-public' | 'subnet-private', ResourceType[]> = {
+  network: ['public-subnet', 'private-subnet', 'function', 'queue', 'event', 'app-service'],
+  'subnet-public': ['storage', 'dns', 'cdn', 'front-door', 'vm', 'aks', 'container-instances', 'firewall', 'nsg', 'bastion'],
+  'subnet-private': ['storage', 'sql', 'cosmos-db', 'key-vault', 'vm', 'aks', 'container-instances'],
+};
 
-const TIER_OPTIONS = ['Free', 'Basic', 'Standard', 'Premium'] as const;
+const POSITION_HOTKEYS = [
+  ['Q', 'W', 'E'],
+  ['A', 'S', 'D'],
+  ['Z', 'X', 'C'],
+] as const;
 
 const ALL_RESOURCES = Object.keys(RESOURCE_DEFINITIONS) as ResourceType[];
 const PROVIDER_RESOURCE_ALLOWLIST: Record<ProviderType, ReadonlySet<ResourceType>> = {
@@ -46,26 +57,50 @@ const PROVIDER_RESOURCE_ALLOWLIST: Record<ProviderType, ReadonlySet<ResourceType
   gcp: new Set(ALL_RESOURCES),
 };
 
-type CreationGroupId = BlockCategory | 'plate';
+type ContainerLayer = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
+
+function getPositionHotkey(rowIdx: number, colIdx: number): string {
+  return POSITION_HOTKEYS[rowIdx]?.[colIdx] ?? '';
+}
+
+function chunkResources(resources: ResourceType[], chunkSize = 9): ResourceType[][] {
+  const chunks: ResourceType[][] = [];
+  for (let i = 0; i < resources.length; i += chunkSize) {
+    chunks.push(resources.slice(i, i + chunkSize));
+  }
+  return chunks;
+}
+
+function getPlateHeaderText(plate: ContainerNode): string {
+  const plateType: ContainerLayer = plate.layer === 'resource' ? 'region' : plate.layer;
+  if (plateType === 'subnet') {
+    return plate.subnetAccess === 'public' ? 'Public Subnet' : 'Private Subnet';
+  }
+  // Network-layer plates: global, edge, region, zone
+  return plateType === 'region' ? 'VNet' : plateType.charAt(0).toUpperCase() + plateType.slice(1);
+}
+
+type CreationGroupId = ResourceCategory | 'plate';
 
 const CREATION_GROUP_ORDER: CreationGroupId[] = [
   'plate',
   'compute',
-  'database',
-  'storage',
-  'gateway',
-  'function',
-  'queue',
-  'event',
-  'analytics',
-  'identity',
-  'observability',
+  'data',
+  'edge',
+  'security',
+  'messaging',
+  'operations',
 ];
 
 function getCreationGroupMeta(groupId: CreationGroupId): { icon: string; label: string; color: string } {
   if (groupId === 'plate') {
-    return { icon: '\u{1F9ED}', label: 'Network Foundations', color: '#2563EB' };
+    return {
+      icon: '🧭',
+      label: 'Network Foundations',
+      color: '#2563EB',
+    };
   }
+
   return {
     icon: BLOCK_ICONS[groupId],
     label: BLOCK_FRIENDLY_NAMES[groupId],
@@ -74,38 +109,75 @@ function getCreationGroupMeta(groupId: CreationGroupId): { icon: string; label: 
 }
 
 function getCreationGroupId(type: ResourceType): CreationGroupId {
-  return RESOURCE_DEFINITIONS[type].blockCategory ?? 'plate';
+  const blockCategory = RESOURCE_DEFINITIONS[type].blockCategory;
+  return blockCategory ?? 'plate';
 }
 
-function usePlaySound() {
-  const isSoundMuted = useUIStore((s) => s.isSoundMuted);
-  return useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
-}
-
-// ---- Root Component ---------------------------------------------------------
 
 export function CommandCard({ className = '' }: CommandCardProps) {
+  const [plateSubActionState, setPlateSubActionState] = useState<{ selectedId: string | null; action: 'deploy' | null }>({ selectedId: null, action: null });
   const selectedId = useUIStore((s) => s.selectedId);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
-  const selectedBlock = selectedId ? architecture.blocks.find((b) => b.id === selectedId) ?? null : null;
-  const selectedPlate = selectedId ? architecture.plates.find((p) => p.id === selectedId) ?? null : null;
+  const resources = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
+  const containers = architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+  const selectedBlock = selectedId
+    ? resources.find((b) => b.id === selectedId) ?? null
+    : null;
+  const selectedPlate = selectedId
+    ? containers.find((p) => p.id === selectedId) ?? null
+    : null;
+
+  const plateSubAction = plateSubActionState.selectedId === selectedId ? plateSubActionState.action : null;
+  const setPlateSubAction = useCallback((action: 'deploy' | null) => {
+    setPlateSubActionState({ selectedId, action });
+  }, [selectedId]);
+
+  useEffect(() => {
+    if (plateSubAction !== 'deploy') return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setPlateSubAction(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [plateSubAction, setPlateSubAction]);
 
   const headerText = selectedBlock
-    ? 'Block Actions'
-    : selectedPlate
-      ? 'Plate Actions'
-      : 'Command Panel';
+      ? 'Actions'
+      : selectedPlate
+        ? plateSubAction === 'deploy'
+          ? `Deploy on ${getPlateHeaderText(selectedPlate)}`
+          : `${getPlateHeaderText(selectedPlate)} Actions`
+        : 'Create Resource';
 
   const modeContent = selectedBlock
-    ? <BlockMode />
-    : selectedPlate
-      ? <PlateMode />
-      : <CreationGrid />;
+      ? <BlockActionMode />
+      : selectedPlate
+        ? plateSubAction === 'deploy'
+          ? <PlateCreationMode selectedPlate={selectedPlate} />
+          : <PlateActionMode selectedPlate={selectedPlate} onDeploy={() => setPlateSubAction('deploy')} />
+        : <CreationMode />;
 
   return (
     <div className={`command-card ${className}`}>
       <div className="command-card-header">
-        <span className="command-card-header-text">{headerText}</span>
+        <span className="command-card-header-text">
+          {selectedPlate && plateSubAction === 'deploy' ? (
+            <button
+              type="button"
+              onClick={() => setPlateSubAction(null)}
+              style={{ background: 'none', border: 'none', padding: 0, color: 'inherit', font: 'inherit', cursor: 'pointer' }}
+              aria-label={`Back from ${headerText}`}
+            >
+              {`← ${headerText}`}
+            </button>
+          ) : (
+            headerText
+          )}
+        </span>
       </div>
       <div className="command-card-grid">
         {modeContent}
@@ -114,41 +186,194 @@ export function CommandCard({ className = '' }: CommandCardProps) {
   );
 }
 
-// ---- Creation Grid (default mode) -------------------------------------------
+function PlateActionMode({ selectedPlate, onDeploy }: { selectedPlate: ContainerNode; onDeploy: () => void }) {
+  const setSelectedId = useUIStore((s) => s.setSelectedId);
+  const removePlate = useArchitectureStore((s) => s.removePlate);
+  const renamePlate = useArchitectureStore((s) => s.renamePlate);
+  const isSoundMuted = useUIStore((s) => s.isSoundMuted);
+  const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
 
-function CreationGrid() {
+  const handleAction = useCallback(async (action: PlateActionType) => {
+    switch (action) {
+      case 'deploy':
+        onDeploy();
+        break;
+      case 'rename': {
+        const newName = await promptDialog('Rename plate:', 'Rename', selectedPlate.name);
+        if (newName !== null && newName.trim() !== '') {
+          renamePlate(selectedPlate.id, newName.trim());
+        }
+        break;
+      }
+      case 'delete':
+        removePlate(selectedPlate.id);
+        setSelectedId(null);
+        playSound('delete');
+        break;
+      default:
+        break;
+    }
+  }, [onDeploy, removePlate, renamePlate, selectedPlate.id, selectedPlate.name, setSelectedId, playSound]);
+
+  return (
+    <>
+      {PLATE_ACTION_GRID.map((row, rowIdx) => {
+        const rowKey = row.filter(Boolean).join('-') || `plate-action-row-${rowIdx}`;
+        return (
+          <div key={rowKey} className="command-card-row">
+            {row.map((actionType, colIdx) => {
+              const cellKey = actionType ?? `empty-r${rowIdx}c${colIdx}`;
+              if (!actionType) {
+                return <div key={cellKey} className="command-card-btn command-card-btn--empty" />;
+              }
+
+              const action = PLATE_ACTION_DEFINITIONS[actionType];
+              const hotkey = getPositionHotkey(rowIdx, colIdx);
+
+              return (
+                <button
+                  key={cellKey}
+                  type="button"
+                  className="command-card-btn"
+                  onClick={() => handleAction(actionType)}
+                  title={hotkey ? `${action.label} (${hotkey})` : action.label}
+                >
+                  <span className="command-btn-icon">{action.icon}</span>
+                  <span className="command-btn-label">{action.label}</span>
+                  {hotkey && <span className="command-btn-hotkey">{hotkey}</span>}
+                </button>
+              );
+            })}
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
+// ─── Creation Mode ─────────────────────────────────────────
+
+function CreationMode() {
   const techTree = useTechTree();
+  const addPlate = useArchitectureStore((s) => s.addPlate);
   const addBlock = useArchitectureStore((s) => s.addBlock);
   const activeProvider = useUIStore((s) => s.activeProvider);
+  const startPlacing = useUIStore((s) => s.startPlacing);
+  const cancelInteraction = useUIStore((s) => s.cancelInteraction);
+  const isSoundMuted = useUIStore((s) => s.isSoundMuted);
+  const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
   const counterRef = useRef(0);
+  const isDraggingRef = useRef(false);
+  const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
   const providerResources = PROVIDER_RESOURCE_ALLOWLIST[activeProvider];
-
   const groupedResources = CREATION_GROUP_ORDER.map((groupId) => {
     const resources = ALL_RESOURCES
       .filter((resource) => getCreationGroupId(resource) === groupId)
       .filter((resource) => providerResources.has(resource))
-      .filter((resource) => Boolean(RESOURCE_DEFINITIONS[resource].blockCategory))
       .sort((a, b) => RESOURCE_DEFINITIONS[a].label.localeCompare(RESOURCE_DEFINITIONS[b].label));
+
     return { groupId, resources };
   }).filter((group) => group.resources.length > 0);
 
-  const handleBuild = useCallback((type: ResourceType) => {
-    const def = RESOURCE_DEFINITIONS[type];
-    if (!def.blockCategory) return;
+  useEffect(() => {
+    if (!gridRef.current) return;
 
-    const targetId = techTree.getTargetPlateId(type);
-    if (!targetId) {
-      toast.error('Please create a Network first.');
+    const buttons = gridRef.current.querySelectorAll<HTMLButtonElement>(
+      '.command-card-btn:not(.disabled):not(.command-card-btn--empty)',
+    );
+    const interactables = Array.from(buttons).map((button) => interact(button).draggable({
+      listeners: {
+        start() {
+          isDraggingRef.current = false;
+        },
+        move(event) {
+          isDraggingRef.current = true;
+          const buttonEl = event.target as HTMLButtonElement;
+          buttonEl.classList.add('is-dragging');
+
+          const type = buttonEl.dataset.resourceType as ResourceType | undefined;
+          if (!type) return;
+
+          const def = RESOURCE_DEFINITIONS[type];
+          if (!def?.blockCategory) return;
+
+          startPlacing(def.blockCategory, getResourceLabel(type, activeProvider));
+        },
+        end(event) {
+          const buttonEl = event.target as HTMLButtonElement;
+          buttonEl.classList.remove('is-dragging');
+          cancelInteraction();
+
+          if (dragResetTimerRef.current) {
+            clearTimeout(dragResetTimerRef.current);
+          }
+          dragResetTimerRef.current = setTimeout(() => {
+            isDraggingRef.current = false;
+          }, 50);
+        },
+      },
+      autoScroll: false,
+    }));
+
+    return () => {
+      if (dragResetTimerRef.current) {
+        clearTimeout(dragResetTimerRef.current);
+      }
+      buttons.forEach((button) => {
+        button.classList.remove('is-dragging');
+      });
+      cancelInteraction();
+      interactables.forEach((interactable) => {
+        interactable.unset();
+      });
+    };
+  }, [activeProvider, cancelInteraction, startPlacing]);
+
+  const handleCreate = useCallback((type: ResourceType) => {
+    if (isDraggingRef.current) return;
+
+    const def = RESOURCE_DEFINITIONS[type];
+
+    // Handle plate creation
+    if (def.category === 'plate') {
+      if (type === 'network') {
+        addPlate('region', 'VNet', null);
+        playSound('block-snap');
+      } else if (type === 'public-subnet') {
+        const targetId = techTree.getTargetPlateId(type);
+        if (targetId) {
+          addPlate('subnet', 'Public Subnet', targetId, 'public');
+          playSound('block-snap');
+        }
+      } else if (type === 'private-subnet') {
+        const targetId = techTree.getTargetPlateId(type);
+        if (targetId) {
+          addPlate('subnet', 'Private Subnet', targetId, 'private');
+          playSound('block-snap');
+        }
+      }
+
       return;
     }
 
-    counterRef.current += 1;
-    const name = `${getResourceLabel(type, activeProvider)} ${counterRef.current}`;
-    addBlock(def.blockCategory, name, targetId, activeProvider);
-  }, [activeProvider, addBlock, techTree]);
+    // Handle block creation
+    if (def.blockCategory) {
+      const targetId = techTree.getTargetPlateId(type);
+      if (!targetId) {
+        toast.error('Please create a Network first.');
+        return;
+      }
+
+      counterRef.current += 1;
+      const name = `${getResourceLabel(type, activeProvider)} ${counterRef.current}`;
+      addBlock(def.blockCategory, name, targetId, activeProvider, def.id);
+      playSound('block-snap');
+    }
+  }, [activeProvider, addPlate, addBlock, techTree, playSound]);
 
   return (
-    <div className="command-card-creation-groups">
+    <div ref={gridRef} className="command-card-creation-groups">
       {groupedResources.map(({ groupId, resources }) => {
         const groupMeta = getCreationGroupMeta(groupId);
         return (
@@ -170,16 +395,14 @@ function CreationGrid() {
                     type="button"
                     className={`command-card-btn command-card-resource-btn ${enabled ? '' : 'disabled'}`}
                     data-resource-type={type}
-                    onClick={() => enabled && handleBuild(type)}
+                    onClick={() => enabled && handleCreate(type)}
                     disabled={!enabled}
-                    title={enabled ? `Build ${getResourceLabel(type, activeProvider)}` : disabledReason ?? undefined}
+                    title={enabled ? `Create ${getResourceLabel(type, activeProvider)}` : disabledReason ?? undefined}
                   >
-                    <span className="command-btn-icon">
-                      {def.blockCategory && <BlockSvg category={def.blockCategory} provider={activeProvider} />}
-                    </span>
+                    <span className="command-btn-icon">{def.icon}</span>
                     <span className="command-btn-label">{getResourceShortLabel(type, activeProvider)}</span>
                     {!enabled && disabledReason && <span className="command-btn-requirement">Needs: {disabledReason}</span>}
-                    {!enabled && <span className="command-btn-lock">{'\u{1F512}'}</span>}
+                    {!enabled && <span className="command-btn-lock">🔒</span>}
                   </button>
                 );
               })}
@@ -191,215 +414,266 @@ function CreationGrid() {
   );
 }
 
-// ---- Block Mode -------------------------------------------------------------
+function PlateCreationMode({ selectedPlate }: { selectedPlate: ContainerNode }) {
+  const techTree = useTechTree();
+  const addPlate = useArchitectureStore((s) => s.addPlate);
+  const addBlock = useArchitectureStore((s) => s.addBlock);
+  const activeProvider = useUIStore((s) => s.activeProvider);
+  const startPlacing = useUIStore((s) => s.startPlacing);
+  const cancelInteraction = useUIStore((s) => s.cancelInteraction);
+  const isSoundMuted = useUIStore((s) => s.isSoundMuted);
+  const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
+  const counterRef = useRef(0);
+  const isDraggingRef = useRef(false);
+  const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
 
-function BlockMode() {
+      const contextResources = selectedPlate.layer !== 'subnet'
+        ? PLATE_CONTEXT_RESOURCES.network
+        : selectedPlate.subnetAccess === 'public'
+          ? PLATE_CONTEXT_RESOURCES['subnet-public']
+          : PLATE_CONTEXT_RESOURCES['subnet-private'];
+  const providerResources = PROVIDER_RESOURCE_ALLOWLIST[activeProvider];
+  const filteredContextResources = contextResources.filter((resource) => providerResources.has(resource));
+
+  useEffect(() => {
+    if (!gridRef.current) return;
+    if (filteredContextResources.length === 0) return;
+
+    const buttons = gridRef.current.querySelectorAll<HTMLButtonElement>(
+      '.command-card-btn:not(.disabled):not(.command-card-btn--empty)',
+    );
+    const interactables = Array.from(buttons).map((button) => interact(button).draggable({
+      listeners: {
+        start() {
+          isDraggingRef.current = false;
+        },
+        move(event) {
+          isDraggingRef.current = true;
+          const buttonEl = event.target as HTMLButtonElement;
+          buttonEl.classList.add('is-dragging');
+
+          const type = buttonEl.dataset.resourceType as ResourceType | undefined;
+          if (!type) return;
+
+          const def = RESOURCE_DEFINITIONS[type];
+          if (!def?.blockCategory) return;
+
+          startPlacing(def.blockCategory, getResourceLabel(type, activeProvider));
+        },
+        end(event) {
+          const buttonEl = event.target as HTMLButtonElement;
+          buttonEl.classList.remove('is-dragging');
+          cancelInteraction();
+
+          if (dragResetTimerRef.current) {
+            clearTimeout(dragResetTimerRef.current);
+          }
+          dragResetTimerRef.current = setTimeout(() => {
+            isDraggingRef.current = false;
+          }, 50);
+        },
+      },
+      autoScroll: false,
+    }));
+
+    return () => {
+      if (dragResetTimerRef.current) {
+        clearTimeout(dragResetTimerRef.current);
+      }
+      buttons.forEach((button) => {
+        button.classList.remove('is-dragging');
+      });
+      cancelInteraction();
+      interactables.forEach((interactable) => {
+        interactable.unset();
+      });
+    };
+  }, [activeProvider, cancelInteraction, filteredContextResources, startPlacing]);
+
+  const handleCreate = useCallback((type: ResourceType) => {
+    if (isDraggingRef.current) return;
+
+    const def = RESOURCE_DEFINITIONS[type];
+
+    if (def.category === 'plate') {
+      if (selectedPlate.layer !== 'region') return;
+
+      if (type === 'public-subnet') {
+        addPlate('subnet', 'Public Subnet', selectedPlate.id, 'public');
+        playSound('block-snap');
+      } else if (type === 'private-subnet') {
+        addPlate('subnet', 'Private Subnet', selectedPlate.id, 'private');
+        playSound('block-snap');
+      }
+
+      return;
+    }
+
+    if (!def.blockCategory) {
+      return;
+    }
+
+    counterRef.current += 1;
+    const name = `${getResourceLabel(type, activeProvider)} ${counterRef.current}`;
+    addBlock(def.blockCategory, name, selectedPlate.id, activeProvider);
+    playSound('block-snap');
+  }, [activeProvider, addPlate, addBlock, selectedPlate.id, selectedPlate.layer, playSound]);
+
+  const resourcePages = chunkResources(filteredContextResources, 9).map((page) => {
+    const normalizedPage: (ResourceType | null)[] = [...page];
+    while (normalizedPage.length < 9) {
+      normalizedPage.push(null);
+    }
+
+    return [
+      normalizedPage.slice(0, 3),
+      normalizedPage.slice(3, 6),
+      normalizedPage.slice(6, 9),
+    ];
+  });
+
+  return (
+    <div ref={gridRef}>
+      {resourcePages.map((page) => {
+        const pageKey = page.flat().map((item) => item ?? 'empty').join('-');
+        return page.map((row, rowIdx) => {
+          const rowKey = `${pageKey}-${row.map((item) => item ?? 'empty').join('-')}-${getPositionHotkey(rowIdx, 0)}`;
+          return (
+          <div key={rowKey} className="command-card-row">
+            {row.map((type, colIdx) => {
+              const hotkey = getPositionHotkey(rowIdx, colIdx);
+              if (!type) {
+                return <div key={`${rowKey}-empty-${hotkey}`} className="command-card-btn command-card-btn--empty" />;
+              }
+
+              const def = RESOURCE_DEFINITIONS[type];
+              const enabled = techTree.isEnabled(type);
+              const disabledReason = techTree.getDisabledReason(type);
+
+              return (
+                <button
+                  key={`${rowKey}-${type}-${hotkey}`}
+                  type="button"
+                  className={`command-card-btn ${enabled ? '' : 'disabled'}`}
+                  data-resource-type={type}
+                  onClick={() => enabled && handleCreate(type)}
+                  disabled={!enabled}
+                  title={enabled ? `Create ${getResourceLabel(type, activeProvider)} (${hotkey})` : disabledReason ?? undefined}
+                >
+                  <span className="command-btn-icon">{def.icon}</span>
+                  <span className="command-btn-label">{getResourceShortLabel(type, activeProvider)}</span>
+                  {hotkey && <span className="command-btn-hotkey">{hotkey}</span>}
+                  {!enabled && <span className="command-btn-lock">🔒</span>}
+                </button>
+              );
+            })}
+          </div>
+        );
+        });
+      })}
+    </div>
+  );
+}
+
+// ─── Action Mode ───────────────────────────────────────────
+
+function BlockActionMode() {
   const selectedId = useUIStore((s) => s.selectedId);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
-  const architecture = useArchitectureStore((s) => s.workspace.architecture);
+  const setToolMode = useUIStore((s) => s.setToolMode);
+  const toggleProperties = useUIStore((s) => s.toggleProperties);
   const duplicateBlock = useArchitectureStore((s) => s.duplicateBlock);
   const renameBlock = useArchitectureStore((s) => s.renameBlock);
   const removeBlock = useArchitectureStore((s) => s.removeBlock);
-  const updateBlockConfig = useArchitectureStore((s) => s.updateBlockConfig);
-  const triggerUpgradeAnimation = useUIStore((s) => s.triggerUpgradeAnimation);
-  const playSound = usePlaySound();
-
-  const block = selectedId ? architecture.blocks.find((b) => b.id === selectedId) : null;
-
-  const [tier, setTier] = useState<string>(block?.config?.tier as string ?? 'Standard');
-  const [scale, setScale] = useState<string>(String(block?.config?.scale ?? '1'));
-  const [config, setConfig] = useState<string>(block?.config?.notes as string ?? '');
-
-  const handleRename = useCallback(async () => {
-    if (!block) return;
-    const newName = await promptDialog('Rename block:', 'Rename', block.name);
-    if (newName !== null && newName.trim() !== '') {
-      renameBlock(block.id, newName.trim());
-    }
-  }, [block, renameBlock]);
-
-  const handleCopy = useCallback(() => {
-    if (!selectedId) return;
-    duplicateBlock(selectedId);
-    playSound('block-snap');
-  }, [selectedId, duplicateBlock, playSound]);
-
-  const handleDelete = useCallback(async () => {
-    if (!selectedId || !block) return;
-    const confirmed = await confirmDialog(`Delete "${block.name}"?`, 'Delete Block');
-    if (!confirmed) return;
-    removeBlock(selectedId);
-    setSelectedId(null);
-    playSound('delete');
-  }, [selectedId, block, removeBlock, setSelectedId, playSound]);
-
-  const handleApply = useCallback(() => {
-    if (!selectedId) return;
-    const scaleNum = Number.parseInt(scale, 10);
-    updateBlockConfig(selectedId, {
-      tier,
-      scale: Number.isFinite(scaleNum) && scaleNum > 0 ? scaleNum : 1,
-      notes: config,
-    });
-    triggerUpgradeAnimation(selectedId);
-    playSound('block-snap');
-  }, [selectedId, tier, scale, config, updateBlockConfig, triggerUpgradeAnimation, playSound]);
-
-  if (!block) return null;
-
-  return (
-    <div className="command-card-mode-content">
-      <div className="command-card-actions-row">
-        <button type="button" className="command-card-btn command-card-action-btn" onClick={handleRename} title="Rename (Q)">
-          <span className="command-btn-icon">{'\u{1F4DD}'}</span>
-          <span className="command-btn-label">Rename</span>
-          <span className="command-btn-hotkey">Q</span>
-        </button>
-
-        <button type="button" className="command-card-btn command-card-action-btn" onClick={handleCopy} title="Copy (W)">
-          <span className="command-btn-icon">{'\u{1F4CB}'}</span>
-          <span className="command-btn-label">Copy</span>
-          <span className="command-btn-hotkey">W</span>
-        </button>
-
-        <button type="button" className="command-card-btn command-card-action-btn command-card-btn--delete" onClick={handleDelete} title="Delete (E)">
-          <span className="command-btn-icon">{'\u{1F5D1}\uFE0F'}</span>
-          <span className="command-btn-label">Delete</span>
-          <span className="command-btn-hotkey">E</span>
-        </button>
-      </div>
-
-      <div className="command-card-form">
-        <label className="command-card-form-label">
-          Tier
-          <select className="command-card-form-select" value={tier} onChange={(e) => setTier(e.target.value)}>
-            {TIER_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
-        </label>
-
-        <label className="command-card-form-label">
-          Scale
-          <input
-            type="number"
-            className="command-card-form-input"
-            value={scale}
-            min={1}
-            onChange={(e) => setScale(e.target.value)}
-          />
-        </label>
-
-        <label className="command-card-form-label">
-          Config
-          <input
-            type="text"
-            className="command-card-form-input"
-            value={config}
-            placeholder="notes..."
-            onChange={(e) => setConfig(e.target.value)}
-          />
-        </label>
-
-        <button type="button" className="command-card-btn command-card-btn--apply" onClick={handleApply} title="Apply changes">
-          <span className="command-btn-label">Apply</span>
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ---- Plate Mode -------------------------------------------------------------
-
-function PlateMode() {
-  const selectedId = useUIStore((s) => s.selectedId);
-  const setSelectedId = useUIStore((s) => s.setSelectedId);
-  const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const removePlate = useArchitectureStore((s) => s.removePlate);
-  const renamePlate = useArchitectureStore((s) => s.renamePlate);
-  const setPlateProfile = useArchitectureStore((s) => s.setPlateProfile);
-  const playSound = usePlaySound();
+  const architecture = useArchitectureStore((s) => s.workspace.architecture);
+  const isSoundMuted = useUIStore((s) => s.isSoundMuted);
+    const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
+  const blocks = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
+  const plates = architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
 
-  const plate = selectedId ? architecture.plates.find((p) => p.id === selectedId) : null;
+  const handleAction = useCallback(async (action: ActionType) => {
+    if (!selectedId) return;
 
-  const [addressSpace, setAddressSpace] = useState<string>(plate?.metadata?.addressSpace as string ?? '10.0.0.0/16');
+    switch (action) {
+      case 'link':
+        setToolMode('connect');
+        break;
 
-  const handleRename = useCallback(async () => {
-    if (!plate) return;
-    const newName = await promptDialog('Rename plate:', 'Rename', plate.name);
-    if (newName !== null && newName.trim() !== '') {
-      renamePlate(plate.id, newName.trim());
+      case 'edit':
+        if (!useUIStore.getState().showProperties) {
+          toggleProperties();
+        }
+        break;
+
+      case 'copy':
+        duplicateBlock(selectedId);
+        playSound('block-snap');
+        break;
+
+      case 'rename': {
+        const block = blocks.find((candidate) => candidate.id === selectedId);
+        if (block) {
+          const newName = await promptDialog('Rename block:', 'Rename', block.name);
+          if (newName !== null && newName.trim() !== '') {
+            renameBlock(selectedId, newName.trim());
+          }
+        }
+        break;
+      }
+
+      case 'delete': {
+        const isBlock = blocks.some((b) => b.id === selectedId);
+        const isPlate = plates.some((p) => p.id === selectedId);
+
+        if (isBlock) {
+          removeBlock(selectedId);
+        } else if (isPlate) {
+          removePlate(selectedId);
+        }
+        setSelectedId(null);
+        playSound('delete');
+        break;
+      }
+
+      default:
+        break;
     }
-  }, [plate, renamePlate]);
-
-  const handleDelete = useCallback(async () => {
-    if (!selectedId || !plate) return;
-    const confirmed = await confirmDialog(`Delete "${plate.name}"?`, 'Delete Plate');
-    if (!confirmed) return;
-    removePlate(selectedId);
-    setSelectedId(null);
-    playSound('delete');
-  }, [selectedId, plate, removePlate, setSelectedId, playSound]);
-
-  const handleApply = useCallback(() => {
-    if (!plate) return;
-    // Address space is stored in metadata -- for now just toast confirmation
-    toast.success(`Plate "${plate.name}" updated.`);
-    playSound('block-snap');
-  }, [plate, playSound]);
-
-  if (!plate) return null;
-
-  const hasProfileSupport = plate.type === 'region' || plate.type === 'subnet';
+  }, [selectedId, setSelectedId, setToolMode, toggleProperties, duplicateBlock, renameBlock, removeBlock, removePlate, playSound, blocks, plates]);
 
   return (
-    <div className="command-card-mode-content">
-      <div className="command-card-actions-row">
-        <button type="button" className="command-card-btn command-card-action-btn" onClick={handleRename} title="Rename (Q)">
-          <span className="command-btn-icon">{'\u{1F4DD}'}</span>
-          <span className="command-btn-label">Rename</span>
-          <span className="command-btn-hotkey">Q</span>
-        </button>
+    <>
+      {ACTION_GRID.map((row, rowIdx) => {
+        const rowKey = row.filter(Boolean).join('-') || `action-row-${rowIdx}`;
+        return (
+          <div key={rowKey} className="command-card-row">
+            {row.map((actionType, colIdx) => {
+              const cellKey = actionType ?? `empty-r${rowIdx}c${colIdx}`;
+              if (!actionType) {
+                return <div key={cellKey} className="command-card-btn command-card-btn--empty" />;
+              }
 
-        <button type="button" className="command-card-btn command-card-action-btn command-card-btn--delete" onClick={handleDelete} title="Delete (E)">
-          <span className="command-btn-icon">{'\u{1F5D1}\uFE0F'}</span>
-          <span className="command-btn-label">Delete</span>
-          <span className="command-btn-hotkey">E</span>
-        </button>
-      </div>
+                const action = ACTION_DEFINITIONS[actionType];
+                const hotkey = getPositionHotkey(rowIdx, colIdx);
 
-      <div className="command-card-form">
-        {hasProfileSupport && (
-          <label className="command-card-form-label">
-            Profile
-            <select
-              className="command-card-form-select"
-              value={plate.profileId ?? ''}
-              onChange={(e) => {
-                if (e.target.value) {
-                  setPlateProfile(plate.id, e.target.value as PlateProfileId);
-                }
-              }}
-            >
-              <option value="">Default</option>
-            </select>
-          </label>
-        )}
-
-        <label className="command-card-form-label">
-          Address Space
-          <input
-            type="text"
-            className="command-card-form-input"
-            value={addressSpace}
-            onChange={(e) => setAddressSpace(e.target.value)}
-          />
-        </label>
-
-        <button type="button" className="command-card-btn command-card-btn--apply" onClick={handleApply} title="Apply changes">
-          <span className="command-btn-label">Apply</span>
-        </button>
-      </div>
-    </div>
+                return (
+                  <button
+                  key={cellKey}
+                    type="button"
+                    className="command-card-btn"
+                    onClick={() => handleAction(actionType)}
+                    title={hotkey ? `${action.label} (${hotkey})` : action.label}
+                  >
+                    <span className="command-btn-icon">{action.icon}</span>
+                    <span className="command-btn-label">{action.label}</span>
+                    {hotkey && <span className="command-btn-hotkey">{hotkey}</span>}
+                  </button>
+                );
+              })}
+          </div>
+        );
+      })}
+    </>
   );
 }
-
-
