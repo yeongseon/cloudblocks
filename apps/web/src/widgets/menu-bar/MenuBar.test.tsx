@@ -886,4 +886,173 @@ describe('MenuBar', () => {
     const badge = within(buildDropdown).getByText('Errors');
     expect(badge).toHaveClass('menu-badge-invalid');
   });
+
+  it('prevents duplicate compare submissions while loading', async () => {
+    const user = userEvent.setup();
+    let resolvePost!: (value: unknown) => void;
+    vi.mocked(apiPost).mockImplementation(() => new Promise((r) => { resolvePost = r; }));
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        backendWorkspaceId: 'backend-ws-1',
+        githubRepo: 'owner/repo',
+      },
+    });
+    useAuthStore.setState({
+      status: 'authenticated',
+      user: {
+        id: 'user-1',
+        github_username: 'octocat',
+        email: null,
+        display_name: null,
+        avatar_url: null,
+      },
+    });
+
+    render(<MenuBar />);
+
+    // First click to start compare
+    await user.click(screen.getByRole('button', { name: /octocat/ }));
+    let githubDropdown = getMenuDropdown(/octocat/);
+    await user.click(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ }));
+
+    // The button should show "Comparing..." and be disabled
+    await user.click(screen.getByRole('button', { name: /octocat/ }));
+    githubDropdown = getMenuDropdown(/octocat/);
+    expect(within(githubDropdown).getByRole('button', { name: /Comparing/ })).toBeDisabled();
+
+    resolvePost({ architecture: emptyArch });
+  });
+
+  it('shows toast error when compare is invoked without backendWorkspaceId', async () => {
+    const user = userEvent.setup();
+    // Set up with only githubRepo but no backendWorkspaceId
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        backendWorkspaceId: undefined,
+        githubRepo: 'owner/repo',
+      },
+    });
+    useAuthStore.setState({
+      status: 'authenticated',
+      user: {
+        id: 'user-1',
+        github_username: 'octocat',
+        email: null,
+        display_name: null,
+        avatar_url: null,
+      },
+    });
+
+    render(<MenuBar />);
+
+    // hasFullGitHubLink is false, so PR and Compare should be disabled
+    await user.click(screen.getByRole('button', { name: /octocat/ }));
+    const githubDropdown = getMenuDropdown(/octocat/);
+    expect(within(githubDropdown).getByRole('button', { name: /Create PR/ })).toBeDisabled();
+    expect(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ })).toBeDisabled();
+  });
+
+  it('shows auth checking state with disabled GitHub button', () => {
+    useAuthStore.setState({ status: 'unknown' });
+    render(<MenuBar />);
+    const githubBtn = document.querySelector('.github-btn') as HTMLElement;
+    expect(githubBtn).toBeDisabled();
+    expect(githubBtn.textContent).toContain('...');
+  });
+
+  it('clears diff mode and shows error when compare fails while diff is active', async () => {
+    const user = userEvent.setup();
+    vi.mocked(apiPost).mockRejectedValue(new Error('compare failed'));
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        backendWorkspaceId: 'backend-ws-1',
+        githubRepo: 'owner/repo',
+      },
+    });
+    useAuthStore.setState({
+      status: 'authenticated',
+      user: {
+        id: 'user-1',
+        github_username: 'octocat',
+        email: null,
+        display_name: null,
+        avatar_url: null,
+      },
+    });
+    // Pre-set diff mode to active
+    useUIStore.getState().setDiffMode(true, {
+      plates: { added: [], removed: [], modified: [] },
+      blocks: { added: [], removed: [], modified: [] },
+      connections: { added: [], removed: [], modified: [] },
+      externalActors: { added: [], removed: [], modified: [] },
+      rootChanges: [],
+      summary: { totalChanges: 0, hasBreakingChanges: false },
+    }, emptyArch);
+
+    render(<MenuBar />);
+
+    await user.click(screen.getByRole('button', { name: /octocat/ }));
+    const githubDropdown = getMenuDropdown(/octocat/);
+    await user.click(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ }));
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Compare failed. Previous diff view has been cleared.');
+    });
+    expect(useUIStore.getState().diffMode).toBe(false);
+  });
+
+  it('shows save failure toast when saveToStorage returns false', async () => {
+    const user = userEvent.setup();
+    saveToStorageMock.mockReturnValue(false);
+    render(<MenuBar />);
+
+    await user.click(screen.getByTitle('Save Workspace (Ctrl+S)'));
+    expect(toast.error).toHaveBeenCalledWith('Failed to save workspace. Storage may be full.');
+  });
+
+  it('detects stale workspace during compare and shows error', async () => {
+    const user = userEvent.setup();
+    vi.mocked(apiPost).mockImplementation(async () => {
+      // Simulate workspace change during API call
+      useArchitectureStore.setState({
+        workspace: {
+          ...useArchitectureStore.getState().workspace,
+          id: 'ws-changed',
+          backendWorkspaceId: 'backend-changed',
+        },
+      });
+      return { architecture: emptyArch };
+    });
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        backendWorkspaceId: 'backend-ws-1',
+        githubRepo: 'owner/repo',
+      },
+    });
+    useAuthStore.setState({
+      status: 'authenticated',
+      user: {
+        id: 'user-1',
+        github_username: 'octocat',
+        email: null,
+        display_name: null,
+        avatar_url: null,
+      },
+    });
+
+    render(<MenuBar />);
+
+    await user.click(screen.getByRole('button', { name: /octocat/ }));
+    const githubDropdown = getMenuDropdown(/octocat/);
+    await user.click(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ }));
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Workspace changed during compare. Please try again.');
+    });
+    expect(useUIStore.getState().diffMode).toBe(false);
+  });
 });

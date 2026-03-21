@@ -346,6 +346,135 @@ describe('GitHubSync', () => {
     resolvePost({ message: 'ok', commit_sha: 'abc' });
   });
 
+  it('shows sign-in button when unauthenticated and navigates to login', async () => {
+    const user = userEvent.setup();
+    useAuthStore.setState({ status: 'anonymous' });
+    render(<GitHubSync />);
+    const signInBtn = screen.getByRole('button', { name: 'Sign in with GitHub' });
+    expect(signInBtn).toBeInTheDocument();
+    await user.click(signInBtn);
+    expect(useUIStore.getState().showGitHubLogin).toBe(true);
+  });
+
+  it('shows checking authentication message when auth status is unknown', () => {
+    useAuthStore.setState({ status: 'unknown' });
+    render(<GitHubSync />);
+    expect(screen.getByText('Checking authentication...')).toBeInTheDocument();
+  });
+
+  it('displays workspace name in the header', () => {
+    render(<GitHubSync />);
+    expect(screen.getByText(/GitHub Sync/)).toBeInTheDocument();
+    expect(screen.getByText(/My Workspace/)).toBeInTheDocument();
+  });
+
+  it('shows success toast with commit SHA after sync', async () => {
+    const toastModule = await import('react-hot-toast');
+    const toastSpy = vi.spyOn(toastModule.toast, 'success');
+    const user = userEvent.setup();
+    mockApiPost.mockResolvedValue({ message: 'ok', commit_sha: 'abc1234567890' });
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+    await user.click(await screen.findByRole('button', { name: 'Sync to GitHub' }));
+
+    await waitFor(() => {
+      expect(toastSpy).toHaveBeenCalledWith(expect.stringContaining('abc1234'));
+    });
+    toastSpy.mockRestore();
+  });
+
+  it('shows success toast after pull', async () => {
+    const toastModule = await import('react-hot-toast');
+    const toastSpy = vi.spyOn(toastModule.toast, 'success');
+    const user = userEvent.setup();
+    const archPayload = { id: 'pulled', name: 'Pulled', version: '1.0.0', plates: [], blocks: [], connections: [], externalActors: [], createdAt: '', updatedAt: '' };
+    mockApiPost.mockResolvedValue({ architecture: archPayload });
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+    await user.click(await screen.findByRole('button', { name: 'Pull from GitHub' }));
+    await user.click(await screen.findByRole('button', { name: 'Confirm Pull' }));
+
+    await waitFor(() => {
+      expect(toastSpy).toHaveBeenCalledWith('Pulled latest architecture from GitHub.');
+    });
+    toastSpy.mockRestore();
+  });
+
+  it('shows success toast after linking repo', async () => {
+    const toastModule = await import('react-hot-toast');
+    const toastSpy = vi.spyOn(toastModule.toast, 'success');
+    const user = userEvent.setup();
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+
+    await waitFor(() => {
+      expect(toastSpy).toHaveBeenCalledWith(expect.stringContaining('Linked to owner/repo-one'));
+    });
+    toastSpy.mockRestore();
+  });
+
+  it('shows linked branch when githubBranch is set', async () => {
+    const user = userEvent.setup();
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+
+    // Set githubBranch in store
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        githubBranch: 'develop',
+      },
+    });
+
+    // Re-render to show branch
+    const { container } = render(<GitHubSync />);
+    expect(container.querySelector('.github-sync-branch')).not.toBeNull();
+  });
+
+  it('shows backend workspace ID when set', async () => {
+    const user = userEvent.setup();
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.type(screen.getByPlaceholderText('ws-1'), 'custom-backend-id');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/custom-backend-id/)).toBeInTheDocument();
+    });
+  });
+
+  it('blocks pull during diff review', async () => {
+    const toastModule = await import('react-hot-toast');
+    const toastErrorSpy = vi.spyOn(toastModule.toast, 'error');
+    const user = userEvent.setup();
+    useUIStore.setState({ diffMode: true });
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+    await user.click(await screen.findByRole('button', { name: 'Pull from GitHub' }));
+
+    expect(toastErrorSpy).toHaveBeenCalledWith('Exit diff review before pulling from GitHub.');
+    // Pull confirm should not appear
+    expect(screen.queryByRole('button', { name: 'Confirm Pull' })).not.toBeInTheDocument();
+    toastErrorSpy.mockRestore();
+  });
+
   it('ignores stale commit responses after workspace changes', async () => {
     const user = userEvent.setup();
     let resolveCommits!: (value: { commits: Array<{ sha: string; message: string; author: string; date: string }> }) => void;

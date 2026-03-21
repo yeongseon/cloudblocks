@@ -284,6 +284,86 @@ describe('GitHubPR', () => {
     });
   });
 
+  it('shows sign-in button when unauthenticated and navigates to login', async () => {
+    const user = userEvent.setup();
+    useAuthStore.setState({ status: 'anonymous' });
+    render(<GitHubPR />);
+    const signInBtn = screen.getByRole('button', { name: 'Sign in with GitHub' });
+    expect(signInBtn).toBeInTheDocument();
+    await user.click(signInBtn);
+    expect(useUIStore.getState().showGitHubLogin).toBe(true);
+  });
+
+  it('shows blocked state when githubRepo is missing and routes to sync', async () => {
+    const user = userEvent.setup();
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        backendWorkspaceId: 'backend-ws-1',
+        githubRepo: undefined,
+      },
+    });
+    render(<GitHubPR />);
+    expect(screen.getByText('Workspace must be linked to a GitHub repository before creating a pull request.')).toBeInTheDocument();
+    const openSyncBtn = screen.getByRole('button', { name: 'Open GitHub Sync' });
+    await user.click(openSyncBtn);
+    expect(useUIStore.getState().showGitHubPR).toBe(false);
+    expect(useUIStore.getState().showGitHubSync).toBe(true);
+  });
+
+  it('disables form fields during submission', async () => {
+    const user = userEvent.setup();
+    let resolvePost!: (value: unknown) => void;
+    mockApiPost.mockReturnValue(new Promise((r) => { resolvePost = r; }));
+
+    render(<GitHubPR />);
+    await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
+
+    expect(screen.getByLabelText('Title')).toBeDisabled();
+    expect(screen.getByLabelText('Body (optional)')).toBeDisabled();
+    expect(screen.getByLabelText('Branch name (optional)')).toBeDisabled();
+    expect(screen.getByLabelText('Commit message')).toBeDisabled();
+    resolvePost({ pull_request_url: 'https://github.com/owner/repo/pull/42', number: 42, branch: 'main' });
+  });
+
+  it('clears stale result when form field changes', async () => {
+    const user = userEvent.setup();
+    mockApiPost.mockResolvedValue({
+      pull_request_url: 'https://github.com/owner/repo/pull/42',
+      number: 42,
+      branch: 'cloudblocks/update',
+    });
+
+    render(<GitHubPR />);
+    await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
+
+    expect(await screen.findByText('https://github.com/owner/repo/pull/42')).toBeInTheDocument();
+
+    // Now change a field - result should clear
+    await user.type(screen.getByLabelText('Title'), ' updated');
+    expect(screen.queryByText('https://github.com/owner/repo/pull/42')).not.toBeInTheDocument();
+  });
+
+  it('displays workspace name in header', () => {
+    render(<GitHubPR />);
+    const title = document.querySelector('.github-pr-title') as HTMLElement;
+    expect(title).toBeInTheDocument();
+    expect(title.textContent).toContain('Pull Request');
+    expect(title.textContent).toContain('Workspace');
+  });
+
+  it('shows repo context with linked branch', () => {
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        githubBranch: 'develop',
+      },
+    });
+    render(<GitHubPR />);
+    expect(screen.getByText('owner/repo')).toBeInTheDocument();
+    expect(screen.getByText('develop')).toBeInTheDocument();
+  });
+
   it('blocks submission when backendWorkspaceId is not set', async () => {
     useArchitectureStore.setState({
       workspace: {

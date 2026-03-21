@@ -1497,6 +1497,47 @@ describe('architectureStore', () => {
     });
   });
 
+  describe('setGithubBranch', () => {
+    it('sets githubBranch on the current workspace', () => {
+      const wsId = getState().workspace.id;
+      getState().setGithubBranch(wsId, 'main');
+
+      expect(getState().workspace.githubBranch).toBe('main');
+    });
+
+    it('does not modify current workspace when updating a non-current workspace', () => {
+      getState().createWorkspace('Second');
+      const secondId = getState().workspace.id;
+      const firstId = getState().workspaces.find((ws) => ws.id !== secondId)!.id;
+
+      getState().setGithubBranch(firstId, 'develop');
+
+      expect(getState().workspace.githubBranch).toBeUndefined();
+      const firstInList = getState().workspaces.find((ws) => ws.id === firstId);
+      expect(firstInList?.githubBranch).toBe('develop');
+    });
+
+    it('persists the update to storage', () => {
+      const spy = vi.spyOn(localStorage, 'setItem');
+      const wsId = getState().workspace.id;
+
+      getState().setGithubBranch(wsId, 'feature/test');
+
+      const workspaceCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:workspaces');
+      expect(workspaceCalls.length).toBeGreaterThan(0);
+      spy.mockRestore();
+    });
+
+    it('clears githubBranch when set to undefined', () => {
+      const wsId = getState().workspace.id;
+      getState().setGithubBranch(wsId, 'main');
+      expect(getState().workspace.githubBranch).toBe('main');
+
+      getState().setGithubBranch(wsId, undefined);
+      expect(getState().workspace.githubBranch).toBeUndefined();
+    });
+  });
+
   describe('importArchitecture', () => {
     it('imports a valid architecture JSON and returns null', () => {
       const arch = {

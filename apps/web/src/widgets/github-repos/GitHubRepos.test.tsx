@@ -7,8 +7,22 @@ vi.mock('../../shared/api/client', () => ({
 }));
 import { GitHubRepos } from './GitHubRepos';
 import { useAuthStore } from '../../entities/store/authStore';
+import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { apiGet, apiPost } from '../../shared/api/client';
+import type { ArchitectureModel } from '@cloudblocks/schema';
+
+const emptyArch: ArchitectureModel = {
+  id: 'arch-1',
+  name: 'Test',
+  version: '1.0.0',
+  plates: [],
+  blocks: [],
+  connections: [],
+  externalActors: [],
+  createdAt: '',
+  updatedAt: '',
+};
 
 describe('GitHubRepos', () => {
   const mockApiGet = vi.mocked(apiGet);
@@ -16,7 +30,7 @@ describe('GitHubRepos', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    useUIStore.setState({ showGitHubRepos: true });
+    useUIStore.setState({ showGitHubRepos: true, showGitHubSync: false, showGitHubLogin: false });
     useAuthStore.setState({
       status: 'authenticated',
       user: null,
@@ -268,5 +282,89 @@ describe('GitHubRepos', () => {
 
     expect(screen.getByPlaceholderText('Repository name')).toHaveValue('');
     expect(screen.queryByText('repo')).not.toBeInTheDocument();
+  });
+
+  it('shows sign-in button when unauthenticated and navigates to login', async () => {
+    const user = userEvent.setup();
+    useAuthStore.setState({ status: 'anonymous' });
+    render(<GitHubRepos />);
+    const signInBtn = screen.getByRole('button', { name: 'Sign in with GitHub' });
+    expect(signInBtn).toBeInTheDocument();
+    await user.click(signInBtn);
+    expect(useUIStore.getState().showGitHubLogin).toBe(true);
+  });
+
+  it('shows checking authentication message when auth status is unknown', () => {
+    useAuthStore.setState({ status: 'unknown' });
+    render(<GitHubRepos />);
+    expect(screen.getByText('Checking authentication...')).toBeInTheDocument();
+  });
+
+  it('selects a repo and links it to the workspace with existing backendWorkspaceId', async () => {
+    const user = userEvent.setup();
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test',
+        architecture: emptyArch,
+        createdAt: '',
+        updatedAt: '',
+        backendWorkspaceId: 'backend-ws-1',
+      },
+    });
+    mockApiGet.mockResolvedValueOnce({
+      repos: [
+        {
+          full_name: 'owner/repo-one',
+          name: 'repo-one',
+          private: false,
+          default_branch: 'main',
+          html_url: 'https://github.com/owner/repo-one',
+        },
+      ],
+    });
+
+    render(<GitHubRepos />);
+
+    const useBtn = await screen.findByTitle('Link owner/repo-one to this workspace');
+    await user.click(useBtn);
+
+    expect(useArchitectureStore.getState().workspace.githubRepo).toBe('owner/repo-one');
+    expect(useUIStore.getState().showGitHubRepos).toBe(false);
+    expect(useUIStore.getState().showGitHubSync).toBe(true);
+  });
+
+  it('selects a repo and falls back to workspace.id as backendWorkspaceId', async () => {
+    const user = userEvent.setup();
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test',
+        architecture: emptyArch,
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+    mockApiGet.mockResolvedValueOnce({
+      repos: [
+        {
+          full_name: 'owner/repo-two',
+          name: 'repo-two',
+          private: true,
+          default_branch: 'main',
+          html_url: 'https://github.com/owner/repo-two',
+        },
+      ],
+    });
+
+    render(<GitHubRepos />);
+
+    const useBtn = await screen.findByTitle('Link owner/repo-two to this workspace');
+    await user.click(useBtn);
+
+    expect(useArchitectureStore.getState().workspace.githubRepo).toBe('owner/repo-two');
+    expect(useArchitectureStore.getState().workspace.backendWorkspaceId).toBe('ws-1');
+    expect(useUIStore.getState().showGitHubRepos).toBe(false);
+    expect(useUIStore.getState().showGitHubSync).toBe(true);
   });
 });
