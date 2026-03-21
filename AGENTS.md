@@ -120,22 +120,31 @@ zundo        — Zustand undo/redo middleware
 
 When all issues in a milestone are closed, perform the following release steps:
 
-1. **Version bump**: Update `version` in `package.json` to `0.{milestone}.0` (e.g., Milestone 17 → `0.17.0`).
-2. **CHANGELOG**: Add a new section to `CHANGELOG.md` with the milestone title, date, and a summary of changes.
-3. **Commit**: Create a release commit on the PR branch (e.g., `chore: release v0.17.0`).
-4. **Merge**: Squash-merge the PR to `main` with `--admin --delete-branch`.
-5. **Tag**: Create an annotated git tag on the merge commit: `git tag -a v0.{milestone}.0 -m "v0.{milestone}.0 — {milestone title}"`.
-6. **Push tag**: `git push origin v0.{milestone}.0`.
-7. **GitHub Release**: `gh release create v0.{milestone}.0 --title "v0.{milestone}.0 — {milestone title}" --notes-file -` using the CHANGELOG section as body.
-8. **Close milestone**: `gh api repos/{owner}/{repo}/milestones/{number} -X PATCH -f state=closed`.
-9. **CI cleanup**: Purge stale GitHub Actions caches and artifacts to stay within storage limits:
+1. **Demo verification (MANDATORY)**: Before any release, verify the live demo works correctly:
+   - Build the app: `pnpm build`
+   - Serve the built app locally (e.g., `npx serve apps/web/dist`)
+   - Open the app in a browser (Playwright or manual) and verify:
+     - App loads without console errors
+     - Existing localStorage data (if any) loads and renders correctly
+     - Core flows work: create workspace, place plate, place block, create connection
+     - Templates load and render correctly
+   - **A release that has not passed demo verification is a blocking defect.** Do not proceed with tagging or publishing until verification passes.
+2. **Version bump**: Update `version` in `package.json` to `0.{milestone}.0` (e.g., Milestone 17 → `0.17.0`).
+3. **CHANGELOG**: Add a new section to `CHANGELOG.md` with the milestone title, date, and a summary of changes.
+4. **Commit**: Create a release commit on the PR branch (e.g., `chore: release v0.17.0`).
+5. **Merge**: Squash-merge the PR to `main` with `--admin --delete-branch`.
+6. **Tag**: Create an annotated git tag on the merge commit: `git tag -a v0.{milestone}.0 -m "v0.{milestone}.0 — {milestone title}"`.
+7. **Push tag**: `git push origin v0.{milestone}.0`.
+8. **GitHub Release**: `gh release create v0.{milestone}.0 --title "v0.{milestone}.0 — {milestone title}" --notes-file -` using the CHANGELOG section as body.
+9. **Close milestone**: `gh api repos/{owner}/{repo}/milestones/{number} -X PATCH -f state=closed`.
+10. **CI cleanup**: Purge stale GitHub Actions caches and artifacts to stay within storage limits:
    ```bash
    # Delete all caches except the latest per key prefix on refs/heads/main
    gh api repos/{owner}/{repo}/actions/caches --paginate --jq '.actions_caches[] | select(.ref != "refs/heads/main") | .id' | while read id; do gh api -X DELETE "repos/{owner}/{repo}/actions/caches/$id"; done
    # Delete all artifacts except the 3 most recent
    gh api repos/{owner}/{repo}/actions/artifacts --paginate --jq '[.artifacts[].id] | .[3:] | .[]' | while read id; do gh api -X DELETE "repos/{owner}/{repo}/actions/artifacts/$id"; done
    ```
-10. **Roadmap sync**: Update `docs/concept/ROADMAP.md` per the Roadmap synchronization rules above.
+11. **Roadmap sync**: Update `docs/concept/ROADMAP.md` per the Roadmap synchronization rules above.
 
 Versioning convention: **Milestone N = v0.N.0**. Patch releases (v0.N.1, v0.N.2) are reserved for hotfixes. See `docs/design/RELEASE_GATES.md` for gate checks.
 

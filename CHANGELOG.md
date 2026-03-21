@@ -7,6 +7,20 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 ---
 
 
+
+## [v0.19.1] — 2026-03-22
+
+**Hotfix — Schema Migration Crash**
+
+Fixed a crash when loading localStorage data saved under schema v2.0.0 (10-category system). Old category names (`database`, `storage`, `gateway`, `function`, `queue`, `event`, `analytics`, `identity`, `observability`) were not remapped to the new 7-category system, causing `getBlockVisualProfile()` to return `undefined` and crashing `BlockSvg` rendering.
+
+### Bug Fix
+- Add `LEGACY_CATEGORY_MAP` to `schema.ts` to remap old 10-category names during deserialization (#1126)
+- Remap categories on both freshly-migrated and already-persisted nodes
+- Add `'2.0.0'` to `SUPPORTED_VERSIONS` for explicit migration support
+- Add defensive fallback in `getBlockVisualProfile()` and `getBlockDimensions()` for unknown categories
+- Add 3 new tests covering legacy category migration paths
+
 ## [v0.19.0] — 2026-03-22
 
 **Milestone 19 — Resource Category Realignment + Cleanup**
