@@ -72,6 +72,24 @@ function App() {
   const showRollbackDialog = usePromoteStore((s) => s.showRollbackDialog);
   const showPromoteHistory = usePromoteStore((s) => s.showPromoteHistory);
 
+  // Determine right-panel CSS class so canvas viewport shrinks accordingly
+  const isWideRightPanel = showOpsCenter || showPromoteHistory;
+  const isNarrowRightPanel =
+    showCodePreview ||
+    showGitHubLogin ||
+    showGitHubRepos ||
+    showGitHubPR ||
+    showSuggestionsPanel ||
+    showCostPanel ||
+    showNotificationCenter ||
+    showPromoteDialog ||
+    showRollbackDialog;
+  const rightPanelClass = isWideRightPanel
+    ? ' right-panel-wide'
+    : isNarrowRightPanel
+      ? ' right-panel-open'
+      : '';
+
   useEffect(() => {
     audioService.preloadAll(SOUND_ASSETS).catch(() => {});
   }, []);

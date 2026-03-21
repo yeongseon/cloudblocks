@@ -1,6 +1,5 @@
 import { Minimap } from './Minimap';
 import { DetailPanel } from './DetailPanel';
-import { Portrait } from './Portrait';
 import { CommandCard } from './CommandCard';
 import { useUIStore } from '../../entities/store/uiStore';
 import './BottomPanel.css';
@@ -19,7 +18,6 @@ export function BottomPanel({ className = '' }: BottomPanelProps) {
       <div className={`bottom-panel ${isBuildOrderOpen ? 'bottom-panel--build-order-open' : ''} ${className}`}>
         <Minimap className="bottom-panel-minimap" />
         {showProperties && <DetailPanel className="bottom-panel-detail" />}
-        <Portrait className="bottom-panel-portrait" />
         {isBuildOrderOpen && <CommandCard className="bottom-panel-command" />}
       </div>
       {!isBuildOrderOpen && (
