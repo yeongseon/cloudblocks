@@ -7,6 +7,9 @@ import { useLearningStore } from '../../entities/store/learningStore';
 import { validateArchitectureShape } from '../../entities/store/slices';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { useNotificationStore } from '../../entities/store/notificationStore';
+import { useOpsStore } from '../../entities/store/opsStore';
+import { usePromoteStore } from '../../entities/store/promoteStore';
 import { computeArchitectureDiff } from '../../features/diff/engine';
 import { apiPost, getApiErrorMessage } from '../../shared/api/client';
 import { confirmDialog } from '../../shared/ui/ConfirmDialog';
@@ -53,6 +56,14 @@ export function MenuBar() {
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
   const toggleSound = useUIStore((s) => s.toggleSound);
   const playSound = (name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); };
+
+  const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const toggleOpsCenter = useOpsStore((s) => s.toggleOpsCenter);
+  const togglePromoteDialog = usePromoteStore((s) => s.togglePromoteDialog);
+  const toggleRollbackDialog = usePromoteStore((s) => s.toggleRollbackDialog);
+  const togglePromoteHistory = usePromoteStore((s) => s.togglePromoteHistory);
+  const toggleNotificationCenter = useNotificationStore((s) => s.toggleNotificationCenter);
+  const showNotificationCenter = useNotificationStore((s) => s.showNotificationCenter);
 
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
   const authStatus = useAuthStore((s) => s.status);
@@ -221,6 +232,19 @@ export function MenuBar() {
   const handleToggleSound = () => {
     toggleSound();
     audioService.setMuted(!isSoundMuted);
+  };
+
+  const handleToggleNotifications = () => {
+    // Close other right panels when opening notification center
+    if (!showNotificationCenter) {
+      const ui = useUIStore.getState();
+      if (ui.showCodePreview) ui.toggleCodePreview();
+      if (ui.showGitHubRepos) ui.toggleGitHubRepos();
+      if (ui.showGitHubPR) ui.toggleGitHubPR();
+      if (ui.showSuggestionsPanel) ui.toggleSuggestionsPanel();
+      if (ui.showCostPanel) ui.toggleCostPanel();
+    }
+    toggleNotificationCenter();
   };
 
   const handleCompareWithGitHub = async () => {
@@ -397,6 +421,19 @@ export function MenuBar() {
             <button type="button" className="menu-item" onClick={() => handleAction(toggleCostPanel)}>
               <span className="menu-item-left">💰 Cost Estimate</span>
             </button>
+            <button type="button" className="menu-item" onClick={() => handleAction(toggleOpsCenter)}>
+              <span className="menu-item-left">&#9881; Ops Center</span>
+            </button>
+            <div className="menu-separator" />
+            <button type="button" className="menu-item" onClick={() => handleAction(togglePromoteDialog)}>
+              <span className="menu-item-left">&#x2B06; Promote to Production</span>
+            </button>
+            <button type="button" className="menu-item" onClick={() => handleAction(toggleRollbackDialog)}>
+              <span className="menu-item-left">&#x2B07; Rollback Production</span>
+            </button>
+            <button type="button" className="menu-item" onClick={() => handleAction(togglePromoteHistory)}>
+              <span className="menu-item-left">&#x1F4CB; Promotion History</span>
+            </button>
             <div className="menu-separator" />
             <button type="button" className="menu-item" onClick={() => handleAction(toggleScenarioGallery)}>
               <span className="menu-item-left">📚 Browse Scenarios</span>
@@ -491,6 +528,25 @@ export function MenuBar() {
           title="Save Workspace (Ctrl+S)"
         >
           💾
+        </button>
+        <button
+          type="button"
+          className="quick-btn"
+          onClick={toggleOpsCenter}
+          title="Ops Center"
+        >
+          &#9881;
+        </button>
+        <button
+          type="button"
+          className="quick-btn notification-bell-btn"
+          onClick={handleToggleNotifications}
+          title="Notifications"
+        >
+          🔔
+          {unreadCount() > 0 && (
+            <span className="notification-badge">{unreadCount() > 99 ? '99+' : unreadCount()}</span>
+          )}
         </button>
         <button
           type="button"

@@ -18,6 +18,7 @@ vi.mock('uuid', () => ({
 }));
 
 import { useArchitectureStore } from './architectureStore';
+import { useUIStore } from './uiStore';
 
 function getState() {
   return useArchitectureStore.getState();
@@ -25,6 +26,31 @@ function getState() {
 
 function getArch(): ArchitectureModel {
   return getState().workspace.architecture;
+}
+
+function activateDiffState() {
+  useUIStore.getState().setDiffMode(
+    true,
+    {
+      plates: { added: [], removed: [], modified: [] },
+      blocks: { added: [], removed: [], modified: [] },
+      connections: { added: [], removed: [], modified: [] },
+      externalActors: { added: [], removed: [], modified: [] },
+      rootChanges: [],
+      summary: { totalChanges: 0, hasBreakingChanges: false },
+    },
+    {
+      id: 'base-arch',
+      name: 'Base',
+      version: '1',
+      plates: [],
+      blocks: [],
+      connections: [],
+      externalActors: [],
+      createdAt: '2025-01-01T00:00:00Z',
+      updatedAt: '2025-01-01T00:00:00Z',
+    }
+  );
 }
 
 describe('architectureStore', () => {
@@ -60,6 +86,7 @@ describe('architectureStore', () => {
       canUndo: false,
       canRedo: false,
     });
+    useUIStore.getState().clearDiffState();
   });
 
   afterEach(() => {
@@ -1117,6 +1144,18 @@ describe('architectureStore', () => {
       expect(getState().canUndo).toBe(false);
       expect(getState().canRedo).toBe(false);
     });
+
+    it('loadFromStorage clears active diff state', () => {
+      getState().saveToStorage();
+      activateDiffState();
+
+      getState().loadFromStorage();
+
+      const uiState = useUIStore.getState();
+      expect(uiState.diffMode).toBe(false);
+      expect(uiState.diffDelta).toBe(null);
+      expect(uiState.diffBaseArchitecture).toBe(null);
+    });
   });
 
   describe('resetWorkspace', () => {
@@ -1152,6 +1191,17 @@ describe('architectureStore', () => {
       const activeIdCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:activeWorkspaceId');
       expect(activeIdCalls).toHaveLength(0);
       spy.mockRestore();
+    });
+
+    it('clears active diff state', () => {
+      activateDiffState();
+
+      getState().resetWorkspace();
+
+      const uiState = useUIStore.getState();
+      expect(uiState.diffMode).toBe(false);
+      expect(uiState.diffDelta).toBe(null);
+      expect(uiState.diffBaseArchitecture).toBe(null);
     });
   });
 
@@ -1305,6 +1355,19 @@ describe('architectureStore', () => {
         expect(activeIdCalls).toHaveLength(0);
       }
       spy.mockRestore();
+    });
+
+    it('clears active diff state when switching workspaces', () => {
+      const initialWorkspaceId = getState().workspace.id;
+      getState().createWorkspace('Second');
+      activateDiffState();
+
+      getState().switchWorkspace(initialWorkspaceId);
+
+      const uiState = useUIStore.getState();
+      expect(uiState.diffMode).toBe(false);
+      expect(uiState.diffDelta).toBe(null);
+      expect(uiState.diffBaseArchitecture).toBe(null);
     });
   });
 
@@ -1972,6 +2035,29 @@ describe('architectureStore', () => {
       expect(activeIdCalls).toHaveLength(0);
       spy.mockRestore();
     });
+
+    it('clears active diff state after successful import', () => {
+      activateDiffState();
+
+      const arch = {
+        plates: [
+          {
+            id: 'p1', name: 'Net', type: 'region', parentId: null,
+            children: [], position: { x: 0, y: 0, z: 0 },
+            size: { width: 12, height: 0.3, depth: 10 }, metadata: {},
+          },
+        ],
+        blocks: [],
+      };
+
+      const result = getState().importArchitecture(JSON.stringify(arch));
+
+      expect(result).toBeNull();
+      const uiState = useUIStore.getState();
+      expect(uiState.diffMode).toBe(false);
+      expect(uiState.diffDelta).toBe(null);
+      expect(uiState.diffBaseArchitecture).toBe(null);
+    });
   });
 
   describe('exportArchitecture', () => {
@@ -2084,6 +2170,34 @@ describe('architectureStore', () => {
       const activeIdCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:activeWorkspaceId');
       expect(activeIdCalls).toHaveLength(0);
       spy.mockRestore();
+    });
+
+    it('clears active diff state when loading a template', () => {
+      activateDiffState();
+
+      const template: ArchitectureTemplate = {
+        id: 'tmpl-clear-diff',
+        name: 'Template Clears Diff',
+        description: 'desc',
+        category: 'general',
+        difficulty: 'beginner',
+        tags: [],
+        architecture: {
+          name: 'Template',
+          version: '1',
+          plates: [],
+          blocks: [],
+          connections: [],
+          externalActors: [],
+        },
+      };
+
+      getState().loadFromTemplate(template);
+
+      const uiState = useUIStore.getState();
+      expect(uiState.diffMode).toBe(false);
+      expect(uiState.diffDelta).toBe(null);
+      expect(uiState.diffBaseArchitecture).toBe(null);
     });
   });
 

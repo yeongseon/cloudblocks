@@ -985,4 +985,134 @@ describe('MenuBar', () => {
     const badge = within(buildDropdown).getByText('Errors');
     expect(badge).toHaveClass('menu-badge-invalid');
   });
+
+  it('Ops Center button toggles ops center visibility', async () => {
+    const user = userEvent.setup();
+    render(<MenuBar />);
+
+    const buildDropdown = await openMenu(user, 'Build');
+    await user.click(within(buildDropdown).getByRole('button', { name: /Ops Center/ }));
+
+    const { useOpsStore } = await import('../../entities/store/opsStore');
+    expect(useOpsStore.getState().showOpsCenter).toBe(true);
+  });
+
+  it('Promote to Production button toggles promote dialog', async () => {
+    const user = userEvent.setup();
+    render(<MenuBar />);
+
+    const buildDropdown = await openMenu(user, 'Build');
+    await user.click(within(buildDropdown).getByRole('button', { name: /Promote to Production/ }));
+
+    const { usePromoteStore } = await import('../../entities/store/promoteStore');
+    expect(usePromoteStore.getState().showPromoteDialog).toBe(true);
+  });
+
+  it('Rollback Production button toggles rollback dialog', async () => {
+    const user = userEvent.setup();
+    render(<MenuBar />);
+
+    const buildDropdown = await openMenu(user, 'Build');
+    await user.click(within(buildDropdown).getByRole('button', { name: /Rollback Production/ }));
+
+    const { usePromoteStore } = await import('../../entities/store/promoteStore');
+    expect(usePromoteStore.getState().showRollbackDialog).toBe(true);
+  });
+
+  it('Promotion History button toggles history panel', async () => {
+    const user = userEvent.setup();
+    render(<MenuBar />);
+
+    const buildDropdown = await openMenu(user, 'Build');
+    await user.click(within(buildDropdown).getByRole('button', { name: /Promotion History/ }));
+
+    const { usePromoteStore } = await import('../../entities/store/promoteStore');
+    expect(usePromoteStore.getState().showPromoteHistory).toBe(true);
+  });
+
+  it('AI Suggestions button toggles suggestions panel', async () => {
+    const user = userEvent.setup();
+    render(<MenuBar />);
+
+    const buildDropdown = await openMenu(user, 'Build');
+    await user.click(within(buildDropdown).getByRole('button', { name: /AI Suggestions/ }));
+
+    expect(useUIStore.getState().showSuggestionsPanel).toBe(true);
+  });
+
+  it('Cost Estimate button toggles cost panel', async () => {
+    const user = userEvent.setup();
+    render(<MenuBar />);
+
+    const buildDropdown = await openMenu(user, 'Build');
+    await user.click(within(buildDropdown).getByRole('button', { name: /Cost Estimate/ }));
+
+    expect(useUIStore.getState().showCostPanel).toBe(true);
+  });
+
+  it('notification bell shows badge when unread count > 0', async () => {
+    const { useNotificationStore } = await import('../../entities/store/notificationStore');
+    useNotificationStore.getState().addNotification({
+      level: 'info',
+      category: 'system',
+      title: 'Test',
+      message: 'msg',
+    });
+    render(<MenuBar />);
+
+    const badge = screen.getByText('1');
+    expect(badge).toHaveClass('notification-badge');
+  });
+
+  it('notification bell click toggles notification center', async () => {
+    const { container } = render(<MenuBar />);
+
+    const bellButton = container.querySelector('.notification-bell-btn') as HTMLElement;
+    await userEvent.setup().click(bellButton);
+
+    const { useNotificationStore } = await import('../../entities/store/notificationStore');
+    expect(useNotificationStore.getState().showNotificationCenter).toBe(true);
+  });
+
+  it('notification bell closes other panels when opening', async () => {
+    const { useNotificationStore } = await import('../../entities/store/notificationStore');
+    useNotificationStore.setState({ showNotificationCenter: false });
+    useUIStore.setState({
+      showCodePreview: true,
+      showGitHubRepos: true,
+      showSuggestionsPanel: true,
+      showCostPanel: true,
+    });
+    const { container } = render(<MenuBar />);
+
+    const bellButton = container.querySelector('.notification-bell-btn') as HTMLElement;
+    await userEvent.setup().click(bellButton);
+
+    expect(useUIStore.getState().showCodePreview).toBe(false);
+    expect(useUIStore.getState().showGitHubRepos).toBe(false);
+    expect(useUIStore.getState().showSuggestionsPanel).toBe(false);
+    expect(useUIStore.getState().showCostPanel).toBe(false);
+  });
+
+  it('show learning panel toggles off when already shown', async () => {
+    useUIStore.setState({ showLearningPanel: true });
+    const user = userEvent.setup();
+    render(<MenuBar />);
+
+    const buildDropdown = await openMenu(user, 'Build');
+    await user.click(within(buildDropdown).getByRole('button', { name: /Show Learning Panel/ }));
+
+    expect(useUIStore.getState().showLearningPanel).toBe(false);
+  });
+
+  it('diff mode toggle disables diff mode', async () => {
+    useUIStore.setState({ diffMode: true });
+    const user = userEvent.setup();
+    render(<MenuBar />);
+
+    const viewDropdown = await openMenu(user, 'View');
+    await user.click(within(viewDropdown).getByRole('button', { name: /Diff/ }));
+
+    expect(useUIStore.getState().diffMode).toBe(false);
+  });
 });
