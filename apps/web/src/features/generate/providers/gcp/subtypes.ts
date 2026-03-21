@@ -1,4 +1,4 @@
-import type { BlockCategory } from '@cloudblocks/schema';
+import type { ResourceCategory } from '@cloudblocks/schema';
 
 export interface SubtypeEntry {
   displayName: string;
@@ -6,7 +6,7 @@ export interface SubtypeEntry {
   defaultConfig?: Record<string, unknown>;
 }
 
-export type SubtypeRegistry = Partial<Record<BlockCategory, Record<string, SubtypeEntry>>>;
+export type SubtypeRegistry = Partial<Record<ResourceCategory, Record<string, SubtypeEntry>>>;
 
 export const gcpSubtypeRegistry: SubtypeRegistry = {
   compute: {
@@ -26,7 +26,7 @@ export const gcpSubtypeRegistry: SubtypeRegistry = {
       defaultConfig: { runtime: 'nodejs20', availableMemoryMb: 256 },
     },
   },
-  database: {
+  data: {
     'cloud-sql-postgres': {
       displayName: 'Cloud SQL PostgreSQL',
       description: 'Managed PostgreSQL database',
@@ -38,13 +38,7 @@ export const gcpSubtypeRegistry: SubtypeRegistry = {
       defaultConfig: { locationId: 'us-central1' },
     },
   },
-  storage: {
-    'cloud-storage': {
-      displayName: 'Cloud Storage',
-      description: 'Object storage service',
-    },
-  },
-  gateway: {
+  edge: {
     'cloud-load-balancing': {
       displayName: 'Cloud Load Balancing',
       description: 'Global and regional load balancing',
@@ -52,6 +46,32 @@ export const gcpSubtypeRegistry: SubtypeRegistry = {
     'api-gateway': {
       displayName: 'API Gateway',
       description: 'Managed API gateway',
+    },
+  },
+  messaging: {
+    pubsub: {
+      displayName: 'Pub/Sub Topic',
+      description: 'Managed asynchronous messaging topic',
+    },
+    eventarc: {
+      displayName: 'Eventarc Trigger',
+      description: 'Event routing and trigger service',
+    },
+  },
+  security: {
+    iam: {
+      displayName: 'Service Account',
+      description: 'Identity for workloads and services',
+    },
+  },
+  operations: {
+    bigquery: {
+      displayName: 'BigQuery Dataset',
+      description: 'Analytical data warehouse dataset',
+    },
+    monitoring: {
+      displayName: 'Monitoring Dashboard',
+      description: 'Operational metrics dashboard',
     },
   },
 };
