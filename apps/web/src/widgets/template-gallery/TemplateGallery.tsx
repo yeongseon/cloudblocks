@@ -2,14 +2,8 @@ import { useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { listTemplates, listTemplatesByCategory } from '../../features/templates/registry';
-import type { ArchitectureTemplate, TemplateCategory, TemplateDifficulty } from '../../shared/types/template';
+import type { ArchitectureTemplate, TemplateCategory } from '../../shared/types/template';
 import './TemplateGallery.css';
-
-const difficultyColors: Record<TemplateDifficulty, string> = {
-  beginner: '#81C784',
-  intermediate: '#FFB74D',
-  advanced: '#E57373',
-};
 
 const categoryLabels: Record<TemplateCategory | 'all', string> = {
   all: 'All',
@@ -49,7 +43,7 @@ export function TemplateGallery() {
     <div className="template-gallery">
       <div className="template-gallery-header">
         <h3 className="template-gallery-title">📦 Templates</h3>
-        <button className="template-gallery-close" onClick={toggleTemplateGallery} aria-label="Close template gallery">
+        <button type="button" className="template-gallery-close" onClick={toggleTemplateGallery} aria-label="Close template gallery">
           ✕
         </button>
       </div>
@@ -57,6 +51,7 @@ export function TemplateGallery() {
       <div className="template-gallery-filters">
         {categoryKeys.map((key) => (
           <button
+            type="button"
             key={key}
             className={`template-gallery-filter-btn${activeCategory === key ? ' active' : ''}`}
             onClick={() => setActiveCategory(key)}
@@ -75,8 +70,7 @@ export function TemplateGallery() {
               <div className="template-gallery-card-header">
                 <span className="template-gallery-card-name">{template.name}</span>
                 <span
-                  className="template-gallery-badge"
-                  style={{ color: difficultyColors[template.difficulty] }}
+                  className={`template-gallery-badge template-gallery-badge--${template.difficulty}`}
                 >
                   {template.difficulty}
                 </span>
@@ -96,6 +90,7 @@ export function TemplateGallery() {
                   )}
                 </div>
                 <button
+                  type="button"
                   className="template-gallery-use-btn"
                   onClick={() => handleUseTemplate(template)}
                 >

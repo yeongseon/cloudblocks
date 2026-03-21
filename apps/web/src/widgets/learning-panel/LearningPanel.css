@@ -1,6 +1,6 @@
 .learning-panel-container {
   position: absolute;
-  right: 16px;
+  left: 16px;
   top: 60px;
   width: 320px;
   max-height: calc(100vh - 120px);
