@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ResourceBar } from './ResourceBar';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
+import { useUIStore } from '../../entities/store/uiStore';
 import type { ArchitectureModel, Block, Connection, Plate } from '@cloudblocks/schema';
 
 const createArchitecture = (
@@ -133,5 +134,12 @@ describe('ResourceBar', () => {
 
     await user.click(screen.getAllByText('0')[0]);
     expect(screen.getAllByText('0')).toHaveLength(3);
+  });
+
+  it('renders nothing when block palette is hidden', () => {
+    useUIStore.setState({ showBlockPalette: false });
+    const { container } = render(<ResourceBar />);
+
+    expect(container.querySelector('.resource-bar')).toBeNull();
   });
 });

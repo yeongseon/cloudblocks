@@ -1,32 +1,53 @@
 import { useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { validateArchitectureShape } from '../../entities/store/slices';
+import { computeArchitectureDiff } from '../../features/diff/engine';
 import { apiPost, getApiErrorMessage } from '../../shared/api/client';
 import { isValidGitBranchName } from '../../shared/utils/githubValidation';
-import type { PullRequestResponse } from '../../shared/types/api';
+import type { PullRequestResponse, PullResponse } from '../../shared/types/api';
+import type { ArchitectureModel } from '@cloudblocks/schema';
 import './GitHubPR.css';
 
 export function GitHubPR() {
+  const workspace = useArchitectureStore((s) => s.workspace);
+  const remountKey = `${workspace.githubRepo ?? ''}:${workspace.backendWorkspaceId ?? ''}`;
+
+  return <GitHubPRContent key={remountKey} />;
+}
+
+function GitHubPRContent() {
   const show = useUIStore((s) => s.showGitHubPR);
   const toggleGitHubPR = useUIStore((s) => s.toggleGitHubPR);
 
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
   const authStatus = useAuthStore((s) => s.status);
   const workspace = useArchitectureStore((s) => s.workspace);
+  const setLastPrResult = useArchitectureStore((s) => s.setLastPrResult);
   const hasBackendWorkspaceLink = Boolean(workspace.backendWorkspaceId);
+  const lastPrResult = workspace.lastPrResult;
 
   const [title, setTitle] = useState('Update cloud architecture');
   const [body, setBody] = useState('');
   const [branch, setBranch] = useState('');
   const [commitMessage, setCommitMessage] = useState('Update architecture via CloudBlocks');
   const [loading, setLoading] = useState(false);
+  const [comparing, setComparing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PullRequestResponse | null>(null);
   const cleanedTitle = title.trim();
   const cleanedBranch = branch.trim();
+  const cleanedCommitMessage = commitMessage.trim();
+  const baseBranch =
+    'github_branch' in workspace && typeof workspace.github_branch === 'string' && workspace.github_branch.trim().length > 0
+      ? workspace.github_branch.trim()
+      : 'main';
+  const headMatchesBaseBranch = cleanedBranch.length > 0 && cleanedBranch === baseBranch;
   const branchIsValid = !cleanedBranch || isValidGitBranchName(cleanedBranch);
-  const canSubmit = !loading && cleanedTitle.length > 0 && commitMessage.trim().length > 0 && branchIsValid && hasBackendWorkspaceLink;
+  const canSubmit = !loading && !comparing && cleanedTitle.length > 0 && cleanedCommitMessage.length > 0 && branchIsValid && !headMatchesBaseBranch && hasBackendWorkspaceLink;
+  const effectiveWorkspaceId = workspace.backendWorkspaceId || workspace.id;
 
   if (!show) return null;
 
@@ -44,6 +65,14 @@ export function GitHubPR() {
       setError('Branch name contains invalid characters or format.');
       return;
     }
+    if (cleanedBranch === baseBranch) {
+      setError('Head branch must be different from the base branch.');
+      return;
+    }
+    if (!cleanedCommitMessage) {
+      setError('Commit message is required.');
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -56,14 +85,42 @@ export function GitHubPR() {
           title: cleanedTitle,
           body,
           branch: cleanedBranch || undefined,
-          commit_message: commitMessage,
+          commit_message: cleanedCommitMessage,
         }
       );
       setResult(response);
+      setLastPrResult(workspace.id, {
+        url: response.pull_request_url,
+        number: response.number,
+        branch: response.branch,
+        createdAt: new Date().toISOString(),
+      });
     } catch (err) {
       setError(getApiErrorMessage(err, 'Failed to create pull request.'));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCompareWithGitHub = async () => {
+    const backendWorkspaceId = workspace.backendWorkspaceId;
+    if (!backendWorkspaceId) return;
+
+    setComparing(true);
+    setError(null);
+    try {
+      const response = await apiPost<PullResponse>(
+        `/api/v1/workspaces/${encodeURIComponent(backendWorkspaceId)}/pull`,
+      );
+      validateArchitectureShape(response.architecture);
+      const remoteArch = response.architecture as unknown as ArchitectureModel;
+      const localArch = useArchitectureStore.getState().workspace.architecture;
+      const delta = computeArchitectureDiff(remoteArch, localArch);
+      useUIStore.getState().setDiffMode(true, delta, remoteArch);
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to fetch remote architecture'));
+    } finally {
+      setComparing(false);
     }
   };
 
@@ -85,7 +142,37 @@ export function GitHubPR() {
       ) : (
         <div className="github-pr-content">
           {loading && <div className="github-pr-loading">Loading...</div>}
+          {comparing && <div className="github-pr-loading">Comparing with GitHub...</div>}
           {error && <div className="github-pr-error">{error}</div>}
+          <div className="github-pr-meta">
+            Workspace ID: <code>{effectiveWorkspaceId}</code>
+            {workspace.githubRepo ? (
+              <>
+                {' · '}Repo: <code>{workspace.githubRepo}</code>
+              </>
+            ) : null}
+          </div>
+
+          <div className="github-pr-arch-summary">
+            Local: {workspace.architecture.plates.length} plates · {workspace.architecture.blocks.length} blocks · {workspace.architecture.connections.length} connections
+          </div>
+
+          <div className="github-pr-baseline">
+            Base branch: <code>{baseBranch}</code>
+            {workspace.githubRepo ? <> · Repo: <code>{workspace.githubRepo}</code></> : null}
+          </div>
+
+          {lastPrResult && !result && (
+            <div className="github-pr-recent-pr">
+              <span className="github-pr-recent-pr-label">Recent PR:</span>
+              {' '}
+              <a href={lastPrResult.url} target="_blank" rel="noreferrer">
+                #{lastPrResult.number}
+              </a>
+              {' · '}Branch: <code>{lastPrResult.branch}</code>
+              {' · '}{new Date(lastPrResult.createdAt).toLocaleDateString()}
+            </div>
+          )}
 
           <label className="github-pr-label" htmlFor="github-pr-title">
             Title
@@ -119,6 +206,7 @@ export function GitHubPR() {
             placeholder="cloudblocks/update-architecture"
           />
           {!branchIsValid && <div className="github-pr-error">Branch name contains invalid characters or format.</div>}
+          {headMatchesBaseBranch && <div className="github-pr-error">Head branch must be different from the base branch.</div>}
 
           <label className="github-pr-label" htmlFor="github-pr-commit-message">
             Commit message
@@ -130,9 +218,14 @@ export function GitHubPR() {
             onChange={(e) => setCommitMessage(e.target.value)}
           />
 
-          <button type="button" className="github-pr-submit" onClick={handleSubmit} disabled={!canSubmit}>
-            Create Pull Request
-          </button>
+          <div className="github-pr-actions">
+            <button type="button" className="github-pr-submit" onClick={handleSubmit} disabled={!canSubmit}>
+              Create Pull Request
+            </button>
+            <button type="button" className="github-pr-compare-btn" onClick={() => void handleCompareWithGitHub()} disabled={loading || comparing}>
+              Compare with GitHub
+            </button>
+          </div>
 
           {result && (
             <div className="github-pr-result">

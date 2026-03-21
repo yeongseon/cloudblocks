@@ -67,7 +67,9 @@ describe('GitHubLogin', () => {
 
   it('sign out calls logout from authStore and closes panel', async () => {
     const user = userEvent.setup();
-    const logoutMock = vi.fn();
+    const logoutMock = vi.fn(async () => {
+      useAuthStore.setState({ status: 'anonymous', user: null });
+    });
     useAuthStore.setState({
       status: 'authenticated',
       user: {
@@ -85,6 +87,30 @@ describe('GitHubLogin', () => {
 
     expect(logoutMock).toHaveBeenCalledOnce();
     expect(useUIStore.getState().showGitHubLogin).toBe(false);
+  });
+
+  it('keeps panel open when sign out does not change authenticated status', async () => {
+    const user = userEvent.setup();
+    const logoutMock = vi.fn(async () => {
+      useAuthStore.setState({ status: 'authenticated', error: 'Logout failed. Checking session…' });
+    });
+    useAuthStore.setState({
+      status: 'authenticated',
+      user: {
+        id: 'user-1',
+        github_username: 'octocat',
+        email: null,
+        display_name: 'The Octocat',
+        avatar_url: null,
+      },
+      logout: logoutMock,
+    });
+
+    render(<GitHubLogin />);
+    await user.click(screen.getByRole('button', { name: 'Sign Out' }));
+
+    expect(logoutMock).toHaveBeenCalledOnce();
+    expect(useUIStore.getState().showGitHubLogin).toBe(true);
   });
 
   it('shows error when sign in fails', async () => {

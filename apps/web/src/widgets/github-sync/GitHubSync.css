@@ -234,3 +234,18 @@
 .github-sync-commit-link:hover {
   text-decoration: underline;
 }
+
+.github-sync-arch-summary {
+  font-size: 11px;
+  color: #8e95b8;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid #333366;
+  border-radius: 4px;
+}
+
+.github-sync-reconciliation {
+  font-size: 11px;
+  color: #9aa4d1;
+  padding: 4px 8px;
+}
