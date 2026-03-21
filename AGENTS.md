@@ -128,7 +128,14 @@ When all issues in a milestone are closed, perform the following release steps:
 6. **Push tag**: `git push origin v0.{milestone}.0`.
 7. **GitHub Release**: `gh release create v0.{milestone}.0 --title "v0.{milestone}.0 — {milestone title}" --notes-file -` using the CHANGELOG section as body.
 8. **Close milestone**: `gh api repos/{owner}/{repo}/milestones/{number} -X PATCH -f state=closed`.
-9. **Roadmap sync**: Update `docs/concept/ROADMAP.md` per the Roadmap synchronization rules above.
+9. **CI cleanup**: Purge stale GitHub Actions caches and artifacts to stay within storage limits:
+   ```bash
+   # Delete all caches except the latest per key prefix on refs/heads/main
+   gh api repos/{owner}/{repo}/actions/caches --paginate --jq '.actions_caches[] | select(.ref != "refs/heads/main") | .id' | while read id; do gh api -X DELETE "repos/{owner}/{repo}/actions/caches/$id"; done
+   # Delete all artifacts except the 3 most recent
+   gh api repos/{owner}/{repo}/actions/artifacts --paginate --jq '[.artifacts[].id] | .[3:] | .[]' | while read id; do gh api -X DELETE "repos/{owner}/{repo}/actions/artifacts/$id"; done
+   ```
+10. **Roadmap sync**: Update `docs/concept/ROADMAP.md` per the Roadmap synchronization rules above.
 
 Versioning convention: **Milestone N = v0.N.0**. Patch releases (v0.N.1, v0.N.2) are reserved for hotfixes. See `docs/design/RELEASE_GATES.md` for gate checks.
 
