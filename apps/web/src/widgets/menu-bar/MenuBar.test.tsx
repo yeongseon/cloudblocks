@@ -680,21 +680,21 @@ describe('MenuBar', () => {
     expect(useUIStore.getState().showValidation).toBe(true);
   });
 
-  it('handles View menu toggle for Block Palette', async () => {
+  it('handles View menu toggle for Resource Counter', async () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
     const viewDropdown = await openMenu(user, 'View');
-    await user.click(within(viewDropdown).getByRole('button', { name: /Block Palette/ }));
+    await user.click(within(viewDropdown).getByRole('button', { name: /Resource Counter/ }));
     expect(useUIStore.getState().showBlockPalette).toBe(false);
   });
 
-  it('handles View menu toggle for Properties Panel', async () => {
+  it('handles View menu toggle for Inspector', async () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
     const viewDropdown = await openMenu(user, 'View');
-    await user.click(within(viewDropdown).getByRole('button', { name: /Properties Panel/ }));
+    await user.click(within(viewDropdown).getByRole('button', { name: /Inspector/ }));
     expect(useUIStore.getState().showProperties).toBe(false);
   });
 

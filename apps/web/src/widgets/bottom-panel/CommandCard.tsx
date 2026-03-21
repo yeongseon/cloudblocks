@@ -94,7 +94,7 @@ export function CommandCard({ className = '' }: CommandCardProps) {
     ? 'Block Actions'
     : selectedPlate
       ? 'Plate Actions'
-      : 'Create Resource';
+      : 'Command Panel';
 
   const modeContent = selectedBlock
     ? <BlockMode />

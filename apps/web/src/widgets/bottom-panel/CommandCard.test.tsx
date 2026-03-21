@@ -110,7 +110,7 @@ describe('CommandCard', () => {
 
   // --- Creation Grid (default mode) ---
 
-  it('renders creation grid with "Create Resource" header when nothing is selected', () => {
+  it('renders creation grid with "Command Panel" header when nothing is selected', () => {
     useArchitectureStore.setState({
       workspace: {
         id: 'ws-1',
@@ -126,7 +126,7 @@ describe('CommandCard', () => {
 
     render(<CommandCard />);
 
-    expect(screen.getByText('Create Resource')).toBeInTheDocument();
+    expect(screen.getByText('Command Panel')).toBeInTheDocument();
     expect(screen.queryByText(/Select a block/)).not.toBeInTheDocument();
   });
 
@@ -146,7 +146,7 @@ describe('CommandCard', () => {
 
     render(<CommandCard />);
 
-    expect(screen.getByText('Create Resource')).toBeInTheDocument();
+    expect(screen.getByText('Command Panel')).toBeInTheDocument();
     const resourceButtons = screen.getAllByRole('button');
     expect(resourceButtons.length).toBeGreaterThan(0);
   });
@@ -154,7 +154,7 @@ describe('CommandCard', () => {
   it('shows disabled resource buttons when no VNet exists', () => {
     render(<CommandCard />);
 
-    expect(screen.getByText('Create Resource')).toBeInTheDocument();
+    expect(screen.getByText('Command Panel')).toBeInTheDocument();
     const disabledButtons = screen.getAllByRole('button', { name: /Needs:/ });
     expect(disabledButtons.length).toBeGreaterThan(0);
     for (const btn of disabledButtons) {
@@ -482,7 +482,7 @@ describe('CommandCard', () => {
     });
 
     const { rerender } = render(<CommandCard />);
-    expect(screen.getByText('Create Resource')).toBeInTheDocument();
+    expect(screen.getByText('Command Panel')).toBeInTheDocument();
 
     act(() => {
       useUIStore.setState({ selectedId: 'block-1' });
@@ -500,6 +500,6 @@ describe('CommandCard', () => {
       useUIStore.setState({ selectedId: null });
     });
     rerender(<CommandCard />);
-    expect(screen.getByText('Create Resource')).toBeInTheDocument();
+    expect(screen.getByText('Command Panel')).toBeInTheDocument();
   });
 });

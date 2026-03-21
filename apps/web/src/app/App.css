@@ -27,7 +27,7 @@
 }
 
 .canvas-container.learn-mode-active {
-  padding-right: 320px;
+  padding-right: 380px;
   transition: padding-right 0.3s ease;
 }
 

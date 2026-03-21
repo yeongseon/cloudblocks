@@ -55,14 +55,7 @@
   border-right: none;
 }
 
-/* Learn mode: offset CommandCard sidebar so it doesn't overlap LearningPanel (320px + 16px margin) */
-.learn-mode-active .bottom-panel--command-open {
-  right: 716px;
-}
 
-.learn-mode-active .bottom-panel--command-open .bottom-panel-command {
-  right: 336px;
-}
 
 /* Responsive behavior — VISUAL_DESIGN_SPEC.md §7.8 */
 
