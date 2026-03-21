@@ -1,21 +1,21 @@
 /**
- * Detail Panel — Resource Properties
+ * Detail Panel -- Read-Only Resource Properties
  *
- * Shows resource properties with inline editing capability.
+ * Shows resource properties as read-only text.
  * States:
  * - Nothing selected: Welcome message with tips
- * - Single selected: Editable properties
- * - Multi-selected: Wireframe grid of selected items
+ * - Worker: Worker state info
+ * - Block: Read-only properties with description
+ * - Plate: Read-only properties
+ * - Connection: Read-only properties
  *
- * Based on VISUAL_DESIGN_SPEC.md §7.3
+ * Based on VISUAL_DESIGN_SPEC.md SS7.3
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { useWorkerStore } from '../../entities/store/workerStore';
-import { BLOCK_FRIENDLY_NAMES, BLOCK_DESCRIPTIONS, BLOCK_ICONS, CONNECTION_TYPE_LABELS, DEFAULT_PLATE_PROFILE, getPlateProfile, isPlateProfileId, PLATE_PROFILES } from '../../shared/types/index';
-import type { PlateProfileId } from '../../shared/types/index';
+import { BLOCK_FRIENDLY_NAMES, BLOCK_DESCRIPTIONS, BLOCK_ICONS, CONNECTION_TYPE_LABELS } from '../../shared/types/index';
 import type { Block, Plate } from '@cloudblocks/schema';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
 import { getBlockIconUrl, getPlateIconUrl } from '../../shared/utils/iconResolver';
@@ -62,20 +62,20 @@ export function DetailPanel({ className = '' }: DetailPanelProps) {
   return <WelcomeState className={className} />;
 }
 
-// ─── Idle State ────────────────────────────────────────────
+// --- Idle State ----
 
 function IdleState({ className }: { className: string }) {
   return (
     <div className={`detail-panel detail-panel--idle ${className}`}>
       <div className="detail-idle">
-        <span className="detail-idle-icon">📋</span>
+        <span className="detail-idle-icon">{'\u{1F4CB}'}</span>
         <p className="detail-idle-text">No selection</p>
       </div>
     </div>
   );
 }
 
-// ─── Welcome State ─────────────────────────────────────────
+// --- Welcome State ----
 
 function WelcomeState({ className }: { className: string }) {
   return (
@@ -88,7 +88,7 @@ function WelcomeState({ className }: { className: string }) {
           or use the Command Card to create new ones.
         </p>
         <div className="detail-welcome-tip">
-          <span className="detail-tip-icon">💡</span>
+          <span className="detail-tip-icon">{'\u{1F4A1}'}</span>
           <span className="detail-tip-text">Tip: Start with Network</span>
         </div>
       </div>
@@ -96,36 +96,15 @@ function WelcomeState({ className }: { className: string }) {
   );
 }
 
-// ─── Block Detail ──────────────────────────────────────────
+// --- Block Detail (read-only) ----
 
 function BlockDetail({ block, className }: { block: Block; className: string }) {
-  const [isRenaming, setIsRenaming] = useState(false);
-  const [newName, setNewName] = useState(block.name);
-  const inputRef = useRef<HTMLInputElement>(null);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
-  const renameBlock = useArchitectureStore((s) => s.renameBlock);
-
-  useEffect(() => {
-    if (isRenaming && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
-  }, [isRenaming]);
-
 
   const parentPlate = architecture.plates.find((p) => p.id === block.placementId);
   const networkPlate = parentPlate?.parentId
     ? architecture.plates.find((p) => p.id === parentPlate.parentId)
     : parentPlate;
-
-  const handleRename = useCallback(() => {
-    const trimmed = newName.trim();
-    if (trimmed && trimmed !== block.name) {
-      renameBlock(block.id, trimmed);
-      setNewName(trimmed);
-    }
-    setIsRenaming(false);
-  }, [newName, block.id, block.name, renameBlock]);
 
   const color = getBlockColor(block.provider ?? 'azure', block.subtype, block.category);
   const providerLabel = block.provider ? block.provider.toUpperCase() : null;
@@ -141,30 +120,7 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
           alt={BLOCK_FRIENDLY_NAMES[block.category]}
           className="detail-header-icon-img"
         />
-        {isRenaming ? (
-          <input
-            ref={inputRef}
-            type="text"
-            className="detail-header-input"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            onBlur={handleRename}
-            onKeyDown={(e) => e.key === 'Enter' && handleRename()}
-          />
-        ) : (
-          <span className="detail-header-name">{block.name}</span>
-        )}
-        <button
-          type="button"
-          className="detail-rename-btn"
-          onClick={() => {
-            setNewName(block.name);
-            setIsRenaming(true);
-          }}
-          title="Rename"
-        >
-          Rename
-        </button>
+        <span className="detail-header-name">{block.name}</span>
       </div>
 
       <div className="detail-divider" />
@@ -174,9 +130,13 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
           <span className="detail-property-label">Type</span>
           <span className="detail-property-value">
             {typeIdentity}
-            <span className="detail-property-hint" title={BLOCK_DESCRIPTIONS[block.category]}>
-              ℹ️
-            </span>
+          </span>
+        </div>
+
+        <div className="detail-property">
+          <span className="detail-property-label">Description</span>
+          <span className="detail-property-value detail-property-description">
+            {BLOCK_DESCRIPTIONS[block.category]}
           </span>
         </div>
 
@@ -222,21 +182,10 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
   );
 }
 
-// ─── Plate Detail ──────────────────────────────────────────
+// --- Plate Detail (read-only) ----
 
 function PlateDetail({ plate, className }: { plate: Plate; className: string }) {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
-  const setPlateProfile = useArchitectureStore((s) => s.setPlateProfile);
-
-  const profileId = plate.profileId && isPlateProfileId(plate.profileId)
-    ? plate.profileId
-    : DEFAULT_PLATE_PROFILE[plate.type];
-  const profile = getPlateProfile(profileId);
-  const hasProfileSupport = plate.type === 'region' || plate.type === 'subnet';
-  const profileFilterType = plate.type === 'subnet' ? 'subnet' : 'region';
-  const profileOptions = hasProfileSupport
-    ? Object.values(PLATE_PROFILES).filter((candidate) => candidate.type === profileFilterType)
-    : [];
 
   const parentPlate = plate.parentId
     ? architecture.plates.find((p) => p.id === plate.parentId)
@@ -273,33 +222,6 @@ function PlateDetail({ plate, className }: { plate: Plate; className: string }) 
           </span>
         </div>
 
-        {hasProfileSupport && (
-          <>
-            <div className="detail-property">
-              <label className="detail-property-label" htmlFor={`plate-profile-${plate.id}`}>Profile</label>
-              <span className="detail-property-value">
-                <select
-                  id={`plate-profile-${plate.id}`}
-                  className="detail-property-select"
-                  value={profileId}
-                  onChange={(event) => setPlateProfile(plate.id, event.target.value as PlateProfileId)}
-                >
-                  {profileOptions.map((candidate) => (
-                    <option key={candidate.id} value={candidate.id}>
-                      {candidate.displayName} - {candidate.studsX}x{candidate.studsY}
-                    </option>
-                  ))}
-                </select>
-              </span>
-            </div>
-
-            <div className="detail-property">
-              <span className="detail-property-label">Profile Note</span>
-              <span className="detail-property-value detail-property-description">{profile.description}</span>
-            </div>
-          </>
-        )}
-
         {parentPlate && (
           <div className="detail-property">
             <span className="detail-property-label">Parent</span>
@@ -310,7 +232,7 @@ function PlateDetail({ plate, className }: { plate: Plate; className: string }) 
         <div className="detail-property">
           <span className="detail-property-label">Size</span>
           <span className="detail-property-value detail-property-mono">
-            {plate.size.width} × {plate.size.depth}
+            {plate.size.width} &times; {plate.size.depth}
           </span>
         </div>
 
@@ -326,7 +248,7 @@ function PlateDetail({ plate, className }: { plate: Plate; className: string }) 
   );
 }
 
-// ─── Worker Detail ────────────────────────────────────────
+// --- Worker Detail ----
 
 function WorkerDetail({ className }: { className: string }) {
   const workerState = useWorkerStore((s) => s.workerState);
@@ -337,7 +259,7 @@ function WorkerDetail({ className }: { className: string }) {
   return (
     <div className={`detail-panel detail-panel--worker ${className}`}>
       <div className="detail-header">
-        <span className="detail-header-icon">🧑‍🔧</span>
+        <span className="detail-header-icon">{'\u{1F9D1}\u200D\u{1F527}'}</span>
         <span className="detail-header-name">Worker</span>
       </div>
 
@@ -372,7 +294,7 @@ function WorkerDetail({ className }: { className: string }) {
   );
 }
 
-// ─── Connection Detail ─────────────────────────────────────
+// --- Connection Detail (read-only) ----
 
 function ConnectionDetail({ connectionId, className }: { connectionId: string; className: string }) {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
@@ -387,7 +309,7 @@ function ConnectionDetail({ connectionId, className }: { connectionId: string; c
   return (
     <div className={`detail-panel detail-panel--connection ${className}`}>
       <div className="detail-header">
-        <span className="detail-header-icon">🔗</span>
+        <span className="detail-header-icon">{'\u{1F517}'}</span>
         <span className="detail-header-name">{CONNECTION_TYPE_LABELS[connection.type]} Connection</span>
       </div>
 
@@ -408,7 +330,7 @@ function ConnectionDetail({ connectionId, className }: { connectionId: string; c
               </>
             ) : sourceActor ? (
               <>
-                {sourceActor.type === 'internet' ? '☁️' : '👤'} {sourceActor.name}
+                {sourceActor.type === 'internet' ? '\u2601\uFE0F' : '\u{1F464}'} {sourceActor.name}
               </>
             ) : (
               'Unknown'

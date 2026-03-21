@@ -1,33 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CommandCard } from './CommandCard';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore, type ToolMode } from '../../entities/store/uiStore';
 import { useWorkerStore } from '../../entities/store/workerStore';
-import type { ArchitectureModel, Block, Plate } from '@cloudblocks/schema';
+import type { ArchitectureModel, Block, Connection, Plate } from '@cloudblocks/schema';
 
 vi.mock('./CommandCard.css', () => ({}));
 vi.mock('../../shared/ui/PromptDialog', () => ({
   promptDialog: vi.fn(),
 }));
-
-type DragListeners = {
-  start?: () => void;
-  move?: (event: { target: EventTarget }) => void;
-  end?: (event: { target: EventTarget }) => void;
-};
-
-const draggableListeners = new WeakMap<HTMLElement, DragListeners>();
-const unsetInteractableMock = vi.fn();
-
-vi.mock('interactjs', () => ({
-  default: (element: HTMLElement) => ({
-    draggable: (options: { listeners: DragListeners }) => {
-      draggableListeners.set(element, options.listeners);
-      return { unset: unsetInteractableMock };
-    },
-  }),
+vi.mock('../../shared/ui/ConfirmDialog', () => ({
+  confirmDialog: vi.fn(),
 }));
 
 const baseArchitecture: ArchitectureModel = {
@@ -65,18 +50,6 @@ const publicSubnet: Plate = {
   metadata: {},
 };
 
-const privateSubnet: Plate = {
-  id: 'subnet-private-1',
-  name: 'Private Subnet',
-  type: 'subnet',
-  subnetAccess: 'private',
-  parentId: 'net-1',
-  children: [],
-  position: { x: 8, y: 0, z: 1 },
-  size: { width: 6, height: 0.3, depth: 8 },
-  metadata: {},
-};
-
 const computeBlock: Block = {
   id: 'block-1',
   name: 'App VM',
@@ -86,18 +59,28 @@ const computeBlock: Block = {
   metadata: {},
 };
 
+const testConnection: Connection = {
+  id: 'conn-1',
+  sourceId: 'block-1',
+  targetId: 'block-2',
+  type: 'dataflow',
+  metadata: {},
+};
+
 describe('CommandCard', () => {
-  const addPlateMock = vi.fn();
   const addBlockMock = vi.fn();
   const duplicateBlockMock = vi.fn();
   const renameBlockMock = vi.fn();
   const renamePlateMock = vi.fn();
   const removeBlockMock = vi.fn();
   const removePlateMock = vi.fn();
-  const togglePropertiesMock = vi.fn();
+  const removeConnectionMock = vi.fn();
+  const updateBlockConfigMock = vi.fn();
+  const updateConnectionTypeMock = vi.fn();
   const setSelectedIdMock = vi.fn<(id: string | null) => void>();
   const setToolModeMock = vi.fn<(mode: ToolMode) => void>();
   const startBuildMock = vi.fn();
+  const triggerUpgradeAnimationMock = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -106,20 +89,21 @@ describe('CommandCard', () => {
       selectedId: null,
       setSelectedId: setSelectedIdMock,
       setToolMode: setToolModeMock,
-      toggleProperties: togglePropertiesMock,
-      showProperties: true,
       toolMode: 'select',
       activeProvider: 'azure',
+      triggerUpgradeAnimation: triggerUpgradeAnimationMock,
     });
 
     useArchitectureStore.setState({
-      addPlate: addPlateMock,
       addBlock: addBlockMock,
       duplicateBlock: duplicateBlockMock,
       renameBlock: renameBlockMock,
       renamePlate: renamePlateMock,
       removeBlock: removeBlockMock,
       removePlate: removePlateMock,
+      removeConnection: removeConnectionMock,
+      updateBlockConfig: updateBlockConfigMock,
+      updateConnectionType: updateConnectionTypeMock,
       workspace: {
         id: 'ws-1',
         name: 'Test Workspace',
@@ -135,198 +119,33 @@ describe('CommandCard', () => {
     });
   });
 
-  // ─── CreationMode Tests ──────────────────────────────────
+  // --- Empty Hint ---
 
-  it('renders creation mode with category-grouped resources', () => {
-    const { container } = render(<CommandCard />);
-
-    expect(screen.getByText('Create Resource')).toBeInTheDocument();
-
-    expect(container.querySelectorAll('.command-card-category-group').length).toBeGreaterThan(0);
-    expect(container.querySelectorAll('.command-card-resource-btn').length).toBeGreaterThanOrEqual(8);
-    expect(screen.getByText('Network Foundations')).toBeInTheDocument();
-  });
-
-
-  it('creates network plate from creation mode', async () => {
-    const user = userEvent.setup();
+  it('renders empty hint when nothing is selected', () => {
     render(<CommandCard />);
 
-    await user.click(screen.getByRole('button', { name: /VNet/i }));
-
-    expect(addPlateMock).toHaveBeenCalledWith('region', 'VNet', null);
+    expect(screen.getByText('Command Card')).toBeInTheDocument();
+    expect(screen.getByText(/Select a worker, block, plate, or connection/)).toBeInTheDocument();
   });
 
-  it('creates block resource when network and subnet exist', async () => {
-    const user = userEvent.setup();
+  // --- Worker Mode ---
 
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...baseArchitecture,
-          plates: [networkPlate, publicSubnet],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-
-    render(<CommandCard />);
-
-    await user.click(screen.getByTitle('Create Virtual Machine'));
-
-    expect(addBlockMock).toHaveBeenCalledWith('compute', 'Virtual Machine 1', 'subnet-public-1', 'azure', 'vm');
-  });
-
-  it('smoke: create VM from Compute tab then show block actions when selected', async () => {
-    const user = userEvent.setup();
-
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...baseArchitecture,
-          plates: [networkPlate, publicSubnet],
-          blocks: [],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-
-    const { rerender } = render(<CommandCard />);
-
-    await user.click(screen.getByTitle('Create Virtual Machine'));
-
-    expect(addBlockMock).toHaveBeenCalledWith('compute', 'Virtual Machine 1', 'subnet-public-1', 'azure', 'vm');
-
-    act(() => {
-      useArchitectureStore.setState({
-        workspace: {
-          id: 'ws-1',
-          name: 'Test Workspace',
-          architecture: {
-            ...baseArchitecture,
-            plates: [networkPlate, publicSubnet],
-            blocks: [
-              {
-                id: 'block-new-1',
-                name: 'Virtual Machine 1',
-                category: 'compute',
-                placementId: 'subnet-public-1',
-                position: { x: 0, y: 0, z: 0 },
-                metadata: {},
-              },
-            ],
-          },
-          createdAt: '',
-          updatedAt: '',
-        },
-      });
-      useUIStore.setState({ selectedId: 'block-new-1' });
-    });
-
-    rerender(<CommandCard />);
-
-    expect(screen.getByText('Actions')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Link/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Delete/ })).toBeInTheDocument();
-  });
-
-  it('shows disabled resources with lock icon before network exists', () => {
-    render(<CommandCard />);
-
-    const vmButton = screen.getByTitle('Create a Network first. Virtual Machines need a network to connect to.');
-
-    expect(vmButton).toBeDisabled();
-    expect(within(vmButton).getByText('🔒')).toBeInTheDocument();
-  });
-
-  it('handles drag lifecycle in creation mode and cleans up interactables', () => {
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...baseArchitecture,
-          plates: [networkPlate],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-
-    const { unmount } = render(<CommandCard />);
-
-    const networkButton = screen.getByTitle('Create Network (VNet)');
-    const firewallButton = screen.getByTitle('Create Azure Firewall');
-
-    const networkListeners = draggableListeners.get(networkButton);
-    const vmListeners = draggableListeners.get(firewallButton);
-
-    expect(networkListeners).toBeDefined();
-    expect(vmListeners).toBeDefined();
-
-    vmListeners?.start?.();
-    vmListeners?.move?.({ target: firewallButton });
-    expect(firewallButton).toHaveClass('is-dragging');
-    expect(useUIStore.getState().draggedBlockCategory).toBe('gateway');
-    expect(useUIStore.getState().draggedResourceName).toBe('Azure Firewall');
-
-    vmListeners?.end?.({ target: firewallButton });
-    expect(firewallButton).not.toHaveClass('is-dragging');
-    expect(useUIStore.getState().draggedBlockCategory).toBeNull();
-    expect(useUIStore.getState().draggedResourceName).toBeNull();
-
-    networkListeners?.move?.({ target: networkButton });
-    expect(useUIStore.getState().draggedBlockCategory).toBeNull();
-    expect(useUIStore.getState().draggedResourceName).toBeNull();
-
-    const detachedButton = document.createElement('button');
-    vmListeners?.move?.({ target: detachedButton });
-    expect(useUIStore.getState().draggedBlockCategory).toBeNull();
-
-    unmount();
-    expect(unsetInteractableMock).toHaveBeenCalled();
-  });
-
-  it('creates private subnet from creation mode when network exists', async () => {
-    const user = userEvent.setup();
-
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...baseArchitecture,
-          plates: [networkPlate],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-
-    render(<CommandCard />);
-
-    await user.click(screen.getByTitle('Create Private Subnet'));
-
-    expect(addPlateMock).toHaveBeenCalledWith('subnet', 'Private Subnet', 'net-1', 'private');
-  });
-
-  it('shows Build Order header when worker-default is selected', () => {
+  it('shows Worker Actions header when worker is selected', () => {
     useUIStore.setState({ selectedId: 'worker-default' });
 
     render(<CommandCard />);
 
-    expect(screen.getByText('Build Order')).toBeInTheDocument();
+    expect(screen.getByText('Worker Actions')).toBeInTheDocument();
+    expect(screen.getByTitle('Build (Q)')).toBeInTheDocument();
+    expect(screen.getByTitle('Connect (W)')).toBeInTheDocument();
+    expect(screen.getByTitle('Move (E) - coming soon')).toBeInTheDocument();
+    expect(screen.getByTitle('Relocate (R) - coming soon')).toBeInTheDocument();
   });
 
-  it('shows worker build grid in worker mode', () => {
-
+  it('navigates to build grid and back', async () => {
+    const user = userEvent.setup();
     useUIStore.setState({ selectedId: 'worker-default' });
+
     useArchitectureStore.setState({
       workspace: {
         id: 'ws-1',
@@ -340,14 +159,30 @@ describe('CommandCard', () => {
       },
     });
 
-    const { container } = render(<CommandCard />);
+    render(<CommandCard />);
 
+    await user.click(screen.getByTitle('Build (Q)'));
 
-    expect(container.querySelectorAll('.command-card-category-group').length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: /Back to worker actions/ })).toBeInTheDocument();
     expect(screen.getByTitle('Build Virtual Machine')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /Back to worker actions/ }));
+
+    expect(screen.getByTitle('Build (Q)')).toBeInTheDocument();
   });
 
-  it('calls startBuild when block is clicked in worker mode', async () => {
+  it('sets connect tool mode when Connect is clicked', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ selectedId: 'worker-default' });
+
+    render(<CommandCard />);
+
+    await user.click(screen.getByTitle('Connect (W)'));
+
+    expect(setToolModeMock).toHaveBeenCalledWith('connect');
+  });
+
+  it('calls startBuild when block is built via worker build grid', async () => {
     const user = userEvent.setup();
 
     useUIStore.setState({ selectedId: 'worker-default' });
@@ -365,40 +200,39 @@ describe('CommandCard', () => {
       },
     });
 
-    addBlockMock.mockImplementation((category, name, placementId) => {
-      useArchitectureStore.setState((state) => ({
-        workspace: {
-          ...state.workspace,
-          architecture: {
-            ...state.workspace.architecture,
-            blocks: [
-              ...state.workspace.architecture.blocks,
-              {
-                id: 'worker-built-block',
-                name,
-                category,
-                placementId,
-                position: { x: 0, y: 0, z: 0 },
-                metadata: {},
-              },
-            ],
+    addBlockMock.mockImplementation((category: string, name: string, placementId: string) => {
+      useArchitectureStore.setState((state) => {
+        const newBlock: Block = {
+          id: 'worker-built-block',
+          name,
+          category: category as Block['category'],
+          placementId,
+          position: { x: 0, y: 0, z: 0 },
+          metadata: {},
+        };
+        return {
+          workspace: {
+            ...state.workspace,
+            architecture: {
+              ...state.workspace.architecture,
+              blocks: [...state.workspace.architecture.blocks, newBlock],
+            },
           },
-        },
-      }));
+        };
+      });
     });
 
     render(<CommandCard />);
 
+    await user.click(screen.getByTitle('Build (Q)'));
     await user.click(screen.getByTitle('Build Virtual Machine'));
 
     expect(startBuildMock).toHaveBeenCalledWith('worker-built-block', [1, 0.3, 1]);
   });
 
-  // ─── BlockActionMode Tests ───────────────────────────────
+  // --- Block Mode ---
 
-  it('shows block action mode for selected block and executes delete', async () => {
-    const user = userEvent.setup();
-
+  it('shows block actions with Rename, Copy, Delete, and form', () => {
     useUIStore.setState({ selectedId: 'block-1' });
     useArchitectureStore.setState({
       workspace: {
@@ -416,124 +250,17 @@ describe('CommandCard', () => {
 
     render(<CommandCard />);
 
-    expect(screen.getByText('Actions')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Infra' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Link/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Edit/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Delete/ })).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: /Delete/ }));
-
-    expect(removeBlockMock).toHaveBeenCalledWith('block-1');
-    expect(setSelectedIdMock).toHaveBeenCalledWith(null);
-  });
-
-  it('starts link action by setting connect tool mode', async () => {
-    const user = userEvent.setup();
-
-    useUIStore.setState({ selectedId: 'block-1' });
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...baseArchitecture,
-          plates: [networkPlate, publicSubnet],
-          blocks: [computeBlock],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-
-    render(<CommandCard />);
-
-    await user.click(screen.getByRole('button', { name: /Link/ }));
-
-    expect(setToolModeMock).toHaveBeenCalledWith('connect');
-  });
-
-  it('shows only implemented block action buttons', () => {
-    useUIStore.setState({ selectedId: 'block-1' });
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...baseArchitecture,
-          plates: [networkPlate, publicSubnet],
-          blocks: [computeBlock],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-
-    render(<CommandCard />);
-
-    expect(screen.getByRole('button', { name: /Link/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Edit/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Copy/ })).toBeInTheDocument();
+    expect(screen.getByText('Block Actions')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Rename/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Copy/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Delete/ })).toBeInTheDocument();
-
-    expect(screen.queryByRole('button', { name: /Config/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Add App/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Move/ })).not.toBeInTheDocument();
+    expect(screen.getByText('Tier')).toBeInTheDocument();
+    expect(screen.getByText('Scale')).toBeInTheDocument();
+    expect(screen.getByText('Config')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Apply/ })).toBeInTheDocument();
   });
 
-  it('opens properties panel when edit is clicked and properties are hidden', async () => {
-    const user = userEvent.setup();
-
-    useUIStore.setState({ selectedId: 'block-1' });
-    useUIStore.setState({ showProperties: false });
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...baseArchitecture,
-          plates: [networkPlate, publicSubnet],
-          blocks: [computeBlock],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-
-    render(<CommandCard />);
-
-    await user.click(screen.getByRole('button', { name: /Edit/ }));
-
-    expect(togglePropertiesMock).toHaveBeenCalledTimes(1);
-  });
-
-  it('duplicates selected block when copy is clicked', async () => {
-    const user = userEvent.setup();
-
-    useUIStore.setState({ selectedId: 'block-1' });
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...baseArchitecture,
-          plates: [networkPlate, publicSubnet],
-          blocks: [computeBlock],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-
-    render(<CommandCard />);
-
-    await user.click(screen.getByRole('button', { name: /Copy/ }));
-
-    expect(duplicateBlockMock).toHaveBeenCalledWith('block-1');
-  });
-
-  it('renames selected block when rename is clicked and prompt has value', async () => {
+  it('renames block via promptDialog', async () => {
     const user = userEvent.setup();
     const { promptDialog } = await import('../../shared/ui/PromptDialog');
     const promptMock = vi.mocked(promptDialog).mockResolvedValue('  New Block Name  ');
@@ -562,7 +289,7 @@ describe('CommandCard', () => {
     promptMock.mockRestore();
   });
 
-  it('does not rename block when prompt is cancelled (returns null)', async () => {
+  it('does not rename block when prompt is cancelled', async () => {
     const user = userEvent.setup();
     const { promptDialog } = await import('../../shared/ui/PromptDialog');
     const promptMock = vi.mocked(promptDialog).mockResolvedValue(null);
@@ -586,15 +313,12 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByRole('button', { name: /Rename/ }));
 
-    expect(promptMock).toHaveBeenCalledWith('Rename block:', 'Rename', 'App VM');
     expect(renameBlockMock).not.toHaveBeenCalled();
     promptMock.mockRestore();
   });
 
-  it('does not rename block when prompt returns only whitespace', async () => {
+  it('copies block via duplicateBlock', async () => {
     const user = userEvent.setup();
-    const { promptDialog } = await import('../../shared/ui/PromptDialog');
-    const promptMock = vi.mocked(promptDialog).mockResolvedValue('   ');
 
     useUIStore.setState({ selectedId: 'block-1' });
     useArchitectureStore.setState({
@@ -613,17 +337,17 @@ describe('CommandCard', () => {
 
     render(<CommandCard />);
 
-    await user.click(screen.getByRole('button', { name: /Rename/ }));
+    await user.click(screen.getByRole('button', { name: /Copy/ }));
 
-    expect(promptMock).toHaveBeenCalledWith('Rename block:', 'Rename', 'App VM');
-    expect(renameBlockMock).not.toHaveBeenCalled();
-    promptMock.mockRestore();
+    expect(duplicateBlockMock).toHaveBeenCalledWith('block-1');
   });
 
-  it('does not call toggleProperties when edit is clicked and properties are already shown', async () => {
+  it('deletes block after confirmDialog', async () => {
     const user = userEvent.setup();
+    const { confirmDialog } = await import('../../shared/ui/ConfirmDialog');
+    vi.mocked(confirmDialog).mockResolvedValue(true);
 
-    useUIStore.setState({ selectedId: 'block-1', showProperties: true });
+    useUIStore.setState({ selectedId: 'block-1' });
     useArchitectureStore.setState({
       workspace: {
         id: 'ws-1',
@@ -640,93 +364,18 @@ describe('CommandCard', () => {
 
     render(<CommandCard />);
 
-    await user.click(screen.getByRole('button', { name: /Edit/ }));
+    await user.click(screen.getByRole('button', { name: /Delete/ }));
 
-    expect(togglePropertiesMock).not.toHaveBeenCalled();
+    expect(removeBlockMock).toHaveBeenCalledWith('block-1');
+    expect(setSelectedIdMock).toHaveBeenCalledWith(null);
   });
 
-  // ─── PlateActionMode Tests ──────────────────────────────
-
-  it('shows plate action mode with action buttons when plate is selected', () => {
-    useUIStore.setState({ selectedId: 'net-1' });
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...baseArchitecture,
-          plates: [networkPlate],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-
-    render(<CommandCard />);
-
-    // Should show PlateActionMode, NOT PlateCreationMode
-    expect(screen.getByText('VNet Actions')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Infra' })).not.toBeInTheDocument();
-
-    // Should have plate action buttons
-    expect(screen.getByRole('button', { name: /Deploy/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Rename/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Delete/ })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Config/ })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Move/ })).not.toBeInTheDocument();
-  });
-
-  it('updates header text across none, block, plate, and deploy states', async () => {
+  it('does not delete block when confirmDialog is cancelled', async () => {
     const user = userEvent.setup();
+    const { confirmDialog } = await import('../../shared/ui/ConfirmDialog');
+    vi.mocked(confirmDialog).mockResolvedValue(false);
 
-    const { rerender } = render(<CommandCard />);
-    expect(screen.getByText('Create Resource')).toBeInTheDocument();
-
-    act(() => {
-      useUIStore.setState({ selectedId: 'block-1' });
-      useArchitectureStore.setState({
-        workspace: {
-          id: 'ws-1',
-          name: 'Test Workspace',
-          architecture: {
-            ...baseArchitecture,
-            plates: [networkPlate, publicSubnet],
-            blocks: [computeBlock],
-          },
-          createdAt: '',
-          updatedAt: '',
-        },
-      });
-    });
-    rerender(<CommandCard />);
-    expect(screen.getByText('Actions')).toBeInTheDocument();
-
-    act(() => {
-      useUIStore.setState({ selectedId: 'net-1' });
-      useArchitectureStore.setState({
-        workspace: {
-          id: 'ws-1',
-          name: 'Test Workspace',
-          architecture: {
-            ...baseArchitecture,
-            plates: [networkPlate],
-          },
-          createdAt: '',
-          updatedAt: '',
-        },
-      });
-    });
-    rerender(<CommandCard />);
-    expect(screen.getByText('VNet Actions')).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: /Deploy/ }));
-    expect(screen.getByRole('button', { name: 'Back from Deploy on VNet' })).toBeInTheDocument();
-  });
-
-  it('resets deploy sub-action when selected plate changes', async () => {
-    const user = userEvent.setup();
-
-    useUIStore.setState({ selectedId: 'net-1' });
+    useUIStore.setState({ selectedId: 'block-1' });
     useArchitectureStore.setState({
       workspace: {
         id: 'ws-1',
@@ -734,261 +383,7 @@ describe('CommandCard', () => {
         architecture: {
           ...baseArchitecture,
           plates: [networkPlate, publicSubnet],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-
-    const { rerender } = render(<CommandCard />);
-    await user.click(screen.getByRole('button', { name: /Deploy/ }));
-    expect(screen.getByRole('button', { name: 'Back from Deploy on VNet' })).toBeInTheDocument();
-
-    act(() => {
-      useUIStore.setState({ selectedId: 'subnet-public-1' });
-    });
-    rerender(<CommandCard />);
-
-    expect(screen.queryByRole('button', { name: /Back from/ })).not.toBeInTheDocument();
-    expect(screen.getByText('Public Subnet Actions')).toBeInTheDocument();
-  });
-
-  it('exits deploy mode when Escape is pressed', async () => {
-    const user = userEvent.setup();
-
-    useUIStore.setState({ selectedId: 'net-1' });
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...baseArchitecture,
-          plates: [networkPlate],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-
-    render(<CommandCard />);
-    await user.click(screen.getByRole('button', { name: /Deploy/ }));
-    expect(screen.getByRole('button', { name: 'Back from Deploy on VNet' })).toBeInTheDocument();
-
-    fireEvent.keyDown(window, { key: 'Escape' });
-
-    expect(screen.queryByRole('button', { name: /Back from/ })).not.toBeInTheDocument();
-    expect(screen.getByText('VNet Actions')).toBeInTheDocument();
-  });
-
-  it('renders different deploy resource sets for network, public subnet, and private subnet', async () => {
-    const user = userEvent.setup();
-
-    const { rerender } = render(<CommandCard />);
-
-    act(() => {
-      useUIStore.setState({ selectedId: 'net-1' });
-      useArchitectureStore.setState({
-        workspace: {
-          id: 'ws-1',
-          name: 'Test Workspace',
-          architecture: {
-            ...baseArchitecture,
-            plates: [networkPlate],
-          },
-          createdAt: '',
-          updatedAt: '',
-        },
-      });
-    });
-    rerender(<CommandCard />);
-    await user.click(screen.getByRole('button', { name: /Deploy/ }));
-    expect(screen.getByTitle('Create Public Subnet (Q)')).toBeInTheDocument();
-    expect(screen.getByTitle('Create Private Subnet (W)')).toBeInTheDocument();
-    expect(screen.queryByTitle('Create Azure SQL (W)')).not.toBeInTheDocument();
-
-    act(() => {
-      useUIStore.setState({ selectedId: 'subnet-public-1' });
-      useArchitectureStore.setState({
-        workspace: {
-          id: 'ws-1',
-          name: 'Test Workspace',
-          architecture: {
-            ...baseArchitecture,
-            plates: [networkPlate, publicSubnet],
-          },
-          createdAt: '',
-          updatedAt: '',
-        },
-      });
-    });
-    rerender(<CommandCard />);
-    await user.click(screen.getByRole('button', { name: /Deploy/ }));
-    expect(screen.getByTitle('Create DNS Zone (W)')).toBeInTheDocument();
-    expect(screen.getByTitle('Create Virtual Machine (S)')).toBeInTheDocument();
-    expect(screen.queryByTitle('Create Azure SQL (W)')).not.toBeInTheDocument();
-
-    act(() => {
-      useUIStore.setState({ selectedId: 'subnet-private-1' });
-      useArchitectureStore.setState({
-        workspace: {
-          id: 'ws-1',
-          name: 'Test Workspace',
-          architecture: {
-            ...baseArchitecture,
-            plates: [networkPlate, privateSubnet],
-          },
-          createdAt: '',
-          updatedAt: '',
-        },
-      });
-    });
-    rerender(<CommandCard />);
-    await user.click(screen.getByRole('button', { name: /Deploy/ }));
-    expect(screen.getByTitle('Create Azure SQL (W)')).toBeInTheDocument();
-    expect(screen.queryByTitle('Create Public Subnet (Q)')).not.toBeInTheDocument();
-  });
-
-  it('shows "Public Subnet Actions" header for selected public subnet', () => {
-    useUIStore.setState({ selectedId: 'subnet-public-1' });
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...baseArchitecture,
-          plates: [networkPlate, publicSubnet],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-
-    render(<CommandCard />);
-
-    expect(screen.getByText('Public Subnet Actions')).toBeInTheDocument();
-  });
-
-  it('shows "Private Subnet Actions" header for selected private subnet', () => {
-    useUIStore.setState({ selectedId: 'subnet-private-1' });
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...baseArchitecture,
-          plates: [networkPlate, privateSubnet],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-
-    render(<CommandCard />);
-
-    expect(screen.getByText('Private Subnet Actions')).toBeInTheDocument();
-  });
-
-  it('transitions from PlateActionMode to PlateCreationMode via Deploy button', async () => {
-    const user = userEvent.setup();
-
-    useUIStore.setState({ selectedId: 'net-1' });
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...baseArchitecture,
-          plates: [networkPlate],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-
-    render(<CommandCard />);
-
-    // Initially in PlateActionMode
-    expect(screen.getByText('VNet Actions')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Deploy/ })).toBeInTheDocument();
-
-    // Click Deploy to enter PlateCreationMode
-    await user.click(screen.getByRole('button', { name: /Deploy/ }));
-
-    // Now in PlateCreationMode — should show back navigation and creation resources
-    expect(screen.getByRole('button', { name: /Back from/ })).toBeInTheDocument();
-    expect(screen.queryByText('VNet Actions')).not.toBeInTheDocument();
-  });
-
-  it('creates subnet from PlateCreationMode after Deploy action on network plate', async () => {
-    const user = userEvent.setup();
-
-    useUIStore.setState({ selectedId: 'net-1' });
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...baseArchitecture,
-          plates: [networkPlate],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-
-    render(<CommandCard />);
-
-    // Click Deploy to enter creation sub-menu
-    await user.click(screen.getByRole('button', { name: /Deploy/ }));
-
-    // Now in PlateCreationMode — create a public subnet
-    await user.click(screen.getByTitle('Create Public Subnet (Q)'));
-
-    expect(addPlateMock).toHaveBeenCalledWith('subnet', 'Public Subnet', 'net-1', 'public');
-  });
-
-  it('returns from PlateCreationMode to PlateActionMode via back button', async () => {
-    const user = userEvent.setup();
-
-    useUIStore.setState({ selectedId: 'net-1' });
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...baseArchitecture,
-          plates: [networkPlate],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-
-    render(<CommandCard />);
-
-    // Enter PlateCreationMode
-    await user.click(screen.getByRole('button', { name: /Deploy/ }));
-    expect(screen.getByRole('button', { name: /Back from/ })).toBeInTheDocument();
-
-    // Click back button
-    await user.click(screen.getByRole('button', { name: /Back from/ }));
-
-    // Should be back in PlateActionMode
-    expect(screen.getByText('VNet Actions')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Deploy/ })).toBeInTheDocument();
-  });
-
-  it('deletes plate from PlateActionMode', async () => {
-    const user = userEvent.setup();
-
-    useUIStore.setState({ selectedId: 'net-1' });
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...baseArchitecture,
-          plates: [networkPlate],
+          blocks: [computeBlock],
         },
         createdAt: '',
         updatedAt: '',
@@ -999,11 +394,66 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByRole('button', { name: /Delete/ }));
 
-    expect(removePlateMock).toHaveBeenCalledWith('net-1');
-    expect(setSelectedIdMock).toHaveBeenCalledWith(null);
+    expect(removeBlockMock).not.toHaveBeenCalled();
   });
 
-  it('renames selected plate when rename is clicked and prompt has value', async () => {
+  it('applies block config changes and triggers upgrade animation', async () => {
+    const user = userEvent.setup();
+
+    useUIStore.setState({ selectedId: 'block-1' });
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          ...baseArchitecture,
+          plates: [networkPlate, publicSubnet],
+          blocks: [computeBlock],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    render(<CommandCard />);
+
+    await user.click(screen.getByRole('button', { name: /Apply/ }));
+
+    expect(updateBlockConfigMock).toHaveBeenCalledWith('block-1', {
+      tier: 'Standard',
+      scale: 1,
+      notes: '',
+    });
+    expect(triggerUpgradeAnimationMock).toHaveBeenCalledWith('block-1');
+  });
+
+  // --- Plate Mode ---
+
+  it('shows plate actions with Rename, Delete, and form', () => {
+    useUIStore.setState({ selectedId: 'net-1' });
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          ...baseArchitecture,
+          plates: [networkPlate],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    render(<CommandCard />);
+
+    expect(screen.getByText('Plate Actions')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Rename/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Delete/ })).toBeInTheDocument();
+    expect(screen.getByText('Address Space')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Apply/ })).toBeInTheDocument();
+  });
+
+  it('renames plate via promptDialog', async () => {
     const user = userEvent.setup();
     const { promptDialog } = await import('../../shared/ui/PromptDialog');
     const promptMock = vi.mocked(promptDialog).mockResolvedValue('  Renamed Plate  ');
@@ -1031,10 +481,10 @@ describe('CommandCard', () => {
     promptMock.mockRestore();
   });
 
-  it('does not rename plate when prompt is cancelled (returns null)', async () => {
+  it('deletes plate after confirmDialog', async () => {
     const user = userEvent.setup();
-    const { promptDialog } = await import('../../shared/ui/PromptDialog');
-    const promptMock = vi.mocked(promptDialog).mockResolvedValue(null);
+    const { confirmDialog } = await import('../../shared/ui/ConfirmDialog');
+    vi.mocked(confirmDialog).mockResolvedValue(true);
 
     useUIStore.setState({ selectedId: 'net-1' });
     useArchitectureStore.setState({
@@ -1052,45 +502,16 @@ describe('CommandCard', () => {
 
     render(<CommandCard />);
 
-    await user.click(screen.getByRole('button', { name: /Rename/ }));
+    await user.click(screen.getByRole('button', { name: /Delete/ }));
 
-    expect(promptMock).toHaveBeenCalledWith('Rename plate:', 'Rename', 'VNet');
-    expect(renamePlateMock).not.toHaveBeenCalled();
-    promptMock.mockRestore();
+    expect(removePlateMock).toHaveBeenCalledWith('net-1');
+    expect(setSelectedIdMock).toHaveBeenCalledWith(null);
   });
 
-  it('does not rename plate when prompt returns only whitespace', async () => {
-    const user = userEvent.setup();
-    const { promptDialog } = await import('../../shared/ui/PromptDialog');
-    const promptMock = vi.mocked(promptDialog).mockResolvedValue('   ');
+  // --- Connection Mode ---
 
-    useUIStore.setState({ selectedId: 'net-1' });
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...baseArchitecture,
-          plates: [networkPlate],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-
-    render(<CommandCard />);
-
-    await user.click(screen.getByRole('button', { name: /Rename/ }));
-
-    expect(promptMock).toHaveBeenCalledWith('Rename plate:', 'Rename', 'VNet');
-    expect(renamePlateMock).not.toHaveBeenCalled();
-    promptMock.mockRestore();
-  });
-
-  it('transitions to PlateCreationMode for public subnet deploy and creates VM', async () => {
-    const user = userEvent.setup();
-
-    useUIStore.setState({ selectedId: 'subnet-public-1' });
+  it('shows connection actions with Delete, type dropdown, and Apply', () => {
+    useUIStore.setState({ selectedId: 'conn-1' });
     useArchitectureStore.setState({
       workspace: {
         id: 'ws-1',
@@ -1098,6 +519,8 @@ describe('CommandCard', () => {
         architecture: {
           ...baseArchitecture,
           plates: [networkPlate, publicSubnet],
+          blocks: [computeBlock, { ...computeBlock, id: 'block-2', name: 'SQL DB', category: 'database' }],
+          connections: [testConnection],
         },
         createdAt: '',
         updatedAt: '',
@@ -1106,29 +529,25 @@ describe('CommandCard', () => {
 
     render(<CommandCard />);
 
-    // First see PlateActionMode
-    expect(screen.getByText('Public Subnet Actions')).toBeInTheDocument();
-
-    // Click Deploy
-    await user.click(screen.getByRole('button', { name: /Deploy/ }));
-
-    // Now in PlateCreationMode — create a VM
-    await user.click(screen.getByTitle('Create Virtual Machine (S)'));
-
-    expect(addBlockMock).toHaveBeenCalledWith('compute', 'Virtual Machine 1', 'subnet-public-1', 'azure');
+    expect(screen.getByText('Connection Actions')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Delete/ })).toBeInTheDocument();
+    expect(screen.getByText('Type')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Apply/ })).toBeInTheDocument();
   });
 
-  it('transitions to PlateCreationMode for private subnet deploy and creates SQL', async () => {
+  it('deletes connection and deselects', async () => {
     const user = userEvent.setup();
 
-    useUIStore.setState({ selectedId: 'subnet-private-1' });
+    useUIStore.setState({ selectedId: 'conn-1' });
     useArchitectureStore.setState({
       workspace: {
         id: 'ws-1',
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate, privateSubnet],
+          plates: [networkPlate, publicSubnet],
+          blocks: [computeBlock, { ...computeBlock, id: 'block-2', name: 'SQL DB', category: 'database' }],
+          connections: [testConnection],
         },
         createdAt: '',
         updatedAt: '',
@@ -1137,29 +556,25 @@ describe('CommandCard', () => {
 
     render(<CommandCard />);
 
-    // First see PlateActionMode
-    expect(screen.getByText('Private Subnet Actions')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Delete/ }));
 
-    // Click Deploy
-    await user.click(screen.getByRole('button', { name: /Deploy/ }));
-
-    // Now in PlateCreationMode — create SQL
-    await user.click(screen.getByTitle('Create Azure SQL (W)'));
-
-    expect(addBlockMock).toHaveBeenCalledWith('database', 'Azure SQL 1', 'subnet-private-1', 'azure');
+    expect(removeConnectionMock).toHaveBeenCalledWith('conn-1');
+    expect(setSelectedIdMock).toHaveBeenCalledWith(null);
   });
 
-  it('creates private subnet via Deploy on network plate', async () => {
+  it('applies connection type change via updateConnectionType', async () => {
     const user = userEvent.setup();
 
-    useUIStore.setState({ selectedId: 'net-1' });
+    useUIStore.setState({ selectedId: 'conn-1' });
     useArchitectureStore.setState({
       workspace: {
         id: 'ws-1',
         name: 'Test Workspace',
         architecture: {
           ...baseArchitecture,
-          plates: [networkPlate],
+          plates: [networkPlate, publicSubnet],
+          blocks: [computeBlock, { ...computeBlock, id: 'block-2', name: 'SQL DB', category: 'database' }],
+          connections: [testConnection],
         },
         createdAt: '',
         updatedAt: '',
@@ -1168,12 +583,75 @@ describe('CommandCard', () => {
 
     render(<CommandCard />);
 
-    // Click Deploy to enter creation sub-menu
-    await user.click(screen.getByRole('button', { name: /Deploy/ }));
+    const select = screen.getByRole('combobox');
+    await user.selectOptions(select, 'http');
 
-    // Create Private Subnet
-    await user.click(screen.getByTitle('Create Private Subnet (W)'));
+    await user.click(screen.getByRole('button', { name: /Apply/ }));
 
-    expect(addPlateMock).toHaveBeenCalledWith('subnet', 'Private Subnet', 'net-1', 'private');
+    expect(updateConnectionTypeMock).toHaveBeenCalledWith('conn-1', 'http');
+  });
+
+  // --- Header transitions ---
+
+  it('updates header text across none, block, plate, and connection states', () => {
+    const { rerender } = render(<CommandCard />);
+    expect(screen.getByText('Command Card')).toBeInTheDocument();
+
+    act(() => {
+      useUIStore.setState({ selectedId: 'block-1' });
+      useArchitectureStore.setState({
+        workspace: {
+          id: 'ws-1',
+          name: 'Test Workspace',
+          architecture: {
+            ...baseArchitecture,
+            plates: [networkPlate, publicSubnet],
+            blocks: [computeBlock],
+          },
+          createdAt: '',
+          updatedAt: '',
+        },
+      });
+    });
+    rerender(<CommandCard />);
+    expect(screen.getByText('Block Actions')).toBeInTheDocument();
+
+    act(() => {
+      useUIStore.setState({ selectedId: 'net-1' });
+      useArchitectureStore.setState({
+        workspace: {
+          id: 'ws-1',
+          name: 'Test Workspace',
+          architecture: {
+            ...baseArchitecture,
+            plates: [networkPlate],
+          },
+          createdAt: '',
+          updatedAt: '',
+        },
+      });
+    });
+    rerender(<CommandCard />);
+    expect(screen.getByText('Plate Actions')).toBeInTheDocument();
+
+    act(() => {
+      useUIStore.setState({ selectedId: 'conn-1' });
+      useArchitectureStore.setState({
+        workspace: {
+          id: 'ws-1',
+          name: 'Test Workspace',
+          architecture: {
+            ...baseArchitecture,
+            plates: [networkPlate, publicSubnet],
+            blocks: [computeBlock, { ...computeBlock, id: 'block-2', name: 'SQL DB', category: 'database' }],
+            connections: [testConnection],
+          },
+          createdAt: '',
+          updatedAt: '',
+        },
+      });
+    });
+    rerender(<CommandCard />);
+    expect(screen.getByText('Connection Actions')).toBeInTheDocument();
   });
 });

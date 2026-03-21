@@ -1,5 +1,5 @@
-/* Command Card — Context-Sensitive Action Grid */
-/* Based on VISUAL_DESIGN_SPEC.md §7.5 */
+/* Command Card -- Context-Sensitive Action Grid */
+/* LEGO brick theme: yellow buttons, red delete, green apply */
 
 .command-card {
   display: flex;
@@ -8,7 +8,7 @@
   border: 3px solid #D4B200;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 
+  box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.5),
     0 4px 0 0 #D4B200;
   font-family: 'Fredoka', system-ui, sans-serif;
@@ -135,7 +135,7 @@
   cursor: pointer;
   transition: all 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
-  box-shadow: 
+  box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.5),
     0 3px 0 0 #D4B200;
   color: #222222;
@@ -181,23 +181,24 @@
   bottom: 3px;
 }
 
-.command-card-btn:hover:not(.disabled):not(.command-card-btn--empty) {
+.command-card-btn:hover:not(.disabled):not(.command-card-btn--empty):not(:disabled) {
   background-color: #FFE44D;
   transform: translateY(-2px);
-  box-shadow: 
+  box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.6),
     0 5px 0 0 #D4B200;
 }
 
-.command-card-btn:active:not(.disabled):not(.command-card-btn--empty) {
+.command-card-btn:active:not(.disabled):not(.command-card-btn--empty):not(:disabled) {
   transform: translateY(2px);
-  box-shadow: 
+  box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.3),
     0 1px 0 0 #D4B200;
 }
 
 /* Disabled state */
-.command-card-btn.disabled {
+.command-card-btn.disabled,
+.command-card-btn:disabled {
   opacity: 0.9;
   cursor: not-allowed;
   background-color: #f0b4b8;
@@ -277,67 +278,223 @@
 }
 
 /* Creation mode specific */
-.command-card-btn:not(.disabled) .command-btn-icon {
+.command-card-btn:not(.disabled):not(:disabled) .command-btn-icon {
   transition: transform 0.15s ease;
 }
 
-.command-card-btn:hover:not(.disabled) .command-btn-icon {
+.command-card-btn:hover:not(.disabled):not(:disabled) .command-btn-icon {
   transform: scale(1.1);
 }
 
-/* Action mode specific */
-.command-card-btn[title*="Del"]:not(.disabled) {
+/* ── Delete button (red LEGO brick) ── */
+.command-card-btn--delete,
+.command-card-btn--delete:not(.disabled):not(:disabled) {
   background-color: #E3000B;
   border-color: #B80009;
   color: #FFFFFF;
-  box-shadow: 
+  box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.4),
     0 3px 0 0 #B80009;
 }
 
-.command-card-btn[title*="Del"]:not(.disabled):hover {
+.command-card-btn--delete:hover:not(.disabled):not(:disabled) {
   background-color: #FF3333;
-  box-shadow: 
+  box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.5),
     0 5px 0 0 #B80009;
 }
 
-.command-card-btn[title*="Del"]:not(.disabled):active {
-  box-shadow: 
+.command-card-btn--delete:active:not(.disabled):not(:disabled) {
+  box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
     0 1px 0 0 #B80009;
 }
 
-.command-card-btn[title*="Del"] .command-btn-icon,
-.command-card-btn[title*="Del"] .command-btn-label {
+.command-card-btn--delete .command-btn-icon,
+.command-card-btn--delete .command-btn-label,
+.command-card-btn--delete .command-btn-hotkey {
   color: #FFFFFF;
 }
 
-.command-card-btn[title*="Link"]:not(.disabled) {
+/* ── Connect button (green LEGO brick) ── */
+.command-card-btn--connect,
+.command-card-btn--connect:not(.disabled):not(:disabled) {
   background-color: #00852B;
   border-color: #00591D;
   color: #FFFFFF;
-  box-shadow: 
+  box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.4),
     0 3px 0 0 #00591D;
 }
 
-.command-card-btn[title*="Link"]:not(.disabled):hover {
+.command-card-btn--connect:hover:not(.disabled):not(:disabled) {
   background-color: #00A636;
-  box-shadow: 
+  box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.5),
     0 5px 0 0 #00591D;
 }
 
-.command-card-btn[title*="Link"]:not(.disabled):active {
-  box-shadow: 
+.command-card-btn--connect .command-btn-icon,
+.command-card-btn--connect .command-btn-label,
+.command-card-btn--connect .command-btn-hotkey {
+  color: #FFFFFF;
+}
+
+/* ── Apply button (green LEGO brick) ── */
+.command-card-btn--apply {
+  background-color: #00852B;
+  border-color: #00591D;
+  color: #FFFFFF;
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.4),
+    0 3px 0 0 #00591D;
+  min-height: 36px;
+  width: 100%;
+}
+
+.command-card-btn--apply:hover:not(:disabled) {
+  background-color: #00A636;
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.5),
+    0 5px 0 0 #00591D;
+}
+
+.command-card-btn--apply:active:not(:disabled) {
+  box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
     0 1px 0 0 #00591D;
 }
 
-.command-card-btn[title*="Link"] .command-btn-icon,
-.command-card-btn[title*="Link"] .command-btn-label {
+.command-card-btn--apply .command-btn-label {
   color: #FFFFFF;
+  text-align: center;
+  font-size: 12px;
+}
+
+/* ── Actions list (worker L1) ── */
+.command-card-actions-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.command-card-action-btn {
+  min-height: 52px;
+}
+
+/* ── Actions row (block/plate/connection quick-actions) ── */
+.command-card-actions-row {
+  display: flex;
+  gap: 6px;
+}
+
+.command-card-actions-row .command-card-btn {
+  flex: 1;
+}
+
+/* ── Mode content wrapper ── */
+.command-card-mode-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Form controls ── */
+.command-card-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px;
+  border: 2px solid rgba(0, 0, 0, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.command-card-form-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.45px;
+  color: #665500;
+  padding: 2px 4px;
+}
+
+.command-card-form-select {
+  max-width: 140px;
+  padding: 3px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #222222;
+  background: #FFFDE7;
+  border: 2px solid #D4B200;
+  border-radius: 6px;
+  font-family: 'Fredoka', system-ui, sans-serif;
+}
+
+.command-card-form-input {
+  max-width: 140px;
+  padding: 3px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #222222;
+  background: #FFFDE7;
+  border: 2px solid #D4B200;
+  border-radius: 6px;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  outline: none;
+}
+
+.command-card-form-input:focus {
+  border-color: #FFD500;
+  box-shadow: 0 0 0 2px rgba(255, 213, 0, 0.3);
+}
+
+/* ── Back button ── */
+.command-card-back-btn {
+  background: none;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #665500;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: 'Fredoka', system-ui, sans-serif;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+
+.command-card-back-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* ── Empty hint ── */
+.command-card-empty-hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: 16px 8px;
+  opacity: 0.7;
+}
+
+.command-card-empty-icon {
+  font-size: 20px;
+}
+
+.command-card-empty-text {
+  margin: 0;
+  font-size: 11px;
+  color: #665500;
+  font-weight: 700;
+  line-height: 1.4;
 }
 
 .command-card-btn.is-dragging {

@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen } from '@testing-library/react';
 import { DetailPanel } from './DetailPanel';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
@@ -91,32 +90,20 @@ describe('DetailPanel', () => {
     expect(screen.getByText('Tip: Start with Network')).toBeInTheDocument();
   });
 
-  it('renders block detail with type, category, and position', () => {
+  it('renders block detail as read-only with name, type, description, category, and position', () => {
     useUIStore.setState({ selectedId: 'block-1' });
 
     render(<DetailPanel />);
 
     expect(screen.getByText('App VM')).toBeInTheDocument();
     expect(screen.getByText('Virtual Machine')).toBeInTheDocument();
+    expect(screen.getByText('Runs your application code')).toBeInTheDocument();
     expect(screen.getByText('compute')).toBeInTheDocument();
     expect(screen.getByText('(1.2, 2.4, 0.0)')).toBeInTheDocument();
-  });
 
-  it('supports rename flow on block detail', async () => {
-    const user = userEvent.setup();
-    useUIStore.setState({ selectedId: 'block-1' });
-
-    render(<DetailPanel />);
-
-    await user.click(screen.getByRole('button', { name: 'Rename' }));
-
-    const input = screen.getByDisplayValue('App VM');
-    await user.clear(input);
-    await user.type(input, 'API VM');
-    fireEvent.blur(input);
-
-    expect(screen.queryByDisplayValue('API VM')).not.toBeInTheDocument();
-    expect(screen.getByText('API VM')).toBeInTheDocument();
+    // No rename button or edit controls
+    expect(screen.queryByRole('button', { name: 'Rename' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
 
   it('shows provider and subtype identity for provider-specific blocks', () => {
@@ -148,7 +135,7 @@ describe('DetailPanel', () => {
     expect(screen.getByText('Subtype')).toBeInTheDocument();
   });
 
-  it('renders plate detail including size and contents count', () => {
+  it('renders plate detail as read-only including size and contents count', () => {
     useUIStore.setState({ selectedId: 'subnet-1' });
 
     render(<DetailPanel />);
@@ -156,11 +143,15 @@ describe('DetailPanel', () => {
     expect(screen.getByText('Public Subnet')).toBeInTheDocument();
     expect(screen.getByText('Subnet (public)')).toBeInTheDocument();
     expect(screen.getByText('Main VNet')).toBeInTheDocument();
-    expect(screen.getByText('6 × 8')).toBeInTheDocument();
+    expect(screen.getByText(/6\s*.\s*8/)).toBeInTheDocument();
     expect(screen.getByText('2 blocks')).toBeInTheDocument();
+
+    // No profile select or rename button
+    expect(screen.queryByRole('button', { name: 'Rename' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
 
-  it('renders connection detail with actual type and source/target resources', () => {
+  it('renders connection detail with type and source/target resources', () => {
     useUIStore.setState({ selectedId: 'conn-1' });
 
     render(<DetailPanel />);
@@ -209,7 +200,7 @@ describe('DetailPanel', () => {
     expect(screen.getByText(/1 subnet/)).toBeInTheDocument();
   });
 
-  it('renders private subnet plate with lock icon', () => {
+  it('renders private subnet plate with correct type label', () => {
     const privateSubnet: Plate = {
       id: 'priv-1',
       name: 'Private Subnet',
@@ -430,7 +421,6 @@ describe('DetailPanel', () => {
     render(<DetailPanel />);
 
     expect(screen.getByText('Unknown')).toBeInTheDocument();
-    expect(screen.queryByText('☁️ Internet')).not.toBeInTheDocument();
   });
 
   it('renders unknown target when connection target block is missing', () => {
@@ -575,34 +565,6 @@ describe('DetailPanel', () => {
     expect(screen.getByText('Worker')).toBeInTheDocument();
     expect(screen.getByText('idle')).toBeInTheDocument();
     expect(screen.getByText('None')).toBeInTheDocument();
-  });
-
-  it('renames block via Enter key', async () => {
-    const user = userEvent.setup();
-    useUIStore.setState({ selectedId: 'block-1' });
-
-    render(<DetailPanel />);
-
-    await user.click(screen.getByRole('button', { name: 'Rename' }));
-    const input = screen.getByDisplayValue('App VM');
-    await user.clear(input);
-    await user.type(input, 'New VM');
-    fireEvent.keyDown(input, { key: 'Enter' });
-
-    expect(screen.getByText('New VM')).toBeInTheDocument();
-  });
-
-  it('does not rename block when name is unchanged', async () => {
-    const user = userEvent.setup();
-    useUIStore.setState({ selectedId: 'block-1' });
-
-    render(<DetailPanel />);
-
-    await user.click(screen.getByRole('button', { name: 'Rename' }));
-    const input = screen.getByDisplayValue('App VM');
-    fireEvent.blur(input);
-
-    expect(screen.getByText('App VM')).toBeInTheDocument();
   });
 
   it('renders zone plate with capitalized type name', () => {

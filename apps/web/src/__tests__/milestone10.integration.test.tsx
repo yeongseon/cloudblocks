@@ -150,7 +150,10 @@ describe('Milestone 10 integration', () => {
     await user.click(minifigure);
 
     expect(useUIStore.getState().selectedId).toBe('worker-default');
-    expect(screen.getByText('Build Order')).toBeInTheDocument();
+    expect(screen.getByText('Worker Actions')).toBeInTheDocument();
+
+    // Click Build to enter build grid (2-level worker mode)
+    await user.click(screen.getByTitle('Build (Q)'));
 
     await user.click(screen.getByTitle('Build Virtual Machine'));
 
