@@ -1,5 +1,5 @@
 import type { StudColorSpec } from '../../shared/types/index';
-import type { BlockCategory, ProviderType } from '@cloudblocks/schema';
+import type { ProviderType, ResourceCategory } from '@cloudblocks/schema';
 
 // ═══════════════════════════════════════════════════════════════
 // Block Face Color System — v2.0
@@ -210,42 +210,33 @@ const SUBTYPE_FAMILY_MAP: Record<string, string> = {
  * When no subtype is available, map category to the most appropriate
  * service family for each provider.
  */
-const CATEGORY_FAMILY_FALLBACK: Record<ProviderType, Record<BlockCategory, string>> = {
+const CATEGORY_FAMILY_FALLBACK: Record<ProviderType, Record<ResourceCategory, string>> = {
   aws: {
-    compute:       'compute',
-    database:      'database',
-    storage:       'storage',
-    gateway:       'networking',
-    function:      'compute',
-    queue:         'app-integration',
-    event:         'app-integration',
-    analytics:     'analytics',
-    identity:      'security',
-    observability: 'management',
+    network:    'networking',
+    security:   'security',
+    edge:       'networking',
+    compute:    'compute',
+    data:       'database',
+    messaging:  'app-integration',
+    operations: 'management',
   },
   azure: {
-    compute:       'compute',
-    database:      'database',
-    storage:       'storage',
-    gateway:       'networking',
-    function:      'serverless',
-    queue:         'messaging',
-    event:         'messaging',
-    analytics:     'database',
-    identity:      'identity',
-    observability: 'monitoring',
+    network:    'networking',
+    security:   'security',
+    edge:       'networking',
+    compute:    'compute',
+    data:       'database',
+    messaging:  'messaging',
+    operations: 'monitoring',
   },
   gcp: {
-    compute:       'compute',
-    database:      'storage-db',
-    storage:       'storage-db',
-    gateway:       'networking',
-    function:      'compute',
-    queue:         'data-analytics',
-    event:         'data-analytics',
-    analytics:     'data-analytics',
-    identity:      'operations',
-    observability: 'operations',
+    network:    'networking',
+    security:   'operations',
+    edge:       'networking',
+    compute:    'compute',
+    data:       'storage-db',
+    messaging:  'data-analytics',
+    operations: 'operations',
   },
 };
 
@@ -263,7 +254,7 @@ const CATEGORY_FAMILY_FALLBACK: Record<ProviderType, Record<BlockCategory, strin
 export function getBlockColor(
   provider: ProviderType,
   subtype: string | undefined,
-  category: BlockCategory,
+  category: ResourceCategory,
 ): string {
   const palette = PROVIDER_COLORS[provider];
 
@@ -290,7 +281,7 @@ export function getBlockColor(
  * determined by the provider's service family for the given category.
  */
 export function getBlockFaceColors(
-  category: BlockCategory,
+  category: ResourceCategory,
   provider: ProviderType = 'azure',
   subtype?: string,
 ): BlockFaceColors {
@@ -308,7 +299,7 @@ export function getBlockFaceColors(
  * Get stud colors for a block. Uses provider-resource color derivation.
  */
 export function getBlockStudColors(
-  category: BlockCategory,
+  category: ResourceCategory,
   provider: ProviderType = 'azure',
   subtype?: string,
 ): StudColorSpec {

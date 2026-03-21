@@ -2,10 +2,28 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import interact from 'interactjs';
+
+vi.mock('../store/architectureStore', async () => {
+  const actual = await vi.importActual<typeof import('../store/architectureStore')>('../store/architectureStore');
+  const { useShallow } = await vi.importActual<typeof import('zustand/react/shallow')>('zustand/react/shallow');
+
+  const useArchitectureStoreStable = ((selector: Parameters<typeof actual.useArchitectureStore>[0]) => {
+    const stableSelector = useShallow(selector);
+    return actual.useArchitectureStore(stableSelector);
+  }) as typeof actual.useArchitectureStore;
+
+  Object.assign(useArchitectureStoreStable, actual.useArchitectureStore);
+
+  return {
+    ...actual,
+    useArchitectureStore: useArchitectureStoreStable,
+  };
+});
+
 import { BlockSprite } from './BlockSprite';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
-import type { Block, BlockCategory, ExternalActor, Plate } from '@cloudblocks/schema';
+import type { ContainerNode, ExternalActor, LeafNode, ResourceCategory, ResourceNode } from '@cloudblocks/schema';
 import * as isometric from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
@@ -33,26 +51,77 @@ vi.mock('react-hot-toast', () => ({
 
 vi.mock('./BlockSprite.css', () => ({}));
 
-const parentPlate: Plate = {
+const parentPlate: ContainerNode = {
   id: 'plate-1',
   name: 'Subnet',
-  type: 'subnet',
+  kind: 'container',
+  layer: 'subnet',
+  resourceType: 'subnet',
+  category: 'network',
+  provider: 'azure',
   subnetAccess: 'public',
   parentId: 'net-1',
-  children: [],
   position: { x: 0, y: 0, z: 0 },
   size: { width: 6, height: 0.3, depth: 8 },
   metadata: {},
 };
 
-const makeBlock = (id: string, category: BlockCategory): Block => ({
-  id,
-  name: `${category}-block`,
-  category,
-  placementId: parentPlate.id,
-  position: { x: 1, y: 0, z: 2 },
-  metadata: {},
-});
+type LegacyBlockCategory =
+  | ResourceCategory
+  | 'database'
+  | 'storage'
+  | 'gateway'
+  | 'function'
+  | 'queue'
+  | 'event'
+  | 'analytics'
+  | 'identity'
+  | 'observability';
+
+const CATEGORY_MAP: Record<LegacyBlockCategory, ResourceCategory> = {
+  compute: 'compute',
+  data: 'data',
+  edge: 'edge',
+  messaging: 'messaging',
+  operations: 'operations',
+  security: 'security',
+  network: 'network',
+  database: 'data',
+  storage: 'data',
+  gateway: 'edge',
+  function: 'compute',
+  queue: 'messaging',
+  event: 'messaging',
+  analytics: 'operations',
+  identity: 'security',
+  observability: 'operations',
+};
+
+const RESOURCE_TYPE_MAP: Record<ResourceCategory, string> = {
+  compute: 'web_compute',
+  data: 'relational_database',
+  edge: 'load_balancer',
+  security: 'firewall_security',
+  operations: 'monitoring',
+  messaging: 'message_queue',
+  network: 'virtual_network',
+};
+
+const makeBlock = (id: string, category: LegacyBlockCategory): LeafNode => {
+  const normalizedCategory = CATEGORY_MAP[category];
+  return {
+    id,
+    name: `${category}-block`,
+    kind: 'resource',
+    layer: 'resource',
+    resourceType: RESOURCE_TYPE_MAP[normalizedCategory],
+    category: normalizedCategory,
+    provider: 'azure',
+    parentId: parentPlate.id,
+    position: { x: 1, y: 0, z: 2 },
+    metadata: {},
+  };
+};
 
 const internetActor: ExternalActor = {
   id: 'actor-internet',
@@ -93,7 +162,7 @@ describe('BlockSprite', () => {
   });
 
   it.each([
-    'gateway', 'compute', 'database', 'storage', 'function', 'queue', 'event', 'analytics', 'identity', 'observability',
+    'edge', 'compute', 'database', 'data', 'function', 'queue', 'event', 'analytics', 'identity', 'operations',
   ] as const)('renders %s as inline SVG', (category) => {
     const block = makeBlock(`block-${category}`, category);
     const { container } = render(
@@ -444,7 +513,7 @@ describe('BlockSprite', () => {
         ...useArchitectureStore.getState().workspace,
         architecture: {
           ...useArchitectureStore.getState().workspace.architecture,
-          blocks: [block],
+          nodes: [block] as ResourceNode[],
           connections: [],
         },
       },
@@ -479,7 +548,7 @@ describe('BlockSprite', () => {
         ...useArchitectureStore.getState().workspace,
         architecture: {
           ...useArchitectureStore.getState().workspace.architecture,
-          blocks: [block],
+          nodes: [block] as ResourceNode[],
           connections: [],
         },
       },
@@ -504,7 +573,7 @@ describe('BlockSprite', () => {
   });
 
   it('adds is-valid-target class when in connect mode with valid source→target pair (gateway→compute)', () => {
-    const sourceBlock = makeBlock('block-gateway', 'gateway');
+    const sourceBlock = makeBlock('block-gateway', 'edge');
     const targetBlock = makeBlock('block-compute', 'compute');
 
     useUIStore.setState({ toolMode: 'connect', connectionSource: sourceBlock.id });
@@ -513,7 +582,7 @@ describe('BlockSprite', () => {
         ...useArchitectureStore.getState().workspace,
         architecture: {
           ...useArchitectureStore.getState().workspace.architecture,
-          blocks: [sourceBlock, targetBlock],
+          nodes: [sourceBlock, targetBlock] as ResourceNode[],
           connections: [],
         },
       },
@@ -536,7 +605,7 @@ describe('BlockSprite', () => {
         ...useArchitectureStore.getState().workspace,
         architecture: {
           ...useArchitectureStore.getState().workspace.architecture,
-          blocks: [sourceBlock, targetBlock],
+          nodes: [sourceBlock, targetBlock] as ResourceNode[],
           connections: [],
         },
       },
@@ -559,7 +628,7 @@ describe('BlockSprite', () => {
         ...useArchitectureStore.getState().workspace,
         architecture: {
           ...useArchitectureStore.getState().workspace.architecture,
-          blocks: [blockWithConn, otherBlock],
+          nodes: [blockWithConn, otherBlock] as ResourceNode[],
           connections: [
             {
               id: 'conn-1',
@@ -581,7 +650,7 @@ describe('BlockSprite', () => {
   });
 
   it('adds is-valid-target class when connect source is external actor and target is gateway', () => {
-    const gatewayBlock = makeBlock('block-gateway', 'gateway');
+    const gatewayBlock = makeBlock('block-gateway', 'edge');
 
     useUIStore.setState({ toolMode: 'connect', connectionSource: internetActor.id });
     useArchitectureStore.setState({
@@ -589,7 +658,7 @@ describe('BlockSprite', () => {
         ...useArchitectureStore.getState().workspace,
         architecture: {
           ...useArchitectureStore.getState().workspace.architecture,
-          blocks: [gatewayBlock],
+          nodes: [gatewayBlock] as ResourceNode[],
           externalActors: [internetActor],
           connections: [],
         },
@@ -612,7 +681,7 @@ describe('BlockSprite', () => {
         ...useArchitectureStore.getState().workspace,
         architecture: {
           ...useArchitectureStore.getState().workspace.architecture,
-          blocks: [computeBlock],
+          nodes: [computeBlock] as ResourceNode[],
           externalActors: [internetActor],
           connections: [],
         },
@@ -627,19 +696,22 @@ describe('BlockSprite', () => {
   });
 
   it('adds is-warning class when block has placement validation error (gateway on private subnet)', () => {
-    const privatePlate: Plate = {
+    const privatePlate: ContainerNode = {
       id: 'plate-private',
       name: 'Private Subnet',
-      type: 'subnet',
+      kind: 'container',
+      layer: 'subnet',
+      resourceType: 'subnet',
+      category: 'network',
+      provider: 'azure',
       subnetAccess: 'private',
       parentId: 'net-1',
-      children: [],
       position: { x: 0, y: 0, z: 0 },
       size: { width: 6, height: 0.3, depth: 8 },
       metadata: {},
     };
 
-    const gatewayBlock = makeBlock('block-gateway-warn', 'gateway');
+    const gatewayBlock = makeBlock('block-gateway-warn', 'edge');
 
     const { container } = render(
       <BlockSprite block={gatewayBlock} parentPlate={privatePlate} screenX={0} screenY={0} zIndex={1} />,
@@ -649,13 +721,16 @@ describe('BlockSprite', () => {
   });
 
   it('does not add is-warning class when block is correctly placed (compute on public subnet)', () => {
-    const publicPlate: Plate = {
+    const publicPlate: ContainerNode = {
       id: 'plate-public',
       name: 'Public Subnet',
-      type: 'subnet',
+      kind: 'container',
+      layer: 'subnet',
+      resourceType: 'subnet',
+      category: 'network',
+      provider: 'azure',
       subnetAccess: 'public',
       parentId: 'net-1',
-      children: [],
       position: { x: 0, y: 0, z: 0 },
       size: { width: 6, height: 0.3, depth: 8 },
       metadata: {},

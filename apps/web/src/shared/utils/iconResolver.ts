@@ -1,4 +1,4 @@
-import type { BlockCategory, PlateType, ProviderType, SubnetAccess } from '@cloudblocks/schema';
+import type { LayerType, ProviderType, ResourceCategory, SubnetAccess } from '@cloudblocks/schema';
 
 // ─── Azure Icon Imports ──────────────────────────────────────
 import vmIcon from '../assets/azure-icons/virtual-machine.svg';
@@ -15,17 +15,14 @@ import subnetIcon from '../assets/azure-icons/subnet.svg';
 // ─── Block Icon Maps ─────────────────────────────────────────
 
 /** Azure category → icon mapping (canonical source). */
-const AZURE_BLOCK_ICONS: Record<BlockCategory, string> = {
+const AZURE_BLOCK_ICONS: Record<ResourceCategory, string> = {
+  network: vnetIcon,
+  security: gatewayIcon,
+  edge: gatewayIcon,
   compute: vmIcon,
-  database: sqlIcon,
-  storage: storageIcon,
-  gateway: gatewayIcon,
-  function: logicAppsIcon,   // Generic serverless icon (Logic Apps SVG reused)
-  queue: queueIcon,
-  event: eventIcon,
-  analytics: eventIcon,      // TODO: add dedicated analytics icon
-  identity: gatewayIcon,     // TODO: add dedicated identity/key-vault icon
-  observability: eventIcon,  // TODO: add dedicated observability icon
+  data: sqlIcon,
+  messaging: queueIcon,
+  operations: eventIcon,
 };
 
 /**
@@ -35,13 +32,15 @@ const AZURE_BLOCK_ICONS: Record<BlockCategory, string> = {
  */
 const SUBTYPE_ICON_OVERRIDES: Record<string, string> = {
   'app-service': appServiceIcon,
+  functions: logicAppsIcon,
+  'blob-storage': storageIcon,
 };
 
 /**
  * Provider-specific block icon overrides.
  * AWS and GCP fall back to Azure icons until vendor packs are added.
  */
-const PROVIDER_BLOCK_ICONS: Record<ProviderType, Record<BlockCategory, string>> = {
+const PROVIDER_BLOCK_ICONS: Record<ProviderType, Record<ResourceCategory, string>> = {
   azure: AZURE_BLOCK_ICONS,
   aws: { ...AZURE_BLOCK_ICONS },  // fallback: Azure icons until AWS icon pack added
   gcp: { ...AZURE_BLOCK_ICONS },  // fallback: Azure icons until GCP icon pack added
@@ -50,7 +49,9 @@ const PROVIDER_BLOCK_ICONS: Record<ProviderType, Record<BlockCategory, string>> 
 // ─── Plate Icon Maps ─────────────────────────────────────────
 
 /** Plate type → icon mapping. */
-const PLATE_ICONS: Record<PlateType, string> = {
+type PlateLayer = Exclude<LayerType, 'resource'>;
+
+const PLATE_ICONS: Record<PlateLayer, string> = {
   global: vnetIcon,
   edge: vnetIcon,
   region: vnetIcon,
@@ -72,7 +73,7 @@ const PLATE_ICONS: Record<PlateType, string> = {
  */
 export function getBlockIconUrl(
   provider: ProviderType,
-  category: BlockCategory,
+  category: ResourceCategory,
   subtype?: string,
 ): string {
   if (subtype && SUBTYPE_ICON_OVERRIDES[subtype]) {
@@ -92,8 +93,11 @@ export function getBlockIconUrl(
  * @returns An SVG asset URL string (Vite-resolved)
  */
 export function getPlateIconUrl(
-  plateType: PlateType,
+  plateType: LayerType,
   _subnetAccess?: SubnetAccess,
 ): string {
+  if (plateType === 'resource') {
+    return vnetIcon;
+  }
   return PLATE_ICONS[plateType] ?? vnetIcon;
 }

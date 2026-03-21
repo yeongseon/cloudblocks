@@ -50,7 +50,7 @@ describe('BlockSvg provider colors', () => {
   });
 
   it('falls back to azure palette when provider is omitted', () => {
-    const category = 'storage';
+    const category = 'data';
     const expectedAzure = getBlockFaceColors(category, 'azure');
 
     const { container } = render(<BlockSvg category={category} />);
@@ -63,7 +63,7 @@ describe('BlockSvg provider colors', () => {
   });
 
   it('keeps legacy blocks without provider visually azure by default', () => {
-    const category = 'database';
+    const category = 'data';
     const azure = getBlockFaceColors(category, 'azure');
 
     const { container } = render(<BlockSvg category={category} provider={undefined} />);
@@ -91,9 +91,9 @@ describe('BlockSvg provider colors', () => {
 
 describe('BlockSvg subtype colors', () => {
   it('applies subtype-specific colors when subtype is provided', () => {
-    const expected = getBlockFaceColors('database', 'azure', 'cosmos-db');
+    const expected = getBlockFaceColors('data', 'azure', 'cosmos-db');
     const { container } = render(
-      <BlockSvg category="database" provider="azure" subtype="cosmos-db" />,
+      <BlockSvg category="data" provider="azure" subtype="cosmos-db" />,
     );
     const polygons = getPolygons(container);
 
@@ -114,10 +114,7 @@ describe('BlockSvg subtype colors', () => {
 // ─── CU-based Dimension Tests ─────────────────────────────────
 
 describe('BlockSvg CU-based dimensions', () => {
-  const ALL_CATEGORIES: BlockCategory[] = [
-    'compute', 'database', 'storage', 'gateway', 'function',
-    'queue', 'event', 'analytics', 'identity', 'observability',
-  ];
+  const ALL_CATEGORIES: BlockCategory[] = ['compute', 'data', 'edge', 'messaging', 'operations', 'security'];
 
   it.each(ALL_CATEGORIES)(
     'renders %s with correct viewBox from CU dimensions',
@@ -134,11 +131,10 @@ describe('BlockSvg CU-based dimensions', () => {
   );
 
   it('renders micro tier (1×1×1) correctly', () => {
-    // event, function, queue are all micro
     const cu = TIER_DIMENSIONS.micro;
     const { screenWidth, svgHeight } = expectedDims(cu);
 
-    const { container } = render(<BlockSvg category="event" />);
+    const { container } = render(<BlockSvg category="messaging" />);
     const vb = getViewBox(container);
 
     expect(vb.width).toBe(64); // (1+1)*32
@@ -151,7 +147,7 @@ describe('BlockSvg CU-based dimensions', () => {
     const cu = TIER_DIMENSIONS.small;
     const { screenWidth, svgHeight } = expectedDims(cu);
 
-    const { container } = render(<BlockSvg category="identity" />);
+    const { container } = render(<BlockSvg category="security" />);
     const vb = getViewBox(container);
 
     expect(vb.width).toBe(128); // (2+2)*32
@@ -177,7 +173,7 @@ describe('BlockSvg CU-based dimensions', () => {
     const cu = TIER_DIMENSIONS.large;
     const { screenWidth, svgHeight } = expectedDims(cu);
 
-    const { container } = render(<BlockSvg category="database" />);
+    const { container } = render(<BlockSvg category="data" />);
     const vb = getViewBox(container);
 
     expect(vb.width).toBe(192); // (3+3)*32
@@ -190,7 +186,7 @@ describe('BlockSvg CU-based dimensions', () => {
     const cu = TIER_DIMENSIONS.wide;
     const { screenWidth, svgHeight } = expectedDims(cu);
 
-    const { container } = render(<BlockSvg category="gateway" />);
+    const { container } = render(<BlockSvg category="edge" />);
     const vb = getViewBox(container);
 
     expect(vb.width).toBe(128); // (3+1)*32
@@ -214,13 +210,13 @@ describe('BlockSvg CU-based dimensions', () => {
 
 describe('BlockSvg stud grid', () => {
   it('renders width × depth studs for micro tier (1×1 = 1 stud)', () => {
-    const { container } = render(<BlockSvg category="event" />);
+    const { container } = render(<BlockSvg category="messaging" />);
     const uses = container.querySelectorAll('use');
     expect(uses.length).toBe(1); // 1×1 = 1 stud
   });
 
   it('renders width × depth studs for small tier (2×2 = 4 studs)', () => {
-    const { container } = render(<BlockSvg category="identity" />);
+    const { container } = render(<BlockSvg category="security" />);
     const uses = container.querySelectorAll('use');
     expect(uses.length).toBe(4); // 2×2 = 4 studs
   });
@@ -232,22 +228,19 @@ describe('BlockSvg stud grid', () => {
   });
 
   it('renders width × depth studs for large tier (3×3 = 9 studs)', () => {
-    const { container } = render(<BlockSvg category="database" />);
+    const { container } = render(<BlockSvg category="data" />);
     const uses = container.querySelectorAll('use');
     expect(uses.length).toBe(9); // 3×3 = 9 studs
   });
 
   it('renders width × depth studs for wide tier (3×1 = 3 studs)', () => {
-    const { container } = render(<BlockSvg category="gateway" />);
+    const { container } = render(<BlockSvg category="edge" />);
     const uses = container.querySelectorAll('use');
     expect(uses.length).toBe(3); // 3×1 = 3 studs
   });
 
   it('stud count matches CU width×depth for all categories', () => {
-    const categories: BlockCategory[] = [
-      'compute', 'database', 'storage', 'gateway', 'function',
-      'queue', 'event', 'analytics', 'identity', 'observability',
-    ];
+    const categories: BlockCategory[] = ['compute', 'data', 'edge', 'messaging', 'operations', 'security'];
 
     categories.forEach((category) => {
       const cu = getBlockDimensions(category);
@@ -332,10 +325,7 @@ describe('BlockSvg SVG structure', () => {
 
 describe('BlockSvg category-tier mapping consistency', () => {
   it('all categories produce valid CU dimensions (positive integers)', () => {
-    const categories: BlockCategory[] = [
-      'compute', 'database', 'storage', 'gateway', 'function',
-      'queue', 'event', 'analytics', 'identity', 'observability',
-    ];
+    const categories: BlockCategory[] = ['compute', 'data', 'edge', 'messaging', 'operations', 'security'];
 
     categories.forEach((category) => {
       const cu = getBlockDimensions(category);
@@ -358,15 +348,12 @@ describe('BlockSvg category-tier mapping consistency', () => {
 
   it('category-tier mapping matches spec §5.2', () => {
     expect(CATEGORY_TIER_MAP.compute).toBe('medium');
-    expect(CATEGORY_TIER_MAP.database).toBe('large');
-    expect(CATEGORY_TIER_MAP.storage).toBe('medium');
-    expect(CATEGORY_TIER_MAP.gateway).toBe('wide');
-    expect(CATEGORY_TIER_MAP.function).toBe('micro');
-    expect(CATEGORY_TIER_MAP.queue).toBe('micro');
-    expect(CATEGORY_TIER_MAP.event).toBe('micro');
-    expect(CATEGORY_TIER_MAP.analytics).toBe('large');
-    expect(CATEGORY_TIER_MAP.identity).toBe('small');
-    expect(CATEGORY_TIER_MAP.observability).toBe('small');
+    expect(CATEGORY_TIER_MAP.data).toBe('large');
+    expect(CATEGORY_TIER_MAP.edge).toBe('wide');
+    expect(CATEGORY_TIER_MAP.messaging).toBe('micro');
+    expect(CATEGORY_TIER_MAP.network).toBe('large');
+    expect(CATEGORY_TIER_MAP.operations).toBe('small');
+    expect(CATEGORY_TIER_MAP.security).toBe('small');
   });
 });
 
@@ -394,7 +381,7 @@ describe('BlockSvg aggregation badge', () => {
   });
 
   it('renders badge for large count', () => {
-    const { container } = render(<BlockSvg category="database" aggregationCount={100} />);
+    const { container } = render(<BlockSvg category="data" aggregationCount={100} />);
     const badge = container.querySelector('[data-testid="aggregation-badge"]');
     expect(badge).not.toBeNull();
     const text = badge!.querySelector('text');
@@ -476,7 +463,7 @@ describe('BlockSvg name prop', () => {
   });
 
   it('does not affect icon on right wall', () => {
-    const { container } = render(<BlockSvg category="database" name="ProdDB" />);
+    const { container } = render(<BlockSvg category="data" name="ProdDB" />);
     const texts = container.querySelectorAll('text');
     expect(texts[0].textContent).toBe('ProdDB');
     const images = container.querySelectorAll('image');

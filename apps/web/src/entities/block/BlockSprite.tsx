@@ -1,7 +1,7 @@
 import { memo, useEffect, useRef } from 'react';
 import interact from 'interactjs';
 import { toast } from 'react-hot-toast';
-import type { Block, BlockCategory, Plate, ProviderType } from '@cloudblocks/schema';
+import type { ContainerNode, LeafNode, ProviderType, ResourceCategory } from '@cloudblocks/schema';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import { getDiffState } from '../../features/diff/engine';
@@ -18,7 +18,7 @@ import './BlockSprite.css';
 
 /** Derive screen size for the block clickable area from CU dimensions. */
 function getBlockScreenSize(
-  category: BlockCategory,
+  category: ResourceCategory,
   provider?: ProviderType,
   subtype?: string,
 ): { width: number; height: number } {
@@ -37,8 +37,8 @@ const PROVIDER_BADGES = {
 } as const;
 
 interface BlockSpriteProps {
-  block: Block;
-  parentPlate: Plate;
+  block: LeafNode;
+  parentPlate: ContainerNode;
   screenX: number;
   screenY: number;
   zIndex: number;
@@ -60,7 +60,9 @@ export const BlockSprite = memo(function BlockSprite({
   const addConnection = useArchitectureStore((s) => s.addConnection);
   const removeBlock = useArchitectureStore((s) => s.removeBlock);
   const moveBlockPosition = useArchitectureStore((s) => s.moveBlockPosition);
-  const blocks = useArchitectureStore((s) => s.workspace.architecture.blocks);
+  const blocks = useArchitectureStore((s) =>
+    s.workspace.architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource')
+  );
   const externalActors = useArchitectureStore((s) => s.workspace.architecture.externalActors);
   const connections = useArchitectureStore((s) => s.workspace.architecture.connections);
   const diffMode = useUIStore((s) => s.diffMode);
@@ -155,7 +157,8 @@ export const BlockSprite = memo(function BlockSprite({
               .getState()
               .workspace
               .architecture
-              .blocks
+              .nodes
+              .filter((node): node is LeafNode => node.kind === 'resource')
               .find((candidate) => candidate.id === block.id);
 
             if (currentBlock) {
@@ -250,6 +253,7 @@ export const BlockSprite = memo(function BlockSprite({
         left: `${screenX}px`,
         top: `${screenY}px`,
         zIndex,
+        '--build-progress': 1,
       } as React.CSSProperties}
     >
       <button
