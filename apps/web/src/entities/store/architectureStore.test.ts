@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { ArchitectureModel } from '@cloudblocks/schema';
+import type { ArchitectureModel, Block, ContainerNode, LeafNode, Plate, ResourceCategory } from '@cloudblocks/schema';
 import type { ArchitectureSnapshot } from '../../shared/types/learning';
 import type { ArchitectureTemplate } from '../../shared/types/template';
 
@@ -24,8 +24,86 @@ function getState() {
   return useArchitectureStore.getState();
 }
 
-function getArch(): ArchitectureModel {
-  return getState().workspace.architecture;
+function makeRegionNode(id = 'p1', overrides: Partial<ContainerNode> = {}): ContainerNode {
+  return {
+    id,
+    name: 'Net',
+    kind: 'container',
+    layer: 'region',
+    resourceType: 'virtual_network',
+    category: 'network',
+    provider: 'azure',
+    parentId: null,
+    position: { x: 0, y: 0, z: 0 },
+    size: { width: 12, height: 0.3, depth: 10 },
+    metadata: {},
+    ...overrides,
+  };
+}
+
+function makeResourceNode(
+  id = 'b1',
+  parentId = 'p1',
+  category: ResourceCategory = 'compute',
+  overrides: Partial<LeafNode> = {},
+): LeafNode {
+  const resourceTypeByCategory: Record<ResourceCategory, string> = {
+    compute: 'web_compute',
+    data: 'relational_database',
+    edge: 'load_balancer',
+    security: 'firewall_security',
+    operations: 'monitoring',
+    messaging: 'message_queue',
+    network: 'virtual_network',
+  };
+  return {
+    id,
+    name: 'VM',
+    kind: 'resource',
+    layer: 'resource',
+    resourceType: resourceTypeByCategory[category],
+    category,
+    provider: 'azure',
+    parentId,
+    position: { x: 0, y: 0.5, z: 0 },
+    metadata: {},
+    ...overrides,
+  };
+}
+
+type LegacyPlate = Plate & {
+  type: Plate['layer'];
+  children: string[];
+};
+
+type LegacyBlock = Block & {
+  placementId: string;
+};
+
+type LegacyArchitectureModel = Omit<ArchitectureModel, 'blocks' | 'plates'> & {
+  plates: LegacyPlate[];
+  blocks: LegacyBlock[];
+};
+
+const isPlateNode = (node: ArchitectureModel['nodes'][number]): node is Plate => node.kind === 'container';
+const isBlockNode = (node: ArchitectureModel['nodes'][number]): node is Block => node.kind === 'resource';
+
+function getArch(): LegacyArchitectureModel {
+  const architecture = getState().workspace.architecture;
+  const plates = architecture.nodes.filter(isPlateNode).map((plate) => ({
+    ...plate,
+    type: plate.layer,
+    children: architecture.nodes.filter((node) => node.parentId === plate.id).map((node) => node.id),
+  }));
+  const blocks: LegacyBlock[] = architecture.nodes.filter(isBlockNode).map((block): LegacyBlock => ({
+    ...block,
+    placementId: block.parentId ?? '',
+  }));
+  return {
+    ...architecture,
+    plates,
+    blocks,
+  };
 }
 
 function activateDiffState() {
@@ -43,8 +121,7 @@ function activateDiffState() {
       id: 'base-arch',
       name: 'Base',
       version: '1',
-      plates: [],
-      blocks: [],
+      nodes: [],
       connections: [],
       externalActors: [],
       createdAt: '2025-01-01T00:00:00Z',
@@ -69,8 +146,7 @@ describe('architectureStore', () => {
         id: 'arch-test',
         name: 'My Architecture',
         version: '2',
-        plates: [] as ArchitectureModel['plates'],
-        blocks: [] as ArchitectureModel['blocks'],
+        nodes: [] as ArchitectureModel['nodes'],
         connections: [] as ArchitectureModel['connections'],
         externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' as const, position: { x: -3, y: 0, z: 5 } }],
         createdAt: now,
@@ -100,8 +176,8 @@ describe('architectureStore', () => {
       const state = getState();
       expect(state.workspace).toBeDefined();
       expect(state.workspace.name).toBe('My Architecture');
-      expect(state.workspace.architecture.plates).toEqual([]);
-      expect(state.workspace.architecture.blocks).toEqual([]);
+      expect(getArch().plates).toEqual([]);
+      expect(getArch().blocks).toEqual([]);
       expect(state.workspace.architecture.connections).toEqual([]);
     });
 
@@ -288,7 +364,7 @@ describe('architectureStore', () => {
       const subId = getArch().plates[1].id;
 
       getState().addBlock('compute', 'VM', subId);
-      getState().addBlock('database', 'DB', subId);
+      getState().addBlock('data', 'DB', subId);
       const sourceId = getArch().blocks[0].id;
       const targetId = getArch().blocks[1].id;
 
@@ -488,15 +564,16 @@ describe('architectureStore', () => {
 
       // Inject aggregation and roles via setState (addBlock doesn't support them)
       const arch = getState().workspace.architecture;
+      const resourceNodes = arch.nodes.filter(isBlockNode);
       const enrichedBlock = {
-        ...arch.blocks[0],
+        ...resourceNodes[0],
         aggregation: { mode: 'count' as const, count: 3 },
         roles: ['primary' as const, 'writer' as const],
       };
       useArchitectureStore.setState({
         workspace: {
           ...getState().workspace,
-          architecture: { ...arch, blocks: [enrichedBlock] },
+          architecture: { ...arch, nodes: [...arch.nodes.filter((node) => !isBlockNode(node)), enrichedBlock] },
         },
       });
 
@@ -562,7 +639,7 @@ describe('architectureStore', () => {
       getState().addPlate('subnet', 'Sub', netId, 'public');
       const subId = getArch().plates[1].id;
 
-      getState().addBlock('gateway', 'Gateway', subId);
+      getState().addBlock('edge', 'Gateway', subId);
       getState().addBlock('compute', 'VM', subId);
       const gatewayId = getArch().blocks[0].id;
       const blockId = getArch().blocks[1].id;
@@ -695,7 +772,7 @@ describe('architectureStore', () => {
       getState().addPlate('subnet', 'Sub', netId, 'private');
       const privateSubId = getArch().plates[1].id;
 
-      getState().addBlock('gateway', 'FW', privateSubId);
+      getState().addBlock('edge', 'FW', privateSubId);
       const blockId = getArch().blocks[0].id;
 
       const before = getState().workspace.architecture;
@@ -728,10 +805,13 @@ describe('architectureStore', () => {
       const orphan = {
         id: 'orphan-subnet',
         name: 'Orphan',
-        type: 'subnet' as const,
+        kind: 'container' as const,
+        layer: 'subnet' as const,
+        resourceType: 'subnet' as const,
+        category: 'network' as const,
+        provider: 'azure' as const,
         subnetAccess: 'public' as const,
         parentId: 'missing-parent',
-        children: [],
         position: { x: 4, y: 0.3, z: 4 },
         size: { width: 6, height: 0.3, depth: 8 },
         metadata: {},
@@ -739,7 +819,7 @@ describe('architectureStore', () => {
       useArchitectureStore.setState({
         workspace: {
           ...getState().workspace,
-          architecture: { ...getState().workspace.architecture, plates: [orphan] },
+          architecture: { ...getState().workspace.architecture, nodes: [orphan] },
         },
       });
 
@@ -922,15 +1002,8 @@ describe('architectureStore', () => {
       const before = getState().workspace.architecture;
       const orphaned: ArchitectureModel = {
         ...before,
-        blocks: [
-          {
-            id: 'orphan-block',
-            name: 'Orphan',
-            category: 'compute',
-            placementId: 'missing-plate',
-            position: { x: 0, y: 0.5, z: 0 },
-            metadata: {},
-          },
+        nodes: [
+          makeResourceNode('orphan-block', 'missing-plate', 'compute', { name: 'Orphan' }),
         ],
       };
       useArchitectureStore.setState({
@@ -984,10 +1057,10 @@ describe('architectureStore', () => {
       getState().addPlate('subnet', 'Subnet', networkId, 'public');
       const subnetId = getArch().plates[1].id;
 
-      getState().addBlock('gateway', 'Gateway', subnetId);
+      getState().addBlock('edge', 'Gateway', subnetId);
       getState().addBlock('compute', 'Compute', subnetId);
-      getState().addBlock('database', 'Database', subnetId);
-      getState().addBlock('storage', 'Storage', subnetId);
+      getState().addBlock('data', 'Database', subnetId);
+      getState().addBlock('data', 'Storage', subnetId);
 
       const [gatewayId, computeId, databaseId, storageId] = getArch().blocks.map((block) => block.id);
       return { gatewayId, computeId, databaseId, storageId };
@@ -1070,7 +1143,7 @@ describe('architectureStore', () => {
       const networkId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Subnet', networkId, 'public');
       const subnetId = getArch().plates[1].id;
-      getState().addBlock('gateway', 'Gateway', subnetId);
+      getState().addBlock('edge', 'Gateway', subnetId);
       getState().addBlock('compute', 'Compute', subnetId);
       const sourceId = getArch().blocks[0].id;
       const targetId = getArch().blocks[1].id;
@@ -1093,12 +1166,9 @@ describe('architectureStore', () => {
     });
 
     it('returns errors for invalid architectures', () => {
-      // Add a database block on a public subnet (invalid placement)
       getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
-      getState().addPlate('subnet', 'PubSub', netId, 'public');
-      const subId = getArch().plates[1].id;
-      getState().addBlock('database', 'DB', subId);
+      getState().addBlock('compute', 'VM', netId);
 
       const result = getState().validate();
       expect(result.valid).toBe(false);
@@ -1180,7 +1250,7 @@ describe('architectureStore', () => {
       useArchitectureStore.setState({
         workspace: {
           ...getState().workspace,
-          architecture: { ...getState().workspace.architecture, plates: [], blocks: [], connections: [] },
+          architecture: { ...getState().workspace.architecture, nodes: [], connections: [] },
         },
       });
       expect(getArch().plates).toHaveLength(0);
@@ -1354,7 +1424,7 @@ describe('architectureStore', () => {
 
       const saved = getState().workspaces.find((ws) => ws.id === oldId);
       expect(saved).toBeDefined();
-      expect(saved?.architecture.plates).toHaveLength(1);
+      expect(saved?.architecture.nodes.filter((node) => node.kind === 'container')).toHaveLength(1);
     });
 
     it('resets history for the new workspace', () => {
@@ -1430,7 +1500,7 @@ describe('architectureStore', () => {
         getState().switchWorkspace(firstId);
         // Second workspace should have the plate we added
         const secondInList = getState().workspaces.find((ws) => ws.id === secondId);
-        expect(secondInList?.architecture.plates).toHaveLength(1);
+        expect(secondInList?.architecture.nodes.filter((node) => node.kind === 'container')).toHaveLength(1);
       }
     });
 
@@ -1557,7 +1627,7 @@ describe('architectureStore', () => {
 
       // Find original in list — it should still have 1 plate
       const original = getState().workspaces.find((ws) => ws.id === originalId);
-      expect(original?.architecture.plates).toHaveLength(1);
+      expect(original?.architecture.nodes.filter((node) => node.kind === 'container')).toHaveLength(1);
     });
 
     it('no-ops when cloning non-existent workspace', () => {
@@ -1663,27 +1733,9 @@ describe('architectureStore', () => {
         id: 'imported-1',
         name: 'Imported Arch',
         version: '1',
-        plates: [
-          {
-            id: 'p1',
-            name: 'Net',
-            type: 'region',
-            parentId: null,
-            children: [],
-            position: { x: 0, y: 0, z: 0 },
-            size: { width: 12, height: 0.3, depth: 10 },
-            metadata: {},
-          },
-        ],
-        blocks: [
-          {
-            id: 'b1',
-            name: 'VM',
-            category: 'compute',
-            placementId: 'p1',
-            position: { x: 0, y: 0.5, z: 0 },
-            metadata: {},
-          },
+        nodes: [
+          makeRegionNode('p1'),
+          makeResourceNode('b1', 'p1', 'compute', { name: 'VM' }),
         ],
         connections: [],
         externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
@@ -1699,19 +1751,7 @@ describe('architectureStore', () => {
 
     it('normalizes missing fields with defaults', () => {
       const minimal = {
-        plates: [
-          {
-            id: 'p1',
-            name: 'Net',
-            type: 'region',
-            parentId: null,
-            children: [],
-            position: { x: 0, y: 0, z: 0 },
-            size: { width: 12, height: 0.3, depth: 10 },
-            metadata: {},
-          },
-        ],
-        blocks: [],
+        nodes: [makeRegionNode('p1')],
       };
 
       getState().importArchitecture(JSON.stringify(minimal));
@@ -1742,8 +1782,7 @@ describe('architectureStore', () => {
     it('logs error when externalActors is not an array', () => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const invalid = {
-        plates: [],
-        blocks: [],
+        nodes: [],
         externalActors: { id: 'ext-1' },
       };
 
@@ -1757,8 +1796,7 @@ describe('architectureStore', () => {
     it('logs error when an external actor is missing id', () => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const invalid = {
-        plates: [],
-        blocks: [],
+        nodes: [],
         externalActors: [{ name: 'Internet', type: 'internet' }],
       };
 
@@ -1774,27 +1812,9 @@ describe('architectureStore', () => {
         id: 'import-external-actors',
         name: 'External Actors Valid',
         version: '1',
-        plates: [
-          {
-            id: 'p1',
-            name: 'Net',
-            type: 'region',
-            parentId: null,
-            children: [],
-            position: { x: 0, y: 0, z: 0 },
-            size: { width: 12, height: 0.3, depth: 10 },
-            metadata: {},
-          },
-        ],
-        blocks: [
-          {
-            id: 'b1',
-            name: 'VM',
-            category: 'compute',
-            placementId: 'p1',
-            position: { x: 0, y: 0.5, z: 0 },
-            metadata: {},
-          },
+        nodes: [
+          makeRegionNode('p1'),
+          makeResourceNode('b1', 'p1', 'compute', { name: 'VM' }),
         ],
         externalActors: [
           { id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } },
@@ -1832,27 +1852,9 @@ describe('architectureStore', () => {
     ])('logs error when connection is missing $name', ({ connection, message }) => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const invalid = {
-        plates: [
-          {
-            id: 'p1',
-            name: 'Net',
-            type: 'region',
-            parentId: null,
-            children: [],
-            position: { x: 0, y: 0, z: 0 },
-            size: { width: 12, height: 0.3, depth: 10 },
-            metadata: {},
-          },
-        ],
-        blocks: [
-          {
-            id: 'b1',
-            name: 'VM',
-            category: 'compute',
-            placementId: 'p1',
-            position: { x: 0, y: 0.5, z: 0 },
-            metadata: {},
-          },
+        nodes: [
+          makeRegionNode('p1'),
+          makeResourceNode('b1', 'p1', 'compute', { name: 'VM' }),
         ],
         connections: [connection],
       };
@@ -1867,27 +1869,9 @@ describe('architectureStore', () => {
     it('logs error when connection references non-existent endpoints', () => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const invalid = {
-        plates: [
-          {
-            id: 'p1',
-            name: 'Net',
-            type: 'region',
-            parentId: null,
-            children: [],
-            position: { x: 0, y: 0, z: 0 },
-            size: { width: 12, height: 0.3, depth: 10 },
-            metadata: {},
-          },
-        ],
-        blocks: [
-          {
-            id: 'b1',
-            name: 'VM',
-            category: 'compute',
-            placementId: 'p1',
-            position: { x: 0, y: 0.5, z: 0 },
-            metadata: {},
-          },
+        nodes: [
+          makeRegionNode('p1'),
+          makeResourceNode('b1', 'p1', 'compute', { name: 'VM' }),
         ],
         connections: [
           { id: 'c1', sourceId: 'missing', targetId: 'b1', type: 'dataflow' },
@@ -1906,27 +1890,9 @@ describe('architectureStore', () => {
         id: 'import-connections',
         name: 'Valid Connections',
         version: '1',
-        plates: [
-          {
-            id: 'p1',
-            name: 'Net',
-            type: 'region',
-            parentId: null,
-            children: [],
-            position: { x: 0, y: 0, z: 0 },
-            size: { width: 12, height: 0.3, depth: 10 },
-            metadata: {},
-          },
-        ],
-        blocks: [
-          {
-            id: 'b1',
-            name: 'VM',
-            category: 'compute',
-            placementId: 'p1',
-            position: { x: 0, y: 0.5, z: 0 },
-            metadata: {},
-          },
+        nodes: [
+          makeRegionNode('p1'),
+          makeResourceNode('b1', 'p1', 'compute', { name: 'VM' }),
         ],
         externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
         connections: [
@@ -1944,61 +1910,25 @@ describe('architectureStore', () => {
     it('logs error when block references non-existent plate', () => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const invalid = {
-        plates: [
-          {
-            id: 'p1',
-            name: 'Net',
-            type: 'region',
-            parentId: null,
-            children: [],
-            position: { x: 0, y: 0, z: 0 },
-            size: { width: 12, height: 0.3, depth: 10 },
-            metadata: {},
-          },
-        ],
-        blocks: [
-          {
-            id: 'b1',
-            name: 'VM',
-            category: 'compute',
-            placementId: 'missing-plate',
-            position: { x: 0, y: 0.5, z: 0 },
-            metadata: {},
-          },
+        nodes: [
+          makeRegionNode('p1'),
+          makeResourceNode('b1', 'missing-plate', 'compute', { name: 'VM' }),
         ],
       };
 
       getState().importArchitecture(JSON.stringify(invalid));
 
       expect(spy).toHaveBeenCalled();
-      expect(String(spy.mock.calls.at(-1)?.[1])).toContain('does not reference an existing plate');
+      expect(String(spy.mock.calls.at(-1)?.[1])).toContain('does not reference an existing container node');
       spy.mockRestore();
     });
 
     it('logs error when block name is not a string', () => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const invalid = {
-        plates: [
-          {
-            id: 'p1',
-            name: 'Net',
-            type: 'region',
-            parentId: null,
-            children: [],
-            position: { x: 0, y: 0, z: 0 },
-            size: { width: 12, height: 0.3, depth: 10 },
-            metadata: {},
-          },
-        ],
-        blocks: [
-          {
-            id: 'b1',
-            name: 123,
-            category: 'compute',
-            placementId: 'p1',
-            position: { x: 0, y: 0.5, z: 0 },
-            metadata: {},
-          },
+        nodes: [
+          makeRegionNode('p1'),
+          makeResourceNode('b1', 'p1', 'compute', { name: 123 as unknown as string }),
         ],
       };
 
@@ -2010,40 +1940,21 @@ describe('architectureStore', () => {
     it('logs error when block category is invalid', () => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const invalid = {
-        plates: [
-          {
-            id: 'p1',
-            name: 'Net',
-            type: 'region',
-            parentId: null,
-            children: [],
-            position: { x: 0, y: 0, z: 0 },
-            size: { width: 12, height: 0.3, depth: 10 },
-            metadata: {},
-          },
-        ],
-        blocks: [
-          {
-            id: 'b1',
-            name: 'VM',
-            category: 'invalid-category',
-            placementId: 'p1',
-            position: { x: 0, y: 0.5, z: 0 },
-            metadata: {},
-          },
+        nodes: [
+          makeRegionNode('p1'),
+          makeResourceNode('b1', 'p1', 'compute', { category: 'invalid-category' as unknown as ResourceCategory }),
         ],
       };
 
       getState().importArchitecture(JSON.stringify(invalid));
-      expect(String(spy.mock.calls.at(-1)?.[1])).toContain('category must be one of compute, database, storage, gateway, function, queue, event, analytics, identity, observability');
+      expect(String(spy.mock.calls.at(-1)?.[1])).toContain('category must be one of network, security, edge, compute, data, messaging, operations');
       spy.mockRestore();
     });
 
     it('logs error when external actor is not an object', () => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const invalid = {
-        plates: [],
-        blocks: [],
+        nodes: [],
         externalActors: ['not-an-object'],
       };
 
@@ -2057,8 +1968,7 @@ describe('architectureStore', () => {
     it('logs error when connection is not an object', () => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const invalid = {
-        plates: [],
-        blocks: [],
+        nodes: [],
         connections: ['not-an-object'],
       };
 
@@ -2072,27 +1982,9 @@ describe('architectureStore', () => {
     it('logs error when connection targetId references non-existent endpoint', () => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const invalid = {
-        plates: [
-          {
-            id: 'p1',
-            name: 'Net',
-            type: 'region',
-            parentId: null,
-            children: [],
-            position: { x: 0, y: 0, z: 0 },
-            size: { width: 12, height: 0.3, depth: 10 },
-            metadata: {},
-          },
-        ],
-        blocks: [
-          {
-            id: 'b1',
-            name: 'VM',
-            category: 'compute',
-            placementId: 'p1',
-            position: { x: 0, y: 0.5, z: 0 },
-            metadata: {},
-          },
+        nodes: [
+          makeRegionNode('p1'),
+          makeResourceNode('b1', 'p1', 'compute', { name: 'VM' }),
         ],
         connections: [
           { id: 'c1', sourceId: 'b1', targetId: 'missing-target', type: 'dataflow' },
@@ -2115,14 +2007,7 @@ describe('architectureStore', () => {
       vi.spyOn(console, 'error').mockImplementation(() => {});
 
       const arch = {
-        plates: [
-          {
-            id: 'p1', name: 'Net', type: 'region', parentId: null,
-            children: [], position: { x: 0, y: 0, z: 0 },
-            size: { width: 12, height: 0.3, depth: 10 }, metadata: {},
-          },
-        ],
-        blocks: [],
+        nodes: [makeRegionNode('p1')],
       };
 
       const result = getState().importArchitecture(JSON.stringify(arch));
@@ -2137,14 +2022,7 @@ describe('architectureStore', () => {
       activateDiffState();
 
       const arch = {
-        plates: [
-          {
-            id: 'p1', name: 'Net', type: 'region', parentId: null,
-            children: [], position: { x: 0, y: 0, z: 0 },
-            size: { width: 12, height: 0.3, depth: 10 }, metadata: {},
-          },
-        ],
-        blocks: [],
+        nodes: [makeRegionNode('p1')],
       };
 
       const result = getState().importArchitecture(JSON.stringify(arch));
@@ -2163,8 +2041,9 @@ describe('architectureStore', () => {
       const json = getState().exportArchitecture();
       const parsed = JSON.parse(json);
 
-      expect(parsed.plates).toHaveLength(1);
-      expect(parsed.plates[0].name).toBe('VNet');
+      const plates = parsed.nodes.filter((node: { kind: string }) => node.kind === 'container');
+      expect(plates).toHaveLength(1);
+      expect(plates[0].name).toBe('VNet');
     });
 
     it('returns pretty-printed JSON', () => {
@@ -2186,19 +2065,7 @@ describe('architectureStore', () => {
         architecture: {
           name: 'Template Arch',
           version: '1',
-          plates: [
-            {
-              id: 'tp1',
-              name: 'Net',
-              type: 'region',
-              parentId: null,
-              children: [],
-              position: { x: 0, y: 0, z: 0 },
-              size: { width: 12, height: 0.3, depth: 10 },
-              metadata: {},
-            },
-          ],
-          blocks: [],
+          nodes: [makeRegionNode('tp1')],
           connections: [],
           externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
         },
@@ -2226,8 +2093,7 @@ describe('architectureStore', () => {
         architecture: {
           name: 'T',
           version: '1',
-          plates: [],
-          blocks: [],
+          nodes: [],
           connections: [],
           externalActors: [],
         },
@@ -2254,8 +2120,7 @@ describe('architectureStore', () => {
         architecture: {
           name: 'FT',
           version: '1',
-          plates: [],
-          blocks: [],
+          nodes: [],
           connections: [],
           externalActors: [],
         },
@@ -2282,8 +2147,7 @@ describe('architectureStore', () => {
         architecture: {
           name: 'Template',
           version: '1',
-          plates: [],
-          blocks: [],
+          nodes: [],
           connections: [],
           externalActors: [],
         },
@@ -2306,27 +2170,14 @@ describe('architectureStore', () => {
       const snapshot: ArchitectureSnapshot = {
         name: 'Checkpoint Architecture',
         version: '1',
-        plates: [
-          {
-            id: 'snap-plate-1',
+        nodes: [
+          makeRegionNode('snap-plate-1', {
             name: 'Snap Network',
-            type: 'region',
-            parentId: null,
-            children: ['snap-block-1'],
             position: { x: 1, y: 0, z: 2 },
-            size: { width: 12, height: 0.3, depth: 10 },
-            metadata: {},
-          },
-        ],
-        blocks: [
-          {
-            id: 'snap-block-1',
+          }),
+          makeResourceNode('snap-block-1', 'snap-plate-1', 'compute', {
             name: 'Snap VM',
-            category: 'compute',
-            placementId: 'snap-plate-1',
-            position: { x: 0, y: 0.5, z: 0 },
-            metadata: {},
-          },
+          }),
         ],
         connections: [
           {
@@ -2347,8 +2198,7 @@ describe('architectureStore', () => {
       expect(replaced.id).toBe(initialArch.id);
       expect(replaced.createdAt).toBe(initialArch.createdAt);
       expect(replaced.updatedAt).not.toBe(initialArch.updatedAt);
-      expect(replaced.plates).toEqual(snapshot.plates);
-      expect(replaced.blocks).toEqual(snapshot.blocks);
+      expect(replaced.nodes).toEqual(snapshot.nodes);
       expect(replaced.connections).toEqual(snapshot.connections);
     });
 
@@ -2363,8 +2213,7 @@ describe('architectureStore', () => {
       const snapshot: ArchitectureSnapshot = {
         name: 'Checkpoint',
         version: '1',
-        plates: [],
-        blocks: [],
+        nodes: [],
         connections: [],
         externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       };
@@ -2385,8 +2234,7 @@ describe('architectureStore', () => {
       const snapshot: ArchitectureSnapshot = {
         name: 'Checkpoint',
         version: '1',
-        plates: [],
-        blocks: [],
+        nodes: [],
         connections: [],
         externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       };
@@ -2402,57 +2250,46 @@ describe('architectureStore', () => {
         .toThrow('root must be an object');
     });
 
-    it('throws when plates is missing', () => {
-      const invalid = { blocks: [], connections: [] } as unknown as ArchitectureSnapshot;
+    it('throws when nodes is missing', () => {
+      const invalid = { connections: [] } as unknown as ArchitectureSnapshot;
       expect(() => getState().replaceArchitecture(invalid))
-        .toThrow('plates must be an array');
+        .toThrow('expected nodes[] or legacy plates[] + blocks[]');
     });
 
-    it('throws when blocks is missing', () => {
+    it('throws when legacy blocks is missing', () => {
       const invalid = { plates: [], connections: [] } as unknown as ArchitectureSnapshot;
       expect(() => getState().replaceArchitecture(invalid))
-        .toThrow('blocks must be an array');
+        .toThrow('expected nodes[] or legacy plates[] + blocks[]');
     });
 
-    it('throws when a plate has invalid type', () => {
+    it('throws when a node has invalid layer type', () => {
       const invalid = {
-        plates: [{
-          id: 'p1', name: 'Net', type: 'invalid-type',
-          parentId: null, children: [],
-          position: { x: 0, y: 0, z: 0 },
-          size: { width: 12, height: 0.3, depth: 10 },
-        }],
-        blocks: [],
+        nodes: [
+          makeRegionNode('p1', { layer: 'invalid-type' as unknown as ContainerNode['layer'] }),
+        ],
         connections: [],
       } as unknown as ArchitectureSnapshot;
       expect(() => getState().replaceArchitecture(invalid))
-        .toThrow('type must be one of');
+        .toThrow('layer must be one of');
     });
 
     it('throws when a block references non-existent plate', () => {
       const invalid = {
-        plates: [{
-          id: 'p1', name: 'Net', type: 'region',
-          parentId: null, children: [],
-          position: { x: 0, y: 0, z: 0 },
-          size: { width: 12, height: 0.3, depth: 10 },
-        }],
-        blocks: [{
-          id: 'b1', name: 'VM', category: 'compute',
-          placementId: 'missing-plate',
-          position: { x: 0, y: 0.5, z: 0 },
-        }],
+        nodes: [
+          makeRegionNode('p1'),
+          makeResourceNode('b1', 'missing-plate', 'compute', { name: 'VM' }),
+        ],
         connections: [],
       } as unknown as ArchitectureSnapshot;
       expect(() => getState().replaceArchitecture(invalid))
-        .toThrow('does not reference an existing plate');
+        .toThrow('does not reference an existing container node');
     });
 
     it('does not modify state when validation fails', () => {
       getState().addPlate('region', 'Original', null);
       const archBefore = JSON.parse(JSON.stringify(getArch())) as ArchitectureModel;
 
-      const invalid = { blocks: [] } as unknown as ArchitectureSnapshot;
+      const invalid = { connections: [] } as unknown as ArchitectureSnapshot;
       expect(() => getState().replaceArchitecture(invalid)).toThrow();
 
       expect(getArch()).toEqual(archBefore);
