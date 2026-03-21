@@ -629,4 +629,130 @@ describe('DetailPanel', () => {
     expect(screen.getByRole('img', { name: 'Public Subnet' })).toBeInTheDocument();
     expect(screen.getByText('Subnet (public)')).toBeInTheDocument();
   });
+
+  it('renders InfraSettings for compute category block', () => {
+    useUIStore.setState({ selectedId: 'block-1' });
+
+    render(<DetailPanel />);
+
+    expect(screen.getByText('Infrastructure Settings')).toBeInTheDocument();
+    expect(screen.getByLabelText('Tier')).toBeInTheDocument();
+    expect(screen.getByLabelText('vCPUs')).toBeInTheDocument();
+    expect(screen.getByLabelText('Memory (GB)')).toBeInTheDocument();
+  });
+
+  it('renders InfraSettings Apply button that calls updateBlockConfig', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ selectedId: 'block-1' });
+
+    render(<DetailPanel />);
+
+    const applyBtn = screen.getByRole('button', { name: 'Apply' });
+    expect(applyBtn).toBeInTheDocument();
+
+    await user.click(applyBtn);
+
+    // After applying, the block should have config stored
+    const block = useArchitectureStore.getState().workspace.architecture.blocks.find(
+      (b) => b.id === 'block-1',
+    );
+    expect(block?.config).toBeDefined();
+    expect(block?.config).toEqual(expect.objectContaining({ tier: 'standard', vCPUs: 2, memoryGb: 4 }));
+  });
+
+  it('does not render InfraSettings for category without settings', () => {
+    // 'database' has settings, but let's use a category not in CATEGORY_SETTINGS
+    const eventBlock: Block = {
+      id: 'block-event',
+      name: 'Event Hub',
+      category: 'event',
+      placementId: 'subnet-1',
+      position: { x: 0, y: 0, z: 0 },
+      metadata: {},
+    };
+
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          ...architectureWithResources,
+          blocks: [eventBlock],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+    useUIStore.setState({ selectedId: 'block-event' });
+
+    render(<DetailPanel />);
+
+    expect(screen.queryByText('Infrastructure Settings')).not.toBeInTheDocument();
+  });
+
+  it('Copy button calls duplicateBlock', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ selectedId: 'block-1' });
+
+    render(<DetailPanel />);
+
+    const copyBtn = screen.getByRole('button', { name: /Copy/ });
+    expect(copyBtn).toBeInTheDocument();
+
+    const blocksBefore = useArchitectureStore.getState().workspace.architecture.blocks.length;
+    await user.click(copyBtn);
+    const blocksAfter = useArchitectureStore.getState().workspace.architecture.blocks.length;
+
+    expect(blocksAfter).toBe(blocksBefore + 1);
+    const copiedBlock = useArchitectureStore.getState().workspace.architecture.blocks.find(
+      (b) => b.name === 'App VM (copy)',
+    );
+    expect(copiedBlock).toBeDefined();
+  });
+
+  it('Delete button shows confirm dialog and removes block on confirm', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ selectedId: 'block-1' });
+
+    // Mock confirmDialog to return true
+    const confirmMod = await import('../../shared/ui/ConfirmDialog');
+    const confirmSpy = vi.spyOn(confirmMod, 'confirmDialog').mockResolvedValue(true);
+
+    render(<DetailPanel />);
+
+    const deleteBtn = screen.getByRole('button', { name: /Delete/ });
+    await user.click(deleteBtn);
+
+    expect(confirmSpy).toHaveBeenCalledWith(
+      'Delete "App VM"? This cannot be undone.',
+      'Delete Block',
+    );
+
+    // Block should be removed
+    const blocks = useArchitectureStore.getState().workspace.architecture.blocks;
+    expect(blocks.find((b) => b.id === 'block-1')).toBeUndefined();
+    // Selection should be cleared
+    expect(useUIStore.getState().selectedId).toBe(null);
+
+    confirmSpy.mockRestore();
+  });
+
+  it('Delete button does not remove block when confirm is cancelled', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ selectedId: 'block-1' });
+
+    const confirmMod = await import('../../shared/ui/ConfirmDialog');
+    const confirmSpy = vi.spyOn(confirmMod, 'confirmDialog').mockResolvedValue(false);
+
+    render(<DetailPanel />);
+
+    const deleteBtn = screen.getByRole('button', { name: /Delete/ });
+    await user.click(deleteBtn);
+
+    // Block should still exist
+    const blocks = useArchitectureStore.getState().workspace.architecture.blocks;
+    expect(blocks.find((b) => b.id === 'block-1')).toBeDefined();
+
+    confirmSpy.mockRestore();
+  });
 });

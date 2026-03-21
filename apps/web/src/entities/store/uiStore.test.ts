@@ -787,6 +787,29 @@ describe('useUIStore', () => {
     });
   });
 
+  describe('setSelectedId auto-opens properties', () => {
+    it('should auto-open showProperties when selecting a non-worker id', () => {
+      useUIStore.setState({ showProperties: false });
+      useUIStore.getState().setSelectedId('block-123');
+      expect(useUIStore.getState().showProperties).toBe(true);
+      expect(useUIStore.getState().selectedId).toBe('block-123');
+    });
+
+    it('should not auto-open showProperties when selecting worker-default', () => {
+      useUIStore.setState({ showProperties: false });
+      useUIStore.getState().setSelectedId('worker-default');
+      expect(useUIStore.getState().showProperties).toBe(false);
+      expect(useUIStore.getState().selectedId).toBe('worker-default');
+    });
+
+    it('should not auto-open showProperties when setting null', () => {
+      useUIStore.setState({ showProperties: false });
+      useUIStore.getState().setSelectedId(null);
+      expect(useUIStore.getState().showProperties).toBe(false);
+      expect(useUIStore.getState().selectedId).toBe(null);
+    });
+  });
+
   describe('State isolation', () => {
     it('should not affect other state properties when setting one property', () => {
       const initialState = useUIStore.getState();

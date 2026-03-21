@@ -295,28 +295,6 @@ export function overlapsSibling(
   );
 }
 
-export function findNonOverlappingPosition(
-  initialPos: { x: number; z: number },
-  plateSize: { width: number; depth: number },
-  siblings: ReadonlyArray<{
-    id: string;
-    position: { x: number; z: number };
-    size: { width: number; depth: number };
-  }>,
-): { x: number; z: number } {
-  const pos = { ...initialPos };
-  const step = plateSize.width + 1.0;
-  const maxAttempts = 50;
-
-  for (let i = 0; i < maxAttempts; i++) {
-    if (!overlapsSibling(pos, plateSize, siblings)) {
-      return pos;
-    }
-    pos.x += step;
-  }
-
-  return pos;
-}
 
 /** Binary-search refinement: reduces delta to last non-overlapping fraction. */
 export function resolveMoveDelta(

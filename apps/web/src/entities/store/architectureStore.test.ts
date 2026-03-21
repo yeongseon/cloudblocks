@@ -578,6 +578,45 @@ describe('architectureStore', () => {
     });
   });
 
+  describe('updateBlockConfig', () => {
+    it('stores config on a block', () => {
+      getState().addPlate('region', 'VNet', null);
+      const netId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Sub', netId, 'public');
+      const subId = getArch().plates[1].id;
+
+      getState().addBlock('compute', 'VM', subId);
+      const blockId = getArch().blocks[0].id;
+
+      getState().updateBlockConfig(blockId, { tier: 'premium', vCPUs: 4 });
+
+      const block = getArch().blocks.find((b) => b.id === blockId);
+      expect(block?.config).toEqual(expect.objectContaining({ tier: 'premium', vCPUs: 4 }));
+    });
+
+    it('merges config with existing values', () => {
+      getState().addPlate('region', 'VNet', null);
+      const netId = getArch().plates[0].id;
+      getState().addPlate('subnet', 'Sub', netId, 'public');
+      const subId = getArch().plates[1].id;
+
+      getState().addBlock('compute', 'VM', subId, undefined, undefined, { tier: 'basic' });
+      const blockId = getArch().blocks[0].id;
+
+      getState().updateBlockConfig(blockId, { vCPUs: 8 });
+
+      const block = getArch().blocks.find((b) => b.id === blockId);
+      expect(block?.config).toEqual(expect.objectContaining({ tier: 'basic', vCPUs: 8 }));
+    });
+
+    it('no-ops on non-existent block', () => {
+      getState().addPlate('region', 'VNet', null);
+      const before = JSON.stringify(getArch());
+      getState().updateBlockConfig('nonexistent', { tier: 'premium' });
+      expect(JSON.stringify(getArch())).toBe(before);
+    });
+  });
+
   describe('moveBlock', () => {
     it('moves a block between plates', () => {
       getState().addPlate('region', 'VNet', null);

@@ -102,4 +102,70 @@ describe('BottomPanel', () => {
 
     expect(screen.getByText('Region')).toBeInTheDocument();
   });
+
+  it('shows Public Subnet label for public subnet plate', () => {
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test',
+        architecture: {
+          ...baseArchitecture,
+          plates: [
+            ...baseArchitecture.plates,
+            {
+              id: 'subnet-pub',
+              name: 'Public Subnet',
+              type: 'subnet',
+              subnetAccess: 'public',
+              parentId: 'net-1',
+              children: [],
+              position: { x: 0, y: 0, z: 0 },
+              size: { width: 6, height: 0.3, depth: 8 },
+              metadata: {},
+            },
+          ],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+    useUIStore.setState({ selectedId: 'subnet-pub' });
+
+    render(<BottomPanel />);
+
+    expect(screen.getByText('Public Subnet')).toBeInTheDocument();
+  });
+
+  it('shows Private Subnet label for private subnet plate', () => {
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test',
+        architecture: {
+          ...baseArchitecture,
+          plates: [
+            ...baseArchitecture.plates,
+            {
+              id: 'subnet-priv',
+              name: 'Private Subnet',
+              type: 'subnet',
+              subnetAccess: 'private',
+              parentId: 'net-1',
+              children: [],
+              position: { x: 0, y: 0, z: 0 },
+              size: { width: 6, height: 0.3, depth: 8 },
+              metadata: {},
+            },
+          ],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+    useUIStore.setState({ selectedId: 'subnet-priv' });
+
+    render(<BottomPanel />);
+
+    expect(screen.getByText('Private Subnet')).toBeInTheDocument();
+  });
 });
