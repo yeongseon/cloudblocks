@@ -436,4 +436,79 @@ describe('GitHubPR', () => {
       expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-1/pull');
     });
   });
+
+  it('persists PR result to workspace store on successful submission (#887)', async () => {
+    const user = userEvent.setup();
+    mockApiPost.mockResolvedValue({
+      pull_request_url: 'https://github.com/owner/repo/pull/99',
+      number: 99,
+      branch: 'cloudblocks/update',
+    });
+
+    render(<GitHubPR />);
+    await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
+
+    await waitFor(() => {
+      const ws = useArchitectureStore.getState().workspace;
+      expect(ws.lastPrResult).toBeDefined();
+      expect(ws.lastPrResult?.number).toBe(99);
+      expect(ws.lastPrResult?.url).toBe('https://github.com/owner/repo/pull/99');
+      expect(ws.lastPrResult?.branch).toBe('cloudblocks/update');
+      expect(ws.lastPrResult?.createdAt).toBeTruthy();
+    });
+  });
+
+  it('shows recent PR banner when lastPrResult exists and no current result (#888)', () => {
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        lastPrResult: {
+          url: 'https://github.com/owner/repo/pull/55',
+          number: 55,
+          branch: 'feature/old',
+          createdAt: '2025-03-20T10:00:00Z',
+        },
+      },
+    });
+
+    render(<GitHubPR />);
+    expect(screen.getByText('Recent PR:')).toBeInTheDocument();
+    expect(screen.getByText('#55')).toBeInTheDocument();
+    expect(screen.getByText('feature/old')).toBeInTheDocument();
+  });
+
+  it('hides recent PR banner when current result is shown (#888)', async () => {
+    const user = userEvent.setup();
+    useArchitectureStore.setState({
+      workspace: {
+        ...useArchitectureStore.getState().workspace,
+        lastPrResult: {
+          url: 'https://github.com/owner/repo/pull/55',
+          number: 55,
+          branch: 'feature/old',
+          createdAt: '2025-03-20T10:00:00Z',
+        },
+      },
+    });
+
+    mockApiPost.mockResolvedValue({
+      pull_request_url: 'https://github.com/owner/repo/pull/56',
+      number: 56,
+      branch: 'cloudblocks/update',
+    });
+
+    render(<GitHubPR />);
+    expect(screen.getByText('Recent PR:')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
+
+    await waitFor(() => {
+      expect(screen.queryByText('Recent PR:')).not.toBeInTheDocument();
+    });
+  });
+
+  it('does not show recent PR banner when lastPrResult is absent (#888)', () => {
+    render(<GitHubPR />);
+    expect(screen.queryByText('Recent PR:')).not.toBeInTheDocument();
+  });
 });

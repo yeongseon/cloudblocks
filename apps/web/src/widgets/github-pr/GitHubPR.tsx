@@ -25,7 +25,9 @@ function GitHubPRContent() {
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
   const authStatus = useAuthStore((s) => s.status);
   const workspace = useArchitectureStore((s) => s.workspace);
+  const setLastPrResult = useArchitectureStore((s) => s.setLastPrResult);
   const hasBackendWorkspaceLink = Boolean(workspace.backendWorkspaceId);
+  const lastPrResult = workspace.lastPrResult;
 
   const [title, setTitle] = useState('Update cloud architecture');
   const [body, setBody] = useState('');
@@ -87,6 +89,12 @@ function GitHubPRContent() {
         }
       );
       setResult(response);
+      setLastPrResult(workspace.id, {
+        url: response.pull_request_url,
+        number: response.number,
+        branch: response.branch,
+        createdAt: new Date().toISOString(),
+      });
     } catch (err) {
       setError(getApiErrorMessage(err, 'Failed to create pull request.'));
     } finally {
@@ -153,6 +161,18 @@ function GitHubPRContent() {
             Base branch: <code>{baseBranch}</code>
             {workspace.githubRepo ? <> · Repo: <code>{workspace.githubRepo}</code></> : null}
           </div>
+
+          {lastPrResult && !result && (
+            <div className="github-pr-recent-pr">
+              <span className="github-pr-recent-pr-label">Recent PR:</span>
+              {' '}
+              <a href={lastPrResult.url} target="_blank" rel="noreferrer">
+                #{lastPrResult.number}
+              </a>
+              {' · '}Branch: <code>{lastPrResult.branch}</code>
+              {' · '}{new Date(lastPrResult.createdAt).toLocaleDateString()}
+            </div>
+          )}
 
           <label className="github-pr-label" htmlFor="github-pr-title">
             Title
