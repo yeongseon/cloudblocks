@@ -74,37 +74,79 @@ describe('MinifigureSvg', () => {
   });
 
   describe('provider logos', () => {
-    it('azure provider renders triangle logo in torso group', () => {
+    it('azure provider renders logo group with path elements in torso', () => {
       const { container } = render(<MinifigureSvg provider="azure" />);
 
       const torsoPart = container.querySelector('[data-part="torso"]');
-      const polygons = torsoPart?.querySelectorAll('polygon');
+      const logoGroup = torsoPart?.querySelector('[data-part="logo"]');
 
-      expect(polygons).toBeDefined();
-      expect(polygons?.length).toBeGreaterThanOrEqual(2);
-
-      const whitePolygon = Array.from(polygons || []).find((p) => p.getAttribute('fill') === '#FFFFFF');
-      expect(whitePolygon).toBeInTheDocument();
+      expect(logoGroup).toBeInTheDocument();
+      const paths = logoGroup?.querySelectorAll('path');
+      expect(paths?.length).toBe(2);
+      expect(paths?.[0]).toHaveAttribute('fill', '#FFFFFF');
+      expect(paths?.[1]).toHaveAttribute('fill', '#FFFFFF');
     });
 
-    it('aws provider renders text fallback in torso group', () => {
+    it('aws provider renders text + smile arrow in torso', () => {
       const { container } = render(<MinifigureSvg provider="aws" />);
 
       const torsoPart = container.querySelector('[data-part="torso"]');
-      const textElement = torsoPart?.querySelector('text');
+      const logoGroup = torsoPart?.querySelector('[data-part="logo"]');
 
+      expect(logoGroup).toBeInTheDocument();
+      const textElement = logoGroup?.querySelector('text');
       expect(textElement).toBeInTheDocument();
       expect(textElement).toHaveTextContent('AWS');
+
+      const paths = logoGroup?.querySelectorAll('path');
+      expect(paths?.length).toBe(2);
+      // Smile arrow stroke
+      expect(paths?.[0]).toHaveAttribute('stroke', '#FF9900');
     });
 
-    it('gcp provider renders text fallback in torso group', () => {
+    it('gcp provider renders hexagon with colored accents in torso', () => {
       const { container } = render(<MinifigureSvg provider="gcp" />);
 
       const torsoPart = container.querySelector('[data-part="torso"]');
-      const textElement = torsoPart?.querySelector('text');
+      const logoGroup = torsoPart?.querySelector('[data-part="logo"]');
 
-      expect(textElement).toBeInTheDocument();
-      expect(textElement).toHaveTextContent('GCP');
+      expect(logoGroup).toBeInTheDocument();
+
+      // Hexagon outline
+      const polygon = logoGroup?.querySelector('polygon');
+      expect(polygon).toHaveAttribute('stroke', '#4285F4');
+
+      // 3 colored accent lines
+      const lines = logoGroup?.querySelectorAll('line');
+      expect(lines?.length).toBe(3);
+      expect(lines?.[0]).toHaveAttribute('stroke', '#EA4335');
+      expect(lines?.[1]).toHaveAttribute('stroke', '#FBBC05');
+      expect(lines?.[2]).toHaveAttribute('stroke', '#34A853');
+
+      // Center circle
+      const circle = logoGroup?.querySelector('circle');
+      expect(circle).toHaveAttribute('fill', '#4285F4');
+    });
+
+    it('all logo groups use skewY(26.5) transform', () => {
+      const providers: CloudProvider[] = ['azure', 'aws', 'gcp'];
+
+      providers.forEach((p) => {
+        const { container } = render(<MinifigureSvg provider={p} />);
+        const logoGroup = container.querySelector('[data-part="logo"]');
+        const transform = logoGroup?.getAttribute('transform') || '';
+        expect(transform).toContain('skewY(26.5)');
+      });
+    });
+
+    it('all logo groups have opacity 0.92', () => {
+      const providers: CloudProvider[] = ['azure', 'aws', 'gcp'];
+
+      providers.forEach((p) => {
+        const { container } = render(<MinifigureSvg provider={p} />);
+        const logoGroup = container.querySelector('[data-part="logo"]');
+        expect(logoGroup).toHaveAttribute('opacity', '0.92');
+      });
     });
   });
 
@@ -220,42 +262,48 @@ describe('MinifigureSvg', () => {
   });
 
   describe('SVG styling', () => {
-    it('aws text has correct fill color', () => {
+    it('aws text has white fill', () => {
       const { container } = render(<MinifigureSvg provider="aws" />);
-      const textElement = container.querySelector('text');
+      const logoGroup = container.querySelector('[data-part="logo"]');
+      const textElement = logoGroup?.querySelector('text');
 
       expect(textElement).toHaveAttribute('fill', '#FFFFFF');
     });
 
-    it('gcp text has different fill color than aws', () => {
-      const { container: containerAws } = render(<MinifigureSvg provider="aws" />);
-      const { container: containerGcp } = render(<MinifigureSvg provider="gcp" />);
-
-      const textAws = containerAws.querySelector('text');
-      const textGcp = containerGcp.querySelector('text');
-
-      expect(textAws?.getAttribute('fill')).not.toBe(textGcp?.getAttribute('fill'));
-    });
-
-    it('text elements have rotation transform', () => {
+    it('aws smile arrow has orange stroke', () => {
       const { container } = render(<MinifigureSvg provider="aws" />);
-      const textElement = container.querySelector('text');
+      const logoGroup = container.querySelector('[data-part="logo"]');
+      const paths = logoGroup?.querySelectorAll('path');
 
-      expect(textElement).toHaveAttribute('transform', 'rotate(26.5 38 68)');
+      // First path is the curved smile
+      expect(paths?.[0]).toHaveAttribute('stroke', '#FF9900');
     });
 
-    it('logos have opacity', () => {
-      const { container: containerAzure } = render(<MinifigureSvg provider="azure" />);
-      const { container: containerAws } = render(<MinifigureSvg provider="aws" />);
+    it('gcp hexagon has Google Blue stroke', () => {
+      const { container } = render(<MinifigureSvg provider="gcp" />);
+      const logoGroup = container.querySelector('[data-part="logo"]');
+      const polygon = logoGroup?.querySelector('polygon');
 
-      const torsoPart = containerAzure.querySelector('[data-part="torso"]');
-      const polygons = torsoPart?.querySelectorAll('polygon');
-      const whitePolygon = Array.from(polygons || []).find((p) => p.getAttribute('fill') === '#FFFFFF');
+      expect(polygon).toHaveAttribute('stroke', '#4285F4');
+    });
 
-      const textElement = containerAws.querySelector('text');
+    it('gcp accent lines use Google brand colors', () => {
+      const { container } = render(<MinifigureSvg provider="gcp" />);
+      const logoGroup = container.querySelector('[data-part="logo"]');
+      const lines = logoGroup?.querySelectorAll('line');
 
-      expect(whitePolygon?.getAttribute('opacity')).toBe('0.9');
-      expect(textElement?.getAttribute('opacity')).toBe('0.9');
+      expect(lines?.[0]).toHaveAttribute('stroke', '#EA4335');
+      expect(lines?.[1]).toHaveAttribute('stroke', '#FBBC05');
+      expect(lines?.[2]).toHaveAttribute('stroke', '#34A853');
+    });
+
+    it('azure paths have white fill', () => {
+      const { container } = render(<MinifigureSvg provider="azure" />);
+      const logoGroup = container.querySelector('[data-part="logo"]');
+      const paths = logoGroup?.querySelectorAll('path');
+
+      expect(paths?.[0]).toHaveAttribute('fill', '#FFFFFF');
+      expect(paths?.[1]).toHaveAttribute('fill', '#FFFFFF');
     });
   });
 
