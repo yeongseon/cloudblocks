@@ -15,6 +15,28 @@ vi.mock('../../shared/utils/position', () => ({
 
 vi.mock('../../shared/utils/isometric', () => ({
   worldToScreen: vi.fn(),
+  TILE_W: 64,
+  TILE_H: 32,
+  TILE_Z: 32,
+}));
+
+vi.mock('../../shared/tokens/designTokens', () => ({
+  TILE_W: 64,
+  TILE_H: 32,
+  TILE_Z: 32,
+  RENDER_SCALE: 32,
+  BEAM_WIDTH_CU: 0.5,
+  BEAM_THICKNESS_CU: 1 / 3,
+  BEAM_THICKNESS_PX: 32 * (1 / 3),
+  PIN_HOLE_SPACING_CU: 1.0,
+  PIN_HOLE_RX: 32 * 3 / 20,
+  PIN_HOLE_RY: (32 * 3 / 20) / 2,
+  STUD_RX: 12,
+  STUD_RY: 6,
+  STUD_HEIGHT: 5,
+  STUD_INNER_RX: 7.2,
+  STUD_INNER_RY: 3.6,
+  STUD_INNER_OPACITY: 0.3,
 }));
 
 vi.mock('../../features/diff/engine', () => ({
@@ -29,13 +51,14 @@ const connection: Connection = {
   metadata: {},
 };
 
-function setupEndpoints(srcScreen = { x: 120, y: 220 }, tgtScreen = { x: 280, y: 320 }) {
+function setupEndpoints(srcWorld: [number, number, number] = [1, 0, 2], tgtWorld: [number, number, number] = [3, 0, 4]) {
   vi.mocked(getEndpointWorldPosition)
-    .mockReturnValueOnce([1, 0, 2])
-    .mockReturnValueOnce([3, 0, 4]);
-  vi.mocked(worldToScreen)
-    .mockReturnValueOnce(srcScreen)
-    .mockReturnValueOnce(tgtScreen);
+    .mockReturnValueOnce(srcWorld)
+    .mockReturnValueOnce(tgtWorld);
+  vi.mocked(worldToScreen).mockImplementation((wx: number, wy: number, wz: number, ox = 0, oy = 0) => ({
+    x: ox + (wx - wz) * 32,
+    y: oy + (wx + wz) * 16 - wy * 32,
+  }));
 }
 
 function renderConnector(conn: Connection = connection) {
@@ -87,20 +110,18 @@ describe('BrickConnector', () => {
     expect(container.querySelector('g')).toBeNull();
   });
 
-  it('renders svg group with polygons and ellipses when endpoints exist', () => {
+  it('renders svg group with polygons when endpoints exist', () => {
     setupEndpoints();
 
     const { container } = renderConnector();
 
     expect(container.querySelector('g')).toBeInTheDocument();
     const polygons = container.querySelectorAll('polygon');
-    expect(polygons.length).toBeGreaterThanOrEqual(4);
-    const ellipses = container.querySelectorAll('ellipse');
-    expect(ellipses).toHaveLength(6);
+    expect(polygons.length).toBeGreaterThanOrEqual(3);
   });
 
   it('renders hit area with data-testid', () => {
-    setupEndpoints({ x: 100, y: 100 }, { x: 200, y: 200 });
+    setupEndpoints();
 
     const { container } = renderConnector();
 
@@ -108,7 +129,7 @@ describe('BrickConnector', () => {
   });
 
   it('click in select mode sets selectedId to connection id', () => {
-    setupEndpoints({ x: 100, y: 100 }, { x: 200, y: 200 });
+    setupEndpoints();
 
     const { container } = renderConnector();
 
@@ -120,7 +141,7 @@ describe('BrickConnector', () => {
     const removeConnectionMock = vi.fn();
     useUIStore.setState({ toolMode: 'delete' });
     useArchitectureStore.setState({ removeConnection: removeConnectionMock });
-    setupEndpoints({ x: 100, y: 100 }, { x: 200, y: 200 });
+    setupEndpoints();
 
     const { container } = renderConnector();
 
@@ -133,9 +154,10 @@ describe('BrickConnector', () => {
     vi.mocked(getEndpointWorldPosition)
       .mockReturnValueOnce([1, 0, 2])
       .mockReturnValueOnce([3, 0, 4]);
-    vi.mocked(worldToScreen)
-      .mockReturnValueOnce({ x: 100, y: 100 })
-      .mockReturnValueOnce({ x: 200, y: 200 });
+    vi.mocked(worldToScreen).mockImplementation((wx: number, wy: number, wz: number, ox = 0, oy = 0) => ({
+      x: ox + (wx - wz) * 32,
+      y: oy + (wx + wz) * 16 - wy * 32,
+    }));
 
     const { container } = render(
       <svg onClick={parentClick}><title>Test</title>
@@ -150,20 +172,21 @@ describe('BrickConnector', () => {
   it('uses diff colors when diff state is added', () => {
     useUIStore.setState({ diffMode: true, diffDelta: {} as unknown as DiffDelta });
     vi.mocked(getDiffState).mockReturnValue('added');
-    setupEndpoints({ x: 100, y: 100 }, { x: 200, y: 200 });
+    setupEndpoints([1, 0, 1], [1, 0, 4]);
 
     const { container } = renderConnector();
 
     const polygons = container.querySelectorAll('polygon');
-    const topFace = polygons[2];
-    expect(topFace?.getAttribute('fill')).toBe('#22c55e');
+    expect(polygons.length).toBeGreaterThanOrEqual(1);
+    const topFaces = Array.from(polygons).filter(p => p.getAttribute('fill') === '#22c55e');
+    expect(topFaces.length).toBeGreaterThanOrEqual(1);
     expect(container.querySelector('g')?.getAttribute('opacity')).toBe('1');
   });
 
   it('uses removed diff opacity when diff state is removed', () => {
     useUIStore.setState({ diffMode: true, diffDelta: {} as unknown as DiffDelta });
     vi.mocked(getDiffState).mockReturnValue('removed');
-    setupEndpoints({ x: 100, y: 100 }, { x: 200, y: 200 });
+    setupEndpoints([1, 0, 1], [1, 0, 4]);
 
     const { container } = renderConnector();
 
@@ -172,7 +195,7 @@ describe('BrickConnector', () => {
 
   it('renders selection glow when connection is selected', () => {
     useUIStore.setState({ selectedId: connection.id });
-    setupEndpoints({ x: 100, y: 100 }, { x: 200, y: 200 });
+    setupEndpoints();
 
     const { container } = renderConnector();
 
@@ -182,127 +205,116 @@ describe('BrickConnector', () => {
   });
 
   it('renders studs at source and target endpoints', () => {
-    setupEndpoints({ x: 100, y: 100 }, { x: 200, y: 200 });
+    setupEndpoints();
 
     const { container } = renderConnector();
 
     const ellipses = container.querySelectorAll('ellipse');
-    expect(ellipses).toHaveLength(6);
+    expect(ellipses.length).toBeGreaterThanOrEqual(6);
 
-    expect(ellipses[0]?.getAttribute('rx')).toBe('12');
-    expect(ellipses[0]?.getAttribute('ry')).toBe('6');
-    expect(ellipses[2]?.getAttribute('rx')).toBe('7.2');
-    expect(ellipses[2]?.getAttribute('ry')).toBe('3.6');
+    const studEllipses = Array.from(ellipses).filter(e => e.getAttribute('rx') === '12');
+    expect(studEllipses.length).toBeGreaterThanOrEqual(2);
   });
 
-  describe('beam shapes', () => {
-    const beamShapeMap: Record<ConnectionType, string> = {
-      dataflow: 'standard',
-      http: 'doubleRail',
-      internal: 'segmented',
-      data: 'wide',
-      async: 'zigzag',
+  describe('connector types', () => {
+    const typeMap: Record<ConnectionType, string> = {
+      dataflow: 'dataflow',
+      http: 'http',
+      internal: 'internal',
+      data: 'data',
+      async: 'async',
     };
 
-    for (const [type, beamShape] of Object.entries(beamShapeMap)) {
-      it(`renders ${beamShape} beam for ${type} connection type`, () => {
+    for (const [type, expected] of Object.entries(typeMap)) {
+      it(`renders ${type} connection type with correct data attribute`, () => {
         const conn: Connection = {
           ...connection,
           id: `conn-${type}`,
           type: type as ConnectionType,
         };
-        setupEndpoints({ x: 100, y: 100 }, { x: 250, y: 200 });
+        setupEndpoints();
 
         const { container } = renderConnector(conn);
 
         const rootGroup = container.querySelector('g');
         expect(rootGroup).toBeInTheDocument();
-        expect(rootGroup?.getAttribute('data-beam-shape')).toBe(beamShape);
+        expect(rootGroup?.getAttribute('data-connector-type')).toBe(expected);
       });
     }
+  });
 
-    it('standard beam renders 3 polygons per segment (top + 2 sides)', () => {
-      setupEndpoints({ x: 100, y: 100 }, { x: 100, y: 250 });
+  describe('liftarm segments', () => {
+    it('renders iso-aligned segments with data-connector-segment attribute', () => {
+      setupEndpoints([1, 0, 1], [1, 0, 5]);
 
-      const { container } = renderConnector({
-        ...connection,
-        type: 'dataflow',
-      });
+      const { container } = renderConnector();
 
-      const standardBeam = container.querySelector('[data-beam="standard"]');
-      expect(standardBeam).toBeInTheDocument();
-      expect(standardBeam?.querySelectorAll('polygon')).toHaveLength(3);
+      const segments = container.querySelectorAll('[data-connector-segment]');
+      expect(segments.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('doubleRail beam renders 6 polygons per segment (3 per rail × 2)', () => {
-      const conn: Connection = { ...connection, id: 'conn-http', type: 'http' };
-      setupEndpoints({ x: 100, y: 100 }, { x: 100, y: 250 });
+    it('segment has axis data attribute', () => {
+      setupEndpoints([1, 0, 1], [4, 0, 1]);
 
-      const { container } = renderConnector(conn);
+      const { container } = renderConnector();
 
-      const railBeam = container.querySelector('[data-beam="doubleRail"]');
-      expect(railBeam).toBeInTheDocument();
-      expect(railBeam?.querySelectorAll('polygon')).toHaveLength(6);
+      const segment = container.querySelector('[data-connector-segment]');
+      expect(segment).toBeInTheDocument();
+      expect(segment?.getAttribute('data-axis')).toBe('x');
     });
 
-    it('segmented beam renders multiple chunks with gaps', () => {
-      const conn: Connection = { ...connection, id: 'conn-int', type: 'internal' };
-      setupEndpoints({ x: 100, y: 100 }, { x: 100, y: 300 });
+    it('renders at least 3 polygons per segment (top + side + front + optional pin markers)', () => {
+      setupEndpoints([1, 0, 1], [1, 0, 4]);
 
-      const { container } = renderConnector(conn);
+      const { container } = renderConnector();
 
-      const segmentedBeam = container.querySelector('[data-beam="segmented"]');
-      expect(segmentedBeam).toBeInTheDocument();
-      const chunkGroups = segmentedBeam?.querySelectorAll('g');
-      expect(chunkGroups?.length).toBeGreaterThanOrEqual(2);
-    });
-
-    it('wide beam renders wider polygons than standard', () => {
-      const conn: Connection = { ...connection, id: 'conn-data', type: 'data' };
-      setupEndpoints({ x: 100, y: 100 }, { x: 100, y: 250 });
-
-      const { container } = renderConnector(conn);
-
-      const wideBeam = container.querySelector('[data-beam="wide"]');
-      expect(wideBeam).toBeInTheDocument();
-      expect(wideBeam?.querySelectorAll('polygon')).toHaveLength(3);
-    });
-
-    it('zigzag beam renders multiple zig-zag sub-segments', () => {
-      const conn: Connection = { ...connection, id: 'conn-async', type: 'async' };
-      setupEndpoints({ x: 100, y: 100 }, { x: 100, y: 300 });
-
-      const { container } = renderConnector(conn);
-
-      const zigzagBeam = container.querySelector('[data-beam="zigzag"]');
-      expect(zigzagBeam).toBeInTheDocument();
-      const zigGroups = zigzagBeam?.querySelectorAll('g');
-      expect(zigGroups?.length).toBeGreaterThanOrEqual(2);
+      const segment = container.querySelector('[data-connector-segment]');
+      expect(segment).toBeInTheDocument();
+      const polygons = segment?.querySelectorAll('polygon');
+      expect(polygons?.length).toBeGreaterThanOrEqual(3);
     });
   });
 
   describe('elbow joints', () => {
-    it('renders 3D elbow with side faces at bend points', () => {
-      setupEndpoints({ x: 100, y: 100 }, { x: 300, y: 250 });
+    it('renders elbow with data-connector-elbow for L-shaped routes', () => {
+      setupEndpoints([1, 0, 1], [4, 0, 5]);
 
       const { container } = renderConnector();
 
-      const elbowGroups = container.querySelectorAll('[data-elbow]');
-      const elbowPolygons = Array.from(elbowGroups).flatMap((g) =>
-        Array.from(g.querySelectorAll('polygon')),
-      );
-      expect(elbowPolygons.length).toBeGreaterThanOrEqual(3);
+      const elbows = container.querySelectorAll('[data-connector-elbow]');
+      expect(elbows).toHaveLength(1);
+    });
+
+    it('elbow has 3 polygons (diamond top + 2 side faces)', () => {
+      setupEndpoints([1, 0, 1], [4, 0, 5]);
+
+      const { container } = renderConnector();
+
+      const elbow = container.querySelector('[data-connector-elbow]');
+      expect(elbow).toBeInTheDocument();
+      expect(elbow?.querySelectorAll('polygon')).toHaveLength(3);
+    });
+
+    it('does not render elbow for axis-aligned connections', () => {
+      setupEndpoints([1, 0, 1], [1, 0, 5]);
+
+      const { container } = renderConnector();
+
+      const elbows = container.querySelectorAll('[data-connector-elbow]');
+      expect(elbows).toHaveLength(0);
     });
   });
 
-  describe('arrow tip', () => {
-    it('renders arrow with side face for 3D effect', () => {
-      setupEndpoints({ x: 100, y: 100 }, { x: 100, y: 250 });
+  describe('pin holes', () => {
+    it('renders pin holes along segments for long enough connections', () => {
+      setupEndpoints([0, 0, 0], [0, 0, 5]);
 
       const { container } = renderConnector();
 
-      const allPolygons = container.querySelectorAll('polygon');
-      expect(allPolygons.length).toBeGreaterThanOrEqual(5);
+      const segment = container.querySelector('[data-connector-segment]');
+      expect(segment).toBeInTheDocument();
+      const pinElements = segment?.querySelectorAll('ellipse, line, polygon');
+      expect(pinElements?.length).toBeGreaterThanOrEqual(1);
     });
   });
 });

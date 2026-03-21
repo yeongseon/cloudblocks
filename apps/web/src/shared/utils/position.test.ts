@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Block, ExternalActor, Plate } from '../types/index';
 import {
+  EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
   EXTERNAL_ACTOR_LABEL_POSITION,
   EXTERNAL_ACTOR_POSITION,
   GRID_CELL,
@@ -76,7 +77,7 @@ describe('position utilities', () => {
 
     const endpoint = getEndpointWorldPosition(actor.id, [], [], [actor]);
 
-    expect(endpoint).toEqual([42, 1, -7]);
+    expect(endpoint).toEqual([42, 1 + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET, -7]);
   });
 
   it('falls back to external actor when block exists but parent plate is missing', () => {
@@ -91,7 +92,7 @@ describe('position utilities', () => {
 
     const endpoint = getEndpointWorldPosition(id, [block], [], [actor]);
 
-    expect(endpoint).toEqual([-2, 3, 4]);
+    expect(endpoint).toEqual([-2, 3 + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET, 4]);
   });
 
   it('falls back to default external actor position for legacy actor payloads', () => {
@@ -99,7 +100,11 @@ describe('position utilities', () => {
 
     const endpoint = getEndpointWorldPosition(legacyActor.id, [], [], [legacyActor]);
 
-    expect(endpoint).toEqual(EXTERNAL_ACTOR_POSITION);
+    expect(endpoint).toEqual([
+      EXTERNAL_ACTOR_POSITION[0],
+      EXTERNAL_ACTOR_POSITION[1] + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
+      EXTERNAL_ACTOR_POSITION[2],
+    ]);
   });
 
   it('returns null when endpoint id cannot be resolved', () => {
