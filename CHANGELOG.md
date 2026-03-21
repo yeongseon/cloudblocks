@@ -6,6 +6,48 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 
 ---
 
+
+## [v0.19.0] — 2026-03-22
+
+**Milestone 19 — Resource Category Realignment + Cleanup**
+
+Unified Plate/Block into a single ResourceNode model with 7 categories, removed the minifigure worker system, fixed provider label bugs, added demo resilience mode, and hardened CI with build-output secret scanning.
+
+### Resource Model Unification (Epic #1099)
+- Unified `Plate` + `Block` into single `ResourceNode` type with `kind: "container" | "resource"` (#1100)
+- Realigned 10 resource categories → 7: Network, Security, Edge, Compute, Data, Messaging, Operations (#1102)
+- Migrated architectureStore from `plates[] + blocks[]` to unified `nodes[]` array (#1101)
+- Updated all UI components, templates, scenarios, generators, and validation engine (#1103–#1105)
+- Updated 121+ source/test files across `apps/web`, `packages/schema`, `packages/cloudblocks-domain`
+- Regenerated Python Pydantic models from TypeScript schema (#1108)
+- Updated DOMAIN_MODEL.md and RESOURCE_CATEGORY_STRATEGY.md (#1109)
+
+### Minifigure Removal (Epic #1088)
+- Deleted minifigure character module and workerStore (#1090)
+- Stripped all worker references from source files (#1091)
+- Added CreationGrid as default CommandCard mode (#1092)
+- Hidden connection rendering from canvas and CommandCard (#1093)
+- Updated tests and documentation (#1094, #1095)
+
+### Bug Fixes
+- Fixed provider-prefixed resource names in CreationGrid ("Azure SQL" → "SQL Database") (#1096)
+- Fixed diff mode state not clearing on workspace switch (#706)
+- Unified panel naming conventions and expanded onboarding tour to 7 steps (#1110)
+
+### Demo Resilience Mode (#478)
+- Frontend gracefully handles backend-unavailable state without error storms
+- `isApiConfigured()` check + network error normalization in API client
+- "Demo Mode" indicator in menu bar when backend is unreachable
+- Backend status tracking in uiStore (`unknown → not_configured | available | unavailable`)
+
+### Security & CI (#479)
+- Added `scripts/check-build-secrets.sh` — scans build output for leaked credentials
+- Integrated secret scanning into `ci.yml`, `pages.yml`, and `deploy.yml`
+- VITE_* env var audit ensures only `VITE_API_URL` reaches the frontend bundle
+
+### Retrospective
+M19 was scoped as a 1-day milestone — resource model unification, minifigure removal, provider label fixes, demo resilience, and CI hardening. All 28 issues closed. The ResourceNode unification touched 121+ files but preserved all existing test coverage (1811 tests passing, 90.27% branch coverage).
+
 ## [v0.18.0] — 2026-03-22
 
 **Milestone 18 — DevOps UX**
