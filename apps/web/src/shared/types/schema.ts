@@ -1,4 +1,12 @@
-import type { ArchitectureModel, Position, Workspace } from './index';
+import type {
+  ArchitectureModel,
+  ContainerNode,
+  LeafNode,
+  PlateType,
+  Position,
+  ResourceCategory,
+  Workspace,
+} from './index';
 import { buildPlateSizeFromProfileId, inferLegacyPlateProfileId } from './index';
 
 const DEFAULT_EXTERNAL_ACTOR_POSITION = { x: -3, y: 0, z: 5 };
@@ -14,7 +22,7 @@ const DEFAULT_EXTERNAL_ACTOR_POSITION = { x: -3, y: 0, z: 5 };
  * v2.0.0 — Clean start: CU-based dimensions, 6-layer hierarchy,
  *          10 categories, aggregation, roles. No v1.x migration.
  */
-export const SCHEMA_VERSION = '2.0.0';
+export const SCHEMA_VERSION = '3.0.0';
 
 /**
  * v1.x schema versions that are explicitly rejected (clean start, no migration).
@@ -23,6 +31,43 @@ export const SCHEMA_VERSION = '2.0.0';
 const LEGACY_VERSIONS = ['0.1.0', '0.2.0'];
 
 const SUPPORTED_VERSIONS = [SCHEMA_VERSION];
+
+interface LegacyPlate {
+  id: string;
+  name: string;
+  type: PlateType;
+  parentId?: string | null;
+  position: Position;
+  size: { width: number; height: number; depth: number };
+  metadata?: Record<string, unknown>;
+  subnetAccess?: 'public' | 'private';
+  profileId?: string;
+}
+
+interface LegacyBlock {
+  id: string;
+  name: string;
+  category: ResourceCategory;
+  placementId: string;
+  position: Position;
+  metadata?: Record<string, unknown>;
+  provider?: 'azure' | 'aws' | 'gcp';
+  subtype?: string;
+  config?: Record<string, unknown>;
+  aggregation?: { mode: 'single' | 'count'; count: number };
+  roles?: Array<
+    'primary' | 'secondary' | 'reader' | 'writer' | 'public' | 'private' | 'internal' | 'external'
+  >;
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+const isLegacyPlateArray = (value: unknown): value is LegacyPlate[] =>
+  Array.isArray(value);
+
+const isLegacyBlockArray = (value: unknown): value is LegacyBlock[] =>
+  Array.isArray(value);
 
 export interface SerializedData {
   schemaVersion: string;
@@ -68,22 +113,83 @@ export function deserialize(json: string): Workspace[] {
   const workspaces = data.workspaces ?? [];
 
   for (const ws of workspaces) {
-    if (ws.architecture?.plates) {
-      for (const plate of ws.architecture.plates) {
-        if (!plate.profileId) {
+    const architectureUnknown = ws.architecture as unknown;
+    if (!isRecord(architectureUnknown)) {
+      continue;
+    }
+
+    const hasLegacyNodes = isLegacyPlateArray(architectureUnknown.plates);
+    const hasUnifiedNodes = Array.isArray(architectureUnknown.nodes);
+    if (hasLegacyNodes && !hasUnifiedNodes) {
+      const legacyPlates = architectureUnknown.plates as Array<Record<string, unknown>>;
+      const legacyBlocks = isLegacyBlockArray(architectureUnknown.blocks)
+        ? architectureUnknown.blocks
+        : [];
+
+      const containerNodes: ContainerNode[] = legacyPlates.map((plate) => ({
+        id: plate.id as string,
+        name: plate.name as string,
+        kind: 'container' as const,
+        layer: plate.type as ContainerNode['layer'],
+        resourceType: ((plate.type as string) === 'region' ? 'virtual_network' : (plate.type as string) === 'subnet' ? 'subnet' : 'virtual_network') as ContainerNode['resourceType'],
+        category: 'network' as const,
+        provider: 'azure' as const,
+        parentId: (plate.parentId as string | null) ?? null,
+        position: plate.position as ContainerNode['position'],
+        size: plate.size as ContainerNode['size'],
+        metadata: (plate.metadata as Record<string, unknown>) ?? {},
+        ...(plate.subnetAccess ? { subnetAccess: plate.subnetAccess as 'public' | 'private' } : {}),
+        ...(plate.profileId ? { profileId: plate.profileId as string } : {}),
+      }));
+
+      const leafNodes: LeafNode[] = (legacyBlocks as unknown as Array<Record<string, unknown>>).map((block) => ({
+        id: block.id as string,
+        name: block.name as string,
+        kind: 'resource' as const,
+        layer: 'resource' as const,
+        resourceType: (block.subtype as string | undefined) ?? (block.category as string),
+        category: block.category as ResourceCategory,
+        provider: (block.provider as LeafNode['provider'] | undefined) ?? 'azure',
+        parentId: block.placementId as string,
+        position: block.position as LeafNode['position'],
+        metadata: (block.metadata as Record<string, unknown>) ?? {},
+        ...(block.subtype ? { subtype: block.subtype as string } : {}),
+        ...(block.config ? { config: block.config as Record<string, unknown> } : {}),
+        ...(block.aggregation ? { aggregation: block.aggregation as LeafNode['aggregation'] } : {}),
+        ...(block.roles ? { roles: block.roles as LeafNode['roles'] } : {}),
+      }));
+
+      architectureUnknown.nodes = [...containerNodes, ...leafNodes];
+      delete architectureUnknown.plates;
+      delete architectureUnknown.blocks;
+    }
+
+    if (Array.isArray(architectureUnknown.nodes)) {
+      for (const node of architectureUnknown.nodes) {
+        if (!isRecord(node)) {
+          continue;
+        }
+
+        if (node.kind === 'container' && isRecord(node.size) && !node.profileId) {
+          const layer = typeof node.layer === 'string' ? node.layer : 'region';
           const inferredProfileId = inferLegacyPlateProfileId({
-            type: plate.type,
-            size: { width: plate.size.width, depth: plate.size.depth },
+            type: layer as PlateType,
+            size: {
+              width: Number(node.size.width),
+              depth: Number(node.size.depth),
+            },
           });
-          plate.profileId = inferredProfileId;
-          const profileSize = buildPlateSizeFromProfileId(inferredProfileId);
-          plate.size = profileSize;
+          node.profileId = inferredProfileId;
+          node.size = buildPlateSizeFromProfileId(inferredProfileId);
         }
       }
     }
 
-    if (ws.architecture?.externalActors) {
-      for (const actor of ws.architecture.externalActors) {
+    if (Array.isArray(architectureUnknown.externalActors)) {
+      for (const actor of architectureUnknown.externalActors) {
+        if (!isRecord(actor)) {
+          continue;
+        }
         const legacyActor = actor as typeof actor & { position?: Position };
         if (!legacyActor.position) {
           legacyActor.position = { ...DEFAULT_EXTERNAL_ACTOR_POSITION };
@@ -107,8 +213,7 @@ export function createBlankArchitecture(
     id,
     name,
     version: '1',
-    plates: [],
-    blocks: [],
+    nodes: [],
     connections: [],
     externalActors: [
       {
