@@ -9,20 +9,26 @@ import { SCHEMA_VERSION } from '../index.js';
 import type {
   AggregationMode,
   ArchitectureModel,
-  Block,
-  BlockCategory,
   BlockRole,
   Connection,
   ConnectionType,
+  ContainerNode,
   ExternalActor,
   LayerType,
-  Plate,
-  PlateType,
+  LeafNode,
+  NodeKind,
   Position,
   ProviderType,
+  ResourceCategory,
+  ResourceNode,
   Size,
   SubnetAccess,
   Aggregation,
+  // Deprecated aliases — verify still importable during migration
+  Block,
+  BlockCategory,
+  Plate,
+  PlateType,
 } from '../index.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -33,8 +39,8 @@ describe('SCHEMA_VERSION', () => {
     expect(SCHEMA_VERSION).toMatch(/^\d+\.\d+\.\d+$/);
   });
 
-  it('should be 2.0.0', () => {
-    expect(SCHEMA_VERSION).toBe('2.0.0');
+  it('should be 3.0.0', () => {
+    expect(SCHEMA_VERSION).toBe('3.0.0');
   });
 });
 
@@ -64,20 +70,21 @@ describe('JSON Schema artifact', () => {
 
     const expectedTypes = [
       'ArchitectureModel',
-      'Plate',
-      'Block',
+      'ContainerNode',
+      'LeafNode',
       'Connection',
       'ExternalActor',
       'Position',
       'Size',
       'Aggregation',
-      'PlateType',
+      'ResourceNode',
+      'ResourceCategory',
       'SubnetAccess',
-      'BlockCategory',
       'ProviderType',
       'AggregationMode',
       'BlockRole',
       'ConnectionType',
+      'LayerType',
     ];
 
     for (const typeName of expectedTypes) {
@@ -93,39 +100,34 @@ describe('JSON Schema artifact', () => {
     expect(required).toContain('id');
     expect(required).toContain('name');
     expect(required).toContain('version');
-    expect(required).toContain('plates');
-    expect(required).toContain('blocks');
+    expect(required).toContain('nodes');
     expect(required).toContain('connections');
     expect(required).toContain('externalActors');
     expect(required).toContain('createdAt');
     expect(required).toContain('updatedAt');
   });
 
-  it('should define BlockCategory with exactly 10 values', () => {
+  it('should define ResourceCategory with exactly 7 values', () => {
     const definitions = schema['definitions'] as Record<string, Record<string, unknown>>;
-    const blockCategory = definitions['BlockCategory'];
-    const enumValues = blockCategory['enum'] as string[];
+    const category = definitions['ResourceCategory'];
+    const enumValues = category['enum'] as string[];
 
-    expect(enumValues).toHaveLength(10);
+    expect(enumValues).toHaveLength(7);
+    expect(enumValues).toContain('network');
+    expect(enumValues).toContain('security');
+    expect(enumValues).toContain('edge');
     expect(enumValues).toContain('compute');
-    expect(enumValues).toContain('database');
-    expect(enumValues).toContain('storage');
-    expect(enumValues).toContain('gateway');
-    expect(enumValues).toContain('function');
-    expect(enumValues).toContain('queue');
-    expect(enumValues).toContain('event');
-    expect(enumValues).toContain('analytics');
-    expect(enumValues).toContain('identity');
-    expect(enumValues).toContain('observability');
+    expect(enumValues).toContain('data');
+    expect(enumValues).toContain('messaging');
+    expect(enumValues).toContain('operations');
   });
 
-  it('should define PlateType with exactly 5 values (no resource)', () => {
+  it('should define NodeKind via ContainerNode kind const', () => {
     const definitions = schema['definitions'] as Record<string, Record<string, unknown>>;
-    const plateType = definitions['PlateType'];
-    const enumValues = plateType['enum'] as string[];
-
-    expect(enumValues).toHaveLength(5);
-    expect(enumValues).not.toContain('resource');
+    const container = definitions['ContainerNode'];
+    const props = container['properties'] as Record<string, Record<string, unknown>>;
+    // NodeKind is inlined as a const in the kind property
+    expect(props['kind']['const'] ?? props['kind']['enum']).toBeDefined();
   });
 
   it('should define ConnectionType with exactly 5 values', () => {
@@ -155,15 +157,11 @@ describe('JSON Schema artifact', () => {
 
 describe('Type compatibility', () => {
   it('should allow creating a valid ArchitectureModel', () => {
-    // This test verifies that the types compile correctly
-    // by constructing a valid model. The assignment validates
-    // structural compatibility at compile time.
     const model: ArchitectureModel = {
       id: 'test-id',
       name: 'Test Architecture',
       version: '1.0.0',
-      plates: [],
-      blocks: [],
+      nodes: [],
       connections: [],
       externalActors: [],
       createdAt: '2026-01-01T00:00:00Z',
@@ -172,37 +170,67 @@ describe('Type compatibility', () => {
     expect(model.id).toBe('test-id');
   });
 
-  it('should allow creating a valid Plate', () => {
-    const plate: Plate = {
-      id: 'plate-1',
-      name: 'Test Plate',
-      type: 'region',
+  it('should allow creating a valid ContainerNode', () => {
+    const container: ContainerNode = {
+      id: 'container-1',
+      name: 'Test VNet',
+      kind: 'container',
+      layer: 'region',
+      resourceType: 'virtual_network',
+      category: 'network',
+      provider: 'azure',
       parentId: null,
-      children: [],
       position: { x: 0, y: 0, z: 0 },
       size: { width: 10, height: 1, depth: 10 },
       metadata: {},
     };
-    expect(plate.type).toBe('region');
+    expect(container.kind).toBe('container');
+    expect(container.category).toBe('network');
   });
 
-  it('should allow creating a valid Block', () => {
-    const block: Block = {
-      id: 'block-1',
-      name: 'Test Block',
+  it('should allow creating a valid LeafNode', () => {
+    const leaf: LeafNode = {
+      id: 'leaf-1',
+      name: 'Test VM',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'vm',
       category: 'compute',
-      placementId: 'plate-1',
+      provider: 'azure',
+      parentId: 'container-1',
       position: { x: 1, y: 0, z: 1 },
       metadata: {},
     };
-    expect(block.category).toBe('compute');
+    expect(leaf.kind).toBe('resource');
+    expect(leaf.category).toBe('compute');
+  });
+
+  it('should allow ResourceNode discriminated union', () => {
+    const node: ResourceNode = {
+      id: 'node-1',
+      name: 'Test Node',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'sql_database',
+      category: 'data',
+      provider: 'azure',
+      parentId: 'container-1',
+      position: { x: 2, y: 0, z: 2 },
+      metadata: {},
+    };
+    // Discriminated union narrowing
+    if (node.kind === 'container') {
+      expect(node.size).toBeDefined();
+    } else {
+      expect(node.kind).toBe('resource');
+    }
   });
 
   it('should allow creating a valid Connection', () => {
     const conn: Connection = {
       id: 'conn-1',
-      sourceId: 'block-1',
-      targetId: 'block-2',
+      sourceId: 'node-1',
+      targetId: 'node-2',
       type: 'http',
       metadata: {},
     };
@@ -219,12 +247,17 @@ describe('Type compatibility', () => {
     expect(actor.type).toBe('internet');
   });
 
-  it('should allow all BlockCategory values', () => {
-    const categories: BlockCategory[] = [
-      'compute', 'database', 'storage', 'gateway', 'function',
-      'queue', 'event', 'analytics', 'identity', 'observability',
+  it('should allow all ResourceCategory values', () => {
+    const categories: ResourceCategory[] = [
+      'network', 'security', 'edge', 'compute',
+      'data', 'messaging', 'operations',
     ];
-    expect(categories).toHaveLength(10);
+    expect(categories).toHaveLength(7);
+  });
+
+  it('should allow all NodeKind values', () => {
+    const kinds: NodeKind[] = ['container', 'resource'];
+    expect(kinds).toHaveLength(2);
   });
 
   it('should allow all LayerType values including resource', () => {
@@ -242,29 +275,52 @@ describe('Type compatibility', () => {
     expect(roles).toHaveLength(8);
   });
 
-  it('should allow optional Block fields', () => {
-    const block: Block = {
-      id: 'block-2',
-      name: 'Full Block',
-      category: 'database',
-      placementId: 'plate-1',
+  it('should allow optional node fields', () => {
+    const node: LeafNode = {
+      id: 'node-2',
+      name: 'Full Node',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'sql_database',
+      category: 'data',
+      provider: 'azure',
+      parentId: 'container-1',
       position: { x: 2, y: 0, z: 2 },
       metadata: { tier: 'premium' },
-      provider: 'azure',
-      subtype: 'sql',
+      subtype: 'postgresql',
       config: { sku: 'S1' },
       aggregation: { mode: 'count', count: 3 },
       roles: ['primary', 'writer'],
     };
-    expect(block.provider).toBe('azure');
-    expect(block.aggregation?.count).toBe(3);
+    expect(node.provider).toBe('azure');
+    expect(node.aggregation?.count).toBe(3);
+  });
+
+  it('should allow container-specific fields', () => {
+    const container: ContainerNode = {
+      id: 'container-2',
+      name: 'Public Subnet',
+      kind: 'container',
+      layer: 'subnet',
+      resourceType: 'subnet',
+      category: 'network',
+      provider: 'azure',
+      parentId: 'vnet-1',
+      position: { x: 0, y: 0, z: 0 },
+      size: { width: 8, height: 1, depth: 6 },
+      metadata: {},
+      subnetAccess: 'public',
+      profileId: 'subnet-public',
+    };
+    expect(container.subnetAccess).toBe('public');
+    expect(container.profileId).toBe('subnet-public');
   });
 
   // Suppress unused-variable warnings for type-only imports
   it('should export all enum types', () => {
-    // These type annotations verify compile-time availability
     const _am: AggregationMode = 'single';
-    const _pt: PlateType = 'region';
+    const _nk: NodeKind = 'container';
+    const _rc: ResourceCategory = 'compute';
     const _sa: SubnetAccess = 'public';
     const _ct: ConnectionType = 'http';
     const _pvt: ProviderType = 'aws';
@@ -274,7 +330,8 @@ describe('Type compatibility', () => {
     const _agg: Aggregation = { mode: 'single', count: 1 };
 
     expect(_am).toBe('single');
-    expect(_pt).toBe('region');
+    expect(_nk).toBe('container');
+    expect(_rc).toBe('compute');
     expect(_sa).toBe('public');
     expect(_ct).toBe('http');
     expect(_pvt).toBe('aws');
@@ -282,5 +339,47 @@ describe('Type compatibility', () => {
     expect(_pos.x).toBe(0);
     expect(_size.width).toBe(1);
     expect(_agg.count).toBe(1);
+  });
+
+  // Verify deprecated aliases still compile
+  it('should support deprecated type aliases during migration', () => {
+    // BlockCategory is an alias for ResourceCategory
+    const _bc: BlockCategory = 'compute';
+    expect(_bc).toBe('compute');
+
+    // PlateType still available
+    const _pt: PlateType = 'region';
+    expect(_pt).toBe('region');
+
+    // Plate is alias for ContainerNode
+    const _plate: Plate = {
+      id: 'p1',
+      name: 'Legacy Plate',
+      kind: 'container',
+      layer: 'region',
+      resourceType: 'virtual_network',
+      category: 'network',
+      provider: 'azure',
+      parentId: null,
+      position: { x: 0, y: 0, z: 0 },
+      size: { width: 10, height: 1, depth: 10 },
+      metadata: {},
+    };
+    expect(_plate.kind).toBe('container');
+
+    // Block is alias for LeafNode
+    const _block: Block = {
+      id: 'b1',
+      name: 'Legacy Block',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'vm',
+      category: 'compute',
+      provider: 'azure',
+      parentId: 'p1',
+      position: { x: 1, y: 0, z: 1 },
+      metadata: {},
+    };
+    expect(_block.kind).toBe('resource');
   });
 });

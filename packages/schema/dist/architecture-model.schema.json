@@ -15,17 +15,12 @@
           "type": "string",
           "description": "User-facing architecture revision (not schema version)"
         },
-        "plates": {
+        "nodes": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/Plate"
-          }
-        },
-        "blocks": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/Block"
-          }
+            "$ref": "#/definitions/ResourceNode"
+          },
+          "description": "All nodes — containers and resources in a flat array"
         },
         "connections": {
           "type": "array",
@@ -52,8 +47,7 @@
         "id",
         "name",
         "version",
-        "plates",
-        "blocks",
+        "nodes",
         "connections",
         "externalActors",
         "createdAt",
@@ -62,7 +56,18 @@
       "additionalProperties": false,
       "description": "The root ArchitectureModel — the single most important type. This is the canonical JSON wire format exchanged between frontend persistence, backend validation, and code generation."
     },
-    "Plate": {
+    "ResourceNode": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/ContainerNode"
+        },
+        {
+          "$ref": "#/definitions/LeafNode"
+        }
+      ],
+      "description": "Discriminated union of all node types in the architecture. Discriminant: `kind` field ('container' | 'resource')."
+    },
+    "ContainerNode": {
       "type": "object",
       "properties": {
         "id": {
@@ -71,73 +76,120 @@
         "name": {
           "type": "string"
         },
-        "type": {
-          "$ref": "#/definitions/PlateType"
-        },
-        "subnetAccess": {
-          "$ref": "#/definitions/SubnetAccess",
-          "description": "Only for subnet type"
-        },
-        "profileId": {
+        "kind": {
           "type": "string",
-          "description": "Profile preset identifier (frontend concern, but part of the serialized model)"
+          "const": "container"
+        },
+        "layer": {
+          "$ref": "#/definitions/LayerType",
+          "description": "Hierarchy layer — used for containment validation"
+        },
+        "resourceType": {
+          "type": "string",
+          "description": "Specific resource identifier, e.g. 'virtual_network', 'vm', 'sql_database'"
+        },
+        "category": {
+          "$ref": "#/definitions/ResourceCategory",
+          "description": "One of the 7 resource categories"
+        },
+        "provider": {
+          "$ref": "#/definitions/ProviderType"
         },
         "parentId": {
           "type": [
             "string",
             "null"
           ],
-          "description": "null for root plate"
-        },
-        "children": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "Mixed list: child plate IDs + block IDs. (Intentional for MVP; consider splitting to childPlateIds/childBlockIds in v1.0)"
+          "description": "Parent node ID. null for root-level nodes."
         },
         "position": {
           "$ref": "#/definitions/Position"
         },
-        "size": {
-          "$ref": "#/definitions/Size"
-        },
         "metadata": {
           "type": "object",
           "additionalProperties": {}
+        },
+        "config": {
+          "type": "object",
+          "additionalProperties": {},
+          "description": "Provider-specific configuration"
+        },
+        "subtype": {
+          "type": "string",
+          "description": "Resource subtype (e.g. 'linux' for compute, 'postgresql' for data)"
+        },
+        "aggregation": {
+          "$ref": "#/definitions/Aggregation",
+          "description": "v2.0 §8 — multiple identical resources"
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/BlockRole"
+          },
+          "description": "v2.0 §9 — visual-only role indicators"
+        },
+        "subnetAccess": {
+          "$ref": "#/definitions/SubnetAccess",
+          "description": "Subnet access visibility — only meaningful for subnet-layer containers"
+        },
+        "profileId": {
+          "type": "string",
+          "description": "Visual profile preset identifier (frontend concern, serialized for persistence)"
+        },
+        "size": {
+          "$ref": "#/definitions/Size"
         }
       },
       "required": [
+        "category",
         "id",
+        "kind",
+        "layer",
+        "metadata",
         "name",
-        "type",
         "parentId",
-        "children",
         "position",
-        "size",
-        "metadata"
+        "provider",
+        "resourceType",
+        "size"
       ],
       "additionalProperties": false,
-      "description": "A plate is a logical container (VPC, resource group, subnet). Plates nest hierarchically according to LayerType parentage rules."
+      "description": "A container node holds child nodes (VNet, Subnet, Resource Group, etc.). Containers have a size for visual rendering and can nest other containers or leaf resources."
     },
-    "PlateType": {
+    "LayerType": {
       "type": "string",
       "enum": [
         "global",
         "edge",
         "region",
         "zone",
-        "subnet"
+        "subnet",
+        "resource"
       ],
-      "description": "Plate types — a subset of LayerType (excludes 'resource'). Plates are visual containers that hold blocks and child plates."
+      "description": "Layer hierarchy in the containment model. Ordered from broadest scope (global) to narrowest (resource)."
     },
-    "SubnetAccess": {
+    "ResourceCategory": {
       "type": "string",
       "enum": [
-        "public",
-        "private"
+        "network",
+        "security",
+        "edge",
+        "compute",
+        "data",
+        "messaging",
+        "operations"
       ],
-      "description": "Subnet access visibility."
+      "description": "Resource categories — the 7 canonical resource groups.\n\nMigration from 10 → 7:   compute   → compute   (was compute + function)   data      → data      (was database + storage)   edge      → edge      (was gateway)   security  → security  (was identity)   operations → operations (was analytics + observability)   messaging → messaging  (was queue + event) — empty in MVP   network   → network   (new — containers like VNet, Subnet)"
+    },
+    "ProviderType": {
+      "type": "string",
+      "enum": [
+        "azure",
+        "aws",
+        "gcp"
+      ],
+      "description": "Cloud provider identifiers (alphabetical order — canonical)."
     },
     "Position": {
       "type": "object",
@@ -160,109 +212,6 @@
       "additionalProperties": false,
       "description": "2D position with z-layer ordering."
     },
-    "Size": {
-      "type": "object",
-      "properties": {
-        "width": {
-          "type": "number"
-        },
-        "height": {
-          "type": "number"
-        },
-        "depth": {
-          "type": "number"
-        }
-      },
-      "required": [
-        "width",
-        "height",
-        "depth"
-      ],
-      "additionalProperties": false,
-      "description": "3D bounding size."
-    },
-    "Block": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "category": {
-          "$ref": "#/definitions/BlockCategory"
-        },
-        "placementId": {
-          "type": "string",
-          "description": "Parent plate ID"
-        },
-        "position": {
-          "$ref": "#/definitions/Position",
-          "description": "Position relative to parent plate"
-        },
-        "metadata": {
-          "type": "object",
-          "additionalProperties": {}
-        },
-        "provider": {
-          "$ref": "#/definitions/ProviderType"
-        },
-        "subtype": {
-          "type": "string"
-        },
-        "config": {
-          "type": "object",
-          "additionalProperties": {}
-        },
-        "aggregation": {
-          "$ref": "#/definitions/Aggregation",
-          "description": "v2.0 §8 — multiple identical resources"
-        },
-        "roles": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/BlockRole"
-          },
-          "description": "v2.0 §9 — visual-only role indicators"
-        }
-      },
-      "required": [
-        "id",
-        "name",
-        "category",
-        "placementId",
-        "position",
-        "metadata"
-      ],
-      "additionalProperties": false,
-      "description": "A block is a cloud resource (VM, database, storage, etc.). Blocks sit on plates and connect to other blocks."
-    },
-    "BlockCategory": {
-      "type": "string",
-      "enum": [
-        "compute",
-        "database",
-        "storage",
-        "gateway",
-        "function",
-        "queue",
-        "event",
-        "analytics",
-        "identity",
-        "observability"
-      ],
-      "description": "Block resource categories — the 10 canonical resource types."
-    },
-    "ProviderType": {
-      "type": "string",
-      "enum": [
-        "azure",
-        "aws",
-        "gcp"
-      ],
-      "description": "Cloud provider identifiers (alphabetical order — canonical)."
-    },
     "Aggregation": {
       "type": "object",
       "properties": {
@@ -279,7 +228,7 @@
         "count"
       ],
       "additionalProperties": false,
-      "description": "Aggregation descriptor for block instances (v2.0 §8)."
+      "description": "Aggregation descriptor for node instances (v2.0 §8)."
     },
     "AggregationMode": {
       "type": "string",
@@ -301,7 +250,122 @@
         "internal",
         "external"
       ],
-      "description": "Block role indicators (v2.0 §9). Visual-only annotations that describe the function of a block."
+      "description": "Block role indicators (v2.0 §9). Visual-only annotations that describe the function of a node."
+    },
+    "SubnetAccess": {
+      "type": "string",
+      "enum": [
+        "public",
+        "private"
+      ],
+      "description": "Subnet access visibility."
+    },
+    "Size": {
+      "type": "object",
+      "properties": {
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        },
+        "depth": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "width",
+        "height",
+        "depth"
+      ],
+      "additionalProperties": false,
+      "description": "3D bounding size."
+    },
+    "LeafNode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "const": "resource"
+        },
+        "layer": {
+          "$ref": "#/definitions/LayerType",
+          "description": "Hierarchy layer — used for containment validation"
+        },
+        "resourceType": {
+          "type": "string",
+          "description": "Specific resource identifier, e.g. 'virtual_network', 'vm', 'sql_database'"
+        },
+        "category": {
+          "$ref": "#/definitions/ResourceCategory",
+          "description": "One of the 7 resource categories"
+        },
+        "provider": {
+          "$ref": "#/definitions/ProviderType"
+        },
+        "parentId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Parent node ID. null for root-level nodes."
+        },
+        "position": {
+          "$ref": "#/definitions/Position"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "config": {
+          "type": "object",
+          "additionalProperties": {},
+          "description": "Provider-specific configuration"
+        },
+        "subtype": {
+          "type": "string",
+          "description": "Resource subtype (e.g. 'linux' for compute, 'postgresql' for data)"
+        },
+        "aggregation": {
+          "$ref": "#/definitions/Aggregation",
+          "description": "v2.0 §8 — multiple identical resources"
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/BlockRole"
+          },
+          "description": "v2.0 §9 — visual-only role indicators"
+        },
+        "subnetAccess": {
+          "$ref": "#/definitions/SubnetAccess",
+          "description": "Subnet access visibility — only meaningful for subnet-layer containers"
+        },
+        "profileId": {
+          "type": "string",
+          "description": "Visual profile preset identifier (frontend concern, serialized for persistence)"
+        }
+      },
+      "required": [
+        "category",
+        "id",
+        "kind",
+        "layer",
+        "metadata",
+        "name",
+        "parentId",
+        "position",
+        "provider",
+        "resourceType"
+      ],
+      "additionalProperties": false,
+      "description": "A leaf resource node (VM, SQL Database, Redis Cache, etc.). Cannot contain children."
     },
     "Connection": {
       "type": "object",
@@ -311,11 +375,11 @@
         },
         "sourceId": {
           "type": "string",
-          "description": "Block or external actor ID (initiator)"
+          "description": "ResourceNode or ExternalActor ID (initiator)"
         },
         "targetId": {
           "type": "string",
-          "description": "Block or external actor ID (receiver)"
+          "description": "ResourceNode or ExternalActor ID (receiver)"
         },
         "type": {
           "$ref": "#/definitions/ConnectionType"
@@ -333,7 +397,7 @@
         "metadata"
       ],
       "additionalProperties": false,
-      "description": "A typed connection between two blocks or external actors. Direction represents the **initiator** of the request; response flows implicitly in the reverse direction."
+      "description": "A typed connection between two resource nodes or external actors. Direction represents the **initiator** of the request; response flows implicitly in the reverse direction."
     },
     "ConnectionType": {
       "type": "string",
@@ -344,7 +408,7 @@
         "data",
         "async"
       ],
-      "description": "Connection protocol/type between blocks. Direction represents the **initiator** of the request."
+      "description": "Connection protocol/type between resource nodes. Direction represents the **initiator** of the request."
     },
     "ExternalActor": {
       "type": "object",
