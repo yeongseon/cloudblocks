@@ -9,26 +9,33 @@ import {
 import { azureProviderDefinition } from './provider';
 import type { ArchitectureModel, Block, Plate } from '@cloudblocks/schema';
 import type { GenerationOptions } from './types';
+import {
+  makeTestArchitecture,
+  makeTestBlock,
+  makeTestPlate,
+  type LegacyArchitectureOverrides,
+  type LegacyBlockOverrides,
+  type LegacyPlateOverrides,
+} from '../../__tests__/legacyModelTestUtils';
 
 const basePosition = { x: 0, y: 0, z: 0 };
 const baseSize = { width: 1, height: 1, depth: 1 };
 
-function createPlate(overrides: Partial<Plate>): Plate {
-  return {
+function createPlate(overrides: LegacyPlateOverrides): Plate {
+  return makeTestPlate({
     id: 'plate-default',
     name: 'Default',
     type: 'region',
     parentId: null,
-    children: [],
     position: basePosition,
     size: baseSize,
     metadata: {},
     ...overrides,
-  };
+  });
 }
 
-function createBlock(overrides: Partial<Block>): Block {
-  return {
+function createBlock(overrides: LegacyBlockOverrides): Block {
+  return makeTestBlock({
     id: 'block-default',
     name: 'Default',
     category: 'compute',
@@ -36,22 +43,22 @@ function createBlock(overrides: Partial<Block>): Block {
     position: basePosition,
     metadata: {},
     ...overrides,
-  };
+  });
 }
 
-function createTestModel(overrides?: Partial<ArchitectureModel>): ArchitectureModel {
-  return {
+function createTestModel(overrides?: LegacyArchitectureOverrides): ArchitectureModel {
+  return makeTestArchitecture({
     id: 'arch-1',
     name: 'Test',
     version: '1',
     plates: [],
     blocks: [],
     connections: [],
-    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } }],
     createdAt: '2025-01-01T00:00:00Z',
     updatedAt: '2025-01-01T00:00:00Z',
     ...overrides,
-  };
+  });
 }
 
 const defaultOptions: GenerationOptions = {
@@ -145,7 +152,7 @@ describe('bicep generator', () => {
 
   it('generateMainBicep includes service plan when only function blocks exist', () => {
     const model = createTestModel({
-      blocks: [createBlock({ id: 'block-func', name: 'Fn', category: 'function' })],
+      blocks: [createBlock({ id: 'block-func', name: 'Fn', category: 'compute' })],
     });
     const normalized = normalizeBicep(model, azureProviderDefinition);
     const mainBicep = generateMainBicep(normalized, azureProviderDefinition, defaultOptions);
@@ -155,7 +162,7 @@ describe('bicep generator', () => {
 
   it('generateMainBicep includes db params when database blocks exist', () => {
     const model = createTestModel({
-      blocks: [createBlock({ id: 'block-db', name: 'MainDb', category: 'database' })],
+      blocks: [createBlock({ id: 'block-db', name: 'MainDb', category: 'data' })],
     });
     const normalized = normalizeBicep(model, azureProviderDefinition);
     const mainBicep = generateMainBicep(normalized, azureProviderDefinition, defaultOptions);
@@ -169,15 +176,15 @@ describe('bicep generator', () => {
     const model = createTestModel({
       blocks: [
         createBlock({ id: 'block-compute', name: 'Compute', category: 'compute' }),
-        createBlock({ id: 'block-database', name: 'Database', category: 'database' }),
-        createBlock({ id: 'block-storage', name: 'Storage', category: 'storage' }),
-        createBlock({ id: 'block-gateway', name: 'Gateway', category: 'gateway' }),
-        createBlock({ id: 'block-function', name: 'Function', category: 'function' }),
-        createBlock({ id: 'block-queue', name: 'Queue', category: 'queue' }),
-        createBlock({ id: 'block-event', name: 'Event', category: 'event' }),
-        createBlock({ id: 'block-analytics', name: 'Analytics', category: 'analytics' }),
-        createBlock({ id: 'block-identity', name: 'Identity', category: 'identity' }),
-        createBlock({ id: 'block-observability', name: 'Observability', category: 'observability' }),
+        createBlock({ id: 'block-database', name: 'Database', category: 'data' }),
+        createBlock({ id: 'block-storage', name: 'Storage', category: 'data' }),
+        createBlock({ id: 'block-gateway', name: 'Gateway', category: 'edge' }),
+        createBlock({ id: 'block-function', name: 'Function', category: 'compute' }),
+        createBlock({ id: 'block-queue', name: 'Queue', category: 'messaging' }),
+        createBlock({ id: 'block-event', name: 'Event', category: 'messaging' }),
+        createBlock({ id: 'block-analytics', name: 'Analytics', category: 'operations' }),
+        createBlock({ id: 'block-identity', name: 'Identity', category: 'security' }),
+        createBlock({ id: 'block-observability', name: 'Observability', category: 'operations' }),
       ],
     });
     const normalized = normalizeBicep(model, azureProviderDefinition);
@@ -185,14 +192,14 @@ describe('bicep generator', () => {
 
     expect(mainBicep).toContain("resource webappCompute 'Microsoft.Web/sites@2023-01-01' = {");
     expect(mainBicep).toContain("resource pgserverDatabase 'Microsoft.DBforPostgreSQL/flexibleServers@2023-03-01-preview' = {");
-    expect(mainBicep).toContain("resource storageStorage 'Microsoft.Storage/storageAccounts@2023-01-01' = {");
+    expect(mainBicep).toContain("resource pgserverStorage 'Microsoft.DBforPostgreSQL/flexibleServers@2023-03-01-preview' = {");
     expect(mainBicep).toContain("resource appgwGateway 'Microsoft.Network/applicationGateways@2023-05-01' = {");
-    expect(mainBicep).toContain("resource funcFunction 'Microsoft.Web/sites@2023-01-01' = {");
+    expect(mainBicep).toContain("resource webappFunction 'Microsoft.Web/sites@2023-01-01' = {");
     expect(mainBicep).toContain("resource queueQueue 'Microsoft.Storage/storageAccounts/queueServices/queues@2023-01-01' = {");
-    expect(mainBicep).toContain("resource evtopicEvent 'Microsoft.EventGrid/topics@2023-12-15-preview' = {");
+    expect(mainBicep).toContain("resource queueEvent 'Microsoft.Storage/storageAccounts/queueServices/queues@2023-01-01' = {");
     expect(mainBicep).toContain("resource analyticsAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {");
     expect(mainBicep).toContain("resource identityIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {");
-    expect(mainBicep).toContain("resource monitorObservability 'Microsoft.Monitor/accounts@2023-04-03' = {");
+    expect(mainBicep).toContain("resource analyticsObservability 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {");
   });
 
   it('generates subnet as top-level resource when parent is missing', () => {
