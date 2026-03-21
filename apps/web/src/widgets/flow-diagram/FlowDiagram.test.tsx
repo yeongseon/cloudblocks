@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { FlowDiagram } from './FlowDiagram';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import type { ArchitectureModel, Block, Connection, ExternalActor } from '@cloudblocks/schema';
+import type { ArchitectureModel, Connection, ExternalActor, LeafNode, ResourceCategory } from '@cloudblocks/schema';
 
 vi.mock('./FlowDiagram.css', () => ({}));
 
@@ -10,19 +10,32 @@ const baseArchitecture: ArchitectureModel = {
   id: 'arch-1',
   name: 'Flow Test',
   version: '1.0.0',
-  plates: [],
-  blocks: [],
+  nodes: [],
   connections: [],
   externalActors: [],
   createdAt: '',
   updatedAt: '',
 };
 
-const makeBlock = (id: string, category: Block['category']): Block => ({
+const resourceTypeByCategory: Record<ResourceCategory, string> = {
+  network: 'virtual_network',
+  security: 'firewall_security',
+  edge: 'load_balancer',
+  compute: 'web_compute',
+  data: 'relational_database',
+  messaging: 'message_queue',
+  operations: 'monitoring',
+};
+
+const makeBlock = (id: string, category: ResourceCategory): LeafNode => ({
   id,
   name: `${id}-name`,
+  kind: 'resource',
+  layer: 'resource',
+  resourceType: resourceTypeByCategory[category],
   category,
-  placementId: 'plate-1',
+  provider: 'azure',
+  parentId: 'plate-1',
   position: { x: 0, y: 0, z: 0 },
   metadata: {},
 });
@@ -62,10 +75,10 @@ describe('FlowDiagram', () => {
   });
 
   it('renders topologically sorted flow chain blocks', () => {
-    const blocks: Block[] = [
-      makeBlock('gateway-1', 'gateway'),
+    const blocks: LeafNode[] = [
+      makeBlock('gateway-1', 'edge'),
       makeBlock('compute-1', 'compute'),
-      makeBlock('database-1', 'database'),
+      makeBlock('database-1', 'data'),
     ];
     const connections: Connection[] = [
       makeConnection('c1', 'gateway-1', 'compute-1'),
@@ -76,7 +89,7 @@ describe('FlowDiagram', () => {
       workspace: {
         id: 'ws-1',
         name: 'Flow WS',
-        architecture: { ...baseArchitecture, blocks, connections },
+        architecture: { ...baseArchitecture, nodes: blocks, connections },
         createdAt: '',
         updatedAt: '',
       },
@@ -85,11 +98,11 @@ describe('FlowDiagram', () => {
     const { container } = render(<FlowDiagram />);
 
     const nodes = Array.from(container.querySelectorAll('.flow-node')).map((node) => node.textContent?.trim());
-    expect(nodes).toEqual(['🛡️gateway-1-name', '🖥️compute-1-name', '🗄️database-1-name']);
+    expect(nodes).toEqual(['⚖️gateway-1-name', '🖥️compute-1-name', '🗄️database-1-name']);
   });
 
   it('renders external actor node (Internet)', () => {
-    const blocks: Block[] = [makeBlock('gateway-1', 'gateway')];
+    const blocks: LeafNode[] = [makeBlock('gateway-1', 'edge')];
     const externalActors: ExternalActor[] = [makeExternalActor('internet-1')];
     const connections: Connection[] = [makeConnection('c1', 'internet-1', 'gateway-1')];
 
@@ -97,7 +110,7 @@ describe('FlowDiagram', () => {
       workspace: {
         id: 'ws-1',
         name: 'Flow WS',
-        architecture: { ...baseArchitecture, blocks, externalActors, connections },
+        architecture: { ...baseArchitecture, nodes: blocks, externalActors, connections },
         createdAt: '',
         updatedAt: '',
       },
@@ -109,7 +122,7 @@ describe('FlowDiagram', () => {
   });
 
   it('renders external actor node with custom actor name', () => {
-    const blocks: Block[] = [makeBlock('gateway-1', 'gateway')];
+    const blocks: LeafNode[] = [makeBlock('gateway-1', 'edge')];
     const externalActors: ExternalActor[] = [makeExternalActor('external-1', 'Partner API')];
     const connections: Connection[] = [makeConnection('c1', 'external-1', 'gateway-1')];
 
@@ -117,7 +130,7 @@ describe('FlowDiagram', () => {
       workspace: {
         id: 'ws-1',
         name: 'Flow WS',
-        architecture: { ...baseArchitecture, blocks, externalActors, connections },
+        architecture: { ...baseArchitecture, nodes: blocks, externalActors, connections },
         createdAt: '',
         updatedAt: '',
       },
@@ -128,10 +141,10 @@ describe('FlowDiagram', () => {
   });
 
   it('renders arrows between nodes', () => {
-    const blocks: Block[] = [
-      makeBlock('gateway-1', 'gateway'),
+    const blocks: LeafNode[] = [
+      makeBlock('gateway-1', 'edge'),
       makeBlock('compute-1', 'compute'),
-      makeBlock('database-1', 'database'),
+      makeBlock('database-1', 'data'),
     ];
     const connections: Connection[] = [
       makeConnection('c1', 'gateway-1', 'compute-1'),
@@ -142,7 +155,7 @@ describe('FlowDiagram', () => {
       workspace: {
         id: 'ws-1',
         name: 'Flow WS',
-        architecture: { ...baseArchitecture, blocks, connections },
+        architecture: { ...baseArchitecture, nodes: blocks, connections },
         createdAt: '',
         updatedAt: '',
       },
@@ -153,14 +166,14 @@ describe('FlowDiagram', () => {
   });
 
   it('skips unknown node ids referenced by connections', () => {
-    const blocks: Block[] = [makeBlock('compute-1', 'compute')];
+    const blocks: LeafNode[] = [makeBlock('compute-1', 'compute')];
     const connections: Connection[] = [makeConnection('c1', 'ghost-1', 'compute-1')];
 
     useArchitectureStore.setState({
       workspace: {
         id: 'ws-1',
         name: 'Flow WS',
-        architecture: { ...baseArchitecture, blocks, connections },
+        architecture: { ...baseArchitecture, nodes: blocks, connections },
         createdAt: '',
         updatedAt: '',
       },
@@ -175,11 +188,15 @@ describe('FlowDiagram', () => {
   });
 
   it('uses fallback color, icon, and label for unknown block category values', () => {
-    const weirdBlock: Block = {
+    const weirdBlock: LeafNode = {
       id: 'weird-1',
       name: 'weird-name',
-      category: 'unknown' as Block['category'],
-      placementId: 'plate-1',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'web_compute',
+      category: 'unknown' as unknown as ResourceCategory,
+      provider: 'azure',
+      parentId: 'plate-1',
       position: { x: 0, y: 0, z: 0 },
       metadata: {},
     };
@@ -191,7 +208,7 @@ describe('FlowDiagram', () => {
         name: 'Flow WS',
         architecture: {
           ...baseArchitecture,
-          blocks: [weirdBlock, knownBlock],
+          nodes: [weirdBlock, knownBlock],
           connections: [makeConnection('c-fallback', 'weird-1', 'compute-1')],
         },
         createdAt: '',
@@ -208,11 +225,11 @@ describe('FlowDiagram', () => {
   });
 
   it('handles converging dependencies in Kahn sorting order', () => {
-    const blocks: Block[] = [
-      makeBlock('gateway-1', 'gateway'),
-      makeBlock('storage-1', 'storage'),
+    const blocks: LeafNode[] = [
+      makeBlock('gateway-1', 'edge'),
+      makeBlock('storage-1', 'data'),
       makeBlock('compute-1', 'compute'),
-      makeBlock('database-1', 'database'),
+      makeBlock('database-1', 'data'),
     ];
     const connections: Connection[] = [
       makeConnection('c1', 'gateway-1', 'compute-1'),
@@ -224,7 +241,7 @@ describe('FlowDiagram', () => {
       workspace: {
         id: 'ws-1',
         name: 'Flow WS',
-        architecture: { ...baseArchitecture, blocks, connections },
+        architecture: { ...baseArchitecture, nodes: blocks, connections },
         createdAt: '',
         updatedAt: '',
       },
@@ -234,15 +251,15 @@ describe('FlowDiagram', () => {
     const nodes = Array.from(container.querySelectorAll('.flow-node')).map((node) => node.textContent?.trim());
 
     expect(nodes).toContain('🖥️compute-1-name');
-    expect(nodes.indexOf('🖥️compute-1-name')).toBeGreaterThan(nodes.indexOf('🛡️gateway-1-name'));
+    expect(nodes.indexOf('🖥️compute-1-name')).toBeGreaterThan(nodes.indexOf('⚖️gateway-1-name'));
     expect(nodes.indexOf('🖥️compute-1-name')).toBeGreaterThan(nodes.indexOf('📦storage-1-name'));
     expect(nodes.indexOf('🗄️database-1-name')).toBeGreaterThan(nodes.indexOf('🖥️compute-1-name'));
   });
 
   it('renders flow diagram with cyclic connections (function <-> queue)', () => {
-    const blocks: Block[] = [
-      makeBlock('function-1', 'function'),
-      makeBlock('queue-1', 'queue'),
+    const blocks: LeafNode[] = [
+      makeBlock('function-1', 'compute'),
+      makeBlock('queue-1', 'messaging'),
     ];
     const connections: Connection[] = [
       makeConnection('c1', 'function-1', 'queue-1'),
@@ -253,7 +270,7 @@ describe('FlowDiagram', () => {
       workspace: {
         id: 'ws-1',
         name: 'Flow WS',
-        architecture: { ...baseArchitecture, blocks, connections },
+        architecture: { ...baseArchitecture, nodes: blocks, connections },
         createdAt: '',
         updatedAt: '',
       },
@@ -264,7 +281,7 @@ describe('FlowDiagram', () => {
     // Both nodes should be present despite forming a cycle
     const nodes = Array.from(container.querySelectorAll('.flow-node')).map((node) => node.textContent?.trim());
     expect(nodes).toHaveLength(2);
-    expect(nodes).toContain('⚡function-1-name');
+    expect(nodes).toContain('🖥️function-1-name');
     expect(nodes).toContain('📨queue-1-name');
   });
 });

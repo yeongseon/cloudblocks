@@ -6,9 +6,11 @@ import type { DiffDelta } from '../../shared/types/diff';
 import './DiffPanel.css';
 
 function summarizeArchitecture(arch: ArchitectureModel) {
+  const plates = arch.nodes.filter((node) => node.kind === 'container').length;
+  const blocks = arch.nodes.filter((node) => node.kind === 'resource').length;
   return {
-    plates: arch.plates.length,
-    blocks: arch.blocks.length,
+    plates,
+    blocks,
     connections: arch.connections.length,
     externalActors: arch.externalActors?.length ?? 0,
   };

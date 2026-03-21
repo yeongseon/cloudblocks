@@ -165,10 +165,10 @@ describe('LearningPanel widgets', () => {
       { type: 'plate-exists', plateType: 'region' },
       { type: 'plate-exists', plateType: 'subnet', subnetAccess: 'public' },
       { type: 'block-exists', category: 'compute' },
-      { type: 'connection-exists', sourceCategory: 'gateway', targetCategory: 'compute' },
-      { type: 'entity-on-plate', entityCategory: 'database', plateType: 'subnet' },
+      { type: 'connection-exists', sourceCategory: 'edge', targetCategory: 'compute' },
+      { type: 'entity-on-plate', entityCategory: 'data', plateType: 'subnet' },
       { type: 'architecture-valid' },
-      { type: 'min-block-count', category: 'storage', count: 2 },
+      { type: 'min-block-count', category: 'data', count: 2 },
       { type: 'min-plate-count', plateType: 'subnet', count: 3 },
       { type: 'unknown-rule' } as unknown as StepValidationRule,
     ];
@@ -199,10 +199,10 @@ describe('LearningPanel widgets', () => {
     expect(screen.getByText('Add a region plate')).toBeInTheDocument();
     expect(screen.getByText('Add a public subnet plate')).toBeInTheDocument();
     expect(screen.getByText('Add a compute block')).toBeInTheDocument();
-    expect(screen.getByText('Connect gateway to compute')).toBeInTheDocument();
-    expect(screen.getByText('Place database on subnet')).toBeInTheDocument();
+    expect(screen.getByText('Connect edge to compute')).toBeInTheDocument();
+    expect(screen.getByText('Place data on subnet')).toBeInTheDocument();
     expect(screen.getByText('Fix validation issues')).toBeInTheDocument();
-    expect(screen.getByText('Add at least 2 storage block(s)')).toBeInTheDocument();
+    expect(screen.getByText('Add at least 2 data block(s)')).toBeInTheDocument();
     expect(screen.getByText('Add at least 3 subnet plate(s)')).toBeInTheDocument();
     expect(screen.getByText('Complete requirement')).toBeInTheDocument();
   });

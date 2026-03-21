@@ -77,8 +77,8 @@ export function WorkspaceManager() {
       <div className="workspace-manager-list">
         {allWorkspaces.map((ws) => {
           const isActive = ws.id === workspace.id;
-          const blockCount = ws.architecture.blocks.length;
-          const plateCount = ws.architecture.plates.length;
+          const blockCount = ws.architecture.nodes.filter((node) => node.kind === 'resource').length;
+          const plateCount = ws.architecture.nodes.filter((node) => node.kind === 'container').length;
 
           return (
             <div

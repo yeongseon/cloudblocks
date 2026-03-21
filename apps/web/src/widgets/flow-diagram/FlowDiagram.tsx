@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { BLOCK_FRIENDLY_NAMES, BLOCK_ICONS } from '../../shared/types/index';
-import type { Block, Connection, ExternalActor } from '@cloudblocks/schema';
+import type { Connection, ExternalActor, LeafNode } from '@cloudblocks/schema';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
 import './FlowDiagram.css';
 
@@ -50,9 +50,10 @@ function buildFlowChain(
 }
 
 export function FlowDiagram() {
-  const { blocks, connections, externalActors } = useArchitectureStore(
+  const { nodes, connections, externalActors } = useArchitectureStore(
     (s) => s.workspace.architecture
   );
+  const blocks = useMemo(() => nodes.filter((node): node is LeafNode => node.kind === 'resource'), [nodes]);
 
   const flowChain = useMemo(() => {
     if (!connections || connections.length === 0) return [];
@@ -63,7 +64,7 @@ export function FlowDiagram() {
     return null;
   }
 
-  const blockMap = new Map<string, Block>(blocks.map((b) => [b.id, b]));
+  const blockMap = new Map<string, LeafNode>(blocks.map((b) => [b.id, b]));
   const actorMap = new Map<string, ExternalActor>(
     externalActors.map((a) => [a.id, a])
   );

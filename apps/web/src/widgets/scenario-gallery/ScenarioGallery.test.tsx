@@ -27,8 +27,7 @@ const beginnerOnlyScenario: Scenario = {
   initialArchitecture: {
     name: 'Beginner Only Scenario',
     version: '1',
-    plates: [],
-    blocks: [],
+    nodes: [],
     connections: [],
     externalActors: [],
   },
