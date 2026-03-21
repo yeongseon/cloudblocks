@@ -4,7 +4,7 @@ import { toast } from 'react-hot-toast';
 import { useArchitectureStore } from '../store/architectureStore';
 import { useUIStore } from '../store/uiStore';
 import { canConnect } from '../validation/connection';
-import type { ExternalActor } from '@cloudblocks/schema';
+import type { ExternalActor, LeafNode } from '@cloudblocks/schema';
 import { screenDeltaToWorld, snapToGrid } from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
 import internetSprite from '../../shared/assets/actor-sprites/internet.svg';
@@ -31,7 +31,9 @@ export const ExternalActorSprite = memo(function ExternalActorSprite({
   const completeInteraction = useUIStore((s) => s.completeInteraction);
   const addConnection = useArchitectureStore((s) => s.addConnection);
   const moveActorPosition = useArchitectureStore((s) => s.moveActorPosition);
-  const blocks = useArchitectureStore((s) => s.workspace.architecture.blocks);
+  const blocks = useArchitectureStore((s) =>
+    s.workspace.architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource')
+  );
   const externalActors = useArchitectureStore((s) => s.workspace.architecture.externalActors);
   const actorRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);

@@ -1,4 +1,4 @@
-import type { BlockCategory, ProviderType } from './index';
+import type { ProviderType, ResourceCategory } from './index';
 
 // BrickSizeTier removed in v2.0 — use BlockTier instead
 
@@ -23,17 +23,14 @@ export const TIER_DIMENSIONS: Record<BlockTier, BlockDimensionsCU> = {
 };
 
 /** Maps each category to its v2.0 tier. See CLOUDBLOCKS_SPEC_V2.md §5.2. */
-export const CATEGORY_TIER_MAP: Record<BlockCategory, BlockTier> = {
-  compute:       'medium',
-  database:      'large',
-  storage:       'medium',
-  gateway:       'wide',
-  function:      'micro',
-  queue:         'micro',
-  event:         'micro',
-  analytics:     'large',
-  identity:      'small',
-  observability: 'small',
+export const CATEGORY_TIER_MAP: Record<ResourceCategory, BlockTier> = {
+  network: 'large',
+  security: 'small',
+  edge: 'wide',
+  compute: 'medium',
+  data: 'large',
+  messaging: 'micro',
+  operations: 'small',
 };
 
 export type BrickSurface = 'studded';
@@ -55,60 +52,28 @@ export interface BlockVisualProfile {
   appCapacity: number;
 }
 
-export const BLOCK_VISUAL_PROFILES: Record<BlockCategory, BlockVisualProfile> = {
-  event: {
-    tier: 'micro',
+export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile> = {
+  network: {
+    tier: 'large',
     surface: 'studded',
-    silhouette: 'module',
-    footprint: [1, 2],
+    silhouette: 'heavy',
+    footprint: [4, 6],
     hostable: false,
     appCapacity: 0,
   },
-  function: {
-    tier: 'micro',
+  security: {
+    tier: 'small',
     surface: 'studded',
     silhouette: 'module',
     footprint: [2, 2],
-    hostable: true,
-    appCapacity: 1,
-  },
-  queue: {
-    tier: 'micro',
-    surface: 'studded',
-    silhouette: 'module',
-    footprint: [2, 4],
     hostable: false,
     appCapacity: 0,
   },
-  gateway: {
+  edge: {
     tier: 'wide',
     surface: 'studded',
     silhouette: 'shield',
     footprint: [2, 4],
-    hostable: false,
-    appCapacity: 0,
-  },
-  storage: {
-    tier: 'medium',
-    surface: 'studded',
-    silhouette: 'heavy',
-    footprint: [2, 4],
-    hostable: false,
-    appCapacity: 0,
-  },
-  identity: {
-    tier: 'small',
-    surface: 'studded',
-    silhouette: 'module',
-    footprint: [2, 2],
-    hostable: false,
-    appCapacity: 0,
-  },
-  observability: {
-    tier: 'small',
-    surface: 'studded',
-    silhouette: 'module',
-    footprint: [2, 2],
     hostable: false,
     appCapacity: 0,
   },
@@ -120,7 +85,7 @@ export const BLOCK_VISUAL_PROFILES: Record<BlockCategory, BlockVisualProfile> = 
     hostable: true,
     appCapacity: 4,
   },
-  database: {
+  data: {
     tier: 'large',
     surface: 'studded',
     silhouette: 'heavy',
@@ -128,17 +93,25 @@ export const BLOCK_VISUAL_PROFILES: Record<BlockCategory, BlockVisualProfile> = 
     hostable: false,
     appCapacity: 0,
   },
-  analytics: {
-    tier: 'large',
+  messaging: {
+    tier: 'micro',
     surface: 'studded',
-    silhouette: 'heavy',
-    footprint: [4, 6],
+    silhouette: 'module',
+    footprint: [2, 4],
+    hostable: false,
+    appCapacity: 0,
+  },
+  operations: {
+    tier: 'small',
+    surface: 'studded',
+    silhouette: 'module',
+    footprint: [2, 2],
     hostable: false,
     appCapacity: 0,
   },
 };
 
-export function getBlockVisualProfile(category: BlockCategory): BlockVisualProfile {
+export function getBlockVisualProfile(category: ResourceCategory): BlockVisualProfile {
   return BLOCK_VISUAL_PROFILES[category];
 }
 
@@ -223,7 +196,7 @@ export const SUBTYPE_SIZE_OVERRIDES: Record<string, BlockDimensionsCU> = {
  * @returns The resolved CU dimensions
  */
 export function getBlockDimensions(
-  category: BlockCategory,
+  category: ResourceCategory,
   provider?: ProviderType,
   subtype?: string,
 ): BlockDimensionsCU {

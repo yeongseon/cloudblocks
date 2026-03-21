@@ -53,7 +53,8 @@ function CodePreviewContent() {
 
   const effectiveCompare = compareProviders && canCompareProviders;
 
-  const mismatchedProviders = architecture.blocks
+  const mismatchedProviders = architecture.nodes
+    .filter((node) => node.kind === 'resource')
     .filter((block) => block.provider && block.provider !== activeProvider)
     .reduce((acc, block) => {
       const p = block.provider ?? 'unknown';

@@ -6,16 +6,25 @@ const awsSubtypeBlockMappings: SubtypeResourceMap = {
     ecs: { resourceType: 'aws_ecs_service', namePrefix: 'ecs' },
     lambda: { resourceType: 'aws_lambda_function', namePrefix: 'fn' },
   },
-  database: {
+  data: {
     'rds-postgres': { resourceType: 'aws_db_instance', namePrefix: 'rds' },
     dynamodb: { resourceType: 'aws_dynamodb_table', namePrefix: 'ddb' },
-  },
-  storage: {
     s3: { resourceType: 'aws_s3_bucket', namePrefix: 's3' },
   },
-  gateway: {
+  edge: {
     alb: { resourceType: 'aws_lb', namePrefix: 'alb' },
     'api-gateway': { resourceType: 'aws_apigatewayv2_api', namePrefix: 'apigw' },
+  },
+  messaging: {
+    sqs: { resourceType: 'aws_sqs_queue', namePrefix: 'queue' },
+    sns: { resourceType: 'aws_sns_topic', namePrefix: 'topic' },
+  },
+  security: {
+    iam: { resourceType: 'aws_iam_role', namePrefix: 'role' },
+  },
+  operations: {
+    cloudwatch: { resourceType: 'aws_cloudwatch_dashboard', namePrefix: 'dashboard' },
+    athena: { resourceType: 'aws_athena_workgroup', namePrefix: 'analytics' },
   },
 };
 
@@ -23,45 +32,33 @@ export const awsProviderDefinition: ProviderDefinition = {
   name: 'aws',
   displayName: 'AWS',
   blockMappings: {
+    network: {
+      resourceType: 'aws_vpc',
+      namePrefix: 'network',
+    },
+    security: {
+      resourceType: 'aws_iam_role',
+      namePrefix: 'role',
+    },
+    edge: {
+      resourceType: 'aws_lb',
+      namePrefix: 'lb',
+    },
     compute: {
       resourceType: 'aws_ecs_service',
       namePrefix: 'ecs',
     },
-    database: {
+    data: {
       resourceType: 'aws_db_instance',
       namePrefix: 'db',
     },
-    storage: {
-      resourceType: 'aws_s3_bucket',
-      namePrefix: 'bucket',
-    },
-    gateway: {
-      resourceType: 'aws_lb',
-      namePrefix: 'lb',
-    },
-    function: {
-      resourceType: 'aws_lambda_function',
-      namePrefix: 'lambda',
-    },
-    queue: {
+    messaging: {
       resourceType: 'aws_sqs_queue',
       namePrefix: 'queue',
     },
-    event: {
-      resourceType: 'aws_sns_topic',
-      namePrefix: 'topic',
-    },
-    analytics: {
+    operations: {
       resourceType: 'aws_athena_workgroup',
       namePrefix: 'analytics',
-    },
-    identity: {
-      resourceType: 'aws_iam_role',
-      namePrefix: 'role',
-    },
-    observability: {
-      resourceType: 'aws_cloudwatch_dashboard',
-      namePrefix: 'dashboard',
     },
   },
   plateMappings: {

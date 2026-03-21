@@ -1,15 +1,29 @@
 import { describe, it, expect } from 'vitest';
-import type { Block, Connection, ExternalActor, ConnectionType } from '@cloudblocks/schema';
+import type { Connection, ConnectionType, ExternalActor, LeafNode, ResourceCategory } from '@cloudblocks/schema';
 import { validateConnection, canConnect, CONNECTION_VISUAL_STYLES } from './connection';
 
 function makeBlock(
-  overrides: Partial<Block> = {}
-): Block {
+  overrides: Partial<LeafNode> = {}
+): LeafNode {
+  const category: ResourceCategory = overrides.category ?? 'compute';
+  const resourceTypeByCategory: Record<ResourceCategory, string> = {
+    compute: 'web_compute',
+    data: 'relational_database',
+    edge: 'load_balancer',
+    security: 'firewall_security',
+    operations: 'monitoring',
+    messaging: 'message_queue',
+    network: 'virtual_network',
+  };
   return {
     id: 'block-1',
-    name: 'Block One',
-    category: 'compute',
-    placementId: 'plate-1',
+    name: 'Block',
+    kind: 'resource',
+    layer: 'resource',
+    resourceType: resourceTypeByCategory[category],
+    category,
+    provider: 'azure',
+    parentId: 'plate-1',
     position: { x: 0, y: 0, z: 0 },
     metadata: {},
     ...overrides,
@@ -64,7 +78,7 @@ describe('validateConnection', () => {
       sourceId: 'gateway-1',
       targetId: 'missing-target',
     });
-    const blocks = [makeBlock({ id: 'gateway-1', category: 'gateway' })];
+    const blocks = [makeBlock({ id: 'gateway-1', category: 'edge' })];
 
     expect(validateConnection(connection, blocks, [])).toEqual({
       ruleId: 'rule-conn-target',
@@ -97,7 +111,7 @@ describe('validateConnection', () => {
       sourceId: 'internet-1',
       targetId: 'gateway-1',
     });
-    const blocks = [makeBlock({ id: 'gateway-1', category: 'gateway' })];
+    const blocks = [makeBlock({ id: 'gateway-1', category: 'edge' })];
     const actors = [makeExternalActor({ id: 'internet-1' })];
 
     expect(validateConnection(connection, blocks, actors)).toBeNull();
@@ -109,7 +123,7 @@ describe('validateConnection', () => {
       targetId: 'compute-1',
     });
     const blocks = [
-      makeBlock({ id: 'gateway-1', category: 'gateway' }),
+      makeBlock({ id: 'gateway-1', category: 'edge' }),
       makeBlock({ id: 'compute-1', category: 'compute' }),
     ];
 
@@ -123,7 +137,7 @@ describe('validateConnection', () => {
     });
     const blocks = [
       makeBlock({ id: 'compute-1', category: 'compute' }),
-      makeBlock({ id: 'db-1', category: 'database' }),
+      makeBlock({ id: 'db-1', category: 'data' }),
     ];
 
     expect(validateConnection(connection, blocks, [])).toBeNull();
@@ -136,7 +150,7 @@ describe('validateConnection', () => {
     });
     const blocks = [
       makeBlock({ id: 'compute-1', category: 'compute' }),
-      makeBlock({ id: 'storage-1', category: 'storage' }),
+      makeBlock({ id: 'storage-1', category: 'data' }),
     ];
 
     expect(validateConnection(connection, blocks, [])).toBeNull();
@@ -146,7 +160,7 @@ describe('validateConnection', () => {
     const connection = makeConnection({ sourceId: 'compute-1', targetId: 'analytics-1' });
     const blocks = [
       makeBlock({ id: 'compute-1', category: 'compute' }),
-      makeBlock({ id: 'analytics-1', category: 'analytics' }),
+      makeBlock({ id: 'analytics-1', category: 'operations' }),
     ];
 
     expect(validateConnection(connection, blocks, [])).toBeNull();
@@ -156,7 +170,7 @@ describe('validateConnection', () => {
     const connection = makeConnection({ sourceId: 'compute-1', targetId: 'identity-1' });
     const blocks = [
       makeBlock({ id: 'compute-1', category: 'compute' }),
-      makeBlock({ id: 'identity-1', category: 'identity' }),
+      makeBlock({ id: 'identity-1', category: 'security' }),
     ];
 
     expect(validateConnection(connection, blocks, [])).toBeNull();
@@ -166,7 +180,7 @@ describe('validateConnection', () => {
     const connection = makeConnection({ sourceId: 'compute-1', targetId: 'observability-1' });
     const blocks = [
       makeBlock({ id: 'compute-1', category: 'compute' }),
-      makeBlock({ id: 'observability-1', category: 'observability' }),
+      makeBlock({ id: 'observability-1', category: 'operations' }),
     ];
 
     expect(validateConnection(connection, blocks, [])).toBeNull();
@@ -175,9 +189,9 @@ describe('validateConnection', () => {
   it('rejects invalid connection pairs with rule-conn-invalid', () => {
     const blocks = [
       makeBlock({ id: 'compute-1', category: 'compute' }),
-      makeBlock({ id: 'gateway-1', category: 'gateway' }),
-      makeBlock({ id: 'db-1', category: 'database' }),
-      makeBlock({ id: 'storage-1', category: 'storage' }),
+      makeBlock({ id: 'gateway-1', category: 'edge' }),
+      makeBlock({ id: 'db-1', category: 'data' }),
+      makeBlock({ id: 'storage-1', category: 'data' }),
     ];
     const actors = [makeExternalActor({ id: 'internet-1' })];
 
@@ -201,8 +215,8 @@ describe('validateConnection', () => {
 
   it('rejects when source category is not allowed to initiate', () => {
     const blocks = [
-      makeBlock({ id: 'db-1', category: 'database' }),
-      makeBlock({ id: 'storage-1', category: 'storage' }),
+      makeBlock({ id: 'db-1', category: 'data' }),
+      makeBlock({ id: 'storage-1', category: 'data' }),
       makeBlock({ id: 'compute-1', category: 'compute' }),
     ];
 
@@ -219,14 +233,14 @@ describe('validateConnection', () => {
 
     expect(validateConnection(dbAsSource, blocks, [])).toMatchObject({
       ruleId: 'rule-conn-invalid',
-      message: 'Invalid connection: database → compute',
-      suggestion: 'database cannot initiate a request to compute',
+      message: 'Invalid connection: data → compute',
+      suggestion: 'data cannot initiate a request to compute',
       targetId: 'conn-db-source',
     });
     expect(validateConnection(storageAsSource, blocks, [])).toMatchObject({
       ruleId: 'rule-conn-invalid',
-      message: 'Invalid connection: storage → compute',
-      suggestion: 'storage cannot initiate a request to compute',
+      message: 'Invalid connection: data → compute',
+      suggestion: 'data cannot initiate a request to compute',
       targetId: 'conn-storage-source',
     });
   });
@@ -251,8 +265,8 @@ describe('validateConnection', () => {
   it('accepts valid gateway -> function connection', () => {
     const connection = makeConnection({ sourceId: 'gateway-1', targetId: 'func-1' });
     const blocks = [
-      makeBlock({ id: 'gateway-1', category: 'gateway' }),
-      makeBlock({ id: 'func-1', category: 'function' }),
+      makeBlock({ id: 'gateway-1', category: 'edge' }),
+      makeBlock({ id: 'func-1', category: 'compute' }),
     ];
 
     expect(validateConnection(connection, blocks, [])).toBeNull();
@@ -261,8 +275,8 @@ describe('validateConnection', () => {
   it('accepts valid function -> storage connection', () => {
     const connection = makeConnection({ sourceId: 'func-1', targetId: 'storage-1' });
     const blocks = [
-      makeBlock({ id: 'func-1', category: 'function' }),
-      makeBlock({ id: 'storage-1', category: 'storage' }),
+      makeBlock({ id: 'func-1', category: 'compute' }),
+      makeBlock({ id: 'storage-1', category: 'data' }),
     ];
 
     expect(validateConnection(connection, blocks, [])).toBeNull();
@@ -271,8 +285,8 @@ describe('validateConnection', () => {
   it('accepts valid function -> database connection', () => {
     const connection = makeConnection({ sourceId: 'func-1', targetId: 'db-1' });
     const blocks = [
-      makeBlock({ id: 'func-1', category: 'function' }),
-      makeBlock({ id: 'db-1', category: 'database' }),
+      makeBlock({ id: 'func-1', category: 'compute' }),
+      makeBlock({ id: 'db-1', category: 'data' }),
     ];
 
     expect(validateConnection(connection, blocks, [])).toBeNull();
@@ -281,8 +295,8 @@ describe('validateConnection', () => {
   it('accepts valid function -> queue connection', () => {
     const connection = makeConnection({ sourceId: 'func-1', targetId: 'queue-1' });
     const blocks = [
-      makeBlock({ id: 'func-1', category: 'function' }),
-      makeBlock({ id: 'queue-1', category: 'queue' }),
+      makeBlock({ id: 'func-1', category: 'compute' }),
+      makeBlock({ id: 'queue-1', category: 'messaging' }),
     ];
 
     expect(validateConnection(connection, blocks, [])).toBeNull();
@@ -291,8 +305,8 @@ describe('validateConnection', () => {
   it('accepts valid queue -> function connection', () => {
     const connection = makeConnection({ sourceId: 'queue-1', targetId: 'func-1' });
     const blocks = [
-      makeBlock({ id: 'queue-1', category: 'queue' }),
-      makeBlock({ id: 'func-1', category: 'function' }),
+      makeBlock({ id: 'queue-1', category: 'messaging' }),
+      makeBlock({ id: 'func-1', category: 'compute' }),
     ];
 
     expect(validateConnection(connection, blocks, [])).toBeNull();
@@ -301,8 +315,8 @@ describe('validateConnection', () => {
   it('accepts valid event -> function connection', () => {
     const connection = makeConnection({ sourceId: 'event-1', targetId: 'func-1' });
     const blocks = [
-      makeBlock({ id: 'event-1', category: 'event' }),
-      makeBlock({ id: 'func-1', category: 'function' }),
+      makeBlock({ id: 'event-1', category: 'messaging' }),
+      makeBlock({ id: 'func-1', category: 'compute' }),
     ];
 
     expect(validateConnection(connection, blocks, [])).toBeNull();
@@ -311,8 +325,8 @@ describe('validateConnection', () => {
   it('rejects invalid function -> gateway connection', () => {
     const connection = makeConnection({ id: 'conn-func-gw', sourceId: 'func-1', targetId: 'gateway-1' });
     const blocks = [
-      makeBlock({ id: 'func-1', category: 'function' }),
-      makeBlock({ id: 'gateway-1', category: 'gateway' }),
+      makeBlock({ id: 'func-1', category: 'compute' }),
+      makeBlock({ id: 'gateway-1', category: 'edge' }),
     ];
 
     expect(validateConnection(connection, blocks, [])).toMatchObject({
@@ -324,7 +338,7 @@ describe('validateConnection', () => {
   it('rejects invalid function -> compute connection', () => {
     const connection = makeConnection({ id: 'conn-func-compute', sourceId: 'func-1', targetId: 'compute-1' });
     const blocks = [
-      makeBlock({ id: 'func-1', category: 'function' }),
+      makeBlock({ id: 'func-1', category: 'compute' }),
       makeBlock({ id: 'compute-1', category: 'compute' }),
     ];
 
@@ -334,24 +348,21 @@ describe('validateConnection', () => {
     });
   });
 
-  it('rejects invalid queue -> compute connection', () => {
+  it('accepts valid queue -> compute connection', () => {
     const connection = makeConnection({ id: 'conn-queue-compute', sourceId: 'queue-1', targetId: 'compute-1' });
     const blocks = [
-      makeBlock({ id: 'queue-1', category: 'queue' }),
+      makeBlock({ id: 'queue-1', category: 'messaging' }),
       makeBlock({ id: 'compute-1', category: 'compute' }),
     ];
 
-    expect(validateConnection(connection, blocks, [])).toMatchObject({
-      ruleId: 'rule-conn-invalid',
-      targetId: 'conn-queue-compute',
-    });
+    expect(validateConnection(connection, blocks, [])).toBeNull();
   });
 
   it('rejects invalid event -> database connection', () => {
     const connection = makeConnection({ id: 'conn-event-db', sourceId: 'event-1', targetId: 'db-1' });
     const blocks = [
-      makeBlock({ id: 'event-1', category: 'event' }),
-      makeBlock({ id: 'db-1', category: 'database' }),
+      makeBlock({ id: 'event-1', category: 'messaging' }),
+      makeBlock({ id: 'db-1', category: 'data' }),
     ];
 
     expect(validateConnection(connection, blocks, [])).toMatchObject({
@@ -363,8 +374,8 @@ describe('validateConnection', () => {
   it('rejects invalid queue -> queue connection', () => {
     const connection = makeConnection({ id: 'conn-queue-queue', sourceId: 'queue-1', targetId: 'queue-2' });
     const blocks = [
-      makeBlock({ id: 'queue-1', category: 'queue' }),
-      makeBlock({ id: 'queue-2', category: 'queue' }),
+      makeBlock({ id: 'queue-1', category: 'messaging' }),
+      makeBlock({ id: 'queue-2', category: 'messaging' }),
     ];
 
     expect(validateConnection(connection, blocks, [])).toMatchObject({
@@ -376,36 +387,36 @@ describe('validateConnection', () => {
 
 describe('canConnect', () => {
   it('returns true for allowed connection pairs', () => {
-    expect(canConnect('internet', 'gateway')).toBe(true);
-    expect(canConnect('gateway', 'compute')).toBe(true);
-    expect(canConnect('gateway', 'function')).toBe(true);
-    expect(canConnect('compute', 'database')).toBe(true);
-    expect(canConnect('compute', 'storage')).toBe(true);
-    expect(canConnect('compute', 'analytics')).toBe(true);
-    expect(canConnect('compute', 'identity')).toBe(true);
-    expect(canConnect('compute', 'observability')).toBe(true);
-    expect(canConnect('function', 'storage')).toBe(true);
-    expect(canConnect('function', 'database')).toBe(true);
-    expect(canConnect('function', 'queue')).toBe(true);
-    expect(canConnect('queue', 'function')).toBe(true);
-    expect(canConnect('event', 'function')).toBe(true);
+    expect(canConnect('internet', 'edge')).toBe(true);
+    expect(canConnect('edge', 'compute')).toBe(true);
+    expect(canConnect('edge', 'compute')).toBe(true);
+    expect(canConnect('compute', 'data')).toBe(true);
+    expect(canConnect('compute', 'data')).toBe(true);
+    expect(canConnect('compute', 'operations')).toBe(true);
+    expect(canConnect('compute', 'security')).toBe(true);
+    expect(canConnect('compute', 'operations')).toBe(true);
+    expect(canConnect('compute', 'data')).toBe(true);
+    expect(canConnect('compute', 'data')).toBe(true);
+    expect(canConnect('compute', 'messaging')).toBe(true);
+    expect(canConnect('messaging', 'compute')).toBe(true);
+    expect(canConnect('messaging', 'compute')).toBe(true);
   });
 
   it('returns false for disallowed connection pairs', () => {
-    expect(canConnect('database', 'compute')).toBe(false);
-    expect(canConnect('storage', 'gateway')).toBe(false);
-    expect(canConnect('compute', 'gateway')).toBe(false);
+    expect(canConnect('data', 'compute')).toBe(false);
+    expect(canConnect('data', 'edge')).toBe(false);
+    expect(canConnect('compute', 'edge')).toBe(false);
     expect(canConnect('internet', 'compute')).toBe(false);
-    expect(canConnect('queue', 'compute')).toBe(false);
-    expect(canConnect('event', 'database')).toBe(false);
+    expect(canConnect('messaging', 'operations')).toBe(false);
+    expect(canConnect('messaging', 'data')).toBe(false);
   });
 
   it('returns false for receiver-only categories as source', () => {
-    expect(canConnect('database', 'storage')).toBe(false);
-    expect(canConnect('storage', 'database')).toBe(false);
-    expect(canConnect('analytics', 'compute')).toBe(false);
-    expect(canConnect('identity', 'compute')).toBe(false);
-    expect(canConnect('observability', 'compute')).toBe(false);
+    expect(canConnect('data', 'data')).toBe(false);
+    expect(canConnect('data', 'operations')).toBe(false);
+    expect(canConnect('operations', 'compute')).toBe(false);
+    expect(canConnect('security', 'compute')).toBe(false);
+    expect(canConnect('operations', 'compute')).toBe(false);
   });
 });
 

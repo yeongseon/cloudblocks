@@ -4,13 +4,16 @@
 >
 > This document is the **canonical specification** for the CloudBlocks domain model. All other documentation must reference and conform to the types, field names, and relationships defined here.
 >
-> - **Milestone 1 implementation**: `apps/web/src/shared/types/index.ts` is the source of truth for TypeScript types. If a discrepancy exists between this document and the code, the code wins for Milestone 1.
-> - **Serialization format**: `apps/web/src/shared/types/schema.ts` is the source of truth for storage shape and schema versioning.
-> - **Connection rules**: `apps/web/src/entities/validation/connection.ts` is the source of truth for allowed connections.
-> - **Version timelines**: `docs/concept/ROADMAP.md` is the canonical source for when features ship.
-> - **Code generation pipeline**: `docs/engine/generator.md` is the canonical source for the generation pipeline. This document does not define the pipeline.
+> - **Schema types**: `packages/schema/src/` — `model.ts` (ResourceNode, ArchitectureModel), `enums.ts` (ResourceCategory, NodeKind, LayerType), `rules.ts` (RESOURCE_RULES, CanvasTier)
+> - **Domain constraints**: `packages/cloudblocks-domain/src/constraints.ts` — validateContainment, validateNodeIntegrity, validateNodePlacement
+> - **Shared types**: `apps/web/src/shared/types/index.ts` re-exports from `@cloudblocks/schema`
+> - **Connection rules**: `apps/web/src/entities/validation/connection.ts`
+> - **Placement rules**: `apps/web/src/entities/validation/placement.ts`
+> - **Serialization format**: `apps/web/src/shared/types/schema.ts` — SCHEMA_VERSION `3.0.0`
+> - **Version timelines**: `docs/concept/ROADMAP.md`
+> - **Code generation pipeline**: `docs/engine/generator.md`
 
-CloudBlocks represents cloud architecture using a **block-based spatial abstraction model**. Users visually construct cloud systems in a 2.5D isometric environment, the platform validates them against architectural rules, and generates deployable infrastructure code (Terraform, Bicep, Pulumi).
+CloudBlocks represents cloud architecture using a **resource node abstraction model**. Users visually construct cloud systems in a 2.5D isometric environment, the platform validates them against architectural rules, and generates deployable infrastructure code (Terraform, Bicep, Pulumi).
 
 ---
 
@@ -18,15 +21,21 @@ CloudBlocks represents cloud architecture using a **block-based spatial abstract
 
 Cloud infrastructure is represented as a **layered containment model** composed of:
 
-- Plates (Infrastructure regions)
-- Blocks (Cloud services)
-- Connections (Data flow)
-- Rules (Compatibility constraints)
-- External Actors (External endpoints)
+- **ResourceNodes** — Container nodes (VNet, Subnet) and leaf resource nodes (VM, Database, etc.)
+- **Connections** — Typed data/event flow between resources
+- **Rules** — Compatibility and placement constraints driven by RESOURCE_RULES
+- **External Actors** — External endpoints (Internet)
 
 This model provides a visual abstraction that maps directly to real cloud resources and IaC constructs. The internal representation uses a **2D coordinate system with hierarchy** — the 2.5D isometric view is a rendering projection, not the source of truth.
 
-> **Current scope note**: Compute refers to resources deployed within a Subnet (VM, Container App). Serverless categories (`function`, `queue`, `event`) are deployed on Region Plates.
+### Unified Model (M19)
+
+Prior to M19, the model used separate `Plate` and `Block` entities. M19 unified them into a single `ResourceNode` discriminated union:
+
+- **ContainerNode** (`kind: 'container'`) — replaces Plate. Holds child nodes, has a size for rendering.
+- **LeafNode** (`kind: 'resource'`) — replaces Block. A leaf resource that cannot contain children.
+
+Both are resource types governed by the same `RESOURCE_RULES` constraint table.
 
 ---
 
@@ -38,478 +47,335 @@ These invariants **must hold at all times** in a valid `ArchitectureModel`. Viol
 
 | Rule | Description |
 |------|-------------|
-| **ID Uniqueness** | All entity IDs within an `ArchitectureModel` are globally unique. No two entities (plates, blocks, connections, external actors) share an ID. |
-| **ID Format** | IDs follow the pattern `{type}-{uuid}` where type is `plate`, `block`, `conn`, or `ext`. Example: `plate-a1b2c3`, `block-d4e5f6`, `conn-g7h8i9`, `ext-internet`. |
-| **ID Immutability** | Once assigned, an entity's ID never changes. IDs are stable across save/load cycles and are used as persistent references (e.g., `placementId`, `sourceId`, `targetId`, `children[]`). |
-| **Referential Integrity** | All ID references must resolve. `Block.placementId` must reference an existing Plate. `Connection.sourceId` and `targetId` must reference an existing Block or ExternalActor. `Plate.children[]` must reference existing child Plates or Blocks. `Plate.parentId` must reference an existing Plate or be `null` (root). |
+| **ID Uniqueness** | All entity IDs within an `ArchitectureModel` are globally unique. No two entities (nodes, connections, external actors) share an ID. |
+| **ID Format** | IDs follow the pattern `{type}-{uuid}` where type is `plate`, `block`, `conn`, or `ext`. Example: `plate-a1b2c3`, `block-d4e5f6`. |
+| **ID Immutability** | Once assigned, an entity's ID never changes. IDs are stable across save/load cycles. |
+| **Referential Integrity** | All ID references must resolve. `parentId` must reference an existing ContainerNode or be `null` (root). `Connection.sourceId` and `targetId` must reference an existing ResourceNode or ExternalActor. |
 
 ### 2.2 Structural Invariants
 
 | Rule | Description |
 |------|-------------|
-| **Root Plates** | An `ArchitectureModel` has one or more root Plates (`parentId: null`). Valid root plate types are `global` and `edge`. All other Plates and Blocks are descendants of root plates. |
-| **Containment Hierarchy** | Plates form a strict tree across plate layers (`global`/`edge` roots, then `region` → `zone` → `subnet`). No cycles in the containment tree. |
-| **Block Placement** | Every Block has a `placementId` referencing a Plate. `compute`, `database`, `storage`, `gateway`, `analytics`, `identity`, and `observability` are placed on Subnet Plates; `function`, `queue`, and `event` are placed on Region Plates. Blocks cannot exist outside the hierarchy. |
-| **Children Consistency** | A Plate's `children[]` must match the set of entities whose `parentId` or `placementId` references that Plate. |
+| **Root Nodes** | An `ArchitectureModel` has one or more root ContainerNodes (`parentId: null`). Valid root resource types: `virtual_network`. |
+| **Containment Hierarchy** | ContainerNodes form a strict tree: `virtual_network` (root) → `subnet` (child). No cycles. Validated by `RESOURCE_RULES.allowedParents`. |
+| **Resource Placement** | Every LeafNode has a `parentId` referencing a ContainerNode. Allowed parents are determined by `RESOURCE_RULES`. Most resources go on `subnet`; messaging resources (`message_queue`, `event_hub`) go on `virtual_network`. |
+| **Kind Consistency** | A node's `kind` must be consistent with its `resourceType`. Only `containerCapable` resource types can be `kind: 'container'`. Validated by `validateNodeIntegrity()`. |
 
 ### 2.3 Connection Invariants
 
 | Rule | Description |
 |------|-------------|
 | **No Self-Connections** | `connection.sourceId !== connection.targetId`. |
-| **No Duplicate Connections** | UI/domain store operations prevent adding duplicate ordered pairs `(sourceId, targetId)` during connection creation. |
-| **No Cycles (Planned Validation)** | The intended architecture constraint is a DAG-style flow, but explicit cycle detection is planned rather than fully enforced in validation rules today. |
-| **Receiver-Only Enforcement** | `database`, `storage`, `analytics`, `identity`, and `observability` blocks never appear as `sourceId` in any connection. They are receiver-only. `queue` and `event` may appear as `sourceId` only when targeting `function`. |
+| **No Duplicate Connections** | At most one connection per ordered `(sourceId, targetId)` pair. |
+| **Receiver-Only Enforcement** | `data`, `security`, `operations`, and `network` resources never appear as `sourceId`. They are receiver-only. |
+| **Messaging Bidirectional** | `messaging` resources can both send to and receive from `compute`. |
 
 ---
 
-# 3. Core Entities
+# 3. ResourceNode
 
-## 3.1 Plate
+The unified type for all architecture elements — both containers (VNet, Subnet) and leaf resources (VM, Database, etc.).
 
-Plates represent **spatial infrastructure regions**.
+### 3.1 NodeBase (shared fields)
 
-They act as containers for other elements (child Plates or Blocks).
-
-Example hierarchy:
-
-```
-Network Plate
-└ Subnet Plate (Public)
-  └ Gateway Block
-└ Subnet Plate (Private)
-  └ Compute Block
-  └ Database Block
-```
-
-### Plate Types
-
-| Plate | Description |
-|------|-------------|
-| GlobalPlate | Global boundary plate (top-level network scope) |
-| EdgePlate | Edge boundary plate (internet/perimeter scope) |
-| RegionPlate | Regional network boundary plate |
-| ZonePlate | Availability zone boundary plate |
-| SubnetPlate | Subnet within a network (Public or Private) |
-
-### Plate Size Tiers
-
-> **Canonical specification**: See [CLOUDBLOCKS_SPEC_V2.md](../design/CLOUDBLOCKS_SPEC_V2.md) for detailed SVG specs and pixel dimensions.
-
-Plates are sized for **learning progression**. Each tier represents a complexity level appropriate for different learners:
-
-| Level | Name | Subnet (Studs) | VNet (Studs) | Capacity | Learning Scenario |
-|-------|------|----------------|--------------|----------|-------------------|
-| Beginner | **S** | 4×6 | 8×12 | 1-2 blocks | First VM, basic network |
-| Basic | **M** | 6×8 | 12×16 | 3-4 blocks | Web+DB, public/private |
-| Intermediate | **L** | 8×10 | 16×20 | 5-6 blocks | Hub-Spoke, multi-tier |
-
-**Learning Scenarios:**
-
-- **Beginner (S)**: "My First VM" — Single resource, understand VNet/Subnet basics
-- **Basic (M)**: "Web Server + DB Setup" — Public/Private separation, 3-tier architecture
-- **Intermediate (L)**: "Hub-Spoke Architecture" — Multi-VNet, shared services pattern
-
-### Plate Properties
-
-```
-id            — unique identifier ({type}-{uuid})
-name          — display name
-type          — 'global' | 'edge' | 'region' | 'zone' | 'subnet'
-subnetAccess  — 'public' | 'private' (subnet only)
-parentId      — parent plate ID (null for root plate)
-children      — child plate/block IDs
-position      — position {x, y, z} (x/z = layout plane, y = elevation)
-size          — dimensions {width, height, depth}
-metadata      — additional properties
+```typescript
+interface NodeBase {
+  id: string;
+  name: string;
+  kind: NodeKind;                    // 'container' | 'resource'
+  layer: LayerType;                  // 'global' | 'edge' | 'region' | 'zone' | 'subnet' | 'resource'
+  resourceType: string;              // e.g. 'virtual_network', 'web_compute', 'relational_database'
+  category: ResourceCategory;        // 'network' | 'security' | 'edge' | 'compute' | 'data' | 'messaging' | 'operations'
+  provider: ProviderType;            // 'azure' | 'aws' | 'gcp'
+  parentId: string | null;           // parent ContainerNode ID, null for root
+  position: Position;                // { x, y, z }
+  metadata: Record<string, unknown>;
+  config?: Record<string, unknown>;  // provider-specific configuration
+  subtype?: string;                  // e.g. 'linux' for compute, 'postgresql' for data
+  aggregation?: Aggregation;         // cluster/scaling (mode + count)
+  roles?: BlockRole[];               // visual-only role indicators
+  subnetAccess?: SubnetAccess;       // 'public' | 'private' — meaningful for subnet containers
+  profileId?: string;                // visual profile preset identifier
+  canvasTier?: CanvasTier;           // 'shared' | 'web' | 'app' | 'data' — visual grouping
+}
 ```
 
----
+### 3.2 ContainerNode
 
-# 4. Block
+Holds child nodes. Rendered as a plate with studs.
 
-Blocks represent **cloud resources** (infrastructure layer).
-
-They are placed on Plates and represent deployable infrastructure services. Each block has a **brick size** that determines its visual footprint and application capacity.
-
-### Block Categories (Implemented)
-
-| Category | Description |
-|---------|-------------|
-| ComputeBlock | Compute resources (VM, Container App) |
-| DatabaseBlock | Relational or NoSQL database |
-| StorageBlock | Object or file storage |
-| GatewayBlock | Load balancer or gateway |
-| FunctionBlock | Serverless compute |
-| QueueBlock | Messaging services |
-| EventBlock | Event triggers |
-| AnalyticsBlock | Log and telemetry analysis |
-| IdentityBlock | Identity and access management |
-| ObservabilityBlock | Monitoring and signal aggregation |
-
-### Brick Size Tiers
-
-> **Canonical specification**: See [CLOUDBLOCKS_SPEC_V2.md](../design/CLOUDBLOCKS_SPEC_V2.md) for detailed SVG specs and pixel dimensions.
-
-Brick size represents **architectural weight** — the resource's importance, statefulness, and operational complexity. Larger bricks are harder to replace and more central to the architecture.
-
-The v2.0 tier system uses **Cloud Unit (CU)-based dimensions** (width × depth × height):
-
-| Tier | Name | CU Dimensions (W×D×H) | Architectural Weight |
-|------|------|-----------------------|---------------------|
-| 1 | **micro** | 1×1×1 | Minimal — ephemeral triggers, lightweight functions |
-| 2 | **small** | 2×2×1 | Low — simple identity/monitoring modules |
-| 3 | **medium** | 2×2×2 | Medium — compute workloads and storage |
-| 4 | **large** | 3×3×2 | High — databases and analytics |
-| 5 | **wide** | 3×1×1 | Gateway — ingress and routing (wide footprint) |
-
-**Resource → Brick Size Mapping:**
-
-| Category | Tier | CU Dimensions | Hostable | Rationale |
-|----------|------|---------------|----------|-----------|
-| `function`, `queue`, `event` | micro (1×1×1) | 1×1×1 | function: Yes (1 app), others: No | Lightweight serverless components |
-| `identity`, `observability` | small (2×2×1) | 2×2×1 | No | Simple identity/monitoring modules |
-| `compute`, `storage` | medium (2×2×2) | 2×2×2 | compute: Yes (4 apps), storage: No | Core workload hosts and data stores |
-| `database`, `analytics` | large (3×3×2) | 3×3×2 | No | Stateful data and analysis |
-| `gateway` | wide (3×1×1) | 3×1×1 | No | Managed ingress and routing |
----
-
-# 4.5 Application
-
-> **Status: Planned — Not Yet Implemented.** The Application entity is part of the domain model design but has no corresponding TypeScript type or UI implementation in the current codebase. The section below describes the intended design for a future milestone.
-
-Applications represent **software you operate** on cloud resources (application layer).
-
-They are visual 1×1 cylindrical pieces that sit ON TOP of **hostable** Block bricks. Applications teach users what software runs on cloud infrastructure.
-
-> **Key distinction**: Applications are only placed on `compute` and `function` resources. Managed services (`gateway`, `queue`, `storage`, managed `database`) are complete resources — they don't host user applications.
-
-### Application Placement Rules
-
-| Resource | Accepts Apps? | Rationale |
-|----------|---------------|-----------|
-| `compute` | ✅ Yes | VMs/containers host your software |
-| `function` | ✅ Yes | Serverless hosts your handler code |
-| `gateway` | ❌ No | Managed load balancer |
-| `queue` | ❌ No | Managed messaging |
-| `storage` | ❌ No | Managed object store |
-| `database` | ❌ No | Managed database |
-| `event` | ❌ No | Triggers only |
-
-### Managed vs Self-hosted
-
-| Approach | Example | How to Model |
-|----------|---------|--------------|
-| **Managed DB** | Azure SQL, RDS | `database` block (no apps) |
-| **Self-hosted DB** | PostgreSQL on VM | `compute` block + `postgres` app |
-
-### Application Categories
-
-| Category | Examples | Description | Placed On |
-|----------|----------|-------------|-----------|
-| **web-server** | nginx, apache, caddy | HTTP servers | compute |
-| **runtime** | nodejs, deno, bun | JS/TS runtimes | compute, function |
-| **language** | java, python, go, rust | Language runtimes | compute, function |
-| **database** | postgres, mysql, redis | DB engines (self-hosted) | compute |
-| **package** | npm, docker, k8s | Containers | compute |
-
-### Application Properties
-
-```
-id        — unique identifier (e.g., "nginx", "postgres")
-name      — display name (e.g., "nginx", "PostgreSQL")
-category  — application category
-icon      — emoji or SVG reference
-color     — hex color code
+```typescript
+export interface ContainerNode extends NodeBase {
+  kind: 'container';
+  resourceType: ContainerCapableResourceType;  // 'virtual_network' | 'subnet'
+  size: Size;                                   // { width, height, depth }
+}
 ```
 
-### Application → Block Relationship
+### 3.3 LeafNode
 
-```
-Application (1×1 cylinder)
-    ↓ sits on
-Block (brick with studs)
-    ↓ placed on
-Plate (baseplate)
+A leaf resource. Rendered as a brick.
+
+```typescript
+export interface LeafNode extends NodeBase {
+  kind: 'resource';
+}
 ```
 
-Example:
+### 3.4 ResourceNode Union
+
+```typescript
+export type ResourceNode = ContainerNode | LeafNode;
 ```
-┌──┐ ┌──┐          ← Applications: nginx, python
-│🌐│ │🐍│
-└──┘ └──┘
-┌──────────────┐   ← Block: compute (core 3×4)
-│   compute    │
-└──────────────┘
-┌──────────────────┐ ← Plate: Subnet
-│                  │
-└──────────────────┘
+
+Discriminant: the `kind` field (`'container'` or `'resource'`).
+
+### 3.5 Deprecated Aliases
+
+```typescript
+/** @deprecated Use ContainerNode instead. */
+export type Plate = ContainerNode;
+
+/** @deprecated Use LeafNode instead. */
+export type Block = LeafNode;
 ```
 
 ---
 
-# 5. Block Structure
+# 4. RESOURCE_RULES
 
-```
-Block
-  id            — unique identifier ({type}-{uuid})
-  name          — display name
-  category      — 'compute' | 'database' | 'storage' | 'gateway' | 'function' | 'queue' | 'event' | 'analytics' | 'identity' | 'observability'
-  placementId   — parent plate ID
-  position      — position relative to parent plate {x, y, z}
-  metadata      — additional properties
-  provider?: ProviderType  — optional cloud provider
-  subtype?: string  — provider-specific resource subtype (e.g., 'vm', 'container-app')
-  config?: Record<string, unknown>  — provider-specific configuration
-  aggregation?: Aggregation  — cluster/scaling configuration (mode + count)
-  roles?: BlockRole[]  — identity and access management roles
+Single source of truth for resource type constraints. Defined in `packages/schema/src/rules.ts`.
+
+### 4.1 Rule Entry
+
+```typescript
+export interface ResourceRuleEntry {
+  readonly containerCapable: boolean;
+  readonly allowedParents: readonly (string | null)[];
+  readonly category: ResourceCategory;
+  readonly canvasTier: CanvasTier;
+}
 ```
 
-Example:
+### 4.2 Resource Type Table
 
+| Resource Type | Container? | Allowed Parents | Category | Canvas Tier |
+|---|---|---|---|---|
+| `virtual_network` | ✅ | `null` (root) | network | shared |
+| `subnet` | ✅ | `virtual_network` | network | shared |
+| `load_balancer` | ❌ | `subnet` | edge | web |
+| `outbound_access` | ❌ | `subnet` | edge | web |
+| `web_compute` | ❌ | `subnet` | compute | web |
+| `app_compute` | ❌ | `subnet` | compute | app |
+| `relational_database` | ❌ | `subnet` | data | data |
+| `cache_store` | ❌ | `subnet` | data | data |
+| `firewall_security` | ❌ | `subnet` | security | shared |
+| `secret_store` | ❌ | `subnet` | security | shared |
+| `identity_access` | ❌ | `subnet` | security | shared |
+| `monitoring` | ❌ | `subnet` | operations | shared |
+| `message_queue` | ❌ | `virtual_network` | messaging | app |
+| `event_hub` | ❌ | `virtual_network` | messaging | app |
+
+### 4.3 Derived Types
+
+```typescript
+export type ResourceType = keyof typeof RESOURCE_RULES;           // all 14 types
+export type ContainerCapableResourceType = 'virtual_network' | 'subnet';
+export type LeafOnlyResourceType = Exclude<ResourceType, ContainerCapableResourceType>;
 ```
-Block
-  id: block-app01
-  name: AppServer
-  category: compute
-  placementId: plate-subnet-private
-  position: { x: 2, y: 0, z: 1 }
+
+### 4.4 Runtime Helpers
+
+```typescript
+export function isContainerCapable(resourceType: string): boolean;
+export function getAllowedParents(resourceType: string): readonly (string | null)[] | undefined;
+export function getCanvasTier(resourceType: string): CanvasTier | undefined;
+export function getDefaultCategory(resourceType: string): ResourceCategory | undefined;
 ```
 
 ---
 
-# 6. Connection
+# 5. Connection
 
-Connections represent **data or event flow** between blocks.
+Connections represent **data or event flow** between resource nodes.
 
-A Connection represents the **request initiation direction (initiator)**.
+Direction represents the **request initiator**. Responses flow implicitly in reverse.
 
-- The arrow indicates "who initiates the request"
-- The response flows implicitly in the reverse direction
-- The rule `Database → Gateway ❌` means "Database cannot directly initiate a request to Gateway"
+### 5.1 Connection Properties
 
-Example:
-
-```
-Internet → Gateway → App → Database
-```
-
-### Connection Properties
-
-```
-id        — unique identifier ({type}-{uuid})
-sourceId  — source block or external actor ID
-targetId  — target block or external actor ID
-type      — connection type
-metadata  — additional properties
+```typescript
+export interface Connection {
+  id: string;
+  sourceId: string;           // ResourceNode or ExternalActor ID (initiator)
+  targetId: string;           // ResourceNode or ExternalActor ID (receiver)
+  type: ConnectionType;       // 'dataflow' | 'http' | 'internal' | 'data' | 'async'
+  metadata: Record<string, unknown>;
+}
 ```
 
-### Connection Semantics
+### 5.2 Connection Rules
 
-| Property | Rule |
-|----------|------|
-| **Direction** | Source → Target = initiator → receiver. Responses are implicit. |
-| **Cardinality** | One-to-many: a block can have multiple outgoing or incoming connections, but at most one connection per ordered `(source, target)` pair. |
-| **Cycles** | Intended constraint is DAG-style flow; explicit cycle detection is planned and not yet fully enforced by current frontend validation rules. |
-| **Receiver-only types** | `database`, `storage`, `analytics`, `identity`, and `observability` are receiver-only — they never appear as `sourceId`. |
+| Source (Initiator) | Allowed Targets (Receiver) |
+|---|---|
+| `internet` | `edge` |
+| `edge` | `compute` |
+| `compute` | `data`, `operations`, `security`, `messaging` |
+| `messaging` | `compute` |
 
-### Connection Types
+**Receiver-only**: `data`, `security`, `operations`, and `network` never initiate connections.
 
-| Type | Description |
-|-----|-------------|
-| `dataflow` | General request/response communication |
-| `http` | HTTP request path |
-| `internal` | Internal service-to-service communication |
-| `data` | Data access path |
-| `async` | Asynchronous trigger or queue/event-driven path |
+### 5.3 Connection Types
+
+| Type | Description | Visual Style |
+|-----|-------------|-------------|
+| `dataflow` | General request/response | Solid line |
+| `http` | HTTP request path | Thick solid line |
+| `internal` | Internal service-to-service | Short dash |
+| `data` | Data access path | Long dash |
+| `async` | Asynchronous trigger / queue-driven | Dot-dash |
 
 ---
 
-# 6.1 External Actor
+# 6. External Actor
 
-An External Actor represents an endpoint outside the system.
+An External Actor represents an endpoint outside the architecture.
 
-- Internet (entry point for external user traffic)
-
-An External Actor is an external entity (not a Plate or Block) that can only be used as a source or target of a Connection.
-
+```typescript
+export interface ExternalActor {
+  id: string;
+  name: string;         // e.g., "Internet"
+  type: 'internet';
+  position: Position;
+}
 ```
-id    — unique identifier ({type}-{uuid})
-name  — display name (e.g., "Internet")
-type  — 'internet'
-position — position {x, y, z}
-```
+
+External Actors can only be used as a source or target of a Connection — they are not ResourceNodes.
 
 ---
 
 # 7. Rule Engine
 
-Rules define **compatibility and placement constraints**.
+Rules define **compatibility and placement constraints**. All placement rules are derived from `RESOURCE_RULES`.
 
-### Placement Rules
+### 7.1 Placement Rules
 
-```
-ComputeBlock must be placed on SubnetPlate
-DatabaseBlock must be placed on private SubnetPlate
-GatewayBlock must be placed on public SubnetPlate
-StorageBlock must be placed on SubnetPlate
-AnalyticsBlock must be placed on SubnetPlate
-IdentityBlock must be placed on SubnetPlate
-ObservabilityBlock must be placed on SubnetPlate
-FunctionBlock must be placed on a Region Plate
-QueueBlock must be placed on a Region Plate
-EventBlock must be placed on a Region Plate
-```
+Placement validation is implemented in `apps/web/src/entities/validation/placement.ts`. Rules are derived from `RESOURCE_RULES` at module load time via `buildCategoryPlacementMap()`.
 
-### Connection Rules
+| Category | Required Parent Layer | Additional Constraint |
+|---|---|---|
+| `edge` | `subnet` | Parent must have `subnetAccess: 'public'` |
+| `compute` | `subnet` | — |
+| `data` | `subnet` | — |
+| `security` | `subnet` | — |
+| `operations` | `subnet` | — |
+| `messaging` | `region` (virtual_network) | — |
 
-```
-Internet → Gateway    ✔  (external traffic enters through gateway)
-Gateway  → Compute    ✔  (gateway forwards to compute)
-Gateway  → Function   ✔  (gateway forwards to serverless handlers)
-Compute  → Database   ✔  (app queries database)
-Compute  → Storage    ✔  (app reads/writes storage)
-Compute  → Analytics  ✔  (app emits/query analytics)
-Compute  → Identity   ✔  (app uses identity services)
-Compute  → Observability ✔  (app publishes metrics/logs)
-Function → Storage    ✔  (function accesses storage)
-Function → Database   ✔  (function accesses database)
-Function → Queue      ✔  (function enqueues messages)
-Queue    → Function   ✔  (queue trigger)
-Event    → Function   ✔  (event trigger)
-Database → Gateway    ❌  (database does not initiate requests to gateway)
-Database → Internet   ❌  (database does not initiate external requests)
-Database → Compute    ❌  (database is receiver-only)
-Storage  → Gateway    ❌  (storage does not initiate requests to gateway)
-Storage  → Internet   ❌  (storage does not initiate external requests)
-Storage  → Compute    ❌  (storage is receiver-only)
-```
+### 7.2 Containment Rules
 
-**Database, Storage, Analytics, Identity, and Observability are receiver-only** — they never appear as connection sources (initiators).
-**Queue and Event connect only to Function** when used as initiators.
-Responses flow implicitly in the reverse direction and do not require a separate connection.
-
-### Rule Specification Format
-
-Rules are defined in JSON:
-
-```json
-{
-  "id": "rule-db-private",
-  "name": "database_private_subnet",
-  "type": "placement",
-  "severity": "error",
-  "condition": {
-    "blockCategory": "database",
-    "plateAccess": "public"
-  },
-  "message": "Database cannot be placed on a Public Subnet",
-  "suggestion": "Move the Database to a Private Subnet"
-}
-```
-
-### Validation Result
+Containment validation is implemented in `packages/cloudblocks-domain/src/constraints.ts`.
 
 ```typescript
-interface ValidationResult {
-  valid: boolean;
-  errors: ValidationError[];
-  warnings: ValidationWarning[];
-}
+// Validate parent-child relationship against RESOURCE_RULES.allowedParents
+export function validateContainment(
+  child: ResourceNode,
+  parent: ResourceNode | null | undefined,
+): ContainmentError | null;
 
+// Validate kind vs resourceType consistency (containerCapable check)
+export function validateNodeIntegrity(node: ResourceNode): NodeIntegrityError[];
+
+// Combined: both containment + integrity in one call
+export function validateNodePlacement(
+  node: ResourceNode,
+  allNodes: readonly ResourceNode[],
+): (NodeIntegrityError | ContainmentError)[];
+```
+
+### 7.3 Validation Result
+
+```typescript
 interface ValidationError {
   ruleId: string;
   severity: 'error' | 'warning';
   message: string;
   suggestion?: string;
-  targetId: string; // block or connection ID
+  targetId: string;
 }
-
-type ValidationWarning = ValidationError;
 ```
 
 ---
 
 # 8. Visual Identity Model
 
-Blocks use **visual characteristics** to communicate function in the isometric view.
+ResourceNodes use **visual characteristics** to communicate function in the isometric view.
 
-> **Canonical specification**: For detailed visual specs including brick sizes, plate sizes, and SVG templates, see [CLOUDBLOCKS_SPEC_V2.md](../design/CLOUDBLOCKS_SPEC_V2.md).
+> **Canonical specification**: For detailed SVG specs and pixel dimensions, see [CLOUDBLOCKS_SPEC_V2.md](../design/CLOUDBLOCKS_SPEC_V2.md).
 
-### 3-Layer Visual Hierarchy
+### 2-Layer Visual Hierarchy
 
-CloudBlocks uses a **3-layer Lego-style visual system**:
+| Layer | Element | Purpose |
+|-------|---------|---------|
+| **Container** | Baseplate (3 size tiers: S/M/L) | Network boundaries (VNet, Subnet) |
+| **Resource** | Brick (5 size tiers: micro/small/medium/large/wide) | Cloud resources (compute, data, etc.) |
 
-| Layer | Element | Size Range | Purpose |
-|-------|---------|------------|---------|
-| **Application** | 1×1 cylinders | 40×40 px | Software on resources (nginx, python, etc.) |
-| **Resource** | Brick (5 sizes) | 40×80 ~ 160×240 px | Cloud resources (compute, database, etc.) |
-| **Plate** | Baseplate (3 tiers) | 160×240 ~ 640×800 px | Network boundaries (VNet, Subnet) |
-
-### Block Color Coding
+### Resource Color Coding (7 Categories)
 
 | Category | Hex Color |
-|------|----------|
+|----------|----------|
 | `compute` | `#F25022` |
-| `database` | `#00A4EF` |
-| `storage` | `#7FBA00` |
-| `gateway` | `#0078D4` |
-| `function` | `#FFB900` |
-| `queue` | `#737373` |
-| `event` | `#D83B01` |
-| `analytics` | `#693BC5` |
-| `identity` | `#D6232C` |
-| `observability` | `#693BC5` |
-
-Plate colors are defined separately in the canonical visual specs and type constants (`PLATE_COLORS` in `apps/web/src/shared/types/index.ts`).
-
-### Shape Coding
-
-| Shape | Meaning | Size |
-|------|---------|------|
-| Plate | Infrastructure region | S/M/L by learning level |
-| Brick | Cloud resource | micro/small/medium/large/wide |
-| Cylinder | Application | 1×1 (sits on bricks) |
+| `data` | `#00A4EF` |
+| `edge` | `#0078D4` |
+| `security` | `#D6232C` |
+| `messaging` | `#737373` |
+| `operations` | `#693BC5` |
+| `network` | `#6366F1` |
 
 ---
 
-# 9. Schema Versioning & Stability
+# 9. ArchitectureModel
+
+The root type — the canonical JSON wire format.
+
+```typescript
+export interface ArchitectureModel {
+  id: string;
+  name: string;
+  version: string;              // user-facing revision counter
+  nodes: ResourceNode[];        // all containers and resources in a flat array
+  connections: Connection[];
+  externalActors: ExternalActor[];
+  createdAt: string;            // ISO 8601
+  updatedAt: string;            // ISO 8601
+}
+```
+
+Note: The model uses a flat `nodes[]` array. Containment hierarchy is expressed through `parentId` references, not nesting.
+
+---
+
+# 10. Schema Versioning
 
 ### Schema Version
 
-The storage format uses `schemaVersion` (currently `"2.0.0"`) to track the serialization shape. This is **separate** from `ArchitectureModel.version`, which is a user-facing architecture revision counter.
+The storage format uses `schemaVersion` (currently `"3.0.0"`) to track the serialization shape. This is **separate** from `ArchitectureModel.version`, which is a user-facing architecture revision counter.
 
 | Field | Purpose | Canonical Source |
 |-------|---------|-----------------|
-| `schemaVersion` | Storage format version — enables future model migrations | `apps/web/src/shared/types/schema.ts` → `SCHEMA_VERSION` |
-| `ArchitectureModel.version` | User-facing revision counter (incremented on save/export) | `apps/web/src/shared/types/index.ts` |
-
-### Schema Stability Policy
-
-The following types and fields are **frozen for Milestone 1** and will not change without a schema version bump:
-
-| Frozen Type | Frozen Fields |
-|-------------|---------------|
-| `Plate` | `id`, `name`, `type`, `subnetAccess`, `parentId`, `children`, `position`, `size`, `metadata` |
-| `Block` | `id`, `name`, `category`, `placementId`, `position`, `metadata`, `provider?`, `subtype?`, `config?`, `aggregation?`, `roles?` |
-| `Connection` | `id`, `sourceId`, `targetId`, `type`, `metadata` |
-| `ExternalActor` | `id`, `name`, `type`, `position` |
-| `ArchitectureModel` | `id`, `name`, `version`, `plates`, `blocks`, `connections`, `externalActors`, `createdAt`, `updatedAt` |
-| `Workspace` | `id`, `name`, `architecture`, `createdAt`, `updatedAt` |
-| `SerializedData` | `schemaVersion`, `workspaces` |
+| `schemaVersion` | Storage format version — enables migrations | `apps/web/src/shared/types/schema.ts` → `SCHEMA_VERSION` |
+| `ArchitectureModel.version` | User-facing revision counter | `packages/schema/src/model.ts` |
 
 ### Migration Policy
 
 - Any change to frozen fields requires bumping `SCHEMA_VERSION`.
 - The `deserialize()` function in `schema.ts` must detect version mismatches and either migrate or reject.
-- Additive changes (new optional fields with defaults) may be introduced without a version bump, but must be backward-compatible.
+- Additive changes (new optional fields with defaults) may be introduced without a version bump.
 - Destructive changes (field renames, type changes, removals) always require a version bump and a migration function.
 
 ---
 
-# 10. Code Generation Model
+# 11. Code Generation Model
 
-> **Canonical source**: The code generation pipeline is fully specified in [`generator.md`](../engine/generator.md). This section provides a brief overview for context.
+> **Canonical source**: The code generation pipeline is fully specified in [`generator.md`](../engine/generator.md).
 
 CloudBlocks transforms visual architecture into deployable infrastructure code through a multi-stage pipeline:
 
@@ -517,318 +383,51 @@ CloudBlocks transforms visual architecture into deployable infrastructure code t
 Architecture Model → Normalize → Validate → Provider Map → Generate → Format → Output
 ```
 
-> **Milestone 3**: Code generation is implemented. See [`generator.md`](../engine/generator.md) for the pipeline specification and [`ROADMAP.md`](../concept/ROADMAP.md) for timeline.
-
-### Generator Interface
-
-```typescript
-interface Generator {
-  name: string;
-  version: string;
-  supportedProviders: string[];
-  generate(architecture: ArchitectureModel, options: GeneratorOptions): GeneratedOutput;
-}
-```
-
-> For full interface contracts, options, output format, and determinism guarantees, see [`generator.md`](../engine/generator.md).
-
-> **Milestone 4+**: Templates are planned for Milestone 4 (workspace management) and expanded in Milestone 6 (marketplace). See [`templates.md`](../engine/templates.md) for the template specification.
+Supported generators: Terraform (HCL), Bicep (ARM), Pulumi (TypeScript).
 
 ---
 
-# 11. Provider Abstraction
+# 12. Provider Abstraction
 
-> **Milestone 3+**: Provider adapters are planned for Milestone 3 (Azure-first). Multi-cloud support is planned for Milestone 8.
+CloudBlocks uses a **provider abstraction layer** for multi-cloud support. Azure is the primary target for v1.
 
-CloudBlocks uses a **provider abstraction layer** for multi-cloud support. Azure is the primary target. Each generic block category (compute, database, storage, gateway) maps to provider-specific resources through the adapter layer.
+Each `resourceType` maps to provider-specific resources through the adapter layer:
 
-> For the full provider mapping tables (block mapping, plate mapping, connection interpretation) and adapter interface, see [provider.md](../engine/provider.md).
+```
+resourceType: web_compute → Azure: "Microsoft.Web/sites"
+resourceType: relational_database → Azure: "Microsoft.Sql/servers/databases"
+```
+
+Adding AWS/GCP support requires only new adapter entries, not schema changes. See [provider.md](../engine/provider.md).
 
 ---
 
-# 12. GitHub Integration Model
-
-> **Milestone 5+**: GitHub integration is implemented (Milestone 5-7, with session auth migration in Phase 7). Architecture assets are stored in GitHub repos following a standard layout.
-
-Architecture assets are stored in GitHub repos following a standard layout. The backend mediates between the UI, GitHub, and the generation engine — it does not store architecture data.
-
-> For the full GitHub repo structure, data placement strategy, metadata DB schema, and migration plan, see [STORAGE_ARCHITECTURE.md](./STORAGE_ARCHITECTURE.md).
-
----
-
-# 13. Workspace Model
-
-### Client-Side (Milestone 1)
-
-```typescript
-interface Workspace {
-  id: string;
-  name: string;
-  architecture: ArchitectureModel;  // single architecture per workspace
-  createdAt: string;
-  updatedAt: string;
-}
-```
-
-### Server-Side (Milestone 5+)
-
-> **Milestone 5+**: Server-side workspace management is planned for Milestone 5. These interfaces align with the migration files in `apps/api/app/infrastructure/db/migrations/`.
-
-```typescript
-// User identity (matches migration 001 — snake_case in Python backend)
-interface User {
-  id: string;
-  github_id: string;
-  github_username: string;
-  email: string;
-  display_name: string;
-  avatar_url: string;
-  created_at: string;
-  updated_at: string;
-}
-
-// Workspace links to a GitHub repo
-interface WorkspaceRecord {
-  id: string;
-  owner_id: string;
-  name: string;
-  github_repo: string;           // e.g., "user/my-cloud-project"
-  github_branch: string;         // default branch
-  generator: string;             // e.g., "terraform"
-  provider: string;              // e.g., "azure"
-  last_synced_at?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-// Generation run record
-interface GenerationRun {
-  id: string;
-  workspace_id: string;
-  status: 'pending' | 'running' | 'completed' | 'failed';
-  generator: string;
-  commit_sha?: string;
-  pull_request_url?: string;
-  error_message?: string;
-  started_at: string;
-  completed_at?: string;
-  created_at: string;
-}
-```
-
-> **Note**: The server-side models use snake_case naming (Python convention) and align with the actual migration files in `apps/api/app/infrastructure/db/connection.py`. The table is `workspaces` (not `projects`), and status values are `pending | running | completed | failed` (not `queued | succeeded`). The `generation_runs` table includes a `pull_request_url` field not shown in the client-side model.
-
----
-
-# 14. Implementation Schema
-
-TypeScript type definitions for implementing the domain model.
-
-## ID Convention
-
-All entities use IDs in the format `{type}-{uuid}`.
-
-Example: `plate-a1b2c3`, `block-d4e5f6`, `conn-g7h8i9`
-
-## Core Types
-
-```typescript
-// Plate Types
-type PlateType = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
-type SubnetAccess = 'public' | 'private';
-
-interface Plate {
-  id: string;
-  name: string;
-  type: PlateType;
-  subnetAccess?: SubnetAccess; // only for subnet type
-  parentId: string | null;     // null for root plate
-  children: string[];          // child plate/block IDs
-  position: Position;
-  size: Size;
-  metadata: Record<string, unknown>;
-}
-
-// Block Types
-type BlockCategory = 'compute' | 'database' | 'storage' | 'gateway' | 'function' | 'queue' | 'event' | 'analytics' | 'identity' | 'observability';
-type ProviderType = 'azure' | 'aws' | 'gcp';
-
-interface Block {
-  id: string;
-  name: string;
-  category: BlockCategory;
-  placementId: string;  // parent plate ID
-  position: Position;   // relative to parent plate
-  metadata: Record<string, unknown>;
-  provider?: ProviderType;
-  subtype?: string;
-  config?: Record<string, unknown>;
-  aggregation?: Aggregation;
-  roles?: BlockRole[];
-}
-
-type AggregationMode = 'single' | 'count';
-
-interface Aggregation {
-  mode: AggregationMode;
-  count: number;
-}
-
-type BlockRole = 'primary' | 'secondary' | 'reader' | 'writer' | 'public' | 'private' | 'internal' | 'external';
-
-// Connection
-type ConnectionType = 'dataflow' | 'http' | 'internal' | 'data' | 'async';
-
-interface Connection {
-  id: string;
-  sourceId: string; // block or external actor ID
-  targetId: string; // block or external actor ID
-  type: ConnectionType;
-  metadata: Record<string, unknown>;
-}
-
-// External Actor
-interface ExternalActor {
-  id: string;
-  name: string;   // e.g., "Internet"
-  type: 'internet';
-  position: Position;
-}
-
-// Spatial (internal 2D coordinate system)
-interface Position {
-  x: number;
-  y: number;
-  z: number;
-}
-
-interface Size {
-  width: number;
-  height: number;
-  depth: number;
-}
-
-// Architecture Model (root)
-interface ArchitectureModel {
-  id: string;
-  name: string;
-  version: string;
-  plates: Plate[];
-  blocks: Block[];
-  connections: Connection[];
-  externalActors: ExternalActor[];
-  createdAt: string; // ISO 8601
-  updatedAt: string; // ISO 8601
-}
-```
-
-> **Note on coordinates**: The `Position` and `Size` types retain `z`/`depth` fields for isometric rendering. The editing model treats placement as 2D (x, y) with containment hierarchy. The z-axis is managed by the rendering layer for isometric projection — users do not directly manipulate depth.
-
-## Serialization Format
-
-The architecture model is serialized as JSON. A version field is included to support future schema migrations.
-
-```json
-{
-  "schemaVersion": "2.0.0",
-  "workspaces": [
-    {
-      "id": "ws-abc123",
-      "name": "My Workspace",
-      "architecture": {
-        "id": "arch-abc123",
-        "name": "3-Tier Web App",
-        "version": "1",
-        "plates": [],
-        "blocks": [],
-        "connections": [],
-        "externalActors": [
-          {
-            "id": "ext-internet",
-            "name": "Internet",
-            "type": "internet",
-            "position": { "x": -3, "y": 0, "z": 5 }
-          }
-        ],
-        "createdAt": "2025-01-01T00:00:00Z",
-        "updatedAt": "2025-01-01T00:00:00Z"
-      },
-      "createdAt": "2025-01-01T00:00:00Z",
-      "updatedAt": "2025-01-01T00:00:00Z"
-    }
-  ]
-}
-```
-
----
-
-# 15. Domain Extensions
-
-### Serverless Architecture (Implemented)
-
-Serverless architecture blocks are implemented and available in the current domain model:
-
-- FunctionBlock (Serverless compute)
-- QueueBlock (Messaging services)
-- EventBlock (Event triggers)
-- AnalyticsBlock (Log and telemetry analysis)
-- IdentityBlock (Identity and access management)
-- ObservabilityBlock (Monitoring and signal aggregation)
-
-Example:
-
-```
-HTTP → Function → Storage
-```
-
----
-
-### Architecture Simulation (Milestone 9)
-
-> **Milestone 9+**: Not yet implemented.
-
-Allow architecture execution simulation:
-
-```
-request flow visualization
-latency simulation
-failure simulation
-```
-
----
-
-# 16. Summary
-
-The CloudBlocks Domain Model provides a **visual abstraction layer for cloud architecture** that maps directly to infrastructure code.
+# 13. Summary
 
 Key concepts:
 
 ```
-Application     → Software on resources (nginx, python, postgres...)
-Block           → Cloud resource (compute, database, storage, gateway...)
-Plate           → Infrastructure region (VNet, Subnet)
-Connection      → Data/Event flow (initiator direction)
-External Actor  → External endpoint (Internet)
-Rule            → Architecture constraints
+ContainerNode    → Network boundary (VNet, Subnet) — rendered as plate
+LeafNode         → Cloud resource (compute, data, edge, security...) — rendered as brick
+ResourceNode     → Discriminated union of ContainerNode | LeafNode
+Connection       → Data/Event flow (initiator direction)
+External Actor   → External endpoint (Internet)
+RESOURCE_RULES   → Single source of truth for constraints
 Provider Adapter → Cloud-specific resource mapping
-Generator       → IaC code output (Terraform / Bicep / Pulumi)
-Template        → Pre-built architecture patterns
+Generator        → IaC code output (Terraform / Bicep / Pulumi)
 ```
 
-3-layer visual hierarchy:
+Visual hierarchy:
 ```
-Application (1×1 cylinder)  ← Software layer
-    ↓ sits on
-Block (brick: micro → wide)  ← Resource layer
+LeafNode (brick: micro → wide)     ← Resource layer
     ↓ placed on
-Plate (S/M/L by learning level)  ← Network layer
+ContainerNode (S/M/L baseplate)    ← Network layer
 ```
 
 This model enables:
 
 - Visual architecture design in a 2.5D isometric environment
-- Educational progression through plate sizing (Beginner → Basic → Intermediate)
-- Clear software-to-infrastructure relationship through app cylinders
+- Constraint validation driven by a single RESOURCE_RULES table
 - Automated code generation from architecture graph
-- Multi-cloud abstraction
+- Multi-cloud abstraction with Azure-first v1 scope
 - Git-native workflow integration

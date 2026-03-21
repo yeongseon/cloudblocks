@@ -20,25 +20,30 @@ function setupMocks(interactionState: 'idle' | 'connecting', connectionSource: s
     const state = {
       workspace: {
         architecture: {
-          blocks: [
-            {
-              id: 'block-1',
-              name: 'VM',
-              category: 'compute' as const,
-              placementId: 'plate-1',
-              position: { x: 3, y: 0, z: 6 },
-              metadata: {},
-            },
-          ],
-          plates: [
+          nodes: [
             {
               id: 'plate-1',
               name: 'VNet',
-              type: 'region' as const,
+              kind: 'container' as const,
+              layer: 'region' as const,
+              resourceType: 'virtual_network' as const,
+              category: 'network' as const,
+              provider: 'azure' as const,
               parentId: null,
-              children: [],
               position: { x: 0, y: 0, z: 0 },
               size: { width: 16, height: 0.3, depth: 20 },
+              metadata: {},
+            },
+            {
+              id: 'block-1',
+              name: 'VM',
+              kind: 'resource' as const,
+              layer: 'resource' as const,
+              resourceType: 'web_compute',
+              category: 'compute' as const,
+              provider: 'azure' as const,
+              parentId: 'plate-1',
+              position: { x: 3, y: 0, z: 6 },
               metadata: {},
             },
           ],
@@ -47,7 +52,8 @@ function setupMocks(interactionState: 'idle' | 'connecting', connectionSource: s
               id: 'actor-1',
               name: 'Internet',
               type: 'internet' as const,
-             position: { x: -3, y: 0, z: 5 } },
+              position: { x: -3, y: 0, z: 5 },
+            },
           ],
         },
       },

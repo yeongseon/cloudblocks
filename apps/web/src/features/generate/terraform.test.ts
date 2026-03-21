@@ -8,26 +8,33 @@ import {
   generateVariablesTf,
   normalize,
 } from './terraform';
+import {
+  makeTestArchitecture,
+  makeTestBlock,
+  makeTestPlate,
+  type LegacyArchitectureOverrides,
+  type LegacyBlockOverrides,
+  type LegacyPlateOverrides,
+} from '../../__tests__/legacyModelTestUtils';
 
 const basePosition = { x: 0, y: 0, z: 0 };
 const baseSize = { width: 1, height: 1, depth: 1 };
 
-function createPlate(overrides: Partial<Plate>): Plate {
-  return {
+function createPlate(overrides: LegacyPlateOverrides): Plate {
+  return makeTestPlate({
     id: 'plate-default',
     name: 'Default Plate',
     type: 'region',
     parentId: null,
-    children: [],
     position: basePosition,
     size: baseSize,
     metadata: {},
     ...overrides,
-  };
+  });
 }
 
-function createBlock(overrides: Partial<Block>): Block {
-  return {
+function createBlock(overrides: LegacyBlockOverrides): Block {
+  return makeTestBlock({
     id: 'block-default',
     name: 'Default Block',
     category: 'compute',
@@ -35,7 +42,7 @@ function createBlock(overrides: Partial<Block>): Block {
     position: basePosition,
     metadata: {},
     ...overrides,
-  };
+  });
 }
 
 function createConnection(overrides: Partial<Connection>): Connection {
@@ -49,19 +56,19 @@ function createConnection(overrides: Partial<Connection>): Connection {
   };
 }
 
-function createTestModel(overrides?: Partial<ArchitectureModel>): ArchitectureModel {
-  return {
+function createTestModel(overrides?: LegacyArchitectureOverrides): ArchitectureModel {
+  return makeTestArchitecture({
     id: 'arch-1',
     name: 'Test',
     version: '1',
     plates: [],
     blocks: [],
     connections: [],
-    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } }],
     createdAt: '2025-01-01T00:00:00Z',
     updatedAt: '2025-01-01T00:00:00Z',
     ...overrides,
-  };
+  });
 }
 
 const defaultOptions = {
@@ -154,7 +161,7 @@ describe('generateMainTf', () => {
       blocks: [createBlock({ id: 'web1', name: 'Frontend', category: 'compute', placementId: 'sub1' })],
     });
     const withoutCompute = createTestModel({
-      blocks: [createBlock({ id: 'db1', name: 'MainDb', category: 'database', placementId: 'sub1' })],
+      blocks: [createBlock({ id: 'db1', name: 'MainDb', category: 'data', placementId: 'sub1' })],
     });
 
     const withComputeHcl = generateMainTf(
@@ -215,14 +222,14 @@ describe('generateMainTf', () => {
     expect(hcl).toContain('address_prefixes     = ["10.0.1.0/24"]');
   });
 
-  it('generates category-specific hcl for compute, database, storage, and gateway blocks', () => {
+  it('generates category-specific hcl for compute, data, and edge blocks', () => {
     const model = createTestModel({
       plates: [createPlate({ id: 'sub1', name: 'Subnet One', type: 'subnet', subnetAccess: 'public' })],
       blocks: [
         createBlock({ id: 'cmp', name: 'Compute', category: 'compute', placementId: 'sub1' }),
-        createBlock({ id: 'db', name: 'Database', category: 'database', placementId: 'sub1' }),
-        createBlock({ id: 'st', name: 'Storage', category: 'storage', placementId: 'sub1' }),
-        createBlock({ id: 'gw', name: 'Gateway', category: 'gateway', placementId: 'sub1' }),
+        createBlock({ id: 'db', name: 'Database', category: 'data', placementId: 'sub1' }),
+        createBlock({ id: 'st', name: 'Storage', category: 'data', placementId: 'sub1' }),
+        createBlock({ id: 'gw', name: 'Gateway', category: 'edge', placementId: 'sub1' }),
       ],
     });
 
@@ -230,7 +237,6 @@ describe('generateMainTf', () => {
 
     expect(hcl).toContain('service_plan_id     = azurerm_service_plan.main.id');
     expect(hcl).toContain('administrator_login    = var.db_admin_username');
-    expect(hcl).toContain('account_tier             = "Standard"');
     expect(hcl).toContain('sku {');
     expect(hcl).toContain('name     = "Standard_v2"');
   });
@@ -267,35 +273,33 @@ describe('generateMainTf', () => {
     const model = createTestModel({
       plates: [createPlate({ id: 'net1', name: 'VNet', type: 'region' })],
       blocks: [
-        createBlock({ id: 'fn1', name: 'Handler', category: 'function', placementId: 'net1' }),
-        createBlock({ id: 'q1', name: 'TaskQueue', category: 'queue', placementId: 'net1' }),
-        createBlock({ id: 'ev1', name: 'EventSrc', category: 'event', placementId: 'net1' }),
-        createBlock({ id: 'an1', name: 'Analytics', category: 'analytics', placementId: 'net1' }),
-        createBlock({ id: 'id1', name: 'Identity', category: 'identity', placementId: 'net1' }),
-        createBlock({ id: 'ob1', name: 'Monitor', category: 'observability', placementId: 'net1' }),
+        createBlock({ id: 'fn1', name: 'Handler', category: 'compute', placementId: 'net1' }),
+        createBlock({ id: 'q1', name: 'TaskQueue', category: 'messaging', placementId: 'net1' }),
+        createBlock({ id: 'ev1', name: 'EventSrc', category: 'messaging', placementId: 'net1' }),
+        createBlock({ id: 'an1', name: 'Analytics', category: 'operations', placementId: 'net1' }),
+        createBlock({ id: 'id1', name: 'Identity', category: 'security', placementId: 'net1' }),
+        createBlock({ id: 'ob1', name: 'Monitor', category: 'operations', placementId: 'net1' }),
       ],
     });
 
     const hcl = generateMainTf(normalize(model, azureProvider), azureProvider, defaultOptions);
 
-    expect(hcl).toContain('resource "azurerm_linux_function_app"');
+    expect(hcl).toContain('resource "azurerm_linux_web_app"');
     expect(hcl).toContain('resource "azurerm_storage_queue"');
-    expect(hcl).toContain('resource "azurerm_eventgrid_topic"');
     expect(hcl).toContain('resource "azurerm_log_analytics_workspace"');
     expect(hcl).toContain('resource "azurerm_user_assigned_identity"');
-    expect(hcl).toContain('resource "azurerm_monitor_workspace"');
   });
 
   it('includes service plan when only function blocks exist', () => {
     const model = createTestModel({
       plates: [createPlate({ id: 'net1', name: 'VNet', type: 'region' })],
-      blocks: [createBlock({ id: 'fn1', name: 'Handler', category: 'function', placementId: 'net1' })],
+      blocks: [createBlock({ id: 'fn1', name: 'Handler', category: 'compute', placementId: 'net1' })],
     });
 
     const hcl = generateMainTf(normalize(model, azureProvider), azureProvider, defaultOptions);
 
     expect(hcl).toContain('resource "azurerm_service_plan" "main"');
-    expect(hcl).toContain('resource "azurerm_linux_function_app"');
+    expect(hcl).toContain('resource "azurerm_linux_web_app"');
   });
 });
 
@@ -324,7 +328,7 @@ describe('generateOutputsTf', () => {
     const model = createTestModel({
       blocks: [
         createBlock({ id: 'cmp', name: 'Compute', category: 'compute', placementId: 'sub1' }),
-        createBlock({ id: 'db', name: 'Database', category: 'database', placementId: 'sub1' }),
+        createBlock({ id: 'db', name: 'Database', category: 'data', placementId: 'sub1' }),
       ],
     });
 

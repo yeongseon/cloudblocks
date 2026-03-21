@@ -18,9 +18,10 @@ interface Point {
 export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) {
   const interactionState = useUIStore((s) => s.interactionState);
   const connectionSource = useUIStore((s) => s.connectionSource);
-  const blocks = useArchitectureStore((s) => s.workspace.architecture.blocks);
-  const plates = useArchitectureStore((s) => s.workspace.architecture.plates);
+  const nodes = useArchitectureStore((s) => s.workspace.architecture.nodes);
   const externalActors = useArchitectureStore((s) => s.workspace.architecture.externalActors);
+  const blocks = useMemo(() => nodes.filter((node) => node.kind === 'resource'), [nodes]);
+  const plates = useMemo(() => nodes.filter((node) => node.kind === 'container'), [nodes]);
 
   const pathRef = useRef<SVGPathElement>(null);
   const [cursor, setCursor] = useState<Point | null>(null);
@@ -50,7 +51,7 @@ export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) 
 
     const sourceBlock = blocks.find((block) => block.id === connectionSource);
     if (sourceBlock) {
-      const parentPlate = plates.find((plate) => plate.id === sourceBlock.placementId);
+      const parentPlate = plates.find((plate) => plate.id === sourceBlock.parentId);
       if (!parentPlate) {
         return null;
       }

@@ -19,8 +19,7 @@ const scenarioA: Scenario = {
   initialArchitecture: {
     name: 'A',
     version: '1',
-    plates: [],
-    blocks: [],
+    nodes: [],
     connections: [],
     externalActors: [],
   },
@@ -47,8 +46,7 @@ const scenarioB: Scenario = {
   initialArchitecture: {
     name: 'B',
     version: '1',
-    plates: [],
-    blocks: [],
+    nodes: [],
     connections: [],
     externalActors: [],
   },

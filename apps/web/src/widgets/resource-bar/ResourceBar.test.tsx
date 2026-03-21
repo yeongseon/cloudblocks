@@ -4,18 +4,17 @@ import userEvent from '@testing-library/user-event';
 import { ResourceBar } from './ResourceBar';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import type { ArchitectureModel, Block, Connection, Plate } from '@cloudblocks/schema';
+import type { ArchitectureModel, Connection, ContainerNode, LeafNode } from '@cloudblocks/schema';
 
 const createArchitecture = (
-  plates: Plate[] = [],
-  blocks: Block[] = [],
+  plates: ContainerNode[] = [],
+  blocks: LeafNode[] = [],
   connections: Connection[] = []
 ): ArchitectureModel => ({
   id: 'arch-1',
   name: 'Test Architecture',
   version: '1.0.0',
-  plates,
-  blocks,
+  nodes: [...plates, ...blocks],
   connections,
   externalActors: [],
   createdAt: '',
@@ -44,13 +43,16 @@ describe('ResourceBar', () => {
   });
 
   it('renders plate, block, and connection counts for populated architecture', () => {
-    const plates: Plate[] = [
+    const plates: ContainerNode[] = [
       {
         id: 'plate-1',
         name: 'VNet',
-        type: 'region',
+        kind: 'container',
+        layer: 'region',
+        resourceType: 'virtual_network',
+        category: 'network',
+        provider: 'azure',
         parentId: null,
-        children: [],
         position: { x: 0, y: 0, z: 0 },
         size: { width: 10, height: 0.3, depth: 10 },
         metadata: {},
@@ -58,38 +60,53 @@ describe('ResourceBar', () => {
       {
         id: 'plate-2',
         name: 'Subnet',
-        type: 'subnet',
+        kind: 'container',
+        layer: 'subnet',
+        resourceType: 'subnet',
+        category: 'network',
+        provider: 'azure',
         subnetAccess: 'public',
         parentId: 'plate-1',
-        children: [],
         position: { x: 1, y: 0, z: 1 },
         size: { width: 6, height: 0.3, depth: 6 },
         metadata: {},
       },
     ];
 
-    const blocks: Block[] = [
+    const blocks: LeafNode[] = [
       {
         id: 'block-1',
         name: 'VM-1',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'web_compute',
         category: 'compute',
-        placementId: 'plate-2',
+        provider: 'azure',
+        parentId: 'plate-2',
         position: { x: 0, y: 0, z: 0 },
         metadata: {},
       },
       {
         id: 'block-2',
         name: 'DB-1',
-        category: 'database',
-        placementId: 'plate-2',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'relational_database',
+        category: 'data',
+        provider: 'azure',
+        parentId: 'plate-2',
         position: { x: 2, y: 0, z: 2 },
         metadata: {},
       },
       {
         id: 'block-3',
         name: 'Storage-1',
-        category: 'storage',
-        placementId: 'plate-2',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'relational_database',
+        category: 'data',
+        provider: 'azure',
+        parentId: 'plate-2',
         position: { x: 4, y: 0, z: 1 },
         metadata: {},
       },

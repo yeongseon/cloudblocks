@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { ArchitectureModel } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
 import type { StepValidationRule } from '../../shared/types/learning';
 import { evaluateRule, evaluateRules } from './step-validator';
 
@@ -9,13 +9,16 @@ const createTestModel = (): ArchitectureModel => ({
   version: '1',
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
-  plates: [
+  nodes: [
     {
       id: 'plate-vnet',
       name: 'VNet',
-      type: 'region',
+      kind: 'container',
+      layer: 'region',
+      resourceType: 'virtual_network',
+      category: 'network',
+      provider: 'azure',
       parentId: null,
-      children: ['plate-public', 'plate-private'],
       position: { x: 0, y: 0, z: 0 },
       size: { width: 12, height: 0.3, depth: 10 },
       metadata: {},
@@ -23,10 +26,13 @@ const createTestModel = (): ArchitectureModel => ({
     {
       id: 'plate-public',
       name: 'Public Subnet',
-      type: 'subnet',
+      kind: 'container',
+      layer: 'subnet',
+      resourceType: 'subnet',
+      category: 'network',
+      provider: 'azure',
       subnetAccess: 'public',
       parentId: 'plate-vnet',
-      children: ['block-gw', 'block-compute'],
       position: { x: -3, y: 0.3, z: 0 },
       size: { width: 5, height: 0.2, depth: 8 },
       metadata: {},
@@ -34,37 +40,50 @@ const createTestModel = (): ArchitectureModel => ({
     {
       id: 'plate-private',
       name: 'Private Subnet',
-      type: 'subnet',
+      kind: 'container',
+      layer: 'subnet',
+      resourceType: 'subnet',
+      category: 'network',
+      provider: 'azure',
       subnetAccess: 'private',
       parentId: 'plate-vnet',
-      children: ['block-db'],
       position: { x: 3, y: 0.3, z: 0 },
       size: { width: 5, height: 0.2, depth: 8 },
       metadata: {},
     },
-  ],
-  blocks: [
     {
       id: 'block-gw',
       name: 'Gateway',
-      category: 'gateway',
-      placementId: 'plate-public',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'load_balancer',
+      category: 'edge',
+      provider: 'azure',
+      parentId: 'plate-public',
       position: { x: -1.5, y: 0.5, z: -2 },
       metadata: {},
     },
     {
       id: 'block-compute',
       name: 'App',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'web_compute',
       category: 'compute',
-      placementId: 'plate-public',
+      provider: 'azure',
+      parentId: 'plate-public',
       position: { x: 1.5, y: 0.5, z: 1 },
       metadata: {},
     },
     {
       id: 'block-db',
       name: 'DB',
-      category: 'database',
-      placementId: 'plate-private',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'relational_database',
+      category: 'data',
+      provider: 'azure',
+      parentId: 'plate-private',
       position: { x: 0, y: 0.5, z: 0 },
       metadata: {},
     },
@@ -95,6 +114,12 @@ const createTestModel = (): ArchitectureModel => ({
   externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
 });
 
+const getContainers = (model: ArchitectureModel): ContainerNode[] =>
+  model.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+
+const getResources = (model: ArchitectureModel): LeafNode[] =>
+  model.nodes.filter((node): node is LeafNode => node.kind === 'resource');
+
 describe('evaluateRule', () => {
   describe('plate-exists', () => {
     it('finds network plate', () => {
@@ -113,7 +138,7 @@ describe('evaluateRule', () => {
       const model = createTestModel();
       const noNetworkModel: ArchitectureModel = {
         ...model,
-        plates: model.plates.filter((plate) => plate.type === 'subnet'),
+        nodes: [...getContainers(model).filter((plate) => plate.layer === 'subnet'), ...getResources(model)],
       };
       const rule: StepValidationRule = { type: 'plate-exists', plateType: 'region' };
       expect(evaluateRule(rule, noNetworkModel)).toBe(false);
@@ -123,7 +148,7 @@ describe('evaluateRule', () => {
       const model = createTestModel();
       const onlyPublicModel: ArchitectureModel = {
         ...model,
-        plates: model.plates.filter((plate) => plate.id !== 'plate-private'),
+        nodes: [...getContainers(model).filter((plate) => plate.id !== 'plate-private'), ...getResources(model)],
       };
       const rule: StepValidationRule = { type: 'plate-exists', plateType: 'subnet', subnetAccess: 'private' };
       expect(evaluateRule(rule, onlyPublicModel)).toBe(false);
@@ -133,7 +158,7 @@ describe('evaluateRule', () => {
   describe('block-exists', () => {
     it('finds gateway block', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'block-exists', category: 'gateway' };
+      const rule: StepValidationRule = { type: 'block-exists', category: 'edge' };
       expect(evaluateRule(rule, model)).toBe(true);
     });
 
@@ -147,7 +172,7 @@ describe('evaluateRule', () => {
       const model = createTestModel();
       const rule: StepValidationRule = {
         type: 'block-exists',
-        category: 'database',
+        category: 'data',
         onPlateType: 'subnet',
         onSubnetAccess: 'private',
       };
@@ -156,13 +181,13 @@ describe('evaluateRule', () => {
 
     it('fails for non-existent block category in model', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'block-exists', category: 'storage' };
+      const rule: StepValidationRule = { type: 'block-exists', category: 'operations' };
       expect(evaluateRule(rule, model)).toBe(false);
     });
 
     it('fails for block on wrong plate type', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'block-exists', category: 'database', onPlateType: 'region' };
+      const rule: StepValidationRule = { type: 'block-exists', category: 'data', onPlateType: 'region' };
       expect(evaluateRule(rule, model)).toBe(false);
     });
 
@@ -170,9 +195,12 @@ describe('evaluateRule', () => {
       const model = createTestModel();
       const modelWithMissingPlacement: ArchitectureModel = {
         ...model,
-        blocks: model.blocks.map((block) =>
-          block.id === 'block-compute' ? { ...block, placementId: 'missing-plate' } : block
-        ),
+        nodes: [
+          ...getContainers(model),
+          ...getResources(model).map((block) =>
+            block.id === 'block-compute' ? { ...block, parentId: 'missing-plate' } : block
+          ),
+        ],
       };
       const rule: StepValidationRule = { type: 'block-exists', category: 'compute', onPlateType: 'subnet' };
       expect(evaluateRule(rule, modelWithMissingPlacement)).toBe(false);
@@ -182,7 +210,7 @@ describe('evaluateRule', () => {
       const model = createTestModel();
       const rule: StepValidationRule = {
         type: 'block-exists',
-        category: 'database',
+        category: 'data',
         onPlateType: 'subnet',
         onSubnetAccess: 'public',
       };
@@ -196,7 +224,7 @@ describe('evaluateRule', () => {
       const rule: StepValidationRule = {
         type: 'connection-exists',
         sourceCategory: 'internet',
-        targetCategory: 'gateway',
+        targetCategory: 'edge',
       };
       expect(evaluateRule(rule, model)).toBe(true);
     });
@@ -205,7 +233,7 @@ describe('evaluateRule', () => {
       const model = createTestModel();
       const rule: StepValidationRule = {
         type: 'connection-exists',
-        sourceCategory: 'gateway',
+        sourceCategory: 'edge',
         targetCategory: 'compute',
       };
       expect(evaluateRule(rule, model)).toBe(true);
@@ -216,7 +244,7 @@ describe('evaluateRule', () => {
       const rule: StepValidationRule = {
         type: 'connection-exists',
         sourceCategory: 'compute',
-        targetCategory: 'database',
+        targetCategory: 'data',
       };
       expect(evaluateRule(rule, model)).toBe(true);
     });
@@ -225,8 +253,8 @@ describe('evaluateRule', () => {
       const model = createTestModel();
       const rule: StepValidationRule = {
         type: 'connection-exists',
-        sourceCategory: 'database',
-        targetCategory: 'gateway',
+        sourceCategory: 'data',
+        targetCategory: 'edge',
       };
       expect(evaluateRule(rule, model)).toBe(false);
     });
@@ -260,7 +288,7 @@ describe('evaluateRule', () => {
   describe('entity-on-plate', () => {
     it('finds gateway on subnet plate', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'entity-on-plate', entityCategory: 'gateway', plateType: 'subnet' };
+      const rule: StepValidationRule = { type: 'entity-on-plate', entityCategory: 'edge', plateType: 'subnet' };
       expect(evaluateRule(rule, model)).toBe(true);
     });
 
@@ -268,7 +296,7 @@ describe('evaluateRule', () => {
       const model = createTestModel();
       const rule: StepValidationRule = {
         type: 'entity-on-plate',
-        entityCategory: 'database',
+        entityCategory: 'data',
         plateType: 'subnet',
         subnetAccess: 'private',
       };
@@ -277,7 +305,7 @@ describe('evaluateRule', () => {
 
     it('fails when entity is not on specified plate type', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'entity-on-plate', entityCategory: 'database', plateType: 'region' };
+      const rule: StepValidationRule = { type: 'entity-on-plate', entityCategory: 'data', plateType: 'region' };
       expect(evaluateRule(rule, model)).toBe(false);
     });
 
@@ -285,13 +313,16 @@ describe('evaluateRule', () => {
       const model = createTestModel();
       const modelWithMissingPlacement: ArchitectureModel = {
         ...model,
-        blocks: model.blocks.map((block) =>
-          block.id === 'block-db' ? { ...block, placementId: 'missing-plate' } : block
-        ),
+        nodes: [
+          ...getContainers(model),
+          ...getResources(model).map((block) =>
+            block.id === 'block-db' ? { ...block, parentId: 'missing-plate' } : block
+          ),
+        ],
       };
       const rule: StepValidationRule = {
         type: 'entity-on-plate',
-        entityCategory: 'database',
+        entityCategory: 'data',
         plateType: 'subnet',
       };
 
@@ -302,7 +333,7 @@ describe('evaluateRule', () => {
       const model = createTestModel();
       const rule: StepValidationRule = {
         type: 'entity-on-plate',
-        entityCategory: 'database',
+        entityCategory: 'data',
         plateType: 'subnet',
         subnetAccess: 'public',
       };
@@ -322,9 +353,12 @@ describe('evaluateRule', () => {
       const model = createTestModel();
       const invalidModel: ArchitectureModel = {
         ...model,
-        blocks: model.blocks.map((block) =>
-          block.id === 'block-gw' ? { ...block, placementId: 'plate-private' } : block
-        ),
+        nodes: [
+          ...getContainers(model),
+          ...getResources(model).map((block) =>
+            block.id === 'block-gw' ? { ...block, parentId: 'plate-private' } : block
+          ),
+        ],
       };
       const rule: StepValidationRule = { type: 'architecture-valid' };
       expect(evaluateRule(rule, invalidModel)).toBe(false);
@@ -334,13 +368,13 @@ describe('evaluateRule', () => {
   describe('min-block-count', () => {
     it('passes when count is met', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'min-block-count', category: 'gateway', count: 1 };
+      const rule: StepValidationRule = { type: 'min-block-count', category: 'edge', count: 1 };
       expect(evaluateRule(rule, model)).toBe(true);
     });
 
     it('fails when count is not met', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'min-block-count', category: 'gateway', count: 2 };
+      const rule: StepValidationRule = { type: 'min-block-count', category: 'edge', count: 2 };
       expect(evaluateRule(rule, model)).toBe(false);
     });
   });
@@ -372,8 +406,8 @@ describe('evaluateRules', () => {
     const model = createTestModel();
     const rules: StepValidationRule[] = [
       { type: 'plate-exists', plateType: 'region' },
-      { type: 'block-exists', category: 'gateway' },
-      { type: 'connection-exists', sourceCategory: 'compute', targetCategory: 'database' },
+      { type: 'block-exists', category: 'edge' },
+      { type: 'connection-exists', sourceCategory: 'compute', targetCategory: 'data' },
       { type: 'architecture-valid' },
     ];
 
@@ -388,8 +422,8 @@ describe('evaluateRules', () => {
     const model = createTestModel();
     const rules: StepValidationRule[] = [
       { type: 'plate-exists', plateType: 'region' },
-      { type: 'min-block-count', category: 'gateway', count: 2 },
-      { type: 'connection-exists', sourceCategory: 'database', targetCategory: 'gateway' },
+      { type: 'min-block-count', category: 'edge', count: 2 },
+      { type: 'connection-exists', sourceCategory: 'data', targetCategory: 'edge' },
     ];
 
     const result = evaluateRules(rules, model);

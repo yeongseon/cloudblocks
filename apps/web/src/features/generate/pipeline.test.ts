@@ -1,10 +1,52 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { ArchitectureModel, Plate, Block } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
 import type { GeneratedOutput, GeneratedFile, GenerationOptions, GeneratorPlugin } from './types';
 import { GenerationError, generateTerraform, terraformPipeline, generateCode } from './pipeline';
 import { registerGenerator } from './registry';
 
 describe('pipeline', () => {
+  const containerResourceTypeByLayer: Record<Exclude<ContainerNode['layer'], 'resource'>, ContainerNode['resourceType']> = {
+    global: 'virtual_network',
+    edge: 'virtual_network',
+    region: 'virtual_network',
+    zone: 'virtual_network',
+    subnet: 'subnet',
+  };
+
+  function createContainer(overrides: Partial<ContainerNode> & { type?: ContainerNode['layer'] }): ContainerNode {
+    const layer = overrides.layer ?? overrides.type ?? 'subnet';
+    return {
+      id: 'container-1',
+      name: 'Container',
+      kind: 'container',
+      layer,
+      resourceType: containerResourceTypeByLayer[layer as Exclude<ContainerNode['layer'], 'resource'>],
+      category: 'network',
+      provider: 'azure',
+      parentId: null,
+      position: { x: 0, y: 0, z: 0 },
+      size: { width: 8, height: 1, depth: 6 },
+      metadata: {},
+      ...overrides,
+    };
+  }
+
+  function createResource(overrides: Partial<LeafNode>): LeafNode {
+    return {
+      id: 'resource-1',
+      name: 'Resource',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'web_compute',
+      category: 'compute',
+      provider: 'azure',
+      parentId: 'sub-1',
+      position: { x: 0, y: 0.5, z: 0 },
+      metadata: {},
+      ...overrides,
+    };
+  }
+
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2025-01-01T00:00:00Z'));
@@ -37,39 +79,35 @@ describe('pipeline', () => {
       id: 'arch-1',
       name: 'Test',
       version: '1',
-      plates: [
-        {
+      nodes: [
+        createContainer({
           id: 'net-1',
           name: 'VNet',
-          type: 'region',
+          layer: 'region',
+          resourceType: 'virtual_network',
           parentId: null,
-          children: ['sub-1'],
           position: { x: 0, y: 0, z: 0 },
           size: { width: 12, height: 0.3, depth: 10 },
-          metadata: {},
-        },
-        {
+        }),
+        createContainer({
           id: 'sub-1',
           name: 'Public',
-          type: 'subnet',
+          layer: 'subnet',
+          resourceType: 'subnet',
           subnetAccess: 'public',
           parentId: 'net-1',
-          children: ['blk-1'],
           position: { x: 0, y: 0.3, z: 0 },
           size: { width: 5, height: 0.2, depth: 8 },
-          metadata: {},
-        },
-      ] as Plate[],
-      blocks: [
-        {
+        }),
+        createResource({
           id: 'blk-1',
           name: 'WebApp',
           category: 'compute',
-          placementId: 'sub-1',
+          resourceType: 'web_compute',
+          parentId: 'sub-1',
           position: { x: 0, y: 0.5, z: 0 },
-          metadata: {},
-        },
-      ] as Block[],
+        }),
+      ],
       connections: [],
       externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       createdAt: '2025-01-01T00:00:00Z',
@@ -128,44 +166,40 @@ describe('pipeline', () => {
       });
     });
 
-    it('should throw GenerationError with invalid model (database on public subnet)', () => {
+    it('should throw GenerationError with invalid model (edge on private subnet)', () => {
       const invalidModel: ArchitectureModel = {
         id: 'arch-2',
         name: 'Invalid',
         version: '1',
-        plates: [
-          {
+        nodes: [
+          createContainer({
             id: 'net-2',
             name: 'VNet',
-            type: 'region',
+            layer: 'region',
+            resourceType: 'virtual_network',
             parentId: null,
-            children: ['sub-2'],
             position: { x: 0, y: 0, z: 0 },
             size: { width: 12, height: 0.3, depth: 10 },
-            metadata: {},
-          },
-          {
+          }),
+          createContainer({
             id: 'sub-2',
-            name: 'Public',
-            type: 'subnet',
-            subnetAccess: 'public',
+            name: 'Private',
+            layer: 'subnet',
+            resourceType: 'subnet',
+            subnetAccess: 'private',
             parentId: 'net-2',
-            children: ['blk-2'],
             position: { x: 0, y: 0.3, z: 0 },
             size: { width: 5, height: 0.2, depth: 8 },
-            metadata: {},
-          },
-        ] as Plate[],
-        blocks: [
-          {
+          }),
+          createResource({
             id: 'blk-2',
-            name: 'Database',
-            category: 'database',
-            placementId: 'sub-2',
+            name: 'Gateway',
+            category: 'edge',
+            resourceType: 'load_balancer',
+            parentId: 'sub-2',
             position: { x: 0, y: 0.5, z: 0 },
-            metadata: {},
-          },
-        ] as Block[],
+          }),
+        ],
         connections: [],
         externalActors: [{ id: 'ext-2', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
         createdAt: '2025-01-01T00:00:00Z',
@@ -206,39 +240,35 @@ describe('pipeline', () => {
         id: 'arch-1',
         name: 'Test',
         version: '1',
-        plates: [
-          {
+        nodes: [
+          createContainer({
             id: 'net-1',
             name: 'VNet',
-            type: 'region',
+            layer: 'region',
+            resourceType: 'virtual_network',
             parentId: null,
-            children: ['sub-1'],
             position: { x: 0, y: 0, z: 0 },
             size: { width: 12, height: 0.3, depth: 10 },
-            metadata: {},
-          },
-          {
+          }),
+          createContainer({
             id: 'sub-1',
             name: 'Public',
-            type: 'subnet',
+            layer: 'subnet',
+            resourceType: 'subnet',
             subnetAccess: 'public',
             parentId: 'net-1',
-            children: ['blk-1'],
             position: { x: 0, y: 0.3, z: 0 },
             size: { width: 5, height: 0.2, depth: 8 },
-            metadata: {},
-          },
-        ] as Plate[],
-        blocks: [
-          {
+          }),
+          createResource({
             id: 'blk-1',
             name: 'WebApp',
             category: 'compute',
-            placementId: 'sub-1',
+            resourceType: 'web_compute',
+            parentId: 'sub-1',
             position: { x: 0, y: 0.5, z: 0 },
-            metadata: {},
-          },
-        ] as Block[],
+          }),
+        ],
         connections: [],
         externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
         createdAt: '2025-01-01T00:00:00Z',
@@ -265,39 +295,35 @@ describe('pipeline', () => {
       id: 'arch-generate-code-1',
       name: 'Test GenerateCode',
       version: '1',
-      plates: [
-        {
+      nodes: [
+        createContainer({
           id: 'net-1',
           name: 'VNet',
-          type: 'region',
+          layer: 'region',
+          resourceType: 'virtual_network',
           parentId: null,
-          children: ['sub-1'],
           position: { x: 0, y: 0, z: 0 },
           size: { width: 12, height: 0.3, depth: 10 },
-          metadata: {},
-        },
-        {
+        }),
+        createContainer({
           id: 'sub-1',
           name: 'Public',
-          type: 'subnet',
+          layer: 'subnet',
+          resourceType: 'subnet',
           subnetAccess: 'public',
           parentId: 'net-1',
-          children: ['blk-1'],
           position: { x: 0, y: 0.3, z: 0 },
           size: { width: 5, height: 0.2, depth: 8 },
-          metadata: {},
-        },
-      ] as Plate[],
-      blocks: [
-        {
+        }),
+        createResource({
           id: 'blk-1',
           name: 'WebApp',
           category: 'compute',
-          placementId: 'sub-1',
+          resourceType: 'web_compute',
+          parentId: 'sub-1',
           position: { x: 0, y: 0.5, z: 0 },
-          metadata: {},
-        },
-      ] as Block[],
+        }),
+      ],
       connections: [],
       externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       createdAt: '2025-01-01T00:00:00Z',
@@ -343,39 +369,35 @@ describe('pipeline', () => {
         id: 'arch-generate-code-2',
         name: 'Invalid Architecture',
         version: '1',
-        plates: [
-          {
+        nodes: [
+          createContainer({
             id: 'net-2',
             name: 'VNet',
-            type: 'region',
+            layer: 'region',
+            resourceType: 'virtual_network',
             parentId: null,
-            children: ['sub-2'],
             position: { x: 0, y: 0, z: 0 },
             size: { width: 12, height: 0.3, depth: 10 },
-            metadata: {},
-          },
-          {
+          }),
+          createContainer({
             id: 'sub-2',
-            name: 'Public',
-            type: 'subnet',
-            subnetAccess: 'public',
+            name: 'Private',
+            layer: 'subnet',
+            resourceType: 'subnet',
+            subnetAccess: 'private',
             parentId: 'net-2',
-            children: ['db-1'],
             position: { x: 0, y: 0.3, z: 0 },
             size: { width: 5, height: 0.2, depth: 8 },
-            metadata: {},
-          },
-        ] as Plate[],
-        blocks: [
-          {
+          }),
+          createResource({
             id: 'db-1',
-            name: 'Database',
-            category: 'database',
-            placementId: 'sub-2',
+            name: 'Gateway',
+            category: 'edge',
+            resourceType: 'load_balancer',
+            parentId: 'sub-2',
             position: { x: 0, y: 0.5, z: 0 },
-            metadata: {},
-          },
-        ] as Block[],
+          }),
+        ],
         connections: [],
         externalActors: [{ id: 'ext-2', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
         createdAt: '2025-01-01T00:00:00Z',
@@ -441,19 +463,17 @@ describe('pipeline', () => {
       id: 'arch-plugin-1',
       name: 'Plugin Test',
       version: '1',
-      plates: [
-        {
+      nodes: [
+        createContainer({
           id: 'net-1',
           name: 'VNet',
-          type: 'region',
+          layer: 'region',
+          resourceType: 'virtual_network',
           parentId: null,
-          children: [],
           position: { x: 0, y: 0, z: 0 },
           size: { width: 12, height: 0.3, depth: 10 },
-          metadata: {},
-        },
-      ] as Plate[],
-      blocks: [],
+        }),
+      ],
       connections: [],
       externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       createdAt: '2025-01-01T00:00:00Z',

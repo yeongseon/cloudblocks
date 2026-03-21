@@ -3,10 +3,28 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import interact from 'interactjs';
 import { toast } from 'react-hot-toast';
+
+vi.mock('../store/architectureStore', async () => {
+  const actual = await vi.importActual<typeof import('../store/architectureStore')>('../store/architectureStore');
+  const { useShallow } = await vi.importActual<typeof import('zustand/react/shallow')>('zustand/react/shallow');
+
+  const useArchitectureStoreStable = ((selector: Parameters<typeof actual.useArchitectureStore>[0]) => {
+    const stableSelector = useShallow(selector);
+    return actual.useArchitectureStore(stableSelector);
+  }) as typeof actual.useArchitectureStore;
+
+  Object.assign(useArchitectureStoreStable, actual.useArchitectureStore);
+
+  return {
+    ...actual,
+    useArchitectureStore: useArchitectureStoreStable,
+  };
+});
+
 import { ExternalActorSprite } from './ExternalActorSprite';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
-import type { ExternalActor } from '@cloudblocks/schema';
+import type { ExternalActor, LeafNode, ResourceNode } from '@cloudblocks/schema';
 import * as connectionValidation from '../validation/connection';
 import * as isometric from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
@@ -42,6 +60,32 @@ const actor: ExternalActor = {
   position: { x: -3, y: 0, z: 5 },
 };
 
+const gatewayNode: LeafNode = {
+  id: 'gateway-1',
+  name: 'Gateway',
+  kind: 'resource',
+  layer: 'resource',
+  resourceType: 'load_balancer',
+  category: 'edge',
+  provider: 'azure',
+  parentId: 'plate-1',
+  position: { x: 0, y: 0, z: 0 },
+  metadata: {},
+};
+
+const databaseNode: LeafNode = {
+  id: 'database-1',
+  name: 'Database',
+  kind: 'resource',
+  layer: 'resource',
+  resourceType: 'relational_database',
+  category: 'data',
+  provider: 'azure',
+  parentId: 'plate-1',
+  position: { x: 1, y: 0, z: 1 },
+  metadata: {},
+};
+
 describe('ExternalActorSprite', () => {
   const addConnectionMock = vi.fn();
   const moveActorPositionMock = vi.fn();
@@ -67,24 +111,7 @@ describe('ExternalActorSprite', () => {
         ...useArchitectureStore.getState().workspace,
         architecture: {
           ...useArchitectureStore.getState().workspace.architecture,
-          blocks: [
-            {
-              id: 'gateway-1',
-              name: 'Gateway',
-              category: 'gateway',
-              placementId: 'plate-1',
-              position: { x: 0, y: 0, z: 0 },
-              metadata: {},
-            },
-            {
-              id: 'database-1',
-              name: 'Database',
-              category: 'database',
-              placementId: 'plate-1',
-              position: { x: 1, y: 0, z: 1 },
-              metadata: {},
-            },
-          ],
+          nodes: [gatewayNode, databaseNode] as ResourceNode[],
           externalActors: [actor],
         },
       },

@@ -1,4 +1,4 @@
-import type { Block, Plate, ExternalActor } from '../types/index';
+import type { ContainerNode, ExternalActor, LeafNode } from '@cloudblocks/schema';
 
 // ─── Constants ────────────────────────────────────────────
 
@@ -39,8 +39,8 @@ function toTuple(position: ExternalActor['position']): [number, number, number] 
  * Block positions are stored relative to their parent plate.
  */
 export function getBlockWorldPosition(
-  block: Block,
-  parentPlate: Plate
+  block: LeafNode,
+  parentPlate: ContainerNode
 ): [number, number, number] {
   return [
     parentPlate.position.x + block.position.x,
@@ -55,14 +55,14 @@ export function getBlockWorldPosition(
  */
 export function getEndpointWorldPosition(
   id: string,
-  blocks: Block[],
-  plates: Plate[],
+  blocks: LeafNode[],
+  plates: ContainerNode[],
   externalActors: ExternalActor[]
 ): [number, number, number] | null {
   // Check blocks
   const block = blocks.find((b) => b.id === id);
   if (block) {
-    const plate = plates.find((p) => p.id === block.placementId);
+    const plate = plates.find((p) => p.id === block.parentId);
     if (plate) {
       return getBlockWorldPosition(block, plate);
     }

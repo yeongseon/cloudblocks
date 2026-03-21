@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Block, ExternalActor, Plate } from '../types/index';
+import type { ContainerNode, ExternalActor, LeafNode } from '../types/index';
 import {
   EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
   EXTERNAL_ACTOR_LABEL_POSITION,
@@ -10,26 +10,33 @@ import {
   getEndpointWorldPosition,
 } from './position';
 
-function createPlate(id: string): Plate {
+function createPlate(id: string): ContainerNode {
   return {
     id,
     name: `Plate ${id}`,
-    type: 'subnet',
+    kind: 'container',
+    layer: 'subnet',
+    resourceType: 'subnet',
+    category: 'network',
+    provider: 'azure',
     subnetAccess: 'public',
     parentId: 'network-1',
-    children: [],
     position: { x: 10, y: 2, z: -3 },
     size: { width: 5, height: 2, depth: 4 },
     metadata: {},
   };
 }
 
-function createBlock(id: string, placementId: string): Block {
+function createBlock(id: string, parentId: string): LeafNode {
   return {
     id,
     name: `Block ${id}`,
+    kind: 'resource',
+    layer: 'resource',
+    resourceType: 'web_compute',
     category: 'compute',
-    placementId,
+    provider: 'azure',
+    parentId,
     position: { x: 4, y: 1, z: -2 },
     metadata: {},
   };

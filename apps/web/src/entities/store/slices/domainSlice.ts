@@ -1,5 +1,5 @@
 import type { PlateProfileId } from '../../../shared/types/index';
-import type { Block, Connection, ExternalActor, Plate } from '@cloudblocks/schema';
+import type { Connection, ContainerCapableResourceType, ContainerNode, ExternalActor, LeafNode, PlateType } from '@cloudblocks/schema';
 import { buildPlateSizeFromProfileId, DEFAULT_BLOCK_SIZE } from '../../../shared/types/index';
 import { generateId } from '../../../shared/utils/id';
 import type { ArchitectureSlice, ArchitectureState } from './types';
@@ -29,30 +29,49 @@ type DomainSlice = Pick<
   | 'movePlatePosition'
   | 'moveBlockPosition'
   | 'moveActorPosition'
-  | 'updateBlockConfig'
   | 'addConnection'
   | 'removeConnection'
   | 'updateConnectionType'
 >;
 
+const isContainer = (node: ContainerNode | LeafNode): node is ContainerNode =>
+  node.kind === 'container';
+
+const isResource = (node: ContainerNode | LeafNode): node is LeafNode =>
+  node.kind === 'resource';
+
+
+const CONTAINER_RESOURCE_TYPE: Record<PlateType, ContainerCapableResourceType> = {
+  global: 'virtual_network',
+  edge: 'virtual_network',
+  region: 'virtual_network',
+  zone: 'virtual_network',
+  subnet: 'subnet',
+};
+
 export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => ({
   addPlate: (type, name, parentId, subnetAccess, profileId?: PlateProfileId) => {
     set((state) => {
       const arch = state.workspace.architecture;
+      const containers = arch.nodes.filter(isContainer);
       const parentPlate = parentId
-        ? arch.plates.find((candidate) => candidate.id === parentId)
+        ? containers.find((candidate) => candidate.id === parentId)
         : undefined;
       if (parentId && !parentPlate) {
         return state;
       }
-      const plate: Plate = {
+
+      const plate: ContainerNode = {
         id: generateId('plate'),
         name,
-        type,
+        kind: 'container',
+        layer: type,
+        resourceType: CONTAINER_RESOURCE_TYPE[type],
+        category: 'network',
+        provider: 'azure',
         subnetAccess: type === 'subnet' ? subnetAccess : undefined,
         profileId,
         parentId,
-        children: [],
         position: { x: 0, y: 0, z: 0 },
         size: profileId ? buildPlateSizeFromProfileId(profileId) : { ...DEFAULT_PLATE_SIZE[type] },
         metadata: {},
@@ -61,7 +80,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       if (type === 'region') {
         plate.position = { x: 0, y: 0, z: 0 };
       } else if (parentId) {
-        const siblingsInParent = arch.plates.filter(
+        const siblingsInParent = containers.filter(
           (candidate) => candidate.parentId === parentId
         );
         const subnetSpacing = 7.0;
@@ -85,7 +104,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         };
       }
 
-      const sameLevelSiblings = arch.plates
+      const sameLevelSiblings = containers
         .filter((candidate) => candidate.parentId === (parentId ?? null))
         .map((candidate) => ({
           id: candidate.id,
@@ -101,24 +120,16 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       plate.position.x = nonOverlapping.x;
       plate.position.z = nonOverlapping.z;
 
-      let plates = [...arch.plates, plate];
-
-      if (parentId) {
-        plates = plates.map((candidate) =>
-          candidate.id === parentId
-            ? { ...candidate, children: [...candidate.children, plate.id] }
-            : candidate
-        );
-      }
-
-      return withHistory(state, { ...arch, plates });
+      return withHistory(state, { ...arch, nodes: [...arch.nodes, plate] });
     });
   },
 
   removePlate: (id) => {
     set((state) => {
       const arch = state.workspace.architecture;
-      const plate = arch.plates.find((candidate) => candidate.id === id);
+      const containers = arch.nodes.filter(isContainer);
+      const resources = arch.nodes.filter(isResource);
+      const plate = containers.find((candidate) => candidate.id === id);
 
       if (!plate) {
         return state;
@@ -127,53 +138,44 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       const idsToRemove = new Set<string>();
       const collectChildren = (plateId: string) => {
         idsToRemove.add(plateId);
-        const candidate = arch.plates.find((entry) => entry.id === plateId);
-
-        if (!candidate) {
-          return;
-        }
-
-        candidate.children.forEach((childId) => {
-          if (arch.plates.find((entry) => entry.id === childId)) {
-            collectChildren(childId);
+        for (const candidate of containers) {
+          if (candidate.parentId === plateId && !idsToRemove.has(candidate.id)) {
+            collectChildren(candidate.id);
           }
-        });
+        }
       };
 
       collectChildren(id);
 
-      const newPlates = arch.plates
-        .filter((candidate) => !idsToRemove.has(candidate.id))
-        .map((candidate) =>
-          candidate.id === plate.parentId
-            ? {
-              ...candidate,
-              children: candidate.children.filter((childId) => childId !== id),
-            }
-            : candidate
-        );
-
-      const newBlocks = arch.blocks.filter(
-        (block) => !idsToRemove.has(block.placementId)
+      const removedResourceIds = new Set(
+        resources
+          .filter((resource) => {
+            const parentId = resource.parentId;
+            return (parentId !== null && idsToRemove.has(parentId)) || idsToRemove.has(resource.id);
+          })
+          .map((resource) => resource.id)
       );
 
-      const removedBlockIds = new Set(
-        arch.blocks
-          .filter((block) => idsToRemove.has(block.placementId))
-          .map((block) => block.id)
-      );
+      const nodes = arch.nodes.filter((node) => {
+        if (idsToRemove.has(node.id)) {
+          return false;
+        }
+        if (node.kind === 'resource' && node.parentId !== null && idsToRemove.has(node.parentId)) {
+          return false;
+        }
+        return true;
+      });
 
-      const newConnections = arch.connections.filter(
+      const connections = arch.connections.filter(
         (connection) =>
-          !removedBlockIds.has(connection.sourceId) &&
-          !removedBlockIds.has(connection.targetId)
+          !removedResourceIds.has(connection.sourceId) &&
+          !removedResourceIds.has(connection.targetId)
       );
 
       return withHistory(state, {
         ...arch,
-        plates: newPlates,
-        blocks: newBlocks,
-        connections: newConnections,
+        nodes,
+        connections,
       });
     });
   },
@@ -181,36 +183,36 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
   addBlock: (category, name, placementId, provider, subtype, config) => {
     set((state) => {
       const arch = state.workspace.architecture;
-      const plate = arch.plates.find((candidate) => candidate.id === placementId);
+      const containers = arch.nodes.filter(isContainer);
+      const resources = arch.nodes.filter(isResource);
+      const plate = containers.find((candidate) => candidate.id === placementId);
 
       if (!plate) {
         return state;
       }
 
-      const existingBlocksOnPlate = arch.blocks.filter(
-        (block) => block.placementId === placementId
+      const existingBlocksOnPlate = resources.filter(
+        (block) => block.parentId === placementId
       );
 
-      const block: Block = {
+      const block: LeafNode = {
         id: generateId('block'),
         name,
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: subtype ?? category,
         category,
-        placementId,
+        provider: provider ?? 'azure',
+        parentId: placementId,
         position: nextGridPosition(existingBlocksOnPlate, plate.size),
         metadata: {},
-        provider,
-        subtype,
-        config,
+        ...(subtype ? { subtype } : {}),
+        ...(config ? { config } : {}),
       };
 
       return withHistory(state, {
         ...arch,
-        blocks: [...arch.blocks, block],
-        plates: arch.plates.map((candidate) =>
-          candidate.id === placementId
-            ? { ...candidate, children: [...candidate.children, block.id] }
-            : candidate
-        ),
+        nodes: [...arch.nodes, block],
       });
     });
   },
@@ -218,22 +220,24 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
   duplicateBlock: (blockId) => {
     set((state) => {
       const arch = state.workspace.architecture;
-      const sourceBlock = arch.blocks.find((candidate) => candidate.id === blockId);
+      const containers = arch.nodes.filter(isContainer);
+      const resources = arch.nodes.filter(isResource);
+      const sourceBlock = resources.find((candidate) => candidate.id === blockId);
 
       if (!sourceBlock) {
         return state;
       }
 
-      const parentPlate = arch.plates.find(
-        (candidate) => candidate.id === sourceBlock.placementId
+      const parentPlate = containers.find(
+        (candidate) => candidate.id === sourceBlock.parentId
       );
 
       if (!parentPlate) {
         return state;
       }
 
-      const siblingsOnPlate = arch.blocks.filter(
-        (candidate) => candidate.placementId === sourceBlock.placementId
+      const siblingsOnPlate = resources.filter(
+        (candidate) => candidate.parentId === sourceBlock.parentId
       );
 
       const unclampedPosition = nextGridPosition(siblingsOnPlate, {
@@ -253,7 +257,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         z: clampedXZ.z,
       };
 
-      const newBlock: Block = {
+      const newBlock: LeafNode = {
         ...sourceBlock,
         id: generateId('block'),
         name: `${sourceBlock.name} (copy)`,
@@ -266,12 +270,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
 
       return withHistory(state, {
         ...arch,
-        blocks: [...arch.blocks, newBlock],
-        plates: arch.plates.map((candidate) =>
-          candidate.id === sourceBlock.placementId
-            ? { ...candidate, children: [...candidate.children, newBlock.id] }
-            : candidate
-        ),
+        nodes: [...arch.nodes, newBlock],
       });
     });
   },
@@ -279,7 +278,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
   removeBlock: (id) => {
     set((state) => {
       const arch = state.workspace.architecture;
-      const block = arch.blocks.find((candidate) => candidate.id === id);
+      const block = arch.nodes.filter(isResource).find((candidate) => candidate.id === id);
 
       if (!block) {
         return state;
@@ -287,15 +286,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
 
       return withHistory(state, {
         ...arch,
-        blocks: arch.blocks.filter((candidate) => candidate.id !== id),
-        plates: arch.plates.map((candidate) =>
-          candidate.id === block.placementId
-            ? {
-              ...candidate,
-              children: candidate.children.filter((childId) => childId !== id),
-            }
-            : candidate
-        ),
+        nodes: arch.nodes.filter((candidate) => candidate.id !== id),
         connections: arch.connections.filter(
           (connection) => connection.sourceId !== id && connection.targetId !== id
         ),
@@ -306,7 +297,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
   renameBlock: (blockId, newName) => {
     set((state) => {
       const arch = state.workspace.architecture;
-      const block = arch.blocks.find((candidate) => candidate.id === blockId);
+      const block = arch.nodes.filter(isResource).find((candidate) => candidate.id === blockId);
 
       if (!block) {
         return state;
@@ -314,8 +305,10 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
 
       return withHistory(state, {
         ...arch,
-        blocks: arch.blocks.map((candidate) =>
-          candidate.id === blockId ? { ...candidate, name: newName } : candidate
+        nodes: arch.nodes.map((candidate) =>
+          candidate.id === blockId && candidate.kind === 'resource'
+            ? { ...candidate, name: newName }
+            : candidate
         ),
       });
     });
@@ -324,7 +317,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
   renamePlate: (plateId, newName) => {
     set((state) => {
       const arch = state.workspace.architecture;
-      const plate = arch.plates.find((candidate) => candidate.id === plateId);
+      const plate = arch.nodes.filter(isContainer).find((candidate) => candidate.id === plateId);
 
       if (!plate) {
         return state;
@@ -332,8 +325,10 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
 
       return withHistory(state, {
         ...arch,
-        plates: arch.plates.map((candidate) =>
-          candidate.id === plateId ? { ...candidate, name: newName } : candidate
+        nodes: arch.nodes.map((candidate) =>
+          candidate.id === plateId && candidate.kind === 'container'
+            ? { ...candidate, name: newName }
+            : candidate
         ),
       });
     });
@@ -342,18 +337,20 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
   moveBlock: (blockId, newPlacementId) => {
     set((state) => {
       const arch = state.workspace.architecture;
-      const block = arch.blocks.find((candidate) => candidate.id === blockId);
+      const containers = arch.nodes.filter(isContainer);
+      const resources = arch.nodes.filter(isResource);
+      const block = resources.find((candidate) => candidate.id === blockId);
 
       if (!block) {
         return state;
       }
 
-      const oldPlacementId = block.placementId;
+      const oldPlacementId = block.parentId;
       if (oldPlacementId === newPlacementId) {
         return state;
       }
 
-      const targetPlate = arch.plates.find(
+      const targetPlate = containers.find(
         (candidate) => candidate.id === newPlacementId
       );
 
@@ -361,43 +358,28 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         return state;
       }
 
-      if (validatePlacement(block, targetPlate) !== null) {
+      const placementProbe = { ...block, placementId: newPlacementId };
+      const targetProbe = { ...targetPlate, type: targetPlate.layer };
+      if (validatePlacement(placementProbe, targetProbe) !== null) {
         return state;
       }
 
-      const blocksOnTarget = arch.blocks.filter(
-        (candidate) => candidate.placementId === newPlacementId
+      const blocksOnTarget = resources.filter(
+        (candidate) => candidate.parentId === newPlacementId
       );
       const newPosition = nextGridPosition(blocksOnTarget, targetPlate.size);
 
       return withHistory(state, {
         ...arch,
-        blocks: arch.blocks.map((candidate) =>
-          candidate.id === blockId
+        nodes: arch.nodes.map((candidate) =>
+          candidate.id === blockId && candidate.kind === 'resource'
             ? {
               ...candidate,
-              placementId: newPlacementId,
+              parentId: newPlacementId,
               position: newPosition,
             }
             : candidate
         ),
-        plates: arch.plates.map((candidate) => {
-          if (candidate.id === oldPlacementId) {
-            return {
-              ...candidate,
-              children: candidate.children.filter((childId) => childId !== blockId),
-            };
-          }
-
-          if (candidate.id === newPlacementId) {
-            return {
-              ...candidate,
-              children: [...candidate.children, blockId],
-            };
-          }
-
-          return candidate;
-        }),
       });
     });
   },
@@ -405,25 +387,28 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
   setPlateProfile: (plateId, profileId) => {
     set((state) => {
       const arch = state.workspace.architecture;
-      const plate = arch.plates.find((candidate) => candidate.id === plateId);
+      const containers = arch.nodes.filter(isContainer);
+      const plate = containers.find((candidate) => candidate.id === plateId);
 
       if (!plate || plate.profileId === profileId) {
         return state;
       }
 
       const nextSize = buildPlateSizeFromProfileId(profileId);
-      const resizedPlate = {
+      const resizedPlate: ContainerNode = {
         ...plate,
         profileId,
         size: nextSize,
       };
 
-      let plates = arch.plates.map((candidate) =>
-        candidate.id === plateId ? resizedPlate : candidate
+      let nodes = arch.nodes.map((candidate) =>
+        candidate.id === plateId && candidate.kind === 'container'
+          ? resizedPlate
+          : candidate
       );
 
       if (plate.parentId) {
-        const parentPlate = arch.plates.find((candidate) => candidate.id === plate.parentId);
+        const parentPlate = containers.find((candidate) => candidate.id === plate.parentId);
         if (parentPlate) {
           const relativePosition = {
             x: plate.position.x - parentPlate.position.x,
@@ -435,8 +420,8 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
             { width: nextSize.width, depth: nextSize.depth }
           );
 
-          plates = plates.map((candidate) =>
-            candidate.id === plateId
+          nodes = nodes.map((candidate) =>
+            candidate.id === plateId && candidate.kind === 'container'
               ? {
                 ...candidate,
                 position: {
@@ -450,10 +435,20 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         }
       }
 
-      const finalPlate = plates.find((candidate) => candidate.id === plateId)!;
+      const finalPlate = nodes.find(
+        (candidate): candidate is ContainerNode =>
+          candidate.kind === 'container' && candidate.id === plateId
+      );
 
-      plates = plates.map((candidate) => {
-        if (candidate.parentId !== plateId) return candidate;
+      if (!finalPlate) {
+        return state;
+      }
+
+      nodes = nodes.map((candidate) => {
+        if (candidate.kind !== 'container' || candidate.parentId !== plateId) {
+          return candidate;
+        }
+
         const relPos = {
           x: candidate.position.x - finalPlate.position.x,
           z: candidate.position.z - finalPlate.position.z,
@@ -473,27 +468,31 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         };
       });
 
-      const blocks = arch.blocks.map((block) => {
-        if (block.placementId !== plateId) return block;
+      nodes = nodes.map((candidate) => {
+        if (candidate.kind !== 'resource' || candidate.parentId !== plateId) {
+          return candidate;
+        }
+
         const clamped = clampWithinParent(
-          { x: block.position.x, z: block.position.z },
+          { x: candidate.position.x, z: candidate.position.z },
           { width: nextSize.width, depth: nextSize.depth },
           DEFAULT_BLOCK_SIZE,
         );
         return {
-          ...block,
-          position: { x: clamped.x, y: block.position.y, z: clamped.z },
+          ...candidate,
+          position: { x: clamped.x, y: candidate.position.y, z: clamped.z },
         };
       });
 
-      return withHistory(state, { ...arch, plates, blocks });
+      return withHistory(state, { ...arch, nodes });
     });
   },
 
   movePlatePosition: (id, deltaX, deltaZ) => {
     set((state) => {
       const arch = state.workspace.architecture;
-      const plate = arch.plates.find((candidate) => candidate.id === id);
+      const containers = arch.nodes.filter(isContainer);
+      const plate = containers.find((candidate) => candidate.id === id);
 
       if (!plate) {
         return state;
@@ -503,7 +502,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       let appliedDeltaZ = deltaZ;
 
       if (plate.parentId) {
-        const parentPlate = arch.plates.find(
+        const parentPlate = containers.find(
           (candidate) => candidate.id === plate.parentId
         );
 
@@ -531,7 +530,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         }
       }
 
-      const sameLevelSiblings = arch.plates
+      const sameLevelSiblings = containers
         .filter((candidate) => candidate.parentId === (plate.parentId ?? null) && candidate.id !== id)
         .map((candidate) => ({
           id: candidate.id,
@@ -554,7 +553,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
 
       const descendantIds = new Set<string>([id]);
       const collectDescendants = (parentId: string) => {
-        for (const candidate of arch.plates) {
+        for (const candidate of containers) {
           if (candidate.parentId === parentId && !descendantIds.has(candidate.id)) {
             descendantIds.add(candidate.id);
             collectDescendants(candidate.id);
@@ -563,8 +562,8 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       };
       collectDescendants(id);
 
-      const plates = arch.plates.map((candidate) => {
-        if (descendantIds.has(candidate.id)) {
+      const nodes = arch.nodes.map((candidate) => {
+        if (candidate.kind === 'container' && descendantIds.has(candidate.id)) {
           return {
             ...candidate,
             position: {
@@ -578,21 +577,23 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         return candidate;
       });
 
-      return withHistory(state, { ...arch, plates });
+      return withHistory(state, { ...arch, nodes });
     });
   },
 
   moveBlockPosition: (id, deltaX, deltaZ) => {
     set((state) => {
       const arch = state.workspace.architecture;
-      const block = arch.blocks.find((candidate) => candidate.id === id);
+      const containers = arch.nodes.filter(isContainer);
+      const resources = arch.nodes.filter(isResource);
+      const block = resources.find((candidate) => candidate.id === id);
 
       if (!block) {
         return state;
       }
 
-      const parentPlate = arch.plates.find(
-        (candidate) => candidate.id === block.placementId
+      const parentPlate = containers.find(
+        (candidate) => candidate.id === block.parentId
       );
 
       if (!parentPlate) {
@@ -609,8 +610,8 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         { width: DEFAULT_BLOCK_SIZE.width, depth: DEFAULT_BLOCK_SIZE.depth }
       );
 
-      const blocks = arch.blocks.map((candidate) => {
-        if (candidate.id === id) {
+      const nodes = arch.nodes.map((candidate) => {
+        if (candidate.id === id && candidate.kind === 'resource') {
           return {
             ...candidate,
             position: {
@@ -623,7 +624,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         return candidate;
       });
 
-      return withHistory(state, { ...arch, blocks });
+      return withHistory(state, { ...arch, nodes });
     });
   },
 
@@ -666,11 +667,12 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       return false;
     }
 
-    const sourceBlock = arch.blocks.find((block) => block.id === sourceId);
+    const resources = arch.nodes.filter(isResource);
+    const sourceBlock = resources.find((block) => block.id === sourceId);
     const sourceActor = arch.externalActors.find((actor) => actor.id === sourceId);
     const sourceType: EndpointType | null = sourceBlock?.category ?? sourceActor?.type ?? null;
 
-    const targetBlock = arch.blocks.find((block) => block.id === targetId);
+    const targetBlock = resources.find((block) => block.id === targetId);
     const targetActor = arch.externalActors.find((actor) => actor.id === targetId);
     const targetType: EndpointType | null = targetBlock?.category ?? targetActor?.type ?? null;
 
@@ -708,20 +710,6 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         ...arch,
         connections: arch.connections.filter(
           (connection) => connection.id !== id
-        ),
-      });
-    });
-  },
-
-  updateBlockConfig: (blockId, config) => {
-    set((state) => {
-      const arch = state.workspace.architecture;
-      const existing = arch.blocks.find((b) => b.id === blockId);
-      if (!existing) return state;
-      return withHistory(state, {
-        ...arch,
-        blocks: arch.blocks.map((b) =>
-          b.id === blockId ? { ...b, config: { ...b.config, ...config } } : b,
         ),
       });
     });

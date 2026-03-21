@@ -8,30 +8,37 @@
 export type LayerType = 'global' | 'edge' | 'region' | 'zone' | 'subnet' | 'resource';
 
 /**
- * Plate types — a subset of LayerType (excludes 'resource').
- * Plates are visual containers that hold blocks and child plates.
+ * Node kind discriminator for the ResourceNode union.
+ * - container: holds child nodes (VNet, Subnet, Resource Group, etc.)
+ * - resource: leaf resource that cannot contain children (VM, SQL DB, etc.)
  */
-export type PlateType = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
+export type NodeKind = 'container' | 'resource';
+
+/**
+ * Resource categories — the 7 canonical resource groups.
+ *
+ * Migration from 10 → 7:
+ *   compute   → compute   (was compute + function)
+ *   data      → data      (was database + storage)
+ *   edge      → edge      (was gateway)
+ *   security  → security  (was identity)
+ *   operations → operations (was analytics + observability)
+ *   messaging → messaging  (was queue + event) — empty in MVP
+ *   network   → network   (new — containers like VNet, Subnet)
+ */
+export type ResourceCategory =
+  | 'network'
+  | 'security'
+  | 'edge'
+  | 'compute'
+  | 'data'
+  | 'messaging'
+  | 'operations';
 
 /**
  * Subnet access visibility.
  */
 export type SubnetAccess = 'public' | 'private';
-
-/**
- * Block resource categories — the 10 canonical resource types.
- */
-export type BlockCategory =
-  | 'compute'
-  | 'database'
-  | 'storage'
-  | 'gateway'
-  | 'function'
-  | 'queue'
-  | 'event'
-  | 'analytics'
-  | 'identity'
-  | 'observability';
 
 /**
  * Cloud provider identifiers (alphabetical order — canonical).
@@ -45,7 +52,7 @@ export type AggregationMode = 'single' | 'count';
 
 /**
  * Block role indicators (v2.0 §9).
- * Visual-only annotations that describe the function of a block.
+ * Visual-only annotations that describe the function of a node.
  */
 export type BlockRole =
   | 'primary'
@@ -58,7 +65,17 @@ export type BlockRole =
   | 'external';
 
 /**
- * Connection protocol/type between blocks.
+ * Connection protocol/type between resource nodes.
  * Direction represents the **initiator** of the request.
  */
 export type ConnectionType = 'dataflow' | 'http' | 'internal' | 'data' | 'async';
+
+// ---------------------------------------------------------------------------
+// Deprecated aliases — kept temporarily for migration, will be removed post-M19
+// ---------------------------------------------------------------------------
+
+/** @deprecated Use ResourceCategory instead. */
+export type BlockCategory = ResourceCategory;
+
+/** @deprecated PlateType is removed in the unified model. Use LayerType + NodeKind='container'. */
+export type PlateType = 'global' | 'edge' | 'region' | 'zone' | 'subnet';

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import type { BlockCategory, ProviderType } from '@cloudblocks/schema';
+import type { ProviderType, ResourceCategory } from '@cloudblocks/schema';
 
 export type ResourceType =
   | 'network'
@@ -31,7 +31,7 @@ export interface ResourceDefinition {
   shortLabel: string;
   icon: string;
   category: 'plate' | 'always' | 'vnet-optional' | 'vnet-required';
-  blockCategory: BlockCategory | null;
+  blockCategory: ResourceCategory | null;
   disabledReason?: string;
 }
 
@@ -70,7 +70,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'Storage',
     icon: '📦',
     category: 'always',
-    blockCategory: 'storage',
+    blockCategory: 'data',
   },
   dns: {
     id: 'dns',
@@ -78,7 +78,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'DNS',
     icon: '🌐',
     category: 'always',
-    blockCategory: 'gateway', // Using gateway category for edge services
+    blockCategory: 'edge',
   },
   cdn: {
     id: 'cdn',
@@ -86,7 +86,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'CDN',
     icon: '⚡',
     category: 'always',
-    blockCategory: 'gateway',
+    blockCategory: 'edge',
   },
   'front-door': {
     id: 'front-door',
@@ -94,7 +94,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'FrontDoor',
     icon: '🚪',
     category: 'always',
-    blockCategory: 'gateway',
+    blockCategory: 'edge',
   },
 
   // VNet optional (public-first, can add private later)
@@ -104,7 +104,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'SQL',
     icon: '🗄️',
     category: 'vnet-optional',
-    blockCategory: 'database',
+    blockCategory: 'data',
   },
   function: {
     id: 'function',
@@ -112,7 +112,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'Func',
     icon: '⚡',
     category: 'vnet-optional',
-    blockCategory: 'function',
+    blockCategory: 'compute',
   },
   queue: {
     id: 'queue',
@@ -120,7 +120,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'Queue',
     icon: '📨',
     category: 'vnet-optional',
-    blockCategory: 'queue',
+    blockCategory: 'messaging',
   },
   event: {
     id: 'event',
@@ -128,7 +128,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'Event',
     icon: '🔔',
     category: 'vnet-optional',
-    blockCategory: 'event',
+    blockCategory: 'messaging',
   },
   'app-service': {
     id: 'app-service',
@@ -136,7 +136,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'AppSvc',
     icon: '🌐',
     category: 'vnet-optional',
-    blockCategory: 'function',
+    blockCategory: 'compute',
   },
   'container-instances': {
     id: 'container-instances',
@@ -152,7 +152,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'Cosmos',
     icon: '🌍',
     category: 'vnet-optional',
-    blockCategory: 'database',
+    blockCategory: 'data',
   },
   'key-vault': {
     id: 'key-vault',
@@ -160,7 +160,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'KeyVault',
     icon: '🔐',
     category: 'vnet-optional',
-    blockCategory: 'identity',
+    blockCategory: 'security',
   },
 
   // VNet required
@@ -188,7 +188,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'IntLB',
     icon: '⚖️',
     category: 'vnet-required',
-    blockCategory: 'gateway',
+    blockCategory: 'edge',
     disabledReason: 'Create a Network first. Internal load balancers distribute traffic within a network.',
   },
   firewall: {
@@ -197,7 +197,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'FW',
     icon: '🛡️',
     category: 'vnet-required',
-    blockCategory: 'gateway',
+    blockCategory: 'edge',
     disabledReason: 'Create a Network first. Firewalls protect traffic entering your network.',
   },
   nsg: {
@@ -206,7 +206,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'NSG',
     icon: '🔒',
     category: 'vnet-required',
-    blockCategory: 'gateway',
+    blockCategory: 'edge',
     disabledReason: 'Create a Network first. NSGs filter traffic at the network level.',
   },
   bastion: {
@@ -215,7 +215,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'Bastion',
     icon: '🏰',
     category: 'vnet-required',
-    blockCategory: 'gateway',
+    blockCategory: 'edge',
     disabledReason: 'Create a Network first. Bastion provides secure VM access through a virtual network.',
   },
 };
@@ -364,8 +364,10 @@ export function useTechTree(): TechTreeState {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
 
   return useMemo(() => {
-    const networkPlates = architecture.plates.filter((p) => p.type === 'region');
-    const subnetPlates = architecture.plates.filter((p) => p.type === 'subnet');
+    const containers = architecture.nodes.filter((node) => node.kind === 'container');
+    const resources = architecture.nodes.filter((node) => node.kind === 'resource');
+    const networkPlates = containers.filter((p) => p.layer === 'region');
+    const subnetPlates = containers.filter((p) => p.layer === 'subnet');
     const hasVNet = networkPlates.length > 0;
     const hasSubnet = subnetPlates.length > 0;
 
@@ -440,12 +442,12 @@ export function useTechTree(): TechTreeState {
     return {
       hasVNet,
       hasSubnet,
-      blockCount: architecture.blocks.length,
-      plateCount: architecture.plates.length,
+      blockCount: resources.length,
+      plateCount: containers.length,
       isEnabled,
       getDisabledReason,
       getCreationResources,
       getTargetPlateId,
     };
-  }, [architecture.plates, architecture.blocks.length]);
+  }, [architecture.nodes]);
 }

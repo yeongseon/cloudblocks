@@ -81,7 +81,7 @@ CloudBlocks uses a **Lego-style composition model** where everything snaps toget
 | Feature | Description |
 |---------|-------------|
 | **Visual Builder** | Drag-and-drop editor with grid snapping and auto-layout |
-| **10 Resource Categories** | Compute, database, storage, gateway, function, queue, event, analytics, identity, observability |
+| **7 Resource Categories** | Network, security, edge, compute, data, messaging, operations |
 | **Multi-Cloud Output** | Generate Terraform (HCL — HashiCorp Configuration Language), Bicep (Azure Resource Manager), or Pulumi (TypeScript) |
 | **Validation Engine** | Real-time rule checking for placement, connections, and constraints |
 | **AI Assistant** | Natural language to architecture, smart suggestions, cost estimation (requires backend) |

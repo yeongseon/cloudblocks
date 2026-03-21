@@ -1,4 +1,4 @@
-import type { Block, Connection, ConnectionType, ExternalActor, BlockCategory } from '@cloudblocks/schema';
+import type { LeafNode, Connection, ConnectionType, ExternalActor, ResourceCategory } from '@cloudblocks/schema';
 import type { ValidationError } from '@cloudblocks/domain';
 
 /**
@@ -9,35 +9,26 @@ import type { ValidationError } from '@cloudblocks/domain';
  * Responses are implied and do not require a reverse connection.
  *
  * Allowed connections:
- *   Internet  → Gateway               ✔  (external traffic enters through gateway)
- *   Gateway   → Compute               ✔  (gateway forwards to compute)
- *   Gateway   → Function              ✔  (HTTP trigger, v1.0)
- *   Compute   → Database              ✔  (app queries database)
- *   Compute   → Storage               ✔  (app reads/writes storage)
- *   Compute   → Analytics             ✔  (app emits/query analytics)
- *   Compute   → Identity              ✔  (app uses identity services)
- *   Compute   → Observability         ✔  (app publishes metrics/logs)
- *   Function  → Storage               ✔  (function accesses storage, v1.0)
- *   Function  → Database              ✔  (function accesses database, v1.0)
- *   Function  → Queue                 ✔  (function enqueues messages, v1.0)
- *   Queue     → Function              ✔  (queue trigger, v1.0)
- *   Event     → Function              ✔  (event trigger, v1.0)
+ *   Internet  → Edge                  ✔  (external traffic enters through edge)
+ *   Edge      → Compute               ✔  (edge forwards to compute)
+ *   Compute   → Data                  ✔  (app queries/writes data resources)
+ *   Compute   → Operations            ✔  (app emits metrics/logs/traces)
+ *   Compute   → Security              ✔  (app uses identity/security services)
+ *   Compute   → Messaging             ✔  (app publishes messages/events)
+ *   Messaging → Compute               ✔  (message/event trigger)
  *
- * Database, Storage, Analytics, Identity, and Observability are receiver-only — they never initiate connections.
- * Queue and Event can only connect to Function.
+ * Data, Security, Operations, and Network are receiver-only — they never initiate connections.
  */
 
-export type EndpointType = BlockCategory | 'internet';
+export type EndpointType = ResourceCategory | 'internet';
 
 /** Map of allowed connections: source (initiator) → Set<target (receiver)> */
 const ALLOWED_CONNECTIONS: Record<string, Set<string>> = {
-  internet: new Set(['gateway']),
-  gateway: new Set(['compute', 'function']),
-  compute: new Set(['database', 'storage', 'analytics', 'identity', 'observability']),
-  function: new Set(['storage', 'database', 'queue']),
-  queue: new Set(['function']),
-  event: new Set(['function']),
-  // database and storage are receiver-only — not listed as sources
+  internet: new Set(['edge']),
+  edge: new Set(['compute']),
+  compute: new Set(['data', 'operations', 'security', 'messaging']),
+  messaging: new Set(['compute']),
+  // data, security, operations, and network are receiver-only — not listed as sources
 };
 
 // ─── Visual Style Constants (v2.0) ──────────────────────────
@@ -68,11 +59,11 @@ export const CONNECTION_VISUAL_STYLES: Record<ConnectionType, ConnectionVisualSt
 
 function getEndpointType(
   id: string,
-  blocks: Block[],
+  resources: LeafNode[],
   externalActors: ExternalActor[]
 ): EndpointType | null {
-  const block = blocks.find((b) => b.id === id);
-  if (block) return block.category;
+  const resource = resources.find((r) => r.id === id);
+  if (resource) return resource.category;
 
   const actor = externalActors.find((a) => a.id === id);
   if (actor) return actor.type;
@@ -82,17 +73,17 @@ function getEndpointType(
 
 export function validateConnection(
   connection: Connection,
-  blocks: Block[],
+  resources: LeafNode[],
   externalActors: ExternalActor[]
 ): ValidationError | null {
   const sourceType = getEndpointType(
     connection.sourceId,
-    blocks,
+    resources,
     externalActors
   );
   const targetType = getEndpointType(
     connection.targetId,
-    blocks,
+    resources,
     externalActors
   );
 

@@ -16,15 +16,31 @@ import * as hintEngine from './hint-engine';
 import { registerBuiltinScenarios } from './scenarios/builtin';
 import { clearScenarioRegistry, getScenario } from './scenarios/registry';
 import type { ArchitectureSnapshot } from '../../shared/types/learning';
+import type { ContainerNode } from '@cloudblocks/schema';
 
 const EMPTY_ARCHITECTURE: ArchitectureSnapshot = {
   name: 'Empty Test Architecture',
   version: '1',
-  plates: [],
-  blocks: [],
+  nodes: [],
   connections: [],
   externalActors: [],
 };
+
+function createRegionNode(id: string, name: string): ContainerNode {
+  return {
+    id,
+    name,
+    kind: 'container',
+    layer: 'region',
+    resourceType: 'virtual_network',
+    category: 'network',
+    provider: 'azure',
+    parentId: null,
+    position: { x: 0, y: 0, z: 0 },
+    size: { width: 12, height: 0.3, depth: 10 },
+    metadata: {},
+  };
+}
 
 function resetLearningStore(): void {
   useLearningStore.setState({
@@ -77,8 +93,7 @@ function architectureSnapshot(): ArchitectureSnapshot {
   return {
     name: architecture.name,
     version: architecture.version,
-    plates: architecture.plates,
-    blocks: architecture.blocks,
+    nodes: architecture.nodes,
     connections: architecture.connections,
     externalActors: architecture.externalActors,
   };
@@ -147,18 +162,7 @@ describe('scenario-engine', () => {
       useArchitectureStore.getState().replaceArchitecture({
         ...EMPTY_ARCHITECTURE,
         name: 'With Network',
-        plates: [
-          {
-            id: 'test-network',
-            name: 'VNet',
-            type: 'region',
-            parentId: null,
-            children: [],
-            position: { x: 0, y: 0, z: 0 },
-            size: { width: 12, height: 0.3, depth: 10 },
-            metadata: {},
-          },
-        ],
+        nodes: [createRegionNode('test-network', 'VNet')],
       });
 
       expect(useLearningStore.getState().isCurrentStepComplete).toBe(true);
@@ -168,18 +172,7 @@ describe('scenario-engine', () => {
       useArchitectureStore.getState().replaceArchitecture({
         ...EMPTY_ARCHITECTURE,
         name: 'Prepopulated',
-        plates: [
-          {
-            id: 'existing-network',
-            name: 'Old Network',
-            type: 'region',
-            parentId: null,
-            children: [],
-            position: { x: 0, y: 0, z: 0 },
-            size: { width: 12, height: 0.3, depth: 10 },
-            metadata: {},
-          },
-        ],
+        nodes: [createRegionNode('existing-network', 'Old Network')],
       });
 
       startLearningScenario('scenario-three-tier');
@@ -348,8 +341,7 @@ describe('scenario-engine', () => {
       const customArch: ArchitectureSnapshot = {
         name: 'User Work',
         version: '1',
-        plates: [],
-        blocks: [],
+        nodes: [],
         connections: [],
         externalActors: [],
       };
@@ -501,18 +493,7 @@ describe('scenario-engine', () => {
       useArchitectureStore.getState().replaceArchitecture({
         ...EMPTY_ARCHITECTURE,
         name: 'After stop',
-        plates: [
-          {
-            id: 'restart-network',
-            name: 'VNet',
-            type: 'region',
-            parentId: null,
-            children: [],
-            position: { x: 0, y: 0, z: 0 },
-            size: { width: 12, height: 0.3, depth: 10 },
-            metadata: {},
-          },
-        ],
+        nodes: [createRegionNode('restart-network', 'VNet')],
       });
 
       expect(useLearningStore.getState().isCurrentStepComplete).toBe(true);

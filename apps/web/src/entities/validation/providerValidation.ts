@@ -1,37 +1,45 @@
-import type { ArchitectureModel, Block, Plate } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerNode, LeafNode, ResourceCategory } from '@cloudblocks/schema';
 import type { ValidationError } from '@cloudblocks/domain';
 
-const KNOWN_SUBTYPES: Record<string, Record<string, string[]>> = {
+const KNOWN_SUBTYPES: Record<string, Partial<Record<ResourceCategory, string[]>>> = {
   aws: {
     compute: ['ec2', 'ecs', 'lambda'],
-    database: ['rds-postgres', 'dynamodb'],
-    storage: ['s3'],
-    gateway: ['alb', 'api-gateway'],
+    data: ['rds-postgres', 'dynamodb', 's3'],
+    edge: ['alb', 'api-gateway'],
+    messaging: ['sqs', 'sns', 'eventbridge'],
+    operations: ['cloudwatch'],
+    security: ['iam', 'kms'],
+    network: ['vpc', 'route-53'],
   },
   gcp: {
     compute: ['compute-engine', 'cloud-run', 'cloud-functions'],
-    database: ['cloud-sql-postgres', 'firestore'],
-    storage: ['cloud-storage'],
-    gateway: ['cloud-load-balancing', 'api-gateway'],
+    data: ['cloud-sql-postgres', 'firestore', 'cloud-storage'],
+    edge: ['cloud-load-balancing', 'api-gateway'],
+    messaging: ['pub-sub', 'eventarc'],
+    operations: ['cloud-monitoring', 'cloud-iam'],
+    network: ['vpc', 'cloud-dns'],
   },
   azure: {
     compute: ['vm', 'container-instances', 'functions'],
-    database: ['sql-database', 'cosmos-db'],
-    storage: ['blob-storage'],
-    gateway: ['application-gateway', 'api-management'],
+    data: ['sql-database', 'cosmos-db', 'blob-storage'],
+    edge: ['application-gateway', 'api-management'],
+    messaging: ['service-bus', 'event-grid', 'event-hubs'],
+    operations: ['azure-monitor'],
+    security: ['azure-firewall', 'entra-id'],
+    network: ['vnet', 'azure-dns'],
   },
 };
 
 function validateBlockProviderRules(
-  block: Block,
-  plate: Plate | undefined
+  block: LeafNode,
+  plate: ContainerNode | undefined
 ): ValidationError[] {
   const warnings: ValidationError[] = [];
 
   if (
     block.provider === 'aws' &&
     block.subtype === 'lambda' &&
-    plate?.type === 'subnet'
+    plate?.layer === 'subnet'
   ) {
     warnings.push({
       ruleId: 'rule-provider-aws-lambda-subnet',
@@ -46,7 +54,7 @@ function validateBlockProviderRules(
   if (
     block.provider === 'gcp' &&
     block.subtype === 'cloud-sql-postgres' &&
-    plate?.type === 'subnet' &&
+    plate?.layer === 'subnet' &&
     plate.subnetAccess === 'public'
   ) {
     warnings.push({
@@ -78,9 +86,11 @@ function validateBlockProviderRules(
 
 export function validateProviderRules(model: ArchitectureModel): ValidationError[] {
   const warnings: ValidationError[] = [];
+  const blocks = model.nodes.filter((n): n is LeafNode => n.kind === 'resource');
+  const plates = model.nodes.filter((n): n is ContainerNode => n.kind === 'container');
 
-  for (const block of model.blocks) {
-    const plate = model.plates.find((p) => p.id === block.placementId);
+  for (const block of blocks) {
+    const plate = plates.find((p) => p.id === block.parentId);
     warnings.push(...validateBlockProviderRules(block, plate));
   }
 

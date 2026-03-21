@@ -9,13 +9,18 @@ import type { SoundName } from '../../shared/utils/audioService';
 
 import { PlateSprite } from '../../entities/plate/PlateSprite';
 import { BlockSprite } from '../../entities/block/BlockSprite';
+import { BrickConnector } from '../../entities/connection/BrickConnector';
 import { ExternalActorSprite } from '../../entities/connection/ExternalActorSprite';
 import { EmptyCanvasOverlay } from './EmptyCanvasOverlay';
 import { DragGhost } from './DragGhost';
+import { ConnectionPreview } from './ConnectionPreview';
+import type { ContainerNode, LeafNode } from '@cloudblocks/schema';
 import './SceneCanvas.css';
 
 export function SceneCanvas() {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
+  const plates = architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+  const blocks = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
   const addBlock = useArchitectureStore((s) => s.addBlock);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const interactionState = useUIStore((s) => s.interactionState);
@@ -105,10 +110,11 @@ export function SceneCanvas() {
       const plateId = plateContainer?.getAttribute('data-plate-id');
 
       if (plateId) {
-          const plate = architecture.plates.find((p) => p.id === plateId);
+          const plate = plates.find((p) => p.id === plateId);
           if (plate && canPlaceBlock(draggedBlockCategory, plate)) {
             addBlock(draggedBlockCategory, draggedResourceName, plateId, activeProvider);
             playSound('block-snap');
+
           }
       }
       completeInteraction();
@@ -145,6 +151,7 @@ export function SceneCanvas() {
     }
   }, [handleWheel]);
 
+
   return (
     <div 
       className="scene-viewport" 
@@ -161,7 +168,7 @@ export function SceneCanvas() {
         }}
       >
         <div className="plate-layer">
-          {[...architecture.plates]
+          {[...plates]
             .sort((a, b) => {
               const levelA = a.parentId ? 1 : 0;
               const levelB = b.parentId ? 1 : 0;
@@ -188,6 +195,18 @@ export function SceneCanvas() {
         
         <svg className="connection-layer" style={{ width: 1, height: 1 }}>
           <title>Connections</title>
+          {architecture.connections.map((conn) => (
+            <BrickConnector
+              key={conn.id}
+              connection={conn}
+              blocks={blocks}
+              plates={plates}
+              externalActors={architecture.externalActors}
+              originX={origin.x}
+              originY={origin.y}
+            />
+          ))}
+          <ConnectionPreview originX={origin.x} originY={origin.y} />
           <g className="drag-ghost-layer">
             <DragGhost
               containerRef={containerRef}
@@ -217,9 +236,10 @@ export function SceneCanvas() {
           })}
         </div>
 
+
         <div className="block-layer">
-          {architecture.blocks.map((block) => {
-            const parentPlate = architecture.plates.find((p) => p.id === block.placementId);
+          {blocks.map((block) => {
+            const parentPlate = plates.find((p) => p.id === block.parentId);
             if (!parentPlate) return null;
             const worldX = parentPlate.position.x + block.position.x;
             const worldY = parentPlate.position.y + parentPlate.size.height;

@@ -16,8 +16,7 @@ function makeTemplate(
     architecture: {
       name: `Architecture ${id}`,
       version: '1',
-      plates: [],
-      blocks: [],
+      nodes: [],
       connections: [],
       externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
     },

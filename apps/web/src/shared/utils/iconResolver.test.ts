@@ -1,11 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { getBlockIconUrl, getPlateIconUrl } from './iconResolver';
-import type { BlockCategory, PlateType, ProviderType } from '@cloudblocks/schema';
+import type { LayerType, ProviderType, ResourceCategory } from '@cloudblocks/schema';
 
 describe('getBlockIconUrl', () => {
-  const ALL_CATEGORIES: BlockCategory[] = [
-    'compute', 'database', 'storage', 'gateway', 'function',
-    'queue', 'event', 'analytics', 'identity', 'observability',
+  const ALL_CATEGORIES: ResourceCategory[] = [
+    'compute', 'data', 'edge', 'messaging', 'operations', 'security',
   ];
   const ALL_PROVIDERS: ProviderType[] = ['azure', 'aws', 'gcp'];
 
@@ -45,7 +44,7 @@ describe('getBlockIconUrl', () => {
 });
 
 describe('getPlateIconUrl', () => {
-  const ALL_PLATE_TYPES: PlateType[] = ['global', 'edge', 'region', 'zone', 'subnet'];
+  const ALL_PLATE_TYPES: LayerType[] = ['global', 'edge', 'region', 'zone', 'subnet'];
 
   it.each(ALL_PLATE_TYPES)(
     'returns a non-empty string for plate type %s',
@@ -63,7 +62,7 @@ describe('getPlateIconUrl', () => {
   });
 
   it('all network-layer plates share the same icon', () => {
-    const networkTypes: PlateType[] = ['global', 'edge', 'region', 'zone'];
+    const networkTypes: LayerType[] = ['global', 'edge', 'region', 'zone'];
     const urls = networkTypes.map((t) => getPlateIconUrl(t));
     const unique = new Set(urls);
     expect(unique.size).toBe(1);

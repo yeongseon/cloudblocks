@@ -1,49 +1,64 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { DetailPanel } from './DetailPanel';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import type { ArchitectureModel, Block, Connection, ExternalActor, Plate } from '@cloudblocks/schema';
+import type { ArchitectureModel, Connection, ExternalActor, ContainerNode, LeafNode } from '@cloudblocks/schema';
 
 vi.mock('./DetailPanel.css', () => ({}));
 
-const networkPlate: Plate = {
+const networkPlate: ContainerNode = {
   id: 'net-1',
   name: 'Main VNet',
-  type: 'region',
+  kind: 'container',
+  layer: 'region',
+  resourceType: 'virtual_network',
+  category: 'network',
+  provider: 'azure',
   parentId: null,
-  children: [],
   position: { x: 0, y: 0, z: 0 },
   size: { width: 16, height: 0.3, depth: 20 },
   metadata: {},
 };
 
-const publicSubnet: Plate = {
+const publicSubnet: ContainerNode = {
   id: 'subnet-1',
   name: 'Public Subnet',
-  type: 'subnet',
+  kind: 'container',
+  layer: 'subnet',
+  resourceType: 'subnet',
+  category: 'network',
+  provider: 'azure',
   subnetAccess: 'public',
   parentId: 'net-1',
-  children: [],
   position: { x: 1, y: 0, z: 1 },
   size: { width: 6, height: 0.3, depth: 8 },
   metadata: {},
 };
 
-const sourceBlock: Block = {
+const sourceBlock: LeafNode = {
   id: 'block-1',
   name: 'App VM',
+  kind: 'resource',
+  layer: 'resource',
+  resourceType: 'web_compute',
   category: 'compute',
-  placementId: 'subnet-1',
+  provider: 'azure',
+  parentId: 'subnet-1',
   position: { x: 1.2, y: 2.4, z: 0 },
   metadata: {},
 };
 
-const targetBlock: Block = {
+const targetBlock: LeafNode = {
   id: 'block-2',
   name: 'SQL DB',
-  category: 'database',
-  placementId: 'subnet-1',
+  kind: 'resource',
+  layer: 'resource',
+  resourceType: 'relational_database',
+  category: 'data',
+  provider: 'azure',
+  parentId: 'subnet-1',
   position: { x: 3.5, y: 4.1, z: 0 },
   metadata: {},
 };
@@ -60,8 +75,7 @@ const architectureWithResources: ArchitectureModel = {
   id: 'arch-1',
   name: 'Test Architecture',
   version: '1.0.0',
-  plates: [networkPlate, publicSubnet],
-  blocks: [sourceBlock, targetBlock],
+  nodes: [networkPlate, publicSubnet, sourceBlock, targetBlock],
   connections: [connection],
   externalActors: [],
   createdAt: '',
@@ -89,24 +103,36 @@ describe('DetailPanel', () => {
     expect(screen.getByText('Tip: Start with Network')).toBeInTheDocument();
   });
 
-  it('renders block detail as read-only with name, type, description, category, and position', () => {
+  it('renders block detail with type, category, and position', () => {
     useUIStore.setState({ selectedId: 'block-1' });
 
     render(<DetailPanel />);
 
     expect(screen.getByText('App VM')).toBeInTheDocument();
-    expect(screen.getByText('Virtual Machine')).toBeInTheDocument();
-    expect(screen.getByText('Runs your application code')).toBeInTheDocument();
+    expect(screen.getAllByText('AZURE').length).toBeGreaterThan(0);
     expect(screen.getByText('compute')).toBeInTheDocument();
     expect(screen.getByText('(1.2, 2.4, 0.0)')).toBeInTheDocument();
+  });
 
-    // No rename button or edit controls
-    expect(screen.queryByRole('button', { name: 'Rename' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+  it('supports rename flow on block detail', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ selectedId: 'block-1' });
+
+    render(<DetailPanel />);
+
+    await user.click(screen.getByRole('button', { name: 'Rename' }));
+
+    const input = screen.getByDisplayValue('App VM');
+    await user.clear(input);
+    await user.type(input, 'API VM');
+    fireEvent.blur(input);
+
+    expect(screen.queryByDisplayValue('API VM')).not.toBeInTheDocument();
+    expect(screen.getByText('API VM')).toBeInTheDocument();
   });
 
   it('shows provider and subtype identity for provider-specific blocks', () => {
-    const providerSpecificBlock: Block = {
+    const providerSpecificBlock: LeafNode = {
       ...sourceBlock,
       id: 'block-provider-specific',
       provider: 'aws',
@@ -119,7 +145,7 @@ describe('DetailPanel', () => {
         name: 'Test Workspace',
         architecture: {
           ...architectureWithResources,
-          blocks: [providerSpecificBlock],
+          nodes: [networkPlate, publicSubnet, providerSpecificBlock],
         },
         createdAt: '',
         updatedAt: '',
@@ -134,7 +160,7 @@ describe('DetailPanel', () => {
     expect(screen.getByText('Subtype')).toBeInTheDocument();
   });
 
-  it('renders plate detail as read-only including size and contents count', () => {
+  it('renders plate detail including size and contents count', () => {
     useUIStore.setState({ selectedId: 'subnet-1' });
 
     render(<DetailPanel />);
@@ -142,15 +168,11 @@ describe('DetailPanel', () => {
     expect(screen.getByText('Public Subnet')).toBeInTheDocument();
     expect(screen.getByText('Subnet (public)')).toBeInTheDocument();
     expect(screen.getByText('Main VNet')).toBeInTheDocument();
-    expect(screen.getByText(/6\s*.\s*8/)).toBeInTheDocument();
+    expect(screen.getByText('6 × 8')).toBeInTheDocument();
     expect(screen.getByText('2 blocks')).toBeInTheDocument();
-
-    // No profile select or rename button
-    expect(screen.queryByRole('button', { name: 'Rename' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
   });
 
-  it('renders connection detail with type and source/target resources', () => {
+  it('renders connection detail with actual type and source/target resources', () => {
     useUIStore.setState({ selectedId: 'conn-1' });
 
     render(<DetailPanel />);
@@ -199,14 +221,17 @@ describe('DetailPanel', () => {
     expect(screen.getByText(/1 subnet/)).toBeInTheDocument();
   });
 
-  it('renders private subnet plate with correct type label', () => {
-    const privateSubnet: Plate = {
+  it('renders private subnet plate with lock icon', () => {
+    const privateSubnet: ContainerNode = {
       id: 'priv-1',
       name: 'Private Subnet',
-      type: 'subnet',
+      kind: 'container',
+      layer: 'subnet',
+      resourceType: 'subnet',
+      category: 'network',
+      provider: 'azure',
       subnetAccess: 'private',
       parentId: 'net-1',
-      children: [],
       position: { x: 0, y: 0, z: 0 },
       size: { width: 6, height: 0.3, depth: 8 },
       metadata: {},
@@ -218,7 +243,7 @@ describe('DetailPanel', () => {
         name: 'Test Workspace',
         architecture: {
           ...architectureWithResources,
-          plates: [...architectureWithResources.plates, privateSubnet],
+          nodes: [...architectureWithResources.nodes, privateSubnet],
         },
         createdAt: '',
         updatedAt: '',
@@ -239,7 +264,7 @@ describe('DetailPanel', () => {
         name: 'Test Workspace',
         architecture: {
           ...architectureWithResources,
-          blocks: [sourceBlock],
+          nodes: [networkPlate, publicSubnet, sourceBlock],
         },
         createdAt: '',
         updatedAt: '',
@@ -420,6 +445,7 @@ describe('DetailPanel', () => {
     render(<DetailPanel />);
 
     expect(screen.getByText('Unknown')).toBeInTheDocument();
+    expect(screen.queryByText('☁️ Internet')).not.toBeInTheDocument();
   });
 
   it('renders unknown target when connection target block is missing', () => {
@@ -451,10 +477,10 @@ describe('DetailPanel', () => {
   });
 
   it('renders block network as None when parent plate is missing', () => {
-    const unplacedBlock: Block = {
+    const unplacedBlock: LeafNode = {
       ...sourceBlock,
       id: 'block-orphan',
-      placementId: 'missing-plate',
+      parentId: 'missing-plate',
     };
 
     useArchitectureStore.setState({
@@ -463,7 +489,7 @@ describe('DetailPanel', () => {
         name: 'Test Workspace',
         architecture: {
           ...architectureWithResources,
-          blocks: [unplacedBlock],
+          nodes: [networkPlate, publicSubnet, unplacedBlock],
         },
         createdAt: '',
         updatedAt: '',
@@ -485,8 +511,7 @@ describe('DetailPanel', () => {
           id: "arch-1",
           name: "Empty Architecture",
           version: "1.0.0",
-          plates: [],
-          blocks: [],
+          nodes: [],
           connections: [],
           externalActors: [],
           createdAt: "",
@@ -513,8 +538,7 @@ describe('DetailPanel', () => {
           id: "arch-1",
           name: "Empty Architecture",
           version: "1.0.0",
-          plates: [],
-          blocks: [],
+          nodes: [],
           connections: [],
           externalActors: [],
           createdAt: "",
@@ -532,13 +556,44 @@ describe('DetailPanel', () => {
     expect(screen.queryByText("No selection")).not.toBeInTheDocument();
   });
 
+  it('renames block via Enter key', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ selectedId: 'block-1' });
+
+    render(<DetailPanel />);
+
+    await user.click(screen.getByRole('button', { name: 'Rename' }));
+    const input = screen.getByDisplayValue('App VM');
+    await user.clear(input);
+    await user.type(input, 'New VM');
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(screen.getByText('New VM')).toBeInTheDocument();
+  });
+
+  it('does not rename block when name is unchanged', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ selectedId: 'block-1' });
+
+    render(<DetailPanel />);
+
+    await user.click(screen.getByRole('button', { name: 'Rename' }));
+    const input = screen.getByDisplayValue('App VM');
+    fireEvent.blur(input);
+
+    expect(screen.getByText('App VM')).toBeInTheDocument();
+  });
+
   it('renders zone plate with capitalized type name', () => {
-    const zonePlate: Plate = {
+    const zonePlate: ContainerNode = {
       id: 'zone-1',
       name: 'Zone A',
-      type: 'zone',
+      kind: 'container',
+      layer: 'zone',
+      resourceType: 'virtual_network',
+      category: 'network',
+      provider: 'azure',
       parentId: 'net-1',
-      children: [],
       position: { x: 0, y: 0, z: 0 },
       size: { width: 4, height: 0.3, depth: 4 },
       metadata: {},
@@ -550,7 +605,7 @@ describe('DetailPanel', () => {
         name: 'Test Workspace',
         architecture: {
           ...architectureWithResources,
-          plates: [...architectureWithResources.plates, zonePlate],
+          nodes: [...architectureWithResources.nodes, zonePlate],
         },
         createdAt: '',
         updatedAt: '',

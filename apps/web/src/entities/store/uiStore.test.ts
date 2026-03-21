@@ -250,10 +250,10 @@ describe('useUIStore', () => {
     });
 
     it('transitions to placing with drag payload and resets via completeInteraction', () => {
-      useUIStore.getState().startPlacing('database', 'SQL Database');
+      useUIStore.getState().startPlacing('data', 'SQL Database');
       const placingState = useUIStore.getState();
       expect(placingState.interactionState).toBe('placing');
-      expect(placingState.draggedBlockCategory).toBe('database');
+      expect(placingState.draggedBlockCategory).toBe('data');
       expect(placingState.draggedResourceName).toBe('SQL Database');
 
       useUIStore.getState().completeInteraction();
@@ -344,10 +344,10 @@ describe('useUIStore', () => {
     });
 
     it('transitions to placing with drag payload and resets via completeInteraction', () => {
-      useUIStore.getState().startPlacing('database', 'SQL Database');
+      useUIStore.getState().startPlacing('data', 'SQL Database');
       const placingState = useUIStore.getState();
       expect(placingState.interactionState).toBe('placing');
-      expect(placingState.draggedBlockCategory).toBe('database');
+      expect(placingState.draggedBlockCategory).toBe('data');
       expect(placingState.draggedResourceName).toBe('SQL Database');
 
       useUIStore.getState().completeInteraction();
@@ -380,18 +380,18 @@ describe('useUIStore', () => {
     });
 
     it('should set draggedBlockCategory to database', () => {
-      useUIStore.getState().setDraggedBlockCategory('database');
-      expect(useUIStore.getState().draggedBlockCategory).toBe('database');
+      useUIStore.getState().setDraggedBlockCategory('data');
+      expect(useUIStore.getState().draggedBlockCategory).toBe('data');
     });
 
     it('should set draggedBlockCategory to storage', () => {
-      useUIStore.getState().setDraggedBlockCategory('storage');
-      expect(useUIStore.getState().draggedBlockCategory).toBe('storage');
+      useUIStore.getState().setDraggedBlockCategory('data');
+      expect(useUIStore.getState().draggedBlockCategory).toBe('data');
     });
 
     it('should set draggedBlockCategory to gateway', () => {
-      useUIStore.getState().setDraggedBlockCategory('gateway');
-      expect(useUIStore.getState().draggedBlockCategory).toBe('gateway');
+      useUIStore.getState().setDraggedBlockCategory('edge');
+      expect(useUIStore.getState().draggedBlockCategory).toBe('edge');
     });
 
     it('should clear draggedBlockCategory when given null', () => {
@@ -402,8 +402,8 @@ describe('useUIStore', () => {
 
     it('should overwrite previous draggedBlockCategory', () => {
       useUIStore.getState().setDraggedBlockCategory('compute');
-      useUIStore.getState().setDraggedBlockCategory('database');
-      expect(useUIStore.getState().draggedBlockCategory).toBe('database');
+      useUIStore.getState().setDraggedBlockCategory('data');
+      expect(useUIStore.getState().draggedBlockCategory).toBe('data');
     });
   });
 
@@ -716,8 +716,7 @@ describe('useUIStore', () => {
         id: 'base-arch',
         name: 'Base',
         version: '1.0',
-        plates: [],
-        blocks: [],
+        nodes: [],
         connections: [],
         externalActors: [],
         createdAt: '2026-01-01',
@@ -769,8 +768,7 @@ describe('useUIStore', () => {
         id: 'base-arch',
         name: 'Base',
         version: '1.0',
-        plates: [],
-        blocks: [],
+        nodes: [],
         connections: [],
         externalActors: [],
         createdAt: '2026-01-01',

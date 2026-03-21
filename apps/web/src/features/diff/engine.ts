@@ -1,11 +1,11 @@
-import type { ArchitectureModel, Block, Connection, ExternalActor, Plate } from '@cloudblocks/schema';
+import type { ArchitectureModel, Connection, ContainerNode, ExternalActor, LeafNode } from '@cloudblocks/schema';
 import type { DiffDelta, DiffState, EntityDiff, PropertyChange } from '../../shared/types/diff';
 
 const ROOT_VOLATILE_PATHS = new Set(['createdAt', 'updatedAt']);
-const ROOT_ENTITY_PATHS = new Set(['plates', 'blocks', 'connections', 'externalActors', 'createdAt', 'updatedAt']);
+const ROOT_ENTITY_PATHS = new Set(['nodes', 'connections', 'externalActors', 'createdAt', 'updatedAt']);
 const NO_IGNORED_ROOT_PATHS = new Set<string>();
 
-type DiffableEntity = Plate | Block | Connection | ExternalActor;
+type DiffableEntity = ContainerNode | LeafNode | Connection | ExternalActor;
 
 function sortById<T extends { id: string }>(left: T, right: T): number {
   return left.id.localeCompare(right.id);
@@ -145,21 +145,23 @@ function createEmptyEntityDiff<T extends DiffableEntity>(): EntityDiff<T> {
 export function normalizeArchitecture(model: ArchitectureModel): ArchitectureModel {
   return {
     ...model,
-    plates: model.plates
-      .map((plate) => ({
-        ...plate,
-        children: [...plate.children].sort((left, right) => left.localeCompare(right)),
-        position: { ...plate.position },
-        size: { ...plate.size },
-        metadata: { ...plate.metadata },
-      }))
-      .sort(sortById),
-    blocks: model.blocks
-      .map((block) => ({
-        ...block,
-        position: { ...block.position },
-        metadata: { ...block.metadata },
-      }))
+    nodes: model.nodes
+      .map((node) => {
+        if (node.kind === 'container') {
+          return {
+            ...node,
+            position: { ...node.position },
+            size: { ...node.size },
+            metadata: { ...node.metadata },
+          };
+        }
+
+        return {
+          ...node,
+          position: { ...node.position },
+          metadata: { ...node.metadata },
+        };
+      })
       .sort(sortById),
     connections: model.connections
       .map((connection) => ({
@@ -176,12 +178,16 @@ export function normalizeArchitecture(model: ArchitectureModel): ArchitectureMod
 export function computeArchitectureDiff(base: ArchitectureModel, head: ArchitectureModel): DiffDelta {
   const normalizedBase = normalizeArchitecture(base);
   const normalizedHead = normalizeArchitecture(head);
+  const basePlates = normalizedBase.nodes.filter((n): n is ContainerNode => n.kind === 'container');
+  const headPlates = normalizedHead.nodes.filter((n): n is ContainerNode => n.kind === 'container');
+  const baseBlocks = normalizedBase.nodes.filter((n): n is LeafNode => n.kind === 'resource');
+  const headBlocks = normalizedHead.nodes.filter((n): n is LeafNode => n.kind === 'resource');
 
   const modelChanges = diffValues(normalizedBase, normalizedHead, '', ROOT_VOLATILE_PATHS);
   if (modelChanges.length === 0) {
     return {
-      plates: createEmptyEntityDiff<Plate>(),
-      blocks: createEmptyEntityDiff<Block>(),
+      plates: createEmptyEntityDiff<ContainerNode>(),
+      blocks: createEmptyEntityDiff<LeafNode>(),
       connections: createEmptyEntityDiff<Connection>(),
       externalActors: createEmptyEntityDiff<ExternalActor>(),
       rootChanges: [],
@@ -199,8 +205,8 @@ export function computeArchitectureDiff(base: ArchitectureModel, head: Architect
     });
 
   const deltaWithoutSummary = {
-    plates: compareEntityCollections(normalizedBase.plates, normalizedHead.plates),
-    blocks: compareEntityCollections(normalizedBase.blocks, normalizedHead.blocks),
+    plates: compareEntityCollections(basePlates, headPlates),
+    blocks: compareEntityCollections(baseBlocks, headBlocks),
     connections: compareEntityCollections(normalizedBase.connections, normalizedHead.connections),
     externalActors: compareEntityCollections(normalizedBase.externalActors, normalizedHead.externalActors),
     rootChanges,

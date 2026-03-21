@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { Scenario, ScenarioStep, ArchitectureSnapshot } from '../../shared/types/learning';
+import type { ContainerNode } from '@cloudblocks/schema';
 import { formatScenarioForProvider } from './scenario-formatter';
 
 // ─── Test Fixtures ───────────────────────────────────────
@@ -7,13 +8,16 @@ import { formatScenarioForProvider } from './scenario-formatter';
 const createSnapshot = (plateName = 'VNet'): ArchitectureSnapshot => ({
   name: 'Test Architecture',
   version: '1',
-  plates: [
+  nodes: [
     {
       id: 'plate-vnet',
       name: plateName,
-      type: 'region',
+      kind: 'container',
+      layer: 'region',
+      resourceType: 'virtual_network',
+      category: 'network',
+      provider: 'azure',
       parentId: null,
-      children: ['plate-public'],
       position: { x: 0, y: 0, z: 0 },
       size: { width: 12, height: 0.3, depth: 10 },
       metadata: {},
@@ -21,16 +25,18 @@ const createSnapshot = (plateName = 'VNet'): ArchitectureSnapshot => ({
     {
       id: 'plate-public',
       name: 'Public Subnet',
-      type: 'subnet',
+      kind: 'container',
+      layer: 'subnet',
+      resourceType: 'subnet',
+      category: 'network',
+      provider: 'azure',
       subnetAccess: 'public',
       parentId: 'plate-vnet',
-      children: [],
       position: { x: -3, y: 0.3, z: 0 },
       size: { width: 5, height: 0.2, depth: 8 },
       metadata: {},
     },
-  ],
-  blocks: [],
+  ] as ContainerNode[],
   connections: [],
   externalActors: [],
 });
@@ -98,9 +104,10 @@ describe('formatScenarioForProvider', () => {
 
     it('adapts plate names in initialArchitecture snapshot', () => {
       const result = formatScenarioForProvider(createScenario(), 'aws');
-      expect(result.initialArchitecture.plates[0].name).toBe('VPC');
+      const containers = result.initialArchitecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+      expect(containers[0]?.name).toBe('VPC');
       // Non-VNet plate names should remain unchanged
-      expect(result.initialArchitecture.plates[1].name).toBe('Public Subnet');
+      expect(containers[1]?.name).toBe('Public Subnet');
     });
 
     it('adapts plate names in step checkpoint snapshots', () => {
@@ -108,12 +115,14 @@ describe('formatScenarioForProvider', () => {
         steps: [createStep({ checkpoint: createSnapshot() })],
       });
       const result = formatScenarioForProvider(scenario, 'aws');
-      expect(result.steps[0].checkpoint?.plates[0].name).toBe('VPC');
+      const checkpointContainers = result.steps[0].checkpoint?.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+      expect(checkpointContainers?.[0]?.name).toBe('VPC');
     });
 
     it('preserves plate IDs (internal identifiers unchanged)', () => {
       const result = formatScenarioForProvider(createScenario(), 'aws');
-      expect(result.initialArchitecture.plates[0].id).toBe('plate-vnet');
+      const containers = result.initialArchitecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+      expect(containers[0]?.id).toBe('plate-vnet');
     });
 
     it('does NOT modify validation rules', () => {
@@ -143,7 +152,8 @@ describe('formatScenarioForProvider', () => {
 
     it('adapts plate names in initialArchitecture snapshot', () => {
       const result = formatScenarioForProvider(createScenario(), 'gcp');
-      expect(result.initialArchitecture.plates[0].name).toBe('VPC');
+      const containers = result.initialArchitecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+      expect(containers[0]?.name).toBe('VPC');
     });
 
     it('does NOT modify validation rules', () => {

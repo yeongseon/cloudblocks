@@ -1,21 +1,21 @@
 /**
- * Detail Panel -- Read-Only Resource Properties
+ * Detail Panel — Resource Properties
  *
- * Shows resource properties as read-only text.
+ * Shows resource properties with inline editing capability.
  * States:
  * - Nothing selected: Welcome message with tips
- * - Worker: Worker state info
- * - Block: Read-only properties with description
- * - Plate: Read-only properties
- * - Connection: Read-only properties
+ * - Single selected: Editable properties
+ * - Multi-selected: Wireframe grid of selected items
  *
- * Based on VISUAL_DESIGN_SPEC.md SS7.3
+ * Based on VISUAL_DESIGN_SPEC.md §7.3
  */
 
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { BLOCK_FRIENDLY_NAMES, BLOCK_DESCRIPTIONS, BLOCK_ICONS, CONNECTION_TYPE_LABELS } from '../../shared/types/index';
-import type { Block, Plate } from '@cloudblocks/schema';
+import { BLOCK_FRIENDLY_NAMES, BLOCK_DESCRIPTIONS, BLOCK_ICONS, CONNECTION_TYPE_LABELS, DEFAULT_PLATE_PROFILE, getPlateProfile, isPlateProfileId, PLATE_PROFILES } from '../../shared/types/index';
+import type { PlateProfileId } from '../../shared/types/index';
+import type { ContainerNode, LeafNode } from '@cloudblocks/schema';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
 import { getBlockIconUrl, getPlateIconUrl } from '../../shared/utils/iconResolver';
 import './DetailPanel.css';
@@ -24,18 +24,22 @@ interface DetailPanelProps {
   className?: string;
 }
 
+type ContainerLayer = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
+
 export function DetailPanel({ className = '' }: DetailPanelProps) {
   const selectedId = useUIStore((s) => s.selectedId);
   const showTemplateGallery = useUIStore((s) => s.showTemplateGallery);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
+  const containers = architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+  const resources = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
 
   // Find selected item
-  const selectedBlock = architecture.blocks.find((b) => b.id === selectedId);
-  const selectedPlate = architecture.plates.find((p) => p.id === selectedId);
+  const selectedBlock = resources.find((b) => b.id === selectedId);
+  const selectedPlate = containers.find((p) => p.id === selectedId);
   const selectedConnection = architecture.connections.find((c) => c.id === selectedId);
 
   if (!selectedId) {
-    const isEmptyOnboarding = architecture.plates.length === 0 && !showTemplateGallery;
+    const isEmptyOnboarding = containers.length === 0 && !showTemplateGallery;
     if (isEmptyOnboarding) {
       return <IdleState className={className} />;
     }
@@ -57,20 +61,20 @@ export function DetailPanel({ className = '' }: DetailPanelProps) {
   return <WelcomeState className={className} />;
 }
 
-// --- Idle State ----
+// ─── Idle State ────────────────────────────────────────────
 
 function IdleState({ className }: { className: string }) {
   return (
     <div className={`detail-panel detail-panel--idle ${className}`}>
       <div className="detail-idle">
-        <span className="detail-idle-icon">{'\u{1F4CB}'}</span>
+        <span className="detail-idle-icon">📋</span>
         <p className="detail-idle-text">No selection</p>
       </div>
     </div>
   );
 }
 
-// --- Welcome State ----
+// ─── Welcome State ─────────────────────────────────────────
 
 function WelcomeState({ className }: { className: string }) {
   return (
@@ -83,7 +87,7 @@ function WelcomeState({ className }: { className: string }) {
           or use the Command Card to create new ones.
         </p>
         <div className="detail-welcome-tip">
-          <span className="detail-tip-icon">{'\u{1F4A1}'}</span>
+          <span className="detail-tip-icon">💡</span>
           <span className="detail-tip-text">Tip: Start with Network</span>
         </div>
       </div>
@@ -91,15 +95,36 @@ function WelcomeState({ className }: { className: string }) {
   );
 }
 
-// --- Block Detail (read-only) ----
+// ─── Block Detail ──────────────────────────────────────────
 
-function BlockDetail({ block, className }: { block: Block; className: string }) {
+function BlockDetail({ block, className }: { block: LeafNode; className: string }) {
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [newName, setNewName] = useState(block.name);
+  const inputRef = useRef<HTMLInputElement>(null);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
+  const renameBlock = useArchitectureStore((s) => s.renameBlock);
 
-  const parentPlate = architecture.plates.find((p) => p.id === block.placementId);
+  useEffect(() => {
+    if (isRenaming && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [isRenaming]);
+
+  const containers = architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+  const parentPlate = containers.find((p) => p.id === block.parentId);
   const networkPlate = parentPlate?.parentId
-    ? architecture.plates.find((p) => p.id === parentPlate.parentId)
+    ? containers.find((p) => p.id === parentPlate.parentId)
     : parentPlate;
+
+  const handleRename = useCallback(() => {
+    const trimmed = newName.trim();
+    if (trimmed && trimmed !== block.name) {
+      renameBlock(block.id, trimmed);
+      setNewName(trimmed);
+    }
+    setIsRenaming(false);
+  }, [newName, block.id, block.name, renameBlock]);
 
   const color = getBlockColor(block.provider ?? 'azure', block.subtype, block.category);
   const providerLabel = block.provider ? block.provider.toUpperCase() : null;
@@ -115,7 +140,30 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
           alt={BLOCK_FRIENDLY_NAMES[block.category]}
           className="detail-header-icon-img"
         />
-        <span className="detail-header-name">{block.name}</span>
+        {isRenaming ? (
+          <input
+            ref={inputRef}
+            type="text"
+            className="detail-header-input"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            onBlur={handleRename}
+            onKeyDown={(e) => e.key === 'Enter' && handleRename()}
+          />
+        ) : (
+          <span className="detail-header-name">{block.name}</span>
+        )}
+        <button
+          type="button"
+          className="detail-rename-btn"
+          onClick={() => {
+            setNewName(block.name);
+            setIsRenaming(true);
+          }}
+          title="Rename"
+        >
+          Rename
+        </button>
       </div>
 
       <div className="detail-divider" />
@@ -125,13 +173,9 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
           <span className="detail-property-label">Type</span>
           <span className="detail-property-value">
             {typeIdentity}
-          </span>
-        </div>
-
-        <div className="detail-property">
-          <span className="detail-property-label">Description</span>
-          <span className="detail-property-value detail-property-description">
-            {BLOCK_DESCRIPTIONS[block.category]}
+            <span className="detail-property-hint" title={BLOCK_DESCRIPTIONS[block.category]}>
+              ℹ️
+            </span>
           </span>
         </div>
 
@@ -177,29 +221,43 @@ function BlockDetail({ block, className }: { block: Block; className: string }) 
   );
 }
 
-// --- Plate Detail (read-only) ----
+// ─── Plate Detail ──────────────────────────────────────────
 
-function PlateDetail({ plate, className }: { plate: Plate; className: string }) {
+function PlateDetail({ plate, className }: { plate: ContainerNode; className: string }) {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
+  const setPlateProfile = useArchitectureStore((s) => s.setPlateProfile);
+  const containers = architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+  const resources = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
+  const plateType: ContainerLayer = plate.layer === 'resource' ? 'region' : plate.layer;
+
+  const profileId = plate.profileId && isPlateProfileId(plate.profileId)
+    ? plate.profileId
+    : DEFAULT_PLATE_PROFILE[plateType];
+  const profile = getPlateProfile(profileId);
+  const hasProfileSupport = plateType === 'region' || plateType === 'subnet';
+  const profileFilterType = plateType === 'subnet' ? 'subnet' : 'region';
+  const profileOptions = hasProfileSupport
+    ? Object.values(PLATE_PROFILES).filter((candidate) => candidate.type === profileFilterType)
+    : [];
 
   const parentPlate = plate.parentId
-    ? architecture.plates.find((p) => p.id === plate.parentId)
+    ? containers.find((p) => p.id === plate.parentId)
     : null;
 
-  const childBlocks = architecture.blocks.filter((b) => b.placementId === plate.id);
-  const childPlates = architecture.plates.filter((p) => p.parentId === plate.id);
+  const childBlocks = resources.filter((b) => b.parentId === plate.id);
+  const childPlates = containers.filter((p) => p.parentId === plate.id);
 
-  const altText = plate.type === 'subnet'
+  const altText = plateType === 'subnet'
     ? `${plate.subnetAccess === 'public' ? 'Public' : 'Private'} Subnet`
-    : plate.type === 'region'
+    : plateType === 'region'
       ? 'Region'
-      : plate.type.charAt(0).toUpperCase() + plate.type.slice(1);
+      : plateType.charAt(0).toUpperCase() + plateType.slice(1);
 
   return (
     <div className={`detail-panel detail-panel--plate ${className}`}>
       <div className="detail-header">
         <img
-          src={getPlateIconUrl(plate.type, plate.subnetAccess)}
+          src={getPlateIconUrl(plateType, plate.subnetAccess)}
           alt={altText}
           className="detail-header-icon-img"
         />
@@ -212,10 +270,37 @@ function PlateDetail({ plate, className }: { plate: Plate; className: string }) 
         <div className="detail-property">
           <span className="detail-property-label">Type</span>
           <span className="detail-property-value">
-            {plate.type === 'subnet' ? 'Subnet' : plate.type.charAt(0).toUpperCase() + plate.type.slice(1)}
+            {plateType === 'subnet' ? 'Subnet' : plateType.charAt(0).toUpperCase() + plateType.slice(1)}
             {plate.subnetAccess && ` (${plate.subnetAccess})`}
           </span>
         </div>
+
+        {hasProfileSupport && (
+          <>
+            <div className="detail-property">
+              <label className="detail-property-label" htmlFor={`plate-profile-${plate.id}`}>Profile</label>
+              <span className="detail-property-value">
+                <select
+                  id={`plate-profile-${plate.id}`}
+                  className="detail-property-select"
+                  value={profileId}
+                  onChange={(event) => setPlateProfile(plate.id, event.target.value as PlateProfileId)}
+                >
+                  {profileOptions.map((candidate) => (
+                    <option key={candidate.id} value={candidate.id}>
+                      {candidate.displayName} - {candidate.studsX}x{candidate.studsY}
+                    </option>
+                  ))}
+                </select>
+              </span>
+            </div>
+
+            <div className="detail-property">
+              <span className="detail-property-label">Profile Note</span>
+              <span className="detail-property-value detail-property-description">{profile.description}</span>
+            </div>
+          </>
+        )}
 
         {parentPlate && (
           <div className="detail-property">
@@ -227,7 +312,7 @@ function PlateDetail({ plate, className }: { plate: Plate; className: string }) 
         <div className="detail-property">
           <span className="detail-property-label">Size</span>
           <span className="detail-property-value detail-property-mono">
-            {plate.size.width} &times; {plate.size.depth}
+            {plate.size.width} × {plate.size.depth}
           </span>
         </div>
 
@@ -243,22 +328,23 @@ function PlateDetail({ plate, className }: { plate: Plate; className: string }) 
   );
 }
 
-// --- Connection Detail (read-only) ----
+// ─── Connection Detail ─────────────────────────────────────
 
 function ConnectionDetail({ connectionId, className }: { connectionId: string; className: string }) {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const connection = architecture.connections.find((c) => c.id === connectionId);
+  const resources = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
 
   if (!connection) return null;
 
-  const sourceBlock = architecture.blocks.find((b) => b.id === connection.sourceId);
+  const sourceBlock = resources.find((b) => b.id === connection.sourceId);
   const sourceActor = architecture.externalActors.find((a) => a.id === connection.sourceId);
-  const targetBlock = architecture.blocks.find((b) => b.id === connection.targetId);
+  const targetBlock = resources.find((b) => b.id === connection.targetId);
 
   return (
     <div className={`detail-panel detail-panel--connection ${className}`}>
       <div className="detail-header">
-        <span className="detail-header-icon">{'\u{1F517}'}</span>
+        <span className="detail-header-icon">🔗</span>
         <span className="detail-header-name">{CONNECTION_TYPE_LABELS[connection.type]} Connection</span>
       </div>
 
@@ -279,7 +365,7 @@ function ConnectionDetail({ connectionId, className }: { connectionId: string; c
               </>
             ) : sourceActor ? (
               <>
-                {sourceActor.type === 'internet' ? '\u2601\uFE0F' : '\u{1F464}'} {sourceActor.name}
+                {sourceActor.type === 'internet' ? '☁️' : '👤'} {sourceActor.name}
               </>
             ) : (
               'Unknown'

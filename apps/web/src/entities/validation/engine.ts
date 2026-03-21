@@ -1,4 +1,4 @@
-import type { ArchitectureModel } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
 import type { ValidationResult } from '@cloudblocks/domain';
 import { validatePlacement } from './placement';
 import { validateConnection } from './connection';
@@ -10,10 +10,10 @@ import { validateRoles } from './role';
  * Rule Engine — validates an entire ArchitectureModel.
  *
  * Checks:
- * 1. All blocks satisfy placement rules
+ * 1. All resource nodes satisfy placement rules
  * 2. All connections satisfy connection rules
- * 3. All blocks satisfy aggregation rules (v2.0 §8)
- * 4. All blocks satisfy role rules (v2.0 §9)
+ * 3. All resource nodes satisfy aggregation rules (v2.0 §8)
+ * 4. All resource nodes satisfy role rules (v2.0 §9)
  */
 export function validateArchitecture(
   model: ArchitectureModel
@@ -21,10 +21,13 @@ export function validateArchitecture(
   const errors: ValidationResult['errors'] = [];
   const warnings: ValidationResult['warnings'] = [];
 
+  const containers = model.nodes.filter((n): n is ContainerNode => n.kind === 'container');
+  const resources = model.nodes.filter((n): n is LeafNode => n.kind === 'resource');
+
   // ── Placement validation ──
-  for (const block of model.blocks) {
-    const plate = model.plates.find((p) => p.id === block.placementId);
-    const error = validatePlacement(block, plate);
+  for (const resource of resources) {
+    const parent = containers.find((c) => c.id === resource.parentId);
+    const error = validatePlacement(resource, parent);
     if (error) {
       if (error.severity === 'error') {
         errors.push(error);
@@ -35,8 +38,8 @@ export function validateArchitecture(
   }
 
   // ── Aggregation validation (v2.0 §8) ──
-  for (const block of model.blocks) {
-    const aggError = validateAggregation(block);
+  for (const resource of resources) {
+    const aggError = validateAggregation(resource);
     if (aggError) {
       if (aggError.severity === 'error') {
         errors.push(aggError);
@@ -47,8 +50,8 @@ export function validateArchitecture(
   }
 
   // ── Role validation (v2.0 §9) ──
-  for (const block of model.blocks) {
-    const roleError = validateRoles(block);
+  for (const resource of resources) {
+    const roleError = validateRoles(resource);
     if (roleError) {
       if (roleError.severity === 'error') {
         errors.push(roleError);
@@ -62,7 +65,7 @@ export function validateArchitecture(
   for (const connection of model.connections) {
     const error = validateConnection(
       connection,
-      model.blocks,
+      resources,
       model.externalActors
     );
     if (error) {

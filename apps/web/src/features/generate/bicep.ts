@@ -1,4 +1,4 @@
-import type { ArchitectureModel, Block, Plate } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
 import type {
   GenerationOptions,
   GeneratorPlugin,
@@ -37,12 +37,21 @@ function buildResourceName(prefix: string, entityName: string): string {
   return `${prefix}${sanitized.charAt(0).toUpperCase()}${sanitized.slice(1)}`;
 }
 
+function getPlateType(plate: ContainerNode): 'global' | 'edge' | 'region' | 'zone' | 'subnet' {
+  if (plate.layer === 'resource') {
+    return 'region';
+  }
+  return plate.layer;
+}
+
 // ─── Normalize ──────────────────────────────────────────────
 
 export function normalizeBicep(
   architecture: ArchitectureModel,
   provider: ProviderDefinition
 ): NormalizedModel {
+  const containers = architecture.nodes.filter((n): n is ContainerNode => n.kind === 'container');
+  const resources = architecture.nodes.filter((n): n is LeafNode => n.kind === 'resource');
   const resourceNames = new Map<string, string>();
   const usedNames = new Set<string>();
 
@@ -57,13 +66,13 @@ export function normalizeBicep(
     return name;
   }
 
-  for (const plate of architecture.plates) {
-    const mapping = provider.plateMappings[plate.type];
+  for (const plate of containers) {
+    const mapping = provider.plateMappings[getPlateType(plate)];
     const name = uniqueName(mapping.namePrefix, plate.name);
     resourceNames.set(plate.id, name);
   }
 
-  for (const block of architecture.blocks) {
+  for (const block of resources) {
     const mapping = resolveBlockMapping(
       provider.blockMappings,
       provider.subtypeBlockMappings,
@@ -102,7 +111,7 @@ function getBicepResourceType(terraformType: string): string {
 // ─── Generate Stage ─────────────────────────────────────────
 
 function generatePlateResource(
-  plate: Plate,
+  plate: ContainerNode,
   resourceName: string,
   mapping: ResourceMapping,
   parentResourceName: string | null
@@ -110,7 +119,7 @@ function generatePlateResource(
   const bicepType = getBicepResourceType(mapping.resourceType);
   const lines: string[] = [];
 
-  if (plate.type === 'subnet' && parentResourceName) {
+  if (plate.layer === 'subnet' && parentResourceName) {
     // Subnets are nested resources in Bicep
     lines.push(`resource ${resourceName} '${bicepType}' = {`);
     lines.push(`  parent: ${parentResourceName}`);
@@ -125,7 +134,7 @@ function generatePlateResource(
     lines.push(`  name: '\${projectName}-${resourceName}'`);
     lines.push(`  location: location`);
     lines.push(`  properties: {`);
-    if (plate.type !== 'subnet') {
+    if (plate.layer !== 'subnet') {
       lines.push(`    addressSpace: {`);
       lines.push(`      addressPrefixes: [`);
       lines.push(`        '10.0.0.0/16'`);
@@ -140,7 +149,7 @@ function generatePlateResource(
 }
 
 function generateBlockResource(
-  block: Block,
+  block: LeafNode,
   resourceName: string,
   mapping: ResourceMapping
 ): string {
@@ -161,7 +170,7 @@ function generateBlockResource(
       lines.push(`    }`);
       lines.push(`  }`);
       break;
-    case 'database':
+    case 'data':
       lines.push(`  properties: {`);
       lines.push(`    administratorLogin: dbAdminUsername`);
       lines.push(`    administratorLoginPassword: dbAdminPassword`);
@@ -175,14 +184,10 @@ function generateBlockResource(
       lines.push(`    }`);
       lines.push(`  }`);
       break;
-    case 'storage':
-      lines.push(`  kind: 'StorageV2'`);
-      lines.push(`  sku: {`);
-      lines.push(`    name: 'Standard_LRS'`);
-      lines.push(`  }`);
+    case 'network':
       lines.push(`  properties: {}`);
       break;
-    case 'gateway':
+    case 'edge':
       lines.push(`  properties: {`);
       lines.push(`    sku: {`);
       lines.push(`      name: 'Standard_v2'`);
@@ -191,28 +196,17 @@ function generateBlockResource(
       lines.push(`    }`);
       lines.push(`  }`);
       break;
-    case 'function':
-      lines.push(`  kind: 'functionapp,linux'`);
-      lines.push(`  properties: {`);
-      lines.push(`    serverFarmId: servicePlan.id`);
-      lines.push(`    siteConfig: {`);
-      lines.push(`      linuxFxVersion: 'NODE|18-lts'`);
-      lines.push(`    }`);
+    case 'messaging':
+      lines.push(`  kind: 'StorageV2'`);
+      lines.push(`  sku: {`);
+      lines.push(`    name: 'Standard_LRS'`);
       lines.push(`  }`);
-      break;
-    case 'queue':
       lines.push(`  properties: {}`);
       break;
-    case 'event':
+    case 'operations':
       lines.push(`  properties: {}`);
       break;
-    case 'analytics':
-      lines.push(`  properties: {}`);
-      break;
-    case 'identity':
-      lines.push(`  properties: {}`);
-      break;
-    case 'observability':
+    case 'security':
       lines.push(`  properties: {}`);
       break;
   }
@@ -229,6 +223,8 @@ export function generateMainBicep(
   options: GenerationOptions
 ): string {
   const { architecture, resourceNames } = normalized;
+  const containers = architecture.nodes.filter((n): n is ContainerNode => n.kind === 'container');
+  const resources = architecture.nodes.filter((n): n is LeafNode => n.kind === 'resource');
   const sections: string[] = [];
 
   // Header
@@ -241,7 +237,7 @@ export function generateMainBicep(
   // Parameters
   sections.push(`param projectName string = '${sanitizeName(options.projectName)}'`);
   sections.push(`param location string = '${sanitizeIaCValue(options.region)}'`);
-  const hasDb = architecture.blocks.some((b) => b.category === 'database');
+  const hasDb = resources.some((b) => b.category === 'data');
   if (hasDb) {
     sections.push(`param dbAdminUsername string = 'pgadmin'`);
     sections.push('@secure()');
@@ -254,9 +250,7 @@ export function generateMainBicep(
   sections.push('');
 
   // Service plan (if compute or function blocks exist)
-  const hasCompute = architecture.blocks.some(
-    (b) => b.category === 'compute' || b.category === 'function'
-  );
+  const hasCompute = resources.some((b) => b.category === 'compute');
   if (hasCompute) {
     sections.push(`resource servicePlan 'Microsoft.Web/serverfarms@2023-01-01' = {`);
     sections.push(`  name: '\${projectName}-plan'`);
@@ -274,19 +268,19 @@ export function generateMainBicep(
   }
 
   // Plates (regions first, then subnets)
-  const regions = architecture.plates.filter((p) => p.type !== 'subnet');
-  const subnets = architecture.plates.filter((p) => p.type === 'subnet');
+  const regions = containers.filter((p) => p.layer !== 'subnet');
+  const subnets = containers.filter((p) => p.layer === 'subnet');
 
   for (const plate of regions) {
     const resName = resourceNames.get(plate.id)!;
-    const mapping = provider.plateMappings[plate.type];
+    const mapping = provider.plateMappings[getPlateType(plate)];
     sections.push(generatePlateResource(plate, resName, mapping, null));
     sections.push('');
   }
 
   for (const plate of subnets) {
     const resName = resourceNames.get(plate.id)!;
-    const mapping = provider.plateMappings[plate.type];
+    const mapping = provider.plateMappings[getPlateType(plate)];
     const parentName = plate.parentId
       ? resourceNames.get(plate.parentId) ?? null
       : null;
@@ -295,7 +289,7 @@ export function generateMainBicep(
   }
 
   // Blocks
-  for (const block of architecture.blocks) {
+  for (const block of resources) {
     const resName = resourceNames.get(block.id)!;
     const mapping = resolveBlockMapping(
       provider.blockMappings,
@@ -309,7 +303,7 @@ export function generateMainBicep(
 
   // Outputs
   sections.push('// ─── Outputs ─────────────────────────────────────');
-  for (const block of architecture.blocks) {
+  for (const block of resources) {
     const resName = resourceNames.get(block.id)!;
     sections.push(`output ${resName}Id string = ${resName}.id`);
   }

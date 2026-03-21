@@ -36,8 +36,7 @@ describe('registerBuiltinTemplates', () => {
     registerBuiltinTemplates();
 
     for (const template of listTemplates()) {
-      expect(Array.isArray(template.architecture.plates)).toBe(true);
-      expect(Array.isArray(template.architecture.blocks)).toBe(true);
+      expect(Array.isArray(template.architecture.nodes)).toBe(true);
       expect(Array.isArray(template.architecture.connections)).toBe(true);
       expect(Array.isArray(template.architecture.externalActors)).toBe(true);
     }
@@ -50,10 +49,12 @@ describe('registerBuiltinTemplates', () => {
     registerBuiltinTemplates();
 
     const template = getTemplate('template-three-tier');
+    const containerNodes = template?.architecture.nodes.filter((node) => node.kind === 'container');
+    const resourceNodes = template?.architecture.nodes.filter((node) => node.kind === 'resource');
 
     expect(template).toBeDefined();
-    expect(template?.architecture.plates).toHaveLength(3);
-    expect(template?.architecture.blocks).toHaveLength(4);
+    expect(containerNodes).toHaveLength(3);
+    expect(resourceNodes).toHaveLength(4);
     expect(template?.architecture.connections).toHaveLength(4);
   });
 
@@ -64,10 +65,12 @@ describe('registerBuiltinTemplates', () => {
     registerBuiltinTemplates();
 
     const template = getTemplate('template-simple-compute');
+    const containerNodes = template?.architecture.nodes.filter((node) => node.kind === 'container');
+    const resourceNodes = template?.architecture.nodes.filter((node) => node.kind === 'resource');
 
     expect(template).toBeDefined();
-    expect(template?.architecture.plates).toHaveLength(2);
-    expect(template?.architecture.blocks).toHaveLength(2);
+    expect(containerNodes).toHaveLength(2);
+    expect(resourceNodes).toHaveLength(2);
     expect(template?.architecture.connections).toHaveLength(2);
   });
 
@@ -78,10 +81,12 @@ describe('registerBuiltinTemplates', () => {
     registerBuiltinTemplates();
 
     const template = getTemplate('template-data-storage');
+    const containerNodes = template?.architecture.nodes.filter((node) => node.kind === 'container');
+    const resourceNodes = template?.architecture.nodes.filter((node) => node.kind === 'resource');
 
     expect(template).toBeDefined();
-    expect(template?.architecture.plates).toHaveLength(3);
-    expect(template?.architecture.blocks).toHaveLength(4);
+    expect(containerNodes).toHaveLength(3);
+    expect(resourceNodes).toHaveLength(4);
     expect(template?.architecture.connections).toHaveLength(4);
   });
 
@@ -96,14 +101,14 @@ describe('registerBuiltinTemplates', () => {
 
     expect(httpApiTemplate).toBeDefined();
     expect(httpApiTemplate?.generatorCompat).toEqual(['terraform', 'bicep', 'pulumi']);
-    expect(httpApiTemplate?.architecture.plates).toHaveLength(3);
-    expect(httpApiTemplate?.architecture.blocks).toHaveLength(4);
+    expect(httpApiTemplate?.architecture.nodes.filter((node) => node.kind === 'container')).toHaveLength(3);
+    expect(httpApiTemplate?.architecture.nodes.filter((node) => node.kind === 'resource')).toHaveLength(4);
     expect(httpApiTemplate?.architecture.connections).toHaveLength(4);
 
     expect(eventPipelineTemplate).toBeDefined();
     expect(eventPipelineTemplate?.generatorCompat).toEqual(['terraform', 'bicep', 'pulumi']);
-    expect(eventPipelineTemplate?.architecture.plates).toHaveLength(2);
-    expect(eventPipelineTemplate?.architecture.blocks).toHaveLength(6);
+    expect(eventPipelineTemplate?.architecture.nodes.filter((node) => node.kind === 'container')).toHaveLength(2);
+    expect(eventPipelineTemplate?.architecture.nodes.filter((node) => node.kind === 'resource')).toHaveLength(6);
     expect(eventPipelineTemplate?.architecture.connections).toHaveLength(6);
   });
 
@@ -117,15 +122,26 @@ describe('registerBuiltinTemplates', () => {
 
     expect(template).toBeDefined();
     expect(template?.generatorCompat).toEqual(['terraform', 'bicep', 'pulumi']);
-    expect(template?.architecture.plates).toHaveLength(3);
-    expect(template?.architecture.blocks).toHaveLength(10);
+    expect(template?.architecture.nodes.filter((node) => node.kind === 'container')).toHaveLength(3);
+    expect(template?.architecture.nodes.filter((node) => node.kind === 'resource')).toHaveLength(10);
     expect(template?.architecture.connections).toHaveLength(11);
     expect(template?.architecture.externalActors).toHaveLength(1);
 
-    const categories = template?.architecture.blocks.map((b) => b.category).sort();
+    const categories = template?.architecture.nodes
+      .filter((node) => node.kind === 'resource')
+      .map((node) => node.category)
+      .sort();
     expect(categories).toEqual([
-      'compute', 'database', 'event', 'event', 'function', 'function',
-      'function', 'gateway', 'queue', 'storage',
+      'compute',
+      'compute',
+      'compute',
+      'compute',
+      'data',
+      'data',
+      'edge',
+      'messaging',
+      'messaging',
+      'messaging',
     ]);
   });
 });

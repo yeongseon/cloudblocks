@@ -6,16 +6,25 @@ const gcpSubtypeBlockMappings: SubtypeResourceMap = {
     'cloud-run': { resourceType: 'google_cloud_run_v2_service', namePrefix: 'run' },
     'cloud-functions': { resourceType: 'google_cloudfunctions2_function', namePrefix: 'gcf' },
   },
-  database: {
+  data: {
     'cloud-sql-postgres': { resourceType: 'google_sql_database_instance', namePrefix: 'sql' },
     firestore: { resourceType: 'google_firestore_database', namePrefix: 'fdb' },
-  },
-  storage: {
     'cloud-storage': { resourceType: 'google_storage_bucket', namePrefix: 'gcs' },
   },
-  gateway: {
+  edge: {
     'cloud-load-balancing': { resourceType: 'google_compute_url_map', namePrefix: 'lb' },
     'api-gateway': { resourceType: 'google_api_gateway_api', namePrefix: 'apigw' },
+  },
+  messaging: {
+    pubsub: { resourceType: 'google_pubsub_topic', namePrefix: 'topic' },
+    eventarc: { resourceType: 'google_eventarc_trigger', namePrefix: 'trigger' },
+  },
+  security: {
+    iam: { resourceType: 'google_service_account', namePrefix: 'sa' },
+  },
+  operations: {
+    bigquery: { resourceType: 'google_bigquery_dataset', namePrefix: 'analytics' },
+    monitoring: { resourceType: 'google_monitoring_dashboard', namePrefix: 'dashboard' },
   },
 };
 
@@ -23,45 +32,33 @@ export const gcpProviderDefinition: ProviderDefinition = {
   name: 'gcp',
   displayName: 'GCP',
   blockMappings: {
+    network: {
+      resourceType: 'google_compute_network',
+      namePrefix: 'network',
+    },
+    security: {
+      resourceType: 'google_service_account',
+      namePrefix: 'sa',
+    },
+    edge: {
+      resourceType: 'google_compute_backend_service',
+      namePrefix: 'backend',
+    },
     compute: {
       resourceType: 'google_cloud_run_v2_service',
       namePrefix: 'run',
     },
-    database: {
+    data: {
       resourceType: 'google_sql_database_instance',
       namePrefix: 'sql',
     },
-    storage: {
-      resourceType: 'google_storage_bucket',
-      namePrefix: 'bucket',
-    },
-    gateway: {
-      resourceType: 'google_compute_backend_service',
-      namePrefix: 'backend',
-    },
-    function: {
-      resourceType: 'google_cloudfunctions_function',
-      namePrefix: 'function',
-    },
-    queue: {
+    messaging: {
       resourceType: 'google_pubsub_topic',
       namePrefix: 'topic',
     },
-    event: {
-      resourceType: 'google_eventarc_trigger',
-      namePrefix: 'trigger',
-    },
-    analytics: {
+    operations: {
       resourceType: 'google_bigquery_dataset',
       namePrefix: 'analytics',
-    },
-    identity: {
-      resourceType: 'google_service_account',
-      namePrefix: 'sa',
-    },
-    observability: {
-      resourceType: 'google_monitoring_dashboard',
-      namePrefix: 'dashboard',
     },
   },
   plateMappings: {
