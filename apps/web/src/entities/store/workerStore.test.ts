@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useWorkerStore } from './workerStore';
+import { useWorkerStore, IDLE_POSITION, BUILD_DURATION_MS } from './workerStore';
 
 const resetStore = () => {
   useWorkerStore.setState({
@@ -40,6 +40,7 @@ describe('workerStore', () => {
       progress: 0,
       startedAt: 1700000000000,
     });
+    expect(state.workerPosition).toEqual([1, 2, 3]);
     expect(state.buildQueue).toEqual([]);
 
     nowSpy.mockRestore();
@@ -107,6 +108,7 @@ describe('workerStore', () => {
     expect(state.activeBuild?.blockId).toBe('block-2');
     expect(state.buildQueue).toEqual([]);
     expect(state.workerState).toBe('moving');
+    expect(state.workerPosition).toEqual([2, 2, 2]);
   });
 
   it('completeBuild sets idle when queue is empty', () => {
@@ -118,6 +120,7 @@ describe('workerStore', () => {
     const state = useWorkerStore.getState();
     expect(state.activeBuild).toBeNull();
     expect(state.workerState).toBe('idle');
+    expect(state.workerPosition).toEqual(IDLE_POSITION);
   });
 
   it('cancelBuild clears active build and queued tasks', () => {
@@ -139,6 +142,14 @@ describe('workerStore', () => {
     store.setWorkerPosition([9, 8, 7]);
 
     expect(useWorkerStore.getState().workerPosition).toEqual([9, 8, 7]);
+  });
+
+  it('exports IDLE_POSITION constant', () => {
+    expect(IDLE_POSITION).toEqual([-3, 0, -6]);
+  });
+
+  it('exports BUILD_DURATION_MS constant', () => {
+    expect(BUILD_DURATION_MS).toBe(1500);
   });
 
   it('resetWorker clears build state and restores default position', () => {
