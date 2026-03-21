@@ -1,15 +1,19 @@
 import { describe, it, expect } from 'vitest';
-import type { Block, Plate } from '@cloudblocks/schema';
+import type { LeafNode, ContainerNode } from '@cloudblocks/schema';
 import { validatePlacement, canPlaceBlock, validateLayerPlacement, validateGridAlignment, validateNoOverlap } from './placement';
 
 function makeBlock(
-  overrides: Partial<Block> = {}
-): Block {
+  overrides: Partial<LeafNode> = {}
+): LeafNode {
   return {
     id: 'block-1',
-    name: 'Block One',
+    name: 'Block',
+    kind: 'resource',
+    layer: 'resource',
+    resourceType: 'web_compute',
     category: 'compute',
-    placementId: 'plate-1',
+    provider: 'azure',
+    parentId: 'plate-1',
     position: { x: 0, y: 0, z: 0 },
     metadata: {},
     ...overrides,
@@ -17,17 +21,24 @@ function makeBlock(
 }
 
 function makePlate(
-  overrides: Partial<Plate> = {}
-): Plate {
+  overrides: Partial<ContainerNode> & { type?: ContainerNode['layer'] } = {}
+): ContainerNode {
+  const layer = overrides.type ?? overrides.layer ?? 'subnet';
+  const normalizedLayer = layer === 'resource' ? 'subnet' : layer;
+  const resourceType: ContainerNode['resourceType'] = normalizedLayer === 'subnet'
+    ? 'subnet'
+    : 'virtual_network';
   return {
     id: 'plate-1',
-    name: 'Plate One',
-    type: 'subnet',
-    subnetAccess: 'private',
+    name: 'Plate',
+    kind: 'container',
+    layer: normalizedLayer,
+    resourceType,
+    category: 'network',
+    provider: 'azure',
     parentId: null,
-    children: [],
     position: { x: 0, y: 0, z: 0 },
-    size: { width: 4, height: 1, depth: 4 },
+    size: { width: 8, height: 1, depth: 8 },
     metadata: {},
     ...overrides,
   };
@@ -49,8 +60,8 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, undefined)).toEqual({
       ruleId: 'rule-plate-exists',
       severity: 'error',
-      message: 'Block "Compute A" is not placed on any plate',
-      suggestion: 'Place the block on a valid subnet plate',
+      message: 'Resource "Compute A" is not placed on any container',
+      suggestion: 'Place the resource on a valid subnet container',
       targetId: 'compute-1',
     });
   });
@@ -62,8 +73,8 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, plate)).toEqual({
       ruleId: 'rule-compute-subnet',
       severity: 'error',
-      message: 'Compute block "Compute B" must be placed on a Subnet Plate',
-      suggestion: 'Move the Compute block to a Subnet Plate',
+      message: 'Compute resource "Compute B" must be placed on a Subnet',
+      suggestion: 'Move the Compute resource to a Subnet',
       targetId: 'compute-2',
     });
   });
@@ -78,86 +89,80 @@ describe('validatePlacement', () => {
   });
 
   it('returns error when database is on non-subnet plate', () => {
-    const block = makeBlock({ id: 'db-1', name: 'Database A', category: 'database' });
+    const block = makeBlock({ id: 'db-1', name: 'Database A', category: 'data' });
     const plate = makePlate({ type: 'region', subnetAccess: undefined });
 
     expect(validatePlacement(block, plate)).toEqual({
-      ruleId: 'rule-db-private',
+      ruleId: 'rule-data-subnet',
       severity: 'error',
-      message: 'Database block "Database A" must be placed on a private Subnet Plate',
-      suggestion: 'Move the Database block to a Private Subnet Plate',
+      message: 'Data resource "Database A" must be placed on a Subnet',
+      suggestion: 'Move the Data resource to a Subnet',
       targetId: 'db-1',
     });
   });
 
-  it('returns error when database is on public subnet', () => {
-    const block = makeBlock({ id: 'db-2', name: 'Database B', category: 'database' });
+  it('returns null when database is on public subnet', () => {
+    const block = makeBlock({ id: 'db-2', name: 'Database B', category: 'data' });
     const plate = makePlate({ type: 'subnet', subnetAccess: 'public' });
 
-    expect(validatePlacement(block, plate)).toEqual({
-      ruleId: 'rule-db-private',
-      severity: 'error',
-      message: 'Database block "Database B" must be placed on a private Subnet Plate',
-      suggestion: 'Move the Database block to a Private Subnet Plate',
-      targetId: 'db-2',
-    });
+    expect(validatePlacement(block, plate)).toBeNull();
   });
 
   it('returns null when database is on private subnet', () => {
-    const block = makeBlock({ category: 'database' });
+    const block = makeBlock({ category: 'data' });
     const plate = makePlate({ type: 'subnet', subnetAccess: 'private' });
 
     expect(validatePlacement(block, plate)).toBeNull();
   });
 
   it('returns error when gateway is on non-subnet plate', () => {
-    const block = makeBlock({ id: 'gw-1', name: 'Gateway A', category: 'gateway' });
+    const block = makeBlock({ id: 'gw-1', name: 'Gateway A', category: 'edge' });
     const plate = makePlate({ type: 'region', subnetAccess: undefined });
 
     expect(validatePlacement(block, plate)).toEqual({
-      ruleId: 'rule-gw-public',
+      ruleId: 'rule-edge-public',
       severity: 'error',
-      message: 'Gateway block "Gateway A" must be placed on a public Subnet Plate',
-      suggestion: 'Move the Gateway block to a Public Subnet Plate',
+      message: 'Edge resource "Gateway A" must be placed on a public Subnet',
+      suggestion: 'Move the Edge resource to a Public Subnet',
       targetId: 'gw-1',
     });
   });
 
   it('returns error when gateway is on private subnet', () => {
-    const block = makeBlock({ id: 'gw-2', name: 'Gateway B', category: 'gateway' });
+    const block = makeBlock({ id: 'gw-2', name: 'Gateway B', category: 'edge' });
     const plate = makePlate({ type: 'subnet', subnetAccess: 'private' });
 
     expect(validatePlacement(block, plate)).toEqual({
-      ruleId: 'rule-gw-public',
+      ruleId: 'rule-edge-public',
       severity: 'error',
-      message: 'Gateway block "Gateway B" must be placed on a public Subnet Plate',
-      suggestion: 'Move the Gateway block to a Public Subnet Plate',
+      message: 'Edge resource "Gateway B" must be placed on a public Subnet',
+      suggestion: 'Move the Edge resource to a Public Subnet',
       targetId: 'gw-2',
     });
   });
 
   it('returns null when gateway is on public subnet', () => {
-    const block = makeBlock({ category: 'gateway' });
+    const block = makeBlock({ category: 'edge' });
     const plate = makePlate({ type: 'subnet', subnetAccess: 'public' });
 
     expect(validatePlacement(block, plate)).toBeNull();
   });
 
   it('returns error when storage is on non-subnet plate', () => {
-    const block = makeBlock({ id: 'storage-1', name: 'Storage A', category: 'storage' });
+    const block = makeBlock({ id: 'storage-1', name: 'Storage A', category: 'data' });
     const plate = makePlate({ type: 'region', subnetAccess: undefined });
 
     expect(validatePlacement(block, plate)).toEqual({
-      ruleId: 'rule-storage-subnet',
+      ruleId: 'rule-data-subnet',
       severity: 'error',
-      message: 'Storage block "Storage A" must be placed on a Subnet Plate',
-      suggestion: 'Move the Storage block to a Subnet Plate',
+      message: 'Data resource "Storage A" must be placed on a Subnet',
+      suggestion: 'Move the Data resource to a Subnet',
       targetId: 'storage-1',
     });
   });
 
   it('returns null when storage is on subnet plate', () => {
-    const block = makeBlock({ category: 'storage' });
+    const block = makeBlock({ category: 'data' });
     const publicSubnet = makePlate({ type: 'subnet', subnetAccess: 'public' });
     const privateSubnet = makePlate({ type: 'subnet', subnetAccess: 'private' });
 
@@ -165,121 +170,121 @@ describe('validatePlacement', () => {
     expect(validatePlacement(block, privateSubnet)).toBeNull();
   });
 
-  it('returns error when function is on subnet plate', () => {
-    const block = makeBlock({ id: 'fn-1', name: 'FuncA', category: 'function' });
+  it('returns null when function is on subnet plate', () => {
+    const block = makeBlock({ id: 'fn-1', name: 'FuncA', category: 'compute' });
     const plate = makePlate({ type: 'subnet', subnetAccess: 'public' });
-
-    expect(validatePlacement(block, plate)).toEqual({
-      ruleId: 'rule-serverless-network',
-      severity: 'error',
-      message: 'Function block "FuncA" must be placed on a Region Plate',
-      suggestion: 'Move the Function block to a Region Plate (not a Subnet)',
-      targetId: 'fn-1',
-    });
-  });
-
-  it('returns null when function is on network plate', () => {
-    const block = makeBlock({ category: 'function' });
-    const plate = makePlate({ type: 'region', subnetAccess: undefined });
 
     expect(validatePlacement(block, plate)).toBeNull();
   });
 
+  it('returns error when function is on network plate', () => {
+    const block = makeBlock({ category: 'compute' });
+    const plate = makePlate({ type: 'region', subnetAccess: undefined });
+
+    expect(validatePlacement(block, plate)).toEqual({
+      ruleId: 'rule-compute-subnet',
+      severity: 'error',
+      message: 'Compute resource "Block" must be placed on a Subnet',
+      suggestion: 'Move the Compute resource to a Subnet',
+      targetId: 'block-1',
+    });
+  });
+
   it('returns error when queue is on subnet plate', () => {
-    const block = makeBlock({ id: 'queue-1', name: 'QueueA', category: 'queue' });
+    const block = makeBlock({ id: 'queue-1', name: 'QueueA', category: 'messaging' });
     const plate = makePlate({ type: 'subnet', subnetAccess: 'public' });
 
     expect(validatePlacement(block, plate)).toEqual({
-      ruleId: 'rule-serverless-network',
+      ruleId: 'rule-messaging-region',
       severity: 'error',
-      message: 'Queue block "QueueA" must be placed on a Region Plate',
-      suggestion: 'Move the Queue block to a Region Plate (not a Subnet)',
+      message: 'Messaging resource "QueueA" must be placed on a Region container',
+      suggestion: 'Move the Messaging resource to a Region container',
       targetId: 'queue-1',
     });
   });
 
   it('returns null when queue is on network plate', () => {
-    const block = makeBlock({ category: 'queue' });
+    const block = makeBlock({ category: 'messaging' });
     const plate = makePlate({ type: 'region', subnetAccess: undefined });
 
     expect(validatePlacement(block, plate)).toBeNull();
   });
 
   it('returns error when event is on subnet plate', () => {
-    const block = makeBlock({ id: 'event-1', name: 'EventA', category: 'event' });
+    const block = makeBlock({ id: 'event-1', name: 'EventA', category: 'messaging' });
     const plate = makePlate({ type: 'subnet', subnetAccess: 'public' });
 
     expect(validatePlacement(block, plate)).toEqual({
-      ruleId: 'rule-serverless-network',
+      ruleId: 'rule-messaging-region',
       severity: 'error',
-      message: 'Event block "EventA" must be placed on a Region Plate',
-      suggestion: 'Move the Event block to a Region Plate (not a Subnet)',
+      message: 'Messaging resource "EventA" must be placed on a Region container',
+      suggestion: 'Move the Messaging resource to a Region container',
       targetId: 'event-1',
     });
   });
 
   it('returns null when event is on network plate', () => {
-    const block = makeBlock({ category: 'event' });
+    const block = makeBlock({ category: 'messaging' });
     const plate = makePlate({ type: 'region', subnetAccess: undefined });
 
     expect(validatePlacement(block, plate)).toBeNull();
   });
 
   it('returns error when analytics is on network plate', () => {
-    const block = makeBlock({ id: 'analytics-1', name: 'AnalyticsA', category: 'analytics' });
+    const block = makeBlock({ id: 'analytics-1', name: 'AnalyticsA', category: 'operations' });
     const plate = makePlate({ type: 'region', subnetAccess: undefined });
 
     expect(validatePlacement(block, plate)).toEqual({
-      ruleId: 'rule-analytics-subnet',
+      ruleId: 'rule-operations-subnet',
       severity: 'error',
-      message: 'Analytics block "AnalyticsA" must be placed on a Subnet Plate',
-      suggestion: 'Move the Analytics block to a Subnet Plate',
+      message: 'Operations resource "AnalyticsA" must be placed on a Subnet',
+      suggestion: 'Move the Operations resource to a Subnet',
       targetId: 'analytics-1',
     });
   });
 
   it('returns error when identity is on network plate', () => {
-    const block = makeBlock({ id: 'identity-1', name: 'IdentityA', category: 'identity' });
+    const block = makeBlock({ id: 'identity-1', name: 'IdentityA', category: 'security' });
     const plate = makePlate({ type: 'region', subnetAccess: undefined });
 
     expect(validatePlacement(block, plate)).toEqual({
-      ruleId: 'rule-identity-subnet',
+      ruleId: 'rule-security-subnet',
       severity: 'error',
-      message: 'Identity block "IdentityA" must be placed on a Subnet Plate',
-      suggestion: 'Move the Identity block to a Subnet Plate',
+      message: 'Security resource "IdentityA" must be placed on a Subnet',
+      suggestion: 'Move the Security resource to a Subnet',
       targetId: 'identity-1',
     });
   });
 
   it('returns error when observability is on network plate', () => {
-    const block = makeBlock({ id: 'observability-1', name: 'ObservabilityA', category: 'observability' });
+    const block = makeBlock({ id: 'observability-1', name: 'ObservabilityA', category: 'operations' });
     const plate = makePlate({ type: 'region', subnetAccess: undefined });
 
     expect(validatePlacement(block, plate)).toEqual({
-      ruleId: 'rule-observability-subnet',
+      ruleId: 'rule-operations-subnet',
       severity: 'error',
-      message: 'Observability block "ObservabilityA" must be placed on a Subnet Plate',
-      suggestion: 'Move the Observability block to a Subnet Plate',
+      message: 'Operations resource "ObservabilityA" must be placed on a Subnet',
+      suggestion: 'Move the Operations resource to a Subnet',
       targetId: 'observability-1',
     });
   });
 
   it('returns null when analytics is on subnet plate', () => {
-    const block = makeBlock({ category: 'analytics' });
+    const block = makeBlock({ category: 'operations' });
     const plate = makePlate({ type: 'subnet', subnetAccess: 'public' });
 
     expect(validatePlacement(block, plate)).toBeNull();
   });
 
   it('returns null when identity is on subnet plate', () => {
-    const block = makeBlock({ category: 'identity' });
+    const block = makeBlock({ category: 'security' });
     const plate = makePlate({ type: 'subnet', subnetAccess: 'public' });
 
     expect(validatePlacement(block, plate)).toBeNull();
   });
 
   it('returns null when observability is on subnet plate', () => {
-    const block = makeBlock({ category: 'observability' });
+    const block = makeBlock({ category: 'operations' });
     const plate = makePlate({ type: 'subnet', subnetAccess: 'public' });
 
     expect(validatePlacement(block, plate)).toBeNull();
@@ -299,67 +304,67 @@ describe('canPlaceBlock', () => {
 
   it('returns true when database is on private subnet plate', () => {
     const plate = makePlate({ type: 'subnet', subnetAccess: 'private' });
-    expect(canPlaceBlock('database', plate)).toBe(true);
+    expect(canPlaceBlock('data', plate)).toBe(true);
   });
 
-  it('returns false when database is on public subnet plate', () => {
+  it('returns true when database is on public subnet plate', () => {
     const plate = makePlate({ type: 'subnet', subnetAccess: 'public' });
-    expect(canPlaceBlock('database', plate)).toBe(false);
+    expect(canPlaceBlock('data', plate)).toBe(true);
   });
 
   it('returns true when gateway is on public subnet plate', () => {
     const plate = makePlate({ type: 'subnet', subnetAccess: 'public' });
-    expect(canPlaceBlock('gateway', plate)).toBe(true);
+    expect(canPlaceBlock('edge', plate)).toBe(true);
   });
 
   it('returns false when gateway is on private subnet plate', () => {
     const plate = makePlate({ type: 'subnet', subnetAccess: 'private' });
-    expect(canPlaceBlock('gateway', plate)).toBe(false);
+    expect(canPlaceBlock('edge', plate)).toBe(false);
   });
 
   it('returns true when storage is on subnet plate', () => {
     const plate = makePlate({ type: 'subnet', subnetAccess: 'public' });
-    expect(canPlaceBlock('storage', plate)).toBe(true);
+    expect(canPlaceBlock('data', plate)).toBe(true);
   });
 
   it('returns false when storage is on network plate', () => {
     const plate = makePlate({ type: 'region', subnetAccess: undefined });
-    expect(canPlaceBlock('storage', plate)).toBe(false);
+    expect(canPlaceBlock('data', plate)).toBe(false);
   });
 
-  it('returns true when function is on network plate', () => {
+  it('returns false when function is on network plate', () => {
     const plate = makePlate({ type: 'region', subnetAccess: undefined });
-    expect(canPlaceBlock('function', plate)).toBe(true);
+    expect(canPlaceBlock('compute', plate)).toBe(false);
   });
 
-  it('returns false when function is on subnet plate', () => {
+  it('returns true when function is on subnet plate', () => {
     const plate = makePlate({ type: 'subnet', subnetAccess: 'public' });
-    expect(canPlaceBlock('function', plate)).toBe(false);
+    expect(canPlaceBlock('compute', plate)).toBe(true);
   });
 
   it('returns true when queue is on network plate', () => {
     const plate = makePlate({ type: 'region', subnetAccess: undefined });
-    expect(canPlaceBlock('queue', plate)).toBe(true);
+    expect(canPlaceBlock('messaging', plate)).toBe(true);
   });
 
   it('returns true when event is on network plate', () => {
     const plate = makePlate({ type: 'region', subnetAccess: undefined });
-    expect(canPlaceBlock('event', plate)).toBe(true);
+    expect(canPlaceBlock('messaging', plate)).toBe(true);
   });
 
   it('returns true when analytics is on subnet plate', () => {
     const plate = makePlate({ type: 'subnet', subnetAccess: 'private' });
-    expect(canPlaceBlock('analytics', plate)).toBe(true);
+    expect(canPlaceBlock('operations', plate)).toBe(true);
   });
 
   it('returns true when identity is on subnet plate', () => {
     const plate = makePlate({ type: 'subnet', subnetAccess: 'private' });
-    expect(canPlaceBlock('identity', plate)).toBe(true);
+    expect(canPlaceBlock('security', plate)).toBe(true);
   });
 
   it('returns true when observability is on subnet plate', () => {
     const plate = makePlate({ type: 'subnet', subnetAccess: 'private' });
-    expect(canPlaceBlock('observability', plate)).toBe(true);
+    expect(canPlaceBlock('operations', plate)).toBe(true);
   });
 });
 
@@ -379,14 +384,14 @@ describe('validateLayerPlacement', () => {
   });
 
   it('returns null when block is on a region plate', () => {
-    const block = makeBlock({ category: 'function' });
+    const block = makeBlock({ category: 'compute' });
     const plate = makePlate({ type: 'region', subnetAccess: undefined });
 
     expect(validateLayerPlacement(block, plate)).toBeNull();
   });
 
   it('returns null when block is on an edge plate', () => {
-    const block = makeBlock({ category: 'gateway' });
+    const block = makeBlock({ category: 'edge' });
     const plate = makePlate({ type: 'edge', subnetAccess: undefined });
 
     expect(validateLayerPlacement(block, plate)).toBeNull();
@@ -436,8 +441,8 @@ describe('validateGridAlignment', () => {
     expect(validateGridAlignment(block)).toEqual({
       ruleId: 'rule-grid-alignment',
       severity: 'error',
-      message: 'Block "BadX" position (1.5, 0) is not CU-aligned',
-      suggestion: 'Snap the block to integer grid positions',
+      message: 'Resource "BadX" position (1.5, 0) is not CU-aligned',
+      suggestion: 'Snap the resource to integer grid positions',
       targetId: 'b1',
     });
   });
@@ -448,8 +453,8 @@ describe('validateGridAlignment', () => {
     expect(validateGridAlignment(block)).toEqual({
       ruleId: 'rule-grid-alignment',
       severity: 'error',
-      message: 'Block "BadZ" position (0, 2.7) is not CU-aligned',
-      suggestion: 'Snap the block to integer grid positions',
+      message: 'Resource "BadZ" position (0, 2.7) is not CU-aligned',
+      suggestion: 'Snap the resource to integer grid positions',
       targetId: 'b2',
     });
   });
@@ -460,8 +465,8 @@ describe('validateGridAlignment', () => {
     expect(validateGridAlignment(block)).toEqual({
       ruleId: 'rule-grid-alignment',
       severity: 'error',
-      message: 'Block "BadBoth" position (0.1, 0.9) is not CU-aligned',
-      suggestion: 'Snap the block to integer grid positions',
+      message: 'Resource "BadBoth" position (0.1, 0.9) is not CU-aligned',
+      suggestion: 'Snap the resource to integer grid positions',
       targetId: 'b3',
     });
   });
@@ -509,8 +514,8 @@ describe('validateNoOverlap', () => {
     expect(validateNoOverlap(block, [sibling], getSize)).toEqual({
       ruleId: 'rule-no-overlap',
       severity: 'error',
-      message: 'Block "A" overlaps with "B"',
-      suggestion: 'Move the block to a non-overlapping position',
+      message: 'Resource "A" overlaps with "B"',
+      suggestion: 'Move the resource to a non-overlapping position',
       targetId: 'a',
     });
   });
@@ -522,8 +527,8 @@ describe('validateNoOverlap', () => {
     expect(validateNoOverlap(block, [sibling], getSize)).toEqual({
       ruleId: 'rule-no-overlap',
       severity: 'error',
-      message: 'Block "A" overlaps with "B"',
-      suggestion: 'Move the block to a non-overlapping position',
+      message: 'Resource "A" overlaps with "B"',
+      suggestion: 'Move the resource to a non-overlapping position',
       targetId: 'a',
     });
   });
@@ -546,7 +551,7 @@ describe('validateNoOverlap', () => {
 
   it('uses custom getBlockSize for different block sizes', () => {
     const block = makeBlock({ id: 'a', name: 'A', category: 'compute', position: { x: 0, y: 0, z: 0 } });
-    const sibling = makeBlock({ id: 'b', name: 'B', category: 'database', position: { x: 3, y: 0, z: 0 } });
+    const sibling = makeBlock({ id: 'b', name: 'B', category: 'data', position: { x: 3, y: 0, z: 0 } });
 
     // With small size: no overlap
     const smallSize = () => makeSize({ width: 2, depth: 2 });
