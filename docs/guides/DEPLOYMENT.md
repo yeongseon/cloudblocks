@@ -6,6 +6,24 @@ CloudBlocks is designed for **lightweight deployment** with minimal infrastructu
 
 For the canonical multi-environment cloud strategy (local/staging/production, promotion model, and cost targets), see [ENVIRONMENT_STRATEGY.md](ENVIRONMENT_STRATEGY.md).
 
+## Terminology
+
+CloudBlocks uses four distinct terms for its deployment lifecycle. Every document, workflow, and UI label must use these definitions consistently.
+
+| Term | Definition | Example |
+|------|-----------|---------|
+| **Deploy** | Push code or infrastructure to a specific environment. Triggered by a CI/CD pipeline. | "Deploy to staging" — `deploy.yml` runs on push to `main`. |
+| **Promote** | Move a tested version from `staging` to `production`. A controlled, deliberate action with pre-checks (tests passed, cost reviewed, diff approved). | "Promote to production" — `promote.yml` runs after manual approval. |
+| **Rollback** | Revert an environment to a previous known-good version. Used for emergency or planned recovery. | "Rollback production to v0.17.0" — restores the last stable release. |
+| **Release** | Tag a version as a user-facing milestone. A labeling action, not a deployment action. Releases are created after a milestone closes. | "Release v0.18.0" — git tag + GitHub Release. |
+
+### Usage Guidelines
+
+- **Deploy ≠ Release.** A deploy pushes code to an environment; a release tags a version for users. They happen at different times.
+- **Promote ≠ Deploy.** A promotion is a specific kind of deployment that moves a validated staging build to production. Use "promote" when the source is staging and the target is production.
+- **Rollback ≠ Redeploy.** A rollback reverts to a previous version. A redeploy pushes the same version again. Use "rollback" only when reverting.
+- **Workflow naming convention**: `deploy.yml` (staging), `promote.yml` (staging → production). Never name a promote workflow "deploy-production."
+
 ## Local Development
 
 ### Prerequisites
