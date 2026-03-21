@@ -9,7 +9,9 @@ import { validatePlacement } from '../../validation/placement';
 import {
   clampWithinParent,
   DEFAULT_PLATE_SIZE,
+  findNonOverlappingPosition,
   nextGridPosition,
+  resolveMoveDelta,
   withHistory,
 } from './helpers';
 
@@ -80,6 +82,16 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
             : clampedRelativePosition.z,
         };
       }
+
+      const sameLevelSiblings = arch.plates.filter(
+        (candidate) => candidate.parentId === (parentId ?? null)
+      );
+      const nonOverlappingXZ = findNonOverlappingPosition(
+        { x: plate.position.x, z: plate.position.z },
+        { width: plate.size.width, depth: plate.size.depth },
+        sameLevelSiblings,
+      );
+      plate.position = { ...plate.position, x: nonOverlappingXZ.x, z: nonOverlappingXZ.z };
 
       let plates = [...arch.plates, plate];
 
@@ -509,6 +521,21 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
           appliedDeltaX = clampedWorldPosition.x - plate.position.x;
           appliedDeltaZ = clampedWorldPosition.z - plate.position.z;
         }
+      }
+
+      const sameLevelSiblings = arch.plates.filter(
+        (candidate) => candidate.parentId === (plate.parentId ?? null) && candidate.id !== id
+      );
+
+      if (sameLevelSiblings.length > 0) {
+        const resolved = resolveMoveDelta(
+          { id: plate.id, position: plate.position, size: plate.size },
+          appliedDeltaX,
+          appliedDeltaZ,
+          sameLevelSiblings,
+        );
+        appliedDeltaX = resolved.deltaX;
+        appliedDeltaZ = resolved.deltaZ;
       }
 
       const descendantIds = new Set<string>([id]);

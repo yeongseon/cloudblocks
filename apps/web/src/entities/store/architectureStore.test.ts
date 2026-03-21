@@ -197,6 +197,70 @@ describe('architectureStore', () => {
       expect(getArch().plates).toHaveLength(0);
       expect(getState().canUndo).toBe(false);
     });
+
+    it('auto-positions second root plate to avoid overlap with first', () => {
+      getState().addPlate('region', 'VNet1', null);
+      getState().addPlate('region', 'VNet2', null);
+
+      const plates = getArch().plates;
+      expect(plates).toHaveLength(2);
+
+      const p1 = plates[0];
+      const p2 = plates[1];
+      const halfW1 = p1.size.width / 2;
+      const halfW2 = p2.size.width / 2;
+      const gap = (p2.position.x - halfW2) - (p1.position.x + halfW1);
+      expect(gap).toBeGreaterThanOrEqual(0);
+    });
+
+    it('auto-positions third root plate to avoid both existing plates', () => {
+      getState().addPlate('region', 'VNet1', null);
+      getState().addPlate('region', 'VNet2', null);
+      getState().addPlate('region', 'VNet3', null);
+
+      const plates = getArch().plates;
+      expect(plates).toHaveLength(3);
+
+      for (let i = 0; i < plates.length; i++) {
+        for (let j = i + 1; j < plates.length; j++) {
+          const a = plates[i];
+          const b = plates[j];
+          const overlapX =
+            a.position.x - a.size.width / 2 < b.position.x + b.size.width / 2 &&
+            a.position.x + a.size.width / 2 > b.position.x - b.size.width / 2;
+          const overlapZ =
+            a.position.z - a.size.depth / 2 < b.position.z + b.size.depth / 2 &&
+            a.position.z + a.size.depth / 2 > b.position.z - b.size.depth / 2;
+          expect(overlapX && overlapZ).toBe(false);
+        }
+      }
+    });
+
+    it('auto-positions subnets within same parent to avoid sibling overlap', () => {
+      getState().addPlate('region', 'VNet', null);
+      const netId = getArch().plates[0].id;
+
+      getState().addPlate('subnet', 'Sub1', netId, 'public');
+      getState().addPlate('subnet', 'Sub2', netId, 'private');
+      getState().addPlate('subnet', 'Sub3', netId, 'public');
+
+      const subnets = getArch().plates.filter((p) => p.parentId === netId);
+      expect(subnets).toHaveLength(3);
+
+      for (let i = 0; i < subnets.length; i++) {
+        for (let j = i + 1; j < subnets.length; j++) {
+          const a = subnets[i];
+          const b = subnets[j];
+          const overlapX =
+            a.position.x - a.size.width / 2 < b.position.x + b.size.width / 2 &&
+            a.position.x + a.size.width / 2 > b.position.x - b.size.width / 2;
+          const overlapZ =
+            a.position.z - a.size.depth / 2 < b.position.z + b.size.depth / 2 &&
+            a.position.z + a.size.depth / 2 > b.position.z - b.size.depth / 2;
+          expect(overlapX && overlapZ).toBe(false);
+        }
+      }
+    });
   });
 
   describe('removePlate', () => {
@@ -802,6 +866,39 @@ describe('architectureStore', () => {
       getState().movePlatePosition('missing-plate', 1, 1);
 
       expect(getState().workspace.architecture).toBe(before);
+    });
+
+    it('prevents root plate from overlapping a sibling when dragged', () => {
+      getState().addPlate('region', 'VNet1', null);
+      getState().addPlate('region', 'VNet2', null);
+
+      const plates = getArch().plates;
+      const p1 = plates[0];
+      const p2 = plates[1];
+
+      getState().movePlatePosition(p2.id, -(p2.position.x - p1.position.x), 0);
+
+      const afterP1 = getArch().plates.find((p) => p.id === p1.id)!;
+      const afterP2 = getArch().plates.find((p) => p.id === p2.id)!;
+
+      const overlapX =
+        afterP1.position.x - afterP1.size.width / 2 < afterP2.position.x + afterP2.size.width / 2 &&
+        afterP1.position.x + afterP1.size.width / 2 > afterP2.position.x - afterP2.size.width / 2;
+      const overlapZ =
+        afterP1.position.z - afterP1.size.depth / 2 < afterP2.position.z + afterP2.size.depth / 2 &&
+        afterP1.position.z + afterP1.size.depth / 2 > afterP2.position.z - afterP2.size.depth / 2;
+      expect(overlapX && overlapZ).toBe(false);
+    });
+
+    it('allows movement that does not cause overlap', () => {
+      getState().addPlate('region', 'VNet1', null);
+      getState().addPlate('region', 'VNet2', null);
+
+      const p2Before = getArch().plates[1];
+      getState().movePlatePosition(p2Before.id, 5, 0);
+
+      const p2After = getArch().plates.find((p) => p.id === p2Before.id)!;
+      expect(p2After.position.x).toBe(p2Before.position.x + 5);
     });
   });
 

@@ -24,42 +24,65 @@ export const MinifigureSvg = memo(function MinifigureSvg({
     switch (provider) {
       case 'azure':
         return (
-          <g transform="translate(38, 65)">
-            <polygon points="0,-6 -6,6 6,6" fill="#FFFFFF" opacity="0.9" />
-            <polygon points="-3,2 3,2 4,4 -4,4" fill={colors.torso.front} />
+          <g transform="translate(38, 65) rotate(26.5)" data-logo="azure">
+            <path
+              d="M-5 5 L-1-5 L1 1 L5 5Z"
+              fill="#FFFFFF"
+              opacity="0.9"
+            />
+            <path
+              d="M-1-5 L3-5 L5 5 L1 1Z"
+              fill="#FFFFFF"
+              opacity="0.6"
+            />
           </g>
         );
       case 'aws':
         return (
-          <text
-            x="38"
-            y="68"
-            fill="#FFFFFF"
-            fontSize="9"
-            fontFamily="system-ui, sans-serif"
-            fontWeight="bold"
-            textAnchor="middle"
-            transform="rotate(26.5 38 68)"
-            opacity="0.9"
-          >
-            AWS
-          </text>
+          <g transform="translate(38, 66) rotate(26.5)" data-logo="aws">
+            <path
+              d="M-5 0 L-3-4 L-1 0 L1-4 L3 0 L5-4"
+              stroke="#FFFFFF"
+              strokeWidth="1.2"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity="0.9"
+            />
+            <path
+              d="M-4 2 Q0 5 4 2"
+              stroke="#FFFFFF"
+              strokeWidth="1.2"
+              fill="none"
+              strokeLinecap="round"
+              opacity="0.9"
+            />
+            <path
+              d="M3 2 L5 1"
+              stroke="#FFFFFF"
+              strokeWidth="1.2"
+              fill="none"
+              strokeLinecap="round"
+              opacity="0.9"
+            />
+          </g>
         );
       case 'gcp':
         return (
-          <text
-            x="38"
-            y="68"
-            fill="#555555"
-            fontSize="9"
-            fontFamily="system-ui, sans-serif"
-            fontWeight="bold"
-            textAnchor="middle"
-            transform="rotate(26.5 38 68)"
-            opacity="0.9"
-          >
-            GCP
-          </text>
+          <g transform="translate(38, 66) rotate(26.5)" data-logo="gcp">
+            <polygon
+              points="0,-5 4.3,-2.5 4.3,2.5 0,5 -4.3,2.5 -4.3,-2.5"
+              fill="none"
+              stroke="#4285F4"
+              strokeWidth="1.5"
+              opacity="0.9"
+            />
+            <polygon
+              points="0,-3 2.6,-1.5 2.6,1.5 0,3 -2.6,1.5 -2.6,-1.5"
+              fill="#4285F4"
+              opacity="0.7"
+            />
+          </g>
         );
       default:
         return null;
