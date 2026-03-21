@@ -12,84 +12,128 @@
 .empty-canvas-content {
   pointer-events: auto;
   text-align: center;
-  padding: 48px 64px;
-  border-radius: 16px;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 32px 40px;
+  border-radius: 8px;
+  background: #FFFDF0;
+  border: 4px solid #FFC83D;
+  font-family: 'Varela Round', system-ui, sans-serif;
+  box-shadow:
+    0 6px 0 0 rgba(0, 0, 0, 0.15),
+    0 12px 24px rgba(255, 140, 0, 0.2);
 }
 
 .empty-canvas-icon {
-  font-size: 64px;
-  margin-bottom: 16px;
+  font-size: 56px;
+  margin-bottom: 12px;
 }
 
 .empty-canvas-title {
-  color: #ffffff;
-  font-size: 24px;
-  font-weight: 700;
-  margin: 0 0 8px 0;
-  font-family: 'Fredoka', 'Varela Round', system-ui, sans-serif;
+  color: #FF5E00;
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0 0 6px 0;
+  font-family: 'Varela Round', system-ui, sans-serif;
+  text-shadow: 1px 2px 0 rgba(255, 200, 61, 0.4);
+  letter-spacing: 0.5px;
 }
 
 .empty-canvas-subtitle {
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 14px;
-  margin: 0 0 32px 0;
+  color: #5C3A00;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 24px 0;
 }
 
 .empty-canvas-actions {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  max-width: 360px;
+  margin: 0 auto;
 }
 
 .empty-canvas-btn {
-  padding: 12px 24px;
+  padding: 14px 20px;
   border-radius: 8px;
-  border: none;
-  font-size: 15px;
-  font-weight: 600;
+  border: 4px solid;
+  font-size: 14px;
+  font-weight: 800;
   cursor: pointer;
-  font-family: 'Fredoka', 'Varela Round', system-ui, sans-serif;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  font-family: 'Varela Round', system-ui, sans-serif;
+  transition: all 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
+  text-align: center;
 }
 
-.empty-canvas-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+.empty-canvas-btn:active {
+  transform: translateY(3px);
 }
 
 .empty-canvas-btn--template {
   background: #0078D4;
-  color: white;
+  border-color: #005A9E;
+  color: #FFFFFF;
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.4),
+    0 4px 0 0 #005A9E;
 }
 
 .empty-canvas-btn--template:hover {
-  background: #106EBE;
+  background: #1A8AE0;
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.5),
+    0 6px 0 0 #005A9E;
+}
+
+.empty-canvas-btn--template:active {
+  box-shadow:
+    inset 0 2px 0 rgba(0, 0, 0, 0.2),
+    0 1px 0 0 #005A9E;
 }
 
 .empty-canvas-btn--scratch {
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #FFF5D6;
+  border-color: #FFE4A0;
+  color: #3D2600;
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.9),
+    0 4px 0 0 rgba(0, 0, 0, 0.1);
 }
 
 .empty-canvas-btn--scratch:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: #FFE4A0;
+  color: #FF5E00;
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.9),
+    0 6px 0 0 rgba(0, 0, 0, 0.15);
 }
 
-.empty-canvas-learn-link {
-  margin-top: 16px;
-  background: none;
-  border: none;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 13px;
-  cursor: pointer;
-  font-family: 'Fredoka', 'Varela Round', system-ui, sans-serif;
-  transition: color 0.15s ease;
+.empty-canvas-btn--scratch:active {
+  box-shadow:
+    inset 0 2px 0 rgba(160, 100, 0, 0.2),
+    0 1px 0 0 rgba(0, 0, 0, 0.1);
 }
 
-.empty-canvas-learn-link:hover {
-  color: rgba(255, 255, 255, 0.8);
+.empty-canvas-btn--learn {
+  background: #34C759;
+  border-color: #248A3D;
+  color: #FFFFFF;
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.4),
+    0 4px 0 0 #248A3D;
+}
+
+.empty-canvas-btn--learn:hover {
+  background: #3CD866;
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.5),
+    0 6px 0 0 #248A3D;
+}
+
+.empty-canvas-btn--learn:active {
+  box-shadow:
+    inset 0 2px 0 rgba(0, 0, 0, 0.2),
+    0 1px 0 0 #248A3D;
 }

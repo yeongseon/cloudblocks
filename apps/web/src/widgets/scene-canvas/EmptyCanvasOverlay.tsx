@@ -34,14 +34,14 @@ export function EmptyCanvasOverlay() {
           >
             ✨ Start from Scratch
           </button>
+          <button
+            type="button"
+            className="empty-canvas-btn empty-canvas-btn--learn"
+            onClick={() => toggleScenarioGallery()}
+          >
+            📖 Learn How
+          </button>
         </div>
-        <button
-          type="button"
-          className="empty-canvas-learn-link"
-          onClick={() => toggleScenarioGallery()}
-        >
-          📖 Learn How
-        </button>
       </div>
     </div>
   );
