@@ -11,7 +11,7 @@
   padding: 16px;
   color: #3D2600;
   font-family: 'Varela Round', system-ui, sans-serif;
-  z-index: 20;
+  z-index: 200;
   display: flex;
   flex-direction: column;
   overflow: hidden;

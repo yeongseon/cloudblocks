@@ -11,7 +11,7 @@
   padding: 12px;
   color: #e0e0e0;
   font-family: 'Segoe UI', system-ui, sans-serif;
-  z-index: 20;
+  z-index: 200;
   display: flex;
   flex-direction: column;
   overflow: hidden;
