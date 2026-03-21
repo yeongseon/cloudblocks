@@ -100,7 +100,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   // VNet optional (public-first, can add private later)
   sql: {
     id: 'sql',
-    label: 'Azure SQL',
+    label: 'SQL Database',
     shortLabel: 'SQL',
     icon: '🗄️',
     category: 'vnet-optional',
@@ -108,7 +108,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   },
   function: {
     id: 'function',
-    label: 'Azure Functions',
+    label: 'Functions',
     shortLabel: 'Func',
     icon: '⚡',
     category: 'vnet-optional',
@@ -193,7 +193,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   },
   firewall: {
     id: 'firewall',
-    label: 'Azure Firewall',
+    label: 'Firewall',
     shortLabel: 'FW',
     icon: '🛡️',
     category: 'vnet-required',
@@ -211,7 +211,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   },
   bastion: {
     id: 'bastion',
-    label: 'Azure Bastion',
+    label: 'Bastion',
     shortLabel: 'Bastion',
     icon: '🏰',
     category: 'vnet-required',
