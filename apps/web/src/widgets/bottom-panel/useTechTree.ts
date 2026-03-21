@@ -286,51 +286,10 @@ export function getResourceShortLabel(type: ResourceType, provider: ProviderType
 // ─── Command Card Grid Layout ──────────────────────────────
 
 
-// ─── Action Definitions ────────────────────────────────────
-
-export type ActionType = 'link' | 'edit' | 'delete' | 'copy' | 'rename';
-
-export interface ActionDefinition {
-  id: ActionType;
-  label: string;
-  icon: string;
-  hotkey?: string;
-}
-
-export const ACTION_DEFINITIONS: Record<ActionType, ActionDefinition> = {
-  link: { id: 'link', label: 'Link', icon: '🔗', hotkey: 'L' },
-  edit: { id: 'edit', label: 'Edit', icon: '✏️', hotkey: 'E' },
-  delete: { id: 'delete', label: 'Delete', icon: '🗑️', hotkey: 'Del' },
-  copy: { id: 'copy', label: 'Copy', icon: '📋', hotkey: 'C' },
-  rename: { id: 'rename', label: 'Rename', icon: '📝', hotkey: 'R' },
-};
-
-export const ACTION_GRID: (ActionType | null)[][] = [
-  ['link', 'edit', 'copy'],
-  ['rename', null, 'delete'],
-  [null, null, null],
-];
-
-export type PlateActionType = 'deploy' | 'delete' | 'rename';
-
-export interface PlateActionDefinition {
-  id: PlateActionType;
-  label: string;
-  icon: string;
-  hotkey?: string;
-}
-
-export const PLATE_ACTION_DEFINITIONS: Record<PlateActionType, PlateActionDefinition> = {
-  deploy: { id: 'deploy', label: 'Deploy', icon: '🚀', hotkey: 'Q' },
-  delete: { id: 'delete', label: 'Delete', icon: '🗑️', hotkey: 'E' },
-  rename: { id: 'rename', label: 'Rename', icon: '📝', hotkey: 'S' },
-};
-
-export const PLATE_ACTION_GRID: (PlateActionType | null)[][] = [
-  ['deploy', 'rename', 'delete'],
-  [null, null, null],
-  [null, null, null],
-];
+// Block/Plate action definitions removed.
+// CommandCard only shows resource creation grid when minifigure is selected.
+// All block/plate editing (rename, delete, config) happens in Properties panel.
+// See docs/design/SCV_ROLE_BOUNDARIES.md
 
 // ─── Hook ──────────────────────────────────────────────────
 

@@ -3,14 +3,10 @@ import { renderHook } from '@testing-library/react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import type { ArchitectureModel, BlockCategory, Plate } from '@cloudblocks/schema';
 import {
-  ACTION_DEFINITIONS,
-  ACTION_GRID,
   RESOURCE_DEFINITIONS,
   useTechTree,
 } from './useTechTree';
 import type {
-  ActionDefinition,
-  ActionType,
   ResourceDefinition,
   ResourceType,
   TechTreeState,
@@ -247,39 +243,6 @@ describe('useTechTree constants', () => {
   });
 
 
-  it('defines all action entries with expected metadata', () => {
-    const expectedActions: Record<
-      ActionType,
-      Pick<ActionDefinition, 'id' | 'label' | 'icon'> & { hotkey?: string }
-    > = {
-      link: { id: 'link', label: 'Link', icon: '🔗', hotkey: 'L' },
-      edit: { id: 'edit', label: 'Edit', icon: '✏️', hotkey: 'E' },
-      delete: { id: 'delete', label: 'Delete', icon: '🗑️', hotkey: 'Del' },
-      copy: { id: 'copy', label: 'Copy', icon: '📋', hotkey: 'C' },
-      rename: { id: 'rename', label: 'Rename', icon: '📝', hotkey: 'R' },
-    };
-
-    const actionTypes: ActionType[] = ['link', 'edit', 'delete', 'copy', 'rename'];
-    expect(actionTypes).toHaveLength(5);
-
-    for (const actionType of actionTypes) {
-      const actual = ACTION_DEFINITIONS[actionType];
-      const expected = expectedActions[actionType];
-      expect(actual).toMatchObject(expected);
-    }
-  });
-
-  it('defines a 3x3 action grid layout', () => {
-    expect(ACTION_GRID).toHaveLength(3);
-    for (const row of ACTION_GRID) {
-      expect(row).toHaveLength(3);
-    }
-    expect(ACTION_GRID).toEqual([
-      ['link', 'edit', 'copy'],
-      ['rename', null, 'delete'],
-      [null, null, null],
-    ]);
-  });
 });
 
 describe('useTechTree hook', () => {

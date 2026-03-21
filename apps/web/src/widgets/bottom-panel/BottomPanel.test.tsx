@@ -28,6 +28,7 @@ describe('BottomPanel', () => {
   });
 
   it('renders all child widgets', () => {
+    useUIStore.setState({ selectedId: 'worker-default', isBuildOrderOpen: true });
     render(<BottomPanel />);
 
     expect(screen.getByTestId('minimap')).toBeInTheDocument();
@@ -70,7 +71,7 @@ describe('BottomPanel', () => {
   });
 
   it('hides expand tab when build order is open', () => {
-    useUIStore.setState({ isBuildOrderOpen: true });
+    useUIStore.setState({ selectedId: 'worker-default', isBuildOrderOpen: true });
 
     render(<BottomPanel />);
 
