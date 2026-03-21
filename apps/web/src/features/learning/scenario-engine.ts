@@ -2,6 +2,7 @@ import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useLearningStore } from '../../entities/store/learningStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { getScenario } from './scenarios/registry';
+import { formatScenarioForProvider } from './scenario-formatter';
 import { startHintSubscription, startHintTimer, stopHintSubscription } from './hint-engine';
 import { evaluateRules } from './step-validator';
 import type { ValidationResult } from './step-validator';
@@ -29,10 +30,13 @@ function syncCurrentStepCompletion(): ValidationResult {
 }
 
 export function startLearningScenario(scenarioId: string): void {
-  const scenario = getScenario(scenarioId);
-  if (!scenario) {
+  const rawScenario = getScenario(scenarioId);
+  if (!rawScenario) {
     throw new Error(`Scenario not found: ${scenarioId}`);
   }
+
+  const provider = useUIStore.getState().activeProvider;
+  const scenario = formatScenarioForProvider(rawScenario, provider);
 
   preLearningSnapshot = JSON.parse(
     JSON.stringify(useArchitectureStore.getState().workspace.architecture),
