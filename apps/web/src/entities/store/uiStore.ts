@@ -4,6 +4,7 @@ import type { EditorMode } from '../../shared/types/learning';
 import type { DiffDelta } from '../../shared/types/diff';
 import type { ArchitectureModel } from '@cloudblocks/schema';
 import type { Persona, ComplexityLevel } from '../../shared/types';
+import type { ThemeVariant } from '../../shared/tokens/themeTokens';
 import { PERSONA_COMPLEXITY_MAP, PERSONA_PANEL_DEFAULTS } from '../../shared/types';
 
 export type ToolMode = 'select' | 'connect' | 'delete';
@@ -175,6 +176,9 @@ interface UIState {
   // ── Sound preference ──
   isSoundMuted: boolean;
   toggleSound: () => void;
+
+  themeVariant: ThemeVariant;
+  setThemeVariant: (variant: ThemeVariant) => void;
 
   pendingGitHubAction: PendingGitHubAction;
   setPendingGitHubAction: (action: PendingGitHubAction) => void;
@@ -427,6 +431,12 @@ export const useUIStore = create<UIState>((set) => ({
 
   isSoundMuted: true,
   toggleSound: () => set((s) => ({ isSoundMuted: !s.isSoundMuted })),
+
+  themeVariant: (localStorage.getItem('cloudblocks:theme-variant') as ThemeVariant) || 'blueprint',
+  setThemeVariant: (variant) => {
+    localStorage.setItem('cloudblocks:theme-variant', variant);
+    set({ themeVariant: variant });
+  },
 
   pendingGitHubAction: readPendingGitHubAction(),
   setPendingGitHubAction: (action) => {

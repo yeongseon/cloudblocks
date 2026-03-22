@@ -55,6 +55,7 @@ function App() {
   const cancelInteraction = useUIStore((s) => s.cancelInteraction);
   const editorMode = useUIStore((s) => s.editorMode);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
+  const themeVariant = useUIStore((s) => s.themeVariant);
   const showCodePreview = useUIStore((s) => s.showCodePreview);
   const showWorkspaceManager = useUIStore((s) => s.showWorkspaceManager);
   const showGitHubLogin = useUIStore((s) => s.showGitHubLogin);
@@ -93,6 +94,10 @@ function App() {
   useEffect(() => {
     audioService.setMuted(isSoundMuted);
   }, [isSoundMuted]);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = themeVariant;
+  }, [themeVariant]);
 
   // Load saved workspace and register templates on mount
   useEffect(() => {

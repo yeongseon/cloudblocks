@@ -52,6 +52,8 @@ export function MenuBar() {
   const activeScenario = useLearningStore((s) => s.activeScenario);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
   const toggleSound = useUIStore((s) => s.toggleSound);
+  const themeVariant = useUIStore((s) => s.themeVariant);
+  const setThemeVariant = useUIStore((s) => s.setThemeVariant);
   const playSound = (name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); };
 
   const togglePromoteDialog = usePromoteStore((s) => s.togglePromoteDialog);
@@ -441,6 +443,13 @@ export function MenuBar() {
               disabled={!diffMode}
             >
               <span className="menu-item-left">{diffMode ? '✓ ' : ''}🔍 Diff View</span>
+            </button>
+            <div className="menu-separator" />
+            <button type="button" className="menu-item" onClick={() => handleAction(() => setThemeVariant('blueprint'))}>
+              <span className="menu-item-left">{themeVariant === 'blueprint' ? '✓ ' : '  '}🌙 Blueprint (Dark)</span>
+            </button>
+            <button type="button" className="menu-item" onClick={() => handleAction(() => setThemeVariant('workshop'))}>
+              <span className="menu-item-left">{themeVariant === 'workshop' ? '✓ ' : '  '}☀️ Workshop (Light)</span>
             </button>
           </div>
         </div>

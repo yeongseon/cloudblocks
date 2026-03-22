@@ -1,8 +1,10 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useUIStore } from './uiStore';
 
 describe('useUIStore', () => {
   beforeEach(() => {
+    localStorage.removeItem('cloudblocks:theme-variant');
+
     // Reset store to initial state before each test
     useUIStore.setState({
       appView: 'landing',
@@ -38,6 +40,7 @@ describe('useUIStore', () => {
       diffMode: false,
       diffDelta: null,
       diffBaseArchitecture: null,
+      themeVariant: 'blueprint',
     });
   });
 
@@ -74,6 +77,29 @@ describe('useUIStore', () => {
       expect(state.diffMode).toBe(false);
       expect(state.diffDelta).toBe(null);
       expect(state.diffBaseArchitecture).toBe(null);
+    });
+  });
+
+  describe('themeVariant', () => {
+    it("defaults to 'blueprint'", () => {
+      expect(useUIStore.getState().themeVariant).toBe('blueprint');
+    });
+
+    it('setThemeVariant changes the value', () => {
+      useUIStore.getState().setThemeVariant('workshop');
+      expect(useUIStore.getState().themeVariant).toBe('workshop');
+    });
+
+    it('setThemeVariant persists to localStorage', () => {
+      useUIStore.getState().setThemeVariant('workshop');
+      expect(localStorage.getItem('cloudblocks:theme-variant')).toBe('workshop');
+    });
+
+    it('reads initial value from localStorage when present', async () => {
+      localStorage.setItem('cloudblocks:theme-variant', 'workshop');
+      vi.resetModules();
+      const { useUIStore: reloadedUIStore } = await import('./uiStore');
+      expect(reloadedUIStore.getState().themeVariant).toBe('workshop');
     });
   });
 
