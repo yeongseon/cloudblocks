@@ -32,6 +32,7 @@ const emptyArch: ArchitectureModel = {
   version: '1.0.0',
   nodes: [],
   connections: [],
+  endpoints: [],
   externalActors: [],
   createdAt: '',
   updatedAt: '',
@@ -574,6 +575,7 @@ describe('GitHubSync', () => {
       name: 'Test',
       version: '1.0.0',
       nodes: [],
+      endpoints: [],
       connections: [],
       externalActors: [],
     });

@@ -20,6 +20,7 @@ export function SceneCanvas() {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const plates = architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
   const blocks = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
+  const externalActors = architecture.externalActors ?? [];
   const addNode = useArchitectureStore((s) => s.addNode);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const interactionState = useUIStore((s) => s.interactionState);
@@ -200,7 +201,7 @@ export function SceneCanvas() {
               connection={conn}
               blocks={blocks}
               plates={plates}
-              externalActors={architecture.externalActors}
+              externalActors={externalActors}
               originX={origin.x}
               originY={origin.y}
             />
@@ -219,7 +220,7 @@ export function SceneCanvas() {
         </svg>
 
         <div className="actor-layer">
-          {architecture.externalActors.map((actor) => {
+          {externalActors.map((actor) => {
             const { x, y, z } = actor.position;
             const screenPos = worldToScreen(x, y, z, origin.x, origin.y);
             const zIndex = depthKey(x, z, y, 1);

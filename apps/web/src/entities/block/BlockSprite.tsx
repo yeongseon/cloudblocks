@@ -2,6 +2,7 @@ import { memo, useEffect, useRef } from 'react';
 import interact from 'interactjs';
 import { toast } from 'react-hot-toast';
 import type { ContainerNode, LeafNode, ProviderType, ResourceCategory } from '@cloudblocks/schema';
+import { parseEndpointId } from '@cloudblocks/schema';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import { getDiffState } from '../../features/diff/engine';
@@ -62,8 +63,9 @@ export const BlockSprite = memo(function BlockSprite({
   const moveNodePosition = useArchitectureStore((s) => s.moveNodePosition);
   const nodes = useArchitectureStore((s) => s.workspace.architecture.nodes);
   const blocks = nodes.filter((node): node is LeafNode => node.kind === 'resource');
-  const externalActors = useArchitectureStore((s) => s.workspace.architecture.externalActors);
+  const externalActors = useArchitectureStore((s) => s.workspace.architecture.externalActors) ?? [];
   const connections = useArchitectureStore((s) => s.workspace.architecture.connections);
+  const endpointsList = useArchitectureStore((s) => s.workspace.architecture.endpoints);
   const diffMode = useUIStore((s) => s.diffMode);
   const diffDelta: DiffDelta | null = useUIStore((s) => s.diffDelta);
   const blockRef = useRef<HTMLDivElement>(null);
@@ -90,9 +92,13 @@ export const BlockSprite = memo(function BlockSprite({
   const isInvalidConnectTarget = isConnectMode && connectionSource !== null
     && block.id !== connectionSource
     && !isValidConnectTarget;
-  const isAlreadyConnected = connections.some(
-    (c) => (c.sourceId === block.id || c.targetId === block.id)
-  );
+  const isAlreadyConnected = connections.some((c) => {
+    const fromEp = endpointsList.find((ep) => ep.id === c.from);
+    const toEp = endpointsList.find((ep) => ep.id === c.to);
+    const fromNodeId = fromEp?.nodeId ?? parseEndpointId(c.from)?.nodeId;
+    const toNodeId = toEp?.nodeId ?? parseEndpointId(c.to)?.nodeId;
+    return fromNodeId === block.id || toNodeId === block.id;
+  });
 
   const hasValidationWarning = validatePlacement(block, parentPlate) !== null;
   const diffState = diffMode && diffDelta ? getDiffState(block.id, diffDelta) : 'unchanged';

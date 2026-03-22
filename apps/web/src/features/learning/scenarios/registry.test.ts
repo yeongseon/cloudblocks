@@ -21,6 +21,7 @@ const scenarioA: Scenario = {
     version: '1',
     nodes: [],
     connections: [],
+    endpoints: [],
     externalActors: [],
   },
   steps: [
@@ -48,6 +49,7 @@ const scenarioB: Scenario = {
     version: '1',
     nodes: [],
     connections: [],
+    endpoints: [],
     externalActors: [],
   },
   steps: [

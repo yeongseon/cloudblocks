@@ -5,6 +5,8 @@ import type {
   AggregationMode,
   BlockRole,
   ConnectionType,
+  EndpointDirection,
+  EndpointSemantic,
   LayerType,
   NodeKind,
   ProviderType,
@@ -92,21 +94,38 @@ export interface LeafNode extends NodeBase {
 export type ResourceNode = ContainerNode | LeafNode;
 
 /**
- * A typed connection between two resource nodes or external actors.
- * Direction represents the **initiator** of the request;
- * response flows implicitly in the reverse direction.
+ * An Endpoint is a typed connection point on a node.
+ * Every node auto-generates 6 endpoints (3 semantics × 2 directions).
+ * Deterministic ID format: `endpoint-${nodeId}-${direction}-${semantic}`
+ */
+export interface Endpoint {
+  id: string;
+  nodeId: string;
+  direction: EndpointDirection;
+  semantic: EndpointSemantic;
+}
+
+/**
+ * A connection between two endpoints (output → input).
+ * Both `from` and `to` must reference valid Endpoint IDs.
  */
 export interface Connection {
   id: string;
-  /** ResourceNode or ExternalActor ID (initiator) */
+  /** Endpoint ID (must be output direction) */
+  from: string;
+  /** Endpoint ID (must be input direction) */
+  to: string;
+  metadata: Record<string, unknown>;
+}
+
+/** @deprecated v3 Connection shape — kept for migration only. */
+export interface LegacyConnection {
+  id: string;
   sourceId: string;
-  /** ResourceNode or ExternalActor ID (receiver) */
   targetId: string;
   type: ConnectionType;
   metadata: Record<string, unknown>;
-  /** 0-based outbound stub index on source block (right side). Defaults to 0 when absent. */
   sourceStub?: number;
-  /** 0-based inbound stub index on target block (left side). Defaults to 0 when absent. */
   targetStub?: number;
 }
 
@@ -114,6 +133,7 @@ export interface Connection {
  * An external actor represents an entity outside the architecture
  * that initiates or receives connections (e.g., "Internet").
  */
+/** @deprecated ExternalActors are folded into nodes in v4. Kept for v3→v4 migration. */
 export interface ExternalActor {
   id: string;
   name: string;
@@ -133,8 +153,10 @@ export interface ArchitectureModel {
   version: string;
   /** All nodes — containers and resources in a flat array */
   nodes: ResourceNode[];
+  endpoints: Endpoint[];
   connections: Connection[];
-  externalActors: ExternalActor[];
+  /** @deprecated Folded into nodes in v4. Kept for v3→v4 migration loading. */
+  externalActors?: ExternalActor[];
   /** ISO 8601 */
   createdAt: string;
   /** ISO 8601 */

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { endpointId } from '@cloudblocks/schema';
 
 import type { ArchitectureModel } from '@cloudblocks/schema';
 import { useArchitectureStore } from '../../architectureStore';
@@ -18,6 +19,7 @@ function seedStore(): void {
         version: '1',
         nodes: [],
         connections: [],
+        endpoints: [],
         externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } }],
         createdAt: now,
         updatedAt: now,
@@ -62,7 +64,7 @@ function makeValidNodesPayload(): Record<string, unknown> {
         position: { x: 1, y: 0.5, z: 1 },
       },
     ],
-    connections: [{ id: 'conn-1', sourceId: 'block-1', targetId: 'plate-1', type: 'dataflow' }],
+    connections: [{ id: 'conn-1', from: endpointId('block-1', 'output', 'data'), to: endpointId('plate-1', 'input', 'data') }],
   };
 }
 
@@ -127,20 +129,20 @@ describe('persistenceSlice branches', () => {
     it('validates connection endpoints and external actor branches', () => {
       const validWithDefaultActor = {
         ...makeValidNodesPayload(),
-        connections: [{ id: 'conn-1', sourceId: 'ext-internet', targetId: 'block-1', type: 'dataflow' }],
+        connections: [{ id: 'conn-1', from: endpointId('ext-internet', 'output', 'data'), to: endpointId('block-1', 'input', 'data') }],
       };
       const validActorWithoutPosition = {
         ...makeValidNodesPayload(),
         externalActors: [{ id: 'ext-partner', name: 'Partner', type: 'internet' }],
-        connections: [{ id: 'conn-1', sourceId: 'ext-partner', targetId: 'block-1', type: 'dataflow' }],
+        connections: [{ id: 'conn-1', from: endpointId('ext-partner', 'output', 'data'), to: endpointId('block-1', 'input', 'data') }],
       };
       const invalidSource = {
         ...makeValidNodesPayload(),
-        connections: [{ id: 'conn-1', sourceId: 'missing', targetId: 'block-1', type: 'dataflow' }],
+        connections: [{ id: 'conn-1', from: endpointId('missing', 'output', 'data'), to: endpointId('block-1', 'input', 'data') }],
       };
       const invalidTarget = {
         ...makeValidNodesPayload(),
-        connections: [{ id: 'conn-1', sourceId: 'block-1', targetId: 'missing', type: 'dataflow' }],
+        connections: [{ id: 'conn-1', from: endpointId('block-1', 'output', 'data'), to: endpointId('missing', 'input', 'data') }],
       };
 
       expect(validateArchitectureShape(validWithDefaultActor)).toEqual({ valid: true });
@@ -212,6 +214,7 @@ describe('persistenceSlice branches', () => {
         version: '2',
         nodes: [],
         connections: [],
+        endpoints: [],
         externalActors: [
           { id: 'ext-1', name: 'Internet', type: 'internet' },
         ],

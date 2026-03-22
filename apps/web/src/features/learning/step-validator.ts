@@ -1,5 +1,6 @@
 import type { ArchitectureModel } from '@cloudblocks/schema';
 import type { StepValidationRule } from '../../shared/types/learning';
+import { resolveConnectionNodes } from '../../shared/types/index';
 import { validateArchitecture } from '../../entities/validation/engine';
 
 export interface RuleResult {
@@ -35,8 +36,9 @@ export function evaluateRule(
 
     case 'connection-exists':
       return model.connections.some((c) => {
-        const sourceType = getEndpointType(c.sourceId, model);
-        const targetType = getEndpointType(c.targetId, model);
+        const { sourceId, targetId } = resolveConnectionNodes(c);
+        const sourceType = getEndpointType(sourceId, model);
+        const targetType = getEndpointType(targetId, model);
         return sourceType === rule.sourceCategory && targetType === rule.targetCategory;
       });
 
@@ -85,7 +87,7 @@ function getEndpointType(
   const block = model.nodes.find((n) => n.kind === 'resource' && n.id === id);
   if (block) return block.category;
 
-  const actor = model.externalActors.find((a) => a.id === id);
+  const actor = (model.externalActors ?? []).find((a) => a.id === id);
   if (actor) return actor.type;
 
   return null;

@@ -3,6 +3,7 @@ import type { ArchitectureModel, Connection, ContainerNode, ExternalActor, LeafN
 import { validateArchitecture } from './engine';
 import * as placementModule from './placement';
 import * as connectionModule from './connection';
+import { endpointId } from '@cloudblocks/schema';
 import {
   makeTestArchitecture,
   makeTestBlock,
@@ -46,9 +47,8 @@ function makeConnection(
 ): Connection {
   return {
     id: 'conn-1',
-    sourceId: 'source-id',
-    targetId: 'target-id',
-    type: 'dataflow',
+    from: endpointId('source-id', 'output', 'data'),
+    to: endpointId('target-id', 'input', 'data'),
     metadata: {},
     ...overrides,
   };
@@ -75,6 +75,7 @@ function makeModel(
     plates: [],
     blocks: [],
     connections: [],
+    endpoints: [],
     externalActors: [],
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
@@ -113,10 +114,10 @@ describe('validateArchitecture', () => {
       blocks: [gateway, compute, database, storage],
       externalActors: [internet],
       connections: [
-        makeConnection({ id: 'conn-1', sourceId: 'internet-1', targetId: 'gateway-1' }),
-        makeConnection({ id: 'conn-2', sourceId: 'gateway-1', targetId: 'compute-1' }),
-        makeConnection({ id: 'conn-3', sourceId: 'compute-1', targetId: 'database-1' }),
-        makeConnection({ id: 'conn-4', sourceId: 'compute-1', targetId: 'storage-1' }),
+        makeConnection({ id: 'conn-1', from: endpointId('internet-1', 'output', 'data'), to: endpointId('gateway-1', 'input', 'data')}),
+        makeConnection({ id: 'conn-2', from: endpointId('gateway-1', 'output', 'data'), to: endpointId('compute-1', 'input', 'data')}),
+        makeConnection({ id: 'conn-3', from: endpointId('compute-1', 'output', 'data'), to: endpointId('database-1', 'input', 'data')}),
+        makeConnection({ id: 'conn-4', from: endpointId('compute-1', 'output', 'data'), to: endpointId('storage-1', 'input', 'data')}),
       ],
     });
 
@@ -165,8 +166,8 @@ describe('validateArchitecture', () => {
       connections: [
         makeConnection({
           id: 'conn-invalid',
-          sourceId: 'compute-1',
-          targetId: 'gateway-1',
+          from: endpointId('compute-1', 'output', 'data'),
+          to: endpointId('gateway-1', 'input', 'data'),
         }),
       ],
     });
@@ -197,8 +198,8 @@ describe('validateArchitecture', () => {
       connections: [
         makeConnection({
           id: 'conn-invalid',
-          sourceId: 'storage-1',
-          targetId: 'gateway-1',
+          from: endpointId('storage-1', 'output', 'data'),
+          to: endpointId('gateway-1', 'input', 'data'),
         }),
       ],
     });
@@ -232,7 +233,7 @@ describe('validateArchitecture', () => {
 
     const model = makeModel({
       blocks: [makeBlock({ id: 'compute-1' })],
-      connections: [makeConnection({ id: 'conn-1', sourceId: 'compute-1', targetId: 'compute-2' })],
+      connections: [makeConnection({ id: 'conn-1', from: endpointId('compute-1', 'output', 'data'), to: endpointId('compute-2', 'input', 'data')})],
     });
 
     const result = validateArchitecture(model);

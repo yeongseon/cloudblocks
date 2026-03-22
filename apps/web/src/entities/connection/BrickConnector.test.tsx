@@ -7,6 +7,7 @@ import { getConnectionEndpointWorldAnchors } from './endpointAnchors';
 import { getDiffState } from '../../features/diff/engine';
 import type { Connection, ConnectionType } from '@cloudblocks/schema';
 import type { DiffDelta } from '../../shared/types/diff';
+import { endpointId } from '@cloudblocks/schema';
 
 vi.mock('./endpointAnchors', () => ({
   getConnectionEndpointWorldAnchors: vi.fn(),
@@ -38,9 +39,8 @@ vi.mock('../../features/diff/engine', () => ({
 
 const connection: Connection = {
   id: 'conn-1',
-  sourceId: 'source-1',
-  targetId: 'target-1',
-  type: 'dataflow',
+  from: endpointId('source-1', 'output', 'data'),
+  to: endpointId('target-1', 'input', 'data'),
   metadata: {},
 };
 
@@ -203,7 +203,7 @@ describe('BrickConnector', () => {
         const conn: Connection = {
           ...connection,
           id: `conn-${type}`,
-          type: type as ConnectionType,
+          metadata: { ...connection.metadata, type: type as ConnectionType },
         };
         setupEndpoints();
 

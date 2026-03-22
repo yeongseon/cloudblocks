@@ -1,6 +1,12 @@
 import type { StateCreator } from 'zustand';
 import type { LastPrResult, PlateProfileId, Workspace } from '../../../shared/types/index';
-import type { ArchitectureModel, LayerType, ProviderType, ResourceCategory } from '@cloudblocks/schema';
+import type {
+  ArchitectureModel,
+  ConnectionType,
+  LayerType,
+  ProviderType,
+  ResourceCategory,
+} from '@cloudblocks/schema';
 import type { ValidationResult } from '@cloudblocks/domain';
 import type { ArchitectureSnapshot } from '../../../shared/types/learning';
 import type { ArchitectureTemplate } from '../../../shared/types/template';
@@ -87,9 +93,9 @@ export interface ArchitectureState {
   moveBlockPosition: (id: string, deltaX: number, deltaZ: number) => void;
   moveActorPosition: (id: string, deltaX: number, deltaZ: number) => void;
 
-  addConnection: (sourceId: string, targetId: string) => boolean;
+  addConnection: (from: string, to: string) => boolean;
   removeConnection: (id: string) => void;
-  updateConnectionType: (connectionId: string, type: import('@cloudblocks/schema').ConnectionType) => void;
+  updateConnectionType: (connectionId: string, type: ConnectionType) => void;
 
   validate: () => ValidationResult;
 

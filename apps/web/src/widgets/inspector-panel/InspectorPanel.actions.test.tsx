@@ -5,6 +5,7 @@ import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/sc
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { InspectorPanel } from './InspectorPanel';
+import { endpointId } from '@cloudblocks/schema';
 
 const promptDialogMock = vi.fn();
 const playSoundMock = vi.fn();
@@ -95,7 +96,8 @@ const architecture: ArchitectureModel = {
   name: 'Inspector Test Architecture',
   version: '1.0.0',
   nodes: [networkPlate, subnetPlate, isolatedPlate, blockA, blockB],
-  connections: [{ id: 'conn-1', sourceId: 'block-a', targetId: 'block-b', type: 'dataflow', metadata: {} }],
+  connections: [{ id: 'conn-1', from: endpointId('block-a', 'output', 'data'), to: endpointId('block-b', 'input', 'data'), metadata: {} }],
+  endpoints: [],
   externalActors: [],
   createdAt: '',
   updatedAt: '',
@@ -296,7 +298,7 @@ describe('InspectorPanel actions', () => {
         name: 'Workspace A',
         architecture: {
           ...architecture,
-          connections: [{ id: 'conn-missing', sourceId: 'ghost-src', targetId: 'ghost-tgt', type: 'http', metadata: {} }],
+          connections: [{ id: 'conn-missing', from: endpointId('ghost-src', 'output', 'http'), to: endpointId('ghost-tgt', 'input', 'http'), metadata: {} }],
         },
         createdAt: '',
         updatedAt: '',

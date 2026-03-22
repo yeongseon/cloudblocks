@@ -13,7 +13,7 @@
 import { useMemo } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { PLATE_COLORS } from '../../shared/types/index';
+import { PLATE_COLORS, resolveConnectionNodes } from '../../shared/types/index';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
 import type { ContainerNode, LeafNode } from '@cloudblocks/schema';
 import './Minimap.css';
@@ -93,8 +93,9 @@ export function Minimap({ className = '' }: MinimapProps) {
 
     // Transform connections
     const transformedConnections = connections.map((conn) => {
-      const sourceBlock = blocks.find((b) => b.id === conn.sourceId);
-      const targetBlock = blocks.find((b) => b.id === conn.targetId);
+      const { sourceId, targetId } = resolveConnectionNodes(conn);
+      const sourceBlock = blocks.find((b) => b.id === sourceId);
+      const targetBlock = blocks.find((b) => b.id === targetId);
 
       if (!sourceBlock || !targetBlock) return null;
 

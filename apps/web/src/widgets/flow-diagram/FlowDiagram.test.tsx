@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { FlowDiagram } from './FlowDiagram';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import type { ArchitectureModel, Connection, ExternalActor, LeafNode, ResourceCategory } from '@cloudblocks/schema';
+import { endpointId } from '@cloudblocks/schema';
 
 vi.mock('./FlowDiagram.css', () => ({}));
 
@@ -12,6 +13,7 @@ const baseArchitecture: ArchitectureModel = {
   version: '1.0.0',
   nodes: [],
   connections: [],
+  endpoints: [],
   externalActors: [],
   createdAt: '',
   updatedAt: '',
@@ -42,9 +44,8 @@ const makeBlock = (id: string, category: ResourceCategory): LeafNode => ({
 
 const makeConnection = (id: string, sourceId: string, targetId: string): Connection => ({
   id,
-  sourceId,
-  targetId,
-  type: 'dataflow',
+  from: endpointId(sourceId, 'output', 'data'),
+  to: endpointId(targetId, 'input', 'data'),
   metadata: {},
 });
 

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { ArchitectureModel, ContainerNode, LeafNode, ResourceCategory } from '@cloudblocks/schema';
+import { connectionTypeToSemantic, endpointId, generateEndpointsForNode } from '@cloudblocks/schema';
 
 // Mock uuid before importing the store
 const { uuidState } = vi.hoisted(() => ({
@@ -34,6 +35,27 @@ function getPlates() {
 
 function getBlocks() {
   return getArch().nodes.filter(isBlockNode);
+}
+
+function makeLegacyConnection(
+  id: string,
+  sourceId: string,
+  targetId: string,
+  type = 'dataflow',
+  metadata: Record<string, unknown> = {},
+) {
+  const semantic = connectionTypeToSemantic(type);
+  return {
+    id,
+    from: endpointId(sourceId, 'output', semantic),
+    to: endpointId(targetId, 'input', semantic),
+    metadata: {
+      ...metadata,
+      type,
+      sourceId,
+      targetId,
+    },
+  };
 }
 
 function makeContainerNode(
@@ -88,18 +110,30 @@ function makeLeafNode(
 
 function seedState(arch: Partial<ArchitectureModel>) {
   const now = '2026-01-01T00:00:00.000Z';
-  const base: ArchitectureModel = {
+  const defaultArchitecture: ArchitectureModel = {
     id: 'arch-test',
     name: 'Test Architecture',
     version: '2',
     nodes: [],
     connections: [],
+    endpoints: [],
     externalActors: [
       { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
     ],
     createdAt: now,
     updatedAt: now,
-    ...arch,
+  };
+  const nodes = arch.nodes ?? defaultArchitecture.nodes;
+  const base: ArchitectureModel = {
+    id: arch.id ?? defaultArchitecture.id,
+    name: arch.name ?? defaultArchitecture.name,
+    version: arch.version ?? defaultArchitecture.version,
+    nodes,
+    connections: arch.connections ?? defaultArchitecture.connections,
+    endpoints: arch.endpoints ?? nodes.flatMap((node) => generateEndpointsForNode(node.id)),
+    externalActors: arch.externalActors ?? defaultArchitecture.externalActors,
+    createdAt: arch.createdAt ?? defaultArchitecture.createdAt,
+    updatedAt: arch.updatedAt ?? defaultArchitecture.updatedAt,
   };
   useArchitectureStore.setState({
     workspace: {
@@ -132,6 +166,7 @@ describe('domainSlice – targeted branch coverage', () => {
           name: 'Test',
           version: '2',
           nodes: [],
+          endpoints: [],
           connections: [],
           externalActors: [
             { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
@@ -225,7 +260,7 @@ describe('domainSlice – targeted branch coverage', () => {
 
       getState().moveActorPosition('actor-1', 2, -3);
 
-      const actors = getArch().externalActors;
+      const actors = getArch().externalActors ?? [];
       const moved = actors.find((a) => a.id === 'actor-1')!;
       const unmoved = actors.find((a) => a.id === 'actor-2')!;
 
@@ -250,14 +285,14 @@ describe('domainSlice – targeted branch coverage', () => {
       seedState({
         nodes: [region, subnet, gateway, compute],
         connections: [
-          { id: 'conn-1', sourceId: 'gw1', targetId: 'c1', type: 'dataflow', metadata: {} },
+          makeLegacyConnection('conn-1', 'gw1', 'c1', 'dataflow'),
         ],
       });
 
       getState().updateConnectionType('conn-1', 'http');
 
       const conn = getArch().connections.find((c) => c.id === 'conn-1');
-      expect(conn?.type).toBe('http');
+      expect(conn?.metadata['type']).toBe('http');
     });
 
     it('updates connection type to async', () => {
@@ -269,18 +304,18 @@ describe('domainSlice – targeted branch coverage', () => {
           makeLeafNode('c1', 's1', 'compute'),
         ],
         connections: [
-          { id: 'conn-2', sourceId: 'gw1', targetId: 'c1', type: 'dataflow', metadata: {} },
+          makeLegacyConnection('conn-2', 'gw1', 'c1', 'dataflow'),
         ],
       });
 
       getState().updateConnectionType('conn-2', 'async');
-      expect(getArch().connections[0].type).toBe('async');
+      expect(getArch().connections[0].metadata['type']).toBe('async');
     });
 
     it('no-ops when connectionId does not exist', () => {
       seedState({
         connections: [
-          { id: 'conn-x', sourceId: 'a', targetId: 'b', type: 'dataflow', metadata: {} },
+          makeLegacyConnection('conn-x', 'a', 'b', 'dataflow'),
         ],
       });
       const archBefore = getArch();
@@ -299,7 +334,7 @@ describe('domainSlice – targeted branch coverage', () => {
           makeLeafNode('c1', 's1', 'compute'),
         ],
         connections: [
-          { id: 'conn-h', sourceId: 'gw1', targetId: 'c1', type: 'dataflow', metadata: {} },
+          makeLegacyConnection('conn-h', 'gw1', 'c1', 'dataflow'),
         ],
       });
 
@@ -308,13 +343,13 @@ describe('domainSlice – targeted branch coverage', () => {
       expect(getState().canUndo).toBe(true);
 
       getState().undo();
-      expect(getArch().connections[0].type).toBe('dataflow');
+      expect(getArch().connections[0].metadata['type']).toBe('dataflow');
     });
 
     it('updates type to data', () => {
       seedState({
         connections: [
-          { id: 'conn-d', sourceId: 'a', targetId: 'b', type: 'dataflow', metadata: {} },
+          makeLegacyConnection('conn-d', 'a', 'b', 'dataflow'),
         ],
         nodes: [
           makeContainerNode('r1'),
@@ -324,14 +359,14 @@ describe('domainSlice – targeted branch coverage', () => {
       });
 
       getState().updateConnectionType('conn-d', 'data');
-      expect(getArch().connections[0].type).toBe('data');
+      expect(getArch().connections[0].metadata['type']).toBe('data');
     });
 
     it('preserves other connections when updating one', () => {
       seedState({
         connections: [
-          { id: 'conn-1', sourceId: 'a', targetId: 'b', type: 'dataflow', metadata: {} },
-          { id: 'conn-2', sourceId: 'c', targetId: 'd', type: 'http', metadata: {} },
+          makeLegacyConnection('conn-1', 'a', 'b', 'dataflow'),
+          makeLegacyConnection('conn-2', 'c', 'd', 'http'),
         ],
         nodes: [
           makeContainerNode('r1'),
@@ -346,8 +381,8 @@ describe('domainSlice – targeted branch coverage', () => {
 
       const conns = getArch().connections;
       expect(conns).toHaveLength(2);
-      expect(conns.find((c) => c.id === 'conn-1')?.type).toBe('internal');
-      expect(conns.find((c) => c.id === 'conn-2')?.type).toBe('http');
+      expect(conns.find((c) => c.id === 'conn-1')?.metadata['type']).toBe('internal');
+      expect(conns.find((c) => c.id === 'conn-2')?.metadata['type']).toBe('http');
     });
   });
 
@@ -369,8 +404,8 @@ describe('domainSlice – targeted branch coverage', () => {
       const success = getState().addConnection('ext-internet', 'gw1');
       expect(success).toBe(true);
       expect(getArch().connections).toHaveLength(1);
-      expect(getArch().connections[0].sourceId).toBe('ext-internet');
-      expect(getArch().connections[0].targetId).toBe('gw1');
+      expect(getArch().connections[0].from).toContain('ext-internet');
+      expect(getArch().connections[0].to).toContain('gw1');
     });
 
     it('rejects connection from external actor to non-edge block', () => {
@@ -413,10 +448,10 @@ describe('domainSlice – targeted branch coverage', () => {
 
       const connections = getArch().connections;
       expect(connections).toHaveLength(2);
-      expect(connections[0].sourceStub).toBe(0);
-      expect(connections[0].targetStub).toBe(0);
-      expect(connections[1].sourceStub).toBe(1);
-      expect(connections[1].targetStub).toBe(0);
+      expect(connections[0].metadata['sourceStub']).toBe(0);
+      expect(connections[0].metadata['targetStub']).toBe(0);
+      expect(connections[1].metadata['sourceStub']).toBe(1);
+      expect(connections[1].metadata['targetStub']).toBe(0);
     });
 
     it('rejects connection when source outbound stubs are full', () => {
@@ -480,15 +515,15 @@ describe('domainSlice – targeted branch coverage', () => {
           makeLeafNode('d2', 's1', 'data'),
         ],
         connections: [
-          { id: 'legacy-conn', sourceId: 'c1', targetId: 'd1', type: 'dataflow', metadata: {} },
+          makeLegacyConnection('legacy-conn', 'c1', 'd1', 'dataflow'),
         ],
       });
 
       expect(getState().addConnection('c1', 'd2')).toBe(true);
 
       const newConnection = getArch().connections.find((connection) => connection.id !== 'legacy-conn');
-      expect(newConnection?.sourceStub).toBe(1);
-      expect(newConnection?.targetStub).toBe(0);
+      expect(newConnection?.metadata['sourceStub']).toBe(1);
+      expect(newConnection?.metadata['targetStub']).toBe(0);
     });
   });
 
@@ -532,7 +567,7 @@ describe('domainSlice – targeted branch coverage', () => {
     it('removes nothing when id does not match any connection', () => {
       seedState({
         connections: [
-          { id: 'conn-keep', sourceId: 'a', targetId: 'b', type: 'dataflow', metadata: {} },
+          makeLegacyConnection('conn-keep', 'a', 'b', 'dataflow'),
         ],
       });
 

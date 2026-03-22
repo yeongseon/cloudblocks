@@ -34,7 +34,7 @@ export const ExternalActorSprite = memo(function ExternalActorSprite({
   const moveActorPosition = useArchitectureStore((s) => s.moveActorPosition);
   const nodes = useArchitectureStore((s) => s.workspace.architecture.nodes);
   const blocks = nodes.filter((node): node is LeafNode => node.kind === 'resource');
-  const externalActors = useArchitectureStore((s) => s.workspace.architecture.externalActors);
+  const externalActors = useArchitectureStore((s) => s.workspace.architecture.externalActors) ?? [];
   const actorRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -112,13 +112,14 @@ export const ExternalActorSprite = memo(function ExternalActorSprite({
               .getState()
               .workspace
               .architecture
-              .externalActors
+              .externalActors;
+            const matchedActor = (currentActor ?? [])
               .find((candidate) => candidate.id === actor.id);
 
-            if (currentActor) {
-              const snappedPosition = snapToGrid(currentActor.position.x, currentActor.position.z);
-              const deltaX = snappedPosition.x - currentActor.position.x;
-              const deltaZ = snappedPosition.z - currentActor.position.z;
+            if (matchedActor) {
+              const snappedPosition = snapToGrid(matchedActor.position.x, matchedActor.position.z);
+              const deltaX = snappedPosition.x - matchedActor.position.x;
+              const deltaZ = snappedPosition.z - matchedActor.position.z;
 
               if (deltaX !== 0 || deltaZ !== 0) {
                 moveActorPosition(actor.id, deltaX, deltaZ);

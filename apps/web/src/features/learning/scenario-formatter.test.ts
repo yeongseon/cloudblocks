@@ -37,6 +37,7 @@ const createSnapshot = (plateName = 'VNet'): ArchitectureSnapshot => ({
     },
   ] as ContainerNode[],
   connections: [],
+  endpoints: [],
   externalActors: [],
 });
 

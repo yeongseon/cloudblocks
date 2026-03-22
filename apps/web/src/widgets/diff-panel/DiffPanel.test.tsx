@@ -6,6 +6,7 @@ import { useUIStore } from '../../entities/store/uiStore';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import type { DiffDelta } from '../../shared/types/diff';
 import type { ArchitectureModel } from '@cloudblocks/schema';
+import { endpointId } from '@cloudblocks/schema';
 
 vi.mock('./DiffPanel.css', () => ({}));
 
@@ -139,18 +140,16 @@ function makeDiffDelta(): DiffDelta {
       added: [
         {
           id: 'conn-added-1',
-          sourceId: 'block-added-1',
-          targetId: 'block-modified-1',
-          type: 'dataflow',
+          from: endpointId('block-added-1', 'output', 'data'),
+          to: endpointId('block-modified-1', 'input', 'data'),
           metadata: {},
         },
       ],
       removed: [
         {
           id: 'conn-removed-1',
-          sourceId: 'block-removed-1',
-          targetId: 'block-modified-1',
-          type: 'dataflow',
+          from: endpointId('block-removed-1', 'output', 'data'),
+          to: endpointId('block-modified-1', 'input', 'data'),
           metadata: {},
         },
       ],
@@ -159,16 +158,14 @@ function makeDiffDelta(): DiffDelta {
           id: 'conn-modified-1',
           before: {
             id: 'conn-modified-1',
-            sourceId: 'block-added-1',
-            targetId: 'block-removed-1',
-            type: 'dataflow',
+            from: endpointId('block-added-1', 'output', 'data'),
+            to: endpointId('block-removed-1', 'input', 'data'),
             metadata: { latency: 'high' },
           },
           after: {
             id: 'conn-modified-1',
-            sourceId: 'block-added-1',
-            targetId: 'block-removed-1',
-            type: 'dataflow',
+            from: endpointId('block-added-1', 'output', 'data'),
+            to: endpointId('block-removed-1', 'input', 'data'),
             metadata: { latency: 'low' },
           },
           changes: [{ path: 'metadata.latency', oldValue: 'high', newValue: 'low' }],
@@ -512,6 +509,7 @@ describe('DiffPanel', () => {
         },
       ],
       connections: [{ id: 'c1' }, { id: 'c2' }, { id: 'c3' }] as ArchitectureModel['connections'],
+      endpoints: [],
       externalActors: [{ id: 'a1' }] as ArchitectureModel['externalActors'],
       createdAt: '',
       updatedAt: '',

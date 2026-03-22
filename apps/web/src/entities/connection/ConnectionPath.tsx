@@ -1,11 +1,11 @@
 import { memo, useState } from 'react';
-import type { Connection, ContainerNode, ExternalActor, LeafNode } from '@cloudblocks/schema';
+import type { Connection, EndpointSemantic, ContainerNode, ExternalActor, LeafNode } from '@cloudblocks/schema';
 import { getDiffState } from '../../features/diff/engine';
-import { getEndpointWorldPosition } from '../../shared/utils/position';
 import { worldToScreen } from '../../shared/utils/isometric';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import { CONNECTION_VISUAL_STYLES } from '../validation/connection';
+import { getConnectionEndpointWorldAnchors } from './endpointAnchors';
 
 interface ConnectionPathProps {
   connection: Connection;
@@ -31,13 +31,15 @@ export const ConnectionPath = memo(function ConnectionPath({
   const diffMode = useUIStore((s) => s.diffMode);
   const diffDelta = useUIStore((s) => s.diffDelta);
   const removeConnection = useArchitectureStore((s) => s.removeConnection);
-  const src = getEndpointWorldPosition(connection.sourceId, blocks, plates, externalActors);
-  const tgt = getEndpointWorldPosition(connection.targetId, blocks, plates, externalActors);
+  const endpoints = useArchitectureStore((s) => s.workspace.architecture.endpoints);
+  const fromEndpoint = endpoints.find((endpoint) => endpoint.id === connection.from);
+  const semantic: EndpointSemantic = fromEndpoint?.semantic ?? 'data';
+  const anchors = getConnectionEndpointWorldAnchors(connection, blocks, plates, endpoints, externalActors);
 
-  if (!src || !tgt) return null;
+  if (!anchors) return null;
 
-  const srcScreen = worldToScreen(src[0], src[1], src[2], originX, originY);
-  const tgtScreen = worldToScreen(tgt[0], tgt[1], tgt[2], originX, originY);
+  const srcScreen = worldToScreen(anchors.src[0], anchors.src[1], anchors.src[2], originX, originY);
+  const tgtScreen = worldToScreen(anchors.tgt[0], anchors.tgt[1], anchors.tgt[2], originX, originY);
 
   const midX = (srcScreen.x + tgtScreen.x) / 2;
   const midY = Math.min(srcScreen.y, tgtScreen.y) - 40;
@@ -56,7 +58,9 @@ export const ConnectionPath = memo(function ConnectionPath({
         : '#64748b';
   const arrowFillBg = bgStroke;
   const arrowFillFg = fgStroke;
-  const connStyle = CONNECTION_VISUAL_STYLES[connection.type];
+  const connStyle = CONNECTION_VISUAL_STYLES[
+    semantic === 'http' ? 'http' : semantic === 'event' ? 'async' : 'data'
+  ];
   const fgStrokeWidth = connStyle.strokeWidth;
   const isSelected = selectedId === connection.id;
   const isHighlighted = isHovered || isSelected;

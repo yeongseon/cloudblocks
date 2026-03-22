@@ -1,5 +1,13 @@
-import type { LeafNode, Connection, ConnectionType, ExternalActor, ResourceCategory } from '@cloudblocks/schema';
-import { getPortsForResourceType } from '@cloudblocks/schema';
+import type {
+  Connection,
+  ConnectionType,
+  Endpoint,
+  EndpointSemantic,
+  ExternalActor,
+  ResourceCategory,
+  ResourceNode,
+} from '@cloudblocks/schema';
+import { CATEGORY_PORTS, parseEndpointId } from '@cloudblocks/schema';
 import type { ValidationError } from '@cloudblocks/domain';
 
 /**
@@ -21,16 +29,23 @@ import type { ValidationError } from '@cloudblocks/domain';
  * Data, Security, Operations, and Network are receiver-only — they never initiate connections.
  */
 
+type ConnectionCategory = ResourceCategory;
 export type EndpointType = ResourceCategory | 'internet';
 
-/** Map of allowed connections: source (initiator) → Set<target (receiver)> */
-const ALLOWED_CONNECTIONS: Record<string, Set<string>> = {
-  internet: new Set(['edge']),
-  edge: new Set(['compute']),
-  compute: new Set(['data', 'operations', 'security', 'messaging']),
-  messaging: new Set(['compute']),
-  // data, security, operations, and network are receiver-only — not listed as sources
+/** Map of allowed category pairs to endpoint semantics. */
+const ALLOWED_CONNECTIONS: Record<string, EndpointSemantic[]> = {
+  'internet->edge': ['http', 'data'],
+  'edge->edge': ['http', 'data'],
+  'edge->compute': ['http', 'data'],
+  'compute->data': ['data'],
+  'compute->operations': ['event', 'data'],
+  'compute->security': ['data'],
+  'compute->messaging': ['event', 'data'],
+  'messaging->compute': ['event', 'data'],
 };
+
+/** Ordered semantic list for stub index mapping. */
+const SEMANTIC_ORDER: EndpointSemantic[] = ['http', 'event', 'data'];
 
 // ─── Visual Style Constants (v2.0) ──────────────────────────
 
@@ -58,57 +73,39 @@ export const CONNECTION_VISUAL_STYLES: Record<ConnectionType, ConnectionVisualSt
   async: { strokeWidth: 2, strokeDasharray: '8 4 2 4' },
 };
 
-function getEndpointType(
-  id: string,
-  resources: LeafNode[],
-  externalActors: ExternalActor[]
-): EndpointType | null {
-  const resource = resources.find((r) => r.id === id);
-  if (resource) return resource.category;
-
-  const actor = externalActors.find((a) => a.id === id);
-  if (actor) return actor.type;
-
-  return null;
-}
-
 export function validateConnection(
   connection: Connection,
-  resources: LeafNode[],
-  externalActors: ExternalActor[]
+  endpoints: Endpoint[],
+  nodes: ResourceNode[],
+  externalActors: ExternalActor[] = []
 ): ValidationError | null {
-  const sourceType = getEndpointType(
-    connection.sourceId,
-    resources,
-    externalActors
-  );
-  const targetType = getEndpointType(
-    connection.targetId,
-    resources,
-    externalActors
-  );
-
-  if (!sourceType) {
+  const fromEndpoint = endpoints.find((endpoint) => endpoint.id === connection.from);
+  if (!fromEndpoint) {
+    const parsed = parseEndpointId(connection.from);
+    const sourceLabel = parsed?.nodeId ?? connection.from;
     return {
       ruleId: 'rule-conn-source',
       severity: 'error',
-      message: `Connection source "${connection.sourceId}" not found`,
+      message: `Connection source "${sourceLabel}" not found`,
       suggestion: 'Remove this connection or update the source',
       targetId: connection.id,
     };
   }
 
-  if (!targetType) {
+  const toEndpoint = endpoints.find((endpoint) => endpoint.id === connection.to);
+  if (!toEndpoint) {
+    const parsed = parseEndpointId(connection.to);
+    const targetLabel = parsed?.nodeId ?? connection.to;
     return {
       ruleId: 'rule-conn-target',
       severity: 'error',
-      message: `Connection target "${connection.targetId}" not found`,
+      message: `Connection target "${targetLabel}" not found`,
       suggestion: 'Remove this connection or update the target',
       targetId: connection.id,
     };
   }
 
-  if (connection.sourceId === connection.targetId) {
+  if (fromEndpoint.nodeId === toEndpoint.nodeId) {
     return {
       ruleId: 'rule-conn-self',
       severity: 'error',
@@ -118,53 +115,121 @@ export function validateConnection(
     };
   }
 
-  const allowed = ALLOWED_CONNECTIONS[sourceType];
-  if (!allowed || !allowed.has(targetType)) {
+  // Resolve types from nodes or external actors
+  const fromNode = nodes.find((node) => node.id === fromEndpoint.nodeId);
+  const toNode = nodes.find((node) => node.id === toEndpoint.nodeId);
+  const fromActor = externalActors.find((actor) => actor.id === fromEndpoint.nodeId);
+  const toActor = externalActors.find((actor) => actor.id === toEndpoint.nodeId);
+
+  const fromType: EndpointType | null = fromNode?.category ?? fromActor?.type ?? null;
+  const toType: EndpointType | null = toNode?.category ?? toActor?.type ?? null;
+
+  if (!fromType || !toType) {
     return {
       ruleId: 'rule-conn-invalid',
       severity: 'error',
-      message: `Invalid connection: ${sourceType} → ${targetType}`,
-      suggestion: `${sourceType} cannot initiate a request to ${targetType}`,
+      message: 'Connection endpoints must belong to existing nodes',
+      suggestion: 'Remove this connection or update the endpoints',
       targetId: connection.id,
     };
   }
 
-  const stubError = validateStubIndices(connection, resources);
-  if (stubError) {
-    return stubError;
+  // Direction check
+  if (fromEndpoint.direction !== 'output') {
+    return {
+      ruleId: 'rule-conn-invalid',
+      severity: 'error',
+      message: 'Source endpoint must have output direction',
+      suggestion: 'Use an output endpoint as the connection source',
+      targetId: connection.id,
+    };
   }
+
+  if (toEndpoint.direction !== 'input') {
+    return {
+      ruleId: 'rule-conn-invalid',
+      severity: 'error',
+      message: 'Target endpoint must have input direction',
+      suggestion: 'Use an input endpoint as the connection target',
+      targetId: connection.id,
+    };
+  }
+
+  // Semantic match check
+  if (fromEndpoint.semantic !== toEndpoint.semantic) {
+    return {
+      ruleId: 'rule-conn-invalid',
+      severity: 'error',
+      message: 'Source and target endpoints must have matching semantics',
+      suggestion: 'Use endpoints with the same semantic type',
+      targetId: connection.id,
+    };
+  }
+
+  // Category pair check
+  const ruleKey = `${fromType}->${toType}`;
+  const allowedSemantics = ALLOWED_CONNECTIONS[ruleKey];
+
+  if (!allowedSemantics) {
+    return {
+      ruleId: 'rule-conn-invalid',
+      severity: 'error',
+      message: `Invalid connection: ${fromType} \u2192 ${toType}`,
+      suggestion: `${fromType} cannot initiate a request to ${toType}`,
+      targetId: connection.id,
+    };
+  }
+
+  if (!allowedSemantics.includes(fromEndpoint.semantic)) {
+    return {
+      ruleId: 'rule-conn-invalid',
+      severity: 'error',
+      message: `Invalid semantic for ${fromType} \u2192 ${toType}: ${fromEndpoint.semantic}`,
+      suggestion: `Use a valid semantic for ${fromType} \u2192 ${toType}`,
+      targetId: connection.id,
+    };
+  }
+
 
   return null;
 }
 
 export function validateStubIndices(
   connection: Connection,
-  resources: LeafNode[],
+  nodes: ResourceNode[],
 ): ValidationError | null {
-  const source = resources.find((resource) => resource.id === connection.sourceId);
-  const target = resources.find((resource) => resource.id === connection.targetId);
+  const fromParsed = parseEndpointId(connection.from);
+  const toParsed = parseEndpointId(connection.to);
+  if (!fromParsed || !toParsed) return null;
 
-  if (connection.sourceStub !== undefined && source) {
-    const ports = getPortsForResourceType(source.resourceType);
-    if (connection.sourceStub < 0 || connection.sourceStub >= ports.outbound) {
+  const fromNode = nodes.find((n) => n.id === fromParsed.nodeId);
+  const toNode = nodes.find((n) => n.id === toParsed.nodeId);
+
+  // Check source stub: only for resource nodes (not external actors)
+  if (fromNode) {
+    const outbound = CATEGORY_PORTS[fromNode.category]?.outbound ?? 1;
+    const semanticIndex = SEMANTIC_ORDER.indexOf(fromParsed.semantic);
+    if (semanticIndex >= 0 && semanticIndex > outbound) {
       return {
         ruleId: 'rule-conn-stub-source',
         severity: 'error',
-        message: `Invalid source stub index ${connection.sourceStub}`,
-        suggestion: 'Source stub index out of range',
+        message: `Source stub index ${semanticIndex} exceeds outbound capacity ${outbound} for ${fromNode.category}`,
+        suggestion: 'Use a semantic that fits the source category port capacity',
         targetId: connection.id,
       };
     }
   }
 
-  if (connection.targetStub !== undefined && target) {
-    const ports = getPortsForResourceType(target.resourceType);
-    if (connection.targetStub < 0 || connection.targetStub >= ports.inbound) {
+  // Check target stub: only for resource nodes (not external actors)
+  if (toNode) {
+    const inbound = CATEGORY_PORTS[toNode.category]?.inbound ?? 1;
+    const semanticIndex = SEMANTIC_ORDER.indexOf(toParsed.semantic);
+    if (semanticIndex >= 0 && semanticIndex > inbound) {
       return {
         ruleId: 'rule-conn-stub-target',
         severity: 'error',
-        message: `Invalid target stub index ${connection.targetStub}`,
-        suggestion: 'Target stub index out of range',
+        message: `Target stub index ${semanticIndex} exceeds inbound capacity ${inbound} for ${toNode.category}`,
+        suggestion: 'Use a semantic that fits the target category port capacity',
         targetId: connection.id,
       };
     }
@@ -177,7 +242,68 @@ export function validateStubIndices(
  * Check if a connection from sourceCategory to targetCategory is allowed.
  * Used for visual feedback during connect mode.
  */
-export function canConnect(sourceCategory: EndpointType, targetCategory: EndpointType): boolean {
-  const allowed = ALLOWED_CONNECTIONS[sourceCategory];
-  return allowed !== undefined && allowed.has(targetCategory);
+export function canConnect(sourceType: EndpointType, targetType: EndpointType): boolean;
+export function canConnect(
+  fromEndpoint: Endpoint,
+  toEndpoint: Endpoint,
+  fromNode: ResourceNode | undefined,
+  toNode: ResourceNode | undefined,
+): { valid: boolean; reason?: string };
+export function canConnect(
+  source: EndpointType | Endpoint,
+  target: EndpointType | Endpoint,
+  fromNode?: ResourceNode,
+  toNode?: ResourceNode,
+): boolean | { valid: boolean; reason?: string } {
+  if (typeof source === 'string' && typeof target === 'string') {
+    if (source === 'internet') {
+      return target === 'edge';
+    }
+    if (target === 'internet') {
+      return false;
+    }
+
+    const key = `${source}->${target}`;
+    return key in ALLOWED_CONNECTIONS;
+  }
+
+  if (typeof source === 'string' || typeof target === 'string') {
+    return false;
+  }
+
+  const fromEndpoint = source;
+  const toEndpoint = target;
+  if (!fromNode || !toNode) {
+    return { valid: false, reason: 'Connection endpoints must belong to existing nodes' };
+  }
+
+  if (fromEndpoint.direction !== 'output') {
+    return { valid: false, reason: 'Source endpoint must have output direction' };
+  }
+
+  if (toEndpoint.direction !== 'input') {
+    return { valid: false, reason: 'Target endpoint must have input direction' };
+  }
+
+  if (fromEndpoint.semantic !== toEndpoint.semantic) {
+    return { valid: false, reason: 'Source and target endpoints must have matching semantics' };
+  }
+
+  const fromCategory = fromNode.category as ConnectionCategory;
+  const toCategory = toNode.category as ConnectionCategory;
+  const ruleKey = `${fromCategory}->${toCategory}`;
+  const allowedSemantics = ALLOWED_CONNECTIONS[ruleKey];
+
+  if (!allowedSemantics) {
+    return { valid: false, reason: `Invalid connection: ${fromCategory} \u2192 ${toCategory}` };
+  }
+
+  if (!allowedSemantics.includes(fromEndpoint.semantic)) {
+    return {
+      valid: false,
+      reason: `Invalid semantic for ${fromCategory} \u2192 ${toCategory}: ${fromEndpoint.semantic}`,
+    };
+  }
+
+  return { valid: true };
 }

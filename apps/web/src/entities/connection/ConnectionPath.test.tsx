@@ -3,14 +3,15 @@ import { fireEvent, render } from '@testing-library/react';
 import { ConnectionPath } from './ConnectionPath';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
-import { getEndpointWorldPosition } from '../../shared/utils/position';
+import { getConnectionEndpointWorldAnchors } from './endpointAnchors';
 import { worldToScreen } from '../../shared/utils/isometric';
 import { getDiffState } from '../../features/diff/engine';
 import type { Connection } from '@cloudblocks/schema';
 import type { DiffDelta } from '../../shared/types/diff';
+import { endpointId } from '@cloudblocks/schema';
 
-vi.mock('../../shared/utils/position', () => ({
-  getEndpointWorldPosition: vi.fn(),
+vi.mock('./endpointAnchors', () => ({
+  getConnectionEndpointWorldAnchors: vi.fn(),
 }));
 
 vi.mock('../../shared/utils/isometric', () => ({
@@ -23,11 +24,21 @@ vi.mock('../../features/diff/engine', () => ({
 
 const connection: Connection = {
   id: 'conn-1',
-  sourceId: 'source-1',
-  targetId: 'target-1',
-  type: 'dataflow',
+  from: endpointId('source-1', 'output', 'data'),
+  to: endpointId('target-1', 'input', 'data'),
   metadata: {},
 };
+
+function setupAnchors(
+  src: [number, number, number] = [1, 0, 2],
+  tgt: [number, number, number] = [3, 0, 4],
+) {
+  vi.mocked(getConnectionEndpointWorldAnchors).mockReturnValue({ src, tgt });
+}
+
+function setupAnchorsNull() {
+  vi.mocked(getConnectionEndpointWorldAnchors).mockReturnValue(null);
+}
 
 describe('ConnectionPath', () => {
   const initialUIState = useUIStore.getState();
@@ -46,9 +57,7 @@ describe('ConnectionPath', () => {
   });
 
   it('returns null when source endpoint position is missing', () => {
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce(null)
-      .mockReturnValueOnce([3, 0, 4]);
+    setupAnchorsNull();
 
     const { container } = render(
       <svg aria-label="connection-path">
@@ -68,9 +77,7 @@ describe('ConnectionPath', () => {
   });
 
   it('returns null when target endpoint position is missing', () => {
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce(null);
+    setupAnchorsNull();
 
     const { container } = render(
       <svg aria-label="connection-path">
@@ -90,9 +97,7 @@ describe('ConnectionPath', () => {
   });
 
   it('renders svg group and paths when source and target positions exist', () => {
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce([3, 0, 4]);
+    setupAnchors([1, 0, 2], [3, 0, 4]);
 
     vi.mocked(worldToScreen)
       .mockReturnValueOnce({ x: 120, y: 220 })
@@ -118,9 +123,7 @@ describe('ConnectionPath', () => {
   });
 
   it('renders arrow markers with connection-based ids', () => {
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce([3, 0, 4]);
+    setupAnchors([1, 0, 2], [3, 0, 4]);
 
     vi.mocked(worldToScreen)
       .mockReturnValueOnce({ x: 100, y: 100 })
@@ -149,9 +152,7 @@ describe('ConnectionPath', () => {
   });
 
   it('uses userSpaceOnUse markerUnits for consistent arrow sizing', () => {
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce([3, 0, 4]);
+    setupAnchors([1, 0, 2], [3, 0, 4]);
 
     vi.mocked(worldToScreen)
       .mockReturnValueOnce({ x: 100, y: 100 })
@@ -179,9 +180,7 @@ describe('ConnectionPath', () => {
   });
 
   it('renders proportional stroke widths for connection lines', () => {
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce([3, 0, 4]);
+    setupAnchors([1, 0, 2], [3, 0, 4]);
 
     vi.mocked(worldToScreen)
       .mockReturnValueOnce({ x: 100, y: 100 })
@@ -209,9 +208,7 @@ describe('ConnectionPath', () => {
   it('uses added diff colors when diff state is added', () => {
     useUIStore.setState({ diffMode: true, diffDelta: {} as unknown as DiffDelta });
     vi.mocked(getDiffState).mockReturnValue('added');
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce([3, 0, 4]);
+    setupAnchors([1, 0, 2], [3, 0, 4]);
     vi.mocked(worldToScreen)
       .mockReturnValueOnce({ x: 100, y: 100 })
       .mockReturnValueOnce({ x: 200, y: 200 });
@@ -231,9 +228,7 @@ describe('ConnectionPath', () => {
   it('uses removed diff colors and reduced opacity when diff state is removed', () => {
     useUIStore.setState({ diffMode: true, diffDelta: {} as unknown as DiffDelta });
     vi.mocked(getDiffState).mockReturnValue('removed');
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce([3, 0, 4]);
+    setupAnchors([1, 0, 2], [3, 0, 4]);
     vi.mocked(worldToScreen)
       .mockReturnValueOnce({ x: 100, y: 100 })
       .mockReturnValueOnce({ x: 200, y: 200 });
@@ -253,9 +248,7 @@ describe('ConnectionPath', () => {
   it('uses modified diff colors when diff state is modified', () => {
     useUIStore.setState({ diffMode: true, diffDelta: {} as unknown as DiffDelta });
     vi.mocked(getDiffState).mockReturnValue('modified');
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce([3, 0, 4]);
+    setupAnchors([1, 0, 2], [3, 0, 4]);
     vi.mocked(worldToScreen)
       .mockReturnValueOnce({ x: 100, y: 100 })
       .mockReturnValueOnce({ x: 200, y: 200 });
@@ -273,9 +266,7 @@ describe('ConnectionPath', () => {
 
   it('uses unchanged colors by default in diff mode without delta', () => {
     useUIStore.setState({ diffMode: true, diffDelta: null });
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce([3, 0, 4]);
+    setupAnchors([1, 0, 2], [3, 0, 4]);
     vi.mocked(worldToScreen)
       .mockReturnValueOnce({ x: 100, y: 100 })
       .mockReturnValueOnce({ x: 200, y: 200 });
@@ -293,12 +284,10 @@ describe('ConnectionPath', () => {
   });
 
   it('click in select mode sets selectedId to connection id', () => {
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce([3, 0, 4]);
-    vi.mocked(worldToScreen)
-      .mockReturnValueOnce({ x: 100, y: 100 })
-      .mockReturnValueOnce({ x: 200, y: 200 });
+    setupAnchors([1, 0, 2], [3, 0, 4]);
+    vi.mocked(worldToScreen).mockImplementation((x) => (
+      x === 1 ? { x: 100, y: 100 } : { x: 200, y: 200 }
+    ));
 
     const { container } = render(
       <svg>
@@ -315,9 +304,7 @@ describe('ConnectionPath', () => {
     const removeConnectionMock = vi.fn();
     useUIStore.setState({ toolMode: 'delete' });
     useArchitectureStore.setState({ removeConnection: removeConnectionMock });
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce([3, 0, 4]);
+    setupAnchors([1, 0, 2], [3, 0, 4]);
     vi.mocked(worldToScreen)
       .mockReturnValueOnce({ x: 100, y: 100 })
       .mockReturnValueOnce({ x: 200, y: 200 });
@@ -334,9 +321,7 @@ describe('ConnectionPath', () => {
   });
 
   it('hovering connection highlights the stroke widths', () => {
-    vi.mocked(getEndpointWorldPosition).mockImplementation((id) => (
-      id === connection.sourceId ? [1, 0, 2] : [3, 0, 4]
-    ));
+    setupAnchors([1, 0, 2], [3, 0, 4]);
     vi.mocked(worldToScreen).mockImplementation((x) => (
       x === 1 ? { x: 100, y: 100 } : { x: 200, y: 200 }
     ));
@@ -360,9 +345,7 @@ describe('ConnectionPath', () => {
 
   it('selected connection renders highlighted stroke widths', () => {
     useUIStore.setState({ selectedId: connection.id });
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce([3, 0, 4]);
+    setupAnchors([1, 0, 2], [3, 0, 4]);
     vi.mocked(worldToScreen)
       .mockReturnValueOnce({ x: 100, y: 100 })
       .mockReturnValueOnce({ x: 200, y: 200 });
@@ -380,9 +363,7 @@ describe('ConnectionPath', () => {
 
   it('stops propagation when clicking a connection', () => {
     const parentClick = vi.fn();
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce([3, 0, 4]);
+    setupAnchors([1, 0, 2], [3, 0, 4]);
     vi.mocked(worldToScreen)
       .mockReturnValueOnce({ x: 100, y: 100 })
       .mockReturnValueOnce({ x: 200, y: 200 });

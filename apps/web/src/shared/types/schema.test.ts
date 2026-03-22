@@ -18,6 +18,7 @@ function createWorkspace(id: string): Workspace {
       version: '1',
       nodes: [],
       connections: [],
+      endpoints: [],
       externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
@@ -77,6 +78,7 @@ describe('schema utilities', () => {
             ],
             blocks: [],
             connections: [],
+            endpoints: [],
             externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
             createdAt: '2026-01-01T00:00:00.000Z',
             updatedAt: '2026-01-01T00:00:00.000Z',
@@ -126,6 +128,7 @@ describe('schema utilities', () => {
             ],
             blocks: [],
             connections: [],
+            endpoints: [],
             externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
             createdAt: '2026-01-01T00:00:00.000Z',
             updatedAt: '2026-01-01T00:00:00.000Z',
@@ -163,6 +166,7 @@ describe('schema utilities', () => {
             plates: [],
             blocks: [],
             connections: [],
+            endpoints: [],
             externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' }],
             createdAt: '2026-01-01T00:00:00.000Z',
             updatedAt: '2026-01-01T00:00:00.000Z',
@@ -175,7 +179,7 @@ describe('schema utilities', () => {
 
     const result = deserialize(JSON.stringify(legacyData));
 
-    expect(result[0].architecture.externalActors[0].position).toEqual({ x: -3, y: 0, z: 5 });
+    expect(result[0].architecture.externalActors?.[0]!.position).toEqual({ x: -3, y: 0, z: 5 });
   });
 
   it('rejects legacy 0.1.0 schema (clean start — no migration)', () => {
@@ -202,6 +206,7 @@ describe('schema utilities', () => {
               },
             ],
             connections: [],
+            endpoints: [],
             externalActors: [
               {
                 id: 'ext-internet',
@@ -238,6 +243,7 @@ describe('schema utilities', () => {
             plates: [],
             blocks: [],
             connections: [],
+            endpoints: [],
             externalActors: [],
             createdAt: '2026-01-01T00:00:00.000Z',
             updatedAt: '2026-01-01T00:00:00.000Z',
@@ -293,6 +299,7 @@ describe('schema utilities', () => {
           version: '1',
           nodes: [container, leaf],
           connections: [],
+          endpoints: [],
           externalActors: [
             {
               id: 'ext-internet',
@@ -381,6 +388,7 @@ describe('schema utilities', () => {
       version: '1',
       nodes: [],
       connections: [],
+      endpoints: [],
       externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       createdAt: '2026-02-03T04:05:06.000Z',
       updatedAt: '2026-02-03T04:05:06.000Z',
@@ -503,6 +511,7 @@ describe('schema utilities', () => {
               },
             ],
             connections: [],
+            endpoints: [],
             externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } }],
             createdAt: '2026-01-01T00:00:00.000Z',
             updatedAt: '2026-01-01T00:00:00.000Z',
@@ -571,6 +580,7 @@ describe('schema utilities', () => {
               },
             ],
             connections: [],
+            endpoints: [],
             externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } }],
             createdAt: '2026-01-01T00:00:00.000Z',
             updatedAt: '2026-01-01T00:00:00.000Z',
@@ -603,6 +613,7 @@ describe('schema utilities', () => {
             plates: [],
             blocks: [],
             connections: [],
+            endpoints: [],
             externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } }],
             createdAt: '2026-01-01T00:00:00.000Z',
             updatedAt: '2026-01-01T00:00:00.000Z',

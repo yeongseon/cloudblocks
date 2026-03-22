@@ -1,7 +1,14 @@
 import type { PlateProfileId } from '../../../shared/types/index';
 import type { Connection, ContainerCapableResourceType, ContainerNode, ExternalActor, LeafNode, ResourceCategory } from '@cloudblocks/schema';
 import { buildPlateSizeFromProfileId, DEFAULT_BLOCK_SIZE } from '../../../shared/types/index';
-import { getPortsForResourceType, RESOURCE_RULES } from '@cloudblocks/schema';
+import {
+  connectionTypeToSemantic,
+  endpointId,
+  generateEndpointsForNode,
+  getPortsForResourceType,
+  parseEndpointId,
+  RESOURCE_RULES,
+} from '@cloudblocks/schema';
 import { generateId } from '../../../shared/utils/id';
 import type { AddNodeInput, ArchitectureSlice, ArchitectureState, RemoveNodeOptions } from './types';
 import { canConnect } from '../../validation/connection';
@@ -46,6 +53,8 @@ const isResource = (node: ContainerNode | LeafNode): node is LeafNode =>
   node.kind === 'resource';
 
 type PlateLayerType = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
+
+const endpointIdPrefix = (nodeId: string): string => `endpoint-${nodeId}-`;
 
 
 const CONTAINER_RESOURCE_TYPE: Record<PlateLayerType, ContainerCapableResourceType> = {
@@ -180,7 +189,11 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       plate.position.x = nonOverlapping.x;
       plate.position.z = nonOverlapping.z;
 
-      return withHistory(state, { ...arch, nodes: [...arch.nodes, plate] });
+      return withHistory(state, {
+        ...arch,
+        nodes: [...arch.nodes, plate],
+        endpoints: [...arch.endpoints, ...generateEndpointsForNode(plate.id)],
+      });
     });
   },
 
@@ -215,6 +228,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
           })
           .map((resource) => resource.id)
       );
+      const removedNodeIds = new Set<string>([...idsToRemove, ...removedResourceIds]);
 
       const nodes = arch.nodes.filter((node) => {
         if (idsToRemove.has(node.id)) {
@@ -226,15 +240,26 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         return true;
       });
 
+      const removedEndpointIds = new Set(
+        arch.endpoints
+          .filter((endpoint) => removedNodeIds.has(endpoint.nodeId))
+          .map((endpoint) => endpoint.id)
+      );
+
+      const endpoints = arch.endpoints.filter(
+        (endpoint) => !removedNodeIds.has(endpoint.nodeId)
+      );
+
       const connections = arch.connections.filter(
         (connection) =>
-          !removedResourceIds.has(connection.sourceId) &&
-          !removedResourceIds.has(connection.targetId)
+          !removedEndpointIds.has(connection.from) &&
+          !removedEndpointIds.has(connection.to)
       );
 
       return withHistory(state, {
         ...arch,
         nodes,
+        endpoints,
         connections,
       });
     });
@@ -273,6 +298,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       return withHistory(state, {
         ...arch,
         nodes: [...arch.nodes, block],
+        endpoints: [...arch.endpoints, ...generateEndpointsForNode(block.id)],
       });
     });
   },
@@ -347,8 +373,11 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       return withHistory(state, {
         ...arch,
         nodes: arch.nodes.filter((candidate) => candidate.id !== id),
+        endpoints: arch.endpoints.filter((endpoint) => endpoint.nodeId !== id),
         connections: arch.connections.filter(
-          (connection) => connection.sourceId !== id && connection.targetId !== id
+          (connection) =>
+            !connection.from.startsWith(endpointIdPrefix(id)) &&
+            !connection.to.startsWith(endpointIdPrefix(id))
         ),
       });
     });
@@ -691,13 +720,14 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
   moveActorPosition: (id, deltaX, deltaZ) => {
     set((state) => {
       const arch = state.workspace.architecture;
-      const actor = arch.externalActors.find((candidate) => candidate.id === id);
+      const currentActors = arch.externalActors ?? [];
+      const actor = currentActors.find((candidate) => candidate.id === id);
 
       if (!actor) {
         return state;
       }
 
-      const externalActors: ExternalActor[] = arch.externalActors.map((candidate) => {
+      const externalActors: ExternalActor[] = currentActors.map((candidate) => {
         if (candidate.id !== id) {
           return candidate;
         }
@@ -716,34 +746,59 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
     });
   },
 
-  addConnection: (sourceId, targetId) => {
+  addConnection: (from, to) => {
     const arch = get().workspace.architecture;
-    const exists = arch.connections.some(
-      (connection) =>
-        connection.sourceId === sourceId && connection.targetId === targetId
-    );
 
-    if (exists) {
-      return false;
-    }
-
+    // Resolve source and target nodes/actors by node ID
     const resources = arch.nodes.filter(isResource);
-    const sourceBlock = resources.find((block) => block.id === sourceId);
-    const sourceActor = arch.externalActors.find((actor) => actor.id === sourceId);
+    const sourceBlock = resources.find((block) => block.id === from);
+    const targetBlock = resources.find((block) => block.id === to);
+    const sourceActor = (arch.externalActors ?? []).find((actor) => actor.id === from);
+    const targetActor = (arch.externalActors ?? []).find((actor) => actor.id === to);
     const sourceType: EndpointType | null = sourceBlock?.category ?? sourceActor?.type ?? null;
-
-    const targetBlock = resources.find((block) => block.id === targetId);
-    const targetActor = arch.externalActors.find((actor) => actor.id === targetId);
     const targetType: EndpointType | null = targetBlock?.category ?? targetActor?.type ?? null;
 
     if (!sourceType || !targetType) {
       return false;
     }
 
+    // Self-connection check
+    if (from === to) {
+      return false;
+    }
+
+    // Category pair check
     if (!canConnect(sourceType, targetType)) {
       return false;
     }
 
+    // Resolve endpoint IDs using default 'data' semantic
+    const semantic: import('@cloudblocks/schema').EndpointSemantic = 'data';
+    const fromEndpointId = endpointId(from, 'output', semantic);
+    const toEndpointId = endpointId(to, 'input', semantic);
+
+    // Check duplicate using endpoint IDs
+    const exists = arch.connections.some(
+      (connection) =>
+        connection.from === fromEndpointId && connection.to === toEndpointId
+    );
+
+    if (exists) {
+      return false;
+    }
+
+    // Verify endpoints exist in the model (skip for external actors which may not have stored endpoints)
+    const sourceEndpoint = arch.endpoints.find((endpoint) => endpoint.id === fromEndpointId);
+    const targetEndpoint = arch.endpoints.find((endpoint) => endpoint.id === toEndpointId);
+
+    if (!sourceEndpoint && !sourceActor) {
+      return false;
+    }
+    if (!targetEndpoint && !targetActor) {
+      return false;
+    }
+
+    // Port capacity check
     const sourceResourceType = sourceBlock?.resourceType;
     const targetResourceType = targetBlock?.resourceType;
 
@@ -754,26 +809,40 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       ? getPortsForResourceType(targetResourceType)
       : { inbound: 1, outbound: 1 };
 
-    const usedOutbound = arch.connections.filter((connection) => connection.sourceId === sourceId).length;
-    const usedInbound = arch.connections.filter((connection) => connection.targetId === targetId).length;
+    const usedOutbound = arch.connections.filter(
+      (connection) => {
+        const endpoint = arch.endpoints.find((candidate) => candidate.id === connection.from);
+        if (endpoint) return endpoint.nodeId === from;
+        const parsed = parseEndpointId(connection.from);
+        return parsed?.nodeId === from;
+      }
+    ).length;
+    const usedInbound = arch.connections.filter(
+      (connection) => {
+        const endpoint = arch.endpoints.find((candidate) => candidate.id === connection.to);
+        if (endpoint) return endpoint.nodeId === to;
+        const parsed = parseEndpointId(connection.to);
+        return parsed?.nodeId === to;
+      }
+    ).length;
 
     if (usedOutbound >= sourcePorts.outbound || usedInbound >= targetPorts.inbound) {
       return false;
     }
 
-    const sourceStub = usedOutbound;
-    const targetStub = usedInbound;
-
     set((state) => {
       const nextArch = state.workspace.architecture;
       const connection: Connection = {
         id: generateId('conn'),
-        sourceId,
-        targetId,
-        type: 'dataflow',
-        metadata: {},
-        sourceStub,
-        targetStub,
+        from: fromEndpointId,
+        to: toEndpointId,
+        metadata: {
+          type: 'dataflow',
+          sourceId: from,
+          targetId: to,
+          sourceStub: usedOutbound,
+          targetStub: usedInbound,
+        },
       };
 
       return withHistory(state, {
@@ -802,7 +871,25 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       const arch = state.workspace.architecture;
       const existing = arch.connections.find((c) => c.id === connectionId);
       if (!existing) return state;
-      return withHistory(state, { ...arch, connections: arch.connections.map((c) => c.id === connectionId ? { ...c, type } : c) });
+
+      const fromEndpoint = arch.endpoints.find((endpoint) => endpoint.id === existing.from);
+      const toEndpoint = arch.endpoints.find((endpoint) => endpoint.id === existing.to);
+      if (!fromEndpoint || !toEndpoint) {
+        return state;
+      }
+
+      const semantic = connectionTypeToSemantic(type);
+      const nextFrom = endpointId(fromEndpoint.nodeId, 'output', semantic);
+      const nextTo = endpointId(toEndpoint.nodeId, 'input', semantic);
+
+      return withHistory(state, {
+        ...arch,
+        connections: arch.connections.map((connection) =>
+          connection.id === connectionId
+            ? { ...connection, from: nextFrom, to: nextTo, metadata: { ...connection.metadata, type } }
+            : connection
+        ),
+      });
     });
   },
 });

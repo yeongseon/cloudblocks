@@ -35,6 +35,7 @@ describe('schema deserialize additional branch coverage', () => {
               },
             ],
             connections: [],
+            endpoints: [],
             externalActors: [
               1,
               { id: 'ext-1', name: 'Internet', type: 'internet' },
@@ -49,7 +50,7 @@ describe('schema deserialize additional branch coverage', () => {
     };
 
     const [workspace] = deserialize(JSON.stringify(payload));
-    const actor = workspace.architecture.externalActors.find((entry) => entry.id === 'ext-1');
+    const actor = (workspace.architecture.externalActors ?? []).find((entry) => entry.id === 'ext-1');
     const container = workspace.architecture.nodes.find(
       (entry): entry is (typeof workspace.architecture.nodes)[number] & { kind: 'container'; profileId?: string } =>
         typeof entry === 'object' && entry !== null && 'kind' in entry && entry.kind === 'container'
@@ -112,6 +113,7 @@ describe('schema deserialize additional branch coverage', () => {
               },
             ],
             connections: [],
+            endpoints: [],
             externalActors: [],
             createdAt: '2026-01-01T00:00:00.000Z',
             updatedAt: '2026-01-01T00:00:00.000Z',
@@ -164,6 +166,7 @@ describe('schema deserialize additional branch coverage', () => {
               },
             ],
             connections: [],
+            endpoints: [],
             externalActors: [],
             createdAt: '2026-01-01T00:00:00.000Z',
             updatedAt: '2026-01-01T00:00:00.000Z',

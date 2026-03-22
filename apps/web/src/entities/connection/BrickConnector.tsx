@@ -1,5 +1,5 @@
 import { memo, useState, useMemo, useRef, useEffect } from 'react';
-import type { Connection, ContainerNode, ExternalActor, LeafNode } from '@cloudblocks/schema';
+import type { Connection, ContainerNode, Endpoint, EndpointSemantic, ExternalActor, LeafNode } from '@cloudblocks/schema';
 import { getDiffState } from '../../features/diff/engine';
 import { getConnectionEndpointWorldAnchors } from './endpointAnchors';
 import type { ScreenPoint } from '../../shared/utils/isometric';
@@ -35,6 +35,11 @@ interface BeamColors {
 
 const BEAM_HALF_THICKNESS = 4;
 const HIT_AREA_WIDTH = 20;
+const SEMANTIC_THEME_KEY: Record<EndpointSemantic, 'http' | 'async' | 'data'> = {
+  http: 'http',
+  event: 'async',
+  data: 'data',
+};
 
 function getColors(
   theme: ConnectorTheme,
@@ -298,8 +303,16 @@ export const BrickConnector = memo(function BrickConnector({
   const diffDelta = useUIStore((s) => s.diffDelta);
   const removeConnection = useArchitectureStore((s) => s.removeConnection);
   const validationResult = useArchitectureStore((s) => s.validationResult);
+  const endpointsList = useArchitectureStore((s) => s.workspace.architecture.endpoints);
 
-  const theme = CONNECTOR_THEMES[connection.type];
+  const fromEndpoint: Endpoint | undefined = useMemo(
+    () => endpointsList.find((endpoint) => endpoint.id === connection.from),
+    [connection.from, endpointsList],
+  );
+
+  const semantic: EndpointSemantic = fromEndpoint?.semantic ?? 'data';
+
+  const theme = CONNECTOR_THEMES[SEMANTIC_THEME_KEY[semantic]];
   const diffState = diffMode && diffDelta ? getDiffState(connection.id, diffDelta) : 'unchanged';
   const isSelected = selectedId === connection.id;
   const isHighlighted = isHovered || isSelected;
@@ -315,8 +328,8 @@ export const BrickConnector = memo(function BrickConnector({
   const hasValidationError = connectionErrors.length > 0;
 
   const endpoints = useMemo(
-    () => getConnectionEndpointWorldAnchors(connection, blocks, plates, externalActors),
-    [connection, blocks, plates, externalActors],
+    () => getConnectionEndpointWorldAnchors(connection, blocks, plates, endpointsList, externalActors),
+    [connection, blocks, plates, endpointsList, externalActors],
   );
 
   const route = useMemo(() => {
@@ -374,7 +387,7 @@ export const BrickConnector = memo(function BrickConnector({
       role="button"
       tabIndex={0}
       aria-label={`connection ${connection.id}`}
-      data-connector-type={connection.type}
+      data-connector-type={(connection.metadata?.type as string) ?? semantic}
     >
       {isSelected && (
         <path

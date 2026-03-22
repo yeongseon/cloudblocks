@@ -47,6 +47,7 @@ function createTestScenario(): Scenario {
       version: '1',
       nodes: [],
       connections: [],
+      endpoints: [],
       externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
     },
   };

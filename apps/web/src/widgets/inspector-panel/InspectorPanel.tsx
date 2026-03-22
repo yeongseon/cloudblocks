@@ -5,7 +5,7 @@ import { useUIStore } from '../../entities/store/uiStore';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
 import { promptDialog } from '../../shared/ui/PromptDialog';
-import { BLOCK_FRIENDLY_NAMES, CONNECTION_TYPE_LABELS } from '../../shared/types';
+import { BLOCK_FRIENDLY_NAMES, CONNECTION_TYPE_LABELS, resolveConnectionNodes } from '../../shared/types';
 import {
   PLATE_ACTION_DEFINITIONS,
   PLATE_ACTION_GRID,
@@ -201,32 +201,35 @@ function ConnectionsTab({
   }
 
   if (selectedConnection) {
-    const source = nodeById.get(selectedConnection.sourceId);
-    const target = nodeById.get(selectedConnection.targetId);
+    const { sourceId, targetId, type } = resolveConnectionNodes(selectedConnection);
+    const source = nodeById.get(sourceId);
+    const target = nodeById.get(targetId);
 
     return (
       <div className="inspector-section">
         <h3 className="inspector-title">Connection Details</h3>
         <div className="inspector-properties">
-          <PropertyRow label="Type" value={CONNECTION_TYPE_LABELS[selectedConnection.type]} />
-          <PropertyRow label="Source" value={source?.name ?? selectedConnection.sourceId} />
-          <PropertyRow label="Target" value={target?.name ?? selectedConnection.targetId} />
+          <PropertyRow label="Type" value={CONNECTION_TYPE_LABELS[type as ConnectionType]} />
+          <PropertyRow label="Source" value={source?.name ?? sourceId} />
+          <PropertyRow label="Target" value={target?.name ?? targetId} />
         </div>
       </div>
     );
   }
 
   const relatedConnections = connections.filter((connection) => {
+    const { sourceId, targetId } = resolveConnectionNodes(connection);
+
     if (selectedBlock) {
-      return connection.sourceId === selectedBlock.id || connection.targetId === selectedBlock.id;
+      return sourceId === selectedBlock.id || targetId === selectedBlock.id;
     }
 
     if (!selectedPlate) {
       return false;
     }
 
-    const source = nodeById.get(connection.sourceId);
-    const target = nodeById.get(connection.targetId);
+    const source = nodeById.get(sourceId);
+    const target = nodeById.get(targetId);
 
     return source?.parentId === selectedPlate.id || target?.parentId === selectedPlate.id;
   });
@@ -240,14 +243,15 @@ function ConnectionsTab({
       <h3 className="inspector-title">Related Connections</h3>
       <div className="inspector-connection-list">
         {relatedConnections.map((connection) => {
-          const source = nodeById.get(connection.sourceId);
-          const target = nodeById.get(connection.targetId);
+          const { sourceId, targetId, type } = resolveConnectionNodes(connection);
+          const source = nodeById.get(sourceId);
+          const target = nodeById.get(targetId);
           return (
             <div key={connection.id} className="inspector-connection-item">
               <div className="inspector-connection-path">
-                {source?.name ?? connection.sourceId} <span aria-hidden="true">→</span> {target?.name ?? connection.targetId}
+                {source?.name ?? sourceId} <span aria-hidden="true">→</span> {target?.name ?? targetId}
               </div>
-              <span className="inspector-connection-type">{CONNECTION_TYPE_LABELS[connection.type]}</span>
+              <span className="inspector-connection-type">{CONNECTION_TYPE_LABELS[type as ConnectionType]}</span>
             </div>
           );
         })}
@@ -391,8 +395,9 @@ function ConnectionActionMode({ connection }: { connection: Connection }) {
     }
   }, [isSoundMuted]);
 
-  const source = architecture.nodes.find((n) => n.id === connection.sourceId);
-  const target = architecture.nodes.find((n) => n.id === connection.targetId);
+  const { sourceId, targetId, type } = resolveConnectionNodes(connection);
+  const source = architecture.nodes.find((n) => n.id === sourceId);
+  const target = architecture.nodes.find((n) => n.id === targetId);
 
   const handleDelete = useCallback(() => {
     removeConnection(connection.id);
@@ -408,14 +413,14 @@ function ConnectionActionMode({ connection }: { connection: Connection }) {
     <div className="inspector-section">
       <h3 className="inspector-title">Connection</h3>
       <div className="inspector-properties">
-        <PropertyRow label="Type" value={CONNECTION_TYPE_LABELS[connection.type]} />
+        <PropertyRow label="Type" value={CONNECTION_TYPE_LABELS[type as ConnectionType]} />
         {source && <PropertyRow label="Source" value={source.name} />}
         {target && <PropertyRow label="Target" value={target.name} />}
       </div>
 
       <label className="inspector-form-label">
         Type
-        <select className="inspector-form-select" value={connection.type} onChange={handleTypeChange}>
+        <select className="inspector-form-select" value={type} onChange={handleTypeChange}>
           {CONNECTION_TYPES.map((type) => (
             <option key={type} value={type}>{CONNECTION_TYPE_LABELS[type]}</option>
           ))}

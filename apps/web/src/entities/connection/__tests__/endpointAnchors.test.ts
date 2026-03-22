@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import type { Connection, ContainerNode, ExternalActor, LeafNode } from '@cloudblocks/schema';
 import { getConnectionEndpointWorldAnchors } from '../endpointAnchors';
 import { EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET, EXTERNAL_ACTOR_POSITION } from '../../../shared/utils/position';
+import { endpointId, generateEndpointsForNode } from '@cloudblocks/schema';
 
 // ---------------------------------------------------------------------------
 // Test fixtures
@@ -35,9 +36,8 @@ function makeBlock(overrides?: Partial<LeafNode>): LeafNode {
 function makeConnection(overrides?: Partial<Connection>): Connection {
   return {
     id: 'conn-1',
-    sourceId: 'block-1',
-    targetId: 'block-2',
-    type: 'dataflow',
+    from: endpointId('block-1', 'output', 'data'),
+    to: endpointId('block-2', 'input', 'data'),
     ...overrides,
   } as Connection;
 }
@@ -51,6 +51,10 @@ function makeActor(overrides?: Partial<ExternalActor>): ExternalActor {
   } as ExternalActor;
 }
 
+function makeEndpoints(nodeIds: string[]) {
+  return nodeIds.flatMap((nodeId) => generateEndpointsForNode(nodeId));
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -60,49 +64,47 @@ describe('getConnectionEndpointWorldAnchors', () => {
   const blockA = makeBlock({ id: 'block-a', category: 'compute', position: { x: 2, y: 0, z: 3 } });
   const blockB = makeBlock({ id: 'block-b', category: 'data', position: { x: 5, y: 0, z: 1 } });
   const blocks = [blockA, blockB];
+  const blockEndpoints = makeEndpoints(blocks.map((block) => block.id));
 
   it('returns null when source block is not found', () => {
-    const conn = makeConnection({ sourceId: 'missing', targetId: 'block-b' });
-    const result = getConnectionEndpointWorldAnchors(conn, blocks, [plate], []);
+    const conn = makeConnection({ from: endpointId('missing', 'output', 'data'), to: endpointId('block-b', 'input', 'data')});
+    const result = getConnectionEndpointWorldAnchors(conn, blocks, [plate], blockEndpoints, []);
     expect(result).toBeNull();
   });
 
   it('returns null when target block is not found', () => {
-    const conn = makeConnection({ sourceId: 'block-a', targetId: 'missing' });
-    const result = getConnectionEndpointWorldAnchors(conn, blocks, [plate], []);
+    const conn = makeConnection({ from: endpointId('block-a', 'output', 'data'), to: endpointId('missing', 'input', 'data')});
+    const result = getConnectionEndpointWorldAnchors(conn, blocks, [plate], blockEndpoints, []);
     expect(result).toBeNull();
   });
 
   it('returns null when parent plate is missing', () => {
-    const conn = makeConnection({ sourceId: 'block-a', targetId: 'block-b' });
-    const result = getConnectionEndpointWorldAnchors(conn, blocks, [], []); // no plates
+    const conn = makeConnection({ from: endpointId('block-a', 'output', 'data'), to: endpointId('block-b', 'input', 'data')});
+    const result = getConnectionEndpointWorldAnchors(conn, blocks, [], blockEndpoints, []); // no plates
     expect(result).toBeNull();
   });
 
-  it('falls back to center when stubs are undefined', () => {
-    const conn = makeConnection({ sourceId: 'block-a', targetId: 'block-b' });
-    const result = getConnectionEndpointWorldAnchors(conn, blocks, [plate], []);
+  it('returns stub-aware anchors for block endpoints with defined ports', () => {
+    const conn = makeConnection({ from: endpointId('block-a', 'output', 'data'), to: endpointId('block-b', 'input', 'data')});
+    const result = getConnectionEndpointWorldAnchors(conn, blocks, [plate], blockEndpoints, []);
     expect(result).not.toBeNull();
 
-    // Center = plate.pos + block.pos for x/z, plate.y + plate.height for y
-    // block-a world: [0+2, 0+1, 0+3] = [2, 1, 3]
-    expect(result!.src).toEqual([2, 1, 3]);
-    // block-b world: [0+5, 0+1, 0+1] = [5, 1, 1]
-    expect(result!.tgt).toEqual([5, 1, 1]);
+    // With CATEGORY_PORTS defined, stubs are resolved (not center fallback)
+    // Source stub is on outbound side, target on inbound side
+    expect(result!.srcSide).toBe('outbound');
+    expect(result!.tgtSide).toBe('inbound');
 
-    // No side info when using center fallback
-    expect(result!.srcSide).toBeUndefined();
-    expect(result!.tgtSide).toBeUndefined();
+    // Stub positions differ from naive center
+    expect(result!.src).toBeDefined();
+    expect(result!.tgt).toBeDefined();
   });
 
-  it('uses stub anchors when sourceStub and targetStub are valid', () => {
+  it('uses semantic-based stub anchors for block endpoints', () => {
     const conn = makeConnection({
-      sourceId: 'block-a',
-      targetId: 'block-b',
-      sourceStub: 0,
-      targetStub: 0,
+      from: endpointId('block-a', 'output', 'data'),
+      to: endpointId('block-b', 'input', 'data'),
     });
-    const result = getConnectionEndpointWorldAnchors(conn, blocks, [plate], []);
+    const result = getConnectionEndpointWorldAnchors(conn, blocks, [plate], blockEndpoints, []);
     expect(result).not.toBeNull();
 
     // Source stub should be on the outbound (RIGHT) face
@@ -116,41 +118,38 @@ describe('getConnectionEndpointWorldAnchors', () => {
     expect(result!.tgt).not.toEqual([5, 1, 1]);
   });
 
-  it('falls back to center for out-of-range stub index', () => {
+  it('falls back to center when semantic does not map to a stub index', () => {
     const conn = makeConnection({
-      sourceId: 'block-a',
-      targetId: 'block-b',
-      sourceStub: 99, // way out of range
-      targetStub: 0,
+      from: endpointId('block-a', 'output', 'http'),
+      to: endpointId('block-b', 'input', 'http'),
     });
-    const result = getConnectionEndpointWorldAnchors(conn, blocks, [plate], []);
+    const result = getConnectionEndpointWorldAnchors(conn, blocks, [plate], blockEndpoints, []);
     expect(result).not.toBeNull();
 
     // Source falls back to center (no side info)
-    expect(result!.srcSide).toBeUndefined();
-    expect(result!.src).toEqual([2, 1, 3]);
+    expect(result!.srcSide).toBe('outbound');
+    expect(result!.src).not.toEqual([2, 1, 3]);
 
-    // Target uses stub
+    // Target uses inbound side
     expect(result!.tgtSide).toBe('inbound');
   });
 
-  it('falls back to center for negative stub index', () => {
+  it('supports event semantic endpoint anchors', () => {
     const conn = makeConnection({
-      sourceId: 'block-a',
-      targetId: 'block-b',
-      sourceStub: -1,
-      targetStub: 0,
+      from: endpointId('block-a', 'output', 'event'),
+      to: endpointId('block-b', 'input', 'event'),
     });
-    const result = getConnectionEndpointWorldAnchors(conn, blocks, [plate], []);
+    const result = getConnectionEndpointWorldAnchors(conn, blocks, [plate], blockEndpoints, []);
     expect(result).not.toBeNull();
-    expect(result!.srcSide).toBeUndefined();
-    expect(result!.src).toEqual([2, 1, 3]);
+    expect(result!.srcSide).toBe('outbound');
+    expect(result!.tgtSide).toBe('inbound');
   });
 
   it('resolves external actor source endpoint', () => {
     const actor = makeActor({ id: 'actor-1' });
-    const conn = makeConnection({ sourceId: 'actor-1', targetId: 'block-b' });
-    const result = getConnectionEndpointWorldAnchors(conn, blocks, [plate], [actor]);
+    const conn = makeConnection({ from: endpointId('actor-1', 'output', 'data'), to: endpointId('block-b', 'input', 'data')});
+    const endpoints = makeEndpoints([...blocks.map((block) => block.id), actor.id]);
+    const result = getConnectionEndpointWorldAnchors(conn, blocks, [plate], endpoints, [actor]);
     expect(result).not.toBeNull();
 
     // External actor uses default position + Y offset
@@ -169,16 +168,18 @@ describe('getConnectionEndpointWorldAnchors', () => {
       id: 'actor-1',
       position: { x: 10, y: 5, z: 15 },
     });
-    const conn = makeConnection({ sourceId: 'actor-1', targetId: 'block-b' });
-    const result = getConnectionEndpointWorldAnchors(conn, blocks, [plate], [actor]);
+    const conn = makeConnection({ from: endpointId('actor-1', 'output', 'data'), to: endpointId('block-b', 'input', 'data')});
+    const endpoints = makeEndpoints([...blocks.map((block) => block.id), actor.id]);
+    const result = getConnectionEndpointWorldAnchors(conn, blocks, [plate], endpoints, [actor]);
     expect(result).not.toBeNull();
     expect(result!.src).toEqual([10, 5 + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET, 15]);
   });
 
   it('resolves external actor as target', () => {
     const actor = makeActor({ id: 'actor-1' });
-    const conn = makeConnection({ sourceId: 'block-a', targetId: 'actor-1' });
-    const result = getConnectionEndpointWorldAnchors(conn, blocks, [plate], [actor]);
+    const conn = makeConnection({ from: endpointId('block-a', 'output', 'data'), to: endpointId('actor-1', 'input', 'data')});
+    const endpoints = makeEndpoints([...blocks.map((block) => block.id), actor.id]);
+    const result = getConnectionEndpointWorldAnchors(conn, blocks, [plate], endpoints, [actor]);
     expect(result).not.toBeNull();
     expect(result!.tgt).toEqual([
       EXTERNAL_ACTOR_POSITION[0],

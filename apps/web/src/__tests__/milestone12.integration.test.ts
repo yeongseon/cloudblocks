@@ -81,6 +81,7 @@ function makeArchitecture(overrides: ArchitectureOverrides = {}): ArchitectureMo
     version: '1',
     nodes: [...containers, ...normalizedResources, ...nodes],
     connections: [],
+    endpoints: [],
     externalActors: [
       {
         id: 'ext-internet',

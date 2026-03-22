@@ -29,6 +29,7 @@ const beginnerOnlyScenario: Scenario = {
     version: '1',
     nodes: [],
     connections: [],
+    endpoints: [],
     externalActors: [],
   },
   steps: [

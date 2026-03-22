@@ -16,6 +16,7 @@ const CONTAINER_RESOURCE_TYPE: Record<PlateType, ContainerCapableResourceType> =
 const threeTierInitialArchitecture: ArchitectureSnapshot = {
   name: 'Three-Tier Learning Scenario',
   version: '1',
+  endpoints: [],
   nodes: [],
   connections: [],
   externalActors: [],
@@ -24,6 +25,7 @@ const threeTierInitialArchitecture: ArchitectureSnapshot = {
 const threeTierCheckpointNetworkOnly: ArchitectureSnapshot = {
   name: 'Three-Tier Learning Scenario',
   version: '1',
+  endpoints: [],
   nodes: [
     {
       id: 'plate-scn3tier-vnet',
@@ -46,6 +48,7 @@ const threeTierCheckpointNetworkOnly: ArchitectureSnapshot = {
 const threeTierCheckpointWithSubnets: ArchitectureSnapshot = {
   name: 'Three-Tier Learning Scenario',
   version: '1',
+  endpoints: [],
   nodes: [
     {
       id: 'plate-scn3tier-vnet',
@@ -94,6 +97,7 @@ const threeTierCheckpointWithSubnets: ArchitectureSnapshot = {
 const threeTierCheckpointWithBlocks: ArchitectureSnapshot = {
   name: 'Three-Tier Learning Scenario',
   version: '1',
+  endpoints: [],
   nodes: [
     {
       id: 'plate-scn3tier-vnet',
@@ -272,6 +276,7 @@ const threeTierScenario: Scenario = {
 const serverlessApiInitialArchitecture: ArchitectureSnapshot = {
   name: 'Serverless API Learning Scenario',
   version: '1',
+  endpoints: [],
   nodes: [
     {
       id: 'plate-scnsls-vnet',
@@ -294,6 +299,7 @@ const serverlessApiInitialArchitecture: ArchitectureSnapshot = {
 const serverlessApiCheckpointWithSubnets: ArchitectureSnapshot = {
   name: 'Serverless API Learning Scenario',
   version: '1',
+  endpoints: [],
   nodes: [
     {
       id: 'plate-scnsls-vnet',
@@ -420,6 +426,7 @@ const serverlessApiScenario: Scenario = {
 const eventPipelineInitialArchitecture: ArchitectureSnapshot = {
   name: 'Event Pipeline Learning Scenario',
   version: '1',
+  endpoints: [],
   nodes: [
     {
       id: 'plate-scnevt-vnet',
@@ -455,6 +462,7 @@ const eventPipelineInitialArchitecture: ArchitectureSnapshot = {
 const eventPipelineCheckpointAfterStep2: ArchitectureSnapshot = {
   name: 'Event Pipeline Learning Scenario',
   version: '1',
+  endpoints: [],
   nodes: [
     {
       id: 'plate-scnevt-vnet',
@@ -514,6 +522,7 @@ const eventPipelineCheckpointAfterStep2: ArchitectureSnapshot = {
 const eventPipelineCheckpointWithAllBlocks: ArchitectureSnapshot = {
   name: 'Event Pipeline Learning Scenario',
   version: '1',
+  endpoints: [],
   nodes: [
     {
       id: 'plate-scnevt-vnet',

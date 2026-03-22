@@ -10,7 +10,7 @@
  * - Missing/invalid stub → fallback to center (backward compat).
  */
 
-import type { Connection, ContainerNode, ExternalActor, LeafNode } from '@cloudblocks/schema';
+import type { Connection, ContainerNode, Endpoint, EndpointSemantic, ExternalActor, LeafNode } from '@cloudblocks/schema';
 import { CATEGORY_PORTS } from '@cloudblocks/schema';
 import { getBlockWorldPosition, EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET, EXTERNAL_ACTOR_POSITION } from '../../shared/utils/position';
 import { getBlockDimensions } from '../../shared/types/visualProfile';
@@ -34,24 +34,25 @@ export function getConnectionEndpointWorldAnchors(
   connection: Connection,
   blocks: LeafNode[],
   plates: ContainerNode[],
-  externalActors: ExternalActor[],
+  endpoints: Endpoint[],
+  externalActors: ExternalActor[] = [],
 ): EndpointAnchors | null {
   const src = resolveEndpoint(
-    connection.sourceId,
-    connection.sourceStub,
+    connection.from,
     'outbound',
     blocks,
     plates,
+    endpoints,
     externalActors,
   );
   if (!src) return null;
 
   const tgt = resolveEndpoint(
-    connection.targetId,
-    connection.targetStub,
+    connection.to,
     'inbound',
     blocks,
     plates,
+    endpoints,
     externalActors,
   );
   if (!tgt) return null;
@@ -74,15 +75,25 @@ interface ResolvedEndpoint {
 }
 
 function resolveEndpoint(
-  id: string,
-  stubIndex: number | undefined,
+  endpointId: string,
   side: StubSide,
   blocks: LeafNode[],
   plates: ContainerNode[],
+  endpoints: Endpoint[],
   externalActors: ExternalActor[],
 ): ResolvedEndpoint | null {
+  const endpoint = endpoints.find((candidate) => candidate.id === endpointId);
+  if (!endpoint) {
+    return null;
+  }
+
+  const resolvedSide = endpoint.direction === 'output' ? 'outbound' : 'inbound';
+  if (resolvedSide !== side) {
+    return null;
+  }
+
   // Try block first
-  const block = blocks.find((b) => b.id === id);
+  const block = blocks.find((b) => b.id === endpoint.nodeId);
   if (block) {
     const plate = plates.find((p) => p.id === block.parentId);
     if (!plate) return null;
@@ -91,24 +102,22 @@ function resolveEndpoint(
     const cu = getBlockDimensions(block.category, block.provider, block.subtype);
     const anchors = getBlockWorldAnchors(worldPos, cu);
 
-    // Determine total stubs for this side from the category's port policy
     const ports = CATEGORY_PORTS[block.category];
     const total = side === 'inbound' ? ports.inbound : ports.outbound;
+    const stubIndex = semanticToStubIndex(endpoint.semantic, total);
 
-    // Validate stub index — fall back to center if invalid or missing
-    if (stubIndex != null && stubIndex >= 0 && stubIndex < total) {
+    if (stubIndex !== null) {
       return {
         point: anchors.stub(side, stubIndex, total),
         side,
       };
     }
 
-    // Fallback: block center
     return { point: anchors.center };
   }
 
   // Try external actor
-  const actor = externalActors.find((a) => a.id === id);
+  const actor = externalActors.find((a) => a.id === endpoint.nodeId);
   if (actor) {
     const base: WorldPoint = actor.position
       ? [actor.position.x, actor.position.y + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET, actor.position.z]
@@ -117,4 +126,18 @@ function resolveEndpoint(
   }
 
   return null;
+}
+
+function semanticToStubIndex(semantic: EndpointSemantic, total: number): number | null {
+  if (total <= 0) {
+    return null;
+  }
+
+  const order: EndpointSemantic[] = ['http', 'event', 'data'];
+  const index = order.indexOf(semantic);
+  if (index < 0) {
+    return null;
+  }
+
+  return index % total;
 }

@@ -205,7 +205,7 @@ describe('ExternalActorSprite', () => {
   });
 
   it('shows valid connect-target class when canConnect returns true', () => {
-    const canConnectSpy = vi.spyOn(connectionValidation, 'canConnect').mockReturnValue(true);
+    const canConnectSpy = vi.spyOn(connectionValidation, 'canConnect').mockReturnValue({ valid: true });
     useUIStore.setState({ toolMode: 'connect', connectionSource: 'gateway-1' });
 
     const { container } = render(

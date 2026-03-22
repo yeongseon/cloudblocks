@@ -12,8 +12,16 @@
 
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { BLOCK_FRIENDLY_NAMES, BLOCK_ICONS, BLOCK_ENCYCLOPEDIA, CONNECTION_TYPE_LABELS, CONNECTION_ENCYCLOPEDIA, PLATE_ENCYCLOPEDIA } from '../../shared/types/index';
-import type { ContainerNode, LeafNode } from '@cloudblocks/schema';
+import {
+  BLOCK_FRIENDLY_NAMES,
+  BLOCK_ICONS,
+  BLOCK_ENCYCLOPEDIA,
+  CONNECTION_TYPE_LABELS,
+  CONNECTION_ENCYCLOPEDIA,
+  PLATE_ENCYCLOPEDIA,
+  resolveConnectionNodes,
+} from '../../shared/types/index';
+import type { ConnectionType, ContainerNode, LeafNode } from '@cloudblocks/schema';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
 import { getBlockIconUrl, getPlateIconUrl } from '../../shared/utils/iconResolver';
 import './DetailPanel.css';
@@ -109,7 +117,7 @@ function WorkspaceDashboard({ className }: { className: string }) {
   const containers = architecture.nodes.filter((n): n is ContainerNode => n.kind === 'container');
   const resources = architecture.nodes.filter((n): n is LeafNode => n.kind === 'resource');
   const connectionCount = architecture.connections.length;
-  const actorCount = architecture.externalActors.length;
+  const actorCount = (architecture.externalActors ?? []).length;
 
   return (
     <div className={`detail-panel detail-panel--dashboard ${className}`}>
@@ -308,16 +316,18 @@ function ConnectionDetail({ connectionId, className }: { connectionId: string; c
 
   if (!connection) return null;
 
-  const sourceBlock = resources.find((b) => b.id === connection.sourceId);
-  const sourceActor = architecture.externalActors.find((a) => a.id === connection.sourceId);
-  const targetBlock = resources.find((b) => b.id === connection.targetId);
-  const encyclopedia = CONNECTION_ENCYCLOPEDIA[connection.type];
+  const { sourceId, targetId, type } = resolveConnectionNodes(connection);
+
+  const sourceBlock = resources.find((b) => b.id === sourceId);
+  const sourceActor = (architecture.externalActors ?? []).find((a) => a.id === sourceId);
+  const targetBlock = resources.find((b) => b.id === targetId);
+  const encyclopedia = CONNECTION_ENCYCLOPEDIA[type as ConnectionType];
 
   return (
     <div className={`detail-panel detail-panel--connection ${className}`}>
       <div className="detail-header">
         <span className="detail-header-icon">🔗</span>
-        <span className="detail-header-name">{CONNECTION_TYPE_LABELS[connection.type]} Connection</span>
+        <span className="detail-header-name">{CONNECTION_TYPE_LABELS[type as ConnectionType]} Connection</span>
       </div>
 
       <div className="detail-divider" />

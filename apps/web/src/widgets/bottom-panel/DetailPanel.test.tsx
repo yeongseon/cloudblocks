@@ -4,6 +4,7 @@ import { DetailPanel } from './DetailPanel';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import type { ArchitectureModel, Connection, ExternalActor, ContainerNode, LeafNode } from '@cloudblocks/schema';
+import { endpointId } from '@cloudblocks/schema';
 
 vi.mock('./DetailPanel.css', () => ({}));
 
@@ -63,9 +64,8 @@ const targetBlock: LeafNode = {
 
 const connection: Connection = {
   id: 'conn-1',
-  sourceId: 'block-1',
-  targetId: 'block-2',
-  type: 'dataflow',
+  from: endpointId('block-1', 'output', 'data'),
+  to: endpointId('block-2', 'input', 'data'),
   metadata: {},
 };
 
@@ -75,6 +75,7 @@ const architectureWithResources: ArchitectureModel = {
   version: '1.0.0',
   nodes: [networkPlate, publicSubnet, sourceBlock, targetBlock],
   connections: [connection],
+  endpoints: [],
   externalActors: [],
   createdAt: '',
   updatedAt: '',
@@ -170,7 +171,12 @@ describe('DetailPanel', () => {
   });
 
   it('renders http connection type in detail panel', () => {
-    const httpConnection: Connection = { ...connection, id: 'conn-http', type: 'http' };
+    const httpConnection: Connection = {
+      ...connection,
+      id: 'conn-http',
+      from: endpointId('block-1', 'output', 'http'),
+      to: endpointId('block-2', 'input', 'http'),
+    };
     useArchitectureStore.setState({
       workspace: {
         id: 'ws-1',
@@ -278,9 +284,8 @@ describe('DetailPanel', () => {
     };
     const externalConnection: Connection = {
       id: 'ext-conn',
-      sourceId: 'ext-internet',
-      targetId: 'block-1',
-      type: 'dataflow',
+      from: endpointId('ext-internet', 'output', 'data'),
+      to: endpointId('block-1', 'input', 'data'),
       metadata: {},
     };
 
@@ -313,9 +318,8 @@ describe('DetailPanel', () => {
     };
     const externalConnection: Connection = {
       id: 'ext-conn',
-      sourceId: 'ext-partner',
-      targetId: 'block-1',
-      type: 'dataflow',
+      from: endpointId('ext-partner', 'output', 'data'),
+      to: endpointId('block-1', 'input', 'data'),
       metadata: {},
     };
 
@@ -348,9 +352,8 @@ describe('DetailPanel', () => {
     } as unknown as ExternalActor;
     const conn: Connection = {
       id: 'ext-conn-user',
-      sourceId: 'ext-user',
-      targetId: 'block-1',
-      type: 'dataflow',
+      from: endpointId('ext-user', 'output', 'data'),
+      to: endpointId('block-1', 'input', 'data'),
       metadata: {},
     };
 
@@ -377,9 +380,8 @@ describe('DetailPanel', () => {
   it('renders Unknown when connection source is neither block nor external actor', () => {
     const externalConnection: Connection = {
       id: 'ext-conn',
-      sourceId: 'nonexistent-id',
-      targetId: 'block-1',
-      type: 'dataflow',
+      from: endpointId('nonexistent-id', 'output', 'data'),
+      to: endpointId('block-1', 'input', 'data'),
       metadata: {},
     };
 
@@ -390,6 +392,7 @@ describe('DetailPanel', () => {
         architecture: {
           ...architectureWithResources,
           connections: [externalConnection],
+          endpoints: [],
           externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: 0, y: 0, z: 0 } }],
         },
         createdAt: '',
@@ -406,9 +409,8 @@ describe('DetailPanel', () => {
   it('renders unknown source when connection source id is invalid', () => {
     const badSourceConnection: Connection = {
       id: 'bad-source-conn',
-      sourceId: 'nonexistent-id',
-      targetId: 'block-1',
-      type: 'dataflow',
+      from: endpointId('nonexistent-id', 'output', 'data'),
+      to: endpointId('block-1', 'input', 'data'),
       metadata: {},
     };
 
@@ -435,9 +437,8 @@ describe('DetailPanel', () => {
   it('renders unknown target when connection target block is missing', () => {
     const unknownTargetConnection: Connection = {
       id: 'bad-conn',
-      sourceId: 'block-1',
-      targetId: 'missing-block',
-      type: 'dataflow',
+      from: endpointId('block-1', 'output', 'data'),
+      to: endpointId('missing-block', 'input', 'data'),
       metadata: {},
     };
 
@@ -497,6 +498,7 @@ describe('DetailPanel', () => {
           version: "1.0.0",
           nodes: [],
           connections: [],
+          endpoints: [],
           externalActors: [],
           createdAt: "",
           updatedAt: "",
@@ -524,6 +526,7 @@ describe('DetailPanel', () => {
           version: "1.0.0",
           nodes: [],
           connections: [],
+          endpoints: [],
           externalActors: [],
           createdAt: "",
           updatedAt: "",
@@ -595,6 +598,7 @@ describe('DetailPanel', () => {
           version: '1.0.0',
           nodes: [],
           connections: [],
+          endpoints: [],
           externalActors: [],
           createdAt: '',
           updatedAt: '',
@@ -623,6 +627,7 @@ describe('DetailPanel', () => {
           version: '1.0.0',
           nodes: [],
           connections: [],
+          endpoints: [],
           externalActors: [],
           createdAt: '',
           updatedAt: '',

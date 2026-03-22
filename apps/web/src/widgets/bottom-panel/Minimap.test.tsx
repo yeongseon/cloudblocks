@@ -4,6 +4,7 @@ import { Minimap } from './Minimap';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import type { ArchitectureModel, Connection, ContainerNode, LeafNode } from '@cloudblocks/schema';
+import { endpointId } from '@cloudblocks/schema';
 
 vi.mock('./Minimap.css', () => ({}));
 
@@ -63,9 +64,8 @@ const targetBlock: LeafNode = {
 
 const connection: Connection = {
   id: 'conn-1',
-  sourceId: 'block-1',
-  targetId: 'block-2',
-  type: 'dataflow',
+  from: endpointId('block-1', 'output', 'data'),
+  to: endpointId('block-2', 'input', 'data'),
   metadata: {},
 };
 
@@ -75,6 +75,7 @@ const emptyArchitecture: ArchitectureModel = {
   version: '1.0.0',
   nodes: [],
   connections: [],
+  endpoints: [],
   externalActors: [],
   createdAt: '',
   updatedAt: '',
@@ -262,9 +263,8 @@ describe('Minimap', () => {
   it('filters out connection when source and target blocks are missing', () => {
     const orphanConnection: Connection = {
       id: 'orphan-conn',
-      sourceId: 'missing-1',
-      targetId: 'missing-2',
-      type: 'dataflow',
+      from: endpointId('missing-1', 'output', 'data'),
+      to: endpointId('missing-2', 'input', 'data'),
       metadata: {},
     };
 
@@ -353,9 +353,8 @@ describe('Minimap', () => {
     };
     const floatingConnection: Connection = {
       id: 'floating-conn',
-      sourceId: 'floating-1',
-      targetId: 'floating-2',
-      type: 'dataflow',
+      from: endpointId('floating-1', 'output', 'data'),
+      to: endpointId('floating-2', 'input', 'data'),
       metadata: {},
     };
 
