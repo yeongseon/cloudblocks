@@ -119,7 +119,10 @@ export function resolveBlockMapping(
   return blockMappings[category];
 }
 
-/** @deprecated Use ProviderDefinition instead. Kept for backward compat with terraform.ts */
+/**
+ * @deprecated Use `ProviderDefinition` instead.
+ * Legacy adapter type retained for backward compatibility with older Terraform-only paths.
+ */
 export interface ProviderAdapter {
   name: ProviderName;
   displayName: string;
@@ -147,6 +150,13 @@ export interface PulumiProviderConfig {
   runtime: 'nodejs';
 }
 
+/**
+ * Canonical provider abstraction used by the generation pipeline.
+ *
+ * A `ProviderDefinition` owns provider metadata, generic block/plate mappings,
+ * generator-specific configuration (`terraform`, `bicep`, `pulumi`), and optional
+ * subtype-aware block mappings. New generation features should target this interface.
+ */
 export interface ProviderDefinition {
   name: ProviderName;
   displayName: string;

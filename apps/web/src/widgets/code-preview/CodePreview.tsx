@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { generateCode, GenerationError } from '../../features/generate/pipeline';
@@ -10,6 +10,7 @@ import {
 } from '../../features/generate/types';
 import { listGenerators } from '../../features/generate/registry';
 import type { ProviderType } from '@cloudblocks/schema';
+import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import './CodePreview.css';
 
 const PROVIDERS: ProviderType[] = ['azure', 'aws', 'gcp'];
@@ -30,6 +31,8 @@ function clearGeneratedState(
 
 export function CodePreview() {
   const toggleCodePreview = useUIStore((s) => s.toggleCodePreview);
+  const showAdvancedGeneration = useUIStore((s) => s.showAdvancedGeneration);
+  const toggleAdvancedGeneration = useUIStore((s) => s.toggleAdvancedGeneration);
   const activeProvider = useUIStore((s) => s.activeProvider);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
 
@@ -54,7 +57,6 @@ export function CodePreview() {
   const [comparisonOutputs, setComparisonOutputs] = useState<Record<ProviderType, GeneratedOutput> | null>(null);
   const [comparisonErrors, setComparisonErrors] = useState<Partial<Record<ProviderType, string>> | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const prevProviderRef = useRef(activeProvider);
   const selectedGenerator = generatorOptions.find((g) => g.id === generator);
   const supportedProviders = selectedGenerator?.supportedProviders ?? [];
   const canCompareProviders = PROVIDERS.every((provider) =>
@@ -62,6 +64,7 @@ export function CodePreview() {
   );
 
   const effectiveCompare = compareProviders && canCompareProviders;
+  const hasCompareResults = comparisonOutputs != null;
 
   const mismatchedProviders = architecture.nodes
     .filter((node) => node.kind === 'resource')
@@ -73,25 +76,30 @@ export function CodePreview() {
     }, new Map<string, number>());
   const hasMismatch = mismatchedProviders.size > 0;
 
-  useEffect(() => {
-    if (prevProviderRef.current !== activeProvider) {
-      prevProviderRef.current = activeProvider;
-      queueMicrotask(() => {
-        clearGeneratedState(setError, setOutput, setComparisonOutputs, setComparisonErrors, setActiveTab);
-        setRegions((prev) => ({
-          ...prev,
-          [activeProvider]: DEFAULT_REGION_BY_PROVIDER[activeProvider],
-        }));
-      });
-    }
-  }, [activeProvider]);
-
   const handleGeneratorChange = (newGenerator: GeneratorId) => {
     setGenerator(newGenerator);
     clearGeneratedState(setError, setOutput, setComparisonOutputs, setComparisonErrors, setActiveTab);
   };
 
-  const handleCompareChange = (checked: boolean) => {
+  const handleAdvancedToggle = (checked: boolean) => {
+    if (!checked && generator !== 'terraform') {
+      setGenerator('terraform');
+      clearGeneratedState(setError, setOutput, setComparisonOutputs, setComparisonErrors, setActiveTab);
+    }
+    toggleAdvancedGeneration();
+  };
+
+  const handleCompareChange = async (checked: boolean) => {
+    if (checked && output != null) {
+      const confirmed = await confirmDialog(
+        'Starting comparison will discard current generated output. Continue?',
+        'Start Comparison?'
+      );
+      if (!confirmed) {
+        return;
+      }
+    }
+
     setCompareProviders(checked);
     clearGeneratedState(setError, setOutput, setComparisonOutputs, setComparisonErrors, setActiveTab);
   };
@@ -138,6 +146,9 @@ export function CodePreview() {
         }
 
         setComparisonOutputs(generated as Record<ProviderType, GeneratedOutput>);
+        const totalResults = Object.values(generated).length;
+        const summary = `## Provider Comparison\n\nGenerated code for ${totalResults} providers: ${Object.keys(generated).join(', ').toUpperCase()}\n\nReview the differences below before submitting.`;
+        useUIStore.getState().setCompareReviewPrefill(summary);
         setComparisonErrors(Object.keys(errors).length > 0 ? errors : null);
         if (Object.keys(errors).length > 0) {
           setError('Some providers failed. Showing partial comparison results.');
@@ -236,24 +247,40 @@ export function CodePreview() {
             ⚠️ Canvas has {Array.from(mismatchedProviders.entries()).map(([p, count]) => `${count} ${p.toUpperCase()}`).join(', ')} block(s) but generating for {activeProvider.toUpperCase()}. Use &quot;Compare&quot; to see all providers.
           </div>
         )}
-        <label className="code-preview-field">
-          <span className="code-preview-field-label">Generator</span>
-          <select
-            className="code-preview-input"
-            value={generator}
-            onChange={(e) => handleGeneratorChange(e.target.value as GeneratorId)}
-          >
-            {generatorOptions.map((g) => (
-              <option key={g.id} value={g.id}>{g.label}</option>
-            ))}
-          </select>
+        <label className="code-preview-field code-preview-field-checkbox">
+          <span className="code-preview-field-label">Advanced</span>
+          <label className="code-preview-checkbox-label">
+            <input
+              type="checkbox"
+              checked={showAdvancedGeneration}
+              disabled={hasCompareResults}
+              onChange={(e) => handleAdvancedToggle(e.target.checked)}
+            />
+            Expert generator selection
+          </label>
         </label>
+        {showAdvancedGeneration && (
+          <label className="code-preview-field">
+            <span className="code-preview-field-label">Generator</span>
+            <select
+              className="code-preview-input"
+              value={generator}
+              disabled={hasCompareResults}
+              onChange={(e) => handleGeneratorChange(e.target.value as GeneratorId)}
+            >
+              {generatorOptions.map((g) => (
+                <option key={g.id} value={g.id}>{g.label}</option>
+              ))}
+            </select>
+          </label>
+        )}
         <label className="code-preview-field">
           <span className="code-preview-field-label">Project</span>
           <input
             className="code-preview-input"
             type="text"
             value={projectName}
+            disabled={hasCompareResults}
             onChange={(e) => setProjectName(e.target.value)}
           />
         </label>
@@ -268,6 +295,7 @@ export function CodePreview() {
                     className="code-preview-input"
                     type="text"
                     value={regions[provider]}
+                    disabled={hasCompareResults}
                     onChange={(e) =>
                       setRegions((prev) => ({ ...prev, [provider]: e.target.value }))
                     }
@@ -283,6 +311,7 @@ export function CodePreview() {
               className="code-preview-input"
               type="text"
               value={regions[activeProvider]}
+              disabled={hasCompareResults}
               onChange={(e) =>
                 setRegions((prev) => ({ ...prev, [activeProvider]: e.target.value }))
               }
@@ -295,14 +324,20 @@ export function CodePreview() {
             <input
               type="checkbox"
               checked={effectiveCompare}
-              disabled={!canCompareProviders}
-              onChange={(e) => handleCompareChange(e.target.checked)}
+              disabled={hasCompareResults || !canCompareProviders}
+              onChange={(e) => void handleCompareChange(e.target.checked)}
             />
             Azure / AWS / GCP
           </label>
         </label>
-        <button type="button" className="code-preview-generate-btn" onClick={handleGenerate}>
-          🚀 {effectiveCompare ? 'Compare Providers' : `Generate ${selectedGenerator?.label ?? 'Code'}`}
+        <button
+          type="button"
+          className="code-preview-generate-btn"
+          onClick={hasCompareResults
+            ? () => clearGeneratedState(setError, setOutput, setComparisonOutputs, setComparisonErrors, setActiveTab)
+            : handleGenerate}
+        >
+          🚀 {hasCompareResults ? 'Clear Results' : effectiveCompare ? 'Compare Providers' : 'Generate Code'}
         </button>
       </div>
 

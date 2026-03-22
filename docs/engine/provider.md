@@ -1,211 +1,114 @@
-# Provider Adapter Specification
+# Provider Definition Specification
 
-CloudBlocks uses provider adapters to convert provider-neutral architecture models into cloud-specific infrastructure definitions.
+CloudBlocks uses `ProviderDefinition` as the canonical provider abstraction for generation.
 
-This allows the core DSL and rule engine to remain generic while infrastructure generation becomes cloud-aware.
+This keeps the architecture model provider-neutral while allowing Terraform, Bicep, and Pulumi output from the same model.
 
 ---
 
 # Purpose
 
-The provider adapter layer exists to:
+The provider layer exists to:
 
-- map generic block categories to provider resources
-- translate architecture graph semantics into cloud-specific constructs
-- keep the core DSL provider-neutral
-- support future multi-cloud generation
-
----
-
-# Core Principle
-
-CloudBlocks DSL must remain generic.
-
-Examples of generic categories:
-
-- compute
-- database
-- storage
-- gateway
-- function
-- queue
-- event
-- analytics
-- identity
-- observability
-
-Examples of provider-specific resources:
-
-- Azure App Service
-- AWS ECS Service
-- GCP Cloud Run
-
-The adapter layer performs this mapping.
+- map generic block and plate concepts to provider resources
+- preserve provider-neutral modeling in the architecture DSL
+- enable consistent multi-generator output from one provider definition
+- surface unsupported mappings explicitly instead of silently dropping resources
 
 ---
 
-# Adapter Responsibilities
+# Canonical Abstraction: `ProviderDefinition`
 
-Each provider adapter must implement:
+`ProviderDefinition` is the single source of truth for provider generation behavior.
 
-- block mapping
-- plate mapping
-- connection interpretation
-- code generation hooks
-- validation extensions
-
----
-
-# Block Mapping
-
-A provider adapter maps generic blocks to provider resources.
-
-Example:
-
-| DSL Block | Azure | AWS | GCP |
-|-----------|-------|-----|-----|
-| compute | azurerm_linux_web_app | aws_ecs_service | google_cloud_run_v2_service |
-| database | azurerm_postgresql_flexible_server | aws_db_instance | google_sql_database_instance |
-| storage | azurerm_storage_account | aws_s3_bucket | google_storage_bucket |
-| gateway | azurerm_application_gateway | aws_lb | google_compute_backend_service |
-| function | azurerm_linux_function_app | - | - |
-| queue | azurerm_storage_queue | - | - |
-| event | azurerm_eventgrid_topic | - | - |
-| analytics | azurerm_log_analytics_workspace | - | - |
-| identity | azurerm_user_assigned_identity | - | - |
-| observability | azurerm_monitor_workspace | - | - |
-
----
-
-# Plate Mapping
-
-A provider adapter maps structural boundaries to provider-specific containers.
-
-Examples:
-
-| DSL Plate | Azure | AWS | GCP |
-|-----------|-------|-----|-----|
-| network | virtual network | VPC | VPC network |
-| subnet | subnet | subnet | subnetwork |
-| resource group boundary | resource group | n/a | project/folder context |
-
-Not all providers support identical boundary concepts.
-
-Adapters may need approximation rules.
-
----
-
-# Connection Interpretation
-
-Connections in the DSL represent abstract communication flow.
-
-Provider adapters interpret these flows into infrastructure relationships such as:
-
-- network permissions
-- routing
-- security groups
-- firewall rules
-- private endpoints
-
-The adapter decides how to express the flow in the target platform.
-
----
-
-# Adapter Interface
-
-A provider adapter should expose a minimal interface like:
-
-- mapArchitecture()
-- mapPlate()
-- mapBlock()
-- mapConnection()
-- generateArtifacts()
-
-Exact implementation details may vary by language and package structure.
-
----
-
-# Output Responsibility
-
-Provider adapters do not own the full pipeline.
-
-Recommended division of responsibility:
-
-- core pipeline builds normalized architecture graph
-- provider adapter maps graph elements to provider model
-- generator backend renders IaC artifacts
-
----
-
-# Adapter Constraints
-
-Provider adapters must follow these constraints:
-
-- must not mutate the canonical DSL model
-- must preserve deterministic generation
-- must report unsupported mappings clearly
-- must avoid leaking provider-specific assumptions into the DSL
-
----
-
-# Unsupported Mappings
-
-If a DSL concept cannot be represented by the provider, the adapter must:
-
-- return an explicit error
-- explain the unsupported mapping
-- avoid silently dropping resources
-
-This is critical for trust and predictability.
-
----
-
-# Packaging Strategy
-
-Recommended long-term package structure:
-
-```
-packages/
-  model/
-  graph/
-  rule-engine/
-  generator-core/
-  provider-azure/
-  provider-aws/
-  provider-gcp/
+```ts
+interface ProviderDefinition {
+  name: ProviderType;
+  displayName: string;
+  blockMappings: BlockResourceMap;
+  plateMappings: PlateResourceMap;
+  generators: {
+    terraform: TerraformProviderConfig;
+    bicep: BicepProviderConfig;
+    pulumi: PulumiProviderConfig;
+  };
+  subtypeBlockMappings?: SubtypeResourceMap;
+}
 ```
 
-This allows providers to evolve independently.
+## `generators` section
+
+Every provider definition includes generator-specific settings:
+
+- `terraform: TerraformProviderConfig`
+  - `requiredProviders(): string`
+  - `providerBlock(region: string): string`
+- `bicep: BicepProviderConfig`
+  - `targetScope: 'resourceGroup' | 'subscription'`
+- `pulumi: PulumiProviderConfig`
+  - `packageName: string`
+  - `runtime: 'nodejs'`
 
 ---
 
-# Future Direction
+# Subtype-Aware Resource Resolution
 
-Planned provider adapter improvements:
+Use `subtypeBlockMappings` when a block category has multiple provider resources depending on subtype.
 
-- plugin discovery
-- provider capability metadata
-- provider-specific validation packs
-- mixed-provider experimental support
+- base mapping: `blockMappings[category]`
+- subtype override: `subtypeBlockMappings[category][subtype]`
 
-# Cross-Provider Challenges
+### `resolveBlockMapping()`
 
-Mapping the same DSL to multiple providers introduces real-world inconsistencies:
+`resolveBlockMapping(blockMappings, subtypeMappings, category, subtype?)` resolves in this order:
 
-| Challenge | Example | Mitigation |
-|-----------|---------|------------|
-| Naming divergence | Azure uses `azurerm_linux_web_app`, GCP uses `google_cloud_run_v2_service` | Adapter mapping table per provider |
-| Feature gaps | AWS has no direct equivalent to Azure Resource Groups | Adapter approximation rules + explicit warnings |
-| Networking models | Azure VNet vs AWS VPC vs GCP VPC Network have different subnet semantics | Plate mapping abstraction layer |
-| Security model | Security Groups (AWS) vs NSG (Azure) vs Firewall Rules (GCP) | Connection interpretation per provider |
-| Default configurations | Each provider has different defaults for compute, storage, etc. | Provider-specific default packs |
+1. Return subtype mapping when `subtype` is provided and exists
+2. Otherwise return `blockMappings[category]`
+3. Return `undefined` when neither mapping exists
 
-When an exact mapping is impossible, adapters must surface a clear error rather than silently approximate.
+This gives deterministic fallback behavior while supporting subtype precision.
+
+---
+
+# Generation Pipeline Flow
+
+Provider resolution is part of the generation pipeline:
+
+1. `validate` - run generator/plugin validation rules
+2. `resolve provider` - load `ProviderDefinition` by target provider
+3. `normalize` - convert architecture into generator-ready normalized model
+4. `generate` - produce files using provider + generator config
+5. `format` - apply optional generator formatter pass
+
+Pipeline stages are pure and deterministic for the same input model and options.
+
+---
+
+# `ProviderAdapter` Deprecation
+
+`ProviderAdapter` is deprecated and kept only for backward compatibility with older Terraform-only paths.
+
+Migration guidance:
+
+- new provider work must implement `ProviderDefinition`
+- new generator capabilities must read from `ProviderDefinition.generators`
+- existing `ProviderAdapter` usages should be incrementally migrated to `ProviderDefinition`
+
+---
+
+# Constraints
+
+Provider definitions and resolution logic must:
+
+- not mutate the canonical architecture model
+- keep generation deterministic
+- report unsupported mappings clearly
+- avoid leaking provider-specific semantics back into the DSL
+
 ---
 
 > **Cross-references:**
 > - Generator pipeline: [generator.md](./generator.md)
 > - Architecture model: [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)
-> - DSL & pipeline overview: [ARCHITECTURE_MODEL_OVERVIEW.md](../model/ARCHITECTURE_MODEL_OVERVIEW.md)
-> - Architecture model overview: [ARCHITECTURE_MODEL_OVERVIEW.md](../model/ARCHITECTURE_MODEL_OVERVIEW.md)
+> - DSL overview: [ARCHITECTURE_MODEL_OVERVIEW.md](../model/ARCHITECTURE_MODEL_OVERVIEW.md)
 > - Roadmap timeline: [ROADMAP.md](../concept/ROADMAP.md)

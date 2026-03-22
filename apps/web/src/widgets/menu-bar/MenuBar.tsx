@@ -385,7 +385,7 @@ export function MenuBar() {
               )}
             </button>
             <button type="button" className="menu-item" onClick={() => handleAction(toggleCodePreview)}>
-              <span className="menu-item-left">⚡ Generate Terraform</span>
+              <span className="menu-item-left">⚡ Generate Code</span>
             </button>
             <div className="menu-separator" />
             <button type="button" className="menu-item" onClick={() => handleAction(toggleTemplateGallery)}>

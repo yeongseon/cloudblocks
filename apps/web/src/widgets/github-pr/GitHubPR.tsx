@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
@@ -32,6 +32,15 @@ export function GitHubPR() {
 
   const [title, setTitle] = useState(DEFAULT_TITLE);
   const [body, setBody] = useState(DEFAULT_BODY);
+  const compareReviewPrefill = useUIStore((s) => s.compareReviewPrefill);
+  const setCompareReviewPrefill = useUIStore((s) => s.setCompareReviewPrefill);
+
+  useEffect(() => {
+    if (compareReviewPrefill) {
+      setBody(compareReviewPrefill);
+      setCompareReviewPrefill(null);
+    }
+  }, [compareReviewPrefill, setCompareReviewPrefill]);
   const [branch, setBranch] = useState(DEFAULT_BRANCH);
   const [commitMessage, setCommitMessage] = useState(DEFAULT_COMMIT_MESSAGE);
   const [loading, setLoading] = useState(false);
