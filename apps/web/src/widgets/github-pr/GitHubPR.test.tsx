@@ -199,6 +199,7 @@ describe('GitHubPR', () => {
     expect(screen.getByText('Branch name contains invalid characters or format.')).toBeInTheDocument();
   });
 
+
   it('trims PR title before submission', async () => {
     const user = userEvent.setup();
     mockApiPost.mockResolvedValue({

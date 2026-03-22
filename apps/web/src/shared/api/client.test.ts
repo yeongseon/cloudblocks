@@ -285,6 +285,18 @@ describe('getApiErrorMessage', () => {
   it('falls back to supplied message when thrown value is not Error', () => {
     expect(getApiErrorMessage('bad', 'Fallback')).toBe('Fallback');
   });
+
+  it('falls back to ApiError.message when body has no detail field', () => {
+    const error = new ApiError('API request failed with status 400', 400, '{"other":"stuff"}');
+
+    expect(getApiErrorMessage(error, 'Fallback')).toBe('API request failed with status 400');
+  });
+
+  it('falls back to ApiError.message when body is empty string', () => {
+    const error = new ApiError('API request failed with status 400', 400, '');
+
+    expect(getApiErrorMessage(error, 'Fallback')).toBe('API request failed with status 400');
+  });
 });
 
 describe('isAuthError', () => {

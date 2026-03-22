@@ -18,7 +18,7 @@ describe('GitHubRepos', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    useUIStore.setState({ showGitHubRepos: true, showGitHubSync: false, pendingLinkRepo: null });
+    useUIStore.setState({ showGitHubRepos: true, showGitHubSync: false, showGitHubLogin: false, pendingLinkRepo: null });
     useAuthStore.setState({
       status: 'authenticated',
       user: null,
@@ -192,6 +192,25 @@ describe('GitHubRepos', () => {
     mockIsAuthError.mockReturnValueOnce(true);
 
     render(<GitHubRepos />);
+
+    await vi.waitFor(() => {
+      expect(useAuthStore.getState().status).toBe('anonymous');
+    });
+    expect(useAuthStore.getState().error).toBe('Session expired. Please sign in again.');
+    expect(useUIStore.getState().showGitHubLogin).toBe(true);
+  });
+
+  it('routes auth error to login panel from repo create', async () => {
+    const user = userEvent.setup();
+    const unauthorizedError = new Error('Unauthorized');
+    mockApiGet.mockResolvedValueOnce({ repos: [] });
+    mockApiPost.mockRejectedValueOnce(unauthorizedError);
+    mockIsAuthError.mockReturnValueOnce(true);
+
+    render(<GitHubRepos />);
+
+    await user.type(screen.getByPlaceholderText('Repository name'), 'new-repo');
+    await user.click(screen.getByRole('button', { name: 'Create' }));
 
     await vi.waitFor(() => {
       expect(useAuthStore.getState().status).toBe('anonymous');
