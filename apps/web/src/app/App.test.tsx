@@ -16,8 +16,8 @@ vi.mock('../widgets/scene-canvas/SceneCanvas', () => ({
 vi.mock('../widgets/menu-bar/MenuBar', () => ({
   MenuBar: () => <div data-testid="menu-bar" />,
 }));
-vi.mock('../widgets/resource-bar/ResourceBar', () => ({
-  ResourceBar: () => <div data-testid="resource-bar" />,
+vi.mock('../widgets/sidebar-palette', () => ({
+  SidebarPalette: () => <div data-testid="sidebar-palette" />,
 }));
 vi.mock('../widgets/validation-panel/ValidationPanel', () => ({
   ValidationPanel: () => <div data-testid="validation-panel" />,
@@ -133,7 +133,7 @@ describe('App', () => {
     render(<App />);
     expect(screen.getByTestId('menu-bar')).toBeInTheDocument();
     expect(screen.getByTestId('scene-canvas')).toBeInTheDocument();
-    expect(screen.getByTestId('resource-bar')).toBeInTheDocument();
+    expect(screen.getByTestId('sidebar-palette')).toBeInTheDocument();
     expect(screen.getByTestId('validation-panel')).toBeInTheDocument();
     expect(screen.getByTestId('flow-diagram')).toBeInTheDocument();
     expect(screen.getByTestId('bottom-panel')).toBeInTheDocument();

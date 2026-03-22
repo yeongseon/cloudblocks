@@ -3,7 +3,7 @@ import { toast } from 'react-hot-toast';
 import type { ContainerNode, LeafNode } from '@cloudblocks/schema';
 import { SceneCanvas } from '../widgets/scene-canvas/SceneCanvas';
 import { MenuBar } from '../widgets/menu-bar/MenuBar';
-import { ResourceBar } from '../widgets/resource-bar/ResourceBar';
+import { SidebarPalette } from '../widgets/sidebar-palette';
 import { ValidationPanel } from '../widgets/validation-panel/ValidationPanel';
 import { FlowDiagram } from '../widgets/flow-diagram/FlowDiagram';
 import { BottomPanel } from '../widgets/bottom-panel';
@@ -253,12 +253,13 @@ export function BuilderView() {
         </div>
 
         <aside className="builder-sidebar" aria-hidden={!sidebarOpen}>
-          <div className="builder-slot" />
+          <div className="builder-slot">
+            <SidebarPalette />
+          </div>
         </aside>
 
         <main className={`builder-canvas${editorMode === 'learn' ? ' learn-mode-active' : ''}`}>
           <div className="builder-slot">
-            <ResourceBar />
             <SceneCanvas />
             <ValidationPanel />
             <FlowDiagram />
