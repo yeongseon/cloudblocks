@@ -637,4 +637,82 @@ describe('domainSlice – targeted branch coverage', () => {
       expect(getArch()).toBe(archBefore);
     });
   });
+
+  describe('additional guard and fallback branches', () => {
+    it('falls back to compute category for unknown addNode resourceType', () => {
+      getState().addPlate('region', 'VNet', null);
+      const regionId = getPlates()[0].id;
+
+      getState().addNode({
+        kind: 'resource',
+        resourceType: 'unknown_runtime' as never,
+        name: 'Unknown Resource',
+        parentId: regionId,
+        provider: 'azure',
+      });
+
+      const block = getBlocks()[0];
+      expect(block).toMatchObject({ category: 'compute', subtype: 'unknown_runtime' });
+    });
+
+    it('no-ops removeNode, renameNode, and moveNodePosition for unknown ids', () => {
+      const before = getArch();
+
+      getState().removeNode('missing-node-id');
+      getState().renameNode('missing-node-id', 'new-name');
+      getState().moveNodePosition('missing-node-id', 2, 2);
+
+      expect(getArch()).toBe(before);
+    });
+
+    it('handles addConnection branches with actors and endpoint parse fallback', () => {
+      const subnet = makeContainerNode('plate-1', { layer: 'subnet', resourceType: 'subnet', size: { width: 8, height: 0.3, depth: 10 } });
+      const edge = makeLeafNode('edge-1', 'plate-1', 'edge', { resourceType: 'load_balancer' });
+      const compute = makeLeafNode('compute-1', 'plate-1', 'compute', { resourceType: 'web_compute' });
+      seedState({
+        nodes: [subnet, edge, compute],
+        endpoints: [
+          ...generateEndpointsForNode(edge.id),
+          ...generateEndpointsForNode(compute.id),
+        ],
+        externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } }],
+        connections: [
+          makeLegacyConnection('conn-existing', edge.id, compute.id),
+        ],
+      });
+
+      expect(getState().addConnection('compute-1', 'ext-internet')).toBe(false);
+
+      expect(getState().addConnection('ext-internet', 'edge-1')).toBe(true);
+    });
+
+    it('returns false when endpoint-backed source/target cannot be resolved', () => {
+      const subnet = makeContainerNode('plate-1', { layer: 'subnet', resourceType: 'subnet' });
+      const edge = makeLeafNode('edge-1', 'plate-1', 'edge');
+      const compute = makeLeafNode('compute-1', 'plate-1', 'compute');
+      seedState({
+        nodes: [subnet, edge, compute],
+        endpoints: [],
+        externalActors: [],
+      });
+
+      expect(getState().addConnection('edge-1', 'compute-1')).toBe(false);
+    });
+
+    it('no-ops updateConnectionType when endpoints for existing connection are missing', () => {
+      const subnet = makeContainerNode('plate-1', { layer: 'subnet', resourceType: 'subnet' });
+      const edge = makeLeafNode('edge-1', 'plate-1', 'edge');
+      const compute = makeLeafNode('compute-1', 'plate-1', 'compute');
+      const connection = makeLegacyConnection('conn-1', edge.id, compute.id, 'dataflow');
+      seedState({
+        nodes: [subnet, edge, compute],
+        endpoints: [],
+        connections: [connection],
+      });
+
+      const before = getArch();
+      getState().updateConnectionType('conn-1', 'async');
+      expect(getArch()).toBe(before);
+    });
+  });
 });

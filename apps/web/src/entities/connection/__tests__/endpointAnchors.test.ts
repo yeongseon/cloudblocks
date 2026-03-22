@@ -84,6 +84,16 @@ describe('getConnectionEndpointWorldAnchors', () => {
     expect(result).toBeNull();
   });
 
+  it('returns null when endpoint direction does not match source/target side', () => {
+    const conn = makeConnection({
+      from: endpointId('block-a', 'input', 'data'),
+      to: endpointId('block-b', 'input', 'data'),
+    });
+    const result = getConnectionEndpointWorldAnchors(conn, blocks, [plate], blockEndpoints, []);
+
+    expect(result).toBeNull();
+  });
+
   it('returns stub-aware anchors for block endpoints with defined ports', () => {
     const conn = makeConnection({ from: endpointId('block-a', 'output', 'data'), to: endpointId('block-b', 'input', 'data')});
     const result = getConnectionEndpointWorldAnchors(conn, blocks, [plate], blockEndpoints, []);
@@ -143,6 +153,33 @@ describe('getConnectionEndpointWorldAnchors', () => {
     expect(result).not.toBeNull();
     expect(result!.srcSide).toBe('outbound');
     expect(result!.tgtSide).toBe('inbound');
+  });
+
+  it('returns null when endpoint exists but node is neither block nor actor', () => {
+    const conn = makeConnection({
+      from: endpointId('orphan-node', 'output', 'data'),
+      to: endpointId('block-b', 'input', 'data'),
+    });
+    const endpoints = makeEndpoints([...blocks.map((block) => block.id), 'orphan-node']);
+    const result = getConnectionEndpointWorldAnchors(conn, blocks, [plate], endpoints, []);
+
+    expect(result).toBeNull();
+  });
+
+  it('falls back to center when endpoint semantic is unknown', () => {
+    const conn = makeConnection({
+      from: endpointId('block-a', 'output', 'data'),
+      to: endpointId('block-b', 'input', 'data'),
+    });
+    const endpoints = makeEndpoints(['block-a', 'block-b']).map((endpoint) =>
+      endpoint.nodeId === 'block-b' && endpoint.direction === 'input'
+        ? { ...endpoint, semantic: 'unknown' as never }
+        : endpoint
+    );
+    const result = getConnectionEndpointWorldAnchors(conn, blocks, [plate], endpoints, []);
+
+    expect(result).not.toBeNull();
+    expect(result!.tgtSide).toBeUndefined();
   });
 
   it('resolves external actor source endpoint', () => {

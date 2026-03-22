@@ -127,6 +127,39 @@ describe('BrickConnector', () => {
     expect(removeConnectionMock).toHaveBeenCalledWith(connection.id);
   });
 
+  it('keydown Enter in select mode sets selectedId', () => {
+    setupEndpoints();
+
+    const { container } = renderConnector();
+    fireEvent.keyDown(container.querySelector('g') as SVGGElement, { key: 'Enter' });
+
+    expect(useUIStore.getState().selectedId).toBe(connection.id);
+  });
+
+  it('keydown Space in delete mode removes connection', () => {
+    const removeConnectionMock = vi.fn();
+    useUIStore.setState({ toolMode: 'delete' });
+    useArchitectureStore.setState({ removeConnection: removeConnectionMock });
+    setupEndpoints();
+
+    const { container } = renderConnector();
+    fireEvent.keyDown(container.querySelector('g') as SVGGElement, { key: ' ' });
+
+    expect(removeConnectionMock).toHaveBeenCalledWith(connection.id);
+  });
+
+  it('ignores non-activation keys on connector root', () => {
+    const removeConnectionMock = vi.fn();
+    useArchitectureStore.setState({ removeConnection: removeConnectionMock });
+    setupEndpoints();
+
+    const { container } = renderConnector();
+    fireEvent.keyDown(container.querySelector('g') as SVGGElement, { key: 'Escape' });
+
+    expect(removeConnectionMock).not.toHaveBeenCalled();
+    expect(useUIStore.getState().selectedId).toBeNull();
+  });
+
   it('stops propagation when clicking a connection', () => {
     const parentClick = vi.fn();
     vi.mocked(getConnectionEndpointWorldAnchors)
@@ -350,6 +383,9 @@ describe('BrickConnector', () => {
       fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
 
       expect(container.querySelector('[data-testid="connection-error-label"]')).toBeInTheDocument();
+
+      fireEvent.mouseLeave(container.querySelector('g') as Element);
+      expect(container.querySelector('[data-testid="connection-error-label"]')).not.toBeInTheDocument();
     });
 
     it('shows error label when connection is selected and invalid', () => {

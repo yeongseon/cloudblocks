@@ -268,6 +268,101 @@ describe('validateConnection', () => {
     });
   });
 
+  it('returns error when endpoint belongs to missing node/actor', () => {
+    const blocks = [makeBlock({ id: 'compute-1', category: 'compute' })];
+    const orphanEndpoint: Endpoint = {
+      id: endpointId('ghost-node', 'input', 'data'),
+      nodeId: 'ghost-node',
+      direction: 'input',
+      semantic: 'data',
+    };
+    const endpoints = [...makeEndpoints(blocks), orphanEndpoint];
+    const connection = makeConnection({
+      id: 'conn-orphan-endpoint',
+      from: endpointId('compute-1', 'output', 'data'),
+      to: orphanEndpoint.id,
+    });
+
+    expect(validateConnection(connection, endpoints, blocks, [])).toMatchObject({
+      ruleId: 'rule-conn-invalid',
+      message: 'Connection endpoints must belong to existing nodes',
+      targetId: 'conn-orphan-endpoint',
+    });
+  });
+
+  it('rejects source endpoint with input direction', () => {
+    const blocks = [
+      makeBlock({ id: 'edge-1', category: 'edge' }),
+      makeBlock({ id: 'compute-1', category: 'compute' }),
+    ];
+    const connection = makeConnection({
+      id: 'conn-source-input',
+      from: endpointId('edge-1', 'input', 'data'),
+      to: endpointId('compute-1', 'input', 'data'),
+    });
+
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toMatchObject({
+      ruleId: 'rule-conn-invalid',
+      message: 'Source endpoint must have output direction',
+      targetId: 'conn-source-input',
+    });
+  });
+
+  it('rejects target endpoint with output direction', () => {
+    const blocks = [
+      makeBlock({ id: 'edge-1', category: 'edge' }),
+      makeBlock({ id: 'compute-1', category: 'compute' }),
+    ];
+    const connection = makeConnection({
+      id: 'conn-target-output',
+      from: endpointId('edge-1', 'output', 'data'),
+      to: endpointId('compute-1', 'output', 'data'),
+    });
+
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toMatchObject({
+      ruleId: 'rule-conn-invalid',
+      message: 'Target endpoint must have input direction',
+      targetId: 'conn-target-output',
+    });
+  });
+
+  it('rejects connection when endpoint semantics do not match', () => {
+    const blocks = [
+      makeBlock({ id: 'edge-1', category: 'edge' }),
+      makeBlock({ id: 'compute-1', category: 'compute' }),
+    ];
+    const connection = makeConnection({
+      id: 'conn-semantic-mismatch',
+      from: endpointId('edge-1', 'output', 'http'),
+      to: endpointId('compute-1', 'input', 'data'),
+    });
+
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toMatchObject({
+      ruleId: 'rule-conn-invalid',
+      message: 'Source and target endpoints must have matching semantics',
+      targetId: 'conn-semantic-mismatch',
+    });
+  });
+
+  it('rejects invalid semantic for an allowed category pair', () => {
+    const blocks = [
+      makeBlock({ id: 'compute-1', category: 'compute' }),
+      makeBlock({ id: 'data-1', category: 'data' }),
+    ];
+    const connection = makeConnection({
+      id: 'conn-invalid-semantic',
+      from: endpointId('compute-1', 'output', 'event'),
+      to: endpointId('data-1', 'input', 'event'),
+    });
+
+    expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toMatchObject({
+      ruleId: 'rule-conn-invalid',
+      message: 'Invalid semantic for compute → data: event',
+      suggestion: 'Use a valid semantic for compute → data',
+      targetId: 'conn-invalid-semantic',
+    });
+  });
+
   it('accepts valid gateway -> function connection', () => {
     const connection = makeConnection({ from: endpointId('gateway-1', 'output', 'data'), to: endpointId('func-1', 'input', 'data')});
     const blocks = [
@@ -445,6 +540,29 @@ describe('validateStubIndices', () => {
 
     expect(validateStubIndices(connection, blocks)).toBeNull();
   });
+
+  it('returns null when endpoint ids cannot be parsed', () => {
+    const connection = makeConnection({
+      from: 'raw-source-id',
+      to: endpointId('compute-1', 'input', 'data'),
+    });
+    const blocks = [makeBlock({ id: 'compute-1', category: 'compute' })];
+
+    expect(validateStubIndices(connection, blocks)).toBeNull();
+  });
+
+  it('ignores semantic values outside semantic order', () => {
+    const connection = makeConnection({
+      from: endpointId('edge-1', 'output', 'http'),
+      to: endpointId('compute-1', 'input', 'http'),
+    });
+    const blocks = [
+      makeBlock({ id: 'edge-1', category: 'edge' }),
+      makeBlock({ id: 'compute-1', category: 'compute' }),
+    ];
+
+    expect(validateStubIndices(connection, blocks)).toBeNull();
+  });
 });
 
 describe('canConnect', () => {
@@ -479,6 +597,162 @@ describe('canConnect', () => {
     expect(canConnect('operations', 'compute')).toBe(false);
     expect(canConnect('security', 'compute')).toBe(false);
     expect(canConnect('operations', 'compute')).toBe(false);
+  });
+
+  it('returns false when target is internet in category mode', () => {
+    expect(canConnect('edge', 'internet')).toBe(false);
+  });
+
+  it('returns false when called with mixed category and endpoint args', () => {
+    const endpoint: Endpoint = {
+      id: endpointId('compute-1', 'output', 'data'),
+      nodeId: 'compute-1',
+      direction: 'output',
+      semantic: 'data',
+    };
+
+    const canConnectWithUnknownArgs = canConnect as (
+      source: unknown,
+      target: unknown,
+    ) => boolean;
+
+    expect(canConnectWithUnknownArgs('compute', endpoint)).toBe(false);
+  });
+
+  it('returns invalid reason when node references are missing in endpoint mode', () => {
+    const fromEndpoint: Endpoint = {
+      id: endpointId('edge-1', 'output', 'data'),
+      nodeId: 'edge-1',
+      direction: 'output',
+      semantic: 'data',
+    };
+    const toEndpoint: Endpoint = {
+      id: endpointId('compute-1', 'input', 'data'),
+      nodeId: 'compute-1',
+      direction: 'input',
+      semantic: 'data',
+    };
+
+    expect(canConnect(fromEndpoint, toEndpoint, undefined, undefined)).toEqual({
+      valid: false,
+      reason: 'Connection endpoints must belong to existing nodes',
+    });
+  });
+
+  it('returns invalid reason for direction and semantic checks in endpoint mode', () => {
+    const edge = makeBlock({ id: 'edge-1', category: 'edge' });
+    const compute = makeBlock({ id: 'compute-1', category: 'compute' });
+
+    const sourceInput: Endpoint = {
+      id: endpointId('edge-1', 'input', 'data'),
+      nodeId: 'edge-1',
+      direction: 'input',
+      semantic: 'data',
+    };
+    const targetOutput: Endpoint = {
+      id: endpointId('compute-1', 'output', 'data'),
+      nodeId: 'compute-1',
+      direction: 'output',
+      semantic: 'data',
+    };
+    const semanticMismatchTarget: Endpoint = {
+      id: endpointId('compute-1', 'input', 'http'),
+      nodeId: 'compute-1',
+      direction: 'input',
+      semantic: 'http',
+    };
+
+    expect(canConnect(sourceInput, semanticMismatchTarget, edge, compute)).toEqual({
+      valid: false,
+      reason: 'Source endpoint must have output direction',
+    });
+    expect(canConnect(
+      {
+        id: endpointId('edge-1', 'output', 'data'),
+        nodeId: 'edge-1',
+        direction: 'output',
+        semantic: 'data',
+      },
+      targetOutput,
+      edge,
+      compute,
+    )).toEqual({
+      valid: false,
+      reason: 'Target endpoint must have input direction',
+    });
+    expect(canConnect(
+      {
+        id: endpointId('edge-1', 'output', 'data'),
+        nodeId: 'edge-1',
+        direction: 'output',
+        semantic: 'data',
+      },
+      semanticMismatchTarget,
+      edge,
+      compute,
+    )).toEqual({
+      valid: false,
+      reason: 'Source and target endpoints must have matching semantics',
+    });
+  });
+
+  it('returns invalid reason for disallowed pair and semantic in endpoint mode', () => {
+    const sourceEndpoint: Endpoint = {
+      id: endpointId('compute-1', 'output', 'event'),
+      nodeId: 'compute-1',
+      direction: 'output',
+      semantic: 'event',
+    };
+    const targetEndpoint: Endpoint = {
+      id: endpointId('edge-1', 'input', 'event'),
+      nodeId: 'edge-1',
+      direction: 'input',
+      semantic: 'event',
+    };
+    const sourceNode = makeBlock({ id: 'compute-1', category: 'compute' });
+    const targetNode = makeBlock({ id: 'edge-1', category: 'edge' });
+
+    expect(canConnect(sourceEndpoint, targetEndpoint, sourceNode, targetNode)).toEqual({
+      valid: false,
+      reason: 'Invalid connection: compute → edge',
+    });
+
+    expect(canConnect(
+      sourceEndpoint,
+      {
+        id: endpointId('data-1', 'input', 'event'),
+        nodeId: 'data-1',
+        direction: 'input',
+        semantic: 'event',
+      },
+      sourceNode,
+      makeBlock({ id: 'data-1', category: 'data' }),
+    )).toEqual({
+      valid: false,
+      reason: 'Invalid semantic for compute → data: event',
+    });
+  });
+
+  it('returns valid true for allowed endpoint-mode connection', () => {
+    const fromEndpoint: Endpoint = {
+      id: endpointId('edge-1', 'output', 'data'),
+      nodeId: 'edge-1',
+      direction: 'output',
+      semantic: 'data',
+    };
+    const toEndpoint: Endpoint = {
+      id: endpointId('compute-1', 'input', 'data'),
+      nodeId: 'compute-1',
+      direction: 'input',
+      semantic: 'data',
+    };
+
+    expect(canConnect(
+      fromEndpoint,
+      toEndpoint,
+      makeBlock({ id: 'edge-1', category: 'edge' }),
+      makeBlock({ id: 'compute-1', category: 'compute' }),
+    )).toEqual({ valid: true });
   });
 });
 
