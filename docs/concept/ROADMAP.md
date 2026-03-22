@@ -1048,7 +1048,7 @@ Key Objectives:
 Scope:
 
 - 8 Epics: Panel Redesign (#1112), Multi-Persona (#1076), Launch UX Polish (#456), Deployment Pipeline (#457), Runtime Configuration (#458), Observability (#459), Performance & Stability Gate (#460), Release Ops (#461)
-- 58 issues total (including 2 new cross-cutting issues: #1131, #1132)
+- 77 issues total across 9 phases (0–8), including Demo Hardening, Content Modernization, Test Coverage, and Network Resource Gaps
 
 ### Execution Phases
 
@@ -1110,6 +1110,47 @@ Fix all GitHub integration bugs. Subgroups can run in parallel but maintain orde
 
 **Note**: These epics were originally scoped for M19 launch. Titles have been updated to be version-agnostic. Acceptance criteria should be reviewed against current v0.19.2 state — some may be partially satisfied.
 
+#### Phase 5 — Demo Hardening (4 issues)
+
+| # | Title | Size |
+|---|-------|------|
+| #1137 | Consolidate block selection controls into unified property panel | M |
+| #1138 | AI features: graceful fallback when backend unavailable | S |
+| #1139 | Ops features: disable or stub when backend unavailable | S |
+| #411 | Fix remaining demo blockers (if any) | S |
+
+#### Phase 6 — Content Modernization (5 issues)
+
+| # | Title | Size |
+|---|-------|------|
+| #1140 | Migrate templates to canonical 7-category vocabulary | M |
+| #1141 | Migrate learning scenarios to canonical vocabulary | M |
+| #1142 | Remove LEGACY_CATEGORY_MAP runtime conversion | S |
+| #1143 | Codegen: honest Azure-only output | M |
+| #1144 | Update example architectures to canonical model | S |
+
+**Sequencing**: #1140 and #1141 before #1142 (legacy map removal depends on migration). #1143 and #1144 can run in parallel.
+
+#### Phase 7 — Validation & Test Coverage (7 issues)
+
+| # | Title | Size |
+|---|-------|------|
+| #1145 | Fix placement multi-parent bug (allowedParents[0] only) | M |
+| #1146 | Add domainSlice.ts unit tests | L |
+| #1147 | Add workspaceSlice.ts unit tests | M |
+| #1148 | Add provider adapter tests (Azure/AWS/GCP) | M |
+| #1149 | Add AI API client tests | M |
+| #1150 | Review vitest coverage exclusions post-M19 | S |
+| #1151 | Audit eslint-disable comments | S |
+
+#### Phase 8 — Network Resource Gaps (3 issues)
+
+| # | Title | Size |
+|---|-------|------|
+| #1152 | Separate NSG from Firewall in RESOURCE_RULES | M |
+| #1153 | Wire NAT Gateway UI to existing outbound_access entry | M |
+| #1154 | Implicit PIP/NIC generation in codegen | M |
+
 ### Exit Criteria
 - [ ] CodePreview render-time state update fix verified (#886)
 - [ ] Panel roles redesigned — Resource Guide (read-only), Command Panel (action + properties) (#1112)
@@ -1118,15 +1159,22 @@ Fix all GitHub integration bugs. Subgroups can run in parallel but maintain orde
 - [ ] GitHub panel integration tests passing (#1131)
 - [ ] Multi-persona UX functional with beginner/standard/advanced levels (#1076)
 - [ ] Panel role and visibility rules documented (#1132)
+- [ ] Block selection UI consolidated into unified property panel (#1137)
 - [ ] First-run onboarding overlay functional (#462)
 - [ ] Deployment pipeline hardened with preview/production separation (#457)
 - [ ] Runtime configuration standardized with .env.example (#458)
 - [ ] Frontend error tracking integrated (#470)
 - [ ] Bundle-size budget gate in CI (#472)
 - [ ] Release runbook and changelog template standardized (#461)
+- [ ] AI/Ops features gracefully degraded without backend (#1138, #1139)
+- [ ] Templates and scenarios migrated to canonical 7-category vocabulary (#1140, #1141)
+- [ ] LEGACY_CATEGORY_MAP removed (#1142)
+- [ ] Codegen outputs honest Azure-only code (#1143)
+- [ ] Placement multi-parent bug fixed (#1145)
+- [ ] domainSlice.ts and workspaceSlice.ts tests added (#1146, #1147)
+- [ ] NSG separated from Firewall, NAT Gateway wired (#1152, #1153)
 - [ ] `v0.20.0` release published with demo verification gate
 - [ ] All tests passing, ≥ 90% branch coverage
-
 ### Dependencies
 - Milestone 19 complete
 
@@ -1229,14 +1277,15 @@ Milestone 14 (Complete)
 - Architecture suggestions and cost estimation
 - BYOK API key management with Fernet encryption
 
-Milestone 17+ (Planned)
-- UX polish with panel redesign and multi-persona support
+Milestone 20 (Planned)
+- UX polish with block selection UI consolidation and multi-persona support
 - GitHub integration hardening (17 bug fixes)
 - Launch infrastructure: deployment pipeline, observability, performance gates
-- Internationalization support
-- Community contributors > 10
-- GitHub stars growth trajectory
-
+- Demo hardening with graceful AI/Ops fallback
+- Content modernization: canonical 7-category vocabulary across templates, scenarios, examples
+- Test coverage expansion: domainSlice, workspaceSlice, provider adapters
+- Network resource gaps: NSG/Firewall split, NAT Gateway, implicit PIP/NIC codegen
+- Community-ready launch with demo verification gate
 Milestone 17 (Complete)
 - Modular monorepo structure with extracted packages
 - SVG-only rendering model confirmed (ADR-0010)
