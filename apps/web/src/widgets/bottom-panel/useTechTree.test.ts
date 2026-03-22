@@ -216,7 +216,7 @@ describe('useTechTree constants', () => {
         shortLabel: 'NSG',
         icon: '🔒',
         category: 'vnet-required',
-        blockCategory: 'edge',
+        blockCategory: 'security',
       },
       bastion: {
         id: 'bastion',

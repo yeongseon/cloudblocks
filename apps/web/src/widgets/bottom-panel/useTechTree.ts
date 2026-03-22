@@ -206,7 +206,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'NSG',
     icon: '🔒',
     category: 'vnet-required',
-    blockCategory: 'edge',
+    blockCategory: 'security',
     disabledReason: 'Create a Network first. NSGs filter traffic at the network level.',
   },
   bastion: {

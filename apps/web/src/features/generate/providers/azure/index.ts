@@ -21,6 +21,7 @@ const azureSubtypeBlockMappings: SubtypeResourceMap = {
   },
   security: {
     'managed-identity': { resourceType: 'azurerm_user_assigned_identity', namePrefix: 'identity' },
+    nsg: { resourceType: 'azurerm_network_security_group', namePrefix: 'nsg' },
   },
   operations: {
     'log-analytics': { resourceType: 'azurerm_log_analytics_workspace', namePrefix: 'analytics' },

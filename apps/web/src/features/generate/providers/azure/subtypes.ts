@@ -63,6 +63,10 @@ export const azureSubtypeRegistry: SubtypeRegistry = {
       displayName: 'Managed Identity',
       description: 'Managed service identity for authentication',
     },
+    nsg: {
+      displayName: 'Network Security Group',
+      description: 'Subnet-level L4 network traffic filtering',
+    },
   },
   operations: {
     'log-analytics': {

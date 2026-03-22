@@ -63,6 +63,10 @@ export const awsSubtypeRegistry: SubtypeRegistry = {
       displayName: 'IAM Role',
       description: 'Identity and access management role',
     },
+    nsg: {
+      displayName: 'Security Group',
+      description: 'Virtual firewall for EC2 instances and subnets',
+    },
   },
   operations: {
     cloudwatch: {
