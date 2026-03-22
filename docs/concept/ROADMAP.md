@@ -1029,6 +1029,155 @@ Key Objectives:
 
 ---
 
+## Milestone 20 — UX Polish & GitHub Hardening
+
+Goal:
+Redesign panel roles, fix all GitHub integration bugs, introduce multi-persona UX, and build launch infrastructure. Deliver a polished, hardened product ready for community launch.
+
+> **Scope note**: Deferred items from M19 (panel redesign, multi-persona, GitHub bugs, infrastructure epics) are consolidated here with corrected dependencies and phase ordering.
+
+Key Objectives:
+
+- Fix CodePreview render-time state update root cause (#886) as prerequisite for GitHub hardening
+- Redesign panel roles: Inspector → Resource Guide (read-only encyclopedia), Command Panel → unified property editor
+- Fix 17 GitHub integration bugs across GitHubLogin, GitHubRepos, GitHubPR, GitHubSync, and CodePreview
+- Introduce multi-persona UX with complexity levels (beginner/standard/advanced)
+- Build deployment pipeline, runtime configuration, observability, performance gates, and release ops
+- Add integration test coverage for GitHub panel flows and document panel role rules
+
+Scope:
+
+- 8 Epics: Panel Redesign (#1112), Multi-Persona (#1076), Launch UX Polish (#456), Deployment Pipeline (#457), Runtime Configuration (#458), Observability (#459), Performance & Stability Gate (#460), Release Ops (#461)
+- 77 issues total across 9 phases (0–8), including Demo Hardening, Content Modernization, Test Coverage, and Network Resource Gaps
+
+### Execution Phases
+
+#### Phase 0 — Prerequisite (1 issue)
+
+| # | Title | Size | Rationale |
+|---|-------|------|-----------|
+| #886 | Move CodePreview provider-change resets out of render-time state updates | M | Root cause for #872, #873, #876 — must fix before GitHub hardening |
+
+#### Phase 1 — Panel Redesign (Epic #1112, 7 issues)
+
+Redefine panel responsibilities: Resource Guide = "what IS this?", Command Panel = "what can I DO with this?"
+
+| Step | Issues (parallel within step) | Dependencies |
+|------|-------------------------------|--------------|
+| 1a | #1118 (Command Panel: read-only properties), #1115 (Command Panel: connection editing), #1113 (Resource Guide: workspace dashboard) | None — parallel |
+| 1b | #1114 (Resource Guide: enriched view), #1117 (Rename Inspector → Resource Guide) | #1118 must complete first |
+| 1c | #1116 (Onboarding tour update) | All Phase 1 issues complete |
+
+#### Phase 2 — GitHub Hardening (17 issues + 1 test issue)
+
+Fix all GitHub integration bugs. Subgroups can run in parallel but maintain order within each group.
+
+| Subgroup | Issues | Focus |
+|----------|--------|-------|
+| Auth | #836 (M), #838 (S), #867 (M) | OAuth redirect, sign-out, auth failure routing |
+| Repos | #840 (S), #841 (M), #883 (S) | Create/link flow, default visibility |
+| PR | #842 (S), #843 (M), #857 (S), #876 (M) | Submission guards, branch collision, unsaved edits, body prefill |
+| Sync | #854 (M), #858 (M), #864 (M) | Dirty indicator, safe panel closure, post-pull diff |
+| Compare | #846 (M), #847 (M), #872 (M), #873 (M) | Read-only mode, lifecycle warnings, region/compare preservation |
+| Test | #1131 (M) | Integration test coverage — after all bug fixes |
+
+**Note**: #843 has a `backend` label but should be implemented as frontend-only preflight via GitHub API. Self-hosted backend support (if needed) is a separate follow-up.
+
+**Compare subgroup ordering**: #886 (Phase 0) → #872/#873 (state preservation) → #846/#847 (mode isolation) → #876 (PR prefill from compare).
+
+#### Phase 3 — Multi-Persona (Epic #1076, 9 issues + 1 doc issue)
+
+| Step | Issues | Dependencies |
+|------|--------|--------------|
+| 3a — IaC Abstraction | #1077, #1078, #1079, #1080 | Can start parallel with Phase 2 |
+| 3b — Persona System | #1082 (onboarding), #1083 (complexity levels), #1084 (panel visibility), #1085 (student entry) | #1112 complete (Phase 1) — persona visibility depends on new panel roles |
+| 3c — Documentation | #1132 (panel role doc) | #1083 and #1084 complete |
+
+**Cross-phase dependency**: #1083 and #1084 must wait for Phase 1 (#1112) to complete because persona-based panel visibility depends on the redesigned panel structure.
+
+**Onboarding ownership**: #1082 (persona selection in first-run) owns the combined onboarding flow. #1116 (Phase 1c) updates tour copy only — no flow logic changes.
+
+#### Phase 4 — Infrastructure & Launch Prep (6 Epics, 22 issues)
+
+| Epic | Issues | Focus |
+|------|--------|-------|
+| #456 Launch UX Polish | #462 (onboarding overlay), #463 (demo loader), #464 (landing copy) | First-time UX |
+| #457 Deployment Pipeline | #465 (preview deploy), #466 (tag-gated prod deploy), #467 (rollback runbook) | CI/CD hardening |
+| #458 Runtime Configuration | #468 (.env schema), #469 (OAuth callback validation) | Environment consistency |
+| #459 Observability | #470 (error tracking), #471 (launch metrics) | Production visibility |
+| #460 Performance Gate | #472 (bundle-size budget), #473 (Lighthouse/Web Vitals), #474 (browser compat) | Quality gates |
+| #461 Release Ops | #475 (changelog template), #476 (release runbook), #477 (launch assets) | Release process |
+
+**Note**: These epics were originally scoped for M19 launch. Titles have been updated to be version-agnostic. Acceptance criteria should be reviewed against current v0.19.2 state — some may be partially satisfied.
+
+#### Phase 5 — Demo Hardening (4 issues)
+
+| # | Title | Size |
+|---|-------|------|
+| #1137 | Consolidate block selection controls into unified property panel | M |
+| #1138 | AI features: graceful fallback when backend unavailable | S |
+| #1139 | Ops features: disable or stub when backend unavailable | S |
+| #411 | Fix remaining demo blockers (if any) | S |
+
+#### Phase 6 — Content Modernization (5 issues)
+
+| # | Title | Size |
+|---|-------|------|
+| #1140 | Migrate templates to canonical 7-category vocabulary | M |
+| #1141 | Migrate learning scenarios to canonical vocabulary | M |
+| #1142 | Remove LEGACY_CATEGORY_MAP runtime conversion | S |
+| #1143 | Codegen: honest Azure-only output | M |
+| #1144 | Update example architectures to canonical model | S |
+
+**Sequencing**: #1140 and #1141 before #1142 (legacy map removal depends on migration). #1143 and #1144 can run in parallel.
+
+#### Phase 7 — Validation & Test Coverage (7 issues)
+
+| # | Title | Size |
+|---|-------|------|
+| #1145 | Fix placement multi-parent bug (allowedParents[0] only) | M |
+| #1146 | Add domainSlice.ts unit tests | L |
+| #1147 | Add workspaceSlice.ts unit tests | M |
+| #1148 | Add provider adapter tests (Azure/AWS/GCP) | M |
+| #1149 | Add AI API client tests | M |
+| #1150 | Review vitest coverage exclusions post-M19 | S |
+| #1151 | Audit eslint-disable comments | S |
+
+#### Phase 8 — Network Resource Gaps (3 issues)
+
+| # | Title | Size |
+|---|-------|------|
+| #1152 | Separate NSG from Firewall in RESOURCE_RULES | M |
+| #1153 | Wire NAT Gateway UI to existing outbound_access entry | M |
+| #1154 | Implicit PIP/NIC generation in codegen | M |
+
+### Exit Criteria
+- [ ] CodePreview render-time state update fix verified (#886)
+- [ ] Panel roles redesigned — Resource Guide (read-only), Command Panel (action + properties) (#1112)
+- [ ] Inspector renamed to Resource Guide across all UI, code, and tests (#1117)
+- [ ] All 17 GitHub integration bugs fixed and verified (#836–#883)
+- [ ] GitHub panel integration tests passing (#1131)
+- [ ] Multi-persona UX functional with beginner/standard/advanced levels (#1076)
+- [ ] Panel role and visibility rules documented (#1132)
+- [ ] Block selection UI consolidated into unified property panel (#1137)
+- [ ] First-run onboarding overlay functional (#462)
+- [ ] Deployment pipeline hardened with preview/production separation (#457)
+- [ ] Runtime configuration standardized with .env.example (#458)
+- [ ] Frontend error tracking integrated (#470)
+- [ ] Bundle-size budget gate in CI (#472)
+- [ ] Release runbook and changelog template standardized (#461)
+- [ ] AI/Ops features gracefully degraded without backend (#1138, #1139)
+- [ ] Templates and scenarios migrated to canonical 7-category vocabulary (#1140, #1141)
+- [ ] LEGACY_CATEGORY_MAP removed (#1142)
+- [ ] Codegen outputs honest Azure-only code (#1143)
+- [ ] Placement multi-parent bug fixed (#1145)
+- [ ] domainSlice.ts and workspaceSlice.ts tests added (#1146, #1147)
+- [ ] NSG separated from Firewall, NAT Gateway wired (#1152, #1153)
+- [ ] `v0.20.0` release published with demo verification gate
+- [ ] All tests passing, ≥ 90% branch coverage
+### Dependencies
+- Milestone 19 complete
+
 ## i18n — Internationalization
 
 Goal:
@@ -1128,13 +1277,15 @@ Milestone 14 (Complete)
 - Architecture suggestions and cost estimation
 - BYOK API key management with Fernet encryption
 
-Milestone 17+ (Planned)
-- DevOps operational control center
-- MVP polish and launch operations with deployment hardening
-- Internationalization support
-- Community contributors > 10
-- GitHub stars growth trajectory
-
+Milestone 20 (Planned)
+- UX polish with block selection UI consolidation and multi-persona support
+- GitHub integration hardening (17 bug fixes)
+- Launch infrastructure: deployment pipeline, observability, performance gates
+- Demo hardening with graceful AI/Ops fallback
+- Content modernization: canonical 7-category vocabulary across templates, scenarios, examples
+- Test coverage expansion: domainSlice, workspaceSlice, provider adapters
+- Network resource gaps: NSG/Firewall split, NAT Gateway, implicit PIP/NIC codegen
+- Community-ready launch with demo verification gate
 Milestone 17 (Complete)
 - Modular monorepo structure with extracted packages
 - SVG-only rendering model confirmed (ADR-0010)
@@ -1154,7 +1305,8 @@ Milestone 19 (Complete)
 - Minifigure worker system fully removed
 - Demo resilience mode for backend-unavailable state
 - CI secret scanning in all deployment pipelines
-- 28 issues closed, 1811 tests passing, 90.27% branch coverage
+- v0.19.2 hotfix: React #185 app load crash fix in ExternalActorSprite
+- 30 issues closed, 1814 tests passing, 90%+ branch coverage
 ---
 
 ## Summary
@@ -1197,6 +1349,8 @@ The roadmap evolves CloudBlocks from:
 
 → MVP Polish & Launch (Milestone 19) ✅
 
+→ UX Polish & GitHub Hardening (Milestone 20)
+
 → Internationalization (i18n)
 
 ### Dependency Graph
@@ -1212,6 +1366,7 @@ Milestone 8 (Complete) ✅
     │                                       └── Milestone 17 (Product Structure) ✅
     │                                               └── Milestone 18 (DevOps UX) ✅
     │                                                       └── Milestone 19 (MVP Polish & Launch) ✅
+    │                                                               └── Milestone 20 (UX Polish & GitHub Hardening)
     │               └── Milestone 14 (AI Roadmap) ✅ ←── also benefits from Milestone 13
     └── Milestone 11 (Brick Design) ✅ ──── parallel with Milestone 9
 

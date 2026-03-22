@@ -117,14 +117,8 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 | v0.17.0 | Product Structure | ✅ |
 | v0.18.0 | DevOps UX | ✅ |
 | v0.19.0 | Resource Category Realignment + Cleanup | ✅ |
-| v0.20.0 | Resource Category UI + Pipeline Migration | |
-| v0.21.0 | Azure v1 Resource Catalog | |
-| v0.22.0 | Generator UX Abstraction | |
-| v0.23.0 | Onboarding + Demo Flow ← **Community Launch** | |
-| v0.24.0 | Runtime Configuration + GitHub Hardening | |
-| v0.25.0 | Observability Baseline | |
-| v0.26.0 | Release Gates | |
-| v0.27.0 | i18n Scaffolding | |
+| v0.20.0 | UX Polish & GitHub Hardening | |
+| — | i18n Scaffolding | |
 
 See [CHANGELOG.md](CHANGELOG.md) for release details and [full roadmap](docs/concept/ROADMAP.md) for milestone breakdown.
 
