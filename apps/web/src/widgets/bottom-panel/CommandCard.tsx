@@ -582,7 +582,7 @@ function BlockActionMode() {
   const selectedId = useUIStore((s) => s.selectedId);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const setToolMode = useUIStore((s) => s.setToolMode);
-  const toggleProperties = useUIStore((s) => s.toggleProperties);
+  const toggleResourceGuide = useUIStore((s) => s.toggleResourceGuide);
   const duplicateBlock = useArchitectureStore((s) => s.duplicateBlock);
   const renameBlock = useArchitectureStore((s) => s.renameBlock);
   const removeBlock = useArchitectureStore((s) => s.removeBlock);
@@ -602,8 +602,8 @@ function BlockActionMode() {
         break;
 
       case 'edit':
-        if (!useUIStore.getState().showProperties) {
-          toggleProperties();
+        if (!useUIStore.getState().showResourceGuide) {
+          toggleResourceGuide();
         }
         break;
 
@@ -640,7 +640,7 @@ function BlockActionMode() {
       default:
         break;
     }
-  }, [selectedId, setSelectedId, setToolMode, toggleProperties, duplicateBlock, renameBlock, removeBlock, removePlate, playSound, blocks, plates]);
+  }, [selectedId, setSelectedId, setToolMode, toggleResourceGuide, duplicateBlock, renameBlock, removeBlock, removePlate, playSound, blocks, plates]);
 
   return (
     <>

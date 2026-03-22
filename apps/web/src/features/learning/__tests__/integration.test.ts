@@ -75,7 +75,7 @@ function resetUIStore(): void {
     draggedBlockCategory: null,
     draggedResourceName: null,
     showBlockPalette: true,
-    showProperties: true,
+    showResourceGuide: true,
     showValidation: false,
     showCodePreview: false,
     showWorkspaceManager: false,

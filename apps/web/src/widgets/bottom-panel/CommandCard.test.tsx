@@ -105,7 +105,7 @@ describe('CommandCard', () => {
   const renamePlateMock = vi.fn();
   const removeBlockMock = vi.fn();
   const removePlateMock = vi.fn();
-  const togglePropertiesMock = vi.fn();
+  const toggleResourceGuideMock = vi.fn();
   const setSelectedIdMock = vi.fn<(id: string | null) => void>();
   const setToolModeMock = vi.fn<(mode: ToolMode) => void>();
 
@@ -116,8 +116,8 @@ describe('CommandCard', () => {
       selectedId: null,
       setSelectedId: setSelectedIdMock,
       setToolMode: setToolModeMock,
-      toggleProperties: togglePropertiesMock,
-      showProperties: true,
+      toggleResourceGuide: toggleResourceGuideMock,
+      showResourceGuide: true,
       toolMode: 'select',
       activeProvider: 'azure',
     });
@@ -415,7 +415,7 @@ describe('CommandCard', () => {
     const user = userEvent.setup();
 
     useUIStore.setState({ selectedId: 'block-1' });
-    useUIStore.setState({ showProperties: false });
+    useUIStore.setState({ showResourceGuide: false });
     useArchitectureStore.setState({
       workspace: {
         id: 'ws-1',
@@ -433,7 +433,7 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByRole('button', { name: /Edit/ }));
 
-    expect(togglePropertiesMock).toHaveBeenCalledTimes(1);
+    expect(toggleResourceGuideMock).toHaveBeenCalledTimes(1);
   });
 
   it('duplicates selected block when copy is clicked', async () => {
@@ -544,10 +544,10 @@ describe('CommandCard', () => {
     promptMock.mockRestore();
   });
 
-  it('does not call toggleProperties when edit is clicked and properties are already shown', async () => {
+  it('does not call toggleResourceGuide when edit is clicked and properties are already shown', async () => {
     const user = userEvent.setup();
 
-    useUIStore.setState({ selectedId: 'block-1', showProperties: true });
+    useUIStore.setState({ selectedId: 'block-1', showResourceGuide: true });
     useArchitectureStore.setState({
       workspace: {
         id: 'ws-1',
@@ -565,7 +565,7 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByRole('button', { name: /Edit/ }));
 
-    expect(togglePropertiesMock).not.toHaveBeenCalled();
+    expect(toggleResourceGuideMock).not.toHaveBeenCalled();
   });
 
   // ─── PlateActionMode Tests ──────────────────────────────

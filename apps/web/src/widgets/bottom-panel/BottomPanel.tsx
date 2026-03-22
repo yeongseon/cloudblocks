@@ -9,12 +9,12 @@ interface BottomPanelProps {
 }
 
 export function BottomPanel({ className = '' }: BottomPanelProps) {
-  const showProperties = useUIStore((s) => s.showProperties);
+  const showResourceGuide = useUIStore((s) => s.showResourceGuide);
 
   return (
     <div className={`bottom-panel bottom-panel--command-open ${className}`}>
       <Minimap className="bottom-panel-minimap" />
-      {showProperties && <DetailPanel className="bottom-panel-detail" />}
+      {showResourceGuide && <DetailPanel className="bottom-panel-detail" />}
       <CommandCard className="bottom-panel-command" />
     </div>
   );

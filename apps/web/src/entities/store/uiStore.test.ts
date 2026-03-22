@@ -12,7 +12,7 @@ describe('useUIStore', () => {
       draggedBlockCategory: null,
       draggedResourceName: null,
       showBlockPalette: true,
-      showProperties: true,
+      showResourceGuide: true,
       showValidation: false,
       showCodePreview: false,
       showWorkspaceManager: false,
@@ -41,7 +41,7 @@ describe('useUIStore', () => {
       expect(state.connectionSource).toBe(null);
       expect(state.draggedBlockCategory).toBe(null);
       expect(state.showBlockPalette).toBe(true);
-      expect(state.showProperties).toBe(true);
+      expect(state.showResourceGuide).toBe(true);
       expect(state.showValidation).toBe(false);
       expect(state.showCodePreview).toBe(false);
       expect(state.showWorkspaceManager).toBe(false);
@@ -480,25 +480,25 @@ describe('useUIStore', () => {
     });
   });
 
-  describe('toggleProperties', () => {
-    it('should toggle showProperties from true to false', () => {
-      expect(useUIStore.getState().showProperties).toBe(true);
-      useUIStore.getState().toggleProperties();
-      expect(useUIStore.getState().showProperties).toBe(false);
+  describe('toggleResourceGuide', () => {
+    it('should toggle showResourceGuide from true to false', () => {
+      expect(useUIStore.getState().showResourceGuide).toBe(true);
+      useUIStore.getState().toggleResourceGuide();
+      expect(useUIStore.getState().showResourceGuide).toBe(false);
     });
 
-    it('should toggle showProperties back from false to true', () => {
-      useUIStore.getState().toggleProperties();
-      useUIStore.getState().toggleProperties();
-      expect(useUIStore.getState().showProperties).toBe(true);
+    it('should toggle showResourceGuide back from false to true', () => {
+      useUIStore.getState().toggleResourceGuide();
+      useUIStore.getState().toggleResourceGuide();
+      expect(useUIStore.getState().showResourceGuide).toBe(true);
     });
 
     it('should toggle multiple times correctly', () => {
-      expect(useUIStore.getState().showProperties).toBe(true);
-      useUIStore.getState().toggleProperties();
-      expect(useUIStore.getState().showProperties).toBe(false);
-      useUIStore.getState().toggleProperties();
-      expect(useUIStore.getState().showProperties).toBe(true);
+      expect(useUIStore.getState().showResourceGuide).toBe(true);
+      useUIStore.getState().toggleResourceGuide();
+      expect(useUIStore.getState().showResourceGuide).toBe(false);
+      useUIStore.getState().toggleResourceGuide();
+      expect(useUIStore.getState().showResourceGuide).toBe(true);
     });
   });
 
@@ -802,10 +802,10 @@ describe('useUIStore', () => {
     it('should allow independent manipulation of panel visibility', () => {
       useUIStore.getState().toggleBlockPalette();
       expect(useUIStore.getState().showBlockPalette).toBe(false);
-      expect(useUIStore.getState().showProperties).toBe(true);
-      useUIStore.getState().toggleProperties();
+      expect(useUIStore.getState().showResourceGuide).toBe(true);
+      useUIStore.getState().toggleResourceGuide();
       expect(useUIStore.getState().showBlockPalette).toBe(false);
-      expect(useUIStore.getState().showProperties).toBe(false);
+      expect(useUIStore.getState().showResourceGuide).toBe(false);
     });
   });
 

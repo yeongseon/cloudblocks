@@ -34,8 +34,8 @@ export function MenuBar() {
   const toggleValidation = useUIStore((s) => s.toggleValidation);
   const showBlockPalette = useUIStore((s) => s.showBlockPalette);
   const toggleBlockPalette = useUIStore((s) => s.toggleBlockPalette);
-  const showProperties = useUIStore((s) => s.showProperties);
-  const toggleProperties = useUIStore((s) => s.toggleProperties);
+  const showResourceGuide = useUIStore((s) => s.showResourceGuide);
+  const toggleResourceGuide = useUIStore((s) => s.toggleResourceGuide);
   const activeProvider = useUIStore((s) => s.activeProvider);
   const setActiveProvider = useUIStore((s) => s.setActiveProvider);
   const toggleCodePreview = useUIStore((s) => s.toggleCodePreview);
@@ -425,8 +425,8 @@ export function MenuBar() {
             <button type="button" className="menu-item" onClick={() => handleAction(toggleBlockPalette)}>
               <span className="menu-item-left">{showBlockPalette ? '✓ ' : '  '}🧰 Block Palette</span>
             </button>
-            <button type="button" className="menu-item" onClick={() => handleAction(toggleProperties)}>
-              <span className="menu-item-left">{showProperties ? '✓ ' : '  '}⚙️ Properties Panel</span>
+            <button type="button" className="menu-item" onClick={() => handleAction(toggleResourceGuide)}>
+              <span className="menu-item-left">{showResourceGuide ? '✓ ' : '  '}📖 Resource Guide</span>
             </button>
             <div className="menu-separator" />
             <button type="button" className="menu-item" onClick={() => handleAction(toggleValidation)}>
