@@ -59,6 +59,9 @@ vi.mock('../widgets/rollback-dialog/RollbackDialog', () => ({
 vi.mock('../widgets/promote-history/PromoteHistory', () => ({
   PromoteHistory: () => <div data-testid="promote-history" />,
 }));
+vi.mock('../widgets/onboarding-tour/OnboardingTour', () => ({
+  OnboardingTour: () => <div data-testid="onboarding-tour" />,
+}));
 vi.mock('../features/templates/builtin', () => ({
   registerBuiltinTemplates: vi.fn(),
 }));
@@ -142,6 +145,7 @@ describe('App', () => {
     expect(await screen.findByTestId('github-repos')).toBeInTheDocument();
     expect(await screen.findByTestId('github-sync')).toBeInTheDocument();
     expect(await screen.findByTestId('github-pr')).toBeInTheDocument();
+    expect(screen.getByTestId('onboarding-tour')).toBeInTheDocument();
     expect(screen.getByTestId('app-toaster')).toBeInTheDocument();
   });
 
