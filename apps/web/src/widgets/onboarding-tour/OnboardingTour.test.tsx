@@ -4,6 +4,7 @@ import { OnboardingTour } from './OnboardingTour';
 import { useUIStore } from '../../entities/store/uiStore';
 
 const STORAGE_KEY = 'cloudblocks:onboarding-completed';
+const PERSONA_STORAGE_KEY = 'cloudblocks:persona';
 
 let targetElements: HTMLElement[] = [];
 
@@ -60,7 +61,9 @@ describe('OnboardingTour', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
-    useUIStore.setState({ showOnboarding: false });
+    // Set persona so existing tour tests bypass PersonaSelection screen
+    localStorage.setItem(PERSONA_STORAGE_KEY, 'devops');
+    useUIStore.setState({ showOnboarding: false, persona: 'devops' as const, complexityLevel: 'advanced' as const });
     createTargetElements();
     restoreRect = mockGetBoundingClientRect();
   });
@@ -251,5 +254,47 @@ describe('OnboardingTour', () => {
     }
 
     expect(screen.getByText('Menu Bar')).toBeInTheDocument();
+  });
+
+  it('shows persona selection when no persona is saved', async () => {
+    localStorage.removeItem(PERSONA_STORAGE_KEY);
+    useUIStore.setState({ showOnboarding: true, persona: null });
+    render(<OnboardingTour />);
+
+    expect(screen.getByTestId('persona-selection')).toBeInTheDocument();
+    expect(screen.getByText('What best describes you?')).toBeInTheDocument();
+    expect(screen.getByTestId('persona-card-devops')).toBeInTheDocument();
+    expect(screen.getByTestId('persona-card-backend')).toBeInTheDocument();
+    expect(screen.getByTestId('persona-card-pm')).toBeInTheDocument();
+    expect(screen.getByTestId('persona-card-student')).toBeInTheDocument();
+  });
+
+  it('clicking persona card sets store and localStorage', async () => {
+    localStorage.removeItem(PERSONA_STORAGE_KEY);
+    useUIStore.setState({ showOnboarding: true, persona: null });
+    render(<OnboardingTour />);
+
+    fireEvent.click(screen.getByTestId('persona-card-backend'));
+
+    expect(localStorage.getItem(PERSONA_STORAGE_KEY)).toBe('backend');
+    expect(useUIStore.getState().persona).toBe('backend');
+  });
+
+  it('after persona selected, tour proceeds to step 1', async () => {
+    localStorage.removeItem(PERSONA_STORAGE_KEY);
+    useUIStore.setState({ showOnboarding: true, persona: null });
+    render(<OnboardingTour />);
+
+    expect(screen.getByTestId('persona-selection')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId('persona-card-devops'));
+
+    await act(async () => {
+      await new Promise((r) => requestAnimationFrame(r));
+    });
+
+    expect(screen.queryByTestId('persona-selection')).not.toBeInTheDocument();
+    expect(screen.getByTestId('onboarding-tour')).toBeInTheDocument();
+    expect(screen.getByText('Welcome to CloudBlocks!')).toBeInTheDocument();
   });
 });

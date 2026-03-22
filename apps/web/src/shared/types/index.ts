@@ -500,3 +500,66 @@ export const DEFAULT_PLATE_SIZE: Record<PlateType, Size> = {
 };
 
 export { type BlockVisualProfile, type BrickSurface, type BrickSilhouette, type BlockTier, type BlockDimensionsCU, BLOCK_VISUAL_PROFILES, TIER_DIMENSIONS, CATEGORY_TIER_MAP, SUBTYPE_SIZE_OVERRIDES, getBlockVisualProfile, getBlockDimensions } from './visualProfile';
+
+// ─── Persona System (M20 §3b) ─────────────────────────────
+
+export type Persona = 'devops' | 'backend' | 'pm' | 'student';
+export type ComplexityLevel = 'beginner' | 'standard' | 'advanced';
+
+export const PERSONA_LABELS: Record<Persona, { icon: string; title: string; description: string }> = {
+  devops:  { icon: '\u{1F6E0}\u{FE0F}', title: 'DevOps Engineer',     description: 'I deploy and manage infrastructure' },
+  backend: { icon: '\u{1F4BB}',          title: 'Backend Developer',   description: 'I design and build applications' },
+  pm:      { icon: '\u{1F4CA}',          title: 'Product Manager',     description: 'I review and communicate architecture' },
+  student: { icon: '\u{1F393}',          title: 'Student',             description: "I'm learning cloud architecture" },
+};
+
+export const PERSONA_COMPLEXITY_MAP: Record<Persona, ComplexityLevel> = {
+  devops:  'advanced',
+  backend: 'standard',
+  pm:      'beginner',
+  student: 'beginner',
+};
+
+export interface PersonaPanelDefaults {
+  showBlockPalette: boolean;
+  showResourceGuide: boolean;
+  showValidation: boolean;
+  showCodePreview: boolean;
+  showLearningPanel: boolean;
+  showTemplateGallery: boolean;
+}
+
+export const PERSONA_PANEL_DEFAULTS: Record<Persona, PersonaPanelDefaults> = {
+  devops: {
+    showBlockPalette: true,
+    showResourceGuide: true,
+    showValidation: true,
+    showCodePreview: true,
+    showLearningPanel: false,
+    showTemplateGallery: false,
+  },
+  backend: {
+    showBlockPalette: true,
+    showResourceGuide: true,
+    showValidation: true,
+    showCodePreview: true,
+    showLearningPanel: false,
+    showTemplateGallery: false,
+  },
+  pm: {
+    showBlockPalette: false,
+    showResourceGuide: true,
+    showValidation: true,
+    showCodePreview: false,
+    showLearningPanel: false,
+    showTemplateGallery: false,
+  },
+  student: {
+    showBlockPalette: true,
+    showResourceGuide: true,
+    showValidation: true,
+    showCodePreview: false,
+    showLearningPanel: false,
+    showTemplateGallery: false,
+  },
+};

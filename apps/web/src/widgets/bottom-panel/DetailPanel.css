@@ -304,6 +304,40 @@
   letter-spacing: 0.5px;
 }
 
+.detail-idle-cta {
+  margin-top: 8px;
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+  background: #3b82f6;
+  border: 3px solid #2563eb;
+  border-radius: 8px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.3),
+    0 3px 0 0 #1d4ed8;
+  transition: all 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-family: 'Fredoka', system-ui, sans-serif;
+}
+
+.detail-idle-cta:hover {
+  background: #60a5fa;
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.4),
+    0 5px 0 0 #1d4ed8;
+}
+
+.detail-idle-cta:active {
+  transform: translateY(2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 1px 0 0 #1d4ed8;
+}
+
 /* Dashboard state (workspace overview) */
 .detail-panel--dashboard .detail-header {
   background-color: #00852B;

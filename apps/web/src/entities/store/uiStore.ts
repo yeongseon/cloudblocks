@@ -3,11 +3,14 @@ import type { BlockCategory, ProviderType } from '@cloudblocks/schema';
 import type { EditorMode } from '../../shared/types/learning';
 import type { DiffDelta } from '../../shared/types/diff';
 import type { ArchitectureModel } from '@cloudblocks/schema';
+import type { Persona, ComplexityLevel } from '../../shared/types';
+import { PERSONA_COMPLEXITY_MAP, PERSONA_PANEL_DEFAULTS } from '../../shared/types';
 
 export type ToolMode = 'select' | 'connect' | 'delete';
 export type InteractionState = 'idle' | 'selecting' | 'dragging' | 'placing' | 'connecting';
 export type BackendStatus = 'unknown' | 'not_configured' | 'available' | 'unavailable';
 export type { EditorMode } from '../../shared/types/learning';
+export type { Persona, ComplexityLevel } from '../../shared/types';
 
 interface UIState {
   // ── Selection ──
@@ -97,6 +100,11 @@ interface UIState {
   // ── Onboarding ──
   showOnboarding: boolean;
   setShowOnboarding: (show: boolean) => void;
+
+  // ── Persona ──
+  persona: Persona | null;
+  complexityLevel: ComplexityLevel;
+  setPersona: (persona: Persona) => void;
 
   // ── Sound preference ──
   isSoundMuted: boolean;
@@ -304,6 +312,26 @@ export const useUIStore = create<UIState>((set) => ({
 
   showOnboarding: false,
   setShowOnboarding: (show) => set({ showOnboarding: show }),
+
+  persona: (localStorage.getItem('cloudblocks:persona') as Persona | null),
+  complexityLevel: (() => {
+    const saved = localStorage.getItem('cloudblocks:persona') as Persona | null;
+    return saved ? PERSONA_COMPLEXITY_MAP[saved] : 'beginner';
+  })(),
+  setPersona: (persona) => {
+    localStorage.setItem('cloudblocks:persona', persona);
+    const defaults = PERSONA_PANEL_DEFAULTS[persona];
+    set({
+      persona,
+      complexityLevel: PERSONA_COMPLEXITY_MAP[persona],
+      showBlockPalette: defaults.showBlockPalette,
+      showResourceGuide: defaults.showResourceGuide,
+      showValidation: defaults.showValidation,
+      showCodePreview: defaults.showCodePreview,
+      showLearningPanel: defaults.showLearningPanel,
+      showTemplateGallery: defaults.showTemplateGallery,
+    });
+  },
 
   upgradingBlockId: null,
   triggerUpgradeAnimation: (blockId) => {
