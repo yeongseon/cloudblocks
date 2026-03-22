@@ -53,6 +53,36 @@ export const RESOURCE_RULES = {
   },
 
   // ── Edge ────────────────────────────────────────────────────
+  dns_zone: {
+    containerCapable: false,
+    allowedParents: [null],
+    category: 'edge',
+    canvasTier: 'web',
+  },
+  cdn_profile: {
+    containerCapable: false,
+    allowedParents: [null],
+    category: 'edge',
+    canvasTier: 'web',
+  },
+  front_door: {
+    containerCapable: false,
+    allowedParents: [null],
+    category: 'edge',
+    canvasTier: 'web',
+  },
+  application_gateway: {
+    containerCapable: false,
+    allowedParents: ['subnet'],
+    category: 'edge',
+    canvasTier: 'web',
+  },
+  internal_load_balancer: {
+    containerCapable: false,
+    allowedParents: ['subnet'],
+    category: 'edge',
+    canvasTier: 'web',
+  },
   load_balancer: {
     containerCapable: false,
     allowedParents: ['subnet'],
@@ -67,6 +97,36 @@ export const RESOURCE_RULES = {
   },
 
   // ── Compute ─────────────────────────────────────────────────
+  function_compute: {
+    containerCapable: false,
+    allowedParents: ['subnet', null],
+    category: 'compute',
+    canvasTier: 'app',
+  },
+  app_service: {
+    containerCapable: false,
+    allowedParents: ['subnet', null],
+    category: 'compute',
+    canvasTier: 'app',
+  },
+  container_instances: {
+    containerCapable: false,
+    allowedParents: ['subnet', null],
+    category: 'compute',
+    canvasTier: 'app',
+  },
+  virtual_machine: {
+    containerCapable: false,
+    allowedParents: ['subnet'],
+    category: 'compute',
+    canvasTier: 'app',
+  },
+  kubernetes_cluster: {
+    containerCapable: false,
+    allowedParents: ['subnet'],
+    category: 'compute',
+    canvasTier: 'app',
+  },
   web_compute: {
     containerCapable: false,
     allowedParents: ['subnet'],
@@ -81,6 +141,24 @@ export const RESOURCE_RULES = {
   },
 
   // ── Data ────────────────────────────────────────────────────
+  blob_storage: {
+    containerCapable: false,
+    allowedParents: [null],
+    category: 'data',
+    canvasTier: 'data',
+  },
+  sql_database: {
+    containerCapable: false,
+    allowedParents: ['subnet'],
+    category: 'data',
+    canvasTier: 'data',
+  },
+  cosmos_db: {
+    containerCapable: false,
+    allowedParents: ['subnet', null],
+    category: 'data',
+    canvasTier: 'data',
+  },
   relational_database: {
     containerCapable: false,
     allowedParents: ['subnet'],
@@ -95,6 +173,18 @@ export const RESOURCE_RULES = {
   },
 
   // ── Security ────────────────────────────────────────────────
+  key_vault: {
+    containerCapable: false,
+    allowedParents: ['subnet', null],
+    category: 'security',
+    canvasTier: 'shared',
+  },
+  bastion_host: {
+    containerCapable: false,
+    allowedParents: ['subnet'],
+    category: 'security',
+    canvasTier: 'shared',
+  },
   firewall_security: {
     containerCapable: false,
     allowedParents: ['subnet'],
@@ -140,6 +230,30 @@ export const RESOURCE_RULES = {
     allowedParents: ['virtual_network'],
     category: 'messaging',
     canvasTier: 'app',
+  },
+  nat_gateway: {
+    containerCapable: false,
+    allowedParents: ['subnet'],
+    category: 'network',
+    canvasTier: 'shared',
+  },
+  public_ip: {
+    containerCapable: false,
+    allowedParents: [null],
+    category: 'network',
+    canvasTier: 'shared',
+  },
+  route_table: {
+    containerCapable: false,
+    allowedParents: ['subnet'],
+    category: 'network',
+    canvasTier: 'shared',
+  },
+  private_endpoint: {
+    containerCapable: false,
+    allowedParents: ['subnet'],
+    category: 'network',
+    canvasTier: 'shared',
   },
 } as const satisfies Record<string, ResourceRuleEntry>;
 

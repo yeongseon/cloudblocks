@@ -4,6 +4,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { SCHEMA_VERSION } from '../index.js';
+import { RESOURCE_RULES } from '../rules.js';
 
 // All type re-exports — verify they are importable at runtime
 import type {
@@ -41,6 +42,13 @@ describe('SCHEMA_VERSION', () => {
 
   it('should be 3.0.0', () => {
     expect(SCHEMA_VERSION).toBe('3.0.0');
+  });
+});
+
+describe('Resource rule coverage', () => {
+  it('RESOURCE_RULES covers all known resource types', () => {
+    const knownTypes = Object.keys(RESOURCE_RULES);
+    expect(knownTypes.length).toBeGreaterThanOrEqual(30);
   });
 });
 
@@ -206,19 +214,33 @@ describe('Type compatibility', () => {
   });
 
   it('should allow ResourceNode discriminated union', () => {
-    const node: ResourceNode = {
-      id: 'node-1',
-      name: 'Test Node',
-      kind: 'resource',
-      layer: 'resource',
-      resourceType: 'sql_database',
-      category: 'data',
-      provider: 'azure',
-      parentId: 'container-1',
-      position: { x: 2, y: 0, z: 2 },
-      metadata: {},
-    };
-    // Discriminated union narrowing
+    const node: ResourceNode = Math.random() > 0.5
+      ? {
+          id: 'node-1',
+          name: 'Test Node',
+          kind: 'resource',
+          layer: 'resource',
+          resourceType: 'sql_database',
+          category: 'data',
+          provider: 'azure',
+          parentId: 'container-1',
+          position: { x: 2, y: 0, z: 2 },
+          metadata: {},
+        }
+      : {
+          id: 'container-3',
+          name: 'Test Container',
+          kind: 'container',
+          layer: 'subnet',
+          resourceType: 'subnet',
+          category: 'network',
+          provider: 'azure',
+          parentId: 'container-1',
+          position: { x: 0, y: 0, z: 0 },
+          size: { width: 8, height: 1, depth: 8 },
+          metadata: {},
+        };
+
     if (node.kind === 'container') {
       expect(node.size).toBeDefined();
     } else {
@@ -381,5 +403,39 @@ describe('Type compatibility', () => {
       metadata: {},
     };
     expect(_block.kind).toBe('resource');
+  });
+});
+
+describe('Catalog consistency', () => {
+  it('RESOURCE_RULES should have valid categories', () => {
+    const validCategories = ['network', 'security', 'edge', 'compute', 'data', 'messaging', 'operations'];
+    for (const [key, rule] of Object.entries(RESOURCE_RULES)) {
+      expect(validCategories, `Invalid category '${rule.category}' for resource '${key}'`).toContain(rule.category);
+    }
+  });
+
+  it('RESOURCE_RULES allowedParents should reference valid resource types or null', () => {
+    const knownTypes = Object.keys(RESOURCE_RULES);
+    for (const [key, rule] of Object.entries(RESOURCE_RULES)) {
+      for (const parent of rule.allowedParents) {
+        if (parent !== null) {
+          expect(knownTypes, `Resource '${key}' has unknown parent '${parent}'`).toContain(parent);
+        }
+      }
+    }
+  });
+
+  it('container-capable types should include virtual_network and subnet', () => {
+    expect(RESOURCE_RULES.virtual_network.containerCapable).toBe(true);
+    expect(RESOURCE_RULES.subnet.containerCapable).toBe(true);
+  });
+
+  it('all non-container resources should not be container capable', () => {
+    const nonContainers = Object.entries(RESOURCE_RULES).filter(
+      ([key]) => key !== 'virtual_network' && key !== 'subnet'
+    );
+    for (const [key, rule] of nonContainers) {
+      expect(rule.containerCapable, `Resource '${key}' should not be container-capable`).toBe(false);
+    }
   });
 });

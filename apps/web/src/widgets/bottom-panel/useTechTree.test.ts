@@ -105,11 +105,12 @@ describe('useTechTree constants', () => {
   it('defines all resource entries with correct fields', () => {
     const expectedResources: Record<
       string,
-      Pick<ResourceDefinition, 'id' | 'label' | 'shortLabel' | 'icon' | 'category' | 'blockCategory'>
+      Pick<ResourceDefinition, 'id' | 'schemaResourceType' | 'label' | 'shortLabel' | 'icon' | 'category' | 'blockCategory'>
     > = {
-      network: { id: 'network', label: 'Network (VNet)', shortLabel: 'VNet', icon: '🌐', category: 'plate', blockCategory: null },
+      network: { id: 'network', schemaResourceType: 'virtual_network', label: 'Network (VNet)', shortLabel: 'VNet', icon: '🌐', category: 'plate', blockCategory: null },
       'public-subnet': {
         id: 'public-subnet',
+        schemaResourceType: 'subnet',
         label: 'Public Subnet',
         shortLabel: 'Public',
         icon: '🌍',
@@ -118,36 +119,40 @@ describe('useTechTree constants', () => {
       },
       'private-subnet': {
         id: 'private-subnet',
+        schemaResourceType: 'subnet',
         label: 'Private Subnet',
         shortLabel: 'Private',
         icon: '🔒',
         category: 'plate',
         blockCategory: null,
       },
-      storage: { id: 'storage', label: 'Blob Storage', shortLabel: 'Storage', icon: '📦', category: 'always', blockCategory: 'data' },
-      dns: { id: 'dns', label: 'DNS Zone', shortLabel: 'DNS', icon: '🌐', category: 'always', blockCategory: 'edge' },
-      cdn: { id: 'cdn', label: 'CDN Profile', shortLabel: 'CDN', icon: '⚡', category: 'always', blockCategory: 'edge' },
+      storage: { id: 'storage', schemaResourceType: 'blob_storage', label: 'Blob Storage', shortLabel: 'Storage', icon: '📦', category: 'always', blockCategory: 'data' },
+      dns: { id: 'dns', schemaResourceType: 'dns_zone', label: 'DNS Zone', shortLabel: 'DNS', icon: '🌐', category: 'always', blockCategory: 'edge' },
+      cdn: { id: 'cdn', schemaResourceType: 'cdn_profile', label: 'CDN Profile', shortLabel: 'CDN', icon: '⚡', category: 'always', blockCategory: 'edge' },
       'front-door': {
         id: 'front-door',
+        schemaResourceType: 'front_door',
         label: 'Front Door',
         shortLabel: 'FrontDoor',
         icon: '🚪',
         category: 'always',
         blockCategory: 'edge',
       },
-      sql: { id: 'sql', label: 'SQL Database', shortLabel: 'SQL', icon: '🗄️', category: 'vnet-optional', blockCategory: 'data' },
+      sql: { id: 'sql', schemaResourceType: 'sql_database', label: 'SQL Database', shortLabel: 'SQL', icon: '🗄️', category: 'vnet-optional', blockCategory: 'data' },
       function: {
         id: 'function',
+        schemaResourceType: 'function_compute',
         label: 'Functions',
         shortLabel: 'Func',
         icon: '⚡',
         category: 'vnet-optional',
         blockCategory: 'compute',
       },
-      queue: { id: 'queue', label: 'Queue', shortLabel: 'Queue', icon: '📨', category: 'vnet-optional', blockCategory: 'messaging' },
-      event: { id: 'event', label: 'Event Hub', shortLabel: 'Event', icon: '🔔', category: 'vnet-optional', blockCategory: 'messaging' },
+      queue: { id: 'queue', schemaResourceType: 'message_queue', label: 'Queue', shortLabel: 'Queue', icon: '📨', category: 'vnet-optional', blockCategory: 'messaging' },
+      event: { id: 'event', schemaResourceType: 'event_hub', label: 'Event Hub', shortLabel: 'Event', icon: '🔔', category: 'vnet-optional', blockCategory: 'messaging' },
       'app-service': {
         id: 'app-service',
+        schemaResourceType: 'app_service',
         label: 'App Service',
         shortLabel: 'AppSvc',
         icon: '🌐',
@@ -156,6 +161,7 @@ describe('useTechTree constants', () => {
       },
       'container-instances': {
         id: 'container-instances',
+        schemaResourceType: 'container_instances',
         label: 'Container Instances',
         shortLabel: 'ACI',
         icon: '📦',
@@ -164,6 +170,7 @@ describe('useTechTree constants', () => {
       },
       'cosmos-db': {
         id: 'cosmos-db',
+        schemaResourceType: 'cosmos_db',
         label: 'Cosmos DB',
         shortLabel: 'Cosmos',
         icon: '🌍',
@@ -172,6 +179,7 @@ describe('useTechTree constants', () => {
       },
       'key-vault': {
         id: 'key-vault',
+        schemaResourceType: 'key_vault',
         label: 'Key Vault',
         shortLabel: 'KeyVault',
         icon: '🔐',
@@ -180,6 +188,7 @@ describe('useTechTree constants', () => {
       },
       vm: {
         id: 'vm',
+        schemaResourceType: 'virtual_machine',
         label: 'Virtual Machine',
         shortLabel: 'VM',
         icon: '🖥️',
@@ -188,6 +197,7 @@ describe('useTechTree constants', () => {
       },
       aks: {
         id: 'aks',
+        schemaResourceType: 'kubernetes_cluster',
         label: 'Kubernetes (AKS)',
         shortLabel: 'AKS',
         icon: '☸️',
@@ -196,6 +206,7 @@ describe('useTechTree constants', () => {
       },
       'internal-lb': {
         id: 'internal-lb',
+        schemaResourceType: 'internal_load_balancer',
         label: 'Internal Load Balancer',
         shortLabel: 'IntLB',
         icon: '⚖️',
@@ -204,6 +215,7 @@ describe('useTechTree constants', () => {
       },
       firewall: {
         id: 'firewall',
+        schemaResourceType: 'firewall_security',
         label: 'Firewall',
         shortLabel: 'FW',
         icon: '🛡️',
@@ -212,6 +224,7 @@ describe('useTechTree constants', () => {
       },
       nsg: {
         id: 'nsg',
+        schemaResourceType: 'network_security_group',
         label: 'Network Security Group',
         shortLabel: 'NSG',
         icon: '🔒',
@@ -220,16 +233,54 @@ describe('useTechTree constants', () => {
       },
       bastion: {
         id: 'bastion',
+        schemaResourceType: 'bastion_host',
         label: 'Bastion',
         shortLabel: 'Bastion',
         icon: '🏰',
         category: 'vnet-required',
-        blockCategory: 'edge',
+        blockCategory: 'security',
       },
       'nat-gateway': {
         id: 'nat-gateway',
+        schemaResourceType: 'nat_gateway',
         label: 'NAT Gateway',
         shortLabel: 'NAT',
+        icon: '🚪',
+        category: 'vnet-required',
+        blockCategory: 'network',
+      },
+      'public-ip': {
+        id: 'public-ip',
+        schemaResourceType: 'public_ip',
+        label: 'Public IP',
+        shortLabel: 'PIP',
+        icon: '🌐',
+        category: 'always',
+        blockCategory: 'network',
+      },
+      'route-table': {
+        id: 'route-table',
+        schemaResourceType: 'route_table',
+        label: 'Route Table',
+        shortLabel: 'UDR',
+        icon: '🔀',
+        category: 'vnet-required',
+        blockCategory: 'network',
+      },
+      'private-endpoint': {
+        id: 'private-endpoint',
+        schemaResourceType: 'private_endpoint',
+        label: 'Private Endpoint',
+        shortLabel: 'PE',
+        icon: '🔒',
+        category: 'vnet-required',
+        blockCategory: 'network',
+      },
+      'app-gateway': {
+        id: 'app-gateway',
+        schemaResourceType: 'application_gateway',
+        label: 'Application Gateway',
+        shortLabel: 'AppGW',
         icon: '🚪',
         category: 'vnet-required',
         blockCategory: 'edge',
@@ -259,8 +310,12 @@ describe('useTechTree constants', () => {
       'nsg',
       'bastion',
       'nat-gateway',
+      'public-ip',
+      'route-table',
+      'private-endpoint',
+      'app-gateway',
     ];
-    expect(resourceTypes).toHaveLength(22);
+    expect(resourceTypes).toHaveLength(26);
 
     for (const resourceType of resourceTypes) {
       const actual = RESOURCE_DEFINITIONS[resourceType as ResourceType];

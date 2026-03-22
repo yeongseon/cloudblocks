@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import type { ProviderType, ResourceCategory } from '@cloudblocks/schema';
+import type { ProviderType, ResourceCategory, ResourceType as SchemaResourceType } from '@cloudblocks/schema';
 
 export type ResourceType =
   | 'network'
@@ -24,10 +24,15 @@ export type ResourceType =
   | 'firewall'
   | 'nsg'
   | 'bastion'
-  | 'nat-gateway';
+  | 'nat-gateway'
+  | 'public-ip'
+  | 'route-table'
+  | 'private-endpoint'
+  | 'app-gateway';
 
 export interface ResourceDefinition {
   id: ResourceType;
+  schemaResourceType: SchemaResourceType;
   label: string;
   shortLabel: string;
   icon: string;
@@ -39,6 +44,7 @@ export interface ResourceDefinition {
 export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   network: {
     id: 'network',
+    schemaResourceType: 'virtual_network',
     label: 'Network (VNet)',
     shortLabel: 'VNet',
     icon: '🌐',
@@ -47,6 +53,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   },
   'public-subnet': {
     id: 'public-subnet',
+    schemaResourceType: 'subnet',
     label: 'Public Subnet',
     shortLabel: 'Public',
     icon: '🌍',
@@ -56,6 +63,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   },
   'private-subnet': {
     id: 'private-subnet',
+    schemaResourceType: 'subnet',
     label: 'Private Subnet',
     shortLabel: 'Private',
     icon: '🔒',
@@ -67,6 +75,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   // Always enabled (roots)
   storage: {
     id: 'storage',
+    schemaResourceType: 'blob_storage',
     label: 'Blob Storage',
     shortLabel: 'Storage',
     icon: '📦',
@@ -75,6 +84,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   },
   dns: {
     id: 'dns',
+    schemaResourceType: 'dns_zone',
     label: 'DNS Zone',
     shortLabel: 'DNS',
     icon: '🌐',
@@ -83,6 +93,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   },
   cdn: {
     id: 'cdn',
+    schemaResourceType: 'cdn_profile',
     label: 'CDN Profile',
     shortLabel: 'CDN',
     icon: '⚡',
@@ -91,6 +102,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   },
   'front-door': {
     id: 'front-door',
+    schemaResourceType: 'front_door',
     label: 'Front Door',
     shortLabel: 'FrontDoor',
     icon: '🚪',
@@ -101,6 +113,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   // VNet optional (public-first, can add private later)
   sql: {
     id: 'sql',
+    schemaResourceType: 'sql_database',
     label: 'SQL Database',
     shortLabel: 'SQL',
     icon: '🗄️',
@@ -109,6 +122,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   },
   function: {
     id: 'function',
+    schemaResourceType: 'function_compute',
     label: 'Functions',
     shortLabel: 'Func',
     icon: '⚡',
@@ -117,6 +131,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   },
   queue: {
     id: 'queue',
+    schemaResourceType: 'message_queue',
     label: 'Queue',
     shortLabel: 'Queue',
     icon: '📨',
@@ -125,6 +140,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   },
   event: {
     id: 'event',
+    schemaResourceType: 'event_hub',
     label: 'Event Hub',
     shortLabel: 'Event',
     icon: '🔔',
@@ -133,6 +149,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   },
   'app-service': {
     id: 'app-service',
+    schemaResourceType: 'app_service',
     label: 'App Service',
     shortLabel: 'AppSvc',
     icon: '🌐',
@@ -141,6 +158,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   },
   'container-instances': {
     id: 'container-instances',
+    schemaResourceType: 'container_instances',
     label: 'Container Instances',
     shortLabel: 'ACI',
     icon: '📦',
@@ -149,6 +167,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   },
   'cosmos-db': {
     id: 'cosmos-db',
+    schemaResourceType: 'cosmos_db',
     label: 'Cosmos DB',
     shortLabel: 'Cosmos',
     icon: '🌍',
@@ -157,6 +176,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   },
   'key-vault': {
     id: 'key-vault',
+    schemaResourceType: 'key_vault',
     label: 'Key Vault',
     shortLabel: 'KeyVault',
     icon: '🔐',
@@ -167,6 +187,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   // VNet required
   vm: {
     id: 'vm',
+    schemaResourceType: 'virtual_machine',
     label: 'Virtual Machine',
     shortLabel: 'VM',
     icon: '🖥️',
@@ -176,6 +197,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   },
   aks: {
     id: 'aks',
+    schemaResourceType: 'kubernetes_cluster',
     label: 'Kubernetes (AKS)',
     shortLabel: 'AKS',
     icon: '☸️',
@@ -185,6 +207,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   },
   'internal-lb': {
     id: 'internal-lb',
+    schemaResourceType: 'internal_load_balancer',
     label: 'Internal Load Balancer',
     shortLabel: 'IntLB',
     icon: '⚖️',
@@ -194,6 +217,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   },
   firewall: {
     id: 'firewall',
+    schemaResourceType: 'firewall_security',
     label: 'Firewall',
     shortLabel: 'FW',
     icon: '🛡️',
@@ -203,6 +227,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   },
   nsg: {
     id: 'nsg',
+    schemaResourceType: 'network_security_group',
     label: 'Network Security Group',
     shortLabel: 'NSG',
     icon: '🔒',
@@ -212,21 +237,62 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   },
   bastion: {
     id: 'bastion',
+    schemaResourceType: 'bastion_host',
     label: 'Bastion',
     shortLabel: 'Bastion',
     icon: '🏰',
     category: 'vnet-required',
-    blockCategory: 'edge',
+    blockCategory: 'security',
     disabledReason: 'Create a Network first. Bastion provides secure VM access through a virtual network.',
   },
   'nat-gateway': {
     id: 'nat-gateway',
+    schemaResourceType: 'nat_gateway',
     label: 'NAT Gateway',
     shortLabel: 'NAT',
     icon: '🚪',
     category: 'vnet-required',
-    blockCategory: 'edge',
+    blockCategory: 'network',
     disabledReason: 'Create a Network first. NAT Gateways enable outbound internet access for private subnets.',
+  },
+  'public-ip': {
+    id: 'public-ip',
+    schemaResourceType: 'public_ip',
+    label: 'Public IP',
+    shortLabel: 'PIP',
+    icon: '🌐',
+    category: 'always',
+    blockCategory: 'network',
+  },
+  'route-table': {
+    id: 'route-table',
+    schemaResourceType: 'route_table',
+    label: 'Route Table',
+    shortLabel: 'UDR',
+    icon: '🔀',
+    category: 'vnet-required',
+    blockCategory: 'network',
+    disabledReason: 'Create a Network first. Route tables define custom routing within subnets.',
+  },
+  'private-endpoint': {
+    id: 'private-endpoint',
+    schemaResourceType: 'private_endpoint',
+    label: 'Private Endpoint',
+    shortLabel: 'PE',
+    icon: '🔒',
+    category: 'vnet-required',
+    blockCategory: 'network',
+    disabledReason: 'Create a Network first. Private endpoints connect to Azure services via private IP.',
+  },
+  'app-gateway': {
+    id: 'app-gateway',
+    schemaResourceType: 'application_gateway',
+    label: 'Application Gateway',
+    shortLabel: 'AppGW',
+    icon: '🚪',
+    category: 'vnet-required',
+    blockCategory: 'edge',
+    disabledReason: 'Create a Network first. Application Gateways require a dedicated subnet.',
   },
 };
 
@@ -260,6 +326,10 @@ const PROVIDER_LABELS: Record<ProviderType, Partial<Record<ResourceType, Provide
     nsg:                  { label: 'Security Group',       shortLabel: 'SG' },
     bastion:              { label: 'Session Manager',      shortLabel: 'SSM' },
     'nat-gateway':        { label: 'NAT Gateway',          shortLabel: 'NAT' },
+    'public-ip':          { label: 'Elastic IP',           shortLabel: 'EIP' },
+    'route-table':        { label: 'Route Table',          shortLabel: 'RT' },
+    'private-endpoint':   { label: 'PrivateLink',          shortLabel: 'PL' },
+    'app-gateway':        { label: 'Application Load Balancer', shortLabel: 'ALB' },
   },
   gcp: {
     network:              { label: 'VPC Network',          shortLabel: 'VPC' },
@@ -282,6 +352,10 @@ const PROVIDER_LABELS: Record<ProviderType, Partial<Record<ResourceType, Provide
     nsg:                  { label: 'Firewall Rules',       shortLabel: 'FWRules' },
     bastion:              { label: 'IAP Tunnel',           shortLabel: 'IAP' },
     'nat-gateway':        { label: 'Cloud NAT',            shortLabel: 'CNAT' },
+    'public-ip':          { label: 'External IP',          shortLabel: 'EIP' },
+    'route-table':        { label: 'VPC Routes',           shortLabel: 'Routes' },
+    'private-endpoint':   { label: 'Private Service Connect', shortLabel: 'PSC' },
+    'app-gateway':        { label: 'HTTP(S) Load Balancer', shortLabel: 'HTTPS-LB' },
   },
 };
 
