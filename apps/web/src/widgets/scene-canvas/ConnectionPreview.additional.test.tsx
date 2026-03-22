@@ -7,7 +7,7 @@ import { useArchitectureStore } from '../../entities/store/architectureStore';
 vi.mock('../../entities/store/uiStore');
 vi.mock('../../entities/store/architectureStore');
 vi.mock('../../shared/hooks/useRafCallback', () => ({
-  useRafCallback: <T extends (...args: any[]) => unknown>(fn: T) => fn,
+  useRafCallback: <T extends (...args: unknown[]) => unknown>(fn: T) => fn,
 }));
 
 type UIState = {

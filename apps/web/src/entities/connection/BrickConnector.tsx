@@ -290,7 +290,6 @@ export const BrickConnector = memo(function BrickConnector({
     };
     el.addEventListener('animationend', handleEnd, { once: true });
     return () => el.removeEventListener('animationend', handleEnd);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // mount-only
   const selectedId = useUIStore((s) => s.selectedId);
   const setSelectedId = useUIStore((s) => s.setSelectedId);

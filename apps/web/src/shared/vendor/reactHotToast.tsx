@@ -102,5 +102,7 @@ export function Toaster({
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const toast = headlessToast;
+// eslint-disable-next-line react-refresh/only-export-components
 export default headlessToast;
