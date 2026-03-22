@@ -430,15 +430,16 @@ describe('useTechTree hook', () => {
     }
   });
 
-  it('returns all creation resources from RESOURCE_DEFINITIONS', () => {
+  it('returns MVP-filtered creation resources from RESOURCE_DEFINITIONS', () => {
     const { result } = renderHook(() => useTechTree());
 
-    const expectedResourceTypes = (Object.keys(RESOURCE_DEFINITIONS) as ResourceType[]);
+    const MVP_TYPES: ResourceType[] = ['network', 'public-subnet', 'private-subnet', 'vm', 'sql', 'storage', 'key-vault'];
     const creationResources = result.current.getCreationResources();
     const actualTypes = creationResources.map((entry) => entry.resource.id);
 
-    expect(creationResources).toHaveLength(expectedResourceTypes.length);
-    expect(actualTypes).toEqual(expectedResourceTypes);
+    expect(creationResources).toHaveLength(MVP_TYPES.length);
+    expect(actualTypes).toEqual(expect.arrayContaining(MVP_TYPES));
+    expect(actualTypes).toHaveLength(MVP_TYPES.length);
 
     for (const entry of creationResources) {
       expect(entry.resource).toBe(RESOURCE_DEFINITIONS[entry.resource.id]);

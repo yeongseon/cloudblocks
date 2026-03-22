@@ -45,3 +45,13 @@ export const PIN_HOLE_RY = PIN_HOLE_RX / 2;                      // 2.4 (iso Y r
 // -- Face Stroke --
 export const TOP_FACE_STROKE_WIDTH = 1;
 export const TOP_FACE_STROKE_OPACITY = 0.6;
+
+// -- Stub Port Visuals (Connection Anchor Points) --
+// Small screen-space offset so connector endpoints sit just outside block face.
+export const PORT_OUT_PX = 8;
+// Stub dot dimensions for visual rendering on block faces (BlockSvg).
+export const STUB_DOT_RX = 4;
+export const STUB_DOT_RY = 2.5;
+export const STUB_DOT_STROKE_WIDTH = 1.5;
+export const STUB_DOT_OPACITY = 0.7;
+export const STUB_DOT_ACTIVE_OPACITY = 1.0;

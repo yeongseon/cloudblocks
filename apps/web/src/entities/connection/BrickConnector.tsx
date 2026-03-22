@@ -1,7 +1,7 @@
 import { memo, useState, useMemo } from 'react';
 import type { Connection, ContainerNode, ExternalActor, LeafNode } from '@cloudblocks/schema';
 import { getDiffState } from '../../features/diff/engine';
-import { getEndpointWorldPosition } from '../../shared/utils/position';
+import { getConnectionEndpointWorldAnchors } from './endpointAnchors';
 import type { ScreenPoint } from '../../shared/utils/isometric';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
@@ -9,6 +9,7 @@ import {
   BEAM_THICKNESS_PX,
   PIN_HOLE_SPACING_CU, PIN_HOLE_RX, PIN_HOLE_RY,
   STUD_RX, STUD_RY, STUD_HEIGHT, STUD_INNER_RX, STUD_INNER_RY, STUD_INNER_OPACITY,
+  PORT_OUT_PX,
 } from '../../shared/tokens/designTokens';
 import { CONNECTOR_THEMES, DIFF_THEMES, lightenColor } from './connectorTheme';
 import { computeWorldRoute, screenSegmentLengthCU } from './routing';
@@ -276,20 +277,34 @@ export const BrickConnector = memo(function BrickConnector({
   const diffDelta = useUIStore((s) => s.diffDelta);
   const removeConnection = useArchitectureStore((s) => s.removeConnection);
 
-  const src = getEndpointWorldPosition(connection.sourceId, blocks, plates, externalActors);
-  const tgt = getEndpointWorldPosition(connection.targetId, blocks, plates, externalActors);
-
   const theme = CONNECTOR_THEMES[connection.type];
   const diffState = diffMode && diffDelta ? getDiffState(connection.id, diffDelta) : 'unchanged';
   const isSelected = selectedId === connection.id;
   const isHighlighted = isHovered || isSelected;
 
-  const route = useMemo(() => {
-    if (!src || !tgt) return null;
-    return computeWorldRoute(src, tgt, originX, originY);
-  }, [src, tgt, originX, originY]);
+  const endpoints = useMemo(
+    () => getConnectionEndpointWorldAnchors(connection, blocks, plates, externalActors),
+    [connection, blocks, plates, externalActors],
+  );
 
-  if (!src || !tgt || !route) return null;
+  const route = useMemo(() => {
+    if (!endpoints) return null;
+    const r = computeWorldRoute(endpoints.src, endpoints.tgt, originX, originY);
+    // Apply PORT_OUT_PX screen offset so connectors sit just outside the block face
+    if (endpoints.srcSide === 'outbound') {
+      r.srcScreen = { x: r.srcScreen.x + PORT_OUT_PX, y: r.srcScreen.y };
+    } else if (endpoints.srcSide === 'inbound') {
+      r.srcScreen = { x: r.srcScreen.x - PORT_OUT_PX, y: r.srcScreen.y };
+    }
+    if (endpoints.tgtSide === 'inbound') {
+      r.tgtScreen = { x: r.tgtScreen.x - PORT_OUT_PX, y: r.tgtScreen.y };
+    } else if (endpoints.tgtSide === 'outbound') {
+      r.tgtScreen = { x: r.tgtScreen.x + PORT_OUT_PX, y: r.tgtScreen.y };
+    }
+    return r;
+  }, [endpoints, originX, originY]);
+
+  if (!endpoints || !route) return null;
 
   const colors = getColors(theme, diffState, isHighlighted);
   const hitPath = buildHitPath(route);

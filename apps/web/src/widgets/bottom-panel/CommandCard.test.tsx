@@ -145,7 +145,7 @@ describe('CommandCard', () => {
     expect(screen.getByText('Create Resource')).toBeInTheDocument();
 
     expect(container.querySelectorAll('.command-card-category-group').length).toBeGreaterThan(0);
-    expect(container.querySelectorAll('.command-card-resource-btn').length).toBeGreaterThanOrEqual(8);
+    expect(container.querySelectorAll('.command-card-resource-btn').length).toBeGreaterThanOrEqual(5);
     expect(screen.getByText('Network Foundations')).toBeInTheDocument();
   });
 
@@ -268,22 +268,22 @@ describe('CommandCard', () => {
     const { unmount } = render(<CommandCard />);
 
     const networkButton = screen.getByTitle('Create Network (VNet)');
-    const firewallButton = screen.getByTitle('Create Firewall');
+    const storageButton = screen.getByTitle('Create Blob Storage');
 
     const networkListeners = draggableListeners.get(networkButton);
-    const vmListeners = draggableListeners.get(firewallButton);
+    const storageListeners = draggableListeners.get(storageButton);
 
     expect(networkListeners).toBeDefined();
-    expect(vmListeners).toBeDefined();
+    expect(storageListeners).toBeDefined();
 
-    vmListeners?.start?.();
-    vmListeners?.move?.({ target: firewallButton });
-    expect(firewallButton).toHaveClass('is-dragging');
-    expect(useUIStore.getState().draggedBlockCategory).toBe('edge');
-    expect(useUIStore.getState().draggedResourceName).toBe('Firewall');
+    storageListeners?.start?.();
+    storageListeners?.move?.({ target: storageButton });
+    expect(storageButton).toHaveClass('is-dragging');
+    expect(useUIStore.getState().draggedBlockCategory).toBe('data');
+    expect(useUIStore.getState().draggedResourceName).toBe('Blob Storage');
 
-    vmListeners?.end?.({ target: firewallButton });
-    expect(firewallButton).not.toHaveClass('is-dragging');
+    storageListeners?.end?.({ target: storageButton });
+    expect(storageButton).not.toHaveClass('is-dragging');
     expect(useUIStore.getState().draggedBlockCategory).toBeNull();
     expect(useUIStore.getState().draggedResourceName).toBeNull();
 
@@ -292,7 +292,7 @@ describe('CommandCard', () => {
     expect(useUIStore.getState().draggedResourceName).toBeNull();
 
     const detachedButton = document.createElement('button');
-    vmListeners?.move?.({ target: detachedButton });
+    storageListeners?.move?.({ target: detachedButton });
     expect(useUIStore.getState().draggedBlockCategory).toBeNull();
 
     unmount();
@@ -737,9 +737,9 @@ describe('CommandCard', () => {
     });
     rerender(<CommandCard />);
     await user.click(screen.getByRole('button', { name: /Deploy/ }));
-    expect(screen.getByTitle('Create DNS Zone (W)')).toBeInTheDocument();
-    expect(screen.getByTitle('Create Virtual Machine (S)')).toBeInTheDocument();
-    expect(screen.queryByTitle('Create SQL Database (W)')).not.toBeInTheDocument();
+    expect(screen.getByTitle('Create Blob Storage (Q)')).toBeInTheDocument();
+    expect(screen.getByTitle('Create Virtual Machine (W)')).toBeInTheDocument();
+    expect(screen.getByTitle('Create Key Vault (E)')).toBeInTheDocument();
 
     act(() => {
       useUIStore.setState({ selectedId: 'subnet-private-1' });
@@ -1027,7 +1027,7 @@ describe('CommandCard', () => {
     await user.click(screen.getByRole('button', { name: /Deploy/ }));
 
     // Now in PlateCreationMode — create a VM
-    await user.click(screen.getByTitle('Create Virtual Machine (S)'));
+    await user.click(screen.getByTitle('Create Virtual Machine (W)'));
 
     expect(addNodeMock).toHaveBeenCalledWith({ kind: 'resource', resourceType: 'virtual_machine', name: 'Virtual Machine 1', parentId: 'subnet-public-1', provider: 'azure', subtype: 'virtual_machine' });
   });

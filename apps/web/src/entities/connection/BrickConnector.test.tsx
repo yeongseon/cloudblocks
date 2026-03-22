@@ -3,13 +3,13 @@ import { fireEvent, render } from '@testing-library/react';
 import { BrickConnector } from './BrickConnector';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
-import { getEndpointWorldPosition } from '../../shared/utils/position';
+import { getConnectionEndpointWorldAnchors } from './endpointAnchors';
 import { getDiffState } from '../../features/diff/engine';
 import type { Connection, ConnectionType } from '@cloudblocks/schema';
 import type { DiffDelta } from '../../shared/types/diff';
 
-vi.mock('../../shared/utils/position', () => ({
-  getEndpointWorldPosition: vi.fn(),
+vi.mock('./endpointAnchors', () => ({
+  getConnectionEndpointWorldAnchors: vi.fn(),
 }));
 
 vi.mock('../../shared/tokens/designTokens', () => ({
@@ -29,6 +29,7 @@ vi.mock('../../shared/tokens/designTokens', () => ({
   STUD_INNER_RX: 7.2,
   STUD_INNER_RY: 3.6,
   STUD_INNER_OPACITY: 0.3,
+  PORT_OUT_PX: 8,
 }));
 
 vi.mock('../../features/diff/engine', () => ({
@@ -44,9 +45,8 @@ const connection: Connection = {
 };
 
 function setupEndpoints(srcWorld: [number, number, number] = [1, 0, 2], tgtWorld: [number, number, number] = [3, 0, 4]) {
-  vi.mocked(getEndpointWorldPosition)
-    .mockReturnValueOnce(srcWorld)
-    .mockReturnValueOnce(tgtWorld);
+  vi.mocked(getConnectionEndpointWorldAnchors)
+    .mockReturnValue({ src: srcWorld, tgt: tgtWorld });
 }
 
 function renderConnector(conn: Connection = connection) {
@@ -80,19 +80,9 @@ describe('BrickConnector', () => {
     });
   });
 
-  it('returns null when source endpoint position is missing', () => {
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce(null)
-      .mockReturnValueOnce([3, 0, 4]);
-
-    const { container } = renderConnector();
-    expect(container.querySelector('g')).toBeNull();
-  });
-
-  it('returns null when target endpoint position is missing', () => {
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce(null);
+  it('returns null when endpoint resolution fails', () => {
+    vi.mocked(getConnectionEndpointWorldAnchors)
+      .mockReturnValue(null);
 
     const { container } = renderConnector();
     expect(container.querySelector('g')).toBeNull();
@@ -139,9 +129,8 @@ describe('BrickConnector', () => {
 
   it('stops propagation when clicking a connection', () => {
     const parentClick = vi.fn();
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce([3, 0, 4]);
+    vi.mocked(getConnectionEndpointWorldAnchors)
+      .mockReturnValue({ src: [1, 0, 2], tgt: [3, 0, 4] });
 
     const { container } = render(
       <svg onClick={parentClick}><title>Test</title>
