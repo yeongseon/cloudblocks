@@ -418,7 +418,7 @@ export const useUIStore = create<UIState>((set) => ({
     showCodePreview: tab === 'code',
   }),
 
-  bottomDock: { isOpen: false, activeTab: 'output' },
+  bottomDock: { isOpen: true, activeTab: 'output' },
   openBottomTab: (tab) => set({ bottomDock: { isOpen: true, activeTab: tab } }),
   closeBottomDock: () => set((s) => ({ bottomDock: { ...s.bottomDock, isOpen: false } })),
   setBottomTab: (tab) => set((s) => ({ bottomDock: { ...s.bottomDock, activeTab: tab } })),
