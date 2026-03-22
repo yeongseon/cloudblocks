@@ -64,6 +64,39 @@ jobs:
       - name: Scan build output for leaked secrets
         run: ./scripts/check-build-secrets.sh apps/web/dist
 
+      - name: Check bundle size budget
+        run: |
+          MAX_TOTAL_KB=800
+          MAX_ENTRY_KB=350
+          DIST_DIR="apps/web/dist/assets"
+
+          TOTAL_KB=$(du -sk "$DIST_DIR" | cut -f1)
+          echo "Total assets: ${TOTAL_KB} KB (budget: ${MAX_TOTAL_KB} KB)"
+
+          LARGEST_JS=$(find "$DIST_DIR" -name '*.js' -exec du -k {} + | sort -rn | head -1)
+          LARGEST_KB=$(echo "$LARGEST_JS" | cut -f1)
+          LARGEST_FILE=$(echo "$LARGEST_JS" | cut -f2)
+          echo "Largest JS chunk: ${LARGEST_KB} KB — $(basename "$LARGEST_FILE") (budget: ${MAX_ENTRY_KB} KB)"
+
+          FAIL=0
+          if [ "$TOTAL_KB" -gt "$MAX_TOTAL_KB" ]; then
+            echo "::error::Bundle size ${TOTAL_KB} KB exceeds budget of ${MAX_TOTAL_KB} KB"
+            FAIL=1
+          fi
+          if [ "$LARGEST_KB" -gt "$MAX_ENTRY_KB" ]; then
+            echo "::error::Entry chunk $(basename "$LARGEST_FILE") is ${LARGEST_KB} KB, exceeds ${MAX_ENTRY_KB} KB budget"
+            FAIL=1
+          fi
+
+          echo ""
+          echo "=== Bundle Size Report ==="
+          find "$DIST_DIR" -name '*.js' -exec du -k {} + | sort -rn | while read -r size file; do
+            echo "  ${size} KB — $(basename "$file")"
+          done
+          echo "========================="
+
+          exit $FAIL
+
   web-test:
     name: Web Tests
     runs-on: ubuntu-latest
