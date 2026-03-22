@@ -9,6 +9,24 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 
 
 
+## [v0.19.3] — 2026-03-22
+
+**Hotfix — Panel Role Redesign + BlockSprite Crash Fix**
+
+Redesigns the bottom panel roles: Command Panel becomes the interactive hub (properties display, connection editing, actions), Resource Guide becomes 100% read-only (workspace dashboard, encyclopedia content). Also fixes a React infinite loop crash in BlockSprite.
+
+### Panel Role Redesign (Epic #1112)
+- Rename `showProperties`/`Inspector` to `showResourceGuide`/`Resource Guide` across store and components (#1118)
+- Add read-only properties display to Command Panel actions (#1117)
+- Add connection editing mode to Command Panel with source/target display and delete (#1115)
+- Replace welcome state with workspace dashboard in Resource Guide (#1113)
+- Add encyclopedia content (overview, use cases, best practices) to Resource Guide detail views (#1114)
+- Update onboarding tour Step 2 to reflect new panel roles (#1116)
+
+### Bug Fix
+- Move `.filter()` outside Zustand selector in `BlockSprite` to fix React #185 infinite re-render crash (#1134)
+
+
 ## [v0.19.2] — 2026-03-22
 
 **Hotfix — App Load Crash (React #185)**
