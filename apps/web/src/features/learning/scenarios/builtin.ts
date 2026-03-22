@@ -1,76 +1,9 @@
 import type { ArchitectureSnapshot, Scenario } from '../../../shared/types/learning';
 import type {
   ContainerCapableResourceType,
-  ContainerNode,
-  LeafNode,
   PlateType,
-  ProviderType,
-  ResourceCategory,
 } from '@cloudblocks/schema';
 import { registerScenario } from './registry';
-
-type LegacyBlockCategory =
-  | ResourceCategory
-  | 'database'
-  | 'storage'
-  | 'gateway'
-  | 'function'
-  | 'queue'
-  | 'event'
-  | 'analytics'
-  | 'identity'
-  | 'observability';
-
-interface LegacyPlate {
-  id: string;
-  name: string;
-  type: PlateType;
-  parentId: string | null;
-  children: string[];
-  position: { x: number; y: number; z: number };
-  size: { width: number; height: number; depth: number };
-  metadata: Record<string, unknown>;
-  subnetAccess?: 'public' | 'private';
-}
-
-interface LegacyBlock {
-  id: string;
-  name: string;
-  category: LegacyBlockCategory;
-  provider?: ProviderType;
-  subtype?: string;
-  placementId: string;
-  position: { x: number; y: number; z: number };
-  metadata: Record<string, unknown>;
-}
-
-interface LegacyArchitecture {
-  name: string;
-  version: string;
-  plates: LegacyPlate[];
-  blocks: LegacyBlock[];
-  connections: ArchitectureSnapshot['connections'];
-  externalActors: ArchitectureSnapshot['externalActors'];
-}
-
-const LEGACY_CATEGORY_MAP: Record<LegacyBlockCategory, ResourceCategory> = {
-  network: 'network',
-  security: 'security',
-  edge: 'edge',
-  compute: 'compute',
-  data: 'data',
-  messaging: 'messaging',
-  operations: 'operations',
-  database: 'data',
-  storage: 'data',
-  gateway: 'edge',
-  function: 'compute',
-  queue: 'messaging',
-  event: 'messaging',
-  analytics: 'operations',
-  identity: 'security',
-  observability: 'operations',
-};
 
 const CONTAINER_RESOURCE_TYPE: Record<PlateType, ContainerCapableResourceType> = {
   global: 'virtual_network',
@@ -80,84 +13,49 @@ const CONTAINER_RESOURCE_TYPE: Record<PlateType, ContainerCapableResourceType> =
   subnet: 'subnet',
 };
 
-function toArchitectureSnapshot(legacy: LegacyArchitecture): ArchitectureSnapshot {
-  const containers: ContainerNode[] = legacy.plates.map((plate) => ({
-    id: plate.id,
-    name: plate.name,
-    kind: 'container',
-    layer: plate.type,
-    resourceType: CONTAINER_RESOURCE_TYPE[plate.type],
-    category: 'network',
-    provider: 'azure',
-    parentId: plate.parentId,
-    position: plate.position,
-    size: plate.size,
-    metadata: plate.metadata,
-    subnetAccess: plate.subnetAccess,
-  }));
-
-  const resources: LeafNode[] = legacy.blocks.map((block) => ({
-    id: block.id,
-    name: block.name,
-    kind: 'resource',
-    layer: 'resource',
-    resourceType: block.subtype ?? LEGACY_CATEGORY_MAP[block.category],
-    category: LEGACY_CATEGORY_MAP[block.category],
-    provider: block.provider ?? 'azure',
-    parentId: block.placementId,
-    position: block.position,
-    metadata: block.metadata,
-    subtype: block.subtype,
-  }));
-
-  return {
-    name: legacy.name,
-    version: legacy.version,
-    nodes: [...containers, ...resources],
-    connections: legacy.connections,
-    externalActors: legacy.externalActors,
-  };
-}
-
-const threeTierInitialArchitecture: ArchitectureSnapshot = toArchitectureSnapshot({
+const threeTierInitialArchitecture: ArchitectureSnapshot = {
   name: 'Three-Tier Learning Scenario',
   version: '1',
-  plates: [],
-  blocks: [],
+  nodes: [],
   connections: [],
   externalActors: [],
-});
+};
 
-const threeTierCheckpointNetworkOnly: ArchitectureSnapshot = toArchitectureSnapshot({
+const threeTierCheckpointNetworkOnly: ArchitectureSnapshot = {
   name: 'Three-Tier Learning Scenario',
   version: '1',
-  plates: [
+  nodes: [
     {
       id: 'plate-scn3tier-vnet',
       name: 'VNet',
-      type: 'region',
+      kind: 'container',
+      layer: 'region',
+      resourceType: CONTAINER_RESOURCE_TYPE.region,
+      category: 'network',
+      provider: 'azure',
       parentId: null,
-      children: [],
       position: { x: 0, y: 0, z: 0 },
       size: { width: 12, height: 0.3, depth: 10 },
       metadata: {},
     },
   ],
-  blocks: [],
   connections: [],
   externalActors: [],
-});
+};
 
-const threeTierCheckpointWithSubnets: ArchitectureSnapshot = toArchitectureSnapshot({
+const threeTierCheckpointWithSubnets: ArchitectureSnapshot = {
   name: 'Three-Tier Learning Scenario',
   version: '1',
-  plates: [
+  nodes: [
     {
       id: 'plate-scn3tier-vnet',
       name: 'VNet',
-      type: 'region',
+      kind: 'container',
+      layer: 'region',
+      resourceType: CONTAINER_RESOURCE_TYPE.region,
+      category: 'network',
+      provider: 'azure',
       parentId: null,
-      children: ['plate-scn3tier-public', 'plate-scn3tier-private'],
       position: { x: 0, y: 0, z: 0 },
       size: { width: 12, height: 0.3, depth: 10 },
       metadata: {},
@@ -165,10 +63,13 @@ const threeTierCheckpointWithSubnets: ArchitectureSnapshot = toArchitectureSnaps
     {
       id: 'plate-scn3tier-public',
       name: 'Public Subnet',
-      type: 'subnet',
+      kind: 'container',
+      layer: 'subnet',
+      resourceType: CONTAINER_RESOURCE_TYPE.subnet,
+      category: 'network',
+      provider: 'azure',
       subnetAccess: 'public',
       parentId: 'plate-scn3tier-vnet',
-      children: [],
       position: { x: -3, y: 0.3, z: 0 },
       size: { width: 5, height: 0.2, depth: 8 },
       metadata: {},
@@ -176,30 +77,35 @@ const threeTierCheckpointWithSubnets: ArchitectureSnapshot = toArchitectureSnaps
     {
       id: 'plate-scn3tier-private',
       name: 'Private Subnet',
-      type: 'subnet',
+      kind: 'container',
+      layer: 'subnet',
+      resourceType: CONTAINER_RESOURCE_TYPE.subnet,
+      category: 'network',
+      provider: 'azure',
       subnetAccess: 'private',
       parentId: 'plate-scn3tier-vnet',
-      children: [],
       position: { x: 3, y: 0.3, z: 0 },
       size: { width: 5, height: 0.2, depth: 8 },
       metadata: {},
     },
   ],
-  blocks: [],
   connections: [],
   externalActors: [],
-});
+};
 
-const threeTierCheckpointWithBlocks: ArchitectureSnapshot = toArchitectureSnapshot({
+const threeTierCheckpointWithBlocks: ArchitectureSnapshot = {
   name: 'Three-Tier Learning Scenario',
   version: '1',
-  plates: [
+  nodes: [
     {
       id: 'plate-scn3tier-vnet',
       name: 'VNet',
-      type: 'region',
+      kind: 'container',
+      layer: 'region',
+      resourceType: CONTAINER_RESOURCE_TYPE.region,
+      category: 'network',
+      provider: 'azure',
       parentId: null,
-      children: ['plate-scn3tier-public', 'plate-scn3tier-private'],
       position: { x: 0, y: 0, z: 0 },
       size: { width: 12, height: 0.3, depth: 10 },
       metadata: {},
@@ -207,10 +113,13 @@ const threeTierCheckpointWithBlocks: ArchitectureSnapshot = toArchitectureSnapsh
     {
       id: 'plate-scn3tier-public',
       name: 'Public Subnet',
-      type: 'subnet',
+      kind: 'container',
+      layer: 'subnet',
+      resourceType: CONTAINER_RESOURCE_TYPE.subnet,
+      category: 'network',
+      provider: 'azure',
       subnetAccess: 'public',
       parentId: 'plate-scn3tier-vnet',
-      children: ['block-scn3tier-gateway', 'block-scn3tier-compute'],
       position: { x: -3, y: 0.3, z: 0 },
       size: { width: 5, height: 0.2, depth: 8 },
       metadata: {},
@@ -218,44 +127,57 @@ const threeTierCheckpointWithBlocks: ArchitectureSnapshot = toArchitectureSnapsh
     {
       id: 'plate-scn3tier-private',
       name: 'Private Subnet',
-      type: 'subnet',
+      kind: 'container',
+      layer: 'subnet',
+      resourceType: CONTAINER_RESOURCE_TYPE.subnet,
+      category: 'network',
+      provider: 'azure',
       subnetAccess: 'private',
       parentId: 'plate-scn3tier-vnet',
-      children: ['block-scn3tier-database'],
       position: { x: 3, y: 0.3, z: 0 },
       size: { width: 5, height: 0.2, depth: 8 },
       metadata: {},
     },
-  ],
-  blocks: [
     {
       id: 'block-scn3tier-gateway',
       name: 'Gateway',
-      category: 'gateway',
-      placementId: 'plate-scn3tier-public',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'edge',
+      category: 'edge',
+      provider: 'azure',
+      parentId: 'plate-scn3tier-public',
       position: { x: -1.2, y: 0.5, z: -1.8 },
       metadata: {},
     },
     {
       id: 'block-scn3tier-compute',
       name: 'Compute',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'compute',
       category: 'compute',
-      placementId: 'plate-scn3tier-public',
+      provider: 'azure',
+      parentId: 'plate-scn3tier-public',
       position: { x: 1.2, y: 0.5, z: 1.2 },
       metadata: {},
     },
     {
       id: 'block-scn3tier-database',
       name: 'Database',
-      category: 'database',
-      placementId: 'plate-scn3tier-private',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'data',
+      category: 'data',
+      provider: 'azure',
+      parentId: 'plate-scn3tier-private',
       position: { x: 0, y: 0.5, z: 0 },
       metadata: {},
     },
   ],
   connections: [],
   externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
-});
+};
 
 const threeTierScenario: Scenario = {
   id: 'scenario-three-tier',
@@ -354,36 +276,41 @@ const threeTierScenario: Scenario = {
   ],
 };
 
-const serverlessApiInitialArchitecture: ArchitectureSnapshot = toArchitectureSnapshot({
+const serverlessApiInitialArchitecture: ArchitectureSnapshot = {
   name: 'Serverless API Learning Scenario',
   version: '1',
-  plates: [
+  nodes: [
     {
       id: 'plate-scnsls-vnet',
       name: 'VNet',
-      type: 'region',
+      kind: 'container',
+      layer: 'region',
+      resourceType: CONTAINER_RESOURCE_TYPE.region,
+      category: 'network',
+      provider: 'azure',
       parentId: null,
-      children: [],
       position: { x: 0, y: 0, z: 0 },
       size: { width: 12, height: 0.3, depth: 10 },
       metadata: {},
     },
   ],
-  blocks: [],
   connections: [],
   externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
-});
+};
 
-const serverlessApiCheckpointWithSubnets: ArchitectureSnapshot = toArchitectureSnapshot({
+const serverlessApiCheckpointWithSubnets: ArchitectureSnapshot = {
   name: 'Serverless API Learning Scenario',
   version: '1',
-  plates: [
+  nodes: [
     {
       id: 'plate-scnsls-vnet',
       name: 'VNet',
-      type: 'region',
+      kind: 'container',
+      layer: 'region',
+      resourceType: CONTAINER_RESOURCE_TYPE.region,
+      category: 'network',
+      provider: 'azure',
       parentId: null,
-      children: ['plate-scnsls-public', 'plate-scnsls-private'],
       position: { x: 0, y: 0, z: 0 },
       size: { width: 12, height: 0.3, depth: 10 },
       metadata: {},
@@ -391,10 +318,13 @@ const serverlessApiCheckpointWithSubnets: ArchitectureSnapshot = toArchitectureS
     {
       id: 'plate-scnsls-public',
       name: 'Public Subnet',
-      type: 'subnet',
+      kind: 'container',
+      layer: 'subnet',
+      resourceType: CONTAINER_RESOURCE_TYPE.subnet,
+      category: 'network',
+      provider: 'azure',
       subnetAccess: 'public',
       parentId: 'plate-scnsls-vnet',
-      children: [],
       position: { x: -3, y: 0.3, z: 0 },
       size: { width: 5, height: 0.2, depth: 8 },
       metadata: {},
@@ -402,19 +332,21 @@ const serverlessApiCheckpointWithSubnets: ArchitectureSnapshot = toArchitectureS
     {
       id: 'plate-scnsls-private',
       name: 'Private Subnet',
-      type: 'subnet',
+      kind: 'container',
+      layer: 'subnet',
+      resourceType: CONTAINER_RESOURCE_TYPE.subnet,
+      category: 'network',
+      provider: 'azure',
       subnetAccess: 'private',
       parentId: 'plate-scnsls-vnet',
-      children: [],
       position: { x: 3, y: 0.3, z: 0 },
       size: { width: 5, height: 0.2, depth: 8 },
       metadata: {},
     },
   ],
-  blocks: [],
   connections: [],
   externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
-});
+};
 
 const serverlessApiScenario: Scenario = {
   id: 'scenario-serverless-api',
@@ -497,16 +429,19 @@ const serverlessApiScenario: Scenario = {
   ],
 };
 
-const eventPipelineInitialArchitecture: ArchitectureSnapshot = toArchitectureSnapshot({
+const eventPipelineInitialArchitecture: ArchitectureSnapshot = {
   name: 'Event Pipeline Learning Scenario',
   version: '1',
-  plates: [
+  nodes: [
     {
       id: 'plate-scnevt-vnet',
       name: 'VNet',
-      type: 'region',
+      kind: 'container',
+      layer: 'region',
+      resourceType: CONTAINER_RESOURCE_TYPE.region,
+      category: 'network',
+      provider: 'azure',
       parentId: null,
-      children: ['plate-scnevt-private'],
       position: { x: 0, y: 0, z: 0 },
       size: { width: 12, height: 0.3, depth: 10 },
       metadata: {},
@@ -514,30 +449,35 @@ const eventPipelineInitialArchitecture: ArchitectureSnapshot = toArchitectureSna
     {
       id: 'plate-scnevt-private',
       name: 'Private Subnet',
-      type: 'subnet',
+      kind: 'container',
+      layer: 'subnet',
+      resourceType: CONTAINER_RESOURCE_TYPE.subnet,
+      category: 'network',
+      provider: 'azure',
       subnetAccess: 'private',
       parentId: 'plate-scnevt-vnet',
-      children: [],
       position: { x: 3, y: 0.3, z: 0 },
       size: { width: 5, height: 0.2, depth: 8 },
       metadata: {},
     },
   ],
-  blocks: [],
   connections: [],
   externalActors: [],
-});
+};
 
-const eventPipelineCheckpointAfterStep2: ArchitectureSnapshot = toArchitectureSnapshot({
+const eventPipelineCheckpointAfterStep2: ArchitectureSnapshot = {
   name: 'Event Pipeline Learning Scenario',
   version: '1',
-  plates: [
+  nodes: [
     {
       id: 'plate-scnevt-vnet',
       name: 'VNet',
-      type: 'region',
+      kind: 'container',
+      layer: 'region',
+      resourceType: CONTAINER_RESOURCE_TYPE.region,
+      category: 'network',
+      provider: 'azure',
       parentId: null,
-      children: ['plate-scnevt-private', 'block-scnevt-event', 'block-scnevt-queue'],
       position: { x: 0, y: 0, z: 0 },
       size: { width: 12, height: 0.3, depth: 10 },
       metadata: {},
@@ -545,54 +485,59 @@ const eventPipelineCheckpointAfterStep2: ArchitectureSnapshot = toArchitectureSn
     {
       id: 'plate-scnevt-private',
       name: 'Private Subnet',
-      type: 'subnet',
+      kind: 'container',
+      layer: 'subnet',
+      resourceType: CONTAINER_RESOURCE_TYPE.subnet,
+      category: 'network',
+      provider: 'azure',
       subnetAccess: 'private',
       parentId: 'plate-scnevt-vnet',
-      children: [],
       position: { x: 3, y: 0.3, z: 0 },
       size: { width: 5, height: 0.2, depth: 8 },
       metadata: {},
     },
-  ],
-  blocks: [
     {
       id: 'block-scnevt-event',
       name: 'Event Source',
-      category: 'event',
-      placementId: 'plate-scnevt-vnet',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'messaging',
+      category: 'messaging',
+      provider: 'azure',
+      parentId: 'plate-scnevt-vnet',
       position: { x: -3, y: 0.5, z: -2.5 },
       metadata: {},
     },
     {
       id: 'block-scnevt-queue',
       name: 'Queue',
-      category: 'queue',
-      placementId: 'plate-scnevt-vnet',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'messaging',
+      category: 'messaging',
+      provider: 'azure',
+      parentId: 'plate-scnevt-vnet',
       position: { x: -3, y: 0.5, z: 1.5 },
       metadata: {},
     },
   ],
   connections: [],
   externalActors: [],
-});
+};
 
-const eventPipelineCheckpointWithAllBlocks: ArchitectureSnapshot = toArchitectureSnapshot({
+const eventPipelineCheckpointWithAllBlocks: ArchitectureSnapshot = {
   name: 'Event Pipeline Learning Scenario',
   version: '1',
-  plates: [
+  nodes: [
     {
       id: 'plate-scnevt-vnet',
       name: 'VNet',
-      type: 'region',
+      kind: 'container',
+      layer: 'region',
+      resourceType: CONTAINER_RESOURCE_TYPE.region,
+      category: 'network',
+      provider: 'azure',
       parentId: null,
-      children: [
-        'plate-scnevt-private',
-        'block-scnevt-event',
-        'block-scnevt-queue',
-        'block-scnevt-fn-event',
-        'block-scnevt-fn-batch',
-        'block-scnevt-timer',
-      ],
       position: { x: 0, y: 0, z: 0 },
       size: { width: 12, height: 0.3, depth: 10 },
       metadata: {},
@@ -600,68 +545,93 @@ const eventPipelineCheckpointWithAllBlocks: ArchitectureSnapshot = toArchitectur
     {
       id: 'plate-scnevt-private',
       name: 'Private Subnet',
-      type: 'subnet',
+      kind: 'container',
+      layer: 'subnet',
+      resourceType: CONTAINER_RESOURCE_TYPE.subnet,
+      category: 'network',
+      provider: 'azure',
       subnetAccess: 'private',
       parentId: 'plate-scnevt-vnet',
-      children: ['block-scnevt-storage'],
       position: { x: 3, y: 0.3, z: 0 },
       size: { width: 5, height: 0.2, depth: 8 },
       metadata: {},
     },
-  ],
-  blocks: [
     {
       id: 'block-scnevt-event',
       name: 'Event Source',
-      category: 'event',
-      placementId: 'plate-scnevt-vnet',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'messaging',
+      category: 'messaging',
+      provider: 'azure',
+      parentId: 'plate-scnevt-vnet',
       position: { x: -3.5, y: 0.5, z: -2.5 },
       metadata: {},
     },
     {
       id: 'block-scnevt-queue',
       name: 'Queue',
-      category: 'queue',
-      placementId: 'plate-scnevt-vnet',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'messaging',
+      category: 'messaging',
+      provider: 'azure',
+      parentId: 'plate-scnevt-vnet',
       position: { x: -3.5, y: 0.5, z: 1.5 },
       metadata: {},
     },
     {
       id: 'block-scnevt-fn-event',
       name: 'Event Processor',
-      category: 'function',
-      placementId: 'plate-scnevt-vnet',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'compute',
+      category: 'compute',
+      provider: 'azure',
+      parentId: 'plate-scnevt-vnet',
       position: { x: 0, y: 0.5, z: -1.5 },
       metadata: {},
     },
     {
       id: 'block-scnevt-fn-batch',
       name: 'Batch Processor',
-      category: 'function',
-      placementId: 'plate-scnevt-vnet',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'compute',
+      category: 'compute',
+      provider: 'azure',
+      parentId: 'plate-scnevt-vnet',
       position: { x: 0, y: 0.5, z: 2 },
       metadata: {},
     },
     {
       id: 'block-scnevt-timer',
       name: 'Scheduled Event',
-      category: 'event',
-      placementId: 'plate-scnevt-vnet',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'messaging',
+      category: 'messaging',
+      provider: 'azure',
+      parentId: 'plate-scnevt-vnet',
       position: { x: 3.5, y: 0.5, z: -0.2 },
       metadata: {},
     },
     {
       id: 'block-scnevt-storage',
       name: 'Storage',
-      category: 'storage',
-      placementId: 'plate-scnevt-private',
+      kind: 'resource',
+      layer: 'resource',
+      resourceType: 'data',
+      category: 'data',
+      provider: 'azure',
+      parentId: 'plate-scnevt-private',
       position: { x: 0, y: 0.5, z: 0 },
       metadata: {},
     },
   ],
   connections: [],
   externalActors: [],
-});
+};
 
 const eventPipelineScenario: Scenario = {
   id: 'scenario-event-pipeline',

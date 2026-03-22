@@ -1,76 +1,9 @@
 import type { ArchitectureTemplate } from '../../shared/types/template';
 import type {
   ContainerCapableResourceType,
-  ContainerNode,
-  LeafNode,
   PlateType,
-  ProviderType,
-  ResourceCategory,
 } from '@cloudblocks/schema';
 import { registerTemplate } from './registry';
-
-type LegacyBlockCategory =
-  | ResourceCategory
-  | 'database'
-  | 'storage'
-  | 'gateway'
-  | 'function'
-  | 'queue'
-  | 'event'
-  | 'analytics'
-  | 'identity'
-  | 'observability';
-
-interface LegacyPlate {
-  id: string;
-  name: string;
-  type: PlateType;
-  parentId: string | null;
-  children: string[];
-  position: { x: number; y: number; z: number };
-  size: { width: number; height: number; depth: number };
-  metadata: Record<string, unknown>;
-  subnetAccess?: 'public' | 'private';
-}
-
-interface LegacyBlock {
-  id: string;
-  name: string;
-  category: LegacyBlockCategory;
-  provider?: ProviderType;
-  subtype?: string;
-  placementId: string;
-  position: { x: number; y: number; z: number };
-  metadata: Record<string, unknown>;
-}
-
-interface LegacyArchitecture {
-  name: string;
-  version: string;
-  plates: LegacyPlate[];
-  blocks: LegacyBlock[];
-  connections: ArchitectureTemplate['architecture']['connections'];
-  externalActors: ArchitectureTemplate['architecture']['externalActors'];
-}
-
-const LEGACY_CATEGORY_MAP: Record<LegacyBlockCategory, ResourceCategory> = {
-  network: 'network',
-  security: 'security',
-  edge: 'edge',
-  compute: 'compute',
-  data: 'data',
-  messaging: 'messaging',
-  operations: 'operations',
-  database: 'data',
-  storage: 'data',
-  gateway: 'edge',
-  function: 'compute',
-  queue: 'messaging',
-  event: 'messaging',
-  analytics: 'operations',
-  identity: 'security',
-  observability: 'operations',
-};
 
 const CONTAINER_RESOURCE_TYPE: Record<PlateType, ContainerCapableResourceType> = {
   global: 'virtual_network',
@@ -79,45 +12,6 @@ const CONTAINER_RESOURCE_TYPE: Record<PlateType, ContainerCapableResourceType> =
   zone: 'virtual_network',
   subnet: 'subnet',
 };
-
-function toArchitectureSnapshot(legacy: LegacyArchitecture): ArchitectureTemplate['architecture'] {
-  const containers: ContainerNode[] = legacy.plates.map((plate) => ({
-    id: plate.id,
-    name: plate.name,
-    kind: 'container',
-    layer: plate.type,
-    resourceType: CONTAINER_RESOURCE_TYPE[plate.type],
-    category: 'network',
-    provider: 'azure',
-    parentId: plate.parentId,
-    position: plate.position,
-    size: plate.size,
-    metadata: plate.metadata,
-    subnetAccess: plate.subnetAccess,
-  }));
-
-  const resources: LeafNode[] = legacy.blocks.map((block) => ({
-    id: block.id,
-    name: block.name,
-    kind: 'resource',
-    layer: 'resource',
-    resourceType: block.subtype ?? LEGACY_CATEGORY_MAP[block.category],
-    category: LEGACY_CATEGORY_MAP[block.category],
-    provider: block.provider ?? 'azure',
-    parentId: block.placementId,
-    position: block.position,
-    metadata: block.metadata,
-    subtype: block.subtype,
-  }));
-
-  return {
-    name: legacy.name,
-    version: legacy.version,
-    nodes: [...containers, ...resources],
-    connections: legacy.connections,
-    externalActors: legacy.externalActors,
-  };
-}
 
 /**
  * Built-in Templates (v0.4 + v1.0)
@@ -137,16 +31,19 @@ const threeTierTemplate: ArchitectureTemplate = {
   category: 'web-application',
   difficulty: 'beginner',
   tags: ['three-tier', 'web', 'gateway', 'database', 'beginner'],
-  architecture: toArchitectureSnapshot({
+  architecture: {
     name: 'Three-Tier Web App',
     version: '1',
-    plates: [
+    nodes: [
       {
         id: 'plate-tmpl-vnet',
         name: 'VNet',
-        type: 'region',
+        kind: 'container',
+        layer: 'region',
+        resourceType: CONTAINER_RESOURCE_TYPE.region,
+        category: 'network',
+        provider: 'azure',
         parentId: null,
-        children: ['plate-tmpl-public', 'plate-tmpl-private'],
         position: { x: 0, y: 0, z: 0 },
         size: { width: 12, height: 0.3, depth: 10 },
         metadata: {},
@@ -154,10 +51,13 @@ const threeTierTemplate: ArchitectureTemplate = {
       {
         id: 'plate-tmpl-public',
         name: 'Public Subnet',
-        type: 'subnet',
+        kind: 'container',
+        layer: 'subnet',
+        resourceType: CONTAINER_RESOURCE_TYPE.subnet,
+        category: 'network',
+        provider: 'azure',
         subnetAccess: 'public',
         parentId: 'plate-tmpl-vnet',
-        children: ['block-tmpl-gw', 'block-tmpl-compute'],
         position: { x: -3, y: 0.3, z: 0 },
         size: { width: 5, height: 0.2, depth: 8 },
         metadata: {},
@@ -165,53 +65,66 @@ const threeTierTemplate: ArchitectureTemplate = {
       {
         id: 'plate-tmpl-private',
         name: 'Private Subnet',
-        type: 'subnet',
+        kind: 'container',
+        layer: 'subnet',
+        resourceType: CONTAINER_RESOURCE_TYPE.subnet,
+        category: 'network',
+        provider: 'azure',
         subnetAccess: 'private',
         parentId: 'plate-tmpl-vnet',
-        children: ['block-tmpl-db', 'block-tmpl-storage'],
         position: { x: 3, y: 0.3, z: 0 },
         size: { width: 5, height: 0.2, depth: 8 },
         metadata: {},
       },
-    ],
-    blocks: [
       {
         id: 'block-tmpl-gw',
         name: 'App Gateway',
-        category: 'gateway',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'application-gateway',
+        category: 'edge',
         provider: 'azure',
         subtype: 'application-gateway',
-        placementId: 'plate-tmpl-public',
+        parentId: 'plate-tmpl-public',
         position: { x: -1.5, y: 0.5, z: -2 },
         metadata: {},
       },
       {
         id: 'block-tmpl-compute',
         name: 'Virtual Machine',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'vm',
         category: 'compute',
         provider: 'azure',
         subtype: 'vm',
-        placementId: 'plate-tmpl-public',
+        parentId: 'plate-tmpl-public',
         position: { x: 1.5, y: 0.5, z: 1 },
         metadata: {},
       },
       {
         id: 'block-tmpl-db',
         name: 'PostgreSQL',
-        category: 'database',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'sql-database',
+        category: 'data',
         provider: 'azure',
         subtype: 'sql-database',
-        placementId: 'plate-tmpl-private',
+        parentId: 'plate-tmpl-private',
         position: { x: -1.5, y: 0.5, z: -2 },
         metadata: {},
       },
       {
         id: 'block-tmpl-storage',
         name: 'Blob Storage',
-        category: 'storage',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'blob-storage',
+        category: 'data',
         provider: 'azure',
         subtype: 'blob-storage',
-        placementId: 'plate-tmpl-private',
+        parentId: 'plate-tmpl-private',
         position: { x: 1.5, y: 0.5, z: 1 },
         metadata: {},
       },
@@ -247,7 +160,7 @@ const threeTierTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
-  }),
+  },
 };
 
 const simpleComputeTemplate: ArchitectureTemplate = {
@@ -259,16 +172,19 @@ const simpleComputeTemplate: ArchitectureTemplate = {
   category: 'web-application',
   difficulty: 'beginner',
   tags: ['simple', 'compute', 'minimal', 'beginner'],
-  architecture: toArchitectureSnapshot({
+  architecture: {
     name: 'Simple Compute',
     version: '1',
-    plates: [
+    nodes: [
       {
         id: 'plate-tmpl-vnet2',
         name: 'VNet',
-        type: 'region',
+        kind: 'container',
+        layer: 'region',
+        resourceType: CONTAINER_RESOURCE_TYPE.region,
+        category: 'network',
+        provider: 'azure',
         parentId: null,
-        children: ['plate-tmpl-pub2'],
         position: { x: 0, y: 0, z: 0 },
         size: { width: 12, height: 0.3, depth: 10 },
         metadata: {},
@@ -276,33 +192,40 @@ const simpleComputeTemplate: ArchitectureTemplate = {
       {
         id: 'plate-tmpl-pub2',
         name: 'Public Subnet',
-        type: 'subnet',
+        kind: 'container',
+        layer: 'subnet',
+        resourceType: CONTAINER_RESOURCE_TYPE.subnet,
+        category: 'network',
+        provider: 'azure',
         subnetAccess: 'public',
         parentId: 'plate-tmpl-vnet2',
-        children: ['block-tmpl-gw2', 'block-tmpl-app2'],
         position: { x: 0, y: 0.3, z: 0 },
         size: { width: 5, height: 0.2, depth: 8 },
         metadata: {},
       },
-    ],
-    blocks: [
       {
         id: 'block-tmpl-gw2',
         name: 'Gateway',
-        category: 'gateway',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'application-gateway',
+        category: 'edge',
         provider: 'azure',
         subtype: 'application-gateway',
-        placementId: 'plate-tmpl-pub2',
+        parentId: 'plate-tmpl-pub2',
         position: { x: -1.5, y: 0.5, z: -2 },
         metadata: {},
       },
       {
         id: 'block-tmpl-app2',
         name: 'App Service',
-        category: 'function',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'app-service',
+        category: 'compute',
         provider: 'azure',
         subtype: 'app-service',
-        placementId: 'plate-tmpl-pub2',
+        parentId: 'plate-tmpl-pub2',
         position: { x: 1.5, y: 0.5, z: 1 },
         metadata: {},
       },
@@ -324,7 +247,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
-  }),
+  },
 };
 
 const dataStorageTemplate: ArchitectureTemplate = {
@@ -336,16 +259,19 @@ const dataStorageTemplate: ArchitectureTemplate = {
   category: 'data-pipeline',
   difficulty: 'intermediate',
   tags: ['data', 'storage', 'database', 'private', 'intermediate'],
-  architecture: toArchitectureSnapshot({
+  architecture: {
     name: 'Data Storage Backend',
     version: '1',
-    plates: [
+    nodes: [
       {
         id: 'plate-tmpl-vnet3',
         name: 'VNet',
-        type: 'region',
+        kind: 'container',
+        layer: 'region',
+        resourceType: CONTAINER_RESOURCE_TYPE.region,
+        category: 'network',
+        provider: 'azure',
         parentId: null,
-        children: ['plate-tmpl-pub3', 'plate-tmpl-priv3'],
         position: { x: 0, y: 0, z: 0 },
         size: { width: 12, height: 0.3, depth: 10 },
         metadata: {},
@@ -353,10 +279,13 @@ const dataStorageTemplate: ArchitectureTemplate = {
       {
         id: 'plate-tmpl-pub3',
         name: 'App Subnet',
-        type: 'subnet',
+        kind: 'container',
+        layer: 'subnet',
+        resourceType: CONTAINER_RESOURCE_TYPE.subnet,
+        category: 'network',
+        provider: 'azure',
         subnetAccess: 'public',
         parentId: 'plate-tmpl-vnet3',
-        children: ['block-tmpl-gw3', 'block-tmpl-api3'],
         position: { x: -3, y: 0.3, z: 0 },
         size: { width: 5, height: 0.2, depth: 8 },
         metadata: {},
@@ -364,53 +293,66 @@ const dataStorageTemplate: ArchitectureTemplate = {
       {
         id: 'plate-tmpl-priv3',
         name: 'Data Subnet',
-        type: 'subnet',
+        kind: 'container',
+        layer: 'subnet',
+        resourceType: CONTAINER_RESOURCE_TYPE.subnet,
+        category: 'network',
+        provider: 'azure',
         subnetAccess: 'private',
         parentId: 'plate-tmpl-vnet3',
-        children: ['block-tmpl-db3', 'block-tmpl-blob3'],
         position: { x: 3, y: 0.3, z: 0 },
         size: { width: 5, height: 0.2, depth: 8 },
         metadata: {},
       },
-    ],
-    blocks: [
       {
         id: 'block-tmpl-gw3',
         name: 'API Gateway',
-        category: 'gateway',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'application-gateway',
+        category: 'edge',
         provider: 'azure',
         subtype: 'application-gateway',
-        placementId: 'plate-tmpl-pub3',
+        parentId: 'plate-tmpl-pub3',
         position: { x: -1.5, y: 0.5, z: -2 },
         metadata: {},
       },
       {
         id: 'block-tmpl-api3',
         name: 'API Server',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'vm',
         category: 'compute',
         provider: 'azure',
         subtype: 'vm',
-        placementId: 'plate-tmpl-pub3',
+        parentId: 'plate-tmpl-pub3',
         position: { x: 1.5, y: 0.5, z: 1 },
         metadata: {},
       },
       {
         id: 'block-tmpl-db3',
         name: 'Database',
-        category: 'database',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'sql-database',
+        category: 'data',
         provider: 'azure',
         subtype: 'sql-database',
-        placementId: 'plate-tmpl-priv3',
+        parentId: 'plate-tmpl-priv3',
         position: { x: -1.5, y: 0.5, z: -2 },
         metadata: {},
       },
       {
         id: 'block-tmpl-blob3',
         name: 'File Storage',
-        category: 'storage',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'blob-storage',
+        category: 'data',
         provider: 'azure',
         subtype: 'blob-storage',
-        placementId: 'plate-tmpl-priv3',
+        parentId: 'plate-tmpl-priv3',
         position: { x: 1.5, y: 0.5, z: 1 },
         metadata: {},
       },
@@ -446,7 +388,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
-  }),
+  },
 };
 
 // ─── v1.0 Serverless Templates ──────────────────────────────
@@ -462,16 +404,19 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
   difficulty: 'intermediate',
   tags: ['serverless', 'function', 'http', 'api', 'gateway'],
   generatorCompat: ['terraform', 'bicep', 'pulumi'],
-  architecture: toArchitectureSnapshot({
+  architecture: {
     name: 'Serverless HTTP API',
     version: '1',
-    plates: [
+    nodes: [
       {
         id: 'plate-tmpl-vnet4',
         name: 'VNet',
-        type: 'region',
+        kind: 'container',
+        layer: 'region',
+        resourceType: CONTAINER_RESOURCE_TYPE.region,
+        category: 'network',
+        provider: 'azure',
         parentId: null,
-        children: ['plate-tmpl-pub4', 'plate-tmpl-priv4'],
         position: { x: 0, y: 0, z: 0 },
         size: { width: 12, height: 0.3, depth: 10 },
         metadata: {},
@@ -479,10 +424,13 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
       {
         id: 'plate-tmpl-pub4',
         name: 'Public Subnet',
-        type: 'subnet',
+        kind: 'container',
+        layer: 'subnet',
+        resourceType: CONTAINER_RESOURCE_TYPE.subnet,
+        category: 'network',
+        provider: 'azure',
         subnetAccess: 'public',
         parentId: 'plate-tmpl-vnet4',
-        children: ['block-tmpl-gw4'],
         position: { x: -3, y: 0.3, z: 0 },
         size: { width: 5, height: 0.2, depth: 8 },
         metadata: {},
@@ -490,53 +438,66 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
       {
         id: 'plate-tmpl-priv4',
         name: 'Private Subnet',
-        type: 'subnet',
+        kind: 'container',
+        layer: 'subnet',
+        resourceType: CONTAINER_RESOURCE_TYPE.subnet,
+        category: 'network',
+        provider: 'azure',
         subnetAccess: 'private',
         parentId: 'plate-tmpl-vnet4',
-        children: ['block-tmpl-db4', 'block-tmpl-storage4'],
         position: { x: 3, y: 0.3, z: 0 },
         size: { width: 5, height: 0.2, depth: 8 },
         metadata: {},
       },
-    ],
-    blocks: [
       {
         id: 'block-tmpl-gw4',
         name: 'API Gateway',
-        category: 'gateway',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'application-gateway',
+        category: 'edge',
         provider: 'azure',
         subtype: 'application-gateway',
-        placementId: 'plate-tmpl-pub4',
+        parentId: 'plate-tmpl-pub4',
         position: { x: 0, y: 0.5, z: 0 },
         metadata: {},
       },
       {
         id: 'block-tmpl-func4',
         name: 'HTTP Handler',
-        category: 'function',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'functions',
+        category: 'compute',
         provider: 'azure',
         subtype: 'functions',
-        placementId: 'plate-tmpl-vnet4',
+        parentId: 'plate-tmpl-vnet4',
         position: { x: 0, y: 0.5, z: 3 },
         metadata: {},
       },
       {
         id: 'block-tmpl-storage4',
         name: 'Blob Storage',
-        category: 'storage',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'blob-storage',
+        category: 'data',
         provider: 'azure',
         subtype: 'blob-storage',
-        placementId: 'plate-tmpl-priv4',
+        parentId: 'plate-tmpl-priv4',
         position: { x: -1.5, y: 0.5, z: -2 },
         metadata: {},
       },
       {
         id: 'block-tmpl-db4',
         name: 'CosmosDB',
-        category: 'database',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'cosmos-db',
+        category: 'data',
         provider: 'azure',
         subtype: 'cosmos-db',
-        placementId: 'plate-tmpl-priv4',
+        parentId: 'plate-tmpl-priv4',
         position: { x: 1.5, y: 0.5, z: 1 },
         metadata: {},
       },
@@ -572,7 +533,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
-  }),
+  },
 };
 
 const eventDrivenPipelineTemplate: ArchitectureTemplate = {
@@ -585,16 +546,19 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
   difficulty: 'advanced',
   tags: ['event-driven', 'queue', 'function', 'event', 'pipeline'],
   generatorCompat: ['terraform', 'bicep', 'pulumi'],
-  architecture: toArchitectureSnapshot({
+  architecture: {
     name: 'Event-Driven Pipeline',
     version: '1',
-    plates: [
+    nodes: [
       {
         id: 'plate-tmpl-vnet5',
         name: 'VNet',
-        type: 'region',
+        kind: 'container',
+        layer: 'region',
+        resourceType: CONTAINER_RESOURCE_TYPE.region,
+        category: 'network',
+        provider: 'azure',
         parentId: null,
-        children: ['plate-tmpl-priv5'],
         position: { x: 0, y: 0, z: 0 },
         size: { width: 12, height: 0.3, depth: 10 },
         metadata: {},
@@ -602,73 +566,92 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
       {
         id: 'plate-tmpl-priv5',
         name: 'Private Subnet',
-        type: 'subnet',
+        kind: 'container',
+        layer: 'subnet',
+        resourceType: CONTAINER_RESOURCE_TYPE.subnet,
+        category: 'network',
+        provider: 'azure',
         subnetAccess: 'private',
         parentId: 'plate-tmpl-vnet5',
-        children: ['block-tmpl-storage5'],
         position: { x: 3, y: 0.3, z: 0 },
         size: { width: 5, height: 0.2, depth: 8 },
         metadata: {},
       },
-    ],
-    blocks: [
       {
         id: 'block-tmpl-event5',
         name: 'Event Source',
-        category: 'event',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'event-grid',
+        category: 'messaging',
         provider: 'azure',
         subtype: 'event-grid',
-        placementId: 'plate-tmpl-vnet5',
+        parentId: 'plate-tmpl-vnet5',
         position: { x: -3, y: 0.5, z: -3 },
         metadata: {},
       },
       {
         id: 'block-tmpl-queue5',
         name: 'Message Queue',
-        category: 'queue',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'service-bus',
+        category: 'messaging',
         provider: 'azure',
         subtype: 'service-bus',
-        placementId: 'plate-tmpl-vnet5',
+        parentId: 'plate-tmpl-vnet5',
         position: { x: -3, y: 0.5, z: 1 },
         metadata: {},
       },
       {
         id: 'block-tmpl-timer5',
         name: 'Scheduled Trigger',
-        category: 'event',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'event-grid',
+        category: 'messaging',
         provider: 'azure',
         subtype: 'event-grid',
-        placementId: 'plate-tmpl-vnet5',
+        parentId: 'plate-tmpl-vnet5',
         position: { x: 0, y: 0.5, z: -3 },
         metadata: {},
       },
       {
         id: 'block-tmpl-func5a',
         name: 'Event Processor',
-        category: 'function',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'functions',
+        category: 'compute',
         provider: 'azure',
         subtype: 'functions',
-        placementId: 'plate-tmpl-vnet5',
+        parentId: 'plate-tmpl-vnet5',
         position: { x: 0, y: 0.5, z: 1 },
         metadata: {},
       },
       {
         id: 'block-tmpl-func5b',
         name: 'Batch Processor',
-        category: 'function',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'functions',
+        category: 'compute',
         provider: 'azure',
         subtype: 'functions',
-        placementId: 'plate-tmpl-vnet5',
+        parentId: 'plate-tmpl-vnet5',
         position: { x: 3, y: 0.5, z: -3 },
         metadata: {},
       },
       {
         id: 'block-tmpl-storage5',
         name: 'Data Lake',
-        category: 'storage',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'blob-storage',
+        category: 'data',
         provider: 'azure',
         subtype: 'blob-storage',
-        placementId: 'plate-tmpl-priv5',
+        parentId: 'plate-tmpl-priv5',
         position: { x: 0, y: 0.5, z: 0 },
         metadata: {},
       },
@@ -718,7 +701,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [],
-  }),
+  },
 };
 
 const fullStackServerlessTemplate: ArchitectureTemplate = {
@@ -736,16 +719,19 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
     'function', 'compute', 'gateway', 'database', 'storage', 'advanced',
   ],
   generatorCompat: ['terraform', 'bicep', 'pulumi'],
-  architecture: toArchitectureSnapshot({
+  architecture: {
     name: 'Full-Stack Serverless',
     version: '1',
-    plates: [
+    nodes: [
       {
         id: 'plate-fs-vnet',
         name: 'VNet',
-        type: 'region',
+        kind: 'container',
+        layer: 'region',
+        resourceType: CONTAINER_RESOURCE_TYPE.region,
+        category: 'network',
+        provider: 'azure',
         parentId: null,
-        children: ['plate-fs-public', 'plate-fs-private'],
         position: { x: 0, y: 0, z: 0 },
         size: { width: 12, height: 0.3, depth: 10 },
         metadata: {},
@@ -753,10 +739,13 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       {
         id: 'plate-fs-public',
         name: 'Public Subnet',
-        type: 'subnet',
+        kind: 'container',
+        layer: 'subnet',
+        resourceType: CONTAINER_RESOURCE_TYPE.subnet,
+        category: 'network',
+        provider: 'azure',
         subnetAccess: 'public',
         parentId: 'plate-fs-vnet',
-        children: ['block-fs-gw', 'block-fs-web'],
         position: { x: -3, y: 0.3, z: 0 },
         size: { width: 5, height: 0.2, depth: 8 },
         metadata: {},
@@ -764,34 +753,42 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       {
         id: 'plate-fs-private',
         name: 'Private Subnet',
-        type: 'subnet',
+        kind: 'container',
+        layer: 'subnet',
+        resourceType: CONTAINER_RESOURCE_TYPE.subnet,
+        category: 'network',
+        provider: 'azure',
         subnetAccess: 'private',
         parentId: 'plate-fs-vnet',
-        children: ['block-fs-db', 'block-fs-storage'],
         position: { x: 3, y: 0.3, z: 0 },
         size: { width: 5, height: 0.2, depth: 8 },
         metadata: {},
       },
-    ],
-    blocks: [
+    
       // Public Subnet
       {
         id: 'block-fs-gw',
         name: 'API Gateway',
-        category: 'gateway',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'application-gateway',
+        category: 'edge',
         provider: 'azure',
         subtype: 'application-gateway',
-        placementId: 'plate-fs-public',
+        parentId: 'plate-fs-public',
         position: { x: -1.5, y: 0.5, z: -2 },
         metadata: {},
       },
       {
         id: 'block-fs-web',
         name: 'Web Frontend',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'vm',
         category: 'compute',
         provider: 'azure',
         subtype: 'vm',
-        placementId: 'plate-fs-public',
+        parentId: 'plate-fs-public',
         position: { x: 1.5, y: 0.5, z: 1 },
         metadata: {},
       },
@@ -799,20 +796,26 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       {
         id: 'block-fs-db',
         name: 'PostgreSQL',
-        category: 'database',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'sql-database',
+        category: 'data',
         provider: 'azure',
         subtype: 'sql-database',
-        placementId: 'plate-fs-private',
+        parentId: 'plate-fs-private',
         position: { x: -1.5, y: 0.5, z: -2 },
         metadata: {},
       },
       {
         id: 'block-fs-storage',
         name: 'Blob Storage',
-        category: 'storage',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'blob-storage',
+        category: 'data',
         provider: 'azure',
         subtype: 'blob-storage',
-        placementId: 'plate-fs-private',
+        parentId: 'plate-fs-private',
         position: { x: 1.5, y: 0.5, z: 1 },
         metadata: {},
       },
@@ -820,60 +823,78 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       {
         id: 'block-fs-api',
         name: 'API Handler',
-        category: 'function',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'functions',
+        category: 'compute',
         provider: 'azure',
         subtype: 'functions',
-        placementId: 'plate-fs-vnet',
+        parentId: 'plate-fs-vnet',
         position: { x: -4, y: 0.5, z: 3 },
         metadata: {},
       },
       {
         id: 'block-fs-worker',
         name: 'Queue Worker',
-        category: 'function',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'functions',
+        category: 'compute',
         provider: 'azure',
         subtype: 'functions',
-        placementId: 'plate-fs-vnet',
+        parentId: 'plate-fs-vnet',
         position: { x: 0, y: 0.5, z: 3 },
         metadata: {},
       },
       {
         id: 'block-fs-batch',
         name: 'Batch Processor',
-        category: 'function',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'functions',
+        category: 'compute',
         provider: 'azure',
         subtype: 'functions',
-        placementId: 'plate-fs-vnet',
+        parentId: 'plate-fs-vnet',
         position: { x: 4, y: 0.5, z: 3 },
         metadata: {},
       },
       {
         id: 'block-fs-queue',
         name: 'Message Queue',
-        category: 'queue',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'service-bus',
+        category: 'messaging',
         provider: 'azure',
         subtype: 'service-bus',
-        placementId: 'plate-fs-vnet',
+        parentId: 'plate-fs-vnet',
         position: { x: -3, y: 0.5, z: -3 },
         metadata: {},
       },
       {
         id: 'block-fs-event',
         name: 'Event Source',
-        category: 'event',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'event-grid',
+        category: 'messaging',
         provider: 'azure',
         subtype: 'event-grid',
-        placementId: 'plate-fs-vnet',
+        parentId: 'plate-fs-vnet',
         position: { x: 0, y: 0.5, z: -3 },
         metadata: {},
       },
       {
         id: 'block-fs-timer',
         name: 'Cron Timer',
-        category: 'event',
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: 'event-grid',
+        category: 'messaging',
         provider: 'azure',
         subtype: 'event-grid',
-        placementId: 'plate-fs-vnet',
+        parentId: 'plate-fs-vnet',
         position: { x: 3, y: 0.5, z: -3 },
         metadata: {},
       },
@@ -969,7 +990,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
-  }),
+  },
 };
 
 /**
