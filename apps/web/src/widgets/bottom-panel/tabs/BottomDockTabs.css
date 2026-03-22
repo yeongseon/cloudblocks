@@ -1,0 +1,37 @@
+.bottom-dock-tabs {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+}
+
+.bottom-dock-tab {
+  appearance: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 8px 16px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.bottom-dock-tab:hover {
+  color: var(--text-secondary);
+}
+
+.bottom-dock-tab.is-active {
+  border-bottom-color: var(--accent-primary);
+  color: var(--text-primary);
+}
+
+.bottom-dock-tab:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
