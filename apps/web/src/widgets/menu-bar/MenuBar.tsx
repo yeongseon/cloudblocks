@@ -32,8 +32,14 @@ export function MenuBar() {
   const selectedId = useUIStore((s) => s.selectedId);
   const showValidation = useUIStore((s) => s.showValidation);
   const toggleValidation = useUIStore((s) => s.toggleValidation);
-  const showBlockPalette = useUIStore((s) => s.showBlockPalette);
-  const toggleBlockPalette = useUIStore((s) => s.toggleBlockPalette);
+  const sidebarOpen = useUIStore((s) => s.sidebar.isOpen);
+  const toggleSidebar = useUIStore((s) => s.toggleSidebar);
+  const inspectorOpen = useUIStore((s) => s.inspector.isOpen);
+  const toggleInspector = useUIStore((s) => s.toggleInspector);
+  const bottomDockOpen = useUIStore((s) => s.bottomDock.isOpen);
+  const bottomDockActiveTab = useUIStore((s) => s.bottomDock.activeTab);
+  const openBottomTab = useUIStore((s) => s.openBottomTab);
+  const closeBottomDock = useUIStore((s) => s.closeBottomDock);
   const showResourceGuide = useUIStore((s) => s.showResourceGuide);
   const toggleResourceGuide = useUIStore((s) => s.toggleResourceGuide);
   const activeProvider = useUIStore((s) => s.activeProvider);
@@ -276,6 +282,28 @@ export function MenuBar() {
     toggleLearningPanel();
   };
 
+  const handleToggleBottomDock = () => {
+    if (bottomDockOpen) {
+      closeBottomDock();
+    } else {
+      openBottomTab('output');
+    }
+  };
+
+  const handleToggleValidationResults = () => {
+    if (!bottomDockOpen) {
+      openBottomTab('validation');
+      return;
+    }
+
+    if (bottomDockActiveTab === 'validation') {
+      closeBottomDock();
+      return;
+    }
+
+    openBottomTab('validation');
+  };
+
   return (
     <div className="menu-bar">
       <div className="menu-bar-logo">🧱 CloudBlocks</div>
@@ -425,15 +453,25 @@ export function MenuBar() {
             View
           </button>
           <div className={`menu-dropdown ${openMenu === 'view' ? 'show' : ''}`}>
-            <button type="button" className="menu-item" onClick={() => handleAction(toggleBlockPalette)}>
-              <span className="menu-item-left">{showBlockPalette ? '✓ ' : '  '}🧰 Block Palette</span>
+            <button type="button" className="menu-item" onClick={() => handleAction(toggleSidebar)}>
+              <span className="menu-item-left">{sidebarOpen ? '✓ ' : '  '}📌 Sidebar</span>
+              <span className="menu-shortcut">Ctrl+Alt+S</span>
             </button>
             <button type="button" className="menu-item" onClick={() => handleAction(toggleResourceGuide)}>
               <span className="menu-item-left">{showResourceGuide ? '✓ ' : '  '}📖 Resource Guide</span>
             </button>
             <div className="menu-separator" />
-            <button type="button" className="menu-item" onClick={() => handleAction(toggleValidation)}>
-              <span className="menu-item-left">{showValidation ? '✓ ' : ''}📊 Validation Results</span>
+            <button type="button" className="menu-item" onClick={() => handleAction(toggleInspector)}>
+              <span className="menu-item-left">{inspectorOpen ? '✓ ' : '  '}🔍 Inspector</span>
+              <span className="menu-shortcut">Ctrl+Alt+I</span>
+            </button>
+            <div className="menu-separator" />
+            <button type="button" className="menu-item" onClick={() => handleAction(handleToggleBottomDock)}>
+              <span className="menu-item-left">{bottomDockOpen ? '✓ ' : '  '}📊 Bottom Dock</span>
+              <span className="menu-shortcut">Ctrl+Alt+D</span>
+            </button>
+            <button type="button" className="menu-item" onClick={() => handleAction(handleToggleValidationResults)}>
+              <span className="menu-item-left">{bottomDockOpen && bottomDockActiveTab === 'validation' ? '✓ ' : '  '}📊 Validation Results</span>
             </button>
             <div className="menu-separator" />
             <button

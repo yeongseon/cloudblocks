@@ -153,6 +153,27 @@ export function BuilderView() {
         return;
       }
 
+      if (e.key === 's' && e.ctrlKey && e.altKey) {
+        e.preventDefault();
+        useUIStore.getState().toggleSidebar();
+        return;
+      }
+      if (e.key === 'i' && e.ctrlKey && e.altKey) {
+        e.preventDefault();
+        useUIStore.getState().toggleInspector();
+        return;
+      }
+      if (e.key === 'd' && e.ctrlKey && e.altKey) {
+        e.preventDefault();
+        const dock = useUIStore.getState().bottomDock;
+        if (dock.isOpen) {
+          useUIStore.getState().closeBottomDock();
+        } else {
+          useUIStore.getState().openBottomTab('output');
+        }
+        return;
+      }
+
       if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         const success = saveToStorage();

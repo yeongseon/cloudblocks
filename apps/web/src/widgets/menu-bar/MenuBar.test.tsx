@@ -210,7 +210,6 @@ describe('MenuBar', () => {
       selectedId: null,
       toolMode: 'select',
       showValidation: false,
-      showBlockPalette: true,
       showResourceGuide: true,
       showCodePreview: false,
       showWorkspaceManager: false,
@@ -226,6 +225,9 @@ describe('MenuBar', () => {
       draggedBlockCategory: null,
       activeProvider: 'azure',
       isSoundMuted: false,
+      sidebar: { isOpen: true },
+      inspector: { isOpen: true, activeTab: 'properties' },
+      bottomDock: { isOpen: false, activeTab: 'output' },
     });
 
     useAuthStore.setState({
@@ -656,16 +658,40 @@ describe('MenuBar', () => {
 
     const viewDropdown = await openMenu(user, 'View');
     await user.click(within(viewDropdown).getByRole('button', { name: /Validation Results/ }));
-    expect(useUIStore.getState().showValidation).toBe(true);
+    expect(useUIStore.getState().bottomDock.isOpen).toBe(true);
+    expect(useUIStore.getState().bottomDock.activeTab).toBe('validation');
   });
 
-  it('handles View menu toggle for Block Palette', async () => {
+  it('handles View menu toggle for Sidebar', async () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
     const viewDropdown = await openMenu(user, 'View');
-    await user.click(within(viewDropdown).getByRole('button', { name: /Block Palette/ }));
-    expect(useUIStore.getState().showBlockPalette).toBe(false);
+    await user.click(within(viewDropdown).getByRole('button', { name: /Sidebar/ }));
+    expect(useUIStore.getState().sidebar.isOpen).toBe(false);
+  });
+
+  it('Toggle Inspector from View menu flips inspector state', async () => {
+    const user = userEvent.setup();
+    render(<MenuBar />);
+
+    const viewDropdown = await openMenu(user, 'View');
+    await user.click(within(viewDropdown).getByRole('button', { name: /Inspector/ }));
+    expect(useUIStore.getState().inspector.isOpen).toBe(false);
+  });
+
+  it('Toggle Bottom Dock from View menu opens/closes dock', async () => {
+    const user = userEvent.setup();
+    render(<MenuBar />);
+
+    let viewDropdown = await openMenu(user, 'View');
+    await user.click(within(viewDropdown).getByRole('button', { name: /Bottom Dock/ }));
+    expect(useUIStore.getState().bottomDock.isOpen).toBe(true);
+    expect(useUIStore.getState().bottomDock.activeTab).toBe('output');
+
+    viewDropdown = await openMenu(user, 'View');
+    await user.click(within(viewDropdown).getByRole('button', { name: /Bottom Dock/ }));
+    expect(useUIStore.getState().bottomDock.isOpen).toBe(false);
   });
 
   it('handles View menu toggle for Properties Panel', async () => {
