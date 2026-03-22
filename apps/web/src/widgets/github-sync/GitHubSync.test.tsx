@@ -1,17 +1,29 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+
 vi.mock('../../shared/api/client', () => ({
   apiPost: vi.fn(),
   apiGet: vi.fn(),
   apiPut: vi.fn(),
   isAuthError: vi.fn(() => false),
 }));
+
+vi.mock('../../shared/ui/ConfirmDialog', () => ({
+  confirmDialog: vi.fn(),
+}));
+
+vi.mock('../../features/diff/engine', () => ({
+  computeArchitectureDiff: vi.fn(),
+}));
+
 import { GitHubSync } from './GitHubSync';
 import { useUIStore } from '../../entities/store/uiStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { apiGet, apiPost, apiPut, isAuthError } from '../../shared/api/client';
+import { confirmDialog } from '../../shared/ui/ConfirmDialog';
+import { computeArchitectureDiff } from '../../features/diff/engine';
 import type { ArchitectureModel } from '@cloudblocks/schema';
 
 const emptyArch: ArchitectureModel = {
@@ -30,6 +42,8 @@ describe('GitHubSync', () => {
   const mockApiPost = vi.mocked(apiPost);
   const mockApiPut = vi.mocked(apiPut);
   const mockIsAuthError = vi.mocked(isAuthError);
+  const mockConfirmDialog = vi.mocked(confirmDialog);
+  const mockComputeArchitectureDiff = vi.mocked(computeArchitectureDiff);
   const replaceArchitectureMock = vi.fn();
 
   beforeEach(() => {
@@ -65,6 +79,15 @@ describe('GitHubSync', () => {
       updated_at: '',
     });
     mockIsAuthError.mockReturnValue(false);
+    mockConfirmDialog.mockResolvedValue(true);
+    mockComputeArchitectureDiff.mockReturnValue({
+      plates: { added: [], removed: [], modified: [] },
+      blocks: { added: [], removed: [], modified: [] },
+      connections: { added: [], removed: [], modified: [] },
+      externalActors: { added: [], removed: [], modified: [] },
+      rootChanges: [],
+      summary: { totalChanges: 0, hasBreakingChanges: false },
+    } as ReturnType<typeof computeArchitectureDiff>);
   });
 
   it('renders null when hidden', () => {
@@ -128,6 +151,43 @@ describe('GitHubSync', () => {
         commit_message: 'Sync architecture from CloudBlocks',
       });
     });
+  });
+
+  it('shows in-sync indicator after successful sync', async () => {
+    const user = userEvent.setup();
+    mockApiPost.mockResolvedValue({ message: 'ok', commit_sha: 'abc123' });
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+    await user.click(await screen.findByRole('button', { name: 'Sync to GitHub' }));
+
+    expect(await screen.findByText('✅ In sync')).toBeInTheDocument();
+  });
+
+  it('shows local-changes indicator when architecture changes after sync', async () => {
+    const user = userEvent.setup();
+    mockApiPost.mockResolvedValue({ message: 'ok', commit_sha: 'abc123' });
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+    await user.click(await screen.findByRole('button', { name: 'Sync to GitHub' }));
+    await screen.findByText('✅ In sync');
+
+    useArchitectureStore.setState((state) => ({
+      workspace: {
+        ...state.workspace,
+        architecture: {
+          ...state.workspace.architecture,
+          name: 'Changed after sync',
+        },
+      },
+    }));
+
+    expect(await screen.findByText('⚠️ Local changes since last sync')).toBeInTheDocument();
   });
 
   it('shows error when link repo with invalid format', async () => {
@@ -420,6 +480,103 @@ describe('GitHubSync', () => {
     render(<GitHubSync />);
     await user.click(screen.getByRole('button', { name: 'Close GitHub sync panel' }));
     expect(useUIStore.getState().showGitHubSync).toBe(false);
+  });
+
+  it('asks for confirmation before closing when operation is in progress', async () => {
+    const user = userEvent.setup();
+    let resolveSync!: (value: unknown) => void;
+    mockApiPost.mockReturnValueOnce(new Promise((resolve) => {
+      resolveSync = resolve;
+    }));
+    mockConfirmDialog.mockResolvedValueOnce(false);
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+    await user.click(await screen.findByRole('button', { name: 'Sync to GitHub' }));
+    await user.click(screen.getByRole('button', { name: 'Close GitHub sync panel' }));
+
+    expect(mockConfirmDialog).toHaveBeenCalledWith(
+      'An operation is in progress. Closing may hide the result. Close anyway?',
+      'Close GitHub Sync?'
+    );
+    expect(useUIStore.getState().showGitHubSync).toBe(true);
+    resolveSync({ message: 'ok', commit_sha: 'abc' });
+  });
+
+  it('closes immediately when not busy without confirmation dialog', async () => {
+    const user = userEvent.setup();
+    render(<GitHubSync />);
+
+    await user.click(screen.getByRole('button', { name: 'Close GitHub sync panel' }));
+
+    expect(mockConfirmDialog).not.toHaveBeenCalled();
+    expect(useUIStore.getState().showGitHubSync).toBe(false);
+  });
+
+  it('shows post-pull diff summary', async () => {
+    const user = userEvent.setup();
+    const pulledArchitecture = {
+      nodes: [],
+      connections: [],
+      externalActors: [],
+      name: 'Pulled architecture',
+      version: '1.0.0',
+    };
+    mockApiPost.mockResolvedValueOnce({ architecture: pulledArchitecture });
+    mockComputeArchitectureDiff.mockReturnValueOnce({
+      plates: { added: [{ id: 'plate-1' }], removed: [], modified: [] },
+      blocks: { added: [{ id: 'block-1' }], removed: [], modified: [] },
+      connections: { added: [], removed: [], modified: [] },
+      externalActors: { added: [], removed: [], modified: [] },
+      rootChanges: [],
+      summary: { totalChanges: 2, hasBreakingChanges: false },
+    } as unknown as ReturnType<typeof computeArchitectureDiff>);
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+    await user.click(await screen.findByRole('button', { name: 'Pull from GitHub' }));
+
+    expect(await screen.findByText('Pulled: 2 changes (1/0 plates added/removed, 1/0 blocks added/removed)')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Undo Pull' })).toBeInTheDocument();
+  });
+
+  it('undo pull restores pre-pull architecture snapshot', async () => {
+    const user = userEvent.setup();
+    const pulledArchitecture = {
+      nodes: [],
+      connections: [],
+      externalActors: [],
+      name: 'Pulled architecture',
+      version: '1.0.0',
+    };
+    mockApiPost.mockResolvedValueOnce({ architecture: pulledArchitecture });
+    mockComputeArchitectureDiff.mockReturnValueOnce({
+      plates: { added: [], removed: [], modified: [] },
+      blocks: { added: [], removed: [], modified: [] },
+      connections: { added: [], removed: [], modified: [] },
+      externalActors: { added: [], removed: [], modified: [] },
+      rootChanges: [],
+      summary: { totalChanges: 0, hasBreakingChanges: false },
+    } as ReturnType<typeof computeArchitectureDiff>);
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+    await user.click(await screen.findByRole('button', { name: 'Pull from GitHub' }));
+    await user.click(await screen.findByRole('button', { name: 'Undo Pull' }));
+
+    expect(replaceArchitectureMock).toHaveBeenNthCalledWith(2, {
+      name: 'Test',
+      version: '1.0.0',
+      nodes: [],
+      connections: [],
+      externalActors: [],
+    });
   });
 
   it('open GitHub repos button toggles repos panel', async () => {
