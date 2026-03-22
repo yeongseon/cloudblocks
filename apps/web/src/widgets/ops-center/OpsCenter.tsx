@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, type ReactNode } from 'react';
 import { useOpsStore } from '../../entities/store/opsStore';
 import type { EnvironmentInfo, PipelineRun, DeploymentRecord, CostEstimate } from '../../entities/store/opsStore';
 import { timeAgo } from '../../shared/utils/timeAgo';
@@ -290,7 +290,7 @@ export function OpsCenter() {
 
   const refreshSeqRef = useRef(0);
 
-  const safeRefreshAll = async () => {
+  const safeRefreshAll = useCallback(async () => {
     refreshSeqRef.current += 1;
     const seq = refreshSeqRef.current;
     await refreshAll();
@@ -298,15 +298,14 @@ export function OpsCenter() {
     // store already holds the newer data; nothing to discard here because
     // the store is the source of truth and the latest write wins.
     void seq; // read to satisfy lint; guard kept for future per-field apply
-  };
+  }, [refreshAll]);
 
   // Load data on first open
   useEffect(() => {
     if (showOpsCenter) {
       void safeRefreshAll();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showOpsCenter]);
+  }, [showOpsCenter, safeRefreshAll]);
 
   useEffect(() => {
     if (!showOpsCenter) return;

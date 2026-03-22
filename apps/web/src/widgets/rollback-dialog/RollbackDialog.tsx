@@ -44,12 +44,12 @@ export function RollbackDialog() {
     if (!show) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        handleClose();
+        selectRollbackVersion(null);
+        setShowRollbackDialog(false);
       }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [show, setShowRollbackDialog, selectRollbackVersion]);
 
   if (!show) return null;
