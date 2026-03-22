@@ -3,9 +3,23 @@ import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { apiPost, getApiErrorMessage, isAuthError } from '../../shared/api/client';
+import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import { isValidGitBranchName } from '../../shared/utils/githubValidation';
 import type { PullRequestResponse } from '../../shared/types/api';
 import './GitHubPR.css';
+
+const DEFAULT_TITLE = 'Update cloud architecture';
+const DEFAULT_BODY = '';
+const DEFAULT_BRANCH = '';
+const DEFAULT_COMMIT_MESSAGE = 'Update architecture via CloudBlocks';
+const FALLBACK_BASE_BRANCHES = ['main', 'master'];
+
+type WorkspaceBranchInfo = {
+  githubBranch?: string;
+  github_branch?: string;
+  defaultBranch?: string;
+  default_branch?: string;
+};
 
 export function GitHubPR() {
   const show = useUIStore((s) => s.showGitHubPR);
@@ -16,18 +30,41 @@ export function GitHubPR() {
   const workspace = useArchitectureStore((s) => s.workspace);
   const hasBackendWorkspaceLink = Boolean(workspace.backendWorkspaceId);
 
-  const [title, setTitle] = useState('Update cloud architecture');
-  const [body, setBody] = useState('');
-  const [branch, setBranch] = useState('');
-  const [commitMessage, setCommitMessage] = useState('Update architecture via CloudBlocks');
+  const [title, setTitle] = useState(DEFAULT_TITLE);
+  const [body, setBody] = useState(DEFAULT_BODY);
+  const [branch, setBranch] = useState(DEFAULT_BRANCH);
+  const [commitMessage, setCommitMessage] = useState(DEFAULT_COMMIT_MESSAGE);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PullRequestResponse | null>(null);
   const cleanedTitle = title.trim();
   const cleanedBranch = branch.trim();
   const cleanedCommitMessage = commitMessage.trim();
+  const workspaceBranchInfo = workspace as WorkspaceBranchInfo;
+  const workspaceBaseBranch = workspaceBranchInfo.githubBranch
+    ?? workspaceBranchInfo.github_branch
+    ?? workspaceBranchInfo.defaultBranch
+    ?? workspaceBranchInfo.default_branch
+    ?? null;
+  const candidateBaseBranches = [workspaceBaseBranch, ...FALLBACK_BASE_BRANCHES]
+    .filter((candidate): candidate is string => Boolean(candidate?.trim()))
+    .map((candidate) => candidate.trim().toLowerCase());
+  const branchMatchesBase = cleanedBranch.length > 0
+    && candidateBaseBranches.includes(cleanedBranch.toLowerCase());
+  const branchMatchesBaseError = branchMatchesBase
+    ? `Head branch must differ from base branch (${workspaceBaseBranch ?? 'main/master'}).`
+    : null;
   const branchIsValid = !cleanedBranch || isValidGitBranchName(cleanedBranch);
-  const canSubmit = !loading && cleanedTitle.length > 0 && cleanedCommitMessage.length > 0 && branchIsValid && hasBackendWorkspaceLink;
+  const isDirty = title !== DEFAULT_TITLE
+    || body !== DEFAULT_BODY
+    || branch !== DEFAULT_BRANCH
+    || commitMessage !== DEFAULT_COMMIT_MESSAGE;
+  const canSubmit = !loading
+    && cleanedTitle.length > 0
+    && cleanedCommitMessage.length > 0
+    && branchIsValid
+    && !branchMatchesBase
+    && hasBackendWorkspaceLink;
 
   if (!show) return null;
 
@@ -43,6 +80,10 @@ export function GitHubPR() {
     }
     if (cleanedBranch && !isValidGitBranchName(cleanedBranch)) {
       setError('Branch name contains invalid characters or format.');
+      return;
+    }
+    if (branchMatchesBase) {
+      setError(branchMatchesBaseError);
       return;
     }
     if (!cleanedCommitMessage) {
@@ -73,9 +114,36 @@ export function GitHubPR() {
         useUIStore.getState().toggleGitHubLogin();
         return;
       }
-      setError(getApiErrorMessage(err, 'Failed to create pull request.'));
+      const apiErrorMessage = getApiErrorMessage(err, 'Failed to create pull request.');
+      const lowerApiError = apiErrorMessage.toLowerCase();
+      const branchAlreadyExists = lowerApiError.includes('branch already exists')
+        || (lowerApiError.includes('already exists') && lowerApiError.includes('branch'))
+        || lowerApiError.includes('reference already exists')
+        || lowerApiError.includes('ref already exists');
+
+      if (branchAlreadyExists) {
+        const branchLabel = cleanedBranch ? `Branch '${cleanedBranch}'` : 'A branch with this name';
+        setError(`${branchLabel} already exists. Please choose a different branch name.`);
+      } else {
+        setError(apiErrorMessage);
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleClose = async () => {
+    if (!isDirty) {
+      toggleGitHubPR();
+      return;
+    }
+
+    const shouldClose = await confirmDialog(
+      'You have unsaved edits in the PR form. Discard them?',
+      'Discard Draft?'
+    );
+    if (shouldClose) {
+      toggleGitHubPR();
     }
   };
 
@@ -83,7 +151,7 @@ export function GitHubPR() {
     <div className="github-pr">
       <div className="github-pr-header">
         <h3 className="github-pr-title">🔀 Pull Request</h3>
-        <button type="button" className="github-pr-close" onClick={toggleGitHubPR} aria-label="Close pull request panel">
+        <button type="button" className="github-pr-close" onClick={() => void handleClose()} aria-label="Close pull request panel">
           ✕
         </button>
       </div>
@@ -131,6 +199,7 @@ export function GitHubPR() {
             placeholder="cloudblocks/update-architecture"
           />
           {!branchIsValid && <div className="github-pr-error">Branch name contains invalid characters or format.</div>}
+          {branchMatchesBaseError && <div className="github-pr-error">{branchMatchesBaseError}</div>}
 
           <label className="github-pr-label" htmlFor="github-pr-commit-message">
             Commit message
