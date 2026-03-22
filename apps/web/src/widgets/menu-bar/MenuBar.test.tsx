@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { endpointId } from '@cloudblocks/schema';
 vi.mock('react-hot-toast', () => ({
   toast: {
     success: vi.fn(),
@@ -34,6 +35,7 @@ const emptyArch: ArchitectureModel = {
   version: '1.0.0',
   nodes: [],
   connections: [],
+  endpoints: [],
   externalActors: [],
   createdAt: '',
   updatedAt: '',
@@ -68,9 +70,8 @@ const block: LeafNode = {
 
 const connection: Connection = {
   id: 'conn-1',
-  sourceId: 'a',
-  targetId: 'b',
-  type: 'dataflow',
+  from: endpointId('a', 'output', 'data'),
+  to: endpointId('b', 'input', 'data'),
   metadata: {},
 };
 
@@ -628,6 +629,7 @@ describe('MenuBar', () => {
           version: '1.0.0',
           nodes: [],
           connections: [],
+          endpoints: [],
           externalActors: [],
         },
       },

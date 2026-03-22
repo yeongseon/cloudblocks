@@ -23,6 +23,7 @@ const EMPTY_ARCHITECTURE: ArchitectureSnapshot = {
   version: '1',
   nodes: [],
   connections: [],
+  endpoints: [],
   externalActors: [],
 };
 
@@ -95,6 +96,7 @@ function architectureSnapshot(): ArchitectureSnapshot {
     version: architecture.version,
     nodes: architecture.nodes,
     connections: architecture.connections,
+    endpoints: [],
     externalActors: architecture.externalActors,
   };
 }
@@ -343,6 +345,7 @@ describe('scenario-engine', () => {
         version: '1',
         nodes: [],
         connections: [],
+        endpoints: [],
         externalActors: [],
       };
       useArchitectureStore.getState().replaceArchitecture(customArch);

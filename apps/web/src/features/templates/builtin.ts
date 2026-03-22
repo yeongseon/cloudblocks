@@ -3,6 +3,7 @@ import type {
   ContainerCapableResourceType,
   PlateType,
 } from '@cloudblocks/schema';
+import { endpointId } from '@cloudblocks/schema';
 import { registerTemplate } from './registry';
 
 const CONTAINER_RESOURCE_TYPE: Record<PlateType, ContainerCapableResourceType> = {
@@ -34,6 +35,7 @@ const threeTierTemplate: ArchitectureTemplate = {
   architecture: {
     name: 'Three-Tier Web App',
     version: '1',
+    endpoints: [],
     nodes: [
       {
         id: 'plate-tmpl-vnet',
@@ -130,30 +132,26 @@ const threeTierTemplate: ArchitectureTemplate = {
     connections: [
       {
         id: 'conn-tmpl-inet-gw',
-        sourceId: 'ext-internet',
-        targetId: 'block-tmpl-gw',
-        type: 'dataflow',
+        from: endpointId('ext-internet', 'output', 'data'),
+        to: endpointId('block-tmpl-gw', 'input', 'data'),
         metadata: {},
       },
       {
         id: 'conn-tmpl-gw-compute',
-        sourceId: 'block-tmpl-gw',
-        targetId: 'block-tmpl-compute',
-        type: 'dataflow',
+        from: endpointId('block-tmpl-gw', 'output', 'data'),
+        to: endpointId('block-tmpl-compute', 'input', 'data'),
         metadata: {},
       },
       {
         id: 'conn-tmpl-compute-db',
-        sourceId: 'block-tmpl-compute',
-        targetId: 'block-tmpl-db',
-        type: 'dataflow',
+        from: endpointId('block-tmpl-compute', 'output', 'data'),
+        to: endpointId('block-tmpl-db', 'input', 'data'),
         metadata: {},
       },
       {
         id: 'conn-tmpl-compute-storage',
-        sourceId: 'block-tmpl-compute',
-        targetId: 'block-tmpl-storage',
-        type: 'dataflow',
+        from: endpointId('block-tmpl-compute', 'output', 'data'),
+        to: endpointId('block-tmpl-storage', 'input', 'data'),
         metadata: {},
       },
     ],
@@ -173,6 +171,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
   architecture: {
     name: 'Simple Compute',
     version: '1',
+    endpoints: [],
     nodes: [
       {
         id: 'plate-tmpl-vnet2',
@@ -230,16 +229,14 @@ const simpleComputeTemplate: ArchitectureTemplate = {
     connections: [
       {
         id: 'conn-tmpl-inet-gw2',
-        sourceId: 'ext-internet',
-        targetId: 'block-tmpl-gw2',
-        type: 'dataflow',
+        from: endpointId('ext-internet', 'output', 'data'),
+        to: endpointId('block-tmpl-gw2', 'input', 'data'),
         metadata: {},
       },
       {
         id: 'conn-tmpl-gw-app2',
-        sourceId: 'block-tmpl-gw2',
-        targetId: 'block-tmpl-app2',
-        type: 'dataflow',
+        from: endpointId('block-tmpl-gw2', 'output', 'data'),
+        to: endpointId('block-tmpl-app2', 'input', 'data'),
         metadata: {},
       },
     ],
@@ -259,6 +256,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
   architecture: {
     name: 'Data Storage Backend',
     version: '1',
+    endpoints: [],
     nodes: [
       {
         id: 'plate-tmpl-vnet3',
@@ -355,30 +353,26 @@ const dataStorageTemplate: ArchitectureTemplate = {
     connections: [
       {
         id: 'conn-tmpl-inet-gw3',
-        sourceId: 'ext-internet',
-        targetId: 'block-tmpl-gw3',
-        type: 'dataflow',
+        from: endpointId('ext-internet', 'output', 'data'),
+        to: endpointId('block-tmpl-gw3', 'input', 'data'),
         metadata: {},
       },
       {
         id: 'conn-tmpl-gw-api3',
-        sourceId: 'block-tmpl-gw3',
-        targetId: 'block-tmpl-api3',
-        type: 'dataflow',
+        from: endpointId('block-tmpl-gw3', 'output', 'data'),
+        to: endpointId('block-tmpl-api3', 'input', 'data'),
         metadata: {},
       },
       {
         id: 'conn-tmpl-api-db3',
-        sourceId: 'block-tmpl-api3',
-        targetId: 'block-tmpl-db3',
-        type: 'dataflow',
+        from: endpointId('block-tmpl-api3', 'output', 'data'),
+        to: endpointId('block-tmpl-db3', 'input', 'data'),
         metadata: {},
       },
       {
         id: 'conn-tmpl-api-blob3',
-        sourceId: 'block-tmpl-api3',
-        targetId: 'block-tmpl-blob3',
-        type: 'dataflow',
+        from: endpointId('block-tmpl-api3', 'output', 'data'),
+        to: endpointId('block-tmpl-blob3', 'input', 'data'),
         metadata: {},
       },
     ],
@@ -402,6 +396,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
   architecture: {
     name: 'Serverless HTTP API',
     version: '1',
+    endpoints: [],
     nodes: [
       {
         id: 'plate-tmpl-vnet4',
@@ -498,30 +493,26 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
     connections: [
       {
         id: 'conn-tmpl-inet-gw4',
-        sourceId: 'ext-internet',
-        targetId: 'block-tmpl-gw4',
-        type: 'dataflow',
+        from: endpointId('ext-internet', 'output', 'data'),
+        to: endpointId('block-tmpl-gw4', 'input', 'data'),
         metadata: {},
       },
       {
         id: 'conn-tmpl-gw-func4',
-        sourceId: 'block-tmpl-gw4',
-        targetId: 'block-tmpl-func4',
-        type: 'dataflow',
+        from: endpointId('block-tmpl-gw4', 'output', 'data'),
+        to: endpointId('block-tmpl-func4', 'input', 'data'),
         metadata: {},
       },
       {
         id: 'conn-tmpl-func-storage4',
-        sourceId: 'block-tmpl-func4',
-        targetId: 'block-tmpl-storage4',
-        type: 'dataflow',
+        from: endpointId('block-tmpl-func4', 'output', 'data'),
+        to: endpointId('block-tmpl-storage4', 'input', 'data'),
         metadata: {},
       },
       {
         id: 'conn-tmpl-func-db4',
-        sourceId: 'block-tmpl-func4',
-        targetId: 'block-tmpl-db4',
-        type: 'dataflow',
+        from: endpointId('block-tmpl-func4', 'output', 'data'),
+        to: endpointId('block-tmpl-db4', 'input', 'data'),
         metadata: {},
       },
     ],
@@ -542,6 +533,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
   architecture: {
     name: 'Event-Driven Pipeline',
     version: '1',
+    endpoints: [],
     nodes: [
       {
         id: 'plate-tmpl-vnet5',
@@ -651,44 +643,38 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
     connections: [
       {
         id: 'conn-tmpl-event-func5a',
-        sourceId: 'block-tmpl-event5',
-        targetId: 'block-tmpl-func5a',
-        type: 'dataflow',
+        from: endpointId('block-tmpl-event5', 'output', 'data'),
+        to: endpointId('block-tmpl-func5a', 'input', 'data'),
         metadata: {},
       },
       {
         id: 'conn-tmpl-queue-func5a',
-        sourceId: 'block-tmpl-queue5',
-        targetId: 'block-tmpl-func5a',
-        type: 'dataflow',
+        from: endpointId('block-tmpl-queue5', 'output', 'data'),
+        to: endpointId('block-tmpl-func5a', 'input', 'data'),
         metadata: {},
       },
       {
         id: 'conn-tmpl-func5a-storage',
-        sourceId: 'block-tmpl-func5a',
-        targetId: 'block-tmpl-storage5',
-        type: 'dataflow',
+        from: endpointId('block-tmpl-func5a', 'output', 'data'),
+        to: endpointId('block-tmpl-storage5', 'input', 'data'),
         metadata: {},
       },
       {
         id: 'conn-tmpl-func5a-queue',
-        sourceId: 'block-tmpl-func5a',
-        targetId: 'block-tmpl-queue5',
-        type: 'dataflow',
+        from: endpointId('block-tmpl-func5a', 'output', 'data'),
+        to: endpointId('block-tmpl-queue5', 'input', 'data'),
         metadata: {},
       },
       {
         id: 'conn-tmpl-timer-func5b',
-        sourceId: 'block-tmpl-timer5',
-        targetId: 'block-tmpl-func5b',
-        type: 'dataflow',
+        from: endpointId('block-tmpl-timer5', 'output', 'data'),
+        to: endpointId('block-tmpl-func5b', 'input', 'data'),
         metadata: {},
       },
       {
         id: 'conn-tmpl-func5b-storage',
-        sourceId: 'block-tmpl-func5b',
-        targetId: 'block-tmpl-storage5',
-        type: 'dataflow',
+        from: endpointId('block-tmpl-func5b', 'output', 'data'),
+        to: endpointId('block-tmpl-storage5', 'input', 'data'),
         metadata: {},
       },
     ],
@@ -714,6 +700,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
   architecture: {
     name: 'Full-Stack Serverless',
     version: '1',
+    endpoints: [],
     nodes: [
       {
         id: 'plate-fs-vnet',
@@ -893,89 +880,78 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       // Internet → Gateway
       {
         id: 'conn-fs-inet-gw',
-        sourceId: 'ext-internet',
-        targetId: 'block-fs-gw',
-        type: 'dataflow',
+        from: endpointId('ext-internet', 'output', 'data'),
+        to: endpointId('block-fs-gw', 'input', 'data'),
         metadata: {},
       },
       // Gateway → Compute (web frontend)
       {
         id: 'conn-fs-gw-web',
-        sourceId: 'block-fs-gw',
-        targetId: 'block-fs-web',
-        type: 'dataflow',
+        from: endpointId('block-fs-gw', 'output', 'data'),
+        to: endpointId('block-fs-web', 'input', 'data'),
         metadata: {},
       },
       // Gateway → Function (API handler)
       {
         id: 'conn-fs-gw-api',
-        sourceId: 'block-fs-gw',
-        targetId: 'block-fs-api',
-        type: 'dataflow',
+        from: endpointId('block-fs-gw', 'output', 'data'),
+        to: endpointId('block-fs-api', 'input', 'data'),
         metadata: {},
       },
       // Compute → Database
       {
         id: 'conn-fs-web-db',
-        sourceId: 'block-fs-web',
-        targetId: 'block-fs-db',
-        type: 'dataflow',
+        from: endpointId('block-fs-web', 'output', 'data'),
+        to: endpointId('block-fs-db', 'input', 'data'),
         metadata: {},
       },
       // Compute → Storage
       {
         id: 'conn-fs-web-storage',
-        sourceId: 'block-fs-web',
-        targetId: 'block-fs-storage',
-        type: 'dataflow',
+        from: endpointId('block-fs-web', 'output', 'data'),
+        to: endpointId('block-fs-storage', 'input', 'data'),
         metadata: {},
       },
       // Function (API) → Database
       {
         id: 'conn-fs-api-db',
-        sourceId: 'block-fs-api',
-        targetId: 'block-fs-db',
-        type: 'dataflow',
+        from: endpointId('block-fs-api', 'output', 'data'),
+        to: endpointId('block-fs-db', 'input', 'data'),
         metadata: {},
       },
       // Function (API) → Queue
       {
         id: 'conn-fs-api-queue',
-        sourceId: 'block-fs-api',
-        targetId: 'block-fs-queue',
-        type: 'dataflow',
+        from: endpointId('block-fs-api', 'output', 'data'),
+        to: endpointId('block-fs-queue', 'input', 'data'),
         metadata: {},
       },
       // Queue → Function (worker)
       {
         id: 'conn-fs-queue-worker',
-        sourceId: 'block-fs-queue',
-        targetId: 'block-fs-worker',
-        type: 'dataflow',
+        from: endpointId('block-fs-queue', 'output', 'data'),
+        to: endpointId('block-fs-worker', 'input', 'data'),
         metadata: {},
       },
       // Event → Function (batch processor)
       {
         id: 'conn-fs-event-batch',
-        sourceId: 'block-fs-event',
-        targetId: 'block-fs-batch',
-        type: 'dataflow',
+        from: endpointId('block-fs-event', 'output', 'data'),
+        to: endpointId('block-fs-batch', 'input', 'data'),
         metadata: {},
       },
       // Timer → Function (batch processor)
       {
         id: 'conn-fs-timer-batch',
-        sourceId: 'block-fs-timer',
-        targetId: 'block-fs-batch',
-        type: 'dataflow',
+        from: endpointId('block-fs-timer', 'output', 'data'),
+        to: endpointId('block-fs-batch', 'input', 'data'),
         metadata: {},
       },
       // Function (worker) → Storage
       {
         id: 'conn-fs-worker-storage',
-        sourceId: 'block-fs-worker',
-        targetId: 'block-fs-storage',
-        type: 'dataflow',
+        from: endpointId('block-fs-worker', 'output', 'data'),
+        to: endpointId('block-fs-storage', 'input', 'data'),
         metadata: {},
       },
     ],

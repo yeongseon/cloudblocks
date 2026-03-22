@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   CONNECTION_TYPE_LABELS,
@@ -6,6 +6,7 @@ import {
   CATEGORY_TIER_MAP,
   TIER_DIMENSIONS,
   getBlockDimensions,
+  getBlockVisualProfile,
 } from '../index';
 import { BLOCK_VISUAL_PROFILES } from '../visualProfile';
 import { makeTestBlock } from '../../../__tests__/legacyModelTestUtils';
@@ -248,5 +249,18 @@ describe('getBlockDimensions', () => {
     expect(cfDims).toEqual({ width: 4, depth: 1, height: 1 });
     expect(defaultDims).toEqual({ width: 3, depth: 1, height: 1 });
     expect(cfDims).not.toEqual(defaultDims);
+  });
+});
+
+describe('getBlockVisualProfile', () => {
+  it('falls back to compute profile for unknown categories', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const profile = getBlockVisualProfile('not-a-category' as ResourceCategory);
+
+    expect(profile).toEqual(BLOCK_VISUAL_PROFILES.compute);
+    expect(warnSpy).toHaveBeenCalledWith(
+      'Unknown resource category "not-a-category", falling back to "compute" profile.',
+    );
   });
 });

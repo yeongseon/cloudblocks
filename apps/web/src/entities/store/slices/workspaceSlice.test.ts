@@ -29,6 +29,7 @@ function buildFreshWorkspace() {
       version: '2',
       nodes: [] as ArchitectureModel['nodes'],
       connections: [] as ArchitectureModel['connections'],
+      endpoints: [],
       externalActors: [
         {
           id: 'ext-internet',

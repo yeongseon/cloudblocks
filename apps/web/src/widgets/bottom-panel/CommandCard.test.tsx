@@ -35,6 +35,7 @@ const baseArchitecture: ArchitectureModel = {
   version: '1.0.0',
   nodes: [],
   connections: [],
+  endpoints: [],
   externalActors: [],
   createdAt: '',
   updatedAt: '',

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
 import type { StepValidationRule } from '../../shared/types/learning';
 import { evaluateRule, evaluateRules } from './step-validator';
+import { endpointId, generateEndpointsForNode } from '@cloudblocks/schema';
 
 const createTestModel = (): ArchitectureModel => ({
   id: 'arch-test',
@@ -89,25 +90,31 @@ const createTestModel = (): ArchitectureModel => ({
   connections: [
     {
       id: 'conn-inet-gw',
-      sourceId: 'ext-internet',
-      targetId: 'block-gw',
-      type: 'dataflow',
+      from: endpointId('ext-internet', 'output', 'data'),
+      to: endpointId('block-gw', 'input', 'data'),
       metadata: {},
     },
     {
       id: 'conn-gw-compute',
-      sourceId: 'block-gw',
-      targetId: 'block-compute',
-      type: 'dataflow',
+      from: endpointId('block-gw', 'output', 'data'),
+      to: endpointId('block-compute', 'input', 'data'),
       metadata: {},
     },
     {
       id: 'conn-compute-db',
-      sourceId: 'block-compute',
-      targetId: 'block-db',
-      type: 'dataflow',
+      from: endpointId('block-compute', 'output', 'data'),
+      to: endpointId('block-db', 'input', 'data'),
       metadata: {},
     },
+  ],
+  endpoints: [
+    ...generateEndpointsForNode('plate-vnet'),
+    ...generateEndpointsForNode('plate-public'),
+    ...generateEndpointsForNode('plate-private'),
+    ...generateEndpointsForNode('block-gw'),
+    ...generateEndpointsForNode('block-compute'),
+    ...generateEndpointsForNode('block-db'),
+    ...generateEndpointsForNode('ext-internet'),
   ],
   externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
 });
@@ -243,9 +250,8 @@ describe('evaluateRule', () => {
           ...model.connections,
           {
             id: 'conn-unknown-compute',
-            sourceId: 'unknown-source',
-            targetId: 'block-compute',
-            type: 'dataflow',
+            from: endpointId('unknown-source', 'output', 'data'),
+            to: endpointId('block-compute', 'input', 'data'),
             metadata: {},
           },
         ],

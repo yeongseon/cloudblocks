@@ -40,6 +40,7 @@ function createArchitecture(subtype?: string): ArchitectureModel {
       },
     ],
     connections: [],
+    endpoints: [],
     externalActors: [],
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',

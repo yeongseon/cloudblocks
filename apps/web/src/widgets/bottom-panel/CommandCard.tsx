@@ -26,7 +26,7 @@ import {
   type ResourceType,
   type PlateActionType,
 } from './useTechTree';
-import { BLOCK_FRIENDLY_NAMES, BLOCK_ICONS, CONNECTION_TYPE_LABELS } from '../../shared/types/index';
+import { BLOCK_FRIENDLY_NAMES, BLOCK_ICONS, CONNECTION_TYPE_LABELS, resolveConnectionNodes } from '../../shared/types/index';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
 import type { Connection, ConnectionType, ContainerNode, LeafNode, ProviderType, ResourceCategory } from '@cloudblocks/schema';
 import './CommandCard.css';
@@ -633,9 +633,10 @@ function ConnectionActionMode({ connection }: { connection: Connection }) {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
   const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
+  const { sourceId, targetId, type } = resolveConnectionNodes(connection);
 
-  const source = architecture.nodes.find((n) => n.id === connection.sourceId);
-  const target = architecture.nodes.find((n) => n.id === connection.targetId);
+  const source = architecture.nodes.find((n) => n.id === sourceId);
+  const target = architecture.nodes.find((n) => n.id === targetId);
 
   const handleDelete = useCallback(() => {
     removeConnection(connection.id);
@@ -650,7 +651,7 @@ function ConnectionActionMode({ connection }: { connection: Connection }) {
   return (
     <div className="command-card-mode-content">
       <div className="command-card-properties">
-        <PropertyRow label="Type" value={CONNECTION_TYPE_LABELS[connection.type]} />
+        <PropertyRow label="Type" value={CONNECTION_TYPE_LABELS[type as ConnectionType]} />
         {source && <PropertyRow label="Source" value={source.name} />}
         {target && <PropertyRow label="Target" value={target.name} />}
       </div>
@@ -659,7 +660,7 @@ function ConnectionActionMode({ connection }: { connection: Connection }) {
           Type
           <select
             className="command-card-form-select"
-            value={connection.type}
+            value={type}
             onChange={handleTypeChange}
           >
             {CONNECTION_TYPES.map((t) => (

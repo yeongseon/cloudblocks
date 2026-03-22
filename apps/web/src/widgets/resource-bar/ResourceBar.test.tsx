@@ -5,6 +5,7 @@ import { ResourceBar } from './ResourceBar';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import type { ArchitectureModel, Connection, ContainerNode, LeafNode } from '@cloudblocks/schema';
+import { endpointId } from '@cloudblocks/schema';
 
 const createArchitecture = (
   plates: ContainerNode[] = [],
@@ -16,6 +17,7 @@ const createArchitecture = (
   version: '1.0.0',
   nodes: [...plates, ...blocks],
   connections,
+  endpoints: [],
   externalActors: [],
   createdAt: '',
   updatedAt: '',
@@ -114,16 +116,14 @@ describe('ResourceBar', () => {
     const connections: Connection[] = [
       {
         id: 'conn-1',
-        sourceId: 'block-1',
-        targetId: 'block-2',
-        type: 'dataflow',
+        from: endpointId('block-1', 'output', 'data'),
+        to: endpointId('block-2', 'input', 'data'),
         metadata: {},
       },
       {
         id: 'conn-2',
-        sourceId: 'block-2',
-        targetId: 'block-3',
-        type: 'dataflow',
+        from: endpointId('block-2', 'output', 'data'),
+        to: endpointId('block-3', 'input', 'data'),
         metadata: {},
       },
     ];

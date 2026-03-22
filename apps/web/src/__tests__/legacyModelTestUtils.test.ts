@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { makeTestBlock } from './legacyModelTestUtils';
+import { getBlocks, getPlates, makeTestArchitecture, makeTestBlock, makeTestPlate } from './legacyModelTestUtils';
 
 describe('legacyModelTestUtils category mapping', () => {
   beforeEach(() => {
@@ -23,5 +23,20 @@ describe('legacyModelTestUtils category mapping', () => {
     expect(makeTestBlock({ category: 'compute' }).category).toBe('compute');
     expect(makeTestBlock({ category: 'operations' }).category).toBe('operations');
     expect(makeTestBlock().category).toBe('compute');
+  });
+});
+
+describe('legacyModelTestUtils node filters', () => {
+  it('separates container and resource nodes', () => {
+    const architecture = makeTestArchitecture({
+      nodes: [
+        makeTestPlate({ id: 'plate-a' }),
+        makeTestBlock({ id: 'block-a' }),
+        makeTestBlock({ id: 'block-b', category: 'data' }),
+      ],
+    });
+
+    expect(getPlates(architecture).map((node) => node.id)).toEqual(['plate-a']);
+    expect(getBlocks(architecture).map((node) => node.id)).toEqual(['block-a', 'block-b']);
   });
 });

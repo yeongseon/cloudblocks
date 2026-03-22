@@ -63,7 +63,14 @@ export type BlockRole =
  * Connection protocol/type between resource nodes.
  * Direction represents the **initiator** of the request.
  */
+/** @deprecated Use EndpointSemantic for v4 connections. Kept for v3→v4 migration only. */
 export type ConnectionType = 'dataflow' | 'http' | 'internal' | 'data' | 'async';
+
+/** Direction of an endpoint on a node. */
+export type EndpointDirection = 'input' | 'output';
+
+/** Semantic type of an endpoint — determines what kind of traffic flows. */
+export type EndpointSemantic = 'http' | 'event' | 'data';
 
 // ---------------------------------------------------------------------------
 // Deprecated aliases — kept temporarily for migration, will be removed post-M19

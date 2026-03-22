@@ -1,4 +1,5 @@
-import type { ArchitectureModel, Connection, ContainerNode, LeafNode } from '@cloudblocks/schema';
+import type { ArchitectureModel, Connection, ContainerNode, Endpoint, LeafNode } from '@cloudblocks/schema';
+import { parseEndpointId } from '@cloudblocks/schema';
 import type {
   GenerationOptions,
   NormalizedModel,
@@ -233,11 +234,20 @@ function generateBlockResource(
 
 function generateConnectionComment(
   connection: Connection,
-  resourceNames: Map<string, string>
+  resourceNames: Map<string, string>,
+  endpoints: Endpoint[],
 ): string {
-  const sourceName = resourceNames.get(connection.sourceId) ?? connection.sourceId;
-  const targetName = resourceNames.get(connection.targetId) ?? connection.targetId;
-  return `# DataFlow: ${sourceName} → ${targetName}`;
+  const fromEp = endpoints.find((endpoint) => endpoint.id === connection.from);
+  const toEp = endpoints.find((endpoint) => endpoint.id === connection.to);
+  const resolveLabel = (ep: Endpoint | undefined, raw: string): string => {
+    if (ep) return resourceNames.get(ep.nodeId) ?? ep.nodeId;
+    const parsed = parseEndpointId(raw);
+    if (parsed) return resourceNames.get(parsed.nodeId) ?? parsed.nodeId;
+    return raw;
+  };
+  const sourceName = resolveLabel(fromEp, connection.from);
+  const targetName = resolveLabel(toEp, connection.to);
+  return `# DataFlow: ${sourceName} \u2192 ${targetName}`;
 }
 
 // ─── File Assembly ──────────────────────────────────────────
@@ -337,7 +347,7 @@ export function generateMainTf(
   if (architecture.connections.length > 0) {
     sections.push('# ─── Data Flow Connections ─────────────────────');
     for (const conn of architecture.connections) {
-      sections.push(generateConnectionComment(conn, resourceNames));
+      sections.push(generateConnectionComment(conn, resourceNames, architecture.endpoints));
     }
     sections.push('');
   }

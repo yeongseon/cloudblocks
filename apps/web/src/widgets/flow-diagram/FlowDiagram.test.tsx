@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { FlowDiagram } from './FlowDiagram';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import type { ArchitectureModel, Connection, ExternalActor, LeafNode, ResourceCategory } from '@cloudblocks/schema';
+import type { ArchitectureModel, Connection, ExternalActor, LeafNode, ProviderType, ResourceCategory } from '@cloudblocks/schema';
+import { endpointId } from '@cloudblocks/schema';
 
 vi.mock('./FlowDiagram.css', () => ({}));
 
@@ -12,6 +13,7 @@ const baseArchitecture: ArchitectureModel = {
   version: '1.0.0',
   nodes: [],
   connections: [],
+  endpoints: [],
   externalActors: [],
   createdAt: '',
   updatedAt: '',
@@ -42,9 +44,8 @@ const makeBlock = (id: string, category: ResourceCategory): LeafNode => ({
 
 const makeConnection = (id: string, sourceId: string, targetId: string): Connection => ({
   id,
-  sourceId,
-  targetId,
-  type: 'dataflow',
+  from: endpointId(sourceId, 'output', 'data'),
+  to: endpointId(targetId, 'input', 'data'),
   metadata: {},
 });
 
@@ -140,6 +141,25 @@ describe('FlowDiagram', () => {
     expect(screen.getByText('Partner API')).toBeInTheDocument();
   });
 
+  it('falls back to default external actor label when actor name is empty', () => {
+    const blocks: LeafNode[] = [makeBlock('gateway-1', 'edge')];
+    const externalActors: ExternalActor[] = [makeExternalActor('external-2', '')];
+    const connections: Connection[] = [makeConnection('c1', 'external-2', 'gateway-1')];
+
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Flow WS',
+        architecture: { ...baseArchitecture, nodes: blocks, externalActors, connections },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    render(<FlowDiagram />);
+    expect(screen.getByText('External Actor')).toBeInTheDocument();
+  });
+
   it('renders arrows between nodes', () => {
     const blocks: LeafNode[] = [
       makeBlock('gateway-1', 'edge'),
@@ -222,6 +242,34 @@ describe('FlowDiagram', () => {
     const node = container.querySelector('.flow-node') as HTMLElement;
     expect(node).toHaveTextContent('weird-name');
     expect(node).toHaveStyle({ backgroundColor: 'rgb(0, 120, 212)' });
+  });
+
+  it('falls back to raw category label when block name and friendly name are unavailable', () => {
+    const unnamedUnknownBlock: LeafNode = {
+      ...makeBlock('unknown-1', 'compute'),
+      name: '',
+      provider: undefined as unknown as ProviderType,
+      category: 'mystery' as unknown as ResourceCategory,
+    };
+    const knownBlock = makeBlock('compute-1', 'compute');
+
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Flow WS',
+        architecture: {
+          ...baseArchitecture,
+          externalActors: undefined as unknown as ExternalActor[],
+          nodes: [unnamedUnknownBlock, knownBlock],
+          connections: [makeConnection('c-fallback-name', 'unknown-1', 'compute-1')],
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    render(<FlowDiagram />);
+    expect(screen.getByText('mystery')).toBeInTheDocument();
   });
 
   it('handles converging dependencies in Kahn sorting order', () => {

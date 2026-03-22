@@ -19,7 +19,11 @@ export type {
   ContainerNode,
   Connection,
   ConnectionType,
+  Endpoint,
+  EndpointDirection,
+  EndpointSemantic,
   ExternalActor,
+  LegacyConnection,
   LeafNode,
   LayerType,
   NodeKind,
@@ -30,6 +34,14 @@ export type {
   ResourceCategory,
   ResourceNode,
   Size,
+} from '@cloudblocks/schema';
+
+export {
+  connectionTypeToSemantic,
+  endpointId,
+  generateEndpointsForNode,
+  parseEndpointId,
+  resolveConnectionNodes,
 } from '@cloudblocks/schema';
 
 export {

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { endpointId } from '@cloudblocks/schema';
 
 import type { ArchitectureModel, Connection, ContainerNode, LeafNode } from '@cloudblocks/schema';
 import { azureProviderDefinition } from './provider';
@@ -48,9 +49,8 @@ function createBlock(overrides: LegacyBlockOverrides): LeafNode {
 function createConnection(overrides: Partial<Connection>): Connection {
   return {
     id: 'conn-default',
-    sourceId: 'block-source',
-    targetId: 'block-target',
-    type: 'dataflow',
+    from: endpointId('block-source', 'output', 'data'),
+    to: endpointId('block-target', 'input', 'data'),
     metadata: {},
     ...overrides,
   };
@@ -64,6 +64,7 @@ function createTestModel(overrides?: LegacyArchitectureOverrides): ArchitectureM
     plates: [],
     blocks: [],
     connections: [],
+    endpoints: [],
     externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } }],
     createdAt: '2025-01-01T00:00:00Z',
     updatedAt: '2025-01-01T00:00:00Z',
@@ -135,8 +136,8 @@ describe('generateMainTf', () => {
       connections: [
         createConnection({
           id: 'conn-1',
-          sourceId: 'web1',
-          targetId: 'web1',
+          from: endpointId('web1', 'output', 'data'),
+          to: endpointId('web1', 'input', 'data'),
         }),
       ],
     });
@@ -242,7 +243,7 @@ describe('generateMainTf', () => {
     const withConnections = createTestModel({
       blocks: [createBlock({ id: 'b1', name: 'Web', category: 'compute', placementId: 'sub1' })],
       connections: [
-        createConnection({ id: 'c1', sourceId: 'b1', targetId: 'missing-target' }),
+        createConnection({ id: 'c1', from: endpointId('b1', 'output', 'data'), to: endpointId('missing-target', 'input', 'data')}),
       ],
     });
     const withoutConnections = createTestModel({

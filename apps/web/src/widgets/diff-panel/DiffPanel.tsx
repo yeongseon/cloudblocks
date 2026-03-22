@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import type { ArchitectureModel } from '@cloudblocks/schema';
+import { parseEndpointId } from '@cloudblocks/schema';
 import type { DiffDelta } from '../../shared/types/diff';
 import './DiffPanel.css';
 
@@ -39,7 +40,7 @@ function hasName(entity: { id: string }): entity is { id: string; name: string }
   return 'name' in entity && typeof (entity as { name?: unknown }).name === 'string';
 }
 
-function hasEndpoints(entity: { id: string }): entity is { id: string; sourceId: string; targetId: string } {
+function hasV3Endpoints(entity: { id: string }): entity is { id: string; sourceId: string; targetId: string } {
   return (
     'sourceId' in entity
     && 'targetId' in entity
@@ -48,9 +49,23 @@ function hasEndpoints(entity: { id: string }): entity is { id: string; sourceId:
   );
 }
 
+function hasV4Endpoints(entity: { id: string }): entity is { id: string; from: string; to: string } {
+  return (
+    'from' in entity
+    && 'to' in entity
+    && typeof (entity as { from?: unknown }).from === 'string'
+    && typeof (entity as { to?: unknown }).to === 'string'
+  );
+}
+
 function getEntityLabel(entity: { id: string }): string {
   if (hasName(entity)) return `${entity.name} (${entity.id})`;
-  if (hasEndpoints(entity)) return `${entity.id} (${entity.sourceId} -> ${entity.targetId})`;
+  if (hasV4Endpoints(entity)) {
+    const fromNode = parseEndpointId(entity.from)?.nodeId ?? entity.from;
+    const toNode = parseEndpointId(entity.to)?.nodeId ?? entity.to;
+    return `${entity.id} (${fromNode} -> ${toNode})`;
+  }
+  if (hasV3Endpoints(entity)) return `${entity.id} (${entity.sourceId} -> ${entity.targetId})`;
   return entity.id;
 }
 

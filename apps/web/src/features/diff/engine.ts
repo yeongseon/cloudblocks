@@ -2,7 +2,7 @@ import type { ArchitectureModel, Connection, ContainerNode, ExternalActor, LeafN
 import type { DiffDelta, DiffState, EntityDiff, PropertyChange } from '../../shared/types/diff';
 
 const ROOT_VOLATILE_PATHS = new Set(['createdAt', 'updatedAt']);
-const ROOT_ENTITY_PATHS = new Set(['nodes', 'connections', 'externalActors', 'createdAt', 'updatedAt']);
+const ROOT_ENTITY_PATHS = new Set(['nodes', 'endpoints', 'connections', 'externalActors', 'createdAt', 'updatedAt']);
 const NO_IGNORED_ROOT_PATHS = new Set<string>();
 
 type DiffableEntity = ContainerNode | LeafNode | Connection | ExternalActor;
@@ -163,13 +163,16 @@ export function normalizeArchitecture(model: ArchitectureModel): ArchitectureMod
         };
       })
       .sort(sortById),
+    endpoints: model.endpoints
+      .map((endpoint) => ({ ...endpoint }))
+      .sort(sortById),
     connections: model.connections
       .map((connection) => ({
         ...connection,
         metadata: { ...connection.metadata },
       }))
       .sort(sortById),
-    externalActors: model.externalActors
+    externalActors: (model.externalActors ?? [])
       .map((externalActor) => ({ ...externalActor }))
       .sort(sortById),
   };
@@ -208,7 +211,7 @@ export function computeArchitectureDiff(base: ArchitectureModel, head: Architect
     plates: compareEntityCollections(basePlates, headPlates),
     blocks: compareEntityCollections(baseBlocks, headBlocks),
     connections: compareEntityCollections(normalizedBase.connections, normalizedHead.connections),
-    externalActors: compareEntityCollections(normalizedBase.externalActors, normalizedHead.externalActors),
+    externalActors: compareEntityCollections(normalizedBase.externalActors ?? [], normalizedHead.externalActors ?? []),
     rootChanges,
   };
 

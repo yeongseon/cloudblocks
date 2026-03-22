@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import interact from 'interactjs';
+import { endpointId } from '@cloudblocks/schema';
 
 vi.mock('../store/architectureStore', async () => {
   const actual = await vi.importActual<typeof import('../store/architectureStore')>('../store/architectureStore');
@@ -631,9 +632,8 @@ describe('BlockSprite', () => {
           connections: [
             {
               id: 'conn-1',
-              sourceId: blockWithConn.id,
-              targetId: otherBlock.id,
-              type: 'dataflow',
+              from: endpointId(blockWithConn.id, 'output', 'data'),
+              to: endpointId(otherBlock.id, 'input', 'data'),
               metadata: {},
             },
           ],

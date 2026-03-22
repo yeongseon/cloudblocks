@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { LayerType } from '@cloudblocks/schema';
+import type { LayerType, ProviderType, ResourceCategory } from '@cloudblocks/schema';
 import { getBlockIconUrl, getPlateIconUrl } from './iconResolver';
 
 describe('iconResolver additional branches', () => {
@@ -24,5 +24,14 @@ describe('iconResolver additional branches', () => {
     const regionIcon = getPlateIconUrl('region');
 
     expect(resourceIcon).toBe(regionIcon);
+  });
+
+  it('falls back to vm icon when provider/category are unknown', () => {
+    const fallback = getBlockIconUrl(
+      'unknown-provider' as ProviderType,
+      'unknown-category' as ResourceCategory,
+    );
+
+    expect(fallback).toBe(getBlockIconUrl('azure', 'compute'));
   });
 });

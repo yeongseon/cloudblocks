@@ -5,6 +5,7 @@ import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/sc
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { InspectorPanel } from './InspectorPanel';
+import { endpointId } from '@cloudblocks/schema';
 
 vi.mock('./InspectorPanel.css', () => ({}));
 vi.mock('../code-preview/CodePreview', () => ({
@@ -61,12 +62,12 @@ const architecture: ArchitectureModel = {
   connections: [
     {
       id: 'conn-1',
-      sourceId: 'block-a',
-      targetId: 'block-b',
-      type: 'dataflow',
+      from: endpointId('block-a', 'output', 'data'),
+      to: endpointId('block-b', 'input', 'data'),
       metadata: {},
     },
   ],
+  endpoints: [],
   externalActors: [],
   createdAt: '',
   updatedAt: '',

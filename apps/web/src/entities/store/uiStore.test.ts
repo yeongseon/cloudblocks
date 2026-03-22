@@ -891,6 +891,45 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().pendingGitHubAction).toBe(null);
       expect(sessionStorage.getItem('cloudblocks_pending_github_action')).toBeNull();
     });
+
+    it('reads valid pending action from sessionStorage during module init', async () => {
+      sessionStorage.setItem('cloudblocks_pending_github_action', 'pr');
+      vi.resetModules();
+
+      const { useUIStore: reloadedUIStore } = await import('./uiStore');
+      expect(reloadedUIStore.getState().pendingGitHubAction).toBe('pr');
+    });
+
+    it('returns null and skips storage writes when window is unavailable', async () => {
+      sessionStorage.setItem('cloudblocks_pending_github_action', 'pr');
+      vi.stubGlobal('window', undefined);
+      try {
+        vi.resetModules();
+
+        const { useUIStore: reloadedUIStore } = await import('./uiStore');
+
+        expect(reloadedUIStore.getState().pendingGitHubAction).toBe(null);
+        reloadedUIStore.getState().setPendingGitHubAction('sync');
+        expect(sessionStorage.getItem('cloudblocks_pending_github_action')).toBe('pr');
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    });
+  });
+
+  describe('triggerUpgradeAnimation', () => {
+    it('does not clear a newer animation id when timeout for older id resolves', () => {
+      vi.useFakeTimers();
+      try {
+        useUIStore.getState().triggerUpgradeAnimation('block-old');
+        useUIStore.setState({ upgradingBlockId: 'block-new' });
+
+        vi.advanceTimersByTime(1600);
+        expect(useUIStore.getState().upgradingBlockId).toBe('block-new');
+      } finally {
+        vi.useRealTimers();
+      }
+    });
   });
 
   describe('pendingLinkRepo', () => {
@@ -955,6 +994,7 @@ describe('useUIStore', () => {
         plates: { added: [], removed: [], modified: [] },
         blocks: { added: [], removed: [], modified: [] },
         connections: { added: [], removed: [], modified: [] },
+        endpoints: [],
         externalActors: { added: [], removed: [], modified: [] },
         rootChanges: [],
         summary: { totalChanges: 0, hasBreakingChanges: false },
@@ -965,6 +1005,7 @@ describe('useUIStore', () => {
         version: '1.0',
         nodes: [],
         connections: [],
+        endpoints: [],
         externalActors: [],
         createdAt: '2026-01-01',
         updatedAt: '2026-01-01',
@@ -982,6 +1023,7 @@ describe('useUIStore', () => {
         plates: { added: [], removed: [], modified: [] },
         blocks: { added: [], removed: [], modified: [] },
         connections: { added: [], removed: [], modified: [] },
+        endpoints: [],
         externalActors: { added: [], removed: [], modified: [] },
         rootChanges: [],
         summary: { totalChanges: 0, hasBreakingChanges: false },
@@ -1027,6 +1069,7 @@ describe('useUIStore', () => {
         plates: { added: [], removed: [], modified: [] },
         blocks: { added: [], removed: [], modified: [] },
         connections: { added: [], removed: [], modified: [] },
+        endpoints: [],
         externalActors: { added: [], removed: [], modified: [] },
         rootChanges: [],
         summary: { totalChanges: 0, hasBreakingChanges: false },
@@ -1037,6 +1080,7 @@ describe('useUIStore', () => {
         version: '1.0',
         nodes: [],
         connections: [],
+        endpoints: [],
         externalActors: [],
         createdAt: '2026-01-01',
         updatedAt: '2026-01-01',

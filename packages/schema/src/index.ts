@@ -2,13 +2,15 @@
 // Shared between frontend and backend via JSON Schema bridge.
 
 /** Schema version for the ArchitectureModel wire format. */
-export const SCHEMA_VERSION = '3.0.0';
+export const SCHEMA_VERSION = '4.0.0';
 
 // Enumeration types
 export type {
   AggregationMode,
   BlockRole,
   ConnectionType,
+  EndpointDirection,
+  EndpointSemantic,
   LayerType,
   NodeKind,
   ProviderType,
@@ -27,10 +29,14 @@ export type {
   ArchitectureModel,
   Connection,
   ContainerNode,
+  Endpoint,
   ExternalActor,
+  LegacyConnection,
   LeafNode,
   ResourceNode,
 } from './model.js';
+
+export { endpointId, generateEndpointsForNode, connectionTypeToSemantic, parseEndpointId, resolveConnectionNodes } from './endpoints.js';
 
 // Deprecated model aliases (migration shims — remove post-M19)
 export type { Block, Plate } from './model.js';

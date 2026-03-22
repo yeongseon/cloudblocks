@@ -49,6 +49,7 @@ const makeWorkspace = (id: string, name: string, blocks = 0, plates = 0): Worksp
       })),
     ],
     connections: [],
+    endpoints: [],
     externalActors: [],
     createdAt: '',
     updatedAt: '',

@@ -1,5 +1,16 @@
 import type { Workspace } from '../../../shared/types/index';
-import type { ArchitectureModel, ContainerNode, LeafNode, ResourceCategory } from '@cloudblocks/schema';
+import type {
+  ArchitectureModel,
+  ContainerNode,
+  LeafNode,
+  ResourceCategory,
+} from '@cloudblocks/schema';
+import {
+  connectionTypeToSemantic,
+  endpointId,
+  generateEndpointsForNode,
+  parseEndpointId,
+} from '@cloudblocks/schema';
 import type { ArchitectureSnapshot } from '../../../shared/types/learning';
 import { saveWorkspaces, loadWorkspaces, saveActiveWorkspaceId, loadActiveWorkspaceId } from '../../../shared/utils/storage';
 import { generateId } from '../../../shared/utils/id';
@@ -259,25 +270,63 @@ export const validateArchitectureShape = (
     if (typeof connection.id !== 'string') {
       throw new Error(`${context}: id must be a string`);
     }
-    if (typeof connection.sourceId !== 'string') {
-      throw new Error(`${context}: sourceId must be a string`);
-    }
-    if (typeof connection.targetId !== 'string') {
-      throw new Error(`${context}: targetId must be a string`);
-    }
-    if (typeof connection.type !== 'string') {
-      throw new Error(`${context}: type must be a string`);
+    const isV4Connection = typeof connection.from === 'string' && typeof connection.to === 'string';
+    const isV3Connection = typeof connection.sourceId === 'string' && typeof connection.targetId === 'string';
+
+    if (!isV4Connection && !isV3Connection) {
+      throw new Error(`${context}: connection must have from/to (v4) or sourceId/targetId (v3)`);
     }
 
-    if (!validConnectionEndpointIds.has(connection.sourceId)) {
+    if (isV4Connection) {
+      const fromEndpointId = connection.from as string;
+      const toEndpointId = connection.to as string;
+      const endpointIds = new Set<string>();
+      if (Array.isArray(imported.endpoints)) {
+        imported.endpoints.forEach((endpoint) => {
+          if (isRecord(endpoint) && typeof endpoint.id === 'string') {
+            endpointIds.add(endpoint.id);
+          }
+        });
+      }
+
+      if (endpointIds.size > 0) {
+        if (!endpointIds.has(fromEndpointId)) {
+          throw new Error(`${context}: from endpoint "${fromEndpointId}" does not exist`);
+        }
+        if (!endpointIds.has(toEndpointId)) {
+          throw new Error(`${context}: to endpoint "${toEndpointId}" does not exist`);
+        }
+      }
+      // When no explicit endpoints array, validate nodeIds embedded in endpoint IDs
+      if (endpointIds.size === 0) {
+        const fromParsed = parseEndpointId(fromEndpointId);
+        const toParsed = parseEndpointId(toEndpointId);
+        if (fromParsed && !validConnectionEndpointIds.has(fromParsed.nodeId)) {
+          throw new Error(
+            `${context}: sourceId "${fromParsed.nodeId}" does not reference an existing block, plate, or external actor`
+          );
+        }
+        if (toParsed && !validConnectionEndpointIds.has(toParsed.nodeId)) {
+          throw new Error(
+            `${context}: targetId "${toParsed.nodeId}" does not reference an existing block, plate, or external actor`
+          );
+        }
+      }
+      return;
+    }
+
+    const sourceId = connection.sourceId as string;
+    const targetId = connection.targetId as string;
+
+    if (!validConnectionEndpointIds.has(sourceId)) {
       throw new Error(
-        `${context}: sourceId "${connection.sourceId}" does not reference an existing block, plate, or external actor`
+        `${context}: sourceId "${sourceId}" does not reference an existing block, plate, or external actor`
       );
     }
 
-    if (!validConnectionEndpointIds.has(connection.targetId)) {
+    if (!validConnectionEndpointIds.has(targetId)) {
       throw new Error(
-        `${context}: targetId "${connection.targetId}" does not reference an existing block, plate, or external actor`
+        `${context}: targetId "${targetId}" does not reference an existing block, plate, or external actor`
       );
     }
   });
@@ -435,12 +484,47 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
         nodes = [];
       }
 
+      const endpoints = nodes.flatMap((node) => generateEndpointsForNode(node.id));
+      const rawConnections = ((imported.connections as unknown[]) ?? [])
+        .filter((connection): connection is Record<string, unknown> => isRecord(connection));
+      const connections: ArchitectureModel['connections'] = rawConnections
+        .map((connection) => {
+          if (typeof connection.from === 'string' && typeof connection.to === 'string') {
+            return {
+              id: typeof connection.id === 'string' ? connection.id : generateId('conn'),
+              from: connection.from,
+              to: connection.to,
+              metadata:
+                isRecord(connection.metadata)
+                  ? connection.metadata
+                  : {},
+            };
+          }
+
+          if (typeof connection.sourceId === 'string' && typeof connection.targetId === 'string') {
+            const semantic =
+              typeof connection.type === 'string'
+                ? connectionTypeToSemantic(connection.type)
+                : 'data';
+            return {
+              id: typeof connection.id === 'string' ? connection.id : generateId('conn'),
+              from: endpointId(connection.sourceId, 'output', semantic),
+              to: endpointId(connection.targetId, 'input', semantic),
+              metadata: {},
+            };
+          }
+
+          return null;
+        })
+        .filter((connection): connection is ArchitectureModel['connections'][number] => connection !== null);
+
       const normalized: ArchitectureModel = {
         id: (imported.id as string) || generateId('arch'),
         name: (imported.name as string) || 'Imported Architecture',
         version: (imported.version as string) || '1',
         nodes,
-        connections: (imported.connections as ArchitectureModel['connections']) ?? [],
+        endpoints,
+        connections,
         externalActors:
           (imported.externalActors as ArchitectureModel['externalActors'])?.map((actor) => ({
             ...actor,

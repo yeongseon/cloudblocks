@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useArchitectureStore } from '../../../entities/store/architectureStore';
 import { useLearningStore } from '../../../entities/store/learningStore';
 import { useUIStore } from '../../../entities/store/uiStore';
+import { endpointId, generateEndpointsForNode, resolveConnectionNodes } from '@cloudblocks/schema';
 import {
   advanceToNextStep,
   abandonLearning,
@@ -31,6 +32,7 @@ const EMPTY_ARCHITECTURE: ArchitectureSnapshot = {
   version: '1',
   nodes: [],
   connections: [],
+  endpoints: [],
   externalActors: [],
 };
 
@@ -111,12 +113,16 @@ function architectureSnapshot(): ArchitectureSnapshot {
     version: architecture.version,
     nodes: architecture.nodes,
     connections: architecture.connections,
+    endpoints: architecture.endpoints,
     externalActors: architecture.externalActors,
   };
 }
 
 function replaceArchitectureSnapshot(snapshot: ArchitectureSnapshot): void {
-  useArchitectureStore.getState().replaceArchitecture(snapshot);
+  const nodeIds = snapshot.nodes.map((n) => n.id);
+  const actorIds = (snapshot.externalActors ?? []).map((a) => a.id);
+  const endpoints = [...nodeIds, ...actorIds].flatMap((id) => generateEndpointsForNode(id));
+  useArchitectureStore.getState().replaceArchitecture({ ...snapshot, endpoints });
 }
 
 function findNetworkPlateId(snapshot: ArchitectureSnapshot): string | null {
@@ -286,11 +292,11 @@ function ensureBlock(
       {
         id: blockId,
         name: `${category}-test`,
-        kind: 'resource',
-        layer: 'resource',
+        kind: 'resource' as const,
+        layer: 'resource' as const,
         resourceType: leafResourceTypeByCategory[category],
         category,
-        provider: 'azure',
+        provider: 'azure' as const,
         parentId: placementId,
         position: { x: 0, y: 0.5, z: 0 },
         metadata: {},
@@ -306,25 +312,26 @@ function ensureConnection(sourceCategory: string, targetCategory: string): void 
 
   const sourceId =
     sourceCategory === 'internet'
-      ? (snapshot.externalActors.find((actor) => actor.type === 'internet')?.id ?? 'ext-internet')
+      ? ((snapshot.externalActors ?? []).find((actor) => actor.type === 'internet')?.id ?? 'ext-internet')
       : ensureBlock(sourceCategory as ResourceCategory);
 
   const targetId = ensureBlock(targetCategory as ResourceCategory);
 
   const refreshed = architectureSnapshot();
   const hasConnection = refreshed.connections.some(
-    (connection) => connection.sourceId === sourceId && connection.targetId === targetId
+    (connection) => resolveConnectionNodes(connection).sourceId === sourceId && resolveConnectionNodes(connection).targetId === targetId
   );
 
   if (hasConnection) {
     return;
   }
 
+  const refreshedExternalActors = refreshed.externalActors ?? [];
   const updatedExternalActors =
     sourceCategory === 'internet' &&
-    !refreshed.externalActors.some((actor) => actor.id === sourceId)
-      ? [...refreshed.externalActors, { id: sourceId, name: 'Internet', type: 'internet' as const , position: { x: -3, y: 0, z: 5 } }]
-      : refreshed.externalActors;
+    !refreshedExternalActors.some((actor) => actor.id === sourceId)
+      ? [...refreshedExternalActors, { id: sourceId, name: 'Internet', type: 'internet' as const, position: { x: -3, y: 0, z: 5 } }]
+      : refreshedExternalActors;
 
   replaceArchitectureSnapshot({
     ...refreshed,
@@ -333,9 +340,8 @@ function ensureConnection(sourceCategory: string, targetCategory: string): void 
       ...refreshed.connections,
       {
         id: `conn-${sourceCategory}-${targetCategory}-${refreshed.connections.length + 1}`,
-        sourceId,
-        targetId,
-        type: 'dataflow',
+        from: endpointId(sourceId, 'output', 'data'),
+        to: endpointId(targetId, 'input', 'data'),
         metadata: {},
       },
     ],

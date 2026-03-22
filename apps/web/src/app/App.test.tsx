@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useArchitectureStore } from '../entities/store/architectureStore';
 import { useUIStore } from '../entities/store/uiStore';
 import { useAuthStore } from '../entities/store/authStore';
+import { endpointId } from '@cloudblocks/schema';
 const toastMock = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }));
 vi.mock('react-hot-toast', () => ({
   toast: toastMock,
@@ -118,7 +119,7 @@ describe('App', () => {
         name: 'Test',
         architecture: {
           id: 'arch-1', name: 'Test', version: '1.0.0',
-          nodes: [], connections: [], externalActors: [],
+          nodes: [], connections: [], endpoints: [], externalActors: [],
           createdAt: '', updatedAt: '',
         },
         createdAt: '', updatedAt: '',
@@ -256,7 +257,7 @@ describe('App', () => {
             position: { x: 0, y: 0, z: 0 },
             metadata: {},
           }],
-          connections: [], externalActors: [],
+          connections: [], endpoints: [], externalActors: [],
           createdAt: '', updatedAt: '',
         },
         createdAt: '', updatedAt: '',
@@ -294,7 +295,7 @@ describe('App', () => {
             size: { width: 5, height: 0.2, depth: 8 },
             metadata: {},
           }],
-          connections: [], externalActors: [],
+          connections: [], endpoints: [], externalActors: [],
           createdAt: '', updatedAt: '',
         },
         createdAt: '', updatedAt: '',
@@ -320,7 +321,8 @@ describe('App', () => {
         architecture: {
           id: 'arch-1', name: 'Test', version: '1.0.0',
           nodes: [],
-          connections: [{ id: 'conn-1', sourceId: 's', targetId: 't', type: 'dataflow', metadata: {} }],
+          connections: [{ id: 'conn-1', from: endpointId('s', 'output', 'data'), to: endpointId('t', 'input', 'data'), metadata: {} }],
+          endpoints: [],
           externalActors: [],
           createdAt: '', updatedAt: '',
         },
@@ -347,7 +349,8 @@ describe('App', () => {
         architecture: {
           id: 'arch-1', name: 'Test', version: '1.0.0',
           nodes: [],
-          connections: [{ id: 'conn-1', sourceId: 's', targetId: 't', type: 'dataflow', metadata: {} }],
+          connections: [{ id: 'conn-1', from: endpointId('s', 'output', 'data'), to: endpointId('t', 'input', 'data'), metadata: {} }],
+          endpoints: [],
           externalActors: [],
           createdAt: '', updatedAt: '',
         },
@@ -434,7 +437,7 @@ describe('App', () => {
         id: 'ws-1', name: 'Test',
         architecture: {
           id: 'arch-1', name: 'Test', version: '1.0.0',
-          nodes: [], connections: [], externalActors: [],
+          nodes: [], connections: [], endpoints: [], externalActors: [],
           createdAt: '', updatedAt: '',
         },
         createdAt: '', updatedAt: '',

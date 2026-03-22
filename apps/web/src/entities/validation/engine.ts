@@ -23,6 +23,7 @@ export function validateArchitecture(
 
   const containers = model.nodes.filter((n): n is ContainerNode => n.kind === 'container');
   const resources = model.nodes.filter((n): n is LeafNode => n.kind === 'resource');
+  const externalActors = model.externalActors ?? [];
 
   // ── Placement validation ──
   for (const resource of resources) {
@@ -65,8 +66,9 @@ export function validateArchitecture(
   for (const connection of model.connections) {
     const error = validateConnection(
       connection,
-      resources,
-      model.externalActors
+      model.endpoints,
+      model.nodes,
+      externalActors
     );
     if (error) {
       if (error.severity === 'error') {

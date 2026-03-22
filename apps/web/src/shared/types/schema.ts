@@ -1,6 +1,8 @@
 import type {
   ArchitectureModel,
   ContainerNode,
+  Endpoint,
+  LegacyConnection,
   LeafNode,
   PlateType,
   Position,
@@ -8,6 +10,11 @@ import type {
   Workspace,
 } from './index';
 import { buildPlateSizeFromProfileId, inferLegacyPlateProfileId } from './index';
+import {
+  connectionTypeToSemantic,
+  endpointId,
+  generateEndpointsForNode,
+} from '@cloudblocks/schema';
 
 const DEFAULT_EXTERNAL_ACTOR_POSITION = { x: -3, y: 0, z: 5 };
 
@@ -22,7 +29,8 @@ const DEFAULT_EXTERNAL_ACTOR_POSITION = { x: -3, y: 0, z: 5 };
  * v2.0.0 — Clean start: CU-based dimensions, 6-layer hierarchy,
  *          10 categories, aggregation, roles. No v1.x migration.
  */
-export const SCHEMA_VERSION = '3.0.0';
+export const CURRENT_SCHEMA_VERSION = '4.0.0';
+export const SCHEMA_VERSION = CURRENT_SCHEMA_VERSION;
 
 /**
  * v1.x schema versions that are explicitly rejected (clean start, no migration).
@@ -30,7 +38,12 @@ export const SCHEMA_VERSION = '3.0.0';
  */
 const LEGACY_VERSIONS = ['0.1.0', '0.2.0'];
 
-const SUPPORTED_VERSIONS = [SCHEMA_VERSION, '2.0.0'];
+const SUPPORTED_VERSIONS = [SCHEMA_VERSION, '3.0.0', '2.0.0'];
+
+export type ArchitectureSnapshot = Omit<ArchitectureModel, 'id' | 'createdAt' | 'updatedAt'> & {
+  endpoints: ArchitectureModel['endpoints'];
+  externalActors?: ArchitectureModel['externalActors'];
+};
 
 /**
  * Maps old 10-category names (v2.0.0) to new 7-category names (v3.0.0).
@@ -114,6 +127,52 @@ const isLegacyPlateArray = (value: unknown): value is LegacyPlate[] =>
 
 const isLegacyBlockArray = (value: unknown): value is LegacyBlock[] =>
   Array.isArray(value);
+
+const isEndpointArray = (value: unknown): value is Endpoint[] =>
+  Array.isArray(value);
+
+const isLegacyConnection = (value: unknown): value is LegacyConnection =>
+  isRecord(value) &&
+  typeof value.id === 'string' &&
+  typeof value.sourceId === 'string' &&
+  typeof value.targetId === 'string' &&
+  typeof value.type === 'string';
+
+const hasV4ConnectionShape = (value: unknown): value is ArchitectureModel['connections'][number] =>
+  isRecord(value) &&
+  typeof value.id === 'string' &&
+  typeof value.from === 'string' &&
+  typeof value.to === 'string';
+
+function migrateConnectionsToV4(connections: unknown): ArchitectureModel['connections'] {
+  if (!Array.isArray(connections)) {
+    return [];
+  }
+
+  if (connections.every(hasV4ConnectionShape)) {
+    return connections.map((connection) => ({
+      id: connection.id,
+      from: connection.from,
+      to: connection.to,
+      metadata: isRecord(connection.metadata) ? connection.metadata : {},
+    }));
+  }
+
+  return connections
+    .map((connection, index) => {
+      if (!isLegacyConnection(connection)) {
+        return null;
+      }
+      const semantic = connectionTypeToSemantic(connection.type);
+      return {
+        id: connection.id || `conn-${index}`,
+        from: endpointId(connection.sourceId, 'output', semantic),
+        to: endpointId(connection.targetId, 'input', semantic),
+        metadata: isRecord(connection.metadata) ? connection.metadata : {},
+      };
+    })
+    .filter((connection): connection is ArchitectureModel['connections'][number] => connection !== null);
+}
 
 export interface SerializedData {
   schemaVersion: string;
@@ -234,6 +293,19 @@ export function deserialize(json: string): Workspace[] {
           node.size = buildPlateSizeFromProfileId(inferredProfileId);
         }
       }
+
+      const nodeIds = architectureUnknown.nodes
+        .filter(isRecord)
+        .map((node) => node.id)
+        .filter((nodeId): nodeId is string => typeof nodeId === 'string');
+
+      if (!isEndpointArray(architectureUnknown.endpoints)) {
+        architectureUnknown.endpoints = nodeIds.flatMap((nodeId) =>
+          generateEndpointsForNode(nodeId)
+        );
+      }
+
+      architectureUnknown.connections = migrateConnectionsToV4(architectureUnknown.connections);
     }
 
     if (Array.isArray(architectureUnknown.externalActors)) {
@@ -265,15 +337,9 @@ export function createBlankArchitecture(
     name,
     version: '1',
     nodes: [],
+    endpoints: [],
     connections: [],
-    externalActors: [
-      {
-        id: 'ext-internet',
-        name: 'Internet',
-        type: 'internet',
-        position: { ...DEFAULT_EXTERNAL_ACTOR_POSITION },
-      },
-    ],
+    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } }],
     createdAt: now,
     updatedAt: now,
   };

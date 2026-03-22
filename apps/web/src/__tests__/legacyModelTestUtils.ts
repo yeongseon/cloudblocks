@@ -1,4 +1,5 @@
 import type { ArchitectureModel, ContainerCapableResourceType, ContainerNode, LeafNode, ResourceCategory } from '@cloudblocks/schema';
+import { generateEndpointsForNode } from '@cloudblocks/schema';
 
 type LegacyCategory =
   | 'database'
@@ -94,16 +95,28 @@ export function makeTestBlock(overrides: LegacyBlockOverrides = {}): LeafNode {
 
 export function makeTestArchitecture(overrides: LegacyArchitectureOverrides = {}): ArchitectureModel {
   const now = '2026-01-01T00:00:00Z';
+  const nodes = [...(overrides.plates ?? []), ...(overrides.blocks ?? []), ...(overrides.nodes ?? [])];
+  const actors = overrides.externalActors ?? [];
+  // Auto-generate endpoints from all node/actor IDs.
+  // Empty endpoints array (the common test default) triggers auto-generation.
+  // Only a non-empty explicit array is preserved as-is.
+  const explicitEndpoints = overrides.endpoints;
+  const shouldAutoGenerate = !explicitEndpoints || explicitEndpoints.length === 0;
+  const endpoints = shouldAutoGenerate
+    ? [...nodes.map((n) => n.id), ...actors.map((a) => a.id)].flatMap((id) => generateEndpointsForNode(id))
+    : explicitEndpoints;
   return {
     id: 'arch-1',
     name: 'Architecture',
     version: '1',
-    nodes: [...(overrides.plates ?? []), ...(overrides.blocks ?? []), ...(overrides.nodes ?? [])],
+    nodes,
     connections: [],
-    externalActors: [],
+    externalActors: actors,
     createdAt: now,
     updatedAt: now,
     ...overrides,
+    // Always apply auto-generated endpoints (overrides spread may re-set endpoints to [])
+    endpoints,
   };
 }
 

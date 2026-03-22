@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { ArchitectureModel, ContainerNode, LeafNode, ResourceCategory } from '@cloudblocks/schema';
 import type { ArchitectureSnapshot } from '../../shared/types/learning';
 import type { ArchitectureTemplate } from '../../shared/types/template';
+import { endpointId } from '@cloudblocks/schema';
+import { resolveConnectionNodes } from '@cloudblocks/schema';
 
 // Mock uuid before importing the store
 // vi.hoisted() runs before vi.mock hoisting, making the variable available
@@ -123,6 +125,7 @@ function activateDiffState() {
       version: '1',
       nodes: [],
       connections: [],
+      endpoints: [],
       externalActors: [],
       createdAt: '2025-01-01T00:00:00Z',
       updatedAt: '2025-01-01T00:00:00Z',
@@ -148,6 +151,7 @@ describe('architectureStore', () => {
         version: '2',
         nodes: [] as ArchitectureModel['nodes'],
         connections: [] as ArchitectureModel['connections'],
+        endpoints: [],
         externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' as const, position: { x: -3, y: 0, z: 5 } }],
         createdAt: now,
         updatedAt: now,
@@ -1029,11 +1033,11 @@ describe('architectureStore', () => {
 
   describe('moveActorPosition', () => {
     it('moves an external actor by the provided delta', () => {
-      const actorId = getArch().externalActors[0].id;
+      const actorId = (getArch().externalActors ?? [])[0]!.id;
 
       getState().moveActorPosition(actorId, 2.5, -1.5);
 
-      const moved = getArch().externalActors.find((actor) => actor.id === actorId);
+      const moved = (getArch().externalActors ?? []).find((actor) => actor.id === actorId);
       expect(moved?.position).toEqual({ x: -0.5, y: 0, z: 3.5 });
     });
 
@@ -1071,9 +1075,10 @@ describe('architectureStore', () => {
       expect(success).toBe(true);
       const conns = getArch().connections;
       expect(conns).toHaveLength(1);
-      expect(conns[0].sourceId).toBe(gatewayId);
-      expect(conns[0].targetId).toBe(computeId);
-      expect(conns[0].type).toBe('dataflow');
+      const { sourceId, targetId, type } = resolveConnectionNodes(conns[0]);
+      expect(sourceId).toBe(gatewayId);
+      expect(targetId).toBe(computeId);
+      expect(type).toBe('dataflow');
     });
 
     it('prevents duplicate connections', () => {
@@ -1736,6 +1741,7 @@ describe('architectureStore', () => {
           makeResourceNode('b1', 'p1', 'compute', { name: 'VM' }),
         ],
         connections: [],
+        endpoints: [],
         externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       };
 
@@ -1756,9 +1762,9 @@ describe('architectureStore', () => {
 
       expect(getArch().name).toBe('Imported Architecture');
       expect(getArch().version).toBe('1');
-      expect(getArch().connections).toEqual([]);
+      expect(getArch().connections ?? []).toEqual([]);
       expect(getArch().externalActors).toHaveLength(1);
-      expect(getArch().externalActors[0].type).toBe('internet');
+      expect((getArch().externalActors ?? [])[0]!.type).toBe('internet');
     });
 
     it('returns error string on invalid JSON without crashing', () => {
@@ -1823,29 +1829,29 @@ describe('architectureStore', () => {
       getState().importArchitecture(JSON.stringify(valid));
 
       expect(getArch().externalActors).toHaveLength(2);
-      expect(getArch().externalActors.map((actor) => actor.id)).toEqual(['ext-1', 'ext-2']);
+      expect((getArch().externalActors ?? []).map((actor) => actor.id)).toEqual(['ext-1', 'ext-2']);
     });
 
     it.each([
       {
         name: 'id',
-        connection: { sourceId: 'b1', targetId: 'p1', type: 'dataflow' },
+        connection: { from: endpointId('b1', 'output', 'data'), to: endpointId('p1', 'input', 'data') },
         message: 'id must be a string',
       },
       {
         name: 'sourceId',
         connection: { id: 'c1', targetId: 'p1', type: 'dataflow' },
-        message: 'sourceId must be a string',
+        message: 'connection must have from/to (v4) or sourceId/targetId (v3)',
       },
       {
         name: 'targetId',
         connection: { id: 'c1', sourceId: 'b1', type: 'dataflow' },
-        message: 'targetId must be a string',
+        message: 'connection must have from/to (v4) or sourceId/targetId (v3)',
       },
       {
         name: 'type',
-        connection: { id: 'c1', sourceId: 'b1', targetId: 'p1' },
-        message: 'type must be a string',
+        connection: { id: 'c1', sourceId: 'b1' },
+        message: 'connection must have from/to (v4) or sourceId/targetId (v3)',
       },
     ])('logs error when connection is missing $name', ({ connection, message }) => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -1872,7 +1878,7 @@ describe('architectureStore', () => {
           makeResourceNode('b1', 'p1', 'compute', { name: 'VM' }),
         ],
         connections: [
-          { id: 'c1', sourceId: 'missing', targetId: 'b1', type: 'dataflow' },
+          { id: 'c1', from: endpointId('missing', 'output', 'data'), to: endpointId('b1', 'input', 'data') },
         ],
       };
 
@@ -1894,8 +1900,8 @@ describe('architectureStore', () => {
         ],
         externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
         connections: [
-          { id: 'c1', sourceId: 'ext-internet', targetId: 'b1', type: 'dataflow' },
-          { id: 'c2', sourceId: 'b1', targetId: 'p1', type: 'dataflow' },
+          { id: 'c1', from: endpointId('ext-internet', 'output', 'data'), to: endpointId('b1', 'input', 'data') },
+          { id: 'c2', from: endpointId('b1', 'output', 'data'), to: endpointId('p1', 'input', 'data') },
         ],
       };
 
@@ -1985,7 +1991,7 @@ describe('architectureStore', () => {
           makeResourceNode('b1', 'p1', 'compute', { name: 'VM' }),
         ],
         connections: [
-          { id: 'c1', sourceId: 'b1', targetId: 'missing-target', type: 'dataflow' },
+          { id: 'c1', from: endpointId('b1', 'output', 'data'), to: endpointId('missing-target', 'input', 'data') },
         ],
       };
 
@@ -2065,6 +2071,7 @@ describe('architectureStore', () => {
           version: '1',
           nodes: [makeRegionNode('tp1')],
           connections: [],
+          endpoints: [],
           externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
         },
       };
@@ -2093,6 +2100,7 @@ describe('architectureStore', () => {
           version: '1',
           nodes: [],
           connections: [],
+          endpoints: [],
           externalActors: [],
         },
       };
@@ -2120,6 +2128,7 @@ describe('architectureStore', () => {
           version: '1',
           nodes: [],
           connections: [],
+          endpoints: [],
           externalActors: [],
         },
       };
@@ -2147,6 +2156,7 @@ describe('architectureStore', () => {
           version: '1',
           nodes: [],
           connections: [],
+          endpoints: [],
           externalActors: [],
         },
       };
@@ -2180,12 +2190,12 @@ describe('architectureStore', () => {
         connections: [
           {
             id: 'snap-conn-1',
-            sourceId: 'snap-block-1',
-            targetId: 'snap-plate-1',
-            type: 'dataflow',
+            from: endpointId('snap-block-1', 'output', 'data'),
+            to: endpointId('snap-plate-1', 'input', 'data'),
             metadata: {},
           },
         ],
+        endpoints: [],
         externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       };
 
@@ -2213,6 +2223,7 @@ describe('architectureStore', () => {
         version: '1',
         nodes: [],
         connections: [],
+        endpoints: [],
         externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       };
 
@@ -2234,6 +2245,7 @@ describe('architectureStore', () => {
         version: '1',
         nodes: [],
         connections: [],
+        endpoints: [],
         externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
       };
 

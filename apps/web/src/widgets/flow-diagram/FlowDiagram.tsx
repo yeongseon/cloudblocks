@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import { BLOCK_FRIENDLY_NAMES, BLOCK_ICONS } from '../../shared/types/index';
+import { BLOCK_FRIENDLY_NAMES, BLOCK_ICONS, resolveConnectionNodes } from '../../shared/types/index';
 import type { Connection, ExternalActor, LeafNode } from '@cloudblocks/schema';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
 import './FlowDiagram.css';
@@ -14,12 +14,13 @@ function buildFlowChain(
   const allIds = new Set<string>();
 
   for (const conn of connections) {
-    allIds.add(conn.sourceId);
-    allIds.add(conn.targetId);
-    if (!adj.has(conn.sourceId)) adj.set(conn.sourceId, []);
-    adj.get(conn.sourceId)!.push(conn.targetId);
-    inDegree.set(conn.targetId, (inDegree.get(conn.targetId) ?? 0) + 1);
-    if (!inDegree.has(conn.sourceId)) inDegree.set(conn.sourceId, 0);
+    const { sourceId, targetId } = resolveConnectionNodes(conn);
+    allIds.add(sourceId);
+    allIds.add(targetId);
+    if (!adj.has(sourceId)) adj.set(sourceId, []);
+    adj.get(sourceId)!.push(targetId);
+    inDegree.set(targetId, (inDegree.get(targetId) ?? 0) + 1);
+    if (!inDegree.has(sourceId)) inDegree.set(sourceId, 0);
   }
 
   // Kahn's algorithm
@@ -65,9 +66,7 @@ export function FlowDiagram() {
   }
 
   const blockMap = new Map<string, LeafNode>(blocks.map((b) => [b.id, b]));
-  const actorMap = new Map<string, ExternalActor>(
-    externalActors.map((a) => [a.id, a])
-  );
+  const actorMap = new Map<string, ExternalActor>((externalActors ?? []).map((a) => [a.id, a]));
 
   return (
     <div className="flow-diagram">

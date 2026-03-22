@@ -15,19 +15,16 @@ describe('stub port policy', () => {
     expect(getPortsForResourceType('unknown_resource_type')).toEqual({ inbound: 1, outbound: 1 });
   });
 
-  it('supports Connection stub fields in type usage', () => {
+  it('supports Connection endpoint fields in type usage', () => {
     const connection: Connection = {
       id: 'conn-1',
-      sourceId: 'source-1',
-      targetId: 'target-1',
-      type: 'dataflow',
+      from: 'endpoint-source-1-output-data',
+      to: 'endpoint-target-1-input-data',
       metadata: {},
-      sourceStub: 1,
-      targetStub: 0,
     };
 
-    expect(connection.sourceStub).toBe(1);
-    expect(connection.targetStub).toBe(0);
+    expect(connection.from).toBe('endpoint-source-1-output-data');
+    expect(connection.to).toBe('endpoint-target-1-input-data');
   });
 
   it('exports PortPolicy type', () => {

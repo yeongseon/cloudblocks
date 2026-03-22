@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { endpointId } from '@cloudblocks/schema';
 
 import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
 import type { ModifiedEntity, PropertyChange } from '../../shared/types/diff';
@@ -21,6 +22,7 @@ function toArchitectureModel(model: ArchitectureModel | LegacyArchitecture): Arc
     version: model.version,
     nodes: [...plates, ...blocks],
     connections: model.connections,
+    endpoints: [],
     externalActors: model.externalActors,
     createdAt: model.createdAt,
     updatedAt: model.updatedAt,
@@ -46,7 +48,8 @@ function createBaseArchitecture(): LegacyArchitecture {
     version: '1.0',
     plates,
     blocks,
-    connections: [{ id: 'conn-1', sourceId: 'block-1', targetId: 'block-2', type: 'dataflow', metadata: {} }],
+    connections: [{ id: 'conn-1', from: endpointId('block-1', 'output', 'data'), to: endpointId('block-2', 'input', 'data'), metadata: {} }],
+    endpoints: [],
     externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } }],
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
@@ -64,6 +67,7 @@ function createEmptyArchitecture(id: string): LegacyArchitecture {
     plates,
     blocks,
     connections: [],
+    endpoints: [],
     externalActors: [],
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
@@ -169,13 +173,12 @@ describe('computeArchitectureDiff', () => {
         ...base.connections,
         {
           id: 'conn-2',
-          sourceId: 'block-2',
-          targetId: 'block-3',
-          type: 'dataflow',
+          from: endpointId('block-2', 'output', 'data'),
+          to: endpointId('block-3', 'input', 'data'),
           metadata: {},
         },
       ],
-      externalActors: [...base.externalActors, { id: 'ext-2', name: 'Partner API', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+      externalActors: [...(base.externalActors ?? []), { id: 'ext-2', name: 'Partner API', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
     };
 
     const delta = computeLegacyDiff(base, head);
@@ -194,7 +197,8 @@ describe('computeArchitectureDiff', () => {
       plates: base.plates.filter((plate) => plate.id !== 'plate-2'),
       blocks: base.blocks.filter((block) => block.id !== 'block-2'),
       connections: base.connections.filter((connection) => connection.id !== 'conn-1'),
-      externalActors: base.externalActors.filter((actor) => actor.id !== 'ext-1'),
+      endpoints: [],
+      externalActors: (base.externalActors ?? []).filter((actor) => actor.id !== 'ext-1'),
     };
 
     const delta = computeLegacyDiff(base, head);
@@ -227,7 +231,7 @@ describe('computeArchitectureDiff', () => {
         ...connection,
         metadata: { ...connection.metadata, protocol: 'https' },
       })),
-      externalActors: base.externalActors.map((actor) => ({ ...actor, name: 'Public Internet' })),
+      externalActors: (base.externalActors ?? []).map((actor) => ({ ...actor, name: 'Public Internet' })),
     };
 
     const delta = computeLegacyDiff(base, head);
@@ -361,7 +365,8 @@ describe('computeArchitectureDiff', () => {
       plates: [...base.plates].reverse().map((plate) => ({ ...plate })),
       blocks: [...base.blocks].reverse(),
       connections: [...base.connections].reverse(),
-      externalActors: [...base.externalActors].reverse(),
+      endpoints: [],
+      externalActors: [...base.externalActors ?? []].reverse(),
     };
 
     const delta = computeLegacyDiff(base, head);
@@ -381,13 +386,12 @@ describe('computeArchitectureDiff', () => {
         ...base.connections,
         {
           id: 'conn-2',
-          sourceId: 'ext-1',
-          targetId: 'block-1',
-          type: 'dataflow',
+          from: endpointId('ext-1', 'output', 'data'),
+          to: endpointId('block-1', 'input', 'data'),
           metadata: {},
         },
       ],
-      externalActors: [...base.externalActors, { id: 'ext-2', name: 'Partner API', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+      externalActors: [...(base.externalActors ?? []), { id: 'ext-2', name: 'Partner API', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
     };
 
     const delta = computeLegacyDiff(base, head);
@@ -427,7 +431,7 @@ describe('computeArchitectureDiff', () => {
         ...base.blocks,
         makeTestBlock({ id: 'block-3', name: 'App Storage', category: 'data', placementId: 'plate-2', position: { x: 3, y: 0, z: 1 }, metadata: {} }),
       ],
-      externalActors: base.externalActors.map((actor) => ({ ...actor, name: 'Public Internet' })),
+      externalActors: (base.externalActors ?? []).map((actor) => ({ ...actor, name: 'Public Internet' })),
     };
 
     const delta = computeLegacyDiff(base, head);
@@ -444,7 +448,7 @@ describe('computeArchitectureDiff', () => {
         ...base.blocks,
         makeTestBlock({ id: 'block-3', name: 'Cache', category: 'compute', placementId: 'plate-1', position: { x: 0, y: 0, z: 0 }, metadata: {} }),
       ],
-      externalActors: base.externalActors.map((actor) => ({ ...actor, name: 'Internet Edge' })),
+      externalActors: (base.externalActors ?? []).map((actor) => ({ ...actor, name: 'Internet Edge' })),
     };
 
     const delta = computeLegacyDiff(base, head);
@@ -471,14 +475,13 @@ describe('computeArchitectureDiff', () => {
       connections: [
         {
           id: 'conn-2',
-          sourceId: 'block-3',
-          targetId: 'block-2',
-          type: 'dataflow',
+          from: endpointId('block-3', 'output', 'data'),
+          to: endpointId('block-2', 'input', 'data'),
           metadata: {},
         },
       ],
       externalActors: [
-        { ...base.externalActors[0], name: 'Public Internet' },
+        { ...(base.externalActors ?? [])[0]!, name: 'Public Internet' },
         { id: 'ext-2', name: 'Partner API', type: 'internet' , position: { x: -3, y: 0, z: 5 } },
       ],
     };
@@ -649,14 +652,13 @@ describe('normalizeArchitecture', () => {
       connections: [
         {
           id: 'conn-2',
-          sourceId: 'block-2',
-          targetId: 'block-1',
-          type: 'dataflow',
+          from: endpointId('block-2', 'output', 'data'),
+          to: endpointId('block-1', 'input', 'data'),
           metadata: {},
         },
         base.connections[0],
       ],
-      externalActors: [{ id: 'ext-2', name: 'Partner API', type: 'internet', position: { x: -3, y: 0, z: 5 } }, base.externalActors[0]],
+      externalActors: [{ id: 'ext-2', name: 'Partner API', type: 'internet', position: { x: -3, y: 0, z: 5 } }, (base.externalActors ?? [])[0]!],
     };
 
     const normalized = normalizeArchitecture(toArchitectureModel(unsorted));
@@ -666,7 +668,7 @@ describe('normalizeArchitecture', () => {
     expect(normalizedPlates.map((plate) => plate.id)).toEqual(['plate-1', 'plate-2']);
     expect(normalizedBlocks.map((block) => block.id)).toEqual(['block-1', 'block-2']);
     expect(normalized.connections.map((connection) => connection.id)).toEqual(['conn-1', 'conn-2']);
-    expect(normalized.externalActors.map((actor) => actor.id)).toEqual(['ext-1', 'ext-2']);
+    expect((normalized.externalActors ?? []).map((actor) => actor.id)).toEqual(['ext-1', 'ext-2']);
 
     expect((unsorted.blocks ?? []).map((block) => block.id)).toEqual(['block-2', 'block-1']);
   });
