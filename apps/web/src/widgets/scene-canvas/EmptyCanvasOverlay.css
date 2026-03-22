@@ -138,13 +138,25 @@
     0 1px 0 0 #248A3D;
 }
 
-.empty-canvas-btn--placeholder {
-  background: #F5F0E0;
-  border-color: #E8DFC0;
-  color: #B0A080;
-  cursor: default;
-  pointer-events: none;
+.empty-canvas-btn--demo {
+  background: #AF52DE;
+  border-color: #8944AB;
+  color: #FFFFFF;
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.4),
+    0 4px 0 0 #8944AB;
+}
+
+.empty-canvas-btn--demo:hover {
+  background: #C06AE8;
+  transform: translateY(-2px);
   box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.5),
-    0 4px 0 0 rgba(0, 0, 0, 0.05);
+    0 6px 0 0 #8944AB;
+}
+
+.empty-canvas-btn--demo:active {
+  box-shadow:
+    inset 0 2px 0 rgba(0, 0, 0, 0.2),
+    0 1px 0 0 #8944AB;
 }
