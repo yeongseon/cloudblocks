@@ -17,8 +17,8 @@ theme:
   language: en
   custom_dir: docs/overrides
   font:
-    text: Fredoka
-    code: Roboto Mono
+    text: Inter
+    code: JetBrains Mono
   palette:
     - scheme: default
       primary: custom
@@ -53,7 +53,7 @@ plugins:
   - search
 
 extra_css:
-  - stylesheets/lego-theme.css
+  - stylesheets/professional-theme.css
 
 markdown_extensions:
   - admonition
@@ -90,6 +90,7 @@ nav:
   - Reference:
       - CloudBlocks Spec v2.0: design/CLOUDBLOCKS_SPEC_V2.md
       - Domain Model: model/DOMAIN_MODEL.md
+      - Theme System: design/THEME_SYSTEM_SPEC.md
       - Validation Contract: design/VALIDATION_CONTRACT.md
       - REST API Spec: api/API_SPEC.md
 
@@ -122,6 +123,8 @@ nav:
           - ADR-0007 Multi-Environment Deployment: adr/0007-multi-environment-deployment-strategy.md
           - ADR-0008 v2.0 Universal Architecture Spec: adr/0008-v2-universal-architecture-specification.md
           - ADR-0009 AI-Assisted Architecture: adr/0009-ai-assisted-architecture.md
+          - ADR-0010 SVG-Only Rendering Model: adr/0010-svg-only-rendering-model.md
+          - ADR-0011 Dual Theme System: adr/0011-dual-theme-system.md
       - Historical / Audits:
           - Brick Design Spec (v1.x): design/BRICK_DESIGN_SPEC.md
           - Visual Design Spec (v1.x): design/VISUAL_DESIGN_SPEC.md
