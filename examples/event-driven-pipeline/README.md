@@ -19,12 +19,12 @@ Internet → Gateway (Event Ingestion)
 
 ## Components
 
-| Layer | Block Type | Subnet | Description |
-|-------|-----------|--------|-------------|
-| Ingestion | Gateway | Public | Event ingestion endpoint |
-| Processing | Compute | Public | Stream processor / event handler |
-| Persistence | Database | Private | Managed database for processed results |
-| Persistence | Storage | Private | Raw event archive / blob storage |
+| Layer | Category | Block Type | Subnet | Description |
+|-------|----------|-----------|--------|-------------|
+| Ingestion | Edge | Gateway | Public | Event ingestion endpoint |
+| Processing | Compute | Compute | Public | Stream processor / event handler |
+| Persistence | Data | Database | Private | Managed database for processed results |
+| Persistence | Data | Storage | Private | Raw event archive / blob storage |
 
 ## How to Build in CloudBlocks
 
