@@ -82,4 +82,22 @@ export const azureSubtypeRegistry: SubtypeRegistry = {
       description: 'Metrics and monitoring workspace',
     },
   },
+  network: {
+    'public-ip': {
+      displayName: 'Public IP',
+      description: 'Static or dynamic public IP address',
+    },
+    'route-table': {
+      displayName: 'Route Table',
+      description: 'User-defined routes for subnet traffic',
+    },
+    'private-endpoint': {
+      displayName: 'Private Endpoint',
+      description: 'Private connectivity to Azure PaaS services',
+    },
+    'nat-gateway': {
+      displayName: 'NAT Gateway',
+      description: 'Managed outbound internet access for private subnets',
+    },
+  },
 };

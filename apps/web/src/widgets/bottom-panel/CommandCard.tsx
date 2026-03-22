@@ -36,9 +36,9 @@ interface CommandCardProps {
 }
 
 const PLATE_CONTEXT_RESOURCES: Record<'network' | 'subnet-public' | 'subnet-private', ResourceType[]> = {
-  network: ['public-subnet', 'private-subnet', 'function', 'queue', 'event', 'app-service'],
-  'subnet-public': ['storage', 'dns', 'cdn', 'front-door', 'vm', 'aks', 'container-instances', 'firewall', 'nsg', 'bastion'],
-  'subnet-private': ['storage', 'sql', 'cosmos-db', 'key-vault', 'vm', 'aks', 'container-instances'],
+  network: ['public-subnet', 'private-subnet', 'function', 'queue', 'event', 'app-service', 'public-ip'],
+  'subnet-public': ['storage', 'dns', 'cdn', 'front-door', 'vm', 'aks', 'container-instances', 'firewall', 'nsg', 'bastion', 'nat-gateway', 'app-gateway', 'public-ip', 'route-table', 'private-endpoint'],
+  'subnet-private': ['storage', 'sql', 'cosmos-db', 'key-vault', 'vm', 'aks', 'container-instances', 'nat-gateway', 'route-table', 'private-endpoint'],
 };
 
 const POSITION_HOTKEYS = [
@@ -372,7 +372,7 @@ function CreationMode() {
 
       counterRef.current += 1;
       const name = `${getResourceLabel(type, activeProvider)} ${counterRef.current}`;
-      addBlock(def.blockCategory, name, targetId, activeProvider, def.id);
+      addBlock(def.blockCategory, name, targetId, activeProvider, def.schemaResourceType);
       playSound('block-snap');
     }
   }, [activeProvider, addPlate, addBlock, techTree, playSound]);
@@ -521,7 +521,7 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: ContainerNode }) 
 
     counterRef.current += 1;
     const name = `${getResourceLabel(type, activeProvider)} ${counterRef.current}`;
-    addBlock(def.blockCategory, name, selectedPlate.id, activeProvider);
+    addBlock(def.blockCategory, name, selectedPlate.id, activeProvider, def.schemaResourceType);
     playSound('block-snap');
   }, [activeProvider, addPlate, addBlock, selectedPlate.id, selectedPlate.layer, playSound]);
 
