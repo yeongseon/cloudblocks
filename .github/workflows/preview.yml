@@ -1,0 +1,120 @@
+# Preview Deployment — deploy PR branches to isolated preview environments
+#
+# Triggers on pull_request events targeting main. Deploys the frontend
+# to a unique preview URL so reviewers can test changes before merging.
+#
+# Uses Azure Static Web Apps staging environments which automatically
+# create a unique URL per PR and tear down on PR close.
+#
+# Required secrets (configure in GitHub → Settings → Environments → preview):
+#   AZURE_SWA_TOKEN — Static Web Apps deployment token for preview environment
+
+name: Preview Deploy
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches: [main]
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy Preview
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    environment: preview
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: npx vite build
+        working-directory: apps/web
+        env:
+          VITE_API_URL: "" # Preview uses no backend — frontend-only demo
+
+      - name: Scan build output for leaked secrets
+        run: ./scripts/check-build-secrets.sh apps/web/dist
+
+      - name: Deploy to Azure Static Web Apps (preview)
+        id: swa
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_SWA_TOKEN }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: upload
+          app_location: apps/web
+          output_location: dist
+          skip_app_build: true
+          deployment_environment: pr-${{ github.event.pull_request.number }}
+
+      - name: Comment preview URL on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `### 🚀 Preview Deployment
+
+            | Detail | Value |
+            |--------|-------|
+            | **Status** | ✅ Deployed |
+            | **PR** | #${{ github.event.pull_request.number }} |
+            | **Commit** | \`${context.sha.substring(0, 7)}\` |
+
+            > Preview environments are frontend-only. GitHub and AI features require the backend.`;
+
+            // Find existing preview comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('Preview Deployment')
+            );
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+  teardown:
+    name: Teardown Preview
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    environment: preview
+    steps:
+      - name: Close Azure Static Web Apps preview
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_SWA_TOKEN }}
+          action: close
+          app_location: apps/web
