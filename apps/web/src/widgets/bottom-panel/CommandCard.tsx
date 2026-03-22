@@ -1,33 +1,18 @@
-/**
- * Command Card — Context-Sensitive Action Grid
- *
- * The core interaction mechanism:
- * - Creation mode (nothing selected): Resource creation buttons with Tech Tree
- * - Action mode (resource selected): Action buttons (Link, Edit, Delete, etc.)
- *
- * Based on VISUAL_DESIGN_SPEC.md §7.5
- */
-
 import { useRef, useCallback, useEffect, useState } from 'react';
 import interact from 'interactjs';
+import type { ContainerNode, LeafNode } from '@cloudblocks/schema';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
-import { promptDialog } from '../../shared/ui/PromptDialog';
 import {
   useTechTree,
-  PLATE_ACTION_GRID,
-  PLATE_ACTION_DEFINITIONS,
   RESOURCE_DEFINITIONS,
   getResourceLabel,
   getResourceShortLabel,
   PROVIDER_RESOURCE_ALLOWLIST,
   type ResourceType,
-  type PlateActionType,
 } from './useTechTree';
-import { BLOCK_FRIENDLY_NAMES, CONNECTION_TYPE_LABELS } from '../../shared/types/index';
-import type { Connection, ConnectionType, ContainerNode, LeafNode } from '@cloudblocks/schema';
 import './CommandCard.css';
 
 interface CommandCardProps {
@@ -65,33 +50,38 @@ function getPlateHeaderText(plate: ContainerNode): string {
   if (plateType === 'subnet') {
     return plate.subnetAccess === 'public' ? 'Public Subnet' : 'Private Subnet';
   }
-  // Network-layer plates: global, edge, region, zone
   return plateType === 'region' ? 'VNet' : plateType.charAt(0).toUpperCase() + plateType.slice(1);
 }
 
 export function CommandCard({ className = '' }: CommandCardProps) {
-  const [plateSubActionState, setPlateSubActionState] = useState<{ selectedId: string | null; action: 'deploy' | null }>({ selectedId: null, action: null });
+  const [plateSubActionState, setPlateSubActionState] = useState<{ selectedId: string | null; action: 'deploy' | null }>({
+    selectedId: null,
+    action: null,
+  });
+
   const selectedId = useUIStore((s) => s.selectedId);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const resources = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
   const containers = architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
-  const selectedBlock = selectedId
-    ? resources.find((b) => b.id === selectedId) ?? null
-    : null;
-  const selectedPlate = selectedId
-    ? containers.find((p) => p.id === selectedId) ?? null
-    : null;
+
+  const selectedBlock = selectedId ? resources.find((b) => b.id === selectedId) ?? null : null;
+  const selectedPlate = selectedId ? containers.find((p) => p.id === selectedId) ?? null : null;
   const selectedConnection = selectedId
     ? architecture.connections.find((c) => c.id === selectedId) ?? null
     : null;
 
   const plateSubAction = plateSubActionState.selectedId === selectedId ? plateSubActionState.action : null;
-  const setPlateSubAction = useCallback((action: 'deploy' | null) => {
-    setPlateSubActionState({ selectedId, action });
-  }, [selectedId]);
+  const setPlateSubAction = useCallback(
+    (action: 'deploy' | null) => {
+      setPlateSubActionState({ selectedId, action });
+    },
+    [selectedId],
+  );
 
   useEffect(() => {
-    if (plateSubAction !== 'deploy') return;
+    if (plateSubAction !== 'deploy') {
+      return;
+    }
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -103,25 +93,30 @@ export function CommandCard({ className = '' }: CommandCardProps) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [plateSubAction, setPlateSubAction]);
 
-  const headerText = selectedBlock
-      ? 'Actions'
+  const headerText = selectedPlate && plateSubAction === 'deploy'
+    ? `Deploy on ${getPlateHeaderText(selectedPlate)}`
+    : !selectedId
+      ? 'Create Resource'
       : selectedPlate
-        ? plateSubAction === 'deploy'
-          ? `Deploy on ${getPlateHeaderText(selectedPlate)}`
-          : `${getPlateHeaderText(selectedPlate)} Actions`
-        : selectedConnection
-          ? 'Connection'
-          : 'Create Resource';
+        ? `${getPlateHeaderText(selectedPlate)} Selected`
+        : selectedBlock
+          ? 'Selection'
+          : selectedConnection
+            ? 'Connection Selected'
+            : 'Selection';
 
-  const modeContent = selectedBlock
-      ? <BlockActionMode />
-      : selectedPlate
-        ? plateSubAction === 'deploy'
-          ? <PlateCreationMode selectedPlate={selectedPlate} />
-          : <PlateActionMode selectedPlate={selectedPlate} onDeploy={() => setPlateSubAction('deploy')} />
-        : selectedConnection
-          ? <ConnectionActionMode connection={selectedConnection} />
-          : <CreationMode />;
+  const modeContent = selectedPlate && plateSubAction === 'deploy'
+    ? <PlateCreationMode selectedPlate={selectedPlate} />
+    : !selectedId
+      ? <CreationMode />
+      : (
+          <SelectedSummaryMode
+            selectedBlock={selectedBlock}
+            selectedPlate={selectedPlate}
+            selectedConnection={selectedConnection}
+            onDeploy={selectedPlate ? () => setPlateSubAction('deploy') : null}
+          />
+        );
 
   return (
     <div className={`command-card ${className}`}>
@@ -141,80 +136,10 @@ export function CommandCard({ className = '' }: CommandCardProps) {
           )}
         </span>
       </div>
-      <div className="command-card-grid">
-        {modeContent}
-      </div>
+      <div className="command-card-grid">{modeContent}</div>
     </div>
   );
 }
-
-function PlateActionMode({ selectedPlate, onDeploy }: { selectedPlate: ContainerNode; onDeploy: () => void }) {
-  const setSelectedId = useUIStore((s) => s.setSelectedId);
-  const removeNode = useArchitectureStore((s) => s.removeNode);
-  const renameNode = useArchitectureStore((s) => s.renameNode);
-  const isSoundMuted = useUIStore((s) => s.isSoundMuted);
-  const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
-
-  const handleAction = useCallback(async (action: PlateActionType) => {
-    switch (action) {
-      case 'deploy':
-        onDeploy();
-        break;
-      case 'rename': {
-        const newName = await promptDialog('Rename plate:', 'Rename', selectedPlate.name);
-        if (newName !== null && newName.trim() !== '') {
-          renameNode(selectedPlate.id, newName.trim());
-        }
-        break;
-      }
-      case 'delete':
-        removeNode(selectedPlate.id);
-        setSelectedId(null);
-        playSound('delete');
-        break;
-      default:
-        break;
-    }
-  }, [onDeploy, removeNode, renameNode, selectedPlate.id, selectedPlate.name, setSelectedId, playSound]);
-
-  return (
-    <>
-      {PLATE_ACTION_GRID.map((row, rowIdx) => {
-        const rowKey = row.filter(Boolean).join('-') || `plate-action-row-${rowIdx}`;
-        return (
-          <div key={rowKey} className="command-card-row">
-            {row.map((actionType, colIdx) => {
-              const cellKey = actionType ?? `empty-r${rowIdx}c${colIdx}`;
-              if (!actionType) {
-                return <div key={cellKey} className="command-card-btn command-card-btn--empty" />;
-              }
-
-              const action = PLATE_ACTION_DEFINITIONS[actionType];
-              const hotkey = getPositionHotkey(rowIdx, colIdx);
-
-              return (
-                <button
-                  key={cellKey}
-                  type="button"
-                  className="command-card-btn"
-                  onClick={() => handleAction(actionType)}
-                  title={hotkey ? `${action.label} (${hotkey})` : action.label}
-                >
-                  <span className="command-btn-icon">{action.icon}</span>
-                  <span className="command-btn-label">{action.label}</span>
-                  {hotkey && <span className="command-btn-hotkey">{hotkey}</span>}
-                </button>
-              );
-            })}
-          </div>
-        );
-      })}
-      <PlateProperties plate={selectedPlate} />
-    </>
-  );
-}
-
-// ─── Creation Mode ─────────────────────────────────────────
 
 function CreationMode() {
   const sidebarOpen = useUIStore((s) => s.sidebar.isOpen);
@@ -233,6 +158,34 @@ function CreationMode() {
   );
 }
 
+function SelectedSummaryMode({
+  selectedBlock,
+  selectedPlate,
+  selectedConnection,
+  onDeploy,
+}: {
+  selectedBlock: LeafNode | null;
+  selectedPlate: ContainerNode | null;
+  selectedConnection: { id: string } | null;
+  onDeploy: (() => void) | null;
+}) {
+  const selectedName = selectedBlock?.name
+    ?? selectedPlate?.name
+    ?? (selectedConnection ? `Connection ${selectedConnection.id}` : null);
+
+  return (
+    <div className="command-card-creation-hint">
+      <p>{selectedName ? `Selected: ${selectedName}` : 'Selection active.'}</p>
+      <p>See Inspector for details and actions.</p>
+      {onDeploy && (
+        <button type="button" className="command-card-btn command-card-btn--apply" onClick={onDeploy}>
+          <span className="command-btn-label">Deploy on Plate</span>
+        </button>
+      )}
+    </div>
+  );
+}
+
 function PlateCreationMode({ selectedPlate }: { selectedPlate: ContainerNode }) {
   const techTree = useTechTree();
   const addNode = useArchitectureStore((s) => s.addNode);
@@ -240,60 +193,72 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: ContainerNode }) 
   const startPlacing = useUIStore((s) => s.startPlacing);
   const cancelInteraction = useUIStore((s) => s.cancelInteraction);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
-  const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
+  const playSound = useCallback((name: SoundName) => {
+    if (!isSoundMuted) {
+      audioService.playSound(name);
+    }
+  }, [isSoundMuted]);
+
   const counterRef = useRef(0);
   const isDraggingRef = useRef(false);
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
-      const contextResources = selectedPlate.layer !== 'subnet'
-        ? PLATE_CONTEXT_RESOURCES.network
-        : selectedPlate.subnetAccess === 'public'
-          ? PLATE_CONTEXT_RESOURCES['subnet-public']
-          : PLATE_CONTEXT_RESOURCES['subnet-private'];
+  const contextResources = selectedPlate.layer !== 'subnet'
+    ? PLATE_CONTEXT_RESOURCES.network
+    : selectedPlate.subnetAccess === 'public'
+      ? PLATE_CONTEXT_RESOURCES['subnet-public']
+      : PLATE_CONTEXT_RESOURCES['subnet-private'];
   const providerResources = PROVIDER_RESOURCE_ALLOWLIST[activeProvider];
   const filteredContextResources = contextResources.filter((resource) => providerResources.has(resource));
 
   useEffect(() => {
-    if (!gridRef.current) return;
-    if (filteredContextResources.length === 0) return;
+    if (!gridRef.current || filteredContextResources.length === 0) {
+      return;
+    }
 
     const buttons = gridRef.current.querySelectorAll<HTMLButtonElement>(
       '.command-card-btn:not(.disabled):not(.command-card-btn--empty)',
     );
-    const interactables = Array.from(buttons).map((button) => interact(button).draggable({
-      listeners: {
-        start() {
-          isDraggingRef.current = false;
-        },
-        move(event) {
-          isDraggingRef.current = true;
-          const buttonEl = event.target as HTMLButtonElement;
-          buttonEl.classList.add('is-dragging');
-
-          const type = buttonEl.dataset.resourceType as ResourceType | undefined;
-          if (!type) return;
-
-          const def = RESOURCE_DEFINITIONS[type];
-          if (!def?.blockCategory) return;
-
-          startPlacing(def.blockCategory, getResourceLabel(type, activeProvider));
-        },
-        end(event) {
-          const buttonEl = event.target as HTMLButtonElement;
-          buttonEl.classList.remove('is-dragging');
-          cancelInteraction();
-
-          if (dragResetTimerRef.current) {
-            clearTimeout(dragResetTimerRef.current);
-          }
-          dragResetTimerRef.current = setTimeout(() => {
+    const interactables = Array.from(buttons).map((button) =>
+      interact(button).draggable({
+        listeners: {
+          start() {
             isDraggingRef.current = false;
-          }, 50);
+          },
+          move(event) {
+            isDraggingRef.current = true;
+            const buttonEl = event.target as HTMLButtonElement;
+            buttonEl.classList.add('is-dragging');
+
+            const type = buttonEl.dataset.resourceType as ResourceType | undefined;
+            if (!type) {
+              return;
+            }
+
+            const def = RESOURCE_DEFINITIONS[type];
+            if (!def?.blockCategory) {
+              return;
+            }
+
+            startPlacing(def.blockCategory, getResourceLabel(type, activeProvider));
+          },
+          end(event) {
+            const buttonEl = event.target as HTMLButtonElement;
+            buttonEl.classList.remove('is-dragging');
+            cancelInteraction();
+
+            if (dragResetTimerRef.current) {
+              clearTimeout(dragResetTimerRef.current);
+            }
+            dragResetTimerRef.current = setTimeout(() => {
+              isDraggingRef.current = false;
+            }, 50);
+          },
         },
-      },
-      autoScroll: false,
-    }));
+        autoScroll: false,
+      }),
+    );
 
     return () => {
       if (dragResetTimerRef.current) {
@@ -310,21 +275,37 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: ContainerNode }) 
   }, [activeProvider, cancelInteraction, filteredContextResources, startPlacing]);
 
   const handleCreate = useCallback((type: ResourceType) => {
-    if (isDraggingRef.current) return;
+    if (isDraggingRef.current) {
+      return;
+    }
 
     const def = RESOURCE_DEFINITIONS[type];
-
     if (def.category === 'foundation') {
-      if (selectedPlate.layer !== 'region') return;
-
-      if (type === 'public-subnet') {
-        addNode({ kind: 'container', resourceType: 'subnet', name: 'Public Subnet', parentId: selectedPlate.id, layer: 'subnet', access: 'public' });
-        playSound('block-snap');
-      } else if (type === 'private-subnet') {
-        addNode({ kind: 'container', resourceType: 'subnet', name: 'Private Subnet', parentId: selectedPlate.id, layer: 'subnet', access: 'private' });
-        playSound('block-snap');
+      if (selectedPlate.layer !== 'region') {
+        return;
       }
 
+      if (type === 'public-subnet') {
+        addNode({
+          kind: 'container',
+          resourceType: 'subnet',
+          name: 'Public Subnet',
+          parentId: selectedPlate.id,
+          layer: 'subnet',
+          access: 'public',
+        });
+        playSound('block-snap');
+      } else if (type === 'private-subnet') {
+        addNode({
+          kind: 'container',
+          resourceType: 'subnet',
+          name: 'Private Subnet',
+          parentId: selectedPlate.id,
+          layer: 'subnet',
+          access: 'private',
+        });
+        playSound('block-snap');
+      }
       return;
     }
 
@@ -334,9 +315,16 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: ContainerNode }) 
 
     counterRef.current += 1;
     const name = `${getResourceLabel(type, activeProvider)} ${counterRef.current}`;
-    addNode({ kind: 'resource', resourceType: def.schemaResourceType ?? def.blockCategory, name, parentId: selectedPlate.id, provider: activeProvider, subtype: def.schemaResourceType });
+    addNode({
+      kind: 'resource',
+      resourceType: def.schemaResourceType ?? def.blockCategory,
+      name,
+      parentId: selectedPlate.id,
+      provider: activeProvider,
+      subtype: def.schemaResourceType,
+    });
     playSound('block-snap');
-  }, [activeProvider, addNode, selectedPlate.id, selectedPlate.layer, playSound]);
+  }, [activeProvider, addNode, playSound, selectedPlate.id, selectedPlate.layer]);
 
   const resourcePages = chunkResources(filteredContextResources, 9).map((page) => {
     const normalizedPage: (ResourceType | null)[] = [...page];
@@ -358,315 +346,38 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: ContainerNode }) 
         return page.map((row, rowIdx) => {
           const rowKey = `${pageKey}-${row.map((item) => item ?? 'empty').join('-')}-${getPositionHotkey(rowIdx, 0)}`;
           return (
-          <div key={rowKey} className="command-card-row">
-            {row.map((type, colIdx) => {
-              const hotkey = getPositionHotkey(rowIdx, colIdx);
-              if (!type) {
-                return <div key={`${rowKey}-empty-${hotkey}`} className="command-card-btn command-card-btn--empty" />;
-              }
+            <div key={rowKey} className="command-card-row">
+              {row.map((type, colIdx) => {
+                const hotkey = getPositionHotkey(rowIdx, colIdx);
+                if (!type) {
+                  return <div key={`${rowKey}-empty-${hotkey}`} className="command-card-btn command-card-btn--empty" />;
+                }
 
-              const def = RESOURCE_DEFINITIONS[type];
-              const enabled = techTree.isEnabled(type);
-              const disabledReason = techTree.getDisabledReason(type);
+                const def = RESOURCE_DEFINITIONS[type];
+                const enabled = techTree.isEnabled(type);
+                const disabledReason = techTree.getDisabledReason(type);
 
-              return (
-                <button
-                  key={`${rowKey}-${type}-${hotkey}`}
-                  type="button"
-                  className={`command-card-btn ${enabled ? '' : 'disabled'}`}
-                  data-resource-type={type}
-                  onClick={() => enabled && handleCreate(type)}
-                  disabled={!enabled}
-                  title={enabled ? `Create ${getResourceLabel(type, activeProvider)} (${hotkey})` : disabledReason ?? undefined}
-                >
-                  <span className="command-btn-icon">{def.icon}</span>
-                  <span className="command-btn-label">{getResourceShortLabel(type, activeProvider)}</span>
-                  {hotkey && <span className="command-btn-hotkey">{hotkey}</span>}
-                  {!enabled && <span className="command-btn-lock">🔒</span>}
-                </button>
-              );
-            })}
-          </div>
-        );
+                return (
+                  <button
+                    key={`${rowKey}-${type}-${hotkey}`}
+                    type="button"
+                    className={`command-card-btn ${enabled ? '' : 'disabled'}`}
+                    data-resource-type={type}
+                    onClick={() => enabled && handleCreate(type)}
+                    disabled={!enabled}
+                    title={enabled ? `Create ${getResourceLabel(type, activeProvider)} (${hotkey})` : disabledReason ?? undefined}
+                  >
+                    <span className="command-btn-icon">{def.icon}</span>
+                    <span className="command-btn-label">{getResourceShortLabel(type, activeProvider)}</span>
+                    {hotkey && <span className="command-btn-hotkey">{hotkey}</span>}
+                    {!enabled && <span className="command-btn-lock">🔒</span>}
+                  </button>
+                );
+              })}
+            </div>
+          );
         });
       })}
-    </div>
-  );
-}
-
-// ─── Action Mode ───────────────────────────────────────────
-
-function PropertyRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="command-card-property-row">
-      <span className="command-card-property-label">{label}</span>
-      <span className="command-card-property-value">{value}</span>
-    </div>
-  );
-}
-
-function BlockProperties({ block }: { block: LeafNode }) {
-  const architecture = useArchitectureStore((s) => s.workspace.architecture);
-  const parent = block.parentId
-    ? architecture.nodes.find((n) => n.id === block.parentId) ?? null
-    : null;
-  const categoryName = BLOCK_FRIENDLY_NAMES[block.category] ?? block.category;
-  const pos = block.position;
-
-  return (
-    <div className="command-card-properties">
-      <PropertyRow label="Type" value={block.resourceType} />
-      <PropertyRow label="Category" value={categoryName} />
-      <PropertyRow label="Provider" value={block.provider.toUpperCase()} />
-      {parent && <PropertyRow label="Network" value={parent.name} />}
-      <PropertyRow label="Position" value={`(${pos.x}, ${pos.y}, ${pos.z})`} />
-    </div>
-  );
-}
-
-function PlateProperties({ plate }: { plate: ContainerNode }) {
-  const architecture = useArchitectureStore((s) => s.workspace.architecture);
-  const parent = plate.parentId
-    ? architecture.nodes.find((n) => n.id === plate.parentId) ?? null
-    : null;
-  const contents = architecture.nodes.filter((n) => n.parentId === plate.id);
-  const plateLabel = plate.layer === 'subnet'
-    ? `Subnet (${plate.subnetAccess ?? 'public'})`
-    : plate.layer.charAt(0).toUpperCase() + plate.layer.slice(1);
-
-  return (
-    <div className="command-card-properties">
-      <PropertyRow label="Type" value={plateLabel} />
-      {parent && <PropertyRow label="Parent" value={parent.name} />}
-      <PropertyRow label="Size" value={`${plate.size.width} × ${plate.size.depth}`} />
-      <PropertyRow label="Contents" value={`${contents.length} node${contents.length !== 1 ? 's' : ''}`} />
-    </div>
-  );
-}
-
-const CONNECTION_TYPES: ConnectionType[] = ['dataflow', 'http', 'internal', 'data', 'async'];
-
-function ConnectionActionMode({ connection }: { connection: Connection }) {
-  const setSelectedId = useUIStore((s) => s.setSelectedId);
-  const removeConnection = useArchitectureStore((s) => s.removeConnection);
-  const updateConnectionType = useArchitectureStore((s) => s.updateConnectionType);
-  const architecture = useArchitectureStore((s) => s.workspace.architecture);
-  const isSoundMuted = useUIStore((s) => s.isSoundMuted);
-  const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
-
-  const source = architecture.nodes.find((n) => n.id === connection.sourceId);
-  const target = architecture.nodes.find((n) => n.id === connection.targetId);
-
-  const handleDelete = useCallback(() => {
-    removeConnection(connection.id);
-    setSelectedId(null);
-    playSound('delete');
-  }, [connection.id, removeConnection, setSelectedId, playSound]);
-
-  const handleTypeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    updateConnectionType(connection.id, e.target.value as ConnectionType);
-  }, [connection.id, updateConnectionType]);
-
-  return (
-    <div className="command-card-mode-content">
-      <div className="command-card-properties">
-        <PropertyRow label="Type" value={CONNECTION_TYPE_LABELS[connection.type]} />
-        {source && <PropertyRow label="Source" value={source.name} />}
-        {target && <PropertyRow label="Target" value={target.name} />}
-      </div>
-      <div className="command-card-form">
-        <label className="command-card-form-label">
-          Type
-          <select
-            className="command-card-form-select"
-            value={connection.type}
-            onChange={handleTypeChange}
-          >
-            {CONNECTION_TYPES.map((t) => (
-              <option key={t} value={t}>{CONNECTION_TYPE_LABELS[t]}</option>
-            ))}
-          </select>
-        </label>
-      </div>
-      <div className="command-card-actions-row">
-        <button
-          type="button"
-          className="command-card-btn command-card-btn--delete"
-          onClick={handleDelete}
-        >
-          <span className="command-btn-icon">🗑️</span>
-          <span className="command-btn-label">Delete</span>
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function BlockActionMode() {
-  const selectedId = useUIStore((s) => s.selectedId);
-  const setSelectedId = useUIStore((s) => s.setSelectedId);
-  const setToolMode = useUIStore((s) => s.setToolMode);
-  const toggleResourceGuide = useUIStore((s) => s.toggleResourceGuide);
-  const duplicateBlock = useArchitectureStore((s) => s['duplicateBlock']);
-  const renameNode = useArchitectureStore((s) => s.renameNode);
-  const removeNode = useArchitectureStore((s) => s.removeNode);
-  const architecture = useArchitectureStore((s) => s.workspace.architecture);
-  const isSoundMuted = useUIStore((s) => s.isSoundMuted);
-  const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
-  const [editingName, setEditingName] = useState(false);
-  const [nameValue, setNameValue] = useState('');
-  const nameInputRef = useRef<HTMLInputElement>(null);
-
-  const blocks = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
-  const selectedBlock = selectedId ? blocks.find((b) => b.id === selectedId) ?? null : null;
-
-  useEffect(() => {
-    if (!editingName) return;
-
-    nameInputRef.current?.focus();
-    nameInputRef.current?.select();
-  }, [editingName]);
-
-  const startEditing = useCallback(() => {
-    if (!selectedBlock) return;
-    setEditingName(true);
-    setNameValue(selectedBlock.name);
-  }, [selectedBlock]);
-
-  const cancelEdit = useCallback(() => {
-    setEditingName(false);
-  }, []);
-
-  const commitName = useCallback(() => {
-    if (!selectedId || !selectedBlock) {
-      setEditingName(false);
-      return;
-    }
-
-    const trimmedName = nameValue.trim();
-    if (trimmedName !== '' && trimmedName !== selectedBlock.name) {
-      renameNode(selectedId, trimmedName);
-    }
-    setEditingName(false);
-  }, [nameValue, renameNode, selectedBlock, selectedId]);
-
-  const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      commitName();
-      return;
-    }
-
-    if (event.key === 'Escape') {
-      cancelEdit();
-    }
-  }, [cancelEdit, commitName]);
-
-  const handleDelete = useCallback(() => {
-    if (!selectedId) return;
-    removeNode(selectedId);
-    setSelectedId(null);
-    playSound('delete');
-  }, [playSound, removeNode, selectedId, setSelectedId]);
-
-  useEffect(() => {
-    if (!selectedId || editingName) return;
-
-    const handleHotkey = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null;
-      if (target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.isContentEditable) {
-        return;
-      }
-
-      switch (event.key.toLowerCase()) {
-        case 'l':
-          setToolMode('connect');
-          break;
-        case 'c':
-          duplicateBlock(selectedId);
-          playSound('block-snap');
-          break;
-        case 'r':
-          startEditing();
-          break;
-        default:
-          break;
-      }
-    };
-
-    window.addEventListener('keydown', handleHotkey);
-    return () => window.removeEventListener('keydown', handleHotkey);
-  }, [duplicateBlock, editingName, playSound, selectedId, setToolMode, startEditing]);
-
-  return (
-    <div className="command-card-mode-content">
-      <div className="command-card-block-header">
-        {editingName ? (
-          <input
-            ref={nameInputRef}
-            className="command-card-form-input command-card-name-input"
-            value={nameValue}
-            onChange={(event) => setNameValue(event.target.value)}
-            onBlur={commitName}
-            onKeyDown={handleKeyDown}
-          />
-        ) : (
-          <button
-            type="button"
-            className="command-card-block-name"
-            onClick={startEditing}
-            title="Click to rename"
-          >
-            {selectedBlock?.name}
-          </button>
-        )}
-      </div>
-      {selectedBlock && <BlockProperties block={selectedBlock} />}
-      <div className="command-card-actions-row">
-        <button
-          type="button"
-          className="command-card-btn command-card-btn--action"
-          onClick={() => { setToolMode('connect'); }}
-          title="Link (L)"
-        >
-          <span className="command-btn-icon">🔗</span>
-          <span className="command-btn-label">Link</span>
-        </button>
-        <button
-          type="button"
-          className="command-card-btn command-card-btn--action"
-          onClick={() => {
-            if (!selectedId) return;
-            duplicateBlock(selectedId);
-            playSound('block-snap');
-          }}
-          title="Copy (C)"
-        >
-          <span className="command-btn-icon">📋</span>
-          <span className="command-btn-label">Copy</span>
-        </button>
-        <button
-          type="button"
-          className="command-card-btn command-card-btn--action"
-          onClick={() => {
-            if (!useUIStore.getState().showResourceGuide) {
-              toggleResourceGuide();
-            }
-          }}
-          title="Resource Guide (E)"
-        >
-          <span className="command-btn-icon">✏️</span>
-          <span className="command-btn-label">Guide</span>
-        </button>
-        <button
-          type="button"
-          className="command-card-btn command-card-btn--delete"
-          onClick={handleDelete}
-          title="Delete (Del)"
-        >
-          <span className="command-btn-icon">🗑️</span>
-          <span className="command-btn-label">Delete</span>
-        </button>
-      </div>
     </div>
   );
 }

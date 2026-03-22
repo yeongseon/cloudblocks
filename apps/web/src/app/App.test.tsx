@@ -19,6 +19,9 @@ vi.mock('../widgets/menu-bar/MenuBar', () => ({
 vi.mock('../widgets/sidebar-palette', () => ({
   SidebarPalette: () => <div data-testid="sidebar-palette" />,
 }));
+vi.mock('../widgets/inspector-panel', () => ({
+  InspectorPanel: () => <div data-testid="inspector-panel" />,
+}));
 vi.mock('../widgets/validation-panel/ValidationPanel', () => ({
   ValidationPanel: () => <div data-testid="validation-panel" />,
 }));
@@ -27,9 +30,6 @@ vi.mock('../widgets/flow-diagram/FlowDiagram', () => ({
 }));
 vi.mock('../widgets/bottom-panel', () => ({
   BottomPanel: () => <div data-testid="bottom-panel" />,
-}));
-vi.mock('../widgets/code-preview/CodePreview', () => ({
-  CodePreview: () => <div data-testid="code-preview" />,
 }));
 vi.mock('../widgets/workspace-manager/WorkspaceManager', () => ({
   WorkspaceManager: () => <div data-testid="workspace-manager" />,
@@ -134,11 +134,11 @@ describe('App', () => {
     expect(screen.getByTestId('menu-bar')).toBeInTheDocument();
     expect(screen.getByTestId('scene-canvas')).toBeInTheDocument();
     expect(screen.getByTestId('sidebar-palette')).toBeInTheDocument();
+    expect(screen.getByTestId('inspector-panel')).toBeInTheDocument();
     expect(screen.getByTestId('validation-panel')).toBeInTheDocument();
     expect(screen.getByTestId('flow-diagram')).toBeInTheDocument();
     expect(screen.getByTestId('bottom-panel')).toBeInTheDocument();
     // Lazy-loaded widgets (code-split) — need to wait for async load
-    expect(await screen.findByTestId('code-preview')).toBeInTheDocument();
     expect(await screen.findByTestId('workspace-manager')).toBeInTheDocument();
     expect(await screen.findByTestId('template-gallery')).toBeInTheDocument();
     expect(await screen.findByTestId('github-login')).toBeInTheDocument();

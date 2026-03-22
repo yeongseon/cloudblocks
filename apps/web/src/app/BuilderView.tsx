@@ -4,6 +4,7 @@ import type { ContainerNode, LeafNode } from '@cloudblocks/schema';
 import { SceneCanvas } from '../widgets/scene-canvas/SceneCanvas';
 import { MenuBar } from '../widgets/menu-bar/MenuBar';
 import { SidebarPalette } from '../widgets/sidebar-palette';
+import { InspectorPanel } from '../widgets/inspector-panel';
 import { ValidationPanel } from '../widgets/validation-panel/ValidationPanel';
 import { FlowDiagram } from '../widgets/flow-diagram/FlowDiagram';
 import { BottomPanel } from '../widgets/bottom-panel';
@@ -18,11 +19,6 @@ import { isApiConfigured } from '../shared/api/client';
 import './BuilderView.css';
 import './LearnMode.css';
 
-const CodePreview = lazy(() =>
-  import('../widgets/code-preview/CodePreview').then((m) => ({
-    default: m.CodePreview,
-  })),
-);
 const WorkspaceManager = lazy(() =>
   import('../widgets/workspace-manager/WorkspaceManager').then((m) => ({
     default: m.WorkspaceManager,
@@ -92,7 +88,6 @@ export function BuilderView() {
   const cancelInteraction = useUIStore((s) => s.cancelInteraction);
   const editorMode = useUIStore((s) => s.editorMode);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
-  const showCodePreview = useUIStore((s) => s.showCodePreview);
   const showWorkspaceManager = useUIStore((s) => s.showWorkspaceManager);
   const showGitHubLogin = useUIStore((s) => s.showGitHubLogin);
   const showGitHubRepos = useUIStore((s) => s.showGitHubRepos);
@@ -269,14 +264,7 @@ export function BuilderView() {
 
         <aside className="builder-inspector" aria-hidden={!inspectorOpen}>
           <div className="builder-slot">
-            <Suspense fallback={null}>
-              {showCodePreview && <CodePreview key={`code-${workspaceId}`} />}
-              {showGitHubLogin && <GitHubLogin />}
-              {showGitHubRepos && <GitHubRepos />}
-              <GitHubSync />
-              {showGitHubPR && <GitHubPR key={`pr-${workspaceId}`} />}
-              <DiffPanel />
-            </Suspense>
+            <InspectorPanel />
           </div>
         </aside>
 
@@ -287,6 +275,11 @@ export function BuilderView() {
         </section>
 
         <Suspense fallback={null}>
+          {showGitHubLogin && <GitHubLogin />}
+          {showGitHubRepos && <GitHubRepos />}
+          <GitHubSync />
+          {showGitHubPR && <GitHubPR key={`pr-${workspaceId}`} />}
+          <DiffPanel />
           {showWorkspaceManager && <WorkspaceManager />}
           {showTemplateGallery && <TemplateGallery />}
           {showScenarioGallery && <ScenarioGallery />}
