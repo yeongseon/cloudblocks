@@ -96,11 +96,14 @@ describe('DetailPanel', () => {
     });
   });
 
-  it('renders welcome state when nothing is selected', () => {
+  it('renders workspace dashboard when nothing is selected', () => {
     render(<DetailPanel />);
 
-    expect(screen.getByText('Welcome to CloudBlocks!')).toBeInTheDocument();
-    expect(screen.getByText('Tip: Start with Network')).toBeInTheDocument();
+    expect(screen.getByText('Test Workspace')).toBeInTheDocument();
+    expect(screen.getByText('AZURE')).toBeInTheDocument();
+    expect(screen.getByText('Plates')).toBeInTheDocument();
+    expect(screen.getByText('Blocks')).toBeInTheDocument();
+    expect(screen.getByText('Connection')).toBeInTheDocument();
   });
 
   it('renders block detail with type, category, and position', () => {
@@ -202,12 +205,12 @@ describe('DetailPanel', () => {
     expect(screen.getByText('HTTP')).toBeInTheDocument();
   });
 
-  it('falls back to welcome state when selected id does not exist', () => {
+  it('falls back to dashboard when selected id does not exist', () => {
     useUIStore.setState({ selectedId: 'missing-id' });
 
     render(<DetailPanel />);
 
-    expect(screen.getByText('Welcome to CloudBlocks!')).toBeInTheDocument();
+    expect(screen.getByText('Test Workspace')).toBeInTheDocument();
   });
 
   it('renders region plate detail with network icon and no parent row', () => {
@@ -526,10 +529,10 @@ describe('DetailPanel', () => {
     render(<DetailPanel />);
 
     expect(screen.getByText("No selection")).toBeInTheDocument();
-    expect(screen.queryByText("Welcome to CloudBlocks!")).not.toBeInTheDocument();
+    expect(screen.queryByText("Test Workspace")).not.toBeInTheDocument();
   });
 
-  it("renders welcome state when template gallery is open even on empty canvas", () => {
+  it("renders dashboard when template gallery is open even on empty canvas", () => {
     useArchitectureStore.setState({
       workspace: {
         id: "ws-1",
@@ -552,7 +555,7 @@ describe('DetailPanel', () => {
 
     render(<DetailPanel />);
 
-    expect(screen.getByText("Welcome to CloudBlocks!")).toBeInTheDocument();
+    expect(screen.getByText("Test Workspace")).toBeInTheDocument();
     expect(screen.queryByText("No selection")).not.toBeInTheDocument();
   });
 

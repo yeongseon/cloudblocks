@@ -3,7 +3,7 @@
  *
  * Shows resource properties with inline editing capability.
  * States:
- * - Nothing selected: Welcome message with tips
+ * - Nothing selected: Workspace dashboard with stats
  * - Single selected: Editable properties
  * - Multi-selected: Wireframe grid of selected items
  *
@@ -43,7 +43,7 @@ export function DetailPanel({ className = '' }: DetailPanelProps) {
     if (isEmptyOnboarding) {
       return <IdleState className={className} />;
     }
-    return <WelcomeState className={className} />;
+    return <WorkspaceDashboard className={className} />;
   }
 
   if (selectedBlock) {
@@ -58,7 +58,7 @@ export function DetailPanel({ className = '' }: DetailPanelProps) {
     return <ConnectionDetail connectionId={selectedConnection.id} className={className} />;
   }
 
-  return <WelcomeState className={className} />;
+  return <WorkspaceDashboard className={className} />;
 }
 
 // ─── Idle State ────────────────────────────────────────────
@@ -74,22 +74,54 @@ function IdleState({ className }: { className: string }) {
   );
 }
 
-// ─── Welcome State ─────────────────────────────────────────
+// ─── Workspace Dashboard ───────────────────────────────────
 
-function WelcomeState({ className }: { className: string }) {
+function WorkspaceDashboard({ className }: { className: string }) {
+  const workspaceName = useArchitectureStore((s) => s.workspace.name);
+  const architecture = useArchitectureStore((s) => s.workspace.architecture);
+  const activeProvider = useUIStore((s) => s.activeProvider);
+
+  const containers = architecture.nodes.filter((n): n is ContainerNode => n.kind === 'container');
+  const resources = architecture.nodes.filter((n): n is LeafNode => n.kind === 'resource');
+  const connectionCount = architecture.connections.length;
+  const actorCount = architecture.externalActors.length;
+
   return (
-    <div className={`detail-panel detail-panel--welcome ${className}`}>
-      <div className="detail-welcome">
-        <h3 className="detail-welcome-title">Welcome to CloudBlocks!</h3>
-        <p className="detail-welcome-text">
-          Select a resource to view its properties,
-          <br />
-          or use the Command Card to create new ones.
-        </p>
-        <div className="detail-welcome-tip">
-          <span className="detail-tip-icon">💡</span>
-          <span className="detail-tip-text">Tip: Start with Network</span>
+    <div className={`detail-panel detail-panel--dashboard ${className}`}>
+      <div className="detail-header">
+        <span className="detail-header-icon">📊</span>
+        <span className="detail-header-name">{workspaceName}</span>
+      </div>
+
+      <div className="detail-divider" />
+
+      <div className="detail-dashboard">
+        <div className="detail-dashboard-stat">
+          <span className="detail-dashboard-value">{activeProvider.toUpperCase()}</span>
+          <span className="detail-dashboard-label">Provider</span>
         </div>
+        <div className="detail-dashboard-stat">
+          <span className="detail-dashboard-value">{containers.length}</span>
+          <span className="detail-dashboard-label">{containers.length === 1 ? 'Plate' : 'Plates'}</span>
+        </div>
+        <div className="detail-dashboard-stat">
+          <span className="detail-dashboard-value">{resources.length}</span>
+          <span className="detail-dashboard-label">{resources.length === 1 ? 'Block' : 'Blocks'}</span>
+        </div>
+        <div className="detail-dashboard-stat">
+          <span className="detail-dashboard-value">{connectionCount}</span>
+          <span className="detail-dashboard-label">{connectionCount === 1 ? 'Connection' : 'Connections'}</span>
+        </div>
+        {actorCount > 0 && (
+          <div className="detail-dashboard-stat">
+            <span className="detail-dashboard-value">{actorCount}</span>
+            <span className="detail-dashboard-label">{actorCount === 1 ? 'Actor' : 'Actors'}</span>
+          </div>
+        )}
+      </div>
+
+      <div className="detail-dashboard-tip">
+        Select a resource to learn more in the Resource Guide.
       </div>
     </div>
   );
