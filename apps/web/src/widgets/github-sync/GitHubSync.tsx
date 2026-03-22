@@ -2,15 +2,27 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { computeArchitectureDiff } from '../../features/diff/engine';
 import { apiGet, apiPost, apiPut, isAuthError } from '../../shared/api/client';
+import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import { isValidGitHubRepoFullName } from '../../shared/utils/githubValidation';
 import type { GitHubCommit, PullResponse, SyncResponse } from '../../shared/types/api';
+import type { ArchitectureModel } from '@cloudblocks/schema';
 import type { ArchitectureSnapshot } from '../../shared/types/learning';
 import './GitHubSync.css';
 
 interface LinkedRepoState {
   repo: string;
   backendWorkspaceId: string;
+}
+
+function cloneArchitecture<T>(architecture: T): T {
+  return JSON.parse(JSON.stringify(architecture)) as T;
+}
+
+function toArchitectureSnapshot(architecture: ArchitectureModel): ArchitectureSnapshot {
+  const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...snapshot } = architecture;
+  return cloneArchitecture(snapshot);
 }
 
 export function GitHubSync() {
@@ -48,6 +60,8 @@ export function GitHubSync() {
   const [pulling, setPulling] = useState(false);
   const [loadingCommits, setLoadingCommits] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastSyncedArchitecture, setLastSyncedArchitecture] = useState<ArchitectureModel | null>(null);
+  const [pullDiffSummary, setPullDiffSummary] = useState<string | null>(null);
   const requestSeqRef = useRef(0);
   const mountedRef = useRef(true);
   const showRef = useRef(show);
@@ -55,9 +69,12 @@ export function GitHubSync() {
   const workspaceIdRef = useRef(workspace.id);
   const linkedRepoRef = useRef(linkedRepo);
   const effectiveWorkspaceIdRef = useRef<string | null>(null);
+  const prePullArchitectureRef = useRef<ArchitectureSnapshot | null>(null);
 
   const trimmedCommitMessage = commitMessage.trim();
   const busy = linking || syncing || pulling;
+  const isDirtySinceLastSync = lastSyncedArchitecture !== null
+    && JSON.stringify(workspace.architecture) !== JSON.stringify(lastSyncedArchitecture);
 
   useEffect(() => {
     if (workspace.githubRepo) {
@@ -154,6 +171,7 @@ export function GitHubSync() {
 
     setLinking(true);
     setError(null);
+    setPullDiffSummary(null);
 
     try {
       await apiPut(`/api/v1/workspaces/${encodeURIComponent(bwsId)}`, {
@@ -184,6 +202,9 @@ export function GitHubSync() {
     setBackendWorkspaceIdInput('');
     setCommits([]);
     setError(null);
+    setLastSyncedArchitecture(null);
+    setPullDiffSummary(null);
+    prePullArchitectureRef.current = null;
     setStoreGithubRepo(workspace.id, undefined);
   };
 
@@ -192,11 +213,13 @@ export function GitHubSync() {
 
     setSyncing(true);
     setError(null);
+    setPullDiffSummary(null);
     try {
       await apiPost<SyncResponse>(`/api/v1/workspaces/${encodeURIComponent(effectiveWorkspaceId)}/sync`, {
         architecture: workspace.architecture,
         commit_message: trimmedCommitMessage,
       });
+      setLastSyncedArchitecture(cloneArchitecture(workspace.architecture));
       await loadCommits();
     } catch (err) {
       if (isAuthError(err)) {
@@ -217,11 +240,22 @@ export function GitHubSync() {
 
     setPulling(true);
     setError(null);
+    setPullDiffSummary(null);
     try {
+      const prePullArchitecture = cloneArchitecture(workspace.architecture);
+      prePullArchitectureRef.current = toArchitectureSnapshot(prePullArchitecture);
       const response = await apiPost<PullResponse>(
         `/api/v1/workspaces/${encodeURIComponent(effectiveWorkspaceId)}/pull`
       );
       replaceArchitecture(response.architecture as ArchitectureSnapshot);
+      const postPullArchitecture = useArchitectureStore.getState().workspace.architecture;
+      const diff = computeArchitectureDiff(prePullArchitecture, postPullArchitecture);
+      setLastSyncedArchitecture(cloneArchitecture(postPullArchitecture));
+      setPullDiffSummary(
+        `Pulled: ${diff.summary.totalChanges} changes `
+          + `(${diff.plates.added.length}/${diff.plates.removed.length} plates added/removed, `
+          + `${diff.blocks.added.length}/${diff.blocks.removed.length} blocks added/removed)`
+      );
       await loadCommits();
     } catch (err) {
       if (isAuthError(err)) {
@@ -237,11 +271,33 @@ export function GitHubSync() {
     }
   };
 
+  const handleUndoPull = () => {
+    const prePullArchitecture = prePullArchitectureRef.current;
+    if (!prePullArchitecture) return;
+    replaceArchitecture(prePullArchitecture);
+    setPullDiffSummary(null);
+  };
+
+  const handleClose = async () => {
+    if (!busy) {
+      toggleGitHubSync();
+      return;
+    }
+
+    const shouldClose = await confirmDialog(
+      'An operation is in progress. Closing may hide the result. Close anyway?',
+      'Close GitHub Sync?'
+    );
+    if (shouldClose) {
+      toggleGitHubSync();
+    }
+  };
+
   return (
     <div className="github-sync">
       <div className="github-sync-header">
         <h3 className="github-sync-title">🔄 GitHub Sync</h3>
-        <button type="button" className="github-sync-close" onClick={toggleGitHubSync} aria-label="Close GitHub sync panel">
+        <button type="button" className="github-sync-close" onClick={() => void handleClose()} aria-label="Close GitHub sync panel">
           ✕
         </button>
       </div>
@@ -296,9 +352,28 @@ export function GitHubSync() {
               <div className="github-sync-meta">
                 Linked repo: <strong>{linkedRepo}</strong>
               </div>
+              <div className="github-sync-reconciliation">
+                {lastSyncedArchitecture !== null && !isDirtySinceLastSync
+                  ? '✅ In sync'
+                  : '⚠️ Local changes since last sync'}
+              </div>
               <button type="button" className="github-sync-secondary-btn" onClick={handleUnlink} disabled={busy}>
                 Unlink
               </button>
+
+              {pullDiffSummary && (
+                <div className="github-sync-arch-summary">
+                  <div>{pullDiffSummary}</div>
+                  <div className="github-sync-actions">
+                    <button type="button" className="github-sync-secondary-btn" onClick={handleUndoPull} disabled={busy}>
+                      Undo Pull
+                    </button>
+                    <button type="button" className="github-sync-secondary-btn" onClick={() => setPullDiffSummary(null)} disabled={busy}>
+                      Dismiss
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <label className="github-sync-label" htmlFor="github-sync-commit-message">
                 Commit message
