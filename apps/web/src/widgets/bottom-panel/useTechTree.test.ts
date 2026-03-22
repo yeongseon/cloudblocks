@@ -107,14 +107,14 @@ describe('useTechTree constants', () => {
       string,
       Pick<ResourceDefinition, 'id' | 'schemaResourceType' | 'label' | 'shortLabel' | 'icon' | 'category' | 'blockCategory'>
     > = {
-      network: { id: 'network', schemaResourceType: 'virtual_network', label: 'Network (VNet)', shortLabel: 'VNet', icon: '🌐', category: 'plate', blockCategory: null },
+      network: { id: 'network', schemaResourceType: 'virtual_network', label: 'Network (VNet)', shortLabel: 'VNet', icon: '🌐', category: 'foundation', blockCategory: null },
       'public-subnet': {
         id: 'public-subnet',
         schemaResourceType: 'subnet',
         label: 'Public Subnet',
         shortLabel: 'Public',
         icon: '🌍',
-        category: 'plate',
+        category: 'foundation',
         blockCategory: null,
       },
       'private-subnet': {
@@ -123,7 +123,7 @@ describe('useTechTree constants', () => {
         label: 'Private Subnet',
         shortLabel: 'Private',
         icon: '🔒',
-        category: 'plate',
+        category: 'foundation',
         blockCategory: null,
       },
       storage: { id: 'storage', schemaResourceType: 'blob_storage', label: 'Blob Storage', shortLabel: 'Storage', icon: '📦', category: 'always', blockCategory: 'data' },

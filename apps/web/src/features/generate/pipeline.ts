@@ -3,21 +3,14 @@ import type {
   GeneratedOutput,
   GenerationOptions,
   GeneratorId,
-  GeneratorPipeline,
   ProviderName,
 } from './types';
-import { GENERATOR_METADATA_VERSION, isValidAzureRegion } from './types';
-import { getProvider, getProviderDefinition } from './provider';
+import { isValidAzureRegion } from './types';
+import { getProviderDefinition } from './provider';
 import { getGenerator, listGeneratorIds, registerGenerator } from './registry';
 import { terraformPlugin } from './terraformPlugin';
 import { bicepPlugin } from './bicep';
 import { pulumiPlugin } from './pulumi';
-import {
-  normalize,
-  generateMainTf,
-  generateVariablesTf,
-  generateOutputsTf,
-} from './terraform';
 import { validateArchitecture } from '../../entities/validation/engine';
 
 /**
@@ -146,72 +139,4 @@ export function generateCode(
   }
 
   return output;
-}
-
-// ─── Legacy Pipeline (backward compat) ──────────────────────
-
-function legacyGenerate(
-  architecture: ArchitectureModel,
-  options: GenerationOptions
-): GeneratedOutput {
-  // Stage 1: Validate
-  const validation = validateArchitecture(architecture);
-  if (!validation.valid) {
-    const errorMessages = validation.errors
-      .map((e) => e.message)
-      .join('; ');
-    throw new GenerationError(
-      `Architecture has validation errors: ${errorMessages}`
-    );
-  }
-
-  // Stage 1.5: Validate generation options
-  validateRegion(options);
-
-  // Stage 2: Resolve provider adapter (legacy)
-  const provider = getProvider(options.provider);
-  if (!provider) {
-    throw new GenerationError(
-      `Unknown provider: "${options.provider}". Available: azure, aws, gcp`
-    );
-  }
-
-  // Stage 3: Normalize
-  const normalized = normalize(architecture, provider);
-
-  // Stage 4: Generate
-  const mainTf = generateMainTf(normalized, provider, options);
-  const variablesTf = generateVariablesTf(options);
-  const outputsTf = generateOutputsTf(normalized, provider);
-
-  // Stage 5: Format
-  const files = [
-    { path: 'main.tf', content: mainTf, language: 'hcl' as const },
-    { path: 'variables.tf', content: variablesTf, language: 'hcl' as const },
-    { path: 'outputs.tf', content: outputsTf, language: 'hcl' as const },
-  ];
-
-  return {
-    files,
-      metadata: {
-        generator: 'cloudblocks',
-        version: GENERATOR_METADATA_VERSION,
-        provider: options.provider,
-        generatedAt: new Date().toISOString(),
-      },
-  };
-}
-
-export const terraformPipeline: GeneratorPipeline = { generate: legacyGenerate };
-
-/**
- * Convenience function for generating Terraform code.
- * Returns the generated output or throws GenerationError.
- * @deprecated Use generateCode() with options.generator = 'terraform' instead.
- */
-export function generateTerraform(
-  architecture: ArchitectureModel,
-  options: GenerationOptions
-): GeneratedOutput {
-  return terraformPipeline.generate(architecture, options);
 }

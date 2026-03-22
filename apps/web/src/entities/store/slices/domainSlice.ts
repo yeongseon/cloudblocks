@@ -1,8 +1,9 @@
 import type { PlateProfileId } from '../../../shared/types/index';
-import type { Connection, ContainerCapableResourceType, ContainerNode, ExternalActor, LeafNode, PlateType } from '@cloudblocks/schema';
+import type { Connection, ContainerCapableResourceType, ContainerNode, ExternalActor, LeafNode, ResourceCategory } from '@cloudblocks/schema';
 import { buildPlateSizeFromProfileId, DEFAULT_BLOCK_SIZE } from '../../../shared/types/index';
+import { RESOURCE_RULES } from '@cloudblocks/schema';
 import { generateId } from '../../../shared/utils/id';
-import type { ArchitectureSlice, ArchitectureState } from './types';
+import type { AddNodeInput, ArchitectureSlice, ArchitectureState, RemoveNodeOptions } from './types';
 import { canConnect } from '../../validation/connection';
 import type { EndpointType } from '../../validation/connection';
 import { validatePlacement } from '../../validation/placement';
@@ -17,6 +18,10 @@ import {
 
 type DomainSlice = Pick<
   ArchitectureState,
+  | 'addNode'
+  | 'removeNode'
+  | 'renameNode'
+  | 'moveNodePosition'
   | 'addPlate'
   | 'removePlate'
   | 'addBlock'
@@ -40,8 +45,10 @@ const isContainer = (node: ContainerNode | LeafNode): node is ContainerNode =>
 const isResource = (node: ContainerNode | LeafNode): node is LeafNode =>
   node.kind === 'resource';
 
+type PlateLayerType = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
 
-const CONTAINER_RESOURCE_TYPE: Record<PlateType, ContainerCapableResourceType> = {
+
+const CONTAINER_RESOURCE_TYPE: Record<PlateLayerType, ContainerCapableResourceType> = {
   global: 'virtual_network',
   edge: 'virtual_network',
   region: 'virtual_network',
@@ -50,6 +57,60 @@ const CONTAINER_RESOURCE_TYPE: Record<PlateType, ContainerCapableResourceType> =
 };
 
 export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => ({
+
+  // ── Unified Node API ─────────────────────────────────────────────────────
+
+  addNode: (input: AddNodeInput) => {
+    if (input.kind === 'container') {
+      // Resolve layer → PlateType for the existing addPlate logic
+      const layer = input.layer as PlateLayerType;
+      get().addPlate(layer, input.name, input.parentId, input.access, input.profileId);
+    } else {
+      // Derive category from RESOURCE_RULES or fall back to 'compute'
+      const rule = (RESOURCE_RULES as Record<string, { category: ResourceCategory }>)[input.resourceType];
+      const category: ResourceCategory = rule?.category ?? 'compute';
+      get().addBlock(category, input.name, input.parentId!, input.provider, input.subtype ?? input.resourceType, input.config);
+    }
+  },
+
+  removeNode: (id: string, options?: RemoveNodeOptions) => {
+    const arch = get().workspace.architecture;
+    const node = arch.nodes.find((n) => n.id === id);
+    if (!node) return;
+
+    const shouldCascade = options?.cascade ?? node.kind === 'container';
+    if (shouldCascade && node.kind === 'container') {
+      get().removePlate(id);
+    } else {
+      get().removeBlock(id);
+    }
+  },
+
+  renameNode: (id: string, newName: string) => {
+    const arch = get().workspace.architecture;
+    const node = arch.nodes.find((n) => n.id === id);
+    if (!node) return;
+
+    if (node.kind === 'container') {
+      get().renamePlate(id, newName);
+    } else {
+      get().renameBlock(id, newName);
+    }
+  },
+
+  moveNodePosition: (id: string, deltaX: number, deltaZ: number) => {
+    const arch = get().workspace.architecture;
+    const node = arch.nodes.find((n) => n.id === id);
+    if (!node) return;
+
+    if (node.kind === 'container') {
+      get().movePlatePosition(id, deltaX, deltaZ);
+    } else {
+      get().moveBlockPosition(id, deltaX, deltaZ);
+    }
+  },
+
+  // ── Deprecated wrappers (delegates preserved for backward compat) ────────
   addPlate: (type, name, parentId, subnetAccess, profileId?: PlateProfileId) => {
     set((state) => {
       const arch = state.workspace.architecture;

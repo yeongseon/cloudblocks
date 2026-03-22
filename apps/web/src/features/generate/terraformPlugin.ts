@@ -19,34 +19,12 @@ export const terraformPlugin: GeneratorPlugin = {
     { path: 'outputs.tf', language: 'hcl' },
   ],
 
-  normalize: (arch, ctx) => {
-    // The legacy ProviderAdapter interface is compatible enough for normalize()
-    const legacyAdapter = {
-      name: ctx.provider.name,
-      displayName: ctx.provider.displayName,
-      blockMappings: ctx.provider.blockMappings,
-      subtypeBlockMappings: ctx.provider.subtypeBlockMappings,
-      plateMappings: ctx.provider.plateMappings,
-      providerBlock: ctx.provider.generators.terraform.providerBlock,
-      requiredProviders: ctx.provider.generators.terraform.requiredProviders,
-    };
-    return normalize(arch, legacyAdapter, ctx.provider.subtypeBlockMappings);
-  },
+  normalize: (arch, ctx) => normalize(arch, ctx.provider),
 
   generate: (model, ctx) => {
-    const legacyAdapter = {
-      name: ctx.provider.name,
-      displayName: ctx.provider.displayName,
-      blockMappings: ctx.provider.blockMappings,
-      subtypeBlockMappings: ctx.provider.subtypeBlockMappings,
-      plateMappings: ctx.provider.plateMappings,
-      providerBlock: ctx.provider.generators.terraform.providerBlock,
-      requiredProviders: ctx.provider.generators.terraform.requiredProviders,
-    };
-
-    const mainTf = generateMainTf(model, legacyAdapter, ctx.options, ctx.provider.subtypeBlockMappings);
+    const mainTf = generateMainTf(model, ctx.provider, ctx.options);
     const variablesTf = generateVariablesTf(ctx.options);
-    const outputsTf = generateOutputsTf(model, legacyAdapter, ctx.provider.subtypeBlockMappings);
+    const outputsTf = generateOutputsTf(model, ctx.provider);
 
     return {
       files: [

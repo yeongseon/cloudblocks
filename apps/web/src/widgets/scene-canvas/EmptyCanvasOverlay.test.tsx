@@ -9,7 +9,7 @@ vi.mock('../../entities/store/architectureStore');
 vi.mock('../../entities/store/uiStore');
 vi.mock('../../features/templates/registry');
 
-const mockAddPlate = vi.fn();
+const mockAddNode = vi.fn();
 const mockLoadFromTemplate = vi.fn();
 const mockSaveToStorage = vi.fn();
 const mockToggleTemplateGallery = vi.fn();
@@ -33,7 +33,7 @@ function setupMocks(plateCount: number, showTemplateGallery = false) {
   vi.mocked(useArchitectureStore).mockImplementation(((selector: unknown) => {
     const state = {
       workspace: { architecture: { nodes } },
-      addPlate: mockAddPlate,
+      addNode: mockAddNode,
       loadFromTemplate: mockLoadFromTemplate,
       saveToStorage: mockSaveToStorage,
     };
@@ -93,11 +93,11 @@ describe('EmptyCanvasOverlay', () => {
     expect(mockToggleTemplateGallery).toHaveBeenCalledTimes(1);
   });
 
-  it('clicking Start from Scratch calls addPlate with network VNet', () => {
+  it('clicking Start from Scratch calls addNode with container VNet', () => {
     setupMocks(0);
     render(<EmptyCanvasOverlay />);
     fireEvent.click(screen.getByText(/Start from Scratch/));
-    expect(mockAddPlate).toHaveBeenCalledWith('region', 'VNet', null);
+    expect(mockAddNode).toHaveBeenCalledWith({ kind: 'container', resourceType: 'virtual_network', name: 'VNet', parentId: null, layer: 'region' });
   });
 
   it('shows Learn How link when no plates', () => {

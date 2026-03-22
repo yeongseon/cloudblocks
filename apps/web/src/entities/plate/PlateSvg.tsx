@@ -1,6 +1,6 @@
 import { memo, useId, useMemo } from 'react';
 import type { StudColorSpec } from '../../shared/types/index';
-import type { PlateType } from '@cloudblocks/schema';
+import type { LayerType } from '@cloudblocks/schema';
 import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
 import { TILE_W, TILE_H, TILE_Z, BLOCK_MARGIN, BLOCK_PADDING } from '../../shared/tokens/designTokens';
 
@@ -16,7 +16,9 @@ interface LayerVisuals {
   cornerRadius: number;      // 0 = sharp diamond, unused today (future use)
 }
 
-const LAYER_VISUALS: Record<PlateType, LayerVisuals> = {
+type PlateLayerType = Exclude<LayerType, 'resource'>;
+
+const LAYER_VISUALS: Record<PlateLayerType, LayerVisuals> = {
   global: {
     strokeWidth: 3,
     strokeOpacity: 0.9,
@@ -57,7 +59,7 @@ const LAYER_VISUALS: Record<PlateType, LayerVisuals> = {
 // ─── Props ─────────────────────────────────────────────────
 
 export interface PlateSvgProps {
-  plateType: PlateType;
+  plateType: PlateLayerType;
   studsX: number;            // CU width (1 stud = 1 CU)
   studsY: number;            // CU depth (1 stud = 1 CU)
   worldHeight: number;       // CH height (fractional OK for plates)

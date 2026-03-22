@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import type { Block, BlockRole } from '@cloudblocks/schema';
+import type { BlockRole, LeafNode } from '@cloudblocks/schema';
 import { BLOCK_ROLES } from '@cloudblocks/domain';
 import { validateRoles } from './role';
 import { makeTestBlock, type LegacyBlockOverrides } from '../../__tests__/legacyModelTestUtils';
 
-function makeBlock(overrides: LegacyBlockOverrides = {}): Block {
+function makeBlock(overrides: LegacyBlockOverrides = {}): LeafNode {
   return makeTestBlock({
     id: 'block-1',
     name: 'Block One',

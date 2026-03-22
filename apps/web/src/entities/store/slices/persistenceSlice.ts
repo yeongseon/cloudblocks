@@ -1,5 +1,5 @@
 import type { Workspace } from '../../../shared/types/index';
-import type { ArchitectureModel, ContainerNode, LeafNode, PlateType, ResourceCategory } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerNode, LeafNode, ResourceCategory } from '@cloudblocks/schema';
 import type { ArchitectureSnapshot } from '../../../shared/types/learning';
 import { saveWorkspaces, loadWorkspaces, saveActiveWorkspaceId, loadActiveWorkspaceId } from '../../../shared/utils/storage';
 import { generateId } from '../../../shared/utils/id';
@@ -16,7 +16,9 @@ import {
 
 const MAX_IMPORT_SIZE_BYTES = 5 * 1024 * 1024;
 const DEFAULT_EXTERNAL_ACTOR_POSITION = { x: -3, y: 0, z: 5 };
-const VALID_PLATE_TYPES: PlateType[] = ['global', 'edge', 'region', 'zone', 'subnet'];
+type PlateLayerType = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
+
+const VALID_PLATE_TYPES: PlateLayerType[] = ['global', 'edge', 'region', 'zone', 'subnet'];
 const VALID_BLOCK_CATEGORIES: ResourceCategory[] = [
   'network',
   'security',
@@ -35,9 +37,9 @@ const isFiniteNumber = (value: unknown): value is number =>
 
 const isValidNodeKind = (value: unknown): value is 'container' | 'resource' =>
   value === 'container' || value === 'resource';
-const isValidPlateType = (value: unknown): value is PlateType =>
+const isValidPlateType = (value: unknown): value is PlateLayerType =>
   typeof value === 'string' &&
-  VALID_PLATE_TYPES.includes(value as PlateType);
+  VALID_PLATE_TYPES.includes(value as PlateLayerType);
 
 const isValidBlockCategory = (value: unknown): value is ResourceCategory =>
   typeof value === 'string' &&

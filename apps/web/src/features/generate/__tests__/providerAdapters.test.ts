@@ -3,37 +3,42 @@ import { describe, expect, it } from 'vitest';
 import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
 import type { ProviderName } from '../types';
 import { generateCode } from '../pipeline';
-import { getProvider } from '../provider';
+import { getProviderDefinition } from '../provider';
 
 const providerNames: ProviderName[] = ['azure', 'aws', 'gcp'];
 
-interface AdapterShape {
+interface DefinitionShape {
   name?: unknown;
   displayName?: unknown;
-  providerBlock?: unknown;
-  requiredProviders?: unknown;
   blockMappings?: unknown;
   plateMappings?: unknown;
+  generators?: {
+    terraform?: {
+      providerBlock?: unknown;
+      requiredProviders?: unknown;
+    };
+  };
 }
 
-function assertProviderAdapterShape(adapter: AdapterShape): void {
-  expect(adapter.name).toBeTruthy();
-  expect(adapter.displayName).toBeTruthy();
-  expect(typeof adapter.providerBlock).toBe('function');
-  expect(typeof adapter.requiredProviders).toBe('function');
-  expect(adapter.blockMappings).toBeDefined();
-  expect(adapter.plateMappings).toBeDefined();
+function assertProviderDefinitionShape(definition: DefinitionShape): void {
+  expect(definition.name).toBeTruthy();
+  expect(definition.displayName).toBeTruthy();
+  expect(definition.blockMappings).toBeDefined();
+  expect(definition.plateMappings).toBeDefined();
+  expect(definition.generators).toBeDefined();
+  expect(typeof definition.generators?.terraform?.providerBlock).toBe('function');
+  expect(typeof definition.generators?.terraform?.requiredProviders).toBe('function');
 }
 
-function getRequiredAdapter(name: ProviderName) {
-  const adapter = getProvider(name);
-  expect(adapter).toBeDefined();
+function getRequiredDefinition(name: ProviderName) {
+  const definition = getProviderDefinition(name);
+  expect(definition).toBeDefined();
 
-  if (!adapter) {
-    throw new Error(`Missing provider adapter for ${name}`);
+  if (!definition) {
+    throw new Error(`Missing provider definition for ${name}`);
   }
 
-  return adapter;
+  return definition;
 }
 
 function createContainer(overrides: Partial<ContainerNode>): ContainerNode {
@@ -69,38 +74,38 @@ function createResource(overrides: Partial<LeafNode>): LeafNode {
   };
 }
 
-describe('provider adapters', () => {
-  it('registry includes azure, aws, and gcp adapters', () => {
+describe('provider definitions', () => {
+  it('registry includes azure, aws, and gcp definitions', () => {
     const resolved = providerNames
-      .map((name) => getProvider(name)?.name)
+      .map((name) => getProviderDefinition(name)?.name)
       .filter((name): name is ProviderName => Boolean(name));
 
     expect(resolved.sort()).toEqual([...providerNames].sort());
   });
 
-  it('returns a valid adapter for azure', () => {
-    const adapter = getRequiredAdapter('azure');
+  it('returns a valid definition for azure', () => {
+    const definition = getRequiredDefinition('azure');
 
-    assertProviderAdapterShape(adapter);
-    expect(adapter.name).toBe('azure');
+    assertProviderDefinitionShape(definition);
+    expect(definition.name).toBe('azure');
   });
 
-  it('returns a valid adapter for aws', () => {
-    const adapter = getRequiredAdapter('aws');
+  it('returns a valid definition for aws', () => {
+    const definition = getRequiredDefinition('aws');
 
-    assertProviderAdapterShape(adapter);
-    expect(adapter.name).toBe('aws');
+    assertProviderDefinitionShape(definition);
+    expect(definition.name).toBe('aws');
   });
 
-  it('returns a valid adapter for gcp', () => {
-    const adapter = getRequiredAdapter('gcp');
+  it('returns a valid definition for gcp', () => {
+    const definition = getRequiredDefinition('gcp');
 
-    assertProviderAdapterShape(adapter);
-    expect(adapter.name).toBe('gcp');
+    assertProviderDefinitionShape(definition);
+    expect(definition.name).toBe('gcp');
   });
 
   it('returns undefined for unknown providers', () => {
-    expect(getProvider('oracle-cloud' as ProviderName)).toBeUndefined();
+    expect(getProviderDefinition('oracle-cloud' as ProviderName)).toBeUndefined();
   });
 
   it('azure adapter generates non-empty terraform output', () => {

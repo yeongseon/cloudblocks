@@ -1,4 +1,6 @@
-import type { ArchitectureModel, BlockCategory, PlateType, ProviderType } from '@cloudblocks/schema';
+import type { ArchitectureModel, ProviderType, ResourceCategory } from '@cloudblocks/schema';
+
+type PlateLayerType = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
 
 /**
  * Code Generation Types (v1.0)
@@ -9,7 +11,7 @@ import type { ArchitectureModel, BlockCategory, PlateType, ProviderType } from '
  *
  * v1.0 additions:
  *   - GeneratorId, FileLanguage, GeneratorPlugin (multi-generator support)
- *   - ProviderDefinition (per-generator config, replaces ProviderAdapter)
+ *   - ProviderDefinition (per-generator config)
  *   - ValidationIssue (generator-level validation)
  */
 
@@ -85,16 +87,16 @@ export interface ResourceMapping {
   namePrefix: string;
 }
 
-export type BlockResourceMap = Record<BlockCategory, ResourceMapping>;
-export type PlateResourceMap = Record<PlateType, ResourceMapping>;
+export type BlockResourceMap = Record<ResourceCategory, ResourceMapping>;
+export type PlateResourceMap = Record<PlateLayerType, ResourceMapping>;
 
 // ─── Subtype-Aware Mapping ───────────────────────────────────
 
 /**
- * Maps BlockCategory → subtype string → ResourceMapping.
+ * Maps ResourceCategory → subtype string → ResourceMapping.
  * Used alongside BlockResourceMap for subtype-specific resource resolution.
  */
-export type SubtypeResourceMap = Partial<Record<BlockCategory, Record<string, ResourceMapping>>>;
+export type SubtypeResourceMap = Partial<Record<ResourceCategory, Record<string, ResourceMapping>>>;
 
 /**
  * Resolve the correct ResourceMapping for a block based on category and optional subtype.
@@ -106,7 +108,7 @@ export type SubtypeResourceMap = Partial<Record<BlockCategory, Record<string, Re
 export function resolveBlockMapping(
   blockMappings: BlockResourceMap,
   subtypeMappings: SubtypeResourceMap | undefined,
-  category: BlockCategory,
+  category: ResourceCategory,
   subtype?: string,
 ): ResourceMapping | undefined {
   if (subtype && subtypeMappings) {
@@ -117,21 +119,6 @@ export function resolveBlockMapping(
   }
 
   return blockMappings[category];
-}
-
-/**
- * @deprecated Use `ProviderDefinition` instead.
- * Legacy adapter type retained for backward compatibility with older Terraform-only paths.
- */
-export interface ProviderAdapter {
-  name: ProviderName;
-  displayName: string;
-  blockMappings: BlockResourceMap;
-  plateMappings: PlateResourceMap;
-  /** Generate provider block HCL */
-  providerBlock: (region: string) => string;
-  /** Generate terraform required_providers block */
-  requiredProviders: () => string;
 }
 
 // ─── Provider Definition (v1.0) ─────────────────────────────

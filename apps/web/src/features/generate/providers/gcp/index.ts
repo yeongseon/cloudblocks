@@ -1,4 +1,4 @@
-import type { ProviderAdapter, ProviderDefinition, SubtypeResourceMap } from '../../types';
+import type { ProviderDefinition, SubtypeResourceMap } from '../../types';
 
 const gcpSubtypeBlockMappings: SubtypeResourceMap = {
   compute: {
@@ -114,13 +114,4 @@ export const gcpProviderDefinition: ProviderDefinition = {
     },
   },
   subtypeBlockMappings: gcpSubtypeBlockMappings,
-};
-
-export const gcpProvider: ProviderAdapter = {
-  name: gcpProviderDefinition.name,
-  displayName: gcpProviderDefinition.displayName,
-  blockMappings: gcpProviderDefinition.blockMappings,
-  plateMappings: gcpProviderDefinition.plateMappings,
-  providerBlock: gcpProviderDefinition.generators.terraform.providerBlock,
-  requiredProviders: gcpProviderDefinition.generators.terraform.requiredProviders,
 };

@@ -36,7 +36,7 @@ export interface ResourceDefinition {
   label: string;
   shortLabel: string;
   icon: string;
-  category: 'plate' | 'always' | 'vnet-optional' | 'vnet-required';
+  category: 'foundation' | 'always' | 'vnet-optional' | 'vnet-required';
   blockCategory: ResourceCategory | null;
   disabledReason?: string;
 }
@@ -48,7 +48,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     label: 'Network (VNet)',
     shortLabel: 'VNet',
     icon: '🌐',
-    category: 'plate',
+    category: 'foundation',
     blockCategory: null,
   },
   'public-subnet': {
@@ -57,7 +57,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     label: 'Public Subnet',
     shortLabel: 'Public',
     icon: '🌍',
-    category: 'plate',
+    category: 'foundation',
     blockCategory: null,
     disabledReason: 'Create a Network first. Subnets live inside a virtual network.',
   },
@@ -67,7 +67,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     label: 'Private Subnet',
     shortLabel: 'Private',
     icon: '🔒',
-    category: 'plate',
+    category: 'foundation',
     blockCategory: null,
     disabledReason: 'Create a Network first. Subnets live inside a virtual network.',
   },
@@ -461,7 +461,7 @@ export function useTechTree(): TechTreeState {
       const def = RESOURCE_DEFINITIONS[type];
 
       switch (def.category) {
-        case 'plate':
+        case 'foundation':
           // Network is always enabled
           if (type === 'network') return true;
           // Subnets require VNet

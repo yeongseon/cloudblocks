@@ -1,19 +1,19 @@
 import { describe, expect, it } from 'vitest';
 
-import type { ArchitectureModel, Block, Plate } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
 import type { ModifiedEntity, PropertyChange } from '../../shared/types/diff';
 import { computeArchitectureDiff, getDiffState, normalizeArchitecture } from './engine';
 import { makeTestArchitecture, makeTestBlock, makeTestPlate } from '../../__tests__/legacyModelTestUtils';
 
 type LegacyArchitecture = ArchitectureModel & {
-  plates: Plate[];
-  blocks: Block[];
+  plates: ContainerNode[];
+  blocks: LeafNode[];
 };
 
 function toArchitectureModel(model: ArchitectureModel | LegacyArchitecture): ArchitectureModel {
   const legacy = model as Partial<LegacyArchitecture>;
-  const plates = legacy.plates ?? model.nodes.filter((node): node is Plate => node.kind === 'container');
-  const blocks = legacy.blocks ?? model.nodes.filter((node): node is Block => node.kind === 'resource');
+  const plates = legacy.plates ?? model.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+  const blocks = legacy.blocks ?? model.nodes.filter((node): node is LeafNode => node.kind === 'resource');
 
   return {
     id: model.id,
@@ -55,8 +55,8 @@ function createBaseArchitecture(): LegacyArchitecture {
 }
 
 function createEmptyArchitecture(id: string): LegacyArchitecture {
-  const plates: Plate[] = [];
-  const blocks: Block[] = [];
+  const plates: ContainerNode[] = [];
+  const blocks: LeafNode[] = [];
   const arch = makeTestArchitecture({
     id,
     name: 'Empty Architecture',
@@ -660,8 +660,8 @@ describe('normalizeArchitecture', () => {
     };
 
     const normalized = normalizeArchitecture(toArchitectureModel(unsorted));
-    const normalizedPlates = normalized.nodes.filter((node): node is Plate => node.kind === 'container');
-    const normalizedBlocks = normalized.nodes.filter((node): node is Block => node.kind === 'resource');
+    const normalizedPlates = normalized.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+    const normalizedBlocks = normalized.nodes.filter((node): node is LeafNode => node.kind === 'resource');
 
     expect(normalizedPlates.map((plate) => plate.id)).toEqual(['plate-1', 'plate-2']);
     expect(normalizedBlocks.map((block) => block.id)).toEqual(['block-1', 'block-2']);

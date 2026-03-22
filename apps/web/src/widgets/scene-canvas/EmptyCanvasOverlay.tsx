@@ -8,7 +8,7 @@ const DEMO_TEMPLATE_ID = 'template-three-tier';
 export function EmptyCanvasOverlay() {
   const containerCount = useArchitectureStore((s) => s.workspace.architecture.nodes.filter((node) => node.kind === 'container').length);
   const showTemplateGallery = useUIStore((s) => s.showTemplateGallery);
-  const addPlate = useArchitectureStore((s) => s.addPlate);
+  const addNode = useArchitectureStore((s) => s.addNode);
   const loadFromTemplate = useArchitectureStore((s) => s.loadFromTemplate);
   const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
   const toggleTemplateGallery = useUIStore((s) => s.toggleTemplateGallery);
@@ -43,7 +43,7 @@ export function EmptyCanvasOverlay() {
           <button
             type="button"
             className="empty-canvas-btn empty-canvas-btn--scratch"
-            onClick={() => addPlate('region', 'VNet', null)}
+            onClick={() => addNode({ kind: 'container', resourceType: 'virtual_network', name: 'VNet', parentId: null, layer: 'region' })}
           >
             ✨ Start from Scratch
           </button>

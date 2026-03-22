@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import type { Block } from '@cloudblocks/schema';
+import type { LeafNode } from '@cloudblocks/schema';
 import { validateAggregation } from './aggregation';
 import { makeTestBlock, type LegacyBlockOverrides } from '../../__tests__/legacyModelTestUtils';
 
-function makeBlock(overrides: LegacyBlockOverrides = {}): Block {
+function makeBlock(overrides: LegacyBlockOverrides = {}): LeafNode {
   return makeTestBlock({
     id: 'block-1',
     name: 'Block One',

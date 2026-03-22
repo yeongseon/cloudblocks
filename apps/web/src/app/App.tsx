@@ -47,8 +47,7 @@ function App() {
   const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
   const undo = useArchitectureStore((s) => s.undo);
   const redo = useArchitectureStore((s) => s.redo);
-  const removeBlock = useArchitectureStore((s) => s.removeBlock);
-  const removePlate = useArchitectureStore((s) => s.removePlate);
+  const removeNode = useArchitectureStore((s) => s.removeNode);
   const removeConnection = useArchitectureStore((s) => s.removeConnection);
   const selectedId = useUIStore((s) => s.selectedId);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
@@ -183,9 +182,9 @@ function App() {
         const resources = arch.nodes.filter((node): node is LeafNode => node.kind === 'resource');
         const containers = arch.nodes.filter((node): node is ContainerNode => node.kind === 'container');
         if (resources.find((resource) => resource.id === selectedId)) {
-          removeBlock(selectedId);
+          removeNode(selectedId);
         } else if (containers.find((container) => container.id === selectedId)) {
-          removePlate(selectedId);
+          removeNode(selectedId);
         } else if (arch.connections.find((c) => c.id === selectedId)) {
           removeConnection(selectedId);
         }
@@ -211,7 +210,7 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo, saveToStorage, selectedId, removeBlock, removePlate, removeConnection, setSelectedId, interactionState, cancelInteraction]);
+  }, [undo, redo, saveToStorage, selectedId, removeNode, removeConnection, setSelectedId, interactionState, cancelInteraction]);
 
   return (
     <div className="app">

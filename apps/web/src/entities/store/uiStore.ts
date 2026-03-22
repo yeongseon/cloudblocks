@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { BlockCategory, ProviderType } from '@cloudblocks/schema';
+import type { ProviderType, ResourceCategory } from '@cloudblocks/schema';
 import type { EditorMode } from '../../shared/types/learning';
 import type { DiffDelta } from '../../shared/types/diff';
 import type { ArchitectureModel } from '@cloudblocks/schema';
@@ -59,7 +59,7 @@ interface UIState {
 
   // ── Interaction state machine ──
   interactionState: InteractionState;
-  startPlacing: (category: BlockCategory, resourceName: string) => void;
+  startPlacing: (category: ResourceCategory, resourceName: string) => void;
   startConnecting: (sourceId: string) => void;
   startDragging: () => void;
   startSelecting: () => void;
@@ -67,8 +67,8 @@ interface UIState {
   completeInteraction: () => void;
 
   // ── Drag state ──
-  draggedBlockCategory: BlockCategory | null;
-  setDraggedBlockCategory: (category: BlockCategory | null) => void;
+  draggedBlockCategory: ResourceCategory | null;
+  setDraggedBlockCategory: (category: ResourceCategory | null) => void;
   draggedResourceName: string | null;
   setDraggedResourceName: (name: string | null) => void;
   cancelDrag: () => void;

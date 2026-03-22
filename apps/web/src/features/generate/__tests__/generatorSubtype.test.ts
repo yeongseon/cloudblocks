@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { ArchitectureModel } from '@cloudblocks/schema';
 import { normalizeBicep } from '../bicep';
 import { normalizePulumi } from '../pulumi';
-import { awsProvider, awsProviderDefinition } from '../providers/aws';
+import { awsProviderDefinition } from '../providers/aws';
 import { generateMainTf, generateOutputsTf, normalize } from '../terraform';
 
 function createArchitecture(subtype?: string): ArchitectureModel {
@@ -50,8 +50,7 @@ describe('generator subtype mapping integration', () => {
   it('terraform normalize uses subtype mapping when block has subtype', () => {
     const model = normalize(
       createArchitecture('ec2'),
-      awsProvider,
-      awsProviderDefinition.subtypeBlockMappings,
+      awsProviderDefinition,
     );
 
     expect(model.resourceNames.get('block-1')).toBe('ec2_compute');
@@ -72,13 +71,12 @@ describe('generator subtype mapping integration', () => {
   it('generated terraform output uses subtype-specific resource type', () => {
     const normalized = normalize(
       createArchitecture('ec2'),
-      awsProvider,
-      awsProviderDefinition.subtypeBlockMappings,
+      awsProviderDefinition,
     );
 
     const mainTf = generateMainTf(
       normalized,
-      awsProvider,
+      awsProviderDefinition,
       {
         provider: 'aws',
         mode: 'draft',
@@ -86,13 +84,11 @@ describe('generator subtype mapping integration', () => {
         region: 'us-east-1',
         generator: 'terraform',
       },
-      awsProviderDefinition.subtypeBlockMappings,
     );
 
     const outputsTf = generateOutputsTf(
       normalized,
-      awsProvider,
-      awsProviderDefinition.subtypeBlockMappings,
+      awsProviderDefinition,
     );
 
     expect(mainTf).toContain('resource "aws_instance" "ec2_compute"');
@@ -105,8 +101,7 @@ describe('generator subtype mapping integration', () => {
 
     const terraformModel = normalize(
       architecture,
-      awsProvider,
-      awsProviderDefinition.subtypeBlockMappings,
+      awsProviderDefinition,
     );
     const bicepModel = normalizeBicep(architecture, awsProviderDefinition);
     const pulumiModel = normalizePulumi(architecture, awsProviderDefinition);

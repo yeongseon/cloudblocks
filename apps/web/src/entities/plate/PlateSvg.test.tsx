@@ -3,8 +3,10 @@ import { render, screen } from '@testing-library/react';
 import type { ComponentProps } from 'react';
 import { PlateSvg } from './PlateSvg';
 import type { StudColorSpec } from '../../shared/types/index';
-import type { PlateType } from '@cloudblocks/schema';
+import type { LayerType } from '@cloudblocks/schema';
 import { TILE_W, TILE_H, TILE_Z, BLOCK_PADDING } from '../../shared/tokens/designTokens';
+
+type PlateLayerType = Exclude<LayerType, 'resource'>;
 
 const studColors: StudColorSpec = {
   main: '#66BB6A',
@@ -71,7 +73,7 @@ describe('PlateSvg — label and icon', () => {
 // ─── Plate Type Attribute ───────────────────────────────────
 
 describe('PlateSvg — plate type attribute', () => {
-  const allTypes: PlateType[] = ['global', 'edge', 'region', 'zone', 'subnet'];
+  const allTypes: PlateLayerType[] = ['global', 'edge', 'region', 'zone', 'subnet'];
 
   it.each(allTypes)('sets data-plate-type="%s"', (type) => {
     const { container } = renderPlateSvg({ plateType: type });
@@ -194,7 +196,7 @@ describe('PlateSvg — layer-type visuals', () => {
   });
 
   it('each plate type gets a distinct stroke width', () => {
-    const types: PlateType[] = ['global', 'edge', 'region', 'zone', 'subnet'];
+    const types: PlateLayerType[] = ['global', 'edge', 'region', 'zone', 'subnet'];
     const strokeWidths = types.map((type) => {
       const { container } = renderPlateSvg({ plateType: type });
       return Number(container.querySelector('polygon')?.getAttribute('stroke-width'));
@@ -206,7 +208,7 @@ describe('PlateSvg — layer-type visuals', () => {
   });
 
   it('stroke widths follow hierarchy: global > edge > region > zone > subnet', () => {
-    const types: PlateType[] = ['global', 'edge', 'region', 'zone', 'subnet'];
+    const types: PlateLayerType[] = ['global', 'edge', 'region', 'zone', 'subnet'];
     const strokeWidths = types.map((type) => {
       const { container } = renderPlateSvg({ plateType: type });
       return Number(container.querySelector('polygon')?.getAttribute('stroke-width'));
@@ -260,14 +262,14 @@ describe('PlateSvg — colors are independent of plateType', () => {
 
 describe('PlateSvg — profile-based rendering', () => {
   const profiles = [
-    { name: 'network-sandbox',     studsX: 8,  studsY: 12, worldHeight: 0.7, plateType: 'region' as PlateType },
-    { name: 'network-application', studsX: 12, studsY: 16, worldHeight: 0.7, plateType: 'region' as PlateType },
-    { name: 'network-platform',    studsX: 16, studsY: 20, worldHeight: 0.7, plateType: 'region' as PlateType },
-    { name: 'network-hub',         studsX: 20, studsY: 24, worldHeight: 0.7, plateType: 'region' as PlateType },
-    { name: 'subnet-utility',      studsX: 4,  studsY: 6,  worldHeight: 0.5, plateType: 'subnet' as PlateType },
-    { name: 'subnet-service',      studsX: 6,  studsY: 8,  worldHeight: 0.5, plateType: 'subnet' as PlateType },
-    { name: 'subnet-workload',     studsX: 8,  studsY: 10, worldHeight: 0.5, plateType: 'subnet' as PlateType },
-    { name: 'subnet-scale',        studsX: 10, studsY: 12, worldHeight: 0.5, plateType: 'subnet' as PlateType },
+    { name: 'network-sandbox',     studsX: 8,  studsY: 12, worldHeight: 0.7, plateType: 'region' as PlateLayerType },
+    { name: 'network-application', studsX: 12, studsY: 16, worldHeight: 0.7, plateType: 'region' as PlateLayerType },
+    { name: 'network-platform',    studsX: 16, studsY: 20, worldHeight: 0.7, plateType: 'region' as PlateLayerType },
+    { name: 'network-hub',         studsX: 20, studsY: 24, worldHeight: 0.7, plateType: 'region' as PlateLayerType },
+    { name: 'subnet-utility',      studsX: 4,  studsY: 6,  worldHeight: 0.5, plateType: 'subnet' as PlateLayerType },
+    { name: 'subnet-service',      studsX: 6,  studsY: 8,  worldHeight: 0.5, plateType: 'subnet' as PlateLayerType },
+    { name: 'subnet-workload',     studsX: 8,  studsY: 10, worldHeight: 0.5, plateType: 'subnet' as PlateLayerType },
+    { name: 'subnet-scale',        studsX: 10, studsY: 12, worldHeight: 0.5, plateType: 'subnet' as PlateLayerType },
   ];
 
   it.each(profiles)('renders $name profile with correct stud count', (profile) => {

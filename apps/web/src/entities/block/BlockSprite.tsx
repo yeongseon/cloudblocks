@@ -58,8 +58,8 @@ export const BlockSprite = memo(function BlockSprite({
   const startConnecting = useUIStore((s) => s.startConnecting);
   const completeInteraction = useUIStore((s) => s.completeInteraction);
   const addConnection = useArchitectureStore((s) => s.addConnection);
-  const removeBlock = useArchitectureStore((s) => s.removeBlock);
-  const moveBlockPosition = useArchitectureStore((s) => s.moveBlockPosition);
+  const removeNode = useArchitectureStore((s) => s.removeNode);
+  const moveNodePosition = useArchitectureStore((s) => s.moveNodePosition);
   const nodes = useArchitectureStore((s) => s.workspace.architecture.nodes);
   const blocks = nodes.filter((node): node is LeafNode => node.kind === 'resource');
   const externalActors = useArchitectureStore((s) => s.workspace.architecture.externalActors);
@@ -133,7 +133,7 @@ export const BlockSprite = memo(function BlockSprite({
           const dyScreen = event.dy / dragZoomRef.current;
           const { dWorldX, dWorldZ } = screenDeltaToWorld(dxScreen, dyScreen);
 
-          moveBlockPosition(block.id, dWorldX, dWorldZ);
+          moveNodePosition(block.id, dWorldX, dWorldZ);
         },
         end() {
           const imgEl = blockRef.current?.querySelector('.block-img') as HTMLElement | null;
@@ -166,7 +166,7 @@ export const BlockSprite = memo(function BlockSprite({
               const deltaZ = snappedPosition.z - currentBlock.position.z;
 
               if (deltaX !== 0 || deltaZ !== 0) {
-                moveBlockPosition(block.id, deltaX, deltaZ);
+                moveNodePosition(block.id, deltaX, deltaZ);
 
                 const { isSoundMuted } = useUIStore.getState();
                 if (!isSoundMuted) {
@@ -195,7 +195,7 @@ export const BlockSprite = memo(function BlockSprite({
       el.querySelector('.block-img')?.classList.remove('is-dropping');
       interactable.unset();
     };
-  }, [block.id, moveBlockPosition, toolMode]);
+  }, [block.id, moveNodePosition, toolMode]);
 
   const handleClick = (e: React.MouseEvent) => {
     if (diffMode && diffState === 'removed') return;
@@ -205,7 +205,7 @@ export const BlockSprite = memo(function BlockSprite({
     e.stopPropagation();
 
     if (toolMode === 'delete') {
-      removeBlock(block.id);
+      removeNode(block.id);
       return;
     }
 

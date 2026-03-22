@@ -7,7 +7,7 @@ import {
   bicepPlugin,
 } from './bicep';
 import { azureProviderDefinition } from './provider';
-import type { ArchitectureModel, Block, Plate } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
 import type { GenerationOptions } from './types';
 import {
   makeTestArchitecture,
@@ -21,7 +21,7 @@ import {
 const basePosition = { x: 0, y: 0, z: 0 };
 const baseSize = { width: 1, height: 1, depth: 1 };
 
-function createPlate(overrides: LegacyPlateOverrides): Plate {
+function createPlate(overrides: LegacyPlateOverrides): ContainerNode {
   return makeTestPlate({
     id: 'plate-default',
     name: 'Default',
@@ -34,7 +34,7 @@ function createPlate(overrides: LegacyPlateOverrides): Plate {
   });
 }
 
-function createBlock(overrides: LegacyBlockOverrides): Block {
+function createBlock(overrides: LegacyBlockOverrides): LeafNode {
   return makeTestBlock({
     id: 'block-default',
     name: 'Default',
