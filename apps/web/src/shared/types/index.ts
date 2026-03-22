@@ -151,6 +151,100 @@ export const BLOCK_SHORT_NAMES: Record<ResourceCategory, string> = {
   operations: 'Ops Monitor',
 };
 
+export const BLOCK_ENCYCLOPEDIA: Record<ResourceCategory, {
+  what: string;
+  placement: string;
+  connections: string;
+}> = {
+  network: {
+    what: 'Virtual networks define isolated private address spaces. All other resources live inside network boundaries.',
+    placement: 'Must be placed as the outermost plate. Subnets nest inside networks.',
+    connections: 'Network resources rarely have direct connections. They provide the boundary for subnet-level routing.',
+  },
+  security: {
+    what: 'Security services enforce access control, identity verification, and threat protection across your architecture.',
+    placement: 'Place inside a subnet. Typically sits in a private subnet alongside protected resources.',
+    connections: 'Connects to compute and data blocks via internal or data connections for policy enforcement.',
+  },
+  edge: {
+    what: 'Load balancers and CDNs distribute incoming traffic across backend compute instances for high availability.',
+    placement: 'Place in a public subnet to receive external traffic. Routes to compute blocks in private subnets.',
+    connections: 'Receives HTTP connections from external actors. Sends dataflow connections to compute targets.',
+  },
+  compute: {
+    what: 'Compute instances run application code — virtual machines, containers, or serverless functions.',
+    placement: 'Place in any subnet. Public subnets for web servers, private subnets for backend services.',
+    connections: 'Receives traffic from edge blocks. Connects to data stores via data connections.',
+  },
+  data: {
+    what: 'Data stores persist structured or unstructured information — databases, blob storage, caches.',
+    placement: 'Place in a private subnet for security. Avoid direct public internet exposure.',
+    connections: 'Receives data connections from compute blocks. May replicate via async connections.',
+  },
+  messaging: {
+    what: 'Message services enable asynchronous communication between decoupled components — queues, topics, event streams.',
+    placement: 'Place in a private subnet. Acts as a buffer between producer and consumer services.',
+    connections: 'Receives async connections from producers. Sends async connections to consumer compute blocks.',
+  },
+  operations: {
+    what: 'Monitoring and observability services collect metrics, logs, and traces from all running resources.',
+    placement: 'Place in a private subnet. Needs network access to all monitored resources.',
+    connections: 'Receives internal connections from all resources being monitored. Typically read-only telemetry.',
+  },
+};
+
+export const CONNECTION_ENCYCLOPEDIA: Record<string, {
+  what: string;
+  usage: string;
+}> = {
+  dataflow: {
+    what: 'General-purpose data movement between resources. Use when data flows in one direction without a specific protocol.',
+    usage: 'Load balancer to compute, compute to data store, any producer-consumer pattern.',
+  },
+  http: {
+    what: 'Request-response communication over HTTP/HTTPS. The most common web protocol for APIs and web traffic.',
+    usage: 'External actor to edge, edge to compute, compute to external APIs.',
+  },
+  internal: {
+    what: 'Private network communication between resources in the same network. No public internet exposure.',
+    usage: 'Compute to security services, monitoring agents to operations, internal microservice calls.',
+  },
+  data: {
+    what: 'Database protocol connections — SQL queries, key-value lookups, document reads/writes.',
+    usage: 'Compute to database, compute to cache, any application-to-data-store communication.',
+  },
+  async: {
+    what: 'Asynchronous message-based communication. Sender does not wait for the receiver to process.',
+    usage: 'Compute to message queue, event producer to event stream, background job dispatch.',
+  },
+};
+
+export const PLATE_ENCYCLOPEDIA: Record<string, {
+  what: string;
+  rules: string;
+}> = {
+  global: {
+    what: 'The outermost boundary representing your entire cloud environment or a multi-region deployment.',
+    rules: 'Can contain edge, region, and zone plates. Cannot be nested inside other plates.',
+  },
+  edge: {
+    what: 'Edge locations for content delivery and low-latency access points close to end users.',
+    rules: 'Nests inside a global plate. Contains edge and compute blocks for CDN and caching.',
+  },
+  region: {
+    what: 'A geographic region where cloud resources are deployed — e.g., East US, EU West, Asia Pacific.',
+    rules: 'Nests inside a global plate. Contains subnet plates which hold the actual resources.',
+  },
+  zone: {
+    what: 'An availability zone within a region for fault isolation and high availability.',
+    rules: 'Nests inside a region plate. Contains subnet plates for zone-specific deployments.',
+  },
+  subnet: {
+    what: 'A network segment with its own IP range and access rules. Public subnets face the internet; private subnets are isolated.',
+    rules: 'Nests inside a region or zone plate. Contains blocks (compute, data, security, etc.).',
+  },
+};
+
 // ─── Plate Profile System ──────────────────────────────────
 
 export type NetworkProfileId =

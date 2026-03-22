@@ -356,3 +356,35 @@
   font-weight: 600;
   line-height: 1.4;
 }
+
+/* Encyclopedia sections (read-only educational content) */
+.detail-encyclopedia {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 2px dashed rgba(212, 178, 0, 0.3);
+}
+
+.detail-encyclopedia-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detail-encyclopedia-heading {
+  font-size: 10px;
+  font-weight: 800;
+  color: #665500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-encyclopedia-text {
+  margin: 0;
+  font-size: 11px;
+  color: #444444;
+  font-weight: 600;
+  line-height: 1.4;
+}

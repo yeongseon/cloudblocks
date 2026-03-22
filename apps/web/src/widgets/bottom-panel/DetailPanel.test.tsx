@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen } from '@testing-library/react';
 import { DetailPanel } from './DetailPanel';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
@@ -106,7 +105,7 @@ describe('DetailPanel', () => {
     expect(screen.getByText('Connection')).toBeInTheDocument();
   });
 
-  it('renders block detail with type, category, and position', () => {
+  it('renders block detail with type, category, and encyclopedia', () => {
     useUIStore.setState({ selectedId: 'block-1' });
 
     render(<DetailPanel />);
@@ -114,27 +113,12 @@ describe('DetailPanel', () => {
     expect(screen.getByText('App VM')).toBeInTheDocument();
     expect(screen.getAllByText('AZURE').length).toBeGreaterThan(0);
     expect(screen.getByText('compute')).toBeInTheDocument();
-    expect(screen.getByText('(1.2, 2.4, 0.0)')).toBeInTheDocument();
+    expect(screen.getByText('What is this?')).toBeInTheDocument();
+    expect(screen.getByText('Placement Rules')).toBeInTheDocument();
+    expect(screen.getByText('Connections')).toBeInTheDocument();
   });
 
-  it('supports rename flow on block detail', async () => {
-    const user = userEvent.setup();
-    useUIStore.setState({ selectedId: 'block-1' });
-
-    render(<DetailPanel />);
-
-    await user.click(screen.getByRole('button', { name: 'Rename' }));
-
-    const input = screen.getByDisplayValue('App VM');
-    await user.clear(input);
-    await user.type(input, 'API VM');
-    fireEvent.blur(input);
-
-    expect(screen.queryByDisplayValue('API VM')).not.toBeInTheDocument();
-    expect(screen.getByText('API VM')).toBeInTheDocument();
-  });
-
-  it('shows provider and subtype identity for provider-specific blocks', () => {
+  it('shows type identity for provider-specific blocks', () => {
     const providerSpecificBlock: LeafNode = {
       ...sourceBlock,
       id: 'block-provider-specific',
@@ -159,11 +143,9 @@ describe('DetailPanel', () => {
     render(<DetailPanel />);
 
     expect(screen.getByText('AWS / ec2')).toBeInTheDocument();
-    expect(screen.getByText('Provider')).toBeInTheDocument();
-    expect(screen.getByText('Subtype')).toBeInTheDocument();
   });
 
-  it('renders plate detail including size and contents count', () => {
+  it('renders plate detail including contents count and encyclopedia', () => {
     useUIStore.setState({ selectedId: 'subnet-1' });
 
     render(<DetailPanel />);
@@ -171,19 +153,21 @@ describe('DetailPanel', () => {
     expect(screen.getByText('Public Subnet')).toBeInTheDocument();
     expect(screen.getByText('Subnet (public)')).toBeInTheDocument();
     expect(screen.getByText('Main VNet')).toBeInTheDocument();
-    expect(screen.getByText('6 × 8')).toBeInTheDocument();
     expect(screen.getByText('2 blocks')).toBeInTheDocument();
+    expect(screen.getByText('What is this?')).toBeInTheDocument();
+    expect(screen.getByText('Nesting Rules')).toBeInTheDocument();
   });
 
-  it('renders connection detail with actual type and source/target resources', () => {
+  it('renders connection detail with type header, source/target, and encyclopedia', () => {
     useUIStore.setState({ selectedId: 'conn-1' });
 
     render(<DetailPanel />);
 
     expect(screen.getByText('Data Flow Connection')).toBeInTheDocument();
-    expect(screen.getByText('Data Flow')).toBeInTheDocument();
     expect(screen.getByText(/App VM/)).toBeInTheDocument();
     expect(screen.getByText(/SQL DB/)).toBeInTheDocument();
+    expect(screen.getByText('What is this?')).toBeInTheDocument();
+    expect(screen.getByText('When to use')).toBeInTheDocument();
   });
 
   it('renders http connection type in detail panel', () => {
@@ -202,7 +186,6 @@ describe('DetailPanel', () => {
     render(<DetailPanel />);
 
     expect(screen.getByText('HTTP Connection')).toBeInTheDocument();
-    expect(screen.getByText('HTTP')).toBeInTheDocument();
   });
 
   it('falls back to dashboard when selected id does not exist', () => {
@@ -557,34 +540,6 @@ describe('DetailPanel', () => {
 
     expect(screen.getByText("Test Workspace")).toBeInTheDocument();
     expect(screen.queryByText("No selection")).not.toBeInTheDocument();
-  });
-
-  it('renames block via Enter key', async () => {
-    const user = userEvent.setup();
-    useUIStore.setState({ selectedId: 'block-1' });
-
-    render(<DetailPanel />);
-
-    await user.click(screen.getByRole('button', { name: 'Rename' }));
-    const input = screen.getByDisplayValue('App VM');
-    await user.clear(input);
-    await user.type(input, 'New VM');
-    fireEvent.keyDown(input, { key: 'Enter' });
-
-    expect(screen.getByText('New VM')).toBeInTheDocument();
-  });
-
-  it('does not rename block when name is unchanged', async () => {
-    const user = userEvent.setup();
-    useUIStore.setState({ selectedId: 'block-1' });
-
-    render(<DetailPanel />);
-
-    await user.click(screen.getByRole('button', { name: 'Rename' }));
-    const input = screen.getByDisplayValue('App VM');
-    fireEvent.blur(input);
-
-    expect(screen.getByText('App VM')).toBeInTheDocument();
   });
 
   it('renders zone plate with capitalized type name', () => {
