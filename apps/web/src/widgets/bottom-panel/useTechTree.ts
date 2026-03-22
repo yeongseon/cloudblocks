@@ -418,6 +418,14 @@ export const PLATE_ACTION_GRID: (PlateActionType | null)[][] = [
   [null, null, null],
 ];
 
+// ─── MVP Resource Allowlist ────────────────────────────────
+// Phase 6: Show only core resources in the creation palette.
+// Full RESOURCE_DEFINITIONS remain for schema compatibility.
+const MVP_RESOURCE_ALLOWLIST: ReadonlySet<ResourceType> = new Set([
+  'network', 'public-subnet', 'private-subnet',
+  'vm', 'sql', 'storage', 'key-vault',
+]);
+
 // ─── Hook ──────────────────────────────────────────────────
 
 export interface TechTreeState {
@@ -503,6 +511,7 @@ export function useTechTree(): TechTreeState {
 
     const getCreationResources = () => {
       return (Object.keys(RESOURCE_DEFINITIONS) as ResourceType[])
+        .filter((type) => MVP_RESOURCE_ALLOWLIST.has(type))
         .map((type) => ({
         resource: RESOURCE_DEFINITIONS[type],
         enabled: isEnabled(type),

@@ -36,9 +36,9 @@ interface CommandCardProps {
 }
 
 const PLATE_CONTEXT_RESOURCES: Record<'network' | 'subnet-public' | 'subnet-private', ResourceType[]> = {
-  network: ['public-subnet', 'private-subnet', 'function', 'queue', 'event', 'app-service', 'public-ip'],
-  'subnet-public': ['storage', 'dns', 'cdn', 'front-door', 'vm', 'aks', 'container-instances', 'firewall', 'nsg', 'bastion', 'nat-gateway', 'app-gateway', 'public-ip', 'route-table', 'private-endpoint'],
-  'subnet-private': ['storage', 'sql', 'cosmos-db', 'key-vault', 'vm', 'aks', 'container-instances', 'nat-gateway', 'route-table', 'private-endpoint'],
+  network: ['public-subnet', 'private-subnet'],
+  'subnet-public': ['storage', 'vm', 'key-vault'],
+  'subnet-private': ['storage', 'sql', 'key-vault', 'vm'],
 };
 
 const POSITION_HOTKEYS = [
@@ -48,10 +48,15 @@ const POSITION_HOTKEYS = [
 ] as const;
 
 const ALL_RESOURCES = Object.keys(RESOURCE_DEFINITIONS) as ResourceType[];
+
+const MVP_RESOURCES: ReadonlySet<ResourceType> = new Set([
+  'network', 'public-subnet', 'private-subnet', 'vm', 'sql', 'storage', 'key-vault',
+]);
+
 const PROVIDER_RESOURCE_ALLOWLIST: Record<ProviderType, ReadonlySet<ResourceType>> = {
-  azure: new Set(ALL_RESOURCES),
-  aws: new Set(ALL_RESOURCES),
-  gcp: new Set(ALL_RESOURCES),
+  azure: MVP_RESOURCES,
+  aws: MVP_RESOURCES,
+  gcp: MVP_RESOURCES,
 };
 
 type ContainerLayer = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
