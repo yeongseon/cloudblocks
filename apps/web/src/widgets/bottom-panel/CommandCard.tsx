@@ -247,6 +247,7 @@ function PlateActionMode({ selectedPlate, onDeploy }: { selectedPlate: Container
           </div>
         );
       })}
+      <PlateProperties plate={selectedPlate} />
     </>
   );
 }
@@ -578,6 +579,54 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: ContainerNode }) 
 
 // ─── Action Mode ───────────────────────────────────────────
 
+function PropertyRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="command-card-property-row">
+      <span className="command-card-property-label">{label}</span>
+      <span className="command-card-property-value">{value}</span>
+    </div>
+  );
+}
+
+function BlockProperties({ block }: { block: LeafNode }) {
+  const architecture = useArchitectureStore((s) => s.workspace.architecture);
+  const parent = block.parentId
+    ? architecture.nodes.find((n) => n.id === block.parentId) ?? null
+    : null;
+  const categoryName = BLOCK_FRIENDLY_NAMES[block.category] ?? block.category;
+  const pos = block.position;
+
+  return (
+    <div className="command-card-properties">
+      <PropertyRow label="Type" value={block.resourceType} />
+      <PropertyRow label="Category" value={categoryName} />
+      <PropertyRow label="Provider" value={block.provider.toUpperCase()} />
+      {parent && <PropertyRow label="Network" value={parent.name} />}
+      <PropertyRow label="Position" value={`(${pos.x}, ${pos.y}, ${pos.z})`} />
+    </div>
+  );
+}
+
+function PlateProperties({ plate }: { plate: ContainerNode }) {
+  const architecture = useArchitectureStore((s) => s.workspace.architecture);
+  const parent = plate.parentId
+    ? architecture.nodes.find((n) => n.id === plate.parentId) ?? null
+    : null;
+  const contents = architecture.nodes.filter((n) => n.parentId === plate.id);
+  const plateLabel = plate.layer === 'subnet'
+    ? `Subnet (${plate.subnetAccess ?? 'public'})`
+    : plate.layer.charAt(0).toUpperCase() + plate.layer.slice(1);
+
+  return (
+    <div className="command-card-properties">
+      <PropertyRow label="Type" value={plateLabel} />
+      {parent && <PropertyRow label="Parent" value={parent.name} />}
+      <PropertyRow label="Size" value={`${plate.size.width} × ${plate.size.depth}`} />
+      <PropertyRow label="Contents" value={`${contents.length} node${contents.length !== 1 ? 's' : ''}`} />
+    </div>
+  );
+}
+
 function BlockActionMode() {
   const selectedId = useUIStore((s) => s.selectedId);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
@@ -592,6 +641,7 @@ function BlockActionMode() {
     const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
   const blocks = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
   const plates = architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+  const selectedBlock = selectedId ? blocks.find((b) => b.id === selectedId) ?? null : null;
 
   const handleAction = useCallback(async (action: ActionType) => {
     if (!selectedId) return;
@@ -674,6 +724,7 @@ function BlockActionMode() {
           </div>
         );
       })}
+      {selectedBlock && <BlockProperties block={selectedBlock} />}
     </>
   );
 }
