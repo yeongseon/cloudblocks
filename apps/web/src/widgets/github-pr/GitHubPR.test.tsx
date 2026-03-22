@@ -10,11 +10,15 @@ vi.mock('../../shared/api/client', () => ({
     return fallback;
   }),
 }));
+vi.mock('../../shared/ui/ConfirmDialog', () => ({
+  confirmDialog: vi.fn(),
+}));
 import { GitHubPR } from './GitHubPR';
 import { useUIStore } from '../../entities/store/uiStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { apiPost, isAuthError } from '../../shared/api/client';
+import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import type { ArchitectureModel } from '@cloudblocks/schema';
 
 const emptyArch: ArchitectureModel = {
@@ -31,6 +35,7 @@ const emptyArch: ArchitectureModel = {
 describe('GitHubPR', () => {
   const mockApiPost = vi.mocked(apiPost);
   const mockIsAuthError = vi.mocked(isAuthError);
+  const mockConfirmDialog = vi.mocked(confirmDialog);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -52,6 +57,7 @@ describe('GitHubPR', () => {
       },
     });
     mockIsAuthError.mockReturnValue(false);
+    mockConfirmDialog.mockResolvedValue(true);
   });
 
   it('renders null when hidden', () => {
@@ -199,6 +205,17 @@ describe('GitHubPR', () => {
     expect(screen.getByText('Branch name contains invalid characters or format.')).toBeInTheDocument();
   });
 
+  it('disables submit and shows error when branch matches base branch fallback', async () => {
+    const user = userEvent.setup();
+    render(<GitHubPR />);
+
+    const branchField = screen.getByLabelText('Branch name (optional)');
+    await user.type(branchField, 'main');
+
+    expect(screen.getByRole('button', { name: 'Create Pull Request' })).toBeDisabled();
+    expect(screen.getByText('Head branch must differ from base branch (main/master).')).toBeInTheDocument();
+  });
+
 
   it('trims PR title before submission', async () => {
     const user = userEvent.setup();
@@ -234,10 +251,58 @@ describe('GitHubPR', () => {
     resolvePost({ pull_request_url: 'https://github.com/owner/repo/pull/42', number: 42, branch: 'main' });
   });
 
-  it('close button toggles panel', async () => {
+  it('shows actionable branch collision error when backend reports existing branch', async () => {
+    const user = userEvent.setup();
+    mockApiPost.mockRejectedValue(new Error('branch already exists'));
+
+    render(<GitHubPR />);
+    await user.type(screen.getByLabelText('Branch name (optional)'), 'feature/existing-branch');
+    await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
+
+    expect(
+      await screen.findByText("Branch 'feature/existing-branch' already exists. Please choose a different branch name.")
+    ).toBeInTheDocument();
+  });
+
+  it('close button toggles panel without confirmation when form is clean', async () => {
     const user = userEvent.setup();
     render(<GitHubPR />);
     await user.click(screen.getByRole('button', { name: 'Close pull request panel' }));
+    expect(mockConfirmDialog).not.toHaveBeenCalled();
+    expect(useUIStore.getState().showGitHubPR).toBe(false);
+  });
+
+  it('prompts before closing when form has unsaved edits and keeps panel open on cancel', async () => {
+    const user = userEvent.setup();
+    mockConfirmDialog.mockResolvedValue(false);
+    render(<GitHubPR />);
+
+    await user.type(screen.getByLabelText('Body (optional)'), 'Draft body');
+    await user.click(screen.getByRole('button', { name: 'Close pull request panel' }));
+
+    await waitFor(() => {
+      expect(mockConfirmDialog).toHaveBeenCalledWith(
+        'You have unsaved edits in the PR form. Discard them?',
+        'Discard Draft?'
+      );
+    });
+    expect(useUIStore.getState().showGitHubPR).toBe(true);
+  });
+
+  it('closes panel when user confirms discard on dirty form', async () => {
+    const user = userEvent.setup();
+    mockConfirmDialog.mockResolvedValue(true);
+    render(<GitHubPR />);
+
+    await user.type(screen.getByLabelText('Branch name (optional)'), 'feature/draft');
+    await user.click(screen.getByRole('button', { name: 'Close pull request panel' }));
+
+    await waitFor(() => {
+      expect(mockConfirmDialog).toHaveBeenCalledWith(
+        'You have unsaved edits in the PR form. Discard them?',
+        'Discard Draft?'
+      );
+    });
     expect(useUIStore.getState().showGitHubPR).toBe(false);
   });
 
