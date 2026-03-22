@@ -7,6 +7,67 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 ---
 
 
+## [v0.20.0] — 2026-03-22
+
+**Milestone 20 — UX Polish & GitHub Hardening**
+
+Redesigned panel roles, hardened GitHub integration (17 bug fixes), introduced multi-persona UX, added 19 new Azure resource types to the catalog, and completed the ResourceNode unification — eliminating the Plate/Block type separation across the entire frontend.
+
+### Panel Role Redesign (Epic #1112)
+- Resource Guide becomes read-only encyclopedia; Command Panel becomes action + property hub
+- Connection editing mode added to Command Panel
+- Workspace dashboard replaces welcome state in Resource Guide
+- Onboarding tour updated to reflect new panel roles
+
+### GitHub Integration Hardening (17 issues)
+- Fixed OAuth redirect, sign-out, and auth failure routing
+- Fixed create/link repo flow and default visibility
+- Fixed PR submission guards, branch collision, unsaved edits, and body prefill
+- Fixed dirty indicator, safe panel closure, and post-pull diff
+- Fixed read-only mode, lifecycle warnings, and region/compare preservation
+- Added integration test coverage for GitHub panel flows
+
+### Multi-Persona UX (Epic #1076)
+- Persona selection on first run (DevOps, Backend, PM, Student)
+- Complexity levels (beginner/standard/advanced) control panel visibility
+- IaC code preview abstraction levels
+
+### Azure Resource Catalog Parity (#1195)
+- Added 19 new resource types: virtual_machine, container_instance, kubernetes_cluster, cosmos_db,
+  application_gateway, azure_firewall, nat_gateway, network_security_group, bastion_host,
+  azure_front_door, internal_load_balancer, public_ip_address, network_interface, key_vault,
+  event_hub, service_bus, log_analytics, application_insights, cdn_profile
+- RESOURCE_RULES expanded from 15 to 34 entries
+
+### ResourceNode Unification (#1194)
+- Added unified store API: addNode, removeNode, renameNode, moveNodePosition
+- Removed ProviderAdapter interface; terraform.ts uses ProviderDefinition directly
+- Removed legacy provider exports, getProvider(), legacyGenerate(), terraformPipeline
+- Renamed UI category 'plate' → 'foundation' in useTechTree and CommandCard
+- Migrated all 22 apps/web files from deprecated type aliases:
+  Block → LeafNode, Plate → ContainerNode, BlockCategory → ResourceCategory
+- Deprecated schema exports preserved for backward compat
+
+### Demo Hardening
+- Block selection UI consolidated into unified property panel (#1137)
+- AI features graceful fallback when backend unavailable (#1138)
+- Ops features disabled/stubbed without backend (#1139)
+
+### Content Modernization
+- Templates migrated to canonical 7-category vocabulary (#1140)
+- Learning scenarios migrated to canonical vocabulary (#1141)
+- Codegen outputs honest Azure-only code (#1143)
+
+### Infrastructure & Launch
+- Auto-trigger onboarding tour on first visit (#1193)
+- Launch landing copy and meta tags updated (#1190)
+- Demo loader and first-time UX overlay
+
+### Statistics
+- 46 files changed in ResourceNode unification (452 insertions, 604 deletions)
+- 1920 tests passing across 108 test files
+- All CI checks passing (lint, type check, build)
+
 
 
 ## [v0.19.3] — 2026-03-22

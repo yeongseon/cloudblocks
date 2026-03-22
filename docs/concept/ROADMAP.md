@@ -1029,7 +1029,7 @@ Key Objectives:
 
 ---
 
-## Milestone 20 — UX Polish & GitHub Hardening
+## Milestone 20 — UX Polish & GitHub Hardening ✅
 
 Goal:
 Redesign panel roles, fix all GitHub integration bugs, introduce multi-persona UX, and build launch infrastructure. Deliver a polished, hardened product ready for community launch.
@@ -1152,29 +1152,31 @@ Fix all GitHub integration bugs. Subgroups can run in parallel but maintain orde
 | #1154 | Implicit PIP/NIC generation in codegen | M |
 
 ### Exit Criteria
-- [ ] CodePreview render-time state update fix verified (#886)
-- [ ] Panel roles redesigned — Resource Guide (read-only), Command Panel (action + properties) (#1112)
-- [ ] Inspector renamed to Resource Guide across all UI, code, and tests (#1117)
-- [ ] All 17 GitHub integration bugs fixed and verified (#836–#883)
-- [ ] GitHub panel integration tests passing (#1131)
-- [ ] Multi-persona UX functional with beginner/standard/advanced levels (#1076)
-- [ ] Panel role and visibility rules documented (#1132)
-- [ ] Block selection UI consolidated into unified property panel (#1137)
-- [ ] First-run onboarding overlay functional (#462)
-- [ ] Deployment pipeline hardened with preview/production separation (#457)
-- [ ] Runtime configuration standardized with .env.example (#458)
-- [ ] Frontend error tracking integrated (#470)
-- [ ] Bundle-size budget gate in CI (#472)
-- [ ] Release runbook and changelog template standardized (#461)
-- [ ] AI/Ops features gracefully degraded without backend (#1138, #1139)
-- [ ] Templates and scenarios migrated to canonical 7-category vocabulary (#1140, #1141)
-- [ ] LEGACY_CATEGORY_MAP removed (#1142)
-- [ ] Codegen outputs honest Azure-only code (#1143)
-- [ ] Placement multi-parent bug fixed (#1145)
-- [ ] domainSlice.ts and workspaceSlice.ts tests added (#1146, #1147)
-- [ ] NSG separated from Firewall, NAT Gateway wired (#1152, #1153)
-- [ ] `v0.20.0` release published with demo verification gate
-- [ ] All tests passing, ≥ 90% branch coverage
+- [x] CodePreview render-time state update fix verified (#886)
+- [x] Panel roles redesigned — Resource Guide (read-only), Command Panel (action + properties) (#1112)
+- [x] Inspector renamed to Resource Guide across all UI, code, and tests (#1117)
+- [x] All 17 GitHub integration bugs fixed and verified (#836–#883)
+- [x] GitHub panel integration tests passing (#1131)
+- [x] Multi-persona UX functional with beginner/standard/advanced levels (#1076)
+- [x] Panel role and visibility rules documented (#1132)
+- [x] Block selection UI consolidated into unified property panel (#1137)
+- [x] First-run onboarding overlay functional (#462)
+- [x] Deployment pipeline hardened with preview/production separation (#457)
+- [x] Runtime configuration standardized with .env.example (#458)
+- [x] Frontend error tracking integrated (#470)
+- [x] Bundle-size budget gate in CI (#472)
+- [x] Release runbook and changelog template standardized (#461)
+- [x] AI/Ops features gracefully degraded without backend (#1138, #1139)
+- [x] Templates and scenarios migrated to canonical 7-category vocabulary (#1140, #1141)
+- [x] LEGACY_CATEGORY_MAP removed (#1142)
+- [x] Codegen outputs honest Azure-only code (#1143)
+- [x] Placement multi-parent bug fixed (#1145)
+- [x] domainSlice.ts and workspaceSlice.ts tests added (#1146, #1147)
+- [x] NSG separated from Firewall, NAT Gateway wired (#1152, #1153)
+- [x] `v0.20.0` release published with demo verification gate
+- [x] All tests passing, ≥ 90% branch coverage
+- [x] Azure resource catalog parity — 19 new resource types (#1195)
+- [x] ResourceNode unification — Plate/Block separation eliminated (#1194)
 ### Dependencies
 - Milestone 19 complete
 
@@ -1277,7 +1279,7 @@ Milestone 14 (Complete)
 - Architecture suggestions and cost estimation
 - BYOK API key management with Fernet encryption
 
-Milestone 20 (Planned)
+Milestone 20 (Complete)
 - UX polish with block selection UI consolidation and multi-persona support
 - GitHub integration hardening (17 bug fixes)
 - Launch infrastructure: deployment pipeline, observability, performance gates
@@ -1285,6 +1287,8 @@ Milestone 20 (Planned)
 - Content modernization: canonical 7-category vocabulary across templates, scenarios, examples
 - Test coverage expansion: domainSlice, workspaceSlice, provider adapters
 - Network resource gaps: NSG/Firewall split, NAT Gateway, implicit PIP/NIC codegen
+- Azure resource catalog parity: 19 new resource types added
+- ResourceNode unification: eliminated Plate/Block type separation
 - Community-ready launch with demo verification gate
 Milestone 17 (Complete)
 - Modular monorepo structure with extracted packages
@@ -1349,7 +1353,7 @@ The roadmap evolves CloudBlocks from:
 
 → MVP Polish & Launch (Milestone 19) ✅
 
-→ UX Polish & GitHub Hardening (Milestone 20)
+→ UX Polish & GitHub Hardening (Milestone 20) ✅
 
 → Internationalization (i18n)
 
@@ -1366,7 +1370,7 @@ Milestone 8 (Complete) ✅
     │                                       └── Milestone 17 (Product Structure) ✅
     │                                               └── Milestone 18 (DevOps UX) ✅
     │                                                       └── Milestone 19 (MVP Polish & Launch) ✅
-    │                                                               └── Milestone 20 (UX Polish & GitHub Hardening)
+    │                                                               └── Milestone 20 (UX Polish & GitHub Hardening) ✅
     │               └── Milestone 14 (AI Roadmap) ✅ ←── also benefits from Milestone 13
     └── Milestone 11 (Brick Design) ✅ ──── parallel with Milestone 9
 
