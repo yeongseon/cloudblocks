@@ -13,7 +13,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   
-  font-family: 'Fredoka', system-ui, sans-serif;
+  font-family: var(--font-ui);
   user-select: none;
   width: max-content;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 

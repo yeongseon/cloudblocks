@@ -9,7 +9,7 @@
   border-radius: 8px;
   padding: 12px;
   color: #e0e0e0;
-  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-family: var(--font-ui);
   z-index: 10;
   display: flex;
   flex-direction: column;
@@ -140,7 +140,7 @@
 }
 
 .github-pr-result-info code {
-  font-family: 'Consolas', 'Monaco', monospace;
+  font-family: var(--font-mono);
   background: rgba(255, 255, 255, 0.08);
   padding: 1px 4px;
   border-radius: 3px;
@@ -173,7 +173,7 @@
 }
 
 .github-pr-baseline code {
-  font-family: 'Consolas', 'Monaco', monospace;
+  font-family: var(--font-mono);
   background: rgba(255, 255, 255, 0.08);
   padding: 1px 4px;
   border-radius: 3px;
@@ -230,7 +230,7 @@
 }
 
 .github-pr-recent-pr code {
-  font-family: 'Consolas', 'Monaco', monospace;
+  font-family: var(--font-mono);
   background: rgba(255, 255, 255, 0.08);
   padding: 1px 4px;
   border-radius: 3px;

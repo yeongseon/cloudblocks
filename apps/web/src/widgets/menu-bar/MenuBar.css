@@ -1,3 +1,5 @@
+/* ── Professional Mode (default) ────────────────────────── */
+
 .menu-bar {
   position: absolute;
   top: 0;
@@ -7,19 +9,11 @@
   display: flex;
   align-items: center;
   padding: 0 16px;
-  background-color: #E3000B;
-  background-image: 
-    radial-gradient(#B80009 20%, transparent 20%), 
-    radial-gradient(#FF3333 20%, transparent 20%);
-  background-size: 10px 10px;
-  background-position: 0 0, 5px 5px;
-  box-shadow: 
-    inset 0 3px 0 0 rgba(255, 255, 255, 0.4),
-    0 4px 0 0 #B80009, 
-    0 6px 12px rgba(0, 0, 0, 0.15);
-  border-bottom: 3px solid #B80009;
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-panel);
+  border-bottom: 1px solid var(--border-default);
   z-index: 100;
-  font-family: 'Fredoka', system-ui, sans-serif;
+  font-family: var(--font-ui);
   gap: 16px;
   user-select: none;
 }
@@ -27,62 +21,46 @@
 .menu-bar-logo {
   font-size: 18px;
   font-weight: 900;
-  color: #FFFFFF;
+  color: var(--text-primary);
   white-space: nowrap;
   letter-spacing: 1px;
-  text-shadow: 
-    -1px -1px 0 #FFD500,  
-     1px -1px 0 #FFD500,
-    -1px  1px 0 #FFD500,
-     1px  1px 0 #FFD500,
-     2px  3px 0 #D4B200;
   display: flex;
   align-items: center;
 }
 
 .menu-bar-divider {
-  width: 3px;
+  width: 1px;
   height: 24px;
-  background: #B80009;
-  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.3);
+  background: var(--border-default);
   margin: 0 4px;
   border-radius: 2px;
 }
 
-
 .workspace-pill {
   padding: 4px 12px;
-  background: #FFD500;
-  border: 3px solid #D4B200;
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-default);
   border-radius: 8px;
-  color: #222;
+  color: var(--text-primary);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 
-    inset 0 3px 0 rgba(255, 255, 255, 0.5),
-    0 4px 0 0 #D4B200;
-  text-transform: uppercase;
+  transition: all var(--duration-fast) var(--easing-default);
+  box-shadow: var(--shadow-btn);
 }
 
 .workspace-pill:hover {
-  background: #FFE44D;
-  transform: translateY(-2px);
-  box-shadow: 
-    inset 0 3px 0 rgba(255, 255, 255, 0.6),
-    0 6px 0 0 #D4B200;
-  color: #000;
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-btn-hover);
 }
 
 .workspace-pill:active {
-  transform: translateY(3px);
-  box-shadow: 
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 1px 0 0 #D4B200;
+  transform: translateY(0);
+  box-shadow: none;
 }
-
 
 .menu-bar-nav {
   display: flex;
@@ -99,41 +77,31 @@
 
 .menu-trigger {
   padding: 4px 10px;
-  background: #FFD500;
-  border: 3px solid #D4B200;
-  color: #222;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
   border-radius: 8px;
-  transition: all 0.1s ease;
+  transition: all var(--duration-fast) ease;
   height: 32px;
   display: flex;
   align-items: center;
-  text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: 
-    inset 0 3px 0 rgba(255, 255, 255, 0.5),
-    0 3px 0 0 #D4B200;
 }
 
 .menu-trigger:hover,
 .menu-trigger[data-active="true"] {
-  background: #FFE44D;
-  border-color: #D4B200;
-  color: #000;
-  box-shadow: 
-    inset 0 3px 0 rgba(255, 255, 255, 0.6),
-    0 4px 0 0 #D4B200;
-  transform: translateY(-1px);
+  background: var(--bg-surface-raised);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
 }
 
 .menu-trigger:active,
 .menu-trigger[data-active="true"]:active {
-  transform: translateY(2px);
-  box-shadow: 
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 1px 0 0 #D4B200;
+  background: var(--bg-surface-raised);
+  color: var(--text-primary);
 }
 
 .menu-dropdown {
@@ -141,13 +109,11 @@
   top: 100%;
   left: 0;
   min-width: 200px;
-  background: #FFFDE7;
-  border: 4px solid #FFD500;
-  border-radius: 10px;
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-container);
   padding: 8px;
-  box-shadow: 
-    0 8px 0 0 #D4B200,
-    0 12px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-elevated);
   display: none;
   flex-direction: column;
   margin-top: 8px;
@@ -169,36 +135,31 @@
   justify-content: space-between;
   padding: 8px 12px;
   background: transparent;
-  border: 3px solid transparent;
-  border-radius: 8px;
-  color: #333;
+  border: 1px solid transparent;
+  border-radius: var(--radius-item);
+  color: var(--text-primary);
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
   text-align: left;
-  transition: all 0.1s ease;
+  transition: all var(--duration-fast) ease;
   margin-bottom: 4px;
 }
 
 .menu-item:hover:not(:disabled) {
-  background: #FFD500;
-  border-color: #D4B200;
-  color: #000;
-  box-shadow: 
-    inset 0 2px 0 rgba(255, 255, 255, 0.5),
-    0 3px 0 0 #D4B200;
-  transform: translateY(-1px);
+  background: var(--accent-primary);
+  color: var(--text-inverse);
 }
 
 .menu-item:active:not(:disabled) {
-  transform: translateY(2px);
-  box-shadow: 
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 0 0 0 #D4B200;
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  opacity: 0.9;
 }
 
 .menu-item:hover:not(:disabled) .menu-shortcut {
-  color: #554800;
+  color: var(--text-inverse);
+  opacity: 0.7;
 }
 
 .menu-item:disabled {
@@ -214,23 +175,22 @@
 
 .menu-shortcut {
   font-size: 11px;
-  color: #8A7500;
-  font-weight: 800;
+  color: var(--text-muted);
+  font-weight: 600;
 }
 
 .menu-separator {
-  height: 3px;
-  background: #FFD500;
+  height: 1px;
+  background: var(--border-default);
   margin: 6px 0;
   border-radius: 2px;
 }
-
 
 .quick-actions {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-left: auto; 
+  margin-left: auto;
 }
 
 .quick-btn {
@@ -239,42 +199,31 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #FFD500;
-  border: 3px solid #D4B200;
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-default);
   border-radius: 8px;
-  color: #222;
+  color: var(--text-secondary);
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 
-    inset 0 3px 0 rgba(255, 255, 255, 0.5),
-    0 3px 0 0 #D4B200;
+  transition: all var(--duration-fast) var(--easing-default);
+  box-shadow: var(--shadow-btn);
 }
 
 .quick-btn:hover:not(:disabled) {
-  background: #FFE44D;
-  transform: translateY(-2px);
-  box-shadow: 
-    inset 0 3px 0 rgba(255, 255, 255, 0.6),
-    0 5px 0 0 #D4B200;
-  color: #000;
+  background: var(--accent-primary);
+  color: var(--text-inverse);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-btn-hover);
 }
 
 .quick-btn:active:not(:disabled) {
-  transform: translateY(2px);
-  box-shadow: 
-    inset 0 1px 0 rgba(255,255,255,0.3),
-    0 1px 0 0 #D4B200;
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 .quick-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.4;
   cursor: not-allowed;
-  box-shadow: 0 1px 0 0 #B80009;
-  transform: translateY(2px);
-  background: #E3000B;
-  border-color: #B80009;
-  color: #FF3333;
 }
 
 .notification-bell-btn {
@@ -288,17 +237,16 @@
   min-width: 16px;
   height: 16px;
   padding: 0 4px;
-  background: #ff4444;
+  background: var(--accent-error);
   color: #fff;
   font-size: 9px;
   font-weight: 700;
   line-height: 16px;
   text-align: center;
   border-radius: 8px;
-  border: 1px solid #B80009;
+  border: 1px solid var(--bg-surface);
   pointer-events: none;
 }
-
 
 .github-section {
   display: flex;
@@ -308,64 +256,51 @@
 
 .github-btn {
   padding: 4px 12px;
-  background: #E3000B;
-  border: 3px solid #B80009;
+  background: var(--accent-primary);
+  border: 1px solid transparent;
   border-radius: 8px;
   color: #FFFFFF;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 
-    inset 0 3px 0 rgba(255, 255, 255, 0.4),
-    0 4px 0 0 #B80009;
+  transition: all var(--duration-fast) var(--easing-default);
+  box-shadow: var(--shadow-btn);
   display: flex;
   align-items: center;
   gap: 6px;
-  text-transform: uppercase;
 }
 
 .github-btn:hover {
-  background: #FF3333;
+  opacity: 0.9;
   color: #FFFFFF;
-  transform: translateY(-2px);
-  box-shadow: 
-    inset 0 3px 0 rgba(255, 255, 255, 0.5),
-    0 6px 0 0 #B80009;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-btn-hover);
 }
 
 .github-btn:active {
-  transform: translateY(3px);
-  box-shadow: 
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 1px 0 0 #B80009;
+  transform: translateY(0);
+  box-shadow: none;
 }
-
 
 .menu-badge {
   padding: 2px 8px;
   border-radius: 6px;
   font-size: 10px;
-  font-weight: 900;
+  font-weight: 700;
   margin-left: 8px;
   text-transform: uppercase;
-  border: 2px solid rgba(0,0,0,0.1);
-  box-shadow: 0 2px 0 rgba(0,0,0,0.1);
+  border: 1px solid transparent;
 }
 
 .menu-badge-valid {
-  background: #00852B;
+  background: var(--accent-success);
   color: #FFF;
-  border-color: #00591D;
-  box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), 0 3px 0 0 #00591D;
 }
 
 .menu-badge-invalid {
-  background: #E3000B;
+  background: var(--accent-error);
   color: #FFF;
-  border-color: #B80009;
-  box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), 0 3px 0 0 #B80009;
 }
 
 .provider-section {
@@ -376,51 +311,304 @@
 
 .provider-btn {
   padding: 4px 10px;
-  background: #FFFDE7;
-  border: 3px solid #D4B200;
-  color: #555;
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
   border-radius: 8px;
-  transition: all 0.1s ease;
+  transition: all var(--duration-fast) ease;
   height: 28px;
   display: flex;
   align-items: center;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: 
-    inset 0 3px 0 rgba(255, 255, 255, 0.5),
-    0 3px 0 0 #D4B200;
+  box-shadow: var(--shadow-btn);
 }
 
 .provider-btn:hover:not(:disabled) {
-  background: #FFFFFF;
+  background: var(--bg-surface-raised);
+  border-color: var(--border-strong);
   transform: translateY(-1px);
-  box-shadow: 
-    inset 0 3px 0 rgba(255, 255, 255, 0.6),
-    0 4px 0 0 #D4B200;
+  box-shadow: var(--shadow-btn-hover);
 }
 
 .provider-btn[data-active="true"] {
-  background: #FFFFFF;
+  background: var(--bg-surface-raised);
   transform: translateY(-1px);
   /* Inline styles handle the active border and shadow colors for the specific provider */
 }
 
 .provider-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.4;
   cursor: not-allowed;
+}
+
+.provider-btn:active,
+.provider-btn[data-active="true"]:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+
+/* ── LEGO Mode (preserved for M22 dual theme) ─────────── */
+
+[data-visual-mode="lego"] .menu-bar {
+  background-color: #E3000B;
+  background-image:
+    radial-gradient(#B80009 20%, transparent 20%),
+    radial-gradient(#FF3333 20%, transparent 20%);
+  background-size: 10px 10px;
+  background-position: 0 0, 5px 5px;
+  box-shadow:
+    inset 0 3px 0 0 rgba(255, 255, 255, 0.4),
+    0 4px 0 0 #B80009,
+    0 6px 12px rgba(0, 0, 0, 0.15);
+  border-bottom: 3px solid #B80009;
+}
+
+[data-visual-mode="lego"] .menu-bar-logo {
+  color: #FFFFFF;
+  text-shadow:
+    -1px -1px 0 #FFD500,
+     1px -1px 0 #FFD500,
+    -1px  1px 0 #FFD500,
+     1px  1px 0 #FFD500,
+     2px  3px 0 #D4B200;
+}
+
+[data-visual-mode="lego"] .menu-bar-divider {
+  width: 3px;
+  background: #B80009;
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.3);
+}
+
+[data-visual-mode="lego"] .workspace-pill {
+  background: #FFD500;
+  border: 3px solid #D4B200;
+  color: #222;
+  font-weight: 800;
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.5),
+    0 4px 0 0 #D4B200;
+  text-transform: uppercase;
+}
+
+[data-visual-mode="lego"] .workspace-pill:hover {
+  background: #FFE44D;
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.6),
+    0 6px 0 0 #D4B200;
+  color: #000;
+}
+
+[data-visual-mode="lego"] .workspace-pill:active {
+  transform: translateY(3px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 1px 0 0 #D4B200;
+}
+
+[data-visual-mode="lego"] .menu-trigger {
+  background: #FFD500;
+  border: 3px solid #D4B200;
+  color: #222;
+  font-weight: 800;
+  text-transform: uppercase;
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.5),
+    0 3px 0 0 #D4B200;
+}
+
+[data-visual-mode="lego"] .menu-trigger:hover,
+[data-visual-mode="lego"] .menu-trigger[data-active="true"] {
+  background: #FFE44D;
+  border-color: #D4B200;
+  color: #000;
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.6),
+    0 4px 0 0 #D4B200;
+  transform: translateY(-1px);
+}
+
+[data-visual-mode="lego"] .menu-trigger:active,
+[data-visual-mode="lego"] .menu-trigger[data-active="true"]:active {
+  transform: translateY(2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 1px 0 0 #D4B200;
+}
+
+[data-visual-mode="lego"] .menu-dropdown {
+  background: #FFFDE7;
+  border: 4px solid #FFD500;
+  border-radius: 10px;
+  box-shadow:
+    0 8px 0 0 #D4B200,
+    0 12px 24px rgba(0, 0, 0, 0.2);
+}
+
+[data-visual-mode="lego"] .menu-item {
+  border: 3px solid transparent;
+  border-radius: 8px;
+  color: #333;
+  font-weight: 800;
+}
+
+[data-visual-mode="lego"] .menu-item:hover:not(:disabled) {
+  background: #FFD500;
+  border-color: #D4B200;
+  color: #000;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.5),
+    0 3px 0 0 #D4B200;
+  transform: translateY(-1px);
+}
+
+[data-visual-mode="lego"] .menu-item:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 0 0 0 #D4B200;
+}
+
+[data-visual-mode="lego"] .menu-item:hover:not(:disabled) .menu-shortcut {
+  color: #554800;
+}
+
+[data-visual-mode="lego"] .menu-shortcut {
+  color: #8A7500;
+  font-weight: 800;
+}
+
+[data-visual-mode="lego"] .menu-separator {
+  height: 3px;
+  background: #FFD500;
+}
+
+[data-visual-mode="lego"] .quick-btn {
+  background: #FFD500;
+  border: 3px solid #D4B200;
+  color: #222;
+  font-weight: 800;
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.5),
+    0 3px 0 0 #D4B200;
+}
+
+[data-visual-mode="lego"] .quick-btn:hover:not(:disabled) {
+  background: #FFE44D;
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.6),
+    0 5px 0 0 #D4B200;
+  color: #000;
+}
+
+[data-visual-mode="lego"] .quick-btn:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.3),
+    0 1px 0 0 #D4B200;
+}
+
+[data-visual-mode="lego"] .quick-btn:disabled {
+  opacity: 0.6;
+  box-shadow: 0 1px 0 0 #B80009;
+  transform: translateY(2px);
+  background: #E3000B;
+  border-color: #B80009;
+  color: #FF3333;
+}
+
+[data-visual-mode="lego"] .notification-badge {
+  background: #ff4444;
+  border: 1px solid #B80009;
+}
+
+[data-visual-mode="lego"] .github-btn {
+  background: #E3000B;
+  border: 3px solid #B80009;
+  color: #FFFFFF;
+  font-weight: 800;
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.4),
+    0 4px 0 0 #B80009;
+  text-transform: uppercase;
+}
+
+[data-visual-mode="lego"] .github-btn:hover {
+  background: #FF3333;
+  color: #FFFFFF;
+  opacity: 1;
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.5),
+    0 6px 0 0 #B80009;
+}
+
+[data-visual-mode="lego"] .github-btn:active {
+  transform: translateY(3px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 1px 0 0 #B80009;
+}
+
+[data-visual-mode="lego"] .menu-badge {
+  font-weight: 900;
+  border: 2px solid rgba(0,0,0,0.1);
+  box-shadow: 0 2px 0 rgba(0,0,0,0.1);
+}
+
+[data-visual-mode="lego"] .menu-badge-valid {
+  background: #00852B;
+  border-color: #00591D;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), 0 3px 0 0 #00591D;
+}
+
+[data-visual-mode="lego"] .menu-badge-invalid {
+  background: #E3000B;
+  border-color: #B80009;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), 0 3px 0 0 #B80009;
+}
+
+[data-visual-mode="lego"] .provider-btn {
+  background: #FFFDE7;
+  border: 3px solid #D4B200;
+  color: #555;
+  font-weight: 800;
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.5),
+    0 3px 0 0 #D4B200;
+}
+
+[data-visual-mode="lego"] .provider-btn:hover:not(:disabled) {
+  background: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 3px 0 rgba(255, 255, 255, 0.6),
+    0 4px 0 0 #D4B200;
+}
+
+[data-visual-mode="lego"] .provider-btn[data-active="true"] {
+  background: #FFFFFF;
+  transform: translateY(-1px);
+}
+
+[data-visual-mode="lego"] .provider-btn:disabled {
+  opacity: 0.6;
   color: #8a8a8a;
   box-shadow:
     inset 0 2px 0 rgba(255, 255, 255, 0.35),
     0 2px 0 0 #c9b571;
 }
 
-.provider-btn:active,
-.provider-btn[data-active="true"]:active {
+[data-visual-mode="lego"] .provider-btn:active,
+[data-visual-mode="lego"] .provider-btn[data-active="true"]:active {
   transform: translateY(2px);
-  box-shadow: 
+  box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.3),
     0 1px 0 0 inherit;
 }

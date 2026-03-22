@@ -165,7 +165,6 @@ describe('persistenceSlice branches', () => {
             position: { x: 0, y: 0, z: 0 },
             size: { width: 16, height: 0.3, depth: 20 },
             metadata: { team: 'platform' },
-            subnetAccess: 'public',
             profileId: 'network-hub',
           },
         ],
@@ -198,7 +197,7 @@ describe('persistenceSlice branches', () => {
       const queue = architecture.nodes.find((node) => node.id === 'block-2');
 
       expect(result).toBeNull();
-      expect(plate).toMatchObject({ category: 'network', subnetAccess: 'public', profileId: 'network-hub' });
+      expect(plate).toMatchObject({ category: 'network', profileId: 'network-hub' });
       expect(app).toMatchObject({ resourceType: 'app-service', provider: 'gcp', subtype: 'app-service', config: { tier: 'basic' } });
       expect(queue).toMatchObject({ resourceType: 'messaging', provider: 'azure' });
       expect(architecture.externalActors).toEqual([

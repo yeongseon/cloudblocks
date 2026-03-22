@@ -1,4 +1,4 @@
-import type { LayerType, SubnetAccess } from '@cloudblocks/schema';
+import type { LayerType } from '@cloudblocks/schema';
 
 type PlateLayerType = Exclude<LayerType, 'resource'>;
 
@@ -11,7 +11,6 @@ export interface PlateFaceColors {
 
 export function getPlateFaceColors(plate: {
   type: PlateLayerType;
-  subnetAccess?: SubnetAccess;
 }): PlateFaceColors {
   if (plate.type === 'global') {
     return {
@@ -49,14 +48,7 @@ export function getPlateFaceColors(plate: {
     };
   }
 
-  if (plate.subnetAccess === 'public') {
-    return {
-      topFaceColor: '#22C55E',
-      topFaceStroke: '#4ADE80',
-      leftSideColor: '#16A34A',
-      rightSideColor: '#15803D',
-    };
-  }
+  // Subnet — unified indigo
   return {
     topFaceColor: '#6366F1',
     topFaceStroke: '#818CF8',

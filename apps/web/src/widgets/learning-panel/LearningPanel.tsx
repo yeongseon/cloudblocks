@@ -10,13 +10,13 @@ import { CompletionScreen } from './CompletionScreen';
 function getRuleIdentifier(rule: StepValidationRule): string {
   switch (rule.type) {
     case 'plate-exists':
-      return `plate-exists:${rule.plateType}:${rule.subnetAccess ?? 'any'}`;
+      return `plate-exists:${rule.plateType}`;
     case 'block-exists':
-      return `block-exists:${rule.category}:${rule.onPlateType ?? 'any'}:${rule.onSubnetAccess ?? 'any'}`;
+      return `block-exists:${rule.category}:${rule.onPlateType ?? 'any'}`;
     case 'connection-exists':
       return `connection-exists:${rule.sourceCategory}:${rule.targetCategory}`;
     case 'entity-on-plate':
-      return `entity-on-plate:${rule.entityCategory}:${rule.plateType}:${rule.subnetAccess ?? 'any'}`;
+      return `entity-on-plate:${rule.entityCategory}:${rule.plateType}`;
     case 'architecture-valid':
       return 'architecture-valid';
     case 'min-block-count':
@@ -31,9 +31,7 @@ function getRuleIdentifier(rule: StepValidationRule): string {
 function describeRule(rule: StepValidationRule): string {
   switch (rule.type) {
     case 'plate-exists':
-      return rule.subnetAccess
-        ? `Add a ${rule.subnetAccess} ${rule.plateType} plate`
-        : `Add a ${rule.plateType} plate`;
+      return `Add a ${rule.plateType} plate`;
     case 'block-exists':
       return `Add a ${rule.category} block`;
     case 'connection-exists':

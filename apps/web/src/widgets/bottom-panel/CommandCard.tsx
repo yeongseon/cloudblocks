@@ -35,10 +35,9 @@ interface CommandCardProps {
   className?: string;
 }
 
-const PLATE_CONTEXT_RESOURCES: Record<'network' | 'subnet-public' | 'subnet-private', ResourceType[]> = {
-  network: ['public-subnet', 'private-subnet', 'function', 'queue', 'event', 'app-service', 'public-ip'],
-  'subnet-public': ['storage', 'dns', 'cdn', 'front-door', 'vm', 'aks', 'container-instances', 'firewall', 'nsg', 'bastion', 'nat-gateway', 'app-gateway', 'public-ip', 'route-table', 'private-endpoint'],
-  'subnet-private': ['storage', 'sql', 'cosmos-db', 'key-vault', 'vm', 'aks', 'container-instances', 'nat-gateway', 'route-table', 'private-endpoint'],
+const PLATE_CONTEXT_RESOURCES: Record<'network' | 'subnet', ResourceType[]> = {
+  network: ['subnet'],
+  subnet: ['storage', 'vm', 'sql', 'key-vault', 'queue', 'app-service', 'app-gateway'],
 };
 
 const POSITION_HOTKEYS = [
@@ -48,10 +47,17 @@ const POSITION_HOTKEYS = [
 ] as const;
 
 const ALL_RESOURCES = Object.keys(RESOURCE_DEFINITIONS) as ResourceType[];
+
+const MVP_RESOURCES: ReadonlySet<ResourceType> = new Set([
+  'network', 'subnet',
+  'vm', 'sql', 'storage', 'key-vault',
+  'queue', 'app-service', 'app-gateway',
+]);
+
 const PROVIDER_RESOURCE_ALLOWLIST: Record<ProviderType, ReadonlySet<ResourceType>> = {
-  azure: new Set(ALL_RESOURCES),
-  aws: new Set(ALL_RESOURCES),
-  gcp: new Set(ALL_RESOURCES),
+  azure: MVP_RESOURCES,
+  aws: MVP_RESOURCES,
+  gcp: MVP_RESOURCES,
 };
 
 type ContainerLayer = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
@@ -71,7 +77,7 @@ function chunkResources(resources: ResourceType[], chunkSize = 9): ResourceType[
 function getPlateHeaderText(plate: ContainerNode): string {
   const plateType: ContainerLayer = plate.layer === 'resource' ? 'region' : plate.layer;
   if (plateType === 'subnet') {
-    return plate.subnetAccess === 'public' ? 'Public Subnet' : 'Private Subnet';
+    return 'Subnet';
   }
   // Network-layer plates: global, edge, region, zone
   return plateType === 'region' ? 'VNet' : plateType.charAt(0).toUpperCase() + plateType.slice(1);
@@ -344,16 +350,10 @@ function CreationMode() {
       if (type === 'network') {
         addNode({ kind: 'container', resourceType: 'virtual_network', name: 'VNet', parentId: null, layer: 'region' });
         playSound('block-snap');
-      } else if (type === 'public-subnet') {
+      } else if (type === 'subnet') {
         const targetId = techTree.getTargetPlateId(type);
         if (targetId) {
-          addNode({ kind: 'container', resourceType: 'subnet', name: 'Public Subnet', parentId: targetId, layer: 'subnet', access: 'public' });
-          playSound('block-snap');
-        }
-      } else if (type === 'private-subnet') {
-        const targetId = techTree.getTargetPlateId(type);
-        if (targetId) {
-          addNode({ kind: 'container', resourceType: 'subnet', name: 'Private Subnet', parentId: targetId, layer: 'subnet', access: 'private' });
+          addNode({ kind: 'container', resourceType: 'subnet', name: 'Subnet', parentId: targetId, layer: 'subnet' });
           playSound('block-snap');
         }
       }
@@ -433,9 +433,7 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: ContainerNode }) 
 
       const contextResources = selectedPlate.layer !== 'subnet'
         ? PLATE_CONTEXT_RESOURCES.network
-        : selectedPlate.subnetAccess === 'public'
-          ? PLATE_CONTEXT_RESOURCES['subnet-public']
-          : PLATE_CONTEXT_RESOURCES['subnet-private'];
+        : PLATE_CONTEXT_RESOURCES.subnet;
   const providerResources = PROVIDER_RESOURCE_ALLOWLIST[activeProvider];
   const filteredContextResources = contextResources.filter((resource) => providerResources.has(resource));
 
@@ -502,11 +500,8 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: ContainerNode }) 
     if (def.category === 'foundation') {
       if (selectedPlate.layer !== 'region') return;
 
-      if (type === 'public-subnet') {
-        addNode({ kind: 'container', resourceType: 'subnet', name: 'Public Subnet', parentId: selectedPlate.id, layer: 'subnet', access: 'public' });
-        playSound('block-snap');
-      } else if (type === 'private-subnet') {
-        addNode({ kind: 'container', resourceType: 'subnet', name: 'Private Subnet', parentId: selectedPlate.id, layer: 'subnet', access: 'private' });
+      if (type === 'subnet') {
+        addNode({ kind: 'container', resourceType: 'subnet', name: 'Subnet', parentId: selectedPlate.id, layer: 'subnet' });
         playSound('block-snap');
       }
 
@@ -616,7 +611,7 @@ function PlateProperties({ plate }: { plate: ContainerNode }) {
     : null;
   const contents = architecture.nodes.filter((n) => n.parentId === plate.id);
   const plateLabel = plate.layer === 'subnet'
-    ? `Subnet (${plate.subnetAccess ?? 'public'})`
+    ? 'Subnet'
     : plate.layer.charAt(0).toUpperCase() + plate.layer.slice(1);
 
   return (

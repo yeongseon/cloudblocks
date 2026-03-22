@@ -80,7 +80,6 @@ describe('schema deserialize additional branch coverage', () => {
                 size: { width: 16, height: 0.3, depth: 20 },
                 metadata: { owner: 'team-a' },
                 profileId: 'network-hub',
-                subnetAccess: 'public',
               },
               {
                 id: 'plate-2',

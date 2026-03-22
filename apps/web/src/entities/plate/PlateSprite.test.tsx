@@ -32,12 +32,9 @@ vi.mock('./PlateSvg', () => ({
   ),
 }));
 vi.mock('./plateFaceColors', () => ({
-  getPlateFaceColors: (plate: { type: string; subnetAccess?: string }) => {
+  getPlateFaceColors: (plate: { type: string }) => {
     if (plate.type === 'region') {
       return { topFaceColor: '#6366F1', topFaceStroke: '#818CF8', leftSideColor: '#4F46E5', rightSideColor: '#4338CA' };
-    }
-    if (plate.subnetAccess === 'public') {
-      return { topFaceColor: '#22C55E', topFaceStroke: '#4ADE80', leftSideColor: '#16A34A', rightSideColor: '#15803D' };
     }
     return { topFaceColor: '#6366F1', topFaceStroke: '#818CF8', leftSideColor: '#4F46E5', rightSideColor: '#4338CA' };
   },
@@ -64,15 +61,14 @@ const makeNetworkPlate = (): ContainerNode => ({
   metadata: {},
 });
 
-const makeSubnetPlate = (access: 'public' | 'private'): ContainerNode => ({
-  id: `plate-${access}`,
-  name: `${access} subnet`,
+const makeSubnetPlate = (): ContainerNode => ({
+  id: 'plate-subnet',
+  name: 'Subnet',
   kind: 'container',
   layer: 'subnet',
   resourceType: 'subnet',
   category: 'network',
   provider: 'azure',
-  subnetAccess: access,
   parentId: 'plate-network',
   position: { x: 1, y: 0, z: 2 },
   size: { width: 6, height: 0.3, depth: 8 },
@@ -102,8 +98,7 @@ describe('PlateSprite', () => {
 
   it.each([
     ['region', makeNetworkPlate(), 'Network Plate', '#6366F1'],
-    ['public-subnet', makeSubnetPlate('public'), 'public subnet', '#22C55E'],
-    ['private-subnet', makeSubnetPlate('private'), 'private subnet', '#6366F1'],
+    ['subnet', makeSubnetPlate(), 'Subnet', '#6366F1'],
   ] as const)('renders correct PlateSvg for %s', (_, plate, expectedLabel, expectedTopColor) => {
     render(<PlateSprite plate={plate} screenX={0} screenY={0} zIndex={1} />);
 
@@ -138,7 +133,7 @@ describe('PlateSprite', () => {
   });
 
   it('adds is-selected class when selected', () => {
-    const plate = makeSubnetPlate('public');
+    const plate = makeSubnetPlate();
     useUIStore.setState({ selectedId: plate.id });
     const { container } = render(<PlateSprite plate={plate} screenX={0} screenY={0} zIndex={1} />);
 
@@ -146,7 +141,7 @@ describe('PlateSprite', () => {
   });
 
   it('uses worldSizeToScreen for button dimensions', () => {
-    const plate = makeSubnetPlate('private');
+    const plate = makeSubnetPlate();
     render(<PlateSprite plate={plate} screenX={0} screenY={0} zIndex={1} />);
 
     expect(vi.mocked(worldSizeToScreen)).toHaveBeenCalledWith(
@@ -325,7 +320,7 @@ describe('PlateSprite', () => {
   });
 
   it('adds is-drop-target class when dragging valid block category', () => {
-    const plate = makeSubnetPlate('public');
+    const plate = makeSubnetPlate();
     useUIStore.setState({ draggedBlockCategory: 'compute' });
     const { container } = render(<PlateSprite plate={plate} screenX={0} screenY={0} zIndex={1} />);
 
@@ -334,8 +329,8 @@ describe('PlateSprite', () => {
   });
 
   it('adds is-drop-target-invalid class when dragging invalid block category', () => {
-    const plate = makeSubnetPlate('private');
-    useUIStore.setState({ draggedBlockCategory: 'edge' });
+    const plate = makeSubnetPlate();
+    useUIStore.setState({ draggedBlockCategory: 'messaging' });
     const { container } = render(<PlateSprite plate={plate} screenX={0} screenY={0} zIndex={1} />);
 
     expect(container.firstElementChild).toHaveClass('is-drop-target-invalid');
@@ -343,7 +338,7 @@ describe('PlateSprite', () => {
   });
 
   it('does not add drop-target classes when draggedBlockCategory is null', () => {
-    const plate = makeSubnetPlate('public');
+    const plate = makeSubnetPlate();
     useUIStore.setState({ draggedBlockCategory: null });
     const { container } = render(<PlateSprite plate={plate} screenX={0} screenY={0} zIndex={1} />);
 

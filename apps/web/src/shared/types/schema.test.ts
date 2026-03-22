@@ -266,7 +266,6 @@ describe('schema utilities', () => {
       position: { x: 0, y: 0, z: 0 },
       size: { width: 6, height: 0.5, depth: 8 },
       metadata: {},
-      subnetAccess: 'public',
       profileId: 'subnet-service',
     };
     const leaf: LeafNode = {

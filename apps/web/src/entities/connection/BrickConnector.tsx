@@ -1,7 +1,7 @@
-import { memo, useState, useMemo } from 'react';
+import { memo, useState, useMemo, useRef, useEffect } from 'react';
 import type { Connection, ContainerNode, ExternalActor, LeafNode } from '@cloudblocks/schema';
 import { getDiffState } from '../../features/diff/engine';
-import { getEndpointWorldPosition } from '../../shared/utils/position';
+import { getConnectionEndpointWorldAnchors } from './endpointAnchors';
 import type { ScreenPoint } from '../../shared/utils/isometric';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
@@ -9,6 +9,7 @@ import {
   BEAM_THICKNESS_PX,
   PIN_HOLE_SPACING_CU, PIN_HOLE_RX, PIN_HOLE_RY,
   STUD_RX, STUD_RY, STUD_HEIGHT, STUD_INNER_RX, STUD_INNER_RY, STUD_INNER_OPACITY,
+  PORT_OUT_PX,
 } from '../../shared/tokens/designTokens';
 import { CONNECTOR_THEMES, DIFF_THEMES, lightenColor } from './connectorTheme';
 import { computeWorldRoute, screenSegmentLengthCU } from './routing';
@@ -269,27 +270,73 @@ export const BrickConnector = memo(function BrickConnector({
   originY,
 }: BrickConnectorProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const drawInRef = useRef<SVGPathElement>(null);
+
+  // Draw-in animation: measure path length on mount and animate once
+  useEffect(() => {
+    const el = drawInRef.current;
+    if (!el || typeof el.getTotalLength !== 'function') return;
+    const len = el.getTotalLength();
+    el.style.strokeDasharray = String(len);
+    el.style.strokeDashoffset = String(len);
+    // Force reflow so the initial offset is applied before animation starts
+    el.getBoundingClientRect();
+    el.style.animation = `connector-draw-in 400ms var(--easing-default, cubic-bezier(0.2, 0, 0, 1)) forwards`;
+    const handleEnd = () => {
+      el.style.strokeDasharray = '';
+      el.style.strokeDashoffset = '';
+      el.style.animation = '';
+      el.style.opacity = '';
+    };
+    el.addEventListener('animationend', handleEnd, { once: true });
+    return () => el.removeEventListener('animationend', handleEnd);
+  }, []); // mount-only
   const selectedId = useUIStore((s) => s.selectedId);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const toolMode = useUIStore((s) => s.toolMode);
   const diffMode = useUIStore((s) => s.diffMode);
   const diffDelta = useUIStore((s) => s.diffDelta);
   const removeConnection = useArchitectureStore((s) => s.removeConnection);
-
-  const src = getEndpointWorldPosition(connection.sourceId, blocks, plates, externalActors);
-  const tgt = getEndpointWorldPosition(connection.targetId, blocks, plates, externalActors);
+  const validationResult = useArchitectureStore((s) => s.validationResult);
 
   const theme = CONNECTOR_THEMES[connection.type];
   const diffState = diffMode && diffDelta ? getDiffState(connection.id, diffDelta) : 'unchanged';
   const isSelected = selectedId === connection.id;
   const isHighlighted = isHovered || isSelected;
 
-  const route = useMemo(() => {
-    if (!src || !tgt) return null;
-    return computeWorldRoute(src, tgt, originX, originY);
-  }, [src, tgt, originX, originY]);
+  const connectionErrors = useMemo(() => {
+    if (!validationResult) return [];
+    return [
+      ...validationResult.errors.filter((e) => e.targetId === connection.id),
+      ...validationResult.warnings.filter((w) => w.targetId === connection.id),
+    ];
+  }, [validationResult, connection.id]);
 
-  if (!src || !tgt || !route) return null;
+  const hasValidationError = connectionErrors.length > 0;
+
+  const endpoints = useMemo(
+    () => getConnectionEndpointWorldAnchors(connection, blocks, plates, externalActors),
+    [connection, blocks, plates, externalActors],
+  );
+
+  const route = useMemo(() => {
+    if (!endpoints) return null;
+    const r = computeWorldRoute(endpoints.src, endpoints.tgt, originX, originY);
+    // Apply PORT_OUT_PX screen offset so connectors sit just outside the block face
+    if (endpoints.srcSide === 'outbound') {
+      r.srcScreen = { x: r.srcScreen.x + PORT_OUT_PX, y: r.srcScreen.y };
+    } else if (endpoints.srcSide === 'inbound') {
+      r.srcScreen = { x: r.srcScreen.x - PORT_OUT_PX, y: r.srcScreen.y };
+    }
+    if (endpoints.tgtSide === 'inbound') {
+      r.tgtScreen = { x: r.tgtScreen.x - PORT_OUT_PX, y: r.tgtScreen.y };
+    } else if (endpoints.tgtSide === 'outbound') {
+      r.tgtScreen = { x: r.tgtScreen.x + PORT_OUT_PX, y: r.tgtScreen.y };
+    }
+    return r;
+  }, [endpoints, originX, originY]);
+
+  if (!endpoints || !route) return null;
 
   const colors = getColors(theme, diffState, isHighlighted);
   const hitPath = buildHitPath(route);
@@ -305,11 +352,28 @@ export const BrickConnector = memo(function BrickConnector({
     setSelectedId(connection.id);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<SVGGElement>) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (toolMode === 'delete') {
+      removeConnection(connection.id);
+      return;
+    }
+    setSelectedId(connection.id);
+  };
+
   return (
     <g
       opacity={colors.opacity}
       style={{ cursor: 'pointer' }}
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      role="button"
+      tabIndex={0}
+      aria-label={`connection ${connection.id}`}
       data-connector-type={connection.type}
     >
       {isSelected && (
@@ -332,8 +396,6 @@ export const BrickConnector = memo(function BrickConnector({
         fill="none"
         pointerEvents="stroke"
         data-testid="connection-hit-area"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
       />
 
       {route.segments.map((seg, i) =>
@@ -355,6 +417,72 @@ export const BrickConnector = memo(function BrickConnector({
 
       {renderStud(route.srcScreen.x, route.srcScreen.y, colors, `stud-src-${connection.id}`)}
       {renderStud(route.tgtScreen.x, route.tgtScreen.y, colors, `stud-tgt-${connection.id}`)}
+
+      {/* Draw-in animation overlay */}
+      <path
+        ref={drawInRef}
+        d={hitPath}
+        stroke={colors.tile}
+        strokeWidth={BEAM_HALF_THICKNESS * 2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+        pointerEvents="none"
+        opacity={0.6}
+        data-testid="connection-draw-path"
+      />
+
+      {hasValidationError && (
+        <path
+          d={hitPath}
+          stroke="var(--accent-error, #ef4444)"
+          strokeWidth={3}
+          strokeDasharray="6 6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+          pointerEvents="none"
+          data-testid="connection-invalid"
+        />
+      )}
+
+      {hasValidationError && (isHovered || isSelected) && (() => {
+        const labelPos = route.elbow ?? {
+          x: (route.segments[0].start.x + route.segments[route.segments.length - 1].end.x) / 2,
+          y: (route.segments[0].start.y + route.segments[route.segments.length - 1].end.y) / 2,
+        };
+        const msg = connectionErrors[0].message;
+        const textWidth = Math.min(msg.length * 6.5, 220);
+        const padding = 6;
+        const rectWidth = textWidth + padding * 2;
+        const rectHeight = 22;
+
+        return (
+          <g data-testid="connection-error-label" pointerEvents="none">
+            <rect
+              x={labelPos.x - rectWidth / 2}
+              y={labelPos.y - rectHeight - 4}
+              width={rectWidth}
+              height={rectHeight}
+              rx={4}
+              fill="var(--accent-error, #ef4444)"
+              fillOpacity={0.92}
+            />
+            <text
+              x={labelPos.x}
+              y={labelPos.y - rectHeight / 2 - 4 + 1}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fill="#ffffff"
+              fontSize={11}
+              fontFamily="var(--font-ui, system-ui)"
+              style={{ pointerEvents: 'none' }}
+            >
+              {msg.length > 35 ? msg.slice(0, 32) + '…' : msg}
+            </text>
+          </g>
+        );
+      })()}
     </g>
   );
 });

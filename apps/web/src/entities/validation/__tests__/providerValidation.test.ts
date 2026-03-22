@@ -13,9 +13,8 @@ import {
 function makePlate(overrides: LegacyPlateOverrides = {}): ContainerNode {
   return makeTestPlate({
     id: 'subnet-private-1',
-    name: 'Private Subnet',
+    name: 'Subnet',
     type: 'subnet',
-    subnetAccess: 'private',
     parentId: 'network-1',
     position: { x: 0, y: 0, z: 0 },
     size: { width: 8, height: 1, depth: 8 },
@@ -95,7 +94,7 @@ describe('validateProviderRules', () => {
 
   it('returns warning for GCP Cloud SQL on public subnet', () => {
     const model = makeModel({
-      plates: [makePlate({ id: 'subnet-public-1', subnetAccess: 'public' })],
+      plates: [makePlate({ id: 'subnet-public-1' })],
       blocks: [
         makeBlock({
           id: 'sql-1',
@@ -118,9 +117,9 @@ describe('validateProviderRules', () => {
     });
   });
 
-  it('returns no warning for GCP Cloud SQL on private subnet', () => {
+  it('returns warning for GCP Cloud SQL on any subnet', () => {
     const model = makeModel({
-      plates: [makePlate({ id: 'subnet-private-2', subnetAccess: 'private' })],
+      plates: [makePlate({ id: 'subnet-private-2' })],
       blocks: [
         makeBlock({
           id: 'sql-2',
@@ -135,7 +134,12 @@ describe('validateProviderRules', () => {
 
     const warnings = validateProviderRules(model);
 
-    expect(warnings).toEqual([]);
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]).toMatchObject({
+      ruleId: 'rule-provider-gcp-sql-public',
+      severity: 'warning',
+      targetId: 'sql-2',
+    });
   });
 
   it('returns warning for unknown subtype', () => {
@@ -219,8 +223,8 @@ describe('validateProviderRules', () => {
   it('collects multiple warnings across architecture', () => {
     const model = makeModel({
       plates: [
-        makePlate({ id: 'subnet-public-1', subnetAccess: 'public' }),
-        makePlate({ id: 'subnet-private-1', subnetAccess: 'private' }),
+        makePlate({ id: 'subnet-public-1' }),
+        makePlate({ id: 'subnet-private-1' }),
       ],
       blocks: [
         makeBlock({

@@ -1,10 +1,13 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useUIStore } from './uiStore';
 
 describe('useUIStore', () => {
   beforeEach(() => {
+    localStorage.removeItem('cloudblocks:theme-variant');
+
     // Reset store to initial state before each test
     useUIStore.setState({
+      appView: 'landing',
       selectedId: null,
       toolMode: 'select',
       interactionState: 'idle',
@@ -25,6 +28,11 @@ describe('useUIStore', () => {
       pendingGitHubAction: null,
       showSuggestionsPanel: false,
       showCostPanel: false,
+      sidebar: { isOpen: true },
+      inspector: { isOpen: true, activeTab: 'properties' },
+      rightOverlay: null,
+      bottomDock: { isOpen: false, activeTab: 'output' },
+      activityLog: [],
       activeProvider: 'azure',
       editorMode: 'build',
       pendingLinkRepo: null,
@@ -33,6 +41,7 @@ describe('useUIStore', () => {
       diffMode: false,
       diffDelta: null,
       diffBaseArchitecture: null,
+      themeVariant: 'blueprint',
     });
   });
 
@@ -40,6 +49,7 @@ describe('useUIStore', () => {
     it('should have correct default values', () => {
       const state = useUIStore.getState();
       expect(state.selectedId).toBe(null);
+      expect(state.appView).toBe('landing');
       expect(state.toolMode).toBe('select');
       expect(state.connectionSource).toBe(null);
       expect(state.draggedBlockCategory).toBe(null);
@@ -56,6 +66,11 @@ describe('useUIStore', () => {
       expect(state.showGitHubPR).toBe(false);
       expect(state.showSuggestionsPanel).toBe(false);
       expect(state.showCostPanel).toBe(false);
+      expect(state.sidebar).toEqual({ isOpen: true });
+      expect(state.inspector).toEqual({ isOpen: true, activeTab: 'properties' });
+      expect(state.rightOverlay).toBe(null);
+      expect(state.bottomDock).toEqual({ isOpen: false, activeTab: 'output' });
+      expect(state.activityLog).toEqual([]);
       expect(state.activeProvider).toBe('azure');
       expect(state.editorMode).toBe('build');
       expect(state.pendingLinkRepo).toBe(null);
@@ -64,6 +79,29 @@ describe('useUIStore', () => {
       expect(state.diffMode).toBe(false);
       expect(state.diffDelta).toBe(null);
       expect(state.diffBaseArchitecture).toBe(null);
+    });
+  });
+
+  describe('themeVariant', () => {
+    it("defaults to 'blueprint'", () => {
+      expect(useUIStore.getState().themeVariant).toBe('blueprint');
+    });
+
+    it('setThemeVariant changes the value', () => {
+      useUIStore.getState().setThemeVariant('workshop');
+      expect(useUIStore.getState().themeVariant).toBe('workshop');
+    });
+
+    it('setThemeVariant persists to localStorage', () => {
+      useUIStore.getState().setThemeVariant('workshop');
+      expect(localStorage.getItem('cloudblocks:theme-variant')).toBe('workshop');
+    });
+
+    it('reads initial value from localStorage when present', async () => {
+      localStorage.setItem('cloudblocks:theme-variant', 'workshop');
+      vi.resetModules();
+      const { useUIStore: reloadedUIStore } = await import('./uiStore');
+      expect(reloadedUIStore.getState().themeVariant).toBe('workshop');
     });
   });
 
@@ -77,6 +115,151 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().editorMode).toBe('learn');
       useUIStore.getState().setEditorMode('build');
       expect(useUIStore.getState().editorMode).toBe('build');
+    });
+  });
+
+  describe('appView', () => {
+    it("defaults to 'landing'", () => {
+      expect(useUIStore.getState().appView).toBe('landing');
+    });
+
+    it('setAppView updates app view', () => {
+      useUIStore.getState().setAppView('builder');
+      expect(useUIStore.getState().appView).toBe('builder');
+      useUIStore.getState().setAppView('landing');
+      expect(useUIStore.getState().appView).toBe('landing');
+    });
+
+    it('goToLanding forces landing view', () => {
+      useUIStore.getState().setAppView('builder');
+      useUIStore.getState().goToLanding();
+      expect(useUIStore.getState().appView).toBe('landing');
+    });
+
+    it('goToBuilder forces builder view', () => {
+      useUIStore.getState().goToBuilder();
+      expect(useUIStore.getState().appView).toBe('builder');
+    });
+  });
+
+  describe('sidebar', () => {
+    it('defaults to open', () => {
+      expect(useUIStore.getState().sidebar).toEqual({ isOpen: true });
+    });
+
+    it('toggleSidebar toggles open state', () => {
+      useUIStore.getState().toggleSidebar();
+      expect(useUIStore.getState().sidebar).toEqual({ isOpen: false });
+      useUIStore.getState().toggleSidebar();
+      expect(useUIStore.getState().sidebar).toEqual({ isOpen: true });
+    });
+
+    it('setSidebarOpen sets open state explicitly', () => {
+      useUIStore.getState().setSidebarOpen(false);
+      expect(useUIStore.getState().sidebar).toEqual({ isOpen: false });
+      useUIStore.getState().setSidebarOpen(true);
+      expect(useUIStore.getState().sidebar).toEqual({ isOpen: true });
+    });
+  });
+
+  describe('inspector', () => {
+    it('defaults to open', () => {
+      expect(useUIStore.getState().inspector).toEqual({ isOpen: true, activeTab: 'properties' });
+    });
+
+    it('toggleInspector toggles open state', () => {
+      useUIStore.getState().toggleInspector();
+      expect(useUIStore.getState().inspector).toEqual({ isOpen: false, activeTab: 'properties' });
+      useUIStore.getState().toggleInspector();
+      expect(useUIStore.getState().inspector).toEqual({ isOpen: true, activeTab: 'properties' });
+    });
+
+    it('setInspectorOpen sets open state explicitly', () => {
+      useUIStore.getState().setInspectorOpen(false);
+      expect(useUIStore.getState().inspector).toEqual({ isOpen: false, activeTab: 'properties' });
+      useUIStore.getState().setInspectorOpen(true);
+      expect(useUIStore.getState().inspector).toEqual({ isOpen: true, activeTab: 'properties' });
+    });
+
+    it('setInspectorTab updates active tab and code preview visibility', () => {
+      useUIStore.getState().setInspectorTab('code');
+      expect(useUIStore.getState().inspector.activeTab).toBe('code');
+      expect(useUIStore.getState().showCodePreview).toBe(true);
+
+      useUIStore.getState().setInspectorTab('connections');
+      expect(useUIStore.getState().inspector.activeTab).toBe('connections');
+      expect(useUIStore.getState().showCodePreview).toBe(false);
+    });
+
+    it('openInspectorTab opens inspector and sets tab', () => {
+      useUIStore.getState().setInspectorOpen(false);
+      useUIStore.getState().openInspectorTab('code');
+
+      expect(useUIStore.getState().inspector).toEqual({ isOpen: true, activeTab: 'code' });
+      expect(useUIStore.getState().showCodePreview).toBe(true);
+    });
+  });
+
+  describe('bottomDock', () => {
+    it("defaults to closed with 'output' tab", () => {
+      expect(useUIStore.getState().bottomDock).toEqual({ isOpen: false, activeTab: 'output' });
+    });
+
+    it('openBottomTab opens dock and sets active tab', () => {
+      useUIStore.getState().openBottomTab('logs');
+      expect(useUIStore.getState().bottomDock).toEqual({ isOpen: true, activeTab: 'logs' });
+    });
+
+    it('closeBottomDock closes dock and preserves active tab', () => {
+      useUIStore.getState().openBottomTab('validation');
+      useUIStore.getState().closeBottomDock();
+      expect(useUIStore.getState().bottomDock).toEqual({ isOpen: false, activeTab: 'validation' });
+    });
+
+    it('setBottomTab updates tab without changing open state', () => {
+      useUIStore.getState().setBottomTab('diff');
+      expect(useUIStore.getState().bottomDock).toEqual({ isOpen: false, activeTab: 'diff' });
+      useUIStore.getState().openBottomTab('output');
+      useUIStore.getState().setBottomTab('logs');
+      expect(useUIStore.getState().bottomDock).toEqual({ isOpen: true, activeTab: 'logs' });
+    });
+  });
+
+  describe('activityLog', () => {
+    it('defaults to empty', () => {
+      expect(useUIStore.getState().activityLog).toEqual([]);
+    });
+
+    it('appendLog adds entry with id and ts', () => {
+      useUIStore.getState().appendLog({ level: 'info', message: 'hello' });
+      const log = useUIStore.getState().activityLog;
+
+      expect(log).toHaveLength(1);
+      expect(log[0].level).toBe('info');
+      expect(log[0].message).toBe('hello');
+      expect(typeof log[0].id).toBe('string');
+      expect(log[0].id.length).toBeGreaterThan(0);
+      expect(typeof log[0].ts).toBe('string');
+      expect(Number.isNaN(Date.parse(log[0].ts))).toBe(false);
+    });
+
+    it('clearLog empties all entries', () => {
+      useUIStore.getState().appendLog({ level: 'warn', message: 'a' });
+      useUIStore.getState().appendLog({ level: 'error', message: 'b' });
+      expect(useUIStore.getState().activityLog).toHaveLength(2);
+      useUIStore.getState().clearLog();
+      expect(useUIStore.getState().activityLog).toEqual([]);
+    });
+
+    it('keeps only the latest 200 entries', () => {
+      for (let i = 0; i < 205; i += 1) {
+        useUIStore.getState().appendLog({ level: 'info', message: `entry-${i}` });
+      }
+
+      const log = useUIStore.getState().activityLog;
+      expect(log).toHaveLength(200);
+      expect(log[0].message).toBe('entry-5');
+      expect(log[199].message).toBe('entry-204');
     });
   });
 
@@ -527,6 +710,13 @@ describe('useUIStore', () => {
       useUIStore.getState().toggleValidation();
       expect(useUIStore.getState().showValidation).toBe(false);
     });
+
+    it('opens bottom dock validation tab when toggled on', () => {
+      expect(useUIStore.getState().bottomDock).toEqual({ isOpen: false, activeTab: 'output' });
+      useUIStore.getState().toggleValidation();
+      expect(useUIStore.getState().showValidation).toBe(true);
+      expect(useUIStore.getState().bottomDock).toEqual({ isOpen: true, activeTab: 'validation' });
+    });
   });
 
   describe('toggleCodePreview', () => {
@@ -534,12 +724,14 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().showCodePreview).toBe(false);
       useUIStore.getState().toggleCodePreview();
       expect(useUIStore.getState().showCodePreview).toBe(true);
+      expect(useUIStore.getState().inspector.activeTab).toBe('code');
     });
 
     it('should toggle showCodePreview back from true to false', () => {
       useUIStore.getState().toggleCodePreview();
       useUIStore.getState().toggleCodePreview();
       expect(useUIStore.getState().showCodePreview).toBe(false);
+      expect(useUIStore.getState().inspector.activeTab).toBe('properties');
     });
 
     it('should toggle multiple times correctly', () => {
@@ -548,6 +740,14 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().showCodePreview).toBe(true);
       useUIStore.getState().toggleCodePreview();
       expect(useUIStore.getState().showCodePreview).toBe(false);
+    });
+
+    it('opens bottom dock output tab when toggled on', () => {
+      expect(useUIStore.getState().bottomDock).toEqual({ isOpen: false, activeTab: 'output' });
+      useUIStore.getState().setBottomTab('logs');
+      useUIStore.getState().toggleCodePreview();
+      expect(useUIStore.getState().showCodePreview).toBe(true);
+      expect(useUIStore.getState().bottomDock).toEqual({ isOpen: true, activeTab: 'output' });
     });
   });
 
@@ -802,6 +1002,26 @@ describe('useUIStore', () => {
       expect(state.diffBaseArchitecture).toBe(null);
     });
 
+    it("setDiffMode(true) opens bottom dock on 'diff' tab", () => {
+      useUIStore.getState().openBottomTab('logs');
+      useUIStore.getState().setDiffMode(true);
+      expect(useUIStore.getState().bottomDock).toEqual({ isOpen: true, activeTab: 'diff' });
+    });
+
+    it('setDiffMode(false) clears diff state without changing bottom dock', () => {
+      useUIStore.getState().openBottomTab('logs');
+      useUIStore.getState().setDiffMode(true);
+      useUIStore.getState().openBottomTab('logs');
+
+      useUIStore.getState().setDiffMode(false);
+
+      const state = useUIStore.getState();
+      expect(state.diffMode).toBe(false);
+      expect(state.diffDelta).toBe(null);
+      expect(state.diffBaseArchitecture).toBe(null);
+      expect(state.bottomDock).toEqual({ isOpen: true, activeTab: 'logs' });
+    });
+
     it('clearDiffState should clear mode, delta, and base architecture', () => {
       const mockDelta = {
         plates: { added: [], removed: [], modified: [] },
@@ -856,70 +1076,36 @@ describe('useUIStore', () => {
     });
   });
 
-  describe('right-panel mutual exclusion', () => {
-    it('opening CodePreview closes other right panels', () => {
+  describe('right overlay state', () => {
+    it('GitHub panel toggles update rightOverlay', () => {
       useUIStore.getState().toggleGitHubLogin();
-      expect(useUIStore.getState().showGitHubLogin).toBe(true);
-
-      useUIStore.getState().toggleCodePreview();
-      expect(useUIStore.getState().showCodePreview).toBe(true);
-      expect(useUIStore.getState().showGitHubLogin).toBe(false);
-    });
-
-    it('opening GitHubLogin closes other right panels', () => {
-      useUIStore.getState().toggleCodePreview();
-      expect(useUIStore.getState().showCodePreview).toBe(true);
-
-      useUIStore.getState().toggleGitHubLogin();
-      expect(useUIStore.getState().showGitHubLogin).toBe(true);
-      expect(useUIStore.getState().showCodePreview).toBe(false);
-    });
-
-    it('opening GitHubRepos closes other right panels', () => {
-      useUIStore.getState().toggleGitHubPR();
-      expect(useUIStore.getState().showGitHubPR).toBe(true);
+      expect(useUIStore.getState().rightOverlay).toBe('githubLogin');
 
       useUIStore.getState().toggleGitHubRepos();
-      expect(useUIStore.getState().showGitHubRepos).toBe(true);
-      expect(useUIStore.getState().showGitHubPR).toBe(false);
+      expect(useUIStore.getState().rightOverlay).toBe('githubRepos');
+      expect(useUIStore.getState().showGitHubLogin).toBe(false);
+
+      useUIStore.getState().toggleGitHubRepos();
+      expect(useUIStore.getState().rightOverlay).toBe(null);
     });
 
-    it('opening SuggestionsPanel closes other right panels', () => {
-      useUIStore.getState().toggleCodePreview();
-      expect(useUIStore.getState().showCodePreview).toBe(true);
-
-      useUIStore.getState().toggleSuggestionsPanel();
-      expect(useUIStore.getState().showSuggestionsPanel).toBe(true);
-      expect(useUIStore.getState().showCodePreview).toBe(false);
-    });
-
-    it('opening CostPanel closes other right panels', () => {
-      useUIStore.getState().toggleGitHubSync();
-      expect(useUIStore.getState().showGitHubSync).toBe(true);
-
-      useUIStore.getState().toggleCostPanel();
-      expect(useUIStore.getState().showCostPanel).toBe(true);
-      expect(useUIStore.getState().showGitHubSync).toBe(false);
-    });
-
-    it('closing a right panel does not open others', () => {
-      useUIStore.getState().toggleCodePreview();
-      expect(useUIStore.getState().showCodePreview).toBe(true);
-
-      useUIStore.getState().toggleCodePreview();
-      expect(useUIStore.getState().showCodePreview).toBe(false);
+    it('setRightOverlay synchronizes GitHub booleans', () => {
+      useUIStore.getState().setRightOverlay('githubPR');
+      expect(useUIStore.getState().showGitHubPR).toBe(true);
       expect(useUIStore.getState().showGitHubLogin).toBe(false);
       expect(useUIStore.getState().showGitHubRepos).toBe(false);
-      expect(useUIStore.getState().showSuggestionsPanel).toBe(false);
-      expect(useUIStore.getState().showCostPanel).toBe(false);
+      expect(useUIStore.getState().showGitHubSync).toBe(false);
+
+      useUIStore.getState().setRightOverlay(null);
+      expect(useUIStore.getState().showGitHubPR).toBe(false);
     });
 
     it('does not affect left-side or center panels', () => {
       useUIStore.getState().toggleWorkspaceManager();
       expect(useUIStore.getState().showWorkspaceManager).toBe(true);
 
-      useUIStore.getState().toggleCodePreview();
-      expect(useUIStore.getState().showCodePreview).toBe(true);
+      useUIStore.getState().toggleGitHubSync();
+      expect(useUIStore.getState().rightOverlay).toBe('githubSync');
       expect(useUIStore.getState().showWorkspaceManager).toBe(true);
     });
   });

@@ -87,7 +87,6 @@ interface LegacyPlate {
   position: Position;
   size: { width: number; height: number; depth: number };
   metadata?: Record<string, unknown>;
-  subnetAccess?: 'public' | 'private';
   profileId?: string;
 }
 
@@ -185,7 +184,6 @@ export function deserialize(json: string): Workspace[] {
         position: plate.position as ContainerNode['position'],
         size: plate.size as ContainerNode['size'],
         metadata: (plate.metadata as Record<string, unknown>) ?? {},
-        ...(plate.subnetAccess ? { subnetAccess: plate.subnetAccess as 'public' | 'private' } : {}),
         ...(plate.profileId ? { profileId: plate.profileId as string } : {}),
       }));
 

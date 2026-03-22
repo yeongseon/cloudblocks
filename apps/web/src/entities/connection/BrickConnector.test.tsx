@@ -3,13 +3,13 @@ import { fireEvent, render } from '@testing-library/react';
 import { BrickConnector } from './BrickConnector';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
-import { getEndpointWorldPosition } from '../../shared/utils/position';
+import { getConnectionEndpointWorldAnchors } from './endpointAnchors';
 import { getDiffState } from '../../features/diff/engine';
 import type { Connection, ConnectionType } from '@cloudblocks/schema';
 import type { DiffDelta } from '../../shared/types/diff';
 
-vi.mock('../../shared/utils/position', () => ({
-  getEndpointWorldPosition: vi.fn(),
+vi.mock('./endpointAnchors', () => ({
+  getConnectionEndpointWorldAnchors: vi.fn(),
 }));
 
 vi.mock('../../shared/tokens/designTokens', () => ({
@@ -29,6 +29,7 @@ vi.mock('../../shared/tokens/designTokens', () => ({
   STUD_INNER_RX: 7.2,
   STUD_INNER_RY: 3.6,
   STUD_INNER_OPACITY: 0.3,
+  PORT_OUT_PX: 8,
 }));
 
 vi.mock('../../features/diff/engine', () => ({
@@ -44,14 +45,13 @@ const connection: Connection = {
 };
 
 function setupEndpoints(srcWorld: [number, number, number] = [1, 0, 2], tgtWorld: [number, number, number] = [3, 0, 4]) {
-  vi.mocked(getEndpointWorldPosition)
-    .mockReturnValueOnce(srcWorld)
-    .mockReturnValueOnce(tgtWorld);
+  vi.mocked(getConnectionEndpointWorldAnchors)
+    .mockReturnValue({ src: srcWorld, tgt: tgtWorld });
 }
 
 function renderConnector(conn: Connection = connection) {
   return render(
-    <svg><title>Test</title>
+    <svg aria-label="Test SVG">
       <BrickConnector
         connection={conn}
         blocks={[]}
@@ -80,19 +80,9 @@ describe('BrickConnector', () => {
     });
   });
 
-  it('returns null when source endpoint position is missing', () => {
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce(null)
-      .mockReturnValueOnce([3, 0, 4]);
-
-    const { container } = renderConnector();
-    expect(container.querySelector('g')).toBeNull();
-  });
-
-  it('returns null when target endpoint position is missing', () => {
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce(null);
+  it('returns null when endpoint resolution fails', () => {
+    vi.mocked(getConnectionEndpointWorldAnchors)
+      .mockReturnValue(null);
 
     const { container } = renderConnector();
     expect(container.querySelector('g')).toBeNull();
@@ -139,12 +129,11 @@ describe('BrickConnector', () => {
 
   it('stops propagation when clicking a connection', () => {
     const parentClick = vi.fn();
-    vi.mocked(getEndpointWorldPosition)
-      .mockReturnValueOnce([1, 0, 2])
-      .mockReturnValueOnce([3, 0, 4]);
+    vi.mocked(getConnectionEndpointWorldAnchors)
+      .mockReturnValue({ src: [1, 0, 2], tgt: [3, 0, 4] });
 
     const { container } = render(
-      <svg onClick={parentClick}><title>Test</title>
+      <svg onClick={parentClick} onKeyDown={() => {}} aria-label="Test SVG">
         <BrickConnector connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={0} originY={0} />
       </svg>,
     );
@@ -303,6 +292,95 @@ describe('BrickConnector', () => {
       expect(segment).toBeInTheDocument();
       const pinElements = segment?.querySelectorAll('ellipse, line, polygon');
       expect(pinElements?.length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  describe('validation overlay', () => {
+    it('renders red dashed overlay when connection has validation errors', () => {
+      useArchitectureStore.setState({
+        validationResult: {
+          valid: false,
+          errors: [{ ruleId: 'test-rule', message: 'Invalid connection', targetId: connection.id, severity: 'error' }],
+          warnings: [],
+        },
+      });
+      setupEndpoints();
+
+      const { container } = renderConnector();
+
+      expect(container.querySelector('[data-testid="connection-invalid"]')).toBeInTheDocument();
+    });
+
+    it('does NOT render overlay when no validation errors target this connection', () => {
+      useArchitectureStore.setState({
+        validationResult: {
+          valid: false,
+          errors: [{ ruleId: 'test-rule', message: 'Some error', targetId: 'other-conn', severity: 'error' }],
+          warnings: [],
+        },
+      });
+      setupEndpoints();
+
+      const { container } = renderConnector();
+
+      expect(container.querySelector('[data-testid="connection-invalid"]')).not.toBeInTheDocument();
+    });
+
+    it('does NOT render overlay when validationResult is null', () => {
+      useArchitectureStore.setState({ validationResult: null });
+      setupEndpoints();
+
+      const { container } = renderConnector();
+
+      expect(container.querySelector('[data-testid="connection-invalid"]')).not.toBeInTheDocument();
+    });
+
+    it('shows error label on hover when connection is invalid', () => {
+      useArchitectureStore.setState({
+        validationResult: {
+          valid: false,
+          errors: [{ ruleId: 'test-rule', message: 'Connection not allowed', targetId: connection.id, severity: 'error' }],
+          warnings: [],
+        },
+      });
+      setupEndpoints();
+
+      const { container } = renderConnector();
+
+      fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
+
+      expect(container.querySelector('[data-testid="connection-error-label"]')).toBeInTheDocument();
+    });
+
+    it('shows error label when connection is selected and invalid', () => {
+      useUIStore.setState({ selectedId: connection.id });
+      useArchitectureStore.setState({
+        validationResult: {
+          valid: false,
+          errors: [{ ruleId: 'test-rule', message: 'Connection not allowed', targetId: connection.id, severity: 'error' }],
+          warnings: [],
+        },
+      });
+      setupEndpoints();
+
+      const { container } = renderConnector();
+
+      expect(container.querySelector('[data-testid="connection-error-label"]')).toBeInTheDocument();
+    });
+
+    it('does NOT show error label when not hovered and not selected', () => {
+      useArchitectureStore.setState({
+        validationResult: {
+          valid: false,
+          errors: [{ ruleId: 'test-rule', message: 'Connection not allowed', targetId: connection.id, severity: 'error' }],
+          warnings: [],
+        },
+      });
+      setupEndpoints();
+
+      const { container } = renderConnector();
+
+      expect(container.querySelector('[data-testid="connection-error-label"]')).not.toBeInTheDocument();
     });
   });
 });

@@ -14,7 +14,7 @@
   box-shadow: 6px 6px 0px rgba(44, 62, 80, 0.15);
   padding: 16px 28px;
   z-index: 10;
-  font-family: 'Varela Round', system-ui, sans-serif;
+  font-family: var(--font-ui);
   max-width: 90vw;
   overflow-x: auto;
 }

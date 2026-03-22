@@ -100,16 +100,18 @@ export function DiffPanel() {
   );
 }
 
-function DiffPanelContent({
+export function DiffPanelContent({
   diffDelta,
   diffBaseArchitecture,
   workspaceName,
   onClose,
+  showHeader = true,
 }: {
   diffDelta: DiffDelta;
   diffBaseArchitecture: ArchitectureModel | null;
   workspaceName: string;
   onClose: () => void;
+  showHeader?: boolean;
 }) {
   const [collapsedSections, setCollapsedSections] = useState<Record<SectionKey, boolean>>({
     plates: false,
@@ -144,12 +146,14 @@ function DiffPanelContent({
 
   return (
     <div className="diff-panel">
-      <div className="diff-panel-header">
-        <h3 className="diff-panel-title">🔍 Architecture Diff</h3>
-        <button type="button" className="diff-panel-close" onClick={onClose} aria-label="Close architecture diff panel">
-          ✕
-        </button>
-      </div>
+      {showHeader && (
+        <div className="diff-panel-header">
+          <h3 className="diff-panel-title">🔍 Architecture Diff</h3>
+          <button type="button" className="diff-panel-close" onClick={onClose} aria-label="Close architecture diff panel">
+            ✕
+          </button>
+        </div>
+      )}
 
       <div className="diff-panel-context">Comparing: {workspaceName}</div>
 

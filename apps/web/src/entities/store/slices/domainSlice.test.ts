@@ -158,7 +158,7 @@ describe('domainSlice – targeted branch coverage', () => {
 
   describe('setPlateProfile – same profileId no-op', () => {
     it('no-ops when setting the same profileId that is already set', () => {
-      getState().addPlate('region', 'VNet', null, undefined, 'network-platform');
+      getState().addPlate('region', 'VNet', null, 'network-platform');
       const plateId = getPlates()[0].id;
       const archBefore = getArch();
 
@@ -391,6 +391,107 @@ describe('domainSlice – targeted branch coverage', () => {
     });
   });
 
+  describe('addConnection – stub allocation and capacity', () => {
+    it('assigns sourceStub/targetStub automatically', () => {
+      seedState({
+        nodes: [
+          makeContainerNode('r1'),
+          makeContainerNode('s1', {
+            layer: 'subnet',
+            parentId: 'r1',
+            position: { x: 0, y: 0.7, z: 0 },
+            size: { width: 6, height: 0.3, depth: 8 },
+          }),
+          makeLeafNode('c1', 's1', 'compute'),
+          makeLeafNode('d1', 's1', 'data'),
+          makeLeafNode('d2', 's1', 'data'),
+        ],
+      });
+
+      expect(getState().addConnection('c1', 'd1')).toBe(true);
+      expect(getState().addConnection('c1', 'd2')).toBe(true);
+
+      const connections = getArch().connections;
+      expect(connections).toHaveLength(2);
+      expect(connections[0].sourceStub).toBe(0);
+      expect(connections[0].targetStub).toBe(0);
+      expect(connections[1].sourceStub).toBe(1);
+      expect(connections[1].targetStub).toBe(0);
+    });
+
+    it('rejects connection when source outbound stubs are full', () => {
+      seedState({
+        nodes: [
+          makeContainerNode('r1'),
+          makeContainerNode('s1', {
+            layer: 'subnet',
+            parentId: 'r1',
+            position: { x: 0, y: 0.7, z: 0 },
+            size: { width: 6, height: 0.3, depth: 8 },
+          }),
+          makeLeafNode('c1', 's1', 'compute'),
+          makeLeafNode('d1', 's1', 'data'),
+          makeLeafNode('d2', 's1', 'data'),
+          makeLeafNode('d3', 's1', 'data'),
+        ],
+      });
+
+      expect(getState().addConnection('c1', 'd1')).toBe(true);
+      expect(getState().addConnection('c1', 'd2')).toBe(true);
+      expect(getState().addConnection('c1', 'd3')).toBe(false);
+      expect(getArch().connections).toHaveLength(2);
+    });
+
+    it('rejects connection when target inbound stubs are full', () => {
+      seedState({
+        nodes: [
+          makeContainerNode('r1'),
+          makeContainerNode('s1', {
+            layer: 'subnet',
+            parentId: 'r1',
+            position: { x: 0, y: 0.7, z: 0 },
+            size: { width: 6, height: 0.3, depth: 8 },
+          }),
+          makeLeafNode('c1', 's1', 'compute'),
+          makeLeafNode('c2', 's1', 'compute'),
+          makeLeafNode('c3', 's1', 'compute'),
+          makeLeafNode('d1', 's1', 'data'),
+        ],
+      });
+
+      expect(getState().addConnection('c1', 'd1')).toBe(true);
+      expect(getState().addConnection('c2', 'd1')).toBe(true);
+      expect(getState().addConnection('c3', 'd1')).toBe(false);
+      expect(getArch().connections).toHaveLength(2);
+    });
+
+    it('allocates next stub index when existing connection has no stub fields', () => {
+      seedState({
+        nodes: [
+          makeContainerNode('r1'),
+          makeContainerNode('s1', {
+            layer: 'subnet',
+            parentId: 'r1',
+            position: { x: 0, y: 0.7, z: 0 },
+            size: { width: 6, height: 0.3, depth: 8 },
+          }),
+          makeLeafNode('c1', 's1', 'compute'),
+          makeLeafNode('d1', 's1', 'data'),
+          makeLeafNode('d2', 's1', 'data'),
+        ],
+        connections: [
+          { id: 'legacy-conn', sourceId: 'c1', targetId: 'd1', type: 'dataflow', metadata: {} },
+        ],
+      });
+
+      expect(getState().addConnection('c1', 'd2')).toBe(true);
+
+      const newConnection = getArch().connections.find((connection) => connection.id !== 'legacy-conn');
+      expect(newConnection?.sourceStub).toBe(1);
+      expect(newConnection?.targetStub).toBe(0);
+    });
+  });
+
   // ── duplicateBlock: block without parent plate ──
 
   describe('duplicateBlock – orphan block guard', () => {
@@ -414,7 +515,7 @@ describe('domainSlice – targeted branch coverage', () => {
     it('stores config when provided during block creation', () => {
       getState().addPlate('region', 'VNet', null);
       const netId = getPlates()[0].id;
-      getState().addPlate('subnet', 'Sub', netId, 'public');
+      getState().addPlate('subnet', 'Sub', netId);
       const subId = getPlates()[1].id;
 
       getState().addBlock('compute', 'VM', subId, 'azure', 'vm', { sku: 'Standard_B2s', tier: 'basic' });
@@ -446,7 +547,7 @@ describe('domainSlice – targeted branch coverage', () => {
 
   describe('setPlateProfile – root plate without parent', () => {
     it('resizes a root plate without parent clamping', () => {
-      getState().addPlate('region', 'VNet', null, undefined, 'network-platform');
+      getState().addPlate('region', 'VNet', null, 'network-platform');
       const plateId = getPlates()[0].id;
 
       getState().setPlateProfile(plateId, 'network-hub');
@@ -489,7 +590,7 @@ describe('domainSlice – targeted branch coverage', () => {
     it('rejects move when placement validation fails', () => {
       getState().addPlate('region', 'VNet', null);
       const regionId = getPlates()[0].id;
-      getState().addPlate('subnet', 'Sub', regionId, 'private');
+      getState().addPlate('subnet', 'Sub', regionId);
       const subId = getPlates()[1].id;
 
       getState().addBlock('edge', 'LB', subId);

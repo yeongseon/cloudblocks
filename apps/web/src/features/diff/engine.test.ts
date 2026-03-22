@@ -34,7 +34,7 @@ function computeLegacyDiff(base: ArchitectureModel | LegacyArchitecture, head: A
 function createBaseArchitecture(): LegacyArchitecture {
   const plates = [
     makeTestPlate({ id: 'plate-1', name: 'Network', type: 'region', parentId: null, position: { x: 0, y: 0, z: 0 }, size: { width: 16, height: 0.3, depth: 20 }, metadata: {} }),
-    makeTestPlate({ id: 'plate-2', name: 'Public Subnet', type: 'subnet', subnetAccess: 'public', parentId: 'plate-1', position: { x: 1, y: 0, z: 1 }, size: { width: 6, height: 0.3, depth: 8 }, metadata: {} }),
+    makeTestPlate({ id: 'plate-2', name: 'Subnet 1', type: 'subnet', parentId: 'plate-1', position: { x: 1, y: 0, z: 1 }, size: { width: 6, height: 0.3, depth: 8 }, metadata: {} }),
   ];
   const blocks = [
     makeTestBlock(makeTestBlock({ id: 'block-1', name: 'Gateway', category: 'edge', placementId: 'plate-2', position: { x: 0, y: 0, z: 0 }, metadata: {} })),
@@ -159,7 +159,7 @@ describe('computeArchitectureDiff', () => {
       ...base,
       plates: [
         ...base.plates,
-        makeTestPlate({ id: 'plate-3', name: 'Private Subnet', type: 'subnet', subnetAccess: 'private', parentId: 'plate-1', children: ['block-3'], position: { x: 4, y: 0, z: 4 }, size: { width: 6, height: 0.3, depth: 8 }, metadata: {} }),
+        makeTestPlate({ id: 'plate-3', name: 'Subnet 2', type: 'subnet', parentId: 'plate-1', children: ['block-3'], position: { x: 4, y: 0, z: 4 }, size: { width: 6, height: 0.3, depth: 8 }, metadata: {} }),
       ],
       blocks: [
         ...base.blocks,
@@ -462,7 +462,7 @@ describe('computeArchitectureDiff', () => {
       plates: [
         { ...base.plates[0], metadata: { region: 'eastus' } },
         { ...base.plates[1], name: 'Subnet A', children: ['block-2'] },
-        makeTestPlate({ id: 'plate-3', name: 'Analytics Subnet', type: 'subnet', subnetAccess: 'private', parentId: 'plate-1', children: ['block-3'], position: { x: 6, y: 0, z: 6 }, size: { width: 6, height: 0.3, depth: 8 }, metadata: {} }),
+        makeTestPlate({ id: 'plate-3', name: 'Analytics Subnet', type: 'subnet', parentId: 'plate-1', children: ['block-3'], position: { x: 6, y: 0, z: 6 }, size: { width: 6, height: 0.3, depth: 8 }, metadata: {} }),
       ],
       blocks: [
         { ...base.blocks[1], name: 'Application VM' },

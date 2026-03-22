@@ -241,7 +241,7 @@ function PlateDetail({ plate, className }: { plate: ContainerNode; className: st
   const childPlates = containers.filter((p) => p.parentId === plate.id);
 
   const altText = plateType === 'subnet'
-    ? `${plate.subnetAccess === 'public' ? 'Public' : 'Private'} Subnet`
+    ? 'Subnet'
     : plateType === 'region'
       ? 'Region'
       : plateType.charAt(0).toUpperCase() + plateType.slice(1);
@@ -252,7 +252,7 @@ function PlateDetail({ plate, className }: { plate: ContainerNode; className: st
     <div className={`detail-panel detail-panel--plate ${className}`}>
       <div className="detail-header">
         <img
-          src={getPlateIconUrl(plateType, plate.subnetAccess)}
+          src={getPlateIconUrl(plateType)}
           alt={altText}
           className="detail-header-icon-img"
         />
@@ -266,7 +266,6 @@ function PlateDetail({ plate, className }: { plate: ContainerNode; className: st
           <span className="detail-property-label">Type</span>
           <span className="detail-property-value">
             {plateType === 'subnet' ? 'Subnet' : plateType.charAt(0).toUpperCase() + plateType.slice(1)}
-            {plate.subnetAccess && ` (${plate.subnetAccess})`}
           </span>
         </div>
 

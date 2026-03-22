@@ -16,10 +16,9 @@ function makePlate(
   overrides: LegacyPlateOverrides = {}
 ): ContainerNode {
   return makeTestPlate({
-    id: 'subnet-private-1',
-    name: 'Private Subnet',
+    id: 'subnet-1',
+    name: 'Subnet',
     type: 'subnet',
-    subnetAccess: 'private',
     parentId: 'network-1',
     position: { x: 0, y: 0, z: 0 },
     size: { width: 8, height: 1, depth: 8 },
@@ -99,18 +98,18 @@ describe('validateArchitecture', () => {
   });
 
   it('returns valid result for model with valid blocks and connections', () => {
-    const publicSubnet = makePlate({ id: 'subnet-public-1', subnetAccess: 'public' });
-    const privateSubnet = makePlate({ id: 'subnet-private-1', subnetAccess: 'private' });
+    const subnet1 = makePlate({ id: 'subnet-1' });
+    const subnet2 = makePlate({ id: 'subnet-2' });
 
-    const gateway = makeBlock({ id: 'gateway-1', category: 'edge', placementId: 'subnet-public-1' });
-    const compute = makeBlock({ id: 'compute-1', category: 'compute', placementId: 'subnet-private-1' });
-    const database = makeBlock({ id: 'database-1', category: 'data', placementId: 'subnet-private-1' });
-    const storage = makeBlock({ id: 'storage-1', category: 'data', placementId: 'subnet-private-1' });
+    const gateway = makeBlock({ id: 'gateway-1', category: 'edge', placementId: 'subnet-1' });
+    const compute = makeBlock({ id: 'compute-1', category: 'compute', placementId: 'subnet-2' });
+    const database = makeBlock({ id: 'database-1', category: 'data', placementId: 'subnet-2' });
+    const storage = makeBlock({ id: 'storage-1', category: 'data', placementId: 'subnet-2' });
 
     const internet = makeExternalActor({ id: 'internet-1' });
 
     const model = makeModel({
-      plates: [publicSubnet, privateSubnet],
+      plates: [subnet1, subnet2],
       blocks: [gateway, compute, database, storage],
       externalActors: [internet],
       connections: [
@@ -129,7 +128,7 @@ describe('validateArchitecture', () => {
   });
 
   it('returns invalid result with placement error', () => {
-    const region = makePlate({ id: 'region-1', type: 'region', subnetAccess: undefined });
+    const region = makePlate({ id: 'region-1', type: 'region' });
     const model = makeModel({
       plates: [region],
       blocks: [
@@ -155,13 +154,13 @@ describe('validateArchitecture', () => {
   });
 
   it('returns invalid result with connection error', () => {
-    const publicSubnet = makePlate({ id: 'subnet-public-1', subnetAccess: 'public' });
-    const privateSubnet = makePlate({ id: 'subnet-private-1', subnetAccess: 'private' });
-    const gateway = makeBlock({ id: 'gateway-1', category: 'edge', placementId: 'subnet-public-1' });
-    const compute = makeBlock({ id: 'compute-1', category: 'compute', placementId: 'subnet-private-1' });
+    const subnet1 = makePlate({ id: 'subnet-1' });
+    const subnet2 = makePlate({ id: 'subnet-2' });
+    const gateway = makeBlock({ id: 'gateway-1', category: 'edge', placementId: 'subnet-1' });
+    const compute = makeBlock({ id: 'compute-1', category: 'compute', placementId: 'subnet-2' });
 
     const model = makeModel({
-      plates: [publicSubnet, privateSubnet],
+      plates: [subnet1, subnet2],
       blocks: [gateway, compute],
       connections: [
         makeConnection({
@@ -185,15 +184,15 @@ describe('validateArchitecture', () => {
   });
 
   it('collects multiple errors from placement and connections', () => {
-    const publicSubnet = makePlate({ id: 'subnet-public-1', subnetAccess: 'public' });
-    const privateSubnet = makePlate({ id: 'subnet-private-1', subnetAccess: 'private' });
+    const subnet1 = makePlate({ id: 'subnet-1' });
+    const subnet2 = makePlate({ id: 'subnet-2' });
 
-    const gateway = makeBlock({ id: 'gateway-1', category: 'edge', placementId: 'subnet-private-1' });
-    const database = makeBlock({ id: 'db-1', category: 'data', placementId: 'subnet-public-1' });
-    const storage = makeBlock({ id: 'storage-1', category: 'data', placementId: 'subnet-public-1' });
+    const gateway = makeBlock({ id: 'gateway-1', category: 'edge', placementId: 'subnet-2' });
+    const database = makeBlock({ id: 'db-1', category: 'data', placementId: 'subnet-1' });
+    const storage = makeBlock({ id: 'storage-1', category: 'data', placementId: 'subnet-1' });
 
     const model = makeModel({
-      plates: [publicSubnet, privateSubnet],
+      plates: [subnet1, subnet2],
       blocks: [gateway, database, storage],
       connections: [
         makeConnection({
@@ -207,11 +206,10 @@ describe('validateArchitecture', () => {
     const result = validateArchitecture(model);
 
     expect(result.valid).toBe(false);
-    expect(result.errors).toHaveLength(2);
-    expect(result.errors.map((error) => error.ruleId).sort()).toEqual([
-      'rule-conn-invalid',
-      'rule-edge-public',
-    ]);
+    expect(result.errors).toHaveLength(1);
+    expect(result.errors[0]).toMatchObject({
+      ruleId: 'rule-conn-invalid',
+    });
     expect(result.warnings).toEqual([]);
   });
 

@@ -15,13 +15,12 @@ function makeDiffDelta(): DiffDelta {
       added: [
         {
           id: 'plate-added-1',
-          name: 'Public Subnet',
+          name: 'Subnet 1',
           kind: 'container',
           layer: 'subnet',
           resourceType: 'subnet',
           category: 'network',
           provider: 'azure',
-          subnetAccess: 'public',
           parentId: 'plate-net-1',
           position: { x: 0, y: 0, z: 0 },
           size: { width: 6, height: 0.3, depth: 8 },
@@ -37,7 +36,6 @@ function makeDiffDelta(): DiffDelta {
           resourceType: 'subnet',
           category: 'network',
           provider: 'azure',
-          subnetAccess: 'private',
           parentId: 'plate-net-1',
           position: { x: 2, y: 0, z: 0 },
           size: { width: 6, height: 0.3, depth: 8 },
@@ -55,7 +53,6 @@ function makeDiffDelta(): DiffDelta {
             resourceType: 'subnet',
             category: 'network',
             provider: 'azure',
-            subnetAccess: 'public',
             parentId: 'plate-net-1',
             position: { x: 1, y: 0, z: 0 },
             size: { width: 6, height: 0.3, depth: 8 },
@@ -69,13 +66,12 @@ function makeDiffDelta(): DiffDelta {
             resourceType: 'subnet',
             category: 'network',
             provider: 'azure',
-            subnetAccess: 'private',
             parentId: 'plate-net-1',
             position: { x: 1, y: 0, z: 0 },
             size: { width: 6, height: 0.3, depth: 8 },
             metadata: {},
           },
-          changes: [{ path: 'subnetAccess', oldValue: 'public', newValue: 'private' }],
+          changes: [{ path: 'position', oldValue: '{"x":1,"y":0,"z":0}', newValue: '{"x":2,"y":0,"z":0}' }],
         },
       ],
     },
@@ -310,15 +306,15 @@ describe('DiffPanel', () => {
 
     const platesSectionToggle = screen.getByRole('button', { name: /Plates/ });
     expect(platesSectionToggle).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByText('+ Public Subnet (plate-added-1)')).toBeInTheDocument();
+    expect(screen.getByText('+ Subnet 1 (plate-added-1)')).toBeInTheDocument();
 
     await user.click(platesSectionToggle);
     expect(platesSectionToggle).toHaveAttribute('aria-expanded', 'false');
-    expect(screen.queryByText('+ Public Subnet (plate-added-1)')).not.toBeInTheDocument();
+    expect(screen.queryByText('+ Subnet 1 (plate-added-1)')).not.toBeInTheDocument();
 
     await user.click(platesSectionToggle);
     expect(platesSectionToggle).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByText('+ Public Subnet (plate-added-1)')).toBeInTheDocument();
+    expect(screen.getByText('+ Subnet 1 (plate-added-1)')).toBeInTheDocument();
   });
 
   it('expands and collapses modified details with varied value types', async () => {

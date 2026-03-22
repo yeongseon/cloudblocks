@@ -3,17 +3,13 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { EmptyCanvasOverlay } from './EmptyCanvasOverlay';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { getTemplate } from '../../features/templates/registry';
 
 vi.mock('../../entities/store/architectureStore');
 vi.mock('../../entities/store/uiStore');
-vi.mock('../../features/templates/registry');
 
 const mockAddNode = vi.fn();
-const mockLoadFromTemplate = vi.fn();
-const mockSaveToStorage = vi.fn();
 const mockToggleTemplateGallery = vi.fn();
-const mockToggleScenarioGallery = vi.fn();
+const mockImportArchitecture = vi.fn();
 
 function setupMocks(plateCount: number, showTemplateGallery = false) {
   const nodes = Array.from({ length: plateCount }, (_, i) => ({
@@ -34,8 +30,7 @@ function setupMocks(plateCount: number, showTemplateGallery = false) {
     const state = {
       workspace: { architecture: { nodes } },
       addNode: mockAddNode,
-      loadFromTemplate: mockLoadFromTemplate,
-      saveToStorage: mockSaveToStorage,
+      importArchitecture: mockImportArchitecture,
     };
     return (selector as (s: typeof state) => unknown)(state);
   }) as typeof useArchitectureStore);
@@ -44,7 +39,6 @@ function setupMocks(plateCount: number, showTemplateGallery = false) {
     const state = {
       showTemplateGallery,
       toggleTemplateGallery: mockToggleTemplateGallery,
-      toggleScenarioGallery: mockToggleScenarioGallery,
     };
     return (selector as (s: typeof state) => unknown)(state);
   }) as typeof useUIStore);
@@ -67,76 +61,66 @@ describe('EmptyCanvasOverlay', () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it('renders overlay when no plates', () => {
+  it('renders CloudBlocks title when no plates', () => {
     setupMocks(0);
     render(<EmptyCanvasOverlay />);
-    expect(screen.getByText('Design Cloud Architecture Visually')).toBeInTheDocument();
+    expect(screen.getByText('CloudBlocks')).toBeInTheDocument();
   });
 
   it('shows subtitle text', () => {
     setupMocks(0);
     render(<EmptyCanvasOverlay />);
-    expect(screen.getByText(/generate Terraform or Bicep in one click/)).toBeInTheDocument();
+    expect(screen.getByText('Visual cloud architecture builder')).toBeInTheDocument();
   });
 
-  it('shows Use Template and Start from Scratch buttons', () => {
+  it('shows Create Workspace, Explore Templates, and Import JSON cards', () => {
     setupMocks(0);
     render(<EmptyCanvasOverlay />);
-    expect(screen.getByText(/Use Template/)).toBeInTheDocument();
-    expect(screen.getByText(/Start from Scratch/)).toBeInTheDocument();
+    expect(screen.getByText('Create Workspace')).toBeInTheDocument();
+    expect(screen.getByText('Explore Templates')).toBeInTheDocument();
+    expect(screen.getByText('Import JSON')).toBeInTheDocument();
   });
 
-  it('clicking Use Template calls toggleTemplateGallery', () => {
+  it('clicking Create Workspace calls addNode with container VNet', () => {
     setupMocks(0);
     render(<EmptyCanvasOverlay />);
-    fireEvent.click(screen.getByText(/Use Template/));
+    fireEvent.click(screen.getByText('Create Workspace'));
+    expect(mockAddNode).toHaveBeenCalledWith({
+      kind: 'container',
+      resourceType: 'virtual_network',
+      name: 'VNet',
+      parentId: null,
+      layer: 'region',
+    });
+  });
+
+  it('clicking Explore Templates calls toggleTemplateGallery', () => {
+    setupMocks(0);
+    render(<EmptyCanvasOverlay />);
+    fireEvent.click(screen.getByText('Explore Templates'));
     expect(mockToggleTemplateGallery).toHaveBeenCalledTimes(1);
   });
 
-  it('clicking Start from Scratch calls addNode with container VNet', () => {
+  it('clicking Import JSON triggers file input click', () => {
     setupMocks(0);
     render(<EmptyCanvasOverlay />);
-    fireEvent.click(screen.getByText(/Start from Scratch/));
-    expect(mockAddNode).toHaveBeenCalledWith({ kind: 'container', resourceType: 'virtual_network', name: 'VNet', parentId: null, layer: 'region' });
+    const fileInput = screen.getByTestId('import-file-input') as HTMLInputElement;
+    const clickSpy = vi.spyOn(fileInput, 'click');
+    fireEvent.click(screen.getByText('Import JSON'));
+    expect(clickSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('shows Learn How link when no plates', () => {
+  it('importing a JSON file calls importArchitecture with file content', async () => {
     setupMocks(0);
     render(<EmptyCanvasOverlay />);
-    expect(screen.getByText(/Learn How/)).toBeInTheDocument();
-  });
+    const fileInput = screen.getByTestId('import-file-input') as HTMLInputElement;
+    const jsonContent = '{"nodes":[],"connections":[]}';
+    const file = new File([jsonContent], 'arch.json', { type: 'application/json' });
 
-  it('clicking Learn How calls toggleScenarioGallery', () => {
-    setupMocks(0);
-    render(<EmptyCanvasOverlay />);
-    fireEvent.click(screen.getByText(/Learn How/));
-    expect(mockToggleScenarioGallery).toHaveBeenCalledTimes(1);
-  });
+    fireEvent.change(fileInput, { target: { files: [file] } });
 
-  it('shows Try Demo button', () => {
-    setupMocks(0);
-    render(<EmptyCanvasOverlay />);
-    expect(screen.getByText(/Try Demo/)).toBeInTheDocument();
-  });
-
-  it('clicking Try Demo loads the three-tier template', () => {
-    const fakeTemplate = { id: 'template-three-tier', name: 'Three-Tier' };
-    vi.mocked(getTemplate).mockReturnValue(fakeTemplate as ReturnType<typeof getTemplate>);
-    setupMocks(0);
-    render(<EmptyCanvasOverlay />);
-    fireEvent.click(screen.getByText(/Try Demo/));
-    expect(getTemplate).toHaveBeenCalledWith('template-three-tier');
-    expect(mockLoadFromTemplate).toHaveBeenCalledWith(fakeTemplate);
-    expect(mockSaveToStorage).toHaveBeenCalledTimes(1);
-  });
-
-  it('clicking Try Demo does nothing if template not found', () => {
-    vi.mocked(getTemplate).mockReturnValue(undefined);
-    setupMocks(0);
-    render(<EmptyCanvasOverlay />);
-    fireEvent.click(screen.getByText(/Try Demo/));
-    expect(getTemplate).toHaveBeenCalledWith('template-three-tier');
-    expect(mockLoadFromTemplate).not.toHaveBeenCalled();
-    expect(mockSaveToStorage).not.toHaveBeenCalled();
+    await vi.waitFor(() => {
+      expect(mockImportArchitecture).toHaveBeenCalledWith(jsonContent);
+    });
   });
 });

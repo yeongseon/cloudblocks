@@ -9,7 +9,7 @@
   border-radius: 8px;
   padding: 12px;
   color: #e0e0e0;
-  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-family: var(--font-ui);
   z-index: 10;
   overflow-y: auto;
 }
@@ -162,7 +162,7 @@
 }
 
 .diff-property-change-row {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: #c8d0ee;
 }

@@ -54,14 +54,13 @@ function validateBlockProviderRules(
   if (
     block.provider === 'gcp' &&
     block.subtype === 'cloud-sql-postgres' &&
-    plate?.layer === 'subnet' &&
-    plate.subnetAccess === 'public'
+    plate?.layer === 'subnet'
   ) {
     warnings.push({
       ruleId: 'rule-provider-gcp-sql-public',
       severity: 'warning',
-      message: `GCP Cloud SQL "${block.name}" is on a public subnet. Database instances should typically be on private subnets for security.`,
-      suggestion: 'Move the database block to a private subnet.',
+      message: `GCP Cloud SQL "${block.name}" is on a subnet. Database instances should typically be secured with appropriate NSG rules.`,
+      suggestion: 'Ensure proper network security group rules are applied to the subnet.',
       targetId: block.id,
     });
   }

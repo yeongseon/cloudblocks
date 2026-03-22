@@ -167,7 +167,8 @@ function generatePlateResource(
   plate: ContainerNode,
   resourceName: string,
   mapping: ResourceMapping,
-  parentResourceName: string | null
+  parentResourceName: string | null,
+  architecture: ArchitectureModel
 ): string {
   const constructorPath = getPulumiConstructor(mapping.resourceType);
   const lines: string[] = [];
@@ -177,7 +178,9 @@ function generatePlateResource(
     lines.push(`    subnetName: \`\${projectName}-${resourceName}\`,`);
     lines.push(`    resourceGroupName: resourceGroup.name,`);
     lines.push(`    virtualNetworkName: ${parentResourceName}.name,`);
-    const cidrIndex = plate.subnetAccess === 'public' ? 1 : 2;
+    const containers = architecture.nodes.filter((n): n is ContainerNode => n.kind === 'container');
+    const siblingSubnets = containers.filter((c) => c.layer === 'subnet' && c.parentId === plate.parentId);
+    const cidrIndex = siblingSubnets.findIndex((c) => c.id === plate.id) + 1;
     lines.push(`    addressPrefix: "10.0.${cidrIndex}.0/24",`);
     lines.push(`});`);
   } else {
@@ -330,7 +333,7 @@ export function generateIndexTs(
   for (const plate of regions) {
     const resName = resourceNames.get(plate.id)!;
     const mapping = provider.plateMappings[getPlateType(plate)];
-    sections.push(generatePlateResource(plate, resName, mapping, null));
+    sections.push(generatePlateResource(plate, resName, mapping, null, architecture));
     sections.push('');
   }
 
@@ -340,7 +343,7 @@ export function generateIndexTs(
     const parentName = plate.parentId
       ? resourceNames.get(plate.parentId) ?? null
       : null;
-    sections.push(generatePlateResource(plate, resName, mapping, parentName));
+    sections.push(generatePlateResource(plate, resName, mapping, parentName, architecture));
     sections.push('');
   }
 

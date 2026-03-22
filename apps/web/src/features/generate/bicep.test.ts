@@ -96,7 +96,7 @@ describe('bicep generator', () => {
         createPlate({ id: 'plate-network', name: 'VNet', type: 'region' }),
         createPlate({
           id: 'plate-subnet',
-          name: 'Public Subnet',
+          name: 'Subnet 1',
           type: 'subnet',
           parentId: 'plate-network',
         }),
@@ -107,7 +107,7 @@ describe('bicep generator', () => {
     const normalized = normalizeBicep(model, azureProviderDefinition);
 
     expect(normalized.resourceNames.get('plate-network')).toBe('vnetVnet');
-    expect(normalized.resourceNames.get('plate-subnet')).toBe('subnetPublicsubnet');
+    expect(normalized.resourceNames.get('plate-subnet')).toBe('subnetSubnet1');
     expect(normalized.resourceNames.get('block-webapp')).toBe('webappFrontend');
   });
 
@@ -209,7 +209,6 @@ describe('bicep generator', () => {
           id: 'sub-orphan',
           name: 'Orphan Subnet',
           type: 'subnet',
-          subnetAccess: 'private',
           parentId: 'missing-network',
         }),
       ],

@@ -19,7 +19,6 @@ function createPlate(id: string): ContainerNode {
     resourceType: 'subnet',
     category: 'network',
     provider: 'azure',
-    subnetAccess: 'public',
     parentId: 'network-1',
     position: { x: 10, y: 2, z: -3 },
     size: { width: 5, height: 2, depth: 4 },

@@ -1,6 +1,6 @@
 import type { StateCreator } from 'zustand';
 import type { LastPrResult, PlateProfileId, Workspace } from '../../../shared/types/index';
-import type { ArchitectureModel, LayerType, ProviderType, ResourceCategory, SubnetAccess } from '@cloudblocks/schema';
+import type { ArchitectureModel, LayerType, ProviderType, ResourceCategory } from '@cloudblocks/schema';
 import type { ValidationResult } from '@cloudblocks/domain';
 import type { ArchitectureSnapshot } from '../../../shared/types/learning';
 import type { ArchitectureTemplate } from '../../../shared/types/template';
@@ -18,7 +18,6 @@ export type AddNodeInput =
       name: string;
       parentId: string | null;
       layer: LayerType;
-      access?: SubnetAccess;
       profileId?: PlateProfileId;
     }
   | {
@@ -58,7 +57,6 @@ export interface ArchitectureState {
     type: PlateLayerType,
     name: string,
     parentId: string | null,
-    subnetAccess?: SubnetAccess,
     profileId?: PlateProfileId
   ) => void;
   /** @deprecated Use removeNode(id) */

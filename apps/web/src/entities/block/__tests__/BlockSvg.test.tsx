@@ -16,6 +16,36 @@ function getPolygons(container: HTMLElement) {
   return container.querySelectorAll('polygon');
 }
 
+/** Extract face color fills from rendered SVG, handling both polygon and cylinder rendering. */
+function getFaceColors(container: HTMLElement) {
+  // Cylinder rendering uses rect (leftSideColor), path (rightSideColor), ellipse (topFaceColor)
+  // Must exclude elements inside <defs> (stud definitions contain ellipses/rects too)
+  const svg = container.querySelector('svg')!;
+  const allEllipses = Array.from(svg.querySelectorAll('ellipse'));
+  const cylinderEllipse = allEllipses.find(el => !el.closest('defs') && !el.closest('[data-testid="stub-dots"]'));
+  if (cylinderEllipse) {
+    const allRects = Array.from(svg.querySelectorAll('rect'));
+    const bodyRect = allRects.find(el => !el.closest('defs') && !el.closest('[data-testid]'));
+    const allPaths = Array.from(svg.querySelectorAll('path'));
+    const arcPath = allPaths.find(el => !el.closest('defs'));
+    return {
+      topFaceColor: cylinderEllipse.getAttribute('fill'),
+      topFaceStroke: cylinderEllipse.getAttribute('stroke'),
+      leftSideColor: bodyRect?.getAttribute('fill') ?? null,
+      rightSideColor: arcPath?.getAttribute('fill') ?? null,
+    };
+  }
+  // Polygon rendering (standard 3-face isometric) — skip stub dot polygons
+  const allPolygons = Array.from(svg.querySelectorAll('polygon'));
+  const facePolygons = allPolygons.filter(el => !el.closest('defs') && !el.closest('[data-testid="stub-dots"]'));
+  return {
+    topFaceColor: facePolygons[0]?.getAttribute('fill') ?? null,
+    topFaceStroke: facePolygons[0]?.getAttribute('stroke') ?? null,
+    leftSideColor: facePolygons[1]?.getAttribute('fill') ?? null,
+    rightSideColor: facePolygons[2]?.getAttribute('fill') ?? null,
+  };
+}
+
 /** Extract SVG viewBox dimensions. */
 function getViewBox(container: HTMLElement) {
   const svg = container.querySelector('svg')!;
@@ -50,29 +80,29 @@ describe('BlockSvg provider colors', () => {
   });
 
   it('falls back to azure palette when provider is omitted', () => {
-    const category = 'data';
+    const category = 'compute';
     const expectedAzure = getBlockFaceColors(category, 'azure');
 
     const { container } = render(<BlockSvg category={category} />);
-    const polygons = getPolygons(container);
+    const colors = getFaceColors(container);
 
-    expect(polygons[0]).toHaveAttribute('fill', expectedAzure.topFaceColor);
-    expect(polygons[0]).toHaveAttribute('stroke', expectedAzure.topFaceStroke);
-    expect(polygons[1]).toHaveAttribute('fill', expectedAzure.leftSideColor);
-    expect(polygons[2]).toHaveAttribute('fill', expectedAzure.rightSideColor);
+    expect(colors.topFaceColor).toBe(expectedAzure.topFaceColor);
+    expect(colors.topFaceStroke).toBe(expectedAzure.topFaceStroke);
+    expect(colors.leftSideColor).toBe(expectedAzure.leftSideColor);
+    expect(colors.rightSideColor).toBe(expectedAzure.rightSideColor);
   });
 
   it('keeps legacy blocks without provider visually azure by default', () => {
-    const category = 'data';
+    const category = 'compute';
     const azure = getBlockFaceColors(category, 'azure');
 
     const { container } = render(<BlockSvg category={category} provider={undefined} />);
-    const polygons = getPolygons(container);
+    const colors = getFaceColors(container);
 
-    expect(polygons[0]).toHaveAttribute('fill', azure.topFaceColor);
-    expect(polygons[0]).toHaveAttribute('stroke', azure.topFaceStroke);
-    expect(polygons[1]).toHaveAttribute('fill', azure.leftSideColor);
-    expect(polygons[2]).toHaveAttribute('fill', azure.rightSideColor);
+    expect(colors.topFaceColor).toBe(azure.topFaceColor);
+    expect(colors.topFaceStroke).toBe(azure.topFaceStroke);
+    expect(colors.leftSideColor).toBe(azure.leftSideColor);
+    expect(colors.rightSideColor).toBe(azure.rightSideColor);
   });
 
   it('renders all three providers with distinct colors for compute', () => {
@@ -91,13 +121,13 @@ describe('BlockSvg provider colors', () => {
 
 describe('BlockSvg subtype colors', () => {
   it('applies subtype-specific colors when subtype is provided', () => {
-    const expected = getBlockFaceColors('data', 'azure', 'cosmos-db');
+    const expected = getBlockFaceColors('compute', 'aws', 'ec2');
     const { container } = render(
-      <BlockSvg category="data" provider="azure" subtype="cosmos-db" />,
+      <BlockSvg category="compute" provider="aws" subtype="ec2" />,
     );
-    const polygons = getPolygons(container);
+    const colors = getFaceColors(container);
 
-    expect(polygons[0]).toHaveAttribute('fill', expected.topFaceColor);
+    expect(colors.topFaceColor).toBe(expected.topFaceColor);
   });
 
   it('falls back to category color when subtype is unknown', () => {
@@ -288,10 +318,11 @@ describe('BlockSvg subtype size overrides', () => {
 // ─── SVG Structure Tests ──────────────────────────────────────
 
 describe('BlockSvg SVG structure', () => {
-  it('renders 3 polygons (top, left, right faces)', () => {
+  it('renders 3 face polygons plus stub dot diamonds (top, left, right + stubs)', () => {
     const { container } = render(<BlockSvg category="compute" />);
     const polygons = getPolygons(container);
-    expect(polygons.length).toBe(3);
+    // 3 face polygons + 4 stub diamonds (compute: 2 inbound + 2 outbound)
+    expect(polygons.length).toBe(7);
   });
 
   it('renders edge highlight line', () => {

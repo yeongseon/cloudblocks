@@ -327,3 +327,35 @@ export function getDefaultCategory(
   const rule = (RESOURCE_RULES as Record<string, ResourceRuleEntry>)[resourceType];
   return rule?.category;
 }
+
+// ---------------------------------------------------------------------------
+// Stub/Port policy - connection point counts per category
+// ---------------------------------------------------------------------------
+
+/** Port capacity for a resource category: how many inbound/outbound connection stubs. */
+export interface PortPolicy {
+  readonly inbound: number;
+  readonly outbound: number;
+}
+
+/** Default port/stub counts per resource category. */
+export const CATEGORY_PORTS: Record<ResourceCategory, PortPolicy> = {
+  network: { inbound: 1, outbound: 1 },
+  security: { inbound: 1, outbound: 1 },
+  edge: { inbound: 1, outbound: 2 },
+  compute: { inbound: 2, outbound: 2 },
+  data: { inbound: 2, outbound: 1 },
+  messaging: { inbound: 2, outbound: 2 },
+  operations: { inbound: 1, outbound: 1 },
+};
+
+/**
+ * Get port capacity for a resource type.
+ * Looks up the category from RESOURCE_RULES, then returns CATEGORY_PORTS for that category.
+ * Returns a default of { inbound: 1, outbound: 1 } for unknown types.
+ */
+export function getPortsForResourceType(resourceType: string): PortPolicy {
+  const rule = (RESOURCE_RULES as Record<string, ResourceRuleEntry>)[resourceType];
+  if (!rule) return { inbound: 1, outbound: 1 };
+  return CATEGORY_PORTS[rule.category];
+}

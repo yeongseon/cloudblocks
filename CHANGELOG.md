@@ -7,6 +7,76 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 ---
 
 
+## [v0.21.0] — 2026-03-23
+
+**Milestone 21 — UI/UX Overhaul & Stub Connections**
+
+Complete UI redesign with Professional theme (default), stub-addressable connection model, CSS Grid builder layout, and new panel system — landing page, sidebar palette, inspector panel, and tabbed bottom dock.
+
+### Stub-Addressable Connection Model
+- Added `sourceStub`/`targetStub` fields to Connection schema
+- Added `CATEGORY_PORTS` policy mapping resource categories to allowed port positions
+- Store auto-allocates stub positions during connection creation
+- Stub anchor routing resolves world-space endpoints via `getConnectionEndpointWorldAnchors()`
+
+### Semantic Block Shapes
+- Replaced silhouette-based block rendering with semantic category shapes
+- Resource palette filtered to MVP set for clean first-time experience
+- Dark-themed first screen overlay for onboarding
+
+### Theme System (Phases 7–9)
+- Added `ThemeVariant` system with blueprint/workshop token sets
+- CSS custom properties for all visual tokens (colors, spacing, typography, shadows)
+- Migrated hardcoded `font-family` values to CSS variables
+- Blueprint (Professional) and Workshop (Lego) theme toggle via `data-theme` attribute
+
+### Landing Page & Builder Layout (Phases 10–11)
+- New landing page with navbar, hero section, feature highlights, and CTA
+- Extracted `BuilderView` from monolithic `App.tsx`
+- CSS Grid shell layout: sidebar + canvas + inspector + bottom dock
+- Removed `EmptyCanvasOverlay` from `SceneCanvas` (moved to landing flow)
+
+### Sidebar Palette (Phase 12)
+- New `SidebarPalette` widget with drag-and-drop resource creation
+- Extracted shared creation constants to `useTechTree` hook
+- Category grouping with Azure resource icons
+
+### Inspector Panel (Phase 13)
+- Right-side `InspectorPanel` with Properties, Code, and Connections tabs
+- `InspectorTabId` and `rightOverlay` state in uiStore
+- Embedded `CodePreview` mode for inspector integration
+
+### Bottom Dock (Phase 14)
+- Tabbed `BottomPanel` replacing standalone overlay panels
+- Output, Validation, Logs, and Diff tabs
+- Collapsible dock with drag-resize handle
+- Default state: open (visible on load)
+
+### Canvas & Visual Polish (Phases 15–16)
+- In-canvas invalid connection visualization with red dashed feedback
+- View menu restructured with keyboard shortcuts for all panels
+- Professional dot grid canvas background replacing LEGO baseplate
+
+### Onboarding & Animation (Phases 17–18)
+- Onboarding tour selectors updated for new layout structure
+- Panel transition animations (slide-in/slide-out)
+- Connector draw-in animation via SVG `stroke-dashoffset`
+- `@keyframes connector-draw-in` defined in global CSS
+
+### Professional Theme Tokens
+- MenuBar themed with professional color tokens
+- All LEGO-specific hardcoded values wrapped in `[data-visual-mode="lego"]` selectors
+- Professional mode is the default visual style
+
+### Azure Subnet Unification
+- Removed public/private subnet distinction
+- Unified subnet model matching Azure's flat subnet architecture
+
+### Statistics
+- 32 commits across 18 implementation phases
+- 1992 tests passing across all test files
+- LEGO visual mode preserved for M22 dual theme system
+
 ## [v0.20.0] — 2026-03-22
 
 **Milestone 20 — UX Polish & GitHub Hardening**

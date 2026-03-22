@@ -23,7 +23,6 @@ import type {
   ResourceCategory,
   ResourceNode,
   Size,
-  SubnetAccess,
   Aggregation,
   // Deprecated aliases — verify still importable during migration
   Block,
@@ -87,7 +86,6 @@ describe('JSON Schema artifact', () => {
       'Aggregation',
       'ResourceNode',
       'ResourceCategory',
-      'SubnetAccess',
       'ProviderType',
       'AggregationMode',
       'BlockRole',
@@ -321,7 +319,7 @@ describe('Type compatibility', () => {
   it('should allow container-specific fields', () => {
     const container: ContainerNode = {
       id: 'container-2',
-      name: 'Public Subnet',
+      name: 'Subnet 1',
       kind: 'container',
       layer: 'subnet',
       resourceType: 'subnet',
@@ -331,10 +329,8 @@ describe('Type compatibility', () => {
       position: { x: 0, y: 0, z: 0 },
       size: { width: 8, height: 1, depth: 6 },
       metadata: {},
-      subnetAccess: 'public',
       profileId: 'subnet-public',
     };
-    expect(container.subnetAccess).toBe('public');
     expect(container.profileId).toBe('subnet-public');
   });
 
@@ -343,7 +339,6 @@ describe('Type compatibility', () => {
     const _am: AggregationMode = 'single';
     const _nk: NodeKind = 'container';
     const _rc: ResourceCategory = 'compute';
-    const _sa: SubnetAccess = 'public';
     const _ct: ConnectionType = 'http';
     const _pvt: ProviderType = 'aws';
     const _br: BlockRole = 'primary';
@@ -354,7 +349,6 @@ describe('Type compatibility', () => {
     expect(_am).toBe('single');
     expect(_nk).toBe('container');
     expect(_rc).toBe('compute');
-    expect(_sa).toBe('public');
     expect(_ct).toBe('http');
     expect(_pvt).toBe('aws');
     expect(_br).toBe('primary');

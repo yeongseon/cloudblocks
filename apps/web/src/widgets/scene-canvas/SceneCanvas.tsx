@@ -11,7 +11,6 @@ import { PlateSprite } from '../../entities/plate/PlateSprite';
 import { BlockSprite } from '../../entities/block/BlockSprite';
 import { BrickConnector } from '../../entities/connection/BrickConnector';
 import { ExternalActorSprite } from '../../entities/connection/ExternalActorSprite';
-import { EmptyCanvasOverlay } from './EmptyCanvasOverlay';
 import { DragGhost } from './DragGhost';
 import { ConnectionPreview } from './ConnectionPreview';
 import type { ContainerNode, LeafNode } from '@cloudblocks/schema';
@@ -259,7 +258,6 @@ export function SceneCanvas() {
           })}
         </div>
       </div>
-      <EmptyCanvasOverlay />
     </div>
   );
 }

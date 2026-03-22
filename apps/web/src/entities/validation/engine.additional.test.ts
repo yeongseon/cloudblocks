@@ -24,7 +24,6 @@ function makeModel(): ArchitectureModel {
         position: { x: 0, y: 0, z: 0 },
         size: { width: 8, height: 0.2, depth: 8 },
         metadata: {},
-        subnetAccess: 'private',
       },
       {
         id: 'resource-1',

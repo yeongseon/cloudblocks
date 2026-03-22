@@ -9,7 +9,7 @@
   border-radius: 8px;
   padding: 0;
   color: #e0e0e0;
-  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-family: var(--font-ui);
   z-index: 12;
   display: flex;
   flex-direction: column;
@@ -238,7 +238,7 @@
   background: rgba(255, 255, 255, 0.08);
   padding: 1px 4px;
   border-radius: 3px;
-  font-family: 'Consolas', 'Monaco', monospace;
+  font-family: var(--font-mono);
   color: #c0c8e8;
 }
 
@@ -293,7 +293,7 @@
   border-radius: 3px;
   font-size: 10px;
   color: #9ab4f0;
-  font-family: 'Consolas', 'Monaco', monospace;
+  font-family: var(--font-mono);
 }
 
 .ops-pipeline-duration {
@@ -364,7 +364,7 @@
 }
 
 .ops-deploy-tag {
-  font-family: 'Consolas', 'Monaco', monospace;
+  font-family: var(--font-mono);
   color: #c0c8e8;
   white-space: nowrap;
   overflow: hidden;
@@ -483,7 +483,7 @@
 
 .ops-cost-amount {
   color: #c0c8e8;
-  font-family: 'Consolas', 'Monaco', monospace;
+  font-family: var(--font-mono);
 }
 
 .ops-cost-disclaimer {

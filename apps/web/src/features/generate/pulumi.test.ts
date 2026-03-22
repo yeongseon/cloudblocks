@@ -91,7 +91,7 @@ describe('pulumi generator', () => {
         createPlate({ id: 'plate-network', name: 'VNet', type: 'region' }),
         createPlate({
           id: 'plate-subnet',
-          name: 'Public Subnet',
+          name: 'Subnet 1',
           type: 'subnet',
           parentId: 'plate-network',
         }),
@@ -102,7 +102,7 @@ describe('pulumi generator', () => {
     const normalized = normalizePulumi(model, azureProviderDefinition);
 
     expect(normalized.resourceNames.get('plate-network')).toBe('vnetVNet');
-    expect(normalized.resourceNames.get('plate-subnet')).toBe('subnetPublicSubnet');
+    expect(normalized.resourceNames.get('plate-subnet')).toBe('subnetSubnet1');
     expect(normalized.resourceNames.get('block-webapp')).toBe('webappFrontend');
   });
 
@@ -204,7 +204,6 @@ describe('pulumi generator', () => {
           id: 'sub-orphan',
           name: 'Orphan Subnet',
           type: 'subnet',
-          subnetAccess: 'private',
           parentId: 'missing-network',
         }),
       ],

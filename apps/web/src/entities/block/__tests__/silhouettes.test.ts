@@ -31,7 +31,7 @@ const blockCategories: ResourceCategory[] = [
   'network',
 ];
 
-const silhouetteTypes: BrickSilhouette[] = ['tower', 'heavy', 'shield', 'module'];
+const silhouetteTypes: BrickSilhouette[] = ['rect', 'cylinder', 'gateway', 'circle', 'hex', 'shield'];
 const sizeTiers: BlockTier[] = ['micro', 'small', 'medium', 'large', 'wide'];
 
 function makeDimensions(sideWallPx: number) {
@@ -72,6 +72,51 @@ describe('block silhouettes', () => {
 
     expect(low.leftSidePoints).not.toBe(high.leftSidePoints);
     expect(low.rightSidePoints).not.toBe(high.rightSidePoints);
+  });
+
+  it.each(silhouetteTypes)('%s generator sets renderMode', (silhouette) => {
+    const generator = SILHOUETTE_GENERATORS[silhouette];
+    const polygons = generator(makeDimensions(24));
+
+    expect(['polygon', 'cylinder', 'circle']).toContain(polygons.renderMode);
+  });
+
+  it('cylinder and circle generators provide ellipse/body/arc data', () => {
+    const dims = makeDimensions(24);
+
+    for (const shape of ['cylinder', 'circle'] as BrickSilhouette[]) {
+      const polygons = SILHOUETTE_GENERATORS[shape](dims);
+
+      expect(polygons.ellipseCenter).toBeDefined();
+      expect(polygons.ellipseCenter!.cx).toBeTypeOf('number');
+      expect(polygons.ellipseCenter!.cy).toBeTypeOf('number');
+
+      expect(polygons.ellipseRadii).toBeDefined();
+      expect(polygons.ellipseRadii!.rx).toBeGreaterThan(0);
+      expect(polygons.ellipseRadii!.ry).toBeGreaterThan(0);
+
+      expect(polygons.bodyRect).toBeDefined();
+      expect(polygons.bodyRect!.width).toBeGreaterThan(0);
+      expect(polygons.bodyRect!.height).toBeGreaterThan(0);
+
+      expect(polygons.bottomArcPath).toBeDefined();
+      expect(polygons.bottomArcPath!.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('polygon-mode generators do not provide ellipse data', () => {
+    const dims = makeDimensions(24);
+    const polygonShapes: BrickSilhouette[] = ['rect', 'gateway', 'hex', 'shield'];
+
+    for (const shape of polygonShapes) {
+      const polygons = SILHOUETTE_GENERATORS[shape](dims);
+
+      expect(polygons.renderMode).toBe('polygon');
+      expect(polygons.ellipseCenter).toBeUndefined();
+      expect(polygons.ellipseRadii).toBeUndefined();
+      expect(polygons.bodyRect).toBeUndefined();
+      expect(polygons.bottomArcPath).toBeUndefined();
+    }
   });
 });
 

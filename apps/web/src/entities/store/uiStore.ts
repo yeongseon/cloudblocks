@@ -4,12 +4,24 @@ import type { EditorMode } from '../../shared/types/learning';
 import type { DiffDelta } from '../../shared/types/diff';
 import type { ArchitectureModel } from '@cloudblocks/schema';
 import type { Persona, ComplexityLevel } from '../../shared/types';
+import type { ThemeVariant } from '../../shared/tokens/themeTokens';
 import { PERSONA_COMPLEXITY_MAP, PERSONA_PANEL_DEFAULTS } from '../../shared/types';
 
 export type ToolMode = 'select' | 'connect' | 'delete';
 export type InteractionState = 'idle' | 'selecting' | 'dragging' | 'placing' | 'connecting';
 export type BackendStatus = 'unknown' | 'not_configured' | 'available' | 'unavailable';
 export type PendingGitHubAction = 'sync' | 'pr' | 'repos' | null;
+export type AppView = 'landing' | 'builder';
+export type BottomDockTab = 'output' | 'validation' | 'logs' | 'diff';
+export type InspectorTabId = 'properties' | 'code' | 'connections';
+export type RightOverlayId = 'githubLogin' | 'githubRepos' | 'githubSync' | 'githubPR' | 'diff' | null;
+
+export interface ActivityLogEntry {
+  id: string;
+  ts: string;
+  level: 'info' | 'warn' | 'error';
+  message: string;
+}
 export type { EditorMode } from '../../shared/types/learning';
 export type { Persona, ComplexityLevel } from '../../shared/types';
 
@@ -42,6 +54,12 @@ function writePendingGitHubAction(action: PendingGitHubAction): void {
 }
 
 interface UIState {
+  // ── App view ──
+  appView: AppView;
+  setAppView: (view: AppView) => void;
+  goToLanding: () => void;
+  goToBuilder: () => void;
+
   // ── Selection ──
   selectedId: string | null;
   setSelectedId: (id: string | null) => void;
@@ -101,6 +119,31 @@ interface UIState {
   showCostPanel: boolean;
   toggleCostPanel: () => void;
 
+  // ── Layout panels ──
+  sidebar: { isOpen: boolean };
+  toggleSidebar: () => void;
+  setSidebarOpen: (open: boolean) => void;
+
+  inspector: { isOpen: boolean; activeTab: InspectorTabId };
+  toggleInspector: () => void;
+  setInspectorOpen: (open: boolean) => void;
+  setInspectorTab: (tab: InspectorTabId) => void;
+  openInspectorTab: (tab: InspectorTabId) => void;
+
+  rightOverlay: RightOverlayId;
+  setRightOverlay: (overlay: RightOverlayId) => void;
+
+  // ── Bottom dock ──
+  bottomDock: { isOpen: boolean; activeTab: BottomDockTab };
+  openBottomTab: (tab: BottomDockTab) => void;
+  closeBottomDock: () => void;
+  setBottomTab: (tab: BottomDockTab) => void;
+
+  // ── Activity log ──
+  activityLog: ActivityLogEntry[];
+  appendLog: (entry: Omit<ActivityLogEntry, 'id' | 'ts'>) => void;
+  clearLog: () => void;
+
   backendStatus: BackendStatus;
   setBackendStatus: (status: BackendStatus) => void;
 
@@ -141,6 +184,9 @@ interface UIState {
   isSoundMuted: boolean;
   toggleSound: () => void;
 
+  themeVariant: ThemeVariant;
+  setThemeVariant: (variant: ThemeVariant) => void;
+
   pendingGitHubAction: PendingGitHubAction;
   setPendingGitHubAction: (action: PendingGitHubAction) => void;
   pendingLinkRepo: string | null;
@@ -177,6 +223,11 @@ function closeOtherRightPanels(except: RightPanelKey): Partial<UIState> {
 }
 
 export const useUIStore = create<UIState>((set) => ({
+  appView: 'landing',
+  setAppView: (view) => set({ appView: view }),
+  goToLanding: () => set({ appView: 'landing' }),
+  goToBuilder: () => set({ appView: 'builder' }),
+
   selectedId: null,
   setSelectedId: (id) => set({ selectedId: id }),
 
@@ -254,18 +305,38 @@ export const useUIStore = create<UIState>((set) => ({
 
   showValidation: false,
   toggleValidation: () =>
-    set((s) => ({ showValidation: !s.showValidation })),
+    set((s) => ({
+      showValidation: !s.showValidation,
+      ...(!s.showValidation
+        ? { bottomDock: { isOpen: true, activeTab: 'validation' as const } }
+        : {}),
+    })),
 
   showCodePreview: false,
   toggleCodePreview: () =>
     set((s) => ({
       showCodePreview: !s.showCodePreview,
-      ...(!s.showCodePreview ? closeOtherRightPanels('showCodePreview') : {}),
+      ...(!s.showCodePreview
+        ? {
+            inspector: { isOpen: true, activeTab: 'code' as const },
+            bottomDock: { isOpen: true, activeTab: 'output' as const },
+          }
+        : { inspector: { ...s.inspector, activeTab: 'properties' as const } }),
     })),
 
   showAdvancedGeneration: false,
   toggleAdvancedGeneration: () =>
     set((s) => ({ showAdvancedGeneration: !s.showAdvancedGeneration })),
+
+  rightOverlay: null,
+  setRightOverlay: (overlay) =>
+    set({
+      rightOverlay: overlay,
+      showGitHubLogin: overlay === 'githubLogin',
+      showGitHubRepos: overlay === 'githubRepos',
+      showGitHubSync: overlay === 'githubSync',
+      showGitHubPR: overlay === 'githubPR',
+    }),
 
   showWorkspaceManager: false,
   toggleWorkspaceManager: () =>
@@ -279,28 +350,40 @@ export const useUIStore = create<UIState>((set) => ({
   toggleGitHubLogin: () =>
     set((s) => ({
       showGitHubLogin: !s.showGitHubLogin,
-      ...(!s.showGitHubLogin ? closeOtherRightPanels('showGitHubLogin') : {}),
+      showGitHubRepos: false,
+      showGitHubSync: false,
+      showGitHubPR: false,
+      rightOverlay: s.showGitHubLogin ? null : 'githubLogin',
     })),
 
   showGitHubRepos: false,
   toggleGitHubRepos: () =>
     set((s) => ({
       showGitHubRepos: !s.showGitHubRepos,
-      ...(!s.showGitHubRepos ? closeOtherRightPanels('showGitHubRepos') : {}),
+      showGitHubLogin: false,
+      showGitHubSync: false,
+      showGitHubPR: false,
+      rightOverlay: s.showGitHubRepos ? null : 'githubRepos',
     })),
 
   showGitHubSync: false,
   toggleGitHubSync: () =>
     set((s) => ({
       showGitHubSync: !s.showGitHubSync,
-      ...(!s.showGitHubSync ? closeOtherRightPanels('showGitHubSync') : {}),
+      showGitHubLogin: false,
+      showGitHubRepos: false,
+      showGitHubPR: false,
+      rightOverlay: s.showGitHubSync ? null : 'githubSync',
     })),
 
   showGitHubPR: false,
   toggleGitHubPR: () =>
     set((s) => ({
       showGitHubPR: !s.showGitHubPR,
-      ...(!s.showGitHubPR ? closeOtherRightPanels('showGitHubPR') : {}),
+      showGitHubLogin: false,
+      showGitHubRepos: false,
+      showGitHubSync: false,
+      rightOverlay: s.showGitHubPR ? null : 'githubPR',
     })),
 
   showSuggestionsPanel: false,
@@ -308,6 +391,7 @@ export const useUIStore = create<UIState>((set) => ({
     set((s) => ({
       showSuggestionsPanel: !s.showSuggestionsPanel,
       ...(!s.showSuggestionsPanel ? closeOtherRightPanels('showSuggestionsPanel') : {}),
+      ...(!s.showSuggestionsPanel ? { rightOverlay: null } : {}),
     })),
 
   showCostPanel: false,
@@ -315,7 +399,42 @@ export const useUIStore = create<UIState>((set) => ({
     set((s) => ({
       showCostPanel: !s.showCostPanel,
       ...(!s.showCostPanel ? closeOtherRightPanels('showCostPanel') : {}),
+      ...(!s.showCostPanel ? { rightOverlay: null } : {}),
     })),
+
+  sidebar: { isOpen: true },
+  toggleSidebar: () => set((s) => ({ sidebar: { isOpen: !s.sidebar.isOpen } })),
+  setSidebarOpen: (open) => set({ sidebar: { isOpen: open } }),
+
+  inspector: { isOpen: true, activeTab: 'properties' },
+  toggleInspector: () => set((s) => ({ inspector: { ...s.inspector, isOpen: !s.inspector.isOpen } })),
+  setInspectorOpen: (open) => set((s) => ({ inspector: { ...s.inspector, isOpen: open } })),
+  setInspectorTab: (tab) => set((s) => ({
+    inspector: { ...s.inspector, activeTab: tab },
+    showCodePreview: tab === 'code',
+  })),
+  openInspectorTab: (tab) => set({
+    inspector: { isOpen: true, activeTab: tab },
+    showCodePreview: tab === 'code',
+  }),
+
+  bottomDock: { isOpen: true, activeTab: 'output' },
+  openBottomTab: (tab) => set({ bottomDock: { isOpen: true, activeTab: tab } }),
+  closeBottomDock: () => set((s) => ({ bottomDock: { ...s.bottomDock, isOpen: false } })),
+  setBottomTab: (tab) => set((s) => ({ bottomDock: { ...s.bottomDock, activeTab: tab } })),
+
+  activityLog: [],
+  appendLog: (entry) =>
+    set((s) => {
+      const newEntry: ActivityLogEntry = {
+        id: crypto.randomUUID?.() ?? Math.random().toString(36).slice(2),
+        ts: new Date().toISOString(),
+        ...entry,
+      };
+      const log = [...s.activityLog, newEntry];
+      return { activityLog: log.length > 200 ? log.slice(-200) : log };
+    }),
+  clearLog: () => set({ activityLog: [] }),
 
   backendStatus: 'unknown',
   setBackendStatus: (status) => set({ backendStatus: status }),
@@ -342,6 +461,7 @@ export const useUIStore = create<UIState>((set) => ({
       diffDelta: delta ?? null,
       diffBaseArchitecture: base ?? null,
       diffVersion: s.diffVersion + 1,
+      ...(mode ? { bottomDock: { isOpen: true, activeTab: 'diff' as const } } : {}),
     })),
   clearDiffState: () =>
     set({
@@ -352,6 +472,12 @@ export const useUIStore = create<UIState>((set) => ({
 
   isSoundMuted: true,
   toggleSound: () => set((s) => ({ isSoundMuted: !s.isSoundMuted })),
+
+  themeVariant: (localStorage.getItem('cloudblocks:theme-variant') as ThemeVariant) || 'blueprint',
+  setThemeVariant: (variant) => {
+    localStorage.setItem('cloudblocks:theme-variant', variant);
+    set({ themeVariant: variant });
+  },
 
   pendingGitHubAction: readPendingGitHubAction(),
   setPendingGitHubAction: (action) => {

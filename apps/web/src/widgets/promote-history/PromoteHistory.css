@@ -9,7 +9,7 @@
   border-radius: 8px;
   padding: 14px;
   color: #e0e0e0;
-  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-family: var(--font-ui);
   z-index: 10;
   display: flex;
   flex-direction: column;
@@ -151,7 +151,7 @@
 }
 
 .promote-history-tag {
-  font-family: 'Consolas', 'Monaco', monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
   color: #8ab4f8;
   margin-bottom: 2px;

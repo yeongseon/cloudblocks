@@ -39,18 +39,18 @@ function renderPlateSvg(props?: Partial<ComponentProps<typeof PlateSvg>>) {
 
 describe('PlateSvg — label and icon', () => {
   it('renders both label and icon when both props are provided', () => {
-    const { container } = renderPlateSvg({ label: 'Public Subnet', iconUrl: 'test-icon.svg' });
+    const { container } = renderPlateSvg({ label: 'Subnet 1', iconUrl: 'test-icon.svg' });
 
-    expect(screen.getByText('Public Subnet')).toBeInTheDocument();
+    expect(screen.getByText('Subnet 1')).toBeInTheDocument();
     const images = container.querySelectorAll('image');
     expect(images.length).toBe(1);
     expect(images[0]).toHaveAttribute('href', 'test-icon.svg');
   });
 
   it('renders label only when iconUrl is omitted', () => {
-    const { container } = renderPlateSvg({ label: 'Private Subnet' });
+    const { container } = renderPlateSvg({ label: 'Subnet 2' });
 
-    expect(screen.getByText('Private Subnet')).toBeInTheDocument();
+    expect(screen.getByText('Subnet 2')).toBeInTheDocument();
     expect(container.querySelectorAll('image').length).toBe(0);
   });
 
@@ -59,7 +59,7 @@ describe('PlateSvg — label and icon', () => {
 
     const images = container.querySelectorAll('image');
     expect(images.length).toBe(1);
-    expect(screen.queryByText('Public Subnet')).not.toBeInTheDocument();
+    expect(screen.queryByText('Subnet 1')).not.toBeInTheDocument();
   });
 
   it('renders no text or image elements when neither label nor iconUrl provided', () => {

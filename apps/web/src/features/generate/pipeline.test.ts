@@ -94,7 +94,6 @@ describe('pipeline', () => {
           name: 'Public',
           layer: 'subnet',
           resourceType: 'subnet',
-          subnetAccess: 'public',
           parentId: 'net-1',
           position: { x: 0, y: 0.3, z: 0 },
           size: { width: 5, height: 0.2, depth: 8 },
@@ -166,7 +165,7 @@ describe('pipeline', () => {
       });
     });
 
-    it('should throw GenerationError with invalid model (edge on private subnet)', () => {
+    it('should throw GenerationError with invalid model (edge on region without subnet)', () => {
       const invalidModel: ArchitectureModel = {
         id: 'arch-2',
         name: 'Invalid',
@@ -181,22 +180,12 @@ describe('pipeline', () => {
             position: { x: 0, y: 0, z: 0 },
             size: { width: 12, height: 0.3, depth: 10 },
           }),
-          createContainer({
-            id: 'sub-2',
-            name: 'Private',
-            layer: 'subnet',
-            resourceType: 'subnet',
-            subnetAccess: 'private',
-            parentId: 'net-2',
-            position: { x: 0, y: 0.3, z: 0 },
-            size: { width: 5, height: 0.2, depth: 8 },
-          }),
           createResource({
             id: 'blk-2',
             name: 'Gateway',
             category: 'edge',
             resourceType: 'load_balancer',
-            parentId: 'sub-2',
+            parentId: 'net-2',
             position: { x: 0, y: 0.5, z: 0 },
           }),
         ],
@@ -245,7 +234,6 @@ describe('pipeline', () => {
           name: 'Public',
           layer: 'subnet',
           resourceType: 'subnet',
-          subnetAccess: 'public',
           parentId: 'net-1',
           position: { x: 0, y: 0.3, z: 0 },
           size: { width: 5, height: 0.2, depth: 8 },
@@ -314,22 +302,12 @@ describe('pipeline', () => {
             position: { x: 0, y: 0, z: 0 },
             size: { width: 12, height: 0.3, depth: 10 },
           }),
-          createContainer({
-            id: 'sub-2',
-            name: 'Private',
-            layer: 'subnet',
-            resourceType: 'subnet',
-            subnetAccess: 'private',
-            parentId: 'net-2',
-            position: { x: 0, y: 0.3, z: 0 },
-            size: { width: 5, height: 0.2, depth: 8 },
-          }),
           createResource({
             id: 'db-1',
             name: 'Gateway',
             category: 'edge',
             resourceType: 'load_balancer',
-            parentId: 'sub-2',
+            parentId: 'net-2',
             position: { x: 0, y: 0.5, z: 0 },
           }),
         ],

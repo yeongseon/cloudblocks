@@ -59,7 +59,6 @@ const parentPlate: ContainerNode = {
   resourceType: 'subnet',
   category: 'network',
   provider: 'azure',
-  subnetAccess: 'public',
   parentId: 'net-1',
   position: { x: 0, y: 0, z: 0 },
   size: { width: 6, height: 0.3, depth: 8 },
@@ -695,26 +694,25 @@ describe('BlockSprite', () => {
     expect(container.firstElementChild).toHaveClass('is-invalid-target');
   });
 
-  it('adds is-warning class when block has placement validation error (gateway on private subnet)', () => {
-    const privatePlate: ContainerNode = {
-      id: 'plate-private',
-      name: 'Private Subnet',
+  it('adds is-warning class when block has placement validation error (messaging on subnet)', () => {
+    const subnetPlate: ContainerNode = {
+      id: 'plate-subnet',
+      name: 'Subnet',
       kind: 'container',
       layer: 'subnet',
       resourceType: 'subnet',
       category: 'network',
       provider: 'azure',
-      subnetAccess: 'private',
       parentId: 'net-1',
       position: { x: 0, y: 0, z: 0 },
       size: { width: 6, height: 0.3, depth: 8 },
       metadata: {},
     };
 
-    const gatewayBlock = makeBlock('block-gateway-warn', 'edge');
+    const messagingBlock = makeBlock('block-messaging-warn', 'messaging');
 
     const { container } = render(
-      <BlockSprite block={gatewayBlock} parentPlate={privatePlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite block={messagingBlock} parentPlate={subnetPlate} screenX={0} screenY={0} zIndex={1} />,
     );
 
     expect(container.firstElementChild).toHaveClass('is-warning');
@@ -723,13 +721,12 @@ describe('BlockSprite', () => {
   it('does not add is-warning class when block is correctly placed (compute on public subnet)', () => {
     const publicPlate: ContainerNode = {
       id: 'plate-public',
-      name: 'Public Subnet',
+      name: 'Subnet 1',
       kind: 'container',
       layer: 'subnet',
       resourceType: 'subnet',
       category: 'network',
       provider: 'azure',
-      subnetAccess: 'public',
       parentId: 'net-1',
       position: { x: 0, y: 0, z: 0 },
       size: { width: 6, height: 0.3, depth: 8 },

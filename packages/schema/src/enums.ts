@@ -36,11 +36,6 @@ export type ResourceCategory =
   | 'operations';
 
 /**
- * Subnet access visibility.
- */
-export type SubnetAccess = 'public' | 'private';
-
-/**
  * Cloud provider identifiers (alphabetical order — canonical).
  */
 export type ProviderType = 'azure' | 'aws' | 'gcp';

@@ -1180,6 +1180,176 @@ Fix all GitHub integration bugs. Subgroups can run in parallel but maintain orde
 ### Dependencies
 - Milestone 19 complete
 
+---
+
+## Milestone 21 — UI/UX Overhaul & Stub Connections ✅
+
+Goal:
+Realign CloudBlocks with the Product Direction Spec — complete UI redesign with Professional theme (default), stub-addressable connection model, CSS Grid builder layout, and new panel system. Stub rendering and stub-to-stub routing deferred to M22.
+
+> **Reference**: [PRODUCT_DIRECTION_SPEC.md](PRODUCT_DIRECTION_SPEC.md)
+
+Key Objectives:
+
+- Replace 4 silhouettes (tower/heavy/shield/module) with 6 semantic shapes (rect/cylinder/gateway/circle/hex/shield)
+- Add stub metadata to Connection model (sourceStub/targetStub) with category-based port policy
+- Filter resource palette to MVP core set
+- Implement dark-themed first screen with 3 primary actions (Create / Explore Templates / Import)
+- Stub rendering on blocks (visual stub points)
+- Stub-to-stub connection routing (replace center-based connections)
+
+### Implementation Phases
+
+#### Phase 1 — Stub Definition (Schema)
+Add stub metadata to the connection model and define port policy per resource category.
+
+| # | Issue | Status |
+|---|-------|--------|
+| #1200 | Add `sourceStub`/`targetStub` to Connection model | ✅ Done |
+| #1201 | Add port/stub policy per resource category (`CATEGORY_PORTS`) | ✅ Done |
+| #1202 | Update `addConnection` to allocate stub indices | ✅ Done |
+
+#### Phase 2 — Semantic Block Shapes
+Replace legacy silhouettes with category-based semantic shapes.
+
+| # | Issue | Status |
+|---|-------|--------|
+| #1204 | Replace silhouettes with semantic block shapes (6 shapes) | ✅ Done |
+
+#### Phase 3 — MVP Resource Filtering
+Filter creation palette to core resources only.
+
+| # | Issue | Status |
+|---|-------|--------|
+| #1205 | Filter resource palette to MVP set | ✅ Done |
+
+#### Phase 4 — First Screen
+Dark-themed landing page with 3 primary actions.
+
+| # | Issue | Status |
+|---|-------|--------|
+| #1206 | Dark-themed first screen overlay | ✅ Done |
+
+#### Phase 5 — Stub Rendering
+Render stub points visually on block SVG.
+
+| # | Issue | Status |
+|---|-------|--------|
+| #1223 | Render stub anchor points on blocks | → Deferred to M22 |
+
+#### Phase 6 — Connection Preview & Routing
+Stub-to-stub connection UX: preview line, routing, valid target highlighting.
+
+| # | Issue | Status |
+|---|-------|--------|
+| #1225 | Connection preview from stub | → Deferred to M22 |
+| #1227 | Stub-to-stub orthogonal routing | → Deferred to M22 |
+
+#### Phase 7 — Legacy Removal & Color
+Remove center-based connections, apply vendor color system to connections.
+
+| # | Issue | Status |
+|---|-------|--------|
+| #1228 | Remove center-to-center connection system | → Deferred to M22 |
+| #1229 | Vendor-based connection color system | → Deferred to M22 |
+
+### Exit Criteria
+- [x] Connection model has `sourceStub`/`targetStub` fields (#1200)
+- [x] `CATEGORY_PORTS` policy exported from schema (#1201)
+- [x] `addConnection()` auto-allocates stub indices (#1202)
+- [x] 6 semantic block shapes replace 4 legacy silhouettes (#1203)
+- [x] Resource palette filtered to MVP core set (#1204)
+- [x] Dark-themed first screen with Create/Templates/Import (#1205)
+- [x] Professional theme system with CSS custom properties
+- [x] Landing page and CSS Grid builder layout
+- [x] Sidebar palette with drag-and-drop resource creation
+- [x] Inspector panel with Properties/Code/Connections tabs
+- [x] Tabbed bottom dock (Output/Validation/Logs/Diff)
+- [x] View menu restructuring with keyboard shortcuts
+- [x] Animation system (panel transitions + connector draw-in)
+- [x] Azure subnet unification (flat model)
+- [x] All tests passing (1992 tests), build clean
+
+### Dependencies
+- Milestone 20 complete
+
+---
+
+## Milestone 22 — Stub Connections & Visual Theme
+
+Goal:
+Complete the stub-based connection system, apply vendor-specific visual identity, clean up legacy resource model duplication, and introduce a token-based visual theme system. Deliver a verified Azure end-to-end demo.
+
+> **Reference**: [PRODUCT_DIRECTION_SPEC.md](PRODUCT_DIRECTION_SPEC.md)
+
+Key Objectives:
+
+- Render stub anchor points visually on block SVG faces (inbound=left, outbound=right)
+- Implement connection preview from stubs with valid/invalid target highlighting
+- Complete stub-to-stub routing and remove center-to-center fallback
+- Apply vendor-based color system to blocks and connections (Azure=#0078D4, AWS=#FF9900, GCP=#4285F4)
+- Remove `MVP_RESOURCE_ALLOWLIST` duplication — consolidate into `RESOURCE_DEFINITIONS`
+- Extend token-based theme system: Professional (default) + Lego (alt) via CSS custom properties
+- Verify Azure end-to-end demo scenario
+
+### Existing Infrastructure (from M21)
+
+The following stub infrastructure already exists and will be built upon:
+- `blockGeometry.ts` — `getBlockSvgStubPoints()` computes SVG-local stub positions
+- `endpointAnchors.ts` — `getConnectionEndpointWorldAnchors()` resolves stub-aware world-space endpoints
+- `BrickConnector.tsx` — already consumes stub anchors via `getConnectionEndpointWorldAnchors()`
+- `themeTokens.ts` — `ThemeVariant` type with `blueprint` (dark) and `workshop` (light) token sets
+- `CATEGORY_PORTS` — port/stub policy per resource category (from `@cloudblocks/schema`)
+
+### Implementation Phases
+
+#### Phase 1 — Stub Rendering + Resource Cleanup (parallel)
+
+| Area | Description | Dependencies |
+|------|-------------|--------------|
+| A. Stub Visual Rendering | Render stub dots on block SVG faces using `getBlockSvgStubPoints()`. Hover indicator, connection-occupied state. | None |
+| D. Resource Model Cleanup | Remove `MVP_RESOURCE_ALLOWLIST` duplication (#1208). `RESOURCE_DEFINITIONS` as single source of truth. | None |
+
+#### Phase 2 — Connection UX from Stubs
+
+| Area | Description | Dependencies |
+|------|-------------|--------------|
+| B. Connection Preview | Live preview line from stub to cursor. Valid targets highlight (green glow), invalid targets dim. Click stub to start connect mode. | Phase 1A |
+| B. Stub-to-Stub Routing | Orthogonal routing from source stub to target stub. Remove center fallback in `endpointAnchors.ts`. | Phase 1A |
+
+#### Phase 3 — Legacy Removal + Vendor Colors
+
+| Area | Description | Dependencies |
+|------|-------------|--------------|
+| C. Center Connection Removal | Remove `getEndpointWorldPosition()` center-based fallback. Clean up `position.ts` legacy endpoint code. | Phase 2 |
+| C. Vendor Color System | Block face colors and connection line colors derived from vendor (`ProviderType`). Extend `connectorTheme.ts` with vendor dimension. | Phase 2 |
+
+#### Phase 4 — Visual Theme + Demo Verification
+
+| Area | Description | Dependencies |
+|------|-------------|--------------|
+| E. Visual Theme System | Extend `ThemeVariant` with `professional` (rename from `blueprint`) and `lego` themes. Token-level differences: border-radius, shadow depth, surface materials. Theme switcher in menu. | Independent (can parallel with Phase 2-3) |
+| F. Azure Demo Verification | End-to-end: create workspace → VNet → subnets → blocks (VM, DB, Storage, Gateway) → stub connections → generate Terraform/Bicep/Pulumi → validate output. | All phases complete |
+
+### Exit Criteria
+- [ ] Stub points rendered visually on block faces with hover indicators
+- [ ] Connection preview line from stub to cursor during connect mode
+- [ ] Valid/invalid target highlighting during connection
+- [ ] Stub-to-stub orthogonal routing fully replaces center-based routing
+- [ ] Center-to-center connection fallback removed
+- [ ] Vendor-based colors applied to blocks and connections
+- [ ] `MVP_RESOURCE_ALLOWLIST` eliminated — `RESOURCE_DEFINITIONS` is single source (#1208)
+- [ ] Token-based theme system with Professional (default) + Lego (alt) themes
+- [ ] Theme switch accessible from settings/menu
+- [ ] Azure end-to-end demo verified (create → connect via stubs → generate → validate)
+- [ ] All tests passing, ≥ 90% branch coverage
+- [ ] `v0.22.0` release published
+
+### Dependencies
+- Milestone 21 complete
+
+---
+
 ## i18n — Internationalization
 
 Goal:
@@ -1355,6 +1525,10 @@ The roadmap evolves CloudBlocks from:
 
 → UX Polish & GitHub Hardening (Milestone 20) ✅
 
+→ UI/UX Overhaul & Stub Connections (Milestone 21) ✅
+
+→ Stub Connections & Visual Theme (Milestone 22) — planned
+
 → Internationalization (i18n)
 
 ### Dependency Graph
@@ -1371,6 +1545,8 @@ Milestone 8 (Complete) ✅
     │                                               └── Milestone 18 (DevOps UX) ✅
     │                                                       └── Milestone 19 (MVP Polish & Launch) ✅
     │                                                               └── Milestone 20 (UX Polish & GitHub Hardening) ✅
+    │                                                                       └── Milestone 21 (UI/UX Overhaul & Stub Connections) ✅
+    │                                                                               └── Milestone 22 (Stub Connections & Visual Theme) ← current
     │               └── Milestone 14 (AI Roadmap) ✅ ←── also benefits from Milestone 13
     └── Milestone 11 (Brick Design) ✅ ──── parallel with Milestone 9
 

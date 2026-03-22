@@ -24,13 +24,12 @@ const createSnapshot = (plateName = 'VNet'): ArchitectureSnapshot => ({
     },
     {
       id: 'plate-public',
-      name: 'Public Subnet',
+      name: 'Subnet 1',
       kind: 'container',
       layer: 'subnet',
       resourceType: 'subnet',
       category: 'network',
       provider: 'azure',
-      subnetAccess: 'public',
       parentId: 'plate-vnet',
       position: { x: -3, y: 0.3, z: 0 },
       size: { width: 5, height: 0.2, depth: 8 },
@@ -107,7 +106,7 @@ describe('formatScenarioForProvider', () => {
       const containers = result.initialArchitecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
       expect(containers[0]?.name).toBe('VPC');
       // Non-VNet plate names should remain unchanged
-      expect(containers[1]?.name).toBe('Public Subnet');
+      expect(containers[1]?.name).toBe('Subnet 1');
     });
 
     it('adapts plate names in step checkpoint snapshots', () => {

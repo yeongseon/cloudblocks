@@ -1,4 +1,5 @@
 import type { LeafNode, Connection, ConnectionType, ExternalActor, ResourceCategory } from '@cloudblocks/schema';
+import { getPortsForResourceType } from '@cloudblocks/schema';
 import type { ValidationError } from '@cloudblocks/domain';
 
 /**
@@ -126,6 +127,47 @@ export function validateConnection(
       suggestion: `${sourceType} cannot initiate a request to ${targetType}`,
       targetId: connection.id,
     };
+  }
+
+  const stubError = validateStubIndices(connection, resources);
+  if (stubError) {
+    return stubError;
+  }
+
+  return null;
+}
+
+export function validateStubIndices(
+  connection: Connection,
+  resources: LeafNode[],
+): ValidationError | null {
+  const source = resources.find((resource) => resource.id === connection.sourceId);
+  const target = resources.find((resource) => resource.id === connection.targetId);
+
+  if (connection.sourceStub !== undefined && source) {
+    const ports = getPortsForResourceType(source.resourceType);
+    if (connection.sourceStub < 0 || connection.sourceStub >= ports.outbound) {
+      return {
+        ruleId: 'rule-conn-stub-source',
+        severity: 'error',
+        message: `Invalid source stub index ${connection.sourceStub}`,
+        suggestion: 'Source stub index out of range',
+        targetId: connection.id,
+      };
+    }
+  }
+
+  if (connection.targetStub !== undefined && target) {
+    const ports = getPortsForResourceType(target.resourceType);
+    if (connection.targetStub < 0 || connection.targetStub >= ports.inbound) {
+      return {
+        ruleId: 'rule-conn-stub-target',
+        severity: 'error',
+        message: `Invalid target stub index ${connection.targetStub}`,
+        suggestion: 'Target stub index out of range',
+        targetId: connection.id,
+      };
+    }
   }
 
   return null;

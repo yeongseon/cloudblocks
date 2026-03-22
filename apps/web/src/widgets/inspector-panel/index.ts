@@ -1,0 +1,1 @@
+export { InspectorPanel } from './InspectorPanel';

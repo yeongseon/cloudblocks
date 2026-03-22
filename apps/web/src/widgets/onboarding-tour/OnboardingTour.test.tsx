@@ -11,13 +11,14 @@ let targetElements: HTMLElement[] = [];
 function createTargetElements() {
   const selectors = [
     'empty-canvas-overlay',
-    'command-card',
-    'resource-bar',
+    'bottom-panel-command',
+    'sidebar-palette',
     'menu-bar-nav',
     'scene-canvas',
     'bottom-panel-minimap',
     'bottom-panel-detail',
-    'validation-panel',
+    'bottom-panel-tab-content',
+    'inspector-panel',
     'bottom-panel',
   ];
   for (const cls of selectors) {
@@ -181,7 +182,7 @@ describe('OnboardingTour', () => {
       await new Promise((r) => requestAnimationFrame(r));
     });
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 7; i++) {
       fireEvent.click(screen.getByText('Next'));
       await act(async () => {
         await new Promise((r) => requestAnimationFrame(r));
@@ -214,7 +215,7 @@ describe('OnboardingTour', () => {
       await new Promise((r) => requestAnimationFrame(r));
     });
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 7; i++) {
       fireEvent.click(screen.getByText('Next'));
       await act(async () => {
         await new Promise((r) => requestAnimationFrame(r));
@@ -259,7 +260,25 @@ describe('OnboardingTour', () => {
     expect(screen.getByText('Minimap')).toBeInTheDocument();
   });
 
-  it('shows step 7 content: Menu Bar', async () => {
+  it('shows step 8 content: Menu Bar', async () => {
+    useUIStore.setState({ showOnboarding: true });
+    render(<OnboardingTour />);
+
+    await act(async () => {
+      await new Promise((r) => requestAnimationFrame(r));
+    });
+
+    for (let i = 0; i < 7; i++) {
+      fireEvent.click(screen.getByText('Next'));
+      await act(async () => {
+        await new Promise((r) => requestAnimationFrame(r));
+      });
+    }
+
+    expect(screen.getByText('Menu Bar')).toBeInTheDocument();
+  });
+
+  it('shows inspector step content', async () => {
     useUIStore.setState({ showOnboarding: true });
     render(<OnboardingTour />);
 
@@ -274,7 +293,28 @@ describe('OnboardingTour', () => {
       });
     }
 
-    expect(screen.getByText('Menu Bar')).toBeInTheDocument();
+    expect(screen.getByText('Inspector')).toBeInTheDocument();
+  });
+
+  it('ensure visible opens sidebar for palette step', async () => {
+    useUIStore.setState({ showOnboarding: true, sidebar: { isOpen: false } });
+    render(<OnboardingTour />);
+
+    await act(async () => {
+      await new Promise((r) => requestAnimationFrame(r));
+    });
+
+    fireEvent.click(screen.getByText('Next'));
+    await act(async () => {
+      await new Promise((r) => requestAnimationFrame(r));
+    });
+
+    fireEvent.click(screen.getByText('Next'));
+    await act(async () => {
+      await new Promise((r) => requestAnimationFrame(r));
+    });
+
+    expect(useUIStore.getState().sidebar.isOpen).toBe(true);
   });
 
   it('shows persona selection when no persona is saved', async () => {

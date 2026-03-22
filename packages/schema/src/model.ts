@@ -9,7 +9,6 @@ import type {
   NodeKind,
   ProviderType,
   ResourceCategory,
-  SubnetAccess,
 } from './enums.js';
 import type { Position, Size } from './spatial.js';
 import type { CanvasTier, ContainerCapableResourceType } from './rules.js';
@@ -56,8 +55,6 @@ interface NodeBase {
   aggregation?: Aggregation;
   /** v2.0 §9 — visual-only role indicators */
   roles?: BlockRole[];
-  /** Subnet access visibility — only meaningful for subnet-layer containers */
-  subnetAccess?: SubnetAccess;
   /** Visual profile preset identifier (frontend concern, serialized for persistence) */
   profileId?: string;
   /**
@@ -107,6 +104,10 @@ export interface Connection {
   targetId: string;
   type: ConnectionType;
   metadata: Record<string, unknown>;
+  /** 0-based outbound stub index on source block (right side). Defaults to 0 when absent. */
+  sourceStub?: number;
+  /** 0-based inbound stub index on target block (left side). Defaults to 0 when absent. */
+  targetStub?: number;
 }
 
 /**

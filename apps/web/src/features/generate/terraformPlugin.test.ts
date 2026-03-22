@@ -25,13 +25,12 @@ const testArchitecture: ArchitectureModel = {
     },
     {
       id: 'plate-subnet',
-      name: 'Public Subnet',
+      name: 'Subnet 1',
       kind: 'container',
       layer: 'subnet',
       resourceType: 'subnet',
       category: 'network',
       provider: 'azure',
-      subnetAccess: 'public',
       parentId: 'plate-network',
       position: { x: 0, y: 0, z: 0 },
       size: { width: 1, height: 1, depth: 1 },
@@ -94,7 +93,7 @@ describe('terraformPlugin', () => {
 
     expect(normalized.architecture).toBe(testArchitecture);
     expect(normalized.resourceNames.get('plate-network')).toBe('vnet_core_network');
-    expect(normalized.resourceNames.get('plate-subnet')).toBe('subnet_public_subnet');
+    expect(normalized.resourceNames.get('plate-subnet')).toBe('subnet_subnet_1');
     expect(normalized.resourceNames.get('block-compute')).toBe('webapp_frontend');
   });
 
@@ -137,7 +136,7 @@ describe('terraformPlugin', () => {
     expect(mainTf).toContain('provider "azurerm" {');
     expect(mainTf).toContain('resource "azurerm_resource_group" "main"');
     expect(mainTf).toContain('resource "azurerm_virtual_network" "vnet_core_network"');
-    expect(mainTf).toContain('resource "azurerm_subnet" "subnet_public_subnet"');
+    expect(mainTf).toContain('resource "azurerm_subnet" "subnet_subnet_1"');
     expect(mainTf).toContain('resource "azurerm_linux_web_app" "webapp_frontend"');
   });
 });

@@ -56,13 +56,12 @@ const networkPlate: ContainerNode = {
 
 const publicSubnet: ContainerNode = {
   id: 'subnet-public-1',
-  name: 'Public Subnet',
+  name: 'Subnet',
   kind: 'container',
   layer: 'subnet',
   resourceType: 'subnet',
   category: 'network',
   provider: 'azure',
-  subnetAccess: 'public',
   parentId: 'net-1',
   position: { x: 1, y: 0, z: 1 },
   size: { width: 6, height: 0.3, depth: 8 },
@@ -71,13 +70,12 @@ const publicSubnet: ContainerNode = {
 
 const privateSubnet: ContainerNode = {
   id: 'subnet-private-1',
-  name: 'Private Subnet',
+  name: 'Subnet',
   kind: 'container',
   layer: 'subnet',
   resourceType: 'subnet',
   category: 'network',
   provider: 'azure',
-  subnetAccess: 'private',
   parentId: 'net-1',
   position: { x: 8, y: 0, z: 1 },
   size: { width: 6, height: 0.3, depth: 8 },
@@ -268,22 +266,22 @@ describe('CommandCard', () => {
     const { unmount } = render(<CommandCard />);
 
     const networkButton = screen.getByTitle('Create Network (VNet)');
-    const firewallButton = screen.getByTitle('Create Firewall');
+    const storageButton = screen.getByTitle('Create Blob Storage');
 
     const networkListeners = draggableListeners.get(networkButton);
-    const vmListeners = draggableListeners.get(firewallButton);
+    const vmListeners = draggableListeners.get(storageButton);
 
     expect(networkListeners).toBeDefined();
     expect(vmListeners).toBeDefined();
 
     vmListeners?.start?.();
-    vmListeners?.move?.({ target: firewallButton });
-    expect(firewallButton).toHaveClass('is-dragging');
-    expect(useUIStore.getState().draggedBlockCategory).toBe('edge');
-    expect(useUIStore.getState().draggedResourceName).toBe('Firewall');
+    vmListeners?.move?.({ target: storageButton });
+    expect(storageButton).toHaveClass('is-dragging');
+    expect(useUIStore.getState().draggedBlockCategory).toBe('data');
+    expect(useUIStore.getState().draggedResourceName).toBe('Blob Storage');
 
-    vmListeners?.end?.({ target: firewallButton });
-    expect(firewallButton).not.toHaveClass('is-dragging');
+    vmListeners?.end?.({ target: storageButton });
+    expect(storageButton).not.toHaveClass('is-dragging');
     expect(useUIStore.getState().draggedBlockCategory).toBeNull();
     expect(useUIStore.getState().draggedResourceName).toBeNull();
 
@@ -299,7 +297,7 @@ describe('CommandCard', () => {
     expect(unsetInteractableMock).toHaveBeenCalled();
   });
 
-  it('creates private subnet from creation mode when network exists', async () => {
+  it('creates subnet from creation mode when network exists', async () => {
     const user = userEvent.setup();
 
     useArchitectureStore.setState({
@@ -317,9 +315,9 @@ describe('CommandCard', () => {
 
     render(<CommandCard />);
 
-    await user.click(screen.getByTitle('Create Private Subnet'));
+    await user.click(screen.getByTitle('Create Subnet'));
 
-    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'container', resourceType: 'subnet', name: 'Private Subnet', parentId: 'net-1', layer: 'subnet', access: 'private' });
+    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'container', resourceType: 'subnet', name: 'Subnet', parentId: 'net-1', layer: 'subnet' });
   });
 
   // ─── BlockActionMode Tests ───────────────────────────────
@@ -664,7 +662,7 @@ describe('CommandCard', () => {
     rerender(<CommandCard />);
 
     expect(screen.queryByRole('button', { name: /Back from/ })).not.toBeInTheDocument();
-    expect(screen.getByText('Public Subnet Actions')).toBeInTheDocument();
+    expect(screen.getByText('Subnet Actions')).toBeInTheDocument();
   });
 
   it('exits deploy mode when Escape is pressed', async () => {
@@ -694,7 +692,7 @@ describe('CommandCard', () => {
     expect(screen.getByText('VNet Actions')).toBeInTheDocument();
   });
 
-  it('renders different deploy resource sets for network, public subnet, and private subnet', async () => {
+  it('renders different deploy resource sets for network and subnet', async () => {
     const user = userEvent.setup();
 
     const { rerender } = render(<CommandCard />);
@@ -716,8 +714,7 @@ describe('CommandCard', () => {
     });
     rerender(<CommandCard />);
     await user.click(screen.getByRole('button', { name: /Deploy/ }));
-    expect(screen.getByTitle('Create Public Subnet (Q)')).toBeInTheDocument();
-    expect(screen.getByTitle('Create Private Subnet (W)')).toBeInTheDocument();
+    expect(screen.getByTitle('Create Subnet (Q)')).toBeInTheDocument();
     expect(screen.queryByTitle('Create SQL Database (W)')).not.toBeInTheDocument();
 
     act(() => {
@@ -737,32 +734,11 @@ describe('CommandCard', () => {
     });
     rerender(<CommandCard />);
     await user.click(screen.getByRole('button', { name: /Deploy/ }));
-    expect(screen.getByTitle('Create DNS Zone (W)')).toBeInTheDocument();
-    expect(screen.getByTitle('Create Virtual Machine (S)')).toBeInTheDocument();
-    expect(screen.queryByTitle('Create SQL Database (W)')).not.toBeInTheDocument();
-
-    act(() => {
-      useUIStore.setState({ selectedId: 'subnet-private-1' });
-      useArchitectureStore.setState({
-        workspace: {
-          id: 'ws-1',
-          name: 'Test Workspace',
-          architecture: {
-            ...baseArchitecture,
-            nodes: [networkPlate, privateSubnet],
-          },
-          createdAt: '',
-          updatedAt: '',
-        },
-      });
-    });
-    rerender(<CommandCard />);
-    await user.click(screen.getByRole('button', { name: /Deploy/ }));
-    expect(screen.getByTitle('Create SQL Database (W)')).toBeInTheDocument();
-    expect(screen.queryByTitle('Create Public Subnet (Q)')).not.toBeInTheDocument();
+    expect(screen.getByTitle('Create Blob Storage (Q)')).toBeInTheDocument();
+    expect(screen.getByTitle('Create Virtual Machine (W)')).toBeInTheDocument();
   });
 
-  it('shows "Public Subnet Actions" header for selected public subnet', () => {
+  it('shows "Subnet Actions" header for selected public subnet', () => {
     useUIStore.setState({ selectedId: 'subnet-public-1' });
     useArchitectureStore.setState({
       workspace: {
@@ -779,10 +755,10 @@ describe('CommandCard', () => {
 
     render(<CommandCard />);
 
-    expect(screen.getByText('Public Subnet Actions')).toBeInTheDocument();
+    expect(screen.getByText('Subnet Actions')).toBeInTheDocument();
   });
 
-  it('shows "Private Subnet Actions" header for selected private subnet', () => {
+  it('shows "Subnet Actions" header for selected private subnet', () => {
     useUIStore.setState({ selectedId: 'subnet-private-1' });
     useArchitectureStore.setState({
       workspace: {
@@ -799,7 +775,7 @@ describe('CommandCard', () => {
 
     render(<CommandCard />);
 
-    expect(screen.getByText('Private Subnet Actions')).toBeInTheDocument();
+    expect(screen.getByText('Subnet Actions')).toBeInTheDocument();
   });
 
   it('transitions from PlateActionMode to PlateCreationMode via Deploy button', async () => {
@@ -855,10 +831,10 @@ describe('CommandCard', () => {
     // Click Deploy to enter creation sub-menu
     await user.click(screen.getByRole('button', { name: /Deploy/ }));
 
-    // Now in PlateCreationMode — create a public subnet
-    await user.click(screen.getByTitle('Create Public Subnet (Q)'));
+    // Now in PlateCreationMode — create a subnet
+    await user.click(screen.getByTitle('Create Subnet (Q)'));
 
-    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'container', resourceType: 'subnet', name: 'Public Subnet', parentId: 'net-1', layer: 'subnet', access: 'public' });
+    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'container', resourceType: 'subnet', name: 'Subnet', parentId: 'net-1', layer: 'subnet' });
   });
 
   it('returns from PlateCreationMode to PlateActionMode via back button', async () => {
@@ -1001,7 +977,7 @@ describe('CommandCard', () => {
     promptMock.mockRestore();
   });
 
-  it('transitions to PlateCreationMode for public subnet deploy and creates VM', async () => {
+  it('transitions to PlateCreationMode for subnet deploy and creates VM', async () => {
     const user = userEvent.setup();
 
     useUIStore.setState({ selectedId: 'subnet-public-1' });
@@ -1021,18 +997,18 @@ describe('CommandCard', () => {
     render(<CommandCard />);
 
     // First see PlateActionMode
-    expect(screen.getByText('Public Subnet Actions')).toBeInTheDocument();
+    expect(screen.getByText('Subnet Actions')).toBeInTheDocument();
 
     // Click Deploy
     await user.click(screen.getByRole('button', { name: /Deploy/ }));
 
     // Now in PlateCreationMode — create a VM
-    await user.click(screen.getByTitle('Create Virtual Machine (S)'));
+    await user.click(screen.getByTitle('Create Virtual Machine (W)'));
 
     expect(addNodeMock).toHaveBeenCalledWith({ kind: 'resource', resourceType: 'virtual_machine', name: 'Virtual Machine 1', parentId: 'subnet-public-1', provider: 'azure', subtype: 'virtual_machine' });
   });
 
-  it('transitions to PlateCreationMode for private subnet deploy and creates SQL', async () => {
+  it('transitions to PlateCreationMode for another subnet deploy and creates SQL', async () => {
     const user = userEvent.setup();
 
     useUIStore.setState({ selectedId: 'subnet-private-1' });
@@ -1052,18 +1028,18 @@ describe('CommandCard', () => {
     render(<CommandCard />);
 
     // First see PlateActionMode
-    expect(screen.getByText('Private Subnet Actions')).toBeInTheDocument();
+    expect(screen.getByText('Subnet Actions')).toBeInTheDocument();
 
     // Click Deploy
     await user.click(screen.getByRole('button', { name: /Deploy/ }));
 
     // Now in PlateCreationMode — create SQL
-    await user.click(screen.getByTitle('Create SQL Database (W)'));
+    await user.click(screen.getByTitle('Create SQL Database (E)'));
 
     expect(addNodeMock).toHaveBeenCalledWith({ kind: 'resource', resourceType: 'sql_database', name: 'SQL Database 1', parentId: 'subnet-private-1', provider: 'azure', subtype: 'sql_database' });
   });
 
-  it('creates private subnet via Deploy on network plate', async () => {
+  it('creates subnet via Deploy on network plate', async () => {
     const user = userEvent.setup();
 
     useUIStore.setState({ selectedId: 'net-1' });
@@ -1085,9 +1061,9 @@ describe('CommandCard', () => {
     // Click Deploy to enter creation sub-menu
     await user.click(screen.getByRole('button', { name: /Deploy/ }));
 
-    // Create Private Subnet
-    await user.click(screen.getByTitle('Create Private Subnet (W)'));
+    // Create Subnet
+    await user.click(screen.getByTitle('Create Subnet (Q)'));
 
-    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'container', resourceType: 'subnet', name: 'Private Subnet', parentId: 'net-1', layer: 'subnet', access: 'private' });
+    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'container', resourceType: 'subnet', name: 'Subnet', parentId: 'net-1', layer: 'subnet' });
   });
 });
