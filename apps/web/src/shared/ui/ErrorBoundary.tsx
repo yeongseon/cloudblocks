@@ -44,23 +44,6 @@ function persistError(record: ErrorRecord): void {
   }
 }
 
-export function getErrorLog(): ErrorRecord[] {
-  try {
-    const raw = localStorage.getItem(ERROR_LOG_KEY);
-    return raw ? (JSON.parse(raw) as ErrorRecord[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-export function clearErrorLog(): void {
-  try {
-    localStorage.removeItem(ERROR_LOG_KEY);
-  } catch {
-    // ignore
-  }
-}
-
 function reportError(error: Error, componentStack: string): void {
   const record: ErrorRecord = {
     error: { name: error.name, message: error.message, stack: error.stack ?? '' } as unknown as Error,
@@ -71,17 +54,6 @@ function reportError(error: Error, componentStack: string): void {
   };
 
   persistError(record);
-
-  if (typeof globalThis !== 'undefined' && 'navigator' in globalThis && navigator.sendBeacon) {
-    const endpoint = import.meta.env.VITE_ERROR_TRACKING_URL as string | undefined;
-    if (endpoint) {
-      try {
-        navigator.sendBeacon(endpoint, JSON.stringify(record));
-      } catch {
-        // beacon failed — already persisted locally
-      }
-    }
-  }
 }
 
 export class ErrorBoundary extends Component<Props, State> {
