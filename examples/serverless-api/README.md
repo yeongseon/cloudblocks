@@ -19,12 +19,12 @@ Internet → Gateway (API Gateway)
 
 ## Components
 
-| Layer | Block Type | Subnet | Description |
-|-------|-----------|--------|-------------|
-| Entry | Gateway | Public | API Gateway / Function proxy |
-| Logic | Compute | Public | Serverless functions / Container Apps |
-| Data | Database | Private | Managed database for structured data |
-| Data | Storage | Private | Queue storage for async processing |
+| Layer | Category | Block Type | Subnet | Description |
+|-------|----------|-----------|--------|-------------|
+| Entry | Edge | Gateway | Public | API Gateway / Function proxy |
+| Logic | Compute | Compute | Public | Serverless functions / Container Apps |
+| Data | Data | Database | Private | Managed database for structured data |
+| Data | Data | Storage | Private | Queue storage for async processing |
 
 ## How to Build in CloudBlocks
 
