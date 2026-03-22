@@ -15,6 +15,7 @@ import { useUIStore } from '../entities/store/uiStore';
 import { usePromoteStore } from '../entities/store/promoteStore';
 import { audioService } from '../shared/utils/audioService';
 import { isApiConfigured } from '../shared/api/client';
+import './BuilderView.css';
 import './LearnMode.css';
 
 const CodePreview = lazy(() =>
@@ -99,25 +100,14 @@ export function BuilderView() {
   const showTemplateGallery = useUIStore((s) => s.showTemplateGallery);
   const showScenarioGallery = useUIStore((s) => s.showScenarioGallery);
   const persona = useUIStore((s) => s.persona);
+  const sidebarOpen = useUIStore((s) => s.sidebar.isOpen);
+  const inspectorOpen = useUIStore((s) => s.inspector.isOpen);
+  const bottomDockOpen = useUIStore((s) => s.bottomDock.isOpen);
   const workspaceId = useArchitectureStore((s) => s.workspace.id);
 
   const showPromoteDialog = usePromoteStore((s) => s.showPromoteDialog);
   const showRollbackDialog = usePromoteStore((s) => s.showRollbackDialog);
   const showPromoteHistory = usePromoteStore((s) => s.showPromoteHistory);
-
-  const isWideRightPanel = showPromoteHistory;
-  const isNarrowRightPanel =
-    showCodePreview ||
-    showGitHubLogin ||
-    showGitHubRepos ||
-    showGitHubPR ||
-    showPromoteDialog ||
-    showRollbackDialog;
-  const rightPanelClass = isWideRightPanel
-    ? ' right-panel-wide'
-    : isNarrowRightPanel
-      ? ' right-panel-open'
-      : '';
 
   useEffect(() => {
     audioService.setMuted(isSoundMuted);
@@ -252,33 +242,59 @@ export function BuilderView() {
 
   return (
     <>
-      <MenuBar />
-      <div className="main-content">
-        <div
-          className={`canvas-container${editorMode === 'learn' ? ' learn-mode-active' : ''}${rightPanelClass}`}
-        >
-          <ResourceBar />
-          <SceneCanvas />
-          <ValidationPanel />
-          <FlowDiagram />
-          <BottomPanel />
-          <LearningPanel />
-          <Suspense fallback={null}>
-            {showCodePreview && <CodePreview key={`code-${workspaceId}`} />}
-            {showWorkspaceManager && <WorkspaceManager />}
-            {showTemplateGallery && <TemplateGallery />}
-            {showGitHubLogin && <GitHubLogin />}
-            {showGitHubRepos && <GitHubRepos />}
-            <GitHubSync />
-            {showGitHubPR && <GitHubPR key={`pr-${workspaceId}`} />}
-            <DiffPanel />
-            {showScenarioGallery && <ScenarioGallery />}
-            {showPromoteDialog && <PromoteDialog />}
-            {showRollbackDialog && <RollbackDialog />}
-            {showPromoteHistory && <PromoteHistory />}
-          </Suspense>
+      <div
+        className="builder-shell"
+        data-sidebar-open={sidebarOpen}
+        data-inspector-open={inspectorOpen}
+        data-bottomdock-open={bottomDockOpen}
+      >
+        <div className="builder-menubar">
+          <MenuBar />
         </div>
+
+        <aside className="builder-sidebar" aria-hidden={!sidebarOpen}>
+          <div className="builder-slot" />
+        </aside>
+
+        <main className={`builder-canvas${editorMode === 'learn' ? ' learn-mode-active' : ''}`}>
+          <div className="builder-slot">
+            <ResourceBar />
+            <SceneCanvas />
+            <ValidationPanel />
+            <FlowDiagram />
+            <LearningPanel />
+          </div>
+        </main>
+
+        <aside className="builder-inspector" aria-hidden={!inspectorOpen}>
+          <div className="builder-slot">
+            <Suspense fallback={null}>
+              {showCodePreview && <CodePreview key={`code-${workspaceId}`} />}
+              {showGitHubLogin && <GitHubLogin />}
+              {showGitHubRepos && <GitHubRepos />}
+              <GitHubSync />
+              {showGitHubPR && <GitHubPR key={`pr-${workspaceId}`} />}
+              <DiffPanel />
+            </Suspense>
+          </div>
+        </aside>
+
+        <section className="builder-bottomdock" aria-hidden={!bottomDockOpen}>
+          <div className="builder-slot">
+            <BottomPanel />
+          </div>
+        </section>
+
+        <Suspense fallback={null}>
+          {showWorkspaceManager && <WorkspaceManager />}
+          {showTemplateGallery && <TemplateGallery />}
+          {showScenarioGallery && <ScenarioGallery />}
+          {showPromoteDialog && <PromoteDialog />}
+          {showRollbackDialog && <RollbackDialog />}
+          {showPromoteHistory && <PromoteHistory />}
+        </Suspense>
       </div>
+
       <OnboardingTour />
     </>
   );
