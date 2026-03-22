@@ -10,6 +10,15 @@ export type ToolMode = 'select' | 'connect' | 'delete';
 export type InteractionState = 'idle' | 'selecting' | 'dragging' | 'placing' | 'connecting';
 export type BackendStatus = 'unknown' | 'not_configured' | 'available' | 'unavailable';
 export type PendingGitHubAction = 'sync' | 'pr' | 'repos' | null;
+export type AppView = 'landing' | 'builder';
+export type BottomDockTab = 'output' | 'validation' | 'logs' | 'diff';
+
+export interface ActivityLogEntry {
+  id: string;
+  ts: string;
+  level: 'info' | 'warn' | 'error';
+  message: string;
+}
 export type { EditorMode } from '../../shared/types/learning';
 export type { Persona, ComplexityLevel } from '../../shared/types';
 
@@ -42,6 +51,12 @@ function writePendingGitHubAction(action: PendingGitHubAction): void {
 }
 
 interface UIState {
+  // ── App view ──
+  appView: AppView;
+  setAppView: (view: AppView) => void;
+  goToLanding: () => void;
+  goToBuilder: () => void;
+
   // ── Selection ──
   selectedId: string | null;
   setSelectedId: (id: string | null) => void;
@@ -100,6 +115,26 @@ interface UIState {
   toggleSuggestionsPanel: () => void;
   showCostPanel: boolean;
   toggleCostPanel: () => void;
+
+  // ── Layout panels ──
+  sidebar: { isOpen: boolean };
+  toggleSidebar: () => void;
+  setSidebarOpen: (open: boolean) => void;
+
+  inspector: { isOpen: boolean };
+  toggleInspector: () => void;
+  setInspectorOpen: (open: boolean) => void;
+
+  // ── Bottom dock ──
+  bottomDock: { isOpen: boolean; activeTab: BottomDockTab };
+  openBottomTab: (tab: BottomDockTab) => void;
+  closeBottomDock: () => void;
+  setBottomTab: (tab: BottomDockTab) => void;
+
+  // ── Activity log ──
+  activityLog: ActivityLogEntry[];
+  appendLog: (entry: Omit<ActivityLogEntry, 'id' | 'ts'>) => void;
+  clearLog: () => void;
 
   backendStatus: BackendStatus;
   setBackendStatus: (status: BackendStatus) => void;
@@ -177,6 +212,11 @@ function closeOtherRightPanels(except: RightPanelKey): Partial<UIState> {
 }
 
 export const useUIStore = create<UIState>((set) => ({
+  appView: 'landing',
+  setAppView: (view) => set({ appView: view }),
+  goToLanding: () => set({ appView: 'landing' }),
+  goToBuilder: () => set({ appView: 'builder' }),
+
   selectedId: null,
   setSelectedId: (id) => set({ selectedId: id }),
 
@@ -254,13 +294,21 @@ export const useUIStore = create<UIState>((set) => ({
 
   showValidation: false,
   toggleValidation: () =>
-    set((s) => ({ showValidation: !s.showValidation })),
+    set((s) => ({
+      showValidation: !s.showValidation,
+      ...(!s.showValidation
+        ? { bottomDock: { isOpen: true, activeTab: 'validation' as const } }
+        : {}),
+    })),
 
   showCodePreview: false,
   toggleCodePreview: () =>
     set((s) => ({
       showCodePreview: !s.showCodePreview,
       ...(!s.showCodePreview ? closeOtherRightPanels('showCodePreview') : {}),
+      ...(!s.showCodePreview
+        ? { bottomDock: { isOpen: true, activeTab: 'output' as const } }
+        : {}),
     })),
 
   showAdvancedGeneration: false,
@@ -317,6 +365,32 @@ export const useUIStore = create<UIState>((set) => ({
       ...(!s.showCostPanel ? closeOtherRightPanels('showCostPanel') : {}),
     })),
 
+  sidebar: { isOpen: true },
+  toggleSidebar: () => set((s) => ({ sidebar: { isOpen: !s.sidebar.isOpen } })),
+  setSidebarOpen: (open) => set({ sidebar: { isOpen: open } }),
+
+  inspector: { isOpen: true },
+  toggleInspector: () => set((s) => ({ inspector: { isOpen: !s.inspector.isOpen } })),
+  setInspectorOpen: (open) => set({ inspector: { isOpen: open } }),
+
+  bottomDock: { isOpen: false, activeTab: 'output' },
+  openBottomTab: (tab) => set({ bottomDock: { isOpen: true, activeTab: tab } }),
+  closeBottomDock: () => set((s) => ({ bottomDock: { ...s.bottomDock, isOpen: false } })),
+  setBottomTab: (tab) => set((s) => ({ bottomDock: { ...s.bottomDock, activeTab: tab } })),
+
+  activityLog: [],
+  appendLog: (entry) =>
+    set((s) => {
+      const newEntry: ActivityLogEntry = {
+        id: crypto.randomUUID?.() ?? Math.random().toString(36).slice(2),
+        ts: new Date().toISOString(),
+        ...entry,
+      };
+      const log = [...s.activityLog, newEntry];
+      return { activityLog: log.length > 200 ? log.slice(-200) : log };
+    }),
+  clearLog: () => set({ activityLog: [] }),
+
   backendStatus: 'unknown',
   setBackendStatus: (status) => set({ backendStatus: status }),
 
@@ -342,6 +416,7 @@ export const useUIStore = create<UIState>((set) => ({
       diffDelta: delta ?? null,
       diffBaseArchitecture: base ?? null,
       diffVersion: s.diffVersion + 1,
+      ...(mode ? { bottomDock: { isOpen: true, activeTab: 'diff' as const } } : {}),
     })),
   clearDiffState: () =>
     set({
