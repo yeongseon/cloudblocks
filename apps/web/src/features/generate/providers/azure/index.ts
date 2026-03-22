@@ -14,6 +14,7 @@ const azureSubtypeBlockMappings: SubtypeResourceMap = {
   edge: {
     'application-gateway': { resourceType: 'azurerm_application_gateway', namePrefix: 'appgw' },
     'api-management': { resourceType: 'azurerm_api_management', namePrefix: 'apim' },
+    'nat-gateway': { resourceType: 'azurerm_nat_gateway', namePrefix: 'natgw' },
   },
   messaging: {
     'service-bus': { resourceType: 'azurerm_storage_queue', namePrefix: 'queue' },

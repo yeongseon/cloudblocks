@@ -23,7 +23,8 @@ export type ResourceType =
   | 'internal-lb'
   | 'firewall'
   | 'nsg'
-  | 'bastion';
+  | 'bastion'
+  | 'nat-gateway';
 
 export interface ResourceDefinition {
   id: ResourceType;
@@ -218,6 +219,15 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     blockCategory: 'edge',
     disabledReason: 'Create a Network first. Bastion provides secure VM access through a virtual network.',
   },
+  'nat-gateway': {
+    id: 'nat-gateway',
+    label: 'NAT Gateway',
+    shortLabel: 'NAT',
+    icon: '🚪',
+    category: 'vnet-required',
+    blockCategory: 'edge',
+    disabledReason: 'Create a Network first. NAT Gateways enable outbound internet access for private subnets.',
+  },
 };
 
 // ─── Provider-Specific Labels ─────────────────────────────
@@ -249,6 +259,7 @@ const PROVIDER_LABELS: Record<ProviderType, Partial<Record<ResourceType, Provide
     firewall:             { label: 'Network Firewall',     shortLabel: 'NFW' },
     nsg:                  { label: 'Security Group',       shortLabel: 'SG' },
     bastion:              { label: 'Session Manager',      shortLabel: 'SSM' },
+    'nat-gateway':        { label: 'NAT Gateway',          shortLabel: 'NAT' },
   },
   gcp: {
     network:              { label: 'VPC Network',          shortLabel: 'VPC' },
@@ -270,6 +281,7 @@ const PROVIDER_LABELS: Record<ProviderType, Partial<Record<ResourceType, Provide
     firewall:             { label: 'Cloud Firewall',       shortLabel: 'FW' },
     nsg:                  { label: 'Firewall Rules',       shortLabel: 'FWRules' },
     bastion:              { label: 'IAP Tunnel',           shortLabel: 'IAP' },
+    'nat-gateway':        { label: 'Cloud NAT',            shortLabel: 'CNAT' },
   },
 };
 

@@ -47,6 +47,10 @@ export const azureSubtypeRegistry: SubtypeRegistry = {
       displayName: 'API Management',
       description: 'Managed API gateway',
     },
+    'nat-gateway': {
+      displayName: 'NAT Gateway',
+      description: 'Managed outbound internet access for private subnets',
+    },
   },
   messaging: {
     'service-bus': {

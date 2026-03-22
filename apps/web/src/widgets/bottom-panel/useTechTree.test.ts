@@ -226,6 +226,14 @@ describe('useTechTree constants', () => {
         category: 'vnet-required',
         blockCategory: 'edge',
       },
+      'nat-gateway': {
+        id: 'nat-gateway',
+        label: 'NAT Gateway',
+        shortLabel: 'NAT',
+        icon: '🚪',
+        category: 'vnet-required',
+        blockCategory: 'edge',
+      },
     };
 
     const resourceTypes = [
@@ -250,8 +258,9 @@ describe('useTechTree constants', () => {
       'firewall',
       'nsg',
       'bastion',
+      'nat-gateway',
     ];
-    expect(resourceTypes).toHaveLength(21);
+    expect(resourceTypes).toHaveLength(22);
 
     for (const resourceType of resourceTypes) {
       const actual = RESOURCE_DEFINITIONS[resourceType as ResourceType];

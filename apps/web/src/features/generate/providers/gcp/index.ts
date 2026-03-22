@@ -14,6 +14,7 @@ const gcpSubtypeBlockMappings: SubtypeResourceMap = {
   edge: {
     'cloud-load-balancing': { resourceType: 'google_compute_url_map', namePrefix: 'lb' },
     'api-gateway': { resourceType: 'google_api_gateway_api', namePrefix: 'apigw' },
+    'nat-gateway': { resourceType: 'google_compute_router_nat', namePrefix: 'nat' },
   },
   messaging: {
     pubsub: { resourceType: 'google_pubsub_topic', namePrefix: 'topic' },

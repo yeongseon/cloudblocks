@@ -14,6 +14,7 @@ const awsSubtypeBlockMappings: SubtypeResourceMap = {
   edge: {
     alb: { resourceType: 'aws_lb', namePrefix: 'alb' },
     'api-gateway': { resourceType: 'aws_apigatewayv2_api', namePrefix: 'apigw' },
+    'nat-gateway': { resourceType: 'aws_nat_gateway', namePrefix: 'natgw' },
   },
   messaging: {
     sqs: { resourceType: 'aws_sqs_queue', namePrefix: 'queue' },
