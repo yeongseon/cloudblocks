@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { apiGet, apiPost, apiPut } from '../../shared/api/client';
+import { apiGet, apiPost, apiPut, isAuthError } from '../../shared/api/client';
 import { isValidGitHubRepoFullName } from '../../shared/utils/githubValidation';
 import type { GitHubCommit, PullResponse, SyncResponse } from '../../shared/types/api';
 import type { ArchitectureSnapshot } from '../../shared/types/learning';
@@ -17,6 +17,8 @@ export function GitHubSync() {
   const show = useUIStore((s) => s.showGitHubSync);
   const toggleGitHubSync = useUIStore((s) => s.toggleGitHubSync);
   const toggleGitHubRepos = useUIStore((s) => s.toggleGitHubRepos);
+  const pendingLinkRepo = useUIStore((s) => s.pendingLinkRepo);
+  const setPendingLinkRepo = useUIStore((s) => s.setPendingLinkRepo);
 
   const workspace = useArchitectureStore((s) => s.workspace);
   const replaceArchitecture = useArchitectureStore((s) => s.replaceArchitecture);
@@ -69,6 +71,12 @@ export function GitHubSync() {
     setLinkedRepoState(null);
   }, [workspace.githubRepo, workspace.backendWorkspaceId, workspace.id]);
 
+  useEffect(() => {
+    if (!pendingLinkRepo) return;
+    setRepoInput(pendingLinkRepo);
+    setPendingLinkRepo(null);
+  }, [pendingLinkRepo, setPendingLinkRepo]);
+
   useEffect(() => () => {
     mountedRef.current = false;
     requestSeqRef.current += 1;
@@ -110,6 +118,13 @@ export function GitHubSync() {
       setCommits(response.commits);
     } catch (err) {
       if (!canApply()) return;
+      if (isAuthError(err)) {
+        const authStore = useAuthStore.getState();
+        authStore.setAnonymous();
+        authStore.setError('Session expired. Please sign in again.');
+        useUIStore.getState().toggleGitHubLogin();
+        return;
+      }
       setError(err instanceof Error ? err.message : 'Failed to load commits.');
     } finally {
       if (canApply()) {
@@ -149,6 +164,13 @@ export function GitHubSync() {
       setStoreGithubRepo(workspace.id, cleanedRepo);
       setStoreBackendWorkspaceId(workspace.id, bwsId);
     } catch (err) {
+      if (isAuthError(err)) {
+        const authStore = useAuthStore.getState();
+        authStore.setAnonymous();
+        authStore.setError('Session expired. Please sign in again.');
+        useUIStore.getState().toggleGitHubLogin();
+        return;
+      }
       setError(err instanceof Error ? err.message : 'Failed to link repository.');
     } finally {
       setLinking(false);
@@ -177,6 +199,13 @@ export function GitHubSync() {
       });
       await loadCommits();
     } catch (err) {
+      if (isAuthError(err)) {
+        const authStore = useAuthStore.getState();
+        authStore.setAnonymous();
+        authStore.setError('Session expired. Please sign in again.');
+        useUIStore.getState().toggleGitHubLogin();
+        return;
+      }
       setError(err instanceof Error ? err.message : 'Failed to sync workspace.');
     } finally {
       setSyncing(false);
@@ -195,6 +224,13 @@ export function GitHubSync() {
       replaceArchitecture(response.architecture as ArchitectureSnapshot);
       await loadCommits();
     } catch (err) {
+      if (isAuthError(err)) {
+        const authStore = useAuthStore.getState();
+        authStore.setAnonymous();
+        authStore.setError('Session expired. Please sign in again.');
+        useUIStore.getState().toggleGitHubLogin();
+        return;
+      }
       setError(err instanceof Error ? err.message : 'Failed to pull from GitHub.');
     } finally {
       setPulling(false);

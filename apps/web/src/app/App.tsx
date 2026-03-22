@@ -103,7 +103,29 @@ function App() {
     if (!isApiConfigured()) {
       useUIStore.getState().setBackendStatus('not_configured');
     }
-    void useAuthStore.getState().checkSession();
+
+    void (async () => {
+      await useAuthStore.getState().checkSession();
+
+      if (useAuthStore.getState().status !== 'authenticated') {
+        return;
+      }
+
+      const uiState = useUIStore.getState();
+      const pendingAction = uiState.pendingGitHubAction;
+
+      if (pendingAction === 'sync' && !uiState.showGitHubSync) {
+        uiState.toggleGitHubSync();
+      } else if (pendingAction === 'pr' && !uiState.showGitHubPR) {
+        uiState.toggleGitHubPR();
+      } else if (pendingAction === 'repos' && !uiState.showGitHubRepos) {
+        uiState.toggleGitHubRepos();
+      }
+
+      if (pendingAction !== null) {
+        uiState.setPendingGitHubAction(null);
+      }
+    })();
   }, []);
 
   // Keyboard shortcuts
