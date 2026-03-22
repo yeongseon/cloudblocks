@@ -1,15 +1,28 @@
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { getTemplate } from '../../features/templates/registry';
 import './EmptyCanvasOverlay.css';
+
+const DEMO_TEMPLATE_ID = 'template-three-tier';
 
 export function EmptyCanvasOverlay() {
   const containerCount = useArchitectureStore((s) => s.workspace.architecture.nodes.filter((node) => node.kind === 'container').length);
   const showTemplateGallery = useUIStore((s) => s.showTemplateGallery);
   const addPlate = useArchitectureStore((s) => s.addPlate);
+  const loadFromTemplate = useArchitectureStore((s) => s.loadFromTemplate);
+  const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
   const toggleTemplateGallery = useUIStore((s) => s.toggleTemplateGallery);
   const toggleScenarioGallery = useUIStore((s) => s.toggleScenarioGallery);
 
   if (containerCount > 0 || showTemplateGallery) return null;
+
+  const handleLoadDemo = () => {
+    const template = getTemplate(DEMO_TEMPLATE_ID);
+    if (template) {
+      loadFromTemplate(template);
+      saveToStorage();
+    }
+  };
 
   return (
     <div className="empty-canvas-overlay">
@@ -41,9 +54,13 @@ export function EmptyCanvasOverlay() {
           >
             📖 Learn How
           </button>
-          <div className="empty-canvas-btn empty-canvas-btn--placeholder" aria-hidden="true">
-            🎮 Coming Soon
-          </div>
+          <button
+            type="button"
+            className="empty-canvas-btn empty-canvas-btn--demo"
+            onClick={handleLoadDemo}
+          >
+            🚀 Try Demo
+          </button>
         </div>
       </div>
     </div>

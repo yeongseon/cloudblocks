@@ -3,11 +3,15 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { EmptyCanvasOverlay } from './EmptyCanvasOverlay';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import { getTemplate } from '../../features/templates/registry';
 
 vi.mock('../../entities/store/architectureStore');
 vi.mock('../../entities/store/uiStore');
+vi.mock('../../features/templates/registry');
 
 const mockAddPlate = vi.fn();
+const mockLoadFromTemplate = vi.fn();
+const mockSaveToStorage = vi.fn();
 const mockToggleTemplateGallery = vi.fn();
 const mockToggleScenarioGallery = vi.fn();
 
@@ -30,6 +34,8 @@ function setupMocks(plateCount: number, showTemplateGallery = false) {
     const state = {
       workspace: { architecture: { nodes } },
       addPlate: mockAddPlate,
+      loadFromTemplate: mockLoadFromTemplate,
+      saveToStorage: mockSaveToStorage,
     };
     return (selector as (s: typeof state) => unknown)(state);
   }) as typeof useArchitectureStore);
@@ -105,5 +111,32 @@ describe('EmptyCanvasOverlay', () => {
     render(<EmptyCanvasOverlay />);
     fireEvent.click(screen.getByText(/Learn How/));
     expect(mockToggleScenarioGallery).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows Try Demo button', () => {
+    setupMocks(0);
+    render(<EmptyCanvasOverlay />);
+    expect(screen.getByText(/Try Demo/)).toBeInTheDocument();
+  });
+
+  it('clicking Try Demo loads the three-tier template', () => {
+    const fakeTemplate = { id: 'template-three-tier', name: 'Three-Tier' };
+    vi.mocked(getTemplate).mockReturnValue(fakeTemplate as ReturnType<typeof getTemplate>);
+    setupMocks(0);
+    render(<EmptyCanvasOverlay />);
+    fireEvent.click(screen.getByText(/Try Demo/));
+    expect(getTemplate).toHaveBeenCalledWith('template-three-tier');
+    expect(mockLoadFromTemplate).toHaveBeenCalledWith(fakeTemplate);
+    expect(mockSaveToStorage).toHaveBeenCalledTimes(1);
+  });
+
+  it('clicking Try Demo does nothing if template not found', () => {
+    vi.mocked(getTemplate).mockReturnValue(undefined);
+    setupMocks(0);
+    render(<EmptyCanvasOverlay />);
+    fireEvent.click(screen.getByText(/Try Demo/));
+    expect(getTemplate).toHaveBeenCalledWith('template-three-tier');
+    expect(mockLoadFromTemplate).not.toHaveBeenCalled();
+    expect(mockSaveToStorage).not.toHaveBeenCalled();
   });
 });
