@@ -37,34 +37,38 @@ const PARENT_RESOURCE_TYPE_TO_LAYER: Record<string, LayerType> = {
 };
 
 /**
- * Build a map of category → required parent layer from RESOURCE_RULES.
+ * Build a map of category → allowed parent layers from RESOURCE_RULES.
  * Only non-container resource types are included (containers don't need placement validation).
  *
- * For each category, we pick the first allowedParents entry and map it to a layer.
- * If all resources in a category have the same allowedParents, the result is deterministic.
+ * For each category, we collect ALL allowedParents entries and map them to layers,
+ * so resources allowed in multiple parent types are correctly validated.
  */
-function buildCategoryPlacementMap(): Map<ResourceCategory, LayerType> {
-  const map = new Map<ResourceCategory, LayerType>();
+function buildCategoryPlacementMap(): Map<ResourceCategory, Set<LayerType>> {
+  const map = new Map<ResourceCategory, Set<LayerType>>();
   const rules = RESOURCE_RULES as Record<string, ResourceRuleEntry>;
 
   for (const [, rule] of Object.entries(rules)) {
-    if (rule.containerCapable) continue; // Skip containers
-    if (map.has(rule.category)) continue; // First rule per category wins
+    if (rule.containerCapable) continue;
 
-    const parentType = rule.allowedParents[0];
-    if (parentType === null) continue; // Root-level resources don't need placement validation
+    if (!map.has(rule.category)) {
+      map.set(rule.category, new Set<LayerType>());
+    }
 
-    const layer = PARENT_RESOURCE_TYPE_TO_LAYER[parentType];
-    if (layer) {
-      map.set(rule.category, layer);
+    const layers = map.get(rule.category)!;
+    for (const parentType of rule.allowedParents) {
+      if (parentType === null) continue;
+      const layer = PARENT_RESOURCE_TYPE_TO_LAYER[parentType];
+      if (layer) {
+        layers.add(layer);
+      }
     }
   }
 
   return map;
 }
 
-/** Category → required parent layer, derived from RESOURCE_RULES. */
-const CATEGORY_REQUIRED_PARENT_LAYER = buildCategoryPlacementMap();
+/** Category → allowed parent layers, derived from RESOURCE_RULES. */
+const CATEGORY_ALLOWED_PARENT_LAYERS = buildCategoryPlacementMap();
 
 // ---------------------------------------------------------------------------
 // Placement validation
@@ -99,15 +103,15 @@ export function validatePlacement(
   }
 
   // ── RESOURCE_RULES-driven placement check ──
-  const requiredLayer = CATEGORY_REQUIRED_PARENT_LAYER.get(resource.category);
-  if (requiredLayer && parent.layer !== requiredLayer) {
-    const layerLabel = requiredLayer === 'subnet' ? 'Subnet' : 'Region container';
+  const allowedLayers = CATEGORY_ALLOWED_PARENT_LAYERS.get(resource.category);
+  if (allowedLayers && allowedLayers.size > 0 && !allowedLayers.has(parent.layer as LayerType)) {
+    const layerLabels = [...allowedLayers].map((l) => l === 'subnet' ? 'Subnet' : 'Region container');
     const cat = resource.category.charAt(0).toUpperCase() + resource.category.slice(1);
     return {
-      ruleId: `rule-${resource.category}-${requiredLayer}`,
+      ruleId: `rule-${resource.category}-parent`,
       severity: 'error',
-      message: `${cat} resource "${resource.name}" must be placed on a ${layerLabel}`,
-      suggestion: `Move the ${cat} resource to a ${layerLabel}`,
+      message: `${cat} resource "${resource.name}" must be placed on a ${layerLabels.join(' or ')}`,
+      suggestion: `Move the ${cat} resource to a ${layerLabels.join(' or ')}`,
       targetId: resource.id,
     };
   }
