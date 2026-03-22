@@ -44,8 +44,8 @@ interface UIState {
   // ── Panel visibility ──
   showBlockPalette: boolean;
   toggleBlockPalette: () => void;
-  showProperties: boolean;
-  toggleProperties: () => void;
+  showResourceGuide: boolean;
+  toggleResourceGuide: () => void;
   showValidation: boolean;
   toggleValidation: () => void;
   showCodePreview: boolean;
@@ -201,9 +201,9 @@ export const useUIStore = create<UIState>((set) => ({
   toggleBlockPalette: () =>
     set((s) => ({ showBlockPalette: !s.showBlockPalette })),
 
-  showProperties: true,
-  toggleProperties: () =>
-    set((s) => ({ showProperties: !s.showProperties })),
+  showResourceGuide: true,
+  toggleResourceGuide: () =>
+    set((s) => ({ showResourceGuide: !s.showResourceGuide })),
 
   showValidation: false,
   toggleValidation: () =>

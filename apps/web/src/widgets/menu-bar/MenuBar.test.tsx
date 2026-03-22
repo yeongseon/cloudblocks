@@ -259,7 +259,7 @@ describe('MenuBar', () => {
       toolMode: 'select',
       showValidation: false,
       showBlockPalette: true,
-      showProperties: true,
+      showResourceGuide: true,
       showCodePreview: false,
       showWorkspaceManager: false,
       showTemplateGallery: false,
@@ -721,8 +721,8 @@ describe('MenuBar', () => {
     render(<MenuBar />);
 
     const viewDropdown = await openMenu(user, 'View');
-    await user.click(within(viewDropdown).getByRole('button', { name: /Properties Panel/ }));
-    expect(useUIStore.getState().showProperties).toBe(false);
+    await user.click(within(viewDropdown).getByRole('button', { name: /Resource Guide/ }));
+    expect(useUIStore.getState().showResourceGuide).toBe(false);
   });
 
   it('disables diff toggle when diff mode is off and turns it off when enabled', async () => {

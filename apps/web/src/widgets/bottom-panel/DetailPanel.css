@@ -303,3 +303,88 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
+/* Dashboard state (workspace overview) */
+.detail-panel--dashboard .detail-header {
+  background-color: #00852B;
+  border-color: #00591D;
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.3);
+}
+.detail-panel--dashboard .detail-header-name,
+.detail-panel--dashboard .detail-header-icon {
+  color: #FFFFFF;
+}
+
+.detail-dashboard {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+}
+
+.detail-dashboard-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 56px;
+  padding: 6px 10px;
+  background: #FFD500;
+  border: 2px solid #D4B200;
+  border-radius: 8px;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.5), 0 2px 0 0 #D4B200;
+}
+
+.detail-dashboard-value {
+  font-size: 16px;
+  font-weight: 800;
+  color: #222222;
+  line-height: 1.2;
+}
+
+.detail-dashboard-label {
+  font-size: 9px;
+  font-weight: 800;
+  color: #665500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-dashboard-tip {
+  padding: 0 12px 12px;
+  font-size: 11px;
+  color: #665500;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* Encyclopedia sections (read-only educational content) */
+.detail-encyclopedia {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 2px dashed rgba(212, 178, 0, 0.3);
+}
+
+.detail-encyclopedia-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detail-encyclopedia-heading {
+  font-size: 10px;
+  font-weight: 800;
+  color: #665500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-encyclopedia-text {
+  margin: 0;
+  font-size: 11px;
+  color: #444444;
+  font-weight: 600;
+  line-height: 1.4;
+}

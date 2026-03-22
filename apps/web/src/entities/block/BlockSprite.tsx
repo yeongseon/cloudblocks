@@ -60,9 +60,8 @@ export const BlockSprite = memo(function BlockSprite({
   const addConnection = useArchitectureStore((s) => s.addConnection);
   const removeBlock = useArchitectureStore((s) => s.removeBlock);
   const moveBlockPosition = useArchitectureStore((s) => s.moveBlockPosition);
-  const blocks = useArchitectureStore((s) =>
-    s.workspace.architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource')
-  );
+  const nodes = useArchitectureStore((s) => s.workspace.architecture.nodes);
+  const blocks = nodes.filter((node): node is LeafNode => node.kind === 'resource');
   const externalActors = useArchitectureStore((s) => s.workspace.architecture.externalActors);
   const connections = useArchitectureStore((s) => s.workspace.architecture.connections);
   const diffMode = useUIStore((s) => s.diffMode);

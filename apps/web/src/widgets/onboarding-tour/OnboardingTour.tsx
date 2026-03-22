@@ -25,7 +25,7 @@ const STEPS: TourStep[] = [
     fallbackSelector: '.command-card',
     title: 'Command Panel',
     description:
-      'Context-sensitive action grid. Create resources, edit properties, or delete elements depending on your selection.',
+      'Context-sensitive action grid. Create resources, view properties, edit connections, or delete elements depending on your selection.',
   },
   {
     selector: '.resource-bar',
@@ -44,9 +44,9 @@ const STEPS: TourStep[] = [
   {
     selector: '.bottom-panel-detail',
     fallbackSelector: '.bottom-panel',
-    title: 'Inspector',
+    title: 'Resource Guide',
     description:
-      'View detailed properties of the selected plate or block. Shows metadata, placement, and configuration.',
+      'Learn about the selected plate or block. Shows educational content, placement rules, and connection guidance.',
   },
   {
     selector: '.validation-panel',
