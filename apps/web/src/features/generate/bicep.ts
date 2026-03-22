@@ -102,10 +102,69 @@ const BICEP_RESOURCE_TYPES: Record<string, string> = {
   azurerm_log_analytics_workspace: 'Microsoft.OperationalInsights/workspaces@2023-09-01',
   azurerm_user_assigned_identity: 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31',
   azurerm_monitor_workspace: 'Microsoft.Monitor/accounts@2023-04-03',
+  azurerm_public_ip: 'Microsoft.Network/publicIPAddresses@2023-05-01',
+  azurerm_network_interface: 'Microsoft.Network/networkInterfaces@2023-05-01',
 };
 
 function getBicepResourceType(terraformType: string): string {
   return BICEP_RESOURCE_TYPES[terraformType] ?? terraformType;
+}
+
+// ─── Implicit Companion Resources ───────────────────────────
+
+function generateImplicitBicepResources(
+  block: LeafNode,
+  resourceName: string,
+): string[] {
+  const sections: string[] = [];
+
+  const needsPip =
+    (block.category === 'compute' && block.subtype === 'vm') ||
+    (block.category === 'edge' && block.subtype === 'firewall');
+
+  const needsNic = block.category === 'compute' && block.subtype === 'vm';
+
+  if (needsPip) {
+    const pipName = `${resourceName}Pip`;
+    const pipType = getBicepResourceType('azurerm_public_ip');
+    sections.push(`resource ${pipName} '${pipType}' = {`);
+    sections.push(`  name: '\${projectName}-${pipName}'`);
+    sections.push(`  location: location`);
+    sections.push(`  sku: {`);
+    sections.push(`    name: 'Standard'`);
+    sections.push(`  }`);
+    sections.push(`  properties: {`);
+    sections.push(`    publicIPAllocationMethod: 'Static'`);
+    sections.push(`  }`);
+    sections.push(`}`);
+    sections.push('');
+  }
+
+  if (needsNic) {
+    const nicName = `${resourceName}Nic`;
+    const pipName = `${resourceName}Pip`;
+    const nicType = getBicepResourceType('azurerm_network_interface');
+    sections.push(`resource ${nicName} '${nicType}' = {`);
+    sections.push(`  name: '\${projectName}-${nicName}'`);
+    sections.push(`  location: location`);
+    sections.push(`  properties: {`);
+    sections.push(`    ipConfigurations: [`);
+    sections.push(`      {`);
+    sections.push(`        name: 'internal'`);
+    sections.push(`        properties: {`);
+    sections.push(`          privateIPAllocationMethod: 'Dynamic'`);
+    sections.push(`          publicIPAddress: {`);
+    sections.push(`            id: ${pipName}.id`);
+    sections.push(`          }`);
+    sections.push(`        }`);
+    sections.push(`      }`);
+    sections.push(`    ]`);
+    sections.push(`  }`);
+    sections.push(`}`);
+    sections.push('');
+  }
+
+  return sections;
 }
 
 // ─── Generate Stage ─────────────────────────────────────────
@@ -297,6 +356,12 @@ export function generateMainBicep(
       block.category,
       block.subtype,
     )!;
+
+    const implicitSections = generateImplicitBicepResources(block, resName);
+    for (const section of implicitSections) {
+      sections.push(section);
+    }
+
     sections.push(generateBlockResource(block, resName, mapping));
     sections.push('');
   }

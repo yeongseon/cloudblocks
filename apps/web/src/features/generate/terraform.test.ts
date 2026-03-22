@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ArchitectureModel, Block, Connection, Plate } from '@cloudblocks/schema';
-import { azureProvider } from './provider';
+import { azureProvider, azureProviderDefinition } from './provider';
 import {
   generateMainTf,
   generateOutputsTf,
@@ -300,6 +300,64 @@ describe('generateMainTf', () => {
 
     expect(hcl).toContain('resource "azurerm_service_plan" "main"');
     expect(hcl).toContain('resource "azurerm_linux_web_app"');
+  });
+
+  it('generates implicit PIP + NIC for VM blocks', () => {
+    const subtypeMappings = azureProviderDefinition.subtypeBlockMappings;
+    const model = createTestModel({
+      blocks: [createBlock({ id: 'vm1', name: 'WebServer', category: 'compute', subtype: 'vm' })],
+    });
+
+    const normalized = normalize(model, azureProvider, subtypeMappings);
+    const hcl = generateMainTf(normalized, azureProvider, defaultOptions, subtypeMappings);
+
+    expect(hcl).toContain('resource "azurerm_public_ip" "vm_webserver_pip"');
+    expect(hcl).toContain('allocation_method   = "Static"');
+    expect(hcl).toContain('resource "azurerm_network_interface" "vm_webserver_nic"');
+    expect(hcl).toContain('public_ip_address_id          = azurerm_public_ip.vm_webserver_pip.id');
+    expect(hcl).toContain('resource "azurerm_linux_virtual_machine" "vm_webserver"');
+
+    const pipIndex = hcl.indexOf('azurerm_public_ip');
+    const nicIndex = hcl.indexOf('azurerm_network_interface');
+    const vmIndex = hcl.indexOf('azurerm_linux_virtual_machine');
+    expect(pipIndex).toBeLessThan(nicIndex);
+    expect(nicIndex).toBeLessThan(vmIndex);
+  });
+
+  it('generates implicit PIP for firewall blocks but no NIC', () => {
+    const model = createTestModel({
+      blocks: [createBlock({ id: 'fw1', name: 'MainFirewall', category: 'edge', subtype: 'firewall' })],
+    });
+
+    const normalized = normalize(model, azureProvider);
+    const hcl = generateMainTf(normalized, azureProvider, defaultOptions);
+
+    expect(hcl).toContain('resource "azurerm_public_ip" "appgw_mainfirewall_pip"');
+    expect(hcl).not.toContain('azurerm_network_interface');
+  });
+
+  it('does not generate implicit resources for internal-lb blocks', () => {
+    const model = createTestModel({
+      blocks: [createBlock({ id: 'lb1', name: 'InternalLB', category: 'edge', subtype: 'internal-lb' })],
+    });
+
+    const normalized = normalize(model, azureProvider);
+    const hcl = generateMainTf(normalized, azureProvider, defaultOptions);
+
+    expect(hcl).not.toContain('azurerm_public_ip');
+    expect(hcl).not.toContain('azurerm_network_interface');
+  });
+
+  it('does not generate implicit resources for regular compute blocks without subtype', () => {
+    const model = createTestModel({
+      blocks: [createBlock({ id: 'web1', name: 'App', category: 'compute' })],
+    });
+
+    const normalized = normalize(model, azureProvider);
+    const hcl = generateMainTf(normalized, azureProvider, defaultOptions);
+
+    expect(hcl).not.toContain('azurerm_public_ip');
+    expect(hcl).not.toContain('azurerm_network_interface');
   });
 });
 
