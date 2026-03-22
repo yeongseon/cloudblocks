@@ -1,4 +1,6 @@
-import type { PlateType, SubnetAccess } from '@cloudblocks/schema';
+import type { LayerType, SubnetAccess } from '@cloudblocks/schema';
+
+type PlateLayerType = Exclude<LayerType, 'resource'>;
 
 export interface PlateFaceColors {
   topFaceColor: string;
@@ -8,7 +10,7 @@ export interface PlateFaceColors {
 }
 
 export function getPlateFaceColors(plate: {
-  type: PlateType;
+  type: PlateLayerType;
   subnetAccess?: SubnetAccess;
 }): PlateFaceColors {
   if (plate.type === 'global') {

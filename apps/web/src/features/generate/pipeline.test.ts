@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
 import type { GeneratedOutput, GeneratedFile, GenerationOptions, GeneratorPlugin } from './types';
-import { GenerationError, generateTerraform, terraformPipeline, generateCode } from './pipeline';
+import { GenerationError, generateCode } from './pipeline';
 import { registerGenerator } from './registry';
 
 describe('pipeline', () => {
@@ -74,7 +74,7 @@ describe('pipeline', () => {
     });
   });
 
-  describe('generateTerraform', () => {
+  describe('generateCode (terraform)', () => {
     const validModel: ArchitectureModel = {
       id: 'arch-1',
       name: 'Test',
@@ -122,7 +122,7 @@ describe('pipeline', () => {
     };
 
     it('should return 3 files (main.tf, variables.tf, outputs.tf)', () => {
-      const result = generateTerraform(validModel, validOptions);
+      const result = generateCode(validModel, { ...validOptions, generator: 'terraform' });
       expect(result.files).toHaveLength(3);
       expect(result.files.map((f) => f.path)).toEqual([
         'main.tf',
@@ -132,34 +132,34 @@ describe('pipeline', () => {
     });
 
     it('should have all files with language "hcl"', () => {
-      const result = generateTerraform(validModel, validOptions);
+      const result = generateCode(validModel, { ...validOptions, generator: 'terraform' });
       result.files.forEach((file) => {
         expect(file.language).toBe('hcl');
       });
     });
 
-    it('should set metadata.generator to "cloudblocks"', () => {
-      const result = generateTerraform(validModel, validOptions);
-      expect(result.metadata.generator).toBe('cloudblocks');
+    it('should set metadata.generator to "terraform"', () => {
+      const result = generateCode(validModel, { ...validOptions, generator: 'terraform' });
+      expect(result.metadata.generator).toBe('terraform');
     });
 
     it('should set metadata.version to "1.0.0"', () => {
-      const result = generateTerraform(validModel, validOptions);
+      const result = generateCode(validModel, { ...validOptions, generator: 'terraform' });
       expect(result.metadata.version).toBe('1.0.0');
     });
 
     it('should set metadata.provider from options', () => {
-      const result = generateTerraform(validModel, validOptions);
+      const result = generateCode(validModel, { ...validOptions, generator: 'terraform' });
       expect(result.metadata.provider).toBe('azure');
     });
 
     it('should set metadata.generatedAt to current time in ISO format', () => {
-      const result = generateTerraform(validModel, validOptions);
+      const result = generateCode(validModel, { ...validOptions, generator: 'terraform' });
       expect(result.metadata.generatedAt).toBe('2025-01-01T00:00:00.000Z');
     });
 
     it('should have content in all files', () => {
-      const result = generateTerraform(validModel, validOptions);
+      const result = generateCode(validModel, { ...validOptions, generator: 'terraform' });
       result.files.forEach((file) => {
         expect(file.content).toBeTruthy();
         expect(typeof file.content).toBe('string');
@@ -206,7 +206,7 @@ describe('pipeline', () => {
         updatedAt: '2025-01-01T00:00:00Z',
       };
 
-      expect(() => generateTerraform(invalidModel, validOptions)).toThrow(
+      expect(() => generateCode(invalidModel, { ...validOptions, generator: 'terraform' })).toThrow(
         GenerationError
       );
     });
@@ -216,77 +216,12 @@ describe('pipeline', () => {
         '{"provider":"oracle-cloud","mode":"draft","projectName":"test","region":"eastus"}'
       ) as GenerationOptions;
 
-      expect(() => generateTerraform(validModel, badOptions)).toThrow(
+      expect(() => generateCode(validModel, { ...badOptions, generator: 'terraform' })).toThrow(
         GenerationError
       );
-      expect(() => generateTerraform(validModel, badOptions)).toThrow(
+      expect(() => generateCode(validModel, { ...badOptions, generator: 'terraform' })).toThrow(
         /Unknown provider/
       );
-    });
-  });
-
-  describe('terraformPipeline', () => {
-    it('should export a pipeline object', () => {
-      expect(terraformPipeline).toBeDefined();
-      expect(terraformPipeline).toHaveProperty('generate');
-    });
-
-    it('should have generate method that is a function', () => {
-      expect(typeof terraformPipeline.generate).toBe('function');
-    });
-
-    it('generate method should be the same as generateTerraform', () => {
-      const validModel: ArchitectureModel = {
-        id: 'arch-1',
-        name: 'Test',
-        version: '1',
-        nodes: [
-          createContainer({
-            id: 'net-1',
-            name: 'VNet',
-            layer: 'region',
-            resourceType: 'virtual_network',
-            parentId: null,
-            position: { x: 0, y: 0, z: 0 },
-            size: { width: 12, height: 0.3, depth: 10 },
-          }),
-          createContainer({
-            id: 'sub-1',
-            name: 'Public',
-            layer: 'subnet',
-            resourceType: 'subnet',
-            subnetAccess: 'public',
-            parentId: 'net-1',
-            position: { x: 0, y: 0.3, z: 0 },
-            size: { width: 5, height: 0.2, depth: 8 },
-          }),
-          createResource({
-            id: 'blk-1',
-            name: 'WebApp',
-            category: 'compute',
-            resourceType: 'web_compute',
-            parentId: 'sub-1',
-            position: { x: 0, y: 0.5, z: 0 },
-          }),
-        ],
-        connections: [],
-        externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
-        createdAt: '2025-01-01T00:00:00Z',
-        updatedAt: '2025-01-01T00:00:00Z',
-      };
-
-      const validOptions: GenerationOptions = {
-        provider: 'azure',
-        mode: 'draft',
-        projectName: 'test',
-        region: 'eastus',
-      };
-
-      const pipelineResult = terraformPipeline.generate(validModel, validOptions);
-      const functionResult = generateTerraform(validModel, validOptions);
-
-      expect(pipelineResult.files).toEqual(functionResult.files);
-      expect(pipelineResult.metadata).toEqual(functionResult.metadata);
     });
   });
 

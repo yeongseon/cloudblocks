@@ -4,7 +4,7 @@ import { render } from '@testing-library/react';
 import { BlockSvg } from '../BlockSvg';
 import { getBlockFaceColors } from '../blockFaceColors';
 import { getBlockDimensions, CATEGORY_TIER_MAP, TIER_DIMENSIONS } from '../../../shared/types/visualProfile';
-import type { BlockCategory, BlockRole, ProviderType } from '@cloudblocks/schema';
+import type { BlockRole, ProviderType, ResourceCategory } from '@cloudblocks/schema';
 import { BLOCK_PADDING, TILE_H, TILE_W, TILE_Z } from '../../../shared/tokens/designTokens';
 
 import { BLOCK_SHORT_NAMES } from '../../../shared/types/index';
@@ -114,7 +114,7 @@ describe('BlockSvg subtype colors', () => {
 // ─── CU-based Dimension Tests ─────────────────────────────────
 
 describe('BlockSvg CU-based dimensions', () => {
-  const ALL_CATEGORIES: BlockCategory[] = ['compute', 'data', 'edge', 'messaging', 'operations', 'security'];
+  const ALL_CATEGORIES: ResourceCategory[] = ['compute', 'data', 'edge', 'messaging', 'operations', 'security'];
 
   it.each(ALL_CATEGORIES)(
     'renders %s with correct viewBox from CU dimensions',
@@ -240,7 +240,7 @@ describe('BlockSvg stud grid', () => {
   });
 
   it('stud count matches CU width×depth for all categories', () => {
-    const categories: BlockCategory[] = ['compute', 'data', 'edge', 'messaging', 'operations', 'security'];
+    const categories: ResourceCategory[] = ['compute', 'data', 'edge', 'messaging', 'operations', 'security'];
 
     categories.forEach((category) => {
       const cu = getBlockDimensions(category);
@@ -325,7 +325,7 @@ describe('BlockSvg SVG structure', () => {
 
 describe('BlockSvg category-tier mapping consistency', () => {
   it('all categories produce valid CU dimensions (positive integers)', () => {
-    const categories: BlockCategory[] = ['compute', 'data', 'edge', 'messaging', 'operations', 'security'];
+    const categories: ResourceCategory[] = ['compute', 'data', 'edge', 'messaging', 'operations', 'security'];
 
     categories.forEach((category) => {
       const cu = getBlockDimensions(category);

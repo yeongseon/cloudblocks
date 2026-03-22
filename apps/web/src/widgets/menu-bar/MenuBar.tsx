@@ -65,8 +65,7 @@ export function MenuBar() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
 
-  const removePlate = useArchitectureStore((s) => s.removePlate);
-  const removeBlock = useArchitectureStore((s) => s.removeBlock);
+  const removeNode = useArchitectureStore((s) => s.removeNode);
   const removeConnection = useArchitectureStore((s) => s.removeConnection);
   
   const validate = useArchitectureStore((s) => s.validate);
@@ -118,10 +117,10 @@ export function MenuBar() {
   const handleDeleteSelection = () => {
     if (!selectedId) return;
     if (plates.some((p) => p.id === selectedId)) {
-      removePlate(selectedId);
+      removeNode(selectedId);
       playSound('delete');
     } else if (blocks.some((b) => b.id === selectedId)) {
-      removeBlock(selectedId);
+      removeNode(selectedId);
       playSound('delete');
     } else if (architecture.connections.some((c) => c.id === selectedId)) {
       removeConnection(selectedId);

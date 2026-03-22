@@ -1,9 +1,7 @@
-import type { Block, Plate } from '@cloudblocks/schema';
-
 declare module '@cloudblocks/schema' {
   interface ArchitectureModel {
-    plates?: Plate[];
-    blocks?: Block[];
+    plates?: ContainerNode[];
+    blocks?: LeafNode[];
   }
 
   interface ContainerNode {

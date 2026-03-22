@@ -1,5 +1,5 @@
 import { memo, useState } from 'react';
-import type { Connection, Block, Plate, ExternalActor } from '@cloudblocks/schema';
+import type { Connection, ContainerNode, ExternalActor, LeafNode } from '@cloudblocks/schema';
 import { getDiffState } from '../../features/diff/engine';
 import { getEndpointWorldPosition } from '../../shared/utils/position';
 import { worldToScreen } from '../../shared/utils/isometric';
@@ -9,8 +9,8 @@ import { CONNECTION_VISUAL_STYLES } from '../validation/connection';
 
 interface ConnectionPathProps {
   connection: Connection;
-  blocks: Block[];
-  plates: Plate[];
+  blocks: LeafNode[];
+  plates: ContainerNode[];
   externalActors: ExternalActor[];
   originX: number;
   originY: number;

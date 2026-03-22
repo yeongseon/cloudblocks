@@ -7,7 +7,7 @@ import {
 } from '../silhouettes';
 import { BLOCK_VISUAL_PROFILES } from '../../../shared/types/index';
 import type { BrickSilhouette, BlockTier } from '../../../shared/types/index';
-import type { BlockCategory } from '@cloudblocks/schema';
+import type { ResourceCategory } from '@cloudblocks/schema';
 import type { BlockDimensionsCU } from '../../../shared/types/visualProfile';
 import {
   CATEGORY_TIER_MAP,
@@ -21,7 +21,7 @@ import {
   TILE_Z,
 } from '../../../shared/tokens/designTokens';
 
-const blockCategories: BlockCategory[] = [
+const blockCategories: ResourceCategory[] = [
   'compute',
   'data',
   'edge',

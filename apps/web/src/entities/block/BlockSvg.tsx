@@ -1,5 +1,5 @@
 import { memo, useId, useMemo } from 'react';
-import type { BlockCategory, BlockRole, ProviderType } from '@cloudblocks/schema';
+import type { BlockRole, ProviderType, ResourceCategory } from '@cloudblocks/schema';
 import { BLOCK_SHORT_NAMES, ROLE_VISUAL_INDICATORS } from '../../shared/types/index';
 import { getBlockIconUrl } from '../../shared/utils/iconResolver';
 import { getBlockDimensions, getBlockVisualProfile } from '../../shared/types/visualProfile';
@@ -17,7 +17,7 @@ import { getBlockFaceColors, getBlockStudColors } from './blockFaceColors';
 import { cuToSilhouetteDimensions, getSilhouetteFromCU } from './silhouettes';
 
 interface BlockSvgProps {
-  category: BlockCategory;
+  category: ResourceCategory;
   provider?: ProviderType;
   subtype?: string;
   name?: string;              // user-given resource name (overrides shortName on left wall)

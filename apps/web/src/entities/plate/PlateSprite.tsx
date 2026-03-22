@@ -34,7 +34,7 @@ export const PlateSprite = memo(function PlateSprite({
   const draggedBlockCategory = useUIStore((s) => s.draggedBlockCategory);
   const diffMode = useUIStore((s) => s.diffMode);
   const diffDelta: DiffDelta | null = useUIStore((s) => s.diffDelta);
-  const movePlatePosition = useArchitectureStore((s) => s.movePlatePosition);
+  const moveNodePosition = useArchitectureStore((s) => s.moveNodePosition);
   const isSelected = selectedId === plate.id;
   const isDragActive = draggedBlockCategory !== null;
   const isValidDropTarget = isDragActive && canPlaceBlock(draggedBlockCategory, plate);
@@ -79,7 +79,7 @@ export const PlateSprite = memo(function PlateSprite({
           const dyScreen = event.dy / dragZoomRef.current;
           const { dWorldX, dWorldZ } = screenDeltaToWorld(dxScreen, dyScreen);
 
-          movePlatePosition(plate.id, dWorldX, dWorldZ);
+          moveNodePosition(plate.id, dWorldX, dWorldZ);
         },
         end() {
           const imgEl = plateRef.current?.querySelector('.plate-img') as HTMLElement | null;
@@ -112,7 +112,7 @@ export const PlateSprite = memo(function PlateSprite({
               const deltaZ = snappedPosition.z - currentPlate.position.z;
 
               if (deltaX !== 0 || deltaZ !== 0) {
-                movePlatePosition(plate.id, deltaX, deltaZ);
+                moveNodePosition(plate.id, deltaX, deltaZ);
 
                 const { isSoundMuted } = useUIStore.getState();
                 if (!isSoundMuted) {
@@ -141,7 +141,7 @@ export const PlateSprite = memo(function PlateSprite({
       el.querySelector('.plate-img')?.classList.remove('is-dropping');
       interactable.unset();
     };
-  }, [plate.id, movePlatePosition]);
+  }, [plate.id, moveNodePosition]);
 
   const handleClick = (e: React.MouseEvent) => {
     if (isDragging.current) {

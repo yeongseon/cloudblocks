@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ArchitectureModel, Block, Connection, Plate } from '@cloudblocks/schema';
-import { azureProvider, azureProviderDefinition } from './provider';
+import type { ArchitectureModel, Connection, ContainerNode, LeafNode } from '@cloudblocks/schema';
+import { azureProviderDefinition } from './provider';
 import {
   generateMainTf,
   generateOutputsTf,
@@ -20,7 +20,7 @@ import {
 const basePosition = { x: 0, y: 0, z: 0 };
 const baseSize = { width: 1, height: 1, depth: 1 };
 
-function createPlate(overrides: LegacyPlateOverrides): Plate {
+function createPlate(overrides: LegacyPlateOverrides): ContainerNode {
   return makeTestPlate({
     id: 'plate-default',
     name: 'Default Plate',
@@ -33,7 +33,7 @@ function createPlate(overrides: LegacyPlateOverrides): Plate {
   });
 }
 
-function createBlock(overrides: LegacyBlockOverrides): Block {
+function createBlock(overrides: LegacyBlockOverrides): LeafNode {
   return makeTestBlock({
     id: 'block-default',
     name: 'Default Block',
@@ -96,7 +96,7 @@ describe('normalize', () => {
       ],
     });
 
-    const normalized = normalize(model, azureProvider);
+    const normalized = normalize(model, azureProviderDefinition);
 
     expect(normalized.resourceNames.get('net-1')).toBe('vnet_main_net');
     expect(normalized.resourceNames.get('net-2')).toBe('vnet_main_net_2');
@@ -111,7 +111,7 @@ describe('normalize', () => {
       blocks: [createBlock({ id: 'web-1', name: 'My App ! 01', category: 'compute' })],
     });
 
-    const normalized = normalize(model, azureProvider);
+    const normalized = normalize(model, azureProviderDefinition);
 
     expect(normalized.resourceNames.get('net-1')).toBe('vnet_core_network');
     expect(normalized.resourceNames.get('web-1')).toBe('webapp_my_app_01');
@@ -142,8 +142,8 @@ describe('generateMainTf', () => {
       ],
     });
 
-    const normalized = normalize(model, azureProvider);
-    const hcl = generateMainTf(normalized, azureProvider, defaultOptions);
+    const normalized = normalize(model, azureProviderDefinition);
+    const hcl = generateMainTf(normalized, azureProviderDefinition, defaultOptions);
 
     expect(hcl).toContain('terraform {');
     expect(hcl).toContain('required_providers {');
@@ -165,13 +165,13 @@ describe('generateMainTf', () => {
     });
 
     const withComputeHcl = generateMainTf(
-      normalize(withCompute, azureProvider),
-      azureProvider,
+      normalize(withCompute, azureProviderDefinition),
+      azureProviderDefinition,
       defaultOptions
     );
     const withoutComputeHcl = generateMainTf(
-      normalize(withoutCompute, azureProvider),
-      azureProvider,
+      normalize(withoutCompute, azureProviderDefinition),
+      azureProviderDefinition,
       defaultOptions
     );
 
@@ -193,7 +193,7 @@ describe('generateMainTf', () => {
       ],
     });
 
-    const hcl = generateMainTf(normalize(model, azureProvider), azureProvider, defaultOptions);
+    const hcl = generateMainTf(normalize(model, azureProviderDefinition), azureProviderDefinition, defaultOptions);
     const networkIndex = hcl.indexOf('resource "azurerm_virtual_network" "vnet_app_network"');
     const subnetIndex = hcl.indexOf('resource "azurerm_subnet" "subnet_app_subnet"');
 
@@ -216,7 +216,7 @@ describe('generateMainTf', () => {
       ],
     });
 
-    const hcl = generateMainTf(normalize(model, azureProvider), azureProvider, defaultOptions);
+    const hcl = generateMainTf(normalize(model, azureProviderDefinition), azureProviderDefinition, defaultOptions);
 
     expect(hcl).toContain('virtual_network_name = azurerm_virtual_network.vnet_network-a.name');
     expect(hcl).toContain('address_prefixes     = ["10.0.1.0/24"]');
@@ -233,7 +233,7 @@ describe('generateMainTf', () => {
       ],
     });
 
-    const hcl = generateMainTf(normalize(model, azureProvider), azureProvider, defaultOptions);
+    const hcl = generateMainTf(normalize(model, azureProviderDefinition), azureProviderDefinition, defaultOptions);
 
     expect(hcl).toContain('service_plan_id     = azurerm_service_plan.main.id');
     expect(hcl).toContain('administrator_login    = var.db_admin_username');
@@ -254,13 +254,13 @@ describe('generateMainTf', () => {
     });
 
     const hclWithConnections = generateMainTf(
-      normalize(withConnections, azureProvider),
-      azureProvider,
+      normalize(withConnections, azureProviderDefinition),
+      azureProviderDefinition,
       defaultOptions
     );
     const hclWithoutConnections = generateMainTf(
-      normalize(withoutConnections, azureProvider),
-      azureProvider,
+      normalize(withoutConnections, azureProviderDefinition),
+      azureProviderDefinition,
       defaultOptions
     );
 
@@ -282,7 +282,7 @@ describe('generateMainTf', () => {
       ],
     });
 
-    const hcl = generateMainTf(normalize(model, azureProvider), azureProvider, defaultOptions);
+    const hcl = generateMainTf(normalize(model, azureProviderDefinition), azureProviderDefinition, defaultOptions);
 
     expect(hcl).toContain('resource "azurerm_linux_web_app"');
     expect(hcl).toContain('resource "azurerm_storage_queue"');
@@ -296,20 +296,19 @@ describe('generateMainTf', () => {
       blocks: [createBlock({ id: 'fn1', name: 'Handler', category: 'compute', placementId: 'net1' })],
     });
 
-    const hcl = generateMainTf(normalize(model, azureProvider), azureProvider, defaultOptions);
+    const hcl = generateMainTf(normalize(model, azureProviderDefinition), azureProviderDefinition, defaultOptions);
 
     expect(hcl).toContain('resource "azurerm_service_plan" "main"');
     expect(hcl).toContain('resource "azurerm_linux_web_app"');
   });
 
   it('generates implicit PIP + NIC for VM blocks', () => {
-    const subtypeMappings = azureProviderDefinition.subtypeBlockMappings;
     const model = createTestModel({
       blocks: [createBlock({ id: 'vm1', name: 'WebServer', category: 'compute', subtype: 'vm' })],
     });
 
-    const normalized = normalize(model, azureProvider, subtypeMappings);
-    const hcl = generateMainTf(normalized, azureProvider, defaultOptions, subtypeMappings);
+    const normalized = normalize(model, azureProviderDefinition);
+    const hcl = generateMainTf(normalized, azureProviderDefinition, defaultOptions);
 
     expect(hcl).toContain('resource "azurerm_public_ip" "vm_webserver_pip"');
     expect(hcl).toContain('allocation_method   = "Static"');
@@ -329,8 +328,8 @@ describe('generateMainTf', () => {
       blocks: [createBlock({ id: 'fw1', name: 'MainFirewall', category: 'edge', subtype: 'firewall' })],
     });
 
-    const normalized = normalize(model, azureProvider);
-    const hcl = generateMainTf(normalized, azureProvider, defaultOptions);
+    const normalized = normalize(model, azureProviderDefinition);
+    const hcl = generateMainTf(normalized, azureProviderDefinition, defaultOptions);
 
     expect(hcl).toContain('resource "azurerm_public_ip" "appgw_mainfirewall_pip"');
     expect(hcl).not.toContain('azurerm_network_interface');
@@ -341,8 +340,8 @@ describe('generateMainTf', () => {
       blocks: [createBlock({ id: 'lb1', name: 'InternalLB', category: 'edge', subtype: 'internal-lb' })],
     });
 
-    const normalized = normalize(model, azureProvider);
-    const hcl = generateMainTf(normalized, azureProvider, defaultOptions);
+    const normalized = normalize(model, azureProviderDefinition);
+    const hcl = generateMainTf(normalized, azureProviderDefinition, defaultOptions);
 
     expect(hcl).not.toContain('azurerm_public_ip');
     expect(hcl).not.toContain('azurerm_network_interface');
@@ -353,8 +352,8 @@ describe('generateMainTf', () => {
       blocks: [createBlock({ id: 'web1', name: 'App', category: 'compute' })],
     });
 
-    const normalized = normalize(model, azureProvider);
-    const hcl = generateMainTf(normalized, azureProvider, defaultOptions);
+    const normalized = normalize(model, azureProviderDefinition);
+    const hcl = generateMainTf(normalized, azureProviderDefinition, defaultOptions);
 
     expect(hcl).not.toContain('azurerm_public_ip');
     expect(hcl).not.toContain('azurerm_network_interface');
@@ -390,8 +389,8 @@ describe('generateOutputsTf', () => {
       ],
     });
 
-    const normalized = normalize(model, azureProvider);
-    const hcl = generateOutputsTf(normalized, azureProvider);
+    const normalized = normalize(model, azureProviderDefinition);
+    const hcl = generateOutputsTf(normalized, azureProviderDefinition);
 
     expect(hcl).toContain('output "resource_group_name" {');
     expect(hcl).toContain('output "webapp_compute_id" {');

@@ -2,9 +2,8 @@ import type { ArchitectureModel, Connection, ContainerNode, LeafNode } from '@cl
 import type {
   GenerationOptions,
   NormalizedModel,
-  ProviderAdapter,
+  ProviderDefinition,
   ResourceMapping,
-  SubtypeResourceMap,
 } from './types';
 import { resolveBlockMapping, sanitizeIaCValue } from './types';
 
@@ -47,8 +46,7 @@ function getPlateType(plate: ContainerNode): 'global' | 'edge' | 'region' | 'zon
 
 export function normalize(
   architecture: ArchitectureModel,
-  provider: ProviderAdapter,
-  subtypeBlockMappings?: SubtypeResourceMap,
+  provider: ProviderDefinition,
 ): NormalizedModel {
   const containers = architecture.nodes.filter((n): n is ContainerNode => n.kind === 'container');
   const resources = architecture.nodes.filter((n): n is LeafNode => n.kind === 'resource');
@@ -77,7 +75,7 @@ export function normalize(
   for (const block of resources) {
     const mapping = resolveBlockMapping(
       provider.blockMappings,
-      subtypeBlockMappings,
+      provider.subtypeBlockMappings,
       block.category,
       block.subtype,
     )!;
@@ -242,9 +240,8 @@ function generateConnectionComment(
 
 export function generateMainTf(
   normalized: NormalizedModel,
-  provider: ProviderAdapter,
+  provider: ProviderDefinition,
   options: GenerationOptions,
-  subtypeBlockMappings?: SubtypeResourceMap,
 ): string {
   const { architecture, resourceNames } = normalized;
   const containers = architecture.nodes.filter((n): n is ContainerNode => n.kind === 'container');
@@ -258,11 +255,11 @@ export function generateMainTf(
   sections.push('');
 
   // Required providers
-  sections.push(provider.requiredProviders());
+  sections.push(provider.generators.terraform.requiredProviders());
   sections.push('');
 
   // Provider block
-  sections.push(provider.providerBlock(options.region));
+  sections.push(provider.generators.terraform.providerBlock(options.region));
   sections.push('');
 
   // Resource group
@@ -315,7 +312,7 @@ export function generateMainTf(
     const resName = resourceNames.get(block.id)!;
     const mapping = resolveBlockMapping(
       provider.blockMappings,
-      subtypeBlockMappings,
+      provider.subtypeBlockMappings,
       block.category,
       block.subtype,
     )!;
@@ -378,8 +375,7 @@ export function generateVariablesTf(options: GenerationOptions): string {
 
 export function generateOutputsTf(
   normalized: NormalizedModel,
-  provider: ProviderAdapter,
-  subtypeBlockMappings?: SubtypeResourceMap,
+  provider: ProviderDefinition,
 ): string {
   const { architecture, resourceNames } = normalized;
   const resources = architecture.nodes.filter((n): n is LeafNode => n.kind === 'resource');
@@ -396,7 +392,7 @@ export function generateOutputsTf(
     const resName = resourceNames.get(block.id)!;
     const mapping = resolveBlockMapping(
       provider.blockMappings,
-      subtypeBlockMappings,
+      provider.subtypeBlockMappings,
       block.category,
       block.subtype,
     )!;

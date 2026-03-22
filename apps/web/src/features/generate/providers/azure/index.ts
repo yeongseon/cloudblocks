@@ -1,4 +1,4 @@
-import type { ProviderAdapter, ProviderDefinition, SubtypeResourceMap } from '../../types';
+import type { ProviderDefinition, SubtypeResourceMap } from '../../types';
 
 const azureSubtypeBlockMappings: SubtypeResourceMap = {
   compute: {
@@ -172,17 +172,4 @@ export const azureProviderDefinition: ProviderDefinition = {
     },
   },
   subtypeBlockMappings: azureSubtypeBlockMappings,
-};
-
-/**
- * Legacy ProviderAdapter — wraps ProviderDefinition for backward compat with terraform.ts.
- * @deprecated Prefer using ProviderDefinition directly via getProviderDefinition().
- */
-export const azureProvider: ProviderAdapter = {
-  name: azureProviderDefinition.name,
-  displayName: azureProviderDefinition.displayName,
-  blockMappings: azureProviderDefinition.blockMappings,
-  plateMappings: azureProviderDefinition.plateMappings,
-  providerBlock: azureProviderDefinition.generators.terraform.providerBlock,
-  requiredProviders: azureProviderDefinition.generators.terraform.requiredProviders,
 };

@@ -131,8 +131,8 @@ const internetActor: ExternalActor = {
 
 describe('BlockSprite', () => {
   const addConnectionMock = vi.fn();
-  const removeBlockMock = vi.fn();
-  const moveBlockPositionMock = vi.fn();
+  const removeNodeMock = vi.fn();
+  const moveNodePositionMock = vi.fn();
   const initialUIState = useUIStore.getState();
   const initialArchitectureState = useArchitectureStore.getState();
 
@@ -146,8 +146,8 @@ describe('BlockSprite', () => {
     useUIStore.setState({ selectedId: null, toolMode: 'select', connectionSource: null });
     useArchitectureStore.setState({
       addConnection: addConnectionMock,
-      removeBlock: removeBlockMock,
-      moveBlockPosition: moveBlockPositionMock,
+      removeNode: removeNodeMock,
+      moveNodePosition: moveNodePositionMock,
     });
   });
 
@@ -201,7 +201,7 @@ describe('BlockSprite', () => {
     render(<BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
     await user.click(screen.getByRole('button', { name: 'Block: storage-block' }));
 
-    expect(removeBlockMock).toHaveBeenCalledWith('block-delete');
+    expect(removeNodeMock).toHaveBeenCalledWith('block-delete');
   });
 
   it('click in connect mode sets source then creates connection on second click', async () => {
@@ -323,7 +323,7 @@ describe('BlockSprite', () => {
     draggableConfig.listeners.start({ target });
     draggableConfig.listeners.move({ dx: 20, dy: 10, target });
 
-    expect(moveBlockPositionMock).toHaveBeenCalledWith('block-drag-move', 0.3125, 0);
+    expect(moveNodePositionMock).toHaveBeenCalledWith('block-drag-move', 0.3125, 0);
   });
 
   it('caches zoom value at drag start and reuses it during move', () => {
@@ -349,7 +349,7 @@ describe('BlockSprite', () => {
 
     draggableConfig.listeners.move({ dx: 20, dy: 10, target });
 
-    expect(moveBlockPositionMock).toHaveBeenCalledWith('block-zoom-cache', 0.3125, 0);
+    expect(moveNodePositionMock).toHaveBeenCalledWith('block-zoom-cache', 0.3125, 0);
   });
 
   it('ignores click while dragging', async () => {
@@ -508,7 +508,7 @@ describe('BlockSprite', () => {
     const snapSpy = vi.spyOn(isometric, 'snapToGrid').mockReturnValue({ x: 2, z: 1 });
     useUIStore.setState({ isSoundMuted: false });
     useArchitectureStore.setState({
-      moveBlockPosition: moveBlockPositionMock,
+      moveNodePosition: moveNodePositionMock,
       workspace: {
         ...useArchitectureStore.getState().workspace,
         architecture: {
@@ -531,7 +531,7 @@ describe('BlockSprite', () => {
     draggableConfig.listeners.move({ dx: 2, dy: 2, target });
     draggableConfig.listeners.end();
 
-    expect(moveBlockPositionMock).toHaveBeenCalledWith('block-snap', 0.8, 0.6);
+    expect(moveNodePositionMock).toHaveBeenCalledWith('block-snap', 0.8, 0.6);
     expect(playSoundSpy).toHaveBeenCalledWith('block-snap');
     snapSpy.mockRestore();
     playSoundSpy.mockRestore();
@@ -543,7 +543,7 @@ describe('BlockSprite', () => {
     const snapSpy = vi.spyOn(isometric, 'snapToGrid').mockReturnValue({ x: 1, z: 1 });
     useUIStore.setState({ isSoundMuted: true });
     useArchitectureStore.setState({
-      moveBlockPosition: moveBlockPositionMock,
+      moveNodePosition: moveNodePositionMock,
       workspace: {
         ...useArchitectureStore.getState().workspace,
         architecture: {
@@ -566,7 +566,7 @@ describe('BlockSprite', () => {
     draggableConfig.listeners.move({ dx: 1, dy: 1, target });
     draggableConfig.listeners.end();
 
-    expect(moveBlockPositionMock).toHaveBeenCalledWith('block-snap-muted', 0.8, 0.7);
+    expect(moveNodePositionMock).toHaveBeenCalledWith('block-snap-muted', 0.8, 0.7);
     expect(playSoundSpy).not.toHaveBeenCalled();
     snapSpy.mockRestore();
     playSoundSpy.mockRestore();

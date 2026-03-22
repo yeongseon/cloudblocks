@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { ArchitectureModel, Block, ContainerNode, LeafNode, Plate, ResourceCategory } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerNode, LeafNode, ResourceCategory } from '@cloudblocks/schema';
 import type { ArchitectureSnapshot } from '../../shared/types/learning';
 import type { ArchitectureTemplate } from '../../shared/types/template';
 
@@ -71,12 +71,12 @@ function makeResourceNode(
   };
 }
 
-type LegacyPlate = Plate & {
-  type: Plate['layer'];
+type LegacyPlate = ContainerNode & {
+  type: ContainerNode['layer'];
   children: string[];
 };
 
-type LegacyBlock = Block & {
+type LegacyBlock = LeafNode & {
   placementId: string;
 };
 
@@ -85,8 +85,8 @@ type LegacyArchitectureModel = Omit<ArchitectureModel, 'blocks' | 'plates'> & {
   blocks: LegacyBlock[];
 };
 
-const isPlateNode = (node: ArchitectureModel['nodes'][number]): node is Plate => node.kind === 'container';
-const isBlockNode = (node: ArchitectureModel['nodes'][number]): node is Block => node.kind === 'resource';
+const isPlateNode = (node: ArchitectureModel['nodes'][number]): node is ContainerNode => node.kind === 'container';
+const isBlockNode = (node: ArchitectureModel['nodes'][number]): node is LeafNode => node.kind === 'resource';
 
 function getArch(): LegacyArchitectureModel {
   const architecture = getState().workspace.architecture;

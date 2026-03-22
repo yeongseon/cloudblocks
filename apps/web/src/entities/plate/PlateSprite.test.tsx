@@ -80,14 +80,14 @@ const makeSubnetPlate = (access: 'public' | 'private'): ContainerNode => ({
 });
 
 describe('PlateSprite', () => {
-  const movePlatePositionMock = vi.fn();
+  const moveNodePositionMock = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
     interactMocks.draggableFn.mockReturnValue({ unset: interactMocks.unsetFn });
     interactMocks.interactFn.mockReturnValue({ draggable: interactMocks.draggableFn });
     useUIStore.setState({ selectedId: null, toolMode: 'select', connectionSource: null });
-    useArchitectureStore.setState({ movePlatePosition: movePlatePositionMock });
+    useArchitectureStore.setState({ moveNodePosition: moveNodePositionMock });
   });
 
   it('renders with correct position styles', () => {
@@ -186,7 +186,7 @@ describe('PlateSprite', () => {
     draggableConfig.listeners.move({ dx: 20, dy: 12, target });
 
     expect(vi.mocked(screenDeltaToWorld)).toHaveBeenCalledWith(5, 3);
-    expect(movePlatePositionMock).toHaveBeenCalledWith(plate.id, 0, 0);
+    expect(moveNodePositionMock).toHaveBeenCalledWith(plate.id, 0, 0);
   });
 
   it('caches zoom value at drag start and reuses it during move', () => {
@@ -213,7 +213,7 @@ describe('PlateSprite', () => {
     draggableConfig.listeners.move({ dx: 20, dy: 12, target });
 
     expect(vi.mocked(screenDeltaToWorld)).toHaveBeenCalledWith(10, 6);
-    expect(movePlatePositionMock).toHaveBeenCalledWith(plate.id, 0, 0);
+    expect(moveNodePositionMock).toHaveBeenCalledWith(plate.id, 0, 0);
   });
 
   it('ignores click while dragging', async () => {
@@ -384,7 +384,7 @@ describe('PlateSprite', () => {
 
     useUIStore.setState({ isSoundMuted: false });
     useArchitectureStore.setState({
-      movePlatePosition: movePlatePositionMock,
+      moveNodePosition: moveNodePositionMock,
       workspace: {
         ...useArchitectureStore.getState().workspace,
         architecture: { ...useArchitectureStore.getState().workspace.architecture, nodes: [plate] as ResourceNode[] },
@@ -405,7 +405,7 @@ describe('PlateSprite', () => {
     draggableConfig.listeners.move({ dx: 1, dy: 1, target });
     draggableConfig.listeners.end();
 
-    expect(movePlatePositionMock).toHaveBeenCalledWith('plate-snap', 0.8, 1.4);
+    expect(moveNodePositionMock).toHaveBeenCalledWith('plate-snap', 0.8, 1.4);
     expect(playSoundSpy).toHaveBeenCalledWith('block-snap');
     playSoundSpy.mockRestore();
   });
@@ -416,7 +416,7 @@ describe('PlateSprite', () => {
 
     useUIStore.setState({ isSoundMuted: true });
     useArchitectureStore.setState({
-      movePlatePosition: movePlatePositionMock,
+      moveNodePosition: moveNodePositionMock,
       workspace: {
         ...useArchitectureStore.getState().workspace,
         architecture: { ...useArchitectureStore.getState().workspace.architecture, nodes: [plate] as ResourceNode[] },
@@ -437,7 +437,7 @@ describe('PlateSprite', () => {
     draggableConfig.listeners.move({ dx: 1, dy: 1, target });
     draggableConfig.listeners.end();
 
-    expect(movePlatePositionMock).toHaveBeenCalledWith('plate-muted', 0.5, 0.5);
+    expect(moveNodePositionMock).toHaveBeenCalledWith('plate-muted', 0.5, 0.5);
     expect(playSoundSpy).not.toHaveBeenCalled();
     playSoundSpy.mockRestore();
   });

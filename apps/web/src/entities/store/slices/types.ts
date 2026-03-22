@@ -1,10 +1,40 @@
 import type { StateCreator } from 'zustand';
 import type { LastPrResult, PlateProfileId, Workspace } from '../../../shared/types/index';
-import type { ArchitectureModel, ProviderType, PlateType, ResourceCategory, SubnetAccess } from '@cloudblocks/schema';
+import type { ArchitectureModel, LayerType, ProviderType, ResourceCategory, SubnetAccess } from '@cloudblocks/schema';
 import type { ValidationResult } from '@cloudblocks/domain';
 import type { ArchitectureSnapshot } from '../../../shared/types/learning';
 import type { ArchitectureTemplate } from '../../../shared/types/template';
 
+type PlateLayerType = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
+
+// ---------------------------------------------------------------------------
+// Unified Node API — discriminated-union input types
+// ---------------------------------------------------------------------------
+
+export type AddNodeInput =
+  | {
+      kind: 'container';
+      resourceType: string;
+      name: string;
+      parentId: string | null;
+      layer: LayerType;
+      access?: SubnetAccess;
+      profileId?: PlateProfileId;
+    }
+  | {
+      kind: 'resource';
+      resourceType: string;
+      name: string;
+      parentId: string | null;
+      provider?: ProviderType;
+      subtype?: string;
+      config?: Record<string, unknown>;
+    };
+
+export interface RemoveNodeOptions {
+  /** Whether to cascade-delete children. Defaults to true for containers, false for resources. */
+  cascade?: boolean;
+}
 export interface ArchitectureState {
   workspace: Workspace;
   workspaces: Workspace[];
@@ -16,15 +46,25 @@ export interface ArchitectureState {
   undo: () => void;
   redo: () => void;
 
+  // ── Unified Node API ──────────────────────────────────────────────
+  addNode: (input: AddNodeInput) => void;
+  removeNode: (id: string, options?: RemoveNodeOptions) => void;
+  renameNode: (id: string, newName: string) => void;
+  moveNodePosition: (id: string, deltaX: number, deltaZ: number) => void;
+
+  // ── Deprecated — use unified API above ─────────────────────────
+  /** @deprecated Use addNode({ kind: 'container', ... }) */
   addPlate: (
-    type: PlateType,
+    type: PlateLayerType,
     name: string,
     parentId: string | null,
     subnetAccess?: SubnetAccess,
     profileId?: PlateProfileId
   ) => void;
+  /** @deprecated Use removeNode(id) */
   removePlate: (id: string) => void;
 
+  /** @deprecated Use addNode({ kind: 'resource', ... }) */
   addBlock: (
     category: ResourceCategory,
     name: string,
@@ -33,13 +73,19 @@ export interface ArchitectureState {
     subtype?: string,
     config?: Record<string, unknown>,
   ) => void;
+  /** @deprecated Use addNode + duplicate logic */
   duplicateBlock: (blockId: string) => void;
+  /** @deprecated Use removeNode(id) */
   removeBlock: (id: string) => void;
+  /** @deprecated Use renameNode(id, name) */
   renameBlock: (blockId: string, newName: string) => void;
+  /** @deprecated Use renameNode(id, name) */
   renamePlate: (plateId: string, newName: string) => void;
   moveBlock: (blockId: string, newPlacementId: string) => void;
   setPlateProfile: (plateId: string, profileId: PlateProfileId) => void;
+  /** @deprecated Use moveNodePosition(id, dx, dz) */
   movePlatePosition: (id: string, deltaX: number, deltaZ: number) => void;
+  /** @deprecated Use moveNodePosition(id, dx, dz) */
   moveBlockPosition: (id: string, deltaX: number, deltaZ: number) => void;
   moveActorPosition: (id: string, deltaX: number, deltaZ: number) => void;
 

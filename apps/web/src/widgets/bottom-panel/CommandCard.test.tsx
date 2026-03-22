@@ -98,13 +98,11 @@ const computeBlock: LeafNode = {
 };
 
 describe('CommandCard', () => {
-  const addPlateMock = vi.fn();
-  const addBlockMock = vi.fn();
+  const addNodeMock = vi.fn();
   const duplicateBlockMock = vi.fn();
   const renameBlockMock = vi.fn();
   const renamePlateMock = vi.fn();
-  const removeBlockMock = vi.fn();
-  const removePlateMock = vi.fn();
+  const removeNodeMock = vi.fn();
   const toggleResourceGuideMock = vi.fn();
   const setSelectedIdMock = vi.fn<(id: string | null) => void>();
   const setToolModeMock = vi.fn<(mode: ToolMode) => void>();
@@ -123,13 +121,11 @@ describe('CommandCard', () => {
     });
 
     useArchitectureStore.setState({
-      addPlate: addPlateMock,
-      addBlock: addBlockMock,
+      addNode: addNodeMock,
       duplicateBlock: duplicateBlockMock,
       renameBlock: renameBlockMock,
       renamePlate: renamePlateMock,
-      removeBlock: removeBlockMock,
-      removePlate: removePlateMock,
+      removeNode: removeNodeMock,
       workspace: {
         id: 'ws-1',
         name: 'Test Workspace',
@@ -160,7 +156,7 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByRole('button', { name: /VNet/i }));
 
-    expect(addPlateMock).toHaveBeenCalledWith('region', 'VNet', null);
+    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'container', resourceType: 'virtual_network', name: 'VNet', parentId: null, layer: 'region' });
   });
 
   it('creates block resource when network and subnet exist', async () => {
@@ -183,7 +179,7 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByTitle('Create Virtual Machine'));
 
-    expect(addBlockMock).toHaveBeenCalledWith('compute', 'Virtual Machine 1', 'subnet-public-1', 'azure', 'virtual_machine');
+    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'resource', resourceType: 'virtual_machine', name: 'Virtual Machine 1', parentId: 'subnet-public-1', provider: 'azure', subtype: 'virtual_machine' });
   });
 
   it('smoke: create VM from Compute tab then show block actions when selected', async () => {
@@ -206,7 +202,7 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByTitle('Create Virtual Machine'));
 
-    expect(addBlockMock).toHaveBeenCalledWith('compute', 'Virtual Machine 1', 'subnet-public-1', 'azure', 'virtual_machine');
+    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'resource', resourceType: 'virtual_machine', name: 'Virtual Machine 1', parentId: 'subnet-public-1', provider: 'azure', subtype: 'virtual_machine' });
 
     act(() => {
       useArchitectureStore.setState({
@@ -323,7 +319,7 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByTitle('Create Private Subnet'));
 
-    expect(addPlateMock).toHaveBeenCalledWith('subnet', 'Private Subnet', 'net-1', 'private');
+    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'container', resourceType: 'subnet', name: 'Private Subnet', parentId: 'net-1', layer: 'subnet', access: 'private' });
   });
 
   // ─── BlockActionMode Tests ───────────────────────────────
@@ -355,7 +351,7 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByRole('button', { name: /Delete/ }));
 
-    expect(removeBlockMock).toHaveBeenCalledWith('block-1');
+    expect(removeNodeMock).toHaveBeenCalledWith('block-1');
     expect(setSelectedIdMock).toHaveBeenCalledWith(null);
   });
 
@@ -862,7 +858,7 @@ describe('CommandCard', () => {
     // Now in PlateCreationMode — create a public subnet
     await user.click(screen.getByTitle('Create Public Subnet (Q)'));
 
-    expect(addPlateMock).toHaveBeenCalledWith('subnet', 'Public Subnet', 'net-1', 'public');
+    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'container', resourceType: 'subnet', name: 'Public Subnet', parentId: 'net-1', layer: 'subnet', access: 'public' });
   });
 
   it('returns from PlateCreationMode to PlateActionMode via back button', async () => {
@@ -917,7 +913,7 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByRole('button', { name: /Delete/ }));
 
-    expect(removePlateMock).toHaveBeenCalledWith('net-1');
+    expect(removeNodeMock).toHaveBeenCalledWith('net-1');
     expect(setSelectedIdMock).toHaveBeenCalledWith(null);
   });
 
@@ -1033,7 +1029,7 @@ describe('CommandCard', () => {
     // Now in PlateCreationMode — create a VM
     await user.click(screen.getByTitle('Create Virtual Machine (S)'));
 
-    expect(addBlockMock).toHaveBeenCalledWith('compute', 'Virtual Machine 1', 'subnet-public-1', 'azure', 'virtual_machine');
+    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'resource', resourceType: 'virtual_machine', name: 'Virtual Machine 1', parentId: 'subnet-public-1', provider: 'azure', subtype: 'virtual_machine' });
   });
 
   it('transitions to PlateCreationMode for private subnet deploy and creates SQL', async () => {
@@ -1064,7 +1060,7 @@ describe('CommandCard', () => {
     // Now in PlateCreationMode — create SQL
     await user.click(screen.getByTitle('Create SQL Database (W)'));
 
-    expect(addBlockMock).toHaveBeenCalledWith('data', 'SQL Database 1', 'subnet-private-1', 'azure', 'sql_database');
+    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'resource', resourceType: 'sql_database', name: 'SQL Database 1', parentId: 'subnet-private-1', provider: 'azure', subtype: 'sql_database' });
   });
 
   it('creates private subnet via Deploy on network plate', async () => {
@@ -1092,6 +1088,6 @@ describe('CommandCard', () => {
     // Create Private Subnet
     await user.click(screen.getByTitle('Create Private Subnet (W)'));
 
-    expect(addPlateMock).toHaveBeenCalledWith('subnet', 'Private Subnet', 'net-1', 'private');
+    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'container', resourceType: 'subnet', name: 'Private Subnet', parentId: 'net-1', layer: 'subnet', access: 'private' });
   });
 });

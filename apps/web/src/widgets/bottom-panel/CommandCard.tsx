@@ -77,10 +77,10 @@ function getPlateHeaderText(plate: ContainerNode): string {
   return plateType === 'region' ? 'VNet' : plateType.charAt(0).toUpperCase() + plateType.slice(1);
 }
 
-type CreationGroupId = ResourceCategory | 'plate';
+type CreationGroupId = ResourceCategory | 'foundation';
 
 const CREATION_GROUP_ORDER: CreationGroupId[] = [
-  'plate',
+  'foundation',
   'compute',
   'data',
   'edge',
@@ -90,7 +90,7 @@ const CREATION_GROUP_ORDER: CreationGroupId[] = [
 ];
 
 function getCreationGroupMeta(groupId: CreationGroupId): { icon: string; label: string; color: string } {
-  if (groupId === 'plate') {
+  if (groupId === 'foundation') {
     return {
       icon: '🧭',
       label: 'Network Foundations',
@@ -107,7 +107,7 @@ function getCreationGroupMeta(groupId: CreationGroupId): { icon: string; label: 
 
 function getCreationGroupId(type: ResourceType): CreationGroupId {
   const blockCategory = RESOURCE_DEFINITIONS[type].blockCategory;
-  return blockCategory ?? 'plate';
+  return blockCategory ?? 'foundation';
 }
 
 
@@ -192,8 +192,8 @@ export function CommandCard({ className = '' }: CommandCardProps) {
 
 function PlateActionMode({ selectedPlate, onDeploy }: { selectedPlate: ContainerNode; onDeploy: () => void }) {
   const setSelectedId = useUIStore((s) => s.setSelectedId);
-  const removePlate = useArchitectureStore((s) => s.removePlate);
-  const renamePlate = useArchitectureStore((s) => s.renamePlate);
+  const removeNode = useArchitectureStore((s) => s.removeNode);
+  const renameNode = useArchitectureStore((s) => s.renameNode);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
   const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
 
@@ -205,19 +205,19 @@ function PlateActionMode({ selectedPlate, onDeploy }: { selectedPlate: Container
       case 'rename': {
         const newName = await promptDialog('Rename plate:', 'Rename', selectedPlate.name);
         if (newName !== null && newName.trim() !== '') {
-          renamePlate(selectedPlate.id, newName.trim());
+          renameNode(selectedPlate.id, newName.trim());
         }
         break;
       }
       case 'delete':
-        removePlate(selectedPlate.id);
+        removeNode(selectedPlate.id);
         setSelectedId(null);
         playSound('delete');
         break;
       default:
         break;
     }
-  }, [onDeploy, removePlate, renamePlate, selectedPlate.id, selectedPlate.name, setSelectedId, playSound]);
+  }, [onDeploy, removeNode, renameNode, selectedPlate.id, selectedPlate.name, setSelectedId, playSound]);
 
   return (
     <>
@@ -260,8 +260,7 @@ function PlateActionMode({ selectedPlate, onDeploy }: { selectedPlate: Container
 
 function CreationMode() {
   const techTree = useTechTree();
-  const addPlate = useArchitectureStore((s) => s.addPlate);
-  const addBlock = useArchitectureStore((s) => s.addBlock);
+  const addNode = useArchitectureStore((s) => s.addNode);
   const activeProvider = useUIStore((s) => s.activeProvider);
   const startPlacing = useUIStore((s) => s.startPlacing);
   const cancelInteraction = useUIStore((s) => s.cancelInteraction);
@@ -341,20 +340,20 @@ function CreationMode() {
     const def = RESOURCE_DEFINITIONS[type];
 
     // Handle plate creation
-    if (def.category === 'plate') {
+    if (def.category === 'foundation') {
       if (type === 'network') {
-        addPlate('region', 'VNet', null);
+        addNode({ kind: 'container', resourceType: 'virtual_network', name: 'VNet', parentId: null, layer: 'region' });
         playSound('block-snap');
       } else if (type === 'public-subnet') {
         const targetId = techTree.getTargetPlateId(type);
         if (targetId) {
-          addPlate('subnet', 'Public Subnet', targetId, 'public');
+          addNode({ kind: 'container', resourceType: 'subnet', name: 'Public Subnet', parentId: targetId, layer: 'subnet', access: 'public' });
           playSound('block-snap');
         }
       } else if (type === 'private-subnet') {
         const targetId = techTree.getTargetPlateId(type);
         if (targetId) {
-          addPlate('subnet', 'Private Subnet', targetId, 'private');
+          addNode({ kind: 'container', resourceType: 'subnet', name: 'Private Subnet', parentId: targetId, layer: 'subnet', access: 'private' });
           playSound('block-snap');
         }
       }
@@ -372,10 +371,10 @@ function CreationMode() {
 
       counterRef.current += 1;
       const name = `${getResourceLabel(type, activeProvider)} ${counterRef.current}`;
-      addBlock(def.blockCategory, name, targetId, activeProvider, def.schemaResourceType);
+      addNode({ kind: 'resource', resourceType: def.schemaResourceType ?? def.blockCategory, name, parentId: targetId, provider: activeProvider, subtype: def.schemaResourceType });
       playSound('block-snap');
     }
-  }, [activeProvider, addPlate, addBlock, techTree, playSound]);
+  }, [activeProvider, addNode, techTree, playSound]);
 
   return (
     <div ref={gridRef} className="command-card-creation-groups">
@@ -421,8 +420,7 @@ function CreationMode() {
 
 function PlateCreationMode({ selectedPlate }: { selectedPlate: ContainerNode }) {
   const techTree = useTechTree();
-  const addPlate = useArchitectureStore((s) => s.addPlate);
-  const addBlock = useArchitectureStore((s) => s.addBlock);
+  const addNode = useArchitectureStore((s) => s.addNode);
   const activeProvider = useUIStore((s) => s.activeProvider);
   const startPlacing = useUIStore((s) => s.startPlacing);
   const cancelInteraction = useUIStore((s) => s.cancelInteraction);
@@ -501,14 +499,14 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: ContainerNode }) 
 
     const def = RESOURCE_DEFINITIONS[type];
 
-    if (def.category === 'plate') {
+    if (def.category === 'foundation') {
       if (selectedPlate.layer !== 'region') return;
 
       if (type === 'public-subnet') {
-        addPlate('subnet', 'Public Subnet', selectedPlate.id, 'public');
+        addNode({ kind: 'container', resourceType: 'subnet', name: 'Public Subnet', parentId: selectedPlate.id, layer: 'subnet', access: 'public' });
         playSound('block-snap');
       } else if (type === 'private-subnet') {
-        addPlate('subnet', 'Private Subnet', selectedPlate.id, 'private');
+        addNode({ kind: 'container', resourceType: 'subnet', name: 'Private Subnet', parentId: selectedPlate.id, layer: 'subnet', access: 'private' });
         playSound('block-snap');
       }
 
@@ -521,9 +519,9 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: ContainerNode }) 
 
     counterRef.current += 1;
     const name = `${getResourceLabel(type, activeProvider)} ${counterRef.current}`;
-    addBlock(def.blockCategory, name, selectedPlate.id, activeProvider, def.schemaResourceType);
+    addNode({ kind: 'resource', resourceType: def.schemaResourceType ?? def.blockCategory, name, parentId: selectedPlate.id, provider: activeProvider, subtype: def.schemaResourceType });
     playSound('block-snap');
-  }, [activeProvider, addPlate, addBlock, selectedPlate.id, selectedPlate.layer, playSound]);
+  }, [activeProvider, addNode, selectedPlate.id, selectedPlate.layer, playSound]);
 
   const resourcePages = chunkResources(filteredContextResources, 9).map((page) => {
     const normalizedPage: (ResourceType | null)[] = [...page];
@@ -695,9 +693,8 @@ function BlockActionMode() {
   const setToolMode = useUIStore((s) => s.setToolMode);
   const toggleResourceGuide = useUIStore((s) => s.toggleResourceGuide);
   const duplicateBlock = useArchitectureStore((s) => s.duplicateBlock);
-  const renameBlock = useArchitectureStore((s) => s.renameBlock);
-  const removeBlock = useArchitectureStore((s) => s.removeBlock);
-  const removePlate = useArchitectureStore((s) => s.removePlate);
+  const renameNode = useArchitectureStore((s) => s.renameNode);
+  const removeNode = useArchitectureStore((s) => s.removeNode);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
   const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
@@ -706,7 +703,6 @@ function BlockActionMode() {
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   const blocks = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
-  const plates = architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
   const selectedBlock = selectedId ? blocks.find((b) => b.id === selectedId) ?? null : null;
 
   useEffect(() => {
@@ -734,10 +730,10 @@ function BlockActionMode() {
 
     const trimmedName = nameValue.trim();
     if (trimmedName !== '' && trimmedName !== selectedBlock.name) {
-      renameBlock(selectedId, trimmedName);
+      renameNode(selectedId, trimmedName);
     }
     setEditingName(false);
-  }, [nameValue, renameBlock, selectedBlock, selectedId]);
+  }, [nameValue, renameNode, selectedBlock, selectedId]);
 
   const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
@@ -752,18 +748,10 @@ function BlockActionMode() {
 
   const handleDelete = useCallback(() => {
     if (!selectedId) return;
-
-    const isBlock = blocks.some((b) => b.id === selectedId);
-    const isPlate = plates.some((p) => p.id === selectedId);
-
-    if (isBlock) {
-      removeBlock(selectedId);
-    } else if (isPlate) {
-      removePlate(selectedId);
-    }
+    removeNode(selectedId);
     setSelectedId(null);
     playSound('delete');
-  }, [blocks, plates, playSound, removeBlock, removePlate, selectedId, setSelectedId]);
+  }, [playSound, removeNode, selectedId, setSelectedId]);
 
   useEffect(() => {
     if (!selectedId || editingName) return;

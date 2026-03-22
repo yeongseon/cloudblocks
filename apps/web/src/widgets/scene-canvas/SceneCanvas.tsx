@@ -21,7 +21,7 @@ export function SceneCanvas() {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const plates = architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
   const blocks = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
-  const addBlock = useArchitectureStore((s) => s.addBlock);
+  const addNode = useArchitectureStore((s) => s.addNode);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const interactionState = useUIStore((s) => s.interactionState);
   const draggedBlockCategory = useUIStore((s) => s.draggedBlockCategory);
@@ -112,7 +112,7 @@ export function SceneCanvas() {
       if (plateId) {
           const plate = plates.find((p) => p.id === plateId);
           if (plate && canPlaceBlock(draggedBlockCategory, plate)) {
-            addBlock(draggedBlockCategory, draggedResourceName, plateId, activeProvider);
+            addNode({ kind: 'resource', resourceType: draggedBlockCategory, name: draggedResourceName, parentId: plateId, provider: activeProvider });
             playSound('block-snap');
 
           }
