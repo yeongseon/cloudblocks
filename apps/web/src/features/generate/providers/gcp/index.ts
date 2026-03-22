@@ -21,6 +21,7 @@ const gcpSubtypeBlockMappings: SubtypeResourceMap = {
   },
   security: {
     iam: { resourceType: 'google_service_account', namePrefix: 'sa' },
+    nsg: { resourceType: 'google_compute_firewall', namePrefix: 'fw' },
   },
   operations: {
     bigquery: { resourceType: 'google_bigquery_dataset', namePrefix: 'analytics' },

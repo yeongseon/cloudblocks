@@ -21,6 +21,7 @@ const awsSubtypeBlockMappings: SubtypeResourceMap = {
   },
   security: {
     iam: { resourceType: 'aws_iam_role', namePrefix: 'role' },
+    nsg: { resourceType: 'aws_security_group', namePrefix: 'sg' },
   },
   operations: {
     cloudwatch: { resourceType: 'aws_cloudwatch_dashboard', namePrefix: 'dashboard' },

@@ -63,6 +63,10 @@ export const gcpSubtypeRegistry: SubtypeRegistry = {
       displayName: 'Service Account',
       description: 'Identity for workloads and services',
     },
+    nsg: {
+      displayName: 'Firewall Rules',
+      description: 'VPC firewall rules for network traffic filtering',
+    },
   },
   operations: {
     bigquery: {

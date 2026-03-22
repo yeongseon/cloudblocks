@@ -101,6 +101,12 @@ export const RESOURCE_RULES = {
     category: 'security',
     canvasTier: 'shared',
   },
+  network_security_group: {
+    containerCapable: false,
+    allowedParents: ['subnet'],
+    category: 'security',
+    canvasTier: 'shared',
+  },
   secret_store: {
     containerCapable: false,
     allowedParents: ['subnet'],
