@@ -4,11 +4,13 @@ import type { GenerateRequest, SuggestRequest, CostRequest, GenerateResponse, Su
 
 vi.mock('../../shared/api/client', () => ({
   apiPost: vi.fn(),
+  isApiConfigured: vi.fn(() => true),
 }));
 
-import { apiPost } from '../../shared/api/client';
+import { apiPost, isApiConfigured } from '../../shared/api/client';
 
 const mockedApiPost = vi.mocked(apiPost);
+const mockedIsApiConfigured = vi.mocked(isApiConfigured);
 
 describe('AI API client', () => {
   it('generateArchitecture calls apiPost with correct path and payload', async () => {
@@ -78,5 +80,11 @@ describe('AI API client', () => {
     const req: GenerateRequest = { prompt: 'test', provider: 'azure' };
 
     await expect(generateArchitecture(req)).rejects.toThrow('Network request failed');
+  });
+
+  it('throws when backend is not configured', async () => {
+    mockedIsApiConfigured.mockReturnValueOnce(false);
+    const req: GenerateRequest = { prompt: 'test', provider: 'azure' };
+    await expect(generateArchitecture(req)).rejects.toThrow('AI features require the backend API');
   });
 });

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { validateArchitectureShape } from '../../entities/store/slices/index';
+import { isApiConfigured } from '../../shared/api/client';
 import type { ArchitectureSnapshot } from '../../shared/types/learning';
 import {
   generateArchitecture,
@@ -31,6 +32,8 @@ interface AiState {
   estimateCost: (provider: string) => Promise<void>;
 }
 
+const AI_BACKEND_REQUIRED_MESSAGE = 'AI features require the backend API - see setup guide.';
+
 export const useAiStore = create<AiState>((set) => ({
   generateLoading: false,
   generateError: null,
@@ -45,6 +48,15 @@ export const useAiStore = create<AiState>((set) => ({
   costResult: null,
 
   generate: async (prompt, provider) => {
+    if (!isApiConfigured()) {
+      set({
+        generateLoading: false,
+        generateError: AI_BACKEND_REQUIRED_MESSAGE,
+        generateResult: null,
+      });
+      return;
+    }
+
     set({ generateLoading: true, generateError: null });
     try {
       const result = await generateArchitecture({ prompt, provider });
@@ -71,6 +83,15 @@ export const useAiStore = create<AiState>((set) => ({
   },
 
   suggest: async (provider) => {
+    if (!isApiConfigured()) {
+      set({
+        suggestLoading: false,
+        suggestError: AI_BACKEND_REQUIRED_MESSAGE,
+        suggestResult: null,
+      });
+      return;
+    }
+
     set({ suggestLoading: true, suggestError: null });
     try {
       const { workspace } = useArchitectureStore.getState();
@@ -84,6 +105,15 @@ export const useAiStore = create<AiState>((set) => ({
   },
 
   estimateCost: async (provider) => {
+    if (!isApiConfigured()) {
+      set({
+        costLoading: false,
+        costError: AI_BACKEND_REQUIRED_MESSAGE,
+        costResult: null,
+      });
+      return;
+    }
+
     set({ costLoading: true, costError: null });
     try {
       const { workspace } = useArchitectureStore.getState();

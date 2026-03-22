@@ -1,6 +1,16 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { AiPromptBar } from './AiPromptBar';
+
+const mockIsApiConfigured = vi.fn();
+
+vi.mock('../../../shared/api/client', () => ({
+  isApiConfigured: (...args: unknown[]) => mockIsApiConfigured(...args),
+}));
+
+beforeEach(() => {
+  mockIsApiConfigured.mockReturnValue(true);
+});
 
 describe('AiPromptBar', () => {
   it('renders input, provider label, and submit button', () => {
@@ -109,5 +119,14 @@ describe('AiPromptBar', () => {
     render(<AiPromptBar onSubmit={vi.fn()} isLoading={false} provider="aws" warnings={[]} />);
 
     expect(screen.queryByText(/⚠️/)).not.toBeInTheDocument();
+  });
+
+  it('shows backend-required message and disables input when backend is not configured', () => {
+    mockIsApiConfigured.mockReturnValue(false);
+    render(<AiPromptBar onSubmit={vi.fn()} isLoading={false} provider="aws" />);
+
+    expect(screen.getByText('AI features require the backend API - see setup guide.')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Describe your cloud architecture...')).toBeDisabled();
+    expect(screen.getByRole('button')).toBeDisabled();
   });
 });

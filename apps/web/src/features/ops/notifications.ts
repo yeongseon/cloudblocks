@@ -1,6 +1,9 @@
 import { toast } from 'react-hot-toast';
 import { useNotificationStore } from '../../entities/store/notificationStore';
+import { isApiConfigured } from '../../shared/api/client';
 import type { NotificationLevel, NotificationCategory } from '../../shared/types/notification';
+
+const OPS_BACKEND_REQUIRED_MESSAGE = 'Ops features require the backend API - see setup guide.';
 
 /**
  * Add a notification to the store AND show a toast.
@@ -14,6 +17,17 @@ export function notifyDeployment(
   level: NotificationLevel,
   category: NotificationCategory = 'deployment',
 ): void {
+  if (!isApiConfigured()) {
+    useNotificationStore.getState().addNotification({
+      level: 'warning',
+      category: 'system',
+      title: 'Ops features unavailable',
+      message: OPS_BACKEND_REQUIRED_MESSAGE,
+    });
+    toast(OPS_BACKEND_REQUIRED_MESSAGE);
+    return;
+  }
+
   useNotificationStore.getState().addNotification({
     level,
     category,

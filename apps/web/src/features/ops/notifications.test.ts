@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { toast } from 'react-hot-toast';
+import { isApiConfigured } from '../../shared/api/client';
 
 import {
   notifyDeployment,
@@ -19,9 +20,16 @@ vi.mock('react-hot-toast', () => ({
   }),
 }));
 
+vi.mock('../../shared/api/client', () => ({
+  isApiConfigured: vi.fn(),
+}));
+
+const mockIsApiConfigured = vi.mocked(isApiConfigured);
+
 describe('notifications', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockIsApiConfigured.mockReturnValue(true);
     useNotificationStore.setState({ notifications: [], filter: {} });
   });
 
@@ -104,5 +112,20 @@ describe('notifications', () => {
     const n = useNotificationStore.getState().notifications[0];
     expect(n.level).toBe('info');
     expect(n.category).toBe('pipeline');
+  });
+
+  it('shows backend-required warning and skips deployment notification when backend is not configured', () => {
+    mockIsApiConfigured.mockReturnValue(false);
+
+    notifyDeploySuccess('v1.0 deployed');
+
+    const notifications = useNotificationStore.getState().notifications;
+    expect(notifications).toHaveLength(1);
+    expect(notifications[0].title).toBe('Ops features unavailable');
+    expect(notifications[0].category).toBe('system');
+    expect(notifications[0].level).toBe('warning');
+    expect(notifications[0].message).toBe('Ops features require the backend API - see setup guide.');
+    expect(toast).toHaveBeenCalledWith('Ops features require the backend API - see setup guide.');
+    expect(toast.success).not.toHaveBeenCalled();
   });
 });

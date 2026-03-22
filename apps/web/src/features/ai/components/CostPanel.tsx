@@ -1,6 +1,9 @@
 import React from 'react';
 import { useAiStore } from '../store';
+import { isApiConfigured } from '../../../shared/api/client';
 import './CostPanel.css';
+
+const AI_BACKEND_REQUIRED_MESSAGE = 'AI features require the backend API - see setup guide.';
 
 function formatCurrency(value: number, currency: string): string {
   return new Intl.NumberFormat('en-US', {
@@ -15,6 +18,15 @@ export const CostPanel: React.FC = () => {
   const loading = useAiStore((s) => s.costLoading);
   const error = useAiStore((s) => s.costError);
   const result = useAiStore((s) => s.costResult);
+  const backendConfigured = isApiConfigured();
+
+  if (!backendConfigured) {
+    return (
+      <div className="cost-panel" data-testid="cost-panel">
+        <div className="cost-error">{AI_BACKEND_REQUIRED_MESSAGE}</div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

@@ -1,4 +1,12 @@
-import { apiPost } from '../../shared/api/client';
+import { apiPost, isApiConfigured } from '../../shared/api/client';
+
+const BACKEND_REQUIRED_MESSAGE = 'AI features require the backend API - see setup guide.';
+
+function assertAiBackendConfigured(): void {
+  if (!isApiConfigured()) {
+    throw new Error(BACKEND_REQUIRED_MESSAGE);
+  }
+}
 
 // ─── Request Types ─────────────────────────────────────────
 
@@ -54,13 +62,16 @@ export interface CostResponse {
 // ─── API Functions ─────────────────────────────────────────
 
 export async function generateArchitecture(req: GenerateRequest): Promise<GenerateResponse> {
+  assertAiBackendConfigured();
   return apiPost<GenerateResponse>('/api/v1/ai/generate', req);
 }
 
 export async function suggestImprovements(req: SuggestRequest): Promise<SuggestResponse> {
+  assertAiBackendConfigured();
   return apiPost<SuggestResponse>('/api/v1/ai/suggest', req);
 }
 
 export async function estimateCost(req: CostRequest): Promise<CostResponse> {
+  assertAiBackendConfigured();
   return apiPost<CostResponse>('/api/v1/ai/cost', req);
 }

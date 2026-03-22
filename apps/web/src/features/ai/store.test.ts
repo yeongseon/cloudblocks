@@ -4,11 +4,16 @@ import { useAiStore } from './store';
 const mockGenerate = vi.fn();
 const mockSuggest = vi.fn();
 const mockEstimateCost = vi.fn();
+const mockIsApiConfigured = vi.fn();
 
 vi.mock('./api', () => ({
   generateArchitecture: (...args: unknown[]) => mockGenerate(...args),
   suggestImprovements: (...args: unknown[]) => mockSuggest(...args),
   estimateCost: (...args: unknown[]) => mockEstimateCost(...args),
+}));
+
+vi.mock('../../shared/api/client', () => ({
+  isApiConfigured: (...args: unknown[]) => mockIsApiConfigured(...args),
 }));
 
 const mockReplaceArchitecture = vi.fn();
@@ -25,6 +30,7 @@ vi.mock('../../entities/store/architectureStore', () => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockIsApiConfigured.mockReturnValue(true);
   useAiStore.setState({
     generateLoading: false,
     generateError: null,
@@ -40,6 +46,17 @@ beforeEach(() => {
 
 describe('useAiStore', () => {
   describe('generate', () => {
+    it('sets backend-required error and skips API call when backend is not configured', async () => {
+      mockIsApiConfigured.mockReturnValue(false);
+
+      await useAiStore.getState().generate('test', 'aws');
+
+      expect(mockGenerate).not.toHaveBeenCalled();
+      expect(useAiStore.getState().generateLoading).toBe(false);
+      expect(useAiStore.getState().generateResult).toBeNull();
+      expect(useAiStore.getState().generateError).toBe('AI features require the backend API - see setup guide.');
+    });
+
     it('sets loading true then stores result on success', async () => {
       const response = {
         architecture: { plates: [], blocks: [], connections: [] },
@@ -116,6 +133,17 @@ describe('useAiStore', () => {
   });
 
   describe('suggest', () => {
+    it('sets backend-required error and skips API call when backend is not configured', async () => {
+      mockIsApiConfigured.mockReturnValue(false);
+
+      await useAiStore.getState().suggest('aws');
+
+      expect(mockSuggest).not.toHaveBeenCalled();
+      expect(useAiStore.getState().suggestLoading).toBe(false);
+      expect(useAiStore.getState().suggestResult).toBeNull();
+      expect(useAiStore.getState().suggestError).toBe('AI features require the backend API - see setup guide.');
+    });
+
     it('sends current architecture and stores result', async () => {
       const response = {
         suggestions: [{ category: 'security', severity: 'warning', message: 'test', action_description: '' }],
@@ -152,6 +180,17 @@ describe('useAiStore', () => {
   });
 
   describe('estimateCost', () => {
+    it('sets backend-required error and skips API call when backend is not configured', async () => {
+      mockIsApiConfigured.mockReturnValue(false);
+
+      await useAiStore.getState().estimateCost('aws');
+
+      expect(mockEstimateCost).not.toHaveBeenCalled();
+      expect(useAiStore.getState().costLoading).toBe(false);
+      expect(useAiStore.getState().costResult).toBeNull();
+      expect(useAiStore.getState().costError).toBe('AI features require the backend API - see setup guide.');
+    });
+
     it('sends current architecture and stores result', async () => {
       const response = {
         monthly_cost: 100,

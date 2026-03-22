@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useRef, type ReactNode } from 'react';
 import { useOpsStore } from '../../entities/store/opsStore';
 import type { EnvironmentInfo, PipelineRun, DeploymentRecord, CostEstimate } from '../../entities/store/opsStore';
+import { isApiConfigured } from '../../shared/api/client';
 import { timeAgo } from '../../shared/utils/timeAgo';
 import './OpsCenter.css';
+
+const OPS_BACKEND_REQUIRED_MESSAGE = 'Ops features require the backend API - see setup guide.';
 
 function formatDuration(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -285,6 +288,7 @@ export function OpsCenter() {
   const loadingPipelines = useOpsStore((s) => s.loadingPipelines);
   const loadingDeployments = useOpsStore((s) => s.loadingDeployments);
   const loadingCosts = useOpsStore((s) => s.loadingCosts);
+  const backendConfigured = isApiConfigured();
 
   const isLoading = loadingEnvironments || loadingPipelines || loadingDeployments || loadingCosts;
 
@@ -302,10 +306,10 @@ export function OpsCenter() {
 
   // Load data on first open
   useEffect(() => {
-    if (showOpsCenter) {
+    if (showOpsCenter && backendConfigured) {
       void safeRefreshAll();
     }
-  }, [showOpsCenter, safeRefreshAll]);
+  }, [showOpsCenter, backendConfigured, safeRefreshAll]);
 
   useEffect(() => {
     if (!showOpsCenter) return;
@@ -319,6 +323,31 @@ export function OpsCenter() {
   }, [showOpsCenter, setShowOpsCenter]);
 
   if (!showOpsCenter) return null;
+
+  if (!backendConfigured) {
+    return (
+      <div className="ops-center">
+        <div className="ops-center-header">
+          <div className="ops-center-header-left">
+            <h3 className="ops-center-title">&#9881; Ops Control Center</h3>
+          </div>
+          <div className="ops-center-header-actions">
+            <button
+              type="button"
+              className="ops-center-close"
+              onClick={() => setShowOpsCenter(false)}
+              aria-label="Close Ops Center"
+            >
+              &#10005;
+            </button>
+          </div>
+        </div>
+        <div className="ops-center-body" role="tabpanel">
+          <div className="ops-empty">{OPS_BACKEND_REQUIRED_MESSAGE}</div>
+        </div>
+      </div>
+    );
+  }
 
   const tabs = [
     { id: 'dashboard' as const, label: 'Dashboard' },

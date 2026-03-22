@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import type { KeyboardEvent } from 'react';
+import { isApiConfigured } from '../../../shared/api/client';
 import './AiPromptBar.css';
+
+const AI_BACKEND_REQUIRED_MESSAGE = 'AI features require the backend API - see setup guide.';
 
 interface AiPromptBarProps {
   onSubmit: (prompt: string, provider: string) => void;
@@ -20,9 +23,11 @@ export const AiPromptBar: React.FC<AiPromptBarProps> = ({
   warnings,
 }) => {
   const [prompt, setPrompt] = useState('');
+  const backendConfigured = isApiConfigured();
+  const disabledMessage = !backendConfigured ? AI_BACKEND_REQUIRED_MESSAGE : null;
 
   const handleSubmit = () => {
-    if (prompt.trim() && !isLoading) {
+    if (prompt.trim() && !isLoading && backendConfigured) {
       onSubmit(prompt.trim(), provider);
     }
   };
@@ -43,13 +48,13 @@ export const AiPromptBar: React.FC<AiPromptBarProps> = ({
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           onKeyDown={handleKeyDown}
-          disabled={isLoading}
+          disabled={isLoading || !backendConfigured}
         />
         <span className="ai-provider-label">{provider.toUpperCase()}</span>
         <button
           className="ai-submit-btn"
           onClick={handleSubmit}
-          disabled={!prompt.trim() || isLoading}
+          disabled={!prompt.trim() || isLoading || !backendConfigured}
           title="Generate Architecture"
           type="button"
         >
@@ -60,12 +65,13 @@ export const AiPromptBar: React.FC<AiPromptBarProps> = ({
           )}
         </button>
       </div>
+      {disabledMessage && <div className="ai-error-message">{disabledMessage}</div>}
       {error && <div className="ai-error-message">{error}</div>}
       {explanation && <div className="ai-explanation">{explanation}</div>}
       {warnings && warnings.length > 0 && (
         <div className="ai-warnings">
-          {warnings.map((w, i) => (
-            <div key={i} className="ai-warning-item">⚠️ {w}</div>
+          {warnings.map((w) => (
+            <div key={w} className="ai-warning-item">⚠️ {w}</div>
           ))}
         </div>
       )}
