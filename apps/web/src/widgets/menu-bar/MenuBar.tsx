@@ -38,7 +38,7 @@ export function MenuBar() {
   const toggleResourceGuide = useUIStore((s) => s.toggleResourceGuide);
   const activeProvider = useUIStore((s) => s.activeProvider);
   const setActiveProvider = useUIStore((s) => s.setActiveProvider);
-  const toggleCodePreview = useUIStore((s) => s.toggleCodePreview);
+  const openInspectorTab = useUIStore((s) => s.openInspectorTab);
   const toggleWorkspaceManager = useUIStore((s) => s.toggleWorkspaceManager);
   const toggleTemplateGallery = useUIStore((s) => s.toggleTemplateGallery);
   const toggleGitHubLogin = useUIStore((s) => s.toggleGitHubLogin);
@@ -387,7 +387,7 @@ export function MenuBar() {
                 </span>
               )}
             </button>
-            <button type="button" className="menu-item" onClick={() => handleAction(toggleCodePreview)}>
+            <button type="button" className="menu-item" onClick={() => handleAction(() => openInspectorTab('code'))}>
               <span className="menu-item-left">⚡ Generate Code</span>
             </button>
             <div className="menu-separator" />

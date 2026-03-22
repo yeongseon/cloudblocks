@@ -22,7 +22,11 @@ function clearGeneratedState(
   setActiveTab(0);
 }
 
-export function CodePreview() {
+export interface CodePreviewProps {
+  embedded?: boolean;
+}
+
+export function CodePreview({ embedded = false }: CodePreviewProps) {
   const toggleCodePreview = useUIStore((s) => s.toggleCodePreview);
   const showAdvancedGeneration = useUIStore((s) => s.showAdvancedGeneration);
   const toggleAdvancedGeneration = useUIStore((s) => s.toggleAdvancedGeneration);
@@ -134,12 +138,14 @@ export function CodePreview() {
       : activeTab;
 
   return (
-    <div className="code-preview">
+    <div className={`code-preview${embedded ? ' code-preview--embedded' : ''}`}>
       <div className="code-preview-header">
         <h3 className="code-preview-title">⚡ Code Generation</h3>
-        <button type="button" className="code-preview-close" onClick={toggleCodePreview} aria-label="Close code preview panel">
-          ✕
-        </button>
+        {!embedded && (
+          <button type="button" className="code-preview-close" onClick={toggleCodePreview} aria-label="Close code preview panel">
+            ✕
+          </button>
+        )}
       </div>
 
       <div className="code-preview-options">
