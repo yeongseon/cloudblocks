@@ -32,14 +32,9 @@ vi.mock('../../features/generate/registry', () => ({
   listGenerators: listGeneratorsMock,
 }));
 
-vi.mock('../../shared/ui/ConfirmDialog', () => ({
-  confirmDialog: vi.fn(),
-}));
-
 import { generateCode } from '../../features/generate/pipeline';
 import { GenerationError } from '../../features/generate/pipeline';
 import { listGenerators } from '../../features/generate/registry';
-import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 
 const mockArch: ArchitectureModel = {
   id: 'arch-1',
@@ -53,11 +48,8 @@ const mockArch: ArchitectureModel = {
 };
 
 describe('CodePreview', () => {
-  const mockConfirmDialog = vi.mocked(confirmDialog);
-
   beforeEach(() => {
     vi.clearAllMocks();
-    mockConfirmDialog.mockResolvedValue(true);
     useUIStore.setState({ activeProvider: 'azure', showAdvancedGeneration: false });
     useArchitectureStore.setState({
       workspace: {
@@ -385,74 +377,11 @@ describe('CodePreview', () => {
     expect(codeElement?.textContent).toBe('');
   });
 
-  it('generates comparison outputs for azure, aws, and gcp when compare mode is enabled', async () => {
-    const user = userEvent.setup();
-    vi.mocked(generateCode).mockImplementation((_, options) => ({
-      files: [{ path: 'main.tf', content: `provider=${options.provider}`, language: 'hcl' as const }],
-      metadata: {
-        generator: 'terraform',
-        version: '0.3.0',
-        provider: options.provider,
-        generatedAt: '2026-01-01T00:00:00.000Z',
-      },
-    }));
-
+  it('hides compare controls from the UI', () => {
     render(<CodePreview />);
 
-    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
-    await user.click(screen.getByText('🚀 Compare Providers'));
-
-    expect(vi.mocked(generateCode)).toHaveBeenCalledTimes(3);
-    expect(screen.getAllByText('AZURE').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('AWS').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('GCP').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('provider=azure')).toBeInTheDocument();
-    expect(screen.getByText('provider=aws')).toBeInTheDocument();
-    expect(screen.getByText('provider=gcp')).toBeInTheDocument();
-  });
-
-  it('disables compare checkbox for generators without multi-provider support', async () => {
-    const user = userEvent.setup();
-    render(<CodePreview />);
-
-    await user.click(screen.getByLabelText('Expert generator selection'));
-    const select = screen.getByRole('combobox');
-    await user.selectOptions(select, 'bicep');
-    const compareCheckbox = screen.getByLabelText('Azure / AWS / GCP');
-
-    expect(compareCheckbox).toBeDisabled();
-  });
-
-  it('preserves comparison outputs when active provider changes', async () => {
-    const user = userEvent.setup();
-    vi.mocked(generateCode).mockImplementation((_, options) => ({
-      files: [{ path: 'main.tf', content: `provider=${options.provider}`, language: 'hcl' as const }],
-      metadata: {
-        generator: 'terraform',
-        version: '0.3.0',
-        provider: options.provider,
-        generatedAt: '2026-01-01T00:00:00.000Z',
-      },
-    }));
-
-    const { rerender } = render(<CodePreview />);
-    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
-    await user.click(screen.getByText('🚀 Compare Providers'));
-
-    expect(screen.getByText('provider=azure')).toBeInTheDocument();
-    expect(screen.getByText('provider=aws')).toBeInTheDocument();
-    expect(screen.getByText('provider=gcp')).toBeInTheDocument();
-
-    act(() => {
-      useUIStore.setState({ activeProvider: 'aws' });
-    });
-    rerender(<CodePreview />);
-
-    await waitFor(() => {
-      expect(screen.getByText('provider=azure')).toBeInTheDocument();
-      expect(screen.getByText('provider=aws')).toBeInTheDocument();
-      expect(screen.getByText('provider=gcp')).toBeInTheDocument();
-    });
+    expect(screen.queryByLabelText('Azure / AWS / GCP')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Compare Providers/)).not.toBeInTheDocument();
   });
 
   it('derives default project name from architecture name', () => {
@@ -481,199 +410,6 @@ describe('CodePreview', () => {
     });
     render(<CodePreview />);
     expect(screen.getByDisplayValue('myproject')).toBeInTheDocument();
-  });
-
-  it('renders file tabs and navigates between files in compare mode', async () => {
-    const user = userEvent.setup();
-    vi.mocked(generateCode).mockImplementation((_, options) => ({
-      files: [
-        { path: 'main.tf', content: `main-${options.provider}`, language: 'hcl' as const },
-        { path: 'variables.tf', content: `vars-${options.provider}`, language: 'hcl' as const },
-      ],
-      metadata: {
-        generator: 'terraform',
-        version: '0.3.0',
-        provider: options.provider,
-        generatedAt: '2026-01-01T00:00:00.000Z',
-      },
-    }));
-
-    render(<CodePreview />);
-
-    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
-    await user.click(screen.getByText('🚀 Compare Providers'));
-
-    expect(screen.getByText('main.tf')).toBeInTheDocument();
-    expect(screen.getByText('variables.tf')).toBeInTheDocument();
-
-    expect(screen.getByText('main-azure')).toBeInTheDocument();
-    expect(screen.getByText('main-aws')).toBeInTheDocument();
-    expect(screen.getByText('main-gcp')).toBeInTheDocument();
-
-    await user.click(screen.getByText('variables.tf'));
-
-    expect(screen.getByText('vars-azure')).toBeInTheDocument();
-    expect(screen.getByText('vars-aws')).toBeInTheDocument();
-    expect(screen.getByText('vars-gcp')).toBeInTheDocument();
-  });
-
-  it('copy button copies all provider files with headers when in comparison mode', async () => {
-    const user = userEvent.setup();
-    const writeTextMock = vi.fn().mockResolvedValue(undefined);
-    Object.defineProperty(navigator, 'clipboard', {
-      value: { writeText: writeTextMock },
-      writable: true,
-      configurable: true,
-    });
-
-    vi.mocked(generateCode).mockImplementation((_, options) => ({
-      files: [{ path: 'main.tf', content: `provider=${options.provider}`, language: 'hcl' as const }],
-      metadata: {
-        generator: 'terraform',
-        version: '0.3.0',
-        provider: options.provider,
-        generatedAt: '2026-01-01T00:00:00.000Z',
-      },
-    }));
-
-    render(<CodePreview />);
-
-    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
-    await user.click(screen.getByText('🚀 Compare Providers'));
-    await user.click(screen.getByText(/Copy/));
-
-    expect(writeTextMock).toHaveBeenCalledWith(
-      expect.stringContaining('// --- AZURE ---')
-    );
-    expect(writeTextMock).toHaveBeenCalledWith(
-      expect.stringContaining('// --- AWS ---')
-    );
-    expect(writeTextMock).toHaveBeenCalledWith(
-      expect.stringContaining('// --- GCP ---')
-    );
-    expect(writeTextMock).toHaveBeenCalledWith(
-      expect.stringContaining('provider=azure')
-    );
-    expect(writeTextMock).toHaveBeenCalledWith(
-      expect.stringContaining('provider=aws')
-    );
-    expect(writeTextMock).toHaveBeenCalledWith(
-      expect.stringContaining('provider=gcp')
-    );
-  });
-
-  it('download all creates download links for each provider file when in comparison mode', async () => {
-    const user = userEvent.setup();
-    const createObjectURLMock = vi.fn().mockReturnValue('blob:test');
-    const revokeObjectURLMock = vi.fn();
-    URL.createObjectURL = createObjectURLMock;
-    URL.revokeObjectURL = revokeObjectURLMock;
-    const clickMock = vi.fn();
-    const origCreate = document.createElement.bind(document);
-    vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
-      if (tag === 'a') {
-        return { href: '', download: '', click: clickMock } as unknown as HTMLElement;
-      }
-      return origCreate(tag);
-    });
-
-    vi.mocked(generateCode).mockImplementation((_, options) => ({
-      files: [
-        { path: 'main.tf', content: `provider=${options.provider}`, language: 'hcl' as const },
-        { path: 'vars.tf', content: `vars=${options.provider}`, language: 'hcl' as const },
-      ],
-      metadata: {
-        generator: 'terraform',
-        version: '0.3.0',
-        provider: options.provider,
-        generatedAt: '2026-01-01T00:00:00.000Z',
-      },
-    }));
-
-    render(<CodePreview />);
-
-    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
-    await user.click(screen.getByText('🚀 Compare Providers'));
-    await user.click(screen.getByText(/Download All/));
-
-    // 3 providers × 2 files each = 6 downloads
-    expect(clickMock).toHaveBeenCalledTimes(6);
-    expect(revokeObjectURLMock).toHaveBeenCalledTimes(6);
-
-    vi.restoreAllMocks();
-  });
-
-  it('shows partial comparison results when some providers fail', async () => {
-    const user = userEvent.setup();
-    let callCount = 0;
-    vi.mocked(generateCode).mockImplementation((_, options) => {
-      callCount += 1;
-      if (options.provider === 'gcp') {
-        throw new GenerationError('GCP not supported');
-      }
-      return {
-        files: [{ path: 'main.tf', content: `provider=${options.provider}`, language: 'hcl' as const }],
-        metadata: {
-          generator: 'terraform',
-          version: '0.3.0',
-          provider: options.provider,
-          generatedAt: '2026-01-01T00:00:00.000Z',
-        },
-      };
-    });
-
-    render(<CodePreview />);
-
-    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
-    await user.click(screen.getByText('🚀 Compare Providers'));
-
-    expect(callCount).toBe(3);
-    expect(screen.getByText('provider=azure')).toBeInTheDocument();
-    expect(screen.getByText('provider=aws')).toBeInTheDocument();
-    expect(screen.getByText('GCP not supported')).toBeInTheDocument();
-    expect(screen.getByText('Some providers failed. Showing partial comparison results.')).toBeInTheDocument();
-  });
-
-  it('shows error when all providers fail in comparison mode', async () => {
-    const user = userEvent.setup();
-    vi.mocked(generateCode).mockImplementation(() => {
-      throw new GenerationError('Provider generation failed');
-    });
-
-    render(<CodePreview />);
-
-    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
-    await user.click(screen.getByText('🚀 Compare Providers'));
-
-    expect(screen.getByText('All provider generations failed.')).toBeInTheDocument();
-  });
-
-  it('shows unexpected error message for non-GenerationError in comparison mode', async () => {
-    const user = userEvent.setup();
-    let callCount = 0;
-    vi.mocked(generateCode).mockImplementation((_, options) => {
-      callCount += 1;
-      if (options.provider === 'aws') {
-        throw new Error('unexpected');
-      }
-      return {
-        files: [{ path: 'main.tf', content: `provider=${options.provider}`, language: 'hcl' as const }],
-        metadata: {
-          generator: 'terraform',
-          version: '0.3.0',
-          provider: options.provider,
-          generatedAt: '2026-01-01T00:00:00.000Z',
-        },
-      };
-    });
-
-    render(<CodePreview />);
-
-    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
-    await user.click(screen.getByText('🚀 Compare Providers'));
-
-    expect(callCount).toBe(3);
-    expect(screen.getByText('Unexpected error during code generation.')).toBeInTheDocument();
   });
 
   it('copy and download no-op gracefully when no output exists', () => {
@@ -715,77 +451,6 @@ describe('CodePreview', () => {
     await waitFor(() => {
       expect(screen.getByDisplayValue('westus2')).toBeInTheDocument();
     });
-  });
-
-  it('passes provider-specific regions in compare mode', async () => {
-    const user = userEvent.setup();
-    vi.mocked(generateCode).mockImplementation((_, options) => ({
-      files: [{ path: 'main.tf', content: `region=${options.region}`, language: 'hcl' as const }],
-      metadata: {
-        generator: 'terraform',
-        version: '0.3.0',
-        provider: options.provider,
-        generatedAt: '2026-01-01T00:00:00.000Z',
-      },
-    }));
-
-    render(<CodePreview />);
-
-    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
-
-    // Verify per-provider region inputs are rendered
-    expect(screen.getByDisplayValue('eastus')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('us-east-1')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('us-central1')).toBeInTheDocument();
-
-    await user.click(screen.getByText('🚀 Compare Providers'));
-
-    // Verify each provider received its own default region
-    expect(vi.mocked(generateCode)).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({ provider: 'azure', region: 'eastus' }),
-    );
-    expect(vi.mocked(generateCode)).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({ provider: 'aws', region: 'us-east-1' }),
-    );
-    expect(vi.mocked(generateCode)).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({ provider: 'gcp', region: 'us-central1' }),
-    );
-  });
-
-  it('allows editing per-provider region inputs in compare mode', async () => {
-    const user = userEvent.setup();
-    vi.mocked(generateCode).mockImplementation((_, options) => ({
-      files: [{ path: 'main.tf', content: `region=${options.region}`, language: 'hcl' as const }],
-      metadata: {
-        generator: 'terraform',
-        version: '0.3.0',
-        provider: options.provider,
-        generatedAt: '2026-01-01T00:00:00.000Z',
-      },
-    }));
-
-    render(<CodePreview />);
-
-    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
-
-    // Edit the Azure region
-    const azureInput = screen.getByDisplayValue('eastus');
-    await user.clear(azureInput);
-    await user.type(azureInput, 'westus2');
-
-    await user.click(screen.getByText('🚀 Compare Providers'));
-
-    expect(vi.mocked(generateCode)).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({ provider: 'azure', region: 'westus2' }),
-    );
-    expect(vi.mocked(generateCode)).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({ provider: 'aws', region: 'us-east-1' }),
-    );
   });
 
   it('clears output and errors when generator changes', async () => {
@@ -862,111 +527,6 @@ describe('CodePreview', () => {
     render(<CodePreview />);
 
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-  });
-
-  it('clears output and errors when compare mode toggles', async () => {
-    const user = userEvent.setup();
-    vi.mocked(generateCode).mockReturnValue({
-      files: [{ path: 'main.tf', content: 'content', language: 'hcl' as const }],
-      metadata: { generator: 'terraform', version: '0.3.0', provider: 'azure' as const, generatedAt: '2026-01-01T00:00:00.000Z' },
-    });
-
-    render(<CodePreview />);
-    await user.click(screen.getByText(/Generate Code/));
-    expect(screen.getByText('main.tf')).toBeInTheDocument();
-
-    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
-
-    expect(screen.queryByText('main.tf')).not.toBeInTheDocument();
-  });
-
-  it('makes controls read-only and shows clear action when compare results are active', async () => {
-    const user = userEvent.setup();
-    vi.mocked(generateCode).mockImplementation((_, options) => ({
-      files: [{ path: 'main.tf', content: `provider=${options.provider}`, language: 'hcl' as const }],
-      metadata: {
-        generator: 'terraform',
-        version: '0.3.0',
-        provider: options.provider,
-        generatedAt: '2026-01-01T00:00:00.000Z',
-      },
-    }));
-
-    render(<CodePreview />);
-    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
-    await user.click(screen.getByText('🚀 Compare Providers'));
-
-    // Advanced toggle should be disabled during compare
-    const advancedCheckbox = screen.getByLabelText('Expert generator selection');
-    expect(advancedCheckbox).toBeDisabled();
-
-    // Enable Advanced before compare to check combobox would be disabled
-    // (Advanced is disabled during compare, so combobox is hidden)
-    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
-    expect(screen.getByDisplayValue('test')).toBeDisabled();
-    expect(screen.getByDisplayValue('eastus')).toBeDisabled();
-    expect(screen.getByDisplayValue('us-east-1')).toBeDisabled();
-    expect(screen.getByDisplayValue('us-central1')).toBeDisabled();
-    expect(screen.getByLabelText('Azure / AWS / GCP')).toBeDisabled();
-    expect(screen.getByText('🚀 Clear Results')).toBeInTheDocument();
-
-    await user.click(screen.getByText('🚀 Clear Results'));
-    await waitFor(() => {
-      expect(screen.queryByText('provider=azure')).not.toBeInTheDocument();
-    });
-    expect(advancedCheckbox).not.toBeDisabled();
-  });
-
-  it('prompts before enabling compare when single output exists and keeps state on cancel', async () => {
-    const user = userEvent.setup();
-    vi.mocked(generateCode).mockReturnValue({
-      files: [{ path: 'main.tf', content: 'resource content', language: 'hcl' as const }],
-      metadata: {
-        generator: 'terraform',
-        version: '0.3.0',
-        provider: 'azure',
-        generatedAt: '2026-01-01T00:00:00.000Z',
-      },
-    });
-
-    render(<CodePreview />);
-    await user.click(screen.getByText(/Generate Code/));
-
-    mockConfirmDialog.mockResolvedValueOnce(false);
-    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
-
-    await waitFor(() => {
-      expect(mockConfirmDialog).toHaveBeenCalledWith(
-        'Starting comparison will discard current generated output. Continue?',
-        'Start Comparison?'
-      );
-    });
-    expect(screen.getByLabelText('Azure / AWS / GCP')).not.toBeChecked();
-    expect(screen.getByText('main.tf')).toBeInTheDocument();
-  });
-
-  it('enables compare and clears single output after discard confirmation', async () => {
-    const user = userEvent.setup();
-    vi.mocked(generateCode).mockReturnValue({
-      files: [{ path: 'main.tf', content: 'resource content', language: 'hcl' as const }],
-      metadata: {
-        generator: 'terraform',
-        version: '0.3.0',
-        provider: 'azure',
-        generatedAt: '2026-01-01T00:00:00.000Z',
-      },
-    });
-
-    render(<CodePreview />);
-    await user.click(screen.getByText(/Generate Code/));
-
-    mockConfirmDialog.mockResolvedValueOnce(true);
-    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
-
-    await waitFor(() => {
-      expect(screen.getByLabelText('Azure / AWS / GCP')).toBeChecked();
-      expect(screen.queryByText('main.tf')).not.toBeInTheDocument();
-    });
   });
 
 });

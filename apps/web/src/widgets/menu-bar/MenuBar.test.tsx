@@ -154,16 +154,28 @@ describe('MenuBar', () => {
     expect(useUIStore.getState().activeProvider).toBe('azure');
   });
 
-  it('does not show confirm dialog when switching provider with no blocks', async () => {
+  it('marks AWS and GCP provider tabs as coming soon and disabled', () => {
+    render(<MenuBar />);
+
+    const awsTab = screen.getByRole('tab', { name: /aws \(coming soon\)/i });
+    const gcpTab = screen.getByRole('tab', { name: /gcp \(coming soon\)/i });
+
+    expect(awsTab).toBeDisabled();
+    expect(awsTab).toHaveAttribute('title', 'AWS support is coming soon');
+    expect(gcpTab).toBeDisabled();
+    expect(gcpTab).toHaveAttribute('title', 'GCP support is coming soon');
+  });
+
+  it('does not show confirm dialog when clicking a coming soon provider', async () => {
     const user = userEvent.setup();
-    setArchitectureState({ nodes: [] });
+    setArchitectureState({ nodes: [{ ...block, provider: 'azure' }] });
     useUIStore.setState({ activeProvider: 'azure' });
     render(<MenuBar />);
 
-    await user.click(screen.getByRole('tab', { name: /aws/i }));
+    await user.click(screen.getByRole('tab', { name: /aws \(coming soon\)/i }));
 
     expect(confirmDialog).not.toHaveBeenCalled();
-    expect(useUIStore.getState().activeProvider).toBe('aws');
+    expect(useUIStore.getState().activeProvider).toBe('azure');
   });
 
   it('does not switch when clicking already active provider tab', async () => {
@@ -175,66 +187,6 @@ describe('MenuBar', () => {
     await user.click(screen.getByRole('tab', { name: /azure/i }));
 
     expect(confirmDialog).not.toHaveBeenCalled();
-    expect(useUIStore.getState().activeProvider).toBe('azure');
-  });
-
-  it('shows confirm dialog when switching provider with mixed-provider blocks and switches on confirm', async () => {
-    const user = userEvent.setup();
-    vi.mocked(confirmDialog).mockResolvedValue(true);
-    setArchitectureState({
-      nodes: [
-        { ...block, id: 'block-1', provider: 'azure' },
-        { ...block, id: 'block-2', provider: 'azure' },
-      ],
-    });
-    useUIStore.setState({ activeProvider: 'azure' });
-    render(<MenuBar />);
-
-    await user.click(screen.getByRole('tab', { name: /aws/i }));
-
-    await waitFor(() => {
-      expect(confirmDialog).toHaveBeenCalledWith(
-        expect.stringContaining('2 AZURE'),
-        'Switch Cloud Provider?',
-      );
-    });
-    expect(useUIStore.getState().activeProvider).toBe('aws');
-  });
-
-  it('does not switch provider when confirm dialog is canceled', async () => {
-    const user = userEvent.setup();
-    vi.mocked(confirmDialog).mockResolvedValue(false);
-    setArchitectureState({
-      nodes: [{ ...block, id: 'block-1', provider: 'azure' }],
-    });
-    useUIStore.setState({ activeProvider: 'azure' });
-    render(<MenuBar />);
-
-    await user.click(screen.getByRole('tab', { name: /gcp/i }));
-
-    await waitFor(() => {
-      expect(confirmDialog).toHaveBeenCalledWith(
-        expect.stringContaining('1 AZURE'),
-        'Switch Cloud Provider?',
-      );
-    });
-    expect(useUIStore.getState().activeProvider).toBe('azure');
-  });
-
-  it('shows confirm dialog when switching from default azure blocks', async () => {
-    const user = userEvent.setup();
-    setArchitectureState({
-      nodes: [{ ...block, id: 'block-1', provider: 'azure' }],
-    });
-    useUIStore.setState({ activeProvider: 'azure' });
-    render(<MenuBar />);
-
-    await user.click(screen.getByRole('tab', { name: /aws/i }));
-
-    expect(confirmDialog).toHaveBeenCalledWith(
-      expect.stringContaining('1 AZURE'),
-      'Switch Cloud Provider?',
-    );
     expect(useUIStore.getState().activeProvider).toBe('azure');
   });
 

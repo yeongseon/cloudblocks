@@ -10,7 +10,6 @@ import {
 } from '../../features/generate/types';
 import { listGenerators } from '../../features/generate/registry';
 import type { ProviderType } from '@cloudblocks/schema';
-import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 import './CodePreview.css';
 
 const PROVIDERS: ProviderType[] = ['azure', 'aws', 'gcp'];
@@ -52,7 +51,7 @@ export function CodePreview() {
   const [generator, setGenerator] = useState<GeneratorId>(
     generatorOptions[0]?.id ?? 'terraform'
   );
-  const [compareProviders, setCompareProviders] = useState(false);
+  const [compareProviders] = useState(false);
   const [output, setOutput] = useState<GeneratedOutput | null>(null);
   const [comparisonOutputs, setComparisonOutputs] = useState<Record<ProviderType, GeneratedOutput> | null>(null);
   const [comparisonErrors, setComparisonErrors] = useState<Partial<Record<ProviderType, string>> | null>(null);
@@ -87,21 +86,6 @@ export function CodePreview() {
       clearGeneratedState(setError, setOutput, setComparisonOutputs, setComparisonErrors, setActiveTab);
     }
     toggleAdvancedGeneration();
-  };
-
-  const handleCompareChange = async (checked: boolean) => {
-    if (checked && output != null) {
-      const confirmed = await confirmDialog(
-        'Starting comparison will discard current generated output. Continue?',
-        'Start Comparison?'
-      );
-      if (!confirmed) {
-        return;
-      }
-    }
-
-    setCompareProviders(checked);
-    clearGeneratedState(setError, setOutput, setComparisonOutputs, setComparisonErrors, setActiveTab);
   };
 
   const handleGenerate = () => {
@@ -244,7 +228,7 @@ export function CodePreview() {
       <div className="code-preview-options">
         {hasMismatch && (
           <div className="code-preview-mismatch-warning" role="alert">
-            ⚠️ Canvas has {Array.from(mismatchedProviders.entries()).map(([p, count]) => `${count} ${p.toUpperCase()}`).join(', ')} block(s) but generating for {activeProvider.toUpperCase()}. Use &quot;Compare&quot; to see all providers.
+            ⚠️ Canvas has {Array.from(mismatchedProviders.entries()).map(([p, count]) => `${count} ${p.toUpperCase()}`).join(', ')} block(s) but generating for {activeProvider.toUpperCase()}. Switch those blocks to AZURE for consistent output.
           </div>
         )}
         <label className="code-preview-field code-preview-field-checkbox">
@@ -318,18 +302,6 @@ export function CodePreview() {
             />
           </label>
         )}
-        <label className="code-preview-field code-preview-field-checkbox">
-          <span className="code-preview-field-label">Compare</span>
-          <label className="code-preview-checkbox-label">
-            <input
-              type="checkbox"
-              checked={effectiveCompare}
-              disabled={hasCompareResults || !canCompareProviders}
-              onChange={(e) => void handleCompareChange(e.target.checked)}
-            />
-            Azure / AWS / GCP
-          </label>
-        </label>
         <button
           type="button"
           className="code-preview-generate-btn"
