@@ -1180,6 +1180,98 @@ Fix all GitHub integration bugs. Subgroups can run in parallel but maintain orde
 ### Dependencies
 - Milestone 19 complete
 
+---
+
+## Milestone 21 — Semantic Block + Stub
+
+Goal:
+Realign CloudBlocks with the Product Direction Spec — "Build cloud like Lego". Implement semantic block shapes, stub-based connections, MVP resource filtering, and the new first screen. Foundation for stub-to-stub connection routing.
+
+> **Reference**: [PRODUCT_DIRECTION_SPEC.md](PRODUCT_DIRECTION_SPEC.md)
+
+Key Objectives:
+
+- Replace 4 silhouettes (tower/heavy/shield/module) with 6 semantic shapes (rect/cylinder/gateway/circle/hex/shield)
+- Add stub metadata to Connection model (sourceStub/targetStub) with category-based port policy
+- Filter resource palette to MVP core set
+- Implement dark-themed first screen with 3 primary actions (Create / Explore Templates / Import)
+- Stub rendering on blocks (visual stub points)
+- Stub-to-stub connection routing (replace center-based connections)
+
+### Implementation Phases
+
+#### Phase 1 — Stub Definition (Schema)
+Add stub metadata to the connection model and define port policy per resource category.
+
+| # | Issue | Status |
+|---|-------|--------|
+| #1200 | Add `sourceStub`/`targetStub` to Connection model | ✅ Done |
+| #1201 | Add port/stub policy per resource category (`CATEGORY_PORTS`) | ✅ Done |
+| #1202 | Update `addConnection` to allocate stub indices | ✅ Done |
+
+#### Phase 2 — Semantic Block Shapes
+Replace legacy silhouettes with category-based semantic shapes.
+
+| # | Issue | Status |
+|---|-------|--------|
+| #1204 | Replace silhouettes with semantic block shapes (6 shapes) | ✅ Done |
+
+#### Phase 3 — MVP Resource Filtering
+Filter creation palette to core resources only.
+
+| # | Issue | Status |
+|---|-------|--------|
+| #1205 | Filter resource palette to MVP set | ✅ Done |
+
+#### Phase 4 — First Screen
+Dark-themed landing page with 3 primary actions.
+
+| # | Issue | Status |
+|---|-------|--------|
+| #1206 | Dark-themed first screen overlay | ✅ Done |
+
+#### Phase 5 — Stub Rendering
+Render stub points visually on block SVG.
+
+| # | Issue | Status |
+|---|-------|--------|
+| TBD | Render stub anchor points on blocks | ❌ Not started |
+
+#### Phase 6 — Connection Preview & Routing
+Stub-to-stub connection UX: preview line, routing, valid target highlighting.
+
+| # | Issue | Status |
+|---|-------|--------|
+| TBD | Connection preview from stub | ❌ Not started |
+| TBD | Stub-to-stub orthogonal routing | ❌ Not started |
+
+#### Phase 7 — Legacy Removal & Color
+Remove center-based connections, apply vendor color system to connections.
+
+| # | Issue | Status |
+|---|-------|--------|
+| TBD | Remove center-to-center connection system | ❌ Not started |
+| TBD | Vendor-based connection color system | ❌ Not started |
+
+### Exit Criteria
+- [x] Connection model has `sourceStub`/`targetStub` fields (#1200)
+- [x] `CATEGORY_PORTS` policy exported from schema (#1201)
+- [x] `addConnection()` auto-allocates stub indices (#1202)
+- [x] 6 semantic block shapes replace 4 legacy silhouettes (#1203)
+- [x] Resource palette filtered to MVP core set (#1204)
+- [x] Dark-themed first screen with Create/Templates/Import (#1205)
+- [ ] Stub points rendered visually on blocks
+- [ ] Connection preview line from stub to cursor
+- [ ] Stub-to-stub orthogonal routing implemented
+- [ ] Center-to-center connection system removed
+- [ ] Vendor-based connection colors applied
+- [ ] All tests passing, ≥ 90% branch coverage
+
+### Dependencies
+- Milestone 20 complete
+
+---
+
 ## i18n — Internationalization
 
 Goal:
@@ -1355,6 +1447,8 @@ The roadmap evolves CloudBlocks from:
 
 → UX Polish & GitHub Hardening (Milestone 20) ✅
 
+→ Semantic Block + Stub (Milestone 21) — in progress
+
 → Internationalization (i18n)
 
 ### Dependency Graph
@@ -1371,6 +1465,7 @@ Milestone 8 (Complete) ✅
     │                                               └── Milestone 18 (DevOps UX) ✅
     │                                                       └── Milestone 19 (MVP Polish & Launch) ✅
     │                                                               └── Milestone 20 (UX Polish & GitHub Hardening) ✅
+    │                                                                       └── Milestone 21 (Semantic Block + Stub) ← current
     │               └── Milestone 14 (AI Roadmap) ✅ ←── also benefits from Milestone 13
     └── Milestone 11 (Brick Design) ✅ ──── parallel with Milestone 9
 
