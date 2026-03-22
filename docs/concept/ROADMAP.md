@@ -1272,6 +1272,81 @@ Remove center-based connections, apply vendor color system to connections.
 
 ---
 
+## Milestone 22 — Stub Connections & Visual Theme
+
+Goal:
+Complete the stub-based connection system, apply vendor-specific visual identity, clean up legacy resource model duplication, and introduce a token-based visual theme system. Deliver a verified Azure end-to-end demo.
+
+> **Reference**: [PRODUCT_DIRECTION_SPEC.md](PRODUCT_DIRECTION_SPEC.md)
+
+Key Objectives:
+
+- Render stub anchor points visually on block SVG faces (inbound=left, outbound=right)
+- Implement connection preview from stubs with valid/invalid target highlighting
+- Complete stub-to-stub routing and remove center-to-center fallback
+- Apply vendor-based color system to blocks and connections (Azure=#0078D4, AWS=#FF9900, GCP=#4285F4)
+- Remove `MVP_RESOURCE_ALLOWLIST` duplication — consolidate into `RESOURCE_DEFINITIONS`
+- Extend token-based theme system: Professional (default) + Lego (alt) via CSS custom properties
+- Verify Azure end-to-end demo scenario
+
+### Existing Infrastructure (from M21)
+
+The following stub infrastructure already exists and will be built upon:
+- `blockGeometry.ts` — `getBlockSvgStubPoints()` computes SVG-local stub positions
+- `endpointAnchors.ts` — `getConnectionEndpointWorldAnchors()` resolves stub-aware world-space endpoints
+- `BrickConnector.tsx` — already consumes stub anchors via `getConnectionEndpointWorldAnchors()`
+- `themeTokens.ts` — `ThemeVariant` type with `blueprint` (dark) and `workshop` (light) token sets
+- `CATEGORY_PORTS` — port/stub policy per resource category (from `@cloudblocks/schema`)
+
+### Implementation Phases
+
+#### Phase 1 — Stub Rendering + Resource Cleanup (parallel)
+
+| Area | Description | Dependencies |
+|------|-------------|--------------|
+| A. Stub Visual Rendering | Render stub dots on block SVG faces using `getBlockSvgStubPoints()`. Hover indicator, connection-occupied state. | None |
+| D. Resource Model Cleanup | Remove `MVP_RESOURCE_ALLOWLIST` duplication (#1208). `RESOURCE_DEFINITIONS` as single source of truth. | None |
+
+#### Phase 2 — Connection UX from Stubs
+
+| Area | Description | Dependencies |
+|------|-------------|--------------|
+| B. Connection Preview | Live preview line from stub to cursor. Valid targets highlight (green glow), invalid targets dim. Click stub to start connect mode. | Phase 1A |
+| B. Stub-to-Stub Routing | Orthogonal routing from source stub to target stub. Remove center fallback in `endpointAnchors.ts`. | Phase 1A |
+
+#### Phase 3 — Legacy Removal + Vendor Colors
+
+| Area | Description | Dependencies |
+|------|-------------|--------------|
+| C. Center Connection Removal | Remove `getEndpointWorldPosition()` center-based fallback. Clean up `position.ts` legacy endpoint code. | Phase 2 |
+| C. Vendor Color System | Block face colors and connection line colors derived from vendor (`ProviderType`). Extend `connectorTheme.ts` with vendor dimension. | Phase 2 |
+
+#### Phase 4 — Visual Theme + Demo Verification
+
+| Area | Description | Dependencies |
+|------|-------------|--------------|
+| E. Visual Theme System | Extend `ThemeVariant` with `professional` (rename from `blueprint`) and `lego` themes. Token-level differences: border-radius, shadow depth, surface materials. Theme switcher in menu. | Independent (can parallel with Phase 2-3) |
+| F. Azure Demo Verification | End-to-end: create workspace → VNet → subnets → blocks (VM, DB, Storage, Gateway) → stub connections → generate Terraform/Bicep/Pulumi → validate output. | All phases complete |
+
+### Exit Criteria
+- [ ] Stub points rendered visually on block faces with hover indicators
+- [ ] Connection preview line from stub to cursor during connect mode
+- [ ] Valid/invalid target highlighting during connection
+- [ ] Stub-to-stub orthogonal routing fully replaces center-based routing
+- [ ] Center-to-center connection fallback removed
+- [ ] Vendor-based colors applied to blocks and connections
+- [ ] `MVP_RESOURCE_ALLOWLIST` eliminated — `RESOURCE_DEFINITIONS` is single source (#1208)
+- [ ] Token-based theme system with Professional (default) + Lego (alt) themes
+- [ ] Theme switch accessible from settings/menu
+- [ ] Azure end-to-end demo verified (create → connect via stubs → generate → validate)
+- [ ] All tests passing, ≥ 90% branch coverage
+- [ ] `v0.22.0` release published
+
+### Dependencies
+- Milestone 21 complete
+
+---
+
 ## i18n — Internationalization
 
 Goal:
@@ -1449,6 +1524,8 @@ The roadmap evolves CloudBlocks from:
 
 → Semantic Block + Stub (Milestone 21) — in progress
 
+→ Stub Connections & Visual Theme (Milestone 22)
+
 → Internationalization (i18n)
 
 ### Dependency Graph
@@ -1466,6 +1543,7 @@ Milestone 8 (Complete) ✅
     │                                                       └── Milestone 19 (MVP Polish & Launch) ✅
     │                                                               └── Milestone 20 (UX Polish & GitHub Hardening) ✅
     │                                                                       └── Milestone 21 (Semantic Block + Stub) ← current
+    │                                                                               └── Milestone 22 (Stub Connections & Visual Theme) ← next
     │               └── Milestone 14 (AI Roadmap) ✅ ←── also benefits from Milestone 13
     └── Milestone 11 (Brick Design) ✅ ──── parallel with Milestone 9
 
