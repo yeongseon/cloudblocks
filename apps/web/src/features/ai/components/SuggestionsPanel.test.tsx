@@ -1,9 +1,16 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { useAiStore } from '../store';
 import { SuggestionsPanel } from './SuggestionsPanel';
 
+const mockIsApiConfigured = vi.fn();
+
+vi.mock('../../../shared/api/client', () => ({
+  isApiConfigured: (...args: unknown[]) => mockIsApiConfigured(...args),
+}));
+
 beforeEach(() => {
+  mockIsApiConfigured.mockReturnValue(true);
   useAiStore.setState({
     suggestLoading: false,
     suggestError: null,
@@ -84,5 +91,14 @@ describe('SuggestionsPanel', () => {
     render(<SuggestionsPanel />);
 
     expect(screen.getByText(/looking good/)).toBeInTheDocument();
+  });
+
+  it('renders backend-required message when backend is not configured', () => {
+    mockIsApiConfigured.mockReturnValue(false);
+
+    render(<SuggestionsPanel />);
+
+    expect(screen.getByText('AI features require the backend API - see setup guide.')).toBeInTheDocument();
+    expect(screen.queryByText(/Run AI analysis/)).not.toBeInTheDocument();
   });
 });

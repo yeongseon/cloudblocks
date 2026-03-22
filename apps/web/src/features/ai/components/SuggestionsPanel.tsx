@@ -1,7 +1,10 @@
 import React from 'react';
 import { useAiStore } from '../store';
+import { isApiConfigured } from '../../../shared/api/client';
 import type { AiSuggestion } from '../api';
 import './SuggestionsPanel.css';
+
+const AI_BACKEND_REQUIRED_MESSAGE = 'AI features require the backend API - see setup guide.';
 
 const SEVERITY_ICONS: Record<string, string> = {
   critical: '🔴',
@@ -50,6 +53,15 @@ export const SuggestionsPanel: React.FC = () => {
   const loading = useAiStore((s) => s.suggestLoading);
   const error = useAiStore((s) => s.suggestError);
   const result = useAiStore((s) => s.suggestResult);
+  const backendConfigured = isApiConfigured();
+
+  if (!backendConfigured) {
+    return (
+      <div className="suggestions-panel" data-testid="suggestions-panel">
+        <div className="suggestions-error">{AI_BACKEND_REQUIRED_MESSAGE}</div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

@@ -1,9 +1,16 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { useAiStore } from '../store';
 import { CostPanel } from './CostPanel';
 
+const mockIsApiConfigured = vi.fn();
+
+vi.mock('../../../shared/api/client', () => ({
+  isApiConfigured: (...args: unknown[]) => mockIsApiConfigured(...args),
+}));
+
 beforeEach(() => {
+  mockIsApiConfigured.mockReturnValue(true);
   useAiStore.setState({
     costLoading: false,
     costError: null,
@@ -77,5 +84,14 @@ describe('CostPanel', () => {
     render(<CostPanel />);
 
     expect(screen.queryByText('Resource Breakdown')).not.toBeInTheDocument();
+  });
+
+  it('renders backend-required message when backend is not configured', () => {
+    mockIsApiConfigured.mockReturnValue(false);
+
+    render(<CostPanel />);
+
+    expect(screen.getByText('AI features require the backend API - see setup guide.')).toBeInTheDocument();
+    expect(screen.queryByText(/Run cost estimation/)).not.toBeInTheDocument();
   });
 });
