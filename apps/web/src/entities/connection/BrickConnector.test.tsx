@@ -51,7 +51,7 @@ function setupEndpoints(srcWorld: [number, number, number] = [1, 0, 2], tgtWorld
 
 function renderConnector(conn: Connection = connection) {
   return render(
-    <svg><title>Test</title>
+    <svg aria-label="Test SVG">
       <BrickConnector
         connection={conn}
         blocks={[]}
@@ -133,7 +133,7 @@ describe('BrickConnector', () => {
       .mockReturnValue({ src: [1, 0, 2], tgt: [3, 0, 4] });
 
     const { container } = render(
-      <svg onClick={parentClick}><title>Test</title>
+      <svg onClick={parentClick} onKeyDown={() => {}} aria-label="Test SVG">
         <BrickConnector connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={0} originY={0} />
       </svg>,
     );
@@ -292,6 +292,95 @@ describe('BrickConnector', () => {
       expect(segment).toBeInTheDocument();
       const pinElements = segment?.querySelectorAll('ellipse, line, polygon');
       expect(pinElements?.length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  describe('validation overlay', () => {
+    it('renders red dashed overlay when connection has validation errors', () => {
+      useArchitectureStore.setState({
+        validationResult: {
+          valid: false,
+          errors: [{ ruleId: 'test-rule', message: 'Invalid connection', targetId: connection.id, severity: 'error' }],
+          warnings: [],
+        },
+      });
+      setupEndpoints();
+
+      const { container } = renderConnector();
+
+      expect(container.querySelector('[data-testid="connection-invalid"]')).toBeInTheDocument();
+    });
+
+    it('does NOT render overlay when no validation errors target this connection', () => {
+      useArchitectureStore.setState({
+        validationResult: {
+          valid: false,
+          errors: [{ ruleId: 'test-rule', message: 'Some error', targetId: 'other-conn', severity: 'error' }],
+          warnings: [],
+        },
+      });
+      setupEndpoints();
+
+      const { container } = renderConnector();
+
+      expect(container.querySelector('[data-testid="connection-invalid"]')).not.toBeInTheDocument();
+    });
+
+    it('does NOT render overlay when validationResult is null', () => {
+      useArchitectureStore.setState({ validationResult: null });
+      setupEndpoints();
+
+      const { container } = renderConnector();
+
+      expect(container.querySelector('[data-testid="connection-invalid"]')).not.toBeInTheDocument();
+    });
+
+    it('shows error label on hover when connection is invalid', () => {
+      useArchitectureStore.setState({
+        validationResult: {
+          valid: false,
+          errors: [{ ruleId: 'test-rule', message: 'Connection not allowed', targetId: connection.id, severity: 'error' }],
+          warnings: [],
+        },
+      });
+      setupEndpoints();
+
+      const { container } = renderConnector();
+
+      fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
+
+      expect(container.querySelector('[data-testid="connection-error-label"]')).toBeInTheDocument();
+    });
+
+    it('shows error label when connection is selected and invalid', () => {
+      useUIStore.setState({ selectedId: connection.id });
+      useArchitectureStore.setState({
+        validationResult: {
+          valid: false,
+          errors: [{ ruleId: 'test-rule', message: 'Connection not allowed', targetId: connection.id, severity: 'error' }],
+          warnings: [],
+        },
+      });
+      setupEndpoints();
+
+      const { container } = renderConnector();
+
+      expect(container.querySelector('[data-testid="connection-error-label"]')).toBeInTheDocument();
+    });
+
+    it('does NOT show error label when not hovered and not selected', () => {
+      useArchitectureStore.setState({
+        validationResult: {
+          valid: false,
+          errors: [{ ruleId: 'test-rule', message: 'Connection not allowed', targetId: connection.id, severity: 'error' }],
+          warnings: [],
+        },
+      });
+      setupEndpoints();
+
+      const { container } = renderConnector();
+
+      expect(container.querySelector('[data-testid="connection-error-label"]')).not.toBeInTheDocument();
     });
   });
 });

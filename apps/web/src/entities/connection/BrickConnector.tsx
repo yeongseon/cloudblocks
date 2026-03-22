@@ -276,11 +276,22 @@ export const BrickConnector = memo(function BrickConnector({
   const diffMode = useUIStore((s) => s.diffMode);
   const diffDelta = useUIStore((s) => s.diffDelta);
   const removeConnection = useArchitectureStore((s) => s.removeConnection);
+  const validationResult = useArchitectureStore((s) => s.validationResult);
 
   const theme = CONNECTOR_THEMES[connection.type];
   const diffState = diffMode && diffDelta ? getDiffState(connection.id, diffDelta) : 'unchanged';
   const isSelected = selectedId === connection.id;
   const isHighlighted = isHovered || isSelected;
+
+  const connectionErrors = useMemo(() => {
+    if (!validationResult) return [];
+    return [
+      ...validationResult.errors.filter((e) => e.targetId === connection.id),
+      ...validationResult.warnings.filter((w) => w.targetId === connection.id),
+    ];
+  }, [validationResult, connection.id]);
+
+  const hasValidationError = connectionErrors.length > 0;
 
   const endpoints = useMemo(
     () => getConnectionEndpointWorldAnchors(connection, blocks, plates, externalActors),
@@ -320,11 +331,28 @@ export const BrickConnector = memo(function BrickConnector({
     setSelectedId(connection.id);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<SVGGElement>) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (toolMode === 'delete') {
+      removeConnection(connection.id);
+      return;
+    }
+    setSelectedId(connection.id);
+  };
+
   return (
     <g
       opacity={colors.opacity}
       style={{ cursor: 'pointer' }}
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      role="button"
+      tabIndex={0}
+      aria-label={`connection ${connection.id}`}
       data-connector-type={connection.type}
     >
       {isSelected && (
@@ -347,8 +375,6 @@ export const BrickConnector = memo(function BrickConnector({
         fill="none"
         pointerEvents="stroke"
         data-testid="connection-hit-area"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
       />
 
       {route.segments.map((seg, i) =>
@@ -370,6 +396,58 @@ export const BrickConnector = memo(function BrickConnector({
 
       {renderStud(route.srcScreen.x, route.srcScreen.y, colors, `stud-src-${connection.id}`)}
       {renderStud(route.tgtScreen.x, route.tgtScreen.y, colors, `stud-tgt-${connection.id}`)}
+
+      {hasValidationError && (
+        <path
+          d={hitPath}
+          stroke="var(--accent-error, #ef4444)"
+          strokeWidth={3}
+          strokeDasharray="6 6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+          pointerEvents="none"
+          data-testid="connection-invalid"
+        />
+      )}
+
+      {hasValidationError && (isHovered || isSelected) && (() => {
+        const labelPos = route.elbow ?? {
+          x: (route.segments[0].start.x + route.segments[route.segments.length - 1].end.x) / 2,
+          y: (route.segments[0].start.y + route.segments[route.segments.length - 1].end.y) / 2,
+        };
+        const msg = connectionErrors[0].message;
+        const textWidth = Math.min(msg.length * 6.5, 220);
+        const padding = 6;
+        const rectWidth = textWidth + padding * 2;
+        const rectHeight = 22;
+
+        return (
+          <g data-testid="connection-error-label" pointerEvents="none">
+            <rect
+              x={labelPos.x - rectWidth / 2}
+              y={labelPos.y - rectHeight - 4}
+              width={rectWidth}
+              height={rectHeight}
+              rx={4}
+              fill="var(--accent-error, #ef4444)"
+              fillOpacity={0.92}
+            />
+            <text
+              x={labelPos.x}
+              y={labelPos.y - rectHeight / 2 - 4 + 1}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fill="#ffffff"
+              fontSize={11}
+              fontFamily="var(--font-ui, system-ui)"
+              style={{ pointerEvents: 'none' }}
+            >
+              {msg.length > 35 ? msg.slice(0, 32) + '…' : msg}
+            </text>
+          </g>
+        );
+      })()}
     </g>
   );
 });
