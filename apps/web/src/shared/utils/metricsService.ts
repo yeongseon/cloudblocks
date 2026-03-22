@@ -77,15 +77,6 @@ function trackEvent(
   };
 
   persistMetric(entry);
-
-  const endpoint = import.meta.env.VITE_METRICS_URL as string | undefined;
-  if (endpoint && navigator.sendBeacon) {
-    try {
-      navigator.sendBeacon(endpoint, JSON.stringify(entry));
-    } catch {
-      // beacon unavailable
-    }
-  }
 }
 
 function captureHealthSnapshot(connectionCount: number | null = null): HealthSnapshot {
