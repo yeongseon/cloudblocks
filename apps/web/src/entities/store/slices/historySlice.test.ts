@@ -31,9 +31,9 @@ describe('createHistorySlice', () => {
     const get = vi.fn(() => state);
 
     const slice = createHistorySlice(
-      set as Parameters<typeof createHistorySlice>[0],
-      get as Parameters<typeof createHistorySlice>[1],
-      undefined as Parameters<typeof createHistorySlice>[2],
+      set as unknown as Parameters<typeof createHistorySlice>[0],
+      get as unknown as Parameters<typeof createHistorySlice>[1],
+      undefined as unknown as Parameters<typeof createHistorySlice>[2],
     );
 
     slice.undo();

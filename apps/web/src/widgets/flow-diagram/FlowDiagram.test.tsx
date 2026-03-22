@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { FlowDiagram } from './FlowDiagram';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import type { ArchitectureModel, Connection, ExternalActor, LeafNode, ResourceCategory } from '@cloudblocks/schema';
+import type { ArchitectureModel, Connection, ExternalActor, LeafNode, ProviderType, ResourceCategory } from '@cloudblocks/schema';
 import { endpointId } from '@cloudblocks/schema';
 
 vi.mock('./FlowDiagram.css', () => ({}));
@@ -248,7 +248,7 @@ describe('FlowDiagram', () => {
     const unnamedUnknownBlock: LeafNode = {
       ...makeBlock('unknown-1', 'compute'),
       name: '',
-      provider: undefined,
+      provider: undefined as unknown as ProviderType,
       category: 'mystery' as unknown as ResourceCategory,
     };
     const knownBlock = makeBlock('compute-1', 'compute');
