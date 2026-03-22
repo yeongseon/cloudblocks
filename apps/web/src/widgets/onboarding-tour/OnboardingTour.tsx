@@ -15,6 +15,7 @@ interface TourStep {
   fallbackSelector: string;
   title: string;
   description: string;
+  ensureVisible?: () => void;
 }
 
 const STEPS: TourStep[] = [
@@ -26,18 +27,19 @@ const STEPS: TourStep[] = [
       'Start by creating a Network plate \u2014 click "Start from Scratch" or pick a template.',
   },
   {
-    selector: '.command-card-header',
-    fallbackSelector: '.command-card',
+    selector: '.bottom-panel-command',
+    fallbackSelector: '.bottom-panel',
     title: 'Command Panel',
     description:
-      'Context-sensitive action grid. Create resources, view properties, edit connections, or delete elements depending on your selection.',
+      'Context-sensitive action grid. Create resources, view properties, edit connections depending on your selection.',
   },
   {
-    selector: '.resource-bar',
-    fallbackSelector: '.resource-bar',
-    title: 'Resource Counter',
+    selector: '.sidebar-palette',
+    fallbackSelector: '.sidebar-palette',
+    title: 'Resource Palette',
     description:
-      'Displays real-time counts of plates, blocks, and connections in your architecture.',
+      'Browse and drag resources onto the canvas. Resources are grouped by category - network, compute, data, security, and more.',
+    ensureVisible: () => useUIStore.getState().setSidebarOpen(true),
   },
   {
     selector: '.bottom-panel-minimap',
@@ -54,11 +56,22 @@ const STEPS: TourStep[] = [
       'Learn about the selected plate or block. Shows educational content, placement rules, and connection guidance.',
   },
   {
-    selector: '.validation-panel',
-    fallbackSelector: '.scene-canvas',
-    title: 'Validation Results',
+    selector: '.bottom-panel-tab-content',
+    fallbackSelector: '.bottom-panel',
+    title: 'Validation',
     description:
-      'Run validation from the Build menu to check placement rules and connection constraints in real time.',
+      'Check placement rules and connection constraints. Switch to the Validation tab in the bottom dock.',
+    ensureVisible: () => {
+      useUIStore.getState().openBottomTab('validation');
+    },
+  },
+  {
+    selector: '.inspector-panel',
+    fallbackSelector: '.inspector-panel',
+    title: 'Inspector',
+    description:
+      'View and edit properties, code preview, and connections for the selected element.',
+    ensureVisible: () => useUIStore.getState().setInspectorOpen(true),
   },
   {
     selector: '.menu-bar-nav',
@@ -196,7 +209,9 @@ export function OnboardingTour() {
 
   const updateSpotlight = useCallback(() => {
     if (!showOnboarding || needsPersona) return;
-    const rect = getTargetRect(STEPS[currentStep]);
+    const step = STEPS[currentStep];
+    step.ensureVisible?.();
+    const rect = getTargetRect(step);
     setSpotlight(rect);
   }, [showOnboarding, needsPersona, currentStep]);
 
@@ -232,7 +247,9 @@ export function OnboardingTour() {
 
   useEffect(() => {
     if (!showOnboarding || needsPersona) return;
-    const restore = elevateTarget(STEPS[currentStep]);
+    const step = STEPS[currentStep];
+    step.ensureVisible?.();
+    const restore = elevateTarget(step);
     return () => { restore?.(); };
   }, [showOnboarding, needsPersona, currentStep]);
 
