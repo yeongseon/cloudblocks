@@ -21,10 +21,12 @@ describe('useUIStore', () => {
       showGitHubRepos: false,
       showGitHubSync: false,
       showGitHubPR: false,
+      pendingGitHubAction: null,
       showSuggestionsPanel: false,
       showCostPanel: false,
       activeProvider: 'azure',
       editorMode: 'build',
+      pendingLinkRepo: null,
       showLearningPanel: false,
       showScenarioGallery: false,
       diffMode: false,
@@ -54,6 +56,7 @@ describe('useUIStore', () => {
       expect(state.showCostPanel).toBe(false);
       expect(state.activeProvider).toBe('azure');
       expect(state.editorMode).toBe('build');
+      expect(state.pendingLinkRepo).toBe(null);
       expect(state.showLearningPanel).toBe(false);
       expect(state.showScenarioGallery).toBe(false);
       expect(state.diffMode).toBe(false);
@@ -655,6 +658,34 @@ describe('useUIStore', () => {
       useUIStore.getState().toggleGitHubPR();
       useUIStore.getState().toggleGitHubPR();
       expect(useUIStore.getState().showGitHubPR).toBe(false);
+    });
+  });
+
+  describe('pendingGitHubAction', () => {
+    it('defaults to null', () => {
+      expect(useUIStore.getState().pendingGitHubAction).toBe(null);
+    });
+
+    it('sets and clears pending action while syncing sessionStorage', () => {
+      useUIStore.getState().setPendingGitHubAction('sync');
+      expect(useUIStore.getState().pendingGitHubAction).toBe('sync');
+      expect(sessionStorage.getItem('cloudblocks_pending_github_action')).toBe('sync');
+
+      useUIStore.getState().setPendingGitHubAction(null);
+      expect(useUIStore.getState().pendingGitHubAction).toBe(null);
+      expect(sessionStorage.getItem('cloudblocks_pending_github_action')).toBeNull();
+    });
+  });
+
+  describe('pendingLinkRepo', () => {
+    it('defaults to null and can be set/cleared', () => {
+      expect(useUIStore.getState().pendingLinkRepo).toBe(null);
+
+      useUIStore.getState().setPendingLinkRepo('owner/repo');
+      expect(useUIStore.getState().pendingLinkRepo).toBe('owner/repo');
+
+      useUIStore.getState().setPendingLinkRepo(null);
+      expect(useUIStore.getState().pendingLinkRepo).toBe(null);
     });
   });
 

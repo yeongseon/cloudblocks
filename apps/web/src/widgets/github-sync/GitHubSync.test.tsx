@@ -5,12 +5,13 @@ vi.mock('../../shared/api/client', () => ({
   apiPost: vi.fn(),
   apiGet: vi.fn(),
   apiPut: vi.fn(),
+  isAuthError: vi.fn(() => false),
 }));
 import { GitHubSync } from './GitHubSync';
 import { useUIStore } from '../../entities/store/uiStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import { apiGet, apiPost, apiPut } from '../../shared/api/client';
+import { apiGet, apiPost, apiPut, isAuthError } from '../../shared/api/client';
 import type { ArchitectureModel } from '@cloudblocks/schema';
 
 const emptyArch: ArchitectureModel = {
@@ -28,6 +29,7 @@ describe('GitHubSync', () => {
   const mockApiGet = vi.mocked(apiGet);
   const mockApiPost = vi.mocked(apiPost);
   const mockApiPut = vi.mocked(apiPut);
+  const mockIsAuthError = vi.mocked(isAuthError);
   const replaceArchitectureMock = vi.fn();
 
   beforeEach(() => {
@@ -62,6 +64,7 @@ describe('GitHubSync', () => {
       created_at: '',
       updated_at: '',
     });
+    mockIsAuthError.mockReturnValue(false);
   });
 
   it('renders null when hidden', () => {
@@ -81,6 +84,15 @@ describe('GitHubSync', () => {
     expect(screen.getByText('No GitHub repo linked.')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('owner/repo')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Link' })).toBeInTheDocument();
+  });
+
+  it('prefills repository input from pendingLinkRepo and clears handoff state', () => {
+    useUIStore.setState({ pendingLinkRepo: 'owner/from-create' });
+
+    render(<GitHubSync />);
+
+    expect(screen.getByPlaceholderText('owner/repo')).toHaveValue('owner/from-create');
+    expect(useUIStore.getState().pendingLinkRepo).toBe(null);
   });
 
   it('shows sync and pull buttons when repo linked', async () => {
@@ -183,6 +195,25 @@ describe('GitHubSync', () => {
     await user.click(await screen.findByRole('button', { name: 'Pull from GitHub' }));
 
     expect(await screen.findByText('Network down')).toBeInTheDocument();
+  });
+
+  it('routes auth error to login panel from sync action', async () => {
+    const user = userEvent.setup();
+    const unauthorizedError = new Error('Unauthorized');
+    mockApiPost.mockRejectedValueOnce(unauthorizedError);
+    mockIsAuthError.mockReturnValueOnce(true);
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+    await user.click(await screen.findByRole('button', { name: 'Sync to GitHub' }));
+
+    await vi.waitFor(() => {
+      expect(useAuthStore.getState().status).toBe('anonymous');
+    });
+    expect(useAuthStore.getState().error).toBe('Session expired. Please sign in again.');
+    expect(useUIStore.getState().showGitHubLogin).toBe(true);
   });
 
   it('shows error when loadCommits fails', async () => {

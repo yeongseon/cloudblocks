@@ -7,7 +7,36 @@ import type { ArchitectureModel } from '@cloudblocks/schema';
 export type ToolMode = 'select' | 'connect' | 'delete';
 export type InteractionState = 'idle' | 'selecting' | 'dragging' | 'placing' | 'connecting';
 export type BackendStatus = 'unknown' | 'not_configured' | 'available' | 'unavailable';
+export type PendingGitHubAction = 'sync' | 'pr' | 'repos' | null;
 export type { EditorMode } from '../../shared/types/learning';
+
+const PENDING_GITHUB_ACTION_KEY = 'cloudblocks_pending_github_action';
+
+function readPendingGitHubAction(): PendingGitHubAction {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const raw = window.sessionStorage.getItem(PENDING_GITHUB_ACTION_KEY);
+  if (raw === 'sync' || raw === 'pr' || raw === 'repos') {
+    return raw;
+  }
+
+  return null;
+}
+
+function writePendingGitHubAction(action: PendingGitHubAction): void {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  if (action === null) {
+    window.sessionStorage.removeItem(PENDING_GITHUB_ACTION_KEY);
+    return;
+  }
+
+  window.sessionStorage.setItem(PENDING_GITHUB_ACTION_KEY, action);
+}
 
 interface UIState {
   // ── Selection ──
@@ -101,6 +130,11 @@ interface UIState {
   // ── Sound preference ──
   isSoundMuted: boolean;
   toggleSound: () => void;
+
+  pendingGitHubAction: PendingGitHubAction;
+  setPendingGitHubAction: (action: PendingGitHubAction) => void;
+  pendingLinkRepo: string | null;
+  setPendingLinkRepo: (fullName: string | null) => void;
 
   // ── Resource self-animation ──
   upgradingBlockId: string | null;
@@ -301,6 +335,14 @@ export const useUIStore = create<UIState>((set) => ({
 
   isSoundMuted: true,
   toggleSound: () => set((s) => ({ isSoundMuted: !s.isSoundMuted })),
+
+  pendingGitHubAction: readPendingGitHubAction(),
+  setPendingGitHubAction: (action) => {
+    writePendingGitHubAction(action);
+    set({ pendingGitHubAction: action });
+  },
+  pendingLinkRepo: null,
+  setPendingLinkRepo: (fullName) => set({ pendingLinkRepo: fullName }),
 
   showOnboarding: false,
   setShowOnboarding: (show) => set({ showOnboarding: show }),

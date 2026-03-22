@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ApiError, apiDelete, apiFetch, apiGet, apiPost, apiPut, getApiErrorMessage, normalizeApiBaseUrl } from './client';
+import { ApiError, apiDelete, apiFetch, apiGet, apiPost, apiPut, getApiErrorMessage, isAuthError, normalizeApiBaseUrl } from './client';
 
 function jsonResponse(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload), {
@@ -284,5 +284,16 @@ describe('getApiErrorMessage', () => {
 
   it('falls back to supplied message when thrown value is not Error', () => {
     expect(getApiErrorMessage('bad', 'Fallback')).toBe('Fallback');
+  });
+});
+
+describe('isAuthError', () => {
+  it('returns true for ApiError 401', () => {
+    expect(isAuthError(new ApiError('Unauthorized', 401, ''))).toBe(true);
+  });
+
+  it('returns false for non-401 or non-ApiError', () => {
+    expect(isAuthError(new ApiError('Server error', 500, ''))).toBe(false);
+    expect(isAuthError(new Error('Unauthorized'))).toBe(false);
   });
 });

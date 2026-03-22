@@ -11,6 +11,7 @@ interface GitHubAuthStartResponse {
 export function GitHubLogin() {
   const show = useUIStore((s) => s.showGitHubLogin);
   const toggleGitHubLogin = useUIStore((s) => s.toggleGitHubLogin);
+  const setPendingGitHubAction = useUIStore((s) => s.setPendingGitHubAction);
 
   const user = useAuthStore((s) => s.user);
   const status = useAuthStore((s) => s.status);
@@ -30,6 +31,7 @@ export function GitHubLogin() {
 
     try {
       const response = await apiPost<GitHubAuthStartResponse>('/api/v1/auth/github');
+      setPendingGitHubAction(null);
       window.location.href = response.authorize_url;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to start GitHub login.';
