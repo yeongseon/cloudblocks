@@ -1,0 +1,84 @@
+import { useArchitectureStore } from '../../entities/store/architectureStore';
+import { useUIStore } from '../../entities/store/uiStore';
+import { listTemplates } from '../../features/templates/registry';
+import type { ArchitectureTemplate } from '../../shared/types/template';
+import { LandingNavbar } from '../landing-navbar/LandingNavbar';
+import './LandingPage.css';
+
+export function LandingPage() {
+  const goToBuilder = useUIStore((s) => s.goToBuilder);
+  const loadFromTemplate = useArchitectureStore((s) => s.loadFromTemplate);
+  const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
+  const templates = listTemplates().slice(0, 3);
+
+  const handleStartBuilding = () => {
+    goToBuilder();
+  };
+
+  const handleUseTemplate = (template: ArchitectureTemplate) => {
+    loadFromTemplate(template);
+    saveToStorage();
+    goToBuilder();
+  };
+
+  return (
+    <div className="landing-page" data-theme="workshop">
+      <LandingNavbar />
+      <main className="landing-main">
+        <section className="landing-hero">
+          <h1 className="landing-hero-title">
+            Design Cloud Architecture Visually
+          </h1>
+          <p className="landing-hero-subtitle">
+            Place resources, connect components, validate against real-world
+            rules, and generate Terraform, Bicep, or Pulumi - all from the
+            browser.
+          </p>
+          <button
+            type="button"
+            className="landing-hero-cta"
+            onClick={handleStartBuilding}
+          >
+            Start Building
+          </button>
+        </section>
+
+        <section className="landing-templates">
+          <h2 className="landing-templates-title">Start from a Template</h2>
+          <div className="landing-templates-grid">
+            {templates.map((template) => (
+              <div key={template.id} className="landing-template-card">
+                <div className="landing-template-card-body">
+                  <h3 className="landing-template-card-name">{template.name}</h3>
+                  <p className="landing-template-card-desc">
+                    {template.description}
+                  </p>
+                  <div className="landing-template-card-tags">
+                    {template.tags.slice(0, 3).map((tag) => (
+                      <span key={tag} className="landing-template-tag">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="landing-template-card-btn"
+                  onClick={() => handleUseTemplate(template)}
+                >
+                  Use This Template
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <footer className="landing-footer">
+          <p className="landing-footer-text">
+            CloudBlocks - Open source visual cloud architecture builder
+          </p>
+        </footer>
+      </main>
+    </div>
+  );
+}
