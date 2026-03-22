@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CommandCard } from './CommandCard';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
@@ -11,23 +11,11 @@ vi.mock('../../shared/ui/PromptDialog', () => ({
   promptDialog: vi.fn(),
 }));
 
-type DragListeners = {
-  start?: () => void;
-  move?: (event: { target: EventTarget }) => void;
-  end?: (event: { target: EventTarget }) => void;
-};
-
-const draggableListeners = new WeakMap<HTMLElement, DragListeners>();
-const unsetInteractableMock = vi.fn();
-
-vi.mock('interactjs', () => ({
-  default: (element: HTMLElement) => ({
-    draggable: (options: { listeners: DragListeners }) => {
-      draggableListeners.set(element, options.listeners);
-      return { unset: unsetInteractableMock };
-    },
-  }),
-}));
+vi.mock('interactjs', () => {
+  const draggable = vi.fn().mockReturnValue({ unset: vi.fn() });
+  const interactFn = vi.fn().mockReturnValue({ draggable });
+  return { default: interactFn };
+});
 
 const baseArchitecture: ArchitectureModel = {
   id: 'arch-1',
@@ -139,187 +127,24 @@ describe('CommandCard', () => {
 
   // ─── CreationMode Tests ──────────────────────────────────
 
-  it('renders creation mode with category-grouped resources', () => {
-    const { container } = render(<CommandCard />);
+  it('renders sidebar palette hint in creation mode', () => {
+    render(<CommandCard />);
 
     expect(screen.getByText('Create Resource')).toBeInTheDocument();
-
-    expect(container.querySelectorAll('.command-card-category-group').length).toBeGreaterThan(0);
-    expect(container.querySelectorAll('.command-card-resource-btn').length).toBeGreaterThanOrEqual(5);
-    expect(screen.getByText('Network Foundations')).toBeInTheDocument();
+    expect(screen.getByText('Use the sidebar palette to create and drag resources onto the canvas.')).toBeInTheDocument();
   });
 
-
-  it('creates network plate from creation mode', async () => {
+  it('shows open sidebar button when sidebar is closed', async () => {
     const user = userEvent.setup();
-    render(<CommandCard />);
+    const setSidebarOpen = vi.fn();
 
-    await user.click(screen.getByRole('button', { name: /VNet/i }));
-
-    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'container', resourceType: 'virtual_network', name: 'VNet', parentId: null, layer: 'region' });
-  });
-
-  it('creates block resource when network and subnet exist', async () => {
-    const user = userEvent.setup();
-
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...baseArchitecture,
-          nodes: [networkPlate, publicSubnet],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
+    useUIStore.setState({ sidebar: { isOpen: false }, setSidebarOpen });
 
     render(<CommandCard />);
 
-    await user.click(screen.getByTitle('Create Virtual Machine'));
+    await user.click(screen.getByRole('button', { name: /Open Sidebar/ }));
 
-    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'resource', resourceType: 'virtual_machine', name: 'Virtual Machine 1', parentId: 'subnet-public-1', provider: 'azure', subtype: 'virtual_machine' });
-  });
-
-  it('smoke: create VM from Compute tab then show block actions when selected', async () => {
-    const user = userEvent.setup();
-
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...baseArchitecture,
-          nodes: [networkPlate, publicSubnet],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-
-    const { rerender } = render(<CommandCard />);
-
-    await user.click(screen.getByTitle('Create Virtual Machine'));
-
-    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'resource', resourceType: 'virtual_machine', name: 'Virtual Machine 1', parentId: 'subnet-public-1', provider: 'azure', subtype: 'virtual_machine' });
-
-    act(() => {
-      useArchitectureStore.setState({
-        workspace: {
-          id: 'ws-1',
-          name: 'Test Workspace',
-          architecture: {
-            ...baseArchitecture,
-            nodes: [
-              networkPlate,
-              publicSubnet,
-              {
-                id: 'block-new-1',
-                name: 'Virtual Machine 1',
-                kind: 'resource',
-                layer: 'resource',
-                resourceType: 'web_compute',
-                category: 'compute',
-                provider: 'azure',
-                parentId: 'subnet-public-1',
-                position: { x: 0, y: 0, z: 0 },
-                metadata: {},
-              },
-            ],
-          },
-          createdAt: '',
-          updatedAt: '',
-        },
-      });
-      useUIStore.setState({ selectedId: 'block-new-1' });
-    });
-
-    rerender(<CommandCard />);
-
-    expect(screen.getByText('Actions')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Link/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Delete/ })).toBeInTheDocument();
-  });
-
-  it('shows disabled resources with lock icon before network exists', () => {
-    render(<CommandCard />);
-
-    const vmButton = screen.getByTitle('Create a Network first. Virtual Machines need a network to connect to.');
-
-    expect(vmButton).toBeDisabled();
-    expect(within(vmButton).getByText('🔒')).toBeInTheDocument();
-  });
-
-  it('handles drag lifecycle in creation mode and cleans up interactables', () => {
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...baseArchitecture,
-          nodes: [networkPlate],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-
-    const { unmount } = render(<CommandCard />);
-
-    const networkButton = screen.getByTitle('Create Network (VNet)');
-    const storageButton = screen.getByTitle('Create Blob Storage');
-
-    const networkListeners = draggableListeners.get(networkButton);
-    const storageListeners = draggableListeners.get(storageButton);
-
-    expect(networkListeners).toBeDefined();
-    expect(storageListeners).toBeDefined();
-
-    storageListeners?.start?.();
-    storageListeners?.move?.({ target: storageButton });
-    expect(storageButton).toHaveClass('is-dragging');
-    expect(useUIStore.getState().draggedBlockCategory).toBe('data');
-    expect(useUIStore.getState().draggedResourceName).toBe('Blob Storage');
-
-    storageListeners?.end?.({ target: storageButton });
-    expect(storageButton).not.toHaveClass('is-dragging');
-    expect(useUIStore.getState().draggedBlockCategory).toBeNull();
-    expect(useUIStore.getState().draggedResourceName).toBeNull();
-
-    networkListeners?.move?.({ target: networkButton });
-    expect(useUIStore.getState().draggedBlockCategory).toBeNull();
-    expect(useUIStore.getState().draggedResourceName).toBeNull();
-
-    const detachedButton = document.createElement('button');
-    storageListeners?.move?.({ target: detachedButton });
-    expect(useUIStore.getState().draggedBlockCategory).toBeNull();
-
-    unmount();
-    expect(unsetInteractableMock).toHaveBeenCalled();
-  });
-
-  it('creates private subnet from creation mode when network exists', async () => {
-    const user = userEvent.setup();
-
-    useArchitectureStore.setState({
-      workspace: {
-        id: 'ws-1',
-        name: 'Test Workspace',
-        architecture: {
-          ...baseArchitecture,
-          nodes: [networkPlate],
-        },
-        createdAt: '',
-        updatedAt: '',
-      },
-    });
-
-    render(<CommandCard />);
-
-    await user.click(screen.getByTitle('Create Private Subnet'));
-
-    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'container', resourceType: 'subnet', name: 'Private Subnet', parentId: 'net-1', layer: 'subnet', access: 'private' });
+    expect(setSidebarOpen).toHaveBeenCalledWith(true);
   });
 
   // ─── BlockActionMode Tests ───────────────────────────────

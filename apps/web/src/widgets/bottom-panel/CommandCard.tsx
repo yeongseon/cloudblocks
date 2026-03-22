@@ -8,8 +8,7 @@
  * Based on VISUAL_DESIGN_SPEC.md §7.5
  */
 
-import { useRef, useCallback, useEffect, useState, type CSSProperties } from 'react';
-import { toast } from 'react-hot-toast';
+import { useRef, useCallback, useEffect, useState } from 'react';
 import interact from 'interactjs';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
@@ -23,12 +22,12 @@ import {
   RESOURCE_DEFINITIONS,
   getResourceLabel,
   getResourceShortLabel,
+  PROVIDER_RESOURCE_ALLOWLIST,
   type ResourceType,
   type PlateActionType,
 } from './useTechTree';
-import { BLOCK_FRIENDLY_NAMES, BLOCK_ICONS, CONNECTION_TYPE_LABELS } from '../../shared/types/index';
-import { getBlockColor } from '../../entities/block/blockFaceColors';
-import type { Connection, ConnectionType, ContainerNode, LeafNode, ProviderType, ResourceCategory } from '@cloudblocks/schema';
+import { BLOCK_FRIENDLY_NAMES, CONNECTION_TYPE_LABELS } from '../../shared/types/index';
+import type { Connection, ConnectionType, ContainerNode, LeafNode } from '@cloudblocks/schema';
 import './CommandCard.css';
 
 interface CommandCardProps {
@@ -46,18 +45,6 @@ const POSITION_HOTKEYS = [
   ['A', 'S', 'D'],
   ['Z', 'X', 'C'],
 ] as const;
-
-const ALL_RESOURCES = Object.keys(RESOURCE_DEFINITIONS) as ResourceType[];
-
-const MVP_RESOURCES: ReadonlySet<ResourceType> = new Set([
-  'network', 'public-subnet', 'private-subnet', 'vm', 'sql', 'storage', 'key-vault',
-]);
-
-const PROVIDER_RESOURCE_ALLOWLIST: Record<ProviderType, ReadonlySet<ResourceType>> = {
-  azure: MVP_RESOURCES,
-  aws: MVP_RESOURCES,
-  gcp: MVP_RESOURCES,
-};
 
 type ContainerLayer = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
 
@@ -81,40 +68,6 @@ function getPlateHeaderText(plate: ContainerNode): string {
   // Network-layer plates: global, edge, region, zone
   return plateType === 'region' ? 'VNet' : plateType.charAt(0).toUpperCase() + plateType.slice(1);
 }
-
-type CreationGroupId = ResourceCategory | 'foundation';
-
-const CREATION_GROUP_ORDER: CreationGroupId[] = [
-  'foundation',
-  'compute',
-  'data',
-  'edge',
-  'security',
-  'messaging',
-  'operations',
-];
-
-function getCreationGroupMeta(groupId: CreationGroupId): { icon: string; label: string; color: string } {
-  if (groupId === 'foundation') {
-    return {
-      icon: '🧭',
-      label: 'Network Foundations',
-      color: '#2563EB',
-    };
-  }
-
-  return {
-    icon: BLOCK_ICONS[groupId],
-    label: BLOCK_FRIENDLY_NAMES[groupId],
-    color: getBlockColor('azure', undefined, groupId),
-  };
-}
-
-function getCreationGroupId(type: ResourceType): CreationGroupId {
-  const blockCategory = RESOURCE_DEFINITIONS[type].blockCategory;
-  return blockCategory ?? 'foundation';
-}
-
 
 export function CommandCard({ className = '' }: CommandCardProps) {
   const [plateSubActionState, setPlateSubActionState] = useState<{ selectedId: string | null; action: 'deploy' | null }>({ selectedId: null, action: null });
@@ -264,161 +217,18 @@ function PlateActionMode({ selectedPlate, onDeploy }: { selectedPlate: Container
 // ─── Creation Mode ─────────────────────────────────────────
 
 function CreationMode() {
-  const techTree = useTechTree();
-  const addNode = useArchitectureStore((s) => s.addNode);
-  const activeProvider = useUIStore((s) => s.activeProvider);
-  const startPlacing = useUIStore((s) => s.startPlacing);
-  const cancelInteraction = useUIStore((s) => s.cancelInteraction);
-  const isSoundMuted = useUIStore((s) => s.isSoundMuted);
-  const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
-  const counterRef = useRef(0);
-  const isDraggingRef = useRef(false);
-  const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const gridRef = useRef<HTMLDivElement>(null);
-  const providerResources = PROVIDER_RESOURCE_ALLOWLIST[activeProvider];
-  const groupedResources = CREATION_GROUP_ORDER.map((groupId) => {
-    const resources = ALL_RESOURCES
-      .filter((resource) => getCreationGroupId(resource) === groupId)
-      .filter((resource) => providerResources.has(resource))
-      .sort((a, b) => RESOURCE_DEFINITIONS[a].label.localeCompare(RESOURCE_DEFINITIONS[b].label));
-
-    return { groupId, resources };
-  }).filter((group) => group.resources.length > 0);
-
-  useEffect(() => {
-    if (!gridRef.current) return;
-
-    const buttons = gridRef.current.querySelectorAll<HTMLButtonElement>(
-      '.command-card-btn:not(.disabled):not(.command-card-btn--empty)',
-    );
-    const interactables = Array.from(buttons).map((button) => interact(button).draggable({
-      listeners: {
-        start() {
-          isDraggingRef.current = false;
-        },
-        move(event) {
-          isDraggingRef.current = true;
-          const buttonEl = event.target as HTMLButtonElement;
-          buttonEl.classList.add('is-dragging');
-
-          const type = buttonEl.dataset.resourceType as ResourceType | undefined;
-          if (!type) return;
-
-          const def = RESOURCE_DEFINITIONS[type];
-          if (!def?.blockCategory) return;
-
-          startPlacing(def.blockCategory, getResourceLabel(type, activeProvider));
-        },
-        end(event) {
-          const buttonEl = event.target as HTMLButtonElement;
-          buttonEl.classList.remove('is-dragging');
-          cancelInteraction();
-
-          if (dragResetTimerRef.current) {
-            clearTimeout(dragResetTimerRef.current);
-          }
-          dragResetTimerRef.current = setTimeout(() => {
-            isDraggingRef.current = false;
-          }, 50);
-        },
-      },
-      autoScroll: false,
-    }));
-
-    return () => {
-      if (dragResetTimerRef.current) {
-        clearTimeout(dragResetTimerRef.current);
-      }
-      buttons.forEach((button) => {
-        button.classList.remove('is-dragging');
-      });
-      cancelInteraction();
-      interactables.forEach((interactable) => {
-        interactable.unset();
-      });
-    };
-  }, [activeProvider, cancelInteraction, startPlacing]);
-
-  const handleCreate = useCallback((type: ResourceType) => {
-    if (isDraggingRef.current) return;
-
-    const def = RESOURCE_DEFINITIONS[type];
-
-    // Handle plate creation
-    if (def.category === 'foundation') {
-      if (type === 'network') {
-        addNode({ kind: 'container', resourceType: 'virtual_network', name: 'VNet', parentId: null, layer: 'region' });
-        playSound('block-snap');
-      } else if (type === 'public-subnet') {
-        const targetId = techTree.getTargetPlateId(type);
-        if (targetId) {
-          addNode({ kind: 'container', resourceType: 'subnet', name: 'Public Subnet', parentId: targetId, layer: 'subnet', access: 'public' });
-          playSound('block-snap');
-        }
-      } else if (type === 'private-subnet') {
-        const targetId = techTree.getTargetPlateId(type);
-        if (targetId) {
-          addNode({ kind: 'container', resourceType: 'subnet', name: 'Private Subnet', parentId: targetId, layer: 'subnet', access: 'private' });
-          playSound('block-snap');
-        }
-      }
-
-      return;
-    }
-
-    // Handle block creation
-    if (def.blockCategory) {
-      const targetId = techTree.getTargetPlateId(type);
-      if (!targetId) {
-        toast.error('Please create a Network first.');
-        return;
-      }
-
-      counterRef.current += 1;
-      const name = `${getResourceLabel(type, activeProvider)} ${counterRef.current}`;
-      addNode({ kind: 'resource', resourceType: def.schemaResourceType ?? def.blockCategory, name, parentId: targetId, provider: activeProvider, subtype: def.schemaResourceType });
-      playSound('block-snap');
-    }
-  }, [activeProvider, addNode, techTree, playSound]);
+  const sidebarOpen = useUIStore((s) => s.sidebar.isOpen);
+  const setSidebarOpen = useUIStore((s) => s.setSidebarOpen);
 
   return (
-    <div ref={gridRef} className="command-card-creation-groups">
-      {groupedResources.map(({ groupId, resources }) => {
-        const groupMeta = getCreationGroupMeta(groupId);
-        return (
-          <section key={groupId} className="command-card-category-group" aria-label={`${groupMeta.label} resource group`}>
-            <header className="command-card-category-header" style={{ '--category-color': groupMeta.color } as CSSProperties}>
-              <span className="command-card-category-icon" aria-hidden="true">{groupMeta.icon}</span>
-              <span className="command-card-category-label">{groupMeta.label}</span>
-            </header>
-
-            <div className="command-card-category-grid">
-              {resources.map((type) => {
-                const def = RESOURCE_DEFINITIONS[type];
-                const enabled = techTree.isEnabled(type);
-                const disabledReason = techTree.getDisabledReason(type);
-
-                return (
-                  <button
-                    key={type}
-                    type="button"
-                    className={`command-card-btn command-card-resource-btn ${enabled ? '' : 'disabled'}`}
-                    data-resource-type={type}
-                    onClick={() => enabled && handleCreate(type)}
-                    disabled={!enabled}
-                    title={enabled ? `Create ${getResourceLabel(type, activeProvider)}` : disabledReason ?? undefined}
-                  >
-                    <span className="command-btn-icon">{def.icon}</span>
-                    <span className="command-btn-label">{getResourceShortLabel(type, activeProvider)}</span>
-                    {!enabled && disabledReason && <span className="command-btn-requirement">Needs: {disabledReason}</span>}
-                    {!enabled && <span className="command-btn-lock">🔒</span>}
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-        );
-      })}
+    <div className="command-card-creation-hint">
+      <p>Use the sidebar palette to create and drag resources onto the canvas.</p>
+      {!sidebarOpen && (
+        <button type="button" onClick={() => setSidebarOpen(true)} className="command-card-btn">
+          <span className="command-btn-icon">📂</span>
+          <span className="command-btn-label">Open Sidebar</span>
+        </button>
+      )}
     </div>
   );
 }
@@ -697,7 +507,7 @@ function BlockActionMode() {
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const setToolMode = useUIStore((s) => s.setToolMode);
   const toggleResourceGuide = useUIStore((s) => s.toggleResourceGuide);
-  const duplicateBlock = useArchitectureStore((s) => s.duplicateBlock);
+  const duplicateBlock = useArchitectureStore((s) => s['duplicateBlock']);
   const renameNode = useArchitectureStore((s) => s.renameNode);
   const removeNode = useArchitectureStore((s) => s.removeNode);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);

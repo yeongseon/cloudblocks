@@ -482,6 +482,24 @@
   line-height: 1.4;
 }
 
+.command-card-creation-hint {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.command-card-creation-hint p {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #665500;
+  font-weight: 700;
+}
+
 .command-card-btn.is-dragging {
   opacity: 0.5;
   transform: scale(0.95);
