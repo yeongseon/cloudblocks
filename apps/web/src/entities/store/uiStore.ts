@@ -364,7 +364,7 @@ export const useUIStore = create<UIState>((set) => ({
   compareReviewPrefill: null,
   setCompareReviewPrefill: (prefill) => set({ compareReviewPrefill: prefill }),
 
-  showOnboarding: false,
+  showOnboarding: !localStorage.getItem('cloudblocks:onboarding-completed'),
   setShowOnboarding: (show) => set({ showOnboarding: show }),
 
   persona: (localStorage.getItem('cloudblocks:persona') as Persona | null),

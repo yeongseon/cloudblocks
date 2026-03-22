@@ -61,6 +61,7 @@ describe('OnboardingTour', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    localStorage.setItem(STORAGE_KEY, 'true');
     // Set persona so existing tour tests bypass PersonaSelection screen
     localStorage.setItem(PERSONA_STORAGE_KEY, 'devops');
     useUIStore.setState({ showOnboarding: false, persona: 'devops' as const, complexityLevel: 'advanced' as const });
@@ -77,6 +78,26 @@ describe('OnboardingTour', () => {
     useUIStore.setState({ showOnboarding: false });
     render(<OnboardingTour />);
     expect(screen.queryByTestId('onboarding-tour')).not.toBeInTheDocument();
+  });
+
+  it('automatically shows onboarding when onboarding-completed key is absent', () => {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(PERSONA_STORAGE_KEY);
+    useUIStore.setState({ showOnboarding: !localStorage.getItem(STORAGE_KEY), persona: null });
+
+    render(<OnboardingTour />);
+
+    expect(screen.getByTestId('persona-selection')).toBeInTheDocument();
+  });
+
+  it('does not show onboarding when onboarding-completed key exists', () => {
+    localStorage.setItem(STORAGE_KEY, 'true');
+    useUIStore.setState({ showOnboarding: !localStorage.getItem(STORAGE_KEY) });
+
+    render(<OnboardingTour />);
+
+    expect(screen.queryByTestId('onboarding-tour')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('persona-selection')).not.toBeInTheDocument();
   });
 
   it('renders tour when showOnboarding is true', async () => {

@@ -17,6 +17,7 @@ import { registerBuiltinTemplates } from '../features/templates/builtin';
 import { FlowDiagram } from '../widgets/flow-diagram/FlowDiagram';
 import { BottomPanel } from '../widgets/bottom-panel';
 import { LearningPanel } from '../widgets/learning-panel/LearningPanel';
+import { OnboardingTour } from '../widgets/onboarding-tour/OnboardingTour';
 import { registerBuiltinScenarios } from '../features/learning/scenarios/builtin';
 import { audioService } from '../shared/utils/audioService';
 import { SOUND_ASSETS } from '../shared/assets/sounds';
@@ -239,6 +240,7 @@ function App() {
           </Suspense>
         </div>
       </div>
+      <OnboardingTour />
       <Toaster
         position="bottom-center"
         toastOptions={{
