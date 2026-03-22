@@ -526,3 +526,43 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.command-card-block-header {
+  padding: 4px 6px;
+}
+
+.command-card-block-name {
+  display: block;
+  width: 100%;
+  font-size: 13px;
+  font-weight: 800;
+  color: #333333;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background 0.15s ease;
+  border: none;
+  background: transparent;
+  text-align: left;
+}
+
+.command-card-block-name:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.command-card-name-input {
+  width: 100%;
+  max-width: none;
+  font-size: 13px;
+}
+
+.command-card-btn--action {
+  background: linear-gradient(180deg, #FFF9C4 0%, #FFF176 100%);
+  border: 2px solid #D4B200;
+}
+
+.command-card-btn--action:hover {
+  background: linear-gradient(180deg, #FFF176 0%, #FFEE58 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}

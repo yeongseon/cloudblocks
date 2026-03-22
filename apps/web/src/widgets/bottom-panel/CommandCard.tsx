@@ -18,15 +18,12 @@ import type { SoundName } from '../../shared/utils/audioService';
 import { promptDialog } from '../../shared/ui/PromptDialog';
 import {
   useTechTree,
-  ACTION_GRID,
-  ACTION_DEFINITIONS,
   PLATE_ACTION_GRID,
   PLATE_ACTION_DEFINITIONS,
   RESOURCE_DEFINITIONS,
   getResourceLabel,
   getResourceShortLabel,
   type ResourceType,
-  type ActionType,
   type PlateActionType,
 } from './useTechTree';
 import { BLOCK_FRIENDLY_NAMES, BLOCK_ICONS, CONNECTION_TYPE_LABELS } from '../../shared/types/index';
@@ -703,93 +700,170 @@ function BlockActionMode() {
   const removePlate = useArchitectureStore((s) => s.removePlate);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
-    const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
+  const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
+  const [editingName, setEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState('');
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
   const blocks = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
   const plates = architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
   const selectedBlock = selectedId ? blocks.find((b) => b.id === selectedId) ?? null : null;
 
-  const handleAction = useCallback(async (action: ActionType) => {
+  useEffect(() => {
+    if (!editingName) return;
+
+    nameInputRef.current?.focus();
+    nameInputRef.current?.select();
+  }, [editingName]);
+
+  const startEditing = useCallback(() => {
+    if (!selectedBlock) return;
+    setEditingName(true);
+    setNameValue(selectedBlock.name);
+  }, [selectedBlock]);
+
+  const cancelEdit = useCallback(() => {
+    setEditingName(false);
+  }, []);
+
+  const commitName = useCallback(() => {
+    if (!selectedId || !selectedBlock) {
+      setEditingName(false);
+      return;
+    }
+
+    const trimmedName = nameValue.trim();
+    if (trimmedName !== '' && trimmedName !== selectedBlock.name) {
+      renameBlock(selectedId, trimmedName);
+    }
+    setEditingName(false);
+  }, [nameValue, renameBlock, selectedBlock, selectedId]);
+
+  const handleKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      commitName();
+      return;
+    }
+
+    if (event.key === 'Escape') {
+      cancelEdit();
+    }
+  }, [cancelEdit, commitName]);
+
+  const handleDelete = useCallback(() => {
     if (!selectedId) return;
 
-    switch (action) {
-      case 'link':
-        setToolMode('connect');
-        break;
+    const isBlock = blocks.some((b) => b.id === selectedId);
+    const isPlate = plates.some((p) => p.id === selectedId);
 
-      case 'edit':
-        if (!useUIStore.getState().showResourceGuide) {
-          toggleResourceGuide();
-        }
-        break;
-
-      case 'copy':
-        duplicateBlock(selectedId);
-        playSound('block-snap');
-        break;
-
-      case 'rename': {
-        const block = blocks.find((candidate) => candidate.id === selectedId);
-        if (block) {
-          const newName = await promptDialog('Rename block:', 'Rename', block.name);
-          if (newName !== null && newName.trim() !== '') {
-            renameBlock(selectedId, newName.trim());
-          }
-        }
-        break;
-      }
-
-      case 'delete': {
-        const isBlock = blocks.some((b) => b.id === selectedId);
-        const isPlate = plates.some((p) => p.id === selectedId);
-
-        if (isBlock) {
-          removeBlock(selectedId);
-        } else if (isPlate) {
-          removePlate(selectedId);
-        }
-        setSelectedId(null);
-        playSound('delete');
-        break;
-      }
-
-      default:
-        break;
+    if (isBlock) {
+      removeBlock(selectedId);
+    } else if (isPlate) {
+      removePlate(selectedId);
     }
-  }, [selectedId, setSelectedId, setToolMode, toggleResourceGuide, duplicateBlock, renameBlock, removeBlock, removePlate, playSound, blocks, plates]);
+    setSelectedId(null);
+    playSound('delete');
+  }, [blocks, plates, playSound, removeBlock, removePlate, selectedId, setSelectedId]);
+
+  useEffect(() => {
+    if (!selectedId || editingName) return;
+
+    const handleHotkey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.isContentEditable) {
+        return;
+      }
+
+      switch (event.key.toLowerCase()) {
+        case 'l':
+          setToolMode('connect');
+          break;
+        case 'c':
+          duplicateBlock(selectedId);
+          playSound('block-snap');
+          break;
+        case 'r':
+          startEditing();
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleHotkey);
+    return () => window.removeEventListener('keydown', handleHotkey);
+  }, [duplicateBlock, editingName, playSound, selectedId, setToolMode, startEditing]);
 
   return (
-    <>
-      {ACTION_GRID.map((row, rowIdx) => {
-        const rowKey = row.filter(Boolean).join('-') || `action-row-${rowIdx}`;
-        return (
-          <div key={rowKey} className="command-card-row">
-            {row.map((actionType, colIdx) => {
-              const cellKey = actionType ?? `empty-r${rowIdx}c${colIdx}`;
-              if (!actionType) {
-                return <div key={cellKey} className="command-card-btn command-card-btn--empty" />;
-              }
-
-                const action = ACTION_DEFINITIONS[actionType];
-                const hotkey = getPositionHotkey(rowIdx, colIdx);
-
-                return (
-                  <button
-                  key={cellKey}
-                    type="button"
-                    className="command-card-btn"
-                    onClick={() => handleAction(actionType)}
-                    title={hotkey ? `${action.label} (${hotkey})` : action.label}
-                  >
-                    <span className="command-btn-icon">{action.icon}</span>
-                    <span className="command-btn-label">{action.label}</span>
-                    {hotkey && <span className="command-btn-hotkey">{hotkey}</span>}
-                  </button>
-                );
-              })}
-          </div>
-        );
-      })}
+    <div className="command-card-mode-content">
+      <div className="command-card-block-header">
+        {editingName ? (
+          <input
+            ref={nameInputRef}
+            className="command-card-form-input command-card-name-input"
+            value={nameValue}
+            onChange={(event) => setNameValue(event.target.value)}
+            onBlur={commitName}
+            onKeyDown={handleKeyDown}
+          />
+        ) : (
+          <button
+            type="button"
+            className="command-card-block-name"
+            onClick={startEditing}
+            title="Click to rename"
+          >
+            {selectedBlock?.name}
+          </button>
+        )}
+      </div>
       {selectedBlock && <BlockProperties block={selectedBlock} />}
-    </>
+      <div className="command-card-actions-row">
+        <button
+          type="button"
+          className="command-card-btn command-card-btn--action"
+          onClick={() => { setToolMode('connect'); }}
+          title="Link (L)"
+        >
+          <span className="command-btn-icon">🔗</span>
+          <span className="command-btn-label">Link</span>
+        </button>
+        <button
+          type="button"
+          className="command-card-btn command-card-btn--action"
+          onClick={() => {
+            if (!selectedId) return;
+            duplicateBlock(selectedId);
+            playSound('block-snap');
+          }}
+          title="Copy (C)"
+        >
+          <span className="command-btn-icon">📋</span>
+          <span className="command-btn-label">Copy</span>
+        </button>
+        <button
+          type="button"
+          className="command-card-btn command-card-btn--action"
+          onClick={() => {
+            if (!useUIStore.getState().showResourceGuide) {
+              toggleResourceGuide();
+            }
+          }}
+          title="Resource Guide (E)"
+        >
+          <span className="command-btn-icon">✏️</span>
+          <span className="command-btn-label">Guide</span>
+        </button>
+        <button
+          type="button"
+          className="command-card-btn command-card-btn--delete"
+          onClick={handleDelete}
+          title="Delete (Del)"
+        >
+          <span className="command-btn-icon">🗑️</span>
+          <span className="command-btn-label">Delete</span>
+        </button>
+      </div>
+    </div>
   );
 }

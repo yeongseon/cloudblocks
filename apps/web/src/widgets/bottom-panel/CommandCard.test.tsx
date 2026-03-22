@@ -350,7 +350,7 @@ describe('CommandCard', () => {
     expect(screen.getByText('Actions')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Infra' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Link/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Edit/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Guide/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Delete/ })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /Delete/ }));
@@ -401,9 +401,8 @@ describe('CommandCard', () => {
     render(<CommandCard />);
 
     expect(screen.getByRole('button', { name: /Link/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Edit/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Guide/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Copy/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Rename/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Delete/ })).toBeInTheDocument();
 
     expect(screen.queryByRole('button', { name: /Config/ })).not.toBeInTheDocument();
@@ -411,7 +410,7 @@ describe('CommandCard', () => {
     expect(screen.queryByRole('button', { name: /Move/ })).not.toBeInTheDocument();
   });
 
-  it('opens properties panel when edit is clicked and properties are hidden', async () => {
+  it('opens properties panel when guide is clicked and properties are hidden', async () => {
     const user = userEvent.setup();
 
     useUIStore.setState({ selectedId: 'block-1' });
@@ -431,7 +430,7 @@ describe('CommandCard', () => {
 
     render(<CommandCard />);
 
-    await user.click(screen.getByRole('button', { name: /Edit/ }));
+    await user.click(screen.getByRole('button', { name: /Guide/ }));
 
     expect(toggleResourceGuideMock).toHaveBeenCalledTimes(1);
   });
@@ -460,10 +459,8 @@ describe('CommandCard', () => {
     expect(duplicateBlockMock).toHaveBeenCalledWith('block-1');
   });
 
-  it('renames selected block when rename is clicked and prompt has value', async () => {
+  it('allows inline rename of block name', async () => {
     const user = userEvent.setup();
-    const { promptDialog } = await import('../../shared/ui/PromptDialog');
-    const promptMock = vi.mocked(promptDialog).mockResolvedValue('  New Block Name  ');
 
     useUIStore.setState({ selectedId: 'block-1' });
     useArchitectureStore.setState({
@@ -481,17 +478,16 @@ describe('CommandCard', () => {
 
     render(<CommandCard />);
 
-    await user.click(screen.getByRole('button', { name: /Rename/ }));
+    await user.click(screen.getByRole('button', { name: 'App VM' }));
+    const input = screen.getByDisplayValue('App VM');
+    await user.clear(input);
+    await user.type(input, 'New Block Name{Enter}');
 
-    expect(promptMock).toHaveBeenCalledWith('Rename block:', 'Rename', 'App VM');
     expect(renameBlockMock).toHaveBeenCalledWith('block-1', 'New Block Name');
-    promptMock.mockRestore();
   });
 
-  it('does not rename block when prompt is cancelled (returns null)', async () => {
+  it('does not rename block when inline rename is cancelled with Escape', async () => {
     const user = userEvent.setup();
-    const { promptDialog } = await import('../../shared/ui/PromptDialog');
-    const promptMock = vi.mocked(promptDialog).mockResolvedValue(null);
 
     useUIStore.setState({ selectedId: 'block-1' });
     useArchitectureStore.setState({
@@ -509,17 +505,16 @@ describe('CommandCard', () => {
 
     render(<CommandCard />);
 
-    await user.click(screen.getByRole('button', { name: /Rename/ }));
+    await user.click(screen.getByRole('button', { name: 'App VM' }));
+    const input = screen.getByDisplayValue('App VM');
+    await user.clear(input);
+    await user.type(input, 'Cancelled Name{Escape}');
 
-    expect(promptMock).toHaveBeenCalledWith('Rename block:', 'Rename', 'App VM');
     expect(renameBlockMock).not.toHaveBeenCalled();
-    promptMock.mockRestore();
   });
 
-  it('does not rename block when prompt returns only whitespace', async () => {
+  it('does not rename block when inline rename has only whitespace', async () => {
     const user = userEvent.setup();
-    const { promptDialog } = await import('../../shared/ui/PromptDialog');
-    const promptMock = vi.mocked(promptDialog).mockResolvedValue('   ');
 
     useUIStore.setState({ selectedId: 'block-1' });
     useArchitectureStore.setState({
@@ -537,14 +532,15 @@ describe('CommandCard', () => {
 
     render(<CommandCard />);
 
-    await user.click(screen.getByRole('button', { name: /Rename/ }));
+    await user.click(screen.getByRole('button', { name: 'App VM' }));
+    const input = screen.getByDisplayValue('App VM');
+    await user.clear(input);
+    await user.type(input, '   {Enter}');
 
-    expect(promptMock).toHaveBeenCalledWith('Rename block:', 'Rename', 'App VM');
     expect(renameBlockMock).not.toHaveBeenCalled();
-    promptMock.mockRestore();
   });
 
-  it('does not call toggleResourceGuide when edit is clicked and properties are already shown', async () => {
+  it('does not call toggleResourceGuide when guide is clicked and properties are already shown', async () => {
     const user = userEvent.setup();
 
     useUIStore.setState({ selectedId: 'block-1', showResourceGuide: true });
@@ -563,7 +559,7 @@ describe('CommandCard', () => {
 
     render(<CommandCard />);
 
-    await user.click(screen.getByRole('button', { name: /Edit/ }));
+    await user.click(screen.getByRole('button', { name: /Guide/ }));
 
     expect(toggleResourceGuideMock).not.toHaveBeenCalled();
   });
