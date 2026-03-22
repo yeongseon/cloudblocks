@@ -70,13 +70,13 @@ describe('EmptyCanvasOverlay', () => {
   it('renders overlay when no plates', () => {
     setupMocks(0);
     render(<EmptyCanvasOverlay />);
-    expect(screen.getByText('Build Your Architecture')).toBeInTheDocument();
+    expect(screen.getByText('Design Cloud Architecture Visually')).toBeInTheDocument();
   });
 
   it('shows subtitle text', () => {
     setupMocks(0);
     render(<EmptyCanvasOverlay />);
-    expect(screen.getByText('Start designing your cloud infrastructure')).toBeInTheDocument();
+    expect(screen.getByText(/generate Terraform or Bicep in one click/)).toBeInTheDocument();
   });
 
   it('shows Use Template and Start from Scratch buttons', () => {

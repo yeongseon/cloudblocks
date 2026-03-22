@@ -28,9 +28,9 @@ export function EmptyCanvasOverlay() {
     <div className="empty-canvas-overlay">
       <div className="empty-canvas-content">
         <div className="empty-canvas-icon">🧱</div>
-        <h2 className="empty-canvas-title">Build Your Architecture</h2>
+        <h2 className="empty-canvas-title">Design Cloud Architecture Visually</h2>
         <p className="empty-canvas-subtitle">
-          Start designing your cloud infrastructure
+          Place resources, connect services, and generate Terraform or Bicep in one click
         </p>
         <div className="empty-canvas-grid">
           <button
