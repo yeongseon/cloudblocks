@@ -1,54 +1,115 @@
-/* CloudBlocks Platform - Global Styles */
-/* LEGO Toy Theme - Bright, Chunky, Playful */
-
-@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  /* LEGO Primary Palette */
-  --lego-red: #E3000B;
-  --lego-red-dark: #B80009;
-  --lego-red-light: #FF3333;
-  --lego-yellow: #FFD500;
-  --lego-yellow-dark: #D4B200;
-  --lego-yellow-light: #FFE44D;
-  --lego-blue: #0055BF;
-  --lego-blue-dark: #003D8A;
-  --lego-blue-light: #3385D6;
-  --lego-green: #00852B;
-  --lego-green-dark: #006622;
-  --lego-green-light: #00A63E;
-  --lego-orange: #FE8A18;
-  --lego-orange-dark: #D97200;
-  --lego-white: #FFFFFF;
-  --lego-black: #1B1B1B;
-  
-  /* Baseplate Colors */
-  --lego-baseplate: #D2B48C;
-  --lego-baseplate-dark: #C4A67A;
-  --lego-baseplate-light: #E0C9A6;
-  
-  /* Panel Colors */
-  --lego-panel-bg: #FFF8E7;
-  --lego-panel-border: #FFD500;
-  
-  /* Semantic */
-  --roblox-primary: #0055BF;
-  --roblox-primary-active: #003D8A;
-  --roblox-accent: #00A4EF;
-  --roblox-destructive: #E3000B;
-  --roblox-destructive-active: #B80009;
-  --roblox-success: #00852B;
-  --roblox-panel-bg: #FFF8E7;
-  
-  --radius-container: 16px;
+  --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 13px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 32px;
+
+  --duration-fast: 100ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --easing-default: cubic-bezier(0.2, 0, 0, 1);
+  --easing-decelerate: cubic-bezier(0, 0, 0, 1);
+  --easing-accelerate: cubic-bezier(0.3, 0, 1, 1);
+
+  --radius-container: 12px;
   --radius-item: 10px;
   --radius-pill: 20px;
-  
-  --shadow-panel: 0 6px 0 0 rgba(0,0,0,0.15), 0 8px 24px rgba(0, 0, 0, 0.1);
-  --shadow-btn-base: 0 4px 0 0 rgba(0,0,0,0.2);
-  --shadow-btn-hover: 0 5px 0 0 rgba(0,0,0,0.2);
-  --shadow-btn-active: 0 1px 0 0 rgba(0,0,0,0.2);
-  --shadow-stud: inset 0 -2px 4px rgba(0,0,0,0.15), 0 1px 2px rgba(255,255,255,0.5);
+  --radius-button: 10px;
+
+  --shadow-panel: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-btn: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.2);
+  --shadow-btn-base: var(--shadow-btn);
+  --shadow-btn-hover: var(--shadow-btn);
+  --shadow-btn-active: var(--shadow-btn);
+  --shadow-stud: inset 0 -2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(255, 255, 255, 0.5);
+
+  --cat-network: #3B82F6;
+  --cat-security: #EF4444;
+  --cat-edge: #F97316;
+  --cat-compute: #8B5CF6;
+  --cat-data: #14B8A6;
+  --cat-messaging: #EAB308;
+  --cat-operations: #64748B;
+
+  --lego-red: var(--accent-error);
+  --lego-red-dark: var(--accent-error);
+  --lego-red-light: var(--accent-error);
+  --lego-yellow: var(--accent-warning);
+  --lego-yellow-dark: var(--accent-warning);
+  --lego-yellow-light: var(--accent-warning);
+  --lego-blue: var(--accent-primary);
+  --lego-blue-dark: var(--accent-primary);
+  --lego-blue-light: var(--accent-secondary);
+  --lego-green: var(--accent-success);
+  --lego-green-dark: var(--accent-success);
+  --lego-green-light: var(--accent-success);
+  --lego-orange: var(--cat-edge);
+  --lego-orange-dark: var(--cat-edge);
+  --lego-white: var(--bg-canvas);
+  --lego-black: var(--text-primary);
+  --lego-baseplate: var(--bg-app);
+  --lego-baseplate-dark: var(--bg-surface);
+  --lego-baseplate-light: var(--bg-surface-raised);
+  --lego-panel-bg: var(--bg-surface);
+  --lego-panel-border: var(--border-default);
+  --roblox-primary: var(--accent-primary);
+  --roblox-primary-active: var(--accent-primary);
+  --roblox-accent: var(--accent-secondary);
+  --roblox-destructive: var(--accent-error);
+  --roblox-destructive-active: var(--accent-error);
+  --roblox-success: var(--accent-success);
+  --roblox-panel-bg: var(--bg-surface);
+}
+
+:root,
+[data-theme="blueprint"] {
+  --bg-app: #0F172A;
+  --bg-canvas: #0B1220;
+  --bg-surface: #1E293B;
+  --bg-surface-raised: #334155;
+  --bg-overlay: rgba(0, 0, 0, 0.6);
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --text-inverse: #0F172A;
+  --border-default: #334155;
+  --border-subtle: #1E293B;
+  --border-strong: #475569;
+  --accent-primary: #3B82F6;
+  --accent-secondary: #06B6D4;
+  --accent-success: #22C55E;
+  --accent-warning: #EAB308;
+  --accent-error: #EF4444;
+}
+
+[data-theme="workshop"] {
+  --bg-app: #F8FAFC;
+  --bg-canvas: #FFFFFF;
+  --bg-surface: #F1F5F9;
+  --bg-surface-raised: #FFFFFF;
+  --bg-overlay: rgba(0, 0, 0, 0.3);
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
+  --text-inverse: #F1F5F9;
+  --border-default: #E2E8F0;
+  --border-subtle: #F1F5F9;
+  --border-strong: #CBD5E1;
+  --accent-primary: #2563EB;
+  --accent-secondary: #0891B2;
+  --accent-success: #16A34A;
+  --accent-warning: #CA8A04;
+  --accent-error: #DC2626;
 }
 
 * {
@@ -57,9 +118,11 @@
   box-sizing: border-box;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  font-family: 'Fredoka', 'Varela Round', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-ui);
 }
