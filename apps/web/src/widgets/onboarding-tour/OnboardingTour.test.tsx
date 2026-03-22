@@ -297,4 +297,23 @@ describe('OnboardingTour', () => {
     expect(screen.getByTestId('onboarding-tour')).toBeInTheDocument();
     expect(screen.getByText('Welcome to CloudBlocks!')).toBeInTheDocument();
   });
+
+  it('handles window resize during active tour', async () => {
+    useUIStore.setState({ showOnboarding: true });
+    render(<OnboardingTour />);
+
+    await act(async () => {
+      await new Promise((r) => requestAnimationFrame(r));
+    });
+
+    expect(screen.getByTestId('onboarding-tour')).toBeInTheDocument();
+
+    await act(async () => {
+      window.dispatchEvent(new Event('resize'));
+      await new Promise((r) => requestAnimationFrame(r));
+    });
+
+    expect(screen.getByTestId('onboarding-tour')).toBeInTheDocument();
+    expect(screen.getByText('Welcome to CloudBlocks!')).toBeInTheDocument();
+  });
 });
