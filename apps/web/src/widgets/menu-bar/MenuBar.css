@@ -19,7 +19,7 @@
     0 6px 12px rgba(0, 0, 0, 0.15);
   border-bottom: 3px solid #B80009;
   z-index: 100;
-  font-family: 'Fredoka', system-ui, sans-serif;
+  font-family: var(--font-ui);
   gap: 16px;
   user-select: none;
 }

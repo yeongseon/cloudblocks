@@ -15,7 +15,7 @@
   box-shadow: none;
   border-top: none;
   z-index: 100;
-  font-family: 'Fredoka', system-ui, sans-serif;
+  font-family: var(--font-ui);
 }
 
 /* Flush section dividers — no gap, border separates panels */

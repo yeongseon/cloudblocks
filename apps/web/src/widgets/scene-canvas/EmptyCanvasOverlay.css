@@ -23,7 +23,7 @@
   font-size: 32px;
   font-weight: 700;
   margin: 0 0 8px 0;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: var(--font-ui);
   letter-spacing: -0.5px;
 }
 
@@ -32,7 +32,7 @@
   font-size: 15px;
   font-weight: 400;
   margin: 0 0 32px 0;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: var(--font-ui);
 }
 
 .empty-canvas-grid {
@@ -52,7 +52,7 @@
   background: #1e293b;
   color: #ffffff;
   cursor: pointer;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: var(--font-ui);
   transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 

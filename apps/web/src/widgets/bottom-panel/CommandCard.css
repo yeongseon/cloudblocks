@@ -11,7 +11,7 @@
   box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.5),
     0 4px 0 0 #D4B200;
-  font-family: 'Fredoka', system-ui, sans-serif;
+  font-family: var(--font-ui);
 }
 
 /* Header */
@@ -417,7 +417,7 @@
   background: #FFFDE7;
   border: 2px solid #D4B200;
   border-radius: 6px;
-  font-family: 'Fredoka', system-ui, sans-serif;
+  font-family: var(--font-ui);
 }
 
 .command-card-form-input {
@@ -429,7 +429,7 @@
   background: #FFFDE7;
   border: 2px solid #D4B200;
   border-radius: 6px;
-  font-family: 'Fredoka', system-ui, sans-serif;
+  font-family: var(--font-ui);
   outline: none;
 }
 
@@ -450,7 +450,7 @@
   cursor: pointer;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  font-family: 'Fredoka', system-ui, sans-serif;
+  font-family: var(--font-ui);
   text-align: left;
   transition: background 0.15s ease;
 }

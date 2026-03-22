@@ -46,7 +46,7 @@
   transform: translate(-50%, -50%);
   color: #ffffff;
   font-size: 13px;
-  font-family: 'Fredoka', 'Varela Round', system-ui, sans-serif;
+  font-family: var(--font-ui);
   font-weight: 600;
   background: #E3000B;
   padding: 5px 12px;

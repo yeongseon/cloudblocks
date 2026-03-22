@@ -11,7 +11,7 @@
   border-radius: 8px;
   padding: 16px;
   color: #3D2600;
-  font-family: 'Varela Round', system-ui, sans-serif;
+  font-family: var(--font-ui);
   z-index: 10;
   box-shadow: 
     0 6px 0 0 rgba(0,0,0,0.15), 
@@ -109,7 +109,7 @@
 .validation-meta {
   color: #8A5A19;
   font-size: 11px;
-  font-family: 'Fira Code', 'SF Mono', monospace;
+  font-family: var(--font-mono);
   font-weight: 700;
   margin-top: 6px;
   display: inline-block;
