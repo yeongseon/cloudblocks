@@ -88,6 +88,62 @@ export function normalize(
   return { architecture, resourceNames };
 }
 
+// ─── Implicit Companion Resources ───────────────────────────
+
+/**
+ * Generate implicit companion resources (PIP, NIC) for blocks that require them.
+ * These are Azure resources that always accompany certain parent resources
+ * but don't need explicit canvas placement.
+ *
+ * Rules:
+ *   - VM (compute, subtype='vm') → PIP + NIC (PIP before NIC, NIC references PIP)
+ *   - Firewall (edge, subtype='firewall') → PIP only
+ *   - Internal LB (edge, subtype='internal-lb') → no implicit resources (internal)
+ */
+function generateImplicitResources(
+  block: LeafNode,
+  resourceName: string,
+): string[] {
+  const sections: string[] = [];
+
+  const needsPip =
+    (block.category === 'compute' && block.subtype === 'vm') ||
+    (block.category === 'edge' && block.subtype === 'firewall');
+
+  const needsNic = block.category === 'compute' && block.subtype === 'vm';
+
+  if (needsPip) {
+    const pipName = `${resourceName}_pip`;
+    sections.push(`resource "azurerm_public_ip" "${pipName}" {`);
+    sections.push(`  name                = "\${var.project_name}-${pipName}"`);
+    sections.push(`  resource_group_name = azurerm_resource_group.main.name`);
+    sections.push(`  location            = azurerm_resource_group.main.location`);
+    sections.push(`  allocation_method   = "Static"`);
+    sections.push(`  sku                 = "Standard"`);
+    sections.push('}');
+    sections.push('');
+  }
+
+  if (needsNic) {
+    const nicName = `${resourceName}_nic`;
+    const pipName = `${resourceName}_pip`;
+    sections.push(`resource "azurerm_network_interface" "${nicName}" {`);
+    sections.push(`  name                = "\${var.project_name}-${nicName}"`);
+    sections.push(`  resource_group_name = azurerm_resource_group.main.name`);
+    sections.push(`  location            = azurerm_resource_group.main.location`);
+    sections.push('');
+    sections.push(`  ip_configuration {`);
+    sections.push(`    name                          = "internal"`);
+    sections.push(`    private_ip_address_allocation = "Dynamic"`);
+    sections.push(`    public_ip_address_id          = azurerm_public_ip.${pipName}.id`);
+    sections.push(`  }`);
+    sections.push('}');
+    sections.push('');
+  }
+
+  return sections;
+}
+
 // ─── Generate Stage ─────────────────────────────────────────
 
 function generatePlateResource(
@@ -264,6 +320,12 @@ export function generateMainTf(
       block.subtype,
     )!;
     const subnetName = resourceNames.get(block.parentId ?? '') ?? null;
+
+    const implicitSections = generateImplicitResources(block, resName);
+    for (const section of implicitSections) {
+      sections.push(section);
+    }
+
     sections.push(
       generateBlockResource(block, resName, mapping, subnetName)
     );

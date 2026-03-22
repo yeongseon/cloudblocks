@@ -102,10 +102,63 @@ const PULUMI_CONSTRUCTORS: Record<string, string> = {
   azurerm_log_analytics_workspace: 'azure.operationalinsights.Workspace',
   azurerm_user_assigned_identity: 'azure.managedidentity.UserAssignedIdentity',
   azurerm_monitor_workspace: 'azure.monitor.AzureMonitorWorkspace',
+  azurerm_public_ip: 'azure.network.PublicIPAddress',
+  azurerm_network_interface: 'azure.network.NetworkInterface',
 };
 
 function getPulumiConstructor(terraformType: string): string {
   return PULUMI_CONSTRUCTORS[terraformType] ?? 'azure.resources.GenericResource';
+}
+
+// ─── Implicit Companion Resources ───────────────────────────
+
+function generateImplicitPulumiResources(
+  block: LeafNode,
+  resourceName: string,
+): string[] {
+  const sections: string[] = [];
+
+  const needsPip =
+    (block.category === 'compute' && block.subtype === 'vm') ||
+    (block.category === 'edge' && block.subtype === 'firewall');
+
+  const needsNic = block.category === 'compute' && block.subtype === 'vm';
+
+  if (needsPip) {
+    const pipName = `${resourceName}Pip`;
+    const pipConstructor = getPulumiConstructor('azurerm_public_ip');
+    sections.push(`const ${pipName} = new ${pipConstructor}("${pipName}", {`);
+    sections.push(`    resourceGroupName: resourceGroup.name,`);
+    sections.push(`    location: location,`);
+    sections.push(`    publicIpAddressName: \`\${projectName}-${pipName}\`,`);
+    sections.push(`    publicIPAllocationMethod: "Static",`);
+    sections.push(`    sku: {`);
+    sections.push(`        name: "Standard",`);
+    sections.push(`    },`);
+    sections.push(`});`);
+    sections.push('');
+  }
+
+  if (needsNic) {
+    const nicName = `${resourceName}Nic`;
+    const pipName = `${resourceName}Pip`;
+    const nicConstructor = getPulumiConstructor('azurerm_network_interface');
+    sections.push(`const ${nicName} = new ${nicConstructor}("${nicName}", {`);
+    sections.push(`    resourceGroupName: resourceGroup.name,`);
+    sections.push(`    location: location,`);
+    sections.push(`    networkInterfaceName: \`\${projectName}-${nicName}\`,`);
+    sections.push(`    ipConfigurations: [{`);
+    sections.push(`        name: "internal",`);
+    sections.push(`        privateIPAllocationMethod: "Dynamic",`);
+    sections.push(`        publicIPAddress: {`);
+    sections.push(`            id: ${pipName}.id,`);
+    sections.push(`        },`);
+    sections.push(`    }],`);
+    sections.push(`});`);
+    sections.push('');
+  }
+
+  return sections;
 }
 
 // ─── Generate Stage ─────────────────────────────────────────
@@ -304,6 +357,12 @@ export function generateIndexTs(
       block.category,
       block.subtype,
     )!;
+
+    const implicitSections = generateImplicitPulumiResources(block, resName);
+    for (const section of implicitSections) {
+      sections.push(section);
+    }
+
     sections.push(generateBlockResource(block, resName, mapping));
     sections.push('');
   }

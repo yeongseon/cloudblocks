@@ -246,4 +246,54 @@ describe('pulumi generator', () => {
     expect(output.metadata.provider).toBe('azure');
     expect(output.metadata.generatedAt).toEqual(expect.any(String));
   });
+
+  it('generates implicit PIP + NIC for VM blocks', () => {
+    const model = createTestModel({
+      blocks: [createBlock({ id: 'vm1', name: 'WebServer', category: 'compute', subtype: 'vm' })],
+    });
+    const normalized = normalizePulumi(model, azureProviderDefinition);
+    const indexTs = generateIndexTs(normalized, azureProviderDefinition, defaultOptions);
+
+    expect(indexTs).toContain('const vmWebServerPip = new azure.network.PublicIPAddress("vmWebServerPip", {');
+    expect(indexTs).toContain('publicIPAllocationMethod: "Static"');
+    expect(indexTs).toContain('const vmWebServerNic = new azure.network.NetworkInterface("vmWebServerNic", {');
+    expect(indexTs).toContain('id: vmWebServerPip.id,');
+
+    const pipIndex = indexTs.indexOf('PublicIPAddress');
+    const nicIndex = indexTs.indexOf('NetworkInterface');
+    expect(pipIndex).toBeLessThan(nicIndex);
+  });
+
+  it('generates implicit PIP for firewall blocks but no NIC', () => {
+    const model = createTestModel({
+      blocks: [createBlock({ id: 'fw1', name: 'MainFirewall', category: 'edge', subtype: 'firewall' })],
+    });
+    const normalized = normalizePulumi(model, azureProviderDefinition);
+    const indexTs = generateIndexTs(normalized, azureProviderDefinition, defaultOptions);
+
+    expect(indexTs).toContain('const appgwMainFirewallPip = new azure.network.PublicIPAddress("appgwMainFirewallPip", {');
+    expect(indexTs).not.toContain('NetworkInterface');
+  });
+
+  it('does not generate implicit resources for internal-lb blocks', () => {
+    const model = createTestModel({
+      blocks: [createBlock({ id: 'lb1', name: 'InternalLB', category: 'edge', subtype: 'internal-lb' })],
+    });
+    const normalized = normalizePulumi(model, azureProviderDefinition);
+    const indexTs = generateIndexTs(normalized, azureProviderDefinition, defaultOptions);
+
+    expect(indexTs).not.toContain('PublicIPAddress');
+    expect(indexTs).not.toContain('NetworkInterface');
+  });
+
+  it('does not generate implicit resources for regular compute blocks without subtype', () => {
+    const model = createTestModel({
+      blocks: [createBlock({ id: 'web1', name: 'App', category: 'compute' })],
+    });
+    const normalized = normalizePulumi(model, azureProviderDefinition);
+    const indexTs = generateIndexTs(normalized, azureProviderDefinition, defaultOptions);
+
+    expect(indexTs).not.toContain('PublicIPAddress');
+    expect(indexTs).not.toContain('NetworkInterface');
+  });
 });

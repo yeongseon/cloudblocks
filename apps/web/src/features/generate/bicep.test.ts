@@ -252,4 +252,54 @@ describe('bicep generator', () => {
     expect(output.metadata.provider).toBe('azure');
     expect(output.metadata.generatedAt).toEqual(expect.any(String));
   });
+
+  it('generates implicit PIP + NIC for VM blocks', () => {
+    const model = createTestModel({
+      blocks: [createBlock({ id: 'vm1', name: 'WebServer', category: 'compute', subtype: 'vm' })],
+    });
+    const normalized = normalizeBicep(model, azureProviderDefinition);
+    const mainBicep = generateMainBicep(normalized, azureProviderDefinition, defaultOptions);
+
+    expect(mainBicep).toContain("resource vmWebserverPip 'Microsoft.Network/publicIPAddresses@2023-05-01' = {");
+    expect(mainBicep).toContain("publicIPAllocationMethod: 'Static'");
+    expect(mainBicep).toContain("resource vmWebserverNic 'Microsoft.Network/networkInterfaces@2023-05-01' = {");
+    expect(mainBicep).toContain('id: vmWebserverPip.id');
+
+    const pipIndex = mainBicep.indexOf('publicIPAddresses');
+    const nicIndex = mainBicep.indexOf('networkInterfaces');
+    expect(pipIndex).toBeLessThan(nicIndex);
+  });
+
+  it('generates implicit PIP for firewall blocks but no NIC', () => {
+    const model = createTestModel({
+      blocks: [createBlock({ id: 'fw1', name: 'MainFirewall', category: 'edge', subtype: 'firewall' })],
+    });
+    const normalized = normalizeBicep(model, azureProviderDefinition);
+    const mainBicep = generateMainBicep(normalized, azureProviderDefinition, defaultOptions);
+
+    expect(mainBicep).toContain("resource appgwMainfirewallPip 'Microsoft.Network/publicIPAddresses@2023-05-01' = {");
+    expect(mainBicep).not.toContain('networkInterfaces');
+  });
+
+  it('does not generate implicit resources for internal-lb blocks', () => {
+    const model = createTestModel({
+      blocks: [createBlock({ id: 'lb1', name: 'InternalLB', category: 'edge', subtype: 'internal-lb' })],
+    });
+    const normalized = normalizeBicep(model, azureProviderDefinition);
+    const mainBicep = generateMainBicep(normalized, azureProviderDefinition, defaultOptions);
+
+    expect(mainBicep).not.toContain('publicIPAddresses');
+    expect(mainBicep).not.toContain('networkInterfaces');
+  });
+
+  it('does not generate implicit resources for regular compute blocks without subtype', () => {
+    const model = createTestModel({
+      blocks: [createBlock({ id: 'web1', name: 'App', category: 'compute' })],
+    });
+    const normalized = normalizeBicep(model, azureProviderDefinition);
+    const mainBicep = generateMainBicep(normalized, azureProviderDefinition, defaultOptions);
+
+    expect(mainBicep).not.toContain('publicIPAddresses');
+    expect(mainBicep).not.toContain('networkInterfaces');
+  });
 });
