@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { apiPost, getApiErrorMessage } from '../../shared/api/client';
+import { apiPost, getApiErrorMessage, isAuthError } from '../../shared/api/client';
 import { isValidGitBranchName } from '../../shared/utils/githubValidation';
 import type { PullRequestResponse } from '../../shared/types/api';
 import './GitHubPR.css';
@@ -66,6 +66,13 @@ export function GitHubPR() {
       );
       setResult(response);
     } catch (err) {
+      if (isAuthError(err)) {
+        const authStore = useAuthStore.getState();
+        authStore.setAnonymous();
+        authStore.setError('Session expired. Please sign in again.');
+        useUIStore.getState().toggleGitHubLogin();
+        return;
+      }
       setError(getApiErrorMessage(err, 'Failed to create pull request.'));
     } finally {
       setLoading(false);
@@ -76,7 +83,7 @@ export function GitHubPR() {
     <div className="github-pr">
       <div className="github-pr-header">
         <h3 className="github-pr-title">🔀 Pull Request</h3>
-        <button className="github-pr-close" onClick={toggleGitHubPR} aria-label="Close pull request panel">
+        <button type="button" className="github-pr-close" onClick={toggleGitHubPR} aria-label="Close pull request panel">
           ✕
         </button>
       </div>
@@ -135,7 +142,7 @@ export function GitHubPR() {
             onChange={(e) => setCommitMessage(e.target.value)}
           />
 
-          <button className="github-pr-submit" onClick={handleSubmit} disabled={!canSubmit}>
+          <button type="button" className="github-pr-submit" onClick={handleSubmit} disabled={!canSubmit}>
             Create Pull Request
           </button>
 

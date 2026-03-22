@@ -4,25 +4,28 @@ import userEvent from '@testing-library/user-event';
 vi.mock('../../shared/api/client', () => ({
   apiPost: vi.fn(),
   apiGet: vi.fn(),
+  isAuthError: vi.fn(() => false),
 }));
 import { GitHubRepos } from './GitHubRepos';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { apiGet, apiPost } from '../../shared/api/client';
+import { apiGet, apiPost, isAuthError } from '../../shared/api/client';
 
 describe('GitHubRepos', () => {
   const mockApiGet = vi.mocked(apiGet);
   const mockApiPost = vi.mocked(apiPost);
+  const mockIsAuthError = vi.mocked(isAuthError);
 
   beforeEach(() => {
     vi.clearAllMocks();
-    useUIStore.setState({ showGitHubRepos: true });
+    useUIStore.setState({ showGitHubRepos: true, showGitHubSync: false, showGitHubLogin: false, pendingLinkRepo: null });
     useAuthStore.setState({
       status: 'authenticated',
       user: null,
       hydrated: true,
       error: null,
     });
+    mockIsAuthError.mockReturnValue(false);
   });
 
   it('renders null when show is false', () => {
@@ -98,6 +101,75 @@ describe('GitHubRepos', () => {
     expect(await screen.findByText('new-repo')).toBeInTheDocument();
   });
 
+  it('keeps success message visible when refresh fails after create', async () => {
+    const user = userEvent.setup();
+    mockApiGet.mockResolvedValueOnce({ repos: [] }).mockRejectedValueOnce(new Error('Refresh failed'));
+    mockApiPost.mockResolvedValueOnce({
+      full_name: 'owner/new-repo',
+      name: 'new-repo',
+      private: true,
+      default_branch: 'main',
+      html_url: 'https://github.com/owner/new-repo',
+    });
+
+    render(<GitHubRepos />);
+
+    await user.type(screen.getByPlaceholderText('Repository name'), 'new-repo');
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+
+    expect(await screen.findByText('Repository "new-repo" created successfully.')).toBeInTheDocument();
+    expect(await screen.findByText('Refresh failed')).toBeInTheDocument();
+  });
+
+  it('resets private checkbox to true after successful create', async () => {
+    const user = userEvent.setup();
+    mockApiGet.mockResolvedValueOnce({ repos: [] }).mockResolvedValueOnce({ repos: [] });
+    mockApiPost.mockResolvedValueOnce({
+      full_name: 'owner/new-repo',
+      name: 'new-repo',
+      private: false,
+      default_branch: 'main',
+      html_url: 'https://github.com/owner/new-repo',
+    });
+
+    render(<GitHubRepos />);
+
+    const privateCheckbox = screen.getByRole('checkbox', { name: 'Private repository' });
+    expect(privateCheckbox).toBeChecked();
+    await user.click(privateCheckbox);
+    expect(privateCheckbox).not.toBeChecked();
+
+    await user.type(screen.getByPlaceholderText('Repository name'), 'new-repo');
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+
+    await screen.findByText('Repository "new-repo" created successfully.');
+    expect(privateCheckbox).toBeChecked();
+  });
+
+  it('shows and wires Link this repo action after successful create', async () => {
+    const user = userEvent.setup();
+    mockApiGet.mockResolvedValueOnce({ repos: [] }).mockResolvedValueOnce({ repos: [] });
+    mockApiPost.mockResolvedValueOnce({
+      full_name: 'owner/new-repo',
+      name: 'new-repo',
+      private: true,
+      default_branch: 'main',
+      html_url: 'https://github.com/owner/new-repo',
+    });
+
+    render(<GitHubRepos />);
+
+    await user.type(screen.getByPlaceholderText('Repository name'), 'new-repo');
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+
+    const linkButton = await screen.findByRole('button', { name: 'Link this repo' });
+    expect(linkButton).toBeInTheDocument();
+    await user.click(linkButton);
+
+    expect(useUIStore.getState().pendingLinkRepo).toBe('owner/new-repo');
+    expect(useUIStore.getState().showGitHubSync).toBe(true);
+  });
+
   it('shows error when fetch repos fails', async () => {
     mockApiGet.mockRejectedValueOnce(new Error('Network error'));
 
@@ -112,6 +184,39 @@ describe('GitHubRepos', () => {
     render(<GitHubRepos />);
 
     expect(await screen.findByText('Failed to load repositories.')).toBeInTheDocument();
+  });
+
+  it('routes auth error to login panel from repo fetch', async () => {
+    const unauthorizedError = new Error('Unauthorized');
+    mockApiGet.mockRejectedValueOnce(unauthorizedError);
+    mockIsAuthError.mockReturnValueOnce(true);
+
+    render(<GitHubRepos />);
+
+    await vi.waitFor(() => {
+      expect(useAuthStore.getState().status).toBe('anonymous');
+    });
+    expect(useAuthStore.getState().error).toBe('Session expired. Please sign in again.');
+    expect(useUIStore.getState().showGitHubLogin).toBe(true);
+  });
+
+  it('routes auth error to login panel from repo create', async () => {
+    const user = userEvent.setup();
+    const unauthorizedError = new Error('Unauthorized');
+    mockApiGet.mockResolvedValueOnce({ repos: [] });
+    mockApiPost.mockRejectedValueOnce(unauthorizedError);
+    mockIsAuthError.mockReturnValueOnce(true);
+
+    render(<GitHubRepos />);
+
+    await user.type(screen.getByPlaceholderText('Repository name'), 'new-repo');
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+
+    await vi.waitFor(() => {
+      expect(useAuthStore.getState().status).toBe('anonymous');
+    });
+    expect(useAuthStore.getState().error).toBe('Session expired. Please sign in again.');
+    expect(useUIStore.getState().showGitHubLogin).toBe(true);
   });
 
   it('does not create repo when name is empty', async () => {

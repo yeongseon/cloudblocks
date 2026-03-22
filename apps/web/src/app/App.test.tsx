@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useArchitectureStore } from '../entities/store/architectureStore';
 import { useUIStore } from '../entities/store/uiStore';
 import { useAuthStore } from '../entities/store/authStore';
@@ -154,6 +154,25 @@ describe('App', () => {
   it('calls checkSession on mount', () => {
     render(<App />);
     expect(checkSessionMock).toHaveBeenCalledOnce();
+  });
+
+  it('restores pending GitHub action after authenticated session check', async () => {
+    useUIStore.setState({
+      showGitHubSync: false,
+      showGitHubPR: false,
+      showGitHubRepos: false,
+      pendingGitHubAction: 'repos',
+    });
+    checkSessionMock.mockImplementation(async () => {
+      useAuthStore.setState({ status: 'authenticated' });
+    });
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(useUIStore.getState().showGitHubRepos).toBe(true);
+    });
+    expect(useUIStore.getState().pendingGitHubAction).toBe(null);
   });
 
   it('handles Ctrl+S for save with success toast', () => {

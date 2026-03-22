@@ -111,6 +111,21 @@ describe('GitHubLogin', () => {
 
     expect(logoutMock).toHaveBeenCalledOnce();
     expect(useUIStore.getState().showGitHubLogin).toBe(true);
+    expect(screen.getByText('Logout failed. Checking session…')).toBeInTheDocument();
+  });
+
+  it('clears pending GitHub action before OAuth redirect', async () => {
+    const user = userEvent.setup();
+    useUIStore.getState().setPendingGitHubAction('sync');
+    mockApiPost.mockResolvedValueOnce({
+      authorize_url: `${window.location.origin}/#oauth-callback`,
+    });
+
+    render(<GitHubLogin />);
+    await user.click(screen.getByRole('button', { name: 'Sign in with GitHub' }));
+
+    expect(useUIStore.getState().pendingGitHubAction).toBe(null);
+    expect(sessionStorage.getItem('cloudblocks_pending_github_action')).toBeNull();
   });
 
   it('shows error when sign in fails', async () => {

@@ -5,12 +5,13 @@ vi.mock('../../shared/api/client', () => ({
   apiPost: vi.fn(),
   apiGet: vi.fn(),
   apiPut: vi.fn(),
+  isAuthError: vi.fn(() => false),
 }));
 import { GitHubSync } from './GitHubSync';
 import { useUIStore } from '../../entities/store/uiStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import { apiGet, apiPost, apiPut } from '../../shared/api/client';
+import { apiGet, apiPost, apiPut, isAuthError } from '../../shared/api/client';
 import type { ArchitectureModel } from '@cloudblocks/schema';
 
 const emptyArch: ArchitectureModel = {
@@ -28,11 +29,12 @@ describe('GitHubSync', () => {
   const mockApiGet = vi.mocked(apiGet);
   const mockApiPost = vi.mocked(apiPost);
   const mockApiPut = vi.mocked(apiPut);
+  const mockIsAuthError = vi.mocked(isAuthError);
   const replaceArchitectureMock = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
-    useUIStore.setState({ showGitHubSync: true });
+    useUIStore.setState({ showGitHubSync: true, showGitHubLogin: false });
     useAuthStore.setState({
       status: 'authenticated',
       user: null,
@@ -62,6 +64,7 @@ describe('GitHubSync', () => {
       created_at: '',
       updated_at: '',
     });
+    mockIsAuthError.mockReturnValue(false);
   });
 
   it('renders null when hidden', () => {
@@ -81,6 +84,15 @@ describe('GitHubSync', () => {
     expect(screen.getByText('No GitHub repo linked.')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('owner/repo')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Link' })).toBeInTheDocument();
+  });
+
+  it('prefills repository input from pendingLinkRepo and clears handoff state', () => {
+    useUIStore.setState({ pendingLinkRepo: 'owner/from-create' });
+
+    render(<GitHubSync />);
+
+    expect(screen.getByPlaceholderText('owner/repo')).toHaveValue('owner/from-create');
+    expect(useUIStore.getState().pendingLinkRepo).toBe(null);
   });
 
   it('shows sync and pull buttons when repo linked', async () => {
@@ -142,6 +154,24 @@ describe('GitHubSync', () => {
     expect(screen.queryByRole('button', { name: 'Pull from GitHub' })).not.toBeInTheDocument();
   });
 
+  it('routes auth error to login panel from link action', async () => {
+    const user = userEvent.setup();
+    const unauthorizedError = new Error('Unauthorized');
+    mockApiPut.mockRejectedValueOnce(unauthorizedError);
+    mockIsAuthError.mockReturnValueOnce(true);
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+
+    await vi.waitFor(() => {
+      expect(useAuthStore.getState().status).toBe('anonymous');
+    });
+    expect(useAuthStore.getState().error).toBe('Session expired. Please sign in again.');
+    expect(useUIStore.getState().showGitHubLogin).toBe(true);
+  });
+
   it('pull button calls API and replaces architecture in-place', async () => {
     const user = userEvent.setup();
     const archPayload = { id: 'pulled', name: 'Pulled', version: '1.0.0', nodes: [], connections: [], externalActors: [], createdAt: '', updatedAt: '' };
@@ -157,6 +187,25 @@ describe('GitHubSync', () => {
       expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/ws-1/pull');
     });
     expect(replaceArchitectureMock).toHaveBeenCalledWith(archPayload);
+  });
+
+  it('routes auth error to login panel from pull action', async () => {
+    const user = userEvent.setup();
+    const unauthorizedError = new Error('Unauthorized');
+    mockApiPost.mockRejectedValueOnce(unauthorizedError);
+    mockIsAuthError.mockReturnValueOnce(true);
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+    await user.click(await screen.findByRole('button', { name: 'Pull from GitHub' }));
+
+    await vi.waitFor(() => {
+      expect(useAuthStore.getState().status).toBe('anonymous');
+    });
+    expect(useAuthStore.getState().error).toBe('Session expired. Please sign in again.');
+    expect(useUIStore.getState().showGitHubLogin).toBe(true);
   });
 
   it('sync shows error when API call fails', async () => {
@@ -183,6 +232,44 @@ describe('GitHubSync', () => {
     await user.click(await screen.findByRole('button', { name: 'Pull from GitHub' }));
 
     expect(await screen.findByText('Network down')).toBeInTheDocument();
+  });
+
+  it('routes auth error to login panel from sync action', async () => {
+    const user = userEvent.setup();
+    const unauthorizedError = new Error('Unauthorized');
+    mockApiPost.mockRejectedValueOnce(unauthorizedError);
+    mockIsAuthError.mockReturnValueOnce(true);
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+    await user.click(await screen.findByRole('button', { name: 'Sync to GitHub' }));
+
+    await vi.waitFor(() => {
+      expect(useAuthStore.getState().status).toBe('anonymous');
+    });
+    expect(useAuthStore.getState().error).toBe('Session expired. Please sign in again.');
+    expect(useUIStore.getState().showGitHubLogin).toBe(true);
+  });
+
+  it('routes auth error to login panel from loadCommits', async () => {
+    const user = userEvent.setup();
+    const unauthorizedError = new Error('Unauthorized');
+    mockApiGet.mockRejectedValueOnce(unauthorizedError);
+    mockIsAuthError.mockReturnValueOnce(true);
+
+    render(<GitHubSync />);
+
+    await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
+    await user.click(screen.getByRole('button', { name: 'Link' }));
+
+    // After link, loadCommits fires and gets auth error from apiGet
+    await vi.waitFor(() => {
+      expect(useAuthStore.getState().status).toBe('anonymous');
+    });
+    expect(useAuthStore.getState().error).toBe('Session expired. Please sign in again.');
+    expect(useUIStore.getState().showGitHubLogin).toBe(true);
   });
 
   it('shows error when loadCommits fails', async () => {

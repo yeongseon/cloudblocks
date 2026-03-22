@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { apiGet, apiPost } from '../../shared/api/client';
+import { apiGet, apiPost, isAuthError } from '../../shared/api/client';
 import { isValidGitHubRepoName } from '../../shared/utils/githubValidation';
 import type { GitHubRepo } from '../../shared/types/api';
 import './GitHubRepos.css';
@@ -9,6 +9,8 @@ import './GitHubRepos.css';
 export function GitHubRepos() {
   const show = useUIStore((s) => s.showGitHubRepos);
   const toggleGitHubRepos = useUIStore((s) => s.toggleGitHubRepos);
+  const toggleGitHubSync = useUIStore((s) => s.toggleGitHubSync);
+  const setPendingLinkRepo = useUIStore((s) => s.setPendingLinkRepo);
   const isAuthenticated = useAuthStore((s) => s.status) === 'authenticated';
   const authStatus = useAuthStore((s) => s.status);
 
@@ -16,6 +18,8 @@ export function GitHubRepos() {
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [createdRepoFullName, setCreatedRepoFullName] = useState<string | null>(null);
   const [newRepoName, setNewRepoName] = useState('');
   const [newRepoDescription, setNewRepoDescription] = useState('');
   const [isPrivate, setIsPrivate] = useState(true);
@@ -23,23 +27,36 @@ export function GitHubRepos() {
   const cleanedRepoDescription = newRepoDescription.trim();
   const canCreateRepo = isValidGitHubRepoName(cleanedRepoName);
 
-  const fetchRepos = async () => {
+  const fetchRepos = useCallback(async (options?: { rethrow?: boolean }) => {
     setLoading(true);
     setError(null);
     try {
       const response = await apiGet<{ repos: GitHubRepo[] }>('/api/v1/github/repos');
       setRepos(response.repos);
     } catch (err) {
+      if (isAuthError(err)) {
+        const authStore = useAuthStore.getState();
+        authStore.setAnonymous();
+        authStore.setError('Session expired. Please sign in again.');
+        useUIStore.getState().toggleGitHubLogin();
+        if (options?.rethrow) {
+          throw err;
+        }
+        return;
+      }
       setError(err instanceof Error ? err.message : 'Failed to load repositories.');
+      if (options?.rethrow) {
+        throw err;
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (!show || !isAuthenticated) return;
     void fetchRepos();
-  }, [show, isAuthenticated]);
+  }, [show, isAuthenticated, fetchRepos]);
 
   if (!show) return null;
 
@@ -51,28 +68,49 @@ export function GitHubRepos() {
 
     setCreating(true);
     setError(null);
+    setSuccessMessage(null);
+    setCreatedRepoFullName(null);
     try {
-      await apiPost<GitHubRepo>('/api/v1/github/repos', {
+      const createdRepo = await apiPost<GitHubRepo>('/api/v1/github/repos', {
         name: cleanedRepoName,
         description: cleanedRepoDescription,
         private: isPrivate,
       });
+      setSuccessMessage(`Repository "${cleanedRepoName}" created successfully.`);
+      setCreatedRepoFullName(createdRepo.full_name);
       setNewRepoName('');
       setNewRepoDescription('');
       setIsPrivate(true);
-      await fetchRepos();
+      try {
+        await fetchRepos({ rethrow: true });
+      } catch (refreshError) {
+        setError(refreshError instanceof Error ? refreshError.message : 'Failed to refresh repositories after create.');
+      }
     } catch (err) {
+      if (isAuthError(err)) {
+        const authStore = useAuthStore.getState();
+        authStore.setAnonymous();
+        authStore.setError('Session expired. Please sign in again.');
+        useUIStore.getState().toggleGitHubLogin();
+        return;
+      }
       setError(err instanceof Error ? err.message : 'Failed to create repository.');
     } finally {
       setCreating(false);
     }
   };
 
+  const handleLinkCreatedRepo = () => {
+    if (!createdRepoFullName) return;
+    setPendingLinkRepo(createdRepoFullName);
+    toggleGitHubSync();
+  };
+
   return (
     <div className="github-repos">
       <div className="github-repos-header">
         <h3 className="github-repos-title">📦 GitHub Repos</h3>
-        <button className="github-repos-close" onClick={toggleGitHubRepos} aria-label="Close GitHub repos panel">
+        <button type="button" className="github-repos-close" onClick={toggleGitHubRepos} aria-label="Close GitHub repos panel">
           ✕
         </button>
       </div>
@@ -84,6 +122,16 @@ export function GitHubRepos() {
       ) : (
         <>
           {(loading || creating) && <div className="github-repos-loading">Loading...</div>}
+          {successMessage && (
+            <div className="github-repos-success">
+              <span>{successMessage}</span>
+              {createdRepoFullName && (
+                <button type="button" className="github-repos-link-created-btn" onClick={handleLinkCreatedRepo}>
+                  Link this repo
+                </button>
+              )}
+            </div>
+          )}
           {error && <div className="github-repos-error">{error}</div>}
 
           <div className="github-repos-create">
@@ -111,7 +159,7 @@ export function GitHubRepos() {
               />
               <span>Private repository</span>
             </label>
-            <button className="github-repos-create-btn" onClick={handleCreateRepo} disabled={creating || !canCreateRepo}>
+            <button type="button" className="github-repos-create-btn" onClick={handleCreateRepo} disabled={creating || !canCreateRepo}>
               Create
             </button>
           </div>

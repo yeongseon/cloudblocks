@@ -209,4 +209,22 @@
   border: 1px solid rgba(76, 175, 80, 0.4);
   border-radius: 4px;
   margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.github-repos-link-created-btn {
+  padding: 4px 8px;
+  background: rgba(66, 133, 244, 0.2);
+  border: 1px solid rgba(66, 133, 244, 0.5);
+  border-radius: 4px;
+  color: #cfe1ff;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.github-repos-link-created-btn:hover {
+  background: rgba(66, 133, 244, 0.36);
 }

@@ -32,6 +32,10 @@ export class ApiError extends Error {
   }
 }
 
+export function isAuthError(err: unknown): boolean {
+  return err instanceof ApiError && err.status === 401;
+}
+
 interface FastApiErrorEnvelope {
   detail?: string;
 }

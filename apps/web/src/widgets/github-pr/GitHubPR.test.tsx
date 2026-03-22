@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 vi.mock('../../shared/api/client', () => ({
   apiPost: vi.fn(),
   apiGet: vi.fn(),
+  isAuthError: vi.fn(() => false),
   getApiErrorMessage: vi.fn((err: unknown, fallback: string) => {
     if (err instanceof Error) return err.message;
     return fallback;
@@ -13,7 +14,7 @@ import { GitHubPR } from './GitHubPR';
 import { useUIStore } from '../../entities/store/uiStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import { apiPost } from '../../shared/api/client';
+import { apiPost, isAuthError } from '../../shared/api/client';
 import type { ArchitectureModel } from '@cloudblocks/schema';
 
 const emptyArch: ArchitectureModel = {
@@ -29,6 +30,7 @@ const emptyArch: ArchitectureModel = {
 
 describe('GitHubPR', () => {
   const mockApiPost = vi.mocked(apiPost);
+  const mockIsAuthError = vi.mocked(isAuthError);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -49,6 +51,7 @@ describe('GitHubPR', () => {
         backendWorkspaceId: 'backend-ws-1',
       },
     });
+    mockIsAuthError.mockReturnValue(false);
   });
 
   it('renders null when hidden', () => {
@@ -122,6 +125,22 @@ describe('GitHubPR', () => {
     expect(await screen.findByText('Failed to create pull request.')).toBeInTheDocument();
   });
 
+  it('routes auth error to login panel from PR submit', async () => {
+    const user = userEvent.setup();
+    const unauthorizedError = new Error('Unauthorized');
+    mockApiPost.mockRejectedValueOnce(unauthorizedError);
+    mockIsAuthError.mockReturnValueOnce(true);
+
+    render(<GitHubPR />);
+    await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
+
+    await vi.waitFor(() => {
+      expect(useAuthStore.getState().status).toBe('anonymous');
+    });
+    expect(useAuthStore.getState().error).toBe('Session expired. Please sign in again.');
+    expect(useUIStore.getState().showGitHubLogin).toBe(true);
+  });
+
   it('sends custom branch name when provided', async () => {
     const user = userEvent.setup();
     mockApiPost.mockResolvedValue({
@@ -179,6 +198,7 @@ describe('GitHubPR', () => {
     expect(screen.getByRole('button', { name: 'Create Pull Request' })).toBeDisabled();
     expect(screen.getByText('Branch name contains invalid characters or format.')).toBeInTheDocument();
   });
+
 
   it('trims PR title before submission', async () => {
     const user = userEvent.setup();
