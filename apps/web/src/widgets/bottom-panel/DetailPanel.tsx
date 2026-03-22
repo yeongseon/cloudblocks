@@ -62,10 +62,37 @@ export function DetailPanel({ className = '' }: DetailPanelProps) {
 // ─── Idle State ────────────────────────────────────────────
 
 function IdleState({ className }: { className: string }) {
+  const persona = useUIStore((s) => s.persona);
+  const setShowScenarioGallery = useUIStore((s) => s.setShowScenarioGallery);
+  const setEditorMode = useUIStore((s) => s.setEditorMode);
+
+  const handleStartLearning = () => {
+    setShowScenarioGallery(true);
+    setEditorMode('learn');
+  };
+
+  if (persona === 'student') {
+    return (
+      <div className={`detail-panel detail-panel--idle ${className}`}>
+        <div className="detail-idle">
+          <span className="detail-idle-icon">{'\u{1F393}'}</span>
+          <p className="detail-idle-text">Ready to learn cloud architecture?</p>
+          <button
+            type="button"
+            className="detail-idle-cta"
+            onClick={handleStartLearning}
+          >
+            Start Learning
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`detail-panel detail-panel--idle ${className}`}>
       <div className="detail-idle">
-        <span className="detail-idle-icon">📋</span>
+        <span className="detail-idle-icon">{'\u{1F4CB}'}</span>
         <p className="detail-idle-text">No selection</p>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { DetailPanel } from './DetailPanel';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
@@ -584,5 +584,62 @@ describe('DetailPanel', () => {
 
     expect(screen.getByRole('img', { name: 'Public Subnet' })).toBeInTheDocument();
     expect(screen.getByText('Subnet (public)')).toBeInTheDocument();
+  });
+
+  it('renders student persona idle state with learning CTA', () => {
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          id: 'arch-1',
+          name: 'Empty Architecture',
+          version: '1.0.0',
+          nodes: [],
+          connections: [],
+          externalActors: [],
+          createdAt: '',
+          updatedAt: '',
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+    useUIStore.setState({ selectedId: null, showTemplateGallery: false, persona: 'student' as const });
+
+    render(<DetailPanel />);
+
+    expect(screen.getByText('Ready to learn cloud architecture?')).toBeInTheDocument();
+    expect(screen.getByText('Start Learning')).toBeInTheDocument();
+    expect(screen.queryByText('No selection')).not.toBeInTheDocument();
+  });
+
+  it('clicking Start Learning opens scenario gallery and sets learn mode', () => {
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: {
+          id: 'arch-1',
+          name: 'Empty Architecture',
+          version: '1.0.0',
+          nodes: [],
+          connections: [],
+          externalActors: [],
+          createdAt: '',
+          updatedAt: '',
+        },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+    useUIStore.setState({ selectedId: null, showTemplateGallery: false, persona: 'student' as const });
+
+    render(<DetailPanel />);
+
+    fireEvent.click(screen.getByText('Start Learning'));
+
+    expect(useUIStore.getState().showScenarioGallery).toBe(true);
+    expect(useUIStore.getState().editorMode).toBe('learn');
   });
 });

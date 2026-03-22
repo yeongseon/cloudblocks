@@ -63,6 +63,8 @@ function App() {
   const showTemplateGallery = useUIStore((s) => s.showTemplateGallery);
   const showScenarioGallery = useUIStore((s) => s.showScenarioGallery);
 
+  const persona = useUIStore((s) => s.persona);
+
   const workspaceId = useArchitectureStore((s) => s.workspace.id);
 
   const showPromoteDialog = usePromoteStore((s) => s.showPromoteDialog);
@@ -105,6 +107,13 @@ function App() {
     }
     void useAuthStore.getState().checkSession();
   }, []);
+
+  useEffect(() => {
+    if (persona === 'student') {
+      useUIStore.getState().setShowScenarioGallery(true);
+      useUIStore.getState().setEditorMode('learn');
+    }
+  }, [persona]);
 
   // Keyboard shortcuts
   useEffect(() => {
