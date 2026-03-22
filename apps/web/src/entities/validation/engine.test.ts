@@ -147,7 +147,7 @@ describe('validateArchitecture', () => {
     expect(result.valid).toBe(false);
     expect(result.errors).toHaveLength(1);
     expect(result.errors[0]).toMatchObject({
-      ruleId: 'rule-data-subnet',
+      ruleId: 'rule-data-parent',
       severity: 'error',
       targetId: 'db-1',
     });

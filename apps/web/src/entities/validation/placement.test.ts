@@ -71,7 +71,7 @@ describe('validatePlacement', () => {
     const plate = makePlate({ type: 'region', subnetAccess: undefined });
 
     expect(validatePlacement(block, plate)).toEqual({
-      ruleId: 'rule-compute-subnet',
+      ruleId: 'rule-compute-parent',
       severity: 'error',
       message: 'Compute resource "Compute B" must be placed on a Subnet',
       suggestion: 'Move the Compute resource to a Subnet',
@@ -93,7 +93,7 @@ describe('validatePlacement', () => {
     const plate = makePlate({ type: 'region', subnetAccess: undefined });
 
     expect(validatePlacement(block, plate)).toEqual({
-      ruleId: 'rule-data-subnet',
+      ruleId: 'rule-data-parent',
       severity: 'error',
       message: 'Data resource "Database A" must be placed on a Subnet',
       suggestion: 'Move the Data resource to a Subnet',
@@ -153,7 +153,7 @@ describe('validatePlacement', () => {
     const plate = makePlate({ type: 'region', subnetAccess: undefined });
 
     expect(validatePlacement(block, plate)).toEqual({
-      ruleId: 'rule-data-subnet',
+      ruleId: 'rule-data-parent',
       severity: 'error',
       message: 'Data resource "Storage A" must be placed on a Subnet',
       suggestion: 'Move the Data resource to a Subnet',
@@ -182,7 +182,7 @@ describe('validatePlacement', () => {
     const plate = makePlate({ type: 'region', subnetAccess: undefined });
 
     expect(validatePlacement(block, plate)).toEqual({
-      ruleId: 'rule-compute-subnet',
+      ruleId: 'rule-compute-parent',
       severity: 'error',
       message: 'Compute resource "Block" must be placed on a Subnet',
       suggestion: 'Move the Compute resource to a Subnet',
@@ -195,7 +195,7 @@ describe('validatePlacement', () => {
     const plate = makePlate({ type: 'subnet', subnetAccess: 'public' });
 
     expect(validatePlacement(block, plate)).toEqual({
-      ruleId: 'rule-messaging-region',
+      ruleId: 'rule-messaging-parent',
       severity: 'error',
       message: 'Messaging resource "QueueA" must be placed on a Region container',
       suggestion: 'Move the Messaging resource to a Region container',
@@ -215,7 +215,7 @@ describe('validatePlacement', () => {
     const plate = makePlate({ type: 'subnet', subnetAccess: 'public' });
 
     expect(validatePlacement(block, plate)).toEqual({
-      ruleId: 'rule-messaging-region',
+      ruleId: 'rule-messaging-parent',
       severity: 'error',
       message: 'Messaging resource "EventA" must be placed on a Region container',
       suggestion: 'Move the Messaging resource to a Region container',
@@ -235,7 +235,7 @@ describe('validatePlacement', () => {
     const plate = makePlate({ type: 'region', subnetAccess: undefined });
 
     expect(validatePlacement(block, plate)).toEqual({
-      ruleId: 'rule-operations-subnet',
+      ruleId: 'rule-operations-parent',
       severity: 'error',
       message: 'Operations resource "AnalyticsA" must be placed on a Subnet',
       suggestion: 'Move the Operations resource to a Subnet',
@@ -248,7 +248,7 @@ describe('validatePlacement', () => {
     const plate = makePlate({ type: 'region', subnetAccess: undefined });
 
     expect(validatePlacement(block, plate)).toEqual({
-      ruleId: 'rule-security-subnet',
+      ruleId: 'rule-security-parent',
       severity: 'error',
       message: 'Security resource "IdentityA" must be placed on a Subnet',
       suggestion: 'Move the Security resource to a Subnet',
@@ -261,7 +261,7 @@ describe('validatePlacement', () => {
     const plate = makePlate({ type: 'region', subnetAccess: undefined });
 
     expect(validatePlacement(block, plate)).toEqual({
-      ruleId: 'rule-operations-subnet',
+      ruleId: 'rule-operations-parent',
       severity: 'error',
       message: 'Operations resource "ObservabilityA" must be placed on a Subnet',
       suggestion: 'Move the Operations resource to a Subnet',
@@ -288,6 +288,32 @@ describe('validatePlacement', () => {
     const plate = makePlate({ type: 'subnet', subnetAccess: 'public' });
 
     expect(validatePlacement(block, plate)).toBeNull();
+  });
+
+  it('uses Set-based allowed layers: each category checks all valid parent layers', () => {
+    const computeBlock = makeBlock({ id: 'vm-1', name: 'VM', category: 'compute' });
+    const msgBlock = makeBlock({ id: 'mq-1', name: 'Queue', category: 'messaging' });
+
+    const subnet = makePlate({ type: 'subnet', subnetAccess: 'public' });
+    const region = makePlate({ type: 'region', subnetAccess: undefined });
+
+    expect(validatePlacement(computeBlock, subnet)).toBeNull();
+    expect(validatePlacement(computeBlock, region)).toEqual({
+      ruleId: 'rule-compute-parent',
+      severity: 'error',
+      message: 'Compute resource "VM" must be placed on a Subnet',
+      suggestion: 'Move the Compute resource to a Subnet',
+      targetId: 'vm-1',
+    });
+
+    expect(validatePlacement(msgBlock, region)).toBeNull();
+    expect(validatePlacement(msgBlock, subnet)).toEqual({
+      ruleId: 'rule-messaging-parent',
+      severity: 'error',
+      message: 'Messaging resource "Queue" must be placed on a Region container',
+      suggestion: 'Move the Messaging resource to a Region container',
+      targetId: 'mq-1',
+    });
   });
 });
 
