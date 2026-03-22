@@ -29,9 +29,9 @@ import {
   type ActionType,
   type PlateActionType,
 } from './useTechTree';
-import { BLOCK_FRIENDLY_NAMES, BLOCK_ICONS } from '../../shared/types/index';
+import { BLOCK_FRIENDLY_NAMES, BLOCK_ICONS, CONNECTION_TYPE_LABELS } from '../../shared/types/index';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
-import type { ContainerNode, LeafNode, ProviderType, ResourceCategory } from '@cloudblocks/schema';
+import type { Connection, ConnectionType, ContainerNode, LeafNode, ProviderType, ResourceCategory } from '@cloudblocks/schema';
 import './CommandCard.css';
 
 interface CommandCardProps {
@@ -126,6 +126,9 @@ export function CommandCard({ className = '' }: CommandCardProps) {
   const selectedPlate = selectedId
     ? containers.find((p) => p.id === selectedId) ?? null
     : null;
+  const selectedConnection = selectedId
+    ? architecture.connections.find((c) => c.id === selectedId) ?? null
+    : null;
 
   const plateSubAction = plateSubActionState.selectedId === selectedId ? plateSubActionState.action : null;
   const setPlateSubAction = useCallback((action: 'deploy' | null) => {
@@ -151,7 +154,9 @@ export function CommandCard({ className = '' }: CommandCardProps) {
         ? plateSubAction === 'deploy'
           ? `Deploy on ${getPlateHeaderText(selectedPlate)}`
           : `${getPlateHeaderText(selectedPlate)} Actions`
-        : 'Create Resource';
+        : selectedConnection
+          ? 'Connection'
+          : 'Create Resource';
 
   const modeContent = selectedBlock
       ? <BlockActionMode />
@@ -159,7 +164,9 @@ export function CommandCard({ className = '' }: CommandCardProps) {
         ? plateSubAction === 'deploy'
           ? <PlateCreationMode selectedPlate={selectedPlate} />
           : <PlateActionMode selectedPlate={selectedPlate} onDeploy={() => setPlateSubAction('deploy')} />
-        : <CreationMode />;
+        : selectedConnection
+          ? <ConnectionActionMode connection={selectedConnection} />
+          : <CreationMode />;
 
   return (
     <div className={`command-card ${className}`}>
@@ -623,6 +630,64 @@ function PlateProperties({ plate }: { plate: ContainerNode }) {
       {parent && <PropertyRow label="Parent" value={parent.name} />}
       <PropertyRow label="Size" value={`${plate.size.width} × ${plate.size.depth}`} />
       <PropertyRow label="Contents" value={`${contents.length} node${contents.length !== 1 ? 's' : ''}`} />
+    </div>
+  );
+}
+
+const CONNECTION_TYPES: ConnectionType[] = ['dataflow', 'http', 'internal', 'data', 'async'];
+
+function ConnectionActionMode({ connection }: { connection: Connection }) {
+  const setSelectedId = useUIStore((s) => s.setSelectedId);
+  const removeConnection = useArchitectureStore((s) => s.removeConnection);
+  const updateConnectionType = useArchitectureStore((s) => s.updateConnectionType);
+  const architecture = useArchitectureStore((s) => s.workspace.architecture);
+  const isSoundMuted = useUIStore((s) => s.isSoundMuted);
+  const playSound = useCallback((name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); }, [isSoundMuted]);
+
+  const source = architecture.nodes.find((n) => n.id === connection.sourceId);
+  const target = architecture.nodes.find((n) => n.id === connection.targetId);
+
+  const handleDelete = useCallback(() => {
+    removeConnection(connection.id);
+    setSelectedId(null);
+    playSound('delete');
+  }, [connection.id, removeConnection, setSelectedId, playSound]);
+
+  const handleTypeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    updateConnectionType(connection.id, e.target.value as ConnectionType);
+  }, [connection.id, updateConnectionType]);
+
+  return (
+    <div className="command-card-mode-content">
+      <div className="command-card-properties">
+        <PropertyRow label="Type" value={CONNECTION_TYPE_LABELS[connection.type]} />
+        {source && <PropertyRow label="Source" value={source.name} />}
+        {target && <PropertyRow label="Target" value={target.name} />}
+      </div>
+      <div className="command-card-form">
+        <label className="command-card-form-label">
+          Type
+          <select
+            className="command-card-form-select"
+            value={connection.type}
+            onChange={handleTypeChange}
+          >
+            {CONNECTION_TYPES.map((t) => (
+              <option key={t} value={t}>{CONNECTION_TYPE_LABELS[t]}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <div className="command-card-actions-row">
+        <button
+          type="button"
+          className="command-card-btn command-card-btn--delete"
+          onClick={handleDelete}
+        >
+          <span className="command-btn-icon">🗑️</span>
+          <span className="command-btn-label">Delete</span>
+        </button>
+      </div>
     </div>
   );
 }
