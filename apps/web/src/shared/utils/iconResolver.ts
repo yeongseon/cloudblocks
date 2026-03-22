@@ -1,16 +1,15 @@
 import type { LayerType, ProviderType, ResourceCategory } from '@cloudblocks/schema';
 
-// ─── Azure Icon Imports ──────────────────────────────────────
-import vmIcon from '../assets/azure-icons/virtual-machine.svg';
-import sqlIcon from '../assets/azure-icons/sql-database.svg';
-import storageIcon from '../assets/azure-icons/storage-account.svg';
-import gatewayIcon from '../assets/azure-icons/application-gateway.svg';
-import appServiceIcon from '../assets/azure-icons/app-service.svg';
-import logicAppsIcon from '../assets/azure-icons/logic-apps.svg';
-import queueIcon from '../assets/azure-icons/service-bus.svg';
-import eventIcon from '../assets/azure-icons/event-hub.svg';
-import vnetIcon from '../assets/azure-icons/virtual-network.svg';
-import subnetIcon from '../assets/azure-icons/subnet.svg';
+const vmIcon = '/azure-icons/virtual-machine.svg';
+const sqlIcon = '/azure-icons/sql-database.svg';
+const storageIcon = '/azure-icons/storage-account.svg';
+const gatewayIcon = '/azure-icons/application-gateway.svg';
+const appServiceIcon = '/azure-icons/app-service.svg';
+const logicAppsIcon = '/azure-icons/logic-apps.svg';
+const queueIcon = '/azure-icons/service-bus.svg';
+const eventIcon = '/azure-icons/event-hub.svg';
+const vnetIcon = '/azure-icons/virtual-network.svg';
+const subnetIcon = '/azure-icons/subnet.svg';
 
 // ─── Block Icon Maps ─────────────────────────────────────────
 

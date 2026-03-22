@@ -7,8 +7,9 @@ import { canConnect } from '../validation/connection';
 import type { ExternalActor, LeafNode } from '@cloudblocks/schema';
 import { screenDeltaToWorld, snapToGrid } from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
-import internetSprite from '../../shared/assets/actor-sprites/internet.svg';
 import './ExternalActorSprite.css';
+
+const internetSprite = '/actor-sprites/internet.svg';
 
 interface ExternalActorSpriteProps {
   actor: ExternalActor;
