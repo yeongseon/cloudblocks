@@ -12,7 +12,7 @@
 
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { BLOCK_FRIENDLY_NAMES, BLOCK_DESCRIPTIONS, BLOCK_ICONS, BLOCK_ENCYCLOPEDIA, CONNECTION_TYPE_LABELS, CONNECTION_ENCYCLOPEDIA, PLATE_ENCYCLOPEDIA } from '../../shared/types/index';
+import { BLOCK_FRIENDLY_NAMES, BLOCK_ICONS, BLOCK_ENCYCLOPEDIA, CONNECTION_TYPE_LABELS, CONNECTION_ENCYCLOPEDIA, PLATE_ENCYCLOPEDIA } from '../../shared/types/index';
 import type { ContainerNode, LeafNode } from '@cloudblocks/schema';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
 import { getBlockIconUrl, getPlateIconUrl } from '../../shared/utils/iconResolver';

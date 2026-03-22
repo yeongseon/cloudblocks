@@ -25,7 +25,7 @@ const STEPS: TourStep[] = [
     fallbackSelector: '.command-card',
     title: 'Command Panel',
     description:
-      'Context-sensitive action grid. Create resources, edit properties, or delete elements depending on your selection.',
+      'Context-sensitive action grid. Create resources, view properties, edit connections, or delete elements depending on your selection.',
   },
   {
     selector: '.resource-bar',
