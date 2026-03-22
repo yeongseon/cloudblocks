@@ -1,8 +1,45 @@
+/* ── Professional Mode (default) ────────────────────────── */
 .scene-viewport {
   position: absolute;
   inset: 0;
   overflow: hidden;
   cursor: grab;
+
+  /* Tunables */
+  --canvas-grid-minor: 24px;
+  --canvas-grid-major: 120px;
+  --canvas-dot-minor: 1px;
+  --canvas-dot-major: 1.5px;
+
+  background-color: var(--bg-canvas);
+  background-image:
+    /* Soft spotlight vignette */
+    radial-gradient(
+      1200px 800px at 30% 20%,
+      var(--canvas-glow, rgba(30, 41, 59, 0.55)) 0%,
+      transparent 60%
+    ),
+    /* Major dot grid */
+    radial-gradient(
+      circle at 1px 1px,
+      var(--canvas-grid-major-color, rgba(255, 255, 255, 0.06)) 0 var(--canvas-dot-major),
+      transparent calc(var(--canvas-dot-major) + 0.5px)
+    ),
+    /* Minor dot grid */
+    radial-gradient(
+      circle at 1px 1px,
+      var(--canvas-grid-minor-color, rgba(255, 255, 255, 0.03)) 0 var(--canvas-dot-minor),
+      transparent calc(var(--canvas-dot-minor) + 0.5px)
+    );
+  background-size:
+    100% 100%,
+    var(--canvas-grid-major) var(--canvas-grid-major),
+    var(--canvas-grid-minor) var(--canvas-grid-minor);
+  background-position: 0 0, 0 0, 0 0;
+}
+
+/* ── LEGO Mode (preserved for M22 dual theme) ─────────── */
+[data-visual-mode="lego"] .scene-viewport {
   background-color: #D2B48C;
   background-image:
     /* Stud highlight (top of cylinder) */
