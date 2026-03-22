@@ -32,7 +32,7 @@ function getPositionHotkey(rowIdx: number, colIdx: number): string {
 
 function getPlateHeaderText(plate: ContainerNode): string {
   if (plate.layer === 'subnet') {
-    return plate.subnetAccess === 'public' ? 'Public Subnet' : 'Private Subnet';
+    return 'Subnet';
   }
 
   return plate.layer === 'region'
@@ -291,7 +291,7 @@ function PlateProperties({ plate }: { plate: ContainerNode }) {
     : null;
   const contents = architecture.nodes.filter((n) => n.parentId === plate.id);
   const plateLabel = plate.layer === 'subnet'
-    ? `Subnet (${plate.subnetAccess ?? 'public'})`
+    ? 'Subnet'
     : plate.layer.charAt(0).toUpperCase() + plate.layer.slice(1);
 
   return (

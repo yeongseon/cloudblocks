@@ -1,4 +1,4 @@
-import type { LayerType, ProviderType, ResourceCategory, SubnetAccess } from '@cloudblocks/schema';
+import type { LayerType, ProviderType, ResourceCategory } from '@cloudblocks/schema';
 
 // ─── Azure Icon Imports ──────────────────────────────────────
 import vmIcon from '../assets/azure-icons/virtual-machine.svg';
@@ -94,7 +94,6 @@ export function getBlockIconUrl(
  */
 export function getPlateIconUrl(
   plateType: LayerType,
-  _subnetAccess?: SubnetAccess,
 ): string {
   if (plateType === 'resource') {
     return vnetIcon;

@@ -6,6 +6,7 @@ import { makeTestBlock, makeTestPlate } from '../../__tests__/legacyModelTestUti
 import {
   ACTION_DEFINITIONS,
   ACTION_GRID,
+  MVP_RESOURCE_ALLOWLIST,
   RESOURCE_DEFINITIONS,
   useTechTree,
 } from './useTechTree';
@@ -41,10 +42,9 @@ const NETWORK_PLATE: ContainerNode = makeTestPlate({
 
 const SUBNET_PLATE: ContainerNode = makeTestPlate({
   id: 'sub-1',
-  name: 'Public Subnet',
+  name: 'Subnet',
   type: 'subnet',
   parentId: 'net-1',
-  subnetAccess: 'public',
   children: [],
   position: { x: 0, y: 0, z: 0 },
   size: { width: 6, height: 0.3, depth: 8 },
@@ -108,21 +108,12 @@ describe('useTechTree constants', () => {
       Pick<ResourceDefinition, 'id' | 'schemaResourceType' | 'label' | 'shortLabel' | 'icon' | 'category' | 'blockCategory'>
     > = {
       network: { id: 'network', schemaResourceType: 'virtual_network', label: 'Network (VNet)', shortLabel: 'VNet', icon: '🌐', category: 'foundation', blockCategory: null },
-      'public-subnet': {
-        id: 'public-subnet',
+      subnet: {
+        id: 'subnet',
         schemaResourceType: 'subnet',
-        label: 'Public Subnet',
-        shortLabel: 'Public',
-        icon: '🌍',
-        category: 'foundation',
-        blockCategory: null,
-      },
-      'private-subnet': {
-        id: 'private-subnet',
-        schemaResourceType: 'subnet',
-        label: 'Private Subnet',
-        shortLabel: 'Private',
-        icon: '🔒',
+        label: 'Subnet',
+        shortLabel: 'Subnet',
+        icon: '🔲',
         category: 'foundation',
         blockCategory: null,
       },
@@ -289,8 +280,7 @@ describe('useTechTree constants', () => {
 
     const resourceTypes = [
       'network',
-      'public-subnet',
-      'private-subnet',
+      'subnet',
       'storage',
       'dns',
       'cdn',
@@ -315,7 +305,7 @@ describe('useTechTree constants', () => {
       'private-endpoint',
       'app-gateway',
     ];
-    expect(resourceTypes).toHaveLength(26);
+    expect(resourceTypes).toHaveLength(25);
 
     for (const resourceType of resourceTypes) {
       const actual = RESOURCE_DEFINITIONS[resourceType as ResourceType];
@@ -380,7 +370,7 @@ describe('useTechTree hook', () => {
     const { result: emptyResult } = renderHook(() => useTechTree());
 
     expect(emptyResult.current.isEnabled('network')).toBe(true);
-    expect(emptyResult.current.isEnabled('public-subnet')).toBe(false);
+    expect(emptyResult.current.isEnabled('subnet')).toBe(false);
     expect(emptyResult.current.isEnabled('vm')).toBe(false);
     expect(emptyResult.current.isEnabled('storage')).toBe(false);
 
@@ -391,7 +381,7 @@ describe('useTechTree hook', () => {
     expect(vnetResult.current.hasSubnet).toBe(false);
     expect(vnetResult.current.blockCount).toBe(2);
     expect(vnetResult.current.plateCount).toBe(1);
-    expect(vnetResult.current.isEnabled('public-subnet')).toBe(true);
+    expect(vnetResult.current.isEnabled('subnet')).toBe(true);
     expect(vnetResult.current.isEnabled('vm')).toBe(true);
     expect(vnetResult.current.isEnabled('storage')).toBe(true);
   });
@@ -430,16 +420,16 @@ describe('useTechTree hook', () => {
     }
   });
 
-  it('returns MVP-filtered creation resources from RESOURCE_DEFINITIONS', () => {
+  it('returns all creation resources from RESOURCE_DEFINITIONS filtered by MVP allowlist', () => {
     const { result } = renderHook(() => useTechTree());
 
-    const MVP_TYPES: ResourceType[] = ['network', 'public-subnet', 'private-subnet', 'vm', 'sql', 'storage', 'key-vault'];
+    const expectedResourceTypes = (Object.keys(RESOURCE_DEFINITIONS) as ResourceType[])
+      .filter((type) => MVP_RESOURCE_ALLOWLIST.has(type));
     const creationResources = result.current.getCreationResources();
     const actualTypes = creationResources.map((entry) => entry.resource.id);
 
-    expect(creationResources).toHaveLength(MVP_TYPES.length);
-    expect(actualTypes).toEqual(expect.arrayContaining(MVP_TYPES));
-    expect(actualTypes).toHaveLength(MVP_TYPES.length);
+    expect(creationResources).toHaveLength(expectedResourceTypes.length);
+    expect(actualTypes).toEqual(expectedResourceTypes);
 
     for (const entry of creationResources) {
       expect(entry.resource).toBe(RESOURCE_DEFINITIONS[entry.resource.id]);

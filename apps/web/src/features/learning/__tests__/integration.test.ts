@@ -22,7 +22,7 @@ import type {
   ArchitectureSnapshot,
   StepValidationRule,
 } from '../../../shared/types/learning';
-import type { ContainerNode, LayerType, LeafNode, ResourceCategory, SubnetAccess } from '@cloudblocks/schema';
+import type { ContainerNode, LayerType, LeafNode, ResourceCategory } from '@cloudblocks/schema';
 
 type ContainerLayer = Exclude<LayerType, 'resource'>;
 
@@ -154,18 +154,12 @@ function ensureNetworkPlate(): string {
   return networkId;
 }
 
-function ensureSubnet(subnetAccess: SubnetAccess): string {
+function addSubnet(): string {
   const snapshot = architectureSnapshot();
-  const existing = getContainers(snapshot).find(
-    (plate) => plate.layer === 'subnet' && plate.subnetAccess === subnetAccess
-  );
-  if (existing) {
-    return existing.id;
-  }
-
   const networkId = findNetworkPlateId(snapshot) ?? ensureNetworkPlate();
   const refreshed = architectureSnapshot();
-  const subnetId = `plate-subnet-${subnetAccess}-test`;
+  const subnetCount = getContainers(refreshed).filter((p) => p.layer === 'subnet').length;
+  const subnetId = `plate-subnet-${subnetCount + 1}-test`;
 
   replaceArchitectureSnapshot({
     ...refreshed,
@@ -173,15 +167,14 @@ function ensureSubnet(subnetAccess: SubnetAccess): string {
       ...refreshed.nodes,
       {
         id: subnetId,
-        name: subnetAccess === 'public' ? 'Public Subnet' : 'Private Subnet',
+        name: `Subnet ${subnetCount + 1}`,
         kind: 'container',
         layer: 'subnet',
         resourceType: containerResourceTypeByLayer.subnet,
         category: 'network',
         provider: 'azure',
-        subnetAccess,
         parentId: networkId,
-        position: { x: subnetAccess === 'public' ? -3 : 3, y: 0.3, z: 0 },
+        position: { x: subnetCount * 6 - 3, y: 0.3, z: 0 },
         size: { width: 5, height: 0.2, depth: 8 },
         metadata: {},
       },
@@ -191,29 +184,66 @@ function ensureSubnet(subnetAccess: SubnetAccess): string {
   return subnetId;
 }
 
+function ensureSubnet(): string {
+  const snapshot = architectureSnapshot();
+  const existing = getContainers(snapshot).find(
+    (plate) => plate.layer === 'subnet'
+  );
+  if (existing) {
+    return existing.id;
+  }
+
+  return addSubnet();
+}
+
 function getPlacementForCategory(category: ResourceCategory): {
   plateType: ContainerLayer;
-  subnetAccess?: SubnetAccess;
 } {
-  if (category === 'edge') {
-    return { plateType: 'subnet', subnetAccess: 'public' };
+  if (category === 'messaging' || category === 'network') {
+    return { plateType: 'region' };
   }
 
-  if (category === 'data') {
-    return { plateType: 'subnet', subnetAccess: 'private' };
-  }
+  return { plateType: 'subnet' };
+}
 
-  if (category === 'compute' || category === 'security' || category === 'operations') {
-    return { plateType: 'subnet', subnetAccess: 'public' };
-  }
+function addBlock(category: ResourceCategory, onPlateType?: ContainerLayer): string {
+  const placement = onPlateType
+    ? { plateType: onPlateType }
+    : getPlacementForCategory(category);
 
-  return { plateType: 'region' };
+  const placementId = placement.plateType === 'region'
+    ? ensureNetworkPlate()
+    : ensureSubnet();
+
+  const refreshed = architectureSnapshot();
+  const existingCount = getResources(refreshed).filter((b) => b.category === category).length;
+  const blockId = `block-${category}-${existingCount + 1}-test`;
+
+  replaceArchitectureSnapshot({
+    ...refreshed,
+    nodes: [
+      ...refreshed.nodes,
+      {
+        id: blockId,
+        name: `${category}-test-${existingCount + 1}`,
+        kind: 'resource',
+        layer: 'resource',
+        resourceType: leafResourceTypeByCategory[category],
+        category,
+        provider: 'azure',
+        parentId: placementId,
+        position: { x: existingCount * 2, y: 0.5, z: 0 },
+        metadata: {},
+      },
+    ],
+  });
+
+  return blockId;
 }
 
 function ensureBlock(
   category: ResourceCategory,
   onPlateType?: ContainerLayer,
-  onSubnetAccess?: SubnetAccess
 ): string {
   const snapshot = architectureSnapshot();
   const existing = getResources(snapshot).find((block) => {
@@ -230,10 +260,6 @@ function ensureBlock(
       return false;
     }
 
-    if (onSubnetAccess && plate.subnetAccess !== onSubnetAccess) {
-      return false;
-    }
-
     return true;
   });
 
@@ -242,15 +268,16 @@ function ensureBlock(
   }
 
   const placement = onPlateType
-    ? { plateType: onPlateType, subnetAccess: onSubnetAccess }
+    ? { plateType: onPlateType }
     : getPlacementForCategory(category);
 
   const placementId = placement.plateType === 'region'
     ? ensureNetworkPlate()
-    : ensureSubnet(placement.subnetAccess ?? 'public');
+    : ensureSubnet();
 
   const refreshed = architectureSnapshot();
-  const blockId = `block-${category}-test`;
+  const existingCount = getResources(refreshed).filter((b) => b.category === category).length;
+  const blockId = `block-${category}-${existingCount + 1}-test`;
 
   replaceArchitectureSnapshot({
     ...refreshed,
@@ -321,12 +348,12 @@ function satisfyRule(rule: StepValidationRule): void {
       if (rule.plateType === 'region') {
         ensureNetworkPlate();
       } else {
-        ensureSubnet(rule.subnetAccess ?? 'public');
+        addSubnet();
       }
       return;
 
     case 'block-exists':
-      ensureBlock(rule.category, rule.onPlateType, rule.onSubnetAccess);
+      ensureBlock(rule.category, rule.onPlateType);
       return;
 
     case 'connection-exists':
@@ -334,7 +361,7 @@ function satisfyRule(rule: StepValidationRule): void {
       return;
 
     case 'entity-on-plate':
-      ensureBlock(rule.entityCategory, rule.plateType, rule.subnetAccess);
+      ensureBlock(rule.entityCategory, rule.plateType);
       return;
 
     case 'min-block-count': {
@@ -342,7 +369,7 @@ function satisfyRule(rule: StepValidationRule): void {
         getResources(architectureSnapshot()).filter((block) => block.category === rule.category).length <
         rule.count
       ) {
-        ensureBlock(rule.category);
+        addBlock(rule.category);
       }
       return;
     }
@@ -355,7 +382,7 @@ function satisfyRule(rule: StepValidationRule): void {
         if (rule.plateType === 'region') {
           ensureNetworkPlate();
         } else {
-          ensureSubnet('public');
+          addSubnet();
         }
       }
       return;
@@ -460,9 +487,9 @@ describe('learning integration flow', () => {
     const checkpoint = useLearningStore.getState().activeScenario?.steps[1]?.checkpoint;
     expect(checkpoint).toBeDefined();
 
-    satisfyRule({ type: 'plate-exists', plateType: 'subnet', subnetAccess: 'public' });
-    satisfyRule({ type: 'plate-exists', plateType: 'subnet', subnetAccess: 'private' });
-    satisfyRule({ type: 'block-exists', category: 'edge', onPlateType: 'subnet', onSubnetAccess: 'public' });
+    satisfyRule({ type: 'plate-exists', plateType: 'subnet' });
+    satisfyRule({ type: 'plate-exists', plateType: 'subnet' });
+    satisfyRule({ type: 'block-exists', category: 'edge', onPlateType: 'subnet' });
 
     resetCurrentStep();
 
@@ -478,10 +505,10 @@ describe('learning integration flow', () => {
 
     expect(useLearningStore.getState().isCurrentStepComplete).toBe(false);
 
-    satisfyRule({ type: 'plate-exists', plateType: 'subnet', subnetAccess: 'public' });
+    satisfyRule({ type: 'plate-exists', plateType: 'subnet' });
     expect(useLearningStore.getState().isCurrentStepComplete).toBe(false);
 
-    satisfyRule({ type: 'plate-exists', plateType: 'subnet', subnetAccess: 'private' });
+    satisfyRule({ type: 'plate-exists', plateType: 'subnet' });
     expect(useLearningStore.getState().isCurrentStepComplete).toBe(true);
   });
 });

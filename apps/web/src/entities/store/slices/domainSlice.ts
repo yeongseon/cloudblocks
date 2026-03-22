@@ -64,7 +64,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
     if (input.kind === 'container') {
       // Resolve layer → PlateType for the existing addPlate logic
       const layer = input.layer as PlateLayerType;
-      get().addPlate(layer, input.name, input.parentId, input.access, input.profileId);
+      get().addPlate(layer, input.name, input.parentId, input.profileId);
     } else {
       // Derive category from RESOURCE_RULES or fall back to 'compute'
       const rule = (RESOURCE_RULES as Record<string, { category: ResourceCategory }>)[input.resourceType];
@@ -111,7 +111,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
   },
 
   // ── Deprecated wrappers (delegates preserved for backward compat) ────────
-  addPlate: (type, name, parentId, subnetAccess, profileId?: PlateProfileId) => {
+  addPlate: (type, name, parentId, profileId?: PlateProfileId) => {
     set((state) => {
       const arch = state.workspace.architecture;
       const containers = arch.nodes.filter(isContainer);
@@ -130,7 +130,6 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         resourceType: CONTAINER_RESOURCE_TYPE[type],
         category: 'network',
         provider: 'azure',
-        subnetAccess: type === 'subnet' ? subnetAccess : undefined,
         profileId,
         parentId,
         position: { x: 0, y: 0, z: 0 },

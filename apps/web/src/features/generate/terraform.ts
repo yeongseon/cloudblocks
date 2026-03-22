@@ -149,7 +149,8 @@ function generatePlateResource(
   resourceName: string,
   mapping: ResourceMapping,
   _projectName: string,
-  parentResourceName: string | null
+  parentResourceName: string | null,
+  architecture: ArchitectureModel
 ): string {
   const lines: string[] = [];
 
@@ -166,7 +167,10 @@ function generatePlateResource(
     lines.push(
       `  virtual_network_name = azurerm_virtual_network.${parentResourceName}.name`
     );
-    const cidrIndex = plate.subnetAccess === 'public' ? 1 : 2;
+    // Assign sequential CIDR index based on subnet order under parent VNet
+    const containers = architecture.nodes.filter((n): n is ContainerNode => n.kind === 'container');
+    const siblingSubnets = containers.filter((c) => c.layer === 'subnet' && c.parentId === plate.parentId);
+    const cidrIndex = siblingSubnets.findIndex((c) => c.id === plate.id) + 1;
     lines.push(`  address_prefixes     = ["10.0.${cidrIndex}.0/24"]`);
   }
 
@@ -290,7 +294,7 @@ export function generateMainTf(
     const resName = resourceNames.get(plate.id)!;
     const mapping = provider.plateMappings[getPlateType(plate)];
     sections.push(
-      generatePlateResource(plate, resName, mapping, options.projectName, null)
+      generatePlateResource(plate, resName, mapping, options.projectName, null, architecture)
     );
     sections.push('');
   }
@@ -302,7 +306,7 @@ export function generateMainTf(
       ? resourceNames.get(plate.parentId) ?? null
       : null;
     sections.push(
-      generatePlateResource(plate, resName, mapping, options.projectName, parentName)
+      generatePlateResource(plate, resName, mapping, options.projectName, parentName, architecture)
     );
     sections.push('');
   }

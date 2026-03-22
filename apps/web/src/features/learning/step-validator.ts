@@ -21,11 +21,7 @@ export function evaluateRule(
 
   switch (rule.type) {
     case 'plate-exists':
-      return containers.some(
-        (p) =>
-          p.layer === rule.plateType &&
-          (rule.subnetAccess === undefined || p.subnetAccess === rule.subnetAccess)
-      );
+      return containers.some((p) => p.layer === rule.plateType);
 
     case 'block-exists':
       return resources.some((b) => {
@@ -34,7 +30,6 @@ export function evaluateRule(
         const plate = containers.find((p) => p.id === b.parentId);
         if (!plate) return false;
         if (plate.layer !== rule.onPlateType) return false;
-        if (rule.onSubnetAccess !== undefined && plate.subnetAccess !== rule.onSubnetAccess) return false;
         return true;
       });
 
@@ -51,7 +46,6 @@ export function evaluateRule(
         const plate = containers.find((p) => p.id === b.parentId);
         if (!plate) return false;
         if (plate.layer !== rule.plateType) return false;
-        if (rule.subnetAccess !== undefined && plate.subnetAccess !== rule.subnetAccess) return false;
         return true;
       });
 

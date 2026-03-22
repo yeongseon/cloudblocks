@@ -13,7 +13,7 @@
 import { useMemo } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { PLATE_COLORS, SUBNET_ACCESS_COLORS } from '../../shared/types/index';
+import { PLATE_COLORS } from '../../shared/types/index';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
 import type { ContainerNode, LeafNode } from '@cloudblocks/schema';
 import './Minimap.css';
@@ -73,9 +73,7 @@ export function Minimap({ className = '' }: MinimapProps) {
       y: plate.position.z * scale + offsetY,
       width: plate.size.width * scale,
       height: plate.size.depth * scale,
-      color: (plate.layer === 'subnet' && plate.subnetAccess)
-        ? SUBNET_ACCESS_COLORS[plate.subnetAccess]
-        : PLATE_COLORS[(plate.layer === 'resource' ? 'region' : plate.layer)],
+      color: PLATE_COLORS[(plate.layer === 'resource' ? 'region' : plate.layer)],
       isNetwork: plate.layer !== 'subnet',
     }));
 

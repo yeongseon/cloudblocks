@@ -9,7 +9,6 @@ import type {
   NodeKind,
   ProviderType,
   ResourceCategory,
-  SubnetAccess,
 } from './enums.js';
 import type { Position, Size } from './spatial.js';
 import type { CanvasTier, ContainerCapableResourceType } from './rules.js';
@@ -56,8 +55,6 @@ interface NodeBase {
   aggregation?: Aggregation;
   /** v2.0 §9 — visual-only role indicators */
   roles?: BlockRole[];
-  /** Subnet access visibility — only meaningful for subnet-layer containers */
-  subnetAccess?: SubnetAccess;
   /** Visual profile preset identifier (frontend concern, serialized for persistence) */
   profileId?: string;
   /**

@@ -23,13 +23,12 @@ const networkPlate: ContainerNode = {
 
 const publicSubnet: ContainerNode = {
   id: 'subnet-1',
-  name: 'Public Subnet',
+  name: 'Subnet 1',
   kind: 'container',
   layer: 'subnet',
   resourceType: 'subnet',
   category: 'network',
   provider: 'azure',
-  subnetAccess: 'public',
   parentId: 'net-1',
   position: { x: 1, y: 0, z: 1 },
   size: { width: 6, height: 0.3, depth: 8 },
@@ -150,8 +149,8 @@ describe('DetailPanel', () => {
 
     render(<DetailPanel />);
 
-    expect(screen.getByText('Public Subnet')).toBeInTheDocument();
-    expect(screen.getByText('Subnet (public)')).toBeInTheDocument();
+    expect(screen.getByText('Subnet 1')).toBeInTheDocument();
+    expect(screen.getByText('Subnet')).toBeInTheDocument();
     expect(screen.getByText('Main VNet')).toBeInTheDocument();
     expect(screen.getByText('2 blocks')).toBeInTheDocument();
     expect(screen.getByText('What is this?')).toBeInTheDocument();
@@ -210,13 +209,12 @@ describe('DetailPanel', () => {
   it('renders private subnet plate with lock icon', () => {
     const privateSubnet: ContainerNode = {
       id: 'priv-1',
-      name: 'Private Subnet',
+      name: 'Subnet 2',
       kind: 'container',
       layer: 'subnet',
       resourceType: 'subnet',
       category: 'network',
       provider: 'azure',
-      subnetAccess: 'private',
       parentId: 'net-1',
       position: { x: 0, y: 0, z: 0 },
       size: { width: 6, height: 0.3, depth: 8 },
@@ -239,8 +237,8 @@ describe('DetailPanel', () => {
 
     render(<DetailPanel />);
 
-    expect(screen.getByRole('img', { name: 'Private Subnet' })).toBeInTheDocument();
-    expect(screen.getByText('Subnet (private)')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Subnet' })).toBeInTheDocument();
+    expect(screen.getByText('Subnet')).toBeInTheDocument();
   });
 
   it('renders singular block count when plate has one block', () => {
@@ -582,8 +580,8 @@ describe('DetailPanel', () => {
 
     render(<DetailPanel />);
 
-    expect(screen.getByRole('img', { name: 'Public Subnet' })).toBeInTheDocument();
-    expect(screen.getByText('Subnet (public)')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Subnet' })).toBeInTheDocument();
+    expect(screen.getByText('Subnet')).toBeInTheDocument();
   });
 
   it('renders student persona idle state with learning CTA', () => {

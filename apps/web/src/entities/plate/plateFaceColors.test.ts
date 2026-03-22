@@ -38,17 +38,8 @@ it('returns region colors for region plate type', () => {
     });
   });
 
-  it('returns public subnet colors for subnet with public access', () => {
-    expect(getPlateFaceColors({ type: 'subnet', subnetAccess: 'public' })).toEqual({
-      topFaceColor: '#22C55E',
-      topFaceStroke: '#4ADE80',
-      leftSideColor: '#16A34A',
-      rightSideColor: '#15803D',
-    });
-  });
-
-  it('returns private subnet colors by default', () => {
-    expect(getPlateFaceColors({ type: 'subnet', subnetAccess: 'private' })).toEqual({
+  it('returns unified indigo subnet colors', () => {
+    expect(getPlateFaceColors({ type: 'subnet' })).toEqual({
       topFaceColor: '#6366F1',
       topFaceStroke: '#818CF8',
       leftSideColor: '#4F46E5',

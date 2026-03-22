@@ -41,13 +41,12 @@ const networkPlate: ContainerNode = {
 
 const publicSubnet: ContainerNode = {
   id: 'subnet-public-1',
-  name: 'Public Subnet',
+  name: 'Subnet',
   kind: 'container',
   layer: 'subnet',
   resourceType: 'subnet',
   category: 'network',
   provider: 'azure',
-  subnetAccess: 'public',
   parentId: 'net-1',
   position: { x: 1, y: 0, z: 1 },
   size: { width: 6, height: 0.3, depth: 8 },

@@ -414,7 +414,6 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
           position: plate.position as ContainerNode['position'],
           size: plate.size as ContainerNode['size'],
           metadata: (plate.metadata as Record<string, unknown>) ?? {},
-          ...(typeof plate.subnetAccess === 'string' ? { subnetAccess: plate.subnetAccess as 'public' | 'private' } : {}),
           ...(typeof plate.profileId === 'string' ? { profileId: plate.profileId } : {}),
         }));
         const leafNodes = (importedAny.blocks as Record<string, unknown>[]).map((block): LeafNode => ({

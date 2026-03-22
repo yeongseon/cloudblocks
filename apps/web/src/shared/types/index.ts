@@ -7,7 +7,6 @@ import type {
   PlateType,
   ResourceCategory,
   Size,
-  SubnetAccess,
 } from '@cloudblocks/schema';
 
 export type {
@@ -31,7 +30,6 @@ export type {
   ResourceCategory,
   ResourceNode,
   Size,
-  SubnetAccess,
 } from '@cloudblocks/schema';
 
 export {
@@ -96,11 +94,6 @@ export const PLATE_COLORS: Record<PlateType, string> = {
   subnet: '#E0E0E0',
 };
 
-export const SUBNET_ACCESS_COLORS: Record<SubnetAccess, string> = {
-  public: '#22C55E',     // Bright green
-  private: '#DC2626',    // Dark red (restricted access)
-};
-
 // ─── Default Sizes ─────────────────────────────────────────
 
 export const DEFAULT_BLOCK_SIZE: Size = {
@@ -163,32 +156,32 @@ export const BLOCK_ENCYCLOPEDIA: Record<ResourceCategory, {
   },
   security: {
     what: 'Security services enforce access control, identity verification, and threat protection across your architecture.',
-    placement: 'Place inside a subnet. Typically sits in a private subnet alongside protected resources.',
+    placement: 'Place inside a subnet alongside protected resources.',
     connections: 'Connects to compute and data blocks via internal or data connections for policy enforcement.',
   },
   edge: {
     what: 'Load balancers and CDNs distribute incoming traffic across backend compute instances for high availability.',
-    placement: 'Place in a public subnet to receive external traffic. Routes to compute blocks in private subnets.',
+    placement: 'Place in a subnet to receive external traffic. Routes to compute blocks in other subnets.',
     connections: 'Receives HTTP connections from external actors. Sends dataflow connections to compute targets.',
   },
   compute: {
     what: 'Compute instances run application code — virtual machines, containers, or serverless functions.',
-    placement: 'Place in any subnet. Public subnets for web servers, private subnets for backend services.',
+    placement: 'Place in any subnet. Use separate subnets for web-facing vs backend services.',
     connections: 'Receives traffic from edge blocks. Connects to data stores via data connections.',
   },
   data: {
     what: 'Data stores persist structured or unstructured information — databases, blob storage, caches.',
-    placement: 'Place in a private subnet for security. Avoid direct public internet exposure.',
+    placement: 'Place in a subnet. Use NSG rules to restrict access rather than relying on subnet type.',
     connections: 'Receives data connections from compute blocks. May replicate via async connections.',
   },
   messaging: {
     what: 'Message services enable asynchronous communication between decoupled components — queues, topics, event streams.',
-    placement: 'Place in a private subnet. Acts as a buffer between producer and consumer services.',
+    placement: 'Place in a subnet. Acts as a buffer between producer and consumer services.',
     connections: 'Receives async connections from producers. Sends async connections to consumer compute blocks.',
   },
   operations: {
     what: 'Monitoring and observability services collect metrics, logs, and traces from all running resources.',
-    placement: 'Place in a private subnet. Needs network access to all monitored resources.',
+    placement: 'Place in a subnet. Needs network access to all monitored resources.',
     connections: 'Receives internal connections from all resources being monitored. Typically read-only telemetry.',
   },
 };
@@ -240,7 +233,7 @@ export const PLATE_ENCYCLOPEDIA: Record<string, {
     rules: 'Nests inside a region plate. Contains subnet plates for zone-specific deployments.',
   },
   subnet: {
-    what: 'A network segment with its own IP range and access rules. Public subnets face the internet; private subnets are isolated.',
+    what: 'A network segment with its own IP range and access rules. Access control is managed via NSG and route tables.',
     rules: 'Nests inside a region or zone plate. Contains blocks (compute, data, security, etc.).',
   },
 };
@@ -293,13 +286,7 @@ export const NETWORK_STUD_COLORS: StudColorSpec = {
   highlight: '#90CAF9',
 };
 
-export const PUBLIC_SUBNET_STUD_COLORS: StudColorSpec = {
-  main: '#66BB6A',
-  shadow: '#2E7D32',
-  highlight: '#A5D6A7',
-};
-
-export const PRIVATE_SUBNET_STUD_COLORS: StudColorSpec = {
+export const SUBNET_STUD_COLORS: StudColorSpec = {
   main: '#7986CB',
   shadow: '#3949AB',
   highlight: '#C5CAE9',
@@ -379,7 +366,7 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     recommendedCapacity: 2,
     exampleCidrs: { azure: '10.0.0.0/28', aws: '10.0.0.0/28', gcp: '10.0.0.0/28' },
     learningLevel: 'beginner',
-    studColors: PUBLIC_SUBNET_STUD_COLORS, // default; overridden by subnetAccess
+    studColors: SUBNET_STUD_COLORS,
   },
   'subnet-service': {
     id: 'subnet-service',
@@ -394,7 +381,7 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     recommendedCapacity: 4,
     exampleCidrs: { azure: '10.0.1.0/26', aws: '10.0.1.0/26', gcp: '10.0.1.0/26' },
     learningLevel: 'intermediate',
-    studColors: PUBLIC_SUBNET_STUD_COLORS,
+    studColors: SUBNET_STUD_COLORS,
   },
   'subnet-workload': {
     id: 'subnet-workload',
@@ -409,7 +396,7 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     recommendedCapacity: 6,
     exampleCidrs: { azure: '10.0.2.0/24', aws: '10.0.2.0/24', gcp: '10.0.2.0/24' },
     learningLevel: 'advanced',
-    studColors: PUBLIC_SUBNET_STUD_COLORS,
+    studColors: SUBNET_STUD_COLORS,
   },
   'subnet-scale': {
     id: 'subnet-scale',
@@ -424,7 +411,7 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     recommendedCapacity: 8,
     exampleCidrs: { azure: '10.0.4.0/22', aws: '10.0.4.0/22', gcp: '10.0.4.0/22' },
     learningLevel: 'expert',
-    studColors: PUBLIC_SUBNET_STUD_COLORS,
+    studColors: SUBNET_STUD_COLORS,
   },
 };
 
@@ -484,11 +471,9 @@ export function inferLegacyPlateProfileId(legacyPlate: LegacyPlateShape): PlateP
   return closest.id;
 }
 
-export function getPlateStudColors(plate: { type: PlateType; subnetAccess?: SubnetAccess }): StudColorSpec {
-  if (plate.type === 'region') return NETWORK_STUD_COLORS;
-  if (plate.type === 'global' || plate.type === 'edge' || plate.type === 'zone') return NETWORK_STUD_COLORS;
-  if (plate.subnetAccess === 'public') return PUBLIC_SUBNET_STUD_COLORS;
-  return PRIVATE_SUBNET_STUD_COLORS;
+export function getPlateStudColors(plate: { type: PlateType }): StudColorSpec {
+  if (plate.type === 'subnet') return SUBNET_STUD_COLORS;
+  return NETWORK_STUD_COLORS;
 }
 
 export const DEFAULT_PLATE_SIZE: Record<PlateType, Size> = {

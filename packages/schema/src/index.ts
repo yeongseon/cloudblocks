@@ -13,7 +13,6 @@ export type {
   NodeKind,
   ProviderType,
   ResourceCategory,
-  SubnetAccess,
 } from './enums.js';
 
 // Deprecated enum aliases (migration shims — remove post-M19)

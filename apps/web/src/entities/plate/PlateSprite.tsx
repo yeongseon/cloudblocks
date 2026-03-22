@@ -157,13 +157,11 @@ export const PlateSprite = memo(function PlateSprite({
   const profile = plate.profileId && isPlateProfileId(plate.profileId)
     ? getPlateProfile(plate.profileId)
     : getPlateProfile(DEFAULT_PLATE_PROFILE[plateType]);
-  const plateColorInput = { type: plateType, subnetAccess: plate.subnetAccess };
+  const plateColorInput = { type: plateType };
   const studColors = getPlateStudColors(plateColorInput);
   const faceColors = getPlateFaceColors(plateColorInput);
   const typeLabel = plateType === 'subnet'
-    ? plate.subnetAccess === 'public'
-      ? 'Public Subnet'
-      : 'Private Subnet'
+    ? 'Subnet'
     : plateType === 'global'
       ? 'Global Layer'
       : plateType === 'edge'
@@ -172,7 +170,7 @@ export const PlateSprite = memo(function PlateSprite({
           ? 'Zone Layer'
           : 'Region Layer';
   const label = plate.name || typeLabel;
-  const iconUrl = getPlateIconUrl(plateType, plate.subnetAccess);
+  const iconUrl = getPlateIconUrl(plateType);
 
   const { screenWidth, screenHeight } = worldSizeToScreen(plate.size.width, plate.size.height, plate.size.depth);
 

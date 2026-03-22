@@ -158,7 +158,7 @@ describe('domainSlice – targeted branch coverage', () => {
 
   describe('setPlateProfile – same profileId no-op', () => {
     it('no-ops when setting the same profileId that is already set', () => {
-      getState().addPlate('region', 'VNet', null, undefined, 'network-platform');
+      getState().addPlate('region', 'VNet', null, 'network-platform');
       const plateId = getPlates()[0].id;
       const archBefore = getArch();
 
@@ -515,7 +515,7 @@ describe('domainSlice – targeted branch coverage', () => {
     it('stores config when provided during block creation', () => {
       getState().addPlate('region', 'VNet', null);
       const netId = getPlates()[0].id;
-      getState().addPlate('subnet', 'Sub', netId, 'public');
+      getState().addPlate('subnet', 'Sub', netId);
       const subId = getPlates()[1].id;
 
       getState().addBlock('compute', 'VM', subId, 'azure', 'vm', { sku: 'Standard_B2s', tier: 'basic' });
@@ -547,7 +547,7 @@ describe('domainSlice – targeted branch coverage', () => {
 
   describe('setPlateProfile – root plate without parent', () => {
     it('resizes a root plate without parent clamping', () => {
-      getState().addPlate('region', 'VNet', null, undefined, 'network-platform');
+      getState().addPlate('region', 'VNet', null, 'network-platform');
       const plateId = getPlates()[0].id;
 
       getState().setPlateProfile(plateId, 'network-hub');
@@ -590,7 +590,7 @@ describe('domainSlice – targeted branch coverage', () => {
     it('rejects move when placement validation fails', () => {
       getState().addPlate('region', 'VNet', null);
       const regionId = getPlates()[0].id;
-      getState().addPlate('subnet', 'Sub', regionId, 'private');
+      getState().addPlate('subnet', 'Sub', regionId);
       const subId = getPlates()[1].id;
 
       getState().addBlock('edge', 'LB', subId);

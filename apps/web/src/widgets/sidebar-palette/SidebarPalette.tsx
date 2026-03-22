@@ -239,16 +239,10 @@ export function SidebarPalette() {
       if (type === 'network') {
         addNode({ kind: 'container', resourceType: 'virtual_network', name: 'VNet', parentId: null, layer: 'region' });
         playSound('block-snap');
-      } else if (type === 'public-subnet') {
+      } else if (type === 'subnet') {
         const targetId = techTree.getTargetPlateId(type);
         if (targetId) {
-          addNode({ kind: 'container', resourceType: 'subnet', name: 'Public Subnet', parentId: targetId, layer: 'subnet', access: 'public' });
-          playSound('block-snap');
-        }
-      } else if (type === 'private-subnet') {
-        const targetId = techTree.getTargetPlateId(type);
-        if (targetId) {
-          addNode({ kind: 'container', resourceType: 'subnet', name: 'Private Subnet', parentId: targetId, layer: 'subnet', access: 'private' });
+          addNode({ kind: 'container', resourceType: 'subnet', name: 'Subnet', parentId: targetId, layer: 'subnet' });
           playSound('block-snap');
         }
       }

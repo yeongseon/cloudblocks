@@ -1,4 +1,4 @@
-import type { ArchitectureModel, BlockCategory, PlateType, SubnetAccess } from './index';
+import type { ArchitectureModel, BlockCategory, PlateType } from './index';
 import type { EndpointType } from '../../entities/validation/connection';
 import type { TemplateCategory } from './template';
 
@@ -13,10 +13,10 @@ export type ScenarioDifficulty = 'beginner' | 'intermediate' | 'advanced';
 // ─── Step Validation Rules (Typed Union) ───────────────────
 
 export type StepValidationRule =
-  | { type: 'plate-exists'; plateType: PlateType; subnetAccess?: SubnetAccess }
-  | { type: 'block-exists'; category: BlockCategory; onPlateType?: PlateType; onSubnetAccess?: SubnetAccess }
+  | { type: 'plate-exists'; plateType: PlateType }
+  | { type: 'block-exists'; category: BlockCategory; onPlateType?: PlateType }
   | { type: 'connection-exists'; sourceCategory: EndpointType; targetCategory: EndpointType }
-  | { type: 'entity-on-plate'; entityCategory: BlockCategory; plateType: PlateType; subnetAccess?: SubnetAccess }
+  | { type: 'entity-on-plate'; entityCategory: BlockCategory; plateType: PlateType }
   | { type: 'architecture-valid' }
   | { type: 'min-block-count'; category: BlockCategory; count: number }
   | { type: 'min-plate-count'; plateType: PlateType; count: number };

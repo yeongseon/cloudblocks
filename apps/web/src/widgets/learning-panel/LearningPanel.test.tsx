@@ -129,13 +129,13 @@ describe('LearningPanel widgets', () => {
     useLearningStore.setState({
       progress: {
         ...progress,
-        currentStepIndex: 1,
+        currentStepIndex: 2,
       },
     });
 
-    const currentStep = useLearningStore.getState().activeScenario?.steps[1];
+    const currentStep = useLearningStore.getState().activeScenario?.steps[2];
     if (!currentStep) {
-      throw new Error('Expected second step');
+      throw new Error('Expected third step');
     }
 
     vi.mocked(getValidationDetails).mockReturnValue({
@@ -151,7 +151,7 @@ describe('LearningPanel widgets', () => {
 
     const scoped = within(validationList);
     expect(scoped.getByText('✓')).toBeInTheDocument();
-    expect(scoped.getByText('✗')).toBeInTheDocument();
+    expect(scoped.getAllByText('✗').length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders descriptive text for each rule type', () => {
@@ -163,7 +163,7 @@ describe('LearningPanel widgets', () => {
 
     const ruleSet: StepValidationRule[] = [
       { type: 'plate-exists', plateType: 'region' },
-      { type: 'plate-exists', plateType: 'subnet', subnetAccess: 'public' },
+      { type: 'plate-exists', plateType: 'subnet' },
       { type: 'block-exists', category: 'compute' },
       { type: 'connection-exists', sourceCategory: 'edge', targetCategory: 'compute' },
       { type: 'entity-on-plate', entityCategory: 'data', plateType: 'subnet' },
@@ -197,7 +197,7 @@ describe('LearningPanel widgets', () => {
     render(<LearningPanel />);
 
     expect(screen.getByText('Add a region plate')).toBeInTheDocument();
-    expect(screen.getByText('Add a public subnet plate')).toBeInTheDocument();
+    expect(screen.getByText('Add a subnet plate')).toBeInTheDocument();
     expect(screen.getByText('Add a compute block')).toBeInTheDocument();
     expect(screen.getByText('Connect edge to compute')).toBeInTheDocument();
     expect(screen.getByText('Place data on subnet')).toBeInTheDocument();

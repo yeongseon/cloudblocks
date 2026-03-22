@@ -25,13 +25,12 @@ const createTestModel = (): ArchitectureModel => ({
     },
     {
       id: 'plate-public',
-      name: 'Public Subnet',
+      name: 'Subnet 1',
       kind: 'container',
       layer: 'subnet',
       resourceType: 'subnet',
       category: 'network',
       provider: 'azure',
-      subnetAccess: 'public',
       parentId: 'plate-vnet',
       position: { x: -3, y: 0.3, z: 0 },
       size: { width: 5, height: 0.2, depth: 8 },
@@ -39,13 +38,12 @@ const createTestModel = (): ArchitectureModel => ({
     },
     {
       id: 'plate-private',
-      name: 'Private Subnet',
+      name: 'Subnet 2',
       kind: 'container',
       layer: 'subnet',
       resourceType: 'subnet',
       category: 'network',
       provider: 'azure',
-      subnetAccess: 'private',
       parentId: 'plate-vnet',
       position: { x: 3, y: 0.3, z: 0 },
       size: { width: 5, height: 0.2, depth: 8 },
@@ -128,9 +126,9 @@ describe('evaluateRule', () => {
       expect(evaluateRule(rule, model)).toBe(true);
     });
 
-    it('finds subnet plate with public subnetAccess', () => {
+    it('finds subnet plate', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'plate-exists', plateType: 'subnet', subnetAccess: 'public' };
+      const rule: StepValidationRule = { type: 'plate-exists', plateType: 'subnet' };
       expect(evaluateRule(rule, model)).toBe(true);
     });
 
@@ -142,16 +140,6 @@ describe('evaluateRule', () => {
       };
       const rule: StepValidationRule = { type: 'plate-exists', plateType: 'region' };
       expect(evaluateRule(rule, noNetworkModel)).toBe(false);
-    });
-
-    it('fails for wrong subnetAccess', () => {
-      const model = createTestModel();
-      const onlyPublicModel: ArchitectureModel = {
-        ...model,
-        nodes: [...getContainers(model).filter((plate) => plate.id !== 'plate-private'), ...getResources(model)],
-      };
-      const rule: StepValidationRule = { type: 'plate-exists', plateType: 'subnet', subnetAccess: 'private' };
-      expect(evaluateRule(rule, onlyPublicModel)).toBe(false);
     });
   });
 
@@ -168,13 +156,12 @@ describe('evaluateRule', () => {
       expect(evaluateRule(rule, model)).toBe(true);
     });
 
-    it('finds database block on private subnet', () => {
+    it('finds database block on subnet', () => {
       const model = createTestModel();
       const rule: StepValidationRule = {
         type: 'block-exists',
         category: 'data',
         onPlateType: 'subnet',
-        onSubnetAccess: 'private',
       };
       expect(evaluateRule(rule, model)).toBe(true);
     });
@@ -204,17 +191,6 @@ describe('evaluateRule', () => {
       };
       const rule: StepValidationRule = { type: 'block-exists', category: 'compute', onPlateType: 'subnet' };
       expect(evaluateRule(rule, modelWithMissingPlacement)).toBe(false);
-    });
-
-    it('fails when block is on subnet with different access than required', () => {
-      const model = createTestModel();
-      const rule: StepValidationRule = {
-        type: 'block-exists',
-        category: 'data',
-        onPlateType: 'subnet',
-        onSubnetAccess: 'public',
-      };
-      expect(evaluateRule(rule, model)).toBe(false);
     });
   });
 
@@ -292,13 +268,12 @@ describe('evaluateRule', () => {
       expect(evaluateRule(rule, model)).toBe(true);
     });
 
-    it('finds database on private subnet', () => {
+    it('finds database on subnet', () => {
       const model = createTestModel();
       const rule: StepValidationRule = {
         type: 'entity-on-plate',
         entityCategory: 'data',
         plateType: 'subnet',
-        subnetAccess: 'private',
       };
       expect(evaluateRule(rule, model)).toBe(true);
     });
@@ -328,18 +303,6 @@ describe('evaluateRule', () => {
 
       expect(evaluateRule(rule, modelWithMissingPlacement)).toBe(false);
     });
-
-    it('fails when entity subnet access does not match requirement', () => {
-      const model = createTestModel();
-      const rule: StepValidationRule = {
-        type: 'entity-on-plate',
-        entityCategory: 'data',
-        plateType: 'subnet',
-        subnetAccess: 'public',
-      };
-
-      expect(evaluateRule(rule, model)).toBe(false);
-    });
   });
 
   describe('architecture-valid', () => {
@@ -356,7 +319,7 @@ describe('evaluateRule', () => {
         nodes: [
           ...getContainers(model),
           ...getResources(model).map((block) =>
-            block.id === 'block-gw' ? { ...block, parentId: 'plate-private' } : block
+            block.id === 'block-gw' ? { ...block, parentId: 'plate-vnet' } : block
           ),
         ],
       };

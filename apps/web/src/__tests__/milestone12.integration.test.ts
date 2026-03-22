@@ -36,13 +36,12 @@ const blocksOf = (architecture: ArchitectureModel): LeafNode[] => architecture.n
 function makePlate(overrides: ContainerOverrides = {}): ContainerNode {
   return {
     id: 'plate-subnet-private',
-    name: 'Private Subnet',
+    name: 'Subnet',
     kind: 'container',
     layer: 'subnet',
     resourceType: 'subnet',
     category: 'network',
     provider: 'azure',
-    subnetAccess: 'private',
     profileId: 'subnet-service',
     parentId: 'plate-network-1',
     position: { x: 0, y: 0.7, z: 0 },
@@ -440,7 +439,7 @@ describe('Milestone 12 Integration Tests', () => {
       const state = useArchitectureStore.getState();
       state.addPlate('region', 'VNet', null);
       const networkId = platesOf(useArchitectureStore.getState().workspace.architecture)[0].id;
-      state.addPlate('subnet', 'Private Subnet', networkId, 'private');
+      state.addPlate('subnet', 'Subnet', networkId);
       const subnetId = platesOf(useArchitectureStore.getState().workspace.architecture)[1].id;
 
       state.addBlock('compute', 'Lambda API', subnetId, 'aws', 'lambda', {
@@ -462,7 +461,7 @@ describe('Milestone 12 Integration Tests', () => {
       const state = useArchitectureStore.getState();
       state.addPlate('region', 'VNet', null);
       const networkId = platesOf(useArchitectureStore.getState().workspace.architecture)[0].id;
-      state.addPlate('subnet', 'Private Subnet', networkId, 'private');
+      state.addPlate('subnet', 'Subnet', networkId);
       const subnetId = platesOf(useArchitectureStore.getState().workspace.architecture)[1].id;
 
       state.addBlock('compute', 'Generic Compute', subnetId, 'aws');

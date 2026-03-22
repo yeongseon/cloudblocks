@@ -6,8 +6,7 @@ import { getBlockColor } from '../../entities/block/blockFaceColors';
 
 export type ResourceType =
   | 'network'
-  | 'public-subnet'
-  | 'private-subnet'
+  | 'subnet'
   | 'storage'
   | 'dns'
   | 'cdn'
@@ -53,22 +52,12 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     category: 'foundation',
     blockCategory: null,
   },
-  'public-subnet': {
-    id: 'public-subnet',
+  subnet: {
+    id: 'subnet',
     schemaResourceType: 'subnet',
-    label: 'Public Subnet',
-    shortLabel: 'Public',
-    icon: '🌍',
-    category: 'foundation',
-    blockCategory: null,
-    disabledReason: 'Create a Network first. Subnets live inside a virtual network.',
-  },
-  'private-subnet': {
-    id: 'private-subnet',
-    schemaResourceType: 'subnet',
-    label: 'Private Subnet',
-    shortLabel: 'Private',
-    icon: '🔒',
+    label: 'Subnet',
+    shortLabel: 'Subnet',
+    icon: '🔲',
     category: 'foundation',
     blockCategory: null,
     disabledReason: 'Create a Network first. Subnets live inside a virtual network.',
@@ -298,57 +287,6 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   },
 };
 
-export const ALL_RESOURCES = Object.keys(RESOURCE_DEFINITIONS) as ResourceType[];
-
-export const MVP_RESOURCES: ReadonlySet<ResourceType> = new Set([
-  'network',
-  'public-subnet',
-  'private-subnet',
-  'vm',
-  'sql',
-  'storage',
-  'key-vault',
-]);
-
-export const PROVIDER_RESOURCE_ALLOWLIST: Record<ProviderType, ReadonlySet<ResourceType>> = {
-  azure: MVP_RESOURCES,
-  aws: MVP_RESOURCES,
-  gcp: MVP_RESOURCES,
-};
-
-export type CreationGroupId = ResourceCategory | 'foundation';
-
-export const CREATION_GROUP_ORDER: CreationGroupId[] = [
-  'foundation',
-  'compute',
-  'data',
-  'edge',
-  'security',
-  'messaging',
-  'operations',
-];
-
-export function getCreationGroupMeta(groupId: CreationGroupId): { icon: string; label: string; color: string } {
-  if (groupId === 'foundation') {
-    return {
-      icon: '🧭',
-      label: 'Network Foundations',
-      color: 'var(--cat-network)',
-    };
-  }
-
-  return {
-    icon: BLOCK_ICONS[groupId],
-    label: BLOCK_FRIENDLY_NAMES[groupId],
-    color: getBlockColor('azure', undefined, groupId),
-  };
-}
-
-export function getCreationGroupId(type: ResourceType): CreationGroupId {
-  const blockCategory = RESOURCE_DEFINITIONS[type].blockCategory;
-  return blockCategory ?? 'foundation';
-}
-
 // ─── Provider-Specific Labels ─────────────────────────────
 
 interface ProviderLabel {
@@ -474,7 +412,52 @@ export const PLATE_ACTION_GRID: (PlateActionType | null)[][] = [
 // ─── MVP Resource Allowlist ────────────────────────────────
 // Phase 6: Show only core resources in the creation palette.
 // Full RESOURCE_DEFINITIONS remain for schema compatibility.
-const MVP_RESOURCE_ALLOWLIST = MVP_RESOURCES;
+export const MVP_RESOURCE_ALLOWLIST: ReadonlySet<ResourceType> = new Set([
+  'network', 'subnet',
+  'vm', 'sql', 'storage', 'key-vault',
+  'queue', 'app-service', 'app-gateway',
+]);
+
+export const ALL_RESOURCES = Object.keys(RESOURCE_DEFINITIONS) as ResourceType[];
+
+export const PROVIDER_RESOURCE_ALLOWLIST: Record<ProviderType, ReadonlySet<ResourceType>> = {
+  azure: MVP_RESOURCE_ALLOWLIST,
+  aws: MVP_RESOURCE_ALLOWLIST,
+  gcp: MVP_RESOURCE_ALLOWLIST,
+};
+
+export type CreationGroupId = ResourceCategory | 'foundation';
+
+export const CREATION_GROUP_ORDER: CreationGroupId[] = [
+  'foundation',
+  'compute',
+  'data',
+  'edge',
+  'security',
+  'messaging',
+  'operations',
+];
+
+export function getCreationGroupMeta(groupId: CreationGroupId): { icon: string; label: string; color: string } {
+  if (groupId === 'foundation') {
+    return {
+      icon: '🧭',
+      label: 'Network Foundations',
+      color: 'var(--cat-network)',
+    };
+  }
+
+  return {
+    icon: BLOCK_ICONS[groupId],
+    label: BLOCK_FRIENDLY_NAMES[groupId],
+    color: getBlockColor('azure', undefined, groupId),
+  };
+}
+
+export function getCreationGroupId(type: ResourceType): CreationGroupId {
+  const blockCategory = RESOURCE_DEFINITIONS[type].blockCategory;
+  return blockCategory ?? 'foundation';
+}
 
 // ─── Hook ──────────────────────────────────────────────────
 

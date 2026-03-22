@@ -68,11 +68,4 @@ describe('getPlateIconUrl', () => {
     expect(unique.size).toBe(1);
   });
 
-  it('subnetAccess parameter does not change the result', () => {
-    const publicUrl = getPlateIconUrl('subnet', 'public');
-    const privateUrl = getPlateIconUrl('subnet', 'private');
-    const noAccess = getPlateIconUrl('subnet');
-    expect(publicUrl).toBe(privateUrl);
-    expect(publicUrl).toBe(noAccess);
-  });
 });

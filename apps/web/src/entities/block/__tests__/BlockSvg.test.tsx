@@ -80,7 +80,7 @@ describe('BlockSvg provider colors', () => {
   });
 
   it('falls back to azure palette when provider is omitted', () => {
-    const category = 'data';
+    const category = 'compute';
     const expectedAzure = getBlockFaceColors(category, 'azure');
 
     const { container } = render(<BlockSvg category={category} />);
@@ -93,7 +93,7 @@ describe('BlockSvg provider colors', () => {
   });
 
   it('keeps legacy blocks without provider visually azure by default', () => {
-    const category = 'data';
+    const category = 'compute';
     const azure = getBlockFaceColors(category, 'azure');
 
     const { container } = render(<BlockSvg category={category} provider={undefined} />);
@@ -121,9 +121,9 @@ describe('BlockSvg provider colors', () => {
 
 describe('BlockSvg subtype colors', () => {
   it('applies subtype-specific colors when subtype is provided', () => {
-    const expected = getBlockFaceColors('data', 'azure', 'cosmos-db');
+    const expected = getBlockFaceColors('compute', 'aws', 'ec2');
     const { container } = render(
-      <BlockSvg category="data" provider="azure" subtype="cosmos-db" />,
+      <BlockSvg category="compute" provider="aws" subtype="ec2" />,
     );
     const colors = getFaceColors(container);
 

@@ -13,9 +13,6 @@ import type { LayerType } from '@cloudblocks/schema';
  * so that `validatePlacement` and `canPlaceBlock` stay consistent
  * with the canonical constraint table.
  *
- * Additional UI-level constraints:
- * - edge resources require `subnetAccess: 'public'` on the parent container
- *
  * Layer hierarchy rules:
  * - Resources must be placed on valid parent layers
  * - All positions must be CU-aligned (integer)
@@ -86,20 +83,6 @@ export function validatePlacement(
       suggestion: 'Place the resource on a valid subnet container',
       targetId: resource.id,
     };
-  }
-
-  // ── Edge-specific: require public subnetAccess ──
-  if (resource.category === 'edge') {
-    if (parent.layer !== 'subnet' || parent.subnetAccess !== 'public') {
-      return {
-        ruleId: 'rule-edge-public',
-        severity: 'error',
-        message: `Edge resource "${resource.name}" must be placed on a public Subnet`,
-        suggestion: 'Move the Edge resource to a Public Subnet',
-        targetId: resource.id,
-      };
-    }
-    return null;
   }
 
   // ── RESOURCE_RULES-driven placement check ──

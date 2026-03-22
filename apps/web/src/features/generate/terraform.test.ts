@@ -125,9 +125,8 @@ describe('generateMainTf', () => {
         createPlate({ id: 'net1', name: 'Core VNet', type: 'region', parentId: null, children: ['sub1'] }),
         createPlate({
           id: 'sub1',
-          name: 'Public Subnet',
+          name: 'Subnet 1',
           type: 'subnet',
-          subnetAccess: 'public',
           parentId: 'net1',
           children: ['web1'],
         }),
@@ -150,7 +149,7 @@ describe('generateMainTf', () => {
     expect(hcl).toContain('provider "azurerm" {');
     expect(hcl).toContain('resource "azurerm_resource_group" "main"');
     expect(hcl).toContain('resource "azurerm_virtual_network" "vnet_core_vnet"');
-    expect(hcl).toContain('resource "azurerm_subnet" "subnet_public_subnet"');
+    expect(hcl).toContain('resource "azurerm_subnet" "subnet_subnet_1"');
     expect(hcl).toContain('resource "azurerm_linux_web_app" "webapp_frontend"');
     expect(hcl).toContain('# ─── Data Flow Connections ─────────────────────');
     expect(hcl).toContain('# DataFlow: webapp_frontend → webapp_frontend');
@@ -186,7 +185,6 @@ describe('generateMainTf', () => {
           id: 'sub1',
           name: 'App Subnet',
           type: 'subnet',
-          subnetAccess: 'private',
           parentId: 'net1',
         }),
         createPlate({ id: 'net1', name: 'App Network', type: 'region', parentId: null }),
@@ -210,7 +208,6 @@ describe('generateMainTf', () => {
           id: 'sub1',
           name: 'Public-A',
           type: 'subnet',
-          subnetAccess: 'public',
           parentId: 'net1',
         }),
       ],
@@ -224,7 +221,7 @@ describe('generateMainTf', () => {
 
   it('generates category-specific hcl for compute, data, and edge blocks', () => {
     const model = createTestModel({
-      plates: [createPlate({ id: 'sub1', name: 'Subnet One', type: 'subnet', subnetAccess: 'public' })],
+      plates: [createPlate({ id: 'sub1', name: 'Subnet One', type: 'subnet' })],
       blocks: [
         createBlock({ id: 'cmp', name: 'Compute', category: 'compute', placementId: 'sub1' }),
         createBlock({ id: 'db', name: 'Database', category: 'data', placementId: 'sub1' }),
