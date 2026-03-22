@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CodePreview } from './CodePreview';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
@@ -32,9 +32,14 @@ vi.mock('../../features/generate/registry', () => ({
   listGenerators: listGeneratorsMock,
 }));
 
+vi.mock('../../shared/ui/ConfirmDialog', () => ({
+  confirmDialog: vi.fn(),
+}));
+
 import { generateCode } from '../../features/generate/pipeline';
 import { GenerationError } from '../../features/generate/pipeline';
 import { listGenerators } from '../../features/generate/registry';
+import { confirmDialog } from '../../shared/ui/ConfirmDialog';
 
 const mockArch: ArchitectureModel = {
   id: 'arch-1',
@@ -48,9 +53,12 @@ const mockArch: ArchitectureModel = {
 };
 
 describe('CodePreview', () => {
+  const mockConfirmDialog = vi.mocked(confirmDialog);
+
   beforeEach(() => {
     vi.clearAllMocks();
-    useUIStore.setState({ activeProvider: 'azure' });
+    mockConfirmDialog.mockResolvedValue(true);
+    useUIStore.setState({ activeProvider: 'azure', showAdvancedGeneration: false });
     useArchitectureStore.setState({
       workspace: {
         id: 'ws-1', name: 'Test', architecture: mockArch,
@@ -91,8 +99,13 @@ describe('CodePreview', () => {
     expect(screen.getByDisplayValue('us-central1')).toBeInTheDocument();
   });
 
-  it('renders generator selector with three options', () => {
+  it('hides generator selector by default and shows it when Advanced is enabled', async () => {
+    const user = userEvent.setup();
     render(<CodePreview />);
+
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+
+    await user.click(screen.getByLabelText('Expert generator selection'));
 
     const select = screen.getByRole('combobox');
     expect(select).toBeInTheDocument();
@@ -136,7 +149,7 @@ describe('CodePreview', () => {
     vi.mocked(generateCode).mockReturnValue(mockOutput);
 
     render(<CodePreview />);
-    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
+    await user.click(screen.getByText(/Generate Code/));
     expect(generateCode).toHaveBeenCalledWith(mockArch, {
       provider: 'azure',
       mode: 'draft',
@@ -166,7 +179,7 @@ describe('CodePreview', () => {
     vi.mocked(generateCode).mockReturnValue(mockOutput);
 
     render(<CodePreview />);
-    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
+    await user.click(screen.getByText(/Generate Code/));
     // Default shows first file
     expect(screen.getByText('main content')).toBeInTheDocument();
     // Switch to second tab
@@ -181,7 +194,7 @@ describe('CodePreview', () => {
     });
 
     render(<CodePreview />);
-    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
+    await user.click(screen.getByText(/Generate Code/));
     expect(screen.getByText('Architecture is empty')).toBeInTheDocument();
   });
 
@@ -192,7 +205,7 @@ describe('CodePreview', () => {
     });
 
     render(<CodePreview />);
-    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
+    await user.click(screen.getByText(/Generate Code/));
     expect(screen.getByText('Unexpected error during code generation.')).toBeInTheDocument();
   });
 
@@ -212,7 +225,7 @@ describe('CodePreview', () => {
     vi.mocked(generateCode).mockReturnValue(mockOutput);
 
     render(<CodePreview />);
-    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
+    await user.click(screen.getByText(/Generate Code/));
     await user.click(screen.getByText(/Copy/));
     expect(writeTextMock).toHaveBeenCalledWith('resource content');
   });
@@ -242,7 +255,7 @@ describe('CodePreview', () => {
     vi.mocked(generateCode).mockReturnValue(mockOutput);
 
     render(<CodePreview />);
-    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
+    await user.click(screen.getByText(/Generate Code/));
     await user.click(screen.getByText(/Download All/));
     expect(clickMock).toHaveBeenCalledTimes(2);
     expect(revokeObjectURLMock).toHaveBeenCalledTimes(2);
@@ -259,7 +272,7 @@ describe('CodePreview', () => {
     vi.mocked(generateCode).mockReturnValue(mockOutput);
 
     render(<CodePreview />);
-    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
+    await user.click(screen.getByText(/Generate Code/));
     expect(screen.getByText(/v0\.3\.0/)).toBeInTheDocument();
     expect(screen.getByText(/azure/)).toBeInTheDocument();
   });
@@ -271,7 +284,7 @@ describe('CodePreview', () => {
       throw new GenerationError('First error');
     });
     render(<CodePreview />);
-    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
+    await user.click(screen.getByText(/Generate Code/));
     expect(screen.getByText('First error')).toBeInTheDocument();
 
     // Second: succeed
@@ -280,30 +293,41 @@ describe('CodePreview', () => {
       metadata: { generator: 'terraform', version: '0.3.0', provider: 'azure' as const, generatedAt: '2026-01-01T00:00:00.000Z' },
     };
     vi.mocked(generateCode).mockReturnValue(mockOutput);
-    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
+    await user.click(screen.getByText(/Generate Code/));
     expect(screen.queryByText('First error')).not.toBeInTheDocument();
     expect(screen.getByText('main.tf')).toBeInTheDocument();
   });
 
-  it('updates generate button label when selecting bicep and pulumi', async () => {
+  it('keeps a neutral generate button label when selecting advanced generators', async () => {
     const user = userEvent.setup();
     render(<CodePreview />);
 
+    await user.click(screen.getByLabelText('Expert generator selection'));
     const select = screen.getByRole('combobox');
     await user.selectOptions(select, 'bicep');
-    expect(screen.getByText(/Generate Bicep \(Azure\)/)).toBeInTheDocument();
+    expect(screen.getByText('🚀 Generate Code')).toBeInTheDocument();
 
     await user.selectOptions(select, 'pulumi');
-    expect(screen.getByText(/Generate Pulumi \(TypeScript\)/)).toBeInTheDocument();
+    expect(screen.getByText('🚀 Generate Code')).toBeInTheDocument();
   });
 
-  it('falls back to generic generate label for unknown generator value', () => {
+  it('resets advanced generator selection back to terraform when advanced mode is disabled', async () => {
+    const user = userEvent.setup();
     render(<CodePreview />);
 
+    await user.click(screen.getByLabelText('Expert generator selection'));
     const select = screen.getByRole('combobox');
-    fireEvent.change(select, { target: { value: 'unknown-generator' } });
+    await user.selectOptions(select, 'bicep');
+    await user.click(screen.getByLabelText('Expert generator selection'));
 
-    expect(screen.getByText('🚀 Generate Code')).toBeInTheDocument();
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+
+    await user.click(screen.getByText(/Generate Code/));
+
+    expect(generateCode).toHaveBeenCalledWith(
+      mockArch,
+      expect.objectContaining({ generator: 'terraform' }),
+    );
   });
 
   it('swallows clipboard write failure when copying generated file', async () => {
@@ -322,7 +346,7 @@ describe('CodePreview', () => {
 
     render(<CodePreview />);
 
-    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
+    await user.click(screen.getByText(/Generate Code/));
     await expect(user.click(screen.getByText(/Copy/))).resolves.toBeUndefined();
     expect(writeTextMock).toHaveBeenCalledWith('resource content');
   });
@@ -342,7 +366,7 @@ describe('CodePreview', () => {
 
     render(<CodePreview />);
 
-    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
+    await user.click(screen.getByText(/Generate Code/));
     await expect(user.click(screen.getByText(/Copy/))).resolves.toBeUndefined();
   });
 
@@ -356,7 +380,7 @@ describe('CodePreview', () => {
 
     const { container } = render(<CodePreview />);
 
-    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
+    await user.click(screen.getByText(/Generate Code/));
     const codeElement = container.querySelector('.code-preview-code code');
     expect(codeElement?.textContent).toBe('');
   });
@@ -375,7 +399,7 @@ describe('CodePreview', () => {
 
     render(<CodePreview />);
 
-    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
     await user.click(screen.getByText('🚀 Compare Providers'));
 
     expect(vi.mocked(generateCode)).toHaveBeenCalledTimes(3);
@@ -391,24 +415,33 @@ describe('CodePreview', () => {
     const user = userEvent.setup();
     render(<CodePreview />);
 
+    await user.click(screen.getByLabelText('Expert generator selection'));
     const select = screen.getByRole('combobox');
     await user.selectOptions(select, 'bicep');
-    const compareCheckbox = screen.getByRole('checkbox');
+    const compareCheckbox = screen.getByLabelText('Azure / AWS / GCP');
 
     expect(compareCheckbox).toBeDisabled();
   });
 
-  it('resets generated output when active provider changes', async () => {
+  it('preserves comparison outputs when active provider changes', async () => {
     const user = userEvent.setup();
-    const mockOutput = {
-      files: [{ path: 'main.tf', content: 'resource content', language: 'hcl' as const }],
-      metadata: { generator: 'terraform', version: '0.3.0', provider: 'azure' as const, generatedAt: '2026-01-01T00:00:00.000Z' },
-    };
-    vi.mocked(generateCode).mockReturnValue(mockOutput);
+    vi.mocked(generateCode).mockImplementation((_, options) => ({
+      files: [{ path: 'main.tf', content: `provider=${options.provider}`, language: 'hcl' as const }],
+      metadata: {
+        generator: 'terraform',
+        version: '0.3.0',
+        provider: options.provider,
+        generatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    }));
 
     const { rerender } = render(<CodePreview />);
-    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
-    expect(screen.getByText('main.tf')).toBeInTheDocument();
+    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
+    await user.click(screen.getByText('🚀 Compare Providers'));
+
+    expect(screen.getByText('provider=azure')).toBeInTheDocument();
+    expect(screen.getByText('provider=aws')).toBeInTheDocument();
+    expect(screen.getByText('provider=gcp')).toBeInTheDocument();
 
     act(() => {
       useUIStore.setState({ activeProvider: 'aws' });
@@ -416,8 +449,9 @@ describe('CodePreview', () => {
     rerender(<CodePreview />);
 
     await waitFor(() => {
-      expect(screen.queryByText('main.tf')).not.toBeInTheDocument();
-      expect(screen.queryByText('resource content')).not.toBeInTheDocument();
+      expect(screen.getByText('provider=azure')).toBeInTheDocument();
+      expect(screen.getByText('provider=aws')).toBeInTheDocument();
+      expect(screen.getByText('provider=gcp')).toBeInTheDocument();
     });
   });
 
@@ -466,7 +500,7 @@ describe('CodePreview', () => {
 
     render(<CodePreview />);
 
-    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
     await user.click(screen.getByText('🚀 Compare Providers'));
 
     expect(screen.getByText('main.tf')).toBeInTheDocument();
@@ -504,7 +538,7 @@ describe('CodePreview', () => {
 
     render(<CodePreview />);
 
-    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
     await user.click(screen.getByText('🚀 Compare Providers'));
     await user.click(screen.getByText(/Copy/));
 
@@ -558,7 +592,7 @@ describe('CodePreview', () => {
 
     render(<CodePreview />);
 
-    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
     await user.click(screen.getByText('🚀 Compare Providers'));
     await user.click(screen.getByText(/Download All/));
 
@@ -590,7 +624,7 @@ describe('CodePreview', () => {
 
     render(<CodePreview />);
 
-    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
     await user.click(screen.getByText('🚀 Compare Providers'));
 
     expect(callCount).toBe(3);
@@ -608,7 +642,7 @@ describe('CodePreview', () => {
 
     render(<CodePreview />);
 
-    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
     await user.click(screen.getByText('🚀 Compare Providers'));
 
     expect(screen.getByText('All provider generations failed.')).toBeInTheDocument();
@@ -635,7 +669,7 @@ describe('CodePreview', () => {
 
     render(<CodePreview />);
 
-    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
     await user.click(screen.getByText('🚀 Compare Providers'));
 
     expect(callCount).toBe(3);
@@ -656,10 +690,13 @@ describe('CodePreview', () => {
     expect(writeTextMock).not.toHaveBeenCalled();
   });
 
-  it('resets region when provider changes', async () => {
+  it('preserves custom region when switching providers', async () => {
+    const user = userEvent.setup();
     const { rerender } = render(<CodePreview />);
 
-    expect(screen.getByDisplayValue('eastus')).toBeInTheDocument();
+    const azureRegionInput = screen.getByDisplayValue('eastus');
+    await user.clear(azureRegionInput);
+    await user.type(azureRegionInput, 'westus2');
 
     act(() => {
       useUIStore.setState({ activeProvider: 'aws' });
@@ -668,6 +705,15 @@ describe('CodePreview', () => {
 
     await waitFor(() => {
       expect(screen.getByDisplayValue('us-east-1')).toBeInTheDocument();
+    });
+
+    act(() => {
+      useUIStore.setState({ activeProvider: 'azure' });
+    });
+    rerender(<CodePreview />);
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('westus2')).toBeInTheDocument();
     });
   });
 
@@ -685,7 +731,7 @@ describe('CodePreview', () => {
 
     render(<CodePreview />);
 
-    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
 
     // Verify per-provider region inputs are rendered
     expect(screen.getByDisplayValue('eastus')).toBeInTheDocument();
@@ -723,7 +769,7 @@ describe('CodePreview', () => {
 
     render(<CodePreview />);
 
-    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
 
     // Edit the Azure region
     const azureInput = screen.getByDisplayValue('eastus');
@@ -750,9 +796,10 @@ describe('CodePreview', () => {
     });
 
     render(<CodePreview />);
-    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
+    await user.click(screen.getByText(/Generate Code/));
     expect(screen.getByText('main.tf')).toBeInTheDocument();
 
+    await user.click(screen.getByLabelText('Expert generator selection'));
     const select = screen.getByRole('combobox');
     await user.selectOptions(select, 'bicep');
 
@@ -825,12 +872,101 @@ describe('CodePreview', () => {
     });
 
     render(<CodePreview />);
-    await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
+    await user.click(screen.getByText(/Generate Code/));
     expect(screen.getByText('main.tf')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
 
     expect(screen.queryByText('main.tf')).not.toBeInTheDocument();
+  });
+
+  it('makes controls read-only and shows clear action when compare results are active', async () => {
+    const user = userEvent.setup();
+    vi.mocked(generateCode).mockImplementation((_, options) => ({
+      files: [{ path: 'main.tf', content: `provider=${options.provider}`, language: 'hcl' as const }],
+      metadata: {
+        generator: 'terraform',
+        version: '0.3.0',
+        provider: options.provider,
+        generatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    }));
+
+    render(<CodePreview />);
+    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
+    await user.click(screen.getByText('🚀 Compare Providers'));
+
+    // Advanced toggle should be disabled during compare
+    const advancedCheckbox = screen.getByLabelText('Expert generator selection');
+    expect(advancedCheckbox).toBeDisabled();
+
+    // Enable Advanced before compare to check combobox would be disabled
+    // (Advanced is disabled during compare, so combobox is hidden)
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    expect(screen.getByDisplayValue('test')).toBeDisabled();
+    expect(screen.getByDisplayValue('eastus')).toBeDisabled();
+    expect(screen.getByDisplayValue('us-east-1')).toBeDisabled();
+    expect(screen.getByDisplayValue('us-central1')).toBeDisabled();
+    expect(screen.getByLabelText('Azure / AWS / GCP')).toBeDisabled();
+    expect(screen.getByText('🚀 Clear Results')).toBeInTheDocument();
+
+    await user.click(screen.getByText('🚀 Clear Results'));
+    await waitFor(() => {
+      expect(screen.queryByText('provider=azure')).not.toBeInTheDocument();
+    });
+    expect(advancedCheckbox).not.toBeDisabled();
+  });
+
+  it('prompts before enabling compare when single output exists and keeps state on cancel', async () => {
+    const user = userEvent.setup();
+    vi.mocked(generateCode).mockReturnValue({
+      files: [{ path: 'main.tf', content: 'resource content', language: 'hcl' as const }],
+      metadata: {
+        generator: 'terraform',
+        version: '0.3.0',
+        provider: 'azure',
+        generatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    });
+
+    render(<CodePreview />);
+    await user.click(screen.getByText(/Generate Code/));
+
+    mockConfirmDialog.mockResolvedValueOnce(false);
+    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
+
+    await waitFor(() => {
+      expect(mockConfirmDialog).toHaveBeenCalledWith(
+        'Starting comparison will discard current generated output. Continue?',
+        'Start Comparison?'
+      );
+    });
+    expect(screen.getByLabelText('Azure / AWS / GCP')).not.toBeChecked();
+    expect(screen.getByText('main.tf')).toBeInTheDocument();
+  });
+
+  it('enables compare and clears single output after discard confirmation', async () => {
+    const user = userEvent.setup();
+    vi.mocked(generateCode).mockReturnValue({
+      files: [{ path: 'main.tf', content: 'resource content', language: 'hcl' as const }],
+      metadata: {
+        generator: 'terraform',
+        version: '0.3.0',
+        provider: 'azure',
+        generatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    });
+
+    render(<CodePreview />);
+    await user.click(screen.getByText(/Generate Code/));
+
+    mockConfirmDialog.mockResolvedValueOnce(true);
+    await user.click(screen.getByLabelText('Azure / AWS / GCP'));
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Azure / AWS / GCP')).toBeChecked();
+      expect(screen.queryByText('main.tf')).not.toBeInTheDocument();
+    });
   });
 
 });

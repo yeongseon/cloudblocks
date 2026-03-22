@@ -82,6 +82,8 @@ interface UIState {
   toggleValidation: () => void;
   showCodePreview: boolean;
   toggleCodePreview: () => void;
+  showAdvancedGeneration: boolean;
+  toggleAdvancedGeneration: () => void;
   showWorkspaceManager: boolean;
   toggleWorkspaceManager: () => void;
   showTemplateGallery: boolean;
@@ -144,6 +146,9 @@ interface UIState {
   pendingLinkRepo: string | null;
   setPendingLinkRepo: (fullName: string | null) => void;
 
+  // ── Compare review prefill ──
+  compareReviewPrefill: string | null;
+  setCompareReviewPrefill: (prefill: string | null) => void;
   // ── Resource self-animation ──
   upgradingBlockId: string | null;
   triggerUpgradeAnimation: (blockId: string) => void;
@@ -258,6 +263,10 @@ export const useUIStore = create<UIState>((set) => ({
       ...(!s.showCodePreview ? closeOtherRightPanels('showCodePreview') : {}),
     })),
 
+  showAdvancedGeneration: false,
+  toggleAdvancedGeneration: () =>
+    set((s) => ({ showAdvancedGeneration: !s.showAdvancedGeneration })),
+
   showWorkspaceManager: false,
   toggleWorkspaceManager: () =>
     set((s) => ({ showWorkspaceManager: !s.showWorkspaceManager })),
@@ -351,6 +360,9 @@ export const useUIStore = create<UIState>((set) => ({
   },
   pendingLinkRepo: null,
   setPendingLinkRepo: (fullName) => set({ pendingLinkRepo: fullName }),
+
+  compareReviewPrefill: null,
+  setCompareReviewPrefill: (prefill) => set({ compareReviewPrefill: prefill }),
 
   showOnboarding: false,
   setShowOnboarding: (show) => set({ showOnboarding: show }),

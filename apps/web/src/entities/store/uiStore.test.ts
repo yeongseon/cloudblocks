@@ -15,6 +15,7 @@ describe('useUIStore', () => {
       showResourceGuide: true,
       showValidation: false,
       showCodePreview: false,
+      showAdvancedGeneration: false,
       showWorkspaceManager: false,
       showTemplateGallery: false,
       showGitHubLogin: false,
@@ -46,6 +47,7 @@ describe('useUIStore', () => {
       expect(state.showResourceGuide).toBe(true);
       expect(state.showValidation).toBe(false);
       expect(state.showCodePreview).toBe(false);
+      expect(state.showAdvancedGeneration).toBe(false);
       expect(state.showWorkspaceManager).toBe(false);
       expect(state.showTemplateGallery).toBe(false);
       expect(state.showGitHubLogin).toBe(false);
@@ -546,6 +548,20 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().showCodePreview).toBe(true);
       useUIStore.getState().toggleCodePreview();
       expect(useUIStore.getState().showCodePreview).toBe(false);
+    });
+  });
+
+  describe('toggleAdvancedGeneration', () => {
+    it('should toggle showAdvancedGeneration from false to true', () => {
+      expect(useUIStore.getState().showAdvancedGeneration).toBe(false);
+      useUIStore.getState().toggleAdvancedGeneration();
+      expect(useUIStore.getState().showAdvancedGeneration).toBe(true);
+    });
+
+    it('should toggle showAdvancedGeneration back from true to false', () => {
+      useUIStore.getState().toggleAdvancedGeneration();
+      useUIStore.getState().toggleAdvancedGeneration();
+      expect(useUIStore.getState().showAdvancedGeneration).toBe(false);
     });
   });
 

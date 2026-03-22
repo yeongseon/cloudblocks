@@ -611,7 +611,7 @@ describe('MenuBar', () => {
     expect(useUIStore.getState().showValidation).toBe(true);
 
     buildDropdown = await openMenu(user, 'Build');
-    await user.click(within(buildDropdown).getByRole('button', { name: /Generate Terraform/ }));
+    await user.click(within(buildDropdown).getByRole('button', { name: /Generate Code/ }));
     expect(useUIStore.getState().showCodePreview).toBe(true);
 
     buildDropdown = await openMenu(user, 'Build');
