@@ -47,6 +47,10 @@ export const gcpSubtypeRegistry: SubtypeRegistry = {
       displayName: 'API Gateway',
       description: 'Managed API gateway',
     },
+    'nat-gateway': {
+      displayName: 'Cloud NAT',
+      description: 'Managed outbound internet access for private subnets',
+    },
   },
   messaging: {
     pubsub: {

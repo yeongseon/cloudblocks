@@ -47,6 +47,10 @@ export const awsSubtypeRegistry: SubtypeRegistry = {
       displayName: 'API Gateway',
       description: 'Managed API endpoint',
     },
+    'nat-gateway': {
+      displayName: 'NAT Gateway',
+      description: 'Managed outbound internet access for private subnets',
+    },
   },
   messaging: {
     sqs: {
