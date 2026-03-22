@@ -13,6 +13,8 @@ export type BackendStatus = 'unknown' | 'not_configured' | 'available' | 'unavai
 export type PendingGitHubAction = 'sync' | 'pr' | 'repos' | null;
 export type AppView = 'landing' | 'builder';
 export type BottomDockTab = 'output' | 'validation' | 'logs' | 'diff';
+export type InspectorTabId = 'properties' | 'code' | 'connections';
+export type RightOverlayId = 'githubLogin' | 'githubRepos' | 'githubSync' | 'githubPR' | 'diff' | null;
 
 export interface ActivityLogEntry {
   id: string;
@@ -122,9 +124,14 @@ interface UIState {
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
 
-  inspector: { isOpen: boolean };
+  inspector: { isOpen: boolean; activeTab: InspectorTabId };
   toggleInspector: () => void;
   setInspectorOpen: (open: boolean) => void;
+  setInspectorTab: (tab: InspectorTabId) => void;
+  openInspectorTab: (tab: InspectorTabId) => void;
+
+  rightOverlay: RightOverlayId;
+  setRightOverlay: (overlay: RightOverlayId) => void;
 
   // ── Bottom dock ──
   bottomDock: { isOpen: boolean; activeTab: BottomDockTab };
@@ -309,15 +316,27 @@ export const useUIStore = create<UIState>((set) => ({
   toggleCodePreview: () =>
     set((s) => ({
       showCodePreview: !s.showCodePreview,
-      ...(!s.showCodePreview ? closeOtherRightPanels('showCodePreview') : {}),
       ...(!s.showCodePreview
-        ? { bottomDock: { isOpen: true, activeTab: 'output' as const } }
-        : {}),
+        ? {
+            inspector: { isOpen: true, activeTab: 'code' as const },
+            bottomDock: { isOpen: true, activeTab: 'output' as const },
+          }
+        : { inspector: { ...s.inspector, activeTab: 'properties' as const } }),
     })),
 
   showAdvancedGeneration: false,
   toggleAdvancedGeneration: () =>
     set((s) => ({ showAdvancedGeneration: !s.showAdvancedGeneration })),
+
+  rightOverlay: null,
+  setRightOverlay: (overlay) =>
+    set({
+      rightOverlay: overlay,
+      showGitHubLogin: overlay === 'githubLogin',
+      showGitHubRepos: overlay === 'githubRepos',
+      showGitHubSync: overlay === 'githubSync',
+      showGitHubPR: overlay === 'githubPR',
+    }),
 
   showWorkspaceManager: false,
   toggleWorkspaceManager: () =>
@@ -331,28 +350,40 @@ export const useUIStore = create<UIState>((set) => ({
   toggleGitHubLogin: () =>
     set((s) => ({
       showGitHubLogin: !s.showGitHubLogin,
-      ...(!s.showGitHubLogin ? closeOtherRightPanels('showGitHubLogin') : {}),
+      showGitHubRepos: false,
+      showGitHubSync: false,
+      showGitHubPR: false,
+      rightOverlay: s.showGitHubLogin ? null : 'githubLogin',
     })),
 
   showGitHubRepos: false,
   toggleGitHubRepos: () =>
     set((s) => ({
       showGitHubRepos: !s.showGitHubRepos,
-      ...(!s.showGitHubRepos ? closeOtherRightPanels('showGitHubRepos') : {}),
+      showGitHubLogin: false,
+      showGitHubSync: false,
+      showGitHubPR: false,
+      rightOverlay: s.showGitHubRepos ? null : 'githubRepos',
     })),
 
   showGitHubSync: false,
   toggleGitHubSync: () =>
     set((s) => ({
       showGitHubSync: !s.showGitHubSync,
-      ...(!s.showGitHubSync ? closeOtherRightPanels('showGitHubSync') : {}),
+      showGitHubLogin: false,
+      showGitHubRepos: false,
+      showGitHubPR: false,
+      rightOverlay: s.showGitHubSync ? null : 'githubSync',
     })),
 
   showGitHubPR: false,
   toggleGitHubPR: () =>
     set((s) => ({
       showGitHubPR: !s.showGitHubPR,
-      ...(!s.showGitHubPR ? closeOtherRightPanels('showGitHubPR') : {}),
+      showGitHubLogin: false,
+      showGitHubRepos: false,
+      showGitHubSync: false,
+      rightOverlay: s.showGitHubPR ? null : 'githubPR',
     })),
 
   showSuggestionsPanel: false,
@@ -360,6 +391,7 @@ export const useUIStore = create<UIState>((set) => ({
     set((s) => ({
       showSuggestionsPanel: !s.showSuggestionsPanel,
       ...(!s.showSuggestionsPanel ? closeOtherRightPanels('showSuggestionsPanel') : {}),
+      ...(!s.showSuggestionsPanel ? { rightOverlay: null } : {}),
     })),
 
   showCostPanel: false,
@@ -367,15 +399,24 @@ export const useUIStore = create<UIState>((set) => ({
     set((s) => ({
       showCostPanel: !s.showCostPanel,
       ...(!s.showCostPanel ? closeOtherRightPanels('showCostPanel') : {}),
+      ...(!s.showCostPanel ? { rightOverlay: null } : {}),
     })),
 
   sidebar: { isOpen: true },
   toggleSidebar: () => set((s) => ({ sidebar: { isOpen: !s.sidebar.isOpen } })),
   setSidebarOpen: (open) => set({ sidebar: { isOpen: open } }),
 
-  inspector: { isOpen: true },
-  toggleInspector: () => set((s) => ({ inspector: { isOpen: !s.inspector.isOpen } })),
-  setInspectorOpen: (open) => set({ inspector: { isOpen: open } }),
+  inspector: { isOpen: true, activeTab: 'properties' },
+  toggleInspector: () => set((s) => ({ inspector: { ...s.inspector, isOpen: !s.inspector.isOpen } })),
+  setInspectorOpen: (open) => set((s) => ({ inspector: { ...s.inspector, isOpen: open } })),
+  setInspectorTab: (tab) => set((s) => ({
+    inspector: { ...s.inspector, activeTab: tab },
+    showCodePreview: tab === 'code',
+  })),
+  openInspectorTab: (tab) => set({
+    inspector: { isOpen: true, activeTab: tab },
+    showCodePreview: tab === 'code',
+  }),
 
   bottomDock: { isOpen: false, activeTab: 'output' },
   openBottomTab: (tab) => set({ bottomDock: { isOpen: true, activeTab: tab } }),

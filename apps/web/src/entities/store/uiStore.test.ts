@@ -29,7 +29,8 @@ describe('useUIStore', () => {
       showSuggestionsPanel: false,
       showCostPanel: false,
       sidebar: { isOpen: true },
-      inspector: { isOpen: true },
+      inspector: { isOpen: true, activeTab: 'properties' },
+      rightOverlay: null,
       bottomDock: { isOpen: false, activeTab: 'output' },
       activityLog: [],
       activeProvider: 'azure',
@@ -66,7 +67,8 @@ describe('useUIStore', () => {
       expect(state.showSuggestionsPanel).toBe(false);
       expect(state.showCostPanel).toBe(false);
       expect(state.sidebar).toEqual({ isOpen: true });
-      expect(state.inspector).toEqual({ isOpen: true });
+      expect(state.inspector).toEqual({ isOpen: true, activeTab: 'properties' });
+      expect(state.rightOverlay).toBe(null);
       expect(state.bottomDock).toEqual({ isOpen: false, activeTab: 'output' });
       expect(state.activityLog).toEqual([]);
       expect(state.activeProvider).toBe('azure');
@@ -162,21 +164,39 @@ describe('useUIStore', () => {
 
   describe('inspector', () => {
     it('defaults to open', () => {
-      expect(useUIStore.getState().inspector).toEqual({ isOpen: true });
+      expect(useUIStore.getState().inspector).toEqual({ isOpen: true, activeTab: 'properties' });
     });
 
     it('toggleInspector toggles open state', () => {
       useUIStore.getState().toggleInspector();
-      expect(useUIStore.getState().inspector).toEqual({ isOpen: false });
+      expect(useUIStore.getState().inspector).toEqual({ isOpen: false, activeTab: 'properties' });
       useUIStore.getState().toggleInspector();
-      expect(useUIStore.getState().inspector).toEqual({ isOpen: true });
+      expect(useUIStore.getState().inspector).toEqual({ isOpen: true, activeTab: 'properties' });
     });
 
     it('setInspectorOpen sets open state explicitly', () => {
       useUIStore.getState().setInspectorOpen(false);
-      expect(useUIStore.getState().inspector).toEqual({ isOpen: false });
+      expect(useUIStore.getState().inspector).toEqual({ isOpen: false, activeTab: 'properties' });
       useUIStore.getState().setInspectorOpen(true);
-      expect(useUIStore.getState().inspector).toEqual({ isOpen: true });
+      expect(useUIStore.getState().inspector).toEqual({ isOpen: true, activeTab: 'properties' });
+    });
+
+    it('setInspectorTab updates active tab and code preview visibility', () => {
+      useUIStore.getState().setInspectorTab('code');
+      expect(useUIStore.getState().inspector.activeTab).toBe('code');
+      expect(useUIStore.getState().showCodePreview).toBe(true);
+
+      useUIStore.getState().setInspectorTab('connections');
+      expect(useUIStore.getState().inspector.activeTab).toBe('connections');
+      expect(useUIStore.getState().showCodePreview).toBe(false);
+    });
+
+    it('openInspectorTab opens inspector and sets tab', () => {
+      useUIStore.getState().setInspectorOpen(false);
+      useUIStore.getState().openInspectorTab('code');
+
+      expect(useUIStore.getState().inspector).toEqual({ isOpen: true, activeTab: 'code' });
+      expect(useUIStore.getState().showCodePreview).toBe(true);
     });
   });
 
@@ -704,12 +724,14 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().showCodePreview).toBe(false);
       useUIStore.getState().toggleCodePreview();
       expect(useUIStore.getState().showCodePreview).toBe(true);
+      expect(useUIStore.getState().inspector.activeTab).toBe('code');
     });
 
     it('should toggle showCodePreview back from true to false', () => {
       useUIStore.getState().toggleCodePreview();
       useUIStore.getState().toggleCodePreview();
       expect(useUIStore.getState().showCodePreview).toBe(false);
+      expect(useUIStore.getState().inspector.activeTab).toBe('properties');
     });
 
     it('should toggle multiple times correctly', () => {
@@ -1054,70 +1076,36 @@ describe('useUIStore', () => {
     });
   });
 
-  describe('right-panel mutual exclusion', () => {
-    it('opening CodePreview closes other right panels', () => {
+  describe('right overlay state', () => {
+    it('GitHub panel toggles update rightOverlay', () => {
       useUIStore.getState().toggleGitHubLogin();
-      expect(useUIStore.getState().showGitHubLogin).toBe(true);
-
-      useUIStore.getState().toggleCodePreview();
-      expect(useUIStore.getState().showCodePreview).toBe(true);
-      expect(useUIStore.getState().showGitHubLogin).toBe(false);
-    });
-
-    it('opening GitHubLogin closes other right panels', () => {
-      useUIStore.getState().toggleCodePreview();
-      expect(useUIStore.getState().showCodePreview).toBe(true);
-
-      useUIStore.getState().toggleGitHubLogin();
-      expect(useUIStore.getState().showGitHubLogin).toBe(true);
-      expect(useUIStore.getState().showCodePreview).toBe(false);
-    });
-
-    it('opening GitHubRepos closes other right panels', () => {
-      useUIStore.getState().toggleGitHubPR();
-      expect(useUIStore.getState().showGitHubPR).toBe(true);
+      expect(useUIStore.getState().rightOverlay).toBe('githubLogin');
 
       useUIStore.getState().toggleGitHubRepos();
-      expect(useUIStore.getState().showGitHubRepos).toBe(true);
-      expect(useUIStore.getState().showGitHubPR).toBe(false);
+      expect(useUIStore.getState().rightOverlay).toBe('githubRepos');
+      expect(useUIStore.getState().showGitHubLogin).toBe(false);
+
+      useUIStore.getState().toggleGitHubRepos();
+      expect(useUIStore.getState().rightOverlay).toBe(null);
     });
 
-    it('opening SuggestionsPanel closes other right panels', () => {
-      useUIStore.getState().toggleCodePreview();
-      expect(useUIStore.getState().showCodePreview).toBe(true);
-
-      useUIStore.getState().toggleSuggestionsPanel();
-      expect(useUIStore.getState().showSuggestionsPanel).toBe(true);
-      expect(useUIStore.getState().showCodePreview).toBe(false);
-    });
-
-    it('opening CostPanel closes other right panels', () => {
-      useUIStore.getState().toggleGitHubSync();
-      expect(useUIStore.getState().showGitHubSync).toBe(true);
-
-      useUIStore.getState().toggleCostPanel();
-      expect(useUIStore.getState().showCostPanel).toBe(true);
-      expect(useUIStore.getState().showGitHubSync).toBe(false);
-    });
-
-    it('closing a right panel does not open others', () => {
-      useUIStore.getState().toggleCodePreview();
-      expect(useUIStore.getState().showCodePreview).toBe(true);
-
-      useUIStore.getState().toggleCodePreview();
-      expect(useUIStore.getState().showCodePreview).toBe(false);
+    it('setRightOverlay synchronizes GitHub booleans', () => {
+      useUIStore.getState().setRightOverlay('githubPR');
+      expect(useUIStore.getState().showGitHubPR).toBe(true);
       expect(useUIStore.getState().showGitHubLogin).toBe(false);
       expect(useUIStore.getState().showGitHubRepos).toBe(false);
-      expect(useUIStore.getState().showSuggestionsPanel).toBe(false);
-      expect(useUIStore.getState().showCostPanel).toBe(false);
+      expect(useUIStore.getState().showGitHubSync).toBe(false);
+
+      useUIStore.getState().setRightOverlay(null);
+      expect(useUIStore.getState().showGitHubPR).toBe(false);
     });
 
     it('does not affect left-side or center panels', () => {
       useUIStore.getState().toggleWorkspaceManager();
       expect(useUIStore.getState().showWorkspaceManager).toBe(true);
 
-      useUIStore.getState().toggleCodePreview();
-      expect(useUIStore.getState().showCodePreview).toBe(true);
+      useUIStore.getState().toggleGitHubSync();
+      expect(useUIStore.getState().rightOverlay).toBe('githubSync');
       expect(useUIStore.getState().showWorkspaceManager).toBe(true);
     });
   });
