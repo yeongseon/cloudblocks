@@ -107,6 +107,10 @@ export interface Connection {
   targetId: string;
   type: ConnectionType;
   metadata: Record<string, unknown>;
+  /** 0-based outbound stub index on source block (right side). Defaults to 0 when absent. */
+  sourceStub?: number;
+  /** 0-based inbound stub index on target block (left side). Defaults to 0 when absent. */
+  targetStub?: number;
 }
 
 /**

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { Connection, ConnectionType, ExternalActor, LeafNode, ResourceCategory } from '@cloudblocks/schema';
-import { validateConnection, canConnect, CONNECTION_VISUAL_STYLES } from './connection';
+import { validateConnection, validateStubIndices, canConnect, CONNECTION_VISUAL_STYLES } from './connection';
 
 function makeBlock(
   overrides: Partial<LeafNode> = {}
@@ -382,6 +382,83 @@ describe('validateConnection', () => {
       ruleId: 'rule-conn-invalid',
       targetId: 'conn-queue-queue',
     });
+  });
+
+  it('returns stub validation error when sourceStub is out of range', () => {
+    const connection = makeConnection({
+      id: 'conn-invalid-source-stub',
+      sourceId: 'db-1',
+      targetId: 'compute-1',
+      sourceStub: 2,
+    });
+    const blocks = [
+      makeBlock({ id: 'db-1', category: 'messaging' }),
+      makeBlock({ id: 'compute-1', category: 'compute' }),
+    ];
+
+    expect(validateConnection(connection, blocks, [])).toMatchObject({
+      ruleId: 'rule-conn-stub-source',
+      targetId: 'conn-invalid-source-stub',
+    });
+  });
+});
+
+describe('validateStubIndices', () => {
+  it('returns null when stubs are absent', () => {
+    const connection = makeConnection({ sourceId: 'edge-1', targetId: 'compute-1' });
+    const blocks = [
+      makeBlock({ id: 'edge-1', category: 'edge' }),
+      makeBlock({ id: 'compute-1', category: 'compute' }),
+    ];
+
+    expect(validateStubIndices(connection, blocks)).toBeNull();
+  });
+
+  it('returns source stub error when outbound index is out of range', () => {
+    const connection = makeConnection({
+      id: 'conn-stub-source',
+      sourceId: 'data-1',
+      targetId: 'compute-1',
+      sourceStub: 1,
+    });
+    const blocks = [
+      makeBlock({ id: 'data-1', category: 'data' }),
+      makeBlock({ id: 'compute-1', category: 'compute' }),
+    ];
+
+    expect(validateStubIndices(connection, blocks)).toMatchObject({
+      ruleId: 'rule-conn-stub-source',
+      targetId: 'conn-stub-source',
+    });
+  });
+
+  it('returns target stub error when inbound index is out of range', () => {
+    const connection = makeConnection({
+      id: 'conn-stub-target',
+      sourceId: 'edge-1',
+      targetId: 'security-1',
+      targetStub: 1,
+    });
+    const blocks = [
+      makeBlock({ id: 'edge-1', category: 'edge' }),
+      makeBlock({ id: 'security-1', category: 'security' }),
+    ];
+
+    expect(validateStubIndices(connection, blocks)).toMatchObject({
+      ruleId: 'rule-conn-stub-target',
+      targetId: 'conn-stub-target',
+    });
+  });
+
+  it('ignores stub checks when endpoint is not a resource', () => {
+    const connection = makeConnection({
+      sourceId: 'internet-1',
+      targetId: 'edge-1',
+      sourceStub: 5,
+    });
+    const blocks = [makeBlock({ id: 'edge-1', category: 'edge' })];
+
+    expect(validateStubIndices(connection, blocks)).toBeNull();
   });
 });
 

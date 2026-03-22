@@ -1,7 +1,7 @@
 import type { PlateProfileId } from '../../../shared/types/index';
 import type { Connection, ContainerCapableResourceType, ContainerNode, ExternalActor, LeafNode, ResourceCategory } from '@cloudblocks/schema';
 import { buildPlateSizeFromProfileId, DEFAULT_BLOCK_SIZE } from '../../../shared/types/index';
-import { RESOURCE_RULES } from '@cloudblocks/schema';
+import { getPortsForResourceType, RESOURCE_RULES } from '@cloudblocks/schema';
 import { generateId } from '../../../shared/utils/id';
 import type { AddNodeInput, ArchitectureSlice, ArchitectureState, RemoveNodeOptions } from './types';
 import { canConnect } from '../../validation/connection';
@@ -745,6 +745,26 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       return false;
     }
 
+    const sourceResourceType = sourceBlock?.resourceType;
+    const targetResourceType = targetBlock?.resourceType;
+
+    const sourcePorts = sourceResourceType
+      ? getPortsForResourceType(sourceResourceType)
+      : { inbound: 1, outbound: 1 };
+    const targetPorts = targetResourceType
+      ? getPortsForResourceType(targetResourceType)
+      : { inbound: 1, outbound: 1 };
+
+    const usedOutbound = arch.connections.filter((connection) => connection.sourceId === sourceId).length;
+    const usedInbound = arch.connections.filter((connection) => connection.targetId === targetId).length;
+
+    if (usedOutbound >= sourcePorts.outbound || usedInbound >= targetPorts.inbound) {
+      return false;
+    }
+
+    const sourceStub = usedOutbound;
+    const targetStub = usedInbound;
+
     set((state) => {
       const nextArch = state.workspace.architecture;
       const connection: Connection = {
@@ -753,6 +773,8 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         targetId,
         type: 'dataflow',
         metadata: {},
+        sourceStub,
+        targetStub,
       };
 
       return withHistory(state, {

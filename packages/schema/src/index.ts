@@ -39,6 +39,7 @@ export type { Block, Plate } from './model.js';
 // Resource rules — single source of truth for constraints (Proposals 1–3)
 export type {
   CanvasTier,
+  PortPolicy,
   ResourceRuleEntry,
   ResourceType,
   ContainerCapableResourceType,
@@ -49,8 +50,10 @@ export {
   RESOURCE_RULES,
   KNOWN_RESOURCE_TYPES,
   CONTAINER_CAPABLE_TYPES,
+  CATEGORY_PORTS,
   isContainerCapable,
   getAllowedParents,
   getCanvasTier,
   getDefaultCategory,
+  getPortsForResourceType,
 } from './rules.js';
