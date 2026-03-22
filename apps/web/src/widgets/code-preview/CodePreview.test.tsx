@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CodePreview } from './CodePreview';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
@@ -398,7 +398,7 @@ describe('CodePreview', () => {
     expect(compareCheckbox).toBeDisabled();
   });
 
-  it('resets generated output on remount (simulating panel close and reopen)', async () => {
+  it('resets generated output when active provider changes', async () => {
     const user = userEvent.setup();
     const mockOutput = {
       files: [{ path: 'main.tf', content: 'resource content', language: 'hcl' as const }],
@@ -406,15 +406,19 @@ describe('CodePreview', () => {
     };
     vi.mocked(generateCode).mockReturnValue(mockOutput);
 
-    const { unmount } = render(<CodePreview />);
+    const { rerender } = render(<CodePreview />);
     await user.click(screen.getByText(/Generate Terraform \(HCL\)/));
     expect(screen.getByText('main.tf')).toBeInTheDocument();
 
-    unmount();
-    render(<CodePreview />);
+    act(() => {
+      useUIStore.setState({ activeProvider: 'aws' });
+    });
+    rerender(<CodePreview />);
 
-    expect(screen.queryByText('main.tf')).not.toBeInTheDocument();
-    expect(screen.queryByText('resource content')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText('main.tf')).not.toBeInTheDocument();
+      expect(screen.queryByText('resource content')).not.toBeInTheDocument();
+    });
   });
 
   it('derives default project name from architecture name', () => {
@@ -652,15 +656,19 @@ describe('CodePreview', () => {
     expect(writeTextMock).not.toHaveBeenCalled();
   });
 
-  it('resets region when provider changes', () => {
+  it('resets region when provider changes', async () => {
     const { rerender } = render(<CodePreview />);
 
     expect(screen.getByDisplayValue('eastus')).toBeInTheDocument();
 
-    useUIStore.setState({ activeProvider: 'aws' });
+    act(() => {
+      useUIStore.setState({ activeProvider: 'aws' });
+    });
     rerender(<CodePreview />);
 
-    expect(screen.getByDisplayValue('us-east-1')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('us-east-1')).toBeInTheDocument();
+    });
   });
 
   it('passes provider-specific regions in compare mode', async () => {

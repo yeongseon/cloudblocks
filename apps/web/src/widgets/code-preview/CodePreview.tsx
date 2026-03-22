@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { generateCode, GenerationError } from '../../features/generate/pipeline';
@@ -14,12 +14,21 @@ import './CodePreview.css';
 
 const PROVIDERS: ProviderType[] = ['azure', 'aws', 'gcp'];
 
-export function CodePreview() {
-  const activeProvider = useUIStore((s) => s.activeProvider);
-  return <CodePreviewContent key={activeProvider} />;
+function clearGeneratedState(
+  setError: (value: string | null) => void,
+  setOutput: (value: GeneratedOutput | null) => void,
+  setComparisonOutputs: (value: Record<ProviderType, GeneratedOutput> | null) => void,
+  setComparisonErrors: (value: Partial<Record<ProviderType, string>> | null) => void,
+  setActiveTab: (value: number) => void,
+) {
+  setError(null);
+  setOutput(null);
+  setComparisonOutputs(null);
+  setComparisonErrors(null);
+  setActiveTab(0);
 }
 
-function CodePreviewContent() {
+export function CodePreview() {
   const toggleCodePreview = useUIStore((s) => s.toggleCodePreview);
   const activeProvider = useUIStore((s) => s.activeProvider);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
@@ -45,6 +54,7 @@ function CodePreviewContent() {
   const [comparisonOutputs, setComparisonOutputs] = useState<Record<ProviderType, GeneratedOutput> | null>(null);
   const [comparisonErrors, setComparisonErrors] = useState<Partial<Record<ProviderType, string>> | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const prevProviderRef = useRef(activeProvider);
   const selectedGenerator = generatorOptions.find((g) => g.id === generator);
   const supportedProviders = selectedGenerator?.supportedProviders ?? [];
   const canCompareProviders = PROVIDERS.every((provider) =>
@@ -63,22 +73,27 @@ function CodePreviewContent() {
     }, new Map<string, number>());
   const hasMismatch = mismatchedProviders.size > 0;
 
-  const clearGeneratedState = () => {
-    setError(null);
-    setOutput(null);
-    setComparisonOutputs(null);
-    setComparisonErrors(null);
-    setActiveTab(0);
-  };
+  useEffect(() => {
+    if (prevProviderRef.current !== activeProvider) {
+      prevProviderRef.current = activeProvider;
+      queueMicrotask(() => {
+        clearGeneratedState(setError, setOutput, setComparisonOutputs, setComparisonErrors, setActiveTab);
+        setRegions((prev) => ({
+          ...prev,
+          [activeProvider]: DEFAULT_REGION_BY_PROVIDER[activeProvider],
+        }));
+      });
+    }
+  }, [activeProvider]);
 
   const handleGeneratorChange = (newGenerator: GeneratorId) => {
     setGenerator(newGenerator);
-    clearGeneratedState();
+    clearGeneratedState(setError, setOutput, setComparisonOutputs, setComparisonErrors, setActiveTab);
   };
 
   const handleCompareChange = (checked: boolean) => {
     setCompareProviders(checked);
-    clearGeneratedState();
+    clearGeneratedState(setError, setOutput, setComparisonOutputs, setComparisonErrors, setActiveTab);
   };
 
   const handleGenerate = () => {
