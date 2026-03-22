@@ -23,7 +23,7 @@ export default defineConfig({
         'src/main.tsx',
         'src/test/**',
         'src/**/*.test.{ts,tsx}',
-        'src/vite-env.d.ts',
+        'src/**/*.d.ts',
         'src/features/generate/types.ts',
         'src/shared/types/template.ts',
         // SceneCanvas — complex canvas interactions (zoom, pan, drag) need full DOM; excluded from coverage
