@@ -1182,10 +1182,10 @@ Fix all GitHub integration bugs. Subgroups can run in parallel but maintain orde
 
 ---
 
-## Milestone 21 — Semantic Block + Stub
+## Milestone 21 — UI/UX Overhaul & Stub Connections ✅
 
 Goal:
-Realign CloudBlocks with the Product Direction Spec — "Build cloud like Lego". Implement semantic block shapes, stub-based connections, MVP resource filtering, and the new first screen. Foundation for stub-to-stub connection routing.
+Realign CloudBlocks with the Product Direction Spec — complete UI redesign with Professional theme (default), stub-addressable connection model, CSS Grid builder layout, and new panel system. Stub rendering and stub-to-stub routing deferred to M22.
 
 > **Reference**: [PRODUCT_DIRECTION_SPEC.md](PRODUCT_DIRECTION_SPEC.md)
 
@@ -1235,23 +1235,23 @@ Render stub points visually on block SVG.
 
 | # | Issue | Status |
 |---|-------|--------|
-| TBD | Render stub anchor points on blocks | ❌ Not started |
+| #1223 | Render stub anchor points on blocks | → Deferred to M22 |
 
 #### Phase 6 — Connection Preview & Routing
 Stub-to-stub connection UX: preview line, routing, valid target highlighting.
 
 | # | Issue | Status |
 |---|-------|--------|
-| TBD | Connection preview from stub | ❌ Not started |
-| TBD | Stub-to-stub orthogonal routing | ❌ Not started |
+| #1225 | Connection preview from stub | → Deferred to M22 |
+| #1227 | Stub-to-stub orthogonal routing | → Deferred to M22 |
 
 #### Phase 7 — Legacy Removal & Color
 Remove center-based connections, apply vendor color system to connections.
 
 | # | Issue | Status |
 |---|-------|--------|
-| TBD | Remove center-to-center connection system | ❌ Not started |
-| TBD | Vendor-based connection color system | ❌ Not started |
+| #1228 | Remove center-to-center connection system | → Deferred to M22 |
+| #1229 | Vendor-based connection color system | → Deferred to M22 |
 
 ### Exit Criteria
 - [x] Connection model has `sourceStub`/`targetStub` fields (#1200)
@@ -1260,12 +1260,15 @@ Remove center-based connections, apply vendor color system to connections.
 - [x] 6 semantic block shapes replace 4 legacy silhouettes (#1203)
 - [x] Resource palette filtered to MVP core set (#1204)
 - [x] Dark-themed first screen with Create/Templates/Import (#1205)
-- [ ] Stub points rendered visually on blocks
-- [ ] Connection preview line from stub to cursor
-- [ ] Stub-to-stub orthogonal routing implemented
-- [ ] Center-to-center connection system removed
-- [ ] Vendor-based connection colors applied
-- [ ] All tests passing, ≥ 90% branch coverage
+- [x] Professional theme system with CSS custom properties
+- [x] Landing page and CSS Grid builder layout
+- [x] Sidebar palette with drag-and-drop resource creation
+- [x] Inspector panel with Properties/Code/Connections tabs
+- [x] Tabbed bottom dock (Output/Validation/Logs/Diff)
+- [x] View menu restructuring with keyboard shortcuts
+- [x] Animation system (panel transitions + connector draw-in)
+- [x] Azure subnet unification (flat model)
+- [x] All tests passing (1992 tests), build clean
 
 ### Dependencies
 - Milestone 20 complete
@@ -1522,9 +1525,9 @@ The roadmap evolves CloudBlocks from:
 
 → UX Polish & GitHub Hardening (Milestone 20) ✅
 
-→ Semantic Block + Stub (Milestone 21) — in progress
+→ UI/UX Overhaul & Stub Connections (Milestone 21) ✅
 
-→ Stub Connections & Visual Theme (Milestone 22)
+→ Stub Connections & Visual Theme (Milestone 22) — planned
 
 → Internationalization (i18n)
 
@@ -1542,8 +1545,8 @@ Milestone 8 (Complete) ✅
     │                                               └── Milestone 18 (DevOps UX) ✅
     │                                                       └── Milestone 19 (MVP Polish & Launch) ✅
     │                                                               └── Milestone 20 (UX Polish & GitHub Hardening) ✅
-    │                                                                       └── Milestone 21 (Semantic Block + Stub) ← current
-    │                                                                               └── Milestone 22 (Stub Connections & Visual Theme) ← next
+    │                                                                       └── Milestone 21 (UI/UX Overhaul & Stub Connections) ✅
+    │                                                                               └── Milestone 22 (Stub Connections & Visual Theme) ← current
     │               └── Milestone 14 (AI Roadmap) ✅ ←── also benefits from Milestone 13
     └── Milestone 11 (Brick Design) ✅ ──── parallel with Milestone 9
 
