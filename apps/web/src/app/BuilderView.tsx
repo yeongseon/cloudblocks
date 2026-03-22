@@ -5,7 +5,6 @@ import { SceneCanvas } from '../widgets/scene-canvas/SceneCanvas';
 import { MenuBar } from '../widgets/menu-bar/MenuBar';
 import { SidebarPalette } from '../widgets/sidebar-palette';
 import { InspectorPanel } from '../widgets/inspector-panel';
-import { ValidationPanel } from '../widgets/validation-panel/ValidationPanel';
 import { FlowDiagram } from '../widgets/flow-diagram/FlowDiagram';
 import { BottomPanel } from '../widgets/bottom-panel';
 import { LearningPanel } from '../widgets/learning-panel/LearningPanel';
@@ -52,11 +51,6 @@ const GitHubSync = lazy(() =>
 const GitHubPR = lazy(() =>
   import('../widgets/github-pr/GitHubPR').then((m) => ({
     default: m.GitHubPR,
-  })),
-);
-const DiffPanel = lazy(() =>
-  import('../widgets/diff-panel/DiffPanel').then((m) => ({
-    default: m.DiffPanel,
   })),
 );
 const PromoteDialog = lazy(() =>
@@ -256,7 +250,6 @@ export function BuilderView() {
         <main className={`builder-canvas${editorMode === 'learn' ? ' learn-mode-active' : ''}`}>
           <div className="builder-slot">
             <SceneCanvas />
-            <ValidationPanel />
             <FlowDiagram />
             <LearningPanel />
           </div>
@@ -279,7 +272,6 @@ export function BuilderView() {
           {showGitHubRepos && <GitHubRepos />}
           <GitHubSync />
           {showGitHubPR && <GitHubPR key={`pr-${workspaceId}`} />}
-          <DiffPanel />
           {showWorkspaceManager && <WorkspaceManager />}
           {showTemplateGallery && <TemplateGallery />}
           {showScenarioGallery && <ScenarioGallery />}

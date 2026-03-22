@@ -1,8 +1,6 @@
-import { beforeEach, describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { useUIStore } from '../../entities/store/uiStore';
-
-vi.mock('./BottomPanel.css', () => ({}));
 
 vi.mock('./Minimap', () => ({
   Minimap: ({ className = '' }: { className?: string }) => <div data-testid="minimap" className={className}>Minimap</div>,
@@ -18,31 +16,71 @@ vi.mock('./CommandCard', () => ({
 
 import { BottomPanel } from './BottomPanel';
 
+const initialSetBottomTab = useUIStore.getState().setBottomTab;
+const initialClearLog = useUIStore.getState().clearLog;
+
 describe('BottomPanel', () => {
   beforeEach(() => {
-    useUIStore.setState({ selectedId: null });
+    useUIStore.setState({
+      bottomDock: { isOpen: true, activeTab: 'output' },
+      showResourceGuide: true,
+      activityLog: [],
+      selectedId: null,
+      setBottomTab: initialSetBottomTab,
+      clearLog: initialClearLog,
+    });
   });
 
-  it('renders all child widgets', () => {
+  it('renders all 4 tabs', () => {
+    render(<BottomPanel />);
+
+    expect(screen.getByRole('tab', { name: 'Output' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Validation' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Logs' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Diff' })).toBeInTheDocument();
+  });
+
+  it('clicking a tab calls setBottomTab with the tab id', () => {
+    const setBottomTab = vi.fn((tab: 'output' | 'validation' | 'logs' | 'diff') => {
+      useUIStore.setState((s) => ({ bottomDock: { ...s.bottomDock, activeTab: tab } }));
+    });
+    useUIStore.setState({ setBottomTab });
+
+    render(<BottomPanel />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Logs' }));
+
+    expect(setBottomTab).toHaveBeenCalledWith('logs');
+  });
+
+  it('shows Output tab content by default and always renders CommandCard', () => {
     render(<BottomPanel />);
 
     expect(screen.getByTestId('minimap')).toBeInTheDocument();
-    expect(screen.getByTestId('detail-panel')).toBeInTheDocument();
     expect(screen.getByTestId('command-card')).toBeInTheDocument();
+    expect(screen.getByRole('tabpanel')).toBeInTheDocument();
   });
 
-  it('applies className to root wrapper', () => {
-    const { container } = render(<BottomPanel className="custom-bottom" />);
+  it('mounts the correct content for each tab', () => {
+    render(<BottomPanel />);
 
-    const panel = container.querySelector('.bottom-panel');
-    expect(panel).toHaveClass('bottom-panel');
-    expect(panel).toHaveClass('custom-bottom');
+    fireEvent.click(screen.getByRole('tab', { name: 'Validation' }));
+    expect(screen.getByText('No validation results. Run validation from the menu.')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Logs' }));
+    expect(screen.getByText('No activity logged yet.')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Diff' }));
+    expect(screen.getByText('No diff data. Use Compare with GitHub to generate a diff.')).toBeInTheDocument();
   });
 
-  it('always applies bottom-panel--command-open class', () => {
-    const { container } = render(<BottomPanel />);
+  it('Output tab respects showResourceGuide toggle', () => {
+    useUIStore.setState({ showResourceGuide: false });
+    render(<BottomPanel />);
+    expect(screen.queryByTestId('detail-panel')).not.toBeInTheDocument();
 
-    const panel = container.querySelector('.bottom-panel');
-    expect(panel).toHaveClass('bottom-panel--command-open');
+    act(() => {
+      useUIStore.setState({ showResourceGuide: true });
+    });
+    expect(screen.getByTestId('detail-panel')).toBeInTheDocument();
   });
 });

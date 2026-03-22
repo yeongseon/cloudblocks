@@ -1,102 +1,67 @@
-/* Bottom Panel — StarCraft-Style 4-Panel Layout */
-/* Based on VISUAL_DESIGN_SPEC.md §7.1 */
-
 .bottom-panel {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 260px;
   display: flex;
   flex-direction: row;
-  gap: 0;
-  padding: 0;
-  background-color: transparent;
-  box-shadow: none;
-  border-top: none;
-  z-index: 100;
+  height: 100%;
+  min-height: 0;
+  background: var(--bg-surface);
+  color: var(--text-primary);
   font-family: var(--font-ui);
 }
 
-/* Flush section dividers — no gap, border separates panels */
-.bottom-panel > *:not(:last-child) {
-  border-right: 2px solid rgba(0, 0, 0, 0.3);
-}
-
-/* Panel sections */
-.bottom-panel-minimap {
-  width: 200px;
-  flex-shrink: 0;
-}
-
-.bottom-panel-detail {
+.bottom-panel-main {
   flex: 1;
-  min-width: 200px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border-subtle);
+}
+
+.bottom-panel-tab-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--bg-surface);
 }
 
 .bottom-panel-command {
   width: 280px;
   flex-shrink: 0;
+  min-height: 0;
+  border-left: 1px solid var(--border-subtle);
+  background: var(--bg-elevated);
 }
 
-/* CommandCard always open on right side (full-height sidebar) */
-.bottom-panel--command-open {
-  right: 380px;
+.bottom-panel-command .command-card {
+  height: 100%;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
 }
 
-.bottom-panel--command-open .bottom-panel-command {
-  position: fixed;
-  top: 40px;
-  right: 0;
-  bottom: 0;
-  width: 380px;
-  z-index: 140;
-  border-left: 2px solid rgba(0, 0, 0, 0.3);
-  border-right: none;
+.bottom-dock-output {
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  min-height: 0;
 }
 
-
-
-/* Responsive behavior — VISUAL_DESIGN_SPEC.md §7.8 */
-
-/* 900-1199px: Hide Minimap */
-@media (max-width: 1199px) {
-  .bottom-panel-minimap {
-    display: none;
-  }
+.bottom-dock-output .bottom-panel-minimap {
+  width: 200px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border-subtle);
 }
 
-/* 600-899px: Hide Minimap, collapse CommandCard back to inline */
-@media (max-width: 899px) {
-  .bottom-panel-minimap {
-    display: none;
-  }
-
-  .bottom-panel--command-open {
-    right: 0;
-  }
-
-  .bottom-panel--command-open .bottom-panel-command {
-    position: static;
-    width: 280px;
-  }
+.bottom-dock-output .bottom-panel-detail {
+  flex: 1;
+  min-width: 0;
 }
 
-/* <600px: Tab bar mode (simplified) */
-@media (max-width: 599px) {
-  .bottom-panel {
-    height: auto;
-    flex-direction: column;
-  }
-
-  .bottom-panel-minimap {
-    display: none;
-  }
-
-  .bottom-panel-detail,
-  .bottom-panel-command {
-    width: 100%;
-    flex: none;
-    height: 120px;
-  }
+.bottom-dock-diff .diff-panel {
+  position: static;
+  inset: auto;
+  width: 100%;
+  max-height: none;
+  border: none;
+  border-radius: 0;
+  padding: 12px;
 }

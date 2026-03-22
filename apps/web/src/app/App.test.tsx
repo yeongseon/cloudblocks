@@ -22,9 +22,6 @@ vi.mock('../widgets/sidebar-palette', () => ({
 vi.mock('../widgets/inspector-panel', () => ({
   InspectorPanel: () => <div data-testid="inspector-panel" />,
 }));
-vi.mock('../widgets/validation-panel/ValidationPanel', () => ({
-  ValidationPanel: () => <div data-testid="validation-panel" />,
-}));
 vi.mock('../widgets/flow-diagram/FlowDiagram', () => ({
   FlowDiagram: () => <div data-testid="flow-diagram" />,
 }));
@@ -135,7 +132,6 @@ describe('App', () => {
     expect(screen.getByTestId('scene-canvas')).toBeInTheDocument();
     expect(screen.getByTestId('sidebar-palette')).toBeInTheDocument();
     expect(screen.getByTestId('inspector-panel')).toBeInTheDocument();
-    expect(screen.getByTestId('validation-panel')).toBeInTheDocument();
     expect(screen.getByTestId('flow-diagram')).toBeInTheDocument();
     expect(screen.getByTestId('bottom-panel')).toBeInTheDocument();
     // Lazy-loaded widgets (code-split) — need to wait for async load
