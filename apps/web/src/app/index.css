@@ -132,3 +132,11 @@ body,
   overflow: hidden;
   font-family: var(--font-ui);
 }
+
+/* ── Motion keyframes ───────────────────────────── */
+
+@keyframes connector-draw-in {
+  to {
+    stroke-dashoffset: 0;
+  }
+}

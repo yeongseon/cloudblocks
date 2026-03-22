@@ -1,4 +1,4 @@
-import { memo, useState, useMemo } from 'react';
+import { memo, useState, useMemo, useRef, useEffect } from 'react';
 import type { Connection, ContainerNode, ExternalActor, LeafNode } from '@cloudblocks/schema';
 import { getDiffState } from '../../features/diff/engine';
 import { getConnectionEndpointWorldAnchors } from './endpointAnchors';
@@ -270,6 +270,28 @@ export const BrickConnector = memo(function BrickConnector({
   originY,
 }: BrickConnectorProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const drawInRef = useRef<SVGPathElement>(null);
+
+  // Draw-in animation: measure path length on mount and animate once
+  useEffect(() => {
+    const el = drawInRef.current;
+    if (!el || typeof el.getTotalLength !== 'function') return;
+    const len = el.getTotalLength();
+    el.style.strokeDasharray = String(len);
+    el.style.strokeDashoffset = String(len);
+    // Force reflow so the initial offset is applied before animation starts
+    el.getBoundingClientRect();
+    el.style.animation = `connector-draw-in 400ms var(--easing-default, cubic-bezier(0.2, 0, 0, 1)) forwards`;
+    const handleEnd = () => {
+      el.style.strokeDasharray = '';
+      el.style.strokeDashoffset = '';
+      el.style.animation = '';
+      el.style.opacity = '';
+    };
+    el.addEventListener('animationend', handleEnd, { once: true });
+    return () => el.removeEventListener('animationend', handleEnd);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // mount-only
   const selectedId = useUIStore((s) => s.selectedId);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const toolMode = useUIStore((s) => s.toolMode);
@@ -396,6 +418,20 @@ export const BrickConnector = memo(function BrickConnector({
 
       {renderStud(route.srcScreen.x, route.srcScreen.y, colors, `stud-src-${connection.id}`)}
       {renderStud(route.tgtScreen.x, route.tgtScreen.y, colors, `stud-tgt-${connection.id}`)}
+
+      {/* Draw-in animation overlay */}
+      <path
+        ref={drawInRef}
+        d={hitPath}
+        stroke={colors.tile}
+        strokeWidth={BEAM_HALF_THICKNESS * 2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+        pointerEvents="none"
+        opacity={0.6}
+        data-testid="connection-draw-path"
+      />
 
       {hasValidationError && (
         <path

@@ -17,8 +17,8 @@
   overflow: hidden;
 
   transition:
-    grid-template-columns var(--duration-normal, 200ms) var(--easing-standard, ease),
-    grid-template-rows var(--duration-normal, 200ms) var(--easing-standard, ease);
+    grid-template-columns var(--duration-normal, 200ms) var(--easing-default, cubic-bezier(0.2, 0, 0, 1)),
+    grid-template-rows var(--duration-normal, 200ms) var(--easing-default, cubic-bezier(0.2, 0, 0, 1));
 }
 
 .builder-shell[data-sidebar-open="false"] {
@@ -41,7 +41,7 @@
 .builder-sidebar {
   grid-area: sidebar;
   overflow: hidden;
-  border-right: 1px solid var(--border-0, rgba(255, 255, 255, 0.08));
+  border-right: 1px solid var(--border-default, rgba(255, 255, 255, 0.08));
 }
 
 .builder-canvas {
@@ -55,13 +55,13 @@
 .builder-inspector {
   grid-area: inspector;
   overflow: hidden;
-  border-left: 1px solid var(--border-0, rgba(255, 255, 255, 0.08));
+  border-left: 1px solid var(--border-default, rgba(255, 255, 255, 0.08));
 }
 
 .builder-bottomdock {
   grid-area: bottom;
   overflow: hidden;
-  border-top: 1px solid var(--border-0, rgba(255, 255, 255, 0.08));
+  border-top: 1px solid var(--border-default, rgba(255, 255, 255, 0.08));
 }
 
 .builder-slot {
@@ -76,4 +76,29 @@
 .builder-shell[data-inspector-open="false"] .builder-inspector,
 .builder-shell:not([data-bottomdock-open="true"]) .builder-bottomdock {
   pointer-events: none;
+}
+
+/* ── Panel content slide/fade transitions ─────────────── */
+
+.builder-sidebar .sidebar-palette,
+.builder-inspector .inspector-panel,
+.builder-bottomdock .bottom-panel {
+  transition:
+    opacity var(--duration-normal, 200ms) var(--easing-default, cubic-bezier(0.2, 0, 0, 1)),
+    transform var(--duration-normal, 200ms) var(--easing-default, cubic-bezier(0.2, 0, 0, 1));
+}
+
+.builder-shell[data-sidebar-open="false"] .builder-sidebar .sidebar-palette {
+  opacity: 0;
+  transform: translateX(-8px);
+}
+
+.builder-shell[data-inspector-open="false"] .builder-inspector .inspector-panel {
+  opacity: 0;
+  transform: translateX(8px);
+}
+
+.builder-shell:not([data-bottomdock-open="true"]) .builder-bottomdock .bottom-panel {
+  opacity: 0;
+  transform: translateY(8px);
 }
