@@ -36,7 +36,7 @@ export const CATEGORY_TIER_MAP: Record<ResourceCategory, BlockTier> = {
 export type BrickSurface = 'studded';
 // ALL blocks are studded per Universal Stud Standard. No 'smooth' surface.
 
-export type BrickSilhouette = 'tower' | 'heavy' | 'shield' | 'module';
+export type BrickSilhouette = 'rect' | 'cylinder' | 'gateway' | 'circle' | 'hex' | 'shield';
 
 export interface BlockVisualProfile {
   /** Size tier name for CSS/debugging */
@@ -56,7 +56,7 @@ export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile>
   network: {
     tier: 'large',
     surface: 'studded',
-    silhouette: 'heavy',
+    silhouette: 'rect',
     footprint: [4, 6],
     hostable: false,
     appCapacity: 0,
@@ -64,7 +64,7 @@ export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile>
   security: {
     tier: 'small',
     surface: 'studded',
-    silhouette: 'module',
+    silhouette: 'shield',
     footprint: [2, 2],
     hostable: false,
     appCapacity: 0,
@@ -72,7 +72,7 @@ export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile>
   edge: {
     tier: 'wide',
     surface: 'studded',
-    silhouette: 'shield',
+    silhouette: 'gateway',
     footprint: [2, 4],
     hostable: false,
     appCapacity: 0,
@@ -80,7 +80,7 @@ export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile>
   compute: {
     tier: 'medium',
     surface: 'studded',
-    silhouette: 'tower',
+    silhouette: 'rect',
     footprint: [3, 4],
     hostable: true,
     appCapacity: 4,
@@ -88,7 +88,7 @@ export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile>
   data: {
     tier: 'large',
     surface: 'studded',
-    silhouette: 'heavy',
+    silhouette: 'cylinder',
     footprint: [4, 6],
     hostable: false,
     appCapacity: 0,
@@ -96,7 +96,7 @@ export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile>
   messaging: {
     tier: 'micro',
     surface: 'studded',
-    silhouette: 'module',
+    silhouette: 'hex',
     footprint: [2, 4],
     hostable: false,
     appCapacity: 0,
@@ -104,7 +104,7 @@ export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile>
   operations: {
     tier: 'small',
     surface: 'studded',
-    silhouette: 'module',
+    silhouette: 'circle',
     footprint: [2, 2],
     hostable: false,
     appCapacity: 0,

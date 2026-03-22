@@ -23,9 +23,14 @@ export interface SilhouetteDimensions {
 }
 
 export interface SilhouettePolygons {
+  renderMode: 'polygon' | 'cylinder' | 'circle';
   topFacePoints: string;
   leftSidePoints: string;
   rightSidePoints: string;
+  ellipseCenter?: { cx: number; cy: number };
+  ellipseRadii?: { rx: number; ry: number };
+  bodyRect?: { x: number; y: number; width: number; height: number };
+  bottomArcPath?: string;
 }
 
 type Point = [number, number];
@@ -35,9 +40,7 @@ function pointsToString(points: ReadonlyArray<Point>): string {
   return points.map(([x, y]) => `${x},${y}`).join(' ');
 }
 
-const towerSilhouette: SilhouetteGenerator = ({
-  screenWidth,
-  diamondHeight,
+const rectSilhouette: SilhouetteGenerator = ({
   sideWallPx,
   cx,
   topY,
@@ -45,84 +48,27 @@ const towerSilhouette: SilhouetteGenerator = ({
   bottomY,
   leftX,
   rightX,
-  margin,
-  padding,
-}) => {
-  const crownInset = Math.max(2, Math.min(padding * 0.6, (rightX - leftX) * 0.14, screenWidth * 0.08));
-  const crownDrop = Math.max(2, Math.min(diamondHeight * 0.18, padding + margin * 0.4));
-
-  const topFacePoints = pointsToString([
+}) => ({
+  renderMode: 'polygon',
+  topFacePoints: pointsToString([
     [cx, topY],
-    [cx + crownInset, topY + crownDrop],
     [rightX, midY],
     [cx, bottomY],
     [leftX, midY],
-    [cx - crownInset, topY + crownDrop],
-  ]);
-
-  const leftSidePoints = pointsToString([
+  ]),
+  leftSidePoints: pointsToString([
     [leftX, midY],
     [cx, bottomY],
     [cx, bottomY + sideWallPx],
     [leftX, midY + sideWallPx],
-  ]);
-
-  const rightSidePoints = pointsToString([
+  ]),
+  rightSidePoints: pointsToString([
     [cx, bottomY],
     [rightX, midY],
     [rightX, midY + sideWallPx],
     [cx, bottomY + sideWallPx],
-  ]);
-
-  return { topFacePoints, leftSidePoints, rightSidePoints };
-};
-
-const heavySilhouette: SilhouetteGenerator = ({
-  screenWidth,
-  diamondHeight,
-  sideWallPx,
-  cx,
-  topY,
-  midY,
-  bottomY,
-  leftX,
-  rightX,
-  margin,
-  padding,
-}) => {
-  const expand = Math.max(2, Math.min(margin * 0.9 + padding * 0.2, screenWidth * 0.07));
-  const frontInset = Math.max(2, Math.min(diamondHeight * 0.12, padding * 0.7));
-  const heavyLeft = Math.max(0, leftX - expand);
-  const heavyRight = Math.min(screenWidth, rightX + expand);
-  const frontSpread = Math.max(4, (heavyRight - heavyLeft) * 0.12);
-
-  const topFacePoints = pointsToString([
-    [cx, topY + frontInset * 0.5],
-    [heavyRight, midY],
-    [cx + frontSpread, bottomY - frontInset],
-    [cx, bottomY],
-    [cx - frontSpread, bottomY - frontInset],
-    [heavyLeft, midY],
-  ]);
-
-  const leftSidePoints = pointsToString([
-    [heavyLeft, midY],
-    [cx - frontSpread, bottomY - frontInset],
-    [cx, bottomY],
-    [cx, bottomY + sideWallPx],
-    [heavyLeft, midY + sideWallPx],
-  ]);
-
-  const rightSidePoints = pointsToString([
-    [cx, bottomY],
-    [cx + frontSpread, bottomY - frontInset],
-    [heavyRight, midY],
-    [heavyRight, midY + sideWallPx],
-    [cx, bottomY + sideWallPx],
-  ]);
-
-  return { topFacePoints, leftSidePoints, rightSidePoints };
-};
+  ]),
+});
 
 const shieldSilhouette: SilhouetteGenerator = ({
   diamondHeight,
@@ -140,34 +86,33 @@ const shieldSilhouette: SilhouetteGenerator = ({
   const noseLift = Math.max(3, Math.min(diamondHeight * 0.12, padding * 0.8));
   const notchDepth = Math.max(3, Math.min(sideWallPx * 0.4, padding + 1));
 
-  const topFacePoints = pointsToString([
-    [cx, topY],
-    [rightX, midY],
-    [cx + noseOffset, bottomY - noseLift],
-    [cx, bottomY],
-    [leftX, midY],
-  ]);
-
-  const leftSidePoints = pointsToString([
-    [leftX, midY],
-    [cx, bottomY],
-    [cx, bottomY + sideWallPx],
-    [leftX, midY + sideWallPx],
-  ]);
-
-  const rightSidePoints = pointsToString([
-    [cx, bottomY],
-    [cx + noseOffset, bottomY - noseLift],
-    [rightX, midY],
-    [rightX, midY + sideWallPx],
-    [cx + noseOffset * 0.45, bottomY + sideWallPx - notchDepth],
-    [cx, bottomY + sideWallPx],
-  ]);
-
-  return { topFacePoints, leftSidePoints, rightSidePoints };
+  return {
+    renderMode: 'polygon' as const,
+    topFacePoints: pointsToString([
+      [cx, topY],
+      [rightX, midY],
+      [cx + noseOffset, bottomY - noseLift],
+      [cx, bottomY],
+      [leftX, midY],
+    ]),
+    leftSidePoints: pointsToString([
+      [leftX, midY],
+      [cx, bottomY],
+      [cx, bottomY + sideWallPx],
+      [leftX, midY + sideWallPx],
+    ]),
+    rightSidePoints: pointsToString([
+      [cx, bottomY],
+      [cx + noseOffset, bottomY - noseLift],
+      [rightX, midY],
+      [rightX, midY + sideWallPx],
+      [cx + noseOffset * 0.45, bottomY + sideWallPx - notchDepth],
+      [cx, bottomY + sideWallPx],
+    ]),
+  };
 };
 
-const moduleSilhouette: SilhouetteGenerator = ({
+const gatewaySilhouette: SilhouetteGenerator = ({
   diamondHeight,
   sideWallPx,
   cx,
@@ -179,42 +124,133 @@ const moduleSilhouette: SilhouetteGenerator = ({
   margin,
   padding,
 }) => {
-  const cornerInset = Math.max(1.5, Math.min((rightX - leftX) * 0.05, padding * 0.45, margin * 0.6));
-  const cornerRise = Math.max(1, Math.min(diamondHeight * 0.05, cornerInset * 0.6));
+  const noseOffset = Math.max(6, Math.min((rightX - leftX) * 0.18, padding + margin * 0.5));
+  const noseLift = Math.max(4, Math.min(diamondHeight * 0.15, padding));
+  const notchDepth = Math.max(3, Math.min(sideWallPx * 0.35, padding + 1));
 
-  const topFacePoints = pointsToString([
-    [cx, topY],
-    [rightX - cornerInset, midY - cornerRise],
-    [rightX, midY],
-    [rightX - cornerInset, midY + cornerRise],
-    [cx, bottomY],
-    [leftX + cornerInset, midY + cornerRise],
-    [leftX, midY],
-    [leftX + cornerInset, midY - cornerRise],
-  ]);
+  return {
+    renderMode: 'polygon' as const,
+    topFacePoints: pointsToString([
+      [cx, topY],
+      [rightX, midY],
+      [cx + noseOffset, bottomY - noseLift],
+      [cx, bottomY],
+      [leftX, midY],
+    ]),
+    leftSidePoints: pointsToString([
+      [leftX, midY],
+      [cx, bottomY],
+      [cx, bottomY + sideWallPx],
+      [leftX, midY + sideWallPx],
+    ]),
+    rightSidePoints: pointsToString([
+      [cx, bottomY],
+      [cx + noseOffset, bottomY - noseLift],
+      [rightX, midY],
+      [rightX, midY + sideWallPx],
+      [cx + noseOffset * 0.45, bottomY + sideWallPx - notchDepth],
+      [cx, bottomY + sideWallPx],
+    ]),
+  };
+};
 
-  const leftSidePoints = pointsToString([
-    [leftX, midY],
-    [cx, bottomY],
-    [cx, bottomY + sideWallPx],
-    [leftX, midY + sideWallPx],
-  ]);
+const hexSilhouette: SilhouetteGenerator = ({
+  diamondHeight,
+  sideWallPx,
+  cx,
+  topY,
+  midY,
+  bottomY,
+  leftX,
+  rightX,
+  margin,
+  padding,
+}) => {
+  const cornerInset = Math.max(2, Math.min((rightX - leftX) * 0.08, padding * 0.6, margin * 0.8));
+  const cornerRise = Math.max(1.5, Math.min(diamondHeight * 0.08, cornerInset * 0.7));
 
-  const rightSidePoints = pointsToString([
-    [cx, bottomY],
-    [rightX, midY],
-    [rightX, midY + sideWallPx],
-    [cx, bottomY + sideWallPx],
-  ]);
+  return {
+    renderMode: 'polygon' as const,
+    topFacePoints: pointsToString([
+      [cx, topY],
+      [rightX - cornerInset, midY - cornerRise],
+      [rightX, midY],
+      [rightX - cornerInset, midY + cornerRise],
+      [cx, bottomY],
+      [leftX + cornerInset, midY + cornerRise],
+      [leftX, midY],
+      [leftX + cornerInset, midY - cornerRise],
+    ]),
+    leftSidePoints: pointsToString([
+      [leftX, midY],
+      [cx, bottomY],
+      [cx, bottomY + sideWallPx],
+      [leftX, midY + sideWallPx],
+    ]),
+    rightSidePoints: pointsToString([
+      [cx, bottomY],
+      [rightX, midY],
+      [rightX, midY + sideWallPx],
+      [cx, bottomY + sideWallPx],
+    ]),
+  };
+};
 
-  return { topFacePoints, leftSidePoints, rightSidePoints };
+const cylinderSilhouette: SilhouetteGenerator = ({
+  sideWallPx,
+  cx,
+  topY,
+  midY,
+  bottomY,
+  leftX,
+  rightX,
+}) => {
+  const rx = (rightX - leftX) / 2;
+  const ry = (bottomY - topY) / 4;
+
+  return {
+    renderMode: 'cylinder' as const,
+    topFacePoints: pointsToString([[cx, topY], [rightX, midY], [cx, bottomY], [leftX, midY]]),
+    leftSidePoints: pointsToString([[leftX, midY], [cx, bottomY], [cx, bottomY + sideWallPx], [leftX, midY + sideWallPx]]),
+    rightSidePoints: pointsToString([[cx, bottomY], [rightX, midY], [rightX, midY + sideWallPx], [cx, bottomY + sideWallPx]]),
+    ellipseCenter: { cx, cy: midY },
+    ellipseRadii: { rx, ry },
+    bodyRect: { x: leftX, y: midY, width: rightX - leftX, height: sideWallPx },
+    bottomArcPath: `M ${leftX},${midY + sideWallPx} A ${rx},${ry} 0 0,0 ${rightX},${midY + sideWallPx}`,
+  };
+};
+
+const circleSilhouette: SilhouetteGenerator = ({
+  sideWallPx,
+  cx,
+  topY,
+  midY,
+  bottomY,
+  leftX,
+  rightX,
+}) => {
+  const rx = (rightX - leftX) / 2;
+  const ry = (bottomY - topY) / 4;
+
+  return {
+    renderMode: 'circle' as const,
+    topFacePoints: pointsToString([[cx, topY], [rightX, midY], [cx, bottomY], [leftX, midY]]),
+    leftSidePoints: pointsToString([[leftX, midY], [cx, bottomY], [cx, bottomY + sideWallPx], [leftX, midY + sideWallPx]]),
+    rightSidePoints: pointsToString([[cx, bottomY], [rightX, midY], [rightX, midY + sideWallPx], [cx, bottomY + sideWallPx]]),
+    ellipseCenter: { cx, cy: midY },
+    ellipseRadii: { rx, ry },
+    bodyRect: { x: leftX, y: midY, width: rightX - leftX, height: sideWallPx },
+    bottomArcPath: `M ${leftX},${midY + sideWallPx} A ${rx},${ry} 0 0,0 ${rightX},${midY + sideWallPx}`,
+  };
 };
 
 export const SILHOUETTE_GENERATORS: Record<BrickSilhouette, SilhouetteGenerator> = {
-  tower: towerSilhouette,
-  heavy: heavySilhouette,
+  rect: rectSilhouette,
+  cylinder: cylinderSilhouette,
+  gateway: gatewaySilhouette,
+  circle: circleSilhouette,
+  hex: hexSilhouette,
   shield: shieldSilhouette,
-  module: moduleSilhouette,
 };
 
 export function getSilhouettePolygons(

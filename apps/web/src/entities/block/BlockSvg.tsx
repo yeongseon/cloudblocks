@@ -40,10 +40,7 @@ export const BlockSvg = memo(function BlockSvg({ category, provider, subtype, na
   const iconUrl = getBlockIconUrl(provider ?? 'azure', category, subtype);
 
   // ─── v2.0: silhouette from CU dimensions ───────────────────
-  const { topFacePoints, leftSidePoints, rightSidePoints } = getSilhouetteFromCU(
-    profile.silhouette,
-    cu,
-  );
+  const silhouetteResult = getSilhouetteFromCU(profile.silhouette, cu);
 
   // ─── v2.0: stud grid = width × depth (1 stud per CU cell) ──
   const studsX = cu.width;
@@ -97,9 +94,19 @@ export const BlockSvg = memo(function BlockSvg({ category, provider, subtype, na
     >
       <StudDefs studId={studId} studColors={studColors} />
 
-      <polygon points={topFacePoints} fill={faceColors.topFaceColor} stroke={faceColors.topFaceStroke} strokeWidth={TOP_FACE_STROKE_WIDTH} strokeOpacity={TOP_FACE_STROKE_OPACITY} />
-      <polygon points={leftSidePoints} fill={faceColors.leftSideColor} />
-      <polygon points={rightSidePoints} fill={faceColors.rightSideColor} />
+      {silhouetteResult.renderMode === 'polygon' ? (
+        <>
+          <polygon points={silhouetteResult.topFacePoints} fill={faceColors.topFaceColor} stroke={faceColors.topFaceStroke} strokeWidth={TOP_FACE_STROKE_WIDTH} strokeOpacity={TOP_FACE_STROKE_OPACITY} />
+          <polygon points={silhouetteResult.leftSidePoints} fill={faceColors.leftSideColor} />
+          <polygon points={silhouetteResult.rightSidePoints} fill={faceColors.rightSideColor} />
+        </>
+      ) : (
+        <>
+          <rect x={silhouetteResult.bodyRect!.x} y={silhouetteResult.bodyRect!.y} width={silhouetteResult.bodyRect!.width} height={silhouetteResult.bodyRect!.height} fill={faceColors.leftSideColor} />
+          <path d={silhouetteResult.bottomArcPath!} fill={faceColors.rightSideColor} />
+          <ellipse cx={silhouetteResult.ellipseCenter!.cx} cy={silhouetteResult.ellipseCenter!.cy} rx={silhouetteResult.ellipseRadii!.rx} ry={silhouetteResult.ellipseRadii!.ry} fill={faceColors.topFaceColor} stroke={faceColors.topFaceStroke} strokeWidth={TOP_FACE_STROKE_WIDTH} strokeOpacity={TOP_FACE_STROKE_OPACITY} />
+        </>
+      )}
       <line x1={dims.leftX} y1={dims.midY} x2={dims.cx} y2={dims.topY} stroke={EDGE_HIGHLIGHT_COLOR} strokeWidth={EDGE_HIGHLIGHT_STROKE_WIDTH} strokeOpacity={EDGE_HIGHLIGHT_OPACITY} />
 
       <StudGrid studId={studId} studs={studs} />
