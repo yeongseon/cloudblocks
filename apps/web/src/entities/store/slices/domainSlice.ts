@@ -10,6 +10,7 @@ import {
   RESOURCE_RULES,
 } from '@cloudblocks/schema';
 import { generateId } from '../../../shared/utils/id';
+import { metricsService } from '../../../shared/utils/metricsService';
 import type { AddNodeInput, ArchitectureSlice, ArchitectureState, RemoveNodeOptions } from './types';
 import { canConnect } from '../../validation/connection';
 import type { EndpointType } from '../../validation/connection';
@@ -121,6 +122,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
 
   // ── Deprecated wrappers (delegates preserved for backward compat) ────────
   addPlate: (type, name, parentId, profileId?: PlateProfileId) => {
+    const prevCount = get().workspace.architecture.nodes.length;
     set((state) => {
       const arch = state.workspace.architecture;
       const containers = arch.nodes.filter(isContainer);
@@ -195,6 +197,9 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         endpoints: [...arch.endpoints, ...generateEndpointsForNode(plate.id)],
       });
     });
+    if (get().workspace.architecture.nodes.length > prevCount) {
+      metricsService.trackEvent('first_plate_placed', { layer: type });
+    }
   },
 
   removePlate: (id) => {
@@ -266,6 +271,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
   },
 
   addBlock: (category, name, placementId, provider, subtype, config) => {
+    const prevCount = get().workspace.architecture.nodes.length;
     set((state) => {
       const arch = state.workspace.architecture;
       const containers = arch.nodes.filter(isContainer);
@@ -301,6 +307,9 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         endpoints: [...arch.endpoints, ...generateEndpointsForNode(block.id)],
       });
     });
+    if (get().workspace.architecture.nodes.length > prevCount) {
+      metricsService.trackEvent('first_block_placed', { category });
+    }
   },
 
   duplicateBlock: (blockId) => {
@@ -850,6 +859,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         connections: [...nextArch.connections, connection],
       });
     });
+    metricsService.trackEvent('first_connection_created');
     return true;
   },
 

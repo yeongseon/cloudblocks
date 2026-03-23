@@ -12,6 +12,7 @@ import { terraformPlugin } from './terraformPlugin';
 import { bicepPlugin } from './bicep';
 import { pulumiPlugin } from './pulumi';
 import { validateArchitecture } from '../../entities/validation/engine';
+import { metricsService } from '../../shared/utils/metricsService';
 
 /**
  * Code Generation Pipeline Orchestrator (v1.0)
@@ -135,8 +136,10 @@ export function generateCode(
   // Stage 7: Optional format
   if (plugin.format) {
     const formatted = plugin.format(output.files, {});
+    metricsService.trackEvent('code_generated', { format: generatorId });
     return { ...output, files: formatted };
   }
 
+  metricsService.trackEvent('code_generated', { format: generatorId });
   return output;
 }
