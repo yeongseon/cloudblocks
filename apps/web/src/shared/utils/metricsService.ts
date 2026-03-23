@@ -1,3 +1,5 @@
+import { trackPlausible } from './plausibleAdapter';
+
 type FunnelEvent =
   | 'app_loaded'
   | 'first_plate_placed'
@@ -77,6 +79,8 @@ function trackEvent(
   };
 
   persistMetric(entry);
+
+  trackPlausible(event, metadata);
 }
 
 function captureHealthSnapshot(connectionCount: number | null = null): HealthSnapshot {
