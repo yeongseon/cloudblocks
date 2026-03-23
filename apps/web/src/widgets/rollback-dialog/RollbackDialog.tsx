@@ -88,7 +88,7 @@ export function RollbackDialog() {
 
   return (
     <>
-      <div className="rollback-dialog-backdrop" onClick={handleClose} />
+      <div className="rollback-dialog-backdrop" role="presentation" onClick={handleClose} />
       <div className="rollback-dialog" role="dialog" aria-label="Rollback Production">
         <div className="rollback-dialog-header">
           <h3 className="rollback-dialog-title">Rollback Production</h3>
