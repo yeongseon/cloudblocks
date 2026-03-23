@@ -495,7 +495,26 @@ export const useUIStore = create<UIState>((set, get) => ({
   themeVariant: (localStorage.getItem('cloudblocks:theme-variant') as ThemeVariant) || 'blueprint',
   setThemeVariant: (variant) => {
     localStorage.setItem('cloudblocks:theme-variant', variant);
-    set({ themeVariant: variant });
+    const defaultStuds = variant === 'workshop';
+    localStorage.setItem('cloudblocks:show-studs', String(defaultStuds));
+    set({ themeVariant: variant, showStuds: defaultStuds });
+  },
+
+  showStuds: (() => {
+    const stored = localStorage.getItem('cloudblocks:show-studs');
+    if (stored !== null) return stored === 'true';
+    // Default to true per BRICK_DESIGN_SPEC.md §5: all blocks render stud grids
+    return true;
+  })(),
+  toggleStuds: () =>
+    set((s) => {
+      const next = !s.showStuds;
+      localStorage.setItem('cloudblocks:show-studs', String(next));
+      return { showStuds: next };
+    }),
+  setShowStuds: (show) => {
+    localStorage.setItem('cloudblocks:show-studs', String(show));
+    set({ showStuds: show });
   },
 
   showGrid: true,
