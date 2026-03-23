@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { usePromoteStore } from '../../entities/store/promoteStore';
 import type { DeploymentVersion } from '../../shared/types/ops';
+import { ComingSoonBanner } from '../../shared/ui/ComingSoonBanner';
 import { timeAgo } from '../../shared/utils/timeAgo';
 import './RollbackDialog.css';
 
@@ -104,9 +105,10 @@ export function RollbackDialog() {
         </div>
 
         <div className="rollback-dialog-content">
-          <div className="rollback-coming-soon-banner">
-            Coming Soon — Rollback Production is under development and not yet functional.
-          </div>
+          <ComingSoonBanner
+            message="Coming Soon — Rollback Production is under development and not yet functional."
+            className="rollback-coming-soon-banner"
+          />
           {/* Current production version */}
           <div className="rollback-current-card">
             <div className="rollback-current-label">Current Production Version</div>
