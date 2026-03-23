@@ -20,6 +20,16 @@ Design cloud infrastructure by placing blocks on plates, connect components, val
 
 > **[▶ Try the Live Demo](https://yeongseon.github.io/cloudblocks/)** — Frontend-only playground. Visual builder, code generation, and templates work instantly. AI and GitHub features require the backend ([setup guide](docs/guides/TUTORIALS.md)).
 
+## Demo
+
+<p align="center">
+  <img src="docs/images/hero.png" alt="CloudBlocks demo — place, connect, validate, generate" width="720" />
+</p>
+
+> **Place** blocks on plates, **connect** components with typed protocols, **validate** against real-world rules, and **generate** Terraform, Bicep, or Pulumi — all in the browser.
+
+*Automated demo video coming soon. For now, [try the live demo](https://yeongseon.github.io/cloudblocks/).*
+
 ## Monorepo Layout
 
 CloudBlocks uses a monorepo with one frontend app, one backend app, and shared TypeScript packages:
