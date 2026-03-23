@@ -45,10 +45,10 @@ Schema v4 endpoint-based architecture replacing stub-addressable connections, ca
 
 ### Design System
 
-- Hardcoded LEGO colors replaced with themeTokens (blueprint/workshop) (#1249)
+- Hardcoded modular colors replaced with themeTokens (blueprint/workshop) (#1249)
 - Unified icon usage with lucide-react (#1258)
 - UI terminology update: Block→Node, Plate→Container, Stub→Endpoint (#1259)
-- LEGO stud toggle as theme option (blueprint=studs on, workshop=studs off) (#1261)
+- Modular stud toggle as theme option (blueprint=studs on, workshop=studs off) (#1261)
 - First-run-only student onboarding (#1247)
 
 ### Documentation
@@ -87,7 +87,7 @@ Complete UI redesign with Professional theme (default), stub-addressable connect
 - Added `ThemeVariant` system with blueprint/workshop token sets
 - CSS custom properties for all visual tokens (colors, spacing, typography, shadows)
 - Migrated hardcoded `font-family` values to CSS variables
-- Blueprint (Professional) and Workshop (Lego) theme toggle via `data-theme` attribute
+- Blueprint (Professional) and Workshop (Modular) theme toggle via `data-theme` attribute
 
 ### Landing Page & Builder Layout (Phases 10–11)
 
@@ -119,7 +119,7 @@ Complete UI redesign with Professional theme (default), stub-addressable connect
 
 - In-canvas invalid connection visualization with red dashed feedback
 - View menu restructured with keyboard shortcuts for all panels
-- Professional dot grid canvas background replacing LEGO baseplate
+- Professional dot grid canvas background replacing modular baseplate
 
 ### Onboarding & Animation (Phases 17–18)
 
@@ -131,7 +131,7 @@ Complete UI redesign with Professional theme (default), stub-addressable connect
 ### Professional Theme Tokens
 
 - MenuBar themed with professional color tokens
-- All LEGO-specific hardcoded values wrapped in `[data-visual-mode="lego"]` selectors
+- All modular-specific hardcoded values wrapped in `[data-visual-mode="lego"]` selectors (code identifier)
 - Professional mode is the default visual style
 
 ### Azure Subnet Unification
@@ -143,7 +143,7 @@ Complete UI redesign with Professional theme (default), stub-addressable connect
 
 - 32 commits across 18 implementation phases
 - 1992 tests passing across all test files
-- LEGO visual mode preserved for M22 dual theme system
+- MODULAR visual mode preserved for M22 dual theme system
 
 ## [v0.20.0] — 2026-03-22
 
@@ -309,11 +309,11 @@ M19 was scoped as a 1-day milestone — resource model unification, minifigure r
 
 **Milestone 18 — DevOps UX**
 
-Introduced Lego Technic Beam connectors, fixed provider-specific UX issues, and clarified product direction by removing features that didn't fit the "architecture compiler" identity. Several originally planned features (OpsCenter, Notification System, AI panel) were deferred after evaluation showed they added complexity without immediate user value.
+Introduced Technic Beam connectors, fixed provider-specific UX issues, and clarified product direction by removing features that didn't fit the "architecture compiler" identity. Several originally planned features (OpsCenter, Notification System, AI panel) were deferred after evaluation showed they added complexity without immediate user value.
 
-### Brick-Style Connectors (Area E)
+### Block-Style Connectors (Area E)
 
-- Redesigned connection lines as Lego Technic liftarm beams with pin holes, side faces, and typed color differentiation
+- Redesigned connection lines as Technic liftarm beams with pin holes, side faces, and typed color differentiation
 - Screen-space orthogonal routing: all beams are strictly horizontal or vertical on screen with clean right-angle elbows
 - Height normalization: L-routes connect at the topmost endpoint height
 - BRICK_CONNECTOR_SPEC.md §12 written with full geometry, routing algorithm, and design token documentation
@@ -329,7 +329,7 @@ Introduced Lego Technic Beam connectors, fixed provider-specific UX issues, and 
 
 ### UI Cleanup & Simplification
 
-- Unified overlay panels to Lego brick design system (#1021)
+- Unified overlay panels to modular building design system (#1021)
 - EmptyCanvasOverlay CTA buttons consolidated into 2×2 grid (#989)
 - Portrait panel removed; canvas viewport adjusts for right-side panels (#1033)
 - OpsCenter and AI features hidden from UI — deferred to M20+ (#1066)
@@ -447,9 +447,9 @@ Restructured the monorepo from a scaffolded prototype into a modular, separation
 - Establish canonical vs superseded document lifecycle policy
 - Standardize Milestone vs Phase terminology across all active docs
 - Archive superseded v1.x specs with clear historical labels
-- Lego-themed MkDocs documentation site with custom CSS
+- Modular-themed MkDocs documentation site with custom CSS
 - User-centric navigation restructure (6-tab layout)
-- Dark mode Lego baseplate theme and light mode default
+- Dark mode modular baseplate theme and light mode default
 - Homepage rewrite with card grids and 5-step onboarding
 - Dead code removal (unreachable `except LLMError`)
 - Live demo link added to README
@@ -568,7 +568,7 @@ Phase 2 UX:
 
 Phase 3:
 
-- Lego minifigure character SVG component (Azure variant)
+- Mascot character SVG component (Azure variant)
 - Cloud provider logo on torso
 - Universal Stud Standard compliant head stud
 

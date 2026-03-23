@@ -9,7 +9,7 @@
 
 ## 1. Problem Statement
 
-Connections between blocks currently render as thin SVG bezier curves — generic diagram-tool lines that break the Lego visual metaphor. Plates and blocks look like Lego bricks with studs, but connections look like arrows from a flowchart tool. This visual inconsistency undermines the entire brick-based design language.
+Connections between blocks currently render as thin SVG bezier curves — generic diagram-tool lines that break the brick visual metaphor. Plates and blocks look like bricks with studs, but connections look like arrows from a flowchart tool. This visual inconsistency undermines the entire brick-based design language.
 
 ### Current Implementation
 
@@ -24,7 +24,7 @@ ConnectionPath.tsx:
 
 ### Goal
 
-Replace bezier lines with **Lego Technic flat-tile style connectors** that:
+Replace bezier lines with **Technic flat-tile style connectors** that:
 
 - Conform to the Universal Stud Standard
 - Render correctly in 2.5D isometric projection
@@ -37,7 +37,7 @@ Replace bezier lines with **Lego Technic flat-tile style connectors** that:
 
 ### 2.1 Connector Shape: Flat Tile (1×N×⅓)
 
-Connectors use the **Lego flat tile** metaphor — thin rectangular pieces (⅓ brick height) that lie flat on the isometric plane. This was chosen over Technic beams because:
+Connectors use the **flat tile** metaphor — thin rectangular pieces (⅓ brick height) that lie flat on the isometric plane. This was chosen over Technic beams because:
 
 - **Simpler geometry** — fewer SVG elements per connector, better performance with 20+ connections
 - **Less visual clutter** — thin tiles don't compete with blocks for attention
@@ -90,7 +90,7 @@ The path from source to target is computed as:
 
 1. If source and target share the same X or Z axis: **single straight segment**
 2. Otherwise: **L-shaped path** with one elbow joint (2 segments)
-3. Elbow joints render as small square connector pieces (like Lego Technic angle connectors)
+3. Elbow joints render as small square connector pieces (like Technic angle connectors)
 
 The routing algorithm projects screen-space endpoints back to world coordinates, then routes along world X and Z axes (which render as isometric diagonals on screen).
 
@@ -326,7 +326,7 @@ Complete SVG for a single isometric flat tile segment along the world X-axis:
 
 The original flat tile design (§2.1) used surface pattern overlays (§3.2) to distinguish connection types. While functionally correct, the thin lines and dash patterns were subtle and hard to read at typical zoom levels. The Technic Beam redesign replaces pattern overlays with **physically distinct beam geometries** — each connection type now has a unique 3D shape, making them instantly recognizable.
 
-This follows the Lego Technic principle: different beam pieces are physically different shapes, not painted-on decorations.
+This follows the Technic principle: different beam pieces are physically different shapes, not painted-on decorations.
 
 ### 11.2 BeamShape Type
 
@@ -424,17 +424,17 @@ Beam-shape-specific tests validate:
 
 ---
 
-## 12. Lego-Faithful Connector Redesign (Supersedes §11)
+## 12. Faithful Connector Redesign (Supersedes §11)
 
 **Date**: 2026-03-21  
 **Status**: Active — supersedes §11 (Technic Beam Redesign)  
-**Problem**: §11 produced connectors that look like dark pillars and pipes — nothing like real Lego. The routing used screen-space coordinates instead of isometric axes, and beam proportions were arbitrary rather than grounded in actual Lego measurements.
+**Problem**: §11 produced connectors that look like dark pillars and pipes — nothing like real brick connectors. The routing used screen-space coordinates instead of isometric axes, and beam proportions were arbitrary rather than grounded in actual brick measurements.
 
-### 12.1 Real Lego Measurement System
+### 12.1 Real Brick Measurement System
 
-All connector dimensions derive from the **official Lego measurement system**, translated into our coordinate system. This is the single source of truth.
+All connector dimensions derive from the **official brick measurement system**, translated into our coordinate system. This is the single source of truth.
 
-#### 12.1.1 Lego Physical Dimensions (Reference)
+#### 12.1.1 Brick Physical Dimensions (Reference)
 
 ```
 Stud pitch (center-to-center):     8.0 mm
@@ -450,7 +450,7 @@ Technic pin hole diameter:         4.8 mm  (same as stud diameter)
 Technic pin hole spacing:          8.0 mm  (= stud pitch)
 ```
 
-#### 12.1.2 Key Lego Ratios
+#### 12.1.2 Key Brick Ratios
 
 ```
 brick height : stud pitch     = 6:5  (9.6:8.0)
@@ -479,9 +479,9 @@ screenX = originX + (worldX - worldZ) × TILE_W / 2
 screenY = originY + (worldX + worldZ) × TILE_H / 2 - worldY × TILE_Z
 ```
 
-**Connector dimensions, derived from Lego ratios:**
+**Connector dimensions, derived from brick ratios:**
 
-| Lego Concept                  | Lego mm | CU Equivalent | Screen px (approx)         |
+| Brick Concept                 | mm      | CU Equivalent | Screen px (approx)         |
 | ----------------------------- | ------- | ------------- | -------------------------- |
 | Beam width (1 stud)           | 8.0     | 1.0 CU        | 32 iso-X or 16 iso-Y       |
 | Beam thickness (plate height) | 3.2     | 0.4 CU        | 13 elevation               |
@@ -491,18 +491,18 @@ screenY = originY + (worldX + worldZ) × TILE_H / 2 - worldY × TILE_Z
 
 ### 12.2 Design: Technic Liftarm (Flat Beam with Pin Holes)
 
-Connectors use the **Lego Technic Liftarm** metaphor — flat beams with visible pin holes at regular intervals. This is what makes them instantly recognizable as Lego.
+Connectors use the **Technic Liftarm** metaphor — flat beams with visible pin holes at regular intervals. This is what makes them instantly recognizable as brick connectors.
 
 #### 12.2.1 Why Liftarms
 
-Real Lego Technic liftarms are:
+Real Technic liftarms are:
 
 - **Flat** — 1 plate height thick (3.2mm), lying on the isometric ground plane
 - **Studless** — no studs on top, only pin holes along the beam
 - **Rounded ends** — semi-circular terminations at both ends
 - **Pin holes visible** — evenly spaced holes are the defining visual feature
 
-This contrasts with §11's approach which used arbitrary extrusions with no Lego-recognizable features.
+This contrasts with §11's approach which used arbitrary extrusions with no recognizable brick features.
 
 #### 12.2.2 Liftarm Cross-Section in Isometric
 
@@ -587,9 +587,9 @@ Segment lengths are computed directly from screen coordinates:
 - `screen-v`: `|end.y - start.y|` pixels, converted to CU by dividing by `TILE_H`
 - `screen-h`: `|end.x - start.x|` pixels, converted to CU by dividing by `TILE_W`
 
-### 12.4 Beam Geometry Constants (Derived from Lego)
+### 12.4 Beam Geometry Constants (Derived from Brick Ratios)
 
-All values derived from `RENDER_SCALE` and Lego ratios:
+All values derived from `RENDER_SCALE` and brick ratios:
 
 ```typescript
 // Screen-space beam half-thickness (perpendicular to beam direction)
@@ -614,9 +614,9 @@ const SAME_PX_TOLERANCE = 2; // pixels, for screen-aligned detection
 
 ### 12.5 Connection Type Differentiation
 
-Types are differentiated by **beam color** (primary) and **pin hole style** (secondary). Beam shape is uniform — all types use the same liftarm geometry. This matches real Lego where the same beam part comes in different colors.
+Types are differentiated by **beam color** (primary) and **pin hole style** (secondary). Beam shape is uniform — all types use the same liftarm geometry. This matches the Technic design where the same beam part comes in different colors.
 
-| Type       | Beam Color           | Pin Hole Style            | Lego Analogy            |
+| Type       | Beam Color           | Pin Hole Style            | Brick Analogy           |
 | ---------- | -------------------- | ------------------------- | ----------------------- |
 | `dataflow` | Slate gray `#64748b` | Open circle               | Standard liftarm        |
 | `http`     | Blue `#3b82f6`       | Filled dot (pin inserted) | Beam with pins          |
@@ -673,7 +673,7 @@ At the bend point, a **square connector piece** joins the two segments:
 
 Direction is indicated by the **last pin hole being a filled triangle** (arrow shape) instead of a circle. No protruding arrow tip — the beam terminates flush, with only the pin hole shape changing.
 
-This is more Lego-faithful than a protruding arrow — real Lego pieces don't have arrows.
+This is more faithful to the brick aesthetic than a protruding arrow — real Technic pieces don't have arrows.
 
 #### 12.6.4 Endpoint Studs
 
@@ -729,10 +729,10 @@ export const SAME_PX_TOLERANCE = 2; // alignment detection
 
 ### 12.11 Acceptance Criteria
 
-- [x] Connectors visually resemble Lego Technic liftarms with visible pin holes
+- [x] Connectors visually resemble Technic liftarms with visible pin holes
 - [x] All segments are screen-vertical or screen-horizontal — no diagonals
 - [x] L-routes use height normalization (elbow at topmost endpoint height)
-- [x] Beam proportions match Lego ratios (thickness = plate height)
+- [x] Beam proportions match brick ratios (thickness = plate height)
 - [x] 5 connection types differentiated by color (pin hole style is bonus)
 - [ ] No "pillar through block" artifacts — correct depth ordering
 - [x] All existing interactions preserved (select, hover, delete, diff)
