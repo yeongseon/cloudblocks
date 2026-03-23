@@ -1,145 +1,83 @@
 # Use Templates
 
-Templates are pre-built architecture patterns that give you a working starting point. Instead of building from scratch, load a template, then customize it for your specific needs.
+Templates are pre-built architecture patterns that provide a working starting point. Instead of building from scratch, you can load a template and customize it for your specific needs.
 
 ---
 
 ## Loading a Template
 
-1. Open CloudBlocks
-2. On the empty canvas, click **Use Template**
-   - Or use the menu: **File → New Workspace**, then click **Use Template**
-3. Browse the **Template Gallery**
-4. Click a template to preview its description and architecture
-5. Click **Use** to load it onto the canvas
+You can load a template in two ways:
 
-The template creates a new workspace with all containers, nodes, and connections pre-configured.
+1.  On the empty canvas, click **Use Template** from the initial call to action.
+2.  Use the menu: **Build → Browse Templates**.
+
+Once the Template Gallery opens, you can browse the available patterns. Click any template to see a preview of its architecture and description. Click **Use** to load the template into your workspace.
+
+When a template loads, it creates a complete workspace with all containers, nodes, and connections pre-configured.
 
 ---
 
 ## Built-in Templates
 
-CloudBlocks ships with 6 built-in templates, organized by difficulty and use case:
+CloudBlocks includes six built-in templates covering various use cases and difficulty levels:
 
-### Three-Tier Web Application
+### 1. Three-Tier Web Application
 
-**Difficulty:** Beginner · **Category:** Web Application
+**Difficulty:** Beginner | **Category:** Web Application
 
-The classic web architecture pattern with three layers:
+This template implements the classic web architecture pattern. It features an Internet source connecting to an Application Gateway, which routes traffic to a Virtual Machine. The backend includes both a SQL Database and Blob Storage. The resources are organized into two pre-wired subnets.
 
-```
-Internet → Gateway (Load Balancer) → Compute (App Server) → Database + Storage
-```
+### 2. Simple Compute Setup
 
-Best for: Web applications, APIs with a database backend, traditional server-based apps.
+**Difficulty:** Beginner | **Category:** Web Application
 
----
+A minimal architecture designed for simple workloads. It connects the Internet to a Gateway, which then routes to an App Service. Everything is contained within a single subnet, making it an ideal starting point for learning the builder.
 
-### Simple Compute Setup
+### 3. Data Storage Backend
 
-**Difficulty:** Beginner · **Category:** Compute
+**Difficulty:** Intermediate | **Category:** Data Pipeline
 
-The simplest possible architecture — a single compute instance:
+This pattern focuses on a backend-only setup where compute resources connect to multiple data stores. It includes an Internet source, an API Gateway, and an API Server. The architecture is split across two subnets: an App Subnet for compute and a Data Subnet for Database and File Storage resources.
 
-```
-Compute (VM / App Service)
-```
+### 4. Serverless HTTP API
 
-Best for: Learning CloudBlocks, quick prototyping, single-service deployments.
+**Difficulty:** Intermediate | **Category:** Serverless
 
----
+A modern serverless pattern using managed services. It routes Internet traffic through an API Gateway to an HTTP Handler (Function). Data is persisted in Blob Storage and CosmosDB. This template demonstrates how to build scalable APIs without managing traditional servers.
 
-### Data Storage Backend
+### 5. Event-Driven Pipeline
 
-**Difficulty:** Beginner · **Category:** Data
+**Difficulty:** Advanced | **Category:** Data Pipeline
 
-A backend-focused architecture where compute connects to multiple data stores:
+This template represents a pure asynchronous processing pipeline. It features Event Sources and a Queue that trigger Processing Functions, which eventually store results in Data Lake Storage. Note that this architecture has no direct internet traffic and relies on timers and events to drive the flow.
 
-```
-Compute → Database + Storage (in private subnet)
-```
+### 6. Full-Stack Serverless with Event Processing
 
-Best for: Data processing services, backend APIs, batch processing.
+**Difficulty:** Advanced | **Category:** Serverless
 
----
-
-### Serverless HTTP API
-
-**Difficulty:** Intermediate · **Category:** Serverless
-
-A serverless API pattern using functions instead of traditional compute:
-
-```
-Gateway (API Gateway) → Function → Storage + Database
-```
-
-Best for: REST APIs, microservices, event-driven backends, cost-optimized workloads.
-
----
-
-### Event-Driven Pipeline
-
-**Difficulty:** Intermediate · **Category:** Event Processing
-
-An asynchronous processing pipeline driven by events and queues:
-
-```
-Event → Function → Queue → Function → Storage
-```
-
-Best for: Data pipelines, stream processing, decoupled architectures, IoT backends.
-
----
-
-### Full-Stack Serverless with Event Processing
-
-**Difficulty:** Advanced · **Category:** Full Stack
-
-A comprehensive architecture combining multiple patterns:
-
-```
-Gateway → Function (API) → Database + Storage
-Event → Function (Worker) → Queue → Function (Processor)
-```
-
-Best for: Production applications, complex microservices, architectures that need both synchronous APIs and asynchronous processing.
+The most complex built-in template, featuring 13 nodes and 11 connections. It combines a synchronous web frontend (Internet → API Gateway → Web Frontend + API Handler Function) with an asynchronous processing backend (Queue → Worker Function and Event → Batch Processor).
 
 ---
 
 ## Customizing Templates
 
-Templates are fully editable. After loading a template:
+Templates are fully editable. After loading one, you can modify it just like a workspace built from scratch:
 
-- **Add nodes** — Drag new resources from the Command Palette
-- **Remove nodes** — Select a node and press Delete
-- **Add connections** — Click a source node, then click a target node
-- **Remove connections** — Select a connection and press Delete
-- **Rearrange** — Drag nodes to reposition them
-- **Add containers** — Insert new networks or subnets via the Insert menu
-- **Rename** — Click any element and edit its name in the bottom panel
-
-!!! tip "Templates as learning tools"
-Load a template and examine how it's structured before building your own architecture. Notice the container layout, connection types, and node placement — these follow cloud best practices.
+- **Add resources**: Drag new components from the **Sidebar Palette** on the left.
+- **Remove elements**: Select any node, container, or connection and press **Delete**.
+- **Connect components**: Click an output port on a source node, then click an input port on a target node.
+- **Rearrange**: Drag nodes and containers to change their position on the canvas.
+- **Rename**: Click a node to select it, then edit its name in the **Inspector Panel** on the right.
 
 ---
 
 ## Choosing the Right Template
 
-| If you need...                            | Use this template          |
-| ----------------------------------------- | -------------------------- |
-| A standard web app with a database        | Three-Tier Web Application |
-| The simplest possible starting point      | Simple Compute Setup       |
-| A backend with database and storage       | Data Storage Backend       |
-| A serverless API without managing servers | Serverless HTTP API        |
-| Asynchronous event processing             | Event-Driven Pipeline      |
-| A full production architecture            | Full-Stack Serverless      |
-
----
-
-## What's Next?
-
-| Goal                               | Guide                                            |
-| ---------------------------------- | ------------------------------------------------ |
-| Generate code from your template   | [Generate Code](generate-code.md)                |
-| Build an architecture from scratch | [Create an Architecture](create-architecture.md) |
-| Understand the building blocks     | [Core Concepts](core-concepts.md)                |
+| If you need...                                  | Use this template          |
+| :---------------------------------------------- | :------------------------- |
+| A standard web app with a database              | Three-Tier Web Application |
+| The simplest possible starting point            | Simple Compute Setup       |
+| A backend with structured and unstructured data | Data Storage Backend       |
+| A serverless API without server management      | Serverless HTTP API        |
+| Asynchronous, event-driven processing           | Event-Driven Pipeline      |
+| A complete production-ready serverless stack    | Full-Stack Serverless      |

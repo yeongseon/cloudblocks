@@ -1,142 +1,138 @@
 # Core Concepts
 
-CloudBlocks uses a Lego-style composition model. You build cloud architectures by snapping together four types of elements: **containers**, **nodes**, **connections**, and **templates**.
+CloudBlocks uses a Lego-style composition model for cloud architecture. You build infrastructure by placing elements on the canvas, connecting them with typed protocols, and validating against real-world rules.
 
 ---
 
 ## Containers
 
-Containers are the large boundary areas that represent network infrastructure. Every node must be placed inside a container.
+Containers represent logical boundaries and network infrastructure. They are the "plates" that hold other resources.
 
-| Container Type | Cloud Equivalent               | Nesting                                   |
-| -------------- | ------------------------------ | ----------------------------------------- |
-| **Network**    | Azure VNet / AWS VPC / GCP VPC | Top-level — placed directly on the canvas |
-| **Subnet**     | Public or private subnet       | Must be inside a Network                  |
+| Container Type | Cloud Equivalent (Azure / AWS / GCP) | Placement Rules                                |
+| -------------- | ------------------------------------ | ---------------------------------------------- |
+| **Network**    | VNet / VPC / VPC                     | Top-level plate placed directly on the canvas. |
+| **Subnet**     | Subnet / Subnet / Subnet             | Must be placed inside a Network plate.         |
 
-Containers define the network topology of your architecture. A typical setup has one Network containing one or more Subnets.
+Nodes are placed inside either a Network or a Subnet to define their network location.
 
-!!! info "Nesting rules"
-Subnets must be placed inside a Network. Nodes must be placed inside a Subnet (or directly inside a Network). CloudBlocks enforces these rules and shows an error if placement is invalid.
+!!! info "Nesting"
+A typical architecture starts with a Network plate, followed by one or more Subnet plates inside it. Resources like virtual machines or databases are then placed within those subnets.
 
 ---
 
 ## Nodes
 
-Nodes are individual cloud resources — the actual services that run your workload. They are placed inside containers.
+Nodes represent individual cloud resources. CloudBlocks organizes all resources into exactly **7 categories**:
 
-CloudBlocks organizes nodes into **10 categories**:
+| Category       | What It Does                          | Example Azure Resources                                                 |
+| -------------- | ------------------------------------- | ----------------------------------------------------------------------- |
+| **Compute**    | Runs application code                 | VM, App Service, Functions, Container Instances, AKS                    |
+| **Data**       | Stores and manages data               | SQL Database, Cosmos DB, Blob Storage, Cache Store                      |
+| **Edge**       | Handles traffic entry and routing     | Application Gateway, Front Door, CDN, DNS Zone, Load Balancer, Firewall |
+| **Security**   | Protects resources and manages access | Key Vault, Bastion, NSG, Secret Store                                   |
+| **Messaging**  | Connects services asynchronously      | Queue (Service Bus), Event Hub                                          |
+| **Network**    | Manages network infrastructure        | NAT Gateway, Public IP, Route Table, Private Endpoint                   |
+| **Operations** | Monitors and observes                 | Monitoring                                                              |
 
-| Category          | Examples                          | Can Initiate Connections? |
-| ----------------- | --------------------------------- | ------------------------- |
-| **Compute**       | VM, App Service, ECS              | Yes                       |
-| **Database**      | SQL Database, Cosmos DB, RDS      | No (receiver only)        |
-| **Storage**       | Blob Storage, S3, Data Lake       | No (receiver only)        |
-| **Gateway**       | API Gateway, Load Balancer        | Yes                       |
-| **Function**      | Azure Function, Lambda            | Yes                       |
-| **Queue**         | Service Bus, SQS                  | Yes                       |
-| **Event**         | Event Grid, EventBridge           | Yes                       |
-| **Analytics**     | Log Analytics, CloudWatch         | No (receiver only)        |
-| **Identity**      | Entra ID, IAM                     | No (receiver only)        |
-| **Observability** | Azure Monitor, CloudWatch Metrics | No (receiver only)        |
-
-!!! tip "Initiator vs. receiver"
-The "Can Initiate Connections?" column matters when you create connections. Only initiator nodes can be the **source** of a connection. Receiver-only nodes (like databases and storage) can only be **targets**. This reflects real-world patterns — a compute service connects to a database, not the other way around.
+!!! tip "Sidebar Palette"
+You can find and drag these resources from the **Sidebar Palette** on the left side of the editor.
 
 ---
 
 ## Connections
 
-Connections are the lines between nodes that represent communication flows. Each connection has a **type** that describes the nature of the communication.
+Connections represent communication flows between nodes. CloudBlocks uses a port-based model where each node has defined endpoints.
 
-| Type         | Meaning                                | Visual Style |
-| ------------ | -------------------------------------- | ------------ |
-| **Dataflow** | Directional traffic flow               | Solid arrow  |
-| **HTTP**     | Request/response interaction           | Dashed arrow |
-| **Internal** | Internal control-plane communication   | Dotted line  |
-| **Data**     | Data synchronization and state-sharing | Double line  |
-| **Async**    | Asynchronous event or callback         | Wavy line    |
+### Endpoint Model
 
-### Creating a Connection
+- **EndpointSemantic**: `http`, `event`, or `data`. This describes the protocol or data type.
+- **EndpointDirection**: `input` or `output`.
 
-1. Click on the source node (must be an initiator)
-2. Click on the target node
-3. Select the connection type
+A connection links an **output port** on a source node to an **input port** on a target node.
 
-### Connection Rules
+### Allowed Connection Flows
 
-- The source must be an initiator category (Compute, Gateway, Function, Queue, or Event)
-- Queue and Event nodes can only connect to Function nodes
-- A node cannot connect to itself
-- CloudBlocks validates connections in real-time and prevents invalid ones
+The following flows are supported based on resource categories:
+
+| Source Category | Target Category | Allowed Semantics |
+| --------------- | --------------- | ----------------- |
+| internet        | Edge            | http, data        |
+| Edge            | Edge            | http, data        |
+| Edge            | Compute         | http, data        |
+| Compute         | Data            | data              |
+| Compute         | Operations      | event, data       |
+| Compute         | Security        | data              |
+| Compute         | Messaging       | event, data       |
+| Messaging       | Compute         | event, data       |
+
+!!! warning "Receiver-only Categories"
+The following categories can only receive connections and cannot initiate them: **Data**, **Security**, **Operations**, and **Network**.
 
 ---
 
 ## Templates
 
-Templates are pre-built architecture patterns that you can load and customize. They give you a working starting point instead of building from scratch.
+Templates provide pre-configured architecture patterns to help you start quickly. There are 6 built-in templates available:
 
-CloudBlocks includes 6 built-in templates:
-
-| Template                       | Description                                                                  |
-| ------------------------------ | ---------------------------------------------------------------------------- |
-| **Three-Tier Web Application** | Gateway → Compute → Database + Storage                                       |
-| **Simple Compute Setup**       | Single compute instance in a public subnet                                   |
-| **Data Storage Backend**       | Compute → Database + Storage in a private subnet                             |
-| **Serverless HTTP API**        | Gateway → Function → Storage + Database                                      |
-| **Event-Driven Pipeline**      | Event → Function → Queue → Function → Storage                                |
-| **Full-Stack Serverless**      | Complete architecture with API, queue workers, events, database, and storage |
-
-Templates are fully editable — load one, then add, remove, or rearrange nodes and connections to match your needs.
-
-For details on using templates, see [Use Templates](templates.md).
+1.  **Three-Tier Web Application** (beginner, web-application)
+2.  **Simple Compute Setup** (beginner, web-application)
+3.  **Data Storage Backend** (intermediate, data-pipeline)
+4.  **Serverless HTTP API** (intermediate, serverless)
+5.  **Event-Driven Pipeline** (advanced, data-pipeline)
+6.  **Full-Stack Serverless with Event Processing** (advanced, serverless)
 
 ---
 
 ## Cloud Providers
 
-CloudBlocks supports three cloud providers:
+CloudBlocks supports multiple cloud providers, adapting resource names and icons automatically.
 
-- **Azure** (default)
-- **AWS**
-- **GCP**
+- **Azure**: The default provider with full resource coverage.
+- **AWS**: Resource names adapt to AWS terminology (e.g., VPC, EC2, Lambda, S3, RDS).
+- **GCP**: Resource names adapt to GCP terminology (e.g., Compute Engine, Cloud Functions, Cloud Storage).
 
-You can switch the active provider using the provider tabs in the menu bar. The provider determines which cloud-specific resources are available and how generated code is structured.
-
-!!! warning "Mixed-provider architectures"
-CloudBlocks allows mixing resources from different providers in the same architecture, but warns you when this happens. In most cases, you'll want to use a single provider for the entire architecture.
+Use the provider tabs in the menu bar to switch the active provider for your workspace.
 
 ---
 
 ## Validation
 
-CloudBlocks validates your architecture in real-time at three levels:
+The validation engine ensures your design follows cloud best practices and technical constraints.
 
-| Level            | What It Checks                                                              |
-| ---------------- | --------------------------------------------------------------------------- |
-| **Placement**    | Nodes are inside valid containers (e.g., compute inside a subnet)           |
-| **Connection**   | Valid source/target pairs, initiator rules                                  |
-| **Architecture** | Cross-cutting constraints (e.g., database not directly exposed to internet) |
-
-Validation errors appear as you build. You can also run a full validation manually via **Build → Validate Architecture**.
+- **Real-time Validation**: Errors appear instantly as you place resources or create connections.
+- **Manual Check**: Run a full audit via **Build → Validate Architecture**.
+- **Results**: View detailed error messages and warnings in the **Bottom Dock** under the validation tab.
 
 ---
 
 ## Workspaces
 
-A workspace is a saved architecture project. Each workspace has its own:
+Workspaces allow you to manage multiple projects independently.
 
-- Architecture (containers, nodes, connections)
-- Undo/redo history
-- GitHub link (optional)
+- **Storage**: Saved automatically to your browser's local storage.
+- **Management**: Create, rename, or delete projects via the **Workspaces** button in the menu bar.
+- **GitHub Sync**: Connect a workspace to a GitHub repository to sync your designs and generate Pull Requests.
 
-You can create, rename, and switch between multiple workspaces using the **File** menu. Workspaces are saved to your browser's local storage.
+---
+
+## Learning Mode
+
+Learning Mode offers interactive scenarios to help you master cloud architecture patterns.
+
+- **Three-Tier Web Application**: Beginner scenario, approximately 10 minutes.
+- **Serverless HTTP API**: Intermediate scenario, approximately 8 minutes.
+- **Event-Driven Data Pipeline**: Advanced scenario, approximately 12 minutes.
+
+Access these guided tutorials via **Build → Browse Scenarios** or by clicking the **Learn How** button on an empty canvas.
 
 ---
 
 ## What's Next?
 
-| Goal                                        | Guide                                            |
-| ------------------------------------------- | ------------------------------------------------ |
-| Build your first architecture               | [Quick Start](quick-start.md)                    |
-| Design a complete architecture step by step | [Create an Architecture](create-architecture.md) |
-| Generate infrastructure code                | [Generate Code](generate-code.md)                |
+| Goal                          | Guide                                         |
+| ----------------------------- | --------------------------------------------- |
+| Build your first architecture | [Quick Start](quick-start.md)                 |
+| Create a custom design        | [Create Architecture](create-architecture.md) |
+| Generate infrastructure code  | [Generate Code](generate-code.md)             |
+| Explore pre-built patterns    | [Templates](templates.md)                     |
+| Work faster with hotkeys      | [Keyboard Shortcuts](keyboard-shortcuts.md)   |

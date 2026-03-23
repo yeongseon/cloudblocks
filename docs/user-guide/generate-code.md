@@ -1,4 +1,4 @@
-# Generate Code
+# Generating Code
 
 CloudBlocks converts your visual architecture into infrastructure-as-code. This guide explains how to generate, preview, and export code in Terraform, Bicep, or Pulumi.
 
@@ -6,39 +6,33 @@ CloudBlocks converts your visual architecture into infrastructure-as-code. This 
 
 ## Generating Code
 
-1. Design your architecture on the canvas (see [Create an Architecture](create-architecture.md))
-2. Go to **Build → Generate** in the menu bar
-3. The **Code Preview** panel opens, showing your architecture as infrastructure code
+Design your architecture on the canvas by placing blocks on plates and connecting them. Once your design is ready, you can view the generated code in two ways:
 
-That's it — CloudBlocks generates code automatically from your visual design.
+- **Inspector Panel**: Click the **Code** tab in the Inspector Panel on the right side of the screen. This displays the generated code immediately as you modify your architecture.
+- **Menu Bar**: Use the **Build → Generate Code** menu option to focus the Code tab.
+
+There is no separate code preview window. All code interaction happens within the Code tab of the Inspector Panel.
 
 ---
 
 ## Output Formats
 
-CloudBlocks supports three infrastructure-as-code formats:
+CloudBlocks supports three industry-standard infrastructure-as-code formats. Use the selector inside the Inspector's Code tab to switch between them:
 
-| Format        | Language                               | Best For                                     |
-| ------------- | -------------------------------------- | -------------------------------------------- |
-| **Terraform** | HCL (HashiCorp Configuration Language) | Multi-cloud deployments, industry standard   |
-| **Bicep**     | Bicep (Azure Resource Manager)         | Azure-native infrastructure                  |
-| **Pulumi**    | TypeScript                             | Developers who prefer code over config files |
-
-Switch between formats using the selector in the Code Preview panel. The default is Terraform.
-
-!!! tip "Same architecture, different outputs"
-You can generate code in all three formats from the same architecture. This is useful for comparing approaches or migrating between tools.
+| Format        | Language                               | Best For                                             |
+| :------------ | :------------------------------------- | :--------------------------------------------------- |
+| **Terraform** | HCL (HashiCorp Configuration Language) | Multi-cloud deployments, industry standard (default) |
+| **Bicep**     | Bicep (Azure Resource Manager)         | Azure-native infrastructure                          |
+| **Pulumi**    | TypeScript                             | Developers who prefer code-first IaC                 |
 
 ---
 
 ## Generation Modes
 
-| Mode           | Purpose                                          | Use When                  |
-| -------------- | ------------------------------------------------ | ------------------------- |
-| **Draft**      | Quick preview with inline values                 | Prototyping and exploring |
-| **Production** | Full module structure with variables and outputs | Ready to deploy           |
+You can toggle between two generation modes depending on your workflow:
 
-Draft mode is fast and simple — great for seeing what your architecture looks like in code. Production mode generates commit-ready code with proper variable extraction, output declarations, and module structure.
+- **Draft mode**: Generates a quick preview with inline values. This is ideal for prototyping and exploring how different configurations look in code.
+- **Production mode**: Generates a full module structure including variables, outputs, and proper resource naming conventions. Use this mode when you are ready to commit code to a repository.
 
 ---
 
@@ -47,7 +41,7 @@ Draft mode is fast and simple — great for seeing what your architecture looks 
 Code generation uses default regions based on your active cloud provider:
 
 | Provider  | Default Region |
-| --------- | -------------- |
+| :-------- | :------------- |
 | **Azure** | `eastus`       |
 | **AWS**   | `us-east-1`    |
 | **GCP**   | `us-central1`  |
@@ -56,17 +50,16 @@ Code generation uses default regions based on your active cloud provider:
 
 ## What Gets Generated
 
-The generated code includes:
+The compiler maps your visual design to specific infrastructure components:
 
-- **Resource definitions** — Each node in your architecture maps to a cloud resource
-- **Network configuration** — Containers map to VPCs, VNets, subnets
-- **Connection wiring** — Connections map to security rules, IAM bindings, and network configurations
-- **Variables** — Configurable parameters extracted from your architecture (production mode)
-- **Outputs** — Key values exported for use by other infrastructure (production mode)
+- **Resource definitions**: Each node on the canvas maps to its corresponding cloud resource.
+- **Network configuration**: Containers and plates map to VPCs, VNets, and subnets.
+- **Connection wiring**: Connections between blocks map to security rules, IAM bindings, and network configurations.
+- **Variables and outputs**: In Production mode, the generator extracts configurable parameters and exports key values.
 
 ### Example: Terraform Output
 
-For a simple compute + database architecture, Terraform generates:
+For a simple compute and database architecture, Terraform generates:
 
 ```hcl
 resource "azurerm_resource_group" "main" {
@@ -96,44 +89,40 @@ resource "azurerm_mssql_database" "database" {
 
 ## Copying and Exporting
 
-- **Copy** — Click the Copy button in the Code Preview panel to copy all generated code to your clipboard
-- **Preview** — Scroll through the generated code in the Code Preview panel to review before copying
-
-!!! info "Deterministic generation"
-CloudBlocks generates the same code every time for the same architecture. This means you can safely regenerate without worrying about unexpected changes — only actual architecture modifications produce different code.
+- **Copy to Clipboard**: Use the Copy button in the Inspector's Code tab to copy the generated code.
+- **Export JSON**: Use **File → Export JSON** to save the architecture model itself as a JSON file.
+- **Import JSON**: Use **File → Import JSON** to restore a previously exported architecture model.
 
 ---
 
 ## Validation Before Generation
 
-CloudBlocks validates your architecture before generating code. If validation finds errors:
+CloudBlocks runs a validation engine before generating code. If there are issues with your architecture:
 
-1. The validation panel shows what needs to be fixed
-2. Fix the issues (invalid placements, broken connections)
-3. Re-run generation
-
-Generation will not proceed with an invalid architecture. This prevents generating broken infrastructure code.
+1. Errors appear in the **Validation** tab within the **Bottom Dock**.
+2. You must fix these issues, such as invalid placements or broken connections, before the code reflects the intended state.
+3. The generator ensures that only valid architectures produce infrastructure code.
 
 ---
 
-## Advanced: GitHub Integration
+## GitHub Integration
 
-If you're running the CloudBlocks backend, you can push generated code directly to a GitHub repository:
+The GitHub integration allows you to sync your architecture directly with a repository.
 
-1. Log in with GitHub OAuth via **File → GitHub → Login**
-2. Link your workspace to a repository
-3. Push your architecture and generated code
-4. Create pull requests with architecture changes
-
-!!! info "Backend required"
-GitHub integration requires the CloudBlocks backend API. The frontend-only demo does not include GitHub features. See the [Getting Started guide](../guides/TUTORIALS.md) for backend setup.
+- **Requirements**: This feature requires the CloudBlocks backend API and is not available in the frontend-only demo.
+- **Sign In**: Use the **Sign In** button located in the **GitHub** section of the menu bar.
+- **Workflow**:
+  - Link your workspace to a specific GitHub repository.
+  - Push your architecture and generated code directly to the repo.
+  - Create pull requests for architecture changes.
+  - Compare your local canvas with the state on GitHub.
 
 ---
 
 ## What's Next?
 
 | Goal                                | Guide                                       |
-| ----------------------------------- | ------------------------------------------- |
+| :---------------------------------- | :------------------------------------------ |
 | Start from a pre-built architecture | [Use Templates](templates.md)               |
 | Learn all keyboard shortcuts        | [Keyboard Shortcuts](keyboard-shortcuts.md) |
 | Understand the building blocks      | [Core Concepts](core-concepts.md)           |
