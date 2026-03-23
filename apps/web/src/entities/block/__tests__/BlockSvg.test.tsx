@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { render } from '@testing-library/react';
 
 import { BlockSvg } from '../BlockSvg';
@@ -12,7 +12,6 @@ import type { BlockRole, ProviderType, ResourceCategory } from '@cloudblocks/sch
 import { BLOCK_PADDING, TILE_H, TILE_W, TILE_Z } from '../../../shared/tokens/designTokens';
 
 import { BLOCK_SHORT_NAMES } from '../../../shared/types/index';
-import { useUIStore } from '../../store/uiStore';
 
 // ─── Test Helpers ─────────────────────────────────────────────
 
@@ -249,62 +248,6 @@ describe('BlockSvg CU-based dimensions', () => {
   });
 });
 
-// ─── Stud Grid Tests ──────────────────────────────────────────
-
-describe('BlockSvg stud grid', () => {
-  beforeEach(() => {
-    useUIStore.setState({ showStuds: true });
-  });
-
-  it('renders width × depth studs for micro tier (1×1 = 1 stud)', () => {
-    const { container } = render(<BlockSvg category="messaging" />);
-    const uses = container.querySelectorAll('use');
-    expect(uses.length).toBe(1); // 1×1 = 1 stud
-  });
-
-  it('renders width × depth studs for small tier (2×2 = 4 studs)', () => {
-    const { container } = render(<BlockSvg category="security" />);
-    const uses = container.querySelectorAll('use');
-    expect(uses.length).toBe(4); // 2×2 = 4 studs
-  });
-
-  it('renders width × depth studs for medium tier (2×2 = 4 studs)', () => {
-    const { container } = render(<BlockSvg category="compute" />);
-    const uses = container.querySelectorAll('use');
-    expect(uses.length).toBe(4); // 2×2 = 4 studs
-  });
-
-  it('renders width × depth studs for large tier (3×3 = 9 studs)', () => {
-    const { container } = render(<BlockSvg category="data" />);
-    const uses = container.querySelectorAll('use');
-    expect(uses.length).toBe(9); // 3×3 = 9 studs
-  });
-
-  it('renders width × depth studs for wide tier (3×1 = 3 studs)', () => {
-    const { container } = render(<BlockSvg category="delivery" />);
-    const uses = container.querySelectorAll('use');
-    expect(uses.length).toBe(3); // 3×1 = 3 studs
-  });
-
-  it('stud count matches CU width×depth for all categories', () => {
-    const categories: ResourceCategory[] = [
-      'compute',
-      'data',
-      'delivery',
-      'messaging',
-      'operations',
-      'security',
-    ];
-
-    categories.forEach((category) => {
-      const cu = getBlockDimensions(category);
-      const { container } = render(<BlockSvg category={category} />);
-      const uses = container.querySelectorAll('use');
-      expect(uses.length).toBe(cu.width * cu.depth);
-    });
-  });
-});
-
 // ─── Subtype Size Override Tests ──────────────────────────────
 
 describe('BlockSvg subtype size overrides', () => {
@@ -365,20 +308,6 @@ describe('BlockSvg SVG structure', () => {
     const { container } = render(<BlockSvg category="compute" />);
     const svg = container.querySelector('svg')!;
     expect(svg).toHaveAttribute('aria-hidden', 'true');
-  });
-
-  it('renders StudDefs and StudGrid when showStuds is true', () => {
-    useUIStore.setState({ showStuds: true });
-    const { container } = render(<BlockSvg category="compute" />);
-    const defs = container.querySelectorAll('defs');
-    expect(defs.length).toBeGreaterThanOrEqual(1);
-  });
-
-  it('hides StudDefs and StudGrid when showStuds is false', () => {
-    useUIStore.setState({ showStuds: false });
-    const { container } = render(<BlockSvg category="compute" />);
-    const uses = container.querySelectorAll('use');
-    expect(uses.length).toBe(0);
   });
 });
 

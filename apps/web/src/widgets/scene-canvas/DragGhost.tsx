@@ -1,7 +1,6 @@
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { RefObject } from 'react';
 import { useUIStore } from '../../entities/store/uiStore';
-import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
 import { useRafCallback } from '../../shared/hooks/useRafCallback';
 import { getBlockDimensions, getBlockVisualProfile } from '../../shared/types/visualProfile';
 import { BLOCK_FRIENDLY_NAMES } from '../../shared/types/index';
@@ -18,7 +17,7 @@ import {
   TOP_FACE_STROKE_WIDTH,
 } from '../../shared/tokens/designTokens';
 import { screenToWorld, snapToGrid, worldToScreen } from '../../shared/utils/isometric';
-import { getBlockFaceColors, getBlockStudColors } from '../../entities/block/blockFaceColors';
+import { getBlockFaceColors } from '../../entities/block/blockFaceColors';
 
 interface DragGhostProps {
   containerRef: RefObject<HTMLDivElement | null>;
@@ -39,7 +38,6 @@ export function DragGhost({ containerRef, originX, originY, panX, panY, zoom }: 
 
   const [studsX, studsY] = getBlockVisualProfile(activeCategory).footprint;
   const faceColors = getBlockFaceColors(activeCategory);
-  const studColors = getBlockStudColors(activeCategory);
 
   const screenWidth = ((studsX + studsY) * TILE_W) / 2;
   const diamondHeight = ((studsX + studsY) * TILE_H) / 2;
@@ -59,34 +57,6 @@ export function DragGhost({ containerRef, originX, originY, panX, panY, zoom }: 
   const providerName =
     activeProvider === 'azure' ? 'Azure' : activeProvider === 'aws' ? 'AWS' : 'GCP';
   const dragIdentityLabel = `${providerName} / ${draggedResourceName ?? BLOCK_FRIENDLY_NAMES[activeCategory]}`;
-
-  const studs = useMemo(() => {
-    const positions: Array<{ x: number; y: number; key: string }> = [];
-    const halfW = screenWidth / 2 - BLOCK_MARGIN;
-    const halfH = diamondHeight / 2;
-
-    const stepXx = halfW / studsX;
-    const stepXy = halfH / studsX;
-    const stepZx = -halfW / studsY;
-    const stepZy = halfH / studsY;
-
-    const startX = cx + stepXx * 0.5 + stepZx * 0.5;
-    const startY = BLOCK_PADDING + stepXy * 0.5 + stepZy * 0.5;
-
-    for (let gz = 0; gz < studsY; gz += 1) {
-      for (let gx = 0; gx < studsX; gx += 1) {
-        positions.push({
-          key: `${gx}-${gz}`,
-          x: startX + gx * stepXx + gz * stepZx,
-          y: startY + gx * stepXy + gz * stepZy,
-        });
-      }
-    }
-
-    return positions;
-  }, [cx, diamondHeight, screenWidth, studsX, studsY]);
-
-  const studId = useId().replace(/:/g, '_');
 
   const updatePointerPosition = useRafCallback((e: PointerEvent) => {
     const viewport = containerRef.current;
@@ -127,7 +97,6 @@ export function DragGhost({ containerRef, originX, originY, panX, panY, zoom }: 
       opacity={0.5}
       pointerEvents="none"
     >
-      <StudDefs studId={studId} studColors={studColors} />
       <polygon
         points={topFacePoints}
         fill={faceColors.topFaceColor}
@@ -146,7 +115,6 @@ export function DragGhost({ containerRef, originX, originY, panX, panY, zoom }: 
         strokeWidth={EDGE_HIGHLIGHT_STROKE_WIDTH}
         strokeOpacity={EDGE_HIGHLIGHT_OPACITY}
       />
-      <StudGrid studId={studId} studs={studs} />
       <text x={cx} y={svgHeight + 12} textAnchor="middle" fontSize={10} fill="#D1D5DB">
         {dragIdentityLabel}
       </text>

@@ -1,9 +1,5 @@
-import { memo, useId, useMemo } from 'react';
-import type { StudColorSpec } from '../../shared/types/index';
+import { memo } from 'react';
 import type { LayerType } from '@cloudblocks/schema';
-import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
-import { PlateSurfaceGrid } from '../../shared/components/PlateSurfaceGrid';
-import { useUIStore } from '../store/uiStore';
 import {
   TILE_W,
   TILE_H,
@@ -71,7 +67,6 @@ export interface PlateSvgProps {
   studsX: number; // CU width (1 stud = 1 CU)
   studsY: number; // CU depth (1 stud = 1 CU)
   worldHeight: number; // CH height (fractional OK for plates)
-  studColors: StudColorSpec;
   topFaceColor: string;
   topFaceStroke: string;
   leftSideColor: string;
@@ -87,7 +82,6 @@ export const PlateSvg = memo(function PlateSvg({
   studsX,
   studsY,
   worldHeight,
-  studColors,
   topFaceColor,
   topFaceStroke,
   leftSideColor,
@@ -116,39 +110,6 @@ export const PlateSvg = memo(function PlateSvg({
   const leftSidePoints = `${leftX},${midY} ${cx},${bottomY} ${cx},${bottomY + sideWallPx} ${leftX},${midY + sideWallPx}`;
   const rightSidePoints = `${cx},${bottomY} ${rightX},${midY} ${rightX},${midY + sideWallPx} ${cx},${bottomY + sideWallPx}`;
 
-  // Stud grid positions (1 stud per CU)
-  const studs = useMemo(() => {
-    const positions: Array<{ x: number; y: number; key: string }> = [];
-    const halfW = screenWidth / 2 - BLOCK_MARGIN;
-    const halfH = diamondHeight / 2;
-
-    const stepXx = halfW / studsX;
-    const stepXy = halfH / studsX;
-    const stepZx = -halfW / studsY;
-    const stepZy = halfH / studsY;
-
-    const startX = cx + stepXx * 0.5 + stepZx * 0.5;
-    const startY = topY + stepXy * 0.5 + stepZy * 0.5;
-
-    for (let gz = 0; gz < studsY; gz += 1) {
-      for (let gx = 0; gx < studsX; gx += 1) {
-        const x = startX + gx * stepXx + gz * stepZx;
-        const y = startY + gx * stepXy + gz * stepZy;
-        positions.push({
-          key: `${gx}-${gz}`,
-          x,
-          y,
-        });
-      }
-    }
-
-    return positions;
-  }, [cx, diamondHeight, screenWidth, studsX, studsY, topY]);
-
-  const showStuds = useUIStore((s) => s.showStuds);
-  const showGrid = useUIStore((s) => s.showGrid);
-  const studId = useId().replace(/:/g, '_');
-
   // Label positioning on side walls
   const leftLabelX = (leftX + cx) / 2;
   const rightLabelX = (cx + rightX) / 2;
@@ -163,8 +124,6 @@ export const PlateSvg = memo(function PlateSvg({
       aria-hidden="true"
       data-plate-type={plateType}
     >
-      {showStuds && <StudDefs studId={studId} studColors={studColors} />}
-
       <polygon
         points={topFacePoints}
         fill={topFaceColor}
@@ -174,22 +133,6 @@ export const PlateSvg = memo(function PlateSvg({
       />
       <polygon points={leftSidePoints} fill={leftSideColor} />
       <polygon points={rightSidePoints} fill={rightSideColor} />
-
-      {showStuds && <StudGrid studId={studId} studs={studs} />}
-
-      {showGrid && (
-        <PlateSurfaceGrid
-          cx={cx}
-          topY={topY}
-          midY={midY}
-          leftX={leftX}
-          rightX={rightX}
-          bottomY={bottomY}
-          studsX={studsX}
-          studsY={studsY}
-          screenWidth={screenWidth}
-        />
-      )}
 
       {label ? (
         <text

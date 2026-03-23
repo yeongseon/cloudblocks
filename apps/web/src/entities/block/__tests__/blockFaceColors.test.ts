@@ -1,13 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import type { StudColorSpec } from '../../../shared/types/index';
 import type { ProviderType, ResourceCategory } from '@cloudblocks/schema';
 import {
   darken,
   deriveFaceColors,
   getBlockColor,
   getBlockFaceColors,
-  getBlockStudColors,
   lighten,
   PROVIDER_COLORS,
 } from '../blockFaceColors';
@@ -92,35 +90,14 @@ describe('deriveFaceColors', () => {
     expect(derived.left).toBe('#006ABB');
   });
 
-  it('derives studMain as lighten(base, 15)', () => {
-    const base = '#0078D4';
-    const derived = deriveFaceColors(base);
-    expect(derived.studMain).toBe(lighten(base, 15));
-  });
-
-  it('derives studShadow as darken(base, 15)', () => {
-    const base = '#0078D4';
-    const derived = deriveFaceColors(base);
-    expect(derived.studShadow).toBe(darken(base, 15));
-  });
-
-  it('derives studHighlight as lighten(base, 40)', () => {
-    const base = '#0078D4';
-    const derived = deriveFaceColors(base);
-    expect(derived.studHighlight).toBe(lighten(base, 40));
-  });
-
-  it('returns all 7 derived properties', () => {
+  it('returns all 4 derived properties', () => {
     const derived = deriveFaceColors('#4285F4');
     const keys = Object.keys(derived);
-    expect(keys).toHaveLength(7);
+    expect(keys).toHaveLength(4);
     expect(keys).toContain('top');
     expect(keys).toContain('topStroke');
     expect(keys).toContain('right');
     expect(keys).toContain('left');
-    expect(keys).toContain('studMain');
-    expect(keys).toContain('studShadow');
-    expect(keys).toContain('studHighlight');
   });
 
   it('produces valid hex colors for all derived values', () => {
@@ -310,125 +287,6 @@ describe('getBlockFaceColors', () => {
         expect(leftLuminance).toBeLessThanOrEqual(rightLuminance + 0.001);
       }
     }
-  });
-});
-
-// ─── getBlockStudColors (Backward-Compatible API) ─────────────
-
-describe('getBlockStudColors', () => {
-  it('returns valid StudColorSpec for every provider and category pair', () => {
-    for (const provider of providers) {
-      for (const category of categories) {
-        const studColors = getBlockStudColors(category, provider);
-
-        expect(studColors).toBeDefined();
-        expect(studColors).toHaveProperty('main');
-        expect(studColors).toHaveProperty('shadow');
-        expect(studColors).toHaveProperty('highlight');
-
-        expect(studColors.main).toMatch(hexColorPattern);
-        expect(studColors.shadow).toMatch(hexColorPattern);
-        expect(studColors.highlight).toMatch(hexColorPattern);
-      }
-    }
-  });
-
-  it('defaults to azure stud colors when provider is omitted or undefined', () => {
-    for (const category of categories) {
-      const azure = getBlockStudColors(category, 'azure');
-      const omittedProvider = getBlockStudColors(category);
-      const undefinedProvider = getBlockStudColors(category, undefined);
-
-      expect(omittedProvider).toEqual(azure);
-      expect(undefinedProvider).toEqual(azure);
-    }
-  });
-
-  it('stud main equals lighten(base, 15) per spec §7.7', () => {
-    for (const provider of providers) {
-      for (const category of categories) {
-        const studs = getBlockStudColors(category, provider);
-        const base = getBlockColor(provider, undefined, category);
-        expect(studs.main).toBe(lighten(base, 15));
-      }
-    }
-  });
-
-  it('stud shadow equals darken(base, 15) per spec §7.7', () => {
-    for (const provider of providers) {
-      for (const category of categories) {
-        const studs = getBlockStudColors(category, provider);
-        const base = getBlockColor(provider, undefined, category);
-        expect(studs.shadow).toBe(darken(base, 15));
-      }
-    }
-  });
-
-  it('stud highlight equals lighten(base, 40) per spec §7.7', () => {
-    for (const provider of providers) {
-      for (const category of categories) {
-        const studs = getBlockStudColors(category, provider);
-        const base = getBlockColor(provider, undefined, category);
-        expect(studs.highlight).toBe(lighten(base, 40));
-      }
-    }
-  });
-
-  it('provides different stud colors across providers for the same category', () => {
-    for (const category of categories) {
-      const providerMainColors = providers.map(
-        (provider) => getBlockStudColors(category, provider).main,
-      );
-
-      // At least main color should differ across providers
-      expect(new Set(providerMainColors).size).toBeGreaterThan(1);
-    }
-  });
-
-  it('ensures highlight is lighter than main color for all providers', () => {
-    for (const provider of providers) {
-      for (const category of categories) {
-        const studColors = getBlockStudColors(category, provider);
-        const mainLuminance = getLuminance(studColors.main);
-        const highlightLuminance = getLuminance(studColors.highlight);
-
-        expect(highlightLuminance).toBeGreaterThan(mainLuminance);
-      }
-    }
-  });
-
-  it('provides complete color coverage for all provider×category combinations', () => {
-    const results: Array<{
-      provider: ProviderType;
-      category: ResourceCategory;
-      spec: StudColorSpec;
-    }> = [];
-
-    for (const provider of providers) {
-      for (const category of categories) {
-        results.push({
-          provider,
-          category,
-          spec: getBlockStudColors(category, provider),
-        });
-      }
-    }
-
-    expect(results).toHaveLength(3 * 8);
-
-    for (const result of results) {
-      expect(result.spec.main).toMatch(hexColorPattern);
-      expect(result.spec.shadow).toMatch(hexColorPattern);
-      expect(result.spec.highlight).toMatch(hexColorPattern);
-    }
-  });
-
-  it('accepts optional subtype parameter for subtype-specific stud colors', () => {
-    const withSubtype = getBlockStudColors('data', 'azure', 'cosmos-db');
-    const withoutSubtype = getBlockStudColors('data', 'azure');
-
-    // Different base colors → different stud colors
-    expect(withSubtype.main).not.toBe(withoutSubtype.main);
   });
 });
 

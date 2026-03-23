@@ -1,26 +1,17 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { ComponentProps } from 'react';
 import { PlateSvg } from './PlateSvg';
-import type { StudColorSpec } from '../../shared/types/index';
 import type { LayerType } from '@cloudblocks/schema';
 import { TILE_W, TILE_H, TILE_Z, BLOCK_PADDING } from '../../shared/tokens/designTokens';
-import { useUIStore } from '../store/uiStore';
 
 type PlateLayerType = Exclude<LayerType, 'resource'>;
-
-const studColors: StudColorSpec = {
-  main: '#66BB6A',
-  shadow: '#2E7D32',
-  highlight: '#A5D6A7',
-};
 
 const defaultProps: ComponentProps<typeof PlateSvg> = {
   plateType: 'subnet',
   studsX: 4,
   studsY: 6,
   worldHeight: 0.5,
-  studColors,
   topFaceColor: '#22C55E',
   topFaceStroke: '#4ADE80',
   leftSideColor: '#16A34A',
@@ -124,10 +115,6 @@ describe('PlateSvg — CU-based dimensions', () => {
 // ─── SVG Structure ──────────────────────────────────────────
 
 describe('PlateSvg — SVG structure', () => {
-  beforeEach(() => {
-    useUIStore.setState({ showStuds: true, showGrid: true });
-  });
-
   it('renders 3 face polygons (top, left side, right side)', () => {
     const { container } = renderPlateSvg();
     // Exclude polygons inside <clipPath> (used by PlateSurfaceGrid)
@@ -142,40 +129,6 @@ describe('PlateSvg — SVG structure', () => {
     expect(polygons[0].getAttribute('fill')).toBe('#22C55E'); // top
     expect(polygons[1].getAttribute('fill')).toBe('#16A34A'); // left
     expect(polygons[2].getAttribute('fill')).toBe('#15803D'); // right
-  });
-
-  it('includes StudDefs and StudGrid', () => {
-    const { container } = renderPlateSvg();
-    // StudDefs creates a <defs> with nested ellipses
-    expect(container.querySelector('defs')).toBeInTheDocument();
-    // StudGrid creates <use> elements
-    expect(container.querySelectorAll('use').length).toBeGreaterThan(0);
-  });
-});
-
-// ─── Stud Grid ──────────────────────────────────────────────
-
-describe('PlateSvg — stud grid', () => {
-  beforeEach(() => {
-    useUIStore.setState({ showStuds: true });
-  });
-
-  it('renders studsX × studsY stud <use> elements', () => {
-    const studsX = 4;
-    const studsY = 6;
-    const { container } = renderPlateSvg({ studsX, studsY });
-
-    const useElements = container.querySelectorAll('use');
-    expect(useElements.length).toBe(studsX * studsY); // 24
-  });
-
-  it('renders correct stud count for large profiles', () => {
-    const studsX = 16;
-    const studsY = 20;
-    const { container } = renderPlateSvg({ studsX, studsY });
-
-    const useElements = container.querySelectorAll('use');
-    expect(useElements.length).toBe(studsX * studsY); // 320
   });
 });
 
@@ -266,10 +219,6 @@ describe('PlateSvg — colors are independent of plateType', () => {
 // ─── All Plate Profiles Render Correctly ────────────────────
 
 describe('PlateSvg — profile-based rendering', () => {
-  beforeEach(() => {
-    useUIStore.setState({ showStuds: true });
-  });
-
   const profiles = [
     {
       name: 'network-sandbox',
@@ -328,18 +277,6 @@ describe('PlateSvg — profile-based rendering', () => {
       plateType: 'subnet' as PlateLayerType,
     },
   ];
-
-  it.each(profiles)('renders $name profile with correct stud count', (profile) => {
-    const { container } = renderPlateSvg({
-      plateType: profile.plateType,
-      studsX: profile.studsX,
-      studsY: profile.studsY,
-      worldHeight: profile.worldHeight,
-    });
-
-    const useElements = container.querySelectorAll('use');
-    expect(useElements.length).toBe(profile.studsX * profile.studsY);
-  });
 
   it.each(profiles)('renders $name profile with correct viewBox', (profile) => {
     const { container } = renderPlateSvg({

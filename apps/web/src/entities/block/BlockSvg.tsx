@@ -1,4 +1,4 @@
-import { memo, useId, useMemo } from 'react';
+import { memo, useId } from 'react';
 import type {
   BlockRole,
   EndpointSemantic,
@@ -9,10 +9,7 @@ import { CATEGORY_PORTS } from '@cloudblocks/schema';
 import { BLOCK_SHORT_NAMES, ROLE_VISUAL_INDICATORS } from '../../shared/types/index';
 import { getBlockIconUrl } from '../../shared/utils/iconResolver';
 import { getBlockDimensions, getBlockVisualProfile } from '../../shared/types/visualProfile';
-import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
-import { useUIStore } from '../store/uiStore';
 import {
-  BLOCK_MARGIN,
   BLOCK_PADDING,
   EDGE_HIGHLIGHT_COLOR,
   EDGE_HIGHLIGHT_OPACITY,
@@ -30,7 +27,7 @@ import {
   PORT_COLOR_OCCUPIED,
   PORT_GLOW_RADIUS,
 } from '../../shared/tokens/designTokens';
-import { getBlockFaceColors, getBlockStudColors } from './blockFaceColors';
+import { getBlockFaceColors } from './blockFaceColors';
 import { cuToSilhouetteDimensions, getSilhouetteFromCU } from './silhouettes';
 import { getBlockSvgStubPoints, stubIndexToSemantic } from './blockGeometry';
 
@@ -94,7 +91,6 @@ export const BlockSvg = memo(function BlockSvg({
   onPortPointerLeave,
   hoveredPort,
 }: BlockSvgProps) {
-  const showStuds = useUIStore((s) => s.showStuds);
   // ─── v2.0: CU-based dimension resolution ───────────────────
   const cu = getBlockDimensions(category, provider, subtype);
   const dims = cuToSilhouetteDimensions(cu);
@@ -104,52 +100,19 @@ export const BlockSvg = memo(function BlockSvg({
   const svgHeight = diamondHeight + sideWallPx + BLOCK_PADDING;
 
   const faceColors = getBlockFaceColors(category, provider ?? 'azure', subtype);
-  const studColors = getBlockStudColors(category, provider ?? 'azure', subtype);
   const shortName = BLOCK_SHORT_NAMES[category];
   const iconUrl = getBlockIconUrl(provider ?? 'azure', category, subtype);
 
   // ─── v2.0: silhouette from CU dimensions ───────────────────
   const silhouetteResult = getSilhouetteFromCU(profile.silhouette, cu);
 
-  // ─── v2.0: stud grid = width × depth (1 stud per CU cell) ──
-  const studsX = cu.width;
-  const studsY = cu.depth;
-
-  const studs = useMemo(() => {
-    const positions: Array<{ x: number; y: number; key: string }> = [];
-    const halfW = screenWidth / 2 - BLOCK_MARGIN;
-    const halfH = diamondHeight / 2;
-
-    const stepXx = halfW / studsX;
-    const stepXy = halfH / studsX;
-    const stepZx = -halfW / studsY;
-    const stepZy = halfH / studsY;
-
-    const startX = cx + stepXx * 0.5 + stepZx * 0.5;
-    const startY = BLOCK_PADDING + stepXy * 0.5 + stepZy * 0.5;
-
-    for (let gz = 0; gz < studsY; gz += 1) {
-      for (let gx = 0; gx < studsX; gx += 1) {
-        const x = startX + gx * stepXx + gz * stepZx;
-        const y = startY + gx * stepXy + gz * stepZy;
-        positions.push({
-          key: `${gx}-${gz}`,
-          x,
-          y,
-        });
-      }
-    }
-
-    return positions;
-  }, [cx, diamondHeight, screenWidth, studsX, studsY]);
-
-  const studId = useId().replace(/:/g, '_');
+  const connectorId = useId().replace(/:/g, '_');
 
   const leftLabelX = (leftX + cx) / 2;
   const rightLabelX = (cx + rightX) / 2;
   const wallCenterY = (midY + bottomY + sideWallPx) / 2;
 
-  const minDim = Math.min(studsX, studsY);
+  const minDim = Math.min(cu.width, cu.depth);
   const labelFontSize = minDim <= 1 ? 8 : minDim <= 2 ? 10 : 13;
   const iconSize = minDim <= 1 ? 12 : minDim <= 2 ? 16 : 20;
 
@@ -161,8 +124,6 @@ export const BlockSvg = memo(function BlockSvg({
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
     >
-      {showStuds && <StudDefs studId={studId} studColors={studColors} />}
-
       {silhouetteResult.renderMode === 'polygon' ? (
         <>
           <polygon
@@ -206,8 +167,6 @@ export const BlockSvg = memo(function BlockSvg({
         strokeWidth={EDGE_HIGHLIGHT_STROKE_WIDTH}
         strokeOpacity={EDGE_HIGHLIGHT_OPACITY}
       />
-
-      {showStuds && <StudGrid studId={studId} studs={studs} />}
 
       <text
         transform={`matrix(0.8975,0.4410,0,1,${leftLabelX},${wallCenterY})`}
@@ -289,7 +248,7 @@ export const BlockSvg = memo(function BlockSvg({
 
       {/* ─── Port glow filter (connect mode or hover) ─── */}
       <defs>
-        <filter id={`port-glow-${studId}`} x="-50%" y="-50%" width="200%" height="200%">
+        <filter id={`port-glow-${connectorId}`} x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur in="SourceGraphic" stdDeviation={PORT_GLOW_RADIUS} />
         </filter>
       </defs>
@@ -311,12 +270,12 @@ export const BlockSvg = memo(function BlockSvg({
                 const rx = STUB_DOT_RX * scale;
                 const ry = STUB_DOT_RY * scale;
                 return (
-                  <g key={`stub-in-${i}`}>
+                  <g key={`stub-in-${pt.x}-${pt.y}-${semantic}`}>
                     {(showStubs || isHovered) && !isOccupied && (
                       <polygon
                         points={`${pt.x},${pt.y - ry} ${pt.x + rx},${pt.y} ${pt.x},${pt.y + ry} ${pt.x - rx},${pt.y}`}
                         fill={fillColor}
-                        filter={`url(#port-glow-${studId})`}
+                        filter={`url(#port-glow-${connectorId})`}
                         opacity={isHovered ? 0.8 : 0.5}
                         data-testid={`stub-glow-in-${i}`}
                       />
@@ -363,12 +322,12 @@ export const BlockSvg = memo(function BlockSvg({
                 const rx = STUB_DOT_RX * scale;
                 const ry = STUB_DOT_RY * scale;
                 return (
-                  <g key={`stub-out-${i}`}>
+                  <g key={`stub-out-${pt.x}-${pt.y}-${semantic}`}>
                     {(showStubs || isHovered) && !isOccupied && (
                       <polygon
                         points={`${pt.x},${pt.y - ry} ${pt.x + rx},${pt.y} ${pt.x},${pt.y + ry} ${pt.x - rx},${pt.y}`}
                         fill={fillColor}
-                        filter={`url(#port-glow-${studId})`}
+                        filter={`url(#port-glow-${connectorId})`}
                         opacity={isHovered ? 0.8 : 0.5}
                         data-testid={`stub-glow-out-${i}`}
                       />

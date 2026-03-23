@@ -1,4 +1,4 @@
-import { memo, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import type {
   Connection,
   ContainerNode,
@@ -11,7 +11,6 @@ import { getDiffState } from '../../features/diff/engine';
 import { getConnectionEndpointWorldAnchors } from './endpointAnchors';
 import { worldToScreen } from '../../shared/utils/isometric';
 import type { ScreenPoint } from '../../shared/utils/isometric';
-import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import {
@@ -33,7 +32,6 @@ import {
   buildBrickFootprint,
   getVisibleSideFaces,
   projectFootprintToScreen,
-  sampleStudPositions,
 } from './connectionBrickGeometry';
 import { getConnectionBrickColors } from './connectionFaceColors';
 import type { ConnectionRenderSemantic } from './connectionFaceColors';
@@ -52,9 +50,6 @@ interface ConnectorColors {
   topFaceStroke: string;
   leftSideColor: string;
   rightSideColor: string;
-  studMain: string;
-  studShadow: string;
-  studHighlight: string;
   accent: string;
   opacity: number;
 }
@@ -81,9 +76,6 @@ function getColors(
   const baseRight = diffOverride?.shadow ?? base.rightSideColor;
   const baseLeft = diffOverride?.dark ?? base.leftSideColor;
   const baseStroke = diffOverride?.shadow ?? base.topFaceStroke;
-  const baseStudMain = diffOverride?.tile ?? base.studColors.main;
-  const baseStudShadow = diffOverride?.dark ?? base.studColors.shadow;
-  const baseStudHighlight = diffOverride?.shadow ?? base.studColors.highlight;
   const baseOpacity = diffOverride?.opacity ?? 1.0;
   const accent = diffState !== 'unchanged' ? '#ffffff' : base.topFaceStroke;
 
@@ -93,9 +85,6 @@ function getColors(
       topFaceStroke: lightenColor(baseStroke, 0.1),
       leftSideColor: lightenColor(baseLeft, 0.1),
       rightSideColor: lightenColor(baseRight, 0.1),
-      studMain: lightenColor(baseStudMain, 0.15),
-      studShadow: lightenColor(baseStudShadow, 0.1),
-      studHighlight: lightenColor(baseStudHighlight, 0.1),
       accent,
       opacity: baseOpacity,
     };
@@ -106,9 +95,6 @@ function getColors(
     topFaceStroke: baseStroke,
     leftSideColor: baseLeft,
     rightSideColor: baseRight,
-    studMain: baseStudMain,
-    studShadow: baseStudShadow,
-    studHighlight: baseStudHighlight,
     accent,
     opacity: baseOpacity,
   };
@@ -424,7 +410,6 @@ export const BrickConnector = memo(function BrickConnector({
 }: BrickConnectorProps) {
   const [isHovered, setIsHovered] = useState(false);
   const drawInRef = useRef<SVGPathElement>(null);
-  const studId = useId().replace(/:/g, '_');
 
   useEffect(() => {
     const el = drawInRef.current;
@@ -452,7 +437,6 @@ export const BrickConnector = memo(function BrickConnector({
   const removeConnection = useArchitectureStore((s) => s.removeConnection);
   const validationResult = useArchitectureStore((s) => s.validationResult);
   const endpointsList = useArchitectureStore((s) => s.workspace.architecture.endpoints);
-  const showStuds = useUIStore((s) => s.showStuds);
 
   const fromEndpoint: Endpoint | undefined = useMemo(
     () => endpointsList.find((endpoint) => endpoint.id === connection.from),
@@ -534,31 +518,18 @@ export const BrickConnector = memo(function BrickConnector({
 
     const hitPoints = getRouteCenterlinePoints(surfaceRoute, originX, originY);
     const hitPath = pointsToPath(hitPoints);
-    const studs = sampleStudPositions(surfaceRoute).map((point, index) => {
-      const screen = worldToScreen(point[0], point[1], point[2], originX, originY);
-      return {
-        x: screen.x,
-        y: screen.y,
-        key: `${connection.id}-stud-${index}`,
-      };
-    });
 
     return {
       hitPath,
       labelPos: getLabelPosition(hitPoints),
       topFacePolygon: pointsToPolygon(topFaceScreen),
       sideFaces,
-      studs,
     };
   }, [surfaceRoute, originX, originY, connection.id]);
 
   const fallbackRender = useMemo(() => {
     if (!fallbackRoute) return null;
     const hitPath = buildHitPath(fallbackRoute);
-    const endpointStuds = [
-      { x: fallbackRoute.srcScreen.x, y: fallbackRoute.srcScreen.y, key: `${connection.id}-src` },
-      { x: fallbackRoute.tgtScreen.x, y: fallbackRoute.tgtScreen.y, key: `${connection.id}-tgt` },
-    ];
 
     return {
       hitPath,
@@ -572,7 +543,6 @@ export const BrickConnector = memo(function BrickConnector({
             fallbackRoute.segments[fallbackRoute.segments.length - 1].end.y) /
           2,
       },
-      endpointStuds,
       segments: fallbackRoute.segments,
       elbow: fallbackRoute.elbow,
     };
@@ -584,23 +554,8 @@ export const BrickConnector = memo(function BrickConnector({
   const hitPath = brickRender?.hitPath ?? fallbackRender?.hitPath ?? '';
   const labelPos = brickRender?.labelPos ?? fallbackRender?.labelPos;
   const fallbackPinHoleStyle = LEGACY_PIN_HOLE_STYLE[renderSemantic];
-  const studColors = {
-    main: colors.studMain,
-    shadow: colors.studShadow,
-    highlight: colors.studHighlight,
-  };
 
-  const handleClick = (e: React.MouseEvent<SVGGElement>) => {
-    e.stopPropagation();
-    if (toolMode === 'delete') {
-      removeConnection(connection.id);
-      return;
-    }
-    setSelectedId(connection.id);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<SVGGElement>) => {
-    if (e.key !== 'Enter' && e.key !== ' ') return;
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     e.stopPropagation();
     if (toolMode === 'delete') {
@@ -614,26 +569,24 @@ export const BrickConnector = memo(function BrickConnector({
     // biome-ignore lint/a11y/useSemanticElements: SVG <g> must stay interactive for connector hit testing.
     <g
       opacity={colors.opacity}
-      style={{ cursor: 'pointer' }}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      role="button"
-      tabIndex={0}
-      aria-label={`connection ${connection.id}`}
       data-connector-type={(connection.metadata?.type as string) ?? semantic}
     >
-      {showStuds && <StudDefs studId={studId} studColors={studColors} />}
-
-      <path
-        d={hitPath}
-        stroke="transparent"
-        strokeWidth={HIT_AREA_WIDTH}
-        fill="none"
-        pointerEvents="stroke"
-        data-testid="connection-hit-area"
-      />
+      <a
+        href={`/connections/${connection.id}`}
+        onClick={handleClick}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <path
+          d={hitPath}
+          stroke="transparent"
+          strokeWidth={HIT_AREA_WIDTH}
+          fill="none"
+          pointerEvents="stroke"
+          style={{ cursor: 'pointer' }}
+          data-testid="connection-hit-area"
+        />
+      </a>
 
       {isSelected && (
         <>
@@ -703,16 +656,6 @@ export const BrickConnector = memo(function BrickConnector({
           />
         )}
       </g>
-
-      {showStuds && (
-        <g data-layer="studs" pointerEvents="none">
-          <StudGrid
-            studId={studId}
-            studs={brickRender?.studs ?? fallbackRender?.endpointStuds ?? []}
-          />
-        </g>
-      )}
-
       <path
         ref={drawInRef}
         d={hitPath}

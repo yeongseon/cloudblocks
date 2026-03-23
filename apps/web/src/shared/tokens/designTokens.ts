@@ -14,17 +14,6 @@ export const TILE_Z = RENDER_SCALE; // 32
 export const BLOCK_MARGIN = (RENDER_SCALE * 5) / 16; // 10
 export const BLOCK_PADDING = (RENDER_SCALE * 5) / 16; // 10
 
-// -- Universal Stud Standard (INVIOLABLE) --
-// Geometry derived from RENDER_SCALE. At RENDER_SCALE=32:
-//   STUD_RX=12, STUD_RY=6, STUD_HEIGHT=5, STUD_INNER_RX=7.2, STUD_INNER_RY=3.6
-// Every stud in the system uses identical dimensions. Only colors vary.
-export const STUD_RX = (RENDER_SCALE * 3) / 8; // 12
-export const STUD_RY = STUD_RX / 2; // 6
-export const STUD_HEIGHT = (RENDER_SCALE * 5) / 32; // 5
-export const STUD_INNER_RX = (RENDER_SCALE * 9) / 40; // 7.2  (= STUD_RX × 0.6, integer-friendly)
-export const STUD_INNER_RY = (RENDER_SCALE * 9) / 80; // 3.6  (= STUD_INNER_RX / 2)
-export const STUD_INNER_OPACITY = 0.3;
-
 // -- Edge Highlight --
 export const EDGE_HIGHLIGHT_STROKE_WIDTH = 2;
 export const EDGE_HIGHLIGHT_OPACITY = 0.3;
