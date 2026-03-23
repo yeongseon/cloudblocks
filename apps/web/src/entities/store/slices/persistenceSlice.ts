@@ -594,11 +594,21 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
 
   loadFromTemplate: (template) => {
     const now = new Date().toISOString();
+    const clonedArch = JSON.parse(JSON.stringify(template.architecture));
+
+    // Generate endpoints for all nodes and external actors so connections
+    // can resolve their anchors (templates ship with endpoints: []).
+    const nodeIds = (clonedArch.nodes ?? []).map((n: { id: string }) => n.id);
+    const actorIds = (clonedArch.externalActors ?? []).map((a: { id: string }) => a.id);
+    clonedArch.endpoints = [...nodeIds, ...actorIds].flatMap((id: string) =>
+      generateEndpointsForNode(id),
+    );
+
     const newWorkspace: Workspace = {
       id: generateId('ws'),
       name: template.name,
       architecture: {
-        ...JSON.parse(JSON.stringify(template.architecture)),
+        ...clonedArch,
         id: generateId('arch'),
         createdAt: now,
         updatedAt: now,

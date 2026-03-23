@@ -137,7 +137,7 @@ const threeTierCheckpointWithBlocks: ArchitectureSnapshot = {
     },
     {
       id: 'block-scn3tier-gateway',
-      name: 'Gateway',
+      name: 'Azure Load Balancer',
       kind: 'resource',
       layer: 'resource',
       resourceType: 'load_balancer',
@@ -149,7 +149,7 @@ const threeTierCheckpointWithBlocks: ArchitectureSnapshot = {
     },
     {
       id: 'block-scn3tier-compute',
-      name: 'Compute',
+      name: 'Azure VM',
       kind: 'resource',
       layer: 'resource',
       resourceType: 'compute',
@@ -161,7 +161,7 @@ const threeTierCheckpointWithBlocks: ArchitectureSnapshot = {
     },
     {
       id: 'block-scn3tier-database',
-      name: 'Database',
+      name: 'Azure SQL Database',
       kind: 'resource',
       layer: 'resource',
       resourceType: 'data',
@@ -217,7 +217,8 @@ const threeTierScenario: Scenario = {
       id: 'step-three-tier-place-resources',
       order: 3,
       title: 'Place Your Resources',
-      instruction: 'Place a Gateway, a Compute, and a Database on your subnets.',
+      instruction:
+        'Place an Azure Load Balancer, an Azure VM, and an Azure SQL Database on your subnets.',
       hints: [
         'Gateways are the entry point for internet traffic.',
         'Databases should be isolated from direct internet exposure using NSG rules.',
@@ -243,7 +244,7 @@ const threeTierScenario: Scenario = {
       order: 4,
       title: 'Connect the Data Flow',
       instruction:
-        'Connect Internet -> Gateway -> Compute -> Database to establish the request flow.',
+        'Connect Internet -> Azure Load Balancer -> Azure VM -> Azure SQL Database to establish the request flow.',
       hints: [
         'Use Connect mode to draw connections between resources.',
         'The data flow represents request direction: Internet -> Gateway -> Compute -> Database.',
@@ -373,7 +374,7 @@ const serverlessApiScenario: Scenario = {
       order: 2,
       title: 'Deploy Serverless Components',
       instruction:
-        'Place a Gateway on a subnet, a Function on the network plate, and a Database on a subnet.',
+        'Place an Azure Application Gateway on a subnet, an Azure Functions block on the network plate, and an Azure SQL Database on a subnet.',
       hints: [
         'Functions are serverless compute - they run on the Network plate, not a specific subnet.',
         'The Gateway receives HTTP requests and routes them to your Function.',
@@ -398,7 +399,8 @@ const serverlessApiScenario: Scenario = {
       id: 'step-serverless-api-wire-flow',
       order: 3,
       title: 'Wire the API Flow',
-      instruction: 'Connect Internet -> Gateway -> Function -> Database.',
+      instruction:
+        'Connect Internet -> Azure Application Gateway -> Azure Functions -> Azure SQL Database.',
       hints: [
         'The serverless flow: HTTP request hits the Gateway, triggers a Function, which queries the Database.',
         'Functions can connect to databases, storage, and queues.',
@@ -492,7 +494,7 @@ const eventPipelineCheckpointAfterStep2: ArchitectureSnapshot = {
     },
     {
       id: 'block-scnevt-event',
-      name: 'Event Source',
+      name: 'Azure Event Grid',
       kind: 'resource',
       layer: 'resource',
       resourceType: 'messaging',
@@ -504,7 +506,7 @@ const eventPipelineCheckpointAfterStep2: ArchitectureSnapshot = {
     },
     {
       id: 'block-scnevt-queue',
-      name: 'Queue',
+      name: 'Azure Service Bus',
       kind: 'resource',
       layer: 'resource',
       resourceType: 'messaging',
@@ -552,7 +554,7 @@ const eventPipelineCheckpointWithAllBlocks: ArchitectureSnapshot = {
     },
     {
       id: 'block-scnevt-event',
-      name: 'Event Source',
+      name: 'Azure Event Grid',
       kind: 'resource',
       layer: 'resource',
       resourceType: 'messaging',
@@ -564,7 +566,7 @@ const eventPipelineCheckpointWithAllBlocks: ArchitectureSnapshot = {
     },
     {
       id: 'block-scnevt-queue',
-      name: 'Queue',
+      name: 'Azure Service Bus',
       kind: 'resource',
       layer: 'resource',
       resourceType: 'messaging',
@@ -576,7 +578,7 @@ const eventPipelineCheckpointWithAllBlocks: ArchitectureSnapshot = {
     },
     {
       id: 'block-scnevt-fn-event',
-      name: 'Event Processor',
+      name: 'Azure Functions',
       kind: 'resource',
       layer: 'resource',
       resourceType: 'compute',
@@ -588,7 +590,7 @@ const eventPipelineCheckpointWithAllBlocks: ArchitectureSnapshot = {
     },
     {
       id: 'block-scnevt-fn-batch',
-      name: 'Batch Processor',
+      name: 'Azure Functions (Batch)',
       kind: 'resource',
       layer: 'resource',
       resourceType: 'compute',
@@ -600,7 +602,7 @@ const eventPipelineCheckpointWithAllBlocks: ArchitectureSnapshot = {
     },
     {
       id: 'block-scnevt-timer',
-      name: 'Scheduled Event',
+      name: 'Azure Event Grid (Timer)',
       kind: 'resource',
       layer: 'resource',
       resourceType: 'messaging',
@@ -612,7 +614,7 @@ const eventPipelineCheckpointWithAllBlocks: ArchitectureSnapshot = {
     },
     {
       id: 'block-scnevt-storage',
-      name: 'Storage',
+      name: 'Azure Blob Storage',
       kind: 'resource',
       layer: 'resource',
       resourceType: 'data',
@@ -642,7 +644,7 @@ const eventPipelineScenario: Scenario = {
       id: 'step-event-pipeline-add-sources',
       order: 1,
       title: 'Add Event Sources',
-      instruction: 'Place an Event source and a Queue on the Region plate.',
+      instruction: 'Place an Azure Event Grid and an Azure Service Bus on the Region plate.',
       hints: [
         'Events and Queues are serverless resources that live on the Region plate.',
         'Events trigger functions when something happens. Queues buffer messages for processing.',
@@ -657,7 +659,7 @@ const eventPipelineScenario: Scenario = {
       order: 2,
       title: 'Add Processing Functions',
       instruction:
-        'Place two Function blocks on the Region plate - one for event processing and one for batch processing.',
+        'Place two Azure Functions blocks on the Region plate - one for event processing and one for batch processing.',
       hints: [
         'You need at least two functions: one triggered by events and one for batch processing.',
         'Functions run on the Region plate, not in subnets.',
@@ -669,7 +671,8 @@ const eventPipelineScenario: Scenario = {
       id: 'step-event-pipeline-add-timer-storage',
       order: 3,
       title: 'Add an Event Trigger and Storage',
-      instruction: 'Place an Event trigger on the Region plate and a Storage block on a Subnet.',
+      instruction:
+        'Place an Azure Event Grid trigger on the Region plate and an Azure Blob Storage block on a Subnet.',
       hints: [
         'Event triggers can drive scheduled or asynchronous processing workflows.',
         'Storage in a subnet keeps your data secure.',
@@ -688,7 +691,7 @@ const eventPipelineScenario: Scenario = {
       order: 4,
       title: 'Connect the Pipeline',
       instruction:
-        'Wire: Event -> Function, Queue -> Function, Event -> Function, and Functions -> Storage.',
+        'Wire: Azure Event Grid -> Azure Functions, Azure Service Bus -> Azure Functions, Azure Event Grid (Timer) -> Azure Functions (Batch), and Azure Functions -> Azure Blob Storage.',
       hints: [
         'Events and Queues trigger Functions for processing.',
         'Functions process data and write results to Storage.',

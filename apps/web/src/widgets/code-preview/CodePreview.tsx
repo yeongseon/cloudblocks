@@ -39,10 +39,12 @@ export function CodePreview({ embedded = false }: CodePreviewProps) {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '') || 'myproject';
 
-  const generatorOptions = listGenerators().map((generatorPlugin) => ({
-    id: generatorPlugin.id,
-    label: generatorPlugin.displayName,
-  }));
+  const generatorOptions = listGenerators()
+    .filter((g) => g.supportedProviders.includes(activeProvider))
+    .map((generatorPlugin) => ({
+      id: generatorPlugin.id,
+      label: generatorPlugin.displayName,
+    }));
   const [activeTab, setActiveTab] = useState(0);
   const [projectName, setProjectName] = useState(sanitizedName);
   const [regions, setRegions] = useState<Record<ProviderType, string>>({

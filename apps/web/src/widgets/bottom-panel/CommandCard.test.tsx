@@ -743,8 +743,8 @@ describe('CommandCard', () => {
     });
     rerender(<CommandCard />);
     await user.click(screen.getByRole('button', { name: /Deploy/ }));
-    expect(screen.getByTitle('Create Subnet (Q)')).toBeInTheDocument();
-    expect(screen.queryByTitle('Create SQL Database (W)')).not.toBeInTheDocument();
+    expect(screen.getByTitle(/^Create Subnet/)).toBeInTheDocument();
+    expect(screen.queryByTitle(/^Create SQL Database/)).not.toBeInTheDocument();
 
     act(() => {
       useUIStore.setState({ selectedId: 'subnet-public-1' });
@@ -763,8 +763,8 @@ describe('CommandCard', () => {
     });
     rerender(<CommandCard />);
     await user.click(screen.getByRole('button', { name: /Deploy/ }));
-    expect(screen.getByTitle('Create Blob Storage (Q)')).toBeInTheDocument();
-    expect(screen.getByTitle('Create Virtual Machine (W)')).toBeInTheDocument();
+    expect(screen.getByTitle(/^Create Blob Storage/)).toBeInTheDocument();
+    expect(screen.getByTitle(/^Create Virtual Machine/)).toBeInTheDocument();
   });
 
   it('shows "Subnet Actions" header for selected public subnet', () => {
@@ -861,7 +861,7 @@ describe('CommandCard', () => {
     await user.click(screen.getByRole('button', { name: /Deploy/ }));
 
     // Now in PlateCreationMode — create a subnet
-    await user.click(screen.getByTitle('Create Subnet (Q)'));
+    await user.click(screen.getByTitle(/^Create Subnet/));
 
     expect(addNodeMock).toHaveBeenCalledWith({
       kind: 'container',
@@ -1038,7 +1038,7 @@ describe('CommandCard', () => {
     await user.click(screen.getByRole('button', { name: /Deploy/ }));
 
     // Now in PlateCreationMode — create a VM
-    await user.click(screen.getByTitle('Create Virtual Machine (W)'));
+    await user.click(screen.getByTitle(/^Create Virtual Machine/));
 
     expect(addNodeMock).toHaveBeenCalledWith({
       kind: 'resource',
@@ -1076,7 +1076,7 @@ describe('CommandCard', () => {
     await user.click(screen.getByRole('button', { name: /Deploy/ }));
 
     // Now in PlateCreationMode — create SQL
-    await user.click(screen.getByTitle('Create SQL Database (E)'));
+    await user.click(screen.getByTitle(/^Create SQL Database/));
 
     expect(addNodeMock).toHaveBeenCalledWith({
       kind: 'resource',
@@ -1111,7 +1111,7 @@ describe('CommandCard', () => {
     await user.click(screen.getByRole('button', { name: /Deploy/ }));
 
     // Create Subnet
-    await user.click(screen.getByTitle('Create Subnet (Q)'));
+    await user.click(screen.getByTitle(/^Create Subnet/));
 
     expect(addNodeMock).toHaveBeenCalledWith({
       kind: 'container',
