@@ -135,11 +135,11 @@ function WorkspaceDashboard({ className }: { className: string }) {
         </div>
         <div className="detail-dashboard-stat">
           <span className="detail-dashboard-value">{containers.length}</span>
-          <span className="detail-dashboard-label">{containers.length === 1 ? 'Plate' : 'Plates'}</span>
+          <span className="detail-dashboard-label">{containers.length === 1 ? 'Container' : 'Containers'}</span>
         </div>
         <div className="detail-dashboard-stat">
           <span className="detail-dashboard-value">{resources.length}</span>
-          <span className="detail-dashboard-label">{resources.length === 1 ? 'Block' : 'Blocks'}</span>
+          <span className="detail-dashboard-label">{resources.length === 1 ? 'Node' : 'Nodes'}</span>
         </div>
         <div className="detail-dashboard-stat">
           <span className="detail-dashboard-value">{connectionCount}</span>
@@ -287,7 +287,7 @@ function PlateDetail({ plate, className }: { plate: ContainerNode; className: st
         <div className="detail-property">
           <span className="detail-property-label">Contents</span>
           <span className="detail-property-value">
-            {childBlocks.length} block{childBlocks.length !== 1 ? 's' : ''}
+            {childBlocks.length} node{childBlocks.length !== 1 ? 's' : ''}
             {childPlates.length > 0 && `, ${childPlates.length} subnet${childPlates.length !== 1 ? 's' : ''}`}
           </span>
         </div>

@@ -128,7 +128,7 @@ describe('PlateSprite', () => {
     const plate = makeNetworkPlate();
     render(<PlateSprite plate={plate} screenX={0} screenY={0} zIndex={1} />);
 
-    await user.click(screen.getByRole('button', { name: `Plate: ${plate.name}` }));
+    await user.click(screen.getByRole('button', { name: `Container: ${plate.name}` }));
     expect(useUIStore.getState().selectedId).toBe(plate.id);
   });
 
@@ -150,7 +150,7 @@ describe('PlateSprite', () => {
       plate.size.depth,
     );
 
-    const button = screen.getByRole('button', { name: `Plate: ${plate.name}` });
+    const button = screen.getByRole('button', { name: `Container: ${plate.name}` });
     expect(button).toHaveStyle({ width: '320px', height: '180px', left: '-160px', top: '-90px' });
   });
 
@@ -222,10 +222,10 @@ describe('PlateSprite', () => {
       };
     };
 
-    const target = screen.getByRole('button', { name: `Plate: ${plate.name}` }).closest('.plate-sprite') as HTMLElement;
+    const target = screen.getByRole('button', { name: `Container: ${plate.name}` }).closest('.plate-sprite') as HTMLElement;
     draggableConfig.listeners.move({ dx: 1, dy: 1, target });
 
-    await user.click(screen.getByRole('button', { name: `Plate: ${plate.name}` }));
+    await user.click(screen.getByRole('button', { name: `Container: ${plate.name}` }));
     expect(useUIStore.getState().selectedId).toBeNull();
   });
 
@@ -249,7 +249,7 @@ describe('PlateSprite', () => {
       };
     };
 
-    const button = screen.getByRole('button', { name: `Plate: ${plate.name}` });
+    const button = screen.getByRole('button', { name: `Container: ${plate.name}` });
     const target = button.closest('.plate-sprite') as HTMLElement;
     draggableConfig.listeners.move({ dx: 2, dy: 2, target });
     draggableConfig.listeners.end();
@@ -309,7 +309,7 @@ describe('PlateSprite', () => {
       };
     };
 
-    const sprite = screen.getByRole('button', { name: `Plate: ${plate.name}` }).closest('.plate-sprite') as HTMLElement;
+    const sprite = screen.getByRole('button', { name: `Container: ${plate.name}` }).closest('.plate-sprite') as HTMLElement;
     const image = sprite.querySelector('.plate-img') as HTMLElement;
     draggableConfig.listeners.move({ dx: 1, dy: 1, target: sprite });
     draggableConfig.listeners.end();
@@ -396,7 +396,7 @@ describe('PlateSprite', () => {
       };
     };
 
-    const target = screen.getByRole('button', { name: `Plate: ${plate.name}` }).closest('.plate-sprite') as HTMLElement;
+    const target = screen.getByRole('button', { name: `Container: ${plate.name}` }).closest('.plate-sprite') as HTMLElement;
     draggableConfig.listeners.move({ dx: 1, dy: 1, target });
     draggableConfig.listeners.end();
 
@@ -428,7 +428,7 @@ describe('PlateSprite', () => {
       };
     };
 
-    const target = screen.getByRole('button', { name: `Plate: ${plate.name}` }).closest('.plate-sprite') as HTMLElement;
+    const target = screen.getByRole('button', { name: `Container: ${plate.name}` }).closest('.plate-sprite') as HTMLElement;
     draggableConfig.listeners.move({ dx: 1, dy: 1, target });
     draggableConfig.listeners.end();
 

@@ -202,7 +202,7 @@ export const PlateSprite = memo(function PlateSprite({
         type="button"
         onClick={handleClick}
         className="plate-button"
-        aria-label={`Plate: ${plate.name}`}
+        aria-label={`Container: ${plate.name}`}
         style={{
           left: `${-screenWidth / 2}px`,
           top: `${-screenHeight / 2}px`,

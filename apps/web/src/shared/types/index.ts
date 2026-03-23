@@ -163,33 +163,33 @@ export const BLOCK_ENCYCLOPEDIA: Record<ResourceCategory, {
 }> = {
   network: {
     what: 'Virtual networks define isolated private address spaces. All other resources live inside network boundaries.',
-    placement: 'Must be placed as the outermost plate. Subnets nest inside networks.',
+    placement: 'Must be placed as the outermost container. Subnets nest inside networks.',
     connections: 'Network resources rarely have direct connections. They provide the boundary for subnet-level routing.',
   },
   security: {
     what: 'Security services enforce access control, identity verification, and threat protection across your architecture.',
     placement: 'Place inside a subnet alongside protected resources.',
-    connections: 'Connects to compute and data blocks via internal or data connections for policy enforcement.',
+    connections: 'Connects to compute and data nodes via internal or data connections for policy enforcement.',
   },
   edge: {
     what: 'Load balancers and CDNs distribute incoming traffic across backend compute instances for high availability.',
-    placement: 'Place in a subnet to receive external traffic. Routes to compute blocks in other subnets.',
+    placement: 'Place in a subnet to receive external traffic. Routes to compute nodes in other subnets.',
     connections: 'Receives HTTP connections from external actors. Sends dataflow connections to compute targets.',
   },
   compute: {
     what: 'Compute instances run application code — virtual machines, containers, or serverless functions.',
     placement: 'Place in any subnet. Use separate subnets for web-facing vs backend services.',
-    connections: 'Receives traffic from edge blocks. Connects to data stores via data connections.',
+    connections: 'Receives traffic from edge nodes. Connects to data stores via data connections.',
   },
   data: {
     what: 'Data stores persist structured or unstructured information — databases, blob storage, caches.',
     placement: 'Place in a subnet. Use NSG rules to restrict access rather than relying on subnet type.',
-    connections: 'Receives data connections from compute blocks. May replicate via async connections.',
+    connections: 'Receives data connections from compute nodes. May replicate via async connections.',
   },
   messaging: {
     what: 'Message services enable asynchronous communication between decoupled components — queues, topics, event streams.',
     placement: 'Place in a subnet. Acts as a buffer between producer and consumer services.',
-    connections: 'Receives async connections from producers. Sends async connections to consumer compute blocks.',
+    connections: 'Receives async connections from producers. Sends async connections to consumer compute nodes.',
   },
   operations: {
     what: 'Monitoring and observability services collect metrics, logs, and traces from all running resources.',

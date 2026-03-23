@@ -160,7 +160,7 @@ function PropertiesTab({
         <PropertyRow label="Nodes" value={String(nodeCount)} />
         <PropertyRow label="Connections" value={String(connectionCount)} />
       </div>
-      <p className="inspector-empty-hint">Select a block, plate, or connection to inspect details.</p>
+      <p className="inspector-empty-hint">Select a node, container, or connection to inspect details.</p>
     </div>
   );
 }
@@ -325,7 +325,7 @@ function PlateActionMode({ selectedPlate }: { selectedPlate: ContainerNode }) {
         setSelectedId(selectedPlate.id);
         break;
       case 'rename': {
-        const newName = await promptDialog('Rename plate:', 'Rename', selectedPlate.name);
+        const newName = await promptDialog('Rename container:', 'Rename', selectedPlate.name);
         if (newName !== null && newName.trim() !== '') {
           renameNode(selectedPlate.id, newName.trim());
         }
@@ -499,7 +499,7 @@ function BlockActionMode({ block }: { block: LeafNode }) {
 
   return (
     <div className="inspector-section">
-      <h3 className="inspector-title">Block Actions</h3>
+      <h3 className="inspector-title">Node Actions</h3>
 
       <div className="inspector-block-header">
         {editingName ? (

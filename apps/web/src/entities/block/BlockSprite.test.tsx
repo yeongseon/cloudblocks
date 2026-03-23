@@ -188,7 +188,7 @@ describe('BlockSprite', () => {
     const block = makeBlock('block-select', 'compute');
 
     render(<BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
-    await user.click(screen.getByRole('button', { name: 'Block: compute-block' }));
+    await user.click(screen.getByRole('button', { name: 'Node: compute-block' }));
 
     expect(useUIStore.getState().selectedId).toBe('block-select');
   });
@@ -199,7 +199,7 @@ describe('BlockSprite', () => {
     const block = makeBlock('block-delete', 'storage');
 
     render(<BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
-    await user.click(screen.getByRole('button', { name: 'Block: storage-block' }));
+    await user.click(screen.getByRole('button', { name: 'Node: storage-block' }));
 
     expect(removeNodeMock).toHaveBeenCalledWith('block-delete');
   });
@@ -218,10 +218,10 @@ describe('BlockSprite', () => {
       </>,
     );
 
-    await user.click(screen.getByRole('button', { name: 'Block: gateway-block' }));
+    await user.click(screen.getByRole('button', { name: 'Node: gateway-block' }));
     expect(useUIStore.getState().connectionSource).toBe('block-source');
 
-    await user.click(screen.getByRole('button', { name: 'Block: database-block' }));
+    await user.click(screen.getByRole('button', { name: 'Node: database-block' }));
     expect(addConnectionMock).toHaveBeenCalledWith('block-source', 'block-target');
     expect(useUIStore.getState().connectionSource).toBeNull();
   });
@@ -233,7 +233,7 @@ describe('BlockSprite', () => {
 
     render(<BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
 
-    const button = screen.getByRole('button', { name: 'Block: gateway-block' });
+    const button = screen.getByRole('button', { name: 'Node: gateway-block' });
     await user.click(button);
     await user.click(button);
 
@@ -256,8 +256,8 @@ describe('BlockSprite', () => {
       </>,
     );
 
-    await user.click(screen.getByRole('button', { name: 'Block: database-block' }));
-    await user.click(screen.getByRole('button', { name: 'Block: compute-block' }));
+    await user.click(screen.getByRole('button', { name: 'Node: database-block' }));
+    await user.click(screen.getByRole('button', { name: 'Node: compute-block' }));
 
     expect(addConnectionMock).toHaveBeenCalledWith('block-source', 'block-target');
     expect(toastMocks.error).toHaveBeenCalledWith('Invalid connection: check allowed connection rules');
@@ -363,10 +363,10 @@ describe('BlockSprite', () => {
       };
     };
 
-    const target = screen.getByRole('button', { name: 'Block: compute-block' }).closest('.block-sprite') as HTMLElement;
+    const target = screen.getByRole('button', { name: 'Node: compute-block' }).closest('.block-sprite') as HTMLElement;
     draggableConfig.listeners.move({ dx: 5, dy: 5, target });
 
-    await user.click(screen.getByRole('button', { name: 'Block: compute-block' }));
+    await user.click(screen.getByRole('button', { name: 'Node: compute-block' }));
     expect(useUIStore.getState().selectedId).toBeNull();
   });
 
@@ -392,7 +392,7 @@ describe('BlockSprite', () => {
       };
     };
 
-    const button = screen.getByRole('button', { name: 'Block: compute-block' });
+    const button = screen.getByRole('button', { name: 'Node: compute-block' });
     const target = button.closest('.block-sprite') as HTMLElement;
     draggableConfig.listeners.move({ dx: 2, dy: 2, target });
     draggableConfig.listeners.end();
@@ -454,7 +454,7 @@ describe('BlockSprite', () => {
       };
     };
 
-    const sprite = screen.getByRole('button', { name: 'Block: compute-block' }).closest('.block-sprite') as HTMLElement;
+    const sprite = screen.getByRole('button', { name: 'Node: compute-block' }).closest('.block-sprite') as HTMLElement;
     const image = sprite.querySelector('.block-img') as HTMLElement;
     draggableConfig.listeners.move({ dx: 1, dy: 1, target: sprite });
     draggableConfig.listeners.end();
@@ -527,7 +527,7 @@ describe('BlockSprite', () => {
       };
     };
 
-    const target = screen.getByRole('button', { name: 'Block: compute-block' }).closest('.block-sprite') as HTMLElement;
+    const target = screen.getByRole('button', { name: 'Node: compute-block' }).closest('.block-sprite') as HTMLElement;
     draggableConfig.listeners.move({ dx: 2, dy: 2, target });
     draggableConfig.listeners.end();
 
@@ -562,7 +562,7 @@ describe('BlockSprite', () => {
       };
     };
 
-    const target = screen.getByRole('button', { name: 'Block: compute-block' }).closest('.block-sprite') as HTMLElement;
+    const target = screen.getByRole('button', { name: 'Node: compute-block' }).closest('.block-sprite') as HTMLElement;
     draggableConfig.listeners.move({ dx: 1, dy: 1, target });
     draggableConfig.listeners.end();
 

@@ -105,7 +105,7 @@ describe('WorkspaceManager', () => {
     useUIStore.setState({ showWorkspaceManager: true });
     render(<WorkspaceManager />);
     expect(screen.getByText(/Default Workspace/)).toBeInTheDocument();
-    expect(screen.getByText(/1 plates · 2 blocks/)).toBeInTheDocument();
+    expect(screen.getByText(/1 containers · 2 nodes/)).toBeInTheDocument();
   });
 
   it('renders active indicator (●) for current workspace', () => {

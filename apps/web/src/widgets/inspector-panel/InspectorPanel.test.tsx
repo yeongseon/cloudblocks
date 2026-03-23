@@ -106,7 +106,7 @@ describe('InspectorPanel', () => {
 
     render(<InspectorPanel />);
 
-    expect(screen.getByText('Block Actions')).toBeInTheDocument();
+    expect(screen.getByText('Node Actions')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'App VM' })).toBeInTheDocument();
     expect(screen.getByText('web_compute')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Link/ })).toBeInTheDocument();

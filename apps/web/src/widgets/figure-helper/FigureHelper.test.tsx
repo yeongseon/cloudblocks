@@ -79,7 +79,7 @@ describe('FigureHelper', () => {
   it('shows empty canvas hint when no nodes exist', () => {
     render(<FigureHelper />);
     expect(screen.getByTestId('figure-helper')).toBeInTheDocument();
-    expect(screen.getByText('Add a block to start building your architecture.')).toBeInTheDocument();
+    expect(screen.getByText('Add a node to start building your architecture.')).toBeInTheDocument();
   });
 
   it('shows first-block hint when nodes exist but no connections', () => {
@@ -87,7 +87,7 @@ describe('FigureHelper', () => {
       workspace: makeWorkspace({ nodes: [SAMPLE_NODE] }),
     });
     render(<FigureHelper />);
-    expect(screen.getByText('Nice! Now connect blocks to define relationships.')).toBeInTheDocument();
+    expect(screen.getByText('Nice! Now connect nodes to define relationships.')).toBeInTheDocument();
   });
 
   it('shows validation error with Go to button', () => {
@@ -198,7 +198,7 @@ describe('FigureHelper', () => {
     });
     render(<FigureHelper />);
     expect(screen.getByText('Validation error')).toBeInTheDocument();
-    expect(screen.queryByText(/connect blocks/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/connect nodes/)).not.toBeInTheDocument();
   });
 
   it('hint messages do not show Go to button', () => {

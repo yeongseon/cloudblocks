@@ -73,7 +73,7 @@ function validateBlockProviderRules(
       warnings.push({
         ruleId: 'rule-provider-unknown-subtype',
         severity: 'warning',
-        message: `Block "${block.name}" has unknown subtype "${block.subtype}" for ${block.provider} ${block.category}.`,
+        message: `Node "${block.name}" has unknown subtype "${block.subtype}" for ${block.provider} ${block.category}.`,
         suggestion: `Check available subtypes for ${block.provider} ${block.category} resources.`,
         targetId: block.id,
       });
