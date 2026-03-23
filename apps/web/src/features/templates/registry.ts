@@ -27,6 +27,4 @@ export function listTemplatesByCategory(
   return listTemplates().filter((t) => t.category === category);
 }
 
-export function clearRegistry(): void {
-  templateRegistry.clear();
-}
+

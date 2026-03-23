@@ -126,16 +126,6 @@ export const BLOCK_FRIENDLY_NAMES: Record<ResourceCategory, string> = {
   operations: 'Monitoring',
 };
 
-export const BLOCK_DESCRIPTIONS: Record<ResourceCategory, string> = {
-  network: 'Defines private network boundaries and segmented traffic paths',
-  security: 'Enforces identity, access controls, and workload protection',
-  edge: 'Handles ingress routing, balancing, and edge delivery',
-  compute: 'Executes application workloads and runtime services',
-  data: 'Stores and serves persistent structured or unstructured data',
-  messaging: 'Connects services through asynchronous event and queue flows',
-  operations: 'Observes health, performance, and operational telemetry',
-};
-
 export const BLOCK_ICONS: Record<ResourceCategory, string> = {
   network: '🌐',
   security: '🔒',
