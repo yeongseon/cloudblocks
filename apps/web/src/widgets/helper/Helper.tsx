@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
 import { useUIStore } from '../../entities/store/uiStore';
 import { useHelperTrigger } from './useHelperTrigger';
-import './FigureHelper.css';
+import './Helper.css';
 
-export function FigureHelper() {
+export function Helper() {
   const message = useHelperTrigger();
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const [bubbleOpen, setBubbleOpen] = useState(true);
@@ -31,20 +31,20 @@ export function FigureHelper() {
   const showBubble = bubbleOpen && !dismissed.has(message.key);
 
   return (
-    <div className="figure-helper" data-testid="figure-helper">
+    <div className="helper-widget" data-testid="helper-widget">
       {showBubble && (
         <div
-          className={`figure-helper__bubble figure-helper__bubble--${message.type}`}
-          data-testid="figure-helper-bubble"
+          className={`helper-widget__bubble helper-widget__bubble--${message.type}`}
+          data-testid="helper-widget-bubble"
           role="status"
         >
-          <p className="figure-helper__text">{message.text}</p>
-          <div className="figure-helper__actions">
+          <p className="helper-widget__text">{message.text}</p>
+          <div className="helper-widget__actions">
             {message.targetId && (
               <button
                 type="button"
-                className="figure-helper__btn figure-helper__btn--goto"
-                data-testid="figure-helper-goto"
+                className="helper-widget__btn helper-widget__btn--goto"
+                data-testid="helper-widget-goto"
                 onClick={handleGoTo}
               >
                 Go to
@@ -52,8 +52,8 @@ export function FigureHelper() {
             )}
             <button
               type="button"
-              className="figure-helper__btn figure-helper__btn--dismiss"
-              data-testid="figure-helper-dismiss"
+              className="helper-widget__btn helper-widget__btn--dismiss"
+              data-testid="helper-widget-dismiss"
               onClick={handleDismiss}
             >
               Dismiss
@@ -63,8 +63,8 @@ export function FigureHelper() {
       )}
       <button
         type="button"
-        className="figure-helper__toggle"
-        data-testid="figure-helper-toggle"
+        className="helper-widget__toggle"
+        data-testid="helper-widget-toggle"
         onClick={handleToggle}
         aria-label="Toggle helper"
       >
