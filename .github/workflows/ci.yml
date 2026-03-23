@@ -123,6 +123,14 @@ jobs:
         run: npx vitest run --coverage
         working-directory: apps/web
 
+      - name: Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          files: apps/web/coverage/lcov.info
+          flags: web
+          fail_ci_if_error: false
+
   package-tests:
     name: Package Tests
     runs-on: ubuntu-latest
@@ -190,5 +198,13 @@ jobs:
         working-directory: apps/api
 
       - name: Run tests with coverage
-        run: python -m pytest app/tests/ -v --cov=app --cov-report=term-missing --cov-fail-under=90
+        run: python -m pytest app/tests/ -v --cov=app --cov-report=term-missing --cov-report=xml:coverage.xml --cov-fail-under=90
         working-directory: apps/api
+
+      - name: Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          files: apps/api/coverage.xml
+          flags: api
+          fail_ci_if_error: false
