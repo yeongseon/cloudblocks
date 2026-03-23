@@ -146,6 +146,7 @@ export const PlateSvg = memo(function PlateSvg({
   }, [cx, diamondHeight, screenWidth, studsX, studsY, topY]);
 
   const showStuds = useUIStore((s) => s.showStuds);
+  const showGrid = useUIStore((s) => s.showGrid);
   const studId = useId().replace(/:/g, '_');
 
   // Label positioning on side walls
@@ -176,7 +177,7 @@ export const PlateSvg = memo(function PlateSvg({
 
       {showStuds && <StudGrid studId={studId} studs={studs} />}
 
-      {showStuds && (
+      {showGrid && (
         <PlateSurfaceGrid
           cx={cx}
           topY={topY}

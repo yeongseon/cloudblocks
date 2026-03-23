@@ -125,7 +125,7 @@ describe('PlateSvg — CU-based dimensions', () => {
 
 describe('PlateSvg — SVG structure', () => {
   beforeEach(() => {
-    useUIStore.setState({ showStuds: true });
+    useUIStore.setState({ showStuds: true, showGrid: true });
   });
 
   it('renders 3 face polygons (top, left side, right side)', () => {
