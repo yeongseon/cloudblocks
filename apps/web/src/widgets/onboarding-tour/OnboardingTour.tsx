@@ -20,41 +20,23 @@ interface TourStep {
 
 const STEPS: TourStep[] = [
   {
-    selector: '.empty-canvas-overlay',
-    fallbackSelector: '.scene-canvas',
-    title: 'Welcome to CloudBlocks!',
-    description:
-      'Start by creating a Network node \u2014 click "Start from Scratch" or pick a template.',
-  },
-  {
     selector: '.sidebar-palette',
     fallbackSelector: '.sidebar-palette',
-    title: 'Resource Palette',
-    description:
-      'Browse and drag resources onto the canvas. Resources are grouped by category \u2014 network, compute, data, security, and more.',
+    title: 'Add a Node',
+    description: 'Browse the palette and drag a resource onto the canvas to start building.',
     ensureVisible: () => useUIStore.getState().setSidebarOpen(true),
   },
   {
     selector: '.scene-canvas',
     fallbackSelector: '.builder-canvas',
-    title: 'Canvas',
-    description:
-      'Your main workspace. Place nodes, connect ports, and build cloud architectures visually.',
-  },
-  {
-    selector: '.right-drawer',
-    fallbackSelector: '.builder-canvas',
-    title: 'Right Drawer',
-    description:
-      'Context panels slide in from the right \u2014 properties, validation, connections, and more. Open via the View menu or by selecting elements.',
-    ensureVisible: () => useUIStore.getState().openDrawer('properties'),
+    title: 'Connect Nodes',
+    description: 'Click a port on any node and drag to another node to create a connection.',
   },
   {
     selector: '.menu-bar-nav',
     fallbackSelector: '.menu-bar-nav',
-    title: 'Menu Bar',
-    description:
-      'Access File, Edit, Build, and View menus. Validate architecture, generate IaC, and manage panels.',
+    title: 'Generate Code',
+    description: 'Open Build → Generate to export Terraform, Bicep, or Pulumi code.',
   },
 ];
 

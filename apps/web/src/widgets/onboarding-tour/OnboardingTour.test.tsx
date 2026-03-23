@@ -120,7 +120,7 @@ describe('OnboardingTour', () => {
       await new Promise((r) => requestAnimationFrame(r));
     });
 
-    expect(screen.getByText('Welcome to CloudBlocks!')).toBeInTheDocument();
+    expect(screen.getByText('Add a Node')).toBeInTheDocument();
   });
 
   it('advances to step 2 on Next click', async () => {
@@ -137,7 +137,7 @@ describe('OnboardingTour', () => {
       await new Promise((r) => requestAnimationFrame(r));
     });
 
-    expect(screen.getByText('Resource Palette')).toBeInTheDocument();
+    expect(screen.getByText('Connect Nodes')).toBeInTheDocument();
   });
 
   it('goes back to previous step on Back click', async () => {
@@ -160,7 +160,7 @@ describe('OnboardingTour', () => {
       await new Promise((r) => requestAnimationFrame(r));
     });
 
-    expect(screen.getByText('Welcome to CloudBlocks!')).toBeInTheDocument();
+    expect(screen.getByText('Add a Node')).toBeInTheDocument();
   });
 
   it('does not show Back button on step 1', async () => {
@@ -182,7 +182,7 @@ describe('OnboardingTour', () => {
       await new Promise((r) => requestAnimationFrame(r));
     });
 
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 2; i++) {
       fireEvent.click(screen.getByText('Next'));
       await act(async () => {
         await new Promise((r) => requestAnimationFrame(r));
@@ -215,7 +215,7 @@ describe('OnboardingTour', () => {
       await new Promise((r) => requestAnimationFrame(r));
     });
 
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 2; i++) {
       fireEvent.click(screen.getByText('Next'));
       await act(async () => {
         await new Promise((r) => requestAnimationFrame(r));
@@ -242,7 +242,7 @@ describe('OnboardingTour', () => {
     expect(useUIStore.getState().showOnboarding).toBe(false);
   });
 
-  it('shows step 3 content: Canvas', async () => {
+  it('shows step 3 content: Generate Code', async () => {
     useUIStore.setState({ showOnboarding: true });
     render(<OnboardingTour />);
 
@@ -257,43 +257,7 @@ describe('OnboardingTour', () => {
       });
     }
 
-    expect(screen.getByText('Canvas')).toBeInTheDocument();
-  });
-
-  it('shows step 5 content: Menu Bar', async () => {
-    useUIStore.setState({ showOnboarding: true });
-    render(<OnboardingTour />);
-
-    await act(async () => {
-      await new Promise((r) => requestAnimationFrame(r));
-    });
-
-    for (let i = 0; i < 4; i++) {
-      fireEvent.click(screen.getByText('Next'));
-      await act(async () => {
-        await new Promise((r) => requestAnimationFrame(r));
-      });
-    }
-
-    expect(screen.getByText('Menu Bar')).toBeInTheDocument();
-  });
-
-  it('shows right drawer step content', async () => {
-    useUIStore.setState({ showOnboarding: true });
-    render(<OnboardingTour />);
-
-    await act(async () => {
-      await new Promise((r) => requestAnimationFrame(r));
-    });
-
-    for (let i = 0; i < 3; i++) {
-      fireEvent.click(screen.getByText('Next'));
-      await act(async () => {
-        await new Promise((r) => requestAnimationFrame(r));
-      });
-    }
-
-    expect(screen.getByText('Right Drawer')).toBeInTheDocument();
+    expect(screen.getByText('Generate Code')).toBeInTheDocument();
   });
 
   it('ensure visible opens sidebar for palette step', async () => {
@@ -304,10 +268,7 @@ describe('OnboardingTour', () => {
       await new Promise((r) => requestAnimationFrame(r));
     });
 
-    fireEvent.click(screen.getByText('Next'));
-    await act(async () => {
-      await new Promise((r) => requestAnimationFrame(r));
-    });
+    // Sidebar should open when Add a Node step is shown
 
     expect(useUIStore.getState().sidebar.isOpen).toBe(true);
   });
@@ -351,7 +312,7 @@ describe('OnboardingTour', () => {
 
     expect(screen.queryByTestId('persona-selection')).not.toBeInTheDocument();
     expect(screen.getByTestId('onboarding-tour')).toBeInTheDocument();
-    expect(screen.getByText('Welcome to CloudBlocks!')).toBeInTheDocument();
+    expect(screen.getByText('Add a Node')).toBeInTheDocument();
   });
 
   it('handles window resize during active tour', async () => {
@@ -370,6 +331,6 @@ describe('OnboardingTour', () => {
     });
 
     expect(screen.getByTestId('onboarding-tour')).toBeInTheDocument();
-    expect(screen.getByText('Welcome to CloudBlocks!')).toBeInTheDocument();
+    expect(screen.getByText('Add a Node')).toBeInTheDocument();
   });
 });
