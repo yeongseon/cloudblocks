@@ -8,10 +8,12 @@ import type { ContainerNode, LeafNode, Connection } from '@cloudblocks/schema';
 
 const NOW = '2026-01-01T00:00:00.000Z';
 
-function makeWorkspace(overrides: {
-  nodes?: (ContainerNode | LeafNode)[];
-  connections?: Connection[];
-} = {}) {
+function makeWorkspace(
+  overrides: {
+    nodes?: (ContainerNode | LeafNode)[];
+    connections?: Connection[];
+  } = {},
+) {
   return {
     id: 'ws-test',
     name: 'Test',
@@ -79,7 +81,9 @@ describe('FigureHelper', () => {
   it('shows empty canvas hint when no nodes exist', () => {
     render(<FigureHelper />);
     expect(screen.getByTestId('figure-helper')).toBeInTheDocument();
-    expect(screen.getByText('Add a block to start building your architecture.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Add a block to start building your architecture.'),
+    ).toBeInTheDocument();
   });
 
   it('shows first-block hint when nodes exist but no connections', () => {
@@ -87,18 +91,22 @@ describe('FigureHelper', () => {
       workspace: makeWorkspace({ nodes: [SAMPLE_NODE] }),
     });
     render(<FigureHelper />);
-    expect(screen.getByText('Nice! Now connect blocks to define relationships.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Nice! Now connect blocks to define relationships.'),
+    ).toBeInTheDocument();
   });
 
   it('shows validation error with Go to button', () => {
     const result: ValidationResult = {
       valid: false,
-      errors: [{
-        ruleId: 'placement-001',
-        severity: 'error',
-        message: 'Gateway must be on public subnet',
-        targetId: 'block-1',
-      }],
+      errors: [
+        {
+          ruleId: 'placement-001',
+          severity: 'error',
+          message: 'Gateway must be on public subnet',
+          targetId: 'block-1',
+        },
+      ],
       warnings: [],
     };
     useArchitectureStore.setState({
@@ -113,12 +121,14 @@ describe('FigureHelper', () => {
   it('Go to button calls setSelectedId with targetId', () => {
     const result: ValidationResult = {
       valid: false,
-      errors: [{
-        ruleId: 'placement-001',
-        severity: 'error',
-        message: 'Error msg',
-        targetId: 'block-1',
-      }],
+      errors: [
+        {
+          ruleId: 'placement-001',
+          severity: 'error',
+          message: 'Error msg',
+          targetId: 'block-1',
+        },
+      ],
       warnings: [],
     };
     useArchitectureStore.setState({
@@ -165,12 +175,14 @@ describe('FigureHelper', () => {
   it('error messages do not show Go to when no targetId', () => {
     const result: ValidationResult = {
       valid: false,
-      errors: [{
-        ruleId: 'general-001',
-        severity: 'error',
-        message: 'Some general error',
-        targetId: '',
-      }],
+      errors: [
+        {
+          ruleId: 'general-001',
+          severity: 'error',
+          message: 'Some general error',
+          targetId: '',
+        },
+      ],
       warnings: [],
     };
     useArchitectureStore.setState({
@@ -184,12 +196,14 @@ describe('FigureHelper', () => {
   it('error takes priority over hint', () => {
     const result: ValidationResult = {
       valid: false,
-      errors: [{
-        ruleId: 'placement-001',
-        severity: 'error',
-        message: 'Validation error',
-        targetId: 'block-1',
-      }],
+      errors: [
+        {
+          ruleId: 'placement-001',
+          severity: 'error',
+          message: 'Validation error',
+          targetId: 'block-1',
+        },
+      ],
       warnings: [],
     };
     useArchitectureStore.setState({

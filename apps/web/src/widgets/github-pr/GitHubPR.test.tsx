@@ -161,9 +161,12 @@ describe('GitHubPR', () => {
     await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
 
     await waitFor(() => {
-      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-1/pr', expect.objectContaining({
-        branch: 'custom-branch',
-      }));
+      expect(mockApiPost).toHaveBeenCalledWith(
+        '/api/v1/workspaces/backend-ws-1/pr',
+        expect.objectContaining({
+          branch: 'custom-branch',
+        }),
+      );
     });
   });
 
@@ -203,7 +206,9 @@ describe('GitHubPR', () => {
     await user.type(branchField, 'feature bad');
 
     expect(screen.getByRole('button', { name: 'Create Pull Request' })).toBeDisabled();
-    expect(screen.getByText('Branch name contains invalid characters or format.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Branch name contains invalid characters or format.'),
+    ).toBeInTheDocument();
   });
 
   it('disables submit and shows error when branch matches base branch fallback', async () => {
@@ -214,9 +219,10 @@ describe('GitHubPR', () => {
     await user.type(branchField, 'main');
 
     expect(screen.getByRole('button', { name: 'Create Pull Request' })).toBeDisabled();
-    expect(screen.getByText('Head branch must differ from base branch (main/master).')).toBeInTheDocument();
+    expect(
+      screen.getByText('Head branch must differ from base branch (main/master).'),
+    ).toBeInTheDocument();
   });
-
 
   it('trims PR title before submission', async () => {
     const user = userEvent.setup();
@@ -234,22 +240,33 @@ describe('GitHubPR', () => {
     await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
 
     await waitFor(() => {
-      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-1/pr', expect.objectContaining({
-        title: 'Trimmed title',
-      }));
+      expect(mockApiPost).toHaveBeenCalledWith(
+        '/api/v1/workspaces/backend-ws-1/pr',
+        expect.objectContaining({
+          title: 'Trimmed title',
+        }),
+      );
     });
   });
 
   it('shows loading indicator while submitting', async () => {
     const user = userEvent.setup();
     let resolvePost!: (value: unknown) => void;
-    mockApiPost.mockReturnValue(new Promise((r) => { resolvePost = r; }));
+    mockApiPost.mockReturnValue(
+      new Promise((r) => {
+        resolvePost = r;
+      }),
+    );
 
     render(<GitHubPR />);
     await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
 
     expect(screen.getByText('Loading...')).toBeInTheDocument();
-    resolvePost({ pull_request_url: 'https://github.com/owner/repo/pull/42', number: 42, branch: 'main' });
+    resolvePost({
+      pull_request_url: 'https://github.com/owner/repo/pull/42',
+      number: 42,
+      branch: 'main',
+    });
   });
 
   it('shows actionable branch collision error when backend reports existing branch', async () => {
@@ -261,7 +278,9 @@ describe('GitHubPR', () => {
     await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
 
     expect(
-      await screen.findByText("Branch 'feature/existing-branch' already exists. Please choose a different branch name.")
+      await screen.findByText(
+        "Branch 'feature/existing-branch' already exists. Please choose a different branch name.",
+      ),
     ).toBeInTheDocument();
   });
 
@@ -284,7 +303,7 @@ describe('GitHubPR', () => {
     await waitFor(() => {
       expect(mockConfirmDialog).toHaveBeenCalledWith(
         'You have unsaved edits in the PR form. Discard them?',
-        'Discard Draft?'
+        'Discard Draft?',
       );
     });
     expect(useUIStore.getState().showGitHubPR).toBe(true);
@@ -301,7 +320,7 @@ describe('GitHubPR', () => {
     await waitFor(() => {
       expect(mockConfirmDialog).toHaveBeenCalledWith(
         'You have unsaved edits in the PR form. Discard them?',
-        'Discard Draft?'
+        'Discard Draft?',
       );
     });
     expect(useUIStore.getState().showGitHubPR).toBe(false);
@@ -319,7 +338,6 @@ describe('GitHubPR', () => {
     await user.clear(commitField);
     await user.type(commitField, 'Custom commit');
     expect(commitField).toHaveValue('Custom commit');
-
   });
 
   it('resets form state on remount (simulating panel close and reopen)', async () => {
@@ -338,7 +356,9 @@ describe('GitHubPR', () => {
     expect(screen.getByLabelText('Title')).toHaveValue('Update cloud architecture');
     expect(screen.getByLabelText('Body (optional)')).toHaveValue('');
     expect(screen.getByLabelText('Branch name (optional)')).toHaveValue('');
-    expect(screen.getByLabelText('Commit message')).toHaveValue('Update architecture via CloudBlocks');
+    expect(screen.getByLabelText('Commit message')).toHaveValue(
+      'Update architecture via CloudBlocks',
+    );
     expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
   });
 
@@ -364,7 +384,10 @@ describe('GitHubPR', () => {
     await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
 
     await waitFor(() => {
-      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-42/pr', expect.any(Object));
+      expect(mockApiPost).toHaveBeenCalledWith(
+        '/api/v1/workspaces/backend-ws-42/pr',
+        expect.any(Object),
+      );
     });
   });
 
@@ -383,7 +406,9 @@ describe('GitHubPR', () => {
 
     render(<GitHubPR />);
 
-    expect(screen.getByText('Workspace must be linked to backend before creating a pull request.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Workspace must be linked to backend before creating a pull request.'),
+    ).toBeInTheDocument();
     expect(mockApiPost).not.toHaveBeenCalled();
   });
 });

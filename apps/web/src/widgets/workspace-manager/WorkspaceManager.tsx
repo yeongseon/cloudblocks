@@ -53,7 +53,12 @@ export function WorkspaceManager() {
     <div className="workspace-manager">
       <div className="workspace-manager-header">
         <h3 className="workspace-manager-title">📂 Workspaces</h3>
-        <button type="button" className="workspace-manager-close" onClick={toggleWorkspaceManager} aria-label="Close workspace manager panel">
+        <button
+          type="button"
+          className="workspace-manager-close"
+          onClick={toggleWorkspaceManager}
+          aria-label="Close workspace manager panel"
+        >
           ✕
         </button>
       </div>
@@ -69,7 +74,12 @@ export function WorkspaceManager() {
             if (e.key === 'Enter') handleCreate();
           }}
         />
-        <button type="button" className="workspace-manager-create-btn" onClick={handleCreate} disabled={!newName.trim()}>
+        <button
+          type="button"
+          className="workspace-manager-create-btn"
+          onClick={handleCreate}
+          disabled={!newName.trim()}
+        >
           + Create
         </button>
       </div>
@@ -77,8 +87,12 @@ export function WorkspaceManager() {
       <div className="workspace-manager-list">
         {allWorkspaces.map((ws) => {
           const isActive = ws.id === workspace.id;
-          const blockCount = ws.architecture.nodes.filter((node) => node.kind === 'resource').length;
-          const plateCount = ws.architecture.nodes.filter((node) => node.kind === 'container').length;
+          const blockCount = ws.architecture.nodes.filter(
+            (node) => node.kind === 'resource',
+          ).length;
+          const plateCount = ws.architecture.nodes.filter(
+            (node) => node.kind === 'container',
+          ).length;
 
           return (
             <div
@@ -87,7 +101,8 @@ export function WorkspaceManager() {
             >
               <div className="workspace-manager-item-info">
                 <span className="workspace-manager-item-name">
-                  {isActive && '● '}{ws.name}
+                  {isActive && '● '}
+                  {ws.name}
                 </span>
                 <span className="workspace-manager-item-stats">
                   {plateCount} plates · {blockCount} blocks

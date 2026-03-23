@@ -38,7 +38,9 @@ export function LogsTab() {
           {entries.map((entry) => (
             <li key={entry.id} className="bottom-dock-log-item">
               <span className="bottom-dock-log-time">{formatTimestamp(entry.ts)}</span>
-              <span className={`bottom-dock-log-level bottom-dock-log-level--${entry.level}`}>{entry.level}</span>
+              <span className={`bottom-dock-log-level bottom-dock-log-level--${entry.level}`}>
+                {entry.level}
+              </span>
               <span className="bottom-dock-log-message">{entry.message}</span>
             </li>
           ))}

@@ -124,7 +124,9 @@ describe('notifications', () => {
     expect(notifications[0].title).toBe('Ops features unavailable');
     expect(notifications[0].category).toBe('system');
     expect(notifications[0].level).toBe('warning');
-    expect(notifications[0].message).toBe('Ops features require the backend API - see setup guide.');
+    expect(notifications[0].message).toBe(
+      'Ops features require the backend API - see setup guide.',
+    );
     expect(toast).toHaveBeenCalledWith('Ops features require the backend API - see setup guide.');
     expect(toast.success).not.toHaveBeenCalled();
   });

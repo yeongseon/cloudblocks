@@ -20,12 +20,12 @@ The system enforces architectural rules and generates infrastructure definitions
 
 Designing cloud architecture currently requires switching between multiple tools:
 
-| Task | Tool |
-|-----|------|
+| Task                | Tool                 |
+| ------------------- | -------------------- |
 | Architecture design | draw.io / Lucidchart |
-| Infrastructure code | Terraform / Bicep |
-| Validation | Manual review |
-| Deployment | CI/CD pipelines |
+| Infrastructure code | Terraform / Bicep    |
+| Validation          | Manual review        |
+| Deployment          | CI/CD pipelines      |
 
 This workflow creates several problems:
 
@@ -46,11 +46,11 @@ CloudBlocks models cloud infrastructure using a **Lego-style architecture system
 
 Instead of writing infrastructure code directly, users assemble architecture using visual building blocks:
 
-| Concept | Role | Analogy |
-|---------|------|---------|
-| **Plate** | Infrastructure boundary (network, subnet) | Lego baseplate |
-| **Block** | Infrastructure resource (compute, database, storage, gateway) | Lego brick |
-| **Connection** | Communication flow between blocks (dataflow) | Lego connector |
+| Concept        | Role                                                          | Analogy        |
+| -------------- | ------------------------------------------------------------- | -------------- |
+| **Plate**      | Infrastructure boundary (network, subnet)                     | Lego baseplate |
+| **Block**      | Infrastructure resource (compute, database, storage, gateway) | Lego brick     |
+| **Connection** | Communication flow between blocks (dataflow)                  | Lego connector |
 
 ```
 Internet → [Gateway] → [Compute] → [Database]
@@ -61,12 +61,12 @@ This is not a diagram tool. This is an **architecture modeling tool**.
 
 The difference:
 
-| | Diagram Tool | CloudBlocks |
-|--|-------------|-------------|
-| Output | Static image | Architecture model + IaC code |
-| Validation | None | Rule engine enforces constraints |
-| Semantics | Visual only | Every element maps to a real resource |
-| Workflow | Design → screenshot → manual coding | Design → validate → generate code |
+|            | Diagram Tool                        | CloudBlocks                           |
+| ---------- | ----------------------------------- | ------------------------------------- |
+| Output     | Static image                        | Architecture model + IaC code         |
+| Validation | None                                | Rule engine enforces constraints      |
+| Semantics  | Visual only                         | Every element maps to a real resource |
+| Workflow   | Design → screenshot → manual coding | Design → validate → generate code     |
 
 ## Architecture-First Workflow
 
@@ -112,7 +112,6 @@ The architecture model is a **provider-agnostic** representation that:
 This compiler approach means every visual element maps to a real infrastructure component, and changes in the visual builder produce deterministic, diffable infrastructure code.
 
 > See also: [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md) for the architecture model specification, [ARCHITECTURE.md](./ARCHITECTURE.md) §Architecture Compiler for system-level details.
-
 
 # 4. Goals
 
@@ -209,15 +208,15 @@ ExternalActor (Internet)
 
 ### Terminology Mapping
 
-| PRD Term | Code Type | Description |
-|----------|-----------|-------------|
-| Network | `Plate` (type: `network`) | Cloud network container (Azure VNet, AWS VPC) |
-| Subnet | `Plate` (type: `subnet`) | Subnet within a network |
-| Resource | `Block` | Infrastructure component (compute, database, storage, gateway) |
-| Internet | `ExternalActor` (type: `internet`) | External traffic entry point |
-| Connection | `Connection` (type: `dataflow`) | Request flow between components |
-| Architecture | `ArchitectureModel` | Root model containing all elements |
-| Workspace | `Workspace` | Container for one architecture + metadata |
+| PRD Term     | Code Type                          | Description                                                    |
+| ------------ | ---------------------------------- | -------------------------------------------------------------- |
+| Network      | `Plate` (type: `network`)          | Cloud network container (Azure VNet, AWS VPC)                  |
+| Subnet       | `Plate` (type: `subnet`)           | Subnet within a network                                        |
+| Resource     | `Block`                            | Infrastructure component (compute, database, storage, gateway) |
+| Internet     | `ExternalActor` (type: `internet`) | External traffic entry point                                   |
+| Connection   | `Connection` (type: `dataflow`)    | Request flow between components                                |
+| Architecture | `ArchitectureModel`                | Root model containing all elements                             |
+| Workspace    | `Workspace`                        | Container for one architecture + metadata                      |
 
 > See also: ARCHITECTURE.md §3 (Core Modeling Engine), §3.5 (Architecture Model Schema)
 
@@ -257,12 +256,12 @@ Rules:
 
 Blocks represent **infrastructure resources**.
 
-| Block Type | Description |
-|------------|-------------|
-| Compute | Application runtime |
-| Database | Persistent database |
-| Storage | Object/file storage |
-| Gateway | Entry traffic point |
+| Block Type | Description         |
+| ---------- | ------------------- |
+| Compute    | Application runtime |
+| Database   | Persistent database |
+| Storage    | Object/file storage |
+| Gateway    | Entry traffic point |
 
 Example architecture:
 
@@ -314,12 +313,12 @@ The system validates architecture automatically.
 
 Example rules:
 
-| Rule | Description |
-|----|-----|
-| Database cannot exist in Public Subnet | Security rule |
-| Gateway must exist in Public Subnet | Entry traffic |
-| Compute must exist in Subnet | Network requirement |
-| Blocks cannot exist outside Subnet | Structural rule |
+| Rule                                   | Description         |
+| -------------------------------------- | ------------------- |
+| Database cannot exist in Public Subnet | Security rule       |
+| Gateway must exist in Public Subnet    | Entry traffic       |
+| Compute must exist in Subnet           | Network requirement |
+| Blocks cannot exist outside Subnet     | Structural rule     |
 
 > See also: ARCHITECTURE.md §4 (Rule Engine)
 
@@ -414,6 +413,7 @@ Users can modify:
 Displays architecture errors.
 
 > See also: ARCHITECTURE.md §6 (Rendering Layer Architecture)
+
 ---
 
 # 14. Technical Constraints
@@ -436,11 +436,11 @@ The system internally uses a 2D coordinate model.
 
 ## MVP Metrics
 
-| Metric | Target |
-|--------|--------|
-| Architecture build time | <5 minutes |
-| Validation accuracy | >95% |
-| Architecture export success | >99% |
+| Metric                      | Target     |
+| --------------------------- | ---------- |
+| Architecture build time     | <5 minutes |
+| Validation accuracy         | >95%       |
+| Architecture export success | >99%       |
 
 ---
 
@@ -454,11 +454,11 @@ See [ROADMAP.md](ROADMAP.md) for the canonical milestone and phase timeline, inc
 
 CloudBlocks will use an open core model.
 
-| Tier | Description |
-|------|-------------|
-| Open Source | Core builder |
-| Pro | Hosted SaaS |
-| Enterprise | Architecture consulting |
+| Tier        | Description             |
+| ----------- | ----------------------- |
+| Open Source | Core builder            |
+| Pro         | Hosted SaaS             |
+| Enterprise  | Architecture consulting |
 
 ---
 

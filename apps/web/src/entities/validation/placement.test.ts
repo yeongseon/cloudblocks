@@ -1,10 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import type { LeafNode, ContainerNode } from '@cloudblocks/schema';
-import { validatePlacement, canPlaceBlock, validateLayerPlacement, validateGridAlignment, validateNoOverlap } from './placement';
+import {
+  validatePlacement,
+  canPlaceBlock,
+  validateLayerPlacement,
+  validateGridAlignment,
+  validateNoOverlap,
+} from './placement';
 
-function makeBlock(
-  overrides: Partial<LeafNode> = {}
-): LeafNode {
+function makeBlock(overrides: Partial<LeafNode> = {}): LeafNode {
   return {
     id: 'block-1',
     name: 'Block',
@@ -21,13 +25,12 @@ function makeBlock(
 }
 
 function makePlate(
-  overrides: Partial<ContainerNode> & { type?: ContainerNode['layer'] } = {}
+  overrides: Partial<ContainerNode> & { type?: ContainerNode['layer'] } = {},
 ): ContainerNode {
   const layer = overrides.type ?? overrides.layer ?? 'subnet';
   const normalizedLayer = layer === 'resource' ? 'subnet' : layer;
-  const resourceType: ContainerNode['resourceType'] = normalizedLayer === 'subnet'
-    ? 'subnet'
-    : 'virtual_network';
+  const resourceType: ContainerNode['resourceType'] =
+    normalizedLayer === 'subnet' ? 'subnet' : 'virtual_network';
   return {
     id: 'plate-1',
     name: 'Plate',
@@ -44,7 +47,11 @@ function makePlate(
   };
 }
 
-function makeSize(overrides: Partial<{ width: number; height: number; depth: number }> = {}): { width: number; height: number; depth: number } {
+function makeSize(overrides: Partial<{ width: number; height: number; depth: number }> = {}): {
+  width: number;
+  height: number;
+  depth: number;
+} {
   return {
     width: 2,
     height: 2,
@@ -233,7 +240,11 @@ describe('validatePlacement', () => {
   });
 
   it('returns error when observability is on network plate', () => {
-    const block = makeBlock({ id: 'observability-1', name: 'ObservabilityA', category: 'operations' });
+    const block = makeBlock({
+      id: 'observability-1',
+      name: 'ObservabilityA',
+      category: 'operations',
+    });
     const plate = makePlate({ type: 'region' });
 
     expect(validatePlacement(block, plate)).toEqual({
@@ -537,8 +548,18 @@ describe('validateNoOverlap', () => {
   });
 
   it('uses custom getBlockSize for different block sizes', () => {
-    const block = makeBlock({ id: 'a', name: 'A', category: 'compute', position: { x: 0, y: 0, z: 0 } });
-    const sibling = makeBlock({ id: 'b', name: 'B', category: 'data', position: { x: 3, y: 0, z: 0 } });
+    const block = makeBlock({
+      id: 'a',
+      name: 'A',
+      category: 'compute',
+      position: { x: 0, y: 0, z: 0 },
+    });
+    const sibling = makeBlock({
+      id: 'b',
+      name: 'B',
+      category: 'data',
+      position: { x: 3, y: 0, z: 0 },
+    });
 
     // With small size: no overlap
     const smallSize = () => makeSize({ width: 2, depth: 2 });

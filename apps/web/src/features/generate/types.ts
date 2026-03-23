@@ -168,11 +168,20 @@ export interface GeneratorPlugin {
   /** Optional: generator-specific validation */
   validate?: (arch: ArchitectureModel, ctx: { provider: ProviderDefinition }) => ValidationIssue[];
   /** Normalize architecture into intermediate representation */
-  normalize: (arch: ArchitectureModel, ctx: { provider: ProviderDefinition; mode: GenerationMode }) => NormalizedModel;
+  normalize: (
+    arch: ArchitectureModel,
+    ctx: { provider: ProviderDefinition; mode: GenerationMode },
+  ) => NormalizedModel;
   /** Generate output files from normalized model */
-  generate: (model: NormalizedModel, ctx: { provider: ProviderDefinition; mode: GenerationMode; options: GenerationOptions }) => GeneratedOutput;
+  generate: (
+    model: NormalizedModel,
+    ctx: { provider: ProviderDefinition; mode: GenerationMode; options: GenerationOptions },
+  ) => GeneratedOutput;
   /** Optional: post-process generated files */
-  format?: (files: GeneratedFile[], ctx: { languageHints?: Record<string, FileLanguage> }) => GeneratedFile[];
+  format?: (
+    files: GeneratedFile[],
+    ctx: { languageHints?: Record<string, FileLanguage> },
+  ) => GeneratedFile[];
 }
 
 // ─── Pipeline Stages ────────────────────────────────────────
@@ -185,33 +194,52 @@ export interface NormalizedModel {
 }
 
 export interface GeneratorPipeline {
-  generate: (
-    architecture: ArchitectureModel,
-    options: GenerationOptions
-  ) => GeneratedOutput;
+  generate: (architecture: ArchitectureModel, options: GenerationOptions) => GeneratedOutput;
 }
 
 // ─── Azure Region Allowlist ─────────────────────────────────
 
 export const AZURE_REGIONS = [
-  'eastus', 'eastus2', 'westus', 'westus2', 'westus3',
-  'centralus', 'northcentralus', 'southcentralus', 'westcentralus',
-  'canadacentral', 'canadaeast',
+  'eastus',
+  'eastus2',
+  'westus',
+  'westus2',
+  'westus3',
+  'centralus',
+  'northcentralus',
+  'southcentralus',
+  'westcentralus',
+  'canadacentral',
+  'canadaeast',
   'brazilsouth',
-  'northeurope', 'westeurope', 'uksouth', 'ukwest',
-  'francecentral', 'francesouth',
+  'northeurope',
+  'westeurope',
+  'uksouth',
+  'ukwest',
+  'francecentral',
+  'francesouth',
   'germanywestcentral',
-  'norwayeast', 'swedencentral', 'switzerlandnorth',
-  'eastasia', 'southeastasia',
-  'japaneast', 'japanwest',
-  'koreacentral', 'koreasouth',
-  'australiaeast', 'australiasoutheast', 'australiacentral',
-  'centralindia', 'southindia', 'westindia',
-  'uaenorth', 'qatarcentral',
+  'norwayeast',
+  'swedencentral',
+  'switzerlandnorth',
+  'eastasia',
+  'southeastasia',
+  'japaneast',
+  'japanwest',
+  'koreacentral',
+  'koreasouth',
+  'australiaeast',
+  'australiasoutheast',
+  'australiacentral',
+  'centralindia',
+  'southindia',
+  'westindia',
+  'uaenorth',
+  'qatarcentral',
   'southafricanorth',
 ] as const;
 
-export type AzureRegion = typeof AZURE_REGIONS[number];
+export type AzureRegion = (typeof AZURE_REGIONS)[number];
 
 // ─── IaC Value Sanitization ────────────────────────────────
 

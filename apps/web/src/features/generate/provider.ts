@@ -3,11 +3,7 @@ import { awsProviderDefinition } from './providers/aws/index';
 import { azureProviderDefinition } from './providers/azure/index';
 import { gcpProviderDefinition } from './providers/gcp/index';
 
-export {
-  awsProviderDefinition,
-  azureProviderDefinition,
-  gcpProviderDefinition,
-};
+export { awsProviderDefinition, azureProviderDefinition, gcpProviderDefinition };
 
 const providerDefinitions: Record<string, ProviderDefinition> = {
   azure: azureProviderDefinition,

@@ -29,14 +29,7 @@ interface DragGhostProps {
   zoom: number;
 }
 
-export function DragGhost({
-  containerRef,
-  originX,
-  originY,
-  panX,
-  panY,
-  zoom,
-}: DragGhostProps) {
+export function DragGhost({ containerRef, originX, originY, panX, panY, zoom }: DragGhostProps) {
   const interactionState = useUIStore((s) => s.interactionState);
   const draggedBlockCategory = useUIStore((s) => s.draggedBlockCategory);
   const draggedResourceName = useUIStore((s) => s.draggedResourceName);
@@ -48,8 +41,8 @@ export function DragGhost({
   const faceColors = getBlockFaceColors(activeCategory);
   const studColors = getBlockStudColors(activeCategory);
 
-  const screenWidth = (studsX + studsY) * TILE_W / 2;
-  const diamondHeight = (studsX + studsY) * TILE_H / 2;
+  const screenWidth = ((studsX + studsY) * TILE_W) / 2;
+  const diamondHeight = ((studsX + studsY) * TILE_H) / 2;
   const sideWallPx = getBlockDimensions(activeCategory).height * TILE_Z;
   const svgHeight = diamondHeight + sideWallPx + BLOCK_PADDING;
 
@@ -63,7 +56,8 @@ export function DragGhost({
   const topFacePoints = `${cx},${topY} ${rightX},${midY} ${cx},${bottomY} ${leftX},${midY}`;
   const leftSidePoints = `${leftX},${midY} ${cx},${bottomY} ${cx},${bottomY + sideWallPx} ${leftX},${midY + sideWallPx}`;
   const rightSidePoints = `${cx},${bottomY} ${rightX},${midY} ${rightX},${midY + sideWallPx} ${cx},${bottomY + sideWallPx}`;
-  const providerName = activeProvider === 'azure' ? 'Azure' : activeProvider === 'aws' ? 'AWS' : 'GCP';
+  const providerName =
+    activeProvider === 'azure' ? 'Azure' : activeProvider === 'aws' ? 'AWS' : 'GCP';
   const dragIdentityLabel = `${providerName} / ${draggedResourceName ?? BLOCK_FRIENDLY_NAMES[activeCategory]}`;
 
   const studs = useMemo(() => {
@@ -134,10 +128,24 @@ export function DragGhost({
       pointerEvents="none"
     >
       <StudDefs studId={studId} studColors={studColors} />
-      <polygon points={topFacePoints} fill={faceColors.topFaceColor} stroke={faceColors.topFaceStroke} strokeWidth={TOP_FACE_STROKE_WIDTH} strokeOpacity={TOP_FACE_STROKE_OPACITY} />
+      <polygon
+        points={topFacePoints}
+        fill={faceColors.topFaceColor}
+        stroke={faceColors.topFaceStroke}
+        strokeWidth={TOP_FACE_STROKE_WIDTH}
+        strokeOpacity={TOP_FACE_STROKE_OPACITY}
+      />
       <polygon points={leftSidePoints} fill={faceColors.leftSideColor} />
       <polygon points={rightSidePoints} fill={faceColors.rightSideColor} />
-      <line x1={leftX} y1={midY} x2={cx} y2={topY} stroke={EDGE_HIGHLIGHT_COLOR} strokeWidth={EDGE_HIGHLIGHT_STROKE_WIDTH} strokeOpacity={EDGE_HIGHLIGHT_OPACITY} />
+      <line
+        x1={leftX}
+        y1={midY}
+        x2={cx}
+        y2={topY}
+        stroke={EDGE_HIGHLIGHT_COLOR}
+        strokeWidth={EDGE_HIGHLIGHT_STROKE_WIDTH}
+        strokeOpacity={EDGE_HIGHLIGHT_OPACITY}
+      />
       <StudGrid studId={studId} studs={studs} />
       <text x={cx} y={svgHeight + 12} textAnchor="middle" fontSize={10} fill="#D1D5DB">
         {dragIdentityLabel}

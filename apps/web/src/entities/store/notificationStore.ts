@@ -18,9 +18,7 @@ interface NotificationState {
   filter: NotificationFilter;
   showNotificationCenter: boolean;
 
-  addNotification: (
-    notification: Omit<AppNotification, 'id' | 'timestamp' | 'read'>,
-  ) => void;
+  addNotification: (notification: Omit<AppNotification, 'id' | 'timestamp' | 'read'>) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   removeNotification: (id: string) => void;
@@ -73,9 +71,7 @@ export const useNotificationStore = create<NotificationState>((set) => ({
 
   markAsRead: (id) => {
     set((state) => ({
-      notifications: state.notifications.map((n) =>
-        n.id === id ? { ...n, read: true } : n,
-      ),
+      notifications: state.notifications.map((n) => (n.id === id ? { ...n, read: true } : n)),
     }));
   },
 

@@ -22,8 +22,8 @@ vi.mock('../../shared/tokens/designTokens', () => ({
   BEAM_THICKNESS_CU: 1 / 3,
   BEAM_THICKNESS_PX: 32 * (1 / 3),
   PIN_HOLE_SPACING_CU: 1.0,
-  PIN_HOLE_RX: 32 * 3 / 20,
-  PIN_HOLE_RY: (32 * 3 / 20) / 2,
+  PIN_HOLE_RX: (32 * 3) / 20,
+  PIN_HOLE_RY: (32 * 3) / 20 / 2,
   STUD_RX: 12,
   STUD_RY: 6,
   STUD_HEIGHT: 5,
@@ -44,9 +44,11 @@ const connection: Connection = {
   metadata: {},
 };
 
-function setupEndpoints(srcWorld: [number, number, number] = [1, 0, 2], tgtWorld: [number, number, number] = [3, 0, 4]) {
-  vi.mocked(getConnectionEndpointWorldAnchors)
-    .mockReturnValue({ src: srcWorld, tgt: tgtWorld });
+function setupEndpoints(
+  srcWorld: [number, number, number] = [1, 0, 2],
+  tgtWorld: [number, number, number] = [3, 0, 4],
+) {
+  vi.mocked(getConnectionEndpointWorldAnchors).mockReturnValue({ src: srcWorld, tgt: tgtWorld });
 }
 
 function renderConnector(conn: Connection = connection) {
@@ -81,8 +83,7 @@ describe('BrickConnector', () => {
   });
 
   it('returns null when endpoint resolution fails', () => {
-    vi.mocked(getConnectionEndpointWorldAnchors)
-      .mockReturnValue(null);
+    vi.mocked(getConnectionEndpointWorldAnchors).mockReturnValue(null);
 
     const { container } = renderConnector();
     expect(container.querySelector('g')).toBeNull();
@@ -162,12 +163,21 @@ describe('BrickConnector', () => {
 
   it('stops propagation when clicking a connection', () => {
     const parentClick = vi.fn();
-    vi.mocked(getConnectionEndpointWorldAnchors)
-      .mockReturnValue({ src: [1, 0, 2], tgt: [3, 0, 4] });
+    vi.mocked(getConnectionEndpointWorldAnchors).mockReturnValue({
+      src: [1, 0, 2],
+      tgt: [3, 0, 4],
+    });
 
     const { container } = render(
       <svg onClick={parentClick} onKeyDown={() => {}} aria-label="Test SVG">
-        <BrickConnector connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={0} originY={0} />
+        <BrickConnector
+          connection={connection}
+          blocks={[]}
+          plates={[]}
+          externalActors={[]}
+          originX={0}
+          originY={0}
+        />
       </svg>,
     );
 
@@ -184,7 +194,7 @@ describe('BrickConnector', () => {
 
     const polygons = container.querySelectorAll('polygon');
     expect(polygons.length).toBeGreaterThanOrEqual(1);
-    const topFaces = Array.from(polygons).filter(p => p.getAttribute('fill') === '#22c55e');
+    const topFaces = Array.from(polygons).filter((p) => p.getAttribute('fill') === '#22c55e');
     expect(topFaces.length).toBeGreaterThanOrEqual(1);
     expect(container.querySelector('g')?.getAttribute('opacity')).toBe('1');
   });
@@ -218,7 +228,7 @@ describe('BrickConnector', () => {
     const ellipses = container.querySelectorAll('ellipse');
     expect(ellipses.length).toBeGreaterThanOrEqual(6);
 
-    const studEllipses = Array.from(ellipses).filter(e => e.getAttribute('rx') === '12');
+    const studEllipses = Array.from(ellipses).filter((e) => e.getAttribute('rx') === '12');
     expect(studEllipses.length).toBeGreaterThanOrEqual(2);
   });
 
@@ -333,7 +343,14 @@ describe('BrickConnector', () => {
       useArchitectureStore.setState({
         validationResult: {
           valid: false,
-          errors: [{ ruleId: 'test-rule', message: 'Invalid connection', targetId: connection.id, severity: 'error' }],
+          errors: [
+            {
+              ruleId: 'test-rule',
+              message: 'Invalid connection',
+              targetId: connection.id,
+              severity: 'error',
+            },
+          ],
           warnings: [],
         },
       });
@@ -348,7 +365,14 @@ describe('BrickConnector', () => {
       useArchitectureStore.setState({
         validationResult: {
           valid: false,
-          errors: [{ ruleId: 'test-rule', message: 'Some error', targetId: 'other-conn', severity: 'error' }],
+          errors: [
+            {
+              ruleId: 'test-rule',
+              message: 'Some error',
+              targetId: 'other-conn',
+              severity: 'error',
+            },
+          ],
           warnings: [],
         },
       });
@@ -372,7 +396,14 @@ describe('BrickConnector', () => {
       useArchitectureStore.setState({
         validationResult: {
           valid: false,
-          errors: [{ ruleId: 'test-rule', message: 'Connection not allowed', targetId: connection.id, severity: 'error' }],
+          errors: [
+            {
+              ruleId: 'test-rule',
+              message: 'Connection not allowed',
+              targetId: connection.id,
+              severity: 'error',
+            },
+          ],
           warnings: [],
         },
       });
@@ -380,12 +411,16 @@ describe('BrickConnector', () => {
 
       const { container } = renderConnector();
 
-      fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
+      fireEvent.mouseEnter(
+        container.querySelector('[data-testid="connection-hit-area"]') as Element,
+      );
 
       expect(container.querySelector('[data-testid="connection-error-label"]')).toBeInTheDocument();
 
       fireEvent.mouseLeave(container.querySelector('g') as Element);
-      expect(container.querySelector('[data-testid="connection-error-label"]')).not.toBeInTheDocument();
+      expect(
+        container.querySelector('[data-testid="connection-error-label"]'),
+      ).not.toBeInTheDocument();
     });
 
     it('shows error label when connection is selected and invalid', () => {
@@ -393,7 +428,14 @@ describe('BrickConnector', () => {
       useArchitectureStore.setState({
         validationResult: {
           valid: false,
-          errors: [{ ruleId: 'test-rule', message: 'Connection not allowed', targetId: connection.id, severity: 'error' }],
+          errors: [
+            {
+              ruleId: 'test-rule',
+              message: 'Connection not allowed',
+              targetId: connection.id,
+              severity: 'error',
+            },
+          ],
           warnings: [],
         },
       });
@@ -408,7 +450,14 @@ describe('BrickConnector', () => {
       useArchitectureStore.setState({
         validationResult: {
           valid: false,
-          errors: [{ ruleId: 'test-rule', message: 'Connection not allowed', targetId: connection.id, severity: 'error' }],
+          errors: [
+            {
+              ruleId: 'test-rule',
+              message: 'Connection not allowed',
+              targetId: connection.id,
+              severity: 'error',
+            },
+          ],
           warnings: [],
         },
       });
@@ -416,7 +465,9 @@ describe('BrickConnector', () => {
 
       const { container } = renderConnector();
 
-      expect(container.querySelector('[data-testid="connection-error-label"]')).not.toBeInTheDocument();
+      expect(
+        container.querySelector('[data-testid="connection-error-label"]'),
+      ).not.toBeInTheDocument();
     });
   });
 });

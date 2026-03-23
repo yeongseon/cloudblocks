@@ -3,10 +3,7 @@ import type { ArchitectureSlice, ArchitectureState } from './types';
 
 type ValidationSlice = Pick<ArchitectureState, 'validationResult' | 'validate'>;
 
-export const createValidationSlice: ArchitectureSlice<ValidationSlice> = (
-  set,
-  get
-) => ({
+export const createValidationSlice: ArchitectureSlice<ValidationSlice> = (set, get) => ({
   validationResult: null,
 
   validate: () => {

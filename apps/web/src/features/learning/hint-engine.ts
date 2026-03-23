@@ -72,8 +72,7 @@ export function stopHintTimer(): void {
 export function startHintSubscription(): void {
   if (!architectureUnsubscribe) {
     architectureUnsubscribe = useArchitectureStore.subscribe((state, prevState) => {
-      const archChanged =
-        state.workspace.architecture !== prevState.workspace.architecture;
+      const archChanged = state.workspace.architecture !== prevState.workspace.architecture;
 
       if (archChanged) {
         resetHintTimer();

@@ -32,10 +32,10 @@ Generate a complete architecture from a natural language description.
 }
 ```
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `prompt` | string | required | Natural language architecture description |
-| `provider` | string | `"aws"` | Cloud provider: `aws`, `azure`, `gcp` |
+| Field        | Type   | Default          | Description                                             |
+| ------------ | ------ | ---------------- | ------------------------------------------------------- |
+| `prompt`     | string | required         | Natural language architecture description               |
+| `provider`   | string | `"aws"`          | Cloud provider: `aws`, `azure`, `gcp`                   |
 | `complexity` | string | `"intermediate"` | Target complexity: `simple`, `intermediate`, `advanced` |
 
 **Response:**
@@ -96,11 +96,11 @@ Analyze an existing architecture and return improvement suggestions.
 }
 ```
 
-| Suggestion Field | Values |
-|-----------------|--------|
-| `category` | `security`, `reliability`, `best_practice` |
-| `severity` | `critical`, `warning`, `info` |
-| `score` | 0–100 per category |
+| Suggestion Field | Values                                     |
+| ---------------- | ------------------------------------------ |
+| `category`       | `security`, `reliability`, `best_practice` |
+| `severity`       | `critical`, `warning`, `info`              |
+| `score`          | 0–100 per category                         |
 
 **Requires**: Stored OpenAI API key.
 
@@ -135,13 +135,13 @@ Estimate monthly infrastructure cost for an architecture.
 
 ```json
 {
-  "monthly_cost": 42.50,
+  "monthly_cost": 42.5,
   "hourly_cost": 0.058,
   "currency": "USD",
   "resources": [
     {
       "name": "Web ALB",
-      "monthly_cost": 22.50,
+      "monthly_cost": 22.5,
       "details": { "resourceType": "aws_lb" }
     }
   ]
@@ -182,14 +182,14 @@ Delete a stored API key.
 
 All settings are loaded from environment variables with the `CLOUDBLOCKS_` prefix.
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `CLOUDBLOCKS_LLM_PROVIDER_URL` | `https://api.openai.com/v1` | OpenAI API base URL |
-| `CLOUDBLOCKS_LLM_MODEL` | `gpt-4o` | Model identifier |
-| `CLOUDBLOCKS_LLM_MAX_TOKENS` | `4096` | Maximum response tokens |
-| `CLOUDBLOCKS_LLM_REQUEST_TIMEOUT` | `60` | Request timeout in seconds |
-| `CLOUDBLOCKS_INFRACOST_API_KEY` | `""` | Infracost API key for cost estimation |
-| `CLOUDBLOCKS_AI_ENCRYPTION_KEY` | `""` | Fernet key for encrypting user API keys |
+| Variable                          | Default                     | Description                             |
+| --------------------------------- | --------------------------- | --------------------------------------- |
+| `CLOUDBLOCKS_LLM_PROVIDER_URL`    | `https://api.openai.com/v1` | OpenAI API base URL                     |
+| `CLOUDBLOCKS_LLM_MODEL`           | `gpt-4o`                    | Model identifier                        |
+| `CLOUDBLOCKS_LLM_MAX_TOKENS`      | `4096`                      | Maximum response tokens                 |
+| `CLOUDBLOCKS_LLM_REQUEST_TIMEOUT` | `60`                        | Request timeout in seconds              |
+| `CLOUDBLOCKS_INFRACOST_API_KEY`   | `""`                        | Infracost API key for cost estimation   |
+| `CLOUDBLOCKS_AI_ENCRYPTION_KEY`   | `""`                        | Fernet key for encrypting user API keys |
 
 ---
 
@@ -222,13 +222,13 @@ The architecture generation prompt (`app/engines/prompts/architecture_prompt.py`
 
 `ArchitectureValidator` (`app/engines/validation.py`) checks LLM output against domain constraints:
 
-| Check | Description |
-|-------|-------------|
-| Structural | `plates`, `blocks`, `connections` arrays present and valid |
-| Enum compliance | Category, provider, subtype, connection type, layer type |
-| Referential integrity | `placementId` → plate, `sourceId`/`targetId` → block |
-| Uniqueness | No duplicate IDs across all entities |
-| Semantic | No self-connections |
+| Check                 | Description                                                |
+| --------------------- | ---------------------------------------------------------- |
+| Structural            | `plates`, `blocks`, `connections` arrays present and valid |
+| Enum compliance       | Category, provider, subtype, connection type, layer type   |
+| Referential integrity | `placementId` → plate, `sourceId`/`targetId` → block       |
+| Uniqueness            | No duplicate IDs across all entities                       |
+| Semantic              | No self-connections                                        |
 
 Warnings are returned alongside the architecture (non-blocking).
 
@@ -260,12 +260,12 @@ Architecture → _architecture_to_tf_json() → main.tf.json → InfracostClient
 
 ## Error Handling
 
-| Scenario | HTTP Status | Error Code |
-|----------|-------------|------------|
-| No authentication | 401 | `UNAUTHORIZED` |
-| No stored API key | 400 | `VALIDATION_ERROR` |
-| LLM request failure | 500 | `GENERATION_FAILED` |
-| Infracost failure | 500 | `GENERATION_FAILED` |
+| Scenario            | HTTP Status | Error Code          |
+| ------------------- | ----------- | ------------------- |
+| No authentication   | 401         | `UNAUTHORIZED`      |
+| No stored API key   | 400         | `VALIDATION_ERROR`  |
+| LLM request failure | 500         | `GENERATION_FAILED` |
+| Infracost failure   | 500         | `GENERATION_FAILED` |
 
 ---
 
@@ -273,12 +273,12 @@ Architecture → _architecture_to_tf_json() → main.tf.json → InfracostClient
 
 The frontend AI integration is in `apps/web/src/features/ai/`:
 
-| Module | Purpose |
-|--------|---------|
-| `api.ts` | API client functions (generate, suggest, estimateCost) |
-| `store.ts` | Zustand store with async actions and loading/error state |
-| `components/AiPromptBar.tsx` | Natural language input bar |
-| `components/SuggestionsPanel.tsx` | Architecture analysis results display |
-| `components/CostPanel.tsx` | Cost estimation breakdown display |
+| Module                            | Purpose                                                  |
+| --------------------------------- | -------------------------------------------------------- |
+| `api.ts`                          | API client functions (generate, suggest, estimateCost)   |
+| `store.ts`                        | Zustand store with async actions and loading/error state |
+| `components/AiPromptBar.tsx`      | Natural language input bar                               |
+| `components/SuggestionsPanel.tsx` | Architecture analysis results display                    |
+| `components/CostPanel.tsx`        | Cost estimation breakdown display                        |
 
 The AI store integrates with the architecture store via `replaceArchitecture()` to update the canvas with generated designs.

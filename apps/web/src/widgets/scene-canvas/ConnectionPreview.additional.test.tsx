@@ -55,7 +55,11 @@ const baseBlock: ArchNode = {
   metadata: {},
 };
 
-function mockStores(uiState: UIState, nodes: ArchNode[], externalActors: Array<{ id: string; position: { x: number; y: number; z: number } }> = []) {
+function mockStores(
+  uiState: UIState,
+  nodes: ArchNode[],
+  externalActors: Array<{ id: string; position: { x: number; y: number; z: number } }> = [],
+) {
   vi.mocked(useUIStore).mockImplementation(((selector: unknown) => {
     return (selector as (s: UIState) => unknown)(uiState);
   }) as typeof useUIStore);
@@ -72,10 +76,9 @@ afterEach(() => {
 
 describe('ConnectionPreview additional branches', () => {
   it('returns null when source block parent plate is missing', () => {
-    mockStores(
-      { interactionState: 'connecting', connectionSource: 'block-1' },
-      [{ ...baseBlock, parentId: 'missing-plate' }],
-    );
+    mockStores({ interactionState: 'connecting', connectionSource: 'block-1' }, [
+      { ...baseBlock, parentId: 'missing-plate' },
+    ]);
 
     const { container } = render(
       <svg>
@@ -103,10 +106,10 @@ describe('ConnectionPreview additional branches', () => {
   });
 
   it('keeps path unchanged when getScreenCTM is unavailable', () => {
-    mockStores(
-      { interactionState: 'connecting', connectionSource: 'block-1' },
-      [basePlate, baseBlock],
-    );
+    mockStores({ interactionState: 'connecting', connectionSource: 'block-1' }, [
+      basePlate,
+      baseBlock,
+    ]);
 
     Object.defineProperty(SVGSVGElement.prototype, 'getScreenCTM', {
       configurable: true,
@@ -119,7 +122,9 @@ describe('ConnectionPreview additional branches', () => {
       </svg>,
     );
 
-    const path = container.querySelector('[data-testid="connection-preview-path"]') as SVGPathElement;
+    const path = container.querySelector(
+      '[data-testid="connection-preview-path"]',
+    ) as SVGPathElement;
     const before = path.getAttribute('d');
     document.dispatchEvent(new PointerEvent('pointermove', { clientX: 100, clientY: 120 }));
     const after = path.getAttribute('d');
@@ -128,10 +133,10 @@ describe('ConnectionPreview additional branches', () => {
   });
 
   it('updates preview target when pointer coordinates are transformed', () => {
-    mockStores(
-      { interactionState: 'connecting', connectionSource: 'block-1' },
-      [basePlate, baseBlock],
-    );
+    mockStores({ interactionState: 'connecting', connectionSource: 'block-1' }, [
+      basePlate,
+      baseBlock,
+    ]);
 
     Object.defineProperty(SVGSVGElement.prototype, 'getScreenCTM', {
       configurable: true,
@@ -147,12 +152,19 @@ describe('ConnectionPreview additional branches', () => {
     });
 
     let pointerMoveHandler: ((event: PointerEvent) => void) | null = null;
-    const addListenerSpy = vi.spyOn(document, 'addEventListener').mockImplementation((type, listener, options) => {
-      if (type === 'pointermove') {
-        pointerMoveHandler = listener as (event: PointerEvent) => void;
-      }
-      return EventTarget.prototype.addEventListener.call(document, type, listener as EventListener, options);
-    });
+    const addListenerSpy = vi
+      .spyOn(document, 'addEventListener')
+      .mockImplementation((type, listener, options) => {
+        if (type === 'pointermove') {
+          pointerMoveHandler = listener as (event: PointerEvent) => void;
+        }
+        return EventTarget.prototype.addEventListener.call(
+          document,
+          type,
+          listener as EventListener,
+          options,
+        );
+      });
 
     const { container } = render(
       <svg>
@@ -160,7 +172,9 @@ describe('ConnectionPreview additional branches', () => {
       </svg>,
     );
 
-    const path = container.querySelector('[data-testid="connection-preview-path"]') as SVGPathElement;
+    const path = container.querySelector(
+      '[data-testid="connection-preview-path"]',
+    ) as SVGPathElement;
     const before = path.getAttribute('d');
 
     act(() => {

@@ -41,8 +41,8 @@ const SUBTYPE_ICON_OVERRIDES: Record<string, string> = {
  */
 const PROVIDER_BLOCK_ICONS: Record<ProviderType, Record<ResourceCategory, string>> = {
   azure: AZURE_BLOCK_ICONS,
-  aws: { ...AZURE_BLOCK_ICONS },  // fallback: Azure icons until AWS icon pack added
-  gcp: { ...AZURE_BLOCK_ICONS },  // fallback: Azure icons until GCP icon pack added
+  aws: { ...AZURE_BLOCK_ICONS }, // fallback: Azure icons until AWS icon pack added
+  gcp: { ...AZURE_BLOCK_ICONS }, // fallback: Azure icons until GCP icon pack added
 };
 
 // ─── Plate Icon Maps ─────────────────────────────────────────
@@ -78,9 +78,7 @@ export function getBlockIconUrl(
   if (subtype && SUBTYPE_ICON_OVERRIDES[subtype]) {
     return SUBTYPE_ICON_OVERRIDES[subtype];
   }
-  return PROVIDER_BLOCK_ICONS[provider]?.[category]
-    ?? AZURE_BLOCK_ICONS[category]
-    ?? vmIcon;
+  return PROVIDER_BLOCK_ICONS[provider]?.[category] ?? AZURE_BLOCK_ICONS[category] ?? vmIcon;
 }
 
 /**
@@ -91,9 +89,7 @@ export function getBlockIconUrl(
  *
  * @returns An SVG asset URL string (Vite-resolved)
  */
-export function getPlateIconUrl(
-  plateType: LayerType,
-): string {
+export function getPlateIconUrl(plateType: LayerType): string {
   if (plateType === 'resource') {
     return vnetIcon;
   }

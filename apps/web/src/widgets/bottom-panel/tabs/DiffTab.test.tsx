@@ -4,7 +4,9 @@ import { useArchitectureStore } from '../../../entities/store/architectureStore'
 import { useUIStore } from '../../../entities/store/uiStore';
 import { DiffTab } from './DiffTab';
 
-const diffPanelContentMock = vi.fn((_props: Record<string, unknown>) => <div data-testid="diff-panel-content" />);
+const diffPanelContentMock = vi.fn((_props: Record<string, unknown>) => (
+  <div data-testid="diff-panel-content" />
+));
 
 vi.mock('../../diff-panel/DiffPanel.css', () => ({}));
 vi.mock('../../diff-panel/DiffPanel', () => ({
@@ -31,7 +33,9 @@ describe('DiffTab', () => {
 
   it('shows fallback text when no diff data exists', () => {
     render(<DiffTab />);
-    expect(screen.getByText('No diff data. Use Compare with GitHub to generate a diff.')).toBeInTheDocument();
+    expect(
+      screen.getByText('No diff data. Use Compare with GitHub to generate a diff.'),
+    ).toBeInTheDocument();
     expect(screen.queryByTestId('diff-panel-content')).not.toBeInTheDocument();
   });
 

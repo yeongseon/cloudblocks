@@ -14,7 +14,13 @@ export type PendingGitHubAction = 'sync' | 'pr' | 'repos' | null;
 export type AppView = 'landing' | 'builder';
 export type BottomDockTab = 'output' | 'validation' | 'logs' | 'diff';
 export type InspectorTabId = 'properties' | 'code' | 'connections';
-export type RightOverlayId = 'githubLogin' | 'githubRepos' | 'githubSync' | 'githubPR' | 'diff' | null;
+export type RightOverlayId =
+  | 'githubLogin'
+  | 'githubRepos'
+  | 'githubSync'
+  | 'githubPR'
+  | 'diff'
+  | null;
 
 export interface ActivityLogEntry {
   id: string;
@@ -164,11 +170,7 @@ interface UIState {
   diffDelta: DiffDelta | null;
   diffVersion: number;
   diffBaseArchitecture: ArchitectureModel | null;
-  setDiffMode: (
-    mode: boolean,
-    delta?: DiffDelta | null,
-    base?: ArchitectureModel | null,
-  ) => void;
+  setDiffMode: (mode: boolean, delta?: DiffDelta | null, base?: ArchitectureModel | null) => void;
   clearDiffState: () => void;
 
   // ── Onboarding ──
@@ -232,8 +234,7 @@ export const useUIStore = create<UIState>((set) => ({
   setSelectedId: (id) => set({ selectedId: id }),
 
   toolMode: 'select',
-  setToolMode: (mode) =>
-    set({ toolMode: mode, connectionSource: null }),
+  setToolMode: (mode) => set({ toolMode: mode, connectionSource: null }),
 
   activeProvider: 'azure',
   setActiveProvider: (provider) => set({ activeProvider: provider }),
@@ -288,20 +289,16 @@ export const useUIStore = create<UIState>((set) => ({
     }),
 
   draggedBlockCategory: null,
-  setDraggedBlockCategory: (category) =>
-    set({ draggedBlockCategory: category }),
+  setDraggedBlockCategory: (category) => set({ draggedBlockCategory: category }),
   draggedResourceName: null,
   setDraggedResourceName: (name) => set({ draggedResourceName: name }),
-  cancelDrag: () =>
-    set({ draggedBlockCategory: null, draggedResourceName: null }),
+  cancelDrag: () => set({ draggedBlockCategory: null, draggedResourceName: null }),
 
   showBlockPalette: true,
-  toggleBlockPalette: () =>
-    set((s) => ({ showBlockPalette: !s.showBlockPalette })),
+  toggleBlockPalette: () => set((s) => ({ showBlockPalette: !s.showBlockPalette })),
 
   showResourceGuide: true,
-  toggleResourceGuide: () =>
-    set((s) => ({ showResourceGuide: !s.showResourceGuide })),
+  toggleResourceGuide: () => set((s) => ({ showResourceGuide: !s.showResourceGuide })),
 
   showValidation: false,
   toggleValidation: () =>
@@ -339,12 +336,10 @@ export const useUIStore = create<UIState>((set) => ({
     }),
 
   showWorkspaceManager: false,
-  toggleWorkspaceManager: () =>
-    set((s) => ({ showWorkspaceManager: !s.showWorkspaceManager })),
+  toggleWorkspaceManager: () => set((s) => ({ showWorkspaceManager: !s.showWorkspaceManager })),
 
   showTemplateGallery: false,
-  toggleTemplateGallery: () =>
-    set((s) => ({ showTemplateGallery: !s.showTemplateGallery })),
+  toggleTemplateGallery: () => set((s) => ({ showTemplateGallery: !s.showTemplateGallery })),
 
   showGitHubLogin: false,
   toggleGitHubLogin: () =>
@@ -407,16 +402,19 @@ export const useUIStore = create<UIState>((set) => ({
   setSidebarOpen: (open) => set({ sidebar: { isOpen: open } }),
 
   inspector: { isOpen: true, activeTab: 'properties' },
-  toggleInspector: () => set((s) => ({ inspector: { ...s.inspector, isOpen: !s.inspector.isOpen } })),
+  toggleInspector: () =>
+    set((s) => ({ inspector: { ...s.inspector, isOpen: !s.inspector.isOpen } })),
   setInspectorOpen: (open) => set((s) => ({ inspector: { ...s.inspector, isOpen: open } })),
-  setInspectorTab: (tab) => set((s) => ({
-    inspector: { ...s.inspector, activeTab: tab },
-    showCodePreview: tab === 'code',
-  })),
-  openInspectorTab: (tab) => set({
-    inspector: { isOpen: true, activeTab: tab },
-    showCodePreview: tab === 'code',
-  }),
+  setInspectorTab: (tab) =>
+    set((s) => ({
+      inspector: { ...s.inspector, activeTab: tab },
+      showCodePreview: tab === 'code',
+    })),
+  openInspectorTab: (tab) =>
+    set({
+      inspector: { isOpen: true, activeTab: tab },
+      showCodePreview: tab === 'code',
+    }),
 
   bottomDock: { isOpen: true, activeTab: 'output' },
   openBottomTab: (tab) => set({ bottomDock: { isOpen: true, activeTab: tab } }),
@@ -443,12 +441,10 @@ export const useUIStore = create<UIState>((set) => ({
   setEditorMode: (mode) => set({ editorMode: mode }),
 
   showLearningPanel: false,
-  toggleLearningPanel: () =>
-    set((s) => ({ showLearningPanel: !s.showLearningPanel })),
+  toggleLearningPanel: () => set((s) => ({ showLearningPanel: !s.showLearningPanel })),
   setShowLearningPanel: (show) => set({ showLearningPanel: show }),
   showScenarioGallery: false,
-  toggleScenarioGallery: () =>
-    set((s) => ({ showScenarioGallery: !s.showScenarioGallery })),
+  toggleScenarioGallery: () => set((s) => ({ showScenarioGallery: !s.showScenarioGallery })),
   setShowScenarioGallery: (show) => set({ showScenarioGallery: show }),
 
   diffMode: false,
@@ -493,7 +489,7 @@ export const useUIStore = create<UIState>((set) => ({
   showOnboarding: !localStorage.getItem('cloudblocks:onboarding-completed'),
   setShowOnboarding: (show) => set({ showOnboarding: show }),
 
-  persona: (localStorage.getItem('cloudblocks:persona') as Persona | null),
+  persona: localStorage.getItem('cloudblocks:persona') as Persona | null,
   complexityLevel: (() => {
     const saved = localStorage.getItem('cloudblocks:persona') as Persona | null;
     return saved ? PERSONA_COMPLEXITY_MAP[saved] : 'beginner';
@@ -517,7 +513,7 @@ export const useUIStore = create<UIState>((set) => ({
   triggerUpgradeAnimation: (blockId) => {
     set({ upgradingBlockId: blockId });
     setTimeout(() => {
-      set((s) => s.upgradingBlockId === blockId ? { upgradingBlockId: null } : s);
+      set((s) => (s.upgradingBlockId === blockId ? { upgradingBlockId: null } : s));
     }, 1600);
   },
 }));

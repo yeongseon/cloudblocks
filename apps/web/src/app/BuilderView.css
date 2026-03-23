@@ -2,9 +2,9 @@
   height: 100dvh;
   display: grid;
   grid-template-areas:
-    "menubar menubar  menubar"
-    "sidebar canvas   inspector"
-    "bottom  bottom   bottom";
+    'menubar menubar  menubar'
+    'sidebar canvas   inspector'
+    'bottom  bottom   bottom';
   grid-template-rows: 40px minmax(0, 1fr) var(--dock-h);
   grid-template-columns: var(--sidebar-w) minmax(0, 1fr) var(--inspector-w);
 
@@ -17,19 +17,21 @@
   overflow: hidden;
 
   transition:
-    grid-template-columns var(--duration-normal, 200ms) var(--easing-default, cubic-bezier(0.2, 0, 0, 1)),
-    grid-template-rows var(--duration-normal, 200ms) var(--easing-default, cubic-bezier(0.2, 0, 0, 1));
+    grid-template-columns var(--duration-normal, 200ms)
+      var(--easing-default, cubic-bezier(0.2, 0, 0, 1)),
+    grid-template-rows var(--duration-normal, 200ms)
+      var(--easing-default, cubic-bezier(0.2, 0, 0, 1));
 }
 
-.builder-shell[data-sidebar-open="false"] {
+.builder-shell[data-sidebar-open='false'] {
   --sidebar-w: 0px;
 }
 
-.builder-shell[data-inspector-open="false"] {
+.builder-shell[data-inspector-open='false'] {
   --inspector-w: 0px;
 }
 
-.builder-shell[data-bottomdock-open="true"] {
+.builder-shell[data-bottomdock-open='true'] {
   --dock-h: 260px;
 }
 
@@ -72,9 +74,9 @@
   min-height: 0;
 }
 
-.builder-shell[data-sidebar-open="false"] .builder-sidebar,
-.builder-shell[data-inspector-open="false"] .builder-inspector,
-.builder-shell:not([data-bottomdock-open="true"]) .builder-bottomdock {
+.builder-shell[data-sidebar-open='false'] .builder-sidebar,
+.builder-shell[data-inspector-open='false'] .builder-inspector,
+.builder-shell:not([data-bottomdock-open='true']) .builder-bottomdock {
   pointer-events: none;
 }
 
@@ -88,17 +90,17 @@
     transform var(--duration-normal, 200ms) var(--easing-default, cubic-bezier(0.2, 0, 0, 1));
 }
 
-.builder-shell[data-sidebar-open="false"] .builder-sidebar .sidebar-palette {
+.builder-shell[data-sidebar-open='false'] .builder-sidebar .sidebar-palette {
   opacity: 0;
   transform: translateX(-8px);
 }
 
-.builder-shell[data-inspector-open="false"] .builder-inspector .inspector-panel {
+.builder-shell[data-inspector-open='false'] .builder-inspector .inspector-panel {
   opacity: 0;
   transform: translateX(8px);
 }
 
-.builder-shell:not([data-bottomdock-open="true"]) .builder-bottomdock .bottom-panel {
+.builder-shell:not([data-bottomdock-open='true']) .builder-bottomdock .bottom-panel {
   opacity: 0;
   transform: translateY(8px);
 }

@@ -67,11 +67,7 @@ describe('useOpsStore', () => {
       const { environments, loadingEnvironments } = useOpsStore.getState();
       expect(loadingEnvironments).toBe(false);
       expect(environments).toHaveLength(3);
-      expect(environments.map((e) => e.name)).toEqual([
-        'local',
-        'staging',
-        'production',
-      ]);
+      expect(environments.map((e) => e.name)).toEqual(['local', 'staging', 'production']);
     });
   });
 

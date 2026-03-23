@@ -3,7 +3,10 @@ import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { useRafCallback } from '../../shared/hooks/useRafCallback';
 import { worldToScreen } from '../../shared/utils/isometric';
-import { getBlockWorldPosition, EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET } from '../../shared/utils/position';
+import {
+  getBlockWorldPosition,
+  EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
+} from '../../shared/utils/position';
 import { getBlockWorldAnchors } from '../../entities/block/blockGeometry';
 import { getBlockDimensions } from '../../shared/types/visualProfile';
 import { CATEGORY_PORTS } from '@cloudblocks/schema';
@@ -61,7 +64,11 @@ export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) 
       }
 
       const worldPos = getBlockWorldPosition(sourceBlock, parentPlate);
-      const cu = getBlockDimensions(sourceBlock.category, sourceBlock.provider, sourceBlock.subtype);
+      const cu = getBlockDimensions(
+        sourceBlock.category,
+        sourceBlock.provider,
+        sourceBlock.subtype,
+      );
       const anchors = getBlockWorldAnchors(worldPos, cu);
       const ports = CATEGORY_PORTS[sourceBlock.category];
       // Preview originates from outbound stub index 0
@@ -77,7 +84,13 @@ export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) 
     }
 
     const { x: worldX, y: worldY, z: worldZ } = sourceExternalActor.position;
-    return worldToScreen(worldX, worldY + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET, worldZ, originX, originY);
+    return worldToScreen(
+      worldX,
+      worldY + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
+      worldZ,
+      originX,
+      originY,
+    );
   }, [blocks, connectionSource, externalActors, interactionState, originX, originY, plates]);
 
   useEffect(() => {

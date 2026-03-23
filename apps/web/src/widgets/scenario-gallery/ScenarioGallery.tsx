@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { useUIStore } from '../../entities/store/uiStore';
-import { listScenarios, listScenariosByDifficulty } from '../../features/learning/scenarios/registry';
+import {
+  listScenarios,
+  listScenariosByDifficulty,
+} from '../../features/learning/scenarios/registry';
 import { startLearningScenario } from '../../features/learning/scenario-engine';
 import type { ScenarioDifficulty } from '../../shared/types/learning';
 import './ScenarioGallery.css';
@@ -30,9 +33,7 @@ export function ScenarioGallery() {
   const [activeDifficulty, setActiveDifficulty] = useState<ScenarioDifficulty | 'all'>('all');
 
   const scenarios =
-    activeDifficulty === 'all'
-      ? listScenarios()
-      : listScenariosByDifficulty(activeDifficulty);
+    activeDifficulty === 'all' ? listScenarios() : listScenariosByDifficulty(activeDifficulty);
 
   const handleStart = (id: string) => {
     startLearningScenario(id);
@@ -44,7 +45,12 @@ export function ScenarioGallery() {
     <div className="scenario-gallery">
       <div className="scenario-gallery-header">
         <h2 className="scenario-gallery-title">Scenario Gallery</h2>
-        <button type="button" className="scenario-gallery-close" onClick={toggleScenarioGallery} aria-label="Close scenario gallery">
+        <button
+          type="button"
+          className="scenario-gallery-close"
+          onClick={toggleScenarioGallery}
+          aria-label="Close scenario gallery"
+        >
           ✕
         </button>
       </div>

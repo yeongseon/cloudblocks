@@ -21,15 +21,15 @@ CloudBlocks currently supports architecture design and code generation (Terrafor
 
 ### Infrastructure Context
 
-| Concern | Decision |
-|---------|----------|
-| Backend deployment target | Azure Container Apps (Consumption plan) |
-| Frontend deployment target | Azure Static Web Apps |
-| Environment names | `local`, `staging`, `production` (full names, no abbreviations) |
-| Dev environment | Local only — no cloud deployment |
-| CI/CD | GitHub Actions |
-| Backend runtime | Docker-based |
-| Cost visibility | Estimated costs must be shown before any deployment |
+| Concern                    | Decision                                                        |
+| -------------------------- | --------------------------------------------------------------- |
+| Backend deployment target  | Azure Container Apps (Consumption plan)                         |
+| Frontend deployment target | Azure Static Web Apps                                           |
+| Environment names          | `local`, `staging`, `production` (full names, no abbreviations) |
+| Dev environment            | Local only — no cloud deployment                                |
+| CI/CD                      | GitHub Actions                                                  |
+| Backend runtime            | Docker-based                                                    |
+| Cost visibility            | Estimated costs must be shown before any deployment             |
 
 ### Relationship to Existing Milestones
 
@@ -46,6 +46,7 @@ CloudBlocks currently supports architecture design and code generation (Terrafor
 A dashboard within CloudBlocks showing deployment and environment status.
 
 **Features**:
+
 - Deployment status per environment (`local`, `staging`, `production`)
 - Real-time pipeline status via GitHub Actions integration (workflow runs, job status)
 - Environment health indicators (up / down / deploying / unknown)
@@ -54,6 +55,7 @@ A dashboard within CloudBlocks showing deployment and environment status.
 - Deployment history — log of past deployments per environment with timestamps and outcomes
 
 **Key design decisions**:
+
 - Polling vs webhooks for GitHub Actions status (webhooks preferred for real-time, polling as fallback)
 - Cost estimation source: Azure Pricing API or static pricing tables with "estimated" labels
 - Dashboard placement: dedicated panel/page within CloudBlocks, not a separate app
@@ -64,14 +66,15 @@ A dashboard within CloudBlocks showing deployment and environment status.
 
 **Canonical vocabulary**:
 
-| Term | Definition |
-|------|-----------|
-| **Deploy** | Push code/infrastructure to a specific environment. Triggered by CI/CD pipeline. |
-| **Promote** | Move a tested version from `staging` to `production`. A controlled, deliberate action with pre-checks. |
-| **Rollback** | Revert an environment to a previous known-good version. Emergency or planned recovery. |
-| **Release** | Tag a version as a user-facing milestone. A labeling action, not a deployment action. |
+| Term         | Definition                                                                                             |
+| ------------ | ------------------------------------------------------------------------------------------------------ |
+| **Deploy**   | Push code/infrastructure to a specific environment. Triggered by CI/CD pipeline.                       |
+| **Promote**  | Move a tested version from `staging` to `production`. A controlled, deliberate action with pre-checks. |
+| **Rollback** | Revert an environment to a previous known-good version. Emergency or planned recovery.                 |
+| **Release**  | Tag a version as a user-facing milestone. A labeling action, not a deployment action.                  |
 
 **Work**:
+
 - Update all documentation to use these terms consistently
 - Rename workflow files and UI labels if they use incorrect terms
 - Add a terminology section to the deployment guide
@@ -81,6 +84,7 @@ A dashboard within CloudBlocks showing deployment and environment status.
 Visual promotion and rollback flows within CloudBlocks.
 
 **Promote flow**:
+
 1. User views staging environment in Ops Control Center
 2. User clicks "Promote to Production"
 3. Pre-promotion checklist displayed:
@@ -93,6 +97,7 @@ Visual promotion and rollback flows within CloudBlocks.
 7. Promotion recorded in deployment history
 
 **Rollback flow**:
+
 1. User views production environment in Ops Control Center
 2. User clicks "Rollback"
 3. List of previous successful deployments shown
@@ -102,6 +107,7 @@ Visual promotion and rollback flows within CloudBlocks.
 7. Status tracked in real-time
 
 **Promotion history**:
+
 - Log of all promotions and rollbacks with timestamps, user, source version, target version, outcome
 
 ### Area D: Notification System
@@ -109,6 +115,7 @@ Visual promotion and rollback flows within CloudBlocks.
 In-app notifications for deployment lifecycle events.
 
 **Events**:
+
 - Deployment started (environment, triggered by, version)
 - Deployment succeeded (environment, duration)
 - Deployment failed (environment, error summary)
@@ -116,6 +123,7 @@ In-app notifications for deployment lifecycle events.
 - Rollback completed (environment, rolled back to version)
 
 **Implementation**:
+
 - In-app notification center (bell icon with unread count)
 - Toast notifications for real-time events while user is active
 - Notification history (filterable by environment, event type, date)
@@ -130,6 +138,7 @@ Replace thin SVG bezier connection lines with Lego-style brick connector pieces.
 **Current state**: `ConnectionPath.tsx` draws a quadratic bezier SVG path with two-layer stroke (background + foreground) and arrow markers. 5 connection types are distinguished by stroke style (solid, dashed, dotted, double, wavy). Connections support diff-aware coloring and click/hover selection.
 
 **Target**: Brick connector pieces (Technic beam / flat tile visual metaphor) that:
+
 - Conform to the Universal Stud Standard (rx=12, ry=6, height=5, 3-layer structure)
 - Render correctly in 2.5D isometric projection
 - Distinguish 5 connection types via color, pattern, or connector shape
@@ -140,15 +149,15 @@ Replace thin SVG bezier connection lines with Lego-style brick connector pieces.
 
 ## User Stories
 
-| # | Story |
-|---|-------|
-| 1 | As an architect, I want to see which version is deployed to each environment without leaving CloudBlocks |
-| 2 | As an operator, I want to promote a staging-tested architecture to production with one click and pre-checks |
-| 3 | As a team lead, I want to rollback production to the last known-good state when a deployment fails |
-| 4 | As an architect, I want to see estimated Azure costs before triggering a deployment |
-| 5 | As a developer, I want consistent deploy terminology so I do not confuse "promote" with "deploy" |
-| 6 | As a user, I want to be notified when a deployment succeeds or fails without watching the pipeline |
-| 7 | As an architect, I want connections between resources to look like Lego connector pieces so the entire canvas maintains a consistent brick aesthetic |
+| #   | Story                                                                                                                                                |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | As an architect, I want to see which version is deployed to each environment without leaving CloudBlocks                                             |
+| 2   | As an operator, I want to promote a staging-tested architecture to production with one click and pre-checks                                          |
+| 3   | As a team lead, I want to rollback production to the last known-good state when a deployment fails                                                   |
+| 4   | As an architect, I want to see estimated Azure costs before triggering a deployment                                                                  |
+| 5   | As a developer, I want consistent deploy terminology so I do not confuse "promote" with "deploy"                                                     |
+| 6   | As a user, I want to be notified when a deployment succeeds or fails without watching the pipeline                                                   |
+| 7   | As an architect, I want connections between resources to look like Lego connector pieces so the entire canvas maintains a consistent brick aesthetic |
 
 ---
 
@@ -156,41 +165,41 @@ Replace thin SVG bezier connection lines with Lego-style brick connector pieces.
 
 ### [Epic] Ops Control Center (Area A)
 
-| # | Title | Size |
-|---|-------|------|
-| 1 | Design Ops Control Center layout and information architecture | M |
-| 2 | Implement environment status dashboard (local/staging/production) | L |
-| 3 | Integrate GitHub Actions API for real-time pipeline status | M |
-| 4 | Build cross-environment architecture diff view | L |
-| 5 | Add cost estimation panel with Azure pricing integration | M |
-| 6 | Implement deployment history log | M |
+| #   | Title                                                             | Size |
+| --- | ----------------------------------------------------------------- | ---- |
+| 1   | Design Ops Control Center layout and information architecture     | M    |
+| 2   | Implement environment status dashboard (local/staging/production) | L    |
+| 3   | Integrate GitHub Actions API for real-time pipeline status        | M    |
+| 4   | Build cross-environment architecture diff view                    | L    |
+| 5   | Add cost estimation panel with Azure pricing integration          | M    |
+| 6   | Implement deployment history log                                  | M    |
 
 ### [Epic] Deploy Terminology Cleanup (Area B)
 
-| # | Title | Size |
-|---|-------|------|
-| 1 | Define canonical deploy vocabulary and add to deployment guide | S |
-| 2 | Audit and update all docs, workflows, and UI labels for terminology consistency | M |
-| 3 | Rename workflow files if needed (deploy.yml, promote.yml naming review) | S |
+| #   | Title                                                                           | Size |
+| --- | ------------------------------------------------------------------------------- | ---- |
+| 1   | Define canonical deploy vocabulary and add to deployment guide                  | S    |
+| 2   | Audit and update all docs, workflows, and UI labels for terminology consistency | M    |
+| 3   | Rename workflow files if needed (deploy.yml, promote.yml naming review)         | S    |
 
 ### [Epic] Promote/Rollback UX (Area C)
 
-| # | Title | Size |
-|---|-------|------|
-| 1 | Design promote flow with pre-promotion checklist | M |
-| 2 | Implement promote UI: staging to production with confirmation | L |
-| 3 | Design rollback flow with version selection | M |
-| 4 | Implement rollback UI with diff preview | L |
-| 5 | Build promotion/rollback history log | M |
+| #   | Title                                                         | Size |
+| --- | ------------------------------------------------------------- | ---- |
+| 1   | Design promote flow with pre-promotion checklist              | M    |
+| 2   | Implement promote UI: staging to production with confirmation | L    |
+| 3   | Design rollback flow with version selection                   | M    |
+| 4   | Implement rollback UI with diff preview                       | L    |
+| 5   | Build promotion/rollback history log                          | M    |
 
 ### [Epic] Notification System (Area D)
 
-| # | Title | Size |
-|---|-------|------|
-| 1 | Design notification data model and event taxonomy | M |
-| 2 | Implement in-app notification center (bell icon, unread count) | M |
-| 3 | Add toast notifications for real-time deployment events | M |
-| 4 | Build notification history with filtering | M |
+| #   | Title                                                          | Size |
+| --- | -------------------------------------------------------------- | ---- |
+| 1   | Design notification data model and event taxonomy              | M    |
+| 2   | Implement in-app notification center (bell icon, unread count) | M    |
+| 3   | Add toast notifications for real-time deployment events        | M    |
+| 4   | Build notification history with filtering                      | M    |
 
 ### [Epic] Brick-Style Connection Rendering (Area E)
 
@@ -199,6 +208,7 @@ Replace the current thin SVG bezier connection lines with Lego-style brick conne
 **Problem**: Connections are currently rendered as generic SVG quadratic bezier paths with arrow markers — visually disconnected from the Lego brick aesthetic used by blocks and plates. This breaks the visual metaphor: blocks and plates look like Lego, but connections look like a diagram tool.
 
 **Current implementation** (`ConnectionPath.tsx`):
+
 - SVG `<path>` with quadratic bezier curve (`M ... Q ...`)
 - Two-layer stroke (4px background + 2px foreground) with arrow markers
 - 14px transparent hit area for click/hover detection
@@ -206,6 +216,7 @@ Replace the current thin SVG bezier connection lines with Lego-style brick conne
 - Diff-aware coloring (added/removed/modified/unchanged)
 
 **Target design**: Brick-style connector pieces that:
+
 - Use the Lego connector / Technic beam visual metaphor — flat rectangular pieces with studs or pin holes
 - Conform to the **Universal Stud Standard** (rx=12, ry=6, height=5, 3-layer structure)
 - Maintain directional semantics (arrow/flow indication via asymmetric connector shape or stud placement)
@@ -214,13 +225,15 @@ Replace the current thin SVG bezier connection lines with Lego-style brick conne
 - Preserve click/hover selection and delete interaction
 
 **Key design decisions**:
+
 - Connector geometry: straight segmented pieces vs. L-shaped / routed pieces that follow grid lines
-- Routing algorithm: direct point-to-point vs. orthogonal (Manhattan) routing vs. A* pathfinding around blocks
+- Routing algorithm: direct point-to-point vs. orthogonal (Manhattan) routing vs. A\* pathfinding around blocks
 - Connection type differentiation: color-only vs. shape variation (e.g., rounded beam for dataflow, angular for internal)
 - Stud placement on connectors: decorative vs. functional (snap points for future branching/splitting)
 - Isometric projection: connectors must render correctly in the 2.5D isometric view
 
 **Features**:
+
 - Brick connector SVG component replacing `ConnectionPath.tsx`
 - Isometric-aware routing that avoids overlapping blocks and plates
 - Visual distinction for all 5 connection types (`dataflow`, `http`, `internal`, `data`, `async`)
@@ -228,13 +241,13 @@ Replace the current thin SVG bezier connection lines with Lego-style brick conne
 - Diff-aware coloring preserved from current implementation
 - External actor connections (Internet → block) rendered with the same brick connector style
 
-| # | Title | Size |
-|---|-------|------|
-| 1 | Design brick connector geometry and connection type visual language | M |
-| 2 | Implement brick connector SVG component with isometric projection | L |
-| 3 | Implement connection routing algorithm (avoid block/plate overlap) | L |
-| 4 | Migrate existing connection interactions (select, delete, hover) to brick connectors | M |
-| 5 | Update diff-aware coloring and external actor connections for brick connectors | M |
+| #   | Title                                                                                | Size |
+| --- | ------------------------------------------------------------------------------------ | ---- |
+| 1   | Design brick connector geometry and connection type visual language                  | M    |
+| 2   | Implement brick connector SVG component with isometric projection                    | L    |
+| 3   | Implement connection routing algorithm (avoid block/plate overlap)                   | L    |
+| 4   | Migrate existing connection interactions (select, delete, hover) to brick connectors | M    |
+| 5   | Update diff-aware coloring and external actor connections for brick connectors       | M    |
 
 ---
 
@@ -275,14 +288,14 @@ Replace the current thin SVG bezier connection lines with Lego-style brick conne
 
 ## Risks
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| GitHub Actions API rate limits affect real-time status | Dashboard shows stale data | Use webhooks as primary mechanism; polling at longer intervals as fallback |
-| Azure cost estimation API does not cover all resource types | Inaccurate cost display | Use conservative estimates, label as "estimated," allow manual adjustment |
+| Risk                                                                      | Impact                                  | Mitigation                                                                  |
+| ------------------------------------------------------------------------- | --------------------------------------- | --------------------------------------------------------------------------- |
+| GitHub Actions API rate limits affect real-time status                    | Dashboard shows stale data              | Use webhooks as primary mechanism; polling at longer intervals as fallback  |
+| Azure cost estimation API does not cover all resource types               | Inaccurate cost display                 | Use conservative estimates, label as "estimated," allow manual adjustment   |
 | Promote/rollback complexity varies by IaC tool (Terraform state vs Bicep) | Inconsistent behavior across generators | Start with Terraform-first approach; add Bicep/Pulumi support incrementally |
-| Notification volume overwhelms users on active projects | Notification fatigue | Default to meaningful events only; allow per-event-type mute settings |
-| Cross-environment diff requires deployed architecture snapshots | Data availability gap | Store architecture snapshot on each successful deployment |
-| Brick connector routing complexity for dense architectures | Visual clutter, overlapping connectors | Start with direct point-to-point; add orthogonal routing as enhancement |
+| Notification volume overwhelms users on active projects                   | Notification fatigue                    | Default to meaningful events only; allow per-event-type mute settings       |
+| Cross-environment diff requires deployed architecture snapshots           | Data availability gap                   | Store architecture snapshot on each successful deployment                   |
+| Brick connector routing complexity for dense architectures                | Visual clutter, overlapping connectors  | Start with direct point-to-point; add orthogonal routing as enhancement     |
 
 ---
 

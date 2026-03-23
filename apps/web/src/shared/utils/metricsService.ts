@@ -84,7 +84,9 @@ function trackEvent(
 }
 
 function captureHealthSnapshot(connectionCount: number | null = null): HealthSnapshot {
-  const memory = (performance as unknown as { memory?: { usedJSHeapSize: number; totalJSHeapSize: number } }).memory;
+  const memory = (
+    performance as unknown as { memory?: { usedJSHeapSize: number; totalJSHeapSize: number } }
+  ).memory;
 
   let domContentLoaded: number | null = null;
   let loadComplete: number | null = null;

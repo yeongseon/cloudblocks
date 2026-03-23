@@ -36,7 +36,13 @@ export type {
   ResourceNode,
 } from './model.js';
 
-export { endpointId, generateEndpointsForNode, connectionTypeToSemantic, parseEndpointId, resolveConnectionNodes } from './endpoints.js';
+export {
+  endpointId,
+  generateEndpointsForNode,
+  connectionTypeToSemantic,
+  parseEndpointId,
+  resolveConnectionNodes,
+} from './endpoints.js';
 
 // Deprecated model aliases (migration shims — remove post-M19)
 export type { Block, Plate } from './model.js';

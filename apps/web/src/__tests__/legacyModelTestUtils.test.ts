@@ -1,6 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { getBlocks, getPlates, makeTestArchitecture, makeTestBlock, makeTestPlate } from './legacyModelTestUtils';
+import {
+  getBlocks,
+  getPlates,
+  makeTestArchitecture,
+  makeTestBlock,
+  makeTestPlate,
+} from './legacyModelTestUtils';
 
 describe('legacyModelTestUtils category mapping', () => {
   beforeEach(() => {

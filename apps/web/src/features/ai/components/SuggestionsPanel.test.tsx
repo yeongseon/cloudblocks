@@ -98,7 +98,9 @@ describe('SuggestionsPanel', () => {
 
     render(<SuggestionsPanel />);
 
-    expect(screen.getByText('AI features require the backend API - see setup guide.')).toBeInTheDocument();
+    expect(
+      screen.getByText('AI features require the backend API - see setup guide.'),
+    ).toBeInTheDocument();
     expect(screen.queryByText(/Run AI analysis/)).not.toBeInTheDocument();
   });
 });

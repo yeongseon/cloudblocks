@@ -266,9 +266,7 @@ export type ResourceType = keyof typeof RESOURCE_RULES;
 
 /** Resource types that can be `kind: 'container'`. */
 export type ContainerCapableResourceType = {
-  [K in ResourceType]: (typeof RESOURCE_RULES)[K]['containerCapable'] extends true
-    ? K
-    : never;
+  [K in ResourceType]: (typeof RESOURCE_RULES)[K]['containerCapable'] extends true ? K : never;
 }[ResourceType];
 
 /** Resource types that must be `kind: 'resource'` (leaf only). */
@@ -279,15 +277,13 @@ export type LeafOnlyResourceType = Exclude<ResourceType, ContainerCapableResourc
 // ---------------------------------------------------------------------------
 
 /** All known resource type strings as a Set for O(1) lookup. */
-export const KNOWN_RESOURCE_TYPES: ReadonlySet<string> = new Set(
-  Object.keys(RESOURCE_RULES)
-);
+export const KNOWN_RESOURCE_TYPES: ReadonlySet<string> = new Set(Object.keys(RESOURCE_RULES));
 
 /** Resource types that can be containers. */
 export const CONTAINER_CAPABLE_TYPES: ReadonlySet<string> = new Set(
   (Object.entries(RESOURCE_RULES) as [ResourceType, ResourceRuleEntry][])
     .filter(([, rule]) => rule.containerCapable)
-    .map(([key]) => key)
+    .map(([key]) => key),
 );
 
 /**
@@ -301,9 +297,7 @@ export function isContainerCapable(resourceType: string): boolean {
  * Get the allowed parent resource types for a given resource type.
  * Returns `undefined` for unknown resource types.
  */
-export function getAllowedParents(
-  resourceType: string
-): readonly (string | null)[] | undefined {
+export function getAllowedParents(resourceType: string): readonly (string | null)[] | undefined {
   const rule = (RESOURCE_RULES as Record<string, ResourceRuleEntry>)[resourceType];
   return rule?.allowedParents;
 }
@@ -321,9 +315,7 @@ export function getCanvasTier(resourceType: string): CanvasTier | undefined {
  * Get the default category for a given resource type.
  * Returns `undefined` for unknown resource types.
  */
-export function getDefaultCategory(
-  resourceType: string
-): ResourceCategory | undefined {
+export function getDefaultCategory(resourceType: string): ResourceCategory | undefined {
   const rule = (RESOURCE_RULES as Record<string, ResourceRuleEntry>)[resourceType];
   return rule?.category;
 }

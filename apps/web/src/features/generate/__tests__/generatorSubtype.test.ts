@@ -49,10 +49,7 @@ function createArchitecture(subtype?: string): ArchitectureModel {
 
 describe('generator subtype mapping integration', () => {
   it('terraform normalize uses subtype mapping when block has subtype', () => {
-    const model = normalize(
-      createArchitecture('ec2'),
-      awsProviderDefinition,
-    );
+    const model = normalize(createArchitecture('ec2'), awsProviderDefinition);
 
     expect(model.resourceNames.get('block-1')).toBe('ec2_compute');
   });
@@ -70,27 +67,17 @@ describe('generator subtype mapping integration', () => {
   });
 
   it('generated terraform output uses subtype-specific resource type', () => {
-    const normalized = normalize(
-      createArchitecture('ec2'),
-      awsProviderDefinition,
-    );
+    const normalized = normalize(createArchitecture('ec2'), awsProviderDefinition);
 
-    const mainTf = generateMainTf(
-      normalized,
-      awsProviderDefinition,
-      {
-        provider: 'aws',
-        mode: 'draft',
-        projectName: 'subtype-test',
-        region: 'us-east-1',
-        generator: 'terraform',
-      },
-    );
+    const mainTf = generateMainTf(normalized, awsProviderDefinition, {
+      provider: 'aws',
+      mode: 'draft',
+      projectName: 'subtype-test',
+      region: 'us-east-1',
+      generator: 'terraform',
+    });
 
-    const outputsTf = generateOutputsTf(
-      normalized,
-      awsProviderDefinition,
-    );
+    const outputsTf = generateOutputsTf(normalized, awsProviderDefinition);
 
     expect(mainTf).toContain('resource "aws_instance" "ec2_compute"');
     expect(mainTf).not.toContain('resource "aws_ecs_service" "ec2_compute"');
@@ -100,10 +87,7 @@ describe('generator subtype mapping integration', () => {
   it('falls back to category-level mapping when block subtype is not set', () => {
     const architecture = createArchitecture(undefined);
 
-    const terraformModel = normalize(
-      architecture,
-      awsProviderDefinition,
-    );
+    const terraformModel = normalize(architecture, awsProviderDefinition);
     const bicepModel = normalizeBicep(architecture, awsProviderDefinition);
     const pulumiModel = normalizePulumi(architecture, awsProviderDefinition);
 

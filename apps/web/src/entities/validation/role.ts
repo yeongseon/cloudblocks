@@ -10,9 +10,7 @@ import { BLOCK_ROLES } from '@cloudblocks/domain';
  * - Roles are visual-only — they do NOT affect size, color, or placement
  */
 
-export function validateRoles(
-  block: LeafNode,
-): ValidationError | null {
+export function validateRoles(block: LeafNode): ValidationError | null {
   const roles = block.roles;
 
   // No roles field = valid (roles are optional)

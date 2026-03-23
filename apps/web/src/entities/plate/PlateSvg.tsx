@@ -2,18 +2,24 @@ import { memo, useId, useMemo } from 'react';
 import type { StudColorSpec } from '../../shared/types/index';
 import type { LayerType } from '@cloudblocks/schema';
 import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
-import { TILE_W, TILE_H, TILE_Z, BLOCK_MARGIN, BLOCK_PADDING } from '../../shared/tokens/designTokens';
+import {
+  TILE_W,
+  TILE_H,
+  TILE_Z,
+  BLOCK_MARGIN,
+  BLOCK_PADDING,
+} from '../../shared/tokens/designTokens';
 
 // ─── Layer-Type Visual Config ──────────────────────────────
 // Each plate type gets distinct visual treatment while keeping
 // the same isometric baseplate geometry.
 
 interface LayerVisuals {
-  strokeWidth: number;       // border thickness (wider = more prominent)
-  strokeOpacity: number;     // border visibility
-  labelFontSize: number;     // label text size
-  emojiFontSize: number;     // icon display size (px)
-  cornerRadius: number;      // 0 = sharp diamond, unused today (future use)
+  strokeWidth: number; // border thickness (wider = more prominent)
+  strokeOpacity: number; // border visibility
+  labelFontSize: number; // label text size
+  emojiFontSize: number; // icon display size (px)
+  cornerRadius: number; // 0 = sharp diamond, unused today (future use)
 }
 
 type PlateLayerType = Exclude<LayerType, 'resource'>;
@@ -60,9 +66,9 @@ const LAYER_VISUALS: Record<PlateLayerType, LayerVisuals> = {
 
 export interface PlateSvgProps {
   plateType: PlateLayerType;
-  studsX: number;            // CU width (1 stud = 1 CU)
-  studsY: number;            // CU depth (1 stud = 1 CU)
-  worldHeight: number;       // CH height (fractional OK for plates)
+  studsX: number; // CU width (1 stud = 1 CU)
+  studsY: number; // CU depth (1 stud = 1 CU)
+  worldHeight: number; // CH height (fractional OK for plates)
   studColors: StudColorSpec;
   topFaceColor: string;
   topFaceStroke: string;
@@ -88,8 +94,8 @@ export const PlateSvg = memo(function PlateSvg({
   iconUrl,
 }: PlateSvgProps) {
   // CU-based pixel conversion: 1 CU = 1 stud, rendered via TILE_W/H/Z
-  const screenWidth = (studsX + studsY) * TILE_W / 2;
-  const diamondHeight = (studsX + studsY) * TILE_H / 2;
+  const screenWidth = ((studsX + studsY) * TILE_W) / 2;
+  const diamondHeight = ((studsX + studsY) * TILE_H) / 2;
   const sideWallPx = Math.round(worldHeight * TILE_Z);
   const svgHeight = diamondHeight + sideWallPx + BLOCK_PADDING;
 

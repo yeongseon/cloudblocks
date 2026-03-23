@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { ArchitectureModel, ContainerNode, LeafNode, ResourceCategory } from '@cloudblocks/schema';
+import type {
+  ArchitectureModel,
+  ContainerNode,
+  LeafNode,
+  ResourceCategory,
+} from '@cloudblocks/schema';
 import type { ArchitectureSnapshot } from '../../shared/types/learning';
 import type { ArchitectureTemplate } from '../../shared/types/template';
 import { endpointId } from '@cloudblocks/schema';
@@ -87,20 +92,26 @@ type LegacyArchitectureModel = Omit<ArchitectureModel, 'blocks' | 'plates'> & {
   blocks: LegacyBlock[];
 };
 
-const isPlateNode = (node: ArchitectureModel['nodes'][number]): node is ContainerNode => node.kind === 'container';
-const isBlockNode = (node: ArchitectureModel['nodes'][number]): node is LeafNode => node.kind === 'resource';
+const isPlateNode = (node: ArchitectureModel['nodes'][number]): node is ContainerNode =>
+  node.kind === 'container';
+const isBlockNode = (node: ArchitectureModel['nodes'][number]): node is LeafNode =>
+  node.kind === 'resource';
 
 function getArch(): LegacyArchitectureModel {
   const architecture = getState().workspace.architecture;
   const plates = architecture.nodes.filter(isPlateNode).map((plate) => ({
     ...plate,
     type: plate.layer,
-    children: architecture.nodes.filter((node) => node.parentId === plate.id).map((node) => node.id),
+    children: architecture.nodes
+      .filter((node) => node.parentId === plate.id)
+      .map((node) => node.id),
   }));
-  const blocks: LegacyBlock[] = architecture.nodes.filter(isBlockNode).map((block): LegacyBlock => ({
-    ...block,
-    placementId: block.parentId ?? '',
-  }));
+  const blocks: LegacyBlock[] = architecture.nodes.filter(isBlockNode).map(
+    (block): LegacyBlock => ({
+      ...block,
+      placementId: block.parentId ?? '',
+    }),
+  );
   return {
     ...architecture,
     plates,
@@ -129,7 +140,7 @@ function activateDiffState() {
       externalActors: [],
       createdAt: '2025-01-01T00:00:00Z',
       updatedAt: '2025-01-01T00:00:00Z',
-    }
+    },
   );
 }
 
@@ -152,7 +163,14 @@ describe('architectureStore', () => {
         nodes: [] as ArchitectureModel['nodes'],
         connections: [] as ArchitectureModel['connections'],
         endpoints: [],
-        externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' as const, position: { x: -3, y: 0, z: 5 } }],
+        externalActors: [
+          {
+            id: 'ext-internet',
+            name: 'Internet',
+            type: 'internet' as const,
+            position: { x: -3, y: 0, z: 5 },
+          },
+        ],
         createdAt: now,
         updatedAt: now,
       },
@@ -288,7 +306,7 @@ describe('architectureStore', () => {
       const p2 = plates[1];
       const halfW1 = p1.size.width / 2;
       const halfW2 = p2.size.width / 2;
-      const gap = (p2.position.x - halfW2) - (p1.position.x + halfW1);
+      const gap = p2.position.x - halfW2 - (p1.position.x + halfW1);
       expect(gap).toBeGreaterThanOrEqual(0);
     });
 
@@ -576,7 +594,10 @@ describe('architectureStore', () => {
       useArchitectureStore.setState({
         workspace: {
           ...getState().workspace,
-          architecture: { ...arch, nodes: [...arch.nodes.filter((node) => !isBlockNode(node)), enrichedBlock] },
+          architecture: {
+            ...arch,
+            nodes: [...arch.nodes.filter((node) => !isBlockNode(node)), enrichedBlock],
+          },
         },
       });
 
@@ -902,7 +923,9 @@ describe('architectureStore', () => {
       const outerSubnetId = getArch().plates[1].id;
       getState().addPlate('subnet', 'Inner', outerSubnetId);
       const outerBefore = getArch().plates.find((plate) => plate.id === outerSubnetId);
-      const innerBefore = getArch().plates.find((plate) => plate.id !== outerSubnetId && plate.parentId === outerSubnetId);
+      const innerBefore = getArch().plates.find(
+        (plate) => plate.id !== outerSubnetId && plate.parentId === outerSubnetId,
+      );
 
       getState().movePlatePosition(outerSubnetId, 1.25, -1.5);
 
@@ -1004,9 +1027,7 @@ describe('architectureStore', () => {
       const before = getState().workspace.architecture;
       const orphaned: ArchitectureModel = {
         ...before,
-        nodes: [
-          makeResourceNode('orphan-block', 'missing-plate', 'compute', { name: 'Orphan' }),
-        ],
+        nodes: [makeResourceNode('orphan-block', 'missing-plate', 'compute', { name: 'Orphan' })],
       };
       useArchitectureStore.setState({
         workspace: {
@@ -1064,7 +1085,9 @@ describe('architectureStore', () => {
       getState().addBlock('data', 'Database', subnetId);
       getState().addBlock('data', 'Storage', subnetId);
 
-      const [gatewayId, computeId, databaseId, storageId] = getArch().blocks.map((block) => block.id);
+      const [gatewayId, computeId, databaseId, storageId] = getArch().blocks.map(
+        (block) => block.id,
+      );
       return { gatewayId, computeId, databaseId, storageId };
     };
 
@@ -1503,7 +1526,9 @@ describe('architectureStore', () => {
         getState().switchWorkspace(firstId);
         // Second workspace should have the plate we added
         const secondInList = getState().workspaces.find((ws) => ws.id === secondId);
-        expect(secondInList?.architecture.nodes.filter((node) => node.kind === 'container')).toHaveLength(1);
+        expect(
+          secondInList?.architecture.nodes.filter((node) => node.kind === 'container'),
+        ).toHaveLength(1);
       }
     });
 
@@ -1630,7 +1655,9 @@ describe('architectureStore', () => {
 
       // Find original in list — it should still have 1 plate
       const original = getState().workspaces.find((ws) => ws.id === originalId);
-      expect(original?.architecture.nodes.filter((node) => node.kind === 'container')).toHaveLength(1);
+      expect(original?.architecture.nodes.filter((node) => node.kind === 'container')).toHaveLength(
+        1,
+      );
     });
 
     it('no-ops when cloning non-existent workspace', () => {
@@ -1736,13 +1763,12 @@ describe('architectureStore', () => {
         id: 'imported-1',
         name: 'Imported Arch',
         version: '1',
-        nodes: [
-          makeRegionNode('p1'),
-          makeResourceNode('b1', 'p1', 'compute', { name: 'VM' }),
-        ],
+        nodes: [makeRegionNode('p1'), makeResourceNode('b1', 'p1', 'compute', { name: 'VM' })],
         connections: [],
         endpoints: [],
-        externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+        externalActors: [
+          { id: 'ext-1', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+        ],
       };
 
       const result = getState().importArchitecture(JSON.stringify(arch));
@@ -1816,13 +1842,10 @@ describe('architectureStore', () => {
         id: 'import-external-actors',
         name: 'External Actors Valid',
         version: '1',
-        nodes: [
-          makeRegionNode('p1'),
-          makeResourceNode('b1', 'p1', 'compute', { name: 'VM' }),
-        ],
+        nodes: [makeRegionNode('p1'), makeResourceNode('b1', 'p1', 'compute', { name: 'VM' })],
         externalActors: [
-          { id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } },
-          { id: 'ext-2', name: 'Partner', type: 'internet' , position: { x: -3, y: 0, z: 5 } },
+          { id: 'ext-1', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+          { id: 'ext-2', name: 'Partner', type: 'internet', position: { x: -3, y: 0, z: 5 } },
         ],
       };
 
@@ -1835,7 +1858,10 @@ describe('architectureStore', () => {
     it.each([
       {
         name: 'id',
-        connection: { from: endpointId('b1', 'output', 'data'), to: endpointId('p1', 'input', 'data') },
+        connection: {
+          from: endpointId('b1', 'output', 'data'),
+          to: endpointId('p1', 'input', 'data'),
+        },
         message: 'id must be a string',
       },
       {
@@ -1856,10 +1882,7 @@ describe('architectureStore', () => {
     ])('logs error when connection is missing $name', ({ connection, message }) => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const invalid = {
-        nodes: [
-          makeRegionNode('p1'),
-          makeResourceNode('b1', 'p1', 'compute', { name: 'VM' }),
-        ],
+        nodes: [makeRegionNode('p1'), makeResourceNode('b1', 'p1', 'compute', { name: 'VM' })],
         connections: [connection],
       };
 
@@ -1873,19 +1896,22 @@ describe('architectureStore', () => {
     it('logs error when connection references non-existent endpoints', () => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const invalid = {
-        nodes: [
-          makeRegionNode('p1'),
-          makeResourceNode('b1', 'p1', 'compute', { name: 'VM' }),
-        ],
+        nodes: [makeRegionNode('p1'), makeResourceNode('b1', 'p1', 'compute', { name: 'VM' })],
         connections: [
-          { id: 'c1', from: endpointId('missing', 'output', 'data'), to: endpointId('b1', 'input', 'data') },
+          {
+            id: 'c1',
+            from: endpointId('missing', 'output', 'data'),
+            to: endpointId('b1', 'input', 'data'),
+          },
         ],
       };
 
       getState().importArchitecture(JSON.stringify(invalid));
 
       expect(spy).toHaveBeenCalled();
-      expect(String(spy.mock.calls.at(-1)?.[1])).toContain('does not reference an existing block, plate, or external actor');
+      expect(String(spy.mock.calls.at(-1)?.[1])).toContain(
+        'does not reference an existing block, plate, or external actor',
+      );
       spy.mockRestore();
     });
 
@@ -1894,14 +1920,26 @@ describe('architectureStore', () => {
         id: 'import-connections',
         name: 'Valid Connections',
         version: '1',
-        nodes: [
-          makeRegionNode('p1'),
-          makeResourceNode('b1', 'p1', 'compute', { name: 'VM' }),
+        nodes: [makeRegionNode('p1'), makeResourceNode('b1', 'p1', 'compute', { name: 'VM' })],
+        externalActors: [
+          {
+            id: 'ext-internet',
+            name: 'Internet',
+            type: 'internet',
+            position: { x: -3, y: 0, z: 5 },
+          },
         ],
-        externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
         connections: [
-          { id: 'c1', from: endpointId('ext-internet', 'output', 'data'), to: endpointId('b1', 'input', 'data') },
-          { id: 'c2', from: endpointId('b1', 'output', 'data'), to: endpointId('p1', 'input', 'data') },
+          {
+            id: 'c1',
+            from: endpointId('ext-internet', 'output', 'data'),
+            to: endpointId('b1', 'input', 'data'),
+          },
+          {
+            id: 'c2',
+            from: endpointId('b1', 'output', 'data'),
+            to: endpointId('p1', 'input', 'data'),
+          },
         ],
       };
 
@@ -1923,7 +1961,9 @@ describe('architectureStore', () => {
       getState().importArchitecture(JSON.stringify(invalid));
 
       expect(spy).toHaveBeenCalled();
-      expect(String(spy.mock.calls.at(-1)?.[1])).toContain('does not reference an existing container node');
+      expect(String(spy.mock.calls.at(-1)?.[1])).toContain(
+        'does not reference an existing container node',
+      );
       spy.mockRestore();
     });
 
@@ -1946,12 +1986,16 @@ describe('architectureStore', () => {
       const invalid = {
         nodes: [
           makeRegionNode('p1'),
-          makeResourceNode('b1', 'p1', 'compute', { category: 'invalid-category' as unknown as ResourceCategory }),
+          makeResourceNode('b1', 'p1', 'compute', {
+            category: 'invalid-category' as unknown as ResourceCategory,
+          }),
         ],
       };
 
       getState().importArchitecture(JSON.stringify(invalid));
-      expect(String(spy.mock.calls.at(-1)?.[1])).toContain('category must be one of network, security, edge, compute, data, messaging, operations');
+      expect(String(spy.mock.calls.at(-1)?.[1])).toContain(
+        'category must be one of network, security, edge, compute, data, messaging, operations',
+      );
       spy.mockRestore();
     });
 
@@ -1986,19 +2030,22 @@ describe('architectureStore', () => {
     it('logs error when connection targetId references non-existent endpoint', () => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const invalid = {
-        nodes: [
-          makeRegionNode('p1'),
-          makeResourceNode('b1', 'p1', 'compute', { name: 'VM' }),
-        ],
+        nodes: [makeRegionNode('p1'), makeResourceNode('b1', 'p1', 'compute', { name: 'VM' })],
         connections: [
-          { id: 'c1', from: endpointId('b1', 'output', 'data'), to: endpointId('missing-target', 'input', 'data') },
+          {
+            id: 'c1',
+            from: endpointId('b1', 'output', 'data'),
+            to: endpointId('missing-target', 'input', 'data'),
+          },
         ],
       };
 
       getState().importArchitecture(JSON.stringify(invalid));
 
       expect(spy).toHaveBeenCalled();
-      expect(String(spy.mock.calls.at(-1)?.[1])).toContain('does not reference an existing block, plate, or external actor');
+      expect(String(spy.mock.calls.at(-1)?.[1])).toContain(
+        'does not reference an existing block, plate, or external actor',
+      );
       spy.mockRestore();
     });
 
@@ -2072,7 +2119,9 @@ describe('architectureStore', () => {
           nodes: [makeRegionNode('tp1')],
           connections: [],
           endpoints: [],
-          externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+          externalActors: [
+            { id: 'ext-1', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+          ],
         },
       };
 
@@ -2196,7 +2245,14 @@ describe('architectureStore', () => {
           },
         ],
         endpoints: [],
-        externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+        externalActors: [
+          {
+            id: 'ext-internet',
+            name: 'Internet',
+            type: 'internet',
+            position: { x: -3, y: 0, z: 5 },
+          },
+        ],
       };
 
       vi.setSystemTime(new Date('2025-01-02T00:00:00Z'));
@@ -2224,7 +2280,14 @@ describe('architectureStore', () => {
         nodes: [],
         connections: [],
         endpoints: [],
-        externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+        externalActors: [
+          {
+            id: 'ext-internet',
+            name: 'Internet',
+            type: 'internet',
+            position: { x: -3, y: 0, z: 5 },
+          },
+        ],
       };
 
       getState().replaceArchitecture(snapshot);
@@ -2246,7 +2309,14 @@ describe('architectureStore', () => {
         nodes: [],
         connections: [],
         endpoints: [],
-        externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+        externalActors: [
+          {
+            id: 'ext-internet',
+            name: 'Internet',
+            type: 'internet',
+            position: { x: -3, y: 0, z: 5 },
+          },
+        ],
       };
 
       getState().replaceArchitecture(snapshot);
@@ -2256,20 +2326,23 @@ describe('architectureStore', () => {
 
   describe('replaceArchitecture – validation', () => {
     it('throws when snapshot is not an object', () => {
-      expect(() => getState().replaceArchitecture('not-an-object' as unknown as ArchitectureSnapshot))
-        .toThrow('root must be an object');
+      expect(() =>
+        getState().replaceArchitecture('not-an-object' as unknown as ArchitectureSnapshot),
+      ).toThrow('root must be an object');
     });
 
     it('throws when nodes is missing', () => {
       const invalid = { connections: [] } as unknown as ArchitectureSnapshot;
-      expect(() => getState().replaceArchitecture(invalid))
-        .toThrow('expected nodes[] or legacy plates[] + blocks[]');
+      expect(() => getState().replaceArchitecture(invalid)).toThrow(
+        'expected nodes[] or legacy plates[] + blocks[]',
+      );
     });
 
     it('throws when legacy blocks is missing', () => {
       const invalid = { plates: [], connections: [] } as unknown as ArchitectureSnapshot;
-      expect(() => getState().replaceArchitecture(invalid))
-        .toThrow('expected nodes[] or legacy plates[] + blocks[]');
+      expect(() => getState().replaceArchitecture(invalid)).toThrow(
+        'expected nodes[] or legacy plates[] + blocks[]',
+      );
     });
 
     it('throws when a node has invalid layer type', () => {
@@ -2279,8 +2352,7 @@ describe('architectureStore', () => {
         ],
         connections: [],
       } as unknown as ArchitectureSnapshot;
-      expect(() => getState().replaceArchitecture(invalid))
-        .toThrow('layer must be one of');
+      expect(() => getState().replaceArchitecture(invalid)).toThrow('layer must be one of');
     });
 
     it('throws when a block references non-existent plate', () => {
@@ -2291,8 +2363,9 @@ describe('architectureStore', () => {
         ],
         connections: [],
       } as unknown as ArchitectureSnapshot;
-      expect(() => getState().replaceArchitecture(invalid))
-        .toThrow('does not reference an existing container node');
+      expect(() => getState().replaceArchitecture(invalid)).toThrow(
+        'does not reference an existing container node',
+      );
     });
 
     it('does not modify state when validation fails', () => {

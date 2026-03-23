@@ -47,35 +47,37 @@ apps/web/src/entities/validation/
 
 **Placement rules** (Milestone 1):
 
-| Rule | Constraint |
-|------|-----------|
-| Compute placement | Must be on SubnetPlate |
+| Rule               | Constraint                         |
+| ------------------ | ---------------------------------- |
+| Compute placement  | Must be on SubnetPlate             |
 | Database placement | Must be on **private** SubnetPlate |
-| Gateway placement | Must be on **public** SubnetPlate |
-| Storage placement | Must be on SubnetPlate |
+| Gateway placement  | Must be on **public** SubnetPlate  |
+| Storage placement  | Must be on SubnetPlate             |
 
 **Connection rules** (Milestone 1):
 
-| Source | Valid Targets |
-|--------|--------------|
-| Internet (external) | Gateway |
-| Gateway | Compute |
-| Compute | Database, Storage |
-| Database | _(receiver-only — no outbound)_ |
-| Storage | _(receiver-only — no outbound)_ |
+| Source              | Valid Targets                   |
+| ------------------- | ------------------------------- |
+| Internet (external) | Gateway                         |
+| Gateway             | Compute                         |
+| Compute             | Database, Storage               |
+| Database            | _(receiver-only — no outbound)_ |
+| Storage             | _(receiver-only — no outbound)_ |
 
 ### Validation response format
 
 ```json
 {
   "valid": false,
-  "errors": [{
-    "ruleId": "rule-db-private",
-    "severity": "error",
-    "message": "Database cannot be placed in public subnet",
-    "suggestion": "Move Database to a private subnet",
-    "targetId": "block-db01"
-  }],
+  "errors": [
+    {
+      "ruleId": "rule-db-private",
+      "severity": "error",
+      "message": "Database cannot be placed in public subnet",
+      "suggestion": "Move Database to a private subnet",
+      "targetId": "block-db01"
+    }
+  ],
   "warnings": []
 }
 ```

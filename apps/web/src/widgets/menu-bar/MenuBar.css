@@ -92,14 +92,14 @@
 }
 
 .menu-trigger:hover,
-.menu-trigger[data-active="true"] {
+.menu-trigger[data-active='true'] {
   background: var(--bg-surface-raised);
   border-color: var(--border-subtle);
   color: var(--text-primary);
 }
 
 .menu-trigger:active,
-.menu-trigger[data-active="true"]:active {
+.menu-trigger[data-active='true']:active {
   background: var(--bg-surface-raised);
   color: var(--text-primary);
 }
@@ -259,7 +259,7 @@
   background: var(--accent-primary);
   border: 1px solid transparent;
   border-radius: 8px;
-  color: #FFFFFF;
+  color: #ffffff;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -273,7 +273,7 @@
 
 .github-btn:hover {
   opacity: 0.9;
-  color: #FFFFFF;
+  color: #ffffff;
   transform: translateY(-1px);
   box-shadow: var(--shadow-btn-hover);
 }
@@ -295,12 +295,12 @@
 
 .menu-badge-valid {
   background: var(--accent-success);
-  color: #FFF;
+  color: #fff;
 }
 
 .menu-badge-invalid {
   background: var(--accent-error);
-  color: #FFF;
+  color: #fff;
 }
 
 .provider-section {
@@ -334,7 +334,7 @@
   box-shadow: var(--shadow-btn-hover);
 }
 
-.provider-btn[data-active="true"] {
+.provider-btn[data-active='true'] {
   background: var(--bg-surface-raised);
   transform: translateY(-1px);
   /* Inline styles handle the active border and shadow colors for the specific provider */
@@ -346,258 +346,262 @@
 }
 
 .provider-btn:active,
-.provider-btn[data-active="true"]:active {
+.provider-btn[data-active='true']:active {
   transform: translateY(0);
   box-shadow: none;
 }
 
-
 /* ── LEGO Mode (preserved for M22 dual theme) ─────────── */
 
-[data-visual-mode="lego"] .menu-bar {
-  background-color: #E3000B;
+[data-visual-mode='lego'] .menu-bar {
+  background-color: #e3000b;
   background-image:
-    radial-gradient(#B80009 20%, transparent 20%),
-    radial-gradient(#FF3333 20%, transparent 20%);
+    radial-gradient(#b80009 20%, transparent 20%), radial-gradient(#ff3333 20%, transparent 20%);
   background-size: 10px 10px;
-  background-position: 0 0, 5px 5px;
+  background-position:
+    0 0,
+    5px 5px;
   box-shadow:
     inset 0 3px 0 0 rgba(255, 255, 255, 0.4),
-    0 4px 0 0 #B80009,
+    0 4px 0 0 #b80009,
     0 6px 12px rgba(0, 0, 0, 0.15);
-  border-bottom: 3px solid #B80009;
+  border-bottom: 3px solid #b80009;
 }
 
-[data-visual-mode="lego"] .menu-bar-logo {
-  color: #FFFFFF;
+[data-visual-mode='lego'] .menu-bar-logo {
+  color: #ffffff;
   text-shadow:
-    -1px -1px 0 #FFD500,
-     1px -1px 0 #FFD500,
-    -1px  1px 0 #FFD500,
-     1px  1px 0 #FFD500,
-     2px  3px 0 #D4B200;
+    -1px -1px 0 #ffd500,
+    1px -1px 0 #ffd500,
+    -1px 1px 0 #ffd500,
+    1px 1px 0 #ffd500,
+    2px 3px 0 #d4b200;
 }
 
-[data-visual-mode="lego"] .menu-bar-divider {
+[data-visual-mode='lego'] .menu-bar-divider {
   width: 3px;
-  background: #B80009;
+  background: #b80009;
   box-shadow: 1px 0 0 rgba(255, 255, 255, 0.3);
 }
 
-[data-visual-mode="lego"] .workspace-pill {
-  background: #FFD500;
-  border: 3px solid #D4B200;
+[data-visual-mode='lego'] .workspace-pill {
+  background: #ffd500;
+  border: 3px solid #d4b200;
   color: #222;
   font-weight: 800;
   box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.5),
-    0 4px 0 0 #D4B200;
+    0 4px 0 0 #d4b200;
   text-transform: uppercase;
 }
 
-[data-visual-mode="lego"] .workspace-pill:hover {
-  background: #FFE44D;
+[data-visual-mode='lego'] .workspace-pill:hover {
+  background: #ffe44d;
   transform: translateY(-2px);
   box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.6),
-    0 6px 0 0 #D4B200;
+    0 6px 0 0 #d4b200;
   color: #000;
 }
 
-[data-visual-mode="lego"] .workspace-pill:active {
+[data-visual-mode='lego'] .workspace-pill:active {
   transform: translateY(3px);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 1px 0 0 #D4B200;
+    0 1px 0 0 #d4b200;
 }
 
-[data-visual-mode="lego"] .menu-trigger {
-  background: #FFD500;
-  border: 3px solid #D4B200;
+[data-visual-mode='lego'] .menu-trigger {
+  background: #ffd500;
+  border: 3px solid #d4b200;
   color: #222;
   font-weight: 800;
   text-transform: uppercase;
   box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.5),
-    0 3px 0 0 #D4B200;
+    0 3px 0 0 #d4b200;
 }
 
-[data-visual-mode="lego"] .menu-trigger:hover,
-[data-visual-mode="lego"] .menu-trigger[data-active="true"] {
-  background: #FFE44D;
-  border-color: #D4B200;
+[data-visual-mode='lego'] .menu-trigger:hover,
+[data-visual-mode='lego'] .menu-trigger[data-active='true'] {
+  background: #ffe44d;
+  border-color: #d4b200;
   color: #000;
   box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.6),
-    0 4px 0 0 #D4B200;
+    0 4px 0 0 #d4b200;
   transform: translateY(-1px);
 }
 
-[data-visual-mode="lego"] .menu-trigger:active,
-[data-visual-mode="lego"] .menu-trigger[data-active="true"]:active {
+[data-visual-mode='lego'] .menu-trigger:active,
+[data-visual-mode='lego'] .menu-trigger[data-active='true']:active {
   transform: translateY(2px);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 1px 0 0 #D4B200;
+    0 1px 0 0 #d4b200;
 }
 
-[data-visual-mode="lego"] .menu-dropdown {
-  background: #FFFDE7;
-  border: 4px solid #FFD500;
+[data-visual-mode='lego'] .menu-dropdown {
+  background: #fffde7;
+  border: 4px solid #ffd500;
   border-radius: 10px;
   box-shadow:
-    0 8px 0 0 #D4B200,
+    0 8px 0 0 #d4b200,
     0 12px 24px rgba(0, 0, 0, 0.2);
 }
 
-[data-visual-mode="lego"] .menu-item {
+[data-visual-mode='lego'] .menu-item {
   border: 3px solid transparent;
   border-radius: 8px;
   color: #333;
   font-weight: 800;
 }
 
-[data-visual-mode="lego"] .menu-item:hover:not(:disabled) {
-  background: #FFD500;
-  border-color: #D4B200;
+[data-visual-mode='lego'] .menu-item:hover:not(:disabled) {
+  background: #ffd500;
+  border-color: #d4b200;
   color: #000;
   box-shadow:
     inset 0 2px 0 rgba(255, 255, 255, 0.5),
-    0 3px 0 0 #D4B200;
+    0 3px 0 0 #d4b200;
   transform: translateY(-1px);
 }
 
-[data-visual-mode="lego"] .menu-item:active:not(:disabled) {
+[data-visual-mode='lego'] .menu-item:active:not(:disabled) {
   transform: translateY(2px);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 0 0 0 #D4B200;
+    0 0 0 0 #d4b200;
 }
 
-[data-visual-mode="lego"] .menu-item:hover:not(:disabled) .menu-shortcut {
+[data-visual-mode='lego'] .menu-item:hover:not(:disabled) .menu-shortcut {
   color: #554800;
 }
 
-[data-visual-mode="lego"] .menu-shortcut {
-  color: #8A7500;
+[data-visual-mode='lego'] .menu-shortcut {
+  color: #8a7500;
   font-weight: 800;
 }
 
-[data-visual-mode="lego"] .menu-separator {
+[data-visual-mode='lego'] .menu-separator {
   height: 3px;
-  background: #FFD500;
+  background: #ffd500;
 }
 
-[data-visual-mode="lego"] .quick-btn {
-  background: #FFD500;
-  border: 3px solid #D4B200;
+[data-visual-mode='lego'] .quick-btn {
+  background: #ffd500;
+  border: 3px solid #d4b200;
   color: #222;
   font-weight: 800;
   box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.5),
-    0 3px 0 0 #D4B200;
+    0 3px 0 0 #d4b200;
 }
 
-[data-visual-mode="lego"] .quick-btn:hover:not(:disabled) {
-  background: #FFE44D;
+[data-visual-mode='lego'] .quick-btn:hover:not(:disabled) {
+  background: #ffe44d;
   transform: translateY(-2px);
   box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.6),
-    0 5px 0 0 #D4B200;
+    0 5px 0 0 #d4b200;
   color: #000;
 }
 
-[data-visual-mode="lego"] .quick-btn:active:not(:disabled) {
+[data-visual-mode='lego'] .quick-btn:active:not(:disabled) {
   transform: translateY(2px);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.3),
-    0 1px 0 0 #D4B200;
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 1px 0 0 #d4b200;
 }
 
-[data-visual-mode="lego"] .quick-btn:disabled {
+[data-visual-mode='lego'] .quick-btn:disabled {
   opacity: 0.6;
-  box-shadow: 0 1px 0 0 #B80009;
+  box-shadow: 0 1px 0 0 #b80009;
   transform: translateY(2px);
-  background: #E3000B;
-  border-color: #B80009;
-  color: #FF3333;
+  background: #e3000b;
+  border-color: #b80009;
+  color: #ff3333;
 }
 
-[data-visual-mode="lego"] .notification-badge {
+[data-visual-mode='lego'] .notification-badge {
   background: #ff4444;
-  border: 1px solid #B80009;
+  border: 1px solid #b80009;
 }
 
-[data-visual-mode="lego"] .github-btn {
-  background: #E3000B;
-  border: 3px solid #B80009;
-  color: #FFFFFF;
+[data-visual-mode='lego'] .github-btn {
+  background: #e3000b;
+  border: 3px solid #b80009;
+  color: #ffffff;
   font-weight: 800;
   box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.4),
-    0 4px 0 0 #B80009;
+    0 4px 0 0 #b80009;
   text-transform: uppercase;
 }
 
-[data-visual-mode="lego"] .github-btn:hover {
-  background: #FF3333;
-  color: #FFFFFF;
+[data-visual-mode='lego'] .github-btn:hover {
+  background: #ff3333;
+  color: #ffffff;
   opacity: 1;
   transform: translateY(-2px);
   box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.5),
-    0 6px 0 0 #B80009;
+    0 6px 0 0 #b80009;
 }
 
-[data-visual-mode="lego"] .github-btn:active {
+[data-visual-mode='lego'] .github-btn:active {
   transform: translateY(3px);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 1px 0 0 #B80009;
+    0 1px 0 0 #b80009;
 }
 
-[data-visual-mode="lego"] .menu-badge {
+[data-visual-mode='lego'] .menu-badge {
   font-weight: 900;
-  border: 2px solid rgba(0,0,0,0.1);
-  box-shadow: 0 2px 0 rgba(0,0,0,0.1);
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
 }
 
-[data-visual-mode="lego"] .menu-badge-valid {
-  background: #00852B;
-  border-color: #00591D;
-  box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), 0 3px 0 0 #00591D;
+[data-visual-mode='lego'] .menu-badge-valid {
+  background: #00852b;
+  border-color: #00591d;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.4),
+    0 3px 0 0 #00591d;
 }
 
-[data-visual-mode="lego"] .menu-badge-invalid {
-  background: #E3000B;
-  border-color: #B80009;
-  box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), 0 3px 0 0 #B80009;
+[data-visual-mode='lego'] .menu-badge-invalid {
+  background: #e3000b;
+  border-color: #b80009;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.4),
+    0 3px 0 0 #b80009;
 }
 
-[data-visual-mode="lego"] .provider-btn {
-  background: #FFFDE7;
-  border: 3px solid #D4B200;
+[data-visual-mode='lego'] .provider-btn {
+  background: #fffde7;
+  border: 3px solid #d4b200;
   color: #555;
   font-weight: 800;
   box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.5),
-    0 3px 0 0 #D4B200;
+    0 3px 0 0 #d4b200;
 }
 
-[data-visual-mode="lego"] .provider-btn:hover:not(:disabled) {
-  background: #FFFFFF;
+[data-visual-mode='lego'] .provider-btn:hover:not(:disabled) {
+  background: #ffffff;
   transform: translateY(-1px);
   box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.6),
-    0 4px 0 0 #D4B200;
+    0 4px 0 0 #d4b200;
 }
 
-[data-visual-mode="lego"] .provider-btn[data-active="true"] {
-  background: #FFFFFF;
+[data-visual-mode='lego'] .provider-btn[data-active='true'] {
+  background: #ffffff;
   transform: translateY(-1px);
 }
 
-[data-visual-mode="lego"] .provider-btn:disabled {
+[data-visual-mode='lego'] .provider-btn:disabled {
   opacity: 0.6;
   color: #8a8a8a;
   box-shadow:
@@ -605,8 +609,8 @@
     0 2px 0 0 #c9b571;
 }
 
-[data-visual-mode="lego"] .provider-btn:active,
-[data-visual-mode="lego"] .provider-btn[data-active="true"]:active {
+[data-visual-mode='lego'] .provider-btn:active,
+[data-visual-mode='lego'] .provider-btn[data-active='true']:active {
   transform: translateY(2px);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.3),

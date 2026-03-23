@@ -43,6 +43,7 @@ normalize(architectureModel) → NormalizedModel
 ```
 
 **Responsibilities:**
+
 - Resolve all ID references (ensure `placementId`, `sourceId`, `targetId` point to valid entities)
 - Apply default values for optional fields
 - Sort entities for deterministic output (plates by ID, blocks by ID, connections by ID)
@@ -59,6 +60,7 @@ validate(normalizedModel) → ValidationResult
 ```
 
 **Responsibilities:**
+
 - Verify structural invariants (see DOMAIN_MODEL.md §2)
 - Run placement rules and connection rules
 - Return errors/warnings — generation halts on errors
@@ -88,6 +90,7 @@ generate(providerMappedModel, format) → GeneratedFiles[]
 ```
 
 **Responsibilities:**
+
 - Produce resource definitions in the target format (HCL, Bicep, TypeScript)
 - Generate variable declarations and outputs
 - Create module structure with proper cross-references
@@ -124,10 +127,7 @@ infra/
 
 ```typescript
 interface GeneratorPipeline {
-  generate: (
-    architecture: ArchitectureModel,
-    options: GenerationOptions
-  ) => GeneratedOutput;
+  generate: (architecture: ArchitectureModel, options: GenerationOptions) => GeneratedOutput;
 }
 
 interface GenerationOptions {
@@ -147,8 +147,8 @@ interface GeneratedOutput {
 }
 
 interface GeneratedFile {
-  path: string;      // e.g., "main.tf"
-  content: string;   // file content
+  path: string; // e.g., "main.tf"
+  content: string; // file content
   language: FileLanguage;
 }
 
@@ -169,12 +169,12 @@ interface GenerationMetadata {
 
 Supported generators:
 
-| Generator | Target | Status |
-|-----------|--------|--------|
+| Generator   | Target                    | Status                       |
+| ----------- | ------------------------- | ---------------------------- |
 | `terraform` | Multi-cloud (Azure-first) | ✅ Implemented (Milestone 3) |
-| `bicep` | Azure | ✅ Implemented |
-| `pulumi` | Code-based IaC | ✅ Implemented |
-| `yaml` | Documentation | Planned (Milestone 6) |
+| `bicep`     | Azure                     | ✅ Implemented               |
+| `pulumi`    | Code-based IaC            | ✅ Implemented               |
+| `yaml`      | Documentation             | Planned (Milestone 6)        |
 
 ---
 
@@ -201,13 +201,13 @@ This is a hard requirement, not a guideline. Determinism enables:
 
 ## Error Handling
 
-| Stage | Error Type | Behavior |
-|-------|-----------|----------|
-| Normalize | `NormalizationError` | Pipeline stops. Returns unresolvable reference details. |
-| Validate | `ValidationResult.valid === false` | Pipeline stops. Returns all errors and warnings. |
-| Provider Map | `ProviderMappingError` | Pipeline stops. Returns unmapped block categories. |
-| Generate | `GenerationError` | Pipeline stops. Returns partial output + error details. |
-| Format | `FormatError` | Pipeline stops. Returns formatting failure details. |
+| Stage        | Error Type                         | Behavior                                                |
+| ------------ | ---------------------------------- | ------------------------------------------------------- |
+| Normalize    | `NormalizationError`               | Pipeline stops. Returns unresolvable reference details. |
+| Validate     | `ValidationResult.valid === false` | Pipeline stops. Returns all errors and warnings.        |
+| Provider Map | `ProviderMappingError`             | Pipeline stops. Returns unmapped block categories.      |
+| Generate     | `GenerationError`                  | Pipeline stops. Returns partial output + error details. |
+| Format       | `FormatError`                      | Pipeline stops. Returns formatting failure details.     |
 
 All errors include enough context for the UI to display actionable feedback to the user.
 
@@ -225,10 +225,10 @@ This is a pragmatic decision, not a lock-in — the provider-neutral DSL ensures
 
 The generator supports two modes:
 
-| Mode | Purpose | Output |
-|------|---------|--------|
-| **Draft** | Quick preview during design | Minimal output, no variable extraction, inline values |
-| **Production** | Deployable code for commit | Full module structure, variables, outputs, documentation |
+| Mode           | Purpose                     | Output                                                   |
+| -------------- | --------------------------- | -------------------------------------------------------- |
+| **Draft**      | Quick preview during design | Minimal output, no variable extraction, inline values    |
+| **Production** | Deployable code for commit  | Full module structure, variables, outputs, documentation |
 
 Draft mode enables fast feedback in the UI code preview panel. Production mode generates commit-ready code.
 
@@ -256,6 +256,7 @@ Future generator capabilities:
 ---
 
 > **Cross-references:**
+>
 > - Architecture model: [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)
 > - Provider adapters: [provider.md](./provider.md)
 > - Validation before generation: [rules.md](./rules.md)

@@ -113,9 +113,7 @@ describe('workspaceSlice – setLastPrResult', () => {
 
     getState().setLastPrResult(wsId, prResult);
 
-    const workspaceCalls = spy.mock.calls.filter(
-      ([k]) => k === 'cloudblocks:workspaces'
-    );
+    const workspaceCalls = spy.mock.calls.filter(([k]) => k === 'cloudblocks:workspaces');
     expect(workspaceCalls.length).toBeGreaterThan(0);
     spy.mockRestore();
   });

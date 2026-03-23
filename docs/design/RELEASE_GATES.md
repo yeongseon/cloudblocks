@@ -12,46 +12,46 @@ Every release to `main` (or tagged release) must pass ALL of the following gates
 
 ### Gate 1: Build & Type Safety
 
-| Check | Command | Criteria | Level |
-|-------|---------|----------|-------|
-| TypeScript compilation | `cd apps/web && npx tsc -b` | Zero errors | **Blocker** |
-| Vite production build | `cd apps/web && npx vite build` | Exit code 0 | **Blocker** |
-| Python syntax | `cd apps/api && python -m py_compile app/main.py` | No syntax errors | **Blocker** |
+| Check                  | Command                                           | Criteria         | Level       |
+| ---------------------- | ------------------------------------------------- | ---------------- | ----------- |
+| TypeScript compilation | `cd apps/web && npx tsc -b`                       | Zero errors      | **Blocker** |
+| Vite production build  | `cd apps/web && npx vite build`                   | Exit code 0      | **Blocker** |
+| Python syntax          | `cd apps/api && python -m py_compile app/main.py` | No syntax errors | **Blocker** |
 
 ### Gate 2: Linting
 
-| Check | Command | Criteria | Level |
-|-------|---------|----------|-------|
-| Frontend lint | `pnpm lint` | Zero errors | **Blocker** |
-| Backend lint | `cd apps/api && ruff check app/` | Zero errors | **Blocker** |
-| Frontend warnings | `pnpm lint` | Zero warnings | **Warning** |
+| Check             | Command                          | Criteria      | Level       |
+| ----------------- | -------------------------------- | ------------- | ----------- |
+| Frontend lint     | `pnpm lint`                      | Zero errors   | **Blocker** |
+| Backend lint      | `cd apps/api && ruff check app/` | Zero errors   | **Blocker** |
+| Frontend warnings | `pnpm lint`                      | Zero warnings | **Warning** |
 
 ### Gate 3: Tests
 
-| Check | Command | Criteria | Level |
-|-------|---------|----------|-------|
-| Frontend tests | `cd apps/web && npx vitest run` | All pass | **Blocker** |
-| Backend tests | `cd apps/api && pytest app/tests/ -v` | All pass | **Blocker** |
-| Frontend coverage | `cd apps/web && npx vitest run --coverage` | ≥ 90% (statements, branches, functions, lines) | **Blocker** |
-| Backend coverage | `cd apps/api && pytest --cov=app --cov-fail-under=90` | ≥ 90% | **Blocker** |
+| Check             | Command                                               | Criteria                                       | Level       |
+| ----------------- | ----------------------------------------------------- | ---------------------------------------------- | ----------- |
+| Frontend tests    | `cd apps/web && npx vitest run`                       | All pass                                       | **Blocker** |
+| Backend tests     | `cd apps/api && pytest app/tests/ -v`                 | All pass                                       | **Blocker** |
+| Frontend coverage | `cd apps/web && npx vitest run --coverage`            | ≥ 90% (statements, branches, functions, lines) | **Blocker** |
+| Backend coverage  | `cd apps/api && pytest --cov=app --cov-fail-under=90` | ≥ 90%                                          | **Blocker** |
 
 ### Gate 4: Security
 
-| Check | Criteria | Level |
-|-------|----------|-------|
-| No secrets in code | No API keys, tokens, or passwords in source | **Blocker** |
-| Session secret policy | Session secret is configured and 32+ chars in non-dev | **Blocker** |
+| Check                    | Criteria                                                          | Level       |
+| ------------------------ | ----------------------------------------------------------------- | ----------- |
+| No secrets in code       | No API keys, tokens, or passwords in source                       | **Blocker** |
+| Session secret policy    | Session secret is configured and 32+ chars in non-dev             | **Blocker** |
 | Session cookie transport | Auth uses httpOnly `cb_session` cookie with credentialed requests | **Blocker** |
-| Dependency audit | No known critical CVEs in dependencies | **Blocker** |
-| Dependency audit | No known high CVEs in dependencies | **Warning** |
+| Dependency audit         | No known critical CVEs in dependencies                            | **Blocker** |
+| Dependency audit         | No known high CVEs in dependencies                                | **Warning** |
 
 ### Gate 5: Documentation Sync
 
-| Check | Criteria | Level |
-|-------|----------|-------|
-| ROADMAP.md | Version exit criteria reflect actual state | **Blocker** |
-| README.md | Feature list matches implemented features | **Warning** |
-| CHANGELOG | Release notes written for new version | **Warning** |
+| Check       | Criteria                                        | Level       |
+| ----------- | ----------------------------------------------- | ----------- |
+| ROADMAP.md  | Version exit criteria reflect actual state      | **Blocker** |
+| README.md   | Feature list matches implemented features       | **Warning** |
+| CHANGELOG   | Release notes written for new version           | **Warning** |
 | Design docs | All design docs updated if related code changed | **Warning** |
 
 ---
@@ -135,11 +135,11 @@ git checkout -b hotfix/rollback
 
 ### Rollback Scope
 
-| Component | Rollback Method |
-|-----------|----------------|
-| Frontend | Deploy previous build artifact |
-| Backend | Redeploy previous container/tag |
-| Database | Run down migration (if schema changed) |
+| Component    | Rollback Method                         |
+| ------------ | --------------------------------------- |
+| Frontend     | Deploy previous build artifact          |
+| Backend      | Redeploy previous container/tag         |
+| Database     | Run down migration (if schema changed)  |
 | localStorage | Schema version check handles gracefully |
 
 ---
@@ -148,12 +148,12 @@ git checkout -b hotfix/rollback
 
 ### Severity Levels
 
-| Level | Definition | Response Time | Resolution Time |
-|-------|-----------|---------------|-----------------|
-| **P0** | Service down, data loss risk | < 1 hour | < 4 hours |
-| **P1** | Core feature broken (build, generate, validate) | < 4 hours | < 24 hours |
-| **P2** | Non-core feature broken (UI polish, non-critical widget) | < 24 hours | < 1 week |
-| **P3** | Minor issue, workaround exists | Best effort | Next release |
+| Level  | Definition                                               | Response Time | Resolution Time |
+| ------ | -------------------------------------------------------- | ------------- | --------------- |
+| **P0** | Service down, data loss risk                             | < 1 hour      | < 4 hours       |
+| **P1** | Core feature broken (build, generate, validate)          | < 4 hours     | < 24 hours      |
+| **P2** | Non-core feature broken (UI polish, non-critical widget) | < 24 hours    | < 1 week        |
+| **P3** | Minor issue, workaround exists                           | Best effort   | Next release    |
 
 ### Post-Incident Actions
 
@@ -168,13 +168,13 @@ git checkout -b hotfix/rollback
 
 All Gate 1–3 checks are automated in `.github/workflows/ci.yml`:
 
-| CI Job | Gates Covered |
-|--------|--------------|
-| `web-lint` | Gate 2 (frontend lint) |
+| CI Job      | Gates Covered                                         |
+| ----------- | ----------------------------------------------------- |
+| `web-lint`  | Gate 2 (frontend lint)                                |
 | `web-build` | Gate 1 (TypeScript + Vite build), matrix Node 20 & 22 |
-| `web-test` | Gate 3 (frontend tests + coverage) |
-| `api-lint` | Gate 2 (backend lint) |
-| `api-test` | Gate 3 (backend tests + coverage) |
+| `web-test`  | Gate 3 (frontend tests + coverage)                    |
+| `api-lint`  | Gate 2 (backend lint)                                 |
+| `api-test`  | Gate 3 (backend tests + coverage)                     |
 
 Gate 4 (security) and Gate 5 (documentation) are manual review steps in the PR process.
 

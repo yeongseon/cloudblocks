@@ -12,16 +12,16 @@ CloudBlocks uses a progressive deployment pipeline:
 
 ## 2. Environment Matrix
 
-| Dimension | Local | Staging | Production |
-|----------|-------|---------|------------|
-| Trigger | manual | push to `main` | `workflow_dispatch` (promotion) |
-| Runtime | Docker Compose | Azure managed services | Azure managed services |
-| SKUs | Docker | Basic | Standard + GP |
-| API replicas | 1 | 0-3 | 2-5 |
-| ACR | N/A | Provisions shared ACR | References staging ACR |
-| PostgreSQL | Docker | `B_Standard_B1ms` | `GP_Standard_D2s_v3` |
-| Redis | Docker | Basic C0 | Standard C1 |
-| Estimated cost | $0 | ~$80/month | ~$250/month |
+| Dimension      | Local          | Staging                | Production                      |
+| -------------- | -------------- | ---------------------- | ------------------------------- |
+| Trigger        | manual         | push to `main`         | `workflow_dispatch` (promotion) |
+| Runtime        | Docker Compose | Azure managed services | Azure managed services          |
+| SKUs           | Docker         | Basic                  | Standard + GP                   |
+| API replicas   | 1              | 0-3                    | 2-5                             |
+| ACR            | N/A            | Provisions shared ACR  | References staging ACR          |
+| PostgreSQL     | Docker         | `B_Standard_B1ms`      | `GP_Standard_D2s_v3`            |
+| Redis          | Docker         | Basic C0               | Standard C1                     |
+| Estimated cost | $0             | ~$80/month             | ~$250/month                     |
 
 ## 3. Infrastructure Layout
 
@@ -36,6 +36,7 @@ infra/terraform/
 ```
 
 Notes:
+
 - `environments/dev/` remains available temporarily for compatibility.
 - New cloud deployments should target staging/production wrappers once implemented.
 
@@ -44,6 +45,7 @@ Notes:
 Use the pattern `{type}-cloudblocks-{env}` for Azure resources.
 
 Examples:
+
 - Resource group: `rg-cloudblocks-staging`, `rg-cloudblocks-production`
 - Log Analytics workspace: `law-cloudblocks-staging`
 - Container App environment: `cae-cloudblocks-production`
@@ -61,6 +63,7 @@ Use GitHub Environments to scope secrets and deployment controls:
   - Requires reviewers before deployment approval.
 
 Guidelines:
+
 - Do not use shared repository-level secrets for both cloud environments.
 - Keep secret names consistent across environments where possible.
 - Rotate production credentials on schedule and after incidents.
@@ -90,13 +93,14 @@ No Terraform rollback is required for normal application rollback scenarios.
 
 Estimated monthly environment cost targets:
 
-| Environment | Estimated Monthly Cost | Notes |
-|------------|------------------------|-------|
-| Local | $0 | Runs on developer machine via Docker Compose |
-| Staging | ~$80 | Lower SKUs, scale-to-zero for API where possible |
-| Production | ~$250 | Higher availability and capacity SKUs |
+| Environment | Estimated Monthly Cost | Notes                                            |
+| ----------- | ---------------------- | ------------------------------------------------ |
+| Local       | $0                     | Runs on developer machine via Docker Compose     |
+| Staging     | ~$80                   | Lower SKUs, scale-to-zero for API where possible |
+| Production  | ~$250                  | Higher availability and capacity SKUs            |
 
 Cost control guidance:
+
 - Keep staging autoscaling minimum replicas at 0 when acceptable.
 - Use lower-cost SKUs in staging by default.
 - Review idle resource usage monthly.

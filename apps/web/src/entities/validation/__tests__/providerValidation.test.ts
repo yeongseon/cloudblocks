@@ -35,9 +35,7 @@ function makeBlock(overrides: LegacyBlockOverrides = {}): LeafNode {
   });
 }
 
-function makeModel(
-  overrides: LegacyArchitectureOverrides = {}
-): ArchitectureModel {
+function makeModel(overrides: LegacyArchitectureOverrides = {}): ArchitectureModel {
   return makeTestArchitecture({
     id: 'arch-1',
     name: 'Architecture',
@@ -222,10 +220,7 @@ describe('validateProviderRules', () => {
 
   it('collects multiple warnings across architecture', () => {
     const model = makeModel({
-      plates: [
-        makePlate({ id: 'subnet-public-1' }),
-        makePlate({ id: 'subnet-private-1' }),
-      ],
+      plates: [makePlate({ id: 'subnet-public-1' }), makePlate({ id: 'subnet-private-1' })],
       blocks: [
         makeBlock({
           id: 'lambda-1',

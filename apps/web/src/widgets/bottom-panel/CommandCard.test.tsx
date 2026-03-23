@@ -133,7 +133,6 @@ describe('CommandCard', () => {
         updatedAt: '',
       },
     });
-
   });
 
   // ─── CreationMode Tests ──────────────────────────────────
@@ -144,10 +143,11 @@ describe('CommandCard', () => {
     expect(screen.getByText('Create Resource')).toBeInTheDocument();
 
     expect(container.querySelectorAll('.command-card-category-group').length).toBeGreaterThan(0);
-    expect(container.querySelectorAll('.command-card-resource-btn').length).toBeGreaterThanOrEqual(8);
+    expect(container.querySelectorAll('.command-card-resource-btn').length).toBeGreaterThanOrEqual(
+      8,
+    );
     expect(screen.getByText('Network Foundations')).toBeInTheDocument();
   });
-
 
   it('creates network plate from creation mode', async () => {
     const user = userEvent.setup();
@@ -155,7 +155,13 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByRole('button', { name: /VNet/i }));
 
-    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'container', resourceType: 'virtual_network', name: 'VNet', parentId: null, layer: 'region' });
+    expect(addNodeMock).toHaveBeenCalledWith({
+      kind: 'container',
+      resourceType: 'virtual_network',
+      name: 'VNet',
+      parentId: null,
+      layer: 'region',
+    });
   });
 
   it('creates block resource when network and subnet exist', async () => {
@@ -178,7 +184,14 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByTitle('Create Virtual Machine'));
 
-    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'resource', resourceType: 'virtual_machine', name: 'Virtual Machine 1', parentId: 'subnet-public-1', provider: 'azure', subtype: 'virtual_machine' });
+    expect(addNodeMock).toHaveBeenCalledWith({
+      kind: 'resource',
+      resourceType: 'virtual_machine',
+      name: 'Virtual Machine 1',
+      parentId: 'subnet-public-1',
+      provider: 'azure',
+      subtype: 'virtual_machine',
+    });
   });
 
   it('smoke: create VM from Compute tab then show block actions when selected', async () => {
@@ -201,7 +214,14 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByTitle('Create Virtual Machine'));
 
-    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'resource', resourceType: 'virtual_machine', name: 'Virtual Machine 1', parentId: 'subnet-public-1', provider: 'azure', subtype: 'virtual_machine' });
+    expect(addNodeMock).toHaveBeenCalledWith({
+      kind: 'resource',
+      resourceType: 'virtual_machine',
+      name: 'Virtual Machine 1',
+      parentId: 'subnet-public-1',
+      provider: 'azure',
+      subtype: 'virtual_machine',
+    });
 
     act(() => {
       useArchitectureStore.setState({
@@ -244,7 +264,9 @@ describe('CommandCard', () => {
   it('shows disabled resources with lock icon before network exists', () => {
     render(<CommandCard />);
 
-    const vmButton = screen.getByTitle('Create a Network first. Virtual Machines need a network to connect to.');
+    const vmButton = screen.getByTitle(
+      'Create a Network first. Virtual Machines need a network to connect to.',
+    );
 
     expect(vmButton).toBeDisabled();
     expect(within(vmButton).getByText('🔒')).toBeInTheDocument();
@@ -318,7 +340,13 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByTitle('Create Subnet'));
 
-    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'container', resourceType: 'subnet', name: 'Subnet', parentId: 'net-1', layer: 'subnet' });
+    expect(addNodeMock).toHaveBeenCalledWith({
+      kind: 'container',
+      resourceType: 'subnet',
+      name: 'Subnet',
+      parentId: 'net-1',
+      layer: 'subnet',
+    });
   });
 
   // ─── BlockActionMode Tests ───────────────────────────────
@@ -835,7 +863,13 @@ describe('CommandCard', () => {
     // Now in PlateCreationMode — create a subnet
     await user.click(screen.getByTitle('Create Subnet (Q)'));
 
-    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'container', resourceType: 'subnet', name: 'Subnet', parentId: 'net-1', layer: 'subnet' });
+    expect(addNodeMock).toHaveBeenCalledWith({
+      kind: 'container',
+      resourceType: 'subnet',
+      name: 'Subnet',
+      parentId: 'net-1',
+      layer: 'subnet',
+    });
   });
 
   it('returns from PlateCreationMode to PlateActionMode via back button', async () => {
@@ -1006,7 +1040,14 @@ describe('CommandCard', () => {
     // Now in PlateCreationMode — create a VM
     await user.click(screen.getByTitle('Create Virtual Machine (W)'));
 
-    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'resource', resourceType: 'virtual_machine', name: 'Virtual Machine 1', parentId: 'subnet-public-1', provider: 'azure', subtype: 'virtual_machine' });
+    expect(addNodeMock).toHaveBeenCalledWith({
+      kind: 'resource',
+      resourceType: 'virtual_machine',
+      name: 'Virtual Machine 1',
+      parentId: 'subnet-public-1',
+      provider: 'azure',
+      subtype: 'virtual_machine',
+    });
   });
 
   it('transitions to PlateCreationMode for another subnet deploy and creates SQL', async () => {
@@ -1037,7 +1078,14 @@ describe('CommandCard', () => {
     // Now in PlateCreationMode — create SQL
     await user.click(screen.getByTitle('Create SQL Database (E)'));
 
-    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'resource', resourceType: 'sql_database', name: 'SQL Database 1', parentId: 'subnet-private-1', provider: 'azure', subtype: 'sql_database' });
+    expect(addNodeMock).toHaveBeenCalledWith({
+      kind: 'resource',
+      resourceType: 'sql_database',
+      name: 'SQL Database 1',
+      parentId: 'subnet-private-1',
+      provider: 'azure',
+      subtype: 'sql_database',
+    });
   });
 
   it('creates subnet via Deploy on network plate', async () => {
@@ -1065,6 +1113,12 @@ describe('CommandCard', () => {
     // Create Subnet
     await user.click(screen.getByTitle('Create Subnet (Q)'));
 
-    expect(addNodeMock).toHaveBeenCalledWith({ kind: 'container', resourceType: 'subnet', name: 'Subnet', parentId: 'net-1', layer: 'subnet' });
+    expect(addNodeMock).toHaveBeenCalledWith({
+      kind: 'container',
+      resourceType: 'subnet',
+      name: 'Subnet',
+      parentId: 'net-1',
+      layer: 'subnet',
+    });
   });
 });

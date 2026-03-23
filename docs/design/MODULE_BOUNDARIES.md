@@ -27,13 +27,13 @@ architectureStore.ts          # Thin composition (creates store, subscribes to a
 
 ## 2. Slice Responsibilities
 
-| Slice | Responsibility | State Owned | Key Actions |
-|-------|---------------|-------------|-------------|
-| **domainSlice** | Plate, block, and connection CRUD | `workspace.architecture.*` | `addPlate`, `removePlate`, `addBlock`, `removeBlock`, `moveBlock`, `addConnection`, `removeConnection`, `updateBlockName`, `moveBlockToPlate` |
-| **historySlice** | Undo/redo state management | `history`, `historyIndex` | `undo`, `redo`, `pushHistory` |
-| **persistenceSlice** | Local storage and JSON import/export | (side effects only) | `save`, `load`, `exportArchitecture`, `importArchitecture` |
-| **validationSlice** | Architecture validation | `validationResult` | `validate` |
-| **workspaceSlice** | Multi-workspace lifecycle | `workspace`, `workspaces` | `createWorkspace`, `switchWorkspace`, `deleteWorkspace`, `cloneWorkspace`, `listWorkspaces`, `updateWorkspaceName`, `linkGitHubRepo` |
+| Slice                | Responsibility                       | State Owned                | Key Actions                                                                                                                                   |
+| -------------------- | ------------------------------------ | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| **domainSlice**      | Plate, block, and connection CRUD    | `workspace.architecture.*` | `addPlate`, `removePlate`, `addBlock`, `removeBlock`, `moveBlock`, `addConnection`, `removeConnection`, `updateBlockName`, `moveBlockToPlate` |
+| **historySlice**     | Undo/redo state management           | `history`, `historyIndex`  | `undo`, `redo`, `pushHistory`                                                                                                                 |
+| **persistenceSlice** | Local storage and JSON import/export | (side effects only)        | `save`, `load`, `exportArchitecture`, `importArchitecture`                                                                                    |
+| **validationSlice**  | Architecture validation              | `validationResult`         | `validate`                                                                                                                                    |
+| **workspaceSlice**   | Multi-workspace lifecycle            | `workspace`, `workspaces`  | `createWorkspace`, `switchWorkspace`, `deleteWorkspace`, `cloneWorkspace`, `listWorkspaces`, `updateWorkspaceName`, `linkGitHubRepo`          |
 
 ---
 
@@ -51,24 +51,24 @@ validationSlice ──→ (none, reads architecture via get())
 
 ### External Dependencies
 
-| Slice | Allowed External Imports |
-|-------|------------------------|
-| **domainSlice** | `shared/utils/id` (generateId) |
-| **historySlice** | `shared/utils/history` (createHistoryEntry, restoreFromHistory) |
-| **persistenceSlice** | `shared/utils/storage` (saveWorkspaces, loadWorkspaces) |
-| **validationSlice** | `entities/validation/engine` (validateArchitecture) |
-| **workspaceSlice** | `shared/utils/id` (generateId) |
-| **helpers** | `shared/utils/history` (createHistoryEntry) |
-| **types** | `shared/types` (domain types) |
+| Slice                | Allowed External Imports                                        |
+| -------------------- | --------------------------------------------------------------- |
+| **domainSlice**      | `shared/utils/id` (generateId)                                  |
+| **historySlice**     | `shared/utils/history` (createHistoryEntry, restoreFromHistory) |
+| **persistenceSlice** | `shared/utils/storage` (saveWorkspaces, loadWorkspaces)         |
+| **validationSlice**  | `entities/validation/engine` (validateArchitecture)             |
+| **workspaceSlice**   | `shared/utils/id` (generateId)                                  |
+| **helpers**          | `shared/utils/history` (createHistoryEntry)                     |
+| **types**            | `shared/types` (domain types)                                   |
 
 ### Forbidden Dependencies
 
-| Rule | Reason |
-|------|--------|
-| Slice → Slice (direct import) | Creates coupling; use `get()` to read shared state |
-| Slice → Widget/Feature | Store layer must not depend on UI layer |
-| Slice → External state lib | Zustand is the only state management dependency |
-| Widget → Slice (direct import) | Widgets import from `architectureStore.ts` only |
+| Rule                           | Reason                                             |
+| ------------------------------ | -------------------------------------------------- |
+| Slice → Slice (direct import)  | Creates coupling; use `get()` to read shared state |
+| Slice → Widget/Feature         | Store layer must not depend on UI layer            |
+| Slice → External state lib     | Zustand is the only state management dependency    |
+| Widget → Slice (direct import) | Widgets import from `architectureStore.ts` only    |
 
 ---
 
@@ -92,13 +92,13 @@ app → widgets → features → entities → shared
        (can skip layers going down, never up)
 ```
 
-| From | Can Import |
-|------|-----------|
-| `app/` | `widgets/`, `features/`, `entities/`, `shared/` |
-| `widgets/` | `features/`, `entities/`, `shared/` |
-| `features/` | `entities/`, `shared/` |
-| `entities/` | `shared/` |
-| `shared/` | (nothing project-internal) |
+| From        | Can Import                                      |
+| ----------- | ----------------------------------------------- |
+| `app/`      | `widgets/`, `features/`, `entities/`, `shared/` |
+| `widgets/`  | `features/`, `entities/`, `shared/`             |
+| `features/` | `entities/`, `shared/`                          |
+| `entities/` | `shared/`                                       |
+| `shared/`   | (nothing project-internal)                      |
 
 ### Violations to Watch
 

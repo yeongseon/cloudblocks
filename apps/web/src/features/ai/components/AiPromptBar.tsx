@@ -58,11 +58,7 @@ export const AiPromptBar: React.FC<AiPromptBarProps> = ({
           title="Generate Architecture"
           type="button"
         >
-          {isLoading ? (
-            <div className="ai-loading-spinner" data-testid="loading-spinner" />
-          ) : (
-            '✨'
-          )}
+          {isLoading ? <div className="ai-loading-spinner" data-testid="loading-spinner" /> : '✨'}
         </button>
       </div>
       {disabledMessage && <div className="ai-error-message">{disabledMessage}</div>}
@@ -71,7 +67,9 @@ export const AiPromptBar: React.FC<AiPromptBarProps> = ({
       {warnings && warnings.length > 0 && (
         <div className="ai-warnings">
           {warnings.map((w) => (
-            <div key={w} className="ai-warning-item">⚠️ {w}</div>
+            <div key={w} className="ai-warning-item">
+              ⚠️ {w}
+            </div>
           ))}
         </div>
       )}

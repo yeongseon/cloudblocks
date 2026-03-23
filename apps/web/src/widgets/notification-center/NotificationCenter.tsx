@@ -1,6 +1,13 @@
 import { useEffect } from 'react';
-import { useNotificationStore, selectFilteredNotifications } from '../../entities/store/notificationStore';
-import type { AppNotification, NotificationCategory, NotificationLevel } from '../../shared/types/notification';
+import {
+  useNotificationStore,
+  selectFilteredNotifications,
+} from '../../entities/store/notificationStore';
+import type {
+  AppNotification,
+  NotificationCategory,
+  NotificationLevel,
+} from '../../shared/types/notification';
 import './NotificationCenter.css';
 
 const LEVEL_ICONS: Record<NotificationLevel, string> = {
@@ -63,15 +70,11 @@ function NotificationItem({
         }
       }}
     >
-      <div className="notification-item-icon">
-        {LEVEL_ICONS[notification.level]}
-      </div>
+      <div className="notification-item-icon">{LEVEL_ICONS[notification.level]}</div>
       <div className="notification-item-body">
         <p className="notification-item-title">{notification.title}</p>
         <p className="notification-item-message">{notification.message}</p>
-        <span className="notification-item-time">
-          {formatRelativeTime(notification.timestamp)}
-        </span>
+        <span className="notification-item-time">{formatRelativeTime(notification.timestamp)}</span>
       </div>
       <button
         type="button"
@@ -94,9 +97,7 @@ export function NotificationCenter() {
   const markAsRead = useNotificationStore((s) => s.markAsRead);
   const markAllAsRead = useNotificationStore((s) => s.markAllAsRead);
   const removeNotification = useNotificationStore((s) => s.removeNotification);
-  const setShowNotificationCenter = useNotificationStore(
-    (s) => s.setShowNotificationCenter,
-  );
+  const setShowNotificationCenter = useNotificationStore((s) => s.setShowNotificationCenter);
   const items = useNotificationStore(selectFilteredNotifications);
 
   useEffect(() => {
@@ -114,11 +115,7 @@ export function NotificationCenter() {
       <div className="notification-center-header">
         <h3 className="notification-center-title">Notifications</h3>
         <div className="notification-center-header-actions">
-          <button
-            type="button"
-            className="notification-center-btn"
-            onClick={markAllAsRead}
-          >
+          <button type="button" className="notification-center-btn" onClick={markAllAsRead}>
             Mark all read
           </button>
           <button
@@ -178,9 +175,7 @@ export function NotificationCenter() {
 
       <div className="notification-center-list">
         {items.length === 0 ? (
-          <div className="notification-center-empty">
-            No notifications
-          </div>
+          <div className="notification-center-empty">No notifications</div>
         ) : (
           items.map((n) => (
             <NotificationItem

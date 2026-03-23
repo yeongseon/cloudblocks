@@ -7,6 +7,7 @@
 The existing OpsCenter was implemented without a design phase. Key issues:
 
 ### Store Design
+
 - **AGENTS.md violation**: `opsStore` is a new Zustand store, but the rule says "Do not create new stores without discussion." It should integrate with existing stores or have explicit justification.
 - **Mock data hardcoded in store**: 200+ lines of mock data embedded directly in `opsStore.ts`, mixing data concerns with state management. No separation between data provider and store.
 - **No error state per section**: `catch` blocks silently swallow errors with no UI feedback. Only `loading` flags exist.
@@ -14,6 +15,7 @@ The existing OpsCenter was implemented without a design phase. Key issues:
 - **No stale-data protection**: Rapid open/close can cause race conditions where old data overwrites new.
 
 ### Component Design
+
 - **No ARIA roles**: Tab bar uses `data-active` attribute but lacks `role="tablist"`, `role="tab"`, `aria-selected`, `role="tabpanel"`.
 - **No Escape key handler**: Unlike ConfirmDialog/PromptDialog which were hardened in M17.
 - **No focus management**: Panel doesn't capture focus on open.
@@ -26,6 +28,7 @@ The existing OpsCenter was implemented without a design phase. Key issues:
 ## 2. Information Architecture
 
 ### Panel Hierarchy
+
 ```
 Ops Control Center (right overlay, 600px wide)
 ├── Header
@@ -41,6 +44,7 @@ Ops Control Center (right overlay, 600px wide)
 ```
 
 ### Dashboard Tab
+
 ```
 ┌─────────────────────────────────────────────┐
 │ Environment Status                          │
@@ -63,12 +67,15 @@ Ops Control Center (right overlay, 600px wide)
 ```
 
 ### Pipelines Tab
+
 Each row: `[icon] name | branch badge | commit msg (truncated, title tooltip) | duration | Details link`
 
 ### Deployments Tab
+
 Each row: `[env badge] image tag | commit msg | deployed by | time ago | status badge | duration`
 
 ### Costs Tab
+
 Per-environment breakdown table with currency-aware formatting (`Intl.NumberFormat`).
 Cross-currency total only if all estimates share the same currency.
 
@@ -119,20 +126,21 @@ Cross-currency total only if all estimates share the same currency.
 
 ## 4. Accessibility Requirements
 
-| Element | ARIA | Keyboard |
-|---------|------|----------|
-| Tab bar | `role="tablist"` | Arrow keys to switch tabs |
-| Tab button | `role="tab"`, `aria-selected` | Enter/Space to activate |
-| Tab panel | `role="tabpanel"`, `aria-labelledby` | — |
-| Panel | — | Escape to close |
-| Close button | `aria-label="Close Ops Center"` | Auto-focus on open |
-| Status dots | `aria-label="{env} is {status}"` | — |
-| Pipeline links | `target="_blank" rel="noopener noreferrer"` | — |
-| Truncated text | `title` attribute with full text | — |
+| Element        | ARIA                                        | Keyboard                  |
+| -------------- | ------------------------------------------- | ------------------------- |
+| Tab bar        | `role="tablist"`                            | Arrow keys to switch tabs |
+| Tab button     | `role="tab"`, `aria-selected`               | Enter/Space to activate   |
+| Tab panel      | `role="tabpanel"`, `aria-labelledby`        | —                         |
+| Panel          | —                                           | Escape to close           |
+| Close button   | `aria-label="Close Ops Center"`             | Auto-focus on open        |
+| Status dots    | `aria-label="{env} is {status}"`            | —                         |
+| Pipeline links | `target="_blank" rel="noopener noreferrer"` | —                         |
+| Truncated text | `title` attribute with full text            | —                         |
 
 ## 5. Error Handling
 
 Each section independently shows:
+
 - **Loading**: "Loading {section}..." text
 - **Error**: Error message + "Retry" button (calls individual refresh)
 - **Empty**: "No data. Click Refresh to load."
@@ -147,6 +155,7 @@ Sequence counter (`refreshSeq`) increments on each refresh call. Results are onl
 Current: Mock data functions inline in `opsStore.ts`.
 
 Target: Extract a `DataProvider` interface:
+
 ```typescript
 interface OpsDataProvider {
   fetchEnvironments(): Promise<EnvironmentInfo[]>;
@@ -165,6 +174,7 @@ Store actions call the provider, not hardcoded mock functions. Provider is injec
 ## 7. Store Justification
 
 `opsStore` is a separate store (not in `uiStore` or `architectureStore`) because:
+
 - Ops data is domain data (environments, pipelines, costs), not UI state
 - It doesn't belong in `architectureStore` (which owns blocks/plates/connections)
 - The data lifecycle is independent: fetched on demand, not persisted to localStorage

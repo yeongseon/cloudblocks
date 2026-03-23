@@ -13,7 +13,12 @@ export function isValidGitHubRepoFullName(value: string): boolean {
   if (parts.length !== 2) return false;
 
   const [owner, repo] = parts;
-  return Boolean(owner) && Boolean(repo) && GITHUB_NAME_PART_REGEX.test(owner) && GITHUB_NAME_PART_REGEX.test(repo);
+  return (
+    Boolean(owner) &&
+    Boolean(repo) &&
+    GITHUB_NAME_PART_REGEX.test(owner) &&
+    GITHUB_NAME_PART_REGEX.test(repo)
+  );
 }
 
 export function isValidGitBranchName(value: string): boolean {

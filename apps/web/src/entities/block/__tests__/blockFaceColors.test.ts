@@ -292,8 +292,8 @@ describe('getBlockFaceColors', () => {
 
   it('uses distinct top-face colors across providers for the same category', () => {
     for (const category of categories) {
-      const providerTopColors = providers.map((provider) =>
-        getBlockFaceColors(category, provider).topFaceColor
+      const providerTopColors = providers.map(
+        (provider) => getBlockFaceColors(category, provider).topFaceColor,
       );
 
       expect(new Set(providerTopColors).size).toBe(providers.length);
@@ -390,7 +390,9 @@ describe('getBlockStudColors', () => {
 
   it('provides different stud colors across providers for the same category', () => {
     for (const category of categories) {
-      const providerMainColors = providers.map((provider) => getBlockStudColors(category, provider).main);
+      const providerMainColors = providers.map(
+        (provider) => getBlockStudColors(category, provider).main,
+      );
 
       // At least main color should differ across providers
       expect(new Set(providerMainColors).size).toBeGreaterThan(1);
@@ -410,7 +412,11 @@ describe('getBlockStudColors', () => {
   });
 
   it('provides complete color coverage for all provider×category combinations', () => {
-    const results: Array<{ provider: ProviderType; category: ResourceCategory; spec: StudColorSpec }> = [];
+    const results: Array<{
+      provider: ProviderType;
+      category: ResourceCategory;
+      spec: StudColorSpec;
+    }> = [];
 
     for (const provider of providers) {
       for (const category of categories) {
@@ -451,7 +457,7 @@ function getLuminance(hex: string): number {
   const b = Number.parseInt(normalizedHex.substring(4, 6), 16) / 255;
 
   const [rs, gs, bs] = [r, g, b].map((channel) =>
-    channel <= 0.03928 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4)
+    channel <= 0.03928 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4),
   );
 
   return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;

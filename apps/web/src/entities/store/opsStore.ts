@@ -4,7 +4,14 @@ import type { EnvironmentName } from '../../shared/types/ops';
 export type { EnvironmentName };
 export type EnvironmentStatus = 'healthy' | 'degraded' | 'down' | 'unknown' | 'not_deployed';
 export type PipelineStatus = 'queued' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
-export type PipelineConclusion = 'success' | 'failure' | 'neutral' | 'cancelled' | 'skipped' | 'timed_out' | null;
+export type PipelineConclusion =
+  | 'success'
+  | 'failure'
+  | 'neutral'
+  | 'cancelled'
+  | 'skipped'
+  | 'timed_out'
+  | null;
 
 export interface EnvironmentInfo {
   name: EnvironmentName;

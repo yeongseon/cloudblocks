@@ -36,17 +36,17 @@ DOM (browser rendering)
 
 ### Key Components
 
-| Component | Role |
-|-----------|------|
-| `SceneCanvas` | Root SVG scene — composites all sprites into a pannable/zoomable container |
-| `PlateSvg` | Isometric plate (boundary) rendering with studs |
-| `BlockSvg` | Isometric block (resource) rendering by category |
-| `ConnectionPath` | SVG path connections between blocks with directional arrowheads |
-| `MinifigureSvg` | Lego minifigure character sprite |
+| Component               | Role                                                                                                           |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `SceneCanvas`           | Root SVG scene — composites all sprites into a pannable/zoomable container                                     |
+| `PlateSvg`              | Isometric plate (boundary) rendering with studs                                                                |
+| `BlockSvg`              | Isometric block (resource) rendering by category                                                               |
+| `ConnectionPath`        | SVG path connections between blocks with directional arrowheads                                                |
+| `MinifigureSvg`         | Lego minifigure character sprite                                                                               |
 | `StudDefs` / `StudGrid` | Reusable stud SVG definitions and grid layout (Universal Stud Standard), defined in the `IsometricStud` module |
-| `DragGhost` | SVG ghost during drag-to-place interactions |
-| `ConnectionPreview` | SVG preview path during connection creation |
-| `Minimap` | Miniature SVG overview of the canvas |
+| `DragGhost`             | SVG ghost during drag-to-place interactions                                                                    |
+| `ConnectionPreview`     | SVG preview path during connection creation                                                                    |
+| `Minimap`               | Miniature SVG overview of the canvas                                                                           |
 
 ### Constraints
 
@@ -57,11 +57,11 @@ DOM (browser rendering)
 
 ### Options Considered
 
-| Option | Verdict | Rationale |
-|--------|---------|-----------|
-| **SVG-only** (React components) | ✅ Chosen | Matches fixed isometric projection exactly; testable in jsdom; minimal bundle; standard React tooling |
-| **Hybrid SVG + Three.js** | ❌ Rejected | Maintaining two rendering pipelines adds complexity with no benefit for a fixed-angle view |
-| **Full Three.js** | ❌ Rejected | Requires WebGL context, adds ~600KB bundle, introduces camera/raycasting complexity that contradicts the 2D-first editing model |
+| Option                          | Verdict     | Rationale                                                                                                                       |
+| ------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| **SVG-only** (React components) | ✅ Chosen   | Matches fixed isometric projection exactly; testable in jsdom; minimal bundle; standard React tooling                           |
+| **Hybrid SVG + Three.js**       | ❌ Rejected | Maintaining two rendering pipelines adds complexity with no benefit for a fixed-angle view                                      |
+| **Full Three.js**               | ❌ Rejected | Requires WebGL context, adds ~600KB bundle, introduces camera/raycasting complexity that contradicts the 2D-first editing model |
 
 ## Consequences
 

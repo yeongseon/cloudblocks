@@ -10,12 +10,12 @@ For the canonical multi-environment cloud strategy (local/staging/production, pr
 
 CloudBlocks uses four distinct terms for its deployment lifecycle. Every document, workflow, and UI label must use these definitions consistently.
 
-| Term | Definition | Example |
-|------|-----------|---------|
-| **Deploy** | Push code or infrastructure to a specific environment. Triggered by a CI/CD pipeline. | "Deploy to staging" — `deploy.yml` runs on push to `main`. |
-| **Promote** | Move a tested version from `staging` to `production`. A controlled, deliberate action with pre-checks (tests passed, cost reviewed, diff approved). | "Promote to production" — `promote.yml` runs after manual approval. |
-| **Rollback** | Revert an environment to a previous known-good version. Used for emergency or planned recovery. | "Rollback production to v0.17.0" — restores the last stable release. |
-| **Release** | Tag a version as a user-facing milestone. A labeling action, not a deployment action. Releases are created after a milestone closes. | "Release v0.18.0" — git tag + GitHub Release. |
+| Term         | Definition                                                                                                                                          | Example                                                              |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| **Deploy**   | Push code or infrastructure to a specific environment. Triggered by a CI/CD pipeline.                                                               | "Deploy to staging" — `deploy.yml` runs on push to `main`.           |
+| **Promote**  | Move a tested version from `staging` to `production`. A controlled, deliberate action with pre-checks (tests passed, cost reviewed, diff approved). | "Promote to production" — `promote.yml` runs after manual approval.  |
+| **Rollback** | Revert an environment to a previous known-good version. Used for emergency or planned recovery.                                                     | "Rollback production to v0.17.0" — restores the last stable release. |
+| **Release**  | Tag a version as a user-facing milestone. A labeling action, not a deployment action. Releases are created after a milestone closes.                | "Release v0.18.0" — git tag + GitHub Release.                        |
 
 ### Usage Guidelines
 
@@ -50,11 +50,11 @@ make dev
 
 ### Development URLs
 
-| Service | URL |
-|---------|-----|
-| Frontend | http://localhost:5173 |
-| Backend API (Milestone 5+) | http://localhost:8000 |
-| API Docs (Swagger) | http://localhost:8000/docs |
+| Service                    | URL                        |
+| -------------------------- | -------------------------- |
+| Frontend                   | http://localhost:5173      |
+| Backend API (Milestone 5+) | http://localhost:8000      |
+| API Docs (Swagger)         | http://localhost:8000/docs |
 
 ## Architecture
 
@@ -96,6 +96,7 @@ Azure Container Apps
 ```
 
 **Multi-replica prerequisites** (all met since Phase 8):
+
 - ✅ All persistent data in PostgreSQL (not SQLite)
 - ✅ Sessions in Redis (not SQLite)
 - ✅ OAuth state is stateless (cookie-based)
@@ -139,12 +140,12 @@ docker compose ps
 
 #### docker-compose.yml Services
 
-| Service | Image / Build | Purpose |
-|---------|--------------|---------|
-| `postgres` | `postgres:16-alpine` | Relational metadata store |
-| `redis` | `redis:7-alpine` | Session cache & revocation (sliding TTL) |
-| `api` | `infra/docker/api.Dockerfile` | FastAPI backend |
-| `web` | `infra/docker/web.Dockerfile` | Nginx-served SPA frontend |
+| Service    | Image / Build                 | Purpose                                  |
+| ---------- | ----------------------------- | ---------------------------------------- |
+| `postgres` | `postgres:16-alpine`          | Relational metadata store                |
+| `redis`    | `redis:7-alpine`              | Session cache & revocation (sliding TTL) |
+| `api`      | `infra/docker/api.Dockerfile` | FastAPI backend                          |
+| `web`      | `infra/docker/web.Dockerfile` | Nginx-served SPA frontend                |
 
 #### Development with Hot-Reload
 
@@ -164,14 +165,14 @@ This mounts `apps/api/` into the container so code changes restart the server au
 
 #### Managed Azure Stack
 
-| Component | Azure Service | SKU / Tier | Est. Cost |
-|-----------|--------------|------------|-----------|
-| Frontend | Azure Static Web Apps | Free | $0/mo |
-| Backend API | Azure Container Apps | Consumption | ~$5/mo |
-| Metadata DB | Azure Database for PostgreSQL | B_Standard_B1ms | ~$13/mo |
-| Session Cache | Azure Cache for Redis | Basic C0 (250MB) | ~$16/mo |
-| Container Registry | Azure Container Registry | Basic | ~$5/mo |
-| Data Store | GitHub (user repos) | — | Free |
+| Component          | Azure Service                 | SKU / Tier       | Est. Cost |
+| ------------------ | ----------------------------- | ---------------- | --------- |
+| Frontend           | Azure Static Web Apps         | Free             | $0/mo     |
+| Backend API        | Azure Container Apps          | Consumption      | ~$5/mo    |
+| Metadata DB        | Azure Database for PostgreSQL | B_Standard_B1ms  | ~$13/mo   |
+| Session Cache      | Azure Cache for Redis         | Basic C0 (250MB) | ~$16/mo   |
+| Container Registry | Azure Container Registry      | Basic            | ~$5/mo    |
+| Data Store         | GitHub (user repos)           | —                | Free      |
 
 **Total estimated cost: ~$39/month** (dev environment)
 
@@ -198,28 +199,28 @@ terraform apply -var-file="terraform.tfvars"
 
 #### Resources Provisioned by Terraform
 
-| Resource | Name Pattern | Purpose |
-|----------|-------------|---------|
-| Resource Group | `rg-cloudblocks-{env}` | Logical grouping |
-| Log Analytics | `law-cloudblocks-{env}` | Container logs & metrics |
-| Container App Environment | `cae-cloudblocks-{env}` | Container Apps hosting |
-| Container Registry | `cloudblocks{env}acr` | Docker image storage |
-| PostgreSQL Flexible Server | `psql-cloudblocks-{env}` | Metadata database |
-| Azure Cache for Redis | `redis-cloudblocks-{env}` | Session cache |
-| Container App (API) | `ca-cloudblocks-api-{env}` | Backend API |
-| Static Web App | `swa-cloudblocks-{env}` | Frontend SPA |
+| Resource                   | Name Pattern               | Purpose                  |
+| -------------------------- | -------------------------- | ------------------------ |
+| Resource Group             | `rg-cloudblocks-{env}`     | Logical grouping         |
+| Log Analytics              | `law-cloudblocks-{env}`    | Container logs & metrics |
+| Container App Environment  | `cae-cloudblocks-{env}`    | Container Apps hosting   |
+| Container Registry         | `cloudblocks{env}acr`      | Docker image storage     |
+| PostgreSQL Flexible Server | `psql-cloudblocks-{env}`   | Metadata database        |
+| Azure Cache for Redis      | `redis-cloudblocks-{env}`  | Session cache            |
+| Container App (API)        | `ca-cloudblocks-api-{env}` | Backend API              |
+| Static Web App             | `swa-cloudblocks-{env}`    | Frontend SPA             |
 
 #### Scaling Configuration
 
 The Container App scales horizontally based on HTTP concurrent requests:
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `container_min_replicas` | 1 | Minimum replicas (0 = scale to zero) |
-| `container_max_replicas` | 3 | Maximum replicas |
-| `scaling_concurrent_requests` | 50 | Requests/replica before scaling out |
-| `container_cpu` | 0.5 | CPU cores per replica |
-| `container_memory` | 1Gi | Memory per replica |
+| Parameter                     | Default | Description                          |
+| ----------------------------- | ------- | ------------------------------------ |
+| `container_min_replicas`      | 1       | Minimum replicas (0 = scale to zero) |
+| `container_max_replicas`      | 3       | Maximum replicas                     |
+| `scaling_concurrent_requests` | 50      | Requests/replica before scaling out  |
+| `container_cpu`               | 0.5     | CPU cores per replica                |
+| `container_memory`            | 1Gi     | Memory per replica                   |
 
 To adjust scaling, update `terraform.tfvars`:
 
@@ -233,11 +234,11 @@ scaling_concurrent_requests = "100"
 
 The Container App configures three probe types:
 
-| Probe | Path | Interval | Purpose |
-|-------|------|----------|---------|
-| Startup | `/health` | 5s | Wait for app to start (up to 50s) |
-| Liveness | `/health` | 30s | Restart unhealthy containers |
-| Readiness | `/health/ready` | 15s | Remove from load balancer if DB unavailable |
+| Probe     | Path            | Interval | Purpose                                     |
+| --------- | --------------- | -------- | ------------------------------------------- |
+| Startup   | `/health`       | 5s       | Wait for app to start (up to 50s)           |
+| Liveness  | `/health`       | 30s      | Restart unhealthy containers                |
+| Readiness | `/health/ready` | 15s      | Remove from load balancer if DB unavailable |
 
 ## CI/CD Pipeline
 
@@ -247,16 +248,16 @@ The deploy workflow (`.github/workflows/deploy.yml`) runs on manual dispatch (or
 
 **Required GitHub Secrets:**
 
-| Secret | Description |
-|--------|-------------|
-| `AZURE_CLIENT_ID` | Azure AD service principal client ID (OIDC) |
-| `AZURE_TENANT_ID` | Azure AD tenant ID |
-| `AZURE_SUBSCRIPTION_ID` | Azure subscription ID |
-| `ACR_NAME` | Container Registry name |
-| `ACR_LOGIN_SERVER` | Container Registry login server URL |
-| `AZURE_RESOURCE_GROUP` | Target resource group name |
-| `CONTAINER_APP_NAME` | Container App name (from Terraform output) |
-| `AZURE_SWA_TOKEN` | Static Web Apps deployment token |
+| Secret                  | Description                                 |
+| ----------------------- | ------------------------------------------- |
+| `AZURE_CLIENT_ID`       | Azure AD service principal client ID (OIDC) |
+| `AZURE_TENANT_ID`       | Azure AD tenant ID                          |
+| `AZURE_SUBSCRIPTION_ID` | Azure subscription ID                       |
+| `ACR_NAME`              | Container Registry name                     |
+| `ACR_LOGIN_SERVER`      | Container Registry login server URL         |
+| `AZURE_RESOURCE_GROUP`  | Target resource group name                  |
+| `CONTAINER_APP_NAME`    | Container App name (from Terraform output)  |
+| `AZURE_SWA_TOKEN`       | Static Web Apps deployment token            |
 
 **Pipeline jobs:**
 
@@ -309,28 +310,30 @@ CLOUDBLOCKS_CORS_ORIGINS=["http://localhost:5173"]
 
 ### Production Secrets (set via secret manager)
 
-| Secret | Description |
-|--------|-------------|
-| `CLOUDBLOCKS_JWT_SECRET` | Strong random string (≥32 chars) for session encryption key derivation (Fernet) |
+| Secret                              | Description                                                                                                                                      |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `CLOUDBLOCKS_JWT_SECRET`            | Strong random string (≥32 chars) for session encryption key derivation (Fernet)                                                                  |
 | `CLOUDBLOCKS_TOKEN_ENCRYPTION_SALT` | Strong random string (≥16 chars) for PBKDF2 key derivation (with `JWT_SECRET`) to encrypt OAuth state cookies and stored OAuth tokens via Fernet |
-| `CLOUDBLOCKS_GITHUB_CLIENT_SECRET` | GitHub App OAuth secret |
-| `CLOUDBLOCKS_GITHUB_CLIENT_ID` | GitHub OAuth client ID |
-| `CLOUDBLOCKS_CORS_ORIGINS` | JSON array of allowed browser origins |
+| `CLOUDBLOCKS_GITHUB_CLIENT_SECRET`  | GitHub App OAuth secret                                                                                                                          |
+| `CLOUDBLOCKS_GITHUB_CLIENT_ID`      | GitHub OAuth client ID                                                                                                                           |
+| `CLOUDBLOCKS_CORS_ORIGINS`          | JSON array of allowed browser origins                                                                                                            |
 
 ## Health Checks
 
-| Endpoint | Description |
-|----------|-------------|
-| `GET /health` | Basic health check (liveness) |
+| Endpoint            | Description                                      |
+| ------------------- | ------------------------------------------------ |
+| `GET /health`       | Basic health check (liveness)                    |
 | `GET /health/ready` | Readiness check (verifies database connectivity) |
 
 ## Monitoring
 
 Application logs are written to stdout/stderr in JSON format and collected by:
+
 - **Azure Container Apps**: Log Analytics workspace (auto-configured by Terraform)
 - **Docker Compose**: Container logging driver
 
 Recommended monitoring:
+
 - **Uptime**: Better Uptime / UptimeRobot (free tier)
 - **Errors**: Sentry (free tier: 5K events/month)
 - **Metrics**: Azure Monitor metrics + Log Analytics queries

@@ -8,9 +8,7 @@ import type { ValidationError } from '@cloudblocks/domain';
  * - Size remains fixed regardless of count (visual only — badge "×N")
  */
 
-export function validateAggregation(
-  block: LeafNode,
-): ValidationError | null {
+export function validateAggregation(block: LeafNode): ValidationError | null {
   const aggregation = block.aggregation;
 
   // No aggregation field = single instance (valid)

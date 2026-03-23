@@ -1,5 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ApiError, apiDelete, apiFetch, apiGet, apiPost, apiPut, getApiErrorMessage, isAuthError, normalizeApiBaseUrl } from './client';
+import {
+  ApiError,
+  apiDelete,
+  apiFetch,
+  apiGet,
+  apiPost,
+  apiPut,
+  getApiErrorMessage,
+  isAuthError,
+  normalizeApiBaseUrl,
+} from './client';
 
 function jsonResponse(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload), {
@@ -273,7 +283,11 @@ describe('normalizeApiBaseUrl', () => {
 
 describe('getApiErrorMessage', () => {
   it('extracts FastAPI detail from ApiError body', () => {
-    const error = new ApiError('API request failed with status 400', 400, '{"detail":"Missing backend workspace ID"}');
+    const error = new ApiError(
+      'API request failed with status 400',
+      400,
+      '{"detail":"Missing backend workspace ID"}',
+    );
 
     expect(getApiErrorMessage(error, 'Fallback')).toBe('Missing backend workspace ID');
   });

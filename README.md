@@ -24,12 +24,12 @@ Design cloud infrastructure by placing blocks on plates, connect components, val
 
 CloudBlocks uses a monorepo with one frontend app, one backend app, and shared TypeScript packages:
 
-| Path | Package | Current role |
-|--|--|--|
-| `apps/web` | `@cloudblocks/web` | Frontend SPA. Owns validation engine, generation pipeline, and template system. |
-| `apps/api` | - | FastAPI backend. Handles GitHub OAuth/session auth, workspace/repo operations, and AI integration proxying. |
-| `packages/schema` | `@cloudblocks/schema` | Canonical architecture model types/enums and JSON Schema output. |
-| `packages/cloudblocks-domain` | `@cloudblocks/domain` | Shared domain helpers (hierarchy rules, labels, validation types). |
+| Path                          | Package               | Current role                                                                                                |
+| ----------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `apps/web`                    | `@cloudblocks/web`    | Frontend SPA. Owns validation engine, generation pipeline, and template system.                             |
+| `apps/api`                    | -                     | FastAPI backend. Handles GitHub OAuth/session auth, workspace/repo operations, and AI integration proxying. |
+| `packages/schema`             | `@cloudblocks/schema` | Canonical architecture model types/enums and JSON Schema output.                                            |
+| `packages/cloudblocks-domain` | `@cloudblocks/domain` | Shared domain helpers (hierarchy rules, labels, validation types).                                          |
 
 The frontend imports architecture/domain types from `@cloudblocks/schema` and `@cloudblocks/domain` instead of defining local model types.
 Python models in `apps/api/app/models/generated/` are auto-generated from the TypeScript schema (`packages/schema/dist/architecture-model.schema.json`).
@@ -38,11 +38,11 @@ Python models in `apps/api/app/models/generated/` are auto-generated from the Ty
 
 Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks works **architecture → code** (model visually, compile to infra).
 
-| | Diagram Tool | CloudBlocks |
-|--|-------------|-------------|
-| Output | Static image | Architecture model + IaC code |
-| Validation | None | Rule engine enforces constraints |
-| Semantics | Visual only | Every element maps to a real resource |
+|            | Diagram Tool | CloudBlocks                           |
+| ---------- | ------------ | ------------------------------------- |
+| Output     | Static image | Architecture model + IaC code         |
+| Validation | None         | Rule engine enforces constraints      |
+| Semantics  | Visual only  | Every element maps to a real resource |
 
 ## Features
 
@@ -99,27 +99,27 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 
 ## Roadmap
 
-| Version | Milestone | Status |
-|---------|-----------|--------|
-| v0.0.0 | Concept Validation | ✅ |
-| v0.4.0 | Milestones 1–4 (MVP → Workspace Management) | ✅ |
-| v0.5.0 | GitHub Integration & Backend API | ✅ |
-| v0.6.0 | Multi-Generator + Template Marketplace | ✅ |
-| v0.7.0 | Collaboration + UX Polish + Auth Migration | ✅ |
-| v0.8.0 | Multi-Cloud Platform | ✅ |
-| v0.9.0 | UX Core Hardening | ✅ |
-| v0.10.0 | External Actors & DevOps UX | ✅ |
-| v0.11.0 | Brick Design System | ✅ |
-| v0.12.0 | Core Model & Provider System | ✅ |
-| v0.13.0 | Terraform Pipeline | ✅ |
-| v0.14.0 | AI-Assisted Architecture | ✅ |
-| v0.15.0 | v2.0 Specification Implementation | ✅ |
-| v0.16.0 | Documentation Architecture | ✅ |
-| v0.17.0 | Product Structure | ✅ |
-| v0.18.0 | DevOps UX | ✅ |
-| v0.19.0 | Resource Category Realignment + Cleanup | ✅ |
-| v0.20.0 | UX Polish & GitHub Hardening | |
-| — | i18n Scaffolding | |
+| Version | Milestone                                   | Status |
+| ------- | ------------------------------------------- | ------ |
+| v0.0.0  | Concept Validation                          | ✅     |
+| v0.4.0  | Milestones 1–4 (MVP → Workspace Management) | ✅     |
+| v0.5.0  | GitHub Integration & Backend API            | ✅     |
+| v0.6.0  | Multi-Generator + Template Marketplace      | ✅     |
+| v0.7.0  | Collaboration + UX Polish + Auth Migration  | ✅     |
+| v0.8.0  | Multi-Cloud Platform                        | ✅     |
+| v0.9.0  | UX Core Hardening                           | ✅     |
+| v0.10.0 | External Actors & DevOps UX                 | ✅     |
+| v0.11.0 | Brick Design System                         | ✅     |
+| v0.12.0 | Core Model & Provider System                | ✅     |
+| v0.13.0 | Terraform Pipeline                          | ✅     |
+| v0.14.0 | AI-Assisted Architecture                    | ✅     |
+| v0.15.0 | v2.0 Specification Implementation           | ✅     |
+| v0.16.0 | Documentation Architecture                  | ✅     |
+| v0.17.0 | Product Structure                           | ✅     |
+| v0.18.0 | DevOps UX                                   | ✅     |
+| v0.19.0 | Resource Category Realignment + Cleanup     | ✅     |
+| v0.20.0 | UX Polish & GitHub Hardening                |        |
+| —       | i18n Scaffolding                            |        |
 
 See [CHANGELOG.md](CHANGELOG.md) for release details and [full roadmap](docs/concept/ROADMAP.md) for milestone breakdown.
 

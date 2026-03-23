@@ -6,12 +6,13 @@ Templates are reusable architecture models that serve as starting points for new
 
 ### Terminology
 
-| Term | Definition |
-|------|-----------|
-| **Template** | A reusable, pre-built `ArchitectureModel` JSON that users can instantiate as a new workspace. Templates define the infrastructure topology (plates, blocks, connections). |
+| Term         | Definition                                                                                                                                                                                    |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Template** | A reusable, pre-built `ArchitectureModel` JSON that users can instantiate as a new workspace. Templates define the infrastructure topology (plates, blocks, connections).                     |
 | **Scenario** | A guided tutorial that walks users through building an architecture step-by-step, with validation checks at each stage. Scenarios are defined in `apps/web/src/features/learning/scenarios/`. |
 
 > Templates provide instant starting points; Scenarios provide learning experiences. Both use the same `ArchitectureModel` format internally.
+
 ---
 
 ## Template Structure
@@ -54,9 +55,7 @@ Database
     "plates": [],
     "blocks": [],
     "connections": [],
-    "externalActors": [
-      { "id": "ext-internet", "name": "Internet", "type": "internet" }
-    ]
+    "externalActors": [{ "id": "ext-internet", "name": "Internet", "type": "internet" }]
   }
 }
 ```
@@ -98,18 +97,19 @@ TypeScript types (`MarketplaceManifest`, `MarketplaceEntry`) and registry functi
 
 The `packages/` directory contains scaffolded packages that are **not yet functional**:
 
-| Package | Status | Purpose |
-|---------|--------|---------|
-| `packages/scenario-library/` | Placeholder | Future shared scenario definitions |
-| `packages/schema/` | Placeholder | Shared type definitions between frontend and backend |
-| `packages/terraform-templates/` | Placeholder | Generated Terraform template storage |
-| `packages/cloudblocks-domain/` | Placeholder | Shared domain logic |
-| `packages/cloudblocks-ui/` | Placeholder | Shared React components |
+| Package                         | Status      | Purpose                                              |
+| ------------------------------- | ----------- | ---------------------------------------------------- |
+| `packages/scenario-library/`    | Placeholder | Future shared scenario definitions                   |
+| `packages/schema/`              | Placeholder | Shared type definitions between frontend and backend |
+| `packages/terraform-templates/` | Placeholder | Generated Terraform template storage                 |
+| `packages/cloudblocks-domain/`  | Placeholder | Shared domain logic                                  |
+| `packages/cloudblocks-ui/`      | Placeholder | Shared React components                              |
 
 > Current template and scenario logic lives entirely within `apps/web/src/features/`.
 
 ---
 
 > **Cross-references:**
+>
 > - Architecture model format: [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)
 > - Roadmap timeline: [ROADMAP.md](../concept/ROADMAP.md)

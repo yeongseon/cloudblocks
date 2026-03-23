@@ -15,11 +15,11 @@ CloudBlocks is an **Architecture Compiler** — it models cloud infrastructure u
 
 CloudBlocks models infrastructure using a Lego-style architecture system. Users assemble infrastructure by placing visual building blocks — not by drawing diagrams or writing code:
 
-| Concept | Role | Example |
-|---------|------|---------|
-| **Plate** | Infrastructure boundary (container) | Network plate, Subnet plate |
-| **Block** | Infrastructure resource (service) | Compute, Database, Storage, Gateway |
-| **Connection** | Communication flow (dataflow) | Gateway → Compute → Database |
+| Concept        | Role                                | Example                             |
+| -------------- | ----------------------------------- | ----------------------------------- |
+| **Plate**      | Infrastructure boundary (container) | Network plate, Subnet plate         |
+| **Block**      | Infrastructure resource (service)   | Compute, Database, Storage, Gateway |
+| **Connection** | Communication flow (dataflow)       | Gateway → Compute → Database        |
 
 ```
 Internet → [Public Subnet: Gateway] → [Private Subnet: Compute → Database]
@@ -42,16 +42,16 @@ Infrastructure Code (Terraform / Bicep / Pulumi)
 
 The system consists of several subsystems:
 
-| Subsystem | Responsibility | Details |
-|-----------|---------------|---------|
-| **Web Builder** | Visual diagram editing, architecture visualization, rule feedback | This document |
-| **Architecture Model** | Provider-agnostic architecture representation, versioning, serialization | [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md) |
-| **Architecture Graph** | Graph-based execution model for validation and generation | [ARCHITECTURE_MODEL_OVERVIEW.md](../model/ARCHITECTURE_MODEL_OVERVIEW.md) |
-| **DSL Specification** | Language definition for infrastructure modeling | [ARCHITECTURE_MODEL_OVERVIEW.md](../model/ARCHITECTURE_MODEL_OVERVIEW.md) |
-| **Rule Engine** | Architecture validation, security checks, topology validation | [rules.md](../engine/rules.md) |
-| **Generator** | Infrastructure code generation pipeline | [generator.md](../engine/generator.md) |
-| **Provider Adapters** | Cloud-specific resource mapping | [provider.md](../engine/provider.md) |
-| **Templates** | Reusable architecture starting points | [templates.md](../engine/templates.md) |
+| Subsystem              | Responsibility                                                           | Details                                                                   |
+| ---------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| **Web Builder**        | Visual diagram editing, architecture visualization, rule feedback        | This document                                                             |
+| **Architecture Model** | Provider-agnostic architecture representation, versioning, serialization | [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)                               |
+| **Architecture Graph** | Graph-based execution model for validation and generation                | [ARCHITECTURE_MODEL_OVERVIEW.md](../model/ARCHITECTURE_MODEL_OVERVIEW.md) |
+| **DSL Specification**  | Language definition for infrastructure modeling                          | [ARCHITECTURE_MODEL_OVERVIEW.md](../model/ARCHITECTURE_MODEL_OVERVIEW.md) |
+| **Rule Engine**        | Architecture validation, security checks, topology validation            | [rules.md](../engine/rules.md)                                            |
+| **Generator**          | Infrastructure code generation pipeline                                  | [generator.md](../engine/generator.md)                                    |
+| **Provider Adapters**  | Cloud-specific resource mapping                                          | [provider.md](../engine/provider.md)                                      |
+| **Templates**          | Reusable architecture starting points                                    | [templates.md](../engine/templates.md)                                    |
 
 ### Repository Structure (Actual)
 
@@ -134,12 +134,14 @@ No backend required. All state lives in the browser.
 The frontend is a SPA built with React and SVG + CSS transforms. In Milestone 1, it worked entirely standalone with localStorage. As of Milestone 5-7, it uses a local-first model with optional GitHub sync.
 
 ### Responsibilities (Milestone 1)
+
 - 2.5D isometric builder interface (SVG + CSS transforms)
 - Click-to-add block placement via palette
 - Architecture validation (in-browser Rule Engine)
 - Local persistence (localStorage)
 
 ### Responsibilities (Current)
+
 - Drag and drop interaction
 - Validation engine execution (placement, aggregation, role, connection, provider warnings)
 - Code generation pipeline and preview (Terraform, Bicep, Pulumi)
@@ -148,6 +150,7 @@ The frontend is a SPA built with React and SVG + CSS transforms. In Milestone 1,
 - Local-first store (localStorage)
 
 ### Technologies
+
 - React + TypeScript
 - SVG + CSS transforms + DOM layering (rendering layer only — editing model is 2D)
 - Zustand (state management)
@@ -218,23 +221,23 @@ The backend is **NOT a heavy CRUD service**. It provides authenticated integrati
 
 ### What the Backend Does
 
-| Responsibility | Description |
-|---------------|-------------|
-| Auth / Identity | GitHub OAuth + cookie-based server sessions |
-| GitHub Integration | Repo listing/creation, architecture sync/pull, commit history, PR creation |
+| Responsibility       | Description                                                                 |
+| -------------------- | --------------------------------------------------------------------------- |
+| Auth / Identity      | GitHub OAuth + cookie-based server sessions                                 |
+| GitHub Integration   | Repo listing/creation, architecture sync/pull, commit history, PR creation  |
 | AI Integration Proxy | AI generation/suggestions/cost endpoints backed by stored provider API keys |
-| Workspace Metadata | Workspace index and settings (linked to GitHub repos) |
-| Metadata DB | User/session/workspace/run/key metadata |
+| Workspace Metadata   | Workspace index and settings (linked to GitHub repos)                       |
+| Metadata DB          | User/session/workspace/run/key metadata                                     |
 
 ### What the Backend Will NOT Store
 
-| Data | Where It Lives |
-|------|---------------|
-| Architecture specs (`architecture.json`) | GitHub repo |
-| Generated Terraform/Bicep/Pulumi | GitHub repo |
-| Templates | GitHub repo |
-| Full prompt/log history | GitHub / Blob Storage |
-| Deployment artifacts | GitHub / Blob Storage |
+| Data                                     | Where It Lives        |
+| ---------------------------------------- | --------------------- |
+| Architecture specs (`architecture.json`) | GitHub repo           |
+| Generated Terraform/Bicep/Pulumi         | GitHub repo           |
+| Templates                                | GitHub repo           |
+| Full prompt/log history                  | GitHub / Blob Storage |
+| Deployment artifacts                     | GitHub / Blob Storage |
 
 ### Backend Architecture (Current — Milestone 7)
 
@@ -279,42 +282,43 @@ apps/api/
 Implemented routes (mounted in main.py):
 
 Auth:
-POST /api/v1/auth/github                     → returns { authorize_url }, sets cb_oauth cookie
-GET  /api/v1/auth/github/callback?code&state → redirects, sets cb_session cookie
-GET  /api/v1/auth/session                    → returns current user; clears stale cookie on 401
-GET  /api/v1/auth/me                         → returns current authenticated user
-POST /api/v1/auth/logout                     → always 200; clears server session + cookie
+POST /api/v1/auth/github → returns { authorize_url }, sets cb_oauth cookie
+GET /api/v1/auth/github/callback?code&state → redirects, sets cb_session cookie
+GET /api/v1/auth/session → returns current user; clears stale cookie on 401
+GET /api/v1/auth/me → returns current authenticated user
+POST /api/v1/auth/logout → always 200; clears server session + cookie
 
 Session:
-POST /api/v1/session/workspace               → binds active workspace to session
+POST /api/v1/session/workspace → binds active workspace to session
 
 Workspaces:
-GET    /api/v1/workspaces/                   → list user's workspaces
-POST   /api/v1/workspaces/                   → create workspace
-GET    /api/v1/workspaces/{id}               → get workspace
-PUT    /api/v1/workspaces/{id}               → update workspace
-DELETE /api/v1/workspaces/{id}               → delete workspace
+GET /api/v1/workspaces/ → list user's workspaces
+POST /api/v1/workspaces/ → create workspace
+GET /api/v1/workspaces/{id} → get workspace
+PUT /api/v1/workspaces/{id} → update workspace
+DELETE /api/v1/workspaces/{id} → delete workspace
 
 GitHub Integration:
-GET  /api/v1/github/repos                    → list user's GitHub repos
-POST /api/v1/github/repos                    → create new GitHub repo
-POST /api/v1/workspaces/{id}/sync            → sync architecture.json to GitHub
-POST /api/v1/workspaces/{id}/pull            → pull architecture.json from GitHub
-POST /api/v1/workspaces/{id}/pr              → create PR with architecture changes
-GET  /api/v1/workspaces/{id}/commits         → list recent commits
+GET /api/v1/github/repos → list user's GitHub repos
+POST /api/v1/github/repos → create new GitHub repo
+POST /api/v1/workspaces/{id}/sync → sync architecture.json to GitHub
+POST /api/v1/workspaces/{id}/pull → pull architecture.json from GitHub
+POST /api/v1/workspaces/{id}/pr → create PR with architecture changes
+GET /api/v1/workspaces/{id}/commits → list recent commits
 
 Generation (placeholder):
-POST /api/v1/workspaces/{id}/generate        → creates run record (pending), no actual generation
-GET  /api/v1/workspaces/{id}/generate/{runId}→ get generation run status
-GET  /api/v1/workspaces/{id}/preview         → placeholder, returns empty files
+POST /api/v1/workspaces/{id}/generate → creates run record (pending), no actual generation
+GET /api/v1/workspaces/{id}/generate/{runId}→ get generation run status
+GET /api/v1/workspaces/{id}/preview → placeholder, returns empty files
 
 AI (see #320 for detailed guide):
-POST /api/v1/ai/generate                     → AI architecture generation (OpenAI)
-POST /api/v1/ai/suggest                      → AI architecture suggestion engine
-POST /api/v1/ai/cost                         → Infrastructure cost estimation
-POST /api/v1/ai/keys                         → store AI API key (encrypted)
-GET  /api/v1/ai/keys                         → list stored key providers
-DELETE /api/v1/ai/keys/{provider}            → delete stored key
+POST /api/v1/ai/generate → AI architecture generation (OpenAI)
+POST /api/v1/ai/suggest → AI architecture suggestion engine
+POST /api/v1/ai/cost → Infrastructure cost estimation
+POST /api/v1/ai/keys → store AI API key (encrypted)
+GET /api/v1/ai/keys → list stored key providers
+DELETE /api/v1/ai/keys/{provider} → delete stored key
+
 ```
 
 ---
@@ -333,12 +337,14 @@ Responsibilities:
 Example structure:
 
 ```
+
 NetworkPlate
 └ SubnetPlate (Public)
-  └ GatewayBlock
+└ GatewayBlock
 └ SubnetPlate (Private)
-  └ ComputeBlock
-  └ DatabaseBlock
+└ ComputeBlock
+└ DatabaseBlock
+
 ```
 
 Key responsibilities:
@@ -378,14 +384,16 @@ The Rule Engine validates architecture constraints.
 The validation engine is split into focused modules:
 
 ```
+
 apps/web/src/entities/validation/
-├── engine.ts       # validateArchitecture(model): orchestration entrypoint
-├── placement.ts    # validatePlacement(block, plate): placement rule checks
-├── connection.ts   # validateConnection(connection, blocks, externalActors): flow rule checks
+├── engine.ts # validateArchitecture(model): orchestration entrypoint
+├── placement.ts # validatePlacement(block, plate): placement rule checks
+├── connection.ts # validateConnection(connection, blocks, externalActors): flow rule checks
 ├── providerValidation.ts # validateProviderRules(block, plate): provider warnings
-├── aggregation.ts  # validateAggregation(model, block): aggregation constraints
-└── role.ts         # validateBlockRoles(block): role constraints
-```
+├── aggregation.ts # validateAggregation(model, block): aggregation constraints
+└── role.ts # validateBlockRoles(block): role constraints
+
+````
 
 Validation flow in `engine.ts`:
 - Placement validation (per block) via `placement.ts`
@@ -412,7 +420,7 @@ Validation flow in `engine.ts`:
   ],
   "warnings": []
 }
-```
+````
 
 ---
 
@@ -443,12 +451,12 @@ apps/web/src/features/generate/
 
 ### Layer Responsibilities
 
-| Layer | Responsibility |
-|-------|----------------|
-| Normalization | Convert raw architecture JSON into a canonical, generation-safe model (stable IDs, resolved references, defaults). |
-| Provider Adapter | Map CloudBlocks generic entities to provider-specific resource semantics. |
-| Generator | Produce IaC artifacts from normalized, provider-mapped input. |
-| Formatter | Assemble final output files and directory structure for commit/export. |
+| Layer            | Responsibility                                                                                                     |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Normalization    | Convert raw architecture JSON into a canonical, generation-safe model (stable IDs, resolved references, defaults). |
+| Provider Adapter | Map CloudBlocks generic entities to provider-specific resource semantics.                                          |
+| Generator        | Produce IaC artifacts from normalized, provider-mapped input.                                                      |
+| Formatter        | Assemble final output files and directory structure for commit/export.                                             |
 
 ---
 
@@ -468,12 +476,12 @@ SceneCanvas (root SVG scene)
   └ Labels (plate/block names via HTML overlay)
 ```
 
-| Component | Responsibility |
-|-----------|----------------|
-| SceneCanvas | Root SVG container with CSS transform3d pan/zoom; orchestrates rendering of all model entities from Zustand state. |
-| PlateSprite | Renders plate SVG geometry (network/subnet), visual state (hover/selection), studs, and plate labels. |
-| BlockSprite | Renders block SVG geometry by category, interaction states, and block labels; anchors block position to parent plate. |
-| ConnectionPath | Resolves endpoints and renders SVG path directional dataflow lines with arrowheads. |
+| Component      | Responsibility                                                                                                        |
+| -------------- | --------------------------------------------------------------------------------------------------------------------- |
+| SceneCanvas    | Root SVG container with CSS transform3d pan/zoom; orchestrates rendering of all model entities from Zustand state.    |
+| PlateSprite    | Renders plate SVG geometry (network/subnet), visual state (hover/selection), studs, and plate labels.                 |
+| BlockSprite    | Renders block SVG geometry by category, interaction states, and block labels; anchors block position to parent plate. |
+| ConnectionPath | Resolves endpoints and renders SVG path directional dataflow lines with arrowheads.                                   |
 
 > Rendering is projection only: the authoritative editing model remains 2D coordinates with containment hierarchy, then projected into the 2.5D scene.
 > See [ADR-0010](../adr/0010-svg-only-rendering-model.md) for the full rendering technology rationale.
@@ -496,6 +504,7 @@ The Provider Adapter translates the generic CloudBlocks model into cloud provide
 ## Auth: GitHub OAuth + Session Cookie Model
 
 CloudBlocks uses GitHub OAuth for identity and server-side sessions for authenticated API access:
+
 - OAuth state is stored in encrypted httpOnly `cb_oauth` cookie
 - Session is stored server-side in SQLite (`sessions` table)
 - Browser receives only httpOnly `cb_session` cookie (no JWT/localStorage token)
@@ -585,13 +594,13 @@ Local (localStorage)  ←→    GitHub (via Backend API)
 
 The architecture supports horizontal scalability:
 
-| Component | Strategy |
-|-----------|----------|
-| Frontend | Static hosting / CDN |
-| Backend API | Stateless containers (scale horizontally) |
-| Metadata DB | SQLite (dev), PostgreSQL (production — Milestone 8 ✅) |
-| Job Queue | In-process/background (dev), Redis (production — Milestone 8 planned) |
-| Storage | GitHub (unlimited repos) + Blob storage |
+| Component   | Strategy                                                              |
+| ----------- | --------------------------------------------------------------------- |
+| Frontend    | Static hosting / CDN                                                  |
+| Backend API | Stateless containers (scale horizontally)                             |
+| Metadata DB | SQLite (dev), PostgreSQL (production — Milestone 8 ✅)                |
+| Job Queue   | In-process/background (dev), Redis (production — Milestone 8 planned) |
+| Storage     | GitHub (unlimited repos) + Blob storage                               |
 
 ---
 
@@ -607,6 +616,7 @@ GitHub Integration (Milestone 5+: repo list/create, sync, pull, PR, commits — 
 ```
 
 This architecture enables:
+
 - Visual architecture design with 2.5D isometric blocks
 - Rule-based validation of cloud infrastructure
 - Automated infrastructure code generation in the frontend pipeline
@@ -616,6 +626,7 @@ This architecture enables:
 ---
 
 > **Cross-references:**
+>
 > - Domain model (canonical): [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)
 > - Architecture model overview: [ARCHITECTURE_MODEL_OVERVIEW.md](../model/ARCHITECTURE_MODEL_OVERVIEW.md)
 > - DSL & pipeline overview: [ARCHITECTURE_MODEL_OVERVIEW.md](../model/ARCHITECTURE_MODEL_OVERVIEW.md)

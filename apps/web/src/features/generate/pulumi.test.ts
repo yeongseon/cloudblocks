@@ -49,7 +49,9 @@ function createTestModel(overrides?: LegacyArchitectureOverrides): ArchitectureM
     plates: [],
     blocks: [],
     connections: [],
-    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } }],
+    externalActors: [
+      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+    ],
     createdAt: '2025-01-01T00:00:00Z',
     updatedAt: '2025-01-01T00:00:00Z',
     ...overrides,
@@ -143,7 +145,9 @@ describe('pulumi generator', () => {
     const normalized = normalizePulumi(model, azureProviderDefinition);
     const indexTs = generateIndexTs(normalized, azureProviderDefinition, defaultOptions);
 
-    expect(indexTs).toContain('const resourceGroup = new azure.resources.ResourceGroup("resourceGroup", {');
+    expect(indexTs).toContain(
+      'const resourceGroup = new azure.resources.ResourceGroup("resourceGroup", {',
+    );
     expect(indexTs).toContain('resourceGroupName: `${projectName}-rg`,');
   });
 
@@ -186,15 +190,27 @@ describe('pulumi generator', () => {
     const indexTs = generateIndexTs(normalized, azureProviderDefinition, defaultOptions);
 
     expect(indexTs).toContain('const webappCompute = new azure.web.WebApp("webappCompute", {');
-    expect(indexTs).toContain('const pgserverDatabase = new azure.dbforpostgresql.FlexibleServer("pgserverDatabase", {');
-    expect(indexTs).toContain('const pgserverStorage = new azure.dbforpostgresql.FlexibleServer("pgserverStorage", {');
-    expect(indexTs).toContain('const appgwGateway = new azure.network.ApplicationGateway("appgwGateway", {');
+    expect(indexTs).toContain(
+      'const pgserverDatabase = new azure.dbforpostgresql.FlexibleServer("pgserverDatabase", {',
+    );
+    expect(indexTs).toContain(
+      'const pgserverStorage = new azure.dbforpostgresql.FlexibleServer("pgserverStorage", {',
+    );
+    expect(indexTs).toContain(
+      'const appgwGateway = new azure.network.ApplicationGateway("appgwGateway", {',
+    );
     expect(indexTs).toContain('const webappFunction = new azure.web.WebApp("webappFunction", {');
     expect(indexTs).toContain('const queueQueue = new azure.storage.Queue("queueQueue", {');
     expect(indexTs).toContain('const queueEvent = new azure.storage.Queue("queueEvent", {');
-    expect(indexTs).toContain('const analyticsAnalytics = new azure.operationalinsights.Workspace("analyticsAnalytics", {');
-    expect(indexTs).toContain('const identityIdentity = new azure.managedidentity.UserAssignedIdentity("identityIdentity", {');
-    expect(indexTs).toContain('const analyticsObservability = new azure.operationalinsights.Workspace("analyticsObservability", {');
+    expect(indexTs).toContain(
+      'const analyticsAnalytics = new azure.operationalinsights.Workspace("analyticsAnalytics", {',
+    );
+    expect(indexTs).toContain(
+      'const identityIdentity = new azure.managedidentity.UserAssignedIdentity("identityIdentity", {',
+    );
+    expect(indexTs).toContain(
+      'const analyticsObservability = new azure.operationalinsights.Workspace("analyticsObservability", {',
+    );
   });
 
   it('generates subnet as top-level resource when parent network is missing', () => {
@@ -211,7 +227,9 @@ describe('pulumi generator', () => {
     const normalized = normalizePulumi(model, azureProviderDefinition);
     const indexTs = generateIndexTs(normalized, azureProviderDefinition, defaultOptions);
 
-    expect(indexTs).toContain('const subnetOrphanSubnet = new azure.network.Subnet("subnetOrphanSubnet", {');
+    expect(indexTs).toContain(
+      'const subnetOrphanSubnet = new azure.network.Subnet("subnetOrphanSubnet", {',
+    );
     expect(indexTs).toContain('virtualNetworkName: `${projectName}-subnetOrphanSubnet`');
   });
 
@@ -253,9 +271,13 @@ describe('pulumi generator', () => {
     const normalized = normalizePulumi(model, azureProviderDefinition);
     const indexTs = generateIndexTs(normalized, azureProviderDefinition, defaultOptions);
 
-    expect(indexTs).toContain('const vmWebServerPip = new azure.network.PublicIPAddress("vmWebServerPip", {');
+    expect(indexTs).toContain(
+      'const vmWebServerPip = new azure.network.PublicIPAddress("vmWebServerPip", {',
+    );
     expect(indexTs).toContain('publicIPAllocationMethod: "Static"');
-    expect(indexTs).toContain('const vmWebServerNic = new azure.network.NetworkInterface("vmWebServerNic", {');
+    expect(indexTs).toContain(
+      'const vmWebServerNic = new azure.network.NetworkInterface("vmWebServerNic", {',
+    );
     expect(indexTs).toContain('id: vmWebServerPip.id,');
 
     const pipIndex = indexTs.indexOf('PublicIPAddress');
@@ -265,18 +287,24 @@ describe('pulumi generator', () => {
 
   it('generates implicit PIP for firewall blocks but no NIC', () => {
     const model = createTestModel({
-      blocks: [createBlock({ id: 'fw1', name: 'MainFirewall', category: 'edge', subtype: 'firewall' })],
+      blocks: [
+        createBlock({ id: 'fw1', name: 'MainFirewall', category: 'edge', subtype: 'firewall' }),
+      ],
     });
     const normalized = normalizePulumi(model, azureProviderDefinition);
     const indexTs = generateIndexTs(normalized, azureProviderDefinition, defaultOptions);
 
-    expect(indexTs).toContain('const appgwMainFirewallPip = new azure.network.PublicIPAddress("appgwMainFirewallPip", {');
+    expect(indexTs).toContain(
+      'const appgwMainFirewallPip = new azure.network.PublicIPAddress("appgwMainFirewallPip", {',
+    );
     expect(indexTs).not.toContain('NetworkInterface');
   });
 
   it('does not generate implicit resources for internal-lb blocks', () => {
     const model = createTestModel({
-      blocks: [createBlock({ id: 'lb1', name: 'InternalLB', category: 'edge', subtype: 'internal-lb' })],
+      blocks: [
+        createBlock({ id: 'lb1', name: 'InternalLB', category: 'edge', subtype: 'internal-lb' }),
+      ],
     });
     const normalized = normalizePulumi(model, azureProviderDefinition);
     const indexTs = generateIndexTs(normalized, azureProviderDefinition, defaultOptions);

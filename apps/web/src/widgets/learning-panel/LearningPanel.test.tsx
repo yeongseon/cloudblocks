@@ -45,7 +45,11 @@ describe('LearningPanel widgets', () => {
 
   afterEach(() => {
     useLearningStore.getState().abandonScenario();
-    useUIStore.setState({ showLearningPanel: false, showScenarioGallery: false, editorMode: 'build' });
+    useUIStore.setState({
+      showLearningPanel: false,
+      showScenarioGallery: false,
+      editorMode: 'build',
+    });
     clearScenarioRegistry();
     vi.clearAllMocks();
   });
@@ -92,7 +96,11 @@ describe('LearningPanel widgets', () => {
     }
 
     useLearningStore.setState({
-      progress: { ...progress, startedAt: '2026-01-01T00:00:00.000Z', completedAt: '2026-01-01T00:01:30.000Z' },
+      progress: {
+        ...progress,
+        startedAt: '2026-01-01T00:00:00.000Z',
+        completedAt: '2026-01-01T00:01:30.000Z',
+      },
     });
 
     render(<LearningPanel />);
@@ -445,7 +453,11 @@ describe('LearningPanel widgets', () => {
     }
 
     useLearningStore.setState({
-      progress: { ...progress, startedAt: '2026-01-01T00:00:00.000Z', completedAt: '2026-01-01T00:02:00.000Z' },
+      progress: {
+        ...progress,
+        startedAt: '2026-01-01T00:00:00.000Z',
+        completedAt: '2026-01-01T00:02:00.000Z',
+      },
     });
 
     render(<CompletionScreen />);

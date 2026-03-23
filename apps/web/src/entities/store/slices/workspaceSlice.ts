@@ -24,10 +24,7 @@ type WorkspaceSlice = Pick<
   | 'setLastPrResult'
 >;
 
-export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (
-  set,
-  get
-) => ({
+export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (set, get) => ({
   workspace: createDefaultWorkspace(),
   workspaces: [],
 
@@ -163,12 +160,10 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (
         : state.workspace;
 
     const updatedList = state.workspaces.map((ws) =>
-      ws.id === workspaceId ? { ...ws, backendWorkspaceId: backendId } : ws
+      ws.id === workspaceId ? { ...ws, backendWorkspaceId: backendId } : ws,
     );
 
-    saveWorkspaces(
-      upsertCurrentWorkspace(updatedList, updatedWorkspace)
-    );
+    saveWorkspaces(upsertCurrentWorkspace(updatedList, updatedWorkspace));
 
     set({
       workspace: updatedWorkspace,
@@ -184,12 +179,10 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (
         : state.workspace;
 
     const updatedList = state.workspaces.map((ws) =>
-      ws.id === workspaceId ? { ...ws, githubRepo: repo } : ws
+      ws.id === workspaceId ? { ...ws, githubRepo: repo } : ws,
     );
 
-    saveWorkspaces(
-      upsertCurrentWorkspace(updatedList, updatedWorkspace)
-    );
+    saveWorkspaces(upsertCurrentWorkspace(updatedList, updatedWorkspace));
 
     set({
       workspace: updatedWorkspace,
@@ -205,12 +198,10 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (
         : state.workspace;
 
     const updatedList = state.workspaces.map((ws) =>
-      ws.id === workspaceId ? { ...ws, lastPrResult: result } : ws
+      ws.id === workspaceId ? { ...ws, lastPrResult: result } : ws,
     );
 
-    saveWorkspaces(
-      upsertCurrentWorkspace(updatedList, updatedWorkspace)
-    );
+    saveWorkspaces(upsertCurrentWorkspace(updatedList, updatedWorkspace));
 
     set({
       workspace: updatedWorkspace,

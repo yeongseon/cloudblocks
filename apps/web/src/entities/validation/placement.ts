@@ -73,7 +73,7 @@ const CATEGORY_ALLOWED_PARENT_LAYERS = buildCategoryPlacementMap();
 
 export function validatePlacement(
   resource: LeafNode,
-  parent: ContainerNode | undefined
+  parent: ContainerNode | undefined,
 ): ValidationError | null {
   if (!parent) {
     return {
@@ -88,7 +88,9 @@ export function validatePlacement(
   // ── RESOURCE_RULES-driven placement check ──
   const allowedLayers = CATEGORY_ALLOWED_PARENT_LAYERS.get(resource.category);
   if (allowedLayers && allowedLayers.size > 0 && !allowedLayers.has(parent.layer as LayerType)) {
-    const layerLabels = [...allowedLayers].map((l) => l === 'subnet' ? 'Subnet' : 'Region container');
+    const layerLabels = [...allowedLayers].map((l) =>
+      l === 'subnet' ? 'Subnet' : 'Region container',
+    );
     const cat = resource.category.charAt(0).toUpperCase() + resource.category.slice(1);
     return {
       ruleId: `rule-${resource.category}-parent`,
@@ -162,9 +164,7 @@ export function validateLayerPlacement(
  * Spec §10: "All positions must be CU-aligned"
  * Spec §15: "Position not aligned to CU grid" → must reject
  */
-export function validateGridAlignment(
-  resource: LeafNode,
-): ValidationError | null {
+export function validateGridAlignment(resource: LeafNode): ValidationError | null {
   const { x, z } = resource.position;
 
   if (!Number.isInteger(x) || !Number.isInteger(z)) {

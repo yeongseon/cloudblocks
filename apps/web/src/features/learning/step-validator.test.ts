@@ -116,7 +116,9 @@ const createTestModel = (): ArchitectureModel => ({
     ...generateEndpointsForNode('block-db'),
     ...generateEndpointsForNode('ext-internet'),
   ],
-  externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+  externalActors: [
+    { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+  ],
 });
 
 const getContainers = (model: ArchitectureModel): ContainerNode[] =>
@@ -143,7 +145,10 @@ describe('evaluateRule', () => {
       const model = createTestModel();
       const noNetworkModel: ArchitectureModel = {
         ...model,
-        nodes: [...getContainers(model).filter((plate) => plate.layer === 'subnet'), ...getResources(model)],
+        nodes: [
+          ...getContainers(model).filter((plate) => plate.layer === 'subnet'),
+          ...getResources(model),
+        ],
       };
       const rule: StepValidationRule = { type: 'plate-exists', plateType: 'region' };
       expect(evaluateRule(rule, noNetworkModel)).toBe(false);
@@ -159,7 +164,11 @@ describe('evaluateRule', () => {
 
     it('finds compute block on subnet plate', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'block-exists', category: 'compute', onPlateType: 'subnet' };
+      const rule: StepValidationRule = {
+        type: 'block-exists',
+        category: 'compute',
+        onPlateType: 'subnet',
+      };
       expect(evaluateRule(rule, model)).toBe(true);
     });
 
@@ -181,7 +190,11 @@ describe('evaluateRule', () => {
 
     it('fails for block on wrong plate type', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'block-exists', category: 'data', onPlateType: 'region' };
+      const rule: StepValidationRule = {
+        type: 'block-exists',
+        category: 'data',
+        onPlateType: 'region',
+      };
       expect(evaluateRule(rule, model)).toBe(false);
     });
 
@@ -192,11 +205,15 @@ describe('evaluateRule', () => {
         nodes: [
           ...getContainers(model),
           ...getResources(model).map((block) =>
-            block.id === 'block-compute' ? { ...block, parentId: 'missing-plate' } : block
+            block.id === 'block-compute' ? { ...block, parentId: 'missing-plate' } : block,
           ),
         ],
       };
-      const rule: StepValidationRule = { type: 'block-exists', category: 'compute', onPlateType: 'subnet' };
+      const rule: StepValidationRule = {
+        type: 'block-exists',
+        category: 'compute',
+        onPlateType: 'subnet',
+      };
       expect(evaluateRule(rule, modelWithMissingPlacement)).toBe(false);
     });
   });
@@ -270,7 +287,11 @@ describe('evaluateRule', () => {
   describe('entity-on-plate', () => {
     it('finds gateway on subnet plate', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'entity-on-plate', entityCategory: 'edge', plateType: 'subnet' };
+      const rule: StepValidationRule = {
+        type: 'entity-on-plate',
+        entityCategory: 'edge',
+        plateType: 'subnet',
+      };
       expect(evaluateRule(rule, model)).toBe(true);
     });
 
@@ -286,7 +307,11 @@ describe('evaluateRule', () => {
 
     it('fails when entity is not on specified plate type', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'entity-on-plate', entityCategory: 'data', plateType: 'region' };
+      const rule: StepValidationRule = {
+        type: 'entity-on-plate',
+        entityCategory: 'data',
+        plateType: 'region',
+      };
       expect(evaluateRule(rule, model)).toBe(false);
     });
 
@@ -297,7 +322,7 @@ describe('evaluateRule', () => {
         nodes: [
           ...getContainers(model),
           ...getResources(model).map((block) =>
-            block.id === 'block-db' ? { ...block, parentId: 'missing-plate' } : block
+            block.id === 'block-db' ? { ...block, parentId: 'missing-plate' } : block,
           ),
         ],
       };
@@ -325,7 +350,7 @@ describe('evaluateRule', () => {
         nodes: [
           ...getContainers(model),
           ...getResources(model).map((block) =>
-            block.id === 'block-gw' ? { ...block, parentId: 'plate-vnet' } : block
+            block.id === 'block-gw' ? { ...block, parentId: 'plate-vnet' } : block,
           ),
         ],
       };

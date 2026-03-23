@@ -85,5 +85,4 @@ describe('scenario registry', () => {
     expect(listScenariosByDifficulty('intermediate')).toEqual([scenarioB]);
     expect(listScenariosByDifficulty('advanced')).toEqual([]);
   });
-
 });

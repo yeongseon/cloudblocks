@@ -7,10 +7,7 @@ import {
 } from '../../../shared/utils/history';
 import type { ArchitectureSlice, ArchitectureState } from './types';
 
-type HistorySlice = Pick<
-  ArchitectureState,
-  'history' | 'canUndo' | 'canRedo' | 'undo' | 'redo'
->;
+type HistorySlice = Pick<ArchitectureState, 'history' | 'canUndo' | 'canRedo' | 'undo' | 'redo'>;
 
 export const createHistorySlice: ArchitectureSlice<HistorySlice> = (set, get) => ({
   history: createHistory(),

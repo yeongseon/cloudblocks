@@ -1,7 +1,7 @@
 name: Bug Report
 description: Report a bug or unexpected behavior
-title: "[Bug]: "
-labels: ["bug", "triage"]
+title: '[Bug]: '
+labels: ['bug', 'triage']
 body:
   - type: markdown
     attributes:
@@ -69,7 +69,7 @@ body:
     attributes:
       label: Version
       description: What version of CloudBlocks are you using?
-      placeholder: "e.g., v0.4.0 or commit hash"
+      placeholder: 'e.g., v0.4.0 or commit hash'
 
   - type: textarea
     id: additional

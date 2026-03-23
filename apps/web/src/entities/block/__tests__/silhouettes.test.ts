@@ -9,10 +9,7 @@ import { BLOCK_VISUAL_PROFILES } from '../../../shared/types/index';
 import type { BrickSilhouette, BlockTier } from '../../../shared/types/index';
 import type { ResourceCategory } from '@cloudblocks/schema';
 import type { BlockDimensionsCU } from '../../../shared/types/visualProfile';
-import {
-  CATEGORY_TIER_MAP,
-  TIER_DIMENSIONS,
-} from '../../../shared/types/visualProfile';
+import { CATEGORY_TIER_MAP, TIER_DIMENSIONS } from '../../../shared/types/visualProfile';
 import {
   BLOCK_MARGIN,
   BLOCK_PADDING,
@@ -31,7 +28,14 @@ const blockCategories: ResourceCategory[] = [
   'network',
 ];
 
-const silhouetteTypes: BrickSilhouette[] = ['rect', 'cylinder', 'gateway', 'circle', 'hex', 'shield'];
+const silhouetteTypes: BrickSilhouette[] = [
+  'rect',
+  'cylinder',
+  'gateway',
+  'circle',
+  'hex',
+  'shield',
+];
 const sizeTiers: BlockTier[] = ['micro', 'small', 'medium', 'large', 'wide'];
 
 function makeDimensions(sideWallPx: number) {
@@ -146,13 +150,13 @@ describe('cuToSilhouetteDimensions', () => {
   it('computes screenWidth as (width + depth) × TILE_W / 2', () => {
     const cu: BlockDimensionsCU = { width: 2, depth: 2, height: 2 };
     const dims = cuToSilhouetteDimensions(cu);
-    expect(dims.screenWidth).toBe((2 + 2) * TILE_W / 2);
+    expect(dims.screenWidth).toBe(((2 + 2) * TILE_W) / 2);
   });
 
   it('computes diamondHeight as (width + depth) × TILE_H / 2', () => {
     const cu: BlockDimensionsCU = { width: 3, depth: 3, height: 2 };
     const dims = cuToSilhouetteDimensions(cu);
-    expect(dims.diamondHeight).toBe((3 + 3) * TILE_H / 2);
+    expect(dims.diamondHeight).toBe(((3 + 3) * TILE_H) / 2);
   });
 
   it('computes sideWallPx as height × TILE_Z', () => {
@@ -257,12 +261,12 @@ describe('getSilhouetteFromCU', () => {
   it('produces all 6 tier silhouettes correctly', () => {
     // Every tier from spec §13 should produce valid silhouettes
     const tierCUs: BlockDimensionsCU[] = [
-      { width: 1, depth: 1, height: 1 },  // micro
-      { width: 2, depth: 2, height: 1 },  // small
-      { width: 2, depth: 2, height: 2 },  // medium
-      { width: 3, depth: 3, height: 2 },  // large
-      { width: 3, depth: 1, height: 1 },  // wide
-      { width: 4, depth: 1, height: 1 },  // edge/global
+      { width: 1, depth: 1, height: 1 }, // micro
+      { width: 2, depth: 2, height: 1 }, // small
+      { width: 2, depth: 2, height: 2 }, // medium
+      { width: 3, depth: 3, height: 2 }, // large
+      { width: 3, depth: 1, height: 1 }, // wide
+      { width: 4, depth: 1, height: 1 }, // edge/global
     ];
 
     for (const cu of tierCUs) {

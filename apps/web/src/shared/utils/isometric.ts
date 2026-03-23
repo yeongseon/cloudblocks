@@ -43,8 +43,8 @@ export function worldToScreen(
   originY = 0,
 ): ScreenPoint {
   return {
-    x: originX + (worldX - worldZ) * TILE_W / 2,
-    y: originY + (worldX + worldZ) * TILE_H / 2 - worldY * TILE_Z,
+    x: originX + ((worldX - worldZ) * TILE_W) / 2,
+    y: originY + ((worldX + worldZ) * TILE_H) / 2 - worldY * TILE_Z,
   };
 }
 
@@ -107,12 +107,7 @@ export function screenDeltaToWorld(
  * @param worldY - World Y position (elevation)
  * @param layer - Render layer: 0=plates, 1=actors, 2=blocks (default 0)
  */
-export function depthKey(
-  worldX: number,
-  worldZ: number,
-  worldY = 0,
-  layer = 0,
-): number {
+export function depthKey(worldX: number, worldZ: number, worldY = 0, layer = 0): number {
   const frontness = worldX + worldZ + worldY;
   return Math.round(layer * 1_000_000 + frontness * 100);
 }
@@ -135,8 +130,8 @@ export function worldSizeToScreen(
   depth: number,
 ): { screenWidth: number; screenHeight: number } {
   return {
-    screenWidth: (width + depth) * TILE_W / 2,
-    screenHeight: (width + depth) * TILE_H / 2 + height * TILE_Z,
+    screenWidth: ((width + depth) * TILE_W) / 2,
+    screenHeight: ((width + depth) * TILE_H) / 2 + height * TILE_Z,
   };
 }
 

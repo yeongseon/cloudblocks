@@ -119,8 +119,14 @@ describe('BLOCK_ROLES constant', () => {
 
   it('contains all spec-defined roles', () => {
     const expectedRoles: BlockRole[] = [
-      'primary', 'secondary', 'reader', 'writer',
-      'public', 'private', 'internal', 'external',
+      'primary',
+      'secondary',
+      'reader',
+      'writer',
+      'public',
+      'private',
+      'internal',
+      'external',
     ];
     expectedRoles.forEach((role) => {
       expect(BLOCK_ROLES).toContain(role);

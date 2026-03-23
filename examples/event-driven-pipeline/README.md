@@ -19,12 +19,12 @@ Internet → Gateway (Event Ingestion)
 
 ## Components
 
-| Layer | Category | Block Type | Subnet | Description |
-|-------|----------|-----------|--------|-------------|
-| Ingestion | Edge | Gateway | Public | Event ingestion endpoint |
-| Processing | Compute | Compute | Public | Stream processor / event handler |
-| Persistence | Data | Database | Private | Managed database for processed results |
-| Persistence | Data | Storage | Private | Raw event archive / blob storage |
+| Layer       | Category | Block Type | Subnet  | Description                            |
+| ----------- | -------- | ---------- | ------- | -------------------------------------- |
+| Ingestion   | Edge     | Gateway    | Public  | Event ingestion endpoint               |
+| Processing  | Compute  | Compute    | Public  | Stream processor / event handler       |
+| Persistence | Data     | Database   | Private | Managed database for processed results |
+| Persistence | Data     | Storage    | Private | Raw event archive / blob storage       |
 
 ## How to Build in CloudBlocks
 
@@ -40,6 +40,7 @@ Internet → Gateway (Event Ingestion)
 ## Pattern Description
 
 This pattern represents a simplified event-driven architecture where:
+
 - Events enter through the Gateway
 - Compute processes and transforms events
 - Processed data is stored in Database

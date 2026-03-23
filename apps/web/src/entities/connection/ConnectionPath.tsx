@@ -1,5 +1,11 @@
 import { memo, useState } from 'react';
-import type { Connection, EndpointSemantic, ContainerNode, ExternalActor, LeafNode } from '@cloudblocks/schema';
+import type {
+  Connection,
+  EndpointSemantic,
+  ContainerNode,
+  ExternalActor,
+  LeafNode,
+} from '@cloudblocks/schema';
 import { getDiffState } from '../../features/diff/engine';
 import { worldToScreen } from '../../shared/utils/isometric';
 import { useUIStore } from '../store/uiStore';
@@ -34,7 +40,13 @@ export const ConnectionPath = memo(function ConnectionPath({
   const endpoints = useArchitectureStore((s) => s.workspace.architecture.endpoints);
   const fromEndpoint = endpoints.find((endpoint) => endpoint.id === connection.from);
   const semantic: EndpointSemantic = fromEndpoint?.semantic ?? 'data';
-  const anchors = getConnectionEndpointWorldAnchors(connection, blocks, plates, endpoints, externalActors);
+  const anchors = getConnectionEndpointWorldAnchors(
+    connection,
+    blocks,
+    plates,
+    endpoints,
+    externalActors,
+  );
 
   if (!anchors) return null;
 
@@ -48,19 +60,28 @@ export const ConnectionPath = memo(function ConnectionPath({
   const arrowId = `arrow-${connection.id}`;
   const diffState = diffMode && diffDelta ? getDiffState(connection.id, diffDelta) : 'unchanged';
 
-  const bgStroke = diffState === 'added' ? '#166534'
-    : diffState === 'removed' ? '#991b1b'
-      : diffState === 'modified' ? '#854d0e'
-        : '#1e293b';
-  const fgStroke = diffState === 'added' ? '#22c55e'
-    : diffState === 'removed' ? '#ef4444'
-      : diffState === 'modified' ? '#eab308'
-        : '#64748b';
+  const bgStroke =
+    diffState === 'added'
+      ? '#166534'
+      : diffState === 'removed'
+        ? '#991b1b'
+        : diffState === 'modified'
+          ? '#854d0e'
+          : '#1e293b';
+  const fgStroke =
+    diffState === 'added'
+      ? '#22c55e'
+      : diffState === 'removed'
+        ? '#ef4444'
+        : diffState === 'modified'
+          ? '#eab308'
+          : '#64748b';
   const arrowFillBg = bgStroke;
   const arrowFillFg = fgStroke;
-  const connStyle = CONNECTION_VISUAL_STYLES[
-    semantic === 'http' ? 'http' : semantic === 'event' ? 'async' : 'data'
-  ];
+  const connStyle =
+    CONNECTION_VISUAL_STYLES[
+      semantic === 'http' ? 'http' : semantic === 'event' ? 'async' : 'data'
+    ];
   const fgStrokeWidth = connStyle.strokeWidth;
   const isSelected = selectedId === connection.id;
   const isHighlighted = isHovered || isSelected;

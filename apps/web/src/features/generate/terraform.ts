@@ -1,4 +1,10 @@
-import type { ArchitectureModel, Connection, ContainerNode, Endpoint, LeafNode } from '@cloudblocks/schema';
+import type {
+  ArchitectureModel,
+  Connection,
+  ContainerNode,
+  Endpoint,
+  LeafNode,
+} from '@cloudblocks/schema';
 import { parseEndpointId } from '@cloudblocks/schema';
 import type {
   GenerationOptions,
@@ -99,10 +105,7 @@ export function normalize(
  *   - Firewall (edge, subtype='firewall') → PIP only
  *   - Internal LB (edge, subtype='internal-lb') → no implicit resources (internal)
  */
-function generateImplicitResources(
-  block: LeafNode,
-  resourceName: string,
-): string[] {
+function generateImplicitResources(block: LeafNode, resourceName: string): string[] {
   const sections: string[] = [];
 
   const needsPip =
@@ -151,7 +154,7 @@ function generatePlateResource(
   mapping: ResourceMapping,
   _projectName: string,
   parentResourceName: string | null,
-  architecture: ArchitectureModel
+  architecture: ArchitectureModel,
 ): string {
   const lines: string[] = [];
 
@@ -165,12 +168,12 @@ function generatePlateResource(
   }
 
   if (plate.layer === 'subnet' && parentResourceName) {
-    lines.push(
-      `  virtual_network_name = azurerm_virtual_network.${parentResourceName}.name`
-    );
+    lines.push(`  virtual_network_name = azurerm_virtual_network.${parentResourceName}.name`);
     // Assign sequential CIDR index based on subnet order under parent VNet
     const containers = architecture.nodes.filter((n): n is ContainerNode => n.kind === 'container');
-    const siblingSubnets = containers.filter((c) => c.layer === 'subnet' && c.parentId === plate.parentId);
+    const siblingSubnets = containers.filter(
+      (c) => c.layer === 'subnet' && c.parentId === plate.parentId,
+    );
     const cidrIndex = siblingSubnets.findIndex((c) => c.id === plate.id) + 1;
     lines.push(`  address_prefixes     = ["10.0.${cidrIndex}.0/24"]`);
   }
@@ -183,7 +186,7 @@ function generateBlockResource(
   block: LeafNode,
   resourceName: string,
   mapping: ResourceMapping,
-  _subnetResourceName: string | null
+  _subnetResourceName: string | null,
 ): string {
   const lines: string[] = [];
 
@@ -304,7 +307,7 @@ export function generateMainTf(
     const resName = resourceNames.get(plate.id)!;
     const mapping = provider.plateMappings[getPlateType(plate)];
     sections.push(
-      generatePlateResource(plate, resName, mapping, options.projectName, null, architecture)
+      generatePlateResource(plate, resName, mapping, options.projectName, null, architecture),
     );
     sections.push('');
   }
@@ -312,11 +315,9 @@ export function generateMainTf(
   for (const plate of subnets) {
     const resName = resourceNames.get(plate.id)!;
     const mapping = provider.plateMappings[getPlateType(plate)];
-    const parentName = plate.parentId
-      ? resourceNames.get(plate.parentId) ?? null
-      : null;
+    const parentName = plate.parentId ? (resourceNames.get(plate.parentId) ?? null) : null;
     sections.push(
-      generatePlateResource(plate, resName, mapping, options.projectName, parentName, architecture)
+      generatePlateResource(plate, resName, mapping, options.projectName, parentName, architecture),
     );
     sections.push('');
   }
@@ -337,9 +338,7 @@ export function generateMainTf(
       sections.push(section);
     }
 
-    sections.push(
-      generateBlockResource(block, resName, mapping, subnetName)
-    );
+    sections.push(generateBlockResource(block, resName, mapping, subnetName));
     sections.push('');
   }
 

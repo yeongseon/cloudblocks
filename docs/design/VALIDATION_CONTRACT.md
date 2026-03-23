@@ -8,12 +8,12 @@ This document defines the canonical validation rule contract for CloudBlocks. Al
 
 ## 1. Ownership and Authority
 
-| Aspect | Policy |
-|--------|--------|
-| **Rule owner** | This document (`docs/design/VALIDATION_CONTRACT.md`) |
-| **Change process** | PR with updates to this doc + corresponding FE/BE code changes in the same PR |
-| **Versioning** | Semantic — bump this document's Current version when adding/removing/changing rules |
-| **Current version** | `1.1.0` |
+| Aspect              | Policy                                                                              |
+| ------------------- | ----------------------------------------------------------------------------------- |
+| **Rule owner**      | This document (`docs/design/VALIDATION_CONTRACT.md`)                                |
+| **Change process**  | PR with updates to this doc + corresponding FE/BE code changes in the same PR       |
+| **Versioning**      | Semantic — bump this document's Current version when adding/removing/changing rules |
+| **Current version** | `1.1.0`                                                                             |
 
 ---
 
@@ -23,11 +23,11 @@ Every validation rule is identified by a unique `ruleId` and produces a `Validat
 
 ```typescript
 interface ValidationError {
-  ruleId: string;        // Unique rule identifier (e.g., "rule-db-private")
-  severity: "error" | "warning";
-  message: string;       // Human-readable description
-  suggestion: string;    // Actionable fix suggestion
-  targetId: string;      // ID of the entity that violates the rule
+  ruleId: string; // Unique rule identifier (e.g., "rule-db-private")
+  severity: 'error' | 'warning';
+  message: string; // Human-readable description
+  suggestion: string; // Actionable fix suggestion
+  targetId: string; // ID of the entity that violates the rule
 }
 ```
 
@@ -37,27 +37,27 @@ interface ValidationError {
 
 Placement rules validate that blocks are placed on appropriate plates.
 
-| Rule ID | Severity | Condition | Message |
-|---------|----------|-----------|---------|
-| `rule-plate-exists` | error | Block has no `placementId` or plate not found | Block is not placed on any plate |
-| `rule-compute-subnet` | error | Compute block not on a `subnet` plate | Compute block must be placed on a Subnet Plate |
-| `rule-db-private` | error | Database block not on a `subnet` plate with `subnetAccess: "private"` | Database block must be placed on a private Subnet Plate |
-| `rule-gw-public` | error | Gateway block not on a `subnet` plate with `subnetAccess: "public"` | Gateway block must be placed on a public Subnet Plate |
-| `rule-storage-subnet` | error | Storage block not on a `subnet` plate | Storage block must be placed on a Subnet Plate |
-| `rule-analytics-subnet` | error | Analytics block not on a `subnet` plate | Analytics block must be placed on a Subnet Plate |
-| `rule-identity-subnet` | error | Identity block not on a `subnet` plate | Identity block must be placed on a Subnet Plate |
-| `rule-observability-subnet` | error | Observability block not on a `subnet` plate | Observability block must be placed on a Subnet Plate |
-| `rule-serverless-network` | error | `function`, `queue`, or `event` block not on a `region` plate | Serverless blocks (function/queue/event) must be placed on a Region Plate |
+| Rule ID                     | Severity | Condition                                                             | Message                                                                   |
+| --------------------------- | -------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `rule-plate-exists`         | error    | Block has no `placementId` or plate not found                         | Block is not placed on any plate                                          |
+| `rule-compute-subnet`       | error    | Compute block not on a `subnet` plate                                 | Compute block must be placed on a Subnet Plate                            |
+| `rule-db-private`           | error    | Database block not on a `subnet` plate with `subnetAccess: "private"` | Database block must be placed on a private Subnet Plate                   |
+| `rule-gw-public`            | error    | Gateway block not on a `subnet` plate with `subnetAccess: "public"`   | Gateway block must be placed on a public Subnet Plate                     |
+| `rule-storage-subnet`       | error    | Storage block not on a `subnet` plate                                 | Storage block must be placed on a Subnet Plate                            |
+| `rule-analytics-subnet`     | error    | Analytics block not on a `subnet` plate                               | Analytics block must be placed on a Subnet Plate                          |
+| `rule-identity-subnet`      | error    | Identity block not on a `subnet` plate                                | Identity block must be placed on a Subnet Plate                           |
+| `rule-observability-subnet` | error    | Observability block not on a `subnet` plate                           | Observability block must be placed on a Subnet Plate                      |
+| `rule-serverless-network`   | error    | `function`, `queue`, or `event` block not on a `region` plate         | Serverless blocks (function/queue/event) must be placed on a Region Plate |
 
 ### 3.1 v2.0 Layer Hierarchy Rules
 
 These rules are defined for the next-generation layer system but are not yet wired into the main `engine.ts` orchestrator.
 
-| Rule ID | Severity | Condition | Message |
-|---------|----------|-----------|---------|
-| `rule-layer-hierarchy` | error | Block placed on plate that is not a valid parent layer | Invalid layer hierarchy for this block type |
-| `rule-grid-alignment` | error | Block position not CU-aligned (integer coordinates) | Block must be aligned to the grid |
-| `rule-no-overlap` | error | Block overlaps with sibling on same plate (AABB detection) | Block cannot overlap with other blocks |
+| Rule ID                | Severity | Condition                                                  | Message                                     |
+| ---------------------- | -------- | ---------------------------------------------------------- | ------------------------------------------- |
+| `rule-layer-hierarchy` | error    | Block placed on plate that is not a valid parent layer     | Invalid layer hierarchy for this block type |
+| `rule-grid-alignment`  | error    | Block position not CU-aligned (integer coordinates)        | Block must be aligned to the grid           |
+| `rule-no-overlap`      | error    | Block overlaps with sibling on same plate (AABB detection) | Block cannot overlap with other blocks      |
 
 ---
 
@@ -65,23 +65,23 @@ These rules are defined for the next-generation layer system but are not yet wir
 
 Connection rules validate dataflow between blocks. Connections follow **initiator semantics** — the source is the client/initiator, the target is the server/receiver.
 
-| Rule ID | Severity | Condition | Message |
-|---------|----------|-----------|---------|
-| `rule-conn-source` | error | Source endpoint ID not found in blocks or external actors | Connection source not found |
-| `rule-conn-target` | error | Target endpoint ID not found in blocks or external actors | Connection target not found |
-| `rule-conn-self` | error | `sourceId === targetId` | A block cannot connect to itself |
-| `rule-conn-invalid` | error | Source → Target pair not in allowed connections map | Invalid connection: {source} → {target} |
+| Rule ID             | Severity | Condition                                                 | Message                                 |
+| ------------------- | -------- | --------------------------------------------------------- | --------------------------------------- |
+| `rule-conn-source`  | error    | Source endpoint ID not found in blocks or external actors | Connection source not found             |
+| `rule-conn-target`  | error    | Target endpoint ID not found in blocks or external actors | Connection target not found             |
+| `rule-conn-self`    | error    | `sourceId === targetId`                                   | A block cannot connect to itself        |
+| `rule-conn-invalid` | error    | Source → Target pair not in allowed connections map       | Invalid connection: {source} → {target} |
 
 ### Allowed Connection Map
 
-| Source (Initiator) | Allowed Targets (Receiver) |
-|-------------------|---------------------------|
-| `internet` | `gateway` |
-| `gateway` | `compute`, `function` |
-| `compute` | `database`, `storage`, `analytics`, `identity`, `observability` |
-| `function` | `storage`, `database`, `queue` |
-| `queue` | `function` |
-| `event` | `function` |
+| Source (Initiator) | Allowed Targets (Receiver)                                      |
+| ------------------ | --------------------------------------------------------------- |
+| `internet`         | `gateway`                                                       |
+| `gateway`          | `compute`, `function`                                           |
+| `compute`          | `database`, `storage`, `analytics`, `identity`, `observability` |
+| `function`         | `storage`, `database`, `queue`                                  |
+| `queue`            | `function`                                                      |
+| `event`            | `function`                                                      |
 
 `database`, `storage`, `analytics`, `identity`, and `observability` are receiver-only. `queue` and `event` can only connect to `function`.
 
@@ -96,9 +96,9 @@ Connection rules validate dataflow between blocks. Connections follow **initiato
 
 Validation for block aggregation (scaling/clustering) configuration.
 
-| Rule ID | Severity | Condition | Message |
-|---------|----------|-----------|---------|
-| `rule-aggregation-count` | error | `block.aggregation.count < 1` or count is not an integer | Aggregation count must be a positive integer |
+| Rule ID                  | Severity | Condition                                                | Message                                      |
+| ------------------------ | -------- | -------------------------------------------------------- | -------------------------------------------- |
+| `rule-aggregation-count` | error    | `block.aggregation.count < 1` or count is not an integer | Aggregation count must be a positive integer |
 
 ### Implementation References
 
@@ -109,9 +109,9 @@ Validation for block aggregation (scaling/clustering) configuration.
 
 > **Status: Planned.** The Application entity and its placement rules are designed but have no corresponding implementation. The rules below describe the intended behavior for a future milestone. See [DOMAIN_MODEL.md §4.5](../model/DOMAIN_MODEL.md#45-application) for the Application entity design.
 
-| Rule ID | Severity | Condition | Message |
-|---------|----------|-----------|---------|
-| `rule-aggregation-count` | error | Aggregation count < 1 or non-integer | Block has invalid aggregation count (must be >= 1 integer) |
+| Rule ID                  | Severity | Condition                            | Message                                                    |
+| ------------------------ | -------- | ------------------------------------ | ---------------------------------------------------------- |
+| `rule-aggregation-count` | error    | Aggregation count < 1 or non-integer | Block has invalid aggregation count (must be >= 1 integer) |
 
 ### Aggregation Behavior
 
@@ -130,10 +130,10 @@ Validation for block aggregation (scaling/clustering) configuration.
 
 Validation for identity and access management roles.
 
-| Rule ID | Severity | Condition | Message |
-|---------|----------|-----------|---------|
-| `rule-role-invalid` | error | Role not in `BLOCK_ROLES` list | Invalid role assigned to block |
-| `rule-role-duplicate` | warning | Same role appears more than once on a block | Duplicate role assigned |
+| Rule ID               | Severity | Condition                                   | Message                        |
+| --------------------- | -------- | ------------------------------------------- | ------------------------------ |
+| `rule-role-invalid`   | error    | Role not in `BLOCK_ROLES` list              | Invalid role assigned to block |
+| `rule-role-duplicate` | warning  | Same role appears more than once on a block | Duplicate role assigned        |
 
 ---
 
@@ -141,13 +141,14 @@ Validation for identity and access management roles.
 
 Specific rules based on cloud provider characteristics.
 
-| Rule ID | Severity | Condition | Message |
-|---------|----------|-----------|---------|
-| `rule-provider-aws-lambda-subnet` | warning | AWS Lambda placed on a subnet (may not need VPC) | AWS Lambda may not require a subnet placement unless VPC access is needed |
-| `rule-provider-gcp-sql-public` | warning | GCP Cloud SQL on a public subnet | GCP Cloud SQL is usually restricted to private access |
-| `rule-provider-unknown-subtype` | warning | Block subtype not in known provider subtypes | Unknown resource subtype for this provider |
+| Rule ID                           | Severity | Condition                                        | Message                                                                   |
+| --------------------------------- | -------- | ------------------------------------------------ | ------------------------------------------------------------------------- |
+| `rule-provider-aws-lambda-subnet` | warning  | AWS Lambda placed on a subnet (may not need VPC) | AWS Lambda may not require a subnet placement unless VPC access is needed |
+| `rule-provider-gcp-sql-public`    | warning  | GCP Cloud SQL on a public subnet                 | GCP Cloud SQL is usually restricted to private access                     |
+| `rule-provider-unknown-subtype`   | warning  | Block subtype not in known provider subtypes     | Unknown resource subtype for this provider                                |
 
 ### Known Subtypes Table
+
 Provider validation uses the internal `KNOWN_SUBTYPES` map to verify resource alignment.
 
 ---
@@ -164,7 +165,7 @@ The validation engine iterates all blocks and connections, collecting errors and
 
 ```typescript
 interface ValidationResult {
-  valid: boolean;       // true when errors.length === 0
+  valid: boolean; // true when errors.length === 0
   errors: ValidationError[];
   warnings: ValidationError[];
 }

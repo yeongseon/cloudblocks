@@ -29,14 +29,10 @@ export interface ConnectorRoute {
 
 const SAME_PX_TOLERANCE = 2;
 
-function worldToScreen(
-  wp: WorldPoint,
-  originX: number,
-  originY: number,
-): ScreenPoint {
+function worldToScreen(wp: WorldPoint, originX: number, originY: number): ScreenPoint {
   return {
-    x: originX + (wp.worldX - wp.worldZ) * TILE_W / 2,
-    y: originY + (wp.worldX + wp.worldZ) * TILE_H / 2 - wp.worldY * TILE_Z,
+    x: originX + ((wp.worldX - wp.worldZ) * TILE_W) / 2,
+    y: originY + ((wp.worldX + wp.worldZ) * TILE_H) / 2 - wp.worldY * TILE_Z,
   };
 }
 
@@ -128,4 +124,3 @@ export function screenSegmentLengthCU(seg: ScreenSegment): number {
   }
   return Math.abs(seg.end.x - seg.start.x) / TILE_W;
 }
-

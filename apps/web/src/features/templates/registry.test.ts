@@ -4,7 +4,7 @@ import type { ArchitectureTemplate } from '../../shared/types/template';
 
 function makeTemplate(
   id: string,
-  overrides: Partial<ArchitectureTemplate> = {}
+  overrides: Partial<ArchitectureTemplate> = {},
 ): ArchitectureTemplate {
   return {
     id,
@@ -19,7 +19,9 @@ function makeTemplate(
       nodes: [],
       connections: [],
       endpoints: [],
-      externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+      externalActors: [
+        { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+      ],
     },
     ...overrides,
   };
@@ -81,5 +83,4 @@ describe('template registry', () => {
     expect(webTemplates).toHaveLength(1);
     expect(webTemplates[0]?.id).toBe(webTemplate.id);
   });
-
 });

@@ -12,7 +12,9 @@ vi.mock('../../shared/utils/audioService', () => ({
 vi.mock('../../entities/plate/PlateSprite', () => ({ PlateSprite: () => null }));
 vi.mock('../../entities/block/BlockSprite', () => ({ BlockSprite: () => null }));
 vi.mock('../../entities/connection/BrickConnector', () => ({ BrickConnector: () => null }));
-vi.mock('../../entities/connection/ExternalActorSprite', () => ({ ExternalActorSprite: () => null }));
+vi.mock('../../entities/connection/ExternalActorSprite', () => ({
+  ExternalActorSprite: () => null,
+}));
 vi.mock('./EmptyCanvasOverlay', () => ({ EmptyCanvasOverlay: () => null }));
 vi.mock('./DragGhost', () => ({ DragGhost: () => null }));
 vi.mock('./ConnectionPreview', () => ({ ConnectionPreview: () => null }));
@@ -48,7 +50,6 @@ function setupStoreMocks() {
     };
     return (selector as (s: typeof state) => unknown)(state);
   }) as typeof useUIStore);
-
 }
 
 describe('SceneCanvas ResizeObserver origin update', () => {
@@ -85,7 +86,17 @@ describe('SceneCanvas ResizeObserver origin update', () => {
     const viewport = container.querySelector('.scene-viewport') as HTMLDivElement;
     Object.defineProperty(viewport, 'getBoundingClientRect', {
       configurable: true,
-      value: () => ({ width: 800, height: 600, top: 0, left: 0, right: 800, bottom: 600, x: 0, y: 0, toJSON: () => ({}) }),
+      value: () => ({
+        width: 800,
+        height: 600,
+        top: 0,
+        left: 0,
+        right: 800,
+        bottom: 600,
+        x: 0,
+        y: 0,
+        toJSON: () => ({}),
+      }),
     });
 
     capturedCallback!(

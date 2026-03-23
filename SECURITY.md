@@ -2,9 +2,9 @@
 
 ## Supported Versions
 
-| Version | Supported |
-|---------|-----------|
-| 0.6.x   | ✅ Current |
+| Version | Supported              |
+| ------- | ---------------------- |
+| 0.6.x   | ✅ Current             |
 | < 0.6   | ❌ No longer supported |
 
 ## Reporting a Vulnerability

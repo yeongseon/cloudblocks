@@ -229,13 +229,15 @@ describe('Group 2: GitHubRepos create → link → sync lifecycle', () => {
     // Step 1: Open repos panel — create a new repo
     useUIStore.setState({ showGitHubRepos: true });
     mockApiGet.mockResolvedValueOnce({ repos: [] }).mockResolvedValueOnce({
-      repos: [{
-        full_name: 'octocat/my-infra',
-        name: 'my-infra',
-        private: true,
-        default_branch: 'main',
-        html_url: 'https://github.com/octocat/my-infra',
-      }],
+      repos: [
+        {
+          full_name: 'octocat/my-infra',
+          name: 'my-infra',
+          private: true,
+          default_branch: 'main',
+          html_url: 'https://github.com/octocat/my-infra',
+        },
+      ],
     });
     mockApiPost.mockResolvedValueOnce({
       full_name: 'octocat/my-infra',
@@ -251,7 +253,9 @@ describe('Group 2: GitHubRepos create → link → sync lifecycle', () => {
     await user.click(screen.getByRole('button', { name: 'Create' }));
 
     // Success message with link action visible
-    expect(await screen.findByText('Repository "my-infra" created successfully.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Repository "my-infra" created successfully.'),
+    ).toBeInTheDocument();
     const linkButton = screen.getByRole('button', { name: 'Link this repo' });
     expect(linkButton).toBeInTheDocument();
 
@@ -346,7 +350,9 @@ describe('Group 3: GitHubPR submission guards', () => {
     await user.type(branchField, 'main');
 
     expect(screen.getByRole('button', { name: 'Create Pull Request' })).toBeDisabled();
-    expect(screen.getByText('Head branch must differ from base branch (main/master).')).toBeInTheDocument();
+    expect(
+      screen.getByText('Head branch must differ from base branch (main/master).'),
+    ).toBeInTheDocument();
   });
 
   it('blocks submission when head branch matches base branch "master" (case-insensitive)', async () => {
@@ -357,7 +363,9 @@ describe('Group 3: GitHubPR submission guards', () => {
     await user.type(branchField, 'MASTER');
 
     expect(screen.getByRole('button', { name: 'Create Pull Request' })).toBeDisabled();
-    expect(screen.getByText('Head branch must differ from base branch (main/master).')).toBeInTheDocument();
+    expect(
+      screen.getByText('Head branch must differ from base branch (main/master).'),
+    ).toBeInTheDocument();
   });
 
   it('shows branch collision error from backend and suggests different name', async () => {
@@ -370,7 +378,9 @@ describe('Group 3: GitHubPR submission guards', () => {
     await user.click(screen.getByRole('button', { name: 'Create Pull Request' }));
 
     expect(
-      await screen.findByText("Branch 'feature/existing' already exists. Please choose a different branch name.")
+      await screen.findByText(
+        "Branch 'feature/existing' already exists. Please choose a different branch name.",
+      ),
     ).toBeInTheDocument();
   });
 
@@ -404,7 +414,9 @@ describe('Group 3: GitHubPR submission guards', () => {
 
     render(<GitHubPR />);
 
-    expect(screen.getByText('Workspace must be linked to backend before creating a pull request.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Workspace must be linked to backend before creating a pull request.'),
+    ).toBeInTheDocument();
   });
 });
 
@@ -435,7 +447,11 @@ describe('Group 4: GitHubSync panel state during async operations', () => {
     await user.click(screen.getByRole('button', { name: 'Link' }));
 
     // Start sync with a pending promise
-    mockApiPost.mockReturnValueOnce(new Promise((r) => { resolveSync = r; }));
+    mockApiPost.mockReturnValueOnce(
+      new Promise((r) => {
+        resolveSync = r;
+      }),
+    );
     const syncButton = await screen.findByRole('button', { name: 'Sync to GitHub' });
     const pullButton = screen.getByRole('button', { name: 'Pull from GitHub' });
     const commitInput = screen.getByLabelText('Commit message');
@@ -462,7 +478,11 @@ describe('Group 4: GitHubSync panel state during async operations', () => {
     await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
     await user.click(screen.getByRole('button', { name: 'Link' }));
 
-    mockApiPost.mockReturnValueOnce(new Promise((r) => { resolvePull = r; }));
+    mockApiPost.mockReturnValueOnce(
+      new Promise((r) => {
+        resolvePull = r;
+      }),
+    );
 
     const pullButton = await screen.findByRole('button', { name: 'Pull from GitHub' });
     await user.click(pullButton);
@@ -484,7 +504,11 @@ describe('Group 4: GitHubSync panel state during async operations', () => {
     await user.type(screen.getByPlaceholderText('owner/repo'), 'owner/repo-one');
     await user.click(screen.getByRole('button', { name: 'Link' }));
 
-    mockApiPost.mockReturnValueOnce(new Promise((r) => { resolveSync = r; }));
+    mockApiPost.mockReturnValueOnce(
+      new Promise((r) => {
+        resolveSync = r;
+      }),
+    );
     await user.click(await screen.findByRole('button', { name: 'Sync to GitHub' }));
 
     // Try to close while syncing
@@ -492,7 +516,7 @@ describe('Group 4: GitHubSync panel state during async operations', () => {
 
     expect(mockConfirmDialog).toHaveBeenCalledWith(
       'An operation is in progress. Closing may hide the result. Close anyway?',
-      'Close GitHub Sync?'
+      'Close GitHub Sync?',
     );
     // Panel stays open because user cancelled
     expect(useUIStore.getState().showGitHubSync).toBe(true);
@@ -503,9 +527,20 @@ describe('Group 4: GitHubSync panel state during async operations', () => {
   it('ignores stale commit responses after workspace changes', async () => {
     const user = userEvent.setup();
 
-    let resolveCommits!: (value: { commits: Array<{ sha: string; message: string; author: string; date: string; html_url: string }> }) => void;
+    let resolveCommits!: (value: {
+      commits: Array<{
+        sha: string;
+        message: string;
+        author: string;
+        date: string;
+        html_url: string;
+      }>;
+    }) => void;
     mockApiGet.mockImplementationOnce(
-      () => new Promise((resolve) => { resolveCommits = resolve; })
+      () =>
+        new Promise((resolve) => {
+          resolveCommits = resolve;
+        }),
     );
 
     render(<GitHubSync />);
@@ -528,13 +563,15 @@ describe('Group 4: GitHubSync panel state during async operations', () => {
 
     // Resolve with stale data
     resolveCommits({
-      commits: [{
-        sha: 'stale1234567890',
-        message: 'stale commit data',
-        author: 'ghost',
-        date: '2026-01-01T00:00:00Z',
-        html_url: 'https://github.com/owner/repo-one/commit/stale1234567890',
-      }],
+      commits: [
+        {
+          sha: 'stale1234567890',
+          message: 'stale commit data',
+          author: 'ghost',
+          date: '2026-01-01T00:00:00Z',
+          html_url: 'https://github.com/owner/repo-one/commit/stale1234567890',
+        },
+      ],
     });
 
     // Stale data should not appear
@@ -589,19 +626,21 @@ describe('Group 5: Compare mode isolation (read-only, no workspace mutation)', (
     const archWithNodes: ArchitectureModel = {
       ...emptyArch,
       name: 'My Production Arch',
-      nodes: [{
-        id: 'node-1',
-        name: 'VNet',
-        kind: 'container',
-        layer: 'region',
-        resourceType: 'virtual_network',
-        category: 'network',
-        provider: 'azure',
-        parentId: null,
-        position: { x: 0, y: 0, z: 0 },
-        size: { width: 8, height: 1, depth: 8 },
-        metadata: {},
-      }],
+      nodes: [
+        {
+          id: 'node-1',
+          name: 'VNet',
+          kind: 'container',
+          layer: 'region',
+          resourceType: 'virtual_network',
+          category: 'network',
+          provider: 'azure',
+          parentId: null,
+          position: { x: 0, y: 0, z: 0 },
+          size: { width: 8, height: 1, depth: 8 },
+          metadata: {},
+        },
+      ],
     };
 
     useArchitectureStore.setState({
@@ -737,7 +776,7 @@ describe('Group 6: PR body prefill from compare review', () => {
         '/api/v1/workspaces/backend-ws-1/pr',
         expect.objectContaining({
           body: reviewText,
-        })
+        }),
       );
     });
 
@@ -767,7 +806,7 @@ describe('Group 6: PR body prefill from compare review', () => {
         '/api/v1/workspaces/backend-ws-1/pr',
         expect.objectContaining({
           body: 'Edited review with additional notes',
-        })
+        }),
       );
     });
   });

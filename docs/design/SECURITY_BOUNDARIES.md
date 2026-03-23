@@ -10,14 +10,14 @@ This document codifies security-critical boundaries as enforceable design rules.
 
 ### Session Cookie
 
-| Rule | Policy |
-|------|--------|
-| **Transport** | `cb_session` httpOnly cookie only |
-| **Cookie scope** | Sent automatically with `credentials: 'include'` |
-| **Query params** | ❌ NEVER — session identifiers must not appear in URLs |
-| **Request body** | ❌ NEVER — auth session tokens are transport metadata |
+| Rule                            | Policy                                                            |
+| ------------------------------- | ----------------------------------------------------------------- |
+| **Transport**                   | `cb_session` httpOnly cookie only                                 |
+| **Cookie scope**                | Sent automatically with `credentials: 'include'`                  |
+| **Query params**                | ❌ NEVER — session identifiers must not appear in URLs            |
+| **Request body**                | ❌ NEVER — auth session tokens are transport metadata             |
 | **localStorage/sessionStorage** | ❌ NEVER — browser-accessible storage must not hold auth sessions |
-| **Server-side storage** | Session records in SQLite (`sessions` table); token hash only |
+| **Server-side storage**         | Session records in SQLite (`sessions` table); token hash only     |
 
 ### Implementation
 
@@ -28,9 +28,9 @@ This document codifies security-critical boundaries as enforceable design rules.
 ### DO ✅
 
 ```typescript
-fetch("/api/v1/auth/session", {
-  method: "GET",
-  credentials: "include"
+fetch('/api/v1/auth/session', {
+  method: 'GET',
+  credentials: 'include',
 });
 ```
 
@@ -38,11 +38,11 @@ fetch("/api/v1/auth/session", {
 
 ```typescript
 // NEVER: persist auth session token in browser storage
-localStorage.setItem("auth_token", token);
+localStorage.setItem('auth_token', token);
 
 // NEVER: pass session token manually in custom headers
-fetch("/api/v1/auth/session", {
-  headers: { Authorization: `Bearer ${token}` }
+fetch('/api/v1/auth/session', {
+  headers: { Authorization: `Bearer ${token}` },
 });
 ```
 
@@ -50,14 +50,14 @@ fetch("/api/v1/auth/session", {
 
 ## 2. Session Security Policy Contract
 
-| Rule | Policy |
-|------|--------|
-| **Minimum length** | 32 characters in non-development environments |
-| **Weak secrets** | `"change-me-in-production"`, `"secret"`, `"password"`, `""` are explicitly blocked |
-| **Primary use** | Secret key is used for Fernet key derivation (`cb_oauth` state cookie encryption), not JWT signing |
-| **Session token format** | Random URL-safe token (from `secrets.token_urlsafe(32)`) in `cb_session` httpOnly cookie; raw token stored as `sessions.id` in DB |
-| **Session expiry** | Configurable via `session_ttl_hours` (default: 168) |
-| **Development exception** | Weak secrets are allowed when `app_env == "development"` only |
+| Rule                      | Policy                                                                                                                            |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| **Minimum length**        | 32 characters in non-development environments                                                                                     |
+| **Weak secrets**          | `"change-me-in-production"`, `"secret"`, `"password"`, `""` are explicitly blocked                                                |
+| **Primary use**           | Secret key is used for Fernet key derivation (`cb_oauth` state cookie encryption), not JWT signing                                |
+| **Session token format**  | Random URL-safe token (from `secrets.token_urlsafe(32)`) in `cb_session` httpOnly cookie; raw token stored as `sessions.id` in DB |
+| **Session expiry**        | Configurable via `session_ttl_hours` (default: 168)                                                                               |
+| **Development exception** | Weak secrets are allowed when `app_env == "development"` only                                                                     |
 
 ### Implementation
 
@@ -91,13 +91,13 @@ raise ValueError(
 7. Frontend uses cookie automatically on API calls (`credentials: 'include'`)
 ```
 
-| Milestone | Security Rule |
-|-------|--------------|
-| **State parameter** | CSRF protection — random, single-use, time-limited (10 min) |
-| **Code exchange** | Server-side only — client secret never exposed to frontend |
+| Milestone           | Security Rule                                                              |
+| ------------------- | -------------------------------------------------------------------------- |
+| **State parameter** | CSRF protection — random, single-use, time-limited (10 min)                |
+| **Code exchange**   | Server-side only — client secret never exposed to frontend                 |
 | **Session storage** | Session record in SQLite (`sessions` table), token hash stored server-side |
-| **Session refresh** | N/A (no refresh token flow) |
-| **Logout** | Delete server-side session and clear `cb_session` cookie |
+| **Session refresh** | N/A (no refresh token flow)                                                |
+| **Logout**          | Delete server-side session and clear `cb_session` cookie                   |
 
 ### DO ✅
 
@@ -117,16 +117,16 @@ raise ValueError(
 
 ## 4. API Authentication Contract
 
-| Endpoint Pattern | Auth Required | Token Type |
-|-----------------|---------------|------------|
-| `GET /health`, `GET /health/ready` | No | — |
-| `POST /api/v1/auth/github`, `GET /api/v1/auth/github/callback` | No | — |
-| `GET /api/v1/auth/session` | Yes | Session Cookie (`cb_session`) |
-| `POST /api/v1/auth/logout` | No (always 200) | Optional Session Cookie (`cb_session`) |
-| `POST /api/v1/session/workspace` | Yes | Session Cookie (`cb_session`) |
-| `* /api/v1/github/*` | Yes | Session Cookie (`cb_session`) |
-| `* /api/v1/workspaces/*` | Yes | Session Cookie (`cb_session`) |
-| `* /api/v1/generate/*` | Yes | Session Cookie (`cb_session`) |
+| Endpoint Pattern                                               | Auth Required   | Token Type                             |
+| -------------------------------------------------------------- | --------------- | -------------------------------------- |
+| `GET /health`, `GET /health/ready`                             | No              | —                                      |
+| `POST /api/v1/auth/github`, `GET /api/v1/auth/github/callback` | No              | —                                      |
+| `GET /api/v1/auth/session`                                     | Yes             | Session Cookie (`cb_session`)          |
+| `POST /api/v1/auth/logout`                                     | No (always 200) | Optional Session Cookie (`cb_session`) |
+| `POST /api/v1/session/workspace`                               | Yes             | Session Cookie (`cb_session`)          |
+| `* /api/v1/github/*`                                           | Yes             | Session Cookie (`cb_session`)          |
+| `* /api/v1/workspaces/*`                                       | Yes             | Session Cookie (`cb_session`)          |
+| `* /api/v1/generate/*`                                         | Yes             | Session Cookie (`cb_session`)          |
 
 ### Authorization Rules
 
@@ -138,14 +138,14 @@ raise ValueError(
 
 ## 5. Data Classification
 
-| Data Type | Sensitivity | Storage Location | Encryption |
-|-----------|------------|------------------|------------|
-| Architecture JSON | Low | GitHub repo / localStorage | At-rest (GitHub) |
-| Generated IaC code | Low | GitHub repo | At-rest (GitHub) |
-| User email | Medium | Metadata DB | At-rest |
-| GitHub access token | High | Server memory / encrypted DB | AES-256 at rest |
-| Session secret key | Critical | Environment variable | Never stored in code or DB |
-| OAuth client secret | Critical | Environment variable | Never stored in code or DB |
+| Data Type           | Sensitivity | Storage Location             | Encryption                 |
+| ------------------- | ----------- | ---------------------------- | -------------------------- |
+| Architecture JSON   | Low         | GitHub repo / localStorage   | At-rest (GitHub)           |
+| Generated IaC code  | Low         | GitHub repo                  | At-rest (GitHub)           |
+| User email          | Medium      | Metadata DB                  | At-rest                    |
+| GitHub access token | High        | Server memory / encrypted DB | AES-256 at rest            |
+| Session secret key  | Critical    | Environment variable         | Never stored in code or DB |
+| OAuth client secret | Critical    | Environment variable         | Never stored in code or DB |
 
 ---
 

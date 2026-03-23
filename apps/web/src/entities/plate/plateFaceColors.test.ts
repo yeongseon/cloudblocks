@@ -2,14 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { getPlateFaceColors } from './plateFaceColors';
 
 describe('getPlateFaceColors', () => {
-it('returns region colors for region plate type', () => {
-  expect(getPlateFaceColors({ type: 'region' })).toEqual({
+  it('returns region colors for region plate type', () => {
+    expect(getPlateFaceColors({ type: 'region' })).toEqual({
       topFaceColor: '#90CAF9',
       topFaceStroke: '#BBDEFB',
       leftSideColor: '#64B5F6',
       rightSideColor: '#42A5F5',
+    });
   });
-});
 
   it('returns global colors for global plate type', () => {
     expect(getPlateFaceColors({ type: 'global' })).toEqual({

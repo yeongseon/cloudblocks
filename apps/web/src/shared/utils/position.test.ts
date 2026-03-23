@@ -102,7 +102,11 @@ describe('position utilities', () => {
   });
 
   it('falls back to default external actor position for legacy actor payloads', () => {
-    const legacyActor = { id: 'ext-legacy', name: 'Internet', type: 'internet' } as unknown as ExternalActor;
+    const legacyActor = {
+      id: 'ext-legacy',
+      name: 'Internet',
+      type: 'internet',
+    } as unknown as ExternalActor;
 
     const endpoint = getEndpointWorldPosition(legacyActor.id, [], [], [legacyActor]);
 

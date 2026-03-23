@@ -12,55 +12,55 @@ Complete every item before proceeding to tagging. A single ❌ in a **Blocker** 
 
 ### Gate 1: Build & Type Safety
 
-| # | Check | Command | Pass? |
-|---|-------|---------|-------|
-| 1 | TypeScript compiles | `pnpm run typecheck` | ☐ |
-| 2 | Vite production build | `pnpm build` | ☐ |
-| 3 | Python syntax | `cd apps/api && python -m py_compile app/main.py` | ☐ |
+| #   | Check                 | Command                                           | Pass? |
+| --- | --------------------- | ------------------------------------------------- | ----- |
+| 1   | TypeScript compiles   | `pnpm run typecheck`                              | ☐     |
+| 2   | Vite production build | `pnpm build`                                      | ☐     |
+| 3   | Python syntax         | `cd apps/api && python -m py_compile app/main.py` | ☐     |
 
 ### Gate 2: Lint
 
-| # | Check | Command | Pass? |
-|---|-------|---------|-------|
-| 4 | Frontend lint (zero errors) | `pnpm lint` | ☐ |
-| 5 | Backend lint (zero errors) | `cd apps/api && ruff check app/` | ☐ |
+| #   | Check                       | Command                          | Pass? |
+| --- | --------------------------- | -------------------------------- | ----- |
+| 4   | Frontend lint (zero errors) | `pnpm lint`                      | ☐     |
+| 5   | Backend lint (zero errors)  | `cd apps/api && ruff check app/` | ☐     |
 
 ### Gate 3: Tests & Coverage
 
-| # | Check | Command | Pass? |
-|---|-------|---------|-------|
-| 6 | Frontend tests pass | `cd apps/web && npx vitest run` | ☐ |
-| 7 | Frontend coverage ≥ 90% | `cd apps/web && npx vitest run --coverage` | ☐ |
-| 8 | Backend tests pass | `cd apps/api && pytest app/tests/ -v` | ☐ |
-| 9 | Backend coverage ≥ 90% | `cd apps/api && pytest --cov=app --cov-fail-under=90` | ☐ |
-| 10 | Package tests pass | `pnpm --filter @cloudblocks/schema test && pnpm --filter @cloudblocks/domain test` | ☐ |
+| #   | Check                   | Command                                                                            | Pass? |
+| --- | ----------------------- | ---------------------------------------------------------------------------------- | ----- |
+| 6   | Frontend tests pass     | `cd apps/web && npx vitest run`                                                    | ☐     |
+| 7   | Frontend coverage ≥ 90% | `cd apps/web && npx vitest run --coverage`                                         | ☐     |
+| 8   | Backend tests pass      | `cd apps/api && pytest app/tests/ -v`                                              | ☐     |
+| 9   | Backend coverage ≥ 90%  | `cd apps/api && pytest --cov=app --cov-fail-under=90`                              | ☐     |
+| 10  | Package tests pass      | `pnpm --filter @cloudblocks/schema test && pnpm --filter @cloudblocks/domain test` | ☐     |
 
 ### Gate 4: Security
 
-| # | Check | Pass? |
-|---|-------|-------|
-| 11 | No secrets in source code | ☐ |
-| 12 | Build output secret scan passes | ☐ |
-| 13 | No critical CVEs in dependencies | ☐ |
+| #   | Check                            | Pass? |
+| --- | -------------------------------- | ----- |
+| 11  | No secrets in source code        | ☐     |
+| 12  | Build output secret scan passes  | ☐     |
+| 13  | No critical CVEs in dependencies | ☐     |
 
 ### Gate 5: Demo Verification (MANDATORY)
 
-| # | Check | Pass? |
-|---|-------|-------|
-| 14 | App loads without console errors | ☐ |
-| 15 | Existing localStorage data loads and renders | ☐ |
-| 16 | Create workspace → place plate → place block → connect | ☐ |
-| 17 | Validation results display correctly | ☐ |
-| 18 | Generate Terraform/Bicep/Pulumi | ☐ |
-| 19 | Load a template and render | ☐ |
+| #   | Check                                                  | Pass? |
+| --- | ------------------------------------------------------ | ----- |
+| 14  | App loads without console errors                       | ☐     |
+| 15  | Existing localStorage data loads and renders           | ☐     |
+| 16  | Create workspace → place plate → place block → connect | ☐     |
+| 17  | Validation results display correctly                   | ☐     |
+| 18  | Generate Terraform/Bicep/Pulumi                        | ☐     |
+| 19  | Load a template and render                             | ☐     |
 
 ### Gate 6: Documentation
 
-| # | Check | Pass? |
-|---|-------|-------|
-| 20 | CHANGELOG.md entry written (use [template](CHANGELOG_TEMPLATE.md)) | ☐ |
-| 21 | ROADMAP.md exit criteria checked off | ☐ |
-| 22 | README feature list matches implemented features | ☐ |
+| #   | Check                                                              | Pass? |
+| --- | ------------------------------------------------------------------ | ----- |
+| 20  | CHANGELOG.md entry written (use [template](CHANGELOG_TEMPLATE.md)) | ☐     |
+| 21  | ROADMAP.md exit criteria checked off                               | ☐     |
+| 22  | README feature list matches implemented features                   | ☐     |
 
 ---
 
@@ -124,13 +124,13 @@ gh api "repos/${OWNER}/${REPO}/actions/artifacts" --paginate \
 
 ## 3. Post-Release Verification
 
-| # | Check | Pass? |
-|---|-------|-------|
-| 1 | GitHub Release page shows correct tag and notes | ☐ |
-| 2 | GitHub Pages deployment succeeded (if frontend changed) | ☐ |
-| 3 | Live demo loads: https://yeongseon.github.io/cloudblocks/ | ☐ |
-| 4 | Milestone closed on GitHub | ☐ |
-| 5 | ROADMAP.md updated with completion markers | ☐ |
+| #   | Check                                                     | Pass? |
+| --- | --------------------------------------------------------- | ----- |
+| 1   | GitHub Release page shows correct tag and notes           | ☐     |
+| 2   | GitHub Pages deployment succeeded (if frontend changed)   | ☐     |
+| 3   | Live demo loads: https://yeongseon.github.io/cloudblocks/ | ☐     |
+| 4   | Milestone closed on GitHub                                | ☐     |
+| 5   | ROADMAP.md updated with completion markers                | ☐     |
 
 ---
 

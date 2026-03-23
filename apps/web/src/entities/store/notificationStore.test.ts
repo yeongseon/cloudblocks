@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useNotificationStore, selectUnreadCount, selectFilteredNotifications } from './notificationStore';
+import {
+  useNotificationStore,
+  selectUnreadCount,
+  selectFilteredNotifications,
+} from './notificationStore';
 
 describe('useNotificationStore', () => {
   beforeEach(() => {

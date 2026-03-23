@@ -31,36 +31,36 @@ This is NOT a traditional database-heavy architecture. The design principle: **D
 
 ### What Goes in GitHub (Source of Truth)
 
-| Data | Format | Location in Repo |
-|------|--------|-----------------|
-| Architecture model | JSON | `cloudblocks/architecture.json` |
-| Schema version | Text | `cloudblocks/schemaVersion` |
-| Generator config | JSON | `cloudblocks/generator.lock` |
-| Terraform code | HCL | `infra/terraform/*.tf` |
-| Bicep code | Bicep | `infra/bicep/*.bicep` |
-| Pulumi code | TS/Python | `infra/pulumi/` |
-| CI/CD workflows | YAML | `.github/workflows/` |
+| Data               | Format    | Location in Repo                |
+| ------------------ | --------- | ------------------------------- |
+| Architecture model | JSON      | `cloudblocks/architecture.json` |
+| Schema version     | Text      | `cloudblocks/schemaVersion`     |
+| Generator config   | JSON      | `cloudblocks/generator.lock`    |
+| Terraform code     | HCL       | `infra/terraform/*.tf`          |
+| Bicep code         | Bicep     | `infra/bicep/*.bicep`           |
+| Pulumi code        | TS/Python | `infra/pulumi/`                 |
+| CI/CD workflows    | YAML      | `.github/workflows/`            |
 
 ### What Goes in Metadata DB (Index + Status)
 
-| Data | Purpose | Why Not GitHub |
-|------|---------|---------------|
-| User identity | Auth, OAuth identity mapping | Security — identity linkage is server-side |
-| Identity providers | Multi-provider auth (GitHub, Google) | Fast lookup, encrypted storage |
-| Workspace index | User → repo mapping | Fast lookup without GitHub API calls |
-| Generation runs | Job status, timestamps | Transient state, not version-controlled |
-| Sessions | Server-side session auth state | Cookie session validation + revocation |
-| AI API keys | Encrypted LLM provider keys per user | Security — encrypted at rest, per-user isolation |
+| Data               | Purpose                              | Why Not GitHub                                   |
+| ------------------ | ------------------------------------ | ------------------------------------------------ |
+| User identity      | Auth, OAuth identity mapping         | Security — identity linkage is server-side       |
+| Identity providers | Multi-provider auth (GitHub, Google) | Fast lookup, encrypted storage                   |
+| Workspace index    | User → repo mapping                  | Fast lookup without GitHub API calls             |
+| Generation runs    | Job status, timestamps               | Transient state, not version-controlled          |
+| Sessions           | Server-side session auth state       | Cookie session validation + revocation           |
+| AI API keys        | Encrypted LLM provider keys per user | Security — encrypted at rest, per-user isolation |
 
 ### What Does NOT Go in Any DB
 
-| Data | Where It Lives | Why |
-|------|---------------|-----|
-| Generated Terraform (full) | GitHub repo | Version history, PR review |
-| Architecture spec (full) | GitHub repo | Diff, collaboration, backup |
-| Long prompt/log history | GitHub / Blob Storage | Too large for DB rows |
-| Template content | GitHub repo | Community contribution via PRs |
-| Deployment artifacts | GitHub / Blob Storage | Binary assets |
+| Data                       | Where It Lives        | Why                            |
+| -------------------------- | --------------------- | ------------------------------ |
+| Generated Terraform (full) | GitHub repo           | Version history, PR review     |
+| Architecture spec (full)   | GitHub repo           | Diff, collaboration, backup    |
+| Long prompt/log history    | GitHub / Blob Storage | Too large for DB rows          |
+| Template content           | GitHub repo           | Community contribution via PRs |
+| Deployment artifacts       | GitHub / Blob Storage | Binary assets                  |
 
 ## GitHub Repo Structure (Per Workspace)
 
@@ -113,7 +113,12 @@ my-cloud-project/
         "blocks": [],
         "connections": [],
         "externalActors": [
-          { "id": "ext-internet", "name": "Internet", "type": "internet", "position": { "x": -3, "y": 0, "z": 5 } }
+          {
+            "id": "ext-internet",
+            "name": "Internet",
+            "type": "internet",
+            "position": { "x": -3, "y": 0, "z": 5 }
+          }
         ],
         "createdAt": "2025-01-01T00:00:00Z",
         "updatedAt": "2025-01-01T00:00:00Z"
@@ -209,6 +214,7 @@ CREATE TABLE IF NOT EXISTS ai_api_keys (
 **Total: 6 tables** (`users`, `identities`, `workspaces`, `generation_runs`, `sessions`, `ai_api_keys`). Everything else lives in GitHub.
 
 Key differences from a traditional SaaS schema:
+
 - **TEXT primary keys** (not UUID) — lightweight, no UUID extension needed
 - **No `projects` table** — called `workspaces` to match the frontend model
 - **No JWT table/mechanism** — auth is server-side session rows + httpOnly `cb_session` cookie
@@ -254,11 +260,13 @@ cache:workspace:{workspace_id}    → JSON workspace metadata (TTL: 5m)
 ## Migration Strategy
 
 ### Milestone 1 → Milestone 3 (localStorage → File Export)
+
 1. Add "Export as architecture.json" feature
 2. Download file or copy to clipboard
 3. No backend needed
 
 ### Milestone 3 → Milestone 5 (File Export → GitHub Sync)
+
 1. Add GitHub App OAuth
 2. User connects GitHub account
 3. Select or create target repo
@@ -269,6 +277,7 @@ cache:workspace:{workspace_id}    → JSON workspace metadata (TTL: 5m)
 ### Local-First Principle
 
 CloudBlocks is **local-first**:
+
 - Works fully offline with localStorage
 - GitHub sync is optional (but recommended for teams)
 - No data loss if GitHub is down
