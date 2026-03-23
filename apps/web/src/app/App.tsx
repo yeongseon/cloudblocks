@@ -5,6 +5,7 @@ import { registerBuiltinTemplates } from '../features/templates/builtin';
 import { registerBuiltinScenarios } from '../features/learning/scenarios/builtin';
 import { audioService } from '../shared/utils/audioService';
 import { SOUND_ASSETS } from '../shared/assets/sounds';
+import { metricsService } from '../shared/utils/metricsService';
 import { LandingPage } from '../widgets/landing-page/LandingPage';
 import { BuilderView } from './BuilderView';
 import './App.css';
@@ -21,6 +22,7 @@ function App() {
 
   useEffect(() => {
     audioService.preloadAll(SOUND_ASSETS).catch(() => {});
+    metricsService.trackEvent('app_loaded');
   }, []);
 
   useEffect(() => {
