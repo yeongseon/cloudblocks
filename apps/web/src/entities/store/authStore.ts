@@ -26,14 +26,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   hydrated: false,
   error: null,
 
-  setAuthenticated: (user) =>
-    set({ status: 'authenticated', user, error: null }),
+  setAuthenticated: (user) => set({ status: 'authenticated', user, error: null }),
 
-  setAnonymous: () =>
-    set({ status: 'anonymous', user: null, error: null }),
+  setAnonymous: () => set({ status: 'anonymous', user: null, error: null }),
 
-  setError: (error) =>
-    set({ error }),
+  setError: (error) => set({ error }),
 
   checkSession: async () => {
     if (!isApiConfigured()) {
@@ -51,12 +48,9 @@ export const useAuthStore = create<AuthState>((set) => ({
       if (seq !== _checkSessionSeq) return; // stale response
       // 401 = clear session quietly; other errors = set anonymous with error message
       const isUnauthorized =
-        err instanceof Error &&
-        'status' in err &&
-        (err as { status: number }).status === 401;
+        err instanceof Error && 'status' in err && (err as { status: number }).status === 401;
       const isNetworkError =
-        (err instanceof ApiError && err.status === 0) ||
-        err instanceof TypeError;
+        (err instanceof ApiError && err.status === 0) || err instanceof TypeError;
       if (isUnauthorized) {
         set({ status: 'anonymous', user: null, hydrated: true, error: null });
         useUIStore.getState().setBackendStatus('available');

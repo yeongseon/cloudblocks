@@ -1,7 +1,12 @@
 import './LearningPanel.css';
 import { useUIStore } from '../../entities/store/uiStore';
 import { useLearningStore } from '../../entities/store/learningStore';
-import { advanceToNextStep, resetCurrentStep, abandonLearning, getValidationDetails } from '../../features/learning/scenario-engine';
+import {
+  advanceToNextStep,
+  resetCurrentStep,
+  abandonLearning,
+  getValidationDetails,
+} from '../../features/learning/scenario-engine';
 import type { StepValidationRule } from '../../shared/types/learning';
 import { StepProgress } from './StepProgress';
 import { HintPopup } from './HintPopup';
@@ -104,7 +109,12 @@ export function LearningPanel() {
     <div className="learning-panel-container">
       <div className="learning-panel-header">
         <h3 className="learning-panel-title">{activeScenario.name}</h3>
-        <button type="button" className="learning-panel-close-btn" onClick={handleClose} aria-label="Close learning panel">
+        <button
+          type="button"
+          className="learning-panel-close-btn"
+          onClick={handleClose}
+          aria-label="Close learning panel"
+        >
           ×
         </button>
       </div>
@@ -137,29 +147,25 @@ export function LearningPanel() {
         <HintPopup />
 
         <div className="learning-panel-actions">
-          <button 
-            type="button" 
-            className="learning-panel-btn primary" 
+          <button
+            type="button"
+            className="learning-panel-btn primary"
             onClick={handleNextStep}
             disabled={!isCurrentStepComplete}
           >
             Next Step
           </button>
-          
-          <button 
-            type="button" 
-            className="learning-panel-btn" 
+
+          <button
+            type="button"
+            className="learning-panel-btn"
             onClick={handleShowHint}
             disabled={allHintsShown || maxHints === 0}
           >
             Show Hint
           </button>
-          
-          <button 
-            type="button" 
-            className="learning-panel-btn" 
-            onClick={handleResetStep}
-          >
+
+          <button type="button" className="learning-panel-btn" onClick={handleResetStep}>
             Reset Step
           </button>
         </div>

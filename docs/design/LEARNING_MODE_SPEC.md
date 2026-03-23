@@ -11,12 +11,14 @@
 CloudBlocks Learning Mode transforms the builder into a guided learning platform (Duolingo for Cloud Architecture). Users switch between Build Mode (free-form editor) and Learn Mode (guided scenario missions).
 
 ### Goals
+
 - Teach cloud architecture fundamentals through hands-on building
 - Validate learner progress via state-based predicates (not action-tracking)
 - Reuse the existing visual builder — no separate "learning UI"
 - Progressive difficulty: beginner → intermediate → advanced
 
 ### Non-Goals
+
 - AI-powered tutoring (future milestone)
 - User accounts / cloud persistence (uses localStorage)
 - Multiplayer/social features
@@ -27,11 +29,13 @@ CloudBlocks Learning Mode transforms the builder into a guided learning platform
 ## 2. Architecture
 
 ### Mode Switch
+
 - `EditorMode = 'build' | 'learn'` in `uiStore.ts`
 - Build Mode: full editor (default)
 - Learn Mode: hides noise (GitHub, import/export, templates), shows LearningPanel
 
 ### Store Architecture
+
 ```
 uiStore.ts          — editorMode, showLearningPanel, showScenarioGallery
 learningStore.ts    — activeScenario, progress, hints, step completion
@@ -41,6 +45,7 @@ architectureStore   — unchanged (source of truth for architecture state)
 The learning store SUBSCRIBES to architecture changes via `architectureStore.subscribe()` to evaluate step validation rules reactively.
 
 ### Key Principle: State-Based Validation
+
 Step completion is determined by examining the CURRENT architecture state against typed validation predicates — NOT by tracking user actions. This makes the system compatible with undo/redo, reset, and any method of arriving at the correct state.
 
 ---
@@ -57,15 +62,26 @@ export type ArchitectureSnapshot = Omit<ArchitectureModel, 'id' | 'createdAt' | 
 // Typed validation rule union — NO unknown/any
 export type StepValidationRule =
   | { type: 'plate-exists'; plateType: PlateType; subnetAccess?: SubnetAccess }
-  | { type: 'block-exists'; category: BlockCategory; onPlateType?: PlateType; onSubnetAccess?: SubnetAccess }
+  | {
+      type: 'block-exists';
+      category: BlockCategory;
+      onPlateType?: PlateType;
+      onSubnetAccess?: SubnetAccess;
+    }
   | { type: 'connection-exists'; sourceCategory: EndpointType; targetCategory: EndpointType }
-  | { type: 'entity-on-plate'; entityCategory: BlockCategory; plateType: PlateType; subnetAccess?: SubnetAccess }
+  | {
+      type: 'entity-on-plate';
+      entityCategory: BlockCategory;
+      plateType: PlateType;
+      subnetAccess?: SubnetAccess;
+    }
   | { type: 'architecture-valid' }
   | { type: 'min-block-count'; category: BlockCategory; count: number }
   | { type: 'min-plate-count'; plateType: PlateType; count: number };
 ```
 
 Each rule type maps directly to an existing domain concept:
+
 - `plate-exists` → check `model.plates` for matching type/access
 - `block-exists` → check `model.blocks` for matching category, optionally on a specific plate type
 - `connection-exists` → check `model.connections` + resolve endpoint types
@@ -75,17 +91,26 @@ Each rule type maps directly to an existing domain concept:
 - `min-plate-count` → count plates of type ≥ threshold
 
 ### Scenario & Step
+
 ```typescript
 interface ScenarioStep {
-  id: string; order: number; title: string; instruction: string;
-  hints: string[]; validationRules: StepValidationRule[];
+  id: string;
+  order: number;
+  title: string;
+  instruction: string;
+  hints: string[];
+  validationRules: StepValidationRule[];
   checkpoint?: ArchitectureSnapshot;
 }
 
 interface Scenario {
-  id: string; name: string; description: string;
-  difficulty: ScenarioDifficulty; category: TemplateCategory;
-  tags: string[]; estimatedMinutes: number;
+  id: string;
+  name: string;
+  description: string;
+  difficulty: ScenarioDifficulty;
+  category: TemplateCategory;
+  tags: string[];
+  estimatedMinutes: number;
   steps: ScenarioStep[];
   initialArchitecture: ArchitectureSnapshot;
 }
@@ -106,6 +131,7 @@ Pure function: `evaluateRules(rules: StepValidationRule[], model: ArchitectureMo
 ### 4.2 Scenario Engine (`features/learning/scenario-engine.ts`)
 
 Orchestration layer that:
+
 1. Loads a scenario and seeds `architectureStore` with `replaceArchitecture(initialArchitecture)`
 2. Subscribes to `architectureStore` state changes
 3. On each change, runs step-validator against current step's rules and sets `isCurrentStepComplete`
@@ -122,6 +148,7 @@ Orchestration layer that:
 ### 4.4 Scenario Registry (`features/learning/scenarios/registry.ts`)
 
 Mirrors the template registry pattern:
+
 ```typescript
 registerScenario(scenario: Scenario): void
 getScenario(id: string): Scenario | undefined
@@ -134,6 +161,7 @@ clearScenarioRegistry(): void
 ### 4.5 Learning Store (`entities/store/learningStore.ts`)
 
 Zustand store managing learning session state:
+
 ```typescript
 interface LearningStoreState {
   activeScenario: Scenario | null;
@@ -157,6 +185,7 @@ interface LearningStoreState {
 ## 5. UI Components
 
 ### 5.1 LearningPanel (right side, replaces Properties in Learn mode)
+
 - Current step title + instruction
 - Step progress indicator (1/N)
 - Hint display area
@@ -164,20 +193,24 @@ interface LearningStoreState {
 - "Next Step" button (enabled when step complete)
 
 ### 5.2 StepProgress
+
 - Visual step indicators (locked/active/completed)
 - Current step highlighted
 
 ### 5.3 HintPopup
+
 - Progressive hint reveal
 - "Show Hint" button with count (e.g., "Hint 1/3")
 
 ### 5.4 CompletionScreen
+
 - Congratulations display
 - Stats: time taken, hints used
 - "Try Another" → ScenarioGallery
 - "Back to Build" → switch to Build mode
 
 ### 5.5 ScenarioGallery
+
 - Grid of scenario cards
 - Filter by difficulty
 - Shows: name, description, difficulty badge, estimated time, step count
@@ -188,22 +221,24 @@ interface LearningStoreState {
 ## 6. App Integration
 
 ### Mode Switch in Toolbar
+
 - Toggle button: "Build" ↔ "Learn"
 - Switching to Learn shows ScenarioGallery (if no active scenario) or LearningPanel
 - Switching to Build returns to normal editor
 
 ### Conditional UI (Learn Mode)
-| Element | Build Mode | Learn Mode |
-|---------|-----------|------------|
-| Block Palette | Visible | Visible |
-| Properties Panel | Visible | Hidden |
-| Validation Panel | Visible | Hidden |
-| Code Preview | Visible | Hidden |
-| GitHub buttons | Visible | Hidden |
-| Workspace Manager | Visible | Hidden |
-| Template Gallery | Visible | Hidden |
-| Learning Panel | Hidden | Visible |
-| Canvas | Full editor | Full editor |
+
+| Element           | Build Mode  | Learn Mode  |
+| ----------------- | ----------- | ----------- |
+| Block Palette     | Visible     | Visible     |
+| Properties Panel  | Visible     | Hidden      |
+| Validation Panel  | Visible     | Hidden      |
+| Code Preview      | Visible     | Hidden      |
+| GitHub buttons    | Visible     | Hidden      |
+| Workspace Manager | Visible     | Hidden      |
+| Template Gallery  | Visible     | Hidden      |
+| Learning Panel    | Hidden      | Visible     |
+| Canvas            | Full editor | Full editor |
 
 ---
 
@@ -212,7 +247,9 @@ interface LearningStoreState {
 > **Plate terminology**: The user-facing term "Network" maps to `plateType: 'region'` in code. "Subnet" maps to `plateType: 'subnet'`. The scenario validation rules use the code-level plate types.
 
 ### 7.1 Three-Tier Web App (Beginner, ~10 min)
+
 Steps:
+
 1. Create a Region Plate (VNet) — `{ type: 'plate-exists', plateType: 'region' }`
 2. Add a Public Subnet and a Private Subnet — `plate-exists` for each subnet access level
 3. Place a Gateway on the Public Subnet, a Compute block, and a Database on the Private Subnet — `block-exists` with placement constraints
@@ -220,16 +257,20 @@ Steps:
 5. Validate the architecture — `architecture-valid`
 
 ### 7.2 Serverless HTTP API (Intermediate, ~8 min)
+
 Starts with a pre-built Region Plate and Internet external actor.
 Steps:
+
 1. Set up network zones — add Public and Private Subnets
 2. Deploy serverless components — Gateway on public subnet, Function on Region Plate (`onPlateType: 'region'`), Database on private subnet
 3. Wire the API flow — Internet → Gateway → Function → Database
 4. Validate the architecture
 
 ### 7.3 Event-Driven Data Pipeline (Advanced, ~12 min)
+
 Starts with a pre-built Region Plate and Private Subnet.
 Steps:
+
 1. Add Event and Queue blocks on the Region Plate — `block-exists` with `onPlateType: 'region'`
 2. Add two Function blocks on the Region Plate — `min-block-count: function ≥ 2`
 3. Add a second Event trigger on the Region Plate and a Storage block on the Private Subnet — uses `event` category (not `timer`; `timer` is not a valid `BlockCategory`)
@@ -254,6 +295,7 @@ RUNNING: step[0] → step[1] → ... → step[N-1] → COMPLETED
 ## 9. Dependencies
 
 ### New Files
+
 - `shared/types/learning.ts`
 - `entities/store/learningStore.ts`
 - `features/learning/step-validator.ts`
@@ -269,12 +311,14 @@ RUNNING: step[0] → step[1] → ... → step[N-1] → COMPLETED
 - `widgets/scenario-gallery/ScenarioGallery.tsx` + CSS
 
 ### Modified Files
+
 - `entities/store/uiStore.ts` — add `editorMode`, panel toggles
 - `entities/store/architectureStore.ts` (slices) — add `replaceArchitecture`
 - `widgets/toolbar/Toolbar.tsx` — Learn mode switch
 - `app/App.tsx` — integrate Learning Mode components
 
 ### Reused Modules (unchanged)
+
 - `entities/validation/engine.ts` — `validateArchitecture()`
 - `entities/validation/placement.ts` — `validatePlacement()`, `canPlaceBlock()`
 - `entities/validation/connection.ts` — `validateConnection()`, `canConnect()`

@@ -65,7 +65,11 @@ describe('OnboardingTour', () => {
     localStorage.setItem(STORAGE_KEY, 'true');
     // Set persona so existing tour tests bypass PersonaSelection screen
     localStorage.setItem(PERSONA_STORAGE_KEY, 'devops');
-    useUIStore.setState({ showOnboarding: false, persona: 'devops' as const, complexityLevel: 'advanced' as const });
+    useUIStore.setState({
+      showOnboarding: false,
+      persona: 'devops' as const,
+      complexityLevel: 'advanced' as const,
+    });
     createTargetElements();
     restoreRect = mockGetBoundingClientRect();
   });

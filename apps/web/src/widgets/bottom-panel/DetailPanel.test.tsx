@@ -3,7 +3,13 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { DetailPanel } from './DetailPanel';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import type { ArchitectureModel, Connection, ExternalActor, ContainerNode, LeafNode } from '@cloudblocks/schema';
+import type {
+  ArchitectureModel,
+  Connection,
+  ExternalActor,
+  ContainerNode,
+  LeafNode,
+} from '@cloudblocks/schema';
 import { endpointId } from '@cloudblocks/schema';
 
 vi.mock('./DetailPanel.css', () => ({}));
@@ -393,7 +399,14 @@ describe('DetailPanel', () => {
           ...architectureWithResources,
           connections: [externalConnection],
           endpoints: [],
-          externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: 0, y: 0, z: 0 } }],
+          externalActors: [
+            {
+              id: 'ext-internet',
+              name: 'Internet',
+              type: 'internet',
+              position: { x: 0, y: 0, z: 0 },
+            },
+          ],
         },
         createdAt: '',
         updatedAt: '',
@@ -487,60 +500,60 @@ describe('DetailPanel', () => {
     expect(screen.getByText('None')).toBeInTheDocument();
   });
 
-  it("renders idle state when architecture is empty (overlay is visible)", () => {
+  it('renders idle state when architecture is empty (overlay is visible)', () => {
     useArchitectureStore.setState({
       workspace: {
-        id: "ws-1",
-        name: "Test Workspace",
+        id: 'ws-1',
+        name: 'Test Workspace',
         architecture: {
-          id: "arch-1",
-          name: "Empty Architecture",
-          version: "1.0.0",
+          id: 'arch-1',
+          name: 'Empty Architecture',
+          version: '1.0.0',
           nodes: [],
           connections: [],
           endpoints: [],
           externalActors: [],
-          createdAt: "",
-          updatedAt: "",
+          createdAt: '',
+          updatedAt: '',
         },
-        createdAt: "",
-        updatedAt: "",
+        createdAt: '',
+        updatedAt: '',
       },
     });
     useUIStore.setState({ selectedId: null, showTemplateGallery: false });
 
     render(<DetailPanel />);
 
-    expect(screen.getByText("No selection")).toBeInTheDocument();
-    expect(screen.queryByText("Test Workspace")).not.toBeInTheDocument();
+    expect(screen.getByText('No selection')).toBeInTheDocument();
+    expect(screen.queryByText('Test Workspace')).not.toBeInTheDocument();
   });
 
-  it("renders dashboard when template gallery is open even on empty canvas", () => {
+  it('renders dashboard when template gallery is open even on empty canvas', () => {
     useArchitectureStore.setState({
       workspace: {
-        id: "ws-1",
-        name: "Test Workspace",
+        id: 'ws-1',
+        name: 'Test Workspace',
         architecture: {
-          id: "arch-1",
-          name: "Empty Architecture",
-          version: "1.0.0",
+          id: 'arch-1',
+          name: 'Empty Architecture',
+          version: '1.0.0',
           nodes: [],
           connections: [],
           endpoints: [],
           externalActors: [],
-          createdAt: "",
-          updatedAt: "",
+          createdAt: '',
+          updatedAt: '',
         },
-        createdAt: "",
-        updatedAt: "",
+        createdAt: '',
+        updatedAt: '',
       },
     });
     useUIStore.setState({ selectedId: null, showTemplateGallery: true });
 
     render(<DetailPanel />);
 
-    expect(screen.getByText("Test Workspace")).toBeInTheDocument();
-    expect(screen.queryByText("No selection")).not.toBeInTheDocument();
+    expect(screen.getByText('Test Workspace')).toBeInTheDocument();
+    expect(screen.queryByText('No selection')).not.toBeInTheDocument();
   });
 
   it('renders zone plate with capitalized type name', () => {
@@ -607,7 +620,11 @@ describe('DetailPanel', () => {
         updatedAt: '',
       },
     });
-    useUIStore.setState({ selectedId: null, showTemplateGallery: false, persona: 'student' as const });
+    useUIStore.setState({
+      selectedId: null,
+      showTemplateGallery: false,
+      persona: 'student' as const,
+    });
 
     render(<DetailPanel />);
 
@@ -636,7 +653,11 @@ describe('DetailPanel', () => {
         updatedAt: '',
       },
     });
-    useUIStore.setState({ selectedId: null, showTemplateGallery: false, persona: 'student' as const });
+    useUIStore.setState({
+      selectedId: null,
+      showTemplateGallery: false,
+      persona: 'student' as const,
+    });
 
     render(<DetailPanel />);
 

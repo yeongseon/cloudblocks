@@ -55,22 +55,22 @@ Restart the Vite dev server (`pnpm dev`).
 
 ## Environment Variables
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `VITE_PLAUSIBLE_DOMAIN` | Site domain registered in Plausible | `localhost`, `cloudblocks.dev` |
-| `VITE_PLAUSIBLE_HOST` | Plausible instance URL | `http://localhost:8100`, `https://plausible.example.com` |
+| Variable                | Description                         | Example                                                  |
+| ----------------------- | ----------------------------------- | -------------------------------------------------------- |
+| `VITE_PLAUSIBLE_DOMAIN` | Site domain registered in Plausible | `localhost`, `cloudblocks.dev`                           |
+| `VITE_PLAUSIBLE_HOST`   | Plausible instance URL              | `http://localhost:8100`, `https://plausible.example.com` |
 
 Both must be set for analytics to activate. If either is empty, the script tag in `index.html` will point to an invalid URL and silently fail to load.
 
 ## Tracked Events
 
-| Event | When | Properties |
-|-------|------|------------|
-| `app_loaded` | App.tsx mounts | — |
-| `first_plate_placed` | User places first plate | — |
-| `first_block_placed` | User places first block | — |
-| `first_connection_created` | User creates first connection | — |
-| `code_generated` | Code generation runs | `format`: terraform/bicep/pulumi |
+| Event                      | When                          | Properties                       |
+| -------------------------- | ----------------------------- | -------------------------------- |
+| `app_loaded`               | App.tsx mounts                | —                                |
+| `first_plate_placed`       | User places first plate       | —                                |
+| `first_block_placed`       | User places first block       | —                                |
+| `first_connection_created` | User creates first connection | —                                |
+| `code_generated`           | Code generation runs          | `format`: terraform/bicep/pulumi |
 
 Events are defined in `metricsService.ts` as `FunnelEvent` type. The service dual-writes to both localStorage (offline buffer) and Plausible (real-time analytics).
 

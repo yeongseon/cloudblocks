@@ -63,7 +63,7 @@ export interface ArchitectureState {
     type: PlateLayerType,
     name: string,
     parentId: string | null,
-    profileId?: PlateProfileId
+    profileId?: PlateProfileId,
   ) => void;
   /** @deprecated Use removeNode(id) */
   removePlate: (id: string) => void;

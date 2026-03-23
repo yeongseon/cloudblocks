@@ -146,11 +146,7 @@ export function BuilderView() {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
-      if (
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.isContentEditable
-      ) {
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
         return;
       }
 
@@ -193,9 +189,7 @@ export function BuilderView() {
       }
 
       if (
-        ((e.key === 'z' || e.key === 'Z') &&
-          (e.ctrlKey || e.metaKey) &&
-          e.shiftKey) ||
+        ((e.key === 'z' || e.key === 'Z') && (e.ctrlKey || e.metaKey) && e.shiftKey) ||
         (e.key === 'y' && (e.ctrlKey || e.metaKey))
       ) {
         e.preventDefault();
@@ -206,9 +200,7 @@ export function BuilderView() {
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
         e.preventDefault();
         const arch = useArchitectureStore.getState().workspace.architecture;
-        const resources = arch.nodes.filter(
-          (node): node is LeafNode => node.kind === 'resource',
-        );
+        const resources = arch.nodes.filter((node): node is LeafNode => node.kind === 'resource');
         const containers = arch.nodes.filter(
           (node): node is ContainerNode => node.kind === 'container',
         );

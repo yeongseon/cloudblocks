@@ -25,15 +25,18 @@ The existing `blueprint`/`workshop` naming conflated two independent concepts: v
 ### Options Considered
 
 **Option A: Simple rename — 2 variants**
+
 - `ThemeVariant = 'professional' | 'lego'`
 - Professional = refined light theme (default), Lego = playful dark theme
 - Simplest. Matches user's "light theme (tokens only)" constraint.
 
 **Option B: Two-dimensional — style × mode (4 variants)**
+
 - `ThemeStyle = 'professional' | 'lego'` × `ThemeMode = 'light' | 'dark'`
 - 4 token sets to maintain. More flexible but premature given current needs.
 
 **Option C: Separate toggles — style + mode (4 variants, different UX)**
+
 - Two independent UI toggles. Most flexible, most complex.
 - Confusing UX for a pre-1.0 product.
 

@@ -101,14 +101,22 @@ describe('registerBuiltinTemplates', () => {
 
     expect(httpApiTemplate).toBeDefined();
     expect(httpApiTemplate?.generatorCompat).toEqual(['terraform', 'bicep', 'pulumi']);
-    expect(httpApiTemplate?.architecture.nodes.filter((node) => node.kind === 'container')).toHaveLength(3);
-    expect(httpApiTemplate?.architecture.nodes.filter((node) => node.kind === 'resource')).toHaveLength(4);
+    expect(
+      httpApiTemplate?.architecture.nodes.filter((node) => node.kind === 'container'),
+    ).toHaveLength(3);
+    expect(
+      httpApiTemplate?.architecture.nodes.filter((node) => node.kind === 'resource'),
+    ).toHaveLength(4);
     expect(httpApiTemplate?.architecture.connections).toHaveLength(4);
 
     expect(eventPipelineTemplate).toBeDefined();
     expect(eventPipelineTemplate?.generatorCompat).toEqual(['terraform', 'bicep', 'pulumi']);
-    expect(eventPipelineTemplate?.architecture.nodes.filter((node) => node.kind === 'container')).toHaveLength(2);
-    expect(eventPipelineTemplate?.architecture.nodes.filter((node) => node.kind === 'resource')).toHaveLength(6);
+    expect(
+      eventPipelineTemplate?.architecture.nodes.filter((node) => node.kind === 'container'),
+    ).toHaveLength(2);
+    expect(
+      eventPipelineTemplate?.architecture.nodes.filter((node) => node.kind === 'resource'),
+    ).toHaveLength(6);
     expect(eventPipelineTemplate?.architecture.connections).toHaveLength(6);
   });
 
@@ -122,8 +130,12 @@ describe('registerBuiltinTemplates', () => {
 
     expect(template).toBeDefined();
     expect(template?.generatorCompat).toEqual(['terraform', 'bicep', 'pulumi']);
-    expect(template?.architecture.nodes.filter((node) => node.kind === 'container')).toHaveLength(3);
-    expect(template?.architecture.nodes.filter((node) => node.kind === 'resource')).toHaveLength(10);
+    expect(template?.architecture.nodes.filter((node) => node.kind === 'container')).toHaveLength(
+      3,
+    );
+    expect(template?.architecture.nodes.filter((node) => node.kind === 'resource')).toHaveLength(
+      10,
+    );
     expect(template?.architecture.connections).toHaveLength(11);
     expect(template?.architecture.externalActors).toHaveLength(1);
 

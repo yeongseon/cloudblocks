@@ -8,11 +8,13 @@
 CloudBlocks needs staging and production environments on Azure. Currently only a dev environment exists.
 
 The current Terraform and deployment flow are single-environment oriented:
+
 - Terraform is implemented as one monolithic stack in `infra/terraform/environments/dev/`
 - GitHub Actions deployment uses a single set of repository-level Azure secrets
 - Promotion flow between environments is not defined
 
 Key questions:
+
 - How many cloud environments should be operated?
 - How should infrastructure code be shared across environments?
 - How should changes be promoted from staging to production?
@@ -43,5 +45,6 @@ Key questions:
 - Increased cloud cost due to two environments, mitigated by scale-to-zero and smaller SKUs in staging.
 
 Estimated monthly cost impact:
+
 - `staging`: about $80/month
 - `production`: about $250/month

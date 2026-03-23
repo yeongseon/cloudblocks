@@ -1,8 +1,5 @@
 import type { ArchitectureTemplate } from '../../shared/types/template';
-import type {
-  ContainerCapableResourceType,
-  PlateType,
-} from '@cloudblocks/schema';
+import type { ContainerCapableResourceType, PlateType } from '@cloudblocks/schema';
 import { endpointId } from '@cloudblocks/schema';
 import { registerTemplate } from './registry';
 
@@ -155,7 +152,9 @@ const threeTierTemplate: ArchitectureTemplate = {
         metadata: {},
       },
     ],
-    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+    externalActors: [
+      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+    ],
   },
 };
 
@@ -240,7 +239,9 @@ const simpleComputeTemplate: ArchitectureTemplate = {
         metadata: {},
       },
     ],
-    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+    externalActors: [
+      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+    ],
   },
 };
 
@@ -376,7 +377,9 @@ const dataStorageTemplate: ArchitectureTemplate = {
         metadata: {},
       },
     ],
-    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+    externalActors: [
+      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+    ],
   },
 };
 
@@ -516,7 +519,9 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
         metadata: {},
       },
     ],
-    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+    externalActors: [
+      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+    ],
   },
 };
 
@@ -693,8 +698,17 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
   category: 'serverless',
   difficulty: 'advanced',
   tags: [
-    'full-stack', 'serverless', 'event-driven', 'queue', 'event',
-    'function', 'compute', 'gateway', 'database', 'storage', 'advanced',
+    'full-stack',
+    'serverless',
+    'event-driven',
+    'queue',
+    'event',
+    'function',
+    'compute',
+    'gateway',
+    'database',
+    'storage',
+    'advanced',
   ],
   generatorCompat: ['terraform', 'bicep', 'pulumi'],
   architecture: {
@@ -741,7 +755,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         size: { width: 5, height: 0.2, depth: 8 },
         metadata: {},
       },
-    
+
       // Subnet 1
       {
         id: 'block-fs-gw',
@@ -955,7 +969,9 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
         metadata: {},
       },
     ],
-    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+    externalActors: [
+      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+    ],
   },
 };
 

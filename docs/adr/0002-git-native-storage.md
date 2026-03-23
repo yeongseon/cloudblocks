@@ -21,14 +21,14 @@ Option 1 creates a heavy SaaS backend that owns user data. Users lose portabilit
 
 ### What goes where
 
-| Data | Storage | Reason |
-|------|---------|--------|
-| Architecture specs (JSON) | GitHub repo | Version history, diff, collaboration |
-| Generated IaC code | GitHub repo | PR-based review, CI/CD |
-| Templates | GitHub repo | Community contribution |
-| User identity / OAuth | Metadata DB (SQLite currently; PG planned) | Auth, tokens |
-| Workspace index | Metadata DB | Fast lookup |
-| Run status / audit | Metadata DB | Job state tracking |
+| Data                      | Storage                                    | Reason                               |
+| ------------------------- | ------------------------------------------ | ------------------------------------ |
+| Architecture specs (JSON) | GitHub repo                                | Version history, diff, collaboration |
+| Generated IaC code        | GitHub repo                                | PR-based review, CI/CD               |
+| Templates                 | GitHub repo                                | Community contribution               |
+| User identity / OAuth     | Metadata DB (SQLite currently; PG planned) | Auth, tokens                         |
+| Workspace index           | Metadata DB                                | Fast lookup                          |
+| Run status / audit        | Metadata DB                                | Job state tracking                   |
 
 ### What the metadata DB does NOT store
 

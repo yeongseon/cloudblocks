@@ -27,16 +27,16 @@ Open [http://localhost:5173](http://localhost:5173).
 
 When CloudBlocks opens, you'll see three options on the empty canvas:
 
-| Option | What It Does |
-|---|---|
-| **Use Template** | Opens the Template Gallery with pre-built architectures |
-| **Start from Scratch** | Creates a blank network container on the canvas |
-| **Learn How** | Opens guided tutorials for learning cloud patterns |
+| Option                 | What It Does                                            |
+| ---------------------- | ------------------------------------------------------- |
+| **Use Template**       | Opens the Template Gallery with pre-built architectures |
+| **Start from Scratch** | Creates a blank network container on the canvas         |
+| **Learn How**          | Opens guided tutorials for learning cloud patterns      |
 
 Click **Use Template** and select **Three-Tier Web Application**. This loads a complete architecture with a gateway, compute node, and database — all pre-wired.
 
 !!! tip
-    Templates are fully editable. Use them as a starting point, then customize for your needs.
+Templates are fully editable. Use them as a starting point, then customize for your needs.
 
 ---
 
@@ -66,7 +66,7 @@ Now turn your visual design into real infrastructure code:
 3. Click the **Copy** button to copy the generated code to your clipboard
 
 !!! info "Three output formats"
-    CloudBlocks generates code in three formats:
+CloudBlocks generates code in three formats:
 
     - **Terraform** (HCL) — Multi-cloud, the default
     - **Bicep** — Azure-native
@@ -86,10 +86,10 @@ To create a new workspace or switch between saved workspaces, use the **File** m
 
 ## What's Next?
 
-| Goal | Guide |
-|---|---|
-| Understand the building blocks | [Core Concepts](core-concepts.md) |
-| Build an architecture from scratch | [Create an Architecture](create-architecture.md) |
-| Learn about code generation options | [Generate Code](generate-code.md) |
-| Explore all available templates | [Use Templates](templates.md) |
-| Speed up with keyboard shortcuts | [Keyboard Shortcuts](keyboard-shortcuts.md) |
+| Goal                                | Guide                                            |
+| ----------------------------------- | ------------------------------------------------ |
+| Understand the building blocks      | [Core Concepts](core-concepts.md)                |
+| Build an architecture from scratch  | [Create an Architecture](create-architecture.md) |
+| Learn about code generation options | [Generate Code](generate-code.md)                |
+| Explore all available templates     | [Use Templates](templates.md)                    |
+| Speed up with keyboard shortcuts    | [Keyboard Shortcuts](keyboard-shortcuts.md)      |

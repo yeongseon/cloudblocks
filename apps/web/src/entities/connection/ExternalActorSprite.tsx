@@ -44,19 +44,22 @@ export const ExternalActorSprite = memo(function ExternalActorSprite({
   const isConnectionSource = connectionSource === actor.id;
 
   const isConnectMode = toolMode === 'connect';
-  const sourceBlock = isConnectMode && connectionSource
-    ? blocks.find((block) => block.id === connectionSource)
-    : null;
-  const sourceActor = isConnectMode && connectionSource
-    ? externalActors.find((externalActor) => externalActor.id === connectionSource)
-    : null;
+  const sourceBlock =
+    isConnectMode && connectionSource
+      ? blocks.find((block) => block.id === connectionSource)
+      : null;
+  const sourceActor =
+    isConnectMode && connectionSource
+      ? externalActors.find((externalActor) => externalActor.id === connectionSource)
+      : null;
   const sourceType = sourceBlock?.category ?? sourceActor?.type ?? null;
-  const isValidConnectTarget = sourceType !== null
-    && actor.id !== connectionSource
-    && canConnect(sourceType, actor.type);
-  const isInvalidConnectTarget = isConnectMode && connectionSource !== null
-    && actor.id !== connectionSource
-    && !isValidConnectTarget;
+  const isValidConnectTarget =
+    sourceType !== null && actor.id !== connectionSource && canConnect(sourceType, actor.type);
+  const isInvalidConnectTarget =
+    isConnectMode &&
+    connectionSource !== null &&
+    actor.id !== connectionSource &&
+    !isValidConnectTarget;
 
   useEffect(() => {
     const el = actorRef.current;
@@ -108,13 +111,11 @@ export const ExternalActorSprite = memo(function ExternalActorSprite({
           }
 
           if (isDragging.current) {
-            const currentActor = useArchitectureStore
-              .getState()
-              .workspace
-              .architecture
-              .externalActors;
-            const matchedActor = (currentActor ?? [])
-              .find((candidate) => candidate.id === actor.id);
+            const currentActor =
+              useArchitectureStore.getState().workspace.architecture.externalActors;
+            const matchedActor = (currentActor ?? []).find(
+              (candidate) => candidate.id === actor.id,
+            );
 
             if (matchedActor) {
               const snappedPosition = snapToGrid(matchedActor.position.x, matchedActor.position.z);
@@ -208,12 +209,7 @@ export const ExternalActorSprite = memo(function ExternalActorSprite({
       }}
     >
       <button type="button" className="external-actor-button" onClick={handleClick}>
-        <img
-          className="actor-img"
-          src={internetSprite}
-          alt={actor.name}
-          draggable={false}
-        />
+        <img className="actor-img" src={internetSprite} alt={actor.name} draggable={false} />
       </button>
     </div>
   );

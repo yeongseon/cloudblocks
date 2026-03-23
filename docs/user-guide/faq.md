@@ -123,6 +123,7 @@ Check that your source node is an **initiator** category (Compute, Gateway, Func
 ### Validation shows errors
 
 Read the error message — it tells you exactly what's wrong. Common issues:
+
 - Node placed outside a container
 - Invalid connection source/target pair
 - Missing required connections

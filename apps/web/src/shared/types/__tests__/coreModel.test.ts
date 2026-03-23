@@ -10,12 +10,7 @@ import {
 } from '../index';
 import { BLOCK_VISUAL_PROFILES } from '../visualProfile';
 import { makeTestBlock } from '../../../__tests__/legacyModelTestUtils';
-import type {
-  LeafNode,
-  ConnectionType,
-  ProviderType,
-  ResourceCategory,
-} from '../index';
+import type { LeafNode, ConnectionType, ProviderType, ResourceCategory } from '../index';
 
 const blockCategories: ResourceCategory[] = [
   'compute',
@@ -27,13 +22,7 @@ const blockCategories: ResourceCategory[] = [
   'security',
 ];
 
-const connectionTypes: ConnectionType[] = [
-  'dataflow',
-  'http',
-  'internal',
-  'data',
-  'async',
-];
+const connectionTypes: ConnectionType[] = ['dataflow', 'http', 'internal', 'data', 'async'];
 
 const providerTypes: ProviderType[] = ['azure', 'aws', 'gcp'];
 
@@ -189,8 +178,16 @@ describe('SUBTYPE_SIZE_OVERRIDES', () => {
 
   it('maps specific GCP subtypes to expected dimensions', () => {
     expect(SUBTYPE_SIZE_OVERRIDES['gcp:compute-engine']).toEqual({ width: 2, depth: 2, height: 2 });
-    expect(SUBTYPE_SIZE_OVERRIDES['gcp:cloud-functions']).toEqual({ width: 1, depth: 1, height: 1 });
-    expect(SUBTYPE_SIZE_OVERRIDES['gcp:cloud-sql-postgres']).toEqual({ width: 3, depth: 3, height: 2 });
+    expect(SUBTYPE_SIZE_OVERRIDES['gcp:cloud-functions']).toEqual({
+      width: 1,
+      depth: 1,
+      height: 1,
+    });
+    expect(SUBTYPE_SIZE_OVERRIDES['gcp:cloud-sql-postgres']).toEqual({
+      width: 3,
+      depth: 3,
+      height: 2,
+    });
     expect(SUBTYPE_SIZE_OVERRIDES['gcp:cloud-cdn']).toEqual({ width: 4, depth: 1, height: 1 });
   });
 });

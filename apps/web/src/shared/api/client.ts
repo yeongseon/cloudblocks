@@ -73,7 +73,10 @@ export function getApiErrorMessage(error: unknown, fallbackMessage: string): str
   return fallbackMessage;
 }
 
-function normalizeBody(body: BodyInit | null | undefined, headers: Headers): BodyInit | null | undefined {
+function normalizeBody(
+  body: BodyInit | null | undefined,
+  headers: Headers,
+): BodyInit | null | undefined {
   if (body === undefined || body === null) {
     return body;
   }
@@ -121,7 +124,11 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   if (!response.ok) {
     const responseBody = await parseResponseBody(response);
     const detail = parseFastApiDetail(responseBody);
-    throw new ApiError(detail ?? `API request failed with status ${response.status}`, response.status, responseBody);
+    throw new ApiError(
+      detail ?? `API request failed with status ${response.status}`,
+      response.status,
+      responseBody,
+    );
   }
 
   return parseJson<T>(response);

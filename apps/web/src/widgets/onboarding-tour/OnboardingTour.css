@@ -15,7 +15,11 @@
   position: fixed;
   border-radius: 8px;
   box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
-  transition: top 0.3s ease, left 0.3s ease, width 0.3s ease, height 0.3s ease;
+  transition:
+    top 0.3s ease,
+    left 0.3s ease,
+    width 0.3s ease,
+    height 0.3s ease;
   pointer-events: none;
 }
 
@@ -29,7 +33,9 @@
   width: 340px;
   color: #e0e0e0;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  transition: top 0.3s ease, left 0.3s ease;
+  transition:
+    top 0.3s ease,
+    left 0.3s ease;
   z-index: 10001;
 }
 
@@ -94,7 +100,9 @@
   padding: 6px 16px;
   font-size: 13px;
   font-weight: 500;
-  transition: background 0.15s ease, opacity 0.15s ease;
+  transition:
+    background 0.15s ease,
+    opacity 0.15s ease;
 }
 
 .onboarding-btn--primary {
@@ -168,7 +176,10 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.1s ease;
   color: #e0e0e0;
 }
 

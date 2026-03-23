@@ -8,12 +8,12 @@ This document defines measurable non-functional requirement targets for CloudBlo
 
 ## 1. Bundle Size Budget
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| **Main chunk (gzipped)** | ≤ 400 KB | `npx vite build` → inspect `dist/assets/` |
-| **Total initial load (gzipped)** | ≤ 600 KB | Sum of all chunks loaded on first page view |
-| **Largest lazy chunk** | ≤ 100 KB gzipped | Any single lazy-loaded chunk |
-| **Total bundle (uncompressed)** | ≤ 2 MB | `du -sh dist/` |
+| Metric                           | Target           | Measurement                                 |
+| -------------------------------- | ---------------- | ------------------------------------------- |
+| **Main chunk (gzipped)**         | ≤ 400 KB         | `npx vite build` → inspect `dist/assets/`   |
+| **Total initial load (gzipped)** | ≤ 600 KB         | Sum of all chunks loaded on first page view |
+| **Largest lazy chunk**           | ≤ 100 KB gzipped | Any single lazy-loaded chunk                |
+| **Total bundle (uncompressed)**  | ≤ 2 MB           | `du -sh dist/`                              |
 
 ### Current State (Milestone 5)
 
@@ -30,13 +30,13 @@ This document defines measurable non-functional requirement targets for CloudBlo
 
 ## 2. Test Coverage
 
-| Metric | Target | Tool |
-|--------|--------|------|
-| **Frontend statements** | ≥ 90% | Vitest + v8 |
-| **Frontend branches** | ≥ 90% | Vitest + v8 |
-| **Frontend functions** | ≥ 90% | Vitest + v8 |
-| **Frontend lines** | ≥ 90% | Vitest + v8 |
-| **Backend coverage** | ≥ 90% | pytest-cov |
+| Metric                  | Target | Tool        |
+| ----------------------- | ------ | ----------- |
+| **Frontend statements** | ≥ 90%  | Vitest + v8 |
+| **Frontend branches**   | ≥ 90%  | Vitest + v8 |
+| **Frontend functions**  | ≥ 90%  | Vitest + v8 |
+| **Frontend lines**      | ≥ 90%  | Vitest + v8 |
+| **Backend coverage**    | ≥ 90%  | pytest-cov  |
 
 ### Exclusions (Frontend)
 
@@ -60,11 +60,11 @@ These files are excluded from coverage calculations (documented in `vitest.confi
 
 ## 3. Validation Latency
 
-| Architecture Size | Target Latency | Measurement |
-|-------------------|---------------|-------------|
-| Small (≤ 10 blocks, ≤ 10 connections) | ≤ 5 ms | `performance.now()` around `validateArchitecture()` |
-| Medium (≤ 50 blocks, ≤ 50 connections) | ≤ 20 ms | Same |
-| Large (≤ 200 blocks, ≤ 200 connections) | ≤ 100 ms | Same |
+| Architecture Size                       | Target Latency | Measurement                                         |
+| --------------------------------------- | -------------- | --------------------------------------------------- |
+| Small (≤ 10 blocks, ≤ 10 connections)   | ≤ 5 ms         | `performance.now()` around `validateArchitecture()` |
+| Medium (≤ 50 blocks, ≤ 50 connections)  | ≤ 20 ms        | Same                                                |
+| Large (≤ 200 blocks, ≤ 200 connections) | ≤ 100 ms       | Same                                                |
 
 ### Current Implementation
 
@@ -81,21 +81,21 @@ These files are excluded from coverage calculations (documented in `vitest.confi
 
 ## 4. CI Reliability
 
-| Metric | Target |
-|--------|--------|
-| **CI pass rate** | ≥ 95% on `main` branch (excludes infrastructure flakes) |
-| **CI duration** | ≤ 5 minutes for full pipeline |
+| Metric                   | Target                                                   |
+| ------------------------ | -------------------------------------------------------- |
+| **CI pass rate**         | ≥ 95% on `main` branch (excludes infrastructure flakes)  |
+| **CI duration**          | ≤ 5 minutes for full pipeline                            |
 | **Flaky test tolerance** | 0 — flaky tests are fixed or quarantined within 48 hours |
 
 ### CI Pipeline Jobs
 
-| Job | What It Checks | Max Duration |
-|-----|---------------|-------------|
-| `web-lint` | ESLint on frontend | ≤ 60s |
-| `web-build` | TypeScript + Vite build (Node 20 & 22) | ≤ 120s |
-| `web-test` | Vitest with coverage | ≤ 120s |
-| `api-lint` | Ruff on backend | ≤ 30s |
-| `api-test` | Pytest with coverage | ≤ 120s |
+| Job         | What It Checks                         | Max Duration |
+| ----------- | -------------------------------------- | ------------ |
+| `web-lint`  | ESLint on frontend                     | ≤ 60s        |
+| `web-build` | TypeScript + Vite build (Node 20 & 22) | ≤ 120s       |
+| `web-test`  | Vitest with coverage                   | ≤ 120s       |
+| `api-lint`  | Ruff on backend                        | ≤ 30s        |
+| `api-test`  | Pytest with coverage                   | ≤ 120s       |
 
 ### Enforcement
 
@@ -106,35 +106,35 @@ These files are excluded from coverage calculations (documented in `vitest.confi
 
 ## 5. Code Quality
 
-| Metric | Target | Tool |
-|--------|--------|------|
-| **TypeScript strict mode** | Zero errors | `tsc -b` |
-| **ESLint** | Zero errors, zero warnings | `eslint .` |
-| **Ruff (Python)** | Zero errors | `ruff check .` |
-| **Unused exports** | Zero | Manual review (automated tooling planned) |
-| **`any` type usage** | Zero (`as any`, `@ts-ignore`, `@ts-expect-error` forbidden) | Code review |
+| Metric                     | Target                                                      | Tool                                      |
+| -------------------------- | ----------------------------------------------------------- | ----------------------------------------- |
+| **TypeScript strict mode** | Zero errors                                                 | `tsc -b`                                  |
+| **ESLint**                 | Zero errors, zero warnings                                  | `eslint .`                                |
+| **Ruff (Python)**          | Zero errors                                                 | `ruff check .`                            |
+| **Unused exports**         | Zero                                                        | Manual review (automated tooling planned) |
+| **`any` type usage**       | Zero (`as any`, `@ts-ignore`, `@ts-expect-error` forbidden) | Code review                               |
 
 ---
 
 ## 6. Accessibility (Planned — Milestone 6+)
 
-| Metric | Target |
-|--------|--------|
-| **Keyboard navigation** | All interactive elements reachable via Tab |
-| **Screen reader** | ARIA labels on all buttons and panels |
-| **Color contrast** | WCAG AA (4.5:1 for text, 3:1 for UI components) |
-| **Focus indicators** | Visible on all interactive elements |
+| Metric                  | Target                                          |
+| ----------------------- | ----------------------------------------------- |
+| **Keyboard navigation** | All interactive elements reachable via Tab      |
+| **Screen reader**       | ARIA labels on all buttons and panels           |
+| **Color contrast**      | WCAG AA (4.5:1 for text, 3:1 for UI components) |
+| **Focus indicators**    | Visible on all interactive elements             |
 
 ---
 
 ## 7. Observability Minimums (Planned — Milestone 6+)
 
-| Metric | Target |
-|--------|--------|
+| Metric                  | Target                                                  |
+| ----------------------- | ------------------------------------------------------- |
 | **API request logging** | All requests logged with method, path, status, duration |
-| **Error tracking** | Unhandled exceptions reported to error service |
-| **Health endpoint** | `/health` and `/health/ready` with dependency checks |
-| **Metrics** | Request count, latency p50/p95/p99, error rate |
+| **Error tracking**      | Unhandled exceptions reported to error service          |
+| **Health endpoint**     | `/health` and `/health/ready` with dependency checks    |
+| **Metrics**             | Request count, latency p50/p95/p99, error rate          |
 
 ### Current State
 

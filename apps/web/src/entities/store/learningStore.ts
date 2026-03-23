@@ -1,9 +1,5 @@
 import { create } from 'zustand';
-import type {
-  Scenario,
-  LearningProgress,
-  StepProgress,
-} from '../../shared/types/learning';
+import type { Scenario, LearningProgress, StepProgress } from '../../shared/types/learning';
 
 // ─── Learning Store State ──────────────────────────────────
 
@@ -102,9 +98,7 @@ export const useLearningStore = create<LearningStoreState>((set, get) => ({
 
     const now = new Date().toISOString();
     const updatedSteps = progress.steps.map((step) =>
-      step.status === 'active'
-        ? { ...step, status: 'completed' as const, completedAt: now }
-        : step
+      step.status === 'active' ? { ...step, status: 'completed' as const, completedAt: now } : step,
     );
 
     set({
@@ -133,7 +127,7 @@ export const useLearningStore = create<LearningStoreState>((set, get) => ({
     const updatedSteps = progress.steps.map((step, index) =>
       index === progress.currentStepIndex
         ? { ...step, hintsUsed: Math.max(step.hintsUsed, nextIndex + 1) }
-        : step
+        : step,
     );
 
     set({

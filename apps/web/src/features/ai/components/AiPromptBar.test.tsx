@@ -90,13 +90,27 @@ describe('AiPromptBar', () => {
   });
 
   it('displays error message when error prop is set', () => {
-    render(<AiPromptBar onSubmit={vi.fn()} isLoading={false} provider="aws" error="Failed to generate architecture" />);
+    render(
+      <AiPromptBar
+        onSubmit={vi.fn()}
+        isLoading={false}
+        provider="aws"
+        error="Failed to generate architecture"
+      />,
+    );
 
     expect(screen.getByText('Failed to generate architecture')).toBeInTheDocument();
   });
 
   it('displays explanation when provided', () => {
-    render(<AiPromptBar onSubmit={vi.fn()} isLoading={false} provider="aws" explanation="Created a 3-tier web app" />);
+    render(
+      <AiPromptBar
+        onSubmit={vi.fn()}
+        isLoading={false}
+        provider="aws"
+        explanation="Created a 3-tier web app"
+      />,
+    );
 
     expect(screen.getByText('Created a 3-tier web app')).toBeInTheDocument();
   });
@@ -108,7 +122,7 @@ describe('AiPromptBar', () => {
         isLoading={false}
         provider="aws"
         warnings={['No load balancer added', 'Database has no backup']}
-      />
+      />,
     );
 
     expect(screen.getByText(/No load balancer added/)).toBeInTheDocument();
@@ -125,7 +139,9 @@ describe('AiPromptBar', () => {
     mockIsApiConfigured.mockReturnValue(false);
     render(<AiPromptBar onSubmit={vi.fn()} isLoading={false} provider="aws" />);
 
-    expect(screen.getByText('AI features require the backend API - see setup guide.')).toBeInTheDocument();
+    expect(
+      screen.getByText('AI features require the backend API - see setup guide.'),
+    ).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Describe your cloud architecture...')).toBeDisabled();
     expect(screen.getByRole('button')).toBeDisabled();
   });

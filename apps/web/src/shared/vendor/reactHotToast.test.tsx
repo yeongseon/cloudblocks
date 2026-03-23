@@ -76,9 +76,7 @@ describe('shared/vendor/reactHotToast', () => {
     setupToaster([makeToast({ id: 't-right', message: 'ignored' })]);
 
     render(
-      <Toaster position="top-right">
-        {(toastItem) => <span>custom-{toastItem.id}</span>}
-      </Toaster>,
+      <Toaster position="top-right">{(toastItem) => <span>custom-{toastItem.id}</span>}</Toaster>,
     );
 
     expect(screen.getByText('custom-t-right')).toBeInTheDocument();
@@ -96,7 +94,10 @@ describe('shared/vendor/reactHotToast', () => {
 
     expect(handlers.startPause).toHaveBeenCalledOnce();
     expect(handlers.endPause).toHaveBeenCalledOnce();
-    expect(handlers.calculateOffset).toHaveBeenCalledWith(expect.objectContaining({ id: 't1' }), expect.any(Object));
+    expect(handlers.calculateOffset).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 't1' }),
+      expect.any(Object),
+    );
   });
 
   it('removes invisible toasts on transition end and preserves visible toasts', () => {
@@ -111,8 +112,12 @@ describe('shared/vendor/reactHotToast', () => {
     fireEvent.transitionEnd(nodes[0]);
     fireEvent.transitionEnd(nodes[1]);
 
-    expect((headlessToastDefault as unknown as { remove: ReturnType<typeof vi.fn> }).remove).toHaveBeenCalledTimes(1);
-    expect((headlessToastDefault as unknown as { remove: ReturnType<typeof vi.fn> }).remove).toHaveBeenCalledWith('hidden-toast', 'alpha');
+    expect(
+      (headlessToastDefault as unknown as { remove: ReturnType<typeof vi.fn> }).remove,
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      (headlessToastDefault as unknown as { remove: ReturnType<typeof vi.fn> }).remove,
+    ).toHaveBeenCalledWith('hidden-toast', 'alpha');
   });
 
   it('re-exports toast and default headless toast instance', () => {

@@ -1,6 +1,11 @@
 import { memo, useEffect, useRef } from 'react';
 import interact from 'interactjs';
-import { DEFAULT_PLATE_PROFILE, getPlateProfile, getPlateStudColors, isPlateProfileId } from '../../shared/types/index';
+import {
+  DEFAULT_PLATE_PROFILE,
+  getPlateProfile,
+  getPlateStudColors,
+  isPlateProfileId,
+} from '../../shared/types/index';
 import type { ContainerNode, LayerType } from '@cloudblocks/schema';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
@@ -100,10 +105,9 @@ export const PlateSprite = memo(function PlateSprite({
           if (isDragging.current) {
             const currentPlate = useArchitectureStore
               .getState()
-              .workspace
-              .architecture
-              .nodes
-              .filter((node): node is ContainerNode => node.kind === 'container')
+              .workspace.architecture.nodes.filter(
+                (node): node is ContainerNode => node.kind === 'container',
+              )
               .find((candidate) => candidate.id === plate.id);
 
             if (currentPlate) {
@@ -154,25 +158,31 @@ export const PlateSprite = memo(function PlateSprite({
   const plateType = plate.layer as PlateLayer;
   const sizeClass = plateType === 'subnet' ? 'plate-subnet' : 'plate-network';
 
-  const profile = plate.profileId && isPlateProfileId(plate.profileId)
-    ? getPlateProfile(plate.profileId)
-    : getPlateProfile(DEFAULT_PLATE_PROFILE[plateType]);
+  const profile =
+    plate.profileId && isPlateProfileId(plate.profileId)
+      ? getPlateProfile(plate.profileId)
+      : getPlateProfile(DEFAULT_PLATE_PROFILE[plateType]);
   const plateColorInput = { type: plateType };
   const studColors = getPlateStudColors(plateColorInput);
   const faceColors = getPlateFaceColors(plateColorInput);
-  const typeLabel = plateType === 'subnet'
-    ? 'Subnet'
-    : plateType === 'global'
-      ? 'Global Layer'
-      : plateType === 'edge'
-        ? 'Edge Layer'
-        : plateType === 'zone'
-          ? 'Zone Layer'
-          : 'Region Layer';
+  const typeLabel =
+    plateType === 'subnet'
+      ? 'Subnet'
+      : plateType === 'global'
+        ? 'Global Layer'
+        : plateType === 'edge'
+          ? 'Edge Layer'
+          : plateType === 'zone'
+            ? 'Zone Layer'
+            : 'Region Layer';
   const label = plate.name || typeLabel;
   const iconUrl = getPlateIconUrl(plateType);
 
-  const { screenWidth, screenHeight } = worldSizeToScreen(plate.size.width, plate.size.height, plate.size.depth);
+  const { screenWidth, screenHeight } = worldSizeToScreen(
+    plate.size.width,
+    plate.size.height,
+    plate.size.depth,
+  );
 
   const className = [
     'plate-sprite',

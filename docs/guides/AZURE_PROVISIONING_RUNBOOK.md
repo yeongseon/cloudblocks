@@ -4,13 +4,13 @@ Step-by-step guide to provision the CloudBlocks staging environment on Azure usi
 
 ## Prerequisites
 
-| Requirement | How to verify |
-|---|---|
-| Azure subscription | `az account show` |
-| Azure CLI ≥ 2.50 | `az version` |
-| Terraform ≥ 1.5 | `terraform version` |
-| GitHub CLI | `gh auth status` |
-| Repo admin access | Can manage GitHub Environments and Secrets |
+| Requirement        | How to verify                              |
+| ------------------ | ------------------------------------------ |
+| Azure subscription | `az account show`                          |
+| Azure CLI ≥ 2.50   | `az version`                               |
+| Terraform ≥ 1.5    | `terraform version`                        |
+| GitHub CLI         | `gh auth status`                           |
+| Repo admin access  | Can manage GitHub Environments and Secrets |
 
 ## Overview
 
@@ -321,6 +321,7 @@ az containerapp logs show \
 ```
 
 Common causes:
+
 - Wrong `DATABASE_URL` — check PostgreSQL firewall rules
 - ACR pull failure — verify registry credentials
 - Port mismatch — API must listen on port 8000
@@ -343,17 +344,18 @@ Azure Redis requires TLS. The Terraform config sets `enable_non_ssl_port = false
 
 ## Cost Management
 
-| Resource | Monthly Cost | Scale-to-zero? |
-|---|---|---|
-| PostgreSQL B_Standard_B1ms | ~$13 | No |
-| Redis Basic C0 | ~$16 | No |
-| Container App (Consumption) | ~$5 | Yes (min=0) |
-| Static Web App (Free) | $0 | — |
-| Container Registry (Basic) | ~$5 | — |
-| Log Analytics (30-day retention) | ~$0-5 | — |
-| **Total** | **~$39-44** | |
+| Resource                         | Monthly Cost | Scale-to-zero? |
+| -------------------------------- | ------------ | -------------- |
+| PostgreSQL B_Standard_B1ms       | ~$13         | No             |
+| Redis Basic C0                   | ~$16         | No             |
+| Container App (Consumption)      | ~$5          | Yes (min=0)    |
+| Static Web App (Free)            | $0           | —              |
+| Container Registry (Basic)       | ~$5          | —              |
+| Log Analytics (30-day retention) | ~$0-5        | —              |
+| **Total**                        | **~$39-44**  |                |
 
 To reduce costs when not actively testing:
+
 - Set Container App `min_replicas = 0` (already default)
 - Consider stopping PostgreSQL when not in use: `az postgres flexible-server stop`
 

@@ -123,14 +123,11 @@ interface LegacyBlock {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
 
-const isLegacyPlateArray = (value: unknown): value is LegacyPlate[] =>
-  Array.isArray(value);
+const isLegacyPlateArray = (value: unknown): value is LegacyPlate[] => Array.isArray(value);
 
-const isLegacyBlockArray = (value: unknown): value is LegacyBlock[] =>
-  Array.isArray(value);
+const isLegacyBlockArray = (value: unknown): value is LegacyBlock[] => Array.isArray(value);
 
-const isEndpointArray = (value: unknown): value is Endpoint[] =>
-  Array.isArray(value);
+const isEndpointArray = (value: unknown): value is Endpoint[] => Array.isArray(value);
 
 const isLegacyConnection = (value: unknown): value is LegacyConnection =>
   isRecord(value) &&
@@ -172,7 +169,9 @@ function migrateConnectionsToV4(connections: unknown): ArchitectureModel['connec
         metadata: isRecord(connection.metadata) ? connection.metadata : {},
       };
     })
-    .filter((connection): connection is ArchitectureModel['connections'][number] => connection !== null);
+    .filter(
+      (connection): connection is ArchitectureModel['connections'][number] => connection !== null,
+    );
 }
 
 export interface SerializedData {
@@ -205,14 +204,14 @@ export function deserialize(json: string): Workspace[] {
   if (LEGACY_VERSIONS.includes(data.schemaVersion)) {
     throw new Error(
       `Incompatible workspace format: v${data.schemaVersion} is no longer supported. ` +
-        'CloudBlocks v2.0 uses a new format. Please create a new workspace.'
+        'CloudBlocks v2.0 uses a new format. Please create a new workspace.',
     );
   }
 
   if (!SUPPORTED_VERSIONS.includes(data.schemaVersion)) {
     logger.warn(
       `Schema version mismatch: expected ${SCHEMA_VERSION}, got ${data.schemaVersion}. ` +
-        'Data may need migration.'
+        'Data may need migration.',
     );
   }
 
@@ -237,7 +236,11 @@ export function deserialize(json: string): Workspace[] {
         name: plate.name as string,
         kind: 'container' as const,
         layer: plate.type as ContainerNode['layer'],
-        resourceType: ((plate.type as string) === 'region' ? 'virtual_network' : (plate.type as string) === 'subnet' ? 'subnet' : 'virtual_network') as ContainerNode['resourceType'],
+        resourceType: ((plate.type as string) === 'region'
+          ? 'virtual_network'
+          : (plate.type as string) === 'subnet'
+            ? 'subnet'
+            : 'virtual_network') as ContainerNode['resourceType'],
         category: 'network' as const,
         provider: 'azure' as const,
         parentId: (plate.parentId as string | null) ?? null,
@@ -247,22 +250,26 @@ export function deserialize(json: string): Workspace[] {
         ...(plate.profileId ? { profileId: plate.profileId as string } : {}),
       }));
 
-      const leafNodes: LeafNode[] = (legacyBlocks as unknown as Array<Record<string, unknown>>).map((block) => ({
-        id: block.id as string,
-        name: block.name as string,
-        kind: 'resource' as const,
-        layer: 'resource' as const,
-        resourceType: (block.subtype as string | undefined) ?? (block.category as string),
-        category: remapCategory(block.category as string),
-        provider: (block.provider as LeafNode['provider'] | undefined) ?? 'azure',
-        parentId: block.placementId as string,
-        position: block.position as LeafNode['position'],
-        metadata: (block.metadata as Record<string, unknown>) ?? {},
-        ...(block.subtype ? { subtype: block.subtype as string } : {}),
-        ...(block.config ? { config: block.config as Record<string, unknown> } : {}),
-        ...(block.aggregation ? { aggregation: block.aggregation as LeafNode['aggregation'] } : {}),
-        ...(block.roles ? { roles: block.roles as LeafNode['roles'] } : {}),
-      }));
+      const leafNodes: LeafNode[] = (legacyBlocks as unknown as Array<Record<string, unknown>>).map(
+        (block) => ({
+          id: block.id as string,
+          name: block.name as string,
+          kind: 'resource' as const,
+          layer: 'resource' as const,
+          resourceType: (block.subtype as string | undefined) ?? (block.category as string),
+          category: remapCategory(block.category as string),
+          provider: (block.provider as LeafNode['provider'] | undefined) ?? 'azure',
+          parentId: block.placementId as string,
+          position: block.position as LeafNode['position'],
+          metadata: (block.metadata as Record<string, unknown>) ?? {},
+          ...(block.subtype ? { subtype: block.subtype as string } : {}),
+          ...(block.config ? { config: block.config as Record<string, unknown> } : {}),
+          ...(block.aggregation
+            ? { aggregation: block.aggregation as LeafNode['aggregation'] }
+            : {}),
+          ...(block.roles ? { roles: block.roles as LeafNode['roles'] } : {}),
+        }),
+      );
 
       architectureUnknown.nodes = [...containerNodes, ...leafNodes];
       delete architectureUnknown.plates;
@@ -302,7 +309,7 @@ export function deserialize(json: string): Workspace[] {
 
       if (!isEndpointArray(architectureUnknown.endpoints)) {
         architectureUnknown.endpoints = nodeIds.flatMap((nodeId) =>
-          generateEndpointsForNode(nodeId)
+          generateEndpointsForNode(nodeId),
         );
       }
 
@@ -328,10 +335,7 @@ export function deserialize(json: string): Workspace[] {
 /**
  * Create a blank ArchitectureModel.
  */
-export function createBlankArchitecture(
-  id: string,
-  name: string
-): ArchitectureModel {
+export function createBlankArchitecture(id: string, name: string): ArchitectureModel {
   const now = new Date().toISOString();
   return {
     id,
@@ -340,7 +344,9 @@ export function createBlankArchitecture(
     nodes: [],
     endpoints: [],
     connections: [],
-    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } }],
+    externalActors: [
+      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+    ],
     createdAt: now,
     updatedAt: now,
   };

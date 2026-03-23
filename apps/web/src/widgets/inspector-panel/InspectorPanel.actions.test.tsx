@@ -96,7 +96,14 @@ const architecture: ArchitectureModel = {
   name: 'Inspector Test Architecture',
   version: '1.0.0',
   nodes: [networkPlate, subnetPlate, isolatedPlate, blockA, blockB],
-  connections: [{ id: 'conn-1', from: endpointId('block-a', 'output', 'data'), to: endpointId('block-b', 'input', 'data'), metadata: {} }],
+  connections: [
+    {
+      id: 'conn-1',
+      from: endpointId('block-a', 'output', 'data'),
+      to: endpointId('block-b', 'input', 'data'),
+      metadata: {},
+    },
+  ],
   endpoints: [],
   externalActors: [],
   createdAt: '',
@@ -298,7 +305,14 @@ describe('InspectorPanel actions', () => {
         name: 'Workspace A',
         architecture: {
           ...architecture,
-          connections: [{ id: 'conn-missing', from: endpointId('ghost-src', 'output', 'http'), to: endpointId('ghost-tgt', 'input', 'http'), metadata: {} }],
+          connections: [
+            {
+              id: 'conn-missing',
+              from: endpointId('ghost-src', 'output', 'http'),
+              to: endpointId('ghost-tgt', 'input', 'http'),
+              metadata: {},
+            },
+          ],
         },
         createdAt: '',
         updatedAt: '',

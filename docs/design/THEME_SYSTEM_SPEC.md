@@ -13,12 +13,12 @@ This specification defines the **dual theme system** for CloudBlocks. It establi
 
 ### Scope
 
-| In scope | Out of scope |
-|----------|-------------|
-| Theme token definitions (color, surface, border) | Layout or geometry changes between themes |
-| CSS custom property architecture | Vendor-specific resource colors (see V2 spec §7) |
-| Theme switching mechanism | Animation or motion token differences |
-| Migration plan from `blueprint`/`workshop` naming | Stud dimensions (see V2 spec §2 — INVIOLABLE) |
+| In scope                                          | Out of scope                                     |
+| ------------------------------------------------- | ------------------------------------------------ |
+| Theme token definitions (color, surface, border)  | Layout or geometry changes between themes        |
+| CSS custom property architecture                  | Vendor-specific resource colors (see V2 spec §7) |
+| Theme switching mechanism                         | Animation or motion token differences            |
+| Migration plan from `blueprint`/`workshop` naming | Stud dimensions (see V2 spec §2 — INVIOLABLE)    |
 
 ---
 
@@ -40,10 +40,10 @@ This specification defines the **dual theme system** for CloudBlocks. It establi
 export type ThemeVariant = 'professional' | 'lego';
 ```
 
-| Old name | New name | Description |
-|----------|----------|-------------|
-| `workshop` | `professional` | Clean, minimal, enterprise-grade light UI — the default |
-| `blueprint` | `lego` | Saturated, playful dark UI with the original brick aesthetic |
+| Old name    | New name       | Description                                                  |
+| ----------- | -------------- | ------------------------------------------------------------ |
+| `workshop`  | `professional` | Clean, minimal, enterprise-grade light UI — the default      |
+| `blueprint` | `lego`         | Saturated, playful dark UI with the original brick aesthetic |
 
 The rename reflects the product's evolution: Professional is the default production surface; Lego preserves the original creative identity as an opt-in alternative.
 
@@ -52,6 +52,7 @@ The rename reflects the product's evolution: Professional is the default product
 The Professional theme targets users who treat CloudBlocks as a production architecture tool. Visual cues are understated and informational.
 
 **Visual character**:
+
 - Light background palette (neutral grays, white surfaces)
 - Subtle shadows (`0 1px 3px rgba(0,0,0,0.1)`)
 - Muted accent colors — blue primary, teal secondary
@@ -64,6 +65,7 @@ The Professional theme targets users who treat CloudBlocks as a production archi
 The Lego theme preserves the original CloudBlocks brick-building aesthetic. It is colorful, saturated, and fun.
 
 **Visual character**:
+
 - Dark background palette (slate/navy tones)
 - Pronounced shadows with colored glow effects
 - Vivid accent colors — bright blue primary, cyan secondary
@@ -82,38 +84,38 @@ The `ThemeTokens` interface defines all theme-dependent visual properties. Both 
 ```typescript
 export interface ThemeTokens {
   // Backgrounds
-  'bg-app': string;            // Application shell background
-  'bg-canvas': string;         // Main canvas area
-  'bg-surface': string;        // Panel and card backgrounds
+  'bg-app': string; // Application shell background
+  'bg-canvas': string; // Main canvas area
+  'bg-surface': string; // Panel and card backgrounds
   'bg-surface-raised': string; // Elevated surfaces (dropdowns, modals)
-  'bg-overlay': string;        // Modal backdrop overlay
+  'bg-overlay': string; // Modal backdrop overlay
 
   // Text
-  'text-primary': string;      // Primary content text
-  'text-secondary': string;    // Secondary/descriptive text
-  'text-muted': string;        // Disabled or hint text
-  'text-inverse': string;      // Text on inverted backgrounds
+  'text-primary': string; // Primary content text
+  'text-secondary': string; // Secondary/descriptive text
+  'text-muted': string; // Disabled or hint text
+  'text-inverse': string; // Text on inverted backgrounds
 
   // Borders
-  'border-default': string;    // Standard element borders
-  'border-subtle': string;     // Subtle dividers
-  'border-strong': string;     // Emphasized borders (focus, active)
+  'border-default': string; // Standard element borders
+  'border-subtle': string; // Subtle dividers
+  'border-strong': string; // Emphasized borders (focus, active)
 
   // Accents
-  'accent-primary': string;    // Primary interactive elements
-  'accent-secondary': string;  // Secondary interactive elements
-  'accent-success': string;    // Success states
-  'accent-warning': string;    // Warning states
-  'accent-error': string;      // Error states
+  'accent-primary': string; // Primary interactive elements
+  'accent-secondary': string; // Secondary interactive elements
+  'accent-success': string; // Success states
+  'accent-warning': string; // Warning states
+  'accent-error': string; // Error states
 
   // Category colors (UI-only — NOT resource identity colors)
-  'cat-network': string;       // Network category indicator
-  'cat-security': string;      // Security category indicator
-  'cat-edge': string;          // Edge/CDN category indicator
-  'cat-compute': string;       // Compute category indicator
-  'cat-data': string;          // Data/storage category indicator
-  'cat-messaging': string;     // Messaging category indicator
-  'cat-operations': string;    // Operations category indicator
+  'cat-network': string; // Network category indicator
+  'cat-security': string; // Security category indicator
+  'cat-edge': string; // Edge/CDN category indicator
+  'cat-compute': string; // Compute category indicator
+  'cat-data': string; // Data/storage category indicator
+  'cat-messaging': string; // Messaging category indicator
+  'cat-operations': string; // Operations category indicator
 }
 ```
 
@@ -125,34 +127,34 @@ export interface ThemeTokens {
 
 ```typescript
 export const professionalTheme: ThemeTokens = {
-  'bg-app':             '#F8FAFC',
-  'bg-canvas':          '#FFFFFF',
-  'bg-surface':         '#F1F5F9',
-  'bg-surface-raised':  '#FFFFFF',
-  'bg-overlay':         'rgba(0, 0, 0, 0.3)',
+  'bg-app': '#F8FAFC',
+  'bg-canvas': '#FFFFFF',
+  'bg-surface': '#F1F5F9',
+  'bg-surface-raised': '#FFFFFF',
+  'bg-overlay': 'rgba(0, 0, 0, 0.3)',
 
-  'text-primary':       '#0F172A',
-  'text-secondary':     '#475569',
-  'text-muted':         '#94A3B8',
-  'text-inverse':       '#F1F5F9',
+  'text-primary': '#0F172A',
+  'text-secondary': '#475569',
+  'text-muted': '#94A3B8',
+  'text-inverse': '#F1F5F9',
 
-  'border-default':     '#E2E8F0',
-  'border-subtle':      '#F1F5F9',
-  'border-strong':      '#CBD5E1',
+  'border-default': '#E2E8F0',
+  'border-subtle': '#F1F5F9',
+  'border-strong': '#CBD5E1',
 
-  'accent-primary':     '#2563EB',
-  'accent-secondary':   '#0891B2',
-  'accent-success':     '#16A34A',
-  'accent-warning':     '#CA8A04',
-  'accent-error':       '#DC2626',
+  'accent-primary': '#2563EB',
+  'accent-secondary': '#0891B2',
+  'accent-success': '#16A34A',
+  'accent-warning': '#CA8A04',
+  'accent-error': '#DC2626',
 
-  'cat-network':        '#3B82F6',
-  'cat-security':       '#EF4444',
-  'cat-edge':           '#F97316',
-  'cat-compute':        '#8B5CF6',
-  'cat-data':           '#14B8A6',
-  'cat-messaging':      '#EAB308',
-  'cat-operations':     '#64748B',
+  'cat-network': '#3B82F6',
+  'cat-security': '#EF4444',
+  'cat-edge': '#F97316',
+  'cat-compute': '#8B5CF6',
+  'cat-data': '#14B8A6',
+  'cat-messaging': '#EAB308',
+  'cat-operations': '#64748B',
 };
 ```
 
@@ -160,34 +162,34 @@ export const professionalTheme: ThemeTokens = {
 
 ```typescript
 export const legoTheme: ThemeTokens = {
-  'bg-app':             '#0F172A',
-  'bg-canvas':          '#0B1220',
-  'bg-surface':         '#1E293B',
-  'bg-surface-raised':  '#334155',
-  'bg-overlay':         'rgba(0, 0, 0, 0.6)',
+  'bg-app': '#0F172A',
+  'bg-canvas': '#0B1220',
+  'bg-surface': '#1E293B',
+  'bg-surface-raised': '#334155',
+  'bg-overlay': 'rgba(0, 0, 0, 0.6)',
 
-  'text-primary':       '#F1F5F9',
-  'text-secondary':     '#94A3B8',
-  'text-muted':         '#64748B',
-  'text-inverse':       '#0F172A',
+  'text-primary': '#F1F5F9',
+  'text-secondary': '#94A3B8',
+  'text-muted': '#64748B',
+  'text-inverse': '#0F172A',
 
-  'border-default':     '#334155',
-  'border-subtle':      '#1E293B',
-  'border-strong':      '#475569',
+  'border-default': '#334155',
+  'border-subtle': '#1E293B',
+  'border-strong': '#475569',
 
-  'accent-primary':     '#3B82F6',
-  'accent-secondary':   '#06B6D4',
-  'accent-success':     '#22C55E',
-  'accent-warning':     '#EAB308',
-  'accent-error':       '#EF4444',
+  'accent-primary': '#3B82F6',
+  'accent-secondary': '#06B6D4',
+  'accent-success': '#22C55E',
+  'accent-warning': '#EAB308',
+  'accent-error': '#EF4444',
 
-  'cat-network':        '#3B82F6',
-  'cat-security':       '#EF4444',
-  'cat-edge':           '#F97316',
-  'cat-compute':        '#8B5CF6',
-  'cat-data':           '#14B8A6',
-  'cat-messaging':      '#EAB308',
-  'cat-operations':     '#64748B',
+  'cat-network': '#3B82F6',
+  'cat-security': '#EF4444',
+  'cat-edge': '#F97316',
+  'cat-compute': '#8B5CF6',
+  'cat-data': '#14B8A6',
+  'cat-messaging': '#EAB308',
+  'cat-operations': '#64748B',
 };
 ```
 
@@ -198,26 +200,26 @@ Typography and motion tokens do **not** vary by theme. They are shared constants
 ```typescript
 // Typography — identical across all themes
 export const typography = {
-  fontUi:     "'Inter', system-ui, -apple-system, sans-serif",
-  fontMono:   "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
-  'text-xs':  '11px',
-  'text-sm':  '12px',
-  'text-base':'13px',
-  'text-md':  '14px',
-  'text-lg':  '16px',
-  'text-xl':  '20px',
+  fontUi: "'Inter', system-ui, -apple-system, sans-serif",
+  fontMono: "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+  'text-xs': '11px',
+  'text-sm': '12px',
+  'text-base': '13px',
+  'text-md': '14px',
+  'text-lg': '16px',
+  'text-xl': '20px',
   'text-2xl': '24px',
   'text-3xl': '32px',
 };
 
 // Motion — identical across all themes
 export const motion = {
-  'duration-fast':      '100ms',
-  'duration-normal':    '200ms',
-  'duration-slow':      '300ms',
-  'easing-default':     'cubic-bezier(0.2, 0, 0, 1)',
-  'easing-decelerate':  'cubic-bezier(0, 0, 0, 1)',
-  'easing-accelerate':  'cubic-bezier(0.3, 0, 1, 1)',
+  'duration-fast': '100ms',
+  'duration-normal': '200ms',
+  'duration-slow': '300ms',
+  'easing-default': 'cubic-bezier(0.2, 0, 0, 1)',
+  'easing-decelerate': 'cubic-bezier(0, 0, 0, 1)',
+  'easing-accelerate': 'cubic-bezier(0.3, 0, 1, 1)',
 };
 ```
 
@@ -229,11 +231,11 @@ export const motion = {
 
 Resource block colors are **provider-identity colors**, not theme tokens. They are defined in [CLOUDBLOCKS_SPEC_V2.md §7](CLOUDBLOCKS_SPEC_V2.md#7-color-system) and are invariant across themes.
 
-| Provider | Brand Primary | Source |
-|----------|--------------|--------|
-| Azure | `#0078D4` | Microsoft Fluent Design |
-| AWS | `#D86613` (Compute), `#232F3E` (Brand Dark) | AWS Architecture Icons |
-| GCP | `#4285F4` | Google Brand Colors |
+| Provider | Brand Primary                               | Source                  |
+| -------- | ------------------------------------------- | ----------------------- |
+| Azure    | `#0078D4`                                   | Microsoft Fluent Design |
+| AWS      | `#D86613` (Compute), `#232F3E` (Brand Dark) | AWS Architecture Icons  |
+| GCP      | `#4285F4`                                   | Google Brand Colors     |
 
 The full service family → color mappings are in V2 spec §7.2–§7.4. This spec does not duplicate them.
 
@@ -241,12 +243,12 @@ The full service family → color mappings are in V2 spec §7.2–§7.4. This sp
 
 Themes affect how vendor colors appear on the canvas through contrast and context:
 
-| Aspect | Professional (light) | Lego (dark) |
-|--------|---------------------|-------------|
-| Canvas background | `#FFFFFF` | `#0B1220` |
-| Block contrast | Vendor colors on white — good natural contrast | Vendor colors on dark — enhanced pop |
-| Block shadows | `rgba(0,0,0,0.08)` — subtle, flat | `rgba(0,0,0,0.3)` — deeper, 3D feel |
-| Connection lines | Slightly desaturated on light | Full saturation on dark |
+| Aspect            | Professional (light)                           | Lego (dark)                          |
+| ----------------- | ---------------------------------------------- | ------------------------------------ |
+| Canvas background | `#FFFFFF`                                      | `#0B1220`                            |
+| Block contrast    | Vendor colors on white — good natural contrast | Vendor colors on dark — enhanced pop |
+| Block shadows     | `rgba(0,0,0,0.08)` — subtle, flat              | `rgba(0,0,0,0.3)` — deeper, 3D feel  |
+| Connection lines  | Slightly desaturated on light                  | Full saturation on dark              |
 
 ### 4.3 Rules
 
@@ -261,22 +263,22 @@ Themes affect how vendor colors appear on the canvas through contrast and contex
 
 Connector (connection line) colors are based on **connection type**, not theme variant. Both Professional and Lego themes use the same connector palette.
 
-| Connection Type | Tile | Shadow | Dark | Accent | Pin Hole |
-|----------------|------|--------|------|--------|----------|
-| `dataflow` | `#64748b` | `#475569` | `#334155` | `#94a3b8` | open |
-| `http` | `#3b82f6` | `#2563eb` | `#1d4ed8` | `#60a5fa` | filled |
-| `internal` | `#8b5cf6` | `#7c3aed` | `#6d28d9` | `#a78bfa` | cross |
-| `data` | `#f59e0b` | `#d97706` | `#b45309` | `#fbbf24` | double |
-| `async` | `#10b981` | `#059669` | `#047857` | `#34d399` | dashed |
+| Connection Type | Tile      | Shadow    | Dark      | Accent    | Pin Hole |
+| --------------- | --------- | --------- | --------- | --------- | -------- |
+| `dataflow`      | `#64748b` | `#475569` | `#334155` | `#94a3b8` | open     |
+| `http`          | `#3b82f6` | `#2563eb` | `#1d4ed8` | `#60a5fa` | filled   |
+| `internal`      | `#8b5cf6` | `#7c3aed` | `#6d28d9` | `#a78bfa` | cross    |
+| `data`          | `#f59e0b` | `#d97706` | `#b45309` | `#fbbf24` | double   |
+| `async`         | `#10b981` | `#059669` | `#047857` | `#34d399` | dashed   |
 
 The `ConnectorTheme` interface:
 
 ```typescript
 export interface ConnectorTheme {
-  tile: string;       // Primary connection line color
-  shadow: string;     // Darker shade for depth
-  dark: string;       // Darkest shade for strong contrast
-  accent: string;     // Lighter shade for highlights/hover
+  tile: string; // Primary connection line color
+  shadow: string; // Darker shade for depth
+  dark: string; // Darkest shade for strong contrast
+  accent: string; // Lighter shade for highlights/hover
   pinHoleStyle: 'open' | 'filled' | 'cross' | 'double' | 'dashed';
 }
 ```
@@ -285,11 +287,11 @@ export interface ConnectorTheme {
 
 Architecture diff overlays are also theme-independent:
 
-| State | Color | Opacity |
-|-------|-------|---------|
-| Added | `#22c55e` | 1.0 |
-| Removed | `#ef4444` | 0.4 |
-| Modified | `#eab308` | 1.0 |
+| State    | Color     | Opacity |
+| -------- | --------- | ------- |
+| Added    | `#22c55e` | 1.0     |
+| Removed  | `#ef4444` | 0.4     |
+| Modified | `#eab308` | 1.0     |
 
 ---
 
@@ -305,6 +307,7 @@ const bg = tokens['bg-app'];
 ```
 
 This works but has limitations:
+
 - CSS files cannot reference tokens
 - Theme changes require React re-renders to propagate
 - CSS-based animations cannot use token values
@@ -324,38 +327,38 @@ Full property list:
 ```css
 :root {
   /* Backgrounds */
-  --cb-bg-app: #F8FAFC;
-  --cb-bg-canvas: #FFFFFF;
-  --cb-bg-surface: #F1F5F9;
-  --cb-bg-surface-raised: #FFFFFF;
+  --cb-bg-app: #f8fafc;
+  --cb-bg-canvas: #ffffff;
+  --cb-bg-surface: #f1f5f9;
+  --cb-bg-surface-raised: #ffffff;
   --cb-bg-overlay: rgba(0, 0, 0, 0.3);
 
   /* Text */
-  --cb-text-primary: #0F172A;
+  --cb-text-primary: #0f172a;
   --cb-text-secondary: #475569;
-  --cb-text-muted: #94A3B8;
-  --cb-text-inverse: #F1F5F9;
+  --cb-text-muted: #94a3b8;
+  --cb-text-inverse: #f1f5f9;
 
   /* Borders */
-  --cb-border-default: #E2E8F0;
-  --cb-border-subtle: #F1F5F9;
-  --cb-border-strong: #CBD5E1;
+  --cb-border-default: #e2e8f0;
+  --cb-border-subtle: #f1f5f9;
+  --cb-border-strong: #cbd5e1;
 
   /* Accents */
-  --cb-accent-primary: #2563EB;
-  --cb-accent-secondary: #0891B2;
-  --cb-accent-success: #16A34A;
-  --cb-accent-warning: #CA8A04;
-  --cb-accent-error: #DC2626;
+  --cb-accent-primary: #2563eb;
+  --cb-accent-secondary: #0891b2;
+  --cb-accent-success: #16a34a;
+  --cb-accent-warning: #ca8a04;
+  --cb-accent-error: #dc2626;
 
   /* Category (UI chrome only) */
-  --cb-cat-network: #3B82F6;
-  --cb-cat-security: #EF4444;
-  --cb-cat-edge: #F97316;
-  --cb-cat-compute: #8B5CF6;
-  --cb-cat-data: #14B8A6;
-  --cb-cat-messaging: #EAB308;
-  --cb-cat-operations: #64748B;
+  --cb-cat-network: #3b82f6;
+  --cb-cat-security: #ef4444;
+  --cb-cat-edge: #f97316;
+  --cb-cat-compute: #8b5cf6;
+  --cb-cat-data: #14b8a6;
+  --cb-cat-messaging: #eab308;
+  --cb-cat-operations: #64748b;
 
   /* Typography (theme-independent) */
   --cb-font-ui: 'Inter', system-ui, -apple-system, sans-serif;
@@ -417,12 +420,13 @@ No Big Bang migration — both access patterns coexist indefinitely.
 ```typescript
 // In uiStore.ts
 interface UiState {
-  themeVariant: ThemeVariant;          // 'professional' | 'lego'
+  themeVariant: ThemeVariant; // 'professional' | 'lego'
   setThemeVariant: (v: ThemeVariant) => void;
 }
 ```
 
 `setThemeVariant` triggers:
+
 1. Update Zustand store state
 2. Call `applyTheme(variant)` to set CSS custom properties
 3. Persist to `localStorage` key `cloudblocks:theme-variant`
@@ -438,11 +442,12 @@ First-time visitors see the Professional theme. The Lego theme is opt-in via the
 
 ### 7.3 Persistence
 
-| Key | Value | Default |
-|-----|-------|---------|
+| Key                         | Value                        | Default          |
+| --------------------------- | ---------------------------- | ---------------- |
 | `cloudblocks:theme-variant` | `'professional'` or `'lego'` | `'professional'` |
 
 On app init:
+
 1. Read `localStorage` value
 2. If valid variant → apply it
 3. If missing or invalid → apply `'professional'`
@@ -465,13 +470,13 @@ No separate settings page. One click to switch. Change applies instantly.
 
 ### 8.1 Token Rename
 
-| File | Change |
-|------|--------|
-| `themeTokens.ts` | Rename `blueprintTheme` → `legoTheme`, `workshopTheme` → `professionalTheme` |
+| File             | Change                                                                               |
+| ---------------- | ------------------------------------------------------------------------------------ |
+| `themeTokens.ts` | Rename `blueprintTheme` → `legoTheme`, `workshopTheme` → `professionalTheme`         |
 | `themeTokens.ts` | Update `ThemeVariant` type: `'blueprint' \| 'workshop'` → `'professional' \| 'lego'` |
-| `themeTokens.ts` | Update `getThemeTokens()` to use new names |
-| `uiStore.ts` | Update default: `'blueprint'` → `'professional'` |
-| `uiStore.ts` | Add migration: read old `localStorage` value, map to new |
+| `themeTokens.ts` | Update `getThemeTokens()` to use new names                                           |
+| `uiStore.ts`     | Update default: `'blueprint'` → `'professional'`                                     |
+| `uiStore.ts`     | Add migration: read old `localStorage` value, map to new                             |
 
 ### 8.2 localStorage Migration
 
@@ -504,11 +509,11 @@ All files that import from `themeTokens.ts` must be updated:
 
 Both themes must meet WCAG 2.1 AA contrast ratios:
 
-| Pair | Minimum ratio | Professional | Lego |
-|------|--------------|-------------|------|
-| `text-primary` on `bg-surface` | 4.5:1 | `#0F172A` on `#F1F5F9` = 15.4:1 ✅ | `#F1F5F9` on `#1E293B` = 11.0:1 ✅ |
-| `text-secondary` on `bg-surface` | 4.5:1 | `#475569` on `#F1F5F9` = 5.9:1 ✅ | `#94A3B8` on `#1E293B` = 4.6:1 ✅ |
-| `text-muted` on `bg-surface` | 3:1 (large text) | `#94A3B8` on `#F1F5F9` = 2.7:1 ⚠️ | `#64748B` on `#1E293B` = 3.2:1 ✅ |
+| Pair                             | Minimum ratio    | Professional                       | Lego                               |
+| -------------------------------- | ---------------- | ---------------------------------- | ---------------------------------- |
+| `text-primary` on `bg-surface`   | 4.5:1            | `#0F172A` on `#F1F5F9` = 15.4:1 ✅ | `#F1F5F9` on `#1E293B` = 11.0:1 ✅ |
+| `text-secondary` on `bg-surface` | 4.5:1            | `#475569` on `#F1F5F9` = 5.9:1 ✅  | `#94A3B8` on `#1E293B` = 4.6:1 ✅  |
+| `text-muted` on `bg-surface`     | 3:1 (large text) | `#94A3B8` on `#F1F5F9` = 2.7:1 ⚠️  | `#64748B` on `#1E293B` = 3.2:1 ✅  |
 
 > **Note**: `text-muted` in Professional is below AA for small text. This is acceptable because muted text is used for non-essential hints and disabled states, not critical content. For small text, prefer `text-secondary`.
 
@@ -516,10 +521,10 @@ Both themes must meet WCAG 2.1 AA contrast ratios:
 
 Focus indicators use `accent-primary` with a 2px solid outline offset by 2px. This is theme-independent in behavior, but the color adapts:
 
-| Theme | Focus color | On background |
-|-------|------------|---------------|
-| Professional | `#2563EB` | Light surfaces — clearly visible |
-| Lego | `#3B82F6` | Dark surfaces — clearly visible |
+| Theme        | Focus color | On background                    |
+| ------------ | ----------- | -------------------------------- |
+| Professional | `#2563EB`   | Light surfaces — clearly visible |
+| Lego         | `#3B82F6`   | Dark surfaces — clearly visible  |
 
 ---
 
@@ -562,21 +567,21 @@ This requires 4 token sets instead of 2 but uses the same `ThemeTokens` interfac
 
 ## 11. Summary
 
-| Aspect | Decision |
-|--------|----------|
-| Default theme | Professional (light, clean, enterprise) |
-| Alternative theme | Lego (dark, playful, creative) |
-| Theme dimensionality | 1D — variant only (no separate light/dark toggle) |
-| Token count | 24 color tokens + 8 typography + 6 motion |
-| CSS architecture | `--cb-*` custom properties on `:root` |
-| Vendor colors | Theme-independent — defined in V2 spec §7 |
-| Connector colors | Theme-independent — defined by connection type |
-| Persistence | `localStorage` key `cloudblocks:theme-variant` |
-| Default value | `'professional'` |
-| Switching | Instant, via View menu |
-| Extension | New variants = new `ThemeTokens` object + union member |
-| Accessibility | WCAG AA for primary/secondary text |
+| Aspect               | Decision                                               |
+| -------------------- | ------------------------------------------------------ |
+| Default theme        | Professional (light, clean, enterprise)                |
+| Alternative theme    | Lego (dark, playful, creative)                         |
+| Theme dimensionality | 1D — variant only (no separate light/dark toggle)      |
+| Token count          | 24 color tokens + 8 typography + 6 motion              |
+| CSS architecture     | `--cb-*` custom properties on `:root`                  |
+| Vendor colors        | Theme-independent — defined in V2 spec §7              |
+| Connector colors     | Theme-independent — defined by connection type         |
+| Persistence          | `localStorage` key `cloudblocks:theme-variant`         |
+| Default value        | `'professional'`                                       |
+| Switching            | Instant, via View menu                                 |
+| Extension            | New variants = new `ThemeTokens` object + union member |
+| Accessibility        | WCAG AA for primary/secondary text                     |
 
 ---
 
-*This specification is the authoritative reference for theme-related decisions in CloudBlocks. For resource color definitions, see [CLOUDBLOCKS_SPEC_V2.md §7](CLOUDBLOCKS_SPEC_V2.md#7-color-system). For the architectural decision record, see [ADR-0011](../adr/0011-dual-theme-system.md).*
+_This specification is the authoritative reference for theme-related decisions in CloudBlocks. For resource color definitions, see [CLOUDBLOCKS_SPEC_V2.md §7](CLOUDBLOCKS_SPEC_V2.md#7-color-system). For the architectural decision record, see [ADR-0011](../adr/0011-dual-theme-system.md)._

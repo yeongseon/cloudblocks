@@ -20,4 +20,4 @@ services:
       --reload
       --reload-dir /app/app
     environment:
-      CLOUDBLOCKS_APP_DEBUG: "true"
+      CLOUDBLOCKS_APP_DEBUG: 'true'

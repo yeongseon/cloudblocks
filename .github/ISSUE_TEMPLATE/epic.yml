@@ -1,7 +1,7 @@
 name: Epic
 description: A major feature area spanning multiple sub-issues and PRs
-title: "[Epic] "
-labels: ["epic"]
+title: '[Epic] '
+labels: ['epic']
 body:
   - type: markdown
     attributes:
@@ -88,6 +88,6 @@ body:
       label: Branch Name
       description: |
         Base branch name for this epic's work. Sub-issues branch from this or use their own feature branches.
-      placeholder: "feature/epic-name"
+      placeholder: 'feature/epic-name'
     validations:
       required: true

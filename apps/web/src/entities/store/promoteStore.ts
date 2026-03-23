@@ -76,8 +76,7 @@ export const usePromoteStore = create<PromoteState>((set) => ({
 
   // ── Promote actions ──────────────────────────────────────
 
-  togglePromoteDialog: () =>
-    set((s) => ({ showPromoteDialog: !s.showPromoteDialog })),
+  togglePromoteDialog: () => set((s) => ({ showPromoteDialog: !s.showPromoteDialog })),
 
   setShowPromoteDialog: (show) => set({ showPromoteDialog: show }),
 
@@ -86,8 +85,7 @@ export const usePromoteStore = create<PromoteState>((set) => ({
       promotionChecklist: { ...s.promotionChecklist, [key]: value },
     })),
 
-  resetChecklist: () =>
-    set({ promotionChecklist: { ...DEFAULT_CHECKLIST } }),
+  resetChecklist: () => set({ promotionChecklist: { ...DEFAULT_CHECKLIST } }),
 
   promote: async (imageTag: string) => {
     set({ promoting: true, promotionError: null });
@@ -117,13 +115,11 @@ export const usePromoteStore = create<PromoteState>((set) => ({
 
   // ── Rollback actions ─────────────────────────────────────
 
-  toggleRollbackDialog: () =>
-    set((s) => ({ showRollbackDialog: !s.showRollbackDialog })),
+  toggleRollbackDialog: () => set((s) => ({ showRollbackDialog: !s.showRollbackDialog })),
 
   setShowRollbackDialog: (show) => set({ showRollbackDialog: show }),
 
-  selectRollbackVersion: (version) =>
-    set({ selectedRollbackVersion: version }),
+  selectRollbackVersion: (version) => set({ selectedRollbackVersion: version }),
 
   loadAvailableVersions: async () => {
     try {
@@ -198,8 +194,7 @@ export const usePromoteStore = create<PromoteState>((set) => ({
 
   // ── History actions ──────────────────────────────────────
 
-  togglePromoteHistory: () =>
-    set((s) => ({ showPromoteHistory: !s.showPromoteHistory })),
+  togglePromoteHistory: () => set((s) => ({ showPromoteHistory: !s.showPromoteHistory })),
 
   loadHistory: async () => {
     set({ loadingHistory: true });

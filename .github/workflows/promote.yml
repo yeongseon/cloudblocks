@@ -28,11 +28,11 @@ on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: "Image tag to promote (git SHA from staging deploy)"
+        description: 'Image tag to promote (git SHA from staging deploy)'
         required: true
         type: string
       skip_web:
-        description: "Skip frontend deployment (API-only promotion)"
+        description: 'Skip frontend deployment (API-only promotion)'
         required: false
         type: boolean
         default: false

@@ -9,13 +9,13 @@
 
 Trigger a rollback when any of the following occur **after** a release is deployed:
 
-| Trigger | Severity | Max Decision Time |
-|---------|----------|-------------------|
-| Application crashes on load (blank page) | P0 | Immediate |
-| Data corruption (localStorage architecture JSON mangled) | P0 | Immediate |
-| Core flow broken (place → connect → validate → generate) | P1 | < 1 hour |
-| GitHub integration fully non-functional | P1 | < 4 hours |
-| UI regression affecting > 50% of users | P2 | < 24 hours |
+| Trigger                                                  | Severity | Max Decision Time |
+| -------------------------------------------------------- | -------- | ----------------- |
+| Application crashes on load (blank page)                 | P0       | Immediate         |
+| Data corruption (localStorage architecture JSON mangled) | P0       | Immediate         |
+| Core flow broken (place → connect → validate → generate) | P1       | < 1 hour          |
+| GitHub integration fully non-functional                  | P1       | < 4 hours         |
+| UI regression affecting > 50% of users                   | P2       | < 24 hours        |
 
 **Do NOT rollback for**: cosmetic issues, non-critical feature regressions, or problems with workarounds.
 
@@ -76,6 +76,7 @@ curl -s "https://<staging-api-url>/health" | jq .
 ```
 
 For the Static Web App (frontend):
+
 ```bash
 # Re-deploy from a previous commit
 gh workflow run deploy.yml --ref <previous-tag>
@@ -102,27 +103,27 @@ curl -s "https://<production-api-url>/health" | jq .
 
 ## 4. Post-Rollback Actions
 
-| Step | Action | Owner |
-|------|--------|-------|
-| 1 | Verify rollback succeeded (health check + smoke test) | On-call |
-| 2 | Create GitHub issue with `incident` label | On-call |
-| 3 | Notify stakeholders of rollback and current status | On-call |
-| 4 | Root cause analysis — identify the breaking change | Developer |
-| 5 | Write regression test covering the failure | Developer |
-| 6 | Fix forward — create hotfix branch from last good tag | Developer |
-| 7 | Update release gates if a new check is needed | Developer |
+| Step | Action                                                | Owner     |
+| ---- | ----------------------------------------------------- | --------- |
+| 1    | Verify rollback succeeded (health check + smoke test) | On-call   |
+| 2    | Create GitHub issue with `incident` label             | On-call   |
+| 3    | Notify stakeholders of rollback and current status    | On-call   |
+| 4    | Root cause analysis — identify the breaking change    | Developer |
+| 5    | Write regression test covering the failure            | Developer |
+| 6    | Fix forward — create hotfix branch from last good tag | Developer |
+| 7    | Update release gates if a new check is needed         | Developer |
 
 ---
 
 ## 5. Rollback Scope Reference
 
-| Component | Rollback Method | Data Impact |
-|-----------|----------------|-------------|
-| Frontend (GitHub Pages) | Revert commit or re-run workflow | None (client-side only) |
-| Frontend (SWA staging) | Re-deploy previous build | None |
-| API (Container App) | Activate previous revision | None if no DB migration |
-| Database | Run down migration | Potential data loss — requires review |
-| localStorage | Schema version check handles gracefully | User may need to re-import |
+| Component               | Rollback Method                         | Data Impact                           |
+| ----------------------- | --------------------------------------- | ------------------------------------- |
+| Frontend (GitHub Pages) | Revert commit or re-run workflow        | None (client-side only)               |
+| Frontend (SWA staging)  | Re-deploy previous build                | None                                  |
+| API (Container App)     | Activate previous revision              | None if no DB migration               |
+| Database                | Run down migration                      | Potential data loss — requires review |
+| localStorage            | Schema version check handles gracefully | User may need to re-import            |
 
 ---
 

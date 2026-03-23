@@ -27,14 +27,22 @@ interface BlockSvgProps {
   category: ResourceCategory;
   provider?: ProviderType;
   subtype?: string;
-  name?: string;              // user-given resource name (overrides shortName on left wall)
+  name?: string; // user-given resource name (overrides shortName on left wall)
   aggregationCount?: number; // v2.0 §8 — show ×N badge when > 1
-  roles?: BlockRole[];        // v2.0 §9 — visual-only role indicators
+  roles?: BlockRole[]; // v2.0 §9 — visual-only role indicators
   /** When true, stub dots are emphasized (connect mode active). */
   showStubs?: boolean;
 }
 
-export const BlockSvg = memo(function BlockSvg({ category, provider, subtype, name, aggregationCount, roles, showStubs }: BlockSvgProps) {
+export const BlockSvg = memo(function BlockSvg({
+  category,
+  provider,
+  subtype,
+  name,
+  aggregationCount,
+  roles,
+  showStubs,
+}: BlockSvgProps) {
   // ─── v2.0: CU-based dimension resolution ───────────────────
   const cu = getBlockDimensions(category, provider, subtype);
   const dims = cuToSilhouetteDimensions(cu);
@@ -105,18 +113,47 @@ export const BlockSvg = memo(function BlockSvg({ category, provider, subtype, na
 
       {silhouetteResult.renderMode === 'polygon' ? (
         <>
-          <polygon points={silhouetteResult.topFacePoints} fill={faceColors.topFaceColor} stroke={faceColors.topFaceStroke} strokeWidth={TOP_FACE_STROKE_WIDTH} strokeOpacity={TOP_FACE_STROKE_OPACITY} />
+          <polygon
+            points={silhouetteResult.topFacePoints}
+            fill={faceColors.topFaceColor}
+            stroke={faceColors.topFaceStroke}
+            strokeWidth={TOP_FACE_STROKE_WIDTH}
+            strokeOpacity={TOP_FACE_STROKE_OPACITY}
+          />
           <polygon points={silhouetteResult.leftSidePoints} fill={faceColors.leftSideColor} />
           <polygon points={silhouetteResult.rightSidePoints} fill={faceColors.rightSideColor} />
         </>
       ) : (
         <>
-          <rect x={silhouetteResult.bodyRect!.x} y={silhouetteResult.bodyRect!.y} width={silhouetteResult.bodyRect!.width} height={silhouetteResult.bodyRect!.height} fill={faceColors.leftSideColor} />
+          <rect
+            x={silhouetteResult.bodyRect!.x}
+            y={silhouetteResult.bodyRect!.y}
+            width={silhouetteResult.bodyRect!.width}
+            height={silhouetteResult.bodyRect!.height}
+            fill={faceColors.leftSideColor}
+          />
           <path d={silhouetteResult.bottomArcPath!} fill={faceColors.rightSideColor} />
-          <ellipse cx={silhouetteResult.ellipseCenter!.cx} cy={silhouetteResult.ellipseCenter!.cy} rx={silhouetteResult.ellipseRadii!.rx} ry={silhouetteResult.ellipseRadii!.ry} fill={faceColors.topFaceColor} stroke={faceColors.topFaceStroke} strokeWidth={TOP_FACE_STROKE_WIDTH} strokeOpacity={TOP_FACE_STROKE_OPACITY} />
+          <ellipse
+            cx={silhouetteResult.ellipseCenter!.cx}
+            cy={silhouetteResult.ellipseCenter!.cy}
+            rx={silhouetteResult.ellipseRadii!.rx}
+            ry={silhouetteResult.ellipseRadii!.ry}
+            fill={faceColors.topFaceColor}
+            stroke={faceColors.topFaceStroke}
+            strokeWidth={TOP_FACE_STROKE_WIDTH}
+            strokeOpacity={TOP_FACE_STROKE_OPACITY}
+          />
         </>
       )}
-      <line x1={leftX} y1={midY} x2={cx} y2={topY} stroke={EDGE_HIGHLIGHT_COLOR} strokeWidth={EDGE_HIGHLIGHT_STROKE_WIDTH} strokeOpacity={EDGE_HIGHLIGHT_OPACITY} />
+      <line
+        x1={leftX}
+        y1={midY}
+        x2={cx}
+        y2={topY}
+        stroke={EDGE_HIGHLIGHT_COLOR}
+        strokeWidth={EDGE_HIGHLIGHT_STROKE_WIDTH}
+        strokeOpacity={EDGE_HIGHLIGHT_OPACITY}
+      />
 
       <StudGrid studId={studId} studs={studs} />
 
@@ -231,7 +268,6 @@ export const BlockSvg = memo(function BlockSvg({ category, provider, subtype, na
           );
         })()}
       </g>
-
     </svg>
   );
 });

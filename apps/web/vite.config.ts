@@ -1,6 +1,6 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from 'path'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -11,15 +11,18 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules/.pnpm/interactjs@')) {
-            return 'interact'
+            return 'interact';
           }
 
-          if (id.includes('node_modules/.pnpm/react-dom@') || id.includes('node_modules/.pnpm/scheduler@')) {
-            return 'react-dom'
+          if (
+            id.includes('node_modules/.pnpm/react-dom@') ||
+            id.includes('node_modules/.pnpm/scheduler@')
+          ) {
+            return 'react-dom';
           }
 
           if (id.includes('node_modules/.pnpm/react@')) {
-            return 'react'
+            return 'react';
           }
         },
       },
@@ -41,4 +44,4 @@ export default defineConfig({
       },
     ],
   },
-})
+});

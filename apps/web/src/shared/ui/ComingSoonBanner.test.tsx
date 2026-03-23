@@ -6,9 +6,7 @@ describe('ComingSoonBanner', () => {
   it('renders the message text', () => {
     render(<ComingSoonBanner message="Feature X is under development." />);
 
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'Feature X is under development.',
-    );
+    expect(screen.getByRole('status')).toHaveTextContent('Feature X is under development.');
   });
 
   it('applies the base CSS class', () => {
@@ -18,9 +16,7 @@ describe('ComingSoonBanner', () => {
   });
 
   it('appends a custom className when provided', () => {
-    render(
-      <ComingSoonBanner message="Coming soon." className="ai-coming-soon" />,
-    );
+    render(<ComingSoonBanner message="Coming soon." className="ai-coming-soon" />);
 
     const el = screen.getByRole('status');
     expect(el).toHaveClass('coming-soon-banner');

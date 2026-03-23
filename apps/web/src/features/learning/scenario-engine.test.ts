@@ -121,7 +121,7 @@ describe('scenario-engine', () => {
   describe('startLearningScenario', () => {
     it('throws error for unknown scenario ID', () => {
       expect(() => startLearningScenario('missing-scenario')).toThrow(
-        'Scenario not found: missing-scenario'
+        'Scenario not found: missing-scenario',
       );
     });
 

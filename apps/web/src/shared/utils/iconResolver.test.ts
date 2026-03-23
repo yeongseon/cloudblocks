@@ -4,7 +4,12 @@ import type { LayerType, ProviderType, ResourceCategory } from '@cloudblocks/sch
 
 describe('getBlockIconUrl', () => {
   const ALL_CATEGORIES: ResourceCategory[] = [
-    'compute', 'data', 'edge', 'messaging', 'operations', 'security',
+    'compute',
+    'data',
+    'edge',
+    'messaging',
+    'operations',
+    'security',
   ];
   const ALL_PROVIDERS: ProviderType[] = ['azure', 'aws', 'gcp'];
 
@@ -17,14 +22,11 @@ describe('getBlockIconUrl', () => {
     },
   );
 
-  it.each(ALL_PROVIDERS)(
-    'returns a valid icon URL for provider %s',
-    (provider) => {
-      const url = getBlockIconUrl(provider, 'compute');
-      expect(typeof url).toBe('string');
-      expect(url.length).toBeGreaterThan(0);
-    },
-  );
+  it.each(ALL_PROVIDERS)('returns a valid icon URL for provider %s', (provider) => {
+    const url = getBlockIconUrl(provider, 'compute');
+    expect(typeof url).toBe('string');
+    expect(url.length).toBeGreaterThan(0);
+  });
 
   it('aws and gcp fall back to azure icons', () => {
     ALL_CATEGORIES.forEach((category) => {
@@ -46,14 +48,11 @@ describe('getBlockIconUrl', () => {
 describe('getPlateIconUrl', () => {
   const ALL_PLATE_TYPES: LayerType[] = ['global', 'edge', 'region', 'zone', 'subnet'];
 
-  it.each(ALL_PLATE_TYPES)(
-    'returns a non-empty string for plate type %s',
-    (plateType) => {
-      const url = getPlateIconUrl(plateType);
-      expect(typeof url).toBe('string');
-      expect(url.length).toBeGreaterThan(0);
-    },
-  );
+  it.each(ALL_PLATE_TYPES)('returns a non-empty string for plate type %s', (plateType) => {
+    const url = getPlateIconUrl(plateType);
+    expect(typeof url).toBe('string');
+    expect(url.length).toBeGreaterThan(0);
+  });
 
   it('subnet uses a different icon than network-layer plates', () => {
     const subnetUrl = getPlateIconUrl('subnet');
@@ -67,5 +66,4 @@ describe('getPlateIconUrl', () => {
     const unique = new Set(urls);
     expect(unique.size).toBe(1);
   });
-
 });

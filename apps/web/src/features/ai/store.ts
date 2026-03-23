@@ -3,16 +3,8 @@ import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { validateArchitectureShape } from '../../entities/store/slices/index';
 import { isApiConfigured } from '../../shared/api/client';
 import type { ArchitectureSnapshot } from '../../shared/types/learning';
-import {
-  generateArchitecture,
-  suggestImprovements,
-  estimateCost,
-} from './api';
-import type {
-  GenerateResponse,
-  SuggestResponse,
-  CostResponse,
-} from './api';
+import { generateArchitecture, suggestImprovements, estimateCost } from './api';
+import type { GenerateResponse, SuggestResponse, CostResponse } from './api';
 
 interface AiState {
   generateLoading: boolean;

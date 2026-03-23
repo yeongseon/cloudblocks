@@ -14,9 +14,9 @@ import type { LayerType } from '@cloudblocks/schema';
  * in both frontend (validation engine) and backend (rule_engine.py).
  */
 export const VALID_PARENTS: Record<LayerType, LayerType[]> = {
-  global: [],           // root level
-  edge: [],             // root level
-  region: ['global'],   // or root
+  global: [], // root level
+  edge: [], // root level
+  region: ['global'], // or root
   zone: ['region'],
   subnet: ['zone', 'region'],
   resource: ['subnet', 'zone', 'region', 'edge', 'global'],

@@ -5,18 +5,18 @@
   transform: translateX(-50%);
   width: 520px;
   max-height: calc(100vh - 120px);
-  background: #FFFDF0;
-  border: 4px solid #FFC83D;
+  background: #fffdf0;
+  border: 4px solid #ffc83d;
   border-radius: 8px;
   padding: 16px;
-  color: #3D2600;
+  color: #3d2600;
   font-family: var(--font-ui);
   z-index: 200;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 
-    0 6px 0 0 rgba(0,0,0,0.15), 
+  box-shadow:
+    0 6px 0 0 rgba(0, 0, 0, 0.15),
     0 12px 24px rgba(255, 140, 0, 0.2);
 }
 
@@ -31,29 +31,29 @@
   margin: 0;
   font-size: 16px;
   font-weight: 800;
-  color: #FF5E00;
+  color: #ff5e00;
   text-shadow: 1px 2px 0 rgba(255, 200, 61, 0.4);
   letter-spacing: 0.5px;
 }
 
 .scenario-gallery-close {
-  background: #FFF5D6;
-  border: 4px solid #FFE4A0;
-  color: #8A5A19;
+  background: #fff5d6;
+  border: 4px solid #ffe4a0;
+  color: #8a5a19;
   cursor: pointer;
   font-size: 14px;
   font-weight: 800;
   padding: 2px 8px;
   border-radius: 6px;
-  box-shadow: 
-    inset 2px 3px 0 rgba(160, 100, 0, 0.1), 
-    inset -2px -2px 0 rgba(255,255,255,0.9);
+  box-shadow:
+    inset 2px 3px 0 rgba(160, 100, 0, 0.1),
+    inset -2px -2px 0 rgba(255, 255, 255, 0.9);
   transition: all 0.1s;
 }
 
 .scenario-gallery-close:hover {
-  background: #FFE4A0;
-  color: #FF5E00;
+  background: #ffe4a0;
+  color: #ff5e00;
 }
 
 .scenario-gallery-close:active {
@@ -70,36 +70,36 @@
 
 .scenario-gallery-filter-btn {
   padding: 6px 14px;
-  background: #FFF5D6;
-  border: 4px solid #FFE4A0;
+  background: #fff5d6;
+  border: 4px solid #ffe4a0;
   border-radius: 6px;
-  color: #8A5A19;
+  color: #8a5a19;
   font-size: 12px;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 
-    inset 2px 3px 0 rgba(160, 100, 0, 0.1), 
-    inset -2px -2px 0 rgba(255,255,255,0.9);
+  box-shadow:
+    inset 2px 3px 0 rgba(160, 100, 0, 0.1),
+    inset -2px -2px 0 rgba(255, 255, 255, 0.9);
   transition: all 0.1s;
 }
 
 .scenario-gallery-filter-btn:hover {
-  background: #FFE4A0;
-  color: #FF5E00;
+  background: #ffe4a0;
+  color: #ff5e00;
 }
 
 .scenario-gallery-filter-btn.active {
-  background: #FF5E00;
-  border-color: #CC4B00;
-  color: #FFFFFF;
-  box-shadow: 
-    inset 0 3px 0 rgba(0,0,0,0.2), 
-    inset 0 -2px 0 rgba(255,255,255,0.2);
+  background: #ff5e00;
+  border-color: #cc4b00;
+  color: #ffffff;
+  box-shadow:
+    inset 0 3px 0 rgba(0, 0, 0, 0.2),
+    inset 0 -2px 0 rgba(255, 255, 255, 0.2);
 }
 
 .scenario-gallery-empty {
   text-align: center;
-  color: #8A5A19;
+  color: #8a5a19;
   font-size: 14px;
   font-weight: 800;
   padding: 20px;
@@ -116,21 +116,21 @@
 
 .scenario-gallery-card {
   padding: 12px;
-  background: #FFFFFF;
-  border: 4px solid #FFE4A0;
+  background: #ffffff;
+  border: 4px solid #ffe4a0;
   border-radius: 8px;
-  box-shadow: 
-    0 4px 0 0 rgba(0,0,0,0.1),
-    inset 0 2px 0 rgba(255,255,255,0.8);
+  box-shadow:
+    0 4px 0 0 rgba(0, 0, 0, 0.1),
+    inset 0 2px 0 rgba(255, 255, 255, 0.8);
   transition: all 0.15s;
 }
 
 .scenario-gallery-card:hover {
-  border-color: #FFC83D;
+  border-color: #ffc83d;
   transform: translateY(-2px);
-  box-shadow: 
-    0 6px 0 0 rgba(0,0,0,0.15),
-    inset 0 2px 0 rgba(255,255,255,0.8);
+  box-shadow:
+    0 6px 0 0 rgba(0, 0, 0, 0.15),
+    inset 0 2px 0 rgba(255, 255, 255, 0.8);
 }
 
 .scenario-gallery-card-header {
@@ -143,7 +143,7 @@
 .scenario-gallery-card-name {
   font-size: 14px;
   font-weight: 800;
-  color: #3D2600;
+  color: #3d2600;
 }
 
 .scenario-gallery-badge {
@@ -151,19 +151,19 @@
   text-transform: uppercase;
   font-weight: 800;
   letter-spacing: 0.5px;
-  color: #FFFFFF;
+  color: #ffffff;
   padding: 4px 8px;
   border-radius: 4px;
-  box-shadow: 
-    0 2px 0 0 rgba(0,0,0,0.15),
-    inset 0 2px 0 rgba(255,255,255,0.3);
-  border: 2px solid rgba(0,0,0,0.1);
+  box-shadow:
+    0 2px 0 0 rgba(0, 0, 0, 0.15),
+    inset 0 2px 0 rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(0, 0, 0, 0.1);
 }
 
 .scenario-gallery-card-desc {
   margin: 0 0 12px 0;
   font-size: 12px;
-  color: #5C3A00;
+  color: #5c3a00;
   line-height: 1.5;
   font-weight: 600;
 }
@@ -182,44 +182,44 @@
 
 .scenario-gallery-tag {
   padding: 4px 8px;
-  background: #FFF5D6;
-  border: 2px solid #FFE4A0;
+  background: #fff5d6;
+  border: 2px solid #ffe4a0;
   border-radius: 4px;
   font-size: 10px;
   font-weight: 800;
-  color: #8A5A19;
+  color: #8a5a19;
   text-transform: uppercase;
 }
 
 .scenario-gallery-tag-time {
-  background: #E8F5E9;
-  border-color: #A5D6A7;
-  color: #2E7D32;
+  background: #e8f5e9;
+  border-color: #a5d6a7;
+  color: #2e7d32;
 }
 
 .scenario-gallery-use-btn {
   padding: 8px 16px;
-  background: #34C759;
-  border: 4px solid #248A3D;
+  background: #34c759;
+  border: 4px solid #248a3d;
   border-radius: 6px;
-  color: #FFFFFF;
+  color: #ffffff;
   font-size: 12px;
   font-weight: 800;
   text-transform: uppercase;
   cursor: pointer;
-  box-shadow: 
-    0 4px 0 0 rgba(0,0,0,0.15),
-    inset 0 2px 0 rgba(255,255,255,0.4);
+  box-shadow:
+    0 4px 0 0 rgba(0, 0, 0, 0.15),
+    inset 0 2px 0 rgba(255, 255, 255, 0.4);
   transition: all 0.1s;
 }
 
 .scenario-gallery-use-btn:hover {
-  background: #3CD866;
+  background: #3cd866;
 }
 
 .scenario-gallery-use-btn:active {
-  box-shadow: 
-    0 0 0 0 rgba(0,0,0,0.15),
-    inset 0 3px 0 rgba(0,0,0,0.2);
+  box-shadow:
+    0 0 0 0 rgba(0, 0, 0, 0.15),
+    inset 0 3px 0 rgba(0, 0, 0, 0.2);
   transform: translateY(4px);
 }

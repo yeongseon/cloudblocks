@@ -29,7 +29,9 @@ export function Minimap({ className = '' }: MinimapProps) {
 
   // Calculate bounds and scale
   const viewData = useMemo(() => {
-    const plates = architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+    const plates = architecture.nodes.filter(
+      (node): node is ContainerNode => node.kind === 'container',
+    );
     const blocks = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
     const { connections } = architecture;
 
@@ -38,7 +40,10 @@ export function Minimap({ className = '' }: MinimapProps) {
     }
 
     // Find bounding box
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
 
     for (const plate of plates) {
       minX = Math.min(minX, plate.position.x);
@@ -73,7 +78,7 @@ export function Minimap({ className = '' }: MinimapProps) {
       y: plate.position.z * scale + offsetY,
       width: plate.size.width * scale,
       height: plate.size.depth * scale,
-      color: PLATE_COLORS[(plate.layer === 'resource' ? 'region' : plate.layer)],
+      color: PLATE_COLORS[plate.layer === 'resource' ? 'region' : plate.layer],
       isNetwork: plate.layer !== 'subnet',
     }));
 
@@ -92,23 +97,25 @@ export function Minimap({ className = '' }: MinimapProps) {
     });
 
     // Transform connections
-    const transformedConnections = connections.map((conn) => {
-      const { sourceId, targetId } = resolveConnectionNodes(conn);
-      const sourceBlock = blocks.find((b) => b.id === sourceId);
-      const targetBlock = blocks.find((b) => b.id === targetId);
+    const transformedConnections = connections
+      .map((conn) => {
+        const { sourceId, targetId } = resolveConnectionNodes(conn);
+        const sourceBlock = blocks.find((b) => b.id === sourceId);
+        const targetBlock = blocks.find((b) => b.id === targetId);
 
-      if (!sourceBlock || !targetBlock) return null;
+        if (!sourceBlock || !targetBlock) return null;
 
-      const sourcePlate = plates.find((p) => p.id === sourceBlock.parentId);
-      const targetPlate = plates.find((p) => p.id === targetBlock.parentId);
+        const sourcePlate = plates.find((p) => p.id === sourceBlock.parentId);
+        const targetPlate = plates.find((p) => p.id === targetBlock.parentId);
 
-      const sx = ((sourcePlate?.position.x ?? 0) + sourceBlock.position.x + 1) * scale + offsetX;
-      const sy = ((sourcePlate?.position.z ?? 0) + sourceBlock.position.z + 1) * scale + offsetY;
-      const tx = ((targetPlate?.position.x ?? 0) + targetBlock.position.x + 1) * scale + offsetX;
-      const ty = ((targetPlate?.position.z ?? 0) + targetBlock.position.z + 1) * scale + offsetY;
+        const sx = ((sourcePlate?.position.x ?? 0) + sourceBlock.position.x + 1) * scale + offsetX;
+        const sy = ((sourcePlate?.position.z ?? 0) + sourceBlock.position.z + 1) * scale + offsetY;
+        const tx = ((targetPlate?.position.x ?? 0) + targetBlock.position.x + 1) * scale + offsetX;
+        const ty = ((targetPlate?.position.z ?? 0) + targetBlock.position.z + 1) * scale + offsetY;
 
-      return { id: conn.id, x1: sx, y1: sy, x2: tx, y2: ty };
-    }).filter(Boolean) as Array<{ id: string; x1: number; y1: number; x2: number; y2: number }>;
+        return { id: conn.id, x1: sx, y1: sy, x2: tx, y2: ty };
+      })
+      .filter(Boolean) as Array<{ id: string; x1: number; y1: number; x2: number; y2: number }>;
 
     return {
       plates: transformedPlates,
@@ -135,7 +142,12 @@ export function Minimap({ className = '' }: MinimapProps) {
             <span className="minimap-empty-text">Empty</span>
           </div>
         ) : (
-          <svg className="minimap-svg" viewBox="0 0 160 120" role="img" aria-label="Architecture minimap">
+          <svg
+            className="minimap-svg"
+            viewBox="0 0 160 120"
+            role="img"
+            aria-label="Architecture minimap"
+          >
             <title>Architecture Overview</title>
             {viewData.plates.map((plate) => (
               <rect

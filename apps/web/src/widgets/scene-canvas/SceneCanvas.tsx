@@ -18,7 +18,9 @@ import './SceneCanvas.css';
 
 export function SceneCanvas() {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
-  const plates = architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+  const plates = architecture.nodes.filter(
+    (node): node is ContainerNode => node.kind === 'container',
+  );
   const blocks = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
   const externalActors = architecture.externalActors ?? [];
   const addNode = useArchitectureStore((s) => s.addNode);
@@ -29,14 +31,16 @@ export function SceneCanvas() {
   const activeProvider = useUIStore((s) => s.activeProvider);
   const completeInteraction = useUIStore((s) => s.completeInteraction);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
-  const playSound = (name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); };
+  const playSound = (name: SoundName) => {
+    if (!isSoundMuted) audioService.playSound(name);
+  };
 
   const containerRef = useRef<HTMLDivElement>(null);
-  
+
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(0.85);
   const [origin, setOrigin] = useState({ x: 0, y: 0 });
-  
+
   const isDragging = useRef(false);
   const lastMouse = useRef({ x: 0, y: 0 });
 
@@ -110,12 +114,17 @@ export function SceneCanvas() {
       const plateId = plateContainer?.getAttribute('data-plate-id');
 
       if (plateId) {
-          const plate = plates.find((p) => p.id === plateId);
-          if (plate && canPlaceBlock(draggedBlockCategory, plate)) {
-            addNode({ kind: 'resource', resourceType: draggedBlockCategory, name: draggedResourceName, parentId: plateId, provider: activeProvider });
-            playSound('block-snap');
-
-          }
+        const plate = plates.find((p) => p.id === plateId);
+        if (plate && canPlaceBlock(draggedBlockCategory, plate)) {
+          addNode({
+            kind: 'resource',
+            resourceType: draggedBlockCategory,
+            name: draggedResourceName,
+            parentId: plateId,
+            provider: activeProvider,
+          });
+          playSound('block-snap');
+        }
       }
       completeInteraction();
     }
@@ -124,7 +133,7 @@ export function SceneCanvas() {
   const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
     if (!containerRef.current) return;
-    
+
     const rect = containerRef.current.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
@@ -151,17 +160,16 @@ export function SceneCanvas() {
     }
   }, [handleWheel]);
 
-
   return (
-    <div 
-      className="scene-viewport" 
+    <div
+      className="scene-viewport"
       ref={containerRef}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
     >
-      <div 
+      <div
         className="scene-world"
         style={{
           transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
@@ -178,21 +186,28 @@ export function SceneCanvas() {
               return depthA - depthB;
             })
             .map((plate) => {
-              const screenPos = worldToScreen(plate.position.x, plate.position.y, plate.position.z, origin.x, origin.y);
+              const screenPos = worldToScreen(
+                plate.position.x,
+                plate.position.y,
+                plate.position.z,
+                origin.x,
+                origin.y,
+              );
               const hierarchyBonus = plate.parentId ? 500_000 : 0;
-              const zIndex = depthKey(plate.position.x, plate.position.z, plate.position.y, 0) + hierarchyBonus;
+              const zIndex =
+                depthKey(plate.position.x, plate.position.z, plate.position.y, 0) + hierarchyBonus;
               return (
-                <PlateSprite 
-                  key={plate.id} 
-                  plate={plate} 
-                  screenX={screenPos.x} 
-                  screenY={screenPos.y} 
-                  zIndex={zIndex} 
+                <PlateSprite
+                  key={plate.id}
+                  plate={plate}
+                  screenX={screenPos.x}
+                  screenY={screenPos.y}
+                  zIndex={zIndex}
                 />
               );
             })}
         </div>
-        
+
         <svg className="connection-layer" style={{ width: 1, height: 1 }}>
           <title>Connections</title>
           {architecture.connections.map((conn) => (
@@ -225,17 +240,16 @@ export function SceneCanvas() {
             const screenPos = worldToScreen(x, y, z, origin.x, origin.y);
             const zIndex = depthKey(x, z, y, 1);
             return (
-              <ExternalActorSprite 
-                key={actor.id} 
-                actor={actor} 
-                screenX={screenPos.x} 
-                screenY={screenPos.y} 
-                zIndex={zIndex} 
+              <ExternalActorSprite
+                key={actor.id}
+                actor={actor}
+                screenX={screenPos.x}
+                screenY={screenPos.y}
+                zIndex={zIndex}
               />
             );
           })}
         </div>
-
 
         <div className="block-layer">
           {blocks.map((block) => {
@@ -247,13 +261,13 @@ export function SceneCanvas() {
             const screenPos = worldToScreen(worldX, worldY, worldZ, origin.x, origin.y);
             const zIndex = depthKey(worldX, worldZ, worldY, 2);
             return (
-              <BlockSprite 
-                key={block.id} 
-                block={block} 
-                parentPlate={parentPlate} 
-                screenX={screenPos.x} 
-                screenY={screenPos.y} 
-                zIndex={zIndex} 
+              <BlockSprite
+                key={block.id}
+                block={block}
+                parentPlate={parentPlate}
+                screenX={screenPos.x}
+                screenY={screenPos.y}
+                zIndex={zIndex}
               />
             );
           })}

@@ -72,12 +72,12 @@ Hide infrastructure-as-code implementation details (Terraform, Bicep, Pulumi) be
 
 Position CloudBlocks as a "Cloud Architecture Tool for Everyone" by tailoring the experience to four distinct user personas. Each persona has a different relationship with the tool:
 
-| Persona | Relationship | Key Feature Focus |
-|---------|-------------|-------------------|
-| DevOps Engineer | Execute — deploy and manage infrastructure | Full pipeline access, IaC output, diff, promote/rollback |
-| Backend Developer | Use — design architectures without IaC expertise | Visual builder, validation, abstracted deployment |
-| Product Manager | Understand — review and communicate architecture decisions | Read-only views, architecture diagrams, cost estimation |
-| Student / Learner | Learn — understand cloud architecture patterns | Learning mode, guided scenarios, progressive complexity |
+| Persona           | Relationship                                               | Key Feature Focus                                        |
+| ----------------- | ---------------------------------------------------------- | -------------------------------------------------------- |
+| DevOps Engineer   | Execute — deploy and manage infrastructure                 | Full pipeline access, IaC output, diff, promote/rollback |
+| Backend Developer | Use — design architectures without IaC expertise           | Visual builder, validation, abstracted deployment        |
+| Product Manager   | Understand — review and communicate architecture decisions | Read-only views, architecture diagrams, cost estimation  |
+| Student / Learner | Learn — understand cloud architecture patterns             | Learning mode, guided scenarios, progressive complexity  |
 
 - Add persona-aware onboarding that asks "What describes you best?" and adjusts initial UI complexity
 - Show/hide advanced features (generator selection, raw IaC output, diff details) based on persona
@@ -98,67 +98,67 @@ Position CloudBlocks as a "Cloud Architecture Tool for Everyone" by tailoring th
 
 ### [Epic] M19 Launch UX Polish
 
-| # | Title | Size |
-|---|-------|------|
-| 1 | Add first-run onboarding overlay and quick-start guidance | M |
-| 2 | Add one-click demo scenario loader | M |
-| 3 | Improve landing copy, CTA flow, and launch-facing messaging | S |
+| #   | Title                                                       | Size |
+| --- | ----------------------------------------------------------- | ---- |
+| 1   | Add first-run onboarding overlay and quick-start guidance   | M    |
+| 2   | Add one-click demo scenario loader                          | M    |
+| 3   | Improve landing copy, CTA flow, and launch-facing messaging | S    |
 
 ### [Epic] M19 Deployment Pipeline
 
-| # | Title | Size |
-|---|-------|------|
-| 1 | Add preview deployment workflow and environment separation | M |
-| 2 | Add tag-gated production deployment workflow for `v0.19.0` | M |
-| 3 | Add rollback runbook and failure response checklist | S |
+| #   | Title                                                      | Size |
+| --- | ---------------------------------------------------------- | ---- |
+| 1   | Add preview deployment workflow and environment separation | M    |
+| 2   | Add tag-gated production deployment workflow for `v0.19.0` | M    |
+| 3   | Add rollback runbook and failure response checklist        | S    |
 
 ### [Epic] M19 Runtime Configuration
 
-| # | Title | Size |
-|---|-------|------|
-| 1 | Standardize environment variable schema and `.env.example` | S |
-| 2 | Validate OAuth callback and API endpoint mapping by environment | M |
+| #   | Title                                                           | Size |
+| --- | --------------------------------------------------------------- | ---- |
+| 1   | Standardize environment variable schema and `.env.example`      | S    |
+| 2   | Validate OAuth callback and API endpoint mapping by environment | M    |
 
 ### [Epic] M19 Observability & Error Tracking
 
-| # | Title | Size |
-|---|-------|------|
-| 1 | Integrate frontend runtime error tracking | M |
-| 2 | Add minimal launch metrics and health monitoring | M |
+| #   | Title                                            | Size |
+| --- | ------------------------------------------------ | ---- |
+| 1   | Integrate frontend runtime error tracking        | M    |
+| 2   | Add minimal launch metrics and health monitoring | M    |
 
 ### [Epic] M19 Performance & Stability Gate
 
-| # | Title | Size |
-|---|-------|------|
-| 1 | Add bundle-size budget guard in CI | S |
-| 2 | Add Lighthouse/Web Vitals threshold checks | M |
-| 3 | Add browser/viewport compatibility launch checklist | S |
+| #   | Title                                               | Size |
+| --- | --------------------------------------------------- | ---- |
+| 1   | Add bundle-size budget guard in CI                  | S    |
+| 2   | Add Lighthouse/Web Vitals threshold checks          | M    |
+| 3   | Add browser/viewport compatibility launch checklist | S    |
 
 ### [Epic] M19 Release Ops
 
-| # | Title | Size |
-|---|-------|------|
-| 1 | Add `v0.19.0` release checklist and launch runbook | S |
-| 2 | Standardize changelog template for launch notes | S |
-| 3 | Prepare launch packet artifacts and known limitations list | S |
+| #   | Title                                                      | Size |
+| --- | ---------------------------------------------------------- | ---- |
+| 1   | Add `v0.19.0` release checklist and launch runbook         | S    |
+| 2   | Standardize changelog template for launch notes            | S    |
+| 3   | Prepare launch packet artifacts and known limitations list | S    |
 
 ### [Epic] M19 IaC Abstraction
 
-| # | Title | Size |
-|---|-------|------|
-| 1 | Replace generator-specific UI labels with neutral "Deploy Infrastructure" terminology | M |
-| 2 | Add Advanced/Expert toggle for generator selection in CodePreview | S |
-| 3 | Update MenuBar Build menu to use abstracted action label | S |
-| 4 | Document ProviderDefinition as the canonical provider abstraction layer | S |
+| #   | Title                                                                                 | Size |
+| --- | ------------------------------------------------------------------------------------- | ---- |
+| 1   | Replace generator-specific UI labels with neutral "Deploy Infrastructure" terminology | M    |
+| 2   | Add Advanced/Expert toggle for generator selection in CodePreview                     | S    |
+| 3   | Update MenuBar Build menu to use abstracted action label                              | S    |
+| 4   | Document ProviderDefinition as the canonical provider abstraction layer               | S    |
 
 ### [Epic] M19 Multi-Persona Positioning
 
-| # | Title | Size |
-|---|-------|------|
-| 1 | Add persona selection to first-run onboarding flow | M |
-| 2 | Implement persona-based UI complexity levels (beginner/standard/advanced) | L |
-| 3 | Adjust default panel visibility and feature access per persona | M |
-| 4 | Promote Learning Mode as primary entry point for Student persona | S |
+| #   | Title                                                                     | Size |
+| --- | ------------------------------------------------------------------------- | ---- |
+| 1   | Add persona selection to first-run onboarding flow                        | M    |
+| 2   | Implement persona-based UI complexity levels (beginner/standard/advanced) | L    |
+| 3   | Adjust default panel visibility and feature access per persona            | M    |
+| 4   | Promote Learning Mode as primary entry point for Student persona          | S    |
 
 ---
 

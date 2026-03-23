@@ -25,11 +25,11 @@ Option 1 provides no semantic structure — any box can connect to any other box
 
 **Use a Lego-style composition model with three primitives: Plate, Block, and Connection.**
 
-| Primitive | Role | Cloud Analogy | Lego Analogy |
-|-----------|------|---------------|--------------|
-| **Plate** | Infrastructure boundary | VNet, Subnet | Baseplate |
-| **Block** | Infrastructure resource | VM, Database, Storage, Gateway | Brick |
-| **Connection** | Communication flow | Network traffic, data flow | Connector |
+| Primitive      | Role                    | Cloud Analogy                  | Lego Analogy |
+| -------------- | ----------------------- | ------------------------------ | ------------ |
+| **Plate**      | Infrastructure boundary | VNet, Subnet                   | Baseplate    |
+| **Block**      | Infrastructure resource | VM, Database, Storage, Gateway | Brick        |
+| **Connection** | Communication flow      | Network traffic, data flow     | Connector    |
 
 ### Composition rules
 

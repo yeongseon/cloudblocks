@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { ArchitectureModel, Connection, ContainerNode, ExternalActor, LeafNode } from '@cloudblocks/schema';
+import type {
+  ArchitectureModel,
+  Connection,
+  ContainerNode,
+  ExternalActor,
+  LeafNode,
+} from '@cloudblocks/schema';
 import { validateArchitecture } from './engine';
 import * as placementModule from './placement';
 import * as connectionModule from './connection';
@@ -13,9 +19,7 @@ import {
   type LegacyPlateOverrides,
 } from '../../__tests__/legacyModelTestUtils';
 
-function makePlate(
-  overrides: LegacyPlateOverrides = {}
-): ContainerNode {
+function makePlate(overrides: LegacyPlateOverrides = {}): ContainerNode {
   return makeTestPlate({
     id: 'subnet-1',
     name: 'Subnet',
@@ -28,9 +32,7 @@ function makePlate(
   });
 }
 
-function makeBlock(
-  overrides: LegacyBlockOverrides = {}
-): LeafNode {
+function makeBlock(overrides: LegacyBlockOverrides = {}): LeafNode {
   return makeTestBlock({
     id: 'block-1',
     name: 'Block One',
@@ -42,9 +44,7 @@ function makeBlock(
   });
 }
 
-function makeConnection(
-  overrides: Partial<Connection> = {}
-): Connection {
+function makeConnection(overrides: Partial<Connection> = {}): Connection {
   return {
     id: 'conn-1',
     from: endpointId('source-id', 'output', 'data'),
@@ -54,20 +54,17 @@ function makeConnection(
   };
 }
 
-function makeExternalActor(
-  overrides: Partial<ExternalActor> = {}
-): ExternalActor {
+function makeExternalActor(overrides: Partial<ExternalActor> = {}): ExternalActor {
   return {
     id: 'internet-1',
     name: 'Internet',
     type: 'internet',
     ...overrides,
-   position: { x: -3, y: 0, z: 5 } };
+    position: { x: -3, y: 0, z: 5 },
+  };
 }
 
-function makeModel(
-  overrides: LegacyArchitectureOverrides = {}
-): ArchitectureModel {
+function makeModel(overrides: LegacyArchitectureOverrides = {}): ArchitectureModel {
   return makeTestArchitecture({
     id: 'arch-1',
     name: 'Architecture',
@@ -114,10 +111,26 @@ describe('validateArchitecture', () => {
       blocks: [gateway, compute, database, storage],
       externalActors: [internet],
       connections: [
-        makeConnection({ id: 'conn-1', from: endpointId('internet-1', 'output', 'data'), to: endpointId('gateway-1', 'input', 'data')}),
-        makeConnection({ id: 'conn-2', from: endpointId('gateway-1', 'output', 'data'), to: endpointId('compute-1', 'input', 'data')}),
-        makeConnection({ id: 'conn-3', from: endpointId('compute-1', 'output', 'data'), to: endpointId('database-1', 'input', 'data')}),
-        makeConnection({ id: 'conn-4', from: endpointId('compute-1', 'output', 'data'), to: endpointId('storage-1', 'input', 'data')}),
+        makeConnection({
+          id: 'conn-1',
+          from: endpointId('internet-1', 'output', 'data'),
+          to: endpointId('gateway-1', 'input', 'data'),
+        }),
+        makeConnection({
+          id: 'conn-2',
+          from: endpointId('gateway-1', 'output', 'data'),
+          to: endpointId('compute-1', 'input', 'data'),
+        }),
+        makeConnection({
+          id: 'conn-3',
+          from: endpointId('compute-1', 'output', 'data'),
+          to: endpointId('database-1', 'input', 'data'),
+        }),
+        makeConnection({
+          id: 'conn-4',
+          from: endpointId('compute-1', 'output', 'data'),
+          to: endpointId('storage-1', 'input', 'data'),
+        }),
       ],
     });
 
@@ -223,17 +236,25 @@ describe('validateArchitecture', () => {
       targetId: block.id,
     }));
 
-    vi.spyOn(connectionModule, 'validateConnection').mockImplementation((connection: Connection) => ({
-      ruleId: 'rule-connection-warning',
-      severity: 'warning' as const,
-      message: `Connection warning for ${connection.id}`,
-      suggestion: 'Connection suggestion',
-      targetId: connection.id,
-    }));
+    vi.spyOn(connectionModule, 'validateConnection').mockImplementation(
+      (connection: Connection) => ({
+        ruleId: 'rule-connection-warning',
+        severity: 'warning' as const,
+        message: `Connection warning for ${connection.id}`,
+        suggestion: 'Connection suggestion',
+        targetId: connection.id,
+      }),
+    );
 
     const model = makeModel({
       blocks: [makeBlock({ id: 'compute-1' })],
-      connections: [makeConnection({ id: 'conn-1', from: endpointId('compute-1', 'output', 'data'), to: endpointId('compute-2', 'input', 'data')})],
+      connections: [
+        makeConnection({
+          id: 'conn-1',
+          from: endpointId('compute-1', 'output', 'data'),
+          to: endpointId('compute-2', 'input', 'data'),
+        }),
+      ],
     });
 
     const result = validateArchitecture(model);

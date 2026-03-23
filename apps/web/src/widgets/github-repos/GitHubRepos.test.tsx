@@ -18,7 +18,12 @@ describe('GitHubRepos', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    useUIStore.setState({ showGitHubRepos: true, showGitHubSync: false, showGitHubLogin: false, pendingLinkRepo: null });
+    useUIStore.setState({
+      showGitHubRepos: true,
+      showGitHubSync: false,
+      showGitHubLogin: false,
+      pendingLinkRepo: null,
+    });
     useAuthStore.setState({
       status: 'authenticated',
       user: null,
@@ -62,19 +67,17 @@ describe('GitHubRepos', () => {
 
   it('creates new repo and refreshes list', async () => {
     const user = userEvent.setup();
-    mockApiGet
-      .mockResolvedValueOnce({ repos: [] })
-      .mockResolvedValueOnce({
-        repos: [
-          {
-            full_name: 'owner/new-repo',
-            name: 'new-repo',
-            private: true,
-            default_branch: 'main',
-            html_url: 'https://github.com/owner/new-repo',
-          },
-        ],
-      });
+    mockApiGet.mockResolvedValueOnce({ repos: [] }).mockResolvedValueOnce({
+      repos: [
+        {
+          full_name: 'owner/new-repo',
+          name: 'new-repo',
+          private: true,
+          default_branch: 'main',
+          html_url: 'https://github.com/owner/new-repo',
+        },
+      ],
+    });
     mockApiPost.mockResolvedValueOnce({
       full_name: 'owner/new-repo',
       name: 'new-repo',
@@ -103,7 +106,9 @@ describe('GitHubRepos', () => {
 
   it('keeps success message visible when refresh fails after create', async () => {
     const user = userEvent.setup();
-    mockApiGet.mockResolvedValueOnce({ repos: [] }).mockRejectedValueOnce(new Error('Refresh failed'));
+    mockApiGet
+      .mockResolvedValueOnce({ repos: [] })
+      .mockRejectedValueOnce(new Error('Refresh failed'));
     mockApiPost.mockResolvedValueOnce({
       full_name: 'owner/new-repo',
       name: 'new-repo',
@@ -117,7 +122,9 @@ describe('GitHubRepos', () => {
     await user.type(screen.getByPlaceholderText('Repository name'), 'new-repo');
     await user.click(screen.getByRole('button', { name: 'Create' }));
 
-    expect(await screen.findByText('Repository "new-repo" created successfully.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Repository "new-repo" created successfully.'),
+    ).toBeInTheDocument();
     expect(await screen.findByText('Refresh failed')).toBeInTheDocument();
   });
 
@@ -343,7 +350,11 @@ describe('GitHubRepos', () => {
     const user = userEvent.setup();
     mockApiGet.mockResolvedValueOnce({ repos: [] });
     let resolvePost!: (value: unknown) => void;
-    mockApiPost.mockReturnValueOnce(new Promise((r) => { resolvePost = r; }));
+    mockApiPost.mockReturnValueOnce(
+      new Promise((r) => {
+        resolvePost = r;
+      }),
+    );
 
     render(<GitHubRepos />);
 
@@ -351,13 +362,27 @@ describe('GitHubRepos', () => {
     await user.click(screen.getByRole('button', { name: 'Create' }));
 
     expect(screen.getByText('Loading...')).toBeInTheDocument();
-    resolvePost({ full_name: 'owner/new-repo', name: 'new-repo', private: false, default_branch: 'main', html_url: 'https://github.com/owner/new-repo' });
+    resolvePost({
+      full_name: 'owner/new-repo',
+      name: 'new-repo',
+      private: false,
+      default_branch: 'main',
+      html_url: 'https://github.com/owner/new-repo',
+    });
   });
 
   it('resets local state on remount (simulating panel close and reopen)', async () => {
     const user = userEvent.setup();
     mockApiGet.mockResolvedValueOnce({
-      repos: [{ full_name: 'owner/repo', name: 'repo', private: false, default_branch: 'main', html_url: 'https://github.com/owner/repo' }],
+      repos: [
+        {
+          full_name: 'owner/repo',
+          name: 'repo',
+          private: false,
+          default_branch: 'main',
+          html_url: 'https://github.com/owner/repo',
+        },
+      ],
     });
 
     const { unmount } = render(<GitHubRepos />);

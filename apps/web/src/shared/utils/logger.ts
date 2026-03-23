@@ -5,8 +5,7 @@
  * - `logger.error()` → always fires (errors are never silenced)
  */
 
-const isDev =
-  typeof import.meta !== 'undefined' && import.meta.env?.DEV === true;
+const isDev = typeof import.meta !== 'undefined' && import.meta.env?.DEV === true;
 
 const logger = {
   warn(msg: string, ...args: unknown[]): void {

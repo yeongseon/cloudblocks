@@ -235,7 +235,16 @@ describe('GitHubSync', () => {
 
   it('pull button calls API and replaces architecture in-place', async () => {
     const user = userEvent.setup();
-    const archPayload = { id: 'pulled', name: 'Pulled', version: '1.0.0', nodes: [], connections: [], externalActors: [], createdAt: '', updatedAt: '' };
+    const archPayload = {
+      id: 'pulled',
+      name: 'Pulled',
+      version: '1.0.0',
+      nodes: [],
+      connections: [],
+      externalActors: [],
+      createdAt: '',
+      updatedAt: '',
+    };
     mockApiPost.mockResolvedValue({ architecture: archPayload });
 
     render(<GitHubSync />);
@@ -376,7 +385,10 @@ describe('GitHubSync', () => {
     expect(await screen.findByText('Initial commit')).toBeInTheDocument();
     const shaLink = screen.getByRole('link', { name: 'abc1234' });
     expect(shaLink).toBeInTheDocument();
-    expect(shaLink).toHaveAttribute('href', 'https://github.com/owner/repo-one/commit/abc1234567890');
+    expect(shaLink).toHaveAttribute(
+      'href',
+      'https://github.com/owner/repo-one/commit/abc1234567890',
+    );
     expect(shaLink).toHaveAttribute('target', '_blank');
     expect(shaLink).toHaveAttribute('rel', 'noopener noreferrer');
   });
@@ -393,7 +405,10 @@ describe('GitHubSync', () => {
     await user.click(await screen.findByRole('button', { name: 'Sync to GitHub' }));
 
     await waitFor(() => {
-      expect(mockApiPost).toHaveBeenCalledWith('/api/v1/workspaces/custom-ws-id/sync', expect.any(Object));
+      expect(mockApiPost).toHaveBeenCalledWith(
+        '/api/v1/workspaces/custom-ws-id/sync',
+        expect.any(Object),
+      );
     });
   });
 
@@ -486,9 +501,11 @@ describe('GitHubSync', () => {
   it('asks for confirmation before closing when operation is in progress', async () => {
     const user = userEvent.setup();
     let resolveSync!: (value: unknown) => void;
-    mockApiPost.mockReturnValueOnce(new Promise((resolve) => {
-      resolveSync = resolve;
-    }));
+    mockApiPost.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveSync = resolve;
+      }),
+    );
     mockConfirmDialog.mockResolvedValueOnce(false);
 
     render(<GitHubSync />);
@@ -500,7 +517,7 @@ describe('GitHubSync', () => {
 
     expect(mockConfirmDialog).toHaveBeenCalledWith(
       'An operation is in progress. Closing may hide the result. Close anyway?',
-      'Close GitHub Sync?'
+      'Close GitHub Sync?',
     );
     expect(useUIStore.getState().showGitHubSync).toBe(true);
     resolveSync({ message: 'ok', commit_sha: 'abc' });
@@ -541,7 +558,11 @@ describe('GitHubSync', () => {
     await user.click(screen.getByRole('button', { name: 'Link' }));
     await user.click(await screen.findByRole('button', { name: 'Pull from GitHub' }));
 
-    expect(await screen.findByText('Pulled: 2 changes (1/0 containers added/removed, 1/0 nodes added/removed)')).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        'Pulled: 2 changes (1/0 containers added/removed, 1/0 nodes added/removed)',
+      ),
+    ).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Undo Pull' })).toBeInTheDocument();
   });
 
@@ -618,7 +639,11 @@ describe('GitHubSync', () => {
   it('shows loading indicator while operations are in progress', async () => {
     const user = userEvent.setup();
     let resolvePost!: (value: unknown) => void;
-    mockApiPost.mockReturnValue(new Promise((r) => { resolvePost = r; }));
+    mockApiPost.mockReturnValue(
+      new Promise((r) => {
+        resolvePost = r;
+      }),
+    );
 
     render(<GitHubSync />);
 
@@ -634,7 +659,11 @@ describe('GitHubSync', () => {
     const user = userEvent.setup();
     let resolvePut!: (value: unknown) => void;
     let resolvePull!: (value: unknown) => void;
-    mockApiPut.mockReturnValueOnce(new Promise((r) => { resolvePut = r; }));
+    mockApiPut.mockReturnValueOnce(
+      new Promise((r) => {
+        resolvePut = r;
+      }),
+    );
 
     render(<GitHubSync />);
 
@@ -644,7 +673,11 @@ describe('GitHubSync', () => {
     resolvePut({});
 
     await screen.findByRole('button', { name: 'Pull from GitHub' });
-    mockApiPost.mockReturnValueOnce(new Promise((r) => { resolvePull = r; }));
+    mockApiPost.mockReturnValueOnce(
+      new Promise((r) => {
+        resolvePull = r;
+      }),
+    );
     await user.click(screen.getByRole('button', { name: 'Pull from GitHub' }));
     expect(screen.getByText('Pulling from GitHub...')).toBeInTheDocument();
     resolvePull({ architecture: emptyArch });
@@ -653,7 +686,11 @@ describe('GitHubSync', () => {
   it('disables sync controls while syncing is in progress', async () => {
     const user = userEvent.setup();
     let resolveSync!: (value: unknown) => void;
-    mockApiPost.mockReturnValueOnce(new Promise((r) => { resolveSync = r; }));
+    mockApiPost.mockReturnValueOnce(
+      new Promise((r) => {
+        resolveSync = r;
+      }),
+    );
 
     render(<GitHubSync />);
 
@@ -674,11 +711,20 @@ describe('GitHubSync', () => {
 
   it('ignores stale commit responses after workspace changes', async () => {
     const user = userEvent.setup();
-    let resolveCommits!: (value: { commits: Array<{ sha: string; message: string; author: string; date: string; html_url: string }> }) => void;
+    let resolveCommits!: (value: {
+      commits: Array<{
+        sha: string;
+        message: string;
+        author: string;
+        date: string;
+        html_url: string;
+      }>;
+    }) => void;
     mockApiGet.mockImplementationOnce(
-      () => new Promise((resolve) => {
-        resolveCommits = resolve;
-      })
+      () =>
+        new Promise((resolve) => {
+          resolveCommits = resolve;
+        }),
     );
 
     render(<GitHubSync />);

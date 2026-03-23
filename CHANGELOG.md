@@ -6,7 +6,6 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 
 ---
 
-
 ## [v0.21.0] — 2026-03-23
 
 **Milestone 21 — UI/UX Overhaul & Stub Connections**
@@ -14,65 +13,77 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 Complete UI redesign with Professional theme (default), stub-addressable connection model, CSS Grid builder layout, and new panel system — landing page, sidebar palette, inspector panel, and tabbed bottom dock.
 
 ### Stub-Addressable Connection Model
+
 - Added `sourceStub`/`targetStub` fields to Connection schema
 - Added `CATEGORY_PORTS` policy mapping resource categories to allowed port positions
 - Store auto-allocates stub positions during connection creation
 - Stub anchor routing resolves world-space endpoints via `getConnectionEndpointWorldAnchors()`
 
 ### Semantic Block Shapes
+
 - Replaced silhouette-based block rendering with semantic category shapes
 - Resource palette filtered to MVP set for clean first-time experience
 - Dark-themed first screen overlay for onboarding
 
 ### Theme System (Phases 7–9)
+
 - Added `ThemeVariant` system with blueprint/workshop token sets
 - CSS custom properties for all visual tokens (colors, spacing, typography, shadows)
 - Migrated hardcoded `font-family` values to CSS variables
 - Blueprint (Professional) and Workshop (Lego) theme toggle via `data-theme` attribute
 
 ### Landing Page & Builder Layout (Phases 10–11)
+
 - New landing page with navbar, hero section, feature highlights, and CTA
 - Extracted `BuilderView` from monolithic `App.tsx`
 - CSS Grid shell layout: sidebar + canvas + inspector + bottom dock
 - Removed `EmptyCanvasOverlay` from `SceneCanvas` (moved to landing flow)
 
 ### Sidebar Palette (Phase 12)
+
 - New `SidebarPalette` widget with drag-and-drop resource creation
 - Extracted shared creation constants to `useTechTree` hook
 - Category grouping with Azure resource icons
 
 ### Inspector Panel (Phase 13)
+
 - Right-side `InspectorPanel` with Properties, Code, and Connections tabs
 - `InspectorTabId` and `rightOverlay` state in uiStore
 - Embedded `CodePreview` mode for inspector integration
 
 ### Bottom Dock (Phase 14)
+
 - Tabbed `BottomPanel` replacing standalone overlay panels
 - Output, Validation, Logs, and Diff tabs
 - Collapsible dock with drag-resize handle
 - Default state: open (visible on load)
 
 ### Canvas & Visual Polish (Phases 15–16)
+
 - In-canvas invalid connection visualization with red dashed feedback
 - View menu restructured with keyboard shortcuts for all panels
 - Professional dot grid canvas background replacing LEGO baseplate
 
 ### Onboarding & Animation (Phases 17–18)
+
 - Onboarding tour selectors updated for new layout structure
 - Panel transition animations (slide-in/slide-out)
 - Connector draw-in animation via SVG `stroke-dashoffset`
 - `@keyframes connector-draw-in` defined in global CSS
 
 ### Professional Theme Tokens
+
 - MenuBar themed with professional color tokens
 - All LEGO-specific hardcoded values wrapped in `[data-visual-mode="lego"]` selectors
 - Professional mode is the default visual style
 
 ### Azure Subnet Unification
+
 - Removed public/private subnet distinction
 - Unified subnet model matching Azure's flat subnet architecture
 
 ### Statistics
+
 - 32 commits across 18 implementation phases
 - 1992 tests passing across all test files
 - LEGO visual mode preserved for M22 dual theme system
@@ -84,12 +95,14 @@ Complete UI redesign with Professional theme (default), stub-addressable connect
 Redesigned panel roles, hardened GitHub integration (17 bug fixes), introduced multi-persona UX, added 19 new Azure resource types to the catalog, and completed the ResourceNode unification — eliminating the Plate/Block type separation across the entire frontend.
 
 ### Panel Role Redesign (Epic #1112)
+
 - Resource Guide becomes read-only encyclopedia; Command Panel becomes action + property hub
 - Connection editing mode added to Command Panel
 - Workspace dashboard replaces welcome state in Resource Guide
 - Onboarding tour updated to reflect new panel roles
 
 ### GitHub Integration Hardening (17 issues)
+
 - Fixed OAuth redirect, sign-out, and auth failure routing
 - Fixed create/link repo flow and default visibility
 - Fixed PR submission guards, branch collision, unsaved edits, and body prefill
@@ -98,11 +111,13 @@ Redesigned panel roles, hardened GitHub integration (17 bug fixes), introduced m
 - Added integration test coverage for GitHub panel flows
 
 ### Multi-Persona UX (Epic #1076)
+
 - Persona selection on first run (DevOps, Backend, PM, Student)
 - Complexity levels (beginner/standard/advanced) control panel visibility
 - IaC code preview abstraction levels
 
 ### Azure Resource Catalog Parity (#1195)
+
 - Added 19 new resource types: virtual_machine, container_instance, kubernetes_cluster, cosmos_db,
   application_gateway, azure_firewall, nat_gateway, network_security_group, bastion_host,
   azure_front_door, internal_load_balancer, public_ip_address, network_interface, key_vault,
@@ -110,6 +125,7 @@ Redesigned panel roles, hardened GitHub integration (17 bug fixes), introduced m
 - RESOURCE_RULES expanded from 15 to 34 entries
 
 ### ResourceNode Unification (#1194)
+
 - Added unified store API: addNode, removeNode, renameNode, moveNodePosition
 - Removed ProviderAdapter interface; terraform.ts uses ProviderDefinition directly
 - Removed legacy provider exports, getProvider(), legacyGenerate(), terraformPipeline
@@ -119,26 +135,28 @@ Redesigned panel roles, hardened GitHub integration (17 bug fixes), introduced m
 - Deprecated schema exports preserved for backward compat
 
 ### Demo Hardening
+
 - Block selection UI consolidated into unified property panel (#1137)
 - AI features graceful fallback when backend unavailable (#1138)
 - Ops features disabled/stubbed without backend (#1139)
 
 ### Content Modernization
+
 - Templates migrated to canonical 7-category vocabulary (#1140)
 - Learning scenarios migrated to canonical vocabulary (#1141)
 - Codegen outputs honest Azure-only code (#1143)
 
 ### Infrastructure & Launch
+
 - Auto-trigger onboarding tour on first visit (#1193)
 - Launch landing copy and meta tags updated (#1190)
 - Demo loader and first-time UX overlay
 
 ### Statistics
+
 - 46 files changed in ResourceNode unification (452 insertions, 604 deletions)
 - 1920 tests passing across 108 test files
 - All CI checks passing (lint, type check, build)
-
-
 
 ## [v0.19.3] — 2026-03-22
 
@@ -147,6 +165,7 @@ Redesigned panel roles, hardened GitHub integration (17 bug fixes), introduced m
 Redesigns the bottom panel roles: Command Panel becomes the interactive hub (properties display, connection editing, actions), Resource Guide becomes 100% read-only (workspace dashboard, encyclopedia content). Also fixes a React infinite loop crash in BlockSprite.
 
 ### Panel Role Redesign (Epic #1112)
+
 - Rename `showProperties`/`Inspector` to `showResourceGuide`/`Resource Guide` across store and components (#1118)
 - Add read-only properties display to Command Panel actions (#1117)
 - Add connection editing mode to Command Panel with source/target display and delete (#1115)
@@ -155,8 +174,8 @@ Redesigns the bottom panel roles: Command Panel becomes the interactive hub (pro
 - Update onboarding tour Step 2 to reflect new panel roles (#1116)
 
 ### Bug Fix
-- Move `.filter()` outside Zustand selector in `BlockSprite` to fix React #185 infinite re-render crash (#1134)
 
+- Move `.filter()` outside Zustand selector in `BlockSprite` to fix React #185 infinite re-render crash (#1134)
 
 ## [v0.19.2] — 2026-03-22
 
@@ -165,8 +184,8 @@ Redesigns the bottom panel roles: Command Panel becomes the interactive hub (pro
 Fixed a crash on initial app load caused by a Zustand selector in `ExternalActorSprite` creating a new array reference on every `getSnapshot` call via `.filter()` inside the selector. React 19's `useSyncExternalStore` detected the unstable snapshot and threw an infinite loop error (React error #185), rendering the entire app blank.
 
 ### Bug Fix
-- Move `.filter()` call outside the Zustand selector in `ExternalActorSprite` to avoid creating new array references on each snapshot (#1128)
 
+- Move `.filter()` call outside the Zustand selector in `ExternalActorSprite` to avoid creating new array references on each snapshot (#1128)
 
 ## [v0.19.1] — 2026-03-22
 
@@ -175,6 +194,7 @@ Fixed a crash on initial app load caused by a Zustand selector in `ExternalActor
 Fixed a crash when loading localStorage data saved under schema v2.0.0 (10-category system). Old category names (`database`, `storage`, `gateway`, `function`, `queue`, `event`, `analytics`, `identity`, `observability`) were not remapped to the new 7-category system, causing `getBlockVisualProfile()` to return `undefined` and crashing `BlockSvg` rendering.
 
 ### Bug Fix
+
 - Add `LEGACY_CATEGORY_MAP` to `schema.ts` to remap old 10-category names during deserialization (#1126)
 - Remap categories on both freshly-migrated and already-persisted nodes
 - Add `'2.0.0'` to `SUPPORTED_VERSIONS` for explicit migration support
@@ -188,6 +208,7 @@ Fixed a crash when loading localStorage data saved under schema v2.0.0 (10-categ
 Unified Plate/Block into a single ResourceNode model with 7 categories, removed the minifigure worker system, fixed provider label bugs, added demo resilience mode, and hardened CI with build-output secret scanning.
 
 ### Resource Model Unification (Epic #1099)
+
 - Unified `Plate` + `Block` into single `ResourceNode` type with `kind: "container" | "resource"` (#1100)
 - Realigned 10 resource categories → 7: Network, Security, Edge, Compute, Data, Messaging, Operations (#1102)
 - Migrated architectureStore from `plates[] + blocks[]` to unified `nodes[]` array (#1101)
@@ -197,6 +218,7 @@ Unified Plate/Block into a single ResourceNode model with 7 categories, removed 
 - Updated DOMAIN_MODEL.md and RESOURCE_CATEGORY_STRATEGY.md (#1109)
 
 ### Minifigure Removal (Epic #1088)
+
 - Deleted minifigure character module and workerStore (#1090)
 - Stripped all worker references from source files (#1091)
 - Added CreationGrid as default CommandCard mode (#1092)
@@ -204,22 +226,26 @@ Unified Plate/Block into a single ResourceNode model with 7 categories, removed 
 - Updated tests and documentation (#1094, #1095)
 
 ### Bug Fixes
+
 - Fixed provider-prefixed resource names in CreationGrid ("Azure SQL" → "SQL Database") (#1096)
 - Fixed diff mode state not clearing on workspace switch (#706)
 - Unified panel naming conventions and expanded onboarding tour to 7 steps (#1110)
 
 ### Demo Resilience Mode (#478)
+
 - Frontend gracefully handles backend-unavailable state without error storms
 - `isApiConfigured()` check + network error normalization in API client
 - "Demo Mode" indicator in menu bar when backend is unreachable
 - Backend status tracking in uiStore (`unknown → not_configured | available | unavailable`)
 
 ### Security & CI (#479)
+
 - Added `scripts/check-build-secrets.sh` — scans build output for leaked credentials
 - Integrated secret scanning into `ci.yml`, `pages.yml`, and `deploy.yml`
-- VITE_* env var audit ensures only `VITE_API_URL` reaches the frontend bundle
+- VITE\_\* env var audit ensures only `VITE_API_URL` reaches the frontend bundle
 
 ### Retrospective
+
 M19 was scoped as a 1-day milestone — resource model unification, minifigure removal, provider label fixes, demo resilience, and CI hardening. All 28 issues closed. The ResourceNode unification touched 121+ files but preserved all existing test coverage (1811 tests passing, 90.27% branch coverage).
 
 ## [v0.18.0] — 2026-03-22
@@ -229,6 +255,7 @@ M19 was scoped as a 1-day milestone — resource model unification, minifigure r
 Introduced Lego Technic Beam connectors, fixed provider-specific UX issues, and clarified product direction by removing features that didn't fit the "architecture compiler" identity. Several originally planned features (OpsCenter, Notification System, AI panel) were deferred after evaluation showed they added complexity without immediate user value.
 
 ### Brick-Style Connectors (Area E)
+
 - Redesigned connection lines as Lego Technic liftarm beams with pin holes, side faces, and typed color differentiation
 - Screen-space orthogonal routing: all beams are strictly horizontal or vertical on screen with clean right-angle elbows
 - Height normalization: L-routes connect at the topmost endpoint height
@@ -236,6 +263,7 @@ Introduced Lego Technic Beam connectors, fixed provider-specific UX issues, and 
 - 5 connection types differentiated by beam color (dataflow, http, internal, data, async)
 
 ### Provider & Block Fixes
+
 - Provider-specific resource names in block palette when switching Azure/AWS/GCP (#1023)
 - Correct icon mappings with subtype-aware resolution (#1025)
 - Hide provider badge on blocks in single-provider mode (#1026)
@@ -243,6 +271,7 @@ Introduced Lego Technic Beam connectors, fixed provider-specific UX issues, and 
 - Plate overlap prevention on add and move (#1057)
 
 ### UI Cleanup & Simplification
+
 - Unified overlay panels to Lego brick design system (#1021)
 - EmptyCanvasOverlay CTA buttons consolidated into 2×2 grid (#989)
 - Portrait panel removed; canvas viewport adjusts for right-side panels (#1033)
@@ -251,20 +280,24 @@ Introduced Lego Technic Beam connectors, fixed provider-specific UX issues, and 
 - Overlay z-index fix above BottomPanel (#987)
 
 ### GitHub Integration Fixes
+
 - 24 bug fixes across diff engine, GitHub widgets, and store helpers (#816, #866, #890, #891, #892)
 - Contextual info added to GitHub widgets (repo status, sync state, PR context)
 - PR result persistence per workspace
 
 ### Worker Role (Implemented then Removed)
+
 - Minifigure worker role designed, documented (SCV_ROLE_BOUNDARIES.md), and partially implemented
 - CommandCard modes, store actions, and plate creation animation built
 - **Decision: minifigure concept removed entirely** — CloudBlocks is a design tool (SimCity/ArchiCAD paradigm), not an RTS (StarCraft paradigm). Workers add complexity without value. 7 related issues closed, full removal tracked in #1088 (M19)
 
 ### Infrastructure
+
 - GitHub Actions CI optimized to reduce storage and cost (#1059)
 - 24 code quality findings addressed from M18 review (#991)
 
 ### Deferred to Future Milestones
+
 - Ops Control Center dashboard (M20+)
 - Deploy promote/rollback UX (M20+)
 - Notification system (M20+)
@@ -272,9 +305,11 @@ Introduced Lego Technic Beam connectors, fixed provider-specific UX issues, and 
 - Minifigure code removal (#1088, M19)
 
 ### Retrospective
+
 This milestone revealed the cost of scope inflation in agentic coding: 324 issues closed but most exit criteria unmet. Connectors were rewritten 3 times before arriving at the correct screen-space approach. The minifigure concept was built before validating product fit. Key lesson: validate direction before executing at scale.
 
 ### Stats
+
 - 47 commits, 23 merged PRs, 1854 tests passing, branch coverage ~90%
 
 ---
@@ -286,6 +321,7 @@ This milestone revealed the cost of scope inflation in agentic coding: 324 issue
 Restructured the monorepo from a scaffolded prototype into a modular, separation-ready architecture. Resolved rendering model ambiguity, extracted shared packages with real consumers, redefined backend responsibilities, and established version alignment policy.
 
 ### Architecture & Packages
+
 - SVG-only rendering model confirmed and documented (ADR-0010); unused Three.js dependencies removed
 - `@cloudblocks/schema` extracted as single source of truth for ArchitectureModel contract
 - `@cloudblocks/domain` extracted with shared domain helpers (hierarchy rules, labels, validation types)
@@ -293,11 +329,13 @@ Restructured the monorepo from a scaffolded prototype into a modular, separation
 - All package versions aligned with root version under documented versioning policy
 
 ### Domain Model Fixes
+
 - Deep-copy nested block fields when duplicating blocks (#644)
 - Move all descendant plates when a parent plate moves, not just direct children (#643)
 - Decouple workspace renaming from architecture name mutation (#645)
 
 ### Code Generation & Providers
+
 - Provider-aware region input in CodePreview — each provider gets its own region in compare mode (#564)
 - Clear stale single-provider output when the selected generator changes (#642)
 - Do not preserve stale generated code after changing the active provider (#639)
@@ -306,6 +344,7 @@ Restructured the monorepo from a scaffolded prototype into a modular, separation
 - Preserve file tab selection semantics across provider comparison mode (#653)
 
 ### Workspace & Persistence
+
 - Persist and restore the active workspace id using existing storage helpers (#648)
 - Persist the new active workspace id after switchWorkspace (#666)
 - Make switchWorkspace self-contained instead of relying on callers to save first (#667)
@@ -318,6 +357,7 @@ Restructured the monorepo from a scaffolded prototype into a modular, separation
 - Do not keep dead active-workspace storage helpers if the runtime will not use them (#647)
 
 ### UI & UX
+
 - Redesign Internet external actor as globe brick (#451)
 - Provider-aware SVG icons for blocks and plates (#526, #495)
 - Give Ctrl+S/Cmd+S save the same success/failure feedback as the menu save action (#675)
@@ -327,6 +367,7 @@ Restructured the monorepo from a scaffolded prototype into a modular, separation
 - Align importArchitecture return type with its string-or-null implementation (#655)
 
 ### Dialog & Accessibility
+
 - Support Escape-key dismissal in ConfirmDialog (#660)
 - Focus an action button when ConfirmDialog opens (#659)
 - Close or unmount the previous ConfirmDialog before resolving a new one (#661)
@@ -336,6 +377,7 @@ Restructured the monorepo from a scaffolded prototype into a modular, separation
 - Avoid global document.querySelector coupling in PromptDialog value lookup (#669)
 
 ### Stats
+
 - 4 Epics, 30 issues closed, 1697 tests passing, branch coverage 90.12%
 
 ---
@@ -456,26 +498,31 @@ Restructured the monorepo from a scaffolded prototype into a modular, separation
 This release consolidates Milestone 7 and all historical Phase work (Phase 2 UX, Phase 3, Phase 7, Phase 9, Phase 10, Phase 11) into a single version.
 
 Milestone 7:
+
 - Architecture diff visualization (DiffPanel + canvas overlays)
 - GitHub Actions Terraform plan template
 - Compare with GitHub flow from MenuBar
 
 Phase 2 UX:
+
 - Magnetic snapping with audio feedback
 - Dynamic drag shadows (CSS classList toggle)
 - Bounce-drop animation on block/plate placement
 
 Phase 3:
+
 - Lego minifigure character SVG component (Azure variant)
 - Cloud provider logo on torso
 - Universal Stud Standard compliant head stud
 
 Phase 7:
+
 - Cookie-based session auth migration (JWT removed)
 - Server-side SQLite sessions
 - httpOnly `cb_session` and `cb_oauth` cookies
 
 Phase 9 (Visual Builder Evolution):
+
 - InteractionState machine (idle/selecting/dragging/placing/connecting)
 - 4 BrickSilhouette types (tower/heavy/shield/module)
 - 5-level tier height system
@@ -483,9 +530,11 @@ Phase 9 (Visual Builder Evolution):
 - ProviderType support on Block model
 
 Phase 10 (Documentation Accuracy):
+
 - 4 Epics, 19 sub-issues for doc alignment
 
 Phase 11 (UX/UI Improvements):
+
 - API base URL contract centralized
 - ExternalActor interactivity
 - Toast notifications replacing alert/confirm
@@ -501,12 +550,14 @@ Phase 11 (UX/UI Improvements):
 This release includes Milestones 6, 6B, and 6C.
 
 Milestone 6:
+
 - Terraform, Bicep, and Pulumi generators
 - Serverless blocks (FunctionBlock, QueueBlock, EventBlock)
 - Template marketplace with 5+ templates
 - Generator plugin interface
 
 Milestone 6B (Builder UX Completion):
+
 - Drag-to-create from CommandCard palette
 - Drop target validation and rejection
 - Connect-mode visual highlighting
@@ -514,6 +565,7 @@ Milestone 6B (Builder UX Completion):
 - Warning visual state for blocks
 
 Milestone 6C (Learning Mode):
+
 - Build/Learn mode switch
 - Guided step-by-step scenario system
 - Scenario engine with state-based validation
@@ -539,6 +591,7 @@ Milestone 6C (Learning Mode):
 This release consolidates the first four milestones into a single version, as they were implemented together.
 
 Milestone 1 (Builder MVP):
+
 - 2.5D isometric block builder (React + SVG/CSS)
 - Network Plate, Subnet Plate (Public/Private)
 - Compute, Database, Storage, Gateway blocks
@@ -547,18 +600,21 @@ Milestone 1 (Builder MVP):
 - Workspace persistence (localStorage)
 
 Milestone 2 (Visual Polish + UX):
+
 - Drag and drop block repositioning
 - Block resize and snap-to-grid
 - Keyboard shortcuts (delete, undo, redo)
 - Zoom/pan camera controls
 
 Milestone 3 (Code Generation):
+
 - Terraform HCL generator (Azure provider)
 - Provider adapter layer
 - Code preview panel with real-time HCL
 - Export to file/clipboard
 
 Milestone 4 (Workspace Management):
+
 - Multiple workspace management
 - Import/export architecture as JSON
 - 3+ built-in templates (3-tier, serverless, data pipeline)

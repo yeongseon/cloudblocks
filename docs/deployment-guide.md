@@ -2,20 +2,21 @@
 
 ## Canonical Deploy Vocabulary
 
-| Term | Definition | Usage |
-|------|-----------|-------|
-| **Deploy** | Push a new version of the application to a target environment | "Deploy to staging" |
-| **Promote** | Move a validated staging build to production without rebuilding | "Promote staging image to production" |
-| **Rollback** | Revert an environment to a previously known-good version | "Rollback production to previous version" |
-| **Pipeline** | An automated CI/CD workflow (GitHub Actions) | "The CI pipeline passed" |
-| **Environment** | A deployment target: `local`, `staging`, or `production` | "The staging environment is healthy" |
-| **Revision** | A specific deployed instance of the application (Azure Container Apps concept) | "New revision is active" |
-| **Image Tag** | The unique identifier for a container image (git SHA) | "Promote image tag abc123..." |
-| **Health Check** | Automated verification that a deployment is serving correctly | "Health check passed" |
+| Term             | Definition                                                                     | Usage                                     |
+| ---------------- | ------------------------------------------------------------------------------ | ----------------------------------------- |
+| **Deploy**       | Push a new version of the application to a target environment                  | "Deploy to staging"                       |
+| **Promote**      | Move a validated staging build to production without rebuilding                | "Promote staging image to production"     |
+| **Rollback**     | Revert an environment to a previously known-good version                       | "Rollback production to previous version" |
+| **Pipeline**     | An automated CI/CD workflow (GitHub Actions)                                   | "The CI pipeline passed"                  |
+| **Environment**  | A deployment target: `local`, `staging`, or `production`                       | "The staging environment is healthy"      |
+| **Revision**     | A specific deployed instance of the application (Azure Container Apps concept) | "New revision is active"                  |
+| **Image Tag**    | The unique identifier for a container image (git SHA)                          | "Promote image tag abc123..."             |
+| **Health Check** | Automated verification that a deployment is serving correctly                  | "Health check passed"                     |
 
 ## Environment Names
 
 Always use full names, never abbreviations:
+
 - `local` — Local development environment (no cloud deployment)
 - `staging` — Pre-production environment for validation
 - `production` — Live environment serving real users

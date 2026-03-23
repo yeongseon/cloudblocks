@@ -171,10 +171,7 @@ describe('WorkspaceManager', () => {
     const ws2 = makeWorkspace('ws-2', 'Second Workspace', 1, 0);
     useArchitectureStore.setState({
       workspace: makeWorkspace('ws-1', 'Default Workspace', 2, 1),
-      workspaces: [
-        makeWorkspace('ws-1', 'Default Workspace', 2, 1),
-        ws2,
-      ],
+      workspaces: [makeWorkspace('ws-1', 'Default Workspace', 2, 1), ws2],
       createWorkspace: createWorkspaceMock,
       switchWorkspace: switchWorkspaceMock,
       deleteWorkspace: deleteWorkspaceMock,
@@ -194,10 +191,7 @@ describe('WorkspaceManager', () => {
     const ws2 = makeWorkspace('ws-2', 'Second Workspace');
     useArchitectureStore.setState({
       workspace: makeWorkspace('ws-1', 'Default Workspace'),
-      workspaces: [
-        makeWorkspace('ws-1', 'Default Workspace'),
-        ws2,
-      ],
+      workspaces: [makeWorkspace('ws-1', 'Default Workspace'), ws2],
       createWorkspace: createWorkspaceMock,
       switchWorkspace: switchWorkspaceMock,
       deleteWorkspace: deleteWorkspaceMock,

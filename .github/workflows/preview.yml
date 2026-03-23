@@ -50,7 +50,7 @@ jobs:
         run: npx vite build
         working-directory: apps/web
         env:
-          VITE_API_URL: "" # Preview uses no backend — frontend-only demo
+          VITE_API_URL: '' # Preview uses no backend — frontend-only demo
 
       - name: Scan build output for leaked secrets
         run: ./scripts/check-build-secrets.sh apps/web/dist

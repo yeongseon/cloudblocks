@@ -150,7 +150,7 @@ describe('AudioService', () => {
     const svc = new AudioService();
     const sounds: Record<SoundName, string> = {
       'block-snap': makeBase64(),
-      'delete': makeBase64(),
+      delete: makeBase64(),
       'validation-success': makeBase64(),
       'validation-error': makeBase64(),
     };
@@ -165,7 +165,9 @@ describe('AudioService', () => {
   });
 
   it('handles AudioContext creation failure gracefully', async () => {
-    function FailingCtor(this: unknown) { throw new Error('no audio'); }
+    function FailingCtor(this: unknown) {
+      throw new Error('no audio');
+    }
     vi.stubGlobal('AudioContext', FailingCtor);
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 
@@ -173,7 +175,7 @@ describe('AudioService', () => {
     await expect(svc.loadSound('block-snap', makeBase64())).resolves.toBeUndefined();
     expect(warnSpy).toHaveBeenCalledWith(
       expect.stringContaining('[AudioService] Failed to load sound'),
-      expect.any(Error)
+      expect.any(Error),
     );
   });
 
@@ -202,7 +204,7 @@ describe('AudioService', () => {
     await expect(svc.playSound('block-snap')).resolves.toBeUndefined();
     expect(warnSpy).toHaveBeenCalledWith(
       expect.stringContaining('[AudioService] Failed to resume AudioContext'),
-      expect.any(Error)
+      expect.any(Error),
     );
   });
 

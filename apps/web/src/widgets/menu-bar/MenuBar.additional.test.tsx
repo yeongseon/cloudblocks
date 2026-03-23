@@ -209,5 +209,4 @@ describe('MenuBar additional coverage', () => {
 
     vi.stubGlobal('FileReader', original);
   });
-
 });

@@ -31,9 +31,9 @@ The architecture model uses a 2D coordinate system:
 
 ```typescript
 interface Position {
-  x: number;  // layout plane
-  y: number;  // elevation (semantic)
-  z: number;  // layout plane
+  x: number; // layout plane
+  y: number; // elevation (semantic)
+  z: number; // layout plane
 }
 ```
 

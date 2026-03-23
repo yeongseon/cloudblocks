@@ -1,7 +1,7 @@
 name: User Story
 description: A user-facing feature described from the user's perspective with acceptance criteria
-title: "[Story]: "
-labels: ["enhancement", "user-story"]
+title: '[Story]: '
+labels: ['enhancement', 'user-story']
 body:
   - type: markdown
     attributes:
@@ -86,8 +86,8 @@ body:
       label: Estimated Size
       description: Rough implementation effort.
       options:
-        - "S — < 1 day (single file, small change)"
-        - "M — 1-3 days (multiple files, one feature slice)"
-        - "L — 3-5 days (cross-cutting, multiple components)"
+        - 'S — < 1 day (single file, small change)'
+        - 'M — 1-3 days (multiple files, one feature slice)'
+        - 'L — 3-5 days (cross-cutting, multiple components)'
     validations:
       required: true

@@ -24,34 +24,34 @@ infra/terraform/
 
 ## Environments
 
-| Environment | Directory | Purpose | Terraform `var.environment` |
-|---|---|---|---|
-| Staging | `environments/staging/` | Pre-production validation, UAT | `staging` |
-| Production | `environments/production/` | Live service | `production` |
-| Dev (legacy) | `environments/dev/` | Original monolithic config (deprecated) | — |
+| Environment  | Directory                  | Purpose                                 | Terraform `var.environment` |
+| ------------ | -------------------------- | --------------------------------------- | --------------------------- |
+| Staging      | `environments/staging/`    | Pre-production validation, UAT          | `staging`                   |
+| Production   | `environments/production/` | Live service                            | `production`                |
+| Dev (legacy) | `environments/dev/`        | Original monolithic config (deprecated) | —                           |
 
 > **Note**: `environments/dev/` is the original monolithic Terraform configuration. Use `staging/` or `production/` for new cloud deployments.
 
 ## Resources Provisioned
 
-| Resource | Azure Service | Purpose |
-|----------|--------------|---------|
-| Resource Group | `azurerm_resource_group` | Logical grouping for all resources |
-| Log Analytics | `azurerm_log_analytics_workspace` | Container logs and metrics |
-| Container App Environment | `azurerm_container_app_environment` | Hosting environment for Container Apps |
-| Container Registry | `azurerm_container_registry` | Docker image storage (shared, created by staging) |
-| PostgreSQL | `azurerm_postgresql_flexible_server` | Relational metadata |
-| Redis | `azurerm_redis_cache` | Session cache |
-| Container App | `azurerm_container_app` | Backend API with auto-scaling |
-| Static Web App | `azurerm_static_web_app` | Frontend SPA hosting |
+| Resource                  | Azure Service                        | Purpose                                           |
+| ------------------------- | ------------------------------------ | ------------------------------------------------- |
+| Resource Group            | `azurerm_resource_group`             | Logical grouping for all resources                |
+| Log Analytics             | `azurerm_log_analytics_workspace`    | Container logs and metrics                        |
+| Container App Environment | `azurerm_container_app_environment`  | Hosting environment for Container Apps            |
+| Container Registry        | `azurerm_container_registry`         | Docker image storage (shared, created by staging) |
+| PostgreSQL                | `azurerm_postgresql_flexible_server` | Relational metadata                               |
+| Redis                     | `azurerm_redis_cache`                | Session cache                                     |
+| Container App             | `azurerm_container_app`              | Backend API with auto-scaling                     |
+| Static Web App            | `azurerm_static_web_app`             | Frontend SPA hosting                              |
 
 ### Environment-Specific SKUs
 
-| Resource | Staging | Production |
-|----------|---------|------------|
-| PostgreSQL | B_Standard_B1ms | GP_Standard_D2s_v3 |
-| Redis | Basic C0 (250MB) | Standard C1 |
-| Static Web App | Free | Standard |
+| Resource           | Staging                            | Production                 |
+| ------------------ | ---------------------------------- | -------------------------- |
+| PostgreSQL         | B_Standard_B1ms                    | GP_Standard_D2s_v3         |
+| Redis              | Basic C0 (250MB)                   | Standard C1                |
+| Static Web App     | Free                               | Standard                   |
 | Container Registry | Basic (shared, created by staging) | — (references staging ACR) |
 
 ## Quick Start
@@ -97,12 +97,12 @@ Sensitive values (passwords, secrets) should use a `.tfvars` file excluded from 
 
 All resources follow the pattern `{type}-cloudblocks-{env}`:
 
-| Pattern | Staging Example | Production Example |
-|---------|----------------|-------------------|
-| `rg-cloudblocks-{env}` | `rg-cloudblocks-staging` | `rg-cloudblocks-production` |
-| `psql-cloudblocks-{env}` | `psql-cloudblocks-staging` | `psql-cloudblocks-production` |
-| `redis-cloudblocks-{env}` | `redis-cloudblocks-staging` | `redis-cloudblocks-production` |
+| Pattern                    | Staging Example              | Production Example              |
+| -------------------------- | ---------------------------- | ------------------------------- |
+| `rg-cloudblocks-{env}`     | `rg-cloudblocks-staging`     | `rg-cloudblocks-production`     |
+| `psql-cloudblocks-{env}`   | `psql-cloudblocks-staging`   | `psql-cloudblocks-production`   |
+| `redis-cloudblocks-{env}`  | `redis-cloudblocks-staging`  | `redis-cloudblocks-production`  |
 | `ca-cloudblocks-api-{env}` | `ca-cloudblocks-api-staging` | `ca-cloudblocks-api-production` |
-| `swa-cloudblocks-{env}` | `swa-cloudblocks-staging` | `swa-cloudblocks-production` |
+| `swa-cloudblocks-{env}`    | `swa-cloudblocks-staging`    | `swa-cloudblocks-production`    |
 
 Container Registry uses the pattern `{project}{env}acr` (no hyphens — ACR does not allow them).

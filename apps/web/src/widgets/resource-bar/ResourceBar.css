@@ -5,19 +5,20 @@
   z-index: 50;
   display: flex;
   align-items: center;
-  
+
   background-color: rgba(0, 13, 38, 0.85);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  
+
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
-  
+
   font-family: var(--font-ui);
   user-select: none;
   width: max-content;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 
-              inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .resource-bar::before {
@@ -27,7 +28,11 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: radial-gradient(circle at 6px 6px, rgba(255,255,255,0.03) 2px, transparent 2.5px);
+  background-image: radial-gradient(
+    circle at 6px 6px,
+    rgba(255, 255, 255, 0.03) 2px,
+    transparent 2.5px
+  );
   background-size: 12px 12px;
   pointer-events: none;
   border-radius: 6px;
@@ -48,12 +53,13 @@
 }
 
 .resource-count {
-  color: var(--lego-yellow, #FFD500);
+  color: var(--lego-yellow, #ffd500);
   font-size: 18px;
   font-weight: 800;
   line-height: 1;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8),
-               0 0 6px rgba(255, 213, 0, 0.4);
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.8),
+    0 0 6px rgba(255, 213, 0, 0.4);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.5px;
 }
