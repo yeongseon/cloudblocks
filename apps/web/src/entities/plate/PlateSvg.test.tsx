@@ -130,7 +130,8 @@ describe('PlateSvg — SVG structure', () => {
 
   it('renders 3 face polygons (top, left side, right side)', () => {
     const { container } = renderPlateSvg();
-    const polygons = container.querySelectorAll('polygon');
+    // Exclude polygons inside <clipPath> (used by PlateSurfaceGrid)
+    const polygons = container.querySelectorAll('polygon:not(clipPath polygon)');
     expect(polygons.length).toBe(3);
   });
 

@@ -75,10 +75,10 @@ export function darken(hex: string, percent: number): string {
  */
 export function deriveFaceColors(base: string): DerivedFaceColors {
   return {
-    top: base,
-    topStroke: lighten(base, 15),
-    right: darken(base, 10),
-    left: darken(base, 20),
+    top: lighten(base, 4),
+    topStroke: darken(base, 8),
+    right: darken(base, 6),
+    left: darken(base, 12),
     studMain: lighten(base, 15),
     studShadow: darken(base, 15),
     studHighlight: lighten(base, 40),

@@ -193,6 +193,9 @@ interface UIState {
   toggleStuds: () => void;
   setShowStuds: (show: boolean) => void;
 
+  showGrid: boolean;
+  toggleGrid: () => void;
+
   pendingGitHubAction: PendingGitHubAction;
   setPendingGitHubAction: (action: PendingGitHubAction) => void;
   pendingLinkRepo: string | null;
@@ -509,6 +512,9 @@ export const useUIStore = create<UIState>((set, get) => ({
     localStorage.setItem('cloudblocks:show-studs', String(show));
     set({ showStuds: show });
   },
+
+  showGrid: true,
+  toggleGrid: () => set((s) => ({ showGrid: !s.showGrid })),
 
   pendingGitHubAction: readPendingGitHubAction(),
   setPendingGitHubAction: (action) => {
