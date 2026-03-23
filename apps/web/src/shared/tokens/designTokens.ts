@@ -30,6 +30,12 @@ export const EDGE_HIGHLIGHT_STROKE_WIDTH = 2;
 export const EDGE_HIGHLIGHT_OPACITY = 0.3;
 export const EDGE_HIGHLIGHT_COLOR = '#ffffff';
 
+// -- Connection Brick --
+// Flat isometric connection bricks on plate surfaces.
+// Width = 1 CU (same as block stud pitch), height = ⅓ brick (same as plate height).
+export const CONNECTION_WIDTH_CU = 1;
+export const CONNECTION_HEIGHT_CU = 1 / 3;
+
 // -- Technic Liftarm (Connector Beam) --
 // Derived from Lego Technic liftarm proportions.
 // Real Lego: stud pitch 8mm, plate height 3.2mm (= ⅓ brick), liftarm width ≈ 1 stud.

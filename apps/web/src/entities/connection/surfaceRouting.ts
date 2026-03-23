@@ -265,5 +265,5 @@ export function getConnectionSurfaceRoute(
     ...seg,
     kind: 'transition' as RouteSegmentKind,
   }));
-  return { segments: transitionSegments, srcPort, tgtPort };
+  return { segments: transitionSegments, srcPort: groundSrc, tgtPort: groundTgt };
 }
