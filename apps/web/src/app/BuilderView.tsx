@@ -9,6 +9,7 @@ import { FlowDiagram } from '../widgets/flow-diagram/FlowDiagram';
 import { BottomPanel } from '../widgets/bottom-panel';
 import { LearningPanel } from '../widgets/learning-panel/LearningPanel';
 import { OnboardingTour } from '../widgets/onboarding-tour/OnboardingTour';
+import { FigureHelper } from '../widgets/figure-helper/FigureHelper';
 import { useArchitectureStore } from '../entities/store/architectureStore';
 import { useAuthStore } from '../entities/store/authStore';
 import { useUIStore } from '../entities/store/uiStore';
@@ -303,6 +304,7 @@ export function BuilderView() {
       </div>
 
       <OnboardingTour />
+      <FigureHelper />
     </>
   );
 }
