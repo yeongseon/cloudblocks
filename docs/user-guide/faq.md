@@ -1,6 +1,6 @@
 # FAQ
 
-Answers to common questions about CloudBlocks.
+Find answers to frequently asked questions about CloudBlocks.
 
 ---
 
@@ -8,19 +8,19 @@ Answers to common questions about CloudBlocks.
 
 ### What is CloudBlocks?
 
-CloudBlocks is a visual cloud architecture builder that converts your designs into infrastructure-as-code. You design cloud infrastructure by placing nodes on containers, connect them, validate against real-world rules, and generate Terraform, Bicep, or Pulumi — all from the browser.
+CloudBlocks is a visual architecture compiler that lets you design cloud infrastructure by placing blocks on plates. Your designs are then converted into infrastructure-as-code files like Terraform, Bicep, or Pulumi.
 
 ### Is CloudBlocks free?
 
-Yes. CloudBlocks is open-source under the [Apache 2.0 license](https://github.com/yeongseon/cloudblocks/blob/main/LICENSE). You can use it for free, modify it, and contribute to it.
+Yes. CloudBlocks is an open-source project under the Apache 2.0 license.
 
-### Do I need a cloud account to use CloudBlocks?
+### Do I need a cloud account?
 
-No. CloudBlocks runs entirely in your browser. You don't need an Azure, AWS, or GCP account to design architectures and generate code. You only need a cloud account when you actually deploy the generated code.
+No. You can design architectures and generate code entirely in the browser without any cloud provider account. You only need a cloud account when you decide to deploy the generated code to a real environment.
 
 ### Does CloudBlocks deploy infrastructure?
 
-No. CloudBlocks generates infrastructure-as-code files (Terraform, Bicep, Pulumi). You deploy the generated code using your preferred IaC tool and CI/CD pipeline. CloudBlocks is an architecture compiler, not a deployment tool.
+CloudBlocks generates infrastructure-as-code files. You then use your preferred deployment tool (Terraform, Bicep, or Pulumi CLI) to deploy that code. CloudBlocks handles the design and compilation, while you handle the deployment.
 
 ---
 
@@ -28,19 +28,21 @@ No. CloudBlocks generates infrastructure-as-code files (Terraform, Bicep, Pulumi
 
 ### What cloud providers are supported?
 
-CloudBlocks supports **Azure**, **AWS**, and **GCP**. Azure is the default provider with the most complete resource mappings. AWS and GCP support covers core resource categories.
+CloudBlocks supports Azure, AWS, and GCP. Azure currently offers the most comprehensive resource coverage.
 
-### Can I mix resources from different cloud providers?
+### What are the 7 resource categories?
 
-CloudBlocks allows it, but warns you. Mixed-provider architectures generate valid code for each provider, but real-world deployments typically use a single provider. The warning helps you catch accidental provider mixing.
+The seven resource categories are: Compute, Data, Edge, Security, Messaging, Network, and Operations.
 
-### What are the 10 node categories?
+### Why can't I initiate a connection from a Database?
 
-Compute, Database, Storage, Gateway, Function, Queue, Event, Analytics, Identity, and Observability. See [Core Concepts](core-concepts.md) for details on each category.
+CloudBlocks uses an initiator model to reflect real-world connectivity patterns. Only certain categories can initiate connections: Compute, Edge, and Messaging.
 
-### Why can't I connect from a database to a compute node?
+The following categories are receiver-only: Data, Security, Operations, and Network. For example, an application (Compute) connects to a database (Data), but a database does not initiate a connection back to an application.
 
-CloudBlocks enforces an **initiator model** — only certain categories can be the source of a connection. Database, Storage, Analytics, Identity, and Observability nodes are receiver-only, reflecting real-world patterns where applications connect to databases, not the other way around. See [Core Concepts → Connections](core-concepts.md#connections) for the full rules.
+### Where do I find resource details?
+
+To see and edit the details of a node, click on it and look at the **Inspector Panel** on the right side of the editor. To add new resources, use the **Sidebar Palette** on the left side.
 
 ---
 
@@ -48,17 +50,17 @@ CloudBlocks enforces an **initiator model** — only certain categories can be t
 
 ### What output formats are supported?
 
-- **Terraform** (HCL) — Multi-cloud, industry standard
-- **Bicep** — Azure-native
-- **Pulumi** (TypeScript) — Code-first IaC
+- Terraform (HCL)
+- Bicep (Azure)
+- Pulumi (TypeScript)
 
-### Is the generated code production-ready?
+### Is the code production-ready?
 
-Generated code follows cloud best practices and includes proper resource definitions, networking, and variable extraction (in production mode). However, you should review and customize it for your specific requirements — security policies, naming conventions, and organization-specific configurations.
+The generated code follows standard cloud patterns. However, you should review the output to ensure it matches your organization's specific naming conventions and security policies before deploying to a production environment.
 
-### Will regenerating code produce different output?
+### Is code generation deterministic?
 
-No. Code generation is **deterministic** — the same architecture always produces the same code. Only actual changes to your architecture produce different output.
+Yes. Given the same architecture, the generator will always produce the same code.
 
 ---
 
@@ -66,31 +68,11 @@ No. Code generation is **deterministic** — the same architecture always produc
 
 ### Where is my architecture saved?
 
-Your architecture is saved to your browser's **local storage**. It persists across browser sessions but is specific to your browser and device.
+Your work is saved in your browser's local storage. This means it persists across sessions on the same browser and device.
 
-### Can I export my architecture?
+### Can I export my work?
 
-Yes — you can export as infrastructure code (Terraform, Bicep, Pulumi) via the Code Preview panel. The architecture model itself is stored as JSON and can be pushed to GitHub if you connect the backend API.
-
-### What happens if I clear my browser data?
-
-Your saved workspaces will be lost. If you need to preserve your work across devices, use the GitHub integration (requires backend) or copy the generated code.
-
----
-
-## Templates and Learning
-
-### How many templates are available?
-
-CloudBlocks includes **6 built-in templates**: Three-Tier Web Application, Simple Compute Setup, Data Storage Backend, Serverless HTTP API, Event-Driven Pipeline, and Full-Stack Serverless with Event Processing. See [Use Templates](templates.md) for details.
-
-### Can I create my own templates?
-
-Community template sharing is planned for a future release. Currently, you can save your architectures as workspaces and recreate patterns manually.
-
-### What is Learning Mode?
-
-Learning Mode provides guided, step-by-step tutorials that teach you cloud architecture patterns. Access it via the **Learn** menu or by clicking **Learn How** on the empty canvas.
+You can export your design as infrastructure code via the code preview feature. If the backend API is connected, you can also sync your architecture with a GitHub repository.
 
 ---
 
@@ -98,40 +80,26 @@ Learning Mode provides guided, step-by-step tutorials that teach you cloud archi
 
 ### Do I need a GitHub account?
 
-No — GitHub integration is optional. The visual builder, code generation, and templates work without any account. GitHub features (repo sync, PR creation, architecture diff) require the backend API and GitHub OAuth login.
-
-### How do I set up the backend?
-
-See the [Getting Started guide](../guides/TUTORIALS.md) for backend setup instructions. The backend is a Python FastAPI application that handles GitHub OAuth, repository operations, and AI integration.
+A GitHub account is only required if you want to use advanced features like repo sync, pull request creation, and architecture diffing. The core builder and code generation work without any login.
 
 ---
 
 ## Troubleshooting
 
-### The canvas is empty and nothing loads
+### Why can't I place a node?
 
-Try refreshing the page. If the issue persists, check your browser's developer console for errors. CloudBlocks requires a modern browser with JavaScript enabled.
+Nodes must be placed inside a container, such as a Network or Subnet plate. Make sure you have placed a container on the canvas first.
 
-### I can't place a node on the canvas
+### Why won't my connection work?
 
-Nodes must be placed inside a container (Network or Subnet). Make sure you have at least one container on the canvas first. If starting fresh, click **Start from Scratch** to create a default network.
+Check that your source category can initiate connections (Compute, Edge, or Messaging). If you are trying to connect from a Data, Security, Operations, or Network node, the builder will block it because those categories are receiver-only.
 
-### My connections aren't working
+### Where is Learning Mode?
 
-Check that your source node is an **initiator** category (Compute, Gateway, Function, Queue, or Event). Receiver-only nodes (Database, Storage, Analytics, Identity, Observability) cannot be the source of a connection.
-
-### Validation shows errors
-
-Read the error message — it tells you exactly what's wrong. Common issues:
-
-- Node placed outside a container
-- Invalid connection source/target pair
-- Missing required connections
+You can access Learning Mode via **Build → Browse Scenarios** or by clicking the **Learn How** button on the empty canvas. There are three built-in scenarios: Three-Tier Web Application, Serverless HTTP API, and Event-Driven Data Pipeline.
 
 ---
 
 ## Getting Help
 
-- [GitHub Issues](https://github.com/yeongseon/cloudblocks/issues) — Report bugs or request features
-- [GitHub Discussions](https://github.com/yeongseon/cloudblocks/discussions) — Ask questions and share ideas
-- [Live Demo](https://yeongseon.github.io/cloudblocks/) — Try CloudBlocks without installing anything
+If you run into issues or have questions, you can report bugs on GitHub Issues or join the conversation on GitHub Discussions.

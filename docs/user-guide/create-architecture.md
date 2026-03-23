@@ -1,157 +1,142 @@
 # Create an Architecture
 
-This guide walks you through designing a cloud architecture from scratch on the CloudBlocks canvas. By the end, you'll have a working three-tier web application ready for code generation.
+This guide walks you through designing a cloud architecture on the CloudBlocks canvas. Follow these steps to build a valid, deployable architecture from scratch.
 
 ---
 
-## Step 1 — Create a Network
+## Step 1: Create a Network
 
-Every architecture starts with a network container.
+Every architecture starts with a network container to hold your resources.
 
-1. Open CloudBlocks. On the empty canvas, click **Start from Scratch**
-   - This creates a default Network (VNet) container on the canvas
-2. Alternatively, use the menu: **Insert → Network**
+1.  On the empty canvas, click **Start from Scratch**. This creates a Network (VNet) container.
+2.  Alternatively, open the **Sidebar Palette** on the left side of the screen.
+3.  Find the **Foundation** group and click or drag **Network (VNet)** onto the canvas.
 
-The network container represents a Virtual Private Cloud (VPC on AWS/GCP) or Virtual Network (VNet on Azure).
-
----
-
-## Step 2 — Add Subnets
-
-Subnets divide your network into isolated segments.
-
-1. Go to **Insert → Subnet** (or drag a Subnet from the Command Palette at the bottom)
-2. Place the subnet inside your network container
-3. Add a second subnet for separation (e.g., one public, one private)
-
-!!! tip "Public vs. private"
-A common pattern is two subnets: a **public** subnet for internet-facing resources (gateways, load balancers) and a **private** subnet for backend resources (databases, internal services).
+The network container represents your primary logical boundary, such as a Virtual Private Cloud or Virtual Network.
 
 ---
 
-## Step 3 — Place Nodes
+## Step 2: Add Subnets
 
-Nodes are the cloud resources that make up your workload. Add them from the **Command Palette** at the bottom of the screen.
+Subnets allow you to partition your network into smaller, isolated segments.
 
-1. **Gateway** — Drag a Gateway node into your public subnet. This represents your API Gateway or Load Balancer.
-2. **Compute** — Drag a Compute node into your public or private subnet. This represents your application server.
-3. **Database** — Drag a Database node into your private subnet. This represents your data store.
+1.  Once a network exists, the **Subnet** option becomes enabled in the Sidebar Palette.
+2.  In the Sidebar Palette, find **Subnet** under the Foundation group.
+3.  Click it or drag it inside your Network on the canvas.
+4.  Add a second subnet to separate different tiers. A common pattern uses one subnet for internet-facing resources and another for backend services.
 
-!!! info "Drag from the Command Palette"
-The Command Palette at the bottom of the screen shows all available node categories. Drag a category onto the canvas to place it. The palette filters based on your active cloud provider.
-
-### Node Placement Rules
-
-- Nodes must be placed inside a container (network or subnet)
-- CloudBlocks validates placement in real-time
-- If a placement is invalid, you'll see an error notification
+The Sidebar Palette shows disabled resources with a tooltip. If you cannot select a subnet, the tooltip will explain that you must create a network first.
 
 ---
 
-## Step 4 — Connect Nodes
+## Step 3: Place Resources
 
-Create connections to define communication flows between your nodes.
+Add resources from the **Sidebar Palette** on the left side of the screen. The palette organizes resources into functional groups.
 
-1. Click on the **Gateway** node (the source)
-2. Click on the **Compute** node (the target)
-3. Select the connection type — choose **HTTP** for request/response traffic
-4. Repeat: connect **Compute** → **Database** with a **Data** connection type
+### Resource Groups
 
-### Connection Type Guide
+| Group      | Resources                                                                       |
+| ---------- | ------------------------------------------------------------------------------- |
+| Foundation | Network (VNet), Subnet                                                          |
+| Compute    | Functions, App Service, Container Instances, Virtual Machine, Kubernetes (AKS)  |
+| Data       | Blob Storage, SQL Database, Cosmos DB                                           |
+| Edge       | DNS Zone, CDN Profile, Front Door, Application Gateway, Load Balancer, Firewall |
+| Security   | Key Vault, Bastion, Network Security Group                                      |
+| Messaging  | Queue, Event Hub                                                                |
+| Network    | NAT Gateway, Public IP, Route Table, Private Endpoint                           |
+| Operations | Monitoring                                                                      |
 
-| When to use...                 | Choose this type |
-| ------------------------------ | ---------------- |
-| API calls, web requests        | **HTTP**         |
-| General traffic flow           | **Dataflow**     |
-| Database reads/writes          | **Data**         |
-| Background processing          | **Async**        |
-| Internal service communication | **Internal**     |
+### How to Add Resources
 
-!!! warning "Initiator rules"
-Only certain node categories can be the **source** of a connection. Gateway, Compute, Function, Queue, and Event nodes can initiate connections. Database, Storage, Analytics, Identity, and Observability nodes are receiver-only.
+- **Click**: Select a resource in the Sidebar Palette to place it automatically on the best available container.
+- **Drag**: Move a resource from the Sidebar Palette onto the canvas and drop it in your preferred location.
 
----
-
-## Step 5 — Validate
-
-CloudBlocks validates your architecture in real-time, but you can also run a full check:
-
-1. Go to **Build → Validate Architecture**
-2. Review any errors or warnings
-3. Fix issues by adjusting placement or connections
-
-Validation checks three levels:
-
-- **Placement** — Are nodes inside valid containers?
-- **Connection** — Are source/target pairs valid?
-- **Architecture** — Are there cross-cutting constraint violations?
+Some resources require a network to exist before you can place them. These resources appear disabled in the palette until you add a network.
 
 ---
 
-## Step 6 — Generate Code
+## Step 4: Connect Resources
 
-Once your architecture passes validation:
+CloudBlocks uses a port-based connection model to define how resources communicate.
 
-1. Go to **Build → Generate**
-2. The Code Preview panel shows your architecture as infrastructure code
-3. Choose your output format: Terraform, Bicep, or Pulumi
-4. Click **Copy** to copy the code to your clipboard
+### Port Types
 
-For detailed options, see [Generate Code](generate-code.md).
+Each resource has input and output ports (endpoints). Ports use one of three semantic types:
+
+- **http**: For web requests and API calls.
+- **event**: For asynchronous messaging and triggers.
+- **data**: For database access and storage operations.
+
+### Create a Connection
+
+1.  Click an **output port** on the source resource.
+2.  Click an **input port** on the target resource.
+
+### Connection Rules
+
+Connections follow real-world traffic patterns:
+
+- **Internet to Edge**: http, data
+- **Edge to Compute**: http, data
+- **Compute to Data**: data only
+- **Compute to Messaging**: event, data
+- **Messaging to Compute**: event, data (bidirectional)
+
+Resources in the Data, Security, Operations, and Network categories are receiver-only. They cannot initiate connections to other resources.
 
 ---
 
-## Tips for Better Architectures
+## Step 5: Validate
 
-### Use Templates as a Starting Point
+CloudBlocks validates your design in real-time. You can also run a manual check to ensure your architecture is ready for deployment.
 
-Instead of building from scratch, load a [template](templates.md) and modify it. Templates follow cloud best practices.
+1.  Open the menu and select **Build > Validate Architecture**.
+2.  View the results in the **Validation** tab within the **Bottom Dock**.
+3.  Fix any placement or connection errors shown in the list.
 
-### Follow the Tiered Pattern
+---
 
-Organize resources into tiers:
+## Step 6: Generate Code
 
-```
-Internet → Gateway → Compute → Database/Storage
-```
+When your architecture is complete, export it as infrastructure code.
 
-This is the most common cloud architecture pattern and maps cleanly to subnet boundaries.
+1.  Click the **Code** tab in the **Inspector Panel** on the right side of the screen.
+2.  Alternatively, use the menu: **Build > Generate Code**.
+3.  Choose your preferred format: **Terraform**, **Bicep**, or **Pulumi**.
+4.  Click **Copy** to save the code to your clipboard.
 
-### Use Meaningful Names
+---
 
-Click on any node or container to rename it in the bottom panel. Clear names make your architecture easier to understand and produce more readable generated code.
+## Tips for Success
 
-### Leverage Undo/Redo
-
-Made a mistake? Press **Ctrl+Z** to undo. Press **Ctrl+Shift+Z** to redo. CloudBlocks maintains a full history of your changes.
+- **Use Templates**: Start with a pre-built template to save time and follow best practices.
+- **Tiered Pattern**: Arrange your resources in a logical flow from Internet to Edge, then Compute, and finally Data.
+- **Rename Nodes**: Click any node name in the **Inspector Panel** to give it a meaningful name.
+- **Undo Changes**: Use **Ctrl+Z** (Windows/Linux) or **Cmd+Z** (macOS) to quickly revert mistakes.
 
 ---
 
 ## Example: Three-Tier Web Application
 
-Here's the architecture you just built:
+A standard three-tier architecture separates the presentation, logic, and data layers into different subnets.
 
-```
+```text
 Network (VNet)
-├── Public Subnet
-│   ├── Gateway (API Gateway / Load Balancer)
-│   └── Compute (App Server)
-└── Private Subnet
-    └── Database (SQL Database)
-
-Connections:
-  Gateway  →[HTTP]→     Compute
-  Compute  →[Data]→     Database
+├── Subnet 1
+│   ├── Application Gateway (edge)
+│   └── Virtual Machine (compute)
+└── Subnet 2
+    ├── SQL Database (data)
+    └── Blob Storage (data)
 ```
-
-This pattern is available as a built-in template — select **Three-Tier Web Application** from the Template Gallery.
 
 ---
 
 ## What's Next?
 
 | Goal                             | Guide                                       |
-| -------------------------------- | ------------------------------------------- |
-| Export your architecture as code | [Generate Code](generate-code.md)           |
-| Start from a pre-built pattern   | [Use Templates](templates.md)               |
-| Learn the keyboard shortcuts     | [Keyboard Shortcuts](keyboard-shortcuts.md) |
+| :------------------------------- | :------------------------------------------ |
+| Master the code generator        | [Generate Code](generate-code.md)           |
+| Browse all architecture patterns | [Templates](templates.md)                   |
+| Learn all keyboard shortcuts     | [Keyboard Shortcuts](keyboard-shortcuts.md) |
+| Understand the building blocks   | [Core Concepts](core-concepts.md)           |
