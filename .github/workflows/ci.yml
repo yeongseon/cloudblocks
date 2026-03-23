@@ -36,6 +36,9 @@ jobs:
       - name: Lint all packages
         run: pnpm lint
 
+      - name: Check formatting
+        run: pnpm format:check
+
   web-build:
     name: Web Type Check & Build
     runs-on: ubuntu-latest
