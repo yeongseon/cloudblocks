@@ -75,6 +75,8 @@ nav:
       - Tutorials (Start Here): guides/TUTORIALS.md
       - Environment & Workspaces: guides/ENVIRONMENT_STRATEGY.md
       - Deployment: guides/DEPLOYMENT.md
+      - Azure Provisioning Runbook: guides/AZURE_PROVISIONING_RUNBOOK.md
+      - Plausible Analytics Setup: guides/PLAUSIBLE_SETUP.md
 
   - Build & Design:
       - Using the Editor (UI Flow): concept/UI_FLOW.md
