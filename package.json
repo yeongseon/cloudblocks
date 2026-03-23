@@ -27,7 +27,10 @@
     "test:api": "cd apps/api && python3 -m pytest",
     "test:all": "pnpm run test && pnpm run test:api",
     "preview": "pnpm --filter @cloudblocks/web preview",
-    "clean": "pnpm -r exec rm -rf node_modules dist .turbo"
+    "clean": "pnpm -r exec rm -rf node_modules dist .turbo",
+    "prepare": "husky",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "keywords": [
     "cloud-architecture",
@@ -49,5 +52,20 @@
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"
   },
-  "packageManager": "pnpm@9.15.0"
+  "packageManager": "pnpm@9.15.0",
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{json,css,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "devDependencies": {
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.1"
+  }
 }

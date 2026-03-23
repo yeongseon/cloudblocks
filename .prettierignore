@@ -1,0 +1,11 @@
+dist/
+node_modules/
+pnpm-lock.yaml
+coverage/
+*.min.js
+apps/api/
+site/
+test-results/
+playwright-report/
+packages/schema/dist/
+docs/demo/
