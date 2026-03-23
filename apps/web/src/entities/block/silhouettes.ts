@@ -253,13 +253,6 @@ export const SILHOUETTE_GENERATORS: Record<BrickSilhouette, SilhouetteGenerator>
   shield: shieldSilhouette,
 };
 
-export function getSilhouettePolygons(
-  silhouette: BrickSilhouette,
-  dimensions: SilhouetteDimensions,
-): SilhouettePolygons {
-  return SILHOUETTE_GENERATORS[silhouette](dimensions);
-}
-
 // ─── CU-Based Entry Point (v2.0) ──────────────────────────────
 
 /**
