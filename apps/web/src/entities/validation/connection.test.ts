@@ -20,10 +20,11 @@ function makeBlock(overrides: Partial<LeafNode> = {}): LeafNode {
   const resourceTypeByCategory: Record<ResourceCategory, string> = {
     compute: 'web_compute',
     data: 'relational_database',
-    edge: 'load_balancer',
+    delivery: 'load_balancer',
     security: 'firewall_security',
     operations: 'monitoring',
     messaging: 'message_queue',
+    identity: 'identity_service',
     network: 'virtual_network',
   };
   return {
@@ -91,7 +92,7 @@ describe('validateConnection', () => {
       from: endpointId('gateway-1', 'output', 'data'),
       to: endpointId('missing-target', 'input', 'data'),
     });
-    const blocks = [makeBlock({ id: 'gateway-1', category: 'edge' })];
+    const blocks = [makeBlock({ id: 'gateway-1', category: 'delivery' })];
 
     expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toEqual({
       ruleId: 'rule-conn-target',
@@ -124,7 +125,7 @@ describe('validateConnection', () => {
       from: endpointId('internet-1', 'output', 'data'),
       to: endpointId('gateway-1', 'input', 'data'),
     });
-    const blocks = [makeBlock({ id: 'gateway-1', category: 'edge' })];
+    const blocks = [makeBlock({ id: 'gateway-1', category: 'delivery' })];
     const actors = [makeExternalActor({ id: 'internet-1' })];
 
     expect(
@@ -138,7 +139,7 @@ describe('validateConnection', () => {
       to: endpointId('compute-1', 'input', 'data'),
     });
     const blocks = [
-      makeBlock({ id: 'gateway-1', category: 'edge' }),
+      makeBlock({ id: 'gateway-1', category: 'delivery' }),
       makeBlock({ id: 'compute-1', category: 'compute' }),
     ];
 
@@ -213,7 +214,7 @@ describe('validateConnection', () => {
   it('rejects invalid connection pairs with rule-conn-invalid', () => {
     const blocks = [
       makeBlock({ id: 'compute-1', category: 'compute' }),
-      makeBlock({ id: 'gateway-1', category: 'edge' }),
+      makeBlock({ id: 'gateway-1', category: 'delivery' }),
       makeBlock({ id: 'db-1', category: 'data' }),
       makeBlock({ id: 'storage-1', category: 'data' }),
     ];
@@ -328,12 +329,12 @@ describe('validateConnection', () => {
 
   it('rejects source endpoint with input direction', () => {
     const blocks = [
-      makeBlock({ id: 'edge-1', category: 'edge' }),
+      makeBlock({ id: 'delivery-1', category: 'delivery' }),
       makeBlock({ id: 'compute-1', category: 'compute' }),
     ];
     const connection = makeConnection({
       id: 'conn-source-input',
-      from: endpointId('edge-1', 'input', 'data'),
+      from: endpointId('delivery-1', 'input', 'data'),
       to: endpointId('compute-1', 'input', 'data'),
     });
 
@@ -346,12 +347,12 @@ describe('validateConnection', () => {
 
   it('rejects target endpoint with output direction', () => {
     const blocks = [
-      makeBlock({ id: 'edge-1', category: 'edge' }),
+      makeBlock({ id: 'delivery-1', category: 'delivery' }),
       makeBlock({ id: 'compute-1', category: 'compute' }),
     ];
     const connection = makeConnection({
       id: 'conn-target-output',
-      from: endpointId('edge-1', 'output', 'data'),
+      from: endpointId('delivery-1', 'output', 'data'),
       to: endpointId('compute-1', 'output', 'data'),
     });
 
@@ -364,12 +365,12 @@ describe('validateConnection', () => {
 
   it('rejects connection when endpoint semantics do not match', () => {
     const blocks = [
-      makeBlock({ id: 'edge-1', category: 'edge' }),
+      makeBlock({ id: 'delivery-1', category: 'delivery' }),
       makeBlock({ id: 'compute-1', category: 'compute' }),
     ];
     const connection = makeConnection({
       id: 'conn-semantic-mismatch',
-      from: endpointId('edge-1', 'output', 'http'),
+      from: endpointId('delivery-1', 'output', 'http'),
       to: endpointId('compute-1', 'input', 'data'),
     });
 
@@ -405,7 +406,7 @@ describe('validateConnection', () => {
       to: endpointId('func-1', 'input', 'data'),
     });
     const blocks = [
-      makeBlock({ id: 'gateway-1', category: 'edge' }),
+      makeBlock({ id: 'gateway-1', category: 'delivery' }),
       makeBlock({ id: 'func-1', category: 'compute' }),
     ];
 
@@ -485,7 +486,7 @@ describe('validateConnection', () => {
     });
     const blocks = [
       makeBlock({ id: 'func-1', category: 'compute' }),
-      makeBlock({ id: 'gateway-1', category: 'edge' }),
+      makeBlock({ id: 'gateway-1', category: 'delivery' }),
     ];
 
     expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toMatchObject({
@@ -563,11 +564,11 @@ describe('validateConnection', () => {
 describe('validateStubIndices', () => {
   it('returns null when stubs are within capacity', () => {
     const connection = makeConnection({
-      from: endpointId('edge-1', 'output', 'data'),
+      from: endpointId('delivery-1', 'output', 'data'),
       to: endpointId('compute-1', 'input', 'data'),
     });
     const blocks = [
-      makeBlock({ id: 'edge-1', category: 'edge' }),
+      makeBlock({ id: 'delivery-1', category: 'delivery' }),
       makeBlock({ id: 'compute-1', category: 'compute' }),
     ];
 
@@ -598,7 +599,7 @@ describe('validateStubIndices', () => {
       to: endpointId('security-1', 'input', 'data'),
     });
     const blocks = [
-      makeBlock({ id: 'compute-1', category: 'edge' }),
+      makeBlock({ id: 'compute-1', category: 'delivery' }),
       makeBlock({ id: 'security-1', category: 'security' }),
     ];
 
@@ -630,11 +631,11 @@ describe('validateStubIndices', () => {
 
   it('ignores semantic values outside semantic order', () => {
     const connection = makeConnection({
-      from: endpointId('edge-1', 'output', 'http'),
+      from: endpointId('delivery-1', 'output', 'http'),
       to: endpointId('compute-1', 'input', 'http'),
     });
     const blocks = [
-      makeBlock({ id: 'edge-1', category: 'edge' }),
+      makeBlock({ id: 'delivery-1', category: 'delivery' }),
       makeBlock({ id: 'compute-1', category: 'compute' }),
     ];
 
@@ -644,9 +645,9 @@ describe('validateStubIndices', () => {
 
 describe('canConnect', () => {
   it('returns true for allowed connection pairs', () => {
-    expect(canConnect('internet', 'edge')).toBe(true);
-    expect(canConnect('edge', 'compute')).toBe(true);
-    expect(canConnect('edge', 'compute')).toBe(true);
+    expect(canConnect('internet', 'delivery')).toBe(true);
+    expect(canConnect('delivery', 'compute')).toBe(true);
+    expect(canConnect('delivery', 'compute')).toBe(true);
     expect(canConnect('compute', 'data')).toBe(true);
     expect(canConnect('compute', 'data')).toBe(true);
     expect(canConnect('compute', 'operations')).toBe(true);
@@ -661,8 +662,8 @@ describe('canConnect', () => {
 
   it('returns false for disallowed connection pairs', () => {
     expect(canConnect('data', 'compute')).toBe(false);
-    expect(canConnect('data', 'edge')).toBe(false);
-    expect(canConnect('compute', 'edge')).toBe(false);
+    expect(canConnect('data', 'delivery')).toBe(false);
+    expect(canConnect('compute', 'delivery')).toBe(false);
     expect(canConnect('internet', 'compute')).toBe(false);
     expect(canConnect('messaging', 'operations')).toBe(false);
     expect(canConnect('messaging', 'data')).toBe(false);
@@ -677,7 +678,7 @@ describe('canConnect', () => {
   });
 
   it('returns false when target is internet in category mode', () => {
-    expect(canConnect('edge', 'internet')).toBe(false);
+    expect(canConnect('delivery', 'internet')).toBe(false);
   });
 
   it('returns false when called with mixed category and endpoint args', () => {
@@ -695,8 +696,8 @@ describe('canConnect', () => {
 
   it('returns invalid reason when node references are missing in endpoint mode', () => {
     const fromEndpoint: Endpoint = {
-      id: endpointId('edge-1', 'output', 'data'),
-      nodeId: 'edge-1',
+      id: endpointId('delivery-1', 'output', 'data'),
+      nodeId: 'delivery-1',
       direction: 'output',
       semantic: 'data',
     };
@@ -714,12 +715,12 @@ describe('canConnect', () => {
   });
 
   it('returns invalid reason for direction and semantic checks in endpoint mode', () => {
-    const edge = makeBlock({ id: 'edge-1', category: 'edge' });
+    const edge = makeBlock({ id: 'delivery-1', category: 'delivery' });
     const compute = makeBlock({ id: 'compute-1', category: 'compute' });
 
     const sourceInput: Endpoint = {
-      id: endpointId('edge-1', 'input', 'data'),
-      nodeId: 'edge-1',
+      id: endpointId('delivery-1', 'input', 'data'),
+      nodeId: 'delivery-1',
       direction: 'input',
       semantic: 'data',
     };
@@ -743,8 +744,8 @@ describe('canConnect', () => {
     expect(
       canConnect(
         {
-          id: endpointId('edge-1', 'output', 'data'),
-          nodeId: 'edge-1',
+          id: endpointId('delivery-1', 'output', 'data'),
+          nodeId: 'delivery-1',
           direction: 'output',
           semantic: 'data',
         },
@@ -759,8 +760,8 @@ describe('canConnect', () => {
     expect(
       canConnect(
         {
-          id: endpointId('edge-1', 'output', 'data'),
-          nodeId: 'edge-1',
+          id: endpointId('delivery-1', 'output', 'data'),
+          nodeId: 'delivery-1',
           direction: 'output',
           semantic: 'data',
         },
@@ -782,17 +783,17 @@ describe('canConnect', () => {
       semantic: 'event',
     };
     const targetEndpoint: Endpoint = {
-      id: endpointId('edge-1', 'input', 'event'),
-      nodeId: 'edge-1',
+      id: endpointId('delivery-1', 'input', 'event'),
+      nodeId: 'delivery-1',
       direction: 'input',
       semantic: 'event',
     };
     const sourceNode = makeBlock({ id: 'compute-1', category: 'compute' });
-    const targetNode = makeBlock({ id: 'edge-1', category: 'edge' });
+    const targetNode = makeBlock({ id: 'delivery-1', category: 'delivery' });
 
     expect(canConnect(sourceEndpoint, targetEndpoint, sourceNode, targetNode)).toEqual({
       valid: false,
-      reason: 'Invalid connection: compute → edge',
+      reason: 'Invalid connection: compute → delivery',
     });
 
     expect(
@@ -815,8 +816,8 @@ describe('canConnect', () => {
 
   it('returns valid true for allowed endpoint-mode connection', () => {
     const fromEndpoint: Endpoint = {
-      id: endpointId('edge-1', 'output', 'data'),
-      nodeId: 'edge-1',
+      id: endpointId('delivery-1', 'output', 'data'),
+      nodeId: 'delivery-1',
       direction: 'output',
       semantic: 'data',
     };
@@ -831,7 +832,7 @@ describe('canConnect', () => {
       canConnect(
         fromEndpoint,
         toEndpoint,
-        makeBlock({ id: 'edge-1', category: 'edge' }),
+        makeBlock({ id: 'delivery-1', category: 'delivery' }),
         makeBlock({ id: 'compute-1', category: 'compute' }),
       ),
     ).toEqual({ valid: true });

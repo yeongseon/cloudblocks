@@ -182,7 +182,7 @@ describe('bicep generator', () => {
         createBlock({ id: 'block-compute', name: 'Compute', category: 'compute' }),
         createBlock({ id: 'block-database', name: 'Database', category: 'data' }),
         createBlock({ id: 'block-storage', name: 'Storage', category: 'data' }),
-        createBlock({ id: 'block-gateway', name: 'Gateway', category: 'edge' }),
+        createBlock({ id: 'block-gateway', name: 'Gateway', category: 'delivery' }),
         createBlock({ id: 'block-function', name: 'Function', category: 'compute' }),
         createBlock({ id: 'block-queue', name: 'Queue', category: 'messaging' }),
         createBlock({ id: 'block-event', name: 'Event', category: 'messaging' }),
@@ -298,7 +298,7 @@ describe('bicep generator', () => {
   it('generates implicit PIP for firewall blocks but no NIC', () => {
     const model = createTestModel({
       blocks: [
-        createBlock({ id: 'fw1', name: 'MainFirewall', category: 'edge', subtype: 'firewall' }),
+        createBlock({ id: 'fw1', name: 'MainFirewall', category: 'delivery', subtype: 'firewall' }),
       ],
     });
     const normalized = normalizeBicep(model, azureProviderDefinition);
@@ -313,7 +313,12 @@ describe('bicep generator', () => {
   it('does not generate implicit resources for internal-lb blocks', () => {
     const model = createTestModel({
       blocks: [
-        createBlock({ id: 'lb1', name: 'InternalLB', category: 'edge', subtype: 'internal-lb' }),
+        createBlock({
+          id: 'lb1',
+          name: 'InternalLB',
+          category: 'delivery',
+          subtype: 'internal-lb',
+        }),
       ],
     });
     const normalized = normalizeBicep(model, azureProviderDefinition);

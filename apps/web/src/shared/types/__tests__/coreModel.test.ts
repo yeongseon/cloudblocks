@@ -15,9 +15,10 @@ import type { LeafNode, ConnectionType, ProviderType, ResourceCategory } from '.
 const blockCategories: ResourceCategory[] = [
   'compute',
   'data',
-  'edge',
+  'delivery',
   'messaging',
   'network',
+  'identity',
   'operations',
   'security',
 ];
@@ -223,9 +224,9 @@ describe('getBlockDimensions', () => {
   });
 
   it('falls back to category default when subtype is undefined', () => {
-    const dims = getBlockDimensions('edge', 'azure');
+    const dims = getBlockDimensions('delivery', 'azure');
     // gateway → wide tier → { width: 3, depth: 1, height: 1 }
-    const expected = TIER_DIMENSIONS[CATEGORY_TIER_MAP['edge']];
+    const expected = TIER_DIMENSIONS[CATEGORY_TIER_MAP['delivery']];
     expect(dims).toEqual(expected);
   });
 
@@ -241,8 +242,8 @@ describe('getBlockDimensions', () => {
   it('subtype override can differ from category default', () => {
     // aws:Lambda is micro (1×1×1) but 'function' category default is also micro.
     // aws:CloudFront is 4×1×1 — 'gateway' default is wide (3×1×1).
-    const cfDims = getBlockDimensions('edge', 'aws', 'cloudfront');
-    const defaultDims = getBlockDimensions('edge');
+    const cfDims = getBlockDimensions('delivery', 'aws', 'cloudfront');
+    const defaultDims = getBlockDimensions('delivery');
     expect(cfDims).toEqual({ width: 4, depth: 1, height: 1 });
     expect(defaultDims).toEqual({ width: 3, depth: 1, height: 1 });
     expect(cfDims).not.toEqual(defaultDims);

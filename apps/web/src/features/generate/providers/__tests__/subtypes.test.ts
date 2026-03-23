@@ -9,7 +9,7 @@ const registries = [
   { name: 'Azure', registry: azureSubtypeRegistry },
 ] as const;
 
-const requiredCategories = ['compute', 'data', 'data', 'edge'] as const;
+const requiredCategories = ['compute', 'data', 'delivery', 'identity'] as const;
 const kebabCaseRegex = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
 
 describe('subtype registries', () => {

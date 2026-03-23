@@ -79,6 +79,7 @@ const parentPlate: ContainerNode = {
 
 type LegacyBlockCategory =
   | ResourceCategory
+  | 'edge'
   | 'database'
   | 'storage'
   | 'gateway'
@@ -92,30 +93,32 @@ type LegacyBlockCategory =
 const CATEGORY_MAP: Record<LegacyBlockCategory, ResourceCategory> = {
   compute: 'compute',
   data: 'data',
-  edge: 'edge',
+  edge: 'delivery',
+  delivery: 'delivery',
   messaging: 'messaging',
   operations: 'operations',
   security: 'security',
   network: 'network',
   database: 'data',
   storage: 'data',
-  gateway: 'edge',
+  gateway: 'delivery',
   function: 'compute',
   queue: 'messaging',
   event: 'messaging',
   analytics: 'operations',
-  identity: 'security',
+  identity: 'identity',
   observability: 'operations',
 };
 
 const RESOURCE_TYPE_MAP: Record<ResourceCategory, string> = {
   compute: 'web_compute',
   data: 'relational_database',
-  edge: 'load_balancer',
+  delivery: 'load_balancer',
   security: 'firewall_security',
   operations: 'monitoring',
   messaging: 'message_queue',
   network: 'virtual_network',
+  identity: 'identity_service',
 };
 
 const makeBlock = (id: string, category: LegacyBlockCategory): LeafNode => {
@@ -180,7 +183,7 @@ describe('BlockSprite', () => {
   });
 
   it.each([
-    'edge',
+    'delivery',
     'compute',
     'database',
     'data',
@@ -700,7 +703,7 @@ describe('BlockSprite', () => {
   });
 
   it('adds is-valid-target class when in connect mode with valid source→target pair (gateway→compute)', () => {
-    const sourceBlock = makeBlock('block-gateway', 'edge');
+    const sourceBlock = makeBlock('block-gateway', 'delivery');
     const targetBlock = makeBlock('block-compute', 'compute');
 
     useUIStore.setState({ toolMode: 'connect', connectionSource: sourceBlock.id });
@@ -794,7 +797,7 @@ describe('BlockSprite', () => {
   });
 
   it('adds is-valid-target class when connect source is external actor and target is gateway', () => {
-    const gatewayBlock = makeBlock('block-gateway', 'edge');
+    const gatewayBlock = makeBlock('block-gateway', 'delivery');
 
     useUIStore.setState({ toolMode: 'connect', connectionSource: internetActor.id });
     useArchitectureStore.setState({

@@ -228,7 +228,7 @@ describe('provider definitions', () => {
     expect(mainTf?.content).toContain('resource "aws_ecs_service" "ecs_compute"');
   });
 
-  it('gcp adapter maps compute and gateway blocks to documented terraform resources', () => {
+  it('gcp adapter maps compute and delivery blocks to documented terraform resources', () => {
     const architecture: ArchitectureModel = {
       id: 'arch-adapter-gcp-1',
       name: 'Provider Adapter GCP Terraform Test',
@@ -266,7 +266,7 @@ describe('provider definitions', () => {
         createResource({
           id: 'gw-1',
           name: 'Gateway',
-          category: 'edge',
+          category: 'delivery',
           resourceType: 'load_balancer',
           provider: 'gcp',
           parentId: 'sub-1',

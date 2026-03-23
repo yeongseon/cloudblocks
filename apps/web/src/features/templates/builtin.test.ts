@@ -150,7 +150,7 @@ describe('registerBuiltinTemplates', () => {
       'compute',
       'data',
       'data',
-      'edge',
+      'delivery',
       'messaging',
       'messaging',
       'messaging',

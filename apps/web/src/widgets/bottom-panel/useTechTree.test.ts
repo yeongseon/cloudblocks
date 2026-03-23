@@ -57,7 +57,7 @@ function buildArchitecture(plates: ContainerNode[], blockCount = 0): Architectur
     'compute',
     'data',
     'data',
-    'edge',
+    'delivery',
     'compute',
     'messaging',
     'messaging',
@@ -69,11 +69,12 @@ function buildArchitecture(plates: ContainerNode[], blockCount = 0): Architectur
   const resourceTypeByCategory: Record<ResourceCategory, string> = {
     network: 'virtual_network',
     security: 'firewall_security',
-    edge: 'load_balancer',
+    delivery: 'load_balancer',
     compute: 'web_compute',
     data: 'relational_database',
     messaging: 'message_queue',
     operations: 'monitoring',
+    identity: 'managed_identity',
   };
 
   const blocks = Array.from({ length: blockCount }, (_, index) =>
@@ -145,7 +146,7 @@ describe('useTechTree constants', () => {
         shortLabel: 'DNS',
         icon: '🌐',
         category: 'always',
-        blockCategory: 'edge',
+        blockCategory: 'delivery',
       },
       cdn: {
         id: 'cdn',
@@ -154,7 +155,7 @@ describe('useTechTree constants', () => {
         shortLabel: 'CDN',
         icon: '⚡',
         category: 'always',
-        blockCategory: 'edge',
+        blockCategory: 'delivery',
       },
       'front-door': {
         id: 'front-door',
@@ -163,7 +164,7 @@ describe('useTechTree constants', () => {
         shortLabel: 'FrontDoor',
         icon: '🚪',
         category: 'always',
-        blockCategory: 'edge',
+        blockCategory: 'delivery',
       },
       sql: {
         id: 'sql',
@@ -237,6 +238,15 @@ describe('useTechTree constants', () => {
         category: 'vnet-optional',
         blockCategory: 'security',
       },
+      'managed-identity': {
+        id: 'managed-identity',
+        schemaResourceType: 'managed_identity',
+        label: 'Managed Identity',
+        shortLabel: 'Identity',
+        icon: '🪪',
+        category: 'vnet-optional',
+        blockCategory: 'identity',
+      },
       vm: {
         id: 'vm',
         schemaResourceType: 'virtual_machine',
@@ -262,7 +272,7 @@ describe('useTechTree constants', () => {
         shortLabel: 'IntLB',
         icon: '⚖️',
         category: 'vnet-required',
-        blockCategory: 'edge',
+        blockCategory: 'delivery',
       },
       firewall: {
         id: 'firewall',
@@ -271,7 +281,7 @@ describe('useTechTree constants', () => {
         shortLabel: 'FW',
         icon: '🛡️',
         category: 'vnet-required',
-        blockCategory: 'edge',
+        blockCategory: 'delivery',
       },
       nsg: {
         id: 'nsg',
@@ -334,7 +344,7 @@ describe('useTechTree constants', () => {
         shortLabel: 'AppGW',
         icon: '🚪',
         category: 'vnet-required',
-        blockCategory: 'edge',
+        blockCategory: 'delivery',
       },
     };
 
@@ -364,8 +374,9 @@ describe('useTechTree constants', () => {
       'route-table',
       'private-endpoint',
       'app-gateway',
+      'managed-identity',
     ];
-    expect(resourceTypes).toHaveLength(25);
+    expect(resourceTypes).toHaveLength(26);
 
     for (const resourceType of resourceTypes) {
       const actual = RESOURCE_DEFINITIONS[resourceType as ResourceType];

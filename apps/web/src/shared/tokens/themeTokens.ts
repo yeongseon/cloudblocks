@@ -24,10 +24,11 @@ export interface ThemeTokens {
 
   'cat-network': string;
   'cat-security': string;
-  'cat-edge': string;
+  'cat-delivery': string;
   'cat-compute': string;
   'cat-data': string;
   'cat-messaging': string;
+  'cat-identity': string;
   'cat-operations': string;
 }
 
@@ -51,10 +52,11 @@ export const blueprintTheme: ThemeTokens = {
   'accent-error': '#EF4444',
   'cat-network': '#3B82F6',
   'cat-security': '#EF4444',
-  'cat-edge': '#F97316',
+  'cat-delivery': '#F97316',
   'cat-compute': '#8B5CF6',
   'cat-data': '#14B8A6',
   'cat-messaging': '#EAB308',
+  'cat-identity': '#0078D4',
   'cat-operations': '#64748B',
 };
 
@@ -78,10 +80,11 @@ export const workshopTheme: ThemeTokens = {
   'accent-error': '#DC2626',
   'cat-network': '#3B82F6',
   'cat-security': '#EF4444',
-  'cat-edge': '#F97316',
+  'cat-delivery': '#F97316',
   'cat-compute': '#8B5CF6',
   'cat-data': '#14B8A6',
   'cat-messaging': '#EAB308',
+  'cat-identity': '#0078D4',
   'cat-operations': '#64748B',
 };
 

@@ -111,7 +111,7 @@ function generateImplicitPulumiResources(block: LeafNode, resourceName: string):
 
   const needsPip =
     (block.category === 'compute' && block.subtype === 'vm') ||
-    (block.category === 'edge' && block.subtype === 'firewall');
+    (block.category === 'delivery' && block.subtype === 'firewall');
 
   const needsNic = block.category === 'compute' && block.subtype === 'vm';
 
@@ -229,7 +229,7 @@ function generateBlockResource(
     case 'network':
       lines.push(`    // Network resource configuration`);
       break;
-    case 'edge':
+    case 'delivery':
       lines.push(`    applicationGatewayName: \`\${projectName}-${resourceName}\`,`);
       lines.push(`    sku: {`);
       lines.push(`        name: "Standard_v2",`);
@@ -246,6 +246,9 @@ function generateBlockResource(
       break;
     case 'operations':
       lines.push(`    // Log Analytics workspace configuration`);
+      break;
+    case 'identity':
+      lines.push(`    // Managed identity configuration`);
       break;
     case 'security':
       lines.push(`    // Managed identity configuration`);

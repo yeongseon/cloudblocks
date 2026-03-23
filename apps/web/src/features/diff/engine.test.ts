@@ -68,7 +68,7 @@ function createBaseArchitecture(): LegacyArchitecture {
       makeTestBlock({
         id: 'block-1',
         name: 'Gateway',
-        category: 'edge',
+        category: 'delivery',
         placementId: 'plate-2',
         position: { x: 0, y: 0, z: 0 },
         metadata: {},

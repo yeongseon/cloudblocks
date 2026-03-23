@@ -39,10 +39,11 @@ const VALID_PLATE_TYPES: PlateLayerType[] = ['global', 'edge', 'region', 'zone',
 const VALID_BLOCK_CATEGORIES: ResourceCategory[] = [
   'network',
   'security',
-  'edge',
+  'delivery',
   'compute',
   'data',
   'messaging',
+  'identity',
   'operations',
 ];
 
@@ -139,7 +140,7 @@ export const validateArchitectureShape = (imported: unknown): { valid: true } =>
 
       if (!isValidBlockCategory(node.category)) {
         throw new Error(
-          `${context}: category must be one of network, security, edge, compute, data, messaging, operations`,
+          `${context}: category must be one of network, security, delivery, compute, data, messaging, identity, operations`,
         );
       }
       if (typeof node.parentId !== 'string') {
@@ -214,7 +215,7 @@ export const validateArchitectureShape = (imported: unknown): { valid: true } =>
       }
       if (!isValidBlockCategory(block.category)) {
         throw new Error(
-          `${context}: category must be one of network, security, edge, compute, data, messaging, operations`,
+          `${context}: category must be one of network, security, delivery, compute, data, messaging, identity, operations`,
         );
       }
       if (typeof block.placementId !== 'string') {

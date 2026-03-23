@@ -17,10 +17,11 @@ const subnetIcon = '/azure-icons/subnet.svg';
 const AZURE_BLOCK_ICONS: Record<ResourceCategory, string> = {
   network: vnetIcon,
   security: gatewayIcon,
-  edge: gatewayIcon,
+  delivery: gatewayIcon,
   compute: vmIcon,
   data: sqlIcon,
   messaging: queueIcon,
+  identity: gatewayIcon,
   operations: eventIcon,
 };
 

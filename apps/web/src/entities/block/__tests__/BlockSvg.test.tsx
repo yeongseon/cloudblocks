@@ -154,10 +154,12 @@ describe('BlockSvg CU-based dimensions', () => {
   const ALL_CATEGORIES: ResourceCategory[] = [
     'compute',
     'data',
-    'edge',
+    'delivery',
     'messaging',
     'operations',
     'security',
+    'identity',
+    'network',
   ];
 
   it.each(ALL_CATEGORIES)('renders %s with correct viewBox from CU dimensions', (category) => {
@@ -227,7 +229,7 @@ describe('BlockSvg CU-based dimensions', () => {
     const cu = TIER_DIMENSIONS.wide;
     const { screenWidth, svgHeight } = expectedDims(cu);
 
-    const { container } = render(<BlockSvg category="edge" />);
+    const { container } = render(<BlockSvg category="delivery" />);
     const vb = getViewBox(container);
 
     expect(vb.width).toBe(128); // (3+1)*32
@@ -279,7 +281,7 @@ describe('BlockSvg stud grid', () => {
   });
 
   it('renders width × depth studs for wide tier (3×1 = 3 studs)', () => {
-    const { container } = render(<BlockSvg category="edge" />);
+    const { container } = render(<BlockSvg category="delivery" />);
     const uses = container.querySelectorAll('use');
     expect(uses.length).toBe(3); // 3×1 = 3 studs
   });
@@ -288,7 +290,7 @@ describe('BlockSvg stud grid', () => {
     const categories: ResourceCategory[] = [
       'compute',
       'data',
-      'edge',
+      'delivery',
       'messaging',
       'operations',
       'security',
@@ -387,7 +389,7 @@ describe('BlockSvg category-tier mapping consistency', () => {
     const categories: ResourceCategory[] = [
       'compute',
       'data',
-      'edge',
+      'delivery',
       'messaging',
       'operations',
       'security',
@@ -415,9 +417,10 @@ describe('BlockSvg category-tier mapping consistency', () => {
   it('category-tier mapping matches spec §5.2', () => {
     expect(CATEGORY_TIER_MAP.compute).toBe('medium');
     expect(CATEGORY_TIER_MAP.data).toBe('large');
-    expect(CATEGORY_TIER_MAP.edge).toBe('wide');
+    expect(CATEGORY_TIER_MAP.delivery).toBe('wide');
     expect(CATEGORY_TIER_MAP.messaging).toBe('micro');
     expect(CATEGORY_TIER_MAP.network).toBe('large');
+    expect(CATEGORY_TIER_MAP.identity).toBe('small');
     expect(CATEGORY_TIER_MAP.operations).toBe('small');
     expect(CATEGORY_TIER_MAP.security).toBe('small');
   });

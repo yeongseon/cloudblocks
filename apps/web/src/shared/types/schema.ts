@@ -52,6 +52,7 @@ export type ArchitectureSnapshot = Omit<ArchitectureModel, 'id' | 'createdAt' | 
  */
 type LegacyBlockCategory =
   | ResourceCategory
+  | 'edge'
   | 'database'
   | 'storage'
   | 'gateway'
@@ -65,19 +66,20 @@ type LegacyBlockCategory =
 const LEGACY_CATEGORY_MAP: Record<LegacyBlockCategory, ResourceCategory> = {
   network: 'network',
   security: 'security',
-  edge: 'edge',
+  edge: 'delivery',
+  delivery: 'delivery',
   compute: 'compute',
   data: 'data',
   messaging: 'messaging',
+  identity: 'identity',
   operations: 'operations',
   database: 'data',
   storage: 'data',
-  gateway: 'edge',
+  gateway: 'delivery',
   function: 'compute',
   queue: 'messaging',
   event: 'messaging',
   analytics: 'operations',
-  identity: 'security',
   observability: 'operations',
 };
 

@@ -6,8 +6,10 @@ describe('getBlockIconUrl', () => {
   const ALL_CATEGORIES: ResourceCategory[] = [
     'compute',
     'data',
-    'edge',
+    'delivery',
     'messaging',
+    'identity',
+    'network',
     'operations',
     'security',
   ];

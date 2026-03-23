@@ -38,7 +38,7 @@ export const awsSubtypeRegistry: SubtypeRegistry = {
       defaultConfig: { billingMode: 'PAY_PER_REQUEST' },
     },
   },
-  edge: {
+  delivery: {
     alb: {
       displayName: 'Application Load Balancer',
       description: 'Layer 7 load balancer for HTTP/HTTPS',
@@ -70,6 +70,20 @@ export const awsSubtypeRegistry: SubtypeRegistry = {
     nsg: {
       displayName: 'Security Group',
       description: 'Virtual firewall for EC2 instances and subnets',
+    },
+  },
+  identity: {
+    'managed-identity': {
+      displayName: 'Managed Identity',
+      description: 'IAM role used as a workload identity',
+    },
+    'service-account': {
+      displayName: 'Service Account',
+      description: 'IAM user credentials for service integrations',
+    },
+    'service-principal': {
+      displayName: 'Service Principal',
+      description: 'Assumable IAM role for application access',
     },
   },
   operations: {

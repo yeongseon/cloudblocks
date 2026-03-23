@@ -188,7 +188,7 @@ describe('pipeline', () => {
           createResource({
             id: 'blk-2',
             name: 'Gateway',
-            category: 'edge',
+            category: 'delivery',
             resourceType: 'load_balancer',
             parentId: 'net-2',
             position: { x: 0, y: 0.5, z: 0 },
@@ -323,7 +323,7 @@ describe('pipeline', () => {
           createResource({
             id: 'db-1',
             name: 'Gateway',
-            category: 'edge',
+            category: 'delivery',
             resourceType: 'load_balancer',
             parentId: 'net-2',
             position: { x: 0, y: 0.5, z: 0 },
