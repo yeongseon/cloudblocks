@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { FigureHelper } from './FigureHelper';
+import { Helper } from './Helper';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import type { ValidationResult } from '@cloudblocks/domain';
@@ -61,26 +61,26 @@ function resetStores() {
   });
 }
 
-describe('FigureHelper', () => {
+describe('Helper', () => {
   beforeEach(() => {
     resetStores();
   });
 
   it('renders nothing when complexityLevel is not beginner', () => {
     useUIStore.setState({ complexityLevel: 'standard' });
-    const { container } = render(<FigureHelper />);
+    const { container } = render(<Helper />);
     expect(container.innerHTML).toBe('');
   });
 
   it('renders nothing when complexityLevel is advanced', () => {
     useUIStore.setState({ complexityLevel: 'advanced' });
-    const { container } = render(<FigureHelper />);
+    const { container } = render(<Helper />);
     expect(container.innerHTML).toBe('');
   });
 
   it('shows empty canvas hint when no nodes exist', () => {
-    render(<FigureHelper />);
-    expect(screen.getByTestId('figure-helper')).toBeInTheDocument();
+    render(<Helper />);
+    expect(screen.getByTestId('helper-widget')).toBeInTheDocument();
     expect(screen.getByText('Add a node to start building your architecture.')).toBeInTheDocument();
   });
 
@@ -88,7 +88,7 @@ describe('FigureHelper', () => {
     useArchitectureStore.setState({
       workspace: makeWorkspace({ nodes: [SAMPLE_NODE] }),
     });
-    render(<FigureHelper />);
+    render(<Helper />);
     expect(
       screen.getByText('Nice! Now connect nodes to define relationships.'),
     ).toBeInTheDocument();
@@ -111,9 +111,9 @@ describe('FigureHelper', () => {
       workspace: makeWorkspace({ nodes: [SAMPLE_NODE] }),
       validationResult: result,
     });
-    render(<FigureHelper />);
+    render(<Helper />);
     expect(screen.getByText('Gateway must be on public subnet')).toBeInTheDocument();
-    expect(screen.getByTestId('figure-helper-goto')).toBeInTheDocument();
+    expect(screen.getByTestId('helper-widget-goto')).toBeInTheDocument();
   });
 
   it('Go to button calls setSelectedId with targetId', () => {
@@ -133,8 +133,8 @@ describe('FigureHelper', () => {
       workspace: makeWorkspace({ nodes: [SAMPLE_NODE] }),
       validationResult: result,
     });
-    render(<FigureHelper />);
-    fireEvent.click(screen.getByTestId('figure-helper-goto'));
+    render(<Helper />);
+    fireEvent.click(screen.getByTestId('helper-widget-goto'));
     expect(useUIStore.getState().selectedId).toBe('block-1');
   });
 
@@ -151,23 +151,23 @@ describe('FigureHelper', () => {
       }),
       validationResult: result,
     });
-    render(<FigureHelper />);
+    render(<Helper />);
     expect(screen.getByText(/Everything looks good/)).toBeInTheDocument();
   });
 
   it('dismiss button hides the bubble', () => {
-    render(<FigureHelper />);
-    expect(screen.getByTestId('figure-helper-bubble')).toBeInTheDocument();
-    fireEvent.click(screen.getByTestId('figure-helper-dismiss'));
-    expect(screen.queryByTestId('figure-helper-bubble')).not.toBeInTheDocument();
+    render(<Helper />);
+    expect(screen.getByTestId('helper-widget-bubble')).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('helper-widget-dismiss'));
+    expect(screen.queryByTestId('helper-widget-bubble')).not.toBeInTheDocument();
   });
 
   it('toggle button re-opens bubble after dismiss (different message key)', () => {
-    render(<FigureHelper />);
-    fireEvent.click(screen.getByTestId('figure-helper-dismiss'));
-    expect(screen.queryByTestId('figure-helper-bubble')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByTestId('figure-helper-toggle'));
-    expect(screen.queryByTestId('figure-helper-bubble')).not.toBeInTheDocument();
+    render(<Helper />);
+    fireEvent.click(screen.getByTestId('helper-widget-dismiss'));
+    expect(screen.queryByTestId('helper-widget-bubble')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId('helper-widget-toggle'));
+    expect(screen.queryByTestId('helper-widget-bubble')).not.toBeInTheDocument();
   });
 
   it('error messages do not show Go to when no targetId', () => {
@@ -187,7 +187,7 @@ describe('FigureHelper', () => {
       workspace: makeWorkspace({ nodes: [SAMPLE_NODE] }),
       validationResult: result,
     });
-    render(<FigureHelper />);
+    render(<Helper />);
     expect(screen.getByText('Some general error')).toBeInTheDocument();
   });
 
@@ -208,18 +208,18 @@ describe('FigureHelper', () => {
       workspace: makeWorkspace({ nodes: [SAMPLE_NODE] }),
       validationResult: result,
     });
-    render(<FigureHelper />);
+    render(<Helper />);
     expect(screen.getByText('Validation error')).toBeInTheDocument();
     expect(screen.queryByText(/connect nodes/)).not.toBeInTheDocument();
   });
 
   it('hint messages do not show Go to button', () => {
-    render(<FigureHelper />);
-    expect(screen.queryByTestId('figure-helper-goto')).not.toBeInTheDocument();
+    render(<Helper />);
+    expect(screen.queryByTestId('helper-widget-goto')).not.toBeInTheDocument();
   });
 
   it('toggle button is always visible when message exists', () => {
-    render(<FigureHelper />);
-    expect(screen.getByTestId('figure-helper-toggle')).toBeInTheDocument();
+    render(<Helper />);
+    expect(screen.getByTestId('helper-widget-toggle')).toBeInTheDocument();
   });
 });

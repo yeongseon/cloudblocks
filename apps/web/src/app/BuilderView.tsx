@@ -5,7 +5,7 @@ import { SceneCanvas } from '../widgets/scene-canvas/SceneCanvas';
 import { MenuBar } from '../widgets/menu-bar/MenuBar';
 import { SidebarPalette } from '../widgets/sidebar-palette';
 import { OnboardingTour } from '../widgets/onboarding-tour/OnboardingTour';
-import { FigureHelper } from '../widgets/figure-helper/FigureHelper';
+import { Helper } from '../widgets/helper/Helper';
 import { RightDrawer } from '../widgets/right-drawer';
 import { EmptyCanvasCTA } from '../widgets/empty-canvas-cta';
 import { useArchitectureStore } from '../entities/store/architectureStore';
@@ -254,7 +254,7 @@ export function BuilderView() {
       </div>
 
       <OnboardingTour />
-      <FigureHelper />
+      <Helper />
     </>
   );
 }
