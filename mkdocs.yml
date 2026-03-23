@@ -71,6 +71,16 @@ markdown_extensions:
 nav:
   - Home: README.md
 
+  - User Guide:
+      - user-guide/index.md
+      - Quick Start: user-guide/quick-start.md
+      - Core Concepts: user-guide/core-concepts.md
+      - Create an Architecture: user-guide/create-architecture.md
+      - Generate Code: user-guide/generate-code.md
+      - Use Templates: user-guide/templates.md
+      - Keyboard Shortcuts: user-guide/keyboard-shortcuts.md
+      - FAQ: user-guide/faq.md
+
   - Getting Started:
       - Tutorials (Start Here): guides/TUTORIALS.md
       - Environment & Workspaces: guides/ENVIRONMENT_STRATEGY.md
