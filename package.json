@@ -1,7 +1,7 @@
 {
   "name": "cloudblocks",
   "private": true,
-  "version": "0.21.0",
+  "version": "0.22.0",
   "description": "Architecture compiler that converts visual infrastructure designs into Terraform, Bicep, and Pulumi code",
   "type": "module",
   "repository": {
