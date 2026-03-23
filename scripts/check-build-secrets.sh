@@ -68,15 +68,26 @@ done
 # Only VITE_API_URL is allowed. Any other VITE_* variable embedded in
 # the build output indicates an accidental env leak.
 
-ALLOWED_VITE_VARS="VITE_API_URL"
+ALLOWED_VITE_VARS=(
+  "VITE_API_URL"
+  "VITE_PLAUSIBLE_DOMAIN"
+  "VITE_PLAUSIBLE_HOST"
+)
 
 # Search for VITE_ references in built JS (Vite inlines import.meta.env.VITE_*)
 FOUND_VITE_VARS=$(grep -rEoh 'VITE_[A-Z_]+' "$DIST_DIR" --include='*.js' 2>/dev/null | sort -u || true)
 
 for var in $FOUND_VITE_VARS; do
-  if [ "$var" != "$ALLOWED_VITE_VARS" ]; then
+  ALLOWED=false
+  for allowed_var in "${ALLOWED_VITE_VARS[@]}"; do
+    if [ "$var" = "$allowed_var" ]; then
+      ALLOWED=true
+      break
+    fi
+  done
+  if [ "$ALLOWED" = false ]; then
     echo "FAIL: Unexpected VITE_* variable '$var' found in build output."
-    echo "      Only $ALLOWED_VITE_VARS is permitted. Remove the usage or add to allowlist."
+    echo "      Only ${ALLOWED_VITE_VARS[*]} are permitted. Remove the usage or add to allowlist."
     ERRORS=$((ERRORS + 1))
   fi
 done
@@ -93,9 +104,16 @@ if [ -d "$SRC_DIR" ]; then
   SRC_VITE_VARS=$(grep -rEoh 'import\.meta\.env\.VITE_[A-Z_]+' "$SRC_DIR" --include='*.ts' --include='*.tsx' 2>/dev/null | sed 's/import\.meta\.env\.//' | sort -u || true)
 
   for var in $SRC_VITE_VARS; do
-    if [ "$var" != "$ALLOWED_VITE_VARS" ]; then
+    ALLOWED=false
+    for allowed_var in "${ALLOWED_VITE_VARS[@]}"; do
+      if [ "$var" = "$allowed_var" ]; then
+        ALLOWED=true
+        break
+      fi
+    done
+    if [ "$ALLOWED" = false ]; then
       echo "FAIL: Source code references import.meta.env.$var"
-      echo "      Only $ALLOWED_VITE_VARS is permitted."
+      echo "      Only ${ALLOWED_VITE_VARS[*]} are permitted."
       ERRORS=$((ERRORS + 1))
     fi
   done
