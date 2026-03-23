@@ -75,6 +75,11 @@ infra/plausible/plausible.env
 .turbo/
 apps/web/coverage/
 
+# ─── Playwright / Demo recordings ─────────────────────────────
+test-results/
+playwright-report/
+docs/demo/
+
 # ─── Stale artifacts ──────────────────────────────────────────
 *.png
 !docs/**/*.png
