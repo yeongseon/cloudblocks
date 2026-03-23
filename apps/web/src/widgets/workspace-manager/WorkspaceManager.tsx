@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { X, Pencil, Copy } from 'lucide-react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { confirmDialog } from '../../shared/ui/ConfirmDialog';
@@ -59,7 +60,7 @@ export function WorkspaceManager() {
           onClick={toggleWorkspaceManager}
           aria-label="Close workspace manager panel"
         >
-          ✕
+          <X size={14} />
         </button>
       </div>
 
@@ -116,7 +117,7 @@ export function WorkspaceManager() {
                     onClick={() => handleRename(ws.name)}
                     title="Rename workspace"
                   >
-                    ✏️
+                    <Pencil size={12} />
                   </button>
                 )}
                 {!isActive && (
@@ -138,7 +139,7 @@ export function WorkspaceManager() {
                   onClick={() => cloneWorkspace(ws.id)}
                   title="Clone workspace"
                 >
-                  📋
+                  <Copy size={14} />
                 </button>
                 <button
                   type="button"

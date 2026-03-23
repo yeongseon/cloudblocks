@@ -203,3 +203,10 @@
   cursor: not-allowed;
   pointer-events: none;
 }
+
+.sidebar-palette-highlight {
+  background: color-mix(in srgb, var(--accent-primary) 30%, transparent);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+}

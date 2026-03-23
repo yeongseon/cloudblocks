@@ -34,7 +34,7 @@ function seedActiveScenario(): void {
 describe('LearningPanel widgets', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    useUIStore.setState({ showLearningPanel: true, showScenarioGallery: false });
+    useUIStore.setState({ drawer: { isOpen: true, activePanel: 'learning' } });
     seedActiveScenario();
 
     vi.mocked(getValidationDetails).mockReturnValue({
@@ -45,31 +45,27 @@ describe('LearningPanel widgets', () => {
 
   afterEach(() => {
     useLearningStore.getState().abandonScenario();
-    useUIStore.setState({
-      showLearningPanel: false,
-      showScenarioGallery: false,
-      editorMode: 'build',
-    });
+    useUIStore.setState({ drawer: { isOpen: false, activePanel: null }, editorMode: 'build' });
     clearScenarioRegistry();
     vi.clearAllMocks();
   });
 
-  it('returns null when showLearningPanel is false', () => {
-    useUIStore.setState({ showLearningPanel: false });
-    const { container } = render(<LearningPanel />);
-    expect(container.innerHTML).toBe('');
-  });
-
-  it('returns null when no activeScenario', () => {
+  it('shows empty state when no active scenario', () => {
     useLearningStore.setState({ activeScenario: null });
-    const { container } = render(<LearningPanel />);
-    expect(container.innerHTML).toBe('');
+    render(<LearningPanel />);
+    expect(document.querySelector('.learning-panel-empty')).toBeInTheDocument();
   });
 
-  it('returns null when no progress', () => {
+  it('shows empty state when activeScenario is null', () => {
+    useLearningStore.setState({ activeScenario: null });
+    render(<LearningPanel />);
+    expect(document.querySelector('.learning-panel-empty')).toBeInTheDocument();
+  });
+
+  it('shows empty state when no progress', () => {
     useLearningStore.setState({ progress: null });
-    const { container } = render(<LearningPanel />);
-    expect(container.innerHTML).toBe('');
+    render(<LearningPanel />);
+    expect(document.querySelector('.learning-panel-empty')).toBeInTheDocument();
   });
 
   it('returns null when currentStep index is out of range', () => {
@@ -204,14 +200,14 @@ describe('LearningPanel widgets', () => {
 
     render(<LearningPanel />);
 
-    expect(screen.getByText('Add a region plate')).toBeInTheDocument();
-    expect(screen.getByText('Add a subnet plate')).toBeInTheDocument();
-    expect(screen.getByText('Add a compute block')).toBeInTheDocument();
+    expect(screen.getByText('Add a region container')).toBeInTheDocument();
+    expect(screen.getByText('Add a subnet container')).toBeInTheDocument();
+    expect(screen.getByText('Add a compute node')).toBeInTheDocument();
     expect(screen.getByText('Connect edge to compute')).toBeInTheDocument();
-    expect(screen.getByText('Place data on subnet')).toBeInTheDocument();
+    expect(screen.getByText('Place data on subnet container')).toBeInTheDocument();
     expect(screen.getByText('Fix validation issues')).toBeInTheDocument();
-    expect(screen.getByText('Add at least 2 data block(s)')).toBeInTheDocument();
-    expect(screen.getByText('Add at least 3 subnet plate(s)')).toBeInTheDocument();
+    expect(screen.getByText('Add at least 2 data node(s)')).toBeInTheDocument();
+    expect(screen.getByText('Add at least 3 subnet container(s)')).toBeInTheDocument();
     expect(screen.getByText('Complete requirement')).toBeInTheDocument();
   });
 
@@ -253,7 +249,7 @@ describe('LearningPanel widgets', () => {
 
     render(<LearningPanel />);
 
-    const regionRuleItem = screen.getByText('Add a region plate').closest('li');
+    const regionRuleItem = screen.getByText('Add a region container').closest('li');
     const validRuleItem = screen.getByText('Fix validation issues').closest('li');
 
     if (!(regionRuleItem instanceof HTMLElement) || !(validRuleItem instanceof HTMLElement)) {
@@ -464,7 +460,8 @@ describe('LearningPanel widgets', () => {
 
     await user.click(screen.getByRole('button', { name: 'Browse Scenarios' }));
     expect(abandonLearning).toHaveBeenCalledTimes(1);
-    expect(useUIStore.getState().showScenarioGallery).toBe(true);
+    expect(useUIStore.getState().drawer.isOpen).toBe(true);
+    expect(useUIStore.getState().drawer.activePanel).toBe('scenarios');
 
     await user.click(screen.getByRole('button', { name: 'Back to Build' }));
     expect(abandonLearning).toHaveBeenCalledTimes(2);

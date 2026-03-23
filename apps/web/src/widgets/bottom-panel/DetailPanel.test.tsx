@@ -663,7 +663,8 @@ describe('DetailPanel', () => {
 
     fireEvent.click(screen.getByText('Start Learning'));
 
-    expect(useUIStore.getState().showScenarioGallery).toBe(true);
+    expect(useUIStore.getState().drawer.isOpen).toBe(true);
+    expect(useUIStore.getState().drawer.activePanel).toBe('scenarios');
     expect(useUIStore.getState().editorMode).toBe('learn');
   });
 });

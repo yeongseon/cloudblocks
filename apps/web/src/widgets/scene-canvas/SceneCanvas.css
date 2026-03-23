@@ -118,3 +118,47 @@
   overflow: visible;
   z-index: 3;
 }
+
+/* ── Connector draw-in animation ────────────────────────── */
+@keyframes connector-draw-in {
+  from {
+    stroke-dashoffset: var(--path-length, 1000);
+    opacity: 0.3;
+  }
+  to {
+    stroke-dashoffset: 0;
+    opacity: 0.6;
+  }
+}
+
+/* ── Connector snap flash overlay ───────────────────────── */
+@keyframes connector-snap-flash {
+  0% {
+    stroke-opacity: 0.9;
+    stroke-width: 8;
+  }
+  100% {
+    stroke-opacity: 0;
+    stroke-width: 16;
+  }
+}
+
+/* ── Accessibility ──────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes connector-draw-in {
+    from {
+      opacity: 0.6;
+    }
+    to {
+      opacity: 0.6;
+    }
+  }
+  @keyframes connector-snap-flash {
+    from {
+      stroke-opacity: 0;
+    }
+    to {
+      stroke-opacity: 0;
+    }
+  }
+}

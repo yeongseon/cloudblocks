@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ArchitectureModel, ContainerNode } from '@cloudblocks/schema';
 import { SidebarPalette } from './SidebarPalette';
@@ -106,7 +106,7 @@ describe('SidebarPalette', () => {
 
     await user.type(screen.getByPlaceholderText('Search resources'), 'vault');
 
-    expect(screen.getByText('KeyVault')).toBeInTheDocument();
+    expect(screen.getByText((_content, el) => el?.textContent === 'KeyVault')).toBeInTheDocument();
     expect(screen.queryByText('VM')).not.toBeInTheDocument();
   });
 
@@ -144,7 +144,8 @@ describe('SidebarPalette', () => {
       'Create a Network first. Virtual Machines need a network to connect to.',
     );
     expect(vmButton).toBeDisabled();
-    expect(within(vmButton).getByText('🔒')).toBeInTheDocument();
+    // Lock icon is now a Lucide SVG inside an aria-hidden span
+    expect(vmButton.querySelector('.sidebar-palette-resource-lock')).toBeInTheDocument();
   });
 
   it('creates a resource on click when target plate exists', async () => {
@@ -175,4 +176,28 @@ describe('SidebarPalette', () => {
       subtype: 'virtual_machine',
     });
   });
+});
+
+it('highlights matching text in search results', async () => {
+  const user = userEvent.setup();
+  useArchitectureStore.setState({
+    workspace: {
+      id: 'ws-1',
+      name: 'Test Workspace',
+      architecture: {
+        ...baseArchitecture,
+        nodes: [networkPlate, publicSubnet],
+      },
+      createdAt: '',
+      updatedAt: '',
+    },
+  });
+
+  const { container } = render(<SidebarPalette />);
+
+  await user.type(screen.getByPlaceholderText('Search resources'), 'vault');
+
+  const marks = container.querySelectorAll('mark.sidebar-palette-highlight');
+  expect(marks.length).toBeGreaterThan(0);
+  expect(marks[0].textContent?.toLowerCase()).toBe('vault');
 });

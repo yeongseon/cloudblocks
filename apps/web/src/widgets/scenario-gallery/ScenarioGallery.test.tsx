@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, within, fireEvent } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ScenarioGallery } from './ScenarioGallery';
 import { useUIStore } from '../../entities/store/uiStore';
@@ -48,17 +48,18 @@ describe('ScenarioGallery', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     registerBuiltinScenarios();
+    useUIStore.setState({
+      drawer: { isOpen: true, activePanel: 'scenarios' },
+    });
   });
 
   afterEach(() => {
-    useUIStore.setState({ showScenarioGallery: false, editorMode: 'build' });
+    useUIStore.setState({
+      drawer: { isOpen: false, activePanel: null },
+      editorMode: 'build',
+    });
     clearScenarioRegistry();
     vi.clearAllMocks();
-  });
-
-  it('shows gallery title "Scenario Gallery"', () => {
-    render(<ScenarioGallery />);
-    expect(screen.getByRole('heading', { name: 'Scenario Gallery' })).toBeInTheDocument();
   });
 
   it('renders all builtin scenarios', () => {
@@ -134,9 +135,8 @@ describe('ScenarioGallery', () => {
     expect(cardScope.getByText('gateway')).toBeInTheDocument();
   });
 
-  it('Start button calls startLearningScenario and closes gallery', async () => {
+  it('Start button calls startLearningScenario and closes drawer', async () => {
     const user = userEvent.setup();
-    useUIStore.setState({ showScenarioGallery: true });
     render(<ScenarioGallery />);
 
     const card = screen
@@ -149,14 +149,7 @@ describe('ScenarioGallery', () => {
     await user.click(within(card).getByRole('button', { name: 'Start' }));
 
     expect(startLearningScenario).toHaveBeenCalledWith('scenario-three-tier');
-    expect(useUIStore.getState().showScenarioGallery).toBe(false);
-  });
-
-  it('close button toggles gallery off', () => {
-    useUIStore.setState({ showScenarioGallery: true });
-    render(<ScenarioGallery />);
-    fireEvent.click(screen.getByRole('button', { name: 'Close scenario gallery' }));
-    expect(useUIStore.getState().showScenarioGallery).toBe(false);
+    expect(useUIStore.getState().drawer.isOpen).toBe(false);
   });
 
   it('shows empty message when filter has no matching scenarios', async () => {
@@ -172,7 +165,6 @@ describe('ScenarioGallery', () => {
 
   it('resets difficulty filter to "all" after Start', async () => {
     const user = userEvent.setup();
-    useUIStore.setState({ showScenarioGallery: true });
 
     const { unmount } = render(<ScenarioGallery />);
 
@@ -190,7 +182,7 @@ describe('ScenarioGallery', () => {
 
     // Re-render (simulates reopening the gallery)
     unmount();
-    useUIStore.setState({ showScenarioGallery: true });
+    useUIStore.setState({ drawer: { isOpen: true, activePanel: 'scenarios' } });
     render(<ScenarioGallery />);
 
     // All scenarios should be visible — filter was reset to "all"
@@ -217,7 +209,6 @@ describe('ScenarioGallery', () => {
 
   it('resets difficulty filter to All after starting a scenario', async () => {
     const user = userEvent.setup();
-    useUIStore.setState({ showScenarioGallery: true });
     const { unmount } = render(<ScenarioGallery />);
 
     await user.click(screen.getByRole('button', { name: 'Beginner' }));
@@ -232,7 +223,7 @@ describe('ScenarioGallery', () => {
     await user.click(within(card).getByRole('button', { name: 'Start' }));
 
     unmount();
-    useUIStore.setState({ showScenarioGallery: true });
+    useUIStore.setState({ drawer: { isOpen: true, activePanel: 'scenarios' } });
     registerBuiltinScenarios();
     render(<ScenarioGallery />);
 

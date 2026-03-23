@@ -546,7 +546,7 @@ describe('ExternalActorSprite', () => {
     expect(useUIStore.getState().connectionSource).toBe(actor.id);
   });
 
-  it('shows toast when connect mode addConnection fails', async () => {
+  it('silently cancels when connect mode addConnection fails', async () => {
     const user = userEvent.setup();
     addConnectionMock.mockReturnValueOnce(false);
     useUIStore.setState({ toolMode: 'connect', connectionSource: 'gateway-1' });
@@ -554,10 +554,13 @@ describe('ExternalActorSprite', () => {
     render(<ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />);
     await user.click(screen.getByAltText('Internet'));
 
-    expect(toast.error).toHaveBeenCalledWith('Invalid connection: check allowed connection rules');
+    // #1253: toast.error removed — invalid connections are silently cancelled
+    expect(toast.error).not.toHaveBeenCalled();
+    // Interaction completes regardless of success/failure
+    expect(useUIStore.getState().connectionSource).toBeNull();
   });
 
-  it('does not show toast when connect mode addConnection succeeds', async () => {
+  it('completes interaction when connect mode addConnection succeeds', async () => {
     const user = userEvent.setup();
     addConnectionMock.mockReturnValueOnce(true);
     useUIStore.setState({ toolMode: 'connect', connectionSource: 'gateway-1' });
@@ -566,6 +569,7 @@ describe('ExternalActorSprite', () => {
     await user.click(screen.getByAltText('Internet'));
 
     expect(toast.error).not.toHaveBeenCalled();
+    expect(useUIStore.getState().connectionSource).toBeNull();
   });
 
   it('does not initialize draggable interaction in connect or delete modes', () => {

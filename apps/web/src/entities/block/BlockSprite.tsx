@@ -1,6 +1,6 @@
-import { memo, useEffect, useRef } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import interact from 'interactjs';
-import { toast } from 'react-hot-toast';
+
 import type { ContainerNode, LeafNode, ProviderType, ResourceCategory } from '@cloudblocks/schema';
 import { parseEndpointId } from '@cloudblocks/schema';
 import { useUIStore } from '../store/uiStore';
@@ -15,6 +15,7 @@ import { getBlockDimensions } from '../../shared/types/visualProfile';
 import { cuToSilhouetteDimensions } from './silhouettes';
 import { BLOCK_PADDING } from '../../shared/tokens/designTokens';
 import { BlockSvg } from './BlockSvg';
+import type { PortInteraction } from './BlockSvg';
 import './BlockSprite.css';
 
 /** Derive screen size for the block clickable area from CU dimensions. */
@@ -66,6 +67,22 @@ export const BlockSprite = memo(function BlockSprite({
   const externalActors = useArchitectureStore((s) => s.workspace.architecture.externalActors) ?? [];
   const connections = useArchitectureStore((s) => s.workspace.architecture.connections);
   const endpointsList = useArchitectureStore((s) => s.workspace.architecture.endpoints);
+
+  // Compute which endpoint semantics are occupied (have active connections)
+  const occupiedEndpointSemantics = useMemo(() => {
+    const occupied = new Set<string>();
+    for (const conn of connections) {
+      const fromParsed = parseEndpointId(conn.from);
+      const toParsed = parseEndpointId(conn.to);
+      if (fromParsed?.nodeId === block.id) {
+        occupied.add(`output-${fromParsed.semantic}`);
+      }
+      if (toParsed?.nodeId === block.id) {
+        occupied.add(`input-${toParsed.semantic}`);
+      }
+    }
+    return occupied;
+  }, [connections, block.id]);
   const diffMode = useUIStore((s) => s.diffMode);
   const diffDelta: DiffDelta | null = useUIStore((s) => s.diffDelta);
   const blockRef = useRef<HTMLDivElement>(null);
@@ -104,7 +121,36 @@ export const BlockSprite = memo(function BlockSprite({
   const hasValidationWarning = validatePlacement(block, parentPlate) !== null;
   const diffState = diffMode && diffDelta ? getDiffState(block.id, diffDelta) : 'unchanged';
   const upgradingBlockId = useUIStore((s) => s.upgradingBlockId);
+  const snapTargetBlockId = useUIStore((s) => s.snapTargetBlockId);
+  const triggerSnapAnimation = useUIStore((s) => s.triggerSnapAnimation);
   const isUpgrading = upgradingBlockId === block.id;
+  const isSnapTarget = snapTargetBlockId === block.id;
+
+  // ── Port hover state for glow effect ──
+  const [hoveredPort, setHoveredPort] = useState<string | null>(null);
+
+  const handlePortPointerDown = useCallback(
+    (_port: PortInteraction, event: React.PointerEvent) => {
+      // Prevent block drag from starting
+      event.preventDefault();
+      event.stopPropagation();
+
+      // Start connecting from this block (same as clicking in connect mode)
+      if (!connectionSource) {
+        startConnecting(block.id);
+      }
+    },
+    [block.id, connectionSource, startConnecting],
+  );
+
+  const handlePortPointerEnter = useCallback((port: PortInteraction) => {
+    const key = port.side === 'inbound' ? `in-${port.index}` : `out-${port.index}`;
+    setHoveredPort(key);
+  }, []);
+
+  const handlePortPointerLeave = useCallback((_port: PortInteraction) => {
+    setHoveredPort(null);
+  }, []);
 
   useEffect(() => {
     const el = blockRef.current;
@@ -220,8 +266,10 @@ export const BlockSprite = memo(function BlockSprite({
         startConnecting(block.id);
       } else if (connectionSource !== block.id) {
         const success = addConnection(connectionSource, block.id);
-        if (!success) {
-          toast.error('Invalid connection: check allowed connection rules');
+        if (success) {
+          triggerSnapAnimation(block.id);
+          const { isSoundMuted } = useUIStore.getState();
+          if (!isSoundMuted) audioService.playSound('block-snap');
         }
         completeInteraction();
       }
@@ -246,6 +294,7 @@ export const BlockSprite = memo(function BlockSprite({
     diffState === 'modified' && 'diff-modified',
     diffState === 'removed' && 'diff-removed',
     isUpgrading && 'is-upgrading',
+    isSnapTarget && 'is-snap-target',
   ]
     .filter(Boolean)
     .join(' ');
@@ -284,6 +333,11 @@ export const BlockSprite = memo(function BlockSprite({
             aggregationCount={block.aggregation?.count}
             roles={block.roles}
             showStubs={isConnectMode}
+            occupiedEndpointSemantics={occupiedEndpointSemantics}
+            onPortPointerDown={handlePortPointerDown}
+            onPortPointerEnter={handlePortPointerEnter}
+            onPortPointerLeave={handlePortPointerLeave}
+            hoveredPort={hoveredPort}
           />
         </div>
         {block.provider && (

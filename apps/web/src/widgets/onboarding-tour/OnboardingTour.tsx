@@ -24,61 +24,37 @@ const STEPS: TourStep[] = [
     fallbackSelector: '.scene-canvas',
     title: 'Welcome to CloudBlocks!',
     description:
-      'Start by creating a Network container \u2014 click "Start from Scratch" or pick a template.',
-  },
-  {
-    selector: '.bottom-panel-command',
-    fallbackSelector: '.bottom-panel',
-    title: 'Command Panel',
-    description:
-      'Context-sensitive action grid. Create resources, view properties, edit connections depending on your selection.',
+      'Start by creating a Network node \u2014 click "Start from Scratch" or pick a template.',
   },
   {
     selector: '.sidebar-palette',
     fallbackSelector: '.sidebar-palette',
     title: 'Resource Palette',
     description:
-      'Browse and drag resources onto the canvas. Resources are grouped by category - network, compute, data, security, and more.',
+      'Browse and drag resources onto the canvas. Resources are grouped by category \u2014 network, compute, data, security, and more.',
     ensureVisible: () => useUIStore.getState().setSidebarOpen(true),
   },
   {
-    selector: '.bottom-panel-minimap',
-    fallbackSelector: '.bottom-panel',
-    title: 'Minimap',
+    selector: '.scene-canvas',
+    fallbackSelector: '.builder-canvas',
+    title: 'Canvas',
     description:
-      'Bird\u2019s-eye view of your entire architecture. Quickly orient yourself in large designs.',
+      'Your main workspace. Place nodes, connect ports, and build cloud architectures visually.',
   },
   {
-    selector: '.bottom-panel-detail',
-    fallbackSelector: '.bottom-panel',
-    title: 'Resource Guide',
+    selector: '.right-drawer',
+    fallbackSelector: '.builder-canvas',
+    title: 'Right Drawer',
     description:
-      'Learn about the selected container or node. Shows educational content, placement rules, and connection guidance.',
-  },
-  {
-    selector: '.bottom-panel-tab-content',
-    fallbackSelector: '.bottom-panel',
-    title: 'Validation',
-    description:
-      'Check placement rules and connection constraints. Switch to the Validation tab in the bottom dock.',
-    ensureVisible: () => {
-      useUIStore.getState().openBottomTab('validation');
-    },
-  },
-  {
-    selector: '.inspector-panel',
-    fallbackSelector: '.inspector-panel',
-    title: 'Inspector',
-    description:
-      'View and edit properties, code preview, and connections for the selected element.',
-    ensureVisible: () => useUIStore.getState().setInspectorOpen(true),
+      'Context panels slide in from the right \u2014 properties, validation, connections, and more. Open via the View menu or by selecting elements.',
+    ensureVisible: () => useUIStore.getState().openDrawer('properties'),
   },
   {
     selector: '.menu-bar-nav',
     fallbackSelector: '.menu-bar-nav',
     title: 'Menu Bar',
     description:
-      'Access File, Edit, Build, and View menus. Validate architecture, generate IaC, and toggle panels.',
+      'Access File, Edit, Build, and View menus. Validate architecture, generate IaC, and manage panels.',
   },
 ];
 

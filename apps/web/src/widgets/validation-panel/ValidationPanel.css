@@ -1,3 +1,5 @@
+/* ValidationPanel — themed for bottom-panel ValidationTab */
+
 .validation-panel {
   position: absolute;
   bottom: 16px;
@@ -6,51 +8,45 @@
   width: 500px;
   max-height: 250px;
   overflow-y: auto;
-  background: #fffdf0;
-  border: 4px solid #ffc83d;
+  background: var(--bg-surface, #1e293b);
+  border: 2px solid var(--border-strong, #475569);
   border-radius: 8px;
   padding: 16px;
-  color: #3d2600;
+  color: var(--text-primary, #f1f5f9);
   font-family: var(--font-ui);
   z-index: 10;
-  box-shadow:
-    0 6px 0 0 rgba(0, 0, 0, 0.15),
-    0 12px 24px rgba(255, 140, 0, 0.2);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
 .validation-title {
   margin: 0 0 12px 0;
   font-size: 16px;
-  font-weight: 800;
-  color: #ff5e00;
+  font-weight: 700;
+  color: var(--text-primary, #f1f5f9);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  text-shadow: 1px 2px 0 rgba(255, 200, 61, 0.4);
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .validation-status {
   font-size: 12px;
-  font-weight: 800;
-  padding: 6px 14px;
-  border-radius: 6px;
-  box-shadow:
-    0 3px 0 0 rgba(0, 0, 0, 0.15),
-    inset 0 2px 0 rgba(255, 255, 255, 0.4);
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 4px;
 }
 
 .validation-valid {
-  background: #34c759;
-  color: #ffffff;
-  border: 4px solid #248a3d;
+  background: var(--accent-success, #22c55e);
+  color: var(--text-inverse, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--accent-success, #22c55e) 80%, black);
   text-transform: uppercase;
 }
 
 .validation-invalid {
-  background: #ff3b30;
-  color: #ffffff;
-  border: 4px solid #c41b12;
+  background: var(--accent-error, #ef4444);
+  color: var(--text-inverse, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--accent-error, #ef4444) 80%, black);
   text-transform: uppercase;
 }
 
@@ -61,90 +57,75 @@
 .validation-section-title {
   margin: 0 0 8px 0;
   font-size: 11px;
-  color: #8a5a19;
-  font-weight: 800;
+  color: var(--text-muted, #64748b);
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
 .validation-item {
-  padding: 10px 12px;
+  padding: 8px 10px;
   border-radius: 6px;
   margin-bottom: 8px;
   font-size: 13px;
-  background: #fff5d6;
-  border: 4px solid #ffe4a0;
-  box-shadow:
-    inset 2px 3px 0 rgba(160, 100, 0, 0.1),
-    inset -2px -2px 0 rgba(255, 255, 255, 0.9);
+  background: var(--bg-surface-raised, #334155);
+  border: 1px solid var(--border-default, #334155);
 }
 
 .validation-error {
-  background: #ffebeb;
-  border-left: 8px solid #ff3b30;
-  border-color: #ffb3b0;
-  border-left-color: #c41b12;
+  border-left: 3px solid var(--accent-error, #ef4444);
+  background: color-mix(
+    in srgb,
+    var(--accent-error, #ef4444) 8%,
+    var(--bg-surface-raised, #334155)
+  );
 }
 
 .validation-warning {
-  background: #fff9e6;
-  border-left: 8px solid #ff9500;
-  border-color: #ffd699;
-  border-left-color: #cc7700;
+  border-left: 3px solid var(--accent-warning, #eab308);
+  background: color-mix(
+    in srgb,
+    var(--accent-warning, #eab308) 8%,
+    var(--bg-surface-raised, #334155)
+  );
 }
 
 .validation-message {
-  font-weight: 800;
-  color: #3d2600;
+  font-weight: 600;
+  color: var(--text-primary, #f1f5f9);
   margin-bottom: 4px;
 }
 
 .validation-suggestion {
-  color: #5c3a00;
+  color: var(--text-secondary, #94a3b8);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 400;
   margin-top: 2px;
 }
 
 .validation-meta {
-  color: #8a5a19;
+  color: var(--text-muted, #64748b);
   font-size: 11px;
   font-family: var(--font-mono);
-  font-weight: 700;
+  font-weight: 500;
   margin-top: 6px;
   display: inline-block;
-  background: #ffe4a0;
-  padding: 4px 8px;
-  border-radius: 4px;
-  border: 2px solid #d99c1c;
+  background: var(--bg-surface, #1e293b);
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--border-default, #334155);
 }
 
 .validation-success {
-  padding: 20px;
-  background: #34c759;
-  border: 4px solid #248a3d;
+  padding: 16px;
+  background: var(--accent-success, #22c55e);
+  border: 1px solid color-mix(in srgb, var(--accent-success, #22c55e) 80%, black);
   border-radius: 8px;
   text-align: center;
-  font-size: 16px;
-  font-weight: 800;
-  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-inverse, #ffffff);
   text-transform: uppercase;
-  letter-spacing: 1px;
-  box-shadow:
-    inset 0 4px 0 rgba(255, 255, 255, 0.4),
-    0 6px 0 0 rgba(0, 0, 0, 0.15);
-  position: relative;
+  letter-spacing: 0.5px;
   margin-top: 8px;
-}
-
-.validation-success::after {
-  content: '';
-  position: absolute;
-  top: 4px;
-  left: 4px;
-  right: 4px;
-  bottom: 4px;
-  border: 2px dashed rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
-  pointer-events: none;
 }

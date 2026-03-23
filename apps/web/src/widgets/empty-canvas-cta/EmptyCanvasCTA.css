@@ -1,0 +1,116 @@
+.empty-canvas-cta {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  pointer-events: none;
+  animation: cta-fade-in var(--motion-duration-normal, 200ms) var(--motion-easing-default, ease)
+    both;
+}
+
+.empty-canvas-cta.is-exiting {
+  animation: cta-fade-out var(--motion-duration-normal, 200ms) var(--motion-easing-default, ease)
+    both;
+}
+
+.cta-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 40px 48px;
+  border-radius: 16px;
+  background: var(--bg-surface, #1e293b);
+  border: 1px solid var(--border-default, #334155);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  pointer-events: auto;
+  max-width: 420px;
+  text-align: center;
+}
+
+.cta-tagline {
+  font-size: var(--text-lg, 16px);
+  font-weight: 500;
+  color: var(--text-primary, #f1f5f9);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.cta-subtitle {
+  font-size: var(--text-sm, 12px);
+  color: var(--text-muted, #64748b);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.cta-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: var(--text-base, 13px);
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition:
+    background 150ms ease,
+    transform 100ms ease;
+}
+
+.cta-btn:hover {
+  transform: translateY(-1px);
+}
+
+.cta-btn:active {
+  transform: translateY(0);
+}
+
+.cta-btn-primary {
+  background: var(--accent-primary, #3b82f6);
+  color: var(--text-inverse, #0f172a);
+}
+
+.cta-btn-primary:hover {
+  background: color-mix(in srgb, var(--accent-primary, #3b82f6) 85%, white);
+}
+
+.cta-btn-secondary {
+  background: var(--bg-surface-raised, #334155);
+  color: var(--text-primary, #f1f5f9);
+  border: 1px solid var(--border-default, #334155);
+}
+
+.cta-btn-secondary:hover {
+  background: color-mix(in srgb, var(--bg-surface-raised, #334155) 85%, white);
+}
+
+@keyframes cta-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes cta-fade-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}

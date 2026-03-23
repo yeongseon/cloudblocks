@@ -28,12 +28,16 @@ const baseArchitecture: ArchitectureModel = {
   updatedAt: '',
 };
 
-async function openMenu(label: string): Promise<HTMLElement> {
-  const user = userEvent.setup();
-  await user.click(screen.getByRole('button', { name: label }));
-  const trigger = screen.getByRole('button', { name: label });
+function getOverflowDropdown(): HTMLElement {
+  const trigger = screen.getByRole('button', { name: 'Menu' });
   const container = trigger.closest('.menu-dropdown-container') as HTMLElement;
   return container.querySelector('.menu-dropdown') as HTMLElement;
+}
+
+async function openOverflow(): Promise<HTMLElement> {
+  const user = userEvent.setup();
+  await user.click(screen.getByRole('button', { name: 'Menu' }));
+  return getOverflowDropdown();
 }
 
 describe('MenuBar additional coverage', () => {
@@ -47,10 +51,9 @@ describe('MenuBar additional coverage', () => {
       showValidation: false,
       showResourceGuide: false,
       showLearningPanel: false,
-      showScenarioGallery: false,
+      drawer: { isOpen: false, activePanel: null },
       sidebar: { isOpen: true },
       inspector: { isOpen: true, activeTab: 'properties' },
-      bottomDock: { isOpen: true, activeTab: 'output' },
       themeVariant: 'workshop',
     });
 
@@ -125,46 +128,27 @@ describe('MenuBar additional coverage', () => {
     expect(useUIStore.getState().activeProvider).toBe('azure');
   });
 
-  it('toggles validation results in all view branches', async () => {
+  it('toggles validation drawer via panel button', async () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    let view = await openMenu('View');
-    await user.click(within(view).getByRole('button', { name: /Validation Results/ }));
-    expect(useUIStore.getState().bottomDock.activeTab).toBe('validation');
-    expect(useUIStore.getState().bottomDock.isOpen).toBe(true);
+    await user.click(screen.getByTitle('Validation'));
+    expect(useUIStore.getState().drawer.activePanel).toBe('validation');
+    expect(useUIStore.getState().drawer.isOpen).toBe(true);
 
-    view = await openMenu('View');
-    await user.click(within(view).getByRole('button', { name: /Validation Results/ }));
-    expect(useUIStore.getState().bottomDock.isOpen).toBe(false);
-
-    useUIStore.setState({ bottomDock: { isOpen: true, activeTab: 'output' } });
-    view = await openMenu('View');
-    await user.click(within(view).getByRole('button', { name: /Validation Results/ }));
-    expect(useUIStore.getState().bottomDock.activeTab).toBe('validation');
-  });
-
-  it('switches theme variants from view menu', async () => {
-    const user = userEvent.setup();
-    render(<MenuBar />);
-
-    let view = await openMenu('View');
-    await user.click(within(view).getByRole('button', { name: /Blueprint/ }));
-    expect(useUIStore.getState().themeVariant).toBe('blueprint');
-
-    view = await openMenu('View');
-    await user.click(within(view).getByRole('button', { name: /Workshop/ }));
-    expect(useUIStore.getState().themeVariant).toBe('workshop');
+    await user.click(screen.getByTitle('Validation'));
+    expect(useUIStore.getState().drawer.isOpen).toBe(false);
   });
 
   it('opens scenario gallery from learning panel action when no active scenario exists', async () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    const build = await openMenu('Build');
-    await user.click(within(build).getByRole('button', { name: /Show Learning Panel/ }));
+    const dropdown = await openOverflow();
+    await user.click(within(dropdown).getByRole('button', { name: /Show Learning Panel/ }));
 
-    expect(useUIStore.getState().showScenarioGallery).toBe(true);
+    expect(useUIStore.getState().drawer.isOpen).toBe(true);
+    expect(useUIStore.getState().drawer.activePanel).toBe('scenarios');
     expect(useUIStore.getState().showLearningPanel).toBe(false);
   });
 

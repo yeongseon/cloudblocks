@@ -5,6 +5,7 @@ import type { DiffDelta } from '../../shared/types/diff';
 import type { ArchitectureModel } from '@cloudblocks/schema';
 import type { Persona, ComplexityLevel } from '../../shared/types';
 import type { ThemeVariant } from '../../shared/tokens/themeTokens';
+import type { DrawerPanelId } from '../../widgets/right-drawer/panelRegistry';
 import { PERSONA_COMPLEXITY_MAP, PERSONA_PANEL_DEFAULTS } from '../../shared/types';
 
 export type ToolMode = 'select' | 'connect' | 'delete';
@@ -12,7 +13,6 @@ export type InteractionState = 'idle' | 'selecting' | 'dragging' | 'placing' | '
 export type BackendStatus = 'unknown' | 'not_configured' | 'available' | 'unavailable';
 export type PendingGitHubAction = 'sync' | 'pr' | 'repos' | null;
 export type AppView = 'landing' | 'builder';
-export type BottomDockTab = 'output' | 'validation' | 'logs' | 'diff';
 export type InspectorTabId = 'properties' | 'code' | 'connections';
 export type RightOverlayId =
   | 'githubLogin'
@@ -139,11 +139,11 @@ interface UIState {
   rightOverlay: RightOverlayId;
   setRightOverlay: (overlay: RightOverlayId) => void;
 
-  // ── Bottom dock ──
-  bottomDock: { isOpen: boolean; activeTab: BottomDockTab };
-  openBottomTab: (tab: BottomDockTab) => void;
-  closeBottomDock: () => void;
-  setBottomTab: (tab: BottomDockTab) => void;
+  // ── Right drawer ──
+  drawer: { isOpen: boolean; activePanel: DrawerPanelId | null };
+  openDrawer: (panel: DrawerPanelId) => void;
+  closeDrawer: () => void;
+  toggleDrawer: (panel: DrawerPanelId) => void;
 
   // ── Activity log ──
   activityLog: ActivityLogEntry[];
@@ -189,6 +189,10 @@ interface UIState {
   themeVariant: ThemeVariant;
   setThemeVariant: (variant: ThemeVariant) => void;
 
+  showStuds: boolean;
+  toggleStuds: () => void;
+  setShowStuds: (show: boolean) => void;
+
   pendingGitHubAction: PendingGitHubAction;
   setPendingGitHubAction: (action: PendingGitHubAction) => void;
   pendingLinkRepo: string | null;
@@ -200,6 +204,9 @@ interface UIState {
   // ── Resource self-animation ──
   upgradingBlockId: string | null;
   triggerUpgradeAnimation: (blockId: string) => void;
+  // ── Connection snap animation ──
+  snapTargetBlockId: string | null;
+  triggerSnapAnimation: (blockId: string) => void;
 }
 
 /** Keys that occupy the right-side panel slot — only one may be open. */
@@ -224,14 +231,19 @@ function closeOtherRightPanels(except: RightPanelKey): Partial<UIState> {
   return patch as Partial<UIState>;
 }
 
-export const useUIStore = create<UIState>((set) => ({
+export const useUIStore = create<UIState>((set, get) => ({
   appView: 'landing',
   setAppView: (view) => set({ appView: view }),
   goToLanding: () => set({ appView: 'landing' }),
   goToBuilder: () => set({ appView: 'builder' }),
 
   selectedId: null,
-  setSelectedId: (id) => set({ selectedId: id }),
+  setSelectedId: (id) => {
+    set({ selectedId: id });
+    if (id !== null) {
+      get().openDrawer('properties');
+    }
+  },
 
   toolMode: 'select',
   setToolMode: (mode) => set({ toolMode: mode, connectionSource: null }),
@@ -305,7 +317,7 @@ export const useUIStore = create<UIState>((set) => ({
     set((s) => ({
       showValidation: !s.showValidation,
       ...(!s.showValidation
-        ? { bottomDock: { isOpen: true, activeTab: 'validation' as const } }
+        ? { drawer: { isOpen: true, activePanel: 'validation' as const } }
         : {}),
     })),
 
@@ -316,7 +328,6 @@ export const useUIStore = create<UIState>((set) => ({
       ...(!s.showCodePreview
         ? {
             inspector: { isOpen: true, activeTab: 'code' as const },
-            bottomDock: { isOpen: true, activeTab: 'output' as const },
           }
         : { inspector: { ...s.inspector, activeTab: 'properties' as const } }),
     })),
@@ -416,10 +427,16 @@ export const useUIStore = create<UIState>((set) => ({
       showCodePreview: tab === 'code',
     }),
 
-  bottomDock: { isOpen: true, activeTab: 'output' },
-  openBottomTab: (tab) => set({ bottomDock: { isOpen: true, activeTab: tab } }),
-  closeBottomDock: () => set((s) => ({ bottomDock: { ...s.bottomDock, isOpen: false } })),
-  setBottomTab: (tab) => set((s) => ({ bottomDock: { ...s.bottomDock, activeTab: tab } })),
+  // ── Right drawer ──
+  drawer: { isOpen: false, activePanel: null },
+  openDrawer: (panel) => set({ drawer: { isOpen: true, activePanel: panel } }),
+  closeDrawer: () => set({ drawer: { isOpen: false, activePanel: null } }),
+  toggleDrawer: (panel) =>
+    set((s) =>
+      s.drawer.isOpen && s.drawer.activePanel === panel
+        ? { drawer: { isOpen: false, activePanel: null } }
+        : { drawer: { isOpen: true, activePanel: panel } },
+    ),
 
   activityLog: [],
   appendLog: (entry) =>
@@ -457,7 +474,6 @@ export const useUIStore = create<UIState>((set) => ({
       diffDelta: delta ?? null,
       diffBaseArchitecture: base ?? null,
       diffVersion: s.diffVersion + 1,
-      ...(mode ? { bottomDock: { isOpen: true, activeTab: 'diff' as const } } : {}),
     })),
   clearDiffState: () =>
     set({
@@ -472,7 +488,26 @@ export const useUIStore = create<UIState>((set) => ({
   themeVariant: (localStorage.getItem('cloudblocks:theme-variant') as ThemeVariant) || 'blueprint',
   setThemeVariant: (variant) => {
     localStorage.setItem('cloudblocks:theme-variant', variant);
-    set({ themeVariant: variant });
+    const defaultStuds = variant === 'workshop';
+    localStorage.setItem('cloudblocks:show-studs', String(defaultStuds));
+    set({ themeVariant: variant, showStuds: defaultStuds });
+  },
+
+  showStuds: (() => {
+    const stored = localStorage.getItem('cloudblocks:show-studs');
+    if (stored !== null) return stored === 'true';
+    const theme = localStorage.getItem('cloudblocks:theme-variant');
+    return theme === 'workshop';
+  })(),
+  toggleStuds: () =>
+    set((s) => {
+      const next = !s.showStuds;
+      localStorage.setItem('cloudblocks:show-studs', String(next));
+      return { showStuds: next };
+    }),
+  setShowStuds: (show) => {
+    localStorage.setItem('cloudblocks:show-studs', String(show));
+    set({ showStuds: show });
   },
 
   pendingGitHubAction: readPendingGitHubAction(),
@@ -515,5 +550,13 @@ export const useUIStore = create<UIState>((set) => ({
     setTimeout(() => {
       set((s) => (s.upgradingBlockId === blockId ? { upgradingBlockId: null } : s));
     }, 1600);
+  },
+
+  snapTargetBlockId: null,
+  triggerSnapAnimation: (blockId) => {
+    set({ snapTargetBlockId: blockId });
+    setTimeout(() => {
+      set((s) => (s.snapTargetBlockId === blockId ? { snapTargetBlockId: null } : s));
+    }, 500);
   },
 }));

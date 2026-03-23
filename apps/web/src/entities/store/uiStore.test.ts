@@ -31,7 +31,6 @@ describe('useUIStore', () => {
       sidebar: { isOpen: true },
       inspector: { isOpen: true, activeTab: 'properties' },
       rightOverlay: null,
-      bottomDock: { isOpen: false, activeTab: 'output' },
       activityLog: [],
       activeProvider: 'azure',
       editorMode: 'build',
@@ -42,6 +41,7 @@ describe('useUIStore', () => {
       diffDelta: null,
       diffBaseArchitecture: null,
       themeVariant: 'blueprint',
+      showStuds: false,
     });
   });
 
@@ -69,7 +69,6 @@ describe('useUIStore', () => {
       expect(state.sidebar).toEqual({ isOpen: true });
       expect(state.inspector).toEqual({ isOpen: true, activeTab: 'properties' });
       expect(state.rightOverlay).toBe(null);
-      expect(state.bottomDock).toEqual({ isOpen: false, activeTab: 'output' });
       expect(state.activityLog).toEqual([]);
       expect(state.activeProvider).toBe('azure');
       expect(state.editorMode).toBe('build');
@@ -197,31 +196,6 @@ describe('useUIStore', () => {
 
       expect(useUIStore.getState().inspector).toEqual({ isOpen: true, activeTab: 'code' });
       expect(useUIStore.getState().showCodePreview).toBe(true);
-    });
-  });
-
-  describe('bottomDock', () => {
-    it("defaults to closed with 'output' tab", () => {
-      expect(useUIStore.getState().bottomDock).toEqual({ isOpen: false, activeTab: 'output' });
-    });
-
-    it('openBottomTab opens dock and sets active tab', () => {
-      useUIStore.getState().openBottomTab('logs');
-      expect(useUIStore.getState().bottomDock).toEqual({ isOpen: true, activeTab: 'logs' });
-    });
-
-    it('closeBottomDock closes dock and preserves active tab', () => {
-      useUIStore.getState().openBottomTab('validation');
-      useUIStore.getState().closeBottomDock();
-      expect(useUIStore.getState().bottomDock).toEqual({ isOpen: false, activeTab: 'validation' });
-    });
-
-    it('setBottomTab updates tab without changing open state', () => {
-      useUIStore.getState().setBottomTab('diff');
-      expect(useUIStore.getState().bottomDock).toEqual({ isOpen: false, activeTab: 'diff' });
-      useUIStore.getState().openBottomTab('output');
-      useUIStore.getState().setBottomTab('logs');
-      expect(useUIStore.getState().bottomDock).toEqual({ isOpen: true, activeTab: 'logs' });
     });
   });
 
@@ -711,11 +685,10 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().showValidation).toBe(false);
     });
 
-    it('opens bottom dock validation tab when toggled on', () => {
-      expect(useUIStore.getState().bottomDock).toEqual({ isOpen: false, activeTab: 'output' });
+    it('opens drawer validation panel when toggled on', () => {
       useUIStore.getState().toggleValidation();
       expect(useUIStore.getState().showValidation).toBe(true);
-      expect(useUIStore.getState().bottomDock).toEqual({ isOpen: true, activeTab: 'validation' });
+      expect(useUIStore.getState().drawer).toEqual({ isOpen: true, activePanel: 'validation' });
     });
   });
 
@@ -742,12 +715,10 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().showCodePreview).toBe(false);
     });
 
-    it('opens bottom dock output tab when toggled on', () => {
-      expect(useUIStore.getState().bottomDock).toEqual({ isOpen: false, activeTab: 'output' });
-      useUIStore.getState().setBottomTab('logs');
+    it('opens inspector code tab when toggled on', () => {
       useUIStore.getState().toggleCodePreview();
       expect(useUIStore.getState().showCodePreview).toBe(true);
-      expect(useUIStore.getState().bottomDock).toEqual({ isOpen: true, activeTab: 'output' });
+      expect(useUIStore.getState().inspector).toEqual({ isOpen: true, activeTab: 'code' });
     });
   });
 
@@ -1044,24 +1015,14 @@ describe('useUIStore', () => {
       expect(state.diffBaseArchitecture).toBe(null);
     });
 
-    it("setDiffMode(true) opens bottom dock on 'diff' tab", () => {
-      useUIStore.getState().openBottomTab('logs');
+    it('setDiffMode(false) clears diff state', () => {
       useUIStore.getState().setDiffMode(true);
-      expect(useUIStore.getState().bottomDock).toEqual({ isOpen: true, activeTab: 'diff' });
-    });
-
-    it('setDiffMode(false) clears diff state without changing bottom dock', () => {
-      useUIStore.getState().openBottomTab('logs');
-      useUIStore.getState().setDiffMode(true);
-      useUIStore.getState().openBottomTab('logs');
-
       useUIStore.getState().setDiffMode(false);
 
       const state = useUIStore.getState();
       expect(state.diffMode).toBe(false);
       expect(state.diffDelta).toBe(null);
       expect(state.diffBaseArchitecture).toBe(null);
-      expect(state.bottomDock).toEqual({ isOpen: true, activeTab: 'logs' });
     });
 
     it('clearDiffState should clear mode, delta, and base architecture', () => {
@@ -1093,6 +1054,52 @@ describe('useUIStore', () => {
       expect(state.diffMode).toBe(false);
       expect(state.diffDelta).toBe(null);
       expect(state.diffBaseArchitecture).toBe(null);
+    });
+  });
+
+  describe('showStuds', () => {
+    it('defaults to false when no localStorage and blueprint theme', () => {
+      expect(useUIStore.getState().showStuds).toBe(false);
+    });
+
+    it('toggleStuds flips value and persists to localStorage', () => {
+      useUIStore.getState().toggleStuds();
+      expect(useUIStore.getState().showStuds).toBe(true);
+      expect(localStorage.getItem('cloudblocks:show-studs')).toBe('true');
+
+      useUIStore.getState().toggleStuds();
+      expect(useUIStore.getState().showStuds).toBe(false);
+      expect(localStorage.getItem('cloudblocks:show-studs')).toBe('false');
+    });
+
+    it('setShowStuds sets value explicitly', () => {
+      useUIStore.getState().setShowStuds(true);
+      expect(useUIStore.getState().showStuds).toBe(true);
+      expect(localStorage.getItem('cloudblocks:show-studs')).toBe('true');
+
+      useUIStore.getState().setShowStuds(false);
+      expect(useUIStore.getState().showStuds).toBe(false);
+      expect(localStorage.getItem('cloudblocks:show-studs')).toBe('false');
+    });
+
+    it('setThemeVariant to workshop enables studs by default', () => {
+      useUIStore.getState().setThemeVariant('workshop');
+      expect(useUIStore.getState().showStuds).toBe(true);
+      expect(localStorage.getItem('cloudblocks:show-studs')).toBe('true');
+    });
+
+    it('setThemeVariant to blueprint disables studs by default', () => {
+      useUIStore.getState().setShowStuds(true);
+      useUIStore.getState().setThemeVariant('blueprint');
+      expect(useUIStore.getState().showStuds).toBe(false);
+      expect(localStorage.getItem('cloudblocks:show-studs')).toBe('false');
+    });
+
+    it('toggling studs does not affect theme', () => {
+      useUIStore.getState().setThemeVariant('workshop');
+      useUIStore.getState().toggleStuds(); // now false
+      expect(useUIStore.getState().themeVariant).toBe('workshop');
+      expect(useUIStore.getState().showStuds).toBe(false);
     });
   });
 

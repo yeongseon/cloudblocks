@@ -1,3 +1,4 @@
+import { BarChart3, CheckCircle, Lightbulb } from 'lucide-react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import './ValidationPanel.css';
@@ -11,7 +12,7 @@ export function ValidationPanel() {
   return (
     <div className="validation-panel">
       <h3 className="validation-title">
-        📊 Validation Results
+        <BarChart3 size={14} /> Validation Results
         <span
           className={`validation-status ${validationResult.valid ? 'validation-valid' : 'validation-invalid'}`}
         >
@@ -29,7 +30,9 @@ export function ValidationPanel() {
             >
               <div className="validation-message">{error.message}</div>
               {error.suggestion && (
-                <div className="validation-suggestion">💡 {error.suggestion}</div>
+                <div className="validation-suggestion">
+                  <Lightbulb size={12} /> {error.suggestion}
+                </div>
               )}
               <div className="validation-meta">
                 Rule: {error.ruleId} | Target:{' '}
@@ -52,7 +55,9 @@ export function ValidationPanel() {
             >
               <div className="validation-message">{warning.message}</div>
               {warning.suggestion && (
-                <div className="validation-suggestion">💡 {warning.suggestion}</div>
+                <div className="validation-suggestion">
+                  <Lightbulb size={12} /> {warning.suggestion}
+                </div>
               )}
               <div className="validation-meta">
                 Rule: {warning.ruleId} | Target:{' '}
@@ -67,12 +72,14 @@ export function ValidationPanel() {
 
       {validationResult.valid && validationResult.warnings.length === 0 && (
         <div className="validation-success">
-          ✅ Architecture is valid! No rule violations detected.
+          <CheckCircle size={14} /> Architecture is valid! No rule violations detected.
         </div>
       )}
 
       {validationResult.valid && validationResult.warnings.length > 0 && (
-        <div className="validation-success">✅ No blocking errors detected.</div>
+        <div className="validation-success">
+          <CheckCircle size={14} /> No blocking errors detected.
+        </div>
       )}
     </div>
   );

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { Search, Lock } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import interact from 'interactjs';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
@@ -31,6 +32,24 @@ const CATEGORY_COLOR_VARS: Record<CreationGroupId, string> = {
   operations: 'var(--cat-operations)',
 };
 
+interface HighlightMatchProps {
+  text: string;
+  query: string;
+}
+
+function HighlightMatch({ text, query }: HighlightMatchProps) {
+  if (!query) return <>{text}</>;
+  const idx = text.toLowerCase().indexOf(query.toLowerCase());
+  if (idx === -1) return <>{text}</>;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <mark className="sidebar-palette-highlight">{text.slice(idx, idx + query.length)}</mark>
+      {text.slice(idx + query.length)}
+    </>
+  );
+}
+
 interface PaletteHeaderProps {
   searchQuery: string;
   onSearchChange: (value: string) => void;
@@ -48,7 +67,7 @@ function PaletteHeader({
     <header className="sidebar-palette-header">
       <label className="sidebar-palette-search" htmlFor="sidebar-palette-search">
         <span className="sidebar-palette-search-icon" aria-hidden="true">
-          🔎
+          <Search size={12} />
         </span>
         <input
           id="sidebar-palette-search"
@@ -116,6 +135,7 @@ interface PaletteResourceItemProps {
   enabled: boolean;
   disabledReason: string | null;
   onClick: () => void;
+  searchQuery: string;
 }
 
 function PaletteResourceItem({
@@ -125,6 +145,7 @@ function PaletteResourceItem({
   enabled,
   disabledReason,
   onClick,
+  searchQuery,
 }: PaletteResourceItemProps) {
   const def = RESOURCE_DEFINITIONS[type];
 
@@ -142,12 +163,16 @@ function PaletteResourceItem({
         {def.icon}
       </span>
       <span className="sidebar-palette-resource-text">
-        <span className="sidebar-palette-resource-name">{providerShortLabel}</span>
-        <span className="sidebar-palette-resource-subtitle">{providerLabel}</span>
+        <span className="sidebar-palette-resource-name">
+          <HighlightMatch text={providerShortLabel} query={searchQuery} />
+        </span>
+        <span className="sidebar-palette-resource-subtitle">
+          <HighlightMatch text={providerLabel} query={searchQuery} />
+        </span>
       </span>
       {!enabled && (
         <span className="sidebar-palette-resource-lock" aria-hidden="true">
-          🔒
+          <Lock size={11} />
         </span>
       )}
     </button>
@@ -364,6 +389,7 @@ export function SidebarPalette() {
                 providerShortLabel={getResourceShortLabel(type, activeProvider)}
                 enabled={techTree.isEnabled(type)}
                 disabledReason={techTree.getDisabledReason(type)}
+                searchQuery={normalizedQuery}
                 onClick={() => {
                   if (techTree.isEnabled(type)) {
                     handleCreate(type);

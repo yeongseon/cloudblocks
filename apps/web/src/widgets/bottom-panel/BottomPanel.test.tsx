@@ -28,18 +28,12 @@ vi.mock('./CommandCard', () => ({
 
 import { BottomPanel } from './BottomPanel';
 
-const initialSetBottomTab = useUIStore.getState().setBottomTab;
-const initialClearLog = useUIStore.getState().clearLog;
-
 describe('BottomPanel', () => {
   beforeEach(() => {
     useUIStore.setState({
-      bottomDock: { isOpen: true, activeTab: 'output' },
       showResourceGuide: true,
       activityLog: [],
       selectedId: null,
-      setBottomTab: initialSetBottomTab,
-      clearLog: initialClearLog,
     });
   });
 
@@ -52,16 +46,11 @@ describe('BottomPanel', () => {
     expect(screen.getByRole('tab', { name: 'Diff' })).toBeInTheDocument();
   });
 
-  it('clicking a tab calls setBottomTab with the tab id', () => {
-    const setBottomTab = vi.fn((tab: 'output' | 'validation' | 'logs' | 'diff') => {
-      useUIStore.setState((s) => ({ bottomDock: { ...s.bottomDock, activeTab: tab } }));
-    });
-    useUIStore.setState({ setBottomTab });
-
+  it('clicking a tab switches the active tab', () => {
     render(<BottomPanel />);
     fireEvent.click(screen.getByRole('tab', { name: 'Logs' }));
 
-    expect(setBottomTab).toHaveBeenCalledWith('logs');
+    expect(screen.getByRole('tab', { name: 'Logs' })).toHaveAttribute('aria-selected', 'true');
   });
 
   it('shows Output tab content by default and always renders CommandCard', () => {

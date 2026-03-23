@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { X } from 'lucide-react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
@@ -170,7 +171,7 @@ export function GitHubPR() {
           onClick={() => void handleClose()}
           aria-label="Close pull request panel"
         >
-          ✕
+          <X size={14} />
         </button>
       </div>
 

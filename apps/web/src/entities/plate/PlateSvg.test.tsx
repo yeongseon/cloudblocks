@@ -1,10 +1,11 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import type { ComponentProps } from 'react';
 import { PlateSvg } from './PlateSvg';
 import type { StudColorSpec } from '../../shared/types/index';
 import type { LayerType } from '@cloudblocks/schema';
 import { TILE_W, TILE_H, TILE_Z, BLOCK_PADDING } from '../../shared/tokens/designTokens';
+import { useUIStore } from '../store/uiStore';
 
 type PlateLayerType = Exclude<LayerType, 'resource'>;
 
@@ -123,6 +124,10 @@ describe('PlateSvg — CU-based dimensions', () => {
 // ─── SVG Structure ──────────────────────────────────────────
 
 describe('PlateSvg — SVG structure', () => {
+  beforeEach(() => {
+    useUIStore.setState({ showStuds: true });
+  });
+
   it('renders 3 face polygons (top, left side, right side)', () => {
     const { container } = renderPlateSvg();
     const polygons = container.querySelectorAll('polygon');
@@ -150,6 +155,10 @@ describe('PlateSvg — SVG structure', () => {
 // ─── Stud Grid ──────────────────────────────────────────────
 
 describe('PlateSvg — stud grid', () => {
+  beforeEach(() => {
+    useUIStore.setState({ showStuds: true });
+  });
+
   it('renders studsX × studsY stud <use> elements', () => {
     const studsX = 4;
     const studsY = 6;
@@ -256,6 +265,10 @@ describe('PlateSvg — colors are independent of plateType', () => {
 // ─── All Plate Profiles Render Correctly ────────────────────
 
 describe('PlateSvg — profile-based rendering', () => {
+  beforeEach(() => {
+    useUIStore.setState({ showStuds: true });
+  });
+
   const profiles = [
     {
       name: 'network-sandbox',

@@ -288,7 +288,7 @@ describe('BlockSprite', () => {
     expect(addConnectionMock).not.toHaveBeenCalled();
   });
 
-  it('shows error toast when connect mode rejects an invalid connection', async () => {
+  it('silently cancels when connect mode rejects an invalid connection', async () => {
     const user = userEvent.setup();
     addConnectionMock.mockReturnValue(false);
     useUIStore.setState({ toolMode: 'connect' });
@@ -319,9 +319,8 @@ describe('BlockSprite', () => {
     await user.click(screen.getByRole('button', { name: 'Node: compute-block' }));
 
     expect(addConnectionMock).toHaveBeenCalledWith('block-source', 'block-target');
-    expect(toastMocks.error).toHaveBeenCalledWith(
-      'Invalid connection: check allowed connection rules',
-    );
+    // #1253: toast.error removed — invalid connections are silently cancelled
+    expect(toastMocks.error).not.toHaveBeenCalled();
     expect(useUIStore.getState().connectionSource).toBeNull();
   });
 

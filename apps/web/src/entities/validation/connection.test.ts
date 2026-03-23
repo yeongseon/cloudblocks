@@ -586,7 +586,7 @@ describe('validateStubIndices', () => {
     ];
 
     expect(validateStubIndices(connection, blocks)).toMatchObject({
-      ruleId: 'rule-conn-stub-source',
+      ruleId: 'rule-conn-endpoint-source',
       targetId: 'conn-stub-source',
     });
   });
@@ -603,7 +603,7 @@ describe('validateStubIndices', () => {
     ];
 
     expect(validateStubIndices(connection, blocks)).toMatchObject({
-      ruleId: 'rule-conn-stub-target',
+      ruleId: 'rule-conn-endpoint-target',
       targetId: 'conn-stub-target',
     });
   });

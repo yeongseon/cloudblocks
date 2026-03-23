@@ -70,7 +70,7 @@ function resetUIStore(): void {
     showGitHubSync: false,
     showGitHubPR: false,
     editorMode: 'build',
-    showLearningPanel: false,
+    drawer: { isOpen: false, activePanel: null },
     showScenarioGallery: false,
   });
 }
@@ -151,11 +151,12 @@ describe('scenario-engine', () => {
     });
 
     it('opens learning panel when it is closed', () => {
-      expect(useUIStore.getState().showLearningPanel).toBe(false);
+      expect(useUIStore.getState().drawer.isOpen).toBe(false);
 
       startLearningScenario('scenario-three-tier');
 
-      expect(useUIStore.getState().showLearningPanel).toBe(true);
+      expect(useUIStore.getState().drawer.isOpen).toBe(true);
+      expect(useUIStore.getState().drawer.activePanel).toBe('learning');
     });
 
     it('starts validation subscription', () => {
@@ -384,11 +385,11 @@ describe('scenario-engine', () => {
 
     it('hides learning panel', () => {
       startLearningScenario('scenario-three-tier');
-      expect(useUIStore.getState().showLearningPanel).toBe(true);
+      expect(useUIStore.getState().drawer.isOpen).toBe(true);
 
       abandonLearning();
 
-      expect(useUIStore.getState().showLearningPanel).toBe(false);
+      expect(useUIStore.getState().drawer.isOpen).toBe(false);
     });
 
     it('stops validation subscription', () => {

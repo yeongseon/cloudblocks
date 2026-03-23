@@ -2,6 +2,7 @@ import { memo, useId, useMemo } from 'react';
 import type { StudColorSpec } from '../../shared/types/index';
 import type { LayerType } from '@cloudblocks/schema';
 import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
+import { useUIStore } from '../store/uiStore';
 import {
   TILE_W,
   TILE_H,
@@ -143,6 +144,7 @@ export const PlateSvg = memo(function PlateSvg({
     return positions;
   }, [cx, diamondHeight, screenWidth, studsX, studsY, topY]);
 
+  const showStuds = useUIStore((s) => s.showStuds);
   const studId = useId().replace(/:/g, '_');
 
   // Label positioning on side walls
@@ -159,7 +161,7 @@ export const PlateSvg = memo(function PlateSvg({
       aria-hidden="true"
       data-plate-type={plateType}
     >
-      <StudDefs studId={studId} studColors={studColors} />
+      {showStuds && <StudDefs studId={studId} studColors={studColors} />}
 
       <polygon
         points={topFacePoints}
@@ -171,7 +173,7 @@ export const PlateSvg = memo(function PlateSvg({
       <polygon points={leftSidePoints} fill={leftSideColor} />
       <polygon points={rightSidePoints} fill={rightSideColor} />
 
-      <StudGrid studId={studId} studs={studs} />
+      {showStuds && <StudGrid studId={studId} studs={studs} />}
 
       {label ? (
         <text

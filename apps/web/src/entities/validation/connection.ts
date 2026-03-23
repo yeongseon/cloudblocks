@@ -44,7 +44,7 @@ const ALLOWED_CONNECTIONS: Record<string, EndpointSemantic[]> = {
   'messaging->compute': ['event', 'data'],
 };
 
-/** Ordered semantic list for stub index mapping. */
+/** Ordered semantic list for endpoint index mapping. */
 const SEMANTIC_ORDER: EndpointSemantic[] = ['http', 'event', 'data'];
 
 // ─── Visual Style Constants (v2.0) ──────────────────────────
@@ -210,9 +210,9 @@ export function validateStubIndices(
     const semanticIndex = SEMANTIC_ORDER.indexOf(fromParsed.semantic);
     if (semanticIndex >= 0 && semanticIndex > outbound) {
       return {
-        ruleId: 'rule-conn-stub-source',
+        ruleId: 'rule-conn-endpoint-source',
         severity: 'error',
-        message: `Source stub index ${semanticIndex} exceeds outbound capacity ${outbound} for ${fromNode.category}`,
+        message: `Source endpoint index ${semanticIndex} exceeds outbound capacity ${outbound} for ${fromNode.category}`,
         suggestion: 'Use a semantic that fits the source category port capacity',
         targetId: connection.id,
       };
@@ -225,9 +225,9 @@ export function validateStubIndices(
     const semanticIndex = SEMANTIC_ORDER.indexOf(toParsed.semantic);
     if (semanticIndex >= 0 && semanticIndex > inbound) {
       return {
-        ruleId: 'rule-conn-stub-target',
+        ruleId: 'rule-conn-endpoint-target',
         severity: 'error',
-        message: `Target stub index ${semanticIndex} exceeds inbound capacity ${inbound} for ${toNode.category}`,
+        message: `Target endpoint index ${semanticIndex} exceeds inbound capacity ${inbound} for ${toNode.category}`,
         suggestion: 'Use a semantic that fits the target category port capacity',
         targetId: connection.id,
       };
