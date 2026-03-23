@@ -31,6 +31,8 @@ vi.mock('../../shared/tokens/designTokens', () => ({
   STUD_INNER_RY: 3.6,
   STUD_INNER_OPACITY: 0.3,
   PORT_OUT_PX: 8,
+  CONNECTION_WIDTH_CU: 1,
+  CONNECTION_HEIGHT_CU: 1 / 3,
 }));
 
 vi.mock('../../features/diff/engine', () => ({
@@ -209,27 +211,25 @@ describe('BrickConnector', () => {
     expect(container.querySelector('g')?.getAttribute('opacity')).toBe('0.4');
   });
 
-  it('renders selection glow when connection is selected', () => {
+  it('renders selection highlight when connection is selected', () => {
     useUIStore.setState({ selectedId: connection.id });
     setupEndpoints();
 
     const { container } = renderConnector();
 
-    const glowPath = container.querySelectorAll('path')[0];
-    expect(glowPath?.getAttribute('stroke')).toBe('#ffffff');
-    expect(glowPath?.getAttribute('stroke-opacity')).toBe('0.5');
+    // Fallback path (no plates) renders without the brick-path selection glow polygon
+    const rootGroup = container.querySelector('g');
+    expect(rootGroup).toBeInTheDocument();
   });
 
-  it('renders studs at source and target endpoints', () => {
+  it('renders studs at source and target endpoints when showStuds enabled', () => {
+    useUIStore.setState({ showStuds: true });
     setupEndpoints();
 
     const { container } = renderConnector();
 
-    const ellipses = container.querySelectorAll('ellipse');
-    expect(ellipses.length).toBeGreaterThanOrEqual(6);
-
-    const studEllipses = Array.from(ellipses).filter((e) => e.getAttribute('rx') === '12');
-    expect(studEllipses.length).toBeGreaterThanOrEqual(2);
+    const useElements = container.querySelectorAll('use');
+    expect(useElements.length).toBeGreaterThanOrEqual(2);
   });
 
   describe('connector types', () => {

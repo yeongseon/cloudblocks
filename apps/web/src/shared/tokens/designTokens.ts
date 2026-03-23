@@ -62,3 +62,7 @@ export const PORT_COLOR_EVENT = '#F59E0B'; // Amber — event/async
 export const PORT_COLOR_DATA = '#14B8A6'; // Teal — data/dataflow
 export const PORT_COLOR_OCCUPIED = '#475569'; // Slate — occupied port (dimmed)
 export const PORT_GLOW_RADIUS = 4; // SVG filter blur radius for port glow
+
+// -- Connection Brick (Surface Routing) --
+export const CONNECTION_WIDTH_CU = 1; // 1-stud wide strip
+export const CONNECTION_HEIGHT_CU = 1 / 3; // flat plate height (below subnet 0.7 CU)

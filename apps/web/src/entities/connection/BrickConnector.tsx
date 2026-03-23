@@ -1,4 +1,4 @@
-import { memo, useState, useMemo, useRef, useEffect } from 'react';
+import { memo, useEffect, useId, useMemo, useRef, useState } from 'react';
 import type {
   Connection,
   ContainerNode,
@@ -9,26 +9,33 @@ import type {
 } from '@cloudblocks/schema';
 import { getDiffState } from '../../features/diff/engine';
 import { getConnectionEndpointWorldAnchors } from './endpointAnchors';
+import { worldToScreen } from '../../shared/utils/isometric';
 import type { ScreenPoint } from '../../shared/utils/isometric';
+import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import {
-  BEAM_THICKNESS_PX,
+  CONNECTION_HEIGHT_CU,
+  CONNECTION_WIDTH_CU,
   PIN_HOLE_SPACING_CU,
   PIN_HOLE_RX,
   PIN_HOLE_RY,
-  STUD_RX,
-  STUD_RY,
-  STUD_HEIGHT,
-  STUD_INNER_RX,
-  STUD_INNER_RY,
-  STUD_INNER_OPACITY,
   PORT_OUT_PX,
 } from '../../shared/tokens/designTokens';
-import { CONNECTOR_THEMES, DIFF_THEMES, lightenColor } from './connectorTheme';
+import { DIFF_THEMES, lightenColor } from './connectorTheme';
 import { computeWorldRoute, screenSegmentLengthCU } from './routing';
-import type { ConnectorTheme, PinHoleStyle } from './connectorTheme';
+import type { PinHoleStyle } from './connectorTheme';
 import type { ScreenSegment } from './routing';
+import { getConnectionSurfaceRoute } from './surfaceRouting';
+import type { SurfaceRoute, WorldPoint3 } from './surfaceRouting';
+import {
+  buildBrickFootprint,
+  getVisibleSideFaces,
+  projectFootprintToScreen,
+  sampleStudPositions,
+} from './connectionBrickGeometry';
+import { getConnectionBrickColors } from './connectionFaceColors';
+import type { ConnectionRenderSemantic } from './connectionFaceColors';
 
 interface BrickConnectorProps {
   connection: Connection;
@@ -39,47 +46,76 @@ interface BrickConnectorProps {
   originY: number;
 }
 
-interface BeamColors {
-  tile: string;
-  shadow: string;
-  dark: string;
+interface ConnectorColors {
+  topFaceColor: string;
+  topFaceStroke: string;
+  leftSideColor: string;
+  rightSideColor: string;
+  studMain: string;
+  studShadow: string;
+  studHighlight: string;
   accent: string;
   opacity: number;
 }
 
-const BEAM_HALF_THICKNESS = 4;
+const LEGACY_BEAM_HALF_THICKNESS = 4;
 const HIT_AREA_WIDTH = 20;
-const SEMANTIC_THEME_KEY: Record<EndpointSemantic, 'http' | 'async' | 'data'> = {
-  http: 'http',
-  event: 'async',
-  data: 'data',
+const DRAW_STROKE_WIDTH = Math.max(4, CONNECTION_WIDTH_CU * 8);
+
+const LEGACY_PIN_HOLE_STYLE: Record<ConnectionRenderSemantic, PinHoleStyle> = {
+  http: 'filled',
+  event: 'dashed',
+  data: 'double',
 };
 
-function getColors(theme: ConnectorTheme, diffState: string, isHighlighted: boolean): BeamColors {
+function getColors(
+  semantic: ConnectionRenderSemantic,
+  diffState: string,
+  isHighlighted: boolean,
+): ConnectorColors {
+  const base = getConnectionBrickColors(semantic);
   const diffOverride = diffState !== 'unchanged' ? DIFF_THEMES[diffState] : null;
 
-  const baseTile = diffOverride?.tile ?? theme.tile;
-  const baseShadow = diffOverride?.shadow ?? theme.shadow;
-  const baseDark = diffOverride?.dark ?? theme.dark;
+  const baseTop = diffOverride?.tile ?? base.topFaceColor;
+  const baseRight = diffOverride?.shadow ?? base.rightSideColor;
+  const baseLeft = diffOverride?.dark ?? base.leftSideColor;
+  const baseStroke = diffOverride?.shadow ?? base.topFaceStroke;
+  const baseStudMain = diffOverride?.tile ?? base.studColors.main;
+  const baseStudShadow = diffOverride?.dark ?? base.studColors.shadow;
+  const baseStudHighlight = diffOverride?.shadow ?? base.studColors.highlight;
   const baseOpacity = diffOverride?.opacity ?? 1.0;
-  const accent = diffState !== 'unchanged' ? '#ffffff' : theme.accent;
+  const accent = diffState !== 'unchanged' ? '#ffffff' : base.topFaceStroke;
 
   if (isHighlighted) {
     return {
-      tile: lightenColor(baseTile, 0.15),
-      shadow: lightenColor(baseShadow, 0.1),
-      dark: lightenColor(baseDark, 0.1),
+      topFaceColor: lightenColor(baseTop, 0.15),
+      topFaceStroke: lightenColor(baseStroke, 0.1),
+      leftSideColor: lightenColor(baseLeft, 0.1),
+      rightSideColor: lightenColor(baseRight, 0.1),
+      studMain: lightenColor(baseStudMain, 0.15),
+      studShadow: lightenColor(baseStudShadow, 0.1),
+      studHighlight: lightenColor(baseStudHighlight, 0.1),
       accent,
       opacity: baseOpacity,
     };
   }
 
-  return { tile: baseTile, shadow: baseShadow, dark: baseDark, accent, opacity: baseOpacity };
+  return {
+    topFaceColor: baseTop,
+    topFaceStroke: baseStroke,
+    leftSideColor: baseLeft,
+    rightSideColor: baseRight,
+    studMain: baseStudMain,
+    studShadow: baseStudShadow,
+    studHighlight: baseStudHighlight,
+    accent,
+    opacity: baseOpacity,
+  };
 }
 
 function buildBeamTopFace(seg: ScreenSegment): string {
   const { start: s, end: e, direction } = seg;
-  const hw = BEAM_HALF_THICKNESS;
+  const hw = LEGACY_BEAM_HALF_THICKNESS;
 
   if (direction === 'screen-v') {
     return `${s.x - hw},${s.y} ${s.x + hw},${s.y} ${e.x + hw},${e.y} ${e.x - hw},${e.y}`;
@@ -89,7 +125,7 @@ function buildBeamTopFace(seg: ScreenSegment): string {
 
 function buildBeamSideFace(seg: ScreenSegment, thickness: number): string {
   const { start: s, end: e, direction } = seg;
-  const hw = BEAM_HALF_THICKNESS;
+  const hw = LEGACY_BEAM_HALF_THICKNESS;
 
   if (direction === 'screen-v') {
     return `${s.x + hw},${s.y} ${e.x + hw},${e.y} ${e.x + hw},${e.y + thickness} ${s.x + hw},${s.y + thickness}`;
@@ -99,7 +135,7 @@ function buildBeamSideFace(seg: ScreenSegment, thickness: number): string {
 
 function buildBeamFrontFace(seg: ScreenSegment, thickness: number): string {
   const { end: e, direction } = seg;
-  const hw = BEAM_HALF_THICKNESS;
+  const hw = LEGACY_BEAM_HALF_THICKNESS;
 
   if (direction === 'screen-v') {
     return `${e.x - hw},${e.y} ${e.x + hw},${e.y} ${e.x + hw},${e.y + thickness} ${e.x - hw},${e.y + thickness}`;
@@ -241,22 +277,27 @@ function getPinHolePositions(seg: ScreenSegment): ScreenPoint[] {
 
 function renderLiftarmSegment(
   seg: ScreenSegment,
-  colors: BeamColors,
+  colors: ConnectorColors,
   pinHoleStyle: PinHoleStyle,
   segId: string,
   isLastSegment: boolean,
 ): React.ReactNode {
   const topFace = buildBeamTopFace(seg);
-  const sideFace = buildBeamSideFace(seg, BEAM_THICKNESS_PX);
-  const frontFace = buildBeamFrontFace(seg, BEAM_THICKNESS_PX);
+  const sideFace = buildBeamSideFace(seg, DRAW_STROKE_WIDTH);
+  const frontFace = buildBeamFrontFace(seg, DRAW_STROKE_WIDTH);
 
   const pinHoles = getPinHolePositions(seg);
 
   return (
     <g key={segId} pointerEvents="none" data-connector-segment data-direction={seg.direction}>
-      <polygon points={sideFace} fill={colors.dark} />
-      <polygon points={frontFace} fill={colors.shadow} />
-      <polygon points={topFace} fill={colors.tile} stroke={colors.shadow} strokeWidth={0.5} />
+      <polygon points={sideFace} fill={colors.leftSideColor} />
+      <polygon points={frontFace} fill={colors.rightSideColor} />
+      <polygon
+        points={topFace}
+        fill={colors.topFaceColor}
+        stroke={colors.topFaceStroke}
+        strokeWidth={0.5}
+      />
       {pinHoles.map((pos, i) => {
         const isLast = isLastSegment && i === pinHoles.length - 1;
         if (isLast) {
@@ -270,11 +311,11 @@ function renderLiftarmSegment(
 
 function renderElbowJoint(
   elbowScreen: ScreenPoint,
-  colors: BeamColors,
+  colors: ConnectorColors,
   pinHoleStyle: PinHoleStyle,
   id: string,
 ): React.ReactNode {
-  const hw = BEAM_HALF_THICKNESS;
+  const hw = LEGACY_BEAM_HALF_THICKNESS;
 
   const topFace = [
     `${elbowScreen.x - hw},${elbowScreen.y - hw}`,
@@ -286,45 +327,28 @@ function renderElbowJoint(
   const rightSide = [
     `${elbowScreen.x + hw},${elbowScreen.y - hw}`,
     `${elbowScreen.x + hw},${elbowScreen.y + hw}`,
-    `${elbowScreen.x + hw},${elbowScreen.y + hw + BEAM_THICKNESS_PX}`,
-    `${elbowScreen.x + hw},${elbowScreen.y - hw + BEAM_THICKNESS_PX}`,
+    `${elbowScreen.x + hw},${elbowScreen.y + hw + DRAW_STROKE_WIDTH}`,
+    `${elbowScreen.x + hw},${elbowScreen.y - hw + DRAW_STROKE_WIDTH}`,
   ].join(' ');
 
   const bottomSide = [
     `${elbowScreen.x - hw},${elbowScreen.y + hw}`,
     `${elbowScreen.x + hw},${elbowScreen.y + hw}`,
-    `${elbowScreen.x + hw},${elbowScreen.y + hw + BEAM_THICKNESS_PX}`,
-    `${elbowScreen.x - hw},${elbowScreen.y + hw + BEAM_THICKNESS_PX}`,
+    `${elbowScreen.x + hw},${elbowScreen.y + hw + DRAW_STROKE_WIDTH}`,
+    `${elbowScreen.x - hw},${elbowScreen.y + hw + DRAW_STROKE_WIDTH}`,
   ].join(' ');
 
   return (
     <g key={id} pointerEvents="none" data-connector-elbow>
-      <polygon points={bottomSide} fill={colors.dark} />
-      <polygon points={rightSide} fill={colors.shadow} />
-      <polygon points={topFace} fill={colors.tile} stroke={colors.shadow} strokeWidth={0.5} />
-      {renderPinHole(elbowScreen.x, elbowScreen.y, pinHoleStyle, colors.accent, `${id}-hole`)}
-    </g>
-  );
-}
-
-function renderStud(
-  cx: number,
-  cy: number,
-  colors: { tile: string; shadow: string; accent: string },
-  id: string,
-): React.ReactNode {
-  return (
-    <g key={id}>
-      <ellipse cx={cx} cy={cy} rx={STUD_RX} ry={STUD_RY} fill={colors.shadow} />
-      <ellipse cx={cx} cy={cy - STUD_HEIGHT} rx={STUD_RX} ry={STUD_RY} fill={colors.tile} />
-      <ellipse
-        cx={cx}
-        cy={cy - STUD_HEIGHT}
-        rx={STUD_INNER_RX}
-        ry={STUD_INNER_RY}
-        fill={colors.accent}
-        opacity={STUD_INNER_OPACITY}
+      <polygon points={bottomSide} fill={colors.leftSideColor} />
+      <polygon points={rightSide} fill={colors.rightSideColor} />
+      <polygon
+        points={topFace}
+        fill={colors.topFaceColor}
+        stroke={colors.topFaceStroke}
+        strokeWidth={0.5}
       />
+      {renderPinHole(elbowScreen.x, elbowScreen.y, pinHoleStyle, colors.accent, `${id}-hole`)}
     </g>
   );
 }
@@ -338,6 +362,56 @@ function buildHitPath(route: ReturnType<typeof computeWorldRoute>): string {
   return d;
 }
 
+function pointsToPolygon(points: readonly ScreenPoint[]): string {
+  return points.map((p) => `${p.x},${p.y}`).join(' ');
+}
+
+function pointsToPath(points: readonly ScreenPoint[]): string {
+  if (points.length === 0) return '';
+  let d = `M ${points[0].x} ${points[0].y}`;
+  for (let i = 1; i < points.length; i += 1) {
+    d += ` L ${points[i].x} ${points[i].y}`;
+  }
+  return d;
+}
+
+function sameWorldPoint(a: WorldPoint3, b: WorldPoint3): boolean {
+  return (
+    Math.abs(a[0] - b[0]) < 1e-6 && Math.abs(a[1] - b[1]) < 1e-6 && Math.abs(a[2] - b[2]) < 1e-6
+  );
+}
+
+function getRouteCenterlinePoints(
+  route: SurfaceRoute,
+  originX: number,
+  originY: number,
+): ScreenPoint[] {
+  const points: WorldPoint3[] = [];
+  for (const segment of route.segments) {
+    if (points.length === 0) {
+      points.push(segment.start, segment.end);
+      continue;
+    }
+    const last = points[points.length - 1];
+    if (sameWorldPoint(last, segment.start)) {
+      points.push(segment.end);
+      continue;
+    }
+    points.push(segment.start, segment.end);
+  }
+
+  return points.map((point) => worldToScreen(point[0], point[1], point[2], originX, originY));
+}
+
+function getLabelPosition(points: readonly ScreenPoint[]): ScreenPoint | null {
+  if (points.length === 0) return null;
+  if (points.length === 1) return points[0];
+  const mid = Math.floor((points.length - 1) / 2);
+  const a = points[mid];
+  const b = points[mid + 1] ?? a;
+  return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+}
+
 export const BrickConnector = memo(function BrickConnector({
   connection,
   blocks,
@@ -348,6 +422,7 @@ export const BrickConnector = memo(function BrickConnector({
 }: BrickConnectorProps) {
   const [isHovered, setIsHovered] = useState(false);
   const drawInRef = useRef<SVGPathElement>(null);
+  const studId = useId().replace(/:/g, '_');
 
   // Draw-in animation: measure path length on mount and animate once
   useEffect(() => {
@@ -376,6 +451,7 @@ export const BrickConnector = memo(function BrickConnector({
   const removeConnection = useArchitectureStore((s) => s.removeConnection);
   const validationResult = useArchitectureStore((s) => s.validationResult);
   const endpointsList = useArchitectureStore((s) => s.workspace.architecture.endpoints);
+  const showStuds = useUIStore((s) => s.showStuds);
 
   const fromEndpoint: Endpoint | undefined = useMemo(
     () => endpointsList.find((endpoint) => endpoint.id === connection.from),
@@ -383,8 +459,8 @@ export const BrickConnector = memo(function BrickConnector({
   );
 
   const semantic: EndpointSemantic = fromEndpoint?.semantic ?? 'data';
+  const renderSemantic: ConnectionRenderSemantic = semantic;
 
-  const theme = CONNECTOR_THEMES[SEMANTIC_THEME_KEY[semantic]];
   const diffState = diffMode && diffDelta ? getDiffState(connection.id, diffDelta) : 'unchanged';
   const isSelected = selectedId === connection.id;
   const isHighlighted = isHovered || isSelected;
@@ -399,35 +475,120 @@ export const BrickConnector = memo(function BrickConnector({
 
   const hasValidationError = connectionErrors.length > 0;
 
-  const endpoints = useMemo(
-    () =>
-      getConnectionEndpointWorldAnchors(connection, blocks, plates, endpointsList, externalActors),
+  const surfaceRoute = useMemo(
+    () => getConnectionSurfaceRoute(connection, blocks, plates, endpointsList, externalActors),
     [connection, blocks, plates, endpointsList, externalActors],
   );
 
-  const route = useMemo(() => {
-    if (!endpoints) return null;
-    const r = computeWorldRoute(endpoints.src, endpoints.tgt, originX, originY);
+  const fallbackEndpoints = useMemo(
+    () =>
+      surfaceRoute
+        ? null
+        : getConnectionEndpointWorldAnchors(
+            connection,
+            blocks,
+            plates,
+            endpointsList,
+            externalActors,
+          ),
+    [surfaceRoute, connection, blocks, plates, endpointsList, externalActors],
+  );
+
+  const fallbackRoute = useMemo(() => {
+    if (!fallbackEndpoints) return null;
+    const r = computeWorldRoute(fallbackEndpoints.src, fallbackEndpoints.tgt, originX, originY);
     // Apply PORT_OUT_PX screen offset so connectors sit just outside the block face
-    if (endpoints.srcSide === 'outbound') {
+    if (fallbackEndpoints.srcSide === 'outbound') {
       r.srcScreen = { x: r.srcScreen.x + PORT_OUT_PX, y: r.srcScreen.y };
-    } else if (endpoints.srcSide === 'inbound') {
+    } else if (fallbackEndpoints.srcSide === 'inbound') {
       r.srcScreen = { x: r.srcScreen.x - PORT_OUT_PX, y: r.srcScreen.y };
     }
-    if (endpoints.tgtSide === 'inbound') {
+    if (fallbackEndpoints.tgtSide === 'inbound') {
       r.tgtScreen = { x: r.tgtScreen.x - PORT_OUT_PX, y: r.tgtScreen.y };
-    } else if (endpoints.tgtSide === 'outbound') {
+    } else if (fallbackEndpoints.tgtSide === 'outbound') {
       r.tgtScreen = { x: r.tgtScreen.x + PORT_OUT_PX, y: r.tgtScreen.y };
     }
     return r;
-  }, [endpoints, originX, originY]);
+  }, [fallbackEndpoints, originX, originY]);
 
-  if (!endpoints || !route) return null;
+  const brickRender = useMemo(() => {
+    if (!surfaceRoute) return null;
 
-  const colors = getColors(theme, diffState, isHighlighted);
-  const hitPath = buildHitPath(route);
+    const footprintVertices = buildBrickFootprint(surfaceRoute);
+    if (footprintVertices.length < 3) {
+      return null;
+    }
 
-  const elbowScreen = route.elbow ?? null;
+    const topFaceScreen = projectFootprintToScreen(footprintVertices, originX, originY);
+    const topY = surfaceRoute.srcPort.surfaceY + CONNECTION_HEIGHT_CU;
+    const baseY = surfaceRoute.srcPort.surfaceY;
+    const sideFaces = getVisibleSideFaces(footprintVertices, topY, baseY).map((face) => ({
+      face: face.face,
+      points: face.vertices.map((v) => worldToScreen(v[0], v[1], v[2], originX, originY)) as [
+        ScreenPoint,
+        ScreenPoint,
+        ScreenPoint,
+        ScreenPoint,
+      ],
+    }));
+
+    const hitPoints = getRouteCenterlinePoints(surfaceRoute, originX, originY);
+    const hitPath = pointsToPath(hitPoints);
+    const studs = sampleStudPositions(surfaceRoute).map((point, index) => {
+      const screen = worldToScreen(point[0], point[1], point[2], originX, originY);
+      return {
+        x: screen.x,
+        y: screen.y,
+        key: `${connection.id}-stud-${index}`,
+      };
+    });
+
+    return {
+      hitPath,
+      labelPos: getLabelPosition(hitPoints),
+      topFacePolygon: pointsToPolygon(topFaceScreen),
+      sideFaces,
+      studs,
+    };
+  }, [surfaceRoute, originX, originY, connection.id]);
+
+  const fallbackRender = useMemo(() => {
+    if (!fallbackRoute) return null;
+    const hitPath = buildHitPath(fallbackRoute);
+    const endpointStuds = [
+      { x: fallbackRoute.srcScreen.x, y: fallbackRoute.srcScreen.y, key: `${connection.id}-src` },
+      { x: fallbackRoute.tgtScreen.x, y: fallbackRoute.tgtScreen.y, key: `${connection.id}-tgt` },
+    ];
+
+    return {
+      hitPath,
+      labelPos: fallbackRoute.elbow ?? {
+        x:
+          (fallbackRoute.segments[0].start.x +
+            fallbackRoute.segments[fallbackRoute.segments.length - 1].end.x) /
+          2,
+        y:
+          (fallbackRoute.segments[0].start.y +
+            fallbackRoute.segments[fallbackRoute.segments.length - 1].end.y) /
+          2,
+      },
+      endpointStuds,
+      segments: fallbackRoute.segments,
+      elbow: fallbackRoute.elbow,
+    };
+  }, [fallbackRoute, connection.id]);
+
+  if (!brickRender && !fallbackRender) return null;
+
+  const colors = getColors(renderSemantic, diffState, isHighlighted);
+  const hitPath = brickRender?.hitPath ?? fallbackRender?.hitPath ?? '';
+  const labelPos = brickRender?.labelPos ?? fallbackRender?.labelPos;
+  const fallbackPinHoleStyle = LEGACY_PIN_HOLE_STYLE[renderSemantic];
+  const studColors = {
+    main: colors.studMain,
+    shadow: colors.studShadow,
+    highlight: colors.studHighlight,
+  };
 
   const handleClick = (e: React.MouseEvent<SVGGElement>) => {
     e.stopPropagation();
@@ -450,6 +611,7 @@ export const BrickConnector = memo(function BrickConnector({
   };
 
   return (
+    // biome-ignore lint/a11y/useSemanticElements: SVG <g> must stay interactive for connector hit testing.
     <g
       opacity={colors.opacity}
       style={{ cursor: 'pointer' }}
@@ -462,18 +624,7 @@ export const BrickConnector = memo(function BrickConnector({
       aria-label={`connection ${connection.id}`}
       data-connector-type={(connection.metadata?.type as string) ?? semantic}
     >
-      {isSelected && (
-        <path
-          d={hitPath}
-          stroke="#ffffff"
-          strokeWidth={BEAM_HALF_THICKNESS * 2 + 4}
-          strokeOpacity={0.5}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-          pointerEvents="none"
-        />
-      )}
+      {showStuds && <StudDefs studId={studId} studColors={studColors} />}
 
       <path
         d={hitPath}
@@ -484,28 +635,72 @@ export const BrickConnector = memo(function BrickConnector({
         data-testid="connection-hit-area"
       />
 
-      {route.segments.map((seg, i) =>
-        renderLiftarmSegment(
-          seg,
-          colors,
-          theme.pinHoleStyle,
-          `seg-${connection.id}-${i}`,
-          i === route.segments.length - 1,
-        ),
+      {isSelected && brickRender && (
+        <polygon
+          points={brickRender.topFacePolygon}
+          fill="none"
+          stroke="#ffffff"
+          strokeWidth={4}
+          strokeOpacity={0.5}
+          strokeLinejoin="round"
+          pointerEvents="none"
+          data-layer="selection-outline"
+        />
       )}
 
-      {elbowScreen &&
-        renderElbowJoint(elbowScreen, colors, theme.pinHoleStyle, `elbow-${connection.id}`)}
+      <g data-layer="side-faces" pointerEvents="none">
+        {brickRender
+          ? brickRender.sideFaces.map((quad, i) => (
+              <polygon
+                key={`${connection.id}-side-${i}`}
+                points={pointsToPolygon(quad.points)}
+                fill={quad.face === 'left' ? colors.leftSideColor : colors.rightSideColor}
+              />
+            ))
+          : fallbackRender?.segments.map((seg, i) =>
+              renderLiftarmSegment(
+                seg,
+                colors,
+                fallbackPinHoleStyle,
+                `seg-${connection.id}-${i}`,
+                i === fallbackRender.segments.length - 1,
+              ),
+            )}
+        {!brickRender && fallbackRender?.elbow
+          ? renderElbowJoint(
+              fallbackRender.elbow,
+              colors,
+              fallbackPinHoleStyle,
+              `elbow-${connection.id}`,
+            )
+          : null}
+      </g>
 
-      {renderStud(route.srcScreen.x, route.srcScreen.y, colors, `stud-src-${connection.id}`)}
-      {renderStud(route.tgtScreen.x, route.tgtScreen.y, colors, `stud-tgt-${connection.id}`)}
+      <g data-layer="top-face" pointerEvents="none">
+        {brickRender && (
+          <polygon
+            points={brickRender.topFacePolygon}
+            fill={colors.topFaceColor}
+            stroke={colors.topFaceStroke}
+            strokeWidth={1}
+          />
+        )}
+      </g>
 
-      {/* Draw-in animation overlay */}
+      {showStuds && (
+        <g data-layer="studs" pointerEvents="none">
+          <StudGrid
+            studId={studId}
+            studs={brickRender?.studs ?? fallbackRender?.endpointStuds ?? []}
+          />
+        </g>
+      )}
+
       <path
         ref={drawInRef}
         d={hitPath}
-        stroke={colors.tile}
-        strokeWidth={BEAM_HALF_THICKNESS * 2}
+        stroke={colors.topFaceColor}
+        strokeWidth={DRAW_STROKE_WIDTH}
         strokeLinecap="round"
         strokeLinejoin="round"
         fill="none"
@@ -514,10 +709,10 @@ export const BrickConnector = memo(function BrickConnector({
         data-testid="connection-draw-path"
       />
 
-      {/* Snap flash — expands and fades out on mount */}
       <path
         d={hitPath}
-        stroke={colors.tile}
+        stroke={colors.topFaceColor}
+        strokeWidth={DRAW_STROKE_WIDTH}
         strokeLinecap="round"
         strokeLinejoin="round"
         fill="none"
@@ -546,10 +741,7 @@ export const BrickConnector = memo(function BrickConnector({
       {hasValidationError &&
         (isHovered || isSelected) &&
         (() => {
-          const labelPos = route.elbow ?? {
-            x: (route.segments[0].start.x + route.segments[route.segments.length - 1].end.x) / 2,
-            y: (route.segments[0].start.y + route.segments[route.segments.length - 1].end.y) / 2,
-          };
+          if (!labelPos) return null;
           const msg = connectionErrors[0].message;
           const textWidth = Math.min(msg.length * 6.5, 220);
           const padding = 6;
