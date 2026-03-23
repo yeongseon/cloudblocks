@@ -11,13 +11,13 @@ export interface HelperMessage {
 export const HINT_EMPTY_CANVAS: Omit<HelperMessage, 'targetId'> = {
   key: 'hint-empty-canvas',
   type: 'hint',
-  text: 'Add a block to start building your architecture.',
+  text: 'Add a node to start building your architecture.',
 };
 
 export const HINT_FIRST_BLOCK: Omit<HelperMessage, 'targetId'> = {
   key: 'hint-first-block',
   type: 'hint',
-  text: 'Nice! Now connect blocks to define relationships.',
+  text: 'Nice! Now connect nodes to define relationships.',
 };
 
 export const SUCCESS_VALID: Omit<HelperMessage, 'targetId'> = {

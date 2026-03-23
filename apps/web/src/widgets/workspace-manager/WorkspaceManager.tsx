@@ -90,7 +90,7 @@ export function WorkspaceManager() {
                   {isActive && '● '}{ws.name}
                 </span>
                 <span className="workspace-manager-item-stats">
-                  {plateCount} plates · {blockCount} blocks
+                  {plateCount} containers · {blockCount} nodes
                 </span>
               </div>
               <div className="workspace-manager-item-actions">

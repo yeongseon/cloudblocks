@@ -100,8 +100,8 @@ describe('DetailPanel', () => {
 
     expect(screen.getByText('Test Workspace')).toBeInTheDocument();
     expect(screen.getByText('AZURE')).toBeInTheDocument();
-    expect(screen.getByText('Plates')).toBeInTheDocument();
-    expect(screen.getByText('Blocks')).toBeInTheDocument();
+    expect(screen.getByText('Containers')).toBeInTheDocument();
+    expect(screen.getByText('Nodes')).toBeInTheDocument();
     expect(screen.getByText('Connection')).toBeInTheDocument();
   });
 
@@ -153,7 +153,7 @@ describe('DetailPanel', () => {
     expect(screen.getByText('Subnet 1')).toBeInTheDocument();
     expect(screen.getByText('Subnet')).toBeInTheDocument();
     expect(screen.getByText('Main VNet')).toBeInTheDocument();
-    expect(screen.getByText('2 blocks')).toBeInTheDocument();
+    expect(screen.getByText('2 nodes')).toBeInTheDocument();
     expect(screen.getByText('What is this?')).toBeInTheDocument();
     expect(screen.getByText('Nesting Rules')).toBeInTheDocument();
   });
@@ -264,7 +264,7 @@ describe('DetailPanel', () => {
 
     render(<DetailPanel />);
 
-    expect(screen.getByText(/1 block$/)).toBeInTheDocument();
+    expect(screen.getByText(/1 node$/)).toBeInTheDocument();
   });
 
   it('renders child subnet count on network plate contents', () => {

@@ -123,7 +123,7 @@ describe('persistenceSlice branches', () => {
 
       expect(() => validateArchitectureShape(badPlate)).toThrow('type must be one of global, edge, region, zone, or subnet');
       expect(() => validateArchitectureShape(badBlock)).toThrow('placementId must be a string');
-      expect(() => validateArchitectureShape(badPlacement)).toThrow('does not reference an existing plate');
+      expect(() => validateArchitectureShape(badPlacement)).toThrow('does not reference an existing container');
     });
 
     it('validates connection endpoints and external actor branches', () => {

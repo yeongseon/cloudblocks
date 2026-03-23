@@ -917,7 +917,7 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByRole('button', { name: /Rename/ }));
 
-    expect(promptMock).toHaveBeenCalledWith('Rename plate:', 'Rename', 'VNet');
+    expect(promptMock).toHaveBeenCalledWith('Rename container:', 'Rename', 'VNet');
     expect(renamePlateMock).toHaveBeenCalledWith('net-1', 'Renamed Plate');
     promptMock.mockRestore();
   });
@@ -945,7 +945,7 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByRole('button', { name: /Rename/ }));
 
-    expect(promptMock).toHaveBeenCalledWith('Rename plate:', 'Rename', 'VNet');
+    expect(promptMock).toHaveBeenCalledWith('Rename container:', 'Rename', 'VNet');
     expect(renamePlateMock).not.toHaveBeenCalled();
     promptMock.mockRestore();
   });
@@ -973,7 +973,7 @@ describe('CommandCard', () => {
 
     await user.click(screen.getByRole('button', { name: /Rename/ }));
 
-    expect(promptMock).toHaveBeenCalledWith('Rename plate:', 'Rename', 'VNet');
+    expect(promptMock).toHaveBeenCalledWith('Rename container:', 'Rename', 'VNet');
     expect(renamePlateMock).not.toHaveBeenCalled();
     promptMock.mockRestore();
   });
