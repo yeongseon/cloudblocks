@@ -68,7 +68,7 @@ export function PromoteDialog() {
 
   return (
     <>
-      <div className="promote-dialog-backdrop" onClick={handleClose} />
+      <div className="promote-dialog-backdrop" role="presentation" onClick={handleClose} />
       <div className="promote-dialog" role="dialog" aria-label="Promote to Production">
         <div className="promote-dialog-header">
           <h3 className="promote-dialog-title">Promote to Production</h3>

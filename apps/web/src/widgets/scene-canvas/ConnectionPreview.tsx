@@ -23,7 +23,7 @@ export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) 
   const interactionState = useUIStore((s) => s.interactionState);
   const connectionSource = useUIStore((s) => s.connectionSource);
   const nodes = useArchitectureStore((s) => s.workspace.architecture.nodes);
-  const externalActors = useArchitectureStore((s) => s.workspace.architecture.externalActors) ?? [];
+  const externalActors = useArchitectureStore((s) => s.workspace.architecture.externalActors ?? []);
   const blocks = useMemo(() => nodes.filter((node) => node.kind === 'resource'), [nodes]);
   const plates = useMemo(() => nodes.filter((node) => node.kind === 'container'), [nodes]);
 
