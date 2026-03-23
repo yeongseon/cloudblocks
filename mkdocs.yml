@@ -68,6 +68,36 @@ markdown_extensions:
   - toc:
       permalink: true
 
+exclude_docs: |
+  adr/
+  concept/ARCHITECTURE.md
+  concept/PRD.md
+  concept/PRODUCT_DIRECTION_SPEC.md
+  concept/RESOURCE_CATEGORY_STRATEGY.md
+  concept/ROADMAP.md
+  design/BRICK_CONNECTOR_SPEC.md
+  design/BRICK_DESIGN_SPEC.md
+  design/BRICK_GUIDEBOOK.md
+  design/GRAPH_IR_SPEC.md
+  design/KPI_SCORECARD.md
+  design/MODULE_BOUNDARIES.md
+  design/NFR_TARGETS.md
+  design/PROVIDER_RESOURCES.md
+  design/RELEASE_GATES.md
+  design/SECURITY_BOUNDARIES.md
+  design/VERSION_POLICY.md
+  design/VISUAL_DESIGN_SPEC.md
+  guides/AZURE_PROVISIONING_RUNBOOK.md
+  guides/CHANGELOG_TEMPLATE.md
+  guides/COMPATIBILITY_CHECKLIST.md
+  guides/LAUNCH_PACKET.md
+  guides/OAUTH_ENDPOINTS.md
+  guides/PLAUSIBLE_SETUP.md
+  guides/RELEASE_RUNBOOK.md
+  guides/ROLLBACK_RUNBOOK.md
+  guides/WEB_VITALS_GATES.md
+  model/STORAGE_ARCHITECTURE.md
+
 nav:
   - Home: README.md
 
@@ -81,64 +111,25 @@ nav:
       - Keyboard Shortcuts: user-guide/keyboard-shortcuts.md
       - FAQ: user-guide/faq.md
 
-  - Getting Started:
-      - Tutorials (Start Here): guides/TUTORIALS.md
+  - Setup:
+      - Tutorials: guides/TUTORIALS.md
       - Environment & Workspaces: guides/ENVIRONMENT_STRATEGY.md
       - Deployment: guides/DEPLOYMENT.md
-      - Azure Provisioning Runbook: guides/AZURE_PROVISIONING_RUNBOOK.md
-      - Plausible Analytics Setup: guides/PLAUSIBLE_SETUP.md
 
-  - Build & Design:
-      - Using the Editor (UI Flow): concept/UI_FLOW.md
+  - Features:
+      - Using the Editor: concept/UI_FLOW.md
       - Templates: engine/templates.md
       - Validation Rules: engine/rules.md
-      - Learning Mode Spec: design/LEARNING_MODE_SPEC.md
-
-  - Generate & Export:
       - Code Generator: engine/generator.md
       - AI Engine: engine/ai.md
       - Provider Adapters: engine/provider.md
+      - Learning Mode: design/LEARNING_MODE_SPEC.md
 
   - Reference:
       - CloudBlocks Spec v2.0: design/CLOUDBLOCKS_SPEC_V2.md
       - Domain Model: model/DOMAIN_MODEL.md
       - Theme System: design/THEME_SYSTEM_SPEC.md
       - Validation Contract: design/VALIDATION_CONTRACT.md
-      - REST API Spec: api/API_SPEC.md
+      - REST API: api/API_SPEC.md
 
-  - Developer:
-      - Architecture: concept/ARCHITECTURE.md
-      - Storage Architecture: model/STORAGE_ARCHITECTURE.md
-      - Architecture Model Overview: model/ARCHITECTURE_MODEL_OVERVIEW.md
-      - Security Boundaries: design/SECURITY_BOUNDARIES.md
-      - Module Boundaries: design/MODULE_BOUNDARIES.md
-      - NFR Targets: design/NFR_TARGETS.md
-      - Release Gates: design/RELEASE_GATES.md
-      - KPI Scorecard: design/KPI_SCORECARD.md
-      - Graph IR Spec: design/GRAPH_IR_SPEC.md
-      - Product & Planning:
-          - Product Requirements: concept/PRD.md
-          - Roadmap: concept/ROADMAP.md
-          - Milestone Plans:
-              - M16 — Documentation Architecture: concept/M16_DOCUMENTATION_ARCHITECTURE.md
-              - M17 — Product Structure: concept/M17_PRODUCT_STRUCTURE.md
-              - M18 — DevOps UX: concept/M18_DEVOPS_UX.md
-              - Action Plan Execution: concept/ACTION_PLAN_EXECUTION.md
-      - Decision Records:
-          - ADR Overview: adr/README.md
-          - ADR-0001 Architecture Model as Source of Truth: adr/0001-architecture-model-as-source-of-truth.md
-          - ADR-0002 Git-Native Storage: adr/0002-git-native-storage.md
-          - ADR-0003 Lego-Style Composition Model: adr/0003-lego-style-composition-model.md
-          - ADR-0004 Rule Engine Architecture: adr/0004-rule-engine-architecture.md
-          - ADR-0005 2D-First with 2.5D Rendering: adr/0005-2d-first-editor-with-25d-rendering.md
-          - ADR-0006 Graph IR Evolution: adr/0006-graph-ir-evolution-approach.md
-          - ADR-0007 Multi-Environment Deployment: adr/0007-multi-environment-deployment-strategy.md
-          - ADR-0008 v2.0 Universal Architecture Spec: adr/0008-v2-universal-architecture-specification.md
-          - ADR-0009 AI-Assisted Architecture: adr/0009-ai-assisted-architecture.md
-          - ADR-0010 SVG-Only Rendering Model: adr/0010-svg-only-rendering-model.md
-          - ADR-0011 Dual Theme System: adr/0011-dual-theme-system.md
-      - Historical / Audits:
-          - Brick Design Spec (v1.x): design/BRICK_DESIGN_SPEC.md
-          - Visual Design Spec (v1.x): design/VISUAL_DESIGN_SPEC.md
-          - Brick Guidebook (v1.x): design/BRICK_GUIDEBOOK.md
-          - Doc Consistency Audit: design/DOC_CONSISTENCY_AUDIT_2026-03-19.md
+  - Contributing: contributing.md
