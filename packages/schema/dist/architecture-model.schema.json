@@ -22,6 +22,12 @@
           },
           "description": "All nodes — containers and resources in a flat array"
         },
+        "endpoints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Endpoint"
+          }
+        },
         "connections": {
           "type": "array",
           "items": {
@@ -32,7 +38,8 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/ExternalActor"
-          }
+          },
+          "deprecated": "Folded into nodes in v4. Kept for v3→v4 migration loading."
         },
         "createdAt": {
           "type": "string",
@@ -48,8 +55,8 @@
         "name",
         "version",
         "nodes",
+        "endpoints",
         "connections",
-        "externalActors",
         "createdAt",
         "updatedAt"
       ],
@@ -85,12 +92,12 @@
           "description": "Hierarchy layer — used for containment validation"
         },
         "resourceType": {
-          "type": "string",
-          "description": "Specific resource identifier, e.g. 'virtual_network', 'vm', 'sql_database'"
+          "$ref": "#/definitions/ContainerCapableResourceType",
+          "description": "Only container-capable resource types (virtual_network, subnet)"
         },
         "category": {
           "$ref": "#/definitions/ResourceCategory",
-          "description": "One of the 7 resource categories"
+          "description": "One of the 8 resource categories"
         },
         "provider": {
           "$ref": "#/definitions/ProviderType"
@@ -129,13 +136,13 @@
           },
           "description": "v2.0 §9 — visual-only role indicators"
         },
-        "subnetAccess": {
-          "$ref": "#/definitions/SubnetAccess",
-          "description": "Subnet access visibility — only meaningful for subnet-layer containers"
-        },
         "profileId": {
           "type": "string",
           "description": "Visual profile preset identifier (frontend concern, serialized for persistence)"
+        },
+        "canvasTier": {
+          "$ref": "#/definitions/CanvasTier",
+          "description": "Canvas structural tier — orthogonal to category (domain) and layer (hierarchy). Determines visual grouping on the canvas: shared, web, app, data. Optional during migration; defaults derived from RESOURCE_RULES."
         },
         "size": {
           "$ref": "#/definitions/Size"
@@ -169,18 +176,27 @@
       ],
       "description": "Layer hierarchy in the containment model. Ordered from broadest scope (global) to narrowest (resource)."
     },
+    "ContainerCapableResourceType": {
+      "type": "string",
+      "enum": [
+        "virtual_network",
+        "subnet"
+      ],
+      "description": "Resource types that can be `kind: 'container'`."
+    },
     "ResourceCategory": {
       "type": "string",
       "enum": [
         "network",
-        "security",
-        "edge",
+        "delivery",
         "compute",
         "data",
         "messaging",
+        "security",
+        "identity",
         "operations"
       ],
-      "description": "Resource categories — the 7 canonical resource groups.\n\nMigration from 10 → 7:   compute   → compute   (was compute + function)   data      → data      (was database + storage)   edge      → edge      (was gateway)   security  → security  (was identity)   operations → operations (was analytics + observability)   messaging → messaging  (was queue + event) — empty in MVP   network   → network   (new — containers like VNet, Subnet)"
+      "description": "Resource categories — the 8 canonical resource groups.\n\nMigration from 10 → 7 → 8:   compute    → compute    (was compute + function)   data       → data       (was database + storage)   delivery   → delivery   (renamed from edge; was gateway)   security   → security   (was identity in v6)   identity   → identity   (split from security; new in v8)   operations → operations (was analytics + observability)   messaging  → messaging  (was queue + event) — empty in MVP   network    → network    (new — containers like VNet, Subnet)"
     },
     "ProviderType": {
       "type": "string",
@@ -252,13 +268,15 @@
       ],
       "description": "Block role indicators (v2.0 §9). Visual-only annotations that describe the function of a node."
     },
-    "SubnetAccess": {
+    "CanvasTier": {
       "type": "string",
       "enum": [
-        "public",
-        "private"
+        "shared",
+        "web",
+        "app",
+        "data"
       ],
-      "description": "Subnet access visibility."
+      "description": "Canvas tier — the structural grouping visible on the canvas. Orthogonal to both `category` (domain) and `layer` (hierarchy).\n\n- shared: cross-cutting resources (VNet, identity, monitoring)\n- web:    public-facing tier (load balancers, CDN, WAF)\n- app:    application tier (compute instances, functions)\n- data:   persistence tier (databases, caches, storage)"
     },
     "Size": {
       "type": "object",
@@ -300,11 +318,11 @@
         },
         "resourceType": {
           "type": "string",
-          "description": "Specific resource identifier, e.g. 'virtual_network', 'vm', 'sql_database'"
+          "description": "Specific resource identifier, e.g. 'virtual_network', 'web_compute', 'relational_database'"
         },
         "category": {
           "$ref": "#/definitions/ResourceCategory",
-          "description": "One of the 7 resource categories"
+          "description": "One of the 8 resource categories"
         },
         "provider": {
           "$ref": "#/definitions/ProviderType"
@@ -343,13 +361,13 @@
           },
           "description": "v2.0 §9 — visual-only role indicators"
         },
-        "subnetAccess": {
-          "$ref": "#/definitions/SubnetAccess",
-          "description": "Subnet access visibility — only meaningful for subnet-layer containers"
-        },
         "profileId": {
           "type": "string",
           "description": "Visual profile preset identifier (frontend concern, serialized for persistence)"
+        },
+        "canvasTier": {
+          "$ref": "#/definitions/CanvasTier",
+          "description": "Canvas structural tier — orthogonal to category (domain) and layer (hierarchy). Determines visual grouping on the canvas: shared, web, app, data. Optional during migration; defaults derived from RESOURCE_RULES."
         }
       },
       "required": [
@@ -367,22 +385,61 @@
       "additionalProperties": false,
       "description": "A leaf resource node (VM, SQL Database, Redis Cache, etc.). Cannot contain children."
     },
+    "Endpoint": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "nodeId": {
+          "type": "string"
+        },
+        "direction": {
+          "$ref": "#/definitions/EndpointDirection"
+        },
+        "semantic": {
+          "$ref": "#/definitions/EndpointSemantic"
+        }
+      },
+      "required": [
+        "id",
+        "nodeId",
+        "direction",
+        "semantic"
+      ],
+      "additionalProperties": false,
+      "description": "An Endpoint is a typed connection point on a node. Every node auto-generates 6 endpoints (3 semantics × 2 directions). Deterministic ID format: `endpoint-${nodeId}-${direction}-${semantic}`"
+    },
+    "EndpointDirection": {
+      "type": "string",
+      "enum": [
+        "input",
+        "output"
+      ],
+      "description": "Direction of an endpoint on a node."
+    },
+    "EndpointSemantic": {
+      "type": "string",
+      "enum": [
+        "http",
+        "event",
+        "data"
+      ],
+      "description": "Semantic type of an endpoint — determines what kind of traffic flows."
+    },
     "Connection": {
       "type": "object",
       "properties": {
         "id": {
           "type": "string"
         },
-        "sourceId": {
+        "from": {
           "type": "string",
-          "description": "ResourceNode or ExternalActor ID (initiator)"
+          "description": "Endpoint ID (must be output direction)"
         },
-        "targetId": {
+        "to": {
           "type": "string",
-          "description": "ResourceNode or ExternalActor ID (receiver)"
-        },
-        "type": {
-          "$ref": "#/definitions/ConnectionType"
+          "description": "Endpoint ID (must be input direction)"
         },
         "metadata": {
           "type": "object",
@@ -391,24 +448,12 @@
       },
       "required": [
         "id",
-        "sourceId",
-        "targetId",
-        "type",
+        "from",
+        "to",
         "metadata"
       ],
       "additionalProperties": false,
-      "description": "A typed connection between two resource nodes or external actors. Direction represents the **initiator** of the request; response flows implicitly in the reverse direction."
-    },
-    "ConnectionType": {
-      "type": "string",
-      "enum": [
-        "dataflow",
-        "http",
-        "internal",
-        "data",
-        "async"
-      ],
-      "description": "Connection protocol/type between resource nodes. Direction represents the **initiator** of the request."
+      "description": "A connection between two endpoints (output → input). Both `from` and `to` must reference valid Endpoint IDs."
     },
     "ExternalActor": {
       "type": "object",
@@ -434,7 +479,7 @@
         "position"
       ],
       "additionalProperties": false,
-      "description": "An external actor represents an entity outside the architecture that initiates or receives connections (e.g., \"Internet\")."
+      "deprecated": "ExternalActors are folded into nodes in v4. Kept for v3→v4 migration."
     }
   }
 }

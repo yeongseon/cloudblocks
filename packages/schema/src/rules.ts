@@ -52,47 +52,47 @@ export const RESOURCE_RULES = {
     canvasTier: 'shared',
   },
 
-  // ── Edge ────────────────────────────────────────────────────
+  // ── Delivery ────────────────────────────────────────────────
   dns_zone: {
     containerCapable: false,
     allowedParents: [null],
-    category: 'edge',
+    category: 'delivery',
     canvasTier: 'web',
   },
   cdn_profile: {
     containerCapable: false,
     allowedParents: [null],
-    category: 'edge',
+    category: 'delivery',
     canvasTier: 'web',
   },
   front_door: {
     containerCapable: false,
     allowedParents: [null],
-    category: 'edge',
+    category: 'delivery',
     canvasTier: 'web',
   },
   application_gateway: {
     containerCapable: false,
     allowedParents: ['subnet'],
-    category: 'edge',
+    category: 'delivery',
     canvasTier: 'web',
   },
   internal_load_balancer: {
     containerCapable: false,
     allowedParents: ['subnet'],
-    category: 'edge',
+    category: 'delivery',
     canvasTier: 'web',
   },
   load_balancer: {
     containerCapable: false,
     allowedParents: ['subnet'],
-    category: 'edge',
+    category: 'delivery',
     canvasTier: 'web',
   },
   outbound_access: {
     containerCapable: false,
     allowedParents: ['subnet'],
-    category: 'edge',
+    category: 'delivery',
     canvasTier: 'web',
   },
 
@@ -205,8 +205,20 @@ export const RESOURCE_RULES = {
   },
   identity_access: {
     containerCapable: false,
-    allowedParents: ['subnet'],
-    category: 'security',
+    allowedParents: ['subnet', null],
+    category: 'identity',
+    canvasTier: 'shared',
+  },
+  managed_identity: {
+    containerCapable: false,
+    allowedParents: [null],
+    category: 'identity',
+    canvasTier: 'shared',
+  },
+  service_account: {
+    containerCapable: false,
+    allowedParents: [null],
+    category: 'identity',
     canvasTier: 'shared',
   },
 
@@ -333,11 +345,12 @@ export interface PortPolicy {
 /** Default port/stub counts per resource category. */
 export const CATEGORY_PORTS: Record<ResourceCategory, PortPolicy> = {
   network: { inbound: 1, outbound: 1 },
-  security: { inbound: 1, outbound: 1 },
-  edge: { inbound: 1, outbound: 2 },
+  delivery: { inbound: 1, outbound: 2 },
   compute: { inbound: 2, outbound: 2 },
   data: { inbound: 2, outbound: 1 },
   messaging: { inbound: 2, outbound: 2 },
+  security: { inbound: 1, outbound: 1 },
+  identity: { inbound: 1, outbound: 1 },
   operations: { inbound: 1, outbound: 1 },
 };
 
