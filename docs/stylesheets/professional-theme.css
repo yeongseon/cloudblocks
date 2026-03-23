@@ -1,0 +1,579 @@
+/* =============================================================================
+   CloudBlocks Professional Documentation Theme
+   Clean, minimal, enterprise-grade — matches the app's Professional theme tokens
+   Overrides MkDocs Material CSS variables
+   ============================================================================= */
+
+/* ---------------------------------------------------------------------------
+   0. Professional Design Tokens
+   --------------------------------------------------------------------------- */
+
+:root {
+  /* Professional Palette — from THEME_SYSTEM_SPEC.md */
+  --cb-bg-app:             #F8FAFC;
+  --cb-bg-canvas:          #FFFFFF;
+  --cb-bg-surface:         #F1F5F9;
+  --cb-bg-surface-raised:  #FFFFFF;
+
+  --cb-text-primary:       #0F172A;
+  --cb-text-secondary:     #475569;
+  --cb-text-muted:         #94A3B8;
+  --cb-text-inverse:       #F1F5F9;
+
+  --cb-border-default:     #E2E8F0;
+  --cb-border-subtle:      #F1F5F9;
+  --cb-border-strong:      #CBD5E1;
+
+  --cb-accent-primary:     #2563EB;
+  --cb-accent-secondary:   #0891B2;
+  --cb-accent-success:     #16A34A;
+  --cb-accent-warning:     #CA8A04;
+  --cb-accent-error:       #DC2626;
+
+  /* Radius — small, clean */
+  --cb-radius-sm: 2px;
+  --cb-radius-md: 4px;
+  --cb-radius-lg: 6px;
+
+  /* Shadows — subtle */
+  --cb-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --cb-shadow-md: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* ---------------------------------------------------------------------------
+   1. Light Mode — MkDocs Material CSS Variable Overrides
+   --------------------------------------------------------------------------- */
+
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color:        var(--cb-accent-primary);
+  --md-primary-fg-color--light: #3B82F6;
+  --md-primary-fg-color--dark:  #1D4ED8;
+  --md-primary-bg-color:        var(--cb-bg-canvas);
+  --md-primary-bg-color--light: var(--cb-bg-surface);
+
+  --md-accent-fg-color:             var(--cb-accent-secondary);
+  --md-accent-fg-color--transparent: rgba(8, 145, 178, 0.1);
+  --md-accent-bg-color:             var(--cb-accent-secondary);
+  --md-accent-bg-color--light:      rgba(8, 145, 178, 0.1);
+
+  --md-default-bg-color:          var(--cb-bg-canvas);
+  --md-default-bg-color--light:   var(--cb-bg-surface);
+  --md-default-bg-color--lighter: var(--cb-bg-app);
+  --md-default-bg-color--lightest: var(--cb-bg-canvas);
+
+  --md-default-fg-color:          var(--cb-text-primary);
+  --md-default-fg-color--light:   var(--cb-text-secondary);
+  --md-default-fg-color--lighter: var(--cb-text-muted);
+  --md-default-fg-color--lightest: rgba(15, 23, 42, 0.1);
+
+  --md-footer-bg-color:        #1E293B;
+  --md-footer-bg-color--dark:  #0F172A;
+  --md-footer-fg-color:        var(--cb-text-inverse);
+  --md-footer-fg-color--light:  rgba(241, 245, 249, 0.7);
+  --md-footer-fg-color--lighter: rgba(241, 245, 249, 0.5);
+
+  --md-code-bg-color:  var(--cb-bg-surface);
+  --md-code-fg-color:  var(--cb-text-primary);
+  --md-code-hl-color:  rgba(37, 99, 235, 0.15);
+
+  --md-typeset-a-color: var(--cb-accent-primary);
+}
+
+/* ---------------------------------------------------------------------------
+   2. Dark Mode
+   --------------------------------------------------------------------------- */
+
+[data-md-color-scheme="slate"] {
+  --md-hue: 215;
+
+  --md-primary-fg-color:        #3B82F6;
+  --md-primary-fg-color--light: #60A5FA;
+  --md-primary-fg-color--dark:  #2563EB;
+  --md-primary-bg-color:        #FFFFFF;
+  --md-primary-bg-color--light: rgba(255, 255, 255, 0.7);
+
+  --md-accent-fg-color:             #06B6D4;
+  --md-accent-fg-color--transparent: rgba(6, 182, 212, 0.12);
+  --md-accent-bg-color:             #0891B2;
+  --md-accent-bg-color--light:      rgba(6, 182, 212, 0.15);
+
+  --md-default-bg-color:          #0F172A;
+  --md-default-bg-color--light:   #1E293B;
+  --md-default-bg-color--lighter: #334155;
+  --md-default-bg-color--lightest: #475569;
+
+  --md-default-fg-color:          rgba(241, 245, 249, 0.92);
+  --md-default-fg-color--light:   rgba(148, 163, 184, 1);
+  --md-default-fg-color--lighter: rgba(100, 116, 139, 1);
+  --md-default-fg-color--lightest: rgba(51, 65, 85, 1);
+
+  --md-typeset-color: rgba(241, 245, 249, 0.92);
+  --md-typeset-a-color: #60A5FA;
+
+  --md-footer-bg-color:        #0B1220;
+  --md-footer-bg-color--dark:  #070D17;
+  --md-footer-fg-color:        rgba(241, 245, 249, 0.7);
+  --md-footer-fg-color--light:  rgba(241, 245, 249, 0.5);
+  --md-footer-fg-color--lighter: rgba(241, 245, 249, 0.3);
+
+  --md-code-bg-color:  #1E293B;
+  --md-code-fg-color:  rgba(241, 245, 249, 0.88);
+  --md-code-hl-color:  rgba(59, 130, 246, 0.2);
+  --md-code-hl-color--light: rgba(59, 130, 246, 0.08);
+
+  --md-code-hl-number-color:    #F87171;
+  --md-code-hl-special-color:   #FB7185;
+  --md-code-hl-function-color:  #C084FC;
+  --md-code-hl-constant-color:  #A78BFA;
+  --md-code-hl-keyword-color:   #60A5FA;
+  --md-code-hl-string-color:    #34D399;
+  --md-code-hl-name-color:      var(--md-code-fg-color);
+  --md-code-hl-operator-color:  var(--md-default-fg-color--light);
+  --md-code-hl-punctuation-color: var(--md-default-fg-color--light);
+  --md-code-hl-comment-color:   var(--md-default-fg-color--lighter);
+  --md-code-hl-generic-color:   var(--md-default-fg-color--light);
+  --md-code-hl-variable-color:  var(--md-default-fg-color--light);
+
+  --md-admonition-fg-color: var(--md-default-fg-color);
+  --md-admonition-bg-color: var(--md-default-bg-color--light);
+
+  --md-typeset-kbd-color:        rgba(255, 255, 255, 0.08);
+  --md-typeset-kbd-accent-color: rgba(255, 255, 255, 0.15);
+  --md-typeset-kbd-border-color: #1E293B;
+  --md-typeset-mark-color:       rgba(59, 130, 246, 0.25);
+  --md-typeset-table-color:      rgba(255, 255, 255, 0.08);
+  --md-typeset-table-color--light: rgba(255, 255, 255, 0.04);
+
+  --md-shadow-z1: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.3), 0 0 0.05rem rgba(0, 0, 0, 0.4);
+  --md-shadow-z2: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.5), 0 0 0.05rem rgba(0, 0, 0, 0.6);
+  --md-shadow-z3: 0 0.2rem 0.5rem rgba(0, 0, 0, 0.7), 0 0 0.05rem rgba(0, 0, 0, 0.8);
+
+  color-scheme: dark;
+}
+
+/* ---------------------------------------------------------------------------
+   3. Typography — Clean Professional Headings
+   --------------------------------------------------------------------------- */
+
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3,
+.md-typeset h4,
+.md-typeset h5,
+.md-typeset h6 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.md-typeset h1 {
+  font-weight: 700;
+  color: var(--cb-text-primary);
+  border-bottom: 1px solid var(--cb-border-default);
+  padding-bottom: 0.3em;
+  margin-bottom: 0.8em;
+}
+
+[data-md-color-scheme="slate"] .md-typeset h1 {
+  color: #F1F5F9;
+  border-bottom-color: #334155;
+}
+
+.md-typeset h2 {
+  padding-bottom: 0.3em;
+  margin-top: 1.6em;
+  border-bottom: 1px solid var(--cb-border-subtle);
+}
+
+[data-md-color-scheme="slate"] .md-typeset h2 {
+  border-bottom-color: #1E293B;
+}
+
+.md-typeset h3 {
+  border-left: 3px solid var(--cb-accent-primary);
+  padding-left: 0.6em;
+}
+
+[data-md-color-scheme="slate"] .md-typeset h3 {
+  border-left-color: #3B82F6;
+}
+
+/* ---------------------------------------------------------------------------
+   4. Header — Clean Flat Design
+   --------------------------------------------------------------------------- */
+
+.md-header {
+  background-color: var(--cb-bg-canvas);
+  box-shadow: var(--cb-shadow-md);
+  border-bottom: 1px solid var(--cb-border-default);
+}
+
+.md-header[data-md-state="shadow"] {
+  box-shadow: var(--cb-shadow-md);
+}
+
+.md-header .md-header__title,
+.md-header .md-header__topic,
+.md-header .md-ellipsis {
+  color: var(--cb-text-primary);
+}
+
+.md-header .md-icon svg {
+  color: var(--cb-text-secondary);
+}
+
+.md-header .md-source {
+  color: var(--cb-text-secondary);
+}
+
+[data-md-color-scheme="slate"] .md-header {
+  background-color: #1E293B;
+  border-bottom-color: #334155;
+}
+
+[data-md-color-scheme="slate"] .md-header .md-header__title,
+[data-md-color-scheme="slate"] .md-header .md-header__topic,
+[data-md-color-scheme="slate"] .md-header .md-ellipsis {
+  color: #F1F5F9;
+}
+
+[data-md-color-scheme="slate"] .md-header .md-icon svg {
+  color: #94A3B8;
+}
+
+[data-md-color-scheme="slate"] .md-header .md-source {
+  color: #94A3B8;
+}
+
+.md-header__title {
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------------------------
+   5. Navigation Sidebar
+   --------------------------------------------------------------------------- */
+
+.md-sidebar--primary .md-sidebar__inner {
+  border-right: 1px solid var(--cb-border-default);
+}
+
+[data-md-color-scheme="slate"] .md-sidebar--primary .md-sidebar__inner {
+  border-right-color: #334155;
+}
+
+.md-nav__link {
+  border-radius: var(--cb-radius-sm);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.md-nav__link:hover {
+  background-color: var(--md-accent-fg-color--transparent);
+}
+
+.md-nav__item--active > .md-nav__link {
+  font-weight: 600;
+  color: var(--cb-accent-primary);
+}
+
+[data-md-color-scheme="slate"] .md-nav__item--active > .md-nav__link {
+  color: #60A5FA;
+}
+
+.md-nav--primary .md-nav__title {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
+}
+
+/* ---------------------------------------------------------------------------
+   6. Content Area
+   --------------------------------------------------------------------------- */
+
+/* Tables — clean, simple */
+.md-typeset table:not([class]) {
+  border: 1px solid var(--cb-border-default);
+  border-radius: var(--cb-radius-md);
+  overflow: hidden;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.md-typeset table:not([class]) th {
+  background-color: var(--cb-accent-primary);
+  color: #FFFFFF;
+  font-weight: 600;
+  border-bottom: 1px solid #1D4ED8;
+}
+
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) th {
+  background-color: #334155;
+  color: #F1F5F9;
+  border-bottom-color: #475569;
+}
+
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) {
+  border-color: #334155;
+}
+
+.md-typeset table:not([class]) td {
+  border-bottom: 1px solid var(--cb-border-default);
+}
+
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) td {
+  border-bottom-color: #334155;
+}
+
+.md-typeset table:not([class]) tr:last-child td {
+  border-bottom: none;
+}
+
+.md-typeset table:not([class]) tr:hover td {
+  background-color: var(--md-accent-fg-color--transparent);
+}
+
+/* Code blocks */
+.md-typeset pre > code {
+  border-radius: var(--cb-radius-md);
+  border: 1px solid var(--cb-border-default);
+}
+
+[data-md-color-scheme="slate"] .md-typeset pre > code {
+  border-color: #334155;
+}
+
+/* Inline code */
+.md-typeset code {
+  border-radius: var(--cb-radius-sm);
+  background-color: var(--md-code-bg-color);
+  padding: 0.1em 0.4em;
+  font-size: 0.85em;
+}
+
+/* ---------------------------------------------------------------------------
+   7. Admonitions — Clean with correct accent colors
+   --------------------------------------------------------------------------- */
+
+.md-typeset .admonition,
+.md-typeset details {
+  border-radius: var(--cb-radius-md);
+  border-width: 1px;
+  box-shadow: var(--cb-shadow-sm);
+}
+
+.md-typeset .admonition-title,
+.md-typeset summary {
+  font-weight: 600;
+  border-radius: var(--cb-radius-md) var(--cb-radius-md) 0 0;
+}
+
+.md-typeset .admonition.note,
+.md-typeset details.note {
+  border-color: var(--cb-accent-primary);
+}
+
+.md-typeset .admonition.tip,
+.md-typeset details.tip {
+  border-color: var(--cb-accent-success);
+}
+
+.md-typeset .admonition.warning,
+.md-typeset details.warning {
+  border-color: var(--cb-accent-warning);
+}
+
+.md-typeset .admonition.danger,
+.md-typeset details.danger {
+  border-color: var(--cb-accent-error);
+}
+
+.md-typeset .admonition.info,
+.md-typeset details.info {
+  border-color: var(--cb-accent-secondary);
+}
+
+/* ---------------------------------------------------------------------------
+   8. Search & Tabs — Clean Flat Style
+   --------------------------------------------------------------------------- */
+
+/* Search bar */
+.md-search__input {
+  border-radius: var(--cb-radius-md);
+  background-color: var(--cb-bg-surface);
+  border: 1px solid var(--cb-border-default);
+}
+
+[data-md-color-scheme="default"] .md-search__input {
+  color: var(--cb-text-primary);
+}
+
+.md-search__input:focus {
+  background-color: var(--cb-bg-canvas);
+  border-color: var(--cb-accent-primary);
+}
+
+[data-md-color-scheme="slate"] .md-search__input {
+  background-color: #334155;
+  border-color: #475569;
+}
+
+[data-md-color-scheme="slate"] .md-search__input:focus {
+  background-color: #1E293B;
+  border-color: #3B82F6;
+}
+
+/* Tab bar */
+.md-tabs {
+  background-color: var(--cb-bg-app);
+  box-shadow: none;
+  border-bottom: 1px solid var(--cb-border-default);
+}
+
+.md-tabs__link {
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--cb-text-secondary);
+  padding: 0.6em 1.1em;
+  border-radius: 0;
+  transition: color 0.15s ease, border-color 0.15s ease;
+  opacity: 1;
+  white-space: nowrap;
+}
+
+.md-tabs__link:hover {
+  color: var(--cb-text-primary);
+}
+
+.md-tabs__link--active {
+  font-weight: 600;
+  color: var(--cb-accent-primary);
+  box-shadow: inset 0 -2px 0 0 var(--cb-accent-primary);
+}
+
+[data-md-color-scheme="slate"] .md-tabs {
+  background-color: #1E293B;
+  border-bottom-color: #334155;
+}
+
+[data-md-color-scheme="slate"] .md-tabs__link {
+  color: #94A3B8;
+}
+
+[data-md-color-scheme="slate"] .md-tabs__link:hover {
+  color: #F1F5F9;
+}
+
+[data-md-color-scheme="slate"] .md-tabs__link--active {
+  color: #60A5FA;
+  box-shadow: inset 0 -2px 0 0 #3B82F6;
+}
+
+/* ---------------------------------------------------------------------------
+   9. Footer
+   --------------------------------------------------------------------------- */
+
+.md-footer {
+  border-top: 1px solid var(--cb-border-default);
+}
+
+[data-md-color-scheme="slate"] .md-footer {
+  border-top-color: #334155;
+}
+
+.md-footer-meta {
+  background-color: var(--md-footer-bg-color--dark);
+}
+
+/* ---------------------------------------------------------------------------
+   10. Scrollbar (Webkit)
+   --------------------------------------------------------------------------- */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--md-default-bg-color);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--cb-border-strong);
+  border-radius: var(--cb-radius-md);
+  border: 2px solid var(--md-default-bg-color);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--cb-text-muted);
+}
+
+[data-md-color-scheme="slate"] ::-webkit-scrollbar-thumb {
+  background-color: #475569;
+}
+
+[data-md-color-scheme="slate"] ::-webkit-scrollbar-thumb:hover {
+  background-color: #64748B;
+}
+
+/* ---------------------------------------------------------------------------
+   11. Selection & Focus
+   --------------------------------------------------------------------------- */
+
+::selection {
+  background-color: rgba(37, 99, 235, 0.2);
+  color: var(--cb-text-primary);
+}
+
+[data-md-color-scheme="slate"] ::selection {
+  background-color: rgba(59, 130, 246, 0.3);
+  color: #F1F5F9;
+}
+
+.md-typeset a:focus,
+.md-nav__link:focus-visible {
+  outline: 2px solid var(--cb-accent-primary);
+  outline-offset: 2px;
+  border-radius: var(--cb-radius-sm);
+}
+
+/* ---------------------------------------------------------------------------
+   12. Table of Contents Sidebar
+   --------------------------------------------------------------------------- */
+
+.md-sidebar--secondary .md-sidebar__inner {
+  border-left: 1px solid var(--cb-border-default);
+  padding-left: 0.8rem;
+}
+
+[data-md-color-scheme="slate"] .md-sidebar--secondary .md-sidebar__inner {
+  border-left-color: #334155;
+}
+
+.md-nav--secondary .md-nav__link--active {
+  color: var(--cb-accent-primary);
+  font-weight: 600;
+  border-left: 2px solid var(--cb-accent-primary);
+  padding-left: 0.6em;
+  margin-left: -2px;
+}
+
+[data-md-color-scheme="slate"] .md-nav--secondary .md-nav__link--active {
+  color: #60A5FA;
+  border-left-color: #3B82F6;
+}
+
+/* ---------------------------------------------------------------------------
+   13. Print Styles
+   --------------------------------------------------------------------------- */
+
+@media print {
+  .md-header,
+  .md-footer,
+  .md-sidebar {
+    display: none !important;
+  }
+
+  .md-typeset h1 {
+    border-bottom-color: #000;
+  }
+}
