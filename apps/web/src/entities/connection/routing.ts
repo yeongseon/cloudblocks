@@ -27,13 +27,6 @@ export interface ConnectorRoute {
   tgtScreen: ScreenPoint;
 }
 
-/** @deprecated Use ScreenSegment instead. */
-export interface WorldSegment {
-  start: WorldPoint;
-  end: WorldPoint;
-  axis: 'x' | 'z';
-}
-
 const SAME_PX_TOLERANCE = 2;
 
 function worldToScreen(
@@ -136,22 +129,3 @@ export function screenSegmentLengthCU(seg: ScreenSegment): number {
   return Math.abs(seg.end.x - seg.start.x) / TILE_W;
 }
 
-/** @deprecated Use screen-space segments directly. */
-export function worldSegmentToScreen(
-  seg: WorldSegment,
-  originX: number,
-  originY: number,
-): { start: ScreenPoint; end: ScreenPoint } {
-  return {
-    start: worldToScreen(seg.start, originX, originY),
-    end: worldToScreen(seg.end, originX, originY),
-  };
-}
-
-/** @deprecated Use screenSegmentLengthCU instead. */
-export function worldSegmentLengthCU(seg: WorldSegment): number {
-  if (seg.axis === 'x') {
-    return Math.abs(seg.end.worldX - seg.start.worldX);
-  }
-  return Math.abs(seg.end.worldZ - seg.start.worldZ);
-}

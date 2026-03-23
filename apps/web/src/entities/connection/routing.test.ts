@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeWorldRoute, screenSegmentLength, screenSegmentLengthCU, worldSegmentToScreen, worldSegmentLengthCU } from './routing';
+import { computeWorldRoute, screenSegmentLength, screenSegmentLengthCU } from './routing';
 
 describe('computeWorldRoute — screen-space routing', () => {
   const originX = 400;
@@ -111,36 +111,4 @@ describe('screenSegmentLengthCU', () => {
   });
 });
 
-describe('worldSegmentToScreen (legacy)', () => {
-  it('converts world segment endpoints to screen coordinates', () => {
-    const seg = {
-      start: { worldX: 0, worldZ: 0, worldY: 0 },
-      end: { worldX: 2, worldZ: 0, worldY: 0 },
-      axis: 'x' as const,
-    };
-    const result = worldSegmentToScreen(seg, 400, 300);
-    expect(result.start.x).toBe(400);
-    expect(result.start.y).toBe(300);
-    expect(result.end.x).toBeGreaterThan(result.start.x);
-  });
-});
 
-describe('worldSegmentLengthCU (legacy)', () => {
-  it('returns X-axis length for x segments', () => {
-    const seg = {
-      start: { worldX: 1, worldZ: 3, worldY: 0 },
-      end: { worldX: 4, worldZ: 3, worldY: 0 },
-      axis: 'x' as const,
-    };
-    expect(worldSegmentLengthCU(seg)).toBe(3);
-  });
-
-  it('returns Z-axis length for z segments', () => {
-    const seg = {
-      start: { worldX: 3, worldZ: 1, worldY: 0 },
-      end: { worldX: 3, worldZ: 5, worldY: 0 },
-      axis: 'z' as const,
-    };
-    expect(worldSegmentLengthCU(seg)).toBe(4);
-  });
-});

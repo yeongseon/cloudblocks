@@ -5,10 +5,10 @@ import {
   EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
   EXTERNAL_ACTOR_LABEL_POSITION,
   EXTERNAL_ACTOR_POSITION,
-  GRID_CELL,
   getBlockWorldPosition,
   getEndpointWorldPosition,
 } from './position';
+import { GRID_CELL } from './isometric';
 
 function createPlate(id: string): ContainerNode {
   return {
