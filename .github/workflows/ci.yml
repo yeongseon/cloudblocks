@@ -11,8 +11,55 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # ─── Change Detection ───────────────────────────────────────────
+  # On PRs, detect which paths changed so downstream jobs can skip.
+  # On push-to-main, everything runs (outputs default to 'true').
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      web: ${{ steps.filter.outputs.web }}
+      api: ${{ steps.filter.outputs.api }}
+      packages: ${{ steps.filter.outputs.packages }}
+      ci: ${{ steps.filter.outputs.ci }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect changed paths
+        uses: dorny/paths-filter@v3
+        id: filter
+        if: github.event_name == 'pull_request'
+        with:
+          filters: |
+            web:
+              - 'apps/web/**'
+              - 'packages/**'
+              - 'pnpm-lock.yaml'
+              - 'package.json'
+              - 'tsconfig.json'
+            api:
+              - 'apps/api/**'
+            packages:
+              - 'packages/**'
+              - 'pnpm-lock.yaml'
+              - 'package.json'
+              - 'tsconfig.json'
+            ci:
+              - '.github/workflows/**'
+              - 'pnpm-lock.yaml'
+              - 'package.json'
+
+      # On push-to-main, all outputs default to empty string.
+      # Jobs treat empty as 'true' via: needs.changes.outputs.X != 'false'
+
+  # ─── Web ─────────────────────────────────────────────────────────
   web-lint:
     name: Web Lint
+    needs: changes
+    if: needs.changes.outputs.web != 'false' || needs.changes.outputs.ci != 'false'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -41,6 +88,8 @@ jobs:
 
   web-build:
     name: Web Type Check & Build
+    needs: changes
+    if: needs.changes.outputs.web != 'false' || needs.changes.outputs.ci != 'false'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -102,6 +151,8 @@ jobs:
 
   web-test:
     name: Web Tests
+    needs: changes
+    if: needs.changes.outputs.web != 'false' || needs.changes.outputs.ci != 'false'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -136,6 +187,8 @@ jobs:
 
   package-tests:
     name: Package Tests
+    needs: changes
+    if: needs.changes.outputs.packages != 'false' || needs.changes.outputs.ci != 'false'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -162,8 +215,11 @@ jobs:
       - name: Test @cloudblocks/domain
         run: pnpm --filter @cloudblocks/domain test
 
+  # ─── API ─────────────────────────────────────────────────────────
   api-lint:
     name: API Lint
+    needs: changes
+    if: needs.changes.outputs.api != 'false' || needs.changes.outputs.ci != 'false'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -185,6 +241,8 @@ jobs:
 
   api-test:
     name: API Tests
+    needs: changes
+    if: needs.changes.outputs.api != 'false' || needs.changes.outputs.ci != 'false'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -211,3 +269,35 @@ jobs:
           files: apps/api/coverage.xml
           flags: api
           fail_ci_if_error: false
+
+  # ─── Required Checks Gate ───────────────────────────────────────
+  # Single gate job that branch protection requires.
+  # Succeeds if all needed jobs pass OR were correctly skipped.
+  ci-gate:
+    name: CI Gate
+    if: always()
+    needs: [web-lint, web-build, web-test, package-tests, api-lint, api-test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check results
+        env:
+          WEB_LINT: ${{ needs.web-lint.result }}
+          WEB_BUILD: ${{ needs.web-build.result }}
+          WEB_TEST: ${{ needs.web-test.result }}
+          PKG_TESTS: ${{ needs.package-tests.result }}
+          API_LINT: ${{ needs.api-lint.result }}
+          API_TEST: ${{ needs.api-test.result }}
+        run: |
+          echo "=== CI Gate Check ==="
+          FAILED=0
+          for pair in "web-lint:$WEB_LINT" "web-build:$WEB_BUILD" "web-test:$WEB_TEST" \
+                      "package-tests:$PKG_TESTS" "api-lint:$API_LINT" "api-test:$API_TEST"; do
+            job="${pair%%:*}"
+            result="${pair#*:}"
+            echo "$job: $result"
+            if [[ "$result" != "success" && "$result" != "skipped" ]]; then
+              echo "::error::Job $job failed with result: $result"
+              FAILED=1
+            fi
+          done
+          exit $FAILED
