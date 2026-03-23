@@ -1,4 +1,5 @@
 import type { Workspace } from '../../../shared/types/index';
+import logger from '../../../shared/utils/logger';
 import type {
   ArchitectureModel,
   ContainerNode,
@@ -568,7 +569,7 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
       return null;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown import error';
-      console.error('Failed to import architecture:', error);
+      logger.error('Failed to import architecture:', error);
       return message;
     }
   },

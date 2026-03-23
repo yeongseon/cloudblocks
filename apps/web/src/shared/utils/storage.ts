@@ -1,5 +1,6 @@
 import type { Workspace } from '../types/index';
 import { serialize, deserialize } from '../types/schema';
+import logger from './logger';
 
 const STORAGE_KEY = 'cloudblocks:workspaces';
 const ACTIVE_WORKSPACE_KEY = 'cloudblocks:activeWorkspaceId';
@@ -14,7 +15,7 @@ export function saveWorkspaces(workspaces: Workspace[]): boolean {
     localStorage.setItem(STORAGE_KEY, json);
     return true;
   } catch (error) {
-    console.error('Failed to save workspaces:', error);
+    logger.error('Failed to save workspaces:', error);
     return false;
   }
 }
@@ -50,7 +51,7 @@ export function loadWorkspaces(): Workspace[] {
     if (!json) return [];
     return deserialize(json);
   } catch (error) {
-    console.error('Failed to load workspaces:', error);
+    logger.error('Failed to load workspaces:', error);
     return [];
   }
 }

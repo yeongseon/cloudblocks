@@ -9,6 +9,7 @@ import type {
   ResourceCategory,
   Workspace,
 } from './index';
+import logger from '../utils/logger';
 import { buildPlateSizeFromProfileId, inferLegacyPlateProfileId } from './index';
 import {
   connectionTypeToSemantic,
@@ -88,7 +89,7 @@ const LEGACY_CATEGORY_MAP: Record<LegacyBlockCategory, ResourceCategory> = {
 function remapCategory(raw: string): ResourceCategory {
   const mapped = LEGACY_CATEGORY_MAP[raw as LegacyBlockCategory];
   if (mapped) return mapped;
-  console.warn(`Unknown legacy category "${raw}", falling back to "compute".`);
+  logger.warn(`Unknown legacy category "${raw}", falling back to "compute".`);
   return 'compute';
 }
 
@@ -209,7 +210,7 @@ export function deserialize(json: string): Workspace[] {
   }
 
   if (!SUPPORTED_VERSIONS.includes(data.schemaVersion)) {
-    console.warn(
+    logger.warn(
       `Schema version mismatch: expected ${SCHEMA_VERSION}, got ${data.schemaVersion}. ` +
         'Data may need migration.'
     );

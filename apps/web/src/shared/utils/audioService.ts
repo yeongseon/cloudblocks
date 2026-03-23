@@ -1,3 +1,5 @@
+import logger from './logger';
+
 export type SoundName = 'block-snap' | 'delete' | 'validation-success' | 'validation-error';
 
 export class AudioService {
@@ -38,7 +40,7 @@ export class AudioService {
         }
       };
     } catch (err) {
-      console.warn('[AudioService] Failed to create AudioContext:', err);
+      logger.warn('[AudioService] Failed to create AudioContext:', err);
       throw err;
     }
 
@@ -55,7 +57,7 @@ export class AudioService {
         await this.ctx.resume();
       }
     } catch (err) {
-      console.warn('[AudioService] Failed to resume AudioContext:', err);
+      logger.warn('[AudioService] Failed to resume AudioContext:', err);
     }
   }
 
@@ -87,7 +89,7 @@ export class AudioService {
       const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
       this.bufferCache.set(name, audioBuffer);
     } catch (err) {
-      console.warn(`[AudioService] Failed to load sound "${name}":`, err);
+      logger.warn(`[AudioService] Failed to load sound "${name}":`, err);
     }
   }
 
@@ -106,7 +108,7 @@ export class AudioService {
       source.connect(this.gainNode!);
       source.start(0);
     } catch (err) {
-      console.warn(`[AudioService] Failed to play sound "${name}":`, err);
+      logger.warn(`[AudioService] Failed to play sound "${name}":`, err);
     }
   }
 

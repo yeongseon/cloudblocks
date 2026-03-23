@@ -1,4 +1,5 @@
 import type { ProviderType, ResourceCategory } from './index';
+import logger from '../utils/logger';
 
 // BrickSizeTier removed in v2.0 — use BlockTier instead
 
@@ -114,7 +115,7 @@ export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile>
 export function getBlockVisualProfile(category: ResourceCategory): BlockVisualProfile {
   const profile = BLOCK_VISUAL_PROFILES[category];
   if (!profile) {
-    console.warn(`Unknown resource category "${category}", falling back to "compute" profile.`);
+    logger.warn(`Unknown resource category "${category}", falling back to "compute" profile.`);
     return BLOCK_VISUAL_PROFILES.compute;
   }
   return profile;
