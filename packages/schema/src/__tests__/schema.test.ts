@@ -1,4 +1,7 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { SCHEMA_VERSION } from '../index.js';
 import { RESOURCE_RULES } from '../rules.js';
@@ -49,8 +52,14 @@ describe('Resource rule coverage', () => {
   });
 });
 
-describe.skip('JSON Schema artifact', () => {
-  const schema: Record<string, unknown> = {};
+describe('JSON Schema artifact', () => {
+  const schemaPath = resolve(
+    dirname(fileURLToPath(import.meta.url)),
+    '../../dist/architecture-model.schema.json',
+  );
+  const schema: Record<string, unknown> = JSON.parse(
+    readFileSync(schemaPath, 'utf-8'),
+  );
 
   it('should exist and be valid JSON', () => {
     expect(Object.keys(schema).length).toBeGreaterThan(0);
