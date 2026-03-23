@@ -75,7 +75,7 @@ const threeTierTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-tmpl-gw',
-        name: 'App Gateway',
+        name: 'Azure Application Gateway',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'application-gateway',
@@ -88,7 +88,7 @@ const threeTierTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-tmpl-compute',
-        name: 'Virtual Machine',
+        name: 'Azure VM',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'vm',
@@ -101,7 +101,7 @@ const threeTierTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-tmpl-db',
-        name: 'PostgreSQL',
+        name: 'Azure Database for PostgreSQL',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'sql-database',
@@ -114,7 +114,7 @@ const threeTierTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-tmpl-storage',
-        name: 'Blob Storage',
+        name: 'Azure Blob Storage',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'blob-storage',
@@ -200,7 +200,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-tmpl-gw2',
-        name: 'Gateway',
+        name: 'Azure Application Gateway',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'application-gateway',
@@ -213,7 +213,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-tmpl-app2',
-        name: 'App Service',
+        name: 'Azure App Service',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'app-service',
@@ -300,7 +300,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-tmpl-gw3',
-        name: 'API Gateway',
+        name: 'Azure Application Gateway',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'application-gateway',
@@ -313,7 +313,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-tmpl-api3',
-        name: 'API Server',
+        name: 'Azure VM',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'vm',
@@ -326,7 +326,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-tmpl-db3',
-        name: 'Database',
+        name: 'Azure SQL Database',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'sql-database',
@@ -339,7 +339,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-tmpl-blob3',
-        name: 'File Storage',
+        name: 'Azure Blob Storage',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'blob-storage',
@@ -442,7 +442,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-tmpl-gw4',
-        name: 'API Gateway',
+        name: 'Azure Application Gateway',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'application-gateway',
@@ -455,7 +455,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-tmpl-func4',
-        name: 'HTTP Handler',
+        name: 'Azure Functions',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'functions',
@@ -468,7 +468,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-tmpl-storage4',
-        name: 'Blob Storage',
+        name: 'Azure Blob Storage',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'blob-storage',
@@ -481,7 +481,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-tmpl-db4',
-        name: 'CosmosDB',
+        name: 'Azure Cosmos DB',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'cosmos-db',
@@ -568,7 +568,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-tmpl-event5',
-        name: 'Event Source',
+        name: 'Azure Event Grid',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'event-grid',
@@ -581,7 +581,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-tmpl-queue5',
-        name: 'Message Queue',
+        name: 'Azure Service Bus',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'service-bus',
@@ -594,7 +594,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-tmpl-timer5',
-        name: 'Scheduled Trigger',
+        name: 'Azure Event Grid (Timer)',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'event-grid',
@@ -607,7 +607,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-tmpl-func5a',
-        name: 'Event Processor',
+        name: 'Azure Functions',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'functions',
@@ -620,7 +620,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-tmpl-func5b',
-        name: 'Batch Processor',
+        name: 'Azure Functions (Batch)',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'functions',
@@ -633,7 +633,7 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-tmpl-storage5',
-        name: 'Data Lake',
+        name: 'Azure Blob Storage',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'blob-storage',
@@ -759,7 +759,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       // Subnet 1
       {
         id: 'block-fs-gw',
-        name: 'API Gateway',
+        name: 'Azure Application Gateway',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'application-gateway',
@@ -772,7 +772,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-fs-web',
-        name: 'Web Frontend',
+        name: 'Azure VM',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'vm',
@@ -786,7 +786,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       // Subnet 2
       {
         id: 'block-fs-db',
-        name: 'PostgreSQL',
+        name: 'Azure Database for PostgreSQL',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'sql-database',
@@ -799,7 +799,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-fs-storage',
-        name: 'Blob Storage',
+        name: 'Azure Blob Storage',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'blob-storage',
@@ -813,7 +813,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       // Serverless (Network Plate)
       {
         id: 'block-fs-api',
-        name: 'API Handler',
+        name: 'Azure Functions',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'functions',
@@ -826,7 +826,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-fs-worker',
-        name: 'Queue Worker',
+        name: 'Azure Functions (Worker)',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'functions',
@@ -839,7 +839,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-fs-batch',
-        name: 'Batch Processor',
+        name: 'Azure Functions (Batch)',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'functions',
@@ -852,7 +852,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-fs-queue',
-        name: 'Message Queue',
+        name: 'Azure Service Bus',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'service-bus',
@@ -865,7 +865,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-fs-event',
-        name: 'Event Source',
+        name: 'Azure Event Grid',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'event-grid',
@@ -878,7 +878,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       },
       {
         id: 'block-fs-timer',
-        name: 'Cron Timer',
+        name: 'Azure Event Grid (Timer)',
         kind: 'resource',
         layer: 'resource',
         resourceType: 'event-grid',

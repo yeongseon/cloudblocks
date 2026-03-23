@@ -434,6 +434,7 @@ export type CreationGroupId = ResourceCategory | 'foundation';
 
 export const CREATION_GROUP_ORDER: CreationGroupId[] = [
   'foundation',
+  'network',
   'compute',
   'data',
   'delivery',

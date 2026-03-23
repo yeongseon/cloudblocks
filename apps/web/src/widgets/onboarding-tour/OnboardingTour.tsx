@@ -23,7 +23,8 @@ const STEPS: TourStep[] = [
     selector: '.sidebar-palette',
     fallbackSelector: '.sidebar-palette',
     title: 'Add a Node',
-    description: 'Browse the palette and drag a resource onto the canvas to start building.',
+    description:
+      'Browse Azure resources in the palette and drag one onto the canvas to start building.',
     ensureVisible: () => useUIStore.getState().setSidebarOpen(true),
   },
   {
@@ -36,7 +37,8 @@ const STEPS: TourStep[] = [
     selector: '.menu-bar-nav',
     fallbackSelector: '.menu-bar-nav',
     title: 'Generate Code',
-    description: 'Open Build → Generate to export Terraform, Bicep, or Pulumi code.',
+    description:
+      'Open Build → Generate to export Azure infrastructure code as Bicep, Terraform, or Pulumi.',
   },
 ];
 
