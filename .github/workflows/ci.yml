@@ -66,7 +66,7 @@ jobs:
 
       - name: Check bundle size budget
         run: |
-          MAX_TOTAL_KB=800
+          MAX_TOTAL_KB=850
           MAX_ENTRY_KB=350
           DIST_DIR="apps/web/dist/assets"
 

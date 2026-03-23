@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { isApiConfigured } from '../../../shared/api/client';
+import { ComingSoonBanner } from '../../../shared/ui/ComingSoonBanner';
 import './AiPromptBar.css';
 
 const AI_BACKEND_REQUIRED_MESSAGE = 'AI features require the backend API - see setup guide.';
@@ -65,7 +66,9 @@ export const AiPromptBar: React.FC<AiPromptBarProps> = ({
           )}
         </button>
       </div>
-      {disabledMessage && <div className="ai-error-message">{disabledMessage}</div>}
+      {disabledMessage && (
+        <ComingSoonBanner message={disabledMessage} className="ai-coming-soon" />
+      )}
       {error && <div className="ai-error-message">{error}</div>}
       {explanation && <div className="ai-explanation">{explanation}</div>}
       {warnings && warnings.length > 0 && (

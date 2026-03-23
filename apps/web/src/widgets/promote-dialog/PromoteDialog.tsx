@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { usePromoteStore } from '../../entities/store/promoteStore';
 import type { PromotionChecklist } from '../../shared/types/ops';
+import { ComingSoonBanner } from '../../shared/ui/ComingSoonBanner';
 import { timeAgo } from '../../shared/utils/timeAgo';
 import './PromoteDialog.css';
 
@@ -84,9 +85,10 @@ export function PromoteDialog() {
         </div>
 
         <div className="promote-dialog-content">
-          <div className="promote-coming-soon-banner">
-            Coming Soon — Promote to Production is under development and not yet functional.
-          </div>
+          <ComingSoonBanner
+            message="Coming Soon — Promote to Production is under development and not yet functional."
+            className="promote-coming-soon-banner"
+          />
           {/* Source info card */}
           <div className="promote-source-card">
             <div className="promote-source-label">Staging Environment</div>
