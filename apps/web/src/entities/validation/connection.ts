@@ -34,12 +34,13 @@ export type EndpointType = ResourceCategory | 'internet';
 
 /** Map of allowed category pairs to endpoint semantics. */
 const ALLOWED_CONNECTIONS: Record<string, EndpointSemantic[]> = {
-  'internet->edge': ['http', 'data'],
-  'edge->edge': ['http', 'data'],
-  'edge->compute': ['http', 'data'],
+  'internet->delivery': ['http', 'data'],
+  'delivery->delivery': ['http', 'data'],
+  'delivery->compute': ['http', 'data'],
   'compute->data': ['data'],
   'compute->operations': ['event', 'data'],
   'compute->security': ['data'],
+  'compute->identity': ['data'],
   'compute->messaging': ['event', 'data'],
   'messaging->compute': ['event', 'data'],
 };
@@ -256,7 +257,7 @@ export function canConnect(
 ): boolean | { valid: boolean; reason?: string } {
   if (typeof source === 'string' && typeof target === 'string') {
     if (source === 'internet') {
-      return target === 'edge';
+      return target === 'delivery';
     }
     if (target === 'internet') {
       return false;

@@ -2,6 +2,7 @@ import { memo, useId, useMemo } from 'react';
 import type { StudColorSpec } from '../../shared/types/index';
 import type { LayerType } from '@cloudblocks/schema';
 import { StudDefs, StudGrid } from '../../shared/components/IsometricStud';
+import { PlateSurfaceGrid } from '../../shared/components/PlateSurfaceGrid';
 import { useUIStore } from '../store/uiStore';
 import {
   TILE_W,
@@ -145,6 +146,7 @@ export const PlateSvg = memo(function PlateSvg({
   }, [cx, diamondHeight, screenWidth, studsX, studsY, topY]);
 
   const showStuds = useUIStore((s) => s.showStuds);
+  const showGrid = useUIStore((s) => s.showGrid);
   const studId = useId().replace(/:/g, '_');
 
   // Label positioning on side walls
@@ -174,6 +176,20 @@ export const PlateSvg = memo(function PlateSvg({
       <polygon points={rightSidePoints} fill={rightSideColor} />
 
       {showStuds && <StudGrid studId={studId} studs={studs} />}
+
+      {showGrid && (
+        <PlateSurfaceGrid
+          cx={cx}
+          topY={topY}
+          midY={midY}
+          leftX={leftX}
+          rightX={rightX}
+          bottomY={bottomY}
+          studsX={studsX}
+          studsY={studsY}
+          screenWidth={screenWidth}
+        />
+      )}
 
       {label ? (
         <text

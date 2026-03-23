@@ -86,7 +86,7 @@ function makeDiffDelta(): DiffDelta {
           kind: 'resource',
           layer: 'resource',
           resourceType: 'load_balancer',
-          category: 'edge',
+          category: 'delivery',
           provider: 'azure',
           parentId: 'plate-added-1',
           position: { x: 1, y: 0, z: 1 },

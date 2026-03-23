@@ -17,7 +17,6 @@ import {
   getCreationGroupId,
   type CreationGroupId,
   ALL_RESOURCES,
-  PROVIDER_RESOURCE_ALLOWLIST,
 } from '../bottom-panel/useTechTree';
 import './SidebarPalette.css';
 
@@ -27,7 +26,8 @@ const CATEGORY_COLOR_VARS: Record<CreationGroupId, string> = {
   compute: 'var(--cat-compute)',
   data: 'var(--cat-data)',
   security: 'var(--cat-security)',
-  edge: 'var(--cat-edge)',
+  delivery: 'var(--cat-edge)',
+  identity: '#0078D4',
   messaging: 'var(--cat-messaging)',
   operations: 'var(--cat-operations)',
 };
@@ -204,14 +204,12 @@ export function SidebarPalette() {
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const providerResources = PROVIDER_RESOURCE_ALLOWLIST[activeProvider];
   const normalizedQuery = searchQuery.trim().toLowerCase();
 
   const groupedResources = useMemo(() => {
     return CREATION_GROUP_ORDER.map((groupId) => {
       const meta = getCreationGroupMeta(groupId);
       const resources = ALL_RESOURCES.filter((type) => getCreationGroupId(type) === groupId)
-        .filter((type) => providerResources.has(type))
         .filter((type) => {
           if (!normalizedQuery) return true;
           const name = getResourceLabel(type, activeProvider).toLowerCase();
@@ -229,11 +227,9 @@ export function SidebarPalette() {
 
       return { groupId, resources };
     }).filter((group) => group.resources.length > 0);
-  }, [activeProvider, normalizedQuery, providerResources]);
+  }, [activeProvider, normalizedQuery]);
 
-  const totalResourceCount = useMemo(() => {
-    return ALL_RESOURCES.filter((type) => providerResources.has(type)).length;
-  }, [providerResources]);
+  const totalResourceCount = ALL_RESOURCES.length;
 
   const visibleResourceCount = useMemo(() => {
     return groupedResources.reduce((total, group) => total + group.resources.length, 0);

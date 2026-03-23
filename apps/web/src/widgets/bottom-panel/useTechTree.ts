@@ -33,7 +33,8 @@ export type ResourceType =
   | 'public-ip'
   | 'route-table'
   | 'private-endpoint'
-  | 'app-gateway';
+  | 'app-gateway'
+  | 'managed-identity';
 
 export interface ResourceDefinition {
   id: ResourceType;
@@ -84,7 +85,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'DNS',
     icon: '🌐',
     category: 'always',
-    blockCategory: 'edge',
+    blockCategory: 'delivery',
   },
   cdn: {
     id: 'cdn',
@@ -93,7 +94,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'CDN',
     icon: '⚡',
     category: 'always',
-    blockCategory: 'edge',
+    blockCategory: 'delivery',
   },
   'front-door': {
     id: 'front-door',
@@ -102,7 +103,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'FrontDoor',
     icon: '🚪',
     category: 'always',
-    blockCategory: 'edge',
+    blockCategory: 'delivery',
   },
 
   // VNet optional (public-first, can add private later)
@@ -178,6 +179,15 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     category: 'vnet-optional',
     blockCategory: 'security',
   },
+  'managed-identity': {
+    id: 'managed-identity',
+    schemaResourceType: 'managed_identity',
+    label: 'Managed Identity',
+    shortLabel: 'Identity',
+    icon: '🪪',
+    category: 'vnet-optional',
+    blockCategory: 'identity',
+  },
 
   // VNet required
   vm: {
@@ -207,7 +217,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'IntLB',
     icon: '⚖️',
     category: 'vnet-required',
-    blockCategory: 'edge',
+    blockCategory: 'delivery',
     disabledReason:
       'Create a Network first. Internal load balancers distribute traffic within a network.',
   },
@@ -218,7 +228,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'FW',
     icon: '🛡️',
     category: 'vnet-required',
-    blockCategory: 'edge',
+    blockCategory: 'delivery',
     disabledReason: 'Create a Network first. Firewalls protect traffic entering your network.',
   },
   nsg: {
@@ -290,7 +300,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'AppGW',
     icon: '🚪',
     category: 'vnet-required',
-    blockCategory: 'edge',
+    blockCategory: 'delivery',
     disabledReason: 'Create a Network first. Application Gateways require a dedicated subnet.',
   },
 };
@@ -318,6 +328,7 @@ const PROVIDER_LABELS: Record<ProviderType, Partial<Record<ResourceType, Provide
     'container-instances': { label: 'ECS Fargate', shortLabel: 'Fargate' },
     'cosmos-db': { label: 'DynamoDB', shortLabel: 'DynamoDB' },
     'key-vault': { label: 'Secrets Manager', shortLabel: 'Secrets' },
+    'managed-identity': { label: 'IAM Role', shortLabel: 'IAM' },
     vm: { label: 'EC2', shortLabel: 'EC2' },
     aks: { label: 'EKS', shortLabel: 'EKS' },
     'internal-lb': { label: 'Internal ALB', shortLabel: 'IntALB' },
@@ -344,6 +355,7 @@ const PROVIDER_LABELS: Record<ProviderType, Partial<Record<ResourceType, Provide
     'container-instances': { label: 'Cloud Run', shortLabel: 'Run' },
     'cosmos-db': { label: 'Firestore', shortLabel: 'Firestore' },
     'key-vault': { label: 'Secret Manager', shortLabel: 'SecMgr' },
+    'managed-identity': { label: 'Service Account', shortLabel: 'SA' },
     vm: { label: 'Compute Engine', shortLabel: 'GCE' },
     aks: { label: 'GKE', shortLabel: 'GKE' },
     'internal-lb': { label: 'Internal LB', shortLabel: 'IntLB' },
@@ -416,37 +428,18 @@ export const PLATE_ACTION_GRID: (PlateActionType | null)[][] = [
   [null, null, null],
 ];
 
-// ─── MVP Resource Allowlist ────────────────────────────────
-// Phase 6: Show only core resources in the creation palette.
-// Full RESOURCE_DEFINITIONS remain for schema compatibility.
-export const MVP_RESOURCE_ALLOWLIST: ReadonlySet<ResourceType> = new Set([
-  'network',
-  'subnet',
-  'vm',
-  'sql',
-  'storage',
-  'key-vault',
-  'queue',
-  'app-service',
-  'app-gateway',
-]);
-
 export const ALL_RESOURCES = Object.keys(RESOURCE_DEFINITIONS) as ResourceType[];
-
-export const PROVIDER_RESOURCE_ALLOWLIST: Record<ProviderType, ReadonlySet<ResourceType>> = {
-  azure: MVP_RESOURCE_ALLOWLIST,
-  aws: MVP_RESOURCE_ALLOWLIST,
-  gcp: MVP_RESOURCE_ALLOWLIST,
-};
 
 export type CreationGroupId = ResourceCategory | 'foundation';
 
 export const CREATION_GROUP_ORDER: CreationGroupId[] = [
   'foundation',
+  'network',
   'compute',
   'data',
-  'edge',
+  'delivery',
   'security',
+  'identity',
   'messaging',
   'operations',
 ];
@@ -560,13 +553,11 @@ export function useTechTree(): TechTreeState {
     };
 
     const getCreationResources = () => {
-      return (Object.keys(RESOURCE_DEFINITIONS) as ResourceType[])
-        .filter((type) => MVP_RESOURCE_ALLOWLIST.has(type))
-        .map((type) => ({
-          resource: RESOURCE_DEFINITIONS[type],
-          enabled: isEnabled(type),
-          disabledReason: getDisabledReason(type),
-        }));
+      return ALL_RESOURCES.map((type) => ({
+        resource: RESOURCE_DEFINITIONS[type],
+        enabled: isEnabled(type),
+        disabledReason: getDisabledReason(type),
+      }));
     };
 
     const getTargetPlateId = (type: ResourceType): string | null => {

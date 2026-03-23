@@ -60,6 +60,11 @@ export const ConnectionPath = memo(function ConnectionPath({
   const arrowId = `arrow-${connection.id}`;
   const diffState = diffMode && diffDelta ? getDiffState(connection.id, diffDelta) : 'unchanged';
 
+  const semanticFgColor =
+    semantic === 'http' ? '#4C78A8' : semantic === 'event' ? '#6B86B4' : '#5C97A3';
+  const semanticBgColor =
+    semantic === 'http' ? '#2C4A6E' : semantic === 'event' ? '#3E506E' : '#3A6670';
+
   const bgStroke =
     diffState === 'added'
       ? '#166534'
@@ -67,7 +72,7 @@ export const ConnectionPath = memo(function ConnectionPath({
         ? '#991b1b'
         : diffState === 'modified'
           ? '#854d0e'
-          : '#1e293b';
+          : semanticBgColor;
   const fgStroke =
     diffState === 'added'
       ? '#22c55e'
@@ -75,7 +80,7 @@ export const ConnectionPath = memo(function ConnectionPath({
         ? '#ef4444'
         : diffState === 'modified'
           ? '#eab308'
-          : '#64748b';
+          : semanticFgColor;
   const arrowFillBg = bgStroke;
   const arrowFillFg = fgStroke;
   const connStyle =
@@ -115,9 +120,6 @@ export const ConnectionPath = memo(function ConnectionPath({
       onClick={handleClick}
     >
       <defs>
-        <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.25" floodColor="#000000" />
-        </filter>
         <marker
           id={`${arrowId}-bg`}
           markerWidth="12"
@@ -165,7 +167,6 @@ export const ConnectionPath = memo(function ConnectionPath({
         strokeWidth={effectiveFgStrokeWidth}
         strokeDasharray={fgStrokeDasharray}
         fill="none"
-        filter="url(#glow)"
         pointerEvents="none"
         markerEnd={`url(#${arrowId})`}
       />

@@ -114,7 +114,7 @@ function generateImplicitBicepResources(block: LeafNode, resourceName: string): 
 
   const needsPip =
     (block.category === 'compute' && block.subtype === 'vm') ||
-    (block.category === 'edge' && block.subtype === 'firewall');
+    (block.category === 'delivery' && block.subtype === 'firewall');
 
   const needsNic = block.category === 'compute' && block.subtype === 'vm';
 
@@ -245,7 +245,7 @@ function generateBlockResource(
     case 'network':
       lines.push(`  properties: {}`);
       break;
-    case 'edge':
+    case 'delivery':
       lines.push(`  properties: {`);
       lines.push(`    sku: {`);
       lines.push(`      name: 'Standard_v2'`);
@@ -262,6 +262,9 @@ function generateBlockResource(
       lines.push(`  properties: {}`);
       break;
     case 'operations':
+      lines.push(`  properties: {}`);
+      break;
+    case 'identity':
       lines.push(`  properties: {}`);
       break;
     case 'security':

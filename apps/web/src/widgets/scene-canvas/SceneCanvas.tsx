@@ -31,6 +31,7 @@ export function SceneCanvas() {
   const activeProvider = useUIStore((s) => s.activeProvider);
   const completeInteraction = useUIStore((s) => s.completeInteraction);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
+  const showGrid = useUIStore((s) => s.showGrid);
   const playSound = (name: SoundName) => {
     if (!isSoundMuted) audioService.playSound(name);
   };
@@ -168,7 +169,7 @@ export function SceneCanvas() {
 
   return (
     <div
-      className="scene-viewport"
+      className={showGrid ? 'scene-viewport' : 'scene-viewport no-grid'}
       ref={containerRef}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}

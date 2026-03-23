@@ -26,7 +26,7 @@ describe('azureProviderDefinition', () => {
       resourceType: 'azurerm_postgresql_flexible_server',
       namePrefix: 'pgserver',
     });
-    expect(azureProviderDefinition.blockMappings.edge).toEqual({
+    expect(azureProviderDefinition.blockMappings.delivery).toEqual({
       resourceType: 'azurerm_application_gateway',
       namePrefix: 'appgw',
     });
@@ -127,7 +127,7 @@ describe('gcpProviderDefinition', () => {
       resourceType: 'google_cloud_run_v2_service',
       namePrefix: 'run',
     });
-    expect(gcpProviderDefinition.blockMappings.edge).toEqual({
+    expect(gcpProviderDefinition.blockMappings.delivery).toEqual({
       resourceType: 'google_compute_backend_service',
       namePrefix: 'backend',
     });

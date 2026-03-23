@@ -39,10 +39,11 @@ const VALID_PLATE_TYPES: PlateLayerType[] = ['global', 'edge', 'region', 'zone',
 const VALID_BLOCK_CATEGORIES: ResourceCategory[] = [
   'network',
   'security',
-  'edge',
+  'delivery',
   'compute',
   'data',
   'messaging',
+  'identity',
   'operations',
 ];
 
@@ -139,7 +140,7 @@ export const validateArchitectureShape = (imported: unknown): { valid: true } =>
 
       if (!isValidBlockCategory(node.category)) {
         throw new Error(
-          `${context}: category must be one of network, security, edge, compute, data, messaging, operations`,
+          `${context}: category must be one of network, security, delivery, compute, data, messaging, identity, operations`,
         );
       }
       if (typeof node.parentId !== 'string') {
@@ -214,7 +215,7 @@ export const validateArchitectureShape = (imported: unknown): { valid: true } =>
       }
       if (!isValidBlockCategory(block.category)) {
         throw new Error(
-          `${context}: category must be one of network, security, edge, compute, data, messaging, operations`,
+          `${context}: category must be one of network, security, delivery, compute, data, messaging, identity, operations`,
         );
       }
       if (typeof block.placementId !== 'string') {
@@ -593,11 +594,21 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
 
   loadFromTemplate: (template) => {
     const now = new Date().toISOString();
+    const clonedArch = JSON.parse(JSON.stringify(template.architecture));
+
+    // Generate endpoints for all nodes and external actors so connections
+    // can resolve their anchors (templates ship with endpoints: []).
+    const nodeIds = (clonedArch.nodes ?? []).map((n: { id: string }) => n.id);
+    const actorIds = (clonedArch.externalActors ?? []).map((a: { id: string }) => a.id);
+    clonedArch.endpoints = [...nodeIds, ...actorIds].flatMap((id: string) =>
+      generateEndpointsForNode(id),
+    );
+
     const newWorkspace: Workspace = {
       id: generateId('ws'),
       name: template.name,
       architecture: {
-        ...JSON.parse(JSON.stringify(template.architecture)),
+        ...clonedArch,
         id: generateId('arch'),
         createdAt: now,
         updatedAt: now,

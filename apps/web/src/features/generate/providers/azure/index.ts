@@ -21,7 +21,7 @@ const azureSubtypeBlockMappings: SubtypeResourceMap = {
     'blob-storage': { resourceType: 'azurerm_storage_account', namePrefix: 'st' },
     blob_storage: { resourceType: 'azurerm_storage_account', namePrefix: 'st' },
   },
-  edge: {
+  delivery: {
     'application-gateway': { resourceType: 'azurerm_application_gateway', namePrefix: 'appgw' },
     application_gateway: { resourceType: 'azurerm_application_gateway', namePrefix: 'appgw' },
     'nat-gateway': { resourceType: 'azurerm_nat_gateway', namePrefix: 'natgw' },
@@ -44,6 +44,12 @@ const azureSubtypeBlockMappings: SubtypeResourceMap = {
     firewall_security: { resourceType: 'azurerm_firewall', namePrefix: 'fw' },
     key_vault: { resourceType: 'azurerm_key_vault', namePrefix: 'kv' },
     bastion_host: { resourceType: 'azurerm_bastion_host', namePrefix: 'bastion' },
+  },
+  identity: {
+    'managed-identity': { resourceType: 'azurerm_user_assigned_identity', namePrefix: 'identity' },
+    managed_identity: { resourceType: 'azurerm_user_assigned_identity', namePrefix: 'identity' },
+    'service-principal': { resourceType: 'azuread_service_principal', namePrefix: 'sp' },
+    service_principal: { resourceType: 'azuread_service_principal', namePrefix: 'sp' },
   },
   network: {
     'nat-gateway': { resourceType: 'azurerm_nat_gateway', namePrefix: 'natgw' },
@@ -97,7 +103,11 @@ export const azureProviderDefinition: ProviderDefinition = {
       resourceType: 'azurerm_user_assigned_identity',
       namePrefix: 'identity',
     },
-    edge: {
+    identity: {
+      resourceType: 'azurerm_user_assigned_identity',
+      namePrefix: 'identity',
+    },
+    delivery: {
       resourceType: 'azurerm_application_gateway',
       namePrefix: 'appgw',
     },

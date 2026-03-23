@@ -27,10 +27,11 @@ export const TIER_DIMENSIONS: Record<BlockTier, BlockDimensionsCU> = {
 export const CATEGORY_TIER_MAP: Record<ResourceCategory, BlockTier> = {
   network: 'large',
   security: 'small',
-  edge: 'wide',
+  delivery: 'wide',
   compute: 'medium',
   data: 'large',
   messaging: 'micro',
+  identity: 'small',
   operations: 'small',
 };
 
@@ -70,7 +71,7 @@ export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile>
     hostable: false,
     appCapacity: 0,
   },
-  edge: {
+  delivery: {
     tier: 'wide',
     surface: 'studded',
     silhouette: 'gateway',
@@ -99,6 +100,14 @@ export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile>
     surface: 'studded',
     silhouette: 'hex',
     footprint: [2, 4],
+    hostable: false,
+    appCapacity: 0,
+  },
+  identity: {
+    tier: 'small',
+    surface: 'studded',
+    silhouette: 'shield',
+    footprint: [2, 2],
     hostable: false,
     appCapacity: 0,
   },

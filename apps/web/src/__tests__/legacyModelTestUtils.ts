@@ -46,7 +46,7 @@ const mapCategory = (category: ResourceCategory | LegacyCategory | undefined): R
     return 'data';
   }
   if (category === 'gateway') {
-    return 'edge';
+    return 'delivery';
   }
   if (category === 'function') {
     return 'compute';
@@ -58,7 +58,7 @@ const mapCategory = (category: ResourceCategory | LegacyCategory | undefined): R
     return 'operations';
   }
   if (category === 'identity') {
-    return 'security';
+    return 'identity';
   }
   return category ?? 'compute';
 };

@@ -193,6 +193,9 @@ interface UIState {
   toggleStuds: () => void;
   setShowStuds: (show: boolean) => void;
 
+  showGrid: boolean;
+  toggleGrid: () => void;
+
   pendingGitHubAction: PendingGitHubAction;
   setPendingGitHubAction: (action: PendingGitHubAction) => void;
   pendingLinkRepo: string | null;
@@ -232,10 +235,19 @@ function closeOtherRightPanels(except: RightPanelKey): Partial<UIState> {
 }
 
 export const useUIStore = create<UIState>((set, get) => ({
-  appView: 'landing',
-  setAppView: (view) => set({ appView: view }),
-  goToLanding: () => set({ appView: 'landing' }),
-  goToBuilder: () => set({ appView: 'builder' }),
+  appView: (localStorage.getItem('cloudblocks:app-view') as AppView) || 'landing',
+  setAppView: (view) => {
+    localStorage.setItem('cloudblocks:app-view', view);
+    set({ appView: view });
+  },
+  goToLanding: () => {
+    localStorage.setItem('cloudblocks:app-view', 'landing');
+    set({ appView: 'landing' });
+  },
+  goToBuilder: () => {
+    localStorage.setItem('cloudblocks:app-view', 'builder');
+    set({ appView: 'builder' });
+  },
 
   selectedId: null,
   setSelectedId: (id) => {
@@ -496,8 +508,8 @@ export const useUIStore = create<UIState>((set, get) => ({
   showStuds: (() => {
     const stored = localStorage.getItem('cloudblocks:show-studs');
     if (stored !== null) return stored === 'true';
-    const theme = localStorage.getItem('cloudblocks:theme-variant');
-    return theme === 'workshop';
+    // Default to true per BRICK_DESIGN_SPEC.md §5: all blocks render stud grids
+    return true;
   })(),
   toggleStuds: () =>
     set((s) => {
@@ -509,6 +521,9 @@ export const useUIStore = create<UIState>((set, get) => ({
     localStorage.setItem('cloudblocks:show-studs', String(show));
     set({ showStuds: show });
   },
+
+  showGrid: true,
+  toggleGrid: () => set((s) => ({ showGrid: !s.showGrid })),
 
   pendingGitHubAction: readPendingGitHubAction(),
   setPendingGitHubAction: (action) => {

@@ -2,7 +2,7 @@
 
 This document defines the system architecture for the CloudBlocks Platform.
 
-CloudBlocks is an **Architecture Compiler** — it models cloud infrastructure using a **Lego-style composition system**, validates designs against architectural rules, and generates deployable infrastructure code (Terraform, Bicep, Pulumi). The current architecture is **Git-native**: GitHub repos are the source of truth for architecture payloads and generated artifacts.
+CloudBlocks is an **Architecture Compiler** — it models cloud infrastructure using a **block-based composition system**, validates designs against architectural rules, and generates deployable infrastructure code (Terraform, Bicep, Pulumi). The current architecture is **Git-native**: GitHub repos are the source of truth for architecture payloads and generated artifacts.
 
 > **Technical approach**: CloudBlocks is a **2D-first editor with 2.5D rendering**, rather than a full 3D engine. The internal model is a 2D coordinate system with containment hierarchy. The rendering layer projects this into an isometric view using SVG + CSS transforms.
 > See [ADR-0010](../adr/0010-svg-only-rendering-model.md) for the definitive rendering technology decision.
@@ -11,9 +11,9 @@ CloudBlocks is an **Architecture Compiler** — it models cloud infrastructure u
 
 ## Architecture Compiler — Core Concept
 
-### Lego-Style Composition Model
+### Block-Based Composition Model
 
-CloudBlocks models infrastructure using a Lego-style architecture system. Users assemble infrastructure by placing visual building blocks — not by drawing diagrams or writing code:
+CloudBlocks models infrastructure using a block-based architecture system. Users assemble infrastructure by placing visual building blocks — not by drawing diagrams or writing code:
 
 | Concept        | Role                                | Example                             |
 | -------------- | ----------------------------------- | ----------------------------------- |

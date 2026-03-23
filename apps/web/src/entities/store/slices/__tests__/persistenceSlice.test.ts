@@ -565,7 +565,7 @@ describe('persistenceSlice branches', () => {
       expect(() => validateArchitectureShape(invalidBlockId)).toThrow('id must be a string');
       expect(() => validateArchitectureShape(invalidBlockName)).toThrow('name must be a string');
       expect(() => validateArchitectureShape(invalidBlockCategory)).toThrow(
-        'category must be one of network, security, edge, compute, data, messaging, operations',
+        'category must be one of network, security, delivery, compute, data, messaging, identity, operations',
       );
     });
 

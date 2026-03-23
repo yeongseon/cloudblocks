@@ -2,13 +2,13 @@
 
 > Scope note: This document is the original MVP PRD and remains as historical product context. Some items listed as MVP non-goals were implemented in later milestones/phases. For current implementation status and timeline, use [ROADMAP.md](./ROADMAP.md).
 
-Build cloud architecture visually using a Lego-style composition model — and generate production-ready Infrastructure-as-Code.
+Build cloud architecture visually using a block-based composition model — and generate production-ready Infrastructure-as-Code.
 
 ---
 
 # 1. Product Summary
 
-CloudBlocks is an **open-source architecture compiler** that models cloud infrastructure using a **Lego-style composition system**. Users assemble infrastructure by placing visual building blocks on plates in a **2.5D isometric interface**, the platform validates the architecture against real-world rules, and generates Infrastructure-as-Code.
+CloudBlocks is an **open-source architecture compiler** that models cloud infrastructure using a **block-based composition system**. Users assemble infrastructure by placing visual building blocks on plates in a **2.5D isometric interface**, the platform validates the architecture against real-world rules, and generates Infrastructure-as-Code.
 
 Unlike traditional diagram tools (draw.io, Lucidchart), every visual element in CloudBlocks represents a **real infrastructure component** that maps directly to deployable code. Unlike direct IaC authoring (Terraform, Bicep), users never write infrastructure code — they model architecture visually and the system compiles it.
 
@@ -40,17 +40,17 @@ CloudBlocks solves this by making **visual architecture the source of truth**.
 
 # 3. Product Vision
 
-## Lego-Style Architecture Modeling
+## Block-Based Architecture Modeling
 
-CloudBlocks models cloud infrastructure using a **Lego-style architecture system**.
+CloudBlocks models cloud infrastructure using a **block-based architecture system**.
 
 Instead of writing infrastructure code directly, users assemble architecture using visual building blocks:
 
 | Concept        | Role                                                          | Analogy        |
 | -------------- | ------------------------------------------------------------- | -------------- |
-| **Plate**      | Infrastructure boundary (network, subnet)                     | Lego baseplate |
-| **Block**      | Infrastructure resource (compute, database, storage, gateway) | Lego brick     |
-| **Connection** | Communication flow between blocks (dataflow)                  | Lego connector |
+| **Plate**      | Infrastructure boundary (network, subnet)                     | Baseplate      |
+| **Block**      | Infrastructure resource (compute, database, storage, gateway) | Building block |
+| **Connection** | Communication flow between blocks (dataflow)                  | Connector      |
 
 ```
 Internet → [Gateway] → [Compute] → [Database]

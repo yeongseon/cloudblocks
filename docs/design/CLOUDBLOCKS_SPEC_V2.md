@@ -73,7 +73,7 @@ Derived:
 
 ### 1.4 Ratio Table
 
-| Ratio                      | Value                 | Lego Equivalent           |
+| Ratio                      | Value                 | Brick Equivalent          |
 | -------------------------- | --------------------- | ------------------------- |
 | Isometric projection       | 2:1 (TILE_W : TILE_H) | —                         |
 | Stud diameter / tile width | 3/8 (37.5%)           | 5mm / 8mm = 62.5%         |
@@ -95,7 +95,7 @@ Derived:
 
 ## 2. Stud Standard (INVIOLABLE)
 
-### 2.1 The Lego Principle
+### 2.1 The Block Principle
 
 Every stud in the system — plates, blocks, background — uses **identical geometry**. Only **colors** vary. This is the fundamental interoperability constraint.
 
@@ -613,7 +613,7 @@ v2.0 is a **clean start**. No migration from v1.x data.
 
 ## 17. Summary
 
-CloudBlocks v2.0 evolves from a visual Lego diagram tool into a **universal architecture modeling specification** for cloud systems.
+CloudBlocks v2.0 evolves from a visual block-based diagram tool into a **universal architecture modeling specification** for cloud systems.
 
 | Aspect          | v1.x                                      | v2.0                                        |
 | --------------- | ----------------------------------------- | ------------------------------------------- |

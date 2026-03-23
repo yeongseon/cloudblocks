@@ -15,24 +15,26 @@ export type LayerType = 'global' | 'edge' | 'region' | 'zone' | 'subnet' | 'reso
 export type NodeKind = 'container' | 'resource';
 
 /**
- * Resource categories — the 7 canonical resource groups.
+ * Resource categories — the 8 canonical resource groups.
  *
- * Migration from 10 → 7:
- *   compute   → compute   (was compute + function)
- *   data      → data      (was database + storage)
- *   edge      → edge      (was gateway)
- *   security  → security  (was identity)
+ * Migration from 10 → 7 → 8:
+ *   compute    → compute    (was compute + function)
+ *   data       → data       (was database + storage)
+ *   delivery   → delivery   (renamed from edge; was gateway)
+ *   security   → security   (was identity in v6)
+ *   identity   → identity   (split from security; new in v8)
  *   operations → operations (was analytics + observability)
- *   messaging → messaging  (was queue + event) — empty in MVP
- *   network   → network   (new — containers like VNet, Subnet)
+ *   messaging  → messaging  (was queue + event) — empty in MVP
+ *   network    → network    (new — containers like VNet, Subnet)
  */
 export type ResourceCategory =
   | 'network'
-  | 'security'
-  | 'edge'
+  | 'delivery'
   | 'compute'
   | 'data'
   | 'messaging'
+  | 'security'
+  | 'identity'
   | 'operations';
 
 /**

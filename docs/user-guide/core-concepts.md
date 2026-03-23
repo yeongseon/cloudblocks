@@ -1,6 +1,6 @@
 # Core Concepts
 
-CloudBlocks uses a Lego-style composition model for cloud architecture. You build infrastructure by placing elements on the canvas, connecting them with typed protocols, and validating against real-world rules.
+CloudBlocks uses a block-based composition model for cloud architecture. You build infrastructure by placing elements on the canvas, connecting them with typed protocols, and validating against real-world rules.
 
 ---
 

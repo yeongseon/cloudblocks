@@ -49,6 +49,7 @@ import {
   LogOut,
   Cloud,
   Grid3x3,
+  LayoutGrid,
 } from 'lucide-react';
 import './MenuBar.css';
 
@@ -91,6 +92,8 @@ export function MenuBar() {
   const themeVariant = useUIStore((s) => s.themeVariant);
   const showStuds = useUIStore((s) => s.showStuds);
   const toggleStuds = useUIStore((s) => s.toggleStuds);
+  const showGrid = useUIStore((s) => s.showGrid);
+  const toggleGrid = useUIStore((s) => s.toggleGrid);
   const setThemeVariant = useUIStore((s) => s.setThemeVariant);
   const playSound = (name: SoundName) => {
     if (!isSoundMuted) audioService.playSound(name);
@@ -666,6 +669,14 @@ export function MenuBar() {
           title={showStuds ? 'Hide studs' : 'Show studs'}
         >
           <Grid3x3 size={14} />
+        </button>
+        <button
+          type="button"
+          className={`quick-btn ${showGrid ? 'active' : ''}`}
+          onClick={toggleGrid}
+          title={showGrid ? 'Hide grid' : 'Show grid'}
+        >
+          <LayoutGrid size={14} />
         </button>
       </div>
 

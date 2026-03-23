@@ -57,10 +57,11 @@ function makeResourceNode(
   const resourceTypeByCategory: Record<ResourceCategory, string> = {
     compute: 'web_compute',
     data: 'relational_database',
-    edge: 'load_balancer',
+    delivery: 'load_balancer',
     security: 'firewall_security',
     operations: 'monitoring',
     messaging: 'message_queue',
+    identity: 'identity_service',
     network: 'virtual_network',
   };
   return {
@@ -663,7 +664,7 @@ describe('architectureStore', () => {
       getState().addPlate('subnet', 'Sub', netId);
       const subId = getArch().plates[1].id;
 
-      getState().addBlock('edge', 'Gateway', subId);
+      getState().addBlock('delivery', 'Gateway', subId);
       getState().addBlock('compute', 'VM', subId);
       const gatewayId = getArch().blocks[0].id;
       const blockId = getArch().blocks[1].id;
@@ -796,7 +797,7 @@ describe('architectureStore', () => {
       getState().addPlate('subnet', 'Sub', netId);
       const privateSubId = getArch().plates[1].id;
 
-      getState().addBlock('edge', 'FW', privateSubId);
+      getState().addBlock('delivery', 'FW', privateSubId);
       const blockId = getArch().blocks[0].id;
 
       const before = getState().workspace.architecture;
@@ -1080,7 +1081,7 @@ describe('architectureStore', () => {
       getState().addPlate('subnet', 'Subnet', networkId);
       const subnetId = getArch().plates[1].id;
 
-      getState().addBlock('edge', 'Gateway', subnetId);
+      getState().addBlock('delivery', 'Gateway', subnetId);
       getState().addBlock('compute', 'Compute', subnetId);
       getState().addBlock('data', 'Database', subnetId);
       getState().addBlock('data', 'Storage', subnetId);
@@ -1169,7 +1170,7 @@ describe('architectureStore', () => {
       const networkId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Subnet', networkId);
       const subnetId = getArch().plates[1].id;
-      getState().addBlock('edge', 'Gateway', subnetId);
+      getState().addBlock('delivery', 'Gateway', subnetId);
       getState().addBlock('compute', 'Compute', subnetId);
       const sourceId = getArch().blocks[0].id;
       const targetId = getArch().blocks[1].id;
@@ -1994,7 +1995,7 @@ describe('architectureStore', () => {
 
       getState().importArchitecture(JSON.stringify(invalid));
       expect(String(spy.mock.calls.at(-1)?.[1])).toContain(
-        'category must be one of network, security, edge, compute, data, messaging, operations',
+        'category must be one of network, security, delivery, compute, data, messaging, identity, operations',
       );
       spy.mockRestore();
     });

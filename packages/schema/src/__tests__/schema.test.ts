@@ -85,7 +85,6 @@ describe('JSON Schema artifact', () => {
       'ProviderType',
       'AggregationMode',
       'BlockRole',
-      'ConnectionType',
       'LayerType',
     ];
 
@@ -104,23 +103,23 @@ describe('JSON Schema artifact', () => {
     expect(required).toContain('version');
     expect(required).toContain('nodes');
     expect(required).toContain('connections');
-    expect(required).toContain('externalActors');
     expect(required).toContain('createdAt');
     expect(required).toContain('updatedAt');
   });
 
-  it('should define ResourceCategory with exactly 7 values', () => {
+  it('should define ResourceCategory with exactly 8 values', () => {
     const definitions = schema['definitions'] as Record<string, Record<string, unknown>>;
     const category = definitions['ResourceCategory'];
     const enumValues = category['enum'] as string[];
 
-    expect(enumValues).toHaveLength(7);
+    expect(enumValues).toHaveLength(8);
     expect(enumValues).toContain('network');
-    expect(enumValues).toContain('security');
-    expect(enumValues).toContain('edge');
+    expect(enumValues).toContain('delivery');
     expect(enumValues).toContain('compute');
     expect(enumValues).toContain('data');
     expect(enumValues).toContain('messaging');
+    expect(enumValues).toContain('security');
+    expect(enumValues).toContain('identity');
     expect(enumValues).toContain('operations');
   });
 
@@ -130,19 +129,6 @@ describe('JSON Schema artifact', () => {
     const props = container['properties'] as Record<string, Record<string, unknown>>;
     // NodeKind is inlined as a const in the kind property
     expect(props['kind']['const'] ?? props['kind']['enum']).toBeDefined();
-  });
-
-  it('should define ConnectionType with exactly 5 values', () => {
-    const definitions = schema['definitions'] as Record<string, Record<string, unknown>>;
-    const connType = definitions['ConnectionType'];
-    const enumValues = connType['enum'] as string[];
-
-    expect(enumValues).toHaveLength(5);
-    expect(enumValues).toContain('dataflow');
-    expect(enumValues).toContain('http');
-    expect(enumValues).toContain('internal');
-    expect(enumValues).toContain('data');
-    expect(enumValues).toContain('async');
   });
 
   it('should define ProviderType with exactly 3 values', () => {
@@ -290,14 +276,15 @@ describe('Type compatibility', () => {
   it('should allow all ResourceCategory values', () => {
     const categories: ResourceCategory[] = [
       'network',
-      'security',
-      'edge',
+      'delivery',
       'compute',
       'data',
       'messaging',
+      'security',
+      'identity',
       'operations',
     ];
-    expect(categories).toHaveLength(7);
+    expect(categories).toHaveLength(8);
   });
 
   it('should allow all NodeKind values', () => {
@@ -437,11 +424,12 @@ describe('Catalog consistency', () => {
   it('RESOURCE_RULES should have valid categories', () => {
     const validCategories = [
       'network',
-      'security',
-      'edge',
+      'delivery',
       'compute',
       'data',
       'messaging',
+      'security',
+      'identity',
       'operations',
     ];
     for (const [key, rule] of Object.entries(RESOURCE_RULES)) {

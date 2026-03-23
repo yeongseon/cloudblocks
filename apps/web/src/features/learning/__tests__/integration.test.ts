@@ -44,11 +44,12 @@ const containerResourceTypeByLayer = {
 const leafResourceTypeByCategory: Record<ResourceCategory, string> = {
   compute: 'web_compute',
   data: 'relational_database',
-  edge: 'load_balancer',
+  delivery: 'load_balancer',
   security: 'firewall_security',
   operations: 'monitoring',
   messaging: 'message_queue',
   network: 'virtual_network',
+  identity: 'managed_identity',
 };
 
 const getContainers = (snapshot: ArchitectureSnapshot): ContainerNode[] =>
@@ -490,7 +491,7 @@ describe('learning integration flow', () => {
 
     satisfyRule({ type: 'plate-exists', plateType: 'subnet' });
     satisfyRule({ type: 'plate-exists', plateType: 'subnet' });
-    satisfyRule({ type: 'block-exists', category: 'edge', onPlateType: 'subnet' });
+    satisfyRule({ type: 'block-exists', category: 'delivery', onPlateType: 'subnet' });
 
     resetCurrentStep();
 

@@ -42,7 +42,7 @@ interface NodeBase {
   layer: LayerType;
   /** Specific resource identifier, e.g. 'virtual_network', 'web_compute', 'relational_database' */
   resourceType: string;
-  /** One of the 7 resource categories */
+  /** One of the 8 resource categories */
   category: ResourceCategory;
   provider: ProviderType;
   /** Parent node ID. null for root-level nodes. */

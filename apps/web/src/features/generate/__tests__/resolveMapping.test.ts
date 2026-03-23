@@ -5,8 +5,9 @@ import { resolveBlockMapping } from '../types';
 const baseBlockMappings: BlockResourceMap = {
   compute: { resourceType: 'aws_ecs_service', namePrefix: 'ecs' },
   data: { resourceType: 'aws_db_instance', namePrefix: 'db' },
-  edge: { resourceType: 'aws_lb', namePrefix: 'lb' },
+  delivery: { resourceType: 'aws_lb', namePrefix: 'lb' },
   security: { resourceType: 'aws_iam_role', namePrefix: 'role' },
+  identity: { resourceType: 'aws_iam_role', namePrefix: 'identity' },
   messaging: { resourceType: 'aws_sqs_queue', namePrefix: 'messaging' },
   operations: { resourceType: 'aws_athena_workgroup', namePrefix: 'operations' },
   network: { resourceType: 'aws_vpc', namePrefix: 'vpc' },
@@ -56,7 +57,7 @@ describe('resolveBlockMapping', () => {
   });
 
   it('returns category mapping for categories without any subtype entries', () => {
-    const result = resolveBlockMapping(baseBlockMappings, subtypeMappings, 'edge');
+    const result = resolveBlockMapping(baseBlockMappings, subtypeMappings, 'delivery');
     expect(result).toEqual({ resourceType: 'aws_lb', namePrefix: 'lb' });
   });
 

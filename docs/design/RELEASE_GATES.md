@@ -270,7 +270,7 @@ All Milestone 6 gates plus:
 ### Milestone 16 (Completed)
 
 - Documentation architecture restored and canonical lifecycle established
-- Lego-themed MkDocs documentation site with dark mode
+- Block-themed MkDocs documentation site with dark mode
 - User-centric navigation restructure (6-tab layout)
 - Release management: CHANGELOG.md, annotated tags, GitHub Releases
 - Versioning convention: Milestone N = v0.N.0

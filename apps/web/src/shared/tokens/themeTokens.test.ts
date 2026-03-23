@@ -27,7 +27,8 @@ describe('themeTokens', () => {
     expect(blueprintTheme['cat-security']).toBe(workshopTheme['cat-security']);
     expect(blueprintTheme['cat-compute']).toBe(workshopTheme['cat-compute']);
     expect(blueprintTheme['cat-data']).toBe(workshopTheme['cat-data']);
-    expect(blueprintTheme['cat-edge']).toBe(workshopTheme['cat-edge']);
+    expect(blueprintTheme['cat-delivery']).toBe(workshopTheme['cat-delivery']);
+    expect(blueprintTheme['cat-identity']).toBe(workshopTheme['cat-identity']);
     expect(blueprintTheme['cat-messaging']).toBe(workshopTheme['cat-messaging']);
     expect(blueprintTheme['cat-operations']).toBe(workshopTheme['cat-operations']);
   });

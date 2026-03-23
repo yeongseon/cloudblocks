@@ -38,7 +38,7 @@ export const gcpSubtypeRegistry: SubtypeRegistry = {
       defaultConfig: { locationId: 'us-central1' },
     },
   },
-  edge: {
+  delivery: {
     'cloud-load-balancing': {
       displayName: 'Cloud Load Balancing',
       description: 'Global and regional load balancing',
@@ -70,6 +70,16 @@ export const gcpSubtypeRegistry: SubtypeRegistry = {
     nsg: {
       displayName: 'Firewall Rules',
       description: 'VPC firewall rules for network traffic filtering',
+    },
+  },
+  identity: {
+    'managed-identity': {
+      displayName: 'Managed Identity',
+      description: 'Service account identity for workload runtime',
+    },
+    'service-account': {
+      displayName: 'Service Account',
+      description: 'Workload and automation account identity',
     },
   },
   operations: {

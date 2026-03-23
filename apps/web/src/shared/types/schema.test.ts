@@ -553,13 +553,13 @@ it('remaps legacy 10-category names to 7-category names during plates+blocks mig
 
   // Legacy categories should be remapped to new 7-category system
   expect(findNode('blk-db').category).toBe('data');
-  expect(findNode('blk-gw').category).toBe('edge');
+  expect(findNode('blk-gw').category).toBe('delivery');
   expect(findNode('blk-fn').category).toBe('compute');
   expect(findNode('blk-q').category).toBe('messaging');
   expect(findNode('blk-ev').category).toBe('messaging');
   expect(findNode('blk-st').category).toBe('data');
   expect(findNode('blk-an').category).toBe('operations');
-  expect(findNode('blk-id').category).toBe('security');
+  expect(findNode('blk-id').category).toBe('identity');
   expect(findNode('blk-ob').category).toBe('operations');
   expect(findNode('blk-cp').category).toBe('compute');
 });

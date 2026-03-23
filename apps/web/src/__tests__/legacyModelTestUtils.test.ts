@@ -16,13 +16,13 @@ describe('legacyModelTestUtils category mapping', () => {
   it('maps legacy categories to current resource categories', () => {
     expect(makeTestBlock({ category: 'database' }).category).toBe('data');
     expect(makeTestBlock({ category: 'storage' }).category).toBe('data');
-    expect(makeTestBlock({ category: 'gateway' }).category).toBe('edge');
+    expect(makeTestBlock({ category: 'gateway' }).category).toBe('delivery');
     expect(makeTestBlock({ category: 'function' }).category).toBe('compute');
     expect(makeTestBlock({ category: 'queue' }).category).toBe('messaging');
     expect(makeTestBlock({ category: 'event' }).category).toBe('messaging');
     expect(makeTestBlock({ category: 'analytics' }).category).toBe('operations');
     expect(makeTestBlock({ category: 'observability' }).category).toBe('operations');
-    expect(makeTestBlock({ category: 'identity' }).category).toBe('security');
+    expect(makeTestBlock({ category: 'identity' }).category).toBe('identity');
   });
 
   it('preserves already-mapped categories and defaults undefined to compute', () => {

@@ -35,10 +35,11 @@
 
   --cat-network: #3b82f6;
   --cat-security: #ef4444;
-  --cat-edge: #f97316;
+  --cat-delivery: #f97316;
   --cat-compute: #8b5cf6;
   --cat-data: #14b8a6;
   --cat-messaging: #eab308;
+  --cat-identity: #0078d4;
   --cat-operations: #64748b;
 }
 

@@ -16,8 +16,9 @@ const providers: ProviderType[] = ['azure', 'aws', 'gcp'];
 const categories: ResourceCategory[] = [
   'compute',
   'data',
-  'edge',
+  'delivery',
   'messaging',
+  'identity',
   'operations',
   'security',
   'network',
@@ -81,28 +82,14 @@ describe('darken', () => {
 // ─── Face Color Derivation (§7.7) ────────────────────────────
 
 describe('deriveFaceColors', () => {
-  it('sets top to the base color unchanged', () => {
-    const base = '#D86613';
+  it('derives matte face colors with expected hex values', () => {
+    const base = '#0078D4';
     const derived = deriveFaceColors(base);
-    expect(derived.top).toBe(base);
-  });
 
-  it('derives topStroke as lighten(base, 15)', () => {
-    const base = '#D86613';
-    const derived = deriveFaceColors(base);
-    expect(derived.topStroke).toBe(lighten(base, 15));
-  });
-
-  it('derives right face as darken(base, 10)', () => {
-    const base = '#D86613';
-    const derived = deriveFaceColors(base);
-    expect(derived.right).toBe(darken(base, 10));
-  });
-
-  it('derives left face as darken(base, 20)', () => {
-    const base = '#D86613';
-    const derived = deriveFaceColors(base);
-    expect(derived.left).toBe(darken(base, 20));
+    expect(derived.top).toBe('#0A7DD6');
+    expect(derived.topStroke).toBe('#006EC3');
+    expect(derived.right).toBe('#0071C7');
+    expect(derived.left).toBe('#006ABB');
   });
 
   it('derives studMain as lighten(base, 15)', () => {
@@ -279,13 +266,12 @@ describe('getBlockFaceColors', () => {
     }
   });
 
-  it('topFaceColor equals the provider base color for that category', () => {
-    // The top face IS the base color (spec §7.7: top = BASE)
+  it('topFaceColor equals lighten(base, 4) for that category', () => {
     for (const provider of providers) {
       for (const category of categories) {
         const faceColors = getBlockFaceColors(category, provider);
         const baseColor = getBlockColor(provider, undefined, category);
-        expect(faceColors.topFaceColor).toBe(baseColor);
+        expect(faceColors.topFaceColor).toBe(lighten(baseColor, 4));
       }
     }
   });
@@ -306,7 +292,7 @@ describe('getBlockFaceColors', () => {
 
     // Cosmos DB uses database-nosql (#32D4F5), default database uses database (#0078D4)
     expect(withSubtype.topFaceColor).not.toBe(withoutSubtype.topFaceColor);
-    expect(withSubtype.topFaceColor).toBe('#32D4F5');
+    expect(withSubtype.topFaceColor).toBe('#3AD6F5');
   });
 
   it('side colors are darker than top face color', () => {
@@ -320,7 +306,7 @@ describe('getBlockFaceColors', () => {
         // Darkened sides should have lower or equal luminance
         expect(leftLuminance).toBeLessThanOrEqual(topLuminance);
         expect(rightLuminance).toBeLessThanOrEqual(topLuminance);
-        // Left (darken 20%) should be darker than right (darken 10%)
+        // Left (darken 12%) should be darker than right (darken 6%)
         expect(leftLuminance).toBeLessThanOrEqual(rightLuminance + 0.001);
       }
     }
@@ -428,7 +414,7 @@ describe('getBlockStudColors', () => {
       }
     }
 
-    expect(results).toHaveLength(3 * 7);
+    expect(results).toHaveLength(3 * 8);
 
     for (const result of results) {
       expect(result.spec.main).toMatch(hexColorPattern);

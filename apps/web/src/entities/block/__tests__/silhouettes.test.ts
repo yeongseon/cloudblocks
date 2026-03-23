@@ -21,10 +21,11 @@ import {
 const blockCategories: ResourceCategory[] = [
   'compute',
   'data',
-  'edge',
+  'delivery',
   'messaging',
   'operations',
   'security',
+  'identity',
   'network',
 ];
 

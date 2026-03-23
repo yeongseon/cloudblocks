@@ -99,7 +99,7 @@ describe('validateArchitecture', () => {
     const subnet1 = makePlate({ id: 'subnet-1' });
     const subnet2 = makePlate({ id: 'subnet-2' });
 
-    const gateway = makeBlock({ id: 'gateway-1', category: 'edge', placementId: 'subnet-1' });
+    const gateway = makeBlock({ id: 'gateway-1', category: 'delivery', placementId: 'subnet-1' });
     const compute = makeBlock({ id: 'compute-1', category: 'compute', placementId: 'subnet-2' });
     const database = makeBlock({ id: 'database-1', category: 'data', placementId: 'subnet-2' });
     const storage = makeBlock({ id: 'storage-1', category: 'data', placementId: 'subnet-2' });
@@ -170,7 +170,7 @@ describe('validateArchitecture', () => {
   it('returns invalid result with connection error', () => {
     const subnet1 = makePlate({ id: 'subnet-1' });
     const subnet2 = makePlate({ id: 'subnet-2' });
-    const gateway = makeBlock({ id: 'gateway-1', category: 'edge', placementId: 'subnet-1' });
+    const gateway = makeBlock({ id: 'gateway-1', category: 'delivery', placementId: 'subnet-1' });
     const compute = makeBlock({ id: 'compute-1', category: 'compute', placementId: 'subnet-2' });
 
     const model = makeModel({
@@ -201,7 +201,7 @@ describe('validateArchitecture', () => {
     const subnet1 = makePlate({ id: 'subnet-1' });
     const subnet2 = makePlate({ id: 'subnet-2' });
 
-    const gateway = makeBlock({ id: 'gateway-1', category: 'edge', placementId: 'subnet-2' });
+    const gateway = makeBlock({ id: 'gateway-1', category: 'delivery', placementId: 'subnet-2' });
     const database = makeBlock({ id: 'db-1', category: 'data', placementId: 'subnet-1' });
     const storage = makeBlock({ id: 'storage-1', category: 'data', placementId: 'subnet-1' });
 

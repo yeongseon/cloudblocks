@@ -4,6 +4,7 @@ import { useUIStore } from './uiStore';
 describe('useUIStore', () => {
   beforeEach(() => {
     localStorage.removeItem('cloudblocks:theme-variant');
+    localStorage.removeItem('cloudblocks:app-view');
 
     // Reset store to initial state before each test
     useUIStore.setState({
@@ -138,6 +139,22 @@ describe('useUIStore', () => {
     it('goToBuilder forces builder view', () => {
       useUIStore.getState().goToBuilder();
       expect(useUIStore.getState().appView).toBe('builder');
+    });
+
+    it('setAppView persists to localStorage', () => {
+      useUIStore.getState().setAppView('builder');
+      expect(localStorage.getItem('cloudblocks:app-view')).toBe('builder');
+    });
+
+    it('goToBuilder persists to localStorage', () => {
+      useUIStore.getState().goToBuilder();
+      expect(localStorage.getItem('cloudblocks:app-view')).toBe('builder');
+    });
+
+    it('goToLanding persists to localStorage', () => {
+      useUIStore.getState().goToBuilder();
+      useUIStore.getState().goToLanding();
+      expect(localStorage.getItem('cloudblocks:app-view')).toBe('landing');
     });
   });
 
@@ -552,8 +569,8 @@ describe('useUIStore', () => {
     });
 
     it('should set draggedBlockCategory to gateway', () => {
-      useUIStore.getState().setDraggedBlockCategory('edge');
-      expect(useUIStore.getState().draggedBlockCategory).toBe('edge');
+      useUIStore.getState().setDraggedBlockCategory('delivery');
+      expect(useUIStore.getState().draggedBlockCategory).toBe('delivery');
     });
 
     it('should clear draggedBlockCategory when given null', () => {

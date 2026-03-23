@@ -169,7 +169,7 @@ describe('LearningPanel widgets', () => {
       { type: 'plate-exists', plateType: 'region' },
       { type: 'plate-exists', plateType: 'subnet' },
       { type: 'block-exists', category: 'compute' },
-      { type: 'connection-exists', sourceCategory: 'edge', targetCategory: 'compute' },
+      { type: 'connection-exists', sourceCategory: 'delivery', targetCategory: 'compute' },
       { type: 'entity-on-plate', entityCategory: 'data', plateType: 'subnet' },
       { type: 'architecture-valid' },
       { type: 'min-block-count', category: 'data', count: 2 },
@@ -203,7 +203,7 @@ describe('LearningPanel widgets', () => {
     expect(screen.getByText('Add a region container')).toBeInTheDocument();
     expect(screen.getByText('Add a subnet container')).toBeInTheDocument();
     expect(screen.getByText('Add a compute node')).toBeInTheDocument();
-    expect(screen.getByText('Connect edge to compute')).toBeInTheDocument();
+    expect(screen.getByText('Connect delivery to compute')).toBeInTheDocument();
     expect(screen.getByText('Place data on subnet container')).toBeInTheDocument();
     expect(screen.getByText('Fix validation issues')).toBeInTheDocument();
     expect(screen.getByText('Add at least 2 data node(s)')).toBeInTheDocument();

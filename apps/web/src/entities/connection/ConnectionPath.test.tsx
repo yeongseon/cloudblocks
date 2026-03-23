@@ -306,8 +306,8 @@ describe('ConnectionPath', () => {
     );
 
     const paths = container.querySelectorAll('path');
-    expect(paths[1]?.getAttribute('stroke')).toBe('#1e293b');
-    expect(paths[2]?.getAttribute('stroke')).toBe('#64748b');
+    expect(paths[1]?.getAttribute('stroke')).toBe('#3A6670');
+    expect(paths[2]?.getAttribute('stroke')).toBe('#5C97A3');
     expect(vi.mocked(getDiffState)).not.toHaveBeenCalled();
   });
 
