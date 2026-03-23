@@ -11,7 +11,6 @@
 [![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://yeongseon.github.io/cloudblocks/)
 
 <p align="center">
-  <img src="docs/images/hero.png" alt="CloudBlocks — visual cloud architecture builder" width="720" />
 </p>
 
 **CloudBlocks is an architecture compiler that converts visual infrastructure designs into infrastructure-as-code.**
@@ -23,7 +22,6 @@ Design cloud infrastructure by placing blocks on plates, connect components, val
 ## Demo
 
 <p align="center">
-  <img src="docs/images/hero.png" alt="CloudBlocks demo — place, connect, validate, generate" width="720" />
 </p>
 
 > **Place** blocks on plates, **connect** components with typed protocols, **validate** against real-world rules, and **generate** Terraform, Bicep, or Pulumi — all in the browser.
