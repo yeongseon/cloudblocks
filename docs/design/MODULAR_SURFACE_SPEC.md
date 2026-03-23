@@ -42,16 +42,16 @@ Plates are flat isometric surfaces that represent infrastructure boundaries and 
 
 Connections use a muted, functional color palette to communicate type without labels.
 
-| Connection Type | Primary Color (Hex) | Light Variant (Hex) |
-| :-------------- | :------------------ | :------------------ |
-| Network         | #00BCD4             | #26C6DA             |
-| Data            | #FF9800             | #FFB74D             |
-| Event           | #009688             | #4DB6AC             |
-| IAM             | #9C27B0             | #CE93D8             |
+| Semantic | Foreground (Hex) | Background (Hex) |
+| :------- | :--------------- | :--------------- |
+| HTTP     | #4C78A8          | #2C4A6E          |
+| Event    | #6B86B4          | #3E506E          |
+| Data     | #5C97A3          | #3A6670          |
 
-- **Routing**: Manhattan routing on the isometric plane.
-- **States**: Hover and selected states use the lighter variant of the color.
-- **Width**: 2px default, increasing to 3px on hover.
+- **Routing**: Quadratic curve paths between block endpoints.
+- **States**: Hover and selected states increase stroke width by 2px.
+- **Width**: Varies by connection type (2–3px default).
+- **Dash patterns**: Solid for dataflow/http, short dash for internal, long dash for data, dot-dash for async.
 
 ## §4. Stud Policy
 
