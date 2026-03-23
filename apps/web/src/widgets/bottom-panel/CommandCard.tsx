@@ -209,7 +209,7 @@ function PlateActionMode({ selectedPlate, onDeploy }: { selectedPlate: Container
         onDeploy();
         break;
       case 'rename': {
-        const newName = await promptDialog('Rename plate:', 'Rename', selectedPlate.name);
+        const newName = await promptDialog('Rename container:', 'Rename', selectedPlate.name);
         if (newName !== null && newName.trim() !== '') {
           renameNode(selectedPlate.id, newName.trim());
         }

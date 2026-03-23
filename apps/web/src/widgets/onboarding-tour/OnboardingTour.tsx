@@ -24,7 +24,7 @@ const STEPS: TourStep[] = [
     fallbackSelector: '.scene-canvas',
     title: 'Welcome to CloudBlocks!',
     description:
-      'Start by creating a Network plate \u2014 click "Start from Scratch" or pick a template.',
+      'Start by creating a Network container \u2014 click "Start from Scratch" or pick a template.',
   },
   {
     selector: '.bottom-panel-command',
@@ -53,7 +53,7 @@ const STEPS: TourStep[] = [
     fallbackSelector: '.bottom-panel',
     title: 'Resource Guide',
     description:
-      'Learn about the selected plate or block. Shows educational content, placement rules, and connection guidance.',
+      'Learn about the selected container or node. Shows educational content, placement rules, and connection guidance.',
   },
   {
     selector: '.bottom-panel-tab-content',

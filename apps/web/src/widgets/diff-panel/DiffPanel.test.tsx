@@ -301,7 +301,7 @@ describe('DiffPanel', () => {
     const user = userEvent.setup();
     render(<DiffPanel />);
 
-    const platesSectionToggle = screen.getByRole('button', { name: /Plates/ });
+    const platesSectionToggle = screen.getByRole('button', { name: /Containers/ });
     expect(platesSectionToggle).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByText('+ Subnet 1 (plate-added-1)')).toBeInTheDocument();
 
@@ -404,7 +404,7 @@ describe('DiffPanel', () => {
     const user = userEvent.setup();
     const { rerender } = render(<DiffPanel />);
 
-    const platesSectionToggle = screen.getByRole('button', { name: /Plates/ });
+    const platesSectionToggle = screen.getByRole('button', { name: /Containers/ });
     await user.click(platesSectionToggle);
     expect(platesSectionToggle).toHaveAttribute('aria-expanded', 'false');
 
@@ -415,7 +415,7 @@ describe('DiffPanel', () => {
     useUIStore.getState().setDiffMode(true, makeDiffDelta());
     rerender(<DiffPanel />);
 
-    const resetPlatesToggle = screen.getByRole('button', { name: /Plates/ });
+    const resetPlatesToggle = screen.getByRole('button', { name: /Containers/ });
     const resetModifiedToggle = screen.getByRole('button', { name: /App Service \(block-modified-1\) \(1 changes\)/ });
     expect(resetPlatesToggle).toHaveAttribute('aria-expanded', 'true');
     expect(resetModifiedToggle).toHaveAttribute('aria-expanded', 'false');
@@ -439,7 +439,7 @@ describe('DiffPanel', () => {
     useUIStore.setState({ diffDelta: delta });
 
     render(<DiffPanel />);
-    expect(screen.getByText('No changes in plates.')).toBeInTheDocument();
+    expect(screen.getByText('No changes in containers.')).toBeInTheDocument();
   });
 
   it('shows no-data message when diffDelta is null and omits summary badges', () => {
@@ -516,7 +516,7 @@ describe('DiffPanel', () => {
     };
     useUIStore.setState({ diffBaseArchitecture: remoteArch });
     render(<DiffPanel />);
-    expect(screen.getByText('Remote: 2 plates · 1 blocks · 3 connections · 1 actors')).toBeInTheDocument();
+    expect(screen.getByText('Remote: 2 containers · 1 nodes · 3 connections · 1 actors')).toBeInTheDocument();
   });
 
   it('hides remote summary when diffBaseArchitecture is null (#879)', () => {

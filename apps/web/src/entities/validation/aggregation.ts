@@ -20,7 +20,7 @@ export function validateAggregation(
     return {
       ruleId: 'rule-aggregation-count',
       severity: 'error',
-      message: `Block "${block.name}" has invalid aggregation count: ${aggregation.count} (must be >= 1)`,
+      message: `Node "${block.name}" has invalid aggregation count: ${aggregation.count} (must be >= 1)`,
       suggestion: 'Set the aggregation count to 1 or greater',
       targetId: block.id,
     };
@@ -30,7 +30,7 @@ export function validateAggregation(
     return {
       ruleId: 'rule-aggregation-count',
       severity: 'error',
-      message: `Block "${block.name}" has non-integer aggregation count: ${aggregation.count}`,
+      message: `Node "${block.name}" has non-integer aggregation count: ${aggregation.count}`,
       suggestion: 'Set the aggregation count to a whole number',
       targetId: block.id,
     };

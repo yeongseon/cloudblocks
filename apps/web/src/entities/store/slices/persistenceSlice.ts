@@ -219,7 +219,7 @@ export const validateArchitectureShape = (
 
       if (!legacyPlateIds.has(block.placementId)) {
         throw new Error(
-          `${context}: placementId "${block.placementId}" does not reference an existing plate`
+          `${context}: placementId "${block.placementId}" does not reference an existing container`
         );
       }
 

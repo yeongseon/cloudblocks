@@ -541,7 +541,7 @@ describe('GitHubSync', () => {
     await user.click(screen.getByRole('button', { name: 'Link' }));
     await user.click(await screen.findByRole('button', { name: 'Pull from GitHub' }));
 
-    expect(await screen.findByText('Pulled: 2 changes (1/0 plates added/removed, 1/0 blocks added/removed)')).toBeInTheDocument();
+    expect(await screen.findByText('Pulled: 2 changes (1/0 containers added/removed, 1/0 nodes added/removed)')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Undo Pull' })).toBeInTheDocument();
   });
 

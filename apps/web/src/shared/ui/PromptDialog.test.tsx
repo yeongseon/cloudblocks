@@ -8,11 +8,11 @@ describe('promptDialog', () => {
     render(<div />);
     const user = userEvent.setup();
 
-    const promise = promptDialog('Rename plate:', 'Rename', 'My VNet');
+    const promise = promptDialog('Rename container:', 'Rename', 'My VNet');
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('Rename')).toBeInTheDocument();
-    expect(screen.getByText('Rename plate:')).toBeInTheDocument();
+    expect(screen.getByText('Rename container:')).toBeInTheDocument();
 
     const input = screen.getByRole('textbox', { name: 'Rename' });
     expect(input).toBeInTheDocument();

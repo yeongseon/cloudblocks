@@ -253,8 +253,8 @@ export function GitHubSync() {
       setLastSyncedArchitecture(cloneArchitecture(postPullArchitecture));
       setPullDiffSummary(
         `Pulled: ${diff.summary.totalChanges} changes `
-          + `(${diff.plates.added.length}/${diff.plates.removed.length} plates added/removed, `
-          + `${diff.blocks.added.length}/${diff.blocks.removed.length} blocks added/removed)`
+          + `(${diff.plates.added.length}/${diff.plates.removed.length} containers added/removed, `
+          + `${diff.blocks.added.length}/${diff.blocks.removed.length} nodes added/removed)`
       );
       await loadCommits();
     } catch (err) {

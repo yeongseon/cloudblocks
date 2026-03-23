@@ -20,8 +20,8 @@ function summarizeArchitecture(arch: ArchitectureModel) {
 type SectionKey = 'plates' | 'blocks' | 'connections' | 'externalActors';
 
 const SECTION_CONFIG: Array<{ key: SectionKey; label: string }> = [
-  { key: 'plates', label: 'Plates' },
-  { key: 'blocks', label: 'Blocks' },
+  { key: 'plates', label: 'Containers' },
+  { key: 'blocks', label: 'Nodes' },
   { key: 'connections', label: 'Connections' },
   { key: 'externalActors', label: 'External Actors' },
 ];
@@ -176,7 +176,7 @@ export function DiffPanelContent({
         const s = summarizeArchitecture(diffBaseArchitecture);
         return (
           <div className="diff-panel-remote-summary">
-            Remote: {s.plates} plates · {s.blocks} blocks · {s.connections} connections · {s.externalActors} actors
+            Remote: {s.plates} containers · {s.blocks} nodes · {s.connections} connections · {s.externalActors} actors
           </div>
         );
       })()}

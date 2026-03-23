@@ -106,8 +106,8 @@ describe('validateConnection', () => {
     expect(validateConnection(connection, makeEndpoints(blocks), blocks, [])).toEqual({
       ruleId: 'rule-conn-self',
       severity: 'error',
-      message: 'A block cannot connect to itself',
-      suggestion: 'Connect to a different block',
+      message: 'A node cannot connect to itself',
+      suggestion: 'Connect to a different node',
       targetId: 'conn-self',
     });
   });
