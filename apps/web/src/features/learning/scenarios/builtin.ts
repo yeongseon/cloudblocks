@@ -140,8 +140,8 @@ const threeTierCheckpointWithBlocks: ArchitectureSnapshot = {
       name: 'Gateway',
       kind: 'resource',
       layer: 'resource',
-      resourceType: 'edge',
-      category: 'edge',
+      resourceType: 'load_balancer',
+      category: 'delivery',
       provider: 'azure',
       parentId: 'plate-scn3tier-subnet1',
       position: { x: -1.2, y: 0.5, z: -1.8 },
@@ -226,7 +226,7 @@ const threeTierScenario: Scenario = {
       validationRules: [
         {
           type: 'block-exists',
-          category: 'edge',
+          category: 'delivery',
           onPlateType: 'subnet',
         },
         { type: 'block-exists', category: 'compute' },
@@ -250,8 +250,8 @@ const threeTierScenario: Scenario = {
         'Click the source block first, then click the target block to create a connection.',
       ],
       validationRules: [
-        { type: 'connection-exists', sourceCategory: 'internet', targetCategory: 'edge' },
-        { type: 'connection-exists', sourceCategory: 'edge', targetCategory: 'compute' },
+        { type: 'connection-exists', sourceCategory: 'internet', targetCategory: 'delivery' },
+        { type: 'connection-exists', sourceCategory: 'delivery', targetCategory: 'compute' },
         { type: 'connection-exists', sourceCategory: 'compute', targetCategory: 'data' },
       ],
       checkpoint: threeTierCheckpointWithBlocks,
@@ -382,7 +382,7 @@ const serverlessApiScenario: Scenario = {
       validationRules: [
         {
           type: 'block-exists',
-          category: 'edge',
+          category: 'delivery',
           onPlateType: 'subnet',
         },
         { type: 'block-exists', category: 'compute', onPlateType: 'region' },
@@ -404,8 +404,8 @@ const serverlessApiScenario: Scenario = {
         'Functions can connect to databases, storage, and queues.',
       ],
       validationRules: [
-        { type: 'connection-exists', sourceCategory: 'internet', targetCategory: 'edge' },
-        { type: 'connection-exists', sourceCategory: 'edge', targetCategory: 'compute' },
+        { type: 'connection-exists', sourceCategory: 'internet', targetCategory: 'delivery' },
+        { type: 'connection-exists', sourceCategory: 'delivery', targetCategory: 'compute' },
         { type: 'connection-exists', sourceCategory: 'compute', targetCategory: 'data' },
       ],
     },

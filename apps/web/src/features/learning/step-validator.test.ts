@@ -56,7 +56,7 @@ const createTestModel = (): ArchitectureModel => ({
       kind: 'resource',
       layer: 'resource',
       resourceType: 'load_balancer',
-      category: 'edge',
+      category: 'delivery',
       provider: 'azure',
       parentId: 'plate-public',
       position: { x: -1.5, y: 0.5, z: -2 },
@@ -158,7 +158,7 @@ describe('evaluateRule', () => {
   describe('block-exists', () => {
     it('finds gateway block', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'block-exists', category: 'edge' };
+      const rule: StepValidationRule = { type: 'block-exists', category: 'delivery' };
       expect(evaluateRule(rule, model)).toBe(true);
     });
 
@@ -224,7 +224,7 @@ describe('evaluateRule', () => {
       const rule: StepValidationRule = {
         type: 'connection-exists',
         sourceCategory: 'internet',
-        targetCategory: 'edge',
+        targetCategory: 'delivery',
       };
       expect(evaluateRule(rule, model)).toBe(true);
     });
@@ -233,7 +233,7 @@ describe('evaluateRule', () => {
       const model = createTestModel();
       const rule: StepValidationRule = {
         type: 'connection-exists',
-        sourceCategory: 'edge',
+        sourceCategory: 'delivery',
         targetCategory: 'compute',
       };
       expect(evaluateRule(rule, model)).toBe(true);
@@ -254,7 +254,7 @@ describe('evaluateRule', () => {
       const rule: StepValidationRule = {
         type: 'connection-exists',
         sourceCategory: 'data',
-        targetCategory: 'edge',
+        targetCategory: 'delivery',
       };
       expect(evaluateRule(rule, model)).toBe(false);
     });
@@ -289,7 +289,7 @@ describe('evaluateRule', () => {
       const model = createTestModel();
       const rule: StepValidationRule = {
         type: 'entity-on-plate',
-        entityCategory: 'edge',
+        entityCategory: 'delivery',
         plateType: 'subnet',
       };
       expect(evaluateRule(rule, model)).toBe(true);
@@ -362,13 +362,13 @@ describe('evaluateRule', () => {
   describe('min-block-count', () => {
     it('passes when count is met', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'min-block-count', category: 'edge', count: 1 };
+      const rule: StepValidationRule = { type: 'min-block-count', category: 'delivery', count: 1 };
       expect(evaluateRule(rule, model)).toBe(true);
     });
 
     it('fails when count is not met', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'min-block-count', category: 'edge', count: 2 };
+      const rule: StepValidationRule = { type: 'min-block-count', category: 'delivery', count: 2 };
       expect(evaluateRule(rule, model)).toBe(false);
     });
   });
@@ -400,7 +400,7 @@ describe('evaluateRules', () => {
     const model = createTestModel();
     const rules: StepValidationRule[] = [
       { type: 'plate-exists', plateType: 'region' },
-      { type: 'block-exists', category: 'edge' },
+      { type: 'block-exists', category: 'delivery' },
       { type: 'connection-exists', sourceCategory: 'compute', targetCategory: 'data' },
       { type: 'architecture-valid' },
     ];
@@ -416,8 +416,8 @@ describe('evaluateRules', () => {
     const model = createTestModel();
     const rules: StepValidationRule[] = [
       { type: 'plate-exists', plateType: 'region' },
-      { type: 'min-block-count', category: 'edge', count: 2 },
-      { type: 'connection-exists', sourceCategory: 'data', targetCategory: 'edge' },
+      { type: 'min-block-count', category: 'delivery', count: 2 },
+      { type: 'connection-exists', sourceCategory: 'data', targetCategory: 'delivery' },
     ];
 
     const result = evaluateRules(rules, model);

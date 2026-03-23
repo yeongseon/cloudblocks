@@ -38,7 +38,7 @@ export const azureSubtypeRegistry: SubtypeRegistry = {
       defaultConfig: { kind: 'GlobalDocumentDB', consistencyLevel: 'Session' },
     },
   },
-  edge: {
+  delivery: {
     'application-gateway': {
       displayName: 'Application Gateway',
       description: 'Web traffic load balancer',
@@ -70,6 +70,16 @@ export const azureSubtypeRegistry: SubtypeRegistry = {
     nsg: {
       displayName: 'Network Security Group',
       description: 'Subnet-level L4 network traffic filtering',
+    },
+  },
+  identity: {
+    'managed-identity': {
+      displayName: 'Managed Identity',
+      description: 'User-assigned managed identity for workloads',
+    },
+    'service-principal': {
+      displayName: 'Service Principal',
+      description: 'Application identity for role-based access',
     },
   },
   operations: {

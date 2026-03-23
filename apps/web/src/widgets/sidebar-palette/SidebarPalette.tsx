@@ -27,7 +27,8 @@ const CATEGORY_COLOR_VARS: Record<CreationGroupId, string> = {
   compute: 'var(--cat-compute)',
   data: 'var(--cat-data)',
   security: 'var(--cat-security)',
-  edge: 'var(--cat-edge)',
+  delivery: 'var(--cat-edge)',
+  identity: '#0078D4',
   messaging: 'var(--cat-messaging)',
   operations: 'var(--cat-operations)',
 };

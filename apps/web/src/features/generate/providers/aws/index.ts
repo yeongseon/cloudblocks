@@ -11,7 +11,7 @@ const awsSubtypeBlockMappings: SubtypeResourceMap = {
     dynamodb: { resourceType: 'aws_dynamodb_table', namePrefix: 'ddb' },
     s3: { resourceType: 'aws_s3_bucket', namePrefix: 's3' },
   },
-  edge: {
+  delivery: {
     alb: { resourceType: 'aws_lb', namePrefix: 'alb' },
     'api-gateway': { resourceType: 'aws_apigatewayv2_api', namePrefix: 'apigw' },
     'nat-gateway': { resourceType: 'aws_nat_gateway', namePrefix: 'natgw' },
@@ -23,6 +23,14 @@ const awsSubtypeBlockMappings: SubtypeResourceMap = {
   security: {
     iam: { resourceType: 'aws_iam_role', namePrefix: 'role' },
     nsg: { resourceType: 'aws_security_group', namePrefix: 'sg' },
+  },
+  identity: {
+    'managed-identity': { resourceType: 'aws_iam_role', namePrefix: 'identity' },
+    managed_identity: { resourceType: 'aws_iam_role', namePrefix: 'identity' },
+    'service-account': { resourceType: 'aws_iam_user', namePrefix: 'svcacct' },
+    service_account: { resourceType: 'aws_iam_user', namePrefix: 'svcacct' },
+    'service-principal': { resourceType: 'aws_iam_role', namePrefix: 'svcpr' },
+    service_principal: { resourceType: 'aws_iam_role', namePrefix: 'svcpr' },
   },
   operations: {
     cloudwatch: { resourceType: 'aws_cloudwatch_dashboard', namePrefix: 'dashboard' },
@@ -42,7 +50,11 @@ export const awsProviderDefinition: ProviderDefinition = {
       resourceType: 'aws_iam_role',
       namePrefix: 'role',
     },
-    edge: {
+    identity: {
+      resourceType: 'aws_iam_role',
+      namePrefix: 'identity',
+    },
+    delivery: {
       resourceType: 'aws_lb',
       namePrefix: 'lb',
     },

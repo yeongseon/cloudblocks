@@ -242,7 +242,7 @@ describe('validateProviderRules', () => {
           id: 'unknown-2',
           name: 'Unknown Gateway',
           provider: 'azure',
-          category: 'edge',
+          category: 'delivery',
           subtype: 'unknown-gateway',
         }),
       ],

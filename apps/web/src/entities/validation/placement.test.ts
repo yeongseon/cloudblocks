@@ -114,20 +114,20 @@ describe('validatePlacement', () => {
   });
 
   it('returns error when gateway is on non-subnet plate', () => {
-    const block = makeBlock({ id: 'gw-1', name: 'Gateway A', category: 'edge' });
+    const block = makeBlock({ id: 'gw-1', name: 'Gateway A', category: 'delivery' });
     const plate = makePlate({ type: 'region' });
 
     expect(validatePlacement(block, plate)).toEqual({
-      ruleId: 'rule-edge-parent',
+      ruleId: 'rule-delivery-parent',
       severity: 'error',
-      message: 'Edge resource "Gateway A" must be placed on a Subnet',
-      suggestion: 'Move the Edge resource to a Subnet',
+      message: 'Delivery resource "Gateway A" must be placed on a Subnet',
+      suggestion: 'Move the Delivery resource to a Subnet',
       targetId: 'gw-1',
     });
   });
 
   it('returns null when gateway is on subnet plate', () => {
-    const block = makeBlock({ category: 'edge' });
+    const block = makeBlock({ category: 'delivery' });
     const plate = makePlate({ type: 'subnet' });
 
     expect(validatePlacement(block, plate)).toBeNull();
@@ -322,7 +322,7 @@ describe('canPlaceBlock', () => {
 
   it('returns true when gateway is on subnet plate', () => {
     const plate = makePlate({ type: 'subnet' });
-    expect(canPlaceBlock('edge', plate)).toBe(true);
+    expect(canPlaceBlock('delivery', plate)).toBe(true);
   });
 
   it('returns true when storage is on subnet plate', () => {
@@ -394,7 +394,7 @@ describe('validateLayerPlacement', () => {
   });
 
   it('returns null when block is on an edge plate', () => {
-    const block = makeBlock({ category: 'edge' });
+    const block = makeBlock({ category: 'delivery' });
     const plate = makePlate({ type: 'edge' });
 
     expect(validateLayerPlacement(block, plate)).toBeNull();

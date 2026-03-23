@@ -242,7 +242,7 @@ describe('generateMainTf', () => {
         createBlock({ id: 'cmp', name: 'Compute', category: 'compute', placementId: 'sub1' }),
         createBlock({ id: 'db', name: 'Database', category: 'data', placementId: 'sub1' }),
         createBlock({ id: 'st', name: 'Storage', category: 'data', placementId: 'sub1' }),
-        createBlock({ id: 'gw', name: 'Gateway', category: 'edge', placementId: 'sub1' }),
+        createBlock({ id: 'gw', name: 'Gateway', category: 'delivery', placementId: 'sub1' }),
       ],
     });
 
@@ -359,7 +359,7 @@ describe('generateMainTf', () => {
   it('generates implicit PIP for firewall blocks but no NIC', () => {
     const model = createTestModel({
       blocks: [
-        createBlock({ id: 'fw1', name: 'MainFirewall', category: 'edge', subtype: 'firewall' }),
+        createBlock({ id: 'fw1', name: 'MainFirewall', category: 'delivery', subtype: 'firewall' }),
       ],
     });
 
@@ -373,7 +373,12 @@ describe('generateMainTf', () => {
   it('does not generate implicit resources for internal-lb blocks', () => {
     const model = createTestModel({
       blocks: [
-        createBlock({ id: 'lb1', name: 'InternalLB', category: 'edge', subtype: 'internal-lb' }),
+        createBlock({
+          id: 'lb1',
+          name: 'InternalLB',
+          category: 'delivery',
+          subtype: 'internal-lb',
+        }),
       ],
     });
 

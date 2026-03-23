@@ -58,6 +58,11 @@ Scope is optional but recommended: `feat(web):`, `fix(api):`, `docs:`.
 - Squash-merge every PR with `--delete-branch`: `gh pr merge <number> --squash --delete-branch`. **Never** use `--admin` — let CI gates enforce quality.
 - PR title should follow the same Conventional Commits format as commit messages.
 - Each PR should reference and close its issue (e.g., `Fixes #123`).
+- **Post-PR review gate**: After creating or updating a PR, always check GitHub's automated review results before merging:
+  1. Wait for CI checks to complete: `gh pr checks <number> --watch`
+  2. Review any automated review comments: `gh api repos/{owner}/{repo}/pulls/<number>/reviews` and `gh api repos/{owner}/{repo}/pulls/<number>/comments`
+  3. If automated reviewers flag issues, fix them on the branch and push before merging.
+  4. Only proceed with merge when all checks pass and no unresolved review comments remain.
 
 ## Implementation Principles
 

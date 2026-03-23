@@ -29,11 +29,12 @@ const baseArchitecture: ArchitectureModel = {
 const resourceTypeByCategory: Record<ResourceCategory, string> = {
   network: 'virtual_network',
   security: 'firewall_security',
-  edge: 'load_balancer',
+  delivery: 'load_balancer',
   compute: 'web_compute',
   data: 'relational_database',
   messaging: 'message_queue',
   operations: 'monitoring',
+  identity: 'managed_identity',
 };
 
 const makeBlock = (id: string, category: ResourceCategory): LeafNode => ({
@@ -84,7 +85,7 @@ describe('FlowDiagram', () => {
 
   it('renders topologically sorted flow chain blocks', () => {
     const blocks: LeafNode[] = [
-      makeBlock('gateway-1', 'edge'),
+      makeBlock('gateway-1', 'delivery'),
       makeBlock('compute-1', 'compute'),
       makeBlock('database-1', 'data'),
     ];
@@ -112,7 +113,7 @@ describe('FlowDiagram', () => {
   });
 
   it('renders external actor node (Internet)', () => {
-    const blocks: LeafNode[] = [makeBlock('gateway-1', 'edge')];
+    const blocks: LeafNode[] = [makeBlock('gateway-1', 'delivery')];
     const externalActors: ExternalActor[] = [makeExternalActor('internet-1')];
     const connections: Connection[] = [makeConnection('c1', 'internet-1', 'gateway-1')];
 
@@ -132,7 +133,7 @@ describe('FlowDiagram', () => {
   });
 
   it('renders external actor node with custom actor name', () => {
-    const blocks: LeafNode[] = [makeBlock('gateway-1', 'edge')];
+    const blocks: LeafNode[] = [makeBlock('gateway-1', 'delivery')];
     const externalActors: ExternalActor[] = [makeExternalActor('external-1', 'Partner API')];
     const connections: Connection[] = [makeConnection('c1', 'external-1', 'gateway-1')];
 
@@ -151,7 +152,7 @@ describe('FlowDiagram', () => {
   });
 
   it('falls back to default external actor label when actor name is empty', () => {
-    const blocks: LeafNode[] = [makeBlock('gateway-1', 'edge')];
+    const blocks: LeafNode[] = [makeBlock('gateway-1', 'delivery')];
     const externalActors: ExternalActor[] = [makeExternalActor('external-2', '')];
     const connections: Connection[] = [makeConnection('c1', 'external-2', 'gateway-1')];
 
@@ -171,7 +172,7 @@ describe('FlowDiagram', () => {
 
   it('renders arrows between nodes', () => {
     const blocks: LeafNode[] = [
-      makeBlock('gateway-1', 'edge'),
+      makeBlock('gateway-1', 'delivery'),
       makeBlock('compute-1', 'compute'),
       makeBlock('database-1', 'data'),
     ];
@@ -283,7 +284,7 @@ describe('FlowDiagram', () => {
 
   it('handles converging dependencies in Kahn sorting order', () => {
     const blocks: LeafNode[] = [
-      makeBlock('gateway-1', 'edge'),
+      makeBlock('gateway-1', 'delivery'),
       makeBlock('storage-1', 'data'),
       makeBlock('compute-1', 'compute'),
       makeBlock('database-1', 'data'),

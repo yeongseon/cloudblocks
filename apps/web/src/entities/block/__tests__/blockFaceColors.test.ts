@@ -16,8 +16,9 @@ const providers: ProviderType[] = ['azure', 'aws', 'gcp'];
 const categories: ResourceCategory[] = [
   'compute',
   'data',
-  'edge',
+  'delivery',
   'messaging',
+  'identity',
   'operations',
   'security',
   'network',
@@ -413,7 +414,7 @@ describe('getBlockStudColors', () => {
       }
     }
 
-    expect(results).toHaveLength(3 * 7);
+    expect(results).toHaveLength(3 * 8);
 
     for (const result of results) {
       expect(result.spec.main).toMatch(hexColorPattern);

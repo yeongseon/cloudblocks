@@ -107,8 +107,9 @@ const CREATION_GROUP_ORDER: CreationGroupId[] = [
   'foundation',
   'compute',
   'data',
-  'edge',
+  'delivery',
   'security',
+  'identity',
   'messaging',
   'operations',
 ];

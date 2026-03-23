@@ -71,7 +71,7 @@ const gatewayNode: LeafNode = {
   kind: 'resource',
   layer: 'resource',
   resourceType: 'load_balancer',
-  category: 'edge',
+  category: 'delivery',
   provider: 'azure',
   parentId: 'plate-1',
   position: { x: 0, y: 0, z: 0 },

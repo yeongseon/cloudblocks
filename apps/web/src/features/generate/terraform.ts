@@ -102,15 +102,15 @@ export function normalize(
  *
  * Rules:
  *   - VM (compute, subtype='vm') → PIP + NIC (PIP before NIC, NIC references PIP)
- *   - Firewall (edge, subtype='firewall') → PIP only
- *   - Internal LB (edge, subtype='internal-lb') → no implicit resources (internal)
+ *   - Firewall (delivery, subtype='firewall') → PIP only
+ *   - Internal LB (delivery, subtype='internal-lb') → no implicit resources (internal)
  */
 function generateImplicitResources(block: LeafNode, resourceName: string): string[] {
   const sections: string[] = [];
 
   const needsPip =
     (block.category === 'compute' && block.subtype === 'vm') ||
-    (block.category === 'edge' && block.subtype === 'firewall');
+    (block.category === 'delivery' && block.subtype === 'firewall');
 
   const needsNic = block.category === 'compute' && block.subtype === 'vm';
 
@@ -210,7 +210,7 @@ function generateBlockResource(
     case 'network':
       lines.push(`  # Network resource configuration`);
       break;
-    case 'edge':
+    case 'delivery':
       lines.push(`  # Application Gateway configuration`);
       lines.push(`  # Requires additional subnet, frontend IP, and backend pool configuration`);
       lines.push(`  sku {`);
@@ -225,6 +225,9 @@ function generateBlockResource(
       break;
     case 'operations':
       lines.push(`  # Operations and observability resource configuration`);
+      break;
+    case 'identity':
+      lines.push(`  # Managed identity configuration`);
       break;
     case 'security':
       lines.push(`  # Managed identity configuration`);

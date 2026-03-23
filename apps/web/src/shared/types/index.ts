@@ -115,30 +115,33 @@ export const DEFAULT_BLOCK_SIZE: Size = {
 export const BLOCK_FRIENDLY_NAMES: Record<ResourceCategory, string> = {
   network: 'Virtual Network',
   security: 'Security Service',
-  edge: 'Load Balancer',
+  delivery: 'Load Balancer',
   compute: 'Compute Instance',
   data: 'Data Store',
   messaging: 'Message Service',
+  identity: 'Identity Service',
   operations: 'Monitoring',
 };
 
 export const BLOCK_ICONS: Record<ResourceCategory, string> = {
   network: '🌐',
   security: '🔒',
-  edge: '⚖️',
+  delivery: '⚖️',
   compute: '🖥️',
   data: '🗄️',
   messaging: '📨',
+  identity: '🪪',
   operations: '📡',
 };
 
 export const BLOCK_SHORT_NAMES: Record<ResourceCategory, string> = {
   network: 'Virtual Net',
   security: 'Security',
-  edge: 'Load Bal',
+  delivery: 'Delivery',
   compute: 'Compute',
   data: 'Data Store',
   messaging: 'Messaging',
+  identity: 'Identity',
   operations: 'Ops Monitor',
 };
 
@@ -162,8 +165,8 @@ export const BLOCK_ENCYCLOPEDIA: Record<
     connections:
       'Connects to compute and data nodes via internal or data connections for policy enforcement.',
   },
-  edge: {
-    what: 'Load balancers and CDNs distribute incoming traffic across backend compute instances for high availability.',
+  delivery: {
+    what: 'Content delivery and traffic distribution services — CDNs, load balancers, and edge caching.',
     placement:
       'Place in a subnet to receive external traffic. Routes to compute nodes in other subnets.',
     connections:
@@ -187,6 +190,11 @@ export const BLOCK_ENCYCLOPEDIA: Record<
     connections:
       'Receives async connections from producers. Sends async connections to consumer compute nodes.',
   },
+  identity: {
+    what: 'Identity and access management — authentication, authorization, managed identities, and service principals.',
+    placement: 'Place inside a subnet alongside resources that need identity-based access control.',
+    connections: 'Provides identity tokens to compute and data nodes via internal connections.',
+  },
   operations: {
     what: 'Monitoring and observability services collect metrics, logs, and traces from all running resources.',
     placement: 'Place in a subnet. Needs network access to all monitored resources.',
@@ -208,7 +216,7 @@ export const CONNECTION_ENCYCLOPEDIA: Record<
   },
   http: {
     what: 'Request-response communication over HTTP/HTTPS. The most common web protocol for APIs and web traffic.',
-    usage: 'External actor to edge, edge to compute, compute to external APIs.',
+    usage: 'External actor to delivery, delivery to compute, compute to external APIs.',
   },
   internal: {
     what: 'Private network communication between resources in the same network. No public internet exposure.',

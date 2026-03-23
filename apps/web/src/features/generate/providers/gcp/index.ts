@@ -11,7 +11,7 @@ const gcpSubtypeBlockMappings: SubtypeResourceMap = {
     firestore: { resourceType: 'google_firestore_database', namePrefix: 'fdb' },
     'cloud-storage': { resourceType: 'google_storage_bucket', namePrefix: 'gcs' },
   },
-  edge: {
+  delivery: {
     'cloud-load-balancing': { resourceType: 'google_compute_url_map', namePrefix: 'lb' },
     'api-gateway': { resourceType: 'google_api_gateway_api', namePrefix: 'apigw' },
     'nat-gateway': { resourceType: 'google_compute_router_nat', namePrefix: 'nat' },
@@ -23,6 +23,12 @@ const gcpSubtypeBlockMappings: SubtypeResourceMap = {
   security: {
     iam: { resourceType: 'google_service_account', namePrefix: 'sa' },
     nsg: { resourceType: 'google_compute_firewall', namePrefix: 'fw' },
+  },
+  identity: {
+    'managed-identity': { resourceType: 'google_service_account', namePrefix: 'identity' },
+    managed_identity: { resourceType: 'google_service_account', namePrefix: 'identity' },
+    'service-account': { resourceType: 'google_service_account', namePrefix: 'svcacct' },
+    service_account: { resourceType: 'google_service_account', namePrefix: 'svcacct' },
   },
   operations: {
     bigquery: { resourceType: 'google_bigquery_dataset', namePrefix: 'analytics' },
@@ -42,7 +48,11 @@ export const gcpProviderDefinition: ProviderDefinition = {
       resourceType: 'google_service_account',
       namePrefix: 'sa',
     },
-    edge: {
+    identity: {
+      resourceType: 'google_service_account',
+      namePrefix: 'identity',
+    },
+    delivery: {
       resourceType: 'google_compute_backend_service',
       namePrefix: 'backend',
     },

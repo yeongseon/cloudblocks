@@ -552,8 +552,8 @@ describe('useUIStore', () => {
     });
 
     it('should set draggedBlockCategory to gateway', () => {
-      useUIStore.getState().setDraggedBlockCategory('edge');
-      expect(useUIStore.getState().draggedBlockCategory).toBe('edge');
+      useUIStore.getState().setDraggedBlockCategory('delivery');
+      expect(useUIStore.getState().draggedBlockCategory).toBe('delivery');
     });
 
     it('should clear draggedBlockCategory when given null', () => {
