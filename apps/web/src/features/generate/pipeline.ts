@@ -1,10 +1,5 @@
 import type { ArchitectureModel } from '@cloudblocks/schema';
-import type {
-  GeneratedOutput,
-  GenerationOptions,
-  GeneratorId,
-  ProviderName,
-} from './types';
+import type { GeneratedOutput, GenerationOptions, GeneratorId, ProviderName } from './types';
 import { isValidAzureRegion } from './types';
 import { getProviderDefinition } from './provider';
 import { getGenerator, listGeneratorIds, registerGenerator } from './registry';
@@ -42,7 +37,7 @@ function validateRegion(options: GenerationOptions): void {
 
   if (!isValidAzureRegion(options.region)) {
     throw new GenerationError(
-      `Invalid Azure region: "${options.region}". Use a valid region like "eastus", "westeurope", etc.`
+      `Invalid Azure region: "${options.region}". Use a valid region like "eastus", "westeurope", etc.`,
     );
   }
 }
@@ -50,14 +45,14 @@ function validateRegion(options: GenerationOptions): void {
 function assertProviderSupportedByGenerator(
   generatorId: GeneratorId,
   provider: ProviderName,
-  supportedProviders: readonly ProviderName[]
+  supportedProviders: readonly ProviderName[],
 ): void {
   if (supportedProviders.includes(provider)) {
     return;
   }
 
   throw new GenerationError(
-    `Generator "${generatorId}" does not support provider "${provider}". Supported providers: ${supportedProviders.join(', ')}`
+    `Generator "${generatorId}" does not support provider "${provider}". Supported providers: ${supportedProviders.join(', ')}`,
   );
 }
 
@@ -68,19 +63,15 @@ function assertProviderSupportedByGenerator(
  */
 export function generateCode(
   architecture: ArchitectureModel,
-  options: GenerationOptions
+  options: GenerationOptions,
 ): GeneratedOutput {
   const generatorId: GeneratorId = options.generator ?? 'terraform';
 
   // Stage 1: Validate architecture
   const validation = validateArchitecture(architecture);
   if (!validation.valid) {
-    const errorMessages = validation.errors
-      .map((e) => e.message)
-      .join('; ');
-    throw new GenerationError(
-      `Architecture has validation errors: ${errorMessages}`
-    );
+    const errorMessages = validation.errors.map((e) => e.message).join('; ');
+    throw new GenerationError(`Architecture has validation errors: ${errorMessages}`);
   }
 
   // Stage 1.5: Validate generation options
@@ -91,7 +82,7 @@ export function generateCode(
   if (!plugin) {
     const availableGenerators = listGeneratorIds();
     throw new GenerationError(
-      `Unknown generator: "${generatorId}". Available: ${availableGenerators.join(', ')}`
+      `Unknown generator: "${generatorId}". Available: ${availableGenerators.join(', ')}`,
     );
   }
 
@@ -99,15 +90,11 @@ export function generateCode(
   const providerDef = getProviderDefinition(options.provider);
   if (!providerDef) {
     throw new GenerationError(
-      `Unknown provider: "${options.provider}". Available: azure, aws, gcp`
+      `Unknown provider: "${options.provider}". Available: azure, aws, gcp`,
     );
   }
 
-  assertProviderSupportedByGenerator(
-    plugin.id,
-    options.provider,
-    plugin.supportedProviders
-  );
+  assertProviderSupportedByGenerator(plugin.id, options.provider, plugin.supportedProviders);
 
   // Stage 4: Optional generator-level validation
   if (plugin.validate) {
@@ -115,7 +102,7 @@ export function generateCode(
     const errors = issues.filter((i) => i.severity === 'error');
     if (errors.length > 0) {
       throw new GenerationError(
-        `Generator validation failed: ${errors.map((e) => e.message).join('; ')}`
+        `Generator validation failed: ${errors.map((e) => e.message).join('; ')}`,
       );
     }
   }

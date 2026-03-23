@@ -6,7 +6,6 @@ import { validateArchitectureShape } from '../../entities/store/slices';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 
-
 import { usePromoteStore } from '../../entities/store/promoteStore';
 import { computeArchitectureDiff } from '../../features/diff/engine';
 import { apiPost, getApiErrorMessage } from '../../shared/api/client';
@@ -20,15 +19,16 @@ import './MenuBar.css';
 
 type DropdownMenu = 'file' | 'edit' | 'build' | 'view' | 'github' | null;
 
-const PROVIDER_OPTIONS: { id: ProviderType; label: string; color: string; comingSoon?: boolean }[] = [
-  { id: 'azure', label: 'Azure', color: '#0078D4' },
-  { id: 'aws', label: 'AWS', color: '#FF9900', comingSoon: true },
-  { id: 'gcp', label: 'GCP', color: '#4285F4', comingSoon: true },
-];
+const PROVIDER_OPTIONS: { id: ProviderType; label: string; color: string; comingSoon?: boolean }[] =
+  [
+    { id: 'azure', label: 'Azure', color: '#0078D4' },
+    { id: 'aws', label: 'AWS', color: '#FF9900', comingSoon: true },
+    { id: 'gcp', label: 'GCP', color: '#4285F4', comingSoon: true },
+  ];
 
 export function MenuBar() {
   const [openMenu, setOpenMenu] = useState<DropdownMenu>(null);
-  
+
   const selectedId = useUIStore((s) => s.selectedId);
   const showValidation = useUIStore((s) => s.showValidation);
   const toggleValidation = useUIStore((s) => s.toggleValidation);
@@ -60,7 +60,9 @@ export function MenuBar() {
   const toggleSound = useUIStore((s) => s.toggleSound);
   const themeVariant = useUIStore((s) => s.themeVariant);
   const setThemeVariant = useUIStore((s) => s.setThemeVariant);
-  const playSound = (name: SoundName) => { if (!isSoundMuted) audioService.playSound(name); };
+  const playSound = (name: SoundName) => {
+    if (!isSoundMuted) audioService.playSound(name);
+  };
 
   const togglePromoteDialog = usePromoteStore((s) => s.togglePromoteDialog);
   const toggleRollbackDialog = usePromoteStore((s) => s.toggleRollbackDialog);
@@ -75,7 +77,7 @@ export function MenuBar() {
 
   const removeNode = useArchitectureStore((s) => s.removeNode);
   const removeConnection = useArchitectureStore((s) => s.removeConnection);
-  
+
   const validate = useArchitectureStore((s) => s.validate);
   const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
   const loadFromStorage = useArchitectureStore((s) => s.loadFromStorage);
@@ -121,7 +123,6 @@ export function MenuBar() {
     setOpenMenu(null);
   };
 
-
   const handleDeleteSelection = () => {
     if (!selectedId) return;
     if (plates.some((p) => p.id === selectedId)) {
@@ -148,7 +149,7 @@ export function MenuBar() {
     if (newProvider === activeProvider) return;
 
     const blocksFromOtherProvider = blocks.filter(
-      (block) => block.provider && block.provider !== newProvider
+      (block) => block.provider && block.provider !== newProvider,
     );
 
     if (blocksFromOtherProvider.length > 0) {
@@ -407,38 +408,74 @@ export function MenuBar() {
             Build
           </button>
           <div className={`menu-dropdown ${openMenu === 'build' ? 'show' : ''}`}>
-            <button type="button" className="menu-item" onClick={() => handleAction(handleValidate)}>
+            <button
+              type="button"
+              className="menu-item"
+              onClick={() => handleAction(handleValidate)}
+            >
               <span className="menu-item-left">✅ Validate Architecture</span>
               {validationResult && (
-                <span className={`menu-badge ${validationResult.valid ? 'menu-badge-valid' : 'menu-badge-invalid'}`}>
+                <span
+                  className={`menu-badge ${validationResult.valid ? 'menu-badge-valid' : 'menu-badge-invalid'}`}
+                >
                   {validationResult.valid ? 'Valid' : 'Errors'}
                 </span>
               )}
             </button>
-            <button type="button" className="menu-item" onClick={() => handleAction(() => openInspectorTab('code'))}>
+            <button
+              type="button"
+              className="menu-item"
+              onClick={() => handleAction(() => openInspectorTab('code'))}
+            >
               <span className="menu-item-left">⚡ Generate Code</span>
             </button>
             <div className="menu-separator" />
-            <button type="button" className="menu-item" onClick={() => handleAction(toggleTemplateGallery)}>
+            <button
+              type="button"
+              className="menu-item"
+              onClick={() => handleAction(toggleTemplateGallery)}
+            >
               <span className="menu-item-left">📦 Browse Templates</span>
             </button>
 
             <div className="menu-separator" />
-            <button type="button" className="menu-item" onClick={() => handleAction(togglePromoteDialog)}>
+            <button
+              type="button"
+              className="menu-item"
+              onClick={() => handleAction(togglePromoteDialog)}
+            >
               <span className="menu-item-left">&#x2B06; Promote to Production</span>
             </button>
-            <button type="button" className="menu-item" onClick={() => handleAction(toggleRollbackDialog)}>
+            <button
+              type="button"
+              className="menu-item"
+              onClick={() => handleAction(toggleRollbackDialog)}
+            >
               <span className="menu-item-left">&#x2B07; Rollback Production</span>
             </button>
-            <button type="button" className="menu-item" onClick={() => handleAction(togglePromoteHistory)}>
+            <button
+              type="button"
+              className="menu-item"
+              onClick={() => handleAction(togglePromoteHistory)}
+            >
               <span className="menu-item-left">&#x1F4CB; Promotion History</span>
             </button>
             <div className="menu-separator" />
-            <button type="button" className="menu-item" onClick={() => handleAction(toggleScenarioGallery)}>
+            <button
+              type="button"
+              className="menu-item"
+              onClick={() => handleAction(toggleScenarioGallery)}
+            >
               <span className="menu-item-left">📚 Browse Scenarios</span>
             </button>
-            <button type="button" className="menu-item" onClick={() => handleAction(handleToggleLearningPanel)}>
-              <span className="menu-item-left">{showLearningPanel ? '✓ ' : ''}📖 Show Learning Panel</span>
+            <button
+              type="button"
+              className="menu-item"
+              onClick={() => handleAction(handleToggleLearningPanel)}
+            >
+              <span className="menu-item-left">
+                {showLearningPanel ? '✓ ' : ''}📖 Show Learning Panel
+              </span>
             </button>
           </div>
         </div>
@@ -457,21 +494,42 @@ export function MenuBar() {
               <span className="menu-item-left">{sidebarOpen ? '✓ ' : '  '}📌 Sidebar</span>
               <span className="menu-shortcut">Ctrl+Alt+S</span>
             </button>
-            <button type="button" className="menu-item" onClick={() => handleAction(toggleResourceGuide)}>
-              <span className="menu-item-left">{showResourceGuide ? '✓ ' : '  '}📖 Resource Guide</span>
+            <button
+              type="button"
+              className="menu-item"
+              onClick={() => handleAction(toggleResourceGuide)}
+            >
+              <span className="menu-item-left">
+                {showResourceGuide ? '✓ ' : '  '}📖 Resource Guide
+              </span>
             </button>
             <div className="menu-separator" />
-            <button type="button" className="menu-item" onClick={() => handleAction(toggleInspector)}>
+            <button
+              type="button"
+              className="menu-item"
+              onClick={() => handleAction(toggleInspector)}
+            >
               <span className="menu-item-left">{inspectorOpen ? '✓ ' : '  '}🔍 Inspector</span>
               <span className="menu-shortcut">Ctrl+Alt+I</span>
             </button>
             <div className="menu-separator" />
-            <button type="button" className="menu-item" onClick={() => handleAction(handleToggleBottomDock)}>
+            <button
+              type="button"
+              className="menu-item"
+              onClick={() => handleAction(handleToggleBottomDock)}
+            >
               <span className="menu-item-left">{bottomDockOpen ? '✓ ' : '  '}📊 Bottom Dock</span>
               <span className="menu-shortcut">Ctrl+Alt+D</span>
             </button>
-            <button type="button" className="menu-item" onClick={() => handleAction(handleToggleValidationResults)}>
-              <span className="menu-item-left">{bottomDockOpen && bottomDockActiveTab === 'validation' ? '✓ ' : '  '}📊 Validation Results</span>
+            <button
+              type="button"
+              className="menu-item"
+              onClick={() => handleAction(handleToggleValidationResults)}
+            >
+              <span className="menu-item-left">
+                {bottomDockOpen && bottomDockActiveTab === 'validation' ? '✓ ' : '  '}📊 Validation
+                Results
+              </span>
             </button>
             <div className="menu-separator" />
             <button
@@ -483,15 +541,26 @@ export function MenuBar() {
               <span className="menu-item-left">{diffMode ? '✓ ' : ''}🔍 Diff View</span>
             </button>
             <div className="menu-separator" />
-            <button type="button" className="menu-item" onClick={() => handleAction(() => setThemeVariant('blueprint'))}>
-              <span className="menu-item-left">{themeVariant === 'blueprint' ? '✓ ' : '  '}🌙 Blueprint (Dark)</span>
+            <button
+              type="button"
+              className="menu-item"
+              onClick={() => handleAction(() => setThemeVariant('blueprint'))}
+            >
+              <span className="menu-item-left">
+                {themeVariant === 'blueprint' ? '✓ ' : '  '}🌙 Blueprint (Dark)
+              </span>
             </button>
-            <button type="button" className="menu-item" onClick={() => handleAction(() => setThemeVariant('workshop'))}>
-              <span className="menu-item-left">{themeVariant === 'workshop' ? '✓ ' : '  '}☀️ Workshop (Light)</span>
+            <button
+              type="button"
+              className="menu-item"
+              onClick={() => handleAction(() => setThemeVariant('workshop'))}
+            >
+              <span className="menu-item-left">
+                {themeVariant === 'workshop' ? '✓ ' : '  '}☀️ Workshop (Light)
+              </span>
             </button>
           </div>
         </div>
-      
       </nav>
 
       <div className="menu-bar-divider" />
@@ -511,9 +580,18 @@ export function MenuBar() {
               disabled={isComingSoon}
               onClick={() => handleProviderSwitch(provider.id)}
               title={isComingSoon ? `${provider.label} support is coming soon` : undefined}
-              style={isActive ? { borderColor: provider.color, color: provider.color, boxShadow: `inset 0 3px 0 rgba(255, 255, 255, 0.6), 0 4px 0 0 ${provider.color}` } : undefined}
+              style={
+                isActive
+                  ? {
+                      borderColor: provider.color,
+                      color: provider.color,
+                      boxShadow: `inset 0 3px 0 rgba(255, 255, 255, 0.6), 0 4px 0 0 ${provider.color}`,
+                    }
+                  : undefined
+              }
             >
-              {provider.label}{isComingSoon ? ' (Coming Soon)' : ''}
+              {provider.label}
+              {isComingSoon ? ' (Coming Soon)' : ''}
             </button>
           );
         })}
@@ -571,7 +649,11 @@ export function MenuBar() {
               🔐 {user?.github_username ?? 'GitHub'}
             </button>
             <div className={`menu-dropdown right-aligned ${openMenu === 'github' ? 'show' : ''}`}>
-              <button type="button" className="menu-item" onClick={() => handleAction(toggleGitHubRepos)}>
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => handleAction(toggleGitHubRepos)}
+              >
                 <span className="menu-item-left">📦 Repos</span>
               </button>
               <button
@@ -579,7 +661,11 @@ export function MenuBar() {
                 className="menu-item"
                 onClick={() => handleAction(toggleGitHubSync)}
                 disabled={!hasBackendWorkspaceLink}
-                title={!hasBackendWorkspaceLink ? 'Link workspace to backend to use GitHub sync.' : undefined}
+                title={
+                  !hasBackendWorkspaceLink
+                    ? 'Link workspace to backend to use GitHub sync.'
+                    : undefined
+                }
               >
                 <span className="menu-item-left">🔄 Sync</span>
               </button>
@@ -588,7 +674,11 @@ export function MenuBar() {
                 className="menu-item"
                 onClick={() => handleAction(toggleGitHubPR)}
                 disabled={!hasBackendWorkspaceLink}
-                title={!hasBackendWorkspaceLink ? 'Link workspace to backend to create pull requests.' : undefined}
+                title={
+                  !hasBackendWorkspaceLink
+                    ? 'Link workspace to backend to create pull requests.'
+                    : undefined
+                }
               >
                 <span className="menu-item-left">🔀 Create PR</span>
               </button>
@@ -597,7 +687,11 @@ export function MenuBar() {
                 className="menu-item"
                 onClick={() => handleAction(handleCompareWithGitHub)}
                 disabled={!hasBackendWorkspaceLink}
-                title={!hasBackendWorkspaceLink ? 'Link workspace to backend to compare with GitHub.' : undefined}
+                title={
+                  !hasBackendWorkspaceLink
+                    ? 'Link workspace to backend to compare with GitHub.'
+                    : undefined
+                }
               >
                 <span className="menu-item-left">🔍 Compare with GitHub</span>
               </button>
@@ -608,12 +702,7 @@ export function MenuBar() {
             </div>
           </>
         ) : authStatus === 'unknown' || backendStatus === 'unknown' ? (
-          <button
-            type="button"
-            className="github-btn"
-            disabled
-            title="Checking authentication..."
-          >
+          <button type="button" className="github-btn" disabled title="Checking authentication...">
             🔐 ...
           </button>
         ) : !backendAvailable ? (

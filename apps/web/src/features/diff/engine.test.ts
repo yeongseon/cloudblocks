@@ -4,7 +4,11 @@ import { endpointId } from '@cloudblocks/schema';
 import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
 import type { ModifiedEntity, PropertyChange } from '../../shared/types/diff';
 import { computeArchitectureDiff, getDiffState, normalizeArchitecture } from './engine';
-import { makeTestArchitecture, makeTestBlock, makeTestPlate } from '../../__tests__/legacyModelTestUtils';
+import {
+  makeTestArchitecture,
+  makeTestBlock,
+  makeTestPlate,
+} from '../../__tests__/legacyModelTestUtils';
 
 type LegacyArchitecture = ArchitectureModel & {
   plates: ContainerNode[];
@@ -13,8 +17,10 @@ type LegacyArchitecture = ArchitectureModel & {
 
 function toArchitectureModel(model: ArchitectureModel | LegacyArchitecture): ArchitectureModel {
   const legacy = model as Partial<LegacyArchitecture>;
-  const plates = legacy.plates ?? model.nodes.filter((node): node is ContainerNode => node.kind === 'container');
-  const blocks = legacy.blocks ?? model.nodes.filter((node): node is LeafNode => node.kind === 'resource');
+  const plates =
+    legacy.plates ?? model.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+  const blocks =
+    legacy.blocks ?? model.nodes.filter((node): node is LeafNode => node.kind === 'resource');
 
   return {
     id: model.id,
@@ -29,18 +35,55 @@ function toArchitectureModel(model: ArchitectureModel | LegacyArchitecture): Arc
   };
 }
 
-function computeLegacyDiff(base: ArchitectureModel | LegacyArchitecture, head: ArchitectureModel | LegacyArchitecture) {
+function computeLegacyDiff(
+  base: ArchitectureModel | LegacyArchitecture,
+  head: ArchitectureModel | LegacyArchitecture,
+) {
   return computeArchitectureDiff(toArchitectureModel(base), toArchitectureModel(head));
 }
 
 function createBaseArchitecture(): LegacyArchitecture {
   const plates = [
-    makeTestPlate({ id: 'plate-1', name: 'Network', type: 'region', parentId: null, position: { x: 0, y: 0, z: 0 }, size: { width: 16, height: 0.3, depth: 20 }, metadata: {} }),
-    makeTestPlate({ id: 'plate-2', name: 'Subnet 1', type: 'subnet', parentId: 'plate-1', position: { x: 1, y: 0, z: 1 }, size: { width: 6, height: 0.3, depth: 8 }, metadata: {} }),
+    makeTestPlate({
+      id: 'plate-1',
+      name: 'Network',
+      type: 'region',
+      parentId: null,
+      position: { x: 0, y: 0, z: 0 },
+      size: { width: 16, height: 0.3, depth: 20 },
+      metadata: {},
+    }),
+    makeTestPlate({
+      id: 'plate-2',
+      name: 'Subnet 1',
+      type: 'subnet',
+      parentId: 'plate-1',
+      position: { x: 1, y: 0, z: 1 },
+      size: { width: 6, height: 0.3, depth: 8 },
+      metadata: {},
+    }),
   ];
   const blocks = [
-    makeTestBlock(makeTestBlock({ id: 'block-1', name: 'Gateway', category: 'edge', placementId: 'plate-2', position: { x: 0, y: 0, z: 0 }, metadata: {} })),
-    makeTestBlock(makeTestBlock({ id: 'block-2', name: 'VM', category: 'compute', placementId: 'plate-2', position: { x: 2, y: 0, z: 0 }, metadata: {} })),
+    makeTestBlock(
+      makeTestBlock({
+        id: 'block-1',
+        name: 'Gateway',
+        category: 'edge',
+        placementId: 'plate-2',
+        position: { x: 0, y: 0, z: 0 },
+        metadata: {},
+      }),
+    ),
+    makeTestBlock(
+      makeTestBlock({
+        id: 'block-2',
+        name: 'VM',
+        category: 'compute',
+        placementId: 'plate-2',
+        position: { x: 2, y: 0, z: 0 },
+        metadata: {},
+      }),
+    ),
   ];
   const arch = makeTestArchitecture({
     id: 'arch-1',
@@ -48,9 +91,18 @@ function createBaseArchitecture(): LegacyArchitecture {
     version: '1.0',
     plates,
     blocks,
-    connections: [{ id: 'conn-1', from: endpointId('block-1', 'output', 'data'), to: endpointId('block-2', 'input', 'data'), metadata: {} }],
+    connections: [
+      {
+        id: 'conn-1',
+        from: endpointId('block-1', 'output', 'data'),
+        to: endpointId('block-2', 'input', 'data'),
+        metadata: {},
+      },
+    ],
     endpoints: [],
-    externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } }],
+    externalActors: [
+      { id: 'ext-1', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+    ],
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-01-01T00:00:00Z',
   });
@@ -163,11 +215,27 @@ describe('computeArchitectureDiff', () => {
       ...base,
       plates: [
         ...base.plates,
-        makeTestPlate({ id: 'plate-3', name: 'Subnet 2', type: 'subnet', parentId: 'plate-1', children: ['block-3'], position: { x: 4, y: 0, z: 4 }, size: { width: 6, height: 0.3, depth: 8 }, metadata: {} }),
+        makeTestPlate({
+          id: 'plate-3',
+          name: 'Subnet 2',
+          type: 'subnet',
+          parentId: 'plate-1',
+          children: ['block-3'],
+          position: { x: 4, y: 0, z: 4 },
+          size: { width: 6, height: 0.3, depth: 8 },
+          metadata: {},
+        }),
       ],
       blocks: [
         ...base.blocks,
-        makeTestBlock({ id: 'block-3', name: 'Storage', category: 'data', placementId: 'plate-3', position: { x: 1, y: 0, z: 1 }, metadata: {} }),
+        makeTestBlock({
+          id: 'block-3',
+          name: 'Storage',
+          category: 'data',
+          placementId: 'plate-3',
+          position: { x: 1, y: 0, z: 1 },
+          metadata: {},
+        }),
       ],
       connections: [
         ...base.connections,
@@ -178,7 +246,10 @@ describe('computeArchitectureDiff', () => {
           metadata: {},
         },
       ],
-      externalActors: [...(base.externalActors ?? []), { id: 'ext-2', name: 'Partner API', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+      externalActors: [
+        ...(base.externalActors ?? []),
+        { id: 'ext-2', name: 'Partner API', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+      ],
     };
 
     const delta = computeLegacyDiff(base, head);
@@ -231,7 +302,10 @@ describe('computeArchitectureDiff', () => {
         ...connection,
         metadata: { ...connection.metadata, protocol: 'https' },
       })),
-      externalActors: (base.externalActors ?? []).map((actor) => ({ ...actor, name: 'Public Internet' })),
+      externalActors: (base.externalActors ?? []).map((actor) => ({
+        ...actor,
+        name: 'Public Internet',
+      })),
     };
 
     const delta = computeLegacyDiff(base, head);
@@ -241,18 +315,18 @@ describe('computeArchitectureDiff', () => {
     expect(delta.connections.modified).toHaveLength(1);
     expect(delta.externalActors.modified).toHaveLength(1);
 
-    expect(requireModified(delta.plates.modified, 'plate-1').changes.map((change) => change.path)).toContain(
-      'name',
-    );
-    expect(requireModified(delta.blocks.modified, 'block-2').changes.map((change) => change.path)).toContain(
-      'category',
-    );
+    expect(
+      requireModified(delta.plates.modified, 'plate-1').changes.map((change) => change.path),
+    ).toContain('name');
+    expect(
+      requireModified(delta.blocks.modified, 'block-2').changes.map((change) => change.path),
+    ).toContain('category');
     expect(
       requireModified(delta.connections.modified, 'conn-1').changes.map((change) => change.path),
     ).toContain('metadata.protocol');
-    expect(requireModified(delta.externalActors.modified, 'ext-1').changes.map((change) => change.path)).toContain(
-      'name',
-    );
+    expect(
+      requireModified(delta.externalActors.modified, 'ext-1').changes.map((change) => change.path),
+    ).toContain('name');
   });
 
   it('produces property-level changes with paths and values', () => {
@@ -366,7 +440,7 @@ describe('computeArchitectureDiff', () => {
       blocks: [...base.blocks].reverse(),
       connections: [...base.connections].reverse(),
       endpoints: [],
-      externalActors: [...base.externalActors ?? []].reverse(),
+      externalActors: [...(base.externalActors ?? [])].reverse(),
     };
 
     const delta = computeLegacyDiff(base, head);
@@ -391,7 +465,10 @@ describe('computeArchitectureDiff', () => {
           metadata: {},
         },
       ],
-      externalActors: [...(base.externalActors ?? []), { id: 'ext-2', name: 'Partner API', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+      externalActors: [
+        ...(base.externalActors ?? []),
+        { id: 'ext-2', name: 'Partner API', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+      ],
     };
 
     const delta = computeLegacyDiff(base, head);
@@ -429,9 +506,19 @@ describe('computeArchitectureDiff', () => {
       ...base,
       blocks: [
         ...base.blocks,
-        makeTestBlock({ id: 'block-3', name: 'App Storage', category: 'data', placementId: 'plate-2', position: { x: 3, y: 0, z: 1 }, metadata: {} }),
+        makeTestBlock({
+          id: 'block-3',
+          name: 'App Storage',
+          category: 'data',
+          placementId: 'plate-2',
+          position: { x: 3, y: 0, z: 1 },
+          metadata: {},
+        }),
       ],
-      externalActors: (base.externalActors ?? []).map((actor) => ({ ...actor, name: 'Public Internet' })),
+      externalActors: (base.externalActors ?? []).map((actor) => ({
+        ...actor,
+        name: 'Public Internet',
+      })),
     };
 
     const delta = computeLegacyDiff(base, head);
@@ -446,9 +533,19 @@ describe('computeArchitectureDiff', () => {
       plates: base.plates.filter((plate) => plate.id !== 'plate-2'),
       blocks: [
         ...base.blocks,
-        makeTestBlock({ id: 'block-3', name: 'Cache', category: 'compute', placementId: 'plate-1', position: { x: 0, y: 0, z: 0 }, metadata: {} }),
+        makeTestBlock({
+          id: 'block-3',
+          name: 'Cache',
+          category: 'compute',
+          placementId: 'plate-1',
+          position: { x: 0, y: 0, z: 0 },
+          metadata: {},
+        }),
       ],
-      externalActors: (base.externalActors ?? []).map((actor) => ({ ...actor, name: 'Internet Edge' })),
+      externalActors: (base.externalActors ?? []).map((actor) => ({
+        ...actor,
+        name: 'Internet Edge',
+      })),
     };
 
     const delta = computeLegacyDiff(base, head);
@@ -466,11 +563,27 @@ describe('computeArchitectureDiff', () => {
       plates: [
         { ...base.plates[0], metadata: { region: 'eastus' } },
         { ...base.plates[1], name: 'Subnet A', children: ['block-2'] },
-        makeTestPlate({ id: 'plate-3', name: 'Analytics Subnet', type: 'subnet', parentId: 'plate-1', children: ['block-3'], position: { x: 6, y: 0, z: 6 }, size: { width: 6, height: 0.3, depth: 8 }, metadata: {} }),
+        makeTestPlate({
+          id: 'plate-3',
+          name: 'Analytics Subnet',
+          type: 'subnet',
+          parentId: 'plate-1',
+          children: ['block-3'],
+          position: { x: 6, y: 0, z: 6 },
+          size: { width: 6, height: 0.3, depth: 8 },
+          metadata: {},
+        }),
       ],
       blocks: [
         { ...base.blocks[1], name: 'Application VM' },
-        makeTestBlock({ id: 'block-3', name: 'Analytics DB', category: 'data', placementId: 'plate-3', position: { x: 1, y: 0, z: 1 }, metadata: {} }),
+        makeTestBlock({
+          id: 'block-3',
+          name: 'Analytics DB',
+          category: 'data',
+          placementId: 'plate-3',
+          position: { x: 1, y: 0, z: 1 },
+          metadata: {},
+        }),
       ],
       connections: [
         {
@@ -482,7 +595,7 @@ describe('computeArchitectureDiff', () => {
       ],
       externalActors: [
         { ...(base.externalActors ?? [])[0]!, name: 'Public Internet' },
-        { id: 'ext-2', name: 'Partner API', type: 'internet' , position: { x: -3, y: 0, z: 5 } },
+        { id: 'ext-2', name: 'Partner API', type: 'internet', position: { x: -3, y: 0, z: 5 } },
       ],
     };
 
@@ -598,7 +711,14 @@ describe('computeArchitectureDiff', () => {
       name: 'Updated Name',
       blocks: [
         ...base.blocks,
-        makeTestBlock({ id: 'block-3', name: 'New Block', category: 'data', placementId: 'plate-2', position: { x: 3, y: 0, z: 1 }, metadata: {} }),
+        makeTestBlock({
+          id: 'block-3',
+          name: 'New Block',
+          category: 'data',
+          placementId: 'plate-2',
+          position: { x: 3, y: 0, z: 1 },
+          metadata: {},
+        }),
       ],
     };
 
@@ -658,12 +778,19 @@ describe('normalizeArchitecture', () => {
         },
         base.connections[0],
       ],
-      externalActors: [{ id: 'ext-2', name: 'Partner API', type: 'internet', position: { x: -3, y: 0, z: 5 } }, (base.externalActors ?? [])[0]!],
+      externalActors: [
+        { id: 'ext-2', name: 'Partner API', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+        (base.externalActors ?? [])[0]!,
+      ],
     };
 
     const normalized = normalizeArchitecture(toArchitectureModel(unsorted));
-    const normalizedPlates = normalized.nodes.filter((node): node is ContainerNode => node.kind === 'container');
-    const normalizedBlocks = normalized.nodes.filter((node): node is LeafNode => node.kind === 'resource');
+    const normalizedPlates = normalized.nodes.filter(
+      (node): node is ContainerNode => node.kind === 'container',
+    );
+    const normalizedBlocks = normalized.nodes.filter(
+      (node): node is LeafNode => node.kind === 'resource',
+    );
 
     expect(normalizedPlates.map((plate) => plate.id)).toEqual(['plate-1', 'plate-2']);
     expect(normalizedBlocks.map((block) => block.id)).toEqual(['block-1', 'block-2']);

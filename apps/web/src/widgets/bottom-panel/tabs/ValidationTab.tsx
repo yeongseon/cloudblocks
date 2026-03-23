@@ -33,15 +33,17 @@ export function ValidationTab() {
           <div className="validation-section">
             <h4 className="validation-section-title">Errors ({validationResult.errors.length})</h4>
             {validationResult.errors.map((error) => (
-              <div key={`${error.ruleId}-${error.targetId ?? 'unknown'}`} className="validation-item validation-error">
+              <div
+                key={`${error.ruleId}-${error.targetId ?? 'unknown'}`}
+                className="validation-item validation-error"
+              >
                 <div className="validation-message">{error.message}</div>
                 {error.suggestion && (
-                  <div className="validation-suggestion">
-                    {error.suggestion}
-                  </div>
+                  <div className="validation-suggestion">{error.suggestion}</div>
                 )}
                 <div className="validation-meta">
-                  Rule: {error.ruleId} | Target: {error.targetId && error.targetId.length > 0 ? error.targetId : 'Unknown target'}
+                  Rule: {error.ruleId} | Target:{' '}
+                  {error.targetId && error.targetId.length > 0 ? error.targetId : 'Unknown target'}
                 </div>
               </div>
             ))}
@@ -50,17 +52,23 @@ export function ValidationTab() {
 
         {validationResult.warnings.length > 0 && (
           <div className="validation-section">
-            <h4 className="validation-section-title">Warnings ({validationResult.warnings.length})</h4>
+            <h4 className="validation-section-title">
+              Warnings ({validationResult.warnings.length})
+            </h4>
             {validationResult.warnings.map((warning) => (
-              <div key={`${warning.ruleId}-${warning.targetId ?? 'unknown'}`} className="validation-item validation-warning">
+              <div
+                key={`${warning.ruleId}-${warning.targetId ?? 'unknown'}`}
+                className="validation-item validation-warning"
+              >
                 <div className="validation-message">{warning.message}</div>
                 {warning.suggestion && (
-                  <div className="validation-suggestion">
-                    {warning.suggestion}
-                  </div>
+                  <div className="validation-suggestion">{warning.suggestion}</div>
                 )}
                 <div className="validation-meta">
-                  Rule: {warning.ruleId} | Target: {warning.targetId && warning.targetId.length > 0 ? warning.targetId : 'Unknown target'}
+                  Rule: {warning.ruleId} | Target:{' '}
+                  {warning.targetId && warning.targetId.length > 0
+                    ? warning.targetId
+                    : 'Unknown target'}
                 </div>
               </div>
             ))}
@@ -74,9 +82,7 @@ export function ValidationTab() {
         )}
 
         {validationResult.valid && validationResult.warnings.length > 0 && (
-          <div className="validation-success">
-            No blocking errors detected.
-          </div>
+          <div className="validation-success">No blocking errors detected.</div>
         )}
       </div>
     </div>

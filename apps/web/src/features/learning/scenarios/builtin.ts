@@ -1,8 +1,5 @@
 import type { ArchitectureSnapshot, Scenario } from '../../../shared/types/learning';
-import type {
-  ContainerCapableResourceType,
-  PlateType,
-} from '@cloudblocks/schema';
+import type { ContainerCapableResourceType, PlateType } from '@cloudblocks/schema';
 import { registerScenario } from './registry';
 
 const CONTAINER_RESOURCE_TYPE: Record<PlateType, ContainerCapableResourceType> = {
@@ -176,7 +173,9 @@ const threeTierCheckpointWithBlocks: ArchitectureSnapshot = {
     },
   ],
   connections: [],
-  externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+  externalActors: [
+    { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+  ],
 };
 
 const threeTierScenario: Scenario = {
@@ -211,17 +210,14 @@ const threeTierScenario: Scenario = {
         'In Azure, access control is managed by NSG and route tables, not by subnet type.',
         'Add two subnets from the Command Card.',
       ],
-      validationRules: [
-        { type: 'min-plate-count', plateType: 'subnet', count: 2 },
-      ],
+      validationRules: [{ type: 'min-plate-count', plateType: 'subnet', count: 2 }],
       checkpoint: threeTierCheckpointNetworkOnly,
     },
     {
       id: 'step-three-tier-place-resources',
       order: 3,
       title: 'Place Your Resources',
-      instruction:
-        'Place a Gateway, a Compute, and a Database on your subnets.',
+      instruction: 'Place a Gateway, a Compute, and a Database on your subnets.',
       hints: [
         'Gateways are the entry point for internet traffic.',
         'Databases should be isolated from direct internet exposure using NSG rules.',
@@ -246,7 +242,8 @@ const threeTierScenario: Scenario = {
       id: 'step-three-tier-connect-flow',
       order: 4,
       title: 'Connect the Data Flow',
-      instruction: 'Connect Internet -> Gateway -> Compute -> Database to establish the request flow.',
+      instruction:
+        'Connect Internet -> Gateway -> Compute -> Database to establish the request flow.',
       hints: [
         'Use Connect mode to draw connections between resources.',
         'The data flow represents request direction: Internet -> Gateway -> Compute -> Database.',
@@ -293,7 +290,9 @@ const serverlessApiInitialArchitecture: ArchitectureSnapshot = {
     },
   ],
   connections: [],
-  externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+  externalActors: [
+    { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+  ],
 };
 
 const serverlessApiCheckpointWithSubnets: ArchitectureSnapshot = {
@@ -342,13 +341,16 @@ const serverlessApiCheckpointWithSubnets: ArchitectureSnapshot = {
     },
   ],
   connections: [],
-  externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+  externalActors: [
+    { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+  ],
 };
 
 const serverlessApiScenario: Scenario = {
   id: 'scenario-serverless-api',
   name: 'Serverless HTTP API',
-  description: 'Build a serverless API architecture using functions, gateway, and managed data services.',
+  description:
+    'Build a serverless API architecture using functions, gateway, and managed data services.',
   difficulty: 'intermediate',
   category: 'serverless',
   tags: ['serverless', 'function', 'api', 'intermediate'],
@@ -364,9 +366,7 @@ const serverlessApiScenario: Scenario = {
         'Even in serverless architectures, you need network boundaries.',
         'Use separate subnets to segment gateway traffic from data services.',
       ],
-      validationRules: [
-        { type: 'min-plate-count', plateType: 'subnet', count: 2 },
-      ],
+      validationRules: [{ type: 'min-plate-count', plateType: 'subnet', count: 2 }],
     },
     {
       id: 'step-serverless-api-deploy-components',
@@ -630,7 +630,8 @@ const eventPipelineCheckpointWithAllBlocks: ArchitectureSnapshot = {
 const eventPipelineScenario: Scenario = {
   id: 'scenario-event-pipeline',
   name: 'Event-Driven Data Pipeline',
-  description: 'Design an event-driven data processing pipeline using events, queues, functions, and storage.',
+  description:
+    'Design an event-driven data processing pipeline using events, queues, functions, and storage.',
   difficulty: 'advanced',
   category: 'data-pipeline',
   tags: ['event-driven', 'pipeline', 'queue', 'advanced'],
@@ -686,7 +687,8 @@ const eventPipelineScenario: Scenario = {
       id: 'step-event-pipeline-connect',
       order: 4,
       title: 'Connect the Pipeline',
-      instruction: 'Wire: Event -> Function, Queue -> Function, Event -> Function, and Functions -> Storage.',
+      instruction:
+        'Wire: Event -> Function, Queue -> Function, Event -> Function, and Functions -> Storage.',
       hints: [
         'Events and Queues trigger Functions for processing.',
         'Functions process data and write results to Storage.',

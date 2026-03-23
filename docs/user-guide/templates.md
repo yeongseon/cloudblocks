@@ -119,27 +119,27 @@ Templates are fully editable. After loading a template:
 - **Rename** — Click any element and edit its name in the bottom panel
 
 !!! tip "Templates as learning tools"
-    Load a template and examine how it's structured before building your own architecture. Notice the container layout, connection types, and node placement — these follow cloud best practices.
+Load a template and examine how it's structured before building your own architecture. Notice the container layout, connection types, and node placement — these follow cloud best practices.
 
 ---
 
 ## Choosing the Right Template
 
-| If you need... | Use this template |
-|---|---|
-| A standard web app with a database | Three-Tier Web Application |
-| The simplest possible starting point | Simple Compute Setup |
-| A backend with database and storage | Data Storage Backend |
-| A serverless API without managing servers | Serverless HTTP API |
-| Asynchronous event processing | Event-Driven Pipeline |
-| A full production architecture | Full-Stack Serverless |
+| If you need...                            | Use this template          |
+| ----------------------------------------- | -------------------------- |
+| A standard web app with a database        | Three-Tier Web Application |
+| The simplest possible starting point      | Simple Compute Setup       |
+| A backend with database and storage       | Data Storage Backend       |
+| A serverless API without managing servers | Serverless HTTP API        |
+| Asynchronous event processing             | Event-Driven Pipeline      |
+| A full production architecture            | Full-Stack Serverless      |
 
 ---
 
 ## What's Next?
 
-| Goal | Guide |
-|---|---|
-| Generate code from your template | [Generate Code](generate-code.md) |
+| Goal                               | Guide                                            |
+| ---------------------------------- | ------------------------------------------------ |
+| Generate code from your template   | [Generate Code](generate-code.md)                |
 | Build an architecture from scratch | [Create an Architecture](create-architecture.md) |
-| Understand the building blocks | [Core Concepts](core-concepts.md) |
+| Understand the building blocks     | [Core Concepts](core-concepts.md)                |

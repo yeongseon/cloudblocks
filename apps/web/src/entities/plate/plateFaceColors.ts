@@ -9,9 +9,7 @@ export interface PlateFaceColors {
   rightSideColor: string;
 }
 
-export function getPlateFaceColors(plate: {
-  type: PlateLayerType;
-}): PlateFaceColors {
+export function getPlateFaceColors(plate: { type: PlateLayerType }): PlateFaceColors {
   if (plate.type === 'global') {
     return {
       topFaceColor: '#B39DDB',

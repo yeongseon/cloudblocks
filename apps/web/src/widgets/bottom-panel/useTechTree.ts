@@ -1,6 +1,10 @@
 import { useMemo } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import type { ProviderType, ResourceCategory, ResourceType as SchemaResourceType } from '@cloudblocks/schema';
+import type {
+  ProviderType,
+  ResourceCategory,
+  ResourceType as SchemaResourceType,
+} from '@cloudblocks/schema';
 import { BLOCK_FRIENDLY_NAMES, BLOCK_ICONS } from '../../shared/types';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
 
@@ -204,7 +208,8 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '⚖️',
     category: 'vnet-required',
     blockCategory: 'edge',
-    disabledReason: 'Create a Network first. Internal load balancers distribute traffic within a network.',
+    disabledReason:
+      'Create a Network first. Internal load balancers distribute traffic within a network.',
   },
   firewall: {
     id: 'firewall',
@@ -234,7 +239,8 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🏰',
     category: 'vnet-required',
     blockCategory: 'security',
-    disabledReason: 'Create a Network first. Bastion provides secure VM access through a virtual network.',
+    disabledReason:
+      'Create a Network first. Bastion provides secure VM access through a virtual network.',
   },
   'nat-gateway': {
     id: 'nat-gateway',
@@ -244,7 +250,8 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🚪',
     category: 'vnet-required',
     blockCategory: 'network',
-    disabledReason: 'Create a Network first. NAT Gateways enable outbound internet access for private subnets.',
+    disabledReason:
+      'Create a Network first. NAT Gateways enable outbound internet access for private subnets.',
   },
   'public-ip': {
     id: 'public-ip',
@@ -273,7 +280,8 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🔒',
     category: 'vnet-required',
     blockCategory: 'network',
-    disabledReason: 'Create a Network first. Private endpoints connect to Azure services via private IP.',
+    disabledReason:
+      'Create a Network first. Private endpoints connect to Azure services via private IP.',
   },
   'app-gateway': {
     id: 'app-gateway',
@@ -297,56 +305,56 @@ interface ProviderLabel {
 const PROVIDER_LABELS: Record<ProviderType, Partial<Record<ResourceType, ProviderLabel>>> = {
   azure: {}, // Azure uses RESOURCE_DEFINITIONS defaults
   aws: {
-    network:              { label: 'VPC',                  shortLabel: 'VPC' },
-    storage:              { label: 'S3',                   shortLabel: 'S3' },
-    dns:                  { label: 'Route 53',             shortLabel: 'R53' },
-    cdn:                  { label: 'CloudFront',           shortLabel: 'CF' },
-    'front-door':         { label: 'Global Accelerator',   shortLabel: 'GA' },
-    sql:                  { label: 'Amazon RDS',           shortLabel: 'RDS' },
-    function:             { label: 'Lambda',               shortLabel: 'Lambda' },
-    queue:                { label: 'SQS',                  shortLabel: 'SQS' },
-    event:                { label: 'EventBridge',          shortLabel: 'EvBridge' },
-    'app-service':        { label: 'Elastic Beanstalk',    shortLabel: 'EB' },
-    'container-instances': { label: 'ECS Fargate',         shortLabel: 'Fargate' },
-    'cosmos-db':          { label: 'DynamoDB',             shortLabel: 'DynamoDB' },
-    'key-vault':          { label: 'Secrets Manager',      shortLabel: 'Secrets' },
-    vm:                   { label: 'EC2',                  shortLabel: 'EC2' },
-    aks:                  { label: 'EKS',                  shortLabel: 'EKS' },
-    'internal-lb':        { label: 'Internal ALB',         shortLabel: 'IntALB' },
-    firewall:             { label: 'Network Firewall',     shortLabel: 'NFW' },
-    nsg:                  { label: 'Security Group',       shortLabel: 'SG' },
-    bastion:              { label: 'Session Manager',      shortLabel: 'SSM' },
-    'nat-gateway':        { label: 'NAT Gateway',          shortLabel: 'NAT' },
-    'public-ip':          { label: 'Elastic IP',           shortLabel: 'EIP' },
-    'route-table':        { label: 'Route Table',          shortLabel: 'RT' },
-    'private-endpoint':   { label: 'PrivateLink',          shortLabel: 'PL' },
-    'app-gateway':        { label: 'Application Load Balancer', shortLabel: 'ALB' },
+    network: { label: 'VPC', shortLabel: 'VPC' },
+    storage: { label: 'S3', shortLabel: 'S3' },
+    dns: { label: 'Route 53', shortLabel: 'R53' },
+    cdn: { label: 'CloudFront', shortLabel: 'CF' },
+    'front-door': { label: 'Global Accelerator', shortLabel: 'GA' },
+    sql: { label: 'Amazon RDS', shortLabel: 'RDS' },
+    function: { label: 'Lambda', shortLabel: 'Lambda' },
+    queue: { label: 'SQS', shortLabel: 'SQS' },
+    event: { label: 'EventBridge', shortLabel: 'EvBridge' },
+    'app-service': { label: 'Elastic Beanstalk', shortLabel: 'EB' },
+    'container-instances': { label: 'ECS Fargate', shortLabel: 'Fargate' },
+    'cosmos-db': { label: 'DynamoDB', shortLabel: 'DynamoDB' },
+    'key-vault': { label: 'Secrets Manager', shortLabel: 'Secrets' },
+    vm: { label: 'EC2', shortLabel: 'EC2' },
+    aks: { label: 'EKS', shortLabel: 'EKS' },
+    'internal-lb': { label: 'Internal ALB', shortLabel: 'IntALB' },
+    firewall: { label: 'Network Firewall', shortLabel: 'NFW' },
+    nsg: { label: 'Security Group', shortLabel: 'SG' },
+    bastion: { label: 'Session Manager', shortLabel: 'SSM' },
+    'nat-gateway': { label: 'NAT Gateway', shortLabel: 'NAT' },
+    'public-ip': { label: 'Elastic IP', shortLabel: 'EIP' },
+    'route-table': { label: 'Route Table', shortLabel: 'RT' },
+    'private-endpoint': { label: 'PrivateLink', shortLabel: 'PL' },
+    'app-gateway': { label: 'Application Load Balancer', shortLabel: 'ALB' },
   },
   gcp: {
-    network:              { label: 'VPC Network',          shortLabel: 'VPC' },
-    storage:              { label: 'Cloud Storage',        shortLabel: 'GCS' },
-    dns:                  { label: 'Cloud DNS',            shortLabel: 'DNS' },
-    cdn:                  { label: 'Cloud CDN',            shortLabel: 'CDN' },
-    'front-door':         { label: 'Cloud Load Balancing', shortLabel: 'CLB' },
-    sql:                  { label: 'Cloud SQL',            shortLabel: 'CloudSQL' },
-    function:             { label: 'Cloud Functions',      shortLabel: 'GCF' },
-    queue:                { label: 'Cloud Tasks',          shortLabel: 'Tasks' },
-    event:                { label: 'Pub/Sub',              shortLabel: 'PubSub' },
-    'app-service':        { label: 'App Engine',           shortLabel: 'GAE' },
-    'container-instances': { label: 'Cloud Run',           shortLabel: 'Run' },
-    'cosmos-db':          { label: 'Firestore',            shortLabel: 'Firestore' },
-    'key-vault':          { label: 'Secret Manager',       shortLabel: 'SecMgr' },
-    vm:                   { label: 'Compute Engine',       shortLabel: 'GCE' },
-    aks:                  { label: 'GKE',                  shortLabel: 'GKE' },
-    'internal-lb':        { label: 'Internal LB',          shortLabel: 'IntLB' },
-    firewall:             { label: 'Cloud Firewall',       shortLabel: 'FW' },
-    nsg:                  { label: 'Firewall Rules',       shortLabel: 'FWRules' },
-    bastion:              { label: 'IAP Tunnel',           shortLabel: 'IAP' },
-    'nat-gateway':        { label: 'Cloud NAT',            shortLabel: 'CNAT' },
-    'public-ip':          { label: 'External IP',          shortLabel: 'EIP' },
-    'route-table':        { label: 'VPC Routes',           shortLabel: 'Routes' },
-    'private-endpoint':   { label: 'Private Service Connect', shortLabel: 'PSC' },
-    'app-gateway':        { label: 'HTTP(S) Load Balancer', shortLabel: 'HTTPS-LB' },
+    network: { label: 'VPC Network', shortLabel: 'VPC' },
+    storage: { label: 'Cloud Storage', shortLabel: 'GCS' },
+    dns: { label: 'Cloud DNS', shortLabel: 'DNS' },
+    cdn: { label: 'Cloud CDN', shortLabel: 'CDN' },
+    'front-door': { label: 'Cloud Load Balancing', shortLabel: 'CLB' },
+    sql: { label: 'Cloud SQL', shortLabel: 'CloudSQL' },
+    function: { label: 'Cloud Functions', shortLabel: 'GCF' },
+    queue: { label: 'Cloud Tasks', shortLabel: 'Tasks' },
+    event: { label: 'Pub/Sub', shortLabel: 'PubSub' },
+    'app-service': { label: 'App Engine', shortLabel: 'GAE' },
+    'container-instances': { label: 'Cloud Run', shortLabel: 'Run' },
+    'cosmos-db': { label: 'Firestore', shortLabel: 'Firestore' },
+    'key-vault': { label: 'Secret Manager', shortLabel: 'SecMgr' },
+    vm: { label: 'Compute Engine', shortLabel: 'GCE' },
+    aks: { label: 'GKE', shortLabel: 'GKE' },
+    'internal-lb': { label: 'Internal LB', shortLabel: 'IntLB' },
+    firewall: { label: 'Cloud Firewall', shortLabel: 'FW' },
+    nsg: { label: 'Firewall Rules', shortLabel: 'FWRules' },
+    bastion: { label: 'IAP Tunnel', shortLabel: 'IAP' },
+    'nat-gateway': { label: 'Cloud NAT', shortLabel: 'CNAT' },
+    'public-ip': { label: 'External IP', shortLabel: 'EIP' },
+    'route-table': { label: 'VPC Routes', shortLabel: 'Routes' },
+    'private-endpoint': { label: 'Private Service Connect', shortLabel: 'PSC' },
+    'app-gateway': { label: 'HTTP(S) Load Balancer', shortLabel: 'HTTPS-LB' },
   },
 };
 
@@ -361,7 +369,6 @@ export function getResourceShortLabel(type: ResourceType, provider: ProviderType
 }
 
 // ─── Command Card Grid Layout ──────────────────────────────
-
 
 // ─── Action Definitions ────────────────────────────────────
 
@@ -413,9 +420,15 @@ export const PLATE_ACTION_GRID: (PlateActionType | null)[][] = [
 // Phase 6: Show only core resources in the creation palette.
 // Full RESOURCE_DEFINITIONS remain for schema compatibility.
 export const MVP_RESOURCE_ALLOWLIST: ReadonlySet<ResourceType> = new Set([
-  'network', 'subnet',
-  'vm', 'sql', 'storage', 'key-vault',
-  'queue', 'app-service', 'app-gateway',
+  'network',
+  'subnet',
+  'vm',
+  'sql',
+  'storage',
+  'key-vault',
+  'queue',
+  'app-service',
+  'app-gateway',
 ]);
 
 export const ALL_RESOURCES = Object.keys(RESOURCE_DEFINITIONS) as ResourceType[];
@@ -438,7 +451,11 @@ export const CREATION_GROUP_ORDER: CreationGroupId[] = [
   'operations',
 ];
 
-export function getCreationGroupMeta(groupId: CreationGroupId): { icon: string; label: string; color: string } {
+export function getCreationGroupMeta(groupId: CreationGroupId): {
+  icon: string;
+  label: string;
+  color: string;
+} {
   if (groupId === 'foundation') {
     return {
       icon: '🧭',
@@ -546,10 +563,10 @@ export function useTechTree(): TechTreeState {
       return (Object.keys(RESOURCE_DEFINITIONS) as ResourceType[])
         .filter((type) => MVP_RESOURCE_ALLOWLIST.has(type))
         .map((type) => ({
-        resource: RESOURCE_DEFINITIONS[type],
-        enabled: isEnabled(type),
-        disabledReason: getDisabledReason(type),
-      }));
+          resource: RESOURCE_DEFINITIONS[type],
+          enabled: isEnabled(type),
+          disabledReason: getDisabledReason(type),
+        }));
     };
 
     const getTargetPlateId = (type: ResourceType): string | null => {

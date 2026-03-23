@@ -34,7 +34,7 @@ function renderDragGhost() {
         panY={0}
         zoom={1}
       />
-    </svg>
+    </svg>,
   );
 }
 
@@ -99,7 +99,7 @@ describe('DragGhost', () => {
           panY={0}
           zoom={1}
         />
-      </svg>
+      </svg>,
     );
 
     expect(container.querySelector('g.drag-ghost')).toBeNull();
@@ -133,7 +133,7 @@ describe('DragGhost', () => {
           panY={0}
           zoom={1}
         />
-      </svg>
+      </svg>,
     );
 
     expect(container.querySelector('g.drag-ghost')).toBeNull();

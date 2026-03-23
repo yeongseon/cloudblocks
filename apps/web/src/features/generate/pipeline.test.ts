@@ -5,7 +5,10 @@ import { GenerationError, generateCode } from './pipeline';
 import { registerGenerator } from './registry';
 
 describe('pipeline', () => {
-  const containerResourceTypeByLayer: Record<Exclude<ContainerNode['layer'], 'resource'>, ContainerNode['resourceType']> = {
+  const containerResourceTypeByLayer: Record<
+    Exclude<ContainerNode['layer'], 'resource'>,
+    ContainerNode['resourceType']
+  > = {
     global: 'virtual_network',
     edge: 'virtual_network',
     region: 'virtual_network',
@@ -13,14 +16,17 @@ describe('pipeline', () => {
     subnet: 'subnet',
   };
 
-  function createContainer(overrides: Partial<ContainerNode> & { type?: ContainerNode['layer'] }): ContainerNode {
+  function createContainer(
+    overrides: Partial<ContainerNode> & { type?: ContainerNode['layer'] },
+  ): ContainerNode {
     const layer = overrides.layer ?? overrides.type ?? 'subnet';
     return {
       id: 'container-1',
       name: 'Container',
       kind: 'container',
       layer,
-      resourceType: containerResourceTypeByLayer[layer as Exclude<ContainerNode['layer'], 'resource'>],
+      resourceType:
+        containerResourceTypeByLayer[layer as Exclude<ContainerNode['layer'], 'resource'>],
       category: 'network',
       provider: 'azure',
       parentId: null,
@@ -109,7 +115,9 @@ describe('pipeline', () => {
       ],
       connections: [],
       endpoints: [],
-      externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+      externalActors: [
+        { id: 'ext-1', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+      ],
       createdAt: '2025-01-01T00:00:00Z',
       updatedAt: '2025-01-01T00:00:00Z',
     };
@@ -124,11 +132,7 @@ describe('pipeline', () => {
     it('should return 3 files (main.tf, variables.tf, outputs.tf)', () => {
       const result = generateCode(validModel, { ...validOptions, generator: 'terraform' });
       expect(result.files).toHaveLength(3);
-      expect(result.files.map((f) => f.path)).toEqual([
-        'main.tf',
-        'variables.tf',
-        'outputs.tf',
-      ]);
+      expect(result.files.map((f) => f.path)).toEqual(['main.tf', 'variables.tf', 'outputs.tf']);
     });
 
     it('should have all files with language "hcl"', () => {
@@ -192,26 +196,28 @@ describe('pipeline', () => {
         ],
         connections: [],
         endpoints: [],
-        externalActors: [{ id: 'ext-2', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+        externalActors: [
+          { id: 'ext-2', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+        ],
         createdAt: '2025-01-01T00:00:00Z',
         updatedAt: '2025-01-01T00:00:00Z',
       };
 
       expect(() => generateCode(invalidModel, { ...validOptions, generator: 'terraform' })).toThrow(
-        GenerationError
+        GenerationError,
       );
     });
 
     it('should throw GenerationError with unknown provider', () => {
       const badOptions = JSON.parse(
-        '{"provider":"oracle-cloud","mode":"draft","projectName":"test","region":"eastus"}'
+        '{"provider":"oracle-cloud","mode":"draft","projectName":"test","region":"eastus"}',
       ) as GenerationOptions;
 
       expect(() => generateCode(validModel, { ...badOptions, generator: 'terraform' })).toThrow(
-        GenerationError
+        GenerationError,
       );
       expect(() => generateCode(validModel, { ...badOptions, generator: 'terraform' })).toThrow(
-        /Unknown provider/
+        /Unknown provider/,
       );
     });
   });
@@ -251,7 +257,9 @@ describe('pipeline', () => {
       ],
       connections: [],
       endpoints: [],
-      externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+      externalActors: [
+        { id: 'ext-1', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+      ],
       createdAt: '2025-01-01T00:00:00Z',
       updatedAt: '2025-01-01T00:00:00Z',
     };
@@ -266,13 +274,20 @@ describe('pipeline', () => {
     it('returns terraform files when generator is terraform', () => {
       const result = generateCode(validModel, { ...validOptions, generator: 'terraform' });
 
-      expect(result.files.map((file) => file.path)).toEqual(['main.tf', 'variables.tf', 'outputs.tf']);
+      expect(result.files.map((file) => file.path)).toEqual([
+        'main.tf',
+        'variables.tf',
+        'outputs.tf',
+      ]);
     });
 
     it('returns bicep files when generator is bicep', () => {
       const result = generateCode(validModel, { ...validOptions, generator: 'bicep' });
 
-      expect(result.files.map((file) => file.path)).toEqual(['main.bicep', 'parameters.bicepparam']);
+      expect(result.files.map((file) => file.path)).toEqual([
+        'main.bicep',
+        'parameters.bicepparam',
+      ]);
     });
 
     it('returns pulumi files when generator is pulumi', () => {
@@ -283,7 +298,7 @@ describe('pipeline', () => {
 
     it('throws GenerationError for unknown generator', () => {
       const badGeneratorOptions = JSON.parse(
-        '{"provider":"azure","mode":"draft","projectName":"test","region":"eastus","generator":"cdk"}'
+        '{"provider":"azure","mode":"draft","projectName":"test","region":"eastus","generator":"cdk"}',
       ) as GenerationOptions;
 
       expect(() => generateCode(validModel, badGeneratorOptions)).toThrow(GenerationError);
@@ -316,19 +331,27 @@ describe('pipeline', () => {
         ],
         connections: [],
         endpoints: [],
-        externalActors: [{ id: 'ext-2', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+        externalActors: [
+          { id: 'ext-2', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+        ],
         createdAt: '2025-01-01T00:00:00Z',
         updatedAt: '2025-01-01T00:00:00Z',
       };
 
       expect(() => generateCode(invalidModel, validOptions)).toThrow(GenerationError);
-      expect(() => generateCode(invalidModel, validOptions)).toThrow(/Architecture has validation errors/);
+      expect(() => generateCode(invalidModel, validOptions)).toThrow(
+        /Architecture has validation errors/,
+      );
     });
 
     it('defaults to terraform when generator is undefined', () => {
       const result = generateCode(validModel, validOptions);
 
-      expect(result.files.map((file) => file.path)).toEqual(['main.tf', 'variables.tf', 'outputs.tf']);
+      expect(result.files.map((file) => file.path)).toEqual([
+        'main.tf',
+        'variables.tf',
+        'outputs.tf',
+      ]);
     });
 
     it('still validates Azure regions against Azure allowlist', () => {
@@ -338,7 +361,7 @@ describe('pipeline', () => {
           provider: 'azure',
           region: 'not-an-azure-region',
           generator: 'terraform',
-        })
+        }),
       ).toThrow(/Invalid Azure region/);
     });
 
@@ -370,7 +393,7 @@ describe('pipeline', () => {
           ...validOptions,
           provider: 'aws',
           generator: 'bicep',
-        })
+        }),
       ).toThrow(/does not support provider/);
     });
   });
@@ -393,7 +416,9 @@ describe('pipeline', () => {
       ],
       connections: [],
       endpoints: [],
-      externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+      externalActors: [
+        { id: 'ext-1', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+      ],
       createdAt: '2025-01-01T00:00:00Z',
       updatedAt: '2025-01-01T00:00:00Z',
     };
@@ -465,7 +490,7 @@ describe('pipeline', () => {
 
     it('calls plugin.format when available', () => {
       const format = vi.fn((files: GeneratedFile[]) =>
-        files.map((file) => ({ ...file, content: `${file.content}-formatted` }))
+        files.map((file) => ({ ...file, content: `${file.content}-formatted` })),
       );
       const plugin = buildPlugin({
         format,

@@ -26,15 +26,18 @@
 }
 
 .external-actor-sprite.is-selected .actor-img {
-  filter: drop-shadow(0 0 8px #0078D4) drop-shadow(0 0 16px rgba(0, 120, 212, 0.45)) drop-shadow(2px 8px 0 rgba(0, 0, 0, 0.25));
+  filter: drop-shadow(0 0 8px #0078d4) drop-shadow(0 0 16px rgba(0, 120, 212, 0.45))
+    drop-shadow(2px 8px 0 rgba(0, 0, 0, 0.25));
 }
 
 .external-actor-sprite.is-connection-source .actor-img {
-  filter: drop-shadow(0 0 10px #00852B) drop-shadow(0 0 20px rgba(0, 133, 43, 0.5)) drop-shadow(2px 8px 0 rgba(0, 0, 0, 0.25));
+  filter: drop-shadow(0 0 10px #00852b) drop-shadow(0 0 20px rgba(0, 133, 43, 0.5))
+    drop-shadow(2px 8px 0 rgba(0, 0, 0, 0.25));
 }
 
 .external-actor-sprite.is-valid-connect-target .actor-img {
-  filter: drop-shadow(0 0 8px #00852B) drop-shadow(0 0 16px rgba(0, 133, 43, 0.4)) drop-shadow(2px 8px 0 rgba(0, 0, 0, 0.25));
+  filter: drop-shadow(0 0 8px #00852b) drop-shadow(0 0 16px rgba(0, 133, 43, 0.4))
+    drop-shadow(2px 8px 0 rgba(0, 0, 0, 0.25));
 }
 
 .external-actor-sprite.is-invalid-connect-target .actor-img {
@@ -53,10 +56,18 @@
 }
 
 @keyframes actor-bounce-drop {
-  0% { transform: translateY(-6px) scale(1.05); }
-  40% { transform: translateY(3px) scale(0.98); }
-  70% { transform: translateY(-1px) scale(1.01); }
-  100% { transform: translateY(0) scale(1); }
+  0% {
+    transform: translateY(-6px) scale(1.05);
+  }
+  40% {
+    transform: translateY(3px) scale(0.98);
+  }
+  70% {
+    transform: translateY(-1px) scale(1.01);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
 }
 
 .external-actor-sprite.is-dropping .actor-img {

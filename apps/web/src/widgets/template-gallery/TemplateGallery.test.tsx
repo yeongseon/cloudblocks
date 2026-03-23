@@ -45,8 +45,13 @@ describe('TemplateGallery', () => {
     useUIStore.setState({ showTemplateGallery: true });
 
     const callOrder: string[] = [];
-    const saveToStorageSpy = vi.fn(() => { callOrder.push('saveToStorage'); return true; });
-    const loadFromTemplateSpy = vi.fn(() => { callOrder.push('loadFromTemplate'); });
+    const saveToStorageSpy = vi.fn(() => {
+      callOrder.push('saveToStorage');
+      return true;
+    });
+    const loadFromTemplateSpy = vi.fn(() => {
+      callOrder.push('loadFromTemplate');
+    });
 
     useArchitectureStore.setState({
       saveToStorage: saveToStorageSpy,

@@ -3,7 +3,11 @@ import { render } from '@testing-library/react';
 
 import { BlockSvg } from '../BlockSvg';
 import { getBlockFaceColors } from '../blockFaceColors';
-import { getBlockDimensions, CATEGORY_TIER_MAP, TIER_DIMENSIONS } from '../../../shared/types/visualProfile';
+import {
+  getBlockDimensions,
+  CATEGORY_TIER_MAP,
+  TIER_DIMENSIONS,
+} from '../../../shared/types/visualProfile';
 import type { BlockRole, ProviderType, ResourceCategory } from '@cloudblocks/schema';
 import { BLOCK_PADDING, TILE_H, TILE_W, TILE_Z } from '../../../shared/tokens/designTokens';
 
@@ -22,12 +26,14 @@ function getFaceColors(container: HTMLElement) {
   // Must exclude elements inside <defs> (stud definitions contain ellipses/rects too)
   const svg = container.querySelector('svg')!;
   const allEllipses = Array.from(svg.querySelectorAll('ellipse'));
-  const cylinderEllipse = allEllipses.find(el => !el.closest('defs') && !el.closest('[data-testid="stub-dots"]'));
+  const cylinderEllipse = allEllipses.find(
+    (el) => !el.closest('defs') && !el.closest('[data-testid="stub-dots"]'),
+  );
   if (cylinderEllipse) {
     const allRects = Array.from(svg.querySelectorAll('rect'));
-    const bodyRect = allRects.find(el => !el.closest('defs') && !el.closest('[data-testid]'));
+    const bodyRect = allRects.find((el) => !el.closest('defs') && !el.closest('[data-testid]'));
     const allPaths = Array.from(svg.querySelectorAll('path'));
-    const arcPath = allPaths.find(el => !el.closest('defs'));
+    const arcPath = allPaths.find((el) => !el.closest('defs'));
     return {
       topFaceColor: cylinderEllipse.getAttribute('fill'),
       topFaceStroke: cylinderEllipse.getAttribute('stroke'),
@@ -37,7 +43,9 @@ function getFaceColors(container: HTMLElement) {
   }
   // Polygon rendering (standard 3-face isometric) — skip stub dot polygons
   const allPolygons = Array.from(svg.querySelectorAll('polygon'));
-  const facePolygons = allPolygons.filter(el => !el.closest('defs') && !el.closest('[data-testid="stub-dots"]'));
+  const facePolygons = allPolygons.filter(
+    (el) => !el.closest('defs') && !el.closest('[data-testid="stub-dots"]'),
+  );
   return {
     topFaceColor: facePolygons[0]?.getAttribute('fill') ?? null,
     topFaceStroke: facePolygons[0]?.getAttribute('stroke') ?? null,
@@ -55,8 +63,8 @@ function getViewBox(container: HTMLElement) {
 
 /** Compute expected screen dimensions from CU. */
 function expectedDims(cu: { width: number; depth: number; height: number }) {
-  const screenWidth = (cu.width + cu.depth) * TILE_W / 2;
-  const diamondHeight = (cu.width + cu.depth) * TILE_H / 2;
+  const screenWidth = ((cu.width + cu.depth) * TILE_W) / 2;
+  const diamondHeight = ((cu.width + cu.depth) * TILE_H) / 2;
   const sideWallPx = Math.round(cu.height * TILE_Z);
   const svgHeight = diamondHeight + sideWallPx + BLOCK_PADDING;
   return { screenWidth, diamondHeight, sideWallPx, svgHeight };
@@ -122,9 +130,7 @@ describe('BlockSvg provider colors', () => {
 describe('BlockSvg subtype colors', () => {
   it('applies subtype-specific colors when subtype is provided', () => {
     const expected = getBlockFaceColors('compute', 'aws', 'ec2');
-    const { container } = render(
-      <BlockSvg category="compute" provider="aws" subtype="ec2" />,
-    );
+    const { container } = render(<BlockSvg category="compute" provider="aws" subtype="ec2" />);
     const colors = getFaceColors(container);
 
     expect(colors.topFaceColor).toBe(expected.topFaceColor);
@@ -144,21 +150,25 @@ describe('BlockSvg subtype colors', () => {
 // ─── CU-based Dimension Tests ─────────────────────────────────
 
 describe('BlockSvg CU-based dimensions', () => {
-  const ALL_CATEGORIES: ResourceCategory[] = ['compute', 'data', 'edge', 'messaging', 'operations', 'security'];
+  const ALL_CATEGORIES: ResourceCategory[] = [
+    'compute',
+    'data',
+    'edge',
+    'messaging',
+    'operations',
+    'security',
+  ];
 
-  it.each(ALL_CATEGORIES)(
-    'renders %s with correct viewBox from CU dimensions',
-    (category) => {
-      const cu = getBlockDimensions(category);
-      const { screenWidth, svgHeight } = expectedDims(cu);
+  it.each(ALL_CATEGORIES)('renders %s with correct viewBox from CU dimensions', (category) => {
+    const cu = getBlockDimensions(category);
+    const { screenWidth, svgHeight } = expectedDims(cu);
 
-      const { container } = render(<BlockSvg category={category} />);
-      const vb = getViewBox(container);
+    const { container } = render(<BlockSvg category={category} />);
+    const vb = getViewBox(container);
 
-      expect(vb.width).toBe(screenWidth);
-      expect(vb.height).toBe(svgHeight);
-    },
-  );
+    expect(vb.width).toBe(screenWidth);
+    expect(vb.height).toBe(svgHeight);
+  });
 
   it('renders micro tier (1×1×1) correctly', () => {
     const cu = TIER_DIMENSIONS.micro;
@@ -270,7 +280,14 @@ describe('BlockSvg stud grid', () => {
   });
 
   it('stud count matches CU width×depth for all categories', () => {
-    const categories: ResourceCategory[] = ['compute', 'data', 'edge', 'messaging', 'operations', 'security'];
+    const categories: ResourceCategory[] = [
+      'compute',
+      'data',
+      'edge',
+      'messaging',
+      'operations',
+      'security',
+    ];
 
     categories.forEach((category) => {
       const cu = getBlockDimensions(category);
@@ -289,9 +306,7 @@ describe('BlockSvg subtype size overrides', () => {
     const cu = getBlockDimensions('compute', 'aws', 'ec2');
     const { screenWidth, svgHeight } = expectedDims(cu);
 
-    const { container } = render(
-      <BlockSvg category="compute" provider="aws" subtype="ec2" />,
-    );
+    const { container } = render(<BlockSvg category="compute" provider="aws" subtype="ec2" />);
     const vb = getViewBox(container);
 
     expect(vb.width).toBe(screenWidth);
@@ -356,7 +371,14 @@ describe('BlockSvg SVG structure', () => {
 
 describe('BlockSvg category-tier mapping consistency', () => {
   it('all categories produce valid CU dimensions (positive integers)', () => {
-    const categories: ResourceCategory[] = ['compute', 'data', 'edge', 'messaging', 'operations', 'security'];
+    const categories: ResourceCategory[] = [
+      'compute',
+      'data',
+      'edge',
+      'messaging',
+      'operations',
+      'security',
+    ];
 
     categories.forEach((category) => {
       const cu = getBlockDimensions(category);
@@ -454,7 +476,16 @@ describe('BlockSvg role badges', () => {
   });
 
   it('renders all 8 roles simultaneously', () => {
-    const allRoles: BlockRole[] = ['primary', 'secondary', 'reader', 'writer', 'public', 'private', 'internal', 'external'];
+    const allRoles: BlockRole[] = [
+      'primary',
+      'secondary',
+      'reader',
+      'writer',
+      'public',
+      'private',
+      'internal',
+      'external',
+    ];
     const { container } = render(<BlockSvg category="compute" roles={allRoles} />);
     allRoles.forEach((role) => {
       expect(container.querySelector(`[data-testid="role-badge-${role}"]`)).not.toBeNull();
@@ -463,7 +494,9 @@ describe('BlockSvg role badges', () => {
 
   it('does not affect block size (viewBox unchanged with roles)', () => {
     const { container: without } = render(<BlockSvg category="compute" />);
-    const { container: withRoles } = render(<BlockSvg category="compute" roles={['primary', 'public']} />);
+    const { container: withRoles } = render(
+      <BlockSvg category="compute" roles={['primary', 'public']} />,
+    );
     const vbWithout = without.querySelector('svg')!.getAttribute('viewBox');
     const vbWith = withRoles.querySelector('svg')!.getAttribute('viewBox');
     expect(vbWith).toBe(vbWithout);

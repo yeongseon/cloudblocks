@@ -33,10 +33,11 @@ export function CodePreview({ embedded = false }: CodePreviewProps) {
   const activeProvider = useUIStore((s) => s.activeProvider);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
 
-  const sanitizedName = architecture.name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '') || 'myproject';
+  const sanitizedName =
+    architecture.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'myproject';
 
   const generatorOptions = listGenerators().map((generatorPlugin) => ({
     id: generatorPlugin.id,
@@ -44,10 +45,10 @@ export function CodePreview({ embedded = false }: CodePreviewProps) {
   }));
   const [activeTab, setActiveTab] = useState(0);
   const [projectName, setProjectName] = useState(sanitizedName);
-  const [regions, setRegions] = useState<Record<ProviderType, string>>({ ...DEFAULT_REGION_BY_PROVIDER });
-  const [generator, setGenerator] = useState<GeneratorId>(
-    generatorOptions[0]?.id ?? 'terraform'
-  );
+  const [regions, setRegions] = useState<Record<ProviderType, string>>({
+    ...DEFAULT_REGION_BY_PROVIDER,
+  });
+  const [generator, setGenerator] = useState<GeneratorId>(generatorOptions[0]?.id ?? 'terraform');
   const [output, setOutput] = useState<GeneratedOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -131,18 +132,20 @@ export function CodePreview({ embedded = false }: CodePreviewProps) {
 
   const visibleFiles = output?.files ?? [];
 
-  const clampedTab = visibleFiles.length === 0
-    ? 0
-    : activeTab >= visibleFiles.length
-      ? 0
-      : activeTab;
+  const clampedTab =
+    visibleFiles.length === 0 ? 0 : activeTab >= visibleFiles.length ? 0 : activeTab;
 
   return (
     <div className={`code-preview${embedded ? ' code-preview--embedded' : ''}`}>
       <div className="code-preview-header">
         <h3 className="code-preview-title">⚡ Code Generation</h3>
         {!embedded && (
-          <button type="button" className="code-preview-close" onClick={toggleCodePreview} aria-label="Close code preview panel">
+          <button
+            type="button"
+            className="code-preview-close"
+            onClick={toggleCodePreview}
+            aria-label="Close code preview panel"
+          >
             ✕
           </button>
         )}
@@ -151,7 +154,12 @@ export function CodePreview({ embedded = false }: CodePreviewProps) {
       <div className="code-preview-options">
         {hasMismatch && (
           <div className="code-preview-mismatch-warning" role="alert">
-            ⚠️ Canvas has {Array.from(mismatchedProviders.entries()).map(([p, count]) => `${count} ${p.toUpperCase()}`).join(', ')} block(s) but generating for {activeProvider.toUpperCase()}. Switch those blocks to AZURE for consistent output.
+            ⚠️ Canvas has{' '}
+            {Array.from(mismatchedProviders.entries())
+              .map(([p, count]) => `${count} ${p.toUpperCase()}`)
+              .join(', ')}{' '}
+            block(s) but generating for {activeProvider.toUpperCase()}. Switch those blocks to AZURE
+            for consistent output.
           </div>
         )}
         <label className="code-preview-field code-preview-field-checkbox">
@@ -174,7 +182,9 @@ export function CodePreview({ embedded = false }: CodePreviewProps) {
               onChange={(e) => handleGeneratorChange(e.target.value as GeneratorId)}
             >
               {generatorOptions.map((g) => (
-                <option key={g.id} value={g.id}>{g.label}</option>
+                <option key={g.id} value={g.id}>
+                  {g.label}
+                </option>
               ))}
             </select>
           </label>
@@ -194,16 +204,10 @@ export function CodePreview({ embedded = false }: CodePreviewProps) {
             className="code-preview-input"
             type="text"
             value={regions[activeProvider]}
-            onChange={(e) =>
-              setRegions((prev) => ({ ...prev, [activeProvider]: e.target.value }))
-            }
+            onChange={(e) => setRegions((prev) => ({ ...prev, [activeProvider]: e.target.value }))}
           />
         </label>
-        <button
-          type="button"
-          className="code-preview-generate-btn"
-          onClick={handleGenerate}
-        >
+        <button type="button" className="code-preview-generate-btn" onClick={handleGenerate}>
           🚀 Generate Code
         </button>
       </div>
@@ -214,12 +218,12 @@ export function CodePreview({ embedded = false }: CodePreviewProps) {
         <>
           <div className="code-preview-tabs">
             {output.files.map((file, i) => (
-                <button
-                  type="button"
-                  key={file.path}
-                   className={`code-preview-tab ${i === clampedTab ? 'code-preview-tab-active' : ''}`}
-                   onClick={() => setActiveTab(i)}
-                >
+              <button
+                type="button"
+                key={file.path}
+                className={`code-preview-tab ${i === clampedTab ? 'code-preview-tab-active' : ''}`}
+                onClick={() => setActiveTab(i)}
+              >
                 {file.path}
               </button>
             ))}

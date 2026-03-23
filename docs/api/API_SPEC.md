@@ -89,6 +89,7 @@ POST /api/v1/session/workspace     → Bind workspace to active session
 ```
 
 Notes:
+
 - No JWT access/refresh tokens are issued.
 - Session state is server-side (`sessions` table).
 - Stale sessions return 401 and clear stale session cookies.
@@ -175,6 +176,7 @@ The following capabilities are intentionally frontend-owned in the current archi
 ### Create Workspace (Implemented)
 
 **Request:**
+
 ```json
 {
   "name": "My 3-Tier App",
@@ -185,6 +187,7 @@ The following capabilities are intentionally frontend-owned in the current archi
 ```
 
 **Response (201):**
+
 ```json
 {
   "id": "ws-a1b2c3d4",
@@ -203,6 +206,7 @@ The following capabilities are intentionally frontend-owned in the current archi
 ### Trigger Code Generation (Current Placeholder Route)
 
 **Request:**
+
 ```json
 {
   "generator": "terraform",
@@ -214,6 +218,7 @@ The following capabilities are intentionally frontend-owned in the current archi
 ```
 
 **Response (202):**
+
 ```json
 {
   "id": "run-e5f6g7h8",
@@ -234,6 +239,7 @@ The following capabilities are intentionally frontend-owned in the current archi
 > **Current behavior**: Run records are created in `pending` status. Background worker transitions are not wired in the current backend implementation.
 
 **Response (200):**
+
 ```json
 {
   "id": "run-e5f6g7h8",
@@ -267,17 +273,17 @@ All errors follow a consistent format:
 
 ### Error Codes
 
-| Code | HTTP Status | Description |
-|------|------------|-------------|
-| `VALIDATION_ERROR` | 400 | Invalid request body |
-| `UNAUTHORIZED` | 401 | Missing or invalid session |
-| `FORBIDDEN` | 403 | Insufficient permissions |
-| `NOT_FOUND` | 404 | Resource not found |
-| `CONFLICT` | 409 | Resource already exists |
-| `RATE_LIMITED` | 429 | Too many requests |
-| `GITHUB_ERROR` | 502 | GitHub API error |
-| `GENERATION_FAILED` | 500 | Code generation failed |
-| `INTERNAL_ERROR` | 500 | Server error |
+| Code                | HTTP Status | Description                |
+| ------------------- | ----------- | -------------------------- |
+| `VALIDATION_ERROR`  | 400         | Invalid request body       |
+| `UNAUTHORIZED`      | 401         | Missing or invalid session |
+| `FORBIDDEN`         | 403         | Insufficient permissions   |
+| `NOT_FOUND`         | 404         | Resource not found         |
+| `CONFLICT`          | 409         | Resource already exists    |
+| `RATE_LIMITED`      | 429         | Too many requests          |
+| `GITHUB_ERROR`      | 502         | GitHub API error           |
+| `GENERATION_FAILED` | 500         | Code generation failed     |
+| `INTERNAL_ERROR`    | 500         | Server error               |
 
 ## Rate Limiting (Target Policy)
 

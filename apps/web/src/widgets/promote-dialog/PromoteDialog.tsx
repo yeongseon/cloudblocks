@@ -12,8 +12,6 @@ const CHECKLIST_LABELS: Record<keyof PromotionChecklist, string> = {
   manualApproval: 'Manual approval confirmed',
 };
 
-
-
 export function PromoteDialog() {
   const show = usePromoteStore((s) => s.showPromoteDialog);
   const checklist = usePromoteStore((s) => s.promotionChecklist);
@@ -94,7 +92,9 @@ export function PromoteDialog() {
             <div className="promote-source-label">Staging Environment</div>
             <div className="promote-source-tag">{currentStaging.imageTag}</div>
             <div className="promote-source-meta">
-              <span>Commit: {currentStaging.commitSha} - {currentStaging.commitMessage}</span>
+              <span>
+                Commit: {currentStaging.commitSha} - {currentStaging.commitMessage}
+              </span>
               <span>Deployed {timeAgo(currentStaging.deployedAt)}</span>
             </div>
           </div>
@@ -138,17 +138,11 @@ export function PromoteDialog() {
           </div>
 
           {/* Error display */}
-          {promotionError && (
-            <div className="promote-error">{promotionError}</div>
-          )}
+          {promotionError && <div className="promote-error">{promotionError}</div>}
 
           {/* Actions */}
           <div className="promote-dialog-actions">
-            <button
-              type="button"
-              className="promote-btn-secondary"
-              onClick={handleClose}
-            >
+            <button type="button" className="promote-btn-secondary" onClick={handleClose}>
               Cancel
             </button>
             <button

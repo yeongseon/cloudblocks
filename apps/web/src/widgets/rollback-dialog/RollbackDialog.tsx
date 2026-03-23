@@ -121,7 +121,11 @@ export function RollbackDialog() {
           {/* Version selector */}
           <div>
             <div className="rollback-versions-title">Select Version to Rollback To</div>
-            <div className="rollback-version-list" role="radiogroup" aria-label="Available versions">
+            <div
+              className="rollback-version-list"
+              role="radiogroup"
+              aria-label="Available versions"
+            >
               {availableVersions.map((v) => (
                 <div
                   key={v.imageTag}
@@ -182,9 +186,7 @@ export function RollbackDialog() {
           )}
 
           {/* Error display */}
-          {rollbackError && (
-            <div className="rollback-error">{rollbackError}</div>
-          )}
+          {rollbackError && <div className="rollback-error">{rollbackError}</div>}
 
           {/* Confirmation step */}
           {confirming ? (
@@ -214,11 +216,7 @@ export function RollbackDialog() {
             </div>
           ) : (
             <div className="rollback-dialog-actions">
-              <button
-                type="button"
-                className="rollback-btn-secondary"
-                onClick={handleClose}
-              >
+              <button type="button" className="rollback-btn-secondary" onClick={handleClose}>
                 Cancel
               </button>
               <button

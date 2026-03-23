@@ -34,9 +34,19 @@ vi.mock('./PlateSvg', () => ({
 vi.mock('./plateFaceColors', () => ({
   getPlateFaceColors: (plate: { type: string }) => {
     if (plate.type === 'region') {
-      return { topFaceColor: '#6366F1', topFaceStroke: '#818CF8', leftSideColor: '#4F46E5', rightSideColor: '#4338CA' };
+      return {
+        topFaceColor: '#6366F1',
+        topFaceStroke: '#818CF8',
+        leftSideColor: '#4F46E5',
+        rightSideColor: '#4338CA',
+      };
     }
-    return { topFaceColor: '#6366F1', topFaceStroke: '#818CF8', leftSideColor: '#4F46E5', rightSideColor: '#4338CA' };
+    return {
+      topFaceColor: '#6366F1',
+      topFaceStroke: '#818CF8',
+      leftSideColor: '#4F46E5',
+      rightSideColor: '#4338CA',
+    };
   },
 }));
 vi.mock('./PlateSprite.css', () => ({}));
@@ -222,7 +232,9 @@ describe('PlateSprite', () => {
       };
     };
 
-    const target = screen.getByRole('button', { name: `Container: ${plate.name}` }).closest('.plate-sprite') as HTMLElement;
+    const target = screen
+      .getByRole('button', { name: `Container: ${plate.name}` })
+      .closest('.plate-sprite') as HTMLElement;
     draggableConfig.listeners.move({ dx: 1, dy: 1, target });
 
     await user.click(screen.getByRole('button', { name: `Container: ${plate.name}` }));
@@ -309,7 +321,9 @@ describe('PlateSprite', () => {
       };
     };
 
-    const sprite = screen.getByRole('button', { name: `Container: ${plate.name}` }).closest('.plate-sprite') as HTMLElement;
+    const sprite = screen
+      .getByRole('button', { name: `Container: ${plate.name}` })
+      .closest('.plate-sprite') as HTMLElement;
     const image = sprite.querySelector('.plate-img') as HTMLElement;
     draggableConfig.listeners.move({ dx: 1, dy: 1, target: sprite });
     draggableConfig.listeners.end();
@@ -351,7 +365,17 @@ describe('PlateSprite', () => {
       plates: {
         added: kind === 'added' ? [{ ...makeNetworkPlate(), id }] : [],
         removed: kind === 'removed' ? [{ ...makeNetworkPlate(), id }] : [],
-        modified: kind === 'modified' ? [{ id, before: makeNetworkPlate(), after: { ...makeNetworkPlate(), id }, changes: [] }] : [],
+        modified:
+          kind === 'modified'
+            ? [
+                {
+                  id,
+                  before: makeNetworkPlate(),
+                  after: { ...makeNetworkPlate(), id },
+                  changes: [],
+                },
+              ]
+            : [],
       },
       blocks: { added: [], removed: [], modified: [] },
       connections: { added: [], removed: [], modified: [] },
@@ -361,20 +385,43 @@ describe('PlateSprite', () => {
     });
 
     useUIStore.setState({ diffMode: true, diffDelta: makeDelta('added', 'plate-added') });
-    const { container, rerender } = render(<PlateSprite plate={{ ...makeNetworkPlate(), id: 'plate-added' }} screenX={0} screenY={0} zIndex={1} />);
+    const { container, rerender } = render(
+      <PlateSprite
+        plate={{ ...makeNetworkPlate(), id: 'plate-added' }}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
     expect(container.firstElementChild).toHaveClass('diff-added');
 
     useUIStore.setState({ diffMode: true, diffDelta: makeDelta('modified', 'plate-modified') });
-    rerender(<PlateSprite plate={{ ...makeNetworkPlate(), id: 'plate-modified' }} screenX={0} screenY={0} zIndex={1} />);
+    rerender(
+      <PlateSprite
+        plate={{ ...makeNetworkPlate(), id: 'plate-modified' }}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
     expect(container.firstElementChild).toHaveClass('diff-modified');
 
     useUIStore.setState({ diffMode: true, diffDelta: makeDelta('removed', 'plate-removed') });
-    rerender(<PlateSprite plate={{ ...makeNetworkPlate(), id: 'plate-removed' }} screenX={0} screenY={0} zIndex={1} />);
+    rerender(
+      <PlateSprite
+        plate={{ ...makeNetworkPlate(), id: 'plate-removed' }}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
     expect(container.firstElementChild).toHaveClass('diff-removed');
   });
 
   it('snaps on drag end and plays sound when unmuted', () => {
-    const playSoundSpy = vi.spyOn(audioService, 'playSound').mockImplementation(async (_name: SoundName) => undefined);
+    const playSoundSpy = vi
+      .spyOn(audioService, 'playSound')
+      .mockImplementation(async (_name: SoundName) => undefined);
     const plate = { ...makeNetworkPlate(), id: 'plate-snap', position: { x: 1.2, y: 0, z: 1.6 } };
 
     useUIStore.setState({ isSoundMuted: false });
@@ -382,7 +429,10 @@ describe('PlateSprite', () => {
       moveNodePosition: moveNodePositionMock,
       workspace: {
         ...useArchitectureStore.getState().workspace,
-        architecture: { ...useArchitectureStore.getState().workspace.architecture, nodes: [plate] as ResourceNode[] },
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          nodes: [plate] as ResourceNode[],
+        },
       },
     });
 
@@ -396,7 +446,9 @@ describe('PlateSprite', () => {
       };
     };
 
-    const target = screen.getByRole('button', { name: `Container: ${plate.name}` }).closest('.plate-sprite') as HTMLElement;
+    const target = screen
+      .getByRole('button', { name: `Container: ${plate.name}` })
+      .closest('.plate-sprite') as HTMLElement;
     draggableConfig.listeners.move({ dx: 1, dy: 1, target });
     draggableConfig.listeners.end();
 
@@ -406,7 +458,9 @@ describe('PlateSprite', () => {
   });
 
   it('snaps on drag end without sound when muted', async () => {
-    const playSoundSpy = vi.spyOn(audioService, 'playSound').mockImplementation(async (_name: SoundName) => undefined);
+    const playSoundSpy = vi
+      .spyOn(audioService, 'playSound')
+      .mockImplementation(async (_name: SoundName) => undefined);
     const plate = { ...makeNetworkPlate(), id: 'plate-muted', position: { x: 0.5, y: 0, z: 0.5 } };
 
     useUIStore.setState({ isSoundMuted: true });
@@ -414,7 +468,10 @@ describe('PlateSprite', () => {
       moveNodePosition: moveNodePositionMock,
       workspace: {
         ...useArchitectureStore.getState().workspace,
-        architecture: { ...useArchitectureStore.getState().workspace.architecture, nodes: [plate] as ResourceNode[] },
+        architecture: {
+          ...useArchitectureStore.getState().workspace.architecture,
+          nodes: [plate] as ResourceNode[],
+        },
       },
     });
 
@@ -428,7 +485,9 @@ describe('PlateSprite', () => {
       };
     };
 
-    const target = screen.getByRole('button', { name: `Container: ${plate.name}` }).closest('.plate-sprite') as HTMLElement;
+    const target = screen
+      .getByRole('button', { name: `Container: ${plate.name}` })
+      .closest('.plate-sprite') as HTMLElement;
     draggableConfig.listeners.move({ dx: 1, dy: 1, target });
     draggableConfig.listeners.end();
 

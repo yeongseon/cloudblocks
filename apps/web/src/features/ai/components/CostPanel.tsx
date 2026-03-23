@@ -47,9 +47,7 @@ export const CostPanel: React.FC = () => {
   if (!result) {
     return (
       <div className="cost-panel" data-testid="cost-panel">
-        <div className="cost-empty">
-          Run cost estimation to see infrastructure pricing.
-        </div>
+        <div className="cost-empty">Run cost estimation to see infrastructure pricing.</div>
       </div>
     );
   }
@@ -61,15 +59,11 @@ export const CostPanel: React.FC = () => {
       <div className="cost-summary">
         <div className="cost-total">
           <span className="cost-total-label">Monthly</span>
-          <span className="cost-total-value">
-            {formatCurrency(monthly_cost, currency)}
-          </span>
+          <span className="cost-total-value">{formatCurrency(monthly_cost, currency)}</span>
         </div>
         <div className="cost-hourly">
           <span className="cost-hourly-label">Hourly</span>
-          <span className="cost-hourly-value">
-            {formatCurrency(hourly_cost, currency)}
-          </span>
+          <span className="cost-hourly-value">{formatCurrency(hourly_cost, currency)}</span>
         </div>
       </div>
 

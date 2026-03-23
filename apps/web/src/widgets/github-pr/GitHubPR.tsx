@@ -50,30 +50,33 @@ export function GitHubPR() {
   const cleanedBranch = branch.trim();
   const cleanedCommitMessage = commitMessage.trim();
   const workspaceBranchInfo = workspace as WorkspaceBranchInfo;
-  const workspaceBaseBranch = workspaceBranchInfo.githubBranch
-    ?? workspaceBranchInfo.github_branch
-    ?? workspaceBranchInfo.defaultBranch
-    ?? workspaceBranchInfo.default_branch
-    ?? null;
+  const workspaceBaseBranch =
+    workspaceBranchInfo.githubBranch ??
+    workspaceBranchInfo.github_branch ??
+    workspaceBranchInfo.defaultBranch ??
+    workspaceBranchInfo.default_branch ??
+    null;
   const candidateBaseBranches = [workspaceBaseBranch, ...FALLBACK_BASE_BRANCHES]
     .filter((candidate): candidate is string => Boolean(candidate?.trim()))
     .map((candidate) => candidate.trim().toLowerCase());
-  const branchMatchesBase = cleanedBranch.length > 0
-    && candidateBaseBranches.includes(cleanedBranch.toLowerCase());
+  const branchMatchesBase =
+    cleanedBranch.length > 0 && candidateBaseBranches.includes(cleanedBranch.toLowerCase());
   const branchMatchesBaseError = branchMatchesBase
     ? `Head branch must differ from base branch (${workspaceBaseBranch ?? 'main/master'}).`
     : null;
   const branchIsValid = !cleanedBranch || isValidGitBranchName(cleanedBranch);
-  const isDirty = title !== DEFAULT_TITLE
-    || body !== DEFAULT_BODY
-    || branch !== DEFAULT_BRANCH
-    || commitMessage !== DEFAULT_COMMIT_MESSAGE;
-  const canSubmit = !loading
-    && cleanedTitle.length > 0
-    && cleanedCommitMessage.length > 0
-    && branchIsValid
-    && !branchMatchesBase
-    && hasBackendWorkspaceLink;
+  const isDirty =
+    title !== DEFAULT_TITLE ||
+    body !== DEFAULT_BODY ||
+    branch !== DEFAULT_BRANCH ||
+    commitMessage !== DEFAULT_COMMIT_MESSAGE;
+  const canSubmit =
+    !loading &&
+    cleanedTitle.length > 0 &&
+    cleanedCommitMessage.length > 0 &&
+    branchIsValid &&
+    !branchMatchesBase &&
+    hasBackendWorkspaceLink;
 
   if (!show) return null;
 
@@ -112,7 +115,7 @@ export function GitHubPR() {
           body,
           branch: cleanedBranch || undefined,
           commit_message: cleanedCommitMessage,
-        }
+        },
       );
       setResult(response);
     } catch (err) {
@@ -125,10 +128,11 @@ export function GitHubPR() {
       }
       const apiErrorMessage = getApiErrorMessage(err, 'Failed to create pull request.');
       const lowerApiError = apiErrorMessage.toLowerCase();
-      const branchAlreadyExists = lowerApiError.includes('branch already exists')
-        || (lowerApiError.includes('already exists') && lowerApiError.includes('branch'))
-        || lowerApiError.includes('reference already exists')
-        || lowerApiError.includes('ref already exists');
+      const branchAlreadyExists =
+        lowerApiError.includes('branch already exists') ||
+        (lowerApiError.includes('already exists') && lowerApiError.includes('branch')) ||
+        lowerApiError.includes('reference already exists') ||
+        lowerApiError.includes('ref already exists');
 
       if (branchAlreadyExists) {
         const branchLabel = cleanedBranch ? `Branch '${cleanedBranch}'` : 'A branch with this name';
@@ -149,7 +153,7 @@ export function GitHubPR() {
 
     const shouldClose = await confirmDialog(
       'You have unsaved edits in the PR form. Discard them?',
-      'Discard Draft?'
+      'Discard Draft?',
     );
     if (shouldClose) {
       toggleGitHubPR();
@@ -160,7 +164,12 @@ export function GitHubPR() {
     <div className="github-pr">
       <div className="github-pr-header">
         <h3 className="github-pr-title">🔀 Pull Request</h3>
-        <button type="button" className="github-pr-close" onClick={() => void handleClose()} aria-label="Close pull request panel">
+        <button
+          type="button"
+          className="github-pr-close"
+          onClick={() => void handleClose()}
+          aria-label="Close pull request panel"
+        >
           ✕
         </button>
       </div>
@@ -170,7 +179,9 @@ export function GitHubPR() {
       ) : !isAuthenticated ? (
         <div className="github-pr-empty">GitHub authentication required.</div>
       ) : !hasBackendWorkspaceLink ? (
-        <div className="github-pr-empty">Workspace must be linked to backend before creating a pull request.</div>
+        <div className="github-pr-empty">
+          Workspace must be linked to backend before creating a pull request.
+        </div>
       ) : (
         <div className="github-pr-content">
           {loading && <div className="github-pr-loading">Loading...</div>}
@@ -207,8 +218,14 @@ export function GitHubPR() {
             onChange={(e) => setBranch(e.target.value)}
             placeholder="cloudblocks/update-architecture"
           />
-          {!branchIsValid && <div className="github-pr-error">Branch name contains invalid characters or format.</div>}
-          {branchMatchesBaseError && <div className="github-pr-error">{branchMatchesBaseError}</div>}
+          {!branchIsValid && (
+            <div className="github-pr-error">
+              Branch name contains invalid characters or format.
+            </div>
+          )}
+          {branchMatchesBaseError && (
+            <div className="github-pr-error">{branchMatchesBaseError}</div>
+          )}
 
           <label className="github-pr-label" htmlFor="github-pr-commit-message">
             Commit message
@@ -220,12 +237,22 @@ export function GitHubPR() {
             onChange={(e) => setCommitMessage(e.target.value)}
           />
 
-          <button type="button" className="github-pr-submit" onClick={handleSubmit} disabled={!canSubmit}>
+          <button
+            type="button"
+            className="github-pr-submit"
+            onClick={handleSubmit}
+            disabled={!canSubmit}
+          >
             Create Pull Request
           </button>
 
           {result && (
-            <a className="github-pr-result-link" href={result.pull_request_url} target="_blank" rel="noreferrer">
+            <a
+              className="github-pr-result-link"
+              href={result.pull_request_url}
+              target="_blank"
+              rel="noreferrer"
+            >
               {result.pull_request_url}
             </a>
           )}

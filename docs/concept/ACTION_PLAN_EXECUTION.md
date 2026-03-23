@@ -16,6 +16,7 @@ It is also mostly aligned with the existing CloudBlocks architecture and roadmap
 - The best approach is **not a fresh rewrite**, but a **gap-driven execution plan** with strict phases and exit criteria.
 
 This document converts your checklist into:
+
 1. **Validated scope** (what is already done vs missing)
 2. **Milestones + phases**
 3. **Execution order and acceptance gates**
@@ -25,6 +26,7 @@ This document converts your checklist into:
 ## 2) Fit Check Against Existing Docs/Code
 
 Validated against:
+
 - `docs/concept/PRD.md`
 - `docs/concept/ROADMAP.md`
 - `docs/design/UI_IMPROVEMENT_GAP_ANALYSIS.md`
@@ -58,33 +60,41 @@ Validated against:
 ## Milestone A — UX Core Hardening (Priority 1)
 
 ### Phase A1: Start Entry
+
 - Empty canvas CTA
 - `Create VNet`
 - `Start from Template`
 - `Create Subnet (public/private)`
 
 **Exit Criteria**
+
 - New users can create a valid starter architecture within 60 seconds without docs.
 
 ### Phase A2: Selection → Action Contract
+
 - Standardize Command Panel semantics by selected entity type.
 - Lock invalid actions by context (no ambiguous commands).
 
 **Exit Criteria**
+
 - 100% deterministic action matrix (VNet/Subnet/Resource).
 
 ### Phase A3: Drag & Drop + Connect Reliability
+
 - Drag ghost + valid target highlight + invalid drop feedback.
 - Connect mode target highlighting + preview + constraints.
 
 **Exit Criteria**
+
 - No orphan blocks, no invalid silent drops, no broken connection state.
 
 ### Phase A4: Interaction State Machine
+
 - Finalize Zustand interaction states:
   - `idle`, `selecting`, `dragging`, `placing`, `connecting`
 
 **Exit Criteria**
+
 - Every interaction transition is explicit, test-covered, and reversible.
 
 ---
@@ -92,18 +102,22 @@ Validated against:
 ## Milestone B — External Actors + DevOps UX (Priority 2)
 
 ### Phase B1: Internet/External Actor Model
+
 - Internet selectable/connectable/off-canvas placement refinement.
 - Add `devops` external actor type.
 
 ### Phase B2: DevOps Command Experience
+
 - Build/Connect/Deploy tabs
 - Action catalog:
   - `create-vnet`, `create-subnet`, `deploy-vm`, `connect`, `generate-terraform`
 
 ### Phase B3: Execution Engine
+
 - `executeDevOpsAction()` with auditable action result payload.
 
 **Exit Criteria**
+
 - DevOps actor can execute all P1 actions deterministically from UI state.
 
 ---
@@ -111,17 +125,21 @@ Validated against:
 ## Milestone C — Brick Design System Consolidation (Priority 3)
 
 ### Phase C1: Taxonomy Freeze
+
 - `network`, `compute`, `data`, `messaging`, `security`, `edge`
 
 ### Phase C2: Shape/Size/Height Canonicalization
+
 - Formal shape mapping by category.
 - Container > Subnet > Resource size hierarchy.
 - Height tiers (container low / data mid / compute high).
 
 ### Phase C3: Design Tokens + Visual QA
+
 - Shape > Color > Label principle enforcement.
 
 **Exit Criteria**
+
 - Visual identity remains consistent across all resources/providers.
 
 ---
@@ -129,18 +147,22 @@ Validated against:
 ## Milestone D — Core Model + Provider System (Priority 4)
 
 ### Phase D1: Core Model Hardening
+
 - Block schema formalization:
   - `id`, `category`, `subtype`, `provider`, `config`
 - Connection model hardening.
 
 ### Phase D2: Provider Modes
+
 - Neutral / Azure / AWS / GCP mode contracts.
 - Palette mapping and provider extension policy.
 
 ### Phase D3: Adapter Contract
+
 - Provider adapter interface and validation contract.
 
 **Exit Criteria**
+
 - Same architecture model can be compiled under provider mode with deterministic differences.
 
 ---
@@ -148,15 +170,19 @@ Validated against:
 ## Milestone E — Terraform Pipeline Productization (Priority 5)
 
 ### Phase E1: Mapping Accuracy
+
 - Block→Terraform mapping completeness matrix.
 
 ### Phase E2: Generator Reliability
+
 - `architecture.json` → tf conversion hardened.
 
 ### Phase E3: Output Workflow
+
 - Preview / Export / GitHub PR in one stable flow.
 
 **Exit Criteria**
+
 - Generated Terraform validates for all reference templates.
 
 ---
@@ -164,8 +190,11 @@ Validated against:
 ## Milestone F — AI Roadmap (Priority 6)
 
 ### Phase F1: AI Architecture Drafting
+
 ### Phase F2: AI Validation Assistant
+
 ### Phase F3: Cost Optimization Suggestions
+
 ### Phase F4: Recommendation Engine
 
 **Note:** AI work starts only after Milestones A–E pass release gates.
@@ -175,11 +204,13 @@ Validated against:
 ## 4) OSS/Private Repo Split (Validated)
 
 ### OSS (keep)
+
 - `cloudblocks-core`
 - `cloudblocks-ui`
 - `cloudblocks-provider`
 
 ### Private (later)
+
 - `cloudblocks-ai`
 - `cloudblocks-devops`
 - `cloudblocks-cloud`
@@ -196,6 +227,7 @@ Validated against:
 4. **Shape > Color > Label** visual hierarchy
 
 ### Explicit "Do Not Do"
+
 - Do not show all resources all the time.
 - Do not allow drag without feedback.
 - Do not represent Internet as a normal internal resource.
@@ -218,6 +250,7 @@ Validated against:
 ## 7) Delivery Governance
 
 For each phase:
+
 - Issue breakdown (small, testable tasks)
 - One PR per issue
 - Required checks:
@@ -227,6 +260,7 @@ For each phase:
   - Regression tests for touched domain
 
 Definition of Done:
+
 - Feature works in UI
 - Model invariant preserved
 - Tests and docs updated

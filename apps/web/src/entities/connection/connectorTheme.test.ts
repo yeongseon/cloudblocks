@@ -31,7 +31,13 @@ describe('lightenColor', () => {
 
 describe('CONNECTOR_THEMES', () => {
   it('defines themes for all 5 connection types', () => {
-    expect(Object.keys(CONNECTOR_THEMES)).toEqual(['dataflow', 'http', 'internal', 'data', 'async']);
+    expect(Object.keys(CONNECTOR_THEMES)).toEqual([
+      'dataflow',
+      'http',
+      'internal',
+      'data',
+      'async',
+    ]);
   });
 
   it('each theme has required properties', () => {

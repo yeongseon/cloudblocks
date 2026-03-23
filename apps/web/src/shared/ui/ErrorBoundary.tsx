@@ -46,7 +46,11 @@ function persistError(record: ErrorRecord): void {
 
 function reportError(error: Error, componentStack: string): void {
   const record: ErrorRecord = {
-    error: { name: error.name, message: error.message, stack: error.stack ?? '' } as unknown as Error,
+    error: {
+      name: error.name,
+      message: error.message,
+      stack: error.stack ?? '',
+    } as unknown as Error,
     componentStack,
     timestamp: new Date().toISOString(),
     url: globalThis.location?.href ?? '',
@@ -81,37 +85,39 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '100vh',
-          background: '#0a0a1a',
-          color: '#e0e0e0',
-          fontFamily: 'system-ui, sans-serif',
-          gap: '16px',
-          padding: '24px',
-          textAlign: 'center',
-        }}>
-          <h1 style={{ fontSize: '24px', margin: 0, color: '#ff6b6b' }}>
-            Something went wrong
-          </h1>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100vh',
+            background: '#0a0a1a',
+            color: '#e0e0e0',
+            fontFamily: 'system-ui, sans-serif',
+            gap: '16px',
+            padding: '24px',
+            textAlign: 'center',
+          }}
+        >
+          <h1 style={{ fontSize: '24px', margin: 0, color: '#ff6b6b' }}>Something went wrong</h1>
           <p style={{ fontSize: '14px', color: '#999', maxWidth: '480px' }}>
-            CloudBlocks encountered an unexpected error. The error has been logged.
-            Try reloading the page.
+            CloudBlocks encountered an unexpected error. The error has been logged. Try reloading
+            the page.
           </p>
           {this.state.error && (
-            <pre style={{
-              fontSize: '12px',
-              color: '#666',
-              background: '#111',
-              padding: '12px',
-              borderRadius: '8px',
-              maxWidth: '600px',
-              overflow: 'auto',
-              maxHeight: '120px',
-            }}>
+            <pre
+              style={{
+                fontSize: '12px',
+                color: '#666',
+                background: '#111',
+                padding: '12px',
+                borderRadius: '8px',
+                maxWidth: '600px',
+                overflow: 'auto',
+                maxHeight: '120px',
+              }}
+            >
               {this.state.error.message}
             </pre>
           )}

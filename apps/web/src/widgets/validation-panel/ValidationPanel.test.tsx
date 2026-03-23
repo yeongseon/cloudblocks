@@ -175,7 +175,7 @@ describe('ValidationPanel', () => {
     });
     render(<ValidationPanel />);
     expect(
-      screen.getByText(/Architecture is valid! No rule violations detected/)
+      screen.getByText(/Architecture is valid! No rule violations detected/),
     ).toBeInTheDocument();
   });
 
@@ -213,12 +213,8 @@ describe('ValidationPanel', () => {
     useUIStore.setState({ showValidation: true });
     useArchitectureStore.setState({ validationResult: result });
     render(<ValidationPanel />);
-    expect(
-      screen.getByText(/No blocking errors detected/)
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByText(/No rule violations detected/)
-    ).not.toBeInTheDocument();
+    expect(screen.getByText(/No blocking errors detected/)).toBeInTheDocument();
+    expect(screen.queryByText(/No rule violations detected/)).not.toBeInTheDocument();
   });
 
   it('renders multiple errors', () => {

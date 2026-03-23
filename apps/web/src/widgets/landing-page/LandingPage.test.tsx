@@ -15,7 +15,13 @@ vi.mock('../../features/templates/registry', () => ({
 describe('LandingPage', () => {
   beforeEach(() => {
     listTemplatesMock.mockReturnValue([
-      { id: 't1', name: 'Template 1', description: 'Desc 1', tags: ['a', 'b', 'c', 'd'], model: {} },
+      {
+        id: 't1',
+        name: 'Template 1',
+        description: 'Desc 1',
+        tags: ['a', 'b', 'c', 'd'],
+        model: {},
+      },
       { id: 't2', name: 'Template 2', description: 'Desc 2', tags: ['e'], model: {} },
       { id: 't3', name: 'Template 3', description: 'Desc 3', tags: ['f', 'g'], model: {} },
       { id: 't4', name: 'Template 4', description: 'Desc 4', tags: ['h'], model: {} },

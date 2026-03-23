@@ -1,4 +1,9 @@
-import type { ArchitectureModel, ContainerNode, LeafNode, ResourceCategory } from '@cloudblocks/schema';
+import type {
+  ArchitectureModel,
+  ContainerNode,
+  LeafNode,
+  ResourceCategory,
+} from '@cloudblocks/schema';
 import type { ValidationError } from '@cloudblocks/domain';
 
 const KNOWN_SUBTYPES: Record<string, Partial<Record<ResourceCategory, string[]>>> = {
@@ -32,21 +37,16 @@ const KNOWN_SUBTYPES: Record<string, Partial<Record<ResourceCategory, string[]>>
 
 function validateBlockProviderRules(
   block: LeafNode,
-  plate: ContainerNode | undefined
+  plate: ContainerNode | undefined,
 ): ValidationError[] {
   const warnings: ValidationError[] = [];
 
-  if (
-    block.provider === 'aws' &&
-    block.subtype === 'lambda' &&
-    plate?.layer === 'subnet'
-  ) {
+  if (block.provider === 'aws' && block.subtype === 'lambda' && plate?.layer === 'subnet') {
     warnings.push({
       ruleId: 'rule-provider-aws-lambda-subnet',
       severity: 'warning',
       message: `AWS Lambda "${block.name}" is placed on a subnet. Lambda functions are serverless and typically don't require VPC placement unless accessing private resources.`,
-      suggestion:
-        'Consider whether VPC placement is intentional for private resource access.',
+      suggestion: 'Consider whether VPC placement is intentional for private resource access.',
       targetId: block.id,
     });
   }

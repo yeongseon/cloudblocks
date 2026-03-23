@@ -28,9 +28,7 @@ export function TemplateGallery() {
   const [activeCategory, setActiveCategory] = useState<TemplateCategory | 'all'>('all');
 
   const templates =
-    activeCategory === 'all'
-      ? listTemplates()
-      : listTemplatesByCategory(activeCategory);
+    activeCategory === 'all' ? listTemplates() : listTemplatesByCategory(activeCategory);
 
   const handleUseTemplate = (template: ArchitectureTemplate) => {
     loadFromTemplate(template);
@@ -43,7 +41,12 @@ export function TemplateGallery() {
     <div className="template-gallery">
       <div className="template-gallery-header">
         <h3 className="template-gallery-title">📦 Templates</h3>
-        <button type="button" className="template-gallery-close" onClick={toggleTemplateGallery} aria-label="Close template gallery">
+        <button
+          type="button"
+          className="template-gallery-close"
+          onClick={toggleTemplateGallery}
+          aria-label="Close template gallery"
+        >
           ✕
         </button>
       </div>

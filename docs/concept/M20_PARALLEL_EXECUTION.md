@@ -118,17 +118,17 @@ apps/web/src/entities/connection/
 
 These files may need edits from BOTH instances. Rules:
 
-| File | Instance A edits | Instance B edits | Coordination |
-|------|-----------------|-----------------|--------------|
-| `uiStore.ts` | Phase 2 compare mode flags | Phase 3b persona state | **A goes first** on compare; B adds persona fields after |
-| `architectureStore.ts` | Phase 6 migration helpers | Phase 7 tests, Phase 8 new actions | **Additive only** — append, don't reorder |
-| `domainSlice.ts` | — | Phase 7 tests, Phase 8 mutations | B owns |
-| `apps/web/src/shared/types/index.ts` | Phase 6 category names | Phase 8 new resource types | **Additive only** — append new exports |
-| `apps/web/src/app/App.tsx` | Phase 5 feature flags | Phase 3b persona wrapper | **Sequential**: A first (feature flags), B second (persona) |
-| `apps/web/src/app/App.css` | — | Phase 3b persona styles | B owns |
-| `package.json` (root) | — | Version bump at release | B owns |
-| `README.md` | — | Phase 4 updates | B owns |
-| `AGENTS.md` | — | — | Neither edits (immutable during M20) |
+| File                                 | Instance A edits           | Instance B edits                   | Coordination                                                |
+| ------------------------------------ | -------------------------- | ---------------------------------- | ----------------------------------------------------------- |
+| `uiStore.ts`                         | Phase 2 compare mode flags | Phase 3b persona state             | **A goes first** on compare; B adds persona fields after    |
+| `architectureStore.ts`               | Phase 6 migration helpers  | Phase 7 tests, Phase 8 new actions | **Additive only** — append, don't reorder                   |
+| `domainSlice.ts`                     | —                          | Phase 7 tests, Phase 8 mutations   | B owns                                                      |
+| `apps/web/src/shared/types/index.ts` | Phase 6 category names     | Phase 8 new resource types         | **Additive only** — append new exports                      |
+| `apps/web/src/app/App.tsx`           | Phase 5 feature flags      | Phase 3b persona wrapper           | **Sequential**: A first (feature flags), B second (persona) |
+| `apps/web/src/app/App.css`           | —                          | Phase 3b persona styles            | B owns                                                      |
+| `package.json` (root)                | —                          | Version bump at release            | B owns                                                      |
+| `README.md`                          | —                          | Phase 4 updates                    | B owns                                                      |
+| `AGENTS.md`                          | —                          | —                                  | Neither edits (immutable during M20)                        |
 
 ### Conflict Prevention Rules
 
@@ -174,29 +174,29 @@ These files may need edits from BOTH instances. Rules:
 
 ### Sync Points
 
-| Checkpoint | Trigger | Action |
-|-----------|---------|--------|
-| **Sync 1** | A completes Phase 0 (#886) | A merges to main, B rebases |
-| **Sync 2** | A completes Phase 2 (all GitHub bugs) | A merges, B can start #1131 |
-| **Sync 3** | B completes Phase 3b (#1083, #1084) | B merges, A can avoid persona conflicts |
-| **Sync 4** | Both near completion | Final rebase, integration test, demo verification |
+| Checkpoint | Trigger                               | Action                                            |
+| ---------- | ------------------------------------- | ------------------------------------------------- |
+| **Sync 1** | A completes Phase 0 (#886)            | A merges to main, B rebases                       |
+| **Sync 2** | A completes Phase 2 (all GitHub bugs) | A merges, B can start #1131                       |
+| **Sync 3** | B completes Phase 3b (#1083, #1084)   | B merges, A can avoid persona conflicts           |
+| **Sync 4** | Both near completion                  | Final rebase, integration test, demo verification |
 
 ---
 
 ## Estimated Timeline (2 instances, parallel)
 
-| Phase | Instance | Wall-clock Est. |
-|-------|----------|-----------------|
-| Phase 0 | A | 0.5h |
-| Phase 2 | A | 3-4h |
-| Phase 3a | A | 1h |
-| Phase 3b+3c | B | 2-3h |
-| Phase 4 | B | 3-4h |
-| Phase 5 | A | 1-2h |
-| Phase 6 | A | 1-2h |
-| Phase 7 | B | 2-3h |
-| Phase 8 | B | 1-2h |
-| Integration + Demo | Both | 1h |
-| **Total wall-clock** | | **~12-16h** |
+| Phase                | Instance | Wall-clock Est. |
+| -------------------- | -------- | --------------- |
+| Phase 0              | A        | 0.5h            |
+| Phase 2              | A        | 3-4h            |
+| Phase 3a             | A        | 1h              |
+| Phase 3b+3c          | B        | 2-3h            |
+| Phase 4              | B        | 3-4h            |
+| Phase 5              | A        | 1-2h            |
+| Phase 6              | A        | 1-2h            |
+| Phase 7              | B        | 2-3h            |
+| Phase 8              | B        | 1-2h            |
+| Integration + Demo   | Both     | 1h              |
+| **Total wall-clock** |          | **~12-16h**     |
 
 > With two parallel instances, the bottleneck is Instance A's Phase 2 GitHub chain (~4h) and Instance B's Phase 4 Infrastructure (~4h). Everything else fills in around these.

@@ -10,31 +10,31 @@
 .ai-prompt-bar {
   display: flex;
   align-items: center;
-  background: #FFFDE7;
-  border: 3px solid #D4B200;
+  background: #fffde7;
+  border: 3px solid #d4b200;
   border-radius: 12px;
   height: 32px;
   padding: 0 4px;
-  box-shadow: 
+  box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.5),
-    0 3px 0 0 #D4B200;
+    0 3px 0 0 #d4b200;
   transition: all 0.2s ease;
   gap: 4px;
 }
 
 .ai-prompt-bar:focus-within {
-  background: #FFFFFF;
-  border-color: #FFD500;
-  box-shadow: 
+  background: #ffffff;
+  border-color: #ffd500;
+  box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.6),
-    0 4px 0 0 #D4B200,
+    0 4px 0 0 #d4b200,
     0 0 0 2px rgba(255, 213, 0, 0.4);
   transform: translateY(-1px);
 }
 
-.ai-prompt-bar[data-loading="true"] {
+.ai-prompt-bar[data-loading='true'] {
   opacity: 0.8;
-  border-color: #FFD500;
+  border-color: #ffd500;
   animation: pulse-border 1.5s infinite;
 }
 
@@ -52,7 +52,7 @@
 }
 
 .ai-prompt-input::placeholder {
-  color: #998C40;
+  color: #998c40;
   font-weight: 500;
 }
 
@@ -91,7 +91,7 @@
   width: 24px;
   height: 24px;
   border: none;
-  background: #FFD500;
+  background: #ffd500;
   border-radius: 6px;
   cursor: pointer;
   color: #333;
@@ -101,11 +101,11 @@
 }
 
 .ai-submit-btn:hover:not(:disabled) {
-  background: #FFE44D;
+  background: #ffe44d;
   transform: translateY(-1px);
-  box-shadow: 
+  box-shadow:
     inset 0 2px 0 rgba(255, 255, 255, 0.6),
-    0 2px 0 0 #D4B200;
+    0 2px 0 0 #d4b200;
 }
 
 .ai-submit-btn:active:not(:disabled) {
@@ -114,7 +114,7 @@
 }
 
 .ai-submit-btn:disabled {
-  background: #EBE5C5;
+  background: #ebe5c5;
   color: #999;
   cursor: not-allowed;
   box-shadow: none;
@@ -137,11 +137,11 @@
   font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 600;
-  color: #FFF;
-  background: #E3000B;
+  color: #fff;
+  background: #e3000b;
   padding: 2px 8px;
   border-radius: 4px;
-  border: 2px solid #B80009;
+  border: 2px solid #b80009;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   white-space: nowrap;
   pointer-events: none;
@@ -149,13 +149,30 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes pulse-border {
-  0% { box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.5), 0 3px 0 0 #D4B200, 0 0 0 0 rgba(255, 213, 0, 0.7); }
-  50% { box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.5), 0 3px 0 0 #D4B200, 0 0 0 4px rgba(255, 213, 0, 0); }
-  100% { box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.5), 0 3px 0 0 #D4B200, 0 0 0 0 rgba(255, 213, 0, 0); }
+  0% {
+    box-shadow:
+      inset 0 3px 0 rgba(255, 255, 255, 0.5),
+      0 3px 0 0 #d4b200,
+      0 0 0 0 rgba(255, 213, 0, 0.7);
+  }
+  50% {
+    box-shadow:
+      inset 0 3px 0 rgba(255, 255, 255, 0.5),
+      0 3px 0 0 #d4b200,
+      0 0 0 4px rgba(255, 213, 0, 0);
+  }
+  100% {
+    box-shadow:
+      inset 0 3px 0 rgba(255, 255, 255, 0.5),
+      0 3px 0 0 #d4b200,
+      0 0 0 0 rgba(255, 213, 0, 0);
+  }
 }
 
 @media (max-width: 768px) {

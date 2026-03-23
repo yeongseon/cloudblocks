@@ -210,7 +210,11 @@ describe('GitHubLogin', () => {
   it('shows loading indicator during sign in', async () => {
     const user = userEvent.setup();
     let resolvePost!: (value: unknown) => void;
-    mockApiPost.mockReturnValueOnce(new Promise((r) => { resolvePost = r; }));
+    mockApiPost.mockReturnValueOnce(
+      new Promise((r) => {
+        resolvePost = r;
+      }),
+    );
 
     render(<GitHubLogin />);
     await user.click(screen.getByRole('button', { name: 'Sign in with GitHub' }));

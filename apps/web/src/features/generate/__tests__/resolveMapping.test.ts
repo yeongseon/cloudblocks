@@ -31,7 +31,12 @@ describe('resolveBlockMapping', () => {
   });
 
   it('falls back to category mapping when subtype is unknown', () => {
-    const result = resolveBlockMapping(baseBlockMappings, subtypeMappings, 'compute', 'unknown-subtype');
+    const result = resolveBlockMapping(
+      baseBlockMappings,
+      subtypeMappings,
+      'compute',
+      'unknown-subtype',
+    );
     expect(result).toEqual({ resourceType: 'aws_ecs_service', namePrefix: 'ecs' });
   });
 

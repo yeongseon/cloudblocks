@@ -37,10 +37,7 @@ describe('schema deserialize additional branch coverage', () => {
             ],
             connections: [],
             endpoints: [],
-            externalActors: [
-              1,
-              { id: 'ext-1', name: 'Internet', type: 'internet' },
-            ],
+            externalActors: [1, { id: 'ext-1', name: 'Internet', type: 'internet' }],
             createdAt: '2026-01-01T00:00:00.000Z',
             updatedAt: '2026-01-01T00:00:00.000Z',
           },
@@ -51,10 +48,20 @@ describe('schema deserialize additional branch coverage', () => {
     };
 
     const [workspace] = deserialize(JSON.stringify(payload));
-    const actor = (workspace.architecture.externalActors ?? []).find((entry) => entry.id === 'ext-1');
+    const actor = (workspace.architecture.externalActors ?? []).find(
+      (entry) => entry.id === 'ext-1',
+    );
     const container = workspace.architecture.nodes.find(
-      (entry): entry is (typeof workspace.architecture.nodes)[number] & { kind: 'container'; profileId?: string } =>
-        typeof entry === 'object' && entry !== null && 'kind' in entry && entry.kind === 'container'
+      (
+        entry,
+      ): entry is (typeof workspace.architecture.nodes)[number] & {
+        kind: 'container';
+        profileId?: string;
+      } =>
+        typeof entry === 'object' &&
+        entry !== null &&
+        'kind' in entry &&
+        entry.kind === 'container',
     );
 
     expect(actor?.position).toEqual({ x: -3, y: 0, z: 5 });
@@ -132,7 +139,11 @@ describe('schema deserialize additional branch coverage', () => {
     const app = nodes.find((node) => node.id === 'blk-1');
     const queue = nodes.find((node) => node.id === 'blk-2');
 
-    expect(parentPlate).toMatchObject({ parentId: 'root-parent', profileId: 'network-hub', metadata: { owner: 'team-a' } });
+    expect(parentPlate).toMatchObject({
+      parentId: 'root-parent',
+      profileId: 'network-hub',
+      metadata: { owner: 'team-a' },
+    });
     expect(subnetPlate).toMatchObject({ parentId: null, metadata: {} });
     expect(app).toMatchObject({
       resourceType: 'lambda',
@@ -227,7 +238,12 @@ describe('schema deserialize additional branch coverage', () => {
               { id: 'custom-2', nodeId: 'plate-1', direction: 'input', semantic: 'data' },
             ],
             connections: [
-              { id: 'conn-1', from: 'custom-1', to: 'custom-2', metadata: { kind: 'pre-migrated' } },
+              {
+                id: 'conn-1',
+                from: 'custom-1',
+                to: 'custom-2',
+                metadata: { kind: 'pre-migrated' },
+              },
               { id: 'conn-2', from: 'custom-1', to: 'custom-2' },
             ],
             externalActors: [],

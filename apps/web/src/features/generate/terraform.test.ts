@@ -3,12 +3,7 @@ import { endpointId } from '@cloudblocks/schema';
 
 import type { ArchitectureModel, Connection, ContainerNode, LeafNode } from '@cloudblocks/schema';
 import { azureProviderDefinition } from './provider';
-import {
-  generateMainTf,
-  generateOutputsTf,
-  generateVariablesTf,
-  normalize,
-} from './terraform';
+import { generateMainTf, generateOutputsTf, generateVariablesTf, normalize } from './terraform';
 import {
   makeTestArchitecture,
   makeTestBlock,
@@ -65,7 +60,9 @@ function createTestModel(overrides?: LegacyArchitectureOverrides): ArchitectureM
     blocks: [],
     connections: [],
     endpoints: [],
-    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } }],
+    externalActors: [
+      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+    ],
     createdAt: '2025-01-01T00:00:00Z',
     updatedAt: '2025-01-01T00:00:00Z',
     ...overrides,
@@ -123,7 +120,13 @@ describe('generateMainTf', () => {
   it('contains required providers, provider block, resource group, plates, blocks, and connection comments', () => {
     const model = createTestModel({
       plates: [
-        createPlate({ id: 'net1', name: 'Core VNet', type: 'region', parentId: null, children: ['sub1'] }),
+        createPlate({
+          id: 'net1',
+          name: 'Core VNet',
+          type: 'region',
+          parentId: null,
+          children: ['sub1'],
+        }),
         createPlate({
           id: 'sub1',
           name: 'Subnet 1',
@@ -132,7 +135,9 @@ describe('generateMainTf', () => {
           children: ['web1'],
         }),
       ],
-      blocks: [createBlock({ id: 'web1', name: 'Frontend', category: 'compute', placementId: 'sub1' })],
+      blocks: [
+        createBlock({ id: 'web1', name: 'Frontend', category: 'compute', placementId: 'sub1' }),
+      ],
       connections: [
         createConnection({
           id: 'conn-1',
@@ -158,7 +163,9 @@ describe('generateMainTf', () => {
 
   it('includes service plan when compute blocks exist and excludes it otherwise', () => {
     const withCompute = createTestModel({
-      blocks: [createBlock({ id: 'web1', name: 'Frontend', category: 'compute', placementId: 'sub1' })],
+      blocks: [
+        createBlock({ id: 'web1', name: 'Frontend', category: 'compute', placementId: 'sub1' }),
+      ],
     });
     const withoutCompute = createTestModel({
       blocks: [createBlock({ id: 'db1', name: 'MainDb', category: 'data', placementId: 'sub1' })],
@@ -167,12 +174,12 @@ describe('generateMainTf', () => {
     const withComputeHcl = generateMainTf(
       normalize(withCompute, azureProviderDefinition),
       azureProviderDefinition,
-      defaultOptions
+      defaultOptions,
     );
     const withoutComputeHcl = generateMainTf(
       normalize(withoutCompute, azureProviderDefinition),
       azureProviderDefinition,
-      defaultOptions
+      defaultOptions,
     );
 
     expect(withComputeHcl).toContain('resource "azurerm_service_plan" "main"');
@@ -192,7 +199,11 @@ describe('generateMainTf', () => {
       ],
     });
 
-    const hcl = generateMainTf(normalize(model, azureProviderDefinition), azureProviderDefinition, defaultOptions);
+    const hcl = generateMainTf(
+      normalize(model, azureProviderDefinition),
+      azureProviderDefinition,
+      defaultOptions,
+    );
     const networkIndex = hcl.indexOf('resource "azurerm_virtual_network" "vnet_app_network"');
     const subnetIndex = hcl.indexOf('resource "azurerm_subnet" "subnet_app_subnet"');
 
@@ -214,7 +225,11 @@ describe('generateMainTf', () => {
       ],
     });
 
-    const hcl = generateMainTf(normalize(model, azureProviderDefinition), azureProviderDefinition, defaultOptions);
+    const hcl = generateMainTf(
+      normalize(model, azureProviderDefinition),
+      azureProviderDefinition,
+      defaultOptions,
+    );
 
     expect(hcl).toContain('virtual_network_name = azurerm_virtual_network.vnet_network-a.name');
     expect(hcl).toContain('address_prefixes     = ["10.0.1.0/24"]');
@@ -231,7 +246,11 @@ describe('generateMainTf', () => {
       ],
     });
 
-    const hcl = generateMainTf(normalize(model, azureProviderDefinition), azureProviderDefinition, defaultOptions);
+    const hcl = generateMainTf(
+      normalize(model, azureProviderDefinition),
+      azureProviderDefinition,
+      defaultOptions,
+    );
 
     expect(hcl).toContain('service_plan_id     = azurerm_service_plan.main.id');
     expect(hcl).toContain('administrator_login    = var.db_admin_username');
@@ -243,7 +262,11 @@ describe('generateMainTf', () => {
     const withConnections = createTestModel({
       blocks: [createBlock({ id: 'b1', name: 'Web', category: 'compute', placementId: 'sub1' })],
       connections: [
-        createConnection({ id: 'c1', from: endpointId('b1', 'output', 'data'), to: endpointId('missing-target', 'input', 'data')}),
+        createConnection({
+          id: 'c1',
+          from: endpointId('b1', 'output', 'data'),
+          to: endpointId('missing-target', 'input', 'data'),
+        }),
       ],
     });
     const withoutConnections = createTestModel({
@@ -254,17 +277,19 @@ describe('generateMainTf', () => {
     const hclWithConnections = generateMainTf(
       normalize(withConnections, azureProviderDefinition),
       azureProviderDefinition,
-      defaultOptions
+      defaultOptions,
     );
     const hclWithoutConnections = generateMainTf(
       normalize(withoutConnections, azureProviderDefinition),
       azureProviderDefinition,
-      defaultOptions
+      defaultOptions,
     );
 
     expect(hclWithConnections).toContain('# ─── Data Flow Connections ─────────────────────');
     expect(hclWithConnections).toContain('# DataFlow: webapp_web → missing-target');
-    expect(hclWithoutConnections).not.toContain('# ─── Data Flow Connections ─────────────────────');
+    expect(hclWithoutConnections).not.toContain(
+      '# ─── Data Flow Connections ─────────────────────',
+    );
   });
 
   it('generates serverless and new category resources', () => {
@@ -280,7 +305,11 @@ describe('generateMainTf', () => {
       ],
     });
 
-    const hcl = generateMainTf(normalize(model, azureProviderDefinition), azureProviderDefinition, defaultOptions);
+    const hcl = generateMainTf(
+      normalize(model, azureProviderDefinition),
+      azureProviderDefinition,
+      defaultOptions,
+    );
 
     expect(hcl).toContain('resource "azurerm_linux_web_app"');
     expect(hcl).toContain('resource "azurerm_storage_queue"');
@@ -291,10 +320,16 @@ describe('generateMainTf', () => {
   it('includes service plan when only function blocks exist', () => {
     const model = createTestModel({
       plates: [createPlate({ id: 'net1', name: 'VNet', type: 'region' })],
-      blocks: [createBlock({ id: 'fn1', name: 'Handler', category: 'compute', placementId: 'net1' })],
+      blocks: [
+        createBlock({ id: 'fn1', name: 'Handler', category: 'compute', placementId: 'net1' }),
+      ],
     });
 
-    const hcl = generateMainTf(normalize(model, azureProviderDefinition), azureProviderDefinition, defaultOptions);
+    const hcl = generateMainTf(
+      normalize(model, azureProviderDefinition),
+      azureProviderDefinition,
+      defaultOptions,
+    );
 
     expect(hcl).toContain('resource "azurerm_service_plan" "main"');
     expect(hcl).toContain('resource "azurerm_linux_web_app"');
@@ -323,7 +358,9 @@ describe('generateMainTf', () => {
 
   it('generates implicit PIP for firewall blocks but no NIC', () => {
     const model = createTestModel({
-      blocks: [createBlock({ id: 'fw1', name: 'MainFirewall', category: 'edge', subtype: 'firewall' })],
+      blocks: [
+        createBlock({ id: 'fw1', name: 'MainFirewall', category: 'edge', subtype: 'firewall' }),
+      ],
     });
 
     const normalized = normalize(model, azureProviderDefinition);
@@ -335,7 +372,9 @@ describe('generateMainTf', () => {
 
   it('does not generate implicit resources for internal-lb blocks', () => {
     const model = createTestModel({
-      blocks: [createBlock({ id: 'lb1', name: 'InternalLB', category: 'edge', subtype: 'internal-lb' })],
+      blocks: [
+        createBlock({ id: 'lb1', name: 'InternalLB', category: 'edge', subtype: 'internal-lb' }),
+      ],
     });
 
     const normalized = normalize(model, azureProviderDefinition);

@@ -7,7 +7,10 @@ import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 
 const interactState = vi.hoisted(() => ({
-  listenersByElement: new Map<Element, { move?: (event: { target: Element }) => void; end?: (event: { target: Element }) => void }>(),
+  listenersByElement: new Map<
+    Element,
+    { move?: (event: { target: Element }) => void; end?: (event: { target: Element }) => void }
+  >(),
 }));
 
 const playSoundMock = vi.fn();
@@ -19,15 +22,27 @@ vi.mock('../../shared/utils/audioService', () => ({
   },
 }));
 vi.mock('interactjs', () => {
-  const draggable = vi.fn((opts: { listeners: { move?: (event: { target: Element }) => void; end?: (event: { target: Element }) => void } }) => {
-    return {
-      unset: vi.fn(),
-      __listeners: opts.listeners,
-    };
-  });
+  const draggable = vi.fn(
+    (opts: {
+      listeners: {
+        move?: (event: { target: Element }) => void;
+        end?: (event: { target: Element }) => void;
+      };
+    }) => {
+      return {
+        unset: vi.fn(),
+        __listeners: opts.listeners,
+      };
+    },
+  );
 
   const interactFn = vi.fn((element: Element) => ({
-    draggable: (opts: { listeners: { move?: (event: { target: Element }) => void; end?: (event: { target: Element }) => void } }) => {
+    draggable: (opts: {
+      listeners: {
+        move?: (event: { target: Element }) => void;
+        end?: (event: { target: Element }) => void;
+      };
+    }) => {
       interactState.listenersByElement.set(element, opts.listeners);
       return draggable(opts);
     },

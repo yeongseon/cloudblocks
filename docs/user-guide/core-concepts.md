@@ -8,15 +8,15 @@ CloudBlocks uses a Lego-style composition model. You build cloud architectures b
 
 Containers are the large boundary areas that represent network infrastructure. Every node must be placed inside a container.
 
-| Container Type | Cloud Equivalent | Nesting |
-|---|---|---|
-| **Network** | Azure VNet / AWS VPC / GCP VPC | Top-level — placed directly on the canvas |
-| **Subnet** | Public or private subnet | Must be inside a Network |
+| Container Type | Cloud Equivalent               | Nesting                                   |
+| -------------- | ------------------------------ | ----------------------------------------- |
+| **Network**    | Azure VNet / AWS VPC / GCP VPC | Top-level — placed directly on the canvas |
+| **Subnet**     | Public or private subnet       | Must be inside a Network                  |
 
 Containers define the network topology of your architecture. A typical setup has one Network containing one or more Subnets.
 
 !!! info "Nesting rules"
-    Subnets must be placed inside a Network. Nodes must be placed inside a Subnet (or directly inside a Network). CloudBlocks enforces these rules and shows an error if placement is invalid.
+Subnets must be placed inside a Network. Nodes must be placed inside a Subnet (or directly inside a Network). CloudBlocks enforces these rules and shows an error if placement is invalid.
 
 ---
 
@@ -26,21 +26,21 @@ Nodes are individual cloud resources — the actual services that run your workl
 
 CloudBlocks organizes nodes into **10 categories**:
 
-| Category | Examples | Can Initiate Connections? |
-|---|---|---|
-| **Compute** | VM, App Service, ECS | Yes |
-| **Database** | SQL Database, Cosmos DB, RDS | No (receiver only) |
-| **Storage** | Blob Storage, S3, Data Lake | No (receiver only) |
-| **Gateway** | API Gateway, Load Balancer | Yes |
-| **Function** | Azure Function, Lambda | Yes |
-| **Queue** | Service Bus, SQS | Yes |
-| **Event** | Event Grid, EventBridge | Yes |
-| **Analytics** | Log Analytics, CloudWatch | No (receiver only) |
-| **Identity** | Entra ID, IAM | No (receiver only) |
-| **Observability** | Azure Monitor, CloudWatch Metrics | No (receiver only) |
+| Category          | Examples                          | Can Initiate Connections? |
+| ----------------- | --------------------------------- | ------------------------- |
+| **Compute**       | VM, App Service, ECS              | Yes                       |
+| **Database**      | SQL Database, Cosmos DB, RDS      | No (receiver only)        |
+| **Storage**       | Blob Storage, S3, Data Lake       | No (receiver only)        |
+| **Gateway**       | API Gateway, Load Balancer        | Yes                       |
+| **Function**      | Azure Function, Lambda            | Yes                       |
+| **Queue**         | Service Bus, SQS                  | Yes                       |
+| **Event**         | Event Grid, EventBridge           | Yes                       |
+| **Analytics**     | Log Analytics, CloudWatch         | No (receiver only)        |
+| **Identity**      | Entra ID, IAM                     | No (receiver only)        |
+| **Observability** | Azure Monitor, CloudWatch Metrics | No (receiver only)        |
 
 !!! tip "Initiator vs. receiver"
-    The "Can Initiate Connections?" column matters when you create connections. Only initiator nodes can be the **source** of a connection. Receiver-only nodes (like databases and storage) can only be **targets**. This reflects real-world patterns — a compute service connects to a database, not the other way around.
+The "Can Initiate Connections?" column matters when you create connections. Only initiator nodes can be the **source** of a connection. Receiver-only nodes (like databases and storage) can only be **targets**. This reflects real-world patterns — a compute service connects to a database, not the other way around.
 
 ---
 
@@ -48,13 +48,13 @@ CloudBlocks organizes nodes into **10 categories**:
 
 Connections are the lines between nodes that represent communication flows. Each connection has a **type** that describes the nature of the communication.
 
-| Type | Meaning | Visual Style |
-|---|---|---|
-| **Dataflow** | Directional traffic flow | Solid arrow |
-| **HTTP** | Request/response interaction | Dashed arrow |
-| **Internal** | Internal control-plane communication | Dotted line |
-| **Data** | Data synchronization and state-sharing | Double line |
-| **Async** | Asynchronous event or callback | Wavy line |
+| Type         | Meaning                                | Visual Style |
+| ------------ | -------------------------------------- | ------------ |
+| **Dataflow** | Directional traffic flow               | Solid arrow  |
+| **HTTP**     | Request/response interaction           | Dashed arrow |
+| **Internal** | Internal control-plane communication   | Dotted line  |
+| **Data**     | Data synchronization and state-sharing | Double line  |
+| **Async**    | Asynchronous event or callback         | Wavy line    |
 
 ### Creating a Connection
 
@@ -77,14 +77,14 @@ Templates are pre-built architecture patterns that you can load and customize. T
 
 CloudBlocks includes 6 built-in templates:
 
-| Template | Description |
-|---|---|
-| **Three-Tier Web Application** | Gateway → Compute → Database + Storage |
-| **Simple Compute Setup** | Single compute instance in a public subnet |
-| **Data Storage Backend** | Compute → Database + Storage in a private subnet |
-| **Serverless HTTP API** | Gateway → Function → Storage + Database |
-| **Event-Driven Pipeline** | Event → Function → Queue → Function → Storage |
-| **Full-Stack Serverless** | Complete architecture with API, queue workers, events, database, and storage |
+| Template                       | Description                                                                  |
+| ------------------------------ | ---------------------------------------------------------------------------- |
+| **Three-Tier Web Application** | Gateway → Compute → Database + Storage                                       |
+| **Simple Compute Setup**       | Single compute instance in a public subnet                                   |
+| **Data Storage Backend**       | Compute → Database + Storage in a private subnet                             |
+| **Serverless HTTP API**        | Gateway → Function → Storage + Database                                      |
+| **Event-Driven Pipeline**      | Event → Function → Queue → Function → Storage                                |
+| **Full-Stack Serverless**      | Complete architecture with API, queue workers, events, database, and storage |
 
 Templates are fully editable — load one, then add, remove, or rearrange nodes and connections to match your needs.
 
@@ -103,7 +103,7 @@ CloudBlocks supports three cloud providers:
 You can switch the active provider using the provider tabs in the menu bar. The provider determines which cloud-specific resources are available and how generated code is structured.
 
 !!! warning "Mixed-provider architectures"
-    CloudBlocks allows mixing resources from different providers in the same architecture, but warns you when this happens. In most cases, you'll want to use a single provider for the entire architecture.
+CloudBlocks allows mixing resources from different providers in the same architecture, but warns you when this happens. In most cases, you'll want to use a single provider for the entire architecture.
 
 ---
 
@@ -111,10 +111,10 @@ You can switch the active provider using the provider tabs in the menu bar. The 
 
 CloudBlocks validates your architecture in real-time at three levels:
 
-| Level | What It Checks |
-|---|---|
-| **Placement** | Nodes are inside valid containers (e.g., compute inside a subnet) |
-| **Connection** | Valid source/target pairs, initiator rules |
+| Level            | What It Checks                                                              |
+| ---------------- | --------------------------------------------------------------------------- |
+| **Placement**    | Nodes are inside valid containers (e.g., compute inside a subnet)           |
+| **Connection**   | Valid source/target pairs, initiator rules                                  |
 | **Architecture** | Cross-cutting constraints (e.g., database not directly exposed to internet) |
 
 Validation errors appear as you build. You can also run a full validation manually via **Build → Validate Architecture**.
@@ -135,8 +135,8 @@ You can create, rename, and switch between multiple workspaces using the **File*
 
 ## What's Next?
 
-| Goal | Guide |
-|---|---|
-| Build your first architecture | [Quick Start](quick-start.md) |
+| Goal                                        | Guide                                            |
+| ------------------------------------------- | ------------------------------------------------ |
+| Build your first architecture               | [Quick Start](quick-start.md)                    |
 | Design a complete architecture step by step | [Create an Architecture](create-architecture.md) |
-| Generate infrastructure code | [Generate Code](generate-code.md) |
+| Generate infrastructure code                | [Generate Code](generate-code.md)                |

@@ -174,7 +174,9 @@ describe('useAuthStore', () => {
   it('checkSession ignores stale success response when another call follows', async () => {
     // First call resolves slowly, second call resolves immediately
     let resolveFirst!: (v: ApiUser) => void;
-    const firstPromise = new Promise<ApiUser>((r) => { resolveFirst = r; });
+    const firstPromise = new Promise<ApiUser>((r) => {
+      resolveFirst = r;
+    });
     mockApiGet.mockReturnValueOnce(firstPromise as ReturnType<typeof apiGet>);
     mockApiGet.mockResolvedValueOnce(mockUser);
 
@@ -196,7 +198,9 @@ describe('useAuthStore', () => {
 
   it('checkSession ignores stale error response when another call follows', async () => {
     let rejectFirst!: (e: Error) => void;
-    const firstPromise = new Promise<never>((_, r) => { rejectFirst = r; });
+    const firstPromise = new Promise<never>((_, r) => {
+      rejectFirst = r;
+    });
     mockApiGet.mockReturnValueOnce(firstPromise as ReturnType<typeof apiGet>);
     mockApiGet.mockResolvedValueOnce(mockUser);
 

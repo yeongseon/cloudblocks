@@ -1,11 +1,24 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+} from 'react';
 import type { Connection, ConnectionType, ContainerNode, LeafNode } from '@cloudblocks/schema';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
 import { promptDialog } from '../../shared/ui/PromptDialog';
-import { BLOCK_FRIENDLY_NAMES, CONNECTION_TYPE_LABELS, resolveConnectionNodes } from '../../shared/types';
+import {
+  BLOCK_FRIENDLY_NAMES,
+  CONNECTION_TYPE_LABELS,
+  resolveConnectionNodes,
+} from '../../shared/types';
 import {
   PLATE_ACTION_DEFINITIONS,
   PLATE_ACTION_GRID,
@@ -55,14 +68,10 @@ export function InspectorPanel() {
     [architecture.nodes],
   );
 
-  const selectedBlock = selectedId
-    ? resources.find((b) => b.id === selectedId) ?? null
-    : null;
-  const selectedPlate = selectedId
-    ? containers.find((p) => p.id === selectedId) ?? null
-    : null;
+  const selectedBlock = selectedId ? (resources.find((b) => b.id === selectedId) ?? null) : null;
+  const selectedPlate = selectedId ? (containers.find((p) => p.id === selectedId) ?? null) : null;
   const selectedConnection = selectedId
-    ? architecture.connections.find((c) => c.id === selectedId) ?? null
+    ? (architecture.connections.find((c) => c.id === selectedId) ?? null)
     : null;
 
   return (
@@ -160,7 +169,9 @@ function PropertiesTab({
         <PropertyRow label="Nodes" value={String(nodeCount)} />
         <PropertyRow label="Connections" value={String(connectionCount)} />
       </div>
-      <p className="inspector-empty-hint">Select a node, container, or connection to inspect details.</p>
+      <p className="inspector-empty-hint">
+        Select a node, container, or connection to inspect details.
+      </p>
     </div>
   );
 }
@@ -249,9 +260,12 @@ function ConnectionsTab({
           return (
             <div key={connection.id} className="inspector-connection-item">
               <div className="inspector-connection-path">
-                {source?.name ?? sourceId} <span aria-hidden="true">→</span> {target?.name ?? targetId}
+                {source?.name ?? sourceId} <span aria-hidden="true">→</span>{' '}
+                {target?.name ?? targetId}
               </div>
-              <span className="inspector-connection-type">{CONNECTION_TYPE_LABELS[type as ConnectionType]}</span>
+              <span className="inspector-connection-type">
+                {CONNECTION_TYPE_LABELS[type as ConnectionType]}
+              </span>
             </div>
           );
         })}
@@ -272,7 +286,7 @@ function PropertyRow({ label, value }: { label: string; value: string }) {
 function BlockProperties({ block }: { block: LeafNode }) {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const parent = block.parentId
-    ? architecture.nodes.find((n) => n.id === block.parentId) ?? null
+    ? (architecture.nodes.find((n) => n.id === block.parentId) ?? null)
     : null;
   const categoryName = BLOCK_FRIENDLY_NAMES[block.category] ?? block.category;
   const pos = block.position;
@@ -291,19 +305,23 @@ function BlockProperties({ block }: { block: LeafNode }) {
 function PlateProperties({ plate }: { plate: ContainerNode }) {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const parent = plate.parentId
-    ? architecture.nodes.find((n) => n.id === plate.parentId) ?? null
+    ? (architecture.nodes.find((n) => n.id === plate.parentId) ?? null)
     : null;
   const contents = architecture.nodes.filter((n) => n.parentId === plate.id);
-  const plateLabel = plate.layer === 'subnet'
-    ? 'Subnet'
-    : plate.layer.charAt(0).toUpperCase() + plate.layer.slice(1);
+  const plateLabel =
+    plate.layer === 'subnet'
+      ? 'Subnet'
+      : plate.layer.charAt(0).toUpperCase() + plate.layer.slice(1);
 
   return (
     <div className="inspector-properties">
       <PropertyRow label="Type" value={plateLabel} />
       {parent && <PropertyRow label="Parent" value={parent.name} />}
       <PropertyRow label="Size" value={`${plate.size.width} × ${plate.size.depth}`} />
-      <PropertyRow label="Contents" value={`${contents.length} node${contents.length !== 1 ? 's' : ''}`} />
+      <PropertyRow
+        label="Contents"
+        value={`${contents.length} node${contents.length !== 1 ? 's' : ''}`}
+      />
     </div>
   );
 }
@@ -313,33 +331,39 @@ function PlateActionMode({ selectedPlate }: { selectedPlate: ContainerNode }) {
   const removeNode = useArchitectureStore((s) => s.removeNode);
   const renameNode = useArchitectureStore((s) => s.renameNode);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
-  const playSound = useCallback((name: SoundName) => {
-    if (!isSoundMuted) {
-      audioService.playSound(name);
-    }
-  }, [isSoundMuted]);
-
-  const handleAction = useCallback(async (action: PlateActionType) => {
-    switch (action) {
-      case 'deploy':
-        setSelectedId(selectedPlate.id);
-        break;
-      case 'rename': {
-        const newName = await promptDialog('Rename container:', 'Rename', selectedPlate.name);
-        if (newName !== null && newName.trim() !== '') {
-          renameNode(selectedPlate.id, newName.trim());
-        }
-        break;
+  const playSound = useCallback(
+    (name: SoundName) => {
+      if (!isSoundMuted) {
+        audioService.playSound(name);
       }
-      case 'delete':
-        removeNode(selectedPlate.id);
-        setSelectedId(null);
-        playSound('delete');
-        break;
-      default:
-        break;
-    }
-  }, [playSound, removeNode, renameNode, selectedPlate.id, selectedPlate.name, setSelectedId]);
+    },
+    [isSoundMuted],
+  );
+
+  const handleAction = useCallback(
+    async (action: PlateActionType) => {
+      switch (action) {
+        case 'deploy':
+          setSelectedId(selectedPlate.id);
+          break;
+        case 'rename': {
+          const newName = await promptDialog('Rename container:', 'Rename', selectedPlate.name);
+          if (newName !== null && newName.trim() !== '') {
+            renameNode(selectedPlate.id, newName.trim());
+          }
+          break;
+        }
+        case 'delete':
+          removeNode(selectedPlate.id);
+          setSelectedId(null);
+          playSound('delete');
+          break;
+        default:
+          break;
+      }
+    },
+    [playSound, removeNode, renameNode, selectedPlate.id, selectedPlate.name, setSelectedId],
+  );
 
   return (
     <div className="inspector-section">
@@ -352,7 +376,12 @@ function PlateActionMode({ selectedPlate }: { selectedPlate: ContainerNode }) {
               {row.map((actionType, colIdx) => {
                 const cellKey = actionType ?? `empty-r${rowIdx}c${colIdx}`;
                 if (!actionType) {
-                  return <div key={cellKey} className="inspector-action-btn inspector-action-btn--empty" />;
+                  return (
+                    <div
+                      key={cellKey}
+                      className="inspector-action-btn inspector-action-btn--empty"
+                    />
+                  );
                 }
 
                 const action = PLATE_ACTION_DEFINITIONS[actionType];
@@ -389,11 +418,14 @@ function ConnectionActionMode({ connection }: { connection: Connection }) {
   const updateConnectionType = useArchitectureStore((s) => s.updateConnectionType);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
-  const playSound = useCallback((name: SoundName) => {
-    if (!isSoundMuted) {
-      audioService.playSound(name);
-    }
-  }, [isSoundMuted]);
+  const playSound = useCallback(
+    (name: SoundName) => {
+      if (!isSoundMuted) {
+        audioService.playSound(name);
+      }
+    },
+    [isSoundMuted],
+  );
 
   const { sourceId, targetId, type } = resolveConnectionNodes(connection);
   const source = architecture.nodes.find((n) => n.id === sourceId);
@@ -405,9 +437,12 @@ function ConnectionActionMode({ connection }: { connection: Connection }) {
     playSound('delete');
   }, [connection.id, playSound, removeConnection, setSelectedId]);
 
-  const handleTypeChange = useCallback((event: ChangeEvent<HTMLSelectElement>) => {
-    updateConnectionType(connection.id, event.target.value as ConnectionType);
-  }, [connection.id, updateConnectionType]);
+  const handleTypeChange = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      updateConnectionType(connection.id, event.target.value as ConnectionType);
+    },
+    [connection.id, updateConnectionType],
+  );
 
   return (
     <div className="inspector-section">
@@ -422,13 +457,19 @@ function ConnectionActionMode({ connection }: { connection: Connection }) {
         Type
         <select className="inspector-form-select" value={type} onChange={handleTypeChange}>
           {CONNECTION_TYPES.map((type) => (
-            <option key={type} value={type}>{CONNECTION_TYPE_LABELS[type]}</option>
+            <option key={type} value={type}>
+              {CONNECTION_TYPE_LABELS[type]}
+            </option>
           ))}
         </select>
       </label>
 
       <div className="inspector-actions-row">
-        <button type="button" className="inspector-action-btn inspector-action-btn--danger" onClick={handleDelete}>
+        <button
+          type="button"
+          className="inspector-action-btn inspector-action-btn--danger"
+          onClick={handleDelete}
+        >
           <span className="inspector-action-icon">🗑️</span>
           <span className="inspector-action-label">Delete</span>
         </button>
@@ -446,11 +487,14 @@ function BlockActionMode({ block }: { block: LeafNode }) {
   const removeNode = useArchitectureStore((s) => s.removeNode);
   const showResourceGuide = useUIStore((s) => s.showResourceGuide);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
-  const playSound = useCallback((name: SoundName) => {
-    if (!isSoundMuted) {
-      audioService.playSound(name);
-    }
-  }, [isSoundMuted]);
+  const playSound = useCallback(
+    (name: SoundName) => {
+      if (!isSoundMuted) {
+        audioService.playSound(name);
+      }
+    },
+    [isSoundMuted],
+  );
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState('');
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -480,16 +524,19 @@ function BlockActionMode({ block }: { block: LeafNode }) {
     setEditingName(false);
   }, [block.id, block.name, nameValue, renameNode]);
 
-  const handleNameKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      commitName();
-      return;
-    }
+  const handleNameKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === 'Enter') {
+        commitName();
+        return;
+      }
 
-    if (event.key === 'Escape') {
-      cancelEdit();
-    }
-  }, [cancelEdit, commitName]);
+      if (event.key === 'Escape') {
+        cancelEdit();
+      }
+    },
+    [cancelEdit, commitName],
+  );
 
   const handleDelete = useCallback(() => {
     removeNode(block.id);
@@ -526,7 +573,12 @@ function BlockActionMode({ block }: { block: LeafNode }) {
       <BlockProperties block={block} />
 
       <div className="inspector-actions-row">
-        <button type="button" className="inspector-action-btn" onClick={() => setToolMode('connect')} title="Link (L)">
+        <button
+          type="button"
+          className="inspector-action-btn"
+          onClick={() => setToolMode('connect')}
+          title="Link (L)"
+        >
           <span className="inspector-action-icon">🔗</span>
           <span className="inspector-action-label">Link</span>
         </button>
@@ -555,7 +607,12 @@ function BlockActionMode({ block }: { block: LeafNode }) {
           <span className="inspector-action-icon">✏️</span>
           <span className="inspector-action-label">Guide</span>
         </button>
-        <button type="button" className="inspector-action-btn inspector-action-btn--danger" onClick={handleDelete} title="Delete (Del)">
+        <button
+          type="button"
+          className="inspector-action-btn inspector-action-btn--danger"
+          onClick={handleDelete}
+          title="Delete (Del)"
+        >
           <span className="inspector-action-icon">🗑️</span>
           <span className="inspector-action-label">Delete</span>
         </button>

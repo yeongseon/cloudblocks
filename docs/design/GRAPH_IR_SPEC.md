@@ -480,5 +480,6 @@ Revisit the "DAG only" constraint if any of the following becomes required:
 - Provider mapping requires explicit dependency edges distinct from communication edges.
 
 If triggered, extend Graph IR with:
+
 - an explicit edge category (`communication` vs `dependency`), and/or
 - an explicit graph mode (`dag` vs `digraph`) with revised validation.

@@ -156,12 +156,7 @@ export const azureProviderDefinition: ProviderDefinition = {
           '}',
         ].join('\n'),
       providerBlock: (region: string) =>
-        [
-          'provider "azurerm" {',
-          '  features {}',
-          `  # region: ${region}`,
-          '}',
-        ].join('\n'),
+        ['provider "azurerm" {', '  features {}', `  # region: ${region}`, '}'].join('\n'),
     },
     bicep: {
       targetScope: 'resourceGroup',

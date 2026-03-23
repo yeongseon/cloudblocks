@@ -13,10 +13,7 @@ export interface ValidationResult {
   results: RuleResult[];
 }
 
-export function evaluateRule(
-  rule: StepValidationRule,
-  model: ArchitectureModel
-): boolean {
+export function evaluateRule(rule: StepValidationRule, model: ArchitectureModel): boolean {
   const containers = model.nodes.filter((n) => n.kind === 'container');
   const resources = model.nodes.filter((n) => n.kind === 'resource');
 
@@ -67,7 +64,7 @@ export function evaluateRule(
 
 export function evaluateRules(
   rules: StepValidationRule[],
-  model: ArchitectureModel
+  model: ArchitectureModel,
 ): ValidationResult {
   const results: RuleResult[] = rules.map((rule) => ({
     rule,
@@ -80,10 +77,7 @@ export function evaluateRules(
   };
 }
 
-function getEndpointType(
-  id: string,
-  model: ArchitectureModel
-): string | null {
+function getEndpointType(id: string, model: ArchitectureModel): string | null {
   const block = model.nodes.find((n) => n.kind === 'resource' && n.id === id);
   if (block) return block.category;
 

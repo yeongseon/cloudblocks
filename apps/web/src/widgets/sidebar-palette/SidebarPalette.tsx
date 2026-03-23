@@ -38,11 +38,18 @@ interface PaletteHeaderProps {
   totalCount: number;
 }
 
-function PaletteHeader({ searchQuery, onSearchChange, visibleCount, totalCount }: PaletteHeaderProps) {
+function PaletteHeader({
+  searchQuery,
+  onSearchChange,
+  visibleCount,
+  totalCount,
+}: PaletteHeaderProps) {
   return (
     <header className="sidebar-palette-header">
       <label className="sidebar-palette-search" htmlFor="sidebar-palette-search">
-        <span className="sidebar-palette-search-icon" aria-hidden="true">🔎</span>
+        <span className="sidebar-palette-search-icon" aria-hidden="true">
+          🔎
+        </span>
         <input
           id="sidebar-palette-search"
           type="search"
@@ -66,7 +73,13 @@ interface PaletteCategoryGroupProps {
   renderItem: (type: ResourceType) => React.ReactNode;
 }
 
-function PaletteCategoryGroup({ groupId, resourceTypes, collapsed, onToggle, renderItem }: PaletteCategoryGroupProps) {
+function PaletteCategoryGroup({
+  groupId,
+  resourceTypes,
+  collapsed,
+  onToggle,
+  renderItem,
+}: PaletteCategoryGroupProps) {
   const meta = getCreationGroupMeta(groupId);
   const color = CATEGORY_COLOR_VARS[groupId] ?? meta.color;
 
@@ -81,13 +94,17 @@ function PaletteCategoryGroup({ groupId, resourceTypes, collapsed, onToggle, ren
         aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${meta.label}`}
       >
         <span className="sidebar-palette-group-title">
-          <span className="sidebar-palette-group-icon" aria-hidden="true">{meta.icon}</span>
+          <span className="sidebar-palette-group-icon" aria-hidden="true">
+            {meta.icon}
+          </span>
           <span>{meta.label}</span>
         </span>
         <span className="sidebar-palette-group-count">{resourceTypes.length}</span>
       </button>
 
-      {!collapsed && <div className="sidebar-palette-group-list">{resourceTypes.map(renderItem)}</div>}
+      {!collapsed && (
+        <div className="sidebar-palette-group-list">{resourceTypes.map(renderItem)}</div>
+      )}
     </section>
   );
 }
@@ -101,7 +118,14 @@ interface PaletteResourceItemProps {
   onClick: () => void;
 }
 
-function PaletteResourceItem({ type, providerLabel, providerShortLabel, enabled, disabledReason, onClick }: PaletteResourceItemProps) {
+function PaletteResourceItem({
+  type,
+  providerLabel,
+  providerShortLabel,
+  enabled,
+  disabledReason,
+  onClick,
+}: PaletteResourceItemProps) {
   const def = RESOURCE_DEFINITIONS[type];
 
   return (
@@ -112,14 +136,20 @@ function PaletteResourceItem({ type, providerLabel, providerShortLabel, enabled,
       data-resource-type={type}
       onClick={onClick}
       disabled={!enabled}
-      title={enabled ? `Create ${providerLabel}` : disabledReason ?? undefined}
+      title={enabled ? `Create ${providerLabel}` : (disabledReason ?? undefined)}
     >
-      <span className="sidebar-palette-resource-icon" aria-hidden="true">{def.icon}</span>
+      <span className="sidebar-palette-resource-icon" aria-hidden="true">
+        {def.icon}
+      </span>
       <span className="sidebar-palette-resource-text">
         <span className="sidebar-palette-resource-name">{providerShortLabel}</span>
         <span className="sidebar-palette-resource-subtitle">{providerLabel}</span>
       </span>
-      {!enabled && <span className="sidebar-palette-resource-lock" aria-hidden="true">🔒</span>}
+      {!enabled && (
+        <span className="sidebar-palette-resource-lock" aria-hidden="true">
+          🔒
+        </span>
+      )}
     </button>
   );
 }
@@ -135,11 +165,14 @@ export function SidebarPalette() {
   const [searchQuery, setSearchQuery] = useState('');
   const [collapsedGroups, setCollapsedGroups] = useState<Set<CreationGroupId>>(() => new Set());
 
-  const playSound = useCallback((name: SoundName) => {
-    if (!isSoundMuted) {
-      audioService.playSound(name);
-    }
-  }, [isSoundMuted]);
+  const playSound = useCallback(
+    (name: SoundName) => {
+      if (!isSoundMuted) {
+        audioService.playSound(name);
+      }
+    },
+    [isSoundMuted],
+  );
 
   const counterRef = useRef(0);
   const isDraggingRef = useRef(false);
@@ -150,24 +183,27 @@ export function SidebarPalette() {
   const normalizedQuery = searchQuery.trim().toLowerCase();
 
   const groupedResources = useMemo(() => {
-    return CREATION_GROUP_ORDER
-      .map((groupId) => {
-        const meta = getCreationGroupMeta(groupId);
-        const resources = ALL_RESOURCES
-          .filter((type) => getCreationGroupId(type) === groupId)
-          .filter((type) => providerResources.has(type))
-          .filter((type) => {
-            if (!normalizedQuery) return true;
-            const name = getResourceLabel(type, activeProvider).toLowerCase();
-            const shortName = getResourceShortLabel(type, activeProvider).toLowerCase();
-            const category = meta.label.toLowerCase();
-            return name.includes(normalizedQuery) || shortName.includes(normalizedQuery) || category.includes(normalizedQuery);
-          })
-          .sort((a, b) => getResourceLabel(a, activeProvider).localeCompare(getResourceLabel(b, activeProvider)));
+    return CREATION_GROUP_ORDER.map((groupId) => {
+      const meta = getCreationGroupMeta(groupId);
+      const resources = ALL_RESOURCES.filter((type) => getCreationGroupId(type) === groupId)
+        .filter((type) => providerResources.has(type))
+        .filter((type) => {
+          if (!normalizedQuery) return true;
+          const name = getResourceLabel(type, activeProvider).toLowerCase();
+          const shortName = getResourceShortLabel(type, activeProvider).toLowerCase();
+          const category = meta.label.toLowerCase();
+          return (
+            name.includes(normalizedQuery) ||
+            shortName.includes(normalizedQuery) ||
+            category.includes(normalizedQuery)
+          );
+        })
+        .sort((a, b) =>
+          getResourceLabel(a, activeProvider).localeCompare(getResourceLabel(b, activeProvider)),
+        );
 
-        return { groupId, resources };
-      })
-      .filter((group) => group.resources.length > 0);
+      return { groupId, resources };
+    }).filter((group) => group.resources.length > 0);
   }, [activeProvider, normalizedQuery, providerResources]);
 
   const totalResourceCount = useMemo(() => {
@@ -181,40 +217,44 @@ export function SidebarPalette() {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const buttons = containerRef.current.querySelectorAll<HTMLButtonElement>('.sidebar-palette-resource-btn:not(.disabled):not(:disabled)');
-    const interactables = Array.from(buttons).map((button) => interact(button).draggable({
-      listeners: {
-        start() {
-          isDraggingRef.current = false;
-        },
-        move(event) {
-          isDraggingRef.current = true;
-          const buttonEl = event.target as HTMLButtonElement;
-          buttonEl.classList.add('is-dragging');
-
-          const type = buttonEl.dataset.resourceType as ResourceType | undefined;
-          if (!type) return;
-
-          const def = RESOURCE_DEFINITIONS[type];
-          if (!def?.blockCategory) return;
-
-          startPlacing(def.blockCategory, getResourceLabel(type, activeProvider));
-        },
-        end(event) {
-          const buttonEl = event.target as HTMLButtonElement;
-          buttonEl.classList.remove('is-dragging');
-          cancelInteraction();
-
-          if (dragResetTimerRef.current) {
-            clearTimeout(dragResetTimerRef.current);
-          }
-          dragResetTimerRef.current = setTimeout(() => {
+    const buttons = containerRef.current.querySelectorAll<HTMLButtonElement>(
+      '.sidebar-palette-resource-btn:not(.disabled):not(:disabled)',
+    );
+    const interactables = Array.from(buttons).map((button) =>
+      interact(button).draggable({
+        listeners: {
+          start() {
             isDraggingRef.current = false;
-          }, 50);
+          },
+          move(event) {
+            isDraggingRef.current = true;
+            const buttonEl = event.target as HTMLButtonElement;
+            buttonEl.classList.add('is-dragging');
+
+            const type = buttonEl.dataset.resourceType as ResourceType | undefined;
+            if (!type) return;
+
+            const def = RESOURCE_DEFINITIONS[type];
+            if (!def?.blockCategory) return;
+
+            startPlacing(def.blockCategory, getResourceLabel(type, activeProvider));
+          },
+          end(event) {
+            const buttonEl = event.target as HTMLButtonElement;
+            buttonEl.classList.remove('is-dragging');
+            cancelInteraction();
+
+            if (dragResetTimerRef.current) {
+              clearTimeout(dragResetTimerRef.current);
+            }
+            dragResetTimerRef.current = setTimeout(() => {
+              isDraggingRef.current = false;
+            }, 50);
+          },
         },
-      },
-      autoScroll: false,
-    }));
+        autoScroll: false,
+      }),
+    );
 
     return () => {
       if (dragResetTimerRef.current) {
@@ -230,47 +270,62 @@ export function SidebarPalette() {
     };
   }, [activeProvider, cancelInteraction, startPlacing]);
 
-  const handleCreate = useCallback((type: ResourceType) => {
-    if (isDraggingRef.current) return;
+  const handleCreate = useCallback(
+    (type: ResourceType) => {
+      if (isDraggingRef.current) return;
 
-    const def = RESOURCE_DEFINITIONS[type];
+      const def = RESOURCE_DEFINITIONS[type];
 
-    if (def.category === 'foundation') {
-      if (type === 'network') {
-        addNode({ kind: 'container', resourceType: 'virtual_network', name: 'VNet', parentId: null, layer: 'region' });
-        playSound('block-snap');
-      } else if (type === 'subnet') {
-        const targetId = techTree.getTargetPlateId(type);
-        if (targetId) {
-          addNode({ kind: 'container', resourceType: 'subnet', name: 'Subnet', parentId: targetId, layer: 'subnet' });
+      if (def.category === 'foundation') {
+        if (type === 'network') {
+          addNode({
+            kind: 'container',
+            resourceType: 'virtual_network',
+            name: 'VNet',
+            parentId: null,
+            layer: 'region',
+          });
           playSound('block-snap');
+        } else if (type === 'subnet') {
+          const targetId = techTree.getTargetPlateId(type);
+          if (targetId) {
+            addNode({
+              kind: 'container',
+              resourceType: 'subnet',
+              name: 'Subnet',
+              parentId: targetId,
+              layer: 'subnet',
+            });
+            playSound('block-snap');
+          }
         }
+        return;
       }
-      return;
-    }
 
-    if (!def.blockCategory) {
-      return;
-    }
+      if (!def.blockCategory) {
+        return;
+      }
 
-    const targetId = techTree.getTargetPlateId(type);
-    if (!targetId) {
-      toast.error('Please create a Network first.');
-      return;
-    }
+      const targetId = techTree.getTargetPlateId(type);
+      if (!targetId) {
+        toast.error('Please create a Network first.');
+        return;
+      }
 
-    counterRef.current += 1;
-    const name = `${getResourceLabel(type, activeProvider)} ${counterRef.current}`;
-    addNode({
-      kind: 'resource',
-      resourceType: def.schemaResourceType ?? def.blockCategory,
-      name,
-      parentId: targetId,
-      provider: activeProvider,
-      subtype: def.schemaResourceType,
-    });
-    playSound('block-snap');
-  }, [activeProvider, addNode, playSound, techTree]);
+      counterRef.current += 1;
+      const name = `${getResourceLabel(type, activeProvider)} ${counterRef.current}`;
+      addNode({
+        kind: 'resource',
+        resourceType: def.schemaResourceType ?? def.blockCategory,
+        name,
+        parentId: targetId,
+        provider: activeProvider,
+        subtype: def.schemaResourceType,
+      });
+      playSound('block-snap');
+    },
+    [activeProvider, addNode, playSound, techTree],
+  );
 
   const toggleGroup = useCallback((groupId: CreationGroupId) => {
     setCollapsedGroups((prev) => {

@@ -26,19 +26,12 @@ export function LandingPage() {
       <LandingNavbar />
       <main className="landing-main">
         <section className="landing-hero">
-          <h1 className="landing-hero-title">
-            Design Cloud Architecture Visually
-          </h1>
+          <h1 className="landing-hero-title">Design Cloud Architecture Visually</h1>
           <p className="landing-hero-subtitle">
-            Place resources, connect components, validate against real-world
-            rules, and generate Terraform, Bicep, or Pulumi - all from the
-            browser.
+            Place resources, connect components, validate against real-world rules, and generate
+            Terraform, Bicep, or Pulumi - all from the browser.
           </p>
-          <button
-            type="button"
-            className="landing-hero-cta"
-            onClick={handleStartBuilding}
-          >
+          <button type="button" className="landing-hero-cta" onClick={handleStartBuilding}>
             Start Building
           </button>
         </section>
@@ -50,9 +43,7 @@ export function LandingPage() {
               <div key={template.id} className="landing-template-card">
                 <div className="landing-template-card-body">
                   <h3 className="landing-template-card-name">{template.name}</h3>
-                  <p className="landing-template-card-desc">
-                    {template.description}
-                  </p>
+                  <p className="landing-template-card-desc">{template.description}</p>
                   <div className="landing-template-card-tags">
                     {template.tags.slice(0, 3).map((tag) => (
                       <span key={tag} className="landing-template-tag">

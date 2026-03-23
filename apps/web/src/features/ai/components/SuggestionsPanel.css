@@ -16,8 +16,8 @@
 }
 
 .suggestions-scores {
-  background: #FFFDE7;
-  border: 2px solid #D4B200;
+  background: #fffde7;
+  border: 2px solid #d4b200;
   border-radius: 8px;
   padding: 10px;
 }
@@ -44,14 +44,14 @@
 .score-track {
   flex: 1;
   height: 8px;
-  background: #E8E5D0;
+  background: #e8e5d0;
   border-radius: 4px;
   overflow: hidden;
 }
 
 .score-fill {
   height: 100%;
-  background: #FFD500;
+  background: #ffd500;
   border-radius: 4px;
   transition: width 0.3s ease;
 }
@@ -71,26 +71,26 @@
 }
 
 .suggestion-item {
-  background: #FFF;
-  border: 2px solid #E0E0E0;
+  background: #fff;
+  border: 2px solid #e0e0e0;
   border-radius: 8px;
   padding: 8px 10px;
   transition: border-color 0.15s ease;
 }
 
-.suggestion-item[data-severity="critical"] {
-  border-color: #E3000B;
-  background: #FFF5F5;
+.suggestion-item[data-severity='critical'] {
+  border-color: #e3000b;
+  background: #fff5f5;
 }
 
-.suggestion-item[data-severity="warning"] {
-  border-color: #F5A623;
-  background: #FFFAF0;
+.suggestion-item[data-severity='warning'] {
+  border-color: #f5a623;
+  background: #fffaf0;
 }
 
-.suggestion-item[data-severity="info"] {
-  border-color: #4A90D9;
-  background: #F0F7FF;
+.suggestion-item[data-severity='info'] {
+  border-color: #4a90d9;
+  background: #f0f7ff;
 }
 
 .suggestion-header {
@@ -133,7 +133,7 @@
   padding: 24px;
   font-size: 13px;
   font-weight: 600;
-  color: #998C40;
+  color: #998c40;
 }
 
 .suggestions-error {
@@ -141,9 +141,9 @@
   padding: 12px;
   font-size: 12px;
   font-weight: 600;
-  color: #E3000B;
-  background: #FFF5F5;
-  border: 2px solid #E3000B;
+  color: #e3000b;
+  background: #fff5f5;
+  border: 2px solid #e3000b;
   border-radius: 8px;
 }
 

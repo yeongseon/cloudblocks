@@ -25,7 +25,7 @@ Subnets divide your network into isolated segments.
 3. Add a second subnet for separation (e.g., one public, one private)
 
 !!! tip "Public vs. private"
-    A common pattern is two subnets: a **public** subnet for internet-facing resources (gateways, load balancers) and a **private** subnet for backend resources (databases, internal services).
+A common pattern is two subnets: a **public** subnet for internet-facing resources (gateways, load balancers) and a **private** subnet for backend resources (databases, internal services).
 
 ---
 
@@ -38,7 +38,7 @@ Nodes are the cloud resources that make up your workload. Add them from the **Co
 3. **Database** — Drag a Database node into your private subnet. This represents your data store.
 
 !!! info "Drag from the Command Palette"
-    The Command Palette at the bottom of the screen shows all available node categories. Drag a category onto the canvas to place it. The palette filters based on your active cloud provider.
+The Command Palette at the bottom of the screen shows all available node categories. Drag a category onto the canvas to place it. The palette filters based on your active cloud provider.
 
 ### Node Placement Rules
 
@@ -59,16 +59,16 @@ Create connections to define communication flows between your nodes.
 
 ### Connection Type Guide
 
-| When to use... | Choose this type |
-|---|---|
-| API calls, web requests | **HTTP** |
-| General traffic flow | **Dataflow** |
-| Database reads/writes | **Data** |
-| Background processing | **Async** |
-| Internal service communication | **Internal** |
+| When to use...                 | Choose this type |
+| ------------------------------ | ---------------- |
+| API calls, web requests        | **HTTP**         |
+| General traffic flow           | **Dataflow**     |
+| Database reads/writes          | **Data**         |
+| Background processing          | **Async**        |
+| Internal service communication | **Internal**     |
 
 !!! warning "Initiator rules"
-    Only certain node categories can be the **source** of a connection. Gateway, Compute, Function, Queue, and Event nodes can initiate connections. Database, Storage, Analytics, Identity, and Observability nodes are receiver-only.
+Only certain node categories can be the **source** of a connection. Gateway, Compute, Function, Queue, and Event nodes can initiate connections. Database, Storage, Analytics, Identity, and Observability nodes are receiver-only.
 
 ---
 
@@ -150,8 +150,8 @@ This pattern is available as a built-in template — select **Three-Tier Web App
 
 ## What's Next?
 
-| Goal | Guide |
-|---|---|
-| Export your architecture as code | [Generate Code](generate-code.md) |
-| Start from a pre-built pattern | [Use Templates](templates.md) |
-| Learn the keyboard shortcuts | [Keyboard Shortcuts](keyboard-shortcuts.md) |
+| Goal                             | Guide                                       |
+| -------------------------------- | ------------------------------------------- |
+| Export your architecture as code | [Generate Code](generate-code.md)           |
+| Start from a pre-built pattern   | [Use Templates](templates.md)               |
+| Learn the keyboard shortcuts     | [Keyboard Shortcuts](keyboard-shortcuts.md) |

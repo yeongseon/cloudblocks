@@ -15,7 +15,10 @@ describe('IsometricStud - StudDefs', () => {
     const { container } = render(
       <svg aria-label="stud-basic">
         <title>Stud Basic</title>
-        <StudDefs studId="stud-basic" studColors={{ shadow: '#333', main: '#555', highlight: '#fff' }} />
+        <StudDefs
+          studId="stud-basic"
+          studColors={{ shadow: '#333', main: '#555', highlight: '#fff' }}
+        />
       </svg>,
     );
 
@@ -31,7 +34,10 @@ describe('IsometricStud - StudDefs', () => {
     const { container } = render(
       <svg aria-label="stud-three-layer">
         <title>Stud Three Layer</title>
-        <StudDefs studId="stud-three-layer" studColors={{ shadow: '#000', main: '#ccc', highlight: '#fff' }} />
+        <StudDefs
+          studId="stud-three-layer"
+          studColors={{ shadow: '#000', main: '#ccc', highlight: '#fff' }}
+        />
       </svg>,
     );
 
@@ -43,7 +49,10 @@ describe('IsometricStud - StudDefs', () => {
     const { container } = render(
       <svg aria-label="stud-shadow">
         <title>Stud Shadow</title>
-        <StudDefs studId="stud-shadow" studColors={{ shadow: '#333', main: '#555', highlight: '#fff' }} />
+        <StudDefs
+          studId="stud-shadow"
+          studColors={{ shadow: '#333', main: '#555', highlight: '#fff' }}
+        />
       </svg>,
     );
 
@@ -61,7 +70,10 @@ describe('IsometricStud - StudDefs', () => {
     const { container } = render(
       <svg aria-label="stud-height">
         <title>Stud Height Check</title>
-        <StudDefs studId="stud-height-check" studColors={{ shadow: '#000', main: '#555', highlight: '#fff' }} />
+        <StudDefs
+          studId="stud-height-check"
+          studColors={{ shadow: '#000', main: '#555', highlight: '#fff' }}
+        />
       </svg>,
     );
 
@@ -74,7 +86,10 @@ describe('IsometricStud - StudDefs', () => {
     const { container } = render(
       <svg aria-label="stud-main">
         <title>Stud Main</title>
-        <StudDefs studId="stud-main" studColors={{ shadow: '#333', main: '#888', highlight: '#fff' }} />
+        <StudDefs
+          studId="stud-main"
+          studColors={{ shadow: '#333', main: '#888', highlight: '#fff' }}
+        />
       </svg>,
     );
 
@@ -92,7 +107,10 @@ describe('IsometricStud - StudDefs', () => {
     const { container } = render(
       <svg aria-label="stud-dimensions">
         <title>Stud Dimensions</title>
-        <StudDefs studId="stud-dimensions" studColors={{ shadow: '#000', main: '#555', highlight: '#fff' }} />
+        <StudDefs
+          studId="stud-dimensions"
+          studColors={{ shadow: '#000', main: '#555', highlight: '#fff' }}
+        />
       </svg>,
     );
 
@@ -107,7 +125,10 @@ describe('IsometricStud - StudDefs', () => {
     const { container } = render(
       <svg aria-label="stud-inner">
         <title>Stud Inner</title>
-        <StudDefs studId="stud-inner" studColors={{ shadow: '#333', main: '#555', highlight: '#ddd' }} />
+        <StudDefs
+          studId="stud-inner"
+          studColors={{ shadow: '#333', main: '#555', highlight: '#ddd' }}
+        />
       </svg>,
     );
 
@@ -124,7 +145,10 @@ describe('IsometricStud - StudDefs', () => {
     const { container } = render(
       <svg aria-label="stud-inner-dims">
         <title>Stud Inner Dims</title>
-        <StudDefs studId="stud-inner-dims" studColors={{ shadow: '#333', main: '#555', highlight: '#fff' }} />
+        <StudDefs
+          studId="stud-inner-dims"
+          studColors={{ shadow: '#333', main: '#555', highlight: '#fff' }}
+        />
       </svg>,
     );
 
@@ -139,7 +163,10 @@ describe('IsometricStud - StudDefs', () => {
     const { container } = render(
       <svg aria-label="stud-opacity">
         <title>Stud Opacity</title>
-        <StudDefs studId="stud-opacity" studColors={{ shadow: '#333', main: '#555', highlight: '#fff' }} />
+        <StudDefs
+          studId="stud-opacity"
+          studColors={{ shadow: '#333', main: '#555', highlight: '#fff' }}
+        />
       </svg>,
     );
 
@@ -154,7 +181,10 @@ describe('IsometricStud - StudDefs', () => {
     const { container } = render(
       <svg aria-label="stud-highlight">
         <title>Stud Highlight</title>
-        <StudDefs studId="stud-highlight" studColors={{ shadow: '#333', main: '#555', highlight: highlightColor }} />
+        <StudDefs
+          studId="stud-highlight"
+          studColors={{ shadow: '#333', main: '#555', highlight: highlightColor }}
+        />
       </svg>,
     );
 
@@ -182,7 +212,10 @@ describe('IsometricStud - StudDefs', () => {
     const { container } = render(
       <svg aria-label="stud-custom-id">
         <title>Stud Custom ID</title>
-        <StudDefs studId={customId} studColors={{ shadow: '#000', main: '#555', highlight: '#fff' }} />
+        <StudDefs
+          studId={customId}
+          studColors={{ shadow: '#000', main: '#555', highlight: '#fff' }}
+        />
       </svg>,
     );
 
@@ -440,7 +473,10 @@ describe('IsometricStud - Universal Stud Standard Compliance', () => {
     const { container } = render(
       <svg aria-label="compliance-test">
         <title>Compliance Test</title>
-        <StudDefs studId="compliance-test" studColors={{ shadow: '#000', main: '#555', highlight: '#fff' }} />
+        <StudDefs
+          studId="compliance-test"
+          studColors={{ shadow: '#000', main: '#555', highlight: '#fff' }}
+        />
       </svg>,
     );
 

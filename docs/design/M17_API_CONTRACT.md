@@ -9,14 +9,14 @@ This establishes one shared API contract between web and API layers while preser
 
 ## Endpoint matrix
 
-| Endpoint | Contract behavior |
-| --- | --- |
-| `POST /workspaces/{id}/sync` | Accepts `ArchitectureModel` via `SyncRequest.architecture` |
-| `POST /workspaces/{id}/pr` | Accepts `ArchitectureModel` via `PullRequestRequest.architecture` |
-| `POST /ai/suggest` | Accepts `ArchitectureModel` via `AISuggestRequest.architecture` |
-| `POST /ai/cost` | Accepts `ArchitectureModel` via `AICostRequest.architecture` |
-| `POST /ai/generate` | Returns raw dict (`AIGenerationResponse.architecture: dict[str, object]`) intentionally because LLM output may not match schema |
-| `POST /workspaces/{id}/pull` | Returns raw dict from GitHub response (no schema validation on response payload) |
+| Endpoint                     | Contract behavior                                                                                                               |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /workspaces/{id}/sync` | Accepts `ArchitectureModel` via `SyncRequest.architecture`                                                                      |
+| `POST /workspaces/{id}/pr`   | Accepts `ArchitectureModel` via `PullRequestRequest.architecture`                                                               |
+| `POST /ai/suggest`           | Accepts `ArchitectureModel` via `AISuggestRequest.architecture`                                                                 |
+| `POST /ai/cost`              | Accepts `ArchitectureModel` via `AICostRequest.architecture`                                                                    |
+| `POST /ai/generate`          | Returns raw dict (`AIGenerationResponse.architecture: dict[str, object]`) intentionally because LLM output may not match schema |
+| `POST /workspaces/{id}/pull` | Returns raw dict from GitHub response (no schema validation on response payload)                                                |
 
 ## Validation behavior
 

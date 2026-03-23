@@ -7,11 +7,7 @@ export function LandingNavbar() {
   return (
     <header className="landing-navbar">
       <div className="landing-navbar-logo">🧱 CloudBlocks</div>
-      <button
-        type="button"
-        className="landing-navbar-cta"
-        onClick={goToBuilder}
-      >
+      <button type="button" className="landing-navbar-cta" onClick={goToBuilder}>
         Start Building
       </button>
     </header>

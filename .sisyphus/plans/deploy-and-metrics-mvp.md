@@ -47,16 +47,17 @@ Frontend → localStorage (existing metricsService, kept as fallback)
 
 **MVP (ship in M23):**
 
-| # | Title | Size | Description |
-|---|-------|------|-------------|
-| 1 | Plausible frontend adapter | S | Create `plausibleAdapter.ts` — thin wrapper over `window.plausible()`. Add Plausible script tag to `index.html` with `VITE_PLAUSIBLE_DOMAIN` / `VITE_PLAUSIBLE_HOST` env vars. Graceful no-op when host unreachable. |
-| 2 | metricsService Plausible dual-write | S | Update `metricsService.ts` to call plausibleAdapter alongside localStorage persistence. Existing tests must keep passing. |
-| 3 | Insert 5 core trackEvent calls | M | Wire up tracking at: `app_loaded` (App mount), `first_plate_placed`, `first_block_placed`, `first_connection_created`, `code_generated` (with format prop). |
-| 4 | Plausible adapter tests | S | Unit tests for plausibleAdapter: event dispatch, graceful degradation when script not loaded, metadata forwarding. |
-| 5 | Plausible CE Docker Compose (local dev) | S | `infra/plausible/docker-compose.plausible.yml` — Plausible CE + ClickHouse + Postgres for local testing. |
-| 6 | Plausible CE setup guide | S | `docs/guides/PLAUSIBLE_SETUP.md` — step-by-step for local dev and Azure Container App deployment. |
+| #   | Title                                   | Size | Description                                                                                                                                                                                                          |
+| --- | --------------------------------------- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Plausible frontend adapter              | S    | Create `plausibleAdapter.ts` — thin wrapper over `window.plausible()`. Add Plausible script tag to `index.html` with `VITE_PLAUSIBLE_DOMAIN` / `VITE_PLAUSIBLE_HOST` env vars. Graceful no-op when host unreachable. |
+| 2   | metricsService Plausible dual-write     | S    | Update `metricsService.ts` to call plausibleAdapter alongside localStorage persistence. Existing tests must keep passing.                                                                                            |
+| 3   | Insert 5 core trackEvent calls          | M    | Wire up tracking at: `app_loaded` (App mount), `first_plate_placed`, `first_block_placed`, `first_connection_created`, `code_generated` (with format prop).                                                          |
+| 4   | Plausible adapter tests                 | S    | Unit tests for plausibleAdapter: event dispatch, graceful degradation when script not loaded, metadata forwarding.                                                                                                   |
+| 5   | Plausible CE Docker Compose (local dev) | S    | `infra/plausible/docker-compose.plausible.yml` — Plausible CE + ClickHouse + Postgres for local testing.                                                                                                             |
+| 6   | Plausible CE setup guide                | S    | `docs/guides/PLAUSIBLE_SETUP.md` — step-by-step for local dev and Azure Container App deployment.                                                                                                                    |
 
 **Coming Soon (M24):**
+
 - Full 12-event coverage (GitHub login, repo sync, PR, learning scenarios)
 - Plausible Goal/Funnel configuration
 - Grafana integration
@@ -68,16 +69,17 @@ Terraform modules, Dockerfiles, CI workflows all exist but were never actually a
 
 **MVP (ship in M23):**
 
-| # | Title | Size | Description |
-|---|-------|------|-------------|
-| 7 | Azure provisioning runbook | M | `docs/guides/AZURE_DEPLOY_GUIDE.md` — complete step-by-step: Service Principal + OIDC, Terraform state backend, `terraform apply`, GitHub secrets, deploy workflow activation. |
-| 8 | Terraform staging apply | L | Execute provisioning runbook: create SP, state backend, apply staging Terraform. Interactive — requires Azure CLI login. |
-| 9 | GitHub repo secrets configuration | S | Set staging environment secrets (AZURE_CLIENT_ID, TENANT_ID, SUBSCRIPTION_ID, ACR_*, SWA_TOKEN) from Terraform outputs. |
-| 10 | Enable deploy.yml push trigger | S | Uncomment push trigger in `deploy.yml`. Verify first automated staging deploy passes. |
-| 11 | Plausible CE on Azure Container App | M | Deploy Plausible CE as a separate Container App in staging resource group. Configure DNS or use Container App FQDN. |
-| 12 | Staging deploy verification | S | End-to-end verification: health check, SWA frontend loads, API responds, Plausible receives events. |
+| #   | Title                               | Size | Description                                                                                                                                                                    |
+| --- | ----------------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 7   | Azure provisioning runbook          | M    | `docs/guides/AZURE_DEPLOY_GUIDE.md` — complete step-by-step: Service Principal + OIDC, Terraform state backend, `terraform apply`, GitHub secrets, deploy workflow activation. |
+| 8   | Terraform staging apply             | L    | Execute provisioning runbook: create SP, state backend, apply staging Terraform. Interactive — requires Azure CLI login.                                                       |
+| 9   | GitHub repo secrets configuration   | S    | Set staging environment secrets (AZURE*CLIENT_ID, TENANT_ID, SUBSCRIPTION_ID, ACR*\*, SWA_TOKEN) from Terraform outputs.                                                       |
+| 10  | Enable deploy.yml push trigger      | S    | Uncomment push trigger in `deploy.yml`. Verify first automated staging deploy passes.                                                                                          |
+| 11  | Plausible CE on Azure Container App | M    | Deploy Plausible CE as a separate Container App in staging resource group. Configure DNS or use Container App FQDN.                                                            |
+| 12  | Staging deploy verification         | S    | End-to-end verification: health check, SWA frontend loads, API responds, Plausible receives events.                                                                            |
 
 **Coming Soon (M24):**
+
 - Azure Production environment provisioning
 - Production promotion workflow (`promote.yml`)
 - PR Preview environments (`preview.yml`)
@@ -90,14 +92,15 @@ Mark incomplete or non-functional features honestly in the UI. Fix merge conflic
 
 **MVP (ship in M23):**
 
-| # | Title | Size | Description |
-|---|-------|------|-------------|
-| 13 | Resolve merge conflict in CommandCard.tsx | S | `CommandCard.tsx` has unresolved git merge markers from M21 — fix or discard. |
-| 14 | Audit and mark Coming Soon features | M | Identify UI surfaces that don't work end-to-end (e.g. GitHub features without backend, multi-provider beyond Azure). Add "Coming Soon" badge/overlay. |
-| 15 | Remove dead code and unused imports | S | Clean up dead metricsService calls, unused components, stale feature flags. |
-| 16 | Pre-existing lint/type errors cleanup | M | Fix LSP errors in LearningPanel, ConfirmDialog, PromptDialog, API test files. |
+| #   | Title                                     | Size | Description                                                                                                                                           |
+| --- | ----------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 13  | Resolve merge conflict in CommandCard.tsx | S    | `CommandCard.tsx` has unresolved git merge markers from M21 — fix or discard.                                                                         |
+| 14  | Audit and mark Coming Soon features       | M    | Identify UI surfaces that don't work end-to-end (e.g. GitHub features without backend, multi-provider beyond Azure). Add "Coming Soon" badge/overlay. |
+| 15  | Remove dead code and unused imports       | S    | Clean up dead metricsService calls, unused components, stale feature flags.                                                                           |
+| 16  | Pre-existing lint/type errors cleanup     | M    | Fix LSP errors in LearningPanel, ConfirmDialog, PromptDialog, API test files.                                                                         |
 
 **Coming Soon (M24):**
+
 - Full multi-provider support (AWS/GCP parity)
 - Collaboration features (real-time editing)
 - DevOps UX (Ops Control Center, Promote/Rollback)

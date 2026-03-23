@@ -18,25 +18,25 @@ That's it — CloudBlocks generates code automatically from your visual design.
 
 CloudBlocks supports three infrastructure-as-code formats:
 
-| Format | Language | Best For |
-|---|---|---|
-| **Terraform** | HCL (HashiCorp Configuration Language) | Multi-cloud deployments, industry standard |
-| **Bicep** | Bicep (Azure Resource Manager) | Azure-native infrastructure |
-| **Pulumi** | TypeScript | Developers who prefer code over config files |
+| Format        | Language                               | Best For                                     |
+| ------------- | -------------------------------------- | -------------------------------------------- |
+| **Terraform** | HCL (HashiCorp Configuration Language) | Multi-cloud deployments, industry standard   |
+| **Bicep**     | Bicep (Azure Resource Manager)         | Azure-native infrastructure                  |
+| **Pulumi**    | TypeScript                             | Developers who prefer code over config files |
 
 Switch between formats using the selector in the Code Preview panel. The default is Terraform.
 
 !!! tip "Same architecture, different outputs"
-    You can generate code in all three formats from the same architecture. This is useful for comparing approaches or migrating between tools.
+You can generate code in all three formats from the same architecture. This is useful for comparing approaches or migrating between tools.
 
 ---
 
 ## Generation Modes
 
-| Mode | Purpose | Use When |
-|---|---|---|
-| **Draft** | Quick preview with inline values | Prototyping and exploring |
-| **Production** | Full module structure with variables and outputs | Ready to deploy |
+| Mode           | Purpose                                          | Use When                  |
+| -------------- | ------------------------------------------------ | ------------------------- |
+| **Draft**      | Quick preview with inline values                 | Prototyping and exploring |
+| **Production** | Full module structure with variables and outputs | Ready to deploy           |
 
 Draft mode is fast and simple — great for seeing what your architecture looks like in code. Production mode generates commit-ready code with proper variable extraction, output declarations, and module structure.
 
@@ -46,11 +46,11 @@ Draft mode is fast and simple — great for seeing what your architecture looks 
 
 Code generation uses default regions based on your active cloud provider:
 
-| Provider | Default Region |
-|---|---|
-| **Azure** | `eastus` |
-| **AWS** | `us-east-1` |
-| **GCP** | `us-central1` |
+| Provider  | Default Region |
+| --------- | -------------- |
+| **Azure** | `eastus`       |
+| **AWS**   | `us-east-1`    |
+| **GCP**   | `us-central1`  |
 
 ---
 
@@ -100,7 +100,7 @@ resource "azurerm_mssql_database" "database" {
 - **Preview** — Scroll through the generated code in the Code Preview panel to review before copying
 
 !!! info "Deterministic generation"
-    CloudBlocks generates the same code every time for the same architecture. This means you can safely regenerate without worrying about unexpected changes — only actual architecture modifications produce different code.
+CloudBlocks generates the same code every time for the same architecture. This means you can safely regenerate without worrying about unexpected changes — only actual architecture modifications produce different code.
 
 ---
 
@@ -126,14 +126,14 @@ If you're running the CloudBlocks backend, you can push generated code directly 
 4. Create pull requests with architecture changes
 
 !!! info "Backend required"
-    GitHub integration requires the CloudBlocks backend API. The frontend-only demo does not include GitHub features. See the [Getting Started guide](../guides/TUTORIALS.md) for backend setup.
+GitHub integration requires the CloudBlocks backend API. The frontend-only demo does not include GitHub features. See the [Getting Started guide](../guides/TUTORIALS.md) for backend setup.
 
 ---
 
 ## What's Next?
 
-| Goal | Guide |
-|---|---|
-| Start from a pre-built architecture | [Use Templates](templates.md) |
-| Learn all keyboard shortcuts | [Keyboard Shortcuts](keyboard-shortcuts.md) |
-| Understand the building blocks | [Core Concepts](core-concepts.md) |
+| Goal                                | Guide                                       |
+| ----------------------------------- | ------------------------------------------- |
+| Start from a pre-built architecture | [Use Templates](templates.md)               |
+| Learn all keyboard shortcuts        | [Keyboard Shortcuts](keyboard-shortcuts.md) |
+| Understand the building blocks      | [Core Concepts](core-concepts.md)           |

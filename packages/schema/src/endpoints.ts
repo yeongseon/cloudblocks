@@ -8,7 +8,11 @@ const SEMANTICS: readonly EndpointSemantic[] = ['http', 'event', 'data'] as cons
  * Generate deterministic endpoint ID.
  * Format: endpoint-{nodeId}-{direction}-{semantic}
  */
-export function endpointId(nodeId: string, direction: EndpointDirection, semantic: EndpointSemantic): string {
+export function endpointId(
+  nodeId: string,
+  direction: EndpointDirection,
+  semantic: EndpointSemantic,
+): string {
   return `endpoint-${nodeId}-${direction}-${semantic}`;
 }
 
@@ -53,7 +57,9 @@ export function connectionTypeToSemantic(type: string): EndpointSemantic {
  * Parse a deterministic endpoint ID to extract nodeId, direction, and semantic.
  * Returns null if the ID doesn't match the expected format.
  */
- export function parseEndpointId(epId: string): { nodeId: string; direction: EndpointDirection; semantic: EndpointSemantic } | null {
+export function parseEndpointId(
+  epId: string,
+): { nodeId: string; direction: EndpointDirection; semantic: EndpointSemantic } | null {
   const prefix = 'endpoint-';
   if (!epId.startsWith(prefix)) return null;
   const rest = epId.slice(prefix.length);
@@ -87,11 +93,11 @@ const SEMANTIC_TO_TYPE: Record<string, string> = {
  * and connection type (mapped from endpoint semantic for UI compatibility).
  * Uses deterministic endpoint ID parsing — no endpoint array lookup needed.
  */
- export function resolveConnectionNodes(conn: { from: string; to: string }): {
- sourceId: string;
- targetId: string;
- type: string;
-}  {
+export function resolveConnectionNodes(conn: { from: string; to: string }): {
+  sourceId: string;
+  targetId: string;
+  type: string;
+} {
   const fromParsed = parseEndpointId(conn.from);
   const toParsed = parseEndpointId(conn.to);
   return {

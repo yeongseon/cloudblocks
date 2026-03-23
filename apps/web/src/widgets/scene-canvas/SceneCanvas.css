@@ -21,57 +21,55 @@
     ),
     /* Major dot grid */
     radial-gradient(
-      circle at 1px 1px,
-      var(--canvas-grid-major-color, rgba(255, 255, 255, 0.06)) 0 var(--canvas-dot-major),
-      transparent calc(var(--canvas-dot-major) + 0.5px)
-    ),
+        circle at 1px 1px,
+        var(--canvas-grid-major-color, rgba(255, 255, 255, 0.06)) 0 var(--canvas-dot-major),
+        transparent calc(var(--canvas-dot-major) + 0.5px)
+      ),
     /* Minor dot grid */
     radial-gradient(
-      circle at 1px 1px,
-      var(--canvas-grid-minor-color, rgba(255, 255, 255, 0.03)) 0 var(--canvas-dot-minor),
-      transparent calc(var(--canvas-dot-minor) + 0.5px)
-    );
+        circle at 1px 1px,
+        var(--canvas-grid-minor-color, rgba(255, 255, 255, 0.03)) 0 var(--canvas-dot-minor),
+        transparent calc(var(--canvas-dot-minor) + 0.5px)
+      );
   background-size:
     100% 100%,
     var(--canvas-grid-major) var(--canvas-grid-major),
     var(--canvas-grid-minor) var(--canvas-grid-minor);
-  background-position: 0 0, 0 0, 0 0;
+  background-position:
+    0 0,
+    0 0,
+    0 0;
 }
 
 /* ── LEGO Mode (preserved for M22 dual theme) ─────────── */
-[data-visual-mode="lego"] .scene-viewport {
-  background-color: #D2B48C;
+[data-visual-mode='lego'] .scene-viewport {
+  background-color: #d2b48c;
   background-image:
     /* Stud highlight (top of cylinder) */
-    radial-gradient(
-      ellipse 12px 6px at center,
-      #E0C9A6 0%,
-      #E0C9A6 60%,
-      transparent 61%
-    ),
+    radial-gradient(ellipse 12px 6px at center, #e0c9a6 0%, #e0c9a6 60%, transparent 61%),
     /* Stud shadow (cylinder edge) */
-    radial-gradient(
-      ellipse 13px 6.5px at center,
-      #C4A67A 0%,
-      #C4A67A 60%,
-      transparent 61%
-    ),
+    radial-gradient(ellipse 13px 6.5px at center, #c4a67a 0%, #c4a67a 60%, transparent 61%),
     linear-gradient(
       to bottom right,
       transparent calc(50% - 0.5px),
-      #C4A67A calc(50% - 0.5px),
-      #C4A67A calc(50% + 0.5px),
+      #c4a67a calc(50% - 0.5px),
+      #c4a67a calc(50% + 0.5px),
       transparent calc(50% + 0.5px)
     ),
     linear-gradient(
       to bottom left,
       transparent calc(50% - 0.5px),
-      #C4A67A calc(50% - 0.5px),
-      #C4A67A calc(50% + 0.5px),
+      #c4a67a calc(50% - 0.5px),
+      #c4a67a calc(50% + 0.5px),
       transparent calc(50% + 0.5px)
     ),
-    linear-gradient(135deg, #E8D5B7 0%, #D4BC94 50%, #E2CCA8 100%);
-  background-size: 64px 32px, 64px 32px, 64px 32px, 64px 32px, 100% 100%;
+    linear-gradient(135deg, #e8d5b7 0%, #d4bc94 50%, #e2cca8 100%);
+  background-size:
+    64px 32px,
+    64px 32px,
+    64px 32px,
+    64px 32px,
+    100% 100%;
 }
 
 .scene-viewport:active {

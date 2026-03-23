@@ -6,11 +6,7 @@ import type {
   ProviderDefinition,
   ResourceMapping,
 } from './types';
-import {
-  GENERATOR_METADATA_VERSION,
-  resolveBlockMapping,
-  sanitizeIaCValue,
-} from './types';
+import { GENERATOR_METADATA_VERSION, resolveBlockMapping, sanitizeIaCValue } from './types';
 
 /**
  * Pulumi Generator (v1.0)
@@ -27,9 +23,7 @@ import {
 // ─── Resource Name Normalization ────────────────────────────
 
 function sanitizeName(name: string): string {
-  return name
-    .replace(/[^a-zA-Z0-9]/g, '')
-    .replace(/^[0-9]+/, '');
+  return name.replace(/[^a-zA-Z0-9]/g, '').replace(/^[0-9]+/, '');
 }
 
 function buildResourceName(prefix: string, entityName: string): string {
@@ -48,7 +42,7 @@ function getPlateType(plate: ContainerNode): 'global' | 'edge' | 'region' | 'zon
 
 export function normalizePulumi(
   architecture: ArchitectureModel,
-  provider: ProviderDefinition
+  provider: ProviderDefinition,
 ): NormalizedModel {
   const containers = architecture.nodes.filter((n): n is ContainerNode => n.kind === 'container');
   const resources = architecture.nodes.filter((n): n is LeafNode => n.kind === 'resource');
@@ -112,10 +106,7 @@ function getPulumiConstructor(terraformType: string): string {
 
 // ─── Implicit Companion Resources ───────────────────────────
 
-function generateImplicitPulumiResources(
-  block: LeafNode,
-  resourceName: string,
-): string[] {
+function generateImplicitPulumiResources(block: LeafNode, resourceName: string): string[] {
   const sections: string[] = [];
 
   const needsPip =
@@ -168,7 +159,7 @@ function generatePlateResource(
   resourceName: string,
   mapping: ResourceMapping,
   parentResourceName: string | null,
-  architecture: ArchitectureModel
+  architecture: ArchitectureModel,
 ): string {
   const constructorPath = getPulumiConstructor(mapping.resourceType);
   const lines: string[] = [];
@@ -179,7 +170,9 @@ function generatePlateResource(
     lines.push(`    resourceGroupName: resourceGroup.name,`);
     lines.push(`    virtualNetworkName: ${parentResourceName}.name,`);
     const containers = architecture.nodes.filter((n): n is ContainerNode => n.kind === 'container');
-    const siblingSubnets = containers.filter((c) => c.layer === 'subnet' && c.parentId === plate.parentId);
+    const siblingSubnets = containers.filter(
+      (c) => c.layer === 'subnet' && c.parentId === plate.parentId,
+    );
     const cidrIndex = siblingSubnets.findIndex((c) => c.id === plate.id) + 1;
     lines.push(`    addressPrefix: "10.0.${cidrIndex}.0/24",`);
     lines.push(`});`);
@@ -202,7 +195,7 @@ function generatePlateResource(
 function generateBlockResource(
   block: LeafNode,
   resourceName: string,
-  mapping: ResourceMapping
+  mapping: ResourceMapping,
 ): string {
   const constructorPath = getPulumiConstructor(mapping.resourceType);
   const lines: string[] = [];
@@ -268,7 +261,7 @@ function generateBlockResource(
 export function generateIndexTs(
   normalized: NormalizedModel,
   provider: ProviderDefinition,
-  options: GenerationOptions
+  options: GenerationOptions,
 ): string {
   const { architecture, resourceNames } = normalized;
   const containers = architecture.nodes.filter((n): n is ContainerNode => n.kind === 'container');
@@ -288,8 +281,12 @@ export function generateIndexTs(
   // Config
   sections.push('// ─── Configuration ───────────────────────────────────');
   sections.push(`const config = new pulumi.Config();`);
-  sections.push(`const projectName = config.get("projectName") ?? "${sanitizeName(options.projectName)}";`);
-  sections.push(`const location = config.get("location") ?? "${sanitizeIaCValue(options.region)}";`);
+  sections.push(
+    `const projectName = config.get("projectName") ?? "${sanitizeName(options.projectName)}";`,
+  );
+  sections.push(
+    `const location = config.get("location") ?? "${sanitizeIaCValue(options.region)}";`,
+  );
   const hasDb = resources.some((b) => b.category === 'data');
   if (hasDb) {
     sections.push(`const dbAdminPassword = config.requireSecret("dbAdminPassword");`);
@@ -340,9 +337,7 @@ export function generateIndexTs(
   for (const plate of subnets) {
     const resName = resourceNames.get(plate.id)!;
     const mapping = provider.plateMappings[getPlateType(plate)];
-    const parentName = plate.parentId
-      ? resourceNames.get(plate.parentId) ?? null
-      : null;
+    const parentName = plate.parentId ? (resourceNames.get(plate.parentId) ?? null) : null;
     sections.push(generatePlateResource(plate, resName, mapping, parentName, architecture));
     sections.push('');
   }

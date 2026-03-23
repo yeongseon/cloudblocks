@@ -92,10 +92,7 @@ interface SpotlightRect {
 const PADDING = 8;
 
 function getTargetElement(step: TourStep): Element | null {
-  return (
-    document.querySelector(step.selector) ??
-    document.querySelector(step.fallbackSelector)
-  );
+  return document.querySelector(step.selector) ?? document.querySelector(step.fallbackSelector);
 }
 
 function getTargetRect(step: TourStep): SpotlightRect | null {
@@ -132,9 +129,11 @@ function elevateTarget(step: TourStep): (() => void) | null {
   };
 }
 
-function getTooltipPosition(
-  spotlight: SpotlightRect,
-): { top: number; left: number; placement: 'above' | 'below' } {
+function getTooltipPosition(spotlight: SpotlightRect): {
+  top: number;
+  left: number;
+  placement: 'above' | 'below';
+} {
   const tooltipWidth = 340;
   const tooltipEstimatedHeight = 180;
   const gap = 12;
@@ -158,9 +157,13 @@ let readyFlag = false;
 const readyListeners = new Set<() => void>();
 function subscribeReady(cb: () => void) {
   readyListeners.add(cb);
-  return () => { readyListeners.delete(cb); };
+  return () => {
+    readyListeners.delete(cb);
+  };
 }
-function getReadySnapshot() { return readyFlag; }
+function getReadySnapshot() {
+  return readyFlag;
+}
 
 function PersonaSelection({ onSelect }: { onSelect: (persona: Persona) => void }) {
   return (
@@ -250,7 +253,9 @@ export function OnboardingTour() {
     const step = STEPS[currentStep];
     step.ensureVisible?.();
     const restore = elevateTarget(step);
-    return () => { restore?.(); };
+    return () => {
+      restore?.();
+    };
   }, [showOnboarding, needsPersona, currentStep]);
 
   const completeTour = useCallback(() => {
@@ -286,17 +291,17 @@ export function OnboardingTour() {
     }
   }, [currentStep]);
 
-  const handlePersonaSelect = useCallback((selected: Persona) => {
-    setPersona(selected);
-  }, [setPersona]);
+  const handlePersonaSelect = useCallback(
+    (selected: Persona) => {
+      setPersona(selected);
+    },
+    [setPersona],
+  );
 
   if (!showOnboarding) return null;
 
   if (needsPersona) {
-    return createPortal(
-      <PersonaSelection onSelect={handlePersonaSelect} />,
-      document.body,
-    );
+    return createPortal(<PersonaSelection onSelect={handlePersonaSelect} />, document.body);
   }
 
   if (!ready) return null;
@@ -305,15 +310,16 @@ export function OnboardingTour() {
 
   const tooltipPos = spotlight
     ? getTooltipPosition(spotlight)
-    : { top: window.innerHeight / 2 - 90, left: window.innerWidth / 2 - 170, placement: 'below' as const };
+    : {
+        top: window.innerHeight / 2 - 90,
+        left: window.innerWidth / 2 - 170,
+        placement: 'below' as const,
+      };
 
   const isLastStep = currentStep === STEPS.length - 1;
 
   return createPortal(
-    <div
-      className="onboarding-overlay onboarding-overlay--visible"
-      data-testid="onboarding-tour"
-    >
+    <div className="onboarding-overlay onboarding-overlay--visible" data-testid="onboarding-tour">
       {spotlight && (
         <div
           className="onboarding-spotlight"
@@ -330,11 +336,7 @@ export function OnboardingTour() {
         className={`onboarding-tooltip onboarding-tooltip--${tooltipPos.placement}`}
         style={{ top: tooltipPos.top, left: tooltipPos.left }}
       >
-        <button
-          type="button"
-          className="onboarding-skip"
-          onClick={completeTour}
-        >
+        <button type="button" className="onboarding-skip" onClick={completeTour}>
           Skip
         </button>
 

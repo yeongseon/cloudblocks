@@ -1,6 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { ArchitectureModel, ContainerNode, LeafNode, ResourceCategory } from '@cloudblocks/schema';
-import { connectionTypeToSemantic, endpointId, generateEndpointsForNode } from '@cloudblocks/schema';
+import type {
+  ArchitectureModel,
+  ContainerNode,
+  LeafNode,
+  ResourceCategory,
+} from '@cloudblocks/schema';
+import {
+  connectionTypeToSemantic,
+  endpointId,
+  generateEndpointsForNode,
+} from '@cloudblocks/schema';
 
 // Mock uuid before importing the store
 const { uuidState } = vi.hoisted(() => ({
@@ -58,10 +67,7 @@ function makeLegacyConnection(
   };
 }
 
-function makeContainerNode(
-  id: string,
-  overrides: Partial<ContainerNode> = {},
-): ContainerNode {
+function makeContainerNode(id: string, overrides: Partial<ContainerNode> = {}): ContainerNode {
   return {
     id,
     name: 'TestPlate',
@@ -169,7 +175,12 @@ describe('domainSlice – targeted branch coverage', () => {
           endpoints: [],
           connections: [],
           externalActors: [
-            { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+            {
+              id: 'ext-internet',
+              name: 'Internet',
+              type: 'internet',
+              position: { x: -3, y: 0, z: 5 },
+            },
           ],
           createdAt: now,
           updatedAt: now,
@@ -284,9 +295,7 @@ describe('domainSlice – targeted branch coverage', () => {
       const compute = makeLeafNode('c1', 's1', 'compute', { name: 'VM' });
       seedState({
         nodes: [region, subnet, gateway, compute],
-        connections: [
-          makeLegacyConnection('conn-1', 'gw1', 'c1', 'dataflow'),
-        ],
+        connections: [makeLegacyConnection('conn-1', 'gw1', 'c1', 'dataflow')],
       });
 
       getState().updateConnectionType('conn-1', 'http');
@@ -299,13 +308,16 @@ describe('domainSlice – targeted branch coverage', () => {
       seedState({
         nodes: [
           makeContainerNode('r1'),
-          makeContainerNode('s1', { layer: 'subnet', parentId: 'r1', position: { x: 0, y: 0.7, z: 0 }, size: { width: 6, height: 0.3, depth: 8 } }),
+          makeContainerNode('s1', {
+            layer: 'subnet',
+            parentId: 'r1',
+            position: { x: 0, y: 0.7, z: 0 },
+            size: { width: 6, height: 0.3, depth: 8 },
+          }),
           makeLeafNode('gw1', 's1', 'edge'),
           makeLeafNode('c1', 's1', 'compute'),
         ],
-        connections: [
-          makeLegacyConnection('conn-2', 'gw1', 'c1', 'dataflow'),
-        ],
+        connections: [makeLegacyConnection('conn-2', 'gw1', 'c1', 'dataflow')],
       });
 
       getState().updateConnectionType('conn-2', 'async');
@@ -314,9 +326,7 @@ describe('domainSlice – targeted branch coverage', () => {
 
     it('no-ops when connectionId does not exist', () => {
       seedState({
-        connections: [
-          makeLegacyConnection('conn-x', 'a', 'b', 'dataflow'),
-        ],
+        connections: [makeLegacyConnection('conn-x', 'a', 'b', 'dataflow')],
       });
       const archBefore = getArch();
 
@@ -329,13 +339,16 @@ describe('domainSlice – targeted branch coverage', () => {
       seedState({
         nodes: [
           makeContainerNode('r1'),
-          makeContainerNode('s1', { layer: 'subnet', parentId: 'r1', position: { x: 0, y: 0.7, z: 0 }, size: { width: 6, height: 0.3, depth: 8 } }),
+          makeContainerNode('s1', {
+            layer: 'subnet',
+            parentId: 'r1',
+            position: { x: 0, y: 0.7, z: 0 },
+            size: { width: 6, height: 0.3, depth: 8 },
+          }),
           makeLeafNode('gw1', 's1', 'edge'),
           makeLeafNode('c1', 's1', 'compute'),
         ],
-        connections: [
-          makeLegacyConnection('conn-h', 'gw1', 'c1', 'dataflow'),
-        ],
+        connections: [makeLegacyConnection('conn-h', 'gw1', 'c1', 'dataflow')],
       });
 
       expect(getState().canUndo).toBe(false);
@@ -348,9 +361,7 @@ describe('domainSlice – targeted branch coverage', () => {
 
     it('updates type to data', () => {
       seedState({
-        connections: [
-          makeLegacyConnection('conn-d', 'a', 'b', 'dataflow'),
-        ],
+        connections: [makeLegacyConnection('conn-d', 'a', 'b', 'dataflow')],
         nodes: [
           makeContainerNode('r1'),
           makeLeafNode('a', 'r1', 'compute'),
@@ -393,11 +404,21 @@ describe('domainSlice – targeted branch coverage', () => {
       seedState({
         nodes: [
           makeContainerNode('r1'),
-          makeContainerNode('s1', { layer: 'subnet', parentId: 'r1', position: { x: 0, y: 0.7, z: 0 }, size: { width: 6, height: 0.3, depth: 8 } }),
+          makeContainerNode('s1', {
+            layer: 'subnet',
+            parentId: 'r1',
+            position: { x: 0, y: 0.7, z: 0 },
+            size: { width: 6, height: 0.3, depth: 8 },
+          }),
           makeLeafNode('gw1', 's1', 'edge', { name: 'Gateway' }),
         ],
         externalActors: [
-          { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+          {
+            id: 'ext-internet',
+            name: 'Internet',
+            type: 'internet',
+            position: { x: -3, y: 0, z: 5 },
+          },
         ],
       });
 
@@ -412,11 +433,21 @@ describe('domainSlice – targeted branch coverage', () => {
       seedState({
         nodes: [
           makeContainerNode('r1'),
-          makeContainerNode('s1', { layer: 'subnet', parentId: 'r1', position: { x: 0, y: 0.7, z: 0 }, size: { width: 6, height: 0.3, depth: 8 } }),
+          makeContainerNode('s1', {
+            layer: 'subnet',
+            parentId: 'r1',
+            position: { x: 0, y: 0.7, z: 0 },
+            size: { width: 6, height: 0.3, depth: 8 },
+          }),
           makeLeafNode('c1', 's1', 'compute', { name: 'VM' }),
         ],
         externalActors: [
-          { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+          {
+            id: 'ext-internet',
+            name: 'Internet',
+            type: 'internet',
+            position: { x: -3, y: 0, z: 5 },
+          },
         ],
       });
 
@@ -514,14 +545,14 @@ describe('domainSlice – targeted branch coverage', () => {
           makeLeafNode('d1', 's1', 'data'),
           makeLeafNode('d2', 's1', 'data'),
         ],
-        connections: [
-          makeLegacyConnection('legacy-conn', 'c1', 'd1', 'dataflow'),
-        ],
+        connections: [makeLegacyConnection('legacy-conn', 'c1', 'd1', 'dataflow')],
       });
 
       expect(getState().addConnection('c1', 'd2')).toBe(true);
 
-      const newConnection = getArch().connections.find((connection) => connection.id !== 'legacy-conn');
+      const newConnection = getArch().connections.find(
+        (connection) => connection.id !== 'legacy-conn',
+      );
       expect(newConnection?.metadata['sourceStub']).toBe(1);
       expect(newConnection?.metadata['targetStub']).toBe(0);
     });
@@ -532,9 +563,7 @@ describe('domainSlice – targeted branch coverage', () => {
   describe('duplicateBlock – orphan block guard', () => {
     it('no-ops when source block has no matching parent plate', () => {
       seedState({
-        nodes: [
-          makeLeafNode('orphan-block', 'missing-plate', 'compute', { name: 'Orphan' }),
-        ],
+        nodes: [makeLeafNode('orphan-block', 'missing-plate', 'compute', { name: 'Orphan' })],
       });
       const archBefore = getArch();
 
@@ -553,7 +582,10 @@ describe('domainSlice – targeted branch coverage', () => {
       getState().addPlate('subnet', 'Sub', netId);
       const subId = getPlates()[1].id;
 
-      getState().addBlock('compute', 'VM', subId, 'azure', 'vm', { sku: 'Standard_B2s', tier: 'basic' });
+      getState().addBlock('compute', 'VM', subId, 'azure', 'vm', {
+        sku: 'Standard_B2s',
+        tier: 'basic',
+      });
 
       const block = getBlocks()[0];
       expect(block.config).toEqual({ sku: 'Standard_B2s', tier: 'basic' });
@@ -566,9 +598,7 @@ describe('domainSlice – targeted branch coverage', () => {
   describe('removeConnection – non-existent id', () => {
     it('removes nothing when id does not match any connection', () => {
       seedState({
-        connections: [
-          makeLegacyConnection('conn-keep', 'a', 'b', 'dataflow'),
-        ],
+        connections: [makeLegacyConnection('conn-keep', 'a', 'b', 'dataflow')],
       });
 
       getState().removeConnection('nonexistent');
@@ -666,19 +696,27 @@ describe('domainSlice – targeted branch coverage', () => {
     });
 
     it('handles addConnection branches with actors and endpoint parse fallback', () => {
-      const subnet = makeContainerNode('plate-1', { layer: 'subnet', resourceType: 'subnet', size: { width: 8, height: 0.3, depth: 10 } });
+      const subnet = makeContainerNode('plate-1', {
+        layer: 'subnet',
+        resourceType: 'subnet',
+        size: { width: 8, height: 0.3, depth: 10 },
+      });
       const edge = makeLeafNode('edge-1', 'plate-1', 'edge', { resourceType: 'load_balancer' });
-      const compute = makeLeafNode('compute-1', 'plate-1', 'compute', { resourceType: 'web_compute' });
+      const compute = makeLeafNode('compute-1', 'plate-1', 'compute', {
+        resourceType: 'web_compute',
+      });
       seedState({
         nodes: [subnet, edge, compute],
-        endpoints: [
-          ...generateEndpointsForNode(edge.id),
-          ...generateEndpointsForNode(compute.id),
+        endpoints: [...generateEndpointsForNode(edge.id), ...generateEndpointsForNode(compute.id)],
+        externalActors: [
+          {
+            id: 'ext-internet',
+            name: 'Internet',
+            type: 'internet',
+            position: { x: -3, y: 0, z: 5 },
+          },
         ],
-        externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } }],
-        connections: [
-          makeLegacyConnection('conn-existing', edge.id, compute.id),
-        ],
+        connections: [makeLegacyConnection('conn-existing', edge.id, compute.id)],
       });
 
       expect(getState().addConnection('compute-1', 'ext-internet')).toBe(false);

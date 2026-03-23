@@ -3,11 +3,7 @@ import type { GeneratorId } from '../../features/generate/types';
 
 // ─── Template Types (extracted from features/templates for FSD compliance) ──
 
-export type TemplateCategory =
-  | 'web-application'
-  | 'serverless'
-  | 'data-pipeline'
-  | 'general';
+export type TemplateCategory = 'web-application' | 'serverless' | 'data-pipeline' | 'general';
 
 export type TemplateDifficulty = 'beginner' | 'intermediate' | 'advanced';
 

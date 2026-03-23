@@ -10,7 +10,7 @@ import { endpointId } from '@cloudblocks/schema';
 const createArchitecture = (
   plates: ContainerNode[] = [],
   blocks: LeafNode[] = [],
-  connections: Connection[] = []
+  connections: Connection[] = [],
 ): ArchitectureModel => ({
   id: 'arch-1',
   name: 'Test Architecture',

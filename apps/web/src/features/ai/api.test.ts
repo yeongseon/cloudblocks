@@ -1,6 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
 import { generateArchitecture, suggestImprovements, estimateCost } from './api';
-import type { GenerateRequest, SuggestRequest, CostRequest, GenerateResponse, SuggestResponse, CostResponse } from './api';
+import type {
+  GenerateRequest,
+  SuggestRequest,
+  CostRequest,
+  GenerateResponse,
+  SuggestResponse,
+  CostResponse,
+} from './api';
 
 vi.mock('../../shared/api/client', () => ({
   apiPost: vi.fn(),

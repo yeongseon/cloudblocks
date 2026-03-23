@@ -91,7 +91,9 @@ describe('CostPanel', () => {
 
     render(<CostPanel />);
 
-    expect(screen.getByText('AI features require the backend API - see setup guide.')).toBeInTheDocument();
+    expect(
+      screen.getByText('AI features require the backend API - see setup guide.'),
+    ).toBeInTheDocument();
     expect(screen.queryByText(/Run cost estimation/)).not.toBeInTheDocument();
   });
 });

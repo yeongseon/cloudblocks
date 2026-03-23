@@ -7,10 +7,7 @@ interface ComingSoonBannerProps {
 
 export function ComingSoonBanner({ message, className }: ComingSoonBannerProps) {
   return (
-    <div
-      className={`coming-soon-banner${className ? ` ${className}` : ''}`}
-      role="status"
-    >
+    <div className={`coming-soon-banner${className ? ` ${className}` : ''}`} role="status">
       {message}
     </div>
   );

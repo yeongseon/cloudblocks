@@ -20,7 +20,7 @@ export function StepProgress() {
         {steps.map((step, index) => {
           const stepStatus = stepStatusByStepId.get(step.id) ?? 'locked';
           const isActive = index === currentStepIndex;
-          
+
           let nodeClass = 'step-progress-node';
           if (stepStatus === 'completed') {
             nodeClass += ' completed';

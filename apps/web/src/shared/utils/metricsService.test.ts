@@ -34,7 +34,7 @@ describe('metricsService', () => {
     metricsService.trackEvent('first_block_placed');
     const log = metricsService.getMetricsLog();
     expect(log.length).toBe(3);
-    expect(log.map(e => e.event)).toEqual([
+    expect(log.map((e) => e.event)).toEqual([
       'app_loaded',
       'first_plate_placed',
       'first_block_placed',

@@ -25,6 +25,7 @@ ConnectionPath.tsx:
 ### Goal
 
 Replace bezier lines with **Lego Technic flat-tile style connectors** that:
+
 - Conform to the Universal Stud Standard
 - Render correctly in 2.5D isometric projection
 - Visually distinguish 5 connection types
@@ -73,6 +74,7 @@ The segment renders as a parallelogram in isometric projection:
 To maintain the Universal Stud Standard, connectors include **one stud at each endpoint** (source and target attachment points). Mid-segment studs are omitted to keep connectors visually clean and distinguishable from blocks.
 
 Endpoint studs use the canonical dimensions:
+
 - rx=12, ry=6, height=5, 3-layer structure
 - Color matches the connection type palette
 
@@ -85,6 +87,7 @@ Source ──[segment]──[elbow]──[segment]──[elbow]──[segment]�
 ```
 
 The path from source to target is computed as:
+
 1. If source and target share the same X or Z axis: **single straight segment**
 2. Otherwise: **L-shaped path** with one elbow joint (2 segments)
 3. Elbow joints render as small square connector pieces (like Lego Technic angle connectors)
@@ -101,13 +104,13 @@ Each of the 5 connection types is differentiated by **color** and **surface patt
 
 ### 3.1 Color Palette
 
-| Type | Tile Color | Shadow Color | Accent | Pattern |
-|------|-----------|-------------|--------|---------|
-| `dataflow` | `#64748b` (slate) | `#475569` | `#94a3b8` | Solid — no pattern |
-| `http` | `#3b82f6` (blue) | `#2563eb` | `#60a5fa` | Double line — ═ |
-| `internal` | `#8b5cf6` (violet) | `#7c3aed` | `#a78bfa` | Dashed — ┄ |
-| `data` | `#f59e0b` (amber) | `#d97706` | `#fbbf24` | Dotted — ··· |
-| `async` | `#10b981` (emerald) | `#059669` | `#34d399` | Zigzag — ⚡ |
+| Type       | Tile Color          | Shadow Color | Accent    | Pattern            |
+| ---------- | ------------------- | ------------ | --------- | ------------------ |
+| `dataflow` | `#64748b` (slate)   | `#475569`    | `#94a3b8` | Solid — no pattern |
+| `http`     | `#3b82f6` (blue)    | `#2563eb`    | `#60a5fa` | Double line — ═    |
+| `internal` | `#8b5cf6` (violet)  | `#7c3aed`    | `#a78bfa` | Dashed — ┄         |
+| `data`     | `#f59e0b` (amber)   | `#d97706`    | `#fbbf24` | Dotted — ···       |
+| `async`    | `#10b981` (emerald) | `#059669`    | `#34d399` | Zigzag — ⚡        |
 
 ### 3.2 Pattern Implementation
 
@@ -161,6 +164,7 @@ A transparent stroke along the connector path provides the clickable area, match
 ### 5.2 Selection State
 
 When selected, the connector receives:
+
 - **Outline glow**: 2px outer stroke in white at 50% opacity around the entire connector
 - **Brightness boost**: Tile color lightened by 15%
 - Consistent with block selection visual (blue glow ring)
@@ -168,6 +172,7 @@ When selected, the connector receives:
 ### 5.3 Hover State
 
 On hover:
+
 - **Brightness boost**: Tile color lightened by 10%
 - **Cursor**: `pointer`
 
@@ -183,12 +188,12 @@ On hover:
 
 When diff mode is active, connector colors override the type-based palette:
 
-| Diff State | Tile Color | Shadow | Opacity |
-|-----------|-----------|--------|---------|
-| `added` | `#22c55e` | `#166534` | 1.0 |
-| `removed` | `#ef4444` | `#991b1b` | 0.4 |
-| `modified` | `#eab308` | `#854d0e` | 1.0 |
-| `unchanged` | Type default | Type default | 1.0 |
+| Diff State  | Tile Color   | Shadow       | Opacity |
+| ----------- | ------------ | ------------ | ------- |
+| `added`     | `#22c55e`    | `#166534`    | 1.0     |
+| `removed`   | `#ef4444`    | `#991b1b`    | 0.4     |
+| `modified`  | `#eab308`    | `#854d0e`    | 1.0     |
+| `unchanged` | Type default | Type default | 1.0     |
 
 The surface pattern (§3.2) is still rendered in diff mode, using white at 30% opacity for contrast.
 
@@ -204,12 +209,12 @@ No special geometry changes — external actor connections render identically to
 
 ## 8. Performance Considerations
 
-| Concern | Mitigation |
-|---------|-----------|
+| Concern                      | Mitigation                                                                                                |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------- |
 | SVG complexity per connector | Flat tiles use 3-4 paths per segment (top + 2 edges + optional pattern). ~10 SVG elements per connection. |
-| 20+ connections | React `memo` on connector component. SVG `<defs>` for shared patterns and stud symbols. |
-| Re-render on pan/zoom | Connectors use world coordinates projected to screen — same as blocks. No extra calculation. |
-| Hit area accuracy | Transparent stroke path follows actual connector geometry. |
+| 20+ connections              | React `memo` on connector component. SVG `<defs>` for shared patterns and stud symbols.                   |
+| Re-render on pan/zoom        | Connectors use world coordinates projected to screen — same as blocks. No extra calculation.              |
+| Hit area accuracy            | Transparent stroke path follows actual connector geometry.                                                |
 
 Target: **<16ms frame time** with 30 simultaneous connections.
 
@@ -217,13 +222,13 @@ Target: **<16ms frame time** with 30 simultaneous connections.
 
 ## 9. Implementation Plan
 
-| Issue | Deliverable | Dependencies |
-|-------|------------|-------------|
-| #1015 | This design spec document | None |
-| #1016 | `BrickConnector.tsx` — SVG component with 5 type visuals | #1015 |
-| #1017 | `routing.ts` — path computation (direct + L-shaped) | #1015 |
-| #1018 | Interaction migration (select, hover, delete) | #1016 |
-| #1019 | Diff-aware coloring + external actor support | #1016 |
+| Issue | Deliverable                                              | Dependencies |
+| ----- | -------------------------------------------------------- | ------------ |
+| #1015 | This design spec document                                | None         |
+| #1016 | `BrickConnector.tsx` — SVG component with 5 type visuals | #1015        |
+| #1017 | `routing.ts` — path computation (direct + L-shaped)      | #1015        |
+| #1018 | Interaction migration (select, hover, delete)            | #1016        |
+| #1019 | Diff-aware coloring + external actor support             | #1016        |
 
 ### File Structure
 
@@ -246,26 +251,26 @@ src/entities/connection/
 Complete SVG for a single isometric flat tile segment along the world X-axis:
 
 ```svg
-<!-- 
+<!--
   Flat tile segment at world position, projected to isometric.
   Width: 0.5 CU along X-axis
-  Height: 3px (⅓ stud height) 
+  Height: 3px (⅓ stud height)
 -->
 <g class="connector-segment" data-type="dataflow">
   <!-- Top face (isometric parallelogram) -->
-  <polygon 
+  <polygon
     points="{p1x},{p1y} {p2x},{p2y} {p3x},{p3y} {p4x},{p4y}"
-    fill="#64748b" 
-    stroke="#475569" 
+    fill="#64748b"
+    stroke="#475569"
     stroke-width="0.5"
   />
   <!-- Right side face (3px tall) -->
-  <polygon 
+  <polygon
     points="{p2x},{p2y} {p3x},{p3y} {p3x},{p3y+3} {p2x},{p2y+3}"
     fill="#475569"
   />
   <!-- Front face (3px tall) -->
-  <polygon 
+  <polygon
     points="{p3x},{p3y} {p4x},{p4y} {p4x},{p4y+3} {p3x},{p3y+3}"
     fill="#334155"
   />
@@ -277,10 +282,10 @@ Complete SVG for a single isometric flat tile segment along the world X-axis:
 ```svg
 <!-- Square connector piece at bend point -->
 <g class="connector-elbow">
-  <polygon 
-    points="{top-face-diamond}" 
-    fill="{tile-color}" 
-    stroke="{shadow-color}" 
+  <polygon
+    points="{top-face-diamond}"
+    fill="{tile-color}"
+    stroke="{shadow-color}"
     stroke-width="0.5"
   />
   <!-- side faces omitted for brevity — same pattern as segment -->
@@ -302,10 +307,10 @@ Complete SVG for a single isometric flat tile segment along the world X-axis:
 
 ```svg
 <!-- Directional arrow at target endpoint -->
-<polygon 
-  points="{tip-triangle}" 
-  fill="{tile-color}" 
-  stroke="{shadow-color}" 
+<polygon
+  points="{tip-triangle}"
+  fill="{tile-color}"
+  stroke="{shadow-color}"
   stroke-width="0.5"
 />
 ```
@@ -333,13 +338,13 @@ type BeamShape = 'standard' | 'doubleRail' | 'segmented' | 'wide' | 'zigzag';
 
 Each connector theme gains a `beamShape` field. The mapping is:
 
-| Connection Type | BeamShape | Visual Description |
-|----------------|-----------|-------------------|
-| `dataflow` | `standard` | Classic smooth beam — single 3D extrusion |
-| `http` | `doubleRail` | Two parallel track beams — rail pair |
-| `internal` | `segmented` | Beam with visible gaps — dashed physical form |
-| `data` | `wide` | 1.5× width beam — broad data pipe |
-| `async` | `zigzag` | Sawtooth path — physically jagged beam |
+| Connection Type | BeamShape    | Visual Description                            |
+| --------------- | ------------ | --------------------------------------------- |
+| `dataflow`      | `standard`   | Classic smooth beam — single 3D extrusion     |
+| `http`          | `doubleRail` | Two parallel track beams — rail pair          |
+| `internal`      | `segmented`  | Beam with visible gaps — dashed physical form |
+| `data`          | `wide`       | 1.5× width beam — broad data pipe             |
+| `async`         | `zigzag`     | Sawtooth path — physically jagged beam        |
 
 ### 11.3 Beam Geometry Constants
 
@@ -410,6 +415,7 @@ The `pattern` field in `ConnectorTheme` is **retained** for backward compatibili
 ### 11.8 Test Coverage
 
 Beam-shape-specific tests validate:
+
 - Each connection type renders with the correct `data-beam-shape` attribute
 - Each beam type produces the expected SVG structure (polygon counts, group nesting)
 - `beamShape` values are unique across all 5 connection types
@@ -467,6 +473,7 @@ TILE_Z = 32px (elevation per CU)
 ```
 
 The isometric projection is 2:1 dimetric:
+
 ```
 screenX = originX + (worldX - worldZ) × TILE_W / 2
 screenY = originY + (worldX + worldZ) × TILE_H / 2 - worldY × TILE_Z
@@ -474,13 +481,13 @@ screenY = originY + (worldX + worldZ) × TILE_H / 2 - worldY × TILE_Z
 
 **Connector dimensions, derived from Lego ratios:**
 
-| Lego Concept | Lego mm | CU Equivalent | Screen px (approx) |
-|---|---|---|---|
-| Beam width (1 stud) | 8.0 | 1.0 CU | 32 iso-X or 16 iso-Y |
-| Beam thickness (plate height) | 3.2 | 0.4 CU | 13 elevation |
-| Pin hole spacing | 8.0 | 1.0 CU | 1 grid cell |
-| Pin hole diameter | 4.8 | 0.6 CU | ~19 iso-X |
-| Stud on beam | 4.8 dia | — | Standard stud (STUD_RX=12) |
+| Lego Concept                  | Lego mm | CU Equivalent | Screen px (approx)         |
+| ----------------------------- | ------- | ------------- | -------------------------- |
+| Beam width (1 stud)           | 8.0     | 1.0 CU        | 32 iso-X or 16 iso-Y       |
+| Beam thickness (plate height) | 3.2     | 0.4 CU        | 13 elevation               |
+| Pin hole spacing              | 8.0     | 1.0 CU        | 1 grid cell                |
+| Pin hole diameter             | 4.8     | 0.6 CU        | ~19 iso-X                  |
+| Stud on beam                  | 4.8 dia | —             | Standard stud (STUD_RX=12) |
 
 ### 12.2 Design: Technic Liftarm (Flat Beam with Pin Holes)
 
@@ -489,6 +496,7 @@ Connectors use the **Lego Technic Liftarm** metaphor — flat beams with visible
 #### 12.2.1 Why Liftarms
 
 Real Lego Technic liftarms are:
+
 - **Flat** — 1 plate height thick (3.2mm), lying on the isometric ground plane
 - **Studless** — no studs on top, only pin holes along the beam
 - **Rounded ends** — semi-circular terminations at both ends
@@ -558,22 +566,24 @@ The elbow is always placed at the **height of the topmost endpoint** (smallest s
 #### 12.3.3 Straight Segments
 
 If source and target align within `SAME_PX_TOLERANCE` (2px) on either screen axis, a single straight segment is used:
+
 - Same screenX (within tolerance) → `screen-v` segment
 - Same screenY (within tolerance) → `screen-h` segment
 - Both within tolerance → degenerate, treated as `screen-v`
 
 #### 12.3.4 Segment Types
 
-| Direction | Constant | Varies | Visual |
-|-----------|----------|--------|--------|
-| `screen-v` | screenX | screenY | Vertical line on screen |
-| `screen-h` | screenY | screenX | Horizontal line on screen |
+| Direction  | Constant | Varies  | Visual                    |
+| ---------- | -------- | ------- | ------------------------- |
+| `screen-v` | screenX  | screenY | Vertical line on screen   |
+| `screen-h` | screenY  | screenX | Horizontal line on screen |
 
 Each `ScreenSegment` contains `start: ScreenPoint`, `end: ScreenPoint`, and `direction: 'screen-v' | 'screen-h'`.
 
 #### 12.3.5 Length Calculations
 
 Segment lengths are computed directly from screen coordinates:
+
 - `screen-v`: `|end.y - start.y|` pixels, converted to CU by dividing by `TILE_H`
 - `screen-h`: `|end.x - start.x|` pixels, converted to CU by dividing by `TILE_W`
 
@@ -583,11 +593,11 @@ All values derived from `RENDER_SCALE` and Lego ratios:
 
 ```typescript
 // Screen-space beam half-thickness (perpendicular to beam direction)
-const BEAM_HALF_THICKNESS = 4;   // pixels
+const BEAM_HALF_THICKNESS = 4; // pixels
 
 // Beam thickness = 1 plate height = 0.33 CU
 const BEAM_THICKNESS_CU = 1 / 3;
-const BEAM_THICKNESS_PX = TILE_Z * BEAM_THICKNESS_CU;         // ~11px elevation
+const BEAM_THICKNESS_PX = TILE_Z * BEAM_THICKNESS_CU; // ~11px elevation
 
 // Pin hole spacing = 1 CU (= 1 stud pitch)
 const PIN_HOLE_SPACING_CU = 1.0;
@@ -599,20 +609,20 @@ const PIN_HOLE_RADIUS_CU = 0.3;
 const END_RADIUS = BEAM_HALF_THICKNESS;
 
 // Alignment tolerance
-const SAME_PX_TOLERANCE = 2;     // pixels, for screen-aligned detection
+const SAME_PX_TOLERANCE = 2; // pixels, for screen-aligned detection
 ```
 
 ### 12.5 Connection Type Differentiation
 
 Types are differentiated by **beam color** (primary) and **pin hole style** (secondary). Beam shape is uniform — all types use the same liftarm geometry. This matches real Lego where the same beam part comes in different colors.
 
-| Type | Beam Color | Pin Hole Style | Lego Analogy |
-|---|---|---|---|
-| `dataflow` | Slate gray `#64748b` | Open circle | Standard liftarm |
-| `http` | Blue `#3b82f6` | Filled dot (pin inserted) | Beam with pins |
-| `internal` | Violet `#8b5cf6` | Cross (axle hole) | Beam with axle holes |
-| `data` | Amber `#f59e0b` | Double circle | Wide beam (2-stud) |
-| `async` | Emerald `#10b981` | Dashed circle | Thin beam (half-height) |
+| Type       | Beam Color           | Pin Hole Style            | Lego Analogy            |
+| ---------- | -------------------- | ------------------------- | ----------------------- |
+| `dataflow` | Slate gray `#64748b` | Open circle               | Standard liftarm        |
+| `http`     | Blue `#3b82f6`       | Filled dot (pin inserted) | Beam with pins          |
+| `internal` | Violet `#8b5cf6`     | Cross (axle hole)         | Beam with axle holes    |
+| `data`     | Amber `#f59e0b`      | Double circle             | Wide beam (2-stud)      |
+| `async`    | Emerald `#10b981`    | Dashed circle             | Thin beam (half-height) |
 
 **Color is the primary differentiator.** Pin hole style adds secondary recognition at close zoom but is not required for identification.
 
@@ -638,6 +648,7 @@ Each segment renders as a **3D liftarm piece** along a screen axis:
 ```
 
 The rectangle orientation depends on which screen direction the segment follows:
+
 - **screen-v segment**: top face is a tall rectangle (constant X, varying Y)
 - **screen-h segment**: top face is a wide rectangle (varying X, constant Y)
 
@@ -678,12 +689,12 @@ To avoid the "pillar through block" artifact from §11:
 
 ### 12.8 Performance
 
-| Concern | Mitigation |
-|---|---|
-| Pin holes add SVG elements | Max ~5 holes per segment. Clipped to visible viewport. |
-| World→screen conversions | One-time at route computation; results cached as `ScreenPoint` in `useMemo`. |
-| 30+ connections | `React.memo` on component. Route only recomputes on endpoint change. |
-| Rendering order | Depth key computation is O(1) per segment. |
+| Concern                    | Mitigation                                                                   |
+| -------------------------- | ---------------------------------------------------------------------------- |
+| Pin holes add SVG elements | Max ~5 holes per segment. Clipped to visible viewport.                       |
+| World→screen conversions   | One-time at route computation; results cached as `ScreenPoint` in `useMemo`. |
+| 30+ connections            | `React.memo` on component. Route only recomputes on endpoint change.         |
+| Rendering order            | Depth key computation is O(1) per segment.                                   |
 
 Target: **<16ms frame time** with 30 simultaneous connections.
 
@@ -694,27 +705,27 @@ New tokens added to `designTokens.ts`, all derived from `RENDER_SCALE`:
 ```typescript
 // -- Technic Liftarm (Connector Beam) --
 // Screen-space beam dimensions
-export const BEAM_HALF_THICKNESS = 4;                           // screen pixels
-export const BEAM_THICKNESS_CU = 1 / 3;                        // plate height = ⅓ brick
+export const BEAM_HALF_THICKNESS = 4; // screen pixels
+export const BEAM_THICKNESS_CU = 1 / 3; // plate height = ⅓ brick
 export const BEAM_THICKNESS_PX = RENDER_SCALE * BEAM_THICKNESS_CU; // ~11px
-export const PIN_HOLE_SPACING_CU = 1.0;                        // 1 hole per stud pitch
-export const PIN_HOLE_RX = RENDER_SCALE * 3 / 20;              // 4.8 (hole X radius)
-export const PIN_HOLE_RY = PIN_HOLE_RX / 2;                    // 2.4 (hole Y radius)
-export const SAME_PX_TOLERANCE = 2;                             // alignment detection
+export const PIN_HOLE_SPACING_CU = 1.0; // 1 hole per stud pitch
+export const PIN_HOLE_RX = (RENDER_SCALE * 3) / 20; // 4.8 (hole X radius)
+export const PIN_HOLE_RY = PIN_HOLE_RX / 2; // 2.4 (hole Y radius)
+export const SAME_PX_TOLERANCE = 2; // alignment detection
 ```
 
 ### 12.10 Migration from §11
 
-| §11 Artifact | §12 Replacement |
-|---|---|
-| `buildBeamFaces()` — screen-space polygon | `renderLiftarmSegment()` — screen-axis-aligned rectangle with depth face |
-| `computeRoute()` — screen-space elbow | `computeWorldRoute()` — world→screen conversion then screen-orthogonal routing |
-| `WorldSegment` with `axis: 'x' \| 'z'` | `ScreenSegment` with `direction: 'screen-v' \| 'screen-h'` |
-| 5 beam shape renderers | 1 universal liftarm renderer with pin hole style variants |
-| `BEAM_HALF_WIDTH = 8` (magic number) | `BEAM_HALF_THICKNESS = 4` (screen pixels) |
-| `BEAM_THICKNESS = 6` (magic number) | `BEAM_THICKNESS_CU = 1/3` (= plate height ratio) |
-| Protruding arrow tip | Flush end with directional pin hole |
-| World-space axis hit path | Screen-orthogonal hit path via `buildHitPath(route)` |
+| §11 Artifact                              | §12 Replacement                                                                |
+| ----------------------------------------- | ------------------------------------------------------------------------------ |
+| `buildBeamFaces()` — screen-space polygon | `renderLiftarmSegment()` — screen-axis-aligned rectangle with depth face       |
+| `computeRoute()` — screen-space elbow     | `computeWorldRoute()` — world→screen conversion then screen-orthogonal routing |
+| `WorldSegment` with `axis: 'x' \| 'z'`    | `ScreenSegment` with `direction: 'screen-v' \| 'screen-h'`                     |
+| 5 beam shape renderers                    | 1 universal liftarm renderer with pin hole style variants                      |
+| `BEAM_HALF_WIDTH = 8` (magic number)      | `BEAM_HALF_THICKNESS = 4` (screen pixels)                                      |
+| `BEAM_THICKNESS = 6` (magic number)       | `BEAM_THICKNESS_CU = 1/3` (= plate height ratio)                               |
+| Protruding arrow tip                      | Flush end with directional pin hole                                            |
+| World-space axis hit path                 | Screen-orthogonal hit path via `buildHitPath(route)`                           |
 
 ### 12.11 Acceptance Criteria
 

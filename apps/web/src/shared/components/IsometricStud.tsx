@@ -30,7 +30,14 @@ export const StudDefs = memo(function StudDefs({ studId, studColors }: StudDefsP
       <g id={studId}>
         <ellipse cx="0" cy={STUD_HEIGHT} rx={STUD_RX} ry={STUD_RY} fill={studColors.shadow} />
         <ellipse cx="0" cy="0" rx={STUD_RX} ry={STUD_RY} fill={studColors.main} />
-        <ellipse cx="0" cy="0" rx={STUD_INNER_RX} ry={STUD_INNER_RY} fill={studColors.highlight} opacity={STUD_INNER_OPACITY} />
+        <ellipse
+          cx="0"
+          cy="0"
+          rx={STUD_INNER_RX}
+          ry={STUD_INNER_RY}
+          fill={studColors.highlight}
+          opacity={STUD_INNER_OPACITY}
+        />
       </g>
     </defs>
   );

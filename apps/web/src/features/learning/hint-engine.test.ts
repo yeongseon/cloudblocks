@@ -17,7 +17,9 @@ const ARCHITECTURE_SNAPSHOT: ArchitectureSnapshot = {
   nodes: [],
   connections: [],
   endpoints: [],
-  externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+  externalActors: [
+    { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+  ],
 };
 
 function createScenarioWithHints(hints: string[] = ['Hint 1', 'Hint 2', 'Hint 3']): Scenario {

@@ -43,14 +43,14 @@ describe('plate profile helpers', () => {
       inferLegacyPlateProfileId({
         type: 'region',
         size: { width: 16, depth: 20 },
-      })
+      }),
     ).toBe('network-platform');
 
     expect(
       inferLegacyPlateProfileId({
         type: 'subnet',
         size: { width: 6, depth: 8 },
-      })
+      }),
     ).toBe('subnet-service');
   });
 
@@ -59,7 +59,7 @@ describe('plate profile helpers', () => {
       inferLegacyPlateProfileId({
         type: 'region',
         size: { width: 14, depth: 18 },
-      })
+      }),
     ).toBe('network-application');
   });
 
@@ -71,7 +71,7 @@ describe('plate profile helpers', () => {
         inferLegacyPlateProfileId({
           type: profile.type,
           size: { width: size.width, depth: size.depth },
-        })
+        }),
       ).toBe(profileId);
     }
   });
@@ -84,16 +84,11 @@ describe('plate profile helpers', () => {
   });
 
   it('returns unified subnet stud colors for all subnet plates', () => {
-    expect(getPlateStudColors({ type: 'subnet' })).toEqual(
-      SUBNET_STUD_COLORS
-    );
+    expect(getPlateStudColors({ type: 'subnet' })).toEqual(SUBNET_STUD_COLORS);
   });
 
   it('exports valid stud color specs', () => {
-    const specs: StudColorSpec[] = [
-      NETWORK_STUD_COLORS,
-      SUBNET_STUD_COLORS,
-    ];
+    const specs: StudColorSpec[] = [NETWORK_STUD_COLORS, SUBNET_STUD_COLORS];
 
     for (const spec of specs) {
       expect(spec.main).toMatch(/^#[0-9A-Fa-f]{6}$/);

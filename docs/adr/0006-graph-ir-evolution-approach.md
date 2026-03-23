@@ -11,7 +11,7 @@ CloudBlocks currently represents an architecture as a flat, containment-oriented
 - Blocks represent resources (compute, database, storage, gateway, plus serverless categories)
 - Connections represent directed initiator flow between blocks/external actors (currently `dataflow` only)
 
-This model has worked well for the Milestone 1-7 scope (builder UX, rule engine, generation, GitHub workflow). However, several roadmap goals increasingly require the architecture to be treated as a *formal directed graph* with explicit semantics:
+This model has worked well for the Milestone 1-7 scope (builder UX, rule engine, generation, GitHub workflow). However, several roadmap goals increasingly require the architecture to be treated as a _formal directed graph_ with explicit semantics:
 
 ### Limitations of the current flat model
 

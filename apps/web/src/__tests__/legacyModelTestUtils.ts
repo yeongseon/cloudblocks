@@ -1,4 +1,10 @@
-import type { ArchitectureModel, ContainerCapableResourceType, ContainerNode, LeafNode, ResourceCategory } from '@cloudblocks/schema';
+import type {
+  ArchitectureModel,
+  ContainerCapableResourceType,
+  ContainerNode,
+  LeafNode,
+  ResourceCategory,
+} from '@cloudblocks/schema';
 import { generateEndpointsForNode } from '@cloudblocks/schema';
 
 type LegacyCategory =
@@ -12,12 +18,16 @@ type LegacyCategory =
   | 'identity'
   | 'observability';
 
-export type LegacyPlateOverrides = Partial<Omit<ContainerNode, 'kind' | 'layer' | 'resourceType' | 'category' | 'provider'>> & {
+export type LegacyPlateOverrides = Partial<
+  Omit<ContainerNode, 'kind' | 'layer' | 'resourceType' | 'category' | 'provider'>
+> & {
   type?: ContainerNode['layer'];
   children?: string[];
 };
 
-export type LegacyBlockOverrides = Partial<Omit<LeafNode, 'kind' | 'layer' | 'resourceType' | 'category' | 'provider' | 'parentId'>> & {
+export type LegacyBlockOverrides = Partial<
+  Omit<LeafNode, 'kind' | 'layer' | 'resourceType' | 'category' | 'provider' | 'parentId'>
+> & {
   resourceType?: string;
   category?: ResourceCategory | LegacyCategory;
   placementId?: string;
@@ -75,7 +85,13 @@ export function makeTestPlate(overrides: LegacyPlateOverrides = {}): ContainerNo
 }
 
 export function makeTestBlock(overrides: LegacyBlockOverrides = {}): LeafNode {
-  const { category: overrideCategory, placementId, parentId: overrideParentId, provider, ...rest } = overrides;
+  const {
+    category: overrideCategory,
+    placementId,
+    parentId: overrideParentId,
+    provider,
+    ...rest
+  } = overrides;
   const category = mapCategory(overrideCategory);
   const parentId = placementId ?? overrideParentId ?? 'plate-1';
   return {
@@ -93,9 +109,15 @@ export function makeTestBlock(overrides: LegacyBlockOverrides = {}): LeafNode {
   };
 }
 
-export function makeTestArchitecture(overrides: LegacyArchitectureOverrides = {}): ArchitectureModel {
+export function makeTestArchitecture(
+  overrides: LegacyArchitectureOverrides = {},
+): ArchitectureModel {
   const now = '2026-01-01T00:00:00Z';
-  const nodes = [...(overrides.plates ?? []), ...(overrides.blocks ?? []), ...(overrides.nodes ?? [])];
+  const nodes = [
+    ...(overrides.plates ?? []),
+    ...(overrides.blocks ?? []),
+    ...(overrides.nodes ?? []),
+  ];
   const actors = overrides.externalActors ?? [];
   // Auto-generate endpoints from all node/actor IDs.
   // Empty endpoints array (the common test default) triggers auto-generation.
@@ -103,7 +125,9 @@ export function makeTestArchitecture(overrides: LegacyArchitectureOverrides = {}
   const explicitEndpoints = overrides.endpoints;
   const shouldAutoGenerate = !explicitEndpoints || explicitEndpoints.length === 0;
   const endpoints = shouldAutoGenerate
-    ? [...nodes.map((n) => n.id), ...actors.map((a) => a.id)].flatMap((id) => generateEndpointsForNode(id))
+    ? [...nodes.map((n) => n.id), ...actors.map((a) => a.id)].flatMap((id) =>
+        generateEndpointsForNode(id),
+      )
     : explicitEndpoints;
   return {
     id: 'arch-1',

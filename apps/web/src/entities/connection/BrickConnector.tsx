@@ -1,5 +1,12 @@
 import { memo, useState, useMemo, useRef, useEffect } from 'react';
-import type { Connection, ContainerNode, Endpoint, EndpointSemantic, ExternalActor, LeafNode } from '@cloudblocks/schema';
+import type {
+  Connection,
+  ContainerNode,
+  Endpoint,
+  EndpointSemantic,
+  ExternalActor,
+  LeafNode,
+} from '@cloudblocks/schema';
 import { getDiffState } from '../../features/diff/engine';
 import { getConnectionEndpointWorldAnchors } from './endpointAnchors';
 import type { ScreenPoint } from '../../shared/utils/isometric';
@@ -7,8 +14,15 @@ import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import {
   BEAM_THICKNESS_PX,
-  PIN_HOLE_SPACING_CU, PIN_HOLE_RX, PIN_HOLE_RY,
-  STUD_RX, STUD_RY, STUD_HEIGHT, STUD_INNER_RX, STUD_INNER_RY, STUD_INNER_OPACITY,
+  PIN_HOLE_SPACING_CU,
+  PIN_HOLE_RX,
+  PIN_HOLE_RY,
+  STUD_RX,
+  STUD_RY,
+  STUD_HEIGHT,
+  STUD_INNER_RX,
+  STUD_INNER_RY,
+  STUD_INNER_OPACITY,
   PORT_OUT_PX,
 } from '../../shared/tokens/designTokens';
 import { CONNECTOR_THEMES, DIFF_THEMES, lightenColor } from './connectorTheme';
@@ -41,11 +55,7 @@ const SEMANTIC_THEME_KEY: Record<EndpointSemantic, 'http' | 'async' | 'data'> = 
   data: 'data',
 };
 
-function getColors(
-  theme: ConnectorTheme,
-  diffState: string,
-  isHighlighted: boolean,
-): BeamColors {
+function getColors(theme: ConnectorTheme, diffState: string, isHighlighted: boolean): BeamColors {
   const diffOverride = diffState !== 'unchanged' ? DIFF_THEMES[diffState] : null;
 
   const baseTile = diffOverride?.tile ?? theme.tile;
@@ -108,36 +118,88 @@ function renderPinHole(
   switch (style) {
     case 'open':
       return (
-        <ellipse key={id} cx={cx} cy={cy} rx={PIN_HOLE_RX} ry={PIN_HOLE_RY}
-          fill="none" stroke={accent} strokeWidth={1} opacity={opacity} />
+        <ellipse
+          key={id}
+          cx={cx}
+          cy={cy}
+          rx={PIN_HOLE_RX}
+          ry={PIN_HOLE_RY}
+          fill="none"
+          stroke={accent}
+          strokeWidth={1}
+          opacity={opacity}
+        />
       );
     case 'filled':
       return (
-        <ellipse key={id} cx={cx} cy={cy} rx={PIN_HOLE_RX} ry={PIN_HOLE_RY}
-          fill={accent} opacity={opacity} />
+        <ellipse
+          key={id}
+          cx={cx}
+          cy={cy}
+          rx={PIN_HOLE_RX}
+          ry={PIN_HOLE_RY}
+          fill={accent}
+          opacity={opacity}
+        />
       );
     case 'cross':
       return (
         <g key={id} opacity={opacity}>
-          <line x1={cx - PIN_HOLE_RX} y1={cy} x2={cx + PIN_HOLE_RX} y2={cy}
-            stroke={accent} strokeWidth={1} />
-          <line x1={cx} y1={cy - PIN_HOLE_RY} x2={cx} y2={cy + PIN_HOLE_RY}
-            stroke={accent} strokeWidth={1} />
+          <line
+            x1={cx - PIN_HOLE_RX}
+            y1={cy}
+            x2={cx + PIN_HOLE_RX}
+            y2={cy}
+            stroke={accent}
+            strokeWidth={1}
+          />
+          <line
+            x1={cx}
+            y1={cy - PIN_HOLE_RY}
+            x2={cx}
+            y2={cy + PIN_HOLE_RY}
+            stroke={accent}
+            strokeWidth={1}
+          />
         </g>
       );
     case 'double':
       return (
         <g key={id} opacity={opacity}>
-          <ellipse cx={cx} cy={cy} rx={PIN_HOLE_RX} ry={PIN_HOLE_RY}
-            fill="none" stroke={accent} strokeWidth={1} />
-          <ellipse cx={cx} cy={cy} rx={PIN_HOLE_RX * 0.5} ry={PIN_HOLE_RY * 0.5}
-            fill="none" stroke={accent} strokeWidth={0.5} />
+          <ellipse
+            cx={cx}
+            cy={cy}
+            rx={PIN_HOLE_RX}
+            ry={PIN_HOLE_RY}
+            fill="none"
+            stroke={accent}
+            strokeWidth={1}
+          />
+          <ellipse
+            cx={cx}
+            cy={cy}
+            rx={PIN_HOLE_RX * 0.5}
+            ry={PIN_HOLE_RY * 0.5}
+            fill="none"
+            stroke={accent}
+            strokeWidth={0.5}
+          />
         </g>
       );
     case 'dashed':
       return (
-        <ellipse key={id} cx={cx} cy={cy} rx={PIN_HOLE_RX} ry={PIN_HOLE_RY}
-          fill="none" stroke={accent} strokeWidth={1} strokeDasharray="2 2" opacity={opacity} />
+        <ellipse
+          key={id}
+          cx={cx}
+          cy={cy}
+          rx={PIN_HOLE_RX}
+          ry={PIN_HOLE_RY}
+          fill="none"
+          stroke={accent}
+          strokeWidth={1}
+          strokeDasharray="2 2"
+          opacity={opacity}
+        />
       );
   }
 }
@@ -150,9 +212,12 @@ function renderDirectionMarker(
 ): React.ReactNode {
   const size = PIN_HOLE_RX * 0.8;
   return (
-    <polygon key={id}
+    <polygon
+      key={id}
       points={`${cx},${cy - size} ${cx + size},${cy + size * 0.5} ${cx - size},${cy + size * 0.5}`}
-      fill={accent} opacity={0.5} />
+      fill={accent}
+      opacity={0.5}
+    />
   );
 }
 
@@ -252,7 +317,14 @@ function renderStud(
     <g key={id}>
       <ellipse cx={cx} cy={cy} rx={STUD_RX} ry={STUD_RY} fill={colors.shadow} />
       <ellipse cx={cx} cy={cy - STUD_HEIGHT} rx={STUD_RX} ry={STUD_RY} fill={colors.tile} />
-      <ellipse cx={cx} cy={cy - STUD_HEIGHT} rx={STUD_INNER_RX} ry={STUD_INNER_RY} fill={colors.accent} opacity={STUD_INNER_OPACITY} />
+      <ellipse
+        cx={cx}
+        cy={cy - STUD_HEIGHT}
+        rx={STUD_INNER_RX}
+        ry={STUD_INNER_RY}
+        fill={colors.accent}
+        opacity={STUD_INNER_OPACITY}
+      />
     </g>
   );
 }
@@ -328,7 +400,8 @@ export const BrickConnector = memo(function BrickConnector({
   const hasValidationError = connectionErrors.length > 0;
 
   const endpoints = useMemo(
-    () => getConnectionEndpointWorldAnchors(connection, blocks, plates, endpointsList, externalActors),
+    () =>
+      getConnectionEndpointWorldAnchors(connection, blocks, plates, endpointsList, externalActors),
     [connection, blocks, plates, endpointsList, externalActors],
   );
 
@@ -421,12 +494,8 @@ export const BrickConnector = memo(function BrickConnector({
         ),
       )}
 
-      {elbowScreen && renderElbowJoint(
-        elbowScreen,
-        colors,
-        theme.pinHoleStyle,
-        `elbow-${connection.id}`,
-      )}
+      {elbowScreen &&
+        renderElbowJoint(elbowScreen, colors, theme.pinHoleStyle, `elbow-${connection.id}`)}
 
       {renderStud(route.srcScreen.x, route.srcScreen.y, colors, `stud-src-${connection.id}`)}
       {renderStud(route.tgtScreen.x, route.tgtScreen.y, colors, `stud-tgt-${connection.id}`)}
@@ -459,43 +528,45 @@ export const BrickConnector = memo(function BrickConnector({
         />
       )}
 
-      {hasValidationError && (isHovered || isSelected) && (() => {
-        const labelPos = route.elbow ?? {
-          x: (route.segments[0].start.x + route.segments[route.segments.length - 1].end.x) / 2,
-          y: (route.segments[0].start.y + route.segments[route.segments.length - 1].end.y) / 2,
-        };
-        const msg = connectionErrors[0].message;
-        const textWidth = Math.min(msg.length * 6.5, 220);
-        const padding = 6;
-        const rectWidth = textWidth + padding * 2;
-        const rectHeight = 22;
+      {hasValidationError &&
+        (isHovered || isSelected) &&
+        (() => {
+          const labelPos = route.elbow ?? {
+            x: (route.segments[0].start.x + route.segments[route.segments.length - 1].end.x) / 2,
+            y: (route.segments[0].start.y + route.segments[route.segments.length - 1].end.y) / 2,
+          };
+          const msg = connectionErrors[0].message;
+          const textWidth = Math.min(msg.length * 6.5, 220);
+          const padding = 6;
+          const rectWidth = textWidth + padding * 2;
+          const rectHeight = 22;
 
-        return (
-          <g data-testid="connection-error-label" pointerEvents="none">
-            <rect
-              x={labelPos.x - rectWidth / 2}
-              y={labelPos.y - rectHeight - 4}
-              width={rectWidth}
-              height={rectHeight}
-              rx={4}
-              fill="var(--accent-error, #ef4444)"
-              fillOpacity={0.92}
-            />
-            <text
-              x={labelPos.x}
-              y={labelPos.y - rectHeight / 2 - 4 + 1}
-              textAnchor="middle"
-              dominantBaseline="central"
-              fill="#ffffff"
-              fontSize={11}
-              fontFamily="var(--font-ui, system-ui)"
-              style={{ pointerEvents: 'none' }}
-            >
-              {msg.length > 35 ? msg.slice(0, 32) + '…' : msg}
-            </text>
-          </g>
-        );
-      })()}
+          return (
+            <g data-testid="connection-error-label" pointerEvents="none">
+              <rect
+                x={labelPos.x - rectWidth / 2}
+                y={labelPos.y - rectHeight - 4}
+                width={rectWidth}
+                height={rectHeight}
+                rx={4}
+                fill="var(--accent-error, #ef4444)"
+                fillOpacity={0.92}
+              />
+              <text
+                x={labelPos.x}
+                y={labelPos.y - rectHeight / 2 - 4 + 1}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fill="#ffffff"
+                fontSize={11}
+                fontFamily="var(--font-ui, system-ui)"
+                style={{ pointerEvents: 'none' }}
+              >
+                {msg.length > 35 ? msg.slice(0, 32) + '…' : msg}
+              </text>
+            </g>
+          );
+        })()}
     </g>
   );
 });

@@ -8,7 +8,11 @@ import type { ArchitectureModel } from '@cloudblocks/schema';
 
 const { listGeneratorsMock } = vi.hoisted(() => ({
   listGeneratorsMock: vi.fn(() => [
-    { id: 'terraform', displayName: 'Terraform (HCL)', supportedProviders: ['azure', 'aws', 'gcp'] },
+    {
+      id: 'terraform',
+      displayName: 'Terraform (HCL)',
+      supportedProviders: ['azure', 'aws', 'gcp'],
+    },
     { id: 'bicep', displayName: 'Bicep (Azure)', supportedProviders: ['azure'] },
     { id: 'pulumi', displayName: 'Pulumi (TypeScript)', supportedProviders: ['azure'] },
   ]),
@@ -54,8 +58,11 @@ describe('CodePreview', () => {
     useUIStore.setState({ activeProvider: 'azure', showAdvancedGeneration: false });
     useArchitectureStore.setState({
       workspace: {
-        id: 'ws-1', name: 'Test', architecture: mockArch,
-        createdAt: '', updatedAt: '',
+        id: 'ws-1',
+        name: 'Test',
+        architecture: mockArch,
+        createdAt: '',
+        updatedAt: '',
       },
     });
   });
@@ -102,9 +109,15 @@ describe('CodePreview', () => {
 
     const select = screen.getByRole('combobox');
     expect(select).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: 'Terraform (HCL)' })).toHaveAttribute('value', 'terraform');
+    expect(screen.getByRole('option', { name: 'Terraform (HCL)' })).toHaveAttribute(
+      'value',
+      'terraform',
+    );
     expect(screen.getByRole('option', { name: 'Bicep (Azure)' })).toHaveAttribute('value', 'bicep');
-    expect(screen.getByRole('option', { name: 'Pulumi (TypeScript)' })).toHaveAttribute('value', 'pulumi');
+    expect(screen.getByRole('option', { name: 'Pulumi (TypeScript)' })).toHaveAttribute(
+      'value',
+      'pulumi',
+    );
   });
 
   it('updates project name input', async () => {
@@ -129,7 +142,11 @@ describe('CodePreview', () => {
     const user = userEvent.setup();
     const mockOutput = {
       files: [
-        { path: 'main.tf', content: 'resource "azurerm_resource_group" "rg" {}', language: 'hcl' as const },
+        {
+          path: 'main.tf',
+          content: 'resource "azurerm_resource_group" "rg" {}',
+          language: 'hcl' as const,
+        },
         { path: 'variables.tf', content: 'variable "region" {}', language: 'hcl' as const },
       ],
       metadata: {
@@ -213,7 +230,12 @@ describe('CodePreview', () => {
 
     const mockOutput = {
       files: [{ path: 'main.tf', content: 'resource content', language: 'hcl' as const }],
-      metadata: { generator: 'terraform', version: '0.3.0', provider: 'azure' as const, generatedAt: '2026-01-01T00:00:00.000Z' },
+      metadata: {
+        generator: 'terraform',
+        version: '0.3.0',
+        provider: 'azure' as const,
+        generatedAt: '2026-01-01T00:00:00.000Z',
+      },
     };
     vi.mocked(generateCode).mockReturnValue(mockOutput);
 
@@ -243,7 +265,12 @@ describe('CodePreview', () => {
         { path: 'main.tf', content: 'main', language: 'hcl' as const },
         { path: 'vars.tf', content: 'vars', language: 'hcl' as const },
       ],
-      metadata: { generator: 'terraform', version: '0.3.0', provider: 'azure' as const, generatedAt: '2026-01-01T00:00:00.000Z' },
+      metadata: {
+        generator: 'terraform',
+        version: '0.3.0',
+        provider: 'azure' as const,
+        generatedAt: '2026-01-01T00:00:00.000Z',
+      },
     };
     vi.mocked(generateCode).mockReturnValue(mockOutput);
 
@@ -260,7 +287,12 @@ describe('CodePreview', () => {
     const user = userEvent.setup();
     const mockOutput = {
       files: [{ path: 'main.tf', content: 'content', language: 'hcl' as const }],
-      metadata: { generator: 'terraform', version: '0.3.0', provider: 'azure' as const, generatedAt: '2026-03-15T12:00:00.000Z' },
+      metadata: {
+        generator: 'terraform',
+        version: '0.3.0',
+        provider: 'azure' as const,
+        generatedAt: '2026-03-15T12:00:00.000Z',
+      },
     };
     vi.mocked(generateCode).mockReturnValue(mockOutput);
 
@@ -283,7 +315,12 @@ describe('CodePreview', () => {
     // Second: succeed
     const mockOutput = {
       files: [{ path: 'main.tf', content: 'ok', language: 'hcl' as const }],
-      metadata: { generator: 'terraform', version: '0.3.0', provider: 'azure' as const, generatedAt: '2026-01-01T00:00:00.000Z' },
+      metadata: {
+        generator: 'terraform',
+        version: '0.3.0',
+        provider: 'azure' as const,
+        generatedAt: '2026-01-01T00:00:00.000Z',
+      },
     };
     vi.mocked(generateCode).mockReturnValue(mockOutput);
     await user.click(screen.getByText(/Generate Code/));
@@ -333,7 +370,12 @@ describe('CodePreview', () => {
     });
     const mockOutput = {
       files: [{ path: 'main.tf', content: 'resource content', language: 'hcl' as const }],
-      metadata: { generator: 'terraform', version: '0.3.0', provider: 'azure' as const, generatedAt: '2026-01-01T00:00:00.000Z' },
+      metadata: {
+        generator: 'terraform',
+        version: '0.3.0',
+        provider: 'azure' as const,
+        generatedAt: '2026-01-01T00:00:00.000Z',
+      },
     };
     vi.mocked(generateCode).mockReturnValue(mockOutput);
 
@@ -353,7 +395,12 @@ describe('CodePreview', () => {
     });
     const mockOutput = {
       files: [{ path: 'main.tf', content: 'resource content', language: 'hcl' as const }],
-      metadata: { generator: 'terraform', version: '0.3.0', provider: 'azure' as const, generatedAt: '2026-01-01T00:00:00.000Z' },
+      metadata: {
+        generator: 'terraform',
+        version: '0.3.0',
+        provider: 'azure' as const,
+        generatedAt: '2026-01-01T00:00:00.000Z',
+      },
     };
     vi.mocked(generateCode).mockReturnValue(mockOutput);
 
@@ -367,7 +414,12 @@ describe('CodePreview', () => {
     const user = userEvent.setup();
     const mockOutput = {
       files: [],
-      metadata: { generator: 'terraform', version: '0.3.0', provider: 'azure' as const, generatedAt: '2026-01-01T00:00:00.000Z' },
+      metadata: {
+        generator: 'terraform',
+        version: '0.3.0',
+        provider: 'azure' as const,
+        generatedAt: '2026-01-01T00:00:00.000Z',
+      },
     };
     vi.mocked(generateCode).mockReturnValue(mockOutput);
 
@@ -388,11 +440,14 @@ describe('CodePreview', () => {
   it('derives default project name from architecture name', () => {
     useArchitectureStore.setState({
       workspace: {
-        id: 'ws-2', name: 'Custom', architecture: {
+        id: 'ws-2',
+        name: 'Custom',
+        architecture: {
           ...mockArch,
           name: 'My Cool App',
         },
-        createdAt: '', updatedAt: '',
+        createdAt: '',
+        updatedAt: '',
       },
     });
     render(<CodePreview />);
@@ -402,11 +457,14 @@ describe('CodePreview', () => {
   it('falls back to myproject when architecture name sanitizes to empty', () => {
     useArchitectureStore.setState({
       workspace: {
-        id: 'ws-3', name: 'Empty', architecture: {
+        id: 'ws-3',
+        name: 'Empty',
+        architecture: {
           ...mockArch,
           name: '!!!',
         },
-        createdAt: '', updatedAt: '',
+        createdAt: '',
+        updatedAt: '',
       },
     });
     render(<CodePreview />);
@@ -458,7 +516,12 @@ describe('CodePreview', () => {
     const user = userEvent.setup();
     vi.mocked(generateCode).mockReturnValue({
       files: [{ path: 'main.tf', content: 'content', language: 'hcl' as const }],
-      metadata: { generator: 'terraform', version: '0.3.0', provider: 'azure' as const, generatedAt: '2026-01-01T00:00:00.000Z' },
+      metadata: {
+        generator: 'terraform',
+        version: '0.3.0',
+        provider: 'azure' as const,
+        generatedAt: '2026-01-01T00:00:00.000Z',
+      },
     });
 
     render(<CodePreview />);
@@ -476,14 +539,39 @@ describe('CodePreview', () => {
     useUIStore.setState({ activeProvider: 'azure' });
     useArchitectureStore.setState({
       workspace: {
-        id: 'ws-1', name: 'Test', architecture: {
+        id: 'ws-1',
+        name: 'Test',
+        architecture: {
           ...mockArch,
           nodes: [
-            { id: 'b1', name: 'B1', kind: 'resource', layer: 'resource', resourceType: 'web_compute', category: 'compute', provider: 'aws' as const, parentId: null, position: { x: 0, y: 0, z: 0 }, metadata: {} },
-            { id: 'b2', name: 'B2', kind: 'resource', layer: 'resource', resourceType: 'relational_database', category: 'data', provider: 'aws' as const, parentId: null, position: { x: 0, y: 0, z: 0 }, metadata: {} },
+            {
+              id: 'b1',
+              name: 'B1',
+              kind: 'resource',
+              layer: 'resource',
+              resourceType: 'web_compute',
+              category: 'compute',
+              provider: 'aws' as const,
+              parentId: null,
+              position: { x: 0, y: 0, z: 0 },
+              metadata: {},
+            },
+            {
+              id: 'b2',
+              name: 'B2',
+              kind: 'resource',
+              layer: 'resource',
+              resourceType: 'relational_database',
+              category: 'data',
+              provider: 'aws' as const,
+              parentId: null,
+              position: { x: 0, y: 0, z: 0 },
+              metadata: {},
+            },
           ],
         },
-        createdAt: '', updatedAt: '',
+        createdAt: '',
+        updatedAt: '',
       },
     });
     render(<CodePreview />);
@@ -498,13 +586,27 @@ describe('CodePreview', () => {
     useUIStore.setState({ activeProvider: 'azure' });
     useArchitectureStore.setState({
       workspace: {
-        id: 'ws-1', name: 'Test', architecture: {
+        id: 'ws-1',
+        name: 'Test',
+        architecture: {
           ...mockArch,
           nodes: [
-            { id: 'b1', name: 'B1', kind: 'resource', layer: 'resource', resourceType: 'web_compute', category: 'compute', provider: 'azure' as const, parentId: null, position: { x: 0, y: 0, z: 0 }, metadata: {} },
+            {
+              id: 'b1',
+              name: 'B1',
+              kind: 'resource',
+              layer: 'resource',
+              resourceType: 'web_compute',
+              category: 'compute',
+              provider: 'azure' as const,
+              parentId: null,
+              position: { x: 0, y: 0, z: 0 },
+              metadata: {},
+            },
           ],
         },
-        createdAt: '', updatedAt: '',
+        createdAt: '',
+        updatedAt: '',
       },
     });
     render(<CodePreview />);
@@ -516,18 +618,31 @@ describe('CodePreview', () => {
     useUIStore.setState({ activeProvider: 'azure' });
     useArchitectureStore.setState({
       workspace: {
-        id: 'ws-1', name: 'Test', architecture: {
+        id: 'ws-1',
+        name: 'Test',
+        architecture: {
           ...mockArch,
           nodes: [
-            { id: 'b1', name: 'B1', kind: 'resource', layer: 'resource', resourceType: 'web_compute', category: 'compute', provider: 'azure', parentId: null, position: { x: 0, y: 0, z: 0 }, metadata: {} },
+            {
+              id: 'b1',
+              name: 'B1',
+              kind: 'resource',
+              layer: 'resource',
+              resourceType: 'web_compute',
+              category: 'compute',
+              provider: 'azure',
+              parentId: null,
+              position: { x: 0, y: 0, z: 0 },
+              metadata: {},
+            },
           ],
         },
-        createdAt: '', updatedAt: '',
+        createdAt: '',
+        updatedAt: '',
       },
     });
     render(<CodePreview />);
 
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
-
 });

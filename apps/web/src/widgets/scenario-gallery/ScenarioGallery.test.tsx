@@ -115,7 +115,9 @@ describe('ScenarioGallery', () => {
   it('shows scenario name, description, difficulty badge, time estimate, and tags', () => {
     render(<ScenarioGallery />);
 
-    const card = screen.getByText('Build a Three-Tier Web Application').closest('.scenario-gallery-card');
+    const card = screen
+      .getByText('Build a Three-Tier Web Application')
+      .closest('.scenario-gallery-card');
     if (!(card instanceof HTMLElement)) {
       throw new Error('Expected scenario card');
     }
@@ -137,7 +139,9 @@ describe('ScenarioGallery', () => {
     useUIStore.setState({ showScenarioGallery: true });
     render(<ScenarioGallery />);
 
-    const card = screen.getByText('Build a Three-Tier Web Application').closest('.scenario-gallery-card');
+    const card = screen
+      .getByText('Build a Three-Tier Web Application')
+      .closest('.scenario-gallery-card');
     if (!(card instanceof HTMLElement)) {
       throw new Error('Expected scenario card');
     }
@@ -178,7 +182,9 @@ describe('ScenarioGallery', () => {
     expect(screen.queryByText('Serverless HTTP API')).not.toBeInTheDocument();
 
     // Click Start on the visible card
-    const card = screen.getByText('Build a Three-Tier Web Application').closest('.scenario-gallery-card');
+    const card = screen
+      .getByText('Build a Three-Tier Web Application')
+      .closest('.scenario-gallery-card');
     if (!(card instanceof HTMLElement)) throw new Error('Expected scenario card');
     await user.click(within(card).getByRole('button', { name: 'Start' }));
 
@@ -217,7 +223,9 @@ describe('ScenarioGallery', () => {
     await user.click(screen.getByRole('button', { name: 'Beginner' }));
     expect(screen.queryByText('Serverless HTTP API')).not.toBeInTheDocument();
 
-    const card = screen.getByText('Build a Three-Tier Web Application').closest('.scenario-gallery-card');
+    const card = screen
+      .getByText('Build a Three-Tier Web Application')
+      .closest('.scenario-gallery-card');
     if (!(card instanceof HTMLElement)) {
       throw new Error('Expected scenario card');
     }

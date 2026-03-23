@@ -75,6 +75,7 @@ All AI endpoints require authentication (cookie-based session). The `/ai/generat
 ## Consequences
 
 **Benefits:**
+
 - Users can generate architectures from natural language without manual block placement.
 - BYOK model eliminates the need for CloudBlocks to manage or pay for LLM API access.
 - Adapter interface allows adding new LLM providers without changing endpoint logic.
@@ -82,12 +83,14 @@ All AI endpoints require authentication (cookie-based session). The `/ai/generat
 - Cost estimation provides immediate feedback on infrastructure spend.
 
 **Trade-offs:**
+
 - Single-shot generation cannot handle complex, iterative design refinement (future work: conversational mode).
 - Cost estimates depend on Infracost accuracy and the subtype→Terraform mapping completeness.
 - BYOK means users must obtain their own API keys, adding onboarding friction.
 - LLM quality varies — the system prompt and few-shot examples must be maintained as the domain model evolves.
 
 **Future evolution:**
+
 - Add more LLM providers (Anthropic Claude, local Ollama).
 - Move to conversational architecture refinement (Level 3).
 - Integrate cost estimation directly into the generation loop (cost-aware generation).

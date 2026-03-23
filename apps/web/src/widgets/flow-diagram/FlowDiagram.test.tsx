@@ -2,7 +2,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { FlowDiagram } from './FlowDiagram';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import type { ArchitectureModel, Connection, ExternalActor, LeafNode, ProviderType, ResourceCategory } from '@cloudblocks/schema';
+import type {
+  ArchitectureModel,
+  Connection,
+  ExternalActor,
+  LeafNode,
+  ProviderType,
+  ResourceCategory,
+} from '@cloudblocks/schema';
 import { endpointId } from '@cloudblocks/schema';
 
 vi.mock('./FlowDiagram.css', () => ({}));
@@ -98,7 +105,9 @@ describe('FlowDiagram', () => {
 
     const { container } = render(<FlowDiagram />);
 
-    const nodes = Array.from(container.querySelectorAll('.flow-node')).map((node) => node.textContent?.trim());
+    const nodes = Array.from(container.querySelectorAll('.flow-node')).map((node) =>
+      node.textContent?.trim(),
+    );
     expect(nodes).toEqual(['⚖️gateway-1-name', '🖥️compute-1-name', '🗄️database-1-name']);
   });
 
@@ -296,7 +305,9 @@ describe('FlowDiagram', () => {
     });
 
     const { container } = render(<FlowDiagram />);
-    const nodes = Array.from(container.querySelectorAll('.flow-node')).map((node) => node.textContent?.trim());
+    const nodes = Array.from(container.querySelectorAll('.flow-node')).map((node) =>
+      node.textContent?.trim(),
+    );
 
     expect(nodes).toContain('🖥️compute-1-name');
     expect(nodes.indexOf('🖥️compute-1-name')).toBeGreaterThan(nodes.indexOf('⚖️gateway-1-name'));
@@ -327,7 +338,9 @@ describe('FlowDiagram', () => {
     const { container } = render(<FlowDiagram />);
 
     // Both nodes should be present despite forming a cycle
-    const nodes = Array.from(container.querySelectorAll('.flow-node')).map((node) => node.textContent?.trim());
+    const nodes = Array.from(container.querySelectorAll('.flow-node')).map((node) =>
+      node.textContent?.trim(),
+    );
     expect(nodes).toHaveLength(2);
     expect(nodes).toContain('🖥️function-1-name');
     expect(nodes).toContain('📨queue-1-name');

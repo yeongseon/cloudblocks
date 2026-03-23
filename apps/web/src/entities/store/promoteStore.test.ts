@@ -83,12 +83,8 @@ describe('usePromoteStore', () => {
   describe('updateChecklist', () => {
     it('updates individual checklist keys', () => {
       usePromoteStore.getState().updateChecklist('stagingHealthy', true);
-      expect(
-        usePromoteStore.getState().promotionChecklist.stagingHealthy,
-      ).toBe(true);
-      expect(usePromoteStore.getState().promotionChecklist.ciPassed).toBe(
-        false,
-      );
+      expect(usePromoteStore.getState().promotionChecklist.stagingHealthy).toBe(true);
+      expect(usePromoteStore.getState().promotionChecklist.ciPassed).toBe(false);
 
       usePromoteStore.getState().updateChecklist('ciPassed', true);
       expect(usePromoteStore.getState().promotionChecklist.ciPassed).toBe(true);
@@ -142,9 +138,7 @@ describe('usePromoteStore', () => {
         environment: 'production' as const,
       };
 
-      const promise = usePromoteStore
-        .getState()
-        .rollback(version, 'Memory leak detected');
+      const promise = usePromoteStore.getState().rollback(version, 'Memory leak detected');
       expect(usePromoteStore.getState().rollingBack).toBe(true);
 
       await act(async () => {

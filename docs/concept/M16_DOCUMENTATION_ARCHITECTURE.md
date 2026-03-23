@@ -30,16 +30,16 @@ With M15 now complete and the v2.0 specification implemented, this is the right 
 
 All 12 sub-issues from Epic #356. These restore a coherent documentation architecture by establishing clear layering:
 
-| Layer | Purpose |
-|-------|---------|
-| System architecture | Current runtime topology, module boundaries, storage/auth/data flow |
-| Domain model | Current canonical types and serialization ownership |
-| Validation | One canonical contract for implemented rules and extension policy |
-| Design specs | Explicit split between current main-branch behavior and target v2.0 spec |
-| Guides/examples | Current usage conventions only; future paths labeled explicitly |
-| Planning vocabulary | Milestone and Phase assigned clear, non-overlapping meanings |
-| Lifecycle policy | Merged docs updated, demoted, or archived based on explicit rules |
-| Archive/Historical | Execution plans, audits, and superseded refs removed from active guidance |
+| Layer               | Purpose                                                                   |
+| ------------------- | ------------------------------------------------------------------------- |
+| System architecture | Current runtime topology, module boundaries, storage/auth/data flow       |
+| Domain model        | Current canonical types and serialization ownership                       |
+| Validation          | One canonical contract for implemented rules and extension policy         |
+| Design specs        | Explicit split between current main-branch behavior and target v2.0 spec  |
+| Guides/examples     | Current usage conventions only; future paths labeled explicitly           |
+| Planning vocabulary | Milestone and Phase assigned clear, non-overlapping meanings              |
+| Lifecycle policy    | Merged docs updated, demoted, or archived based on explicit rules         |
+| Archive/Historical  | Execution plans, audits, and superseded refs removed from active guidance |
 
 ### Area B: Code/Document Consistency Verification
 
@@ -49,20 +49,20 @@ A systematic check that all canonical documents accurately reflect the codebase 
 
 ## Sub-Issues (Epic #356)
 
-| # | Title | Size | Status |
-|---|-------|------|--------|
-| #346 | Refresh backend API and storage docs to match implemented route surface | M | Open |
-| #347 | Fix docs navigation, project structure, and contributor setup references | M | Open |
-| #348 | Align auth, security, and deployment docs with cookie-session implementation | M | Open |
-| #349 | Normalize roadmap, version, and implementation-status markers across docs | L | Open |
-| #350 | Reconcile canonical and superseded design spec declarations (v1.x/v2.0) | M | Open |
-| #355 | Archive or retire time-bound and superseded docs from active surface | M | Open |
-| #357 | Consolidate validation and rule-engine docs into one canonical contract | M | Open |
-| #358 | Realign system, model, and storage architecture docs with actual runtime | L | Open |
-| #364 | Reconcile Learning Mode spec with current domain model and scenarios | M | Open |
-| #365 | Align templates, examples, and tutorial packaging docs | M | **Closed** (PR #367 merged) |
-| #366 | Standardize Milestone vs Phase terminology across active docs | M | Open |
-| #368 | Define lifecycle rules for already-merged documentation | M | Open |
+| #    | Title                                                                        | Size | Status                      |
+| ---- | ---------------------------------------------------------------------------- | ---- | --------------------------- |
+| #346 | Refresh backend API and storage docs to match implemented route surface      | M    | Open                        |
+| #347 | Fix docs navigation, project structure, and contributor setup references     | M    | Open                        |
+| #348 | Align auth, security, and deployment docs with cookie-session implementation | M    | Open                        |
+| #349 | Normalize roadmap, version, and implementation-status markers across docs    | L    | Open                        |
+| #350 | Reconcile canonical and superseded design spec declarations (v1.x/v2.0)      | M    | Open                        |
+| #355 | Archive or retire time-bound and superseded docs from active surface         | M    | Open                        |
+| #357 | Consolidate validation and rule-engine docs into one canonical contract      | M    | Open                        |
+| #358 | Realign system, model, and storage architecture docs with actual runtime     | L    | Open                        |
+| #364 | Reconcile Learning Mode spec with current domain model and scenarios         | M    | Open                        |
+| #365 | Align templates, examples, and tutorial packaging docs                       | M    | **Closed** (PR #367 merged) |
+| #366 | Standardize Milestone vs Phase terminology across active docs                | M    | Open                        |
+| #368 | Define lifecycle rules for already-merged documentation                      | M    | Open                        |
 
 ---
 
@@ -72,11 +72,11 @@ A systematic check that all canonical documents accurately reflect the codebase 
 
 Establish the conventions and policies that all subsequent documentation work must follow.
 
-| Issue | Title | Rationale |
-|-------|-------|-----------|
-| #349 | Normalize roadmap, version, and implementation-status markers | Defines how status markers work across all docs |
-| #366 | Standardize Milestone vs Phase terminology | Establishes planning vocabulary before other docs reference it |
-| #368 | Define lifecycle rules for merged documentation | Sets update/demote/archive policy before reconciliation begins |
+| Issue | Title                                                         | Rationale                                                      |
+| ----- | ------------------------------------------------------------- | -------------------------------------------------------------- |
+| #349  | Normalize roadmap, version, and implementation-status markers | Defines how status markers work across all docs                |
+| #366  | Standardize Milestone vs Phase terminology                    | Establishes planning vocabulary before other docs reference it |
+| #368  | Define lifecycle rules for merged documentation               | Sets update/demote/archive policy before reconciliation begins |
 
 **Output**: Documented conventions for status markers, planning terminology, and document lifecycle. All subsequent waves follow these conventions.
 
@@ -84,12 +84,12 @@ Establish the conventions and policies that all subsequent documentation work mu
 
 Reconcile the major canonical documents with the codebase and with each other.
 
-| Issue | Title | Rationale |
-|-------|-------|-----------|
-| #350 | Reconcile canonical vs superseded design spec declarations | Resolve v1.x/v2.0 authority conflicts |
-| #358 | Realign system, model, and storage architecture docs with runtime | Largest single issue — ensures architecture docs match code |
-| #357 | Consolidate validation/rule-engine docs into one canonical contract | Merge duplicate validation authority |
-| #364 | Reconcile Learning Mode spec with current domain model | Align education content with actual domain |
+| Issue | Title                                                               | Rationale                                                   |
+| ----- | ------------------------------------------------------------------- | ----------------------------------------------------------- |
+| #350  | Reconcile canonical vs superseded design spec declarations          | Resolve v1.x/v2.0 authority conflicts                       |
+| #358  | Realign system, model, and storage architecture docs with runtime   | Largest single issue — ensures architecture docs match code |
+| #357  | Consolidate validation/rule-engine docs into one canonical contract | Merge duplicate validation authority                        |
+| #364  | Reconcile Learning Mode spec with current domain model              | Align education content with actual domain                  |
 
 **Output**: All major canonical documents reconciled. No conflicting authority claims remain.
 
@@ -97,12 +97,12 @@ Reconcile the major canonical documents with the codebase and with each other.
 
 Align remaining supporting docs and archive superseded material.
 
-| Issue | Title | Rationale |
-|-------|-------|-----------|
-| #346 | Refresh backend API and storage docs | Match docs to implemented API surface |
-| #347 | Fix docs navigation, project structure, contributor setup | Update docs/README.md navigation and onboarding |
-| #348 | Align auth/security/deployment docs with cookie-session | Reflect actual auth implementation |
-| #355 | Archive/retire time-bound and superseded docs | Clean up active doc surface |
+| Issue | Title                                                     | Rationale                                       |
+| ----- | --------------------------------------------------------- | ----------------------------------------------- |
+| #346  | Refresh backend API and storage docs                      | Match docs to implemented API surface           |
+| #347  | Fix docs navigation, project structure, contributor setup | Update docs/README.md navigation and onboarding |
+| #348  | Align auth/security/deployment docs with cookie-session   | Reflect actual auth implementation              |
+| #355  | Archive/retire time-bound and superseded docs             | Clean up active doc surface                     |
 
 **Output**: All supporting docs accurate. Historical/superseded docs archived with clear labels.
 
@@ -140,15 +140,15 @@ Update the project's entry points to reflect current state:
 
 Review, merge, or close the 7 open documentation PRs from Epic #356:
 
-| PR | Title | Branch |
-|----|-------|--------|
-| #352 | Align auth/security/deployment docs | docs/auth-session-doc-alignment |
-| #353 | Normalize roadmap/version/status markers | docs/status-version-normalization |
-| #354 | Reconcile v1.x vs v2.0 spec declarations | docs/v1-v2-spec-taxonomy |
-| #359 | Refresh backend API/storage docs | docs/backend-api-storage-sync |
-| #361 | Archive superseded v1.x design specs | docs/archive-superseded-docs |
-| #362 | Consolidate validation/rule-engine docs | docs/runtime-architecture-realignment |
-| #363 | Realign architecture docs with runtime | docs/runtime-architecture-realignment-v2 |
+| PR   | Title                                    | Branch                                   |
+| ---- | ---------------------------------------- | ---------------------------------------- |
+| #352 | Align auth/security/deployment docs      | docs/auth-session-doc-alignment          |
+| #353 | Normalize roadmap/version/status markers | docs/status-version-normalization        |
+| #354 | Reconcile v1.x vs v2.0 spec declarations | docs/v1-v2-spec-taxonomy                 |
+| #359 | Refresh backend API/storage docs         | docs/backend-api-storage-sync            |
+| #361 | Archive superseded v1.x design specs     | docs/archive-superseded-docs             |
+| #362 | Consolidate validation/rule-engine docs  | docs/runtime-architecture-realignment    |
+| #363 | Realign architecture docs with runtime   | docs/runtime-architecture-realignment-v2 |
 
 For each PR: review against Wave 1 conventions, request changes or approve, merge or close with explanation.
 

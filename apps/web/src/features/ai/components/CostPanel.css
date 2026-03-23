@@ -14,8 +14,8 @@
 .cost-total,
 .cost-hourly {
   flex: 1;
-  background: #FFFDE7;
-  border: 2px solid #D4B200;
+  background: #fffde7;
+  border: 2px solid #d4b200;
   border-radius: 8px;
   padding: 10px;
   text-align: center;
@@ -27,7 +27,7 @@
   font-size: 10px;
   font-weight: 800;
   text-transform: uppercase;
-  color: #998C40;
+  color: #998c40;
   letter-spacing: 0.5px;
   margin-bottom: 4px;
 }
@@ -66,7 +66,7 @@
   text-transform: uppercase;
   color: #888;
   padding: 4px 8px;
-  border-bottom: 2px solid #E0E0E0;
+  border-bottom: 2px solid #e0e0e0;
 }
 
 .cost-table th:last-child {
@@ -75,7 +75,7 @@
 
 .cost-table td {
   padding: 6px 8px;
-  border-bottom: 1px solid #F0F0F0;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .cost-resource-name {
@@ -95,7 +95,7 @@
   padding: 24px;
   font-size: 13px;
   font-weight: 600;
-  color: #998C40;
+  color: #998c40;
 }
 
 .cost-error {
@@ -103,9 +103,9 @@
   padding: 12px;
   font-size: 12px;
   font-weight: 600;
-  color: #E3000B;
-  background: #FFF5F5;
-  border: 2px solid #E3000B;
+  color: #e3000b;
+  background: #fff5f5;
+  border: 2px solid #e3000b;
   border-radius: 8px;
 }
 

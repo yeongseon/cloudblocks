@@ -82,9 +82,7 @@ export const SuggestionsPanel: React.FC = () => {
   if (!result) {
     return (
       <div className="suggestions-panel" data-testid="suggestions-panel">
-        <div className="suggestions-empty">
-          Run AI analysis to get architecture suggestions.
-        </div>
+        <div className="suggestions-empty">Run AI analysis to get architecture suggestions.</div>
       </div>
     );
   }
@@ -103,9 +101,7 @@ export const SuggestionsPanel: React.FC = () => {
       )}
 
       <div className="suggestions-list">
-        <h4 className="suggestions-section-title">
-          Suggestions ({suggestions.length})
-        </h4>
+        <h4 className="suggestions-section-title">Suggestions ({suggestions.length})</h4>
         {suggestions.length === 0 ? (
           <div className="suggestions-empty">No suggestions — looking good!</div>
         ) : (

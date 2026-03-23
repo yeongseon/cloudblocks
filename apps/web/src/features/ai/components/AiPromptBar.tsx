@@ -59,22 +59,18 @@ export const AiPromptBar: React.FC<AiPromptBarProps> = ({
           title="Generate Architecture"
           type="button"
         >
-          {isLoading ? (
-            <div className="ai-loading-spinner" data-testid="loading-spinner" />
-          ) : (
-            '✨'
-          )}
+          {isLoading ? <div className="ai-loading-spinner" data-testid="loading-spinner" /> : '✨'}
         </button>
       </div>
-      {disabledMessage && (
-        <ComingSoonBanner message={disabledMessage} className="ai-coming-soon" />
-      )}
+      {disabledMessage && <ComingSoonBanner message={disabledMessage} className="ai-coming-soon" />}
       {error && <div className="ai-error-message">{error}</div>}
       {explanation && <div className="ai-explanation">{explanation}</div>}
       {warnings && warnings.length > 0 && (
         <div className="ai-warnings">
           {warnings.map((w) => (
-            <div key={w} className="ai-warning-item">⚠️ {w}</div>
+            <div key={w} className="ai-warning-item">
+              ⚠️ {w}
+            </div>
           ))}
         </div>
       )}

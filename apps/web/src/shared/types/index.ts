@@ -44,11 +44,7 @@ export {
   resolveConnectionNodes,
 } from '@cloudblocks/schema';
 
-export {
-  BLOCK_ROLES,
-  CONNECTION_TYPE_LABELS,
-  VALID_PARENTS,
-} from '@cloudblocks/domain';
+export { BLOCK_ROLES, CONNECTION_TYPE_LABELS, VALID_PARENTS } from '@cloudblocks/domain';
 
 export type {
   RuleDefinition,
@@ -61,8 +57,8 @@ export type {
 // ─── Role Model (v2.0 §9) ────────────────────────────────────
 
 export interface RoleVisualIndicator {
-  icon: string;       // emoji or symbol badge
-  label: string;      // accessible label
+  icon: string; // emoji or symbol badge
+  label: string; // accessible label
   borderStyle?: string; // CSS border style override
 }
 
@@ -146,25 +142,32 @@ export const BLOCK_SHORT_NAMES: Record<ResourceCategory, string> = {
   operations: 'Ops Monitor',
 };
 
-export const BLOCK_ENCYCLOPEDIA: Record<ResourceCategory, {
-  what: string;
-  placement: string;
-  connections: string;
-}> = {
+export const BLOCK_ENCYCLOPEDIA: Record<
+  ResourceCategory,
+  {
+    what: string;
+    placement: string;
+    connections: string;
+  }
+> = {
   network: {
     what: 'Virtual networks define isolated private address spaces. All other resources live inside network boundaries.',
     placement: 'Must be placed as the outermost container. Subnets nest inside networks.',
-    connections: 'Network resources rarely have direct connections. They provide the boundary for subnet-level routing.',
+    connections:
+      'Network resources rarely have direct connections. They provide the boundary for subnet-level routing.',
   },
   security: {
     what: 'Security services enforce access control, identity verification, and threat protection across your architecture.',
     placement: 'Place inside a subnet alongside protected resources.',
-    connections: 'Connects to compute and data nodes via internal or data connections for policy enforcement.',
+    connections:
+      'Connects to compute and data nodes via internal or data connections for policy enforcement.',
   },
   edge: {
     what: 'Load balancers and CDNs distribute incoming traffic across backend compute instances for high availability.',
-    placement: 'Place in a subnet to receive external traffic. Routes to compute nodes in other subnets.',
-    connections: 'Receives HTTP connections from external actors. Sends dataflow connections to compute targets.',
+    placement:
+      'Place in a subnet to receive external traffic. Routes to compute nodes in other subnets.',
+    connections:
+      'Receives HTTP connections from external actors. Sends dataflow connections to compute targets.',
   },
   compute: {
     what: 'Compute instances run application code — virtual machines, containers, or serverless functions.',
@@ -173,25 +176,32 @@ export const BLOCK_ENCYCLOPEDIA: Record<ResourceCategory, {
   },
   data: {
     what: 'Data stores persist structured or unstructured information — databases, blob storage, caches.',
-    placement: 'Place in a subnet. Use NSG rules to restrict access rather than relying on subnet type.',
-    connections: 'Receives data connections from compute nodes. May replicate via async connections.',
+    placement:
+      'Place in a subnet. Use NSG rules to restrict access rather than relying on subnet type.',
+    connections:
+      'Receives data connections from compute nodes. May replicate via async connections.',
   },
   messaging: {
     what: 'Message services enable asynchronous communication between decoupled components — queues, topics, event streams.',
     placement: 'Place in a subnet. Acts as a buffer between producer and consumer services.',
-    connections: 'Receives async connections from producers. Sends async connections to consumer compute nodes.',
+    connections:
+      'Receives async connections from producers. Sends async connections to consumer compute nodes.',
   },
   operations: {
     what: 'Monitoring and observability services collect metrics, logs, and traces from all running resources.',
     placement: 'Place in a subnet. Needs network access to all monitored resources.',
-    connections: 'Receives internal connections from all resources being monitored. Typically read-only telemetry.',
+    connections:
+      'Receives internal connections from all resources being monitored. Typically read-only telemetry.',
   },
 };
 
-export const CONNECTION_ENCYCLOPEDIA: Record<string, {
-  what: string;
-  usage: string;
-}> = {
+export const CONNECTION_ENCYCLOPEDIA: Record<
+  string,
+  {
+    what: string;
+    usage: string;
+  }
+> = {
   dataflow: {
     what: 'General-purpose data movement between resources. Use when data flows in one direction without a specific protocol.',
     usage: 'Load balancer to compute, compute to data store, any producer-consumer pattern.',
@@ -202,7 +212,8 @@ export const CONNECTION_ENCYCLOPEDIA: Record<string, {
   },
   internal: {
     what: 'Private network communication between resources in the same network. No public internet exposure.',
-    usage: 'Compute to security services, monitoring agents to operations, internal microservice calls.',
+    usage:
+      'Compute to security services, monitoring agents to operations, internal microservice calls.',
   },
   data: {
     what: 'Database protocol connections — SQL queries, key-value lookups, document reads/writes.',
@@ -214,10 +225,13 @@ export const CONNECTION_ENCYCLOPEDIA: Record<string, {
   },
 };
 
-export const PLATE_ENCYCLOPEDIA: Record<string, {
-  what: string;
-  rules: string;
-}> = {
+export const PLATE_ENCYCLOPEDIA: Record<
+  string,
+  {
+    what: string;
+    rules: string;
+  }
+> = {
   global: {
     what: 'The outermost boundary representing your entire cloud environment or a multi-region deployment.',
     rules: 'Can contain edge, region, and zone plates. Cannot be nested inside other plates.',
@@ -269,8 +283,8 @@ export interface PlateProfile {
   description: string;
   studsX: number;
   studsY: number;
-  worldWidth: number;  // = studsX (world units match stud count)
-  worldDepth: number;  // = studsY
+  worldWidth: number; // = studsX (world units match stud count)
+  worldDepth: number; // = studsY
   worldHeight: number; // VNet = 0.7 (thick), Subnet = 0.5 (medium)
   recommendedCapacity: number;
   exampleCidrs: {
@@ -314,7 +328,8 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     id: 'network-application',
     type: 'region',
     displayName: 'Application',
-    description: 'Standard application VNet. Hosts a single workload with public/private separation.',
+    description:
+      'Standard application VNet. Hosts a single workload with public/private separation.',
     studsX: 12,
     studsY: 16,
     worldWidth: 12,
@@ -454,9 +469,7 @@ export function inferLegacyPlateProfileId(legacyPlate: LegacyPlateShape): PlateP
   const candidates = Object.values(PLATE_PROFILES).filter((p) => p.type === type);
 
   // Find exact match first
-  const exact = candidates.find(
-    (p) => p.worldWidth === size.width && p.worldDepth === size.depth
-  );
+  const exact = candidates.find((p) => p.worldWidth === size.width && p.worldDepth === size.depth);
   if (exact) return exact.id;
 
   // Find closest by area
@@ -486,24 +499,53 @@ export const DEFAULT_PLATE_SIZE: Record<PlateType, Size> = {
   subnet: buildPlateSizeFromProfileId(DEFAULT_PLATE_PROFILE.subnet),
 };
 
-export { type BlockVisualProfile, type BrickSurface, type BrickSilhouette, type BlockTier, type BlockDimensionsCU, BLOCK_VISUAL_PROFILES, TIER_DIMENSIONS, CATEGORY_TIER_MAP, SUBTYPE_SIZE_OVERRIDES, getBlockVisualProfile, getBlockDimensions } from './visualProfile';
+export {
+  type BlockVisualProfile,
+  type BrickSurface,
+  type BrickSilhouette,
+  type BlockTier,
+  type BlockDimensionsCU,
+  BLOCK_VISUAL_PROFILES,
+  TIER_DIMENSIONS,
+  CATEGORY_TIER_MAP,
+  SUBTYPE_SIZE_OVERRIDES,
+  getBlockVisualProfile,
+  getBlockDimensions,
+} from './visualProfile';
 
 // ─── Persona System (M20 §3b) ─────────────────────────────
 
 export type Persona = 'devops' | 'backend' | 'pm' | 'student';
 export type ComplexityLevel = 'beginner' | 'standard' | 'advanced';
 
-export const PERSONA_LABELS: Record<Persona, { icon: string; title: string; description: string }> = {
-  devops:  { icon: '\u{1F6E0}\u{FE0F}', title: 'DevOps Engineer',     description: 'I deploy and manage infrastructure' },
-  backend: { icon: '\u{1F4BB}',          title: 'Backend Developer',   description: 'I design and build applications' },
-  pm:      { icon: '\u{1F4CA}',          title: 'Product Manager',     description: 'I review and communicate architecture' },
-  student: { icon: '\u{1F393}',          title: 'Student',             description: "I'm learning cloud architecture" },
-};
+export const PERSONA_LABELS: Record<Persona, { icon: string; title: string; description: string }> =
+  {
+    devops: {
+      icon: '\u{1F6E0}\u{FE0F}',
+      title: 'DevOps Engineer',
+      description: 'I deploy and manage infrastructure',
+    },
+    backend: {
+      icon: '\u{1F4BB}',
+      title: 'Backend Developer',
+      description: 'I design and build applications',
+    },
+    pm: {
+      icon: '\u{1F4CA}',
+      title: 'Product Manager',
+      description: 'I review and communicate architecture',
+    },
+    student: {
+      icon: '\u{1F393}',
+      title: 'Student',
+      description: "I'm learning cloud architecture",
+    },
+  };
 
 export const PERSONA_COMPLEXITY_MAP: Record<Persona, ComplexityLevel> = {
-  devops:  'advanced',
+  devops: 'advanced',
   backend: 'standard',
-  pm:      'beginner',
+  pm: 'beginner',
   student: 'beginner',
 };
 
