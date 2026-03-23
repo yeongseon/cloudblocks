@@ -27,7 +27,7 @@
     "@eslint/js": "^10.0.1",
     "eslint": "^10.1.0",
     "eslint-config-prettier": "^10.1.8",
-    "ts-json-schema-generator": "2.4.0",
+    "ts-json-schema-generator": "2.9.0",
     "tsx": "^4.19.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.56.1",
