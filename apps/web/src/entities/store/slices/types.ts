@@ -56,6 +56,7 @@ export interface ArchitectureState {
   removeNode: (id: string, options?: RemoveNodeOptions) => void;
   renameNode: (id: string, newName: string) => void;
   moveNodePosition: (id: string, deltaX: number, deltaZ: number) => void;
+  updateNodeMetadata: (id: string, key: string, value: unknown) => void;
 
   // ── Deprecated — use unified API above ─────────────────────────
   /** @deprecated Use addNode({ kind: 'container', ... }) */

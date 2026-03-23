@@ -11,15 +11,11 @@ let targetElements: HTMLElement[] = [];
 function createTargetElements() {
   const selectors = [
     'empty-canvas-overlay',
-    'bottom-panel-command',
     'sidebar-palette',
-    'menu-bar-nav',
     'scene-canvas',
-    'bottom-panel-minimap',
-    'bottom-panel-detail',
-    'bottom-panel-tab-content',
-    'inspector-panel',
-    'bottom-panel',
+    'right-drawer',
+    'menu-bar-nav',
+    'builder-canvas',
   ];
   for (const cls of selectors) {
     const el = document.createElement('div');
@@ -141,7 +137,7 @@ describe('OnboardingTour', () => {
       await new Promise((r) => requestAnimationFrame(r));
     });
 
-    expect(screen.getByText('Command Panel')).toBeInTheDocument();
+    expect(screen.getByText('Resource Palette')).toBeInTheDocument();
   });
 
   it('goes back to previous step on Back click', async () => {
@@ -186,7 +182,7 @@ describe('OnboardingTour', () => {
       await new Promise((r) => requestAnimationFrame(r));
     });
 
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 4; i++) {
       fireEvent.click(screen.getByText('Next'));
       await act(async () => {
         await new Promise((r) => requestAnimationFrame(r));
@@ -219,7 +215,7 @@ describe('OnboardingTour', () => {
       await new Promise((r) => requestAnimationFrame(r));
     });
 
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 4; i++) {
       fireEvent.click(screen.getByText('Next'));
       await act(async () => {
         await new Promise((r) => requestAnimationFrame(r));
@@ -246,7 +242,43 @@ describe('OnboardingTour', () => {
     expect(useUIStore.getState().showOnboarding).toBe(false);
   });
 
-  it('shows step 4 content: Minimap', async () => {
+  it('shows step 3 content: Canvas', async () => {
+    useUIStore.setState({ showOnboarding: true });
+    render(<OnboardingTour />);
+
+    await act(async () => {
+      await new Promise((r) => requestAnimationFrame(r));
+    });
+
+    for (let i = 0; i < 2; i++) {
+      fireEvent.click(screen.getByText('Next'));
+      await act(async () => {
+        await new Promise((r) => requestAnimationFrame(r));
+      });
+    }
+
+    expect(screen.getByText('Canvas')).toBeInTheDocument();
+  });
+
+  it('shows step 5 content: Menu Bar', async () => {
+    useUIStore.setState({ showOnboarding: true });
+    render(<OnboardingTour />);
+
+    await act(async () => {
+      await new Promise((r) => requestAnimationFrame(r));
+    });
+
+    for (let i = 0; i < 4; i++) {
+      fireEvent.click(screen.getByText('Next'));
+      await act(async () => {
+        await new Promise((r) => requestAnimationFrame(r));
+      });
+    }
+
+    expect(screen.getByText('Menu Bar')).toBeInTheDocument();
+  });
+
+  it('shows right drawer step content', async () => {
     useUIStore.setState({ showOnboarding: true });
     render(<OnboardingTour />);
 
@@ -261,54 +293,13 @@ describe('OnboardingTour', () => {
       });
     }
 
-    expect(screen.getByText('Minimap')).toBeInTheDocument();
-  });
-
-  it('shows step 8 content: Menu Bar', async () => {
-    useUIStore.setState({ showOnboarding: true });
-    render(<OnboardingTour />);
-
-    await act(async () => {
-      await new Promise((r) => requestAnimationFrame(r));
-    });
-
-    for (let i = 0; i < 7; i++) {
-      fireEvent.click(screen.getByText('Next'));
-      await act(async () => {
-        await new Promise((r) => requestAnimationFrame(r));
-      });
-    }
-
-    expect(screen.getByText('Menu Bar')).toBeInTheDocument();
-  });
-
-  it('shows inspector step content', async () => {
-    useUIStore.setState({ showOnboarding: true });
-    render(<OnboardingTour />);
-
-    await act(async () => {
-      await new Promise((r) => requestAnimationFrame(r));
-    });
-
-    for (let i = 0; i < 6; i++) {
-      fireEvent.click(screen.getByText('Next'));
-      await act(async () => {
-        await new Promise((r) => requestAnimationFrame(r));
-      });
-    }
-
-    expect(screen.getByText('Inspector')).toBeInTheDocument();
+    expect(screen.getByText('Right Drawer')).toBeInTheDocument();
   });
 
   it('ensure visible opens sidebar for palette step', async () => {
     useUIStore.setState({ showOnboarding: true, sidebar: { isOpen: false } });
     render(<OnboardingTour />);
 
-    await act(async () => {
-      await new Promise((r) => requestAnimationFrame(r));
-    });
-
-    fireEvent.click(screen.getByText('Next'));
     await act(async () => {
       await new Promise((r) => requestAnimationFrame(r));
     });

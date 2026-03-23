@@ -4,12 +4,10 @@ import type { ContainerNode, LeafNode } from '@cloudblocks/schema';
 import { SceneCanvas } from '../widgets/scene-canvas/SceneCanvas';
 import { MenuBar } from '../widgets/menu-bar/MenuBar';
 import { SidebarPalette } from '../widgets/sidebar-palette';
-import { InspectorPanel } from '../widgets/inspector-panel';
-import { FlowDiagram } from '../widgets/flow-diagram/FlowDiagram';
-import { BottomPanel } from '../widgets/bottom-panel';
-import { LearningPanel } from '../widgets/learning-panel/LearningPanel';
 import { OnboardingTour } from '../widgets/onboarding-tour/OnboardingTour';
 import { FigureHelper } from '../widgets/figure-helper/FigureHelper';
+import { RightDrawer } from '../widgets/right-drawer';
+import { EmptyCanvasCTA } from '../widgets/empty-canvas-cta';
 import { useArchitectureStore } from '../entities/store/architectureStore';
 import { useAuthStore } from '../entities/store/authStore';
 import { useUIStore } from '../entities/store/uiStore';
@@ -17,7 +15,6 @@ import { usePromoteStore } from '../entities/store/promoteStore';
 import { audioService } from '../shared/utils/audioService';
 import { isApiConfigured } from '../shared/api/client';
 import './BuilderView.css';
-import './LearnMode.css';
 
 const WorkspaceManager = lazy(() =>
   import('../widgets/workspace-manager/WorkspaceManager').then((m) => ({
@@ -27,11 +24,6 @@ const WorkspaceManager = lazy(() =>
 const TemplateGallery = lazy(() =>
   import('../widgets/template-gallery/TemplateGallery').then((m) => ({
     default: m.TemplateGallery,
-  })),
-);
-const ScenarioGallery = lazy(() =>
-  import('../widgets/scenario-gallery/ScenarioGallery').then((m) => ({
-    default: m.ScenarioGallery,
   })),
 );
 const GitHubLogin = lazy(() =>
@@ -81,18 +73,14 @@ export function BuilderView() {
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const interactionState = useUIStore((s) => s.interactionState);
   const cancelInteraction = useUIStore((s) => s.cancelInteraction);
-  const editorMode = useUIStore((s) => s.editorMode);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
   const showWorkspaceManager = useUIStore((s) => s.showWorkspaceManager);
   const showGitHubLogin = useUIStore((s) => s.showGitHubLogin);
   const showGitHubRepos = useUIStore((s) => s.showGitHubRepos);
   const showGitHubPR = useUIStore((s) => s.showGitHubPR);
   const showTemplateGallery = useUIStore((s) => s.showTemplateGallery);
-  const showScenarioGallery = useUIStore((s) => s.showScenarioGallery);
   const persona = useUIStore((s) => s.persona);
   const sidebarOpen = useUIStore((s) => s.sidebar.isOpen);
-  const inspectorOpen = useUIStore((s) => s.inspector.isOpen);
-  const bottomDockOpen = useUIStore((s) => s.bottomDock.isOpen);
   const workspaceId = useArchitectureStore((s) => s.workspace.id);
 
   const showPromoteDialog = usePromoteStore((s) => s.showPromoteDialog);
@@ -136,10 +124,12 @@ export function BuilderView() {
     })();
   }, []);
 
+  // First-run-only: auto-show scenario drawer once for new users
   useEffect(() => {
-    if (persona === 'student') {
-      useUIStore.getState().setShowScenarioGallery(true);
-      useUIStore.getState().setEditorMode('learn');
+    const shownKey = 'cloudblocks:scenario-shown-once';
+    if (!localStorage.getItem(shownKey) && persona) {
+      localStorage.setItem(shownKey, 'true');
+      useUIStore.getState().openDrawer('scenarios');
     }
   }, [persona]);
 
@@ -153,21 +143,6 @@ export function BuilderView() {
       if (e.key === 's' && e.ctrlKey && e.altKey) {
         e.preventDefault();
         useUIStore.getState().toggleSidebar();
-        return;
-      }
-      if (e.key === 'i' && e.ctrlKey && e.altKey) {
-        e.preventDefault();
-        useUIStore.getState().toggleInspector();
-        return;
-      }
-      if (e.key === 'd' && e.ctrlKey && e.altKey) {
-        e.preventDefault();
-        const dock = useUIStore.getState().bottomDock;
-        if (dock.isOpen) {
-          useUIStore.getState().closeBottomDock();
-        } else {
-          useUIStore.getState().openBottomTab('output');
-        }
         return;
       }
 
@@ -245,12 +220,7 @@ export function BuilderView() {
 
   return (
     <>
-      <div
-        className="builder-shell"
-        data-sidebar-open={sidebarOpen}
-        data-inspector-open={inspectorOpen}
-        data-bottomdock-open={bottomDockOpen}
-      >
+      <div className="builder-shell" data-sidebar-open={sidebarOpen}>
         <div className="builder-menubar">
           <MenuBar />
         </div>
@@ -261,25 +231,14 @@ export function BuilderView() {
           </div>
         </aside>
 
-        <main className={`builder-canvas${editorMode === 'learn' ? ' learn-mode-active' : ''}`}>
+        <main className="builder-canvas">
           <div className="builder-slot">
             <SceneCanvas />
-            <FlowDiagram />
-            <LearningPanel />
           </div>
+          <EmptyCanvasCTA />
         </main>
 
-        <aside className="builder-inspector" aria-hidden={!inspectorOpen}>
-          <div className="builder-slot">
-            <InspectorPanel />
-          </div>
-        </aside>
-
-        <section className="builder-bottomdock" aria-hidden={!bottomDockOpen}>
-          <div className="builder-slot">
-            <BottomPanel />
-          </div>
-        </section>
+        <RightDrawer />
 
         <Suspense fallback={null}>
           {showGitHubLogin && <GitHubLogin />}
@@ -288,7 +247,6 @@ export function BuilderView() {
           {showGitHubPR && <GitHubPR key={`pr-${workspaceId}`} />}
           {showWorkspaceManager && <WorkspaceManager />}
           {showTemplateGallery && <TemplateGallery />}
-          {showScenarioGallery && <ScenarioGallery />}
           {showPromoteDialog && <PromoteDialog />}
           {showRollbackDialog && <RollbackDialog />}
           {showPromoteHistory && <PromoteHistory />}

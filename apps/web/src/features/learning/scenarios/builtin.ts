@@ -221,7 +221,7 @@ const threeTierScenario: Scenario = {
       hints: [
         'Gateways are the entry point for internet traffic.',
         'Databases should be isolated from direct internet exposure using NSG rules.',
-        'Compute blocks can be on any subnet.',
+        'Compute nodes can be on any subnet.',
       ],
       validationRules: [
         {

@@ -1,6 +1,5 @@
 import { memo, useEffect, useRef } from 'react';
 import interact from 'interactjs';
-import { toast } from 'react-hot-toast';
 import { useArchitectureStore } from '../store/architectureStore';
 import { useUIStore } from '../store/uiStore';
 import { canConnect } from '../validation/connection';
@@ -167,10 +166,7 @@ export const ExternalActorSprite = memo(function ExternalActorSprite({
       if (!connectionSource) {
         startConnecting(actor.id);
       } else if (connectionSource !== actor.id) {
-        const success = addConnection(connectionSource, actor.id);
-        if (!success) {
-          toast.error('Invalid connection: check allowed connection rules');
-        }
+        addConnection(connectionSource, actor.id);
         completeInteraction();
       }
       return;

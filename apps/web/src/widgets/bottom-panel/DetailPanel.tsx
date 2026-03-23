@@ -73,11 +73,11 @@ export function DetailPanel({ className = '' }: DetailPanelProps) {
 
 function IdleState({ className }: { className: string }) {
   const persona = useUIStore((s) => s.persona);
-  const setShowScenarioGallery = useUIStore((s) => s.setShowScenarioGallery);
+  const openDrawer = useUIStore((s) => s.openDrawer);
   const setEditorMode = useUIStore((s) => s.setEditorMode);
 
   const handleStartLearning = () => {
-    setShowScenarioGallery(true);
+    openDrawer('scenarios');
     setEditorMode('learn');
   };
 

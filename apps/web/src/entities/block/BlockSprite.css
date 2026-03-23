@@ -203,3 +203,48 @@
 .block-sprite.is-upgrading .block-img {
   animation: block-upgrade-glow 0.8s ease-in-out 2;
 }
+
+/* ── Port snap pulse (triggered on successful connection) ─ */
+@keyframes port-snap-pulse {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 transparent) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+  }
+  30% {
+    transform: scale(1.08);
+    filter: drop-shadow(0 0 12px var(--accent-success, #22c55e))
+      drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+  }
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0 transparent) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+  }
+}
+
+.block-sprite.is-snap-target .block-img {
+  animation: port-snap-pulse 400ms var(--easing-default, cubic-bezier(0.2, 0, 0, 1)) forwards;
+}
+
+/* ── Pre-drop affordance: enlarge valid target during drag ─ */
+.block-sprite.is-drag-hover-valid .block-img {
+  filter: drop-shadow(0 0 10px var(--accent-success, #22c55e))
+    drop-shadow(0 0 20px rgba(34, 197, 94, 0.4)) drop-shadow(2px 6px 0px rgba(0, 0, 0, 0.3));
+  transform: translateY(-2px) scale(1.03);
+  transition:
+    filter 150ms ease,
+    transform 150ms ease;
+}
+
+/* ── Accessibility ──────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes port-snap-pulse {
+    from,
+    to {
+      transform: scale(1);
+    }
+  }
+  .block-sprite.is-drag-hover-valid .block-img {
+    transition: none;
+    transform: none;
+  }
+}

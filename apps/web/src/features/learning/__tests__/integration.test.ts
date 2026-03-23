@@ -84,7 +84,7 @@ function resetUIStore(): void {
     showGitHubSync: false,
     showGitHubPR: false,
     editorMode: 'build',
-    showLearningPanel: false,
+    drawer: { isOpen: false, activePanel: null },
     showScenarioGallery: false,
   });
 }
@@ -414,7 +414,8 @@ describe('learning integration flow', () => {
     startLearningScenario('scenario-three-tier');
 
     expect(useUIStore.getState().editorMode).toBe('learn');
-    expect(useUIStore.getState().showLearningPanel).toBe(true);
+    expect(useUIStore.getState().drawer.isOpen).toBe(true);
+    expect(useUIStore.getState().drawer.activePanel).toBe('learning');
 
     const steps = useLearningStore.getState().activeScenario?.steps ?? [];
 
@@ -455,7 +456,7 @@ describe('learning integration flow', () => {
     abandonLearning();
 
     expect(useUIStore.getState().editorMode).toBe('build');
-    expect(useUIStore.getState().showLearningPanel).toBe(false);
+    expect(useUIStore.getState().drawer.isOpen).toBe(false);
     expect(useLearningStore.getState().activeScenario).toBeNull();
   });
 

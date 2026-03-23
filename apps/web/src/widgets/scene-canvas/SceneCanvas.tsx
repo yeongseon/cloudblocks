@@ -107,6 +107,12 @@ export function SceneCanvas() {
       e.currentTarget.releasePointerCapture(e.pointerId);
     }
 
+    // Cancel in-progress connection when releasing on empty canvas
+    if (interactionState === 'connecting') {
+      completeInteraction();
+      return;
+    }
+
     if (interactionState === 'placing' && draggedBlockCategory && draggedResourceName) {
       const elements = document.elementsFromPoint(e.clientX, e.clientY);
       const plateEl = elements.find((el) => el.closest('[data-plate-id]'));

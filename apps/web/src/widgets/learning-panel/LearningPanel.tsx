@@ -1,5 +1,4 @@
 import './LearningPanel.css';
-import { useUIStore } from '../../entities/store/uiStore';
 import { useLearningStore } from '../../entities/store/learningStore';
 import {
   advanceToNextStep,
@@ -36,34 +35,37 @@ function getRuleIdentifier(rule: StepValidationRule): string {
 function describeRule(rule: StepValidationRule): string {
   switch (rule.type) {
     case 'plate-exists':
-      return `Add a ${rule.plateType} plate`;
+      return `Add a ${rule.plateType} container`;
     case 'block-exists':
-      return `Add a ${rule.category} block`;
+      return `Add a ${rule.category} node`;
     case 'connection-exists':
       return `Connect ${rule.sourceCategory} to ${rule.targetCategory}`;
     case 'entity-on-plate':
-      return `Place ${rule.entityCategory} on ${rule.plateType}`;
+      return `Place ${rule.entityCategory} on ${rule.plateType} container`;
     case 'architecture-valid':
       return 'Fix validation issues';
     case 'min-block-count':
-      return `Add at least ${rule.count} ${rule.category} block(s)`;
+      return `Add at least ${rule.count} ${rule.category} node(s)`;
     case 'min-plate-count':
-      return `Add at least ${rule.count} ${rule.plateType} plate(s)`;
+      return `Add at least ${rule.count} ${rule.plateType} container(s)`;
     default:
       return 'Complete requirement';
   }
 }
 
 export function LearningPanel() {
-  const showLearningPanel = useUIStore((state) => state.showLearningPanel);
   const activeScenario = useLearningStore((state) => state.activeScenario);
   const progress = useLearningStore((state) => state.progress);
   const isCurrentStepComplete = useLearningStore((state) => state.isCurrentStepComplete);
   const showNextHint = useLearningStore((state) => state.showNextHint);
   const currentHintIndex = useLearningStore((state) => state.currentHintIndex);
 
-  if (!showLearningPanel || !activeScenario || !progress) {
-    return null;
+  if (!activeScenario || !progress) {
+    return (
+      <div className="learning-panel-empty">
+        <p>No active scenario. Open the Scenarios panel to start one.</p>
+      </div>
+    );
   }
 
   if (progress.completedAt) {

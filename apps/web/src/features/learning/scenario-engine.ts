@@ -45,10 +45,7 @@ export function startLearningScenario(scenarioId: string): void {
   useUIStore.getState().setEditorMode('learn');
   useLearningStore.getState().startScenario(scenario);
 
-  const uiState = useUIStore.getState();
-  if (!uiState.showLearningPanel) {
-    uiState.toggleLearningPanel();
-  }
+  useUIStore.getState().openDrawer('learning');
 
   startValidationSubscription();
   startHintSubscription();
@@ -114,9 +111,7 @@ export function abandonLearning(): void {
 
   const uiState = useUIStore.getState();
   uiState.setEditorMode('build');
-  if (uiState.showLearningPanel) {
-    uiState.toggleLearningPanel();
-  }
+  uiState.closeDrawer();
 
   stopValidationSubscription();
   stopHintSubscription();

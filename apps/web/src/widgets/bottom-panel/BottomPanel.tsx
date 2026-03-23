@@ -1,4 +1,5 @@
 import { CommandCard } from './CommandCard';
+import React from 'react';
 import { useUIStore } from '../../entities/store/uiStore';
 import { BottomDockTabs } from './tabs/BottomDockTabs';
 import { DiffTab } from './tabs/DiffTab';
@@ -11,20 +12,22 @@ interface BottomPanelProps {
   className?: string;
 }
 
+export type BottomDockTab = 'output' | 'validation' | 'logs' | 'diff';
+
 export function BottomPanel({ className = '' }: BottomPanelProps) {
-  const bottomDock = useUIStore((s) => s.bottomDock);
+  const [activeTab, setActiveTab] = React.useState<BottomDockTab>('output');
   const showResourceGuide = useUIStore((s) => s.showResourceGuide);
 
-  const tabId = `bottom-dock-tab-${bottomDock.activeTab}`;
+  const tabId = `bottom-dock-tab-${activeTab}`;
 
   const renderActiveTab = () => {
-    if (bottomDock.activeTab === 'validation') {
+    if (activeTab === 'validation') {
       return <ValidationTab />;
     }
-    if (bottomDock.activeTab === 'logs') {
+    if (activeTab === 'logs') {
       return <LogsTab />;
     }
-    if (bottomDock.activeTab === 'diff') {
+    if (activeTab === 'diff') {
       return <DiffTab />;
     }
     return <OutputTab />;
@@ -33,7 +36,7 @@ export function BottomPanel({ className = '' }: BottomPanelProps) {
   return (
     <div className={`bottom-panel ${className}`} data-resource-guide={showResourceGuide}>
       <div className="bottom-panel-main">
-        <BottomDockTabs />
+        <BottomDockTabs activeTab={activeTab} onTabChange={setActiveTab} />
         <div
           id="bottom-dock-tabpanel"
           className="bottom-panel-tab-content"

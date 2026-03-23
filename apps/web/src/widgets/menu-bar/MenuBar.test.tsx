@@ -86,27 +86,18 @@ const undoMock = vi.fn();
 const redoMock = vi.fn();
 const importArchitectureMock = vi.fn();
 
-function getMenuDropdown(triggerLabel: RegExp | string): HTMLElement {
-  const trigger = screen.getByRole('button', { name: triggerLabel });
+function getOverflowDropdown(): HTMLElement {
+  const trigger = screen.getByRole('button', { name: 'Menu' });
   const container = trigger.closest('.menu-dropdown-container');
-  if (!container) {
-    throw new Error('Expected menu dropdown container to exist');
-  }
-
+  if (!container) throw new Error('Expected menu dropdown container to exist');
   const dropdown = container.querySelector('.menu-dropdown');
-  if (!(dropdown instanceof HTMLElement)) {
-    throw new Error('Expected menu dropdown element to exist');
-  }
-
+  if (!(dropdown instanceof HTMLElement)) throw new Error('Expected menu dropdown element');
   return dropdown;
 }
 
-async function openMenu(
-  user: ReturnType<typeof userEvent.setup>,
-  label: string,
-): Promise<HTMLElement> {
-  await user.click(screen.getByRole('button', { name: label }));
-  return getMenuDropdown(label);
+async function openOverflow(user: ReturnType<typeof userEvent.setup>): Promise<HTMLElement> {
+  await user.click(screen.getByRole('button', { name: 'Menu' }));
+  return getOverflowDropdown();
 }
 
 function setArchitectureState(overrides?: Partial<ArchitectureModel>): void {
@@ -135,6 +126,86 @@ function setArchitectureState(overrides?: Partial<ArchitectureModel>): void {
 }
 
 describe('MenuBar', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    useUIStore.setState({
+      selectedId: null,
+      toolMode: 'select',
+      showValidation: false,
+      showResourceGuide: true,
+      showCodePreview: false,
+      showWorkspaceManager: false,
+      showTemplateGallery: false,
+      showGitHubLogin: false,
+      showGitHubRepos: false,
+      showGitHubSync: false,
+      showGitHubPR: false,
+      backendStatus: 'available',
+      connectionSource: null,
+      draggedBlockCategory: null,
+      activeProvider: 'azure',
+      isSoundMuted: false,
+      sidebar: { isOpen: true },
+      inspector: { isOpen: true, activeTab: 'properties' },
+      drawer: { isOpen: false, activePanel: null },
+    });
+
+    useAuthStore.setState({
+      status: 'anonymous',
+      user: null,
+      hydrated: true,
+      error: null,
+    });
+
+    setArchitectureState();
+    useLearningStore.setState({
+      activeScenario: null,
+      progress: null,
+      currentHintIndex: -1,
+      isCurrentStepComplete: false,
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('renders compact logo, overflow menu trigger, workspace button, and quick actions', () => {
+    render(<MenuBar />);
+
+    expect(screen.getByText(/CB/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Menu' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Workspaces' })).toBeInTheDocument();
+
+    expect(screen.getByTitle('Undo (Ctrl+Z)')).toBeInTheDocument();
+    expect(screen.getByTitle('Redo (Ctrl+Shift+Z)')).toBeInTheDocument();
+    expect(screen.getByTitle('Save Workspace (Ctrl+S)')).toBeInTheDocument();
+  });
+
+  it('renders panel access buttons for Validation, Scenarios, Properties', () => {
+    render(<MenuBar />);
+
+    expect(screen.getByTitle('Validation')).toBeInTheDocument();
+    expect(screen.getByTitle('Scenarios')).toBeInTheDocument();
+    expect(screen.getByTitle('Properties')).toBeInTheDocument();
+  });
+
+  it('panel buttons toggle the correct drawer panel', async () => {
+    const user = userEvent.setup();
+    render(<MenuBar />);
+
+    await user.click(screen.getByTitle('Validation'));
+    expect(useUIStore.getState().drawer.isOpen).toBe(true);
+    expect(useUIStore.getState().drawer.activePanel).toBe('validation');
+
+    await user.click(screen.getByTitle('Scenarios'));
+    expect(useUIStore.getState().drawer.activePanel).toBe('scenarios');
+
+    await user.click(screen.getByTitle('Properties'));
+    expect(useUIStore.getState().drawer.activePanel).toBe('properties');
+  });
+
   it('renders provider toggle with Azure, AWS, and GCP tabs', () => {
     render(<MenuBar />);
 
@@ -206,69 +277,6 @@ describe('MenuBar', () => {
     expect(gcpTab).toHaveStyle('color: #4285F4');
   });
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-
-    useUIStore.setState({
-      selectedId: null,
-      toolMode: 'select',
-      showValidation: false,
-      showResourceGuide: true,
-      showCodePreview: false,
-      showWorkspaceManager: false,
-      showTemplateGallery: false,
-      showLearningPanel: false,
-      showScenarioGallery: false,
-      showGitHubLogin: false,
-      showGitHubRepos: false,
-      showGitHubSync: false,
-      showGitHubPR: false,
-      backendStatus: 'available',
-      connectionSource: null,
-      draggedBlockCategory: null,
-      activeProvider: 'azure',
-      isSoundMuted: false,
-      sidebar: { isOpen: true },
-      inspector: { isOpen: true, activeTab: 'properties' },
-      bottomDock: { isOpen: false, activeTab: 'output' },
-    });
-
-    useAuthStore.setState({
-      status: 'anonymous',
-      user: null,
-      hydrated: true,
-      error: null,
-    });
-
-    setArchitectureState();
-    useLearningStore.setState({
-      activeScenario: null,
-      progress: null,
-      currentHintIndex: -1,
-      isCurrentStepComplete: false,
-    });
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  it('renders logo, workspace button, all menu triggers, and quick action buttons', () => {
-    render(<MenuBar />);
-
-    expect(screen.getByText(/CloudBlocks/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Workspaces' })).toBeInTheDocument();
-
-    expect(screen.getByRole('button', { name: 'File' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Build' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'View' })).toBeInTheDocument();
-
-    expect(screen.getByTitle('Undo (Ctrl+Z)')).toBeInTheDocument();
-    expect(screen.getByTitle('Redo (Ctrl+Shift+Z)')).toBeInTheDocument();
-    expect(screen.getByTitle('Save Workspace (Ctrl+S)')).toBeInTheDocument();
-  });
-
   it('shows Sign In when not authenticated and GitHub username when authenticated', () => {
     const { rerender } = render(<MenuBar />);
     expect(screen.getByRole('button', { name: /Sign In/ })).toBeInTheDocument();
@@ -317,32 +325,32 @@ describe('MenuBar', () => {
     expect(useUIStore.getState().showWorkspaceManager).toBe(true);
   });
 
-  it('opens and closes dropdown with trigger, outside click, and Escape', async () => {
+  it('opens and closes overflow dropdown with trigger, outside click, and Escape', async () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    const fileTrigger = screen.getByRole('button', { name: 'File' });
-    const fileDropdown = getMenuDropdown('File');
-    expect(fileDropdown.className).not.toContain('show');
+    const trigger = screen.getByRole('button', { name: 'Menu' });
+    const dropdown = getOverflowDropdown();
+    expect(dropdown.className).not.toContain('show');
 
-    await user.click(fileTrigger);
-    expect(fileDropdown.className).toContain('show');
+    await user.click(trigger);
+    expect(dropdown.className).toContain('show');
 
-    await user.click(fileTrigger);
-    expect(fileDropdown.className).not.toContain('show');
+    await user.click(trigger);
+    expect(dropdown.className).not.toContain('show');
 
-    await user.click(fileTrigger);
-    expect(fileDropdown.className).toContain('show');
+    await user.click(trigger);
+    expect(dropdown.className).toContain('show');
     fireEvent.click(document.body);
-    expect(fileDropdown.className).not.toContain('show');
+    expect(dropdown.className).not.toContain('show');
 
-    await user.click(fileTrigger);
-    expect(fileDropdown.className).toContain('show');
+    await user.click(trigger);
+    expect(dropdown.className).toContain('show');
     fireEvent.keyDown(document, { key: 'Escape' });
-    expect(fileDropdown.className).not.toContain('show');
+    expect(dropdown.className).not.toContain('show');
   });
 
-  it('handles File menu save, load, import trigger, export, and reset(confirm=true)', async () => {
+  it('handles overflow menu save, load, import trigger, export, and reset(confirm=true)', async () => {
     const user = userEvent.setup();
     vi.mocked(confirmDialog).mockResolvedValue(true);
     const createObjectURLMock = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test');
@@ -359,16 +367,14 @@ describe('MenuBar', () => {
     }
     const fileInputClickSpy = vi.spyOn(fileInput, 'click');
 
-    const fileDropdown = await openMenu(user, 'File');
+    let dropdown = await openOverflow(user);
 
-    await user.click(within(fileDropdown).getByRole('button', { name: /Save Workspace/ }));
+    await user.click(within(dropdown).getByRole('button', { name: /Save Workspace/ }));
     expect(saveToStorageMock).toHaveBeenCalledOnce();
     expect(toast.success).toHaveBeenCalledWith('Workspace saved!');
 
-    await openMenu(user, 'File');
-    await user.click(
-      within(getMenuDropdown('File')).getByRole('button', { name: /Load Workspace/ }),
-    );
+    dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Load Workspace/ }));
     await waitFor(() => {
       expect(confirmDialog).toHaveBeenCalledWith(
         'Loading will replace current workspace with saved data. Unsaved changes will be lost.',
@@ -377,20 +383,18 @@ describe('MenuBar', () => {
     });
     expect(loadFromStorageMock).toHaveBeenCalledOnce();
 
-    await openMenu(user, 'File');
-    await user.click(within(getMenuDropdown('File')).getByRole('button', { name: /Import JSON/ }));
+    dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Import JSON/ }));
     expect(fileInputClickSpy).toHaveBeenCalledOnce();
 
-    await openMenu(user, 'File');
-    await user.click(within(getMenuDropdown('File')).getByRole('button', { name: /Export JSON/ }));
+    dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Export JSON/ }));
     expect(createObjectURLMock).toHaveBeenCalledOnce();
     expect(anchorClickMock).toHaveBeenCalledOnce();
     expect(revokeObjectURLMock).toHaveBeenCalledOnce();
 
-    await openMenu(user, 'File');
-    await user.click(
-      within(getMenuDropdown('File')).getByRole('button', { name: /Reset Workspace/ }),
-    );
+    dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Reset Workspace/ }));
     expect(confirmDialog).toHaveBeenCalledWith(
       'All unsaved changes will be lost.',
       'Reset Workspace?',
@@ -405,8 +409,8 @@ describe('MenuBar', () => {
     vi.mocked(confirmDialog).mockResolvedValue(false);
     render(<MenuBar />);
 
-    const fileDropdown = await openMenu(user, 'File');
-    await user.click(within(fileDropdown).getByRole('button', { name: /Reset Workspace/ }));
+    const dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Reset Workspace/ }));
 
     await waitFor(() => {
       expect(resetWorkspaceMock).not.toHaveBeenCalled();
@@ -418,8 +422,8 @@ describe('MenuBar', () => {
     vi.mocked(confirmDialog).mockResolvedValue(false);
     render(<MenuBar />);
 
-    const fileDropdown = await openMenu(user, 'File');
-    await user.click(within(fileDropdown).getByRole('button', { name: /Load Workspace/ }));
+    const dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Load Workspace/ }));
 
     await waitFor(() => {
       expect(loadFromStorageMock).not.toHaveBeenCalled();
@@ -430,9 +434,9 @@ describe('MenuBar', () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    await openMenu(user, 'File');
-    const fileDropdown = getMenuDropdown('File');
-    expect(fileDropdown.className).toContain('show');
+    await openOverflow(user);
+    const dropdown = getOverflowDropdown();
+    expect(dropdown.className).toContain('show');
 
     const fileInput = document.querySelector('input[type="file"]');
     if (!(fileInput instanceof HTMLInputElement)) {
@@ -477,7 +481,7 @@ describe('MenuBar', () => {
     expect(readAsTextMock).toHaveBeenCalledWith(file);
     expect(importArchitectureMock).toHaveBeenCalledWith(jsonContent);
     expect(fileInput.value).toBe('');
-    expect(getMenuDropdown('File').className).not.toContain('show');
+    expect(getOverflowDropdown().className).not.toContain('show');
 
     vi.stubGlobal('FileReader', originalFileReader);
   }, 15000);
@@ -499,51 +503,52 @@ describe('MenuBar', () => {
     expect(importArchitectureMock).not.toHaveBeenCalled();
   });
 
-  it('handles Edit menu undo/redo enabled state and calls actions', async () => {
+  it('handles overflow menu undo/redo enabled state and calls actions', async () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    let editDropdown = await openMenu(user, 'Edit');
-    let undoItem = within(editDropdown).getByRole('button', { name: /Undo/ });
-    let redoItem = within(editDropdown).getByRole('button', { name: /Redo/ });
+    let dropdown = await openOverflow(user);
+    let undoItem = within(dropdown).getByRole('button', { name: /Undo/ });
+    let redoItem = within(dropdown).getByRole('button', { name: /Redo/ });
     expect(undoItem).toBeDisabled();
     expect(redoItem).toBeDisabled();
 
     useArchitectureStore.setState({ canUndo: true, canRedo: true });
-    await user.click(screen.getByRole('button', { name: 'Edit' }));
-    editDropdown = getMenuDropdown('Edit');
-    undoItem = within(editDropdown).getByRole('button', { name: /Undo/ });
-    redoItem = within(editDropdown).getByRole('button', { name: /Redo/ });
+    // close and reopen
+    await user.click(screen.getByRole('button', { name: 'Menu' }));
+    dropdown = await openOverflow(user);
+    undoItem = within(dropdown).getByRole('button', { name: /Undo/ });
+    redoItem = within(dropdown).getByRole('button', { name: /Redo/ });
     expect(undoItem).not.toBeDisabled();
     expect(redoItem).not.toBeDisabled();
 
     await user.click(undoItem);
     expect(undoMock).toHaveBeenCalledOnce();
 
-    editDropdown = await openMenu(user, 'Edit');
-    await user.click(within(editDropdown).getByRole('button', { name: /Redo/ }));
+    dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Redo/ }));
     expect(redoMock).toHaveBeenCalledOnce();
   }, 15000);
 
-  it('deletes selected plate, block, and connection from Edit menu', async () => {
+  it('deletes selected plate, block, and connection from overflow menu', async () => {
     const user = userEvent.setup();
 
     setArchitectureState({ nodes: [networkPlate, block], connections: [connection] });
     useUIStore.setState({ selectedId: 'net-1' });
     render(<MenuBar />);
 
-    let editDropdown = await openMenu(user, 'Edit');
-    await user.click(within(editDropdown).getByRole('button', { name: /Delete Selection/ }));
+    let dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Delete Selection/ }));
     expect(removePlateMock).toHaveBeenCalledWith('net-1');
 
     useUIStore.setState({ selectedId: 'block-1' });
-    editDropdown = await openMenu(user, 'Edit');
-    await user.click(within(editDropdown).getByRole('button', { name: /Delete Selection/ }));
+    dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Delete Selection/ }));
     expect(removeBlockMock).toHaveBeenCalledWith('block-1');
 
     useUIStore.setState({ selectedId: 'conn-1' });
-    editDropdown = await openMenu(user, 'Edit');
-    await user.click(within(editDropdown).getByRole('button', { name: /Delete Selection/ }));
+    dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Delete Selection/ }));
     expect(removeConnectionMock).toHaveBeenCalledWith('conn-1');
   }, 15000);
 
@@ -553,36 +558,33 @@ describe('MenuBar', () => {
     useUIStore.setState({ selectedId: 'unknown-id' });
     render(<MenuBar />);
 
-    const editDropdown = await openMenu(user, 'Edit');
-    await user.click(within(editDropdown).getByRole('button', { name: /Delete Selection/ }));
+    const dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Delete Selection/ }));
     expect(removePlateMock).not.toHaveBeenCalled();
     expect(removeBlockMock).not.toHaveBeenCalled();
     expect(removeConnectionMock).not.toHaveBeenCalled();
   });
 
-  it('handles Build menu validate and panel toggles', async () => {
+  it('handles overflow menu validate and panel toggles', async () => {
     const user = userEvent.setup();
     render(<MenuBar />);
     const validateCallsBeforeFirstClick = validateMock.mock.calls.length;
 
-    let buildDropdown = await openMenu(user, 'Build');
-    await user.click(within(buildDropdown).getByRole('button', { name: /Validate Architecture/ }));
+    let dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Validate Architecture/ }));
     expect(validateMock.mock.calls.length).toBeGreaterThan(validateCallsBeforeFirstClick);
-    expect(useUIStore.getState().showValidation).toBe(true);
 
-    useUIStore.setState({ showValidation: true });
     const validateCallsBeforeSecondClick = validateMock.mock.calls.length;
-    buildDropdown = await openMenu(user, 'Build');
-    await user.click(within(buildDropdown).getByRole('button', { name: /Validate Architecture/ }));
+    dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Validate Architecture/ }));
     expect(validateMock.mock.calls.length).toBeGreaterThan(validateCallsBeforeSecondClick);
-    expect(useUIStore.getState().showValidation).toBe(true);
 
-    buildDropdown = await openMenu(user, 'Build');
-    await user.click(within(buildDropdown).getByRole('button', { name: /Generate Code/ }));
+    dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Generate Code/ }));
     expect(useUIStore.getState().showCodePreview).toBe(true);
 
-    buildDropdown = await openMenu(user, 'Build');
-    await user.click(within(buildDropdown).getByRole('button', { name: /Browse Templates/ }));
+    dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Browse Templates/ }));
     expect(useUIStore.getState().showTemplateGallery).toBe(true);
   }, 15000);
 
@@ -590,30 +592,33 @@ describe('MenuBar', () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    let buildDropdown = await openMenu(user, 'Build');
-    await user.click(within(buildDropdown).getByRole('button', { name: /Browse Scenarios/ }));
-    expect(useUIStore.getState().showScenarioGallery).toBe(true);
+    let dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Browse Scenarios/ }));
+    expect(useUIStore.getState().drawer.isOpen).toBe(true);
+    expect(useUIStore.getState().drawer.activePanel).toBe('scenarios');
 
-    buildDropdown = await openMenu(user, 'Build');
-    await user.click(within(buildDropdown).getByRole('button', { name: /Show Learning Panel/ }));
-    expect(useUIStore.getState().showScenarioGallery).toBe(true);
-    expect(useUIStore.getState().showLearningPanel).toBe(false);
+    dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Show Learning Panel/ }));
+    expect(useUIStore.getState().drawer.isOpen).toBe(true);
+    expect(useUIStore.getState().drawer.activePanel).toBe('scenarios');
+    expect(useUIStore.getState().drawer.activePanel).not.toBe('learning');
 
-    buildDropdown = await openMenu(user, 'Build');
-    const learningPanelButton = within(buildDropdown).getByRole('button', {
+    dropdown = await openOverflow(user);
+    const learningPanelButton = within(dropdown).getByRole('button', {
       name: /Show Learning Panel/,
     });
     expect(learningPanelButton.textContent).not.toContain('\u2713');
   });
 
-  it('does not re-toggle scenario gallery when already visible and no scenario active', async () => {
+  it('opens scenarios drawer when no scenario active and drawer already open', async () => {
     const user = userEvent.setup();
-    useUIStore.setState({ showScenarioGallery: true });
+    useUIStore.setState({ drawer: { isOpen: true, activePanel: 'scenarios' } });
     render(<MenuBar />);
 
-    const buildDropdown = await openMenu(user, 'Build');
-    await user.click(within(buildDropdown).getByRole('button', { name: /Show Learning Panel/ }));
-    expect(useUIStore.getState().showScenarioGallery).toBe(true);
+    const dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Show Learning Panel/ }));
+    expect(useUIStore.getState().drawer.isOpen).toBe(true);
+    expect(useUIStore.getState().drawer.activePanel).toBe('scenarios');
   });
 
   it('opens learning panel when an active scenario exists', async () => {
@@ -656,67 +661,54 @@ describe('MenuBar', () => {
 
     render(<MenuBar />);
 
-    let buildDropdown = await openMenu(user, 'Build');
-    await user.click(within(buildDropdown).getByRole('button', { name: /Show Learning Panel/ }));
+    let dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Show Learning Panel/ }));
 
-    expect(useUIStore.getState().showLearningPanel).toBe(true);
-    expect(useUIStore.getState().showScenarioGallery).toBe(false);
+    expect(useUIStore.getState().drawer.isOpen).toBe(true);
+    expect(useUIStore.getState().drawer.activePanel).toBe('learning');
 
-    buildDropdown = await openMenu(user, 'Build');
-    const learningPanelButton = within(buildDropdown).getByRole('button', {
+    dropdown = await openOverflow(user);
+    const learningPanelButton = within(dropdown).getByRole('button', {
       name: /Show Learning Panel/,
     });
     expect(learningPanelButton.textContent).toContain('\u2713');
   });
 
-  it('handles View menu toggle for validation results', async () => {
+  it('handles overflow menu toggle for validation drawer', async () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    const viewDropdown = await openMenu(user, 'View');
-    await user.click(within(viewDropdown).getByRole('button', { name: /Validation Results/ }));
-    expect(useUIStore.getState().bottomDock.isOpen).toBe(true);
-    expect(useUIStore.getState().bottomDock.activeTab).toBe('validation');
+    // Validation is also in the View section of the overflow
+    // The direct panel button also works
+    await user.click(screen.getByTitle('Validation'));
+    expect(useUIStore.getState().drawer.isOpen).toBe(true);
+    expect(useUIStore.getState().drawer.activePanel).toBe('validation');
   });
 
-  it('handles View menu toggle for Sidebar', async () => {
+  it('handles overflow menu toggle for Sidebar', async () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    const viewDropdown = await openMenu(user, 'View');
-    await user.click(within(viewDropdown).getByRole('button', { name: /Sidebar/ }));
+    const dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Sidebar/ }));
     expect(useUIStore.getState().sidebar.isOpen).toBe(false);
   });
 
-  it('Toggle Inspector from View menu flips inspector state', async () => {
+  it('Toggle Inspector from overflow menu flips inspector state', async () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    const viewDropdown = await openMenu(user, 'View');
-    await user.click(within(viewDropdown).getByRole('button', { name: /Inspector/ }));
+    const dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Inspector/ }));
     expect(useUIStore.getState().inspector.isOpen).toBe(false);
   });
 
-  it('Toggle Bottom Dock from View menu opens/closes dock', async () => {
+  it('handles overflow menu toggle for Resource Guide', async () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    let viewDropdown = await openMenu(user, 'View');
-    await user.click(within(viewDropdown).getByRole('button', { name: /Bottom Dock/ }));
-    expect(useUIStore.getState().bottomDock.isOpen).toBe(true);
-    expect(useUIStore.getState().bottomDock.activeTab).toBe('output');
-
-    viewDropdown = await openMenu(user, 'View');
-    await user.click(within(viewDropdown).getByRole('button', { name: /Bottom Dock/ }));
-    expect(useUIStore.getState().bottomDock.isOpen).toBe(false);
-  });
-
-  it('handles View menu toggle for Properties Panel', async () => {
-    const user = userEvent.setup();
-    render(<MenuBar />);
-
-    const viewDropdown = await openMenu(user, 'View');
-    await user.click(within(viewDropdown).getByRole('button', { name: /Resource Guide/ }));
+    const dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Resource Guide/ }));
     expect(useUIStore.getState().showResourceGuide).toBe(false);
   });
 
@@ -724,8 +716,8 @@ describe('MenuBar', () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    let viewDropdown = await openMenu(user, 'View');
-    const diffButtonDisabled = within(viewDropdown).getByRole('button', { name: /Diff View/ });
+    let dropdown = await openOverflow(user);
+    const diffButtonDisabled = within(dropdown).getByRole('button', { name: /Diff View/ });
     expect(diffButtonDisabled).toBeDisabled();
 
     useUIStore.getState().setDiffMode(
@@ -741,8 +733,8 @@ describe('MenuBar', () => {
       emptyArch,
     );
 
-    viewDropdown = await openMenu(user, 'View');
-    const diffButtonEnabled = within(viewDropdown).getByRole('button', { name: /Diff View/ });
+    dropdown = await openOverflow(user);
+    const diffButtonEnabled = within(dropdown).getByRole('button', { name: /Diff View/ });
     expect(diffButtonEnabled).not.toBeDisabled();
     await user.click(diffButtonEnabled);
     expect(useUIStore.getState().diffMode).toBe(false);
@@ -773,24 +765,24 @@ describe('MenuBar', () => {
 
     const githubButton = screen.getByRole('button', { name: /octocat/ });
     await user.click(githubButton);
-    let githubDropdown = getMenuDropdown(/octocat/);
+
+    const container = githubButton.closest('.menu-dropdown-container');
+    if (!container) throw new Error('Expected GitHub dropdown container');
+    const githubDropdown = container.querySelector('.menu-dropdown') as HTMLElement;
     expect(githubDropdown.className).toContain('show');
 
     await user.click(within(githubDropdown).getByRole('button', { name: /Repos/ }));
     expect(useUIStore.getState().showGitHubRepos).toBe(true);
 
     await user.click(githubButton);
-    githubDropdown = getMenuDropdown(/octocat/);
     await user.click(within(githubDropdown).getByRole('button', { name: /Sync/ }));
     expect(useUIStore.getState().showGitHubSync).toBe(true);
 
     await user.click(githubButton);
-    githubDropdown = getMenuDropdown(/octocat/);
     await user.click(within(githubDropdown).getByRole('button', { name: /Create PR/ }));
     expect(useUIStore.getState().showGitHubPR).toBe(true);
 
     await user.click(githubButton);
-    githubDropdown = getMenuDropdown(/octocat/);
     await user.click(within(githubDropdown).getByRole('button', { name: /Sign Out/ }));
     expect(logoutMock).toHaveBeenCalledOnce();
   });
@@ -812,7 +804,8 @@ describe('MenuBar', () => {
 
     const githubButton = screen.getByRole('button', { name: /octocat/ });
     await user.click(githubButton);
-    const githubDropdown = getMenuDropdown(/octocat/);
+    const container = githubButton.closest('.menu-dropdown-container') as HTMLElement;
+    const githubDropdown = container.querySelector('.menu-dropdown') as HTMLElement;
 
     expect(within(githubDropdown).getByRole('button', { name: /Sync/ })).toBeDisabled();
     expect(within(githubDropdown).getByRole('button', { name: /Create PR/ })).toBeDisabled();
@@ -845,7 +838,8 @@ describe('MenuBar', () => {
 
     const githubButton = screen.getByRole('button', { name: /octocat/ });
     await user.click(githubButton);
-    const githubDropdown = getMenuDropdown(/octocat/);
+    const container = githubButton.closest('.menu-dropdown-container') as HTMLElement;
+    const githubDropdown = container.querySelector('.menu-dropdown') as HTMLElement;
     await user.click(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ }));
 
     expect(apiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-1/pull');
@@ -876,7 +870,8 @@ describe('MenuBar', () => {
 
     const githubButton = screen.getByRole('button', { name: /octocat/ });
     await user.click(githubButton);
-    const githubDropdown = getMenuDropdown(/octocat/);
+    const container = githubButton.closest('.menu-dropdown-container') as HTMLElement;
+    const githubDropdown = container.querySelector('.menu-dropdown') as HTMLElement;
     await user.click(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ }));
 
     expect(apiPost).toHaveBeenCalledWith('/api/v1/workspaces/backend-ws-99/pull');
@@ -962,8 +957,10 @@ describe('MenuBar', () => {
     });
 
     render(<MenuBar />);
-    await user.click(screen.getByRole('button', { name: /octocat/ }));
-    const githubDropdown = getMenuDropdown(/octocat/);
+    const githubButton = screen.getByRole('button', { name: /octocat/ });
+    await user.click(githubButton);
+    const container = githubButton.closest('.menu-dropdown-container') as HTMLElement;
+    const githubDropdown = container.querySelector('.menu-dropdown') as HTMLElement;
     await user.click(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ }));
 
     expect(toast.error).toHaveBeenCalledWith('pull failed');
@@ -973,8 +970,8 @@ describe('MenuBar', () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    const buildDropdown = await openMenu(user, 'Build');
-    await user.click(within(buildDropdown).getByRole('button', { name: /Promote to Production/ }));
+    const dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Promote to Production/ }));
 
     const { usePromoteStore } = await import('../../entities/store/promoteStore');
     expect(usePromoteStore.getState().showPromoteDialog).toBe(true);
@@ -984,8 +981,8 @@ describe('MenuBar', () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    const buildDropdown = await openMenu(user, 'Build');
-    await user.click(within(buildDropdown).getByRole('button', { name: /Rollback Production/ }));
+    const dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Rollback Production/ }));
 
     const { usePromoteStore } = await import('../../entities/store/promoteStore');
     expect(usePromoteStore.getState().showRollbackDialog).toBe(true);
@@ -995,22 +992,22 @@ describe('MenuBar', () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    const buildDropdown = await openMenu(user, 'Build');
-    await user.click(within(buildDropdown).getByRole('button', { name: /Promotion History/ }));
+    const dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Promotion History/ }));
 
     const { usePromoteStore } = await import('../../entities/store/promoteStore');
     expect(usePromoteStore.getState().showPromoteHistory).toBe(true);
   });
 
   it('show learning panel toggles off when already shown', async () => {
-    useUIStore.setState({ showLearningPanel: true });
+    useUIStore.setState({ drawer: { isOpen: true, activePanel: 'learning' } });
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    const buildDropdown = await openMenu(user, 'Build');
-    await user.click(within(buildDropdown).getByRole('button', { name: /Show Learning Panel/ }));
+    const dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Show Learning Panel/ }));
 
-    expect(useUIStore.getState().showLearningPanel).toBe(false);
+    expect(useUIStore.getState().drawer.isOpen).toBe(false);
   });
 
   it('diff mode toggle disables diff mode', async () => {
@@ -1018,9 +1015,50 @@ describe('MenuBar', () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    const viewDropdown = await openMenu(user, 'View');
-    await user.click(within(viewDropdown).getByRole('button', { name: /Diff/ }));
+    const dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Diff/ }));
 
     expect(useUIStore.getState().diffMode).toBe(false);
+  });
+
+  it('theme toggle button switches between blueprint and workshop', async () => {
+    const user = userEvent.setup();
+    useUIStore.setState({ themeVariant: 'workshop' });
+    render(<MenuBar />);
+
+    const themeBtn = screen.getByTitle('Switch to Blueprint (Dark)');
+    await user.click(themeBtn);
+    expect(useUIStore.getState().themeVariant).toBe('blueprint');
+
+    const themeBtnDark = screen.getByTitle('Switch to Workshop (Light)');
+    await user.click(themeBtnDark);
+    expect(useUIStore.getState().themeVariant).toBe('workshop');
+  });
+
+  it('shows validation badge on panel button when validation has errors', () => {
+    useArchitectureStore.setState({
+      validationResult: {
+        valid: false,
+        errors: [{ ruleId: 'r1', message: 'err', severity: 'error', targetId: 'block-1' }],
+        warnings: [],
+      },
+    });
+    render(<MenuBar />);
+
+    const validationBtn = screen.getByTitle('Validation');
+    const badge = validationBtn.querySelector('.panel-btn-badge');
+    expect(badge).toBeInTheDocument();
+    expect(badge?.textContent).toBe('!');
+  });
+
+  it('does not show validation badge when validation passes', () => {
+    useArchitectureStore.setState({
+      validationResult: { valid: true, errors: [], warnings: [] },
+    });
+    render(<MenuBar />);
+
+    const validationBtn = screen.getByTitle('Validation');
+    const badge = validationBtn.querySelector('.panel-btn-badge');
+    expect(badge).not.toBeInTheDocument();
   });
 });

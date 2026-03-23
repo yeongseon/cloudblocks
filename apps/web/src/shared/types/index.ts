@@ -234,23 +234,27 @@ export const PLATE_ENCYCLOPEDIA: Record<
 > = {
   global: {
     what: 'The outermost boundary representing your entire cloud environment or a multi-region deployment.',
-    rules: 'Can contain edge, region, and zone plates. Cannot be nested inside other plates.',
+    rules:
+      'Can contain edge, region, and zone containers. Cannot be nested inside other containers.',
   },
   edge: {
     what: 'Edge locations for content delivery and low-latency access points close to end users.',
-    rules: 'Nests inside a global plate. Contains edge and compute blocks for CDN and caching.',
+    rules: 'Nests inside a global container. Contains edge and compute nodes for CDN and caching.',
   },
   region: {
     what: 'A geographic region where cloud resources are deployed — e.g., East US, EU West, Asia Pacific.',
-    rules: 'Nests inside a global plate. Contains subnet plates which hold the actual resources.',
+    rules:
+      'Nests inside a global container. Contains subnet containers which hold the actual resources.',
   },
   zone: {
     what: 'An availability zone within a region for fault isolation and high availability.',
-    rules: 'Nests inside a region plate. Contains subnet plates for zone-specific deployments.',
+    rules:
+      'Nests inside a region container. Contains subnet containers for zone-specific deployments.',
   },
   subnet: {
     what: 'A network segment with its own IP range and access rules. Access control is managed via NSG and route tables.',
-    rules: 'Nests inside a region or zone plate. Contains blocks (compute, data, security, etc.).',
+    rules:
+      'Nests inside a region or zone container. Contains nodes (compute, data, security, etc.).',
   },
 };
 

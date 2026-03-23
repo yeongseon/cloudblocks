@@ -1,0 +1,163 @@
+/* ValidationDrawerPanel — right-drawer validation display */
+
+.validation-drawer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.validation-drawer-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.validation-drawer-status[data-valid='true'] {
+  background: color-mix(in srgb, var(--accent-success, #22c55e) 15%, transparent);
+  color: var(--accent-success, #22c55e);
+  border: 1px solid color-mix(in srgb, var(--accent-success, #22c55e) 30%, transparent);
+}
+
+.validation-drawer-status[data-valid='false'] {
+  background: color-mix(in srgb, var(--accent-error, #ef4444) 15%, transparent);
+  color: var(--accent-error, #ef4444);
+  border: 1px solid color-mix(in srgb, var(--accent-error, #ef4444) 30%, transparent);
+}
+
+.validation-drawer-status-icon {
+  font-size: 14px;
+}
+
+.validation-drawer-counts {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.validation-drawer-empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--text-secondary, #94a3b8);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.validation-drawer-empty-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* ── Section ── */
+
+.validation-drawer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.validation-drawer-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0 4px;
+  margin: 0;
+}
+
+.validation-drawer-section-title[data-severity='error'] {
+  color: var(--accent-error, #ef4444);
+}
+
+.validation-drawer-section-title[data-severity='warning'] {
+  color: var(--accent-warning, #eab308);
+}
+
+/* ── Item ── */
+
+.validation-drawer-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 120ms ease;
+  border: 1px solid transparent;
+  background: none;
+  text-align: left;
+  font-family: inherit;
+  width: 100%;
+  color: inherit;
+}
+
+.validation-drawer-item:hover {
+  background: var(--bg-surface-raised, rgba(255, 255, 255, 0.04));
+}
+
+.validation-drawer-item:focus-visible {
+  outline: 2px solid var(--accent-primary, #3b82f6);
+  outline-offset: -2px;
+}
+
+.validation-drawer-item[data-severity='error'] {
+  border-left: 3px solid var(--accent-error, #ef4444);
+}
+
+.validation-drawer-item[data-severity='warning'] {
+  border-left: 3px solid var(--accent-warning, #eab308);
+}
+
+.validation-drawer-item-message {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary, #f1f5f9);
+  line-height: 1.4;
+}
+
+.validation-drawer-item-suggestion {
+  font-size: 12px;
+  color: var(--text-secondary, #94a3b8);
+  line-height: 1.4;
+}
+
+.validation-drawer-item-meta {
+  font-size: 11px;
+  font-family: var(--font-mono, monospace);
+  color: var(--text-muted, #64748b);
+}
+
+.validation-drawer-item[data-has-target='true'] .validation-drawer-item-meta::after {
+  content: ' · click to focus';
+  font-family: var(--font-ui, system-ui);
+  font-style: italic;
+  opacity: 0.6;
+}
+
+/* ── Run button ── */
+
+.validation-drawer-run {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--border-default, rgba(255, 255, 255, 0.08));
+  background: var(--bg-surface-raised, #334155);
+  color: var(--text-primary, #f1f5f9);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 120ms ease;
+  width: 100%;
+  font-family: inherit;
+}
+
+.validation-drawer-run:hover {
+  background: color-mix(in srgb, var(--bg-surface-raised, #334155) 80%, white);
+}

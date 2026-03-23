@@ -514,6 +514,21 @@ export const BrickConnector = memo(function BrickConnector({
         data-testid="connection-draw-path"
       />
 
+      {/* Snap flash — expands and fades out on mount */}
+      <path
+        d={hitPath}
+        stroke={colors.tile}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+        pointerEvents="none"
+        style={{
+          animation:
+            'connector-snap-flash 300ms var(--easing-default, cubic-bezier(0.2, 0, 0, 1)) forwards',
+        }}
+        data-testid="connection-snap-flash"
+      />
+
       {hasValidationError && (
         <path
           d={hitPath}

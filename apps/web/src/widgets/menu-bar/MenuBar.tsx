@@ -5,7 +5,6 @@ import { useLearningStore } from '../../entities/store/learningStore';
 import { validateArchitectureShape } from '../../entities/store/slices';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
-
 import { usePromoteStore } from '../../entities/store/promoteStore';
 import { computeArchitectureDiff } from '../../features/diff/engine';
 import { apiPost, getApiErrorMessage } from '../../shared/api/client';
@@ -15,9 +14,45 @@ import type { ArchitectureModel, ProviderType } from '@cloudblocks/schema';
 import type { BackendStatus } from '../../entities/store/uiStore';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
+import {
+  Menu,
+  Save,
+  FolderOpen,
+  FileDown,
+  FileUp,
+  RotateCcw,
+  Undo2,
+  Redo2,
+  Trash2,
+  CheckCircle,
+  Zap,
+  Package,
+  ArrowUpCircle,
+  ArrowDownCircle,
+  ClipboardList,
+  BookOpen,
+  GraduationCap,
+  PanelLeft,
+  BookMarked,
+  Search,
+  BarChart3,
+  Settings,
+  Volume2,
+  VolumeX,
+  Moon,
+  Sun,
+  Lock,
+  FolderGit2,
+  RefreshCw,
+  GitPullRequest,
+  GitCompare,
+  LogOut,
+  Cloud,
+  Grid3x3,
+} from 'lucide-react';
 import './MenuBar.css';
 
-type DropdownMenu = 'file' | 'edit' | 'build' | 'view' | 'github' | null;
+type DropdownMenu = 'overflow' | 'github' | null;
 
 const PROVIDER_OPTIONS: { id: ProviderType; label: string; color: string; comingSoon?: boolean }[] =
   [
@@ -36,10 +71,8 @@ export function MenuBar() {
   const toggleSidebar = useUIStore((s) => s.toggleSidebar);
   const inspectorOpen = useUIStore((s) => s.inspector.isOpen);
   const toggleInspector = useUIStore((s) => s.toggleInspector);
-  const bottomDockOpen = useUIStore((s) => s.bottomDock.isOpen);
-  const bottomDockActiveTab = useUIStore((s) => s.bottomDock.activeTab);
-  const openBottomTab = useUIStore((s) => s.openBottomTab);
-  const closeBottomDock = useUIStore((s) => s.closeBottomDock);
+  const toggleDrawer = useUIStore((s) => s.toggleDrawer);
+  const drawerState = useUIStore((s) => s.drawer);
   const showResourceGuide = useUIStore((s) => s.showResourceGuide);
   const toggleResourceGuide = useUIStore((s) => s.toggleResourceGuide);
   const activeProvider = useUIStore((s) => s.activeProvider);
@@ -52,13 +85,12 @@ export function MenuBar() {
   const toggleGitHubSync = useUIStore((s) => s.toggleGitHubSync);
   const toggleGitHubPR = useUIStore((s) => s.toggleGitHubPR);
   const diffMode = useUIStore((s) => s.diffMode);
-  const toggleScenarioGallery = useUIStore((s) => s.toggleScenarioGallery);
-  const toggleLearningPanel = useUIStore((s) => s.toggleLearningPanel);
-  const showLearningPanel = useUIStore((s) => s.showLearningPanel);
   const activeScenario = useLearningStore((s) => s.activeScenario);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
   const toggleSound = useUIStore((s) => s.toggleSound);
   const themeVariant = useUIStore((s) => s.themeVariant);
+  const showStuds = useUIStore((s) => s.showStuds);
+  const toggleStuds = useUIStore((s) => s.toggleStuds);
   const setThemeVariant = useUIStore((s) => s.setThemeVariant);
   const playSound = (name: SoundName) => {
     if (!isSoundMuted) audioService.playSound(name);
@@ -140,6 +172,7 @@ export function MenuBar() {
   const handleValidate = () => {
     const result = validate();
     if (!showValidation) toggleValidation();
+    toggleDrawer('validation');
     playSound(result.valid ? 'validation-success' : 'validation-error');
   };
 
@@ -268,49 +301,236 @@ export function MenuBar() {
   };
 
   const handleToggleLearningPanel = () => {
-    if (showLearningPanel) {
-      toggleLearningPanel();
+    const drawer = useUIStore.getState().drawer;
+    const isLearningOpen = drawer.isOpen && drawer.activePanel === 'learning';
+
+    if (isLearningOpen) {
+      useUIStore.getState().closeDrawer();
       return;
     }
 
     if (!activeScenario) {
-      if (!useUIStore.getState().showScenarioGallery) {
-        toggleScenarioGallery();
-      }
+      useUIStore.getState().openDrawer('scenarios');
       return;
     }
 
-    toggleLearningPanel();
+    useUIStore.getState().openDrawer('learning');
   };
 
-  const handleToggleBottomDock = () => {
-    if (bottomDockOpen) {
-      closeBottomDock();
-    } else {
-      openBottomTab('output');
-    }
-  };
-
-  const handleToggleValidationResults = () => {
-    if (!bottomDockOpen) {
-      openBottomTab('validation');
-      return;
-    }
-
-    if (bottomDockActiveTab === 'validation') {
-      closeBottomDock();
-      return;
-    }
-
-    openBottomTab('validation');
-  };
+  const isDrawerActive = (panel: string) => drawerState.isOpen && drawerState.activePanel === panel;
 
   return (
     <div className="menu-bar">
-      <div className="menu-bar-logo">🧱 CloudBlocks</div>
+      <div className="menu-bar-logo">
+        <Cloud size={16} /> CB
+      </div>
+
+      {/* ── Overflow menu (all secondary actions) ──────── */}
+      <div className="menu-dropdown-container">
+        <button
+          type="button"
+          className="menu-trigger compact-trigger"
+          data-active={openMenu === 'overflow'}
+          onClick={() => toggleMenu('overflow')}
+          aria-label="Menu"
+          title="Menu"
+        >
+          <Menu size={16} />
+        </button>
+        <div className={`menu-dropdown overflow-dropdown ${openMenu === 'overflow' ? 'show' : ''}`}>
+          {/* File section */}
+          <div className="menu-section-label">File</div>
+          <button type="button" className="menu-item" onClick={() => handleAction(handleSave)}>
+            <span className="menu-item-left">
+              <Save size={14} /> Save Workspace
+            </span>
+            <span className="menu-shortcut">Ctrl+S</span>
+          </button>
+          <button type="button" className="menu-item" onClick={() => handleAction(handleLoad)}>
+            <span className="menu-item-left">
+              <FolderOpen size={14} /> Load Workspace
+            </span>
+          </button>
+          <button type="button" className="menu-item" onClick={() => handleAction(handleImport)}>
+            <span className="menu-item-left">
+              <FileDown size={14} /> Import JSON
+            </span>
+          </button>
+          <button type="button" className="menu-item" onClick={() => handleAction(handleExport)}>
+            <span className="menu-item-left">
+              <FileUp size={14} /> Export JSON
+            </span>
+          </button>
+          <button type="button" className="menu-item" onClick={() => handleAction(handleReset)}>
+            <span className="menu-item-left">
+              <RotateCcw size={14} /> Reset Workspace
+            </span>
+          </button>
+
+          <div className="menu-separator" />
+
+          {/* Edit section */}
+          <div className="menu-section-label">Edit</div>
+          <button
+            type="button"
+            className="menu-item"
+            onClick={() => handleAction(undo)}
+            disabled={!canUndo}
+          >
+            <span className="menu-item-left">
+              <Undo2 size={14} /> Undo
+            </span>
+            <span className="menu-shortcut">Ctrl+Z</span>
+          </button>
+          <button
+            type="button"
+            className="menu-item"
+            onClick={() => handleAction(redo)}
+            disabled={!canRedo}
+          >
+            <span className="menu-item-left">
+              <Redo2 size={14} /> Redo
+            </span>
+            <span className="menu-shortcut">Ctrl+Shift+Z</span>
+          </button>
+          <button
+            type="button"
+            className="menu-item"
+            onClick={() => handleAction(handleDeleteSelection)}
+            disabled={!selectedId}
+          >
+            <span className="menu-item-left">
+              <Trash2 size={14} /> Delete Selection
+            </span>
+            <span className="menu-shortcut">Del</span>
+          </button>
+
+          <div className="menu-separator" />
+
+          {/* Build section */}
+          <div className="menu-section-label">Build</div>
+          <button type="button" className="menu-item" onClick={() => handleAction(handleValidate)}>
+            <span className="menu-item-left">
+              <CheckCircle size={14} /> Validate Architecture
+            </span>
+            {validationResult && (
+              <span
+                className={`menu-badge ${validationResult.valid ? 'menu-badge-valid' : 'menu-badge-invalid'}`}
+              >
+                {validationResult.valid ? 'Valid' : 'Errors'}
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            className="menu-item"
+            onClick={() => handleAction(() => openInspectorTab('code'))}
+          >
+            <span className="menu-item-left">
+              <Zap size={14} /> Generate Code
+            </span>
+          </button>
+          <button
+            type="button"
+            className="menu-item"
+            onClick={() => handleAction(toggleTemplateGallery)}
+          >
+            <span className="menu-item-left">
+              <Package size={14} /> Browse Templates
+            </span>
+          </button>
+          <button
+            type="button"
+            className="menu-item"
+            onClick={() => handleAction(togglePromoteDialog)}
+          >
+            <span className="menu-item-left">
+              <ArrowUpCircle size={14} /> Promote to Production
+            </span>
+          </button>
+          <button
+            type="button"
+            className="menu-item"
+            onClick={() => handleAction(toggleRollbackDialog)}
+          >
+            <span className="menu-item-left">
+              <ArrowDownCircle size={14} /> Rollback Production
+            </span>
+          </button>
+          <button
+            type="button"
+            className="menu-item"
+            onClick={() => handleAction(togglePromoteHistory)}
+          >
+            <span className="menu-item-left">
+              <ClipboardList size={14} /> Promotion History
+            </span>
+          </button>
+          <button
+            type="button"
+            className="menu-item"
+            onClick={() => handleAction(() => toggleDrawer('scenarios'))}
+          >
+            <span className="menu-item-left">
+              <BookOpen size={14} /> Browse Scenarios
+            </span>
+          </button>
+          <button
+            type="button"
+            className="menu-item"
+            onClick={() => handleAction(handleToggleLearningPanel)}
+          >
+            <span className="menu-item-left">
+              {isDrawerActive('learning') ? '✓ ' : ''}
+              <GraduationCap size={14} /> Show Learning Panel
+            </span>
+          </button>
+
+          <div className="menu-separator" />
+
+          {/* View section */}
+          <div className="menu-section-label">View</div>
+          <button type="button" className="menu-item" onClick={() => handleAction(toggleSidebar)}>
+            <span className="menu-item-left">
+              {sidebarOpen ? '✓ ' : '  '}
+              <PanelLeft size={14} /> Sidebar
+            </span>
+            <span className="menu-shortcut">Ctrl+Alt+S</span>
+          </button>
+          <button
+            type="button"
+            className="menu-item"
+            onClick={() => handleAction(toggleResourceGuide)}
+          >
+            <span className="menu-item-left">
+              {showResourceGuide ? '✓ ' : '  '}
+              <BookMarked size={14} /> Resource Guide
+            </span>
+          </button>
+          <button type="button" className="menu-item" onClick={() => handleAction(toggleInspector)}>
+            <span className="menu-item-left">
+              {inspectorOpen ? '✓ ' : '  '}
+              <Search size={14} /> Inspector
+            </span>
+            <span className="menu-shortcut">Ctrl+Alt+I</span>
+          </button>
+          <button
+            type="button"
+            className="menu-item"
+            onClick={() => handleAction(handleToggleDiffMode)}
+            disabled={!diffMode}
+          >
+            <span className="menu-item-left">
+              {diffMode ? '✓ ' : ''}
+              <GitCompare size={14} /> Diff View
+            </span>
+          </button>
+        </div>
+      </div>
 
       <div className="menu-bar-divider" />
 
+      {/* ── Workspace pill ──────── */}
       <button
         type="button"
         className="workspace-pill"
@@ -325,246 +545,7 @@ export function MenuBar() {
 
       <div className="menu-bar-divider" />
 
-      <nav className="menu-bar-nav">
-        <div className="menu-dropdown-container">
-          <button
-            type="button"
-            className="menu-trigger"
-            data-active={openMenu === 'file'}
-            onClick={() => toggleMenu('file')}
-          >
-            File
-          </button>
-          <div className={`menu-dropdown ${openMenu === 'file' ? 'show' : ''}`}>
-            <button type="button" className="menu-item" onClick={() => handleAction(handleSave)}>
-              <span className="menu-item-left">💾 Save Workspace</span>
-              <span className="menu-shortcut">Ctrl+S</span>
-            </button>
-            <button type="button" className="menu-item" onClick={() => handleAction(handleLoad)}>
-              <span className="menu-item-left">📂 Load Workspace</span>
-            </button>
-            <div className="menu-separator" />
-            <button type="button" className="menu-item" onClick={() => handleAction(handleImport)}>
-              <span className="menu-item-left">📥 Import JSON</span>
-            </button>
-            <button type="button" className="menu-item" onClick={() => handleAction(handleExport)}>
-              <span className="menu-item-left">📤 Export JSON</span>
-            </button>
-            <div className="menu-separator" />
-            <button type="button" className="menu-item" onClick={() => handleAction(handleReset)}>
-              <span className="menu-item-left">🔄 Reset Workspace</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="menu-dropdown-container">
-          <button
-            type="button"
-            className="menu-trigger"
-            data-active={openMenu === 'edit'}
-            onClick={() => toggleMenu('edit')}
-          >
-            Edit
-          </button>
-          <div className={`menu-dropdown ${openMenu === 'edit' ? 'show' : ''}`}>
-            <button
-              type="button"
-              className="menu-item"
-              onClick={() => handleAction(undo)}
-              disabled={!canUndo}
-            >
-              <span className="menu-item-left">↩ Undo</span>
-              <span className="menu-shortcut">Ctrl+Z</span>
-            </button>
-            <button
-              type="button"
-              className="menu-item"
-              onClick={() => handleAction(redo)}
-              disabled={!canRedo}
-            >
-              <span className="menu-item-left">↪ Redo</span>
-              <span className="menu-shortcut">Ctrl+Shift+Z</span>
-            </button>
-            <div className="menu-separator" />
-            <button
-              type="button"
-              className="menu-item"
-              onClick={() => handleAction(handleDeleteSelection)}
-              disabled={!selectedId}
-            >
-              <span className="menu-item-left">❌ Delete Selection</span>
-              <span className="menu-shortcut">Del</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="menu-dropdown-container">
-          <button
-            type="button"
-            className="menu-trigger"
-            data-active={openMenu === 'build'}
-            onClick={() => toggleMenu('build')}
-          >
-            Build
-          </button>
-          <div className={`menu-dropdown ${openMenu === 'build' ? 'show' : ''}`}>
-            <button
-              type="button"
-              className="menu-item"
-              onClick={() => handleAction(handleValidate)}
-            >
-              <span className="menu-item-left">✅ Validate Architecture</span>
-              {validationResult && (
-                <span
-                  className={`menu-badge ${validationResult.valid ? 'menu-badge-valid' : 'menu-badge-invalid'}`}
-                >
-                  {validationResult.valid ? 'Valid' : 'Errors'}
-                </span>
-              )}
-            </button>
-            <button
-              type="button"
-              className="menu-item"
-              onClick={() => handleAction(() => openInspectorTab('code'))}
-            >
-              <span className="menu-item-left">⚡ Generate Code</span>
-            </button>
-            <div className="menu-separator" />
-            <button
-              type="button"
-              className="menu-item"
-              onClick={() => handleAction(toggleTemplateGallery)}
-            >
-              <span className="menu-item-left">📦 Browse Templates</span>
-            </button>
-
-            <div className="menu-separator" />
-            <button
-              type="button"
-              className="menu-item"
-              onClick={() => handleAction(togglePromoteDialog)}
-            >
-              <span className="menu-item-left">&#x2B06; Promote to Production</span>
-            </button>
-            <button
-              type="button"
-              className="menu-item"
-              onClick={() => handleAction(toggleRollbackDialog)}
-            >
-              <span className="menu-item-left">&#x2B07; Rollback Production</span>
-            </button>
-            <button
-              type="button"
-              className="menu-item"
-              onClick={() => handleAction(togglePromoteHistory)}
-            >
-              <span className="menu-item-left">&#x1F4CB; Promotion History</span>
-            </button>
-            <div className="menu-separator" />
-            <button
-              type="button"
-              className="menu-item"
-              onClick={() => handleAction(toggleScenarioGallery)}
-            >
-              <span className="menu-item-left">📚 Browse Scenarios</span>
-            </button>
-            <button
-              type="button"
-              className="menu-item"
-              onClick={() => handleAction(handleToggleLearningPanel)}
-            >
-              <span className="menu-item-left">
-                {showLearningPanel ? '✓ ' : ''}📖 Show Learning Panel
-              </span>
-            </button>
-          </div>
-        </div>
-
-        <div className="menu-dropdown-container">
-          <button
-            type="button"
-            className="menu-trigger"
-            data-active={openMenu === 'view'}
-            onClick={() => toggleMenu('view')}
-          >
-            View
-          </button>
-          <div className={`menu-dropdown ${openMenu === 'view' ? 'show' : ''}`}>
-            <button type="button" className="menu-item" onClick={() => handleAction(toggleSidebar)}>
-              <span className="menu-item-left">{sidebarOpen ? '✓ ' : '  '}📌 Sidebar</span>
-              <span className="menu-shortcut">Ctrl+Alt+S</span>
-            </button>
-            <button
-              type="button"
-              className="menu-item"
-              onClick={() => handleAction(toggleResourceGuide)}
-            >
-              <span className="menu-item-left">
-                {showResourceGuide ? '✓ ' : '  '}📖 Resource Guide
-              </span>
-            </button>
-            <div className="menu-separator" />
-            <button
-              type="button"
-              className="menu-item"
-              onClick={() => handleAction(toggleInspector)}
-            >
-              <span className="menu-item-left">{inspectorOpen ? '✓ ' : '  '}🔍 Inspector</span>
-              <span className="menu-shortcut">Ctrl+Alt+I</span>
-            </button>
-            <div className="menu-separator" />
-            <button
-              type="button"
-              className="menu-item"
-              onClick={() => handleAction(handleToggleBottomDock)}
-            >
-              <span className="menu-item-left">{bottomDockOpen ? '✓ ' : '  '}📊 Bottom Dock</span>
-              <span className="menu-shortcut">Ctrl+Alt+D</span>
-            </button>
-            <button
-              type="button"
-              className="menu-item"
-              onClick={() => handleAction(handleToggleValidationResults)}
-            >
-              <span className="menu-item-left">
-                {bottomDockOpen && bottomDockActiveTab === 'validation' ? '✓ ' : '  '}📊 Validation
-                Results
-              </span>
-            </button>
-            <div className="menu-separator" />
-            <button
-              type="button"
-              className="menu-item"
-              onClick={() => handleAction(handleToggleDiffMode)}
-              disabled={!diffMode}
-            >
-              <span className="menu-item-left">{diffMode ? '✓ ' : ''}🔍 Diff View</span>
-            </button>
-            <div className="menu-separator" />
-            <button
-              type="button"
-              className="menu-item"
-              onClick={() => handleAction(() => setThemeVariant('blueprint'))}
-            >
-              <span className="menu-item-left">
-                {themeVariant === 'blueprint' ? '✓ ' : '  '}🌙 Blueprint (Dark)
-              </span>
-            </button>
-            <button
-              type="button"
-              className="menu-item"
-              onClick={() => handleAction(() => setThemeVariant('workshop'))}
-            >
-              <span className="menu-item-left">
-                {themeVariant === 'workshop' ? '✓ ' : '  '}☀️ Workshop (Light)
-              </span>
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      <div className="menu-bar-divider" />
-
+      {/* ── Provider pills ──────── */}
       <div className="provider-section" role="tablist" aria-label="Cloud provider">
         {PROVIDER_OPTIONS.map((provider) => {
           const isActive = activeProvider === provider.id;
@@ -597,6 +578,40 @@ export function MenuBar() {
         })}
       </div>
 
+      <div className="menu-bar-divider" />
+
+      {/* ── Direct panel access buttons ──────── */}
+      <div className="panel-access-buttons">
+        <button
+          type="button"
+          className={`panel-btn ${isDrawerActive('validation') ? 'active' : ''}`}
+          onClick={() => toggleDrawer('validation')}
+          title="Validation"
+        >
+          <BarChart3 size={16} />
+          {validationResult && !validationResult.valid && (
+            <span className="panel-btn-badge">!</span>
+          )}
+        </button>
+        <button
+          type="button"
+          className={`panel-btn ${isDrawerActive('scenarios') ? 'active' : ''}`}
+          onClick={() => toggleDrawer('scenarios')}
+          title="Scenarios"
+        >
+          <BookOpen size={16} />
+        </button>
+        <button
+          type="button"
+          className={`panel-btn ${isDrawerActive('properties') ? 'active' : ''}`}
+          onClick={() => toggleDrawer('properties')}
+          title="Properties"
+        >
+          <Settings size={16} />
+        </button>
+      </div>
+
+      {/* ── Quick actions (pushed right) ──────── */}
       <div className="quick-actions">
         <button
           type="button"
@@ -605,7 +620,7 @@ export function MenuBar() {
           disabled={!canUndo}
           title="Undo (Ctrl+Z)"
         >
-          ↩
+          <Undo2 size={14} />
         </button>
         <button
           type="button"
@@ -614,7 +629,7 @@ export function MenuBar() {
           disabled={!canRedo}
           title="Redo (Ctrl+Shift+Z)"
         >
-          ↪
+          <Redo2 size={14} />
         </button>
         <button
           type="button"
@@ -622,21 +637,41 @@ export function MenuBar() {
           onClick={handleSave}
           title="Save Workspace (Ctrl+S)"
         >
-          💾
+          <Save size={14} />
         </button>
-
         <button
           type="button"
           className="quick-btn"
           onClick={handleToggleSound}
           title={isSoundMuted ? 'Unmute Sounds' : 'Mute Sounds'}
         >
-          {isSoundMuted ? '🔇' : '🔊'}
+          {isSoundMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+        </button>
+        <button
+          type="button"
+          className={`quick-btn ${themeVariant === 'blueprint' ? 'active' : ''}`}
+          onClick={() => setThemeVariant(themeVariant === 'blueprint' ? 'workshop' : 'blueprint')}
+          title={
+            themeVariant === 'blueprint'
+              ? 'Switch to Workshop (Light)'
+              : 'Switch to Blueprint (Dark)'
+          }
+        >
+          {themeVariant === 'blueprint' ? <Moon size={14} /> : <Sun size={14} />}
+        </button>
+        <button
+          type="button"
+          className={`quick-btn ${showStuds ? 'active' : ''}`}
+          onClick={toggleStuds}
+          title={showStuds ? 'Hide studs' : 'Show studs'}
+        >
+          <Grid3x3 size={14} />
         </button>
       </div>
 
       <div className="menu-bar-divider" />
 
+      {/* ── GitHub section ──────── */}
       <div className="github-section menu-dropdown-container">
         {isAuthenticated ? (
           <>
@@ -646,7 +681,7 @@ export function MenuBar() {
               data-active={openMenu === 'github'}
               onClick={() => toggleMenu('github')}
             >
-              🔐 {user?.github_username ?? 'GitHub'}
+              <Lock size={14} /> {user?.github_username ?? 'GitHub'}
             </button>
             <div className={`menu-dropdown right-aligned ${openMenu === 'github' ? 'show' : ''}`}>
               <button
@@ -654,7 +689,9 @@ export function MenuBar() {
                 className="menu-item"
                 onClick={() => handleAction(toggleGitHubRepos)}
               >
-                <span className="menu-item-left">📦 Repos</span>
+                <span className="menu-item-left">
+                  <FolderGit2 size={14} /> Repos
+                </span>
               </button>
               <button
                 type="button"
@@ -667,7 +704,9 @@ export function MenuBar() {
                     : undefined
                 }
               >
-                <span className="menu-item-left">🔄 Sync</span>
+                <span className="menu-item-left">
+                  <RefreshCw size={14} /> Sync
+                </span>
               </button>
               <button
                 type="button"
@@ -680,7 +719,9 @@ export function MenuBar() {
                     : undefined
                 }
               >
-                <span className="menu-item-left">🔀 Create PR</span>
+                <span className="menu-item-left">
+                  <GitPullRequest size={14} /> Create PR
+                </span>
               </button>
               <button
                 type="button"
@@ -693,17 +734,21 @@ export function MenuBar() {
                     : undefined
                 }
               >
-                <span className="menu-item-left">🔍 Compare with GitHub</span>
+                <span className="menu-item-left">
+                  <GitCompare size={14} /> Compare with GitHub
+                </span>
               </button>
               <div className="menu-separator" />
               <button type="button" className="menu-item" onClick={() => handleAction(logout)}>
-                <span className="menu-item-left">🚪 Sign Out</span>
+                <span className="menu-item-left">
+                  <LogOut size={14} /> Sign Out
+                </span>
               </button>
             </div>
           </>
         ) : authStatus === 'unknown' || backendStatus === 'unknown' ? (
           <button type="button" className="github-btn" disabled title="Checking authentication...">
-            🔐 ...
+            <Lock size={14} /> ...
           </button>
         ) : !backendAvailable ? (
           <button
@@ -712,7 +757,7 @@ export function MenuBar() {
             disabled
             title="Backend API required for GitHub features. Run the backend server to enable."
           >
-            🔐 Demo Mode
+            <Lock size={14} /> Demo Mode
           </button>
         ) : (
           <button
@@ -721,7 +766,7 @@ export function MenuBar() {
             onClick={toggleGitHubLogin}
             title="Sign in with GitHub"
           >
-            🔐 Sign In
+            <Lock size={14} /> Sign In
           </button>
         )}
       </div>

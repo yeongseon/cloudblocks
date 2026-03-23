@@ -120,3 +120,24 @@ export function getBlockSvgStubPoints(
 
   return { inbound, outbound };
 }
+
+// ---------------------------------------------------------------------------
+// Stub index ↔ endpoint semantic mapping
+// ---------------------------------------------------------------------------
+
+import type { EndpointSemantic } from '@cloudblocks/schema';
+
+/** Canonical ordering of endpoint semantics on each face. */
+const SEMANTIC_ORDER: readonly EndpointSemantic[] = ['http', 'event', 'data'] as const;
+
+/**
+ * Map a stub index to its endpoint semantic.
+ *
+ * Stubs are rendered in a fixed order: index 0 → http, 1 → event, 2 → data.
+ * When the block has fewer stubs than semantics, the mapping wraps (index % 3).
+ *
+ * This matches the `semanticToStubIndex` logic in `endpointAnchors.ts`.
+ */
+export function stubIndexToSemantic(index: number): EndpointSemantic {
+  return SEMANTIC_ORDER[index % SEMANTIC_ORDER.length];
+}

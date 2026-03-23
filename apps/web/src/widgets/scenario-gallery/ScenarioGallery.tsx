@@ -29,7 +29,7 @@ const categoryKeys: Array<ScenarioDifficulty | 'all'> = [
 ];
 
 export function ScenarioGallery() {
-  const toggleScenarioGallery = useUIStore((s) => s.toggleScenarioGallery);
+  const closeDrawer = useUIStore((s) => s.closeDrawer);
   const [activeDifficulty, setActiveDifficulty] = useState<ScenarioDifficulty | 'all'>('all');
 
   const scenarios =
@@ -38,23 +38,11 @@ export function ScenarioGallery() {
   const handleStart = (id: string) => {
     startLearningScenario(id);
     setActiveDifficulty('all');
-    toggleScenarioGallery();
+    closeDrawer();
   };
 
   return (
     <div className="scenario-gallery">
-      <div className="scenario-gallery-header">
-        <h2 className="scenario-gallery-title">Scenario Gallery</h2>
-        <button
-          type="button"
-          className="scenario-gallery-close"
-          onClick={toggleScenarioGallery}
-          aria-label="Close scenario gallery"
-        >
-          ✕
-        </button>
-      </div>
-
       <div className="scenario-gallery-filters">
         {categoryKeys.map((key) => (
           <button

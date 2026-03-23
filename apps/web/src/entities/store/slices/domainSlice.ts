@@ -42,6 +42,7 @@ type DomainSlice = Pick<
   | 'removeNode'
   | 'renameNode'
   | 'moveNodePosition'
+  | 'updateNodeMetadata'
   | 'addPlate'
   | 'removePlate'
   | 'addBlock'
@@ -136,6 +137,26 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
     } else {
       get().moveBlockPosition(id, deltaX, deltaZ);
     }
+  },
+
+  updateNodeMetadata: (id: string, key: string, value: unknown) => {
+    set((state) => {
+      const arch = state.workspace.architecture;
+      const nodeIndex = arch.nodes.findIndex((n) => n.id === id);
+      if (nodeIndex === -1) return state;
+
+      const node = arch.nodes[nodeIndex];
+      const updatedNode = { ...node, metadata: { ...node.metadata, [key]: value } };
+      const updatedNodes = [...arch.nodes];
+      updatedNodes[nodeIndex] = updatedNode;
+
+      return {
+        workspace: {
+          ...state.workspace,
+          architecture: { ...arch, nodes: updatedNodes },
+        },
+      };
+    });
   },
 
   // ── Deprecated wrappers (delegates preserved for backward compat) ────────

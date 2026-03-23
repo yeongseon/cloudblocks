@@ -1,0 +1,233 @@
+/* PropertiesDrawerPanel — Edit-centric property form */
+
+.props-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 4px 0;
+}
+
+.props-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.props-section-title {
+  margin: 0;
+  font: 700 var(--text-xs) / 1 var(--font-ui);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+}
+
+.props-hint {
+  margin: 0;
+  color: var(--text-secondary);
+  font: 500 var(--text-xs) / 1.45 var(--font-ui);
+  text-align: center;
+  padding: 24px 16px;
+}
+
+/* ── Field group ──────────────────────────────────────────────── */
+.props-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--bg-surface-raised) 70%, transparent);
+}
+
+.props-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  min-height: 32px;
+}
+
+.props-field + .props-field {
+  border-top: 1px solid color-mix(in srgb, var(--border-default) 50%, transparent);
+}
+
+.props-field-label {
+  flex: 0 0 72px;
+  color: var(--text-secondary);
+  font: 600 var(--text-xs) / 1 var(--font-ui);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.props-field-value {
+  flex: 1;
+  color: var(--text-primary);
+  font: 500 var(--text-xs) / 1.2 var(--font-mono);
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.props-field-input,
+.props-field-textarea {
+  flex: 1;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-primary);
+  font: 500 var(--text-xs) / 1.2 var(--font-ui);
+  padding: 3px 6px;
+  transition:
+    border-color var(--duration-fast) var(--easing-standard),
+    background var(--duration-fast) var(--easing-standard);
+}
+
+.props-field-input:hover,
+.props-field-textarea:hover {
+  background: color-mix(in srgb, var(--bg-surface) 60%, transparent);
+  border-color: color-mix(in srgb, var(--border-default) 60%, transparent);
+}
+
+.props-field-input:focus,
+.props-field-textarea:focus {
+  outline: none;
+  background: var(--bg-surface);
+  border-color: var(--accent-primary);
+}
+
+.props-field-textarea {
+  resize: vertical;
+  min-height: 48px;
+  font-family: var(--font-ui);
+}
+
+/* ── Connection list ──────────────────────────────────────────── */
+.props-connection-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.props-connection-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--bg-surface-raised) 70%, transparent);
+  cursor: pointer;
+  transition: border-color var(--duration-fast) var(--easing-standard);
+  width: 100%;
+  text-align: left;
+  color: var(--text-primary);
+  font: 500 var(--text-xs) / 1.2 var(--font-ui);
+}
+
+.props-connection-item:hover {
+  border-color: color-mix(in srgb, var(--accent-primary) 45%, var(--border-default));
+}
+
+.props-conn-direction {
+  flex: 0 0 16px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.props-conn-direction[data-direction='outbound'] {
+  color: var(--cat-compute);
+}
+
+.props-conn-direction[data-direction='inbound'] {
+  color: var(--cat-network);
+}
+
+.props-conn-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.props-conn-semantic {
+  flex: 0 0 auto;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent-primary) 12%, var(--bg-surface));
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 30%, var(--border-default));
+  font: 700 10px / 1 var(--font-ui);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent-primary);
+}
+
+/* ── Actions ──────────────────────────────────────────────────── */
+.props-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.props-action-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: var(--bg-surface-raised);
+  color: var(--text-primary);
+  font: 600 var(--text-xs) / 1 var(--font-ui);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--easing-standard),
+    transform var(--duration-fast) var(--easing-standard);
+}
+
+.props-action-btn:hover {
+  border-color: color-mix(in srgb, var(--accent-primary) 45%, var(--border-default));
+  transform: translateY(-1px);
+}
+
+/* ── Danger Zone ──────────────────────────────────────────────── */
+.props-danger-zone {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--cat-security) 30%, var(--border-default));
+}
+
+.props-danger-title {
+  color: var(--cat-security);
+}
+
+.props-danger-btn {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid color-mix(in srgb, var(--cat-security) 40%, var(--border-default));
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--cat-security) 8%, var(--bg-surface-raised));
+  color: var(--cat-security);
+  font: 600 var(--text-xs) / 1 var(--font-ui);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--easing-standard),
+    border-color var(--duration-fast) var(--easing-standard);
+}
+
+.props-danger-btn:hover {
+  background: color-mix(in srgb, var(--cat-security) 18%, var(--bg-surface-raised));
+  border-color: var(--cat-security);
+}
+
+.props-danger-btn--confirm {
+  background: var(--cat-security);
+  color: white;
+  border-color: var(--cat-security);
+}
+
+.props-danger-btn--confirm:hover {
+  background: color-mix(in srgb, var(--cat-security) 85%, black);
+}
