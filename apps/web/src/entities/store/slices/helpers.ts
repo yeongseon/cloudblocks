@@ -36,7 +36,7 @@ function roundToTenth(value: number): number {
 
 export function nextGridPosition(
   existingBlocks: LeafNode[],
-  plateSize: { width: number; depth: number }
+  plateSize: { width: number; depth: number },
 ): Position {
   const blockWidth = DEFAULT_BLOCK_SIZE.width;
   const blockDepth = DEFAULT_BLOCK_SIZE.depth;
@@ -44,10 +44,7 @@ export function nextGridPosition(
   const stepX = blockWidth + spacing;
   const stepZ = blockDepth + spacing;
 
-  const maxCols = Math.max(
-    1,
-    Math.floor((plateSize.width - blockWidth) / stepX) + 1
-  );
+  const maxCols = Math.max(1, Math.floor((plateSize.width - blockWidth) / stepX) + 1);
   const index = existingBlocks.length;
   const col = index % maxCols;
   const row = Math.floor(index / maxCols);
@@ -68,7 +65,7 @@ function clamp(value: number, min: number, max: number): number {
 export function clampWithinParent(
   relativePosition: { x: number; z: number },
   parentSize: { width: number; depth: number },
-  childSize: { width: number; depth: number }
+  childSize: { width: number; depth: number },
 ): { x: number; z: number } {
   const minX = -(parentSize.width / 2) + childSize.width / 2;
   const maxX = parentSize.width / 2 - childSize.width / 2;
@@ -83,7 +80,7 @@ export function clampWithinParent(
 
 export function withHistory(
   state: ArchitectureState,
-  newArch: ArchitectureModel
+  newArch: ArchitectureModel,
 ): Partial<ArchitectureState> {
   const newHistory = pushHistory(state.history, state.workspace.architecture);
 
@@ -100,12 +97,9 @@ export function withHistory(
   };
 }
 
-export function upsertCurrentWorkspace(
-  workspaces: Workspace[],
-  workspace: Workspace
-): Workspace[] {
+export function upsertCurrentWorkspace(workspaces: Workspace[], workspace: Workspace): Workspace[] {
   const updated = workspaces.map((candidate) =>
-    candidate.id === workspace.id ? workspace : candidate
+    candidate.id === workspace.id ? workspace : candidate,
   );
 
   if (!updated.find((candidate) => candidate.id === workspace.id)) {
@@ -140,10 +134,8 @@ export function platesOverlap(
   const halfWB = sizeB.width / 2;
   const halfDB = sizeB.depth / 2;
 
-  const overlapX =
-    posA.x - halfWA < posB.x + halfWB && posA.x + halfWA > posB.x - halfWB;
-  const overlapZ =
-    posA.z - halfDA < posB.z + halfDB && posA.z + halfDA > posB.z - halfDB;
+  const overlapX = posA.x - halfWA < posB.x + halfWB && posA.x + halfWA > posB.x - halfWB;
+  const overlapZ = posA.z - halfDA < posB.z + halfDB && posA.z + halfDA > posB.z - halfDB;
 
   return overlapX && overlapZ;
 }
@@ -249,9 +241,7 @@ export function deduplicateWorkspaceName(
   excludeId?: string,
 ): string {
   const existing = new Set(
-    workspaces
-      .filter((ws) => !excludeId || ws.id !== excludeId)
-      .map((ws) => ws.name),
+    workspaces.filter((ws) => !excludeId || ws.id !== excludeId).map((ws) => ws.name),
   );
   if (!existing.has(name)) return name;
 

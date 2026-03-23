@@ -1,9 +1,5 @@
 import type { ProviderType } from '@cloudblocks/schema';
-import type {
-  ArchitectureSnapshot,
-  Scenario,
-  ScenarioStep,
-} from '../../shared/types/learning';
+import type { ArchitectureSnapshot, Scenario, ScenarioStep } from '../../shared/types/learning';
 
 const NETWORK_TERMS: Record<ProviderType, { vnet: string; vnetLong: string }> = {
   azure: { vnet: 'VNet', vnetLong: 'Virtual Network (VNet)' },
@@ -42,16 +38,11 @@ function adaptStep(step: ScenarioStep, provider: ProviderType): ScenarioStep {
     title: substituteText(step.title, provider),
     instruction: substituteText(step.instruction, provider),
     hints: step.hints.map((hint) => substituteText(hint, provider)),
-    checkpoint: step.checkpoint
-      ? adaptSnapshot(step.checkpoint, provider)
-      : undefined,
+    checkpoint: step.checkpoint ? adaptSnapshot(step.checkpoint, provider) : undefined,
   };
 }
 
-export function formatScenarioForProvider(
-  scenario: Scenario,
-  provider: ProviderType,
-): Scenario {
+export function formatScenarioForProvider(scenario: Scenario, provider: ProviderType): Scenario {
   if (provider === 'azure') return scenario;
   return {
     ...scenario,

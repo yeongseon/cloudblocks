@@ -18,13 +18,13 @@ The README states "React + SVG frontend (FSD architecture)" and ADR-0005 establi
 
 The `packages/` directory contains scaffolded but unused packages:
 
-| Package | State |
-|---------|-------|
-| `@cloudblocks/schema` | Exports only `SCHEMA_VERSION = '2.0.0'` — no actual consumers |
-| `@cloudblocks/domain` | Placeholder |
-| `@cloudblocks/ui` | Placeholder |
-| `@cloudblocks/terraform-templates` | Placeholder |
-| `@cloudblocks/scenario-library` | Placeholder |
+| Package                            | State                                                         |
+| ---------------------------------- | ------------------------------------------------------------- |
+| `@cloudblocks/schema`              | Exports only `SCHEMA_VERSION = '2.0.0'` — no actual consumers |
+| `@cloudblocks/domain`              | Placeholder                                                   |
+| `@cloudblocks/ui`                  | Placeholder                                                   |
+| `@cloudblocks/terraform-templates` | Placeholder                                                   |
+| `@cloudblocks/scenario-library`    | Placeholder                                                   |
 
 No `import` from `@cloudblocks/schema` (or any other package) exists anywhere in `apps/web` or `apps/api`.
 
@@ -34,12 +34,12 @@ The README describes the backend as a "thin orchestration backend." The actual `
 
 ### 4. Version Inconsistencies
 
-| Location | Version |
-|----------|---------|
-| Root `package.json` | 0.11.0 |
-| `apps/web/package.json` | 0.11.0 |
-| `apps/api/pyproject.toml` | 0.11.0 |
-| `packages/schema/package.json` | 0.1.0 |
+| Location                       | Version |
+| ------------------------------ | ------- |
+| Root `package.json`            | 0.11.0  |
+| `apps/web/package.json`        | 0.11.0  |
+| `apps/api/pyproject.toml`      | 0.11.0  |
+| `packages/schema/package.json` | 0.1.0   |
 
 The schema package version is misaligned. No versioning policy exists for when packages should track root version vs version independently.
 
@@ -66,6 +66,7 @@ A coupling analysis found:
 **Problem**: Ambiguity between SVG and Three.js rendering approaches.
 
 **Work**:
+
 - Audit current rendering code: which renderer is actually used for what
 - Write an ADR documenting the rendering model decision
 - If SVG-only: remove Three.js dependencies (`three`, `@react-three/fiber`, `@react-three/drei`) and any associated code
@@ -74,17 +75,18 @@ A coupling analysis found:
 
 **Options to evaluate** (decision made during implementation, not in this design doc):
 
-| Option | Pros | Cons |
-|--------|------|------|
-| SVG-only | Simpler, smaller bundle, matches current working code | Limits future 3D features |
-| Hybrid (SVG + Three.js) | Future flexibility, 3D preview possible | Complexity, larger bundle, dual rendering paths |
-| Three.js migration | Full 3D capability | Major rewrite, breaks working SVG code |
+| Option                  | Pros                                                  | Cons                                            |
+| ----------------------- | ----------------------------------------------------- | ----------------------------------------------- |
+| SVG-only                | Simpler, smaller bundle, matches current working code | Limits future 3D features                       |
+| Hybrid (SVG + Three.js) | Future flexibility, 3D preview possible               | Complexity, larger bundle, dual rendering paths |
+| Three.js migration      | Full 3D capability                                    | Major rewrite, breaks working SVG code          |
 
 ### Area B: Package Extraction
 
 **Problem**: `packages/` contains empty scaffolding. Shared domain logic is duplicated.
 
 **Work**:
+
 - **`@cloudblocks/schema`**: Extract the ArchitectureModel JSON schema, TypeScript type definitions, and validation schemas. This becomes the single source of truth for the data contract.
 - **`@cloudblocks/domain`**: Extract shared domain logic (block categories, connection types, validation rule definitions) used by both frontend and backend.
 - **Remove unused packages**: Delete placeholder packages that have no planned consumers (`ui`, `terraform-templates`, `scenario-library`) or define concrete extraction plans for them.
@@ -98,6 +100,7 @@ A coupling analysis found:
 **Problem**: Documented role ("thin orchestration") does not match actual responsibilities.
 
 **Work**:
+
 - Document the actual backend responsibilities accurately:
   - Authentication and session management (GitHub OAuth, cookie-based sessions)
   - Workspace persistence (SQLite metadata)
@@ -114,6 +117,7 @@ A coupling analysis found:
 **Problem**: Build/test/lint configuration assumes a simpler structure than what exists.
 
 **Work**:
+
 - Consolidate workspace configuration (`pnpm-workspace.yaml`, `tsconfig` references)
 - Ensure `pnpm build`, `pnpm lint`, and `pnpm test` work from root for all apps and packages
 - Clean up unused entries in `scripts/`
@@ -125,6 +129,7 @@ A coupling analysis found:
 **Problem**: No versioning policy. Schema package version misaligned.
 
 **Work**:
+
 - Define versioning policy: all packages track root version (single-version policy)
 - Align `packages/schema` version from 0.1.0 to current root version
 - Document the policy: pre-1.0 means no stability guarantees, version bumps are milestone-driven
@@ -136,39 +141,39 @@ A coupling analysis found:
 
 ### [Epic] Rendering Model Resolution (Area A)
 
-| # | Title | Size |
-|---|-------|------|
-| 1 | Audit current rendering code and Three.js usage | S |
-| 2 | Write ADR: Rendering model decision | M |
-| 3 | Implement rendering model decision (remove or boundary) | M |
+| #   | Title                                                   | Size |
+| --- | ------------------------------------------------------- | ---- |
+| 1   | Audit current rendering code and Three.js usage         | S    |
+| 2   | Write ADR: Rendering model decision                     | M    |
+| 3   | Implement rendering model decision (remove or boundary) | M    |
 
 ### [Epic] Package Extraction & Boundaries (Area B)
 
-| # | Title | Size |
-|---|-------|------|
-| 1 | Design schema package: JSON Schema + TS types + Python codegen | M |
-| 2 | Extract `@cloudblocks/schema` with ArchitectureModel contract | L |
-| 3 | Extract `@cloudblocks/domain` with shared domain logic | L |
-| 4 | Migrate apps/web imports to use extracted packages | M |
-| 5 | Remove or plan unused placeholder packages | S |
+| #   | Title                                                          | Size |
+| --- | -------------------------------------------------------------- | ---- |
+| 1   | Design schema package: JSON Schema + TS types + Python codegen | M    |
+| 2   | Extract `@cloudblocks/schema` with ArchitectureModel contract  | L    |
+| 3   | Extract `@cloudblocks/domain` with shared domain logic         | L    |
+| 4   | Migrate apps/web imports to use extracted packages             | M    |
+| 5   | Remove or plan unused placeholder packages                     | S    |
 
 ### [Epic] Backend Role & API Contract (Area C)
 
-| # | Title | Size |
-|---|-------|------|
-| 1 | Document actual backend responsibilities and API surface | M |
-| 2 | Define shared ArchitectureModel contract (JSON Schema) | M |
-| 3 | Decide and implement validation rule ownership | M |
-| 4 | Update README, ARCHITECTURE.md, API_SPEC.md | M |
+| #   | Title                                                    | Size |
+| --- | -------------------------------------------------------- | ---- |
+| 1   | Document actual backend responsibilities and API surface | M    |
+| 2   | Define shared ArchitectureModel contract (JSON Schema)   | M    |
+| 3   | Decide and implement validation rule ownership           | M    |
+| 4   | Update README, ARCHITECTURE.md, API_SPEC.md              | M    |
 
 ### [Epic] Monorepo Infrastructure (Areas D + E)
 
-| # | Title | Size |
-|---|-------|------|
-| 1 | Consolidate workspace and tsconfig configuration | M |
-| 2 | Ensure root-level build/test/lint for all modules | M |
-| 3 | Align CI pipeline with restructured modules | M |
-| 4 | Define and enforce version alignment policy | S |
+| #   | Title                                             | Size |
+| --- | ------------------------------------------------- | ---- |
+| 1   | Consolidate workspace and tsconfig configuration  | M    |
+| 2   | Ensure root-level build/test/lint for all modules | M    |
+| 3   | Align CI pipeline with restructured modules       | M    |
+| 4   | Define and enforce version alignment policy       | S    |
 
 ---
 
@@ -206,12 +211,12 @@ A coupling analysis found:
 
 ## Risks
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Package extraction breaks CI pipeline | Build failures, blocked PRs | Incremental extraction: one package at a time, verify CI after each |
-| Rendering model decision requires significant dependency removal | Large diff, potential regressions | Write ADR first, implement in isolated PR with thorough testing |
-| Backend redefinition surfaces API inconsistencies | API contract confusion | Contract-first approach: define schema before changing code |
-| Cross-language schema generation adds tooling complexity | Maintenance burden | Use established tools (e.g., `json-schema-to-typescript`, `datamodel-code-generator`) |
+| Risk                                                             | Impact                            | Mitigation                                                                            |
+| ---------------------------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------- |
+| Package extraction breaks CI pipeline                            | Build failures, blocked PRs       | Incremental extraction: one package at a time, verify CI after each                   |
+| Rendering model decision requires significant dependency removal | Large diff, potential regressions | Write ADR first, implement in isolated PR with thorough testing                       |
+| Backend redefinition surfaces API inconsistencies                | API contract confusion            | Contract-first approach: define schema before changing code                           |
+| Cross-language schema generation adds tooling complexity         | Maintenance burden                | Use established tools (e.g., `json-schema-to-typescript`, `datamodel-code-generator`) |
 
 ---
 

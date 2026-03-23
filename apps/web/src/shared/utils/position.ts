@@ -37,7 +37,7 @@ function toTuple(position: ExternalActor['position']): [number, number, number] 
  */
 export function getBlockWorldPosition(
   block: LeafNode,
-  parentPlate: ContainerNode
+  parentPlate: ContainerNode,
 ): [number, number, number] {
   return [
     parentPlate.position.x + block.position.x,
@@ -54,7 +54,7 @@ export function getEndpointWorldPosition(
   id: string,
   blocks: LeafNode[],
   plates: ContainerNode[],
-  externalActors: ExternalActor[]
+  externalActors: ExternalActor[],
 ): [number, number, number] | null {
   // Check blocks
   const block = blocks.find((b) => b.id === id);
@@ -67,7 +67,9 @@ export function getEndpointWorldPosition(
 
   const actor = externalActors.find((a) => a.id === id);
   if (actor) {
-    const base = actor.position ? toTuple(actor.position) : [...EXTERNAL_ACTOR_POSITION] as [number, number, number];
+    const base = actor.position
+      ? toTuple(actor.position)
+      : ([...EXTERNAL_ACTOR_POSITION] as [number, number, number]);
     base[1] += EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET;
     return base;
   }

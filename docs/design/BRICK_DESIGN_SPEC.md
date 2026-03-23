@@ -54,13 +54,13 @@ Real Lego works because **every stud is identical**. A 1×1 brick, a 2×4 brick,
 
 All studs everywhere — background, plates, blocks, any future element — use these **exact** proportions:
 
-| Property | Value | Description |
-|----------|-------|-------------|
-| **Stud cell** | 1 stud unit = `STUD_SIZE_PX` (40px logical) | Center-to-center spacing between studs |
-| **Stud diameter** | 37.5% of stud cell | The visible stud top is 37.5% of the cell width |
-| **Stud height** | 5 SVG units (scaled to viewBox) | Cylinder height of the 3D extrusion |
-| **Stud shape** | Isometric ellipse (rx:ry = 2:1) | Matches 2:1 dimetric projection |
-| **Stud structure** | 3 layers: shadow ellipse + top ellipse + inner ring | Consistent 3D appearance |
+| Property           | Value                                               | Description                                     |
+| ------------------ | --------------------------------------------------- | ----------------------------------------------- |
+| **Stud cell**      | 1 stud unit = `STUD_SIZE_PX` (40px logical)         | Center-to-center spacing between studs          |
+| **Stud diameter**  | 37.5% of stud cell                                  | The visible stud top is 37.5% of the cell width |
+| **Stud height**    | 5 SVG units (scaled to viewBox)                     | Cylinder height of the 3D extrusion             |
+| **Stud shape**     | Isometric ellipse (rx:ry = 2:1)                     | Matches 2:1 dimetric projection                 |
+| **Stud structure** | 3 layers: shadow ellipse + top ellipse + inner ring | Consistent 3D appearance                        |
 
 #### SVG Stud Template (Canonical)
 
@@ -81,28 +81,28 @@ Every stud in the system renders from this template. Only **colors** change per 
 
 All SVGs use `viewBox` dimensions that **equal their screen render size**. This means SVG units = screen pixels. Therefore, stud dimensions in SVG are identical to screen dimensions — no scaling math needed.
 
-| Element | Footprint | viewBox (= screen px) | Stud Count |
-|---------|-----------|----------------------|------------|
-| timer | 1×2 | 95 × 95 | 2 |
-| event | 1×2 | 95 × 95 | 2 |
-| function | 2×2 | 158 × 127 | 4 |
-| gateway | 2×4 | 190 × 158 | 8 |
-| queue | 2×4 | 190 × 158 | 8 |
-| storage | 2×4 | 190 × 158 | 8 |
-| compute | 3×4 | 222 × 190 | 12 |
-| database | 4×6 | 285 × 222 | 24 |
-| internet | 2×2 | ~158 × 127 | 4 (cylinder) |
-| network plate | 16×20 | 1152 × 586 | 320 |
-| subnet plate | 6×8 | 448 × 234 | 48 |
-| Background (CSS) | — | 64px/cell | infinite grid |
+| Element          | Footprint | viewBox (= screen px) | Stud Count    |
+| ---------------- | --------- | --------------------- | ------------- |
+| timer            | 1×2       | 95 × 95               | 2             |
+| event            | 1×2       | 95 × 95               | 2             |
+| function         | 2×2       | 158 × 127             | 4             |
+| gateway          | 2×4       | 190 × 158             | 8             |
+| queue            | 2×4       | 190 × 158             | 8             |
+| storage          | 2×4       | 190 × 158             | 8             |
+| compute          | 3×4       | 222 × 190             | 12            |
+| database         | 4×6       | 285 × 222             | 24            |
+| internet         | 2×2       | ~158 × 127            | 4 (cylinder)  |
+| network plate    | 16×20     | 1152 × 586            | 320           |
+| subnet plate     | 6×8       | 448 × 234             | 48            |
+| Background (CSS) | —         | 64px/cell             | infinite grid |
 
 Since viewBox = screen size, every stud in every SVG uses:
 
-| Dimension | Value | Derivation |
-|-----------|-------|------------|
-| `rx` | **12** | 37.5% of cell width: `64 × 0.375 / 2 = 12` |
-| `ry` | **6** | Half of rx (2:1 isometric ratio) |
-| `height` | **5** | Visual cylinder extrusion |
+| Dimension | Value  | Derivation                                 |
+| --------- | ------ | ------------------------------------------ |
+| `rx`      | **12** | 37.5% of cell width: `64 × 0.375 / 2 = 12` |
+| `ry`      | **6**  | Half of rx (2:1 isometric ratio)           |
+| `height`  | **5**  | Visual cylinder extrusion                  |
 
 > **No element-specific calculations.** Every stud everywhere uses rx=12, ry=6, height=5. The viewBox=screen approach eliminates all scaling confusion.
 
@@ -127,7 +127,6 @@ Since viewBox = screen size, every stud in every SVG uses:
 - Visual regression tests should verify stud uniformity across all element types
 - This section (§0) takes **absolute precedence** over any other section in this document or VISUAL_DESIGN_SPEC.md that might contradict it
 
-
 ### 0.6 CSS Background Studs — Acceptable Deviation
 
 **Implementation status**: ✅ Implemented — `apps/web/src/widgets/scene-canvas/SceneCanvas.css`
@@ -140,13 +139,13 @@ The infinite background stud grid rendered via CSS `radial-gradient` is a **2-la
 
 3. **Specific dimensional differences**:
 
-| Property | SVG Standard | CSS Background | Reason |
-|----------|-------------|----------------|--------|
-| Layers | 3 (shadow + top + inner ring) | 2 (highlight + shadow) | CSS gradient limitation |
-| Shadow ellipse | 12px × 6px | 13px × 6.5px | Slightly larger for visual shadow effect |
-| Top ellipse | 12px × 6px at cy=-5 | 12px × 6px at cy=0 | No vertical offset in CSS |
-| Inner ring | 7.2px × 3.6px, opacity 0.3 | Not present | Cannot layer in single gradient |
-| Cell spacing | 64px (STUD_SIZE_PX) | 64px | ✅ Matches |
+| Property       | SVG Standard                  | CSS Background         | Reason                                   |
+| -------------- | ----------------------------- | ---------------------- | ---------------------------------------- |
+| Layers         | 3 (shadow + top + inner ring) | 2 (highlight + shadow) | CSS gradient limitation                  |
+| Shadow ellipse | 12px × 6px                    | 13px × 6.5px           | Slightly larger for visual shadow effect |
+| Top ellipse    | 12px × 6px at cy=-5           | 12px × 6px at cy=0     | No vertical offset in CSS                |
+| Inner ring     | 7.2px × 3.6px, opacity 0.3    | Not present            | Cannot layer in single gradient          |
+| Cell spacing   | 64px (STUD_SIZE_PX)           | 64px                   | ✅ Matches                               |
 
 4. **This deviation MUST NOT be "fixed"** by attempting to replicate the 3-layer structure in CSS. The current 2-layer approach is the correct tradeoff between visual fidelity and implementation complexity.
 
@@ -166,14 +165,14 @@ That hierarchy is still the right conceptual model, but only layers 2 and 3 are 
 
 ### 1.1 Layer Status Matrix
 
-| Layer | Purpose | Current code reality | Status |
-|------|---------|----------------------|--------|
-| Application | Represent software running on resources | No `App` entity, no renderer, no placement model | 📋 Planned |
-| Resource | Represent cloud resources as bricks | 8 block categories rendered via `BlockSvg.tsx` | ✅ Visuals implemented |
-| Plate | Represent network and subnet boundaries | 8 plate profiles rendered via `PlateSvg.tsx` | ✅ Implemented |
-| Connections | Represent directional architecture flow | Single `dataflow` connection with SVG bezier path | 🚧 Partial |
-| Provider theming | Support Azure/AWS/GCP brick themes | Azure-first blocks, provider-neutral plate IDs, multi-provider minifigure accents | 🚧 Partial |
-| UX state model | Formal builder state machine | Ad hoc store fields only | 📋 Planned |
+| Layer            | Purpose                                 | Current code reality                                                              | Status                 |
+| ---------------- | --------------------------------------- | --------------------------------------------------------------------------------- | ---------------------- |
+| Application      | Represent software running on resources | No `App` entity, no renderer, no placement model                                  | 📋 Planned             |
+| Resource         | Represent cloud resources as bricks     | 8 block categories rendered via `BlockSvg.tsx`                                    | ✅ Visuals implemented |
+| Plate            | Represent network and subnet boundaries | 8 plate profiles rendered via `PlateSvg.tsx`                                      | ✅ Implemented         |
+| Connections      | Represent directional architecture flow | Single `dataflow` connection with SVG bezier path                                 | 🚧 Partial             |
+| Provider theming | Support Azure/AWS/GCP brick themes      | Azure-first blocks, provider-neutral plate IDs, multi-provider minifigure accents | 🚧 Partial             |
+| UX state model   | Formal builder state machine            | Ad hoc store fields only                                                          | 📋 Planned             |
 
 ### 1.2 Canonical Rendering Stack
 
@@ -190,29 +189,29 @@ No React Three Fiber or Three.js package is present in `apps/web/package.json`.
 
 ### 1.3 Current Component Map
 
-| Concern | Component / file | Current role |
-|---------|------------------|--------------|
-| Shared stud symbol | `apps/web/src/shared/components/IsometricStud.tsx` | Defines canonical stud `<defs>` and `<use>` grid |
-| Resource brick SVG | `apps/web/src/entities/block/BlockSvg.tsx` | Draws top face, side faces, label, icon, stud grid |
-| Resource wrapper | `apps/web/src/entities/block/BlockSprite.tsx` | Handles selection, drag, connect, delete, diff classes |
-| Plate SVG | `apps/web/src/entities/plate/PlateSvg.tsx` | Draws isometric plate faces and stud grid |
-| Plate wrapper | `apps/web/src/entities/plate/PlateSprite.tsx` | Handles selection, drag, drop target highlighting |
-| Connection path | `apps/web/src/entities/connection/ConnectionPath.tsx` | Draws quadratic bezier with arrow markers |
-| External actor | `apps/web/src/entities/connection/ExternalActorSprite.tsx` | Renders Internet actor sprite |
-| Projection math | `apps/web/src/shared/utils/isometric.ts` | Screen/world projection, depth sort, snapping |
-| Visual profile metadata | `apps/web/src/shared/types/visualProfile.ts` | Tier, footprint, hostability, app capacity |
-| Canonical types | `apps/web/src/shared/types/index.ts` | Categories, profiles, colors, interfaces |
+| Concern                 | Component / file                                           | Current role                                           |
+| ----------------------- | ---------------------------------------------------------- | ------------------------------------------------------ |
+| Shared stud symbol      | `apps/web/src/shared/components/IsometricStud.tsx`         | Defines canonical stud `<defs>` and `<use>` grid       |
+| Resource brick SVG      | `apps/web/src/entities/block/BlockSvg.tsx`                 | Draws top face, side faces, label, icon, stud grid     |
+| Resource wrapper        | `apps/web/src/entities/block/BlockSprite.tsx`              | Handles selection, drag, connect, delete, diff classes |
+| Plate SVG               | `apps/web/src/entities/plate/PlateSvg.tsx`                 | Draws isometric plate faces and stud grid              |
+| Plate wrapper           | `apps/web/src/entities/plate/PlateSprite.tsx`              | Handles selection, drag, drop target highlighting      |
+| Connection path         | `apps/web/src/entities/connection/ConnectionPath.tsx`      | Draws quadratic bezier with arrow markers              |
+| External actor          | `apps/web/src/entities/connection/ExternalActorSprite.tsx` | Renders Internet actor sprite                          |
+| Projection math         | `apps/web/src/shared/utils/isometric.ts`                   | Screen/world projection, depth sort, snapping          |
+| Visual profile metadata | `apps/web/src/shared/types/visualProfile.ts`               | Tier, footprint, hostability, app capacity             |
+| Canonical types         | `apps/web/src/shared/types/index.ts`                       | Categories, profiles, colors, interfaces               |
 
 ### 1.4 Design Goals
 
-| Goal | Current outcome |
-|------|------------------|
-| Preserve the Lego metaphor | Implemented via stud grids, stacked layers, shaded faces |
-| Teach architectural weight through size | Implemented visually for resources and plates |
-| Keep the domain model provider-neutral where possible | Implemented for `network`/`subnet` naming and example CIDRs |
-| Avoid bespoke per-element drawing rules | Implemented through shared stud defs and parameterized SVG components |
-| Support multi-cloud provider theming | Planned for bricks; only small hooks exist today |
-| Support software-on-resource teaching model | Planned only |
+| Goal                                                  | Current outcome                                                       |
+| ----------------------------------------------------- | --------------------------------------------------------------------- |
+| Preserve the Lego metaphor                            | Implemented via stud grids, stacked layers, shaded faces              |
+| Teach architectural weight through size               | Implemented visually for resources and plates                         |
+| Keep the domain model provider-neutral where possible | Implemented for `network`/`subnet` naming and example CIDRs           |
+| Avoid bespoke per-element drawing rules               | Implemented through shared stud defs and parameterized SVG components |
+| Support multi-cloud provider theming                  | Planned for bricks; only small hooks exist today                      |
+| Support software-on-resource teaching model           | Planned only                                                          |
 
 ### 1.5 Reality-First Notes
 
@@ -238,39 +237,34 @@ This section remains canonical because the resource layer already encodes hostab
 
 `apps/web/src/shared/types/visualProfile.ts` already carries the metadata needed for the future application layer:
 
-| Resource category | Hostable? | `appCapacity` | Current rationale |
-|-------------------|-----------|---------------|-------------------|
-| `compute` | Yes | 4 | Primary workload host |
-| `function` | Yes | 1 | Single hosted handler/runtime |
-| `gateway` | No | 0 | Managed edge service |
-| `queue` | No | 0 | Managed message service |
-| `storage` | No | 0 | Managed object store |
-| `database` | No | 0 | Managed data service |
-| `event` | No | 0 | Event router |
-| `timer` | No | 0 | Trigger |
+| Resource category | Hostable? | `appCapacity` | Current rationale             |
+| ----------------- | --------- | ------------- | ----------------------------- |
+| `compute`         | Yes       | 4             | Primary workload host         |
+| `function`        | Yes       | 1             | Single hosted handler/runtime |
+| `gateway`         | No        | 0             | Managed edge service          |
+| `queue`           | No        | 0             | Managed message service       |
+| `storage`         | No        | 0             | Managed object store          |
+| `database`        | No        | 0             | Managed data service          |
+| `event`           | No        | 0             | Event router                  |
+| `timer`           | No        | 0             | Trigger                       |
 
 ### 2.3 Planned Application Placement Rules
 
-| Resource type | Accepts apps? | Planned rationale |
-|---------------|---------------|-------------------|
-| `compute` | ✅ Yes | VMs/containers host multiple software components |
-| `function` | ✅ Yes | Serverless runtime hosts one handler/application unit |
-| `gateway` | ❌ No | Provider-managed ingress |
-| `queue` | ❌ No | Provider-managed queueing |
-| `storage` | ❌ No | Provider-managed storage |
-| `database` | ⚠️ Split model | Managed DB = no apps; self-hosted DB should be modeled as app on compute |
-| `event` | ❌ No | Event routing trigger |
-| `timer` | ❌ No | Scheduler trigger |
+| Resource type | Accepts apps?  | Planned rationale                                                        |
+| ------------- | -------------- | ------------------------------------------------------------------------ |
+| `compute`     | ✅ Yes         | VMs/containers host multiple software components                         |
+| `function`    | ✅ Yes         | Serverless runtime hosts one handler/application unit                    |
+| `gateway`     | ❌ No          | Provider-managed ingress                                                 |
+| `queue`       | ❌ No          | Provider-managed queueing                                                |
+| `storage`     | ❌ No          | Provider-managed storage                                                 |
+| `database`    | ⚠️ Split model | Managed DB = no apps; self-hosted DB should be modeled as app on compute |
+| `event`       | ❌ No          | Event routing trigger                                                    |
+| `timer`       | ❌ No          | Scheduler trigger                                                        |
 
 ### 2.4 Planned Application Taxonomy
 
 ```ts
-export type AppCategory =
-  | 'web-server'
-  | 'runtime'
-  | 'language'
-  | 'database-engine'
-  | 'package';
+export type AppCategory = 'web-server' | 'runtime' | 'language' | 'database-engine' | 'package';
 
 export interface AppDefinition {
   id: string;
@@ -283,23 +277,23 @@ export interface AppDefinition {
 
 Suggested built-in examples preserved from the legacy spec:
 
-| Category | Examples |
-|----------|----------|
-| Web Server | `nginx`, `apache`, `caddy` |
-| Runtime | `nodejs`, `deno`, `bun` |
-| Language | `java`, `python`, `go`, `rust` |
-| Database Engine | `postgres`, `mysql`, `redis` |
-| Package / Container | `npm`, `docker`, `k8s` |
+| Category            | Examples                       |
+| ------------------- | ------------------------------ |
+| Web Server          | `nginx`, `apache`, `caddy`     |
+| Runtime             | `nodejs`, `deno`, `bun`        |
+| Language            | `java`, `python`, `go`, `rust` |
+| Database Engine     | `postgres`, `mysql`, `redis`   |
+| Package / Container | `npm`, `docker`, `k8s`         |
 
 ### 2.5 Planned Visual Form
 
-| Property | Planned value |
-|----------|---------------|
-| Shape | 1×1 cylinder / stud-like piece |
-| Placement | On the top face of a hostable resource |
-| Height | Shorter than a full resource brick |
-| Render technology | Inline SVG or reusable React component |
-| Capacity layout | Auto-arranged within the host block's top stud area |
+| Property          | Planned value                                       |
+| ----------------- | --------------------------------------------------- |
+| Shape             | 1×1 cylinder / stud-like piece                      |
+| Placement         | On the top face of a hostable resource              |
+| Height            | Shorter than a full resource brick                  |
+| Render technology | Inline SVG or reusable React component              |
+| Capacity layout   | Auto-arranged within the host block's top stud area |
 
 ### 2.6 What Exists Today
 
@@ -352,29 +346,29 @@ export type BrickSilhouette = 'tower' | 'heavy' | 'shield' | 'module';
 
 Current category-to-tier mapping:
 
-| Category | Tier | Footprint (studs) | Hostable | App capacity |
-|----------|------|-------------------|----------|--------------|
-| `timer` | `signal` | 1×2 | No | 0 |
-| `event` | `signal` | 1×2 | No | 0 |
-| `function` | `light` | 2×2 | Yes | 1 |
-| `gateway` | `service` | 2×4 | No | 0 |
-| `queue` | `service` | 2×4 | No | 0 |
-| `storage` | `service` | 2×4 | No | 0 |
-| `compute` | `core` | 3×4 | Yes | 4 |
-| `database` | `anchor` | 4×6 | No | 0 |
+| Category   | Tier      | Footprint (studs) | Hostable | App capacity |
+| ---------- | --------- | ----------------- | -------- | ------------ |
+| `timer`    | `signal`  | 1×2               | No       | 0            |
+| `event`    | `signal`  | 1×2               | No       | 0            |
+| `function` | `light`   | 2×2               | Yes      | 1            |
+| `gateway`  | `service` | 2×4               | No       | 0            |
+| `queue`    | `service` | 2×4               | No       | 0            |
+| `storage`  | `service` | 2×4               | No       | 0            |
+| `compute`  | `core`    | 3×4               | Yes      | 4            |
+| `database` | `anchor`  | 4×6               | No       | 0            |
 
 ### 3.3 Category Matrix: Visual Footprint, Placement Rule, Color
 
-| Category | Tier | Stud layout | Current placement rule | Base top color |
-|----------|------|-------------|------------------------|----------------|
-| `timer` | signal | `[1,2]` | Network plate only | `#5C2D91` |
-| `event` | signal | `[1,2]` | Network plate only | `#D83B01` |
-| `function` | light | `[2,2]` | Network plate only | `#FFB900` |
-| `gateway` | service | `[2,4]` | Public subnet only | `#0078D4` |
-| `queue` | service | `[2,4]` | Network plate only | `#737373` |
-| `storage` | service | `[2,4]` | Any subnet | `#7FBA00` |
-| `compute` | core | `[3,4]` | Any subnet | `#F25022` |
-| `database` | anchor | `[4,6]` | Private subnet only | `#00A4EF` |
+| Category   | Tier    | Stud layout | Current placement rule | Base top color |
+| ---------- | ------- | ----------- | ---------------------- | -------------- |
+| `timer`    | signal  | `[1,2]`     | Network plate only     | `#5C2D91`      |
+| `event`    | signal  | `[1,2]`     | Network plate only     | `#D83B01`      |
+| `function` | light   | `[2,2]`     | Network plate only     | `#FFB900`      |
+| `gateway`  | service | `[2,4]`     | Public subnet only     | `#0078D4`      |
+| `queue`    | service | `[2,4]`     | Network plate only     | `#737373`      |
+| `storage`  | service | `[2,4]`     | Any subnet             | `#7FBA00`      |
+| `compute`  | core    | `[3,4]`     | Any subnet             | `#F25022`      |
+| `database` | anchor  | `[4,6]`     | Private subnet only    | `#00A4EF`      |
 
 ### 3.4 Current Visual Constraints
 
@@ -408,14 +402,70 @@ Current runtime data:
 
 ```ts
 export const BLOCK_VISUAL_PROFILES: Record<BlockCategory, BlockVisualProfile> = {
-  timer:    { tier: 'signal',  surface: 'studded', silhouette: 'module', footprint: [1, 2], hostable: false, appCapacity: 0 },
-  event:    { tier: 'signal',  surface: 'studded', silhouette: 'module', footprint: [1, 2], hostable: false, appCapacity: 0 },
-  function: { tier: 'light',   surface: 'studded', silhouette: 'module', footprint: [2, 2], hostable: true,  appCapacity: 1 },
-  gateway:  { tier: 'service', surface: 'studded', silhouette: 'shield', footprint: [2, 4], hostable: false, appCapacity: 0 },
-  queue:    { tier: 'service', surface: 'studded', silhouette: 'module', footprint: [2, 4], hostable: false, appCapacity: 0 },
-  storage:  { tier: 'service', surface: 'studded', silhouette: 'heavy',  footprint: [2, 4], hostable: false, appCapacity: 0 },
-  compute:  { tier: 'core',    surface: 'studded', silhouette: 'tower',  footprint: [3, 4], hostable: true,  appCapacity: 4 },
-  database: { tier: 'anchor',  surface: 'studded', silhouette: 'heavy',  footprint: [4, 6], hostable: false, appCapacity: 0 },
+  timer: {
+    tier: 'signal',
+    surface: 'studded',
+    silhouette: 'module',
+    footprint: [1, 2],
+    hostable: false,
+    appCapacity: 0,
+  },
+  event: {
+    tier: 'signal',
+    surface: 'studded',
+    silhouette: 'module',
+    footprint: [1, 2],
+    hostable: false,
+    appCapacity: 0,
+  },
+  function: {
+    tier: 'light',
+    surface: 'studded',
+    silhouette: 'module',
+    footprint: [2, 2],
+    hostable: true,
+    appCapacity: 1,
+  },
+  gateway: {
+    tier: 'service',
+    surface: 'studded',
+    silhouette: 'shield',
+    footprint: [2, 4],
+    hostable: false,
+    appCapacity: 0,
+  },
+  queue: {
+    tier: 'service',
+    surface: 'studded',
+    silhouette: 'module',
+    footprint: [2, 4],
+    hostable: false,
+    appCapacity: 0,
+  },
+  storage: {
+    tier: 'service',
+    surface: 'studded',
+    silhouette: 'heavy',
+    footprint: [2, 4],
+    hostable: false,
+    appCapacity: 0,
+  },
+  compute: {
+    tier: 'core',
+    surface: 'studded',
+    silhouette: 'tower',
+    footprint: [3, 4],
+    hostable: true,
+    appCapacity: 4,
+  },
+  database: {
+    tier: 'anchor',
+    surface: 'studded',
+    silhouette: 'heavy',
+    footprint: [4, 6],
+    hostable: false,
+    appCapacity: 0,
+  },
 };
 ```
 
@@ -427,29 +477,29 @@ The current block palette is Azure-first and implemented in `apps/web/src/shared
 
 ```ts
 export const BLOCK_COLORS: Record<BlockCategory, string> = {
-  compute:  '#F25022',
+  compute: '#F25022',
   database: '#00A4EF',
-  storage:  '#7FBA00',
-  gateway:  '#0078D4',
+  storage: '#7FBA00',
+  gateway: '#0078D4',
   function: '#FFB900',
-  queue:    '#737373',
-  event:    '#D83B01',
-  timer:    '#5C2D91',
+  queue: '#737373',
+  event: '#D83B01',
+  timer: '#5C2D91',
 };
 ```
 
 #### Stud Colors
 
-| Category | Stud main | Stud shadow | Stud highlight |
-|----------|-----------|-------------|----------------|
-| `compute` | `#ff693b` | `#e34113` | `#FFB4A0` |
-| `database` | `#33b8f5` | `#008acc` | `#99DCFA` |
-| `storage` | `#99d11a` | `#6b9d00` | `#CCE88C` |
-| `gateway` | `#3393de` | `#0066b8` | `#99C9EE` |
-| `function` | `#ffca33` | `#e6a600` | `#FFE599` |
-| `queue` | `#8c8c8c` | `#616161` | `#C6C6C6` |
-| `event` | `#e16233` | `#c03400` | `#F0B099` |
-| `timer` | `#7546aa` | `#4d1e82` | `#BAA3D5` |
+| Category   | Stud main | Stud shadow | Stud highlight |
+| ---------- | --------- | ----------- | -------------- |
+| `compute`  | `#ff693b` | `#e34113`   | `#FFB4A0`      |
+| `database` | `#33b8f5` | `#008acc`   | `#99DCFA`      |
+| `storage`  | `#99d11a` | `#6b9d00`   | `#CCE88C`      |
+| `gateway`  | `#3393de` | `#0066b8`   | `#99C9EE`      |
+| `function` | `#ffca33` | `#e6a600`   | `#FFE599`      |
+| `queue`    | `#8c8c8c` | `#616161`   | `#C6C6C6`      |
+| `event`    | `#e16233` | `#c03400`   | `#F0B099`      |
+| `timer`    | `#7546aa` | `#4d1e82`   | `#BAA3D5`      |
 
 #### Face Shading
 
@@ -466,12 +516,12 @@ That shading is implemented per category in `blockFaceColors.ts`.
 
 The silhouette taxonomy from the v1.0 spec is now implemented in `visualProfile.ts` and assigned per category in `BLOCK_VISUAL_PROFILES`.
 
-| Silhouette family | Meaning | Current category assignment |
-|-------------------|---------|-----------------------------|
-| `tower` | vertical workload host | `compute` |
-| `heavy` | durable, weight-bearing, stateful | `database`, `storage` |
-| `shield` | boundary / protection / ingress | `gateway` |
-| `module` | compact managed service or trigger | `function`, `queue`, `event`, `timer` |
+| Silhouette family | Meaning                            | Current category assignment           |
+| ----------------- | ---------------------------------- | ------------------------------------- |
+| `tower`           | vertical workload host             | `compute`                             |
+| `heavy`           | durable, weight-bearing, stateful  | `database`, `storage`                 |
+| `shield`          | boundary / protection / ingress    | `gateway`                             |
+| `module`          | compact managed service or trigger | `function`, `queue`, `event`, `timer` |
 
 Current constraints:
 
@@ -525,21 +575,21 @@ Cloud-neutral naming is intentional:
 
 #### Network Profiles
 
-| Profile ID | Display name | Studs | World size | `worldHeight` | Recommended capacity | Learning level | Example CIDRs |
-|------------|--------------|-------|------------|---------------|----------------------|----------------|---------------|
-| `network-sandbox` | Sandbox | 8×12 | 8×12 | 0.7 | 2 | beginner | azure/aws/gcp: `10.0.0.0/24` |
-| `network-application` | Application | 12×16 | 12×16 | 0.7 | 4 | intermediate | azure/aws/gcp: `10.1.0.0/20` |
-| `network-platform` | Platform | 16×20 | 16×20 | 0.7 | 6 | advanced | azure/aws/gcp: `10.0.0.0/16` |
-| `network-hub` | Hub | 20×24 | 20×24 | 0.7 | 8 | expert | azure/aws/gcp: `10.0.0.0/8` |
+| Profile ID            | Display name | Studs | World size | `worldHeight` | Recommended capacity | Learning level | Example CIDRs                |
+| --------------------- | ------------ | ----- | ---------- | ------------- | -------------------- | -------------- | ---------------------------- |
+| `network-sandbox`     | Sandbox      | 8×12  | 8×12       | 0.7           | 2                    | beginner       | azure/aws/gcp: `10.0.0.0/24` |
+| `network-application` | Application  | 12×16 | 12×16      | 0.7           | 4                    | intermediate   | azure/aws/gcp: `10.1.0.0/20` |
+| `network-platform`    | Platform     | 16×20 | 16×20      | 0.7           | 6                    | advanced       | azure/aws/gcp: `10.0.0.0/16` |
+| `network-hub`         | Hub          | 20×24 | 20×24      | 0.7           | 8                    | expert         | azure/aws/gcp: `10.0.0.0/8`  |
 
 #### Subnet Profiles
 
-| Profile ID | Display name | Studs | World size | `worldHeight` | Recommended capacity | Learning level | Example CIDRs |
-|------------|--------------|-------|------------|---------------|----------------------|----------------|---------------|
-| `subnet-utility` | Utility | 4×6 | 4×6 | 0.5 | 2 | beginner | azure/aws/gcp: `10.0.0.0/28` |
-| `subnet-service` | Service | 6×8 | 6×8 | 0.5 | 4 | intermediate | azure/aws/gcp: `10.0.1.0/26` |
-| `subnet-workload` | Workload | 8×10 | 8×10 | 0.5 | 6 | advanced | azure/aws/gcp: `10.0.2.0/24` |
-| `subnet-scale` | Scale | 10×12 | 10×12 | 0.5 | 8 | expert | azure/aws/gcp: `10.0.4.0/22` |
+| Profile ID        | Display name | Studs | World size | `worldHeight` | Recommended capacity | Learning level | Example CIDRs                |
+| ----------------- | ------------ | ----- | ---------- | ------------- | -------------------- | -------------- | ---------------------------- |
+| `subnet-utility`  | Utility      | 4×6   | 4×6        | 0.5           | 2                    | beginner       | azure/aws/gcp: `10.0.0.0/28` |
+| `subnet-service`  | Service      | 6×8   | 6×8        | 0.5           | 4                    | intermediate   | azure/aws/gcp: `10.0.1.0/26` |
+| `subnet-workload` | Workload     | 8×10  | 8×10       | 0.5           | 6                    | advanced       | azure/aws/gcp: `10.0.2.0/24` |
+| `subnet-scale`    | Scale        | 10×12 | 10×12      | 0.5           | 8                    | expert         | azure/aws/gcp: `10.0.4.0/22` |
 
 ### 4.3 Plate Profile Interface
 
@@ -584,29 +634,29 @@ Defaults on `main`:
 
 #### Face Colors
 
-| Plate kind | Top face | Top stroke | Left side | Right side |
-|------------|----------|------------|-----------|------------|
-| Network | `#2563EB` | `#60A5FA` | `#1D4ED8` | `#1E40AF` |
-| Public subnet | `#22C55E` | `#4ADE80` | `#16A34A` | `#15803D` |
-| Private subnet | `#6366F1` | `#818CF8` | `#4F46E5` | `#4338CA` |
+| Plate kind     | Top face  | Top stroke | Left side | Right side |
+| -------------- | --------- | ---------- | --------- | ---------- |
+| Network        | `#2563EB` | `#60A5FA`  | `#1D4ED8` | `#1E40AF`  |
+| Public subnet  | `#22C55E` | `#4ADE80`  | `#16A34A` | `#15803D`  |
+| Private subnet | `#6366F1` | `#818CF8`  | `#4F46E5` | `#4338CA`  |
 
 #### Stud Colors
 
-| Plate kind | Stud main | Stud shadow | Stud highlight |
-|------------|-----------|-------------|----------------|
-| Network | `#42A5F5` | `#1565C0` | `#90CAF9` |
-| Public subnet | `#66BB6A` | `#2E7D32` | `#A5D6A7` |
-| Private subnet | `#7986CB` | `#3949AB` | `#C5CAE9` |
+| Plate kind     | Stud main | Stud shadow | Stud highlight |
+| -------------- | --------- | ----------- | -------------- |
+| Network        | `#42A5F5` | `#1565C0`   | `#90CAF9`      |
+| Public subnet  | `#66BB6A` | `#2E7D32`   | `#A5D6A7`      |
+| Private subnet | `#7986CB` | `#3949AB`   | `#C5CAE9`      |
 
 ### 4.6 Visual Hierarchy — Implemented
 
 Plate side-wall thickness is semantic, not size-tier based:
 
-| Layer | `worldHeight` | Meaning |
-|------|---------------|---------|
-| Network plate | `0.7` | Thick base network boundary |
-| Subnet plate | `0.5` | Medium child boundary inside network |
-| Resource block | `0.8` | Separate brick rule in renderer |
+| Layer          | `worldHeight` | Meaning                              |
+| -------------- | ------------- | ------------------------------------ |
+| Network plate  | `0.7`         | Thick base network boundary          |
+| Subnet plate   | `0.5`         | Medium child boundary inside network |
+| Resource block | `0.8`         | Separate brick rule in renderer      |
 
 Important note:
 
@@ -625,10 +675,10 @@ The following parts are already cloud-neutral:
 Provider terminology mapping:
 
 | Provider | Network term | Child boundary term | Current domain model term |
-|----------|--------------|---------------------|---------------------------|
-| Azure | VNet | Subnet | `network` / `subnet` |
-| AWS | VPC | Subnet | `network` / `subnet` |
-| GCP | VPC Network | Subnet | `network` / `subnet` |
+| -------- | ------------ | ------------------- | ------------------------- |
+| Azure    | VNet         | Subnet              | `network` / `subnet`      |
+| AWS      | VPC          | Subnet              | `network` / `subnet`      |
+| GCP      | VPC Network  | Subnet              | `network` / `subnet`      |
 
 ### 4.8 Planned Provider-Specific Placement Rules
 
@@ -666,15 +716,15 @@ Blocks, plates, studs, connections, and the minifigure are implemented as SVG. A
 
 ### 5.1 Current Rendering Architecture — Implemented
 
-| Visual element | Implementation | Status |
-|----------------|----------------|--------|
-| Shared stud symbol | `StudDefs` + `StudGrid` | ✅ |
-| Resource bricks | `BlockSvg.tsx` | ✅ |
-| Plate sprites | `PlateSvg.tsx` | ✅ |
-| Connections | `ConnectionPath.tsx` | ✅ |
-| External actor | `internet.svg` via `ExternalActorSprite.tsx` | ✅ |
-| Minifigure | `MinifigureSvg.tsx` | ✅ |
-| App sprites | none | 📋 |
+| Visual element     | Implementation                               | Status |
+| ------------------ | -------------------------------------------- | ------ |
+| Shared stud symbol | `StudDefs` + `StudGrid`                      | ✅     |
+| Resource bricks    | `BlockSvg.tsx`                               | ✅     |
+| Plate sprites      | `PlateSvg.tsx`                               | ✅     |
+| Connections        | `ConnectionPath.tsx`                         | ✅     |
+| External actor     | `internet.svg` via `ExternalActorSprite.tsx` | ✅     |
+| Minifigure         | `MinifigureSvg.tsx`                          | ✅     |
+| App sprites        | none                                         | 📋     |
 
 ### 5.2 Application SVGs — Planned
 
@@ -706,8 +756,8 @@ import {
 #### Block Face Geometry
 
 ```ts
-const screenWidth = (studsX + studsY) * TILE_W / 2;
-const diamondHeight = (studsX + studsY) * TILE_H / 2;
+const screenWidth = ((studsX + studsY) * TILE_W) / 2;
+const diamondHeight = ((studsX + studsY) * TILE_H) / 2;
 const sideWallPx = Math.round(getBlockWorldHeight(category) * TILE_Z);
 const svgHeight = diamondHeight + sideWallPx + BLOCK_PADDING;
 ```
@@ -740,16 +790,16 @@ This is one of the most important corrections the current implementation makes r
 
 `BlockSvg` viewBox dimensions and `BlockSprite` wrapper sizes are not always equal.
 
-| Category | Studs | SVG viewBox width | SVG viewBox height | CSS wrapper width | CSS wrapper height |
-|----------|-------|-------------------|--------------------|-------------------|--------------------|
-| `timer` | 1×2 | 96 | 84 | 72 | 82 |
-| `event` | 1×2 | 96 | 84 | 72 | 82 |
-| `function` | 2×2 | 128 | 100 | 95 | 86 |
-| `gateway` | 2×4 | 192 | 132 | 120 | 110 |
-| `queue` | 2×4 | 192 | 132 | 120 | 110 |
-| `storage` | 2×4 | 192 | 132 | 120 | 110 |
-| `compute` | 3×4 | 224 | 148 | 140 | 128 |
-| `database` | 4×6 | 320 | 196 | 160 | 136 |
+| Category   | Studs | SVG viewBox width | SVG viewBox height | CSS wrapper width | CSS wrapper height |
+| ---------- | ----- | ----------------- | ------------------ | ----------------- | ------------------ |
+| `timer`    | 1×2   | 96                | 84                 | 72                | 82                 |
+| `event`    | 1×2   | 96                | 84                 | 72                | 82                 |
+| `function` | 2×2   | 128               | 100                | 95                | 86                 |
+| `gateway`  | 2×4   | 192               | 132                | 120               | 110                |
+| `queue`    | 2×4   | 192               | 132                | 120               | 110                |
+| `storage`  | 2×4   | 192               | 132                | 120               | 110                |
+| `compute`  | 3×4   | 224               | 148                | 140               | 128                |
+| `database` | 4×6   | 320               | 196                | 160               | 136                |
 
 Implication:
 
@@ -773,8 +823,8 @@ const padding = 10;
 #### Plate Geometry
 
 ```ts
-const screenWidth = (studsX + studsY) * TILE_W / 2;
-const diamondHeight = (studsX + studsY) * TILE_H / 2;
+const screenWidth = ((studsX + studsY) * TILE_W) / 2;
+const diamondHeight = ((studsX + studsY) * TILE_H) / 2;
 const sideWallPx = Math.round(worldHeight * TILE_Z);
 const svgHeight = diamondHeight + sideWallPx + padding;
 ```
@@ -792,11 +842,11 @@ Each plate SVG renders:
 
 `PlateSprite.tsx` hardcodes current semantic labels:
 
-| Plate kind | Label | Emoji |
-|------------|-------|-------|
-| Network | `Virtual Network` | `🌐` |
-| Public subnet | `Public Subnet` | `🔓` |
-| Private subnet | `Private Subnet` | `🔒` |
+| Plate kind     | Label             | Emoji |
+| -------------- | ----------------- | ----- |
+| Network        | `Virtual Network` | `🌐`  |
+| Public subnet  | `Public Subnet`   | `🔓`  |
+| Private subnet | `Private Subnet`  | `🔒`  |
 
 ### 5.7 Universal Stud SVG — Implemented
 
@@ -858,12 +908,12 @@ Two strokes are drawn:
 
 #### Current diff-aware coloring
 
-| Diff state | Background stroke | Foreground stroke |
-|------------|-------------------|-------------------|
-| `unchanged` | `#1e293b` | `#64748b` |
-| `added` | `#166534` | `#22c55e` |
-| `modified` | `#854d0e` | `#eab308` |
-| `removed` | `#991b1b` | `#ef4444` |
+| Diff state  | Background stroke | Foreground stroke |
+| ----------- | ----------------- | ----------------- |
+| `unchanged` | `#1e293b`         | `#64748b`         |
+| `added`     | `#166534`         | `#22c55e`         |
+| `modified`  | `#854d0e`         | `#eab308`         |
+| `removed`   | `#991b1b`         | `#ef4444`         |
 
 ### 5.10 External Actor Rendering — Implemented
 
@@ -1023,10 +1073,10 @@ This is used by generation and confirms that the infrastructure pipeline is stil
 From `minifigureFaceColors.ts`:
 
 | Provider | Torso top | Torso front | Torso side |
-|----------|-----------|-------------|------------|
-| Azure | `#078DCE` | `#067AB3` | `#0570A4` |
-| AWS | `#FF9900` | `#E68A00` | `#CC7A00` |
-| GCP | `#FFFFFF` | `#EBEBEB` | `#E0E0E0` |
+| -------- | --------- | ----------- | ---------- |
+| Azure    | `#078DCE` | `#067AB3`   | `#0570A4`  |
+| AWS      | `#FF9900` | `#E68A00`   | `#CC7A00`  |
+| GCP      | `#FFFFFF` | `#EBEBEB`   | `#E0E0E0`  |
 
 These are **not** yet the block palette system; they are only existing multi-provider visual hooks.
 
@@ -1039,15 +1089,18 @@ export type PlannedBrickProvider = 'azure' | 'aws' | 'gcp';
 
 export interface PlannedProviderPalette {
   provider: PlannedBrickProvider;
-  categories: Record<BlockCategory, {
-    topFace: string;
-    topStroke: string;
-    leftSide: string;
-    rightSide: string;
-    studMain: string;
-    studShadow: string;
-    studHighlight: string;
-  }>;
+  categories: Record<
+    BlockCategory,
+    {
+      topFace: string;
+      topStroke: string;
+      leftSide: string;
+      rightSide: string;
+      studMain: string;
+      studShadow: string;
+      studHighlight: string;
+    }
+  >;
 }
 ```
 
@@ -1119,19 +1172,19 @@ export const GRID_CELL = 3.0;
 
 Resolved values:
 
-| Constant | Value |
-|----------|-------|
-| `SCALE` | `64` |
-| `TILE_W` | `64` |
-| `TILE_H` | `32` |
-| `TILE_Z` | `32` |
+| Constant    | Value             |
+| ----------- | ----------------- |
+| `SCALE`     | `64`              |
+| `TILE_W`    | `64`              |
+| `TILE_H`    | `32`              |
+| `TILE_Z`    | `32`              |
 | `GRID_CELL` | `3.0` world units |
 
 ### 7.2 World-to-Screen Formula
 
 ```ts
-screenX = originX + (worldX - worldZ) * TILE_W / 2
-screenY = originY + (worldX + worldZ) * TILE_H / 2 - worldY * TILE_Z
+screenX = originX + ((worldX - worldZ) * TILE_W) / 2;
+screenY = originY + ((worldX + worldZ) * TILE_H) / 2 - worldY * TILE_Z;
 ```
 
 Interpretation:
@@ -1143,8 +1196,8 @@ Interpretation:
 ### 7.3 Screen-to-World Formula
 
 ```ts
-worldX = sx / TILE_W + sy / TILE_H
-worldZ = sy / TILE_H - sx / TILE_W
+worldX = sx / TILE_W + sy / TILE_H;
+worldZ = sy / TILE_H - sx / TILE_W;
 ```
 
 This is used with a selected `worldY` plane when reversing pointer coordinates.
@@ -1152,8 +1205,8 @@ This is used with a selected `worldY` plane when reversing pointer coordinates.
 ### 7.4 Drag Delta Projection
 
 ```ts
-dWorldX = dxScreen / TILE_W + dyScreen / TILE_H
-dWorldZ = dyScreen / TILE_H - dxScreen / TILE_W
+dWorldX = dxScreen / TILE_W + dyScreen / TILE_H;
+dWorldZ = dyScreen / TILE_H - dxScreen / TILE_W;
 ```
 
 This is what powers block and plate dragging in the sprite wrappers.
@@ -1161,8 +1214,8 @@ This is what powers block and plate dragging in the sprite wrappers.
 ### 7.5 Bounding Box Conversion
 
 ```ts
-screenWidth  = (width + depth) * TILE_W / 2
-screenHeight = (width + depth) * TILE_H / 2 + height * TILE_Z
+screenWidth = ((width + depth) * TILE_W) / 2;
+screenHeight = ((width + depth) * TILE_H) / 2 + height * TILE_Z;
 ```
 
 That formula is used by `worldSizeToScreen()` to size plate wrappers.
@@ -1170,17 +1223,17 @@ That formula is used by `worldSizeToScreen()` to size plate wrappers.
 ### 7.6 Depth Sorting — Implemented
 
 ```ts
-sortKey = layer * 1_000_000 + frontness
-frontness = worldX + worldZ + worldY
+sortKey = layer * 1_000_000 + frontness;
+frontness = worldX + worldZ + worldY;
 ```
 
 Current layer usage:
 
-| Layer number | Meaning |
-|--------------|---------|
-| `0` | plates |
-| `1` | external actors / minifigure |
-| `2` | blocks |
+| Layer number | Meaning                      |
+| ------------ | ---------------------------- |
+| `0`          | plates                       |
+| `1`          | external actors / minifigure |
+| `2`          | blocks                       |
 
 ### 7.7 Current Scene Layering
 
@@ -1209,7 +1262,7 @@ Absolute block world position is resolved as:
   parentPlate.position.x + block.position.x,
   parentPlate.position.y + parentPlate.size.height,
   parentPlate.position.z + block.position.z,
-]
+];
 ```
 
 ### 7.9 External Actor Position
@@ -1232,16 +1285,16 @@ Category-to-container validation is implemented. True footprint-aware placement,
 
 `apps/web/src/entities/validation/placement.ts` defines the current rules.
 
-| Block category | Allowed plate | Implemented rule |
-|----------------|--------------|------------------|
-| `compute` | any subnet | `plate.type === 'subnet'` |
-| `database` | private subnet | `plate.type === 'subnet' && plate.subnetAccess === 'private'` |
-| `gateway` | public subnet | `plate.type === 'subnet' && plate.subnetAccess === 'public'` |
-| `storage` | any subnet | `plate.type === 'subnet'` |
-| `function` | network only | `plate.type === 'network'` |
-| `queue` | network only | `plate.type === 'network'` |
-| `event` | network only | `plate.type === 'network'` |
-| `timer` | network only | `plate.type === 'network'` |
+| Block category | Allowed plate  | Implemented rule                                              |
+| -------------- | -------------- | ------------------------------------------------------------- |
+| `compute`      | any subnet     | `plate.type === 'subnet'`                                     |
+| `database`     | private subnet | `plate.type === 'subnet' && plate.subnetAccess === 'private'` |
+| `gateway`      | public subnet  | `plate.type === 'subnet' && plate.subnetAccess === 'public'`  |
+| `storage`      | any subnet     | `plate.type === 'subnet'`                                     |
+| `function`     | network only   | `plate.type === 'network'`                                    |
+| `queue`        | network only   | `plate.type === 'network'`                                    |
+| `event`        | network only   | `plate.type === 'network'`                                    |
+| `timer`        | network only   | `plate.type === 'network'`                                    |
 
 This reflects the current serverless/network modeling choice on `main`.
 
@@ -1307,9 +1360,9 @@ Plates and blocks are clamped within parent bounds using:
 
 ```ts
 minX = -(parentSize.width / 2) + childSize.width / 2;
-maxX =  parentSize.width / 2  - childSize.width / 2;
+maxX = parentSize.width / 2 - childSize.width / 2;
 minZ = -(parentSize.depth / 2) + childSize.depth / 2;
-maxZ =  parentSize.depth / 2  - childSize.depth / 2;
+maxZ = parentSize.depth / 2 - childSize.depth / 2;
 ```
 
 This works today for:
@@ -1383,15 +1436,15 @@ That means:
 
 `apps/web/src/entities/validation/connection.ts` defines the current matrix:
 
-| Source | Allowed targets |
-|--------|-----------------|
-| `internet` | `gateway` |
-| `gateway` | `compute`, `function` |
-| `compute` | `database`, `storage` |
+| Source     | Allowed targets                |
+| ---------- | ------------------------------ |
+| `internet` | `gateway`                      |
+| `gateway`  | `compute`, `function`          |
+| `compute`  | `database`, `storage`          |
 | `function` | `storage`, `database`, `queue` |
-| `queue` | `function` |
-| `timer` | `function` |
-| `event` | `function` |
+| `queue`    | `function`                     |
+| `timer`    | `function`                     |
+| `event`    | `function`                     |
 
 Explicit rules:
 
@@ -1430,23 +1483,18 @@ Behavior:
 The richer connection semantics are now implemented in `ConnectionType`.
 
 ```ts
-export type ConnectionType =
-  | 'dataflow'
-  | 'http'
-  | 'internal'
-  | 'data'
-  | 'async';
+export type ConnectionType = 'dataflow' | 'http' | 'internal' | 'data' | 'async';
 ```
 
 Current meanings:
 
-| Kind | Intended meaning | Current creation behavior |
-|------|------------------|---------------------------|
-| `dataflow` | generic directional flow | default in `addConnection` |
-| `http` | ingress/API request flow | supported by type union |
-| `internal` | private service-to-service call | supported by type union |
-| `data` | database/storage data access | supported by type union |
-| `async` | queue/event/timer messaging | supported by type union |
+| Kind       | Intended meaning                | Current creation behavior  |
+| ---------- | ------------------------------- | -------------------------- |
+| `dataflow` | generic directional flow        | default in `addConnection` |
+| `http`     | ingress/API request flow        | supported by type union    |
+| `internal` | private service-to-service call | supported by type union    |
+| `data`     | database/storage data access    | supported by type union    |
+| `async`    | queue/event/timer messaging     | supported by type union    |
 
 Current implementation notes:
 
@@ -1486,40 +1534,40 @@ This provides working behavior, but not an explicit canonical state machine.
 
 The future builder state machine should use these top-level interaction states:
 
-| Planned state | Meaning |
-|---------------|---------|
-| `idle` | nothing selected; default browse state |
-| `selecting` | inspecting or manipulating a selected entity |
-| `dragging` | moving an existing plate or block |
-| `placing` | dragging a new resource toward a valid target |
-| `connecting` | selecting source and target endpoints |
+| Planned state | Meaning                                       |
+| ------------- | --------------------------------------------- |
+| `idle`        | nothing selected; default browse state        |
+| `selecting`   | inspecting or manipulating a selected entity  |
+| `dragging`    | moving an existing plate or block             |
+| `placing`     | dragging a new resource toward a valid target |
+| `connecting`  | selecting source and target endpoints         |
 
 ### 10.3 Planned Transitions
 
-| From | Trigger | To |
-|------|---------|----|
-| `idle` | click entity | `selecting` |
-| `idle` | start dragging new palette item | `placing` |
-| `idle` | start connect tool | `connecting` |
-| `selecting` | drag selected entity | `dragging` |
-| `selecting` | click empty canvas | `idle` |
-| `dragging` | drop entity | `selecting` |
-| `placing` | drop on valid plate | `selecting` |
-| `placing` | cancel / invalid drop | `idle` |
-| `connecting` | pick source + target | `selecting` |
-| `connecting` | cancel | `idle` |
+| From         | Trigger                         | To           |
+| ------------ | ------------------------------- | ------------ |
+| `idle`       | click entity                    | `selecting`  |
+| `idle`       | start dragging new palette item | `placing`    |
+| `idle`       | start connect tool              | `connecting` |
+| `selecting`  | drag selected entity            | `dragging`   |
+| `selecting`  | click empty canvas              | `idle`       |
+| `dragging`   | drop entity                     | `selecting`  |
+| `placing`    | drop on valid plate             | `selecting`  |
+| `placing`    | cancel / invalid drop           | `idle`       |
+| `connecting` | pick source + target            | `selecting`  |
+| `connecting` | cancel                          | `idle`       |
 
 ### 10.4 Planned Visual Feedback Rules
 
 The state machine should standardize the feedback that already exists piecemeal today:
 
-| State | Visual signals |
-|-------|----------------|
-| `selecting` | selection outline, details panel context |
-| `dragging` | dragging class, shadow, bounce/drop animation |
-| `placing` | valid/invalid drop target highlights |
+| State        | Visual signals                                                    |
+| ------------ | ----------------------------------------------------------------- |
+| `selecting`  | selection outline, details panel context                          |
+| `dragging`   | dragging class, shadow, bounce/drop animation                     |
+| `placing`    | valid/invalid drop target highlights                              |
 | `connecting` | source highlight, valid/invalid target highlighting, preview path |
-| `idle` | no active emphasis |
+| `idle`       | no active emphasis                                                |
 
 ### 10.5 Why This Is Planned, Not Implemented
 
@@ -1676,67 +1724,67 @@ A more complex design is justified if any of these become true:
 
 ### A.1 Current Resource SVG Geometry
 
-| Category | Studs | Tier | ViewBox width | ViewBox height | Wall height px |
-|----------|-------|------|---------------|----------------|----------------|
-| `timer` | 1×2 | signal | 96 | 84 | 26 |
-| `event` | 1×2 | signal | 96 | 84 | 26 |
-| `function` | 2×2 | light | 128 | 100 | 26 |
-| `gateway` | 2×4 | service | 192 | 132 | 26 |
-| `queue` | 2×4 | service | 192 | 132 | 26 |
-| `storage` | 2×4 | service | 192 | 132 | 26 |
-| `compute` | 3×4 | core | 224 | 148 | 26 |
-| `database` | 4×6 | anchor | 320 | 196 | 26 |
+| Category   | Studs | Tier    | ViewBox width | ViewBox height | Wall height px |
+| ---------- | ----- | ------- | ------------- | -------------- | -------------- |
+| `timer`    | 1×2   | signal  | 96            | 84             | 26             |
+| `event`    | 1×2   | signal  | 96            | 84             | 26             |
+| `function` | 2×2   | light   | 128           | 100            | 26             |
+| `gateway`  | 2×4   | service | 192           | 132            | 26             |
+| `queue`    | 2×4   | service | 192           | 132            | 26             |
+| `storage`  | 2×4   | service | 192           | 132            | 26             |
+| `compute`  | 3×4   | core    | 224           | 148            | 26             |
+| `database` | 4×6   | anchor  | 320           | 196            | 26             |
 
 ### A.2 Current Resource Wrapper Dimensions
 
-| Category | Wrapper width | Wrapper height |
-|----------|---------------|----------------|
-| `timer` | 72 | 82 |
-| `event` | 72 | 82 |
-| `function` | 95 | 86 |
-| `gateway` | 120 | 110 |
-| `queue` | 120 | 110 |
-| `storage` | 120 | 110 |
-| `compute` | 140 | 128 |
-| `database` | 160 | 136 |
+| Category   | Wrapper width | Wrapper height |
+| ---------- | ------------- | -------------- |
+| `timer`    | 72            | 82             |
+| `event`    | 72            | 82             |
+| `function` | 95            | 86             |
+| `gateway`  | 120           | 110            |
+| `queue`    | 120           | 110            |
+| `storage`  | 120           | 110            |
+| `compute`  | 140           | 128            |
+| `database` | 160           | 136            |
 
 ### A.3 Current Plate Screen Dimensions by Profile
 
 Using `worldSizeToScreen(width, height, depth)`:
 
-| Profile ID | World size | `worldHeight` | Screen width | Screen height |
-|------------|------------|---------------|--------------|---------------|
-| `network-sandbox` | 8×12 | 0.7 | 640 | 342.4 |
-| `network-application` | 12×16 | 0.7 | 896 | 470.4 |
-| `network-platform` | 16×20 | 0.7 | 1152 | 598.4 |
-| `network-hub` | 20×24 | 0.7 | 1408 | 726.4 |
-| `subnet-utility` | 4×6 | 0.5 | 320 | 176 |
-| `subnet-service` | 6×8 | 0.5 | 448 | 240 |
-| `subnet-workload` | 8×10 | 0.5 | 576 | 304 |
-| `subnet-scale` | 10×12 | 0.5 | 704 | 368 |
+| Profile ID            | World size | `worldHeight` | Screen width | Screen height |
+| --------------------- | ---------- | ------------- | ------------ | ------------- |
+| `network-sandbox`     | 8×12       | 0.7           | 640          | 342.4         |
+| `network-application` | 12×16      | 0.7           | 896          | 470.4         |
+| `network-platform`    | 16×20      | 0.7           | 1152         | 598.4         |
+| `network-hub`         | 20×24      | 0.7           | 1408         | 726.4         |
+| `subnet-utility`      | 4×6        | 0.5           | 320          | 176           |
+| `subnet-service`      | 6×8        | 0.5           | 448          | 240           |
+| `subnet-workload`     | 8×10       | 0.5           | 576          | 304           |
+| `subnet-scale`        | 10×12      | 0.5           | 704          | 368           |
 
 ### A.4 Stud Invariants
 
-| Property | Runtime value |
-|----------|---------------|
-| Outer `rx` | `12` |
-| Outer `ry` | `6` |
-| Shadow/body offset | `5` on Y |
-| Inner ring `rx` | `7.2` |
-| Inner ring `ry` | `3.6` |
-| Inner ring opacity | `0.3` |
+| Property           | Runtime value |
+| ------------------ | ------------- |
+| Outer `rx`         | `12`          |
+| Outer `ry`         | `6`           |
+| Shadow/body offset | `5` on Y      |
+| Inner ring `rx`    | `7.2`         |
+| Inner ring `ry`    | `3.6`         |
+| Inner ring opacity | `0.3`         |
 
 ### A.5 Current World-Space Defaults
 
-| Concern | Value |
-|---------|-------|
-| `DEFAULT_BLOCK_SIZE.width` | `2.4` |
-| `DEFAULT_BLOCK_SIZE.height` | `2.4` |
-| `DEFAULT_BLOCK_SIZE.depth` | `2.4` |
-| block spawn local `y` | `0.5` |
-| snap grid cell | `3.0` |
-| network default profile | `network-platform` |
-| subnet default profile | `subnet-service` |
+| Concern                     | Value              |
+| --------------------------- | ------------------ |
+| `DEFAULT_BLOCK_SIZE.width`  | `2.4`              |
+| `DEFAULT_BLOCK_SIZE.height` | `2.4`              |
+| `DEFAULT_BLOCK_SIZE.depth`  | `2.4`              |
+| block spawn local `y`       | `0.5`              |
+| snap grid cell              | `3.0`              |
+| network default profile     | `network-platform` |
+| subnet default profile      | `subnet-service`   |
 
 ---
 
@@ -1744,26 +1792,26 @@ Using `worldSizeToScreen(width, height, depth)`:
 
 Use these files as the code references for implemented sections:
 
-| Topic | Source file |
-|-------|-------------|
-| Stud geometry | `apps/web/src/shared/components/IsometricStud.tsx` |
-| Block categories and plate profiles | `apps/web/src/shared/types/index.ts` |
-| Block visual tiers and hostability | `apps/web/src/shared/types/visualProfile.ts` |
-| Block faces and stud colors | `apps/web/src/entities/block/blockFaceColors.ts` |
-| Plate face colors | `apps/web/src/entities/plate/plateFaceColors.ts` |
-| Resource SVG renderer | `apps/web/src/entities/block/BlockSvg.tsx` |
-| Plate SVG renderer | `apps/web/src/entities/plate/PlateSvg.tsx` |
-| Connection SVG renderer | `apps/web/src/entities/connection/ConnectionPath.tsx` |
-| Placement validation | `apps/web/src/entities/validation/placement.ts` |
-| Connection validation | `apps/web/src/entities/validation/connection.ts` |
-| Projection math | `apps/web/src/shared/utils/isometric.ts` |
-| Endpoint positioning | `apps/web/src/shared/utils/position.ts` |
-| Scene composition | `apps/web/src/widgets/scene-canvas/SceneCanvas.tsx` |
-| Store actions and placement behavior | `apps/web/src/entities/store/slices/domainSlice.ts` |
-| Legacy schema migration | `apps/web/src/shared/types/schema.ts` |
-| Provider accents (minifigure) | `apps/web/src/entities/character/minifigureFaceColors.ts` |
-| Azure provider mapping | `apps/web/src/features/generate/provider.ts` |
-| Azure-only generator provider enum | `apps/web/src/features/generate/types.ts` |
+| Topic                                | Source file                                               |
+| ------------------------------------ | --------------------------------------------------------- |
+| Stud geometry                        | `apps/web/src/shared/components/IsometricStud.tsx`        |
+| Block categories and plate profiles  | `apps/web/src/shared/types/index.ts`                      |
+| Block visual tiers and hostability   | `apps/web/src/shared/types/visualProfile.ts`              |
+| Block faces and stud colors          | `apps/web/src/entities/block/blockFaceColors.ts`          |
+| Plate face colors                    | `apps/web/src/entities/plate/plateFaceColors.ts`          |
+| Resource SVG renderer                | `apps/web/src/entities/block/BlockSvg.tsx`                |
+| Plate SVG renderer                   | `apps/web/src/entities/plate/PlateSvg.tsx`                |
+| Connection SVG renderer              | `apps/web/src/entities/connection/ConnectionPath.tsx`     |
+| Placement validation                 | `apps/web/src/entities/validation/placement.ts`           |
+| Connection validation                | `apps/web/src/entities/validation/connection.ts`          |
+| Projection math                      | `apps/web/src/shared/utils/isometric.ts`                  |
+| Endpoint positioning                 | `apps/web/src/shared/utils/position.ts`                   |
+| Scene composition                    | `apps/web/src/widgets/scene-canvas/SceneCanvas.tsx`       |
+| Store actions and placement behavior | `apps/web/src/entities/store/slices/domainSlice.ts`       |
+| Legacy schema migration              | `apps/web/src/shared/types/schema.ts`                     |
+| Provider accents (minifigure)        | `apps/web/src/entities/character/minifigureFaceColors.ts` |
+| Azure provider mapping               | `apps/web/src/features/generate/provider.ts`              |
+| Azure-only generator provider enum   | `apps/web/src/features/generate/types.ts`                 |
 
 ---
 

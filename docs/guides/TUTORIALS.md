@@ -23,12 +23,14 @@ Each tutorial includes:
 **Objective**: Build a basic 3-tier web application architecture.
 
 **You'll learn**:
+
 - Network/Subnet plate concepts
 - Public vs Private subnet distinction
 - Block placement rules
 - DataFlow connections
 
 **Steps**:
+
 1. Create a Network (VNet) plate as the foundation
 2. Add a Public Subnet plate inside the network
 3. Add a Private Subnet plate inside the network
@@ -39,11 +41,13 @@ Each tutorial includes:
 8. Validate the architecture
 
 **Result**:
+
 ```
 Internet → [Public Subnet: Gateway] → [Private Subnet: Compute → Database]
 ```
 
 **Generated Terraform**:
+
 ```hcl
 resource "azurerm_virtual_network" "main" {
   name                = "vnet-main"
@@ -72,11 +76,13 @@ resource "azurerm_subnet" "private" {
 **Objective**: Build a static website with CDN and storage.
 
 **You'll learn**:
+
 - Storage block usage
 - Gateway as CDN entry point
 - Simple two-tier architecture
 
 **Result**:
+
 ```
 Internet → [Public Subnet: Gateway] → [Private Subnet: Compute → Storage]
 ```
@@ -90,11 +96,13 @@ Internet → [Public Subnet: Gateway] → [Private Subnet: Compute → Storage]
 **Objective**: Build a microservices architecture with multiple compute instances.
 
 **You'll learn**:
+
 - Multiple compute blocks
 - Service-to-service communication
 - Shared database patterns
 
 **Result**:
+
 ```
 Internet → Gateway → [Compute-A, Compute-B] → Database
 ```
@@ -106,12 +114,14 @@ Internet → Gateway → [Compute-A, Compute-B] → Database
 **Objective**: Build an event-driven data processing pipeline.
 
 **You'll learn**:
+
 - Storage as event source
 - Compute as processor
 - Database as sink
 - Multi-hop data flows
 
 **Result**:
+
 ```
 Internet → Gateway → Compute → Storage → (event-driven processing coming soon)
 ```
@@ -119,6 +129,7 @@ Internet → Gateway → Compute → Storage → (event-driven processing coming
 > **Note**: Storage and Database are currently receiver-only. The `Storage → Compute` event-driven pattern requires the `EventFlow` connection type (coming soon). For now, model this as `Compute → Storage` (polling pattern).
 
 **Alternative architecture using current features:**
+
 ```
 Internet → Gateway → Compute → Storage
                       ↓
@@ -134,6 +145,7 @@ Internet → Gateway → Compute → Storage
 **Objective**: Build a multi-subnet HA architecture with redundancy.
 
 **You'll learn**:
+
 - Redundant compute instances
 - Multiple subnets
 - Complex connection patterns
@@ -145,11 +157,13 @@ Internet → Gateway → Compute → Storage
 **Objective**: Build a serverless API with functions and queues.
 
 **You'll learn**:
+
 - Function block usage
 - Queue block for async processing
 - EventFlow connection type
 
 **Result**:
+
 ```
 HTTP → Function → Queue → Function → Database
 ```
@@ -174,9 +188,7 @@ Tutorials are defined as JSON files for programmatic use:
       "plates": [],
       "blocks": [],
       "connections": [],
-      "externalActors": [
-        { "id": "ext-internet", "name": "Internet", "type": "internet" }
-      ]
+      "externalActors": [{ "id": "ext-internet", "name": "Internet", "type": "internet" }]
     }
   },
   "steps": [

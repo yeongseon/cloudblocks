@@ -15,7 +15,9 @@ function createWorkspace(id: string): Workspace {
       nodes: [],
       connections: [],
       endpoints: [],
-      externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+      externalActors: [
+        { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+      ],
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
     },
@@ -42,7 +44,7 @@ describe('storage utilities', () => {
         workspaces,
       },
       null,
-      2
+      2,
     );
 
     expect(setItemSpy).toHaveBeenCalledWith('cloudblocks:workspaces', expectedJson);
@@ -58,17 +60,14 @@ describe('storage utilities', () => {
     saveWorkspaces(workspaces);
 
     expect(setItemSpy).toHaveBeenCalledTimes(1);
-    expect(errorSpy).toHaveBeenCalledWith(
-      'Failed to save workspaces:',
-      expect.any(Error)
-    );
+    expect(errorSpy).toHaveBeenCalledWith('Failed to save workspaces:', expect.any(Error));
   });
 
   it('loadWorkspaces returns parsed workspaces when data exists', () => {
     const workspaces = [createWorkspace('w1')];
     localStorage.setItem(
       'cloudblocks:workspaces',
-      JSON.stringify({ schemaVersion: SCHEMA_VERSION, workspaces })
+      JSON.stringify({ schemaVersion: SCHEMA_VERSION, workspaces }),
     );
 
     const loaded = loadWorkspaces();
@@ -89,10 +88,7 @@ describe('storage utilities', () => {
     const loaded = loadWorkspaces();
 
     expect(loaded).toEqual([]);
-    expect(errorSpy).toHaveBeenCalledWith(
-      'Failed to load workspaces:',
-      expect.any(Error)
-    );
+    expect(errorSpy).toHaveBeenCalledWith('Failed to load workspaces:', expect.any(Error));
   });
 
   it('loadWorkspaces returns empty array and logs error when getItem throws', () => {
@@ -105,10 +101,7 @@ describe('storage utilities', () => {
 
     expect(getItemSpy).toHaveBeenCalledWith('cloudblocks:workspaces');
     expect(loaded).toEqual([]);
-    expect(errorSpy).toHaveBeenCalledWith(
-      'Failed to load workspaces:',
-      expect.any(Error)
-    );
+    expect(errorSpy).toHaveBeenCalledWith('Failed to load workspaces:', expect.any(Error));
   });
 
   it('clearWorkspaces removes persisted workspaces key', () => {

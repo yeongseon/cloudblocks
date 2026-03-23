@@ -84,6 +84,7 @@ uvicorn app.main:app --reload --port 8000
 ```
 
 Auth implementation notes (current):
+
 - Session auth is cookie-based (`cb_session`, httpOnly), not JWT-based
 - OAuth state uses encrypted httpOnly `cb_oauth` cookie
 - Frontend/backend auth calls must use credentialed requests (`credentials: 'include'`)
@@ -194,13 +195,13 @@ Documentation issues may omit domain labels when the change is cross-cutting. If
 
 #### 4) Required label combinations
 
-| Issue kind | Required labels |
-|---|---|
-| Epic | `epic` + 1 or more domain labels |
-| Sub-issue (feature) | `enhancement` + 1 or more domain labels |
-| Sub-issue (bug) | `bug` + 1 or more domain labels |
-| Sub-issue (testing) | `testing` + 1 or more domain labels |
-| Documentation | `documentation` + optional domain label(s) |
+| Issue kind              | Required labels                                  |
+| ----------------------- | ------------------------------------------------ |
+| Epic                    | `epic` + 1 or more domain labels                 |
+| Sub-issue (feature)     | `enhancement` + 1 or more domain labels          |
+| Sub-issue (bug)         | `bug` + 1 or more domain labels                  |
+| Sub-issue (testing)     | `testing` + 1 or more domain labels              |
+| Documentation           | `documentation` + optional domain label(s)       |
 | Small fix / maintenance | `bug` or `enhancement` + 1 or more domain labels |
 
 ### Roadmap Implementation Workflow
@@ -223,13 +224,15 @@ Use the full workflow for any feature that spans multiple PRs, multiple domains,
    ## Overview
 
    ## Problems Solved
+
    | Problem | Why it matters |
-   |---|---|
-   | ... | ... |
+   | ------- | -------------- |
+   | ...     | ...            |
 
    ## Architecture
 
    ## Sub-Issues
+
    - [ ] #123
    - [ ] #124
 
@@ -238,6 +241,7 @@ Use the full workflow for any feature that spans multiple PRs, multiple domains,
    ## Constraints
 
    ## Branch Name
+
    `feature/<short-description>`
    ```
 
@@ -398,14 +402,14 @@ When docs mix implemented behavior and future design, use these rules:
 
 Status labels and meanings must stay consistent with the Document Ownership table in `docs/README.md`.
 
-| Status | Meaning | Handling rule |
-|---|---|---|
-| **Canonical** | Source of truth for active behavior | Update in place when behavior changes; other docs must align to it |
-| **Canonical (v2.0 Target)** | Accepted target spec not yet fully implemented | Keep as forward-looking target; do not rewrite as implemented behavior |
-| **Supporting** | Reference material that explains canonical docs | Keep concise; update links and examples to match canonical docs |
-| **Historical** | Past decisions/specs kept for traceability | Do not evolve behavior here; keep read-only historical context |
-| **Superseded** | Replaced by a newer canonical source | Do not continue active edits; add/keep clear pointer to replacement |
-| **Accepted** (ADR) | Active architectural decision in effect | Keep immutable; create a new ADR if the decision changes |
+| Status                      | Meaning                                         | Handling rule                                                          |
+| --------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------- |
+| **Canonical**               | Source of truth for active behavior             | Update in place when behavior changes; other docs must align to it     |
+| **Canonical (v2.0 Target)** | Accepted target spec not yet fully implemented  | Keep as forward-looking target; do not rewrite as implemented behavior |
+| **Supporting**              | Reference material that explains canonical docs | Keep concise; update links and examples to match canonical docs        |
+| **Historical**              | Past decisions/specs kept for traceability      | Do not evolve behavior here; keep read-only historical context         |
+| **Superseded**              | Replaced by a newer canonical source            | Do not continue active edits; add/keep clear pointer to replacement    |
+| **Accepted** (ADR)          | Active architectural decision in effect         | Keep immutable; create a new ADR if the decision changes               |
 
 Decision rules for already-merged documentation:
 

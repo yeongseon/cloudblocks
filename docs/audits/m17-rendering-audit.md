@@ -15,12 +15,12 @@ CloudBlocks uses **SVG-only rendering**. Three.js has been fully removed from th
 
 No Three.js-related packages in any `package.json`:
 
-| Package | Present? |
-|---------|----------|
-| `three` | ❌ Not found |
+| Package              | Present?     |
+| -------------------- | ------------ |
+| `three`              | ❌ Not found |
 | `@react-three/fiber` | ❌ Not found |
-| `@react-three/drei` | ❌ Not found |
-| `@types/three` | ❌ Not found |
+| `@react-three/drei`  | ❌ Not found |
+| `@types/three`       | ❌ Not found |
 
 ### 2. Source Imports — CLEAN ✅
 
@@ -30,12 +30,12 @@ All occurrences of "three" in source files are **domain template names** (e.g., 
 
 No 3D asset files exist anywhere in the repository:
 
-| Format | Present? |
-|--------|----------|
+| Format  | Present?     |
+| ------- | ------------ |
 | `.gltf` | ❌ Not found |
-| `.glb` | ❌ Not found |
-| `.obj` | ❌ Not found |
-| `.fbx` | ❌ Not found |
+| `.glb`  | ❌ Not found |
+| `.obj`  | ❌ Not found |
+| `.fbx`  | ❌ Not found |
 
 ### 4. Current Rendering Architecture — SVG Only
 
@@ -51,17 +51,17 @@ DOM (browser rendering)
 
 **SVG rendering entry points** (production components):
 
-| Component | Path | Role |
-|-----------|------|------|
-| `SceneCanvas` | `widgets/scene-canvas/SceneCanvas.tsx` | Main canvas — composites all sprites into a pannable/zoomable SVG scene |
-| `PlateSvg` | `entities/plate/PlateSvg.tsx` | Isometric plate (boundary) rendering |
-| `BlockSvg` | `entities/block/BlockSvg.tsx` | Isometric block (resource) rendering |
-| `ConnectionPath` | `entities/connection/ConnectionPath.tsx` | SVG path connections between blocks |
-| `MinifigureSvg` | `entities/character/MinifigureSvg.tsx` | Lego minifigure character sprite |
-| `IsometricStud` | `shared/components/IsometricStud.tsx` | Reusable stud component (Universal Stud Standard) |
-| `DragGhost` | `widgets/scene-canvas/DragGhost.tsx` | SVG ghost during drag-to-place |
-| `ConnectionPreview` | `widgets/scene-canvas/ConnectionPreview.tsx` | SVG preview path during connection creation |
-| `Minimap` | `widgets/bottom-panel/Minimap.tsx` | Miniature SVG overview of the canvas |
+| Component           | Path                                         | Role                                                                    |
+| ------------------- | -------------------------------------------- | ----------------------------------------------------------------------- |
+| `SceneCanvas`       | `widgets/scene-canvas/SceneCanvas.tsx`       | Main canvas — composites all sprites into a pannable/zoomable SVG scene |
+| `PlateSvg`          | `entities/plate/PlateSvg.tsx`                | Isometric plate (boundary) rendering                                    |
+| `BlockSvg`          | `entities/block/BlockSvg.tsx`                | Isometric block (resource) rendering                                    |
+| `ConnectionPath`    | `entities/connection/ConnectionPath.tsx`     | SVG path connections between blocks                                     |
+| `MinifigureSvg`     | `entities/character/MinifigureSvg.tsx`       | Lego minifigure character sprite                                        |
+| `IsometricStud`     | `shared/components/IsometricStud.tsx`        | Reusable stud component (Universal Stud Standard)                       |
+| `DragGhost`         | `widgets/scene-canvas/DragGhost.tsx`         | SVG ghost during drag-to-place                                          |
+| `ConnectionPreview` | `widgets/scene-canvas/ConnectionPreview.tsx` | SVG preview path during connection creation                             |
+| `Minimap`           | `widgets/bottom-panel/Minimap.tsx`           | Miniature SVG overview of the canvas                                    |
 
 ### 5. Stale References Found
 

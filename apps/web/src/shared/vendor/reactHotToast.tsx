@@ -15,7 +15,10 @@ const BASE_TOAST_STYLE: CSSProperties = {
   pointerEvents: 'auto',
 };
 
-function getContainerStyle(position: ToasterProps['position'], customStyle?: CSSProperties): CSSProperties {
+function getContainerStyle(
+  position: ToasterProps['position'],
+  customStyle?: CSSProperties,
+): CSSProperties {
   const style: CSSProperties = {
     display: 'flex',
     flexDirection: 'column',

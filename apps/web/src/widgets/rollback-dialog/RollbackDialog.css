@@ -127,7 +127,7 @@
   border-color: rgba(66, 133, 244, 0.3);
 }
 
-.rollback-version-item input[type="radio"] {
+.rollback-version-item input[type='radio'] {
   margin-top: 2px;
   accent-color: #4285f4;
   cursor: pointer;
@@ -368,5 +368,7 @@
 }
 
 @keyframes rollback-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }

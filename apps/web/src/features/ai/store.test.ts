@@ -54,7 +54,9 @@ describe('useAiStore', () => {
       expect(mockGenerate).not.toHaveBeenCalled();
       expect(useAiStore.getState().generateLoading).toBe(false);
       expect(useAiStore.getState().generateResult).toBeNull();
-      expect(useAiStore.getState().generateError).toBe('AI features require the backend API - see setup guide.');
+      expect(useAiStore.getState().generateError).toBe(
+        'AI features require the backend API - see setup guide.',
+      );
     });
 
     it('sets loading true then stores result on success', async () => {
@@ -113,7 +115,9 @@ describe('useAiStore', () => {
 
       await useAiStore.getState().generate('test', 'aws');
 
-      expect(useAiStore.getState().generateError).toBe('AI output has warnings: missing region plate');
+      expect(useAiStore.getState().generateError).toBe(
+        'AI output has warnings: missing region plate',
+      );
       expect(mockReplaceArchitecture).not.toHaveBeenCalled();
     });
 
@@ -127,7 +131,9 @@ describe('useAiStore', () => {
 
       await useAiStore.getState().generate('test', 'aws');
 
-      expect(useAiStore.getState().generateError).toBe('AI generated an invalid architecture that cannot be loaded.');
+      expect(useAiStore.getState().generateError).toBe(
+        'AI generated an invalid architecture that cannot be loaded.',
+      );
       expect(mockReplaceArchitecture).not.toHaveBeenCalled();
     });
   });
@@ -141,12 +147,16 @@ describe('useAiStore', () => {
       expect(mockSuggest).not.toHaveBeenCalled();
       expect(useAiStore.getState().suggestLoading).toBe(false);
       expect(useAiStore.getState().suggestResult).toBeNull();
-      expect(useAiStore.getState().suggestError).toBe('AI features require the backend API - see setup guide.');
+      expect(useAiStore.getState().suggestError).toBe(
+        'AI features require the backend API - see setup guide.',
+      );
     });
 
     it('sends current architecture and stores result', async () => {
       const response = {
-        suggestions: [{ category: 'security', severity: 'warning', message: 'test', action_description: '' }],
+        suggestions: [
+          { category: 'security', severity: 'warning', message: 'test', action_description: '' },
+        ],
         score: { security: 80 },
       };
       mockSuggest.mockResolvedValueOnce(response);
@@ -188,7 +198,9 @@ describe('useAiStore', () => {
       expect(mockEstimateCost).not.toHaveBeenCalled();
       expect(useAiStore.getState().costLoading).toBe(false);
       expect(useAiStore.getState().costResult).toBeNull();
-      expect(useAiStore.getState().costError).toBe('AI features require the backend API - see setup guide.');
+      expect(useAiStore.getState().costError).toBe(
+        'AI features require the backend API - see setup guide.',
+      );
     });
 
     it('sends current architecture and stores result', async () => {
@@ -227,5 +239,4 @@ describe('useAiStore', () => {
       expect(useAiStore.getState().costError).toBe('Failed to estimate cost');
     });
   });
-
 });

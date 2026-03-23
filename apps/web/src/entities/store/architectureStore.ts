@@ -20,8 +20,7 @@ let autoValidateTimer: ReturnType<typeof setTimeout> | null = null;
 const AUTO_VALIDATE_DELAY_MS = 300;
 
 useArchitectureStore.subscribe((state, prevState) => {
-  const archChanged =
-    state.workspace.architecture !== prevState.workspace.architecture;
+  const archChanged = state.workspace.architecture !== prevState.workspace.architecture;
 
   if (archChanged && state.validationResult === null) {
     if (autoValidateTimer) {

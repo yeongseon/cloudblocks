@@ -36,7 +36,9 @@ export function DetailPanel({ className = '' }: DetailPanelProps) {
   const selectedId = useUIStore((s) => s.selectedId);
   const showTemplateGallery = useUIStore((s) => s.showTemplateGallery);
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
-  const containers = architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+  const containers = architecture.nodes.filter(
+    (node): node is ContainerNode => node.kind === 'container',
+  );
   const resources = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
 
   // Find selected item
@@ -85,11 +87,7 @@ function IdleState({ className }: { className: string }) {
         <div className="detail-idle">
           <span className="detail-idle-icon">{'\u{1F393}'}</span>
           <p className="detail-idle-text">Ready to learn cloud architecture?</p>
-          <button
-            type="button"
-            className="detail-idle-cta"
-            onClick={handleStartLearning}
-          >
+          <button type="button" className="detail-idle-cta" onClick={handleStartLearning}>
             Start Learning
           </button>
         </div>
@@ -135,15 +133,21 @@ function WorkspaceDashboard({ className }: { className: string }) {
         </div>
         <div className="detail-dashboard-stat">
           <span className="detail-dashboard-value">{containers.length}</span>
-          <span className="detail-dashboard-label">{containers.length === 1 ? 'Plate' : 'Plates'}</span>
+          <span className="detail-dashboard-label">
+            {containers.length === 1 ? 'Plate' : 'Plates'}
+          </span>
         </div>
         <div className="detail-dashboard-stat">
           <span className="detail-dashboard-value">{resources.length}</span>
-          <span className="detail-dashboard-label">{resources.length === 1 ? 'Block' : 'Blocks'}</span>
+          <span className="detail-dashboard-label">
+            {resources.length === 1 ? 'Block' : 'Blocks'}
+          </span>
         </div>
         <div className="detail-dashboard-stat">
           <span className="detail-dashboard-value">{connectionCount}</span>
-          <span className="detail-dashboard-label">{connectionCount === 1 ? 'Connection' : 'Connections'}</span>
+          <span className="detail-dashboard-label">
+            {connectionCount === 1 ? 'Connection' : 'Connections'}
+          </span>
         </div>
         {actorCount > 0 && (
           <div className="detail-dashboard-stat">
@@ -164,7 +168,9 @@ function WorkspaceDashboard({ className }: { className: string }) {
 
 function BlockDetail({ block, className }: { block: LeafNode; className: string }) {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
-  const containers = architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+  const containers = architecture.nodes.filter(
+    (node): node is ContainerNode => node.kind === 'container',
+  );
   const parentPlate = containers.find((p) => p.id === block.parentId);
   const networkPlate = parentPlate?.parentId
     ? containers.find((p) => p.id === parentPlate.parentId)
@@ -172,9 +178,10 @@ function BlockDetail({ block, className }: { block: LeafNode; className: string 
 
   const color = getBlockColor(block.provider ?? 'azure', block.subtype, block.category);
   const providerLabel = block.provider ? block.provider.toUpperCase() : null;
-  const typeIdentity = block.provider || block.subtype
-    ? [providerLabel, block.subtype].filter(Boolean).join(' / ')
-    : BLOCK_FRIENDLY_NAMES[block.category];
+  const typeIdentity =
+    block.provider || block.subtype
+      ? [providerLabel, block.subtype].filter(Boolean).join(' / ')
+      : BLOCK_FRIENDLY_NAMES[block.category];
 
   const encyclopedia = BLOCK_ENCYCLOPEDIA[block.category];
 
@@ -194,14 +201,15 @@ function BlockDetail({ block, className }: { block: LeafNode; className: string 
       <div className="detail-properties">
         <div className="detail-property">
           <span className="detail-property-label">Type</span>
-          <span className="detail-property-value">
-            {typeIdentity}
-          </span>
+          <span className="detail-property-value">{typeIdentity}</span>
         </div>
 
         <div className="detail-property">
           <span className="detail-property-label">Category</span>
-          <span className="detail-property-value detail-property-tag" style={{ backgroundColor: `${color}20`, color }}>
+          <span
+            className="detail-property-value detail-property-tag"
+            style={{ backgroundColor: `${color}20`, color }}
+          >
             {block.category}
           </span>
         </div>
@@ -237,33 +245,30 @@ function BlockDetail({ block, className }: { block: LeafNode; className: string 
 
 function PlateDetail({ plate, className }: { plate: ContainerNode; className: string }) {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
-  const containers = architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+  const containers = architecture.nodes.filter(
+    (node): node is ContainerNode => node.kind === 'container',
+  );
   const resources = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
   const plateType: ContainerLayer = plate.layer === 'resource' ? 'region' : plate.layer;
 
-  const parentPlate = plate.parentId
-    ? containers.find((p) => p.id === plate.parentId)
-    : null;
+  const parentPlate = plate.parentId ? containers.find((p) => p.id === plate.parentId) : null;
 
   const childBlocks = resources.filter((b) => b.parentId === plate.id);
   const childPlates = containers.filter((p) => p.parentId === plate.id);
 
-  const altText = plateType === 'subnet'
-    ? 'Subnet'
-    : plateType === 'region'
-      ? 'Region'
-      : plateType.charAt(0).toUpperCase() + plateType.slice(1);
+  const altText =
+    plateType === 'subnet'
+      ? 'Subnet'
+      : plateType === 'region'
+        ? 'Region'
+        : plateType.charAt(0).toUpperCase() + plateType.slice(1);
 
   const encyclopedia = PLATE_ENCYCLOPEDIA[plateType];
 
   return (
     <div className={`detail-panel detail-panel--plate ${className}`}>
       <div className="detail-header">
-        <img
-          src={getPlateIconUrl(plateType)}
-          alt={altText}
-          className="detail-header-icon-img"
-        />
+        <img src={getPlateIconUrl(plateType)} alt={altText} className="detail-header-icon-img" />
         <span className="detail-header-name">{plate.name}</span>
       </div>
 
@@ -273,7 +278,9 @@ function PlateDetail({ plate, className }: { plate: ContainerNode; className: st
         <div className="detail-property">
           <span className="detail-property-label">Type</span>
           <span className="detail-property-value">
-            {plateType === 'subnet' ? 'Subnet' : plateType.charAt(0).toUpperCase() + plateType.slice(1)}
+            {plateType === 'subnet'
+              ? 'Subnet'
+              : plateType.charAt(0).toUpperCase() + plateType.slice(1)}
           </span>
         </div>
 
@@ -288,7 +295,8 @@ function PlateDetail({ plate, className }: { plate: ContainerNode; className: st
           <span className="detail-property-label">Contents</span>
           <span className="detail-property-value">
             {childBlocks.length} block{childBlocks.length !== 1 ? 's' : ''}
-            {childPlates.length > 0 && `, ${childPlates.length} subnet${childPlates.length !== 1 ? 's' : ''}`}
+            {childPlates.length > 0 &&
+              `, ${childPlates.length} subnet${childPlates.length !== 1 ? 's' : ''}`}
           </span>
         </div>
 
@@ -309,7 +317,13 @@ function PlateDetail({ plate, className }: { plate: ContainerNode; className: st
 
 // ─── Connection Detail ─────────────────────────────────────
 
-function ConnectionDetail({ connectionId, className }: { connectionId: string; className: string }) {
+function ConnectionDetail({
+  connectionId,
+  className,
+}: {
+  connectionId: string;
+  className: string;
+}) {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const connection = architecture.connections.find((c) => c.id === connectionId);
   const resources = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
@@ -327,7 +341,9 @@ function ConnectionDetail({ connectionId, className }: { connectionId: string; c
     <div className={`detail-panel detail-panel--connection ${className}`}>
       <div className="detail-header">
         <span className="detail-header-icon">🔗</span>
-        <span className="detail-header-name">{CONNECTION_TYPE_LABELS[type as ConnectionType]} Connection</span>
+        <span className="detail-header-name">
+          {CONNECTION_TYPE_LABELS[type as ConnectionType]} Connection
+        </span>
       </div>
 
       <div className="detail-divider" />

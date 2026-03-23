@@ -2,10 +2,7 @@
 // Runtime validators driven by RESOURCE_RULES from @cloudblocks/schema.
 // These are the canonical functions for placement and node integrity checks.
 
-import {
-  RESOURCE_RULES,
-  getAllowedParents,
-} from '@cloudblocks/schema';
+import { RESOURCE_RULES, getAllowedParents } from '@cloudblocks/schema';
 import type { ResourceNode } from '@cloudblocks/schema';
 
 // ---------------------------------------------------------------------------
@@ -51,7 +48,7 @@ export function validateContainment(
       childResourceType: child.resourceType,
       parentId: null,
       parentResourceType: null,
-      reason: `${child.resourceType} cannot be placed at root level. Allowed parents: ${allowedParents.filter(p => p !== null).join(', ')}`,
+      reason: `${child.resourceType} cannot be placed at root level. Allowed parents: ${allowedParents.filter((p) => p !== null).join(', ')}`,
     };
   }
 
@@ -65,7 +62,7 @@ export function validateContainment(
     childResourceType: child.resourceType,
     parentId: parent.id,
     parentResourceType: parent.resourceType,
-    reason: `${child.resourceType} cannot be placed inside ${parent.resourceType}. Allowed parents: ${allowedParents.filter(p => p !== null).join(', ') || '(root only)'}`,
+    reason: `${child.resourceType} cannot be placed inside ${parent.resourceType}. Allowed parents: ${allowedParents.filter((p) => p !== null).join(', ') || '(root only)'}`,
   };
 }
 
@@ -92,9 +89,7 @@ export interface NodeIntegrityError {
  */
 export function validateNodeIntegrity(node: ResourceNode): NodeIntegrityError[] {
   const errors: NodeIntegrityError[] = [];
-  const rule = (RESOURCE_RULES as Record<string, { containerCapable: boolean }>)[
-    node.resourceType
-  ];
+  const rule = (RESOURCE_RULES as Record<string, { containerCapable: boolean }>)[node.resourceType];
 
   if (rule === undefined) {
     // Unknown resource type — skip (graceful)
@@ -106,12 +101,12 @@ export function validateNodeIntegrity(node: ResourceNode): NodeIntegrityError[] 
     errors.push({
       nodeId: node.id,
       field: 'kind',
-      reason: `${node.resourceType} cannot be kind='container'. Only container-capable types (${
-        Object.entries(RESOURCE_RULES)
-          .filter(([, r]) => r.containerCapable)
-          .map(([k]) => k)
-          .join(', ')
-      }) can be containers.`,
+      reason: `${node.resourceType} cannot be kind='container'. Only container-capable types (${Object.entries(
+        RESOURCE_RULES,
+      )
+        .filter(([, r]) => r.containerCapable)
+        .map(([k]) => k)
+        .join(', ')}) can be containers.`,
     });
   }
 
@@ -132,9 +127,7 @@ export function validateNodePlacement(
   errors.push(...validateNodeIntegrity(node));
 
   // 2. Containment (parent validation)
-  const parent = node.parentId
-    ? allNodes.find(n => n.id === node.parentId) ?? null
-    : null;
+  const parent = node.parentId ? (allNodes.find((n) => n.id === node.parentId) ?? null) : null;
   const containmentError = validateContainment(node, parent);
   if (containmentError) {
     errors.push(containmentError);

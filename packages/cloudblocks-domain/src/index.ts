@@ -13,10 +13,7 @@ export {
   validateNodeIntegrity,
   validateNodePlacement,
 } from './constraints.js';
-export type {
-  ContainmentError,
-  NodeIntegrityError,
-} from './constraints.js';
+export type { ContainmentError, NodeIntegrityError } from './constraints.js';
 
 // Human-readable labels and role constants
 export { CONNECTION_TYPE_LABELS, BLOCK_ROLES } from './labels.js';

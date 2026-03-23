@@ -10,9 +10,20 @@
  * - Missing/invalid stub → fallback to center (backward compat).
  */
 
-import type { Connection, ContainerNode, Endpoint, EndpointSemantic, ExternalActor, LeafNode } from '@cloudblocks/schema';
+import type {
+  Connection,
+  ContainerNode,
+  Endpoint,
+  EndpointSemantic,
+  ExternalActor,
+  LeafNode,
+} from '@cloudblocks/schema';
 import { CATEGORY_PORTS } from '@cloudblocks/schema';
-import { getBlockWorldPosition, EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET, EXTERNAL_ACTOR_POSITION } from '../../shared/utils/position';
+import {
+  getBlockWorldPosition,
+  EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
+  EXTERNAL_ACTOR_POSITION,
+} from '../../shared/utils/position';
 import { getBlockDimensions } from '../../shared/types/visualProfile';
 import { getBlockWorldAnchors } from '../block/blockGeometry';
 import type { StubSide, WorldPoint } from '../block/blockGeometry';
@@ -47,14 +58,7 @@ export function getConnectionEndpointWorldAnchors(
   );
   if (!src) return null;
 
-  const tgt = resolveEndpoint(
-    connection.to,
-    'inbound',
-    blocks,
-    plates,
-    endpoints,
-    externalActors,
-  );
+  const tgt = resolveEndpoint(connection.to, 'inbound', blocks, plates, endpoints, externalActors);
   if (!tgt) return null;
 
   return {
@@ -121,7 +125,11 @@ function resolveEndpoint(
   if (actor) {
     const base: WorldPoint = actor.position
       ? [actor.position.x, actor.position.y + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET, actor.position.z]
-      : [EXTERNAL_ACTOR_POSITION[0], EXTERNAL_ACTOR_POSITION[1] + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET, EXTERNAL_ACTOR_POSITION[2]];
+      : [
+          EXTERNAL_ACTOR_POSITION[0],
+          EXTERNAL_ACTOR_POSITION[1] + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
+          EXTERNAL_ACTOR_POSITION[2],
+        ];
     return { point: base };
   }
 

@@ -140,7 +140,9 @@ describe('SidebarPalette', () => {
   it('shows disabled resources with lock when network is missing', () => {
     render(<SidebarPalette />);
 
-    const vmButton = screen.getByTitle('Create a Network first. Virtual Machines need a network to connect to.');
+    const vmButton = screen.getByTitle(
+      'Create a Network first. Virtual Machines need a network to connect to.',
+    );
     expect(vmButton).toBeDisabled();
     expect(within(vmButton).getByText('🔒')).toBeInTheDocument();
   });

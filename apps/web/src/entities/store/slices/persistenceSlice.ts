@@ -13,7 +13,12 @@ import {
   parseEndpointId,
 } from '@cloudblocks/schema';
 import type { ArchitectureSnapshot } from '../../../shared/types/learning';
-import { saveWorkspaces, loadWorkspaces, saveActiveWorkspaceId, loadActiveWorkspaceId } from '../../../shared/utils/storage';
+import {
+  saveWorkspaces,
+  loadWorkspaces,
+  saveActiveWorkspaceId,
+  loadActiveWorkspaceId,
+} from '../../../shared/utils/storage';
 import { generateId } from '../../../shared/utils/id';
 import { useUIStore } from '../uiStore';
 import type { ArchitectureSlice, ArchitectureState } from './types';
@@ -50,33 +55,24 @@ const isFiniteNumber = (value: unknown): value is number =>
 const isValidNodeKind = (value: unknown): value is 'container' | 'resource' =>
   value === 'container' || value === 'resource';
 const isValidPlateType = (value: unknown): value is PlateLayerType =>
-  typeof value === 'string' &&
-  VALID_PLATE_TYPES.includes(value as PlateLayerType);
+  typeof value === 'string' && VALID_PLATE_TYPES.includes(value as PlateLayerType);
 
 const isValidBlockCategory = (value: unknown): value is ResourceCategory =>
-  typeof value === 'string' &&
-  VALID_BLOCK_CATEGORIES.includes(value as ResourceCategory);
-
+  typeof value === 'string' && VALID_BLOCK_CATEGORIES.includes(value as ResourceCategory);
 
 const validatePosition = (value: unknown, context: string): void => {
   if (!isRecord(value)) {
     throw new Error(`${context}.position must be an object with x, y, z numbers`);
   }
 
-  if (
-    !isFiniteNumber(value.x) ||
-    !isFiniteNumber(value.y) ||
-    !isFiniteNumber(value.z)
-  ) {
+  if (!isFiniteNumber(value.x) || !isFiniteNumber(value.y) || !isFiniteNumber(value.z)) {
     throw new Error(`${context}.position must contain numeric x, y, z values`);
   }
 };
 
 const validateSize = (value: unknown, context: string): void => {
   if (!isRecord(value)) {
-    throw new Error(
-      `${context}.size must be an object with width, height, depth numbers`
-    );
+    throw new Error(`${context}.size must be an object with width, height, depth numbers`);
   }
 
   if (
@@ -84,15 +80,11 @@ const validateSize = (value: unknown, context: string): void => {
     !isFiniteNumber(value.height) ||
     !isFiniteNumber(value.depth)
   ) {
-    throw new Error(
-      `${context}.size must contain numeric width, height, depth values`
-    );
+    throw new Error(`${context}.size must contain numeric width, height, depth values`);
   }
 };
 
-export const validateArchitectureShape = (
-  imported: unknown,
-): { valid: true } => {
+export const validateArchitectureShape = (imported: unknown): { valid: true } => {
   if (!isRecord(imported)) {
     throw new Error('Invalid architecture format: root must be an object');
   }
@@ -103,10 +95,7 @@ export const validateArchitectureShape = (
     throw new Error('Invalid architecture format: expected nodes[] or legacy plates[] + blocks[]');
   }
 
-  if (
-    imported.connections !== undefined &&
-    !Array.isArray(imported.connections)
-  ) {
+  if (imported.connections !== undefined && !Array.isArray(imported.connections)) {
     throw new Error('Invalid architecture format: connections must be an array');
   }
 
@@ -137,7 +126,11 @@ export const validateArchitectureShape = (
           throw new Error(`${context}: layer must be one of global, edge, region, zone, or subnet`);
         }
         validateSize(node.size, context);
-        if (node.parentId !== null && node.parentId !== undefined && typeof node.parentId !== 'string') {
+        if (
+          node.parentId !== null &&
+          node.parentId !== undefined &&
+          typeof node.parentId !== 'string'
+        ) {
           throw new Error(`${context}: parentId must be a string or null`);
         }
         containerIds.add(node.id);
@@ -146,7 +139,7 @@ export const validateArchitectureShape = (
 
       if (!isValidBlockCategory(node.category)) {
         throw new Error(
-          `${context}: category must be one of network, security, edge, compute, data, messaging, operations`
+          `${context}: category must be one of network, security, edge, compute, data, messaging, operations`,
         );
       }
       if (typeof node.parentId !== 'string') {
@@ -161,12 +154,24 @@ export const validateArchitectureShape = (
         return;
       }
 
-      if (node.kind === 'container' && typeof node.parentId === 'string' && !containerIds.has(node.parentId)) {
-        throw new Error(`${context}: parentId "${node.parentId}" does not reference an existing container node`);
+      if (
+        node.kind === 'container' &&
+        typeof node.parentId === 'string' &&
+        !containerIds.has(node.parentId)
+      ) {
+        throw new Error(
+          `${context}: parentId "${node.parentId}" does not reference an existing container node`,
+        );
       }
 
-      if (node.kind === 'resource' && typeof node.parentId === 'string' && !containerIds.has(node.parentId)) {
-        throw new Error(`${context}: parentId "${node.parentId}" does not reference an existing container node`);
+      if (
+        node.kind === 'resource' &&
+        typeof node.parentId === 'string' &&
+        !containerIds.has(node.parentId)
+      ) {
+        throw new Error(
+          `${context}: parentId "${node.parentId}" does not reference an existing container node`,
+        );
       }
     });
   }
@@ -209,7 +214,7 @@ export const validateArchitectureShape = (
       }
       if (!isValidBlockCategory(block.category)) {
         throw new Error(
-          `${context}: category must be one of network, security, edge, compute, data, messaging, operations`
+          `${context}: category must be one of network, security, edge, compute, data, messaging, operations`,
         );
       }
       if (typeof block.placementId !== 'string') {
@@ -219,7 +224,7 @@ export const validateArchitectureShape = (
 
       if (!legacyPlateIds.has(block.placementId)) {
         throw new Error(
-          `${context}: placementId "${block.placementId}" does not reference an existing plate`
+          `${context}: placementId "${block.placementId}" does not reference an existing plate`,
         );
       }
 
@@ -272,7 +277,8 @@ export const validateArchitectureShape = (
       throw new Error(`${context}: id must be a string`);
     }
     const isV4Connection = typeof connection.from === 'string' && typeof connection.to === 'string';
-    const isV3Connection = typeof connection.sourceId === 'string' && typeof connection.targetId === 'string';
+    const isV3Connection =
+      typeof connection.sourceId === 'string' && typeof connection.targetId === 'string';
 
     if (!isV4Connection && !isV3Connection) {
       throw new Error(`${context}: connection must have from/to (v4) or sourceId/targetId (v3)`);
@@ -304,12 +310,12 @@ export const validateArchitectureShape = (
         const toParsed = parseEndpointId(toEndpointId);
         if (fromParsed && !validConnectionEndpointIds.has(fromParsed.nodeId)) {
           throw new Error(
-            `${context}: sourceId "${fromParsed.nodeId}" does not reference an existing block, plate, or external actor`
+            `${context}: sourceId "${fromParsed.nodeId}" does not reference an existing block, plate, or external actor`,
           );
         }
         if (toParsed && !validConnectionEndpointIds.has(toParsed.nodeId)) {
           throw new Error(
-            `${context}: targetId "${toParsed.nodeId}" does not reference an existing block, plate, or external actor`
+            `${context}: targetId "${toParsed.nodeId}" does not reference an existing block, plate, or external actor`,
           );
         }
       }
@@ -321,13 +327,13 @@ export const validateArchitectureShape = (
 
     if (!validConnectionEndpointIds.has(sourceId)) {
       throw new Error(
-        `${context}: sourceId "${sourceId}" does not reference an existing block, plate, or external actor`
+        `${context}: sourceId "${sourceId}" does not reference an existing block, plate, or external actor`,
       );
     }
 
     if (!validConnectionEndpointIds.has(targetId)) {
       throw new Error(
-        `${context}: targetId "${targetId}" does not reference an existing block, plate, or external actor`
+        `${context}: targetId "${targetId}" does not reference an existing block, plate, or external actor`,
       );
     }
   });
@@ -335,10 +341,7 @@ export const validateArchitectureShape = (
   return { valid: true };
 };
 
-const validateImportData = (
-  imported: unknown,
-  jsonLength: number,
-): { valid: true } => {
+const validateImportData = (imported: unknown, jsonLength: number): { valid: true } => {
   if (jsonLength > MAX_IMPORT_SIZE_BYTES) {
     throw new Error('Import exceeds 5MB limit');
   }
@@ -358,10 +361,7 @@ type PersistenceSlice = Pick<
   | 'replaceArchitecture'
 >;
 
-export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
-  set,
-  get
-) => ({
+export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set, get) => ({
   saveToStorage: () => {
     const state = get();
     const updated = upsertCurrentWorkspace(state.workspaces, state.workspace);
@@ -452,42 +452,53 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
         nodes = importedAny.nodes as (ContainerNode | LeafNode)[];
       } else if (Array.isArray(importedAny.plates) && Array.isArray(importedAny.blocks)) {
         // Migrate legacy format
-        const containerNodes = (importedAny.plates as Record<string, unknown>[]).map((plate): ContainerNode => ({
-          id: plate.id as string,
-          name: plate.name as string,
-          kind: 'container',
-          layer: plate.type as ContainerNode['layer'],
-          resourceType: ((plate.type as string) === 'region' ? 'virtual_network' : plate.type === 'subnet' ? 'subnet' : 'virtual_network') as ContainerNode['resourceType'],
-          category: 'network',
-          provider: 'azure',
-          parentId: (plate.parentId as string | null | undefined) ?? null,
-          position: plate.position as ContainerNode['position'],
-          size: plate.size as ContainerNode['size'],
-          metadata: (plate.metadata as Record<string, unknown>) ?? {},
-          ...(typeof plate.profileId === 'string' ? { profileId: plate.profileId } : {}),
-        }));
-        const leafNodes = (importedAny.blocks as Record<string, unknown>[]).map((block): LeafNode => ({
-          id: block.id as string,
-          name: block.name as string,
-          kind: 'resource',
-          layer: 'resource',
-          resourceType: (block.subtype as string | undefined) ?? (block.category as string),
-          category: block.category as ResourceCategory,
-          provider: (block.provider as LeafNode['provider'] | undefined) ?? 'azure',
-          parentId: block.placementId as string,
-          position: block.position as LeafNode['position'],
-          metadata: (block.metadata as Record<string, unknown>) ?? {},
-          ...(typeof block.subtype === 'string' ? { subtype: block.subtype } : {}),
-          ...((block.config && typeof block.config === 'object') ? { config: block.config as Record<string, unknown> } : {}),
-        }));
+        const containerNodes = (importedAny.plates as Record<string, unknown>[]).map(
+          (plate): ContainerNode => ({
+            id: plate.id as string,
+            name: plate.name as string,
+            kind: 'container',
+            layer: plate.type as ContainerNode['layer'],
+            resourceType: ((plate.type as string) === 'region'
+              ? 'virtual_network'
+              : plate.type === 'subnet'
+                ? 'subnet'
+                : 'virtual_network') as ContainerNode['resourceType'],
+            category: 'network',
+            provider: 'azure',
+            parentId: (plate.parentId as string | null | undefined) ?? null,
+            position: plate.position as ContainerNode['position'],
+            size: plate.size as ContainerNode['size'],
+            metadata: (plate.metadata as Record<string, unknown>) ?? {},
+            ...(typeof plate.profileId === 'string' ? { profileId: plate.profileId } : {}),
+          }),
+        );
+        const leafNodes = (importedAny.blocks as Record<string, unknown>[]).map(
+          (block): LeafNode => ({
+            id: block.id as string,
+            name: block.name as string,
+            kind: 'resource',
+            layer: 'resource',
+            resourceType: (block.subtype as string | undefined) ?? (block.category as string),
+            category: block.category as ResourceCategory,
+            provider: (block.provider as LeafNode['provider'] | undefined) ?? 'azure',
+            parentId: block.placementId as string,
+            position: block.position as LeafNode['position'],
+            metadata: (block.metadata as Record<string, unknown>) ?? {},
+            ...(typeof block.subtype === 'string' ? { subtype: block.subtype } : {}),
+            ...(block.config && typeof block.config === 'object'
+              ? { config: block.config as Record<string, unknown> }
+              : {}),
+          }),
+        );
         nodes = [...containerNodes, ...leafNodes];
       } else {
         nodes = [];
       }
 
       const endpoints = nodes.flatMap((node) => generateEndpointsForNode(node.id));
-      const rawConnections = ((imported.connections as unknown[]) ?? [])
-        .filter((connection): connection is Record<string, unknown> => isRecord(connection));
+      const rawConnections = ((imported.connections as unknown[]) ?? []).filter(
+        (connection): connection is Record<string, unknown> => isRecord(connection),
+      );
       const connections: ArchitectureModel['connections'] = rawConnections
         .map((connection) => {
           if (typeof connection.from === 'string' && typeof connection.to === 'string') {
@@ -495,10 +506,7 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
               id: typeof connection.id === 'string' ? connection.id : generateId('conn'),
               from: connection.from,
               to: connection.to,
-              metadata:
-                isRecord(connection.metadata)
-                  ? connection.metadata
-                  : {},
+              metadata: isRecord(connection.metadata) ? connection.metadata : {},
             };
           }
 
@@ -517,7 +525,10 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
 
           return null;
         })
-        .filter((connection): connection is ArchitectureModel['connections'][number] => connection !== null);
+        .filter(
+          (connection): connection is ArchitectureModel['connections'][number] =>
+            connection !== null,
+        );
 
       const normalized: ArchitectureModel = {
         id: (imported.id as string) || generateId('arch'),
@@ -526,18 +537,19 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (
         nodes,
         endpoints,
         connections,
-        externalActors:
-          (imported.externalActors as ArchitectureModel['externalActors'])?.map((actor) => ({
+        externalActors: (imported.externalActors as ArchitectureModel['externalActors'])?.map(
+          (actor) => ({
             ...actor,
             position: actor.position ?? { ...DEFAULT_EXTERNAL_ACTOR_POSITION },
-          })) ?? [
-            {
-              id: 'ext-internet',
-              name: 'Internet',
-              type: 'internet',
-              position: { ...DEFAULT_EXTERNAL_ACTOR_POSITION },
-            },
-          ],
+          }),
+        ) ?? [
+          {
+            id: 'ext-internet',
+            name: 'Internet',
+            type: 'internet',
+            position: { ...DEFAULT_EXTERNAL_ACTOR_POSITION },
+          },
+        ],
         createdAt: (imported.createdAt as string) || now,
         updatedAt: now,
       };

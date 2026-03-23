@@ -101,7 +101,10 @@ function getMenuDropdown(triggerLabel: RegExp | string): HTMLElement {
   return dropdown;
 }
 
-async function openMenu(user: ReturnType<typeof userEvent.setup>, label: string): Promise<HTMLElement> {
+async function openMenu(
+  user: ReturnType<typeof userEvent.setup>,
+  label: string,
+): Promise<HTMLElement> {
   await user.click(screen.getByRole('button', { name: label }));
   return getMenuDropdown(label);
 }
@@ -132,13 +135,12 @@ function setArchitectureState(overrides?: Partial<ArchitectureModel>): void {
 }
 
 describe('MenuBar', () => {
-
   it('renders provider toggle with Azure, AWS, and GCP tabs', () => {
     render(<MenuBar />);
-    
+
     const tablist = screen.getByRole('tablist', { name: /cloud provider/i });
     expect(tablist).toBeInTheDocument();
-    
+
     expect(screen.getByRole('tab', { name: /azure/i })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /aws/i })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: /gcp/i })).toBeInTheDocument();
@@ -148,10 +150,10 @@ describe('MenuBar', () => {
     const user = userEvent.setup();
     useUIStore.setState({ activeProvider: 'aws' });
     render(<MenuBar />);
-    
+
     const azureTab = screen.getByRole('tab', { name: /azure/i });
     await user.click(azureTab);
-    
+
     expect(useUIStore.getState().activeProvider).toBe('azure');
   });
 
@@ -194,13 +196,13 @@ describe('MenuBar', () => {
   it('active provider tab shows visual indicator', () => {
     useUIStore.setState({ activeProvider: 'gcp' });
     render(<MenuBar />);
-    
+
     const gcpTab = screen.getByRole('tab', { name: /gcp/i });
     const awsTab = screen.getByRole('tab', { name: /aws/i });
-    
+
     expect(gcpTab).toHaveAttribute('aria-selected', 'true');
     expect(awsTab).toHaveAttribute('aria-selected', 'false');
-    
+
     expect(gcpTab).toHaveStyle('color: #4285F4');
   });
 
@@ -262,7 +264,6 @@ describe('MenuBar', () => {
     expect(screen.getByRole('button', { name: 'Build' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'View' })).toBeInTheDocument();
 
-
     expect(screen.getByTitle('Undo (Ctrl+Z)')).toBeInTheDocument();
     expect(screen.getByTitle('Redo (Ctrl+Shift+Z)')).toBeInTheDocument();
     expect(screen.getByTitle('Save Workspace (Ctrl+S)')).toBeInTheDocument();
@@ -294,7 +295,10 @@ describe('MenuBar', () => {
 
     const demoButton = screen.getByRole('button', { name: /Demo Mode/ });
     expect(demoButton).toBeDisabled();
-    expect(demoButton).toHaveAttribute('title', 'Backend API required for GitHub features. Run the backend server to enable.');
+    expect(demoButton).toHaveAttribute(
+      'title',
+      'Backend API required for GitHub features. Run the backend server to enable.',
+    );
   });
 
   it('keeps loading state when backend status is unknown', () => {
@@ -343,7 +347,9 @@ describe('MenuBar', () => {
     vi.mocked(confirmDialog).mockResolvedValue(true);
     const createObjectURLMock = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test');
     const revokeObjectURLMock = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
-    const anchorClickMock = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const anchorClickMock = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => {});
 
     render(<MenuBar />);
 
@@ -360,7 +366,9 @@ describe('MenuBar', () => {
     expect(toast.success).toHaveBeenCalledWith('Workspace saved!');
 
     await openMenu(user, 'File');
-    await user.click(within(getMenuDropdown('File')).getByRole('button', { name: /Load Workspace/ }));
+    await user.click(
+      within(getMenuDropdown('File')).getByRole('button', { name: /Load Workspace/ }),
+    );
     await waitFor(() => {
       expect(confirmDialog).toHaveBeenCalledWith(
         'Loading will replace current workspace with saved data. Unsaved changes will be lost.',
@@ -380,8 +388,13 @@ describe('MenuBar', () => {
     expect(revokeObjectURLMock).toHaveBeenCalledOnce();
 
     await openMenu(user, 'File');
-    await user.click(within(getMenuDropdown('File')).getByRole('button', { name: /Reset Workspace/ }));
-    expect(confirmDialog).toHaveBeenCalledWith('All unsaved changes will be lost.', 'Reset Workspace?');
+    await user.click(
+      within(getMenuDropdown('File')).getByRole('button', { name: /Reset Workspace/ }),
+    );
+    expect(confirmDialog).toHaveBeenCalledWith(
+      'All unsaved changes will be lost.',
+      'Reset Workspace?',
+    );
     await waitFor(() => {
       expect(resetWorkspaceMock).toHaveBeenCalledOnce();
     });
@@ -547,7 +560,6 @@ describe('MenuBar', () => {
     expect(removeConnectionMock).not.toHaveBeenCalled();
   });
 
-
   it('handles Build menu validate and panel toggles', async () => {
     const user = userEvent.setup();
     render(<MenuBar />);
@@ -572,7 +584,6 @@ describe('MenuBar', () => {
     buildDropdown = await openMenu(user, 'Build');
     await user.click(within(buildDropdown).getByRole('button', { name: /Browse Templates/ }));
     expect(useUIStore.getState().showTemplateGallery).toBe(true);
-
   }, 15000);
 
   it('routes Show Learning Panel to scenario gallery when no scenario is active', async () => {
@@ -589,7 +600,9 @@ describe('MenuBar', () => {
     expect(useUIStore.getState().showLearningPanel).toBe(false);
 
     buildDropdown = await openMenu(user, 'Build');
-    const learningPanelButton = within(buildDropdown).getByRole('button', { name: /Show Learning Panel/ });
+    const learningPanelButton = within(buildDropdown).getByRole('button', {
+      name: /Show Learning Panel/,
+    });
     expect(learningPanelButton.textContent).not.toContain('\u2713');
   });
 
@@ -650,7 +663,9 @@ describe('MenuBar', () => {
     expect(useUIStore.getState().showScenarioGallery).toBe(false);
 
     buildDropdown = await openMenu(user, 'Build');
-    const learningPanelButton = within(buildDropdown).getByRole('button', { name: /Show Learning Panel/ });
+    const learningPanelButton = within(buildDropdown).getByRole('button', {
+      name: /Show Learning Panel/,
+    });
     expect(learningPanelButton.textContent).toContain('\u2713');
   });
 
@@ -713,14 +728,18 @@ describe('MenuBar', () => {
     const diffButtonDisabled = within(viewDropdown).getByRole('button', { name: /Diff View/ });
     expect(diffButtonDisabled).toBeDisabled();
 
-    useUIStore.getState().setDiffMode(true, {
-      plates: { added: [], removed: [], modified: [] },
-      blocks: { added: [], removed: [], modified: [] },
-      connections: { added: [], removed: [], modified: [] },
-      externalActors: { added: [], removed: [], modified: [] },
-      rootChanges: [],
-      summary: { totalChanges: 0, hasBreakingChanges: false },
-    }, emptyArch);
+    useUIStore.getState().setDiffMode(
+      true,
+      {
+        plates: { added: [], removed: [], modified: [] },
+        blocks: { added: [], removed: [], modified: [] },
+        connections: { added: [], removed: [], modified: [] },
+        externalActors: { added: [], removed: [], modified: [] },
+        rootChanges: [],
+        summary: { totalChanges: 0, hasBreakingChanges: false },
+      },
+      emptyArch,
+    );
 
     viewDropdown = await openMenu(user, 'View');
     const diffButtonEnabled = within(viewDropdown).getByRole('button', { name: /Diff View/ });
@@ -797,7 +816,9 @@ describe('MenuBar', () => {
 
     expect(within(githubDropdown).getByRole('button', { name: /Sync/ })).toBeDisabled();
     expect(within(githubDropdown).getByRole('button', { name: /Create PR/ })).toBeDisabled();
-    expect(within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ })).toBeDisabled();
+    expect(
+      within(githubDropdown).getByRole('button', { name: /Compare with GitHub/ }),
+    ).toBeDisabled();
   });
 
   it('compare with GitHub calls backend and enables diff mode', async () => {

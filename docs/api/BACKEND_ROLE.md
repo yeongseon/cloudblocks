@@ -13,14 +13,14 @@ The CloudBlocks backend is an **Orchestration + Integration Backend** — not a 
 
 ## Role Classification
 
-| Aspect | Classification |
-|--------|---------------|
-| **Primary role** | Orchestration + Integration |
-| **Data storage** | Metadata only (users, sessions, workspaces, generation runs, AI keys) |
-| **Architecture data** | NOT stored — lives in GitHub repos |
-| **Generated code** | NOT stored — committed to GitHub repos |
-| **Auth model** | Server-side sessions with httpOnly cookies (no JWTs) |
-| **Validation** | Duplicated from frontend (see [Duplication Analysis](#duplication-analysis)) |
+| Aspect                | Classification                                                               |
+| --------------------- | ---------------------------------------------------------------------------- |
+| **Primary role**      | Orchestration + Integration                                                  |
+| **Data storage**      | Metadata only (users, sessions, workspaces, generation runs, AI keys)        |
+| **Architecture data** | NOT stored — lives in GitHub repos                                           |
+| **Generated code**    | NOT stored — committed to GitHub repos                                       |
+| **Auth model**        | Server-side sessions with httpOnly cookies (no JWTs)                         |
+| **Validation**        | Duplicated from frontend (see [Duplication Analysis](#duplication-analysis)) |
 
 ### What the Backend Does
 
@@ -47,13 +47,13 @@ The CloudBlocks backend is an **Orchestration + Integration Backend** — not a 
 
 Handles GitHub OAuth and cookie-based session management.
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/auth/github` | Start GitHub OAuth flow (sets `cb_oauth` state cookie) |
-| `GET` | `/auth/github/callback` | OAuth callback — exchanges code, creates user/session, sets `cb_session` cookie, 302 redirect |
-| `GET` | `/auth/session` | Return current user from session cookie |
-| `POST` | `/auth/logout` | Revoke session, clear cookies |
-| `GET` | `/auth/me` | Current authenticated user (via `require_user` dependency) |
+| Method | Path                    | Description                                                                                   |
+| ------ | ----------------------- | --------------------------------------------------------------------------------------------- |
+| `POST` | `/auth/github`          | Start GitHub OAuth flow (sets `cb_oauth` state cookie)                                        |
+| `GET`  | `/auth/github/callback` | OAuth callback — exchanges code, creates user/session, sets `cb_session` cookie, 302 redirect |
+| `GET`  | `/auth/session`         | Return current user from session cookie                                                       |
+| `POST` | `/auth/logout`          | Revoke session, clear cookies                                                                 |
+| `GET`  | `/auth/me`              | Current authenticated user (via `require_user` dependency)                                    |
 
 **Dependencies**: `SessionRepository`, `UserRepository`, `IdentityRepository`, `GitHubService`, `settings` (OAuth config)
 
@@ -61,8 +61,8 @@ Handles GitHub OAuth and cookie-based session management.
 
 Binds a workspace to the active session.
 
-| Method | Path | Description |
-|--------|------|-------------|
+| Method | Path                 | Description                                             |
+| ------ | -------------------- | ------------------------------------------------------- |
 | `POST` | `/session/workspace` | Bind workspace ID (and optional repo) to active session |
 
 **Dependencies**: `SessionRepository`, `require_user`
@@ -71,13 +71,13 @@ Binds a workspace to the active session.
 
 CRUD for workspace metadata. Workspaces are pointers to GitHub repos, not architecture data stores.
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/workspaces/` | List workspaces owned by the current user |
-| `POST` | `/workspaces/` | Create workspace (201) |
-| `GET` | `/workspaces/{workspace_id}` | Get workspace details |
-| `PUT` | `/workspaces/{workspace_id}` | Update workspace settings |
-| `DELETE` | `/workspaces/{workspace_id}` | Delete workspace (204) |
+| Method   | Path                         | Description                               |
+| -------- | ---------------------------- | ----------------------------------------- |
+| `GET`    | `/workspaces/`               | List workspaces owned by the current user |
+| `POST`   | `/workspaces/`               | Create workspace (201)                    |
+| `GET`    | `/workspaces/{workspace_id}` | Get workspace details                     |
+| `PUT`    | `/workspaces/{workspace_id}` | Update workspace settings                 |
+| `DELETE` | `/workspaces/{workspace_id}` | Delete workspace (204)                    |
 
 **Dependencies**: `WorkspaceRepository`, `require_user`
 
@@ -85,14 +85,14 @@ CRUD for workspace metadata. Workspaces are pointers to GitHub repos, not archit
 
 GitHub repo management and architecture sync via the GitHub API.
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/github/repos` | List user's GitHub repositories |
-| `POST` | `/github/repos` | Create a new GitHub repository (201) |
-| `POST` | `/workspaces/{id}/sync` | Push `architecture.json` to GitHub |
-| `POST` | `/workspaces/{id}/pull` | Pull `architecture.json` from GitHub |
-| `POST` | `/workspaces/{id}/pr` | Create PR with architecture changes (201) |
-| `GET` | `/workspaces/{id}/commits` | List recent commits |
+| Method | Path                       | Description                               |
+| ------ | -------------------------- | ----------------------------------------- |
+| `GET`  | `/github/repos`            | List user's GitHub repositories           |
+| `POST` | `/github/repos`            | Create a new GitHub repository (201)      |
+| `POST` | `/workspaces/{id}/sync`    | Push `architecture.json` to GitHub        |
+| `POST` | `/workspaces/{id}/pull`    | Pull `architecture.json` from GitHub      |
+| `POST` | `/workspaces/{id}/pr`      | Create PR with architecture changes (201) |
+| `GET`  | `/workspaces/{id}/commits` | List recent commits                       |
 
 **Dependencies**: `GitHubService`, `WorkspaceRepository`, `require_user`
 
@@ -100,11 +100,11 @@ GitHub repo management and architecture sync via the GitHub API.
 
 Scaffolded code generation job tracking. Creates run records but does NOT execute actual generation.
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/workspaces/{id}/generate` | Create generation run record (202) — placeholder |
-| `GET` | `/workspaces/{id}/generate/{run_id}` | Get generation run status |
-| `GET` | `/workspaces/{id}/preview` | Preview generated code — placeholder (returns empty files) |
+| Method | Path                                 | Description                                                |
+| ------ | ------------------------------------ | ---------------------------------------------------------- |
+| `POST` | `/workspaces/{id}/generate`          | Create generation run record (202) — placeholder           |
+| `GET`  | `/workspaces/{id}/generate/{run_id}` | Get generation run status                                  |
+| `GET`  | `/workspaces/{id}/preview`           | Preview generated code — placeholder (returns empty files) |
 
 **Dependencies**: `GenerationRunRepository`, `WorkspaceRepository`, `require_user`
 
@@ -112,11 +112,11 @@ Scaffolded code generation job tracking. Creates run records but does NOT execut
 
 AI-assisted architecture generation and suggestions. Proxies to OpenAI.
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/ai/generate` | Generate architecture from natural-language prompt (calls OpenAI) |
-| `POST` | `/ai/suggest` | Suggest improvements to an architecture (calls OpenAI via `SuggestionEngine`) |
-| `POST` | `/ai/cost` | Estimate infrastructure cost (calls Infracost adapter — stubbed) |
+| Method | Path           | Description                                                                   |
+| ------ | -------------- | ----------------------------------------------------------------------------- |
+| `POST` | `/ai/generate` | Generate architecture from natural-language prompt (calls OpenAI)             |
+| `POST` | `/ai/suggest`  | Suggest improvements to an architecture (calls OpenAI via `SuggestionEngine`) |
+| `POST` | `/ai/cost`     | Estimate infrastructure cost (calls Infracost adapter — stubbed)              |
 
 **Dependencies**: `LLMClient`, `SuggestionEngine`, `ArchitectureValidator`, `AIApiKeyRepository`, `require_user`
 
@@ -124,11 +124,11 @@ AI-assisted architecture generation and suggestions. Proxies to OpenAI.
 
 Encrypted API key management for AI providers.
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/ai/keys` | Store/update AI API key (Fernet-encrypted, upsert by provider) |
-| `GET` | `/ai/keys` | List stored key providers (no key values returned) |
-| `DELETE` | `/ai/keys/{provider}` | Delete stored key by provider |
+| Method   | Path                  | Description                                                    |
+| -------- | --------------------- | -------------------------------------------------------------- |
+| `POST`   | `/ai/keys`            | Store/update AI API key (Fernet-encrypted, upsert by provider) |
+| `GET`    | `/ai/keys`            | List stored key providers (no key values returned)             |
+| `DELETE` | `/ai/keys/{provider}` | Delete stored key by provider                                  |
 
 **Dependencies**: `AIApiKeyRepository`, `require_user`
 
@@ -177,14 +177,14 @@ Builds the system prompt for LLM-based architecture generation. Contains:
 
 Six Pydantic entities in `domain/models/entities.py` and `domain/models/ai_entities.py`:
 
-| Entity | Purpose | Persisted? |
-|--------|---------|-----------|
-| `User` | GitHub-linked user profile | Yes (SQLite) |
-| `Identity` | OAuth provider record (GitHub token storage) | Yes (SQLite) |
-| `Workspace` | Pointer to a GitHub repo (not architecture data) | Yes (SQLite) |
-| `GenerationRun` | Code generation job tracking | Yes (SQLite) |
-| `Session` | Server-side cookie session | Yes (SQLite or Redis) |
-| `AIApiKey` | Encrypted AI provider API key | Yes (SQLite) |
+| Entity          | Purpose                                          | Persisted?            |
+| --------------- | ------------------------------------------------ | --------------------- |
+| `User`          | GitHub-linked user profile                       | Yes (SQLite)          |
+| `Identity`      | OAuth provider record (GitHub token storage)     | Yes (SQLite)          |
+| `Workspace`     | Pointer to a GitHub repo (not architecture data) | Yes (SQLite)          |
+| `GenerationRun` | Code generation job tracking                     | Yes (SQLite)          |
+| `Session`       | Server-side cookie session                       | Yes (SQLite or Redis) |
+| `AIApiKey`      | Encrypted AI provider API key                    | Yes (SQLite)          |
 
 Repository interfaces (ports) are defined in `domain/models/repositories.py` as abstract base classes, following Clean Architecture.
 
@@ -192,12 +192,12 @@ Repository interfaces (ports) are defined in `domain/models/repositories.py` as 
 
 The `application/use_cases/` directory contains use-case classes that encapsulate business logic with ownership enforcement:
 
-| Use Case | Responsibility |
-|----------|---------------|
-| `CreateWorkspaceUseCase` | Creates a workspace with a generated ID, linking it to the current user |
-| `GetWorkspaceUseCase` | Retrieves a workspace by ID, enforcing ownership (raises `ForbiddenError`) |
-| `ListWorkspacesUseCase` | Lists all workspaces for the authenticated user |
-| `DeleteWorkspaceUseCase` | Deletes a workspace by ID, enforcing ownership |
+| Use Case                 | Responsibility                                                             |
+| ------------------------ | -------------------------------------------------------------------------- |
+| `CreateWorkspaceUseCase` | Creates a workspace with a generated ID, linking it to the current user    |
+| `GetWorkspaceUseCase`    | Retrieves a workspace by ID, enforcing ownership (raises `ForbiddenError`) |
+| `ListWorkspacesUseCase`  | Lists all workspaces for the authenticated user                            |
+| `DeleteWorkspaceUseCase` | Deletes a workspace by ID, enforcing ownership                             |
 
 This layer sits between routes and repositories, implementing the Clean Architecture pattern where routes delegate to use cases, which coordinate domain entities and repository ports.
 
@@ -205,16 +205,16 @@ This layer sits between routes and repositories, implementing the Clean Architec
 
 ## Infrastructure Adapters
 
-| Adapter | Path | Status |
-|---------|------|--------|
-| **Database** | `infrastructure/db/` | Active — SQLite (dev) / PostgreSQL (planned) |
-| **Cache** | `infrastructure/cache/` | Active — Redis (optional, for sessions) |
-| **GitHub Service** | `infrastructure/github_service.py` | Active — GitHub API via user OAuth token |
-| **LLM Client** | `infrastructure/llm/` | Active — OpenAI API |
-| **Cost** | `infrastructure/cost/` | Stubbed — Infracost integration |
-| **Queue** | `infrastructure/queue/` | Scaffolded — job queue (not implemented) |
-| **Storage** | `infrastructure/storage/` | Scaffolded — object storage (not implemented) |
-| **Providers** | `infrastructure/providers/` | Scaffolded — cloud provider integrations (not implemented) |
+| Adapter            | Path                               | Status                                                     |
+| ------------------ | ---------------------------------- | ---------------------------------------------------------- |
+| **Database**       | `infrastructure/db/`               | Active — SQLite (dev) / PostgreSQL (planned)               |
+| **Cache**          | `infrastructure/cache/`            | Active — Redis (optional, for sessions)                    |
+| **GitHub Service** | `infrastructure/github_service.py` | Active — GitHub API via user OAuth token                   |
+| **LLM Client**     | `infrastructure/llm/`              | Active — OpenAI API                                        |
+| **Cost**           | `infrastructure/cost/`             | Stubbed — Infracost integration                            |
+| **Queue**          | `infrastructure/queue/`            | Scaffolded — job queue (not implemented)                   |
+| **Storage**        | `infrastructure/storage/`          | Scaffolded — object storage (not implemented)              |
+| **Providers**      | `infrastructure/providers/`        | Scaffolded — cloud provider integrations (not implemented) |
 
 ---
 
@@ -222,9 +222,9 @@ This layer sits between routes and repositories, implementing the Clean Architec
 
 ### Middleware
 
-| Middleware | Purpose |
-|-----------|---------|
-| `CORSMiddleware` | Cross-origin requests with configurable origins |
+| Middleware            | Purpose                                               |
+| --------------------- | ----------------------------------------------------- |
+| `CORSMiddleware`      | Cross-origin requests with configurable origins       |
 | `RequestIDMiddleware` | Attaches `X-Request-ID` header (from request or UUID) |
 
 ### Logging
@@ -249,9 +249,9 @@ Auto-clears stale session cookies on 401 responses.
 
 ### Health Endpoints
 
-| Endpoint | Description |
-|----------|-------------|
-| `GET /health` | Basic liveness check (always returns `{"status": "ok"}`) |
+| Endpoint            | Description                                                                                |
+| ------------------- | ------------------------------------------------------------------------------------------ |
+| `GET /health`       | Basic liveness check (always returns `{"status": "ok"}`)                                   |
 | `GET /health/ready` | Readiness check — verifies DB connectivity and Redis (if enabled). Returns 503 on failure. |
 
 ---
@@ -262,21 +262,21 @@ The following domain constants and logic are duplicated between the Python backe
 
 ### Duplicated Constants
 
-| Constant | Backend Location | Frontend Source of Truth |
-|----------|-----------------|------------------------|
+| Constant           | Backend Location                         | Frontend Source of Truth    |
+| ------------------ | ---------------------------------------- | --------------------------- |
 | `BLOCK_CATEGORIES` | `engines/prompts/architecture_prompt.py` | `@cloudblocks/domain` types |
 | `CONNECTION_TYPES` | `engines/prompts/architecture_prompt.py` | `@cloudblocks/domain` types |
-| `PROVIDER_TYPES` | `engines/prompts/architecture_prompt.py` | `@cloudblocks/domain` types |
-| `LAYER_TYPES` | `engines/prompts/architecture_prompt.py` | `@cloudblocks/domain` types |
+| `PROVIDER_TYPES`   | `engines/prompts/architecture_prompt.py` | `@cloudblocks/domain` types |
+| `LAYER_TYPES`      | `engines/prompts/architecture_prompt.py` | `@cloudblocks/domain` types |
 | `SUBTYPE_REGISTRY` | `engines/prompts/architecture_prompt.py` | `@cloudblocks/domain` types |
 
 ### Duplicated Logic
 
-| Logic | Backend Location | Frontend Location |
-|-------|-----------------|-------------------|
-| Placement validation rules | `engines/rule_engine.py` | `apps/web/src/entities/validation/` |
-| Connection adjacency rules | `engines/rule_engine.py` | `apps/web/src/entities/validation/` |
-| Architecture structure validation | `engines/validation.py` | TypeScript type system + runtime checks |
+| Logic                             | Backend Location         | Frontend Location                       |
+| --------------------------------- | ------------------------ | --------------------------------------- |
+| Placement validation rules        | `engines/rule_engine.py` | `apps/web/src/entities/validation/`     |
+| Connection adjacency rules        | `engines/rule_engine.py` | `apps/web/src/entities/validation/`     |
+| Architecture structure validation | `engines/validation.py`  | TypeScript type system + runtime checks |
 
 ### Resolution Path
 

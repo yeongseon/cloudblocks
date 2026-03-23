@@ -11,7 +11,8 @@ export function CompletionScreen() {
     return null;
   }
 
-  const timeTakenMs = new Date(progress.completedAt).getTime() - new Date(progress.startedAt).getTime();
+  const timeTakenMs =
+    new Date(progress.completedAt).getTime() - new Date(progress.startedAt).getTime();
   const totalSeconds = Math.floor(timeTakenMs / 1000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
@@ -32,7 +33,7 @@ export function CompletionScreen() {
     <div className="completion-screen">
       <div className="completion-icon">🎉</div>
       <h2 className="completion-title">Congratulations!</h2>
-      
+
       <div className="completion-stats">
         <div className="completion-stat-item">
           <span>Scenario:</span>

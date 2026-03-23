@@ -13,7 +13,9 @@ describe('ValidationTab', () => {
 
   it('shows empty-state text when no validation result exists', () => {
     render(<ValidationTab />);
-    expect(screen.getByText('No validation results. Run validation from the menu.')).toBeInTheDocument();
+    expect(
+      screen.getByText('No validation results. Run validation from the menu.'),
+    ).toBeInTheDocument();
   });
 
   it('renders invalid status, errors, warnings, and unknown target fallback', () => {
@@ -77,7 +79,9 @@ describe('ValidationTab', () => {
     render(<ValidationTab />);
 
     expect(screen.getByText('VALID')).toBeInTheDocument();
-    expect(screen.getByText('Architecture is valid! No rule violations detected.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Architecture is valid! No rule violations detected.'),
+    ).toBeInTheDocument();
     expect(screen.queryByText('No blocking errors detected.')).not.toBeInTheDocument();
   });
 
@@ -101,7 +105,9 @@ describe('ValidationTab', () => {
 
     expect(screen.getByText('VALID')).toBeInTheDocument();
     expect(screen.getByText('No blocking errors detected.')).toBeInTheDocument();
-    expect(screen.queryByText('Architecture is valid! No rule violations detected.')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Architecture is valid! No rule violations detected.'),
+    ).not.toBeInTheDocument();
   });
 
   it('handles undefined target IDs in item keys and target labels', () => {

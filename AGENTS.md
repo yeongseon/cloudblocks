@@ -1,13 +1,16 @@
 # AGENTS.md
 
 ## Purpose
+
 `cloudblocks` is a monorepo for a visual cloud architecture builder with a TypeScript frontend and a scaffolded Python backend.
 
 ## Read First
+
 - `README.md`
 - `CONTRIBUTING.md`
 
 ## Working Rules
+
 - Preserve the existing visual-model vocabulary: plates, blocks, connections, templates.
 - Keep frontend behavior, docs, and any domain model changes synchronized.
 - Treat `apps/web` as the primary production surface unless the task explicitly targets `apps/api`.
@@ -22,7 +25,9 @@
 ## Git Conventions
 
 ### Branch Naming
+
 Use the pattern `{type}/{issue#}-{short-desc}` or `{type}/{short-desc}` for branches:
+
 - `feat/447-menubar-consolidation`
 - `fix/441-external-actor-css`
 - `docs/readme-badges`
@@ -30,23 +35,25 @@ Use the pattern `{type}/{issue#}-{short-desc}` or `{type}/{short-desc}` for bran
 - `m14/ai-frontend-integration` (milestone-scoped work)
 
 ### Commit Messages
+
 Follow [Conventional Commits](https://www.conventionalcommits.org/). Format: `{type}({scope}): {description}`.
 
-| Prefix | When to use |
-|--------|-------------|
-| `feat` | New feature or capability |
-| `fix` | Bug fix |
-| `docs` | Documentation only |
-| `test` | Adding or updating tests |
+| Prefix     | When to use                             |
+| ---------- | --------------------------------------- |
+| `feat`     | New feature or capability               |
+| `fix`      | Bug fix                                 |
+| `docs`     | Documentation only                      |
+| `test`     | Adding or updating tests                |
 | `refactor` | Code change that neither fixes nor adds |
-| `style` | Formatting, CSS, whitespace |
-| `chore` | Build, tooling, release management |
-| `perf` | Performance improvement |
-| `ci` | CI/CD pipeline changes |
+| `style`    | Formatting, CSS, whitespace             |
+| `chore`    | Build, tooling, release management      |
+| `perf`     | Performance improvement                 |
+| `ci`       | CI/CD pipeline changes                  |
 
 Scope is optional but recommended: `feat(web):`, `fix(api):`, `docs:`.
 
 ### Pull Request Rules
+
 - `main` is a protected branch — all changes go through PR + CI.
 - Squash-merge every PR with `--delete-branch`: `gh pr merge <number> --squash --admin --delete-branch`.
 - PR title should follow the same Conventional Commits format as commit messages.
@@ -55,18 +62,20 @@ Scope is optional but recommended: `feat(web):`, `fix(api):`, `docs:`.
 ## Implementation Principles
 
 ### Use Proven Libraries First
+
 **Don't reinvent the wheel.** Before implementing any feature from scratch, search for well-maintained libraries that solve the problem.
 
-| Need | Prefer | Avoid |
-|------|--------|-------|
-| Drag & drop | `interactjs`, `@dnd-kit` | Custom pointer event handling |
-| State undo/redo | `zundo` (Zustand middleware) | Manual history stack |
-| Grid snapping | `interactjs` snap modifiers | Custom snap calculations |
-| Form validation | `zod`, `valibot` | Manual validation logic |
-| Date handling | `date-fns`, `dayjs` | Raw `Date` manipulation |
-| Animation | `framer-motion`, `react-spring` | CSS keyframes for complex sequences |
+| Need            | Prefer                          | Avoid                               |
+| --------------- | ------------------------------- | ----------------------------------- |
+| Drag & drop     | `interactjs`, `@dnd-kit`        | Custom pointer event handling       |
+| State undo/redo | `zundo` (Zustand middleware)    | Manual history stack                |
+| Grid snapping   | `interactjs` snap modifiers     | Custom snap calculations            |
+| Form validation | `zod`, `valibot`                | Manual validation logic             |
+| Date handling   | `date-fns`, `dayjs`             | Raw `Date` manipulation             |
+| Animation       | `framer-motion`, `react-spring` | CSS keyframes for complex sequences |
 
 ### Library Selection Criteria
+
 1. **Weekly downloads** > 50k (npm) — community validation
 2. **Last published** < 6 months — actively maintained
 3. **TypeScript support** — first-class types or `@types/*` available
@@ -74,12 +83,14 @@ Scope is optional but recommended: `feat(web):`, `fix(api):`, `docs:`.
 5. **API simplicity** — easy to integrate, not over-engineered
 
 ### When to Build Custom
+
 - No library exists for the specific domain need
 - Existing libraries have critical security issues
 - Bundle size impact is unacceptable (>100kb for minor feature)
 - Library API conflicts with existing architecture patterns
 
 ### Installed Libraries (Reference)
+
 ```
 interactjs   — Drag & drop with grid snapping
 zundo        — Zustand undo/redo middleware
@@ -138,17 +149,20 @@ When all issues in a milestone are closed, perform the following release steps:
 8. **GitHub Release**: `gh release create v0.{milestone}.0 --title "v0.{milestone}.0 — {milestone title}" --notes-file -` using the CHANGELOG section as body.
 9. **Close milestone**: `gh api repos/{owner}/{repo}/milestones/{number} -X PATCH -f state=closed`.
 10. **CI cleanup**: Purge stale GitHub Actions caches and artifacts to stay within storage limits:
-   ```bash
-   # Delete all caches except the latest per key prefix on refs/heads/main
-   gh api repos/{owner}/{repo}/actions/caches --paginate --jq '.actions_caches[] | select(.ref != "refs/heads/main") | .id' | while read id; do gh api -X DELETE "repos/{owner}/{repo}/actions/caches/$id"; done
-   # Delete all artifacts except the 3 most recent
-   gh api repos/{owner}/{repo}/actions/artifacts --paginate --jq '[.artifacts[].id] | .[3:] | .[]' | while read id; do gh api -X DELETE "repos/{owner}/{repo}/actions/artifacts/$id"; done
-   ```
+
+```bash
+# Delete all caches except the latest per key prefix on refs/heads/main
+gh api repos/{owner}/{repo}/actions/caches --paginate --jq '.actions_caches[] | select(.ref != "refs/heads/main") | .id' | while read id; do gh api -X DELETE "repos/{owner}/{repo}/actions/caches/$id"; done
+# Delete all artifacts except the 3 most recent
+gh api repos/{owner}/{repo}/actions/artifacts --paginate --jq '[.artifacts[].id] | .[3:] | .[]' | while read id; do gh api -X DELETE "repos/{owner}/{repo}/actions/artifacts/$id"; done
+```
+
 11. **Roadmap sync**: Update `docs/concept/ROADMAP.md` per the Roadmap synchronization rules above.
 
 Versioning convention: **Milestone N = v0.N.0**. Patch releases (v0.N.1, v0.N.2) are reserved for hotfixes. See `docs/design/RELEASE_GATES.md` for gate checks.
 
 ## Validation
+
 - `pnpm build`
 - `pnpm lint`
 - `cd apps/api && pytest`

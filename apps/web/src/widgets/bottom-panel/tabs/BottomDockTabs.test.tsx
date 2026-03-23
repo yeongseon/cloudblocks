@@ -17,7 +17,10 @@ describe('BottomDockTabs', () => {
     render(<BottomDockTabs />);
 
     expect(screen.getByRole('tab', { name: 'Output' })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByRole('tab', { name: 'Validation' })).toHaveAttribute('aria-selected', 'false');
+    expect(screen.getByRole('tab', { name: 'Validation' })).toHaveAttribute(
+      'aria-selected',
+      'false',
+    );
     expect(screen.getByRole('tab', { name: 'Logs' })).toHaveAttribute('aria-selected', 'false');
     expect(screen.getByRole('tab', { name: 'Diff' })).toHaveAttribute('aria-selected', 'false');
   });

@@ -18,10 +18,7 @@ export function isPlausibleAvailable(): boolean {
  * Send a custom event to Plausible. No-ops silently when
  * window.plausible is not defined (script not loaded / blocked).
  */
-export function trackPlausible(
-  event: string,
-  props?: PlausibleEventProps,
-): void {
+export function trackPlausible(event: string, props?: PlausibleEventProps): void {
   if (!isPlausibleAvailable()) {
     return;
   }

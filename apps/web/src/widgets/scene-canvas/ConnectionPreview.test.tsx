@@ -70,7 +70,7 @@ describe('ConnectionPreview', () => {
       <svg>
         <title>Connection preview test canvas</title>
         <ConnectionPreview originX={0} originY={0} />
-      </svg>
+      </svg>,
     );
 
     expect(container.querySelector('[data-testid="connection-preview-path"]')).toBeNull();
@@ -83,7 +83,7 @@ describe('ConnectionPreview', () => {
       <svg>
         <title>Connection preview test canvas</title>
         <ConnectionPreview originX={0} originY={0} />
-      </svg>
+      </svg>,
     );
 
     expect(container.querySelector('[data-testid="connection-preview-path"]')).toBeNull();
@@ -96,7 +96,7 @@ describe('ConnectionPreview', () => {
       <svg>
         <title>Connection preview test canvas</title>
         <ConnectionPreview originX={0} originY={0} />
-      </svg>
+      </svg>,
     );
 
     expect(await screen.findByTestId('connection-preview-path')).toBeInTheDocument();
@@ -109,7 +109,7 @@ describe('ConnectionPreview', () => {
       <svg>
         <title>Connection preview test canvas</title>
         <ConnectionPreview originX={0} originY={0} />
-      </svg>
+      </svg>,
     );
 
     expect(await screen.findByTestId('connection-preview-path')).toBeInTheDocument();
@@ -121,7 +121,7 @@ describe('ConnectionPreview', () => {
       <svg>
         <title>Connection preview test canvas</title>
         <ConnectionPreview originX={0} originY={0} />
-      </svg>
+      </svg>,
     );
 
     expect(container.querySelector('[data-testid="connection-preview-path"]')).toBeNull();
@@ -131,7 +131,7 @@ describe('ConnectionPreview', () => {
       <svg>
         <title>Connection preview test canvas</title>
         <ConnectionPreview originX={0} originY={0} />
-      </svg>
+      </svg>,
     );
 
     expect(await screen.findByTestId('connection-preview-path')).toBeInTheDocument();
@@ -143,7 +143,7 @@ describe('ConnectionPreview', () => {
       <svg>
         <title>Connection preview test canvas</title>
         <ConnectionPreview originX={0} originY={0} />
-      </svg>
+      </svg>,
     );
 
     expect(await screen.findByTestId('connection-preview-path')).toBeInTheDocument();
@@ -153,7 +153,7 @@ describe('ConnectionPreview', () => {
       <svg>
         <title>Connection preview test canvas</title>
         <ConnectionPreview originX={0} originY={0} />
-      </svg>
+      </svg>,
     );
 
     expect(container.querySelector('[data-testid="connection-preview-path"]')).toBeNull();

@@ -77,7 +77,7 @@ export function validateConnection(
   connection: Connection,
   endpoints: Endpoint[],
   nodes: ResourceNode[],
-  externalActors: ExternalActor[] = []
+  externalActors: ExternalActor[] = [],
 ): ValidationError | null {
   const fromEndpoint = endpoints.find((endpoint) => endpoint.id === connection.from);
   if (!fromEndpoint) {
@@ -189,7 +189,6 @@ export function validateConnection(
       targetId: connection.id,
     };
   }
-
 
   return null;
 }

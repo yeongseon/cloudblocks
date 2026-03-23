@@ -57,9 +57,7 @@ describe('JSON Schema artifact', () => {
     dirname(fileURLToPath(import.meta.url)),
     '../../dist/architecture-model.schema.json',
   );
-  const schema: Record<string, unknown> = JSON.parse(
-    readFileSync(schemaPath, 'utf-8'),
-  );
+  const schema: Record<string, unknown> = JSON.parse(readFileSync(schemaPath, 'utf-8'));
 
   it('should exist and be valid JSON', () => {
     expect(Object.keys(schema).length).toBeGreaterThan(0);
@@ -211,32 +209,33 @@ describe('Type compatibility', () => {
   });
 
   it('should allow ResourceNode discriminated union', () => {
-    const node: ResourceNode = Math.random() > 0.5
-      ? {
-          id: 'node-1',
-          name: 'Test Node',
-          kind: 'resource',
-          layer: 'resource',
-          resourceType: 'sql_database',
-          category: 'data',
-          provider: 'azure',
-          parentId: 'container-1',
-          position: { x: 2, y: 0, z: 2 },
-          metadata: {},
-        }
-      : {
-          id: 'container-3',
-          name: 'Test Container',
-          kind: 'container',
-          layer: 'subnet',
-          resourceType: 'subnet',
-          category: 'network',
-          provider: 'azure',
-          parentId: 'container-1',
-          position: { x: 0, y: 0, z: 0 },
-          size: { width: 8, height: 1, depth: 8 },
-          metadata: {},
-        };
+    const node: ResourceNode =
+      Math.random() > 0.5
+        ? {
+            id: 'node-1',
+            name: 'Test Node',
+            kind: 'resource',
+            layer: 'resource',
+            resourceType: 'sql_database',
+            category: 'data',
+            provider: 'azure',
+            parentId: 'container-1',
+            position: { x: 2, y: 0, z: 2 },
+            metadata: {},
+          }
+        : {
+            id: 'container-3',
+            name: 'Test Container',
+            kind: 'container',
+            layer: 'subnet',
+            resourceType: 'subnet',
+            category: 'network',
+            provider: 'azure',
+            parentId: 'container-1',
+            position: { x: 0, y: 0, z: 0 },
+            size: { width: 8, height: 1, depth: 8 },
+            metadata: {},
+          };
 
     if (node.kind === 'container') {
       expect(node.size).toBeDefined();
@@ -290,8 +289,13 @@ describe('Type compatibility', () => {
 
   it('should allow all ResourceCategory values', () => {
     const categories: ResourceCategory[] = [
-      'network', 'security', 'edge', 'compute',
-      'data', 'messaging', 'operations',
+      'network',
+      'security',
+      'edge',
+      'compute',
+      'data',
+      'messaging',
+      'operations',
     ];
     expect(categories).toHaveLength(7);
   });
@@ -302,16 +306,20 @@ describe('Type compatibility', () => {
   });
 
   it('should allow all LayerType values including resource', () => {
-    const layers: LayerType[] = [
-      'global', 'edge', 'region', 'zone', 'subnet', 'resource',
-    ];
+    const layers: LayerType[] = ['global', 'edge', 'region', 'zone', 'subnet', 'resource'];
     expect(layers).toHaveLength(6);
   });
 
   it('should allow all BlockRole values', () => {
     const roles: BlockRole[] = [
-      'primary', 'secondary', 'reader', 'writer',
-      'public', 'private', 'internal', 'external',
+      'primary',
+      'secondary',
+      'reader',
+      'writer',
+      'public',
+      'private',
+      'internal',
+      'external',
     ];
     expect(roles).toHaveLength(8);
   });
@@ -427,9 +435,20 @@ describe('Type compatibility', () => {
 
 describe('Catalog consistency', () => {
   it('RESOURCE_RULES should have valid categories', () => {
-    const validCategories = ['network', 'security', 'edge', 'compute', 'data', 'messaging', 'operations'];
+    const validCategories = [
+      'network',
+      'security',
+      'edge',
+      'compute',
+      'data',
+      'messaging',
+      'operations',
+    ];
     for (const [key, rule] of Object.entries(RESOURCE_RULES)) {
-      expect(validCategories, `Invalid category '${rule.category}' for resource '${key}'`).toContain(rule.category);
+      expect(
+        validCategories,
+        `Invalid category '${rule.category}' for resource '${key}'`,
+      ).toContain(rule.category);
     }
   });
 
@@ -451,10 +470,12 @@ describe('Catalog consistency', () => {
 
   it('all non-container resources should not be container capable', () => {
     const nonContainers = Object.entries(RESOURCE_RULES).filter(
-      ([key]) => key !== 'virtual_network' && key !== 'subnet'
+      ([key]) => key !== 'virtual_network' && key !== 'subnet',
     );
     for (const [key, rule] of nonContainers) {
-      expect(rule.containerCapable, `Resource '${key}' should not be container-capable`).toBe(false);
+      expect(rule.containerCapable, `Resource '${key}' should not be container-capable`).toBe(
+        false,
+      );
     }
   });
 });

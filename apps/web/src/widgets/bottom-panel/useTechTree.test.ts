@@ -106,9 +106,20 @@ describe('useTechTree constants', () => {
   it('defines all resource entries with correct fields', () => {
     const expectedResources: Record<
       string,
-      Pick<ResourceDefinition, 'id' | 'schemaResourceType' | 'label' | 'shortLabel' | 'icon' | 'category' | 'blockCategory'>
+      Pick<
+        ResourceDefinition,
+        'id' | 'schemaResourceType' | 'label' | 'shortLabel' | 'icon' | 'category' | 'blockCategory'
+      >
     > = {
-      network: { id: 'network', schemaResourceType: 'virtual_network', label: 'Network (VNet)', shortLabel: 'VNet', icon: '🌐', category: 'foundation', blockCategory: null },
+      network: {
+        id: 'network',
+        schemaResourceType: 'virtual_network',
+        label: 'Network (VNet)',
+        shortLabel: 'VNet',
+        icon: '🌐',
+        category: 'foundation',
+        blockCategory: null,
+      },
       subnet: {
         id: 'subnet',
         schemaResourceType: 'subnet',
@@ -118,9 +129,33 @@ describe('useTechTree constants', () => {
         category: 'foundation',
         blockCategory: null,
       },
-      storage: { id: 'storage', schemaResourceType: 'blob_storage', label: 'Blob Storage', shortLabel: 'Storage', icon: '📦', category: 'always', blockCategory: 'data' },
-      dns: { id: 'dns', schemaResourceType: 'dns_zone', label: 'DNS Zone', shortLabel: 'DNS', icon: '🌐', category: 'always', blockCategory: 'edge' },
-      cdn: { id: 'cdn', schemaResourceType: 'cdn_profile', label: 'CDN Profile', shortLabel: 'CDN', icon: '⚡', category: 'always', blockCategory: 'edge' },
+      storage: {
+        id: 'storage',
+        schemaResourceType: 'blob_storage',
+        label: 'Blob Storage',
+        shortLabel: 'Storage',
+        icon: '📦',
+        category: 'always',
+        blockCategory: 'data',
+      },
+      dns: {
+        id: 'dns',
+        schemaResourceType: 'dns_zone',
+        label: 'DNS Zone',
+        shortLabel: 'DNS',
+        icon: '🌐',
+        category: 'always',
+        blockCategory: 'edge',
+      },
+      cdn: {
+        id: 'cdn',
+        schemaResourceType: 'cdn_profile',
+        label: 'CDN Profile',
+        shortLabel: 'CDN',
+        icon: '⚡',
+        category: 'always',
+        blockCategory: 'edge',
+      },
       'front-door': {
         id: 'front-door',
         schemaResourceType: 'front_door',
@@ -130,7 +165,15 @@ describe('useTechTree constants', () => {
         category: 'always',
         blockCategory: 'edge',
       },
-      sql: { id: 'sql', schemaResourceType: 'sql_database', label: 'SQL Database', shortLabel: 'SQL', icon: '🗄️', category: 'vnet-optional', blockCategory: 'data' },
+      sql: {
+        id: 'sql',
+        schemaResourceType: 'sql_database',
+        label: 'SQL Database',
+        shortLabel: 'SQL',
+        icon: '🗄️',
+        category: 'vnet-optional',
+        blockCategory: 'data',
+      },
       function: {
         id: 'function',
         schemaResourceType: 'function_compute',
@@ -140,8 +183,24 @@ describe('useTechTree constants', () => {
         category: 'vnet-optional',
         blockCategory: 'compute',
       },
-      queue: { id: 'queue', schemaResourceType: 'message_queue', label: 'Queue', shortLabel: 'Queue', icon: '📨', category: 'vnet-optional', blockCategory: 'messaging' },
-      event: { id: 'event', schemaResourceType: 'event_hub', label: 'Event Hub', shortLabel: 'Event', icon: '🔔', category: 'vnet-optional', blockCategory: 'messaging' },
+      queue: {
+        id: 'queue',
+        schemaResourceType: 'message_queue',
+        label: 'Queue',
+        shortLabel: 'Queue',
+        icon: '📨',
+        category: 'vnet-optional',
+        blockCategory: 'messaging',
+      },
+      event: {
+        id: 'event',
+        schemaResourceType: 'event_hub',
+        label: 'Event Hub',
+        shortLabel: 'Event',
+        icon: '🔔',
+        category: 'vnet-optional',
+        blockCategory: 'messaging',
+      },
       'app-service': {
         id: 'app-service',
         schemaResourceType: 'app_service',
@@ -315,7 +374,6 @@ describe('useTechTree constants', () => {
     }
   });
 
-
   it('defines all action entries with expected metadata', () => {
     const expectedActions: Record<
       ActionType,
@@ -415,7 +473,9 @@ describe('useTechTree hook', () => {
       const { result } = renderHook(() => useTechTree());
 
       expect(result.current.isEnabled('network')).toBe(false);
-      expect(result.current.getDisabledReason('network')).toBe('This resource is not available yet.');
+      expect(result.current.getDisabledReason('network')).toBe(
+        'This resource is not available yet.',
+      );
     } finally {
       Reflect.set(RESOURCE_DEFINITIONS, 'network', originalNetwork);
     }
@@ -424,8 +484,9 @@ describe('useTechTree hook', () => {
   it('returns all creation resources from RESOURCE_DEFINITIONS filtered by MVP allowlist', () => {
     const { result } = renderHook(() => useTechTree());
 
-    const expectedResourceTypes = (Object.keys(RESOURCE_DEFINITIONS) as ResourceType[])
-      .filter((type) => MVP_RESOURCE_ALLOWLIST.has(type));
+    const expectedResourceTypes = (Object.keys(RESOURCE_DEFINITIONS) as ResourceType[]).filter(
+      (type) => MVP_RESOURCE_ALLOWLIST.has(type),
+    );
     const creationResources = result.current.getCreationResources();
     const actualTypes = creationResources.map((entry) => entry.resource.id);
 

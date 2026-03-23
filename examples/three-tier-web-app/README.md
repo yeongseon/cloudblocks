@@ -19,12 +19,12 @@ Internet → Gateway (Application Gateway)
 
 ## Components
 
-| Layer | Category | Block Type | Subnet | Description |
-|-------|----------|-----------|--------|-------------|
-| Frontend | Edge | Gateway | Public | Application Gateway / Load Balancer |
-| Application | Compute | Compute | Public | VM or Container App instances |
-| Data | Data | Database | Private | Managed database server |
-| Data | Data | Storage | Private | Blob storage for static assets |
+| Layer       | Category | Block Type | Subnet  | Description                         |
+| ----------- | -------- | ---------- | ------- | ----------------------------------- |
+| Frontend    | Edge     | Gateway    | Public  | Application Gateway / Load Balancer |
+| Application | Compute  | Compute    | Public  | VM or Container App instances       |
+| Data        | Data     | Database   | Private | Managed database server             |
+| Data        | Data     | Storage    | Private | Blob storage for static assets      |
 
 ## How to Build in CloudBlocks
 

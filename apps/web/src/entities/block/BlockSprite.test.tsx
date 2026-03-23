@@ -5,10 +5,15 @@ import interact from 'interactjs';
 import { endpointId } from '@cloudblocks/schema';
 
 vi.mock('../store/architectureStore', async () => {
-  const actual = await vi.importActual<typeof import('../store/architectureStore')>('../store/architectureStore');
-  const { useShallow } = await vi.importActual<typeof import('zustand/react/shallow')>('zustand/react/shallow');
+  const actual = await vi.importActual<typeof import('../store/architectureStore')>(
+    '../store/architectureStore',
+  );
+  const { useShallow } =
+    await vi.importActual<typeof import('zustand/react/shallow')>('zustand/react/shallow');
 
-  const useArchitectureStoreStable = ((selector: Parameters<typeof actual.useArchitectureStore>[0]) => {
+  const useArchitectureStoreStable = ((
+    selector: Parameters<typeof actual.useArchitectureStore>[0],
+  ) => {
     const stableSelector = useShallow(selector);
     return actual.useArchitectureStore(stableSelector);
   }) as typeof actual.useArchitectureStore;
@@ -24,7 +29,13 @@ vi.mock('../store/architectureStore', async () => {
 import { BlockSprite } from './BlockSprite';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
-import type { ContainerNode, ExternalActor, LeafNode, ResourceCategory, ResourceNode } from '@cloudblocks/schema';
+import type {
+  ContainerNode,
+  ExternalActor,
+  LeafNode,
+  ResourceCategory,
+  ResourceNode,
+} from '@cloudblocks/schema';
 import * as isometric from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
@@ -127,7 +138,8 @@ const internetActor: ExternalActor = {
   id: 'actor-internet',
   type: 'internet',
   name: 'Internet',
- position: { x: -3, y: 0, z: 5 } };
+  position: { x: -3, y: 0, z: 5 },
+};
 
 describe('BlockSprite', () => {
   const addConnectionMock = vi.fn();
@@ -154,7 +166,13 @@ describe('BlockSprite', () => {
   it('renders with correct screen position styles', () => {
     const block = makeBlock('block-1', 'compute');
     const { container } = render(
-      <BlockSprite block={block} parentPlate={parentPlate} screenX={120} screenY={240} zIndex={7} />,
+      <BlockSprite
+        block={block}
+        parentPlate={parentPlate}
+        screenX={120}
+        screenY={240}
+        zIndex={7}
+      />,
     );
 
     const root = container.firstElementChild as HTMLElement;
@@ -162,7 +180,16 @@ describe('BlockSprite', () => {
   });
 
   it.each([
-    'edge', 'compute', 'database', 'data', 'function', 'queue', 'event', 'analytics', 'identity', 'operations',
+    'edge',
+    'compute',
+    'database',
+    'data',
+    'function',
+    'queue',
+    'event',
+    'analytics',
+    'identity',
+    'operations',
   ] as const)('renders %s as inline SVG', (category) => {
     const block = makeBlock(`block-${category}`, category);
     const { container } = render(
@@ -179,7 +206,9 @@ describe('BlockSprite', () => {
 
   it('renders provider badge when block has provider', () => {
     const block = { ...makeBlock('block-provider', 'compute'), provider: 'gcp' as const };
-    render(<BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    render(
+      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+    );
     expect(screen.getByText('GCP')).toBeInTheDocument();
   });
 
@@ -187,7 +216,9 @@ describe('BlockSprite', () => {
     const user = userEvent.setup();
     const block = makeBlock('block-select', 'compute');
 
-    render(<BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    render(
+      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+    );
     await user.click(screen.getByRole('button', { name: 'Block: compute-block' }));
 
     expect(useUIStore.getState().selectedId).toBe('block-select');
@@ -198,7 +229,9 @@ describe('BlockSprite', () => {
     useUIStore.setState({ toolMode: 'delete' });
     const block = makeBlock('block-delete', 'storage');
 
-    render(<BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    render(
+      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+    );
     await user.click(screen.getByRole('button', { name: 'Block: storage-block' }));
 
     expect(removeNodeMock).toHaveBeenCalledWith('block-delete');
@@ -213,8 +246,20 @@ describe('BlockSprite', () => {
 
     render(
       <>
-        <BlockSprite block={sourceBlock} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />
-        <BlockSprite block={targetBlock} parentPlate={parentPlate} screenX={10} screenY={20} zIndex={2} />
+        <BlockSprite
+          block={sourceBlock}
+          parentPlate={parentPlate}
+          screenX={0}
+          screenY={0}
+          zIndex={1}
+        />
+        <BlockSprite
+          block={targetBlock}
+          parentPlate={parentPlate}
+          screenX={10}
+          screenY={20}
+          zIndex={2}
+        />
       </>,
     );
 
@@ -231,7 +276,9 @@ describe('BlockSprite', () => {
     useUIStore.setState({ toolMode: 'connect' });
     const block = makeBlock('block-same', 'gateway');
 
-    render(<BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    render(
+      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+    );
 
     const button = screen.getByRole('button', { name: 'Block: gateway-block' });
     await user.click(button);
@@ -251,8 +298,20 @@ describe('BlockSprite', () => {
 
     render(
       <>
-        <BlockSprite block={sourceBlock} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />
-        <BlockSprite block={targetBlock} parentPlate={parentPlate} screenX={10} screenY={20} zIndex={2} />
+        <BlockSprite
+          block={sourceBlock}
+          parentPlate={parentPlate}
+          screenX={0}
+          screenY={0}
+          zIndex={1}
+        />
+        <BlockSprite
+          block={targetBlock}
+          parentPlate={parentPlate}
+          screenX={10}
+          screenY={20}
+          zIndex={2}
+        />
       </>,
     );
 
@@ -260,7 +319,9 @@ describe('BlockSprite', () => {
     await user.click(screen.getByRole('button', { name: 'Block: compute-block' }));
 
     expect(addConnectionMock).toHaveBeenCalledWith('block-source', 'block-target');
-    expect(toastMocks.error).toHaveBeenCalledWith('Invalid connection: check allowed connection rules');
+    expect(toastMocks.error).toHaveBeenCalledWith(
+      'Invalid connection: check allowed connection rules',
+    );
     expect(useUIStore.getState().connectionSource).toBeNull();
   });
 
@@ -299,7 +360,9 @@ describe('BlockSprite', () => {
 
   it('initializes draggable interaction in select mode', () => {
     const block = makeBlock('block-drag', 'function');
-    render(<BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    render(
+      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+    );
 
     expect(vi.mocked(interact)).toHaveBeenCalled();
   });
@@ -355,7 +418,9 @@ describe('BlockSprite', () => {
   it('ignores click while dragging', async () => {
     const user = userEvent.setup();
     const block = makeBlock('block-drag-click', 'compute');
-    render(<BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    render(
+      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+    );
 
     const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
       listeners: {
@@ -363,7 +428,9 @@ describe('BlockSprite', () => {
       };
     };
 
-    const target = screen.getByRole('button', { name: 'Block: compute-block' }).closest('.block-sprite') as HTMLElement;
+    const target = screen
+      .getByRole('button', { name: 'Block: compute-block' })
+      .closest('.block-sprite') as HTMLElement;
     draggableConfig.listeners.move({ dx: 5, dy: 5, target });
 
     await user.click(screen.getByRole('button', { name: 'Block: compute-block' }));
@@ -383,7 +450,9 @@ describe('BlockSprite', () => {
   it('resets dragging after end timeout and allows click selection', () => {
     vi.useFakeTimers();
     const block = makeBlock('block-drag-end', 'compute');
-    render(<BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    render(
+      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+    );
 
     const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
       listeners: {
@@ -428,7 +497,9 @@ describe('BlockSprite', () => {
     vi.useFakeTimers();
     const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
     const block = makeBlock('block-double-end', 'compute');
-    render(<BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    render(
+      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+    );
 
     const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
       listeners: { end: () => void };
@@ -445,7 +516,9 @@ describe('BlockSprite', () => {
 
   it('removes dropping class after animation end on drag release', () => {
     const block = makeBlock('block-drop-anim', 'compute');
-    render(<BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    render(
+      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+    );
 
     const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
       listeners: {
@@ -454,7 +527,9 @@ describe('BlockSprite', () => {
       };
     };
 
-    const sprite = screen.getByRole('button', { name: 'Block: compute-block' }).closest('.block-sprite') as HTMLElement;
+    const sprite = screen
+      .getByRole('button', { name: 'Block: compute-block' })
+      .closest('.block-sprite') as HTMLElement;
     const image = sprite.querySelector('.block-img') as HTMLElement;
     draggableConfig.listeners.move({ dx: 1, dy: 1, target: sprite });
     draggableConfig.listeners.end();
@@ -467,11 +542,15 @@ describe('BlockSprite', () => {
   it('does not initialize draggable interaction in connect or delete modes', () => {
     const block = makeBlock('block-no-drag', 'compute');
     useUIStore.setState({ toolMode: 'connect' });
-    render(<BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    render(
+      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+    );
     expect(vi.mocked(interact)).not.toHaveBeenCalled();
 
     useUIStore.setState({ toolMode: 'delete' });
-    render(<BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    render(
+      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+    );
     expect(vi.mocked(interact)).not.toHaveBeenCalled();
   });
 
@@ -481,7 +560,17 @@ describe('BlockSprite', () => {
       blocks: {
         added: kind === 'added' ? [{ ...makeBlock(id, 'compute') }] : [],
         removed: kind === 'removed' ? [{ ...makeBlock(id, 'compute') }] : [],
-        modified: kind === 'modified' ? [{ id, before: makeBlock(id, 'compute'), after: makeBlock(id, 'compute'), changes: [] }] : [],
+        modified:
+          kind === 'modified'
+            ? [
+                {
+                  id,
+                  before: makeBlock(id, 'compute'),
+                  after: makeBlock(id, 'compute'),
+                  changes: [],
+                },
+              ]
+            : [],
       },
       connections: { added: [], removed: [], modified: [] },
       externalActors: { added: [], removed: [], modified: [] },
@@ -490,21 +579,47 @@ describe('BlockSprite', () => {
     });
 
     useUIStore.setState({ diffMode: true, diffDelta: makeDelta('added', 'block-added') });
-    const { container, rerender } = render(<BlockSprite block={makeBlock('block-added', 'compute')} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    const { container, rerender } = render(
+      <BlockSprite
+        block={makeBlock('block-added', 'compute')}
+        parentPlate={parentPlate}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
     expect(container.firstElementChild).toHaveClass('diff-added');
 
     useUIStore.setState({ diffMode: true, diffDelta: makeDelta('modified', 'block-modified') });
-    rerender(<BlockSprite block={makeBlock('block-modified', 'compute')} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    rerender(
+      <BlockSprite
+        block={makeBlock('block-modified', 'compute')}
+        parentPlate={parentPlate}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
     expect(container.firstElementChild).toHaveClass('diff-modified');
 
     useUIStore.setState({ diffMode: true, diffDelta: makeDelta('removed', 'block-removed') });
-    rerender(<BlockSprite block={makeBlock('block-removed', 'compute')} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    rerender(
+      <BlockSprite
+        block={makeBlock('block-removed', 'compute')}
+        parentPlate={parentPlate}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
+    );
     expect(container.firstElementChild).toHaveClass('diff-removed');
   });
 
   it('snaps on drag end and plays sound when unmuted', () => {
     const block = { ...makeBlock('block-snap', 'compute'), position: { x: 1.2, y: 0, z: 0.4 } };
-    const playSoundSpy = vi.spyOn(audioService, 'playSound').mockImplementation(async (_name: SoundName) => undefined);
+    const playSoundSpy = vi
+      .spyOn(audioService, 'playSound')
+      .mockImplementation(async (_name: SoundName) => undefined);
     const snapSpy = vi.spyOn(isometric, 'snapToGrid').mockReturnValue({ x: 2, z: 1 });
     useUIStore.setState({ isSoundMuted: false });
     useArchitectureStore.setState({
@@ -519,7 +634,9 @@ describe('BlockSprite', () => {
       },
     });
 
-    render(<BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    render(
+      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+    );
     const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
       listeners: {
         move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
@@ -527,7 +644,9 @@ describe('BlockSprite', () => {
       };
     };
 
-    const target = screen.getByRole('button', { name: 'Block: compute-block' }).closest('.block-sprite') as HTMLElement;
+    const target = screen
+      .getByRole('button', { name: 'Block: compute-block' })
+      .closest('.block-sprite') as HTMLElement;
     draggableConfig.listeners.move({ dx: 2, dy: 2, target });
     draggableConfig.listeners.end();
 
@@ -538,8 +657,13 @@ describe('BlockSprite', () => {
   });
 
   it('snaps on drag end without sound when muted', () => {
-    const block = { ...makeBlock('block-snap-muted', 'compute'), position: { x: 0.2, y: 0, z: 0.3 } };
-    const playSoundSpy = vi.spyOn(audioService, 'playSound').mockImplementation(async (_name: SoundName) => undefined);
+    const block = {
+      ...makeBlock('block-snap-muted', 'compute'),
+      position: { x: 0.2, y: 0, z: 0.3 },
+    };
+    const playSoundSpy = vi
+      .spyOn(audioService, 'playSound')
+      .mockImplementation(async (_name: SoundName) => undefined);
     const snapSpy = vi.spyOn(isometric, 'snapToGrid').mockReturnValue({ x: 1, z: 1 });
     useUIStore.setState({ isSoundMuted: true });
     useArchitectureStore.setState({
@@ -554,7 +678,9 @@ describe('BlockSprite', () => {
       },
     });
 
-    render(<BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />);
+    render(
+      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+    );
     const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
       listeners: {
         move: (event: { dx: number; dy: number; target: HTMLElement }) => void;
@@ -562,7 +688,9 @@ describe('BlockSprite', () => {
       };
     };
 
-    const target = screen.getByRole('button', { name: 'Block: compute-block' }).closest('.block-sprite') as HTMLElement;
+    const target = screen
+      .getByRole('button', { name: 'Block: compute-block' })
+      .closest('.block-sprite') as HTMLElement;
     draggableConfig.listeners.move({ dx: 1, dy: 1, target });
     draggableConfig.listeners.end();
 
@@ -589,7 +717,13 @@ describe('BlockSprite', () => {
     });
 
     const { container } = render(
-      <BlockSprite block={targetBlock} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={targetBlock}
+        parentPlate={parentPlate}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
 
     expect(container.firstElementChild).toHaveClass('is-valid-target');
@@ -612,7 +746,13 @@ describe('BlockSprite', () => {
     });
 
     const { container } = render(
-      <BlockSprite block={targetBlock} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={targetBlock}
+        parentPlate={parentPlate}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
 
     expect(container.firstElementChild).toHaveClass('is-invalid-target');
@@ -642,7 +782,13 @@ describe('BlockSprite', () => {
     });
 
     const { container } = render(
-      <BlockSprite block={blockWithConn} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={blockWithConn}
+        parentPlate={parentPlate}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
 
     expect(container.firstElementChild).toHaveClass('is-connected');
@@ -665,7 +811,13 @@ describe('BlockSprite', () => {
     });
 
     const { container } = render(
-      <BlockSprite block={gatewayBlock} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={gatewayBlock}
+        parentPlate={parentPlate}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
 
     expect(container.firstElementChild).toHaveClass('is-valid-target');
@@ -688,7 +840,13 @@ describe('BlockSprite', () => {
     });
 
     const { container } = render(
-      <BlockSprite block={computeBlock} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={computeBlock}
+        parentPlate={parentPlate}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
 
     expect(container.firstElementChild).toHaveClass('is-invalid-target');
@@ -712,7 +870,13 @@ describe('BlockSprite', () => {
     const messagingBlock = makeBlock('block-messaging-warn', 'messaging');
 
     const { container } = render(
-      <BlockSprite block={messagingBlock} parentPlate={subnetPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={messagingBlock}
+        parentPlate={subnetPlate}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
 
     expect(container.firstElementChild).toHaveClass('is-warning');
@@ -736,7 +900,13 @@ describe('BlockSprite', () => {
     const computeBlock = makeBlock('block-compute-ok', 'compute');
 
     const { container } = render(
-      <BlockSprite block={computeBlock} parentPlate={publicPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={computeBlock}
+        parentPlate={publicPlate}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
 
     expect(container.firstElementChild).not.toHaveClass('is-warning');

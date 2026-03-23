@@ -69,46 +69,58 @@ describe('computeWorldRoute — screen-space routing', () => {
   it('handles elevated endpoints with worldY offset', () => {
     const route = computeWorldRoute([1, 2, 3], [4, 2, 6], originX, originY);
     expect(route.segments.length).toBeGreaterThanOrEqual(1);
-    expect(route.srcScreen.y).toBeLessThan(
-      originY + (1 + 3) * 16,
-    );
+    expect(route.srcScreen.y).toBeLessThan(originY + (1 + 3) * 16);
   });
 
   it('vertical segment has constant screenX', () => {
     const route = computeWorldRoute([5, 0, 8], [2, 0, 1], originX, originY);
-    const vSeg = route.segments.find(s => s.direction === 'screen-v')!;
+    const vSeg = route.segments.find((s) => s.direction === 'screen-v')!;
     expect(vSeg.start.x).toBeCloseTo(vSeg.end.x, 0);
   });
 
   it('horizontal segment has constant screenY', () => {
     const route = computeWorldRoute([5, 0, 8], [2, 0, 1], originX, originY);
-    const hSeg = route.segments.find(s => s.direction === 'screen-h')!;
+    const hSeg = route.segments.find((s) => s.direction === 'screen-h')!;
     expect(hSeg.start.y).toBeCloseTo(hSeg.end.y, 0);
   });
 });
 
 describe('screenSegmentLength', () => {
   it('returns vertical pixel distance for screen-v', () => {
-    const seg = { start: { x: 100, y: 200 }, end: { x: 100, y: 350 }, direction: 'screen-v' as const };
+    const seg = {
+      start: { x: 100, y: 200 },
+      end: { x: 100, y: 350 },
+      direction: 'screen-v' as const,
+    };
     expect(screenSegmentLength(seg)).toBe(150);
   });
 
   it('returns horizontal pixel distance for screen-h', () => {
-    const seg = { start: { x: 100, y: 200 }, end: { x: 300, y: 200 }, direction: 'screen-h' as const };
+    const seg = {
+      start: { x: 100, y: 200 },
+      end: { x: 300, y: 200 },
+      direction: 'screen-h' as const,
+    };
     expect(screenSegmentLength(seg)).toBe(200);
   });
 });
 
 describe('screenSegmentLengthCU', () => {
   it('divides by TILE_H (32) for screen-v', () => {
-    const seg = { start: { x: 100, y: 200 }, end: { x: 100, y: 360 }, direction: 'screen-v' as const };
+    const seg = {
+      start: { x: 100, y: 200 },
+      end: { x: 100, y: 360 },
+      direction: 'screen-v' as const,
+    };
     expect(screenSegmentLengthCU(seg)).toBe(5);
   });
 
   it('divides by TILE_W (64) for screen-h', () => {
-    const seg = { start: { x: 100, y: 200 }, end: { x: 420, y: 200 }, direction: 'screen-h' as const };
+    const seg = {
+      start: { x: 100, y: 200 },
+      end: { x: 420, y: 200 },
+      direction: 'screen-h' as const,
+    };
     expect(screenSegmentLengthCU(seg)).toBe(5);
   });
 });
-
-

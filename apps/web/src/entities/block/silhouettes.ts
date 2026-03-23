@@ -210,9 +210,24 @@ const cylinderSilhouette: SilhouetteGenerator = ({
 
   return {
     renderMode: 'cylinder' as const,
-    topFacePoints: pointsToString([[cx, topY], [rightX, midY], [cx, bottomY], [leftX, midY]]),
-    leftSidePoints: pointsToString([[leftX, midY], [cx, bottomY], [cx, bottomY + sideWallPx], [leftX, midY + sideWallPx]]),
-    rightSidePoints: pointsToString([[cx, bottomY], [rightX, midY], [rightX, midY + sideWallPx], [cx, bottomY + sideWallPx]]),
+    topFacePoints: pointsToString([
+      [cx, topY],
+      [rightX, midY],
+      [cx, bottomY],
+      [leftX, midY],
+    ]),
+    leftSidePoints: pointsToString([
+      [leftX, midY],
+      [cx, bottomY],
+      [cx, bottomY + sideWallPx],
+      [leftX, midY + sideWallPx],
+    ]),
+    rightSidePoints: pointsToString([
+      [cx, bottomY],
+      [rightX, midY],
+      [rightX, midY + sideWallPx],
+      [cx, bottomY + sideWallPx],
+    ]),
     ellipseCenter: { cx, cy: midY },
     ellipseRadii: { rx, ry },
     bodyRect: { x: leftX, y: midY, width: rightX - leftX, height: sideWallPx },
@@ -234,9 +249,24 @@ const circleSilhouette: SilhouetteGenerator = ({
 
   return {
     renderMode: 'circle' as const,
-    topFacePoints: pointsToString([[cx, topY], [rightX, midY], [cx, bottomY], [leftX, midY]]),
-    leftSidePoints: pointsToString([[leftX, midY], [cx, bottomY], [cx, bottomY + sideWallPx], [leftX, midY + sideWallPx]]),
-    rightSidePoints: pointsToString([[cx, bottomY], [rightX, midY], [rightX, midY + sideWallPx], [cx, bottomY + sideWallPx]]),
+    topFacePoints: pointsToString([
+      [cx, topY],
+      [rightX, midY],
+      [cx, bottomY],
+      [leftX, midY],
+    ]),
+    leftSidePoints: pointsToString([
+      [leftX, midY],
+      [cx, bottomY],
+      [cx, bottomY + sideWallPx],
+      [leftX, midY + sideWallPx],
+    ]),
+    rightSidePoints: pointsToString([
+      [cx, bottomY],
+      [rightX, midY],
+      [rightX, midY + sideWallPx],
+      [cx, bottomY + sideWallPx],
+    ]),
     ellipseCenter: { cx, cy: midY },
     ellipseRadii: { rx, ry },
     bodyRect: { x: leftX, y: midY, width: rightX - leftX, height: sideWallPx },
@@ -273,8 +303,8 @@ export function getSilhouettePolygons(
  * All results are rounded to integers for pixel-perfect rendering (§1.5).
  */
 export function cuToSilhouetteDimensions(cu: BlockDimensionsCU): SilhouetteDimensions {
-  const screenWidth = (cu.width + cu.depth) * TILE_W / 2;
-  const diamondHeight = (cu.width + cu.depth) * TILE_H / 2;
+  const screenWidth = ((cu.width + cu.depth) * TILE_W) / 2;
+  const diamondHeight = ((cu.width + cu.depth) * TILE_H) / 2;
   const sideWallPx = Math.round(cu.height * TILE_Z);
 
   const cx = screenWidth / 2;

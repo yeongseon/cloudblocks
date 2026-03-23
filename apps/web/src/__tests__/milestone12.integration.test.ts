@@ -14,9 +14,13 @@ import type { Workspace } from '../shared/types';
 import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
 import { deserialize, serialize } from '../shared/types/schema';
 
-type ContainerOverrides = Partial<Omit<ContainerNode, 'kind' | 'layer' | 'resourceType' | 'category' | 'provider'>>;
+type ContainerOverrides = Partial<
+  Omit<ContainerNode, 'kind' | 'layer' | 'resourceType' | 'category' | 'provider'>
+>;
 
-type LeafOverrides = Partial<Omit<LeafNode, 'kind' | 'layer' | 'resourceType' | 'category' | 'provider' | 'parentId'>> & {
+type LeafOverrides = Partial<
+  Omit<LeafNode, 'kind' | 'layer' | 'resourceType' | 'category' | 'provider' | 'parentId'>
+> & {
   category?: LeafNode['category'];
   provider?: LeafNode['provider'];
   parentId?: string | null;
@@ -30,8 +34,10 @@ type ArchitectureOverrides = Omit<Partial<ArchitectureModel>, 'nodes' | 'plates'
   resources?: Array<LeafNode | ResourceInput>;
 };
 
-const platesOf = (architecture: ArchitectureModel): ContainerNode[] => architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
-const blocksOf = (architecture: ArchitectureModel): LeafNode[] => architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
+const platesOf = (architecture: ArchitectureModel): ContainerNode[] =>
+  architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+const blocksOf = (architecture: ArchitectureModel): LeafNode[] =>
+  architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
 
 function makePlate(overrides: ContainerOverrides = {}): ContainerNode {
   return {
@@ -49,7 +55,7 @@ function makePlate(overrides: ContainerOverrides = {}): ContainerNode {
     metadata: {},
     ...overrides,
   };
-};
+}
 
 function makeBlock(overrides: LeafOverrides = {}): LeafNode {
   return {
@@ -107,7 +113,10 @@ function makeWorkspace(overrides: Partial<Workspace> = {}): Workspace {
   };
 }
 
-function expectProviderSubtypeMappings(provider: ProviderDefinition, registry: Record<string, Record<string, unknown> | undefined>): void {
+function expectProviderSubtypeMappings(
+  provider: ProviderDefinition,
+  registry: Record<string, Record<string, unknown> | undefined>,
+): void {
   for (const [category, categorySubtypes] of Object.entries(registry)) {
     if (!categorySubtypes) {
       continue;
@@ -121,7 +130,10 @@ function expectProviderSubtypeMappings(provider: ProviderDefinition, registry: R
         subtype,
       );
 
-      const expected = provider.subtypeBlockMappings?.[category as keyof ProviderDefinition['blockMappings']]?.[subtype];
+      const expected =
+        provider.subtypeBlockMappings?.[category as keyof ProviderDefinition['blockMappings']]?.[
+          subtype
+        ];
       expect(resolved).toEqual(expected);
       expect(resolved).toBeDefined();
     }
@@ -225,7 +237,12 @@ describe('Milestone 12 Integration Tests', () => {
     it('does not warn for provider block when subtype is omitted', () => {
       const architecture = makeArchitecture({
         resources: [
-          makeBlock({ id: 'aws-compute-1', name: 'AWS Compute', provider: 'aws', category: 'compute' }),
+          makeBlock({
+            id: 'aws-compute-1',
+            name: 'AWS Compute',
+            provider: 'aws',
+            category: 'compute',
+          }),
         ],
       });
 
@@ -282,7 +299,7 @@ describe('Milestone 12 Integration Tests', () => {
       };
 
       expect(() => deserialize(JSON.stringify(legacyData))).toThrow(
-        'Incompatible workspace format: v0.1.0 is no longer supported.'
+        'Incompatible workspace format: v0.1.0 is no longer supported.',
       );
     });
 
@@ -310,7 +327,7 @@ describe('Milestone 12 Integration Tests', () => {
       };
 
       expect(() => deserialize(JSON.stringify(legacyData))).toThrow(
-        'Incompatible workspace format: v0.2.0 is no longer supported.'
+        'Incompatible workspace format: v0.2.0 is no longer supported.',
       );
     });
 
@@ -350,7 +367,7 @@ describe('Milestone 12 Integration Tests', () => {
       };
 
       expect(() => deserialize(JSON.stringify(legacyData))).toThrow(
-        'Incompatible workspace format: v0.1.0 is no longer supported.'
+        'Incompatible workspace format: v0.1.0 is no longer supported.',
       );
     });
   });
@@ -397,12 +414,23 @@ describe('Milestone 12 Integration Tests', () => {
     it('keeps pipeline behavior intact for architecture without subtype fields', () => {
       const architecture = makeArchitecture({
         resources: [
-          makeBlock({ id: 'legacy-compute-4', name: 'Legacy Compute', provider: 'aws', category: 'compute' }),
-          makeBlock({ id: 'legacy-storage-4', name: 'Legacy Storage', provider: 'aws', category: 'data' }),
+          makeBlock({
+            id: 'legacy-compute-4',
+            name: 'Legacy Compute',
+            provider: 'aws',
+            category: 'compute',
+          }),
+          makeBlock({
+            id: 'legacy-storage-4',
+            name: 'Legacy Storage',
+            provider: 'aws',
+            category: 'data',
+          }),
         ],
       });
 
-      const roundtripped = deserialize(serialize([makeWorkspace({ architecture })]))[0].architecture;
+      const roundtripped = deserialize(serialize([makeWorkspace({ architecture })]))[0]
+        .architecture;
       const validation = validateArchitecture(roundtripped);
       const resolvedCompute = resolveBlockMapping(
         awsProviderDefinition.blockMappings,

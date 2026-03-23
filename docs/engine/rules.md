@@ -48,6 +48,7 @@ The rule engine is implemented as a set of focused modules that run in-browser a
 ### Implementation Reference
 
 For the full implementation, see the following source files:
+
 - `apps/web/src/entities/validation/engine.ts` (Orchestrator)
 - `apps/web/src/entities/validation/placement.ts`
 - `apps/web/src/entities/validation/connection.ts`
@@ -58,6 +59,7 @@ For the full implementation, see the following source files:
 ---
 
 > **Cross-references:**
+>
 > - Canonical Rule Set: [VALIDATION_CONTRACT.md](../design/VALIDATION_CONTRACT.md)
 > - Domain Model: [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)
 > - Generator Pipeline: [generator.md](./generator.md)

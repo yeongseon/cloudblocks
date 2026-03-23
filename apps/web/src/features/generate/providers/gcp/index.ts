@@ -99,11 +99,7 @@ export const gcpProviderDefinition: ProviderDefinition = {
           '}',
         ].join('\n'),
       providerBlock: (region: string) =>
-        [
-          'provider "google" {',
-          `  region = "${region}"`,
-          '}',
-        ].join('\n'),
+        ['provider "google" {', `  region = "${region}"`, '}'].join('\n'),
     },
     bicep: {
       targetScope: 'resourceGroup',

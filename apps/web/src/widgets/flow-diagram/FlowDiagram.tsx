@@ -1,13 +1,15 @@
 import { useMemo } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import { BLOCK_FRIENDLY_NAMES, BLOCK_ICONS, resolveConnectionNodes } from '../../shared/types/index';
+import {
+  BLOCK_FRIENDLY_NAMES,
+  BLOCK_ICONS,
+  resolveConnectionNodes,
+} from '../../shared/types/index';
 import type { Connection, ExternalActor, LeafNode } from '@cloudblocks/schema';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
 import './FlowDiagram.css';
 
-function buildFlowChain(
-  connections: Connection[]
-): string[] {
+function buildFlowChain(connections: Connection[]): string[] {
   // Build adjacency list
   const adj = new Map<string, string[]>();
   const inDegree = new Map<string, number>();
@@ -33,7 +35,7 @@ function buildFlowChain(
   while (queue.length > 0) {
     const node = queue.shift()!;
     sorted.push(node);
-    for (const next of (adj.get(node) ?? [])) {
+    for (const next of adj.get(node) ?? []) {
       const deg = (inDegree.get(next) ?? 1) - 1;
       inDegree.set(next, deg);
       if (deg === 0) queue.push(next);
@@ -52,9 +54,12 @@ function buildFlowChain(
 
 export function FlowDiagram() {
   const { nodes, connections, externalActors } = useArchitectureStore(
-    (s) => s.workspace.architecture
+    (s) => s.workspace.architecture,
   );
-  const blocks = useMemo(() => nodes.filter((node): node is LeafNode => node.kind === 'resource'), [nodes]);
+  const blocks = useMemo(
+    () => nodes.filter((node): node is LeafNode => node.kind === 'resource'),
+    [nodes],
+  );
 
   const flowChain = useMemo(() => {
     if (!connections || connections.length === 0) return [];
@@ -86,7 +91,7 @@ export function FlowDiagram() {
           const color = getBlockColor(block.provider ?? 'azure', block.subtype, block.category);
           const icon = BLOCK_ICONS[block.category] || '■';
           const name = block.name || BLOCK_FRIENDLY_NAMES[block.category] || block.category;
-          
+
           content = (
             <div className="flow-node" style={{ backgroundColor: color }}>
               <span className="flow-icon">{icon}</span>
@@ -99,11 +104,12 @@ export function FlowDiagram() {
         }
 
         return (
-          <div key={`flow-wrap-${id}`} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div
+            key={`flow-wrap-${id}`}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+          >
             {content}
-            {index < flowChain.length - 1 && (
-              <span className="flow-arrow">→</span>
-            )}
+            {index < flowChain.length - 1 && <span className="flow-arrow">→</span>}
           </div>
         );
       })}

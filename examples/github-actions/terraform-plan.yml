@@ -40,20 +40,20 @@ jobs:
             const fs = require('fs');
             const planOutput = fs.readFileSync('./infra/plan.txt', 'utf8');
             const planFailed = '${{ steps.plan.outputs.plan_failed }}' === 'true';
-            
+
             let comment = '<details>\n';
             comment += '<summary>Terraform Plan Output</summary>\n\n';
             comment += '```hcl\n';
             comment += planOutput;
             comment += '\n```\n';
             comment += '</details>\n';
-            
+
             if (planFailed) {
               comment = '❌ Terraform plan failed\n\n' + comment;
             } else {
               comment = '✓ Terraform plan succeeded\n\n' + comment;
             }
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,

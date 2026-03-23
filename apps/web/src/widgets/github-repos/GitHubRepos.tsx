@@ -62,7 +62,9 @@ export function GitHubRepos() {
 
   const handleCreateRepo = async () => {
     if (!canCreateRepo) {
-      setError('Repository name can only include letters, numbers, hyphens, underscores, and dots.');
+      setError(
+        'Repository name can only include letters, numbers, hyphens, underscores, and dots.',
+      );
       return;
     }
 
@@ -84,7 +86,11 @@ export function GitHubRepos() {
       try {
         await fetchRepos({ rethrow: true });
       } catch (refreshError) {
-        setError(refreshError instanceof Error ? refreshError.message : 'Failed to refresh repositories after create.');
+        setError(
+          refreshError instanceof Error
+            ? refreshError.message
+            : 'Failed to refresh repositories after create.',
+        );
       }
     } catch (err) {
       if (isAuthError(err)) {
@@ -110,7 +116,12 @@ export function GitHubRepos() {
     <div className="github-repos">
       <div className="github-repos-header">
         <h3 className="github-repos-title">📦 GitHub Repos</h3>
-        <button type="button" className="github-repos-close" onClick={toggleGitHubRepos} aria-label="Close GitHub repos panel">
+        <button
+          type="button"
+          className="github-repos-close"
+          onClick={toggleGitHubRepos}
+          aria-label="Close GitHub repos panel"
+        >
           ✕
         </button>
       </div>
@@ -126,7 +137,11 @@ export function GitHubRepos() {
             <div className="github-repos-success">
               <span>{successMessage}</span>
               {createdRepoFullName && (
-                <button type="button" className="github-repos-link-created-btn" onClick={handleLinkCreatedRepo}>
+                <button
+                  type="button"
+                  className="github-repos-link-created-btn"
+                  onClick={handleLinkCreatedRepo}
+                >
                   Link this repo
                 </button>
               )}
@@ -159,7 +174,12 @@ export function GitHubRepos() {
               />
               <span>Private repository</span>
             </label>
-            <button type="button" className="github-repos-create-btn" onClick={handleCreateRepo} disabled={creating || !canCreateRepo}>
+            <button
+              type="button"
+              className="github-repos-create-btn"
+              onClick={handleCreateRepo}
+              disabled={creating || !canCreateRepo}
+            >
               Create
             </button>
           </div>
@@ -172,11 +192,18 @@ export function GitHubRepos() {
                 <div key={repo.full_name} className="github-repos-item">
                   <div className="github-repos-item-main">
                     <span className="github-repos-name">{repo.name}</span>
-                    <span className={`github-repos-badge ${repo.private ? 'github-repos-badge-private' : 'github-repos-badge-public'}`}>
+                    <span
+                      className={`github-repos-badge ${repo.private ? 'github-repos-badge-private' : 'github-repos-badge-public'}`}
+                    >
                       {repo.private ? 'private' : 'public'}
                     </span>
                   </div>
-                  <a className="github-repos-link" href={repo.html_url} target="_blank" rel="noreferrer">
+                  <a
+                    className="github-repos-link"
+                    href={repo.html_url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     {repo.html_url}
                   </a>
                 </div>

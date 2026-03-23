@@ -18,13 +18,14 @@ CloudBlocks follows a **model → compile → deploy** workflow. Users visually 
 
 When the canvas is empty, users see the **EmptyCanvasOverlay** with three options:
 
-| Action | What Happens |
-|--------|-------------|
-| **Use Template** | Opens the Template Gallery with pre-built architectures (three-tier web app, serverless API, event-driven pipeline) |
-| **Start from Scratch** | Creates a default Network (VNet) plate on the canvas |
-| **Learn How** | Opens the Scenario Gallery for guided, step-by-step building |
+| Action                 | What Happens                                                                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **Use Template**       | Opens the Template Gallery with pre-built architectures (three-tier web app, serverless API, event-driven pipeline) |
+| **Start from Scratch** | Creates a default Network (VNet) plate on the canvas                                                                |
+| **Learn How**          | Opens the Scenario Gallery for guided, step-by-step building                                                        |
 
 Users can also start from the **MenuBar**:
+
 - `File → New Workspace` — creates a blank workspace
 - `Insert → Network / Subnet` — adds plates directly
 - `Learn → Browse Scenarios` — opens Learning Mode
@@ -37,10 +38,10 @@ The canvas is an SVG-based 2D workspace with 2.5D isometric rendering.
 
 ### Plates (Infrastructure Boundaries)
 
-| Plate Type | Maps To | Nesting |
-|-----------|---------|---------|
-| **Network** | Azure VNet / AWS VPC / GCP VPC | Top-level container |
-| **Subnet** | Public or Private subnet | Must be inside a Network |
+| Plate Type  | Maps To                        | Nesting                  |
+| ----------- | ------------------------------ | ------------------------ |
+| **Network** | Azure VNet / AWS VPC / GCP VPC | Top-level container      |
+| **Subnet**  | Public or Private subnet       | Must be inside a Network |
 
 Plates are placed via the Insert menu or by dragging from the CommandCard palette.
 
@@ -48,18 +49,18 @@ Plates are placed via the Insert menu or by dragging from the CommandCard palett
 
 10 resource categories, placed inside plates:
 
-| Category | Examples | Initiator? |
-|----------|----------|-----------|
-| **Compute** | VM, App Service | Yes |
-| **Database** | SQL, Cosmos DB | No (receiver-only) |
-| **Storage** | Blob, Data Lake | No (receiver-only) |
-| **Gateway** | API Gateway, Load Balancer | Yes |
-| **Function** | Azure Function, Lambda | Yes |
-| **Queue** | Service Bus, SQS | Yes (to function only) |
-| **Event** | Event Grid, EventBridge | Yes (to function only) |
-| **Analytics** | Log Analytics, CloudWatch | No (receiver-only) |
-| **Identity** | Entra ID, IAM | No (receiver-only) |
-| **Observability** | Azure Monitor, CloudWatch | No (receiver-only) |
+| Category          | Examples                   | Initiator?             |
+| ----------------- | -------------------------- | ---------------------- |
+| **Compute**       | VM, App Service            | Yes                    |
+| **Database**      | SQL, Cosmos DB             | No (receiver-only)     |
+| **Storage**       | Blob, Data Lake            | No (receiver-only)     |
+| **Gateway**       | API Gateway, Load Balancer | Yes                    |
+| **Function**      | Azure Function, Lambda     | Yes                    |
+| **Queue**         | Service Bus, SQS           | Yes (to function only) |
+| **Event**         | Event Grid, EventBridge    | Yes (to function only) |
+| **Analytics**     | Log Analytics, CloudWatch  | No (receiver-only)     |
+| **Identity**      | Entra ID, IAM              | No (receiver-only)     |
+| **Observability** | Azure Monitor, CloudWatch  | No (receiver-only)     |
 
 Blocks are created by dragging from the **CommandCard** palette in the Bottom Panel, or via `Insert` menu.
 
@@ -79,13 +80,13 @@ Connections represent communication flows between blocks.
 
 ### Connection Types
 
-| Type | Meaning | Visual |
-|------|---------|--------|
-| `dataflow` | Directional traffic flow | Solid arrow |
-| `http` | Request/response interaction | Dashed arrow |
-| `internal` | Internal control-plane communication | Dotted line |
-| `data` | Data synchronization and state-sharing | Double line |
-| `async` | Asynchronous event or callback | Wavy line |
+| Type       | Meaning                                | Visual       |
+| ---------- | -------------------------------------- | ------------ |
+| `dataflow` | Directional traffic flow               | Solid arrow  |
+| `http`     | Request/response interaction           | Dashed arrow |
+| `internal` | Internal control-plane communication   | Dotted line  |
+| `data`     | Data synchronization and state-sharing | Double line  |
+| `async`    | Asynchronous event or callback         | Wavy line    |
 
 ### Connection Rules
 
@@ -109,10 +110,10 @@ The rule engine validates architecture in real-time.
 
 ### Validation Levels
 
-| Level | What It Checks |
-|-------|---------------|
-| **Placement** | Blocks must be inside appropriate plates (e.g., compute inside subnet) |
-| **Connection** | Valid source/target pairs, initiator rules |
+| Level            | What It Checks                                                                 |
+| ---------------- | ------------------------------------------------------------------------------ |
+| **Placement**    | Blocks must be inside appropriate plates (e.g., compute inside subnet)         |
+| **Connection**   | Valid source/target pairs, initiator rules                                     |
 | **Architecture** | Cross-cutting constraints (e.g., database cannot connect to internet directly) |
 
 ### Validation Feedback
@@ -129,11 +130,11 @@ Users generate infrastructure-as-code from their visual architecture.
 
 ### Generators
 
-| Generator | Provider | Status |
-|-----------|----------|--------|
+| Generator     | Provider        | Status     |
+| ------------- | --------------- | ---------- |
 | **Terraform** | Azure, AWS, GCP | Production |
-| **Bicep** | Azure | Production |
-| **Pulumi** | Azure | Production |
+| **Bicep**     | Azure           | Production |
+| **Pulumi**    | Azure           | Production |
 
 ### Generation Flow
 
@@ -159,14 +160,14 @@ CloudBlocks syncs architectures with GitHub repositories.
 OAuth Login → Link Repository → Push Architecture → Pull / Compare → Create PR
 ```
 
-| Action | Description |
-|--------|-------------|
-| **Login** | GitHub OAuth via the backend API |
-| **Link repo** | Connect a workspace to a GitHub repository |
-| **Push** | Save `architecture.json` to the linked repository |
-| **Pull** | Load architecture from GitHub |
-| **Diff** | Compare local vs remote architecture with visual overlays |
-| **PR** | Create a pull request with architecture changes |
+| Action        | Description                                               |
+| ------------- | --------------------------------------------------------- |
+| **Login**     | GitHub OAuth via the backend API                          |
+| **Link repo** | Connect a workspace to a GitHub repository                |
+| **Push**      | Save `architecture.json` to the linked repository         |
+| **Pull**      | Load architecture from GitHub                             |
+| **Diff**      | Compare local vs remote architecture with visual overlays |
+| **PR**        | Create a pull request with architecture changes           |
 
 Access via `File → GitHub` submenu in the MenuBar.
 
@@ -178,12 +179,12 @@ Guided scenarios teach users how to build architectures step-by-step.
 
 ### Components
 
-| Component | Role |
-|-----------|------|
-| **Scenario Gallery** | Browse available scenarios by difficulty |
-| **Learning Panel** | Shows current step, progress, and hints |
-| **Step Validator** | State-based validation (checks architecture state, not action sequence) |
-| **Hint Engine** | Progressive disclosure — hints appear after inactivity |
+| Component            | Role                                                                    |
+| -------------------- | ----------------------------------------------------------------------- |
+| **Scenario Gallery** | Browse available scenarios by difficulty                                |
+| **Learning Panel**   | Shows current step, progress, and hints                                 |
+| **Step Validator**   | State-based validation (checks architecture state, not action sequence) |
+| **Hint Engine**      | Progressive disclosure — hints appear after inactivity                  |
 
 ### Flow
 
@@ -208,20 +209,20 @@ Learn → Browse Scenarios → Select Scenario → Follow Steps → Complete
 
 The Bottom Panel provides context-sensitive controls:
 
-| Mode | When Active | Controls |
-|------|------------|----------|
-| **Block Action** | Block selected | Block details, rename, delete, connection options |
-| **Plate Action** | Plate selected | Plate details, rename, resize, delete |
-| **Connection Action** | Connection selected | Connection type, delete |
+| Mode                  | When Active         | Controls                                          |
+| --------------------- | ------------------- | ------------------------------------------------- |
+| **Block Action**      | Block selected      | Block details, rename, delete, connection options |
+| **Plate Action**      | Plate selected      | Plate details, rename, resize, delete             |
+| **Connection Action** | Connection selected | Connection type, delete                           |
 
 ### Keyboard Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+Z` | Undo |
-| `Ctrl+Shift+Z` | Redo |
-| `Delete` | Remove selected element |
-| `Escape` | Deselect / cancel |
+| Shortcut       | Action                  |
+| -------------- | ----------------------- |
+| `Ctrl+Z`       | Undo                    |
+| `Ctrl+Shift+Z` | Redo                    |
+| `Delete`       | Remove selected element |
+| `Escape`       | Deselect / cancel       |
 
 ---
 
@@ -233,21 +234,21 @@ CloudBlocks supports three cloud providers: **Azure**, **AWS**, and **GCP**. The
 
 The **MenuBar** displays three provider tabs (Azure / AWS / GCP). Clicking a tab switches the active provider context.
 
-| What Changes | Description |
-|-------------|-------------|
-| **Resource palette** | CommandCard filters available resources by provider |
-| **New blocks** | Newly created blocks are tagged with the active provider |
-| **Visual cues** | UI elements update to reflect the active provider |
-| **Code generation** | CodePreview generates IaC for the active provider |
-| **Drag ghost** | Shows the active provider name during drag operations |
+| What Changes         | Description                                              |
+| -------------------- | -------------------------------------------------------- |
+| **Resource palette** | CommandCard filters available resources by provider      |
+| **New blocks**       | Newly created blocks are tagged with the active provider |
+| **Visual cues**      | UI elements update to reflect the active provider        |
+| **Code generation**  | CodePreview generates IaC for the active provider        |
+| **Drag ghost**       | Shows the active provider name during drag operations    |
 
 ### Provider Safety Guards
 
-| Guard | When |
-|-------|------|
-| **Switch confirmation dialog** | Shown when canvas has blocks from a provider other than the one being switched to |
-| **Block provider badge** | Each block displays a small provider indicator (Az / AW / GC) on its sprite |
-| **CodePreview mismatch warning** | Shown when the active provider differs from existing blocks' provider tags |
+| Guard                            | When                                                                              |
+| -------------------------------- | --------------------------------------------------------------------------------- |
+| **Switch confirmation dialog**   | Shown when canvas has blocks from a provider other than the one being switched to |
+| **Block provider badge**         | Each block displays a small provider indicator (Az / AW / GC) on its sprite       |
+| **CodePreview mismatch warning** | Shown when the active provider differs from existing blocks' provider tags        |
 
 ### Existing Block Behavior
 

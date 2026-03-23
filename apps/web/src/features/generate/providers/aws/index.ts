@@ -99,11 +99,7 @@ export const awsProviderDefinition: ProviderDefinition = {
           '}',
         ].join('\n'),
       providerBlock: (region: string) =>
-        [
-          'provider "aws" {',
-          `  region = "${region}"`,
-          '}',
-        ].join('\n'),
+        ['provider "aws" {', `  region = "${region}"`, '}'].join('\n'),
     },
     bicep: {
       targetScope: 'resourceGroup',

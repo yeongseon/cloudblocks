@@ -40,21 +40,25 @@ function hasName(entity: { id: string }): entity is { id: string; name: string }
   return 'name' in entity && typeof (entity as { name?: unknown }).name === 'string';
 }
 
-function hasV3Endpoints(entity: { id: string }): entity is { id: string; sourceId: string; targetId: string } {
+function hasV3Endpoints(entity: {
+  id: string;
+}): entity is { id: string; sourceId: string; targetId: string } {
   return (
-    'sourceId' in entity
-    && 'targetId' in entity
-    && typeof (entity as { sourceId?: unknown }).sourceId === 'string'
-    && typeof (entity as { targetId?: unknown }).targetId === 'string'
+    'sourceId' in entity &&
+    'targetId' in entity &&
+    typeof (entity as { sourceId?: unknown }).sourceId === 'string' &&
+    typeof (entity as { targetId?: unknown }).targetId === 'string'
   );
 }
 
-function hasV4Endpoints(entity: { id: string }): entity is { id: string; from: string; to: string } {
+function hasV4Endpoints(entity: {
+  id: string;
+}): entity is { id: string; from: string; to: string } {
   return (
-    'from' in entity
-    && 'to' in entity
-    && typeof (entity as { from?: unknown }).from === 'string'
-    && typeof (entity as { to?: unknown }).to === 'string'
+    'from' in entity &&
+    'to' in entity &&
+    typeof (entity as { from?: unknown }).from === 'string' &&
+    typeof (entity as { to?: unknown }).to === 'string'
   );
 }
 
@@ -95,7 +99,12 @@ export function DiffPanel() {
       <div className="diff-panel">
         <div className="diff-panel-header">
           <h3 className="diff-panel-title">🔍 Architecture Diff</h3>
-          <button type="button" className="diff-panel-close" onClick={handleClose} aria-label="Close architecture diff panel">
+          <button
+            type="button"
+            className="diff-panel-close"
+            onClick={handleClose}
+            aria-label="Close architecture diff panel"
+          >
             ✕
           </button>
         </div>
@@ -164,7 +173,12 @@ export function DiffPanelContent({
       {showHeader && (
         <div className="diff-panel-header">
           <h3 className="diff-panel-title">🔍 Architecture Diff</h3>
-          <button type="button" className="diff-panel-close" onClick={onClose} aria-label="Close architecture diff panel">
+          <button
+            type="button"
+            className="diff-panel-close"
+            onClick={onClose}
+            aria-label="Close architecture diff panel"
+          >
             ✕
           </button>
         </div>
@@ -172,14 +186,16 @@ export function DiffPanelContent({
 
       <div className="diff-panel-context">Comparing: {workspaceName}</div>
 
-      {diffBaseArchitecture && (() => {
-        const s = summarizeArchitecture(diffBaseArchitecture);
-        return (
-          <div className="diff-panel-remote-summary">
-            Remote: {s.plates} plates · {s.blocks} blocks · {s.connections} connections · {s.externalActors} actors
-          </div>
-        );
-      })()}
+      {diffBaseArchitecture &&
+        (() => {
+          const s = summarizeArchitecture(diffBaseArchitecture);
+          return (
+            <div className="diff-panel-remote-summary">
+              Remote: {s.plates} plates · {s.blocks} blocks · {s.connections} connections ·{' '}
+              {s.externalActors} actors
+            </div>
+          );
+        })()}
 
       <div className="diff-summary-bar">
         <span className="diff-badge diff-badge-added">+{summaryCounts.added} added</span>
@@ -188,7 +204,9 @@ export function DiffPanelContent({
       </div>
 
       {diffDelta.summary.hasBreakingChanges && (
-        <div className="diff-breaking-warning">Breaking changes detected. Review removed or modified entities carefully.</div>
+        <div className="diff-breaking-warning">
+          Breaking changes detected. Review removed or modified entities carefully.
+        </div>
       )}
 
       {diffDelta.summary.totalChanges === 0 ? (
@@ -205,7 +223,9 @@ export function DiffPanelContent({
                 {diffDelta.rootChanges.map((change) => (
                   <div key={change.path} className="diff-property-change-row">
                     <span className="diff-property-path">{change.path}</span>
-                    <span className="diff-property-arrow">: {formatValue(change.oldValue)} -&gt; {formatValue(change.newValue)}</span>
+                    <span className="diff-property-arrow">
+                      : {formatValue(change.oldValue)} -&gt; {formatValue(change.newValue)}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -214,7 +234,8 @@ export function DiffPanelContent({
 
           {SECTION_CONFIG.map(({ key, label }) => {
             const section = diffDelta[key];
-            const sectionTotal = section.added.length + section.modified.length + section.removed.length;
+            const sectionTotal =
+              section.added.length + section.modified.length + section.removed.length;
             const isCollapsed = collapsedSections[key];
 
             return (
@@ -226,7 +247,9 @@ export function DiffPanelContent({
                   aria-expanded={!isCollapsed}
                 >
                   <span>{label}</span>
-                  <span>{isCollapsed ? '▸' : '▾'} {sectionTotal}</span>
+                  <span>
+                    {isCollapsed ? '▸' : '▾'} {sectionTotal}
+                  </span>
                 </button>
 
                 {!isCollapsed && (
@@ -260,9 +283,15 @@ export function DiffPanelContent({
                           {isExpanded && (
                             <div className="diff-property-changes">
                               {entity.changes.map((change) => (
-                                <div key={`${entity.id}-${change.path}`} className="diff-property-change-row">
+                                <div
+                                  key={`${entity.id}-${change.path}`}
+                                  className="diff-property-change-row"
+                                >
                                   <span className="diff-property-path">{change.path}</span>
-                                  <span className="diff-property-arrow">: {formatValue(change.oldValue)} -&gt; {formatValue(change.newValue)}</span>
+                                  <span className="diff-property-arrow">
+                                    : {formatValue(change.oldValue)} -&gt;{' '}
+                                    {formatValue(change.newValue)}
+                                  </span>
                                 </div>
                               ))}
                             </div>
@@ -271,7 +300,9 @@ export function DiffPanelContent({
                       );
                     })}
 
-                    {sectionTotal === 0 && <div className="diff-empty-entity">No changes in {label.toLowerCase()}.</div>}
+                    {sectionTotal === 0 && (
+                      <div className="diff-empty-entity">No changes in {label.toLowerCase()}.</div>
+                    )}
                   </div>
                 )}
               </section>

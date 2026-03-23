@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useRef, type ReactNode } from 'react';
 import { useOpsStore } from '../../entities/store/opsStore';
-import type { EnvironmentInfo, PipelineRun, DeploymentRecord, CostEstimate } from '../../entities/store/opsStore';
+import type {
+  EnvironmentInfo,
+  PipelineRun,
+  DeploymentRecord,
+  CostEstimate,
+} from '../../entities/store/opsStore';
 import { isApiConfigured } from '../../shared/api/client';
 import { timeAgo } from '../../shared/utils/timeAgo';
 import './OpsCenter.css';
@@ -80,9 +85,7 @@ function CompareEnvironments({ environments }: { environments: EnvironmentInfo[]
     <div className="ops-compare-section">
       <h4 className="ops-section-title">Compare Environments</h4>
       {inSync ? (
-        <p className="ops-compare-status ops-compare-synced">
-          Staging and Production are in sync
-        </p>
+        <p className="ops-compare-status ops-compare-synced">Staging and Production are in sync</p>
       ) : (
         <>
           <p className="ops-compare-status ops-compare-diverged">
@@ -166,8 +169,7 @@ function PipelinesTab() {
             <div className="ops-pipeline-info">
               <div className="ops-pipeline-name">{run.name}</div>
               <div className="ops-pipeline-meta">
-                <span className="ops-pipeline-branch">{run.branch}</span>
-                {' '}
+                <span className="ops-pipeline-branch">{run.branch}</span>{' '}
                 {run.commitMessage.length > 60
                   ? run.commitMessage.slice(0, 60) + '...'
                   : run.commitMessage}
@@ -255,9 +257,7 @@ function CostsTab() {
         <div key={cost.environment} className="ops-cost-env">
           <div className="ops-cost-env-header">
             <span className="ops-cost-env-name">{cost.environment}</span>
-            <span className="ops-cost-env-total">
-              ${cost.monthlyEstimate.toFixed(2)}/mo
-            </span>
+            <span className="ops-cost-env-total">${cost.monthlyEstimate.toFixed(2)}/mo</span>
           </div>
           <div className="ops-cost-breakdown">
             {cost.breakdown.map((item) => (

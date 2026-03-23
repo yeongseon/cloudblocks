@@ -215,7 +215,14 @@ describe('ConnectionPath', () => {
 
     const { container } = render(
       <svg>
-        <ConnectionPath connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={0} originY={0} />
+        <ConnectionPath
+          connection={connection}
+          blocks={[]}
+          plates={[]}
+          externalActors={[]}
+          originX={0}
+          originY={0}
+        />
       </svg>,
     );
 
@@ -235,7 +242,14 @@ describe('ConnectionPath', () => {
 
     const { container } = render(
       <svg>
-        <ConnectionPath connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={0} originY={0} />
+        <ConnectionPath
+          connection={connection}
+          blocks={[]}
+          plates={[]}
+          externalActors={[]}
+          originX={0}
+          originY={0}
+        />
       </svg>,
     );
 
@@ -255,7 +269,14 @@ describe('ConnectionPath', () => {
 
     const { container } = render(
       <svg>
-        <ConnectionPath connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={0} originY={0} />
+        <ConnectionPath
+          connection={connection}
+          blocks={[]}
+          plates={[]}
+          externalActors={[]}
+          originX={0}
+          originY={0}
+        />
       </svg>,
     );
 
@@ -273,7 +294,14 @@ describe('ConnectionPath', () => {
 
     const { container } = render(
       <svg>
-        <ConnectionPath connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={0} originY={0} />
+        <ConnectionPath
+          connection={connection}
+          blocks={[]}
+          plates={[]}
+          externalActors={[]}
+          originX={0}
+          originY={0}
+        />
       </svg>,
     );
 
@@ -285,13 +313,20 @@ describe('ConnectionPath', () => {
 
   it('click in select mode sets selectedId to connection id', () => {
     setupAnchors([1, 0, 2], [3, 0, 4]);
-    vi.mocked(worldToScreen).mockImplementation((x) => (
-      x === 1 ? { x: 100, y: 100 } : { x: 200, y: 200 }
-    ));
+    vi.mocked(worldToScreen).mockImplementation((x) =>
+      x === 1 ? { x: 100, y: 100 } : { x: 200, y: 200 },
+    );
 
     const { container } = render(
       <svg>
-        <ConnectionPath connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={0} originY={0} />
+        <ConnectionPath
+          connection={connection}
+          blocks={[]}
+          plates={[]}
+          externalActors={[]}
+          originX={0}
+          originY={0}
+        />
       </svg>,
     );
 
@@ -311,7 +346,14 @@ describe('ConnectionPath', () => {
 
     const { container } = render(
       <svg>
-        <ConnectionPath connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={0} originY={0} />
+        <ConnectionPath
+          connection={connection}
+          blocks={[]}
+          plates={[]}
+          externalActors={[]}
+          originX={0}
+          originY={0}
+        />
       </svg>,
     );
 
@@ -322,17 +364,26 @@ describe('ConnectionPath', () => {
 
   it('hovering connection highlights the stroke widths', () => {
     setupAnchors([1, 0, 2], [3, 0, 4]);
-    vi.mocked(worldToScreen).mockImplementation((x) => (
-      x === 1 ? { x: 100, y: 100 } : { x: 200, y: 200 }
-    ));
+    vi.mocked(worldToScreen).mockImplementation((x) =>
+      x === 1 ? { x: 100, y: 100 } : { x: 200, y: 200 },
+    );
 
     const { container } = render(
       <svg>
-        <ConnectionPath connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={0} originY={0} />
+        <ConnectionPath
+          connection={connection}
+          blocks={[]}
+          plates={[]}
+          externalActors={[]}
+          originX={0}
+          originY={0}
+        />
       </svg>,
     );
 
-    const hitArea = container.querySelector('[data-testid="connection-hit-area"]') as SVGPathElement;
+    const hitArea = container.querySelector(
+      '[data-testid="connection-hit-area"]',
+    ) as SVGPathElement;
 
     fireEvent.mouseEnter(hitArea);
     expect(container.querySelectorAll('path')[1]?.getAttribute('stroke-width')).toBe('6');
@@ -352,7 +403,14 @@ describe('ConnectionPath', () => {
 
     const { container } = render(
       <svg>
-        <ConnectionPath connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={0} originY={0} />
+        <ConnectionPath
+          connection={connection}
+          blocks={[]}
+          plates={[]}
+          externalActors={[]}
+          originX={0}
+          originY={0}
+        />
       </svg>,
     );
 
@@ -370,7 +428,14 @@ describe('ConnectionPath', () => {
 
     const { container } = render(
       <svg onClick={parentClick}>
-        <ConnectionPath connection={connection} blocks={[]} plates={[]} externalActors={[]} originX={0} originY={0} />
+        <ConnectionPath
+          connection={connection}
+          blocks={[]}
+          plates={[]}
+          externalActors={[]}
+          originX={0}
+          originY={0}
+        />
       </svg>,
     );
 

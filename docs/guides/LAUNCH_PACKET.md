@@ -15,12 +15,12 @@
 
 ## 2. Key Links
 
-| Asset | URL |
-|-------|-----|
-| **Live Demo** | https://yeongseon.github.io/cloudblocks/ |
-| **GitHub Repository** | https://github.com/yeongseon/cloudblocks |
-| **Documentation** | https://yeongseon.github.io/cloudblocks/docs/ |
-| **Latest Release** | https://github.com/yeongseon/cloudblocks/releases/latest |
+| Asset                 | URL                                                      |
+| --------------------- | -------------------------------------------------------- |
+| **Live Demo**         | https://yeongseon.github.io/cloudblocks/                 |
+| **GitHub Repository** | https://github.com/yeongseon/cloudblocks                 |
+| **Documentation**     | https://yeongseon.github.io/cloudblocks/docs/            |
+| **Latest Release**    | https://github.com/yeongseon/cloudblocks/releases/latest |
 
 ---
 
@@ -41,14 +41,15 @@
 
 Capture the following for promotion materials:
 
-| Asset | Description | Suggested Dimensions |
-|-------|-------------|---------------------|
-| Hero screenshot | Full canvas with a three-tier architecture | 1280 x 720 |
-| Place & connect GIF | Drag block onto plate, create connection (5-10s loop) | 800 x 450 |
-| Code generation GIF | Click Generate → show Terraform output (3-5s) | 800 x 450 |
-| Template load GIF | Select template → auto-populate canvas (3-5s) | 800 x 450 |
+| Asset               | Description                                           | Suggested Dimensions |
+| ------------------- | ----------------------------------------------------- | -------------------- |
+| Hero screenshot     | Full canvas with a three-tier architecture            | 1280 x 720           |
+| Place & connect GIF | Drag block onto plate, create connection (5-10s loop) | 800 x 450            |
+| Code generation GIF | Click Generate → show Terraform output (3-5s)         | 800 x 450            |
+| Template load GIF   | Select template → auto-populate canvas (3-5s)         | 800 x 450            |
 
 **How to capture**:
+
 1. Open the live demo
 2. Load the "Three-Tier Web App" template
 3. Use a screen recorder (e.g., macOS Cmd+Shift+5, or Kap for GIF)
@@ -129,12 +130,12 @@ Include these in any launch communication to set expectations:
 
 ## 7. Technical Facts (For Dev Audiences)
 
-| Metric | Value |
-|--------|-------|
-| Frontend framework | React 19 + TypeScript 5.9 |
-| Rendering | Pure SVG (no Canvas/WebGL) |
-| State management | Zustand with zundo (undo/redo) |
-| Backend | FastAPI (Python 3.10+) |
-| Test count | 1900+ frontend tests |
-| Branch coverage | ≥ 90% |
-| License | Apache 2.0 |
+| Metric             | Value                          |
+| ------------------ | ------------------------------ |
+| Frontend framework | React 19 + TypeScript 5.9      |
+| Rendering          | Pure SVG (no Canvas/WebGL)     |
+| State management   | Zustand with zundo (undo/redo) |
+| Backend            | FastAPI (Python 3.10+)         |
+| Test count         | 1900+ frontend tests           |
+| Branch coverage    | ≥ 90%                          |
+| License            | Apache 2.0                     |

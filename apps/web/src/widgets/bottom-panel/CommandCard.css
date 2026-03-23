@@ -4,13 +4,13 @@
 .command-card {
   display: flex;
   flex-direction: column;
-  background-color: #FFFDE7;
-  border: 3px solid #D4B200;
+  background-color: #fffde7;
+  border: 3px solid #d4b200;
   border-radius: 8px;
   overflow: hidden;
   box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.5),
-    0 4px 0 0 #D4B200;
+    0 4px 0 0 #d4b200;
   font-family: var(--font-ui);
 }
 
@@ -25,8 +25,8 @@
   color: #222222;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  background-color: #FFD500;
-  border-bottom: 3px solid #D4B200;
+  background-color: #ffd500;
+  border-bottom: 3px solid #d4b200;
   box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.5);
 }
 
@@ -129,15 +129,15 @@
   min-width: 64px;
   min-height: 48px;
   padding: 6px 4px;
-  background-color: #FFD500;
-  border: 3px solid #D4B200;
+  background-color: #ffd500;
+  border: 3px solid #d4b200;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
   position: relative;
   box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.5),
-    0 3px 0 0 #D4B200;
+    0 3px 0 0 #d4b200;
   color: #222222;
 }
 
@@ -149,24 +149,23 @@
   padding: 7px 8px;
 }
 
-
 .command-card-resource-btn .command-btn-hotkey {
   bottom: 3px;
 }
 
 .command-card-btn:hover:not(.disabled):not(.command-card-btn--empty):not(:disabled) {
-  background-color: #FFE44D;
+  background-color: #ffe44d;
   transform: translateY(-2px);
   box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.6),
-    0 5px 0 0 #D4B200;
+    0 5px 0 0 #d4b200;
 }
 
 .command-card-btn:active:not(.disabled):not(.command-card-btn--empty):not(:disabled) {
   transform: translateY(2px);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 1px 0 0 #D4B200;
+    0 1px 0 0 #d4b200;
 }
 
 /* Disabled state */
@@ -177,7 +176,9 @@
   background-color: #f0b4b8;
   border-color: #b95c63;
   color: #6b1f24;
-  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.32), 0 1px 0 0 #b95c63;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.32),
+    0 1px 0 0 #b95c63;
   transform: translateY(2px);
 }
 
@@ -188,10 +189,10 @@
 
 /* Empty placeholder */
 .command-card-btn--empty {
-  background-color: rgba(0,0,0,0.05);
-  border-color: rgba(0,0,0,0.1);
+  background-color: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.1);
   cursor: default;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
   border-width: 2px;
 }
 
@@ -254,7 +255,7 @@
   bottom: 2px;
   right: 4px;
   font-size: 9px;
-  color: #8A7500;
+  color: #8a7500;
   font-weight: 800;
 }
 
@@ -274,84 +275,84 @@
 /* ── Delete button (red LEGO brick) ── */
 .command-card-btn--delete,
 .command-card-btn--delete:not(.disabled):not(:disabled) {
-  background-color: #E3000B;
-  border-color: #B80009;
-  color: #FFFFFF;
+  background-color: #e3000b;
+  border-color: #b80009;
+  color: #ffffff;
   box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.4),
-    0 3px 0 0 #B80009;
+    0 3px 0 0 #b80009;
 }
 
 .command-card-btn--delete:hover:not(.disabled):not(:disabled) {
-  background-color: #FF3333;
+  background-color: #ff3333;
   box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.5),
-    0 5px 0 0 #B80009;
+    0 5px 0 0 #b80009;
 }
 
 .command-card-btn--delete:active:not(.disabled):not(:disabled) {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 1px 0 0 #B80009;
+    0 1px 0 0 #b80009;
 }
 
 .command-card-btn--delete .command-btn-icon,
 .command-card-btn--delete .command-btn-label,
 .command-card-btn--delete .command-btn-hotkey {
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 /* ── Connect button (green LEGO brick) ── */
 .command-card-btn--connect,
 .command-card-btn--connect:not(.disabled):not(:disabled) {
-  background-color: #00852B;
-  border-color: #00591D;
-  color: #FFFFFF;
+  background-color: #00852b;
+  border-color: #00591d;
+  color: #ffffff;
   box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.4),
-    0 3px 0 0 #00591D;
+    0 3px 0 0 #00591d;
 }
 
 .command-card-btn--connect:hover:not(.disabled):not(:disabled) {
-  background-color: #00A636;
+  background-color: #00a636;
   box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.5),
-    0 5px 0 0 #00591D;
+    0 5px 0 0 #00591d;
 }
 
 .command-card-btn--connect .command-btn-icon,
 .command-card-btn--connect .command-btn-label,
 .command-card-btn--connect .command-btn-hotkey {
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 /* ── Apply button (green LEGO brick) ── */
 .command-card-btn--apply {
-  background-color: #00852B;
-  border-color: #00591D;
-  color: #FFFFFF;
+  background-color: #00852b;
+  border-color: #00591d;
+  color: #ffffff;
   box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.4),
-    0 3px 0 0 #00591D;
+    0 3px 0 0 #00591d;
   min-height: 36px;
   width: 100%;
 }
 
 .command-card-btn--apply:hover:not(:disabled) {
-  background-color: #00A636;
+  background-color: #00a636;
   box-shadow:
     inset 0 3px 0 rgba(255, 255, 255, 0.5),
-    0 5px 0 0 #00591D;
+    0 5px 0 0 #00591d;
 }
 
 .command-card-btn--apply:active:not(:disabled) {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 1px 0 0 #00591D;
+    0 1px 0 0 #00591d;
 }
 
 .command-card-btn--apply .command-btn-label {
-  color: #FFFFFF;
+  color: #ffffff;
   text-align: center;
   font-size: 12px;
 }
@@ -414,8 +415,8 @@
   font-size: 11px;
   font-weight: 700;
   color: #222222;
-  background: #FFFDE7;
-  border: 2px solid #D4B200;
+  background: #fffde7;
+  border: 2px solid #d4b200;
   border-radius: 6px;
   font-family: var(--font-ui);
 }
@@ -426,15 +427,15 @@
   font-size: 11px;
   font-weight: 700;
   color: #222222;
-  background: #FFFDE7;
-  border: 2px solid #D4B200;
+  background: #fffde7;
+  border: 2px solid #d4b200;
   border-radius: 6px;
   font-family: var(--font-ui);
   outline: none;
 }
 
 .command-card-form-input:focus {
-  border-color: #FFD500;
+  border-color: #ffd500;
   box-shadow: 0 0 0 2px rgba(255, 213, 0, 0.3);
 }
 
@@ -503,7 +504,7 @@
 .command-card-btn.is-dragging {
   opacity: 0.5;
   transform: scale(0.95);
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* ── Read-only Properties ── */
@@ -512,9 +513,9 @@
   flex-direction: column;
   gap: 2px;
   padding: 6px;
-  border: 2px solid rgba(0, 0, 0, 0.10);
+  border: 2px solid rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.40);
+  background: rgba(255, 255, 255, 0.4);
   margin-top: 4px;
 }
 
@@ -575,12 +576,12 @@
 }
 
 .command-card-btn--action {
-  background: linear-gradient(180deg, #FFF9C4 0%, #FFF176 100%);
-  border: 2px solid #D4B200;
+  background: linear-gradient(180deg, #fff9c4 0%, #fff176 100%);
+  border: 2px solid #d4b200;
 }
 
 .command-card-btn--action:hover {
-  background: linear-gradient(180deg, #FFF176 0%, #FFEE58 100%);
+  background: linear-gradient(180deg, #fff176 0%, #ffee58 100%);
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }

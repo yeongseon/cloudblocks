@@ -11,7 +11,9 @@ export function DiffTab() {
   if (!diffDelta) {
     return (
       <div className="diff-panel bottom-dock-diff">
-        <div className="diff-no-changes">No diff data. Use Compare with GitHub to generate a diff.</div>
+        <div className="diff-no-changes">
+          No diff data. Use Compare with GitHub to generate a diff.
+        </div>
       </div>
     );
   }

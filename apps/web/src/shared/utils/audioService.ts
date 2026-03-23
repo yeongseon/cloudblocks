@@ -15,8 +15,7 @@ export class AudioService {
       // Support Safari's prefixed AudioContext
       const AudioCtx =
         window.AudioContext ??
-        (window as unknown as { webkitAudioContext?: typeof AudioContext })
-          .webkitAudioContext;
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
 
       if (!AudioCtx) {
         throw new Error('AudioContext not supported in this browser');
@@ -31,8 +30,7 @@ export class AudioService {
       this.ctx.onstatechange = () => {
         if (
           this.ctx &&
-          (this.ctx.state === 'suspended' ||
-            (this.ctx.state as string) === 'interrupted')
+          (this.ctx.state === 'suspended' || (this.ctx.state as string) === 'interrupted')
         ) {
           this.ctx.resume().catch(() => {
             // Silently ignore — audio is non-critical
@@ -50,10 +48,7 @@ export class AudioService {
   private async resumeIfSuspended(): Promise<void> {
     if (!this.ctx) return;
     try {
-      if (
-        this.ctx.state === 'suspended' ||
-        (this.ctx.state as string) === 'interrupted'
-      ) {
+      if (this.ctx.state === 'suspended' || (this.ctx.state as string) === 'interrupted') {
         await this.ctx.resume();
       }
     } catch (err) {
@@ -64,9 +59,8 @@ export class AudioService {
   private normalizeBase64(input: string): string {
     const trimmed = input.trim();
     const commaIndex = trimmed.indexOf(',');
-    const withoutPrefix = trimmed.startsWith('data:') && commaIndex >= 0
-      ? trimmed.slice(commaIndex + 1)
-      : trimmed;
+    const withoutPrefix =
+      trimmed.startsWith('data:') && commaIndex >= 0 ? trimmed.slice(commaIndex + 1) : trimmed;
 
     return withoutPrefix.replace(/\s+/g, '');
   }

@@ -2,12 +2,7 @@
 // Validates domain constants, hierarchy rules, and validation types.
 
 import { describe, it, expect } from 'vitest';
-import {
-  DOMAIN_VERSION,
-  VALID_PARENTS,
-  CONNECTION_TYPE_LABELS,
-  BLOCK_ROLES,
-} from '../index.js';
+import { DOMAIN_VERSION, VALID_PARENTS, CONNECTION_TYPE_LABELS, BLOCK_ROLES } from '../index.js';
 import type {
   RuleSeverity,
   RuleType,
@@ -98,8 +93,14 @@ describe('BLOCK_ROLES', () => {
 
   it('includes every canonical role', () => {
     const expected = [
-      'primary', 'secondary', 'reader', 'writer',
-      'public', 'private', 'internal', 'external',
+      'primary',
+      'secondary',
+      'reader',
+      'writer',
+      'public',
+      'private',
+      'internal',
+      'external',
     ];
     for (const role of expected) {
       expect(BLOCK_ROLES).toContain(role);

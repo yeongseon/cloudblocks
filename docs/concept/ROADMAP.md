@@ -5,6 +5,7 @@ This document defines the staged development roadmap for the CloudBlocks Platfor
 > **Release versioning**: Each milestone maps to a minor version — **Milestone N = v0.N.0**. Patch versions (v0.N.1, v0.N.2) are reserved for hotfixes. See `AGENTS.md § Release Workflow` and `docs/design/RELEASE_GATES.md` for the full release process.
 
 > **Terminology**
+>
 > - **Milestone** = official planning container (GitHub milestone) used for all new planning work.
 > - **Phase** = legacy label from early development, retained only in completed historical sections for traceability.
 
@@ -34,6 +35,7 @@ Outcome:
 Proof that the **block abstraction maps cleanly to cloud architecture and IaC constructs**.
 
 ### Exit Criteria
+
 - [x] Domain model types implemented in TypeScript
 - [x] Basic block/plate system compiles without errors
 - [x] Architecture validation engine returns correct results for 5+ test cases
@@ -61,6 +63,7 @@ Deliverables:
 - Workspace save/load (localStorage)
 
 ### Exit Criteria
+
 - [x] 3-tier architecture (Gateway → App → Database) can be constructed visually
 - [x] Placement validation catches 100% of rule violations
 - [x] Connection validation catches invalid connections
@@ -68,6 +71,7 @@ Deliverables:
 - [x] Build passes with zero errors (`tsc -b && vite build`)
 
 ### Dependencies
+
 - Milestone 0 complete
 
 ---
@@ -87,11 +91,13 @@ Features:
 - Responsive layout
 
 ### Exit Criteria
+
 - [x] All blocks can be repositioned via drag
 - [x] Undo/redo works for all state changes
 - [x] Builder usable on screens ≥ 1280px width
 
 ### Dependencies
+
 - Milestone 1 complete
 
 ---
@@ -128,12 +134,14 @@ resource "azurerm_subnet" "public" {
 ```
 
 ### Exit Criteria
+
 - [x] 3-tier architecture generates valid Terraform
 - [x] Generated code passes `terraform validate`
 - [x] Code preview panel shows generated HCL in real-time
 - [x] Export to file works
 
 ### Dependencies
+
 - Milestone 1 complete
 
 ---
@@ -152,11 +160,13 @@ Features:
 - Architecture cloning
 
 ### Exit Criteria
+
 - [x] Users can create, switch, and delete multiple workspaces
 - [x] Architecture JSON import/export roundtrip preserves all state
 - [x] 3+ built-in templates available
 
 ### Dependencies
+
 - Milestone 3 complete
 
 ---
@@ -186,6 +196,7 @@ Connect CloudBlocks to GitHub — architecture and generated code stored in user
 > See [STORAGE_ARCHITECTURE.md](../model/STORAGE_ARCHITECTURE.md) for the complete GitHub repo structure per workspace.
 
 ### Exit Criteria
+
 - [x] GitHub App OAuth login works
 - [x] Architecture + generated code commits to user's GitHub repo
 - [x] PR creation from UI works
@@ -193,6 +204,7 @@ Connect CloudBlocks to GitHub — architecture and generated code stored in user
 - [x] No architecture data stored in backend DB (all in GitHub)
 
 ### Dependencies
+
 - Milestone 3 complete (Terraform generator)
 - GitHub App registered and configured
 
@@ -218,7 +230,6 @@ New block types:
 - QueueBlock (Messaging services)
 - EventBlock (Event triggers)
 
-
 Example:
 
 ```
@@ -232,12 +243,14 @@ HTTP → Function → Storage
 - Template preview and one-click use
 
 ### Exit Criteria
+
 - [x] Terraform, Bicep, and Pulumi generators all produce valid output
 - [x] Serverless architecture (HTTP → Function → Storage) constructable
 - [x] Template marketplace with 5+ community templates
 - [x] Generator plugin interface documented and usable by third parties
 
 ### Dependencies
+
 - Milestone 5 complete
 
 ---
@@ -255,13 +268,14 @@ Features:
 
 ### Deliverables
 
-| # | Deliverable | Priority | Effort |
-|---|------------|----------|--------|
-| 1 | Drag-to-Create MVP | P1 | Medium |
-| 2 | First-Screen Onboarding | P2 | Low |
-| 3 | Selection Visual States | P3 | Low |
+| #   | Deliverable             | Priority | Effort |
+| --- | ----------------------- | -------- | ------ |
+| 1   | Drag-to-Create MVP      | P1       | Medium |
+| 2   | First-Screen Onboarding | P2       | Low    |
+| 3   | Selection Visual States | P3       | Low    |
 
 ### Exit Criteria
+
 - [x] Resources can be dragged from CommandCard and dropped onto valid subnet plates
 - [x] Invalid drops are rejected cleanly (no orphaned blocks, no broken state)
 - [x] Click-to-create continues to work unchanged
@@ -273,6 +287,7 @@ Features:
 > **Note**: Brick Normalization (9 commits) was completed alongside Milestone 6B — parameterized BlockSvg, shared IsometricStud, blockFaceColors utility, and removal of static SVG sprites.
 
 ### Dependencies
+
 - Milestone 6 complete
 
 ---
@@ -297,16 +312,17 @@ Features:
 
 ### Deliverables
 
-| # | Deliverable | Priority | Effort |
-|---|------------|----------|--------|
-| 1 | Learning types + stores | P1 | Low |
-| 2 | Step validator + scenario engine | P1 | Medium |
-| 3 | Hint engine | P2 | Low |
-| 4 | Learning Panel + Scenario Gallery UI | P1 | Medium |
-| 5 | 3 built-in scenarios | P1 | Medium |
-| 6 | App integration + visual feedback | P1 | Low |
+| #   | Deliverable                          | Priority | Effort |
+| --- | ------------------------------------ | -------- | ------ |
+| 1   | Learning types + stores              | P1       | Low    |
+| 2   | Step validator + scenario engine     | P1       | Medium |
+| 3   | Hint engine                          | P2       | Low    |
+| 4   | Learning Panel + Scenario Gallery UI | P1       | Medium |
+| 5   | 3 built-in scenarios                 | P1       | Medium |
+| 6   | App integration + visual feedback    | P1       | Low    |
 
 ### Exit Criteria
+
 - [x] Build/Learn mode switch works from toolbar
 - [x] 3 scenarios completable end-to-end (beginner → advanced)
 - [x] Step validation correctly evaluates all 7 rule types
@@ -340,14 +356,15 @@ Features:
 
 ### Deliverables
 
-| # | Deliverable | Priority | Effort |
-|---|------------|----------|--------|
-| 1 | MinifigureSvg component (Azure variant) | P1 | Medium |
-| 2 | Cloud provider logo SVG paths (Azure) | P1 | Low |
-| 3 | Isometric face shading + depth ordering | P1 | Low |
-| 4 | AWS/GCP logo variants | P2 | Low (deferred to Milestone 8) |
+| #   | Deliverable                             | Priority | Effort                        |
+| --- | --------------------------------------- | -------- | ----------------------------- |
+| 1   | MinifigureSvg component (Azure variant) | P1       | Medium                        |
+| 2   | Cloud provider logo SVG paths (Azure)   | P1       | Low                           |
+| 3   | Isometric face shading + depth ordering | P1       | Low                           |
+| 4   | AWS/GCP logo variants                   | P2       | Low (deferred to Milestone 8) |
 
 ### Exit Criteria
+
 - [x] MinifigureSvg renders correctly at 48-64px scale
 - [x] Azure logo legible on torso front face
 - [x] Head stud follows Universal Stud Standard (rx=12, ry=6, height=5px)
@@ -355,6 +372,7 @@ Features:
 - [x] All existing tests pass, build clean
 
 ### Dependencies
+
 - Milestone 6C complete
 
 ---
@@ -379,6 +397,7 @@ Deferred:
 - Backend collaboration endpoints (deferred)
 
 ### Exit Criteria
+
 - [x] Architecture diff visualization works (DiffPanel + canvas overlays)
 - [x] GitHub Actions Terraform plan template provided (`examples/github-actions/`)
 - [x] Compare with GitHub flow functional from MenuBar
@@ -386,6 +405,7 @@ Deferred:
 - [ ] Deployment status tracking (deferred)
 
 ### Dependencies
+
 - Milestone 6B complete
 
 ---
@@ -403,13 +423,14 @@ Features:
 
 ### Deliverables
 
-| # | Deliverable | Priority | Effort |
-|---|------------|----------|--------|
-| 1 | Magnetic snap (BlockSprite + PlateSprite) | P1 | Low |
-| 2 | Dynamic drag shadows (CSS + classList) | P1 | Low |
-| 3 | Bounce-drop animation (CSS keyframes) | P1 | Low |
+| #   | Deliverable                               | Priority | Effort |
+| --- | ----------------------------------------- | -------- | ------ |
+| 1   | Magnetic snap (BlockSprite + PlateSprite) | P1       | Low    |
+| 2   | Dynamic drag shadows (CSS + classList)    | P1       | Low    |
+| 3   | Bounce-drop animation (CSS keyframes)     | P1       | Low    |
 
 ### Exit Criteria
+
 - [x] Blocks snap to grid on drag-end with audio feedback
 - [x] Plates snap to grid on drag-end (world coordinates)
 - [x] Dragged blocks show elevated shadow + scale effect
@@ -418,6 +439,7 @@ Features:
 - [x] All existing tests pass, build clean
 
 ### Dependencies
+
 - Milestone 7 complete
 
 ---
@@ -436,12 +458,14 @@ Features:
 - Logout flow deletes server session and clears cookies
 
 ### Exit Criteria
+
 - [x] JWT and refresh-token auth flow removed
 - [x] `GET /api/v1/auth/session` is the canonical session-check endpoint
 - [x] `POST /api/v1/auth/logout` always returns 200 and clears session state
 - [x] Stale sessions are cleared server-side and cookies invalidated
 
 ### Dependencies
+
 - Milestone 5 complete
 
 ---
@@ -462,14 +486,15 @@ Features:
 
 ### Deliverables
 
-| # | Deliverable | Priority | Effort |
-|---|------------|----------|--------|
-| 1 | BottomPanel + CommandCard interaction model | P1 | Medium |
-| 2 | DragGhost visualization | P1 | Low |
-| 3 | Connection preview line | P1 | Low |
-| 4 | Zustand UX state machine | P1 | Medium |
+| #   | Deliverable                                 | Priority | Effort |
+| --- | ------------------------------------------- | -------- | ------ |
+| 1   | BottomPanel + CommandCard interaction model | P1       | Medium |
+| 2   | DragGhost visualization                     | P1       | Low    |
+| 3   | Connection preview line                     | P1       | Low    |
+| 4   | Zustand UX state machine                    | P1       | Medium |
 
 ### Exit Criteria
+
 - [x] BottomPanel is active with CommandCard categorical tabs and action modes
 - [x] Drag-to-create shows accurate ghost preview at snap position
 - [x] Connect mode shows line from source to cursor/target
@@ -495,14 +520,15 @@ Features:
 
 ### Deliverables
 
-| # | Deliverable | Priority | Effort |
-|---|------------|----------|--------|
-| 1 | Shape System implementation (SVG) | P1 | High |
-| 2 | Height System CSS/SVG logic | P2 | Medium |
-| 3 | Design token extraction | P2 | Low |
-| 4 | Expanded taxonomy mapping | P3 | Low |
+| #   | Deliverable                       | Priority | Effort |
+| --- | --------------------------------- | -------- | ------ |
+| 1   | Shape System implementation (SVG) | P1       | High   |
+| 2   | Height System CSS/SVG logic       | P2       | Medium |
+| 3   | Design token extraction           | P2       | Low    |
+| 4   | Expanded taxonomy mapping         | P3       | Low    |
 
 ### Exit Criteria
+
 - [x] Different resource types use distinct silhouettes (Tower, Heavy Block, Shield, Module)
 - [x] Wall heights vary based on tier using `TIER_HEIGHTS`
 - [x] Visual profiles are implemented and mapped by silhouette and height tiers
@@ -530,14 +556,15 @@ Features:
 
 ### Deliverables
 
-| # | Deliverable | Priority | Effort |
-|---|------------|----------|--------|
-| 1 | Domain model update (provider field) | P1 | Low |
-| 2 | Connection type expansion | P1 | Medium |
-| 3 | ProviderAdapter interface | P2 | Medium |
-| 4 | Provider directory reorganization | P2 | Low |
+| #   | Deliverable                          | Priority | Effort |
+| --- | ------------------------------------ | -------- | ------ |
+| 1   | Domain model update (provider field) | P1       | Low    |
+| 2   | Connection type expansion            | P1       | Medium |
+| 3   | ProviderAdapter interface            | P2       | Medium |
+| 4   | Provider directory reorganization    | P2       | Low    |
 
 ### Exit Criteria
+
 - [x] Domain model supports explicit provider tags through `ProviderType`
 - [x] Connection engine handles all five protocol types (`dataflow`, `http`, `internal`, `data`, `async`)
 - [x] Provider logic is isolated behind provider-oriented typing and model boundaries
@@ -562,13 +589,14 @@ Features:
 
 ### Deliverables
 
-| # | Deliverable | Priority | Effort |
-|---|------------|----------|--------|
-| 1 | Multi-provider color palettes | P1 | Medium |
-| 2 | Provider Mode UI toggle | P2 | Medium |
-| 3 | Provider property extension system | P2 | High |
+| #   | Deliverable                        | Priority | Effort |
+| --- | ---------------------------------- | -------- | ------ |
+| 1   | Multi-provider color palettes      | P1       | Medium |
+| 2   | Provider Mode UI toggle            | P2       | Medium |
+| 3   | Provider property extension system | P2       | High   |
 
 ### Exit Criteria
+
 - [x] Provider visual foundations are implemented (Azure provider color system + AWS/GCP minifigure variants)
 - [ ] Builder UI allows switching between cloud provider contexts (provider mode toggle)
 - [ ] Full multi-provider brick palettes are implemented across all provider/resource combinations
@@ -601,6 +629,7 @@ Key Features:
 - Full test coverage expansion for visual/model/provider evolution changes
 
 ### Exit Criteria
+
 - [x] UX state machine is formalized and used in builder interactions
 - [x] Brick silhouette and tier-height systems are implemented and in active use
 - [x] Domain model supports multi-provider metadata and expanded connection semantics
@@ -608,6 +637,7 @@ Key Features:
 - [x] Validation, test, and build gates pass for all merged Phase 9 work
 
 ### Dependencies
+
 - Phase 2 UX complete
 
 ---
@@ -625,6 +655,7 @@ Scope:
 - 19 sub-issues
 
 ### Dependencies
+
 - Phase 9 complete
 
 ---
@@ -654,6 +685,7 @@ Key Features:
 - **Connection guard** — `addConnection()` validates against duplicates and self-connections, returns boolean for UI feedback
 
 ### Exit Criteria
+
 - [x] API base URL centralized and all fetch calls use it
 - [x] ExternalActor elements are selectable and connectable in the builder
 - [x] All `alert()`/`confirm()` replaced with toast notifications and ConfirmDialog
@@ -666,6 +698,7 @@ Key Features:
 - [x] Coverage: 97%+ statements, 90%+ branches
 
 ### Dependencies
+
 - Phase 10 complete
 
 ---
@@ -686,11 +719,15 @@ Providers:
 Architecture remains the same — provider adapters handle the mapping.
 
 > See [provider.md](../engine/provider.md) for the complete provider mapping table (block and plate mappings per cloud provider).
+
 ### Exit Criteria
+
 - [x] AWS and GCP provider adapters functional
 - [x] Same architecture deployable to any supported provider
 - [x] Provider comparison view available
+
 ### Dependencies
+
 - Milestone 6 complete (can run parallel with Milestone 7)
 
 ---
@@ -709,6 +746,7 @@ Key Objectives:
 - Experience story: README hero image, UI_FLOW.md rewrite, docs IA improvement
 
 ### Exit Criteria
+
 - [x] Provider toggle accessible from main UI (not buried in dead Toolbar)
 - [x] Empty canvas overlay provides contextual next-step guidance
 - [x] Invalid drop targets show visual rejection feedback
@@ -716,6 +754,7 @@ Key Objectives:
 - [x] UI_FLOW.md rewritten as product journey (not concept doc)
 
 ### Dependencies
+
 - Milestone 8 complete
 
 ---
@@ -735,11 +774,14 @@ Key Objectives:
 - External actor (Internet, User) repositioning and interaction
 
 ### Exit Criteria
+
 - [x] Clicking minifigure selects it and shows build commands in CommandCard
 - [x] Resource placement triggers minifigure movement animation
 - [x] Build progress is visually indicated on resources
 - [x] External actors are user-movable on canvas
+
 ### Dependencies
+
 - Milestone 9 complete (requires ProviderToggle exposure and CommandCard improvements)
 
 ---
@@ -757,10 +799,13 @@ Key Objectives:
 - Consistent sizing across all brick types
 
 ### Exit Criteria
+
 - [x] BlockCategory and brick profiles fully aligned
 - [x] All studs pass uniform dimension validation
 - [x] Provider themes applied consistently across all block types
+
 ### Dependencies
+
 - Milestone 8 complete (parallel with Milestone 9; no UX dependency)
 
 ---
@@ -778,11 +823,14 @@ Key Objectives:
 - Provider-aware validation rules
 
 ### Exit Criteria
+
 - [x] Block type includes `subtype` and `config` fields
 - [x] AWS and GCP adapters produce valid IaC output
 - [x] Existing workspaces migrate cleanly to new schema
 - [x] Provider-specific validation rules functional
+
 ### Dependencies
+
 - Milestone 9 complete (ProviderToggle must be surfaced for testing)
 - Milestone 11 complete (BlockCategory alignment required before schema changes)
 
@@ -801,10 +849,13 @@ Key Objectives:
 - CI/CD pipeline templates (GitHub Actions, GitLab CI)
 
 ### Exit Criteria
+
 - [x] Generated Terraform passes `terraform validate` and `tflint`
 - [x] CI/CD pipeline templates available for major platforms
 - [x] Private-link architecture template functional
+
 ### Dependencies
+
 - Milestone 12 complete (requires stable multi-cloud model)
 
 ---
@@ -829,11 +880,13 @@ Scope:
 - Documentation: ADR-0009, AI engine guide
 
 ### Exit Criteria
+
 - [x] Natural language input produces valid architecture
 - [x] AI suggestions improve architecture quality metrics
 - [x] Cost estimation within 20% of actual cloud pricing
 
 ### Dependencies
+
 - Milestone 12 complete (requires stable domain model)
 - Milestone 13 recommended (AI-generated architectures benefit from validated pipeline)
 
@@ -864,6 +917,7 @@ Scope:
 - 22 issues total (all closed)
 
 ### Exit Criteria
+
 - [x] CU grid system implemented with mandatory snap
 - [x] Pixel precision rules enforced (integer coordinates, +0.5 stroke alignment)
 - [x] Universal Stud Standard validated across all elements (rx=12, ry=6, height=5)
@@ -874,6 +928,7 @@ Scope:
 - [x] All 22 issues closed, build and tests pass
 
 ### Dependencies
+
 - Milestone 13 complete
 
 ---
@@ -903,6 +958,7 @@ Scope:
 - Lego-Themed Docs: custom CSS theme, user-centric nav, dark mode baseplate theme, homepage rewrite
 
 ### Exit Criteria
+
 - [x] All 12 Epic #356 sub-issues closed
 - [x] All open documentation PRs resolved
 - [x] Zero documents with incorrect canonical/superseded status
@@ -912,6 +968,7 @@ Scope:
 - [x] Document lifecycle policy documented and applied
 
 ### Dependencies
+
 - Milestone 15 complete
 
 ---
@@ -937,6 +994,7 @@ Scope:
 - 5 Areas (A-E) covering rendering, packages, backend, monorepo, and versioning
 
 ### Exit Criteria
+
 - [x] Rendering model documented in ADR; unused dependencies removed or justified
 - [x] `packages/` contains real extracted code with actual consumers
 - [x] `@cloudblocks/schema` is the single source of truth for the ArchitectureModel contract
@@ -946,6 +1004,7 @@ Scope:
 - [x] No placeholder/empty packages remain in `packages/`
 
 ### Dependencies
+
 - Milestone 16 complete
 
 ---
@@ -971,6 +1030,7 @@ Scope:
 - Estimated effort: 8–10 weeks
 
 ### Exit Criteria
+
 - [ ] Ops Control Center shows real-time deployment status for `local`, `staging`, and `production` — **deferred to M20+**
 - [ ] Deploy/promote/rollback terminology consistent across all docs, workflows, and UI — **partially done (docs only)**
 - [ ] Promote flow works end-to-end: staging to production with pre-promotion checklist — **deferred to M20+**
@@ -981,6 +1041,7 @@ Scope:
 - [x] Connections render as brick-style connector pieces matching the Lego visual language
 
 ### Delivered (not in original exit criteria)
+
 - [x] Screen-space orthogonal connector routing with height normalization
 - [x] BRICK_CONNECTOR_SPEC.md §12 with full geometry and algorithm documentation
 - [x] Provider-specific block palette, icon mappings, and learning mode content
@@ -991,9 +1052,11 @@ Scope:
 - [x] CI cost optimization
 
 ### Retrospective
+
 Scope inflation with agentic coding led to most exit criteria being deferred. The milestone's primary value was the brick-style connector system and clarifying product direction (design tool, not RTS). See CHANGELOG v0.18.0 for details.
 
 ### Dependencies
+
 - Milestone 17 complete
 
 ---
@@ -1015,6 +1078,7 @@ Key Objectives:
 - Harden CI with build-output secret scanning
 
 ### Exit Criteria
+
 - [x] ResourceNode unification complete — single type replaces Plate + Block (#1099)
 - [x] 7-category resource model implemented and validated (#1102)
 - [x] Minifigure worker system fully removed (#1088)
@@ -1025,6 +1089,7 @@ Key Objectives:
 - [x] 1811 tests passing, 90.27% branch coverage
 
 ### Dependencies
+
 - Milestone 18 complete
 
 ---
@@ -1054,32 +1119,32 @@ Scope:
 
 #### Phase 0 — Prerequisite (1 issue)
 
-| # | Title | Size | Rationale |
-|---|-------|------|-----------|
-| #886 | Move CodePreview provider-change resets out of render-time state updates | M | Root cause for #872, #873, #876 — must fix before GitHub hardening |
+| #    | Title                                                                    | Size | Rationale                                                          |
+| ---- | ------------------------------------------------------------------------ | ---- | ------------------------------------------------------------------ |
+| #886 | Move CodePreview provider-change resets out of render-time state updates | M    | Root cause for #872, #873, #876 — must fix before GitHub hardening |
 
 #### Phase 1 — Panel Redesign (Epic #1112, 7 issues)
 
 Redefine panel responsibilities: Resource Guide = "what IS this?", Command Panel = "what can I DO with this?"
 
-| Step | Issues (parallel within step) | Dependencies |
-|------|-------------------------------|--------------|
-| 1a | #1118 (Command Panel: read-only properties), #1115 (Command Panel: connection editing), #1113 (Resource Guide: workspace dashboard) | None — parallel |
-| 1b | #1114 (Resource Guide: enriched view), #1117 (Rename Inspector → Resource Guide) | #1118 must complete first |
-| 1c | #1116 (Onboarding tour update) | All Phase 1 issues complete |
+| Step | Issues (parallel within step)                                                                                                       | Dependencies                |
+| ---- | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| 1a   | #1118 (Command Panel: read-only properties), #1115 (Command Panel: connection editing), #1113 (Resource Guide: workspace dashboard) | None — parallel             |
+| 1b   | #1114 (Resource Guide: enriched view), #1117 (Rename Inspector → Resource Guide)                                                    | #1118 must complete first   |
+| 1c   | #1116 (Onboarding tour update)                                                                                                      | All Phase 1 issues complete |
 
 #### Phase 2 — GitHub Hardening (17 issues + 1 test issue)
 
 Fix all GitHub integration bugs. Subgroups can run in parallel but maintain order within each group.
 
-| Subgroup | Issues | Focus |
-|----------|--------|-------|
-| Auth | #836 (M), #838 (S), #867 (M) | OAuth redirect, sign-out, auth failure routing |
-| Repos | #840 (S), #841 (M), #883 (S) | Create/link flow, default visibility |
-| PR | #842 (S), #843 (M), #857 (S), #876 (M) | Submission guards, branch collision, unsaved edits, body prefill |
-| Sync | #854 (M), #858 (M), #864 (M) | Dirty indicator, safe panel closure, post-pull diff |
-| Compare | #846 (M), #847 (M), #872 (M), #873 (M) | Read-only mode, lifecycle warnings, region/compare preservation |
-| Test | #1131 (M) | Integration test coverage — after all bug fixes |
+| Subgroup | Issues                                 | Focus                                                            |
+| -------- | -------------------------------------- | ---------------------------------------------------------------- |
+| Auth     | #836 (M), #838 (S), #867 (M)           | OAuth redirect, sign-out, auth failure routing                   |
+| Repos    | #840 (S), #841 (M), #883 (S)           | Create/link flow, default visibility                             |
+| PR       | #842 (S), #843 (M), #857 (S), #876 (M) | Submission guards, branch collision, unsaved edits, body prefill |
+| Sync     | #854 (M), #858 (M), #864 (M)           | Dirty indicator, safe panel closure, post-pull diff              |
+| Compare  | #846 (M), #847 (M), #872 (M), #873 (M) | Read-only mode, lifecycle warnings, region/compare preservation  |
+| Test     | #1131 (M)                              | Integration test coverage — after all bug fixes                  |
 
 **Note**: #843 has a `backend` label but should be implemented as frontend-only preflight via GitHub API. Self-hosted backend support (if needed) is a separate follow-up.
 
@@ -1087,11 +1152,11 @@ Fix all GitHub integration bugs. Subgroups can run in parallel but maintain orde
 
 #### Phase 3 — Multi-Persona (Epic #1076, 9 issues + 1 doc issue)
 
-| Step | Issues | Dependencies |
-|------|--------|--------------|
-| 3a — IaC Abstraction | #1077, #1078, #1079, #1080 | Can start parallel with Phase 2 |
-| 3b — Persona System | #1082 (onboarding), #1083 (complexity levels), #1084 (panel visibility), #1085 (student entry) | #1112 complete (Phase 1) — persona visibility depends on new panel roles |
-| 3c — Documentation | #1132 (panel role doc) | #1083 and #1084 complete |
+| Step                 | Issues                                                                                         | Dependencies                                                             |
+| -------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| 3a — IaC Abstraction | #1077, #1078, #1079, #1080                                                                     | Can start parallel with Phase 2                                          |
+| 3b — Persona System  | #1082 (onboarding), #1083 (complexity levels), #1084 (panel visibility), #1085 (student entry) | #1112 complete (Phase 1) — persona visibility depends on new panel roles |
+| 3c — Documentation   | #1132 (panel role doc)                                                                         | #1083 and #1084 complete                                                 |
 
 **Cross-phase dependency**: #1083 and #1084 must wait for Phase 1 (#1112) to complete because persona-based panel visibility depends on the redesigned panel structure.
 
@@ -1099,59 +1164,60 @@ Fix all GitHub integration bugs. Subgroups can run in parallel but maintain orde
 
 #### Phase 4 — Infrastructure & Launch Prep (6 Epics, 22 issues)
 
-| Epic | Issues | Focus |
-|------|--------|-------|
-| #456 Launch UX Polish | #462 (onboarding overlay), #463 (demo loader), #464 (landing copy) | First-time UX |
-| #457 Deployment Pipeline | #465 (preview deploy), #466 (tag-gated prod deploy), #467 (rollback runbook) | CI/CD hardening |
-| #458 Runtime Configuration | #468 (.env schema), #469 (OAuth callback validation) | Environment consistency |
-| #459 Observability | #470 (error tracking), #471 (launch metrics) | Production visibility |
-| #460 Performance Gate | #472 (bundle-size budget), #473 (Lighthouse/Web Vitals), #474 (browser compat) | Quality gates |
-| #461 Release Ops | #475 (changelog template), #476 (release runbook), #477 (launch assets) | Release process |
+| Epic                       | Issues                                                                         | Focus                   |
+| -------------------------- | ------------------------------------------------------------------------------ | ----------------------- |
+| #456 Launch UX Polish      | #462 (onboarding overlay), #463 (demo loader), #464 (landing copy)             | First-time UX           |
+| #457 Deployment Pipeline   | #465 (preview deploy), #466 (tag-gated prod deploy), #467 (rollback runbook)   | CI/CD hardening         |
+| #458 Runtime Configuration | #468 (.env schema), #469 (OAuth callback validation)                           | Environment consistency |
+| #459 Observability         | #470 (error tracking), #471 (launch metrics)                                   | Production visibility   |
+| #460 Performance Gate      | #472 (bundle-size budget), #473 (Lighthouse/Web Vitals), #474 (browser compat) | Quality gates           |
+| #461 Release Ops           | #475 (changelog template), #476 (release runbook), #477 (launch assets)        | Release process         |
 
 **Note**: These epics were originally scoped for M19 launch. Titles have been updated to be version-agnostic. Acceptance criteria should be reviewed against current v0.19.2 state — some may be partially satisfied.
 
 #### Phase 5 — Demo Hardening (4 issues)
 
-| # | Title | Size |
-|---|-------|------|
-| #1137 | Consolidate block selection controls into unified property panel | M |
-| #1138 | AI features: graceful fallback when backend unavailable | S |
-| #1139 | Ops features: disable or stub when backend unavailable | S |
-| #411 | Fix remaining demo blockers (if any) | S |
+| #     | Title                                                            | Size |
+| ----- | ---------------------------------------------------------------- | ---- |
+| #1137 | Consolidate block selection controls into unified property panel | M    |
+| #1138 | AI features: graceful fallback when backend unavailable          | S    |
+| #1139 | Ops features: disable or stub when backend unavailable           | S    |
+| #411  | Fix remaining demo blockers (if any)                             | S    |
 
 #### Phase 6 — Content Modernization (5 issues)
 
-| # | Title | Size |
-|---|-------|------|
-| #1140 | Migrate templates to canonical 7-category vocabulary | M |
-| #1141 | Migrate learning scenarios to canonical vocabulary | M |
-| #1142 | Remove LEGACY_CATEGORY_MAP runtime conversion | S |
-| #1143 | Codegen: honest Azure-only output | M |
-| #1144 | Update example architectures to canonical model | S |
+| #     | Title                                                | Size |
+| ----- | ---------------------------------------------------- | ---- |
+| #1140 | Migrate templates to canonical 7-category vocabulary | M    |
+| #1141 | Migrate learning scenarios to canonical vocabulary   | M    |
+| #1142 | Remove LEGACY_CATEGORY_MAP runtime conversion        | S    |
+| #1143 | Codegen: honest Azure-only output                    | M    |
+| #1144 | Update example architectures to canonical model      | S    |
 
 **Sequencing**: #1140 and #1141 before #1142 (legacy map removal depends on migration). #1143 and #1144 can run in parallel.
 
 #### Phase 7 — Validation & Test Coverage (7 issues)
 
-| # | Title | Size |
-|---|-------|------|
-| #1145 | Fix placement multi-parent bug (allowedParents[0] only) | M |
-| #1146 | Add domainSlice.ts unit tests | L |
-| #1147 | Add workspaceSlice.ts unit tests | M |
-| #1148 | Add provider adapter tests (Azure/AWS/GCP) | M |
-| #1149 | Add AI API client tests | M |
-| #1150 | Review vitest coverage exclusions post-M19 | S |
-| #1151 | Audit eslint-disable comments | S |
+| #     | Title                                                   | Size |
+| ----- | ------------------------------------------------------- | ---- |
+| #1145 | Fix placement multi-parent bug (allowedParents[0] only) | M    |
+| #1146 | Add domainSlice.ts unit tests                           | L    |
+| #1147 | Add workspaceSlice.ts unit tests                        | M    |
+| #1148 | Add provider adapter tests (Azure/AWS/GCP)              | M    |
+| #1149 | Add AI API client tests                                 | M    |
+| #1150 | Review vitest coverage exclusions post-M19              | S    |
+| #1151 | Audit eslint-disable comments                           | S    |
 
 #### Phase 8 — Network Resource Gaps (3 issues)
 
-| # | Title | Size |
-|---|-------|------|
-| #1152 | Separate NSG from Firewall in RESOURCE_RULES | M |
-| #1153 | Wire NAT Gateway UI to existing outbound_access entry | M |
-| #1154 | Implicit PIP/NIC generation in codegen | M |
+| #     | Title                                                 | Size |
+| ----- | ----------------------------------------------------- | ---- |
+| #1152 | Separate NSG from Firewall in RESOURCE_RULES          | M    |
+| #1153 | Wire NAT Gateway UI to existing outbound_access entry | M    |
+| #1154 | Implicit PIP/NIC generation in codegen                | M    |
 
 ### Exit Criteria
+
 - [x] CodePreview render-time state update fix verified (#886)
 - [x] Panel roles redesigned — Resource Guide (read-only), Command Panel (action + properties) (#1112)
 - [x] Inspector renamed to Resource Guide across all UI, code, and tests (#1117)
@@ -1177,7 +1243,9 @@ Fix all GitHub integration bugs. Subgroups can run in parallel but maintain orde
 - [x] All tests passing, ≥ 90% branch coverage
 - [x] Azure resource catalog parity — 19 new resource types (#1195)
 - [x] ResourceNode unification — Plate/Block separation eliminated (#1194)
+
 ### Dependencies
+
 - Milestone 19 complete
 
 ---
@@ -1201,59 +1269,67 @@ Key Objectives:
 ### Implementation Phases
 
 #### Phase 1 — Stub Definition (Schema)
+
 Add stub metadata to the connection model and define port policy per resource category.
 
-| # | Issue | Status |
-|---|-------|--------|
-| #1200 | Add `sourceStub`/`targetStub` to Connection model | ✅ Done |
+| #     | Issue                                                         | Status  |
+| ----- | ------------------------------------------------------------- | ------- |
+| #1200 | Add `sourceStub`/`targetStub` to Connection model             | ✅ Done |
 | #1201 | Add port/stub policy per resource category (`CATEGORY_PORTS`) | ✅ Done |
-| #1202 | Update `addConnection` to allocate stub indices | ✅ Done |
+| #1202 | Update `addConnection` to allocate stub indices               | ✅ Done |
 
 #### Phase 2 — Semantic Block Shapes
+
 Replace legacy silhouettes with category-based semantic shapes.
 
-| # | Issue | Status |
-|---|-------|--------|
+| #     | Issue                                                     | Status  |
+| ----- | --------------------------------------------------------- | ------- |
 | #1204 | Replace silhouettes with semantic block shapes (6 shapes) | ✅ Done |
 
 #### Phase 3 — MVP Resource Filtering
+
 Filter creation palette to core resources only.
 
-| # | Issue | Status |
-|---|-------|--------|
+| #     | Issue                              | Status  |
+| ----- | ---------------------------------- | ------- |
 | #1205 | Filter resource palette to MVP set | ✅ Done |
 
 #### Phase 4 — First Screen
+
 Dark-themed landing page with 3 primary actions.
 
-| # | Issue | Status |
-|---|-------|--------|
+| #     | Issue                            | Status  |
+| ----- | -------------------------------- | ------- |
 | #1206 | Dark-themed first screen overlay | ✅ Done |
 
 #### Phase 5 — Stub Rendering
+
 Render stub points visually on block SVG.
 
-| # | Issue | Status |
-|---|-------|--------|
+| #     | Issue                               | Status            |
+| ----- | ----------------------------------- | ----------------- |
 | #1223 | Render stub anchor points on blocks | → Deferred to M22 |
 
 #### Phase 6 — Connection Preview & Routing
+
 Stub-to-stub connection UX: preview line, routing, valid target highlighting.
 
-| # | Issue | Status |
-|---|-------|--------|
-| #1225 | Connection preview from stub | → Deferred to M22 |
+| #     | Issue                           | Status            |
+| ----- | ------------------------------- | ----------------- |
+| #1225 | Connection preview from stub    | → Deferred to M22 |
 | #1227 | Stub-to-stub orthogonal routing | → Deferred to M22 |
 
 #### Phase 7 — Legacy Removal & Color
+
 Remove center-based connections, apply vendor color system to connections.
 
-| # | Issue | Status |
-|---|-------|--------|
+| #     | Issue                                     | Status            |
+| ----- | ----------------------------------------- | ----------------- |
 | #1228 | Remove center-to-center connection system | → Deferred to M22 |
-| #1229 | Vendor-based connection color system | → Deferred to M22 |
+| #1229 | Vendor-based connection color system      | → Deferred to M22 |
 
 ### Exit Criteria
+
 - [x] Connection model has `sourceStub`/`targetStub` fields (#1200)
 - [x] `CATEGORY_PORTS` policy exported from schema (#1201)
 - [x] `addConnection()` auto-allocates stub indices (#1202)
@@ -1271,6 +1347,7 @@ Remove center-based connections, apply vendor color system to connections.
 - [x] All tests passing (1992 tests), build clean
 
 ### Dependencies
+
 - Milestone 20 complete
 
 ---
@@ -1295,6 +1372,7 @@ Key Objectives:
 ### Existing Infrastructure (from M21)
 
 The following stub infrastructure already exists and will be built upon:
+
 - `blockGeometry.ts` — `getBlockSvgStubPoints()` computes SVG-local stub positions
 - `endpointAnchors.ts` — `getConnectionEndpointWorldAnchors()` resolves stub-aware world-space endpoints
 - `BrickConnector.tsx` — already consumes stub anchors via `getConnectionEndpointWorldAnchors()`
@@ -1305,33 +1383,34 @@ The following stub infrastructure already exists and will be built upon:
 
 #### Phase 1 — Stub Rendering + Resource Cleanup (parallel)
 
-| Area | Description | Dependencies |
-|------|-------------|--------------|
-| A. Stub Visual Rendering | Render stub dots on block SVG faces using `getBlockSvgStubPoints()`. Hover indicator, connection-occupied state. | None |
-| D. Resource Model Cleanup | Remove `MVP_RESOURCE_ALLOWLIST` duplication (#1208). `RESOURCE_DEFINITIONS` as single source of truth. | None |
+| Area                      | Description                                                                                                      | Dependencies |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------ |
+| A. Stub Visual Rendering  | Render stub dots on block SVG faces using `getBlockSvgStubPoints()`. Hover indicator, connection-occupied state. | None         |
+| D. Resource Model Cleanup | Remove `MVP_RESOURCE_ALLOWLIST` duplication (#1208). `RESOURCE_DEFINITIONS` as single source of truth.           | None         |
 
 #### Phase 2 — Connection UX from Stubs
 
-| Area | Description | Dependencies |
-|------|-------------|--------------|
-| B. Connection Preview | Live preview line from stub to cursor. Valid targets highlight (green glow), invalid targets dim. Click stub to start connect mode. | Phase 1A |
-| B. Stub-to-Stub Routing | Orthogonal routing from source stub to target stub. Remove center fallback in `endpointAnchors.ts`. | Phase 1A |
+| Area                    | Description                                                                                                                         | Dependencies |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| B. Connection Preview   | Live preview line from stub to cursor. Valid targets highlight (green glow), invalid targets dim. Click stub to start connect mode. | Phase 1A     |
+| B. Stub-to-Stub Routing | Orthogonal routing from source stub to target stub. Remove center fallback in `endpointAnchors.ts`.                                 | Phase 1A     |
 
 #### Phase 3 — Legacy Removal + Vendor Colors
 
-| Area | Description | Dependencies |
-|------|-------------|--------------|
-| C. Center Connection Removal | Remove `getEndpointWorldPosition()` center-based fallback. Clean up `position.ts` legacy endpoint code. | Phase 2 |
-| C. Vendor Color System | Block face colors and connection line colors derived from vendor (`ProviderType`). Extend `connectorTheme.ts` with vendor dimension. | Phase 2 |
+| Area                         | Description                                                                                                                          | Dependencies |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------ |
+| C. Center Connection Removal | Remove `getEndpointWorldPosition()` center-based fallback. Clean up `position.ts` legacy endpoint code.                              | Phase 2      |
+| C. Vendor Color System       | Block face colors and connection line colors derived from vendor (`ProviderType`). Extend `connectorTheme.ts` with vendor dimension. | Phase 2      |
 
 #### Phase 4 — Visual Theme + Demo Verification
 
-| Area | Description | Dependencies |
-|------|-------------|--------------|
-| E. Visual Theme System | Extend `ThemeVariant` with `professional` (rename from `blueprint`) and `lego` themes. Token-level differences: border-radius, shadow depth, surface materials. Theme switcher in menu. | Independent (can parallel with Phase 2-3) |
-| F. Azure Demo Verification | End-to-end: create workspace → VNet → subnets → blocks (VM, DB, Storage, Gateway) → stub connections → generate Terraform/Bicep/Pulumi → validate output. | All phases complete |
+| Area                       | Description                                                                                                                                                                             | Dependencies                              |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| E. Visual Theme System     | Extend `ThemeVariant` with `professional` (rename from `blueprint`) and `lego` themes. Token-level differences: border-radius, shadow depth, surface materials. Theme switcher in menu. | Independent (can parallel with Phase 2-3) |
+| F. Azure Demo Verification | End-to-end: create workspace → VNet → subnets → blocks (VM, DB, Storage, Gateway) → stub connections → generate Terraform/Bicep/Pulumi → validate output.                               | All phases complete                       |
 
 ### Exit Criteria
+
 - [ ] Stub points rendered visually on block faces with hover indicators
 - [ ] Connection preview line from stub to cursor during connect mode
 - [ ] Valid/invalid target highlighting during connection
@@ -1346,6 +1425,7 @@ The following stub infrastructure already exists and will be built upon:
 - [ ] `v0.22.0` release published
 
 ### Dependencies
+
 - Milestone 21 complete
 
 ---
@@ -1369,6 +1449,7 @@ Scope:
 - Covers: setup, string extraction, base locale, Korean locale, language switcher
 
 ### Exit Criteria
+
 - [ ] react-i18next configured with namespace-based organization
 - [ ] All user-facing strings extracted to translation files
 - [ ] English (en) base translation complete and functional
@@ -1377,6 +1458,7 @@ Scope:
 - [ ] Build passes with i18n integration
 
 ### Dependencies
+
 - No hard dependency on other milestones (can run in parallel with M17 or M18)
 
 ---
@@ -1414,24 +1496,29 @@ Key principles:
 ## Success Metrics
 
 Milestone 1 (Complete)
+
 - Architecture built successfully
 - Validation engine working
 - Workspace persistence functional
 
 Milestone 3 (Complete)
+
 - Terraform generation produces valid HCL
 - Code preview panel functional
 
 Milestone 5 (Complete)
+
 - GitHub integration operational
 - Backend API deployed
 - Zero architecture data in backend DB
 
 Milestone 6 (Complete)
+
 - Multi-generator support (Terraform + Bicep + Pulumi)
 - Template marketplace launched
 
 Milestone 8-13 (Complete)
+
 - Multi-cloud architecture support (AWS, GCP, Azure)
 - UX hardened to production quality
 - External actors interactive with RTS-style worker pattern
@@ -1440,16 +1527,19 @@ Milestone 8-13 (Complete)
 - Terraform pipeline productionized with CI/CD templates
 
 Milestone 15-16 (Complete)
+
 - v2.0 specification fully implemented
 - Documentation architecture restored to coherence
 
 Milestone 14 (Complete)
+
 - AI-assisted architecture design
 - Natural language → architecture generation
 - Architecture suggestions and cost estimation
 - BYOK API key management with Fernet encryption
 
 Milestone 20 (Complete)
+
 - UX polish with block selection UI consolidation and multi-persona support
 - GitHub integration hardening (17 bug fixes)
 - Launch infrastructure: deployment pipeline, observability, performance gates
@@ -1460,7 +1550,7 @@ Milestone 20 (Complete)
 - Azure resource catalog parity: 19 new resource types added
 - ResourceNode unification: eliminated Plate/Block type separation
 - Community-ready launch with demo verification gate
-Milestone 17 (Complete)
+  Milestone 17 (Complete)
 - Modular monorepo structure with extracted packages
 - SVG-only rendering model confirmed (ADR-0010)
 - @cloudblocks/schema and @cloudblocks/domain extracted with real consumers
@@ -1468,6 +1558,7 @@ Milestone 17 (Complete)
 - Version alignment policy enforced
 
 Milestone 18 (Complete)
+
 - Brick-style Technic Beam connectors with screen-space orthogonal routing
 - Provider-specific block palette and learning mode fixes
 - Product direction clarified: design tool identity (minifigure worker removed)
@@ -1475,12 +1566,14 @@ Milestone 18 (Complete)
 - 47 commits, 23 PRs, 1854 tests passing
 
 Milestone 19 (Complete)
+
 - Unified Plate/Block → ResourceNode with 7 categories (121+ files migrated)
 - Minifigure worker system fully removed
 - Demo resilience mode for backend-unavailable state
 - CI secret scanning in all deployment pipelines
 - v0.19.2 hotfix: React #185 app load crash fix in ExternalActorSprite
 - 30 issues closed, 1814 tests passing, 90%+ branch coverage
+
 ---
 
 ## Summary

@@ -108,6 +108,7 @@ Provider definitions and resolution logic must:
 ---
 
 > **Cross-references:**
+>
 > - Generator pipeline: [generator.md](./generator.md)
 > - Architecture model: [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)
 > - DSL overview: [ARCHITECTURE_MODEL_OVERVIEW.md](../model/ARCHITECTURE_MODEL_OVERVIEW.md)

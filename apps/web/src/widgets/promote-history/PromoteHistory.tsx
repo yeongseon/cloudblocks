@@ -26,16 +26,20 @@ export function PromoteHistory() {
 
   // Merge and sort by date, newest first
   const timeline: TimelineEntry[] = [
-    ...promotionHistory.map((r): TimelineEntry => ({
-      kind: 'promotion',
-      record: r,
-      sortDate: r.promotedAt,
-    })),
-    ...rollbackHistory.map((r): TimelineEntry => ({
-      kind: 'rollback',
-      record: r,
-      sortDate: r.rolledBackAt,
-    })),
+    ...promotionHistory.map(
+      (r): TimelineEntry => ({
+        kind: 'promotion',
+        record: r,
+        sortDate: r.promotedAt,
+      }),
+    ),
+    ...rollbackHistory.map(
+      (r): TimelineEntry => ({
+        kind: 'rollback',
+        record: r,
+        sortDate: r.rolledBackAt,
+      }),
+    ),
   ].sort((a, b) => new Date(b.sortDate).getTime() - new Date(a.sortDate).getTime());
 
   return (

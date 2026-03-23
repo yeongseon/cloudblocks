@@ -4,7 +4,9 @@ import { useUIStore } from '../../entities/store/uiStore';
 import './EmptyCanvasOverlay.css';
 
 export function EmptyCanvasOverlay() {
-  const containerCount = useArchitectureStore((s) => s.workspace.architecture.nodes.filter((node) => node.kind === 'container').length);
+  const containerCount = useArchitectureStore(
+    (s) => s.workspace.architecture.nodes.filter((node) => node.kind === 'container').length,
+  );
   const showTemplateGallery = useUIStore((s) => s.showTemplateGallery);
   const addNode = useArchitectureStore((s) => s.addNode);
   const toggleTemplateGallery = useUIStore((s) => s.toggleTemplateGallery);
@@ -35,14 +37,20 @@ export function EmptyCanvasOverlay() {
     <div className="empty-canvas-overlay">
       <div className="empty-canvas-content">
         <h1 className="empty-canvas-title">CloudBlocks</h1>
-        <p className="empty-canvas-subtitle">
-          Visual cloud architecture builder
-        </p>
+        <p className="empty-canvas-subtitle">Visual cloud architecture builder</p>
         <div className="empty-canvas-grid">
           <button
             type="button"
             className="empty-canvas-card empty-canvas-card--primary"
-            onClick={() => addNode({ kind: 'container', resourceType: 'virtual_network', name: 'VNet', parentId: null, layer: 'region' })}
+            onClick={() =>
+              addNode({
+                kind: 'container',
+                resourceType: 'virtual_network',
+                name: 'VNet',
+                parentId: null,
+                layer: 'region',
+              })
+            }
           >
             <span className="empty-canvas-card-icon">+</span>
             <span className="empty-canvas-card-label">Create Workspace</span>
@@ -57,11 +65,7 @@ export function EmptyCanvasOverlay() {
             <span className="empty-canvas-card-label">Explore Templates</span>
             <span className="empty-canvas-card-desc">Browse architecture patterns</span>
           </button>
-          <button
-            type="button"
-            className="empty-canvas-card"
-            onClick={handleImportClick}
-          >
+          <button type="button" className="empty-canvas-card" onClick={handleImportClick}>
             <span className="empty-canvas-card-icon">&#8593;</span>
             <span className="empty-canvas-card-label">Import JSON</span>
             <span className="empty-canvas-card-desc">Load an exported architecture</span>

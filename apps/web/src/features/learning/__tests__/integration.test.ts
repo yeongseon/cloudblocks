@@ -19,10 +19,7 @@ import {
 } from '../hint-engine';
 import { registerBuiltinScenarios } from '../scenarios/builtin';
 import { clearScenarioRegistry } from '../scenarios/registry';
-import type {
-  ArchitectureSnapshot,
-  StepValidationRule,
-} from '../../../shared/types/learning';
+import type { ArchitectureSnapshot, StepValidationRule } from '../../../shared/types/learning';
 import type { ContainerNode, LayerType, LeafNode, ResourceCategory } from '@cloudblocks/schema';
 
 type ContainerLayer = Exclude<LayerType, 'resource'>;
@@ -192,9 +189,7 @@ function addSubnet(): string {
 
 function ensureSubnet(): string {
   const snapshot = architectureSnapshot();
-  const existing = getContainers(snapshot).find(
-    (plate) => plate.layer === 'subnet'
-  );
+  const existing = getContainers(snapshot).find((plate) => plate.layer === 'subnet');
   if (existing) {
     return existing.id;
   }
@@ -213,13 +208,9 @@ function getPlacementForCategory(category: ResourceCategory): {
 }
 
 function addBlock(category: ResourceCategory, onPlateType?: ContainerLayer): string {
-  const placement = onPlateType
-    ? { plateType: onPlateType }
-    : getPlacementForCategory(category);
+  const placement = onPlateType ? { plateType: onPlateType } : getPlacementForCategory(category);
 
-  const placementId = placement.plateType === 'region'
-    ? ensureNetworkPlate()
-    : ensureSubnet();
+  const placementId = placement.plateType === 'region' ? ensureNetworkPlate() : ensureSubnet();
 
   const refreshed = architectureSnapshot();
   const existingCount = getResources(refreshed).filter((b) => b.category === category).length;
@@ -247,10 +238,7 @@ function addBlock(category: ResourceCategory, onPlateType?: ContainerLayer): str
   return blockId;
 }
 
-function ensureBlock(
-  category: ResourceCategory,
-  onPlateType?: ContainerLayer,
-): string {
+function ensureBlock(category: ResourceCategory, onPlateType?: ContainerLayer): string {
   const snapshot = architectureSnapshot();
   const existing = getResources(snapshot).find((block) => {
     if (block.category !== category) {
@@ -273,13 +261,9 @@ function ensureBlock(
     return existing.id;
   }
 
-  const placement = onPlateType
-    ? { plateType: onPlateType }
-    : getPlacementForCategory(category);
+  const placement = onPlateType ? { plateType: onPlateType } : getPlacementForCategory(category);
 
-  const placementId = placement.plateType === 'region'
-    ? ensureNetworkPlate()
-    : ensureSubnet();
+  const placementId = placement.plateType === 'region' ? ensureNetworkPlate() : ensureSubnet();
 
   const refreshed = architectureSnapshot();
   const existingCount = getResources(refreshed).filter((b) => b.category === category).length;
@@ -312,14 +296,17 @@ function ensureConnection(sourceCategory: string, targetCategory: string): void 
 
   const sourceId =
     sourceCategory === 'internet'
-      ? ((snapshot.externalActors ?? []).find((actor) => actor.type === 'internet')?.id ?? 'ext-internet')
+      ? ((snapshot.externalActors ?? []).find((actor) => actor.type === 'internet')?.id ??
+        'ext-internet')
       : ensureBlock(sourceCategory as ResourceCategory);
 
   const targetId = ensureBlock(targetCategory as ResourceCategory);
 
   const refreshed = architectureSnapshot();
   const hasConnection = refreshed.connections.some(
-    (connection) => resolveConnectionNodes(connection).sourceId === sourceId && resolveConnectionNodes(connection).targetId === targetId
+    (connection) =>
+      resolveConnectionNodes(connection).sourceId === sourceId &&
+      resolveConnectionNodes(connection).targetId === targetId,
   );
 
   if (hasConnection) {
@@ -328,9 +315,16 @@ function ensureConnection(sourceCategory: string, targetCategory: string): void 
 
   const refreshedExternalActors = refreshed.externalActors ?? [];
   const updatedExternalActors =
-    sourceCategory === 'internet' &&
-    !refreshedExternalActors.some((actor) => actor.id === sourceId)
-      ? [...refreshedExternalActors, { id: sourceId, name: 'Internet', type: 'internet' as const, position: { x: -3, y: 0, z: 5 } }]
+    sourceCategory === 'internet' && !refreshedExternalActors.some((actor) => actor.id === sourceId)
+      ? [
+          ...refreshedExternalActors,
+          {
+            id: sourceId,
+            name: 'Internet',
+            type: 'internet' as const,
+            position: { x: -3, y: 0, z: 5 },
+          },
+        ]
       : refreshedExternalActors;
 
   replaceArchitectureSnapshot({
@@ -372,8 +366,8 @@ function satisfyRule(rule: StepValidationRule): void {
 
     case 'min-block-count': {
       while (
-        getResources(architectureSnapshot()).filter((block) => block.category === rule.category).length <
-        rule.count
+        getResources(architectureSnapshot()).filter((block) => block.category === rule.category)
+          .length < rule.count
       ) {
         addBlock(rule.category);
       }
@@ -382,8 +376,8 @@ function satisfyRule(rule: StepValidationRule): void {
 
     case 'min-plate-count': {
       while (
-        getContainers(architectureSnapshot()).filter((plate) => plate.layer === rule.plateType).length <
-        rule.count
+        getContainers(architectureSnapshot()).filter((plate) => plate.layer === rule.plateType)
+          .length < rule.count
       ) {
         if (rule.plateType === 'region') {
           ensureNetworkPlate();

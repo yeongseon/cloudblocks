@@ -27,15 +27,15 @@ The architecture model provides a **provider-agnostic** representation of infras
 
 ## Core Entities
 
-| Entity | Description | Canonical Reference |
-|--------|-------------|---------------------|
-| **Workspace** | Top-level container for architecture projects | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §13 |
-| **Architecture** | Deployable infrastructure topology | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §14 |
-| **Plate** | Infrastructure boundary (Network / Subnet) | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §3 |
-| **Block** | Infrastructure resource (compute, database, storage, gateway, function, queue, event, analytics, identity, observability) | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §4-5 |
-| **Application** | Software on hostable resources (nginx, nodejs, postgres) | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §4.5 |
-| **Connection** | Communication flow between blocks (initiator model) | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §6 |
-| **External Actor** | External endpoint (e.g., Internet) | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §6.1 |
+| Entity             | Description                                                                                                               | Canonical Reference                       |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| **Workspace**      | Top-level container for architecture projects                                                                             | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §13  |
+| **Architecture**   | Deployable infrastructure topology                                                                                        | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §14  |
+| **Plate**          | Infrastructure boundary (Network / Subnet)                                                                                | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §3   |
+| **Block**          | Infrastructure resource (compute, database, storage, gateway, function, queue, event, analytics, identity, observability) | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §4-5 |
+| **Application**    | Software on hostable resources (nginx, nodejs, postgres)                                                                  | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §4.5 |
+| **Connection**     | Communication flow between blocks (initiator model)                                                                       | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §6   |
+| **External Actor** | External endpoint (e.g., Internet)                                                                                        | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §6.1 |
 
 ---
 
@@ -54,11 +54,11 @@ The DSL serves as the canonical representation between the visual diagram editor
 
 CloudBlocks stores object positions using a 3D coordinate system:
 
-| Axis | Meaning |
-|------|---------|
-| x | Horizontal position |
-| z | Layout depth |
-| y | Elevation (2.5D rendering layer) |
+| Axis | Meaning                          |
+| ---- | -------------------------------- |
+| x    | Horizontal position              |
+| z    | Layout depth                     |
+| y    | Elevation (2.5D rendering layer) |
 
 The visual editor operates on the **x-z plane**. The y-axis is used only for visual stacking (2.5D projection).
 
@@ -74,6 +74,7 @@ internet → gateway → compute → database
 ```
 
 This graph is consumed by:
+
 - **Rule engine** — validates constraints
 - **Generator** — produces IaC code
 
@@ -84,11 +85,13 @@ This graph is consumed by:
 Policies enforce architecture constraints.
 
 Example valid flow:
+
 ```
 internet → gateway → compute → database
 ```
 
 Example violations:
+
 - `internet → database` (database must not be directly exposed)
 - `database → compute` (database is receiver-only)
 
@@ -98,10 +101,10 @@ Example violations:
 
 ## Versioning
 
-| Field | Purpose |
-|-------|---------|
+| Field           | Purpose                                           |
+| --------------- | ------------------------------------------------- |
 | `schemaVersion` | Storage format version — enables model migrations |
-| `modelVersion` | User-facing revision counter |
+| `modelVersion`  | User-facing revision counter                      |
 
 > See [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) §9 for details.
 
@@ -127,10 +130,10 @@ IaC Generation (Terraform, Bicep, Pulumi)
 
 ## Cross-References
 
-| Topic | Document |
-|-------|----------|
-| Domain model (canonical) | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md) |
-| Visual sizing | [CLOUDBLOCKS_SPEC_V2.md](../design/CLOUDBLOCKS_SPEC_V2.md) |
-| Rule engine | [rules.md](../engine/rules.md) |
-| Code generation | [generator.md](../engine/generator.md) |
-| Provider mapping | [provider.md](../engine/provider.md) |
+| Topic                    | Document                                                   |
+| ------------------------ | ---------------------------------------------------------- |
+| Domain model (canonical) | [DOMAIN_MODEL.md](./DOMAIN_MODEL.md)                       |
+| Visual sizing            | [CLOUDBLOCKS_SPEC_V2.md](../design/CLOUDBLOCKS_SPEC_V2.md) |
+| Rule engine              | [rules.md](../engine/rules.md)                             |
+| Code generation          | [generator.md](../engine/generator.md)                     |
+| Provider mapping         | [provider.md](../engine/provider.md)                       |

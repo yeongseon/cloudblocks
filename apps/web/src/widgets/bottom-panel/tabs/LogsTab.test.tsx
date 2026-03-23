@@ -39,7 +39,9 @@ describe('LogsTab', () => {
 
     const { container } = render(<LogsTab />);
 
-    const messages = Array.from(container.querySelectorAll('.bottom-dock-log-message')).map((el) => el.textContent);
+    const messages = Array.from(container.querySelectorAll('.bottom-dock-log-message')).map(
+      (el) => el.textContent,
+    );
     expect(messages).toEqual(['second', 'first']);
     expect(screen.getByText('--:--:--')).toBeInTheDocument();
     expect(container.querySelector('.bottom-dock-log-level--error')).toBeInTheDocument();

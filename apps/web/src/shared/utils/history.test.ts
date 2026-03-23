@@ -1,15 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ArchitectureModel, ContainerNode } from '../types';
-import {
-  canRedo,
-  canUndo,
-  createHistory,
-  pushHistory,
-  redo,
-  resetHistory,
-  undo,
-} from './history';
+import { canRedo, canUndo, createHistory, pushHistory, redo, resetHistory, undo } from './history';
 
 function createModel(id: string): ArchitectureModel {
   const container: ContainerNode = {
@@ -33,7 +25,9 @@ function createModel(id: string): ArchitectureModel {
     nodes: [container],
     connections: [],
     endpoints: [],
-    externalActors: [{ id: 'ext-internet', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+    externalActors: [
+      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+    ],
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
   };
@@ -134,7 +128,9 @@ describe('history utilities', () => {
     const pushed = pushHistory(createHistory(), original);
 
     original.name = 'mutated';
-    const originalContainer = original.nodes.find((node): node is ContainerNode => node.kind === 'container');
+    const originalContainer = original.nodes.find(
+      (node): node is ContainerNode => node.kind === 'container',
+    );
     if (!originalContainer) {
       throw new Error('Expected container node in test model');
     }
@@ -143,7 +139,9 @@ describe('history utilities', () => {
     const undoResult = undo(pushed, createModel('current'));
 
     expect(undoResult).not.toBeNull();
-    const undoContainer = undoResult!.model.nodes.find((node): node is ContainerNode => node.kind === 'container');
+    const undoContainer = undoResult!.model.nodes.find(
+      (node): node is ContainerNode => node.kind === 'container',
+    );
     if (!undoContainer) {
       throw new Error('Expected container node after undo');
     }
@@ -156,7 +154,9 @@ describe('history utilities', () => {
     expect(withFuture).not.toBeNull();
 
     current.name = 'current mutated after undo';
-    const currentContainer = current.nodes.find((node): node is ContainerNode => node.kind === 'container');
+    const currentContainer = current.nodes.find(
+      (node): node is ContainerNode => node.kind === 'container',
+    );
     if (!currentContainer) {
       throw new Error('Expected container node in current model');
     }
@@ -165,7 +165,9 @@ describe('history utilities', () => {
     const redoResult = redo(withFuture!.history, withFuture!.model);
 
     expect(redoResult).not.toBeNull();
-    const redoContainer = redoResult!.model.nodes.find((node): node is ContainerNode => node.kind === 'container');
+    const redoContainer = redoResult!.model.nodes.find(
+      (node): node is ContainerNode => node.kind === 'container',
+    );
     if (!redoContainer) {
       throw new Error('Expected container node after redo');
     }

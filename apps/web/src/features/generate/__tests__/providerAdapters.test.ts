@@ -146,7 +146,9 @@ describe('provider definitions', () => {
       ],
       connections: [],
       endpoints: [],
-      externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+      externalActors: [
+        { id: 'ext-1', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+      ],
       createdAt: '2026-01-01T00:00:00Z',
       updatedAt: '2026-01-01T00:00:00Z',
     };
@@ -204,7 +206,9 @@ describe('provider definitions', () => {
       ],
       connections: [],
       endpoints: [],
-      externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+      externalActors: [
+        { id: 'ext-1', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+      ],
       createdAt: '2026-01-01T00:00:00Z',
       updatedAt: '2026-01-01T00:00:00Z',
     };
@@ -271,7 +275,9 @@ describe('provider definitions', () => {
       ],
       connections: [],
       endpoints: [],
-      externalActors: [{ id: 'ext-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+      externalActors: [
+        { id: 'ext-1', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+      ],
       createdAt: '2026-01-01T00:00:00Z',
       updatedAt: '2026-01-01T00:00:00Z',
     };
@@ -289,6 +295,8 @@ describe('provider definitions', () => {
     expect(mainTf).toBeDefined();
     expect(mainTf?.content).toContain('provider "google"');
     expect(mainTf?.content).toContain('resource "google_cloud_run_v2_service" "run_compute"');
-    expect(mainTf?.content).toContain('resource "google_compute_backend_service" "backend_gateway"');
+    expect(mainTf?.content).toContain(
+      'resource "google_compute_backend_service" "backend_gateway"',
+    );
   });
 });

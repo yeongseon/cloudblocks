@@ -79,19 +79,20 @@ export const BlockSprite = memo(function BlockSprite({
 
   // Connect-mode visual states
   const isConnectMode = toolMode === 'connect';
-  const sourceBlock = isConnectMode && connectionSource
-    ? blocks.find((b) => b.id === connectionSource)
-    : null;
-  const sourceActor = isConnectMode && connectionSource
-    ? externalActors.find((actor) => actor.id === connectionSource)
-    : null;
+  const sourceBlock =
+    isConnectMode && connectionSource ? blocks.find((b) => b.id === connectionSource) : null;
+  const sourceActor =
+    isConnectMode && connectionSource
+      ? externalActors.find((actor) => actor.id === connectionSource)
+      : null;
   const sourceType = sourceBlock?.category ?? sourceActor?.type ?? null;
-  const isValidConnectTarget = sourceType !== null
-    && block.id !== connectionSource
-    && canConnect(sourceType, block.category);
-  const isInvalidConnectTarget = isConnectMode && connectionSource !== null
-    && block.id !== connectionSource
-    && !isValidConnectTarget;
+  const isValidConnectTarget =
+    sourceType !== null && block.id !== connectionSource && canConnect(sourceType, block.category);
+  const isInvalidConnectTarget =
+    isConnectMode &&
+    connectionSource !== null &&
+    block.id !== connectionSource &&
+    !isValidConnectTarget;
   const isAlreadyConnected = connections.some((c) => {
     const fromEp = endpointsList.find((ep) => ep.id === c.from);
     const toEp = endpointsList.find((ep) => ep.id === c.to);
@@ -160,10 +161,9 @@ export const BlockSprite = memo(function BlockSprite({
           if (isDragging.current) {
             const currentBlock = useArchitectureStore
               .getState()
-              .workspace
-              .architecture
-              .nodes
-              .filter((node): node is LeafNode => node.kind === 'resource')
+              .workspace.architecture.nodes.filter(
+                (node): node is LeafNode => node.kind === 'resource',
+              )
               .find((candidate) => candidate.id === block.id);
 
             if (currentBlock) {
@@ -254,12 +254,14 @@ export const BlockSprite = memo(function BlockSprite({
     <div
       ref={blockRef}
       className={className}
-      style={{
-        left: `${screenX}px`,
-        top: `${screenY}px`,
-        zIndex,
-        '--build-progress': 1,
-      } as React.CSSProperties}
+      style={
+        {
+          left: `${screenX}px`,
+          top: `${screenY}px`,
+          zIndex,
+          '--build-progress': 1,
+        } as React.CSSProperties
+      }
     >
       <button
         type="button"
@@ -274,12 +276,23 @@ export const BlockSprite = memo(function BlockSprite({
         aria-label={`Block: ${block.name}`}
       >
         <div className="block-img" draggable={false}>
-          <BlockSvg category={block.category} provider={block.provider} subtype={block.subtype} name={block.name} aggregationCount={block.aggregation?.count} roles={block.roles} showStubs={isConnectMode} />
+          <BlockSvg
+            category={block.category}
+            provider={block.provider}
+            subtype={block.subtype}
+            name={block.name}
+            aggregationCount={block.aggregation?.count}
+            roles={block.roles}
+            showStubs={isConnectMode}
+          />
         </div>
         {block.provider && (
           <span
             className="block-provider-badge"
-            style={{ borderColor: PROVIDER_BADGES[block.provider].color, color: PROVIDER_BADGES[block.provider].color }}
+            style={{
+              borderColor: PROVIDER_BADGES[block.provider].color,
+              color: PROVIDER_BADGES[block.provider].color,
+            }}
             title={`Provider: ${block.provider.toUpperCase()}`}
           >
             {PROVIDER_BADGES[block.provider].label}

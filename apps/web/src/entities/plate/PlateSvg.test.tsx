@@ -27,12 +27,7 @@ const defaultProps: ComponentProps<typeof PlateSvg> = {
 };
 
 function renderPlateSvg(props?: Partial<ComponentProps<typeof PlateSvg>>) {
-  return render(
-    <PlateSvg
-      {...defaultProps}
-      {...props}
-    />,
-  );
+  return render(<PlateSvg {...defaultProps} {...props} />);
 }
 
 // ─── Label & Icon Rendering ─────────────────────────────────
@@ -91,8 +86,8 @@ describe('PlateSvg — CU-based dimensions', () => {
     const worldHeight = 0.7;
     const { container } = renderPlateSvg({ studsX, studsY, worldHeight });
 
-    const expectedWidth = (studsX + studsY) * TILE_W / 2;
-    const expectedDiamondH = (studsX + studsY) * TILE_H / 2;
+    const expectedWidth = ((studsX + studsY) * TILE_W) / 2;
+    const expectedDiamondH = ((studsX + studsY) * TILE_H) / 2;
     const expectedSideWall = Math.round(worldHeight * TILE_Z);
     const expectedHeight = expectedDiamondH + expectedSideWall + BLOCK_PADDING;
 
@@ -103,8 +98,8 @@ describe('PlateSvg — CU-based dimensions', () => {
   it('handles small subnet profile (4×6 CU)', () => {
     const { container } = renderPlateSvg({ studsX: 4, studsY: 6, worldHeight: 0.5 });
 
-    const expectedWidth = (4 + 6) * TILE_W / 2;     // 320
-    const expectedDiamondH = (4 + 6) * TILE_H / 2;  // 160
+    const expectedWidth = ((4 + 6) * TILE_W) / 2; // 320
+    const expectedDiamondH = ((4 + 6) * TILE_H) / 2; // 160
     const expectedSideWall = Math.round(0.5 * TILE_Z); // 16
     const expectedHeight = expectedDiamondH + expectedSideWall + BLOCK_PADDING;
 
@@ -115,8 +110,8 @@ describe('PlateSvg — CU-based dimensions', () => {
   it('handles large network profile (20×24 CU)', () => {
     const { container } = renderPlateSvg({ studsX: 20, studsY: 24, worldHeight: 0.7 });
 
-    const expectedWidth = (20 + 24) * TILE_W / 2;    // 1408
-    const expectedDiamondH = (20 + 24) * TILE_H / 2; // 704
+    const expectedWidth = ((20 + 24) * TILE_W) / 2; // 1408
+    const expectedDiamondH = ((20 + 24) * TILE_H) / 2; // 704
     const expectedSideWall = Math.round(0.7 * TILE_Z); // 22
     const expectedHeight = expectedDiamondH + expectedSideWall + BLOCK_PADDING;
 
@@ -138,9 +133,9 @@ describe('PlateSvg — SVG structure', () => {
     const { container } = renderPlateSvg();
     const polygons = container.querySelectorAll('polygon');
 
-    expect(polygons[0].getAttribute('fill')).toBe('#22C55E');    // top
-    expect(polygons[1].getAttribute('fill')).toBe('#16A34A');     // left
-    expect(polygons[2].getAttribute('fill')).toBe('#15803D');     // right
+    expect(polygons[0].getAttribute('fill')).toBe('#22C55E'); // top
+    expect(polygons[1].getAttribute('fill')).toBe('#16A34A'); // left
+    expect(polygons[2].getAttribute('fill')).toBe('#15803D'); // right
   });
 
   it('includes StudDefs and StudGrid', () => {
@@ -262,14 +257,62 @@ describe('PlateSvg — colors are independent of plateType', () => {
 
 describe('PlateSvg — profile-based rendering', () => {
   const profiles = [
-    { name: 'network-sandbox',     studsX: 8,  studsY: 12, worldHeight: 0.7, plateType: 'region' as PlateLayerType },
-    { name: 'network-application', studsX: 12, studsY: 16, worldHeight: 0.7, plateType: 'region' as PlateLayerType },
-    { name: 'network-platform',    studsX: 16, studsY: 20, worldHeight: 0.7, plateType: 'region' as PlateLayerType },
-    { name: 'network-hub',         studsX: 20, studsY: 24, worldHeight: 0.7, plateType: 'region' as PlateLayerType },
-    { name: 'subnet-utility',      studsX: 4,  studsY: 6,  worldHeight: 0.5, plateType: 'subnet' as PlateLayerType },
-    { name: 'subnet-service',      studsX: 6,  studsY: 8,  worldHeight: 0.5, plateType: 'subnet' as PlateLayerType },
-    { name: 'subnet-workload',     studsX: 8,  studsY: 10, worldHeight: 0.5, plateType: 'subnet' as PlateLayerType },
-    { name: 'subnet-scale',        studsX: 10, studsY: 12, worldHeight: 0.5, plateType: 'subnet' as PlateLayerType },
+    {
+      name: 'network-sandbox',
+      studsX: 8,
+      studsY: 12,
+      worldHeight: 0.7,
+      plateType: 'region' as PlateLayerType,
+    },
+    {
+      name: 'network-application',
+      studsX: 12,
+      studsY: 16,
+      worldHeight: 0.7,
+      plateType: 'region' as PlateLayerType,
+    },
+    {
+      name: 'network-platform',
+      studsX: 16,
+      studsY: 20,
+      worldHeight: 0.7,
+      plateType: 'region' as PlateLayerType,
+    },
+    {
+      name: 'network-hub',
+      studsX: 20,
+      studsY: 24,
+      worldHeight: 0.7,
+      plateType: 'region' as PlateLayerType,
+    },
+    {
+      name: 'subnet-utility',
+      studsX: 4,
+      studsY: 6,
+      worldHeight: 0.5,
+      plateType: 'subnet' as PlateLayerType,
+    },
+    {
+      name: 'subnet-service',
+      studsX: 6,
+      studsY: 8,
+      worldHeight: 0.5,
+      plateType: 'subnet' as PlateLayerType,
+    },
+    {
+      name: 'subnet-workload',
+      studsX: 8,
+      studsY: 10,
+      worldHeight: 0.5,
+      plateType: 'subnet' as PlateLayerType,
+    },
+    {
+      name: 'subnet-scale',
+      studsX: 10,
+      studsY: 12,
+      worldHeight: 0.5,
+      plateType: 'subnet' as PlateLayerType,
+    },
   ];
 
   it.each(profiles)('renders $name profile with correct stud count', (profile) => {
@@ -292,8 +335,8 @@ describe('PlateSvg — profile-based rendering', () => {
       worldHeight: profile.worldHeight,
     });
 
-    const expectedWidth = (profile.studsX + profile.studsY) * TILE_W / 2;
-    const expectedDiamondH = (profile.studsX + profile.studsY) * TILE_H / 2;
+    const expectedWidth = ((profile.studsX + profile.studsY) * TILE_W) / 2;
+    const expectedDiamondH = ((profile.studsX + profile.studsY) * TILE_H) / 2;
     const expectedSideWall = Math.round(profile.worldHeight * TILE_Z);
     const expectedHeight = expectedDiamondH + expectedSideWall + BLOCK_PADDING;
 
@@ -312,9 +355,9 @@ describe('PlateSvg — backward compatibility', () => {
     const worldHeight = 0.5;
 
     // v1.x formula: screenWidth = (studsX + studsY) * TILE_W / 2
-    const expectedWidth = (studsX + studsY) * 64 / 2;  // 320
-    const expectedDiamondH = (studsX + studsY) * 32 / 2;  // 160
-    const expectedSideWall = Math.round(worldHeight * 32);  // 16
+    const expectedWidth = ((studsX + studsY) * 64) / 2; // 320
+    const expectedDiamondH = ((studsX + studsY) * 32) / 2; // 160
+    const expectedSideWall = Math.round(worldHeight * 32); // 16
 
     const { container } = renderPlateSvg({ studsX, studsY, worldHeight });
     const svg = container.querySelector('svg');

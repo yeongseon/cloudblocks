@@ -72,7 +72,9 @@ function makeDiffDelta(): DiffDelta {
             size: { width: 6, height: 0.3, depth: 8 },
             metadata: {},
           },
-          changes: [{ path: 'position', oldValue: '{"x":1,"y":0,"z":0}', newValue: '{"x":2,"y":0,"z":0}' }],
+          changes: [
+            { path: 'position', oldValue: '{"x":1,"y":0,"z":0}', newValue: '{"x":2,"y":0,"z":0}' },
+          ],
         },
       ],
     },
@@ -173,13 +175,37 @@ function makeDiffDelta(): DiffDelta {
       ],
     },
     externalActors: {
-      added: [{ id: 'actor-added-1', name: 'Internet', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
-      removed: [{ id: 'actor-removed-1', name: 'Legacy Partner', type: 'internet' , position: { x: -3, y: 0, z: 5 } }],
+      added: [
+        {
+          id: 'actor-added-1',
+          name: 'Internet',
+          type: 'internet',
+          position: { x: -3, y: 0, z: 5 },
+        },
+      ],
+      removed: [
+        {
+          id: 'actor-removed-1',
+          name: 'Legacy Partner',
+          type: 'internet',
+          position: { x: -3, y: 0, z: 5 },
+        },
+      ],
       modified: [
         {
           id: 'actor-modified-1',
-          before: { id: 'actor-modified-1', name: 'Payment Gateway', type: 'internet' , position: { x: -3, y: 0, z: 5 } },
-          after: { id: 'actor-modified-1', name: 'Payments API', type: 'internet' , position: { x: -3, y: 0, z: 5 } },
+          before: {
+            id: 'actor-modified-1',
+            name: 'Payment Gateway',
+            type: 'internet',
+            position: { x: -3, y: 0, z: 5 },
+          },
+          after: {
+            id: 'actor-modified-1',
+            name: 'Payments API',
+            type: 'internet',
+            position: { x: -3, y: 0, z: 5 },
+          },
           changes: [{ path: 'name', oldValue: 'Payment Gateway', newValue: 'Payments API' }],
         },
       ],
@@ -243,7 +269,9 @@ describe('DiffPanel', () => {
 
   it('shows breaking changes warning when hasBreakingChanges is true', () => {
     render(<DiffPanel />);
-    expect(screen.getByText('Breaking changes detected. Review removed or modified entities carefully.')).toBeInTheDocument();
+    expect(
+      screen.getByText('Breaking changes detected. Review removed or modified entities carefully.'),
+    ).toBeInTheDocument();
   });
 
   it('hides breaking changes warning when hasBreakingChanges is false', () => {
@@ -252,7 +280,11 @@ describe('DiffPanel', () => {
     useUIStore.setState({ diffDelta: delta });
 
     render(<DiffPanel />);
-    expect(screen.queryByText('Breaking changes detected. Review removed or modified entities carefully.')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        'Breaking changes detected. Review removed or modified entities carefully.',
+      ),
+    ).not.toBeInTheDocument();
   });
 
   it('close button calls setDiffMode(false)', async () => {
@@ -271,25 +303,29 @@ describe('DiffPanel', () => {
 
   it('shows connection labels with endpoints', () => {
     render(<DiffPanel />);
-    expect(screen.getByText('+ conn-added-1 (block-added-1 -> block-modified-1)')).toBeInTheDocument();
+    expect(
+      screen.getByText('+ conn-added-1 (block-added-1 -> block-modified-1)'),
+    ).toBeInTheDocument();
   });
 
   it('falls back to id-only label when entity has no name or endpoints', () => {
     const delta = makeDiffDelta();
-    delta.plates.added = [{ id: 'plate-id-only' } as unknown as DiffDelta['plates']['added'][number]];
+    delta.plates.added = [
+      { id: 'plate-id-only' } as unknown as DiffDelta['plates']['added'][number],
+    ];
     delta.plates.removed = [];
     delta.plates.modified = [];
     delta.summary.totalChanges =
-      delta.plates.added.length
-      + delta.blocks.added.length
-      + delta.blocks.removed.length
-      + delta.blocks.modified.length
-      + delta.connections.added.length
-      + delta.connections.removed.length
-      + delta.connections.modified.length
-      + delta.externalActors.added.length
-      + delta.externalActors.removed.length
-      + delta.externalActors.modified.length;
+      delta.plates.added.length +
+      delta.blocks.added.length +
+      delta.blocks.removed.length +
+      delta.blocks.modified.length +
+      delta.connections.added.length +
+      delta.connections.removed.length +
+      delta.connections.modified.length +
+      delta.externalActors.added.length +
+      delta.externalActors.removed.length +
+      delta.externalActors.modified.length;
 
     useUIStore.setState({ diffDelta: delta });
     render(<DiffPanel />);
@@ -373,7 +409,9 @@ describe('DiffPanel', () => {
 
     render(<DiffPanel />);
 
-    const toggle = screen.getByRole('button', { name: /Type Tester \(block-modified-types\) \(8 changes\)/ });
+    const toggle = screen.getByRole('button', {
+      name: /Type Tester \(block-modified-types\) \(8 changes\)/,
+    });
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
 
     await user.click(toggle);
@@ -408,7 +446,9 @@ describe('DiffPanel', () => {
     await user.click(platesSectionToggle);
     expect(platesSectionToggle).toHaveAttribute('aria-expanded', 'false');
 
-    const modifiedToggle = screen.getByRole('button', { name: /App Service \(block-modified-1\) \(1 changes\)/ });
+    const modifiedToggle = screen.getByRole('button', {
+      name: /App Service \(block-modified-1\) \(1 changes\)/,
+    });
     await user.click(modifiedToggle);
     expect(modifiedToggle).toHaveAttribute('aria-expanded', 'true');
 
@@ -416,7 +456,9 @@ describe('DiffPanel', () => {
     rerender(<DiffPanel />);
 
     const resetPlatesToggle = screen.getByRole('button', { name: /Plates/ });
-    const resetModifiedToggle = screen.getByRole('button', { name: /App Service \(block-modified-1\) \(1 changes\)/ });
+    const resetModifiedToggle = screen.getByRole('button', {
+      name: /App Service \(block-modified-1\) \(1 changes\)/,
+    });
     expect(resetPlatesToggle).toHaveAttribute('aria-expanded', 'true');
     expect(resetModifiedToggle).toHaveAttribute('aria-expanded', 'false');
   });
@@ -427,15 +469,15 @@ describe('DiffPanel', () => {
     delta.plates.removed = [];
     delta.plates.modified = [];
     delta.summary.totalChanges =
-      delta.blocks.added.length
-      + delta.blocks.removed.length
-      + delta.blocks.modified.length
-      + delta.connections.added.length
-      + delta.connections.removed.length
-      + delta.connections.modified.length
-      + delta.externalActors.added.length
-      + delta.externalActors.removed.length
-      + delta.externalActors.modified.length;
+      delta.blocks.added.length +
+      delta.blocks.removed.length +
+      delta.blocks.modified.length +
+      delta.connections.added.length +
+      delta.connections.removed.length +
+      delta.connections.modified.length +
+      delta.externalActors.added.length +
+      delta.externalActors.removed.length +
+      delta.externalActors.modified.length;
     useUIStore.setState({ diffDelta: delta });
 
     render(<DiffPanel />);
@@ -516,7 +558,9 @@ describe('DiffPanel', () => {
     };
     useUIStore.setState({ diffBaseArchitecture: remoteArch });
     render(<DiffPanel />);
-    expect(screen.getByText('Remote: 2 plates · 1 blocks · 3 connections · 1 actors')).toBeInTheDocument();
+    expect(
+      screen.getByText('Remote: 2 plates · 1 blocks · 3 connections · 1 actors'),
+    ).toBeInTheDocument();
   });
 
   it('hides remote summary when diffBaseArchitecture is null (#879)', () => {

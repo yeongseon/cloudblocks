@@ -32,10 +32,7 @@ export function createHistory(): HistoryState {
  * Call this BEFORE applying the mutation to the model.
  * Clears the redo stack (forward history is discarded on new mutations).
  */
-export function pushHistory(
-  history: HistoryState,
-  currentModel: ArchitectureModel
-): HistoryState {
+export function pushHistory(history: HistoryState, currentModel: ArchitectureModel): HistoryState {
   const past = [...history.past, cloneModel(currentModel)];
   // Trim oldest entries if past exceeds max size
   if (past.length > MAX_HISTORY_SIZE) {
@@ -50,7 +47,7 @@ export function pushHistory(
  */
 export function undo(
   history: HistoryState,
-  currentModel: ArchitectureModel
+  currentModel: ArchitectureModel,
 ): { history: HistoryState; model: ArchitectureModel } | null {
   if (history.past.length === 0) return null;
 
@@ -70,7 +67,7 @@ export function undo(
  */
 export function redo(
   history: HistoryState,
-  currentModel: ArchitectureModel
+  currentModel: ArchitectureModel,
 ): { history: HistoryState; model: ArchitectureModel } | null {
   if (history.future.length === 0) return null;
 

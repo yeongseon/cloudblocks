@@ -7,7 +7,6 @@ export interface HelperMessage {
   targetId?: string;
 }
 
-
 export const HINT_EMPTY_CANVAS: Omit<HelperMessage, 'targetId'> = {
   key: 'hint-empty-canvas',
   type: 'hint',

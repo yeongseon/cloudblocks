@@ -1,5 +1,12 @@
 import type { PlateProfileId } from '../../../shared/types/index';
-import type { Connection, ContainerCapableResourceType, ContainerNode, ExternalActor, LeafNode, ResourceCategory } from '@cloudblocks/schema';
+import type {
+  Connection,
+  ContainerCapableResourceType,
+  ContainerNode,
+  ExternalActor,
+  LeafNode,
+  ResourceCategory,
+} from '@cloudblocks/schema';
 import { buildPlateSizeFromProfileId, DEFAULT_BLOCK_SIZE } from '../../../shared/types/index';
 import {
   connectionTypeToSemantic,
@@ -11,7 +18,12 @@ import {
 } from '@cloudblocks/schema';
 import { generateId } from '../../../shared/utils/id';
 import { metricsService } from '../../../shared/utils/metricsService';
-import type { AddNodeInput, ArchitectureSlice, ArchitectureState, RemoveNodeOptions } from './types';
+import type {
+  AddNodeInput,
+  ArchitectureSlice,
+  ArchitectureState,
+  RemoveNodeOptions,
+} from './types';
 import { canConnect } from '../../validation/connection';
 import type { EndpointType } from '../../validation/connection';
 import { validatePlacement } from '../../validation/placement';
@@ -50,13 +62,11 @@ type DomainSlice = Pick<
 const isContainer = (node: ContainerNode | LeafNode): node is ContainerNode =>
   node.kind === 'container';
 
-const isResource = (node: ContainerNode | LeafNode): node is LeafNode =>
-  node.kind === 'resource';
+const isResource = (node: ContainerNode | LeafNode): node is LeafNode => node.kind === 'resource';
 
 type PlateLayerType = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
 
 const endpointIdPrefix = (nodeId: string): string => `endpoint-${nodeId}-`;
-
 
 const CONTAINER_RESOURCE_TYPE: Record<PlateLayerType, ContainerCapableResourceType> = {
   global: 'virtual_network',
@@ -67,7 +77,6 @@ const CONTAINER_RESOURCE_TYPE: Record<PlateLayerType, ContainerCapableResourceTy
 };
 
 export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => ({
-
   // ── Unified Node API ─────────────────────────────────────────────────────
 
   addNode: (input: AddNodeInput) => {
@@ -77,9 +86,18 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       get().addPlate(layer, input.name, input.parentId, input.profileId);
     } else {
       // Derive category from RESOURCE_RULES or fall back to 'compute'
-      const rule = (RESOURCE_RULES as Record<string, { category: ResourceCategory }>)[input.resourceType];
+      const rule = (RESOURCE_RULES as Record<string, { category: ResourceCategory }>)[
+        input.resourceType
+      ];
       const category: ResourceCategory = rule?.category ?? 'compute';
-      get().addBlock(category, input.name, input.parentId!, input.provider, input.subtype ?? input.resourceType, input.config);
+      get().addBlock(
+        category,
+        input.name,
+        input.parentId!,
+        input.provider,
+        input.subtype ?? input.resourceType,
+        input.config,
+      );
     }
   },
 
@@ -151,17 +169,15 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       if (type === 'region') {
         plate.position = { x: 0, y: 0, z: 0 };
       } else if (parentId) {
-        const siblingsInParent = containers.filter(
-          (candidate) => candidate.parentId === parentId
-        );
+        const siblingsInParent = containers.filter((candidate) => candidate.parentId === parentId);
         const subnetSpacing = 7.0;
         const offsetX = -3.5 + siblingsInParent.length * subnetSpacing;
         const clampedRelativePosition = parentPlate
           ? clampWithinParent(
-            { x: offsetX, z: 0 },
-            { width: parentPlate.size.width, depth: parentPlate.size.depth },
-            { width: plate.size.width, depth: plate.size.depth }
-          )
+              { x: offsetX, z: 0 },
+              { width: parentPlate.size.width, depth: parentPlate.size.depth },
+              { width: plate.size.width, depth: plate.size.depth },
+            )
           : { x: offsetX, z: 0 };
 
         plate.position = {
@@ -231,7 +247,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
             const parentId = resource.parentId;
             return (parentId !== null && idsToRemove.has(parentId)) || idsToRemove.has(resource.id);
           })
-          .map((resource) => resource.id)
+          .map((resource) => resource.id),
       );
       const removedNodeIds = new Set<string>([...idsToRemove, ...removedResourceIds]);
 
@@ -248,17 +264,14 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       const removedEndpointIds = new Set(
         arch.endpoints
           .filter((endpoint) => removedNodeIds.has(endpoint.nodeId))
-          .map((endpoint) => endpoint.id)
+          .map((endpoint) => endpoint.id),
       );
 
-      const endpoints = arch.endpoints.filter(
-        (endpoint) => !removedNodeIds.has(endpoint.nodeId)
-      );
+      const endpoints = arch.endpoints.filter((endpoint) => !removedNodeIds.has(endpoint.nodeId));
 
       const connections = arch.connections.filter(
         (connection) =>
-          !removedEndpointIds.has(connection.from) &&
-          !removedEndpointIds.has(connection.to)
+          !removedEndpointIds.has(connection.from) && !removedEndpointIds.has(connection.to),
       );
 
       return withHistory(state, {
@@ -282,9 +295,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         return state;
       }
 
-      const existingBlocksOnPlate = resources.filter(
-        (block) => block.parentId === placementId
-      );
+      const existingBlocksOnPlate = resources.filter((block) => block.parentId === placementId);
 
       const block: LeafNode = {
         id: generateId('block'),
@@ -323,16 +334,14 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         return state;
       }
 
-      const parentPlate = containers.find(
-        (candidate) => candidate.id === sourceBlock.parentId
-      );
+      const parentPlate = containers.find((candidate) => candidate.id === sourceBlock.parentId);
 
       if (!parentPlate) {
         return state;
       }
 
       const siblingsOnPlate = resources.filter(
-        (candidate) => candidate.parentId === sourceBlock.parentId
+        (candidate) => candidate.parentId === sourceBlock.parentId,
       );
 
       const unclampedPosition = nextGridPosition(siblingsOnPlate, {
@@ -386,7 +395,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         connections: arch.connections.filter(
           (connection) =>
             !connection.from.startsWith(endpointIdPrefix(id)) &&
-            !connection.to.startsWith(endpointIdPrefix(id))
+            !connection.to.startsWith(endpointIdPrefix(id)),
         ),
       });
     });
@@ -406,7 +415,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         nodes: arch.nodes.map((candidate) =>
           candidate.id === blockId && candidate.kind === 'resource'
             ? { ...candidate, name: newName }
-            : candidate
+            : candidate,
         ),
       });
     });
@@ -426,7 +435,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         nodes: arch.nodes.map((candidate) =>
           candidate.id === plateId && candidate.kind === 'container'
             ? { ...candidate, name: newName }
-            : candidate
+            : candidate,
         ),
       });
     });
@@ -448,9 +457,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         return state;
       }
 
-      const targetPlate = containers.find(
-        (candidate) => candidate.id === newPlacementId
-      );
+      const targetPlate = containers.find((candidate) => candidate.id === newPlacementId);
 
       if (!targetPlate) {
         return state;
@@ -462,9 +469,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         return state;
       }
 
-      const blocksOnTarget = resources.filter(
-        (candidate) => candidate.parentId === newPlacementId
-      );
+      const blocksOnTarget = resources.filter((candidate) => candidate.parentId === newPlacementId);
       const newPosition = nextGridPosition(blocksOnTarget, targetPlate.size);
 
       return withHistory(state, {
@@ -472,11 +477,11 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         nodes: arch.nodes.map((candidate) =>
           candidate.id === blockId && candidate.kind === 'resource'
             ? {
-              ...candidate,
-              parentId: newPlacementId,
-              position: newPosition,
-            }
-            : candidate
+                ...candidate,
+                parentId: newPlacementId,
+                position: newPosition,
+              }
+            : candidate,
         ),
       });
     });
@@ -500,9 +505,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       };
 
       let nodes = arch.nodes.map((candidate) =>
-        candidate.id === plateId && candidate.kind === 'container'
-          ? resizedPlate
-          : candidate
+        candidate.id === plateId && candidate.kind === 'container' ? resizedPlate : candidate,
       );
 
       if (plate.parentId) {
@@ -515,27 +518,27 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
           const clampedRelativePosition = clampWithinParent(
             relativePosition,
             { width: parentPlate.size.width, depth: parentPlate.size.depth },
-            { width: nextSize.width, depth: nextSize.depth }
+            { width: nextSize.width, depth: nextSize.depth },
           );
 
           nodes = nodes.map((candidate) =>
             candidate.id === plateId && candidate.kind === 'container'
               ? {
-                ...candidate,
-                position: {
-                  x: parentPlate.position.x + clampedRelativePosition.x,
-                  y: candidate.position.y,
-                  z: parentPlate.position.z + clampedRelativePosition.z,
-                },
-              }
-              : candidate
+                  ...candidate,
+                  position: {
+                    x: parentPlate.position.x + clampedRelativePosition.x,
+                    y: candidate.position.y,
+                    z: parentPlate.position.z + clampedRelativePosition.z,
+                  },
+                }
+              : candidate,
           );
         }
       }
 
       const finalPlate = nodes.find(
         (candidate): candidate is ContainerNode =>
-          candidate.kind === 'container' && candidate.id === plateId
+          candidate.kind === 'container' && candidate.id === plateId,
       );
 
       if (!finalPlate) {
@@ -600,9 +603,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       let appliedDeltaZ = deltaZ;
 
       if (plate.parentId) {
-        const parentPlate = containers.find(
-          (candidate) => candidate.id === plate.parentId
-        );
+        const parentPlate = containers.find((candidate) => candidate.id === plate.parentId);
 
         if (parentPlate) {
           const unclampedPosition = {
@@ -616,7 +617,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
           const clampedRelativePosition = clampWithinParent(
             relativePosition,
             { width: parentPlate.size.width, depth: parentPlate.size.depth },
-            { width: plate.size.width, depth: plate.size.depth }
+            { width: plate.size.width, depth: plate.size.depth },
           );
           const clampedWorldPosition = {
             x: parentPlate.position.x + clampedRelativePosition.x,
@@ -629,7 +630,9 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       }
 
       const sameLevelSiblings = containers
-        .filter((candidate) => candidate.parentId === (plate.parentId ?? null) && candidate.id !== id)
+        .filter(
+          (candidate) => candidate.parentId === (plate.parentId ?? null) && candidate.id !== id,
+        )
         .map((candidate) => ({
           id: candidate.id,
           position: { x: candidate.position.x, z: candidate.position.z },
@@ -690,9 +693,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         return state;
       }
 
-      const parentPlate = containers.find(
-        (candidate) => candidate.id === block.parentId
-      );
+      const parentPlate = containers.find((candidate) => candidate.id === block.parentId);
 
       if (!parentPlate) {
         return state;
@@ -705,7 +706,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       const clampedPosition = clampWithinParent(
         unclampedPosition,
         { width: parentPlate.size.width, depth: parentPlate.size.depth },
-        { width: DEFAULT_BLOCK_SIZE.width, depth: DEFAULT_BLOCK_SIZE.depth }
+        { width: DEFAULT_BLOCK_SIZE.width, depth: DEFAULT_BLOCK_SIZE.depth },
       );
 
       const nodes = arch.nodes.map((candidate) => {
@@ -788,8 +789,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
 
     // Check duplicate using endpoint IDs
     const exists = arch.connections.some(
-      (connection) =>
-        connection.from === fromEndpointId && connection.to === toEndpointId
+      (connection) => connection.from === fromEndpointId && connection.to === toEndpointId,
     );
 
     if (exists) {
@@ -818,22 +818,18 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       ? getPortsForResourceType(targetResourceType)
       : { inbound: 1, outbound: 1 };
 
-    const usedOutbound = arch.connections.filter(
-      (connection) => {
-        const endpoint = arch.endpoints.find((candidate) => candidate.id === connection.from);
-        if (endpoint) return endpoint.nodeId === from;
-        const parsed = parseEndpointId(connection.from);
-        return parsed?.nodeId === from;
-      }
-    ).length;
-    const usedInbound = arch.connections.filter(
-      (connection) => {
-        const endpoint = arch.endpoints.find((candidate) => candidate.id === connection.to);
-        if (endpoint) return endpoint.nodeId === to;
-        const parsed = parseEndpointId(connection.to);
-        return parsed?.nodeId === to;
-      }
-    ).length;
+    const usedOutbound = arch.connections.filter((connection) => {
+      const endpoint = arch.endpoints.find((candidate) => candidate.id === connection.from);
+      if (endpoint) return endpoint.nodeId === from;
+      const parsed = parseEndpointId(connection.from);
+      return parsed?.nodeId === from;
+    }).length;
+    const usedInbound = arch.connections.filter((connection) => {
+      const endpoint = arch.endpoints.find((candidate) => candidate.id === connection.to);
+      if (endpoint) return endpoint.nodeId === to;
+      const parsed = parseEndpointId(connection.to);
+      return parsed?.nodeId === to;
+    }).length;
 
     if (usedOutbound >= sourcePorts.outbound || usedInbound >= targetPorts.inbound) {
       return false;
@@ -869,9 +865,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
 
       return withHistory(state, {
         ...arch,
-        connections: arch.connections.filter(
-          (connection) => connection.id !== id
-        ),
+        connections: arch.connections.filter((connection) => connection.id !== id),
       });
     });
   },
@@ -896,8 +890,13 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         ...arch,
         connections: arch.connections.map((connection) =>
           connection.id === connectionId
-            ? { ...connection, from: nextFrom, to: nextTo, metadata: { ...connection.metadata, type } }
-            : connection
+            ? {
+                ...connection,
+                from: nextFrom,
+                to: nextTo,
+                metadata: { ...connection.metadata, type },
+              }
+            : connection,
         ),
       });
     });

@@ -15,9 +15,7 @@ import { validateRoles } from './role';
  * 3. All resource nodes satisfy aggregation rules (v2.0 §8)
  * 4. All resource nodes satisfy role rules (v2.0 §9)
  */
-export function validateArchitecture(
-  model: ArchitectureModel
-): ValidationResult {
+export function validateArchitecture(model: ArchitectureModel): ValidationResult {
   const errors: ValidationResult['errors'] = [];
   const warnings: ValidationResult['warnings'] = [];
 
@@ -64,12 +62,7 @@ export function validateArchitecture(
 
   // ── Connection validation ──
   for (const connection of model.connections) {
-    const error = validateConnection(
-      connection,
-      model.endpoints,
-      model.nodes,
-      externalActors
-    );
+    const error = validateConnection(connection, model.endpoints, model.nodes, externalActors);
     if (error) {
       if (error.severity === 'error') {
         errors.push(error);

@@ -5,10 +5,15 @@ import interact from 'interactjs';
 import { toast } from 'react-hot-toast';
 
 vi.mock('../store/architectureStore', async () => {
-  const actual = await vi.importActual<typeof import('../store/architectureStore')>('../store/architectureStore');
-  const { useShallow } = await vi.importActual<typeof import('zustand/react/shallow')>('zustand/react/shallow');
+  const actual = await vi.importActual<typeof import('../store/architectureStore')>(
+    '../store/architectureStore',
+  );
+  const { useShallow } =
+    await vi.importActual<typeof import('zustand/react/shallow')>('zustand/react/shallow');
 
-  const useArchitectureStoreStable = ((selector: Parameters<typeof actual.useArchitectureStore>[0]) => {
+  const useArchitectureStoreStable = ((
+    selector: Parameters<typeof actual.useArchitectureStore>[0],
+  ) => {
     const stableSelector = useShallow(selector);
     return actual.useArchitectureStore(stableSelector);
   }) as typeof actual.useArchitectureStore;
@@ -205,7 +210,9 @@ describe('ExternalActorSprite', () => {
   });
 
   it('shows valid connect-target class when canConnect returns true', () => {
-    const canConnectSpy = vi.spyOn(connectionValidation, 'canConnect').mockReturnValue({ valid: true });
+    const canConnectSpy = vi
+      .spyOn(connectionValidation, 'canConnect')
+      .mockReturnValue({ valid: true });
     useUIStore.setState({ toolMode: 'connect', connectionSource: 'gateway-1' });
 
     const { container } = render(
@@ -227,14 +234,18 @@ describe('ExternalActorSprite', () => {
   });
 
   it('initializes draggable interaction in select mode', () => {
-    const { container } = render(<ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />);
+    const { container } = render(
+      <ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />,
+    );
 
     const root = container.querySelector('.external-actor-sprite') as HTMLElement;
     expect(vi.mocked(interact)).toHaveBeenCalledWith(root);
   });
 
   it('adds ref to root element', () => {
-    const { container } = render(<ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />);
+    const { container } = render(
+      <ExternalActorSprite actor={actor} screenX={0} screenY={0} zIndex={1} />,
+    );
 
     const root = container.querySelector('.external-actor-sprite') as HTMLElement;
     expect(root).toBeInTheDocument();
@@ -333,7 +344,9 @@ describe('ExternalActorSprite', () => {
 
   it('snaps actor to grid on drag end and plays sound when unmuted', () => {
     const actorWithOffset = { ...actor, position: { x: 1.2, y: 0, z: 0.4 } };
-    const playSoundSpy = vi.spyOn(audioService, 'playSound').mockImplementation(async (_name: SoundName) => undefined);
+    const playSoundSpy = vi
+      .spyOn(audioService, 'playSound')
+      .mockImplementation(async (_name: SoundName) => undefined);
     const snapSpy = vi.spyOn(isometric, 'snapToGrid').mockReturnValue({ x: 2, z: 1 });
     useUIStore.setState({ isSoundMuted: false });
     useArchitectureStore.setState({
