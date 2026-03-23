@@ -457,7 +457,7 @@
 /* ── LEGO Mode (preserved for M22 dual theme) ─────────── */
 
 [data-visual-mode='lego'] .menu-bar {
-  background-color: #e3000b;
+  background-color: var(--accent-error);
   background-image:
     radial-gradient(#b80009 20%, transparent 20%), radial-gradient(#ff3333 20%, transparent 20%);
   background-size: 10px 10px;
@@ -628,14 +628,14 @@
   opacity: 0.6;
   box-shadow: 0 1px 0 0 #b80009;
   transform: translateY(2px);
-  background: #e3000b;
+  background: var(--accent-error);
   border-color: #b80009;
   color: #ff3333;
 }
 
 [data-visual-mode='lego'] .panel-btn.active,
 [data-visual-mode='lego'] .quick-btn.active {
-  background: #e3000b;
+  background: var(--accent-error);
   border-color: #b80009;
   color: #ffffff;
   box-shadow:
@@ -655,7 +655,7 @@
 }
 
 [data-visual-mode='lego'] .github-btn {
-  background: #e3000b;
+  background: var(--accent-error);
   border: 3px solid #b80009;
   color: #ffffff;
   font-weight: 800;
@@ -697,7 +697,7 @@
 }
 
 [data-visual-mode='lego'] .menu-badge-invalid {
-  background: #e3000b;
+  background: var(--accent-error);
   border-color: #b80009;
   box-shadow:
     inset 0 2px 0 rgba(255, 255, 255, 0.4),
