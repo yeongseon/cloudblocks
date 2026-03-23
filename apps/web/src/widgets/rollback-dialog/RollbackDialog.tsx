@@ -104,6 +104,9 @@ export function RollbackDialog() {
         </div>
 
         <div className="rollback-dialog-content">
+          <div className="rollback-coming-soon-banner">
+            Coming Soon — Rollback Production is under development and not yet functional.
+          </div>
           {/* Current production version */}
           <div className="rollback-current-card">
             <div className="rollback-current-label">Current Production Version</div>
