@@ -52,6 +52,16 @@
   overflow-y: auto;
 }
 
+.rollback-coming-soon-banner {
+  background: rgba(255, 152, 0, 0.1);
+  border: 1px solid rgba(255, 152, 0, 0.3);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #ffb74d;
+  text-align: center;
+}
+
 /* Current version card */
 .rollback-current-card {
   background: rgba(255, 255, 255, 0.04);

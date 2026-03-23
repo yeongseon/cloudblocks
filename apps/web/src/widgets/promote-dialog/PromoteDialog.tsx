@@ -84,6 +84,9 @@ export function PromoteDialog() {
         </div>
 
         <div className="promote-dialog-content">
+          <div className="promote-coming-soon-banner">
+            Coming Soon — Promote to Production is under development and not yet functional.
+          </div>
           {/* Source info card */}
           <div className="promote-source-card">
             <div className="promote-source-label">Staging Environment</div>
