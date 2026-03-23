@@ -1,0 +1,55 @@
+version: "3.8"
+
+services:
+  plausible:
+    image: ghcr.io/plausible/community-edition:v2.1
+    restart: unless-stopped
+    command: sh -c "sleep 10 && /entrypoint.sh db createdb && /entrypoint.sh db migrate && /entrypoint.sh run"
+    depends_on:
+      plausible-db:
+        condition: service_healthy
+      plausible-events-db:
+        condition: service_healthy
+    ports:
+      - "8100:8000"
+    env_file:
+      - plausible.env
+    environment:
+      DATABASE_URL: postgres://plausible:plausible@plausible-db:5432/plausible
+      CLICKHOUSE_DATABASE_URL: http://plausible-events-db:8123/plausible_events
+
+  plausible-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    volumes:
+      - plausible-db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: plausible
+      POSTGRES_USER: plausible
+      POSTGRES_PASSWORD: plausible
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U plausible"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  plausible-events-db:
+    image: clickhouse/clickhouse-server:24.3-alpine
+    restart: unless-stopped
+    volumes:
+      - plausible-events-data:/var/lib/clickhouse
+      - ./clickhouse-config.xml:/etc/clickhouse-server/config.d/logging.xml:ro
+      - ./clickhouse-user-config.xml:/etc/clickhouse-server/users.d/logging.xml:ro
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  plausible-db-data:
+  plausible-events-data:
