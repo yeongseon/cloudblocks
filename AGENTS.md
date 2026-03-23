@@ -55,7 +55,7 @@ Scope is optional but recommended: `feat(web):`, `fix(api):`, `docs:`.
 ### Pull Request Rules
 
 - `main` is a protected branch — all changes go through PR + CI.
-- Squash-merge every PR with `--delete-branch`: `gh pr merge <number> --squash --admin --delete-branch`.
+- Squash-merge every PR with `--delete-branch`: `gh pr merge <number> --squash --delete-branch`. **Never** use `--admin` — let CI gates enforce quality.
 - PR title should follow the same Conventional Commits format as commit messages.
 - Each PR should reference and close its issue (e.g., `Fixes #123`).
 
@@ -143,7 +143,7 @@ When all issues in a milestone are closed, perform the following release steps:
 2. **Version bump**: Update `version` in `package.json` to `0.{milestone}.0` (e.g., Milestone 17 → `0.17.0`).
 3. **CHANGELOG**: Add a new section to `CHANGELOG.md` with the milestone title, date, and a summary of changes.
 4. **Commit**: Create a release commit on the PR branch (e.g., `chore: release v0.17.0`).
-5. **Merge**: Squash-merge the PR to `main` with `--admin --delete-branch`.
+5. **Merge**: Squash-merge the PR to `main` with `--delete-branch`: `gh pr merge <number> --squash --delete-branch`.
 6. **Tag**: Create an annotated git tag on the merge commit: `git tag -a v0.{milestone}.0 -m "v0.{milestone}.0 — {milestone title}"`.
 7. **Push tag**: `git push origin v0.{milestone}.0`.
 8. **GitHub Release**: `gh release create v0.{milestone}.0 --title "v0.{milestone}.0 — {milestone title}" --notes-file -` using the CHANGELOG section as body.
