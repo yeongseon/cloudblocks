@@ -5,7 +5,7 @@
 
 ## Vision
 
-CloudBlocks is a **visual cloud architecture builder** — build infrastructure like Lego.
+CloudBlocks is a **visual cloud architecture builder** — build infrastructure with modular building blocks.
 Place blocks, connect them via stubs, and generate infrastructure-as-code.
 
 ---

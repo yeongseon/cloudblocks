@@ -339,16 +339,16 @@ Features:
 
 The sections below retain original Phase labels because they map to completed historical work in git history.
 
-## Phase 3 — Lego Minifigure Character SVG ✅
+## Phase 3 — Mascot Character SVG ✅
 
 Goal:
-Create a DevOps Engineer Lego minifigure character as an inline SVG component with cloud provider branding.
+Create a DevOps Engineer mascot character as an inline SVG component with cloud provider branding.
 
 > **Reference**: [CLOUDBLOCKS_SPEC_V2.md](../design/CLOUDBLOCKS_SPEC_V2.md)
 
 Features:
 
-- Lego minifigure SVG component (head, torso, arms, legs) in isometric style
+- Minifigure SVG component (head, torso, arms, legs) in isometric style
 - Azure logo on torso (first provider variant)
 - AWS and GCP logo variants planned for Milestone 8 (multi-cloud)
 - Universal Stud Standard compliant (head stud)
@@ -951,11 +951,11 @@ Key Objectives:
 
 Scope:
 
-- 3 Epics: Documentation Architecture Cleanup (Epic #356, #370), Lego-Themed Documentation Site (Epic #398)
+- 3 Epics: Documentation Architecture Cleanup (Epic #356, #370), Block-Themed Documentation Site (Epic #398)
 - 30 issues total (all closed)
 - 10 PRs merged (#376, #377, #387, #402, #406, #409, #410, #412, #413, #415)
 - 3 Waves: Foundation (conventions) → Reconciliation (content) → Alignment & Archive
-- Lego-Themed Docs: custom CSS theme, user-centric nav, dark mode baseplate theme, homepage rewrite
+- Block-Themed Docs: custom CSS theme, user-centric nav, dark mode baseplate theme, homepage rewrite
 
 ### Exit Criteria
 
@@ -1022,7 +1022,7 @@ Key Objectives:
 - Deploy terminology standardization: canonical definitions for deploy/promote/rollback/release
 - Promote/rollback UX: visual flows with pre-checks, version selection, diff preview
 - Notification system: in-app notification center, toast alerts, deployment event history
-- Brick-style connection rendering: replace thin SVG bezier lines with Lego connector pieces matching the brick visual language
+- Brick-style connection rendering: replace thin SVG bezier lines with Technic connector pieces matching the brick visual language
 
 Scope:
 
@@ -1038,7 +1038,7 @@ Scope:
 - [ ] Cost estimation displayed before deployment confirmation — **deferred to M20+**
 - [ ] Notification system shows deployment lifecycle events in-app — **deferred to M20+ (infinite loop bug)**
 - [ ] Deployment history log records all deploys, promotions, and rollbacks — **deferred to M20+**
-- [x] Connections render as brick-style connector pieces matching the Lego visual language
+- [x] Connections render as brick-style connector pieces matching the block-based visual language
 
 ### Delivered (not in original exit criteria)
 
@@ -1366,7 +1366,7 @@ Key Objectives:
 - Complete stub-to-stub routing and remove center-to-center fallback
 - Apply vendor-based color system to blocks and connections (Azure=#0078D4, AWS=#FF9900, GCP=#4285F4)
 - Remove `MVP_RESOURCE_ALLOWLIST` duplication — consolidate into `RESOURCE_DEFINITIONS`
-- Extend token-based theme system: Professional (default) + Lego (alt) via CSS custom properties
+- Extend token-based theme system: Professional (default) + Blueprint (alt) via CSS custom properties
 - Verify Azure end-to-end demo scenario
 
 ### Existing Infrastructure (from M21)
@@ -1418,7 +1418,7 @@ The following stub infrastructure already exists and will be built upon:
 - [ ] Center-to-center connection fallback removed
 - [ ] Vendor-based colors applied to blocks and connections
 - [ ] `MVP_RESOURCE_ALLOWLIST` eliminated — `RESOURCE_DEFINITIONS` is single source (#1208)
-- [ ] Token-based theme system with Professional (default) + Lego (alt) themes
+- [ ] Token-based theme system with Professional (default) + Blueprint (alt) themes
 - [ ] Theme switch accessible from settings/menu
 - [ ] Azure end-to-end demo verified (create → connect via stubs → generate → validate)
 - [ ] All tests passing, ≥ 90% branch coverage

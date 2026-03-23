@@ -54,7 +54,7 @@
 
 ## Key Concepts
 
-CloudBlocks uses a **Lego-style composition model** where everything snaps together:
+CloudBlocks uses a **block-based composition model** where everything snaps together:
 
 - **Plates** — Logical boundaries (VPC, resource group, subnet). Plates hold blocks.
 - **Blocks** — Cloud resources (VM, database, storage, function). Blocks sit on plates.

@@ -54,7 +54,7 @@ Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks
 
 ## Features
 
-- 🧱 **Lego-style modeling** — Plates (boundaries) + Blocks (resources) + typed Connections
+- 🧱 **Block-based modeling** — Plates (boundaries) + Blocks (resources) + typed Connections
 - ⚡ **Architecture compiler** — Visual designs compile to Terraform, Bicep, and Pulumi
 - ✅ **Validation engine** — Real-time rule checking for placement and connections
 - 📦 **7 resource categories** — Network, security, edge, compute, data, messaging, operations

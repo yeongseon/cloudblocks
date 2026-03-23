@@ -41,35 +41,15 @@
     0 0;
 }
 
-/* ── LEGO Mode (preserved for M22 dual theme) ─────────── */
-[data-visual-mode='lego'] .scene-viewport {
-  background-color: #d2b48c;
+/* Hide canvas dot grid when toggled off */
+.scene-viewport.no-grid {
   background-image:
-    /* Stud highlight (top of cylinder) */
-    radial-gradient(ellipse 12px 6px at center, #e0c9a6 0%, #e0c9a6 60%, transparent 61%),
-    /* Stud shadow (cylinder edge) */
-    radial-gradient(ellipse 13px 6.5px at center, #c4a67a 0%, #c4a67a 60%, transparent 61%),
-    linear-gradient(
-      to bottom right,
-      transparent calc(50% - 0.5px),
-      #c4a67a calc(50% - 0.5px),
-      #c4a67a calc(50% + 0.5px),
-      transparent calc(50% + 0.5px)
-    ),
-    linear-gradient(
-      to bottom left,
-      transparent calc(50% - 0.5px),
-      #c4a67a calc(50% - 0.5px),
-      #c4a67a calc(50% + 0.5px),
-      transparent calc(50% + 0.5px)
-    ),
-    linear-gradient(135deg, #e8d5b7 0%, #d4bc94 50%, #e2cca8 100%);
-  background-size:
-    64px 32px,
-    64px 32px,
-    64px 32px,
-    64px 32px,
-    100% 100%;
+    /* Keep the spotlight vignette */ radial-gradient(
+    1200px 800px at 30% 20%,
+    var(--canvas-glow, rgba(30, 41, 59, 0.55)) 0%,
+    transparent 60%
+  );
+  background-size: 100% 100%;
 }
 
 .scene-viewport:active {

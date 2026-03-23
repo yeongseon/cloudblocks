@@ -26,7 +26,7 @@
 
 ## 3. Feature Highlights (Bullet Form)
 
-- **Visual architecture builder** — Lego-style plates (boundaries) + blocks (resources) with isometric 2.5D rendering
+- **Visual architecture builder** — Modular plates (boundaries) + blocks (resources) with isometric 2.5D rendering
 - **Architecture compiler** — Generate Terraform, Bicep, or Pulumi from visual designs
 - **Real-time validation** — Rule engine validates placement and connections as you build
 - **7 resource categories** — Network, Security, Edge, Compute, Data, Messaging, Operations
@@ -79,7 +79,7 @@ Try it: https://yeongseon.github.io/cloudblocks/
 Title: CloudBlocks — Open-source visual architecture compiler (Terraform, Bicep, Pulumi)
 
 CloudBlocks lets you design cloud infrastructure by placing blocks on plates
-(think Lego), then compiles your design into Terraform, Bicep, or Pulumi code.
+(think building blocks), then compiles your design into Terraform, Bicep, or Pulumi code.
 
 It runs entirely in the browser — no backend required for the core builder.
 
@@ -100,7 +100,7 @@ Excited to share CloudBlocks — an open-source architecture compiler that
 converts visual infrastructure designs into infrastructure-as-code.
 
 Instead of writing HCL or Bicep by hand, you design your architecture
-visually (like building with Lego blocks), and CloudBlocks generates
+visually (like assembling building blocks), and CloudBlocks generates
 Terraform, Bicep, or Pulumi code automatically.
 
 Key capabilities:

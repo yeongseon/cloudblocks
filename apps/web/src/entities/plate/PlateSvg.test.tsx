@@ -125,12 +125,13 @@ describe('PlateSvg — CU-based dimensions', () => {
 
 describe('PlateSvg — SVG structure', () => {
   beforeEach(() => {
-    useUIStore.setState({ showStuds: true });
+    useUIStore.setState({ showStuds: true, showGrid: true });
   });
 
   it('renders 3 face polygons (top, left side, right side)', () => {
     const { container } = renderPlateSvg();
-    const polygons = container.querySelectorAll('polygon');
+    // Exclude polygons inside <clipPath> (used by PlateSurfaceGrid)
+    const polygons = container.querySelectorAll('polygon:not(clipPath polygon)');
     expect(polygons.length).toBe(3);
   });
 
