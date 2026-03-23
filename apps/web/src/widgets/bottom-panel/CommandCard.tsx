@@ -25,22 +25,17 @@ import {
   getResourceShortLabel,
   type ResourceType,
   type PlateActionType,
+  ALL_RESOURCES,
+  CREATION_GROUP_ORDER,
+  getCreationGroupMeta,
+  getCreationGroupId,
 } from './useTechTree';
 import {
   BLOCK_FRIENDLY_NAMES,
-  BLOCK_ICONS,
   CONNECTION_TYPE_LABELS,
   resolveConnectionNodes,
 } from '../../shared/types/index';
-import { getBlockColor } from '../../entities/block/blockFaceColors';
-import type {
-  Connection,
-  ConnectionType,
-  ContainerNode,
-  LeafNode,
-  ProviderType,
-  ResourceCategory,
-} from '@cloudblocks/schema';
+import type { Connection, ConnectionType, ContainerNode, LeafNode } from '@cloudblocks/schema';
 import './CommandCard.css';
 
 interface CommandCardProps {
@@ -49,7 +44,10 @@ interface CommandCardProps {
 
 const PLATE_CONTEXT_RESOURCES: Record<'network' | 'subnet', ResourceType[]> = {
   network: ['subnet'],
-  subnet: ['storage', 'vm', 'sql', 'key-vault', 'queue', 'app-service', 'app-gateway'],
+  subnet: ALL_RESOURCES.filter((type) => {
+    const def = RESOURCE_DEFINITIONS[type];
+    return def.category !== 'foundation';
+  }),
 };
 
 const POSITION_HOTKEYS = [
@@ -57,26 +55,6 @@ const POSITION_HOTKEYS = [
   ['A', 'S', 'D'],
   ['Z', 'X', 'C'],
 ] as const;
-
-const ALL_RESOURCES = Object.keys(RESOURCE_DEFINITIONS) as ResourceType[];
-
-const MVP_RESOURCES: ReadonlySet<ResourceType> = new Set([
-  'network',
-  'subnet',
-  'vm',
-  'sql',
-  'storage',
-  'key-vault',
-  'queue',
-  'app-service',
-  'app-gateway',
-]);
-
-const PROVIDER_RESOURCE_ALLOWLIST: Record<ProviderType, ReadonlySet<ResourceType>> = {
-  azure: MVP_RESOURCES,
-  aws: MVP_RESOURCES,
-  gcp: MVP_RESOURCES,
-};
 
 type ContainerLayer = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
 
@@ -99,44 +77,6 @@ function getPlateHeaderText(plate: ContainerNode): string {
   }
   // Network-layer plates: global, edge, region, zone
   return plateType === 'region' ? 'VNet' : plateType.charAt(0).toUpperCase() + plateType.slice(1);
-}
-
-type CreationGroupId = ResourceCategory | 'foundation';
-
-const CREATION_GROUP_ORDER: CreationGroupId[] = [
-  'foundation',
-  'compute',
-  'data',
-  'delivery',
-  'security',
-  'identity',
-  'messaging',
-  'operations',
-];
-
-function getCreationGroupMeta(groupId: CreationGroupId): {
-  icon: string;
-  label: string;
-  color: string;
-} {
-  if (groupId === 'foundation') {
-    return {
-      icon: '🧭',
-      label: 'Network Foundations',
-      color: '#2563EB',
-    };
-  }
-
-  return {
-    icon: BLOCK_ICONS[groupId],
-    label: BLOCK_FRIENDLY_NAMES[groupId],
-    color: getBlockColor('azure', undefined, groupId),
-  };
-}
-
-function getCreationGroupId(type: ResourceType): CreationGroupId {
-  const blockCategory = RESOURCE_DEFINITIONS[type].blockCategory;
-  return blockCategory ?? 'foundation';
 }
 
 export function CommandCard({ className = '' }: CommandCardProps) {
@@ -339,11 +279,10 @@ function CreationMode() {
   const isDraggingRef = useRef(false);
   const dragResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
-  const providerResources = PROVIDER_RESOURCE_ALLOWLIST[activeProvider];
   const groupedResources = CREATION_GROUP_ORDER.map((groupId) => {
-    const resources = ALL_RESOURCES.filter((resource) => getCreationGroupId(resource) === groupId)
-      .filter((resource) => providerResources.has(resource))
-      .sort((a, b) => RESOURCE_DEFINITIONS[a].label.localeCompare(RESOURCE_DEFINITIONS[b].label));
+    const resources = ALL_RESOURCES.filter(
+      (resource) => getCreationGroupId(resource) === groupId,
+    ).sort((a, b) => RESOURCE_DEFINITIONS[a].label.localeCompare(RESOURCE_DEFINITIONS[b].label));
 
     return { groupId, resources };
   }).filter((group) => group.resources.length > 0);
@@ -543,10 +482,7 @@ function PlateCreationMode({ selectedPlate }: { selectedPlate: ContainerNode }) 
     selectedPlate.layer !== 'subnet'
       ? PLATE_CONTEXT_RESOURCES.network
       : PLATE_CONTEXT_RESOURCES.subnet;
-  const providerResources = PROVIDER_RESOURCE_ALLOWLIST[activeProvider];
-  const filteredContextResources = contextResources.filter((resource) =>
-    providerResources.has(resource),
-  );
+  const filteredContextResources = contextResources;
 
   useEffect(() => {
     if (!gridRef.current) return;

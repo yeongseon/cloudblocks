@@ -428,28 +428,7 @@ export const PLATE_ACTION_GRID: (PlateActionType | null)[][] = [
   [null, null, null],
 ];
 
-// ─── MVP Resource Allowlist ────────────────────────────────
-// Phase 6: Show only core resources in the creation palette.
-// Full RESOURCE_DEFINITIONS remain for schema compatibility.
-export const MVP_RESOURCE_ALLOWLIST: ReadonlySet<ResourceType> = new Set([
-  'network',
-  'subnet',
-  'vm',
-  'sql',
-  'storage',
-  'key-vault',
-  'queue',
-  'app-service',
-  'app-gateway',
-]);
-
 export const ALL_RESOURCES = Object.keys(RESOURCE_DEFINITIONS) as ResourceType[];
-
-export const PROVIDER_RESOURCE_ALLOWLIST: Record<ProviderType, ReadonlySet<ResourceType>> = {
-  azure: MVP_RESOURCE_ALLOWLIST,
-  aws: MVP_RESOURCE_ALLOWLIST,
-  gcp: MVP_RESOURCE_ALLOWLIST,
-};
 
 export type CreationGroupId = ResourceCategory | 'foundation';
 
@@ -573,13 +552,11 @@ export function useTechTree(): TechTreeState {
     };
 
     const getCreationResources = () => {
-      return (Object.keys(RESOURCE_DEFINITIONS) as ResourceType[])
-        .filter((type) => MVP_RESOURCE_ALLOWLIST.has(type))
-        .map((type) => ({
-          resource: RESOURCE_DEFINITIONS[type],
-          enabled: isEnabled(type),
-          disabledReason: getDisabledReason(type),
-        }));
+      return ALL_RESOURCES.map((type) => ({
+        resource: RESOURCE_DEFINITIONS[type],
+        enabled: isEnabled(type),
+        disabledReason: getDisabledReason(type),
+      }));
     };
 
     const getTargetPlateId = (type: ResourceType): string | null => {

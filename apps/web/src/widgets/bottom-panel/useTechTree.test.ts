@@ -6,7 +6,7 @@ import { makeTestBlock, makeTestPlate } from '../../__tests__/legacyModelTestUti
 import {
   ACTION_DEFINITIONS,
   ACTION_GRID,
-  MVP_RESOURCE_ALLOWLIST,
+  ALL_RESOURCES,
   RESOURCE_DEFINITIONS,
   useTechTree,
 } from './useTechTree';
@@ -492,12 +492,10 @@ describe('useTechTree hook', () => {
     }
   });
 
-  it('returns all creation resources from RESOURCE_DEFINITIONS filtered by MVP allowlist', () => {
+  it('returns all creation resources from RESOURCE_DEFINITIONS', () => {
     const { result } = renderHook(() => useTechTree());
 
-    const expectedResourceTypes = (Object.keys(RESOURCE_DEFINITIONS) as ResourceType[]).filter(
-      (type) => MVP_RESOURCE_ALLOWLIST.has(type),
-    );
+    const expectedResourceTypes = ALL_RESOURCES;
     const creationResources = result.current.getCreationResources();
     const actualTypes = creationResources.map((entry) => entry.resource.id);
 
