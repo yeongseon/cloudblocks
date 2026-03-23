@@ -6,6 +6,63 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 
 ---
 
+## [v0.22.0] — 2026-03-23
+
+**Milestone 22 — Core Lock (Endpoint + Connection Architecture)**
+
+Schema v4 endpoint-based architecture replacing stub-addressable connections, canvas-centric UX overhaul with right-drawer panel system, semantic port rendering, drag-to-connect interaction, and dual theme design system (blueprint/workshop).
+
+### Schema v4 — Endpoint Architecture (PR #1240)
+
+- First-class `Endpoint` entities with `id`, `nodeId`, `direction`, `semantic` fields
+- `EndpointDirection` ('input' | 'output') and `EndpointSemantic` ('http' | 'event' | 'data') enums
+- `Connection` model refactored to `from`/`to` endpoint IDs (replacing `sourceId`/`targetId`)
+- Helper functions: `endpointId()`, `generateEndpointsForNode()`, `parseEndpointId()`, `resolveConnectionNodes()`
+- `CATEGORY_PORTS` rules and `ALLOWED_CONNECTIONS` validation matrix
+- Full v3→v4 migration path with backward compatibility
+- Diff engine and connection components updated for endpoint-based model
+
+### Canvas-Centric Layout
+
+- 2-column BuilderView layout (palette + canvas) replacing 4-panel CSS Grid (#1243)
+- Right-drawer panel system for ScenarioGallery, LearningPanel, ValidationDrawer, Properties (#1242)
+- Removed bottom dock (#1244) and FlowDiagram overlay (#1245)
+- Compact toolbar/MenuBar with panel access buttons (#1256)
+
+### Connection UX
+
+- Semantic port colors (http=blue, event=amber, data=teal) with occupied dimming and glow (#1250)
+- Drag-to-connect from ports with hover glow feedback (#1251)
+- Connection snap animation and drop affordances (#1252)
+- Invalid connection prevention with silent cancel (#1253)
+
+### Panels & Features
+
+- ScenarioGallery (#1246), LearningPanel (#1248), ValidationDrawer (#1255) moved to right drawer
+- Properties panel edit-centric rebuild with auto-open on selection (#1254)
+- Empty-canvas CTA with template quick-start (#1260)
+- BlockPalette search text highlighting (#1257)
+
+### Design System
+
+- Hardcoded LEGO colors replaced with themeTokens (blueprint/workshop) (#1249)
+- Unified icon usage with lucide-react (#1258)
+- UI terminology update: Block→Node, Plate→Container, Stub→Endpoint (#1259)
+- LEGO stud toggle as theme option (blueprint=studs on, workshop=studs off) (#1261)
+- First-run-only student onboarding (#1247)
+
+### Documentation
+
+- THEME_SYSTEM_SPEC.md updated to match code naming (blueprint/workshop) (#1233)
+- New ENDPOINT_PORT_MODEL.md documenting Schema v4 architecture (#1233)
+
+### Statistics
+
+- 39 issues closed across 2 PRs (#1240, #1331)
+- 137 test files, 2204 tests — all passing
+- 91 files changed, 5123 insertions, 1633 deletions (UX overhaul)
+- Build clean, lint clean, type check clean
+
 ## [v0.21.0] — 2026-03-23
 
 **Milestone 21 — UI/UX Overhaul & Stub Connections**
@@ -637,6 +694,8 @@ Milestone 4 (Workspace Management):
 
 ---
 
+[v0.22.0]: https://github.com/yeongseon/cloudblocks/compare/v0.21.0...v0.22.0
+[v0.21.0]: https://github.com/yeongseon/cloudblocks/compare/v0.20.0...v0.21.0
 [v0.16.0]: https://github.com/yeongseon/cloudblocks/compare/v0.15.0...v0.16.0
 [v0.15.0]: https://github.com/yeongseon/cloudblocks/compare/v0.14.0...v0.15.0
 [v0.14.0]: https://github.com/yeongseon/cloudblocks/compare/v0.13.0...v0.14.0
