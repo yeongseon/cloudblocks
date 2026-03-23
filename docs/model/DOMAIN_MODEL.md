@@ -432,3 +432,23 @@ This model enables:
 - Automated code generation from architecture graph
 - Multi-cloud abstraction with Azure-first v1 scope
 - Git-native workflow integration
+
+---
+
+# 14. Design Goals
+
+The architecture model (DSL) is designed around four principles:
+
+1. **Provider-neutral modeling** — Infrastructure is described independently of cloud vendors
+2. **Visual-first composition** — The visual diagram is the primary authoring surface
+3. **Deterministic generation** — Same architecture model always produces the same IaC output
+4. **Rule-based validation** — Constraints are checked before code is generated
+
+The architecture graph can be read as a directed flow:
+
+```
+internet → edge → compute → data
+                          → messaging → compute
+```
+
+This graph is consumed by the **rule engine** (validates constraints) and the **generator** (produces IaC code).

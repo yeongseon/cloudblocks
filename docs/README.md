@@ -131,11 +131,6 @@ CloudBlocks uses a **Lego-style composition model** where everything snaps toget
 
 ---
 
-## For Developers
+## Contributing
 
-Building or contributing to CloudBlocks? Head to the **[Developer](concept/ARCHITECTURE.md)** section for architecture docs, ADRs, module boundaries, and milestone plans.
-
-- [Architecture Overview](concept/ARCHITECTURE.md)
-- [Domain Model](model/DOMAIN_MODEL.md)
-- [Decision Records (ADRs)](adr/README.md)
-- [Contributing Guide](https://github.com/yeongseon/cloudblocks/blob/main/CONTRIBUTING.md)
+Interested in contributing to CloudBlocks? See the [Contributing Guide](contributing.md) for development setup, coding standards, and the PR process.

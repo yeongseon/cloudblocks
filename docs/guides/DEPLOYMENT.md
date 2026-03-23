@@ -10,12 +10,15 @@ For the canonical multi-environment cloud strategy (local/staging/production, pr
 
 CloudBlocks uses four distinct terms for its deployment lifecycle. Every document, workflow, and UI label must use these definitions consistently.
 
-| Term         | Definition                                                                                                                                          | Example                                                              |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| **Deploy**   | Push code or infrastructure to a specific environment. Triggered by a CI/CD pipeline.                                                               | "Deploy to staging" — `deploy.yml` runs on push to `main`.           |
-| **Promote**  | Move a tested version from `staging` to `production`. A controlled, deliberate action with pre-checks (tests passed, cost reviewed, diff approved). | "Promote to production" — `promote.yml` runs after manual approval.  |
-| **Rollback** | Revert an environment to a previous known-good version. Used for emergency or planned recovery.                                                     | "Rollback production to v0.17.0" — restores the last stable release. |
-| **Release**  | Tag a version as a user-facing milestone. A labeling action, not a deployment action. Releases are created after a milestone closes.                | "Release v0.18.0" — git tag + GitHub Release.                        |
+| Term          | Definition                                                                                                                                          | Example                                                              |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| **Deploy**    | Push code or infrastructure to a specific environment. Triggered by a CI/CD pipeline.                                                               | "Deploy to staging" — `deploy.yml` runs on push to `main`.           |
+| **Promote**   | Move a tested version from `staging` to `production`. A controlled, deliberate action with pre-checks (tests passed, cost reviewed, diff approved). | "Promote to production" — `promote.yml` runs after manual approval.  |
+| **Rollback**  | Revert an environment to a previous known-good version. Used for emergency or planned recovery.                                                     | "Rollback production to v0.17.0" — restores the last stable release. |
+| **Release**   | Tag a version as a user-facing milestone. A labeling action, not a deployment action. Releases are created after a milestone closes.                | "Release v0.18.0" — git tag + GitHub Release.                        |
+| **Pipeline**  | An automated CI/CD workflow (GitHub Actions).                                                                                                       | "The CI pipeline passed."                                            |
+| **Revision**  | A specific deployed instance of the application (Azure Container Apps concept).                                                                     | "New revision is active."                                            |
+| **Image Tag** | The unique identifier for a container image (git SHA).                                                                                              | "Promote image tag abc123..."                                        |
 
 ### Usage Guidelines
 
