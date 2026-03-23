@@ -68,6 +68,7 @@ Thumbs.db
 
 # ─── Docker ───────────────────────────────────────────────────
 docker-compose.override.yml
+infra/plausible/plausible.env
 
 # ─── Misc ─────────────────────────────────────────────────────
 *.tgz
