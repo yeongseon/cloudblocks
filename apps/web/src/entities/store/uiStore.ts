@@ -203,8 +203,12 @@ interface UIState {
   upgradingBlockId: string | null;
   triggerUpgradeAnimation: (blockId: string) => void;
   // ── Connection snap animation ──
-  snapTargetBlockId: string | null;
+  snapTargetBlockIds: Set<string>;
   triggerSnapAnimation: (blockId: string) => void;
+
+  // ── Magnetic snap (connection preview proximity) ──
+  magneticSnapTargetId: string | null;
+  setMagneticSnapTarget: (id: string | null) => void;
 }
 
 /** Keys that occupy the right-side panel slot — only one may be open. */
@@ -230,17 +234,14 @@ function closeOtherRightPanels(except: RightPanelKey): Partial<UIState> {
 }
 
 export const useUIStore = create<UIState>((set, get) => ({
-  appView: (localStorage.getItem('cloudblocks:app-view') as AppView) || 'landing',
+  appView: 'landing' as AppView,
   setAppView: (view) => {
-    localStorage.setItem('cloudblocks:app-view', view);
     set({ appView: view });
   },
   goToLanding: () => {
-    localStorage.setItem('cloudblocks:app-view', 'landing');
     set({ appView: 'landing' });
   },
   goToBuilder: () => {
-    localStorage.setItem('cloudblocks:app-view', 'builder');
     set({ appView: 'builder' });
   },
 
@@ -297,6 +298,7 @@ export const useUIStore = create<UIState>((set, get) => ({
       connectionSource: null,
       draggedBlockCategory: null,
       draggedResourceName: null,
+      magneticSnapTargetId: null,
     }),
 
   completeInteraction: () =>
@@ -305,6 +307,7 @@ export const useUIStore = create<UIState>((set, get) => ({
       connectionSource: null,
       draggedBlockCategory: null,
       draggedResourceName: null,
+      magneticSnapTargetId: null,
     }),
 
   draggedBlockCategory: null,
@@ -495,9 +498,8 @@ export const useUIStore = create<UIState>((set, get) => ({
   themeVariant: (localStorage.getItem('cloudblocks:theme-variant') as ThemeVariant) || 'blueprint',
   setThemeVariant: (variant) => {
     localStorage.setItem('cloudblocks:theme-variant', variant);
-    const defaultStuds = variant === 'workshop';
-    localStorage.setItem('cloudblocks:show-studs', String(defaultStuds));
-    set({ themeVariant: variant, showStuds: defaultStuds });
+    // Studs are always shown per BRICK_DESIGN_SPEC.md §5 — theme does not affect stud visibility
+    set({ themeVariant: variant });
   },
 
   showStuds: (() => {
@@ -562,11 +564,23 @@ export const useUIStore = create<UIState>((set, get) => ({
     }, 1600);
   },
 
-  snapTargetBlockId: null,
+  snapTargetBlockIds: new Set<string>(),
   triggerSnapAnimation: (blockId) => {
-    set({ snapTargetBlockId: blockId });
+    set((s) => {
+      const next = new Set(s.snapTargetBlockIds);
+      next.add(blockId);
+      return { snapTargetBlockIds: next };
+    });
     setTimeout(() => {
-      set((s) => (s.snapTargetBlockId === blockId ? { snapTargetBlockId: null } : s));
+      set((s) => {
+        if (!s.snapTargetBlockIds.has(blockId)) return s;
+        const next = new Set(s.snapTargetBlockIds);
+        next.delete(blockId);
+        return { snapTargetBlockIds: next };
+      });
     }, 500);
   },
+
+  magneticSnapTargetId: null,
+  setMagneticSnapTarget: (id) => set({ magneticSnapTargetId: id }),
 }));
