@@ -8,6 +8,7 @@ import { SOUND_ASSETS } from '../shared/assets/sounds';
 import { metricsService } from '../shared/utils/metricsService';
 import { LandingPage } from '../widgets/landing-page/LandingPage';
 import { BuilderView } from './BuilderView';
+import { DemoBanner } from './DemoBanner';
 import './App.css';
 
 registerBuiltinTemplates();
@@ -30,6 +31,7 @@ function App() {
 
   return (
     <div className="app">
+      <DemoBanner />
       {effectiveAppView === 'landing' ? <LandingPage /> : <BuilderView />}
       <Toaster
         position="bottom-center"
