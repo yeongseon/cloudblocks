@@ -148,7 +148,7 @@ export interface ProviderDefinition {
   name: ProviderName;
   displayName: string;
   blockMappings: BlockResourceMap;
-  plateMappings: ContainerBlockResourceMap;
+  containerLayerMappings: ContainerBlockResourceMap;
   generators: {
     terraform: TerraformProviderConfig;
     bicep: BicepProviderConfig;

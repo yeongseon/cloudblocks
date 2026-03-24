@@ -63,7 +63,7 @@ const LAYER_VISUALS: Record<PlateLayerType, LayerVisuals> = {
 // ─── Props ─────────────────────────────────────────────────
 
 export interface ContainerBlockSvgProps {
-  plateType: PlateLayerType;
+  containerLayer: PlateLayerType;
   unitsX: number; // CU width
   unitsY: number; // CU depth
   worldHeight: number; // CH height (fractional OK for plates)
@@ -78,7 +78,7 @@ export interface ContainerBlockSvgProps {
 // ─── Component ─────────────────────────────────────────────
 
 export const ContainerBlockSvg = memo(function PlateSvg({
-  plateType,
+  containerLayer,
   unitsX,
   unitsY,
   worldHeight,
@@ -103,7 +103,7 @@ export const ContainerBlockSvg = memo(function PlateSvg({
   const rightX = screenWidth - BLOCK_MARGIN;
 
   // Layer-specific visual config
-  const visuals = LAYER_VISUALS[plateType];
+  const visuals = LAYER_VISUALS[containerLayer];
 
   // Isometric face polygons
   const topFacePoints = `${cx},${topY} ${rightX},${midY} ${cx},${bottomY} ${leftX},${midY}`;
@@ -122,7 +122,7 @@ export const ContainerBlockSvg = memo(function PlateSvg({
       height="100%"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
-      data-container-type={plateType}
+      data-container-type={containerLayer}
     >
       <polygon
         points={topFacePoints}

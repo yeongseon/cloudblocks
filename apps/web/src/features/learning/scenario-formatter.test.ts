@@ -50,7 +50,7 @@ const createStep = (overrides: Partial<ScenarioStep> = {}): ScenarioStep => ({
     'Look for the VNet option in the palette.',
     'A VNet provides network isolation for your resources.',
   ],
-  validationRules: [{ type: 'container-exists', plateType: 'region' }],
+  validationRules: [{ type: 'container-exists', containerLayer: 'region' }],
   ...overrides,
 });
 

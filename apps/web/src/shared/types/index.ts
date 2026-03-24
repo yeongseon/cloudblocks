@@ -4,7 +4,7 @@
 import type {
   ArchitectureModel,
   BlockRole,
-  PlateType,
+  ContainerLayer,
   ResourceCategory,
   Size,
 } from '@cloudblocks/schema';
@@ -26,7 +26,7 @@ export type {
   LegacyConnection,
   ResourceBlock,
   LayerType,
-  PlateType,
+  ContainerLayer,
   Position,
   ProviderType,
   ResourceCategory,
@@ -91,7 +91,7 @@ export interface Workspace {
 
 // ─── Visual Identity ───────────────────────────────────────
 
-export const CONTAINER_BLOCK_COLORS: Record<PlateType, string> = {
+export const CONTAINER_BLOCK_COLORS: Record<ContainerLayer, string> = {
   global: '#B39DDB',
   edge: '#80CBC4',
   region: '#90CAF9',
@@ -281,7 +281,7 @@ export type ContainerBlockProfileId = NetworkProfileId | SubnetProfileId;
 
 export interface ContainerBlockProfile {
   id: ContainerBlockProfileId;
-  type: PlateType; // LayerType (minus resource)
+  type: ContainerLayer; // LayerType (minus resource)
   displayName: string;
   description: string;
   unitsX: number;
@@ -414,7 +414,7 @@ export const CONTAINER_BLOCK_PROFILES: Record<ContainerBlockProfileId, Container
   },
 };
 
-export const DEFAULT_CONTAINER_BLOCK_PROFILE: Record<PlateType, ContainerBlockProfileId> = {
+export const DEFAULT_CONTAINER_BLOCK_PROFILE: Record<ContainerLayer, ContainerBlockProfileId> = {
   global: 'network-hub',
   edge: 'network-sandbox',
   region: 'network-platform',
@@ -444,7 +444,7 @@ export function buildContainerBlockSizeFromProfileId(profileId: ContainerBlockPr
 }
 
 interface LegacyContainerBlockShape {
-  type: PlateType;
+  type: ContainerLayer;
   size: { width: number; depth: number };
 }
 
@@ -472,7 +472,7 @@ export function inferLegacyContainerBlockProfileId(
   return closest.id;
 }
 
-export const DEFAULT_CONTAINER_BLOCK_SIZE: Record<PlateType, Size> = {
+export const DEFAULT_CONTAINER_BLOCK_SIZE: Record<ContainerLayer, Size> = {
   global: buildContainerBlockSizeFromProfileId(DEFAULT_CONTAINER_BLOCK_PROFILE.global),
   edge: buildContainerBlockSizeFromProfileId(DEFAULT_CONTAINER_BLOCK_PROFILE.edge),
   region: buildContainerBlockSizeFromProfileId(DEFAULT_CONTAINER_BLOCK_PROFILE.region),

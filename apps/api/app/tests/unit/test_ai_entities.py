@@ -51,12 +51,12 @@ def test_ai_generation_response_creation_defaults() -> None:
 
 def test_ai_generation_response_creation_with_all_fields() -> None:
     response = AIGenerationResponse(
-        architecture={"plates": [{"id": "plate-1"}]},
+        architecture={"plates": [{"id": "cb-1"}]},
         explanation="Generated baseline architecture",
         warnings=["Estimated cost may vary."],
     )
 
-    assert response.architecture == {"plates": [{"id": "plate-1"}]}
+    assert response.architecture == {"plates": [{"id": "cb-1"}]}
     assert response.explanation == "Generated baseline architecture"
     assert response.warnings == ["Estimated cost may vary."]
 

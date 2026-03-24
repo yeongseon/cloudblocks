@@ -118,7 +118,7 @@ async def test_generate_returns_validation_warnings(
     invalid_architecture: dict[str, object] = {
         "plates": [
             {
-                "id": "plate-1",
+                "id": "cb-1",
                 "name": "VPC",
                 "type": "datacenter",
                 "parentId": None,
@@ -132,7 +132,7 @@ async def test_generate_returns_validation_warnings(
                 "id": "block-1",
                 "name": "Server",
                 "category": "networking",
-                "placementId": "plate-1",
+                "placementId": "cb-1",
                 "position": {"x": 2, "y": 0, "z": 2},
                 "provider": "aws",
                 "subtype": "ec2",
@@ -285,7 +285,7 @@ async def test_cost_success(
                 "id": "block-1",
                 "name": "Web ALB",
                 "category": "gateway",
-                "placementId": "plate-1",
+                "placementId": "cb-1",
                 "position": {"x": 2, "y": 0, "z": 2},
                 "provider": "aws",
                 "subtype": "alb",
@@ -294,7 +294,7 @@ async def test_cost_success(
                 "id": "block-2",
                 "name": "App DB",
                 "category": "database",
-                "placementId": "plate-1",
+                "placementId": "cb-1",
                 "position": {"x": 6, "y": 0, "z": 2},
                 "provider": "aws",
                 "subtype": "rds-postgres",

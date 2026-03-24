@@ -156,27 +156,27 @@ export const ContainerBlockSprite = memo(function PlateSprite({
     setSelectedId(container.id);
   };
 
-  const plateType = container.layer as PlateLayer;
-  const sizeClass = plateType === 'subnet' ? 'container-subnet' : 'container-network';
+  const containerLayer = container.layer as PlateLayer;
+  const sizeClass = containerLayer === 'subnet' ? 'container-subnet' : 'container-network';
 
   const profile =
     container.profileId && isContainerBlockProfileId(container.profileId)
       ? getContainerBlockProfile(container.profileId)
-      : getContainerBlockProfile(DEFAULT_CONTAINER_BLOCK_PROFILE[plateType]);
-  const plateColorInput = { type: plateType };
+      : getContainerBlockProfile(DEFAULT_CONTAINER_BLOCK_PROFILE[containerLayer]);
+  const plateColorInput = { type: containerLayer };
   const faceColors = getContainerBlockFaceColors(plateColorInput);
   const typeLabel =
-    plateType === 'subnet'
+    containerLayer === 'subnet'
       ? 'Subnet'
-      : plateType === 'global'
+      : containerLayer === 'global'
         ? 'Global Layer'
-        : plateType === 'edge'
+        : containerLayer === 'edge'
           ? 'Edge Layer'
-          : plateType === 'zone'
+          : containerLayer === 'zone'
             ? 'Zone Layer'
             : 'Region Layer';
   const label = container.name || typeLabel;
-  const iconUrl = getContainerBlockIconUrl(plateType);
+  const iconUrl = getContainerBlockIconUrl(containerLayer);
 
   const { screenWidth, screenHeight } = worldSizeToScreen(
     container.frame.width,
@@ -222,7 +222,7 @@ export const ContainerBlockSprite = memo(function PlateSprite({
       >
         <div className="container-img" aria-hidden="true">
           <ContainerBlockSvg
-            plateType={plateType}
+            containerLayer={containerLayer}
             unitsX={profile.unitsX}
             unitsY={profile.unitsY}
             worldHeight={profile.worldHeight}

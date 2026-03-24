@@ -409,8 +409,8 @@ describe('validateLayerPlacement', () => {
 
   it('returns error with correct fields for invalid layer hierarchy', () => {
     const block = makeBlock({ id: 'b1', name: 'TestBlock', category: 'compute' });
-    const plateTypes = ['global', 'edge', 'region', 'zone', 'subnet'] as const;
-    for (const type of plateTypes) {
+    const containerLayers = ['global', 'edge', 'region', 'zone', 'subnet'] as const;
+    for (const type of containerLayers) {
       const container = makePlate({ type });
       expect(validateLayerPlacement(block, container)).toBeNull();
     }

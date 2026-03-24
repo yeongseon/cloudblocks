@@ -45,11 +45,11 @@ describe('azureProviderDefinition', () => {
   });
 
   it('defines all container mappings', () => {
-    expect(azureProviderDefinition.plateMappings.region).toEqual({
+    expect(azureProviderDefinition.containerLayerMappings.region).toEqual({
       resourceType: 'azurerm_virtual_network',
       namePrefix: 'vnet',
     });
-    expect(azureProviderDefinition.plateMappings.subnet).toEqual({
+    expect(azureProviderDefinition.containerLayerMappings.subnet).toEqual({
       resourceType: 'azurerm_subnet',
       namePrefix: 'subnet',
     });
@@ -110,11 +110,11 @@ describe('awsProviderDefinition', () => {
   });
 
   it('keeps expected network and subnet container mappings', () => {
-    expect(awsProviderDefinition.plateMappings.region).toEqual({
+    expect(awsProviderDefinition.containerLayerMappings.region).toEqual({
       resourceType: 'aws_vpc',
       namePrefix: 'vpc',
     });
-    expect(awsProviderDefinition.plateMappings.subnet).toEqual({
+    expect(awsProviderDefinition.containerLayerMappings.subnet).toEqual({
       resourceType: 'aws_subnet',
       namePrefix: 'subnet',
     });
@@ -142,11 +142,11 @@ describe('gcpProviderDefinition', () => {
   });
 
   it('keeps expected network and subnet container mappings', () => {
-    expect(gcpProviderDefinition.plateMappings.region).toEqual({
+    expect(gcpProviderDefinition.containerLayerMappings.region).toEqual({
       resourceType: 'google_compute_network',
       namePrefix: 'network',
     });
-    expect(gcpProviderDefinition.plateMappings.subnet).toEqual({
+    expect(gcpProviderDefinition.containerLayerMappings.subnet).toEqual({
       resourceType: 'google_compute_subnetwork',
       namePrefix: 'subnet',
     });

@@ -12,26 +12,26 @@ def validator() -> ArchitectureValidator:
 
 def _minimal_architecture(
     *,
-    plates: list[dict[str, object]] | None = None,
-    blocks: list[dict[str, object]] | None = None,
-    connections: list[dict[str, object]] | None = None,
+    container_blocks: list[object] | None = None,
+    blocks: list[object] | None = None,
+    connections: list[object] | None = None,
 ) -> dict[str, object]:
     return {
-        "plates": plates if plates is not None else [],
+        "plates": container_blocks if container_blocks is not None else [],
         "blocks": blocks if blocks is not None else [],
         "connections": connections if connections is not None else [],
     }
 
 
-def _make_plate(
-    plate_id: str = "plate-1",
-    plate_type: str = "region",
+def _make_container_block(
+    container_block_id: str = "cb-1",
+    container_layer: str = "region",
     **overrides: object,
 ) -> dict[str, object]:
     base: dict[str, object] = {
-        "id": plate_id,
-        "name": "Test Plate",
-        "type": plate_type,
+        "id": container_block_id,
+        "name": "Test Container Block",
+        "type": container_layer,
         "parentId": None,
         "children": [],
         "position": {"x": 0, "y": 0, "z": 0},
@@ -43,7 +43,7 @@ def _make_plate(
 
 def _make_block(
     block_id: str = "block-1",
-    placement_id: str = "plate-1",
+    placement_id: str = "cb-1",
     **overrides: object,
 ) -> dict[str, object]:
     base: dict[str, object] = {
@@ -80,10 +80,10 @@ class TestValidArchitecture:
 
     def test_valid_three_tier(self, validator: ArchitectureValidator) -> None:
         arch = _minimal_architecture(
-            plates=[_make_plate("plate-1", "region")],
+            container_blocks=[_make_container_block("cb-1", "region")],
             blocks=[
-                _make_block("block-1", "plate-1"),
-                _make_block("block-2", "plate-1", category="database", subtype="rds-postgres"),
+                _make_block("block-1", "cb-1"),
+                _make_block("block-2", "cb-1", category="database", subtype="rds-postgres"),
             ],
             connections=[_make_connection("conn-1", "block-1", "block-2", "data")],
         )
@@ -108,64 +108,76 @@ class TestMissingTopLevelKeys:
         assert any("plates" in w for w in result)
 
 
-class TestPlateValidation:
-    def test_invalid_plate_type(self, validator: ArchitectureValidator) -> None:
-        plate = _make_plate(plate_type="datacenter")
-        result = validator.validate(_minimal_architecture(plates=[plate]))
+class TestContainerBlockValidation:
+    def test_invalid_container_layer(self, validator: ArchitectureValidator) -> None:
+        container_block = _make_container_block(container_layer="datacenter")
+        result = validator.validate(_minimal_architecture(container_blocks=[container_block]))
         assert any("invalid type" in w for w in result)
 
     def test_missing_plate_id(self, validator: ArchitectureValidator) -> None:
-        plate = _make_plate()
-        del plate["id"]
-        result = validator.validate(_minimal_architecture(plates=[plate]))
+        container_block = _make_container_block()
+        del container_block["id"]
+        result = validator.validate(_minimal_architecture(container_blocks=[container_block]))
         assert any("missing or invalid 'id'" in w for w in result)
 
     def test_invalid_children_type(self, validator: ArchitectureValidator) -> None:
-        plate = _make_plate(children="not-a-list")
-        result = validator.validate(_minimal_architecture(plates=[plate]))
+        container_block = _make_container_block(children="not-a-list")
+        result = validator.validate(_minimal_architecture(container_blocks=[container_block]))
         assert any("children" in w and "array" in w for w in result)
 
-    def test_non_dict_plate(self, validator: ArchitectureValidator) -> None:
-        result = validator.validate(_minimal_architecture(plates=["not-a-dict"]))
+    def test_non_dict_container_block(self, validator: ArchitectureValidator) -> None:
+        result = validator.validate(_minimal_architecture(container_blocks=["not-a-dict"]))
         assert any("not a valid object" in w for w in result)
 
 
 class TestBlockValidation:
     def test_invalid_category(self, validator: ArchitectureValidator) -> None:
         block = _make_block(category="networking")
-        result = validator.validate(_minimal_architecture(plates=[_make_plate()], blocks=[block]))
+        result = validator.validate(
+            _minimal_architecture(container_blocks=[_make_container_block()], blocks=[block])
+        )
         assert any("invalid category" in w for w in result)
 
     def test_invalid_provider(self, validator: ArchitectureValidator) -> None:
         block = _make_block(provider="digitalocean")
-        result = validator.validate(_minimal_architecture(plates=[_make_plate()], blocks=[block]))
+        result = validator.validate(
+            _minimal_architecture(container_blocks=[_make_container_block()], blocks=[block])
+        )
         assert any("invalid provider" in w for w in result)
 
     def test_invalid_subtype(self, validator: ArchitectureValidator) -> None:
         block = _make_block(subtype="kubernetes")
-        result = validator.validate(_minimal_architecture(plates=[_make_plate()], blocks=[block]))
+        result = validator.validate(
+            _minimal_architecture(container_blocks=[_make_container_block()], blocks=[block])
+        )
         assert any("invalid subtype" in w for w in result)
 
     def test_missing_placement_id(self, validator: ArchitectureValidator) -> None:
         block = _make_block()
         del block["placementId"]
-        result = validator.validate(_minimal_architecture(plates=[_make_plate()], blocks=[block]))
+        result = validator.validate(
+            _minimal_architecture(container_blocks=[_make_container_block()], blocks=[block])
+        )
         assert any("placementId" in w for w in result)
 
     def test_dangling_placement_id(self, validator: ArchitectureValidator) -> None:
         block = _make_block(placement_id="nonexistent")
-        result = validator.validate(_minimal_architecture(plates=[_make_plate()], blocks=[block]))
-        assert any("does not reference a known plate" in w for w in result)
+        result = validator.validate(
+            _minimal_architecture(container_blocks=[_make_container_block()], blocks=[block])
+        )
+        assert any("does not reference a known container block" in w for w in result)
 
     def test_non_dict_block(self, validator: ArchitectureValidator) -> None:
-        result = validator.validate(_minimal_architecture(plates=[_make_plate()], blocks=[42]))
+        result = validator.validate(
+            _minimal_architecture(container_blocks=[_make_container_block()], blocks=[42])
+        )
         assert any("not a valid object" in w for w in result)
 
 
 class TestConnectionValidation:
     def test_invalid_connection_type(self, validator: ArchitectureValidator) -> None:
         arch = _minimal_architecture(
-            plates=[_make_plate()],
+            container_blocks=[_make_container_block()],
             blocks=[
                 _make_block("block-1"),
                 _make_block("block-2"),
@@ -177,7 +189,7 @@ class TestConnectionValidation:
 
     def test_dangling_source_id(self, validator: ArchitectureValidator) -> None:
         arch = _minimal_architecture(
-            plates=[_make_plate()],
+            container_blocks=[_make_container_block()],
             blocks=[_make_block("block-2")],
             connections=[_make_connection(source_id="missing", target_id="block-2")],
         )
@@ -186,7 +198,7 @@ class TestConnectionValidation:
 
     def test_dangling_target_id(self, validator: ArchitectureValidator) -> None:
         arch = _minimal_architecture(
-            plates=[_make_plate()],
+            container_blocks=[_make_container_block()],
             blocks=[_make_block("block-1")],
             connections=[_make_connection(source_id="block-1", target_id="missing")],
         )
@@ -195,7 +207,7 @@ class TestConnectionValidation:
 
     def test_self_connection(self, validator: ArchitectureValidator) -> None:
         arch = _minimal_architecture(
-            plates=[_make_plate()],
+            container_blocks=[_make_container_block()],
             blocks=[_make_block("block-1")],
             connections=[_make_connection(source_id="block-1", target_id="block-1")],
         )
@@ -209,7 +221,7 @@ class TestConnectionValidation:
             "type": "http",
         }
         arch = _minimal_architecture(
-            plates=[_make_plate()],
+            container_blocks=[_make_container_block()],
             blocks=[_make_block("block-1")],
             connections=[conn],
         )
@@ -217,21 +229,23 @@ class TestConnectionValidation:
         assert any("missing 'sourceId'" in w for w in result)
 
     def test_non_dict_connection(self, validator: ArchitectureValidator) -> None:
-        result = validator.validate(_minimal_architecture(connections=["bad"]))
+        result = validator.validate(
+            _minimal_architecture(container_blocks=[_make_container_block()], connections=["bad"])
+        )
         assert any("not a valid object" in w for w in result)
 
 
 class TestDuplicateIds:
-    def test_duplicate_plate_ids(self, validator: ArchitectureValidator) -> None:
+    def test_duplicate_container_block_ids(self, validator: ArchitectureValidator) -> None:
         arch = _minimal_architecture(
-            plates=[_make_plate("plate-1"), _make_plate("plate-1")],
+            container_blocks=[_make_container_block("cb-1"), _make_container_block("cb-1")],
         )
         result = validator.validate(arch)
         assert any("Duplicate id" in w for w in result)
 
     def test_duplicate_across_types(self, validator: ArchitectureValidator) -> None:
         arch = _minimal_architecture(
-            plates=[_make_plate("shared-id")],
+            container_blocks=[_make_container_block("shared-id")],
             blocks=[_make_block("shared-id", "shared-id")],
         )
         result = validator.validate(arch)

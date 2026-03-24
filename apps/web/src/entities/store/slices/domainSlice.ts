@@ -86,7 +86,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
 
   addNode: (input: AddNodeInput) => {
     if (input.kind === 'container') {
-      // Resolve layer → PlateType for the existing addPlate logic
+      // Resolve layer -> ContainerLayer for the existing addPlate logic
       const layer = input.layer as PlateLayerType;
       get().addPlate(layer, input.name, input.parentId, input.profileId);
     } else {

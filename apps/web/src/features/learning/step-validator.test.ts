@@ -131,13 +131,13 @@ describe('evaluateRule', () => {
   describe('container-exists', () => {
     it('finds network container', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'container-exists', plateType: 'region' };
+      const rule: StepValidationRule = { type: 'container-exists', containerLayer: 'region' };
       expect(evaluateRule(rule, model)).toBe(true);
     });
 
     it('finds subnet container', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'container-exists', plateType: 'subnet' };
+      const rule: StepValidationRule = { type: 'container-exists', containerLayer: 'subnet' };
       expect(evaluateRule(rule, model)).toBe(true);
     });
 
@@ -150,7 +150,7 @@ describe('evaluateRule', () => {
           ...getResources(model),
         ],
       };
-      const rule: StepValidationRule = { type: 'container-exists', plateType: 'region' };
+      const rule: StepValidationRule = { type: 'container-exists', containerLayer: 'region' };
       expect(evaluateRule(rule, noNetworkModel)).toBe(false);
     });
   });
@@ -167,7 +167,7 @@ describe('evaluateRule', () => {
       const rule: StepValidationRule = {
         type: 'block-exists',
         category: 'compute',
-        onPlateType: 'subnet',
+        onContainerLayer: 'subnet',
       };
       expect(evaluateRule(rule, model)).toBe(true);
     });
@@ -177,7 +177,7 @@ describe('evaluateRule', () => {
       const rule: StepValidationRule = {
         type: 'block-exists',
         category: 'data',
-        onPlateType: 'subnet',
+        onContainerLayer: 'subnet',
       };
       expect(evaluateRule(rule, model)).toBe(true);
     });
@@ -193,7 +193,7 @@ describe('evaluateRule', () => {
       const rule: StepValidationRule = {
         type: 'block-exists',
         category: 'data',
-        onPlateType: 'region',
+        onContainerLayer: 'region',
       };
       expect(evaluateRule(rule, model)).toBe(false);
     });
@@ -212,7 +212,7 @@ describe('evaluateRule', () => {
       const rule: StepValidationRule = {
         type: 'block-exists',
         category: 'compute',
-        onPlateType: 'subnet',
+        onContainerLayer: 'subnet',
       };
       expect(evaluateRule(rule, modelWithMissingPlacement)).toBe(false);
     });
@@ -290,7 +290,7 @@ describe('evaluateRule', () => {
       const rule: StepValidationRule = {
         type: 'entity-on-container',
         entityCategory: 'delivery',
-        plateType: 'subnet',
+        containerLayer: 'subnet',
       };
       expect(evaluateRule(rule, model)).toBe(true);
     });
@@ -300,7 +300,7 @@ describe('evaluateRule', () => {
       const rule: StepValidationRule = {
         type: 'entity-on-container',
         entityCategory: 'data',
-        plateType: 'subnet',
+        containerLayer: 'subnet',
       };
       expect(evaluateRule(rule, model)).toBe(true);
     });
@@ -310,7 +310,7 @@ describe('evaluateRule', () => {
       const rule: StepValidationRule = {
         type: 'entity-on-container',
         entityCategory: 'data',
-        plateType: 'region',
+        containerLayer: 'region',
       };
       expect(evaluateRule(rule, model)).toBe(false);
     });
@@ -329,7 +329,7 @@ describe('evaluateRule', () => {
       const rule: StepValidationRule = {
         type: 'entity-on-container',
         entityCategory: 'data',
-        plateType: 'subnet',
+        containerLayer: 'subnet',
       };
 
       expect(evaluateRule(rule, modelWithMissingPlacement)).toBe(false);
@@ -378,7 +378,7 @@ describe('evaluateRule', () => {
       const model = createTestModel();
       const rule: StepValidationRule = {
         type: 'min-container-count',
-        plateType: 'region',
+        containerLayer: 'region',
         count: 1,
       };
       expect(evaluateRule(rule, model)).toBe(true);
@@ -388,7 +388,7 @@ describe('evaluateRule', () => {
       const model = createTestModel();
       const rule: StepValidationRule = {
         type: 'min-container-count',
-        plateType: 'subnet',
+        containerLayer: 'subnet',
         count: 3,
       };
       expect(evaluateRule(rule, model)).toBe(false);
@@ -407,7 +407,7 @@ describe('evaluateRules', () => {
   it('passes when all rules pass', () => {
     const model = createTestModel();
     const rules: StepValidationRule[] = [
-      { type: 'container-exists', plateType: 'region' },
+      { type: 'container-exists', containerLayer: 'region' },
       { type: 'block-exists', category: 'delivery' },
       { type: 'connection-exists', sourceCategory: 'compute', targetCategory: 'data' },
       { type: 'architecture-valid' },
@@ -423,7 +423,7 @@ describe('evaluateRules', () => {
   it('fails when some rules fail and keeps result order', () => {
     const model = createTestModel();
     const rules: StepValidationRule[] = [
-      { type: 'container-exists', plateType: 'region' },
+      { type: 'container-exists', containerLayer: 'region' },
       { type: 'min-block-count', category: 'delivery', count: 2 },
       { type: 'connection-exists', sourceCategory: 'data', targetCategory: 'delivery' },
     ];

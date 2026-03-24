@@ -129,7 +129,7 @@ export const azureProviderDefinition: ProviderDefinition = {
     },
   },
 
-  plateMappings: {
+  containerLayerMappings: {
     global: {
       resourceType: 'azurerm_virtual_network',
       namePrefix: 'global',

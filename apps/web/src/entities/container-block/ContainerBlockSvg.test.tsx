@@ -8,7 +8,7 @@ import { TILE_W, TILE_H, TILE_Z, BLOCK_PADDING } from '../../shared/tokens/desig
 type PlateLayerType = Exclude<LayerType, 'resource'>;
 
 const defaultProps: ComponentProps<typeof ContainerBlockSvg> = {
-  plateType: 'subnet',
+  containerLayer: 'subnet',
   unitsX: 4,
   unitsY: 6,
   worldHeight: 0.5,
@@ -63,7 +63,7 @@ describe('PlateSvg — container type attribute', () => {
   const allTypes: PlateLayerType[] = ['global', 'edge', 'region', 'zone', 'subnet'];
 
   it.each(allTypes)('sets data-container-type="%s"', (type) => {
-    const { container } = renderPlateSvg({ plateType: type });
+    const { container } = renderPlateSvg({ containerLayer: type });
     const svg = container.querySelector('svg');
     expect(svg?.getAttribute('data-container-type')).toBe(type);
   });
@@ -136,8 +136,8 @@ describe('PlateSvg — SVG structure', () => {
 
 describe('PlateSvg — layer-type visuals', () => {
   it('global container has thicker border than subnet', () => {
-    const { container: globalC } = renderPlateSvg({ plateType: 'global' });
-    const { container: subnetC } = renderPlateSvg({ plateType: 'subnet' });
+    const { container: globalC } = renderPlateSvg({ containerLayer: 'global' });
+    const { container: subnetC } = renderPlateSvg({ containerLayer: 'subnet' });
 
     const globalStroke = Number(globalC.querySelector('polygon')?.getAttribute('stroke-width'));
     const subnetStroke = Number(subnetC.querySelector('polygon')?.getAttribute('stroke-width'));
@@ -145,8 +145,8 @@ describe('PlateSvg — layer-type visuals', () => {
   });
 
   it('global container has higher stroke opacity than subnet', () => {
-    const { container: globalC } = renderPlateSvg({ plateType: 'global' });
-    const { container: subnetC } = renderPlateSvg({ plateType: 'subnet' });
+    const { container: globalC } = renderPlateSvg({ containerLayer: 'global' });
+    const { container: subnetC } = renderPlateSvg({ containerLayer: 'subnet' });
 
     const globalOpacity = Number(globalC.querySelector('polygon')?.getAttribute('stroke-opacity'));
     const subnetOpacity = Number(subnetC.querySelector('polygon')?.getAttribute('stroke-opacity'));
@@ -156,7 +156,7 @@ describe('PlateSvg — layer-type visuals', () => {
   it('each container type gets a distinct stroke width', () => {
     const types: PlateLayerType[] = ['global', 'edge', 'region', 'zone', 'subnet'];
     const strokeWidths = types.map((type) => {
-      const { container } = renderPlateSvg({ plateType: type });
+      const { container } = renderPlateSvg({ containerLayer: type });
       return Number(container.querySelector('polygon')?.getAttribute('stroke-width'));
     });
 
@@ -168,7 +168,7 @@ describe('PlateSvg — layer-type visuals', () => {
   it('stroke widths follow hierarchy: global > edge > region > zone > subnet', () => {
     const types: PlateLayerType[] = ['global', 'edge', 'region', 'zone', 'subnet'];
     const strokeWidths = types.map((type) => {
-      const { container } = renderPlateSvg({ plateType: type });
+      const { container } = renderPlateSvg({ containerLayer: type });
       return Number(container.querySelector('polygon')?.getAttribute('stroke-width'));
     });
 
@@ -178,8 +178,8 @@ describe('PlateSvg — layer-type visuals', () => {
   });
 
   it('global container label uses larger font than subnet', () => {
-    const { container: globalC } = renderPlateSvg({ plateType: 'global', label: 'Global' });
-    const { container: subnetC } = renderPlateSvg({ plateType: 'subnet', label: 'Subnet' });
+    const { container: globalC } = renderPlateSvg({ containerLayer: 'global', label: 'Global' });
+    const { container: subnetC } = renderPlateSvg({ containerLayer: 'subnet', label: 'Subnet' });
 
     const globalFontSize = Number(globalC.querySelector('text')?.getAttribute('font-size'));
     const subnetFontSize = Number(subnetC.querySelector('text')?.getAttribute('font-size'));
@@ -187,8 +187,11 @@ describe('PlateSvg — layer-type visuals', () => {
   });
 
   it('global container icon uses larger size than zone', () => {
-    const { container: globalC } = renderPlateSvg({ plateType: 'global', iconUrl: 'icon-g.svg' });
-    const { container: zoneC } = renderPlateSvg({ plateType: 'zone', iconUrl: 'icon-z.svg' });
+    const { container: globalC } = renderPlateSvg({
+      containerLayer: 'global',
+      iconUrl: 'icon-g.svg',
+    });
+    const { container: zoneC } = renderPlateSvg({ containerLayer: 'zone', iconUrl: 'icon-z.svg' });
 
     const globalSize = Number(globalC.querySelector('image')?.getAttribute('width'));
     const zoneSize = Number(zoneC.querySelector('image')?.getAttribute('width'));
@@ -198,7 +201,7 @@ describe('PlateSvg — layer-type visuals', () => {
 
 // ─── Color Independence (container type doesn't affect colors) ──
 
-describe('PlateSvg — colors are independent of plateType', () => {
+describe('PlateSvg — colors are independent of containerLayer', () => {
   it('uses the provided face colors regardless of container type', () => {
     const customColors = {
       topFaceColor: '#FF0000',
@@ -207,7 +210,7 @@ describe('PlateSvg — colors are independent of plateType', () => {
       rightSideColor: '#990000',
     };
 
-    const { container } = renderPlateSvg({ plateType: 'global', ...customColors });
+    const { container } = renderPlateSvg({ containerLayer: 'global', ...customColors });
     const polygons = container.querySelectorAll('polygon');
 
     expect(polygons[0].getAttribute('fill')).toBe('#FF0000');
@@ -225,62 +228,62 @@ describe('PlateSvg — profile-based rendering', () => {
       unitsX: 8,
       unitsY: 12,
       worldHeight: 0.7,
-      plateType: 'region' as PlateLayerType,
+      containerLayer: 'region' as PlateLayerType,
     },
     {
       name: 'network-application',
       unitsX: 12,
       unitsY: 16,
       worldHeight: 0.7,
-      plateType: 'region' as PlateLayerType,
+      containerLayer: 'region' as PlateLayerType,
     },
     {
       name: 'network-platform',
       unitsX: 16,
       unitsY: 20,
       worldHeight: 0.7,
-      plateType: 'region' as PlateLayerType,
+      containerLayer: 'region' as PlateLayerType,
     },
     {
       name: 'network-hub',
       unitsX: 20,
       unitsY: 24,
       worldHeight: 0.7,
-      plateType: 'region' as PlateLayerType,
+      containerLayer: 'region' as PlateLayerType,
     },
     {
       name: 'subnet-utility',
       unitsX: 4,
       unitsY: 6,
       worldHeight: 0.5,
-      plateType: 'subnet' as PlateLayerType,
+      containerLayer: 'subnet' as PlateLayerType,
     },
     {
       name: 'subnet-service',
       unitsX: 6,
       unitsY: 8,
       worldHeight: 0.5,
-      plateType: 'subnet' as PlateLayerType,
+      containerLayer: 'subnet' as PlateLayerType,
     },
     {
       name: 'subnet-workload',
       unitsX: 8,
       unitsY: 10,
       worldHeight: 0.5,
-      plateType: 'subnet' as PlateLayerType,
+      containerLayer: 'subnet' as PlateLayerType,
     },
     {
       name: 'subnet-scale',
       unitsX: 10,
       unitsY: 12,
       worldHeight: 0.5,
-      plateType: 'subnet' as PlateLayerType,
+      containerLayer: 'subnet' as PlateLayerType,
     },
   ];
 
   it.each(profiles)('renders $name profile with correct viewBox', (profile) => {
     const { container } = renderPlateSvg({
-      plateType: profile.plateType,
+      containerLayer: profile.containerLayer,
       unitsX: profile.unitsX,
       unitsY: profile.unitsY,
       worldHeight: profile.worldHeight,

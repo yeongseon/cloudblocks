@@ -1,8 +1,8 @@
 import type { ArchitectureSnapshot, Scenario } from '../../../shared/types/learning';
-import type { ContainerCapableResourceType, PlateType } from '@cloudblocks/schema';
+import type { ContainerCapableResourceType, ContainerLayer } from '@cloudblocks/schema';
 import { registerScenario } from './registry';
 
-const CONTAINER_RESOURCE_TYPE: Record<PlateType, ContainerCapableResourceType> = {
+const CONTAINER_RESOURCE_TYPE: Record<ContainerLayer, ContainerCapableResourceType> = {
   global: 'virtual_network',
   edge: 'virtual_network',
   region: 'virtual_network',
@@ -198,7 +198,7 @@ const threeTierScenario: Scenario = {
         'A Network container represents a Virtual Network (VNet) - the isolated network boundary for your cloud resources.',
         'Click the Network container button in the Command Card to add one to the canvas.',
       ],
-      validationRules: [{ type: 'container-exists', plateType: 'region' }],
+      validationRules: [{ type: 'container-exists', containerLayer: 'region' }],
     },
     {
       id: 'step-three-tier-add-subnets',
@@ -210,7 +210,7 @@ const threeTierScenario: Scenario = {
         'In Azure, access control is managed by NSG and route tables, not by subnet type.',
         'Add two subnets from the Command Card.',
       ],
-      validationRules: [{ type: 'min-container-count', plateType: 'subnet', count: 2 }],
+      validationRules: [{ type: 'min-container-count', containerLayer: 'subnet', count: 2 }],
       checkpoint: threeTierCheckpointNetworkOnly,
     },
     {
@@ -228,13 +228,13 @@ const threeTierScenario: Scenario = {
         {
           type: 'block-exists',
           category: 'delivery',
-          onPlateType: 'subnet',
+          onContainerLayer: 'subnet',
         },
         { type: 'block-exists', category: 'compute' },
         {
           type: 'block-exists',
           category: 'data',
-          onPlateType: 'subnet',
+          onContainerLayer: 'subnet',
         },
       ],
       checkpoint: threeTierCheckpointWithSubnets,
@@ -367,7 +367,7 @@ const serverlessApiScenario: Scenario = {
         'Even in serverless architectures, you need network boundaries.',
         'Use separate subnets to segment gateway traffic from data services.',
       ],
-      validationRules: [{ type: 'min-container-count', plateType: 'subnet', count: 2 }],
+      validationRules: [{ type: 'min-container-count', containerLayer: 'subnet', count: 2 }],
     },
     {
       id: 'step-serverless-api-deploy-components',
@@ -384,13 +384,13 @@ const serverlessApiScenario: Scenario = {
         {
           type: 'block-exists',
           category: 'delivery',
-          onPlateType: 'subnet',
+          onContainerLayer: 'subnet',
         },
-        { type: 'block-exists', category: 'compute', onPlateType: 'region' },
+        { type: 'block-exists', category: 'compute', onContainerLayer: 'region' },
         {
           type: 'block-exists',
           category: 'data',
-          onPlateType: 'subnet',
+          onContainerLayer: 'subnet',
         },
       ],
       checkpoint: serverlessApiCheckpointWithSubnets,
@@ -650,8 +650,8 @@ const eventPipelineScenario: Scenario = {
         'Events trigger functions when something happens. Queues buffer messages for processing.',
       ],
       validationRules: [
-        { type: 'block-exists', category: 'messaging', onPlateType: 'region' },
-        { type: 'block-exists', category: 'messaging', onPlateType: 'region' },
+        { type: 'block-exists', category: 'messaging', onContainerLayer: 'region' },
+        { type: 'block-exists', category: 'messaging', onContainerLayer: 'region' },
       ],
     },
     {
@@ -678,11 +678,11 @@ const eventPipelineScenario: Scenario = {
         'Storage in a subnet keeps your data secure.',
       ],
       validationRules: [
-        { type: 'block-exists', category: 'messaging', onPlateType: 'region' },
+        { type: 'block-exists', category: 'messaging', onContainerLayer: 'region' },
         {
           type: 'block-exists',
           category: 'data',
-          onPlateType: 'subnet',
+          onContainerLayer: 'subnet',
         },
       ],
     },
@@ -716,7 +716,7 @@ const eventPipelineScenario: Scenario = {
       validationRules: [
         { type: 'architecture-valid' },
         { type: 'min-block-count', category: 'compute', count: 2 },
-        { type: 'min-container-count', plateType: 'region', count: 1 },
+        { type: 'min-container-count', containerLayer: 'region', count: 1 },
       ],
     },
   ],

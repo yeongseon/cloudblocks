@@ -42,7 +42,9 @@ function buildResourceName(prefix: string, entityName: string): string {
   return `${prefix}_${sanitized}`;
 }
 
-function getPlateType(container: ContainerBlock): 'global' | 'edge' | 'region' | 'zone' | 'subnet' {
+function getContainerLayer(
+  container: ContainerBlock,
+): 'global' | 'edge' | 'region' | 'zone' | 'subnet' {
   if (container.layer === 'resource') {
     return 'region';
   }
@@ -73,7 +75,7 @@ export function normalize(
 
   // Map plates
   for (const container of containers) {
-    const mapping = provider.plateMappings[getPlateType(container)];
+    const mapping = provider.containerLayerMappings[getContainerLayer(container)];
     const name = uniqueName(mapping.namePrefix, container.name);
     resourceNames.set(container.id, name);
   }
@@ -310,7 +312,7 @@ export function generateMainTf(
 
   for (const container of regions) {
     const resName = resourceNames.get(container.id)!;
-    const mapping = provider.plateMappings[getPlateType(container)];
+    const mapping = provider.containerLayerMappings[getContainerLayer(container)];
     sections.push(
       generatePlateResource(container, resName, mapping, options.projectName, null, architecture),
     );
@@ -319,7 +321,7 @@ export function generateMainTf(
 
   for (const container of subnets) {
     const resName = resourceNames.get(container.id)!;
-    const mapping = provider.plateMappings[getPlateType(container)];
+    const mapping = provider.containerLayerMappings[getContainerLayer(container)];
     const parentName = container.parentId ? (resourceNames.get(container.parentId) ?? null) : null;
     sections.push(
       generatePlateResource(

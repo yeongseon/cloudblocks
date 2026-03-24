@@ -4,7 +4,7 @@ import type {
   Endpoint,
   LegacyConnection,
   ResourceBlock,
-  PlateType,
+  ContainerLayer,
   Position,
   ResourceCategory,
   Workspace,
@@ -98,7 +98,7 @@ function remapCategory(raw: string): ResourceCategory {
 interface LegacyPlate {
   id: string;
   name: string;
-  type: PlateType;
+  type: ContainerLayer;
   parentId?: string | null;
   position: Position;
   size: { width: number; height: number; depth: number };
@@ -299,7 +299,7 @@ export function deserialize(json: string): Workspace[] {
         if (node.kind === 'container' && sizeOrFrame && !node.profileId) {
           const layer = typeof node.layer === 'string' ? node.layer : 'region';
           const inferredProfileId = inferLegacyContainerBlockProfileId({
-            type: layer as PlateType,
+            type: layer as ContainerLayer,
             size: {
               width: Number(sizeOrFrame.width),
               depth: Number(sizeOrFrame.depth),

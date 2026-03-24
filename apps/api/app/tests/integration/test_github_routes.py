@@ -145,7 +145,7 @@ async def test_sync_workspace_to_github_with_existing_file_uses_sha(
 ) -> None:
     workspace = await _create_workspace(client, auth_cookies)
     workspace_id = workspace["id"]
-    architecture = {**VALID_ARCHITECTURE, "plates": [{"id": "plate-1"}]}
+    architecture = {**VALID_ARCHITECTURE, "plates": [{"id": "cb-1"}]}
 
     mock_github.get_repo_contents.return_value = {"sha": "existing-sha"}
     mock_github.create_or_update_file.return_value = {"commit": {"sha": "commit-sha-1"}}

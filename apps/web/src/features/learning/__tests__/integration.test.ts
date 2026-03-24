@@ -204,19 +204,21 @@ function ensureSubnet(): string {
 }
 
 function getPlacementForCategory(category: ResourceCategory): {
-  plateType: ContainerLayer;
+  containerLayer: ContainerLayer;
 } {
   if (category === 'messaging' || category === 'network') {
-    return { plateType: 'region' };
+    return { containerLayer: 'region' };
   }
 
-  return { plateType: 'subnet' };
+  return { containerLayer: 'subnet' };
 }
 
-function addBlock(category: ResourceCategory, onPlateType?: ContainerLayer): string {
-  const placement = onPlateType ? { plateType: onPlateType } : getPlacementForCategory(category);
+function addBlock(category: ResourceCategory, onContainerLayer?: ContainerLayer): string {
+  const placement = onContainerLayer
+    ? { containerLayer: onContainerLayer }
+    : getPlacementForCategory(category);
 
-  const placementId = placement.plateType === 'region' ? ensureNetworkPlate() : ensureSubnet();
+  const placementId = placement.containerLayer === 'region' ? ensureNetworkPlate() : ensureSubnet();
 
   const refreshed = architectureSnapshot();
   const existingCount = getResources(refreshed).filter((b) => b.category === category).length;
@@ -244,19 +246,19 @@ function addBlock(category: ResourceCategory, onPlateType?: ContainerLayer): str
   return blockId;
 }
 
-function ensureBlock(category: ResourceCategory, onPlateType?: ContainerLayer): string {
+function ensureBlock(category: ResourceCategory, onContainerLayer?: ContainerLayer): string {
   const snapshot = architectureSnapshot();
   const existing = getResources(snapshot).find((block) => {
     if (block.category !== category) {
       return false;
     }
 
-    if (!onPlateType) {
+    if (!onContainerLayer) {
       return true;
     }
 
     const container = getContainers(snapshot).find((candidate) => candidate.id === block.parentId);
-    if (!container || container.layer !== onPlateType) {
+    if (!container || container.layer !== onContainerLayer) {
       return false;
     }
 
@@ -267,9 +269,11 @@ function ensureBlock(category: ResourceCategory, onPlateType?: ContainerLayer): 
     return existing.id;
   }
 
-  const placement = onPlateType ? { plateType: onPlateType } : getPlacementForCategory(category);
+  const placement = onContainerLayer
+    ? { containerLayer: onContainerLayer }
+    : getPlacementForCategory(category);
 
-  const placementId = placement.plateType === 'region' ? ensureNetworkPlate() : ensureSubnet();
+  const placementId = placement.containerLayer === 'region' ? ensureNetworkPlate() : ensureSubnet();
 
   const refreshed = architectureSnapshot();
   const existingCount = getResources(refreshed).filter((b) => b.category === category).length;
@@ -351,7 +355,7 @@ function ensureConnection(sourceCategory: string, targetCategory: string): void 
 function satisfyRule(rule: StepValidationRule): void {
   switch (rule.type) {
     case 'container-exists':
-      if (rule.plateType === 'region') {
+      if (rule.containerLayer === 'region') {
         ensureNetworkPlate();
       } else {
         addSubnet();
@@ -359,7 +363,7 @@ function satisfyRule(rule: StepValidationRule): void {
       return;
 
     case 'block-exists':
-      ensureBlock(rule.category, rule.onPlateType);
+      ensureBlock(rule.category, rule.onContainerLayer);
       return;
 
     case 'connection-exists':
@@ -367,7 +371,7 @@ function satisfyRule(rule: StepValidationRule): void {
       return;
 
     case 'entity-on-container':
-      ensureBlock(rule.entityCategory, rule.plateType);
+      ensureBlock(rule.entityCategory, rule.containerLayer);
       return;
 
     case 'min-block-count': {
@@ -383,10 +387,10 @@ function satisfyRule(rule: StepValidationRule): void {
     case 'min-container-count': {
       while (
         getContainers(architectureSnapshot()).filter(
-          (container) => container.layer === rule.plateType,
+          (container) => container.layer === rule.containerLayer,
         ).length < rule.count
       ) {
-        if (rule.plateType === 'region') {
+        if (rule.containerLayer === 'region') {
           ensureNetworkPlate();
         } else {
           addSubnet();
@@ -444,7 +448,7 @@ describe('learning integration flow', () => {
   it('starting a scenario resets previous learning state', () => {
     startLearningScenario('scenario-three-tier');
 
-    satisfyRule({ type: 'container-exists', plateType: 'region' });
+    satisfyRule({ type: 'container-exists', containerLayer: 'region' });
     expect(useLearningStore.getState().isCurrentStepComplete).toBe(true);
     advanceToNextStep();
 
@@ -477,7 +481,7 @@ describe('learning integration flow', () => {
     vi.advanceTimersByTime(30000);
     expect(useLearningStore.getState().currentHintIndex).toBe(0);
 
-    satisfyRule({ type: 'container-exists', plateType: 'region' });
+    satisfyRule({ type: 'container-exists', containerLayer: 'region' });
 
     expect(useLearningStore.getState().isCurrentStepComplete).toBe(true);
     expect(isHintTimerRunning()).toBe(false);
@@ -488,16 +492,16 @@ describe('learning integration flow', () => {
   it('resetting step restores checkpoint architecture', () => {
     startLearningScenario('scenario-three-tier');
 
-    satisfyRule({ type: 'container-exists', plateType: 'region' });
+    satisfyRule({ type: 'container-exists', containerLayer: 'region' });
     expect(useLearningStore.getState().isCurrentStepComplete).toBe(true);
     advanceToNextStep();
 
     const checkpoint = useLearningStore.getState().activeScenario?.steps[1]?.checkpoint;
     expect(checkpoint).toBeDefined();
 
-    satisfyRule({ type: 'container-exists', plateType: 'subnet' });
-    satisfyRule({ type: 'container-exists', plateType: 'subnet' });
-    satisfyRule({ type: 'block-exists', category: 'delivery', onPlateType: 'subnet' });
+    satisfyRule({ type: 'container-exists', containerLayer: 'subnet' });
+    satisfyRule({ type: 'container-exists', containerLayer: 'subnet' });
+    satisfyRule({ type: 'block-exists', category: 'delivery', onContainerLayer: 'subnet' });
 
     resetCurrentStep();
 
@@ -507,16 +511,16 @@ describe('learning integration flow', () => {
   it('validation subscription auto-evaluates on architecture changes', () => {
     startLearningScenario('scenario-three-tier');
 
-    satisfyRule({ type: 'container-exists', plateType: 'region' });
+    satisfyRule({ type: 'container-exists', containerLayer: 'region' });
     expect(useLearningStore.getState().isCurrentStepComplete).toBe(true);
     advanceToNextStep();
 
     expect(useLearningStore.getState().isCurrentStepComplete).toBe(false);
 
-    satisfyRule({ type: 'container-exists', plateType: 'subnet' });
+    satisfyRule({ type: 'container-exists', containerLayer: 'subnet' });
     expect(useLearningStore.getState().isCurrentStepComplete).toBe(false);
 
-    satisfyRule({ type: 'container-exists', plateType: 'subnet' });
+    satisfyRule({ type: 'container-exists', containerLayer: 'subnet' });
     expect(useLearningStore.getState().isCurrentStepComplete).toBe(true);
   });
 });

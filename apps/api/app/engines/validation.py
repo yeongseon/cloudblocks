@@ -21,13 +21,13 @@ class ArchitectureValidator:
         """Return a list of human-readable warning strings. Empty = valid."""
         warnings: list[str] = []
 
-        plates = architecture.get("plates")
+        container_blocks = architecture.get("plates")
         blocks = architecture.get("blocks")
         connections = architecture.get("connections")
 
-        if not isinstance(plates, list):
+        if not isinstance(container_blocks, list):
             warnings.append("Missing or invalid 'plates' array")
-            plates = []
+            container_blocks = []
         if not isinstance(blocks, list):
             warnings.append("Missing or invalid 'blocks' array")
             blocks = []
@@ -35,47 +35,47 @@ class ArchitectureValidator:
             warnings.append("Missing or invalid 'connections' array")
             connections = []
 
-        plate_ids = self._validate_plates(plates, warnings)
-        block_ids = self._validate_blocks(blocks, plate_ids, warnings)
+        container_block_ids = self._validate_plates(container_blocks, warnings)
+        block_ids = self._validate_blocks(blocks, container_block_ids, warnings)
         self._validate_connections(connections, block_ids, warnings)
-        self._check_duplicate_ids(plates, blocks, connections, warnings)
+        self._check_duplicate_ids(container_blocks, blocks, connections, warnings)
 
         return warnings
 
     def _validate_plates(
         self,
-        plates: list[object],
+        container_blocks: list[object],
         warnings: list[str],
     ) -> set[str]:
-        plate_ids: set[str] = set()
-        for i, raw_plate in enumerate(plates):
-            if not isinstance(raw_plate, dict):
+        container_block_ids: set[str] = set()
+        for i, raw_container_block in enumerate(container_blocks):
+            if not isinstance(raw_container_block, dict):
                 warnings.append(f"plates[{i}]: not a valid object")
                 continue
-            plate: dict[str, object] = raw_plate  # type: ignore[assignment]
+            container_block: dict[str, object] = raw_container_block  # type: ignore[assignment]
 
-            plate_id = plate.get("id")
-            if not isinstance(plate_id, str) or not plate_id:
+            container_block_id = container_block.get("id")
+            if not isinstance(container_block_id, str) or not container_block_id:
                 warnings.append(f"plates[{i}]: missing or invalid 'id'")
             else:
-                plate_ids.add(plate_id)
+                container_block_ids.add(container_block_id)
 
-            plate_type = plate.get("type")
-            if not isinstance(plate_type, str) or plate_type not in LAYER_TYPES:
+            container_layer = container_block.get("type")
+            if not isinstance(container_layer, str) or container_layer not in LAYER_TYPES:
                 warnings.append(
-                    f"plates[{i}]: invalid type '{plate_type}', " f"expected one of {LAYER_TYPES}"
+                    f"plates[{i}]: invalid type '{container_layer}', " f"expected one of {LAYER_TYPES}"
                 )
 
-            children = plate.get("children")
+            children = container_block.get("children")
             if children is not None and not isinstance(children, list):
                 warnings.append(f"plates[{i}]: 'children' must be an array")
 
-        return plate_ids
+        return container_block_ids
 
     def _validate_blocks(
         self,
         blocks: list[object],
-        plate_ids: set[str],
+        container_block_ids: set[str],
         warnings: list[str],
     ) -> set[str]:
         block_ids: set[str] = set()
@@ -117,10 +117,10 @@ class ArchitectureValidator:
             placement_id = block.get("placementId")
             if not isinstance(placement_id, str) or not placement_id:
                 warnings.append(f"blocks[{i}]: missing 'placementId'")
-            elif placement_id not in plate_ids:
+            elif placement_id not in container_block_ids:
                 warnings.append(
                     f"blocks[{i}]: placementId '{placement_id}' "
-                    f"does not reference a known plate"
+                    f"does not reference a known container block"
                 )
 
         return block_ids
@@ -166,13 +166,13 @@ class ArchitectureValidator:
 
     def _check_duplicate_ids(
         self,
-        plates: list[object],
+        container_blocks: list[object],
         blocks: list[object],
         connections: list[object],
         warnings: list[str],
     ) -> None:
         all_ids: list[str] = []
-        for item in (*plates, *blocks, *connections):
+        for item in (*container_blocks, *blocks, *connections):
             if isinstance(item, dict):
                 item_id = item.get("id")
                 if isinstance(item_id, str):

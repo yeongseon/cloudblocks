@@ -31,7 +31,9 @@ function buildResourceName(prefix: string, entityName: string): string {
   return `${prefix}${sanitized.charAt(0).toUpperCase()}${sanitized.slice(1)}`;
 }
 
-function getPlateType(container: ContainerBlock): 'global' | 'edge' | 'region' | 'zone' | 'subnet' {
+function getContainerLayer(
+  container: ContainerBlock,
+): 'global' | 'edge' | 'region' | 'zone' | 'subnet' {
   if (container.layer === 'resource') {
     return 'region';
   }
@@ -61,7 +63,7 @@ export function normalizePulumi(
   }
 
   for (const container of containers) {
-    const mapping = provider.plateMappings[getPlateType(container)];
+    const mapping = provider.containerLayerMappings[getContainerLayer(container)];
     const name = uniqueName(mapping.namePrefix, container.name);
     resourceNames.set(container.id, name);
   }
@@ -334,14 +336,14 @@ export function generateIndexTs(
 
   for (const container of regions) {
     const resName = resourceNames.get(container.id)!;
-    const mapping = provider.plateMappings[getPlateType(container)];
+    const mapping = provider.containerLayerMappings[getContainerLayer(container)];
     sections.push(generatePlateResource(container, resName, mapping, null, architecture));
     sections.push('');
   }
 
   for (const container of subnets) {
     const resName = resourceNames.get(container.id)!;
-    const mapping = provider.plateMappings[getPlateType(container)];
+    const mapping = provider.containerLayerMappings[getContainerLayer(container)];
     const parentName = container.parentId ? (resourceNames.get(container.parentId) ?? null) : null;
     sections.push(generatePlateResource(container, resName, mapping, parentName, architecture));
     sections.push('');

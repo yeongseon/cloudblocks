@@ -1,9 +1,9 @@
 import type { ArchitectureTemplate } from '../../shared/types/template';
-import type { ContainerCapableResourceType, PlateType } from '@cloudblocks/schema';
+import type { ContainerCapableResourceType, ContainerLayer } from '@cloudblocks/schema';
 import { endpointId } from '@cloudblocks/schema';
 import { registerTemplate } from './registry';
 
-const CONTAINER_RESOURCE_TYPE: Record<PlateType, ContainerCapableResourceType> = {
+const CONTAINER_RESOURCE_TYPE: Record<ContainerLayer, ContainerCapableResourceType> = {
   global: 'virtual_network',
   edge: 'virtual_network',
   region: 'virtual_network',

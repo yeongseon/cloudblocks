@@ -19,15 +19,15 @@ export function evaluateRule(rule: StepValidationRule, model: ArchitectureModel)
 
   switch (rule.type) {
     case 'container-exists':
-      return containers.some((p) => p.layer === rule.plateType);
+      return containers.some((p) => p.layer === rule.containerLayer);
 
     case 'block-exists':
       return resources.some((b) => {
         if (b.category !== rule.category) return false;
-        if (rule.onPlateType === undefined) return true;
+        if (rule.onContainerLayer === undefined) return true;
         const container = containers.find((p) => p.id === b.parentId);
         if (!container) return false;
-        if (container.layer !== rule.onPlateType) return false;
+        if (container.layer !== rule.onContainerLayer) return false;
         return true;
       });
 
@@ -44,7 +44,7 @@ export function evaluateRule(rule: StepValidationRule, model: ArchitectureModel)
         if (b.category !== rule.entityCategory) return false;
         const container = containers.find((p) => p.id === b.parentId);
         if (!container) return false;
-        if (container.layer !== rule.plateType) return false;
+        if (container.layer !== rule.containerLayer) return false;
         return true;
       });
 
@@ -55,7 +55,7 @@ export function evaluateRule(rule: StepValidationRule, model: ArchitectureModel)
       return resources.filter((b) => b.category === rule.category).length >= rule.count;
 
     case 'min-container-count':
-      return containers.filter((p) => p.layer === rule.plateType).length >= rule.count;
+      return containers.filter((p) => p.layer === rule.containerLayer).length >= rule.count;
 
     default:
       return false;

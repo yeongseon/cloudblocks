@@ -17,8 +17,8 @@ export type {
   ResourceCategory,
 } from './enums.js';
 
-// Deprecated enum aliases (migration shims — remove post-M24)
-export type { PlateType } from './enums.js';
+// Container layer type
+export type { ContainerLayer } from './enums.js';
 
 // Spatial types
 export type { Position, Size } from './spatial.js';

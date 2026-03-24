@@ -56,7 +56,7 @@ const isFiniteNumber = (value: unknown): value is number =>
 
 const isValidBlockKind = (value: unknown): value is 'container' | 'resource' =>
   value === 'container' || value === 'resource';
-const isValidPlateType = (value: unknown): value is PlateLayerType =>
+const isValidContainerLayer = (value: unknown): value is PlateLayerType =>
   typeof value === 'string' && VALID_PLATE_TYPES.includes(value as PlateLayerType);
 
 const isValidBlockCategory = (value: unknown): value is ResourceCategory =>
@@ -124,7 +124,7 @@ export const validateArchitectureShape = (imported: unknown): { valid: true } =>
       validatePosition(node.position, context);
 
       if (node.kind === 'container') {
-        if (!isValidPlateType(node.layer)) {
+        if (!isValidContainerLayer(node.layer)) {
           throw new Error(`${context}: layer must be one of global, edge, region, zone, or subnet`);
         }
         const frame = node.frame ?? node.size;
@@ -194,7 +194,7 @@ export const validateArchitectureShape = (imported: unknown): { valid: true } =>
       if (typeof container.name !== 'string') {
         throw new Error(`${context}: name must be a string`);
       }
-      if (!isValidPlateType(container.type)) {
+      if (!isValidContainerLayer(container.type)) {
         throw new Error(`${context}: type must be one of global, edge, region, zone, or subnet`);
       }
       validatePosition(container.position, context);

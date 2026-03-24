@@ -74,9 +74,5 @@ export type EndpointDirection = 'input' | 'output';
 /** Semantic type of an endpoint — determines what kind of traffic flows. */
 export type EndpointSemantic = 'http' | 'event' | 'data';
 
-// ---------------------------------------------------------------------------
-// Deprecated aliases — kept temporarily for migration, will be removed post-M24
-// ---------------------------------------------------------------------------
-
-/** @deprecated Use LayerType + BlockKind='container'. */
-export type PlateType = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
+/** Container block layer type — LayerType minus 'resource'. */
+export type ContainerLayer = 'global' | 'edge' | 'region' | 'zone' | 'subnet';

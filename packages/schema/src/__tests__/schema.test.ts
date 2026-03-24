@@ -28,7 +28,7 @@ import type {
   ResourceCategory,
   Size,
   Aggregation,
-  PlateType,
+  ContainerLayer,
 } from '../index.js';
 
 describe('SCHEMA_VERSION', () => {
@@ -373,9 +373,9 @@ describe('Type compatibility', () => {
     expect(_agg.count).toBe(1);
   });
 
-  it('should still export PlateType during migration', () => {
-    const _pt: PlateType = 'region';
-    expect(_pt).toBe('region');
+  it('should export ContainerLayer type', () => {
+    const _cl: ContainerLayer = 'region';
+    expect(_cl).toBe('region');
   });
 });
 

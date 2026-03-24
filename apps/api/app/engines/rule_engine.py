@@ -3,7 +3,7 @@
 Server-side implementation of the same rules that run client-side,
 ensuring consistent validation regardless of client behavior.
 
-v2.0: Updated for v2.0 plate types (global, edge, region, zone, subnet).
+v2.0: Updated for v2.0 container layer types (global, edge, region, zone, subnet).
       Removed timer category. Added analytics, identity, observability.
 """
 
@@ -22,15 +22,19 @@ def validate_architecture(architecture: dict[str, Any]) -> dict[str, Any]:
     errors: list[dict[str, Any]] = []
     warnings: list[dict[str, Any]] = []
 
-    plates = architecture.get("plates", [])
+    # TODO: Keep the legacy "plates" wire-format key for API compatibility.
+    container_blocks = architecture.get("plates", [])
     blocks = architecture.get("blocks", [])
     connections = architecture.get("connections", [])
     external_actors = architecture.get("externalActors", [])
 
     # Placement validation
     for block in blocks:
-        plate = next((p for p in plates if p["id"] == block["placementId"]), None)
-        error = _validate_placement(block, plate)
+        container_block = next(
+            (p for p in container_blocks if p["id"] == block["placementId"]),
+            None,
+        )
+        error = _validate_placement(block, container_block)
         if error:
             if error["severity"] == "error":
                 errors.append(error)
@@ -53,68 +57,70 @@ def validate_architecture(architecture: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _validate_placement(block: dict, plate: dict | None) -> dict | None:
-    """Validate block placement on a plate."""
-    if not plate:
+def _validate_placement(
+    block: dict[str, Any], container_block: dict[str, Any] | None
+) -> dict[str, Any] | None:
+    """Validate block placement on a container block."""
+    if not container_block:
         return {
-            "ruleId": "rule-plate-exists",
+            "ruleId": "rule-container-block-exists",
             "severity": "error",
-            "message": f'Block "{block["name"]}" is not placed on any plate',
-            "suggestion": "Place the block on a valid subnet plate",
+            "message": f'Block "{block["name"]}" is not placed on any container block',
+            "suggestion": "Place the block on a valid subnet container block",
             "targetId": block["id"],
         }
 
     category = block["category"]
-    plate_type = plate["type"]
-    subnet_access = plate.get("subnetAccess")
+    container_layer = container_block["type"]
+    subnet_access = container_block.get("subnetAccess")
 
     # Subnet-based block rules
     subnet_rules = {
-        "compute": (plate_type == "subnet", "rule-compute-subnet", "Subnet Plate"),
+        "compute": (container_layer == "subnet", "rule-compute-subnet", "Subnet Block"),
         "database": (
-            plate_type == "subnet" and subnet_access == "private",
+            container_layer == "subnet" and subnet_access == "private",
             "rule-db-private",
-            "private Subnet Plate",
+            "private Subnet Block",
         ),
         "gateway": (
-            plate_type == "subnet" and subnet_access == "public",
+            container_layer == "subnet" and subnet_access == "public",
             "rule-gw-public",
-            "public Subnet Plate",
+            "public Subnet Block",
         ),
-        "storage": (plate_type == "subnet", "rule-storage-subnet", "Subnet Plate"),
+        "storage": (container_layer == "subnet", "rule-storage-subnet", "Subnet Block"),
     }
 
     # Managed-service block rules (v2.0) — must NOT be on subnet
     managed_rules = {
         "function": (
-            plate_type != "subnet",
+            container_layer != "subnet",
             "rule-function-region",
-            "Region/Zone Plate (not Subnet)",
+            "Region/Zone Block (not Subnet)",
         ),
         "queue": (
-            plate_type != "subnet",
+            container_layer != "subnet",
             "rule-queue-region",
-            "Region/Zone Plate (not Subnet)",
+            "Region/Zone Block (not Subnet)",
         ),
         "event": (
-            plate_type != "subnet",
+            container_layer != "subnet",
             "rule-event-region",
-            "Region/Zone Plate (not Subnet)",
+            "Region/Zone Block (not Subnet)",
         ),
         "analytics": (
-            plate_type != "subnet",
+            container_layer != "subnet",
             "rule-analytics-region",
-            "Region/Zone Plate (not Subnet)",
+            "Region/Zone Block (not Subnet)",
         ),
         "identity": (
-            plate_type != "subnet",
+            container_layer != "subnet",
             "rule-identity-region",
-            "Region/Zone Plate (not Subnet)",
+            "Region/Zone Block (not Subnet)",
         ),
         "observability": (
-            plate_type != "subnet",
+            container_layer != "subnet",
             "rule-observability-region",
-            "Region/Zone Plate (not Subnet)",
+            "Region/Zone Block (not Subnet)",
         ),
     }
 
@@ -150,8 +156,10 @@ def _validate_placement(block: dict, plate: dict | None) -> dict | None:
 
 
 def _validate_connection(
-    connection: dict, blocks: list[dict], external_actors: list[dict]
-) -> dict | None:
+    connection: dict[str, Any],
+    blocks: list[dict[str, Any]],
+    external_actors: list[dict[str, Any]],
+) -> dict[str, Any] | None:
     """Validate a connection between endpoints."""
     # Connection adjacency table (v2.0 — includes managed services)
     allowed = {
@@ -199,7 +207,9 @@ def _validate_connection(
 
 
 def _get_endpoint_type(
-    endpoint_id: str, blocks: list[dict], external_actors: list[dict]
+    endpoint_id: str,
+    blocks: list[dict[str, Any]],
+    external_actors: list[dict[str, Any]],
 ) -> str | None:
     """Get the type of a connection endpoint."""
     block = next((b for b in blocks if b["id"] == endpoint_id), None)

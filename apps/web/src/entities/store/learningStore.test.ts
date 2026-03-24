@@ -18,7 +18,7 @@ function createTestScenario(): Scenario {
         title: 'Create network',
         instruction: 'Create a network container.',
         hints: ['Use the container tool.', 'Choose network as container type.'],
-        validationRules: [{ type: 'container-exists', plateType: 'region' }],
+        validationRules: [{ type: 'container-exists', containerLayer: 'region' }],
       },
       {
         id: 'step-2',

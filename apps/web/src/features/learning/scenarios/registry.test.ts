@@ -31,7 +31,7 @@ const scenarioA: Scenario = {
       title: 'Add VNet',
       instruction: 'Create one VNet container',
       hints: ['Use Infra tab'],
-      validationRules: [{ type: 'container-exists', plateType: 'region' }],
+      validationRules: [{ type: 'container-exists', containerLayer: 'region' }],
     },
   ],
 };

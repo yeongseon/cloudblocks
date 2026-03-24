@@ -11,7 +11,7 @@ interface DefinitionShape {
   name?: unknown;
   displayName?: unknown;
   blockMappings?: unknown;
-  plateMappings?: unknown;
+  containerLayerMappings?: unknown;
   generators?: {
     terraform?: {
       providerBlock?: unknown;
@@ -24,7 +24,7 @@ function assertProviderDefinitionShape(definition: DefinitionShape): void {
   expect(definition.name).toBeTruthy();
   expect(definition.displayName).toBeTruthy();
   expect(definition.blockMappings).toBeDefined();
-  expect(definition.plateMappings).toBeDefined();
+  expect(definition.containerLayerMappings).toBeDefined();
   expect(definition.generators).toBeDefined();
   expect(typeof definition.generators?.terraform?.providerBlock).toBe('function');
   expect(typeof definition.generators?.terraform?.requiredProviders).toBe('function');

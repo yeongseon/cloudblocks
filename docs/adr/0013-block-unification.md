@@ -92,7 +92,7 @@ type BlockTraits = Partial<{
 | stud, stub                     | `Port`, `PortAnchor`                                     | "Port"                         | Connection point on a block      |
 | lego, Lego                     | —                                                        | "CloudBlock" (brand only)      | Zero occurrences in code/docs    |
 | PlateProfile                   | `BlockProfile` or `styleId`                              | —                              | Visual preset                    |
-| PlateType                      | removed                                                  | —                              | Use `resourceType` + `kind`      |
+| PlateType                      | `ContainerLayer`                                         | —                              | Container hierarchy level        |
 | endpoint (as connection point) | `Port`                                                   | "Port"                         | Unify with stub/stud replacement |
 
 ### 4. Banned Terms
