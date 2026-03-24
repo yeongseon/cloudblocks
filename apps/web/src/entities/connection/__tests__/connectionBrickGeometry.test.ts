@@ -70,6 +70,38 @@ function makeLRoute(
   } as SurfaceRoute;
 }
 
+function makeRouteFromSegments(points: readonly [number, number][], surfaceY = 3): SurfaceRoute {
+  const start = points[0];
+  const end = points[points.length - 1];
+  const segments = [] as SurfaceRoute['segments'];
+
+  for (let i = 0; i < points.length - 1; i += 1) {
+    segments.push({
+      start: [points[i][0], surfaceY, points[i][1]],
+      end: [points[i + 1][0], surfaceY, points[i + 1][1]],
+      kind: 'surface',
+    });
+  }
+
+  return {
+    segments,
+    srcPort: {
+      surfaceY,
+      surfaceBase: [start[0], surfaceY, start[1]],
+      surfaceExit: [start[0], surfaceY, start[1]],
+      plateId: 'plate-1',
+      normal: 'neg-z',
+    },
+    tgtPort: {
+      surfaceY,
+      surfaceBase: [end[0], surfaceY, end[1]],
+      surfaceExit: [end[0], surfaceY, end[1]],
+      plateId: 'plate-1',
+      normal: 'neg-x',
+    },
+  };
+}
+
 describe('connectionBrickGeometry', () => {
   describe('buildBrickFootprint', () => {
     it('returns empty array for degenerate route (single point)', () => {
@@ -120,6 +152,122 @@ describe('connectionBrickGeometry', () => {
       const footprint = buildBrickFootprint(route);
       expect(footprint.length).toBeGreaterThanOrEqual(4);
     });
+
+    it('offsets first and last points correctly for vertical straight route', () => {
+      const route = makeStraightRoute(0, 0, 0, 4);
+      const footprint = buildBrickFootprint(route);
+
+      expect(footprint).toHaveLength(4);
+      expect(footprint[0][0]).toBeCloseTo(-0.5, 5);
+      expect(footprint[0][2]).toBeCloseTo(0, 5);
+      expect(footprint[1][0]).toBeCloseTo(-0.5, 5);
+      expect(footprint[1][2]).toBeCloseTo(4, 5);
+      expect(footprint[2][0]).toBeCloseTo(0.5, 5);
+      expect(footprint[2][2]).toBeCloseTo(4, 5);
+      expect(footprint[3][0]).toBeCloseTo(0.5, 5);
+      expect(footprint[3][2]).toBeCloseTo(0, 5);
+    });
+
+    it('keeps output winding stable even when route direction is reversed', () => {
+      const route = makeStraightRoute(5, 0, 0, 0);
+      const footprint = buildBrickFootprint(route);
+
+      let area = 0;
+      for (let i = 0; i < footprint.length; i += 1) {
+        const a = footprint[i];
+        const b = footprint[(i + 1) % footprint.length];
+        area += a[0] * b[2] - b[0] * a[2];
+      }
+      area /= 2;
+
+      expect(area).toBeLessThanOrEqual(0);
+    });
+
+    it('supports segment endpoint aliases (`from` / `to`) during extraction', () => {
+      const route = {
+        segments: [
+          {
+            from: [0, 3, 0],
+            to: [4, 3, 0],
+            kind: 'surface',
+          },
+        ],
+        srcPort: {
+          surfaceY: 3,
+          surfaceBase: [0, 3, 0],
+          surfaceExit: [0, 3, 0],
+          plateId: 'plate-1',
+          normal: 'neg-z',
+        },
+        tgtPort: {
+          surfaceY: 3,
+          surfaceBase: [4, 3, 0],
+          surfaceExit: [4, 3, 0],
+          plateId: 'plate-1',
+          normal: 'neg-x',
+        },
+      } as unknown as SurfaceRoute;
+
+      const footprint = buildBrickFootprint(route);
+      expect(footprint.length).toBeGreaterThanOrEqual(4);
+    });
+
+    it('supports polyline-style `points` segments and skips invalid segments', () => {
+      const route = {
+        segments: [
+          null,
+          {
+            points: [
+              [0, 3, 0],
+              [1, 3, 0],
+              [1, 3, 2],
+            ],
+            kind: 'surface',
+          },
+        ],
+        srcPort: {
+          surfaceY: 3,
+          surfaceBase: [0, 3, 0],
+          surfaceExit: [0, 3, 0],
+          plateId: 'plate-1',
+          normal: 'neg-z',
+        },
+        tgtPort: {
+          surfaceY: 3,
+          surfaceBase: [1, 3, 2],
+          surfaceExit: [1, 3, 2],
+          plateId: 'plate-1',
+          normal: 'neg-x',
+        },
+      } as unknown as SurfaceRoute;
+
+      const footprint = buildBrickFootprint(route);
+      expect(footprint.length).toBeGreaterThanOrEqual(4);
+    });
+
+    it('handles segment orientation where next segment end matches previous tail', () => {
+      const route = makeRouteFromSegments([
+        [0, 0],
+        [2, 0],
+      ]);
+      const reversedSecondLeg = {
+        ...route,
+        segments: [
+          { start: [0, 3, 0], end: [2, 3, 0], kind: 'surface' as const },
+          { start: [3, 3, 0], end: [2, 3, 0], kind: 'surface' as const },
+        ],
+        tgtPort: {
+          surfaceY: 3,
+          surfaceBase: [3, 3, 0],
+          surfaceExit: [3, 3, 0],
+          plateId: 'plate-1',
+          normal: 'neg-x',
+        },
+      } as SurfaceRoute;
+
+      const footprint = buildBrickFootprint(reversedSecondLeg);
+      expect(footprint.length).toBeGreaterThanOrEqual(4);
+    });
   });
 
   describe('projectFootprintToScreen', () => {
@@ -151,10 +299,18 @@ describe('connectionBrickGeometry', () => {
       expect(studs).toHaveLength(0);
     });
 
+    it('returns empty when route polyline cannot be formed', () => {
+      const route = makeStraightRoute(2, 2, 2, 2);
+      const studs = sampleStudPositions(route);
+      expect(studs).toHaveLength(0);
+    });
+
     it('returns studs for 2 CU route', () => {
       const route = makeStraightRoute(0, 0, 2, 0);
       const studs = sampleStudPositions(route);
-      expect(studs.length).toBeGreaterThanOrEqual(0);
+      expect(studs).toHaveLength(1);
+      expect(studs[0][0]).toBeCloseTo(1, 5);
+      expect(studs[0][2]).toBeCloseTo(0, 5);
     });
 
     it('returns studs along a 5 CU straight route', () => {
@@ -185,6 +341,51 @@ describe('connectionBrickGeometry', () => {
           expect(false).toBe(true);
         }
       }
+    });
+
+    it('uses midpoint fallback when regular sampling yields no studs and total length is >= 2', () => {
+      const route = makeRouteFromSegments(
+        [
+          [0, 0],
+          [2, 0],
+        ],
+        3,
+      );
+      const studs = sampleStudPositions(route);
+
+      expect(studs).toHaveLength(1);
+      expect(studs[0][0]).toBeCloseTo(1, 5);
+      expect(studs[0][2]).toBeCloseTo(0, 5);
+    });
+
+    it('does not place midpoint fallback stud when midpoint is near a bend', () => {
+      const route = makeRouteFromSegments(
+        [
+          [0, 0],
+          [1, 0],
+          [1, 1],
+        ],
+        3,
+      );
+      const studs = sampleStudPositions(route);
+
+      expect(studs).toHaveLength(0);
+    });
+
+    it('places midpoint fallback stud when bends exist but midpoint is not near a bend', () => {
+      const route = makeRouteFromSegments(
+        [
+          [0, 0],
+          [2, 0],
+          [2, 0.2],
+        ],
+        3,
+      );
+      const studs = sampleStudPositions(route);
+
+      expect(studs).toHaveLength(1);
+      expect(studs[0][0]).toBeCloseTo(1.1, 5);
+      expect(studs[0][2]).toBeCloseTo(0, 5);
     });
   });
 
