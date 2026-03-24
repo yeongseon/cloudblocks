@@ -63,7 +63,7 @@ vi.mock('react-hot-toast', () => ({
 
 vi.mock('./BlockSprite.css', () => ({}));
 
-const parentPlate: ContainerBlock = {
+const parentContainer: ContainerBlock = {
   id: 'container-1',
   name: 'Subnet',
   kind: 'container',
@@ -131,7 +131,7 @@ const makeBlock = (id: string, category: LegacyBlockCategory): ResourceBlock => 
     resourceType: RESOURCE_TYPE_MAP[normalizedCategory],
     category: normalizedCategory,
     provider: 'azure',
-    parentId: parentPlate.id,
+    parentId: parentContainer.id,
     position: { x: 1, y: 0, z: 2 },
     metadata: {},
   };
@@ -171,7 +171,7 @@ describe('BlockSprite', () => {
     const { container } = render(
       <BlockSprite
         block={block}
-        parentPlate={parentPlate}
+        parentContainer={parentContainer}
         screenX={120}
         screenY={240}
         zIndex={7}
@@ -196,7 +196,13 @@ describe('BlockSprite', () => {
   ] as const)('renders %s as inline SVG', (category) => {
     const block = makeBlock(`block-${category}`, category);
     const { container } = render(
-      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
 
     const svg = container.querySelector('svg');
@@ -210,7 +216,13 @@ describe('BlockSprite', () => {
   it('does not render provider badge (removed feature)', () => {
     const block = { ...makeBlock('block-provider', 'compute'), provider: 'gcp' as const };
     const { container } = render(
-      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
     expect(container.querySelector('.block-provider-badge')).toBeNull();
   });
@@ -220,7 +232,13 @@ describe('BlockSprite', () => {
     const block = makeBlock('block-select', 'compute');
 
     render(
-      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
     await user.click(screen.getByRole('button', { name: 'Node: compute-block' }));
 
@@ -233,7 +251,13 @@ describe('BlockSprite', () => {
     const block = makeBlock('block-delete', 'storage');
 
     render(
-      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
     await user.click(screen.getByRole('button', { name: 'Node: storage-block' }));
 
@@ -251,14 +275,14 @@ describe('BlockSprite', () => {
       <>
         <BlockSprite
           block={sourceBlock}
-          parentPlate={parentPlate}
+          parentContainer={parentContainer}
           screenX={0}
           screenY={0}
           zIndex={1}
         />
         <BlockSprite
           block={targetBlock}
-          parentPlate={parentPlate}
+          parentContainer={parentContainer}
           screenX={10}
           screenY={20}
           zIndex={2}
@@ -280,7 +304,13 @@ describe('BlockSprite', () => {
     const block = makeBlock('block-same', 'gateway');
 
     render(
-      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
 
     const button = screen.getByRole('button', { name: 'Node: gateway-block' });
@@ -303,14 +333,14 @@ describe('BlockSprite', () => {
       <>
         <BlockSprite
           block={sourceBlock}
-          parentPlate={parentPlate}
+          parentContainer={parentContainer}
           screenX={0}
           screenY={0}
           zIndex={1}
         />
         <BlockSprite
           block={targetBlock}
-          parentPlate={parentPlate}
+          parentContainer={parentContainer}
           screenX={10}
           screenY={20}
           zIndex={2}
@@ -332,7 +362,13 @@ describe('BlockSprite', () => {
     useUIStore.setState({ selectedId: block.id });
 
     const { container } = render(
-      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
 
     expect(container.firstElementChild).toHaveClass('is-selected');
@@ -343,7 +379,13 @@ describe('BlockSprite', () => {
     useUIStore.setState({ toolMode: 'delete' });
 
     const { container } = render(
-      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
 
     expect(container.firstElementChild).toHaveClass('is-delete-mode');
@@ -354,7 +396,13 @@ describe('BlockSprite', () => {
     useUIStore.setState({ toolMode: 'connect', connectionSource: block.id });
 
     const { container } = render(
-      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
 
     expect(container.firstElementChild).toHaveClass('is-connection-source');
@@ -363,7 +411,13 @@ describe('BlockSprite', () => {
   it('initializes draggable interaction in select mode', () => {
     const block = makeBlock('block-drag', 'function');
     render(
-      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
 
     expect(vi.mocked(interact)).toHaveBeenCalled();
@@ -373,7 +427,13 @@ describe('BlockSprite', () => {
     const block = makeBlock('block-drag-move', 'compute');
     const { container } = render(
       <div className="scene-world" style={{ transform: 'scale(2)' }}>
-        <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />
+        <BlockSprite
+          block={block}
+          parentContainer={parentContainer}
+          screenX={0}
+          screenY={0}
+          zIndex={1}
+        />
       </div>,
     );
 
@@ -395,7 +455,13 @@ describe('BlockSprite', () => {
     const block = makeBlock('block-zoom-cache', 'compute');
     const { container } = render(
       <div className="scene-world" style={{ transform: 'scale(2)' }}>
-        <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />
+        <BlockSprite
+          block={block}
+          parentContainer={parentContainer}
+          screenX={0}
+          screenY={0}
+          zIndex={1}
+        />
       </div>,
     );
 
@@ -421,7 +487,13 @@ describe('BlockSprite', () => {
     const user = userEvent.setup();
     const block = makeBlock('block-drag-click', 'compute');
     render(
-      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
 
     const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
@@ -442,7 +514,13 @@ describe('BlockSprite', () => {
   it('cleans up draggable on unmount', () => {
     const block = makeBlock('block-cleanup', 'compute');
     const { unmount } = render(
-      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
 
     unmount();
@@ -453,7 +531,13 @@ describe('BlockSprite', () => {
     vi.useFakeTimers();
     const block = makeBlock('block-drag-end', 'compute');
     render(
-      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
 
     const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
@@ -480,7 +564,13 @@ describe('BlockSprite', () => {
     const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
     const block = makeBlock('block-timeout-cleanup', 'compute');
     const { unmount } = render(
-      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
 
     const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
@@ -500,7 +590,13 @@ describe('BlockSprite', () => {
     const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
     const block = makeBlock('block-double-end', 'compute');
     render(
-      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
 
     const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
@@ -519,7 +615,13 @@ describe('BlockSprite', () => {
   it('removes dropping class after animation end on drag release', () => {
     const block = makeBlock('block-drop-anim', 'compute');
     render(
-      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
 
     const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
@@ -545,13 +647,25 @@ describe('BlockSprite', () => {
     const block = makeBlock('block-no-drag', 'compute');
     useUIStore.setState({ toolMode: 'connect' });
     render(
-      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
     expect(vi.mocked(interact)).not.toHaveBeenCalled();
 
     useUIStore.setState({ toolMode: 'delete' });
     render(
-      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
     expect(vi.mocked(interact)).not.toHaveBeenCalled();
   });
@@ -584,7 +698,7 @@ describe('BlockSprite', () => {
     const { container, rerender } = render(
       <BlockSprite
         block={makeBlock('block-added', 'compute')}
-        parentPlate={parentPlate}
+        parentContainer={parentContainer}
         screenX={0}
         screenY={0}
         zIndex={1}
@@ -596,7 +710,7 @@ describe('BlockSprite', () => {
     rerender(
       <BlockSprite
         block={makeBlock('block-modified', 'compute')}
-        parentPlate={parentPlate}
+        parentContainer={parentContainer}
         screenX={0}
         screenY={0}
         zIndex={1}
@@ -608,7 +722,7 @@ describe('BlockSprite', () => {
     rerender(
       <BlockSprite
         block={makeBlock('block-removed', 'compute')}
-        parentPlate={parentPlate}
+        parentContainer={parentContainer}
         screenX={0}
         screenY={0}
         zIndex={1}
@@ -637,7 +751,13 @@ describe('BlockSprite', () => {
     });
 
     render(
-      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
     const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
       listeners: {
@@ -681,7 +801,13 @@ describe('BlockSprite', () => {
     });
 
     render(
-      <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
+      <BlockSprite
+        block={block}
+        parentContainer={parentContainer}
+        screenX={0}
+        screenY={0}
+        zIndex={1}
+      />,
     );
     const draggableConfig = interactMocks.draggableFn.mock.calls[0]?.[0] as {
       listeners: {
@@ -721,7 +847,7 @@ describe('BlockSprite', () => {
     const { container } = render(
       <BlockSprite
         block={targetBlock}
-        parentPlate={parentPlate}
+        parentContainer={parentContainer}
         screenX={0}
         screenY={0}
         zIndex={1}
@@ -750,7 +876,7 @@ describe('BlockSprite', () => {
     const { container } = render(
       <BlockSprite
         block={targetBlock}
-        parentPlate={parentPlate}
+        parentContainer={parentContainer}
         screenX={0}
         screenY={0}
         zIndex={1}
@@ -786,7 +912,7 @@ describe('BlockSprite', () => {
     const { container } = render(
       <BlockSprite
         block={blockWithConn}
-        parentPlate={parentPlate}
+        parentContainer={parentContainer}
         screenX={0}
         screenY={0}
         zIndex={1}
@@ -815,7 +941,7 @@ describe('BlockSprite', () => {
     const { container } = render(
       <BlockSprite
         block={gatewayBlock}
-        parentPlate={parentPlate}
+        parentContainer={parentContainer}
         screenX={0}
         screenY={0}
         zIndex={1}
@@ -844,7 +970,7 @@ describe('BlockSprite', () => {
     const { container } = render(
       <BlockSprite
         block={computeBlock}
-        parentPlate={parentPlate}
+        parentContainer={parentContainer}
         screenX={0}
         screenY={0}
         zIndex={1}
@@ -855,7 +981,7 @@ describe('BlockSprite', () => {
   });
 
   it('adds is-warning class when block has placement validation error (messaging on subnet)', () => {
-    const subnetPlate: ContainerBlock = {
+    const subnetContainer: ContainerBlock = {
       id: 'container-subnet',
       name: 'Subnet',
       kind: 'container',
@@ -874,7 +1000,7 @@ describe('BlockSprite', () => {
     const { container } = render(
       <BlockSprite
         block={messagingBlock}
-        parentPlate={subnetPlate}
+        parentContainer={subnetContainer}
         screenX={0}
         screenY={0}
         zIndex={1}
@@ -885,7 +1011,7 @@ describe('BlockSprite', () => {
   });
 
   it('does not add is-warning class when block is correctly placed (compute on public subnet)', () => {
-    const publicPlate: ContainerBlock = {
+    const publicContainer: ContainerBlock = {
       id: 'container-public',
       name: 'Subnet 1',
       kind: 'container',
@@ -904,7 +1030,7 @@ describe('BlockSprite', () => {
     const { container } = render(
       <BlockSprite
         block={computeBlock}
-        parentPlate={publicPlate}
+        parentContainer={publicContainer}
         screenX={0}
         screenY={0}
         zIndex={1}

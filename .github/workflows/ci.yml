@@ -80,8 +80,8 @@ jobs:
             --exclude-dir=.git \
             apps/ packages/ docs/ \
             | grep -viE '(student|Student|vi\.stubEnv|vi\.stubGlobal|vi\.unstubAllGlobals|stubAudioContext)' \
-            | grep -viE '(BRICK_DESIGN_SPEC|VISUAL_DESIGN_SPEC|BRICK_GUIDEBOOK|ADR-0003|ADR-0008)' \
-            | grep -viE '(Historical|Superseded)' \
+            | grep -viE '(BRICK_DESIGN_SPEC|VISUAL_DESIGN_SPEC|BRICK_GUIDEBOOK)' \
+            | grep -viE '(Historical|Superseded|docs/adr/)' \
             && FOUND=1
 
           if [ "$FOUND" -eq 1 ]; then

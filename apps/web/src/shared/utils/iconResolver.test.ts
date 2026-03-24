@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getBlockIconUrl, getContainerBlockIconUrl } from './iconResolver';
-import type { LayerType, ProviderType, ResourceCategory } from '@cloudblocks/schema';
+import type { LayerType, ProviderType } from '@cloudblocks/schema';
 
 describe('getBlockIconUrl', () => {
   it('returns null when no subtype is provided', () => {
@@ -62,11 +62,14 @@ describe('getBlockIconUrl', () => {
 describe('getContainerBlockIconUrl', () => {
   const ALL_CONTAINER_LAYERS: LayerType[] = ['global', 'edge', 'region', 'zone', 'subnet'];
 
-  it.each(ALL_CONTAINER_LAYERS)('returns a non-empty string for container type %s', (containerLayer) => {
-    const url = getContainerBlockIconUrl(containerLayer);
-    expect(typeof url).toBe('string');
-    expect(url.length).toBeGreaterThan(0);
-  });
+  it.each(ALL_CONTAINER_LAYERS)(
+    'returns a non-empty string for container type %s',
+    (containerLayer) => {
+      const url = getContainerBlockIconUrl(containerLayer);
+      expect(typeof url).toBe('string');
+      expect(url.length).toBeGreaterThan(0);
+    },
+  );
 
   it('subnet uses a different icon than network-layer container blocks', () => {
     const subnetUrl = getContainerBlockIconUrl('subnet');

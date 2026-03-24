@@ -24,7 +24,7 @@ export type WorldPoint3 = [number, number, number];
 export interface SurfacePort {
   surfaceBase: WorldPoint3;
   surfaceExit: WorldPoint3;
-  plateId: string;
+  containerId: string;
   surfaceY: number;
   normal: 'neg-x' | 'neg-z';
 }
@@ -70,13 +70,13 @@ export function resolveSurfacePort(
     const portZ = bz + t * cu.depth;
     const surfaceBase: WorldPoint3 = [bx, surfaceY, portZ];
     const surfaceExit: WorldPoint3 = [bx - SURFACE_EXIT_OFFSET_CU, surfaceY, portZ];
-    return { surfaceBase, surfaceExit, plateId: container.id, surfaceY, normal: 'neg-x' };
+    return { surfaceBase, surfaceExit, containerId: container.id, surfaceY, normal: 'neg-x' };
   }
 
   const portX = bx + t * cu.width;
   const surfaceBase: WorldPoint3 = [portX, surfaceY, bz];
   const surfaceExit: WorldPoint3 = [portX, surfaceY, bz - SURFACE_EXIT_OFFSET_CU];
-  return { surfaceBase, surfaceExit, plateId: container.id, surfaceY, normal: 'neg-z' };
+  return { surfaceBase, surfaceExit, containerId: container.id, surfaceY, normal: 'neg-z' };
 }
 
 function manhattanXZ(a: WorldPoint3, b: WorldPoint3): number {
@@ -117,7 +117,7 @@ function scoreElbow(
  */
 export function routeSameSurface(src: SurfacePort, tgt: SurfacePort): WorldRouteSegment[] {
   const y = src.surfaceY;
-  const surfaceId = src.plateId;
+  const surfaceId = src.containerId;
 
   const exitSrc: WorldRouteSegment = {
     start: src.surfaceBase,
@@ -246,7 +246,7 @@ export function getConnectionSurfaceRoute(
     tgtCtx.totalPorts,
   );
 
-  if (srcPort.plateId === tgtPort.plateId) {
+  if (srcPort.containerId === tgtPort.containerId) {
     const segments = routeSameSurface(srcPort, tgtPort);
     return { segments, srcPort, tgtPort };
   }

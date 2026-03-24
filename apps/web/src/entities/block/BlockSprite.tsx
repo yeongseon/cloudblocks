@@ -39,7 +39,7 @@ function getBlockScreenSize(
 
 interface BlockSpriteProps {
   block: ResourceBlock;
-  parentPlate: ContainerBlock;
+  parentContainer: ContainerBlock;
   screenX: number;
   screenY: number;
   zIndex: number;
@@ -47,7 +47,7 @@ interface BlockSpriteProps {
 
 export const BlockSprite = memo(function BlockSprite({
   block,
-  parentPlate,
+  parentContainer,
   screenX,
   screenY,
   zIndex,
@@ -118,7 +118,7 @@ export const BlockSprite = memo(function BlockSprite({
     return fromBlockId === block.id || toBlockId === block.id;
   });
 
-  const hasValidationWarning = validatePlacement(block, parentPlate) !== null;
+  const hasValidationWarning = validatePlacement(block, parentContainer) !== null;
   const diffState = diffMode && diffDelta ? getDiffState(block.id, diffDelta) : 'unchanged';
   const upgradingBlockId = useUIStore((s) => s.upgradingBlockId);
   const snapTargetBlockIds = useUIStore((s) => s.snapTargetBlockIds);

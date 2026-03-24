@@ -8,7 +8,7 @@
  * - Ports are expressed in world coordinates, then projected to screen via worldToScreen.
  * - Inbound ports sit on the LEFT face bottom edge (y = wy, distributed along z).
  * - Outbound ports sit on the RIGHT face bottom edge (y = wy, distributed along x).
- * - All ports at block base (plate floor) for PCB-style floor routing.
+ * - All ports at block base (container block floor) for PCB-style floor routing.
  */
 
 import type { BlockDimensionsCU } from '../../shared/types/visualProfile';
@@ -53,7 +53,7 @@ export function getBlockWorldAnchors(
   return {
     center,
     port(side: PortSide, index: number, total: number): WorldPoint {
-      // Ports sit at the BOTTOM of the block (wy = block base = plate floor).
+      // Ports sit at the BOTTOM of the block (wy = block base = container block floor).
       // Distributed horizontally along the bottom edge of each face.
       const t = (index + 1) / (total + 1);
 

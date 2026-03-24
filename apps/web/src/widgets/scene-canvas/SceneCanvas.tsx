@@ -267,18 +267,18 @@ export function SceneCanvas() {
 
         <div className="block-layer">
           {blocks.map((block) => {
-            const parentPlate = plates.find((p) => p.id === block.parentId);
-            if (!parentPlate) return null;
-            const worldX = parentPlate.position.x + block.position.x;
-            const worldY = parentPlate.position.y + parentPlate.frame.height;
-            const worldZ = parentPlate.position.z + block.position.z;
+            const parentContainer = plates.find((p) => p.id === block.parentId);
+            if (!parentContainer) return null;
+            const worldX = parentContainer.position.x + block.position.x;
+            const worldY = parentContainer.position.y + parentContainer.frame.height;
+            const worldZ = parentContainer.position.z + block.position.z;
             const screenPos = worldToScreen(worldX, worldY, worldZ, origin.x, origin.y);
             const zIndex = depthKey(worldX, worldZ, worldY, 2);
             return (
               <BlockSprite
                 key={block.id}
                 block={block}
-                parentPlate={parentPlate}
+                parentContainer={parentContainer}
                 screenX={screenPos.x}
                 screenY={screenPos.y}
                 zIndex={zIndex}

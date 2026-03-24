@@ -12,11 +12,11 @@
 
 import type {
   Connection,
-  ContainerNode,
+  ContainerBlock,
   Endpoint,
   EndpointSemantic,
   ExternalActor,
-  LeafNode,
+  ResourceBlock,
 } from '@cloudblocks/schema';
 import { CATEGORY_PORTS } from '@cloudblocks/schema';
 import {
@@ -45,8 +45,8 @@ export interface EndpointAnchors {
  */
 export function getConnectionEndpointWorldAnchors(
   connection: Connection,
-  blocks: LeafNode[],
-  plates: ContainerNode[],
+  blocks: ResourceBlock[],
+  plates: ContainerBlock[],
   endpoints: Endpoint[],
   externalActors: ExternalActor[] = [],
 ): EndpointAnchors | null {
@@ -86,8 +86,8 @@ interface ResolvedEndpoint {
 function resolveEndpoint(
   endpointId: string,
   side: PortSide,
-  blocks: LeafNode[],
-  plates: ContainerNode[],
+  blocks: ResourceBlock[],
+  plates: ContainerBlock[],
   endpoints: Endpoint[],
   externalActors: ExternalActor[],
 ): ResolvedEndpoint | null {
@@ -102,13 +102,13 @@ function resolveEndpoint(
   }
 
   // Try block first
-  const block = blocks.find((b) => b.id === endpoint.nodeId);
+  const block = blocks.find((b) => b.id === endpoint.blockId);
   if (block) {
     const container = plates.find((p) => p.id === block.parentId);
     if (!container) return null;
 
     const worldPos = getBlockWorldPosition(block, container);
-    const floorY = container.position.y + container.size.height;
+    const floorY = container.position.y + container.frame.height;
     const cu = getBlockDimensions(block.category, block.provider, block.subtype);
     const anchors = getBlockWorldAnchors(worldPos, cu);
 
@@ -128,7 +128,7 @@ function resolveEndpoint(
   }
 
   // Try external actor
-  const actor = externalActors.find((a) => a.id === endpoint.nodeId);
+  const actor = externalActors.find((a) => a.id === endpoint.blockId);
   if (actor) {
     const pos = actor.position ?? {
       x: EXTERNAL_ACTOR_POSITION[0],

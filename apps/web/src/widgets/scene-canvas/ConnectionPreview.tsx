@@ -10,7 +10,7 @@ import {
 import { getBlockWorldAnchors } from '../../entities/block/blockGeometry';
 import { getBlockDimensions } from '../../shared/types/visualProfile';
 import { CATEGORY_PORTS } from '@cloudblocks/schema';
-import type { LeafNode, ContainerNode } from '@cloudblocks/schema';
+import type { ResourceBlock, ContainerBlock } from '@cloudblocks/schema';
 import { PORT_OUT_PX } from '../../shared/tokens/designTokens';
 import { canConnect } from '../../entities/validation/connection';
 import type { EndpointType } from '../../entities/validation/connection';
@@ -34,11 +34,11 @@ export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) 
   const nodes = useArchitectureStore((s) => s.workspace.architecture.nodes);
   const externalActors = useArchitectureStore((s) => s.workspace.architecture.externalActors ?? []);
   const blocks = useMemo(
-    () => nodes.filter((node): node is LeafNode => node.kind === 'resource'),
+    () => nodes.filter((node): node is ResourceBlock => node.kind === 'resource'),
     [nodes],
   );
   const plates = useMemo(
-    () => nodes.filter((node): node is ContainerNode => node.kind === 'container'),
+    () => nodes.filter((node): node is ContainerBlock => node.kind === 'container'),
     [nodes],
   );
 

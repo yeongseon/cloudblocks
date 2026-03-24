@@ -88,10 +88,10 @@ describe('computeFloorRoute — floor-routed connections', () => {
   const originX = 400;
   const originY = 300;
 
-  it('produces multi-segment route with elbows for offset blocks on same plate', () => {
-    // src stub at [2, 1.5, 3] (mid-height on block sitting on plate surface y=1)
-    // tgt stub at [5, 1.5, 6] (mid-height on block sitting on same plate)
-    // floorY = 1 for both (plate surface)
+  it('produces multi-segment route with elbows for offset blocks on same container block', () => {
+    // src port at [2, 1.5, 3] (mid-height on block sitting on container block surface y=1)
+    // tgt port at [5, 1.5, 6] (mid-height on block sitting on same container block)
+    // floorY = 1 for both (container block surface)
     const route = computeFloorRoute([2, 1.5, 3], [5, 1.5, 6], 1, 1, originX, originY);
     expect(route.segments.length).toBeGreaterThanOrEqual(3);
     expect(route.elbows.length).toBeGreaterThanOrEqual(1);
@@ -99,7 +99,7 @@ describe('computeFloorRoute — floor-routed connections', () => {
 
   it('drops to floor level — middle segments are lower than stubs on screen', () => {
     // Stubs at height 1.5, floor at height 1. Higher worldY = lower screenY.
-    // Floor segments should have HIGHER screenY than stub screenY.
+    // Floor segments should have HIGHER screenY than port screenY.
     const route = computeFloorRoute([2, 1.5, 3], [5, 1.5, 6], 1, 1, originX, originY);
     const stubScreenY = route.srcScreen.y;
     const floorSegments = route.segments.slice(1, -1);
@@ -108,8 +108,8 @@ describe('computeFloorRoute — floor-routed connections', () => {
     }
   });
 
-  it('handles different plate heights with corridor transition', () => {
-    // src on plate at y=1 (floorY=1), tgt on plate at y=3 (floorY=3)
+  it('handles different container block heights with corridor transition', () => {
+    // src on container block at y=1 (floorY=1), tgt on container block at y=3 (floorY=3)
     const route = computeFloorRoute([2, 1.5, 3], [5, 3.5, 6], 1, 3, originX, originY);
     expect(route.segments.length).toBeGreaterThanOrEqual(4);
     expect(route.elbows.length).toBeGreaterThanOrEqual(2);

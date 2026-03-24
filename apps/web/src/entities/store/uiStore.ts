@@ -502,14 +502,14 @@ export const useUIStore = create<UIState>((set, get) => ({
   themeVariant: (localStorage.getItem('cloudblocks:theme-variant') as ThemeVariant) || 'blueprint',
   setThemeVariant: (variant) => {
     localStorage.setItem('cloudblocks:theme-variant', variant);
-    // Studs are always shown per BRICK_DESIGN_SPEC.md §5 — theme does not affect stud visibility
+    // Ports are always shown — theme does not affect port visibility
     set({ themeVariant: variant });
   },
 
   showStuds: (() => {
     const stored = localStorage.getItem('cloudblocks:show-studs');
     if (stored !== null) return stored === 'true';
-    // Default to true per BRICK_DESIGN_SPEC.md §5: all blocks render stud grids
+    // Default to true: all blocks render port grids
     return true;
   })(),
   toggleStuds: () =>

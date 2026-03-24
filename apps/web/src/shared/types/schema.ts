@@ -352,8 +352,8 @@ export function createBlankArchitecture(id: string, name: string): ArchitectureM
     version: '1',
     nodes: [],
     endpoints: [
-      ...generateEndpointsForNode('ext-browser'),
-      ...generateEndpointsForNode('ext-internet'),
+      ...generateEndpointsForBlock('ext-browser'),
+      ...generateEndpointsForBlock('ext-internet'),
     ],
     connections: [
       {

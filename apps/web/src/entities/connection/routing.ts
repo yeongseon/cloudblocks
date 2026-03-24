@@ -114,11 +114,11 @@ export function computeWorldRoute(
  * Floor-routed connection between two world-space endpoints.
  *
  * Instead of an L-route floating in the air, the connection:
- * 1. Drops vertically from the source stub down to its plate floor
+ * 1. Drops vertically from the source port down to its container block floor
  * 2. Routes along the floor plane (L-shaped if needed)
- * 3. Rises vertically to the target stub
+ * 3. Rises vertically to the target port
  *
- * When source and target are on different-height plates, a shared
+ * When source and target are on different-height container blocks, a shared
  * corridor plane at min(srcFloorY, tgtFloorY) is used with extra
  * vertical transition segments.
  *
@@ -139,11 +139,11 @@ export function computeFloorRoute(
 
   waypoints.push(srcStub);
 
-  // 1. Drop from source stub to source plate floor
+  // 1. Drop from source port to source container block floor
   const srcFloor: WorldPoint = { worldX: srcWorld[0], worldZ: srcWorld[2], worldY: srcFloorY };
   waypoints.push(srcFloor);
 
-  // 2. If plates differ, descend to shared corridor at min height
+  // 2. If container blocks differ, descend to shared corridor at min height
   const routePlaneY = Math.min(srcFloorY, tgtFloorY);
   if (srcFloorY !== routePlaneY) {
     waypoints.push({ worldX: srcWorld[0], worldZ: srcWorld[2], worldY: routePlaneY });
@@ -151,7 +151,7 @@ export function computeFloorRoute(
 
   // 3. Route across the floor plane using a world-axis L-elbow.
   //    Fixed order: worldX first, then worldZ — produces two isometric
-  //    diagonal segments that visually hug the plate surface.
+  //    diagonal segments that visually hug the container block surface.
   const sx = srcWorld[0];
   const sz = srcWorld[2];
   const tx = tgtWorld[0];
@@ -171,7 +171,7 @@ export function computeFloorRoute(
     waypoints.push({ worldX: tx, worldZ: tz, worldY: tgtFloorY });
   }
 
-  // 5. Rise from target floor to target stub
+  // 5. Rise from target floor to target port
   waypoints.push(tgtStub);
 
   // Deduplicate consecutive waypoints that project to the same screen point

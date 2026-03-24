@@ -85,14 +85,14 @@ function createSurfaceRoute(): SurfaceRoute {
     srcPort: {
       surfaceBase: [1, 3, 1],
       surfaceExit: [1, 3, 1],
-      plateId: 'container-1',
+      containerId: 'container-1',
       surfaceY: 3,
       normal: 'neg-z',
     },
     tgtPort: {
       surfaceBase: [3, 3, 3],
       surfaceExit: [3, 3, 3],
-      plateId: 'container-1',
+      containerId: 'container-1',
       surfaceY: 3,
       normal: 'neg-x',
     },

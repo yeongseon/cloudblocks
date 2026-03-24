@@ -57,7 +57,7 @@ function makeSurfacePort(overrides?: Partial<SurfacePort>): SurfacePort {
   return {
     surfaceBase: [0, 3, 0],
     surfaceExit: [0, 3, -0.75],
-    plateId: 'container-1',
+    containerId: 'container-1',
     surfaceY: 3,
     normal: 'neg-z',
     ...overrides,
@@ -80,7 +80,7 @@ describe('resolveSurfacePort', () => {
 
     const result = resolveSurfacePort(block, container, 'inbound', 0, 1);
 
-    expect(result.plateId).toBe(container.id);
+    expect(result.containerId).toBe(container.id);
     expect(result.surfaceY).toBe(3);
     expect(result.normal).toBe('neg-x');
     expect(result.surfaceBase).toEqual([12, 3, 25.5]);
@@ -96,7 +96,7 @@ describe('resolveSurfacePort', () => {
 
     const result = resolveSurfacePort(block, container, 'outbound', 0, 3);
 
-    expect(result.plateId).toBe(container.id);
+    expect(result.containerId).toBe(container.id);
     expect(result.surfaceY).toBe(3);
     expect(result.normal).toBe('neg-z');
     expect(result.surfaceBase).toEqual([12.5, 3, 24]);
@@ -268,8 +268,8 @@ describe('getConnectionSurfaceRoute', () => {
     );
 
     expect(route).not.toBeNull();
-    expect(route!.srcPort.plateId).toBe('container-a');
-    expect(route!.tgtPort.plateId).toBe('container-a');
+    expect(route!.srcPort.containerId).toBe('container-a');
+    expect(route!.tgtPort.containerId).toBe('container-a');
     expect(route!.srcPort.normal).toBe('neg-z');
     expect(route!.tgtPort.normal).toBe('neg-x');
     expect(route!.segments.some((segment) => segment.kind === 'surface')).toBe(true);
@@ -306,8 +306,8 @@ describe('getConnectionSurfaceRoute', () => {
     );
 
     expect(route).not.toBeNull();
-    expect(route!.srcPort.plateId).toBe('container-a');
-    expect(route!.tgtPort.plateId).toBe('container-b');
+    expect(route!.srcPort.containerId).toBe('container-a');
+    expect(route!.tgtPort.containerId).toBe('container-b');
     expect(route!.segments.length).toBeGreaterThanOrEqual(2);
     expect(route!.segments.every((segment) => segment.kind === 'transition')).toBe(true);
     expect(route!.segments.every((segment) => segment.start[1] === 0 && segment.end[1] === 0)).toBe(

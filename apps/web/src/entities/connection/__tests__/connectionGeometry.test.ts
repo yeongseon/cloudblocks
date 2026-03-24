@@ -89,14 +89,14 @@ function makeRouteFromSegments(points: readonly [number, number][], surfaceY = 3
       surfaceY,
       surfaceBase: [start[0], surfaceY, start[1]],
       surfaceExit: [start[0], surfaceY, start[1]],
-      plateId: 'container-1',
+      containerId: 'container-1',
       normal: 'neg-z',
     },
     tgtPort: {
       surfaceY,
       surfaceBase: [end[0], surfaceY, end[1]],
       surfaceExit: [end[0], surfaceY, end[1]],
-      plateId: 'container-1',
+      containerId: 'container-1',
       normal: 'neg-x',
     },
   };
@@ -196,14 +196,14 @@ describe('connectionGeometry', () => {
           surfaceY: 3,
           surfaceBase: [0, 3, 0],
           surfaceExit: [0, 3, 0],
-          plateId: 'container-1',
+          containerId: 'container-1',
           normal: 'neg-z',
         },
         tgtPort: {
           surfaceY: 3,
           surfaceBase: [4, 3, 0],
           surfaceExit: [4, 3, 0],
-          plateId: 'container-1',
+          containerId: 'container-1',
           normal: 'neg-x',
         },
       } as unknown as SurfaceRoute;
@@ -229,14 +229,14 @@ describe('connectionGeometry', () => {
           surfaceY: 3,
           surfaceBase: [0, 3, 0],
           surfaceExit: [0, 3, 0],
-          plateId: 'container-1',
+          containerId: 'container-1',
           normal: 'neg-z',
         },
         tgtPort: {
           surfaceY: 3,
           surfaceBase: [1, 3, 2],
           surfaceExit: [1, 3, 2],
-          plateId: 'container-1',
+          containerId: 'container-1',
           normal: 'neg-x',
         },
       } as unknown as SurfaceRoute;
@@ -260,7 +260,7 @@ describe('connectionGeometry', () => {
           surfaceY: 3,
           surfaceBase: [3, 3, 0],
           surfaceExit: [3, 3, 0],
-          plateId: 'container-1',
+          containerId: 'container-1',
           normal: 'neg-x',
         },
       } as SurfaceRoute;
@@ -283,19 +283,19 @@ describe('connectionGeometry', () => {
           surfaceY: 3,
           surfaceBase: [0, 3, 0],
           surfaceExit: [0, 3, 0],
-          plateId: 'plate-1',
+          containerId: 'container-1',
           normal: 'neg-z',
         },
         tgtPort: {
           surfaceY: 3,
           surfaceBase: [2, 3, 0],
           surfaceExit: [2, 3, 0],
-          plateId: 'plate-1',
+          containerId: 'container-1',
           normal: 'neg-x',
         },
       } as unknown as SurfaceRoute;
 
-      const footprint = buildBrickFootprint(route);
+      const footprint = buildConnectionFootprint(route);
       expect(footprint).toHaveLength(4);
     });
 
@@ -310,19 +310,19 @@ describe('connectionGeometry', () => {
           surfaceY: 3,
           surfaceBase: [0, 3, 0],
           surfaceExit: [0, 3, 0],
-          plateId: 'plate-1',
+          containerId: 'container-1',
           normal: 'neg-z',
         },
         tgtPort: {
           surfaceY: 3,
           surfaceBase: [4, 3, 2],
           surfaceExit: [4, 3, 2],
-          plateId: 'plate-1',
+          containerId: 'container-1',
           normal: 'neg-x',
         },
       } as SurfaceRoute;
 
-      const footprint = buildBrickFootprint(route);
+      const footprint = buildConnectionFootprint(route);
       expect(footprint.length).toBeGreaterThanOrEqual(6);
     });
 
@@ -336,19 +336,19 @@ describe('connectionGeometry', () => {
           surfaceY: 3,
           surfaceBase: [0, 3, 0],
           surfaceExit: [0, 3, 0],
-          plateId: 'plate-1',
+          containerId: 'container-1',
           normal: 'neg-z',
         },
         tgtPort: {
           surfaceY: 3,
           surfaceBase: [3, 3, 3],
           surfaceExit: [3, 3, 3],
-          plateId: 'plate-1',
+          containerId: 'container-1',
           normal: 'neg-x',
         },
       } as SurfaceRoute;
 
-      const footprint = buildBrickFootprint(route);
+      const footprint = buildConnectionFootprint(route);
       let area = 0;
       for (let i = 0; i < footprint.length; i += 1) {
         const a = footprint[i];
@@ -480,7 +480,7 @@ describe('connectionGeometry', () => {
 
     it('returns empty when total route length is just below one CU', () => {
       const route = makeStraightRoute(0, 0, 0.999, 0);
-      const studs = sampleStudPositions(route);
+      const studs = samplePortPositions(route);
 
       expect(studs).toEqual([]);
     });
@@ -494,7 +494,7 @@ describe('connectionGeometry', () => {
         ],
         3,
       );
-      const studs = sampleStudPositions(route);
+      const studs = samplePortPositions(route);
 
       expect(studs).toHaveLength(0);
     });
