@@ -5,7 +5,7 @@ import type {
   ResourceCategory,
   ResourceType as SchemaResourceType,
 } from '@cloudblocks/schema';
-import { BLOCK_FRIENDLY_NAMES, BLOCK_ICONS } from '../../shared/types';
+import { BLOCK_FRIENDLY_NAMES, BLOCK_ICONS } from '../types';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
 
 export type ResourceType =
