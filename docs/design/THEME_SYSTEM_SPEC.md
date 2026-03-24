@@ -67,7 +67,7 @@ The Workshop theme targets users who treat CloudBlocks as a production architect
 - Muted accent colors — blue primary, teal secondary
 - High text contrast for readability (WCAG AA minimum)
 - Clean, flat panel chrome without decorative elements
-- Ports hidden by default (`showStuds: false`)
+- Ports hidden by default (`showPorts: false`)
 
 ### 2.3 Blueprint Theme (Alternative)
 
@@ -79,18 +79,18 @@ The Blueprint theme preserves the original CloudBlocks block-building aesthetic.
 - Pronounced shadows with colored glow effects
 - Vivid accent colors — bright blue primary, cyan secondary
 - Playful visual density — the canvas feels like a building workspace
-- Ports visible by default (`showStuds: true`)
+- Ports visible by default (`showPorts: true`)
 
 ### 2.4 Port Visibility Toggle
 
 Port visibility is **independent** of theme variant. Each theme has a default, but users can override:
 
-| Theme       | Default `showStuds` | User can override?            |
+| Theme       | Default `showPorts` | User can override?            |
 | ----------- | ------------------- | ----------------------------- |
 | `workshop`  | `false`             | Yes — via MenuBar grid button |
 | `blueprint` | `true`              | Yes — via MenuBar grid button |
 
-When the user switches themes, `showStuds` resets to the new theme's default unless the user has explicitly toggled it.
+When the user switches themes, `showPorts` resets to the new theme's default unless the user has explicitly toggled it.
 
 ---
 
@@ -405,7 +405,7 @@ No Big Bang migration — both access patterns coexist indefinitely.
 // In uiStore.ts
 interface UiState {
   themeVariant: ThemeVariant; // 'blueprint' | 'workshop'
-  showStuds: boolean; // independent of theme
+  showPorts: boolean; // independent of theme
   setThemeVariant: (v: ThemeVariant) => void;
 }
 ```
@@ -416,7 +416,7 @@ interface UiState {
 2. Call `applyTheme(variant)` to set CSS custom properties
 3. Persist to `localStorage` key `cloudblocks:theme-variant`
 4. React components re-render via Zustand subscription
-5. Reset `showStuds` to theme default (unless user has explicitly toggled)
+5. Reset `showPorts` to theme default (unless user has explicitly toggled)
 
 ### 7.2 Default
 
@@ -519,7 +519,7 @@ To add a new theme variant:
 2. Create a new `ThemeTokens` object with all 24 tokens
 3. Update `getThemeTokens()` to handle the new variant
 4. Add the variant to the menu bar switcher
-5. Set appropriate `showStuds` default for the new theme
+5. Set appropriate `showPorts` default for the new theme
 
 ### 10.2 Adding New Tokens
 

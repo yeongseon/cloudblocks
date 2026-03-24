@@ -238,7 +238,7 @@ All Milestone 6 gates plus:
 
 - Block design system formalized (BRICK_DESIGN_SPEC.md)
 - Universal port standard enforced (rx=12, ry=6, height=5)
-- BLOCK_VISUAL_PROFILES consolidated from STUD_LAYOUTS
+- BLOCK_VISUAL_PROFILES consolidated from PORT_LAYOUTS
 - Visual consistency validated across all block types
 
 ### Milestone 12 (Completed)

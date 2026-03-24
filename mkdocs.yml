@@ -75,11 +75,10 @@ exclude_docs: |
   concept/PRODUCT_DIRECTION_SPEC.md
   concept/RESOURCE_CATEGORY_STRATEGY.md
   concept/ROADMAP.md
-  design/BRICK_CONNECTOR_SPEC.md
+  design/CONNECTION_SPEC.md
   design/BRICK_DESIGN_SPEC.md
   design/BRICK_GUIDEBOOK.md
   design/GRAPH_IR_SPEC.md
-  design/KPI_SCORECARD.md
   design/MODULE_BOUNDARIES.md
   design/NFR_TARGETS.md
   design/PROVIDER_RESOURCES.md
@@ -87,12 +86,10 @@ exclude_docs: |
   design/SECURITY_BOUNDARIES.md
   design/VERSION_POLICY.md
   design/VISUAL_DESIGN_SPEC.md
-  guides/AZURE_PROVISIONING_RUNBOOK.md
+  design/ENDPOINT_PORT_MODEL.md
   guides/CHANGELOG_TEMPLATE.md
   guides/COMPATIBILITY_CHECKLIST.md
-  guides/LAUNCH_PACKET.md
   guides/OAUTH_ENDPOINTS.md
-  guides/PLAUSIBLE_SETUP.md
   guides/RELEASE_RUNBOOK.md
   guides/ROLLBACK_RUNBOOK.md
   guides/WEB_VITALS_GATES.md

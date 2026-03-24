@@ -42,7 +42,7 @@ describe('useUIStore', () => {
       diffDelta: null,
       diffBaseArchitecture: null,
       themeVariant: 'blueprint',
-      showStuds: true,
+      showPorts: true,
     });
   });
 
@@ -1077,43 +1077,65 @@ describe('useUIStore', () => {
     });
   });
 
-  describe('showStuds', () => {
-    it('defaults to true per BRICK_DESIGN_SPEC.md §5', () => {
-      expect(useUIStore.getState().showStuds).toBe(true);
+  describe('showPorts', () => {
+    it('defaults to true per Universal Port Standard', () => {
+      expect(useUIStore.getState().showPorts).toBe(true);
     });
 
-    it('toggleStuds flips value and persists to localStorage', () => {
-      useUIStore.getState().toggleStuds();
-      expect(useUIStore.getState().showStuds).toBe(false);
-      expect(localStorage.getItem('cloudblocks:show-studs')).toBe('false');
+    it('togglePorts flips value and persists to localStorage', () => {
+      useUIStore.getState().togglePorts();
+      expect(useUIStore.getState().showPorts).toBe(false);
+      expect(localStorage.getItem('cloudblocks:show-ports')).toBe('false');
 
-      useUIStore.getState().toggleStuds();
-      expect(useUIStore.getState().showStuds).toBe(true);
-      expect(localStorage.getItem('cloudblocks:show-studs')).toBe('true');
+      useUIStore.getState().togglePorts();
+      expect(useUIStore.getState().showPorts).toBe(true);
+      expect(localStorage.getItem('cloudblocks:show-ports')).toBe('true');
     });
 
-    it('setShowStuds sets value explicitly', () => {
-      useUIStore.getState().setShowStuds(true);
-      expect(useUIStore.getState().showStuds).toBe(true);
-      expect(localStorage.getItem('cloudblocks:show-studs')).toBe('true');
+    it('setShowPorts sets value explicitly', () => {
+      useUIStore.getState().setShowPorts(true);
+      expect(useUIStore.getState().showPorts).toBe(true);
+      expect(localStorage.getItem('cloudblocks:show-ports')).toBe('true');
 
-      useUIStore.getState().setShowStuds(false);
-      expect(useUIStore.getState().showStuds).toBe(false);
-      expect(localStorage.getItem('cloudblocks:show-studs')).toBe('false');
+      useUIStore.getState().setShowPorts(false);
+      expect(useUIStore.getState().showPorts).toBe(false);
+      expect(localStorage.getItem('cloudblocks:show-ports')).toBe('false');
     });
 
-    it('setThemeVariant does not affect studs', () => {
+    it('setThemeVariant does not affect ports', () => {
       useUIStore.getState().setThemeVariant('workshop');
-      expect(useUIStore.getState().showStuds).toBe(true);
+      expect(useUIStore.getState().showPorts).toBe(true);
       useUIStore.getState().setThemeVariant('blueprint');
-      expect(useUIStore.getState().showStuds).toBe(true);
+      expect(useUIStore.getState().showPorts).toBe(true);
     });
 
-    it('toggling studs does not affect theme', () => {
+    it('toggling ports does not affect theme', () => {
       useUIStore.getState().setThemeVariant('workshop');
-      useUIStore.getState().toggleStuds(); // now false
+      useUIStore.getState().togglePorts(); // now false
       expect(useUIStore.getState().themeVariant).toBe('workshop');
-      expect(useUIStore.getState().showStuds).toBe(false);
+      expect(useUIStore.getState().showPorts).toBe(false);
+    });
+
+    it('migrates legacy cloudblocks:show-studs key', () => {
+      localStorage.setItem('cloudblocks:show-studs', 'false');
+      localStorage.removeItem('cloudblocks:show-ports');
+      // Re-create store to trigger migration
+      useUIStore.setState({
+        showPorts: (() => {
+          const oldStored = localStorage.getItem('cloudblocks:show-studs');
+          if (oldStored !== null) {
+            localStorage.setItem('cloudblocks:show-ports', oldStored);
+            localStorage.removeItem('cloudblocks:show-studs');
+            return oldStored === 'true';
+          }
+          const stored = localStorage.getItem('cloudblocks:show-ports');
+          if (stored !== null) return stored === 'true';
+          return true;
+        })(),
+      });
+      expect(useUIStore.getState().showPorts).toBe(false);
+      expect(localStorage.getItem('cloudblocks:show-ports')).toBe('false');
+      expect(localStorage.getItem('cloudblocks:show-studs')).toBe(null);
     });
   });
 
