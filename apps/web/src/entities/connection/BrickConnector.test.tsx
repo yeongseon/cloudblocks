@@ -5,12 +5,31 @@ import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import { getConnectionEndpointWorldAnchors } from './endpointAnchors';
 import { getDiffState } from '../../features/diff/engine';
+import { getConnectionSurfaceRoute } from './surfaceRouting';
+import {
+  buildBrickFootprint,
+  getVisibleSideFaces,
+  projectFootprintToScreen,
+  sampleStudPositions,
+} from './connectionBrickGeometry';
 import type { Connection, ConnectionType } from '@cloudblocks/schema';
 import type { DiffDelta } from '../../shared/types/diff';
+import type { SurfaceRoute, WorldPoint3 } from './surfaceRouting';
 import { endpointId } from '@cloudblocks/schema';
 
 vi.mock('./endpointAnchors', () => ({
   getConnectionEndpointWorldAnchors: vi.fn(),
+}));
+
+vi.mock('./surfaceRouting', () => ({
+  getConnectionSurfaceRoute: vi.fn(),
+}));
+
+vi.mock('./connectionBrickGeometry', () => ({
+  buildBrickFootprint: vi.fn(),
+  getVisibleSideFaces: vi.fn(),
+  projectFootprintToScreen: vi.fn(),
+  sampleStudPositions: vi.fn(),
 }));
 
 vi.mock('../../shared/tokens/designTokens', () => ({
@@ -31,6 +50,8 @@ vi.mock('../../shared/tokens/designTokens', () => ({
   STUD_INNER_RY: 3.6,
   STUD_INNER_OPACITY: 0.3,
   PORT_OUT_PX: 8,
+  CONNECTION_WIDTH_CU: 1,
+  CONNECTION_HEIGHT_CU: 1 / 3,
 }));
 
 vi.mock('../../features/diff/engine', () => ({
@@ -49,6 +70,79 @@ function setupEndpoints(
   tgtWorld: [number, number, number] = [3, 0, 4],
 ) {
   vi.mocked(getConnectionEndpointWorldAnchors).mockReturnValue({ src: srcWorld, tgt: tgtWorld });
+}
+
+function createSurfaceRoute(): SurfaceRoute {
+  return {
+    segments: [
+      {
+        start: [1, 3, 1],
+        end: [3, 3, 1],
+        kind: 'surface',
+        surfaceId: 'plate-1',
+      },
+      {
+        start: [3, 3, 1],
+        end: [3, 3, 3],
+        kind: 'surface',
+        surfaceId: 'plate-1',
+      },
+    ],
+    srcPort: {
+      surfaceBase: [1, 3, 1],
+      surfaceExit: [1, 3, 1],
+      plateId: 'plate-1',
+      surfaceY: 3,
+      normal: 'neg-z',
+    },
+    tgtPort: {
+      surfaceBase: [3, 3, 3],
+      surfaceExit: [3, 3, 3],
+      plateId: 'plate-1',
+      surfaceY: 3,
+      normal: 'neg-x',
+    },
+  };
+}
+
+function setupBrickRouteMocks() {
+  const footprint: WorldPoint3[] = [
+    [1, 3.333, 1],
+    [3, 3.333, 1],
+    [3, 3.333, 2],
+    [1, 3.333, 2],
+  ];
+  vi.mocked(buildBrickFootprint).mockReturnValue(footprint);
+  vi.mocked(projectFootprintToScreen).mockReturnValue([
+    { x: 100, y: 220 },
+    { x: 140, y: 240 },
+    { x: 130, y: 260 },
+    { x: 90, y: 240 },
+  ]);
+  vi.mocked(getVisibleSideFaces).mockReturnValue([
+    {
+      face: 'left',
+      vertices: [
+        [1, 3.333, 1],
+        [3, 3.333, 1],
+        [3, 3, 1],
+        [1, 3, 1],
+      ],
+    },
+    {
+      face: 'right',
+      vertices: [
+        [3, 3.333, 1],
+        [3, 3.333, 2],
+        [3, 3, 2],
+        [3, 3, 1],
+      ],
+    },
+  ]);
+  vi.mocked(sampleStudPositions).mockReturnValue([
+    [1.5, 3.333, 1.5],
+    [2.5, 3.333, 1.5],
+  ]);
 }
 
 function renderConnector(conn: Connection = connection) {
@@ -72,6 +166,8 @@ describe('BrickConnector', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(getConnectionSurfaceRoute).mockReturnValue(null);
+    setupBrickRouteMocks();
     useUIStore.setState(initialUIState, true);
     useArchitectureStore.setState(initialArchitectureState, true);
     useUIStore.setState({
@@ -209,27 +305,208 @@ describe('BrickConnector', () => {
     expect(container.querySelector('g')?.getAttribute('opacity')).toBe('0.4');
   });
 
-  it('renders selection glow when connection is selected', () => {
+  it('renders selection outline when connection is selected', () => {
     useUIStore.setState({ selectedId: connection.id });
     setupEndpoints();
 
     const { container } = renderConnector();
 
-    const glowPath = container.querySelectorAll('path')[0];
-    expect(glowPath?.getAttribute('stroke')).toBe('#ffffff');
-    expect(glowPath?.getAttribute('stroke-opacity')).toBe('0.5');
+    const selectionOutline = container.querySelector('[data-layer="selection-outline"]');
+    expect(selectionOutline).toBeInTheDocument();
+    expect(selectionOutline?.getAttribute('stroke')).toBe('#ffffff');
+    expect(selectionOutline?.getAttribute('stroke-opacity')).toBe('0.5');
   });
 
-  it('renders studs at source and target endpoints', () => {
-    setupEndpoints();
+  describe('studs visibility', () => {
+    it('renders studs at source and target endpoints when showStuds is true', () => {
+      useUIStore.setState({ showStuds: true });
+      setupEndpoints();
 
-    const { container } = renderConnector();
+      const { container } = renderConnector();
 
-    const ellipses = container.querySelectorAll('ellipse');
-    expect(ellipses.length).toBeGreaterThanOrEqual(6);
+      const studLayer = container.querySelector('[data-layer="studs"]');
+      expect(studLayer).toBeInTheDocument();
 
-    const studEllipses = Array.from(ellipses).filter((e) => e.getAttribute('rx') === '12');
-    expect(studEllipses.length).toBeGreaterThanOrEqual(2);
+      const studUses = studLayer?.querySelectorAll('use') ?? [];
+      expect(studUses.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('does not render studs when showStuds is false', () => {
+      useUIStore.setState({ showStuds: false });
+      setupEndpoints();
+
+      const { container } = renderConnector();
+
+      const studLayer = container.querySelector('[data-layer="studs"]');
+      expect(studLayer).toBeNull();
+    });
+  });
+
+  describe('brick render path', () => {
+    it('renders top-face polygon from projected brick footprint', () => {
+      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createSurfaceRoute());
+
+      const { container } = renderConnector();
+
+      const topFaceLayer = container.querySelector('[data-layer="top-face"]');
+      const topFacePolygon = topFaceLayer?.querySelector('polygon');
+      expect(topFacePolygon).toBeInTheDocument();
+      expect(topFacePolygon?.getAttribute('points')).toBe('100,220 140,240 130,260 90,240');
+      expect(vi.mocked(getConnectionEndpointWorldAnchors)).not.toHaveBeenCalled();
+    });
+
+    it('renders side-face polygons and skips legacy liftarm segments', () => {
+      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createSurfaceRoute());
+
+      const { container } = renderConnector();
+
+      const sideFacesLayer = container.querySelector('[data-layer="side-faces"]');
+      expect(sideFacesLayer?.querySelectorAll('polygon')).toHaveLength(2);
+      expect(sideFacesLayer?.querySelectorAll('[data-connector-segment]')).toHaveLength(0);
+      expect(sideFacesLayer?.querySelectorAll('[data-connector-elbow]')).toHaveLength(0);
+    });
+
+    it('uses polygon selection outline when brick route is active', () => {
+      useUIStore.setState({ selectedId: connection.id });
+      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createSurfaceRoute());
+
+      const { container } = renderConnector();
+
+      const selectionOutline = container.querySelector('[data-layer="selection-outline"]');
+      expect(selectionOutline).toBeInTheDocument();
+      expect(selectionOutline?.tagName.toLowerCase()).toBe('polygon');
+    });
+
+    it('renders studs from sampled brick positions when showStuds is true', () => {
+      useUIStore.setState({ showStuds: true });
+      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createSurfaceRoute());
+
+      const { container } = renderConnector();
+
+      const studLayer = container.querySelector('[data-layer="studs"]');
+      expect(studLayer).toBeInTheDocument();
+      expect(studLayer?.querySelectorAll('use').length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('shows validation error label on hover for invalid brick route connections', () => {
+      useArchitectureStore.setState({
+        validationResult: {
+          valid: false,
+          errors: [
+            {
+              ruleId: 'brick-rule',
+              message: 'Brick route is invalid',
+              targetId: connection.id,
+              severity: 'error',
+            },
+          ],
+          warnings: [],
+        },
+      });
+      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createSurfaceRoute());
+
+      const { container } = renderConnector();
+
+      fireEvent.mouseEnter(
+        container.querySelector('[data-testid="connection-hit-area"]') as Element,
+      );
+      expect(container.querySelector('[data-testid="connection-error-label"]')).toBeInTheDocument();
+      expect(vi.mocked(getConnectionEndpointWorldAnchors)).not.toHaveBeenCalled();
+    });
+
+    it('falls back to null render when brick footprint is degenerate and fallback anchors are missing', () => {
+      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createSurfaceRoute());
+      vi.mocked(buildBrickFootprint).mockReturnValue([]);
+      vi.mocked(getConnectionEndpointWorldAnchors).mockReturnValue(null);
+
+      const { container } = renderConnector();
+
+      expect(container.querySelector('g')).toBeNull();
+    });
+
+    it('handles disjoint surface segments and still renders a hit area', () => {
+      const disjointRoute: SurfaceRoute = {
+        ...createSurfaceRoute(),
+        segments: [
+          {
+            start: [1, 3, 1],
+            end: [2, 3, 1],
+            kind: 'surface',
+          },
+          {
+            start: [5, 3, 5],
+            end: [6, 3, 5],
+            kind: 'surface',
+          },
+        ],
+      };
+      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(disjointRoute);
+
+      const { container } = renderConnector();
+
+      const hitArea = container.querySelector('[data-testid="connection-hit-area"]');
+      expect(hitArea).toBeInTheDocument();
+      expect(hitArea?.getAttribute('d')).toContain('L');
+    });
+
+    it('does not show validation label when brick route has no centerline points', () => {
+      useUIStore.setState({ selectedId: connection.id });
+      useArchitectureStore.setState({
+        validationResult: {
+          valid: false,
+          errors: [
+            {
+              ruleId: 'brick-route-empty',
+              message: 'No route points',
+              targetId: connection.id,
+              severity: 'error',
+            },
+          ],
+          warnings: [],
+        },
+      });
+      vi.mocked(getConnectionSurfaceRoute).mockReturnValue({
+        ...createSurfaceRoute(),
+        segments: [],
+      });
+
+      const { container } = renderConnector();
+
+      expect(
+        container.querySelector('[data-testid="connection-hit-area"]')?.getAttribute('d'),
+      ).toBe('');
+      expect(
+        container.querySelector('[data-testid="connection-error-label"]'),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  describe('fallback endpoint side offsets', () => {
+    it('applies src outbound and tgt inbound port offsets', () => {
+      vi.mocked(getConnectionEndpointWorldAnchors).mockReturnValue({
+        src: [1, 0, 1],
+        tgt: [3, 0, 3],
+        srcSide: 'outbound',
+        tgtSide: 'inbound',
+      });
+
+      const { container } = renderConnector();
+
+      expect(container.querySelector('[data-testid="connection-hit-area"]')).toBeInTheDocument();
+    });
+
+    it('applies src inbound and tgt outbound port offsets', () => {
+      vi.mocked(getConnectionEndpointWorldAnchors).mockReturnValue({
+        src: [1, 0, 1],
+        tgt: [3, 0, 3],
+        srcSide: 'inbound',
+        tgtSide: 'outbound',
+      });
+
+      const { container } = renderConnector();
+
+      expect(container.querySelector('[data-testid="connection-hit-area"]')).toBeInTheDocument();
+    });
   });
 
   describe('connector types', () => {

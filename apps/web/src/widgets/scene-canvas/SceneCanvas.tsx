@@ -228,6 +228,10 @@ export function SceneCanvas() {
               originY={origin.y}
             />
           ))}
+        </svg>
+
+        <svg className="interaction-overlay" style={{ width: 1, height: 1 }}>
+          <title>Interaction Overlay</title>
           <ConnectionPreview originX={origin.x} originY={origin.y} />
           <g className="drag-ghost-layer">
             <DragGhost
