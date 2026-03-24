@@ -7,9 +7,9 @@
 
 ## 1. Project Summary (3-Line Intro)
 
-> **CloudBlocks** is an open-source architecture compiler that turns visual infrastructure designs into Terraform, Bicep, and Pulumi code — all from the browser.  
-> Design cloud architectures by placing blocks, connect components, validate against real-world rules, and generate production-ready IaC.  
-> No YAML. No HCL. Just place, connect, validate, generate.
+> **CloudBlocks** is an open-source preset-driven visual architecture design tool — design cloud infrastructure by placing blocks, validate against real-world rules, and preview across Azure, AWS, and GCP.  
+> Design cloud architectures by placing blocks, connect components, validate in real time, and optionally generate Terraform, Bicep, or Pulumi (Experimental).  
+> No YAML. No HCL. Just place, connect, validate, preview.
 
 ---
 
@@ -27,11 +27,13 @@
 ## 3. Feature Highlights (Bullet Form)
 
 - **Visual architecture builder** — Modular container blocks (boundaries) + resource blocks with isometric 2.5D rendering
-- **Architecture compiler** — Generate Terraform, Bicep, or Pulumi from visual designs
+- **Preset templates** — Start from 6 built-in architecture patterns (three-tier, serverless, event pipeline)
 - **Real-time validation** — Rule engine validates placement and connections as you build
+- **Multi-cloud preview** — Visual preview for Azure, AWS, and GCP (Azure depth-first)
 - **7 resource categories** — Network, Security, Edge, Compute, Data, Messaging, Operations
 - **Learning mode** — Guided scenarios to learn cloud architecture patterns
-- **GitHub integration** — OAuth login, repo sync, PR creation, architecture diff
+- **Code generation** _(Experimental)_ — Export to Terraform, Bicep, or Pulumi
+- **GitHub integration** _(Backend required)_ — OAuth login, repo sync, PR creation
 - **Templates** — Pre-built patterns (three-tier web app, serverless API, event-driven pipeline)
 - **Frontend-only mode** — Works instantly in the browser without backend setup
 
@@ -76,10 +78,10 @@ Try it: https://yeongseon.github.io/cloudblocks/
 ### Reddit / Hacker News
 
 ```
-Title: CloudBlocks — Open-source visual architecture compiler (Terraform, Bicep, Pulumi)
+Title: CloudBlocks — Open-source visual architecture design tool with multi-cloud preview
 
 CloudBlocks lets you design cloud infrastructure by placing blocks within container blocks
-(using a block-based composition model), then compiles your design into Terraform, Bicep, or Pulumi code.
+(using a block-based composition model), then preview across Azure, AWS, and GCP. Code generation to Terraform, Bicep, or Pulumi is available as an Experimental feature.
 
 It runs entirely in the browser — no backend required for the core builder.
 
@@ -96,23 +98,23 @@ GitHub: https://github.com/yeongseon/cloudblocks
 ### LinkedIn (Professional)
 
 ```
-Excited to share CloudBlocks — an open-source architecture compiler that
-converts visual infrastructure designs into infrastructure-as-code.
+Excited to share CloudBlocks — an open-source visual architecture design tool that
+lets you model cloud infrastructure visually with multi-cloud preview.
 
 Instead of writing HCL or Bicep by hand, you design your architecture
-visually (like assembling building blocks), and CloudBlocks generates
-Terraform, Bicep, or Pulumi code automatically.
+visually (like assembling building blocks), preview across Azure, AWS, and GCP,
+and optionally generate Terraform, Bicep, or Pulumi code.
 
 Key capabilities:
 • Visual 2.5D isometric builder with drag-and-drop
+• Preset templates for common architecture patterns
 • Real-time validation engine with cloud-aware rules
-• Multi-generator output (Terraform + Bicep + Pulumi)
-• GitHub integration for version control and PR workflows
+• Multi-cloud preview (Azure, AWS, GCP)
+• Code generation: Terraform + Bicep + Pulumi (Experimental)
 • Learning mode for onboarding cloud architecture patterns
-
 Try it now (no signup): https://yeongseon.github.io/cloudblocks/
 
-#CloudArchitecture #InfrastructureAsCode #Terraform #OpenSource
+#CloudArchitecture #VisualDesign #MultiCloud #OpenSource
 ```
 
 ---
@@ -121,9 +123,9 @@ Try it now (no signup): https://yeongseon.github.io/cloudblocks/
 
 Include these in any launch communication to set expectations:
 
-- **Azure-first**: Code generation is optimized for Azure. AWS/GCP provider adapters are scaffolded but not production-ready.
+- **Azure-first**: Resource coverage and code generation are optimized for Azure. AWS/GCP are available in preview mode.
+- **Code generation is Experimental**: Generates starter code, not production-grade infrastructure.
 - **Frontend-only demo**: GitHub integration and AI features require the backend API (not deployed in the demo).
-- **Desktop-optimized**: Canvas interaction works best on desktop browsers. Mobile is informational only.
 - **Single-user**: No real-time collaboration or multi-user editing (planned for future milestones).
 
 ---
@@ -136,6 +138,6 @@ Include these in any launch communication to set expectations:
 | Rendering          | Pure SVG (no Canvas/WebGL)     |
 | State management   | Zustand with zundo (undo/redo) |
 | Backend            | FastAPI (Python 3.10+)         |
-| Test count         | 1900+ frontend tests           |
+| Test count         | 2,076                          |
 | Branch coverage    | ≥ 90%                          |
 | License            | Apache 2.0                     |

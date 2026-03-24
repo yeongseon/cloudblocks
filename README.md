@@ -13,53 +13,43 @@
 <p align="center">
 </p>
 
-**CloudBlocks is an architecture compiler that converts visual infrastructure designs into infrastructure-as-code.**
+**CloudBlocks is a preset-driven visual architecture design tool with best-effort multi-cloud preview.**
 
-Design cloud infrastructure by placing blocks on container blocks, connect components, validate against real-world rules, and generate Terraform, Bicep, or Pulumi — all from the browser. No YAML. No HCL. Just place, connect, validate, generate.
+Start from built-in architecture templates, customize layouts with drag-and-drop blocks, and preview infrastructure across Azure, AWS, and GCP — all in the browser. No backend required.
 
-> **[▶ Try the Live Demo](https://yeongseon.github.io/cloudblocks/)** — Frontend-only playground. Visual builder, code generation, and templates work instantly. AI and GitHub features require the backend ([setup guide](docs/guides/TUTORIALS.md)).
+> **[▶ Try the Live Demo](https://yeongseon.github.io/cloudblocks/)** — Frontend-only playground. Visual builder, templates, and multi-cloud preview work instantly. Code generation is available as an Experimental feature. AI and GitHub features require the backend ([setup guide](docs/guides/TUTORIALS.md)).
 
 ## Demo
 
 <p align="center">
 </p>
 
-> **Place** blocks on container blocks, **connect** components with typed protocols, **validate** against real-world rules, and **generate** Terraform, Bicep, or Pulumi — all in the browser.
+> **Start** from a preset template, **customize** with drag-and-drop blocks, **connect** components with typed ports, and **preview** across cloud providers — all in the browser.
 
 _Automated demo video coming soon. For now, [try the live demo](https://yeongseon.github.io/cloudblocks/)._
 
-## Monorepo Layout
-
-CloudBlocks uses a monorepo with one frontend app, one backend app, and shared TypeScript packages:
-
-| Path                          | Package               | Current role                                                                                                |
-| ----------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `apps/web`                    | `@cloudblocks/web`    | Frontend SPA. Owns validation engine, generation pipeline, and template system.                             |
-| `apps/api`                    | -                     | FastAPI backend. Handles GitHub OAuth/session auth, workspace/repo operations, and AI integration proxying. |
-| `packages/schema`             | `@cloudblocks/schema` | Canonical architecture model types/enums and JSON Schema output.                                            |
-| `packages/cloudblocks-domain` | `@cloudblocks/domain` | Shared domain helpers (hierarchy rules, labels, validation types).                                          |
-
-The frontend imports architecture/domain types from `@cloudblocks/schema` and `@cloudblocks/domain` instead of defining local model types.
-Python models in `apps/api/app/models/generated/` are auto-generated from the TypeScript schema (`packages/schema/dist/architecture-model.schema.json`).
-
 ## Why CloudBlocks?
 
-Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks works **architecture → code** (model visually, compile to infra).
+Most diagram tools produce static images. CloudBlocks produces a **live architecture model** with validation and multi-cloud awareness.
 
-|            | Diagram Tool | CloudBlocks                           |
-| ---------- | ------------ | ------------------------------------- |
-| Output     | Static image | Architecture model + IaC code         |
-| Validation | None         | Rule engine enforces constraints      |
-| Semantics  | Visual only  | Every element maps to a real resource |
+|             | Diagram Tool | CloudBlocks                               |
+| ----------- | ------------ | ----------------------------------------- |
+| Output      | Static image | Interactive architecture model            |
+| Validation  | None         | Real-time rule engine                     |
+| Semantics   | Visual only  | Every block maps to a real cloud resource |
+| Multi-Cloud | Manual       | Visual preview across Azure, AWS, and GCP |
 
 ## Features
 
 - 🧱 **Block-based modeling** — Container blocks (boundaries) + Resource blocks (resources) + typed Connections
-- ⚡ **Architecture compiler** — Visual designs compile to Terraform, Bicep, and Pulumi
+- 📋 **Preset templates** — Start from 6 built-in architecture patterns (three-tier, serverless, event pipeline, and more)
 - ✅ **Validation engine** — Real-time rule checking for placement and connections
-- 📦 **7 resource categories** — Network, security, edge, compute, data, messaging, operations
-- 🔗 **GitHub integration** — OAuth login, repo sync, PR creation, architecture diff (backend API)
+- 📦 **7 resource categories** — Network, Security, Edge, Compute, Data, Messaging, Operations
+- 🌐 **Multi-cloud preview** — Visual preview for Azure, AWS, and GCP (Azure depth-first)
+- 🎨 **Dual theme system** — Workshop (light, enterprise) and Blueprint (dark, creative)
 - 📚 **Learning mode** — Guided scenarios to learn cloud architecture patterns
+- ⚡ **Code generation** _(Experimental)_ — Export to Terraform, Bicep, or Pulumi
+- 🔗 **GitHub integration** _(Backend required)_ — OAuth login, repo sync, PR creation
 
 ## Quick Start
 
@@ -72,7 +62,16 @@ cd apps/web && pnpm dev
 
 Open [http://localhost:5173](http://localhost:5173) to start building.
 
-> The frontend works standalone. Start the backend (`apps/api`) for GitHub integration.
+> The frontend works standalone — no backend needed. Start `apps/api` for GitHub integration and AI features.
+
+## Monorepo Layout
+
+| Path                          | Package               | Role                                                                                        |
+| ----------------------------- | --------------------- | ------------------------------------------------------------------------------------------- |
+| `apps/web`                    | `@cloudblocks/web`    | Frontend SPA — visual builder, validation engine, template system, code generation pipeline |
+| `apps/api`                    | —                     | FastAPI backend — GitHub OAuth, workspace sync, AI integration                              |
+| `packages/schema`             | `@cloudblocks/schema` | Canonical architecture model types, enums, and JSON Schema                                  |
+| `packages/cloudblocks-domain` | `@cloudblocks/domain` | Shared domain helpers — hierarchy rules, labels, validation types                           |
 
 ## Documentation
 
@@ -82,6 +81,7 @@ Full documentation is available in the [`docs/`](docs/) directory:
 - [Architecture](docs/concept/ARCHITECTURE.md)
 - [Domain Model](docs/model/DOMAIN_MODEL.md)
 - [Roadmap](docs/concept/ROADMAP.md)
+- [V1 Product Contract](docs/concept/V1_PRODUCT_CONTRACT.md)
 
 ## Development
 
@@ -99,37 +99,22 @@ cd apps/web && npx tsc -b
 cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 ```
 
+## Product Evolution
+
+| Stage  | Name    | Focus                                          | Status      |
+| ------ | ------- | ---------------------------------------------- | ----------- |
+| **V1** | Design  | Preset-driven visual architecture design tool  | **Current** |
+| **V2** | Compile | Architecture compiler → starter infrastructure | Next        |
+| **V3** | Prove   | Azure-proven DevOps design and review tool     | Later       |
+| **V4** | Compare | Multi-cloud mapping studio                     | Future      |
+
+See [ROADMAP.md](docs/concept/ROADMAP.md) for details and [CHANGELOG.md](CHANGELOG.md) for release history.
+
 ## Examples
 
 - [Three-Tier Web App](examples/three-tier-web-app/) — Classic three-tier architecture
 - [Serverless API](examples/serverless-api/) — Serverless function architecture
 - [Event-Driven Pipeline](examples/event-driven-pipeline/) — Event processing pattern
-
-## Roadmap
-
-| Version | Milestone                                   | Status |
-| ------- | ------------------------------------------- | ------ |
-| v0.0.0  | Concept Validation                          | ✅     |
-| v0.4.0  | Milestones 1–4 (MVP → Workspace Management) | ✅     |
-| v0.5.0  | GitHub Integration & Backend API            | ✅     |
-| v0.6.0  | Multi-Generator + Template Marketplace      | ✅     |
-| v0.7.0  | Collaboration + UX Polish + Auth Migration  | ✅     |
-| v0.8.0  | Multi-Cloud Platform                        | ✅     |
-| v0.9.0  | UX Core Hardening                           | ✅     |
-| v0.10.0 | External Actors & DevOps UX                 | ✅     |
-| v0.11.0 | Block Design System                         | ✅     |
-| v0.12.0 | Core Model & Provider System                | ✅     |
-| v0.13.0 | Terraform Pipeline                          | ✅     |
-| v0.14.0 | AI-Assisted Architecture                    | ✅     |
-| v0.15.0 | v2.0 Specification Implementation           | ✅     |
-| v0.16.0 | Documentation Architecture                  | ✅     |
-| v0.17.0 | Product Structure                           | ✅     |
-| v0.18.0 | DevOps UX                                   | ✅     |
-| v0.19.0 | Resource Category Realignment + Cleanup     | ✅     |
-| v0.20.0 | UX Polish & GitHub Hardening                |        |
-| —       | i18n Scaffolding                            |        |
-
-See [CHANGELOG.md](CHANGELOG.md) for release details and [full roadmap](docs/concept/ROADMAP.md) for milestone breakdown.
 
 ## Contributing
 

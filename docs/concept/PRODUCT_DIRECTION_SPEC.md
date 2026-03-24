@@ -5,8 +5,8 @@
 
 ## Vision
 
-CloudBlocks is a **visual cloud architecture builder** — build infrastructure with modular blocks.
-Place blocks, connect them via ports, and generate infrastructure-as-code.
+CloudBlocks is a **preset-driven visual cloud architecture design tool** — build infrastructure with modular blocks.
+Place blocks, connect them via ports, and preview infrastructure across cloud providers.
 
 ---
 
