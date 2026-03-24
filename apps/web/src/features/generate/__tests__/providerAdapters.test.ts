@@ -43,7 +43,7 @@ function getRequiredDefinition(name: ProviderName) {
 
 function createContainer(overrides: Partial<ContainerBlock>): ContainerBlock {
   return {
-    id: 'plate-1',
+    id: 'container-1',
     name: 'Container',
     kind: 'container',
     layer: 'subnet',

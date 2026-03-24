@@ -518,7 +518,7 @@ describe('useTechTree hook', () => {
     }
   });
 
-  it('selects target plate for vm: subnet first, then network, otherwise null', () => {
+  it('selects target container for vm: subnet first, then network, otherwise null', () => {
     const { result: emptyResult } = renderHook(() => useTechTree());
     expect(emptyResult.current.getTargetPlateId('vm')).toBeNull();
 
@@ -531,14 +531,14 @@ describe('useTechTree hook', () => {
     expect(withSubnetResult.current.getTargetPlateId('vm')).toBe('sub-1');
   });
 
-  it('selects network plate for non-vnet-required resources like storage', () => {
+  it('selects network container for non-vnet-required resources like storage', () => {
     setArchitectureState(buildArchitecture([NETWORK_PLATE], 0));
     const { result } = renderHook(() => useTechTree());
 
     expect(result.current.getTargetPlateId('storage')).toBe('net-1');
   });
 
-  it('returns null target plate for non-vnet-required resources when no network exists', () => {
+  it('returns null target container for non-vnet-required resources when no network exists', () => {
     const { result } = renderHook(() => useTechTree());
 
     expect(result.current.getTargetPlateId('storage')).toBeNull();

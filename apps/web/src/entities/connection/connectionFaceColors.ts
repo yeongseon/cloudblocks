@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════
-// Connection Brick Face Color System
+// Connection Face Color System
 // Semantic colors (http, event, data) — NOT provider colors.
 // Reuses deriveFaceColors() from blockFaceColors.ts (§7.7).
 // ═══════════════════════════════════════════════════════════════
@@ -20,9 +20,9 @@ export const CONNECTION_SEMANTIC_BASE_COLORS: Record<ConnectionRenderSemantic, s
   data: '#84CC16', // Lime
 };
 
-// ─── Derived Face + Stud Colors ──────────────────────────────
+// ─── Derived Face + Port Colors ──────────────────────────────
 
-export interface ConnectionBrickColors {
+export interface ConnectionColors {
   base: string;
   topFaceColor: string;
   topFaceStroke: string;
@@ -30,9 +30,7 @@ export interface ConnectionBrickColors {
   rightSideColor: string;
 }
 
-export function getConnectionBrickColors(
-  semantic: ConnectionRenderSemantic,
-): ConnectionBrickColors {
+export function getConnectionColors(semantic: ConnectionRenderSemantic): ConnectionColors {
   const base = CONNECTION_SEMANTIC_BASE_COLORS[semantic];
   const derived = deriveFaceColors(base);
 

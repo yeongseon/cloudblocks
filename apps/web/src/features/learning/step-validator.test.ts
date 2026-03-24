@@ -12,7 +12,7 @@ const createTestModel = (): ArchitectureModel => ({
   updatedAt: '2026-01-01T00:00:00.000Z',
   nodes: [
     {
-      id: 'plate-vnet',
+      id: 'container-vnet',
       name: 'VNet',
       kind: 'container',
       layer: 'region',
@@ -25,27 +25,27 @@ const createTestModel = (): ArchitectureModel => ({
       metadata: {},
     },
     {
-      id: 'plate-public',
+      id: 'container-public',
       name: 'Subnet 1',
       kind: 'container',
       layer: 'subnet',
       resourceType: 'subnet',
       category: 'network',
       provider: 'azure',
-      parentId: 'plate-vnet',
+      parentId: 'container-vnet',
       position: { x: -3, y: 0.3, z: 0 },
       frame: { width: 5, height: 0.2, depth: 8 },
       metadata: {},
     },
     {
-      id: 'plate-private',
+      id: 'container-private',
       name: 'Subnet 2',
       kind: 'container',
       layer: 'subnet',
       resourceType: 'subnet',
       category: 'network',
       provider: 'azure',
-      parentId: 'plate-vnet',
+      parentId: 'container-vnet',
       position: { x: 3, y: 0.3, z: 0 },
       frame: { width: 5, height: 0.2, depth: 8 },
       metadata: {},
@@ -58,7 +58,7 @@ const createTestModel = (): ArchitectureModel => ({
       resourceType: 'load_balancer',
       category: 'delivery',
       provider: 'azure',
-      parentId: 'plate-public',
+      parentId: 'container-public',
       position: { x: -1.5, y: 0.5, z: -2 },
       metadata: {},
     },
@@ -70,7 +70,7 @@ const createTestModel = (): ArchitectureModel => ({
       resourceType: 'web_compute',
       category: 'compute',
       provider: 'azure',
-      parentId: 'plate-public',
+      parentId: 'container-public',
       position: { x: 1.5, y: 0.5, z: 1 },
       metadata: {},
     },
@@ -82,7 +82,7 @@ const createTestModel = (): ArchitectureModel => ({
       resourceType: 'relational_database',
       category: 'data',
       provider: 'azure',
-      parentId: 'plate-private',
+      parentId: 'container-private',
       position: { x: 0, y: 0.5, z: 0 },
       metadata: {},
     },
@@ -108,9 +108,9 @@ const createTestModel = (): ArchitectureModel => ({
     },
   ],
   endpoints: [
-    ...generateEndpointsForBlock('plate-vnet'),
-    ...generateEndpointsForBlock('plate-public'),
-    ...generateEndpointsForBlock('plate-private'),
+    ...generateEndpointsForBlock('container-vnet'),
+    ...generateEndpointsForBlock('container-public'),
+    ...generateEndpointsForBlock('container-private'),
     ...generateEndpointsForBlock('block-gw'),
     ...generateEndpointsForBlock('block-compute'),
     ...generateEndpointsForBlock('block-db'),
@@ -128,29 +128,29 @@ const getResources = (model: ArchitectureModel): ResourceBlock[] =>
   model.nodes.filter((node): node is ResourceBlock => node.kind === 'resource');
 
 describe('evaluateRule', () => {
-  describe('plate-exists', () => {
-    it('finds network plate', () => {
+  describe('container-exists', () => {
+    it('finds network container', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'plate-exists', plateType: 'region' };
+      const rule: StepValidationRule = { type: 'container-exists', plateType: 'region' };
       expect(evaluateRule(rule, model)).toBe(true);
     });
 
-    it('finds subnet plate', () => {
+    it('finds subnet container', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'plate-exists', plateType: 'subnet' };
+      const rule: StepValidationRule = { type: 'container-exists', plateType: 'subnet' };
       expect(evaluateRule(rule, model)).toBe(true);
     });
 
-    it('fails when requested plate type does not exist in model', () => {
+    it('fails when requested container type does not exist in model', () => {
       const model = createTestModel();
       const noNetworkModel: ArchitectureModel = {
         ...model,
         nodes: [
-          ...getContainers(model).filter((plate) => plate.layer === 'subnet'),
+          ...getContainers(model).filter((container) => container.layer === 'subnet'),
           ...getResources(model),
         ],
       };
-      const rule: StepValidationRule = { type: 'plate-exists', plateType: 'region' };
+      const rule: StepValidationRule = { type: 'container-exists', plateType: 'region' };
       expect(evaluateRule(rule, noNetworkModel)).toBe(false);
     });
   });
@@ -162,7 +162,7 @@ describe('evaluateRule', () => {
       expect(evaluateRule(rule, model)).toBe(true);
     });
 
-    it('finds compute block on subnet plate', () => {
+    it('finds compute block on subnet container', () => {
       const model = createTestModel();
       const rule: StepValidationRule = {
         type: 'block-exists',
@@ -188,7 +188,7 @@ describe('evaluateRule', () => {
       expect(evaluateRule(rule, model)).toBe(false);
     });
 
-    it('fails for block on wrong plate type', () => {
+    it('fails for block on wrong container type', () => {
       const model = createTestModel();
       const rule: StepValidationRule = {
         type: 'block-exists',
@@ -198,14 +198,14 @@ describe('evaluateRule', () => {
       expect(evaluateRule(rule, model)).toBe(false);
     });
 
-    it('fails when block placement plate is missing', () => {
+    it('fails when block placement container is missing', () => {
       const model = createTestModel();
       const modelWithMissingPlacement: ArchitectureModel = {
         ...model,
         nodes: [
           ...getContainers(model),
           ...getResources(model).map((block) =>
-            block.id === 'block-compute' ? { ...block, parentId: 'missing-plate' } : block,
+            block.id === 'block-compute' ? { ...block, parentId: 'missing-container' } : block,
           ),
         ],
       };
@@ -284,11 +284,11 @@ describe('evaluateRule', () => {
     });
   });
 
-  describe('entity-on-plate', () => {
-    it('finds gateway on subnet plate', () => {
+  describe('entity-on-container', () => {
+    it('finds gateway on subnet container', () => {
       const model = createTestModel();
       const rule: StepValidationRule = {
-        type: 'entity-on-plate',
+        type: 'entity-on-container',
         entityCategory: 'delivery',
         plateType: 'subnet',
       };
@@ -298,36 +298,36 @@ describe('evaluateRule', () => {
     it('finds database on subnet', () => {
       const model = createTestModel();
       const rule: StepValidationRule = {
-        type: 'entity-on-plate',
+        type: 'entity-on-container',
         entityCategory: 'data',
         plateType: 'subnet',
       };
       expect(evaluateRule(rule, model)).toBe(true);
     });
 
-    it('fails when entity is not on specified plate type', () => {
+    it('fails when entity is not on specified container type', () => {
       const model = createTestModel();
       const rule: StepValidationRule = {
-        type: 'entity-on-plate',
+        type: 'entity-on-container',
         entityCategory: 'data',
         plateType: 'region',
       };
       expect(evaluateRule(rule, model)).toBe(false);
     });
 
-    it('fails when entity placement plate cannot be found', () => {
+    it('fails when entity placement container cannot be found', () => {
       const model = createTestModel();
       const modelWithMissingPlacement: ArchitectureModel = {
         ...model,
         nodes: [
           ...getContainers(model),
           ...getResources(model).map((block) =>
-            block.id === 'block-db' ? { ...block, parentId: 'missing-plate' } : block,
+            block.id === 'block-db' ? { ...block, parentId: 'missing-container' } : block,
           ),
         ],
       };
       const rule: StepValidationRule = {
-        type: 'entity-on-plate',
+        type: 'entity-on-container',
         entityCategory: 'data',
         plateType: 'subnet',
       };
@@ -350,7 +350,7 @@ describe('evaluateRule', () => {
         nodes: [
           ...getContainers(model),
           ...getResources(model).map((block) =>
-            block.id === 'block-gw' ? { ...block, parentId: 'plate-vnet' } : block,
+            block.id === 'block-gw' ? { ...block, parentId: 'container-vnet' } : block,
           ),
         ],
       };
@@ -373,16 +373,24 @@ describe('evaluateRule', () => {
     });
   });
 
-  describe('min-plate-count', () => {
+  describe('min-container-count', () => {
     it('passes when count is met', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'min-plate-count', plateType: 'region', count: 1 };
+      const rule: StepValidationRule = {
+        type: 'min-container-count',
+        plateType: 'region',
+        count: 1,
+      };
       expect(evaluateRule(rule, model)).toBe(true);
     });
 
     it('fails when count is not met', () => {
       const model = createTestModel();
-      const rule: StepValidationRule = { type: 'min-plate-count', plateType: 'subnet', count: 3 };
+      const rule: StepValidationRule = {
+        type: 'min-container-count',
+        plateType: 'subnet',
+        count: 3,
+      };
       expect(evaluateRule(rule, model)).toBe(false);
     });
   });
@@ -399,7 +407,7 @@ describe('evaluateRules', () => {
   it('passes when all rules pass', () => {
     const model = createTestModel();
     const rules: StepValidationRule[] = [
-      { type: 'plate-exists', plateType: 'region' },
+      { type: 'container-exists', plateType: 'region' },
       { type: 'block-exists', category: 'delivery' },
       { type: 'connection-exists', sourceCategory: 'compute', targetCategory: 'data' },
       { type: 'architecture-valid' },
@@ -415,7 +423,7 @@ describe('evaluateRules', () => {
   it('fails when some rules fail and keeps result order', () => {
     const model = createTestModel();
     const rules: StepValidationRule[] = [
-      { type: 'plate-exists', plateType: 'region' },
+      { type: 'container-exists', plateType: 'region' },
       { type: 'min-block-count', category: 'delivery', count: 2 },
       { type: 'connection-exists', sourceCategory: 'data', targetCategory: 'delivery' },
     ];

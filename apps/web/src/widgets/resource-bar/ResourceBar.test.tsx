@@ -49,10 +49,10 @@ describe('ResourceBar', () => {
     expect(counts).toHaveLength(3);
   });
 
-  it('renders plate, block, and connection counts for populated architecture', () => {
+  it('renders container, block, and connection counts for populated architecture', () => {
     const plates: ContainerBlock[] = [
       {
-        id: 'plate-1',
+        id: 'container-1',
         name: 'VNet',
         kind: 'container',
         layer: 'region',
@@ -65,14 +65,14 @@ describe('ResourceBar', () => {
         metadata: {},
       },
       {
-        id: 'plate-2',
+        id: 'container-2',
         name: 'Subnet',
         kind: 'container',
         layer: 'subnet',
         resourceType: 'subnet',
         category: 'network',
         provider: 'azure',
-        parentId: 'plate-1',
+        parentId: 'container-1',
         position: { x: 1, y: 0, z: 1 },
         frame: { width: 6, height: 0.3, depth: 6 },
         metadata: {},
@@ -88,7 +88,7 @@ describe('ResourceBar', () => {
         resourceType: 'web_compute',
         category: 'compute',
         provider: 'azure',
-        parentId: 'plate-2',
+        parentId: 'container-2',
         position: { x: 0, y: 0, z: 0 },
         metadata: {},
       },
@@ -100,7 +100,7 @@ describe('ResourceBar', () => {
         resourceType: 'relational_database',
         category: 'data',
         provider: 'azure',
-        parentId: 'plate-2',
+        parentId: 'container-2',
         position: { x: 2, y: 0, z: 2 },
         metadata: {},
       },
@@ -112,7 +112,7 @@ describe('ResourceBar', () => {
         resourceType: 'relational_database',
         category: 'data',
         provider: 'azure',
-        parentId: 'plate-2',
+        parentId: 'container-2',
         position: { x: 4, y: 0, z: 1 },
         metadata: {},
       },

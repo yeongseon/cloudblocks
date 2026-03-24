@@ -216,7 +216,7 @@ describe('domainSlice – targeted branch coverage', () => {
 
     it('no-ops when plateId does not exist', () => {
       const archBefore = getArch();
-      getState().setPlateProfile('nonexistent-plate', 'network-hub');
+      getState().setPlateProfile('nonexistent-container', 'network-hub');
       expect(getArch()).toBe(archBefore);
     });
   });
@@ -224,7 +224,7 @@ describe('domainSlice – targeted branch coverage', () => {
   // ── setPlateProfile: child clamping (lines 442-444) ──
 
   describe('setPlateProfile – child clamping with containers and blocks', () => {
-    it('clamps child container positions when plate is resized smaller', () => {
+    it('clamps child container positions when container is resized smaller', () => {
       const region = makeContainerNode('region-1', {
         name: 'VNet',
         layer: 'region',
@@ -559,12 +559,12 @@ describe('domainSlice – targeted branch coverage', () => {
     });
   });
 
-  // ── duplicateBlock: block without parent plate ──
+  // ── duplicateBlock: block without parent container ──
 
   describe('duplicateBlock – orphan block guard', () => {
-    it('no-ops when source block has no matching parent plate', () => {
+    it('no-ops when source block has no matching parent container', () => {
       seedState({
-        nodes: [makeLeafNode('orphan-block', 'missing-plate', 'compute', { name: 'Orphan' })],
+        nodes: [makeLeafNode('orphan-block', 'missing-container', 'compute', { name: 'Orphan' })],
       });
       const archBefore = getArch();
 
@@ -609,10 +609,10 @@ describe('domainSlice – targeted branch coverage', () => {
     });
   });
 
-  // ── setPlateProfile: plate without parent (root plate resize) ──
+  // ── setPlateProfile: container without parent (root container resize) ──
 
-  describe('setPlateProfile – root plate without parent', () => {
-    it('resizes a root plate without parent clamping', () => {
+  describe('setPlateProfile – root container without parent', () => {
+    it('resizes a root container without parent clamping', () => {
       getState().addPlate('region', 'VNet', null, 'network-platform');
       const plateId = getPlates()[0].id;
 
@@ -627,17 +627,17 @@ describe('domainSlice – targeted branch coverage', () => {
 
   // ── addPlate: region type forces position to origin ──
 
-  describe('addPlate – region plate position', () => {
-    it('places region plate at origin regardless of other state', () => {
+  describe('addPlate – region container position', () => {
+    it('places region container at origin regardless of other state', () => {
       getState().addPlate('region', 'VNet1', null);
-      const plate = getPlates()[0];
-      expect(plate.position).toEqual({ x: 0, y: 0, z: 0 });
+      const container = getPlates()[0];
+      expect(container.position).toEqual({ x: 0, y: 0, z: 0 });
     });
   });
 
-  // ── movePlatePosition: root plate with no siblings ──
+  // ── movePlatePosition: root container with no siblings ──
 
-  describe('movePlatePosition – single root plate', () => {
+  describe('movePlatePosition – single root container', () => {
     it('moves freely when there are no sibling plates', () => {
       getState().addPlate('region', 'VNet', null);
       const plateId = getPlates()[0].id;
@@ -697,15 +697,15 @@ describe('domainSlice – targeted branch coverage', () => {
     });
 
     it('handles addConnection branches with actors and endpoint parse fallback', () => {
-      const subnet = makeContainerNode('plate-1', {
+      const subnet = makeContainerNode('container-1', {
         layer: 'subnet',
         resourceType: 'subnet',
         frame: { width: 8, height: 0.3, depth: 10 },
       });
-      const edge = makeLeafNode('delivery-1', 'plate-1', 'delivery', {
+      const edge = makeLeafNode('delivery-1', 'container-1', 'delivery', {
         resourceType: 'load_balancer',
       });
-      const compute = makeLeafNode('compute-1', 'plate-1', 'compute', {
+      const compute = makeLeafNode('compute-1', 'container-1', 'compute', {
         resourceType: 'web_compute',
       });
       seedState({
@@ -731,9 +731,9 @@ describe('domainSlice – targeted branch coverage', () => {
     });
 
     it('returns false when endpoint-backed source/target cannot be resolved', () => {
-      const subnet = makeContainerNode('plate-1', { layer: 'subnet', resourceType: 'subnet' });
-      const edge = makeLeafNode('delivery-1', 'plate-1', 'delivery');
-      const compute = makeLeafNode('compute-1', 'plate-1', 'compute');
+      const subnet = makeContainerNode('container-1', { layer: 'subnet', resourceType: 'subnet' });
+      const edge = makeLeafNode('delivery-1', 'container-1', 'delivery');
+      const compute = makeLeafNode('compute-1', 'container-1', 'compute');
       seedState({
         nodes: [subnet, edge, compute],
         endpoints: [],
@@ -744,9 +744,9 @@ describe('domainSlice – targeted branch coverage', () => {
     });
 
     it('no-ops updateConnectionType when endpoints for existing connection are missing', () => {
-      const subnet = makeContainerNode('plate-1', { layer: 'subnet', resourceType: 'subnet' });
-      const edge = makeLeafNode('delivery-1', 'plate-1', 'delivery');
-      const compute = makeLeafNode('compute-1', 'plate-1', 'compute');
+      const subnet = makeContainerNode('container-1', { layer: 'subnet', resourceType: 'subnet' });
+      const edge = makeLeafNode('delivery-1', 'container-1', 'delivery');
+      const compute = makeLeafNode('compute-1', 'container-1', 'compute');
       const connection = makeLegacyConnection('conn-1', edge.id, compute.id, 'dataflow');
       seedState({
         nodes: [subnet, edge, compute],

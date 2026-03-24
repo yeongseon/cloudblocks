@@ -497,7 +497,6 @@ Complete computed dimensions for all tiers at `RENDER_SCALE = 32`:
 | Width           | 1             | 32     |
 | Depth           | 1             | 32     |
 | Height          | 1             | 32     |
-| Studs           | 1×1 = 1       | —      |
 | SVG iso width   | (1+1)×32 = 64 | 64     |
 | SVG iso diamond | (1+1)×16 = 32 | 32     |
 | Side wall       | 1×32 = 32     | 32     |
@@ -511,7 +510,6 @@ Applies to: `function`, `queue`, `event`
 | Width           | 2              | 64     |
 | Depth           | 2              | 64     |
 | Height          | 1              | 32     |
-| Studs           | 2×2 = 4        | —      |
 | SVG iso width   | (2+2)×32 = 128 | 128    |
 | SVG iso diamond | (2+2)×16 = 64  | 64     |
 | Side wall       | 1×32 = 32      | 32     |
@@ -525,7 +523,6 @@ Applies to: `identity`, `observability`
 | Width           | 2              | 64     |
 | Depth           | 2              | 64     |
 | Height          | 2              | 64     |
-| Studs           | 2×2 = 4        | —      |
 | SVG iso width   | (2+2)×32 = 128 | 128    |
 | SVG iso diamond | (2+2)×16 = 64  | 64     |
 | Side wall       | 2×32 = 64      | 64     |
@@ -539,7 +536,6 @@ Applies to: `compute`, `storage`
 | Width           | 3              | 96     |
 | Depth           | 3              | 96     |
 | Height          | 2              | 64     |
-| Studs           | 3×3 = 9        | —      |
 | SVG iso width   | (3+3)×32 = 192 | 192    |
 | SVG iso diamond | (3+3)×16 = 96  | 96     |
 | Side wall       | 2×32 = 64      | 64     |
@@ -553,7 +549,6 @@ Applies to: `database`, `analytics`
 | Width           | 3              | 96     |
 | Depth           | 1              | 32     |
 | Height          | 1              | 32     |
-| Studs           | 3×1 = 3        | —      |
 | SVG iso width   | (3+1)×32 = 128 | 128    |
 | SVG iso diamond | (3+1)×16 = 64  | 64     |
 | Side wall       | 1×32 = 32      | 32     |
@@ -567,7 +562,6 @@ Applies to: `gateway`
 | Width           | 4              | 128    |
 | Depth           | 1              | 32     |
 | Height          | 1              | 32     |
-| Studs           | 4×1 = 4        | —      |
 | SVG iso width   | (4+1)×32 = 160 | 160    |
 | SVG iso diamond | (4+1)×16 = 80  | 80     |
 | Side wall       | 1×32 = 32      | 32     |

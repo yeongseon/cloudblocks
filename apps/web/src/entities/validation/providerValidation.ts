@@ -40,11 +40,11 @@ const KNOWN_SUBTYPES: Record<string, Partial<Record<ResourceCategory, string[]>>
 
 function validateBlockProviderRules(
   block: ResourceBlock,
-  plate: ContainerBlock | undefined,
+  container: ContainerBlock | undefined,
 ): ValidationError[] {
   const warnings: ValidationError[] = [];
 
-  if (block.provider === 'aws' && block.subtype === 'lambda' && plate?.layer === 'subnet') {
+  if (block.provider === 'aws' && block.subtype === 'lambda' && container?.layer === 'subnet') {
     warnings.push({
       ruleId: 'rule-provider-aws-lambda-subnet',
       severity: 'warning',
@@ -57,7 +57,7 @@ function validateBlockProviderRules(
   if (
     block.provider === 'gcp' &&
     block.subtype === 'cloud-sql-postgres' &&
-    plate?.layer === 'subnet'
+    container?.layer === 'subnet'
   ) {
     warnings.push({
       ruleId: 'rule-provider-gcp-sql-public',
@@ -92,8 +92,8 @@ export function validateProviderRules(model: ArchitectureModel): ValidationError
   const plates = model.nodes.filter((n): n is ContainerBlock => n.kind === 'container');
 
   for (const block of blocks) {
-    const plate = plates.find((p) => p.id === block.parentId);
-    warnings.push(...validateBlockProviderRules(block, plate));
+    const container = plates.find((p) => p.id === block.parentId);
+    warnings.push(...validateBlockProviderRules(block, container));
   }
 
   return warnings;

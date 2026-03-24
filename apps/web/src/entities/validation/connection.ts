@@ -196,7 +196,7 @@ export function validateConnection(
   return null;
 }
 
-export function validateStubIndices(
+export function validatePortIndices(
   connection: Connection,
   nodes: Block[],
 ): ValidationError | null {

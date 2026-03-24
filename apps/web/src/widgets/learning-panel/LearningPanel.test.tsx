@@ -166,14 +166,14 @@ describe('LearningPanel widgets', () => {
     }
 
     const ruleSet: StepValidationRule[] = [
-      { type: 'plate-exists', plateType: 'region' },
-      { type: 'plate-exists', plateType: 'subnet' },
+      { type: 'container-exists', plateType: 'region' },
+      { type: 'container-exists', plateType: 'subnet' },
       { type: 'block-exists', category: 'compute' },
       { type: 'connection-exists', sourceCategory: 'delivery', targetCategory: 'compute' },
-      { type: 'entity-on-plate', entityCategory: 'data', plateType: 'subnet' },
+      { type: 'entity-on-container', entityCategory: 'data', plateType: 'subnet' },
       { type: 'architecture-valid' },
       { type: 'min-block-count', category: 'data', count: 2 },
-      { type: 'min-plate-count', plateType: 'subnet', count: 3 },
+      { type: 'min-container-count', plateType: 'subnet', count: 3 },
       { type: 'unknown-rule' } as unknown as StepValidationRule,
     ];
 
@@ -219,7 +219,7 @@ describe('LearningPanel widgets', () => {
     }
 
     const rules: StepValidationRule[] = [
-      { type: 'plate-exists', plateType: 'region' },
+      { type: 'container-exists', plateType: 'region' },
       { type: 'architecture-valid' },
     ];
 

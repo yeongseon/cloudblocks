@@ -25,9 +25,9 @@ import {
   resolveConnectionNodes,
 } from '../../shared/types';
 import {
-  PLATE_ACTION_DEFINITIONS,
-  PLATE_ACTION_GRID,
-  type PlateActionType,
+  CONTAINER_BLOCK_ACTION_DEFINITIONS,
+  CONTAINER_BLOCK_ACTION_GRID,
+  type ContainerBlockActionType,
 } from '../bottom-panel/useTechTree';
 import './InspectorPanel.css';
 
@@ -48,14 +48,14 @@ function getPositionHotkey(rowIdx: number, colIdx: number): string {
   return POSITION_HOTKEYS[rowIdx]?.[colIdx] ?? '';
 }
 
-function getPlateHeaderText(plate: ContainerBlock): string {
-  if (plate.layer === 'subnet') {
+function getPlateHeaderText(container: ContainerBlock): string {
+  if (container.layer === 'subnet') {
     return 'Subnet';
   }
 
-  return plate.layer === 'region'
+  return container.layer === 'region'
     ? 'VNet'
-    : plate.layer.charAt(0).toUpperCase() + plate.layer.slice(1);
+    : container.layer.charAt(0).toUpperCase() + container.layer.slice(1);
 }
 
 export function InspectorPanel() {
@@ -307,22 +307,22 @@ function BlockProperties({ block }: { block: ResourceBlock }) {
   );
 }
 
-function PlateProperties({ plate }: { plate: ContainerBlock }) {
+function PlateProperties({ container }: { container: ContainerBlock }) {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
-  const parent = plate.parentId
-    ? (architecture.nodes.find((n) => n.id === plate.parentId) ?? null)
+  const parent = container.parentId
+    ? (architecture.nodes.find((n) => n.id === container.parentId) ?? null)
     : null;
-  const contents = architecture.nodes.filter((n) => n.parentId === plate.id);
+  const contents = architecture.nodes.filter((n) => n.parentId === container.id);
   const plateLabel =
-    plate.layer === 'subnet'
+    container.layer === 'subnet'
       ? 'Subnet'
-      : plate.layer.charAt(0).toUpperCase() + plate.layer.slice(1);
+      : container.layer.charAt(0).toUpperCase() + container.layer.slice(1);
 
   return (
     <div className="inspector-properties">
       <PropertyRow label="Type" value={plateLabel} />
       {parent && <PropertyRow label="Parent" value={parent.name} />}
-      <PropertyRow label="Size" value={`${plate.frame.width} × ${plate.frame.depth}`} />
+      <PropertyRow label="Size" value={`${container.frame.width} × ${container.frame.depth}`} />
       <PropertyRow
         label="Contents"
         value={`${contents.length} node${contents.length !== 1 ? 's' : ''}`}
@@ -346,7 +346,7 @@ function PlateActionMode({ selectedPlate }: { selectedPlate: ContainerBlock }) {
   );
 
   const handleAction = useCallback(
-    async (action: PlateActionType) => {
+    async (action: ContainerBlockActionType) => {
       switch (action) {
         case 'deploy':
           setSelectedId(selectedPlate.id);
@@ -374,8 +374,8 @@ function PlateActionMode({ selectedPlate }: { selectedPlate: ContainerBlock }) {
     <div className="inspector-section">
       <h3 className="inspector-title">{getPlateHeaderText(selectedPlate)} Actions</h3>
       <div className="inspector-action-grid">
-        {PLATE_ACTION_GRID.map((row, rowIdx) => {
-          const rowKey = row.filter(Boolean).join('-') || `plate-action-row-${rowIdx}`;
+        {CONTAINER_BLOCK_ACTION_GRID.map((row, rowIdx) => {
+          const rowKey = row.filter(Boolean).join('-') || `container-action-row-${rowIdx}`;
           return (
             <div key={rowKey} className="inspector-action-row">
               {row.map((actionType, colIdx) => {
@@ -389,7 +389,7 @@ function PlateActionMode({ selectedPlate }: { selectedPlate: ContainerBlock }) {
                   );
                 }
 
-                const action = PLATE_ACTION_DEFINITIONS[actionType];
+                const action = CONTAINER_BLOCK_ACTION_DEFINITIONS[actionType];
                 const hotkey = getPositionHotkey(rowIdx, colIdx);
 
                 return (
@@ -412,7 +412,7 @@ function PlateActionMode({ selectedPlate }: { selectedPlate: ContainerBlock }) {
           );
         })}
       </div>
-      <PlateProperties plate={selectedPlate} />
+      <PlateProperties container={selectedPlate} />
     </div>
   );
 }

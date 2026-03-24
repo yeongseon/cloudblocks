@@ -63,10 +63,10 @@ export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) 
       if (block.id === connectionSource) continue;
       if (!canConnect(sourceEndpointType, block.category)) continue;
 
-      const plate = plates.find((p) => p.id === block.parentId);
-      if (!plate) continue;
+      const container = plates.find((p) => p.id === block.parentId);
+      if (!container) continue;
 
-      const worldPos = getBlockWorldPosition(block, plate);
+      const worldPos = getBlockWorldPosition(block, container);
       const cu = getBlockDimensions(block.category, block.provider, block.subtype);
       const anchors = getBlockWorldAnchors(worldPos, cu);
       const ports = CATEGORY_PORTS[block.category];
@@ -123,12 +123,12 @@ export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) 
 
     const sourceBlock = blocks.find((block) => block.id === connectionSource);
     if (sourceBlock) {
-      const parentPlate = plates.find((plate) => plate.id === sourceBlock.parentId);
-      if (!parentPlate) {
+      const parentContainer = plates.find((container) => container.id === sourceBlock.parentId);
+      if (!parentContainer) {
         return null;
       }
 
-      const worldPos = getBlockWorldPosition(sourceBlock, parentPlate);
+      const worldPos = getBlockWorldPosition(sourceBlock, parentContainer);
       const cu = getBlockDimensions(
         sourceBlock.category,
         sourceBlock.provider,
@@ -136,6 +136,7 @@ export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) 
       );
       const anchors = getBlockWorldAnchors(worldPos, cu);
       const ports = CATEGORY_PORTS[sourceBlock.category];
+      // Preview originates from outbound port index 0
       const portWorld = anchors.port('outbound', 0, ports.outbound);
       const screen = worldToScreen(portWorld[0], portWorld[1], portWorld[2], originX, originY);
       return { x: screen.x + PORT_OUT_PX, y: screen.y };

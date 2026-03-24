@@ -104,11 +104,11 @@ function resolveEndpoint(
   // Try block first
   const block = blocks.find((b) => b.id === endpoint.nodeId);
   if (block) {
-    const plate = plates.find((p) => p.id === block.parentId);
-    if (!plate) return null;
+    const container = plates.find((p) => p.id === block.parentId);
+    if (!container) return null;
 
-    const worldPos = getBlockWorldPosition(block, plate);
-    const floorY = plate.position.y + plate.size.height;
+    const worldPos = getBlockWorldPosition(block, container);
+    const floorY = container.position.y + container.size.height;
     const cu = getBlockDimensions(block.category, block.provider, block.subtype);
     const anchors = getBlockWorldAnchors(worldPos, cu);
 

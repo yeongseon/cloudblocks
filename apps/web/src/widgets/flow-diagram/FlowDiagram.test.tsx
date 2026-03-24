@@ -45,7 +45,7 @@ const makeBlock = (id: string, category: ResourceCategory): ResourceBlock => ({
   resourceType: resourceTypeByCategory[category],
   category,
   provider: 'azure',
-  parentId: 'plate-1',
+  parentId: 'container-1',
   position: { x: 0, y: 0, z: 0 },
   metadata: {},
 });
@@ -226,7 +226,7 @@ describe('FlowDiagram', () => {
       resourceType: 'web_compute',
       category: 'unknown' as unknown as ResourceCategory,
       provider: 'azure',
-      parentId: 'plate-1',
+      parentId: 'container-1',
       position: { x: 0, y: 0, z: 0 },
       metadata: {},
     };

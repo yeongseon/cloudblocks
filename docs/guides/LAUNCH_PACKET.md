@@ -55,7 +55,7 @@ Capture the following for promotion materials:
 3. Use a screen recorder (e.g., macOS Cmd+Shift+5, or Kap for GIF)
 4. Crop to the canvas area
 
-> Note: The hero screenshot already exists at `docs/images/hero.png`.
+> Note: A hero screenshot should be captured and added before launch.
 
 ---
 

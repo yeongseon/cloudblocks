@@ -77,7 +77,7 @@ export function validatePlacement(
 ): ValidationError | null {
   if (!parent) {
     return {
-      ruleId: 'rule-plate-exists',
+      ruleId: 'rule-container-exists',
       severity: 'error',
       message: `Resource "${resource.name}" is not placed on any container`,
       suggestion: 'Place the resource on a valid subnet container',
@@ -117,7 +117,7 @@ export function validatePlacement(
  * @returns true if the resource can be placed, false otherwise
  */
 export function canPlaceBlock(category: ResourceCategory, container: ContainerBlock): boolean {
-  const stubResource: ResourceBlock = {
+  const previewResource: ResourceBlock = {
     id: '__preview__',
     name: '__preview__',
     kind: 'resource',
@@ -130,7 +130,7 @@ export function canPlaceBlock(category: ResourceCategory, container: ContainerBl
     metadata: {},
   };
 
-  const result = validatePlacement(stubResource, container);
+  const result = validatePlacement(previewResource, container);
   return result === null;
 }
 

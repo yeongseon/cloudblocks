@@ -15,7 +15,7 @@ vi.mock('../code-preview/CodePreview', () => ({
 }));
 
 const networkPlate: ContainerBlock = {
-  id: 'plate-1',
+  id: 'container-1',
   name: 'VNet',
   kind: 'container',
   layer: 'region',
@@ -36,7 +36,7 @@ const blockA: ResourceBlock = {
   resourceType: 'web_compute',
   category: 'compute',
   provider: 'azure',
-  parentId: 'plate-1',
+  parentId: 'container-1',
   position: { x: 1, y: 0, z: 2 },
   metadata: {},
 };
@@ -49,7 +49,7 @@ const blockB: ResourceBlock = {
   resourceType: 'sql_database',
   category: 'data',
   provider: 'azure',
-  parentId: 'plate-1',
+  parentId: 'container-1',
   position: { x: 4, y: 0, z: 2 },
   metadata: {},
 };
@@ -112,8 +112,8 @@ describe('InspectorPanel', () => {
     expect(screen.getByRole('button', { name: /Link/ })).toBeInTheDocument();
   });
 
-  it('shows plate properties when a plate is selected', () => {
-    useUIStore.setState({ selectedId: 'plate-1' });
+  it('shows container properties when a container is selected', () => {
+    useUIStore.setState({ selectedId: 'container-1' });
 
     render(<InspectorPanel />);
 

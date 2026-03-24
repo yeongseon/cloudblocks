@@ -435,22 +435,25 @@ export const ACTION_GRID: (ActionType | null)[][] = [
   [null, null, null],
 ];
 
-export type PlateActionType = 'deploy' | 'delete' | 'rename';
+export type ContainerBlockActionType = 'deploy' | 'delete' | 'rename';
 
-export interface PlateActionDefinition {
-  id: PlateActionType;
+export interface ContainerBlockActionDefinition {
+  id: ContainerBlockActionType;
   label: string;
   icon: string;
   hotkey?: string;
 }
 
-export const PLATE_ACTION_DEFINITIONS: Record<PlateActionType, PlateActionDefinition> = {
+export const CONTAINER_BLOCK_ACTION_DEFINITIONS: Record<
+  ContainerBlockActionType,
+  ContainerBlockActionDefinition
+> = {
   deploy: { id: 'deploy', label: 'Deploy', icon: '🚀', hotkey: 'Q' },
   delete: { id: 'delete', label: 'Delete', icon: '🗑️', hotkey: 'E' },
   rename: { id: 'rename', label: 'Rename', icon: '📝', hotkey: 'S' },
 };
 
-export const PLATE_ACTION_GRID: (PlateActionType | null)[][] = [
+export const CONTAINER_BLOCK_ACTION_GRID: (ContainerBlockActionType | null)[][] = [
   ['deploy', 'rename', 'delete'],
   [null, null, null],
   [null, null, null],
@@ -521,7 +524,7 @@ export interface TechTreeState {
     disabledReason: string | null;
   }>;
 
-  /** Get target plate ID for placing a new block */
+  /** Get target container ID for placing a new block */
   getTargetPlateId: (type: ResourceType) => string | null;
 }
 
@@ -547,11 +550,11 @@ export function useTechTree(): TechTreeState {
           return hasVNet;
 
         case 'always':
-          // Always enabled (but needs a plate to place on)
+          // Always enabled (but needs a container to place on)
           return hasVNet;
 
         case 'vnet-optional':
-          // VNet optional — enabled if we have a network plate
+          // VNet optional — enabled if we have a network container
           return hasVNet;
 
         case 'vnet-required':
@@ -598,7 +601,7 @@ export function useTechTree(): TechTreeState {
         return null;
       }
 
-      // For other blocks, use network plate
+      // For other blocks, use network container
       if (networkPlates.length > 0) return networkPlates[0].id;
       return null;
     };

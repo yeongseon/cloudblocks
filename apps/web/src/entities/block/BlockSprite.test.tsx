@@ -64,7 +64,7 @@ vi.mock('react-hot-toast', () => ({
 vi.mock('./BlockSprite.css', () => ({}));
 
 const parentPlate: ContainerBlock = {
-  id: 'plate-1',
+  id: 'container-1',
   name: 'Subnet',
   kind: 'container',
   layer: 'subnet',
@@ -856,7 +856,7 @@ describe('BlockSprite', () => {
 
   it('adds is-warning class when block has placement validation error (messaging on subnet)', () => {
     const subnetPlate: ContainerBlock = {
-      id: 'plate-subnet',
+      id: 'container-subnet',
       name: 'Subnet',
       kind: 'container',
       layer: 'subnet',
@@ -886,7 +886,7 @@ describe('BlockSprite', () => {
 
   it('does not add is-warning class when block is correctly placed (compute on public subnet)', () => {
     const publicPlate: ContainerBlock = {
-      id: 'plate-public',
+      id: 'container-public',
       name: 'Subnet 1',
       kind: 'container',
       layer: 'subnet',

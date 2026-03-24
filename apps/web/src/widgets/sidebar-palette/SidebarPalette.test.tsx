@@ -148,7 +148,7 @@ describe('SidebarPalette', () => {
     expect(vmButton.querySelector('.sidebar-palette-resource-lock')).toBeInTheDocument();
   });
 
-  it('creates a resource on click when target plate exists', async () => {
+  it('creates a resource on click when target container exists', async () => {
     const user = userEvent.setup();
     useArchitectureStore.setState({
       workspace: {

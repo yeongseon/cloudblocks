@@ -36,13 +36,13 @@ describe('legacyModelTestUtils node filters', () => {
   it('separates container and resource nodes', () => {
     const architecture = makeTestArchitecture({
       nodes: [
-        makeTestPlate({ id: 'plate-a' }),
+        makeTestPlate({ id: 'container-a' }),
         makeTestBlock({ id: 'block-a' }),
         makeTestBlock({ id: 'block-b', category: 'data' }),
       ],
     });
 
-    expect(getPlates(architecture).map((node) => node.id)).toEqual(['plate-a']);
+    expect(getPlates(architecture).map((node) => node.id)).toEqual(['container-a']);
     expect(getBlocks(architecture).map((node) => node.id)).toEqual(['block-a', 'block-b']);
   });
 });

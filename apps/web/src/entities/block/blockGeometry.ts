@@ -39,7 +39,7 @@ export interface SvgPortPoint {
 /**
  * Compute world-space anchor points for a block.
  *
- * @param worldPos Block world position [wx, wy, wz] (top of parent plate)
+ * @param worldPos Block world position [wx, wy, wz] (top of parent container)
  * @param cu       Block CU dimensions
  */
 export function getBlockWorldAnchors(

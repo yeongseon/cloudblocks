@@ -73,7 +73,7 @@ const gatewayNode: ResourceBlock = {
   resourceType: 'load_balancer',
   category: 'delivery',
   provider: 'azure',
-  parentId: 'plate-1',
+  parentId: 'container-1',
   position: { x: 0, y: 0, z: 0 },
   metadata: {},
 };
@@ -86,7 +86,7 @@ const databaseNode: ResourceBlock = {
   resourceType: 'relational_database',
   category: 'data',
   provider: 'azure',
-  parentId: 'plate-1',
+  parentId: 'container-1',
   position: { x: 1, y: 0, z: 1 },
   metadata: {},
 };

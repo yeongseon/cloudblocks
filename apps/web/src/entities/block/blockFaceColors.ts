@@ -66,7 +66,7 @@ export function darken(hex: string, percent: number): string {
 // ─── Face Color Derivation (§7.7) ────────────────────────────
 
 /**
- * Derive all face and stud colors from a single provider base color.
+ * Derive all face and port colors from a single provider base color.
  * See CLOUDBLOCKS_SPEC_V2.md §7.7.
  */
 export function deriveFaceColors(base: string): DerivedFaceColors {

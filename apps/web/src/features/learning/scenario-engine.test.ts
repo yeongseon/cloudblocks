@@ -433,7 +433,7 @@ describe('scenario-engine', () => {
       const result = getValidationDetails();
 
       expect(result.results.length).toBeGreaterThan(0);
-      expect(result.results[0]?.rule.type).toBe('plate-exists');
+      expect(result.results[0]?.rule.type).toBe('container-exists');
       expect(result.passed).toBe(false);
     });
 

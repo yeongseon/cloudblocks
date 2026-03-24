@@ -101,7 +101,7 @@ describe('core model type coverage', () => {
     }
   });
 
-  it('has stud footprint in visual profiles for every block category', () => {
+  it('has block footprint in visual profiles for every block category', () => {
     expect(Object.keys(BLOCK_VISUAL_PROFILES).sort()).toEqual([...blockCategories].sort());
 
     for (const category of blockCategories) {

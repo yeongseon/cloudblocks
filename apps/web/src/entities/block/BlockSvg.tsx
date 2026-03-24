@@ -19,8 +19,8 @@ import {
   PORT_DOT_RX,
   PORT_DOT_RY,
   PORT_DOT_STROKE_WIDTH,
-  PORT_DOT_ACTIVE_OPACITY,
   PORT_DOT_OPACITY,
+  PORT_DOT_ACTIVE_OPACITY,
   PORT_COLOR_HTTP,
   PORT_COLOR_EVENT,
   PORT_COLOR_DATA,
@@ -257,6 +257,7 @@ export const BlockSvg = memo(function BlockSvg({
         </filter>
       </defs>
 
+      {/* ─── Port dots (connection anchor points on side walls) ─── */}
       <g data-testid="port-dots" opacity={showPorts ? PORT_DOT_ACTIVE_OPACITY : PORT_DOT_OPACITY}>
         {(() => {
           const ports = CATEGORY_PORTS[category];

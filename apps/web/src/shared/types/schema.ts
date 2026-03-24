@@ -10,7 +10,7 @@ import type {
   Workspace,
 } from './index';
 import logger from '../utils/logger';
-import { buildPlateSizeFromProfileId, inferLegacyPlateProfileId } from './index';
+import { buildContainerBlockSizeFromProfileId, inferLegacyContainerBlockProfileId } from './index';
 import {
   connectionTypeToSemantic,
   endpointId,
@@ -233,23 +233,23 @@ export function deserialize(json: string): Workspace[] {
         ? architectureUnknown.blocks
         : [];
 
-      const containerNodes: ContainerBlock[] = legacyPlates.map((plate) => ({
-        id: plate.id as string,
-        name: plate.name as string,
+      const containerNodes: ContainerBlock[] = legacyPlates.map((container) => ({
+        id: container.id as string,
+        name: container.name as string,
         kind: 'container' as const,
-        layer: plate.type as ContainerBlock['layer'],
-        resourceType: ((plate.type as string) === 'region'
+        layer: container.type as ContainerBlock['layer'],
+        resourceType: ((container.type as string) === 'region'
           ? 'virtual_network'
-          : (plate.type as string) === 'subnet'
+          : (container.type as string) === 'subnet'
             ? 'subnet'
             : 'virtual_network') as ContainerBlock['resourceType'],
         category: 'network' as const,
         provider: 'azure' as const,
-        parentId: (plate.parentId as string | null) ?? null,
-        position: plate.position as ContainerBlock['position'],
-        frame: plate.size as ContainerBlock['frame'],
-        metadata: (plate.metadata as Record<string, unknown>) ?? {},
-        ...(plate.profileId ? { profileId: plate.profileId as string } : {}),
+        parentId: (container.parentId as string | null) ?? null,
+        position: container.position as ContainerBlock['position'],
+        frame: container.size as ContainerBlock['frame'],
+        metadata: (container.metadata as Record<string, unknown>) ?? {},
+        ...(container.profileId ? { profileId: container.profileId as string } : {}),
       }));
 
       const leafNodes: ResourceBlock[] = (
@@ -298,7 +298,7 @@ export function deserialize(json: string): Workspace[] {
 
         if (node.kind === 'container' && sizeOrFrame && !node.profileId) {
           const layer = typeof node.layer === 'string' ? node.layer : 'region';
-          const inferredProfileId = inferLegacyPlateProfileId({
+          const inferredProfileId = inferLegacyContainerBlockProfileId({
             type: layer as PlateType,
             size: {
               width: Number(sizeOrFrame.width),
@@ -306,7 +306,7 @@ export function deserialize(json: string): Workspace[] {
             },
           });
           node.profileId = inferredProfileId;
-          node.frame = buildPlateSizeFromProfileId(inferredProfileId);
+          node.frame = buildContainerBlockSizeFromProfileId(inferredProfileId);
           delete node.size;
         }
       }

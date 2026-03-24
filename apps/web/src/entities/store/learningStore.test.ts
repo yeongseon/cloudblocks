@@ -16,9 +16,9 @@ function createTestScenario(): Scenario {
         id: 'step-1',
         order: 1,
         title: 'Create network',
-        instruction: 'Create a network plate.',
-        hints: ['Use the plate tool.', 'Choose network as plate type.'],
-        validationRules: [{ type: 'plate-exists', plateType: 'region' }],
+        instruction: 'Create a network container.',
+        hints: ['Use the container tool.', 'Choose network as container type.'],
+        validationRules: [{ type: 'container-exists', plateType: 'region' }],
       },
       {
         id: 'step-2',

@@ -1,8 +1,0 @@
-<svg viewBox="0 0 1152 606" xmlns="http://www.w3.org/2000/svg">
-  <!-- Faces -->
-  <polygon points="576,10 1142,288 576,566 10,288" fill="#2563EB" stroke="#60A5FA" stroke-width="1" stroke-opacity="0.6" />
-  <polygon points="10,288 576,566 576,596 10,318" fill="#1D4ED8" />
-  <polygon points="576,566 1142,288 1142,318 576,596" fill="#1E40AF" />
-  <text transform="matrix(0.8975,0.4410,0,1,293,442)" font-family="system-ui, -apple-system, sans-serif" font-size="18" font-weight="700" fill="#ffffff" fill-opacity="0.9" text-anchor="middle" dominant-baseline="middle">Virtual Network</text>
-  <text transform="matrix(0.8975,-0.4410,0,1,859,442)" font-family="system-ui, -apple-system, sans-serif" font-size="24" text-anchor="middle" dominant-baseline="middle">🌐</text>
-</svg>

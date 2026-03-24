@@ -12,7 +12,7 @@ describe('generateId', () => {
   });
 
   it('generates ids for all supported entity types using {type}-{8chars} format', () => {
-    const types = ['plate', 'block', 'conn', 'ext', 'arch', 'ws'] as const;
+    const types = ['container', 'block', 'conn', 'ext', 'arch', 'ws'] as const;
 
     for (const type of types) {
       const id = generateId(type);
@@ -22,7 +22,7 @@ describe('generateId', () => {
   });
 
   it('produces unique ids across calls', () => {
-    const plateId = generateId('plate');
+    const plateId = generateId('container');
     const blockId = generateId('block');
     const connId = generateId('conn');
 

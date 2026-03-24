@@ -8,7 +8,7 @@ function makeBlock(overrides: LegacyBlockOverrides = {}): ResourceBlock {
     id: 'block-1',
     name: 'Block One',
     category: 'compute',
-    placementId: 'plate-1',
+    placementId: 'container-1',
     position: { x: 0, y: 0, z: 0 },
     metadata: {},
     ...overrides,

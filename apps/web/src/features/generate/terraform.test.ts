@@ -23,8 +23,8 @@ const baseSize = { width: 1, height: 1, depth: 1 };
 
 function createPlate(overrides: LegacyPlateOverrides): ContainerBlock {
   return makeTestPlate({
-    id: 'plate-default',
-    name: 'Default Plate',
+    id: 'container-default',
+    name: 'Default ContainerBlock',
     type: 'region',
     parentId: null,
     position: basePosition,
@@ -39,7 +39,7 @@ function createBlock(overrides: LegacyBlockOverrides): ResourceBlock {
     id: 'block-default',
     name: 'Default Block',
     category: 'compute',
-    placementId: 'plate-default',
+    placementId: 'container-default',
     position: basePosition,
     metadata: {},
     ...overrides,

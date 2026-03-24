@@ -18,7 +18,7 @@ const baseSize = { width: 1, height: 1, depth: 1 };
 
 function createPlate(overrides: LegacyPlateOverrides): ContainerBlock {
   return makeTestPlate({
-    id: 'plate-default',
+    id: 'container-default',
     name: 'Default',
     type: 'region',
     parentId: null,
@@ -34,7 +34,7 @@ function createBlock(overrides: LegacyBlockOverrides): ResourceBlock {
     id: 'block-default',
     name: 'Default',
     category: 'compute',
-    placementId: 'plate-default',
+    placementId: 'container-default',
     position: basePosition,
     metadata: {},
     ...overrides,
@@ -90,12 +90,12 @@ describe('pulumi generator', () => {
   it('normalizePulumi generates unique resource names', () => {
     const model = createTestModel({
       plates: [
-        createPlate({ id: 'plate-network', name: 'VNet', type: 'region' }),
+        createPlate({ id: 'container-network', name: 'VNet', type: 'region' }),
         createPlate({
-          id: 'plate-subnet',
+          id: 'container-subnet',
           name: 'Subnet 1',
           type: 'subnet',
-          parentId: 'plate-network',
+          parentId: 'container-network',
         }),
       ],
       blocks: [createBlock({ id: 'block-webapp', name: 'Frontend', category: 'compute' })],
@@ -103,8 +103,8 @@ describe('pulumi generator', () => {
 
     const normalized = normalizePulumi(model, azureProviderDefinition);
 
-    expect(normalized.resourceNames.get('plate-network')).toBe('vnetVNet');
-    expect(normalized.resourceNames.get('plate-subnet')).toBe('subnetSubnet1');
+    expect(normalized.resourceNames.get('container-network')).toBe('vnetVNet');
+    expect(normalized.resourceNames.get('container-subnet')).toBe('subnetSubnet1');
     expect(normalized.resourceNames.get('block-webapp')).toBe('webappFrontend');
   });
 

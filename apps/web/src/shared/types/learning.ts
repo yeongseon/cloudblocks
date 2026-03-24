@@ -13,13 +13,13 @@ export type ScenarioDifficulty = 'beginner' | 'intermediate' | 'advanced';
 // ─── Step Validation Rules (Typed Union) ───────────────────
 
 export type StepValidationRule =
-  | { type: 'plate-exists'; plateType: PlateType }
+  | { type: 'container-exists'; plateType: PlateType }
   | { type: 'block-exists'; category: BlockCategory; onPlateType?: PlateType }
   | { type: 'connection-exists'; sourceCategory: EndpointType; targetCategory: EndpointType }
-  | { type: 'entity-on-plate'; entityCategory: BlockCategory; plateType: PlateType }
+  | { type: 'entity-on-container'; entityCategory: BlockCategory; plateType: PlateType }
   | { type: 'architecture-valid' }
   | { type: 'min-block-count'; category: BlockCategory; count: number }
-  | { type: 'min-plate-count'; plateType: PlateType; count: number };
+  | { type: 'min-container-count'; plateType: PlateType; count: number };
 
 // ─── Architecture Snapshot ─────────────────────────────────
 

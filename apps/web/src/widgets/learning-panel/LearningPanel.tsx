@@ -13,20 +13,20 @@ import { CompletionScreen } from './CompletionScreen';
 
 function getRuleIdentifier(rule: StepValidationRule): string {
   switch (rule.type) {
-    case 'plate-exists':
-      return `plate-exists:${rule.plateType}`;
+    case 'container-exists':
+      return `container-exists:${rule.plateType}`;
     case 'block-exists':
       return `block-exists:${rule.category}:${rule.onPlateType ?? 'any'}`;
     case 'connection-exists':
       return `connection-exists:${rule.sourceCategory}:${rule.targetCategory}`;
-    case 'entity-on-plate':
-      return `entity-on-plate:${rule.entityCategory}:${rule.plateType}`;
+    case 'entity-on-container':
+      return `entity-on-container:${rule.entityCategory}:${rule.plateType}`;
     case 'architecture-valid':
       return 'architecture-valid';
     case 'min-block-count':
       return `min-block-count:${rule.category}:${rule.count}`;
-    case 'min-plate-count':
-      return `min-plate-count:${rule.plateType}:${rule.count}`;
+    case 'min-container-count':
+      return `min-container-count:${rule.plateType}:${rule.count}`;
     default:
       return 'unknown-rule';
   }
@@ -34,19 +34,19 @@ function getRuleIdentifier(rule: StepValidationRule): string {
 
 function describeRule(rule: StepValidationRule): string {
   switch (rule.type) {
-    case 'plate-exists':
+    case 'container-exists':
       return `Add a ${rule.plateType} container`;
     case 'block-exists':
       return `Add a ${rule.category} node`;
     case 'connection-exists':
       return `Connect ${rule.sourceCategory} to ${rule.targetCategory}`;
-    case 'entity-on-plate':
+    case 'entity-on-container':
       return `Place ${rule.entityCategory} on ${rule.plateType} container`;
     case 'architecture-valid':
       return 'Fix validation issues';
     case 'min-block-count':
       return `Add at least ${rule.count} ${rule.category} node(s)`;
-    case 'min-plate-count':
+    case 'min-container-count':
       return `Add at least ${rule.count} ${rule.plateType} container(s)`;
     default:
       return 'Complete requirement';

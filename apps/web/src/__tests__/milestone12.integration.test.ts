@@ -41,7 +41,7 @@ const blocksOf = (architecture: ArchitectureModel): ResourceBlock[] =>
 
 function makePlate(overrides: ContainerOverrides = {}): ContainerBlock {
   return {
-    id: 'plate-subnet-private',
+    id: 'container-subnet-private',
     name: 'Subnet',
     kind: 'container',
     layer: 'subnet',
@@ -49,7 +49,7 @@ function makePlate(overrides: ContainerOverrides = {}): ContainerBlock {
     category: 'network',
     provider: 'azure',
     profileId: 'subnet-service',
-    parentId: 'plate-network-1',
+    parentId: 'container-network-1',
     position: { x: 0, y: 0.7, z: 0 },
     frame: { width: 8, height: 0.5, depth: 8 },
     metadata: {},
@@ -66,7 +66,7 @@ function makeBlock(overrides: LeafOverrides = {}): ResourceBlock {
     resourceType: 'web_compute',
     category: 'compute',
     provider: 'azure',
-    parentId: overrides.parentId ?? 'plate-subnet-private',
+    parentId: overrides.parentId ?? 'container-subnet-private',
     position: { x: 1, y: 0.5, z: 1 },
     metadata: {},
     ...overrides,
@@ -287,7 +287,7 @@ describe('Milestone 12 Integration Tests', () => {
                   name: 'Legacy Compute',
                   resourceType: 'web_compute',
                   category: 'compute',
-                  parentId: 'plate-subnet-private',
+                  parentId: 'container-subnet-private',
                   position: { x: 1, y: 0.5, z: 1 },
                   metadata: {},
                   provider: 'aws',
@@ -315,7 +315,7 @@ describe('Milestone 12 Integration Tests', () => {
                   name: 'Legacy Database',
                   resourceType: 'relational_database',
                   category: 'data',
-                  parentId: 'plate-subnet-private',
+                  parentId: 'container-subnet-private',
                   position: { x: 2, y: 0.5, z: 2 },
                   metadata: {},
                   provider: 'aws',
@@ -343,7 +343,7 @@ describe('Milestone 12 Integration Tests', () => {
                   name: 'Legacy Block',
                   resourceType: 'web_compute',
                   category: 'compute',
-                  parentId: 'plate-subnet-private',
+                  parentId: 'container-subnet-private',
                   position: { x: 1, y: 0.5, z: 1 },
                   metadata: {},
                   provider: 'aws',
@@ -353,7 +353,7 @@ describe('Milestone 12 Integration Tests', () => {
                   name: 'New Block',
                   resourceType: 'web_compute',
                   category: 'compute',
-                  parentId: 'plate-subnet-private',
+                  parentId: 'container-subnet-private',
                   position: { x: 2, y: 0.5, z: 2 },
                   metadata: {},
                   provider: 'aws',
@@ -478,7 +478,7 @@ describe('Milestone 12 Integration Tests', () => {
 
       const architecture = useArchitectureStore.getState().workspace.architecture;
       const block = blocksOf(architecture)[0];
-      const parentPlate = platesOf(architecture).find((plate) => plate.id === subnetId);
+      const parentPlate = platesOf(architecture).find((container) => container.id === subnetId);
 
       expect(block.provider).toBe('aws');
       expect(block.subtype).toBe('lambda');

@@ -32,8 +32,8 @@ function toTuple(position: ExternalActor['position']): [number, number, number] 
 // ─── Position Calculations ────────────────────────────────
 
 /**
- * Calculate the absolute world position of a block, given its parent plate.
- * Block positions are stored relative to their parent plate.
+ * Calculate the absolute world position of a block, given its parent container.
+ * Block positions are stored relative to their parent container.
  */
 export function getBlockWorldPosition(
   block: ResourceBlock,
@@ -59,9 +59,9 @@ export function getEndpointWorldPosition(
   // Check blocks
   const block = blocks.find((b) => b.id === id);
   if (block) {
-    const plate = plates.find((p) => p.id === block.parentId);
-    if (plate) {
-      return getBlockWorldPosition(block, plate);
+    const container = plates.find((p) => p.id === block.parentId);
+    if (container) {
+      return getBlockWorldPosition(block, container);
     }
   }
 

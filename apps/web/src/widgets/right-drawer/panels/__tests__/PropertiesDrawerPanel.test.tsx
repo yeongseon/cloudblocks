@@ -22,7 +22,7 @@ function makeBlock(overrides?: Partial<ResourceBlock>): ResourceBlock {
     resourceType: 'virtual-machine',
     layer: 'resource',
     provider: 'azure',
-    parentId: 'plate-1',
+    parentId: 'container-1',
     position: { x: 2, y: 0, z: 3 },
     metadata: {},
     ...overrides,
@@ -31,7 +31,7 @@ function makeBlock(overrides?: Partial<ResourceBlock>): ResourceBlock {
 
 function makePlate(overrides?: Partial<ContainerBlock>): ContainerBlock {
   return {
-    id: 'plate-1',
+    id: 'container-1',
     kind: 'container',
     name: 'My VNet',
     category: 'network',
@@ -77,14 +77,14 @@ describe('PropertiesDrawerPanel', () => {
     });
 
     it('displays node and connection counts', () => {
-      const plate = makePlate();
+      const container = makePlate();
       const block = makeBlock();
       useArchitectureStore.setState({
         workspace: {
           ...useArchitectureStore.getState().workspace,
           architecture: {
             ...useArchitectureStore.getState().workspace.architecture,
-            nodes: [plate, block],
+            nodes: [container, block],
           },
         },
       });
@@ -96,14 +96,14 @@ describe('PropertiesDrawerPanel', () => {
 
   describe('Node Properties', () => {
     it('renders node properties when a block is selected', () => {
-      const plate = makePlate();
+      const container = makePlate();
       const block = makeBlock();
       useArchitectureStore.setState({
         workspace: {
           ...useArchitectureStore.getState().workspace,
           architecture: {
             ...useArchitectureStore.getState().workspace.architecture,
-            nodes: [plate, block],
+            nodes: [container, block],
           },
         },
       });
@@ -117,14 +117,14 @@ describe('PropertiesDrawerPanel', () => {
     });
 
     it('shows editable name field with current node name', () => {
-      const plate = makePlate();
+      const container = makePlate();
       const block = makeBlock({ name: 'My VM' });
       useArchitectureStore.setState({
         workspace: {
           ...useArchitectureStore.getState().workspace,
           architecture: {
             ...useArchitectureStore.getState().workspace.architecture,
-            nodes: [plate, block],
+            nodes: [container, block],
           },
         },
       });
@@ -136,14 +136,14 @@ describe('PropertiesDrawerPanel', () => {
     });
 
     it('shows notes textarea with metadata notes', () => {
-      const plate = makePlate();
+      const container = makePlate();
       const block = makeBlock({ metadata: { notes: 'Production VM' } });
       useArchitectureStore.setState({
         workspace: {
           ...useArchitectureStore.getState().workspace,
           architecture: {
             ...useArchitectureStore.getState().workspace.architecture,
-            nodes: [plate, block],
+            nodes: [container, block],
           },
         },
       });
@@ -155,14 +155,14 @@ describe('PropertiesDrawerPanel', () => {
     });
 
     it('shows configuration fields as read-only', () => {
-      const plate = makePlate();
+      const container = makePlate();
       const block = makeBlock();
       useArchitectureStore.setState({
         workspace: {
           ...useArchitectureStore.getState().workspace,
           architecture: {
             ...useArchitectureStore.getState().workspace.architecture,
-            nodes: [plate, block],
+            nodes: [container, block],
           },
         },
       });
@@ -174,14 +174,14 @@ describe('PropertiesDrawerPanel', () => {
     });
 
     it('shows duplicate button for resource nodes', () => {
-      const plate = makePlate();
+      const container = makePlate();
       const block = makeBlock();
       useArchitectureStore.setState({
         workspace: {
           ...useArchitectureStore.getState().workspace,
           architecture: {
             ...useArchitectureStore.getState().workspace.architecture,
-            nodes: [plate, block],
+            nodes: [container, block],
           },
         },
       });
@@ -192,14 +192,14 @@ describe('PropertiesDrawerPanel', () => {
     });
 
     it('shows danger zone with delete button', () => {
-      const plate = makePlate();
+      const container = makePlate();
       const block = makeBlock();
       useArchitectureStore.setState({
         workspace: {
           ...useArchitectureStore.getState().workspace,
           architecture: {
             ...useArchitectureStore.getState().workspace.architecture,
-            nodes: [plate, block],
+            nodes: [container, block],
           },
         },
       });
@@ -213,14 +213,14 @@ describe('PropertiesDrawerPanel', () => {
 
     it('delete requires double-click confirmation', async () => {
       const user = userEvent.setup();
-      const plate = makePlate();
+      const container = makePlate();
       const block = makeBlock();
       useArchitectureStore.setState({
         workspace: {
           ...useArchitectureStore.getState().workspace,
           architecture: {
             ...useArchitectureStore.getState().workspace.architecture,
-            nodes: [plate, block],
+            nodes: [container, block],
           },
         },
       });
@@ -240,18 +240,18 @@ describe('PropertiesDrawerPanel', () => {
   });
 
   describe('Container Properties', () => {
-    it('renders container properties when a plate is selected', () => {
-      const plate = makePlate();
+    it('renders container properties when a container is selected', () => {
+      const container = makePlate();
       useArchitectureStore.setState({
         workspace: {
           ...useArchitectureStore.getState().workspace,
           architecture: {
             ...useArchitectureStore.getState().workspace.architecture,
-            nodes: [plate],
+            nodes: [container],
           },
         },
       });
-      useUIStore.setState({ selectedId: 'plate-1' });
+      useUIStore.setState({ selectedId: 'container-1' });
 
       render(<PropertiesDrawerPanel />);
       expect(screen.getByTestId('props-node')).toBeDefined();
@@ -261,7 +261,7 @@ describe('PropertiesDrawerPanel', () => {
 
   describe('Connection Properties', () => {
     it('renders connection properties when a connection is selected', () => {
-      const plate = makePlate();
+      const container = makePlate();
       const blockA = makeBlock({ id: 'block-a', name: 'Gateway' });
       const blockB = makeBlock({ id: 'block-b', name: 'Compute' });
       useArchitectureStore.setState({
@@ -269,7 +269,7 @@ describe('PropertiesDrawerPanel', () => {
           ...useArchitectureStore.getState().workspace,
           architecture: {
             ...useArchitectureStore.getState().workspace.architecture,
-            nodes: [plate, blockA, blockB],
+            nodes: [container, blockA, blockB],
             connections: [
               {
                 id: 'conn-1',
@@ -292,14 +292,14 @@ describe('PropertiesDrawerPanel', () => {
 
     it('connection delete requires double-click', async () => {
       const user = userEvent.setup();
-      const plate = makePlate();
+      const container = makePlate();
       const blockA = makeBlock({ id: 'block-a', name: 'Gateway' });
       useArchitectureStore.setState({
         workspace: {
           ...useArchitectureStore.getState().workspace,
           architecture: {
             ...useArchitectureStore.getState().workspace.architecture,
-            nodes: [plate, blockA],
+            nodes: [container, blockA],
             connections: [
               {
                 id: 'conn-1',

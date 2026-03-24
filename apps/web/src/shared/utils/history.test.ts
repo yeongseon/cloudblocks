@@ -5,8 +5,8 @@ import { canRedo, canUndo, createHistory, pushHistory, redo, resetHistory, undo 
 
 function createModel(id: string): ArchitectureModel {
   const container: ContainerBlock = {
-    id: `plate-${id}`,
-    name: `Plate ${id}`,
+    id: `container-${id}`,
+    name: `ContainerBlock ${id}`,
     kind: 'container',
     layer: 'region',
     resourceType: 'virtual_network',

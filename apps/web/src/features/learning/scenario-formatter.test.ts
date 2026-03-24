@@ -10,7 +10,7 @@ const createSnapshot = (plateName = 'VNet'): ArchitectureSnapshot => ({
   version: '1',
   nodes: [
     {
-      id: 'plate-vnet',
+      id: 'container-vnet',
       name: plateName,
       kind: 'container',
       layer: 'region',
@@ -23,14 +23,14 @@ const createSnapshot = (plateName = 'VNet'): ArchitectureSnapshot => ({
       metadata: {},
     },
     {
-      id: 'plate-public',
+      id: 'container-public',
       name: 'Subnet 1',
       kind: 'container',
       layer: 'subnet',
       resourceType: 'subnet',
       category: 'network',
       provider: 'azure',
-      parentId: 'plate-vnet',
+      parentId: 'container-vnet',
       position: { x: -3, y: 0.3, z: 0 },
       frame: { width: 5, height: 0.2, depth: 8 },
       metadata: {},
@@ -45,12 +45,12 @@ const createStep = (overrides: Partial<ScenarioStep> = {}): ScenarioStep => ({
   id: 'step-1',
   order: 1,
   title: 'Create a VNet',
-  instruction: 'Place a Virtual Network (VNet) plate on the canvas.',
+  instruction: 'Place a Virtual Network (VNet) container on the canvas.',
   hints: [
     'Look for the VNet option in the palette.',
     'A VNet provides network isolation for your resources.',
   ],
-  validationRules: [{ type: 'plate-exists', plateType: 'region' }],
+  validationRules: [{ type: 'container-exists', plateType: 'region' }],
   ...overrides,
 });
 
@@ -87,7 +87,7 @@ describe('formatScenarioForProvider', () => {
     it('substitutes long-form "Virtual Network (VNet)" → "Virtual Private Cloud (VPC)" in instructions', () => {
       const result = formatScenarioForProvider(createScenario(), 'aws');
       expect(result.steps[0].instruction).toBe(
-        'Place a Virtual Private Cloud (VPC) plate on the canvas.',
+        'Place a Virtual Private Cloud (VPC) container on the canvas.',
       );
     });
 
@@ -102,17 +102,17 @@ describe('formatScenarioForProvider', () => {
       expect(result.steps[0].hints[1]).toBe('A VPC provides network isolation for your resources.');
     });
 
-    it('adapts plate names in initialArchitecture snapshot', () => {
+    it('adapts container names in initialArchitecture snapshot', () => {
       const result = formatScenarioForProvider(createScenario(), 'aws');
       const containers = result.initialArchitecture.nodes.filter(
         (node): node is ContainerBlock => node.kind === 'container',
       );
       expect(containers[0]?.name).toBe('VPC');
-      // Non-VNet plate names should remain unchanged
+      // Non-VNet container names should remain unchanged
       expect(containers[1]?.name).toBe('Subnet 1');
     });
 
-    it('adapts plate names in step checkpoint snapshots', () => {
+    it('adapts container names in step checkpoint snapshots', () => {
       const scenario = createScenario({
         steps: [createStep({ checkpoint: createSnapshot() })],
       });
@@ -123,12 +123,12 @@ describe('formatScenarioForProvider', () => {
       expect(checkpointContainers?.[0]?.name).toBe('VPC');
     });
 
-    it('preserves plate IDs (internal identifiers unchanged)', () => {
+    it('preserves container IDs (internal identifiers unchanged)', () => {
       const result = formatScenarioForProvider(createScenario(), 'aws');
       const containers = result.initialArchitecture.nodes.filter(
         (node): node is ContainerBlock => node.kind === 'container',
       );
-      expect(containers[0]?.id).toBe('plate-vnet');
+      expect(containers[0]?.id).toBe('container-vnet');
     });
 
     it('does NOT modify validation rules', () => {
@@ -146,7 +146,7 @@ describe('formatScenarioForProvider', () => {
 
     it('substitutes long-form "Virtual Network (VNet)" → "VPC Network" in instructions', () => {
       const result = formatScenarioForProvider(createScenario(), 'gcp');
-      expect(result.steps[0].instruction).toBe('Place a VPC Network plate on the canvas.');
+      expect(result.steps[0].instruction).toBe('Place a VPC Network container on the canvas.');
     });
 
     it('substitutes VNet in step title', () => {
@@ -154,7 +154,7 @@ describe('formatScenarioForProvider', () => {
       expect(result.steps[0].title).toBe('Create a VPC');
     });
 
-    it('adapts plate names in initialArchitecture snapshot', () => {
+    it('adapts container names in initialArchitecture snapshot', () => {
       const result = formatScenarioForProvider(createScenario(), 'gcp');
       const containers = result.initialArchitecture.nodes.filter(
         (node): node is ContainerBlock => node.kind === 'container',

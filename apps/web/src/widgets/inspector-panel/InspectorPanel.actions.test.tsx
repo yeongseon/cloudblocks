@@ -24,7 +24,7 @@ vi.mock('../../shared/utils/audioService', () => ({
 }));
 
 const networkPlate: ContainerBlock = {
-  id: 'plate-1',
+  id: 'container-1',
   name: 'VNet',
   kind: 'container',
   layer: 'region',
@@ -38,28 +38,28 @@ const networkPlate: ContainerBlock = {
 };
 
 const subnetPlate: ContainerBlock = {
-  id: 'plate-2',
+  id: 'container-2',
   name: 'Subnet A',
   kind: 'container',
   layer: 'subnet',
   resourceType: 'subnet',
   category: 'network',
   provider: 'azure',
-  parentId: 'plate-1',
+  parentId: 'container-1',
   position: { x: 1, y: 0, z: 1 },
   frame: { width: 8, height: 0.3, depth: 10 },
   metadata: {},
 };
 
 const isolatedPlate: ContainerBlock = {
-  id: 'plate-3',
+  id: 'container-3',
   name: 'Isolated',
   kind: 'container',
   layer: 'subnet',
   resourceType: 'subnet',
   category: 'network',
   provider: 'azure',
-  parentId: 'plate-1',
+  parentId: 'container-1',
   position: { x: 2, y: 0, z: 1 },
   frame: { width: 4, height: 0.3, depth: 6 },
   metadata: {},
@@ -73,7 +73,7 @@ const blockA: ResourceBlock = {
   resourceType: 'web_compute',
   category: 'compute',
   provider: 'azure',
-  parentId: 'plate-2',
+  parentId: 'container-2',
   position: { x: 1, y: 0, z: 2 },
   metadata: {},
 };
@@ -86,7 +86,7 @@ const blockB: ResourceBlock = {
   resourceType: 'sql_database',
   category: 'data',
   provider: 'azure',
-  parentId: 'plate-2',
+  parentId: 'container-2',
   position: { x: 4, y: 0, z: 2 },
   metadata: {},
 };
@@ -223,7 +223,7 @@ describe('InspectorPanel actions', () => {
     expect(setSelectedId).toHaveBeenCalledWith(null);
   });
 
-  it('handles plate deploy, rename variants, and delete actions', async () => {
+  it('handles container deploy, rename variants, and delete actions', async () => {
     const user = userEvent.setup();
     const setSelectedId = vi.fn();
     const renameNode = vi.fn();
@@ -232,9 +232,9 @@ describe('InspectorPanel actions', () => {
     promptDialogMock
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce('   ')
-      .mockResolvedValueOnce(' Renamed Plate ');
+      .mockResolvedValueOnce(' Renamed ContainerBlock ');
 
-    useUIStore.setState({ selectedId: 'plate-2', setSelectedId });
+    useUIStore.setState({ selectedId: 'container-2', setSelectedId });
     useArchitectureStore.setState({ renameNode, removeNode });
 
     render(<InspectorPanel />);
@@ -242,16 +242,16 @@ describe('InspectorPanel actions', () => {
     expect(screen.getByText('Subnet Actions')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /Deploy/ }));
-    expect(setSelectedId).toHaveBeenCalledWith('plate-2');
+    expect(setSelectedId).toHaveBeenCalledWith('container-2');
 
     await user.click(screen.getByRole('button', { name: /Rename/ }));
     await user.click(screen.getByRole('button', { name: /Rename/ }));
     await user.click(screen.getByRole('button', { name: /Rename/ }));
     expect(renameNode).toHaveBeenCalledTimes(1);
-    expect(renameNode).toHaveBeenCalledWith('plate-2', 'Renamed Plate');
+    expect(renameNode).toHaveBeenCalledWith('container-2', 'Renamed ContainerBlock');
 
     await user.click(screen.getByTitle('Delete (E)'));
-    expect(removeNode).toHaveBeenCalledWith('plate-2');
+    expect(removeNode).toHaveBeenCalledWith('container-2');
     expect(setSelectedId).toHaveBeenCalledWith(null);
     expect(playSoundMock).toHaveBeenCalledWith('delete');
   });
@@ -275,19 +275,19 @@ describe('InspectorPanel actions', () => {
     expect(playSoundMock).toHaveBeenCalledWith('block-snap');
   });
 
-  it('shows connections tab empty states and plate-related list', async () => {
+  it('shows connections tab empty states and container-related list', async () => {
     const user = userEvent.setup();
 
     const { rerender } = render(<InspectorPanel />);
     await user.click(screen.getByRole('tab', { name: 'Connections' }));
     expect(screen.getByText('Select a node to view connections.')).toBeInTheDocument();
 
-    useUIStore.setState({ selectedId: 'plate-3' });
+    useUIStore.setState({ selectedId: 'container-3' });
     rerender(<InspectorPanel />);
     await user.click(screen.getByRole('tab', { name: 'Connections' }));
     expect(screen.getByText('No connections found for the selected node.')).toBeInTheDocument();
 
-    useUIStore.setState({ selectedId: 'plate-2' });
+    useUIStore.setState({ selectedId: 'container-2' });
     rerender(<InspectorPanel />);
     await user.click(screen.getByRole('tab', { name: 'Connections' }));
     expect(screen.getByText('Related Connections')).toBeInTheDocument();

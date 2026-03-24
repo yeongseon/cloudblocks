@@ -1,8 +1,8 @@
 /**
- * Surface routing — world-space Manhattan routing on plate surfaces.
+ * Surface routing — world-space Manhattan routing on container surfaces.
  *
- * Connections are routed as flat PCB-style traces on the plate top face
- * (X/Z plane at plate surfaceY). This replaces the screen-space L-route
+ * Connections are routed as flat PCB-style traces on the container top face
+ * (X/Z plane at container surfaceY). This replaces the screen-space L-route
  * in routing.ts with a world-space surface-first system.
  */
 
@@ -56,27 +56,27 @@ export const SURFACE_EXIT_OFFSET_CU = 0.75;
  */
 export function resolveSurfacePort(
   block: ResourceBlock,
-  plate: ContainerBlock,
+  container: ContainerBlock,
   side: PortSide,
   portIndex: number,
   totalPorts: number,
 ): SurfacePort {
-  const [bx, , bz] = getBlockWorldPosition(block, plate);
+  const [bx, , bz] = getBlockWorldPosition(block, container);
   const cu = getBlockDimensions(block.category, block.provider, block.subtype);
-  const surfaceY = plate.position.y + plate.frame.height;
+  const surfaceY = container.position.y + container.frame.height;
   const t = (portIndex + 1) / (totalPorts + 1);
 
   if (side === 'inbound') {
     const portZ = bz + t * cu.depth;
     const surfaceBase: WorldPoint3 = [bx, surfaceY, portZ];
     const surfaceExit: WorldPoint3 = [bx - SURFACE_EXIT_OFFSET_CU, surfaceY, portZ];
-    return { surfaceBase, surfaceExit, plateId: plate.id, surfaceY, normal: 'neg-x' };
+    return { surfaceBase, surfaceExit, plateId: container.id, surfaceY, normal: 'neg-x' };
   }
 
   const portX = bx + t * cu.width;
   const surfaceBase: WorldPoint3 = [portX, surfaceY, bz];
   const surfaceExit: WorldPoint3 = [portX, surfaceY, bz - SURFACE_EXIT_OFFSET_CU];
-  return { surfaceBase, surfaceExit, plateId: plate.id, surfaceY, normal: 'neg-z' };
+  return { surfaceBase, surfaceExit, plateId: container.id, surfaceY, normal: 'neg-z' };
 }
 
 function manhattanXZ(a: WorldPoint3, b: WorldPoint3): number {
@@ -110,7 +110,7 @@ function scoreElbow(
 }
 
 /**
- * Route between two surface ports on the SAME plate.
+ * Route between two surface ports on the SAME container.
  *
  * Produces exit → surface (L-shape via elbow) → exit segments.
  * Evaluates two elbow candidates and picks the lower-scoring one.
@@ -178,7 +178,12 @@ function resolveEndpointContext(
   blocks: ResourceBlock[],
   plates: ContainerBlock[],
   endpoints: Endpoint[],
-): { block: ResourceBlock; plate: ContainerBlock; portIndex: number; totalPorts: number } | null {
+): {
+  block: ResourceBlock;
+  container: ContainerBlock;
+  portIndex: number;
+  totalPorts: number;
+} | null {
   const endpoint = endpoints.find((ep) => ep.id === endpointId);
   if (!endpoint) return null;
 
@@ -188,15 +193,15 @@ function resolveEndpointContext(
   const block = blocks.find((b) => b.id === endpoint.blockId);
   if (!block) return null;
 
-  const plate = plates.find((p) => p.id === block.parentId);
-  if (!plate) return null;
+  const container = plates.find((p) => p.id === block.parentId);
+  if (!container) return null;
 
   const ports = CATEGORY_PORTS[block.category];
   const total = side === 'inbound' ? ports.inbound : ports.outbound;
   const portIndex = semanticToIndex(endpoint.semantic, total);
   if (portIndex === null) return null;
 
-  return { block, plate, portIndex, totalPorts: total };
+  return { block, container, portIndex, totalPorts: total };
 }
 
 function semanticToIndex(semantic: EndpointSemantic, total: number): number | null {
@@ -228,14 +233,14 @@ export function getConnectionSurfaceRoute(
 
   const srcPort = resolveSurfacePort(
     srcCtx.block,
-    srcCtx.plate,
+    srcCtx.container,
     'outbound',
     srcCtx.portIndex,
     srcCtx.totalPorts,
   );
   const tgtPort = resolveSurfacePort(
     tgtCtx.block,
-    tgtCtx.plate,
+    tgtCtx.container,
     'inbound',
     tgtCtx.portIndex,
     tgtCtx.totalPorts,
@@ -246,7 +251,7 @@ export function getConnectionSurfaceRoute(
     return { segments, srcPort, tgtPort };
   }
 
-  // Cross-plate: temporary fallback via ground surface (see #1357)
+  // Cross-container: temporary fallback via ground surface (see #1357)
   const groundY = 0;
   const groundSrc: SurfacePort = {
     ...srcPort,

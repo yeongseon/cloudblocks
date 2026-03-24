@@ -63,7 +63,7 @@ describe('schema utilities', () => {
             version: '1',
             plates: [
               {
-                id: 'plate-1',
+                id: 'container-1',
                 name: 'VNet',
                 type: 'region',
                 parentId: null,
@@ -94,18 +94,18 @@ describe('schema utilities', () => {
     };
 
     const result = deserialize(JSON.stringify(legacyData));
-    const plate = result[0].architecture.nodes.find(
+    const container = result[0].architecture.nodes.find(
       (node): node is ContainerBlock => node.kind === 'container',
     );
 
-    expect(plate).toBeDefined();
-    if (!plate) {
+    expect(container).toBeDefined();
+    if (!container) {
       throw new Error('Expected migrated container node');
     }
-    expect(plate.profileId).toBe('network-platform');
-    expect(plate.frame.height).toBe(0.7);
-    expect(plate.frame.width).toBe(16);
-    expect(plate.frame.depth).toBe(20);
+    expect(container.profileId).toBe('network-platform');
+    expect(container.frame.height).toBe(0.7);
+    expect(container.frame.width).toBe(16);
+    expect(container.frame.depth).toBe(20);
   });
 
   it('preserves existing profileId on plates', () => {
@@ -121,7 +121,7 @@ describe('schema utilities', () => {
             version: '1',
             plates: [
               {
-                id: 'plate-1',
+                id: 'container-1',
                 name: 'VNet',
                 type: 'region',
                 profileId: 'network-hub',
@@ -153,18 +153,18 @@ describe('schema utilities', () => {
     };
 
     const result = deserialize(JSON.stringify(data));
-    const plate = result[0].architecture.nodes.find(
+    const container = result[0].architecture.nodes.find(
       (node): node is ContainerBlock => node.kind === 'container',
     );
 
-    expect(plate).toBeDefined();
-    if (!plate) {
+    expect(container).toBeDefined();
+    if (!container) {
       throw new Error('Expected migrated container node');
     }
-    expect(plate.profileId).toBe('network-hub');
-    expect(plate.frame.width).toBe(20);
-    expect(plate.frame.depth).toBe(24);
-    expect(plate.frame.height).toBe(0.7);
+    expect(container.profileId).toBe('network-hub');
+    expect(container.frame.width).toBe(20);
+    expect(container.frame.depth).toBe(24);
+    expect(container.frame.height).toBe(0.7);
   });
 
   it('migrates legacy external actors without position', () => {
@@ -214,7 +214,7 @@ describe('schema utilities', () => {
                 id: 'blk-1',
                 name: 'Web Server',
                 category: 'compute',
-                placementId: 'plate-1',
+                placementId: 'container-1',
                 position: { x: 1, y: 0.5, z: 1 },
                 metadata: {},
                 provider: 'aws',
@@ -276,7 +276,7 @@ describe('schema utilities', () => {
 
   it('roundtrips blocks with subtype and config via serialize/deserialize', () => {
     const container: ContainerBlock = {
-      id: 'plate-1',
+      id: 'container-1',
       name: 'Subnet',
       kind: 'container',
       layer: 'subnet',
@@ -297,7 +297,7 @@ describe('schema utilities', () => {
       resourceType: 'web_compute',
       category: 'compute',
       provider: 'aws',
-      parentId: 'plate-1',
+      parentId: 'container-1',
       position: { x: 1, y: 0.5, z: 1 },
       metadata: {},
       subtype: 'lambda',
@@ -516,7 +516,7 @@ it('remaps legacy 10-category names to 7-category names during plates+blocks mig
           version: '1',
           plates: [
             {
-              id: 'plate-1',
+              id: 'container-1',
               name: 'VNet',
               type: 'region',
               parentId: null,
@@ -531,7 +531,7 @@ it('remaps legacy 10-category names to 7-category names during plates+blocks mig
               id: 'blk-db',
               name: 'Database',
               category: 'database',
-              placementId: 'plate-1',
+              placementId: 'container-1',
               position: { x: 1, y: 0.5, z: 1 },
               metadata: {},
             },
@@ -539,7 +539,7 @@ it('remaps legacy 10-category names to 7-category names during plates+blocks mig
               id: 'blk-gw',
               name: 'Gateway',
               category: 'gateway',
-              placementId: 'plate-1',
+              placementId: 'container-1',
               position: { x: 3, y: 0.5, z: 1 },
               metadata: {},
             },
@@ -547,7 +547,7 @@ it('remaps legacy 10-category names to 7-category names during plates+blocks mig
               id: 'blk-fn',
               name: 'Function',
               category: 'function',
-              placementId: 'plate-1',
+              placementId: 'container-1',
               position: { x: 5, y: 0.5, z: 1 },
               metadata: {},
             },
@@ -555,7 +555,7 @@ it('remaps legacy 10-category names to 7-category names during plates+blocks mig
               id: 'blk-q',
               name: 'Queue',
               category: 'queue',
-              placementId: 'plate-1',
+              placementId: 'container-1',
               position: { x: 7, y: 0.5, z: 1 },
               metadata: {},
             },
@@ -563,7 +563,7 @@ it('remaps legacy 10-category names to 7-category names during plates+blocks mig
               id: 'blk-ev',
               name: 'Event',
               category: 'event',
-              placementId: 'plate-1',
+              placementId: 'container-1',
               position: { x: 9, y: 0.5, z: 1 },
               metadata: {},
             },
@@ -571,7 +571,7 @@ it('remaps legacy 10-category names to 7-category names during plates+blocks mig
               id: 'blk-st',
               name: 'Storage',
               category: 'storage',
-              placementId: 'plate-1',
+              placementId: 'container-1',
               position: { x: 1, y: 0.5, z: 3 },
               metadata: {},
             },
@@ -579,7 +579,7 @@ it('remaps legacy 10-category names to 7-category names during plates+blocks mig
               id: 'blk-an',
               name: 'Analytics',
               category: 'analytics',
-              placementId: 'plate-1',
+              placementId: 'container-1',
               position: { x: 3, y: 0.5, z: 3 },
               metadata: {},
             },
@@ -587,7 +587,7 @@ it('remaps legacy 10-category names to 7-category names during plates+blocks mig
               id: 'blk-id',
               name: 'Identity',
               category: 'identity',
-              placementId: 'plate-1',
+              placementId: 'container-1',
               position: { x: 5, y: 0.5, z: 3 },
               metadata: {},
             },
@@ -595,7 +595,7 @@ it('remaps legacy 10-category names to 7-category names during plates+blocks mig
               id: 'blk-ob',
               name: 'Observability',
               category: 'observability',
-              placementId: 'plate-1',
+              placementId: 'container-1',
               position: { x: 7, y: 0.5, z: 3 },
               metadata: {},
             },
@@ -603,7 +603,7 @@ it('remaps legacy 10-category names to 7-category names during plates+blocks mig
               id: 'blk-cp',
               name: 'Compute',
               category: 'compute',
-              placementId: 'plate-1',
+              placementId: 'container-1',
               position: { x: 9, y: 0.5, z: 3 },
               metadata: {},
             },
@@ -667,7 +667,7 @@ it('remaps legacy categories on already-migrated nodes[] with old category names
               resourceType: 'sql-database',
               category: 'database',
               provider: 'azure',
-              parentId: 'plate-1',
+              parentId: 'container-1',
               position: { x: 1, y: 0.5, z: 1 },
               metadata: {},
             },
@@ -679,7 +679,7 @@ it('remaps legacy categories on already-migrated nodes[] with old category names
               resourceType: 'blob-storage',
               category: 'storage',
               provider: 'azure',
-              parentId: 'plate-1',
+              parentId: 'container-1',
               position: { x: 3, y: 0.5, z: 1 },
               metadata: {},
             },

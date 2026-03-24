@@ -42,7 +42,7 @@ describe('registerBuiltinTemplates', () => {
     }
   });
 
-  it('three-tier template has expected plate/block/connection counts', async () => {
+  it('three-tier template has expected container/block/connection counts', async () => {
     const { registerBuiltinTemplates } = await import('./builtin');
     const { getTemplate } = await import('./registry');
 
@@ -58,7 +58,7 @@ describe('registerBuiltinTemplates', () => {
     expect(template?.architecture.connections).toHaveLength(4);
   });
 
-  it('simple compute template has expected plate/block/connection counts', async () => {
+  it('simple compute template has expected container/block/connection counts', async () => {
     const { registerBuiltinTemplates } = await import('./builtin');
     const { getTemplate } = await import('./registry');
 
@@ -74,7 +74,7 @@ describe('registerBuiltinTemplates', () => {
     expect(template?.architecture.connections).toHaveLength(2);
   });
 
-  it('data storage template has expected plate/block/connection counts', async () => {
+  it('data storage template has expected container/block/connection counts', async () => {
     const { registerBuiltinTemplates } = await import('./builtin');
     const { getTemplate } = await import('./registry');
 

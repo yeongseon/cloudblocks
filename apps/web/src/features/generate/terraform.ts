@@ -42,11 +42,11 @@ function buildResourceName(prefix: string, entityName: string): string {
   return `${prefix}_${sanitized}`;
 }
 
-function getPlateType(plate: ContainerBlock): 'global' | 'edge' | 'region' | 'zone' | 'subnet' {
-  if (plate.layer === 'resource') {
+function getPlateType(container: ContainerBlock): 'global' | 'edge' | 'region' | 'zone' | 'subnet' {
+  if (container.layer === 'resource') {
     return 'region';
   }
-  return plate.layer;
+  return container.layer;
 }
 
 // ─── Normalize Stage ────────────────────────────────────────
@@ -72,10 +72,10 @@ export function normalize(
   }
 
   // Map plates
-  for (const plate of containers) {
-    const mapping = provider.plateMappings[getPlateType(plate)];
-    const name = uniqueName(mapping.namePrefix, plate.name);
-    resourceNames.set(plate.id, name);
+  for (const container of containers) {
+    const mapping = provider.plateMappings[getPlateType(container)];
+    const name = uniqueName(mapping.namePrefix, container.name);
+    resourceNames.set(container.id, name);
   }
 
   // Map blocks
@@ -149,7 +149,7 @@ function generateImplicitResources(block: ResourceBlock, resourceName: string): 
 // ─── Generate Stage ─────────────────────────────────────────
 
 function generatePlateResource(
-  plate: ContainerBlock,
+  container: ContainerBlock,
   resourceName: string,
   mapping: ResourceMapping,
   _projectName: string,
@@ -163,20 +163,20 @@ function generatePlateResource(
   lines.push(`  resource_group_name = azurerm_resource_group.main.name`);
   lines.push(`  location            = azurerm_resource_group.main.location`);
 
-  if (plate.layer !== 'subnet') {
+  if (container.layer !== 'subnet') {
     lines.push(`  address_space       = ["10.0.0.0/16"]`);
   }
 
-  if (plate.layer === 'subnet' && parentResourceName) {
+  if (container.layer === 'subnet' && parentResourceName) {
     lines.push(`  virtual_network_name = azurerm_virtual_network.${parentResourceName}.name`);
     // Assign sequential CIDR index based on subnet order under parent VNet
     const containers = architecture.nodes.filter(
       (n): n is ContainerBlock => n.kind === 'container',
     );
     const siblingSubnets = containers.filter(
-      (c) => c.layer === 'subnet' && c.parentId === plate.parentId,
+      (c) => c.layer === 'subnet' && c.parentId === container.parentId,
     );
-    const cidrIndex = siblingSubnets.findIndex((c) => c.id === plate.id) + 1;
+    const cidrIndex = siblingSubnets.findIndex((c) => c.id === container.id) + 1;
     lines.push(`  address_prefixes     = ["10.0.${cidrIndex}.0/24"]`);
   }
 
@@ -308,21 +308,28 @@ export function generateMainTf(
   const regions = containers.filter((p) => p.layer !== 'subnet');
   const subnets = containers.filter((p) => p.layer === 'subnet');
 
-  for (const plate of regions) {
-    const resName = resourceNames.get(plate.id)!;
-    const mapping = provider.plateMappings[getPlateType(plate)];
+  for (const container of regions) {
+    const resName = resourceNames.get(container.id)!;
+    const mapping = provider.plateMappings[getPlateType(container)];
     sections.push(
-      generatePlateResource(plate, resName, mapping, options.projectName, null, architecture),
+      generatePlateResource(container, resName, mapping, options.projectName, null, architecture),
     );
     sections.push('');
   }
 
-  for (const plate of subnets) {
-    const resName = resourceNames.get(plate.id)!;
-    const mapping = provider.plateMappings[getPlateType(plate)];
-    const parentName = plate.parentId ? (resourceNames.get(plate.parentId) ?? null) : null;
+  for (const container of subnets) {
+    const resName = resourceNames.get(container.id)!;
+    const mapping = provider.plateMappings[getPlateType(container)];
+    const parentName = container.parentId ? (resourceNames.get(container.parentId) ?? null) : null;
     sections.push(
-      generatePlateResource(plate, resName, mapping, options.projectName, parentName, architecture),
+      generatePlateResource(
+        container,
+        resName,
+        mapping,
+        options.projectName,
+        parentName,
+        architecture,
+      ),
     );
     sections.push('');
   }

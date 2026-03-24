@@ -11,7 +11,7 @@ const testArchitecture: ArchitectureModel = {
   version: '1',
   nodes: [
     {
-      id: 'plate-network',
+      id: 'container-network',
       name: 'Core Network',
       kind: 'container',
       layer: 'region',
@@ -24,14 +24,14 @@ const testArchitecture: ArchitectureModel = {
       metadata: {},
     },
     {
-      id: 'plate-subnet',
+      id: 'container-subnet',
       name: 'Subnet 1',
       kind: 'container',
       layer: 'subnet',
       resourceType: 'subnet',
       category: 'network',
       provider: 'azure',
-      parentId: 'plate-network',
+      parentId: 'container-network',
       position: { x: 0, y: 0, z: 0 },
       frame: { width: 1, height: 1, depth: 1 },
       metadata: {},
@@ -44,7 +44,7 @@ const testArchitecture: ArchitectureModel = {
       resourceType: 'web_compute',
       category: 'compute',
       provider: 'azure',
-      parentId: 'plate-subnet',
+      parentId: 'container-subnet',
       position: { x: 0, y: 0, z: 0 },
       metadata: {},
     },
@@ -95,8 +95,8 @@ describe('terraformPlugin', () => {
     });
 
     expect(normalized.architecture).toBe(testArchitecture);
-    expect(normalized.resourceNames.get('plate-network')).toBe('vnet_core_network');
-    expect(normalized.resourceNames.get('plate-subnet')).toBe('subnet_subnet_1');
+    expect(normalized.resourceNames.get('container-network')).toBe('vnet_core_network');
+    expect(normalized.resourceNames.get('container-subnet')).toBe('subnet_subnet_1');
     expect(normalized.resourceNames.get('block-compute')).toBe('webapp_frontend');
   });
 

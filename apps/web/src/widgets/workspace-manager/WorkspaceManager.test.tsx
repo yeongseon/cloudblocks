@@ -23,7 +23,7 @@ const makeWorkspace = (id: string, name: string, blocks = 0, plates = 0): Worksp
     version: '1.0.0',
     nodes: [
       ...Array.from({ length: plates }, (_, i) => ({
-        id: `plate-${id}-${i}`,
+        id: `container-${id}-${i}`,
         name: `P${i}`,
         kind: 'container' as const,
         layer: 'subnet' as const,
@@ -43,7 +43,7 @@ const makeWorkspace = (id: string, name: string, blocks = 0, plates = 0): Worksp
         resourceType: 'web_compute',
         category: 'compute' as const,
         provider: 'azure' as const,
-        parentId: `plate-${id}-0`,
+        parentId: `container-${id}-0`,
         position: { x: 0, y: 0, z: 0 },
         metadata: {},
       })),

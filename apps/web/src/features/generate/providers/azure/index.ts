@@ -85,7 +85,7 @@ const azureSubtypeBlockMappings: SubtypeResourceMap = {
  *   identity → azurerm_user_assigned_identity / Microsoft.ManagedIdentity/userAssignedIdentities
  *   observability → azurerm_monitor_workspace / Microsoft.Monitor/accounts
  *
- * Plate Mappings:
+ * ContainerBlock Mappings:
  *   global/edge/region/zone → azurerm_virtual_network / Microsoft.Network/virtualNetworks
  *   subnet                  → azurerm_subnet / Microsoft.Network/virtualNetworks/subnets
  */

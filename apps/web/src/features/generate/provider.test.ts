@@ -44,7 +44,7 @@ describe('azureProviderDefinition', () => {
     });
   });
 
-  it('defines all plate mappings', () => {
+  it('defines all container mappings', () => {
     expect(azureProviderDefinition.plateMappings.region).toEqual({
       resourceType: 'azurerm_virtual_network',
       namePrefix: 'vnet',
@@ -109,7 +109,7 @@ describe('awsProviderDefinition', () => {
     });
   });
 
-  it('keeps expected network and subnet plate mappings', () => {
+  it('keeps expected network and subnet container mappings', () => {
     expect(awsProviderDefinition.plateMappings.region).toEqual({
       resourceType: 'aws_vpc',
       namePrefix: 'vpc',
@@ -141,7 +141,7 @@ describe('gcpProviderDefinition', () => {
     });
   });
 
-  it('keeps expected network and subnet plate mappings', () => {
+  it('keeps expected network and subnet container mappings', () => {
     expect(gcpProviderDefinition.plateMappings.region).toEqual({
       resourceType: 'google_compute_network',
       namePrefix: 'network',

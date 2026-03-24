@@ -1,5 +1,5 @@
 import type { StateCreator } from 'zustand';
-import type { LastPrResult, PlateProfileId, Workspace } from '../../../shared/types/index';
+import type { LastPrResult, ContainerBlockProfileId, Workspace } from '../../../shared/types/index';
 import type {
   ArchitectureModel,
   ConnectionType,
@@ -24,7 +24,7 @@ export type AddNodeInput =
       name: string;
       parentId: string | null;
       layer: LayerType;
-      profileId?: PlateProfileId;
+      profileId?: ContainerBlockProfileId;
     }
   | {
       kind: 'resource';
@@ -64,7 +64,7 @@ export interface ArchitectureState {
     type: PlateLayerType,
     name: string,
     parentId: string | null,
-    profileId?: PlateProfileId,
+    profileId?: ContainerBlockProfileId,
   ) => void;
   /** @deprecated Use removeNode(id) */
   removePlate: (id: string) => void;
@@ -87,7 +87,7 @@ export interface ArchitectureState {
   /** @deprecated Use renameNode(id, name) */
   renamePlate: (plateId: string, newName: string) => void;
   moveBlock: (blockId: string, newPlacementId: string) => void;
-  setPlateProfile: (plateId: string, profileId: PlateProfileId) => void;
+  setPlateProfile: (plateId: string, profileId: ContainerBlockProfileId) => void;
   /** @deprecated Use moveNodePosition(id, dx, dz) */
   movePlatePosition: (id: string, deltaX: number, deltaZ: number) => void;
   /** @deprecated Use moveNodePosition(id, dx, dz) */

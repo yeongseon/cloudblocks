@@ -1,6 +1,6 @@
 import type { Workspace } from '../../../shared/types/index';
 import type { ArchitectureModel, Position, ResourceBlock } from '@cloudblocks/schema';
-import { DEFAULT_BLOCK_SIZE, DEFAULT_PLATE_SIZE } from '../../../shared/types/index';
+import { DEFAULT_BLOCK_SIZE, DEFAULT_CONTAINER_BLOCK_SIZE } from '../../../shared/types/index';
 import { createBlankArchitecture } from '../../../shared/types/schema';
 import {
   canRedo as historyCanRedo,
@@ -123,7 +123,7 @@ export function resetTransientState(): Pick<
 }
 
 /** AABB overlap on XZ plane (touching edges excluded). */
-export function platesOverlap(
+export function containerBlocksOverlap(
   posA: { x: number; z: number },
   sizeA: { width: number; depth: number },
   posB: { x: number; z: number },
@@ -153,7 +153,7 @@ export function overlapsSibling(
   return siblings.some(
     (sibling) =>
       sibling.id !== excludeId &&
-      platesOverlap(candidatePos, candidateSize, sibling.position, sibling.frame),
+      containerBlocksOverlap(candidatePos, candidateSize, sibling.position, sibling.frame),
   );
 }
 
@@ -182,7 +182,7 @@ export function findNonOverlappingPosition(
 
 /** Binary-search refinement: reduces delta to last non-overlapping fraction. */
 export function resolveMoveDelta(
-  plate: {
+  container: {
     id: string;
     position: { x: number; z: number };
     frame: { width: number; depth: number };
@@ -196,11 +196,11 @@ export function resolveMoveDelta(
   }>,
 ): { deltaX: number; deltaZ: number } {
   const targetPos = {
-    x: plate.position.x + deltaX,
-    z: plate.position.z + deltaZ,
+    x: container.position.x + deltaX,
+    z: container.position.z + deltaZ,
   };
 
-  if (!overlapsSibling(targetPos, plate.frame, siblings, plate.id)) {
+  if (!overlapsSibling(targetPos, container.frame, siblings, container.id)) {
     return { deltaX, deltaZ };
   }
 
@@ -211,10 +211,10 @@ export function resolveMoveDelta(
   for (let i = 0; i < iterations; i++) {
     const mid = (lo + hi) / 2;
     const testPos = {
-      x: plate.position.x + deltaX * mid,
-      z: plate.position.z + deltaZ * mid,
+      x: container.position.x + deltaX * mid,
+      z: container.position.z + deltaZ * mid,
     };
-    if (overlapsSibling(testPos, plate.frame, siblings, plate.id)) {
+    if (overlapsSibling(testPos, container.frame, siblings, container.id)) {
       hi = mid;
     } else {
       lo = mid;
@@ -227,7 +227,7 @@ export function resolveMoveDelta(
   };
 }
 
-export { DEFAULT_PLATE_SIZE };
+export { DEFAULT_CONTAINER_BLOCK_SIZE as DEFAULT_PLATE_SIZE };
 
 /**
  * Auto-suffix a workspace name if it already exists in the list.

@@ -31,7 +31,7 @@ type ArchNode = {
 };
 
 const basePlate: ArchNode = {
-  id: 'plate-1',
+  id: 'container-1',
   kind: 'container',
   parentId: null,
   name: 'VNet',
@@ -46,7 +46,7 @@ const basePlate: ArchNode = {
 const baseBlock: ArchNode = {
   id: 'block-1',
   kind: 'resource',
-  parentId: 'plate-1',
+  parentId: 'container-1',
   name: 'VM',
   layer: 'resource',
   category: 'compute',
@@ -77,9 +77,9 @@ afterEach(() => {
 });
 
 describe('ConnectionPreview additional branches', () => {
-  it('returns null when source block parent plate is missing', () => {
+  it('returns null when source block parent container is missing', () => {
     mockStores({ interactionState: 'connecting', connectionSource: 'block-1' }, [
-      { ...baseBlock, parentId: 'missing-plate' },
+      { ...baseBlock, parentId: 'missing-container' },
     ]);
 
     const { container } = render(

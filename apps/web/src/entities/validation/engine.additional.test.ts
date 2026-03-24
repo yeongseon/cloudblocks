@@ -13,7 +13,7 @@ function makeModel(): ArchitectureModel {
     version: '1',
     nodes: [
       {
-        id: 'plate-1',
+        id: 'container-1',
         name: 'Subnet',
         kind: 'container',
         layer: 'subnet',
@@ -33,7 +33,7 @@ function makeModel(): ArchitectureModel {
         resourceType: 'web_compute',
         category: 'compute',
         provider: 'azure',
-        parentId: 'plate-1',
+        parentId: 'container-1',
         position: { x: 1, y: 0.5, z: 1 },
         metadata: {},
       },

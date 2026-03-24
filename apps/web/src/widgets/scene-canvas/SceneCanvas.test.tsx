@@ -9,9 +9,11 @@ vi.mock('../../entities/store/uiStore');
 vi.mock('../../shared/utils/audioService', () => ({
   audioService: { playSound: vi.fn() },
 }));
-vi.mock('../../entities/plate/PlateSprite', () => ({ PlateSprite: () => null }));
+vi.mock('../../entities/container-block/ContainerBlockSprite', () => ({
+  ContainerBlockSprite: () => null,
+}));
 vi.mock('../../entities/block/BlockSprite', () => ({ BlockSprite: () => null }));
-vi.mock('../../entities/connection/BrickConnector', () => ({ BrickConnector: () => null }));
+vi.mock('../../entities/connection/ConnectionRenderer', () => ({ ConnectionRenderer: () => null }));
 vi.mock('../../entities/connection/ExternalActorSprite', () => ({
   ExternalActorSprite: () => null,
 }));

@@ -17,7 +17,7 @@ function makeBlock(overrides: Partial<ResourceBlock> = {}): ResourceBlock {
     resourceType: 'web_compute',
     category: 'compute',
     provider: 'azure',
-    parentId: 'plate-1',
+    parentId: 'container-1',
     position: { x: 0, y: 0, z: 0 },
     metadata: {},
     ...overrides,
@@ -32,8 +32,8 @@ function makePlate(
   const resourceType: ContainerBlock['resourceType'] =
     normalizedLayer === 'subnet' ? 'subnet' : 'virtual_network';
   return {
-    id: 'plate-1',
-    name: 'Plate',
+    id: 'container-1',
+    name: 'ContainerBlock',
     kind: 'container',
     layer: normalizedLayer,
     resourceType,
@@ -61,11 +61,11 @@ function makeSize(overrides: Partial<{ width: number; height: number; depth: num
 }
 
 describe('validatePlacement', () => {
-  it('returns error when block is not placed on a plate', () => {
+  it('returns error when block is not placed on a container', () => {
     const block = makeBlock({ id: 'compute-1', name: 'Compute A', category: 'compute' });
 
     expect(validatePlacement(block, undefined)).toEqual({
-      ruleId: 'rule-plate-exists',
+      ruleId: 'rule-container-exists',
       severity: 'error',
       message: 'Resource "Compute A" is not placed on any container',
       suggestion: 'Place the resource on a valid subnet container',
@@ -73,11 +73,11 @@ describe('validatePlacement', () => {
     });
   });
 
-  it('returns error when compute is on non-subnet plate', () => {
+  it('returns error when compute is on non-subnet container', () => {
     const block = makeBlock({ id: 'compute-2', name: 'Compute B', category: 'compute' });
-    const plate = makePlate({ type: 'region' });
+    const container = makePlate({ type: 'region' });
 
-    expect(validatePlacement(block, plate)).toEqual({
+    expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-compute-parent',
       severity: 'error',
       message: 'Compute resource "Compute B" must be placed on a Subnet',
@@ -86,18 +86,18 @@ describe('validatePlacement', () => {
     });
   });
 
-  it('returns null when compute is on subnet plate', () => {
+  it('returns null when compute is on subnet container', () => {
     const block = makeBlock({ category: 'compute' });
     const subnet = makePlate({ type: 'subnet' });
 
     expect(validatePlacement(block, subnet)).toBeNull();
   });
 
-  it('returns error when database is on non-subnet plate', () => {
+  it('returns error when database is on non-subnet container', () => {
     const block = makeBlock({ id: 'db-1', name: 'Database A', category: 'data' });
-    const plate = makePlate({ type: 'region' });
+    const container = makePlate({ type: 'region' });
 
-    expect(validatePlacement(block, plate)).toEqual({
+    expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-data-parent',
       severity: 'error',
       message: 'Data resource "Database A" must be placed on a Subnet',
@@ -108,16 +108,16 @@ describe('validatePlacement', () => {
 
   it('returns null when database is on subnet', () => {
     const block = makeBlock({ id: 'db-2', name: 'Database B', category: 'data' });
-    const plate = makePlate({ type: 'subnet' });
+    const container = makePlate({ type: 'subnet' });
 
-    expect(validatePlacement(block, plate)).toBeNull();
+    expect(validatePlacement(block, container)).toBeNull();
   });
 
-  it('returns error when gateway is on non-subnet plate', () => {
+  it('returns error when gateway is on non-subnet container', () => {
     const block = makeBlock({ id: 'gw-1', name: 'Gateway A', category: 'delivery' });
-    const plate = makePlate({ type: 'region' });
+    const container = makePlate({ type: 'region' });
 
-    expect(validatePlacement(block, plate)).toEqual({
+    expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-delivery-parent',
       severity: 'error',
       message: 'Delivery resource "Gateway A" must be placed on a Subnet',
@@ -126,18 +126,18 @@ describe('validatePlacement', () => {
     });
   });
 
-  it('returns null when gateway is on subnet plate', () => {
+  it('returns null when gateway is on subnet container', () => {
     const block = makeBlock({ category: 'delivery' });
-    const plate = makePlate({ type: 'subnet' });
+    const container = makePlate({ type: 'subnet' });
 
-    expect(validatePlacement(block, plate)).toBeNull();
+    expect(validatePlacement(block, container)).toBeNull();
   });
 
-  it('returns error when storage is on non-subnet plate', () => {
+  it('returns error when storage is on non-subnet container', () => {
     const block = makeBlock({ id: 'storage-1', name: 'Storage A', category: 'data' });
-    const plate = makePlate({ type: 'region' });
+    const container = makePlate({ type: 'region' });
 
-    expect(validatePlacement(block, plate)).toEqual({
+    expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-data-parent',
       severity: 'error',
       message: 'Data resource "Storage A" must be placed on a Subnet',
@@ -146,25 +146,25 @@ describe('validatePlacement', () => {
     });
   });
 
-  it('returns null when storage is on subnet plate', () => {
+  it('returns null when storage is on subnet container', () => {
     const block = makeBlock({ category: 'data' });
     const subnet = makePlate({ type: 'subnet' });
 
     expect(validatePlacement(block, subnet)).toBeNull();
   });
 
-  it('returns null when function is on subnet plate', () => {
+  it('returns null when function is on subnet container', () => {
     const block = makeBlock({ id: 'fn-1', name: 'FuncA', category: 'compute' });
-    const plate = makePlate({ type: 'subnet' });
+    const container = makePlate({ type: 'subnet' });
 
-    expect(validatePlacement(block, plate)).toBeNull();
+    expect(validatePlacement(block, container)).toBeNull();
   });
 
-  it('returns error when function is on network plate', () => {
+  it('returns error when function is on network container', () => {
     const block = makeBlock({ category: 'compute' });
-    const plate = makePlate({ type: 'region' });
+    const container = makePlate({ type: 'region' });
 
-    expect(validatePlacement(block, plate)).toEqual({
+    expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-compute-parent',
       severity: 'error',
       message: 'Compute resource "Block" must be placed on a Subnet',
@@ -173,11 +173,11 @@ describe('validatePlacement', () => {
     });
   });
 
-  it('returns error when queue is on subnet plate', () => {
+  it('returns error when queue is on subnet container', () => {
     const block = makeBlock({ id: 'queue-1', name: 'QueueA', category: 'messaging' });
-    const plate = makePlate({ type: 'subnet' });
+    const container = makePlate({ type: 'subnet' });
 
-    expect(validatePlacement(block, plate)).toEqual({
+    expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-messaging-parent',
       severity: 'error',
       message: 'Messaging resource "QueueA" must be placed on a Region container',
@@ -186,18 +186,18 @@ describe('validatePlacement', () => {
     });
   });
 
-  it('returns null when queue is on network plate', () => {
+  it('returns null when queue is on network container', () => {
     const block = makeBlock({ category: 'messaging' });
-    const plate = makePlate({ type: 'region' });
+    const container = makePlate({ type: 'region' });
 
-    expect(validatePlacement(block, plate)).toBeNull();
+    expect(validatePlacement(block, container)).toBeNull();
   });
 
-  it('returns error when event is on subnet plate', () => {
+  it('returns error when event is on subnet container', () => {
     const block = makeBlock({ id: 'event-1', name: 'EventA', category: 'messaging' });
-    const plate = makePlate({ type: 'subnet' });
+    const container = makePlate({ type: 'subnet' });
 
-    expect(validatePlacement(block, plate)).toEqual({
+    expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-messaging-parent',
       severity: 'error',
       message: 'Messaging resource "EventA" must be placed on a Region container',
@@ -206,18 +206,18 @@ describe('validatePlacement', () => {
     });
   });
 
-  it('returns null when event is on network plate', () => {
+  it('returns null when event is on network container', () => {
     const block = makeBlock({ category: 'messaging' });
-    const plate = makePlate({ type: 'region' });
+    const container = makePlate({ type: 'region' });
 
-    expect(validatePlacement(block, plate)).toBeNull();
+    expect(validatePlacement(block, container)).toBeNull();
   });
 
-  it('returns error when analytics is on network plate', () => {
+  it('returns error when analytics is on network container', () => {
     const block = makeBlock({ id: 'analytics-1', name: 'AnalyticsA', category: 'operations' });
-    const plate = makePlate({ type: 'region' });
+    const container = makePlate({ type: 'region' });
 
-    expect(validatePlacement(block, plate)).toEqual({
+    expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-operations-parent',
       severity: 'error',
       message: 'Operations resource "AnalyticsA" must be placed on a Subnet',
@@ -226,11 +226,11 @@ describe('validatePlacement', () => {
     });
   });
 
-  it('returns error when identity is on network plate', () => {
+  it('returns error when identity is on network container', () => {
     const block = makeBlock({ id: 'identity-1', name: 'IdentityA', category: 'security' });
-    const plate = makePlate({ type: 'region' });
+    const container = makePlate({ type: 'region' });
 
-    expect(validatePlacement(block, plate)).toEqual({
+    expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-security-parent',
       severity: 'error',
       message: 'Security resource "IdentityA" must be placed on a Subnet',
@@ -239,15 +239,15 @@ describe('validatePlacement', () => {
     });
   });
 
-  it('returns error when observability is on network plate', () => {
+  it('returns error when observability is on network container', () => {
     const block = makeBlock({
       id: 'observability-1',
       name: 'ObservabilityA',
       category: 'operations',
     });
-    const plate = makePlate({ type: 'region' });
+    const container = makePlate({ type: 'region' });
 
-    expect(validatePlacement(block, plate)).toEqual({
+    expect(validatePlacement(block, container)).toEqual({
       ruleId: 'rule-operations-parent',
       severity: 'error',
       message: 'Operations resource "ObservabilityA" must be placed on a Subnet',
@@ -256,25 +256,25 @@ describe('validatePlacement', () => {
     });
   });
 
-  it('returns null when analytics is on subnet plate', () => {
+  it('returns null when analytics is on subnet container', () => {
     const block = makeBlock({ category: 'operations' });
-    const plate = makePlate({ type: 'subnet' });
+    const container = makePlate({ type: 'subnet' });
 
-    expect(validatePlacement(block, plate)).toBeNull();
+    expect(validatePlacement(block, container)).toBeNull();
   });
 
-  it('returns null when identity is on subnet plate', () => {
+  it('returns null when identity is on subnet container', () => {
     const block = makeBlock({ category: 'security' });
-    const plate = makePlate({ type: 'subnet' });
+    const container = makePlate({ type: 'subnet' });
 
-    expect(validatePlacement(block, plate)).toBeNull();
+    expect(validatePlacement(block, container)).toBeNull();
   });
 
-  it('returns null when observability is on subnet plate', () => {
+  it('returns null when observability is on subnet container', () => {
     const block = makeBlock({ category: 'operations' });
-    const plate = makePlate({ type: 'subnet' });
+    const container = makePlate({ type: 'subnet' });
 
-    expect(validatePlacement(block, plate)).toBeNull();
+    expect(validatePlacement(block, container)).toBeNull();
   });
 
   it('uses Set-based allowed layers: each category checks all valid parent layers', () => {
@@ -305,114 +305,114 @@ describe('validatePlacement', () => {
 });
 
 describe('canPlaceBlock', () => {
-  it('returns true when compute is on subnet plate', () => {
-    const plate = makePlate({ type: 'subnet' });
-    expect(canPlaceBlock('compute', plate)).toBe(true);
+  it('returns true when compute is on subnet container', () => {
+    const container = makePlate({ type: 'subnet' });
+    expect(canPlaceBlock('compute', container)).toBe(true);
   });
 
-  it('returns false when compute is on network plate', () => {
-    const plate = makePlate({ type: 'region' });
-    expect(canPlaceBlock('compute', plate)).toBe(false);
+  it('returns false when compute is on network container', () => {
+    const container = makePlate({ type: 'region' });
+    expect(canPlaceBlock('compute', container)).toBe(false);
   });
 
-  it('returns true when database is on subnet plate', () => {
-    const plate = makePlate({ type: 'subnet' });
-    expect(canPlaceBlock('data', plate)).toBe(true);
+  it('returns true when database is on subnet container', () => {
+    const container = makePlate({ type: 'subnet' });
+    expect(canPlaceBlock('data', container)).toBe(true);
   });
 
-  it('returns true when gateway is on subnet plate', () => {
-    const plate = makePlate({ type: 'subnet' });
-    expect(canPlaceBlock('delivery', plate)).toBe(true);
+  it('returns true when gateway is on subnet container', () => {
+    const container = makePlate({ type: 'subnet' });
+    expect(canPlaceBlock('delivery', container)).toBe(true);
   });
 
-  it('returns true when storage is on subnet plate', () => {
-    const plate = makePlate({ type: 'subnet' });
-    expect(canPlaceBlock('data', plate)).toBe(true);
+  it('returns true when storage is on subnet container', () => {
+    const container = makePlate({ type: 'subnet' });
+    expect(canPlaceBlock('data', container)).toBe(true);
   });
 
-  it('returns false when storage is on network plate', () => {
-    const plate = makePlate({ type: 'region' });
-    expect(canPlaceBlock('data', plate)).toBe(false);
+  it('returns false when storage is on network container', () => {
+    const container = makePlate({ type: 'region' });
+    expect(canPlaceBlock('data', container)).toBe(false);
   });
 
-  it('returns false when function is on network plate', () => {
-    const plate = makePlate({ type: 'region' });
-    expect(canPlaceBlock('compute', plate)).toBe(false);
+  it('returns false when function is on network container', () => {
+    const container = makePlate({ type: 'region' });
+    expect(canPlaceBlock('compute', container)).toBe(false);
   });
 
-  it('returns true when function is on subnet plate', () => {
-    const plate = makePlate({ type: 'subnet' });
-    expect(canPlaceBlock('compute', plate)).toBe(true);
+  it('returns true when function is on subnet container', () => {
+    const container = makePlate({ type: 'subnet' });
+    expect(canPlaceBlock('compute', container)).toBe(true);
   });
 
-  it('returns true when queue is on network plate', () => {
-    const plate = makePlate({ type: 'region' });
-    expect(canPlaceBlock('messaging', plate)).toBe(true);
+  it('returns true when queue is on network container', () => {
+    const container = makePlate({ type: 'region' });
+    expect(canPlaceBlock('messaging', container)).toBe(true);
   });
 
-  it('returns true when event is on network plate', () => {
-    const plate = makePlate({ type: 'region' });
-    expect(canPlaceBlock('messaging', plate)).toBe(true);
+  it('returns true when event is on network container', () => {
+    const container = makePlate({ type: 'region' });
+    expect(canPlaceBlock('messaging', container)).toBe(true);
   });
 
-  it('returns true when analytics is on subnet plate', () => {
-    const plate = makePlate({ type: 'subnet' });
-    expect(canPlaceBlock('operations', plate)).toBe(true);
+  it('returns true when analytics is on subnet container', () => {
+    const container = makePlate({ type: 'subnet' });
+    expect(canPlaceBlock('operations', container)).toBe(true);
   });
 
-  it('returns true when identity is on subnet plate', () => {
-    const plate = makePlate({ type: 'subnet' });
-    expect(canPlaceBlock('security', plate)).toBe(true);
+  it('returns true when identity is on subnet container', () => {
+    const container = makePlate({ type: 'subnet' });
+    expect(canPlaceBlock('security', container)).toBe(true);
   });
 
-  it('returns true when observability is on subnet plate', () => {
-    const plate = makePlate({ type: 'subnet' });
-    expect(canPlaceBlock('operations', plate)).toBe(true);
+  it('returns true when observability is on subnet container', () => {
+    const container = makePlate({ type: 'subnet' });
+    expect(canPlaceBlock('operations', container)).toBe(true);
   });
 });
 
 describe('validateLayerPlacement', () => {
-  it('returns null when block is on a subnet plate (valid parent for resource)', () => {
+  it('returns null when block is on a subnet container (valid parent for resource)', () => {
     const block = makeBlock({ category: 'compute' });
-    const plate = makePlate({ type: 'subnet' });
+    const container = makePlate({ type: 'subnet' });
 
-    expect(validateLayerPlacement(block, plate)).toBeNull();
+    expect(validateLayerPlacement(block, container)).toBeNull();
   });
 
-  it('returns null when block is on a zone plate', () => {
+  it('returns null when block is on a zone container', () => {
     const block = makeBlock({ category: 'compute' });
-    const plate = makePlate({ type: 'zone' });
+    const container = makePlate({ type: 'zone' });
 
-    expect(validateLayerPlacement(block, plate)).toBeNull();
+    expect(validateLayerPlacement(block, container)).toBeNull();
   });
 
-  it('returns null when block is on a region plate', () => {
+  it('returns null when block is on a region container', () => {
     const block = makeBlock({ category: 'compute' });
-    const plate = makePlate({ type: 'region' });
+    const container = makePlate({ type: 'region' });
 
-    expect(validateLayerPlacement(block, plate)).toBeNull();
+    expect(validateLayerPlacement(block, container)).toBeNull();
   });
 
-  it('returns null when block is on an edge plate', () => {
+  it('returns null when block is on an edge container', () => {
     const block = makeBlock({ category: 'delivery' });
-    const plate = makePlate({ type: 'edge' });
+    const container = makePlate({ type: 'edge' });
 
-    expect(validateLayerPlacement(block, plate)).toBeNull();
+    expect(validateLayerPlacement(block, container)).toBeNull();
   });
 
-  it('returns null when block is on a global plate', () => {
+  it('returns null when block is on a global container', () => {
     const block = makeBlock({ category: 'compute' });
-    const plate = makePlate({ type: 'global' });
+    const container = makePlate({ type: 'global' });
 
-    expect(validateLayerPlacement(block, plate)).toBeNull();
+    expect(validateLayerPlacement(block, container)).toBeNull();
   });
 
   it('returns error with correct fields for invalid layer hierarchy', () => {
     const block = makeBlock({ id: 'b1', name: 'TestBlock', category: 'compute' });
     const plateTypes = ['global', 'edge', 'region', 'zone', 'subnet'] as const;
     for (const type of plateTypes) {
-      const plate = makePlate({ type });
-      expect(validateLayerPlacement(block, plate)).toBeNull();
+      const container = makePlate({ type });
+      expect(validateLayerPlacement(block, container)).toBeNull();
     }
   });
 });

@@ -65,8 +65,8 @@ const mapCategory = (category: ResourceCategory | LegacyCategory | undefined): R
 
 export function makeTestPlate(overrides: LegacyPlateOverrides = {}): ContainerBlock {
   return {
-    id: 'plate-1',
-    name: 'Plate',
+    id: 'container-1',
+    name: 'ContainerBlock',
     kind: 'container',
     layer: overrides.type ?? 'subnet',
     resourceType: ((): ContainerCapableResourceType => {
@@ -93,7 +93,7 @@ export function makeTestBlock(overrides: LegacyBlockOverrides = {}): ResourceBlo
     ...rest
   } = overrides;
   const category = mapCategory(overrideCategory);
-  const parentId = placementId ?? overrideParentId ?? 'plate-1';
+  const parentId = placementId ?? overrideParentId ?? 'container-1';
   return {
     id: 'block-1',
     name: 'Block',

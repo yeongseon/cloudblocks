@@ -535,7 +535,7 @@ describe('MenuBar', () => {
     expect(redoMock).toHaveBeenCalledOnce();
   }, 15000);
 
-  it('deletes selected plate, block, and connection from overflow menu', async () => {
+  it('deletes selected container, block, and connection from overflow menu', async () => {
     const user = userEvent.setup();
 
     setArchitectureState({ nodes: [networkPlate, block], connections: [connection] });

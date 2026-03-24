@@ -182,25 +182,25 @@ export const validateArchitectureShape = (imported: unknown): { valid: true } =>
   const legacyPlateIds = new Set<string>();
   const legacyBlockIds = new Set<string>();
   if (hasLegacy) {
-    ((imported as Record<string, unknown>).plates as unknown[]).forEach((plate, index) => {
-      const context = `Invalid plate at index ${index}`;
-      if (!isRecord(plate)) {
-        throw new Error(`${context}: plate must be an object`);
+    ((imported as Record<string, unknown>).plates as unknown[]).forEach((container, index) => {
+      const context = `Invalid container at index ${index}`;
+      if (!isRecord(container)) {
+        throw new Error(`${context}: container must be an object`);
       }
 
-      if (typeof plate.id !== 'string') {
+      if (typeof container.id !== 'string') {
         throw new Error(`${context}: id must be a string`);
       }
-      if (typeof plate.name !== 'string') {
+      if (typeof container.name !== 'string') {
         throw new Error(`${context}: name must be a string`);
       }
-      if (!isValidPlateType(plate.type)) {
+      if (!isValidPlateType(container.type)) {
         throw new Error(`${context}: type must be one of global, edge, region, zone, or subnet`);
       }
-      validatePosition(plate.position, context);
-      validateSize(plate.size, context);
+      validatePosition(container.position, context);
+      validateSize(container.size, context);
 
-      legacyPlateIds.add(plate.id);
+      legacyPlateIds.add(container.id);
     });
 
     ((imported as Record<string, unknown>).blocks as unknown[]).forEach((block, index) => {
@@ -313,12 +313,12 @@ export const validateArchitectureShape = (imported: unknown): { valid: true } =>
         const toParsed = parseEndpointId(toEndpointId);
         if (fromParsed && !validConnectionEndpointIds.has(fromParsed.blockId)) {
           throw new Error(
-            `${context}: sourceId "${fromParsed.blockId}" does not reference an existing block, plate, or external actor`,
+            `${context}: sourceId "${fromParsed.blockId}" does not reference an existing block, container, or external actor`,
           );
         }
         if (toParsed && !validConnectionEndpointIds.has(toParsed.blockId)) {
           throw new Error(
-            `${context}: targetId "${toParsed.blockId}" does not reference an existing block, plate, or external actor`,
+            `${context}: targetId "${toParsed.blockId}" does not reference an existing block, container, or external actor`,
           );
         }
       }
@@ -330,13 +330,13 @@ export const validateArchitectureShape = (imported: unknown): { valid: true } =>
 
     if (!validConnectionEndpointIds.has(sourceId)) {
       throw new Error(
-        `${context}: sourceId "${sourceId}" does not reference an existing block, plate, or external actor`,
+        `${context}: sourceId "${sourceId}" does not reference an existing block, container, or external actor`,
       );
     }
 
     if (!validConnectionEndpointIds.has(targetId)) {
       throw new Error(
-        `${context}: targetId "${targetId}" does not reference an existing block, plate, or external actor`,
+        `${context}: targetId "${targetId}" does not reference an existing block, container, or external actor`,
       );
     }
   });
@@ -466,23 +466,23 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
       } else if (Array.isArray(importedAny.plates) && Array.isArray(importedAny.blocks)) {
         // Migrate legacy format
         const containerNodes = (importedAny.plates as Record<string, unknown>[]).map(
-          (plate): ContainerBlock => ({
-            id: plate.id as string,
-            name: plate.name as string,
+          (container): ContainerBlock => ({
+            id: container.id as string,
+            name: container.name as string,
             kind: 'container',
-            layer: plate.type as ContainerBlock['layer'],
-            resourceType: ((plate.type as string) === 'region'
+            layer: container.type as ContainerBlock['layer'],
+            resourceType: ((container.type as string) === 'region'
               ? 'virtual_network'
-              : plate.type === 'subnet'
+              : container.type === 'subnet'
                 ? 'subnet'
                 : 'virtual_network') as ContainerBlock['resourceType'],
             category: 'network',
             provider: 'azure',
-            parentId: (plate.parentId as string | null | undefined) ?? null,
-            position: plate.position as ContainerBlock['position'],
-            frame: plate.size as ContainerBlock['frame'],
-            metadata: (plate.metadata as Record<string, unknown>) ?? {},
-            ...(typeof plate.profileId === 'string' ? { profileId: plate.profileId } : {}),
+            parentId: (container.parentId as string | null | undefined) ?? null,
+            position: container.position as ContainerBlock['position'],
+            frame: container.size as ContainerBlock['frame'],
+            metadata: (container.metadata as Record<string, unknown>) ?? {},
+            ...(typeof container.profileId === 'string' ? { profileId: container.profileId } : {}),
           }),
         );
         const leafNodes = (importedAny.blocks as Record<string, unknown>[]).map(

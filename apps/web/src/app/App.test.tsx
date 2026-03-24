@@ -277,8 +277,8 @@ describe('App', () => {
     expect(setSelectedIdMock).toHaveBeenCalledWith(null);
   });
 
-  it('handles Backspace key to remove selected plate', () => {
-    useUIStore.setState({ selectedId: 'plate-1', setSelectedId: setSelectedIdMock });
+  it('handles Backspace key to remove selected container', () => {
+    useUIStore.setState({ selectedId: 'container-1', setSelectedId: setSelectedIdMock });
     useArchitectureStore.setState({
       loadFromStorage: loadFromStorageMock,
       undo: undoMock,
@@ -295,7 +295,7 @@ describe('App', () => {
           version: '1.0.0',
           nodes: [
             {
-              id: 'plate-1',
+              id: 'container-1',
               name: 'P',
               kind: 'container',
               layer: 'subnet',
@@ -320,7 +320,7 @@ describe('App', () => {
     });
     render(<App />);
     fireEvent.keyDown(window, { key: 'Backspace' });
-    expect(removePlateMock).toHaveBeenCalledWith('plate-1');
+    expect(removePlateMock).toHaveBeenCalledWith('container-1');
     expect(setSelectedIdMock).toHaveBeenCalledWith(null);
   });
 

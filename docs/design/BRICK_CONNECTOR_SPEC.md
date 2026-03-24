@@ -675,7 +675,7 @@ Direction is indicated by the **last pin hole being a filled triangle** (arrow s
 
 This is more faithful to the block-based aesthetic than a protruding arrow — real Technic pieces don't have arrows.
 
-#### 12.6.4 Endpoint Studs
+#### 12.6.4 Endpoint Ports
 
 Source and target endpoints render the **Universal Port Standard** port on top of the beam at the connection point. This represents the port that "plugs into" the block's anti-port.
 

@@ -18,16 +18,16 @@ export function evaluateRule(rule: StepValidationRule, model: ArchitectureModel)
   const resources = model.nodes.filter((n) => n.kind === 'resource');
 
   switch (rule.type) {
-    case 'plate-exists':
+    case 'container-exists':
       return containers.some((p) => p.layer === rule.plateType);
 
     case 'block-exists':
       return resources.some((b) => {
         if (b.category !== rule.category) return false;
         if (rule.onPlateType === undefined) return true;
-        const plate = containers.find((p) => p.id === b.parentId);
-        if (!plate) return false;
-        if (plate.layer !== rule.onPlateType) return false;
+        const container = containers.find((p) => p.id === b.parentId);
+        if (!container) return false;
+        if (container.layer !== rule.onPlateType) return false;
         return true;
       });
 
@@ -39,12 +39,12 @@ export function evaluateRule(rule: StepValidationRule, model: ArchitectureModel)
         return sourceType === rule.sourceCategory && targetType === rule.targetCategory;
       });
 
-    case 'entity-on-plate':
+    case 'entity-on-container':
       return resources.some((b) => {
         if (b.category !== rule.entityCategory) return false;
-        const plate = containers.find((p) => p.id === b.parentId);
-        if (!plate) return false;
-        if (plate.layer !== rule.plateType) return false;
+        const container = containers.find((p) => p.id === b.parentId);
+        if (!container) return false;
+        if (container.layer !== rule.plateType) return false;
         return true;
       });
 
@@ -54,7 +54,7 @@ export function evaluateRule(rule: StepValidationRule, model: ArchitectureModel)
     case 'min-block-count':
       return resources.filter((b) => b.category === rule.category).length >= rule.count;
 
-    case 'min-plate-count':
+    case 'min-container-count':
       return containers.filter((p) => p.layer === rule.plateType).length >= rule.count;
 
     default:
