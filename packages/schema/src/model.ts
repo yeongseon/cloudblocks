@@ -3,12 +3,12 @@
 
 import type {
   AggregationMode,
+  BlockKind,
   BlockRole,
   ConnectionType,
   EndpointDirection,
   EndpointSemantic,
   LayerType,
-  NodeKind,
   ProviderType,
   ResourceCategory,
 } from './enums.js';
@@ -16,7 +16,7 @@ import type { Position, Size } from './spatial.js';
 import type { CanvasTier, ContainerCapableResourceType } from './rules.js';
 
 /**
- * Aggregation descriptor for node instances (v2.0 §8).
+ * Aggregation descriptor for block instances (v2.0 §8).
  */
 export interface Aggregation {
   mode: AggregationMode;
@@ -25,19 +25,19 @@ export interface Aggregation {
 }
 
 // ---------------------------------------------------------------------------
-// ResourceNode — Unified model replacing Plate + Block
+// Block — Unified model (ADR-0013)
 // ---------------------------------------------------------------------------
 
 /**
- * Shared fields for every node in the architecture graph.
+ * Shared fields for every block in the architecture graph.
  *
- * Every node has a layer (for hierarchy rules), a category (for grouping),
+ * Every block has a layer (for hierarchy rules), a category (for grouping),
  * a kind (container vs resource), and a resourceType (specific resource).
  */
-interface NodeBase {
+interface BlockBase {
   id: string;
   name: string;
-  kind: NodeKind;
+  kind: BlockKind;
   /** Hierarchy layer — used for containment validation */
   layer: LayerType;
   /** Specific resource identifier, e.g. 'virtual_network', 'web_compute', 'relational_database' */
@@ -45,7 +45,7 @@ interface NodeBase {
   /** One of the 8 resource categories */
   category: ResourceCategory;
   provider: ProviderType;
-  /** Parent node ID. null for root-level nodes. */
+  /** Parent block ID. null for root-level blocks. */
   parentId: string | null;
   position: Position;
   metadata: Record<string, unknown>;
@@ -68,39 +68,40 @@ interface NodeBase {
 }
 
 /**
- * A container node holds child nodes (VNet, Subnet, Resource Group, etc.).
- * Containers have a size for visual rendering and can nest other containers
- * or leaf resources.
+ * A container block holds child blocks (VNet, Subnet, Resource Group, etc.).
+ * Containers have a frame (size) for visual rendering and can nest other containers
+ * or resource blocks.
  */
-export interface ContainerNode extends NodeBase {
+export interface ContainerBlock extends BlockBase {
   kind: 'container';
   /** Only container-capable resource types (virtual_network, subnet) */
   resourceType: ContainerCapableResourceType;
-  size: Size;
+  /** Visual frame dimensions (width × height × depth) */
+  frame: Size;
 }
 
 /**
- * A leaf resource node (VM, SQL Database, Redis Cache, etc.).
+ * A resource block (VM, SQL Database, Redis Cache, etc.).
  * Cannot contain children.
  */
-export interface LeafNode extends NodeBase {
+export interface ResourceBlock extends BlockBase {
   kind: 'resource';
 }
 
 /**
- * Discriminated union of all node types in the architecture.
+ * Discriminated union of all block types in the architecture.
  * Discriminant: `kind` field ('container' | 'resource').
  */
-export type ResourceNode = ContainerNode | LeafNode;
+export type Block = ContainerBlock | ResourceBlock;
 
 /**
- * An Endpoint is a typed connection point on a node.
- * Every node auto-generates 6 endpoints (3 semantics × 2 directions).
- * Deterministic ID format: `endpoint-${nodeId}-${direction}-${semantic}`
+ * An Endpoint is a typed connection point on a block.
+ * Every block auto-generates 6 endpoints (3 semantics × 2 directions).
+ * Deterministic ID format: `endpoint-${blockId}-${direction}-${semantic}`
  */
 export interface Endpoint {
   id: string;
-  nodeId: string;
+  blockId: string;
   direction: EndpointDirection;
   semantic: EndpointSemantic;
 }
@@ -125,15 +126,15 @@ export interface LegacyConnection {
   targetId: string;
   type: ConnectionType;
   metadata: Record<string, unknown>;
-  sourceStub?: number;
-  targetStub?: number;
+  sourcePort?: number;
+  targetPort?: number;
 }
 
 /**
  * An external actor represents an entity outside the architecture
  * that initiates or receives connections (e.g., "Internet").
  */
-/** @deprecated ExternalActors are folded into nodes in v4. Kept for v3→v4 migration. */
+/** @deprecated ExternalActors are folded into blocks in v4. Kept for v3→v4 migration. */
 export interface ExternalActor {
   id: string;
   name: string;
@@ -151,11 +152,11 @@ export interface ArchitectureModel {
   name: string;
   /** User-facing architecture revision (not schema version) */
   version: string;
-  /** All nodes — containers and resources in a flat array */
-  nodes: ResourceNode[];
+  /** All blocks — containers and resources in a flat array */
+  nodes: Block[];
   endpoints: Endpoint[];
   connections: Connection[];
-  /** @deprecated Folded into nodes in v4. Kept for v3→v4 migration loading. */
+  /** @deprecated Folded into blocks in v4. Kept for v3→v4 migration loading. */
   externalActors?: ExternalActor[];
   /** ISO 8601 */
   createdAt: string;
@@ -164,11 +165,17 @@ export interface ArchitectureModel {
 }
 
 // ---------------------------------------------------------------------------
-// Deprecated aliases — kept temporarily for migration, will be removed post-M19
+// Deprecated aliases — kept temporarily for migration, will be removed post-M24
 // ---------------------------------------------------------------------------
 
-/** @deprecated Use ContainerNode instead. */
-export type Plate = ContainerNode;
+/** @deprecated Use ContainerBlock instead. */
+export type ContainerNode = ContainerBlock;
 
-/** @deprecated Use LeafNode instead. */
-export type Block = LeafNode;
+/** @deprecated Use ResourceBlock instead. */
+export type LeafNode = ResourceBlock;
+
+/** @deprecated Use Block instead. */
+export type ResourceNode = Block;
+
+/** @deprecated Use ContainerBlock instead. */
+export type Plate = ContainerBlock;

@@ -333,16 +333,16 @@ export function getDefaultCategory(resourceType: string): ResourceCategory | und
 }
 
 // ---------------------------------------------------------------------------
-// Stub/Port policy - connection point counts per category
+// Port policy — connection point counts per category
 // ---------------------------------------------------------------------------
 
-/** Port capacity for a resource category: how many inbound/outbound connection stubs. */
+/** Port capacity for a resource category: how many inbound/outbound connection ports. */
 export interface PortPolicy {
   readonly inbound: number;
   readonly outbound: number;
 }
 
-/** Default port/stub counts per resource category. */
+/** Default port counts per resource category. */
 export const CATEGORY_PORTS: Record<ResourceCategory, PortPolicy> = {
   network: { inbound: 1, outbound: 1 },
   delivery: { inbound: 1, outbound: 2 },

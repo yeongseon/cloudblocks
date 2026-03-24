@@ -1,9 +1,9 @@
 // CloudBlocks Domain — Resource constraint validation
 // Runtime validators driven by RESOURCE_RULES from @cloudblocks/schema.
-// These are the canonical functions for placement and node integrity checks.
+// These are the canonical functions for placement and block integrity checks.
 
 import { RESOURCE_RULES, getAllowedParents } from '@cloudblocks/schema';
-import type { ResourceNode } from '@cloudblocks/schema';
+import type { Block } from '@cloudblocks/schema';
 
 // ---------------------------------------------------------------------------
 // Containment validation (Proposal 3)
@@ -18,18 +18,18 @@ export interface ContainmentError {
 }
 
 /**
- * Validate whether a child node can be placed inside a parent node.
+ * Validate whether a child block can be placed inside a parent block.
  *
  * Rules:
- * - If `allowedParents` includes `null`, the child can be root-level (parentNode = undefined).
+ * - If `allowedParents` includes `null`, the child can be root-level (parentBlock = undefined).
  * - Otherwise the parent's resourceType must be in the child's `allowedParents`.
  * - Unknown resource types are allowed (graceful degradation for future extensions).
  *
  * @returns `null` if valid, or a `ContainmentError` describing the violation.
  */
 export function validateContainment(
-  child: ResourceNode,
-  parent: ResourceNode | null | undefined,
+  child: Block,
+  parent: Block | null | undefined,
 ): ContainmentError | null {
   const allowedParents = getAllowedParents(child.resourceType);
 
@@ -67,17 +67,17 @@ export function validateContainment(
 }
 
 // ---------------------------------------------------------------------------
-// Node integrity validation (Proposal 1)
+// Block integrity validation (Proposal 1)
 // ---------------------------------------------------------------------------
 
-export interface NodeIntegrityError {
-  nodeId: string;
+export interface BlockIntegrityError {
+  blockId: string;
   field: string;
   reason: string;
 }
 
 /**
- * Validate that a node's `kind` is consistent with its `resourceType`.
+ * Validate that a block's `kind` is consistent with its `resourceType`.
  *
  * Rules:
  * - If resourceType is known and `containerCapable` is false, kind must be 'resource'.
@@ -87,9 +87,11 @@ export interface NodeIntegrityError {
  *
  * @returns Array of integrity errors (empty if valid).
  */
-export function validateNodeIntegrity(node: ResourceNode): NodeIntegrityError[] {
-  const errors: NodeIntegrityError[] = [];
-  const rule = (RESOURCE_RULES as Record<string, { containerCapable: boolean }>)[node.resourceType];
+export function validateBlockIntegrity(block: Block): BlockIntegrityError[] {
+  const errors: BlockIntegrityError[] = [];
+  const rule = (RESOURCE_RULES as Record<string, { containerCapable: boolean }>)[
+    block.resourceType
+  ];
 
   if (rule === undefined) {
     // Unknown resource type — skip (graceful)
@@ -97,11 +99,11 @@ export function validateNodeIntegrity(node: ResourceNode): NodeIntegrityError[] 
   }
 
   // kind: 'container' on a non-container-capable resource type
-  if (node.kind === 'container' && !rule.containerCapable) {
+  if (block.kind === 'container' && !rule.containerCapable) {
     errors.push({
-      nodeId: node.id,
+      blockId: block.id,
       field: 'kind',
-      reason: `${node.resourceType} cannot be kind='container'. Only container-capable types (${Object.entries(
+      reason: `${block.resourceType} cannot be kind='container'. Only container-capable types (${Object.entries(
         RESOURCE_RULES,
       )
         .filter(([, r]) => r.containerCapable)
@@ -114,21 +116,21 @@ export function validateNodeIntegrity(node: ResourceNode): NodeIntegrityError[] 
 }
 
 /**
- * Convenience: validate both node integrity and containment in one call.
- * Looks up the parent from a flat nodes array.
+ * Convenience: validate both block integrity and containment in one call.
+ * Looks up the parent from a flat blocks array.
  */
-export function validateNodePlacement(
-  node: ResourceNode,
-  allNodes: readonly ResourceNode[],
-): (NodeIntegrityError | ContainmentError)[] {
-  const errors: (NodeIntegrityError | ContainmentError)[] = [];
+export function validateBlockPlacement(
+  block: Block,
+  allBlocks: readonly Block[],
+): (BlockIntegrityError | ContainmentError)[] {
+  const errors: (BlockIntegrityError | ContainmentError)[] = [];
 
-  // 1. Node integrity (kind vs resourceType)
-  errors.push(...validateNodeIntegrity(node));
+  // 1. Block integrity (kind vs resourceType)
+  errors.push(...validateBlockIntegrity(block));
 
   // 2. Containment (parent validation)
-  const parent = node.parentId ? (allNodes.find((n) => n.id === node.parentId) ?? null) : null;
-  const containmentError = validateContainment(node, parent);
+  const parent = block.parentId ? (allBlocks.find((n) => n.id === block.parentId) ?? null) : null;
+  const containmentError = validateContainment(block, parent);
   if (containmentError) {
     errors.push(containmentError);
   }

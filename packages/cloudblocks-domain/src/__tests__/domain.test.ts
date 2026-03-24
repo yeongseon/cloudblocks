@@ -139,7 +139,7 @@ describe('Validation types', () => {
       name: 'Block placement check',
       type: 'placement',
       severity: 'error',
-      description: 'Validates block can be placed in target plate',
+      description: 'Validates block can be placed in target container block',
     };
     expect(rule.id).toBe('R001');
     expect(rule.type).toBe('placement');

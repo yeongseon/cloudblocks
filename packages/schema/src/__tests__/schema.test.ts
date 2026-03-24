@@ -10,29 +10,32 @@ import { RESOURCE_RULES } from '../rules.js';
 import type {
   AggregationMode,
   ArchitectureModel,
+  Block,
+  BlockKind,
   BlockRole,
   Connection,
   ConnectionType,
-  ContainerNode,
+  ContainerBlock,
   Endpoint,
   EndpointDirection,
   EndpointSemantic,
   ExternalActor,
   LayerType,
   LegacyConnection,
-  LeafNode,
-  NodeKind,
   Position,
   ProviderType,
+  ResourceBlock,
   ResourceCategory,
-  ResourceNode,
   Size,
   Aggregation,
   // Deprecated aliases — verify still importable during migration
-  Block,
   BlockCategory,
+  ContainerNode,
+  LeafNode,
+  NodeKind,
   Plate,
   PlateType,
+  ResourceNode,
 } from '../index.js';
 
 describe('SCHEMA_VERSION', () => {
@@ -73,14 +76,14 @@ describe('JSON Schema artifact', () => {
 
     const expectedTypes = [
       'ArchitectureModel',
-      'ContainerNode',
-      'LeafNode',
+      'ContainerBlock',
+      'ResourceBlock',
       'Connection',
       'ExternalActor',
       'Position',
       'Size',
       'Aggregation',
-      'ResourceNode',
+      'Block',
       'ResourceCategory',
       'ProviderType',
       'AggregationMode',
@@ -123,11 +126,11 @@ describe('JSON Schema artifact', () => {
     expect(enumValues).toContain('operations');
   });
 
-  it('should define NodeKind via ContainerNode kind const', () => {
+  it('should define BlockKind via ContainerBlock kind const', () => {
     const definitions = schema['definitions'] as Record<string, Record<string, unknown>>;
-    const container = definitions['ContainerNode'];
+    const container = definitions['ContainerBlock'];
     const props = container['properties'] as Record<string, Record<string, unknown>>;
-    // NodeKind is inlined as a const in the kind property
+    // BlockKind is inlined as a const in the kind property
     expect(props['kind']['const'] ?? props['kind']['enum']).toBeDefined();
   });
 
@@ -159,8 +162,8 @@ describe('Type compatibility', () => {
     expect(model.id).toBe('test-id');
   });
 
-  it('should allow creating a valid ContainerNode', () => {
-    const container: ContainerNode = {
+  it('should allow creating a valid ContainerBlock', () => {
+    const container: ContainerBlock = {
       id: 'container-1',
       name: 'Test VNet',
       kind: 'container',
@@ -170,15 +173,15 @@ describe('Type compatibility', () => {
       provider: 'azure',
       parentId: null,
       position: { x: 0, y: 0, z: 0 },
-      size: { width: 10, height: 1, depth: 10 },
+      frame: { width: 10, height: 1, depth: 10 },
       metadata: {},
     };
     expect(container.kind).toBe('container');
     expect(container.category).toBe('network');
   });
 
-  it('should allow creating a valid LeafNode', () => {
-    const leaf: LeafNode = {
+  it('should allow creating a valid ResourceBlock', () => {
+    const leaf: ResourceBlock = {
       id: 'leaf-1',
       name: 'Test VM',
       kind: 'resource',
@@ -194,12 +197,12 @@ describe('Type compatibility', () => {
     expect(leaf.category).toBe('compute');
   });
 
-  it('should allow ResourceNode discriminated union', () => {
-    const node: ResourceNode =
+  it('should allow Block discriminated union', () => {
+    const block: Block =
       Math.random() > 0.5
         ? {
-            id: 'node-1',
-            name: 'Test Node',
+            id: 'block-1',
+            name: 'Test Block',
             kind: 'resource',
             layer: 'resource',
             resourceType: 'sql_database',
@@ -219,31 +222,31 @@ describe('Type compatibility', () => {
             provider: 'azure',
             parentId: 'container-1',
             position: { x: 0, y: 0, z: 0 },
-            size: { width: 8, height: 1, depth: 8 },
+            frame: { width: 8, height: 1, depth: 8 },
             metadata: {},
           };
 
-    if (node.kind === 'container') {
-      expect(node.size).toBeDefined();
+    if (block.kind === 'container') {
+      expect(block.frame).toBeDefined();
     } else {
-      expect(node.kind).toBe('resource');
+      expect(block.kind).toBe('resource');
     }
   });
 
   it('should allow creating a valid Connection', () => {
     const conn: Connection = {
       id: 'conn-1',
-      from: 'endpoint-node-1-output-http',
-      to: 'endpoint-node-2-input-http',
+      from: 'endpoint-block-1-output-http',
+      to: 'endpoint-block-2-input-http',
       metadata: {},
     };
-    expect(conn.from).toBe('endpoint-node-1-output-http');
+    expect(conn.from).toBe('endpoint-block-1-output-http');
   });
 
   it('should allow creating a valid Endpoint', () => {
     const endpoint: Endpoint = {
-      id: 'endpoint-node-1-output-http',
-      nodeId: 'node-1',
+      id: 'endpoint-block-1-output-http',
+      blockId: 'block-1',
       direction: 'output',
       semantic: 'http',
     };
@@ -253,12 +256,12 @@ describe('Type compatibility', () => {
   it('should allow creating a valid LegacyConnection', () => {
     const legacy: LegacyConnection = {
       id: 'legacy-conn-1',
-      sourceId: 'node-1',
-      targetId: 'node-2',
+      sourceId: 'block-1',
+      targetId: 'block-2',
       type: 'dataflow',
       metadata: {},
-      sourceStub: 1,
-      targetStub: 0,
+      sourcePort: 1,
+      targetPort: 0,
     };
     expect(legacy.type).toBe('dataflow');
   });
@@ -287,8 +290,8 @@ describe('Type compatibility', () => {
     expect(categories).toHaveLength(8);
   });
 
-  it('should allow all NodeKind values', () => {
-    const kinds: NodeKind[] = ['container', 'resource'];
+  it('should allow all BlockKind values', () => {
+    const kinds: BlockKind[] = ['container', 'resource'];
     expect(kinds).toHaveLength(2);
   });
 
@@ -311,10 +314,10 @@ describe('Type compatibility', () => {
     expect(roles).toHaveLength(8);
   });
 
-  it('should allow optional node fields', () => {
-    const node: LeafNode = {
-      id: 'node-2',
-      name: 'Full Node',
+  it('should allow optional block fields', () => {
+    const block: ResourceBlock = {
+      id: 'block-2',
+      name: 'Full Block',
       kind: 'resource',
       layer: 'resource',
       resourceType: 'sql_database',
@@ -328,12 +331,12 @@ describe('Type compatibility', () => {
       aggregation: { mode: 'count', count: 3 },
       roles: ['primary', 'writer'],
     };
-    expect(node.provider).toBe('azure');
-    expect(node.aggregation?.count).toBe(3);
+    expect(block.provider).toBe('azure');
+    expect(block.aggregation?.count).toBe(3);
   });
 
   it('should allow container-specific fields', () => {
-    const container: ContainerNode = {
+    const container: ContainerBlock = {
       id: 'container-2',
       name: 'Subnet 1',
       kind: 'container',
@@ -343,7 +346,7 @@ describe('Type compatibility', () => {
       provider: 'azure',
       parentId: 'vnet-1',
       position: { x: 0, y: 0, z: 0 },
-      size: { width: 8, height: 1, depth: 6 },
+      frame: { width: 8, height: 1, depth: 6 },
       metadata: {},
       profileId: 'subnet-public',
     };
@@ -353,7 +356,7 @@ describe('Type compatibility', () => {
   // Suppress unused-variable warnings for type-only imports
   it('should export all enum types', () => {
     const _am: AggregationMode = 'single';
-    const _nk: NodeKind = 'container';
+    const _bk: BlockKind = 'container';
     const _rc: ResourceCategory = 'compute';
     const _ct: ConnectionType = 'http';
     const _ed: EndpointDirection = 'input';
@@ -365,7 +368,7 @@ describe('Type compatibility', () => {
     const _agg: Aggregation = { mode: 'single', count: 1 };
 
     expect(_am).toBe('single');
-    expect(_nk).toBe('container');
+    expect(_bk).toBe('container');
     expect(_rc).toBe('compute');
     expect(_ct).toBe('http');
     expect(_ed).toBe('input');
@@ -383,14 +386,18 @@ describe('Type compatibility', () => {
     const _bc: BlockCategory = 'compute';
     expect(_bc).toBe('compute');
 
+    // NodeKind is alias for BlockKind
+    const _nk: NodeKind = 'container';
+    expect(_nk).toBe('container');
+
     // PlateType still available
     const _pt: PlateType = 'region';
     expect(_pt).toBe('region');
 
-    // Plate is alias for ContainerNode
-    const _plate: Plate = {
+    // ContainerNode is alias for ContainerBlock
+    const _cn: ContainerNode = {
       id: 'p1',
-      name: 'Legacy Plate',
+      name: 'Legacy Container',
       kind: 'container',
       layer: 'region',
       resourceType: 'virtual_network',
@@ -398,15 +405,19 @@ describe('Type compatibility', () => {
       provider: 'azure',
       parentId: null,
       position: { x: 0, y: 0, z: 0 },
-      size: { width: 10, height: 1, depth: 10 },
+      frame: { width: 10, height: 1, depth: 10 },
       metadata: {},
     };
+    expect(_cn.kind).toBe('container');
+
+    // Plate is alias for ContainerBlock
+    const _plate: Plate = _cn;
     expect(_plate.kind).toBe('container');
 
-    // Block is alias for LeafNode
-    const _block: Block = {
+    // LeafNode is alias for ResourceBlock
+    const _ln: LeafNode = {
       id: 'b1',
-      name: 'Legacy Block',
+      name: 'Legacy Leaf',
       kind: 'resource',
       layer: 'resource',
       resourceType: 'vm',
@@ -416,7 +427,11 @@ describe('Type compatibility', () => {
       position: { x: 1, y: 0, z: 1 },
       metadata: {},
     };
-    expect(_block.kind).toBe('resource');
+    expect(_ln.kind).toBe('resource');
+
+    // ResourceNode is alias for Block
+    const _rn: ResourceNode = _ln;
+    expect(_rn.kind).toBe('resource');
   });
 });
 

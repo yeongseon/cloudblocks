@@ -6,27 +6,27 @@ const SEMANTICS: readonly EndpointSemantic[] = ['http', 'event', 'data'] as cons
 
 /**
  * Generate deterministic endpoint ID.
- * Format: endpoint-{nodeId}-{direction}-{semantic}
+ * Format: endpoint-{blockId}-{direction}-{semantic}
  */
 export function endpointId(
-  nodeId: string,
+  blockId: string,
   direction: EndpointDirection,
   semantic: EndpointSemantic,
 ): string {
-  return `endpoint-${nodeId}-${direction}-${semantic}`;
+  return `endpoint-${blockId}-${direction}-${semantic}`;
 }
 
 /**
- * Generate all 6 endpoints for a node (3 semantics × 2 directions).
+ * Generate all 6 endpoints for a block (3 semantics × 2 directions).
  * IDs are deterministic to prevent diff churn.
  */
-export function generateEndpointsForNode(nodeId: string): Endpoint[] {
+export function generateEndpointsForBlock(blockId: string): Endpoint[] {
   const endpoints: Endpoint[] = [];
   for (const direction of DIRECTIONS) {
     for (const semantic of SEMANTICS) {
       endpoints.push({
-        id: endpointId(nodeId, direction, semantic),
-        nodeId,
+        id: endpointId(blockId, direction, semantic),
+        blockId,
         direction,
         semantic,
       });
@@ -34,6 +34,9 @@ export function generateEndpointsForNode(nodeId: string): Endpoint[] {
   }
   return endpoints;
 }
+
+/** @deprecated Use generateEndpointsForBlock instead. */
+export const generateEndpointsForNode = generateEndpointsForBlock;
 
 /**
  * Map legacy ConnectionType to EndpointSemantic.
@@ -54,12 +57,12 @@ export function connectionTypeToSemantic(type: string): EndpointSemantic {
 }
 
 /**
- * Parse a deterministic endpoint ID to extract nodeId, direction, and semantic.
+ * Parse a deterministic endpoint ID to extract blockId, direction, and semantic.
  * Returns null if the ID doesn't match the expected format.
  */
 export function parseEndpointId(
   epId: string,
-): { nodeId: string; direction: EndpointDirection; semantic: EndpointSemantic } | null {
+): { blockId: string; direction: EndpointDirection; semantic: EndpointSemantic } | null {
   const prefix = 'endpoint-';
   if (!epId.startsWith(prefix)) return null;
   const rest = epId.slice(prefix.length);
@@ -68,9 +71,9 @@ export function parseEndpointId(
     for (const sem of SEMANTICS) {
       const suffix = `-${dir}-${sem}`;
       if (rest.endsWith(suffix)) {
-        const nodeId = rest.slice(0, -suffix.length);
-        if (nodeId.length > 0) {
-          return { nodeId, direction: dir, semantic: sem };
+        const blockId = rest.slice(0, -suffix.length);
+        if (blockId.length > 0) {
+          return { blockId, direction: dir, semantic: sem };
         }
       }
     }
@@ -89,7 +92,7 @@ const SEMANTIC_TO_TYPE: Record<string, string> = {
 };
 
 /**
- * Resolve a v4 Connection's `from`/`to` endpoint IDs to source/target node IDs
+ * Resolve a v4 Connection's `from`/`to` endpoint IDs to source/target block IDs
  * and connection type (mapped from endpoint semantic for UI compatibility).
  * Uses deterministic endpoint ID parsing — no endpoint array lookup needed.
  */
@@ -101,8 +104,8 @@ export function resolveConnectionNodes(conn: { from: string; to: string }): {
   const fromParsed = parseEndpointId(conn.from);
   const toParsed = parseEndpointId(conn.to);
   return {
-    sourceId: fromParsed?.nodeId ?? conn.from,
-    targetId: toParsed?.nodeId ?? conn.to,
+    sourceId: fromParsed?.blockId ?? conn.from,
+    targetId: toParsed?.blockId ?? conn.to,
     type: SEMANTIC_TO_TYPE[fromParsed?.semantic ?? 'data'] ?? 'dataflow',
   };
 }
