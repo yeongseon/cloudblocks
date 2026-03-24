@@ -1,6 +1,8 @@
 # Generating Code
 
-CloudBlocks converts your visual architecture into infrastructure-as-code. This guide explains how to generate, preview, and export code in Terraform, Bicep, or Pulumi.
+CloudBlocks converts your visual architecture into infrastructure-as-code as an **Experimental** feature. This guide explains how to generate, preview, and export code in Terraform, Bicep, or Pulumi.
+
+> **Note**: Code generation is an **Experimental** feature in V1. It is available for users who want to export their visual designs to infrastructure-as-code, but it is not the primary product focus.
 
 ---
 
@@ -50,7 +52,7 @@ Code generation uses default regions based on your active cloud provider:
 
 ## What Gets Generated
 
-The compiler maps your visual design to specific infrastructure components:
+The code generation pipeline maps your visual design to specific infrastructure components:
 
 - **Resource definitions**: Each node on the canvas maps to its corresponding cloud resource.
 - **Network configuration**: Container blocks map to VPCs, VNets, and subnets.

@@ -8,7 +8,7 @@ Find answers to frequently asked questions about CloudBlocks.
 
 ### What is CloudBlocks?
 
-CloudBlocks is a visual architecture compiler that lets you design cloud infrastructure by placing blocks and creating connections. Your designs are then converted into infrastructure-as-code files like Terraform, Bicep, or Pulumi.
+CloudBlocks is a preset-driven visual architecture design tool that lets you design cloud infrastructure by placing blocks and creating connections. Your designs are validated against real-world rules, and you can preview infrastructure across Azure, AWS, and GCP. Code generation to Terraform, Bicep, or Pulumi is available as an Experimental feature.
 
 ### Is CloudBlocks free?
 
@@ -20,7 +20,7 @@ No. You can design architectures and generate code entirely in the browser witho
 
 ### Does CloudBlocks deploy infrastructure?
 
-CloudBlocks generates infrastructure-as-code files. You then use your preferred deployment tool (Terraform, Bicep, or Pulumi CLI) to deploy that code. CloudBlocks handles the design and compilation, while you handle the deployment.
+CloudBlocks generates infrastructure-as-code files as an Experimental feature. You then use your preferred deployment tool (Terraform, Bicep, or Pulumi CLI) to deploy that code. The core product focuses on visual architecture design and validation.
 
 ---
 
@@ -56,7 +56,7 @@ To see and edit the details of a block, click on it and look at the **Inspector 
 
 ### Is the code production-ready?
 
-The generated code follows standard cloud patterns. However, you should review the output to ensure it matches your organization's specific naming conventions and security policies before deploying to a production environment.
+The generated code follows standard cloud patterns and is provided as-is (Experimental). You should review the output to ensure it matches your organization's specific naming conventions and security policies before deploying to a production environment.
 
 ### Is code generation deterministic?
 

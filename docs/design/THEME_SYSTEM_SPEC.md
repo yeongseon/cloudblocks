@@ -9,7 +9,7 @@
 
 ## 0. Purpose
 
-This specification defines the **dual theme system** for CloudBlocks. It establishes two visual themes that share identical layout, geometry, and interaction — only visual tokens (colors, border-radius, shadows) differ.
+This specification defines the **dual theme system** for CloudBlocks — a preset-driven visual architecture design tool. It establishes two visual themes that share identical layout, geometry, and interaction — only visual tokens (colors, border-radius, shadows) differ.
 
 ### Current Implementation (M22)
 

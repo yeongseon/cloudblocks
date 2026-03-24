@@ -1,10 +1,11 @@
 # Infrastructure Code Generator
 
 > **This is the canonical source** for the CloudBlocks code generation pipeline. All other documents (DOMAIN_MODEL.md, ARCHITECTURE.md, PRD.md) reference this document for pipeline details.
+> **Status**: Implemented (Experimental in V1). Terraform, Bicep, and Pulumi generators are functional in `apps/web/src/features/generate/`.
 >
-> **Status**: Implemented. Terraform, Bicep, and Pulumi generators are functional in `apps/web/src/features/generate/`.
+> **V1 Note**: Code generation is available as an **Experimental** feature in V1. It will be promoted to Stable in V2 (Compile stage). See [ROADMAP.md](../concept/ROADMAP.md) for the product evolution plan.
 
-CloudBlocks converts architecture models into infrastructure code.
+CloudBlocks converts architecture models into infrastructure code. In V1, this is an **Experimental** feature — available for users who want to export their visual designs, but not the primary product focus.
 
 ```
 Architecture Model

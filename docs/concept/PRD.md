@@ -2,15 +2,15 @@
 
 > Scope note: This document is the original MVP PRD and remains as historical product context. Some items listed as MVP non-goals were implemented in later milestones/phases. For current implementation status and timeline, use [ROADMAP.md](./ROADMAP.md).
 
-Build cloud architecture visually using a block-based composition model — and generate production-ready Infrastructure-as-Code.
+Build cloud architecture visually using a block-based composition model — start from preset templates, customize with drag-and-drop, and preview across cloud providers.
 
 ---
 
 # 1. Product Summary
 
-CloudBlocks is an **open-source architecture compiler** that models cloud infrastructure using a **block-based composition system**. Users assemble infrastructure by placing visual building blocks on container blocks in a **2.5D isometric interface**, the platform validates the architecture against real-world rules, and generates Infrastructure-as-Code.
+CloudBlocks is an **open-source visual architecture design tool** that models cloud infrastructure using a **block-based composition system**. Users start from preset templates or assemble infrastructure by placing visual building blocks on container blocks, the platform validates the architecture against real-world rules, and provides a multi-cloud preview. Code generation to Terraform, Bicep, or Pulumi is available as an Experimental feature.
 
-Unlike traditional diagram tools (draw.io, Lucidchart), every visual element in CloudBlocks represents a **real infrastructure component** that maps directly to deployable code. Unlike direct IaC authoring (Terraform, Bicep), users never write infrastructure code — they model architecture visually and the system compiles it.
+Unlike traditional diagram tools (draw.io, Lucidchart), every visual element in CloudBlocks represents a **real infrastructure component** with validation and multi-cloud awareness. Code generation capabilities are available for users who want to export their designs to infrastructure-as-code.
 
 The system enforces architectural rules and generates infrastructure definitions such as Terraform.
 
@@ -84,9 +84,10 @@ Long-term goal:
 
 ---
 
-## Architecture Compiler Concept
+## Architecture Compiler Concept (V2 Vision)
 
-CloudBlocks is not a diagram tool — it is an **Architecture Compiler**.
+> **V1 Note**: In V1, CloudBlocks is a visual architecture design tool. The compiler concept described below is the V2 vision — code generation is available as an Experimental feature in V1.
+> CloudBlocks is not a diagram tool — it is an **Architecture Compiler**.
 
 Unlike tools like draw.io or Lucidchart that produce static diagrams, CloudBlocks introduces an intermediate **architecture model layer** between the visual editor and infrastructure code:
 

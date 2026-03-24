@@ -1,6 +1,6 @@
 # Welcome to CloudBlocks
 
-**CloudBlocks** is an architecture compiler — a visual IDE for cloud infrastructure that turns designs into infrastructure-as-code. Place blocks, connect resources, validate constraints, and generate Terraform, Bicep, or Pulumi — all from the browser.
+**CloudBlocks** is a preset-driven visual architecture design tool — start from built-in templates, customize with drag-and-drop blocks, validate against real-world rules, and preview across Azure, AWS, and GCP — all from the browser.
 
 <div class="grid cards" markdown>
 
@@ -20,11 +20,11 @@
 
   [:octicons-arrow-right-24: Browse templates](engine/templates.md)
 
-- :material-code-braces:{ .lg .middle } **Code Generation**
+- :material-code-braces:{ .lg .middle } **Code Generation** _(Experimental)_
 
   ***
 
-  Export your design to Terraform, Bicep, or Pulumi with one click.
+  Export your design to Terraform, Bicep, or Pulumi. Available as an Experimental feature.
 
   [:octicons-arrow-right-24: Learn how](engine/generator.md)
 
@@ -47,8 +47,8 @@
 | **1** | Install and launch the builder            | [Installation](guides/DEPLOYMENT.md#quick-start) |
 | **2** | Follow a guided tutorial in Learning Mode | [Tutorials](guides/TUTORIALS.md)                 |
 | **3** | Design your own architecture              | [Using the Editor](concept/UI_FLOW.md)           |
-| **4** | Generate infrastructure code              | [Code Generator](engine/generator.md)            |
-| **5** | Deploy to your cloud environment          | [Deployment](guides/DEPLOYMENT.md)               |
+| **4** | Preview across cloud providers            | [Multi-Cloud Preview](concept/UI_FLOW.md)        |
+| **5** | Optionally generate infrastructure code   | [Code Generator](engine/generator.md)            |
 
 ---
 
@@ -78,16 +78,17 @@ CloudBlocks uses a **block-based composition model** where everything snaps toge
 
 ## Features at a Glance
 
-| Feature                   | Description                                                                                                         |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| **Visual Builder**        | Drag-and-drop editor with grid snapping and auto-layout                                                             |
-| **7 Resource Categories** | Network, security, edge, compute, data, messaging, operations                                                       |
-| **Multi-Cloud Output**    | Generate Terraform (HCL — HashiCorp Configuration Language), Bicep (Azure Resource Manager), or Pulumi (TypeScript) |
-| **Validation Engine**     | Real-time rule checking for placement, connections, and constraints                                                 |
-| **AI Assistant**          | Natural language to architecture, smart suggestions, cost estimation (requires backend)                             |
-| **GitHub Integration**    | OAuth login, repo sync, PR creation, architecture diff                                                              |
-| **Learning Mode**         | Guided scenarios to learn cloud architecture patterns                                                               |
-| **Multi-Environment**     | Design for dev, staging, and production in one project                                                              |
+| Feature                   | Description                                                               |
+| ------------------------- | ------------------------------------------------------------------------- |
+| **Visual Builder**        | Drag-and-drop editor with grid snapping and auto-layout                   |
+| **Preset Templates**      | 6 built-in architecture patterns (three-tier, serverless, event pipeline) |
+| **7 Resource Categories** | Network, Security, Edge, Compute, Data, Messaging, Operations             |
+| **Multi-Cloud Preview**   | Visual preview for Azure, AWS, and GCP (Azure depth-first)                |
+| **Validation Engine**     | Real-time rule checking for placement, connections, and constraints       |
+| **Learning Mode**         | Guided scenarios to learn cloud architecture patterns                     |
+| **Code Generation**       | Export to Terraform, Bicep, or Pulumi (Experimental — off by default)     |
+| **AI Assistant**          | Architecture suggestions and cost estimation (requires backend)           |
+| **GitHub Integration**    | OAuth login, repo sync, PR creation (requires backend)                    |
 
 ---
 
@@ -115,7 +116,7 @@ CloudBlocks uses a **block-based composition model** where everything snaps toge
 
   ***
 
-  Full CloudBlocks v2.0 specification — geometry, providers, visual tokens.
+  CloudBlocks design specification — geometry, providers, visual tokens.
 
   [:octicons-arrow-right-24: Spec v2.0](design/CLOUDBLOCKS_SPEC_V2.md)
 
