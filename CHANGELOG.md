@@ -6,6 +6,138 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 
 ---
 
+## [v0.26.0] — 2026-03-25
+
+**Milestone 26 — Visual Language & Routing**
+
+Cleaned up obsolete documentation, implemented cross-container connection routing using LCA-based transition segments, and removed dead ConnectionPath code — closing the Connection Architecture Epic (#1351).
+
+### Documentation Cleanup (PR #1420)
+
+- Deleted 5 obsolete docs: `AZURE_PROVISIONING_RUNBOOK.md`, `PLAUSIBLE_SETUP.md`, `LAUNCH_PACKET.md`, `MODULAR_SURFACE_SPEC.md`, `KPI_SCORECARD.md`
+- Renamed `showStuds` → `showPorts` in uiStore with localStorage migration
+- Updated ROADMAP, ARCHITECTURE, and NFR_TARGETS for current state
+
+### Cross-Container Routing (PR #1421)
+
+- LCA-based routing algorithm for connections spanning multiple container blocks
+- `findLCA()` finds shared ancestor surface for cross-container connections
+- `routeCrossContainer()` generates transition segments through container boundaries
+- 8 new tests covering nested, sibling, and deep hierarchy routing
+
+### ConnectionPath Dead Code Removal (PR #1422)
+
+- Deleted `ConnectionPath.tsx` (175 lines) and `ConnectionPath.test.tsx` (456 lines) — dead code not imported anywhere
+- Documented legacy fallback seam in `ConnectionRenderer.tsx` with `TODO(#1351)` markers
+- Added 3 new tests for surface route vs fallback path selection
+- Updated ARCHITECTURE.md, CONNECTION_SPEC.md, and NFR_TARGETS.md
+
+### Epic Completion
+
+- Closed Epic #1351 (Connection Architecture) — all 7 sub-issues (#1352–#1358) completed
+- Legacy fallback for external actor connections retained with TODO markers for future removal
+
+### Statistics
+
+- 6 issues closed, 3 PRs merged
+- 124 test files, 2,073 tests — all passing
+- Build clean, lint clean, type check clean
+
+## [v0.25.0] — 2026-03-24
+
+**Milestone 25 — V1 Documentation & Product Contract**
+
+Rewrote all public-facing documentation for V1 positioning as a preset-driven visual architecture design tool. Established product contract, compatibility policy, and restructured roadmap from 0.x milestones to V1→V4 evolution stages.
+
+### Documentation Rewrite (PR #1419)
+
+- Created V1 Product Contract (`V1_PRODUCT_CONTRACT.md`) — defines what V1 guarantees vs what it doesn't
+- Created Compatibility Policy (`COMPATIBILITY.md`) — versioning, migration, and deprecation rules
+- Restructured ROADMAP.md from flat milestone list to V1→V2→V3→V4 evolution stages
+- Archived 0.x milestone history to `ROADMAP_0X_HISTORY.md`
+- Rewrote README.md for preset-driven design tool positioning
+- Updated docs/README.md homepage with card grids and 5-step onboarding
+- Updated ARCHITECTURE.md, DOMAIN_MODEL.md, and all guide documents
+- 14 files changed across documentation overhaul
+
+### Statistics
+
+- 7 issues closed, 1 PR merged
+- Documentation-only milestone — no code changes
+
+## [v0.24.0] — 2026-03-24
+
+**Milestone 24 — Block Unification**
+
+Eliminated all Lego-derived terminology from the codebase. Unified vocabulary under Block model with `kind` + `traits` type system. Added CI gate to prevent banned terms from re-entering the codebase.
+
+### Terminology Unification (PR #1408)
+
+- Renamed all `brick`/`plate`/`stud`/`stub`/`lego` references to `block`/`container`/`port`/`endpoint` equivalents
+- 295 files changed across apps/web, packages/schema, packages/cloudblocks-domain, and docs
+- ADR-0013 documents the block unification architecture decision
+- CI banned-terms gate (`scripts/check-banned-terms.sh`) prevents regression
+- Exceptions: `student`/`Student`, vitest API stubs, immutable historical docs
+
+### Bug Fixes (PRs #1409–#1412)
+
+- Show demo mode info bar when no backend is configured (#1409)
+- Add Browser external actor to all templates and import fallback (#1410)
+- Use floor routing for fallback connections (#1411)
+- Align RightDrawer to top of viewport instead of 40px offset (#1412)
+
+### Statistics
+
+- 11 issues closed, 5 PRs merged
+- 295 files changed in terminology unification (single PR)
+- Build clean, lint clean, type check clean
+
+## [v0.23.0] — 2026-03-24
+
+**Milestone 23 — Taxonomy & Hardening**
+
+Hardening sprint focused on making M1–M22 work end-to-end. Visual language refactored to matte shading, connection rendering overhauled, resource palette expanded, onboarding simplified, CI infrastructure improved, and 8th resource category added.
+
+### Visual Language Refactor
+
+- Matte shading system replacing glossy block aesthetic (#1386)
+- Dynamic isometric connection renderer (#1391)
+- Azure visual overhaul — icons, labels, colors, external actors (#1394)
+- Removed MVP_RESOURCE_ALLOWLIST — all 25 resources visible in palette (#1392)
+- Simplified onboarding tour to 3-step canvas workflow (#1390)
+- Renamed figure-helper widget to helper — removed Lego branding (#1388)
+
+### Connection & Routing
+
+- World-space surface routing model with Manhattan routing (#1359)
+- Floor routing for fallback connections (#1411)
+
+### Infrastructure & CI
+
+- Codecov upload and coverage badge (#1314)
+- Prettier + husky pre-commit hooks (#1332)
+- Path-based CI filtering to reduce unnecessary runs (#1344)
+- Removed `--admin` bypass from merge convention (#1342)
+- Playwright demo recording infrastructure (#1309)
+- Removed preview.yml — Azure SWA has no deploy token (#1385)
+
+### Content & Docs
+
+- 8th resource category: expanded ResourceCategory schema (#1378)
+- Removed all stud/stub infrastructure (#1379)
+- Removed LEGO/Roblox CSS aliases and hardcoded reds (#1380)
+- Coming Soon badges for backend-dependent surfaces (#1330)
+- FigureHelper floating widget for beginner guidance (#1308)
+- End-user documentation (#1327)
+- Dead code removal via knip analysis (#1328)
+- Plausible analytics integration (#1298)
+
+### Statistics
+
+- 97 issues closed across 15+ PRs
+- Visual language completely overhauled
+- CI pipeline modernized with path filtering and coverage reporting
+
 ## [v0.22.0] — 2026-03-23
 
 **Milestone 22 — Core Lock (Endpoint + Connection Architecture)**
@@ -694,6 +826,10 @@ Milestone 4 (Workspace Management):
 
 ---
 
+[v0.26.0]: https://github.com/yeongseon/cloudblocks/compare/v0.22.0...v0.26.0
+[v0.25.0]: https://github.com/yeongseon/cloudblocks/compare/v0.24.0...v0.25.0
+[v0.24.0]: https://github.com/yeongseon/cloudblocks/compare/v0.23.0...v0.24.0
+[v0.23.0]: https://github.com/yeongseon/cloudblocks/compare/v0.22.0...v0.23.0
 [v0.22.0]: https://github.com/yeongseon/cloudblocks/compare/v0.21.0...v0.22.0
 [v0.21.0]: https://github.com/yeongseon/cloudblocks/compare/v0.20.0...v0.21.0
 [v0.16.0]: https://github.com/yeongseon/cloudblocks/compare/v0.15.0...v0.16.0
