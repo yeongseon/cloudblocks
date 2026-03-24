@@ -23,7 +23,7 @@ import {
   PORT_OUT_PX,
 } from '../../shared/tokens/designTokens';
 import { DIFF_THEMES, lightenColor } from './connectorTheme';
-import { computeWorldRoute, screenSegmentLengthCU } from './routing';
+import { computeFloorRoute, computeWorldRoute, screenSegmentLengthCU } from './routing';
 import type { PinHoleStyle } from './connectorTheme';
 import type { ScreenSegment } from './routing';
 import { getConnectionSurfaceRoute } from './surfaceRouting';
@@ -481,7 +481,17 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
 
   const fallbackRoute = useMemo(() => {
     if (!fallbackEndpoints) return null;
-    const r = computeWorldRoute(fallbackEndpoints.src, fallbackEndpoints.tgt, originX, originY);
+    const usesFloor = fallbackEndpoints.srcFloorY != null && fallbackEndpoints.tgtFloorY != null;
+    const r = usesFloor
+      ? computeFloorRoute(
+          fallbackEndpoints.src,
+          fallbackEndpoints.tgt,
+          fallbackEndpoints.srcFloorY!,
+          fallbackEndpoints.tgtFloorY!,
+          originX,
+          originY,
+        )
+      : computeWorldRoute(fallbackEndpoints.src, fallbackEndpoints.tgt, originX, originY);
     if (fallbackEndpoints.srcSide === 'outbound') {
       r.srcScreen = { x: r.srcScreen.x + PORT_OUT_PX, y: r.srcScreen.y };
     } else if (fallbackEndpoints.srcSide === 'inbound') {
