@@ -8,15 +8,19 @@ describe('iconResolver additional branches', () => {
     vi.restoreAllMocks();
   });
 
-  it('returns subtype icon overrides for known compute/storage subtypes', () => {
+  it('returns different icon URLs for distinct registered subtypes', () => {
     const appService = getBlockIconUrl('azure', 'compute', 'app-service');
     const functions = getBlockIconUrl('azure', 'compute', 'functions');
     const blobStorage = getBlockIconUrl('azure', 'data', 'blob-storage');
-    const genericCompute = getBlockIconUrl('azure', 'compute');
 
-    expect(appService).not.toBe(genericCompute);
-    expect(functions).not.toBe(genericCompute);
-    expect(blobStorage).not.toBe(getBlockIconUrl('azure', 'data'));
+    expect(appService).not.toBe(functions);
+    expect(appService).not.toBe(blobStorage);
+    expect(functions).not.toBe(blobStorage);
+  });
+
+  it('returns null when no subtype provided (category-only lookup)', () => {
+    expect(getBlockIconUrl('azure', 'compute')).toBeNull();
+    expect(getBlockIconUrl('azure', 'data')).toBeNull();
   });
 
   it('returns resource plate icon when plate type is resource', () => {
@@ -26,12 +30,12 @@ describe('iconResolver additional branches', () => {
     expect(resourceIcon).toBe(regionIcon);
   });
 
-  it('falls back to vm icon when provider/category are unknown', () => {
+  it('returns null for unknown provider', () => {
     const fallback = getBlockIconUrl(
       'unknown-provider' as ProviderType,
       'unknown-category' as ResourceCategory,
     );
 
-    expect(fallback).toBe(getBlockIconUrl('azure', 'compute'));
+    expect(fallback).toBeNull();
   });
 });

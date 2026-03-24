@@ -106,7 +106,7 @@ describe('SidebarPalette', () => {
 
     await user.type(screen.getByPlaceholderText('Search resources'), 'vault');
 
-    expect(screen.getByText((_content, el) => el?.textContent === 'KeyVault')).toBeInTheDocument();
+    expect(screen.getByText((_content, el) => el?.textContent === 'Key Vault')).toBeInTheDocument();
     expect(screen.queryByText('VM')).not.toBeInTheDocument();
   });
 
@@ -128,13 +128,13 @@ describe('SidebarPalette', () => {
     render(<SidebarPalette />);
 
     const toggle = screen.getByRole('button', { name: 'Collapse Network Foundations' });
-    expect(screen.getByTitle('Create Network (VNet)')).toBeInTheDocument();
+    expect(screen.getByTitle('Create Azure Virtual Network')).toBeInTheDocument();
 
     await user.click(toggle);
-    expect(screen.queryByTitle('Create Network (VNet)')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Create Azure Virtual Network')).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Expand Network Foundations' }));
-    expect(screen.getByTitle('Create Network (VNet)')).toBeInTheDocument();
+    expect(screen.getByTitle('Create Azure Virtual Network')).toBeInTheDocument();
   });
 
   it('shows disabled resources with lock when network is missing', () => {
@@ -173,7 +173,7 @@ describe('SidebarPalette', () => {
       name: 'Virtual Machine 1',
       parentId: 'subnet-public-1',
       provider: 'azure',
-      subtype: 'virtual_machine',
+      subtype: 'vm',
     });
   });
 });

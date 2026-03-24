@@ -145,9 +145,9 @@ describe('App', () => {
     expect(screen.getByTestId('app-toaster')).toBeInTheDocument();
   });
 
-  it('calls registerBuiltinTemplates and loadFromStorage on mount', () => {
+  it('calls loadFromStorage on mount (template registration occurs at module init)', () => {
     render(<App />);
-    expect(registerBuiltinTemplates).toHaveBeenCalledOnce();
+    expect(registerBuiltinTemplates).not.toHaveBeenCalled();
     expect(loadFromStorageMock).toHaveBeenCalledOnce();
   });
 

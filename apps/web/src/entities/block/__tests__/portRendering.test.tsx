@@ -58,10 +58,10 @@ describe('BlockSvg port semantic colors', () => {
     expect(outDot1).toHaveAttribute('fill', PORT_COLOR_EVENT);
   });
 
-  it('renders muted gray color when showStubs=false', () => {
+  it('does not render stub dots when showStubs=false', () => {
     const { container } = render(<BlockSvg category="compute" />);
-    const inDot0 = container.querySelector('[data-testid="stub-dot-in-0"]')!;
-    expect(inDot0).toHaveAttribute('fill', '#94a3b8');
+    const inDot0 = container.querySelector('[data-testid="stub-dot-in-0"]');
+    expect(inDot0).toBeNull();
   });
 
   it('renders all three semantic colors for data category (2 inbound: http + event)', () => {

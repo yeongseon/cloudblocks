@@ -283,11 +283,10 @@ describe('BlockSvg subtype size overrides', () => {
 // ─── SVG Structure Tests ──────────────────────────────────────
 
 describe('BlockSvg SVG structure', () => {
-  it('renders 3 face polygons plus stub dot diamonds (top, left, right + stubs)', () => {
+  it('renders only 3 face polygons when showStubs is not enabled', () => {
     const { container } = render(<BlockSvg category="compute" />);
     const polygons = getPolygons(container);
-    // 3 face polygons + 4 stub diamonds (compute: 2 inbound + 2 outbound)
-    expect(polygons.length).toBe(7);
+    expect(polygons.length).toBe(3);
   });
 
   it('renders edge highlight line', () => {
@@ -296,12 +295,18 @@ describe('BlockSvg SVG structure', () => {
     expect(lines.length).toBe(1);
   });
 
-  it('renders short name text and icon image elements', () => {
+  it('renders short name text element and conditionally renders icon', () => {
     const { container } = render(<BlockSvg category="compute" />);
     const texts = container.querySelectorAll('text');
     const images = container.querySelectorAll('image');
-    expect(texts.length).toBe(1); // name on left wall
-    expect(images.length).toBe(1); // icon on right wall
+    expect(texts.length).toBe(1);
+    expect(images.length).toBe(0);
+  });
+
+  it('renders icon when subtype has a registered icon', () => {
+    const { container } = render(<BlockSvg category="compute" provider="azure" subtype="vm" />);
+    const images = container.querySelectorAll('image');
+    expect(images.length).toBe(1);
   });
 
   it('has aria-hidden for decorative SVG', () => {
@@ -459,22 +464,22 @@ describe('BlockSvg role badges', () => {
 // ─── Name Prop Tests ──────────────────────────────────────────
 
 describe('BlockSvg name prop', () => {
-  it('renders shortName on left wall when name is not provided', () => {
+  it('renders shortName on left wall when no subtype is provided', () => {
     const { container } = render(<BlockSvg category="compute" />);
     const texts = container.querySelectorAll('text');
     expect(texts[0].textContent).toBe(BLOCK_SHORT_NAMES.compute);
   });
 
-  it('renders custom name on left wall when name is provided', () => {
-    const { container } = render(<BlockSvg category="compute" name="MyVM" />);
+  it('renders subtype label on left wall when subtype is provided', () => {
+    const { container } = render(<BlockSvg category="compute" provider="azure" subtype="vm" />);
     const texts = container.querySelectorAll('text');
-    expect(texts[0].textContent).toBe('MyVM');
+    expect(texts[0].textContent).toBe('VM');
   });
 
-  it('does not affect icon on right wall', () => {
-    const { container } = render(<BlockSvg category="data" name="ProdDB" />);
-    const texts = container.querySelectorAll('text');
-    expect(texts[0].textContent).toBe('ProdDB');
+  it('renders icon on right wall when subtype has a registered icon', () => {
+    const { container } = render(
+      <BlockSvg category="data" provider="azure" subtype="sql-database" />,
+    );
     const images = container.querySelectorAll('image');
     expect(images.length).toBe(1);
   });

@@ -1,49 +1,61 @@
 import { describe, expect, it } from 'vitest';
 import { getBlockIconUrl, getPlateIconUrl } from './iconResolver';
-import type { LayerType, ProviderType, ResourceCategory } from '@cloudblocks/schema';
+import type { LayerType, ProviderType } from '@cloudblocks/schema';
 
 describe('getBlockIconUrl', () => {
-  const ALL_CATEGORIES: ResourceCategory[] = [
-    'compute',
-    'data',
-    'delivery',
-    'messaging',
-    'identity',
-    'network',
-    'operations',
-    'security',
-  ];
-  const ALL_PROVIDERS: ProviderType[] = ['azure', 'aws', 'gcp'];
-
-  it.each(ALL_CATEGORIES)(
-    'returns a non-empty string for category %s with azure provider',
-    (category) => {
-      const url = getBlockIconUrl('azure', category);
-      expect(typeof url).toBe('string');
-      expect(url.length).toBeGreaterThan(0);
-    },
-  );
-
-  it.each(ALL_PROVIDERS)('returns a valid icon URL for provider %s', (provider) => {
-    const url = getBlockIconUrl(provider, 'compute');
-    expect(typeof url).toBe('string');
-    expect(url.length).toBeGreaterThan(0);
+  it('returns null when no subtype is provided', () => {
+    const url = getBlockIconUrl('azure', 'compute');
+    expect(url).toBeNull();
   });
 
-  it('aws and gcp fall back to azure icons', () => {
-    ALL_CATEGORIES.forEach((category) => {
-      const azure = getBlockIconUrl('azure', category);
-      const aws = getBlockIconUrl('aws', category);
-      const gcp = getBlockIconUrl('gcp', category);
-      expect(aws).toBe(azure);
-      expect(gcp).toBe(azure);
-    });
-  });
-
-  it('ignores unknown subtype and still returns category icon', () => {
+  it('returns null for unknown subtype', () => {
     const url = getBlockIconUrl('azure', 'compute', 'unknown-service');
-    const baseline = getBlockIconUrl('azure', 'compute');
-    expect(url).toBe(baseline);
+    expect(url).toBeNull();
+  });
+
+  it('returns icon URL for registered Azure subtypes', () => {
+    const vm = getBlockIconUrl('azure', 'compute', 'vm');
+    expect(vm).toBe('/azure-icons/virtual-machine.svg');
+
+    const appService = getBlockIconUrl('azure', 'compute', 'app-service');
+    expect(appService).toBe('/azure-icons/app-service.svg');
+
+    const sqlDb = getBlockIconUrl('azure', 'data', 'sql-database');
+    expect(sqlDb).toBe('/azure-icons/sql-database.svg');
+
+    const blob = getBlockIconUrl('azure', 'data', 'blob-storage');
+    expect(blob).toBe('/azure-icons/storage-account.svg');
+
+    const serviceBus = getBlockIconUrl('azure', 'messaging', 'service-bus');
+    expect(serviceBus).toBe('/azure-icons/service-bus.svg');
+
+    const eventHubs = getBlockIconUrl('azure', 'messaging', 'event-hubs');
+    expect(eventHubs).toBe('/azure-icons/event-hub.svg');
+
+    const vnet = getBlockIconUrl('azure', 'network', 'vnet');
+    expect(vnet).toBe('/azure-icons/virtual-network.svg');
+
+    const appGw = getBlockIconUrl('azure', 'network', 'application-gateway');
+    expect(appGw).toBe('/azure-icons/application-gateway.svg');
+
+    const functions = getBlockIconUrl('azure', 'compute', 'functions');
+    expect(functions).toBe('/azure-icons/function-apps.svg');
+  });
+
+  it('returns null for AWS and GCP subtypes (not yet registered)', () => {
+    expect(getBlockIconUrl('aws', 'compute', 'ec2')).toBeNull();
+    expect(getBlockIconUrl('gcp', 'compute', 'compute-engine')).toBeNull();
+  });
+
+  it('returns null for unknown provider', () => {
+    const url = getBlockIconUrl('unknown-provider' as ProviderType, 'compute', 'vm');
+    expect(url).toBeNull();
+  });
+
+  it('category parameter does not affect resolution (only subtype matters)', () => {
+    const fromCompute = getBlockIconUrl('azure', 'compute', 'vm');
+    const fromData = getBlockIconUrl('azure', 'data', 'vm');
+    expect(fromCompute).toBe(fromData);
   });
 });
 
