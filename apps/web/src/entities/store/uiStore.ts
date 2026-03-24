@@ -189,6 +189,10 @@ interface UIState {
   themeVariant: ThemeVariant;
   setThemeVariant: (variant: ThemeVariant) => void;
 
+  showStuds: boolean;
+  toggleStuds: () => void;
+  setShowStuds: (show: boolean) => void;
+
   showGrid: boolean;
   toggleGrid: () => void;
   pendingGitHubAction: PendingGitHubAction;
