@@ -4,18 +4,18 @@ import type {
   ConnectionType,
   Endpoint,
   ExternalActor,
-  LeafNode,
+  ResourceBlock,
   ResourceCategory,
 } from '@cloudblocks/schema';
 import {
   validateConnection,
-  validateStubIndices,
+  validatePortIndices,
   canConnect,
   CONNECTION_VISUAL_STYLES,
 } from './connection';
-import { endpointId, generateEndpointsForNode } from '@cloudblocks/schema';
+import { endpointId, generateEndpointsForBlock } from '@cloudblocks/schema';
 
-function makeBlock(overrides: Partial<LeafNode> = {}): LeafNode {
+function makeBlock(overrides: Partial<ResourceBlock> = {}): ResourceBlock {
   const category: ResourceCategory = overrides.category ?? 'compute';
   const resourceTypeByCategory: Record<ResourceCategory, string> = {
     compute: 'web_compute',
@@ -35,7 +35,7 @@ function makeBlock(overrides: Partial<LeafNode> = {}): LeafNode {
     resourceType: resourceTypeByCategory[category],
     category,
     provider: 'azure',
-    parentId: 'plate-1',
+    parentId: 'container-1',
     position: { x: 0, y: 0, z: 0 },
     metadata: {},
     ...overrides,
@@ -62,9 +62,9 @@ function makeExternalActor(overrides: Partial<ExternalActor> = {}): ExternalActo
   };
 }
 
-function makeEndpoints(blocks: LeafNode[], actors: ExternalActor[] = []): Endpoint[] {
+function makeEndpoints(blocks: ResourceBlock[], actors: ExternalActor[] = []): Endpoint[] {
   return [...blocks.map((block) => block.id), ...actors.map((actor) => actor.id)].flatMap((id) =>
-    generateEndpointsForNode(id),
+    generateEndpointsForBlock(id),
   );
 }
 
@@ -309,7 +309,7 @@ describe('validateConnection', () => {
     const blocks = [makeBlock({ id: 'compute-1', category: 'compute' })];
     const orphanEndpoint: Endpoint = {
       id: endpointId('ghost-node', 'input', 'data'),
-      nodeId: 'ghost-node',
+      blockId: 'ghost-node',
       direction: 'input',
       semantic: 'data',
     };
@@ -561,8 +561,8 @@ describe('validateConnection', () => {
   });
 });
 
-describe('validateStubIndices', () => {
-  it('returns null when stubs are within capacity', () => {
+describe('validatePortIndices', () => {
+  it('returns null when ports are within capacity', () => {
     const connection = makeConnection({
       from: endpointId('delivery-1', 'output', 'data'),
       to: endpointId('compute-1', 'input', 'data'),
@@ -572,12 +572,12 @@ describe('validateStubIndices', () => {
       makeBlock({ id: 'compute-1', category: 'compute' }),
     ];
 
-    expect(validateStubIndices(connection, blocks)).toBeNull();
+    expect(validatePortIndices(connection, blocks)).toBeNull();
   });
 
-  it('returns source stub error when outbound index is out of range', () => {
+  it('returns source port error when outbound index is out of range', () => {
     const connection = makeConnection({
-      id: 'conn-stub-source',
+      id: 'conn-port-source',
       from: endpointId('data-1', 'output', 'data'),
       to: endpointId('compute-1', 'input', 'data'),
     });
@@ -586,15 +586,15 @@ describe('validateStubIndices', () => {
       makeBlock({ id: 'compute-1', category: 'compute' }),
     ];
 
-    expect(validateStubIndices(connection, blocks)).toMatchObject({
+    expect(validatePortIndices(connection, blocks)).toMatchObject({
       ruleId: 'rule-conn-endpoint-source',
-      targetId: 'conn-stub-source',
+      targetId: 'conn-port-source',
     });
   });
 
-  it('returns target stub error when inbound index is out of range', () => {
+  it('returns target port error when inbound index is out of range', () => {
     const connection = makeConnection({
-      id: 'conn-stub-target',
+      id: 'conn-port-target',
       from: endpointId('compute-1', 'output', 'data'),
       to: endpointId('security-1', 'input', 'data'),
     });
@@ -603,20 +603,20 @@ describe('validateStubIndices', () => {
       makeBlock({ id: 'security-1', category: 'security' }),
     ];
 
-    expect(validateStubIndices(connection, blocks)).toMatchObject({
+    expect(validatePortIndices(connection, blocks)).toMatchObject({
       ruleId: 'rule-conn-endpoint-target',
-      targetId: 'conn-stub-target',
+      targetId: 'conn-port-target',
     });
   });
 
-  it('ignores stub checks when endpoint is not a resource', () => {
+  it('ignores port checks when endpoint is not a resource', () => {
     const connection = makeConnection({
       from: endpointId('internet-1', 'output', 'data'),
       to: endpointId('compute-1', 'input', 'data'),
     });
     const blocks = [makeBlock({ id: 'compute-1', category: 'compute' })];
 
-    expect(validateStubIndices(connection, blocks)).toBeNull();
+    expect(validatePortIndices(connection, blocks)).toBeNull();
   });
 
   it('returns null when endpoint ids cannot be parsed', () => {
@@ -626,7 +626,7 @@ describe('validateStubIndices', () => {
     });
     const blocks = [makeBlock({ id: 'compute-1', category: 'compute' })];
 
-    expect(validateStubIndices(connection, blocks)).toBeNull();
+    expect(validatePortIndices(connection, blocks)).toBeNull();
   });
 
   it('ignores semantic values outside semantic order', () => {
@@ -639,7 +639,7 @@ describe('validateStubIndices', () => {
       makeBlock({ id: 'compute-1', category: 'compute' }),
     ];
 
-    expect(validateStubIndices(connection, blocks)).toBeNull();
+    expect(validatePortIndices(connection, blocks)).toBeNull();
   });
 });
 
@@ -684,7 +684,7 @@ describe('canConnect', () => {
   it('returns false when called with mixed category and endpoint args', () => {
     const endpoint: Endpoint = {
       id: endpointId('compute-1', 'output', 'data'),
-      nodeId: 'compute-1',
+      blockId: 'compute-1',
       direction: 'output',
       semantic: 'data',
     };
@@ -697,13 +697,13 @@ describe('canConnect', () => {
   it('returns invalid reason when node references are missing in endpoint mode', () => {
     const fromEndpoint: Endpoint = {
       id: endpointId('delivery-1', 'output', 'data'),
-      nodeId: 'delivery-1',
+      blockId: 'delivery-1',
       direction: 'output',
       semantic: 'data',
     };
     const toEndpoint: Endpoint = {
       id: endpointId('compute-1', 'input', 'data'),
-      nodeId: 'compute-1',
+      blockId: 'compute-1',
       direction: 'input',
       semantic: 'data',
     };
@@ -720,19 +720,19 @@ describe('canConnect', () => {
 
     const sourceInput: Endpoint = {
       id: endpointId('delivery-1', 'input', 'data'),
-      nodeId: 'delivery-1',
+      blockId: 'delivery-1',
       direction: 'input',
       semantic: 'data',
     };
     const targetOutput: Endpoint = {
       id: endpointId('compute-1', 'output', 'data'),
-      nodeId: 'compute-1',
+      blockId: 'compute-1',
       direction: 'output',
       semantic: 'data',
     };
     const semanticMismatchTarget: Endpoint = {
       id: endpointId('compute-1', 'input', 'http'),
-      nodeId: 'compute-1',
+      blockId: 'compute-1',
       direction: 'input',
       semantic: 'http',
     };
@@ -745,7 +745,7 @@ describe('canConnect', () => {
       canConnect(
         {
           id: endpointId('delivery-1', 'output', 'data'),
-          nodeId: 'delivery-1',
+          blockId: 'delivery-1',
           direction: 'output',
           semantic: 'data',
         },
@@ -761,7 +761,7 @@ describe('canConnect', () => {
       canConnect(
         {
           id: endpointId('delivery-1', 'output', 'data'),
-          nodeId: 'delivery-1',
+          blockId: 'delivery-1',
           direction: 'output',
           semantic: 'data',
         },
@@ -778,13 +778,13 @@ describe('canConnect', () => {
   it('returns invalid reason for disallowed pair and semantic in endpoint mode', () => {
     const sourceEndpoint: Endpoint = {
       id: endpointId('compute-1', 'output', 'event'),
-      nodeId: 'compute-1',
+      blockId: 'compute-1',
       direction: 'output',
       semantic: 'event',
     };
     const targetEndpoint: Endpoint = {
       id: endpointId('delivery-1', 'input', 'event'),
-      nodeId: 'delivery-1',
+      blockId: 'delivery-1',
       direction: 'input',
       semantic: 'event',
     };
@@ -801,7 +801,7 @@ describe('canConnect', () => {
         sourceEndpoint,
         {
           id: endpointId('data-1', 'input', 'event'),
-          nodeId: 'data-1',
+          blockId: 'data-1',
           direction: 'input',
           semantic: 'event',
         },
@@ -817,13 +817,13 @@ describe('canConnect', () => {
   it('returns valid true for allowed endpoint-mode connection', () => {
     const fromEndpoint: Endpoint = {
       id: endpointId('delivery-1', 'output', 'data'),
-      nodeId: 'delivery-1',
+      blockId: 'delivery-1',
       direction: 'output',
       semantic: 'data',
     };
     const toEndpoint: Endpoint = {
       id: endpointId('compute-1', 'input', 'data'),
-      nodeId: 'compute-1',
+      blockId: 'compute-1',
       direction: 'input',
       semantic: 'data',
     };

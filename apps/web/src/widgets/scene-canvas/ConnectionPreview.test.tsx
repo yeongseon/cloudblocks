@@ -23,7 +23,7 @@ function setupMocks(interactionState: 'idle' | 'connecting', connectionSource: s
         architecture: {
           nodes: [
             {
-              id: 'plate-1',
+              id: 'container-1',
               name: 'VNet',
               kind: 'container' as const,
               layer: 'region' as const,
@@ -32,7 +32,7 @@ function setupMocks(interactionState: 'idle' | 'connecting', connectionSource: s
               provider: 'azure' as const,
               parentId: null,
               position: { x: 0, y: 0, z: 0 },
-              size: { width: 16, height: 0.3, depth: 20 },
+              frame: { width: 16, height: 0.3, depth: 20 },
               metadata: {},
             },
             {
@@ -43,7 +43,7 @@ function setupMocks(interactionState: 'idle' | 'connecting', connectionSource: s
               resourceType: 'web_compute',
               category: 'compute' as const,
               provider: 'azure' as const,
-              parentId: 'plate-1',
+              parentId: 'container-1',
               position: { x: 3, y: 0, z: 6 },
               metadata: {},
             },

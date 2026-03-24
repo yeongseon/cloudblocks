@@ -6,13 +6,13 @@ This guide walks you through designing a cloud architecture on the CloudBlocks c
 
 ## Step 1: Create a Network
 
-Every architecture starts with a network container to hold your resources.
+Every architecture starts with a network block to hold your resources.
 
-1.  On the empty canvas, click **Start from Scratch**. This creates a Network (VNet) container.
+1.  On the empty canvas, click **Start from Scratch**. This creates a Network (VNet) block.
 2.  Alternatively, open the **Sidebar Palette** on the left side of the screen.
 3.  Find the **Foundation** group and click or drag **Network (VNet)** onto the canvas.
 
-The network container represents your primary logical boundary, such as a Virtual Private Cloud or Virtual Network.
+The network block represents your primary logical boundary, such as a Virtual Private Cloud or Virtual Network.
 
 ---
 
@@ -48,7 +48,7 @@ Add resources from the **Sidebar Palette** on the left side of the screen. The p
 
 ### How to Add Resources
 
-- **Click**: Select a resource in the Sidebar Palette to place it automatically on the best available container.
+- **Click**: Select a resource in the Sidebar Palette to place it automatically on the best available block.
 - **Drag**: Move a resource from the Sidebar Palette onto the canvas and drop it in your preferred location.
 
 Some resources require a network to exist before you can place them. These resources appear disabled in the palette until you add a network.
@@ -111,7 +111,7 @@ When your architecture is complete, export it as infrastructure code.
 
 - **Use Templates**: Start with a pre-built template to save time and follow best practices.
 - **Tiered Pattern**: Arrange your resources in a logical flow from Internet to Edge, then Compute, and finally Data.
-- **Rename Nodes**: Click any node name in the **Inspector Panel** to give it a meaningful name.
+- **Rename Blocks**: Click any block name in the **Inspector Panel** to give it a meaningful name.
 - **Undo Changes**: Use **Ctrl+Z** (Windows/Linux) or **Cmd+Z** (macOS) to quickly revert mistakes.
 
 ---

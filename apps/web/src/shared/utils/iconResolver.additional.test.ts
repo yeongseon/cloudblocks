@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { LayerType, ProviderType, ResourceCategory } from '@cloudblocks/schema';
 import {
   getBlockIconUrl,
-  getPlateIconUrl,
+  getContainerBlockIconUrl,
   getResourceIconUrl,
   getSubtypeDisplayLabel,
   getSubtypeShortLabel,
@@ -29,9 +29,9 @@ describe('iconResolver additional branches', () => {
     expect(getBlockIconUrl('azure', 'data')).toBeNull();
   });
 
-  it('returns resource plate icon when plate type is resource', () => {
-    const resourceIcon = getPlateIconUrl('resource' as LayerType);
-    const regionIcon = getPlateIconUrl('region');
+  it('returns resource container icon when container type is resource', () => {
+    const resourceIcon = getContainerBlockIconUrl('resource' as LayerType);
+    const regionIcon = getContainerBlockIconUrl('region');
 
     expect(resourceIcon).toBe(regionIcon);
   });

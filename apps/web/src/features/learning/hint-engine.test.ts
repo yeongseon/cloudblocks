@@ -38,7 +38,7 @@ function createScenarioWithHints(hints: string[] = ['Hint 1', 'Hint 2', 'Hint 3'
         title: 'Step 1',
         instruction: 'Do something',
         hints,
-        validationRules: [{ type: 'plate-exists', plateType: 'region' }],
+        validationRules: [{ type: 'container-exists', containerLayer: 'region' }],
       },
     ],
     initialArchitecture: ARCHITECTURE_SNAPSHOT,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getBlockIconUrl, getPlateIconUrl } from './iconResolver';
+import { getBlockIconUrl, getContainerBlockIconUrl } from './iconResolver';
 import type { LayerType, ProviderType } from '@cloudblocks/schema';
 
 describe('getBlockIconUrl', () => {
@@ -59,24 +59,27 @@ describe('getBlockIconUrl', () => {
   });
 });
 
-describe('getPlateIconUrl', () => {
-  const ALL_PLATE_TYPES: LayerType[] = ['global', 'edge', 'region', 'zone', 'subnet'];
+describe('getContainerBlockIconUrl', () => {
+  const ALL_CONTAINER_LAYERS: LayerType[] = ['global', 'edge', 'region', 'zone', 'subnet'];
 
-  it.each(ALL_PLATE_TYPES)('returns a non-empty string for plate type %s', (plateType) => {
-    const url = getPlateIconUrl(plateType);
-    expect(typeof url).toBe('string');
-    expect(url.length).toBeGreaterThan(0);
-  });
+  it.each(ALL_CONTAINER_LAYERS)(
+    'returns a non-empty string for container type %s',
+    (containerLayer) => {
+      const url = getContainerBlockIconUrl(containerLayer);
+      expect(typeof url).toBe('string');
+      expect(url.length).toBeGreaterThan(0);
+    },
+  );
 
-  it('subnet uses a different icon than network-layer plates', () => {
-    const subnetUrl = getPlateIconUrl('subnet');
-    const regionUrl = getPlateIconUrl('region');
+  it('subnet uses a different icon than network-layer container blocks', () => {
+    const subnetUrl = getContainerBlockIconUrl('subnet');
+    const regionUrl = getContainerBlockIconUrl('region');
     expect(subnetUrl).not.toBe(regionUrl);
   });
 
-  it('all network-layer plates share the same icon', () => {
+  it('all network-layer container blocks share the same icon', () => {
     const networkTypes: LayerType[] = ['global', 'edge', 'region', 'zone'];
-    const urls = networkTypes.map((t) => getPlateIconUrl(t));
+    const urls = networkTypes.map((t) => getContainerBlockIconUrl(t));
     const unique = new Set(urls);
     expect(unique.size).toBe(1);
   });

@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type {
   ArchitectureModel,
-  ContainerNode,
-  LeafNode,
+  ContainerBlock,
+  ResourceBlock,
   ResourceCategory,
 } from '@cloudblocks/schema';
 import type { ArchitectureSnapshot } from '../../shared/types/learning';
@@ -31,7 +31,7 @@ function getState() {
   return useArchitectureStore.getState();
 }
 
-function makeRegionNode(id = 'p1', overrides: Partial<ContainerNode> = {}): ContainerNode {
+function makeRegionNode(id = 'p1', overrides: Partial<ContainerBlock> = {}): ContainerBlock {
   return {
     id,
     name: 'Net',
@@ -42,7 +42,7 @@ function makeRegionNode(id = 'p1', overrides: Partial<ContainerNode> = {}): Cont
     provider: 'azure',
     parentId: null,
     position: { x: 0, y: 0, z: 0 },
-    size: { width: 12, height: 0.3, depth: 10 },
+    frame: { width: 12, height: 0.3, depth: 10 },
     metadata: {},
     ...overrides,
   };
@@ -52,8 +52,8 @@ function makeResourceNode(
   id = 'b1',
   parentId = 'p1',
   category: ResourceCategory = 'compute',
-  overrides: Partial<LeafNode> = {},
-): LeafNode {
+  overrides: Partial<ResourceBlock> = {},
+): ResourceBlock {
   const resourceTypeByCategory: Record<ResourceCategory, string> = {
     compute: 'web_compute',
     data: 'relational_database',
@@ -79,12 +79,12 @@ function makeResourceNode(
   };
 }
 
-type LegacyPlate = ContainerNode & {
-  type: ContainerNode['layer'];
+type LegacyPlate = ContainerBlock & {
+  type: ContainerBlock['layer'];
   children: string[];
 };
 
-type LegacyBlock = LeafNode & {
+type LegacyBlock = ResourceBlock & {
   placementId: string;
 };
 
@@ -93,18 +93,18 @@ type LegacyArchitectureModel = Omit<ArchitectureModel, 'blocks' | 'plates'> & {
   blocks: LegacyBlock[];
 };
 
-const isPlateNode = (node: ArchitectureModel['nodes'][number]): node is ContainerNode =>
+const isPlateNode = (node: ArchitectureModel['nodes'][number]): node is ContainerBlock =>
   node.kind === 'container';
-const isBlockNode = (node: ArchitectureModel['nodes'][number]): node is LeafNode =>
+const isBlockNode = (node: ArchitectureModel['nodes'][number]): node is ResourceBlock =>
   node.kind === 'resource';
 
 function getArch(): LegacyArchitectureModel {
   const architecture = getState().workspace.architecture;
-  const plates = architecture.nodes.filter(isPlateNode).map((plate) => ({
-    ...plate,
-    type: plate.layer,
+  const plates = architecture.nodes.filter(isPlateNode).map((container) => ({
+    ...container,
+    type: container.layer,
     children: architecture.nodes
-      .filter((node) => node.parentId === plate.id)
+      .filter((node) => node.parentId === container.id)
       .map((node) => node.id),
   }));
   const blocks: LegacyBlock[] = architecture.nodes.filter(isBlockNode).map(
@@ -215,10 +215,10 @@ describe('architectureStore', () => {
     });
   });
 
-  // ── Plate actions ──
+  // ── ContainerBlock actions ──
 
   describe('addPlate', () => {
-    it('adds a network plate at origin', () => {
+    it('adds a network container at origin', () => {
       getState().addPlate('region', 'VNet', null);
       const plates = getArch().plates;
       expect(plates).toHaveLength(1);
@@ -229,28 +229,28 @@ describe('architectureStore', () => {
       expect(plates[0].children).toEqual([]);
     });
 
-    it('adds a plate with explicit profileId', () => {
+    it('adds a container with explicit profileId', () => {
       getState().addPlate('region', 'Hub', null, 'network-hub');
       const plates = getArch().plates;
       expect(plates).toHaveLength(1);
       expect(plates[0].profileId).toBe('network-hub');
-      expect(plates[0].size.width).toBe(20);
-      expect(plates[0].size.depth).toBe(24);
-      expect(plates[0].size.height).toBe(0.7);
+      expect(plates[0].frame.width).toBe(20);
+      expect(plates[0].frame.depth).toBe(24);
+      expect(plates[0].frame.height).toBe(0.7);
     });
 
-    it('adds a subnet plate with explicit profileId', () => {
+    it('adds a subnet container with explicit profileId', () => {
       getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Scale', netId, 'subnet-scale');
       const subnet = getArch().plates[1];
       expect(subnet.profileId).toBe('subnet-scale');
-      expect(subnet.size.width).toBe(10);
-      expect(subnet.size.depth).toBe(12);
-      expect(subnet.size.height).toBe(0.5);
+      expect(subnet.frame.width).toBe(10);
+      expect(subnet.frame.depth).toBe(12);
+      expect(subnet.frame.height).toBe(0.5);
     });
 
-    it('adds a subnet plate as child of network', () => {
+    it('adds a subnet container as child of network', () => {
       getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Public', netId);
@@ -264,7 +264,7 @@ describe('architectureStore', () => {
       expect(subnet.parentId).toBe(netId);
       expect(subnet.position.y).toBe(0.7);
 
-      // Network plate should have subnet as child
+      // Network container should have subnet as child
       const network = plates.find((p) => p.id === netId);
       expect(network?.children).toContain(subnet.id);
     });
@@ -296,7 +296,7 @@ describe('architectureStore', () => {
       expect(getState().canUndo).toBe(false);
     });
 
-    it('auto-positions second root plate to avoid overlap with first', () => {
+    it('auto-positions second root container to avoid overlap with first', () => {
       getState().addPlate('region', 'VNet1', null);
       getState().addPlate('region', 'VNet2', null);
 
@@ -305,13 +305,13 @@ describe('architectureStore', () => {
 
       const p1 = plates[0];
       const p2 = plates[1];
-      const halfW1 = p1.size.width / 2;
-      const halfW2 = p2.size.width / 2;
+      const halfW1 = p1.frame.width / 2;
+      const halfW2 = p2.frame.width / 2;
       const gap = p2.position.x - halfW2 - (p1.position.x + halfW1);
       expect(gap).toBeGreaterThanOrEqual(0);
     });
 
-    it('auto-positions third root plate to avoid both existing plates', () => {
+    it('auto-positions third root container to avoid both existing plates', () => {
       getState().addPlate('region', 'VNet1', null);
       getState().addPlate('region', 'VNet2', null);
       getState().addPlate('region', 'VNet3', null);
@@ -324,11 +324,11 @@ describe('architectureStore', () => {
           const a = plates[i];
           const b = plates[j];
           const overlapX =
-            a.position.x - a.size.width / 2 < b.position.x + b.size.width / 2 &&
-            a.position.x + a.size.width / 2 > b.position.x - b.size.width / 2;
+            a.position.x - a.frame.width / 2 < b.position.x + b.frame.width / 2 &&
+            a.position.x + a.frame.width / 2 > b.position.x - b.frame.width / 2;
           const overlapZ =
-            a.position.z - a.size.depth / 2 < b.position.z + b.size.depth / 2 &&
-            a.position.z + a.size.depth / 2 > b.position.z - b.size.depth / 2;
+            a.position.z - a.frame.depth / 2 < b.position.z + b.frame.depth / 2 &&
+            a.position.z + a.frame.depth / 2 > b.position.z - b.frame.depth / 2;
           expect(overlapX && overlapZ).toBe(false);
         }
       }
@@ -350,11 +350,11 @@ describe('architectureStore', () => {
           const a = subnets[i];
           const b = subnets[j];
           const overlapX =
-            a.position.x - a.size.width / 2 < b.position.x + b.size.width / 2 &&
-            a.position.x + a.size.width / 2 > b.position.x - b.size.width / 2;
+            a.position.x - a.frame.width / 2 < b.position.x + b.frame.width / 2 &&
+            a.position.x + a.frame.width / 2 > b.position.x - b.frame.width / 2;
           const overlapZ =
-            a.position.z - a.size.depth / 2 < b.position.z + b.size.depth / 2 &&
-            a.position.z + a.size.depth / 2 > b.position.z - b.size.depth / 2;
+            a.position.z - a.frame.depth / 2 < b.position.z + b.frame.depth / 2 &&
+            a.position.z + a.frame.depth / 2 > b.position.z - b.frame.depth / 2;
           expect(overlapX && overlapZ).toBe(false);
         }
       }
@@ -362,7 +362,7 @@ describe('architectureStore', () => {
   });
 
   describe('removePlate', () => {
-    it('removes a plate', () => {
+    it('removes a container', () => {
       getState().addPlate('region', 'VNet', null);
       const plateId = getArch().plates[0].id;
       getState().removePlate(plateId);
@@ -401,7 +401,7 @@ describe('architectureStore', () => {
       expect(getArch().connections).toHaveLength(0);
     });
 
-    it('removes plate from parent children', () => {
+    it('removes container from parent children', () => {
       getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub', netId);
@@ -413,7 +413,7 @@ describe('architectureStore', () => {
       expect(network.children).not.toContain(subId);
     });
 
-    it('no-ops on non-existent plate ID', () => {
+    it('no-ops on non-existent container ID', () => {
       getState().addPlate('region', 'VNet', null);
       const before = getArch();
       getState().removePlate('nonexistent-id');
@@ -444,7 +444,7 @@ describe('architectureStore', () => {
   // ── Block actions ──
 
   describe('addBlock', () => {
-    it('adds a block to a plate', () => {
+    it('adds a block to a container', () => {
       getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub', netId);
@@ -459,7 +459,7 @@ describe('architectureStore', () => {
       expect(blocks[0].placementId).toBe(subId);
     });
 
-    it('adds block to plate children', () => {
+    it('adds block to container children', () => {
       getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub', netId);
@@ -468,8 +468,8 @@ describe('architectureStore', () => {
       getState().addBlock('compute', 'WebApp', subId);
       const blockId = getArch().blocks[0].id;
 
-      const plate = getArch().plates.find((p) => p.id === subId);
-      expect(plate?.children).toContain(blockId);
+      const container = getArch().plates.find((p) => p.id === subId);
+      expect(container?.children).toContain(blockId);
     });
 
     it('stores provider when provided during block creation', () => {
@@ -496,7 +496,7 @@ describe('architectureStore', () => {
       expect(getArch().blocks[0].subtype).toBe('vm');
     });
 
-    it('no-ops on non-existent plate', () => {
+    it('no-ops on non-existent container', () => {
       const blocksBefore = getArch().blocks.length;
       getState().addBlock('compute', 'VM', 'nonexistent');
       expect(getArch().blocks).toHaveLength(blocksBefore);
@@ -541,9 +541,9 @@ describe('architectureStore', () => {
       expect(duplicate.position.y).toBe(0.5);
       expect(duplicate.position).not.toEqual(source.position);
 
-      const plate = getArch().plates.find((p) => p.id === subId);
-      expect(plate?.children).toContain(source.id);
-      expect(plate?.children).toContain(duplicate.id);
+      const container = getArch().plates.find((p) => p.id === subId);
+      expect(container?.children).toContain(source.id);
+      expect(container?.children).toContain(duplicate.id);
     });
 
     it('no-ops on non-existent block id', () => {
@@ -639,18 +639,18 @@ describe('architectureStore', () => {
   });
 
   describe('renamePlate', () => {
-    it('renames a plate', () => {
-      getState().addPlate('region', 'Old Plate', null);
+    it('renames a container', () => {
+      getState().addPlate('region', 'Old ContainerBlock', null);
       const plateId = getArch().plates[0].id;
 
-      getState().renamePlate(plateId, 'New Plate');
+      getState().renamePlate(plateId, 'New ContainerBlock');
 
-      expect(getArch().plates[0].name).toBe('New Plate');
+      expect(getArch().plates[0].name).toBe('New ContainerBlock');
     });
 
     it('no-ops when plateId does not exist', () => {
       const before = getState().workspace.architecture;
-      getState().renamePlate('missing-plate', 'New Plate');
+      getState().renamePlate('missing-container', 'New ContainerBlock');
 
       expect(getState().workspace.architecture).toBe(before);
       expect(getState().canUndo).toBe(false);
@@ -676,7 +676,7 @@ describe('architectureStore', () => {
       expect(getArch().connections).toHaveLength(0);
     });
 
-    it('removes block from plate children', () => {
+    it('removes block from container children', () => {
       getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub', netId);
@@ -687,8 +687,8 @@ describe('architectureStore', () => {
 
       getState().removeBlock(blockId);
 
-      const plate = getArch().plates.find((p) => p.id === subId);
-      expect(plate?.children).not.toContain(blockId);
+      const container = getArch().plates.find((p) => p.id === subId);
+      expect(container?.children).not.toContain(blockId);
     });
 
     it('no-ops on non-existent block', () => {
@@ -716,16 +716,16 @@ describe('architectureStore', () => {
       const block = getArch().blocks[0];
       expect(block.placementId).toBe(sub2Id);
 
-      // Old plate should not have block
+      // Old container should not have block
       const oldPlate = getArch().plates.find((p) => p.id === sub1Id);
       expect(oldPlate?.children).not.toContain(blockId);
 
-      // New plate should have block
+      // New container should have block
       const newPlate = getArch().plates.find((p) => p.id === sub2Id);
       expect(newPlate?.children).toContain(blockId);
     });
 
-    it('no-ops when moving to same plate', () => {
+    it('no-ops when moving to same container', () => {
       getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub1', netId);
@@ -738,11 +738,11 @@ describe('architectureStore', () => {
       // Reset history so we can detect if moveBlock pushes
       getState().moveBlock(blockId, subId);
 
-      // Still on same plate
+      // Still on same container
       expect(getArch().blocks[0].placementId).toBe(subId);
     });
 
-    it('keeps architecture reference when moving to same plate', () => {
+    it('keeps architecture reference when moving to same container', () => {
       getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub1', netId);
@@ -765,7 +765,7 @@ describe('architectureStore', () => {
       // No crash
     });
 
-    it('no-ops on non-existent target plate', () => {
+    it('no-ops on non-existent target container', () => {
       getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub', netId);
@@ -778,7 +778,7 @@ describe('architectureStore', () => {
       expect(getArch().blocks[0].placementId).toBe(subId);
     });
 
-    it('keeps architecture reference when target plate does not exist', () => {
+    it('keeps architecture reference when target container does not exist', () => {
       getState().addPlate('region', 'VNet', null);
       const netId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Sub', netId);
@@ -809,24 +809,24 @@ describe('architectureStore', () => {
   });
 
   describe('setPlateProfile', () => {
-    it('resizes child plate and clamps position within parent bounds', () => {
+    it('resizes child container and clamps position within parent bounds', () => {
       getState().addPlate('region', 'VNet', null);
       const networkId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Public', networkId);
       const subnetId = getArch().plates[1].id;
 
       getState().movePlatePosition(subnetId, 100, 100);
-      const before = getArch().plates.find((plate) => plate.id === subnetId);
+      const before = getArch().plates.find((container) => container.id === subnetId);
       expect(before?.position.x).toBe(5);
 
       getState().setPlateProfile(subnetId, 'subnet-scale');
-      const resized = getArch().plates.find((plate) => plate.id === subnetId);
+      const resized = getArch().plates.find((container) => container.id === subnetId);
       expect(resized?.profileId).toBe('subnet-scale');
-      expect(resized?.size.width).toBe(10);
+      expect(resized?.frame.width).toBe(10);
       expect(resized?.position.x).toBe(3);
     });
 
-    it('resizes plate even when parentId points to missing parent', () => {
+    it('resizes container even when parentId points to missing parent', () => {
       const orphan = {
         id: 'orphan-subnet',
         name: 'Orphan',
@@ -837,7 +837,7 @@ describe('architectureStore', () => {
         provider: 'azure' as const,
         parentId: 'missing-parent',
         position: { x: 4, y: 0.3, z: 4 },
-        size: { width: 6, height: 0.3, depth: 8 },
+        frame: { width: 6, height: 0.3, depth: 8 },
         metadata: {},
       };
       useArchitectureStore.setState({
@@ -848,12 +848,12 @@ describe('architectureStore', () => {
       });
 
       getState().setPlateProfile('orphan-subnet', 'subnet-scale');
-      const resized = getArch().plates.find((plate) => plate.id === 'orphan-subnet');
+      const resized = getArch().plates.find((container) => container.id === 'orphan-subnet');
       expect(resized?.profileId).toBe('subnet-scale');
       expect(resized?.position).toEqual({ x: 4, y: 0.3, z: 4 });
     });
 
-    it('clamps child plates and blocks when parent plate shrinks', () => {
+    it('clamps child plates and blocks when parent container shrinks', () => {
       // Region default (network-platform): 16 x 20
       getState().addPlate('region', 'VNet', null);
       const regionId = getArch().plates[0].id;
@@ -894,17 +894,17 @@ describe('architectureStore', () => {
   });
 
   describe('movePlatePosition', () => {
-    it('moves a root plate by the provided delta', () => {
+    it('moves a root container by the provided delta', () => {
       getState().addPlate('region', 'VNet', null);
       const rootPlate = getArch().plates[0];
 
       getState().movePlatePosition(rootPlate.id, 2, -3);
 
-      const moved = getArch().plates.find((plate) => plate.id === rootPlate.id);
+      const moved = getArch().plates.find((container) => container.id === rootPlate.id);
       expect(moved?.position).toEqual({ x: 2, y: 0, z: -3 });
     });
 
-    it('clamps child plate movement within parent bounds', () => {
+    it('clamps child container movement within parent bounds', () => {
       getState().addPlate('region', 'VNet', null);
       const networkId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Public', networkId);
@@ -912,7 +912,7 @@ describe('architectureStore', () => {
 
       getState().movePlatePosition(subnet.id, 100, 100);
 
-      const movedSubnet = getArch().plates.find((plate) => plate.id === subnet.id);
+      const movedSubnet = getArch().plates.find((container) => container.id === subnet.id);
       expect(movedSubnet?.position.x).toBe(5);
       expect(movedSubnet?.position.z).toBe(6);
     });
@@ -923,15 +923,15 @@ describe('architectureStore', () => {
       getState().addPlate('subnet', 'Outer', networkId);
       const outerSubnetId = getArch().plates[1].id;
       getState().addPlate('subnet', 'Inner', outerSubnetId);
-      const outerBefore = getArch().plates.find((plate) => plate.id === outerSubnetId);
+      const outerBefore = getArch().plates.find((container) => container.id === outerSubnetId);
       const innerBefore = getArch().plates.find(
-        (plate) => plate.id !== outerSubnetId && plate.parentId === outerSubnetId,
+        (container) => container.id !== outerSubnetId && container.parentId === outerSubnetId,
       );
 
       getState().movePlatePosition(outerSubnetId, 1.25, -1.5);
 
-      const outerAfter = getArch().plates.find((plate) => plate.id === outerSubnetId);
-      const innerAfter = getArch().plates.find((plate) => plate.parentId === outerSubnetId);
+      const outerAfter = getArch().plates.find((container) => container.id === outerSubnetId);
+      const innerAfter = getArch().plates.find((container) => container.parentId === outerSubnetId);
 
       expect(outerAfter?.position.x).toBe((outerBefore?.position.x ?? 0) + 1.25);
       expect(outerAfter?.position.z).toBe((outerBefore?.position.z ?? 0) - 1.5);
@@ -965,16 +965,16 @@ describe('architectureStore', () => {
       expect(innerAfter.position.z).toBe(innerBefore.position.z - 2);
     });
 
-    it('no-ops when moving a non-existent plate', () => {
+    it('no-ops when moving a non-existent container', () => {
       getState().addPlate('region', 'VNet', null);
       const before = getState().workspace.architecture;
 
-      getState().movePlatePosition('missing-plate', 1, 1);
+      getState().movePlatePosition('missing-container', 1, 1);
 
       expect(getState().workspace.architecture).toBe(before);
     });
 
-    it('prevents root plate from overlapping a sibling when dragged', () => {
+    it('prevents root container from overlapping a sibling when dragged', () => {
       getState().addPlate('region', 'VNet1', null);
       getState().addPlate('region', 'VNet2', null);
 
@@ -988,11 +988,13 @@ describe('architectureStore', () => {
       const afterP2 = getArch().plates.find((p) => p.id === p2.id)!;
 
       const overlapX =
-        afterP1.position.x - afterP1.size.width / 2 < afterP2.position.x + afterP2.size.width / 2 &&
-        afterP1.position.x + afterP1.size.width / 2 > afterP2.position.x - afterP2.size.width / 2;
+        afterP1.position.x - afterP1.frame.width / 2 <
+          afterP2.position.x + afterP2.frame.width / 2 &&
+        afterP1.position.x + afterP1.frame.width / 2 > afterP2.position.x - afterP2.frame.width / 2;
       const overlapZ =
-        afterP1.position.z - afterP1.size.depth / 2 < afterP2.position.z + afterP2.size.depth / 2 &&
-        afterP1.position.z + afterP1.size.depth / 2 > afterP2.position.z - afterP2.size.depth / 2;
+        afterP1.position.z - afterP1.frame.depth / 2 <
+          afterP2.position.z + afterP2.frame.depth / 2 &&
+        afterP1.position.z + afterP1.frame.depth / 2 > afterP2.position.z - afterP2.frame.depth / 2;
       expect(overlapX && overlapZ).toBe(false);
     });
 
@@ -1009,7 +1011,7 @@ describe('architectureStore', () => {
   });
 
   describe('moveBlockPosition', () => {
-    it('moves a block and clamps it within parent plate bounds', () => {
+    it('moves a block and clamps it within parent container bounds', () => {
       getState().addPlate('region', 'VNet', null);
       const networkId = getArch().plates[0].id;
       getState().addPlate('subnet', 'Public', networkId);
@@ -1024,11 +1026,13 @@ describe('architectureStore', () => {
       expect(moved?.position.z).toBe(-2.8);
     });
 
-    it('no-ops when moving a block whose parent plate is missing', () => {
+    it('no-ops when moving a block whose parent container is missing', () => {
       const before = getState().workspace.architecture;
       const orphaned: ArchitectureModel = {
         ...before,
-        nodes: [makeResourceNode('orphan-block', 'missing-plate', 'compute', { name: 'Orphan' })],
+        nodes: [
+          makeResourceNode('orphan-block', 'missing-container', 'compute', { name: 'Orphan' }),
+        ],
       };
       useArchitectureStore.setState({
         workspace: {
@@ -1525,7 +1529,7 @@ describe('architectureStore', () => {
       const firstId = getState().workspaces.find((ws) => ws.id !== secondId)?.id;
       if (firstId) {
         getState().switchWorkspace(firstId);
-        // Second workspace should have the plate we added
+        // Second workspace should have the container we added
         const secondInList = getState().workspaces.find((ws) => ws.id === secondId);
         expect(
           secondInList?.architecture.nodes.filter((node) => node.kind === 'container'),
@@ -1654,7 +1658,7 @@ describe('architectureStore', () => {
       // Modify clone
       getState().addPlate('region', 'NewPlate', null);
 
-      // Find original in list — it should still have 1 plate
+      // Find original in list — it should still have 1 container
       const original = getState().workspaces.find((ws) => ws.id === originalId);
       expect(original?.architecture.nodes.filter((node) => node.kind === 'container')).toHaveLength(
         1,
@@ -1911,7 +1915,7 @@ describe('architectureStore', () => {
 
       expect(spy).toHaveBeenCalled();
       expect(String(spy.mock.calls.at(-1)?.[1])).toContain(
-        'does not reference an existing block, plate, or external actor',
+        'does not reference an existing block, container, or external actor',
       );
       spy.mockRestore();
     });
@@ -1950,12 +1954,12 @@ describe('architectureStore', () => {
       expect(getArch().connections.map((connection) => connection.id)).toEqual(['c1', 'c2']);
     });
 
-    it('logs error when block references non-existent plate', () => {
+    it('logs error when block references non-existent container', () => {
       const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
       const invalid = {
         nodes: [
           makeRegionNode('p1'),
-          makeResourceNode('b1', 'missing-plate', 'compute', { name: 'VM' }),
+          makeResourceNode('b1', 'missing-container', 'compute', { name: 'VM' }),
         ],
       };
 
@@ -2045,7 +2049,7 @@ describe('architectureStore', () => {
 
       expect(spy).toHaveBeenCalled();
       expect(String(spy.mock.calls.at(-1)?.[1])).toContain(
-        'does not reference an existing block, plate, or external actor',
+        'does not reference an existing block, container, or external actor',
       );
       spy.mockRestore();
     });
@@ -2229,11 +2233,11 @@ describe('architectureStore', () => {
         name: 'Checkpoint Architecture',
         version: '1',
         nodes: [
-          makeRegionNode('snap-plate-1', {
+          makeRegionNode('snap-container-1', {
             name: 'Snap Network',
             position: { x: 1, y: 0, z: 2 },
           }),
-          makeResourceNode('snap-block-1', 'snap-plate-1', 'compute', {
+          makeResourceNode('snap-block-1', 'snap-container-1', 'compute', {
             name: 'Snap VM',
           }),
         ],
@@ -2241,7 +2245,7 @@ describe('architectureStore', () => {
           {
             id: 'snap-conn-1',
             from: endpointId('snap-block-1', 'output', 'data'),
-            to: endpointId('snap-plate-1', 'input', 'data'),
+            to: endpointId('snap-container-1', 'input', 'data'),
             metadata: {},
           },
         ],
@@ -2349,18 +2353,18 @@ describe('architectureStore', () => {
     it('throws when a node has invalid layer type', () => {
       const invalid = {
         nodes: [
-          makeRegionNode('p1', { layer: 'invalid-type' as unknown as ContainerNode['layer'] }),
+          makeRegionNode('p1', { layer: 'invalid-type' as unknown as ContainerBlock['layer'] }),
         ],
         connections: [],
       } as unknown as ArchitectureSnapshot;
       expect(() => getState().replaceArchitecture(invalid)).toThrow('layer must be one of');
     });
 
-    it('throws when a block references non-existent plate', () => {
+    it('throws when a block references non-existent container', () => {
       const invalid = {
         nodes: [
           makeRegionNode('p1'),
-          makeResourceNode('b1', 'missing-plate', 'compute', { name: 'VM' }),
+          makeResourceNode('b1', 'missing-container', 'compute', { name: 'VM' }),
         ],
         connections: [],
       } as unknown as ArchitectureSnapshot;

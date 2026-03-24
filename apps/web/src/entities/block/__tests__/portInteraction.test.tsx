@@ -16,10 +16,10 @@ describe('BlockSvg port interaction', () => {
 
   it('calls onPortPointerDown when port is pointer-downed', () => {
     const { container } = render(
-      <BlockSvg category="compute" showStubs onPortPointerDown={mockPointerDown} />,
+      <BlockSvg category="compute" showPorts onPortPointerDown={mockPointerDown} />,
     );
 
-    const outDot0 = container.querySelector('[data-testid="stub-dot-out-0"]')!;
+    const outDot0 = container.querySelector('[data-testid="port-dot-out-0"]')!;
     fireEvent.pointerDown(outDot0);
 
     expect(mockPointerDown).toHaveBeenCalledOnce();
@@ -31,10 +31,10 @@ describe('BlockSvg port interaction', () => {
 
   it('calls onPortPointerDown for inbound ports', () => {
     const { container } = render(
-      <BlockSvg category="compute" showStubs onPortPointerDown={mockPointerDown} />,
+      <BlockSvg category="compute" showPorts onPortPointerDown={mockPointerDown} />,
     );
 
-    const inDot1 = container.querySelector('[data-testid="stub-dot-in-1"]')!;
+    const inDot1 = container.querySelector('[data-testid="port-dot-in-1"]')!;
     fireEvent.pointerDown(inDot1);
 
     expect(mockPointerDown).toHaveBeenCalledOnce();
@@ -46,10 +46,10 @@ describe('BlockSvg port interaction', () => {
 
   it('calls onPortPointerEnter when port is hovered', () => {
     const { container } = render(
-      <BlockSvg category="compute" showStubs onPortPointerEnter={mockPointerEnter} />,
+      <BlockSvg category="compute" showPorts onPortPointerEnter={mockPointerEnter} />,
     );
 
-    const outDot0 = container.querySelector('[data-testid="stub-dot-out-0"]')!;
+    const outDot0 = container.querySelector('[data-testid="port-dot-out-0"]')!;
     fireEvent.pointerEnter(outDot0);
 
     expect(mockPointerEnter).toHaveBeenCalledOnce();
@@ -61,47 +61,47 @@ describe('BlockSvg port interaction', () => {
 
   it('calls onPortPointerLeave when pointer leaves port', () => {
     const { container } = render(
-      <BlockSvg category="compute" showStubs onPortPointerLeave={mockPointerLeave} />,
+      <BlockSvg category="compute" showPorts onPortPointerLeave={mockPointerLeave} />,
     );
 
-    const inDot0 = container.querySelector('[data-testid="stub-dot-in-0"]')!;
+    const inDot0 = container.querySelector('[data-testid="port-dot-in-0"]')!;
     fireEvent.pointerLeave(inDot0);
 
     expect(mockPointerLeave).toHaveBeenCalledOnce();
   });
 
   it('applies hover glow scale when hoveredPort matches', () => {
-    const { container } = render(<BlockSvg category="compute" showStubs hoveredPort="out-0" />);
+    const { container } = render(<BlockSvg category="compute" showPorts hoveredPort="out-0" />);
 
-    const glow = container.querySelector('[data-testid="stub-glow-out-0"]');
+    const glow = container.querySelector('[data-testid="port-glow-out-0"]');
     expect(glow).not.toBeNull();
     // Glow opacity should be 0.8 for hovered port
     expect(glow).toHaveAttribute('opacity', '0.8');
   });
 
-  it('does not show glow for non-hovered ports without showStubs', () => {
+  it('does not show glow for non-hovered ports without showPorts', () => {
     const { container } = render(<BlockSvg category="compute" hoveredPort="out-0" />);
 
-    // Port out-1 is not hovered and showStubs is false, so no glow
-    const glow1 = container.querySelector('[data-testid="stub-glow-out-1"]');
+    // Port out-1 is not hovered and showPorts is false, so no glow
+    const glow1 = container.querySelector('[data-testid="port-glow-out-1"]');
     expect(glow1).toBeNull();
   });
 
   it('port dots have crosshair cursor style', () => {
     const { container } = render(
-      <BlockSvg category="compute" showStubs onPortPointerDown={mockPointerDown} />,
+      <BlockSvg category="compute" showPorts onPortPointerDown={mockPointerDown} />,
     );
 
-    const outDot0 = container.querySelector('[data-testid="stub-dot-out-0"]') as SVGElement;
+    const outDot0 = container.querySelector('[data-testid="port-dot-out-0"]') as SVGElement;
     expect(outDot0.style.cursor).toBe('crosshair');
   });
 
   it('port dots have pointer-events: all', () => {
     const { container } = render(
-      <BlockSvg category="compute" showStubs onPortPointerDown={mockPointerDown} />,
+      <BlockSvg category="compute" showPorts onPortPointerDown={mockPointerDown} />,
     );
 
-    const outDot0 = container.querySelector('[data-testid="stub-dot-out-0"]') as SVGElement;
+    const outDot0 = container.querySelector('[data-testid="port-dot-out-0"]') as SVGElement;
     expect(outDot0.style.pointerEvents).toBe('all');
   });
 });

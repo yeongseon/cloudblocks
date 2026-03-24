@@ -23,7 +23,12 @@ import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useAuthStore } from '../../entities/store/authStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { useLearningStore } from '../../entities/store/learningStore';
-import type { ArchitectureModel, Connection, ContainerNode, LeafNode } from '@cloudblocks/schema';
+import type {
+  ArchitectureModel,
+  Connection,
+  ContainerBlock,
+  ResourceBlock,
+} from '@cloudblocks/schema';
 import { apiPost } from '../../shared/api/client';
 import { toast } from 'react-hot-toast';
 import { confirmDialog } from '../../shared/ui/ConfirmDialog';
@@ -41,7 +46,7 @@ const emptyArch: ArchitectureModel = {
   updatedAt: '',
 };
 
-const networkPlate: ContainerNode = {
+const networkPlate: ContainerBlock = {
   id: 'net-1',
   name: 'VNet',
   kind: 'container',
@@ -51,11 +56,11 @@ const networkPlate: ContainerNode = {
   provider: 'azure',
   parentId: null,
   position: { x: 0, y: 0, z: 0 },
-  size: { width: 12, height: 0.3, depth: 10 },
+  frame: { width: 12, height: 0.3, depth: 10 },
   metadata: {},
 };
 
-const block: LeafNode = {
+const block: ResourceBlock = {
   id: 'block-1',
   name: 'Compute',
   kind: 'resource',
@@ -530,7 +535,7 @@ describe('MenuBar', () => {
     expect(redoMock).toHaveBeenCalledOnce();
   }, 15000);
 
-  it('deletes selected plate, block, and connection from overflow menu', async () => {
+  it('deletes selected container, block, and connection from overflow menu', async () => {
     const user = userEvent.setup();
 
     setArchitectureState({ nodes: [networkPlate, block], connections: [connection] });

@@ -1,7 +1,12 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import interact from 'interactjs';
 
-import type { ContainerNode, LeafNode, ProviderType, ResourceCategory } from '@cloudblocks/schema';
+import type {
+  ContainerBlock,
+  ProviderType,
+  ResourceBlock,
+  ResourceCategory,
+} from '@cloudblocks/schema';
 import { parseEndpointId } from '@cloudblocks/schema';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
@@ -33,8 +38,8 @@ function getBlockScreenSize(
 }
 
 interface BlockSpriteProps {
-  block: LeafNode;
-  parentPlate: ContainerNode;
+  block: ResourceBlock;
+  parentContainer: ContainerBlock;
   screenX: number;
   screenY: number;
   zIndex: number;
@@ -42,7 +47,7 @@ interface BlockSpriteProps {
 
 export const BlockSprite = memo(function BlockSprite({
   block,
-  parentPlate,
+  parentContainer,
   screenX,
   screenY,
   zIndex,
@@ -57,7 +62,7 @@ export const BlockSprite = memo(function BlockSprite({
   const removeNode = useArchitectureStore((s) => s.removeNode);
   const moveNodePosition = useArchitectureStore((s) => s.moveNodePosition);
   const nodes = useArchitectureStore((s) => s.workspace.architecture.nodes);
-  const blocks = nodes.filter((node): node is LeafNode => node.kind === 'resource');
+  const blocks = nodes.filter((node): node is ResourceBlock => node.kind === 'resource');
   const externalActors = useArchitectureStore((s) => s.workspace.architecture.externalActors) ?? [];
   const connections = useArchitectureStore((s) => s.workspace.architecture.connections);
   const endpointsList = useArchitectureStore((s) => s.workspace.architecture.endpoints);
@@ -68,10 +73,10 @@ export const BlockSprite = memo(function BlockSprite({
     for (const conn of connections) {
       const fromParsed = parseEndpointId(conn.from);
       const toParsed = parseEndpointId(conn.to);
-      if (fromParsed?.nodeId === block.id) {
+      if (fromParsed?.blockId === block.id) {
         occupied.add(`output-${fromParsed.semantic}`);
       }
-      if (toParsed?.nodeId === block.id) {
+      if (toParsed?.blockId === block.id) {
         occupied.add(`input-${toParsed.semantic}`);
       }
     }
@@ -96,7 +101,8 @@ export const BlockSprite = memo(function BlockSprite({
     isConnectMode && connectionSource
       ? externalActors.find((actor) => actor.id === connectionSource)
       : null;
-  const sourceType = sourceBlock?.category ?? sourceActor?.type ?? null;
+  const sourceType =
+    sourceBlock?.category ?? (sourceActor?.type === 'internet' ? sourceActor.type : null);
   const isValidConnectTarget =
     sourceType !== null && block.id !== connectionSource && canConnect(sourceType, block.category);
   const isInvalidConnectTarget =
@@ -107,12 +113,12 @@ export const BlockSprite = memo(function BlockSprite({
   const isAlreadyConnected = connections.some((c) => {
     const fromEp = endpointsList.find((ep) => ep.id === c.from);
     const toEp = endpointsList.find((ep) => ep.id === c.to);
-    const fromNodeId = fromEp?.nodeId ?? parseEndpointId(c.from)?.nodeId;
-    const toNodeId = toEp?.nodeId ?? parseEndpointId(c.to)?.nodeId;
-    return fromNodeId === block.id || toNodeId === block.id;
+    const fromBlockId = fromEp?.blockId ?? parseEndpointId(c.from)?.blockId;
+    const toBlockId = toEp?.blockId ?? parseEndpointId(c.to)?.blockId;
+    return fromBlockId === block.id || toBlockId === block.id;
   });
 
-  const hasValidationWarning = validatePlacement(block, parentPlate) !== null;
+  const hasValidationWarning = validatePlacement(block, parentContainer) !== null;
   const diffState = diffMode && diffDelta ? getDiffState(block.id, diffDelta) : 'unchanged';
   const upgradingBlockId = useUIStore((s) => s.upgradingBlockId);
   const snapTargetBlockIds = useUIStore((s) => s.snapTargetBlockIds);
@@ -204,7 +210,7 @@ export const BlockSprite = memo(function BlockSprite({
             const currentBlock = useArchitectureStore
               .getState()
               .workspace.architecture.nodes.filter(
-                (node): node is LeafNode => node.kind === 'resource',
+                (node): node is ResourceBlock => node.kind === 'resource',
               )
               .find((candidate) => candidate.id === block.id);
 
@@ -330,7 +336,7 @@ export const BlockSprite = memo(function BlockSprite({
             name={block.name}
             aggregationCount={block.aggregation?.count}
             roles={block.roles}
-            showStubs={isConnectMode}
+            showPorts={isConnectMode}
             occupiedEndpointSemantics={occupiedEndpointSemantics}
             onPortPointerDown={handlePortPointerDown}
             onPortPointerEnter={handlePortPointerEnter}

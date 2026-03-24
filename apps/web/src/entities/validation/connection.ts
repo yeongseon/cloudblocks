@@ -5,7 +5,7 @@ import type {
   EndpointSemantic,
   ExternalActor,
   ResourceCategory,
-  ResourceNode,
+  Block,
 } from '@cloudblocks/schema';
 import { CATEGORY_PORTS, parseEndpointId } from '@cloudblocks/schema';
 import type { ValidationError } from '@cloudblocks/domain';
@@ -79,13 +79,13 @@ export const CONNECTION_VISUAL_STYLES: Record<ConnectionType, ConnectionVisualSt
 export function validateConnection(
   connection: Connection,
   endpoints: Endpoint[],
-  nodes: ResourceNode[],
+  nodes: Block[],
   externalActors: ExternalActor[] = [],
 ): ValidationError | null {
   const fromEndpoint = endpoints.find((endpoint) => endpoint.id === connection.from);
   if (!fromEndpoint) {
     const parsed = parseEndpointId(connection.from);
-    const sourceLabel = parsed?.nodeId ?? connection.from;
+    const sourceLabel = parsed?.blockId ?? connection.from;
     return {
       ruleId: 'rule-conn-source',
       severity: 'error',
@@ -98,7 +98,7 @@ export function validateConnection(
   const toEndpoint = endpoints.find((endpoint) => endpoint.id === connection.to);
   if (!toEndpoint) {
     const parsed = parseEndpointId(connection.to);
-    const targetLabel = parsed?.nodeId ?? connection.to;
+    const targetLabel = parsed?.blockId ?? connection.to;
     return {
       ruleId: 'rule-conn-target',
       severity: 'error',
@@ -108,7 +108,7 @@ export function validateConnection(
     };
   }
 
-  if (fromEndpoint.nodeId === toEndpoint.nodeId) {
+  if (fromEndpoint.blockId === toEndpoint.blockId) {
     return {
       ruleId: 'rule-conn-self',
       severity: 'error',
@@ -119,10 +119,10 @@ export function validateConnection(
   }
 
   // Resolve types from nodes or external actors
-  const fromNode = nodes.find((node) => node.id === fromEndpoint.nodeId);
-  const toNode = nodes.find((node) => node.id === toEndpoint.nodeId);
-  const fromActor = externalActors.find((actor) => actor.id === fromEndpoint.nodeId);
-  const toActor = externalActors.find((actor) => actor.id === toEndpoint.nodeId);
+  const fromNode = nodes.find((node) => node.id === fromEndpoint.blockId);
+  const toNode = nodes.find((node) => node.id === toEndpoint.blockId);
+  const fromActor = externalActors.find((actor) => actor.id === fromEndpoint.blockId);
+  const toActor = externalActors.find((actor) => actor.id === toEndpoint.blockId);
 
   const fromType: EndpointType | null = fromNode?.category ?? fromActor?.type ?? null;
   const toType: EndpointType | null = toNode?.category ?? toActor?.type ?? null;
@@ -196,18 +196,18 @@ export function validateConnection(
   return null;
 }
 
-export function validateStubIndices(
+export function validatePortIndices(
   connection: Connection,
-  nodes: ResourceNode[],
+  nodes: Block[],
 ): ValidationError | null {
   const fromParsed = parseEndpointId(connection.from);
   const toParsed = parseEndpointId(connection.to);
   if (!fromParsed || !toParsed) return null;
 
-  const fromNode = nodes.find((n) => n.id === fromParsed.nodeId);
-  const toNode = nodes.find((n) => n.id === toParsed.nodeId);
+  const fromNode = nodes.find((n) => n.id === fromParsed.blockId);
+  const toNode = nodes.find((n) => n.id === toParsed.blockId);
 
-  // Check source stub: only for resource nodes (not external actors)
+  // Check source port: only for resource nodes (not external actors)
   if (fromNode) {
     const outbound = CATEGORY_PORTS[fromNode.category]?.outbound ?? 1;
     const semanticIndex = SEMANTIC_ORDER.indexOf(fromParsed.semantic);
@@ -222,7 +222,7 @@ export function validateStubIndices(
     }
   }
 
-  // Check target stub: only for resource nodes (not external actors)
+  // Check target port: only for resource nodes (not external actors)
   if (toNode) {
     const inbound = CATEGORY_PORTS[toNode.category]?.inbound ?? 1;
     const semanticIndex = SEMANTIC_ORDER.indexOf(toParsed.semantic);
@@ -248,14 +248,14 @@ export function canConnect(sourceType: EndpointType, targetType: EndpointType): 
 export function canConnect(
   fromEndpoint: Endpoint,
   toEndpoint: Endpoint,
-  fromNode: ResourceNode | undefined,
-  toNode: ResourceNode | undefined,
+  fromNode: Block | undefined,
+  toNode: Block | undefined,
 ): { valid: boolean; reason?: string };
 export function canConnect(
   source: EndpointType | Endpoint,
   target: EndpointType | Endpoint,
-  fromNode?: ResourceNode,
-  toNode?: ResourceNode,
+  fromNode?: Block,
+  toNode?: Block,
 ): boolean | { valid: boolean; reason?: string } {
   if (typeof source === 'string' && typeof target === 'string') {
     if (source === 'internet') {

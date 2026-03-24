@@ -1,7 +1,7 @@
 import type { ProviderType, ResourceCategory } from './index';
 import logger from '../utils/logger';
 
-// BrickSizeTier removed in v2.0 — use BlockTier instead
+// Legacy size tier removed in v2.0 — use BlockTier instead
 
 // ─── v2.0 Tier System (CU-based) ───────────────────────────────────
 // See CLOUDBLOCKS_SPEC_V2.md §5.2
@@ -35,18 +35,18 @@ export const CATEGORY_TIER_MAP: Record<ResourceCategory, BlockTier> = {
   operations: 'small',
 };
 
-export type BrickSurface = 'studded';
-// ALL blocks are studded per Universal Stud Standard. No 'smooth' surface.
+export type BlockSurface = 'ported';
+// ALL blocks have ports per Universal Port Standard. No 'smooth' surface.
 
-export type BrickSilhouette = 'rect' | 'cylinder' | 'gateway' | 'circle' | 'hex' | 'shield';
+export type BlockSilhouette = 'rect' | 'cylinder' | 'gateway' | 'circle' | 'hex' | 'shield';
 
 export interface BlockVisualProfile {
   /** Size tier name for CSS/debugging */
   tier: BlockTier;
-  /** Surface treatment - always 'studded' per Universal Stud Standard */
-  surface: BrickSurface;
-  silhouette: BrickSilhouette;
-  /** Stud grid [columns, rows] - single source of truth for block stud layout */
+  /** Surface treatment - always 'ported' per Universal Port Standard */
+  surface: BlockSurface;
+  silhouette: BlockSilhouette;
+  /** Port grid [columns, rows] - single source of truth for block port layout */
   footprint: [number, number];
   /** Can user applications be placed on this block? */
   hostable: boolean;
@@ -57,7 +57,7 @@ export interface BlockVisualProfile {
 export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile> = {
   network: {
     tier: 'large',
-    surface: 'studded',
+    surface: 'ported',
     silhouette: 'rect',
     footprint: [4, 6],
     hostable: false,
@@ -65,23 +65,23 @@ export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile>
   },
   security: {
     tier: 'small',
-    surface: 'studded',
-    silhouette: 'rect',
+    surface: 'ported',
+    silhouette: 'shield',
     footprint: [2, 2],
     hostable: false,
     appCapacity: 0,
   },
   delivery: {
     tier: 'wide',
-    surface: 'studded',
-    silhouette: 'rect',
+    surface: 'ported',
+    silhouette: 'gateway',
     footprint: [2, 4],
     hostable: false,
     appCapacity: 0,
   },
   compute: {
     tier: 'medium',
-    surface: 'studded',
+    surface: 'ported',
     silhouette: 'rect',
     footprint: [3, 4],
     hostable: true,
@@ -89,32 +89,32 @@ export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile>
   },
   data: {
     tier: 'large',
-    surface: 'studded',
-    silhouette: 'rect',
+    surface: 'ported',
+    silhouette: 'cylinder',
     footprint: [4, 6],
     hostable: false,
     appCapacity: 0,
   },
   messaging: {
     tier: 'micro',
-    surface: 'studded',
-    silhouette: 'rect',
+    surface: 'ported',
+    silhouette: 'hex',
     footprint: [2, 4],
     hostable: false,
     appCapacity: 0,
   },
   identity: {
     tier: 'small',
-    surface: 'studded',
-    silhouette: 'rect',
+    surface: 'ported',
+    silhouette: 'shield',
     footprint: [2, 2],
     hostable: false,
     appCapacity: 0,
   },
   operations: {
     tier: 'small',
-    surface: 'studded',
-    silhouette: 'rect',
+    surface: 'ported',
+    silhouette: 'circle',
     footprint: [2, 2],
     hostable: false,
     appCapacity: 0,

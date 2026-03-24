@@ -64,13 +64,13 @@ Both must be set for analytics to activate. If either is empty, the script tag i
 
 ## Tracked Events
 
-| Event                      | When                          | Properties                       |
-| -------------------------- | ----------------------------- | -------------------------------- |
-| `app_loaded`               | App.tsx mounts                | —                                |
-| `first_plate_placed`       | User places first plate       | —                                |
-| `first_block_placed`       | User places first block       | —                                |
-| `first_connection_created` | User creates first connection | —                                |
-| `code_generated`           | Code generation runs          | `format`: terraform/bicep/pulumi |
+| Event                          | When                              | Properties                       |
+| ------------------------------ | --------------------------------- | -------------------------------- |
+| `app_loaded`                   | App.tsx mounts                    | —                                |
+| `first_container_block_placed` | User places first container block | —                                |
+| `first_block_placed`           | User places first block           | —                                |
+| `first_connection_created`     | User creates first connection     | —                                |
+| `code_generated`               | Code generation runs              | `format`: terraform/bicep/pulumi |
 
 Events are defined in `metricsService.ts` as `FunnelEvent` type. The service dual-writes to both localStorage (offline buffer) and Plausible (real-time analytics).
 

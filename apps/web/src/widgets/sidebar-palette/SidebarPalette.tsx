@@ -17,7 +17,7 @@ import {
   getCreationGroupId,
   type CreationGroupId,
   ALL_RESOURCES,
-} from '../bottom-panel/useTechTree';
+} from '../../shared/hooks/useTechTree';
 import { getResourceIconUrl } from '../../shared/utils/iconResolver';
 import './SidebarPalette.css';
 

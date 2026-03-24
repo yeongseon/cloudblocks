@@ -29,9 +29,9 @@ const scenarioA: Scenario = {
       id: 'a-step-1',
       order: 1,
       title: 'Add VNet',
-      instruction: 'Create one VNet plate',
+      instruction: 'Create one VNet container',
       hints: ['Use Infra tab'],
-      validationRules: [{ type: 'plate-exists', plateType: 'region' }],
+      validationRules: [{ type: 'container-exists', containerLayer: 'region' }],
     },
   ],
 };

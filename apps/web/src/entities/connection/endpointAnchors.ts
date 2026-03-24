@@ -1,22 +1,22 @@
 /**
- * Stub-aware connection endpoint resolver.
+ * Port-aware connection endpoint resolver.
  *
- * Replaces the center-based `getEndpointWorldPosition` with stub-aware
- * anchor resolution. Falls back to block center when stub info is missing.
+ * Replaces the center-based `getEndpointWorldPosition` with port-aware
+ * anchor resolution. Falls back to block center when port info is missing.
  *
  * Design decisions:
  * - Returns world-space points (projected to screen downstream by routing).
- * - External actors always use their existing position (no stubs).
- * - Missing/invalid stub → fallback to center (backward compat).
+ * - External actors always use their existing position (no ports).
+ * - Missing/invalid port → fallback to center (backward compat).
  */
 
 import type {
   Connection,
-  ContainerNode,
+  ContainerBlock,
   Endpoint,
   EndpointSemantic,
   ExternalActor,
-  LeafNode,
+  ResourceBlock,
 } from '@cloudblocks/schema';
 import { CATEGORY_PORTS } from '@cloudblocks/schema';
 import {
@@ -26,27 +26,27 @@ import {
 } from '../../shared/utils/position';
 import { getBlockDimensions } from '../../shared/types/visualProfile';
 import { getBlockWorldAnchors } from '../block/blockGeometry';
-import type { StubSide, WorldPoint } from '../block/blockGeometry';
+import type { PortSide, WorldPoint } from '../block/blockGeometry';
 
 export interface EndpointAnchors {
   src: WorldPoint;
   tgt: WorldPoint;
-  srcSide?: StubSide;
-  tgtSide?: StubSide;
+  srcSide?: PortSide;
+  tgtSide?: PortSide;
   srcFloorY?: number;
   tgtFloorY?: number;
 }
 
 /**
- * Resolve world-space connection endpoints, accounting for stub positions.
+ * Resolve world-space connection endpoints, accounting for port positions.
  *
  * @returns World-space src/tgt points with optional side metadata, or null if
  *          either endpoint cannot be resolved.
  */
 export function getConnectionEndpointWorldAnchors(
   connection: Connection,
-  blocks: LeafNode[],
-  plates: ContainerNode[],
+  blocks: ResourceBlock[],
+  plates: ContainerBlock[],
   endpoints: Endpoint[],
   externalActors: ExternalActor[] = [],
 ): EndpointAnchors | null {
@@ -79,15 +79,15 @@ export function getConnectionEndpointWorldAnchors(
 
 interface ResolvedEndpoint {
   point: WorldPoint;
-  side?: StubSide;
+  side?: PortSide;
   floorY?: number;
 }
 
 function resolveEndpoint(
   endpointId: string,
-  side: StubSide,
-  blocks: LeafNode[],
-  plates: ContainerNode[],
+  side: PortSide,
+  blocks: ResourceBlock[],
+  plates: ContainerBlock[],
   endpoints: Endpoint[],
   externalActors: ExternalActor[],
 ): ResolvedEndpoint | null {
@@ -102,23 +102,23 @@ function resolveEndpoint(
   }
 
   // Try block first
-  const block = blocks.find((b) => b.id === endpoint.nodeId);
+  const block = blocks.find((b) => b.id === endpoint.blockId);
   if (block) {
-    const plate = plates.find((p) => p.id === block.parentId);
-    if (!plate) return null;
+    const container = plates.find((p) => p.id === block.parentId);
+    if (!container) return null;
 
-    const worldPos = getBlockWorldPosition(block, plate);
-    const floorY = plate.position.y + plate.size.height;
+    const worldPos = getBlockWorldPosition(block, container);
+    const floorY = container.position.y + container.frame.height;
     const cu = getBlockDimensions(block.category, block.provider, block.subtype);
     const anchors = getBlockWorldAnchors(worldPos, cu);
 
     const ports = CATEGORY_PORTS[block.category];
     const total = side === 'inbound' ? ports.inbound : ports.outbound;
-    const stubIndex = semanticToStubIndex(endpoint.semantic, total);
+    const portIndex = semanticToPortIndex(endpoint.semantic, total);
 
-    if (stubIndex !== null) {
+    if (portIndex !== null) {
       return {
-        point: anchors.stub(side, stubIndex, total),
+        point: anchors.port(side, portIndex, total),
         side,
         floorY,
       };
@@ -128,7 +128,7 @@ function resolveEndpoint(
   }
 
   // Try external actor
-  const actor = externalActors.find((a) => a.id === endpoint.nodeId);
+  const actor = externalActors.find((a) => a.id === endpoint.blockId);
   if (actor) {
     const pos = actor.position ?? {
       x: EXTERNAL_ACTOR_POSITION[0],
@@ -142,7 +142,7 @@ function resolveEndpoint(
   return null;
 }
 
-function semanticToStubIndex(semantic: EndpointSemantic, total: number): number | null {
+function semanticToPortIndex(semantic: EndpointSemantic, total: number): number | null {
   if (total <= 0) {
     return null;
   }

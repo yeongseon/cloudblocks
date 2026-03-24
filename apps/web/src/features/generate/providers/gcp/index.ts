@@ -73,7 +73,7 @@ export const gcpProviderDefinition: ProviderDefinition = {
       namePrefix: 'analytics',
     },
   },
-  plateMappings: {
+  containerLayerMappings: {
     global: {
       resourceType: 'google_compute_network',
       namePrefix: 'global',

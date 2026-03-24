@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { endpointId } from '@cloudblocks/schema';
 
-import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
 import type { ModifiedEntity, PropertyChange } from '../../shared/types/diff';
 import { computeArchitectureDiff, getDiffState, normalizeArchitecture } from './engine';
 import {
@@ -11,16 +11,17 @@ import {
 } from '../../__tests__/legacyModelTestUtils';
 
 type LegacyArchitecture = ArchitectureModel & {
-  plates: ContainerNode[];
-  blocks: LeafNode[];
+  plates: ContainerBlock[];
+  blocks: ResourceBlock[];
 };
 
 function toArchitectureModel(model: ArchitectureModel | LegacyArchitecture): ArchitectureModel {
   const legacy = model as Partial<LegacyArchitecture>;
   const plates =
-    legacy.plates ?? model.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+    legacy.plates ??
+    model.nodes.filter((node): node is ContainerBlock => node.kind === 'container');
   const blocks =
-    legacy.blocks ?? model.nodes.filter((node): node is LeafNode => node.kind === 'resource');
+    legacy.blocks ?? model.nodes.filter((node): node is ResourceBlock => node.kind === 'resource');
 
   return {
     id: model.id,
@@ -45,21 +46,21 @@ function computeLegacyDiff(
 function createBaseArchitecture(): LegacyArchitecture {
   const plates = [
     makeTestPlate({
-      id: 'plate-1',
+      id: 'container-1',
       name: 'Network',
       type: 'region',
       parentId: null,
       position: { x: 0, y: 0, z: 0 },
-      size: { width: 16, height: 0.3, depth: 20 },
+      frame: { width: 16, height: 0.3, depth: 20 },
       metadata: {},
     }),
     makeTestPlate({
-      id: 'plate-2',
+      id: 'container-2',
       name: 'Subnet 1',
       type: 'subnet',
-      parentId: 'plate-1',
+      parentId: 'container-1',
       position: { x: 1, y: 0, z: 1 },
-      size: { width: 6, height: 0.3, depth: 8 },
+      frame: { width: 6, height: 0.3, depth: 8 },
       metadata: {},
     }),
   ];
@@ -69,7 +70,7 @@ function createBaseArchitecture(): LegacyArchitecture {
         id: 'block-1',
         name: 'Gateway',
         category: 'delivery',
-        placementId: 'plate-2',
+        placementId: 'container-2',
         position: { x: 0, y: 0, z: 0 },
         metadata: {},
       }),
@@ -79,7 +80,7 @@ function createBaseArchitecture(): LegacyArchitecture {
         id: 'block-2',
         name: 'VM',
         category: 'compute',
-        placementId: 'plate-2',
+        placementId: 'container-2',
         position: { x: 2, y: 0, z: 0 },
         metadata: {},
       }),
@@ -110,8 +111,8 @@ function createBaseArchitecture(): LegacyArchitecture {
 }
 
 function createEmptyArchitecture(id: string): LegacyArchitecture {
-  const plates: ContainerNode[] = [];
-  const blocks: LeafNode[] = [];
+  const plates: ContainerBlock[] = [];
+  const blocks: ResourceBlock[] = [];
   const arch = makeTestArchitecture({
     id,
     name: 'Empty Architecture',
@@ -216,13 +217,13 @@ describe('computeArchitectureDiff', () => {
       plates: [
         ...base.plates,
         makeTestPlate({
-          id: 'plate-3',
+          id: 'container-3',
           name: 'Subnet 2',
           type: 'subnet',
-          parentId: 'plate-1',
+          parentId: 'container-1',
           children: ['block-3'],
           position: { x: 4, y: 0, z: 4 },
-          size: { width: 6, height: 0.3, depth: 8 },
+          frame: { width: 6, height: 0.3, depth: 8 },
           metadata: {},
         }),
       ],
@@ -232,7 +233,7 @@ describe('computeArchitectureDiff', () => {
           id: 'block-3',
           name: 'Storage',
           category: 'data',
-          placementId: 'plate-3',
+          placementId: 'container-3',
           position: { x: 1, y: 0, z: 1 },
           metadata: {},
         }),
@@ -254,7 +255,7 @@ describe('computeArchitectureDiff', () => {
 
     const delta = computeLegacyDiff(base, head);
 
-    expect(delta.plates.added.map((plate) => plate.id)).toEqual(['plate-3']);
+    expect(delta.plates.added.map((container) => container.id)).toEqual(['container-3']);
     expect(delta.blocks.added.map((block) => block.id)).toEqual(['block-3']);
     expect(delta.connections.added.map((connection) => connection.id)).toEqual(['conn-2']);
     expect(delta.externalActors.added.map((actor) => actor.id)).toEqual(['ext-2']);
@@ -265,7 +266,7 @@ describe('computeArchitectureDiff', () => {
     const base = createBaseArchitecture();
     const head: ArchitectureModel = {
       ...base,
-      plates: base.plates.filter((plate) => plate.id !== 'plate-2'),
+      plates: base.plates.filter((container) => container.id !== 'container-2'),
       blocks: base.blocks.filter((block) => block.id !== 'block-2'),
       connections: base.connections.filter((connection) => connection.id !== 'conn-1'),
       endpoints: [],
@@ -274,7 +275,7 @@ describe('computeArchitectureDiff', () => {
 
     const delta = computeLegacyDiff(base, head);
 
-    expect(delta.plates.removed.map((plate) => plate.id)).toEqual(['plate-2']);
+    expect(delta.plates.removed.map((container) => container.id)).toEqual(['container-2']);
     expect(delta.blocks.removed.map((block) => block.id)).toEqual(['block-2']);
     expect(delta.connections.removed.map((connection) => connection.id)).toEqual(['conn-1']);
     expect(delta.externalActors.removed.map((actor) => actor.id)).toEqual(['ext-1']);
@@ -285,8 +286,8 @@ describe('computeArchitectureDiff', () => {
     const base = createBaseArchitecture();
     const head: ArchitectureModel = {
       ...base,
-      plates: base.plates.map((plate) =>
-        plate.id === 'plate-1' ? { ...plate, name: 'Core Network' } : plate,
+      plates: base.plates.map((container) =>
+        container.id === 'container-1' ? { ...container, name: 'Core Network' } : container,
       ),
       blocks: base.blocks.map((block) =>
         block.id === 'block-2'
@@ -316,7 +317,7 @@ describe('computeArchitectureDiff', () => {
     expect(delta.externalActors.modified).toHaveLength(1);
 
     expect(
-      requireModified(delta.plates.modified, 'plate-1').changes.map((change) => change.path),
+      requireModified(delta.plates.modified, 'container-1').changes.map((change) => change.path),
     ).toContain('name');
     expect(
       requireModified(delta.blocks.modified, 'block-2').changes.map((change) => change.path),
@@ -436,7 +437,7 @@ describe('computeArchitectureDiff', () => {
     const base = createBaseArchitecture();
     const head: ArchitectureModel = {
       ...base,
-      plates: [...base.plates].reverse().map((plate) => ({ ...plate })),
+      plates: [...base.plates].reverse().map((container) => ({ ...container })),
       blocks: [...base.blocks].reverse(),
       connections: [...base.connections].reverse(),
       endpoints: [],
@@ -452,7 +453,7 @@ describe('computeArchitectureDiff', () => {
     const base = createBaseArchitecture();
     const head: ArchitectureModel = {
       ...base,
-      plates: base.plates.filter((plate) => plate.id !== 'plate-2'),
+      plates: base.plates.filter((container) => container.id !== 'container-2'),
       blocks: base.blocks.map((block) =>
         block.id === 'block-1' ? { ...block, name: 'Gateway Updated' } : block,
       ),
@@ -510,7 +511,7 @@ describe('computeArchitectureDiff', () => {
           id: 'block-3',
           name: 'App Storage',
           category: 'data',
-          placementId: 'plate-2',
+          placementId: 'container-2',
           position: { x: 3, y: 0, z: 1 },
           metadata: {},
         }),
@@ -530,14 +531,14 @@ describe('computeArchitectureDiff', () => {
     const base = createBaseArchitecture();
     const head: ArchitectureModel = {
       ...base,
-      plates: base.plates.filter((plate) => plate.id !== 'plate-2'),
+      plates: base.plates.filter((container) => container.id !== 'container-2'),
       blocks: [
         ...base.blocks,
         makeTestBlock({
           id: 'block-3',
           name: 'Cache',
           category: 'compute',
-          placementId: 'plate-1',
+          placementId: 'container-1',
           position: { x: 0, y: 0, z: 0 },
           metadata: {},
         }),
@@ -551,7 +552,7 @@ describe('computeArchitectureDiff', () => {
     const delta = computeLegacyDiff(base, head);
 
     expect(getDiffState('block-3', delta)).toBe('added');
-    expect(getDiffState('plate-2', delta)).toBe('removed');
+    expect(getDiffState('container-2', delta)).toBe('removed');
     expect(getDiffState('ext-1', delta)).toBe('modified');
     expect(getDiffState('block-1', delta)).toBe('unchanged');
   });
@@ -564,13 +565,13 @@ describe('computeArchitectureDiff', () => {
         { ...base.plates[0], metadata: { region: 'eastus' } },
         { ...base.plates[1], name: 'Subnet A', children: ['block-2'] },
         makeTestPlate({
-          id: 'plate-3',
+          id: 'container-3',
           name: 'Analytics Subnet',
           type: 'subnet',
-          parentId: 'plate-1',
+          parentId: 'container-1',
           children: ['block-3'],
           position: { x: 6, y: 0, z: 6 },
-          size: { width: 6, height: 0.3, depth: 8 },
+          frame: { width: 6, height: 0.3, depth: 8 },
           metadata: {},
         }),
       ],
@@ -580,7 +581,7 @@ describe('computeArchitectureDiff', () => {
           id: 'block-3',
           name: 'Analytics DB',
           category: 'data',
-          placementId: 'plate-3',
+          placementId: 'container-3',
           position: { x: 1, y: 0, z: 1 },
           metadata: {},
         }),
@@ -613,22 +614,22 @@ describe('computeArchitectureDiff', () => {
     expect(delta.summary).toEqual({ totalChanges: 10, hasBreakingChanges: true });
   });
 
-  it('detects plate metadata changes', () => {
+  it('detects container metadata changes', () => {
     const base = createBaseArchitecture();
     const head: ArchitectureModel = {
       ...base,
-      plates: base.plates.map((plate) =>
-        plate.id === 'plate-2'
+      plates: base.plates.map((container) =>
+        container.id === 'container-2'
           ? {
-              ...plate,
-              metadata: { ...plate.metadata, tier: 'backend' },
+              ...container,
+              metadata: { ...container.metadata, tier: 'backend' },
             }
-          : plate,
+          : container,
       ),
     };
 
     const delta = computeLegacyDiff(base, head);
-    const modifiedPlate = requireModified(delta.plates.modified, 'plate-2');
+    const modifiedPlate = requireModified(delta.plates.modified, 'container-2');
     const metadataChange = requireChange(modifiedPlate.changes, 'metadata.tier');
 
     expect(metadataChange.oldValue).toBeUndefined();
@@ -715,7 +716,7 @@ describe('computeArchitectureDiff', () => {
           id: 'block-3',
           name: 'New Block',
           category: 'data',
-          placementId: 'plate-2',
+          placementId: 'container-2',
           position: { x: 3, y: 0, z: 1 },
           metadata: {},
         }),
@@ -733,7 +734,7 @@ describe('computeArchitectureDiff', () => {
     const base = createBaseArchitecture();
     const head: ArchitectureModel = {
       ...base,
-      plates: base.plates.filter((plate) => plate.id !== 'plate-2'),
+      plates: base.plates.filter((container) => container.id !== 'container-2'),
     };
 
     const delta = computeLegacyDiff(base, head);
@@ -786,13 +787,16 @@ describe('normalizeArchitecture', () => {
 
     const normalized = normalizeArchitecture(toArchitectureModel(unsorted));
     const normalizedPlates = normalized.nodes.filter(
-      (node): node is ContainerNode => node.kind === 'container',
+      (node): node is ContainerBlock => node.kind === 'container',
     );
     const normalizedBlocks = normalized.nodes.filter(
-      (node): node is LeafNode => node.kind === 'resource',
+      (node): node is ResourceBlock => node.kind === 'resource',
     );
 
-    expect(normalizedPlates.map((plate) => plate.id)).toEqual(['plate-1', 'plate-2']);
+    expect(normalizedPlates.map((container) => container.id)).toEqual([
+      'container-1',
+      'container-2',
+    ]);
     expect(normalizedBlocks.map((block) => block.id)).toEqual(['block-1', 'block-2']);
     expect(normalized.connections.map((connection) => connection.id)).toEqual(['conn-1', 'conn-2']);
     expect((normalized.externalActors ?? []).map((actor) => actor.id)).toEqual(['ext-1', 'ext-2']);

@@ -13,8 +13,8 @@ const mockImportArchitecture = vi.fn();
 
 function setupMocks(plateCount: number, showTemplateGallery = false) {
   const nodes = Array.from({ length: plateCount }, (_, i) => ({
-    id: `plate-${i}`,
-    name: `Plate ${i}`,
+    id: `container-${i}`,
+    name: `ContainerBlock ${i}`,
     kind: 'container' as const,
     layer: 'region' as const,
     resourceType: 'virtual_network' as const,

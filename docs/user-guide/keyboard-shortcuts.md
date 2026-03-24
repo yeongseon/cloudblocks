@@ -12,7 +12,7 @@ You can use keyboard shortcuts to speed up your workflow in CloudBlocks.
 | `Ctrl+Z` / `Cmd+Z`             | Undo                                                         |
 | `Ctrl+Shift+Z` / `Cmd+Shift+Z` | Redo                                                         |
 | `Ctrl+Y` / `Cmd+Y`             | Redo (alternative)                                           |
-| `Delete` / `Backspace`         | Remove selected element (node, container, or connection)     |
+| `Delete` / `Backspace`         | Remove selected element (block or connection)                |
 | `Escape`                       | Deselect current element / Cancel operation / Exit diff mode |
 
 ---
@@ -29,11 +29,11 @@ You can use keyboard shortcuts to speed up your workflow in CloudBlocks.
 
 ## Navigation
 
-| Shortcut       | Action                                          |
-| :------------- | :---------------------------------------------- |
-| `Scroll`       | Zoom in and out on the canvas                   |
-| `Click + Drag` | Pan the canvas                                  |
-| `Click`        | Select a node, plate (container), or connection |
+| Shortcut       | Action                        |
+| :------------- | :---------------------------- |
+| `Scroll`       | Zoom in and out on the canvas |
+| `Click + Drag` | Pan the canvas                |
+| `Click`        | Select a block or connection  |
 
 ---
 

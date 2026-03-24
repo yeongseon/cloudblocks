@@ -75,7 +75,7 @@ export const awsProviderDefinition: ProviderDefinition = {
       namePrefix: 'analytics',
     },
   },
-  plateMappings: {
+  containerLayerMappings: {
     global: {
       resourceType: 'aws_vpc',
       namePrefix: 'global',

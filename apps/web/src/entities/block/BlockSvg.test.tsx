@@ -3,27 +3,21 @@ import { render } from '@testing-library/react';
 import { BlockSvg } from './BlockSvg';
 
 describe('BlockSvg', () => {
-  it('does not render provider badge in single-provider mode', () => {
+  it('renders an SVG element for compute category', () => {
     const { container } = render(<BlockSvg category="compute" provider="azure" />);
 
-    expect(container.querySelector('[data-testid="provider-badge"]')).toBeNull();
+    expect(container.querySelector('svg')).not.toBeNull();
   });
 
-  it('does not render provider badge for aws', () => {
-    const { container } = render(<BlockSvg category="compute" provider="aws" />);
-
-    expect(container.querySelector('[data-testid="provider-badge"]')).toBeNull();
-  });
-
-  it('does not render provider badge for gcp', () => {
-    const { container } = render(<BlockSvg category="compute" provider="gcp" />);
-
-    expect(container.querySelector('[data-testid="provider-badge"]')).toBeNull();
-  });
-
-  it('renders without provider badge when provider is not set', () => {
+  it('renders an SVG element without provider', () => {
     const { container } = render(<BlockSvg category="compute" />);
 
-    expect(container.querySelector('[data-testid="provider-badge"]')).toBeNull();
+    expect(container.querySelector('svg')).not.toBeNull();
+  });
+
+  it('renders port dots group', () => {
+    const { container } = render(<BlockSvg category="compute" provider="azure" />);
+
+    expect(container.querySelector('[data-testid="port-dots"]')).not.toBeNull();
   });
 });

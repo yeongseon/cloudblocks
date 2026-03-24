@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import type {
   Connection,
-  ContainerNode,
+  ContainerBlock,
   Endpoint,
   ExternalActor,
-  LeafNode,
+  ResourceBlock,
 } from '@cloudblocks/schema';
-import { CATEGORY_PORTS, endpointId, generateEndpointsForNode } from '@cloudblocks/schema';
+import { CATEGORY_PORTS, endpointId, generateEndpointsForBlock } from '@cloudblocks/schema';
 import {
   getConnectionSurfaceRoute,
   resolveSurfacePort,
@@ -15,29 +15,29 @@ import {
 } from '../surfaceRouting';
 import type { SurfacePort } from '../surfaceRouting';
 
-function makePlate(overrides?: Partial<ContainerNode>): ContainerNode {
+function makePlate(overrides?: Partial<ContainerBlock>): ContainerBlock {
   return {
-    id: 'plate-1',
+    id: 'container-1',
     kind: 'container',
-    name: 'Test Plate',
+    name: 'Test ContainerBlock',
     category: 'network',
     position: { x: 10, y: 2, z: 20 },
-    size: { width: 16, depth: 16, height: 1 },
+    frame: { width: 16, depth: 16, height: 1 },
     children: [],
     ...overrides,
-  } as ContainerNode;
+  } as ContainerBlock;
 }
 
-function makeBlock(overrides?: Partial<LeafNode>): LeafNode {
+function makeBlock(overrides?: Partial<ResourceBlock>): ResourceBlock {
   return {
     id: 'block-1',
     kind: 'resource',
     name: 'Test Block',
     category: 'compute',
-    parentId: 'plate-1',
+    parentId: 'container-1',
     position: { x: 2, y: 0, z: 3 },
     ...overrides,
-  } as LeafNode;
+  } as ResourceBlock;
 }
 
 function makeConnection(overrides?: Partial<Connection>): Connection {
@@ -49,15 +49,15 @@ function makeConnection(overrides?: Partial<Connection>): Connection {
   } as Connection;
 }
 
-function makeEndpoints(nodeIds: string[]): Endpoint[] {
-  return nodeIds.flatMap((nodeId) => generateEndpointsForNode(nodeId));
+function makeEndpoints(blockIds: string[]): Endpoint[] {
+  return blockIds.flatMap((blockId) => generateEndpointsForBlock(blockId));
 }
 
 function makeSurfacePort(overrides?: Partial<SurfacePort>): SurfacePort {
   return {
     surfaceBase: [0, 3, 0],
     surfaceExit: [0, 3, -0.75],
-    plateId: 'plate-1',
+    containerId: 'container-1',
     surfaceY: 3,
     normal: 'neg-z',
     ...overrides,
@@ -72,15 +72,15 @@ describe('SURFACE_EXIT_OFFSET_CU', () => {
 
 describe('resolveSurfacePort', () => {
   it('resolves inbound side using t=0.5 for single-port distribution', () => {
-    const plate = makePlate({
+    const container = makePlate({
       position: { x: 10, y: 2, z: 20 },
-      size: { width: 16, depth: 16, height: 1 },
+      frame: { width: 16, depth: 16, height: 1 },
     });
     const block = makeBlock({ category: 'data', position: { x: 2, y: 0, z: 4 } });
 
-    const result = resolveSurfacePort(block, plate, 'inbound', 0, 1);
+    const result = resolveSurfacePort(block, container, 'inbound', 0, 1);
 
-    expect(result.plateId).toBe(plate.id);
+    expect(result.containerId).toBe(container.id);
     expect(result.surfaceY).toBe(3);
     expect(result.normal).toBe('neg-x');
     expect(result.surfaceBase).toEqual([12, 3, 25.5]);
@@ -88,15 +88,15 @@ describe('resolveSurfacePort', () => {
   });
 
   it('resolves outbound side using t=0.25 for three-port distribution', () => {
-    const plate = makePlate({
+    const container = makePlate({
       position: { x: 10, y: 2, z: 20 },
-      size: { width: 16, depth: 16, height: 1 },
+      frame: { width: 16, depth: 16, height: 1 },
     });
     const block = makeBlock({ category: 'compute', position: { x: 2, y: 0, z: 4 } });
 
-    const result = resolveSurfacePort(block, plate, 'outbound', 0, 3);
+    const result = resolveSurfacePort(block, container, 'outbound', 0, 3);
 
-    expect(result.plateId).toBe(plate.id);
+    expect(result.containerId).toBe(container.id);
     expect(result.surfaceY).toBe(3);
     expect(result.normal).toBe('neg-z');
     expect(result.surfaceBase).toEqual([12.5, 3, 24]);
@@ -104,14 +104,14 @@ describe('resolveSurfacePort', () => {
   });
 
   it('applies category port counts with semantic modulo mapping for output data endpoints', () => {
-    const plate = makePlate({
+    const container = makePlate({
       position: { x: 0, y: 5, z: 0 },
-      size: { width: 10, depth: 10, height: 2 },
+      frame: { width: 10, depth: 10, height: 2 },
     });
     const block = makeBlock({ category: 'compute', position: { x: 1, y: 0, z: 1 } });
     const totalPorts = CATEGORY_PORTS.compute.outbound;
 
-    const result = resolveSurfacePort(block, plate, 'outbound', 0, totalPorts);
+    const result = resolveSurfacePort(block, container, 'outbound', 0, totalPorts);
 
     expect(totalPorts).toBe(2);
     expect(result.surfaceBase).toEqual([1 + (1 / 3) * 2, 7, 1]);
@@ -158,7 +158,7 @@ describe('routeSameSurface', () => {
       start: [1, 3, 2],
       end: [1, 3, 8],
       kind: 'surface',
-      surfaceId: 'plate-1',
+      surfaceId: 'container-1',
     });
   });
 
@@ -181,7 +181,7 @@ describe('routeSameSurface', () => {
       start: [2, 3, 5],
       end: [9, 3, 5],
       kind: 'surface',
-      surfaceId: 'plate-1',
+      surfaceId: 'container-1',
     });
   });
 
@@ -235,22 +235,22 @@ describe('routeSameSurface', () => {
 describe('getConnectionSurfaceRoute', () => {
   const externalActors: ExternalActor[] = [];
 
-  it('returns same-plate route with surface segments and resolved ports', () => {
-    const plate = makePlate({
-      id: 'plate-a',
+  it('returns same-container route with surface segments and resolved ports', () => {
+    const container = makePlate({
+      id: 'container-a',
       position: { x: 0, y: 0, z: 0 },
-      size: { width: 20, depth: 20, height: 1 },
+      frame: { width: 20, depth: 20, height: 1 },
     });
     const blockA = makeBlock({
       id: 'block-a',
       category: 'compute',
-      parentId: plate.id,
+      parentId: container.id,
       position: { x: 1, y: 0, z: 1 },
     });
     const blockB = makeBlock({
       id: 'block-b',
       category: 'data',
-      parentId: plate.id,
+      parentId: container.id,
       position: { x: 6, y: 0, z: 5 },
     });
     const endpoints = makeEndpoints([blockA.id, blockB.id]);
@@ -262,23 +262,23 @@ describe('getConnectionSurfaceRoute', () => {
     const route = getConnectionSurfaceRoute(
       connection,
       [blockA, blockB],
-      [plate],
+      [container],
       endpoints,
       externalActors,
     );
 
     expect(route).not.toBeNull();
-    expect(route!.srcPort.plateId).toBe('plate-a');
-    expect(route!.tgtPort.plateId).toBe('plate-a');
+    expect(route!.srcPort.containerId).toBe('container-a');
+    expect(route!.tgtPort.containerId).toBe('container-a');
     expect(route!.srcPort.normal).toBe('neg-z');
     expect(route!.tgtPort.normal).toBe('neg-x');
     expect(route!.segments.some((segment) => segment.kind === 'surface')).toBe(true);
-    expect(route!.segments.every((segment) => segment.surfaceId === 'plate-a')).toBe(true);
+    expect(route!.segments.every((segment) => segment.surfaceId === 'container-a')).toBe(true);
   });
 
-  it('falls back to cross-plate transition segments on ground surface', () => {
-    const plateA = makePlate({ id: 'plate-a', position: { x: 0, y: 1, z: 0 } });
-    const plateB = makePlate({ id: 'plate-b', position: { x: 20, y: 4, z: 20 } });
+  it('falls back to cross-container transition segments on ground surface', () => {
+    const plateA = makePlate({ id: 'container-a', position: { x: 0, y: 1, z: 0 } });
+    const plateB = makePlate({ id: 'container-b', position: { x: 20, y: 4, z: 20 } });
     const blockA = makeBlock({
       id: 'block-a',
       category: 'compute',
@@ -306,8 +306,8 @@ describe('getConnectionSurfaceRoute', () => {
     );
 
     expect(route).not.toBeNull();
-    expect(route!.srcPort.plateId).toBe('plate-a');
-    expect(route!.tgtPort.plateId).toBe('plate-b');
+    expect(route!.srcPort.containerId).toBe('container-a');
+    expect(route!.tgtPort.containerId).toBe('container-b');
     expect(route!.segments.length).toBeGreaterThanOrEqual(2);
     expect(route!.segments.every((segment) => segment.kind === 'transition')).toBe(true);
     expect(route!.segments.every((segment) => segment.start[1] === 0 && segment.end[1] === 0)).toBe(
@@ -316,8 +316,8 @@ describe('getConnectionSurfaceRoute', () => {
   });
 
   it('returns null when source endpoint is missing', () => {
-    const plate = makePlate({ id: 'plate-a' });
-    const blockB = makeBlock({ id: 'block-b', parentId: plate.id });
+    const container = makePlate({ id: 'container-a' });
+    const blockB = makeBlock({ id: 'block-b', parentId: container.id });
     const endpoints = makeEndpoints([blockB.id]);
     const connection = makeConnection({
       from: endpointId('missing-block', 'output', 'data'),
@@ -327,7 +327,7 @@ describe('getConnectionSurfaceRoute', () => {
     const route = getConnectionSurfaceRoute(
       connection,
       [blockB],
-      [plate],
+      [container],
       endpoints,
       externalActors,
     );
@@ -336,8 +336,8 @@ describe('getConnectionSurfaceRoute', () => {
   });
 
   it('returns null when endpoint exists but block is missing', () => {
-    const plate = makePlate({ id: 'plate-a' });
-    const blockB = makeBlock({ id: 'block-b', parentId: plate.id });
+    const container = makePlate({ id: 'container-a' });
+    const blockB = makeBlock({ id: 'block-b', parentId: container.id });
     const endpoints = makeEndpoints(['ghost-block', blockB.id]);
     const connection = makeConnection({
       from: endpointId('ghost-block', 'output', 'data'),
@@ -347,7 +347,7 @@ describe('getConnectionSurfaceRoute', () => {
     const route = getConnectionSurfaceRoute(
       connection,
       [blockB],
-      [plate],
+      [container],
       endpoints,
       externalActors,
     );
@@ -355,9 +355,9 @@ describe('getConnectionSurfaceRoute', () => {
     expect(route).toBeNull();
   });
 
-  it('returns null when parent plate for an endpoint block is missing', () => {
-    const blockA = makeBlock({ id: 'block-a', parentId: 'missing-plate' });
-    const blockB = makeBlock({ id: 'block-b', parentId: 'missing-plate' });
+  it('returns null when parent container for an endpoint block is missing', () => {
+    const blockA = makeBlock({ id: 'block-a', parentId: 'missing-container' });
+    const blockB = makeBlock({ id: 'block-b', parentId: 'missing-container' });
     const endpoints = makeEndpoints([blockA.id, blockB.id]);
     const connection = makeConnection({
       from: endpointId(blockA.id, 'output', 'data'),
@@ -376,9 +376,9 @@ describe('getConnectionSurfaceRoute', () => {
   });
 
   it('returns null on endpoint direction mismatch', () => {
-    const plate = makePlate({ id: 'plate-a' });
-    const blockA = makeBlock({ id: 'block-a', parentId: plate.id });
-    const blockB = makeBlock({ id: 'block-b', parentId: plate.id });
+    const container = makePlate({ id: 'container-a' });
+    const blockA = makeBlock({ id: 'block-a', parentId: container.id });
+    const blockB = makeBlock({ id: 'block-b', parentId: container.id });
     const endpoints = makeEndpoints([blockA.id, blockB.id]);
     const connection = makeConnection({
       from: endpointId(blockA.id, 'input', 'data'),
@@ -388,7 +388,7 @@ describe('getConnectionSurfaceRoute', () => {
     const route = getConnectionSurfaceRoute(
       connection,
       [blockA, blockB],
-      [plate],
+      [container],
       endpoints,
       externalActors,
     );

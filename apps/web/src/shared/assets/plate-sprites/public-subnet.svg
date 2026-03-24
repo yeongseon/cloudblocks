@@ -1,8 +1,0 @@
-<svg viewBox="-20 0 468 254" xmlns="http://www.w3.org/2000/svg">
-  <!-- Faces -->
-  <polygon points="224,10 438,112 224,214 10,112" fill="#22C55E" stroke="#4ADE80" stroke-width="1" stroke-opacity="0.6" />
-  <polygon points="10,112 224,214 224,244 10,142" fill="#16A34A" />
-  <polygon points="224,214 438,112 438,142 224,244" fill="#15803D" />
-  <text transform="matrix(0.9030,0.4304,0,1,117,178)" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" fill="#ffffff" fill-opacity="0.9" text-anchor="middle" dominant-baseline="middle">Public Subnet</text>
-  <text transform="matrix(0.9030,-0.4304,0,1,331,178)" font-family="system-ui, -apple-system, sans-serif" font-size="18" text-anchor="middle" dominant-baseline="middle">🌍</text>
-</svg>

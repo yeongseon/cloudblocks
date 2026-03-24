@@ -1,4 +1,4 @@
-import type { BrickSilhouette } from '../../shared/types/index';
+import type { BlockSilhouette } from '../../shared/types/index';
 import type { BlockDimensionsCU } from '../../shared/types/visualProfile';
 import {
   BLOCK_MARGIN,
@@ -274,7 +274,7 @@ const circleSilhouette: SilhouetteGenerator = ({
   };
 };
 
-export const SILHOUETTE_GENERATORS: Record<BrickSilhouette, SilhouetteGenerator> = {
+export const SILHOUETTE_GENERATORS: Record<BlockSilhouette, SilhouetteGenerator> = {
   rect: rectSilhouette,
   cylinder: cylinderSilhouette,
   gateway: gatewaySilhouette,
@@ -328,7 +328,7 @@ export function cuToSilhouetteDimensions(cu: BlockDimensionsCU): SilhouetteDimen
  * and derives all pixel values via RENDER_SCALE.
  */
 export function getSilhouetteFromCU(
-  silhouette: BrickSilhouette,
+  silhouette: BlockSilhouette,
   cu: BlockDimensionsCU,
 ): SilhouettePolygons {
   return SILHOUETTE_GENERATORS[silhouette](cuToSilhouetteDimensions(cu));

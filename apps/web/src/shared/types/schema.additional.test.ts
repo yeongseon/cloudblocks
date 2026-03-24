@@ -22,7 +22,7 @@ describe('schema deserialize additional branch coverage', () => {
             nodes: [
               42,
               {
-                id: 'plate-1',
+                id: 'container-1',
                 name: 'Region',
                 kind: 'container',
                 layer: 'region',
@@ -81,7 +81,7 @@ describe('schema deserialize additional branch coverage', () => {
             version: '1',
             plates: [
               {
-                id: 'plate-1',
+                id: 'container-1',
                 name: 'VNet',
                 type: 'region',
                 parentId: 'root-parent',
@@ -91,7 +91,7 @@ describe('schema deserialize additional branch coverage', () => {
                 profileId: 'network-hub',
               },
               {
-                id: 'plate-2',
+                id: 'container-2',
                 name: 'Subnet',
                 type: 'subnet',
                 position: { x: 1, y: 0.3, z: 1 },
@@ -103,7 +103,7 @@ describe('schema deserialize additional branch coverage', () => {
                 id: 'blk-1',
                 name: 'App',
                 category: 'compute',
-                placementId: 'plate-2',
+                placementId: 'container-2',
                 position: { x: 1, y: 0.5, z: 1 },
                 provider: 'aws',
                 subtype: 'lambda',
@@ -116,7 +116,7 @@ describe('schema deserialize additional branch coverage', () => {
                 id: 'blk-2',
                 name: 'Queue',
                 category: 'messaging',
-                placementId: 'plate-2',
+                placementId: 'container-2',
                 position: { x: 2, y: 0.5, z: 2 },
               },
             ],
@@ -134,8 +134,8 @@ describe('schema deserialize additional branch coverage', () => {
 
     const [workspace] = deserialize(JSON.stringify(payload));
     const nodes = workspace.architecture.nodes;
-    const parentPlate = nodes.find((node) => node.id === 'plate-1');
-    const subnetPlate = nodes.find((node) => node.id === 'plate-2');
+    const parentPlate = nodes.find((node) => node.id === 'container-1');
+    const subnetPlate = nodes.find((node) => node.id === 'container-2');
     const app = nodes.find((node) => node.id === 'blk-1');
     const queue = nodes.find((node) => node.id === 'blk-2');
 
@@ -170,7 +170,7 @@ describe('schema deserialize additional branch coverage', () => {
             version: '1',
             plates: [
               {
-                id: 'plate-1',
+                id: 'container-1',
                 name: 'VNet',
                 type: 'region',
                 position: { x: 0, y: 0, z: 0 },
@@ -192,7 +192,7 @@ describe('schema deserialize additional branch coverage', () => {
     const [workspace] = deserialize(JSON.stringify(payload));
 
     expect(workspace.architecture.nodes).toHaveLength(1);
-    expect(workspace.architecture.nodes[0]).toMatchObject({ id: 'plate-1', kind: 'container' });
+    expect(workspace.architecture.nodes[0]).toMatchObject({ id: 'container-1', kind: 'container' });
   });
 
   it('normalizes already-v4 connections and defaults metadata to empty object', () => {
@@ -208,7 +208,7 @@ describe('schema deserialize additional branch coverage', () => {
             version: '1',
             nodes: [
               {
-                id: 'plate-1',
+                id: 'container-1',
                 name: 'Region',
                 kind: 'container',
                 layer: 'region',
@@ -228,14 +228,14 @@ describe('schema deserialize additional branch coverage', () => {
                 resourceType: 'web_compute',
                 category: 'compute',
                 provider: 'azure',
-                parentId: 'plate-1',
+                parentId: 'container-1',
                 position: { x: 1, y: 0.5, z: 1 },
                 metadata: {},
               },
             ],
             endpoints: [
               { id: 'custom-1', nodeId: 'blk-1', direction: 'output', semantic: 'data' },
-              { id: 'custom-2', nodeId: 'plate-1', direction: 'input', semantic: 'data' },
+              { id: 'custom-2', nodeId: 'container-1', direction: 'input', semantic: 'data' },
             ],
             connections: [
               {
@@ -278,7 +278,7 @@ describe('schema deserialize additional branch coverage', () => {
             version: '1',
             nodes: [
               {
-                id: 'plate-1',
+                id: 'container-1',
                 name: 'Region',
                 kind: 'container',
                 layer: 'region',
@@ -298,7 +298,7 @@ describe('schema deserialize additional branch coverage', () => {
                 resourceType: 'message_queue',
                 category: 'queue',
                 provider: 'azure',
-                parentId: 'plate-1',
+                parentId: 'container-1',
                 position: { x: 1, y: 0.5, z: 1 },
                 metadata: {},
               },
@@ -310,7 +310,7 @@ describe('schema deserialize additional branch coverage', () => {
                 resourceType: 'web_compute',
                 category: 'compute',
                 provider: 'azure',
-                parentId: 'plate-1',
+                parentId: 'container-1',
                 position: { x: 2, y: 0.5, z: 1 },
                 metadata: {},
               },

@@ -8,11 +8,11 @@
 export type LayerType = 'global' | 'edge' | 'region' | 'zone' | 'subnet' | 'resource';
 
 /**
- * Node kind discriminator for the ResourceNode union.
- * - container: holds child nodes (VNet, Subnet, Resource Group, etc.)
- * - resource: leaf resource that cannot contain children (VM, SQL DB, etc.)
+ * Block kind discriminator for the Block union.
+ * - container: holds child blocks (VNet, Subnet, Resource Group, etc.)
+ * - resource: leaf block that cannot contain children (VM, SQL DB, etc.)
  */
-export type NodeKind = 'container' | 'resource';
+export type BlockKind = 'container' | 'resource';
 
 /**
  * Resource categories — the 8 canonical resource groups.
@@ -49,7 +49,7 @@ export type AggregationMode = 'single' | 'count';
 
 /**
  * Block role indicators (v2.0 §9).
- * Visual-only annotations that describe the function of a node.
+ * Visual-only annotations that describe the function of a block.
  */
 export type BlockRole =
   | 'primary'
@@ -62,24 +62,17 @@ export type BlockRole =
   | 'external';
 
 /**
- * Connection protocol/type between resource nodes.
+ * Connection protocol/type between blocks.
  * Direction represents the **initiator** of the request.
  */
 /** @deprecated Use EndpointSemantic for v4 connections. Kept for v3→v4 migration only. */
 export type ConnectionType = 'dataflow' | 'http' | 'internal' | 'data' | 'async';
 
-/** Direction of an endpoint on a node. */
+/** Direction of an endpoint on a block. */
 export type EndpointDirection = 'input' | 'output';
 
 /** Semantic type of an endpoint — determines what kind of traffic flows. */
 export type EndpointSemantic = 'http' | 'event' | 'data';
 
-// ---------------------------------------------------------------------------
-// Deprecated aliases — kept temporarily for migration, will be removed post-M19
-// ---------------------------------------------------------------------------
-
-/** @deprecated Use ResourceCategory instead. */
-export type BlockCategory = ResourceCategory;
-
-/** @deprecated PlateType is removed in the unified model. Use LayerType + NodeKind='container'. */
-export type PlateType = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
+/** Container block layer type — LayerType minus 'resource'. */
+export type ContainerLayer = 'global' | 'edge' | 'region' | 'zone' | 'subnet';

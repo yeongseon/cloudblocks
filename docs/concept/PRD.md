@@ -8,7 +8,7 @@ Build cloud architecture visually using a block-based composition model — and 
 
 # 1. Product Summary
 
-CloudBlocks is an **open-source architecture compiler** that models cloud infrastructure using a **block-based composition system**. Users assemble infrastructure by placing visual building blocks on plates in a **2.5D isometric interface**, the platform validates the architecture against real-world rules, and generates Infrastructure-as-Code.
+CloudBlocks is an **open-source architecture compiler** that models cloud infrastructure using a **block-based composition system**. Users assemble infrastructure by placing visual building blocks on container blocks in a **2.5D isometric interface**, the platform validates the architecture against real-world rules, and generates Infrastructure-as-Code.
 
 Unlike traditional diagram tools (draw.io, Lucidchart), every visual element in CloudBlocks represents a **real infrastructure component** that maps directly to deployable code. Unlike direct IaC authoring (Terraform, Bicep), users never write infrastructure code — they model architecture visually and the system compiles it.
 
@@ -46,11 +46,11 @@ CloudBlocks models cloud infrastructure using a **block-based architecture syste
 
 Instead of writing infrastructure code directly, users assemble architecture using visual building blocks:
 
-| Concept        | Role                                                          | Analogy        |
-| -------------- | ------------------------------------------------------------- | -------------- |
-| **Plate**      | Infrastructure boundary (network, subnet)                     | Baseplate      |
-| **Block**      | Infrastructure resource (compute, database, storage, gateway) | Building block |
-| **Connection** | Communication flow between blocks (dataflow)                  | Connector      |
+| Concept             | Role                                                          | Analogy        |
+| ------------------- | ------------------------------------------------------------- | -------------- |
+| **Container block** | Infrastructure boundary (network, subnet)                     | Boundary block |
+| **Block**           | Infrastructure resource (compute, database, storage, gateway) | Building block |
+| **Connection**      | Communication flow between blocks (dataflow)                  | Connector      |
 
 ```
 Internet → [Gateway] → [Compute] → [Database]
@@ -201,22 +201,22 @@ CloudBlocks uses a **hierarchical architecture model**.
 
 ```
 ExternalActor (Internet)
-└ Plate (Network)
-  └ Plate (Subnet)
+└ ContainerBlock (Network)
+  └ ContainerBlock (Subnet)
     └ Block (Resource)
 ```
 
 ### Terminology Mapping
 
-| PRD Term     | Code Type                          | Description                                                    |
-| ------------ | ---------------------------------- | -------------------------------------------------------------- |
-| Network      | `Plate` (type: `network`)          | Cloud network container (Azure VNet, AWS VPC)                  |
-| Subnet       | `Plate` (type: `subnet`)           | Subnet within a network                                        |
-| Resource     | `Block`                            | Infrastructure component (compute, database, storage, gateway) |
-| Internet     | `ExternalActor` (type: `internet`) | External traffic entry point                                   |
-| Connection   | `Connection` (type: `dataflow`)    | Request flow between components                                |
-| Architecture | `ArchitectureModel`                | Root model containing all elements                             |
-| Workspace    | `Workspace`                        | Container for one architecture + metadata                      |
+| PRD Term     | Code Type                                                                 | Description                                                    |
+| ------------ | ------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Network      | `ContainerBlock` (`kind: 'container'`, `resourceType: 'virtual_network'`) | Cloud network container (Azure VNet, AWS VPC)                  |
+| Subnet       | `ContainerBlock` (`kind: 'container'`, `resourceType: 'subnet'`)          | Subnet within a network                                        |
+| Resource     | `Block`                                                                   | Infrastructure component (compute, database, storage, gateway) |
+| Internet     | `ExternalActor` (type: `internet`)                                        | External traffic entry point                                   |
+| Connection   | `Connection` (type: `dataflow`)                                           | Request flow between components                                |
+| Architecture | `ArchitectureModel`                                                       | Root model containing all elements                             |
+| Workspace    | `Workspace`                                                               | Container for one architecture + metadata                      |
 
 > See also: ARCHITECTURE.md §3 (Core Modeling Engine), §3.5 (Architecture Model Schema)
 
@@ -224,11 +224,11 @@ ExternalActor (Internet)
 
 # 9. Architecture Elements
 
-## 9.1 Plates
+## 9.1 Container Blocks
 
-Plates represent **infrastructure containers**.
+Container blocks represent **infrastructure containers**.
 
-### Network Plate
+### Network Container Block
 
 Represents cloud network.
 
@@ -237,7 +237,7 @@ Examples:
 - Azure VNet
 - AWS VPC
 
-### Subnet Plate
+### Subnet Container Block
 
 Represents subnet within a network.
 
@@ -248,7 +248,7 @@ Types:
 
 Rules:
 
-- Must exist inside Network Plate
+- Must exist inside a Network container block
 
 ---
 
@@ -334,7 +334,7 @@ Features:
 
 - Isometric architecture editor
 - Block placement
-- Plate hierarchy
+- Container block hierarchy
 - Snap-to-grid placement
 - Resource palette
 
@@ -362,7 +362,7 @@ Example output:
 {
   "id": "arch-001",
   "name": "3-Tier Web App",
-  "plates": [...],
+  "containerBlocks": [...],
   "blocks": [...],
   "connections": [...],
   "externalActors": [...]

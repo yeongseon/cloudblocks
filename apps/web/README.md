@@ -4,7 +4,7 @@ The main frontend application for CloudBlocks — a 2.5D isometric visual archit
 
 ## What This Package Does
 
-This is the **visual editor** where users design cloud architectures by placing plates (global, edge, region, zone, subnet) and blocks (compute, database, storage, gateway, function, queue, event, analytics, identity, observability) on a 2D model that is rendered as 2.5D isometric SVG. Connections between blocks represent initiator-direction semantics across typed protocols.
+This is the **visual editor** where users design cloud architectures by placing container blocks (global, edge, region, zone, subnet) and resource blocks (compute, database, storage, gateway, function, queue, event, analytics, identity, observability) on a 2D model that is rendered as 2.5D isometric SVG. Connections between blocks represent initiator-direction semantics across typed protocols.
 
 ## Quick Start
 
@@ -33,7 +33,7 @@ src/
 │   └── index.css
 ├── entities/                     # Domain entities (models + store)
 │   ├── store/
-│   │   ├── architectureStore.ts  # Main Zustand store (plates, blocks, connections)
+│   │   ├── architectureStore.ts  # Main Zustand store (container blocks, resource blocks, connections)
 │   │   ├── uiStore.ts            # UI state (tool mode, panel visibility)
 │   │   └── authStore.ts          # Auth state (GitHub OAuth)
 │   ├── validation/               # Validation engine
@@ -41,7 +41,7 @@ src/
 │   │   ├── placement.ts          # Placement rule validation
 │   │   └── connection.ts         # Connection rule validation
 │   ├── block/BlockSvg.tsx        # Isometric block SVG sprite
-│   ├── plate/PlateSvg.tsx        # Isometric plate SVG sprite (with studs)
+│   ├── container-block/ContainerBlockSvg.tsx  # Isometric container block SVG sprite (with ports)
 │   └── connection/ConnectionPath.tsx  # SVG connection paths + external actor
 ├── features/                     # Business logic (stateless)
 │   ├── generate/                 # Code generation pipeline (Terraform, Bicep, Pulumi)
@@ -97,7 +97,7 @@ src/
 ## Current Implementation (Milestone 1–Milestone 7)
 
 - ✅ Pure SVG 2.5D isometric projection (no camera, no canvas)
-- ✅ Network plate + public/private subnet plates
+- ✅ Network container block + public/private subnet container blocks
 - ✅ Block placement with grid snapping (compute, database, storage, gateway)
 - ✅ Connection lines with 5 typed connection types (`dataflow`, `http`, `internal`, `data`, `async`)
 - ✅ Placement & connection rule validation

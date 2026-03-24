@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
 import type { GeneratedOutput, GeneratedFile, GenerationOptions, GeneratorPlugin } from './types';
 import { GenerationError, generateCode } from './pipeline';
 import { registerGenerator } from './registry';
 
 describe('pipeline', () => {
   const containerResourceTypeByLayer: Record<
-    Exclude<ContainerNode['layer'], 'resource'>,
-    ContainerNode['resourceType']
+    Exclude<ContainerBlock['layer'], 'resource'>,
+    ContainerBlock['resourceType']
   > = {
     global: 'virtual_network',
     edge: 'virtual_network',
@@ -17,8 +17,8 @@ describe('pipeline', () => {
   };
 
   function createContainer(
-    overrides: Partial<ContainerNode> & { type?: ContainerNode['layer'] },
-  ): ContainerNode {
+    overrides: Partial<ContainerBlock> & { type?: ContainerBlock['layer'] },
+  ): ContainerBlock {
     const layer = overrides.layer ?? overrides.type ?? 'subnet';
     return {
       id: 'container-1',
@@ -26,18 +26,18 @@ describe('pipeline', () => {
       kind: 'container',
       layer,
       resourceType:
-        containerResourceTypeByLayer[layer as Exclude<ContainerNode['layer'], 'resource'>],
+        containerResourceTypeByLayer[layer as Exclude<ContainerBlock['layer'], 'resource'>],
       category: 'network',
       provider: 'azure',
       parentId: null,
       position: { x: 0, y: 0, z: 0 },
-      size: { width: 8, height: 1, depth: 6 },
+      frame: { width: 8, height: 1, depth: 6 },
       metadata: {},
       ...overrides,
     };
   }
 
-  function createResource(overrides: Partial<LeafNode>): LeafNode {
+  function createResource(overrides: Partial<ResourceBlock>): ResourceBlock {
     return {
       id: 'resource-1',
       name: 'Resource',
@@ -93,7 +93,7 @@ describe('pipeline', () => {
           resourceType: 'virtual_network',
           parentId: null,
           position: { x: 0, y: 0, z: 0 },
-          size: { width: 12, height: 0.3, depth: 10 },
+          frame: { width: 12, height: 0.3, depth: 10 },
         }),
         createContainer({
           id: 'sub-1',
@@ -102,7 +102,7 @@ describe('pipeline', () => {
           resourceType: 'subnet',
           parentId: 'net-1',
           position: { x: 0, y: 0.3, z: 0 },
-          size: { width: 5, height: 0.2, depth: 8 },
+          frame: { width: 5, height: 0.2, depth: 8 },
         }),
         createResource({
           id: 'blk-1',
@@ -183,7 +183,7 @@ describe('pipeline', () => {
             resourceType: 'virtual_network',
             parentId: null,
             position: { x: 0, y: 0, z: 0 },
-            size: { width: 12, height: 0.3, depth: 10 },
+            frame: { width: 12, height: 0.3, depth: 10 },
           }),
           createResource({
             id: 'blk-2',
@@ -235,7 +235,7 @@ describe('pipeline', () => {
           resourceType: 'virtual_network',
           parentId: null,
           position: { x: 0, y: 0, z: 0 },
-          size: { width: 12, height: 0.3, depth: 10 },
+          frame: { width: 12, height: 0.3, depth: 10 },
         }),
         createContainer({
           id: 'sub-1',
@@ -244,7 +244,7 @@ describe('pipeline', () => {
           resourceType: 'subnet',
           parentId: 'net-1',
           position: { x: 0, y: 0.3, z: 0 },
-          size: { width: 5, height: 0.2, depth: 8 },
+          frame: { width: 5, height: 0.2, depth: 8 },
         }),
         createResource({
           id: 'blk-1',
@@ -318,7 +318,7 @@ describe('pipeline', () => {
             resourceType: 'virtual_network',
             parentId: null,
             position: { x: 0, y: 0, z: 0 },
-            size: { width: 12, height: 0.3, depth: 10 },
+            frame: { width: 12, height: 0.3, depth: 10 },
           }),
           createResource({
             id: 'db-1',
@@ -411,7 +411,7 @@ describe('pipeline', () => {
           resourceType: 'virtual_network',
           parentId: null,
           position: { x: 0, y: 0, z: 0 },
-          size: { width: 12, height: 0.3, depth: 10 },
+          frame: { width: 12, height: 0.3, depth: 10 },
         }),
       ],
       connections: [],

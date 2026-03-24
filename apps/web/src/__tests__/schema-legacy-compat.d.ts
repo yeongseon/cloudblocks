@@ -1,15 +1,15 @@
 declare module '@cloudblocks/schema' {
   interface ArchitectureModel {
-    plates?: ContainerNode[];
-    blocks?: LeafNode[];
+    plates?: ContainerBlock[];
+    blocks?: ResourceBlock[];
   }
 
-  interface ContainerNode {
-    type?: ContainerNode['layer'];
+  interface ContainerBlock {
+    type?: ContainerBlock['layer'];
     children?: string[];
   }
 
-  interface LeafNode {
+  interface ResourceBlock {
     placementId?: string;
   }
 }

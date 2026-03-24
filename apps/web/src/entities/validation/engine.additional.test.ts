@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ArchitectureModel, LeafNode } from '@cloudblocks/schema';
+import type { ArchitectureModel, ResourceBlock } from '@cloudblocks/schema';
 import { validateArchitecture } from './engine';
 import * as aggregationModule from './aggregation';
 import * as roleModule from './role';
@@ -13,7 +13,7 @@ function makeModel(): ArchitectureModel {
     version: '1',
     nodes: [
       {
-        id: 'plate-1',
+        id: 'container-1',
         name: 'Subnet',
         kind: 'container',
         layer: 'subnet',
@@ -22,7 +22,7 @@ function makeModel(): ArchitectureModel {
         provider: 'azure',
         parentId: null,
         position: { x: 0, y: 0, z: 0 },
-        size: { width: 8, height: 0.2, depth: 8 },
+        frame: { width: 8, height: 0.2, depth: 8 },
         metadata: {},
       },
       {
@@ -33,7 +33,7 @@ function makeModel(): ArchitectureModel {
         resourceType: 'web_compute',
         category: 'compute',
         provider: 'azure',
-        parentId: 'plate-1',
+        parentId: 'container-1',
         position: { x: 1, y: 0.5, z: 1 },
         metadata: {},
       },
@@ -55,23 +55,25 @@ describe('validation engine aggregation/role branches', () => {
   });
 
   it('routes aggregation severity branches to errors and warnings', () => {
-    vi.spyOn(aggregationModule, 'validateAggregation').mockImplementation((resource: LeafNode) => {
-      if (resource.id === 'resource-1') {
+    vi.spyOn(aggregationModule, 'validateAggregation').mockImplementation(
+      (resource: ResourceBlock) => {
+        if (resource.id === 'resource-1') {
+          return {
+            ruleId: 'agg-error',
+            severity: 'error',
+            message: 'Aggregation error',
+            targetId: resource.id,
+          };
+        }
+
         return {
-          ruleId: 'agg-error',
-          severity: 'error',
-          message: 'Aggregation error',
+          ruleId: 'agg-warning',
+          severity: 'warning',
+          message: 'Aggregation warning',
           targetId: resource.id,
         };
-      }
-
-      return {
-        ruleId: 'agg-warning',
-        severity: 'warning',
-        message: 'Aggregation warning',
-        targetId: resource.id,
-      };
-    });
+      },
+    );
     vi.spyOn(roleModule, 'validateRoles').mockReturnValue(null);
 
     const result = validateArchitecture(makeModel());
@@ -82,7 +84,7 @@ describe('validation engine aggregation/role branches', () => {
 
   it('routes role severity branches to errors and warnings', () => {
     vi.spyOn(aggregationModule, 'validateAggregation').mockReturnValue(null);
-    vi.spyOn(roleModule, 'validateRoles').mockImplementation((resource: LeafNode) => ({
+    vi.spyOn(roleModule, 'validateRoles').mockImplementation((resource: ResourceBlock) => ({
       ruleId: 'role-warning',
       severity: 'warning',
       message: `Role warning for ${resource.id}`,
@@ -94,7 +96,7 @@ describe('validation engine aggregation/role branches', () => {
     expect(warningResult.errors).toEqual([]);
     expect(warningResult.warnings.map((entry) => entry.ruleId)).toContain('role-warning');
 
-    vi.spyOn(roleModule, 'validateRoles').mockImplementation((resource: LeafNode) => ({
+    vi.spyOn(roleModule, 'validateRoles').mockImplementation((resource: ResourceBlock) => ({
       ruleId: 'role-error',
       severity: 'error',
       message: `Role error for ${resource.id}`,

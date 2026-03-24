@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import type { Connection, PortPolicy } from '../index.js';
 import { CATEGORY_PORTS, getPortsForResourceType } from '../index.js';
 
-describe('stub port policy', () => {
+describe('port policy', () => {
   it('exposes category defaults', () => {
     expect(CATEGORY_PORTS.network).toEqual({ inbound: 1, outbound: 1 });
     expect(CATEGORY_PORTS.compute).toEqual({ inbound: 2, outbound: 2 });

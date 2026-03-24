@@ -1,15 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import type { BlockRole, LeafNode } from '@cloudblocks/schema';
+import type { BlockRole, ResourceBlock } from '@cloudblocks/schema';
 import { BLOCK_ROLES } from '@cloudblocks/domain';
 import { validateRoles } from './role';
 import { makeTestBlock, type LegacyBlockOverrides } from '../../__tests__/legacyModelTestUtils';
 
-function makeBlock(overrides: LegacyBlockOverrides = {}): LeafNode {
+function makeBlock(overrides: LegacyBlockOverrides = {}): ResourceBlock {
   return makeTestBlock({
     id: 'block-1',
     name: 'Block One',
     category: 'compute',
-    placementId: 'plate-1',
+    placementId: 'container-1',
     position: { x: 0, y: 0, z: 0 },
     metadata: {},
     ...overrides,

@@ -31,7 +31,7 @@
   --shadow-btn-base: var(--shadow-btn);
   --shadow-btn-hover: var(--shadow-btn);
   --shadow-btn-active: var(--shadow-btn);
-  --shadow-stud: inset 0 -2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(255, 255, 255, 0.5);
+  --shadow-port: inset 0 -2px 4px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(255, 255, 255, 0.5);
 
   --cat-network: #3b82f6;
   --cat-security: #ef4444;

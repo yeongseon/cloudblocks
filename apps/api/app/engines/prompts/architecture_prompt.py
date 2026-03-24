@@ -60,30 +60,30 @@ SUBTYPE_REGISTRY: dict[str, dict[str, tuple[str, ...]]] = {
 EXAMPLE_THREE_TIER = {
     "plates": [
         {
-            "id": "plate-1",
+            "id": "cb-1",
             "name": "Prod VPC",
             "type": "region",
             "parentId": None,
-            "children": ["plate-2", "plate-3"],
+            "children": ["cb-2", "cb-3"],
             "position": {"x": 0, "y": 0, "z": 0},
             "size": {"width": 30, "height": 1, "depth": 20},
         },
         {
-            "id": "plate-2",
+            "id": "cb-2",
             "name": "Public Subnet",
             "type": "subnet",
             "subnetAccess": "public",
-            "parentId": "plate-1",
+            "parentId": "cb-1",
             "children": ["block-1"],
             "position": {"x": 2, "y": 0, "z": 2},
             "size": {"width": 12, "height": 1, "depth": 16},
         },
         {
-            "id": "plate-3",
+            "id": "cb-3",
             "name": "Private Subnet",
             "type": "subnet",
             "subnetAccess": "private",
-            "parentId": "plate-1",
+            "parentId": "cb-1",
             "children": ["block-2", "block-3"],
             "position": {"x": 16, "y": 0, "z": 2},
             "size": {"width": 12, "height": 1, "depth": 16},
@@ -94,7 +94,7 @@ EXAMPLE_THREE_TIER = {
             "id": "block-1",
             "name": "Web ALB",
             "category": "gateway",
-            "placementId": "plate-2",
+            "placementId": "cb-2",
             "position": {"x": 2, "y": 0, "z": 2},
             "provider": "aws",
             "subtype": "alb",
@@ -103,7 +103,7 @@ EXAMPLE_THREE_TIER = {
             "id": "block-2",
             "name": "App ECS",
             "category": "compute",
-            "placementId": "plate-3",
+            "placementId": "cb-3",
             "position": {"x": 2, "y": 0, "z": 2},
             "provider": "aws",
             "subtype": "ecs",
@@ -112,7 +112,7 @@ EXAMPLE_THREE_TIER = {
             "id": "block-3",
             "name": "App DB",
             "category": "database",
-            "placementId": "plate-3",
+            "placementId": "cb-3",
             "position": {"x": 6, "y": 0, "z": 6},
             "provider": "aws",
             "subtype": "rds-postgres",
@@ -121,7 +121,7 @@ EXAMPLE_THREE_TIER = {
             "id": "block-4",
             "name": "Assets",
             "category": "storage",
-            "placementId": "plate-3",
+            "placementId": "cb-3",
             "position": {"x": 6, "y": 0, "z": 2},
             "provider": "aws",
             "subtype": "s3",
@@ -160,20 +160,20 @@ EXAMPLE_THREE_TIER = {
 EXAMPLE_SERVERLESS_EVENT = {
     "plates": [
         {
-            "id": "plate-10",
+            "id": "cb-10",
             "name": "Serverless Region",
             "type": "region",
             "parentId": None,
-            "children": ["plate-11"],
+            "children": ["cb-11"],
             "position": {"x": 0, "y": 0, "z": 0},
             "size": {"width": 25, "height": 1, "depth": 15},
         },
         {
-            "id": "plate-11",
+            "id": "cb-11",
             "name": "App Subnet",
             "type": "subnet",
             "subnetAccess": "private",
-            "parentId": "plate-10",
+            "parentId": "cb-10",
             "children": [
                 "block-10",
                 "block-11",
@@ -190,7 +190,7 @@ EXAMPLE_SERVERLESS_EVENT = {
             "id": "block-10",
             "name": "Public API",
             "category": "gateway",
-            "placementId": "plate-11",
+            "placementId": "cb-11",
             "position": {"x": 2, "y": 0, "z": 2},
             "provider": "aws",
             "subtype": "api-gateway",
@@ -199,7 +199,7 @@ EXAMPLE_SERVERLESS_EVENT = {
             "id": "block-11",
             "name": "Ingest Function",
             "category": "function",
-            "placementId": "plate-11",
+            "placementId": "cb-11",
             "position": {"x": 6, "y": 0, "z": 2},
             "provider": "aws",
             "subtype": "lambda",
@@ -208,7 +208,7 @@ EXAMPLE_SERVERLESS_EVENT = {
             "id": "block-12",
             "name": "Work Queue",
             "category": "queue",
-            "placementId": "plate-11",
+            "placementId": "cb-11",
             "position": {"x": 10, "y": 0, "z": 2},
             "provider": "aws",
             "subtype": "sqs",
@@ -217,7 +217,7 @@ EXAMPLE_SERVERLESS_EVENT = {
             "id": "block-13",
             "name": "Worker Function",
             "category": "function",
-            "placementId": "plate-11",
+            "placementId": "cb-11",
             "position": {"x": 6, "y": 0, "z": 6},
             "provider": "aws",
             "subtype": "lambda",
@@ -226,7 +226,7 @@ EXAMPLE_SERVERLESS_EVENT = {
             "id": "block-14",
             "name": "Event Store",
             "category": "database",
-            "placementId": "plate-11",
+            "placementId": "cb-11",
             "position": {"x": 10, "y": 0, "z": 6},
             "provider": "aws",
             "subtype": "dynamodb",
@@ -425,15 +425,15 @@ Provider focus for this request:
 {provider_subtypes}
 
 Placement Rules:
-- Every block's placementId MUST reference an existing plate id.
-- Root plates (global, edge) have parentId: null.
+- Every block's placementId MUST reference an existing container block id.
+- Root container blocks (global, edge) have parentId: null.
 - Layer nesting follows a strict hierarchy: global > edge > region > zone > subnet > resource.
 - Valid parent types:
-  - region plates can be children of global or edge plates, or have no parent.
-  - zone plates must be inside a region plate.
-  - subnet plates must be inside a zone or region plate.
-- Blocks (resources) must be placed on a subnet or higher-level plate.
-- Region plates should contain at least one subnet.
+  - region container blocks can be children of global or edge container blocks, or have no parent.
+  - zone container blocks must be inside a region container block.
+  - subnet container blocks must be inside a zone or region container block.
+- Blocks (resources) must be placed on a subnet or higher-level container block.
+- Region container blocks should contain at least one subnet.
 
 Connection Rules:
 - sourceId and targetId must reference existing block ids or external actor ids.
@@ -443,17 +443,17 @@ Connection Rules:
 Position and layout guidance:
 - All positions and sizes use integer CU (Cloud Unit) values.
 - Use grid-based positions with x and z increments of 1 CU.
-- Block spacing: 1 CU between blocks. Plate padding: 2 CU.
-- Plates should be large enough to contain their blocks with 2 CU padding on each side.
-- Example plate size: {{"width": 25, "height": 1, "depth": 15}}.
-- Block positions are relative to parent plate
+- Block spacing: 1 CU between blocks. Container block padding: 2 CU.
+- Container blocks should be large enough to contain their blocks with 2 CU padding on each side.
+- Example container block size: {{"width": 25, "height": 1, "depth": 15}}.
+- Block positions are relative to parent container block
   and should start at {{"x": 2, "y": 0, "z": 2}} (2 CU padding).
 
 Negative instructions:
 - Do NOT generate subtypes that are not in the SubtypeRegistry.
 - Do NOT create blocks without a valid placementId.
-- Do NOT use 'name' as an ID — generate unique IDs like 'plate-1', 'block-compute-1'.
-- Always include at least one region plate with at least one subnet.
+- Do NOT use 'name' as an ID — generate unique IDs like 'cb-1', 'block-compute-1'.
+- Always include at least one region container block with at least one subnet.
 
 Few-shot example 1 (three-tier web app):
 {example_one_json}

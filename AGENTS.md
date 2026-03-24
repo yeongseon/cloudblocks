@@ -11,15 +11,15 @@
 
 ## Working Rules
 
-- Preserve the existing visual-model vocabulary: plates, blocks, connections, templates.
+- Preserve the existing visual-model vocabulary: blocks, connections, templates.
 - Keep frontend behavior, docs, and any domain model changes synchronized.
 - Treat `apps/web` as the primary production surface unless the task explicitly targets `apps/api`.
 - Avoid incidental refactors in areas that already have unrelated user changes.
-- **UNIVERSAL STUD STANDARD (INVIOLABLE)**: Every stud in the system — background, plates, blocks, any element — uses identical dimensions: rx=12, ry=6, height=5, 3-layer structure (shadow + top + inner ring). Only colors vary. This is the Lego principle: same gauge = assembly possible. See `docs/design/BRICK_DESIGN_SPEC.md §0`. Any change that produces non-uniform studs is a blocking defect.
+- **UNIVERSAL PORT STANDARD (INVIOLABLE)**: Every port in the system — container blocks, resource blocks, any element — uses identical dimensions: rx=12, ry=6, height=5, 3-layer structure (shadow + top + inner ring). Only colors vary. This is the block-based composition principle: same gauge = assembly possible. See `docs/design/BRICK_DESIGN_SPEC.md §0` (historical reference). Any change that produces non-uniform ports is a blocking defect.
 - **English only**: All documentation, code comments, UI strings, and commit messages must be written in English. Do not introduce Korean or any other non-English text. An i18n system (`react-i18next`) is planned for future localization — until then, English is the single source language.
 - **Historical documents are immutable**: Do NOT edit documents marked "Historical (Superseded)" — including `BRICK_DESIGN_SPEC.md`, `VISUAL_DESIGN_SPEC.md`, and `BRICK_GUIDEBOOK.md`. ADRs (`docs/decisions/ADR-*.md`) are also immutable once merged; create a new ADR to supersede an old one.
-- **SVG asset rules**: All SVG sprites live in `apps/web/src/shared/assets/`. New SVG files must comply with the Universal Stud Standard. Use consistent naming: lowercase kebab-case (e.g., `internet.svg`, `compute-block.svg`). Every SVG must include a `viewBox` attribute and avoid inline `style` elements — use attributes or CSS classes instead.
-- **Zustand store boundaries**: Three stores exist — `architectureStore` (domain model: plates, blocks, connections, external actors), `uiStore` (UI state: tool mode, panel visibility, selection), and `authStore` (auth: GitHub OAuth, session). Add new state to the store that owns the domain. Do not create new stores without discussion.
+- **SVG asset rules**: All SVG sprites live in `apps/web/src/shared/assets/`. New SVG files must comply with the Universal Port Standard. Use consistent naming: lowercase kebab-case (e.g., `internet.svg`, `compute-block.svg`). Every SVG must include a `viewBox` attribute and avoid inline `style` elements — use attributes or CSS classes instead.
+- **Zustand store boundaries**: Three stores exist — `architectureStore` (domain model: container blocks, resource blocks, connections, external actors), `uiStore` (UI state: tool mode, panel visibility, selection), and `authStore` (auth: GitHub OAuth, session). Add new state to the store that owns the domain. Do not create new stores without discussion.
 - **Test expectations**: New features should include tests. Branch coverage must stay ≥ 90%. Do not delete or skip failing tests to make CI pass — fix the root cause instead.
 
 ## Git Conventions
@@ -142,7 +142,7 @@ When all issues in a milestone are closed, perform the following release steps:
    - Open the app in a browser (Playwright or manual) and verify:
      - App loads without console errors
      - Existing localStorage data (if any) loads and renders correctly
-     - Core flows work: create workspace, place plate, place block, create connection
+     - Core flows work: create workspace, place container block, place resource block, create connection
      - Templates load and render correctly
    - **A release that has not passed demo verification is a blocking defect.** Do not proceed with tagging or publishing until verification passes.
 2. **Version bump**: Update `version` in `package.json` to `0.{milestone}.0` (e.g., Milestone 17 → `0.17.0`).

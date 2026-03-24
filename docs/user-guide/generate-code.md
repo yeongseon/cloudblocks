@@ -6,7 +6,7 @@ CloudBlocks converts your visual architecture into infrastructure-as-code. This 
 
 ## Generating Code
 
-Design your architecture on the canvas by placing blocks on plates and connecting them. Once your design is ready, you can view the generated code in two ways:
+Design your architecture on the canvas by placing resource blocks on container blocks and connecting them. Once your design is ready, you can view the generated code in two ways:
 
 - **Inspector Panel**: Click the **Code** tab in the Inspector Panel on the right side of the screen. This displays the generated code immediately as you modify your architecture.
 - **Menu Bar**: Use the **Build → Generate Code** menu option to focus the Code tab.
@@ -53,7 +53,7 @@ Code generation uses default regions based on your active cloud provider:
 The compiler maps your visual design to specific infrastructure components:
 
 - **Resource definitions**: Each node on the canvas maps to its corresponding cloud resource.
-- **Network configuration**: Containers and plates map to VPCs, VNets, and subnets.
+- **Network configuration**: Container blocks map to VPCs, VNets, and subnets.
 - **Connection wiring**: Connections between blocks map to security rules, IAM bindings, and network configurations.
 - **Variables and outputs**: In Production mode, the generator extracts configurable parameters and exports key values.
 

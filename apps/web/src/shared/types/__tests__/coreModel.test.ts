@@ -10,7 +10,7 @@ import {
 } from '../index';
 import { BLOCK_VISUAL_PROFILES } from '../visualProfile';
 import { makeTestBlock } from '../../../__tests__/legacyModelTestUtils';
-import type { LeafNode, ConnectionType, ProviderType, ResourceCategory } from '../index';
+import type { ResourceBlock, ConnectionType, ProviderType, ResourceCategory } from '../index';
 
 const blockCategories: ResourceCategory[] = [
   'compute',
@@ -29,7 +29,7 @@ const providerTypes: ProviderType[] = ['azure', 'aws', 'gcp'];
 
 describe('core model type coverage', () => {
   it('uses azure as default provider in test block factory', () => {
-    const block: LeafNode = makeTestBlock({
+    const block: ResourceBlock = makeTestBlock({
       id: 'blk-legacy-1',
       name: 'Legacy Web App',
       category: 'compute',
@@ -42,7 +42,7 @@ describe('core model type coverage', () => {
   });
 
   it('accepts Block objects with provider set to azure', () => {
-    const block: LeafNode = makeTestBlock({
+    const block: ResourceBlock = makeTestBlock({
       id: 'blk-provider-1',
       name: 'Azure Web App',
       category: 'compute',
@@ -56,7 +56,7 @@ describe('core model type coverage', () => {
   });
 
   it('accepts Block objects with subtype and config', () => {
-    const block: LeafNode = makeTestBlock({
+    const block: ResourceBlock = makeTestBlock({
       id: 'blk-subtype-1',
       name: 'AWS EC2 Instance',
       category: 'compute',
@@ -73,7 +73,7 @@ describe('core model type coverage', () => {
   });
 
   it('accepts Block objects without subtype/config for backward compatibility', () => {
-    const block: LeafNode = makeTestBlock({
+    const block: ResourceBlock = makeTestBlock({
       id: 'blk-nosubtype-1',
       name: 'Generic Compute',
       category: 'compute',
@@ -101,7 +101,7 @@ describe('core model type coverage', () => {
     }
   });
 
-  it('has stud footprint in visual profiles for every block category', () => {
+  it('has block footprint in visual profiles for every block category', () => {
     expect(Object.keys(BLOCK_VISUAL_PROFILES).sort()).toEqual([...blockCategories].sort());
 
     for (const category of blockCategories) {

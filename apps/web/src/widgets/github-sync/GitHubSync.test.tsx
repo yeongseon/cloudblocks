@@ -544,7 +544,7 @@ describe('GitHubSync', () => {
     };
     mockApiPost.mockResolvedValueOnce({ architecture: pulledArchitecture });
     mockComputeArchitectureDiff.mockReturnValueOnce({
-      plates: { added: [{ id: 'plate-1' }], removed: [], modified: [] },
+      plates: { added: [{ id: 'container-1' }], removed: [], modified: [] },
       blocks: { added: [{ id: 'block-1' }], removed: [], modified: [] },
       connections: { added: [], removed: [], modified: [] },
       externalActors: { added: [], removed: [], modified: [] },

@@ -15,11 +15,11 @@ CloudBlocks is an **Architecture Compiler** — it models cloud infrastructure u
 
 CloudBlocks models infrastructure using a block-based architecture system. Users assemble infrastructure by placing visual building blocks — not by drawing diagrams or writing code:
 
-| Concept        | Role                                | Example                             |
-| -------------- | ----------------------------------- | ----------------------------------- |
-| **Plate**      | Infrastructure boundary (container) | Network plate, Subnet plate         |
-| **Block**      | Infrastructure resource (service)   | Compute, Database, Storage, Gateway |
-| **Connection** | Communication flow (dataflow)       | Gateway → Compute → Database        |
+| Concept             | Role                                | Example                                         |
+| ------------------- | ----------------------------------- | ----------------------------------------------- |
+| **Container Block** | Infrastructure boundary (container) | Network container block, Subnet container block |
+| **Block**           | Infrastructure resource (service)   | Compute, Database, Storage, Gateway             |
+| **Connection**      | Communication flow (dataflow)       | Gateway → Compute → Database                    |
 
 ```
 Internet → [Public Subnet: Gateway] → [Private Subnet: Compute → Database]
@@ -169,7 +169,7 @@ apps/web/src/
 │   ├── store/           # Zustand architecture store
 │   ├── validation/      # Validation engine (placement, connection rules)
 │   ├── block/           # Block components
-│   ├── plate/           # Plate components
+│   ├── container-block/ # Container block components
 │   └── connection/      # Connection components
 ├── features/            # Feature modules
 │   ├── ai/              # AI architecture generation
@@ -331,7 +331,7 @@ The Core Modeling Engine manages the **CloudBlocks Domain Model**.
 
 Responsibilities:
 - Constructing the architecture model
-- Managing block placement on plates
+- Managing block placement on container blocks
 - Maintaining containment hierarchy (Network → Subnet → Block)
 
 Example structure:
@@ -356,9 +356,9 @@ Key responsibilities:
 
 The canonical model types are defined in `packages/schema` (`@cloudblocks/schema`) and re-exported for frontend usage from `apps/web/src/shared/types/index.ts`. The domain model consists of the following core entities:
 
-- **Plate** — Infrastructure boundary (network / subnet), with containment hierarchy (`parentId`, `children`)
-- **Block** — Infrastructure resource (`category`: compute / database / storage / gateway / function / queue / event / analytics / identity / observability), placed on a plate via `placementId`
-- **Connection** — Dataflow between blocks (`sourceId` → `targetId`), initiator model
+- **ContainerBlock** — Infrastructure boundary (network / subnet), with containment hierarchy (`parentId`, `children`) and `frame`
+- **ResourceBlock** — Infrastructure resource (`category`: compute / database / storage / gateway / function / queue / event / analytics / identity / observability), placed on a container block via `placementId`
+- **Connection** — Dataflow between blocks (`from` → `to`, endpoint IDs; each endpoint uses `blockId`), initiator model
 - **ExternalActor** — External endpoint (e.g., Internet)
 - **ArchitectureModel** — Root container for all entities
 
@@ -387,9 +387,9 @@ The validation engine is split into focused modules:
 
 apps/web/src/entities/validation/
 ├── engine.ts # validateArchitecture(model): orchestration entrypoint
-├── placement.ts # validatePlacement(block, plate): placement rule checks
+├── placement.ts # validatePlacement(block, containerBlock): placement rule checks
 ├── connection.ts # validateConnection(connection, blocks, externalActors): flow rule checks
-├── providerValidation.ts # validateProviderRules(block, plate): provider warnings
+├── providerValidation.ts # validateProviderRules(block, containerBlock): provider warnings
 ├── aggregation.ts # validateAggregation(model, block): aggregation constraints
 └── role.ts # validateBlockRoles(block): role constraints
 
@@ -415,7 +415,7 @@ Validation flow in `engine.ts`:
       "severity": "error",
       "message": "Database cannot be placed in public subnet",
       "suggestion": "Move Database to a private subnet",
-      "targetId": "block-db01"
+      "blockId": "block-db01"
     }
   ],
   "warnings": []
@@ -473,15 +473,15 @@ SceneCanvas (root SVG scene)
   ├ PlateSprite (network/subnet SVG rendering)
   ├ BlockSprite (infrastructure block SVG rendering)
   ├ ConnectionPath (data flow SVG arrows)
-  └ Labels (plate/block names via HTML overlay)
+└ Labels (container-block/block names via HTML overlay)
 ```
 
-| Component      | Responsibility                                                                                                        |
-| -------------- | --------------------------------------------------------------------------------------------------------------------- |
-| SceneCanvas    | Root SVG container with CSS transform3d pan/zoom; orchestrates rendering of all model entities from Zustand state.    |
-| PlateSprite    | Renders plate SVG geometry (network/subnet), visual state (hover/selection), studs, and plate labels.                 |
-| BlockSprite    | Renders block SVG geometry by category, interaction states, and block labels; anchors block position to parent plate. |
-| ConnectionPath | Resolves endpoints and renders SVG path directional dataflow lines with arrowheads.                                   |
+| Component            | Responsibility                                                                                                                  |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| SceneCanvas          | Root SVG container with CSS transform3d pan/zoom; orchestrates rendering of all model entities from Zustand state.              |
+| ContainerBlockSprite | Renders container block SVG geometry (network/subnet), visual state (hover/selection), ports, and container block labels.       |
+| BlockSprite          | Renders block SVG geometry by category, interaction states, and block labels; anchors block position to parent container block. |
+| ConnectionPath       | Resolves endpoints and renders SVG path directional dataflow lines with arrowheads.                                             |
 
 > Rendering is projection only: the authoritative editing model remains 2D coordinates with containment hierarchy, then projected into the 2.5D scene.
 > See [ADR-0010](../adr/0010-svg-only-rendering-model.md) for the full rendering technology rationale.
@@ -492,7 +492,7 @@ SceneCanvas (root SVG scene)
 
 The Provider Adapter translates the generic CloudBlocks model into cloud provider resources. Azure is the primary target (Azure-first strategy).
 
-> For the full provider mapping tables (block mapping, plate mapping, connection interpretation) and adapter interface, see [provider.md](../engine/provider.md).
+> For the full provider mapping tables (block mapping, container block mapping, connection interpretation) and adapter interface, see [provider.md](../engine/provider.md).
 
 ---
 

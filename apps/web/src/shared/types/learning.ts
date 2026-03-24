@@ -1,4 +1,4 @@
-import type { ArchitectureModel, BlockCategory, PlateType } from './index';
+import type { ArchitectureModel, ResourceCategory, ContainerLayer } from './index';
 import type { EndpointType } from '../../entities/validation/connection';
 import type { TemplateCategory } from './template';
 
@@ -13,13 +13,17 @@ export type ScenarioDifficulty = 'beginner' | 'intermediate' | 'advanced';
 // ─── Step Validation Rules (Typed Union) ───────────────────
 
 export type StepValidationRule =
-  | { type: 'plate-exists'; plateType: PlateType }
-  | { type: 'block-exists'; category: BlockCategory; onPlateType?: PlateType }
+  | { type: 'container-exists'; containerLayer: ContainerLayer }
+  | { type: 'block-exists'; category: ResourceCategory; onContainerLayer?: ContainerLayer }
   | { type: 'connection-exists'; sourceCategory: EndpointType; targetCategory: EndpointType }
-  | { type: 'entity-on-plate'; entityCategory: BlockCategory; plateType: PlateType }
+  | {
+      type: 'entity-on-container';
+      entityCategory: ResourceCategory;
+      containerLayer: ContainerLayer;
+    }
   | { type: 'architecture-valid' }
-  | { type: 'min-block-count'; category: BlockCategory; count: number }
-  | { type: 'min-plate-count'; plateType: PlateType; count: number };
+  | { type: 'min-block-count'; category: ResourceCategory; count: number }
+  | { type: 'min-container-count'; containerLayer: ContainerLayer; count: number };
 
 // ─── Architecture Snapshot ─────────────────────────────────
 

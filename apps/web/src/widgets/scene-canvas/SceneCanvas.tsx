@@ -7,21 +7,23 @@ import { worldToScreen, depthKey } from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
 
-import { PlateSprite } from '../../entities/plate/PlateSprite';
+import { ContainerBlockSprite } from '../../entities/container-block/ContainerBlockSprite';
 import { BlockSprite } from '../../entities/block/BlockSprite';
-import { BrickConnector } from '../../entities/connection/BrickConnector';
+import { ConnectionRenderer } from '../../entities/connection/ConnectionRenderer';
 import { ExternalActorSprite } from '../../entities/connection/ExternalActorSprite';
 import { DragGhost } from './DragGhost';
 import { ConnectionPreview } from './ConnectionPreview';
-import type { ContainerNode, LeafNode } from '@cloudblocks/schema';
+import type { ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
 import './SceneCanvas.css';
 
 export function SceneCanvas() {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const plates = architecture.nodes.filter(
-    (node): node is ContainerNode => node.kind === 'container',
+    (node): node is ContainerBlock => node.kind === 'container',
   );
-  const blocks = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
+  const blocks = architecture.nodes.filter(
+    (node): node is ResourceBlock => node.kind === 'resource',
+  );
   const externalActors = architecture.externalActors ?? [];
   const addNode = useArchitectureStore((s) => s.addNode);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
@@ -116,13 +118,13 @@ export function SceneCanvas() {
 
     if (interactionState === 'placing' && draggedBlockCategory && draggedResourceName) {
       const elements = document.elementsFromPoint(e.clientX, e.clientY);
-      const plateEl = elements.find((el) => el.closest('[data-plate-id]'));
-      const plateContainer = plateEl?.closest('[data-plate-id]');
-      const plateId = plateContainer?.getAttribute('data-plate-id');
+      const plateEl = elements.find((el) => el.closest('[data-container-id]'));
+      const plateContainer = plateEl?.closest('[data-container-id]');
+      const plateId = plateContainer?.getAttribute('data-container-id');
 
       if (plateId) {
-        const plate = plates.find((p) => p.id === plateId);
-        if (plate && canPlaceBlock(draggedBlockCategory, plate)) {
+        const container = plates.find((p) => p.id === plateId);
+        if (container && canPlaceBlock(draggedBlockCategory, container)) {
           addNode({
             kind: 'resource',
             resourceType: draggedBlockCategory,
@@ -182,7 +184,7 @@ export function SceneCanvas() {
           transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
         }}
       >
-        <div className="plate-layer">
+        <div className="container-layer">
           {[...plates]
             .sort((a, b) => {
               const levelA = a.parentId ? 1 : 0;
@@ -192,21 +194,22 @@ export function SceneCanvas() {
               const depthB = depthKey(b.position.x, b.position.z, b.position.y, 0);
               return depthA - depthB;
             })
-            .map((plate) => {
+            .map((container) => {
               const screenPos = worldToScreen(
-                plate.position.x,
-                plate.position.y,
-                plate.position.z,
+                container.position.x,
+                container.position.y,
+                container.position.z,
                 origin.x,
                 origin.y,
               );
-              const hierarchyBonus = plate.parentId ? 500_000 : 0;
+              const hierarchyBonus = container.parentId ? 500_000 : 0;
               const zIndex =
-                depthKey(plate.position.x, plate.position.z, plate.position.y, 0) + hierarchyBonus;
+                depthKey(container.position.x, container.position.z, container.position.y, 0) +
+                hierarchyBonus;
               return (
-                <PlateSprite
-                  key={plate.id}
-                  plate={plate}
+                <ContainerBlockSprite
+                  key={container.id}
+                  container={container}
                   screenX={screenPos.x}
                   screenY={screenPos.y}
                   zIndex={zIndex}
@@ -218,7 +221,7 @@ export function SceneCanvas() {
         <svg className="connection-layer" style={{ width: 1, height: 1 }}>
           <title>Connections</title>
           {architecture.connections.map((conn) => (
-            <BrickConnector
+            <ConnectionRenderer
               key={conn.id}
               connection={conn}
               blocks={blocks}
@@ -264,18 +267,18 @@ export function SceneCanvas() {
 
         <div className="block-layer">
           {blocks.map((block) => {
-            const parentPlate = plates.find((p) => p.id === block.parentId);
-            if (!parentPlate) return null;
-            const worldX = parentPlate.position.x + block.position.x;
-            const worldY = parentPlate.position.y + parentPlate.size.height;
-            const worldZ = parentPlate.position.z + block.position.z;
+            const parentContainer = plates.find((p) => p.id === block.parentId);
+            if (!parentContainer) return null;
+            const worldX = parentContainer.position.x + block.position.x;
+            const worldY = parentContainer.position.y + parentContainer.frame.height;
+            const worldZ = parentContainer.position.z + block.position.z;
             const screenPos = worldToScreen(worldX, worldY, worldZ, origin.x, origin.y);
             const zIndex = depthKey(worldX, worldZ, worldY, 2);
             return (
               <BlockSprite
                 key={block.id}
                 block={block}
-                parentPlate={parentPlate}
+                parentContainer={parentContainer}
                 screenX={screenPos.x}
                 screenY={screenPos.y}
                 zIndex={zIndex}

@@ -72,7 +72,7 @@ describe('Invalid connection prevention (#1253)', () => {
                 name: 'Compute',
                 category: 'compute' as const,
                 resourceType: 'virtual-machine',
-                parentId: 'plate-1',
+                parentId: 'container-1',
                 position: { x: 0, y: 0, z: 0 },
                 layer: 'resource' as const,
                 provider: 'azure' as const,

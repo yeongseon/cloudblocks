@@ -637,7 +637,7 @@ describe('Group 5: Compare mode isolation (read-only, no workspace mutation)', (
           provider: 'azure',
           parentId: null,
           position: { x: 0, y: 0, z: 0 },
-          size: { width: 8, height: 1, depth: 8 },
+          frame: { width: 8, height: 1, depth: 8 },
           metadata: {},
         },
       ],

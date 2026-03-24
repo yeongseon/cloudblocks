@@ -45,14 +45,14 @@ Complete every item before proceeding to tagging. A single ❌ in a **Blocker** 
 
 ### Gate 5: Demo Verification (MANDATORY)
 
-| #   | Check                                                  | Pass? |
-| --- | ------------------------------------------------------ | ----- |
-| 14  | App loads without console errors                       | ☐     |
-| 15  | Existing localStorage data loads and renders           | ☐     |
-| 16  | Create workspace → place plate → place block → connect | ☐     |
-| 17  | Validation results display correctly                   | ☐     |
-| 18  | Generate Terraform/Bicep/Pulumi                        | ☐     |
-| 19  | Load a template and render                             | ☐     |
+| #   | Check                                                            | Pass? |
+| --- | ---------------------------------------------------------------- | ----- |
+| 14  | App loads without console errors                                 | ☐     |
+| 15  | Existing localStorage data loads and renders                     | ☐     |
+| 16  | Create workspace → place container block → place block → connect | ☐     |
+| 17  | Validation results display correctly                             | ☐     |
+| 18  | Generate Terraform/Bicep/Pulumi                                  | ☐     |
+| 19  | Load a template and render                                       | ☐     |
 
 ### Gate 6: Documentation
 

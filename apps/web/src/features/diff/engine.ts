@@ -1,9 +1,9 @@
 import type {
   ArchitectureModel,
   Connection,
-  ContainerNode,
+  ContainerBlock,
   ExternalActor,
-  LeafNode,
+  ResourceBlock,
 } from '@cloudblocks/schema';
 import type { DiffDelta, DiffState, EntityDiff, PropertyChange } from '../../shared/types/diff';
 
@@ -18,7 +18,7 @@ const ROOT_ENTITY_PATHS = new Set([
 ]);
 const NO_IGNORED_ROOT_PATHS = new Set<string>();
 
-type DiffableEntity = ContainerNode | LeafNode | Connection | ExternalActor;
+type DiffableEntity = ContainerBlock | ResourceBlock | Connection | ExternalActor;
 
 function sortById<T extends { id: string }>(left: T, right: T): number {
   return left.id.localeCompare(right.id);
@@ -164,7 +164,7 @@ export function normalizeArchitecture(model: ArchitectureModel): ArchitectureMod
           return {
             ...node,
             position: { ...node.position },
-            size: { ...node.size },
+            frame: { ...node.frame },
             metadata: { ...node.metadata },
           };
         }
@@ -195,16 +195,20 @@ export function computeArchitectureDiff(
 ): DiffDelta {
   const normalizedBase = normalizeArchitecture(base);
   const normalizedHead = normalizeArchitecture(head);
-  const basePlates = normalizedBase.nodes.filter((n): n is ContainerNode => n.kind === 'container');
-  const headPlates = normalizedHead.nodes.filter((n): n is ContainerNode => n.kind === 'container');
-  const baseBlocks = normalizedBase.nodes.filter((n): n is LeafNode => n.kind === 'resource');
-  const headBlocks = normalizedHead.nodes.filter((n): n is LeafNode => n.kind === 'resource');
+  const basePlates = normalizedBase.nodes.filter(
+    (n): n is ContainerBlock => n.kind === 'container',
+  );
+  const headPlates = normalizedHead.nodes.filter(
+    (n): n is ContainerBlock => n.kind === 'container',
+  );
+  const baseBlocks = normalizedBase.nodes.filter((n): n is ResourceBlock => n.kind === 'resource');
+  const headBlocks = normalizedHead.nodes.filter((n): n is ResourceBlock => n.kind === 'resource');
 
   const modelChanges = diffValues(normalizedBase, normalizedHead, '', ROOT_VOLATILE_PATHS);
   if (modelChanges.length === 0) {
     return {
-      plates: createEmptyEntityDiff<ContainerNode>(),
-      blocks: createEmptyEntityDiff<LeafNode>(),
+      plates: createEmptyEntityDiff<ContainerBlock>(),
+      blocks: createEmptyEntityDiff<ResourceBlock>(),
       connections: createEmptyEntityDiff<Connection>(),
       externalActors: createEmptyEntityDiff<ExternalActor>(),
       rootChanges: [],

@@ -109,14 +109,14 @@ describe('useAiStore', () => {
       const response = {
         architecture: { plates: [], blocks: [], connections: [] },
         explanation: 'done',
-        warnings: ['missing region plate'],
+        warnings: ['missing region container'],
       };
       mockGenerate.mockResolvedValueOnce(response);
 
       await useAiStore.getState().generate('test', 'aws');
 
       expect(useAiStore.getState().generateError).toBe(
-        'AI output has warnings: missing region plate',
+        'AI output has warnings: missing region container',
       );
       expect(mockReplaceArchitecture).not.toHaveBeenCalled();
     });

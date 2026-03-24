@@ -10,7 +10,7 @@ This keeps the architecture model provider-neutral while allowing Terraform, Bic
 
 The provider layer exists to:
 
-- map generic block and plate concepts to provider resources
+- map generic block concepts to provider resources
 - preserve provider-neutral modeling in the architecture DSL
 - enable consistent multi-generator output from one provider definition
 - surface unsupported mappings explicitly instead of silently dropping resources
@@ -26,7 +26,7 @@ interface ProviderDefinition {
   name: ProviderType;
   displayName: string;
   blockMappings: BlockResourceMap;
-  plateMappings: PlateResourceMap;
+  containerBlockMappings: ContainerBlockResourceMap;
   generators: {
     terraform: TerraformProviderConfig;
     bicep: BicepProviderConfig;

@@ -1,7 +1,7 @@
 import type {
   ArchitectureModel,
-  ContainerNode,
-  LeafNode,
+  ContainerBlock,
+  ResourceBlock,
   ResourceCategory,
 } from '@cloudblocks/schema';
 import type { ValidationError } from '@cloudblocks/domain';
@@ -39,12 +39,12 @@ const KNOWN_SUBTYPES: Record<string, Partial<Record<ResourceCategory, string[]>>
 };
 
 function validateBlockProviderRules(
-  block: LeafNode,
-  plate: ContainerNode | undefined,
+  block: ResourceBlock,
+  container: ContainerBlock | undefined,
 ): ValidationError[] {
   const warnings: ValidationError[] = [];
 
-  if (block.provider === 'aws' && block.subtype === 'lambda' && plate?.layer === 'subnet') {
+  if (block.provider === 'aws' && block.subtype === 'lambda' && container?.layer === 'subnet') {
     warnings.push({
       ruleId: 'rule-provider-aws-lambda-subnet',
       severity: 'warning',
@@ -57,7 +57,7 @@ function validateBlockProviderRules(
   if (
     block.provider === 'gcp' &&
     block.subtype === 'cloud-sql-postgres' &&
-    plate?.layer === 'subnet'
+    container?.layer === 'subnet'
   ) {
     warnings.push({
       ruleId: 'rule-provider-gcp-sql-public',
@@ -76,7 +76,7 @@ function validateBlockProviderRules(
       warnings.push({
         ruleId: 'rule-provider-unknown-subtype',
         severity: 'warning',
-        message: `Node "${block.name}" has unknown subtype "${block.subtype}" for ${block.provider} ${block.category}.`,
+        message: `Block "${block.name}" has unknown subtype "${block.subtype}" for ${block.provider} ${block.category}.`,
         suggestion: `Check available subtypes for ${block.provider} ${block.category} resources.`,
         targetId: block.id,
       });
@@ -88,12 +88,12 @@ function validateBlockProviderRules(
 
 export function validateProviderRules(model: ArchitectureModel): ValidationError[] {
   const warnings: ValidationError[] = [];
-  const blocks = model.nodes.filter((n): n is LeafNode => n.kind === 'resource');
-  const plates = model.nodes.filter((n): n is ContainerNode => n.kind === 'container');
+  const blocks = model.nodes.filter((n): n is ResourceBlock => n.kind === 'resource');
+  const plates = model.nodes.filter((n): n is ContainerBlock => n.kind === 'container');
 
   for (const block of blocks) {
-    const plate = plates.find((p) => p.id === block.parentId);
-    warnings.push(...validateBlockProviderRules(block, plate));
+    const container = plates.find((p) => p.id === block.parentId);
+    warnings.push(...validateBlockProviderRules(block, container));
   }
 
   return warnings;

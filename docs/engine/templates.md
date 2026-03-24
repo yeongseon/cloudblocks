@@ -8,7 +8,7 @@ Templates are reusable architecture models that serve as starting points for new
 
 | Term         | Definition                                                                                                                                                                                    |
 | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Template** | A reusable, pre-built `ArchitectureModel` JSON that users can instantiate as a new workspace. Templates define the infrastructure topology (plates, blocks, connections).                     |
+| **Template** | A reusable, pre-built `ArchitectureModel` JSON that users can instantiate as a new workspace. Templates define the infrastructure topology (container blocks, resource blocks, connections).  |
 | **Scenario** | A guided tutorial that walks users through building an architecture step-by-step, with validation checks at each stage. Scenarios are defined in `apps/web/src/features/learning/scenarios/`. |
 
 > Templates provide instant starting points; Scenarios provide learning experiences. Both use the same `ArchitectureModel` format internally.
@@ -52,7 +52,7 @@ Database
   "difficulty": "beginner",
   "tags": ["networking", "three-tier", "beginner", "terraform"],
   "architecture": {
-    "plates": [],
+    "nodes": [],
     "blocks": [],
     "connections": [],
     "externalActors": [{ "id": "ext-internet", "name": "Internet", "type": "internet" }]

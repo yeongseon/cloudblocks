@@ -26,12 +26,12 @@ type ArchNode = {
   provider?: 'azure';
   resourceType?: 'virtual_network' | 'web_compute';
   position?: { x: number; y: number; z: number };
-  size?: { width: number; height: number; depth: number };
+  frame?: { width: number; height: number; depth: number };
   metadata?: Record<string, unknown>;
 };
 
 const basePlate: ArchNode = {
-  id: 'plate-1',
+  id: 'container-1',
   kind: 'container',
   parentId: null,
   name: 'VNet',
@@ -39,14 +39,14 @@ const basePlate: ArchNode = {
   provider: 'azure',
   resourceType: 'virtual_network',
   position: { x: 0, y: 0, z: 0 },
-  size: { width: 16, height: 0.3, depth: 20 },
+  frame: { width: 16, height: 0.3, depth: 20 },
   metadata: {},
 };
 
 const baseBlock: ArchNode = {
   id: 'block-1',
   kind: 'resource',
-  parentId: 'plate-1',
+  parentId: 'container-1',
   name: 'VM',
   layer: 'resource',
   category: 'compute',
@@ -77,9 +77,9 @@ afterEach(() => {
 });
 
 describe('ConnectionPreview additional branches', () => {
-  it('returns null when source block parent plate is missing', () => {
+  it('returns null when source block parent container is missing', () => {
     mockStores({ interactionState: 'connecting', connectionSource: 'block-1' }, [
-      { ...baseBlock, parentId: 'missing-plate' },
+      { ...baseBlock, parentId: 'missing-container' },
     ]);
 
     const { container } = render(

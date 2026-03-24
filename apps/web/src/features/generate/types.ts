@@ -88,7 +88,7 @@ export interface ResourceMapping {
 }
 
 export type BlockResourceMap = Record<ResourceCategory, ResourceMapping>;
-export type PlateResourceMap = Record<PlateLayerType, ResourceMapping>;
+export type ContainerBlockResourceMap = Record<PlateLayerType, ResourceMapping>;
 
 // ─── Subtype-Aware Mapping ───────────────────────────────────
 
@@ -140,7 +140,7 @@ export interface PulumiProviderConfig {
 /**
  * Canonical provider abstraction used by the generation pipeline.
  *
- * A `ProviderDefinition` owns provider metadata, generic block/plate mappings,
+ * A `ProviderDefinition` owns provider metadata, generic block/container mappings,
  * generator-specific configuration (`terraform`, `bicep`, `pulumi`), and optional
  * subtype-aware block mappings. New generation features should target this interface.
  */
@@ -148,7 +148,7 @@ export interface ProviderDefinition {
   name: ProviderName;
   displayName: string;
   blockMappings: BlockResourceMap;
-  plateMappings: PlateResourceMap;
+  containerLayerMappings: ContainerBlockResourceMap;
   generators: {
     terraform: TerraformProviderConfig;
     bicep: BicepProviderConfig;

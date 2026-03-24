@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ContainerNode, ExternalActor, LeafNode } from '../types/index';
+import type { ContainerBlock, ExternalActor, ResourceBlock } from '../types/index';
 import {
   EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
   EXTERNAL_ACTOR_LABEL_POSITION,
@@ -10,10 +10,10 @@ import {
 } from './position';
 import { GRID_CELL } from './isometric';
 
-function createPlate(id: string): ContainerNode {
+function createPlate(id: string): ContainerBlock {
   return {
     id,
-    name: `Plate ${id}`,
+    name: `ContainerBlock ${id}`,
     kind: 'container',
     layer: 'subnet',
     resourceType: 'subnet',
@@ -21,12 +21,12 @@ function createPlate(id: string): ContainerNode {
     provider: 'azure',
     parentId: 'network-1',
     position: { x: 10, y: 2, z: -3 },
-    size: { width: 5, height: 2, depth: 4 },
+    frame: { width: 5, height: 2, depth: 4 },
     metadata: {},
   };
 }
 
-function createBlock(id: string, parentId: string): LeafNode {
+function createBlock(id: string, parentId: string): ResourceBlock {
   return {
     id,
     name: `Block ${id}`,
@@ -52,23 +52,23 @@ describe('position utilities', () => {
     expect(EXTERNAL_ACTOR_LABEL_POSITION).toEqual([-3, 1, 5]);
   });
 
-  it('getBlockWorldPosition adds plate and block positions with height offsets', () => {
-    const plate = createPlate('plate-1');
-    const block = createBlock('block-1', plate.id);
+  it('getBlockWorldPosition adds container and block positions with height offsets', () => {
+    const container = createPlate('container-1');
+    const block = createBlock('block-1', container.id);
 
-    const world = getBlockWorldPosition(block, plate);
+    const world = getBlockWorldPosition(block, container);
 
-    // plate.position.x + block.position.x = 10 + 4 = 14
-    // plate.position.y + plate.size.height = 2 + 2 = 4
-    // plate.position.z + block.position.z = -3 + (-2) = -5
+    // container.position.x + block.position.x = 10 + 4 = 14
+    // container.position.y + container.frame.height = 2 + 2 = 4
+    // container.position.z + block.position.z = -3 + (-2) = -5
     expect(world).toEqual([14, 4, -5]);
   });
 
-  it('getEndpointWorldPosition resolves block endpoint using parent plate', () => {
-    const plate = createPlate('plate-1');
-    const block = createBlock('block-1', plate.id);
+  it('getEndpointWorldPosition resolves block endpoint using parent container', () => {
+    const container = createPlate('container-1');
+    const block = createBlock('block-1', container.id);
 
-    const endpoint = getEndpointWorldPosition(block.id, [block], [plate], []);
+    const endpoint = getEndpointWorldPosition(block.id, [block], [container], []);
 
     expect(endpoint).toEqual([14, 4, -5]);
   });
@@ -86,9 +86,9 @@ describe('position utilities', () => {
     expect(endpoint).toEqual([42, 1 + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET, -7]);
   });
 
-  it('falls back to external actor when block exists but parent plate is missing', () => {
+  it('falls back to external actor when block exists but parent container is missing', () => {
     const id = 'shared-id';
-    const block = createBlock(id, 'missing-plate');
+    const block = createBlock(id, 'missing-container');
     const actor: ExternalActor = {
       id,
       name: 'Internet',
@@ -118,10 +118,10 @@ describe('position utilities', () => {
   });
 
   it('returns null when endpoint id cannot be resolved', () => {
-    const plate = createPlate('plate-1');
-    const block = createBlock('block-1', plate.id);
+    const container = createPlate('container-1');
+    const block = createBlock('block-1', container.id);
 
-    const endpoint = getEndpointWorldPosition('unknown-id', [block], [plate], []);
+    const endpoint = getEndpointWorldPosition('unknown-id', [block], [container], []);
 
     expect(endpoint).toBeNull();
   });

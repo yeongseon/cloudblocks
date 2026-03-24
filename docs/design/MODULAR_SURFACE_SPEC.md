@@ -7,7 +7,7 @@
 
 ## §0. Design Principles
 
-- **Modular composition**: Plates contain blocks, while blocks connect via typed connections.
+- **Modular composition**: Container blocks contain blocks, while blocks connect via typed connections.
 - **Professional aesthetic**: Matte surfaces, muted palettes, and clean geometry define the visual style.
 - **Functional clarity**: Visual elements communicate architectural meaning rather than decoration.
 - **Provider identity**: Resource colors derive from cloud providers such as Azure blue, AWS orange, and GCP colors.
@@ -28,15 +28,15 @@ Blocks use an isometric 2.5D projection (2:1 dimetric) with a matte shading mode
 - **Icons**: Centered on the top face with a subtle drop shadow.
 - **Labels**: Resource labels appear directly below the block.
 
-## §2. Plate Rendering
+## §2. Container Block Rendering
 
-Plates are flat isometric surfaces that represent infrastructure boundaries and support nesting for subnets or nested networks.
+Container blocks are flat isometric surfaces that represent infrastructure boundaries and support nesting for subnets or nested networks.
 
 - **Surface Grid**: Subtle dotted lines on the top face at regular 1 CU intervals provide visual structure.
 - **Grid Color**:
   - Light Theme: rgba(0,0,0,0.06)
   - Dark Theme: rgba(255,255,255,0.08)
-- **Titles**: Rendered on the top face at the top-left of the plate.
+- **Titles**: Rendered on the top face at the top-left of the container block.
 
 ## §3. Connection Rendering
 
@@ -53,12 +53,12 @@ Connections use a muted, functional color palette to communicate type without la
 - **Width**: Varies by connection type (2–3px default).
 - **Dash patterns**: Solid for dataflow/http, short dash for internal, long dash for data, dot-dash for async.
 
-## §4. Stud Policy
+## §4. Port Policy
 
-Studs are optional indicators of block connectivity. Their removal is currently in progress (PR #1379), and future versions may eliminate them entirely.
+Ports are optional indicators of block connectivity. Their removal is currently in progress (PR #1379), and future versions may eliminate them entirely.
 
-- **Placement**: Sparse placement with a maximum of 0 to 2 studs per block face.
-- **Standard**: When present, studs follow the Universal Stud Standard (rx=12, ry=6, height=5) with a 3-layer structure.
+- **Placement**: Sparse placement with a maximum of 0 to 2 ports per block face.
+- **Standard**: When present, ports follow the Universal Port Standard (rx=12, ry=6, height=5) with a 3-layer structure.
 
 ## §5. Color System
 
@@ -71,10 +71,10 @@ Studs are optional indicators of block connectivity. Their removal is currently 
 
 ## §6. Typography & Labels
 
-| Element     | Font Style              | Size | Position             |
-| :---------- | :---------------------- | :--- | :------------------- |
-| Block Label | System sans-serif       | 11px | Centered below block |
-| Plate Title | System sans-serif, bold | 13px | Top-left of plate    |
+| Element               | Font Style              | Size | Position                    |
+| :-------------------- | :---------------------- | :--- | :-------------------------- |
+| Block Label           | System sans-serif       | 11px | Centered below block        |
+| Container Block Title | System sans-serif, bold | 13px | Top-left of container block |
 
 Connection types are communicated via color rather than text labels.
 
@@ -85,5 +85,5 @@ BRICK_DESIGN_SPEC.md and VISUAL_DESIGN_SPEC.md are retained as immutable histori
 | Feature       | Historical Specs | Modular Surface Spec |
 | :------------ | :--------------- | :------------------- |
 | Shading       | Glossy           | Matte                |
-| Stud Density  | Dense            | Sparse / Optional    |
+| Port Density  | Dense            | Sparse / Optional    |
 | Color Palette | Saturated        | Functional / Muted   |

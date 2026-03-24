@@ -18,9 +18,9 @@
         "nodes": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/ResourceNode"
+            "$ref": "#/definitions/Block"
           },
-          "description": "All nodes — containers and resources in a flat array"
+          "description": "All blocks — containers and resources in a flat array"
         },
         "endpoints": {
           "type": "array",
@@ -39,7 +39,7 @@
           "items": {
             "$ref": "#/definitions/ExternalActor"
           },
-          "deprecated": "Folded into nodes in v4. Kept for v3→v4 migration loading."
+          "deprecated": "Folded into blocks in v4. Kept for v3→v4 migration loading."
         },
         "createdAt": {
           "type": "string",
@@ -63,18 +63,18 @@
       "additionalProperties": false,
       "description": "The root ArchitectureModel — the single most important type. This is the canonical JSON wire format exchanged between frontend persistence, backend validation, and code generation."
     },
-    "ResourceNode": {
+    "Block": {
       "anyOf": [
         {
-          "$ref": "#/definitions/ContainerNode"
+          "$ref": "#/definitions/ContainerBlock"
         },
         {
-          "$ref": "#/definitions/LeafNode"
+          "$ref": "#/definitions/ResourceBlock"
         }
       ],
-      "description": "Discriminated union of all node types in the architecture. Discriminant: `kind` field ('container' | 'resource')."
+      "description": "Discriminated union of all block types in the architecture. Discriminant: `kind` field ('container' | 'resource')."
     },
-    "ContainerNode": {
+    "ContainerBlock": {
       "type": "object",
       "properties": {
         "id": {
@@ -107,7 +107,7 @@
             "string",
             "null"
           ],
-          "description": "Parent node ID. null for root-level nodes."
+          "description": "Parent block ID. null for root-level blocks."
         },
         "position": {
           "$ref": "#/definitions/Position"
@@ -144,12 +144,14 @@
           "$ref": "#/definitions/CanvasTier",
           "description": "Canvas structural tier — orthogonal to category (domain) and layer (hierarchy). Determines visual grouping on the canvas: shared, web, app, data. Optional during migration; defaults derived from RESOURCE_RULES."
         },
-        "size": {
-          "$ref": "#/definitions/Size"
+        "frame": {
+          "$ref": "#/definitions/Size",
+          "description": "Visual frame dimensions (width × height × depth)"
         }
       },
       "required": [
         "category",
+        "frame",
         "id",
         "kind",
         "layer",
@@ -158,11 +160,10 @@
         "parentId",
         "position",
         "provider",
-        "resourceType",
-        "size"
+        "resourceType"
       ],
       "additionalProperties": false,
-      "description": "A container node holds child nodes (VNet, Subnet, Resource Group, etc.). Containers have a size for visual rendering and can nest other containers or leaf resources."
+      "description": "A container block holds child blocks (VNet, Subnet, Resource Group, etc.). Containers have a frame (size) for visual rendering and can nest other containers or resource blocks."
     },
     "LayerType": {
       "type": "string",
@@ -244,7 +245,7 @@
         "count"
       ],
       "additionalProperties": false,
-      "description": "Aggregation descriptor for node instances (v2.0 §8)."
+      "description": "Aggregation descriptor for block instances (v2.0 §8)."
     },
     "AggregationMode": {
       "type": "string",
@@ -266,7 +267,7 @@
         "internal",
         "external"
       ],
-      "description": "Block role indicators (v2.0 §9). Visual-only annotations that describe the function of a node."
+      "description": "Block role indicators (v2.0 §9). Visual-only annotations that describe the function of a block."
     },
     "CanvasTier": {
       "type": "string",
@@ -299,7 +300,7 @@
       "additionalProperties": false,
       "description": "3D bounding size."
     },
-    "LeafNode": {
+    "ResourceBlock": {
       "type": "object",
       "properties": {
         "id": {
@@ -332,7 +333,7 @@
             "string",
             "null"
           ],
-          "description": "Parent node ID. null for root-level nodes."
+          "description": "Parent block ID. null for root-level blocks."
         },
         "position": {
           "$ref": "#/definitions/Position"
@@ -383,7 +384,7 @@
         "resourceType"
       ],
       "additionalProperties": false,
-      "description": "A leaf resource node (VM, SQL Database, Redis Cache, etc.). Cannot contain children."
+      "description": "A resource block (VM, SQL Database, Redis Cache, etc.). Cannot contain children."
     },
     "Endpoint": {
       "type": "object",
@@ -391,7 +392,7 @@
         "id": {
           "type": "string"
         },
-        "nodeId": {
+        "blockId": {
           "type": "string"
         },
         "direction": {
@@ -403,12 +404,12 @@
       },
       "required": [
         "id",
-        "nodeId",
+        "blockId",
         "direction",
         "semantic"
       ],
       "additionalProperties": false,
-      "description": "An Endpoint is a typed connection point on a node. Every node auto-generates 6 endpoints (3 semantics × 2 directions). Deterministic ID format: `endpoint-${nodeId}-${direction}-${semantic}`"
+      "description": "An Endpoint is a typed connection point on a block. Every block auto-generates 6 endpoints (3 semantics × 2 directions). Deterministic ID format: `endpoint-${blockId}-${direction}-${semantic}`"
     },
     "EndpointDirection": {
       "type": "string",
@@ -416,7 +417,7 @@
         "input",
         "output"
       ],
-      "description": "Direction of an endpoint on a node."
+      "description": "Direction of an endpoint on a block."
     },
     "EndpointSemantic": {
       "type": "string",
@@ -466,7 +467,10 @@
         },
         "type": {
           "type": "string",
-          "const": "internet"
+          "enum": [
+            "internet",
+            "browser"
+          ]
         },
         "position": {
           "$ref": "#/definitions/Position"
@@ -479,7 +483,7 @@
         "position"
       ],
       "additionalProperties": false,
-      "deprecated": "ExternalActors are folded into nodes in v4. Kept for v3→v4 migration."
+      "deprecated": "ExternalActors are folded into blocks in v4. Kept for v3→v4 migration."
     }
   }
 }

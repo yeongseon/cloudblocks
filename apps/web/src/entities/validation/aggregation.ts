@@ -1,4 +1,4 @@
-import type { LeafNode } from '@cloudblocks/schema';
+import type { ResourceBlock } from '@cloudblocks/schema';
 import type { ValidationError } from '@cloudblocks/domain';
 
 /**
@@ -8,7 +8,7 @@ import type { ValidationError } from '@cloudblocks/domain';
  * - Size remains fixed regardless of count (visual only — badge "×N")
  */
 
-export function validateAggregation(block: LeafNode): ValidationError | null {
+export function validateAggregation(block: ResourceBlock): ValidationError | null {
   const aggregation = block.aggregation;
 
   // No aggregation field = single instance (valid)
@@ -18,7 +18,7 @@ export function validateAggregation(block: LeafNode): ValidationError | null {
     return {
       ruleId: 'rule-aggregation-count',
       severity: 'error',
-      message: `Node "${block.name}" has invalid aggregation count: ${aggregation.count} (must be >= 1)`,
+      message: `Block "${block.name}" has invalid aggregation count: ${aggregation.count} (must be >= 1)`,
       suggestion: 'Set the aggregation count to 1 or greater',
       targetId: block.id,
     };
@@ -28,7 +28,7 @@ export function validateAggregation(block: LeafNode): ValidationError | null {
     return {
       ruleId: 'rule-aggregation-count',
       severity: 'error',
-      message: `Node "${block.name}" has non-integer aggregation count: ${aggregation.count}`,
+      message: `Block "${block.name}" has non-integer aggregation count: ${aggregation.count}`,
       suggestion: 'Set the aggregation count to a whole number',
       targetId: block.id,
     };

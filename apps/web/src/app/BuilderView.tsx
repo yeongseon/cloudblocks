@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import type { ContainerNode, LeafNode } from '@cloudblocks/schema';
+import type { ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
 import { SceneCanvas } from '../widgets/scene-canvas/SceneCanvas';
 import { MenuBar } from '../widgets/menu-bar/MenuBar';
 import { SidebarPalette } from '../widgets/sidebar-palette';
@@ -175,9 +175,11 @@ export function BuilderView() {
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
         e.preventDefault();
         const arch = useArchitectureStore.getState().workspace.architecture;
-        const resources = arch.nodes.filter((node): node is LeafNode => node.kind === 'resource');
+        const resources = arch.nodes.filter(
+          (node): node is ResourceBlock => node.kind === 'resource',
+        );
         const containers = arch.nodes.filter(
-          (node): node is ContainerNode => node.kind === 'container',
+          (node): node is ContainerBlock => node.kind === 'container',
         );
         if (resources.find((resource) => resource.id === selectedId)) {
           removeNode(selectedId);
@@ -236,9 +238,8 @@ export function BuilderView() {
             <SceneCanvas />
           </div>
           <EmptyCanvasCTA />
+          <RightDrawer />
         </main>
-
-        <RightDrawer />
 
         <Suspense fallback={null}>
           {showGitHubLogin && <GitHubLogin />}

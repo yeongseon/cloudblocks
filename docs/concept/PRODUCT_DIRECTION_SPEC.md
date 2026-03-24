@@ -5,26 +5,26 @@
 
 ## Vision
 
-CloudBlocks is a **visual cloud architecture builder** — build infrastructure with modular building blocks.
-Place blocks, connect them via stubs, and generate infrastructure-as-code.
+CloudBlocks is a **visual cloud architecture builder** — build infrastructure with modular blocks.
+Place blocks, connect them via ports, and generate infrastructure-as-code.
 
 ---
 
-## Core Principle: Block = Shape + Color + Stub
+## Core Principle: Block = Shape + Color + Port
 
-Every resource in CloudBlocks is represented as a **Block** (internally `ResourceNode`).
+Every resource in CloudBlocks is represented as a **Block**.
 
 ### Shape — by Resource Category
 
-| Category            | Shape                     | Examples                                        |
-| ------------------- | ------------------------- | ----------------------------------------------- |
-| Compute             | Rectangle                 | VM, App Service, Function                       |
-| Storage/Data        | Cylinder                  | Storage Account, SQL Database, Cosmos DB        |
-| Edge/Gateway        | Gateway (trapezoid)       | Application Gateway, API Management, Front Door |
-| Messaging           | Circle                    | Event Hub, Service Bus, Event Grid              |
-| Control/Operations  | Hexagon                   | Monitor, Key Vault, Log Analytics               |
-| Network (container) | Rounded Rectangle (plate) | VNet, Subnet, Resource Group                    |
-| Security            | Shield                    | NSG, Firewall, WAF                              |
+| Category            | Shape                                  | Examples                                        |
+| ------------------- | -------------------------------------- | ----------------------------------------------- |
+| Compute             | Rectangle                              | VM, App Service, Function                       |
+| Storage/Data        | Cylinder                               | Storage Account, SQL Database, Cosmos DB        |
+| Edge/Gateway        | Gateway (trapezoid)                    | Application Gateway, API Management, Front Door |
+| Messaging           | Circle                                 | Event Hub, Service Bus, Event Grid              |
+| Control/Operations  | Hexagon                                | Monitor, Key Vault, Log Analytics               |
+| Network (container) | Rounded Rectangle (container boundary) | VNet, Subnet, Resource Group                    |
+| Security            | Shield                                 | NSG, Firewall, WAF                              |
 
 ### Color — by Cloud Vendor
 
@@ -37,14 +37,14 @@ Every resource in CloudBlocks is represented as a **Block** (internally `Resourc
 
 Shape is always the primary visual differentiator. Color is secondary — it tells you the vendor at a glance but does not change the shape.
 
-### Stub — Connection Points
+### Port — Connection Points
 
-Every block has **stubs** — small connection points on its surface:
+Every block has **ports** — small connection points on its surface:
 
-- **Left stubs** = Inbound connections (this block receives)
-- **Right stubs** = Outbound connections (this block sends)
-- **Center connection is FORBIDDEN** — all connections must go through stubs
-- Stubs are part of the block's visual representation
+- **Left ports** = Inbound connections (this block receives)
+- **Right ports** = Outbound connections (this block sends)
+- **Center connection is FORBIDDEN** — all connections must go through ports
+- Ports are part of the block's visual representation
 
 ---
 
@@ -86,7 +86,7 @@ When the user opens CloudBlocks, they see:
 
 - ✅ Drag & Drop block placement
 - ✅ Grid-snapped placement
-- ✅ Stub-based connections (left=in, right=out)
+- ✅ Port-based connections (left=in, right=out)
 - ✅ Connection suggestion (visual hint)
 - ✅ Minimal explanation panel
 - ✅ Template gallery
@@ -104,17 +104,17 @@ When the user opens CloudBlocks, they see:
 
 ## Implementation Phases
 
-### Phase 1 — Stub Definition
+### Phase 1 — Port Definition
 
-Add stub metadata to the block model. Each ResourceNode gets stub definitions:
+Add port metadata to the block model. Each ResourceBlock gets port definitions:
 
-- Number of inbound stubs (left)
-- Number of outbound stubs (right)
-- Stub positions computed from block geometry
+- Number of inbound ports (left)
+- Number of outbound ports (right)
+- Port positions computed from block geometry
 
 ### Phase 2 — Anchor Points
 
-Stubs become interactive anchor points on the block SVG:
+Ports become interactive anchor points on the block SVG:
 
 - Visual indicators on hover
 - Snap targets for connections
@@ -122,7 +122,7 @@ Stubs become interactive anchor points on the block SVG:
 
 ### Phase 3 — Connection Preview
 
-When user starts a connection from a stub:
+When a user starts a connection from a port:
 
 - Live preview line follows cursor
 - Valid targets highlight
@@ -130,7 +130,7 @@ When user starts a connection from a stub:
 
 ### Phase 4 — Routing
 
-Connection routing between stubs:
+Connection routing between ports:
 
 - Orthogonal path routing (L-shaped / Z-shaped)
 - Path avoidance (don't overlap blocks)
@@ -140,7 +140,7 @@ Connection routing between stubs:
 
 Connection state fully integrated:
 
-- Store tracks stub-to-stub connections
+- Store tracks port-to-port connections
 - Undo/redo support
 - Serialization/deserialization
 
@@ -157,7 +157,7 @@ Remove old center-to-center connection system:
 Apply vendor-based color system:
 
 - Block face colors derived from vendor
-- Stud colors match vendor theme
+- Port colors match vendor theme
 - Connection colors indicate type
 
 ---
@@ -166,15 +166,15 @@ Apply vendor-based color system:
 
 Replace existing silhouette system (tower/heavy/shield/module) with semantic shapes:
 
-| New Shape            | SVG Approach                                    | Maps to Category   |
-| -------------------- | ----------------------------------------------- | ------------------ |
-| Rectangle            | Simple rect with rounded corners                | Compute            |
-| Cylinder             | Ellipse top + rect body + ellipse bottom        | Storage/Data       |
-| Gateway              | Trapezoid / chevron shape                       | Edge               |
-| Circle               | SVG circle/ellipse                              | Messaging          |
-| Hexagon              | 6-point polygon                                 | Control/Operations |
-| Shield               | Existing shield silhouette (keep)               | Security           |
-| Rounded Rect (plate) | Large rounded rectangle with container behavior | Network            |
+| New Shape                      | SVG Approach                                    | Maps to Category   |
+| ------------------------------ | ----------------------------------------------- | ------------------ |
+| Rectangle                      | Simple rect with rounded corners                | Compute            |
+| Cylinder                       | Ellipse top + rect body + ellipse bottom        | Storage/Data       |
+| Gateway                        | Trapezoid / chevron shape                       | Edge               |
+| Circle                         | SVG circle/ellipse                              | Messaging          |
+| Hexagon                        | 6-point polygon                                 | Control/Operations |
+| Shield                         | Existing shield silhouette (keep)               | Security           |
+| Rounded Rect (container block) | Large rounded rectangle with container behavior | Network            |
 
 ### Dimension System
 
@@ -187,17 +187,17 @@ The `getBlockDimensions()` → `cuToSilhouetteDimensions()` pipeline remains, bu
 
 ### What Changes
 
-1. `BrickSilhouette` type extended with new shape names
+1. `BlockSilhouette` type extended with new shape names
 2. `SILHOUETTE_GENERATORS` gets new generators for each shape
 3. `CATEGORY_TIER_MAP` in visualProfile.ts updated for new mappings
 4. `Connection` model gets `sourcePort` / `targetPort` fields
-5. `getEndpointWorldPosition()` extended for stub positions
-6. `BrickConnector` updated for stub-to-stub routing
+5. `getEndpointWorldPosition()` extended for port positions
+6. `ConnectionRenderer` updated for port-to-port routing
 7. `EmptyCanvasOverlay` replaced with new First Screen
 
 ### What Stays
 
-- ResourceNode model (ContainerNode / LeafNode)
+- Block model (`kind: 'container' | 'resource'`)
 - Zustand store architecture (3 stores)
 - InteractJS for drag & drop
 - Isometric projection system

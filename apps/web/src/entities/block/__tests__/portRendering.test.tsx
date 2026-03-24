@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { render } from '@testing-library/react';
 
 import { BlockSvg } from '../BlockSvg';
-import { stubIndexToSemantic } from '../blockGeometry';
+import { portIndexToSemantic } from '../blockGeometry';
 import {
   PORT_COLOR_HTTP,
   PORT_COLOR_EVENT,
@@ -11,43 +11,43 @@ import {
 } from '../../../shared/tokens/designTokens';
 
 // ---------------------------------------------------------------------------
-// stubIndexToSemantic
+// portIndexToSemantic
 // ---------------------------------------------------------------------------
 
-describe('stubIndexToSemantic', () => {
+describe('portIndexToSemantic', () => {
   it('maps index 0 to http', () => {
-    expect(stubIndexToSemantic(0)).toBe('http');
+    expect(portIndexToSemantic(0)).toBe('http');
   });
 
   it('maps index 1 to event', () => {
-    expect(stubIndexToSemantic(1)).toBe('event');
+    expect(portIndexToSemantic(1)).toBe('event');
   });
 
   it('maps index 2 to data', () => {
-    expect(stubIndexToSemantic(2)).toBe('data');
+    expect(portIndexToSemantic(2)).toBe('data');
   });
 
   it('wraps around for index >= 3', () => {
-    expect(stubIndexToSemantic(3)).toBe('http');
-    expect(stubIndexToSemantic(4)).toBe('event');
-    expect(stubIndexToSemantic(5)).toBe('data');
+    expect(portIndexToSemantic(3)).toBe('http');
+    expect(portIndexToSemantic(4)).toBe('event');
+    expect(portIndexToSemantic(5)).toBe('data');
   });
 });
 
 // ---------------------------------------------------------------------------
-// Port semantic colors (BlockSvg showStubs=true)
+// Port semantic colors (BlockSvg showPorts=true)
 // ---------------------------------------------------------------------------
 
 describe('BlockSvg port semantic colors', () => {
-  it('renders stub dots with semantic colors when showStubs=true', () => {
+  it('renders port dots with semantic colors when showPorts=true', () => {
     // compute: 2 inbound (http, event) + 2 outbound (http, event)
-    const { container } = render(<BlockSvg category="compute" showStubs />);
-    const stubDots = container.querySelector('[data-testid="stub-dots"]')!;
+    const { container } = render(<BlockSvg category="compute" showPorts />);
+    const portDots = container.querySelector('[data-testid="port-dots"]')!;
 
-    const inDot0 = stubDots.querySelector('[data-testid="stub-dot-in-0"]')!;
-    const inDot1 = stubDots.querySelector('[data-testid="stub-dot-in-1"]')!;
-    const outDot0 = stubDots.querySelector('[data-testid="stub-dot-out-0"]')!;
-    const outDot1 = stubDots.querySelector('[data-testid="stub-dot-out-1"]')!;
+    const inDot0 = portDots.querySelector('[data-testid="port-dot-in-0"]')!;
+    const inDot1 = portDots.querySelector('[data-testid="port-dot-in-1"]')!;
+    const outDot0 = portDots.querySelector('[data-testid="port-dot-out-0"]')!;
+    const outDot1 = portDots.querySelector('[data-testid="port-dot-out-1"]')!;
 
     // Index 0 → http (blue), index 1 → event (amber)
     expect(inDot0).toHaveAttribute('fill', PORT_COLOR_HTTP);
@@ -58,28 +58,28 @@ describe('BlockSvg port semantic colors', () => {
     expect(outDot1).toHaveAttribute('fill', PORT_COLOR_EVENT);
   });
 
-  it('renders stub dots with reduced opacity when showStubs=false', () => {
+  it('renders port dots with reduced opacity when showPorts=false', () => {
     const { container } = render(<BlockSvg category="compute" />);
-    const inDot0 = container.querySelector('[data-testid="stub-dot-in-0"]');
+    const inDot0 = container.querySelector('[data-testid="port-dot-in-0"]');
     expect(inDot0).toBeInTheDocument();
-    const stubGroup = container.querySelector('[data-testid="stub-dots"]');
-    expect(stubGroup).toBeInTheDocument();
+    const portGroup = container.querySelector('[data-testid="port-dots"]');
+    expect(portGroup).toBeInTheDocument();
   });
 
   it('renders all three semantic colors for data category (2 inbound: http + event)', () => {
     // data: 2 inbound, 1 outbound
-    const { container } = render(<BlockSvg category="data" showStubs />);
-    const inDot0 = container.querySelector('[data-testid="stub-dot-in-0"]')!;
-    const inDot1 = container.querySelector('[data-testid="stub-dot-in-1"]')!;
-    const outDot0 = container.querySelector('[data-testid="stub-dot-out-0"]')!;
+    const { container } = render(<BlockSvg category="data" showPorts />);
+    const inDot0 = container.querySelector('[data-testid="port-dot-in-0"]')!;
+    const inDot1 = container.querySelector('[data-testid="port-dot-in-1"]')!;
+    const outDot0 = container.querySelector('[data-testid="port-dot-out-0"]')!;
 
     expect(inDot0).toHaveAttribute('fill', PORT_COLOR_HTTP);
     expect(inDot1).toHaveAttribute('fill', PORT_COLOR_EVENT);
     expect(outDot0).toHaveAttribute('fill', PORT_COLOR_HTTP);
   });
 
-  it('sets data-semantic attribute on all stub dots', () => {
-    const { container } = render(<BlockSvg category="compute" showStubs />);
+  it('sets data-semantic attribute on all port dots', () => {
+    const { container } = render(<BlockSvg category="compute" showPorts />);
     const dots = container.querySelectorAll('[data-semantic]');
     expect(dots.length).toBe(4); // 2 in + 2 out for compute
     expect(dots[0]).toHaveAttribute('data-semantic', 'http');
@@ -95,9 +95,9 @@ describe('BlockSvg occupied port dimming', () => {
   it('renders occupied ports in dimmed color', () => {
     const occupied = new Set(['input-http']);
     const { container } = render(
-      <BlockSvg category="compute" showStubs occupiedEndpointSemantics={occupied} />,
+      <BlockSvg category="compute" showPorts occupiedEndpointSemantics={occupied} />,
     );
-    const inDot0 = container.querySelector('[data-testid="stub-dot-in-0"]')!;
+    const inDot0 = container.querySelector('[data-testid="port-dot-in-0"]')!;
     expect(inDot0).toHaveAttribute('fill', PORT_COLOR_OCCUPIED);
     expect(inDot0).toHaveAttribute('data-occupied', 'true');
   });
@@ -105,9 +105,9 @@ describe('BlockSvg occupied port dimming', () => {
   it('does not dim unoccupied ports', () => {
     const occupied = new Set(['input-http']);
     const { container } = render(
-      <BlockSvg category="compute" showStubs occupiedEndpointSemantics={occupied} />,
+      <BlockSvg category="compute" showPorts occupiedEndpointSemantics={occupied} />,
     );
-    const inDot1 = container.querySelector('[data-testid="stub-dot-in-1"]')!;
+    const inDot1 = container.querySelector('[data-testid="port-dot-in-1"]')!;
     expect(inDot1).toHaveAttribute('fill', PORT_COLOR_EVENT);
     expect(inDot1).toHaveAttribute('data-occupied', 'false');
   });
@@ -115,17 +115,17 @@ describe('BlockSvg occupied port dimming', () => {
   it('dims output ports when occupied', () => {
     const occupied = new Set(['output-http', 'output-event']);
     const { container } = render(
-      <BlockSvg category="compute" showStubs occupiedEndpointSemantics={occupied} />,
+      <BlockSvg category="compute" showPorts occupiedEndpointSemantics={occupied} />,
     );
-    const outDot0 = container.querySelector('[data-testid="stub-dot-out-0"]')!;
-    const outDot1 = container.querySelector('[data-testid="stub-dot-out-1"]')!;
+    const outDot0 = container.querySelector('[data-testid="port-dot-out-0"]')!;
+    const outDot1 = container.querySelector('[data-testid="port-dot-out-1"]')!;
     expect(outDot0).toHaveAttribute('fill', PORT_COLOR_OCCUPIED);
     expect(outDot1).toHaveAttribute('fill', PORT_COLOR_OCCUPIED);
   });
 
   it('uses semantic color when no occupiedEndpointSemantics provided', () => {
-    const { container } = render(<BlockSvg category="compute" showStubs />);
-    const inDot0 = container.querySelector('[data-testid="stub-dot-in-0"]')!;
+    const { container } = render(<BlockSvg category="compute" showPorts />);
+    const inDot0 = container.querySelector('[data-testid="port-dot-in-0"]')!;
     expect(inDot0).toHaveAttribute('fill', PORT_COLOR_HTTP);
     expect(inDot0).toHaveAttribute('data-occupied', 'false');
   });
@@ -136,8 +136,8 @@ describe('BlockSvg occupied port dimming', () => {
 // ---------------------------------------------------------------------------
 
 describe('BlockSvg port glow', () => {
-  it('renders glow filter def when showStubs=true', () => {
-    const { container } = render(<BlockSvg category="compute" showStubs />);
+  it('renders glow filter def when showPorts=true', () => {
+    const { container } = render(<BlockSvg category="compute" showPorts />);
     const filters = container.querySelectorAll('filter');
     const glowFilter = Array.from(filters).find((f) => f.id.startsWith('port-glow-'));
     expect(glowFilter).not.toBeUndefined();
@@ -150,11 +150,11 @@ describe('BlockSvg port glow', () => {
     expect(glowFilter).not.toBeUndefined();
   });
 
-  it('renders glow polygons behind unoccupied stubs when showStubs=true', () => {
-    const { container } = render(<BlockSvg category="compute" showStubs />);
+  it('renders glow polygons behind unoccupied ports when showPorts=true', () => {
+    const { container } = render(<BlockSvg category="compute" showPorts />);
     // compute: 2 inbound + 2 outbound unoccupied = 4 glow polygons
-    const glowIn = container.querySelectorAll('[data-testid^="stub-glow-in-"]');
-    const glowOut = container.querySelectorAll('[data-testid^="stub-glow-out-"]');
+    const glowIn = container.querySelectorAll('[data-testid^="port-glow-in-"]');
+    const glowOut = container.querySelectorAll('[data-testid^="port-glow-out-"]');
     expect(glowIn.length).toBe(2);
     expect(glowOut.length).toBe(2);
   });
@@ -162,18 +162,18 @@ describe('BlockSvg port glow', () => {
   it('does not render glow for occupied ports', () => {
     const occupied = new Set(['input-http', 'output-http']);
     const { container } = render(
-      <BlockSvg category="compute" showStubs occupiedEndpointSemantics={occupied} />,
+      <BlockSvg category="compute" showPorts occupiedEndpointSemantics={occupied} />,
     );
     // Only index 1 (event) should have glow, index 0 (http) is occupied
-    const glowIn = container.querySelectorAll('[data-testid^="stub-glow-in-"]');
-    const glowOut = container.querySelectorAll('[data-testid^="stub-glow-out-"]');
+    const glowIn = container.querySelectorAll('[data-testid^="port-glow-in-"]');
+    const glowOut = container.querySelectorAll('[data-testid^="port-glow-out-"]');
     expect(glowIn.length).toBe(1); // only event
     expect(glowOut.length).toBe(1); // only event
   });
 
-  it('no glow polygons when showStubs=false', () => {
+  it('no glow polygons when showPorts=false', () => {
     const { container } = render(<BlockSvg category="compute" />);
-    const glows = container.querySelectorAll('[data-testid^="stub-glow-"]');
+    const glows = container.querySelectorAll('[data-testid^="port-glow-"]');
     expect(glows.length).toBe(0);
   });
 });

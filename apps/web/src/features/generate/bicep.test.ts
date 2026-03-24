@@ -7,7 +7,7 @@ import {
   bicepPlugin,
 } from './bicep';
 import { azureProviderDefinition } from './provider';
-import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
 import type { GenerationOptions } from './types';
 import {
   makeTestArchitecture,
@@ -21,25 +21,25 @@ import {
 const basePosition = { x: 0, y: 0, z: 0 };
 const baseSize = { width: 1, height: 1, depth: 1 };
 
-function createPlate(overrides: LegacyPlateOverrides): ContainerNode {
+function createPlate(overrides: LegacyPlateOverrides): ContainerBlock {
   return makeTestPlate({
-    id: 'plate-default',
+    id: 'container-default',
     name: 'Default',
     type: 'region',
     parentId: null,
     position: basePosition,
-    size: baseSize,
+    frame: baseSize,
     metadata: {},
     ...overrides,
   });
 }
 
-function createBlock(overrides: LegacyBlockOverrides): LeafNode {
+function createBlock(overrides: LegacyBlockOverrides): ResourceBlock {
   return makeTestBlock({
     id: 'block-default',
     name: 'Default',
     category: 'compute',
-    placementId: 'plate-default',
+    placementId: 'container-default',
     position: basePosition,
     metadata: {},
     ...overrides,
@@ -95,12 +95,12 @@ describe('bicep generator', () => {
   it('normalizeBicep generates unique resource names', () => {
     const model = createTestModel({
       plates: [
-        createPlate({ id: 'plate-network', name: 'VNet', type: 'region' }),
+        createPlate({ id: 'container-network', name: 'VNet', type: 'region' }),
         createPlate({
-          id: 'plate-subnet',
+          id: 'container-subnet',
           name: 'Subnet 1',
           type: 'subnet',
-          parentId: 'plate-network',
+          parentId: 'container-network',
         }),
       ],
       blocks: [createBlock({ id: 'block-webapp', name: 'Frontend', category: 'compute' })],
@@ -108,8 +108,8 @@ describe('bicep generator', () => {
 
     const normalized = normalizeBicep(model, azureProviderDefinition);
 
-    expect(normalized.resourceNames.get('plate-network')).toBe('vnetVnet');
-    expect(normalized.resourceNames.get('plate-subnet')).toBe('subnetSubnet1');
+    expect(normalized.resourceNames.get('container-network')).toBe('vnetVnet');
+    expect(normalized.resourceNames.get('container-subnet')).toBe('subnetSubnet1');
     expect(normalized.resourceNames.get('block-webapp')).toBe('webappFrontend');
   });
 
@@ -129,7 +129,7 @@ describe('bicep generator', () => {
 
   it('generateMainBicep contains header, params, and resource definitions', () => {
     const model = createTestModel({
-      plates: [createPlate({ id: 'plate-network', name: 'Core', type: 'region' })],
+      plates: [createPlate({ id: 'container-network', name: 'Core', type: 'region' })],
       blocks: [createBlock({ id: 'block-web', name: 'Frontend', category: 'compute' })],
     });
     const normalized = normalizeBicep(model, azureProviderDefinition);

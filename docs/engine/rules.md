@@ -40,7 +40,7 @@ The engine produces a unified `ValidationResult` containing:
 
 The rule engine is implemented as a set of focused modules that run in-browser after any architecture mutation.
 
-- **Placement validation** — ensures blocks are on compatible plates.
+- **Placement validation** — ensures blocks are on compatible container blocks.
 - **Connection validation** — enforces client-server initiator semantics.
 - **Role and Aggregation validation** — checks resource identity and scaling.
 - **Provider-specific hints** — warns about provider-specific best practices.

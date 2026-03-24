@@ -131,15 +131,15 @@ def test_prompt_contains_provider_specific_subtypes(
 def test_prompt_contains_two_json_examples_patterns() -> None:
     prompt = build_architecture_prompt("aws")
 
-    assert len(re.findall(r'"plate-[^\"]+"', prompt)) >= 2
+    assert len(re.findall(r'"cb-[^\"]+"', prompt)) >= 2
     assert len(re.findall(r'"block-[^\"]+"', prompt)) >= 4
 
 
 def test_prompt_contains_placement_rules_text() -> None:
     prompt = build_architecture_prompt("aws")
 
-    assert "placementId MUST reference an existing plate id" in prompt
-    assert "Region plates should contain at least one subnet" in prompt
+    assert "placementId MUST reference an existing container block id" in prompt
+    assert "Region container blocks should contain at least one subnet" in prompt
 
 
 def test_prompt_contains_connection_rules_text() -> None:

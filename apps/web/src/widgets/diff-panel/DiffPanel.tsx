@@ -65,8 +65,8 @@ function hasV4Endpoints(entity: {
 function getEntityLabel(entity: { id: string }): string {
   if (hasName(entity)) return `${entity.name} (${entity.id})`;
   if (hasV4Endpoints(entity)) {
-    const fromNode = parseEndpointId(entity.from)?.nodeId ?? entity.from;
-    const toNode = parseEndpointId(entity.to)?.nodeId ?? entity.to;
+    const fromNode = parseEndpointId(entity.from)?.blockId ?? entity.from;
+    const toNode = parseEndpointId(entity.to)?.blockId ?? entity.to;
     return `${entity.id} (${fromNode} -> ${toNode})`;
   }
   if (hasV3Endpoints(entity)) return `${entity.id} (${entity.sourceId} -> ${entity.targetId})`;

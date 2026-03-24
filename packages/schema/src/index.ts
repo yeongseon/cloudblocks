@@ -7,18 +7,18 @@ export const SCHEMA_VERSION = '4.0.0';
 // Enumeration types
 export type {
   AggregationMode,
+  BlockKind,
   BlockRole,
   ConnectionType,
   EndpointDirection,
   EndpointSemantic,
   LayerType,
-  NodeKind,
   ProviderType,
   ResourceCategory,
 } from './enums.js';
 
-// Deprecated enum aliases (migration shims — remove post-M19)
-export type { BlockCategory, PlateType } from './enums.js';
+// Container layer type
+export type { ContainerLayer } from './enums.js';
 
 // Spatial types
 export type { Position, Size } from './spatial.js';
@@ -27,25 +27,22 @@ export type { Position, Size } from './spatial.js';
 export type {
   Aggregation,
   ArchitectureModel,
+  Block,
   Connection,
-  ContainerNode,
+  ContainerBlock,
   Endpoint,
   ExternalActor,
   LegacyConnection,
-  LeafNode,
-  ResourceNode,
+  ResourceBlock,
 } from './model.js';
 
 export {
   endpointId,
-  generateEndpointsForNode,
+  generateEndpointsForBlock,
   connectionTypeToSemantic,
   parseEndpointId,
   resolveConnectionNodes,
 } from './endpoints.js';
-
-// Deprecated model aliases (migration shims — remove post-M19)
-export type { Block, Plate } from './model.js';
 
 // Resource rules — single source of truth for constraints (Proposals 1–3)
 export type {

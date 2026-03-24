@@ -1,8 +1,9 @@
 # ADR-0012: Modular Surface Visual Language
 
-**Status**: Accepted
+**Status**: Superseded by [ADR-0013](0013-block-unification.md)
 **Date**: 2026-03
 **Supersedes**: [ADR-0003](0003-lego-style-composition-model.md)
+**Superseded by**: [ADR-0013](0013-block-unification.md) — Full terminology unification; plate/brick/stud vocabulary removed from code.
 
 ## Context
 

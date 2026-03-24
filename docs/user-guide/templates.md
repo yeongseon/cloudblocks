@@ -13,7 +13,7 @@ You can load a template in two ways:
 
 Once the Template Gallery opens, you can browse the available patterns. Click any template to see a preview of its architecture and description. Click **Use** to load the template into your workspace.
 
-When a template loads, it creates a complete workspace with all containers, nodes, and connections pre-configured.
+When a template loads, it creates a complete workspace with all blocks and connections pre-configured.
 
 ---
 
@@ -55,7 +55,7 @@ This template represents a pure asynchronous processing pipeline. It features Ev
 
 **Difficulty:** Advanced | **Category:** Serverless
 
-The most complex built-in template, featuring 13 nodes and 11 connections. It combines a synchronous web frontend (Internet → API Gateway → Web Frontend + API Handler Function) with an asynchronous processing backend (Queue → Worker Function and Event → Batch Processor).
+The most complex built-in template, featuring 13 blocks and 11 connections. It combines a synchronous web frontend (Internet → API Gateway → Web Frontend + API Handler Function) with an asynchronous processing backend (Queue → Worker Function and Event → Batch Processor).
 
 ---
 
@@ -64,10 +64,10 @@ The most complex built-in template, featuring 13 nodes and 11 connections. It co
 Templates are fully editable. After loading one, you can modify it just like a workspace built from scratch:
 
 - **Add resources**: Drag new components from the **Sidebar Palette** on the left.
-- **Remove elements**: Select any node, container, or connection and press **Delete**.
-- **Connect components**: Click an output port on a source node, then click an input port on a target node.
-- **Rearrange**: Drag nodes and containers to change their position on the canvas.
-- **Rename**: Click a node to select it, then edit its name in the **Inspector Panel** on the right.
+- **Remove elements**: Select any block or connection and press **Delete**.
+- **Connect components**: Click an output port on a source block, then click an input port on a target block.
+- **Rearrange**: Drag blocks to change their position on the canvas.
+- **Rename**: Click a block to select it, then edit its name in the **Inspector Panel** on the right.
 
 ---
 

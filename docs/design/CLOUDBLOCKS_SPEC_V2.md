@@ -2,7 +2,7 @@
 
 **Status**: Draft  
 **Date**: 2026-03-19  
-**Supersedes**: BRICK_DESIGN_SPEC.md, VISUAL_DESIGN_SPEC.md (v1.x)
+**Supersedes**: Block design spec (v1.x), VISUAL_DESIGN_SPEC.md (v1.x)
 
 ---
 
@@ -27,7 +27,7 @@ CloudBlocks uses **CU (Cloud Unit)** as its abstract spatial unit.
 | `CU`     | 1     | Abstract unit for all spatial dimensions       |
 | `CH`     | 1     | Abstract unit for vertical (height) dimensions |
 
-All block/plate dimensions are **integer multiples** of CU and CH. No fractional dimensions.
+All block/container block dimensions are **integer multiples** of CU and CH. No fractional dimensions.
 
 ### 1.2 Render Scale (CU → Pixel)
 
@@ -61,11 +61,11 @@ Derived:
 ├── TILE_H       = RENDER_SCALE             = 32 px  (isometric tile height, 2:1 ratio)
 ├── TILE_Z       = RENDER_SCALE             = 32 px  (depth/elevation scale)
 │
-├── STUD_RX      = RENDER_SCALE × 3/8       = 12 px  (stud horizontal radius)
-├── STUD_RY      = STUD_RX / 2              = 6 px   (stud vertical radius, isometric)
-├── STUD_HEIGHT  = RENDER_SCALE × 5/32      = 5 px   (stud cylinder extrusion)
-├── STUD_INNER_RX = STUD_RX × 0.6           = 7.2 px (inner ring horizontal radius)
-├── STUD_INNER_RY = STUD_INNER_RX / 2       = 3.6 px (inner ring vertical radius)
+├── PORT_RX      = RENDER_SCALE × 3/8       = 12 px  (port horizontal radius)
+├── PORT_RY      = PORT_RX / 2              = 6 px   (port vertical radius, isometric)
+├── PORT_HEIGHT  = RENDER_SCALE × 5/32      = 5 px   (port cylinder extrusion)
+├── PORT_INNER_RX = PORT_RX × 0.6           = 7.2 px (inner ring horizontal radius)
+├── PORT_INNER_RY = PORT_INNER_RX / 2       = 3.6 px (inner ring vertical radius)
 │
 ├── BLOCK_MARGIN  = RENDER_SCALE × 5/16     = 10 px  (SVG margin around block)
 └── BLOCK_PADDING = RENDER_SCALE × 5/16     = 10 px  (SVG padding inside block)
@@ -73,13 +73,13 @@ Derived:
 
 ### 1.4 Ratio Table
 
-| Ratio                      | Value                 | Brick Equivalent          |
+| Ratio                      | Value                 | Block-Based Equivalent    |
 | -------------------------- | --------------------- | ------------------------- |
 | Isometric projection       | 2:1 (TILE_W : TILE_H) | —                         |
-| Stud diameter / tile width | 3/8 (37.5%)           | 5mm / 8mm = 62.5%         |
-| Stud height / tile height  | 5/32 (15.6%)          | 1.7mm / 9.6mm = 17.7%     |
-| Inner ring / stud          | 0.6                   | —                         |
-| Stud ry / rx               | 0.5                   | — (isometric compression) |
+| Port diameter / tile width | 3/8 (37.5%)           | 5mm / 8mm = 62.5%         |
+| Port height / tile height  | 5/32 (15.6%)          | 1.7mm / 9.6mm = 17.7%     |
+| Inner ring / port          | 0.6                   | —                         |
+| Port ry / rx               | 0.5                   | — (isometric compression) |
 
 ### 1.5 Pixel Precision Rules
 
@@ -93,47 +93,47 @@ Derived:
 
 ---
 
-## 2. Stud Standard (INVIOLABLE)
+## 2. Port Standard (INVIOLABLE)
 
 ### 2.1 The Block Principle
 
-Every stud in the system — plates, blocks, background — uses **identical geometry**. Only **colors** vary. This is the fundamental interoperability constraint.
+Every port in the system — container blocks, blocks, background — uses **identical geometry**. Only **colors** vary. This is the fundamental interoperability constraint.
 
-### 2.2 Stud Dimensions
+### 2.2 Port Dimensions
 
 All derived from `RENDER_SCALE`:
 
 | Property           | Formula               | Default (32 px/CU) |
 | ------------------ | --------------------- | ------------------ |
-| Stud rx            | `RENDER_SCALE × 3/8`  | 12 px              |
-| Stud ry            | `STUD_RX / 2`         | 6 px               |
-| Stud height        | `RENDER_SCALE × 5/32` | 5 px               |
-| Inner ring rx      | `STUD_RX × 0.6`       | 7.2 px             |
-| Inner ring ry      | `STUD_INNER_RX / 2`   | 3.6 px             |
+| Port rx            | `RENDER_SCALE × 3/8`  | 12 px              |
+| Port ry            | `PORT_RX / 2`         | 6 px               |
+| Port height        | `RENDER_SCALE × 5/32` | 5 px               |
+| Inner ring rx      | `PORT_RX × 0.6`       | 7.2 px             |
+| Inner ring ry      | `PORT_INNER_RX / 2`   | 3.6 px             |
 | Inner ring opacity | 0.3                   | 0.3                |
 
-### 2.3 Stud SVG Template
+### 2.3 Port SVG Template
 
 ```svg
-<g id="stud">
+<g id="port">
   <!-- Shadow (cylinder side) -->
-  <ellipse cx="0" cy="{STUD_HEIGHT}" rx="{STUD_RX}" ry="{STUD_RY}" fill="{shadow}" />
+  <ellipse cx="0" cy="{PORT_HEIGHT}" rx="{PORT_RX}" ry="{PORT_RY}" fill="{shadow}" />
   <!-- Top face -->
-  <ellipse cx="0" cy="0" rx="{STUD_RX}" ry="{STUD_RY}" fill="{main}" />
+  <ellipse cx="0" cy="0" rx="{PORT_RX}" ry="{PORT_RY}" fill="{main}" />
   <!-- Inner ring (depth) -->
-  <ellipse cx="0" cy="0" rx="{STUD_INNER_RX}" ry="{STUD_INNER_RY}" fill="{highlight}" opacity="0.3" />
+  <ellipse cx="0" cy="0" rx="{PORT_INNER_RX}" ry="{PORT_INNER_RY}" fill="{highlight}" opacity="0.3" />
 </g>
 ```
 
 ### 2.4 Rules (HARD CONSTRAINTS)
 
-1. **UNIFORM SIZE**: Every stud renders at the same visual diameter. ONE stud size.
+1. **UNIFORM SIZE**: Every port renders at the same visual diameter. ONE port size.
 2. **UNIFORM SHAPE**: 3-layer structure (shadow + top + inner ring). No exceptions.
-3. **UNIFORM SPACING**: 1 CU center-to-center. Studs on a 2×2 block = 4 studs in 2×2 grid.
-4. **NO SCALING**: Blocks get stud grids matching their footprint, not one oversized stud.
+3. **UNIFORM SPACING**: 1 CU center-to-center. Ports on a 2×2 block = 4 ports in 2×2 grid.
+4. **NO SCALING**: Blocks get port grids matching their footprint, not one oversized port.
 5. **COLOR ONLY VARIES**: Shadow, main, highlight colors change per element. Shape never changes.
 
-### 2.5 CSS Background Studs
+### 2.5 CSS Background Ports
 
 The infinite background grid uses a 2-layer CSS `radial-gradient` approximation. This is an acceptable deviation (CSS cannot render 3 concentric offset ellipses).
 
@@ -141,14 +141,14 @@ The infinite background grid uses a 2-layer CSS `radial-gradient` approximation.
 
 ## 3. Grid System
 
-| Property         | Value                                     |
-| ---------------- | ----------------------------------------- |
-| Grid unit        | 1 CU                                      |
-| Snap             | Mandatory (all positions snap to CU grid) |
-| Free positioning | Forbidden                                 |
-| Block spacing    | 1 CU                                      |
-| Plate padding    | 2 CU                                      |
-| Layer spacing    | 2 CU                                      |
+| Property                | Value                                     |
+| ----------------------- | ----------------------------------------- |
+| Grid unit               | 1 CU                                      |
+| Snap                    | Mandatory (all positions snap to CU grid) |
+| Free positioning        | Forbidden                                 |
+| Block spacing           | 1 CU                                      |
+| Container block padding | 2 CU                                      |
+| Layer spacing           | 2 CU                                      |
 
 ---
 
@@ -156,14 +156,14 @@ The infinite background grid uses a 2-layer CSS `radial-gradient` approximation.
 
 CloudBlocks defines a strict 6-layer hierarchy:
 
-| Layer        | Purpose                            | Plate Type | Examples                          |
-| ------------ | ---------------------------------- | ---------- | --------------------------------- |
-| **Global**   | DNS, identity root, global routing | `global`   | Route 53, Azure DNS, Cloud DNS    |
-| **Edge**     | CDN, WAF, edge routing             | `edge`     | CloudFront, Front Door, Cloud CDN |
-| **Region**   | Network boundary (VPC/VNet)        | `region`   | VPC, VNet, VPC Network            |
-| **Zone**     | Availability zone                  | `zone`     | AZ, Availability Zone, GCP Zone   |
-| **Subnet**   | Logical network segmentation       | `subnet`   | Subnet, Subnetwork                |
-| **Resource** | Cloud resources (blocks)           | —          | EC2, VM, Compute Engine           |
+| Layer        | Purpose                            | Container Block Type | Examples                          |
+| ------------ | ---------------------------------- | -------------------- | --------------------------------- |
+| **Global**   | DNS, identity root, global routing | `global`             | Route 53, Azure DNS, Cloud DNS    |
+| **Edge**     | CDN, WAF, edge routing             | `edge`               | CloudFront, Front Door, Cloud CDN |
+| **Region**   | Network boundary (VPC/VNet)        | `region`             | VPC, VNet, VPC Network            |
+| **Zone**     | Availability zone                  | `zone`               | AZ, Availability Zone, GCP Zone   |
+| **Subnet**   | Logical network segmentation       | `subnet`             | Subnet, Subnetwork                |
+| **Resource** | Cloud resources (blocks)           | —                    | EC2, VM, Compute Engine           |
 
 ### 4.1 Multi-Cloud Mapping
 
@@ -366,7 +366,7 @@ Color is applied to:
 
 - Block top face (primary)
 - Block side faces (darker shades, derived)
-- Stud colors (lighter tint, derived)
+- Port colors (lighter tint, derived)
 - Icon accent (if applicable)
 
 ### 7.7 Face Color Derivation
@@ -379,9 +379,9 @@ From a base provider color `BASE`:
 | Top stroke     | `lighten(BASE, 15%)` | lighter                       |
 | Right side     | `darken(BASE, 10%)`  | darker                        |
 | Left side      | `darken(BASE, 20%)`  | darkest                       |
-| Stud main      | `lighten(BASE, 15%)` | lighter                       |
-| Stud shadow    | `darken(BASE, 15%)`  | darker                        |
-| Stud highlight | `lighten(BASE, 40%)` | lightest                      |
+| Port main      | `lighten(BASE, 15%)` | lighter                       |
+| Port shadow    | `darken(BASE, 15%)`  | darker                        |
+| Port highlight | `lighten(BASE, 40%)` | lightest                      |
 
 ---
 
@@ -426,15 +426,15 @@ Roles affect **visual indicators only** — not size, color, or placement.
 
 ## 10. Placement Rules
 
-| Rule             | Constraint                       |
-| ---------------- | -------------------------------- |
-| Global resources | Cannot be inside subnet          |
-| Edge resources   | Cannot be inside zone            |
-| Zone resources   | Must belong to a zone            |
-| Subnet resources | Must belong to a subnet          |
-| Blocks           | Must stay inside parent plate    |
-| No overlapping   | Blocks must not overlap          |
-| Grid snap        | All positions must be CU-aligned |
+| Rule             | Constraint                              |
+| ---------------- | --------------------------------------- |
+| Global resources | Cannot be inside subnet                 |
+| Edge resources   | Cannot be inside zone                   |
+| Zone resources   | Must belong to a zone                   |
+| Subnet resources | Must belong to a subnet                 |
+| Blocks           | Must stay inside parent container block |
+| No overlapping   | Blocks must not overlap                 |
+| Grid snap        | All positions must be CU-aligned        |
 
 ---
 
@@ -497,7 +497,6 @@ Complete computed dimensions for all tiers at `RENDER_SCALE = 32`:
 | Width           | 1             | 32     |
 | Depth           | 1             | 32     |
 | Height          | 1             | 32     |
-| Studs           | 1×1 = 1       | —      |
 | SVG iso width   | (1+1)×32 = 64 | 64     |
 | SVG iso diamond | (1+1)×16 = 32 | 32     |
 | Side wall       | 1×32 = 32     | 32     |
@@ -511,7 +510,6 @@ Applies to: `function`, `queue`, `event`
 | Width           | 2              | 64     |
 | Depth           | 2              | 64     |
 | Height          | 1              | 32     |
-| Studs           | 2×2 = 4        | —      |
 | SVG iso width   | (2+2)×32 = 128 | 128    |
 | SVG iso diamond | (2+2)×16 = 64  | 64     |
 | Side wall       | 1×32 = 32      | 32     |
@@ -525,7 +523,6 @@ Applies to: `identity`, `observability`
 | Width           | 2              | 64     |
 | Depth           | 2              | 64     |
 | Height          | 2              | 64     |
-| Studs           | 2×2 = 4        | —      |
 | SVG iso width   | (2+2)×32 = 128 | 128    |
 | SVG iso diamond | (2+2)×16 = 64  | 64     |
 | Side wall       | 2×32 = 64      | 64     |
@@ -539,7 +536,6 @@ Applies to: `compute`, `storage`
 | Width           | 3              | 96     |
 | Depth           | 3              | 96     |
 | Height          | 2              | 64     |
-| Studs           | 3×3 = 9        | —      |
 | SVG iso width   | (3+3)×32 = 192 | 192    |
 | SVG iso diamond | (3+3)×16 = 96  | 96     |
 | Side wall       | 2×32 = 64      | 64     |
@@ -553,7 +549,6 @@ Applies to: `database`, `analytics`
 | Width           | 3              | 96     |
 | Depth           | 1              | 32     |
 | Height          | 1              | 32     |
-| Studs           | 3×1 = 3        | —      |
 | SVG iso width   | (3+1)×32 = 128 | 128    |
 | SVG iso diamond | (3+1)×16 = 64  | 64     |
 | Side wall       | 1×32 = 32      | 32     |
@@ -567,7 +562,6 @@ Applies to: `gateway`
 | Width           | 4              | 128    |
 | Depth           | 1              | 32     |
 | Height          | 1              | 32     |
-| Studs           | 4×1 = 4        | —      |
 | SVG iso width   | (4+1)×32 = 160 | 160    |
 | SVG iso diamond | (4+1)×16 = 80  | 80     |
 | Side wall       | 1×32 = 32      | 32     |
@@ -622,7 +616,7 @@ CloudBlocks v2.0 evolves from a visual block-based diagram tool into a **univers
 | Categories      | 8                                         | 10                                          |
 | Layers          | 2 (network/subnet)                        | 6 (global→resource)                         |
 | Colors          | Category-based                            | Provider-resource-based                     |
-| Sizes           | Stud footprint `[col,row]` + TIER_HEIGHTS | CU `W×D×H` integers                         |
+| Sizes           | Port footprint `[col,row]` + TIER_HEIGHTS | CU `W×D×H` integers                         |
 | Multi-cloud     | Azure-first, partial                      | Provider-neutral with provider-aware colors |
 | Pixel precision | Floats allowed                            | Integer-only, no sub-pixel                  |
 | Aggregation     | None                                      | count badge                                 |

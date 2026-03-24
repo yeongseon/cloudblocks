@@ -36,11 +36,11 @@ export function DragGhost({ containerRef, originX, originY, panX, panY, zoom }: 
   const [pointerPosition, setPointerPosition] = useState<{ x: number; y: number } | null>(null);
   const activeCategory = draggedBlockCategory ?? 'compute';
 
-  const [studsX, studsY] = getBlockVisualProfile(activeCategory).footprint;
+  const [unitsX, unitsY] = getBlockVisualProfile(activeCategory).footprint;
   const faceColors = getBlockFaceColors(activeCategory);
 
-  const screenWidth = ((studsX + studsY) * TILE_W) / 2;
-  const diamondHeight = ((studsX + studsY) * TILE_H) / 2;
+  const screenWidth = ((unitsX + unitsY) * TILE_W) / 2;
+  const diamondHeight = ((unitsX + unitsY) * TILE_H) / 2;
   const sideWallPx = getBlockDimensions(activeCategory).height * TILE_Z;
   const svgHeight = diamondHeight + sideWallPx + BLOCK_PADDING;
 

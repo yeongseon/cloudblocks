@@ -16,7 +16,7 @@ import * as hintEngine from './hint-engine';
 import { registerBuiltinScenarios } from './scenarios/builtin';
 import { clearScenarioRegistry, getScenario } from './scenarios/registry';
 import type { ArchitectureSnapshot } from '../../shared/types/learning';
-import type { ContainerNode } from '@cloudblocks/schema';
+import type { ContainerBlock } from '@cloudblocks/schema';
 
 const EMPTY_ARCHITECTURE: ArchitectureSnapshot = {
   name: 'Empty Test Architecture',
@@ -27,7 +27,7 @@ const EMPTY_ARCHITECTURE: ArchitectureSnapshot = {
   externalActors: [],
 };
 
-function createRegionNode(id: string, name: string): ContainerNode {
+function createRegionNode(id: string, name: string): ContainerBlock {
   return {
     id,
     name,
@@ -38,7 +38,7 @@ function createRegionNode(id: string, name: string): ContainerNode {
     provider: 'azure',
     parentId: null,
     position: { x: 0, y: 0, z: 0 },
-    size: { width: 12, height: 0.3, depth: 10 },
+    frame: { width: 12, height: 0.3, depth: 10 },
     metadata: {},
   };
 }
@@ -433,7 +433,7 @@ describe('scenario-engine', () => {
       const result = getValidationDetails();
 
       expect(result.results.length).toBeGreaterThan(0);
-      expect(result.results[0]?.rule.type).toBe('plate-exists');
+      expect(result.results[0]?.rule.type).toBe('container-exists');
       expect(result.passed).toBe(false);
     });
 

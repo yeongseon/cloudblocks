@@ -15,12 +15,12 @@ This specification defines the **dual theme system** for CloudBlocks. It establi
 
 The codebase uses `blueprint` and `workshop` as theme variant names:
 
-| Variant     | Character                                               | Default? |
-| ----------- | ------------------------------------------------------- | -------- |
-| `workshop`  | Light, clean, enterprise-grade — the default            | ✅       |
-| `blueprint` | Dark, saturated, playful — the original brick aesthetic |          |
+| Variant     | Character                                                     | Default? |
+| ----------- | ------------------------------------------------------------- | -------- |
+| `workshop`  | Light, clean, enterprise-grade — the default                  | ✅       |
+| `blueprint` | Dark, saturated, playful — the original block-based aesthetic |          |
 
-> **Planned rename**: A future milestone will rename `blueprint` → `lego` and `workshop` → `professional` to better reflect each theme's identity. Until then, `blueprint`/`workshop` are the canonical code names.
+> **Planned rename**: A future milestone will rename `blueprint` → `blocks` and `workshop` → `professional` to better reflect each theme's identity. Until then, `blueprint`/`workshop` are the canonical code names.
 
 ### Scope
 
@@ -29,14 +29,14 @@ The codebase uses `blueprint` and `workshop` as theme variant names:
 | Theme token definitions (color, surface, border) | Layout or geometry changes between themes        |
 | CSS custom property architecture                 | Vendor-specific resource colors (see V2 spec §7) |
 | Theme switching mechanism                        | Animation or motion token differences            |
-| Stud visibility toggle per theme                 | Stud dimensions (see V2 spec §2 — INVIOLABLE)    |
+| Port visibility toggle per theme                 | Port dimensions (see V2 spec §2 — INVIOLABLE)    |
 
 ---
 
 ## 1. Design Principles
 
 1. **Tokens, not overrides** — Every visual difference between themes is expressed through a named token. No ad-hoc color values.
-2. **Same gauge** — Layout grid, stud dimensions, block sizes, plate proportions, and the Universal Stud Standard (V2 spec §2) are theme-independent.
+2. **Same gauge** — Layout grid, port dimensions, block sizes, container block proportions, and the Universal Port Standard (V2 spec §2) are theme-independent.
 3. **Provider identity preserved** — Resource colors come from the cloud provider (V2 spec §7). Themes only affect the chrome (UI shell, panels, canvas background), never the resource blocks themselves.
 4. **Instant switch** — Theme changes apply immediately with no page reload. Transition duration ≤ 200ms.
 5. **Persistence** — The selected theme is persisted in `localStorage` and restored on next visit.
@@ -67,11 +67,11 @@ The Workshop theme targets users who treat CloudBlocks as a production architect
 - Muted accent colors — blue primary, teal secondary
 - High text contrast for readability (WCAG AA minimum)
 - Clean, flat panel chrome without decorative elements
-- Studs hidden by default (`showStuds: false`)
+- Ports hidden by default (`showStuds: false`)
 
 ### 2.3 Blueprint Theme (Alternative)
 
-The Blueprint theme preserves the original CloudBlocks brick-building aesthetic. It is colorful, saturated, and fun.
+The Blueprint theme preserves the original CloudBlocks block-building aesthetic. It is colorful, saturated, and fun.
 
 **Visual character**:
 
@@ -79,11 +79,11 @@ The Blueprint theme preserves the original CloudBlocks brick-building aesthetic.
 - Pronounced shadows with colored glow effects
 - Vivid accent colors — bright blue primary, cyan secondary
 - Playful visual density — the canvas feels like a building workspace
-- Studs visible by default (`showStuds: true`)
+- Ports visible by default (`showStuds: true`)
 
-### 2.4 Stud Visibility Toggle
+### 2.4 Port Visibility Toggle
 
-Stud visibility is **independent** of theme variant. Each theme has a default, but users can override:
+Port visibility is **independent** of theme variant. Each theme has a default, but users can override:
 
 | Theme       | Default `showStuds` | User can override?            |
 | ----------- | ------------------- | ----------------------------- |
@@ -459,12 +459,12 @@ A future milestone will rename the theme variants to be more descriptive:
 | Current (M22) | Planned (future) | Reason                                              |
 | ------------- | ---------------- | --------------------------------------------------- |
 | `workshop`    | `professional`   | Better communicates enterprise-grade identity       |
-| `blueprint`   | `lego`           | Better communicates playful brick-building identity |
+| `blueprint`   | `blocks`         | Better communicates playful block-building identity |
 
 ### Migration checklist (for the rename milestone):
 
-1. Update `ThemeVariant` type: `'blueprint' | 'workshop'` → `'professional' | 'lego'`
-2. Rename exports: `blueprintTheme` → `legoTheme`, `workshopTheme` → `professionalTheme`
+1. Update `ThemeVariant` type: `'blueprint' | 'workshop'` → `'professional' | 'blocks'`
+2. Rename exports: `blueprintTheme` → `blocksTheme`, `workshopTheme` → `professionalTheme`
 3. Update `getThemeTokens()` to use new names
 4. Update `uiStore.ts` default
 5. Add localStorage migration for existing users
@@ -475,9 +475,9 @@ A future milestone will rename the theme variants to be more descriptive:
 
 ```typescript
 function migrateThemeVariant(stored: string | null): ThemeVariant {
-  if (stored === 'professional' || stored === 'lego') return stored;
+  if (stored === 'professional' || stored === 'blocks') return stored;
   if (stored === 'workshop') return 'professional';
-  if (stored === 'blueprint') return 'lego';
+  if (stored === 'blueprint') return 'blocks';
   return 'professional'; // default
 }
 ```
@@ -536,7 +536,7 @@ If a future milestone requires light/dark modes within each theme style, the ext
 
 ```typescript
 // Future — NOT part of current implementation
-export type ThemeStyle = 'professional' | 'lego';
+export type ThemeStyle = 'professional' | 'blocks';
 export type ThemeMode = 'light' | 'dark';
 export type ThemeVariant = `${ThemeStyle}-${ThemeMode}`;
 ```
@@ -547,22 +547,22 @@ This requires 4 token sets instead of 2 but uses the same `ThemeTokens` interfac
 
 ## 11. Summary
 
-| Aspect               | Decision                                                             |
-| -------------------- | -------------------------------------------------------------------- |
-| Default theme        | Workshop (light, clean, enterprise)                                  |
-| Alternative theme    | Blueprint (dark, playful, creative)                                  |
-| Theme dimensionality | 1D — variant only (no separate light/dark toggle)                    |
-| Token count          | 24 color tokens + 8 typography + 6 motion                            |
-| CSS architecture     | `--cb-*` custom properties on `:root` (target)                       |
-| Vendor colors        | Theme-independent — defined in V2 spec §7                            |
-| Connector colors     | Theme-independent — defined by endpoint semantic type                |
-| Persistence          | `localStorage` key `cloudblocks:theme-variant`                       |
-| Default value        | `'workshop'`                                                         |
-| Switching            | Instant, via View menu                                               |
-| Stud visibility      | Per-theme default, user-overridable                                  |
-| Extension            | New variants = new `ThemeTokens` object + union member               |
-| Accessibility        | WCAG AA for primary/secondary text                                   |
-| Planned rename       | `workshop` → `professional`, `blueprint` → `lego` (future milestone) |
+| Aspect               | Decision                                                               |
+| -------------------- | ---------------------------------------------------------------------- |
+| Default theme        | Workshop (light, clean, enterprise)                                    |
+| Alternative theme    | Blueprint (dark, playful, creative)                                    |
+| Theme dimensionality | 1D — variant only (no separate light/dark toggle)                      |
+| Token count          | 24 color tokens + 8 typography + 6 motion                              |
+| CSS architecture     | `--cb-*` custom properties on `:root` (target)                         |
+| Vendor colors        | Theme-independent — defined in V2 spec §7                              |
+| Connector colors     | Theme-independent — defined by endpoint semantic type                  |
+| Persistence          | `localStorage` key `cloudblocks:theme-variant`                         |
+| Default value        | `'workshop'`                                                           |
+| Switching            | Instant, via View menu                                                 |
+| Port visibility      | Per-theme default, user-overridable                                    |
+| Extension            | New variants = new `ThemeTokens` object + union member                 |
+| Accessibility        | WCAG AA for primary/secondary text                                     |
+| Planned rename       | `workshop` → `professional`, `blueprint` → `blocks` (future milestone) |
 
 ---
 

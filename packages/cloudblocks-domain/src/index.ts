@@ -10,10 +10,10 @@ export { VALID_PARENTS } from './hierarchy.js';
 // Resource constraint validation (Proposals 1–3)
 export {
   validateContainment,
-  validateNodeIntegrity,
-  validateNodePlacement,
+  validateBlockIntegrity,
+  validateBlockPlacement,
 } from './constraints.js';
-export type { ContainmentError, NodeIntegrityError } from './constraints.js';
+export type { ContainmentError, BlockIntegrityError } from './constraints.js';
 
 // Human-readable labels and role constants
 export { CONNECTION_TYPE_LABELS, BLOCK_ROLES } from './labels.js';

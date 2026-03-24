@@ -31,7 +31,7 @@ When the builder opens with an empty canvas, you'll see the Empty Canvas CTA wit
 | Option                 | What it does                                              |
 | :--------------------- | :-------------------------------------------------------- |
 | **Use Template**       | Opens the Template Gallery with 6 pre-built architectures |
-| **Start from Scratch** | Creates a VNet (Network) container on the canvas          |
+| **Start from Scratch** | Creates a VNet (Network) block on the canvas              |
 | **Learn How**          | Opens guided learning scenarios                           |
 
 Click **Use Template** and select **Three-Tier Web Application**. This loads a complete architecture with an Application Gateway, VM, SQL Database, and Blob Storage. All components are pre-wired with connections.
@@ -45,10 +45,10 @@ The builder uses a 4-panel layout designed for professional architecture modelin
 - **Menu Bar** (top) — Access File, Edit, Build, and View menus. Use the Workspaces button to manage projects, switch between Provider tabs (Azure, AWS, GCP), and access the GitHub section.
 - **Sidebar Palette** (left) — Contains the resource palette grouped by category (foundation, compute, data, edge, security, messaging, operations). Click or drag items to create resources.
 - **Canvas** (center) — The main isometric drawing area where you build and view your architecture.
-- **Inspector Panel** (right) — Manage your selected nodes using three tabs:
-  - **Properties**: View node details and perform actions.
+- **Inspector Panel** (right) — Manage your selected blocks using three tabs:
+  - **Properties**: View block details and perform actions.
   - **Code**: See a live preview of the generated IaC.
-  - **Connections**: Review related connections for the selected node.
+- **Connections**: Review related connections for the selected block.
 - **Bottom Dock** (bottom) — Monitor system state through four tabs:
   - **Output**: View the activity log.
   - **Validation**: Check rule results for your architecture.
@@ -57,8 +57,8 @@ The builder uses a 4-panel layout designed for professional architecture modelin
 
 ### Common Interactions
 
-- **Drag** a node to reposition it on the canvas.
-- **Click** a node to see its details in the Inspector Panel on the right.
+- **Drag** a block to reposition it on the canvas.
+- **Click** a block to see its details in the Inspector Panel on the right.
 - **Scroll** with your mouse or trackpad to zoom in and out.
 - Press **Ctrl+Z** (Windows/Linux) or **Cmd+Z** (macOS) to undo your last action.
 

@@ -1,4 +1,4 @@
-import type { ContainerNode, ExternalActor, LeafNode } from '@cloudblocks/schema';
+import type { ContainerBlock, ExternalActor, ResourceBlock } from '@cloudblocks/schema';
 
 // ─── Constants ────────────────────────────────────────────
 
@@ -32,16 +32,16 @@ function toTuple(position: ExternalActor['position']): [number, number, number] 
 // ─── Position Calculations ────────────────────────────────
 
 /**
- * Calculate the absolute world position of a block, given its parent plate.
- * Block positions are stored relative to their parent plate.
+ * Calculate the absolute world position of a block, given its parent container.
+ * Block positions are stored relative to their parent container.
  */
 export function getBlockWorldPosition(
-  block: LeafNode,
-  parentPlate: ContainerNode,
+  block: ResourceBlock,
+  parentPlate: ContainerBlock,
 ): [number, number, number] {
   return [
     parentPlate.position.x + block.position.x,
-    parentPlate.position.y + parentPlate.size.height,
+    parentPlate.position.y + parentPlate.frame.height,
     parentPlate.position.z + block.position.z,
   ];
 }
@@ -52,16 +52,16 @@ export function getBlockWorldPosition(
  */
 export function getEndpointWorldPosition(
   id: string,
-  blocks: LeafNode[],
-  plates: ContainerNode[],
+  blocks: ResourceBlock[],
+  plates: ContainerBlock[],
   externalActors: ExternalActor[],
 ): [number, number, number] | null {
   // Check blocks
   const block = blocks.find((b) => b.id === id);
   if (block) {
-    const plate = plates.find((p) => p.id === block.parentId);
-    if (plate) {
-      return getBlockWorldPosition(block, plate);
+    const container = plates.find((p) => p.id === block.parentId);
+    if (container) {
+      return getBlockWorldPosition(block, container);
     }
   }
 

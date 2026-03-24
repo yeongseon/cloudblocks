@@ -1,15 +1,15 @@
-# Brick Connector Design Specification
+# Connection Renderer Design Specification
 
 **Status**: Active  
 **Date**: 2026-03-21  
 **Related issues**: #1014 (Epic), #1015, #1016, #1017, #1018, #1019  
-**Related**: [CLOUDBLOCKS_SPEC_V2.md §11](./CLOUDBLOCKS_SPEC_V2.md), [BRICK_DESIGN_SPEC.md §0](./BRICK_DESIGN_SPEC.md) (stud standard reference)
+**Related**: [CLOUDBLOCKS_SPEC_V2.md §11](./CLOUDBLOCKS_SPEC_V2.md), [BRICK_DESIGN_SPEC.md §0](./BRICK_DESIGN_SPEC.md) (port standard reference)
 
 ---
 
 ## 1. Problem Statement
 
-Connections between blocks currently render as thin SVG bezier curves — generic diagram-tool lines that break the brick visual metaphor. Plates and blocks look like bricks with studs, but connections look like arrows from a flowchart tool. This visual inconsistency undermines the entire brick-based design language.
+Connections between blocks currently render as thin SVG bezier curves — generic diagram-tool lines that break the block-based visual metaphor. Container blocks and blocks look cohesive with ports, but connections look like arrows from a flowchart tool. This visual inconsistency undermines the entire block-based design language.
 
 ### Current Implementation
 
@@ -26,7 +26,7 @@ ConnectionPath.tsx:
 
 Replace bezier lines with **Technic flat-tile style connectors** that:
 
-- Conform to the Universal Stud Standard
+- Conform to the Universal Port Standard
 - Render correctly in 2.5D isometric projection
 - Visually distinguish 5 connection types
 - Preserve all existing interactions and diff-aware coloring
@@ -37,12 +37,12 @@ Replace bezier lines with **Technic flat-tile style connectors** that:
 
 ### 2.1 Connector Shape: Flat Tile (1×N×⅓)
 
-Connectors use the **flat tile** metaphor — thin rectangular pieces (⅓ brick height) that lie flat on the isometric plane. This was chosen over Technic beams because:
+Connectors use the **flat tile** metaphor — thin rectangular pieces (⅓ block height) that lie flat on the isometric plane. This was chosen over Technic beams because:
 
 - **Simpler geometry** — fewer SVG elements per connector, better performance with 20+ connections
 - **Less visual clutter** — thin tiles don't compete with blocks for attention
 - **Natural at any angle** — tiles can be rotated to follow connection paths without looking broken
-- **Clear hierarchy** — blocks are tall (full bricks), connectors are flat (tiles), maintaining visual depth
+- **Clear hierarchy** — blocks are tall, connectors are flat (tiles), maintaining visual depth
 
 Each connector is composed of **segments** — individual flat tile pieces that chain together from source to target.
 
@@ -52,7 +52,7 @@ A single connector segment in isometric view:
 
 ```
 Segment width:  16px screen (≈0.5 CU)
-Segment height: 3px screen (≈⅓ of stud height)
+Segment height: 3px screen (≈⅓ of port height)
 ```
 
 The segment renders as a parallelogram in isometric projection:
@@ -69,11 +69,11 @@ The segment renders as a parallelogram in isometric projection:
 </g>
 ```
 
-### 2.3 Stud Placement on Connectors
+### 2.3 Port Placement on Connectors
 
-To maintain the Universal Stud Standard, connectors include **one stud at each endpoint** (source and target attachment points). Mid-segment studs are omitted to keep connectors visually clean and distinguishable from blocks.
+To maintain the Universal Port Standard, connectors include **one port at each endpoint** (source and target attachment points). Mid-segment ports are omitted to keep connectors visually clean and distinguishable from blocks.
 
-Endpoint studs use the canonical dimensions:
+Endpoint ports use the canonical dimensions:
 
 - rx=12, ry=6, height=5, 3-layer structure
 - Color matches the connection type palette
@@ -201,7 +201,7 @@ The surface pattern (§3.2) is still rendered in diff mode, using white at 30% o
 
 ## 7. External Actor Connections
 
-External actors (Internet → Gateway) use the same brick connector rendering. The connector originates from the external actor's world position and terminates at the target block.
+External actors (Internet → Gateway) use the same connection renderer. The connector originates from the external actor's world position and terminates at the target block.
 
 No special geometry changes — external actor connections render identically to block-to-block connections, preserving visual consistency.
 
@@ -212,7 +212,7 @@ No special geometry changes — external actor connections render identically to
 | Concern                      | Mitigation                                                                                                |
 | ---------------------------- | --------------------------------------------------------------------------------------------------------- |
 | SVG complexity per connector | Flat tiles use 3-4 paths per segment (top + 2 edges + optional pattern). ~10 SVG elements per connection. |
-| 20+ connections              | React `memo` on connector component. SVG `<defs>` for shared patterns and stud symbols.                   |
+| 20+ connections              | React `memo` on connector component. SVG `<defs>` for shared patterns and port symbols.                   |
 | Re-render on pan/zoom        | Connectors use world coordinates projected to screen — same as blocks. No extra calculation.              |
 | Hit area accuracy            | Transparent stroke path follows actual connector geometry.                                                |
 
@@ -222,21 +222,21 @@ Target: **<16ms frame time** with 30 simultaneous connections.
 
 ## 9. Implementation Plan
 
-| Issue | Deliverable                                              | Dependencies |
-| ----- | -------------------------------------------------------- | ------------ |
-| #1015 | This design spec document                                | None         |
-| #1016 | `BrickConnector.tsx` — SVG component with 5 type visuals | #1015        |
-| #1017 | `routing.ts` — path computation (direct + L-shaped)      | #1015        |
-| #1018 | Interaction migration (select, hover, delete)            | #1016        |
-| #1019 | Diff-aware coloring + external actor support             | #1016        |
+| Issue | Deliverable                                                                         | Dependencies |
+| ----- | ----------------------------------------------------------------------------------- | ------------ |
+| #1015 | This design spec document                                                           | None         |
+| #1016 | `ConnectionRenderer` (`ConnectionRenderer.tsx`) — SVG component with 5 type visuals | #1015        |
+| #1017 | `routing.ts` — path computation (direct + L-shaped)                                 | #1015        |
+| #1018 | Interaction migration (select, hover, delete)                                       | #1016        |
+| #1019 | Diff-aware coloring + external actor support                                        | #1016        |
 
 ### File Structure
 
 ```
 src/entities/connection/
-├── BrickConnector.tsx          # Main component (replaces ConnectionPath.tsx)
-├── BrickConnector.css          # Styles
-├── BrickConnector.test.tsx     # Tests
+├── ConnectionRenderer.tsx      # Main connection renderer component (replaces ConnectionPath.tsx)
+├── ConnectionRenderer.css      # Styles
+├── ConnectionRenderer.test.tsx # Tests
 ├── routing.ts                  # Path computation algorithm
 ├── routing.test.ts             # Routing tests
 ├── connectorTheme.ts           # Color palettes and pattern definitions
@@ -254,7 +254,7 @@ Complete SVG for a single isometric flat tile segment along the world X-axis:
 <!--
   Flat tile segment at world position, projected to isometric.
   Width: 0.5 CU along X-axis
-  Height: 3px (⅓ stud height)
+  Height: 3px (⅓ port height)
 -->
 <g class="connector-segment" data-type="dataflow">
   <!-- Top face (isometric parallelogram) -->
@@ -292,11 +292,11 @@ Complete SVG for a single isometric flat tile segment along the world X-axis:
 </g>
 ```
 
-### Endpoint Stud (Source/Target)
+### Endpoint Port (Source/Target)
 
 ```svg
-<!-- Universal Stud Standard at connector endpoint -->
-<g class="connector-stud">
+<!-- Universal Port Standard at connector endpoint -->
+<g class="connector-port">
   <ellipse cx="{cx}" cy="{cy}" rx="12" ry="6" fill="{shadow-color}" />
   <ellipse cx="{cx}" cy="{cy-5}" rx="12" ry="6" fill="{tile-color}" />
   <ellipse cx="{cx}" cy="{cy-5}" rx="7.2" ry="3.6" fill="{accent}" opacity="0.3" />
@@ -428,45 +428,45 @@ Beam-shape-specific tests validate:
 
 **Date**: 2026-03-21  
 **Status**: Active — supersedes §11 (Technic Beam Redesign)  
-**Problem**: §11 produced connectors that look like dark pillars and pipes — nothing like real brick connectors. The routing used screen-space coordinates instead of isometric axes, and beam proportions were arbitrary rather than grounded in actual brick measurements.
+**Problem**: §11 produced connectors that look like dark pillars and pipes — nothing like real connection renderers. The routing used screen-space coordinates instead of isometric axes, and beam proportions were arbitrary rather than grounded in actual block-based measurements.
 
-### 12.1 Real Brick Measurement System
+### 12.1 Real Block-Based Measurement System
 
-All connector dimensions derive from the **official brick measurement system**, translated into our coordinate system. This is the single source of truth.
+All connector dimensions derive from the **official block-based measurement system**, translated into our coordinate system. This is the single source of truth.
 
-#### 12.1.1 Brick Physical Dimensions (Reference)
+#### 12.1.1 Block-Based Physical Dimensions (Reference)
 
 ```
-Stud pitch (center-to-center):     8.0 mm
-Stud diameter:                     4.8 mm  (= 0.6 × pitch)
-Stud height:                       1.7 mm
-Brick height (with stud):          9.6 mm  (= 1.2 × pitch)
-Brick height (without stud):       7.8 mm
-Plate height:                      3.2 mm  (= ⅓ brick height)
-Brick wall thickness:              1.5 mm
-Technic beam thickness (thick):    7.8 mm  (≈ 1 stud width, 7:8 aspect)
+Port pitch (center-to-center):     8.0 mm
+Port diameter:                     4.8 mm  (= 0.6 × pitch)
+Port height:                       1.7 mm
+Block height (with port):          9.6 mm  (= 1.2 × pitch)
+Block height (without port):       7.8 mm
+Thin layer height:                 3.2 mm  (= ⅓ block height)
+Block wall thickness:              1.5 mm
+Technic beam thickness (thick):    7.8 mm  (≈ 1 port width, 7:8 aspect)
 Technic beam thickness (thin):     3.9 mm  (= ½ thick beam)
-Technic pin hole diameter:         4.8 mm  (same as stud diameter)
-Technic pin hole spacing:          8.0 mm  (= stud pitch)
+Technic pin hole diameter:         4.8 mm  (same as port diameter)
+Technic pin hole spacing:          8.0 mm  (= port pitch)
 ```
 
-#### 12.1.2 Key Brick Ratios
+#### 12.1.2 Key Block-Based Ratios
 
 ```
-brick height : stud pitch     = 6:5  (9.6:8.0)
-plate height : brick height   = 1:3  (3.2:9.6)
-stud diameter : stud pitch    = 3:5  (4.8:8.0)
-beam thickness : stud pitch   = ~1:1 (7.8:8.0)
+block height : port pitch     = 6:5  (9.6:8.0)
+thin layer height : block height   = 1:3  (3.2:9.6)
+port diameter : port pitch    = 3:5  (4.8:8.0)
+beam thickness : port pitch   = ~1:1 (7.8:8.0)
 thin beam : thick beam        = 1:2  (3.9:7.8)
-pin hole : stud pitch         = 3:5  (4.8:8.0)
+pin hole : port pitch         = 3:5  (4.8:8.0)
 ```
 
 #### 12.1.3 Mapping to CloudBlocks Coordinate System
 
-CloudBlocks uses `RENDER_SCALE = 32` where 1 CU (Cloud Unit) = 1 stud pitch.
+CloudBlocks uses `RENDER_SCALE = 32` where 1 CU (Cloud Unit) = 1 port pitch.
 
 ```
-1 CU = 1 stud pitch
+1 CU = 1 port pitch
 TILE_W = 64px (isometric tile width = 2 × RENDER_SCALE)
 TILE_H = 32px (isometric tile height = RENDER_SCALE)
 TILE_Z = 32px (elevation per CU)
@@ -479,30 +479,30 @@ screenX = originX + (worldX - worldZ) × TILE_W / 2
 screenY = originY + (worldX + worldZ) × TILE_H / 2 - worldY × TILE_Z
 ```
 
-**Connector dimensions, derived from brick ratios:**
+**Connector dimensions, derived from block-based ratios:**
 
-| Brick Concept                 | mm      | CU Equivalent | Screen px (approx)         |
-| ----------------------------- | ------- | ------------- | -------------------------- |
-| Beam width (1 stud)           | 8.0     | 1.0 CU        | 32 iso-X or 16 iso-Y       |
-| Beam thickness (plate height) | 3.2     | 0.4 CU        | 13 elevation               |
-| Pin hole spacing              | 8.0     | 1.0 CU        | 1 grid cell                |
-| Pin hole diameter             | 4.8     | 0.6 CU        | ~19 iso-X                  |
-| Stud on beam                  | 4.8 dia | —             | Standard stud (STUD_RX=12) |
+| Block Concept                      | mm      | CU Equivalent | Screen px (approx)         |
+| ---------------------------------- | ------- | ------------- | -------------------------- |
+| Beam width (1 port)                | 8.0     | 1.0 CU        | 32 iso-X or 16 iso-Y       |
+| Beam thickness (thin layer height) | 3.2     | 0.4 CU        | 13 elevation               |
+| Pin hole spacing                   | 8.0     | 1.0 CU        | 1 grid cell                |
+| Pin hole diameter                  | 4.8     | 0.6 CU        | ~19 iso-X                  |
+| Port on beam                       | 4.8 dia | —             | Standard port (PORT_RX=12) |
 
 ### 12.2 Design: Technic Liftarm (Flat Beam with Pin Holes)
 
-Connectors use the **Technic Liftarm** metaphor — flat beams with visible pin holes at regular intervals. This is what makes them instantly recognizable as brick connectors.
+Connectors use the **Technic Liftarm** metaphor — flat beams with visible pin holes at regular intervals. This is what makes them instantly recognizable as connection renderers.
 
 #### 12.2.1 Why Liftarms
 
 Real Technic liftarms are:
 
-- **Flat** — 1 plate height thick (3.2mm), lying on the isometric ground plane
-- **Studless** — no studs on top, only pin holes along the beam
+- **Flat** — 1 thin layer height thick (3.2mm), lying on the isometric ground plane
+- **Portless** — no ports on top, only pin holes along the beam
 - **Rounded ends** — semi-circular terminations at both ends
 - **Pin holes visible** — evenly spaced holes are the defining visual feature
 
-This contrasts with §11's approach which used arbitrary extrusions with no recognizable brick features.
+This contrasts with §11's approach which used arbitrary extrusions with no recognizable block-based features.
 
 #### 12.2.2 Liftarm Cross-Section in Isometric
 
@@ -515,7 +515,7 @@ This contrasts with §11's approach which used arbitrary extrusions with no reco
    Side view (isometric):
    ┌─────────────────────────────┐  ← top face (tile color)
    │  ○     ○     ○     ○     ○ │  ← pin holes (accent circles)
-   ├─────────────────────────────┤  ← side face (shadow color, plate height thick)
+  ├─────────────────────────────┤  ← side face (shadow color, thin layer height thick)
    └─────────────────────────────┘
 ```
 
@@ -587,22 +587,22 @@ Segment lengths are computed directly from screen coordinates:
 - `screen-v`: `|end.y - start.y|` pixels, converted to CU by dividing by `TILE_H`
 - `screen-h`: `|end.x - start.x|` pixels, converted to CU by dividing by `TILE_W`
 
-### 12.4 Beam Geometry Constants (Derived from Brick Ratios)
+### 12.4 Beam Geometry Constants (Derived from Block-Based Ratios)
 
-All values derived from `RENDER_SCALE` and brick ratios:
+All values derived from `RENDER_SCALE` and block-based ratios:
 
 ```typescript
 // Screen-space beam half-thickness (perpendicular to beam direction)
 const BEAM_HALF_THICKNESS = 4; // pixels
 
-// Beam thickness = 1 plate height = 0.33 CU
+// Beam thickness = 1 thin layer height = 0.33 CU
 const BEAM_THICKNESS_CU = 1 / 3;
 const BEAM_THICKNESS_PX = TILE_Z * BEAM_THICKNESS_CU; // ~11px elevation
 
-// Pin hole spacing = 1 CU (= 1 stud pitch)
+// Pin hole spacing = 1 CU (= 1 port pitch)
 const PIN_HOLE_SPACING_CU = 1.0;
 
-// Pin hole radius = 0.3 CU (= 0.6 × stud pitch / 2)
+// Pin hole radius = 0.3 CU (= 0.6 × port pitch / 2)
 const PIN_HOLE_RADIUS_CU = 0.3;
 
 // Rounded end radius = beam half-thickness
@@ -616,12 +616,12 @@ const SAME_PX_TOLERANCE = 2; // pixels, for screen-aligned detection
 
 Types are differentiated by **beam color** (primary) and **pin hole style** (secondary). Beam shape is uniform — all types use the same liftarm geometry. This matches the Technic design where the same beam part comes in different colors.
 
-| Type       | Beam Color           | Pin Hole Style            | Brick Analogy           |
+| Type       | Beam Color           | Pin Hole Style            | Block Analogy           |
 | ---------- | -------------------- | ------------------------- | ----------------------- |
 | `dataflow` | Slate gray `#64748b` | Open circle               | Standard liftarm        |
 | `http`     | Blue `#3b82f6`       | Filled dot (pin inserted) | Beam with pins          |
 | `internal` | Violet `#8b5cf6`     | Cross (axle hole)         | Beam with axle holes    |
-| `data`     | Amber `#f59e0b`      | Double circle             | Wide beam (2-stud)      |
+| `data`     | Amber `#f59e0b`      | Double circle             | Wide beam (2-port)      |
 | `async`    | Emerald `#10b981`    | Dashed circle             | Thin beam (half-height) |
 
 **Color is the primary differentiator.** Pin hole style adds secondary recognition at close zoom but is not required for identification.
@@ -634,7 +634,7 @@ Each segment renders as a **3D liftarm piece** along a screen axis:
 
 ```svg
 <g data-connector-segment data-direction="screen-v|screen-h">
-  <!-- 1. Side face (plate-height thick, drawn first for depth) -->
+  <!-- 1. Side face (thin-layer-height thick, drawn first for depth) -->
   <polygon points="{side-face}" fill="{dark}" />
 
   <!-- 2. Top face (rectangle, beam thickness × segment length) -->
@@ -673,17 +673,17 @@ At the bend point, a **square connector piece** joins the two segments:
 
 Direction is indicated by the **last pin hole being a filled triangle** (arrow shape) instead of a circle. No protruding arrow tip — the beam terminates flush, with only the pin hole shape changing.
 
-This is more faithful to the brick aesthetic than a protruding arrow — real Technic pieces don't have arrows.
+This is more faithful to the block-based aesthetic than a protruding arrow — real Technic pieces don't have arrows.
 
-#### 12.6.4 Endpoint Studs
+#### 12.6.4 Endpoint Ports
 
-Source and target endpoints render the **Universal Stud Standard** stud on top of the beam at the connection point. This represents the stud that "plugs into" the block's anti-stud.
+Source and target endpoints render the **Universal Port Standard** port on top of the beam at the connection point. This represents the port that "plugs into" the block's anti-port.
 
 ### 12.7 Rendering Order
 
 To avoid the "pillar through block" artifact from §11:
 
-1. Connectors render at **layer 0.5** — between plates (layer 0) and blocks (layer 2)
+1. Connectors render at **layer 0.5** — between container blocks (layer 0) and blocks (layer 2)
 2. Connector segments get depth keys based on their world position: `depthKey(worldX, worldZ, 0, 0.5)`
 3. Segments closer to the camera (higher worldX + worldZ) render later (painter's algorithm)
 
@@ -706,9 +706,9 @@ New tokens added to `designTokens.ts`, all derived from `RENDER_SCALE`:
 // -- Technic Liftarm (Connector Beam) --
 // Screen-space beam dimensions
 export const BEAM_HALF_THICKNESS = 4; // screen pixels
-export const BEAM_THICKNESS_CU = 1 / 3; // plate height = ⅓ brick
+export const BEAM_THICKNESS_CU = 1 / 3; // thin layer height = 1/3 block
 export const BEAM_THICKNESS_PX = RENDER_SCALE * BEAM_THICKNESS_CU; // ~11px
-export const PIN_HOLE_SPACING_CU = 1.0; // 1 hole per stud pitch
+export const PIN_HOLE_SPACING_CU = 1.0; // 1 hole per port pitch
 export const PIN_HOLE_RX = (RENDER_SCALE * 3) / 20; // 4.8 (hole X radius)
 export const PIN_HOLE_RY = PIN_HOLE_RX / 2; // 2.4 (hole Y radius)
 export const SAME_PX_TOLERANCE = 2; // alignment detection
@@ -723,7 +723,7 @@ export const SAME_PX_TOLERANCE = 2; // alignment detection
 | `WorldSegment` with `axis: 'x' \| 'z'`    | `ScreenSegment` with `direction: 'screen-v' \| 'screen-h'`                     |
 | 5 beam shape renderers                    | 1 universal liftarm renderer with pin hole style variants                      |
 | `BEAM_HALF_WIDTH = 8` (magic number)      | `BEAM_HALF_THICKNESS = 4` (screen pixels)                                      |
-| `BEAM_THICKNESS = 6` (magic number)       | `BEAM_THICKNESS_CU = 1/3` (= plate height ratio)                               |
+| `BEAM_THICKNESS = 6` (magic number)       | `BEAM_THICKNESS_CU = 1/3` (= thin layer height ratio)                          |
 | Protruding arrow tip                      | Flush end with directional pin hole                                            |
 | World-space axis hit path                 | Screen-orthogonal hit path via `buildHitPath(route)`                           |
 
@@ -732,7 +732,7 @@ export const SAME_PX_TOLERANCE = 2; // alignment detection
 - [x] Connectors visually resemble Technic liftarms with visible pin holes
 - [x] All segments are screen-vertical or screen-horizontal — no diagonals
 - [x] L-routes use height normalization (elbow at topmost endpoint height)
-- [x] Beam proportions match brick ratios (thickness = plate height)
+- [x] Beam proportions match block-based ratios (thickness = thin layer height)
 - [x] 5 connection types differentiated by color (pin hole style is bonus)
 - [ ] No "pillar through block" artifacts — correct depth ordering
 - [x] All existing interactions preserved (select, hover, delete, diff)

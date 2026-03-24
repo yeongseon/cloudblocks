@@ -1,11 +1,11 @@
 import type {
   ArchitectureModel,
   ContainerCapableResourceType,
-  ContainerNode,
-  LeafNode,
+  ContainerBlock,
+  ResourceBlock,
   ResourceCategory,
 } from '@cloudblocks/schema';
-import { generateEndpointsForNode } from '@cloudblocks/schema';
+import { generateEndpointsForBlock } from '@cloudblocks/schema';
 
 type LegacyCategory =
   | 'database'
@@ -19,25 +19,25 @@ type LegacyCategory =
   | 'observability';
 
 export type LegacyPlateOverrides = Partial<
-  Omit<ContainerNode, 'kind' | 'layer' | 'resourceType' | 'category' | 'provider'>
+  Omit<ContainerBlock, 'kind' | 'layer' | 'resourceType' | 'category' | 'provider'>
 > & {
-  type?: ContainerNode['layer'];
+  type?: ContainerBlock['layer'];
   children?: string[];
 };
 
 export type LegacyBlockOverrides = Partial<
-  Omit<LeafNode, 'kind' | 'layer' | 'resourceType' | 'category' | 'provider' | 'parentId'>
+  Omit<ResourceBlock, 'kind' | 'layer' | 'resourceType' | 'category' | 'provider' | 'parentId'>
 > & {
   resourceType?: string;
   category?: ResourceCategory | LegacyCategory;
   placementId?: string;
   parentId?: string | null;
-  provider?: LeafNode['provider'];
+  provider?: ResourceBlock['provider'];
 };
 
 export type LegacyArchitectureOverrides = Partial<Omit<ArchitectureModel, 'nodes'>> & {
-  plates?: ContainerNode[];
-  blocks?: LeafNode[];
+  plates?: ContainerBlock[];
+  blocks?: ResourceBlock[];
   nodes?: ArchitectureModel['nodes'];
 };
 
@@ -63,10 +63,10 @@ const mapCategory = (category: ResourceCategory | LegacyCategory | undefined): R
   return category ?? 'compute';
 };
 
-export function makeTestPlate(overrides: LegacyPlateOverrides = {}): ContainerNode {
+export function makeTestPlate(overrides: LegacyPlateOverrides = {}): ContainerBlock {
   return {
-    id: 'plate-1',
-    name: 'Plate',
+    id: 'container-1',
+    name: 'ContainerBlock',
     kind: 'container',
     layer: overrides.type ?? 'subnet',
     resourceType: ((): ContainerCapableResourceType => {
@@ -78,13 +78,13 @@ export function makeTestPlate(overrides: LegacyPlateOverrides = {}): ContainerNo
     provider: 'azure',
     parentId: null,
     position: { x: 0, y: 0, z: 0 },
-    size: { width: 8, height: 1, depth: 8 },
+    frame: { width: 8, height: 1, depth: 8 },
     metadata: {},
     ...overrides,
   };
 }
 
-export function makeTestBlock(overrides: LegacyBlockOverrides = {}): LeafNode {
+export function makeTestBlock(overrides: LegacyBlockOverrides = {}): ResourceBlock {
   const {
     category: overrideCategory,
     placementId,
@@ -93,7 +93,7 @@ export function makeTestBlock(overrides: LegacyBlockOverrides = {}): LeafNode {
     ...rest
   } = overrides;
   const category = mapCategory(overrideCategory);
-  const parentId = placementId ?? overrideParentId ?? 'plate-1';
+  const parentId = placementId ?? overrideParentId ?? 'container-1';
   return {
     id: 'block-1',
     name: 'Block',
@@ -126,7 +126,7 @@ export function makeTestArchitecture(
   const shouldAutoGenerate = !explicitEndpoints || explicitEndpoints.length === 0;
   const endpoints = shouldAutoGenerate
     ? [...nodes.map((n) => n.id), ...actors.map((a) => a.id)].flatMap((id) =>
-        generateEndpointsForNode(id),
+        generateEndpointsForBlock(id),
       )
     : explicitEndpoints;
   return {
@@ -144,8 +144,8 @@ export function makeTestArchitecture(
   };
 }
 
-export const getPlates = (architecture: ArchitectureModel): ContainerNode[] =>
-  architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+export const getPlates = (architecture: ArchitectureModel): ContainerBlock[] =>
+  architecture.nodes.filter((node): node is ContainerBlock => node.kind === 'container');
 
-export const getBlocks = (architecture: ArchitectureModel): LeafNode[] =>
-  architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
+export const getBlocks = (architecture: ArchitectureModel): ResourceBlock[] =>
+  architecture.nodes.filter((node): node is ResourceBlock => node.kind === 'resource');

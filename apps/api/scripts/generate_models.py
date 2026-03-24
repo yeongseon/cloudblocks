@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
-# pyright: reportMissingImports=false, reportUnknownVariableType=false, reportUnknownMemberType=false
-
-from datamodel_code_generator import DataModelType, InputFileType, PythonVersion, generate
-
+from datamodel_code_generator import (  # pyright: reportMissingImports=false, reportUnknownVariableType=false, reportUnknownMemberType=false
+    DataModelType,
+    InputFileType,
+    PythonVersion,
+    generate,
+)
 
 ROOT_DIR = Path(__file__).resolve().parents[3]
 SCHEMA_PATH = ROOT_DIR / "packages/schema/dist/architecture-model.schema.json"

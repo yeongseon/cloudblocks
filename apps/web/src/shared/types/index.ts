@@ -4,7 +4,7 @@
 import type {
   ArchitectureModel,
   BlockRole,
-  PlateType,
+  ContainerLayer,
   ResourceCategory,
   Size,
 } from '@cloudblocks/schema';
@@ -14,9 +14,9 @@ export type {
   AggregationMode,
   ArchitectureModel,
   Block,
-  BlockCategory,
+  BlockKind,
   BlockRole,
-  ContainerNode,
+  ContainerBlock,
   Connection,
   ConnectionType,
   Endpoint,
@@ -24,22 +24,19 @@ export type {
   EndpointSemantic,
   ExternalActor,
   LegacyConnection,
-  LeafNode,
+  ResourceBlock,
   LayerType,
-  NodeKind,
-  Plate,
-  PlateType,
+  ContainerLayer,
   Position,
   ProviderType,
   ResourceCategory,
-  ResourceNode,
   Size,
 } from '@cloudblocks/schema';
 
 export {
   connectionTypeToSemantic,
   endpointId,
-  generateEndpointsForNode,
+  generateEndpointsForBlock,
   parseEndpointId,
   resolveConnectionNodes,
 } from '@cloudblocks/schema';
@@ -94,7 +91,7 @@ export interface Workspace {
 
 // ─── Visual Identity ───────────────────────────────────────
 
-export const PLATE_COLORS: Record<PlateType, string> = {
+export const CONTAINER_BLOCK_COLORS: Record<ContainerLayer, string> = {
   global: '#B39DDB',
   edge: '#80CBC4',
   region: '#90CAF9',
@@ -266,7 +263,7 @@ export const PLATE_ENCYCLOPEDIA: Record<
   },
 };
 
-// ─── Plate Profile System ──────────────────────────────────
+// ─── ContainerBlock Profile System ──────────────────────────────────
 
 export type NetworkProfileId =
   | 'network-sandbox'
@@ -280,17 +277,17 @@ export type SubnetProfileId =
   | 'subnet-workload'
   | 'subnet-scale';
 
-export type PlateProfileId = NetworkProfileId | SubnetProfileId;
+export type ContainerBlockProfileId = NetworkProfileId | SubnetProfileId;
 
-export interface PlateProfile {
-  id: PlateProfileId;
-  type: PlateType; // LayerType (minus resource)
+export interface ContainerBlockProfile {
+  id: ContainerBlockProfileId;
+  type: ContainerLayer; // LayerType (minus resource)
   displayName: string;
   description: string;
-  studsX: number;
-  studsY: number;
-  worldWidth: number; // = studsX (world units match stud count)
-  worldDepth: number; // = studsY
+  unitsX: number;
+  unitsY: number;
+  worldWidth: number; // = unitsX (world units match CU count)
+  worldDepth: number; // = unitsY (world units match CU count)
   worldHeight: number; // VNet = 0.7 (thick), Subnet = 0.5 (medium)
   recommendedCapacity: number;
   exampleCidrs: {
@@ -301,14 +298,14 @@ export interface PlateProfile {
   learningLevel: 'beginner' | 'intermediate' | 'advanced' | 'expert';
 }
 
-export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
+export const CONTAINER_BLOCK_PROFILES: Record<ContainerBlockProfileId, ContainerBlockProfile> = {
   'network-sandbox': {
     id: 'network-sandbox',
     type: 'region',
     displayName: 'Sandbox',
     description: 'Dev/test isolated network. Minimal footprint for experimentation.',
-    studsX: 8,
-    studsY: 12,
+    unitsX: 8,
+    unitsY: 12,
     worldWidth: 8,
     worldDepth: 12,
     worldHeight: 0.7,
@@ -322,8 +319,8 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     displayName: 'Application',
     description:
       'Standard application VNet. Hosts a single workload with public/private separation.',
-    studsX: 12,
-    studsY: 16,
+    unitsX: 12,
+    unitsY: 16,
     worldWidth: 12,
     worldDepth: 16,
     worldHeight: 0.7,
@@ -336,8 +333,8 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     type: 'region',
     displayName: 'Platform',
     description: 'Production platform VNet. Multi-tier architecture with several subnet groups.',
-    studsX: 16,
-    studsY: 20,
+    unitsX: 16,
+    unitsY: 20,
     worldWidth: 16,
     worldDepth: 20,
     worldHeight: 0.7,
@@ -350,8 +347,8 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     type: 'region',
     displayName: 'Hub',
     description: 'Enterprise hub VNet. Central network for shared services and spoke connections.',
-    studsX: 20,
-    studsY: 24,
+    unitsX: 20,
+    unitsY: 24,
     worldWidth: 20,
     worldDepth: 24,
     worldHeight: 0.7,
@@ -364,8 +361,8 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     type: 'subnet',
     displayName: 'Utility',
     description: 'Small utility subnet. Gateway, bastion, or management services.',
-    studsX: 4,
-    studsY: 6,
+    unitsX: 4,
+    unitsY: 6,
     worldWidth: 4,
     worldDepth: 6,
     worldHeight: 0.5,
@@ -378,8 +375,8 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     type: 'subnet',
     displayName: 'Service',
     description: 'Standard service subnet. Hosts a small group of related resources.',
-    studsX: 6,
-    studsY: 8,
+    unitsX: 6,
+    unitsY: 8,
     worldWidth: 6,
     worldDepth: 8,
     worldHeight: 0.5,
@@ -392,8 +389,8 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     type: 'subnet',
     displayName: 'Workload',
     description: 'Large workload subnet. Multi-service deployments, compute clusters.',
-    studsX: 8,
-    studsY: 10,
+    unitsX: 8,
+    unitsY: 10,
     worldWidth: 8,
     worldDepth: 10,
     worldHeight: 0.5,
@@ -406,8 +403,8 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     type: 'subnet',
     displayName: 'Scale',
     description: 'Extra-large scale subnet. AKS/EKS clusters, VMSS, large-scale workloads.',
-    studsX: 10,
-    studsY: 12,
+    unitsX: 10,
+    unitsY: 12,
     worldWidth: 10,
     worldDepth: 12,
     worldHeight: 0.5,
@@ -417,7 +414,7 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
   },
 };
 
-export const DEFAULT_PLATE_PROFILE: Record<PlateType, PlateProfileId> = {
+export const DEFAULT_CONTAINER_BLOCK_PROFILE: Record<ContainerLayer, ContainerBlockProfileId> = {
   global: 'network-hub',
   edge: 'network-sandbox',
   region: 'network-platform',
@@ -427,16 +424,18 @@ export const DEFAULT_PLATE_PROFILE: Record<PlateType, PlateProfileId> = {
 
 // ─── Profile Helper Functions ──────────────────────────────
 
-export function getPlateProfile(profileId: PlateProfileId): PlateProfile {
-  return PLATE_PROFILES[profileId];
+export function getContainerBlockProfile(
+  profileId: ContainerBlockProfileId,
+): ContainerBlockProfile {
+  return CONTAINER_BLOCK_PROFILES[profileId];
 }
 
-export function isPlateProfileId(value: string): value is PlateProfileId {
-  return value in PLATE_PROFILES;
+export function isContainerBlockProfileId(value: string): value is ContainerBlockProfileId {
+  return value in CONTAINER_BLOCK_PROFILES;
 }
 
-export function buildPlateSizeFromProfileId(profileId: PlateProfileId): Size {
-  const profile = PLATE_PROFILES[profileId];
+export function buildContainerBlockSizeFromProfileId(profileId: ContainerBlockProfileId): Size {
+  const profile = CONTAINER_BLOCK_PROFILES[profileId];
   return {
     width: profile.worldWidth,
     height: profile.worldHeight,
@@ -444,14 +443,16 @@ export function buildPlateSizeFromProfileId(profileId: PlateProfileId): Size {
   };
 }
 
-interface LegacyPlateShape {
-  type: PlateType;
+interface LegacyContainerBlockShape {
+  type: ContainerLayer;
   size: { width: number; depth: number };
 }
 
-export function inferLegacyPlateProfileId(legacyPlate: LegacyPlateShape): PlateProfileId {
+export function inferLegacyContainerBlockProfileId(
+  legacyPlate: LegacyContainerBlockShape,
+): ContainerBlockProfileId {
   const { type, size } = legacyPlate;
-  const candidates = Object.values(PLATE_PROFILES).filter((p) => p.type === type);
+  const candidates = Object.values(CONTAINER_BLOCK_PROFILES).filter((p) => p.type === type);
 
   // Find exact match first
   const exact = candidates.find((p) => p.worldWidth === size.width && p.worldDepth === size.depth);
@@ -471,18 +472,18 @@ export function inferLegacyPlateProfileId(legacyPlate: LegacyPlateShape): PlateP
   return closest.id;
 }
 
-export const DEFAULT_PLATE_SIZE: Record<PlateType, Size> = {
-  global: buildPlateSizeFromProfileId(DEFAULT_PLATE_PROFILE.global),
-  edge: buildPlateSizeFromProfileId(DEFAULT_PLATE_PROFILE.edge),
-  region: buildPlateSizeFromProfileId(DEFAULT_PLATE_PROFILE.region),
-  zone: buildPlateSizeFromProfileId(DEFAULT_PLATE_PROFILE.zone),
-  subnet: buildPlateSizeFromProfileId(DEFAULT_PLATE_PROFILE.subnet),
+export const DEFAULT_CONTAINER_BLOCK_SIZE: Record<ContainerLayer, Size> = {
+  global: buildContainerBlockSizeFromProfileId(DEFAULT_CONTAINER_BLOCK_PROFILE.global),
+  edge: buildContainerBlockSizeFromProfileId(DEFAULT_CONTAINER_BLOCK_PROFILE.edge),
+  region: buildContainerBlockSizeFromProfileId(DEFAULT_CONTAINER_BLOCK_PROFILE.region),
+  zone: buildContainerBlockSizeFromProfileId(DEFAULT_CONTAINER_BLOCK_PROFILE.zone),
+  subnet: buildContainerBlockSizeFromProfileId(DEFAULT_CONTAINER_BLOCK_PROFILE.subnet),
 };
 
 export {
   type BlockVisualProfile,
-  type BrickSurface,
-  type BrickSilhouette,
+  type BlockSurface,
+  type BlockSilhouette,
   type BlockTier,
   type BlockDimensionsCU,
   BLOCK_VISUAL_PROFILES,

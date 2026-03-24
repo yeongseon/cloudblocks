@@ -29,7 +29,7 @@ vi.mock('../store/architectureStore', async () => {
 import { ExternalActorSprite } from './ExternalActorSprite';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
-import type { ExternalActor, LeafNode, ResourceNode } from '@cloudblocks/schema';
+import type { Block, ExternalActor, ResourceBlock } from '@cloudblocks/schema';
 import * as connectionValidation from '../validation/connection';
 import * as isometric from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
@@ -65,7 +65,7 @@ const actor: ExternalActor = {
   position: { x: -3, y: 0, z: 5 },
 };
 
-const gatewayNode: LeafNode = {
+const gatewayNode: ResourceBlock = {
   id: 'gateway-1',
   name: 'Gateway',
   kind: 'resource',
@@ -73,12 +73,12 @@ const gatewayNode: LeafNode = {
   resourceType: 'load_balancer',
   category: 'delivery',
   provider: 'azure',
-  parentId: 'plate-1',
+  parentId: 'container-1',
   position: { x: 0, y: 0, z: 0 },
   metadata: {},
 };
 
-const databaseNode: LeafNode = {
+const databaseNode: ResourceBlock = {
   id: 'database-1',
   name: 'Database',
   kind: 'resource',
@@ -86,7 +86,7 @@ const databaseNode: LeafNode = {
   resourceType: 'relational_database',
   category: 'data',
   provider: 'azure',
-  parentId: 'plate-1',
+  parentId: 'container-1',
   position: { x: 1, y: 0, z: 1 },
   metadata: {},
 };
@@ -116,7 +116,7 @@ describe('ExternalActorSprite', () => {
         ...useArchitectureStore.getState().workspace,
         architecture: {
           ...useArchitectureStore.getState().workspace.architecture,
-          nodes: [gatewayNode, databaseNode] as ResourceNode[],
+          nodes: [gatewayNode, databaseNode] as Block[],
           externalActors: [actor],
         },
       },

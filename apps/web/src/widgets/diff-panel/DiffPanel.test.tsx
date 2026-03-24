@@ -15,61 +15,61 @@ function makeDiffDelta(): DiffDelta {
     plates: {
       added: [
         {
-          id: 'plate-added-1',
+          id: 'container-added-1',
           name: 'Subnet 1',
           kind: 'container',
           layer: 'subnet',
           resourceType: 'subnet',
           category: 'network',
           provider: 'azure',
-          parentId: 'plate-net-1',
+          parentId: 'container-net-1',
           position: { x: 0, y: 0, z: 0 },
-          size: { width: 6, height: 0.3, depth: 8 },
+          frame: { width: 6, height: 0.3, depth: 8 },
           metadata: {},
         },
       ],
       removed: [
         {
-          id: 'plate-removed-1',
+          id: 'container-removed-1',
           name: 'Legacy Subnet',
           kind: 'container',
           layer: 'subnet',
           resourceType: 'subnet',
           category: 'network',
           provider: 'azure',
-          parentId: 'plate-net-1',
+          parentId: 'container-net-1',
           position: { x: 2, y: 0, z: 0 },
-          size: { width: 6, height: 0.3, depth: 8 },
+          frame: { width: 6, height: 0.3, depth: 8 },
           metadata: {},
         },
       ],
       modified: [
         {
-          id: 'plate-modified-1',
+          id: 'container-modified-1',
           before: {
-            id: 'plate-modified-1',
+            id: 'container-modified-1',
             name: 'Service Subnet',
             kind: 'container',
             layer: 'subnet',
             resourceType: 'subnet',
             category: 'network',
             provider: 'azure',
-            parentId: 'plate-net-1',
+            parentId: 'container-net-1',
             position: { x: 1, y: 0, z: 0 },
-            size: { width: 6, height: 0.3, depth: 8 },
+            frame: { width: 6, height: 0.3, depth: 8 },
             metadata: {},
           },
           after: {
-            id: 'plate-modified-1',
+            id: 'container-modified-1',
             name: 'Service Subnet',
             kind: 'container',
             layer: 'subnet',
             resourceType: 'subnet',
             category: 'network',
             provider: 'azure',
-            parentId: 'plate-net-1',
+            parentId: 'container-net-1',
             position: { x: 1, y: 0, z: 0 },
-            size: { width: 6, height: 0.3, depth: 8 },
+            frame: { width: 6, height: 0.3, depth: 8 },
             metadata: {},
           },
           changes: [
@@ -88,7 +88,7 @@ function makeDiffDelta(): DiffDelta {
           resourceType: 'load_balancer',
           category: 'delivery',
           provider: 'azure',
-          parentId: 'plate-added-1',
+          parentId: 'container-added-1',
           position: { x: 1, y: 0, z: 1 },
           metadata: {},
         },
@@ -102,7 +102,7 @@ function makeDiffDelta(): DiffDelta {
           resourceType: 'web_compute',
           category: 'compute',
           provider: 'azure',
-          parentId: 'plate-removed-1',
+          parentId: 'container-removed-1',
           position: { x: 2, y: 0, z: 2 },
           metadata: {},
         },
@@ -118,7 +118,7 @@ function makeDiffDelta(): DiffDelta {
             resourceType: 'web_compute',
             category: 'compute',
             provider: 'azure',
-            parentId: 'plate-added-1',
+            parentId: 'container-added-1',
             position: { x: 2, y: 0, z: 3 },
             metadata: { sku: 'B1' },
           },
@@ -130,7 +130,7 @@ function makeDiffDelta(): DiffDelta {
             resourceType: 'web_compute',
             category: 'compute',
             provider: 'azure',
-            parentId: 'plate-added-1',
+            parentId: 'container-added-1',
             position: { x: 2, y: 0, z: 3 },
             metadata: { sku: 'P1v3' },
           },
@@ -311,7 +311,7 @@ describe('DiffPanel', () => {
   it('falls back to id-only label when entity has no name or endpoints', () => {
     const delta = makeDiffDelta();
     delta.plates.added = [
-      { id: 'plate-id-only' } as unknown as DiffDelta['plates']['added'][number],
+      { id: 'container-id-only' } as unknown as DiffDelta['plates']['added'][number],
     ];
     delta.plates.removed = [];
     delta.plates.modified = [];
@@ -330,7 +330,7 @@ describe('DiffPanel', () => {
     useUIStore.setState({ diffDelta: delta });
     render(<DiffPanel />);
 
-    expect(screen.getByText('+ plate-id-only')).toBeInTheDocument();
+    expect(screen.getByText('+ container-id-only')).toBeInTheDocument();
   });
 
   it('collapses and expands a section from its header button', async () => {
@@ -339,15 +339,15 @@ describe('DiffPanel', () => {
 
     const platesSectionToggle = screen.getByRole('button', { name: /Containers/ });
     expect(platesSectionToggle).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByText('+ Subnet 1 (plate-added-1)')).toBeInTheDocument();
+    expect(screen.getByText('+ Subnet 1 (container-added-1)')).toBeInTheDocument();
 
     await user.click(platesSectionToggle);
     expect(platesSectionToggle).toHaveAttribute('aria-expanded', 'false');
-    expect(screen.queryByText('+ Subnet 1 (plate-added-1)')).not.toBeInTheDocument();
+    expect(screen.queryByText('+ Subnet 1 (container-added-1)')).not.toBeInTheDocument();
 
     await user.click(platesSectionToggle);
     expect(platesSectionToggle).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByText('+ Subnet 1 (plate-added-1)')).toBeInTheDocument();
+    expect(screen.getByText('+ Subnet 1 (container-added-1)')).toBeInTheDocument();
   });
 
   it('expands and collapses modified details with varied value types', async () => {
@@ -375,7 +375,7 @@ describe('DiffPanel', () => {
           resourceType: 'web_compute',
           category: 'compute',
           provider: 'azure',
-          parentId: 'plate-added-1',
+          parentId: 'container-added-1',
           position: { x: 0, y: 0, z: 0 },
           metadata: {},
         },
@@ -387,7 +387,7 @@ describe('DiffPanel', () => {
           resourceType: 'web_compute',
           category: 'compute',
           provider: 'azure',
-          parentId: 'plate-added-1',
+          parentId: 'container-added-1',
           position: { x: 0, y: 0, z: 0 },
           metadata: {},
         },
@@ -521,7 +521,7 @@ describe('DiffPanel', () => {
           provider: 'azure',
           parentId: null,
           position: { x: 0, y: 0, z: 0 },
-          size: { width: 8, height: 1, depth: 8 },
+          frame: { width: 8, height: 1, depth: 8 },
           metadata: {},
         },
         {
@@ -534,7 +534,7 @@ describe('DiffPanel', () => {
           provider: 'azure',
           parentId: 'p1',
           position: { x: 1, y: 0, z: 1 },
-          size: { width: 6, height: 0.3, depth: 6 },
+          frame: { width: 6, height: 0.3, depth: 6 },
           metadata: {},
         },
         {

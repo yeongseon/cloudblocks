@@ -228,11 +228,12 @@ export function getSubtypeShortLabel(provider: ProviderType, subtype?: string): 
   return SUBTYPE_SHORT_LABELS[provider]?.[subtype] ?? null;
 }
 
-// ─── Plate Icon Maps ─────────────────────────────────────────
+// ─── ContainerBlock Icon Maps ─────────────────────────────────────────
 
-type PlateLayer = Exclude<LayerType, 'resource'>;
+/** ContainerBlock type → icon mapping. */
+type ContainerLayer = Exclude<LayerType, 'resource'>;
 
-const PLATE_ICONS: Record<PlateLayer, string> = {
+const CONTAINER_LAYER_ICONS: Record<ContainerLayer, string> = {
   global: vnetIcon,
   edge: vnetIcon,
   region: vnetIcon,
@@ -240,9 +241,17 @@ const PLATE_ICONS: Record<PlateLayer, string> = {
   subnet: subnetIcon,
 };
 
-export function getPlateIconUrl(plateType: LayerType): string {
-  if (plateType === 'resource') {
+/**
+ * Resolve the SVG icon URL for a container.
+ *
+ * Subnet container blocks always use the subnet icon regardless of access level.
+ * Network-layer container blocks (global, edge, region, zone) use the VNet icon.
+ *
+ * @returns An SVG asset URL string (Vite-resolved)
+ */
+export function getContainerBlockIconUrl(containerLayer: LayerType): string {
+  if (containerLayer === 'resource') {
     return vnetIcon;
   }
-  return PLATE_ICONS[plateType] ?? vnetIcon;
+  return CONTAINER_LAYER_ICONS[containerLayer] ?? vnetIcon;
 }

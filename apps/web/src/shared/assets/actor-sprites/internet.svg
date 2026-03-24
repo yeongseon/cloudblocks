@@ -32,7 +32,4 @@
   <!-- Globe highlight (glossy reflection) -->
   <ellipse cx="62" cy="48" rx="22" ry="26" fill="url(#globe-highlight)" />
 
-  <!-- Flat top platform -->
-  <ellipse cx="79" cy="22" rx="30" ry="10" fill="#2E86C1" />
-  <ellipse cx="79" cy="22" rx="30" ry="10" fill="none" stroke="#1A5276" stroke-width="0.8" opacity="0.4" />
 </svg>

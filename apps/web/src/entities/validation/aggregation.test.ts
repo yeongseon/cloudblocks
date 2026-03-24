@@ -1,14 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import type { LeafNode } from '@cloudblocks/schema';
+import type { ResourceBlock } from '@cloudblocks/schema';
 import { validateAggregation } from './aggregation';
 import { makeTestBlock, type LegacyBlockOverrides } from '../../__tests__/legacyModelTestUtils';
 
-function makeBlock(overrides: LegacyBlockOverrides = {}): LeafNode {
+function makeBlock(overrides: LegacyBlockOverrides = {}): ResourceBlock {
   return makeTestBlock({
     id: 'block-1',
     name: 'Block One',
     category: 'compute',
-    placementId: 'plate-1',
+    placementId: 'container-1',
     position: { x: 0, y: 0, z: 0 },
     metadata: {},
     ...overrides,
@@ -46,7 +46,7 @@ describe('validateAggregation', () => {
     expect(validateAggregation(block)).toEqual({
       ruleId: 'rule-aggregation-count',
       severity: 'error',
-      message: 'Node "ZeroCount" has invalid aggregation count: 0 (must be >= 1)',
+      message: 'Block "ZeroCount" has invalid aggregation count: 0 (must be >= 1)',
       suggestion: 'Set the aggregation count to 1 or greater',
       targetId: 'b1',
     });
@@ -62,7 +62,7 @@ describe('validateAggregation', () => {
     expect(validateAggregation(block)).toEqual({
       ruleId: 'rule-aggregation-count',
       severity: 'error',
-      message: 'Node "NegativeCount" has invalid aggregation count: -3 (must be >= 1)',
+      message: 'Block "NegativeCount" has invalid aggregation count: -3 (must be >= 1)',
       suggestion: 'Set the aggregation count to 1 or greater',
       targetId: 'b2',
     });
@@ -78,7 +78,7 @@ describe('validateAggregation', () => {
     expect(validateAggregation(block)).toEqual({
       ruleId: 'rule-aggregation-count',
       severity: 'error',
-      message: 'Node "FractionalCount" has non-integer aggregation count: 2.5',
+      message: 'Block "FractionalCount" has non-integer aggregation count: 2.5',
       suggestion: 'Set the aggregation count to a whole number',
       targetId: 'b3',
     });

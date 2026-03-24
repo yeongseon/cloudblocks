@@ -6,7 +6,7 @@ import {
   SILHOUETTE_GENERATORS,
 } from '../silhouettes';
 import { BLOCK_VISUAL_PROFILES } from '../../../shared/types/index';
-import type { BrickSilhouette, BlockTier } from '../../../shared/types/index';
+import type { BlockSilhouette, BlockTier } from '../../../shared/types/index';
 import type { ResourceCategory } from '@cloudblocks/schema';
 import type { BlockDimensionsCU } from '../../../shared/types/visualProfile';
 import { CATEGORY_TIER_MAP, TIER_DIMENSIONS } from '../../../shared/types/visualProfile';
@@ -29,7 +29,7 @@ const blockCategories: ResourceCategory[] = [
   'network',
 ];
 
-const silhouetteTypes: BrickSilhouette[] = [
+const silhouetteTypes: BlockSilhouette[] = [
   'rect',
   'cylinder',
   'gateway',
@@ -89,7 +89,7 @@ describe('block silhouettes', () => {
   it('cylinder and circle generators provide ellipse/body/arc data', () => {
     const dims = makeDimensions(24);
 
-    for (const shape of ['cylinder', 'circle'] as BrickSilhouette[]) {
+    for (const shape of ['cylinder', 'circle'] as BlockSilhouette[]) {
       const polygons = SILHOUETTE_GENERATORS[shape](dims);
 
       expect(polygons.ellipseCenter).toBeDefined();
@@ -111,7 +111,7 @@ describe('block silhouettes', () => {
 
   it('polygon-mode generators do not provide ellipse data', () => {
     const dims = makeDimensions(24);
-    const polygonShapes: BrickSilhouette[] = ['rect', 'gateway', 'hex', 'shield'];
+    const polygonShapes: BlockSilhouette[] = ['rect', 'gateway', 'hex', 'shield'];
 
     for (const shape of polygonShapes) {
       const polygons = SILHOUETTE_GENERATORS[shape](dims);
@@ -139,7 +139,7 @@ describe('visual profile coverage', () => {
       expect(profile).toBeDefined();
       expect(sizeTiers).toContain(profile.tier);
       expect(silhouetteTypes).toContain(profile.silhouette);
-      expect(profile.surface).toBe('studded');
+      expect(profile.surface).toBe('ported');
       expect(SILHOUETTE_GENERATORS[profile.silhouette]).toBeTypeOf('function');
     }
   });

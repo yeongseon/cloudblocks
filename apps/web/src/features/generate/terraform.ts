@@ -1,9 +1,9 @@
 import type {
   ArchitectureModel,
   Connection,
-  ContainerNode,
+  ContainerBlock,
   Endpoint,
-  LeafNode,
+  ResourceBlock,
 } from '@cloudblocks/schema';
 import { parseEndpointId } from '@cloudblocks/schema';
 import type {
@@ -42,11 +42,13 @@ function buildResourceName(prefix: string, entityName: string): string {
   return `${prefix}_${sanitized}`;
 }
 
-function getPlateType(plate: ContainerNode): 'global' | 'edge' | 'region' | 'zone' | 'subnet' {
-  if (plate.layer === 'resource') {
+function getContainerLayer(
+  container: ContainerBlock,
+): 'global' | 'edge' | 'region' | 'zone' | 'subnet' {
+  if (container.layer === 'resource') {
     return 'region';
   }
-  return plate.layer;
+  return container.layer;
 }
 
 // ─── Normalize Stage ────────────────────────────────────────
@@ -55,8 +57,8 @@ export function normalize(
   architecture: ArchitectureModel,
   provider: ProviderDefinition,
 ): NormalizedModel {
-  const containers = architecture.nodes.filter((n): n is ContainerNode => n.kind === 'container');
-  const resources = architecture.nodes.filter((n): n is LeafNode => n.kind === 'resource');
+  const containers = architecture.nodes.filter((n): n is ContainerBlock => n.kind === 'container');
+  const resources = architecture.nodes.filter((n): n is ResourceBlock => n.kind === 'resource');
   const resourceNames = new Map<string, string>();
   const usedNames = new Set<string>();
 
@@ -72,10 +74,10 @@ export function normalize(
   }
 
   // Map plates
-  for (const plate of containers) {
-    const mapping = provider.plateMappings[getPlateType(plate)];
-    const name = uniqueName(mapping.namePrefix, plate.name);
-    resourceNames.set(plate.id, name);
+  for (const container of containers) {
+    const mapping = provider.containerLayerMappings[getContainerLayer(container)];
+    const name = uniqueName(mapping.namePrefix, container.name);
+    resourceNames.set(container.id, name);
   }
 
   // Map blocks
@@ -105,7 +107,7 @@ export function normalize(
  *   - Firewall (delivery, subtype='firewall') → PIP only
  *   - Internal LB (delivery, subtype='internal-lb') → no implicit resources (internal)
  */
-function generateImplicitResources(block: LeafNode, resourceName: string): string[] {
+function generateImplicitResources(block: ResourceBlock, resourceName: string): string[] {
   const sections: string[] = [];
 
   const needsPip =
@@ -149,7 +151,7 @@ function generateImplicitResources(block: LeafNode, resourceName: string): strin
 // ─── Generate Stage ─────────────────────────────────────────
 
 function generatePlateResource(
-  plate: ContainerNode,
+  container: ContainerBlock,
   resourceName: string,
   mapping: ResourceMapping,
   _projectName: string,
@@ -163,18 +165,20 @@ function generatePlateResource(
   lines.push(`  resource_group_name = azurerm_resource_group.main.name`);
   lines.push(`  location            = azurerm_resource_group.main.location`);
 
-  if (plate.layer !== 'subnet') {
+  if (container.layer !== 'subnet') {
     lines.push(`  address_space       = ["10.0.0.0/16"]`);
   }
 
-  if (plate.layer === 'subnet' && parentResourceName) {
+  if (container.layer === 'subnet' && parentResourceName) {
     lines.push(`  virtual_network_name = azurerm_virtual_network.${parentResourceName}.name`);
     // Assign sequential CIDR index based on subnet order under parent VNet
-    const containers = architecture.nodes.filter((n): n is ContainerNode => n.kind === 'container');
-    const siblingSubnets = containers.filter(
-      (c) => c.layer === 'subnet' && c.parentId === plate.parentId,
+    const containers = architecture.nodes.filter(
+      (n): n is ContainerBlock => n.kind === 'container',
     );
-    const cidrIndex = siblingSubnets.findIndex((c) => c.id === plate.id) + 1;
+    const siblingSubnets = containers.filter(
+      (c) => c.layer === 'subnet' && c.parentId === container.parentId,
+    );
+    const cidrIndex = siblingSubnets.findIndex((c) => c.id === container.id) + 1;
     lines.push(`  address_prefixes     = ["10.0.${cidrIndex}.0/24"]`);
   }
 
@@ -183,7 +187,7 @@ function generatePlateResource(
 }
 
 function generateBlockResource(
-  block: LeafNode,
+  block: ResourceBlock,
   resourceName: string,
   mapping: ResourceMapping,
   _subnetResourceName: string | null,
@@ -246,9 +250,9 @@ function generateConnectionComment(
   const fromEp = endpoints.find((endpoint) => endpoint.id === connection.from);
   const toEp = endpoints.find((endpoint) => endpoint.id === connection.to);
   const resolveLabel = (ep: Endpoint | undefined, raw: string): string => {
-    if (ep) return resourceNames.get(ep.nodeId) ?? ep.nodeId;
+    if (ep) return resourceNames.get(ep.blockId) ?? ep.blockId;
     const parsed = parseEndpointId(raw);
-    if (parsed) return resourceNames.get(parsed.nodeId) ?? parsed.nodeId;
+    if (parsed) return resourceNames.get(parsed.blockId) ?? parsed.blockId;
     return raw;
   };
   const sourceName = resolveLabel(fromEp, connection.from);
@@ -264,8 +268,8 @@ export function generateMainTf(
   options: GenerationOptions,
 ): string {
   const { architecture, resourceNames } = normalized;
-  const containers = architecture.nodes.filter((n): n is ContainerNode => n.kind === 'container');
-  const resources = architecture.nodes.filter((n): n is LeafNode => n.kind === 'resource');
+  const containers = architecture.nodes.filter((n): n is ContainerBlock => n.kind === 'container');
+  const resources = architecture.nodes.filter((n): n is ResourceBlock => n.kind === 'resource');
   const sections: string[] = [];
 
   // Header
@@ -306,21 +310,28 @@ export function generateMainTf(
   const regions = containers.filter((p) => p.layer !== 'subnet');
   const subnets = containers.filter((p) => p.layer === 'subnet');
 
-  for (const plate of regions) {
-    const resName = resourceNames.get(plate.id)!;
-    const mapping = provider.plateMappings[getPlateType(plate)];
+  for (const container of regions) {
+    const resName = resourceNames.get(container.id)!;
+    const mapping = provider.containerLayerMappings[getContainerLayer(container)];
     sections.push(
-      generatePlateResource(plate, resName, mapping, options.projectName, null, architecture),
+      generatePlateResource(container, resName, mapping, options.projectName, null, architecture),
     );
     sections.push('');
   }
 
-  for (const plate of subnets) {
-    const resName = resourceNames.get(plate.id)!;
-    const mapping = provider.plateMappings[getPlateType(plate)];
-    const parentName = plate.parentId ? (resourceNames.get(plate.parentId) ?? null) : null;
+  for (const container of subnets) {
+    const resName = resourceNames.get(container.id)!;
+    const mapping = provider.containerLayerMappings[getContainerLayer(container)];
+    const parentName = container.parentId ? (resourceNames.get(container.parentId) ?? null) : null;
     sections.push(
-      generatePlateResource(plate, resName, mapping, options.projectName, parentName, architecture),
+      generatePlateResource(
+        container,
+        resName,
+        mapping,
+        options.projectName,
+        parentName,
+        architecture,
+      ),
     );
     sections.push('');
   }
@@ -394,7 +405,7 @@ export function generateOutputsTf(
   provider: ProviderDefinition,
 ): string {
   const { architecture, resourceNames } = normalized;
-  const resources = architecture.nodes.filter((n): n is LeafNode => n.kind === 'resource');
+  const resources = architecture.nodes.filter((n): n is ResourceBlock => n.kind === 'resource');
   const sections: string[] = [];
 
   sections.push('# Generated by CloudBlocks');

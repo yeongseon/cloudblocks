@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   CONNECTION_SEMANTIC_BASE_COLORS,
-  getConnectionBrickColors,
+  getConnectionColors,
   DEFAULT_CONNECTION_SEMANTIC,
 } from '../connectionFaceColors';
 import type { ConnectionRenderSemantic } from '../connectionFaceColors';
@@ -20,12 +20,12 @@ describe('connectionFaceColors', () => {
     });
   });
 
-  describe('getConnectionBrickColors', () => {
+  describe('getConnectionColors', () => {
     const semantics: ConnectionRenderSemantic[] = ['http', 'event', 'data'];
 
     for (const semantic of semantics) {
       it(`returns valid color set for "${semantic}"`, () => {
-        const colors = getConnectionBrickColors(semantic);
+        const colors = getConnectionColors(semantic);
 
         expect(colors.base).toBe(CONNECTION_SEMANTIC_BASE_COLORS[semantic]);
         expect(colors.topFaceColor).toMatch(/^#[0-9A-F]{6}$/i);
@@ -35,12 +35,12 @@ describe('connectionFaceColors', () => {
       });
 
       it(`"${semantic}" topFaceColor differs from base (lightened)`, () => {
-        const colors = getConnectionBrickColors(semantic);
+        const colors = getConnectionColors(semantic);
         expect(colors.topFaceColor).not.toBe(colors.base);
       });
 
       it(`"${semantic}" leftSideColor differs from rightSideColor`, () => {
-        const colors = getConnectionBrickColors(semantic);
+        const colors = getConnectionColors(semantic);
         expect(colors.leftSideColor).not.toBe(colors.rightSideColor);
       });
     }

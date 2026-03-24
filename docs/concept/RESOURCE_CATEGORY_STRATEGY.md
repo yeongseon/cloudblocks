@@ -61,9 +61,9 @@ export type BlockCategory = ResourceCategory;
 
 ### New Category (no old equivalent)
 
-| New Category | Why Added                                                                                                                              |
-| ------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `network`    | Virtual networks and subnets are container infrastructure — they were previously modeled as "Plates" rather than categorized resources |
+| New Category | Why Added                                                                                                                                        |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `network`    | Virtual networks and subnets are container infrastructure — they were previously modeled as "container blocks" rather than categorized resources |
 
 ### Normalization Function
 
@@ -129,23 +129,23 @@ export type LeafOnlyResourceType = Exclude<ResourceType, ContainerCapableResourc
 
 ## Kind System (NodeKind)
 
-The `NodeKind` discriminator replaces the old Plate/Block distinction:
+The `NodeKind` discriminator replaces the old ContainerBlock/ResourceBlock distinction:
 
-| Kind        | Description                                       | Resource Types              |
-| ----------- | ------------------------------------------------- | --------------------------- |
-| `container` | Holds child nodes — rendered as plates with studs | `virtual_network`, `subnet` |
-| `resource`  | Leaf resource — rendered as bricks                | All other 12 resource types |
+| Kind        | Description                                                 | Resource Types              |
+| ----------- | ----------------------------------------------------------- | --------------------------- |
+| `container` | Holds child nodes — rendered as container blocks with ports | `virtual_network`, `subnet` |
+| `resource`  | Leaf resource — rendered as resource blocks                 | All other 12 resource types |
 
 ```typescript
 // packages/schema/src/enums.ts
 export type NodeKind = 'container' | 'resource';
 ```
 
-Whether a resource type can be `kind: 'container'` is determined by its `containerCapable` flag in `RESOURCE_RULES`. The old `PlateType` is deprecated:
+Whether a resource type can be `kind: 'container'` is determined by its `containerCapable` flag in `RESOURCE_RULES`. The old `ContainerBlockType` alias is deprecated:
 
 ```typescript
 /** @deprecated Use LayerType + NodeKind='container' instead. */
-export type PlateType = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
+export type ContainerBlockType = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
 ```
 
 ## Canvas Tier (CanvasTier)
@@ -196,11 +196,11 @@ Source: `apps/web/src/entities/validation/connection.ts`
 
 ## Implementation Timeline
 
-| Milestone | Scope                                                                                                                                                             |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **M19**   | Schema + domain layer: unify Plate/Block → ResourceNode, realign categories 10→7, add RESOURCE_RULES, add constraint validators, wire placement to RESOURCE_RULES |
-| **M20**   | UI layer: migrate palette, tech tree, templates, scenarios, generators to new category visuals                                                                    |
-| **M21**   | Define full Azure resource catalog per category; scope UI to Azure-only                                                                                           |
+| Milestone | Scope                                                                                                                                                                       |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **M19**   | Schema + domain layer: unify ContainerBlock/ResourceBlock → Block, realign categories 10→7, add RESOURCE_RULES, add constraint validators, wire placement to RESOURCE_RULES |
+| **M20**   | UI layer: migrate palette, tech tree, templates, scenarios, generators to new category visuals                                                                              |
+| **M21**   | Define full Azure resource catalog per category; scope UI to Azure-only                                                                                                     |
 
 ## Related Documents
 
@@ -208,5 +208,5 @@ Source: `apps/web/src/entities/validation/connection.ts`
 - [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md) — Architecture model specification
 - [enums.ts](../../packages/schema/src/enums.ts) — `ResourceCategory` type definition
 - [rules.ts](../../packages/schema/src/rules.ts) — `RESOURCE_RULES` canonical constraint table
-- [model.ts](../../packages/schema/src/model.ts) — `ResourceNode` union type
+- [model.ts](../../packages/schema/src/model.ts) — `Block` union type (`ContainerBlock | ResourceBlock`)
 - [constraints.ts](../../packages/cloudblocks-domain/src/constraints.ts) — Runtime constraint validators

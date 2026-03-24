@@ -3,7 +3,7 @@ import interact from 'interactjs';
 import { useArchitectureStore } from '../store/architectureStore';
 import { useUIStore } from '../store/uiStore';
 import { canConnect } from '../validation/connection';
-import type { ExternalActor, LeafNode } from '@cloudblocks/schema';
+import type { ExternalActor, ResourceBlock } from '@cloudblocks/schema';
 import { screenDeltaToWorld, snapToGrid } from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
 import './ExternalActorSprite.css';
@@ -35,7 +35,7 @@ export const ExternalActorSprite = memo(function ExternalActorSprite({
   const addConnection = useArchitectureStore((s) => s.addConnection);
   const moveActorPosition = useArchitectureStore((s) => s.moveActorPosition);
   const nodes = useArchitectureStore((s) => s.workspace.architecture.nodes);
-  const blocks = nodes.filter((node): node is LeafNode => node.kind === 'resource');
+  const blocks = nodes.filter((node): node is ResourceBlock => node.kind === 'resource');
   const externalActors = useArchitectureStore((s) => s.workspace.architecture.externalActors) ?? [];
   const actorRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);

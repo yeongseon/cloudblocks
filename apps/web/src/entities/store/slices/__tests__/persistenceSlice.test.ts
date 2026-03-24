@@ -48,7 +48,7 @@ function makeValidNodesPayload(): Record<string, unknown> {
     version: '1',
     nodes: [
       {
-        id: 'plate-1',
+        id: 'container-1',
         name: 'Region',
         kind: 'container',
         layer: 'region',
@@ -67,7 +67,7 @@ function makeValidNodesPayload(): Record<string, unknown> {
         resourceType: 'web_compute',
         category: 'compute',
         provider: 'azure',
-        parentId: 'plate-1',
+        parentId: 'container-1',
         position: { x: 1, y: 0.5, z: 1 },
       },
     ],
@@ -75,7 +75,7 @@ function makeValidNodesPayload(): Record<string, unknown> {
       {
         id: 'conn-1',
         from: endpointId('block-1', 'output', 'data'),
-        to: endpointId('plate-1', 'input', 'data'),
+        to: endpointId('container-1', 'input', 'data'),
       },
     ],
   };
@@ -135,7 +135,7 @@ describe('persistenceSlice branches', () => {
       const badPlate = {
         plates: [
           {
-            id: 'plate-1',
+            id: 'container-1',
             name: 'Bad',
             type: 'invalid-type',
             position: { x: 0, y: 0, z: 0 },
@@ -147,7 +147,7 @@ describe('persistenceSlice branches', () => {
       const badBlock = {
         plates: [
           {
-            id: 'plate-1',
+            id: 'container-1',
             name: 'Region',
             type: 'region',
             position: { x: 0, y: 0, z: 0 },
@@ -167,7 +167,7 @@ describe('persistenceSlice branches', () => {
       const badPlacement = {
         plates: [
           {
-            id: 'plate-1',
+            id: 'container-1',
             name: 'Region',
             type: 'region',
             position: { x: 0, y: 0, z: 0 },
@@ -179,7 +179,7 @@ describe('persistenceSlice branches', () => {
             id: 'block-1',
             name: 'Bad',
             category: 'compute',
-            placementId: 'missing-plate',
+            placementId: 'missing-container',
             position: { x: 0, y: 0, z: 0 },
           },
         ],
@@ -240,10 +240,10 @@ describe('persistenceSlice branches', () => {
       expect(validateArchitectureShape(validWithDefaultActor)).toEqual({ valid: true });
       expect(validateArchitectureShape(validActorWithoutPosition)).toEqual({ valid: true });
       expect(() => validateArchitectureShape(invalidSource)).toThrow(
-        'sourceId "missing" does not reference an existing block, plate, or external actor',
+        'sourceId "missing" does not reference an existing block, container, or external actor',
       );
       expect(() => validateArchitectureShape(invalidTarget)).toThrow(
-        'targetId "missing" does not reference an existing block, plate, or external actor',
+        'targetId "missing" does not reference an existing block, container, or external actor',
       );
     });
 
@@ -252,7 +252,7 @@ describe('persistenceSlice branches', () => {
       const invalidContainerParentId = {
         nodes: [
           {
-            id: 'plate-1',
+            id: 'container-1',
             name: 'Region',
             kind: 'container',
             layer: 'region',
@@ -279,7 +279,7 @@ describe('persistenceSlice branches', () => {
           {
             id: 7,
             from: endpointId('block-1', 'output', 'data'),
-            to: endpointId('plate-1', 'input', 'data'),
+            to: endpointId('container-1', 'input', 'data'),
           },
         ],
       };
@@ -366,10 +366,10 @@ describe('persistenceSlice branches', () => {
       };
 
       expect(() => validateArchitectureShape(invalidLegacySource)).toThrow(
-        'sourceId "missing" does not reference an existing block, plate, or external actor',
+        'sourceId "missing" does not reference an existing block, container, or external actor',
       );
       expect(() => validateArchitectureShape(invalidLegacyTarget)).toThrow(
-        'targetId "missing" does not reference an existing block, plate, or external actor',
+        'targetId "missing" does not reference an existing block, container, or external actor',
       );
     });
 
@@ -394,7 +394,7 @@ describe('persistenceSlice branches', () => {
         nodes: [
           {
             id: 'p1',
-            name: 'Plate',
+            name: 'ContainerBlock',
             kind: 'container',
             layer: 'region',
             parentId: null,
@@ -407,7 +407,7 @@ describe('persistenceSlice branches', () => {
         nodes: [
           {
             id: 'p1',
-            name: 'Plate',
+            name: 'ContainerBlock',
             kind: 'container',
             layer: 'region',
             parentId: null,
@@ -432,7 +432,7 @@ describe('persistenceSlice branches', () => {
         nodes: [
           {
             id: 'p1',
-            name: 'Plate',
+            name: 'ContainerBlock',
             kind: 'container',
             layer: 'region',
             parentId: 'missing',
@@ -446,7 +446,7 @@ describe('persistenceSlice branches', () => {
         plates: [
           {
             id: 9,
-            name: 'Plate',
+            name: 'ContainerBlock',
             type: 'region',
             position: { x: 0, y: 0, z: 0 },
             size: { width: 1, height: 1, depth: 1 },
@@ -470,7 +470,7 @@ describe('persistenceSlice branches', () => {
         plates: [
           {
             id: 'p1',
-            name: 'Plate',
+            name: 'ContainerBlock',
             type: 'region',
             position: { x: 0, y: 0, z: 0 },
             size: { width: 1, height: 1, depth: 1 },
@@ -482,7 +482,7 @@ describe('persistenceSlice branches', () => {
         plates: [
           {
             id: 'p1',
-            name: 'Plate',
+            name: 'ContainerBlock',
             type: 'region',
             position: { x: 0, y: 0, z: 0 },
             size: { width: 1, height: 1, depth: 1 },
@@ -502,7 +502,7 @@ describe('persistenceSlice branches', () => {
         plates: [
           {
             id: 'p1',
-            name: 'Plate',
+            name: 'ContainerBlock',
             type: 'region',
             position: { x: 0, y: 0, z: 0 },
             size: { width: 1, height: 1, depth: 1 },
@@ -522,7 +522,7 @@ describe('persistenceSlice branches', () => {
         plates: [
           {
             id: 'p1',
-            name: 'Plate',
+            name: 'ContainerBlock',
             type: 'region',
             position: { x: 0, y: 0, z: 0 },
             size: { width: 1, height: 1, depth: 1 },
@@ -558,7 +558,9 @@ describe('persistenceSlice branches', () => {
       expect(() => validateArchitectureShape(invalidContainerParentRef)).toThrow(
         'does not reference an existing container node',
       );
-      expect(() => validateArchitectureShape(nonObjectPlate)).toThrow('plate must be an object');
+      expect(() => validateArchitectureShape(nonObjectPlate)).toThrow(
+        'container must be an object',
+      );
       expect(() => validateArchitectureShape(invalidPlateId)).toThrow('id must be a string');
       expect(() => validateArchitectureShape(invalidPlateName)).toThrow('name must be a string');
       expect(() => validateArchitectureShape(nonObjectBlock)).toThrow('block must be an object');
@@ -575,7 +577,7 @@ describe('persistenceSlice branches', () => {
         endpoints: [
           7,
           { id: endpointId('block-1', 'output', 'data') },
-          { id: endpointId('plate-1', 'input', 'data') },
+          { id: endpointId('container-1', 'input', 'data') },
         ],
       };
 
@@ -591,7 +593,7 @@ describe('persistenceSlice branches', () => {
         version: '1',
         plates: [
           {
-            id: 'plate-1',
+            id: 'container-1',
             name: 'Region',
             type: 'region',
             parentId: null,
@@ -606,7 +608,7 @@ describe('persistenceSlice branches', () => {
             id: 'block-1',
             name: 'App Service',
             category: 'compute',
-            placementId: 'plate-1',
+            placementId: 'container-1',
             position: { x: 1, y: 0.5, z: 1 },
             subtype: 'app-service',
             provider: 'gcp',
@@ -617,7 +619,7 @@ describe('persistenceSlice branches', () => {
             id: 'block-2',
             name: 'Queue',
             category: 'messaging',
-            placementId: 'plate-1',
+            placementId: 'container-1',
             position: { x: 2, y: 0.5, z: 2 },
           },
         ],
@@ -626,12 +628,12 @@ describe('persistenceSlice branches', () => {
       const result = useArchitectureStore.getState().importArchitecture(JSON.stringify(legacy));
       const architecture = useArchitectureStore.getState().workspace
         .architecture as ArchitectureModel;
-      const plate = architecture.nodes.find((node) => node.id === 'plate-1');
+      const container = architecture.nodes.find((node) => node.id === 'container-1');
       const app = architecture.nodes.find((node) => node.id === 'block-1');
       const queue = architecture.nodes.find((node) => node.id === 'block-2');
 
       expect(result).toBeNull();
-      expect(plate).toMatchObject({ category: 'network', profileId: 'network-hub' });
+      expect(container).toMatchObject({ category: 'network', profileId: 'network-hub' });
       expect(app).toMatchObject({
         resourceType: 'app-service',
         provider: 'gcp',
@@ -672,7 +674,7 @@ describe('persistenceSlice branches', () => {
         version: '2',
         nodes: [
           {
-            id: 'plate-1',
+            id: 'container-1',
             name: 'Region',
             kind: 'container',
             layer: 'region',
@@ -691,7 +693,7 @@ describe('persistenceSlice branches', () => {
             resourceType: 'web_compute',
             category: 'compute',
             provider: 'azure',
-            parentId: 'plate-1',
+            parentId: 'container-1',
             position: { x: 1, y: 0.5, z: 1 },
           },
           {
@@ -702,7 +704,7 @@ describe('persistenceSlice branches', () => {
             resourceType: 'message_queue',
             category: 'messaging',
             provider: 'azure',
-            parentId: 'plate-1',
+            parentId: 'container-1',
             position: { x: 2, y: 0.5, z: 2 },
           },
         ],
@@ -791,7 +793,7 @@ describe('persistenceSlice branches', () => {
           },
           {
             sourceId: 'block-1',
-            targetId: 'plate-1',
+            targetId: 'container-1',
             type: 'dataflow',
           },
         ],
@@ -808,7 +810,7 @@ describe('persistenceSlice branches', () => {
         version: '1',
         plates: [
           {
-            id: 'plate-subnet',
+            id: 'container-subnet',
             name: 'Subnet',
             type: 'subnet',
             parentId: null,
@@ -821,7 +823,7 @@ describe('persistenceSlice branches', () => {
             id: 'block-1',
             name: 'App',
             category: 'compute',
-            placementId: 'plate-subnet',
+            placementId: 'container-subnet',
             position: { x: 1, y: 0.5, z: 1 },
           },
         ],
@@ -830,7 +832,7 @@ describe('persistenceSlice branches', () => {
       const result = useArchitectureStore.getState().importArchitecture(JSON.stringify(legacy));
       const architecture = useArchitectureStore.getState().workspace
         .architecture as ArchitectureModel;
-      const subnetPlate = architecture.nodes.find((node) => node.id === 'plate-subnet');
+      const subnetPlate = architecture.nodes.find((node) => node.id === 'container-subnet');
 
       expect(result).toBeNull();
       expect(subnetPlate).toMatchObject({ resourceType: 'subnet', metadata: {} });
