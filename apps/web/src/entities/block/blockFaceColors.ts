@@ -1,4 +1,3 @@
-import type { StudColorSpec } from '../../shared/types/index';
 import type { ProviderType, ResourceCategory } from '@cloudblocks/schema';
 
 // ═══════════════════════════════════════════════════════════════
@@ -25,9 +24,6 @@ export interface DerivedFaceColors {
   topStroke: string;
   right: string;
   left: string;
-  studMain: string;
-  studShadow: string;
-  studHighlight: string;
 }
 
 // ─── Color Utilities ─────────────────────────────────────────
@@ -79,9 +75,6 @@ export function deriveFaceColors(base: string): DerivedFaceColors {
     topStroke: darken(base, 8),
     right: darken(base, 6),
     left: darken(base, 12),
-    studMain: lighten(base, 15),
-    studShadow: darken(base, 15),
-    studHighlight: lighten(base, 40),
   };
 }
 
@@ -294,22 +287,5 @@ export function getBlockFaceColors(
     topFaceStroke: derived.topStroke,
     leftSideColor: derived.left,
     rightSideColor: derived.right,
-  };
-}
-
-/**
- * Get stud colors for a block. Uses provider-resource color derivation.
- */
-export function getBlockStudColors(
-  category: ResourceCategory,
-  provider: ProviderType = 'azure',
-  subtype?: string,
-): StudColorSpec {
-  const base = getBlockColor(provider, subtype, category);
-  const derived = deriveFaceColors(base);
-  return {
-    main: derived.studMain,
-    shadow: derived.studShadow,
-    highlight: derived.studHighlight,
   };
 }

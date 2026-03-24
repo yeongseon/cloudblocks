@@ -32,9 +32,6 @@ describe('connectionFaceColors', () => {
         expect(colors.topFaceStroke).toMatch(/^#[0-9A-F]{6}$/i);
         expect(colors.leftSideColor).toMatch(/^#[0-9A-F]{6}$/i);
         expect(colors.rightSideColor).toMatch(/^#[0-9A-F]{6}$/i);
-        expect(colors.studColors.main).toMatch(/^#[0-9A-F]{6}$/i);
-        expect(colors.studColors.shadow).toMatch(/^#[0-9A-F]{6}$/i);
-        expect(colors.studColors.highlight).toMatch(/^#[0-9A-F]{6}$/i);
       });
 
       it(`"${semantic}" topFaceColor differs from base (lightened)`, () => {

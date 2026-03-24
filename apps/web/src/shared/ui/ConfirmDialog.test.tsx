@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { confirmDialog } from './ConfirmDialog';
@@ -94,5 +94,20 @@ describe('confirmDialog', () => {
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: 'Confirm' }));
     await expect(second).resolves.toBe(true);
+  });
+
+  it('resolves false when dialog root cannot be created', async () => {
+    vi.resetModules();
+    vi.doMock('react-dom/client', () => ({
+      createRoot: () => null,
+    }));
+
+    try {
+      const module = await import('./ConfirmDialog');
+      await expect(module.confirmDialog('Fail closed?', 'Confirm')).resolves.toBe(false);
+    } finally {
+      vi.doUnmock('react-dom/client');
+      vi.resetModules();
+    }
   });
 });

@@ -42,7 +42,6 @@ describe('useUIStore', () => {
       diffDelta: null,
       diffBaseArchitecture: null,
       themeVariant: 'blueprint',
-      showStuds: false,
     });
   });
 
@@ -1071,52 +1070,6 @@ describe('useUIStore', () => {
       expect(state.diffMode).toBe(false);
       expect(state.diffDelta).toBe(null);
       expect(state.diffBaseArchitecture).toBe(null);
-    });
-  });
-
-  describe('showStuds', () => {
-    it('defaults to false when no localStorage and blueprint theme', () => {
-      expect(useUIStore.getState().showStuds).toBe(false);
-    });
-
-    it('toggleStuds flips value and persists to localStorage', () => {
-      useUIStore.getState().toggleStuds();
-      expect(useUIStore.getState().showStuds).toBe(true);
-      expect(localStorage.getItem('cloudblocks:show-studs')).toBe('true');
-
-      useUIStore.getState().toggleStuds();
-      expect(useUIStore.getState().showStuds).toBe(false);
-      expect(localStorage.getItem('cloudblocks:show-studs')).toBe('false');
-    });
-
-    it('setShowStuds sets value explicitly', () => {
-      useUIStore.getState().setShowStuds(true);
-      expect(useUIStore.getState().showStuds).toBe(true);
-      expect(localStorage.getItem('cloudblocks:show-studs')).toBe('true');
-
-      useUIStore.getState().setShowStuds(false);
-      expect(useUIStore.getState().showStuds).toBe(false);
-      expect(localStorage.getItem('cloudblocks:show-studs')).toBe('false');
-    });
-
-    it('setThemeVariant to workshop enables studs by default', () => {
-      useUIStore.getState().setThemeVariant('workshop');
-      expect(useUIStore.getState().showStuds).toBe(true);
-      expect(localStorage.getItem('cloudblocks:show-studs')).toBe('true');
-    });
-
-    it('setThemeVariant to blueprint disables studs by default', () => {
-      useUIStore.getState().setShowStuds(true);
-      useUIStore.getState().setThemeVariant('blueprint');
-      expect(useUIStore.getState().showStuds).toBe(false);
-      expect(localStorage.getItem('cloudblocks:show-studs')).toBe('false');
-    });
-
-    it('toggling studs does not affect theme', () => {
-      useUIStore.getState().setThemeVariant('workshop');
-      useUIStore.getState().toggleStuds(); // now false
-      expect(useUIStore.getState().themeVariant).toBe('workshop');
-      expect(useUIStore.getState().showStuds).toBe(false);
     });
   });
 

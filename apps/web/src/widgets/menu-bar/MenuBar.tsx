@@ -48,7 +48,6 @@ import {
   GitCompare,
   LogOut,
   Cloud,
-  Grid3x3,
   LayoutGrid,
 } from 'lucide-react';
 import './MenuBar.css';
@@ -90,8 +89,6 @@ export function MenuBar() {
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
   const toggleSound = useUIStore((s) => s.toggleSound);
   const themeVariant = useUIStore((s) => s.themeVariant);
-  const showStuds = useUIStore((s) => s.showStuds);
-  const toggleStuds = useUIStore((s) => s.toggleStuds);
   const showGrid = useUIStore((s) => s.showGrid);
   const toggleGrid = useUIStore((s) => s.toggleGrid);
   const setThemeVariant = useUIStore((s) => s.setThemeVariant);
@@ -661,14 +658,6 @@ export function MenuBar() {
           }
         >
           {themeVariant === 'blueprint' ? <Moon size={14} /> : <Sun size={14} />}
-        </button>
-        <button
-          type="button"
-          className={`quick-btn ${showStuds ? 'active' : ''}`}
-          onClick={toggleStuds}
-          title={showStuds ? 'Hide studs' : 'Show studs'}
-        >
-          <Grid3x3 size={14} />
         </button>
         <button
           type="button"

@@ -1,13 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import type { PlateProfileId, StudColorSpec } from './index';
+import type { PlateProfileId } from './index';
 import {
-  NETWORK_STUD_COLORS,
   PLATE_PROFILES,
-  SUBNET_STUD_COLORS,
   buildPlateSizeFromProfileId,
   getPlateProfile,
-  getPlateStudColors,
   inferLegacyPlateProfileId,
 } from './index';
 
@@ -73,27 +70,6 @@ describe('plate profile helpers', () => {
           size: { width: size.width, depth: size.depth },
         }),
       ).toBe(profileId);
-    }
-  });
-
-  it('returns network stud colors for network plates', () => {
-    expect(getPlateStudColors({ type: 'region' })).toEqual(NETWORK_STUD_COLORS);
-    expect(getPlateStudColors({ type: 'global' })).toEqual(NETWORK_STUD_COLORS);
-    expect(getPlateStudColors({ type: 'edge' })).toEqual(NETWORK_STUD_COLORS);
-    expect(getPlateStudColors({ type: 'zone' })).toEqual(NETWORK_STUD_COLORS);
-  });
-
-  it('returns unified subnet stud colors for all subnet plates', () => {
-    expect(getPlateStudColors({ type: 'subnet' })).toEqual(SUBNET_STUD_COLORS);
-  });
-
-  it('exports valid stud color specs', () => {
-    const specs: StudColorSpec[] = [NETWORK_STUD_COLORS, SUBNET_STUD_COLORS];
-
-    for (const spec of specs) {
-      expect(spec.main).toMatch(/^#[0-9A-Fa-f]{6}$/);
-      expect(spec.shadow).toMatch(/^#[0-9A-Fa-f]{6}$/);
-      expect(spec.highlight).toMatch(/^#[0-9A-Fa-f]{6}$/);
     }
   });
 });

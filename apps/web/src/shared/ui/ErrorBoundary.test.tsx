@@ -92,4 +92,41 @@ describe('ErrorBoundary', () => {
     fireEvent.click(screen.getByText('Reload Page'));
     expect(reloadMock).toHaveBeenCalled();
   });
+
+  it('falls back to dev release when reading release meta throws', () => {
+    const querySpy = vi.spyOn(document, 'querySelector').mockImplementation(() => {
+      throw new Error('query failed');
+    });
+
+    render(
+      <ErrorBoundary>
+        <ThrowingComponent shouldThrow={true} />
+      </ErrorBoundary>,
+    );
+
+    const log = getErrorLog();
+    expect(log[0].release).toBe('dev');
+    querySpy.mockRestore();
+  });
+
+  it('trims persisted error log to max size', () => {
+    const existing = Array.from({ length: 55 }, (_, index) => ({
+      error: { name: 'Error', message: `old-${index}`, stack: '' },
+      componentStack: '',
+      timestamp: new Date(0).toISOString(),
+      url: 'http://test/',
+      release: 'dev',
+    }));
+    localStorage.setItem('cloudblocks_error_log', JSON.stringify(existing));
+
+    render(
+      <ErrorBoundary>
+        <ThrowingComponent shouldThrow={true} />
+      </ErrorBoundary>,
+    );
+
+    const log = getErrorLog();
+    expect(log).toHaveLength(50);
+    expect(log[0].error.message).toBe('Test error');
+  });
 });

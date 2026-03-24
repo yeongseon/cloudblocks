@@ -43,12 +43,6 @@ vi.mock('../../shared/tokens/designTokens', () => ({
   PIN_HOLE_SPACING_CU: 1.0,
   PIN_HOLE_RX: (32 * 3) / 20,
   PIN_HOLE_RY: (32 * 3) / 20 / 2,
-  STUD_RX: 12,
-  STUD_RY: 6,
-  STUD_HEIGHT: 5,
-  STUD_INNER_RX: 7.2,
-  STUD_INNER_RY: 3.6,
-  STUD_INNER_OPACITY: 0.3,
   PORT_OUT_PX: 8,
   CONNECTION_WIDTH_CU: 1,
   CONNECTION_HEIGHT_CU: 1 / 3,
@@ -148,6 +142,7 @@ function setupBrickRouteMocks() {
 function renderConnector(conn: Connection = connection) {
   return render(
     <svg aria-label="Test SVG">
+      <title>Test SVG</title>
       <BrickConnector
         connection={conn}
         blocks={[]}
@@ -208,7 +203,9 @@ describe('BrickConnector', () => {
 
     const { container } = renderConnector();
 
-    fireEvent.click(container.querySelector('g') as SVGGElement);
+    fireEvent.click(
+      container.querySelector('[data-testid="connection-hit-area"]') as SVGPathElement,
+    );
     expect(useUIStore.getState().selectedId).toBe(connection.id);
   });
 
@@ -220,41 +217,10 @@ describe('BrickConnector', () => {
 
     const { container } = renderConnector();
 
-    fireEvent.click(container.querySelector('g') as SVGGElement);
+    fireEvent.click(
+      container.querySelector('[data-testid="connection-hit-area"]') as SVGPathElement,
+    );
     expect(removeConnectionMock).toHaveBeenCalledWith(connection.id);
-  });
-
-  it('keydown Enter in select mode sets selectedId', () => {
-    setupEndpoints();
-
-    const { container } = renderConnector();
-    fireEvent.keyDown(container.querySelector('g') as SVGGElement, { key: 'Enter' });
-
-    expect(useUIStore.getState().selectedId).toBe(connection.id);
-  });
-
-  it('keydown Space in delete mode removes connection', () => {
-    const removeConnectionMock = vi.fn();
-    useUIStore.setState({ toolMode: 'delete' });
-    useArchitectureStore.setState({ removeConnection: removeConnectionMock });
-    setupEndpoints();
-
-    const { container } = renderConnector();
-    fireEvent.keyDown(container.querySelector('g') as SVGGElement, { key: ' ' });
-
-    expect(removeConnectionMock).toHaveBeenCalledWith(connection.id);
-  });
-
-  it('ignores non-activation keys on connector root', () => {
-    const removeConnectionMock = vi.fn();
-    useArchitectureStore.setState({ removeConnection: removeConnectionMock });
-    setupEndpoints();
-
-    const { container } = renderConnector();
-    fireEvent.keyDown(container.querySelector('g') as SVGGElement, { key: 'Escape' });
-
-    expect(removeConnectionMock).not.toHaveBeenCalled();
-    expect(useUIStore.getState().selectedId).toBeNull();
   });
 
   it('stops propagation when clicking a connection', () => {
@@ -266,6 +232,7 @@ describe('BrickConnector', () => {
 
     const { container } = render(
       <svg onClick={parentClick} onKeyDown={() => {}} aria-label="Test SVG">
+        <title>Test SVG</title>
         <BrickConnector
           connection={connection}
           blocks={[]}
@@ -277,7 +244,9 @@ describe('BrickConnector', () => {
       </svg>,
     );
 
-    fireEvent.click(container.querySelector('g') as SVGGElement);
+    fireEvent.click(
+      container.querySelector('[data-testid="connection-hit-area"]') as SVGPathElement,
+    );
     expect(parentClick).not.toHaveBeenCalled();
   });
 
@@ -317,31 +286,6 @@ describe('BrickConnector', () => {
     expect(selectionOutline?.getAttribute('stroke-opacity')).toBe('0.5');
   });
 
-  describe('studs visibility', () => {
-    it('renders studs at source and target endpoints when showStuds is true', () => {
-      useUIStore.setState({ showStuds: true });
-      setupEndpoints();
-
-      const { container } = renderConnector();
-
-      const studLayer = container.querySelector('[data-layer="studs"]');
-      expect(studLayer).toBeInTheDocument();
-
-      const studUses = studLayer?.querySelectorAll('use') ?? [];
-      expect(studUses.length).toBeGreaterThanOrEqual(2);
-    });
-
-    it('does not render studs when showStuds is false', () => {
-      useUIStore.setState({ showStuds: false });
-      setupEndpoints();
-
-      const { container } = renderConnector();
-
-      const studLayer = container.querySelector('[data-layer="studs"]');
-      expect(studLayer).toBeNull();
-    });
-  });
-
   describe('brick render path', () => {
     it('renders top-face polygon from projected brick footprint', () => {
       vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createSurfaceRoute());
@@ -375,17 +319,6 @@ describe('BrickConnector', () => {
       const selectionOutline = container.querySelector('[data-layer="selection-outline"]');
       expect(selectionOutline).toBeInTheDocument();
       expect(selectionOutline?.tagName.toLowerCase()).toBe('polygon');
-    });
-
-    it('renders studs from sampled brick positions when showStuds is true', () => {
-      useUIStore.setState({ showStuds: true });
-      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createSurfaceRoute());
-
-      const { container } = renderConnector();
-
-      const studLayer = container.querySelector('[data-layer="studs"]');
-      expect(studLayer).toBeInTheDocument();
-      expect(studLayer?.querySelectorAll('use').length).toBeGreaterThanOrEqual(2);
     });
 
     it('shows validation error label on hover for invalid brick route connections', () => {
@@ -694,7 +627,9 @@ describe('BrickConnector', () => {
 
       expect(container.querySelector('[data-testid="connection-error-label"]')).toBeInTheDocument();
 
-      fireEvent.mouseLeave(container.querySelector('g') as Element);
+      fireEvent.mouseLeave(
+        container.querySelector('[data-testid="connection-hit-area"]') as Element,
+      );
       expect(
         container.querySelector('[data-testid="connection-error-label"]'),
       ).not.toBeInTheDocument();

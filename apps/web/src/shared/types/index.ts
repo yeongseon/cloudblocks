@@ -282,12 +282,6 @@ export type SubnetProfileId =
 
 export type PlateProfileId = NetworkProfileId | SubnetProfileId;
 
-export interface StudColorSpec {
-  main: string;
-  shadow: string;
-  highlight: string;
-}
-
 export interface PlateProfile {
   id: PlateProfileId;
   type: PlateType; // LayerType (minus resource)
@@ -305,20 +299,7 @@ export interface PlateProfile {
     gcp: string;
   };
   learningLevel: 'beginner' | 'intermediate' | 'advanced' | 'expert';
-  studColors: StudColorSpec;
 }
-
-export const NETWORK_STUD_COLORS: StudColorSpec = {
-  main: '#42A5F5',
-  shadow: '#1565C0',
-  highlight: '#90CAF9',
-};
-
-export const SUBNET_STUD_COLORS: StudColorSpec = {
-  main: '#7986CB',
-  shadow: '#3949AB',
-  highlight: '#C5CAE9',
-};
 
 export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
   'network-sandbox': {
@@ -334,7 +315,6 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     recommendedCapacity: 2,
     exampleCidrs: { azure: '10.0.0.0/24', aws: '10.0.0.0/24', gcp: '10.0.0.0/24' },
     learningLevel: 'beginner',
-    studColors: NETWORK_STUD_COLORS,
   },
   'network-application': {
     id: 'network-application',
@@ -350,7 +330,6 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     recommendedCapacity: 4,
     exampleCidrs: { azure: '10.1.0.0/20', aws: '10.1.0.0/20', gcp: '10.1.0.0/20' },
     learningLevel: 'intermediate',
-    studColors: NETWORK_STUD_COLORS,
   },
   'network-platform': {
     id: 'network-platform',
@@ -365,7 +344,6 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     recommendedCapacity: 6,
     exampleCidrs: { azure: '10.0.0.0/16', aws: '10.0.0.0/16', gcp: '10.0.0.0/16' },
     learningLevel: 'advanced',
-    studColors: NETWORK_STUD_COLORS,
   },
   'network-hub': {
     id: 'network-hub',
@@ -380,7 +358,6 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     recommendedCapacity: 8,
     exampleCidrs: { azure: '10.0.0.0/8', aws: '10.0.0.0/8', gcp: '10.0.0.0/8' },
     learningLevel: 'expert',
-    studColors: NETWORK_STUD_COLORS,
   },
   'subnet-utility': {
     id: 'subnet-utility',
@@ -395,7 +372,6 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     recommendedCapacity: 2,
     exampleCidrs: { azure: '10.0.0.0/28', aws: '10.0.0.0/28', gcp: '10.0.0.0/28' },
     learningLevel: 'beginner',
-    studColors: SUBNET_STUD_COLORS,
   },
   'subnet-service': {
     id: 'subnet-service',
@@ -410,7 +386,6 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     recommendedCapacity: 4,
     exampleCidrs: { azure: '10.0.1.0/26', aws: '10.0.1.0/26', gcp: '10.0.1.0/26' },
     learningLevel: 'intermediate',
-    studColors: SUBNET_STUD_COLORS,
   },
   'subnet-workload': {
     id: 'subnet-workload',
@@ -425,7 +400,6 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     recommendedCapacity: 6,
     exampleCidrs: { azure: '10.0.2.0/24', aws: '10.0.2.0/24', gcp: '10.0.2.0/24' },
     learningLevel: 'advanced',
-    studColors: SUBNET_STUD_COLORS,
   },
   'subnet-scale': {
     id: 'subnet-scale',
@@ -440,7 +414,6 @@ export const PLATE_PROFILES: Record<PlateProfileId, PlateProfile> = {
     recommendedCapacity: 8,
     exampleCidrs: { azure: '10.0.4.0/22', aws: '10.0.4.0/22', gcp: '10.0.4.0/22' },
     learningLevel: 'expert',
-    studColors: SUBNET_STUD_COLORS,
   },
 };
 
@@ -496,11 +469,6 @@ export function inferLegacyPlateProfileId(legacyPlate: LegacyPlateShape): PlateP
     }
   }
   return closest.id;
-}
-
-export function getPlateStudColors(plate: { type: PlateType }): StudColorSpec {
-  if (plate.type === 'subnet') return SUBNET_STUD_COLORS;
-  return NETWORK_STUD_COLORS;
 }
 
 export const DEFAULT_PLATE_SIZE: Record<PlateType, Size> = {
