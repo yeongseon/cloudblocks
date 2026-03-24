@@ -18,7 +18,7 @@ export type {
 } from './enums.js';
 
 // Deprecated enum aliases (migration shims — remove post-M24)
-export type { BlockCategory, NodeKind, PlateType } from './enums.js';
+export type { PlateType } from './enums.js';
 
 // Spatial types
 export type { Position, Size } from './spatial.js';
@@ -36,9 +36,6 @@ export type {
   ResourceBlock,
 } from './model.js';
 
-// Deprecated model aliases (migration shims — remove post-M24)
-export type { ContainerNode, LeafNode, Plate, ResourceNode } from './model.js';
-
 export {
   endpointId,
   generateEndpointsForBlock,
@@ -46,9 +43,6 @@ export {
   parseEndpointId,
   resolveConnectionNodes,
 } from './endpoints.js';
-
-// Deprecated endpoint aliases (migration shims — remove post-M24)
-export { generateEndpointsForNode } from './endpoints.js';
 
 // Resource rules — single source of truth for constraints (Proposals 1–3)
 export type {

@@ -12,13 +12,8 @@ export {
   validateContainment,
   validateBlockIntegrity,
   validateBlockPlacement,
-  // Deprecated aliases — remove post-M24
-  validateBlockIntegrity as validateNodeIntegrity,
-  validateBlockPlacement as validateNodePlacement,
 } from './constraints.js';
 export type { ContainmentError, BlockIntegrityError } from './constraints.js';
-/** @deprecated Use BlockIntegrityError instead. */
-export type { BlockIntegrityError as NodeIntegrityError } from './constraints.js';
 
 // Human-readable labels and role constants
 export { CONNECTION_TYPE_LABELS, BLOCK_ROLES } from './labels.js';

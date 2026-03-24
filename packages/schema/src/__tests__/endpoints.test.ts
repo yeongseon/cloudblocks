@@ -1,11 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import {
-  connectionTypeToSemantic,
-  endpointId,
-  generateEndpointsForBlock,
-  generateEndpointsForNode,
-} from '../endpoints.js';
+import { connectionTypeToSemantic, endpointId, generateEndpointsForBlock } from '../endpoints.js';
 
 describe('endpoints utilities', () => {
   it('endpointId() produces deterministic endpoint format', () => {
@@ -24,12 +19,6 @@ describe('endpoints utilities', () => {
       'endpoint-block-1-output-event',
       'endpoint-block-1-output-data',
     ]);
-  });
-
-  it('generateEndpointsForNode() is a deprecated alias for generateEndpointsForBlock', () => {
-    const fromNew = generateEndpointsForBlock('block-1');
-    const fromOld = generateEndpointsForNode('block-1');
-    expect(fromOld).toEqual(fromNew);
   });
 
   it('connectionTypeToSemantic() maps all legacy connection types', () => {

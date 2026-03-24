@@ -35,9 +35,6 @@ export function generateEndpointsForBlock(blockId: string): Endpoint[] {
   return endpoints;
 }
 
-/** @deprecated Use generateEndpointsForBlock instead. */
-export const generateEndpointsForNode = generateEndpointsForBlock;
-
 /**
  * Map legacy ConnectionType to EndpointSemantic.
  * Used during v3→v4 migration.

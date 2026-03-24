@@ -163,19 +163,3 @@ export interface ArchitectureModel {
   /** ISO 8601 */
   updatedAt: string;
 }
-
-// ---------------------------------------------------------------------------
-// Deprecated aliases — kept temporarily for migration, will be removed post-M24
-// ---------------------------------------------------------------------------
-
-/** @deprecated Use ContainerBlock instead. */
-export type ContainerNode = ContainerBlock;
-
-/** @deprecated Use ResourceBlock instead. */
-export type LeafNode = ResourceBlock;
-
-/** @deprecated Use Block instead. */
-export type ResourceNode = Block;
-
-/** @deprecated Use ContainerBlock instead. */
-export type Plate = ContainerBlock;

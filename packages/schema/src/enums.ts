@@ -78,11 +78,5 @@ export type EndpointSemantic = 'http' | 'event' | 'data';
 // Deprecated aliases — kept temporarily for migration, will be removed post-M24
 // ---------------------------------------------------------------------------
 
-/** @deprecated Use BlockKind instead. */
-export type NodeKind = BlockKind;
-
-/** @deprecated Use ResourceCategory instead. */
-export type BlockCategory = ResourceCategory;
-
 /** @deprecated Use LayerType + BlockKind='container'. */
 export type PlateType = 'global' | 'edge' | 'region' | 'zone' | 'subnet';

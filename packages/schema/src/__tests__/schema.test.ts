@@ -28,14 +28,7 @@ import type {
   ResourceCategory,
   Size,
   Aggregation,
-  // Deprecated aliases — verify still importable during migration
-  BlockCategory,
-  ContainerNode,
-  LeafNode,
-  NodeKind,
-  Plate,
   PlateType,
-  ResourceNode,
 } from '../index.js';
 
 describe('SCHEMA_VERSION', () => {
@@ -380,58 +373,9 @@ describe('Type compatibility', () => {
     expect(_agg.count).toBe(1);
   });
 
-  // Verify deprecated aliases still compile
-  it('should support deprecated type aliases during migration', () => {
-    // BlockCategory is an alias for ResourceCategory
-    const _bc: BlockCategory = 'compute';
-    expect(_bc).toBe('compute');
-
-    // NodeKind is alias for BlockKind
-    const _nk: NodeKind = 'container';
-    expect(_nk).toBe('container');
-
-    // PlateType still available
+  it('should still export PlateType during migration', () => {
     const _pt: PlateType = 'region';
     expect(_pt).toBe('region');
-
-    // ContainerNode is alias for ContainerBlock
-    const _cn: ContainerNode = {
-      id: 'p1',
-      name: 'Legacy Container',
-      kind: 'container',
-      layer: 'region',
-      resourceType: 'virtual_network',
-      category: 'network',
-      provider: 'azure',
-      parentId: null,
-      position: { x: 0, y: 0, z: 0 },
-      frame: { width: 10, height: 1, depth: 10 },
-      metadata: {},
-    };
-    expect(_cn.kind).toBe('container');
-
-    // Plate is alias for ContainerBlock
-    const _plate: Plate = _cn;
-    expect(_plate.kind).toBe('container');
-
-    // LeafNode is alias for ResourceBlock
-    const _ln: LeafNode = {
-      id: 'b1',
-      name: 'Legacy Leaf',
-      kind: 'resource',
-      layer: 'resource',
-      resourceType: 'vm',
-      category: 'compute',
-      provider: 'azure',
-      parentId: 'p1',
-      position: { x: 1, y: 0, z: 1 },
-      metadata: {},
-    };
-    expect(_ln.kind).toBe('resource');
-
-    // ResourceNode is alias for Block
-    const _rn: ResourceNode = _ln;
-    expect(_rn.kind).toBe('resource');
   });
 });
 

@@ -15,7 +15,6 @@ export type {
   ArchitectureModel,
   Block,
   BlockKind,
-  BlockCategory,
   BlockRole,
   ContainerBlock,
   Connection,
@@ -31,7 +30,6 @@ export type {
   Position,
   ProviderType,
   ResourceCategory,
-  ResourceNode,
   Size,
 } from '@cloudblocks/schema';
 
