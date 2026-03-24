@@ -46,12 +46,13 @@ CloudBlocks evolves through four stages — from visual design tool to multi-clo
 
 ### V1 Milestones
 
-| Milestone | Focus                               | Status                |
-| --------- | ----------------------------------- | --------------------- |
-| M22       | Port Connections & Visual Theme     | Planned               |
-| M23       | Taxonomy & Hardening (routing)      | Open (3 issues)       |
-| M25       | V1 Documentation & Product Contract | **Current**           |
-| M26       | Visual Language & Routing           | Planned (beta.1 prep) |
+| Milestone | Focus                               | Status      |
+| --------- | ----------------------------------- | ----------- |
+| M22       | Port Connections & Visual Theme     | ✅ Done     |
+| M23       | Taxonomy & Hardening                | ✅ Done     |
+| M24       | Block Unification                   | ✅ Done     |
+| M25       | V1 Documentation & Product Contract | ✅ Done     |
+| M26       | Visual Language & Routing           | **Current** |
 
 ### Version Transition
 
@@ -103,7 +104,7 @@ After v1.0.0, development continues with backward-compatible minor releases (v1.
 
 | Metric                   | Value                                                                                                     |
 | ------------------------ | --------------------------------------------------------------------------------------------------------- |
-| 0.x milestones completed | 24 (M0–M24)                                                                                               |
+| 0.x milestones completed | 25 (M0–M25)                                                                                               |
 | Tests passing            | 2,076                                                                                                     |
 | Branch coverage          | ≥ 90%                                                                                                     |
 | Codebase                 | TypeScript (React 19) + Python (FastAPI) monorepo                                                         |

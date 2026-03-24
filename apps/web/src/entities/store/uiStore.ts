@@ -189,9 +189,9 @@ interface UIState {
   themeVariant: ThemeVariant;
   setThemeVariant: (variant: ThemeVariant) => void;
 
-  showStuds: boolean;
-  toggleStuds: () => void;
-  setShowStuds: (show: boolean) => void;
+  showPorts: boolean;
+  togglePorts: () => void;
+  setShowPorts: (show: boolean) => void;
 
   showGrid: boolean;
   toggleGrid: () => void;
@@ -506,21 +506,28 @@ export const useUIStore = create<UIState>((set, get) => ({
     set({ themeVariant: variant });
   },
 
-  showStuds: (() => {
-    const stored = localStorage.getItem('cloudblocks:show-studs');
+  showPorts: (() => {
+    // Migration: support old localStorage key 'cloudblocks:show-studs'
+    const oldStored = localStorage.getItem('cloudblocks:show-studs');
+    if (oldStored !== null) {
+      localStorage.setItem('cloudblocks:show-ports', oldStored);
+      localStorage.removeItem('cloudblocks:show-studs');
+      return oldStored === 'true';
+    }
+    const stored = localStorage.getItem('cloudblocks:show-ports');
     if (stored !== null) return stored === 'true';
     // Default to true: all blocks render port grids
     return true;
   })(),
-  toggleStuds: () =>
+  togglePorts: () =>
     set((s) => {
-      const next = !s.showStuds;
-      localStorage.setItem('cloudblocks:show-studs', String(next));
-      return { showStuds: next };
+      const next = !s.showPorts;
+      localStorage.setItem('cloudblocks:show-ports', String(next));
+      return { showPorts: next };
     }),
-  setShowStuds: (show) => {
-    localStorage.setItem('cloudblocks:show-studs', String(show));
-    set({ showStuds: show });
+  setShowPorts: (show) => {
+    localStorage.setItem('cloudblocks:show-ports', String(show));
+    set({ showPorts: show });
   },
 
   showGrid: true,
