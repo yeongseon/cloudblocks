@@ -4,13 +4,13 @@ import { Helper } from './Helper';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import type { ValidationResult } from '@cloudblocks/domain';
-import type { ContainerNode, LeafNode, Connection } from '@cloudblocks/schema';
+import type { Connection, ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
 
 const NOW = '2026-01-01T00:00:00.000Z';
 
 function makeWorkspace(
   overrides: {
-    nodes?: (ContainerNode | LeafNode)[];
+    nodes?: (ContainerBlock | ResourceBlock)[];
     connections?: Connection[];
   } = {},
 ) {
@@ -33,7 +33,7 @@ function makeWorkspace(
   };
 }
 
-const SAMPLE_NODE: LeafNode = {
+const SAMPLE_NODE: ResourceBlock = {
   id: 'block-1',
   kind: 'resource',
   resourceType: 'web_compute',

@@ -304,7 +304,7 @@ describe('App', () => {
               provider: 'azure',
               parentId: null,
               position: { x: 0, y: 0, z: 0 },
-              size: { width: 5, height: 0.2, depth: 8 },
+              frame: { width: 5, height: 0.2, depth: 8 },
               metadata: {},
             },
           ],

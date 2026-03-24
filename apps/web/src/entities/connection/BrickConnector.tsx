@@ -1,11 +1,11 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import type {
   Connection,
-  ContainerNode,
+  ContainerBlock,
   Endpoint,
   EndpointSemantic,
   ExternalActor,
-  LeafNode,
+  ResourceBlock,
 } from '@cloudblocks/schema';
 import { getDiffState } from '../../features/diff/engine';
 import { getConnectionEndpointWorldAnchors } from './endpointAnchors';
@@ -38,8 +38,8 @@ import type { ConnectionRenderSemantic } from './connectionFaceColors';
 
 interface BrickConnectorProps {
   connection: Connection;
-  blocks: LeafNode[];
-  plates: ContainerNode[];
+  blocks: ResourceBlock[];
+  plates: ContainerBlock[];
   externalActors: ExternalActor[];
   originX: number;
   originY: number;

@@ -23,11 +23,11 @@ function getPolygons(container: HTMLElement) {
 /** Extract face color fills from rendered SVG, handling both polygon and cylinder rendering. */
 function getFaceColors(container: HTMLElement) {
   // Cylinder rendering uses rect (leftSideColor), path (rightSideColor), ellipse (topFaceColor)
-  // Must exclude elements inside <defs> (stud definitions contain ellipses/rects too)
+  // Must exclude elements inside <defs> (port definitions contain ellipses/rects too)
   const svg = container.querySelector('svg')!;
   const allEllipses = Array.from(svg.querySelectorAll('ellipse'));
   const cylinderEllipse = allEllipses.find(
-    (el) => !el.closest('defs') && !el.closest('[data-testid="stub-dots"]'),
+    (el) => !el.closest('defs') && !el.closest('[data-testid="port-dots"]'),
   );
   if (cylinderEllipse) {
     const allRects = Array.from(svg.querySelectorAll('rect'));
@@ -41,10 +41,10 @@ function getFaceColors(container: HTMLElement) {
       rightSideColor: arcPath?.getAttribute('fill') ?? null,
     };
   }
-  // Polygon rendering (standard 3-face isometric) — skip stub dot polygons
+  // Polygon rendering (standard 3-face isometric) — skip port dot polygons
   const allPolygons = Array.from(svg.querySelectorAll('polygon'));
   const facePolygons = allPolygons.filter(
-    (el) => !el.closest('defs') && !el.closest('[data-testid="stub-dots"]'),
+    (el) => !el.closest('defs') && !el.closest('[data-testid="port-dots"]'),
   );
   return {
     topFaceColor: facePolygons[0]?.getAttribute('fill') ?? null,
@@ -283,7 +283,7 @@ describe('BlockSvg subtype size overrides', () => {
 // ─── SVG Structure Tests ──────────────────────────────────────
 
 describe('BlockSvg SVG structure', () => {
-  it('renders 3 face polygons plus stub dot polygons even when showStubs is not enabled', () => {
+  it('renders 3 face polygons plus port dot polygons even when showPorts is not enabled', () => {
     const { container } = render(<BlockSvg category="compute" />);
     const polygons = getPolygons(container);
     expect(polygons.length).toBeGreaterThanOrEqual(3);
@@ -496,13 +496,13 @@ describe('BlockSvg name prop', () => {
   });
 });
 
-describe('BlockSvg stub dot interaction branches', () => {
-  it('renders hover glow when showStubs is false but hoveredPort matches', () => {
+describe('BlockSvg port dot interaction branches', () => {
+  it('renders hover glow when showPorts is false but hoveredPort matches', () => {
     const { container } = render(
-      <BlockSvg category="compute" showStubs={false} hoveredPort="in-0" />,
+      <BlockSvg category="compute" showPorts={false} hoveredPort="in-0" />,
     );
 
-    expect(container.querySelector('[data-testid="stub-glow-in-0"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="port-glow-in-0"]')).not.toBeNull();
   });
 
   it('does not render glow for occupied endpoints even when hovered', () => {
@@ -510,15 +510,15 @@ describe('BlockSvg stub dot interaction branches', () => {
     const { container } = render(
       <BlockSvg
         category="compute"
-        showStubs
+        showPorts
         hoveredPort="in-0"
         occupiedEndpointSemantics={occupied}
       />,
     );
 
-    const firstInboundDot = container.querySelector('[data-testid="stub-dot-in-0"]');
+    const firstInboundDot = container.querySelector('[data-testid="port-dot-in-0"]');
     expect(firstInboundDot).toHaveAttribute('data-occupied', 'true');
-    expect(container.querySelector('[data-testid="stub-glow-in-0"]')).toBeNull();
+    expect(container.querySelector('[data-testid="port-glow-in-0"]')).toBeNull();
   });
 
   it('invokes inbound/outbound port callbacks with mapped semantics', () => {
@@ -529,15 +529,15 @@ describe('BlockSvg stub dot interaction branches', () => {
     const { container } = render(
       <BlockSvg
         category="compute"
-        showStubs
+        showPorts
         onPortPointerDown={onPortPointerDown}
         onPortPointerEnter={onPortPointerEnter}
         onPortPointerLeave={onPortPointerLeave}
       />,
     );
 
-    const inbound0 = container.querySelector('[data-testid="stub-dot-in-0"]')!;
-    const outbound0 = container.querySelector('[data-testid="stub-dot-out-0"]')!;
+    const inbound0 = container.querySelector('[data-testid="port-dot-in-0"]')!;
+    const outbound0 = container.querySelector('[data-testid="port-dot-out-0"]')!;
 
     fireEvent.pointerEnter(inbound0);
     fireEvent.pointerLeave(inbound0);

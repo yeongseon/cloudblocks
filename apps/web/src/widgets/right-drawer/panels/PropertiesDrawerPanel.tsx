@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import type { Connection, ContainerNode, ResourceNode } from '@cloudblocks/schema';
+import type { Block, Connection, ContainerBlock } from '@cloudblocks/schema';
 import { parseEndpointId } from '@cloudblocks/schema';
 import { useArchitectureStore } from '../../../entities/store/architectureStore';
 import { useUIStore } from '../../../entities/store/uiStore';
@@ -72,7 +72,7 @@ function EmptyState({
 }
 
 // ── Node Properties ──────────────────────────────────────────────────────
-function NodeProperties({ node }: { node: ResourceNode }) {
+function NodeProperties({ node }: { node: Block }) {
   const renameNode = useArchitectureStore((s) => s.renameNode);
   const removeNode = useArchitectureStore((s) => s.removeNode);
   const duplicateBlock = useArchitectureStore((s) => s.duplicateBlock);
@@ -94,7 +94,7 @@ function NodeProperties({ node }: { node: ResourceNode }) {
     return connections.filter((c) => {
       const fromParsed = parseEndpointId(c.from);
       const toParsed = parseEndpointId(c.to);
-      return fromParsed?.nodeId === node.id || toParsed?.nodeId === node.id;
+      return fromParsed?.blockId === node.id || toParsed?.blockId === node.id;
     });
   }, [connections, node.id]);
 
@@ -178,8 +178,8 @@ function NodeProperties({ node }: { node: ResourceNode }) {
           <ReadOnlyField label="Z" value={String(node.position.z)} />
           {node.kind === 'container' && (
             <>
-              <ReadOnlyField label="Width" value={String((node as ContainerNode).size.width)} />
-              <ReadOnlyField label="Depth" value={String((node as ContainerNode).size.depth)} />
+              <ReadOnlyField label="Width" value={String((node as ContainerBlock).frame.width)} />
+              <ReadOnlyField label="Depth" value={String((node as ContainerBlock).frame.depth)} />
             </>
           )}
         </div>
@@ -243,10 +243,10 @@ function ConnectionProperties({ connection }: { connection: Connection }) {
   const fromParsed = parseEndpointId(connection.from);
   const toParsed = parseEndpointId(connection.to);
   const sourceNode = fromParsed
-    ? (architecture.nodes.find((n) => n.id === fromParsed.nodeId) ?? null)
+    ? (architecture.nodes.find((n) => n.id === fromParsed.blockId) ?? null)
     : null;
   const targetNode = toParsed
-    ? (architecture.nodes.find((n) => n.id === toParsed.nodeId) ?? null)
+    ? (architecture.nodes.find((n) => n.id === toParsed.blockId) ?? null)
     : null;
 
   const handleDelete = useCallback(() => {
@@ -265,8 +265,11 @@ function ConnectionProperties({ connection }: { connection: Connection }) {
       <section className="props-section">
         <h3 className="props-section-title">Connection</h3>
         <div className="props-field-group">
-          <ReadOnlyField label="From" value={sourceNode?.name ?? fromParsed?.nodeId ?? 'Unknown'} />
-          <ReadOnlyField label="To" value={targetNode?.name ?? toParsed?.nodeId ?? 'Unknown'} />
+          <ReadOnlyField
+            label="From"
+            value={sourceNode?.name ?? fromParsed?.blockId ?? 'Unknown'}
+          />
+          <ReadOnlyField label="To" value={targetNode?.name ?? toParsed?.blockId ?? 'Unknown'} />
           {fromParsed && <ReadOnlyField label="Semantic" value={fromParsed.semantic} />}
           {fromParsed && (
             <ReadOnlyField
@@ -307,8 +310,9 @@ function ConnectionSummaryItem({
   const fromParsed = parseEndpointId(connection.from);
   const toParsed = parseEndpointId(connection.to);
 
-  const otherNodeId = fromParsed?.nodeId === currentNodeId ? toParsed?.nodeId : fromParsed?.nodeId;
-  const direction = fromParsed?.nodeId === currentNodeId ? 'outbound' : 'inbound';
+  const otherNodeId =
+    fromParsed?.blockId === currentNodeId ? toParsed?.blockId : fromParsed?.blockId;
+  const direction = fromParsed?.blockId === currentNodeId ? 'outbound' : 'inbound';
   const semantic = fromParsed?.semantic ?? '?';
 
   const otherNode = otherNodeId

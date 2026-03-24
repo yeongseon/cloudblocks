@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { LeafNode, ContainerNode } from '@cloudblocks/schema';
+import type { ResourceBlock, ContainerBlock } from '@cloudblocks/schema';
 import {
   validatePlacement,
   canPlaceBlock,
@@ -8,7 +8,7 @@ import {
   validateNoOverlap,
 } from './placement';
 
-function makeBlock(overrides: Partial<LeafNode> = {}): LeafNode {
+function makeBlock(overrides: Partial<ResourceBlock> = {}): ResourceBlock {
   return {
     id: 'block-1',
     name: 'Block',
@@ -25,11 +25,11 @@ function makeBlock(overrides: Partial<LeafNode> = {}): LeafNode {
 }
 
 function makePlate(
-  overrides: Partial<ContainerNode> & { type?: ContainerNode['layer'] } = {},
-): ContainerNode {
+  overrides: Partial<ContainerBlock> & { type?: ContainerBlock['layer'] } = {},
+): ContainerBlock {
   const layer = overrides.type ?? overrides.layer ?? 'subnet';
   const normalizedLayer = layer === 'resource' ? 'subnet' : layer;
-  const resourceType: ContainerNode['resourceType'] =
+  const resourceType: ContainerBlock['resourceType'] =
     normalizedLayer === 'subnet' ? 'subnet' : 'virtual_network';
   return {
     id: 'plate-1',
@@ -41,7 +41,7 @@ function makePlate(
     provider: 'azure',
     parentId: null,
     position: { x: 0, y: 0, z: 0 },
-    size: { width: 8, height: 1, depth: 8 },
+    frame: { width: 8, height: 1, depth: 8 },
     metadata: {},
     ...overrides,
   };

@@ -1,9 +1,9 @@
 import type {
   ArchitectureModel,
-  ContainerNode,
+  ContainerBlock,
   Endpoint,
   LegacyConnection,
-  LeafNode,
+  ResourceBlock,
   PlateType,
   Position,
   ResourceCategory,
@@ -14,7 +14,7 @@ import { buildPlateSizeFromProfileId, inferLegacyPlateProfileId } from './index'
 import {
   connectionTypeToSemantic,
   endpointId,
-  generateEndpointsForNode,
+  generateEndpointsForBlock,
 } from '@cloudblocks/schema';
 
 const DEFAULT_EXTERNAL_ACTOR_POSITION = { x: -3, y: 0, z: 5 };
@@ -233,45 +233,45 @@ export function deserialize(json: string): Workspace[] {
         ? architectureUnknown.blocks
         : [];
 
-      const containerNodes: ContainerNode[] = legacyPlates.map((plate) => ({
+      const containerNodes: ContainerBlock[] = legacyPlates.map((plate) => ({
         id: plate.id as string,
         name: plate.name as string,
         kind: 'container' as const,
-        layer: plate.type as ContainerNode['layer'],
+        layer: plate.type as ContainerBlock['layer'],
         resourceType: ((plate.type as string) === 'region'
           ? 'virtual_network'
           : (plate.type as string) === 'subnet'
             ? 'subnet'
-            : 'virtual_network') as ContainerNode['resourceType'],
+            : 'virtual_network') as ContainerBlock['resourceType'],
         category: 'network' as const,
         provider: 'azure' as const,
         parentId: (plate.parentId as string | null) ?? null,
-        position: plate.position as ContainerNode['position'],
-        size: plate.size as ContainerNode['size'],
+        position: plate.position as ContainerBlock['position'],
+        frame: plate.size as ContainerBlock['frame'],
         metadata: (plate.metadata as Record<string, unknown>) ?? {},
         ...(plate.profileId ? { profileId: plate.profileId as string } : {}),
       }));
 
-      const leafNodes: LeafNode[] = (legacyBlocks as unknown as Array<Record<string, unknown>>).map(
-        (block) => ({
-          id: block.id as string,
-          name: block.name as string,
-          kind: 'resource' as const,
-          layer: 'resource' as const,
-          resourceType: (block.subtype as string | undefined) ?? (block.category as string),
-          category: remapCategory(block.category as string),
-          provider: (block.provider as LeafNode['provider'] | undefined) ?? 'azure',
-          parentId: block.placementId as string,
-          position: block.position as LeafNode['position'],
-          metadata: (block.metadata as Record<string, unknown>) ?? {},
-          ...(block.subtype ? { subtype: block.subtype as string } : {}),
-          ...(block.config ? { config: block.config as Record<string, unknown> } : {}),
-          ...(block.aggregation
-            ? { aggregation: block.aggregation as LeafNode['aggregation'] }
-            : {}),
-          ...(block.roles ? { roles: block.roles as LeafNode['roles'] } : {}),
-        }),
-      );
+      const leafNodes: ResourceBlock[] = (
+        legacyBlocks as unknown as Array<Record<string, unknown>>
+      ).map((block) => ({
+        id: block.id as string,
+        name: block.name as string,
+        kind: 'resource' as const,
+        layer: 'resource' as const,
+        resourceType: (block.subtype as string | undefined) ?? (block.category as string),
+        category: remapCategory(block.category as string),
+        provider: (block.provider as ResourceBlock['provider'] | undefined) ?? 'azure',
+        parentId: block.placementId as string,
+        position: block.position as ResourceBlock['position'],
+        metadata: (block.metadata as Record<string, unknown>) ?? {},
+        ...(block.subtype ? { subtype: block.subtype as string } : {}),
+        ...(block.config ? { config: block.config as Record<string, unknown> } : {}),
+        ...(block.aggregation
+          ? { aggregation: block.aggregation as ResourceBlock['aggregation'] }
+          : {}),
+        ...(block.roles ? { roles: block.roles as ResourceBlock['roles'] } : {}),
+      }));
 
       architectureUnknown.nodes = [...containerNodes, ...leafNodes];
       delete architectureUnknown.plates;
@@ -290,17 +290,24 @@ export function deserialize(json: string): Workspace[] {
           node.category = remapCategory(node.category as string);
         }
 
-        if (node.kind === 'container' && isRecord(node.size) && !node.profileId) {
+        const sizeOrFrame = isRecord(node.frame)
+          ? node.frame
+          : isRecord(node.size)
+            ? node.size
+            : null;
+
+        if (node.kind === 'container' && sizeOrFrame && !node.profileId) {
           const layer = typeof node.layer === 'string' ? node.layer : 'region';
           const inferredProfileId = inferLegacyPlateProfileId({
             type: layer as PlateType,
             size: {
-              width: Number(node.size.width),
-              depth: Number(node.size.depth),
+              width: Number(sizeOrFrame.width),
+              depth: Number(sizeOrFrame.depth),
             },
           });
           node.profileId = inferredProfileId;
-          node.size = buildPlateSizeFromProfileId(inferredProfileId);
+          node.frame = buildPlateSizeFromProfileId(inferredProfileId);
+          delete node.size;
         }
       }
 
@@ -311,7 +318,7 @@ export function deserialize(json: string): Workspace[] {
 
       if (!isEndpointArray(architectureUnknown.endpoints)) {
         architectureUnknown.endpoints = nodeIds.flatMap((nodeId) =>
-          generateEndpointsForNode(nodeId),
+          generateEndpointsForBlock(nodeId),
         );
       }
 

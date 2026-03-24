@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { endpointId } from '@cloudblocks/schema';
 
-import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
 import type { ModifiedEntity, PropertyChange } from '../../shared/types/diff';
 import { computeArchitectureDiff, getDiffState, normalizeArchitecture } from './engine';
 import {
@@ -11,16 +11,17 @@ import {
 } from '../../__tests__/legacyModelTestUtils';
 
 type LegacyArchitecture = ArchitectureModel & {
-  plates: ContainerNode[];
-  blocks: LeafNode[];
+  plates: ContainerBlock[];
+  blocks: ResourceBlock[];
 };
 
 function toArchitectureModel(model: ArchitectureModel | LegacyArchitecture): ArchitectureModel {
   const legacy = model as Partial<LegacyArchitecture>;
   const plates =
-    legacy.plates ?? model.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+    legacy.plates ??
+    model.nodes.filter((node): node is ContainerBlock => node.kind === 'container');
   const blocks =
-    legacy.blocks ?? model.nodes.filter((node): node is LeafNode => node.kind === 'resource');
+    legacy.blocks ?? model.nodes.filter((node): node is ResourceBlock => node.kind === 'resource');
 
   return {
     id: model.id,
@@ -50,7 +51,7 @@ function createBaseArchitecture(): LegacyArchitecture {
       type: 'region',
       parentId: null,
       position: { x: 0, y: 0, z: 0 },
-      size: { width: 16, height: 0.3, depth: 20 },
+      frame: { width: 16, height: 0.3, depth: 20 },
       metadata: {},
     }),
     makeTestPlate({
@@ -59,7 +60,7 @@ function createBaseArchitecture(): LegacyArchitecture {
       type: 'subnet',
       parentId: 'plate-1',
       position: { x: 1, y: 0, z: 1 },
-      size: { width: 6, height: 0.3, depth: 8 },
+      frame: { width: 6, height: 0.3, depth: 8 },
       metadata: {},
     }),
   ];
@@ -110,8 +111,8 @@ function createBaseArchitecture(): LegacyArchitecture {
 }
 
 function createEmptyArchitecture(id: string): LegacyArchitecture {
-  const plates: ContainerNode[] = [];
-  const blocks: LeafNode[] = [];
+  const plates: ContainerBlock[] = [];
+  const blocks: ResourceBlock[] = [];
   const arch = makeTestArchitecture({
     id,
     name: 'Empty Architecture',
@@ -222,7 +223,7 @@ describe('computeArchitectureDiff', () => {
           parentId: 'plate-1',
           children: ['block-3'],
           position: { x: 4, y: 0, z: 4 },
-          size: { width: 6, height: 0.3, depth: 8 },
+          frame: { width: 6, height: 0.3, depth: 8 },
           metadata: {},
         }),
       ],
@@ -570,7 +571,7 @@ describe('computeArchitectureDiff', () => {
           parentId: 'plate-1',
           children: ['block-3'],
           position: { x: 6, y: 0, z: 6 },
-          size: { width: 6, height: 0.3, depth: 8 },
+          frame: { width: 6, height: 0.3, depth: 8 },
           metadata: {},
         }),
       ],
@@ -786,10 +787,10 @@ describe('normalizeArchitecture', () => {
 
     const normalized = normalizeArchitecture(toArchitectureModel(unsorted));
     const normalizedPlates = normalized.nodes.filter(
-      (node): node is ContainerNode => node.kind === 'container',
+      (node): node is ContainerBlock => node.kind === 'container',
     );
     const normalizedBlocks = normalized.nodes.filter(
-      (node): node is LeafNode => node.kind === 'resource',
+      (node): node is ResourceBlock => node.kind === 'resource',
     );
 
     expect(normalizedPlates.map((plate) => plate.id)).toEqual(['plate-1', 'plate-2']);

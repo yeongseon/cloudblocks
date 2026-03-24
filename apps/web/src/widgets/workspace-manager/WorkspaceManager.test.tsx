@@ -32,7 +32,7 @@ const makeWorkspace = (id: string, name: string, blocks = 0, plates = 0): Worksp
         provider: 'azure' as const,
         parentId: null,
         position: { x: 0, y: 0, z: 0 },
-        size: { width: 5, height: 0.2, depth: 8 },
+        frame: { width: 5, height: 0.2, depth: 8 },
         metadata: {},
       })),
       ...Array.from({ length: blocks }, (_, i) => ({

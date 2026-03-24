@@ -26,7 +26,7 @@ type ArchNode = {
   provider?: 'azure';
   resourceType?: 'virtual_network' | 'web_compute';
   position?: { x: number; y: number; z: number };
-  size?: { width: number; height: number; depth: number };
+  frame?: { width: number; height: number; depth: number };
   metadata?: Record<string, unknown>;
 };
 
@@ -39,7 +39,7 @@ const basePlate: ArchNode = {
   provider: 'azure',
   resourceType: 'virtual_network',
   position: { x: 0, y: 0, z: 0 },
-  size: { width: 16, height: 0.3, depth: 20 },
+  frame: { width: 16, height: 0.3, depth: 20 },
   metadata: {},
 };
 

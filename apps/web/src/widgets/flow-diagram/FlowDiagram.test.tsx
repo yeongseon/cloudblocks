@@ -6,7 +6,7 @@ import type {
   ArchitectureModel,
   Connection,
   ExternalActor,
-  LeafNode,
+  ResourceBlock,
   ProviderType,
   ResourceCategory,
 } from '@cloudblocks/schema';
@@ -37,7 +37,7 @@ const resourceTypeByCategory: Record<ResourceCategory, string> = {
   identity: 'managed_identity',
 };
 
-const makeBlock = (id: string, category: ResourceCategory): LeafNode => ({
+const makeBlock = (id: string, category: ResourceCategory): ResourceBlock => ({
   id,
   name: `${id}-name`,
   kind: 'resource',
@@ -84,7 +84,7 @@ describe('FlowDiagram', () => {
   });
 
   it('renders topologically sorted flow chain blocks', () => {
-    const blocks: LeafNode[] = [
+    const blocks: ResourceBlock[] = [
       makeBlock('gateway-1', 'delivery'),
       makeBlock('compute-1', 'compute'),
       makeBlock('database-1', 'data'),
@@ -113,7 +113,7 @@ describe('FlowDiagram', () => {
   });
 
   it('renders external actor node (Internet)', () => {
-    const blocks: LeafNode[] = [makeBlock('gateway-1', 'delivery')];
+    const blocks: ResourceBlock[] = [makeBlock('gateway-1', 'delivery')];
     const externalActors: ExternalActor[] = [makeExternalActor('internet-1')];
     const connections: Connection[] = [makeConnection('c1', 'internet-1', 'gateway-1')];
 
@@ -133,7 +133,7 @@ describe('FlowDiagram', () => {
   });
 
   it('renders external actor node with custom actor name', () => {
-    const blocks: LeafNode[] = [makeBlock('gateway-1', 'delivery')];
+    const blocks: ResourceBlock[] = [makeBlock('gateway-1', 'delivery')];
     const externalActors: ExternalActor[] = [makeExternalActor('external-1', 'Partner API')];
     const connections: Connection[] = [makeConnection('c1', 'external-1', 'gateway-1')];
 
@@ -152,7 +152,7 @@ describe('FlowDiagram', () => {
   });
 
   it('falls back to default external actor label when actor name is empty', () => {
-    const blocks: LeafNode[] = [makeBlock('gateway-1', 'delivery')];
+    const blocks: ResourceBlock[] = [makeBlock('gateway-1', 'delivery')];
     const externalActors: ExternalActor[] = [makeExternalActor('external-2', '')];
     const connections: Connection[] = [makeConnection('c1', 'external-2', 'gateway-1')];
 
@@ -171,7 +171,7 @@ describe('FlowDiagram', () => {
   });
 
   it('renders arrows between nodes', () => {
-    const blocks: LeafNode[] = [
+    const blocks: ResourceBlock[] = [
       makeBlock('gateway-1', 'delivery'),
       makeBlock('compute-1', 'compute'),
       makeBlock('database-1', 'data'),
@@ -196,7 +196,7 @@ describe('FlowDiagram', () => {
   });
 
   it('skips unknown node ids referenced by connections', () => {
-    const blocks: LeafNode[] = [makeBlock('compute-1', 'compute')];
+    const blocks: ResourceBlock[] = [makeBlock('compute-1', 'compute')];
     const connections: Connection[] = [makeConnection('c1', 'ghost-1', 'compute-1')];
 
     useArchitectureStore.setState({
@@ -218,7 +218,7 @@ describe('FlowDiagram', () => {
   });
 
   it('uses fallback color, icon, and label for unknown block category values', () => {
-    const weirdBlock: LeafNode = {
+    const weirdBlock: ResourceBlock = {
       id: 'weird-1',
       name: 'weird-name',
       kind: 'resource',
@@ -255,7 +255,7 @@ describe('FlowDiagram', () => {
   });
 
   it('falls back to raw category label when block name and friendly name are unavailable', () => {
-    const unnamedUnknownBlock: LeafNode = {
+    const unnamedUnknownBlock: ResourceBlock = {
       ...makeBlock('unknown-1', 'compute'),
       name: '',
       provider: undefined as unknown as ProviderType,
@@ -283,7 +283,7 @@ describe('FlowDiagram', () => {
   });
 
   it('handles converging dependencies in Kahn sorting order', () => {
-    const blocks: LeafNode[] = [
+    const blocks: ResourceBlock[] = [
       makeBlock('gateway-1', 'delivery'),
       makeBlock('storage-1', 'data'),
       makeBlock('compute-1', 'compute'),
@@ -317,7 +317,7 @@ describe('FlowDiagram', () => {
   });
 
   it('renders flow diagram with cyclic connections (function <-> queue)', () => {
-    const blocks: LeafNode[] = [
+    const blocks: ResourceBlock[] = [
       makeBlock('function-1', 'compute'),
       makeBlock('queue-1', 'messaging'),
     ];

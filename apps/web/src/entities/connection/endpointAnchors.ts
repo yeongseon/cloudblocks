@@ -1,13 +1,13 @@
 /**
- * Stub-aware connection endpoint resolver.
+ * Port-aware connection endpoint resolver.
  *
- * Replaces the center-based `getEndpointWorldPosition` with stub-aware
- * anchor resolution. Falls back to block center when stub info is missing.
+ * Replaces the center-based `getEndpointWorldPosition` with port-aware
+ * anchor resolution. Falls back to block center when port info is missing.
  *
  * Design decisions:
  * - Returns world-space points (projected to screen downstream by routing).
- * - External actors always use their existing position (no stubs).
- * - Missing/invalid stub → fallback to center (backward compat).
+ * - External actors always use their existing position (no ports).
+ * - Missing/invalid port → fallback to center (backward compat).
  */
 
 import type {
@@ -26,19 +26,19 @@ import {
 } from '../../shared/utils/position';
 import { getBlockDimensions } from '../../shared/types/visualProfile';
 import { getBlockWorldAnchors } from '../block/blockGeometry';
-import type { StubSide, WorldPoint } from '../block/blockGeometry';
+import type { PortSide, WorldPoint } from '../block/blockGeometry';
 
 export interface EndpointAnchors {
   src: WorldPoint;
   tgt: WorldPoint;
-  srcSide?: StubSide;
-  tgtSide?: StubSide;
+  srcSide?: PortSide;
+  tgtSide?: PortSide;
   srcFloorY?: number;
   tgtFloorY?: number;
 }
 
 /**
- * Resolve world-space connection endpoints, accounting for stub positions.
+ * Resolve world-space connection endpoints, accounting for port positions.
  *
  * @returns World-space src/tgt points with optional side metadata, or null if
  *          either endpoint cannot be resolved.
@@ -79,13 +79,13 @@ export function getConnectionEndpointWorldAnchors(
 
 interface ResolvedEndpoint {
   point: WorldPoint;
-  side?: StubSide;
+  side?: PortSide;
   floorY?: number;
 }
 
 function resolveEndpoint(
   endpointId: string,
-  side: StubSide,
+  side: PortSide,
   blocks: LeafNode[],
   plates: ContainerNode[],
   endpoints: Endpoint[],
@@ -114,11 +114,11 @@ function resolveEndpoint(
 
     const ports = CATEGORY_PORTS[block.category];
     const total = side === 'inbound' ? ports.inbound : ports.outbound;
-    const stubIndex = semanticToStubIndex(endpoint.semantic, total);
+    const portIndex = semanticToPortIndex(endpoint.semantic, total);
 
-    if (stubIndex !== null) {
+    if (portIndex !== null) {
       return {
-        point: anchors.stub(side, stubIndex, total),
+        point: anchors.port(side, portIndex, total),
         side,
         floorY,
       };
@@ -142,7 +142,7 @@ function resolveEndpoint(
   return null;
 }
 
-function semanticToStubIndex(semantic: EndpointSemantic, total: number): number | null {
+function semanticToPortIndex(semantic: EndpointSemantic, total: number): number | null {
   if (total <= 0) {
     return null;
   }

@@ -24,7 +24,7 @@ function makeDiffDelta(): DiffDelta {
           provider: 'azure',
           parentId: 'plate-net-1',
           position: { x: 0, y: 0, z: 0 },
-          size: { width: 6, height: 0.3, depth: 8 },
+          frame: { width: 6, height: 0.3, depth: 8 },
           metadata: {},
         },
       ],
@@ -39,7 +39,7 @@ function makeDiffDelta(): DiffDelta {
           provider: 'azure',
           parentId: 'plate-net-1',
           position: { x: 2, y: 0, z: 0 },
-          size: { width: 6, height: 0.3, depth: 8 },
+          frame: { width: 6, height: 0.3, depth: 8 },
           metadata: {},
         },
       ],
@@ -56,7 +56,7 @@ function makeDiffDelta(): DiffDelta {
             provider: 'azure',
             parentId: 'plate-net-1',
             position: { x: 1, y: 0, z: 0 },
-            size: { width: 6, height: 0.3, depth: 8 },
+            frame: { width: 6, height: 0.3, depth: 8 },
             metadata: {},
           },
           after: {
@@ -69,7 +69,7 @@ function makeDiffDelta(): DiffDelta {
             provider: 'azure',
             parentId: 'plate-net-1',
             position: { x: 1, y: 0, z: 0 },
-            size: { width: 6, height: 0.3, depth: 8 },
+            frame: { width: 6, height: 0.3, depth: 8 },
             metadata: {},
           },
           changes: [
@@ -521,7 +521,7 @@ describe('DiffPanel', () => {
           provider: 'azure',
           parentId: null,
           position: { x: 0, y: 0, z: 0 },
-          size: { width: 8, height: 1, depth: 8 },
+          frame: { width: 8, height: 1, depth: 8 },
           metadata: {},
         },
         {
@@ -534,7 +534,7 @@ describe('DiffPanel', () => {
           provider: 'azure',
           parentId: 'p1',
           position: { x: 1, y: 0, z: 1 },
-          size: { width: 6, height: 0.3, depth: 6 },
+          frame: { width: 6, height: 0.3, depth: 6 },
           metadata: {},
         },
         {

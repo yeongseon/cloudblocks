@@ -22,7 +22,7 @@ function createArchitecture(subtype?: string): ArchitectureModel {
         provider: 'aws',
         parentId: null,
         position: { x: 0, y: 0, z: 0 },
-        size: { width: 8, height: 1, depth: 6 },
+        frame: { width: 8, height: 1, depth: 6 },
         metadata: {},
       },
       {

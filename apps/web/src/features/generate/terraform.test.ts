@@ -1,7 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { endpointId } from '@cloudblocks/schema';
 
-import type { ArchitectureModel, Connection, ContainerNode, LeafNode } from '@cloudblocks/schema';
+import type {
+  ArchitectureModel,
+  Connection,
+  ContainerBlock,
+  ResourceBlock,
+} from '@cloudblocks/schema';
 import { azureProviderDefinition } from './provider';
 import { generateMainTf, generateOutputsTf, generateVariablesTf, normalize } from './terraform';
 import {
@@ -16,20 +21,20 @@ import {
 const basePosition = { x: 0, y: 0, z: 0 };
 const baseSize = { width: 1, height: 1, depth: 1 };
 
-function createPlate(overrides: LegacyPlateOverrides): ContainerNode {
+function createPlate(overrides: LegacyPlateOverrides): ContainerBlock {
   return makeTestPlate({
     id: 'plate-default',
     name: 'Default Plate',
     type: 'region',
     parentId: null,
     position: basePosition,
-    size: baseSize,
+    frame: baseSize,
     metadata: {},
     ...overrides,
   });
 }
 
-function createBlock(overrides: LegacyBlockOverrides): LeafNode {
+function createBlock(overrides: LegacyBlockOverrides): ResourceBlock {
   return makeTestBlock({
     id: 'block-default',
     name: 'Default Block',

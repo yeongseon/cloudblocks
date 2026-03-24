@@ -20,7 +20,7 @@ const testArchitecture: ArchitectureModel = {
       provider: 'azure',
       parentId: null,
       position: { x: 0, y: 0, z: 0 },
-      size: { width: 1, height: 1, depth: 1 },
+      frame: { width: 1, height: 1, depth: 1 },
       metadata: {},
     },
     {
@@ -33,7 +33,7 @@ const testArchitecture: ArchitectureModel = {
       provider: 'azure',
       parentId: 'plate-network',
       position: { x: 0, y: 0, z: 0 },
-      size: { width: 1, height: 1, depth: 1 },
+      frame: { width: 1, height: 1, depth: 1 },
       metadata: {},
     },
     {

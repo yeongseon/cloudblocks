@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
 import type { ProviderName } from '../types';
 import { generateCode } from '../pipeline';
 import { getProviderDefinition } from '../provider';
@@ -41,7 +41,7 @@ function getRequiredDefinition(name: ProviderName) {
   return definition;
 }
 
-function createContainer(overrides: Partial<ContainerNode>): ContainerNode {
+function createContainer(overrides: Partial<ContainerBlock>): ContainerBlock {
   return {
     id: 'plate-1',
     name: 'Container',
@@ -52,13 +52,13 @@ function createContainer(overrides: Partial<ContainerNode>): ContainerNode {
     provider: 'azure',
     parentId: null,
     position: { x: 0, y: 0, z: 0 },
-    size: { width: 8, height: 1, depth: 6 },
+    frame: { width: 8, height: 1, depth: 6 },
     metadata: {},
     ...overrides,
   };
 }
 
-function createResource(overrides: Partial<LeafNode>): LeafNode {
+function createResource(overrides: Partial<ResourceBlock>): ResourceBlock {
   return {
     id: 'block-1',
     name: 'Resource',
@@ -122,7 +122,7 @@ describe('provider definitions', () => {
           provider: 'azure',
           parentId: null,
           position: { x: 0, y: 0, z: 0 },
-          size: { width: 12, height: 0.7, depth: 16 },
+          frame: { width: 12, height: 0.7, depth: 16 },
         }),
         createContainer({
           id: 'sub-1',
@@ -132,7 +132,7 @@ describe('provider definitions', () => {
           provider: 'azure',
           parentId: 'net-1',
           position: { x: 0, y: 0.7, z: 0 },
-          size: { width: 6, height: 0.5, depth: 8 },
+          frame: { width: 6, height: 0.5, depth: 8 },
         }),
         createResource({
           id: 'app-1',
@@ -182,7 +182,7 @@ describe('provider definitions', () => {
           provider: 'aws',
           parentId: null,
           position: { x: 0, y: 0, z: 0 },
-          size: { width: 12, height: 0.7, depth: 16 },
+          frame: { width: 12, height: 0.7, depth: 16 },
         }),
         createContainer({
           id: 'sub-1',
@@ -192,7 +192,7 @@ describe('provider definitions', () => {
           provider: 'aws',
           parentId: 'net-1',
           position: { x: 0, y: 0.7, z: 0 },
-          size: { width: 6, height: 0.5, depth: 8 },
+          frame: { width: 6, height: 0.5, depth: 8 },
         }),
         createResource({
           id: 'app-1',
@@ -242,7 +242,7 @@ describe('provider definitions', () => {
           provider: 'gcp',
           parentId: null,
           position: { x: 0, y: 0, z: 0 },
-          size: { width: 12, height: 0.7, depth: 16 },
+          frame: { width: 12, height: 0.7, depth: 16 },
         }),
         createContainer({
           id: 'sub-1',
@@ -252,7 +252,7 @@ describe('provider definitions', () => {
           provider: 'gcp',
           parentId: 'net-1',
           position: { x: 0, y: 0.7, z: 0 },
-          size: { width: 6, height: 0.5, depth: 8 },
+          frame: { width: 6, height: 0.5, depth: 8 },
         }),
         createResource({
           id: 'app-1',

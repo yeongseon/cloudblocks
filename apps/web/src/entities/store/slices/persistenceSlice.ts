@@ -2,14 +2,15 @@ import type { Workspace } from '../../../shared/types/index';
 import logger from '../../../shared/utils/logger';
 import type {
   ArchitectureModel,
-  ContainerNode,
-  LeafNode,
+  Block,
+  ContainerBlock,
   ResourceCategory,
+  ResourceBlock,
 } from '@cloudblocks/schema';
 import {
   connectionTypeToSemantic,
   endpointId,
-  generateEndpointsForNode,
+  generateEndpointsForBlock,
   parseEndpointId,
 } from '@cloudblocks/schema';
 import type { ArchitectureSnapshot } from '../../../shared/types/learning';
@@ -53,7 +54,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const isFiniteNumber = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value);
 
-const isValidNodeKind = (value: unknown): value is 'container' | 'resource' =>
+const isValidBlockKind = (value: unknown): value is 'container' | 'resource' =>
   value === 'container' || value === 'resource';
 const isValidPlateType = (value: unknown): value is PlateLayerType =>
   typeof value === 'string' && VALID_PLATE_TYPES.includes(value as PlateLayerType);
@@ -71,9 +72,9 @@ const validatePosition = (value: unknown, context: string): void => {
   }
 };
 
-const validateSize = (value: unknown, context: string): void => {
+const validateSize = (value: unknown, context: string, field: 'size' | 'frame' = 'size'): void => {
   if (!isRecord(value)) {
-    throw new Error(`${context}.size must be an object with width, height, depth numbers`);
+    throw new Error(`${context}.${field} must be an object with width, height, depth numbers`);
   }
 
   if (
@@ -81,7 +82,7 @@ const validateSize = (value: unknown, context: string): void => {
     !isFiniteNumber(value.height) ||
     !isFiniteNumber(value.depth)
   ) {
-    throw new Error(`${context}.size must contain numeric width, height, depth values`);
+    throw new Error(`${context}.${field} must contain numeric width, height, depth values`);
   }
 };
 
@@ -117,7 +118,7 @@ export const validateArchitectureShape = (imported: unknown): { valid: true } =>
       if (typeof node.name !== 'string') {
         throw new Error(`${context}: name must be a string`);
       }
-      if (!isValidNodeKind(node.kind)) {
+      if (!isValidBlockKind(node.kind)) {
         throw new Error(`${context}: kind must be "container" or "resource"`);
       }
       validatePosition(node.position, context);
@@ -126,7 +127,8 @@ export const validateArchitectureShape = (imported: unknown): { valid: true } =>
         if (!isValidPlateType(node.layer)) {
           throw new Error(`${context}: layer must be one of global, edge, region, zone, or subnet`);
         }
-        validateSize(node.size, context);
+        const frame = node.frame ?? node.size;
+        validateSize(frame, context, node.frame ? 'frame' : 'size');
         if (
           node.parentId !== null &&
           node.parentId !== undefined &&
@@ -309,14 +311,14 @@ export const validateArchitectureShape = (imported: unknown): { valid: true } =>
       if (endpointIds.size === 0) {
         const fromParsed = parseEndpointId(fromEndpointId);
         const toParsed = parseEndpointId(toEndpointId);
-        if (fromParsed && !validConnectionEndpointIds.has(fromParsed.nodeId)) {
+        if (fromParsed && !validConnectionEndpointIds.has(fromParsed.blockId)) {
           throw new Error(
-            `${context}: sourceId "${fromParsed.nodeId}" does not reference an existing block, plate, or external actor`,
+            `${context}: sourceId "${fromParsed.blockId}" does not reference an existing block, plate, or external actor`,
           );
         }
-        if (toParsed && !validConnectionEndpointIds.has(toParsed.nodeId)) {
+        if (toParsed && !validConnectionEndpointIds.has(toParsed.blockId)) {
           throw new Error(
-            `${context}: targetId "${toParsed.nodeId}" does not reference an existing block, plate, or external actor`,
+            `${context}: targetId "${toParsed.blockId}" does not reference an existing block, plate, or external actor`,
           );
         }
       }
@@ -447,43 +449,53 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
       const now = new Date().toISOString();
 
       // Handle legacy (plates+blocks) or new (nodes) format
-      let nodes: (ContainerNode | LeafNode)[];
+      let nodes: Block[];
       const importedAny = imported as Record<string, unknown>;
       if (Array.isArray(importedAny.nodes)) {
-        nodes = importedAny.nodes as (ContainerNode | LeafNode)[];
+        nodes = (importedAny.nodes as Block[]).map((node) => {
+          if (node.kind !== 'container') {
+            return node;
+          }
+
+          const container = node as ContainerBlock & { size?: ContainerBlock['frame'] };
+          return {
+            ...container,
+            frame: container.frame ?? container.size,
+          };
+        });
       } else if (Array.isArray(importedAny.plates) && Array.isArray(importedAny.blocks)) {
         // Migrate legacy format
         const containerNodes = (importedAny.plates as Record<string, unknown>[]).map(
-          (plate): ContainerNode => ({
+          (plate): ContainerBlock => ({
             id: plate.id as string,
             name: plate.name as string,
             kind: 'container',
-            layer: plate.type as ContainerNode['layer'],
+            layer: plate.type as ContainerBlock['layer'],
             resourceType: ((plate.type as string) === 'region'
               ? 'virtual_network'
               : plate.type === 'subnet'
                 ? 'subnet'
-                : 'virtual_network') as ContainerNode['resourceType'],
+                : 'virtual_network') as ContainerBlock['resourceType'],
             category: 'network',
             provider: 'azure',
             parentId: (plate.parentId as string | null | undefined) ?? null,
-            position: plate.position as ContainerNode['position'],
-            size: plate.size as ContainerNode['size'],
+            position: plate.position as ContainerBlock['position'],
+            frame: plate.size as ContainerBlock['frame'],
             metadata: (plate.metadata as Record<string, unknown>) ?? {},
             ...(typeof plate.profileId === 'string' ? { profileId: plate.profileId } : {}),
           }),
         );
         const leafNodes = (importedAny.blocks as Record<string, unknown>[]).map(
-          (block): LeafNode => ({
+          (block): ResourceBlock => ({
             id: block.id as string,
             name: block.name as string,
             kind: 'resource',
             layer: 'resource',
             resourceType: (block.subtype as string | undefined) ?? (block.category as string),
             category: block.category as ResourceCategory,
-            provider: (block.provider as LeafNode['provider'] | undefined) ?? 'azure',
+            provider: (block.provider as ResourceBlock['provider'] | undefined) ?? 'azure',
             parentId: block.placementId as string,
-            position: block.position as LeafNode['position'],
+            position: block.position as ResourceBlock['position'],
             metadata: (block.metadata as Record<string, unknown>) ?? {},
             ...(typeof block.subtype === 'string' ? { subtype: block.subtype } : {}),
             ...(block.config && typeof block.config === 'object'
@@ -496,7 +508,7 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
         nodes = [];
       }
 
-      const endpoints = nodes.flatMap((node) => generateEndpointsForNode(node.id));
+      const endpoints = nodes.flatMap((node) => generateEndpointsForBlock(node.id));
       const rawConnections = ((imported.connections as unknown[]) ?? []).filter(
         (connection): connection is Record<string, unknown> => isRecord(connection),
       );
@@ -601,7 +613,7 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
     const nodeIds = (clonedArch.nodes ?? []).map((n: { id: string }) => n.id);
     const actorIds = (clonedArch.externalActors ?? []).map((a: { id: string }) => a.id);
     clonedArch.endpoints = [...nodeIds, ...actorIds].flatMap((id: string) =>
-      generateEndpointsForNode(id),
+      generateEndpointsForBlock(id),
     );
 
     const newWorkspace: Workspace = {

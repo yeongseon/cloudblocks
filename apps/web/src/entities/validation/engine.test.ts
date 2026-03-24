@@ -2,9 +2,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type {
   ArchitectureModel,
   Connection,
-  ContainerNode,
+  ContainerBlock,
   ExternalActor,
-  LeafNode,
+  ResourceBlock,
 } from '@cloudblocks/schema';
 import { validateArchitecture } from './engine';
 import * as placementModule from './placement';
@@ -19,20 +19,20 @@ import {
   type LegacyPlateOverrides,
 } from '../../__tests__/legacyModelTestUtils';
 
-function makePlate(overrides: LegacyPlateOverrides = {}): ContainerNode {
+function makePlate(overrides: LegacyPlateOverrides = {}): ContainerBlock {
   return makeTestPlate({
     id: 'subnet-1',
     name: 'Subnet',
     type: 'subnet',
     parentId: 'network-1',
     position: { x: 0, y: 0, z: 0 },
-    size: { width: 8, height: 1, depth: 8 },
+    frame: { width: 8, height: 1, depth: 8 },
     metadata: {},
     ...overrides,
   });
 }
 
-function makeBlock(overrides: LegacyBlockOverrides = {}): LeafNode {
+function makeBlock(overrides: LegacyBlockOverrides = {}): ResourceBlock {
   return makeTestBlock({
     id: 'block-1',
     name: 'Block One',
@@ -228,7 +228,7 @@ describe('validateArchitecture', () => {
   });
 
   it('routes warning severities to warnings array', () => {
-    vi.spyOn(placementModule, 'validatePlacement').mockImplementation((block: LeafNode) => ({
+    vi.spyOn(placementModule, 'validatePlacement').mockImplementation((block: ResourceBlock) => ({
       ruleId: 'rule-placement-warning',
       severity: 'warning' as const,
       message: `Placement warning for ${block.id}`,

@@ -1,4 +1,4 @@
-import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
 import type {
   GenerationOptions,
   GeneratorPlugin,
@@ -31,7 +31,7 @@ function buildResourceName(prefix: string, entityName: string): string {
   return `${prefix}${sanitized.charAt(0).toUpperCase()}${sanitized.slice(1)}`;
 }
 
-function getPlateType(plate: ContainerNode): 'global' | 'edge' | 'region' | 'zone' | 'subnet' {
+function getPlateType(plate: ContainerBlock): 'global' | 'edge' | 'region' | 'zone' | 'subnet' {
   if (plate.layer === 'resource') {
     return 'region';
   }
@@ -44,8 +44,8 @@ export function normalizePulumi(
   architecture: ArchitectureModel,
   provider: ProviderDefinition,
 ): NormalizedModel {
-  const containers = architecture.nodes.filter((n): n is ContainerNode => n.kind === 'container');
-  const resources = architecture.nodes.filter((n): n is LeafNode => n.kind === 'resource');
+  const containers = architecture.nodes.filter((n): n is ContainerBlock => n.kind === 'container');
+  const resources = architecture.nodes.filter((n): n is ResourceBlock => n.kind === 'resource');
   const resourceNames = new Map<string, string>();
   const usedNames = new Set<string>();
 
@@ -106,7 +106,7 @@ function getPulumiConstructor(terraformType: string): string {
 
 // ─── Implicit Companion Resources ───────────────────────────
 
-function generateImplicitPulumiResources(block: LeafNode, resourceName: string): string[] {
+function generateImplicitPulumiResources(block: ResourceBlock, resourceName: string): string[] {
   const sections: string[] = [];
 
   const needsPip =
@@ -155,7 +155,7 @@ function generateImplicitPulumiResources(block: LeafNode, resourceName: string):
 // ─── Generate Stage ─────────────────────────────────────────
 
 function generatePlateResource(
-  plate: ContainerNode,
+  plate: ContainerBlock,
   resourceName: string,
   mapping: ResourceMapping,
   parentResourceName: string | null,
@@ -169,7 +169,9 @@ function generatePlateResource(
     lines.push(`    subnetName: \`\${projectName}-${resourceName}\`,`);
     lines.push(`    resourceGroupName: resourceGroup.name,`);
     lines.push(`    virtualNetworkName: ${parentResourceName}.name,`);
-    const containers = architecture.nodes.filter((n): n is ContainerNode => n.kind === 'container');
+    const containers = architecture.nodes.filter(
+      (n): n is ContainerBlock => n.kind === 'container',
+    );
     const siblingSubnets = containers.filter(
       (c) => c.layer === 'subnet' && c.parentId === plate.parentId,
     );
@@ -193,7 +195,7 @@ function generatePlateResource(
 }
 
 function generateBlockResource(
-  block: LeafNode,
+  block: ResourceBlock,
   resourceName: string,
   mapping: ResourceMapping,
 ): string {
@@ -267,8 +269,8 @@ export function generateIndexTs(
   options: GenerationOptions,
 ): string {
   const { architecture, resourceNames } = normalized;
-  const containers = architecture.nodes.filter((n): n is ContainerNode => n.kind === 'container');
-  const resources = architecture.nodes.filter((n): n is LeafNode => n.kind === 'resource');
+  const containers = architecture.nodes.filter((n): n is ContainerBlock => n.kind === 'container');
+  const resources = architecture.nodes.filter((n): n is ResourceBlock => n.kind === 'resource');
   const sections: string[] = [];
   const packageName = provider.generators.pulumi.packageName;
 

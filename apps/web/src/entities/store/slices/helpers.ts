@@ -1,5 +1,5 @@
 import type { Workspace } from '../../../shared/types/index';
-import type { ArchitectureModel, LeafNode, Position } from '@cloudblocks/schema';
+import type { ArchitectureModel, Position, ResourceBlock } from '@cloudblocks/schema';
 import { DEFAULT_BLOCK_SIZE, DEFAULT_PLATE_SIZE } from '../../../shared/types/index';
 import { createBlankArchitecture } from '../../../shared/types/schema';
 import {
@@ -35,7 +35,7 @@ function roundToTenth(value: number): number {
 }
 
 export function nextGridPosition(
-  existingBlocks: LeafNode[],
+  existingBlocks: ResourceBlock[],
   plateSize: { width: number; depth: number },
 ): Position {
   const blockWidth = DEFAULT_BLOCK_SIZE.width;
@@ -146,14 +146,14 @@ export function overlapsSibling(
   siblings: ReadonlyArray<{
     id: string;
     position: { x: number; z: number };
-    size: { width: number; depth: number };
+    frame: { width: number; depth: number };
   }>,
   excludeId?: string,
 ): boolean {
   return siblings.some(
     (sibling) =>
       sibling.id !== excludeId &&
-      platesOverlap(candidatePos, candidateSize, sibling.position, sibling.size),
+      platesOverlap(candidatePos, candidateSize, sibling.position, sibling.frame),
   );
 }
 
@@ -163,7 +163,7 @@ export function findNonOverlappingPosition(
   siblings: ReadonlyArray<{
     id: string;
     position: { x: number; z: number };
-    size: { width: number; depth: number };
+    frame: { width: number; depth: number };
   }>,
 ): { x: number; z: number } {
   const pos = { ...initialPos };
@@ -185,14 +185,14 @@ export function resolveMoveDelta(
   plate: {
     id: string;
     position: { x: number; z: number };
-    size: { width: number; depth: number };
+    frame: { width: number; depth: number };
   },
   deltaX: number,
   deltaZ: number,
   siblings: ReadonlyArray<{
     id: string;
     position: { x: number; z: number };
-    size: { width: number; depth: number };
+    frame: { width: number; depth: number };
   }>,
 ): { deltaX: number; deltaZ: number } {
   const targetPos = {
@@ -200,7 +200,7 @@ export function resolveMoveDelta(
     z: plate.position.z + deltaZ,
   };
 
-  if (!overlapsSibling(targetPos, plate.size, siblings, plate.id)) {
+  if (!overlapsSibling(targetPos, plate.frame, siblings, plate.id)) {
     return { deltaX, deltaZ };
   }
 
@@ -214,7 +214,7 @@ export function resolveMoveDelta(
       x: plate.position.x + deltaX * mid,
       z: plate.position.z + deltaZ * mid,
     };
-    if (overlapsSibling(testPos, plate.size, siblings, plate.id)) {
+    if (overlapsSibling(testPos, plate.frame, siblings, plate.id)) {
       hi = mid;
     } else {
       lo = mid;

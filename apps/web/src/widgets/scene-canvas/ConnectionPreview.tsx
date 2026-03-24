@@ -71,8 +71,8 @@ export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) 
       const anchors = getBlockWorldAnchors(worldPos, cu);
       const ports = CATEGORY_PORTS[block.category];
 
-      const stubWorld = anchors.stub('inbound', 0, ports.inbound);
-      const screen = worldToScreen(stubWorld[0], stubWorld[1], stubWorld[2], originX, originY);
+      const portWorld = anchors.port('inbound', 0, ports.inbound);
+      const screen = worldToScreen(portWorld[0], portWorld[1], portWorld[2], originX, originY);
       targets.push({
         blockId: block.id,
         screenPoint: { x: screen.x - PORT_OUT_PX, y: screen.y },
@@ -136,8 +136,8 @@ export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) 
       );
       const anchors = getBlockWorldAnchors(worldPos, cu);
       const ports = CATEGORY_PORTS[sourceBlock.category];
-      const stubWorld = anchors.stub('outbound', 0, ports.outbound);
-      const screen = worldToScreen(stubWorld[0], stubWorld[1], stubWorld[2], originX, originY);
+      const portWorld = anchors.port('outbound', 0, ports.outbound);
+      const screen = worldToScreen(portWorld[0], portWorld[1], portWorld[2], originX, originY);
       return { x: screen.x + PORT_OUT_PX, y: screen.y };
     }
 

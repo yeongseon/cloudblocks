@@ -13,15 +13,17 @@ import { BrickConnector } from '../../entities/connection/BrickConnector';
 import { ExternalActorSprite } from '../../entities/connection/ExternalActorSprite';
 import { DragGhost } from './DragGhost';
 import { ConnectionPreview } from './ConnectionPreview';
-import type { ContainerNode, LeafNode } from '@cloudblocks/schema';
+import type { ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
 import './SceneCanvas.css';
 
 export function SceneCanvas() {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const plates = architecture.nodes.filter(
-    (node): node is ContainerNode => node.kind === 'container',
+    (node): node is ContainerBlock => node.kind === 'container',
   );
-  const blocks = architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
+  const blocks = architecture.nodes.filter(
+    (node): node is ResourceBlock => node.kind === 'resource',
+  );
   const externalActors = architecture.externalActors ?? [];
   const addNode = useArchitectureStore((s) => s.addNode);
   const setSelectedId = useUIStore((s) => s.setSelectedId);
@@ -267,7 +269,7 @@ export function SceneCanvas() {
             const parentPlate = plates.find((p) => p.id === block.parentId);
             if (!parentPlate) return null;
             const worldX = parentPlate.position.x + block.position.x;
-            const worldY = parentPlate.position.y + parentPlate.size.height;
+            const worldY = parentPlate.position.y + parentPlate.frame.height;
             const worldZ = parentPlate.position.z + block.position.z;
             const screenPos = worldToScreen(worldX, worldY, worldZ, origin.x, origin.y);
             const zIndex = depthKey(worldX, worldZ, worldY, 2);

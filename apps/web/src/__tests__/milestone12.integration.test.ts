@@ -11,35 +11,35 @@ import { gcpSubtypeRegistry } from '../features/generate/providers/gcp/subtypes'
 import { resolveBlockMapping } from '../features/generate/types';
 import type { ProviderDefinition } from '../features/generate/types';
 import type { Workspace } from '../shared/types';
-import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
 import { deserialize, serialize } from '../shared/types/schema';
 
 type ContainerOverrides = Partial<
-  Omit<ContainerNode, 'kind' | 'layer' | 'resourceType' | 'category' | 'provider'>
+  Omit<ContainerBlock, 'kind' | 'layer' | 'resourceType' | 'category' | 'provider'>
 >;
 
 type LeafOverrides = Partial<
-  Omit<LeafNode, 'kind' | 'layer' | 'resourceType' | 'category' | 'provider' | 'parentId'>
+  Omit<ResourceBlock, 'kind' | 'layer' | 'resourceType' | 'category' | 'provider' | 'parentId'>
 > & {
-  category?: LeafNode['category'];
-  provider?: LeafNode['provider'];
+  category?: ResourceBlock['category'];
+  provider?: ResourceBlock['provider'];
   parentId?: string | null;
 };
 
-type ResourceInput = LeafOverrides & Pick<LeafNode, 'id' | 'name' | 'position' | 'metadata'>;
+type ResourceInput = LeafOverrides & Pick<ResourceBlock, 'id' | 'name' | 'position' | 'metadata'>;
 
 type ArchitectureOverrides = Omit<Partial<ArchitectureModel>, 'nodes' | 'plates' | 'blocks'> & {
   nodes?: ArchitectureModel['nodes'];
-  containers?: ContainerNode[];
-  resources?: Array<LeafNode | ResourceInput>;
+  containers?: ContainerBlock[];
+  resources?: Array<ResourceBlock | ResourceInput>;
 };
 
-const platesOf = (architecture: ArchitectureModel): ContainerNode[] =>
-  architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container');
-const blocksOf = (architecture: ArchitectureModel): LeafNode[] =>
-  architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource');
+const platesOf = (architecture: ArchitectureModel): ContainerBlock[] =>
+  architecture.nodes.filter((node): node is ContainerBlock => node.kind === 'container');
+const blocksOf = (architecture: ArchitectureModel): ResourceBlock[] =>
+  architecture.nodes.filter((node): node is ResourceBlock => node.kind === 'resource');
 
-function makePlate(overrides: ContainerOverrides = {}): ContainerNode {
+function makePlate(overrides: ContainerOverrides = {}): ContainerBlock {
   return {
     id: 'plate-subnet-private',
     name: 'Subnet',
@@ -51,13 +51,13 @@ function makePlate(overrides: ContainerOverrides = {}): ContainerNode {
     profileId: 'subnet-service',
     parentId: 'plate-network-1',
     position: { x: 0, y: 0.7, z: 0 },
-    size: { width: 8, height: 0.5, depth: 8 },
+    frame: { width: 8, height: 0.5, depth: 8 },
     metadata: {},
     ...overrides,
   };
 }
 
-function makeBlock(overrides: LeafOverrides = {}): LeafNode {
+function makeBlock(overrides: LeafOverrides = {}): ResourceBlock {
   return {
     id: 'block-1',
     name: 'Block One',
@@ -75,7 +75,7 @@ function makeBlock(overrides: LeafOverrides = {}): LeafNode {
 
 function makeArchitecture(overrides: ArchitectureOverrides = {}): ArchitectureModel {
   const { containers = [makePlate()], resources = [], nodes = [], ...rest } = overrides;
-  const normalizedResources: LeafNode[] = resources.map((resource) => {
+  const normalizedResources: ResourceBlock[] = resources.map((resource) => {
     if ('kind' in resource && resource.kind === 'resource') {
       return resource;
     }

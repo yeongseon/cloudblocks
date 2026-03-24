@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
 import type { StepValidationRule } from '../../shared/types/learning';
 import { evaluateRule, evaluateRules } from './step-validator';
-import { endpointId, generateEndpointsForNode } from '@cloudblocks/schema';
+import { endpointId, generateEndpointsForBlock } from '@cloudblocks/schema';
 
 const createTestModel = (): ArchitectureModel => ({
   id: 'arch-test',
@@ -21,7 +21,7 @@ const createTestModel = (): ArchitectureModel => ({
       provider: 'azure',
       parentId: null,
       position: { x: 0, y: 0, z: 0 },
-      size: { width: 12, height: 0.3, depth: 10 },
+      frame: { width: 12, height: 0.3, depth: 10 },
       metadata: {},
     },
     {
@@ -34,7 +34,7 @@ const createTestModel = (): ArchitectureModel => ({
       provider: 'azure',
       parentId: 'plate-vnet',
       position: { x: -3, y: 0.3, z: 0 },
-      size: { width: 5, height: 0.2, depth: 8 },
+      frame: { width: 5, height: 0.2, depth: 8 },
       metadata: {},
     },
     {
@@ -47,7 +47,7 @@ const createTestModel = (): ArchitectureModel => ({
       provider: 'azure',
       parentId: 'plate-vnet',
       position: { x: 3, y: 0.3, z: 0 },
-      size: { width: 5, height: 0.2, depth: 8 },
+      frame: { width: 5, height: 0.2, depth: 8 },
       metadata: {},
     },
     {
@@ -108,24 +108,24 @@ const createTestModel = (): ArchitectureModel => ({
     },
   ],
   endpoints: [
-    ...generateEndpointsForNode('plate-vnet'),
-    ...generateEndpointsForNode('plate-public'),
-    ...generateEndpointsForNode('plate-private'),
-    ...generateEndpointsForNode('block-gw'),
-    ...generateEndpointsForNode('block-compute'),
-    ...generateEndpointsForNode('block-db'),
-    ...generateEndpointsForNode('ext-internet'),
+    ...generateEndpointsForBlock('plate-vnet'),
+    ...generateEndpointsForBlock('plate-public'),
+    ...generateEndpointsForBlock('plate-private'),
+    ...generateEndpointsForBlock('block-gw'),
+    ...generateEndpointsForBlock('block-compute'),
+    ...generateEndpointsForBlock('block-db'),
+    ...generateEndpointsForBlock('ext-internet'),
   ],
   externalActors: [
     { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
   ],
 });
 
-const getContainers = (model: ArchitectureModel): ContainerNode[] =>
-  model.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+const getContainers = (model: ArchitectureModel): ContainerBlock[] =>
+  model.nodes.filter((node): node is ContainerBlock => node.kind === 'container');
 
-const getResources = (model: ArchitectureModel): LeafNode[] =>
-  model.nodes.filter((node): node is LeafNode => node.kind === 'resource');
+const getResources = (model: ArchitectureModel): ResourceBlock[] =>
+  model.nodes.filter((node): node is ResourceBlock => node.kind === 'resource');
 
 describe('evaluateRule', () => {
   describe('plate-exists', () => {

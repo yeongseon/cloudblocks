@@ -5,7 +5,7 @@ import {
   BLOCK_ICONS,
   resolveConnectionNodes,
 } from '../../shared/types/index';
-import type { Connection, ExternalActor, LeafNode } from '@cloudblocks/schema';
+import type { Connection, ExternalActor, ResourceBlock } from '@cloudblocks/schema';
 import { getBlockColor } from '../../entities/block/blockFaceColors';
 import './FlowDiagram.css';
 
@@ -57,7 +57,7 @@ export function FlowDiagram() {
     (s) => s.workspace.architecture,
   );
   const blocks = useMemo(
-    () => nodes.filter((node): node is LeafNode => node.kind === 'resource'),
+    () => nodes.filter((node): node is ResourceBlock => node.kind === 'resource'),
     [nodes],
   );
 
@@ -70,7 +70,7 @@ export function FlowDiagram() {
     return null;
   }
 
-  const blockMap = new Map<string, LeafNode>(blocks.map((b) => [b.id, b]));
+  const blockMap = new Map<string, ResourceBlock>(blocks.map((b) => [b.id, b]));
   const actorMap = new Map<string, ExternalActor>((externalActors ?? []).map((a) => [a.id, a]));
 
   return (

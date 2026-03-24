@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ContainerNode, ExternalActor, LeafNode } from '../types/index';
+import type { ContainerBlock, ExternalActor, ResourceBlock } from '../types/index';
 import {
   EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
   EXTERNAL_ACTOR_LABEL_POSITION,
@@ -10,7 +10,7 @@ import {
 } from './position';
 import { GRID_CELL } from './isometric';
 
-function createPlate(id: string): ContainerNode {
+function createPlate(id: string): ContainerBlock {
   return {
     id,
     name: `Plate ${id}`,
@@ -21,12 +21,12 @@ function createPlate(id: string): ContainerNode {
     provider: 'azure',
     parentId: 'network-1',
     position: { x: 10, y: 2, z: -3 },
-    size: { width: 5, height: 2, depth: 4 },
+    frame: { width: 5, height: 2, depth: 4 },
     metadata: {},
   };
 }
 
-function createBlock(id: string, parentId: string): LeafNode {
+function createBlock(id: string, parentId: string): ResourceBlock {
   return {
     id,
     name: `Block ${id}`,
@@ -59,7 +59,7 @@ describe('position utilities', () => {
     const world = getBlockWorldPosition(block, plate);
 
     // plate.position.x + block.position.x = 10 + 4 = 14
-    // plate.position.y + plate.size.height = 2 + 2 = 4
+    // plate.position.y + plate.frame.height = 2 + 2 = 4
     // plate.position.z + block.position.z = -3 + (-2) = -5
     expect(world).toEqual([14, 4, -5]);
   });

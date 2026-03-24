@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type {
   ArchitectureModel,
-  ContainerNode,
-  LeafNode,
+  ContainerBlock,
+  ResourceBlock,
   ResourceCategory,
 } from '@cloudblocks/schema';
 import type { ArchitectureSnapshot } from '../../shared/types/learning';
@@ -31,7 +31,7 @@ function getState() {
   return useArchitectureStore.getState();
 }
 
-function makeRegionNode(id = 'p1', overrides: Partial<ContainerNode> = {}): ContainerNode {
+function makeRegionNode(id = 'p1', overrides: Partial<ContainerBlock> = {}): ContainerBlock {
   return {
     id,
     name: 'Net',
@@ -42,7 +42,7 @@ function makeRegionNode(id = 'p1', overrides: Partial<ContainerNode> = {}): Cont
     provider: 'azure',
     parentId: null,
     position: { x: 0, y: 0, z: 0 },
-    size: { width: 12, height: 0.3, depth: 10 },
+    frame: { width: 12, height: 0.3, depth: 10 },
     metadata: {},
     ...overrides,
   };
@@ -52,8 +52,8 @@ function makeResourceNode(
   id = 'b1',
   parentId = 'p1',
   category: ResourceCategory = 'compute',
-  overrides: Partial<LeafNode> = {},
-): LeafNode {
+  overrides: Partial<ResourceBlock> = {},
+): ResourceBlock {
   const resourceTypeByCategory: Record<ResourceCategory, string> = {
     compute: 'web_compute',
     data: 'relational_database',
@@ -79,12 +79,12 @@ function makeResourceNode(
   };
 }
 
-type LegacyPlate = ContainerNode & {
-  type: ContainerNode['layer'];
+type LegacyPlate = ContainerBlock & {
+  type: ContainerBlock['layer'];
   children: string[];
 };
 
-type LegacyBlock = LeafNode & {
+type LegacyBlock = ResourceBlock & {
   placementId: string;
 };
 
@@ -93,9 +93,9 @@ type LegacyArchitectureModel = Omit<ArchitectureModel, 'blocks' | 'plates'> & {
   blocks: LegacyBlock[];
 };
 
-const isPlateNode = (node: ArchitectureModel['nodes'][number]): node is ContainerNode =>
+const isPlateNode = (node: ArchitectureModel['nodes'][number]): node is ContainerBlock =>
   node.kind === 'container';
-const isBlockNode = (node: ArchitectureModel['nodes'][number]): node is LeafNode =>
+const isBlockNode = (node: ArchitectureModel['nodes'][number]): node is ResourceBlock =>
   node.kind === 'resource';
 
 function getArch(): LegacyArchitectureModel {
@@ -234,9 +234,9 @@ describe('architectureStore', () => {
       const plates = getArch().plates;
       expect(plates).toHaveLength(1);
       expect(plates[0].profileId).toBe('network-hub');
-      expect(plates[0].size.width).toBe(20);
-      expect(plates[0].size.depth).toBe(24);
-      expect(plates[0].size.height).toBe(0.7);
+      expect(plates[0].frame.width).toBe(20);
+      expect(plates[0].frame.depth).toBe(24);
+      expect(plates[0].frame.height).toBe(0.7);
     });
 
     it('adds a subnet plate with explicit profileId', () => {
@@ -245,9 +245,9 @@ describe('architectureStore', () => {
       getState().addPlate('subnet', 'Scale', netId, 'subnet-scale');
       const subnet = getArch().plates[1];
       expect(subnet.profileId).toBe('subnet-scale');
-      expect(subnet.size.width).toBe(10);
-      expect(subnet.size.depth).toBe(12);
-      expect(subnet.size.height).toBe(0.5);
+      expect(subnet.frame.width).toBe(10);
+      expect(subnet.frame.depth).toBe(12);
+      expect(subnet.frame.height).toBe(0.5);
     });
 
     it('adds a subnet plate as child of network', () => {
@@ -305,8 +305,8 @@ describe('architectureStore', () => {
 
       const p1 = plates[0];
       const p2 = plates[1];
-      const halfW1 = p1.size.width / 2;
-      const halfW2 = p2.size.width / 2;
+      const halfW1 = p1.frame.width / 2;
+      const halfW2 = p2.frame.width / 2;
       const gap = p2.position.x - halfW2 - (p1.position.x + halfW1);
       expect(gap).toBeGreaterThanOrEqual(0);
     });
@@ -324,11 +324,11 @@ describe('architectureStore', () => {
           const a = plates[i];
           const b = plates[j];
           const overlapX =
-            a.position.x - a.size.width / 2 < b.position.x + b.size.width / 2 &&
-            a.position.x + a.size.width / 2 > b.position.x - b.size.width / 2;
+            a.position.x - a.frame.width / 2 < b.position.x + b.frame.width / 2 &&
+            a.position.x + a.frame.width / 2 > b.position.x - b.frame.width / 2;
           const overlapZ =
-            a.position.z - a.size.depth / 2 < b.position.z + b.size.depth / 2 &&
-            a.position.z + a.size.depth / 2 > b.position.z - b.size.depth / 2;
+            a.position.z - a.frame.depth / 2 < b.position.z + b.frame.depth / 2 &&
+            a.position.z + a.frame.depth / 2 > b.position.z - b.frame.depth / 2;
           expect(overlapX && overlapZ).toBe(false);
         }
       }
@@ -350,11 +350,11 @@ describe('architectureStore', () => {
           const a = subnets[i];
           const b = subnets[j];
           const overlapX =
-            a.position.x - a.size.width / 2 < b.position.x + b.size.width / 2 &&
-            a.position.x + a.size.width / 2 > b.position.x - b.size.width / 2;
+            a.position.x - a.frame.width / 2 < b.position.x + b.frame.width / 2 &&
+            a.position.x + a.frame.width / 2 > b.position.x - b.frame.width / 2;
           const overlapZ =
-            a.position.z - a.size.depth / 2 < b.position.z + b.size.depth / 2 &&
-            a.position.z + a.size.depth / 2 > b.position.z - b.size.depth / 2;
+            a.position.z - a.frame.depth / 2 < b.position.z + b.frame.depth / 2 &&
+            a.position.z + a.frame.depth / 2 > b.position.z - b.frame.depth / 2;
           expect(overlapX && overlapZ).toBe(false);
         }
       }
@@ -822,7 +822,7 @@ describe('architectureStore', () => {
       getState().setPlateProfile(subnetId, 'subnet-scale');
       const resized = getArch().plates.find((plate) => plate.id === subnetId);
       expect(resized?.profileId).toBe('subnet-scale');
-      expect(resized?.size.width).toBe(10);
+      expect(resized?.frame.width).toBe(10);
       expect(resized?.position.x).toBe(3);
     });
 
@@ -837,7 +837,7 @@ describe('architectureStore', () => {
         provider: 'azure' as const,
         parentId: 'missing-parent',
         position: { x: 4, y: 0.3, z: 4 },
-        size: { width: 6, height: 0.3, depth: 8 },
+        frame: { width: 6, height: 0.3, depth: 8 },
         metadata: {},
       };
       useArchitectureStore.setState({
@@ -988,11 +988,13 @@ describe('architectureStore', () => {
       const afterP2 = getArch().plates.find((p) => p.id === p2.id)!;
 
       const overlapX =
-        afterP1.position.x - afterP1.size.width / 2 < afterP2.position.x + afterP2.size.width / 2 &&
-        afterP1.position.x + afterP1.size.width / 2 > afterP2.position.x - afterP2.size.width / 2;
+        afterP1.position.x - afterP1.frame.width / 2 <
+          afterP2.position.x + afterP2.frame.width / 2 &&
+        afterP1.position.x + afterP1.frame.width / 2 > afterP2.position.x - afterP2.frame.width / 2;
       const overlapZ =
-        afterP1.position.z - afterP1.size.depth / 2 < afterP2.position.z + afterP2.size.depth / 2 &&
-        afterP1.position.z + afterP1.size.depth / 2 > afterP2.position.z - afterP2.size.depth / 2;
+        afterP1.position.z - afterP1.frame.depth / 2 <
+          afterP2.position.z + afterP2.frame.depth / 2 &&
+        afterP1.position.z + afterP1.frame.depth / 2 > afterP2.position.z - afterP2.frame.depth / 2;
       expect(overlapX && overlapZ).toBe(false);
     });
 
@@ -2349,7 +2351,7 @@ describe('architectureStore', () => {
     it('throws when a node has invalid layer type', () => {
       const invalid = {
         nodes: [
-          makeRegionNode('p1', { layer: 'invalid-type' as unknown as ContainerNode['layer'] }),
+          makeRegionNode('p1', { layer: 'invalid-type' as unknown as ContainerBlock['layer'] }),
         ],
         connections: [],
       } as unknown as ArchitectureSnapshot;

@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { useUIStore } from '../../../../entities/store/uiStore';
 import { useArchitectureStore } from '../../../../entities/store/architectureStore';
 import { PropertiesDrawerPanel } from '../PropertiesDrawerPanel';
-import type { ContainerNode, LeafNode } from '@cloudblocks/schema';
+import type { ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
 
 // Mock audioService
 vi.mock('../../../../shared/utils/audioService', () => ({
@@ -13,7 +13,7 @@ vi.mock('../../../../shared/utils/audioService', () => ({
   },
 }));
 
-function makeBlock(overrides?: Partial<LeafNode>): LeafNode {
+function makeBlock(overrides?: Partial<ResourceBlock>): ResourceBlock {
   return {
     id: 'block-1',
     kind: 'resource',
@@ -26,10 +26,10 @@ function makeBlock(overrides?: Partial<LeafNode>): LeafNode {
     position: { x: 2, y: 0, z: 3 },
     metadata: {},
     ...overrides,
-  } as LeafNode;
+  } as ResourceBlock;
 }
 
-function makePlate(overrides?: Partial<ContainerNode>): ContainerNode {
+function makePlate(overrides?: Partial<ContainerBlock>): ContainerBlock {
   return {
     id: 'plate-1',
     kind: 'container',
@@ -40,11 +40,11 @@ function makePlate(overrides?: Partial<ContainerNode>): ContainerNode {
     provider: 'azure',
     parentId: null,
     position: { x: 0, y: 0, z: 0 },
-    size: { width: 10, depth: 10, height: 1 },
+    frame: { width: 10, depth: 10, height: 1 },
     metadata: {},
     children: [],
     ...overrides,
-  } as ContainerNode;
+  } as ContainerBlock;
 }
 
 describe('PropertiesDrawerPanel', () => {

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useArchitectureStore } from '../../../entities/store/architectureStore';
 import { useLearningStore } from '../../../entities/store/learningStore';
 import { useUIStore } from '../../../entities/store/uiStore';
-import { endpointId, generateEndpointsForNode, resolveConnectionNodes } from '@cloudblocks/schema';
+import { endpointId, generateEndpointsForBlock, resolveConnectionNodes } from '@cloudblocks/schema';
 import {
   advanceToNextStep,
   abandonLearning,
@@ -20,7 +20,12 @@ import {
 import { registerBuiltinScenarios } from '../scenarios/builtin';
 import { clearScenarioRegistry } from '../scenarios/registry';
 import type { ArchitectureSnapshot, StepValidationRule } from '../../../shared/types/learning';
-import type { ContainerNode, LayerType, LeafNode, ResourceCategory } from '@cloudblocks/schema';
+import type {
+  ContainerBlock,
+  LayerType,
+  ResourceBlock,
+  ResourceCategory,
+} from '@cloudblocks/schema';
 
 type ContainerLayer = Exclude<LayerType, 'resource'>;
 
@@ -52,11 +57,11 @@ const leafResourceTypeByCategory: Record<ResourceCategory, string> = {
   identity: 'managed_identity',
 };
 
-const getContainers = (snapshot: ArchitectureSnapshot): ContainerNode[] =>
-  snapshot.nodes.filter((node): node is ContainerNode => node.kind === 'container');
+const getContainers = (snapshot: ArchitectureSnapshot): ContainerBlock[] =>
+  snapshot.nodes.filter((node): node is ContainerBlock => node.kind === 'container');
 
-const getResources = (snapshot: ArchitectureSnapshot): LeafNode[] =>
-  snapshot.nodes.filter((node): node is LeafNode => node.kind === 'resource');
+const getResources = (snapshot: ArchitectureSnapshot): ResourceBlock[] =>
+  snapshot.nodes.filter((node): node is ResourceBlock => node.kind === 'resource');
 
 function resetLearningStore(): void {
   useLearningStore.setState({
@@ -117,9 +122,9 @@ function architectureSnapshot(): ArchitectureSnapshot {
 }
 
 function replaceArchitectureSnapshot(snapshot: ArchitectureSnapshot): void {
-  const nodeIds = snapshot.nodes.map((n) => n.id);
+  const blockIds = snapshot.nodes.map((n) => n.id);
   const actorIds = (snapshot.externalActors ?? []).map((a) => a.id);
-  const endpoints = [...nodeIds, ...actorIds].flatMap((id) => generateEndpointsForNode(id));
+  const endpoints = [...blockIds, ...actorIds].flatMap((id) => generateEndpointsForBlock(id));
   useArchitectureStore.getState().replaceArchitecture({ ...snapshot, endpoints });
 }
 
@@ -149,7 +154,7 @@ function ensureNetworkPlate(): string {
         provider: 'azure',
         parentId: null,
         position: { x: 0, y: 0, z: 0 },
-        size: { width: 12, height: 0.3, depth: 10 },
+        frame: { width: 12, height: 0.3, depth: 10 },
         metadata: {},
       },
     ],
@@ -179,7 +184,7 @@ function addSubnet(): string {
         provider: 'azure',
         parentId: networkId,
         position: { x: subnetCount * 6 - 3, y: 0.3, z: 0 },
-        size: { width: 5, height: 0.2, depth: 8 },
+        frame: { width: 5, height: 0.2, depth: 8 },
         metadata: {},
       },
     ],

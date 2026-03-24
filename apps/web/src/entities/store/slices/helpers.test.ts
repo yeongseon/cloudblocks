@@ -61,8 +61,8 @@ describe('platesOverlap', () => {
 
 describe('overlapsSibling', () => {
   const siblings = [
-    { id: 's1', position: { x: 0, z: 0 }, size: { width: 6, depth: 8 } },
-    { id: 's2', position: { x: 10, z: 0 }, size: { width: 6, depth: 8 } },
+    { id: 's1', position: { x: 0, z: 0 }, frame: { width: 6, depth: 8 } },
+    { id: 's2', position: { x: 10, z: 0 }, frame: { width: 6, depth: 8 } },
   ];
 
   it('returns true when candidate overlaps a sibling', () => {
@@ -85,13 +85,13 @@ describe('findNonOverlappingPosition', () => {
   });
 
   it('returns initial position when it does not overlap', () => {
-    const siblings = [{ id: 's1', position: { x: 20, z: 0 }, size: { width: 6, depth: 8 } }];
+    const siblings = [{ id: 's1', position: { x: 20, z: 0 }, frame: { width: 6, depth: 8 } }];
     const result = findNonOverlappingPosition({ x: 0, z: 0 }, { width: 6, depth: 8 }, siblings);
     expect(result).toEqual({ x: 0, z: 0 });
   });
 
   it('shifts rightward when initial position overlaps', () => {
-    const siblings = [{ id: 's1', position: { x: 0, z: 0 }, size: { width: 6, depth: 8 } }];
+    const siblings = [{ id: 's1', position: { x: 0, z: 0 }, frame: { width: 6, depth: 8 } }];
     const result = findNonOverlappingPosition({ x: 0, z: 0 }, { width: 6, depth: 8 }, siblings);
     expect(result.x).toBeGreaterThan(0);
     expect(
@@ -104,24 +104,24 @@ describe('resolveMoveDelta', () => {
   const plate = {
     id: 'p1',
     position: { x: 0, z: 0 },
-    size: { width: 6, depth: 8 },
+    frame: { width: 6, depth: 8 },
   };
 
   it('returns full delta when no overlap would occur', () => {
-    const siblings = [{ id: 's1', position: { x: 20, z: 0 }, size: { width: 6, depth: 8 } }];
+    const siblings = [{ id: 's1', position: { x: 20, z: 0 }, frame: { width: 6, depth: 8 } }];
     const result = resolveMoveDelta(plate, 3, 0, siblings);
     expect(result).toEqual({ deltaX: 3, deltaZ: 0 });
   });
 
   it('reduces delta when full move would overlap', () => {
-    const siblings = [{ id: 's1', position: { x: 8, z: 0 }, size: { width: 6, depth: 8 } }];
+    const siblings = [{ id: 's1', position: { x: 8, z: 0 }, frame: { width: 6, depth: 8 } }];
     const result = resolveMoveDelta(plate, 8, 0, siblings);
     expect(result.deltaX).toBeLessThan(8);
     expect(result.deltaX).toBeGreaterThanOrEqual(0);
   });
 
   it('returns zero delta when any movement would overlap', () => {
-    const siblings = [{ id: 's1', position: { x: 5, z: 0 }, size: { width: 6, depth: 8 } }];
+    const siblings = [{ id: 's1', position: { x: 5, z: 0 }, frame: { width: 6, depth: 8 } }];
     const result = resolveMoveDelta(plate, 5, 0, siblings);
     expect(result.deltaX).toBeLessThan(5);
   });

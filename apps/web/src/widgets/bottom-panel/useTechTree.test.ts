@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
-import type { ArchitectureModel, ContainerNode, ResourceCategory } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerBlock, ResourceCategory } from '@cloudblocks/schema';
 import { makeTestBlock, makeTestPlate } from '../../__tests__/legacyModelTestUtils';
 import {
   ACTION_DEFINITIONS,
@@ -30,29 +30,29 @@ const BASE_ARCHITECTURE: ArchitectureModel = {
   updatedAt: '',
 };
 
-const NETWORK_PLATE: ContainerNode = makeTestPlate({
+const NETWORK_PLATE: ContainerBlock = makeTestPlate({
   id: 'net-1',
   name: 'VNet',
   type: 'region',
   parentId: null,
   children: [],
   position: { x: 0, y: 0, z: 0 },
-  size: { width: 16, height: 0.3, depth: 20 },
+  frame: { width: 16, height: 0.3, depth: 20 },
   metadata: {},
 });
 
-const SUBNET_PLATE: ContainerNode = makeTestPlate({
+const SUBNET_PLATE: ContainerBlock = makeTestPlate({
   id: 'sub-1',
   name: 'Subnet',
   type: 'subnet',
   parentId: 'net-1',
   children: [],
   position: { x: 0, y: 0, z: 0 },
-  size: { width: 6, height: 0.3, depth: 8 },
+  frame: { width: 6, height: 0.3, depth: 8 },
   metadata: {},
 });
 
-function buildArchitecture(plates: ContainerNode[], blockCount = 0): ArchitectureModel {
+function buildArchitecture(plates: ContainerBlock[], blockCount = 0): ArchitectureModel {
   const blockCategories: ResourceCategory[] = [
     'compute',
     'data',

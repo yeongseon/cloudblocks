@@ -1,4 +1,4 @@
-import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
 import type { ValidationResult } from '@cloudblocks/domain';
 import { validatePlacement } from './placement';
 import { validateConnection } from './connection';
@@ -19,8 +19,8 @@ export function validateArchitecture(model: ArchitectureModel): ValidationResult
   const errors: ValidationResult['errors'] = [];
   const warnings: ValidationResult['warnings'] = [];
 
-  const containers = model.nodes.filter((n): n is ContainerNode => n.kind === 'container');
-  const resources = model.nodes.filter((n): n is LeafNode => n.kind === 'resource');
+  const containers = model.nodes.filter((n): n is ContainerBlock => n.kind === 'container');
+  const resources = model.nodes.filter((n): n is ResourceBlock => n.kind === 'resource');
   const externalActors = model.externalActors ?? [];
 
   // ── Placement validation ──

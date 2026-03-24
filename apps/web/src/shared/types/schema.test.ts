@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ContainerNode, LeafNode, Workspace } from './index';
+import type { ContainerBlock, ResourceBlock, Workspace } from './index';
 import { SCHEMA_VERSION, createBlankArchitecture, deserialize, serialize } from './schema';
 
 function createWorkspace(id: string): Workspace {
@@ -95,7 +95,7 @@ describe('schema utilities', () => {
 
     const result = deserialize(JSON.stringify(legacyData));
     const plate = result[0].architecture.nodes.find(
-      (node): node is ContainerNode => node.kind === 'container',
+      (node): node is ContainerBlock => node.kind === 'container',
     );
 
     expect(plate).toBeDefined();
@@ -103,9 +103,9 @@ describe('schema utilities', () => {
       throw new Error('Expected migrated container node');
     }
     expect(plate.profileId).toBe('network-platform');
-    expect(plate.size.height).toBe(0.7);
-    expect(plate.size.width).toBe(16);
-    expect(plate.size.depth).toBe(20);
+    expect(plate.frame.height).toBe(0.7);
+    expect(plate.frame.width).toBe(16);
+    expect(plate.frame.depth).toBe(20);
   });
 
   it('preserves existing profileId on plates', () => {
@@ -154,7 +154,7 @@ describe('schema utilities', () => {
 
     const result = deserialize(JSON.stringify(data));
     const plate = result[0].architecture.nodes.find(
-      (node): node is ContainerNode => node.kind === 'container',
+      (node): node is ContainerBlock => node.kind === 'container',
     );
 
     expect(plate).toBeDefined();
@@ -162,9 +162,9 @@ describe('schema utilities', () => {
       throw new Error('Expected migrated container node');
     }
     expect(plate.profileId).toBe('network-hub');
-    expect(plate.size.width).toBe(20);
-    expect(plate.size.depth).toBe(24);
-    expect(plate.size.height).toBe(0.7);
+    expect(plate.frame.width).toBe(20);
+    expect(plate.frame.depth).toBe(24);
+    expect(plate.frame.height).toBe(0.7);
   });
 
   it('migrates legacy external actors without position', () => {
@@ -194,7 +194,7 @@ describe('schema utilities', () => {
 
     const result = deserialize(JSON.stringify(legacyData));
 
-    expect(result[0].architecture.externalActors?.[0]!.position).toEqual({ x: -3, y: 0, z: 5 });
+    expect(result[0].architecture.externalActors?.[0]?.position).toEqual({ x: -3, y: 0, z: 5 });
   });
 
   it('rejects legacy 0.1.0 schema (clean start — no migration)', () => {
@@ -275,7 +275,7 @@ describe('schema utilities', () => {
   });
 
   it('roundtrips blocks with subtype and config via serialize/deserialize', () => {
-    const container: ContainerNode = {
+    const container: ContainerBlock = {
       id: 'plate-1',
       name: 'Subnet',
       kind: 'container',
@@ -285,11 +285,11 @@ describe('schema utilities', () => {
       provider: 'azure',
       parentId: null,
       position: { x: 0, y: 0, z: 0 },
-      size: { width: 6, height: 0.5, depth: 8 },
+      frame: { width: 6, height: 0.5, depth: 8 },
       metadata: {},
       profileId: 'subnet-service',
     };
-    const leaf: LeafNode = {
+    const leaf: ResourceBlock = {
       id: 'blk-1',
       name: 'Lambda',
       kind: 'resource',
@@ -334,7 +334,7 @@ describe('schema utilities', () => {
     const json = serialize(workspaces);
     const parsed = deserialize(json);
     const block = parsed[0].architecture.nodes.find(
-      (node): node is LeafNode => node.kind === 'resource',
+      (node): node is ResourceBlock => node.kind === 'resource',
     );
 
     expect(block).toBeDefined();
@@ -522,7 +522,7 @@ it('remaps legacy 10-category names to 7-category names during plates+blocks mig
               parentId: null,
               children: [],
               position: { x: 0, y: 0, z: 0 },
-              size: { width: 16, height: 0.3, depth: 20 },
+              frame: { width: 16, height: 0.3, depth: 20 },
               metadata: {},
             },
           ],

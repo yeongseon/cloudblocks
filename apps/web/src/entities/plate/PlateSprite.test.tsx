@@ -6,7 +6,7 @@ import { PlateSprite } from './PlateSprite';
 import { useUIStore } from '../store/uiStore';
 import { screenDeltaToWorld, worldSizeToScreen, snapToGrid } from '../../shared/utils/isometric';
 import { useArchitectureStore } from '../store/architectureStore';
-import type { ContainerNode, ResourceNode } from '@cloudblocks/schema';
+import type { Block, ContainerBlock } from '@cloudblocks/schema';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
 import type { DiffDelta } from '../../shared/types/diff';
@@ -57,7 +57,7 @@ vi.mock('../../shared/utils/isometric', () => ({
   snapToGrid: vi.fn((x: number, z: number) => ({ x, z })),
 }));
 
-const makeNetworkPlate = (): ContainerNode => ({
+const makeNetworkPlate = (): ContainerBlock => ({
   id: 'plate-network',
   name: 'Network Plate',
   kind: 'container',
@@ -67,11 +67,11 @@ const makeNetworkPlate = (): ContainerNode => ({
   provider: 'azure',
   parentId: null,
   position: { x: 0, y: 0, z: 0 },
-  size: { width: 16, height: 0.3, depth: 20 },
+  frame: { width: 16, height: 0.3, depth: 20 },
   metadata: {},
 });
 
-const makeSubnetPlate = (): ContainerNode => ({
+const makeSubnetPlate = (): ContainerBlock => ({
   id: 'plate-subnet',
   name: 'Subnet',
   kind: 'container',
@@ -81,7 +81,7 @@ const makeSubnetPlate = (): ContainerNode => ({
   provider: 'azure',
   parentId: 'plate-network',
   position: { x: 1, y: 0, z: 2 },
-  size: { width: 6, height: 0.3, depth: 8 },
+  frame: { width: 6, height: 0.3, depth: 8 },
   metadata: {},
 });
 
@@ -119,11 +119,11 @@ describe('PlateSprite', () => {
   });
 
   it('falls back to default PlateSvg for unknown plate type values', () => {
-    const strangePlate: ContainerNode = {
+    const strangePlate: ContainerBlock = {
       ...makeNetworkPlate(),
       id: 'plate-weird',
       name: 'weird plate',
-      layer: 'mystery' as ContainerNode['layer'],
+      layer: 'mystery' as ContainerBlock['layer'],
       profileId: 'network-platform',
     };
 
@@ -155,9 +155,9 @@ describe('PlateSprite', () => {
     render(<PlateSprite plate={plate} screenX={0} screenY={0} zIndex={1} />);
 
     expect(vi.mocked(worldSizeToScreen)).toHaveBeenCalledWith(
-      plate.size.width,
-      plate.size.height,
-      plate.size.depth,
+      plate.frame.width,
+      plate.frame.height,
+      plate.frame.depth,
     );
 
     const button = screen.getByRole('button', { name: `Container: ${plate.name}` });
@@ -431,7 +431,7 @@ describe('PlateSprite', () => {
         ...useArchitectureStore.getState().workspace,
         architecture: {
           ...useArchitectureStore.getState().workspace.architecture,
-          nodes: [plate] as ResourceNode[],
+          nodes: [plate] as Block[],
         },
       },
     });
@@ -470,7 +470,7 @@ describe('PlateSprite', () => {
         ...useArchitectureStore.getState().workspace,
         architecture: {
           ...useArchitectureStore.getState().workspace.architecture,
-          nodes: [plate] as ResourceNode[],
+          nodes: [plate] as Block[],
         },
       },
     });

@@ -4,12 +4,17 @@ import userEvent from '@testing-library/user-event';
 import { ResourceBar } from './ResourceBar';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import type { ArchitectureModel, Connection, ContainerNode, LeafNode } from '@cloudblocks/schema';
+import type {
+  ArchitectureModel,
+  Connection,
+  ContainerBlock,
+  ResourceBlock,
+} from '@cloudblocks/schema';
 import { endpointId } from '@cloudblocks/schema';
 
 const createArchitecture = (
-  plates: ContainerNode[] = [],
-  blocks: LeafNode[] = [],
+  plates: ContainerBlock[] = [],
+  blocks: ResourceBlock[] = [],
   connections: Connection[] = [],
 ): ArchitectureModel => ({
   id: 'arch-1',
@@ -45,7 +50,7 @@ describe('ResourceBar', () => {
   });
 
   it('renders plate, block, and connection counts for populated architecture', () => {
-    const plates: ContainerNode[] = [
+    const plates: ContainerBlock[] = [
       {
         id: 'plate-1',
         name: 'VNet',
@@ -56,7 +61,7 @@ describe('ResourceBar', () => {
         provider: 'azure',
         parentId: null,
         position: { x: 0, y: 0, z: 0 },
-        size: { width: 10, height: 0.3, depth: 10 },
+        frame: { width: 10, height: 0.3, depth: 10 },
         metadata: {},
       },
       {
@@ -69,12 +74,12 @@ describe('ResourceBar', () => {
         provider: 'azure',
         parentId: 'plate-1',
         position: { x: 1, y: 0, z: 1 },
-        size: { width: 6, height: 0.3, depth: 6 },
+        frame: { width: 6, height: 0.3, depth: 6 },
         metadata: {},
       },
     ];
 
-    const blocks: LeafNode[] = [
+    const blocks: ResourceBlock[] = [
       {
         id: 'block-1',
         name: 'VM-1',

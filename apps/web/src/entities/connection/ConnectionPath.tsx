@@ -2,9 +2,9 @@ import { memo, useState } from 'react';
 import type {
   Connection,
   EndpointSemantic,
-  ContainerNode,
+  ContainerBlock,
   ExternalActor,
-  LeafNode,
+  ResourceBlock,
 } from '@cloudblocks/schema';
 import { getDiffState } from '../../features/diff/engine';
 import { worldToScreen } from '../../shared/utils/isometric';
@@ -15,8 +15,8 @@ import { getConnectionEndpointWorldAnchors } from './endpointAnchors';
 
 interface ConnectionPathProps {
   connection: Connection;
-  blocks: LeafNode[];
-  plates: ContainerNode[];
+  blocks: ResourceBlock[];
+  plates: ContainerBlock[];
   externalActors: ExternalActor[];
   originX: number;
   originY: number;

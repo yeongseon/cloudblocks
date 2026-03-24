@@ -1,7 +1,7 @@
 import { memo, useEffect, useRef } from 'react';
 import interact from 'interactjs';
 import { DEFAULT_PLATE_PROFILE, getPlateProfile, isPlateProfileId } from '../../shared/types/index';
-import type { ContainerNode, LayerType } from '@cloudblocks/schema';
+import type { ContainerBlock, LayerType } from '@cloudblocks/schema';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import { getDiffState } from '../../features/diff/engine';
@@ -15,7 +15,7 @@ import { PlateSvg } from './PlateSvg';
 import './PlateSprite.css';
 
 interface PlateSpriteProps {
-  plate: ContainerNode;
+  plate: ContainerBlock;
   screenX: number;
   screenY: number;
   zIndex: number;
@@ -101,7 +101,7 @@ export const PlateSprite = memo(function PlateSprite({
             const currentPlate = useArchitectureStore
               .getState()
               .workspace.architecture.nodes.filter(
-                (node): node is ContainerNode => node.kind === 'container',
+                (node): node is ContainerBlock => node.kind === 'container',
               )
               .find((candidate) => candidate.id === plate.id);
 
@@ -173,9 +173,9 @@ export const PlateSprite = memo(function PlateSprite({
   const iconUrl = getPlateIconUrl(plateType);
 
   const { screenWidth, screenHeight } = worldSizeToScreen(
-    plate.size.width,
-    plate.size.height,
-    plate.size.depth,
+    plate.frame.width,
+    plate.frame.height,
+    plate.frame.depth,
   );
 
   const className = [

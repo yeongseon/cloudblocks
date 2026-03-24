@@ -30,11 +30,11 @@ import { BlockSprite } from './BlockSprite';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 import type {
-  ContainerNode,
+  ContainerBlock,
   ExternalActor,
-  LeafNode,
+  ResourceBlock,
   ResourceCategory,
-  ResourceNode,
+  Block,
 } from '@cloudblocks/schema';
 import * as isometric from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
@@ -63,7 +63,7 @@ vi.mock('react-hot-toast', () => ({
 
 vi.mock('./BlockSprite.css', () => ({}));
 
-const parentPlate: ContainerNode = {
+const parentPlate: ContainerBlock = {
   id: 'plate-1',
   name: 'Subnet',
   kind: 'container',
@@ -73,7 +73,7 @@ const parentPlate: ContainerNode = {
   provider: 'azure',
   parentId: 'net-1',
   position: { x: 0, y: 0, z: 0 },
-  size: { width: 6, height: 0.3, depth: 8 },
+  frame: { width: 6, height: 0.3, depth: 8 },
   metadata: {},
 };
 
@@ -121,7 +121,7 @@ const RESOURCE_TYPE_MAP: Record<ResourceCategory, string> = {
   identity: 'identity_service',
 };
 
-const makeBlock = (id: string, category: LegacyBlockCategory): LeafNode => {
+const makeBlock = (id: string, category: LegacyBlockCategory): ResourceBlock => {
   const normalizedCategory = CATEGORY_MAP[category];
   return {
     id,
@@ -630,7 +630,7 @@ describe('BlockSprite', () => {
         ...useArchitectureStore.getState().workspace,
         architecture: {
           ...useArchitectureStore.getState().workspace.architecture,
-          nodes: [block] as ResourceNode[],
+          nodes: [block] as Block[],
           connections: [],
         },
       },
@@ -674,7 +674,7 @@ describe('BlockSprite', () => {
         ...useArchitectureStore.getState().workspace,
         architecture: {
           ...useArchitectureStore.getState().workspace.architecture,
-          nodes: [block] as ResourceNode[],
+          nodes: [block] as Block[],
           connections: [],
         },
       },
@@ -712,7 +712,7 @@ describe('BlockSprite', () => {
         ...useArchitectureStore.getState().workspace,
         architecture: {
           ...useArchitectureStore.getState().workspace.architecture,
-          nodes: [sourceBlock, targetBlock] as ResourceNode[],
+          nodes: [sourceBlock, targetBlock] as Block[],
           connections: [],
         },
       },
@@ -741,7 +741,7 @@ describe('BlockSprite', () => {
         ...useArchitectureStore.getState().workspace,
         architecture: {
           ...useArchitectureStore.getState().workspace.architecture,
-          nodes: [sourceBlock, targetBlock] as ResourceNode[],
+          nodes: [sourceBlock, targetBlock] as Block[],
           connections: [],
         },
       },
@@ -770,7 +770,7 @@ describe('BlockSprite', () => {
         ...useArchitectureStore.getState().workspace,
         architecture: {
           ...useArchitectureStore.getState().workspace.architecture,
-          nodes: [blockWithConn, otherBlock] as ResourceNode[],
+          nodes: [blockWithConn, otherBlock] as Block[],
           connections: [
             {
               id: 'conn-1',
@@ -805,7 +805,7 @@ describe('BlockSprite', () => {
         ...useArchitectureStore.getState().workspace,
         architecture: {
           ...useArchitectureStore.getState().workspace.architecture,
-          nodes: [gatewayBlock] as ResourceNode[],
+          nodes: [gatewayBlock] as Block[],
           externalActors: [internetActor],
           connections: [],
         },
@@ -834,7 +834,7 @@ describe('BlockSprite', () => {
         ...useArchitectureStore.getState().workspace,
         architecture: {
           ...useArchitectureStore.getState().workspace.architecture,
-          nodes: [computeBlock] as ResourceNode[],
+          nodes: [computeBlock] as Block[],
           externalActors: [internetActor],
           connections: [],
         },
@@ -855,7 +855,7 @@ describe('BlockSprite', () => {
   });
 
   it('adds is-warning class when block has placement validation error (messaging on subnet)', () => {
-    const subnetPlate: ContainerNode = {
+    const subnetPlate: ContainerBlock = {
       id: 'plate-subnet',
       name: 'Subnet',
       kind: 'container',
@@ -865,7 +865,7 @@ describe('BlockSprite', () => {
       provider: 'azure',
       parentId: 'net-1',
       position: { x: 0, y: 0, z: 0 },
-      size: { width: 6, height: 0.3, depth: 8 },
+      frame: { width: 6, height: 0.3, depth: 8 },
       metadata: {},
     };
 
@@ -885,7 +885,7 @@ describe('BlockSprite', () => {
   });
 
   it('does not add is-warning class when block is correctly placed (compute on public subnet)', () => {
-    const publicPlate: ContainerNode = {
+    const publicPlate: ContainerBlock = {
       id: 'plate-public',
       name: 'Subnet 1',
       kind: 'container',
@@ -895,7 +895,7 @@ describe('BlockSprite', () => {
       provider: 'azure',
       parentId: 'net-1',
       position: { x: 0, y: 0, z: 0 },
-      size: { width: 6, height: 0.3, depth: 8 },
+      frame: { width: 6, height: 0.3, depth: 8 },
       metadata: {},
     };
 

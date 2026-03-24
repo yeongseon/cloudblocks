@@ -1,14 +1,14 @@
 /**
- * Block geometry helpers for stub anchor positioning.
+ * Block geometry helpers for port anchor positioning.
  *
- * Provides world-space anchor points for connection stubs on block faces,
- * and SVG-local stub positions for visual rendering inside BlockSvg.
+ * Provides world-space anchor points for connection ports on block faces,
+ * and SVG-local port positions for visual rendering inside BlockSvg.
  *
  * Design decisions:
- * - Stubs are expressed in world coordinates, then projected to screen via worldToScreen.
- * - Inbound stubs sit on the LEFT face bottom edge (y = wy, distributed along z).
- * - Outbound stubs sit on the RIGHT face bottom edge (y = wy, distributed along x).
- * - All stubs at block base (plate floor) for PCB-style floor routing.
+ * - Ports are expressed in world coordinates, then projected to screen via worldToScreen.
+ * - Inbound ports sit on the LEFT face bottom edge (y = wy, distributed along z).
+ * - Outbound ports sit on the RIGHT face bottom edge (y = wy, distributed along x).
+ * - All ports at block base (plate floor) for PCB-style floor routing.
  */
 
 import type { BlockDimensionsCU } from '../../shared/types/visualProfile';
@@ -19,15 +19,15 @@ import { cuToSilhouetteDimensions } from './silhouettes';
 // ---------------------------------------------------------------------------
 
 export type WorldPoint = [number, number, number];
-export type StubSide = 'inbound' | 'outbound';
+export type PortSide = 'inbound' | 'outbound';
 
 export interface BlockWorldAnchors {
   center: WorldPoint;
-  /** Get world-space anchor for a specific stub on a given side. */
-  stub(side: StubSide, index: number, total: number): WorldPoint;
+  /** Get world-space anchor for a specific port on a given side. */
+  port(side: PortSide, index: number, total: number): WorldPoint;
 }
 
-export interface SvgStubPoint {
+export interface SvgPortPoint {
   x: number;
   y: number;
 }
@@ -52,8 +52,8 @@ export function getBlockWorldAnchors(
 
   return {
     center,
-    stub(side: StubSide, index: number, total: number): WorldPoint {
-      // Stubs sit at the BOTTOM of the block (wy = block base = plate floor).
+    port(side: PortSide, index: number, total: number): WorldPoint {
+      // Ports sit at the BOTTOM of the block (wy = block base = plate floor).
       // Distributed horizontally along the bottom edge of each face.
       const t = (index + 1) / (total + 1);
 
@@ -68,24 +68,24 @@ export function getBlockWorldAnchors(
 }
 
 // ---------------------------------------------------------------------------
-// SVG-local stub positions (for BlockSvg rendering — Phase 4)
+// SVG-local port positions (for BlockSvg rendering — Phase 4)
 // ---------------------------------------------------------------------------
 
 /**
- * Compute stub dot positions in the block's local SVG coordinate system.
+ * Compute port dot positions in the block's local SVG coordinate system.
  *
- * Uses the side wall edges of the silhouette to place stubs by interpolating
+ * Uses the side wall edges of the silhouette to place ports by interpolating
  * vertically between the wall top and wall bottom on each face.
  *
  * @param cu Block CU dimensions
- * @param inboundCount  Number of inbound stubs
- * @param outboundCount Number of outbound stubs
+ * @param inboundCount  Number of inbound ports
+ * @param outboundCount Number of outbound ports
  */
-export function getBlockSvgStubPoints(
+export function getBlockSvgPortPoints(
   cu: BlockDimensionsCU,
   inboundCount: number,
   outboundCount: number,
-): { inbound: SvgStubPoint[]; outbound: SvgStubPoint[] } {
+): { inbound: SvgPortPoint[]; outbound: SvgPortPoint[] } {
   const dims = cuToSilhouetteDimensions(cu);
 
   // Bottom of left side wall: from leftX to cx at y = midY + sideWallPx
@@ -98,7 +98,7 @@ export function getBlockSvgStubPoints(
   const rightBottomLeftX = dims.cx;
   const rightBottomRightX = dims.rightX;
 
-  const inbound: SvgStubPoint[] = [];
+  const inbound: SvgPortPoint[] = [];
   for (let i = 0; i < inboundCount; i++) {
     const t = (i + 1) / (inboundCount + 1);
     inbound.push({
@@ -107,7 +107,7 @@ export function getBlockSvgStubPoints(
     });
   }
 
-  const outbound: SvgStubPoint[] = [];
+  const outbound: SvgPortPoint[] = [];
   for (let i = 0; i < outboundCount; i++) {
     const t = (i + 1) / (outboundCount + 1);
     outbound.push({
@@ -120,7 +120,7 @@ export function getBlockSvgStubPoints(
 }
 
 // ---------------------------------------------------------------------------
-// Stub index ↔ endpoint semantic mapping
+// Port index ↔ endpoint semantic mapping
 // ---------------------------------------------------------------------------
 
 import type { EndpointSemantic } from '@cloudblocks/schema';
@@ -129,13 +129,13 @@ import type { EndpointSemantic } from '@cloudblocks/schema';
 const SEMANTIC_ORDER: readonly EndpointSemantic[] = ['http', 'event', 'data'] as const;
 
 /**
- * Map a stub index to its endpoint semantic.
+ * Map a port index to its endpoint semantic.
  *
- * Stubs are rendered in a fixed order: index 0 → http, 1 → event, 2 → data.
- * When the block has fewer stubs than semantics, the mapping wraps (index % 3).
+ * Ports are rendered in a fixed order: index 0 → http, 1 → event, 2 → data.
+ * When the block has fewer ports than semantics, the mapping wraps (index % 3).
  *
- * This matches the `semanticToStubIndex` logic in `endpointAnchors.ts`.
+ * This matches the `semanticToPortIndex` logic in `endpointAnchors.ts`.
  */
-export function stubIndexToSemantic(index: number): EndpointSemantic {
+export function portIndexToSemantic(index: number): EndpointSemantic {
   return SEMANTIC_ORDER[index % SEMANTIC_ORDER.length];
 }

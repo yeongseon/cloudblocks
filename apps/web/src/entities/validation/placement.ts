@@ -1,4 +1,4 @@
-import type { LeafNode, ContainerNode, ResourceCategory, Size } from '@cloudblocks/schema';
+import type { ResourceBlock, ContainerBlock, ResourceCategory, Size } from '@cloudblocks/schema';
 import { RESOURCE_RULES } from '@cloudblocks/schema';
 import type { ResourceRuleEntry } from '@cloudblocks/schema';
 import type { ValidationError } from '@cloudblocks/domain';
@@ -6,7 +6,7 @@ import { VALID_PARENTS } from '@cloudblocks/domain';
 import type { LayerType } from '@cloudblocks/schema';
 
 /**
- * Placement Rules (v3.0 — 7-category ResourceNode model):
+ * Placement Rules (v3.0 — 7-category Block model):
  *
  * Rules are derived from RESOURCE_RULES (single source of truth).
  * At module load time we build a category → required-parent-layer map
@@ -72,8 +72,8 @@ const CATEGORY_ALLOWED_PARENT_LAYERS = buildCategoryPlacementMap();
 // ---------------------------------------------------------------------------
 
 export function validatePlacement(
-  resource: LeafNode,
-  parent: ContainerNode | undefined,
+  resource: ResourceBlock,
+  parent: ContainerBlock | undefined,
 ): ValidationError | null {
   if (!parent) {
     return {
@@ -87,7 +87,11 @@ export function validatePlacement(
 
   // ── RESOURCE_RULES-driven placement check ──
   const allowedLayers = CATEGORY_ALLOWED_PARENT_LAYERS.get(resource.category);
-  if (allowedLayers && allowedLayers.size > 0 && !allowedLayers.has(parent.layer as LayerType)) {
+  if (
+    allowedLayers &&
+    Array.from(allowedLayers).length > 0 &&
+    !allowedLayers.has(parent.layer as LayerType)
+  ) {
     const layerLabels = [...allowedLayers].map((l) =>
       l === 'subnet' ? 'Subnet' : 'Region container',
     );
@@ -112,8 +116,8 @@ export function validatePlacement(
  * @param container - The container to check placement against
  * @returns true if the resource can be placed, false otherwise
  */
-export function canPlaceBlock(category: ResourceCategory, container: ContainerNode): boolean {
-  const stubResource: LeafNode = {
+export function canPlaceBlock(category: ResourceCategory, container: ContainerBlock): boolean {
+  const stubResource: ResourceBlock = {
     id: '__preview__',
     name: '__preview__',
     kind: 'resource',
@@ -140,8 +144,8 @@ export function canPlaceBlock(category: ResourceCategory, container: ContainerNo
  * This validates that the container's layer is in the allowed parent list for resources.
  */
 export function validateLayerPlacement(
-  resource: LeafNode,
-  container: ContainerNode,
+  resource: ResourceBlock,
+  container: ContainerBlock,
 ): ValidationError | null {
   const blockLayer: LayerType = 'resource';
   const validParents = VALID_PARENTS[blockLayer];
@@ -164,7 +168,7 @@ export function validateLayerPlacement(
  * Spec §10: "All positions must be CU-aligned"
  * Spec §15: "Position not aligned to CU grid" → must reject
  */
-export function validateGridAlignment(resource: LeafNode): ValidationError | null {
+export function validateGridAlignment(resource: ResourceBlock): ValidationError | null {
   const { x, z } = resource.position;
 
   if (!Number.isInteger(x) || !Number.isInteger(z)) {
@@ -189,9 +193,9 @@ export function validateGridAlignment(resource: LeafNode): ValidationError | nul
  * in world coordinates (x, z plane).
  */
 export function validateNoOverlap(
-  resource: LeafNode,
-  siblingResources: LeafNode[],
-  getResourceSize: (resource: LeafNode) => Size,
+  resource: ResourceBlock,
+  siblingResources: ResourceBlock[],
+  getResourceSize: (resource: ResourceBlock) => Size,
 ): ValidationError | null {
   const blockSize = getResourceSize(resource);
   const bx1 = resource.position.x;

@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import type {
   Connection,
-  ContainerNode,
+  ContainerBlock,
   Endpoint,
   ExternalActor,
-  LeafNode,
+  ResourceBlock,
 } from '@cloudblocks/schema';
-import { CATEGORY_PORTS, endpointId, generateEndpointsForNode } from '@cloudblocks/schema';
+import { CATEGORY_PORTS, endpointId, generateEndpointsForBlock } from '@cloudblocks/schema';
 import {
   getConnectionSurfaceRoute,
   resolveSurfacePort,
@@ -15,20 +15,20 @@ import {
 } from '../surfaceRouting';
 import type { SurfacePort } from '../surfaceRouting';
 
-function makePlate(overrides?: Partial<ContainerNode>): ContainerNode {
+function makePlate(overrides?: Partial<ContainerBlock>): ContainerBlock {
   return {
     id: 'plate-1',
     kind: 'container',
     name: 'Test Plate',
     category: 'network',
     position: { x: 10, y: 2, z: 20 },
-    size: { width: 16, depth: 16, height: 1 },
+    frame: { width: 16, depth: 16, height: 1 },
     children: [],
     ...overrides,
-  } as ContainerNode;
+  } as ContainerBlock;
 }
 
-function makeBlock(overrides?: Partial<LeafNode>): LeafNode {
+function makeBlock(overrides?: Partial<ResourceBlock>): ResourceBlock {
   return {
     id: 'block-1',
     kind: 'resource',
@@ -37,7 +37,7 @@ function makeBlock(overrides?: Partial<LeafNode>): LeafNode {
     parentId: 'plate-1',
     position: { x: 2, y: 0, z: 3 },
     ...overrides,
-  } as LeafNode;
+  } as ResourceBlock;
 }
 
 function makeConnection(overrides?: Partial<Connection>): Connection {
@@ -49,8 +49,8 @@ function makeConnection(overrides?: Partial<Connection>): Connection {
   } as Connection;
 }
 
-function makeEndpoints(nodeIds: string[]): Endpoint[] {
-  return nodeIds.flatMap((nodeId) => generateEndpointsForNode(nodeId));
+function makeEndpoints(blockIds: string[]): Endpoint[] {
+  return blockIds.flatMap((blockId) => generateEndpointsForBlock(blockId));
 }
 
 function makeSurfacePort(overrides?: Partial<SurfacePort>): SurfacePort {
@@ -74,7 +74,7 @@ describe('resolveSurfacePort', () => {
   it('resolves inbound side using t=0.5 for single-port distribution', () => {
     const plate = makePlate({
       position: { x: 10, y: 2, z: 20 },
-      size: { width: 16, depth: 16, height: 1 },
+      frame: { width: 16, depth: 16, height: 1 },
     });
     const block = makeBlock({ category: 'data', position: { x: 2, y: 0, z: 4 } });
 
@@ -90,7 +90,7 @@ describe('resolveSurfacePort', () => {
   it('resolves outbound side using t=0.25 for three-port distribution', () => {
     const plate = makePlate({
       position: { x: 10, y: 2, z: 20 },
-      size: { width: 16, depth: 16, height: 1 },
+      frame: { width: 16, depth: 16, height: 1 },
     });
     const block = makeBlock({ category: 'compute', position: { x: 2, y: 0, z: 4 } });
 
@@ -106,7 +106,7 @@ describe('resolveSurfacePort', () => {
   it('applies category port counts with semantic modulo mapping for output data endpoints', () => {
     const plate = makePlate({
       position: { x: 0, y: 5, z: 0 },
-      size: { width: 10, depth: 10, height: 2 },
+      frame: { width: 10, depth: 10, height: 2 },
     });
     const block = makeBlock({ category: 'compute', position: { x: 1, y: 0, z: 1 } });
     const totalPorts = CATEGORY_PORTS.compute.outbound;
@@ -239,7 +239,7 @@ describe('getConnectionSurfaceRoute', () => {
     const plate = makePlate({
       id: 'plate-a',
       position: { x: 0, y: 0, z: 0 },
-      size: { width: 20, depth: 20, height: 1 },
+      frame: { width: 20, depth: 20, height: 1 },
     });
     const blockA = makeBlock({
       id: 'block-a',

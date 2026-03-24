@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { InspectorPanel } from './InspectorPanel';
@@ -23,7 +23,7 @@ vi.mock('../../shared/utils/audioService', () => ({
   },
 }));
 
-const networkPlate: ContainerNode = {
+const networkPlate: ContainerBlock = {
   id: 'plate-1',
   name: 'VNet',
   kind: 'container',
@@ -33,11 +33,11 @@ const networkPlate: ContainerNode = {
   provider: 'azure',
   parentId: null,
   position: { x: 0, y: 0, z: 0 },
-  size: { width: 16, height: 0.3, depth: 20 },
+  frame: { width: 16, height: 0.3, depth: 20 },
   metadata: {},
 };
 
-const subnetPlate: ContainerNode = {
+const subnetPlate: ContainerBlock = {
   id: 'plate-2',
   name: 'Subnet A',
   kind: 'container',
@@ -47,11 +47,11 @@ const subnetPlate: ContainerNode = {
   provider: 'azure',
   parentId: 'plate-1',
   position: { x: 1, y: 0, z: 1 },
-  size: { width: 8, height: 0.3, depth: 10 },
+  frame: { width: 8, height: 0.3, depth: 10 },
   metadata: {},
 };
 
-const isolatedPlate: ContainerNode = {
+const isolatedPlate: ContainerBlock = {
   id: 'plate-3',
   name: 'Isolated',
   kind: 'container',
@@ -61,11 +61,11 @@ const isolatedPlate: ContainerNode = {
   provider: 'azure',
   parentId: 'plate-1',
   position: { x: 2, y: 0, z: 1 },
-  size: { width: 4, height: 0.3, depth: 6 },
+  frame: { width: 4, height: 0.3, depth: 6 },
   metadata: {},
 };
 
-const blockA: LeafNode = {
+const blockA: ResourceBlock = {
   id: 'block-a',
   name: 'App VM',
   kind: 'resource',
@@ -78,7 +78,7 @@ const blockA: LeafNode = {
   metadata: {},
 };
 
-const blockB: LeafNode = {
+const blockB: ResourceBlock = {
   id: 'block-b',
   name: 'DB',
   kind: 'resource',

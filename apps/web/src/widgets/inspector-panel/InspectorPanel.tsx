@@ -8,7 +8,12 @@ import {
   useState,
   type ChangeEvent,
 } from 'react';
-import type { Connection, ConnectionType, ContainerNode, LeafNode } from '@cloudblocks/schema';
+import type {
+  Connection,
+  ConnectionType,
+  ContainerBlock,
+  ResourceBlock,
+} from '@cloudblocks/schema';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { audioService } from '../../shared/utils/audioService';
@@ -43,7 +48,7 @@ function getPositionHotkey(rowIdx: number, colIdx: number): string {
   return POSITION_HOTKEYS[rowIdx]?.[colIdx] ?? '';
 }
 
-function getPlateHeaderText(plate: ContainerNode): string {
+function getPlateHeaderText(plate: ContainerBlock): string {
   if (plate.layer === 'subnet') {
     return 'Subnet';
   }
@@ -60,11 +65,11 @@ export function InspectorPanel() {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
 
   const resources = useMemo(
-    () => architecture.nodes.filter((node): node is LeafNode => node.kind === 'resource'),
+    () => architecture.nodes.filter((node): node is ResourceBlock => node.kind === 'resource'),
     [architecture.nodes],
   );
   const containers = useMemo(
-    () => architecture.nodes.filter((node): node is ContainerNode => node.kind === 'container'),
+    () => architecture.nodes.filter((node): node is ContainerBlock => node.kind === 'container'),
     [architecture.nodes],
   );
 
@@ -142,8 +147,8 @@ function PropertiesTab({
   nodeCount,
   connectionCount,
 }: {
-  selectedBlock: LeafNode | null;
-  selectedPlate: ContainerNode | null;
+  selectedBlock: ResourceBlock | null;
+  selectedPlate: ContainerBlock | null;
   selectedConnection: Connection | null;
   architectureName: string;
   nodeCount: number;
@@ -193,14 +198,14 @@ function ConnectionsTab({
   resources,
   connections,
 }: {
-  selectedBlock: LeafNode | null;
-  selectedPlate: ContainerNode | null;
+  selectedBlock: ResourceBlock | null;
+  selectedPlate: ContainerBlock | null;
   selectedConnection: Connection | null;
-  resources: LeafNode[];
+  resources: ResourceBlock[];
   connections: Connection[];
 }) {
   const nodeById = useMemo(() => {
-    const map = new Map<string, LeafNode>();
+    const map = new Map<string, ResourceBlock>();
     for (const resource of resources) {
       map.set(resource.id, resource);
     }
@@ -283,7 +288,7 @@ function PropertyRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function BlockProperties({ block }: { block: LeafNode }) {
+function BlockProperties({ block }: { block: ResourceBlock }) {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const parent = block.parentId
     ? (architecture.nodes.find((n) => n.id === block.parentId) ?? null)
@@ -302,7 +307,7 @@ function BlockProperties({ block }: { block: LeafNode }) {
   );
 }
 
-function PlateProperties({ plate }: { plate: ContainerNode }) {
+function PlateProperties({ plate }: { plate: ContainerBlock }) {
   const architecture = useArchitectureStore((s) => s.workspace.architecture);
   const parent = plate.parentId
     ? (architecture.nodes.find((n) => n.id === plate.parentId) ?? null)
@@ -317,7 +322,7 @@ function PlateProperties({ plate }: { plate: ContainerNode }) {
     <div className="inspector-properties">
       <PropertyRow label="Type" value={plateLabel} />
       {parent && <PropertyRow label="Parent" value={parent.name} />}
-      <PropertyRow label="Size" value={`${plate.size.width} × ${plate.size.depth}`} />
+      <PropertyRow label="Size" value={`${plate.frame.width} × ${plate.frame.depth}`} />
       <PropertyRow
         label="Contents"
         value={`${contents.length} node${contents.length !== 1 ? 's' : ''}`}
@@ -326,7 +331,7 @@ function PlateProperties({ plate }: { plate: ContainerNode }) {
   );
 }
 
-function PlateActionMode({ selectedPlate }: { selectedPlate: ContainerNode }) {
+function PlateActionMode({ selectedPlate }: { selectedPlate: ContainerBlock }) {
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const removeNode = useArchitectureStore((s) => s.removeNode);
   const renameNode = useArchitectureStore((s) => s.renameNode);
@@ -478,7 +483,7 @@ function ConnectionActionMode({ connection }: { connection: Connection }) {
   );
 }
 
-function BlockActionMode({ block }: { block: LeafNode }) {
+function BlockActionMode({ block }: { block: ResourceBlock }) {
   const setSelectedId = useUIStore((s) => s.setSelectedId);
   const setToolMode = useUIStore((s) => s.setToolMode);
   const toggleResourceGuide = useUIStore((s) => s.toggleResourceGuide);

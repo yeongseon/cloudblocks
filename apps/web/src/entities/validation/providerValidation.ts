@@ -1,7 +1,7 @@
 import type {
   ArchitectureModel,
-  ContainerNode,
-  LeafNode,
+  ContainerBlock,
+  ResourceBlock,
   ResourceCategory,
 } from '@cloudblocks/schema';
 import type { ValidationError } from '@cloudblocks/domain';
@@ -39,8 +39,8 @@ const KNOWN_SUBTYPES: Record<string, Partial<Record<ResourceCategory, string[]>>
 };
 
 function validateBlockProviderRules(
-  block: LeafNode,
-  plate: ContainerNode | undefined,
+  block: ResourceBlock,
+  plate: ContainerBlock | undefined,
 ): ValidationError[] {
   const warnings: ValidationError[] = [];
 
@@ -76,7 +76,7 @@ function validateBlockProviderRules(
       warnings.push({
         ruleId: 'rule-provider-unknown-subtype',
         severity: 'warning',
-        message: `Node "${block.name}" has unknown subtype "${block.subtype}" for ${block.provider} ${block.category}.`,
+        message: `Block "${block.name}" has unknown subtype "${block.subtype}" for ${block.provider} ${block.category}.`,
         suggestion: `Check available subtypes for ${block.provider} ${block.category} resources.`,
         targetId: block.id,
       });
@@ -88,8 +88,8 @@ function validateBlockProviderRules(
 
 export function validateProviderRules(model: ArchitectureModel): ValidationError[] {
   const warnings: ValidationError[] = [];
-  const blocks = model.nodes.filter((n): n is LeafNode => n.kind === 'resource');
-  const plates = model.nodes.filter((n): n is ContainerNode => n.kind === 'container');
+  const blocks = model.nodes.filter((n): n is ResourceBlock => n.kind === 'resource');
+  const plates = model.nodes.filter((n): n is ContainerBlock => n.kind === 'container');
 
   for (const block of blocks) {
     const plate = plates.find((p) => p.id === block.parentId);

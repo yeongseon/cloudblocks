@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { ArchitectureModel, ContainerNode, LeafNode } from '@cloudblocks/schema';
+import type { ArchitectureModel, ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
 import { InspectorPanel } from './InspectorPanel';
@@ -14,7 +14,7 @@ vi.mock('../code-preview/CodePreview', () => ({
   ),
 }));
 
-const networkPlate: ContainerNode = {
+const networkPlate: ContainerBlock = {
   id: 'plate-1',
   name: 'VNet',
   kind: 'container',
@@ -24,11 +24,11 @@ const networkPlate: ContainerNode = {
   provider: 'azure',
   parentId: null,
   position: { x: 0, y: 0, z: 0 },
-  size: { width: 16, height: 0.3, depth: 20 },
+  frame: { width: 16, height: 0.3, depth: 20 },
   metadata: {},
 };
 
-const blockA: LeafNode = {
+const blockA: ResourceBlock = {
   id: 'block-a',
   name: 'App VM',
   kind: 'resource',
@@ -41,7 +41,7 @@ const blockA: LeafNode = {
   metadata: {},
 };
 
-const blockB: LeafNode = {
+const blockB: ResourceBlock = {
   id: 'block-b',
   name: 'SQL DB',
   kind: 'resource',

@@ -32,7 +32,7 @@ function setupMocks(interactionState: 'idle' | 'connecting', connectionSource: s
               provider: 'azure' as const,
               parentId: null,
               position: { x: 0, y: 0, z: 0 },
-              size: { width: 16, height: 0.3, depth: 20 },
+              frame: { width: 16, height: 0.3, depth: 20 },
               metadata: {},
             },
             {
