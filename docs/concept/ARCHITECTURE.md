@@ -472,7 +472,7 @@ SceneCanvas (root SVG scene)
   ├ Grid (SVG pattern)
   ├ PlateSprite (network/subnet SVG rendering)
   ├ BlockSprite (infrastructure block SVG rendering)
-  ├ ConnectionPath (data flow SVG arrows)
+  ├ ConnectionRenderer (data flow SVG connections with surface routing)
 └ Labels (container-block/block names via HTML overlay)
 ```
 
@@ -481,7 +481,7 @@ SceneCanvas (root SVG scene)
 | SceneCanvas          | Root SVG container with CSS transform3d pan/zoom; orchestrates rendering of all model entities from Zustand state.              |
 | ContainerBlockSprite | Renders container block SVG geometry (network/subnet), visual state (hover/selection), ports, and container block labels.       |
 | BlockSprite          | Renders block SVG geometry by category, interaction states, and block labels; anchors block position to parent container block. |
-| ConnectionPath       | Resolves endpoints and renders SVG path directional dataflow lines with arrowheads.                                             |
+| ConnectionRenderer   | Resolves endpoints via surface routing, renders 3D footprint connections; falls back to legacy liftarm for external actors.     |
 
 > Rendering is projection only: the authoritative editing model remains 2D coordinates with containment hierarchy, then projected into the 2.5D scene.
 > See [ADR-0010](../adr/0010-svg-only-rendering-model.md) for the full rendering technology rationale.

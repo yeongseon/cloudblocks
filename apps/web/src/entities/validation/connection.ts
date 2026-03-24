@@ -54,7 +54,7 @@ const SEMANTIC_ORDER: EndpointSemantic[] = ['http', 'event', 'data'];
 
 /**
  * Visual style for each connection type.
- * Used by ConnectionPath.tsx for rendering differentiation.
+ * Used by ConnectionRenderer.tsx for rendering differentiation.
  *
  * Spec §11.1:
  *   dataflow → solid line (default)

@@ -14,7 +14,7 @@ Connections between blocks currently render as thin SVG bezier curves — generi
 ### Current Implementation
 
 ```
-ConnectionPath.tsx:
+ConnectionRenderer.tsx (current):
 - SVG <path> with quadratic bezier curve (M ... Q ...)
 - Two-layer stroke: 4px dark background + 2px colored foreground
 - Arrow markers at end for direction
@@ -234,14 +234,15 @@ Target: **<16ms frame time** with 30 simultaneous connections.
 
 ```
 src/entities/connection/
-├── ConnectionRenderer.tsx      # Main connection renderer component (replaces ConnectionPath.tsx)
+├── ConnectionRenderer.tsx      # Main connection renderer component
 ├── ConnectionRenderer.css      # Styles
 ├── ConnectionRenderer.test.tsx # Tests
-├── routing.ts                  # Path computation algorithm
+├── routing.ts                  # Legacy path computation (fallback for external actors)
 ├── routing.test.ts             # Routing tests
 ├── connectorTheme.ts           # Color palettes and pattern definitions
-├── ConnectionPath.tsx          # DEPRECATED — kept for rollback
-└── ConnectionPath.test.tsx     # Existing tests (kept)
+├── surfaceRouting.ts           # Surface-aware routing (primary path)
+├── connectionGeometry.ts       # 3D footprint generation
+└── connectionFaceColors.ts     # Face color resolution
 ```
 
 ---

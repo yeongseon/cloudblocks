@@ -54,6 +54,12 @@ interface ConnectorColors {
   opacity: number;
 }
 
+// ---------------------------------------------------------------------------
+// LEGACY FALLBACK constants & functions (lines 57–341)
+// Used when surfaceRouting returns null (currently: external actor connections).
+// TODO(#1351): Remove once external actors are supported by surface routing.
+// ---------------------------------------------------------------------------
+
 const LEGACY_BEAM_HALF_THICKNESS = 4;
 const HIT_AREA_WIDTH = 20;
 const DRAW_STROKE_WIDTH = Math.max(4, CONNECTION_WIDTH_CU * 8);
@@ -460,6 +466,13 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
 
   const hasValidationError = connectionErrors.length > 0;
 
+  // ---------------------------------------------------------------------------
+  // Routing: surface route (primary) vs legacy fallback
+  // Surface routing handles block-to-block connections within/across containers.
+  // It returns null for external actor connections (not yet supported — see #1351).
+  // When null, we fall back to the legacy liftarm renderer below.
+  // TODO(#1351): Remove fallback path once external actors use surface routing.
+  // ---------------------------------------------------------------------------
   const surfaceRoute = useMemo(
     () => getConnectionSurfaceRoute(connection, blocks, plates, endpointsList, externalActors),
     [connection, blocks, plates, endpointsList, externalActors],
