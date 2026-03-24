@@ -1,6 +1,6 @@
 # CloudBlocks — 0.x Development History (Archive)
 
-> **Status**: Historical archive. This document preserves the complete milestone-by-milestone development history from v0.0 through v0.24.
+> **Status**: Historical archive. This document preserves the complete milestone-by-milestone development history from v0.0 through v0.26.
 >
 > **For the current product roadmap, see [ROADMAP.md](ROADMAP.md).**
 
@@ -1360,7 +1360,7 @@ Remove center-based connections, apply vendor color system to connections.
 
 ---
 
-## Milestone 22 — Port Connections & Visual Theme
+## Milestone 22 — Port Connections & Visual Theme ✅
 
 Goal:
 Complete the port-based connection system, apply vendor-specific visual identity, clean up legacy resource model duplication, and introduce a token-based visual theme system. Deliver a verified Azure end-to-end demo.
@@ -1419,18 +1419,18 @@ The following port infrastructure already exists and will be built upon:
 
 ### Exit Criteria
 
-- [ ] Port points rendered visually on block faces with hover indicators
-- [ ] Connection preview line from port to cursor during connect mode
-- [ ] Valid/invalid target highlighting during connection
-- [ ] Port-to-port orthogonal routing fully replaces center-based routing
-- [ ] Center-to-center connection fallback removed
-- [ ] Vendor-based colors applied to blocks and connections
-- [ ] `MVP_RESOURCE_ALLOWLIST` eliminated — `RESOURCE_DEFINITIONS` is single source (#1208)
-- [ ] Token-based theme system with Professional (default) + Blueprint (alt) themes
-- [ ] Theme switch accessible from settings/menu
-- [ ] Azure end-to-end demo verified (create → connect via ports → generate → validate)
-- [ ] All tests passing, ≥ 90% branch coverage
-- [ ] `v0.22.0` release published
+- [x] Port points rendered visually on block faces with hover indicators
+- [x] Connection preview line from port to cursor during connect mode
+- [x] Valid/invalid target highlighting during connection
+- [x] Port-to-port orthogonal routing fully replaces center-based routing
+- [x] Center-to-center connection fallback removed
+- [x] Vendor-based colors applied to blocks and connections
+- [x] `MVP_RESOURCE_ALLOWLIST` eliminated — `RESOURCE_DEFINITIONS` is single source (#1208)
+- [x] Token-based theme system with Professional (default) + Blueprint (alt) themes
+- [x] Theme switch accessible from settings/menu
+- [x] Azure end-to-end demo verified (create → connect via ports → generate → validate)
+- [x] All tests passing, ≥ 90% branch coverage
+- [x] `v0.22.0` release published
 
 ### Dependencies
 
@@ -1438,7 +1438,39 @@ The following port infrastructure already exists and will be built upon:
 
 ---
 
-## Milestone 24 — Block Unification
+## Milestone 23 — Taxonomy & Hardening ✅
+
+Goal:
+Hardening sprint focused on making M1–M22 work end-to-end. Visual language refactored to matte shading, connection rendering overhauled, resource palette expanded, onboarding simplified, CI infrastructure improved, and 8th resource category added.
+
+Key Objectives:
+
+- Matte shading system replacing glossy block aesthetic
+- Dynamic isometric connection renderer
+- Azure visual overhaul — icons, labels, colors, external actors
+- Remove MVP_RESOURCE_ALLOWLIST — all 25 resources visible in palette
+- Simplified onboarding tour to 3-step canvas workflow
+- Codecov upload and coverage badge
+- Prettier + husky pre-commit hooks
+- Path-based CI filtering
+
+### Exit Criteria
+
+- [x] Matte shading system implemented (#1386)
+- [x] Dynamic isometric connection renderer (#1391)
+- [x] Azure visual overhaul complete (#1394)
+- [x] All 25 resources visible in palette (#1392)
+- [x] Onboarding simplified to 3-step workflow (#1390)
+- [x] CI modernized with Codecov, Prettier, path filtering
+- [x] 97 issues closed across 15+ PRs
+
+### Dependencies
+
+- Milestone 22 complete
+
+---
+
+## Milestone 24 — Block Unification ✅
 
 Goal:
 Remove all legacy toy-branded and pre-unification terminology from product documentation and user-facing language, and standardize on Block/Connection/Port vocabulary.
@@ -1452,14 +1484,71 @@ Key Objectives:
 
 ### Exit Criteria
 
-- [ ] No banned legacy terms remain in active documentation sets targeted by M24.
-- [ ] Root and concept documentation use unified Block terminology consistently.
-- [ ] Endpoint and connection field references are updated to current model names.
-- [ ] Documentation remains coherent and link-safe after terminology updates.
+- [x] No banned legacy terms remain in active documentation sets targeted by M24.
+- [x] Root and concept documentation use unified Block terminology consistently.
+- [x] Endpoint and connection field references are updated to current model names.
+- [x] Documentation remains coherent and link-safe after terminology updates.
 
 ### Dependencies
 
-- Milestone 22 complete
+- Milestone 23 complete
+
+---
+
+## Milestone 25 — V1 Documentation & Product Contract ✅
+
+Goal:
+Rewrite all public-facing documentation for V1 positioning as a preset-driven visual architecture design tool. Establish product contract, compatibility policy, and restructure roadmap.
+
+Key Objectives:
+
+- Create V1 Product Contract defining guarantees vs non-guarantees
+- Create Compatibility Policy for versioning, migration, and deprecation
+- Restructure ROADMAP.md from flat milestone list to V1→V2→V3→V4 evolution stages
+- Archive 0.x milestone history to ROADMAP_0X_HISTORY.md
+- Rewrite README.md for preset-driven design tool positioning
+
+### Exit Criteria
+
+- [x] V1 Product Contract created (V1_PRODUCT_CONTRACT.md)
+- [x] Compatibility Policy created (COMPATIBILITY.md)
+- [x] ROADMAP.md restructured to V1→V4 evolution stages
+- [x] 0.x history archived to ROADMAP_0X_HISTORY.md
+- [x] README.md rewritten for V1 positioning
+- [x] docs/README.md updated with card grids and 5-step onboarding
+- [x] 7 issues closed, 1 PR merged
+- [x] Documentation-only milestone — no code changes
+
+### Dependencies
+
+- Milestone 24 complete
+
+---
+
+## Milestone 26 — Visual Language & Routing ✅
+
+Goal:
+Clean up obsolete documentation, implement cross-container connection routing using LCA-based transition segments, and remove dead ConnectionPath code.
+
+Key Objectives:
+
+- Delete obsolete documentation files
+- LCA-based routing algorithm for cross-container connections
+- Remove dead ConnectionPath code
+- Close Connection Architecture Epic (#1351)
+
+### Exit Criteria
+
+- [x] 5 obsolete docs deleted
+- [x] LCA-based cross-container routing implemented with 8 new tests
+- [x] ConnectionPath dead code removed (175 + 456 lines)
+- [x] Epic #1351 (Connection Architecture) closed — all 7 sub-issues completed
+- [x] 124 test files, 2,073 tests — all passing
+- [x] Build clean, lint clean, type check clean
+
+### Dependencies
+
+- Milestone 25 complete
 
 ---
 
@@ -1607,6 +1696,21 @@ Milestone 19 (Complete)
 - v0.19.2 hotfix: React #185 app load crash fix in ExternalActorSprite
 - 30 issues closed, 1814 tests passing, 90%+ branch coverage
 
+Milestone 21-22 (Complete)
+
+- UI/UX overhaul with Professional theme and CSS Grid layout
+- Port-based connection model with endpoint metadata
+- Semantic block shapes (6 shapes replacing 4 silhouettes)
+- Token-based theme system (Blueprint dark + Workshop light)
+
+Milestone 23-26 (Complete)
+
+- Visual language refactored to matte shading with dynamic connection rendering
+- Legacy terminology eliminated — unified Block/Connection/Port vocabulary
+- V1 product contract and compatibility policy established
+- Cross-container LCA-based connection routing
+- 2,073 tests passing, 90%+ branch coverage
+
 ---
 
 ## Summary
@@ -1653,9 +1757,15 @@ The roadmap evolves CloudBlocks from:
 
 → UI/UX Overhaul & Port Connections (Milestone 21) ✅
 
-→ Port Connections & Visual Theme (Milestone 22) — planned
+→ Port Connections & Visual Theme (Milestone 22) ✅
 
-→ Block Unification (Milestone 24) — current
+→ Taxonomy & Hardening (Milestone 23) ✅
+
+→ Block Unification (Milestone 24) ✅
+
+→ V1 Documentation & Product Contract (Milestone 25) ✅
+
+→ Visual Language & Routing (Milestone 26) ✅
 
 → Internationalization (i18n)
 
@@ -1674,8 +1784,11 @@ Milestone 8 (Complete) ✅
     │                                                       └── Milestone 19 (MVP Polish & Launch) ✅
     │                                                               └── Milestone 20 (UX Polish & GitHub Hardening) ✅
     │                                                                       └── Milestone 21 (UI/UX Overhaul & Port Connections) ✅
-    │                                                                               └── Milestone 22 (Port Connections & Visual Theme)
-    │                                                                                       └── Milestone 24 (Block Unification) ← current
+    │                                                                               └── Milestone 22 (Port Connections & Visual Theme) ✅
+    │                                                                                       └── Milestone 23 (Taxonomy & Hardening) ✅
+    │                                                                                               └── Milestone 24 (Block Unification) ✅
+    │                                                                                                       └── Milestone 25 (V1 Documentation) ✅
+    │                                                                                                               └── Milestone 26 (Visual Language & Routing) ✅ ← current
     │               └── Milestone 14 (AI Roadmap) ✅ ←── also benefits from Milestone 13
     └── Milestone 11 (Block Design) ✅ ──── parallel with Milestone 9
 
