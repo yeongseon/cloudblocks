@@ -33,6 +33,8 @@ export interface EndpointAnchors {
   tgt: WorldPoint;
   srcSide?: StubSide;
   tgtSide?: StubSide;
+  srcFloorY?: number;
+  tgtFloorY?: number;
 }
 
 /**
@@ -66,6 +68,8 @@ export function getConnectionEndpointWorldAnchors(
     tgt: tgt.point,
     srcSide: src.side,
     tgtSide: tgt.side,
+    srcFloorY: src.floorY,
+    tgtFloorY: tgt.floorY,
   };
 }
 
@@ -76,6 +80,7 @@ export function getConnectionEndpointWorldAnchors(
 interface ResolvedEndpoint {
   point: WorldPoint;
   side?: StubSide;
+  floorY?: number;
 }
 
 function resolveEndpoint(
@@ -103,6 +108,7 @@ function resolveEndpoint(
     if (!plate) return null;
 
     const worldPos = getBlockWorldPosition(block, plate);
+    const floorY = plate.position.y + plate.size.height;
     const cu = getBlockDimensions(block.category, block.provider, block.subtype);
     const anchors = getBlockWorldAnchors(worldPos, cu);
 
@@ -114,23 +120,23 @@ function resolveEndpoint(
       return {
         point: anchors.stub(side, stubIndex, total),
         side,
+        floorY,
       };
     }
 
-    return { point: anchors.center };
+    return { point: anchors.center, floorY };
   }
 
   // Try external actor
   const actor = externalActors.find((a) => a.id === endpoint.nodeId);
   if (actor) {
-    const base: WorldPoint = actor.position
-      ? [actor.position.x, actor.position.y + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET, actor.position.z]
-      : [
-          EXTERNAL_ACTOR_POSITION[0],
-          EXTERNAL_ACTOR_POSITION[1] + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
-          EXTERNAL_ACTOR_POSITION[2],
-        ];
-    return { point: base };
+    const pos = actor.position ?? {
+      x: EXTERNAL_ACTOR_POSITION[0],
+      y: EXTERNAL_ACTOR_POSITION[1],
+      z: EXTERNAL_ACTOR_POSITION[2],
+    };
+    const base: WorldPoint = [pos.x, pos.y + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET, pos.z];
+    return { point: base, floorY: pos.y + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET };
   }
 
   return null;

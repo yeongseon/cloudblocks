@@ -10,7 +10,10 @@ import {
 import { getBlockWorldAnchors } from '../../entities/block/blockGeometry';
 import { getBlockDimensions } from '../../shared/types/visualProfile';
 import { CATEGORY_PORTS } from '@cloudblocks/schema';
+import type { LeafNode, ContainerNode } from '@cloudblocks/schema';
 import { PORT_OUT_PX } from '../../shared/tokens/designTokens';
+import { canConnect } from '../../entities/validation/connection';
+import type { EndpointType } from '../../entities/validation/connection';
 
 interface ConnectionPreviewProps {
   originX: number;
@@ -22,33 +25,95 @@ interface Point {
   y: number;
 }
 
+const MAGNETIC_SNAP_THRESHOLD_PX = 40;
+
 export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) {
   const interactionState = useUIStore((s) => s.interactionState);
   const connectionSource = useUIStore((s) => s.connectionSource);
+  const setMagneticSnapTarget = useUIStore((s) => s.setMagneticSnapTarget);
   const nodes = useArchitectureStore((s) => s.workspace.architecture.nodes);
   const externalActors = useArchitectureStore((s) => s.workspace.architecture.externalActors ?? []);
-  const blocks = useMemo(() => nodes.filter((node) => node.kind === 'resource'), [nodes]);
-  const plates = useMemo(() => nodes.filter((node) => node.kind === 'container'), [nodes]);
+  const blocks = useMemo(
+    () => nodes.filter((node): node is LeafNode => node.kind === 'resource'),
+    [nodes],
+  );
+  const plates = useMemo(
+    () => nodes.filter((node): node is ContainerNode => node.kind === 'container'),
+    [nodes],
+  );
 
   const pathRef = useRef<SVGPathElement>(null);
   const [cursor, setCursor] = useState<Point | null>(null);
+  const [snappedTarget, setSnappedTarget] = useState<Point | null>(null);
+
+  const sourceEndpointType = useMemo((): EndpointType | null => {
+    if (!connectionSource) return null;
+    const sourceBlock = blocks.find((b) => b.id === connectionSource);
+    if (sourceBlock) return sourceBlock.category;
+    const sourceActor = externalActors.find((a) => a.id === connectionSource);
+    if (sourceActor) return sourceActor.type;
+    return null;
+  }, [blocks, connectionSource, externalActors]);
+
+  const validTargetAnchors = useMemo(() => {
+    if (!connectionSource || !sourceEndpointType) return [];
+
+    const targets: { blockId: string; screenPoint: Point }[] = [];
+    for (const block of blocks) {
+      if (block.id === connectionSource) continue;
+      if (!canConnect(sourceEndpointType, block.category)) continue;
+
+      const plate = plates.find((p) => p.id === block.parentId);
+      if (!plate) continue;
+
+      const worldPos = getBlockWorldPosition(block, plate);
+      const cu = getBlockDimensions(block.category, block.provider, block.subtype);
+      const anchors = getBlockWorldAnchors(worldPos, cu);
+      const ports = CATEGORY_PORTS[block.category];
+
+      const stubWorld = anchors.stub('inbound', 0, ports.inbound);
+      const screen = worldToScreen(stubWorld[0], stubWorld[1], stubWorld[2], originX, originY);
+      targets.push({
+        blockId: block.id,
+        screenPoint: { x: screen.x - PORT_OUT_PX, y: screen.y },
+      });
+    }
+    return targets;
+  }, [blocks, connectionSource, originX, originY, plates, sourceEndpointType]);
 
   const updateCursor = useRafCallback((event: PointerEvent) => {
     const svg = pathRef.current?.ownerSVGElement;
-    if (!svg) {
-      return;
-    }
+    if (!svg) return;
 
     const ctm = svg.getScreenCTM?.();
-    if (!ctm) {
-      return;
-    }
+    if (!ctm) return;
 
     const point = svg.createSVGPoint();
     point.x = event.clientX;
     point.y = event.clientY;
     const local = point.matrixTransform(ctm.inverse());
-    setCursor({ x: local.x, y: local.y });
+
+    const cursorPt = { x: local.x, y: local.y };
+
+    let nearest: { blockId: string; screenPoint: Point; dist: number } | null = null;
+    for (const target of validTargetAnchors) {
+      const dx = cursorPt.x - target.screenPoint.x;
+      const dy = cursorPt.y - target.screenPoint.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist <= MAGNETIC_SNAP_THRESHOLD_PX && (!nearest || dist < nearest.dist)) {
+        nearest = { ...target, dist };
+      }
+    }
+
+    if (nearest) {
+      setSnappedTarget(nearest.screenPoint);
+      setMagneticSnapTarget(nearest.blockId);
+    } else {
+      setSnappedTarget(null);
+      setMagneticSnapTarget(null);
+    }
+
+    setCursor(cursorPt);
   });
 
   const sourceScreen = useMemo(() => {
@@ -71,10 +136,8 @@ export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) 
       );
       const anchors = getBlockWorldAnchors(worldPos, cu);
       const ports = CATEGORY_PORTS[sourceBlock.category];
-      // Preview originates from outbound stub index 0
       const stubWorld = anchors.stub('outbound', 0, ports.outbound);
       const screen = worldToScreen(stubWorld[0], stubWorld[1], stubWorld[2], originX, originY);
-      // Apply PORT_OUT_PX offset for outbound (right side)
       return { x: screen.x + PORT_OUT_PX, y: screen.y };
     }
 
@@ -95,20 +158,22 @@ export function ConnectionPreview({ originX, originY }: ConnectionPreviewProps) 
 
   useEffect(() => {
     if (!sourceScreen) {
+      setMagneticSnapTarget(null);
       return;
     }
 
     document.addEventListener('pointermove', updateCursor);
     return () => {
       document.removeEventListener('pointermove', updateCursor);
+      setMagneticSnapTarget(null);
     };
-  }, [sourceScreen, updateCursor]);
+  }, [sourceScreen, updateCursor, setMagneticSnapTarget]);
 
   if (!sourceScreen) {
     return null;
   }
 
-  const target = cursor ?? sourceScreen;
+  const target = snappedTarget ?? cursor ?? sourceScreen;
   const midX = (sourceScreen.x + target.x) / 2;
   const midY = Math.min(sourceScreen.y, target.y) - 40;
   const pathD = `M ${sourceScreen.x} ${sourceScreen.y} Q ${midX} ${midY} ${target.x} ${target.y}`;

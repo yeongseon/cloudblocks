@@ -248,6 +248,11 @@ describe('getBlockDimensions', () => {
     expect(defaultDims).toEqual({ width: 3, depth: 1, height: 1 });
     expect(cfDims).not.toEqual(defaultDims);
   });
+
+  it('falls back to compute tier when category is not mapped', () => {
+    const dims = getBlockDimensions('unknown-category' as ResourceCategory);
+    expect(dims).toEqual(TIER_DIMENSIONS[CATEGORY_TIER_MAP.compute]);
+  });
 });
 
 describe('getBlockVisualProfile', () => {

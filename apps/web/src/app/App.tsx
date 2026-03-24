@@ -10,6 +10,9 @@ import { LandingPage } from '../widgets/landing-page/LandingPage';
 import { BuilderView } from './BuilderView';
 import './App.css';
 
+registerBuiltinTemplates();
+registerBuiltinScenarios();
+
 function App() {
   const appView = useUIStore((s) => s.appView);
   const themeVariant = useUIStore((s) => s.themeVariant);
@@ -23,11 +26,6 @@ function App() {
   useEffect(() => {
     audioService.preloadAll(SOUND_ASSETS).catch(() => {});
     metricsService.trackEvent('app_loaded');
-  }, []);
-
-  useEffect(() => {
-    registerBuiltinTemplates();
-    registerBuiltinScenarios();
   }, []);
 
   return (

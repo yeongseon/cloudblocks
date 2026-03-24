@@ -109,13 +109,21 @@ describe('useTechTree constants', () => {
       string,
       Pick<
         ResourceDefinition,
-        'id' | 'schemaResourceType' | 'label' | 'shortLabel' | 'icon' | 'category' | 'blockCategory'
+        | 'id'
+        | 'schemaResourceType'
+        | 'azureSubtype'
+        | 'label'
+        | 'shortLabel'
+        | 'icon'
+        | 'category'
+        | 'blockCategory'
       >
     > = {
       network: {
         id: 'network',
         schemaResourceType: 'virtual_network',
-        label: 'Network (VNet)',
+        azureSubtype: 'vnet',
+        label: 'Azure Virtual Network',
         shortLabel: 'VNet',
         icon: '🌐',
         category: 'foundation',
@@ -124,6 +132,7 @@ describe('useTechTree constants', () => {
       subnet: {
         id: 'subnet',
         schemaResourceType: 'subnet',
+        azureSubtype: 'subnet',
         label: 'Subnet',
         shortLabel: 'Subnet',
         icon: '🔲',
@@ -133,7 +142,7 @@ describe('useTechTree constants', () => {
       storage: {
         id: 'storage',
         schemaResourceType: 'blob_storage',
-        label: 'Blob Storage',
+        label: 'Storage Account',
         shortLabel: 'Storage',
         icon: '📦',
         category: 'always',
@@ -142,7 +151,7 @@ describe('useTechTree constants', () => {
       dns: {
         id: 'dns',
         schemaResourceType: 'dns_zone',
-        label: 'DNS Zone',
+        label: 'Azure DNS',
         shortLabel: 'DNS',
         icon: '🌐',
         category: 'always',
@@ -151,7 +160,7 @@ describe('useTechTree constants', () => {
       cdn: {
         id: 'cdn',
         schemaResourceType: 'cdn_profile',
-        label: 'CDN Profile',
+        label: 'Azure CDN',
         shortLabel: 'CDN',
         icon: '⚡',
         category: 'always',
@@ -160,8 +169,8 @@ describe('useTechTree constants', () => {
       'front-door': {
         id: 'front-door',
         schemaResourceType: 'front_door',
-        label: 'Front Door',
-        shortLabel: 'FrontDoor',
+        label: 'Azure Front Door',
+        shortLabel: 'Front Door',
         icon: '🚪',
         category: 'always',
         blockCategory: 'delivery',
@@ -169,7 +178,7 @@ describe('useTechTree constants', () => {
       sql: {
         id: 'sql',
         schemaResourceType: 'sql_database',
-        label: 'SQL Database',
+        label: 'Azure SQL Database',
         shortLabel: 'SQL',
         icon: '🗄️',
         category: 'vnet-optional',
@@ -178,8 +187,8 @@ describe('useTechTree constants', () => {
       function: {
         id: 'function',
         schemaResourceType: 'function_compute',
-        label: 'Functions',
-        shortLabel: 'Func',
+        label: 'Azure Functions',
+        shortLabel: 'Functions',
         icon: '⚡',
         category: 'vnet-optional',
         blockCategory: 'compute',
@@ -187,8 +196,8 @@ describe('useTechTree constants', () => {
       queue: {
         id: 'queue',
         schemaResourceType: 'message_queue',
-        label: 'Queue',
-        shortLabel: 'Queue',
+        label: 'Azure Service Bus',
+        shortLabel: 'Service Bus',
         icon: '📨',
         category: 'vnet-optional',
         blockCategory: 'messaging',
@@ -196,8 +205,8 @@ describe('useTechTree constants', () => {
       event: {
         id: 'event',
         schemaResourceType: 'event_hub',
-        label: 'Event Hub',
-        shortLabel: 'Event',
+        label: 'Azure Event Hubs',
+        shortLabel: 'Event Hubs',
         icon: '🔔',
         category: 'vnet-optional',
         blockCategory: 'messaging',
@@ -205,8 +214,8 @@ describe('useTechTree constants', () => {
       'app-service': {
         id: 'app-service',
         schemaResourceType: 'app_service',
-        label: 'App Service',
-        shortLabel: 'AppSvc',
+        label: 'Azure App Service',
+        shortLabel: 'App Service',
         icon: '🌐',
         category: 'vnet-optional',
         blockCategory: 'compute',
@@ -214,7 +223,7 @@ describe('useTechTree constants', () => {
       'container-instances': {
         id: 'container-instances',
         schemaResourceType: 'container_instances',
-        label: 'Container Instances',
+        label: 'Azure Container Instances',
         shortLabel: 'ACI',
         icon: '📦',
         category: 'vnet-optional',
@@ -223,8 +232,8 @@ describe('useTechTree constants', () => {
       'cosmos-db': {
         id: 'cosmos-db',
         schemaResourceType: 'cosmos_db',
-        label: 'Cosmos DB',
-        shortLabel: 'Cosmos',
+        label: 'Azure Cosmos DB',
+        shortLabel: 'Cosmos DB',
         icon: '🌍',
         category: 'vnet-optional',
         blockCategory: 'data',
@@ -232,8 +241,8 @@ describe('useTechTree constants', () => {
       'key-vault': {
         id: 'key-vault',
         schemaResourceType: 'key_vault',
-        label: 'Key Vault',
-        shortLabel: 'KeyVault',
+        label: 'Azure Key Vault',
+        shortLabel: 'Key Vault',
         icon: '🔐',
         category: 'vnet-optional',
         blockCategory: 'security',
@@ -242,7 +251,7 @@ describe('useTechTree constants', () => {
         id: 'managed-identity',
         schemaResourceType: 'managed_identity',
         label: 'Managed Identity',
-        shortLabel: 'Identity',
+        shortLabel: 'Managed Identity',
         icon: '🪪',
         category: 'vnet-optional',
         blockCategory: 'identity',
@@ -259,7 +268,7 @@ describe('useTechTree constants', () => {
       aks: {
         id: 'aks',
         schemaResourceType: 'kubernetes_cluster',
-        label: 'Kubernetes (AKS)',
+        label: 'Azure Kubernetes Service',
         shortLabel: 'AKS',
         icon: '☸️',
         category: 'vnet-required',
@@ -269,7 +278,7 @@ describe('useTechTree constants', () => {
         id: 'internal-lb',
         schemaResourceType: 'internal_load_balancer',
         label: 'Internal Load Balancer',
-        shortLabel: 'IntLB',
+        shortLabel: 'ILB',
         icon: '⚖️',
         category: 'vnet-required',
         blockCategory: 'delivery',
@@ -277,8 +286,8 @@ describe('useTechTree constants', () => {
       firewall: {
         id: 'firewall',
         schemaResourceType: 'firewall_security',
-        label: 'Firewall',
-        shortLabel: 'FW',
+        label: 'Azure Firewall',
+        shortLabel: 'Firewall',
         icon: '🛡️',
         category: 'vnet-required',
         blockCategory: 'delivery',
@@ -295,7 +304,7 @@ describe('useTechTree constants', () => {
       bastion: {
         id: 'bastion',
         schemaResourceType: 'bastion_host',
-        label: 'Bastion',
+        label: 'Azure Bastion',
         shortLabel: 'Bastion',
         icon: '🏰',
         category: 'vnet-required',
@@ -304,8 +313,8 @@ describe('useTechTree constants', () => {
       'nat-gateway': {
         id: 'nat-gateway',
         schemaResourceType: 'nat_gateway',
-        label: 'NAT Gateway',
-        shortLabel: 'NAT',
+        label: 'Azure NAT Gateway',
+        shortLabel: 'NAT GW',
         icon: '🚪',
         category: 'vnet-required',
         blockCategory: 'network',
@@ -323,7 +332,7 @@ describe('useTechTree constants', () => {
         id: 'route-table',
         schemaResourceType: 'route_table',
         label: 'Route Table',
-        shortLabel: 'UDR',
+        shortLabel: 'Route Table',
         icon: '🔀',
         category: 'vnet-required',
         blockCategory: 'network',
@@ -340,8 +349,8 @@ describe('useTechTree constants', () => {
       'app-gateway': {
         id: 'app-gateway',
         schemaResourceType: 'application_gateway',
-        label: 'Application Gateway',
-        shortLabel: 'AppGW',
+        label: 'Azure Application Gateway',
+        shortLabel: 'AGW',
         icon: '🚪',
         category: 'vnet-required',
         blockCategory: 'delivery',

@@ -66,7 +66,7 @@ export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile>
   security: {
     tier: 'small',
     surface: 'studded',
-    silhouette: 'shield',
+    silhouette: 'rect',
     footprint: [2, 2],
     hostable: false,
     appCapacity: 0,
@@ -74,7 +74,7 @@ export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile>
   delivery: {
     tier: 'wide',
     surface: 'studded',
-    silhouette: 'gateway',
+    silhouette: 'rect',
     footprint: [2, 4],
     hostable: false,
     appCapacity: 0,
@@ -90,7 +90,7 @@ export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile>
   data: {
     tier: 'large',
     surface: 'studded',
-    silhouette: 'cylinder',
+    silhouette: 'rect',
     footprint: [4, 6],
     hostable: false,
     appCapacity: 0,
@@ -98,7 +98,7 @@ export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile>
   messaging: {
     tier: 'micro',
     surface: 'studded',
-    silhouette: 'hex',
+    silhouette: 'rect',
     footprint: [2, 4],
     hostable: false,
     appCapacity: 0,
@@ -106,7 +106,7 @@ export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile>
   identity: {
     tier: 'small',
     surface: 'studded',
-    silhouette: 'shield',
+    silhouette: 'rect',
     footprint: [2, 2],
     hostable: false,
     appCapacity: 0,
@@ -114,7 +114,7 @@ export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile>
   operations: {
     tier: 'small',
     surface: 'studded',
-    silhouette: 'circle',
+    silhouette: 'rect',
     footprint: [2, 2],
     hostable: false,
     appCapacity: 0,

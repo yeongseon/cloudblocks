@@ -18,6 +18,7 @@ import {
   type CreationGroupId,
   ALL_RESOURCES,
 } from '../bottom-panel/useTechTree';
+import { getResourceIconUrl } from '../../shared/utils/iconResolver';
 import './SidebarPalette.css';
 
 const CATEGORY_COLOR_VARS: Record<CreationGroupId, string> = {
@@ -136,6 +137,7 @@ interface PaletteResourceItemProps {
   disabledReason: string | null;
   onClick: () => void;
   searchQuery: string;
+  iconUrl: string | null;
 }
 
 function PaletteResourceItem({
@@ -146,6 +148,7 @@ function PaletteResourceItem({
   disabledReason,
   onClick,
   searchQuery,
+  iconUrl,
 }: PaletteResourceItemProps) {
   const def = RESOURCE_DEFINITIONS[type];
 
@@ -160,7 +163,7 @@ function PaletteResourceItem({
       title={enabled ? `Create ${providerLabel}` : (disabledReason ?? undefined)}
     >
       <span className="sidebar-palette-resource-icon" aria-hidden="true">
-        {def.icon}
+        {iconUrl ? <img src={iconUrl} alt="" width={18} height={18} /> : def.icon}
       </span>
       <span className="sidebar-palette-resource-text">
         <span className="sidebar-palette-resource-name">
@@ -341,7 +344,7 @@ export function SidebarPalette() {
         name,
         parentId: targetId,
         provider: activeProvider,
-        subtype: def.schemaResourceType,
+        subtype: def.azureSubtype ?? def.schemaResourceType,
       });
       playSound('block-snap');
     },
@@ -386,6 +389,7 @@ export function SidebarPalette() {
                 enabled={techTree.isEnabled(type)}
                 disabledReason={techTree.getDisabledReason(type)}
                 searchQuery={normalizedQuery}
+                iconUrl={getResourceIconUrl(type, activeProvider)}
                 onClick={() => {
                   if (techTree.isEnabled(type)) {
                     handleCreate(type);

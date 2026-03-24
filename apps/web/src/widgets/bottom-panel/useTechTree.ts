@@ -39,6 +39,8 @@ export type ResourceType =
 export interface ResourceDefinition {
   id: ResourceType;
   schemaResourceType: SchemaResourceType;
+  /** Azure-specific subtype key used for icon/label/color resolution (e.g. 'functions', 'sql-database'). */
+  azureSubtype?: string;
   label: string;
   shortLabel: string;
   icon: string;
@@ -51,7 +53,8 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   network: {
     id: 'network',
     schemaResourceType: 'virtual_network',
-    label: 'Network (VNet)',
+    azureSubtype: 'vnet',
+    label: 'Azure Virtual Network',
     shortLabel: 'VNet',
     icon: '🌐',
     category: 'foundation',
@@ -60,6 +63,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   subnet: {
     id: 'subnet',
     schemaResourceType: 'subnet',
+    azureSubtype: 'subnet',
     label: 'Subnet',
     shortLabel: 'Subnet',
     icon: '🔲',
@@ -72,7 +76,8 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   storage: {
     id: 'storage',
     schemaResourceType: 'blob_storage',
-    label: 'Blob Storage',
+    azureSubtype: 'blob-storage',
+    label: 'Storage Account',
     shortLabel: 'Storage',
     icon: '📦',
     category: 'always',
@@ -81,7 +86,8 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   dns: {
     id: 'dns',
     schemaResourceType: 'dns_zone',
-    label: 'DNS Zone',
+    azureSubtype: 'azure-dns',
+    label: 'Azure DNS',
     shortLabel: 'DNS',
     icon: '🌐',
     category: 'always',
@@ -90,7 +96,8 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   cdn: {
     id: 'cdn',
     schemaResourceType: 'cdn_profile',
-    label: 'CDN Profile',
+    azureSubtype: 'cdn-profile',
+    label: 'Azure CDN',
     shortLabel: 'CDN',
     icon: '⚡',
     category: 'always',
@@ -99,8 +106,9 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   'front-door': {
     id: 'front-door',
     schemaResourceType: 'front_door',
-    label: 'Front Door',
-    shortLabel: 'FrontDoor',
+    azureSubtype: 'front-door',
+    label: 'Azure Front Door',
+    shortLabel: 'Front Door',
     icon: '🚪',
     category: 'always',
     blockCategory: 'delivery',
@@ -110,7 +118,8 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   sql: {
     id: 'sql',
     schemaResourceType: 'sql_database',
-    label: 'SQL Database',
+    azureSubtype: 'sql-database',
+    label: 'Azure SQL Database',
     shortLabel: 'SQL',
     icon: '🗄️',
     category: 'vnet-optional',
@@ -119,8 +128,9 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   function: {
     id: 'function',
     schemaResourceType: 'function_compute',
-    label: 'Functions',
-    shortLabel: 'Func',
+    azureSubtype: 'functions',
+    label: 'Azure Functions',
+    shortLabel: 'Functions',
     icon: '⚡',
     category: 'vnet-optional',
     blockCategory: 'compute',
@@ -128,8 +138,9 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   queue: {
     id: 'queue',
     schemaResourceType: 'message_queue',
-    label: 'Queue',
-    shortLabel: 'Queue',
+    azureSubtype: 'service-bus',
+    label: 'Azure Service Bus',
+    shortLabel: 'Service Bus',
     icon: '📨',
     category: 'vnet-optional',
     blockCategory: 'messaging',
@@ -137,8 +148,9 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   event: {
     id: 'event',
     schemaResourceType: 'event_hub',
-    label: 'Event Hub',
-    shortLabel: 'Event',
+    azureSubtype: 'event-hubs',
+    label: 'Azure Event Hubs',
+    shortLabel: 'Event Hubs',
     icon: '🔔',
     category: 'vnet-optional',
     blockCategory: 'messaging',
@@ -146,8 +158,9 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   'app-service': {
     id: 'app-service',
     schemaResourceType: 'app_service',
-    label: 'App Service',
-    shortLabel: 'AppSvc',
+    azureSubtype: 'app-service',
+    label: 'Azure App Service',
+    shortLabel: 'App Service',
     icon: '🌐',
     category: 'vnet-optional',
     blockCategory: 'compute',
@@ -155,7 +168,8 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   'container-instances': {
     id: 'container-instances',
     schemaResourceType: 'container_instances',
-    label: 'Container Instances',
+    azureSubtype: 'container-instances',
+    label: 'Azure Container Instances',
     shortLabel: 'ACI',
     icon: '📦',
     category: 'vnet-optional',
@@ -164,8 +178,9 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   'cosmos-db': {
     id: 'cosmos-db',
     schemaResourceType: 'cosmos_db',
-    label: 'Cosmos DB',
-    shortLabel: 'Cosmos',
+    azureSubtype: 'cosmos-db',
+    label: 'Azure Cosmos DB',
+    shortLabel: 'Cosmos DB',
     icon: '🌍',
     category: 'vnet-optional',
     blockCategory: 'data',
@@ -173,8 +188,9 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   'key-vault': {
     id: 'key-vault',
     schemaResourceType: 'key_vault',
-    label: 'Key Vault',
-    shortLabel: 'KeyVault',
+    azureSubtype: 'key-vault',
+    label: 'Azure Key Vault',
+    shortLabel: 'Key Vault',
     icon: '🔐',
     category: 'vnet-optional',
     blockCategory: 'security',
@@ -182,8 +198,9 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   'managed-identity': {
     id: 'managed-identity',
     schemaResourceType: 'managed_identity',
+    azureSubtype: 'managed-identity',
     label: 'Managed Identity',
-    shortLabel: 'Identity',
+    shortLabel: 'Managed Identity',
     icon: '🪪',
     category: 'vnet-optional',
     blockCategory: 'identity',
@@ -193,6 +210,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   vm: {
     id: 'vm',
     schemaResourceType: 'virtual_machine',
+    azureSubtype: 'vm',
     label: 'Virtual Machine',
     shortLabel: 'VM',
     icon: '🖥️',
@@ -203,7 +221,8 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   aks: {
     id: 'aks',
     schemaResourceType: 'kubernetes_cluster',
-    label: 'Kubernetes (AKS)',
+    azureSubtype: 'aks',
+    label: 'Azure Kubernetes Service',
     shortLabel: 'AKS',
     icon: '☸️',
     category: 'vnet-required',
@@ -213,8 +232,9 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   'internal-lb': {
     id: 'internal-lb',
     schemaResourceType: 'internal_load_balancer',
+    azureSubtype: 'load-balancer',
     label: 'Internal Load Balancer',
-    shortLabel: 'IntLB',
+    shortLabel: 'ILB',
     icon: '⚖️',
     category: 'vnet-required',
     blockCategory: 'delivery',
@@ -224,8 +244,9 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   firewall: {
     id: 'firewall',
     schemaResourceType: 'firewall_security',
-    label: 'Firewall',
-    shortLabel: 'FW',
+    azureSubtype: 'azure-firewall',
+    label: 'Azure Firewall',
+    shortLabel: 'Firewall',
     icon: '🛡️',
     category: 'vnet-required',
     blockCategory: 'delivery',
@@ -234,6 +255,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   nsg: {
     id: 'nsg',
     schemaResourceType: 'network_security_group',
+    azureSubtype: 'nsg',
     label: 'Network Security Group',
     shortLabel: 'NSG',
     icon: '🔒',
@@ -244,7 +266,8 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   bastion: {
     id: 'bastion',
     schemaResourceType: 'bastion_host',
-    label: 'Bastion',
+    azureSubtype: 'bastion',
+    label: 'Azure Bastion',
     shortLabel: 'Bastion',
     icon: '🏰',
     category: 'vnet-required',
@@ -255,8 +278,9 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   'nat-gateway': {
     id: 'nat-gateway',
     schemaResourceType: 'nat_gateway',
-    label: 'NAT Gateway',
-    shortLabel: 'NAT',
+    azureSubtype: 'nat-gateway',
+    label: 'Azure NAT Gateway',
+    shortLabel: 'NAT GW',
     icon: '🚪',
     category: 'vnet-required',
     blockCategory: 'network',
@@ -266,6 +290,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   'public-ip': {
     id: 'public-ip',
     schemaResourceType: 'public_ip',
+    azureSubtype: 'public-ip',
     label: 'Public IP',
     shortLabel: 'PIP',
     icon: '🌐',
@@ -275,8 +300,9 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   'route-table': {
     id: 'route-table',
     schemaResourceType: 'route_table',
+    azureSubtype: 'route-table',
     label: 'Route Table',
-    shortLabel: 'UDR',
+    shortLabel: 'Route Table',
     icon: '🔀',
     category: 'vnet-required',
     blockCategory: 'network',
@@ -285,6 +311,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   'private-endpoint': {
     id: 'private-endpoint',
     schemaResourceType: 'private_endpoint',
+    azureSubtype: 'private-endpoint',
     label: 'Private Endpoint',
     shortLabel: 'PE',
     icon: '🔒',
@@ -296,8 +323,9 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
   'app-gateway': {
     id: 'app-gateway',
     schemaResourceType: 'application_gateway',
-    label: 'Application Gateway',
-    shortLabel: 'AppGW',
+    azureSubtype: 'application-gateway',
+    label: 'Azure Application Gateway',
+    shortLabel: 'AGW',
     icon: '🚪',
     category: 'vnet-required',
     blockCategory: 'delivery',

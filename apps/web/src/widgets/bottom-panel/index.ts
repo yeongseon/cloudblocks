@@ -1,9 +1,0 @@
-export { BottomPanel } from './BottomPanel';
-export { Minimap } from './Minimap';
-export { DetailPanel } from './DetailPanel';
-export { CommandCard } from './CommandCard';
-export { BottomDockTabs } from './tabs/BottomDockTabs';
-export { OutputTab } from './tabs/OutputTab';
-export { ValidationTab } from './tabs/ValidationTab';
-export { LogsTab } from './tabs/LogsTab';
-export { DiffTab } from './tabs/DiffTab';

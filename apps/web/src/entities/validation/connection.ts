@@ -30,10 +30,12 @@ import type { ValidationError } from '@cloudblocks/domain';
  */
 
 type ConnectionCategory = ResourceCategory;
-export type EndpointType = ResourceCategory | 'internet';
+export type EndpointType = ResourceCategory | 'internet' | 'browser';
 
 /** Map of allowed category pairs to endpoint semantics. */
 const ALLOWED_CONNECTIONS: Record<string, EndpointSemantic[]> = {
+  'browser->internet': ['http', 'data'],
+  'browser->delivery': ['http', 'data'],
   'internet->delivery': ['http', 'data'],
   'delivery->delivery': ['http', 'data'],
   'delivery->compute': ['http', 'data'],
@@ -259,7 +261,10 @@ export function canConnect(
     if (source === 'internet') {
       return target === 'delivery';
     }
-    if (target === 'internet') {
+    if (source === 'browser') {
+      return target === 'internet' || target === 'delivery';
+    }
+    if (target === 'internet' || target === 'browser') {
       return false;
     }
 

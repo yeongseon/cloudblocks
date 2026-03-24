@@ -125,7 +125,7 @@ describe('SidebarPalette additional coverage', () => {
 
     render(<SidebarPalette />);
 
-    await user.click(screen.getByTitle('Create Network (VNet)'));
+    await user.click(screen.getByTitle('Create Azure Virtual Network'));
 
     expect(addNode).toHaveBeenCalledWith({
       kind: 'container',

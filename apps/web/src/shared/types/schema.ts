@@ -344,9 +344,20 @@ export function createBlankArchitecture(id: string, name: string): ArchitectureM
     name,
     version: '1',
     nodes: [],
-    endpoints: [],
-    connections: [],
+    endpoints: [
+      ...generateEndpointsForNode('ext-browser'),
+      ...generateEndpointsForNode('ext-internet'),
+    ],
+    connections: [
+      {
+        id: 'conn-browser-internet',
+        from: endpointId('ext-browser', 'output', 'http'),
+        to: endpointId('ext-internet', 'input', 'http'),
+        metadata: {},
+      },
+    ],
     externalActors: [
+      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: 5 } },
       { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
     ],
     createdAt: now,

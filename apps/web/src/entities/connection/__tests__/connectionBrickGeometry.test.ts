@@ -268,6 +268,96 @@ describe('connectionBrickGeometry', () => {
       const footprint = buildBrickFootprint(reversedSecondLeg);
       expect(footprint.length).toBeGreaterThanOrEqual(4);
     });
+
+    it('skips non-extractable segment objects and still forms footprint from valid segments', () => {
+      const route = {
+        segments: [
+          { kind: 'surface' },
+          {
+            start: [0, 3, 0],
+            end: [2, 3, 0],
+            kind: 'surface',
+          },
+        ],
+        srcPort: {
+          surfaceY: 3,
+          surfaceBase: [0, 3, 0],
+          surfaceExit: [0, 3, 0],
+          plateId: 'plate-1',
+          normal: 'neg-z',
+        },
+        tgtPort: {
+          surfaceY: 3,
+          surfaceBase: [2, 3, 0],
+          surfaceExit: [2, 3, 0],
+          plateId: 'plate-1',
+          normal: 'neg-x',
+        },
+      } as unknown as SurfaceRoute;
+
+      const footprint = buildBrickFootprint(route);
+      expect(footprint).toHaveLength(4);
+    });
+
+    it('keeps polyline continuity when second segment is reversed toward prior endpoint', () => {
+      const route = {
+        segments: [
+          { start: [0, 3, 0], end: [2, 3, 0], kind: 'surface' as const },
+          { start: [4, 3, 0], end: [2, 3, 0], kind: 'surface' as const },
+          { start: [4, 3, 0], end: [4, 3, 2], kind: 'surface' as const },
+        ],
+        srcPort: {
+          surfaceY: 3,
+          surfaceBase: [0, 3, 0],
+          surfaceExit: [0, 3, 0],
+          plateId: 'plate-1',
+          normal: 'neg-z',
+        },
+        tgtPort: {
+          surfaceY: 3,
+          surfaceBase: [4, 3, 2],
+          surfaceExit: [4, 3, 2],
+          plateId: 'plate-1',
+          normal: 'neg-x',
+        },
+      } as SurfaceRoute;
+
+      const footprint = buildBrickFootprint(route);
+      expect(footprint.length).toBeGreaterThanOrEqual(6);
+    });
+
+    it('normalizes winding to counter-clockwise for mixed segment ordering', () => {
+      const route = {
+        segments: [
+          { start: [3, 3, 3], end: [3, 3, 0], kind: 'surface' as const },
+          { start: [0, 3, 0], end: [3, 3, 0], kind: 'surface' as const },
+        ],
+        srcPort: {
+          surfaceY: 3,
+          surfaceBase: [0, 3, 0],
+          surfaceExit: [0, 3, 0],
+          plateId: 'plate-1',
+          normal: 'neg-z',
+        },
+        tgtPort: {
+          surfaceY: 3,
+          surfaceBase: [3, 3, 3],
+          surfaceExit: [3, 3, 3],
+          plateId: 'plate-1',
+          normal: 'neg-x',
+        },
+      } as SurfaceRoute;
+
+      const footprint = buildBrickFootprint(route);
+      let area = 0;
+      for (let i = 0; i < footprint.length; i += 1) {
+        const a = footprint[i];
+        const b = footprint[(i + 1) % footprint.length];
+        area += a[0] * b[2] - b[0] * a[2];
+      }
+
+      expect(area / 2).toBeLessThanOrEqual(0);
+    });
   });
 
   describe('projectFootprintToScreen', () => {
@@ -387,12 +477,47 @@ describe('connectionBrickGeometry', () => {
       expect(studs[0][0]).toBeCloseTo(1.1, 5);
       expect(studs[0][2]).toBeCloseTo(0, 5);
     });
+
+    it('returns empty when total route length is just below one CU', () => {
+      const route = makeStraightRoute(0, 0, 0.999, 0);
+      const studs = sampleStudPositions(route);
+
+      expect(studs).toEqual([]);
+    });
+
+    it('skips midpoint fallback when midpoint lies near bend threshold', () => {
+      const route = makeRouteFromSegments(
+        [
+          [0, 0],
+          [1.5, 0],
+          [1.5, 1],
+        ],
+        3,
+      );
+      const studs = sampleStudPositions(route);
+
+      expect(studs).toHaveLength(0);
+    });
   });
 
   describe('getVisibleSideFaces', () => {
     it('returns empty for degenerate footprint (< 3 vertices)', () => {
       const faces = getVisibleSideFaces([], 3.333, 3);
       expect(faces).toHaveLength(0);
+    });
+
+    it('returns empty when footprint has one or two vertices only', () => {
+      expect(getVisibleSideFaces([[0, 3.333, 0]], 3.333, 3)).toEqual([]);
+      expect(
+        getVisibleSideFaces(
+          [
+            [0, 3.333, 0],
+            [1, 3.333, 0],
+          ],
+          3.333,
+          3,
+        ),
+      ).toEqual([]);
     });
 
     it('returns side faces for a simple rectangle footprint', () => {

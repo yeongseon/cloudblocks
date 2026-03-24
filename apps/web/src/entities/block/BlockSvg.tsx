@@ -7,7 +7,7 @@ import type {
 } from '@cloudblocks/schema';
 import { CATEGORY_PORTS } from '@cloudblocks/schema';
 import { BLOCK_SHORT_NAMES, ROLE_VISUAL_INDICATORS } from '../../shared/types/index';
-import { getBlockIconUrl } from '../../shared/utils/iconResolver';
+import { getBlockIconUrl, getSubtypeShortLabel } from '../../shared/utils/iconResolver';
 import { getBlockDimensions, getBlockVisualProfile } from '../../shared/types/visualProfile';
 import {
   BLOCK_PADDING,
@@ -19,8 +19,8 @@ import {
   STUB_DOT_RX,
   STUB_DOT_RY,
   STUB_DOT_STROKE_WIDTH,
-  STUB_DOT_OPACITY,
   STUB_DOT_ACTIVE_OPACITY,
+  STUB_DOT_OPACITY,
   PORT_COLOR_HTTP,
   PORT_COLOR_EVENT,
   PORT_COLOR_DATA,
@@ -42,7 +42,7 @@ interface BlockSvgProps {
   category: ResourceCategory;
   provider?: ProviderType;
   subtype?: string;
-  name?: string; // user-given resource name (overrides shortName on left wall)
+  name?: string; // user-given resource name (displayed in detail panel, not on block face)
   aggregationCount?: number; // v2.0 §8 — show ×N badge when > 1
   roles?: BlockRole[]; // v2.0 §9 — visual-only role indicators
   /** When true, stub dots are emphasized (connect mode active). */
@@ -81,7 +81,7 @@ export const BlockSvg = memo(function BlockSvg({
   category,
   provider,
   subtype,
-  name,
+  name: _name,
   aggregationCount,
   roles,
   showStubs,
@@ -101,6 +101,7 @@ export const BlockSvg = memo(function BlockSvg({
 
   const faceColors = getBlockFaceColors(category, provider ?? 'azure', subtype);
   const shortName = BLOCK_SHORT_NAMES[category];
+  const subtypeLabel = getSubtypeShortLabel(provider ?? 'azure', subtype);
   const iconUrl = getBlockIconUrl(provider ?? 'azure', category, subtype);
 
   // ─── v2.0: silhouette from CU dimensions ───────────────────
@@ -168,6 +169,7 @@ export const BlockSvg = memo(function BlockSvg({
         strokeOpacity={EDGE_HIGHLIGHT_OPACITY}
       />
 
+      {/* ─── Resource type label (left wall — flush) ─── */}
       <text
         transform={`matrix(0.8975,0.4410,0,1,${leftLabelX},${wallCenterY})`}
         fontFamily="system-ui, -apple-system, sans-serif"
@@ -178,17 +180,19 @@ export const BlockSvg = memo(function BlockSvg({
         textAnchor="middle"
         dominantBaseline="middle"
       >
-        {name ?? shortName}
+        {subtypeLabel ?? shortName}
       </text>
 
-      <image
-        href={iconUrl}
-        width={iconSize}
-        height={iconSize}
-        x={-iconSize / 2}
-        y={-iconSize / 2}
-        transform={`matrix(0.8975,-0.4410,0,1,${rightLabelX},${wallCenterY})`}
-      />
+      {iconUrl && (
+        <image
+          href={iconUrl}
+          width={iconSize}
+          height={iconSize}
+          x={-iconSize / 2}
+          y={-iconSize / 2}
+          transform={`matrix(0.8975,-0.4410,0,1,${rightLabelX},${wallCenterY})`}
+        />
+      )}
 
       {aggregationCount != null && aggregationCount > 1 && (
         <g data-testid="aggregation-badge">
@@ -253,7 +257,6 @@ export const BlockSvg = memo(function BlockSvg({
         </filter>
       </defs>
 
-      {/* ─── Stub dots (connection anchor points on side walls) ─── */}
       <g data-testid="stub-dots" opacity={showStubs ? STUB_DOT_ACTIVE_OPACITY : STUB_DOT_OPACITY}>
         {(() => {
           const ports = CATEGORY_PORTS[category];

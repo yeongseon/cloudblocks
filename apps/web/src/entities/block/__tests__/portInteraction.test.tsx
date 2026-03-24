@@ -46,7 +46,7 @@ describe('BlockSvg port interaction', () => {
 
   it('calls onPortPointerEnter when port is hovered', () => {
     const { container } = render(
-      <BlockSvg category="compute" onPortPointerEnter={mockPointerEnter} />,
+      <BlockSvg category="compute" showStubs onPortPointerEnter={mockPointerEnter} />,
     );
 
     const outDot0 = container.querySelector('[data-testid="stub-dot-out-0"]')!;
@@ -61,7 +61,7 @@ describe('BlockSvg port interaction', () => {
 
   it('calls onPortPointerLeave when pointer leaves port', () => {
     const { container } = render(
-      <BlockSvg category="compute" onPortPointerLeave={mockPointerLeave} />,
+      <BlockSvg category="compute" showStubs onPortPointerLeave={mockPointerLeave} />,
     );
 
     const inDot0 = container.querySelector('[data-testid="stub-dot-in-0"]')!;
@@ -71,9 +71,8 @@ describe('BlockSvg port interaction', () => {
   });
 
   it('applies hover glow scale when hoveredPort matches', () => {
-    const { container } = render(<BlockSvg category="compute" hoveredPort="out-0" />);
+    const { container } = render(<BlockSvg category="compute" showStubs hoveredPort="out-0" />);
 
-    // When hovered, the glow polygon should be rendered even without showStubs
     const glow = container.querySelector('[data-testid="stub-glow-out-0"]');
     expect(glow).not.toBeNull();
     // Glow opacity should be 0.8 for hovered port
@@ -90,7 +89,7 @@ describe('BlockSvg port interaction', () => {
 
   it('port dots have crosshair cursor style', () => {
     const { container } = render(
-      <BlockSvg category="compute" onPortPointerDown={mockPointerDown} />,
+      <BlockSvg category="compute" showStubs onPortPointerDown={mockPointerDown} />,
     );
 
     const outDot0 = container.querySelector('[data-testid="stub-dot-out-0"]') as SVGElement;
@@ -99,7 +98,7 @@ describe('BlockSvg port interaction', () => {
 
   it('port dots have pointer-events: all', () => {
     const { container } = render(
-      <BlockSvg category="compute" onPortPointerDown={mockPointerDown} />,
+      <BlockSvg category="compute" showStubs onPortPointerDown={mockPointerDown} />,
     );
 
     const outDot0 = container.querySelector('[data-testid="stub-dot-out-0"]') as SVGElement;

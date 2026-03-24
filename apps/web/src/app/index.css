@@ -63,8 +63,8 @@
   --accent-warning: #eab308;
   --accent-error: #ef4444;
   --canvas-glow: rgba(30, 41, 59, 0.55);
-  --canvas-grid-major-color: rgba(255, 255, 255, 0.06);
-  --canvas-grid-minor-color: rgba(255, 255, 255, 0.03);
+  --canvas-grid-major-color: rgba(255, 255, 255, 0.12);
+  --canvas-grid-minor-color: rgba(255, 255, 255, 0.06);
 }
 
 [data-theme='workshop'] {
@@ -86,8 +86,8 @@
   --accent-warning: #ca8a04;
   --accent-error: #dc2626;
   --canvas-glow: rgba(241, 245, 249, 0.06);
-  --canvas-grid-major-color: rgba(0, 0, 0, 0.08);
-  --canvas-grid-minor-color: rgba(0, 0, 0, 0.04);
+  --canvas-grid-major-color: rgba(0, 0, 0, 0.12);
+  --canvas-grid-minor-color: rgba(0, 0, 0, 0.06);
 }
 
 * {

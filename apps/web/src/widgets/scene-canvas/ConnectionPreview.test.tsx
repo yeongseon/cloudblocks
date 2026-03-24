@@ -12,6 +12,7 @@ function setupMocks(interactionState: 'idle' | 'connecting', connectionSource: s
     const state = {
       interactionState,
       connectionSource,
+      setMagneticSnapTarget: () => {},
     };
     return (selector as (s: typeof state) => unknown)(state);
   }) as typeof useUIStore);

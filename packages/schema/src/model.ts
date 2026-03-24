@@ -137,7 +137,7 @@ export interface LegacyConnection {
 export interface ExternalActor {
   id: string;
   name: string;
-  type: 'internet';
+  type: 'internet' | 'browser';
   position: Position;
 }
 

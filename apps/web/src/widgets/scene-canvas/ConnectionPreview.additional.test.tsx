@@ -13,6 +13,7 @@ vi.mock('../../shared/hooks/useRafCallback', () => ({
 type UIState = {
   interactionState: 'idle' | 'connecting';
   connectionSource: string | null;
+  setMagneticSnapTarget: (id: string | null) => void;
 };
 
 type ArchNode = {
@@ -56,12 +57,13 @@ const baseBlock: ArchNode = {
 };
 
 function mockStores(
-  uiState: UIState,
+  uiState: Omit<UIState, 'setMagneticSnapTarget'>,
   nodes: ArchNode[],
   externalActors: Array<{ id: string; position: { x: number; y: number; z: number } }> = [],
 ) {
   vi.mocked(useUIStore).mockImplementation(((selector: unknown) => {
-    return (selector as (s: UIState) => unknown)(uiState);
+    const fullState: UIState = { ...uiState, setMagneticSnapTarget: () => {} };
+    return (selector as (s: UIState) => unknown)(fullState);
   }) as typeof useUIStore);
 
   vi.mocked(useArchitectureStore).mockImplementation(((selector: unknown) => {

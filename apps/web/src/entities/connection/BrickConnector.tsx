@@ -533,7 +533,7 @@ export const BrickConnector = memo(function BrickConnector({
 
     return {
       hitPath,
-      labelPos: fallbackRoute.elbow ?? {
+      labelPos: fallbackRoute.elbows[0] ?? {
         x:
           (fallbackRoute.segments[0].start.x +
             fallbackRoute.segments[fallbackRoute.segments.length - 1].end.x) /
@@ -544,7 +544,7 @@ export const BrickConnector = memo(function BrickConnector({
           2,
       },
       segments: fallbackRoute.segments,
-      elbow: fallbackRoute.elbow,
+      elbow: fallbackRoute.elbows[0],
     };
   }, [fallbackRoute, connection.id]);
 
