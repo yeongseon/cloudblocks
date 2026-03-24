@@ -1,7 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { LayerType, ProviderType, ResourceCategory } from '@cloudblocks/schema';
-import { getBlockIconUrl, getPlateIconUrl } from './iconResolver';
+import {
+  getBlockIconUrl,
+  getPlateIconUrl,
+  getResourceIconUrl,
+  getSubtypeDisplayLabel,
+  getSubtypeShortLabel,
+} from './iconResolver';
 
 describe('iconResolver additional branches', () => {
   beforeEach(() => {
@@ -37,5 +43,24 @@ describe('iconResolver additional branches', () => {
     );
 
     expect(fallback).toBeNull();
+  });
+
+  it('resolves Azure resource icon URL and returns null for unsupported lookups', () => {
+    expect(getResourceIconUrl('vm', 'azure')).toBe('/azure-icons/virtual-machine.svg');
+    expect(getResourceIconUrl('vm', 'aws')).toBeNull();
+    expect(getResourceIconUrl('definitely-unknown-resource', 'azure')).toBeNull();
+  });
+
+  it('returns subtype display label only when provider+subtype mapping exists', () => {
+    expect(getSubtypeDisplayLabel('azure', 'vm')).toBe('Virtual Machine');
+    expect(getSubtypeDisplayLabel('azure')).toBeNull();
+    expect(getSubtypeDisplayLabel('azure', 'unknown-subtype')).toBeNull();
+    expect(getSubtypeDisplayLabel('aws', 'vm')).toBeNull();
+  });
+
+  it('returns subtype short label only when subtype exists in mapping', () => {
+    expect(getSubtypeShortLabel('azure', 'vm')).toBe('VM');
+    expect(getSubtypeShortLabel('azure')).toBeNull();
+    expect(getSubtypeShortLabel('azure', 'unknown-subtype')).toBeNull();
   });
 });
