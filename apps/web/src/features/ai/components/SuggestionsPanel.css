@@ -79,7 +79,7 @@
 }
 
 .suggestion-item[data-severity='critical'] {
-  border-color: #e3000b;
+  border-color: var(--accent-error);
   background: #fff5f5;
 }
 
@@ -141,9 +141,9 @@
   padding: 12px;
   font-size: 12px;
   font-weight: 600;
-  color: #e3000b;
+  color: var(--accent-error);
   background: #fff5f5;
-  border: 2px solid #e3000b;
+  border: 2px solid var(--accent-error);
   border-radius: 8px;
 }
 

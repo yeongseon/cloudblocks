@@ -275,7 +275,7 @@
 /* ── Delete button (red LEGO brick) ── */
 .command-card-btn--delete,
 .command-card-btn--delete:not(.disabled):not(:disabled) {
-  background-color: #e3000b;
+  background-color: var(--accent-error);
   border-color: #b80009;
   color: #ffffff;
   box-shadow:

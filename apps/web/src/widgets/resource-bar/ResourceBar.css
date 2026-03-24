@@ -53,7 +53,7 @@
 }
 
 .resource-count {
-  color: var(--lego-yellow, #ffd500);
+  color: var(--accent-warning, #ffd500);
   font-size: 18px;
   font-weight: 800;
   line-height: 1;

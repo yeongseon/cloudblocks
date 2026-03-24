@@ -41,35 +41,6 @@
   --cat-messaging: #eab308;
   --cat-identity: #0078d4;
   --cat-operations: #64748b;
-
-  --lego-red: var(--accent-error);
-  --lego-red-dark: var(--accent-error);
-  --lego-red-light: var(--accent-error);
-  --lego-yellow: var(--accent-warning);
-  --lego-yellow-dark: var(--accent-warning);
-  --lego-yellow-light: var(--accent-warning);
-  --lego-blue: var(--accent-primary);
-  --lego-blue-dark: var(--accent-primary);
-  --lego-blue-light: var(--accent-secondary);
-  --lego-green: var(--accent-success);
-  --lego-green-dark: var(--accent-success);
-  --lego-green-light: var(--accent-success);
-  --lego-orange: var(--cat-delivery);
-  --lego-orange-dark: var(--cat-delivery);
-  --lego-white: var(--bg-canvas);
-  --lego-black: var(--text-primary);
-  --lego-baseplate: var(--bg-app);
-  --lego-baseplate-dark: var(--bg-surface);
-  --lego-baseplate-light: var(--bg-surface-raised);
-  --lego-panel-bg: var(--bg-surface);
-  --lego-panel-border: var(--border-default);
-  --roblox-primary: var(--accent-primary);
-  --roblox-primary-active: var(--accent-primary);
-  --roblox-accent: var(--accent-secondary);
-  --roblox-destructive: var(--accent-error);
-  --roblox-destructive-active: var(--accent-error);
-  --roblox-success: var(--accent-success);
-  --roblox-panel-bg: var(--bg-surface);
 }
 
 :root,
