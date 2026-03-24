@@ -32,12 +32,6 @@ function getBlockScreenSize(
   };
 }
 
-const PROVIDER_BADGES = {
-  azure: { label: 'AZ', color: '#0078D4' },
-  aws: { label: 'AWS', color: '#FF9900' },
-  gcp: { label: 'GCP', color: '#4285F4' },
-} as const;
-
 interface BlockSpriteProps {
   block: LeafNode;
   parentPlate: ContainerNode;
@@ -344,18 +338,6 @@ export const BlockSprite = memo(function BlockSprite({
             hoveredPort={hoveredPort}
           />
         </div>
-        {block.provider && (
-          <span
-            className="block-provider-badge"
-            style={{
-              borderColor: PROVIDER_BADGES[block.provider].color,
-              color: PROVIDER_BADGES[block.provider].color,
-            }}
-            title={`Provider: ${block.provider.toUpperCase()}`}
-          >
-            {PROVIDER_BADGES[block.provider].label}
-          </span>
-        )}
       </button>
     </div>
   );
