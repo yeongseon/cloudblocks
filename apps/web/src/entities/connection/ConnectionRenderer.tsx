@@ -525,7 +525,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
       topFacePolygon: pointsToPolygon(topFaceScreen),
       sideFaces,
     };
-  }, [surfaceRoute, originX, originY, connection.id]);
+  }, [surfaceRoute, originX, originY]);
 
   const fallbackRender = useMemo(() => {
     if (!fallbackRoute) return null;
@@ -546,7 +546,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
       segments: fallbackRoute.segments,
       elbow: fallbackRoute.elbows[0],
     };
-  }, [fallbackRoute, connection.id]);
+  }, [fallbackRoute]);
 
   if (!surfaceRender && !fallbackRender) return null;
 

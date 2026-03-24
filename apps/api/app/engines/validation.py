@@ -63,7 +63,9 @@ class ArchitectureValidator:
             container_layer = container_block.get("type")
             if not isinstance(container_layer, str) or container_layer not in LAYER_TYPES:
                 warnings.append(
-                    f"plates[{i}]: invalid type '{container_layer}', " f"expected one of {LAYER_TYPES}"
+                    f"plates[{i}]: invalid type"
+                    f" '{container_layer}',"
+                    f" expected one of {LAYER_TYPES}"
                 )
 
             children = container_block.get("children")

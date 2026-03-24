@@ -9,7 +9,11 @@ API_DIR = Path(__file__).resolve().parents[1]
 if str(API_DIR) not in sys.path:
     _ = sys.path.insert(0, str(API_DIR))
 
-from scripts.generate_models import GENERATED_MODEL_PATH, SCHEMA_PATH, build_generated_source
+from scripts.generate_models import (  # noqa: E402
+    GENERATED_MODEL_PATH,
+    SCHEMA_PATH,
+    build_generated_source,
+)
 
 
 def main() -> int:
