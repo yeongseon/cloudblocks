@@ -55,7 +55,7 @@ describe('registerBuiltinTemplates', () => {
     expect(template).toBeDefined();
     expect(containerNodes).toHaveLength(3);
     expect(resourceNodes).toHaveLength(4);
-    expect(template?.architecture.connections).toHaveLength(4);
+    expect(template?.architecture.connections).toHaveLength(5);
   });
 
   it('simple compute template has expected container/block/connection counts', async () => {
@@ -71,7 +71,7 @@ describe('registerBuiltinTemplates', () => {
     expect(template).toBeDefined();
     expect(containerNodes).toHaveLength(2);
     expect(resourceNodes).toHaveLength(2);
-    expect(template?.architecture.connections).toHaveLength(2);
+    expect(template?.architecture.connections).toHaveLength(3);
   });
 
   it('data storage template has expected container/block/connection counts', async () => {
@@ -87,7 +87,7 @@ describe('registerBuiltinTemplates', () => {
     expect(template).toBeDefined();
     expect(containerNodes).toHaveLength(3);
     expect(resourceNodes).toHaveLength(4);
-    expect(template?.architecture.connections).toHaveLength(4);
+    expect(template?.architecture.connections).toHaveLength(5);
   });
 
   it('serverless templates have generator compatibility and expected counts', async () => {
@@ -107,7 +107,7 @@ describe('registerBuiltinTemplates', () => {
     expect(
       httpApiTemplate?.architecture.nodes.filter((node) => node.kind === 'resource'),
     ).toHaveLength(4);
-    expect(httpApiTemplate?.architecture.connections).toHaveLength(4);
+    expect(httpApiTemplate?.architecture.connections).toHaveLength(5);
 
     expect(eventPipelineTemplate).toBeDefined();
     expect(eventPipelineTemplate?.generatorCompat).toEqual(['terraform', 'bicep', 'pulumi']);
@@ -117,7 +117,7 @@ describe('registerBuiltinTemplates', () => {
     expect(
       eventPipelineTemplate?.architecture.nodes.filter((node) => node.kind === 'resource'),
     ).toHaveLength(6);
-    expect(eventPipelineTemplate?.architecture.connections).toHaveLength(6);
+    expect(eventPipelineTemplate?.architecture.connections).toHaveLength(7);
   });
 
   it('full-stack serverless template uses all block categories with expected counts', async () => {
@@ -136,8 +136,8 @@ describe('registerBuiltinTemplates', () => {
     expect(template?.architecture.nodes.filter((node) => node.kind === 'resource')).toHaveLength(
       10,
     );
-    expect(template?.architecture.connections).toHaveLength(11);
-    expect(template?.architecture.externalActors).toHaveLength(1);
+    expect(template?.architecture.connections).toHaveLength(12);
+    expect(template?.architecture.externalActors).toHaveLength(2);
 
     const categories = template?.architecture.nodes
       .filter((node) => node.kind === 'resource')

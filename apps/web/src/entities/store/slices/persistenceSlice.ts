@@ -237,6 +237,7 @@ export const validateArchitectureShape = (imported: unknown): { valid: true } =>
 
   const externalActorIds = new Set<string>();
   if (imported.externalActors === undefined) {
+    externalActorIds.add('ext-browser');
     externalActorIds.add('ext-internet');
   } else {
     if (!Array.isArray(imported.externalActors)) {
@@ -557,10 +558,16 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
           }),
         ) ?? [
           {
+            id: 'ext-browser',
+            name: 'Browser',
+            type: 'browser',
+            position: { x: -6, y: 0, z: 5 },
+          },
+          {
             id: 'ext-internet',
             name: 'Internet',
             type: 'internet',
-            position: { ...DEFAULT_EXTERNAL_ACTOR_POSITION },
+            position: { x: -3, y: 0, z: 5 },
           },
         ],
         createdAt: (imported.createdAt as string) || now,

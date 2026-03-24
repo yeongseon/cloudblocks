@@ -128,6 +128,12 @@ const threeTierTemplate: ArchitectureTemplate = {
     ],
     connections: [
       {
+        id: 'conn-browser-internet',
+        from: endpointId('ext-browser', 'output', 'http'),
+        to: endpointId('ext-internet', 'input', 'http'),
+        metadata: {},
+      },
+      {
         id: 'conn-tmpl-inet-gw',
         from: endpointId('ext-internet', 'output', 'data'),
         to: endpointId('block-tmpl-gw', 'input', 'data'),
@@ -153,6 +159,7 @@ const threeTierTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
+      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: 5 } },
       { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
     ],
   },
@@ -227,6 +234,12 @@ const simpleComputeTemplate: ArchitectureTemplate = {
     ],
     connections: [
       {
+        id: 'conn-browser-internet',
+        from: endpointId('ext-browser', 'output', 'http'),
+        to: endpointId('ext-internet', 'input', 'http'),
+        metadata: {},
+      },
+      {
         id: 'conn-tmpl-inet-gw2',
         from: endpointId('ext-internet', 'output', 'data'),
         to: endpointId('block-tmpl-gw2', 'input', 'data'),
@@ -240,6 +253,7 @@ const simpleComputeTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
+      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: 5 } },
       { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
     ],
   },
@@ -353,6 +367,12 @@ const dataStorageTemplate: ArchitectureTemplate = {
     ],
     connections: [
       {
+        id: 'conn-browser-internet',
+        from: endpointId('ext-browser', 'output', 'http'),
+        to: endpointId('ext-internet', 'input', 'http'),
+        metadata: {},
+      },
+      {
         id: 'conn-tmpl-inet-gw3',
         from: endpointId('ext-internet', 'output', 'data'),
         to: endpointId('block-tmpl-gw3', 'input', 'data'),
@@ -378,6 +398,7 @@ const dataStorageTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
+      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: 5 } },
       { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
     ],
   },
@@ -495,6 +516,12 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
     ],
     connections: [
       {
+        id: 'conn-browser-internet',
+        from: endpointId('ext-browser', 'output', 'http'),
+        to: endpointId('ext-internet', 'input', 'http'),
+        metadata: {},
+      },
+      {
         id: 'conn-tmpl-inet-gw4',
         from: endpointId('ext-internet', 'output', 'data'),
         to: endpointId('block-tmpl-gw4', 'input', 'data'),
@@ -520,6 +547,7 @@ const serverlessHttpApiTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
+      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: 5 } },
       { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
     ],
   },
@@ -647,6 +675,12 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
     ],
     connections: [
       {
+        id: 'conn-browser-internet',
+        from: endpointId('ext-browser', 'output', 'http'),
+        to: endpointId('ext-internet', 'input', 'http'),
+        metadata: {},
+      },
+      {
         id: 'conn-tmpl-event-func5a',
         from: endpointId('block-tmpl-event5', 'output', 'data'),
         to: endpointId('block-tmpl-func5a', 'input', 'data'),
@@ -683,7 +717,10 @@ const eventDrivenPipelineTemplate: ArchitectureTemplate = {
         metadata: {},
       },
     ],
-    externalActors: [],
+    externalActors: [
+      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: 5 } },
+      { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
+    ],
   },
 };
 
@@ -891,6 +928,12 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       },
     ],
     connections: [
+      {
+        id: 'conn-browser-internet',
+        from: endpointId('ext-browser', 'output', 'http'),
+        to: endpointId('ext-internet', 'input', 'http'),
+        metadata: {},
+      },
       // Internet → Gateway
       {
         id: 'conn-fs-inet-gw',
@@ -970,6 +1013,7 @@ const fullStackServerlessTemplate: ArchitectureTemplate = {
       },
     ],
     externalActors: [
+      { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: 5 } },
       { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
     ],
   },

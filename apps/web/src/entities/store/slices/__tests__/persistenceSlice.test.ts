@@ -642,6 +642,7 @@ describe('persistenceSlice branches', () => {
       });
       expect(queue).toMatchObject({ resourceType: 'messaging', provider: 'azure' });
       expect(architecture.externalActors).toEqual([
+        { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: 5 } },
         { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
       ]);
     });
