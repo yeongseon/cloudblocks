@@ -5,7 +5,6 @@
 // ═══════════════════════════════════════════════════════════════
 
 import type { EndpointSemantic } from '@cloudblocks/schema';
-import type { StudColorSpec } from '../../shared/types/index';
 import { deriveFaceColors } from '../block/blockFaceColors';
 
 // ─── Semantic Subset ─────────────────────────────────────────
@@ -29,7 +28,6 @@ export interface ConnectionBrickColors {
   topFaceStroke: string;
   leftSideColor: string;
   rightSideColor: string;
-  studColors: StudColorSpec;
 }
 
 export function getConnectionBrickColors(
@@ -44,11 +42,6 @@ export function getConnectionBrickColors(
     topFaceStroke: derived.topStroke,
     leftSideColor: derived.left,
     rightSideColor: derived.right,
-    studColors: {
-      main: derived.studMain,
-      shadow: derived.studShadow,
-      highlight: derived.studHighlight,
-    },
   };
 }
 
