@@ -46,18 +46,18 @@ CloudBlocks evolves through four stages — from visual design tool to multi-clo
 
 ### V1 Milestones
 
-| Milestone | Focus                               | Status      |
-| --------- | ----------------------------------- | ----------- |
-| M22       | Port Connections & Visual Theme     | ✅ Done     |
-| M23       | Taxonomy & Hardening                | ✅ Done     |
-| M24       | Block Unification                   | ✅ Done     |
-| M25       | V1 Documentation & Product Contract | ✅ Done     |
-| M26       | Visual Language & Routing           | **Current** |
+| Milestone | Focus                               | Status  |
+| --------- | ----------------------------------- | ------- |
+| M22       | Port Connections & Visual Theme     | ✅ Done |
+| M23       | Taxonomy & Hardening                | ✅ Done |
+| M24       | Block Unification                   | ✅ Done |
+| M25       | V1 Documentation & Product Contract | ✅ Done |
+| M26       | Visual Language & Routing           | ✅ Done |
 
 ### Version Transition
 
 ```
-v0.24.0 (current) → v1.0.0-beta.1 (first public release) → v1.0.0 (baseline)
+v0.26.0 (current) → v1.0.0-beta.1 (first public release) → v1.0.0 (baseline)
 ```
 
 After v1.0.0, development continues with backward-compatible minor releases (v1.1.0, v1.2.0, ...).
@@ -104,8 +104,8 @@ After v1.0.0, development continues with backward-compatible minor releases (v1.
 
 | Metric                   | Value                                                                                                     |
 | ------------------------ | --------------------------------------------------------------------------------------------------------- |
-| 0.x milestones completed | 25 (M0–M25)                                                                                               |
-| Tests passing            | 2,076                                                                                                     |
+| 0.x milestones completed | 26 (M0–M26)                                                                                               |
+| Tests passing            | 2,073                                                                                                     |
 | Branch coverage          | ≥ 90%                                                                                                     |
 | Codebase                 | TypeScript (React 19) + Python (FastAPI) monorepo                                                         |
 | Architecture             | Block-based composition with `kind` + `traits` type system ([ADR-0013](../adr/0013-block-unification.md)) |
