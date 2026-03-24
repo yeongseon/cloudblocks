@@ -8,8 +8,10 @@ import type {
 } from '@cloudblocks/schema';
 import { CATEGORY_PORTS, endpointId, generateEndpointsForBlock } from '@cloudblocks/schema';
 import {
+  findLCA,
   getConnectionSurfaceRoute,
   resolveSurfacePort,
+  routeCrossContainer,
   routeSameSurface,
   SURFACE_EXIT_OFFSET_CU,
 } from '../surfaceRouting';
@@ -276,7 +278,7 @@ describe('getConnectionSurfaceRoute', () => {
     expect(route!.segments.every((segment) => segment.surfaceId === 'container-a')).toBe(true);
   });
 
-  it('falls back to cross-container transition segments on ground surface', () => {
+  it('routes cross-container with exit, transition, and surface segments via ground', () => {
     const plateA = makePlate({ id: 'container-a', position: { x: 0, y: 1, z: 0 } });
     const plateB = makePlate({ id: 'container-b', position: { x: 20, y: 4, z: 20 } });
     const blockA = makeBlock({
@@ -308,11 +310,25 @@ describe('getConnectionSurfaceRoute', () => {
     expect(route).not.toBeNull();
     expect(route!.srcPort.containerId).toBe('container-a');
     expect(route!.tgtPort.containerId).toBe('container-b');
-    expect(route!.segments.length).toBeGreaterThanOrEqual(2);
-    expect(route!.segments.every((segment) => segment.kind === 'transition')).toBe(true);
-    expect(route!.segments.every((segment) => segment.start[1] === 0 && segment.end[1] === 0)).toBe(
-      true,
-    );
+    expect(route!.segments.length).toBeGreaterThanOrEqual(4);
+
+    // First segment: exit from source block on source container surface
+    expect(route!.segments[0].kind).toBe('exit');
+    expect(route!.segments[0].surfaceId).toBe('container-a');
+
+    // Last segment: exit into target block on target container surface
+    const lastSeg = route!.segments[route!.segments.length - 1];
+    expect(lastSeg.kind).toBe('exit');
+    expect(lastSeg.surfaceId).toBe('container-b');
+
+    // Should contain transition segments (vertical drops to/from ground)
+    expect(route!.segments.some((s) => s.kind === 'transition')).toBe(true);
+
+    // Transition segments should go to/from ground (y=0) since both are top-level
+    const transitions = route!.segments.filter((s) => s.kind === 'transition');
+    for (const t of transitions) {
+      expect(t.start[1] === 0 || t.end[1] === 0).toBe(true);
+    }
   });
 
   it('returns null when source endpoint is missing', () => {
@@ -394,5 +410,213 @@ describe('getConnectionSurfaceRoute', () => {
     );
 
     expect(route).toBeNull();
+  });
+});
+
+describe('findLCA', () => {
+  function buildContainerMap(containers: ContainerBlock[]): Map<string, ContainerBlock> {
+    return new Map(containers.map((c) => [c.id, c]));
+  }
+
+  it('returns null for top-level siblings (no shared ancestor)', () => {
+    const a = makePlate({ id: 'a', parentId: null });
+    const b = makePlate({ id: 'b', parentId: null });
+    const map = buildContainerMap([a, b]);
+    expect(findLCA('a', 'b', map)).toBeNull();
+  });
+
+  it('returns the parent when two containers share the same parent', () => {
+    const parent = makePlate({ id: 'parent', parentId: null });
+    const a = makePlate({ id: 'a', parentId: 'parent' });
+    const b = makePlate({ id: 'b', parentId: 'parent' });
+    const map = buildContainerMap([parent, a, b]);
+    expect(findLCA('a', 'b', map)).toBe('parent');
+  });
+
+  it('returns the ancestor container when one is nested inside the other', () => {
+    const outer = makePlate({ id: 'outer', parentId: null });
+    const inner = makePlate({ id: 'inner', parentId: 'outer' });
+    const map = buildContainerMap([outer, inner]);
+    expect(findLCA('outer', 'inner', map)).toBe('outer');
+    expect(findLCA('inner', 'outer', map)).toBe('outer');
+  });
+
+  it('returns the same container when src and tgt are the same', () => {
+    const a = makePlate({ id: 'a', parentId: null });
+    const map = buildContainerMap([a]);
+    expect(findLCA('a', 'a', map)).toBe('a');
+  });
+
+  it('finds LCA for deeply nested containers', () => {
+    const root = makePlate({ id: 'root', parentId: null });
+    const l1 = makePlate({ id: 'l1', parentId: 'root' });
+    const l2a = makePlate({ id: 'l2a', parentId: 'l1' });
+    const l2b = makePlate({ id: 'l2b', parentId: 'l1' });
+    const map = buildContainerMap([root, l1, l2a, l2b]);
+    expect(findLCA('l2a', 'l2b', map)).toBe('l1');
+  });
+});
+
+describe('routeCrossContainer', () => {
+  function buildContainerMap(containers: ContainerBlock[]): Map<string, ContainerBlock> {
+    return new Map(containers.map((c) => [c.id, c]));
+  }
+
+  it('produces exit + transition + surface + transition + exit for top-level siblings', () => {
+    const plateA = makePlate({
+      id: 'a',
+      parentId: null,
+      position: { x: 0, y: 2, z: 0 },
+      frame: { width: 10, depth: 10, height: 1 },
+    });
+    const plateB = makePlate({
+      id: 'b',
+      parentId: null,
+      position: { x: 20, y: 5, z: 20 },
+      frame: { width: 10, depth: 10, height: 1 },
+    });
+    const map = buildContainerMap([plateA, plateB]);
+
+    const srcPort = makeSurfacePort({
+      surfaceBase: [2, 3, 2],
+      surfaceExit: [2, 3, 1.25],
+      containerId: 'a',
+      surfaceY: 3,
+      normal: 'neg-z',
+    });
+    const tgtPort = makeSurfacePort({
+      surfaceBase: [23, 6, 23],
+      surfaceExit: [22.25, 6, 23],
+      containerId: 'b',
+      surfaceY: 6,
+      normal: 'neg-x',
+    });
+
+    const segments = routeCrossContainer(srcPort, tgtPort, map);
+
+    // First: exit on source surface
+    expect(segments[0].kind).toBe('exit');
+    expect(segments[0].surfaceId).toBe('a');
+
+    // Last: exit on target surface
+    const last = segments[segments.length - 1];
+    expect(last.kind).toBe('exit');
+    expect(last.surfaceId).toBe('b');
+
+    // Should have transition segments (vertical drops)
+    const transitions = segments.filter((s) => s.kind === 'transition');
+    expect(transitions.length).toBeGreaterThanOrEqual(2);
+
+    // Transition to ground: at least one endpoint should be y=0
+    for (const t of transitions) {
+      expect(t.start[1] === 0 || t.end[1] === 0).toBe(true);
+    }
+
+    // Should have surface segments on ground (horizontal routing)
+    const surfaces = segments.filter((s) => s.kind === 'surface');
+    expect(surfaces.length).toBeGreaterThanOrEqual(1);
+    for (const s of surfaces) {
+      expect(s.start[1]).toBe(0);
+      expect(s.end[1]).toBe(0);
+    }
+  });
+
+  it('produces segments through LCA surface for nested siblings', () => {
+    const parent = makePlate({
+      id: 'parent',
+      parentId: null,
+      position: { x: 0, y: 0, z: 0 },
+      frame: { width: 40, depth: 40, height: 2 },
+    });
+    const childA = makePlate({
+      id: 'child-a',
+      parentId: 'parent',
+      position: { x: 1, y: 0, z: 1 },
+      frame: { width: 10, depth: 10, height: 1 },
+    });
+    const childB = makePlate({
+      id: 'child-b',
+      parentId: 'parent',
+      position: { x: 20, y: 0, z: 20 },
+      frame: { width: 10, depth: 10, height: 1 },
+    });
+    const map = buildContainerMap([parent, childA, childB]);
+
+    // child-a surfaceY: parent(y=0+h=2) + child(y=0+h=1) → world depends on how nesting works
+    // For now, surfaceY passed via the port directly
+    const srcPort = makeSurfacePort({
+      surfaceBase: [3, 3, 3],
+      surfaceExit: [3, 3, 2.25],
+      containerId: 'child-a',
+      surfaceY: 3,
+      normal: 'neg-z',
+    });
+    const tgtPort = makeSurfacePort({
+      surfaceBase: [22, 3, 22],
+      surfaceExit: [21.25, 3, 22],
+      containerId: 'child-b',
+      surfaceY: 3,
+      normal: 'neg-x',
+    });
+
+    const segments = routeCrossContainer(srcPort, tgtPort, map);
+
+    // Should route through parent surface (y=0+2=2), not ground (y=0)
+    const transitions = segments.filter((s) => s.kind === 'transition');
+    // At least one transition should involve the parent surface Y=2
+    const reachesParentSurface = transitions.some((t) => t.start[1] === 2 || t.end[1] === 2);
+    expect(reachesParentSurface).toBe(true);
+
+    // Surface segments on parent should be at Y=2
+    const surfaces = segments.filter((s) => s.kind === 'surface');
+    if (surfaces.length > 0) {
+      for (const s of surfaces) {
+        expect(s.start[1]).toBe(2);
+        expect(s.end[1]).toBe(2);
+      }
+    }
+  });
+
+  it('skips transition segments when source and target are at the same Y as shared surface', () => {
+    const plateA = makePlate({
+      id: 'a',
+      parentId: null,
+      position: { x: 0, y: 0, z: 0 },
+      frame: { width: 10, depth: 10, height: 0 },
+    });
+    const plateB = makePlate({
+      id: 'b',
+      parentId: null,
+      position: { x: 20, y: 0, z: 20 },
+      frame: { width: 10, depth: 10, height: 0 },
+    });
+    const map = buildContainerMap([plateA, plateB]);
+
+    // Both surfaces at Y=0, ground also Y=0 → no vertical transitions needed
+    const srcPort = makeSurfacePort({
+      surfaceBase: [2, 0, 2],
+      surfaceExit: [2, 0, 1.25],
+      containerId: 'a',
+      surfaceY: 0,
+      normal: 'neg-z',
+    });
+    const tgtPort = makeSurfacePort({
+      surfaceBase: [22, 0, 22],
+      surfaceExit: [21.25, 0, 22],
+      containerId: 'b',
+      surfaceY: 0,
+      normal: 'neg-x',
+    });
+
+    const segments = routeCrossContainer(srcPort, tgtPort, map);
+
+    // No transition segments since everything is at Y=0
+    const transitions = segments.filter((s) => s.kind === 'transition');
+    expect(transitions).toHaveLength(0);
+
+    // Should still have exit + surface + exit
+    expect(segments[0].kind).toBe('exit');
+    expect(segments[segments.length - 1].kind).toBe('exit');
+    expect(segments.some((s) => s.kind === 'surface')).toBe(true);
   });
 });

@@ -172,6 +172,179 @@ export function routeSameSurface(src: SurfacePort, tgt: SurfacePort): WorldRoute
   return [exitSrc, seg1, seg2, exitTgt];
 }
 
+/**
+ * Walk up the container parentId chain and return the ancestor IDs
+ * from the given container to the root (inclusive).
+ */
+function getAncestorChain(
+  containerId: string,
+  containerMap: Map<string, ContainerBlock>,
+): string[] {
+  const chain: string[] = [containerId];
+  let current = containerMap.get(containerId);
+  while (current?.parentId) {
+    chain.push(current.parentId);
+    current = containerMap.get(current.parentId);
+  }
+  return chain;
+}
+
+/**
+ * Find the Lowest Common Ancestor (LCA) of two containers.
+ * Returns the container ID of the LCA, or null if they share no ancestor
+ * (both are top-level siblings — route via ground plane).
+ */
+export function findLCA(
+  srcContainerId: string,
+  tgtContainerId: string,
+  containerMap: Map<string, ContainerBlock>,
+): string | null {
+  const srcChain = getAncestorChain(srcContainerId, containerMap);
+  const tgtSet = new Set(getAncestorChain(tgtContainerId, containerMap));
+  for (const ancestorId of srcChain) {
+    if (tgtSet.has(ancestorId)) return ancestorId;
+  }
+  return null;
+}
+
+/**
+ * Get the surface Y (top face) of a container in world space.
+ * For nested containers, walks up the parentId chain to accumulate Y offsets.
+ */
+function getContainerWorldSurfaceY(
+  container: ContainerBlock,
+  containerMap: Map<string, ContainerBlock>,
+): number {
+  let y = container.position.y + container.frame.height;
+  let current = container;
+  while (current.parentId) {
+    const parent = containerMap.get(current.parentId);
+    if (!parent) break;
+    y += parent.position.y + parent.frame.height;
+    current = parent;
+  }
+  return y;
+}
+
+/**
+ * Route between two surface ports on DIFFERENT containers.
+ *
+ * Strategy:
+ * 1. Find the LCA (or use ground plane if both are top-level)
+ * 2. Produce exit segments on source container surface
+ * 3. Add vertical transition from source surface down to shared surface
+ * 4. Route horizontally on the shared surface (Manhattan L-shape)
+ * 5. Add vertical transition from shared surface up to target surface
+ * 6. Produce exit segments on target container surface
+ */
+export function routeCrossContainer(
+  srcPort: SurfacePort,
+  tgtPort: SurfacePort,
+  containerMap: Map<string, ContainerBlock>,
+): WorldRouteSegment[] {
+  const lca = findLCA(srcPort.containerId, tgtPort.containerId, containerMap);
+
+  // Determine the shared surface Y: LCA top face, or ground (y=0) for top-level siblings
+  let sharedY: number;
+  let sharedSurfaceId: string;
+  if (lca) {
+    const lcaContainer = containerMap.get(lca);
+    if (lcaContainer) {
+      sharedY = getContainerWorldSurfaceY(lcaContainer, containerMap);
+      sharedSurfaceId = lca;
+    } else {
+      sharedY = 0;
+      sharedSurfaceId = 'ground';
+    }
+  } else {
+    sharedY = 0;
+    sharedSurfaceId = 'ground';
+  }
+
+  const segments: WorldRouteSegment[] = [];
+
+  // 1. Exit from source block to source container surface edge
+  segments.push({
+    start: srcPort.surfaceBase,
+    end: srcPort.surfaceExit,
+    kind: 'exit',
+    surfaceId: srcPort.containerId,
+  });
+
+  // 2. Vertical transition from source surface down to shared surface
+  const srcDropStart = srcPort.surfaceExit;
+  const srcDropEnd: WorldPoint3 = [srcDropStart[0], sharedY, srcDropStart[2]];
+  if (Math.abs(srcDropStart[1] - sharedY) > 0.01) {
+    segments.push({
+      start: srcDropStart,
+      end: srcDropEnd,
+      kind: 'transition',
+      surfaceId: sharedSurfaceId,
+    });
+  }
+
+  // 3. Manhattan route on the shared surface (X/Z plane at sharedY)
+  const sharedSrc: WorldPoint3 = srcDropEnd;
+  const tgtRiseStart: WorldPoint3 = [tgtPort.surfaceExit[0], sharedY, tgtPort.surfaceExit[2]];
+
+  // Route on shared surface: same logic as routeSameSurface but on shared plane
+  const [sx, , sz] = sharedSrc;
+  const [tx, , tz] = tgtRiseStart;
+
+  if (Math.abs(sx - tx) < 0.01 && Math.abs(sz - tz) < 0.01) {
+    // Directly aligned — no horizontal segment needed
+  } else if (Math.abs(sx - tx) < 0.01 || Math.abs(sz - tz) < 0.01) {
+    // Straight line on shared surface
+    segments.push({
+      start: sharedSrc,
+      end: tgtRiseStart,
+      kind: 'surface',
+      surfaceId: sharedSurfaceId,
+    });
+  } else {
+    // L-shape with elbow scoring
+    const elbowA: WorldPoint3 = [sx, sharedY, tz];
+    const elbowB: WorldPoint3 = [tx, sharedY, sz];
+    const scoreA = scoreElbow(sharedSrc, elbowA, tgtRiseStart, srcPort.normal, tgtPort.normal);
+    const scoreB = scoreElbow(sharedSrc, elbowB, tgtRiseStart, srcPort.normal, tgtPort.normal);
+    const elbow = scoreA <= scoreB ? elbowA : elbowB;
+
+    segments.push({
+      start: sharedSrc,
+      end: elbow,
+      kind: 'surface',
+      surfaceId: sharedSurfaceId,
+    });
+    segments.push({
+      start: elbow,
+      end: tgtRiseStart,
+      kind: 'surface',
+      surfaceId: sharedSurfaceId,
+    });
+  }
+
+  // 4. Vertical transition from shared surface up to target surface
+  const tgtRiseEnd = tgtPort.surfaceExit;
+  if (Math.abs(sharedY - tgtRiseEnd[1]) > 0.01) {
+    segments.push({
+      start: tgtRiseStart,
+      end: tgtRiseEnd,
+      kind: 'transition',
+      surfaceId: tgtPort.containerId,
+    });
+  }
+
+  // 5. Exit into target block
+  segments.push({
+    start: tgtPort.surfaceExit,
+    end: tgtPort.surfaceBase,
+    kind: 'exit',
+    surfaceId: tgtPort.containerId,
+  });
+
+  return segments;
+}
+
 function resolveEndpointContext(
   endpointId: string,
   side: PortSide,
@@ -251,24 +424,8 @@ export function getConnectionSurfaceRoute(
     return { segments, srcPort, tgtPort };
   }
 
-  // Cross-container: temporary fallback via ground surface (see #1357)
-  const groundY = 0;
-  const groundSrc: SurfacePort = {
-    ...srcPort,
-    surfaceY: groundY,
-    surfaceBase: [srcPort.surfaceBase[0], groundY, srcPort.surfaceBase[2]],
-    surfaceExit: [srcPort.surfaceExit[0], groundY, srcPort.surfaceExit[2]],
-  };
-  const groundTgt: SurfacePort = {
-    ...tgtPort,
-    surfaceY: groundY,
-    surfaceBase: [tgtPort.surfaceBase[0], groundY, tgtPort.surfaceBase[2]],
-    surfaceExit: [tgtPort.surfaceExit[0], groundY, tgtPort.surfaceExit[2]],
-  };
-  const segments = routeSameSurface(groundSrc, groundTgt);
-  const transitionSegments = segments.map((seg) => ({
-    ...seg,
-    kind: 'transition' as RouteSegmentKind,
-  }));
-  return { segments: transitionSegments, srcPort: groundSrc, tgtPort: groundTgt };
+  // Cross-container: route through nearest shared ancestor surface (or ground)
+  const containerMap = new Map(plates.map((p) => [p.id, p]));
+  const segments = routeCrossContainer(srcPort, tgtPort, containerMap);
+  return { segments, srcPort, tgtPort };
 }
