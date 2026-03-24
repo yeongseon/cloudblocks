@@ -15,7 +15,7 @@ architectureStore.ts          # Thin composition (creates store, subscribes to a
 └── slices/
     ├── types.ts              # Shared ArchitectureState interface
     ├── helpers.ts            # Shared helper utilities (pushHistory, etc.)
-    ├── domainSlice.ts        # Plate/Block/Connection CRUD
+    ├── domainSlice.ts        # Container block/Block/Connection CRUD
     ├── historySlice.ts       # Undo/Redo
     ├── persistenceSlice.ts   # Save/Load/Import/Export
     ├── validationSlice.ts    # Run validation
@@ -27,13 +27,13 @@ architectureStore.ts          # Thin composition (creates store, subscribes to a
 
 ## 2. Slice Responsibilities
 
-| Slice                | Responsibility                       | State Owned                | Key Actions                                                                                                                                   |
-| -------------------- | ------------------------------------ | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| **domainSlice**      | Plate, block, and connection CRUD    | `workspace.architecture.*` | `addPlate`, `removePlate`, `addBlock`, `removeBlock`, `moveBlock`, `addConnection`, `removeConnection`, `updateBlockName`, `moveBlockToPlate` |
-| **historySlice**     | Undo/redo state management           | `history`, `historyIndex`  | `undo`, `redo`, `pushHistory`                                                                                                                 |
-| **persistenceSlice** | Local storage and JSON import/export | (side effects only)        | `save`, `load`, `exportArchitecture`, `importArchitecture`                                                                                    |
-| **validationSlice**  | Architecture validation              | `validationResult`         | `validate`                                                                                                                                    |
-| **workspaceSlice**   | Multi-workspace lifecycle            | `workspace`, `workspaces`  | `createWorkspace`, `switchWorkspace`, `deleteWorkspace`, `cloneWorkspace`, `listWorkspaces`, `updateWorkspaceName`, `linkGitHubRepo`          |
+| Slice                | Responsibility                              | State Owned                | Key Actions                                                                                                                                   |
+| -------------------- | ------------------------------------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| **domainSlice**      | Container block, block, and connection CRUD | `workspace.architecture.*` | `addPlate`, `removePlate`, `addBlock`, `removeBlock`, `moveBlock`, `addConnection`, `removeConnection`, `updateBlockName`, `moveBlockToPlate` |
+| **historySlice**     | Undo/redo state management                  | `history`, `historyIndex`  | `undo`, `redo`, `pushHistory`                                                                                                                 |
+| **persistenceSlice** | Local storage and JSON import/export        | (side effects only)        | `save`, `load`, `exportArchitecture`, `importArchitecture`                                                                                    |
+| **validationSlice**  | Architecture validation                     | `validationResult`         | `validate`                                                                                                                                    |
+| **workspaceSlice**   | Multi-workspace lifecycle                   | `workspace`, `workspaces`  | `createWorkspace`, `switchWorkspace`, `deleteWorkspace`, `cloneWorkspace`, `listWorkspaces`, `updateWorkspaceName`, `linkGitHubRepo`          |
 
 ---
 
@@ -78,7 +78,7 @@ CloudBlocks follows Feature-Sliced Design (FSD). The store lives in the `entitie
 
 ```
 shared/     → types, utils (no business logic)
-entities/   → store, validation, block, plate, connection
+entities/   → store, validation, block, container block, connection
 features/   → generate, templates (stateless business logic)
 widgets/    → UI composition (toolbar, panels, etc.)
 app/        → App shell, global layout

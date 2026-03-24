@@ -28,7 +28,7 @@ Graph IR exists to:
 
 ## 3. Terminology
 
-- **Containment layer**: plates and placements (plate containment hierarchy: global → edge/region → zone → subnet).
+- **Containment layer**: container blocks and placements (container block hierarchy: global → edge/region → zone → subnet).
 - **Flow layer**: nodes/ports/edges representing directed communication or dependency flow.
 - **Protocol semantics**: `http | internal | data | async` (Phase 5), plus legacy `dataflow` (current model).
 - **Port**: a typed ingress/egress interface on a node. Edges connect ports.
@@ -65,10 +65,10 @@ export interface GraphIR {
   };
 
   /**
-   * Containment layer (plates).
-   * Graph IR keeps plates to remain compatible with CloudBlocks vocabulary and placement rules.
+   * Containment layer (container blocks).
+   * Graph IR keeps container blocks to remain compatible with CloudBlocks vocabulary and placement rules.
    */
-  plates: GraphPlate[];
+  containerBlocks: GraphContainerBlock[];
 
   /**
    * Flow layer (nodes + edges).
@@ -80,13 +80,13 @@ export interface GraphIR {
   metadata: Record<string, unknown>;
 }
 
-export interface GraphPlate {
-  id: string; // same ID as Plate.id
+export interface GraphContainerBlock {
+  id: string; // same ID as ContainerBlock.id
   name: string;
   type: 'global' | 'edge' | 'region' | 'zone' | 'subnet';
   subnetAccess?: 'public' | 'private';
   parentId: string | null;
-  children: string[]; // IDs of child plates or blocks (mirrors current model)
+  children: string[]; // IDs of child container blocks or blocks (mirrors current model)
   position: { x: number; y: number; z: number };
   size: { width: number; height: number; depth: number };
   metadata: Record<string, unknown>;
@@ -100,7 +100,7 @@ export interface GraphNode {
 
   /**
    * Placement/containment reference.
-   * - For blocks, this is Block.placementId (a subnet plate).
+   * - For blocks, this is Block.placementId (a subnet container block).
    * - For external actors, this may be null or a well-known "outside" context.
    */
   placementId: string | null;
@@ -151,7 +151,7 @@ export interface GraphNode {
 }
 
 export interface GraphPort {
-  id: string; // stable within node; recommended: `${nodeId}:${direction}:${name}`
+  id: string; // stable within block; recommended: `${blockId}:${direction}:${name}`
   direction: GraphPortDirection;
 
   /**
@@ -178,7 +178,7 @@ export interface GraphPort {
 }
 
 export interface GraphEndpointRef {
-  nodeId: string;
+  blockId: string;
 
   /**
    * Optional in Phase 1 for backward compatibility.
@@ -302,7 +302,7 @@ Graph IR must be derivable from the current `ArchitectureModel` without loss of 
 
 ### 7.1 Entity mapping
 
-- Plate → `GraphPlate` (1:1 field mapping)
+- ContainerBlock → `GraphContainerBlock` (1:1 field mapping)
 - Block → `GraphNode(kind='block')`
   - `GraphNode.id = Block.id`
   - `GraphNode.placementId = Block.placementId`
@@ -316,8 +316,8 @@ Graph IR must be derivable from the current `ArchitectureModel` without loss of 
   - `payload.name = ExternalActor.name`
 - Connection → `GraphEdge`
   - `GraphEdge.id = Connection.id`
-  - `from.nodeId = Connection.sourceId`
-  - `to.nodeId = Connection.targetId`
+- `from.blockId = Connection.sourceId`
+- `to.blockId = Connection.targetId`
 
 ### 7.2 Deriving ports
 
@@ -325,7 +325,7 @@ For each node, populate `ports` from the well-known port catalogs (Section 5). P
 
 Recommended port ID convention:
 
-- `${nodeId}:${direction}:${name}`
+- `${blockId}:${direction}:${name}`
   - Example: `block-123:in:internal`
   - Example: `ext-internet:out:http`
 
@@ -362,12 +362,12 @@ Graph IR validation is separate from (but compatible with) the existing rule eng
 
 ### 8.1 Structural invariants
 
-- **ID uniqueness**: all plate/node/edge IDs are unique within their sets.
+- **ID uniqueness**: all container block/block/edge IDs are unique within their sets.
 - **Referential integrity**:
-  - `edge.from.nodeId` and `edge.to.nodeId` must exist as nodes.
+  - `edge.from.blockId` and `edge.to.blockId` must exist as blocks.
   - If `portId` is present, it must resolve to a port on that node.
-- **No self edges**: `from.nodeId !== to.nodeId`.
-- **No duplicate edges**: at most one edge per ordered pair `(from.nodeId, to.nodeId, protocol)` (or stricter, depending on Phase 2 policy).
+- **No self edges**: `from.blockId !== to.blockId`.
+- **No duplicate edges**: at most one edge per ordered pair `(from.blockId, to.blockId, protocol)` (or stricter, depending on Phase 2 policy).
 
 ### 8.2 DAG invariant
 
@@ -388,7 +388,7 @@ Graph IR validation is separate from (but compatible with) the existing rule eng
 - Receiver-only enforcement (Phase 1 parity):
   - database/storage nodes must not be `from` of any edge with `confidence != 'unknown'`
 - Placement invariants:
-  - block nodes must reference an existing subnet plate in `placementId` (same as current domain model)
+  - block nodes must reference an existing subnet container block in `placementId` (same as current domain model)
 
 ---
 

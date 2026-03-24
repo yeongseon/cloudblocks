@@ -21,13 +21,13 @@ When the canvas is empty, users see the **EmptyCanvasOverlay** with three option
 | Action                 | What Happens                                                                                                        |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | **Use Template**       | Opens the Template Gallery with pre-built architectures (three-tier web app, serverless API, event-driven pipeline) |
-| **Start from Scratch** | Creates a default Network (VNet) plate on the canvas                                                                |
+| **Start from Scratch** | Creates a default Network (VNet) container block on the canvas                                                      |
 | **Learn How**          | Opens the Scenario Gallery for guided, step-by-step building                                                        |
 
 Users can also start from the **MenuBar**:
 
 - `File → New Workspace` — creates a blank workspace
-- `Insert → Network / Subnet` — adds plates directly
+- `Insert → Network / Subnet` — adds container blocks directly
 - `Learn → Browse Scenarios` — opens Learning Mode
 
 ---
@@ -36,18 +36,18 @@ Users can also start from the **MenuBar**:
 
 The canvas is an SVG-based 2D workspace with 2.5D isometric rendering.
 
-### Plates (Infrastructure Boundaries)
+### Container Blocks (Infrastructure Boundaries)
 
-| Plate Type  | Maps To                        | Nesting                  |
-| ----------- | ------------------------------ | ------------------------ |
-| **Network** | Azure VNet / AWS VPC / GCP VPC | Top-level container      |
-| **Subnet**  | Public or Private subnet       | Must be inside a Network |
+| Container Block Type | Maps To                        | Nesting                  |
+| -------------------- | ------------------------------ | ------------------------ |
+| **Network**          | Azure VNet / AWS VPC / GCP VPC | Top-level container      |
+| **Subnet**           | Public or Private subnet       | Must be inside a Network |
 
-Plates are placed via the Insert menu or by dragging from the CommandCard palette.
+Container blocks are placed via the Insert menu or by dragging from the CommandCard palette.
 
 ### Blocks (Cloud Resources)
 
-10 resource categories, placed inside plates:
+10 resource categories, placed inside container blocks:
 
 | Category          | Examples                   | Initiator?             |
 | ----------------- | -------------------------- | ---------------------- |
@@ -110,11 +110,11 @@ The rule engine validates architecture in real-time.
 
 ### Validation Levels
 
-| Level            | What It Checks                                                                 |
-| ---------------- | ------------------------------------------------------------------------------ |
-| **Placement**    | Blocks must be inside appropriate plates (e.g., compute inside subnet)         |
-| **Connection**   | Valid source/target pairs, initiator rules                                     |
-| **Architecture** | Cross-cutting constraints (e.g., database cannot connect to internet directly) |
+| Level            | What It Checks                                                                   |
+| ---------------- | -------------------------------------------------------------------------------- |
+| **Placement**    | Blocks must be inside appropriate container blocks (e.g., compute inside subnet) |
+| **Connection**   | Valid source/target pairs, initiator rules                                       |
+| **Architecture** | Cross-cutting constraints (e.g., database cannot connect to internet directly)   |
 
 ### Validation Feedback
 
@@ -209,11 +209,11 @@ Learn → Browse Scenarios → Select Scenario → Follow Steps → Complete
 
 The Bottom Panel provides context-sensitive controls:
 
-| Mode                  | When Active         | Controls                                          |
-| --------------------- | ------------------- | ------------------------------------------------- |
-| **Block Action**      | Block selected      | Block details, rename, delete, connection options |
-| **Plate Action**      | Plate selected      | Plate details, rename, resize, delete             |
-| **Connection Action** | Connection selected | Connection type, delete                           |
+| Mode                       | When Active              | Controls                                          |
+| -------------------------- | ------------------------ | ------------------------------------------------- |
+| **Block Action**           | Block selected           | Block details, rename, delete, connection options |
+| **Container Block Action** | Container block selected | Container block details, rename, resize, delete   |
+| **Connection Action**      | Connection selected      | Connection type, delete                           |
 
 ### Keyboard Shortcuts
 
@@ -273,7 +273,7 @@ activeProvider (uiStore — global UI toggle)
 
 Planned capabilities for upcoming milestones:
 
-- **Plate-level provider binding** — Each plate (VPC/resource group) owns its provider, blocks inherit from parent plate
+- **Container-block-level provider binding** — Each container block (VPC/resource group) owns its provider, blocks inherit from the parent container block
 - **Cross-provider validation** — Warnings for invalid cross-provider connections
 - **Terraform pipeline** — Direct deployment from the builder (Milestone 13)
 - **AI-powered tutoring** — Intelligent architecture suggestions (Milestone 14)

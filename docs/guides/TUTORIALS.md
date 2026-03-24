@@ -24,16 +24,16 @@ Each tutorial includes:
 
 **You'll learn**:
 
-- Network/Subnet plate concepts
+- Network/Subnet container block concepts
 - Public vs Private subnet distinction
 - Block placement rules
 - DataFlow connections
 
 **Steps**:
 
-1. Create a Network (VNet) plate as the foundation
-2. Add a Public Subnet plate inside the network
-3. Add a Private Subnet plate inside the network
+1. Create a Network (VNet) container block as the foundation
+2. Add a Public Subnet container block inside the network
+3. Add a Private Subnet container block inside the network
 4. Place a Gateway block on the Public Subnet
 5. Place a Compute block on the Private Subnet
 6. Place a Database block on the Private Subnet
@@ -185,7 +185,7 @@ Tutorials are defined as JSON files for programmatic use:
   "prerequisites": [],
   "template": {
     "architecture": {
-      "plates": [],
+      "nodes": [],
       "blocks": [],
       "connections": [],
       "externalActors": [{ "id": "ext-internet", "name": "Internet", "type": "internet" }]
@@ -194,10 +194,10 @@ Tutorials are defined as JSON files for programmatic use:
   "steps": [
     {
       "order": 1,
-      "instruction": "Create a Network (VNet) plate as the foundation",
+      "instruction": "Create a Network (VNet) container block as the foundation",
       "hint": "Click the 'Network' button in the block palette",
       "validation": {
-        "check": "plates.some(p => p.type === 'network')"
+        "check": "nodes.some(n => n.kind === 'container' && n.resourceType === 'virtual_network')"
       }
     }
   ],

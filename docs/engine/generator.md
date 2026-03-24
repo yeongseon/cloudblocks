@@ -46,7 +46,7 @@ normalize(architectureModel) → NormalizedModel
 
 - Resolve all ID references (ensure `placementId`, `sourceId`, `targetId` point to valid entities)
 - Apply default values for optional fields
-- Sort entities for deterministic output (plates by ID, blocks by ID, connections by ID)
+- Sort entities for deterministic output (container blocks by ID, blocks by ID, connections by ID)
 - Strip transient UI state (selection, hover, etc.)
 
 **Error handling:** Throws `NormalizationError` if unresolvable references are found.

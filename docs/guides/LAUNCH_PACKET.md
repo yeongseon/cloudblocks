@@ -8,7 +8,7 @@
 ## 1. Project Summary (3-Line Intro)
 
 > **CloudBlocks** is an open-source architecture compiler that turns visual infrastructure designs into Terraform, Bicep, and Pulumi code — all from the browser.  
-> Design cloud architectures by placing blocks on plates, connect components, validate against real-world rules, and generate production-ready IaC.  
+> Design cloud architectures by placing blocks, connect components, validate against real-world rules, and generate production-ready IaC.  
 > No YAML. No HCL. Just place, connect, validate, generate.
 
 ---
@@ -26,7 +26,7 @@
 
 ## 3. Feature Highlights (Bullet Form)
 
-- **Visual architecture builder** — Modular plates (boundaries) + blocks (resources) with isometric 2.5D rendering
+- **Visual architecture builder** — Modular container blocks (boundaries) + resource blocks with isometric 2.5D rendering
 - **Architecture compiler** — Generate Terraform, Bicep, or Pulumi from visual designs
 - **Real-time validation** — Rule engine validates placement and connections as you build
 - **7 resource categories** — Network, Security, Edge, Compute, Data, Messaging, Operations
@@ -41,12 +41,12 @@
 
 Capture the following for promotion materials:
 
-| Asset               | Description                                           | Suggested Dimensions |
-| ------------------- | ----------------------------------------------------- | -------------------- |
-| Hero screenshot     | Full canvas with a three-tier architecture            | 1280 x 720           |
-| Place & connect GIF | Drag block onto plate, create connection (5-10s loop) | 800 x 450            |
-| Code generation GIF | Click Generate → show Terraform output (3-5s)         | 800 x 450            |
-| Template load GIF   | Select template → auto-populate canvas (3-5s)         | 800 x 450            |
+| Asset               | Description                                                       | Suggested Dimensions |
+| ------------------- | ----------------------------------------------------------------- | -------------------- |
+| Hero screenshot     | Full canvas with a three-tier architecture                        | 1280 x 720           |
+| Place & connect GIF | Drag block into a container block, create connection (5-10s loop) | 800 x 450            |
+| Code generation GIF | Click Generate → show Terraform output (3-5s)                     | 800 x 450            |
+| Template load GIF   | Select template → auto-populate canvas (3-5s)                     | 800 x 450            |
 
 **How to capture**:
 
@@ -78,8 +78,8 @@ Try it: https://yeongseon.github.io/cloudblocks/
 ```
 Title: CloudBlocks — Open-source visual architecture compiler (Terraform, Bicep, Pulumi)
 
-CloudBlocks lets you design cloud infrastructure by placing blocks on plates
-(think building blocks), then compiles your design into Terraform, Bicep, or Pulumi code.
+CloudBlocks lets you design cloud infrastructure by placing blocks within container blocks
+(using a block-based composition model), then compiles your design into Terraform, Bicep, or Pulumi code.
 
 It runs entirely in the browser — no backend required for the core builder.
 

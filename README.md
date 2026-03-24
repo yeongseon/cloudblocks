@@ -15,7 +15,7 @@
 
 **CloudBlocks is an architecture compiler that converts visual infrastructure designs into infrastructure-as-code.**
 
-Design cloud infrastructure by placing blocks on plates, connect components, validate against real-world rules, and generate Terraform, Bicep, or Pulumi — all from the browser. No YAML. No HCL. Just place, connect, validate, generate.
+Design cloud infrastructure by placing blocks on container blocks, connect components, validate against real-world rules, and generate Terraform, Bicep, or Pulumi — all from the browser. No YAML. No HCL. Just place, connect, validate, generate.
 
 > **[▶ Try the Live Demo](https://yeongseon.github.io/cloudblocks/)** — Frontend-only playground. Visual builder, code generation, and templates work instantly. AI and GitHub features require the backend ([setup guide](docs/guides/TUTORIALS.md)).
 
@@ -24,7 +24,7 @@ Design cloud infrastructure by placing blocks on plates, connect components, val
 <p align="center">
 </p>
 
-> **Place** blocks on plates, **connect** components with typed protocols, **validate** against real-world rules, and **generate** Terraform, Bicep, or Pulumi — all in the browser.
+> **Place** blocks on container blocks, **connect** components with typed protocols, **validate** against real-world rules, and **generate** Terraform, Bicep, or Pulumi — all in the browser.
 
 _Automated demo video coming soon. For now, [try the live demo](https://yeongseon.github.io/cloudblocks/)._
 
@@ -54,7 +54,7 @@ Most IaC tools work **code → diagram** (visualize existing infra). CloudBlocks
 
 ## Features
 
-- 🧱 **Block-based modeling** — Plates (boundaries) + Blocks (resources) + typed Connections
+- 🧱 **Block-based modeling** — Container blocks (boundaries) + Resource blocks (resources) + typed Connections
 - ⚡ **Architecture compiler** — Visual designs compile to Terraform, Bicep, and Pulumi
 - ✅ **Validation engine** — Real-time rule checking for placement and connections
 - 📦 **7 resource categories** — Network, security, edge, compute, data, messaging, operations
@@ -117,7 +117,7 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 | v0.8.0  | Multi-Cloud Platform                        | ✅     |
 | v0.9.0  | UX Core Hardening                           | ✅     |
 | v0.10.0 | External Actors & DevOps UX                 | ✅     |
-| v0.11.0 | Brick Design System                         | ✅     |
+| v0.11.0 | Block Design System                         | ✅     |
 | v0.12.0 | Core Model & Provider System                | ✅     |
 | v0.13.0 | Terraform Pipeline                          | ✅     |
 | v0.14.0 | AI-Assisted Architecture                    | ✅     |

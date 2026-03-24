@@ -236,8 +236,8 @@ All Milestone 6 gates plus:
 
 ### Milestone 11 (Completed)
 
-- Brick design system formalized (BRICK_DESIGN_SPEC.md)
-- Universal stud standard enforced (rx=12, ry=6, height=5)
+- Block design system formalized (BRICK_DESIGN_SPEC.md)
+- Universal port standard enforced (rx=12, ry=6, height=5)
 - BLOCK_VISUAL_PROFILES consolidated from STUD_LAYOUTS
 - Visual consistency validated across all block types
 
@@ -245,7 +245,7 @@ All Milestone 6 gates plus:
 
 - Core model refactored for provider-aware resource types
 - Provider system supports Azure, AWS, GCP resource categories
-- Brick design guidebook published
+- Block design guidebook published
 
 ### Milestone 13 (Completed)
 

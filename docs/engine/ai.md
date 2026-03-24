@@ -43,8 +43,7 @@ Generate a complete architecture from a natural language description.
 ```json
 {
   "architecture": {
-    "plates": [...],
-    "blocks": [...],
+    "nodes": [...],
     "connections": [...],
     "externalActors": [...]
   },
@@ -68,8 +67,7 @@ Analyze an existing architecture and return improvement suggestions.
 ```json
 {
   "architecture": {
-    "plates": [...],
-    "blocks": [...],
+    "nodes": [...],
     "connections": [...]
   },
   "provider": "aws"
@@ -120,7 +118,7 @@ Estimate monthly infrastructure cost for an architecture.
         "id": "block-1",
         "name": "Web ALB",
         "category": "gateway",
-        "placementId": "plate-1",
+        "parentId": "block-1",
         "position": { "x": 2, "y": 0, "z": 2 },
         "provider": "aws",
         "subtype": "alb"
@@ -222,13 +220,13 @@ The architecture generation prompt (`app/engines/prompts/architecture_prompt.py`
 
 `ArchitectureValidator` (`app/engines/validation.py`) checks LLM output against domain constraints:
 
-| Check                 | Description                                                |
-| --------------------- | ---------------------------------------------------------- |
-| Structural            | `plates`, `blocks`, `connections` arrays present and valid |
-| Enum compliance       | Category, provider, subtype, connection type, layer type   |
-| Referential integrity | `placementId` → plate, `sourceId`/`targetId` → block       |
-| Uniqueness            | No duplicate IDs across all entities                       |
-| Semantic              | No self-connections                                        |
+| Check                 | Description                                                       |
+| --------------------- | ----------------------------------------------------------------- |
+| Structural            | `nodes`, `connections`, `externalActors` arrays present and valid |
+| Enum compliance       | Category, provider, subtype, connection type, layer type          |
+| Referential integrity | `parentId` → container block, `from.blockId`/`to.blockId` → block |
+| Uniqueness            | No duplicate IDs across all entities                              |
+| Semantic              | No self-connections                                               |
 
 Warnings are returned alongside the architecture (non-blocking).
 

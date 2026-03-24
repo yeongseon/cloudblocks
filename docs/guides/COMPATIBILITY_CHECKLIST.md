@@ -34,31 +34,31 @@
 
 ### 3.1. Core Flows (Test on ALL Primary browsers)
 
-| #   | Test Case                        | Chrome | Firefox | Safari | Edge |
-| --- | -------------------------------- | ------ | ------- | ------ | ---- |
-| 1   | App loads without console errors | ☐      | ☐       | ☐      | ☐    |
-| 2   | Create new workspace             | ☐      | ☐       | ☐      | ☐    |
-| 3   | Place a plate on canvas          | ☐      | ☐       | ☐      | ☐    |
-| 4   | Place a block on plate           | ☐      | ☐       | ☐      | ☐    |
-| 5   | Create connection between blocks | ☐      | ☐       | ☐      | ☐    |
-| 6   | Validation panel shows results   | ☐      | ☐       | ☐      | ☐    |
-| 7   | Generate Terraform code          | ☐      | ☐       | ☐      | ☐    |
-| 8   | Generate Bicep code              | ☐      | ☐       | ☐      | ☐    |
-| 9   | Generate Pulumi code             | ☐      | ☐       | ☐      | ☐    |
-| 10  | Load a template                  | ☐      | ☐       | ☐      | ☐    |
-| 11  | Undo/redo works (Ctrl+Z/Ctrl+Y)  | ☐      | ☐       | ☐      | ☐    |
-| 12  | Export/import architecture JSON  | ☐      | ☐       | ☐      | ☐    |
+| #   | Test Case                          | Chrome | Firefox | Safari | Edge |
+| --- | ---------------------------------- | ------ | ------- | ------ | ---- |
+| 1   | App loads without console errors   | ☐      | ☐       | ☐      | ☐    |
+| 2   | Create new workspace               | ☐      | ☐       | ☐      | ☐    |
+| 3   | Place a container block on canvas  | ☐      | ☐       | ☐      | ☐    |
+| 4   | Place a block in a container block | ☐      | ☐       | ☐      | ☐    |
+| 5   | Create connection between blocks   | ☐      | ☐       | ☐      | ☐    |
+| 6   | Validation panel shows results     | ☐      | ☐       | ☐      | ☐    |
+| 7   | Generate Terraform code            | ☐      | ☐       | ☐      | ☐    |
+| 8   | Generate Bicep code                | ☐      | ☐       | ☐      | ☐    |
+| 9   | Generate Pulumi code               | ☐      | ☐       | ☐      | ☐    |
+| 10  | Load a template                    | ☐      | ☐       | ☐      | ☐    |
+| 11  | Undo/redo works (Ctrl+Z/Ctrl+Y)    | ☐      | ☐       | ☐      | ☐    |
+| 12  | Export/import architecture JSON    | ☐      | ☐       | ☐      | ☐    |
 
 ### 3.2. Visual Rendering
 
-| #   | Test Case                              | Chrome | Firefox | Safari | Edge |
-| --- | -------------------------------------- | ------ | ------- | ------ | ---- |
-| 1   | Isometric SVG renders correctly        | ☐      | ☐       | ☐      | ☐    |
-| 2   | Studs visible on plates and blocks     | ☐      | ☐       | ☐      | ☐    |
-| 3   | Connection lines render with arrows    | ☐      | ☐       | ☐      | ☐    |
-| 4   | Drag-and-drop snaps to grid            | ☐      | ☐       | ☐      | ☐    |
-| 5   | No visual overflow or clipping         | ☐      | ☐       | ☐      | ☐    |
-| 6   | Dark/light text readable on all blocks | ☐      | ☐       | ☐      | ☐    |
+| #   | Test Case                                    | Chrome | Firefox | Safari | Edge |
+| --- | -------------------------------------------- | ------ | ------- | ------ | ---- |
+| 1   | Isometric SVG renders correctly              | ☐      | ☐       | ☐      | ☐    |
+| 2   | Ports visible on container blocks and blocks | ☐      | ☐       | ☐      | ☐    |
+| 3   | Connection lines render with arrows          | ☐      | ☐       | ☐      | ☐    |
+| 4   | Drag-and-drop snaps to grid                  | ☐      | ☐       | ☐      | ☐    |
+| 5   | No visual overflow or clipping               | ☐      | ☐       | ☐      | ☐    |
+| 6   | Dark/light text readable on all blocks       | ☐      | ☐       | ☐      | ☐    |
 
 ### 3.3. Viewport Behavior
 

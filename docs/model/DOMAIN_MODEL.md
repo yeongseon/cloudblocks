@@ -4,7 +4,7 @@
 >
 > This document is the **canonical specification** for the CloudBlocks domain model. All other documentation must reference and conform to the types, field names, and relationships defined here.
 >
-> - **Schema types**: `packages/schema/src/` — `model.ts` (ResourceNode, ArchitectureModel), `enums.ts` (ResourceCategory, NodeKind, LayerType), `rules.ts` (RESOURCE_RULES, CanvasTier)
+> - **Schema types**: `packages/schema/src/` — `model.ts` (Block, ArchitectureModel), `enums.ts` (ResourceCategory, NodeKind, LayerType), `rules.ts` (RESOURCE_RULES, CanvasTier)
 > - **Domain constraints**: `packages/cloudblocks-domain/src/constraints.ts` — validateContainment, validateNodeIntegrity, validateNodePlacement
 > - **Shared types**: `apps/web/src/shared/types/index.ts` re-exports from `@cloudblocks/schema`
 > - **Connection rules**: `apps/web/src/entities/validation/connection.ts`
@@ -13,7 +13,7 @@
 > - **Version timelines**: `docs/concept/ROADMAP.md`
 > - **Code generation pipeline**: `docs/engine/generator.md`
 
-CloudBlocks represents cloud architecture using a **resource node abstraction model**. Users visually construct cloud systems in a 2.5D isometric environment, the platform validates them against architectural rules, and generates deployable infrastructure code (Terraform, Bicep, Pulumi).
+CloudBlocks represents cloud architecture using a **block abstraction model**. Users visually construct cloud systems in a 2.5D isometric environment, the platform validates them against architectural rules, and generates deployable infrastructure code (Terraform, Bicep, Pulumi).
 
 ---
 
@@ -21,7 +21,7 @@ CloudBlocks represents cloud architecture using a **resource node abstraction mo
 
 Cloud infrastructure is represented as a **layered containment model** composed of:
 
-- **ResourceNodes** — Container nodes (VNet, Subnet) and leaf resource nodes (VM, Database, etc.)
+- **Blocks** — Container blocks (VNet, Subnet) and resource blocks (VM, Database, etc.)
 - **Connections** — Typed data/event flow between resources
 - **Rules** — Compatibility and placement constraints driven by RESOURCE_RULES
 - **External Actors** — External endpoints (Internet)
@@ -30,10 +30,10 @@ This model provides a visual abstraction that maps directly to real cloud resour
 
 ### Unified Model (M19)
 
-Prior to M19, the model used separate `Plate` and `Block` entities. M19 unified them into a single `ResourceNode` discriminated union:
+Prior to M19, the model used separate container and resource entities. M19 unified them into a single `Block` discriminated union:
 
-- **ContainerNode** (`kind: 'container'`) — replaces Plate. Holds child nodes, has a size for rendering.
-- **LeafNode** (`kind: 'resource'`) — replaces Block. A leaf resource that cannot contain children.
+- **ContainerBlock** (`kind: 'container'`) — holds child blocks and has a frame for rendering.
+- **ResourceBlock** (`kind: 'resource'`) — a leaf resource that cannot contain children.
 
 Both are resource types governed by the same `RESOURCE_RULES` constraint table.
 
@@ -45,41 +45,41 @@ These invariants **must hold at all times** in a valid `ArchitectureModel`. Viol
 
 ### 2.1 Identity Rules
 
-| Rule                      | Description                                                                                                                                                                                             |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **ID Uniqueness**         | All entity IDs within an `ArchitectureModel` are globally unique. No two entities (nodes, connections, external actors) share an ID.                                                                    |
-| **ID Format**             | IDs follow the pattern `{type}-{uuid}` where type is `plate`, `block`, `conn`, or `ext`. Example: `plate-a1b2c3`, `block-d4e5f6`.                                                                       |
-| **ID Immutability**       | Once assigned, an entity's ID never changes. IDs are stable across save/load cycles.                                                                                                                    |
-| **Referential Integrity** | All ID references must resolve. `parentId` must reference an existing ContainerNode or be `null` (root). `Connection.sourceId` and `targetId` must reference an existing ResourceNode or ExternalActor. |
+| Rule                      | Description                                                                                                                                                                                                              |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **ID Uniqueness**         | All entity IDs within an `ArchitectureModel` are globally unique. No two entities (nodes, connections, external actors) share an ID.                                                                                     |
+| **ID Format**             | IDs follow the pattern `{type}-{uuid}` where type is `block`, `conn`, or `ext`. Example: `block-a1b2c3`, `block-d4e5f6`.                                                                                                 |
+| **ID Immutability**       | Once assigned, an entity's ID never changes. IDs are stable across save/load cycles.                                                                                                                                     |
+| **Referential Integrity** | All ID references must resolve. `parentId` must reference an existing `ContainerBlock` or be `null` (root). `Connection.from.blockId` and `Connection.to.blockId` must reference an existing `Block` or `ExternalActor`. |
 
 ### 2.2 Structural Invariants
 
-| Rule                      | Description                                                                                                                                                                                                                 |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Root Nodes**            | An `ArchitectureModel` has one or more root ContainerNodes (`parentId: null`). Valid root resource types: `virtual_network`.                                                                                                |
-| **Containment Hierarchy** | ContainerNodes form a strict tree: `virtual_network` (root) → `subnet` (child). No cycles. Validated by `RESOURCE_RULES.allowedParents`.                                                                                    |
-| **Resource Placement**    | Every LeafNode has a `parentId` referencing a ContainerNode. Allowed parents are determined by `RESOURCE_RULES`. Most resources go on `subnet`; messaging resources (`message_queue`, `event_hub`) go on `virtual_network`. |
-| **Kind Consistency**      | A node's `kind` must be consistent with its `resourceType`. Only `containerCapable` resource types can be `kind: 'container'`. Validated by `validateNodeIntegrity()`.                                                      |
+| Rule                      | Description                                                                                                                                                                                                                           |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Root Nodes**            | An `ArchitectureModel` has one or more root `ContainerBlock`s (`parentId: null`). Valid root resource types: `virtual_network`.                                                                                                       |
+| **Containment Hierarchy** | `ContainerBlock`s form a strict tree: `virtual_network` (root) → `subnet` (child). No cycles. Validated by `RESOURCE_RULES.allowedParents`.                                                                                           |
+| **Resource Placement**    | Every `ResourceBlock` has a `parentId` referencing a `ContainerBlock`. Allowed parents are determined by `RESOURCE_RULES`. Most resources go on `subnet`; messaging resources (`message_queue`, `event_hub`) go on `virtual_network`. |
+| **Kind Consistency**      | A node's `kind` must be consistent with its `resourceType`. Only `containerCapable` resource types can be `kind: 'container'`. Validated by `validateNodeIntegrity()`.                                                                |
 
 ### 2.3 Connection Invariants
 
-| Rule                          | Description                                                                                                   |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| **No Self-Connections**       | `connection.sourceId !== connection.targetId`.                                                                |
-| **No Duplicate Connections**  | At most one connection per ordered `(sourceId, targetId)` pair.                                               |
-| **Receiver-Only Enforcement** | `data`, `security`, `operations`, and `network` resources never appear as `sourceId`. They are receiver-only. |
-| **Messaging Bidirectional**   | `messaging` resources can both send to and receive from `compute`.                                            |
+| Rule                          | Description                                                                                                       |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **No Self-Connections**       | `connection.from.blockId !== connection.to.blockId`.                                                              |
+| **No Duplicate Connections**  | At most one connection per ordered `(from.blockId, to.blockId)` pair.                                             |
+| **Receiver-Only Enforcement** | `data`, `security`, `operations`, and `network` resources never appear as `from.blockId`. They are receiver-only. |
+| **Messaging Bidirectional**   | `messaging` resources can both send to and receive from `compute`.                                                |
 
 ---
 
-# 3. ResourceNode
+# 3. Block
 
-The unified type for all architecture elements — both containers (VNet, Subnet) and leaf resources (VM, Database, etc.).
+The unified type for all architecture elements — both container blocks (VNet, Subnet) and resource blocks (VM, Database, etc.).
 
-### 3.1 NodeBase (shared fields)
+### 3.1 BlockBase (shared fields)
 
 ```typescript
-interface NodeBase {
+interface BlockBase {
   id: string;
   name: string;
   kind: NodeKind; // 'container' | 'resource'
@@ -87,7 +87,7 @@ interface NodeBase {
   resourceType: string; // e.g. 'virtual_network', 'web_compute', 'relational_database'
   category: ResourceCategory; // 'network' | 'security' | 'edge' | 'compute' | 'data' | 'messaging' | 'operations'
   provider: ProviderType; // 'azure' | 'aws' | 'gcp'
-  parentId: string | null; // parent ContainerNode ID, null for root
+  parentId: string | null; // parent ContainerBlock ID, null for root
   position: Position; // { x, y, z }
   metadata: Record<string, unknown>;
   config?: Record<string, unknown>; // provider-specific configuration
@@ -100,32 +100,32 @@ interface NodeBase {
 }
 ```
 
-### 3.2 ContainerNode
+### 3.2 ContainerBlock
 
-Holds child nodes. Rendered as a plate with studs.
+Holds child blocks. Rendered as a container block with ports.
 
 ```typescript
-export interface ContainerNode extends NodeBase {
+export interface ContainerBlock extends BlockBase {
   kind: 'container';
   resourceType: ContainerCapableResourceType; // 'virtual_network' | 'subnet'
-  size: Size; // { width, height, depth }
+  frame: Frame; // { width, height, depth }
 }
 ```
 
-### 3.3 LeafNode
+### 3.3 ResourceBlock
 
-A leaf resource. Rendered as a brick.
+A leaf resource block.
 
 ```typescript
-export interface LeafNode extends NodeBase {
+export interface ResourceBlock extends BlockBase {
   kind: 'resource';
 }
 ```
 
-### 3.4 ResourceNode Union
+### 3.4 Block Union
 
 ```typescript
-export type ResourceNode = ContainerNode | LeafNode;
+export type Block = ContainerBlock | ResourceBlock;
 ```
 
 Discriminant: the `kind` field (`'container'` or `'resource'`).
@@ -133,11 +133,11 @@ Discriminant: the `kind` field (`'container'` or `'resource'`).
 ### 3.5 Deprecated Aliases
 
 ```typescript
-/** @deprecated Use ContainerNode instead. */
-export type Plate = ContainerNode;
+/** @deprecated Use ContainerBlock instead. */
+export type LegacyContainerBlock = ContainerBlock;
 
-/** @deprecated Use LeafNode instead. */
-export type Block = LeafNode;
+/** @deprecated Use ResourceBlock instead. */
+export type LegacyResourceBlock = ResourceBlock;
 ```
 
 ---
@@ -197,17 +197,22 @@ export function getDefaultCategory(resourceType: string): ResourceCategory | und
 
 # 5. Connection
 
-Connections represent **data or event flow** between resource nodes.
+Connections represent **data or event flow** between blocks.
 
 Direction represents the **request initiator**. Responses flow implicitly in reverse.
 
 ### 5.1 Connection Properties
 
 ```typescript
+export interface EndpointRef {
+  blockId: string;
+  portId: string;
+}
+
 export interface Connection {
   id: string;
-  sourceId: string; // ResourceNode or ExternalActor ID (initiator)
-  targetId: string; // ResourceNode or ExternalActor ID (receiver)
+  from: EndpointRef; // initiator endpoint
+  to: EndpointRef; // receiver endpoint
   type: ConnectionType; // 'dataflow' | 'http' | 'internal' | 'data' | 'async'
   metadata: Record<string, unknown>;
 }
@@ -249,7 +254,7 @@ export interface ExternalActor {
 }
 ```
 
-External Actors can only be used as a source or target of a Connection — they are not ResourceNodes.
+External Actors can only be used as a source or target of a Connection — they are not Blocks.
 
 ---
 
@@ -277,17 +282,17 @@ Containment validation is implemented in `packages/cloudblocks-domain/src/constr
 ```typescript
 // Validate parent-child relationship against RESOURCE_RULES.allowedParents
 export function validateContainment(
-  child: ResourceNode,
-  parent: ResourceNode | null | undefined,
+  child: Block,
+  parent: Block | null | undefined,
 ): ContainmentError | null;
 
 // Validate kind vs resourceType consistency (containerCapable check)
-export function validateNodeIntegrity(node: ResourceNode): NodeIntegrityError[];
+export function validateNodeIntegrity(node: Block): NodeIntegrityError[];
 
 // Combined: both containment + integrity in one call
 export function validateNodePlacement(
-  node: ResourceNode,
-  allNodes: readonly ResourceNode[],
+  node: Block,
+  allNodes: readonly Block[],
 ): (NodeIntegrityError | ContainmentError)[];
 ```
 
@@ -299,7 +304,7 @@ interface ValidationError {
   severity: 'error' | 'warning';
   message: string;
   suggestion?: string;
-  targetId: string;
+  blockId: string;
 }
 ```
 
@@ -307,16 +312,16 @@ interface ValidationError {
 
 # 8. Visual Identity Model
 
-ResourceNodes use **visual characteristics** to communicate function in the isometric view.
+Blocks use **visual characteristics** to communicate function in the isometric view.
 
 > **Canonical specification**: For detailed SVG specs and pixel dimensions, see [CLOUDBLOCKS_SPEC_V2.md](../design/CLOUDBLOCKS_SPEC_V2.md).
 
 ### 2-Layer Visual Hierarchy
 
-| Layer         | Element                                             | Purpose                               |
-| ------------- | --------------------------------------------------- | ------------------------------------- |
-| **Container** | Baseplate (3 size tiers: S/M/L)                     | Network boundaries (VNet, Subnet)     |
-| **Resource**  | Brick (5 size tiers: micro/small/medium/large/wide) | Cloud resources (compute, data, etc.) |
+| Layer         | Element                                                 | Purpose                               |
+| ------------- | ------------------------------------------------------- | ------------------------------------- |
+| **Container** | Container block frame (3 tiers: S/M/L)                  | Network boundaries (VNet, Subnet)     |
+| **Resource**  | Resource block (5 tiers: micro/small/medium/large/wide) | Cloud resources (compute, data, etc.) |
 
 ### Resource Color Coding (7 Categories)
 
@@ -341,7 +346,7 @@ export interface ArchitectureModel {
   id: string;
   name: string;
   version: string; // user-facing revision counter
-  nodes: ResourceNode[]; // all containers and resources in a flat array
+  nodes: Block[]; // all container blocks and resource blocks in a flat array
   connections: Connection[];
   externalActors: ExternalActor[];
   createdAt: string; // ISO 8601
@@ -407,9 +412,9 @@ Adding AWS/GCP support requires only new adapter entries, not schema changes. Se
 Key concepts:
 
 ```
-ContainerNode    → Network boundary (VNet, Subnet) — rendered as plate
-LeafNode         → Cloud resource (compute, data, edge, security...) — rendered as brick
-ResourceNode     → Discriminated union of ContainerNode | LeafNode
+ContainerBlock   → Network boundary (VNet, Subnet)
+ResourceBlock    → Cloud resource (compute, data, edge, security...)
+Block            → Discriminated union of ContainerBlock | ResourceBlock
 Connection       → Data/Event flow (initiator direction)
 External Actor   → External endpoint (Internet)
 RESOURCE_RULES   → Single source of truth for constraints
@@ -420,9 +425,9 @@ Generator        → IaC code output (Terraform / Bicep / Pulumi)
 Visual hierarchy:
 
 ```
-LeafNode (brick: micro → wide)     ← Resource layer
+ResourceBlock (micro → wide)        ← Resource layer
     ↓ placed on
-ContainerNode (S/M/L baseplate)    ← Network layer
+ContainerBlock (S/M/L frame)        ← Network layer
 ```
 
 This model enables:

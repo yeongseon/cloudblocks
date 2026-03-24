@@ -132,7 +132,7 @@ No change needed here, but the subtype should also be provider-aware for future 
 
 ## 3. Full Resource Mapping
 
-### Plates
+### Container Blocks
 
 | ID               | Azure                  | AWS            | GCP            |
 | ---------------- | ---------------------- | -------------- | -------------- |

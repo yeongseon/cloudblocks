@@ -135,7 +135,7 @@ apps/web/src/
 ├── shared/              # Types, utils, storage (used everywhere)
 │   ├── types/           # Domain types — CANONICAL source for Milestone 1
 │   └── utils/           # ID generation, storage operations
-├── entities/            # Domain entities (store, block, plate, connection)
+├── entities/            # Domain entities (store, blocks, connections)
 │   └── validation/      # Validation engine (placement + connection rules)
 ├── features/            # Feature modules
 └── widgets/             # Composite UI widgets (toolbar, palette, panels, scene)
@@ -346,7 +346,7 @@ pnpm lint
 - Use canonical field names from `apps/web/src/shared/types/index.ts`:
   - `category` (not `type`) for blocks
   - `placementId` (not `plateId`) for block placement
-  - `sourceId` / `targetId` (not `source` / `target`) for connections
+  - `from` / `to` endpoint IDs (not `source` / `target`) for connections
   - `architecture` (singular, not `architectures[]`) in workspace
 - Connection direction follows the **initiator model**: `internet → gateway → compute → database/storage`
 - Database and Storage are **receiver-only** — they never initiate connections
@@ -359,7 +359,7 @@ Write clear, descriptive commit messages:
 Add drag-and-drop block repositioning      # Feature
 Fix connection validation for gateway       # Bug fix
 Update DOMAIN_MODEL.md with connection rules # Documentation
-Refactor plate rendering to use shared utils # Refactoring
+Refactor container block rendering to use shared utils # Refactoring
 ```
 
 ---

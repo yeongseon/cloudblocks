@@ -61,34 +61,38 @@ export type ArchitectureSnapshot = Omit<ArchitectureModel, 'id' | 'createdAt' | 
 
 // Typed validation rule union — NO unknown/any
 export type StepValidationRule =
-  | { type: 'plate-exists'; plateType: PlateType; subnetAccess?: SubnetAccess }
+  | {
+      type: 'container-block-exists';
+      containerBlockType: ContainerBlockType;
+      subnetAccess?: SubnetAccess;
+    }
   | {
       type: 'block-exists';
       category: BlockCategory;
-      onPlateType?: PlateType;
+      onContainerBlockType?: ContainerBlockType;
       onSubnetAccess?: SubnetAccess;
     }
   | { type: 'connection-exists'; sourceCategory: EndpointType; targetCategory: EndpointType }
   | {
-      type: 'entity-on-plate';
+      type: 'entity-on-container-block';
       entityCategory: BlockCategory;
-      plateType: PlateType;
+      containerBlockType: ContainerBlockType;
       subnetAccess?: SubnetAccess;
     }
   | { type: 'architecture-valid' }
   | { type: 'min-block-count'; category: BlockCategory; count: number }
-  | { type: 'min-plate-count'; plateType: PlateType; count: number };
+  | { type: 'min-container-block-count'; containerBlockType: ContainerBlockType; count: number };
 ```
 
 Each rule type maps directly to an existing domain concept:
 
-- `plate-exists` → check `model.plates` for matching type/access
-- `block-exists` → check `model.blocks` for matching category, optionally on a specific plate type
+- `container-block-exists` → check `model.containerBlocks` for matching type/access
+- `block-exists` → check `model.blocks` for matching category, optionally on a specific container block type
 - `connection-exists` → check `model.connections` + resolve endpoint types
-- `entity-on-plate` → check block exists AND its placement plate matches
+- `entity-on-container-block` → check block exists AND its placement container block matches
 - `architecture-valid` → delegate to `validateArchitecture()` engine
 - `min-block-count` → count blocks of category ≥ threshold
-- `min-plate-count` → count plates of type ≥ threshold
+- `min-container-block-count` → count container blocks of type ≥ threshold
 
 ### Scenario & Step
 
@@ -244,38 +248,38 @@ interface LearningStoreState {
 
 ## 7. Built-in Scenarios
 
-> **Plate terminology**: The user-facing term "Network" maps to `plateType: 'region'` in code. "Subnet" maps to `plateType: 'subnet'`. The scenario validation rules use the code-level plate types.
+> **Container block terminology**: The user-facing term "Network" maps to `containerBlockType: 'region'` in code. "Subnet" maps to `containerBlockType: 'subnet'`. The scenario validation rules use the code-level container block types.
 
 ### 7.1 Three-Tier Web App (Beginner, ~10 min)
 
 Steps:
 
-1. Create a Region Plate (VNet) — `{ type: 'plate-exists', plateType: 'region' }`
-2. Add a Public Subnet and a Private Subnet — `plate-exists` for each subnet access level
+1. Create a Region container block (VNet) — `{ type: 'container-block-exists', containerBlockType: 'region' }`
+2. Add a Public Subnet and a Private Subnet — `container-block-exists` for each subnet access level
 3. Place a Gateway on the Public Subnet, a Compute block, and a Database on the Private Subnet — `block-exists` with placement constraints
 4. Connect Internet → Gateway → Compute → Database — `connection-exists` rules
 5. Validate the architecture — `architecture-valid`
 
 ### 7.2 Serverless HTTP API (Intermediate, ~8 min)
 
-Starts with a pre-built Region Plate and Internet external actor.
+Starts with a pre-built Region container block and Internet external actor.
 Steps:
 
 1. Set up network zones — add Public and Private Subnets
-2. Deploy serverless components — Gateway on public subnet, Function on Region Plate (`onPlateType: 'region'`), Database on private subnet
+2. Deploy serverless components — Gateway on public subnet, Function on Region container block (`onContainerBlockType: 'region'`), Database on private subnet
 3. Wire the API flow — Internet → Gateway → Function → Database
 4. Validate the architecture
 
 ### 7.3 Event-Driven Data Pipeline (Advanced, ~12 min)
 
-Starts with a pre-built Region Plate and Private Subnet.
+Starts with a pre-built Region container block and Private Subnet.
 Steps:
 
-1. Add Event and Queue blocks on the Region Plate — `block-exists` with `onPlateType: 'region'`
-2. Add two Function blocks on the Region Plate — `min-block-count: function ≥ 2`
-3. Add a second Event trigger on the Region Plate and a Storage block on the Private Subnet — uses `event` category (not `timer`; `timer` is not a valid `BlockCategory`)
+1. Add Event and Queue blocks on the Region container block — `block-exists` with `onContainerBlockType: 'region'`
+2. Add two Function blocks on the Region container block — `min-block-count: function ≥ 2`
+3. Add a second Event trigger on the Region container block and a Storage block on the Private Subnet — uses `event` category (not `timer`; `timer` is not a valid `BlockCategory`)
 4. Connect Event → Function, Queue → Function, Function → Storage — `connection-exists` rules
-5. Final validation — `architecture-valid` + `min-block-count: function ≥ 2` + `min-plate-count: region ≥ 1`
+5. Final validation — `architecture-valid` + `min-block-count: function ≥ 2` + `min-container-block-count: region ≥ 1`
 
 ---
 

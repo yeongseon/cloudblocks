@@ -56,8 +56,8 @@
 
 CloudBlocks uses a **block-based composition model** where everything snaps together:
 
-- **Plates** — Logical boundaries (VPC, resource group, subnet). Plates hold blocks.
-- **Blocks** — Cloud resources (VM, database, storage, function). Blocks sit on plates.
+- **Container blocks** — Logical boundaries (VPC, resource group, subnet). Container blocks hold blocks.
+- **Resource blocks** — Cloud resources (VM, database, storage, function). Resource blocks sit on container blocks.
 - **Connections** — Typed links between blocks (network, data, event, IAM).
 - **Templates** — Pre-built architecture patterns you can load and customize.
 

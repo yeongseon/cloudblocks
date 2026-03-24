@@ -35,29 +35,29 @@ interface ValidationError {
 
 ## 3. Placement Rules (Legacy Category-based)
 
-Placement rules validate that blocks are placed on appropriate plates.
+Placement rules validate that blocks are placed on appropriate container blocks.
 
-| Rule ID                     | Severity | Condition                                                             | Message                                                                   |
-| --------------------------- | -------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| `rule-plate-exists`         | error    | Block has no `placementId` or plate not found                         | Block is not placed on any plate                                          |
-| `rule-compute-subnet`       | error    | Compute block not on a `subnet` plate                                 | Compute block must be placed on a Subnet Plate                            |
-| `rule-db-private`           | error    | Database block not on a `subnet` plate with `subnetAccess: "private"` | Database block must be placed on a private Subnet Plate                   |
-| `rule-gw-public`            | error    | Gateway block not on a `subnet` plate with `subnetAccess: "public"`   | Gateway block must be placed on a public Subnet Plate                     |
-| `rule-storage-subnet`       | error    | Storage block not on a `subnet` plate                                 | Storage block must be placed on a Subnet Plate                            |
-| `rule-analytics-subnet`     | error    | Analytics block not on a `subnet` plate                               | Analytics block must be placed on a Subnet Plate                          |
-| `rule-identity-subnet`      | error    | Identity block not on a `subnet` plate                                | Identity block must be placed on a Subnet Plate                           |
-| `rule-observability-subnet` | error    | Observability block not on a `subnet` plate                           | Observability block must be placed on a Subnet Plate                      |
-| `rule-serverless-network`   | error    | `function`, `queue`, or `event` block not on a `region` plate         | Serverless blocks (function/queue/event) must be placed on a Region Plate |
+| Rule ID                       | Severity | Condition                                                                       | Message                                                                             |
+| ----------------------------- | -------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `rule-container-block-exists` | error    | Block has no `placementId` or container block not found                         | Block is not placed on any container block                                          |
+| `rule-compute-subnet`         | error    | Compute block not on a `subnet` container block                                 | Compute block must be placed on a Subnet container block                            |
+| `rule-db-private`             | error    | Database block not on a `subnet` container block with `subnetAccess: "private"` | Database block must be placed on a private Subnet container block                   |
+| `rule-gw-public`              | error    | Gateway block not on a `subnet` container block with `subnetAccess: "public"`   | Gateway block must be placed on a public Subnet container block                     |
+| `rule-storage-subnet`         | error    | Storage block not on a `subnet` container block                                 | Storage block must be placed on a Subnet container block                            |
+| `rule-analytics-subnet`       | error    | Analytics block not on a `subnet` container block                               | Analytics block must be placed on a Subnet container block                          |
+| `rule-identity-subnet`        | error    | Identity block not on a `subnet` container block                                | Identity block must be placed on a Subnet container block                           |
+| `rule-observability-subnet`   | error    | Observability block not on a `subnet` container block                           | Observability block must be placed on a Subnet container block                      |
+| `rule-serverless-network`     | error    | `function`, `queue`, or `event` block not on a `region` container block         | Serverless blocks (function/queue/event) must be placed on a Region container block |
 
 ### 3.1 v2.0 Layer Hierarchy Rules
 
 These rules are defined for the next-generation layer system but are not yet wired into the main `engine.ts` orchestrator.
 
-| Rule ID                | Severity | Condition                                                  | Message                                     |
-| ---------------------- | -------- | ---------------------------------------------------------- | ------------------------------------------- |
-| `rule-layer-hierarchy` | error    | Block placed on plate that is not a valid parent layer     | Invalid layer hierarchy for this block type |
-| `rule-grid-alignment`  | error    | Block position not CU-aligned (integer coordinates)        | Block must be aligned to the grid           |
-| `rule-no-overlap`      | error    | Block overlaps with sibling on same plate (AABB detection) | Block cannot overlap with other blocks      |
+| Rule ID                | Severity | Condition                                                            | Message                                     |
+| ---------------------- | -------- | -------------------------------------------------------------------- | ------------------------------------------- |
+| `rule-layer-hierarchy` | error    | Block placed on a container block that is not a valid parent layer   | Invalid layer hierarchy for this block type |
+| `rule-grid-alignment`  | error    | Block position not CU-aligned (integer coordinates)                  | Block must be aligned to the grid           |
+| `rule-no-overlap`      | error    | Block overlaps with sibling on same container block (AABB detection) | Block cannot overlap with other blocks      |
 
 ---
 
@@ -205,7 +205,7 @@ When backend validation is introduced:
   "cases": [
     {
       "name": "database-on-public-subnet",
-      "input": { "blocks": [...], "plates": [...], "connections": [...] },
+      "input": { "blocks": [...], "containerBlocks": [...], "connections": [...] },
       "expected": {
         "valid": false,
         "errors": [{ "ruleId": "rule-db-private", "targetId": "block-db01" }]

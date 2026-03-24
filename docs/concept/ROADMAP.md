@@ -20,14 +20,14 @@ Validate the CloudBlocks block-based abstraction model.
 
 Key Objectives:
 
-- Plate-based architecture modeling
+- Container-block-based architecture modeling
 - Block-based resource representation
 - Rule-based architecture validation
 
 Deliverables:
 
 - Core Domain Model (TypeScript types)
-- Basic Block/Plate System
+- Basic Block/Container Block System
 - Architecture validation engine
 
 Outcome:
@@ -37,7 +37,7 @@ Proof that the **block abstraction maps cleanly to cloud architecture and IaC co
 ### Exit Criteria
 
 - [x] Domain model types implemented in TypeScript
-- [x] Basic block/plate system compiles without errors
+- [x] Basic block/container block system compiles without errors
 - [x] Architecture validation engine returns correct results for 5+ test cases
 
 ---
@@ -49,7 +49,7 @@ Create a working **2.5D isometric cloud architecture builder**.
 
 Features:
 
-- Network Plate, Subnet Plate (Public / Private)
+- Network container block, Subnet container block (Public / Private)
 - Compute, Database, Storage, Gateway blocks
 - Click-to-add block placement via palette
 - Rule Engine (placement + connection validation)
@@ -262,7 +262,7 @@ Close remaining UX gaps in the single-user builder experience before adding coll
 
 Features:
 
-- Drag-to-create: Drag resources from CommandCard palette onto canvas plates (using interactjs)
+- Drag-to-create: Drag resources from CommandCard palette onto canvas container blocks (using interactjs)
 - First-screen onboarding: Empty canvas CTA, guided first-click flow
 - Selection visual states: Valid/invalid target highlighting, connected state, warning state
 
@@ -276,7 +276,7 @@ Features:
 
 ### Exit Criteria
 
-- [x] Resources can be dragged from CommandCard and dropped onto valid subnet plates
+- [x] Resources can be dragged from CommandCard and dropped onto valid subnet container blocks
 - [x] Invalid drops are rejected cleanly (no orphaned blocks, no broken state)
 - [x] Click-to-create continues to work unchanged
 - [x] Empty canvas shows a "Get Started" message with link to TemplateGallery
@@ -284,7 +284,7 @@ Features:
 - [x] All existing tests continue to pass
 - [x] Build passes (`pnpm build`)
 
-> **Note**: Brick Normalization (9 commits) was completed alongside Milestone 6B — parameterized BlockSvg, shared IsometricStud, blockFaceColors utility, and removal of static SVG sprites.
+> **Note**: Block Normalization (9 commits) was completed alongside Milestone 6B — parameterized BlockSvg, shared IsometricPort, blockFaceColors utility, and removal of static SVG sprites.
 
 ### Dependencies
 
@@ -351,7 +351,7 @@ Features:
 - Minifigure SVG component (head, torso, arms, legs) in isometric style
 - Azure logo on torso (first provider variant)
 - AWS and GCP logo variants planned for Milestone 8 (multi-cloud)
-- Universal Stud Standard compliant (head stud)
+- Universal Port Standard compliant (head port)
 - DevOps Engineer persona as default character
 
 ### Deliverables
@@ -367,8 +367,8 @@ Features:
 
 - [x] MinifigureSvg renders correctly at 48-64px scale
 - [x] Azure logo legible on torso front face
-- [x] Head stud follows Universal Stud Standard (rx=12, ry=6, height=5px)
-- [x] Isometric projection matches existing block/plate angles
+- [x] Head port follows Universal Port Standard (rx=12, ry=6, height=5px)
+- [x] Isometric projection matches existing block/container-block angles
 - [x] All existing tests pass, build clean
 
 ### Dependencies
@@ -385,7 +385,7 @@ Team collaboration via Git and automated CI/CD pipelines.
 Features (Shipped):
 
 - Architecture diff visualization — DiffPanel with structural change summary
-- Visual canvas diff overlays on BlockSprite, PlateSprite, ConnectionPath (CSS-based)
+- Visual canvas diff overlays on BlockSprite, ContainerBlockSprite, ConnectionPath (CSS-based)
 - "Compare with GitHub" flow via MenuBar (uses existing `POST /pull` endpoint)
 - GitHub Actions Terraform plan example template (`examples/github-actions/`)
 - Escape key to exit diff mode
@@ -413,29 +413,29 @@ Deferred:
 ## Phase 2 UX — Magnetic Snap, Dynamic Shadows, Bounce Transitions ✅
 
 Goal:
-Add tactile, physical-feeling UX polish to block and plate drag interactions.
+Add tactile, physical-feeling UX polish to block and container block drag interactions.
 
 Features:
 
-- **Magnetic snapping** — Blocks and plates snap to isometric grid on drag-end using `snapToGrid()` from isometric.ts, with audio feedback (`block-snap` sound)
-- **Dynamic shadows** — Elevated shadow + scale effect during drag (CSS classList toggle), milder for plates than blocks
-- **Bouncing transition** — CSS keyframe bounce animation on drop (`@keyframes bounce-drop`), milder variant for plates (`bounce-drop-plate`)
+- **Magnetic snapping** — Blocks and container blocks snap to isometric grid on drag-end using `snapToGrid()` from isometric.ts, with audio feedback (`block-snap` sound)
+- **Dynamic shadows** — Elevated shadow + scale effect during drag (CSS classList toggle), milder for container blocks than resource blocks
+- **Bouncing transition** — CSS keyframe bounce animation on drop (`@keyframes bounce-drop`), milder variant for container blocks (`bounce-drop-container-block`)
 
 ### Deliverables
 
-| #   | Deliverable                               | Priority | Effort |
-| --- | ----------------------------------------- | -------- | ------ |
-| 1   | Magnetic snap (BlockSprite + PlateSprite) | P1       | Low    |
-| 2   | Dynamic drag shadows (CSS + classList)    | P1       | Low    |
-| 3   | Bounce-drop animation (CSS keyframes)     | P1       | Low    |
+| #   | Deliverable                                        | Priority | Effort |
+| --- | -------------------------------------------------- | -------- | ------ |
+| 1   | Magnetic snap (BlockSprite + ContainerBlockSprite) | P1       | Low    |
+| 2   | Dynamic drag shadows (CSS + classList)             | P1       | Low    |
+| 3   | Bounce-drop animation (CSS keyframes)              | P1       | Low    |
 
 ### Exit Criteria
 
 - [x] Blocks snap to grid on drag-end with audio feedback
-- [x] Plates snap to grid on drag-end (world coordinates)
+- [x] Container blocks snap to grid on drag-end (world coordinates)
 - [x] Dragged blocks show elevated shadow + scale effect
-- [x] Dragged plates show milder shadow + scale effect
-- [x] Drop triggers bounce animation (block: scale 1.05, plate: scale 1.02)
+- [x] Dragged container blocks show milder shadow + scale effect
+- [x] Drop triggers bounce animation (block: scale 1.05, container block: scale 1.02)
 - [x] All existing tests pass, build clean
 
 ### Dependencies
@@ -504,10 +504,10 @@ Features:
 
 ---
 
-## Phase 4 — Brick Design System
+## Phase 4 — Block Design System
 
 Goal:
-Expand the visual vocabulary and formalize the brick design tokens.
+Expand the visual vocabulary and formalize the block design tokens.
 
 Status: ✅ Delivered as part of Phase 9 — Visual Builder Evolution
 
@@ -532,7 +532,7 @@ Features:
 - [x] Different resource types use distinct silhouettes (Tower, Heavy Block, Shield, Module)
 - [x] Wall heights vary based on tier using `TIER_HEIGHTS`
 - [x] Visual profiles are implemented and mapped by silhouette and height tiers
-- [x] Universal Stud Standard maintained across all new shapes
+- [x] Universal Port Standard maintained across all new shapes
 
 Follow-up (outside delivered exit criteria): full design token extraction and expanded taxonomy mapping.
 
@@ -583,7 +583,7 @@ Status: ✅ Partially delivered as part of Phase 9 — Visual Builder Evolution
 
 Features:
 
-- **Provider Color System** — Distinct 3-layer palettes for Azure, AWS, and GCP brick themes
+- **Provider Color System** — Distinct 3-layer palettes for Azure, AWS, and GCP block themes
 - **Provider Mode Toggle** — UI switch to filter or focus the builder on specific providers
 - **Provider Extension Mechanism** — Plugin-style system for adding provider-specific properties
 
@@ -599,7 +599,7 @@ Features:
 
 - [x] Provider visual foundations are implemented (Azure provider color system + AWS/GCP minifigure variants)
 - [ ] Builder UI allows switching between cloud provider contexts (provider mode toggle)
-- [ ] Full multi-provider brick palettes are implemented across all provider/resource combinations
+- [ ] Full multi-provider block palettes are implemented across all provider/resource combinations
 - [ ] Provider-specific metadata is fully handled end-to-end in IaC generation
 
 > **Reference**: [CLOUDBLOCKS_SPEC_V2.md](../design/CLOUDBLOCKS_SPEC_V2.md)
@@ -609,7 +609,7 @@ Features:
 ## Phase 9 — Visual Builder Evolution ✅
 
 Goal:
-Comprehensive visual builder upgrade implementing UX state machine, brick design system, domain model expansion, and provider integration foundations.
+Comprehensive visual builder upgrade implementing UX state machine, block design system, domain model expansion, and provider integration foundations.
 
 Status: ✅ Complete
 
@@ -622,7 +622,7 @@ Deliverables:
 Key Features:
 
 - InteractionState machine in `uiStore.ts` (`idle` | `selecting` | `dragging` | `placing` | `connecting`)
-- 4 `BrickSilhouette` types (`tower`, `heavy`, `shield`, `module`)
+- 4 `BlockSilhouette` types (`tower`, `heavy`, `shield`, `module`)
 - 5-level tier height system via `TIER_HEIGHTS`
 - 5 `ConnectionType` values (`dataflow`, `http`, `internal`, `data`, `async`)
 - `ProviderType` support on Block domain model
@@ -631,7 +631,7 @@ Key Features:
 ### Exit Criteria
 
 - [x] UX state machine is formalized and used in builder interactions
-- [x] Brick silhouette and tier-height systems are implemented and in active use
+- [x] Block silhouette and tier-height systems are implemented and in active use
 - [x] Domain model supports multi-provider metadata and expanded connection semantics
 - [x] Provider integration foundations are implemented for visual identity and typing
 - [x] Validation, test, and build gates pass for all merged Phase 9 work
@@ -690,7 +690,7 @@ Key Features:
 - [x] ExternalActor elements are selectable and connectable in the builder
 - [x] All `alert()`/`confirm()` replaced with toast notifications and ConfirmDialog
 - [x] CommandCard edit/delete/connect actions are functional
-- [x] `isMultiSelected` phantom flags removed from Block and Plate types
+- [x] `isMultiSelected` phantom flags removed from Block and ContainerBlock types
 - [x] Pointermove events throttled with rAF (60fps target)
 - [x] Connections are selectable and deletable via click + keyboard
 - [x] `addConnection()` rejects duplicates and self-connections with user feedback
@@ -718,7 +718,7 @@ Providers:
 
 Architecture remains the same — provider adapters handle the mapping.
 
-> See [provider.md](../engine/provider.md) for the complete provider mapping table (block and plate mappings per cloud provider).
+> See [provider.md](../engine/provider.md) for the complete provider mapping table (block and container block mappings per cloud provider).
 
 ### Exit Criteria
 
@@ -786,22 +786,22 @@ Key Objectives:
 
 ---
 
-## Milestone 11 — Brick Design System ✅
+## Milestone 11 — Block Design System ✅
 
 Goal:
-Consolidate the brick visual system — align block categories with design tokens.
+Consolidate the block visual system — align block categories with design tokens.
 
 Key Objectives:
 
-- Reconcile BlockCategory enum with brick design profiles
-- Unified stud standard enforcement (rx=12, ry=6, height=5)
+- Reconcile BlockCategory enum with block visual profiles
+- Unified port standard enforcement (rx=12, ry=6, height=5)
 - Provider-themed color palettes (Azure blue, AWS orange, GCP multi)
-- Consistent sizing across all brick types
+- Consistent sizing across all block types
 
 ### Exit Criteria
 
-- [x] BlockCategory and brick profiles fully aligned
-- [x] All studs pass uniform dimension validation
+- [x] BlockCategory and block visual profiles fully aligned
+- [x] All ports pass uniform dimension validation
 - [x] Provider themes applied consistently across all block types
 
 ### Dependencies
@@ -905,7 +905,7 @@ Key Objectives:
 
 - CU-based deterministic grid system with mandatory snap
 - Pixel precision rendering (no sub-pixel, integer coordinates only)
-- Universal Stud Standard enforcement across all elements
+- Universal Port Standard enforcement across all elements
 - 2:1 dimetric isometric projection with depth sorting
 - v2.0 visual token system (geometry, colors, materials)
 - Updated validation contracts for v2.0 rules
@@ -920,7 +920,7 @@ Scope:
 
 - [x] CU grid system implemented with mandatory snap
 - [x] Pixel precision rules enforced (integer coordinates, +0.5 stroke alignment)
-- [x] Universal Stud Standard validated across all elements (rx=12, ry=6, height=5)
+- [x] Universal Port Standard validated across all elements (rx=12, ry=6, height=5)
 - [x] 2:1 dimetric projection with depth sorting implemented
 - [x] v2.0 visual tokens extracted and applied
 - [x] Validation contracts updated for v2.0 rules
@@ -955,7 +955,7 @@ Scope:
 - 30 issues total (all closed)
 - 10 PRs merged (#376, #377, #387, #402, #406, #409, #410, #412, #413, #415)
 - 3 Waves: Foundation (conventions) → Reconciliation (content) → Alignment & Archive
-- Block-Themed Docs: custom CSS theme, user-centric nav, dark mode baseplate theme, homepage rewrite
+- Block-Themed Docs: custom CSS theme, user-centric nav, dark mode block-based theme, homepage rewrite
 
 ### Exit Criteria
 
@@ -1012,7 +1012,7 @@ Scope:
 ## Milestone 18 — DevOps UX ✅
 
 Goal:
-Add operational control capabilities to CloudBlocks. Introduce an Ops Control Center, standardize deployment terminology, build environment promotion/rollback UX, add a notification system, and replace SVG connection lines with brick-style connector pieces.
+Add operational control capabilities to CloudBlocks. Introduce an Ops Control Center, standardize deployment terminology, build environment promotion/rollback UX, add a notification system, and replace SVG connection lines with connection-renderer-style connector pieces.
 
 > **Reference**: [M18_DEVOPS_UX.md](M18_DEVOPS_UX.md)
 
@@ -1022,11 +1022,11 @@ Key Objectives:
 - Deploy terminology standardization: canonical definitions for deploy/promote/rollback/release
 - Promote/rollback UX: visual flows with pre-checks, version selection, diff preview
 - Notification system: in-app notification center, toast alerts, deployment event history
-- Brick-style connection rendering: replace thin SVG bezier lines with Technic connector pieces matching the brick visual language
+- Connection renderer style: replace thin SVG bezier lines with Technic connector pieces matching the block-based visual language
 
 Scope:
 
-- 5 Epics: Ops Control Center (Area A), Deploy Terminology (Area B), Promote/Rollback UX (Area C), Notification System (Area D), Brick-Style Connections (Area E)
+- 5 Epics: Ops Control Center (Area A), Deploy Terminology (Area B), Promote/Rollback UX (Area C), Notification System (Area D), Connection Renderer Style (Area E)
 - Estimated effort: 8–10 weeks
 
 ### Exit Criteria
@@ -1038,14 +1038,14 @@ Scope:
 - [ ] Cost estimation displayed before deployment confirmation — **deferred to M20+**
 - [ ] Notification system shows deployment lifecycle events in-app — **deferred to M20+ (infinite loop bug)**
 - [ ] Deployment history log records all deploys, promotions, and rollbacks — **deferred to M20+**
-- [x] Connections render as brick-style connector pieces matching the block-based visual language
+- [x] Connections render as connection-renderer-style connector pieces matching the block-based visual language
 
 ### Delivered (not in original exit criteria)
 
 - [x] Screen-space orthogonal connector routing with height normalization
-- [x] BRICK_CONNECTOR_SPEC.md §12 with full geometry and algorithm documentation
+- [x] Connection renderer specification §12 with full geometry and algorithm documentation
 - [x] Provider-specific block palette, icon mappings, and learning mode content
-- [x] Plate overlap prevention
+- [x] Container block overlap prevention
 - [x] 24+ GitHub integration bug fixes
 - [x] UI simplification: OpsCenter, AI, NotificationCenter hidden; Portrait panel removed
 - [x] Minifigure worker concept evaluated and removed (paradigm mismatch)
@@ -1053,7 +1053,7 @@ Scope:
 
 ### Retrospective
 
-Scope inflation with agentic coding led to most exit criteria being deferred. The milestone's primary value was the brick-style connector system and clarifying product direction (design tool, not RTS). See CHANGELOG v0.18.0 for details.
+Scope inflation with agentic coding led to most exit criteria being deferred. The milestone's primary value was the connection-renderer-style connector system and clarifying product direction (design tool, not RTS). See CHANGELOG v0.18.0 for details.
 
 ### Dependencies
 
@@ -1070,7 +1070,7 @@ Unify the resource model, clean up legacy subsystems, and harden CI for release 
 
 Key Objectives:
 
-- Unify Plate/Block → single ResourceNode type with `kind: "container" | "resource"`
+- Unify ContainerBlock/ResourceBlock → single Block union with `kind: "container" | "resource"`
 - Realign 10 resource categories → 7 (Network, Security, Edge, Compute, Data, Messaging, Operations)
 - Remove minifigure worker system entirely
 - Fix provider label bugs and workspace state leaks
@@ -1079,7 +1079,7 @@ Key Objectives:
 
 ### Exit Criteria
 
-- [x] ResourceNode unification complete — single type replaces Plate + Block (#1099)
+- [x] Block union unification complete — single type replaces ContainerBlock + ResourceBlock (#1099)
 - [x] 7-category resource model implemented and validated (#1102)
 - [x] Minifigure worker system fully removed (#1088)
 - [x] Provider-neutral labels in CreationGrid (#1096)
@@ -1181,7 +1181,7 @@ Fix all GitHub integration bugs. Subgroups can run in parallel but maintain orde
 | ----- | ---------------------------------------------------------------- | ---- |
 | #1137 | Consolidate block selection controls into unified property panel | M    |
 | #1138 | AI features: graceful fallback when backend unavailable          | S    |
-| #1139 | Ops features: disable or stub when backend unavailable           | S    |
+| #1139 | Ops features: disable or mock when backend unavailable           | S    |
 | #411  | Fix remaining demo blockers (if any)                             | S    |
 
 #### Phase 6 — Content Modernization (5 issues)
@@ -1242,7 +1242,7 @@ Fix all GitHub integration bugs. Subgroups can run in parallel but maintain orde
 - [x] `v0.20.0` release published with demo verification gate
 - [x] All tests passing, ≥ 90% branch coverage
 - [x] Azure resource catalog parity — 19 new resource types (#1195)
-- [x] ResourceNode unification — Plate/Block separation eliminated (#1194)
+- [x] Block union unification — ContainerBlock/ResourceBlock separation eliminated (#1194)
 
 ### Dependencies
 
@@ -1250,33 +1250,33 @@ Fix all GitHub integration bugs. Subgroups can run in parallel but maintain orde
 
 ---
 
-## Milestone 21 — UI/UX Overhaul & Stub Connections ✅
+## Milestone 21 — UI/UX Overhaul & Port Connections ✅
 
 Goal:
-Realign CloudBlocks with the Product Direction Spec — complete UI redesign with Professional theme (default), stub-addressable connection model, CSS Grid builder layout, and new panel system. Stub rendering and stub-to-stub routing deferred to M22.
+Realign CloudBlocks with the Product Direction Spec — complete UI redesign with Professional theme (default), port-addressable connection model, CSS Grid builder layout, and new panel system. Port rendering and port-to-port routing deferred to M22.
 
 > **Reference**: [PRODUCT_DIRECTION_SPEC.md](PRODUCT_DIRECTION_SPEC.md)
 
 Key Objectives:
 
 - Replace 4 silhouettes (tower/heavy/shield/module) with 6 semantic shapes (rect/cylinder/gateway/circle/hex/shield)
-- Add stub metadata to Connection model (sourceStub/targetStub) with category-based port policy
+- Add port metadata to Connection model (`from`/`to` endpoint IDs with `blockId` + `portIndex`) with category-based port policy
 - Filter resource palette to MVP core set
 - Implement dark-themed first screen with 3 primary actions (Create / Explore Templates / Import)
-- Stub rendering on blocks (visual stub points)
-- Stub-to-stub connection routing (replace center-based connections)
+- Port rendering on blocks (visual port points)
+- Port-to-port connection routing (replace center-based connections)
 
 ### Implementation Phases
 
-#### Phase 1 — Stub Definition (Schema)
+#### Phase 1 — Port Definition (Schema)
 
-Add stub metadata to the connection model and define port policy per resource category.
+Add port metadata to the connection model and define port policy per resource category.
 
-| #     | Issue                                                         | Status  |
-| ----- | ------------------------------------------------------------- | ------- |
-| #1200 | Add `sourceStub`/`targetStub` to Connection model             | ✅ Done |
-| #1201 | Add port/stub policy per resource category (`CATEGORY_PORTS`) | ✅ Done |
-| #1202 | Update `addConnection` to allocate stub indices               | ✅ Done |
+| #     | Issue                                                             | Status  |
+| ----- | ----------------------------------------------------------------- | ------- |
+| #1200 | Add endpoint-based `from`/`to` connection model with port indices | ✅ Done |
+| #1201 | Add port policy per resource category (`CATEGORY_PORTS`)          | ✅ Done |
+| #1202 | Update `addConnection` to allocate port indices                   | ✅ Done |
 
 #### Phase 2 — Semantic Block Shapes
 
@@ -1302,22 +1302,22 @@ Dark-themed landing page with 3 primary actions.
 | ----- | -------------------------------- | ------- |
 | #1206 | Dark-themed first screen overlay | ✅ Done |
 
-#### Phase 5 — Stub Rendering
+#### Phase 5 — Port Rendering
 
-Render stub points visually on block SVG.
+Render port points visually on block SVG.
 
 | #     | Issue                               | Status            |
 | ----- | ----------------------------------- | ----------------- |
-| #1223 | Render stub anchor points on blocks | → Deferred to M22 |
+| #1223 | Render port anchor points on blocks | → Deferred to M22 |
 
 #### Phase 6 — Connection Preview & Routing
 
-Stub-to-stub connection UX: preview line, routing, valid target highlighting.
+Port-to-port connection UX: preview line, routing, valid target highlighting.
 
 | #     | Issue                           | Status            |
 | ----- | ------------------------------- | ----------------- |
-| #1225 | Connection preview from stub    | → Deferred to M22 |
-| #1227 | Stub-to-stub orthogonal routing | → Deferred to M22 |
+| #1225 | Connection preview from port    | → Deferred to M22 |
+| #1227 | Port-to-port orthogonal routing | → Deferred to M22 |
 
 #### Phase 7 — Legacy Removal & Color
 
@@ -1330,9 +1330,9 @@ Remove center-based connections, apply vendor color system to connections.
 
 ### Exit Criteria
 
-- [x] Connection model has `sourceStub`/`targetStub` fields (#1200)
+- [x] Connection model uses endpoint-based `from`/`to` with port indices (#1200)
 - [x] `CATEGORY_PORTS` policy exported from schema (#1201)
-- [x] `addConnection()` auto-allocates stub indices (#1202)
+- [x] `addConnection()` auto-allocates port indices (#1202)
 - [x] 6 semantic block shapes replace 4 legacy silhouettes (#1203)
 - [x] Resource palette filtered to MVP core set (#1204)
 - [x] Dark-themed first screen with Create/Templates/Import (#1205)
@@ -1352,18 +1352,18 @@ Remove center-based connections, apply vendor color system to connections.
 
 ---
 
-## Milestone 22 — Stub Connections & Visual Theme
+## Milestone 22 — Port Connections & Visual Theme
 
 Goal:
-Complete the stub-based connection system, apply vendor-specific visual identity, clean up legacy resource model duplication, and introduce a token-based visual theme system. Deliver a verified Azure end-to-end demo.
+Complete the port-based connection system, apply vendor-specific visual identity, clean up legacy resource model duplication, and introduce a token-based visual theme system. Deliver a verified Azure end-to-end demo.
 
 > **Reference**: [PRODUCT_DIRECTION_SPEC.md](PRODUCT_DIRECTION_SPEC.md)
 
 Key Objectives:
 
-- Render stub anchor points visually on block SVG faces (inbound=left, outbound=right)
-- Implement connection preview from stubs with valid/invalid target highlighting
-- Complete stub-to-stub routing and remove center-to-center fallback
+- Render port anchor points visually on block SVG faces (inbound=left, outbound=right)
+- Implement connection preview from ports with valid/invalid target highlighting
+- Complete port-to-port routing and remove center-to-center fallback
 - Apply vendor-based color system to blocks and connections (Azure=#0078D4, AWS=#FF9900, GCP=#4285F4)
 - Remove `MVP_RESOURCE_ALLOWLIST` duplication — consolidate into `RESOURCE_DEFINITIONS`
 - Extend token-based theme system: Professional (default) + Blueprint (alt) via CSS custom properties
@@ -1371,29 +1371,29 @@ Key Objectives:
 
 ### Existing Infrastructure (from M21)
 
-The following stub infrastructure already exists and will be built upon:
+The following port infrastructure already exists and will be built upon:
 
-- `blockGeometry.ts` — `getBlockSvgStubPoints()` computes SVG-local stub positions
-- `endpointAnchors.ts` — `getConnectionEndpointWorldAnchors()` resolves stub-aware world-space endpoints
-- `BrickConnector.tsx` — already consumes stub anchors via `getConnectionEndpointWorldAnchors()`
+- `blockGeometry.ts` — `getBlockSvgPortPoints()` computes SVG-local port positions
+- `endpointAnchors.ts` — `getConnectionEndpointWorldAnchors()` resolves port-aware world-space endpoints
+- `ConnectionRenderer.tsx` — already consumes port anchors via `getConnectionEndpointWorldAnchors()`
 - `themeTokens.ts` — `ThemeVariant` type with `blueprint` (dark) and `workshop` (light) token sets
-- `CATEGORY_PORTS` — port/stub policy per resource category (from `@cloudblocks/schema`)
+- `CATEGORY_PORTS` — port policy per resource category (from `@cloudblocks/schema`)
 
 ### Implementation Phases
 
-#### Phase 1 — Stub Rendering + Resource Cleanup (parallel)
+#### Phase 1 — Port Rendering + Resource Cleanup (parallel)
 
 | Area                      | Description                                                                                                      | Dependencies |
 | ------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------ |
-| A. Stub Visual Rendering  | Render stub dots on block SVG faces using `getBlockSvgStubPoints()`. Hover indicator, connection-occupied state. | None         |
+| A. Port Visual Rendering  | Render port dots on block SVG faces using `getBlockSvgPortPoints()`. Hover indicator, connection-occupied state. | None         |
 | D. Resource Model Cleanup | Remove `MVP_RESOURCE_ALLOWLIST` duplication (#1208). `RESOURCE_DEFINITIONS` as single source of truth.           | None         |
 
-#### Phase 2 — Connection UX from Stubs
+#### Phase 2 — Connection UX from Ports
 
-| Area                    | Description                                                                                                                         | Dependencies |
-| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| B. Connection Preview   | Live preview line from stub to cursor. Valid targets highlight (green glow), invalid targets dim. Click stub to start connect mode. | Phase 1A     |
-| B. Stub-to-Stub Routing | Orthogonal routing from source stub to target stub. Remove center fallback in `endpointAnchors.ts`.                                 | Phase 1A     |
+| Area                    | Description                                                                                                                           | Dependencies |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| B. Connection Preview   | Live preview line from port to cursor. Valid targets highlight (green glow), invalid targets dim. Click a port to start connect mode. | Phase 1A     |
+| B. Port-to-Port Routing | Orthogonal routing from source port to target port. Remove center fallback in `endpointAnchors.ts`.                                   | Phase 1A     |
 
 #### Phase 3 — Legacy Removal + Vendor Colors
 
@@ -1404,29 +1404,54 @@ The following stub infrastructure already exists and will be built upon:
 
 #### Phase 4 — Visual Theme + Demo Verification
 
-| Area                       | Description                                                                                                                                                                             | Dependencies                              |
-| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
-| E. Visual Theme System     | Extend `ThemeVariant` with `professional` (rename from `blueprint`) and `lego` themes. Token-level differences: border-radius, shadow depth, surface materials. Theme switcher in menu. | Independent (can parallel with Phase 2-3) |
-| F. Azure Demo Verification | End-to-end: create workspace → VNet → subnets → blocks (VM, DB, Storage, Gateway) → stub connections → generate Terraform/Bicep/Pulumi → validate output.                               | All phases complete                       |
+| Area                       | Description                                                                                                                                                                                    | Dependencies                              |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| E. Visual Theme System     | Extend `ThemeVariant` with `professional` (rename from `blueprint`) and `block-based` themes. Token-level differences: border-radius, shadow depth, surface materials. Theme switcher in menu. | Independent (can parallel with Phase 2-3) |
+| F. Azure Demo Verification | End-to-end: create workspace → VNet → subnets → blocks (VM, DB, Storage, Gateway) → port connections → generate Terraform/Bicep/Pulumi → validate output.                                      | All phases complete                       |
 
 ### Exit Criteria
 
-- [ ] Stub points rendered visually on block faces with hover indicators
-- [ ] Connection preview line from stub to cursor during connect mode
+- [ ] Port points rendered visually on block faces with hover indicators
+- [ ] Connection preview line from port to cursor during connect mode
 - [ ] Valid/invalid target highlighting during connection
-- [ ] Stub-to-stub orthogonal routing fully replaces center-based routing
+- [ ] Port-to-port orthogonal routing fully replaces center-based routing
 - [ ] Center-to-center connection fallback removed
 - [ ] Vendor-based colors applied to blocks and connections
 - [ ] `MVP_RESOURCE_ALLOWLIST` eliminated — `RESOURCE_DEFINITIONS` is single source (#1208)
 - [ ] Token-based theme system with Professional (default) + Blueprint (alt) themes
 - [ ] Theme switch accessible from settings/menu
-- [ ] Azure end-to-end demo verified (create → connect via stubs → generate → validate)
+- [ ] Azure end-to-end demo verified (create → connect via ports → generate → validate)
 - [ ] All tests passing, ≥ 90% branch coverage
 - [ ] `v0.22.0` release published
 
 ### Dependencies
 
 - Milestone 21 complete
+
+---
+
+## Milestone 24 — Block Unification
+
+Goal:
+Remove all legacy toy-branded and pre-unification terminology from product documentation and user-facing language, and standardize on Block/Connection/Port vocabulary.
+
+Key Objectives:
+
+- Replace legacy pre-unification terms with unified terminology (`block`, `connection`, `port`, `CloudBlocks`) in active documentation.
+- Align model terminology to current domain types: `ContainerBlock`, `ResourceBlock`, and `Block = ContainerBlock | ResourceBlock`.
+- Align connection terminology to endpoint model: `from` / `to` endpoint IDs and `blockId` endpoint references.
+- Ensure container sizing vocabulary uses `frame` (not `size`) where container block geometry is described.
+
+### Exit Criteria
+
+- [ ] No banned legacy terms remain in active documentation sets targeted by M24.
+- [ ] Root and concept documentation use unified Block terminology consistently.
+- [ ] Endpoint and connection field references are updated to current model names.
+- [ ] Documentation remains coherent and link-safe after terminology updates.
+
+### Dependencies
+
+- Milestone 22 complete
 
 ---
 
@@ -1522,7 +1547,7 @@ Milestone 8-13 (Complete)
 - Multi-cloud architecture support (AWS, GCP, Azure)
 - UX hardened to production quality
 - External actors interactive with RTS-style worker pattern
-- Brick design system consolidated with stud validation
+- Block design system consolidated with port validation
 - Core domain model extended with subtypes and provider semantics
 - Terraform pipeline productionized with CI/CD templates
 
@@ -1548,7 +1573,7 @@ Milestone 20 (Complete)
 - Test coverage expansion: domainSlice, workspaceSlice, provider adapters
 - Network resource gaps: NSG/Firewall split, NAT Gateway, implicit PIP/NIC codegen
 - Azure resource catalog parity: 19 new resource types added
-- ResourceNode unification: eliminated Plate/Block type separation
+- Block union unification: eliminated ContainerBlock/ResourceBlock type separation
 - Community-ready launch with demo verification gate
   Milestone 17 (Complete)
 - Modular monorepo structure with extracted packages
@@ -1559,7 +1584,7 @@ Milestone 20 (Complete)
 
 Milestone 18 (Complete)
 
-- Brick-style Technic Beam connectors with screen-space orthogonal routing
+- Connection-renderer-style Technic Beam connectors with screen-space orthogonal routing
 - Provider-specific block palette and learning mode fixes
 - Product direction clarified: design tool identity (minifigure worker removed)
 - UI simplified: OpsCenter, AI, NotificationCenter deferred to M20+
@@ -1567,7 +1592,7 @@ Milestone 18 (Complete)
 
 Milestone 19 (Complete)
 
-- Unified Plate/Block → ResourceNode with 7 categories (121+ files migrated)
+- Unified ContainerBlock/ResourceBlock → Block with 7 categories (121+ files migrated)
 - Minifigure worker system fully removed
 - Demo resilience mode for backend-unavailable state
 - CI secret scanning in all deployment pipelines
@@ -1596,7 +1621,7 @@ The roadmap evolves CloudBlocks from:
 
 → Multi-Cloud Architecture Tool (Milestone 8) ✅
 
-→ UX Core Hardening (Milestone 9) ✅ ‖ Brick Design System (Milestone 11) ✅
+→ UX Core Hardening (Milestone 9) ✅ ‖ Block Design System (Milestone 11) ✅
 
 → DevOps Worker UX (Milestone 10) ✅
 
@@ -1618,9 +1643,11 @@ The roadmap evolves CloudBlocks from:
 
 → UX Polish & GitHub Hardening (Milestone 20) ✅
 
-→ UI/UX Overhaul & Stub Connections (Milestone 21) ✅
+→ UI/UX Overhaul & Port Connections (Milestone 21) ✅
 
-→ Stub Connections & Visual Theme (Milestone 22) — planned
+→ Port Connections & Visual Theme (Milestone 22) — planned
+
+→ Block Unification (Milestone 24) — current
 
 → Internationalization (i18n)
 
@@ -1638,10 +1665,11 @@ Milestone 8 (Complete) ✅
     │                                               └── Milestone 18 (DevOps UX) ✅
     │                                                       └── Milestone 19 (MVP Polish & Launch) ✅
     │                                                               └── Milestone 20 (UX Polish & GitHub Hardening) ✅
-    │                                                                       └── Milestone 21 (UI/UX Overhaul & Stub Connections) ✅
-    │                                                                               └── Milestone 22 (Stub Connections & Visual Theme) ← current
+    │                                                                       └── Milestone 21 (UI/UX Overhaul & Port Connections) ✅
+    │                                                                               └── Milestone 22 (Port Connections & Visual Theme)
+    │                                                                                       └── Milestone 24 (Block Unification) ← current
     │               └── Milestone 14 (AI Roadmap) ✅ ←── also benefits from Milestone 13
-    └── Milestone 11 (Brick Design) ✅ ──── parallel with Milestone 9
+    └── Milestone 11 (Block Design) ✅ ──── parallel with Milestone 9
 
 i18n (Internationalization) ──── independent, can run in parallel
 ```

@@ -4,25 +4,25 @@ CloudBlocks uses a block-based composition model for cloud architecture. You bui
 
 ---
 
-## Containers
+## Blocks
 
-Containers represent logical boundaries and network infrastructure. They are the "plates" that hold other resources.
+Blocks represent both logical boundaries and cloud resources in a unified model.
 
-| Container Type | Cloud Equivalent (Azure / AWS / GCP) | Placement Rules                                |
-| -------------- | ------------------------------------ | ---------------------------------------------- |
-| **Network**    | VNet / VPC / VPC                     | Top-level plate placed directly on the canvas. |
-| **Subnet**     | Subnet / Subnet / Subnet             | Must be placed inside a Network plate.         |
+| Block Type  | Cloud Equivalent (Azure / AWS / GCP) | Placement Rules                                |
+| ----------- | ------------------------------------ | ---------------------------------------------- |
+| **Network** | VNet / VPC / VPC                     | Top-level block placed directly on the canvas. |
+| **Subnet**  | Subnet / Subnet / Subnet             | Must be placed inside a Network block.         |
 
-Nodes are placed inside either a Network or a Subnet to define their network location.
+Blocks are placed inside either a Network or a Subnet to define their network location.
 
 !!! info "Nesting"
-A typical architecture starts with a Network plate, followed by one or more Subnet plates inside it. Resources like virtual machines or databases are then placed within those subnets.
+A typical architecture starts with a Network block, followed by one or more Subnet blocks inside it. Blocks like virtual machines or databases are then placed within those subnets.
 
 ---
 
-## Nodes
+## Blocks by Category
 
-Nodes represent individual cloud resources. CloudBlocks organizes all resources into exactly **7 categories**:
+Blocks represent individual cloud resources. CloudBlocks organizes resources into exactly **7 categories**:
 
 | Category       | What It Does                          | Example Azure Resources                                                 |
 | -------------- | ------------------------------------- | ----------------------------------------------------------------------- |
@@ -41,14 +41,14 @@ You can find and drag these resources from the **Sidebar Palette** on the left s
 
 ## Connections
 
-Connections represent communication flows between nodes. CloudBlocks uses a port-based model where each node has defined endpoints.
+Connections represent communication flows between blocks. CloudBlocks uses a port-based model where each block has defined endpoints.
 
 ### Endpoint Model
 
 - **EndpointSemantic**: `http`, `event`, or `data`. This describes the protocol or data type.
 - **EndpointDirection**: `input` or `output`.
 
-A connection links an **output port** on a source node to an **input port** on a target node.
+A connection links an **output port** on a source block to an **input port** on a target block.
 
 ### Allowed Connection Flows
 

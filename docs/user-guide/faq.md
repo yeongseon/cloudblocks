@@ -8,7 +8,7 @@ Find answers to frequently asked questions about CloudBlocks.
 
 ### What is CloudBlocks?
 
-CloudBlocks is a visual architecture compiler that lets you design cloud infrastructure by placing blocks on plates. Your designs are then converted into infrastructure-as-code files like Terraform, Bicep, or Pulumi.
+CloudBlocks is a visual architecture compiler that lets you design cloud infrastructure by placing blocks and creating connections. Your designs are then converted into infrastructure-as-code files like Terraform, Bicep, or Pulumi.
 
 ### Is CloudBlocks free?
 
@@ -42,7 +42,7 @@ The following categories are receiver-only: Data, Security, Operations, and Netw
 
 ### Where do I find resource details?
 
-To see and edit the details of a node, click on it and look at the **Inspector Panel** on the right side of the editor. To add new resources, use the **Sidebar Palette** on the left side.
+To see and edit the details of a block, click on it and look at the **Inspector Panel** on the right side of the editor. To add new resources, use the **Sidebar Palette** on the left side.
 
 ---
 
@@ -86,13 +86,13 @@ A GitHub account is only required if you want to use advanced features like repo
 
 ## Troubleshooting
 
-### Why can't I place a node?
+### Why can't I place a block?
 
-Nodes must be placed inside a container, such as a Network or Subnet plate. Make sure you have placed a container on the canvas first.
+Blocks must be placed inside a Network or Subnet block. Make sure you have placed a Network block on the canvas first.
 
 ### Why won't my connection work?
 
-Check that your source category can initiate connections (Compute, Edge, or Messaging). If you are trying to connect from a Data, Security, Operations, or Network node, the builder will block it because those categories are receiver-only.
+Check that your source category can initiate connections (Compute, Edge, or Messaging). If you are trying to connect from a Data, Security, Operations, or Network block, the builder will block it because those categories are receiver-only.
 
 ### Where is Learning Mode?
 
