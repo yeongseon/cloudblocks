@@ -121,10 +121,12 @@ export const BlockSprite = memo(function BlockSprite({
   const hasValidationWarning = validatePlacement(block, parentPlate) !== null;
   const diffState = diffMode && diffDelta ? getDiffState(block.id, diffDelta) : 'unchanged';
   const upgradingBlockId = useUIStore((s) => s.upgradingBlockId);
-  const snapTargetBlockId = useUIStore((s) => s.snapTargetBlockId);
+  const snapTargetBlockIds = useUIStore((s) => s.snapTargetBlockIds);
   const triggerSnapAnimation = useUIStore((s) => s.triggerSnapAnimation);
+  const magneticSnapTargetId = useUIStore((s) => s.magneticSnapTargetId);
   const isUpgrading = upgradingBlockId === block.id;
-  const isSnapTarget = snapTargetBlockId === block.id;
+  const isSnapTarget = snapTargetBlockIds.has(block.id);
+  const isMagneticSnapTarget = magneticSnapTargetId === block.id;
 
   // ── Port hover state for glow effect ──
   const [hoveredPort, setHoveredPort] = useState<string | null>(null);
@@ -268,6 +270,7 @@ export const BlockSprite = memo(function BlockSprite({
         const success = addConnection(connectionSource, block.id);
         if (success) {
           triggerSnapAnimation(block.id);
+          triggerSnapAnimation(connectionSource);
           const { isSoundMuted } = useUIStore.getState();
           if (!isSoundMuted) audioService.playSound('block-snap');
         }
@@ -286,7 +289,8 @@ export const BlockSprite = memo(function BlockSprite({
     isSelected && 'is-selected',
     isConnectionSource && 'is-connection-source',
     isDeleteMode && 'is-delete-mode',
-    isValidConnectTarget && 'is-valid-target',
+    isValidConnectTarget && !isMagneticSnapTarget && 'is-valid-target',
+    isMagneticSnapTarget && 'is-drag-hover-valid',
     isInvalidConnectTarget && 'is-invalid-target',
     isAlreadyConnected && isConnectMode && 'is-connected',
     hasValidationWarning && !isSelected && !isConnectMode && !isDeleteMode && 'is-warning',

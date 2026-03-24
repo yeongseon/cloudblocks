@@ -222,7 +222,7 @@
 }
 
 .block-sprite.is-snap-target .block-img {
-  animation: port-snap-pulse 400ms var(--easing-default, cubic-bezier(0.2, 0, 0, 1)) forwards;
+  animation: port-snap-pulse 200ms var(--easing-default, cubic-bezier(0.2, 0, 0, 1)) forwards;
 }
 
 /* ── Pre-drop affordance: enlarge valid target during drag ─ */
