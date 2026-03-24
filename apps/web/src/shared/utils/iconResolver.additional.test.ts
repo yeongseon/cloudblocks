@@ -1,7 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { LayerType, ProviderType, ResourceCategory } from '@cloudblocks/schema';
-import { getBlockIconUrl, getContainerBlockIconUrl, getResourceIconUrl, getSubtypeDisplayLabel, getSubtypeShortLabel } from './iconResolver';
+import {
+  getBlockIconUrl,
+  getContainerBlockIconUrl,
+  getResourceIconUrl,
+  getSubtypeDisplayLabel,
+  getSubtypeShortLabel,
+} from './iconResolver';
 
 describe('iconResolver additional branches', () => {
   beforeEach(() => {

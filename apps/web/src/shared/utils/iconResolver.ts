@@ -241,7 +241,6 @@ const CONTAINER_LAYER_ICONS: Record<ContainerLayer, string> = {
   subnet: subnetIcon,
 };
 
-
 /**
  * Resolve the SVG icon URL for a container.
  *
