@@ -1794,8 +1794,11 @@ describe('architectureStore', () => {
       expect(getArch().name).toBe('Imported Architecture');
       expect(getArch().version).toBe('1');
       expect(getArch().connections ?? []).toEqual([]);
-      expect(getArch().externalActors).toHaveLength(1);
-      expect((getArch().externalActors ?? [])[0]!.type).toBe('internet');
+      expect(getArch().externalActors).toHaveLength(2);
+      expect((getArch().externalActors ?? []).map((actor) => actor.type)).toEqual([
+        'browser',
+        'internet',
+      ]);
     });
 
     it('returns error string on invalid JSON without crashing', () => {
