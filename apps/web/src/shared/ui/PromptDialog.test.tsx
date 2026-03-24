@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { promptDialog } from './PromptDialog';
@@ -144,5 +144,20 @@ describe('promptDialog', () => {
     await user.type(input, 'value');
     await user.click(screen.getByRole('button', { name: 'OK' }));
     await expect(second).resolves.toBe('value');
+  });
+
+  it('resolves null when dialog root cannot be created', async () => {
+    vi.resetModules();
+    vi.doMock('react-dom/client', () => ({
+      createRoot: () => null,
+    }));
+
+    try {
+      const module = await import('./PromptDialog');
+      await expect(module.promptDialog('Name?', 'Prompt', 'Default')).resolves.toBeNull();
+    } finally {
+      vi.doUnmock('react-dom/client');
+      vi.resetModules();
+    }
   });
 });
