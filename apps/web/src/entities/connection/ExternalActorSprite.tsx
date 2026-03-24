@@ -8,7 +8,10 @@ import { screenDeltaToWorld, snapToGrid } from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
 import './ExternalActorSprite.css';
 
-const internetSprite = '/actor-sprites/internet.svg';
+const ACTOR_SPRITES: Record<string, string> = {
+  internet: '/actor-sprites/internet.svg',
+  browser: '/actor-sprites/browser.svg',
+};
 
 interface ExternalActorSpriteProps {
   actor: ExternalActor;
@@ -205,7 +208,13 @@ export const ExternalActorSprite = memo(function ExternalActorSprite({
       }}
     >
       <button type="button" className="external-actor-button" onClick={handleClick}>
-        <img className="actor-img" src={internetSprite} alt={actor.name} draggable={false} />
+        <img
+          className="actor-img"
+          src={ACTOR_SPRITES[actor.type] ?? ACTOR_SPRITES.internet}
+          alt={actor.name}
+          draggable={false}
+        />
+        <span className="actor-label">{actor.name}</span>
       </button>
     </div>
   );

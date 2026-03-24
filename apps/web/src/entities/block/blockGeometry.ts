@@ -4,11 +4,11 @@
  * Provides world-space anchor points for connection stubs on block faces,
  * and SVG-local stub positions for visual rendering inside BlockSvg.
  *
- * Design decisions (from Oracle consultation):
+ * Design decisions:
  * - Stubs are expressed in world coordinates, then projected to screen via worldToScreen.
- * - Inbound stubs sit on the LEFT face (plane x = wx), viewer-left in 2:1 dimetric.
- * - Outbound stubs sit on the RIGHT face (plane z = wz), viewer-right in 2:1 dimetric.
- * - Vertical distribution: t = (index + 1) / (total + 1) along block height.
+ * - Inbound stubs sit on the LEFT face bottom edge (y = wy, distributed along z).
+ * - Outbound stubs sit on the RIGHT face bottom edge (y = wy, distributed along x).
+ * - All stubs at block base (plate floor) for PCB-style floor routing.
  */
 
 import type { BlockDimensionsCU } from '../../shared/types/visualProfile';
@@ -53,17 +53,16 @@ export function getBlockWorldAnchors(
   return {
     center,
     stub(side: StubSide, index: number, total: number): WorldPoint {
-      // Evenly distribute stubs vertically. t avoids placing at exact edges.
+      // Stubs sit at the BOTTOM of the block (wy = block base = plate floor).
+      // Distributed horizontally along the bottom edge of each face.
       const t = (index + 1) / (total + 1);
 
       if (side === 'inbound') {
-        // LEFT face: plane x = wx
-        // Horizontally centered on left face (depth midpoint)
-        return [wx, wy + t * cu.height, wz + cu.depth / 2];
+        // LEFT face bottom edge: y = wy (base), distributed along depth (z-axis)
+        return [wx, wy, wz + t * cu.depth];
       }
-      // RIGHT face: plane z = wz
-      // Horizontally centered on right face (width midpoint)
-      return [wx + cu.width / 2, wy + t * cu.height, wz];
+      // RIGHT face bottom edge: y = wy (base), distributed along width (x-axis)
+      return [wx + t * cu.width, wy, wz];
     },
   };
 }
@@ -89,23 +88,22 @@ export function getBlockSvgStubPoints(
 ): { inbound: SvgStubPoint[]; outbound: SvgStubPoint[] } {
   const dims = cuToSilhouetteDimensions(cu);
 
-  // Left face vertical edge: from (leftX, midY) down to (leftX, midY + sideWallPx)
-  const leftEdgeTop = { x: dims.leftX, y: dims.midY };
-  const leftEdgeBottom = { x: dims.leftX, y: dims.midY + dims.sideWallPx };
+  // Bottom of left side wall: from leftX to cx at y = midY + sideWallPx
+  const leftBottomY = dims.midY + dims.sideWallPx;
+  const leftBottomLeftX = dims.leftX;
+  const leftBottomRightX = dims.cx;
 
-  // Right face vertical edge: from (rightX, midY) down to (rightX, midY + sideWallPx)
-  const rightEdgeTop = { x: dims.rightX, y: dims.midY };
-  const rightEdgeBottom = { x: dims.rightX, y: dims.midY + dims.sideWallPx };
-
-  // Inset from the face edge toward the interior so stubs don't overlap silhouette stroke
-  const FACE_INSET_PX = 3;
+  // Bottom of right side wall: from cx to rightX at y = midY + sideWallPx
+  const rightBottomY = dims.midY + dims.sideWallPx;
+  const rightBottomLeftX = dims.cx;
+  const rightBottomRightX = dims.rightX;
 
   const inbound: SvgStubPoint[] = [];
   for (let i = 0; i < inboundCount; i++) {
     const t = (i + 1) / (inboundCount + 1);
     inbound.push({
-      x: leftEdgeTop.x + FACE_INSET_PX,
-      y: leftEdgeTop.y + t * (leftEdgeBottom.y - leftEdgeTop.y),
+      x: leftBottomLeftX + t * (leftBottomRightX - leftBottomLeftX),
+      y: leftBottomY,
     });
   }
 
@@ -113,8 +111,8 @@ export function getBlockSvgStubPoints(
   for (let i = 0; i < outboundCount; i++) {
     const t = (i + 1) / (outboundCount + 1);
     outbound.push({
-      x: rightEdgeTop.x - FACE_INSET_PX,
-      y: rightEdgeTop.y + t * (rightEdgeBottom.y - rightEdgeTop.y),
+      x: rightBottomLeftX + t * (rightBottomRightX - rightBottomLeftX),
+      y: rightBottomY,
     });
   }
 
