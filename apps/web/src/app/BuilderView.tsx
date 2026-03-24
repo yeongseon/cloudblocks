@@ -238,9 +238,8 @@ export function BuilderView() {
             <SceneCanvas />
           </div>
           <EmptyCanvasCTA />
+          <RightDrawer />
         </main>
-
-        <RightDrawer />
 
         <Suspense fallback={null}>
           {showGitHubLogin && <GitHubLogin />}

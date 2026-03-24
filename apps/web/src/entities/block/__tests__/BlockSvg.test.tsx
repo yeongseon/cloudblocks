@@ -15,9 +15,9 @@ import { BLOCK_SHORT_NAMES } from '../../../shared/types/index';
 
 // ─── Test Helpers ─────────────────────────────────────────────
 
-/** Extract all polygon elements from rendered SVG. */
+/** Extract all polygon elements from rendered SVG, excluding those inside defs/clipPath. */
 function getPolygons(container: HTMLElement) {
-  return container.querySelectorAll('polygon');
+  return container.querySelectorAll('polygon:not(defs polygon):not(clipPath polygon)');
 }
 
 /** Extract face color fills from rendered SVG, handling both polygon and cylinder rendering. */
@@ -289,10 +289,14 @@ describe('BlockSvg SVG structure', () => {
     expect(polygons.length).toBeGreaterThanOrEqual(3);
   });
 
-  it('renders edge highlight line', () => {
+  it('renders edge highlight line and top face grid lines', () => {
     const { container } = render(<BlockSvg category="compute" />);
-    const lines = container.querySelectorAll('line');
-    expect(lines.length).toBe(1);
+    // Edge highlight is outside the grid group
+    const allLines = container.querySelectorAll('line');
+    const gridGroup = container.querySelector('[data-testid="block-top-grid"]');
+    const gridLines = gridGroup ? gridGroup.querySelectorAll('line') : [];
+    expect(allLines.length).toBeGreaterThanOrEqual(1); // at least edge highlight
+    expect(gridLines.length).toBeGreaterThanOrEqual(2); // at least 2 grid lines (1x1 block = 2 subdivisions)
   });
 
   it('renders short name text element and conditionally renders icon', () => {

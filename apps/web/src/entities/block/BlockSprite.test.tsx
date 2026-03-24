@@ -207,12 +207,12 @@ describe('BlockSprite', () => {
     expect(blockImgDiv).toBeInTheDocument();
   });
 
-  it('does not render provider badge (removed)', () => {
+  it('does not render provider badge (removed feature)', () => {
     const block = { ...makeBlock('block-provider', 'compute'), provider: 'gcp' as const };
-    render(
+    const { container } = render(
       <BlockSprite block={block} parentPlate={parentPlate} screenX={0} screenY={0} zIndex={1} />,
     );
-    expect(screen.queryByText('GCP')).not.toBeInTheDocument();
+    expect(container.querySelector('.block-provider-badge')).toBeNull();
   });
 
   it('click in select mode calls setSelectedId', async () => {

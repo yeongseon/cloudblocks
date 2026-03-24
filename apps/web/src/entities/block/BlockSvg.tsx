@@ -134,6 +134,61 @@ export const BlockSvg = memo(function BlockSvg({
             strokeWidth={TOP_FACE_STROKE_WIDTH}
             strokeOpacity={TOP_FACE_STROKE_OPACITY}
           />
+          {/* ─── Block top face grid pattern ─── */}
+          {(() => {
+            const gridDivisions = Math.max(cu.width, cu.depth) <= 1 ? 2 : 3;
+            const topFaceClipId = `block-grid-clip-${connectorId}`;
+            const stepXx = (rightX - cx) / gridDivisions;
+            const stepXy = (midY - topY) / gridDivisions;
+            const stepZx = (leftX - cx) / gridDivisions;
+            const stepZy = (midY - topY) / gridDivisions;
+            const gridLines: { key: string; x1: number; y1: number; x2: number; y2: number }[] = [];
+            for (let gx = 1; gx < gridDivisions; gx++) {
+              const x1 = cx + gx * stepXx;
+              const y1 = topY + gx * stepXy;
+              gridLines.push({
+                key: `gx-${gx}`,
+                x1,
+                y1,
+                x2: x1 + gridDivisions * stepZx,
+                y2: y1 + gridDivisions * stepZy,
+              });
+            }
+            for (let gz = 1; gz < gridDivisions; gz++) {
+              const x1 = cx + gz * stepZx;
+              const y1 = topY + gz * stepZy;
+              gridLines.push({
+                key: `gz-${gz}`,
+                x1,
+                y1,
+                x2: x1 + gridDivisions * stepXx,
+                y2: y1 + gridDivisions * stepXy,
+              });
+            }
+            return (
+              <>
+                <defs>
+                  <clipPath id={topFaceClipId} clipPathUnits="userSpaceOnUse">
+                    <polygon points={silhouetteResult.topFacePoints} />
+                  </clipPath>
+                </defs>
+                <g clipPath={`url(#${topFaceClipId})`} data-testid="block-top-grid">
+                  {gridLines.map((line) => (
+                    <line
+                      key={line.key}
+                      x1={line.x1}
+                      y1={line.y1}
+                      x2={line.x2}
+                      y2={line.y2}
+                      stroke="rgba(255,255,255,0.10)"
+                      strokeWidth={0.5}
+                      fill="none"
+                    />
+                  ))}
+                </g>
+              </>
+            );
+          })()}
           <polygon points={silhouetteResult.leftSidePoints} fill={faceColors.leftSideColor} />
           <polygon points={silhouetteResult.rightSidePoints} fill={faceColors.rightSideColor} />
         </>
