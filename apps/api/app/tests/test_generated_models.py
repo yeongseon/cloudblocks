@@ -9,19 +9,21 @@ from app.models.generated.architecture_model import (
     Aggregation,
     AggregationMode,
     ArchitectureModel,
+    Block,
     BlockRole,
+    CanvasTier,
     Connection,
-    ConnectionType,
-    ContainerNode,
+    ContainerBlock,
+    Endpoint,
+    EndpointDirection,
+    EndpointSemantic,
     ExternalActor,
     LayerType,
-    LeafNode,
     Position,
     ProviderType,
+    ResourceBlock,
     ResourceCategory,
-    ResourceNode,
     Size,
-    SubnetAccess,
 )
 
 SCHEMA_PATH = (
@@ -44,18 +46,20 @@ def _load_schema() -> SchemaDefinitions:
 def test_expected_generated_model_symbols_exist() -> None:
     expected_symbols = {
         "ArchitectureModel",
-        "ContainerNode",
-        "LeafNode",
-        "ResourceNode",
+        "ContainerBlock",
+        "ResourceBlock",
+        "Block",
         "Connection",
+        "Endpoint",
+        "EndpointDirection",
+        "EndpointSemantic",
         "ExternalActor",
         "LayerType",
         "ResourceCategory",
-        "SubnetAccess",
         "ProviderType",
-        "ConnectionType",
         "AggregationMode",
         "BlockRole",
+        "CanvasTier",
         "Position",
         "Size",
         "Aggregation",
@@ -66,7 +70,7 @@ def test_expected_generated_model_symbols_exist() -> None:
 
 
 def test_architecture_model_round_trip_serialization() -> None:
-    container = ContainerNode(
+    container = ContainerBlock(
         id="node-vnet",
         name="Main VNet",
         kind="container",
@@ -76,13 +80,12 @@ def test_architecture_model_round_trip_serialization() -> None:
         provider=ProviderType.azure,
         parentId=None,
         position=Position(x=0, y=0, z=0),
-        size=Size(width=100, height=20, depth=100),
+        frame=Size(width=100, height=20, depth=100),
         metadata={},
-        subnetAccess=None,
         profileId=None,
     )
 
-    leaf = LeafNode(
+    leaf = ResourceBlock(
         id="node-vm",
         name="Web VM",
         kind="resource",
@@ -102,15 +105,22 @@ def test_architecture_model_round_trip_serialization() -> None:
         name="Demo",
         version="v1",
         nodes=[
-            ResourceNode(root=container),
-            ResourceNode(root=leaf),
+            Block(root=container),
+            Block(root=leaf),
+        ],
+        endpoints=[
+            Endpoint(
+                id="node-vm:output:http",
+                blockId="node-vm",
+                direction=EndpointDirection.output,
+                semantic=EndpointSemantic.http,
+            ),
         ],
         connections=[
             Connection(
                 id="conn-1",
-                sourceId="actor-1",
-                targetId="node-vm",
-                type=ConnectionType.http,
+                **{"from": "actor-1:output:http"},
+                to="node-vm:input:http",
                 metadata={},
             )
         ],
@@ -126,7 +136,7 @@ def test_architecture_model_round_trip_serialization() -> None:
         updatedAt="2026-03-20T00:00:00Z",
     )
 
-    payload = architecture.model_dump()
+    payload = architecture.model_dump(by_alias=True)
     reloaded = ArchitectureModel.model_validate(payload)
 
     assert reloaded == architecture
@@ -139,11 +149,12 @@ def test_generated_enum_values_match_json_schema() -> None:
     enum_map = {
         "LayerType": LayerType,
         "ResourceCategory": ResourceCategory,
-        "SubnetAccess": SubnetAccess,
         "ProviderType": ProviderType,
-        "ConnectionType": ConnectionType,
         "AggregationMode": AggregationMode,
         "BlockRole": BlockRole,
+        "CanvasTier": CanvasTier,
+        "EndpointDirection": EndpointDirection,
+        "EndpointSemantic": EndpointSemantic,
     }
 
     for schema_name, enum_class in enum_map.items():

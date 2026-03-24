@@ -19,13 +19,19 @@ class LayerType(Enum):
     resource = 'resource'
 
 
+class ContainerCapableResourceType(Enum):
+    virtual_network = 'virtual_network'
+    subnet = 'subnet'
+
+
 class ResourceCategory(Enum):
     network = 'network'
-    security = 'security'
-    edge = 'edge'
+    delivery = 'delivery'
     compute = 'compute'
     data = 'data'
     messaging = 'messaging'
+    security = 'security'
+    identity = 'identity'
     operations = 'operations'
 
 
@@ -60,9 +66,11 @@ class BlockRole(Enum):
     external = 'external'
 
 
-class SubnetAccess(Enum):
-    public = 'public'
-    private = 'private'
+class CanvasTier(Enum):
+    shared = 'shared'
+    web = 'web'
+    app = 'app'
+    data = 'data'
 
 
 class Size(BaseModel):
@@ -74,12 +82,32 @@ class Size(BaseModel):
     depth: float
 
 
-class ConnectionType(Enum):
-    dataflow = 'dataflow'
+class EndpointDirection(Enum):
+    input = 'input'
+    output = 'output'
+
+
+class EndpointSemantic(Enum):
     http = 'http'
-    internal = 'internal'
+    event = 'event'
     data = 'data'
-    async_ = 'async'
+
+
+class Connection(BaseModel):
+    model_config = ConfigDict(
+        extra='forbid',
+    )
+    id: str
+    from_: str = Field(
+        ..., alias='from', description='Endpoint ID (must be output direction)'
+    )
+    to: str = Field(..., description='Endpoint ID (must be input direction)')
+    metadata: dict[str, Any]
+
+
+class Type(Enum):
+    internet = 'internet'
+    browser = 'browser'
 
 
 class ExternalActor(BaseModel):
@@ -88,7 +116,7 @@ class ExternalActor(BaseModel):
     )
     id: str
     name: str
-    type: Literal['internet']
+    type: Type
     position: Position
 
 
@@ -100,7 +128,7 @@ class Aggregation(BaseModel):
     count: float = Field(..., description='Must be >= 1')
 
 
-class LeafNode(BaseModel):
+class ResourceBlock(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -112,14 +140,14 @@ class LeafNode(BaseModel):
     )
     resourceType: str = Field(
         ...,
-        description="Specific resource identifier, e.g. 'virtual_network', 'vm', 'sql_database'",
+        description="Specific resource identifier, e.g. 'virtual_network', 'web_compute', 'relational_database'",
     )
     category: ResourceCategory = Field(
-        ..., description='One of the 7 resource categories'
+        ..., description='One of the 8 resource categories'
     )
     provider: ProviderType
     parentId: str | None = Field(
-        ..., description='Parent node ID. null for root-level nodes.'
+        ..., description='Parent block ID. null for root-level blocks.'
     )
     position: Position
     metadata: dict[str, Any]
@@ -136,32 +164,27 @@ class LeafNode(BaseModel):
     roles: list[BlockRole] | None = Field(
         None, description='v2.0 §9 — visual-only role indicators'
     )
-    subnetAccess: SubnetAccess | None = Field(
-        None,
-        description='Subnet access visibility — only meaningful for subnet-layer containers',
-    )
     profileId: str | None = Field(
         None,
         description='Visual profile preset identifier (frontend concern, serialized for persistence)',
     )
+    canvasTier: CanvasTier | None = Field(
+        None,
+        description='Canvas structural tier — orthogonal to category (domain) and layer (hierarchy). Determines visual grouping on the canvas: shared, web, app, data. Optional during migration; defaults derived from RESOURCE_RULES.',
+    )
 
 
-class Connection(BaseModel):
+class Endpoint(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
     id: str
-    sourceId: str = Field(
-        ..., description='ResourceNode or ExternalActor ID (initiator)'
-    )
-    targetId: str = Field(
-        ..., description='ResourceNode or ExternalActor ID (receiver)'
-    )
-    type: ConnectionType
-    metadata: dict[str, Any]
+    blockId: str
+    direction: EndpointDirection
+    semantic: EndpointSemantic
 
 
-class ContainerNode(BaseModel):
+class ContainerBlock(BaseModel):
     model_config = ConfigDict(
         extra='forbid',
     )
@@ -171,16 +194,16 @@ class ContainerNode(BaseModel):
     layer: LayerType = Field(
         ..., description='Hierarchy layer — used for containment validation'
     )
-    resourceType: str = Field(
+    resourceType: ContainerCapableResourceType = Field(
         ...,
-        description="Specific resource identifier, e.g. 'virtual_network', 'vm', 'sql_database'",
+        description='Only container-capable resource types (virtual_network, subnet)',
     )
     category: ResourceCategory = Field(
-        ..., description='One of the 7 resource categories'
+        ..., description='One of the 8 resource categories'
     )
     provider: ProviderType
     parentId: str | None = Field(
-        ..., description='Parent node ID. null for root-level nodes.'
+        ..., description='Parent block ID. null for root-level blocks.'
     )
     position: Position
     metadata: dict[str, Any]
@@ -197,21 +220,23 @@ class ContainerNode(BaseModel):
     roles: list[BlockRole] | None = Field(
         None, description='v2.0 §9 — visual-only role indicators'
     )
-    subnetAccess: SubnetAccess | None = Field(
-        None,
-        description='Subnet access visibility — only meaningful for subnet-layer containers',
-    )
     profileId: str | None = Field(
         None,
         description='Visual profile preset identifier (frontend concern, serialized for persistence)',
     )
-    size: Size
+    canvasTier: CanvasTier | None = Field(
+        None,
+        description='Canvas structural tier — orthogonal to category (domain) and layer (hierarchy). Determines visual grouping on the canvas: shared, web, app, data. Optional during migration; defaults derived from RESOURCE_RULES.',
+    )
+    frame: Size = Field(
+        ..., description='Visual frame dimensions (width × height × depth)'
+    )
 
 
-class ResourceNode(RootModel[ContainerNode | LeafNode]):
-    root: ContainerNode | LeafNode = Field(
+class Block(RootModel[ContainerBlock | ResourceBlock]):
+    root: ContainerBlock | ResourceBlock = Field(
         ...,
-        description="Discriminated union of all node types in the architecture. Discriminant: `kind` field ('container' | 'resource').",
+        description="Discriminated union of all block types in the architecture. Discriminant: `kind` field ('container' | 'resource').",
     )
 
 
@@ -224,11 +249,14 @@ class ArchitectureModel(BaseModel):
     version: str = Field(
         ..., description='User-facing architecture revision (not schema version)'
     )
-    nodes: list[ResourceNode] = Field(
-        ..., description='All nodes — containers and resources in a flat array'
+    nodes: list[Block] = Field(
+        ..., description='All blocks — containers and resources in a flat array'
     )
+    endpoints: list[Endpoint]
     connections: list[Connection]
-    externalActors: list[ExternalActor]
+    externalActors: list[ExternalActor] | None = Field(
+        None, deprecated='Folded into blocks in v4. Kept for v3→v4 migration loading.'
+    )
     createdAt: str = Field(..., description='ISO 8601')
     updatedAt: str = Field(..., description='ISO 8601')
 
