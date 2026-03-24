@@ -682,4 +682,48 @@ describe('ConnectionRenderer', () => {
       ).not.toBeInTheDocument();
     });
   });
+
+  describe('external actor fallback path (#1351)', () => {
+    it('uses fallback liftarm renderer when surfaceRoute returns null (external actor)', () => {
+      // surfaceRoute returns null → fallback path is used
+      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(null);
+      vi.mocked(getConnectionEndpointWorldAnchors).mockReturnValue({
+        src: [1, 0, 1],
+        tgt: [3, 0, 3],
+      });
+
+      const { container } = renderConnector();
+
+      // Fallback renders liftarm segments (legacy path)
+      const segments = container.querySelectorAll('[data-connector-segment]');
+      expect(segments.length).toBeGreaterThanOrEqual(1);
+      // Surface route top-face layer should NOT have a polygon
+      const topFaceLayer = container.querySelector('[data-layer="top-face"]');
+      expect(topFaceLayer?.querySelector('polygon')).toBeNull();
+    });
+
+    it('renders surface route and skips fallback when surfaceRoute is available', () => {
+      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createSurfaceRoute());
+
+      const { container } = renderConnector();
+
+      // Surface route renders top-face polygon
+      const topFaceLayer = container.querySelector('[data-layer="top-face"]');
+      expect(topFaceLayer?.querySelector('polygon')).toBeInTheDocument();
+      // Fallback liftarm segments should NOT be present
+      const sideFacesLayer = container.querySelector('[data-layer="side-faces"]');
+      expect(sideFacesLayer?.querySelectorAll('[data-connector-segment]')).toHaveLength(0);
+      // endpointAnchors should NOT have been called (surface route handles it)
+      expect(vi.mocked(getConnectionEndpointWorldAnchors)).not.toHaveBeenCalled();
+    });
+
+    it('returns null when both surfaceRoute and fallbackEndpoints fail', () => {
+      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(null);
+      vi.mocked(getConnectionEndpointWorldAnchors).mockReturnValue(null);
+
+      const { container } = renderConnector();
+
+      expect(container.querySelector('g')).toBeNull();
+    });
+  });
 });

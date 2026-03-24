@@ -49,7 +49,7 @@ These files are excluded from coverage calculations (documented in `vitest.confi
 - `src/features/generate/types.ts` — pure type definitions
 - `src/shared/types/template.ts` — pure type definitions
 - SVG renderer components (canvas-level integration, not fully testable in jsdom):
-  - `BlockSvg.tsx`, `PlateSvg.tsx`, `ConnectionPath.tsx`, `SceneCanvas.tsx`
+  - `BlockSvg.tsx`, `PlateSvg.tsx`, `ConnectionRenderer.tsx`, `SceneCanvas.tsx`
 
 ### Enforcement
 

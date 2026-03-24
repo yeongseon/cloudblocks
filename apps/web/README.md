@@ -42,7 +42,7 @@ src/
 │   │   └── connection.ts         # Connection rule validation
 │   ├── block/BlockSvg.tsx        # Isometric block SVG sprite
 │   ├── container-block/ContainerBlockSvg.tsx  # Isometric container block SVG sprite (with ports)
-│   └── connection/ConnectionPath.tsx  # SVG connection paths + external actor
+│   └── connection/ConnectionRenderer.tsx  # SVG connection rendering (surface + fallback paths)
 ├── features/                     # Business logic (stateless)
 │   ├── generate/                 # Code generation pipeline (Terraform, Bicep, Pulumi)
 │   │   ├── types.ts              # Generation types
