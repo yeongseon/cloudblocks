@@ -1,13 +1,13 @@
 .right-drawer-backdrop {
   position: absolute;
-  inset: 40px 0 0 0;
+  inset: 0 0 0 0;
   background: transparent;
   z-index: 50;
 }
 
 .right-drawer {
   position: absolute;
-  top: 40px;
+  top: 0;
   right: 0;
   bottom: 0;
   width: var(--drawer-width, 360px);
