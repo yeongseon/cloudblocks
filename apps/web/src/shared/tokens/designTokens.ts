@@ -30,8 +30,8 @@ export const CONNECTION_HEIGHT_CU = 1 / 3;
 // Real Lego: stud pitch 8mm, plate height 3.2mm (= ⅓ brick), liftarm width ≈ 1 stud.
 // We use a thin liftarm (0.5 CU wide) for visual clarity at our render scale.
 export const BEAM_WIDTH_CU = 0.5; // beam is half a stud wide
-export const BEAM_THICKNESS_CU = 1 / 3; // plate height = ⅓ brick
-export const BEAM_THICKNESS_PX = RENDER_SCALE * BEAM_THICKNESS_CU; // ~11px
+export const BEAM_THICKNESS_CU = 1 / 6; // thinner plate — PCB trace style
+export const BEAM_THICKNESS_PX = RENDER_SCALE * BEAM_THICKNESS_CU; // ~5px
 export const PIN_HOLE_SPACING_CU = 1.0; // 1 hole per stud pitch
 export const PIN_HOLE_RX = (RENDER_SCALE * 3) / 20; // 4.8 (iso X radius)
 export const PIN_HOLE_RY = PIN_HOLE_RX / 2; // 2.4 (iso Y radius)
