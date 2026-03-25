@@ -1,8 +1,13 @@
 # Generating Code
 
-CloudBlocks converts your visual architecture into infrastructure-as-code as an **Experimental** feature. This guide explains how to generate, preview, and export code in Terraform, Bicep, or Pulumi.
+> **Audience**: Intermediate Users | **Status**: Experimental | **Verified against**: v0.26.0
 
-> **Note**: Code generation is an **Experimental** feature in V1. It is available for users who want to export their visual designs to infrastructure-as-code, but it is not the primary product focus.
+!!! warning "Experimental Feature"
+Code generation is available as an Experimental feature in V1. Generated output is intended as a starting point for infrastructure code, not as production-ready deployment artifacts. Always review and test generated code before using it.
+
+CloudBlocks converts your visual architecture into infrastructure-as-code. This guide explains how to generate, preview, and export code in Terraform, Bicep, or Pulumi.
+
+> **Note**: This page is superseded by [Code Generation (Experimental)](../advanced/code-generation.md). The content below remains for reference.
 
 ---
 
@@ -33,8 +38,8 @@ CloudBlocks supports three industry-standard infrastructure-as-code formats. Use
 
 You can toggle between two generation modes depending on your workflow:
 
-- **Draft mode**: Generates a quick preview with inline values. This is ideal for prototyping and exploring how different configurations look in code.
-- **Production mode**: Generates a full module structure including variables, outputs, and proper resource naming conventions. Use this mode when you are ready to commit code to a repository.
+- **Draft mode**: Generates a quick preview with inline values. Useful for prototyping and exploring how different configurations look in code.
+- **Complete mode**: Generates a module structure including variables, outputs, and resource naming conventions. Use this mode when you need a more complete starting point.
 
 ---
 
@@ -57,7 +62,7 @@ The code generation pipeline maps your visual design to specific infrastructure 
 - **Resource definitions**: Each node on the canvas maps to its corresponding cloud resource.
 - **Network configuration**: Container blocks map to VPCs, VNets, and subnets.
 - **Connection wiring**: Connections between blocks map to security rules, IAM bindings, and network configurations.
-- **Variables and outputs**: In Production mode, the generator extracts configurable parameters and exports key values.
+- **Variables and outputs**: In Complete mode, the generator extracts configurable parameters and exports key values.
 
 ### Example: Terraform Output
 

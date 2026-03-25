@@ -1,54 +1,53 @@
 # Welcome to CloudBlocks
 
-**CloudBlocks** is a preset-driven visual architecture design tool — start from built-in templates, customize with drag-and-drop blocks, validate against real-world rules, and preview across Azure, AWS, and GCP — all from the browser.
+**CloudBlocks** is a preset-driven visual architecture design tool — start from built-in templates, customize with drag-and-drop blocks, validate against real-world rules, and preview across Azure, AWS, and GCP — all from the browser. No backend required.
 
 <div class="grid cards" markdown>
+
+- :material-puzzle:{ .lg .middle } **Start from a Template**
+
+  ***
+
+  Load a pre-built architecture pattern — three-tier web app, serverless API, or event pipeline — and customize it.
+
+  [:octicons-arrow-right-24: First Architecture](user-guide/first-architecture.md)
 
 - :material-rocket-launch:{ .lg .middle } **Quick Start**
 
   ***
 
-  Clone the repo, run `pnpm dev`, and open the builder in under 2 minutes.
+  Install locally and launch the builder in under 2 minutes.
 
-  [:octicons-arrow-right-24: Get started](guides/TUTORIALS.md)
+  [:octicons-arrow-right-24: Get started](user-guide/quick-start.md)
 
-- :material-puzzle:{ .lg .middle } **Templates**
-
-  ***
-
-  Start from a pre-built architecture — three-tier web app, serverless API, or event pipeline.
-
-  [:octicons-arrow-right-24: Browse templates](engine/templates.md)
-
-- :material-code-braces:{ .lg .middle } **Code Generation** _(Experimental)_
+- :material-shield-check:{ .lg .middle } **Validation**
 
   ***
 
-  Export your design to Terraform, Bicep, or Pulumi. Available as an Experimental feature.
+  Real-time constraint checking ensures your architecture follows cloud best practices.
 
-  [:octicons-arrow-right-24: Learn how](engine/generator.md)
+  [:octicons-arrow-right-24: Learn more](user-guide/validation.md)
 
-- :material-shield-check:{ .lg .middle } **Validation Rules**
+- :material-lightbulb:{ .lg .middle } **Core Concepts**
 
   ***
 
-  Real-time constraint checking ensures your architecture is valid before you export.
+  Understand blocks, connections, templates, and the 8 resource categories.
 
-  [:octicons-arrow-right-24: View rules](engine/rules.md)
+  [:octicons-arrow-right-24: Read concepts](user-guide/core-concepts.md)
 
 </div>
 
 ---
 
-## Your First Architecture in 5 Steps
+## Your First Architecture in 4 Steps
 
-| Step  | What You Do                               | Guide                                            |
-| :---: | ----------------------------------------- | ------------------------------------------------ |
-| **1** | Install and launch the builder            | [Installation](guides/DEPLOYMENT.md#quick-start) |
-| **2** | Follow a guided tutorial in Learning Mode | [Tutorials](guides/TUTORIALS.md)                 |
-| **3** | Design your own architecture              | [Using the Editor](concept/UI_FLOW.md)           |
-| **4** | Preview across cloud providers            | [Multi-Cloud Preview](concept/UI_FLOW.md)        |
-| **5** | Optionally generate infrastructure code   | [Code Generator](engine/generator.md)            |
+| Step  | What You Do                               | Guide                                                  |
+| :---: | ----------------------------------------- | ------------------------------------------------------ |
+| **1** | Open the builder (live demo or local)     | [Quick Start](user-guide/quick-start.md)               |
+| **2** | Load a template and explore the interface | [First Architecture](user-guide/first-architecture.md) |
+| **3** | Customize — add blocks, connect, validate | [Editor Basics](user-guide/editor-basics.md)           |
+| **4** | Save your workspace                       | [Workspaces](user-guide/workspaces.md)                 |
 
 ---
 
@@ -56,12 +55,12 @@
 
 CloudBlocks uses a **block-based composition model** where everything snaps together:
 
-- **Container blocks** — Logical boundaries (VPC, resource group, subnet). Container blocks hold blocks.
-- **Resource blocks** — Cloud resources (VM, database, storage, function). Resource blocks sit on container blocks.
-- **Connections** — Typed links between blocks (network, data, event, IAM).
+- **Container blocks** — Logical boundaries (VPC, resource group, subnet). Container blocks hold other blocks.
+- **Resource blocks** — Cloud resources (VM, database, storage, function). Resource blocks sit inside container blocks.
+- **Connections** — Typed links between blocks (http, data, event).
 - **Templates** — Pre-built architecture patterns you can load and customize.
 
-> New to cloud architecture? Start with the [Tutorials](guides/TUTORIALS.md) — they walk you through real-world patterns step by step.
+> New to cloud architecture? Start with [First Architecture from a Template](user-guide/first-architecture.md) — it walks you through a real-world pattern step by step.
 
 ---
 
@@ -78,17 +77,16 @@ CloudBlocks uses a **block-based composition model** where everything snaps toge
 
 ## Features at a Glance
 
-| Feature                   | Description                                                               |
-| ------------------------- | ------------------------------------------------------------------------- |
-| **Visual Builder**        | Drag-and-drop editor with grid snapping and auto-layout                   |
-| **Preset Templates**      | 6 built-in architecture patterns (three-tier, serverless, event pipeline) |
-| **7 Resource Categories** | Network, Security, Edge, Compute, Data, Messaging, Operations             |
-| **Multi-Cloud Preview**   | Visual preview for Azure, AWS, and GCP (Azure depth-first)                |
-| **Validation Engine**     | Real-time rule checking for placement, connections, and constraints       |
-| **Learning Mode**         | Guided scenarios to learn cloud architecture patterns                     |
-| **Code Generation**       | Export to Terraform, Bicep, or Pulumi (Experimental — off by default)     |
-| **AI Assistant**          | Architecture suggestions and cost estimation (requires backend)           |
-| **GitHub Integration**    | OAuth login, repo sync, PR creation (requires backend)                    |
+| Feature                   | Description                                                                 |
+| ------------------------- | --------------------------------------------------------------------------- |
+| **Visual Builder**        | Drag-and-drop editor with grid snapping and auto-layout                     |
+| **Preset Templates**      | 6 built-in architecture patterns (three-tier, serverless, event pipeline)   |
+| **8 Resource Categories** | Network, Delivery, Compute, Data, Messaging, Security, Identity, Operations |
+| **Multi-Cloud Preview**   | Visual preview for Azure, AWS, and GCP (Azure depth-first)                  |
+| **Validation Engine**     | Real-time rule checking for placement, connections, and constraints         |
+| **Learning Mode**         | Guided scenarios to learn cloud architecture patterns                       |
+| **Dual Theme System**     | Workshop (light) and Blueprint (dark) themes                                |
+| **Code Generation**       | Export to Terraform, Bicep, or Pulumi _(Experimental)_                      |
 
 ---
 
@@ -96,37 +94,37 @@ CloudBlocks uses a **block-based composition model** where everything snaps toge
 
 <div class="grid cards" markdown>
 
-- :material-book-open-variant:{ .lg .middle } **Guides**
+- :material-book-open-variant:{ .lg .middle } **Templates**
 
   ***
 
-  Environment setup, deployment strategies, and workspace configuration.
+  Browse all 6 built-in architecture patterns and learn how to customize them.
 
-  [:octicons-arrow-right-24: Guides](guides/ENVIRONMENT_STRATEGY.md)
+  [:octicons-arrow-right-24: Templates](user-guide/templates.md)
 
-- :material-robot:{ .lg .middle } **AI Engine**
-
-  ***
-
-  Use natural language to generate architectures, get suggestions, and estimate costs.
-
-  [:octicons-arrow-right-24: AI docs](engine/ai.md)
-
-- :material-file-document:{ .lg .middle } **Spec Reference**
+- :material-pencil-ruler:{ .lg .middle } **Blank Canvas Mode**
 
   ***
 
-  CloudBlocks design specification — geometry, providers, visual tokens.
+  Build a custom architecture from scratch without a template.
 
-  [:octicons-arrow-right-24: Spec v2.0](design/CLOUDBLOCKS_SPEC_V2.md)
+  [:octicons-arrow-right-24: Blank canvas](advanced/blank-canvas.md)
 
-- :material-api:{ .lg .middle } **REST API**
+- :material-file-document:{ .lg .middle } **Architecture Model**
 
   ***
 
-  Backend API endpoints for architectures, templates, AI, and GitHub integration.
+  The domain model behind CloudBlocks — block types, categories, and connection semantics.
 
-  [:octicons-arrow-right-24: API spec](api/API_SPEC.md)
+  [:octicons-arrow-right-24: Domain Model](model/DOMAIN_MODEL.md)
+
+- :material-code-braces:{ .lg .middle } **Code Generation** _(Experimental)_
+
+  ***
+
+  Export your design to Terraform, Bicep, or Pulumi.
+
+  [:octicons-arrow-right-24: Learn how](advanced/code-generation.md)
 
 </div>
 

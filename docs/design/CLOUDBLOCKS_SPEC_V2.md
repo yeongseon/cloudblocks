@@ -1,5 +1,7 @@
 # CloudBlocks Universal Architecture Specification v2.0
 
+> **Audience**: Contributors / Design System | **Status**: Draft — Reference | **Verified against**: v0.26.0
+
 **Status**: Draft  
 **Date**: 2026-03-19  
 **Supersedes**: Block design spec (v1.x), VISUAL_DESIGN_SPEC.md (v1.x)
@@ -240,7 +242,7 @@ When a block has a specific `subtype`, its size may override the category defaul
 | S3          | storage       | 3 × 3 × 2 |
 | ALB / ELB   | gateway       | 3 × 1 × 1 |
 | API Gateway | gateway       | 3 × 1 × 1 |
-| CloudFront  | edge          | 4 × 1 × 1 |
+| CloudFront  | delivery      | 4 × 1 × 1 |
 | NAT Gateway | gateway       | 2 × 1 × 1 |
 | SQS         | queue         | 1 × 1 × 1 |
 | SNS         | event         | 1 × 1 × 1 |
@@ -263,7 +265,7 @@ When a block has a specific `subtype`, its size may override the category defaul
 | Azure SQL Database    | database      | 3 × 3 × 2 |
 | Storage Account       | storage       | 3 × 3 × 2 |
 | Application Gateway   | gateway       | 3 × 1 × 1 |
-| Front Door            | edge          | 4 × 1 × 1 |
+| Front Door            | delivery      | 4 × 1 × 1 |
 | Azure Firewall        | gateway       | 2 × 1 × 1 |
 | Service Bus           | queue         | 1 × 1 × 1 |
 | Event Grid            | event         | 1 × 1 × 1 |
@@ -285,7 +287,7 @@ When a block has a specific `subtype`, its size may override the category defaul
 | Cloud Spanner        | database      | 3 × 3 × 2 |
 | Cloud Storage        | storage       | 3 × 3 × 2 |
 | Cloud Load Balancing | gateway       | 3 × 1 × 1 |
-| Cloud CDN            | edge          | 4 × 1 × 1 |
+| Cloud CDN            | delivery      | 4 × 1 × 1 |
 | Cloud Armor          | gateway       | 2 × 1 × 1 |
 | Pub/Sub              | queue         | 1 × 1 × 1 |
 | Eventarc             | event         | 1 × 1 × 1 |

@@ -1,5 +1,7 @@
 # AI Engine
 
+> **Audience**: Contributors / Backend Developers | **Status**: Backend Required | **Verified against**: v0.26.0
+
 > **Status**: Implemented (Milestone 14). All endpoints are functional in `apps/api/app/api/routes/ai.py` and `apps/api/app/api/routes/ai_keys.py`.
 
 CloudBlocks provides AI-assisted architecture design through natural language generation, architecture analysis, and cost estimation.

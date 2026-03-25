@@ -1,5 +1,7 @@
 # Architecture Rule Engine
 
+> **Audience**: Contributors | **Status**: Stable — Internal | **Verified against**: v0.26.0
+
 > **Status**: Supporting — see [VALIDATION_CONTRACT.md](../design/VALIDATION_CONTRACT.md) for the canonical rule set.
 
 CloudBlocks validates architecture models using a rules-based system. This document provides a high-level overview of the engine's purpose and architecture. For the complete list of implemented validation rules, refer to the [Validation Contract](../design/VALIDATION_CONTRACT.md).

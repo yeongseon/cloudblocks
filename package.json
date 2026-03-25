@@ -2,7 +2,7 @@
   "name": "cloudblocks",
   "private": true,
   "version": "0.26.0",
-  "description": "Architecture compiler that converts visual infrastructure designs into Terraform, Bicep, and Pulumi code",
+  "description": "Preset-driven visual cloud architecture design tool with best-effort multi-cloud preview",
   "type": "module",
   "repository": {
     "type": "git",

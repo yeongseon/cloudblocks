@@ -1,23 +1,25 @@
 # CloudBlocks V1 Product Contract
 
+> **Audience**: All Users | **Status**: Stable — V1 Core | **Verified against**: v0.26.0
+
 This document defines what CloudBlocks v1.0.0 guarantees to its users.
 
 ## V1 Core (Guaranteed)
 
 These features are stable, tested, and will not break without a major version bump.
 
-| Feature               | Description                                                                               |
-| --------------------- | ----------------------------------------------------------------------------------------- |
-| Preset Templates      | Start from 6 built-in architecture templates (three-tier, serverless, data storage, etc.) |
-| Editable Diagrams     | Customize template layouts with drag-and-drop block placement                             |
-| Curated Palette       | 7 resource categories: Network, Security, Edge, Compute, Data, Messaging, Operations      |
-| Block Modeling        | Container blocks (boundaries) + Resource blocks (resources) + typed Connections           |
-| Port System           | Port-based connections with category-aware port policies                                  |
-| Visual Theme          | Consistent assembly-board visual language with provider-specific colors                   |
-| Multi-Cloud Preview   | Visual preview for Azure, AWS, and GCP (best-effort — Azure depth-first)                  |
-| Workspace Persistence | Save/load workspaces via localStorage                                                     |
-| Validation Engine     | Real-time rule checking for placement and connections                                     |
-| Frontend-Only         | Works entirely in the browser — no backend required                                       |
+| Feature               | Description                                                                                        |
+| --------------------- | -------------------------------------------------------------------------------------------------- |
+| Preset Templates      | Start from 6 built-in architecture templates (three-tier, serverless, data storage, etc.)          |
+| Editable Diagrams     | Customize template layouts with drag-and-drop block placement                                      |
+| Curated Palette       | 8 resource categories: Network, Delivery, Compute, Data, Messaging, Security, Identity, Operations |
+| Block Modeling        | Container blocks (boundaries) + Resource blocks (resources) + typed Connections                    |
+| Port System           | Port-based connections with category-aware port policies                                           |
+| Visual Theme          | Consistent assembly-board visual language with provider-specific colors                            |
+| Multi-Cloud Preview   | Visual preview for Azure, AWS, and GCP (best-effort — Azure depth-first)                           |
+| Workspace Persistence | Save/load workspaces via localStorage                                                              |
+| Validation Engine     | Real-time rule checking for placement and connections                                              |
+| Frontend-Only         | Works entirely in the browser — no backend required                                                |
 
 ## V1 Advanced (Present, Off by Default)
 

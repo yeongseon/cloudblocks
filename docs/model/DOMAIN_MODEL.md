@@ -1,5 +1,7 @@
 # CloudBlocks Platform — Domain Model
 
+> **Audience**: All Users / Contributors | **Status**: Stable — V1 Core | **Verified against**: v0.26.0
+
 > **Canonical Source Declaration**
 >
 > This document is the **canonical specification** for the CloudBlocks domain model. All other documentation must reference and conform to the types, field names, and relationships defined here.
@@ -63,12 +65,12 @@ These invariants **must hold at all times** in a valid `ArchitectureModel`. Viol
 
 ### 2.3 Connection Invariants
 
-| Rule                          | Description                                                                                                       |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| **No Self-Connections**       | `connection.from.blockId !== connection.to.blockId`.                                                              |
-| **No Duplicate Connections**  | At most one connection per ordered `(from.blockId, to.blockId)` pair.                                             |
-| **Receiver-Only Enforcement** | `data`, `security`, `operations`, and `network` resources never appear as `from.blockId`. They are receiver-only. |
-| **Messaging Bidirectional**   | `messaging` resources can both send to and receive from `compute`.                                                |
+| Rule                          | Description                                                                                                                   |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **No Self-Connections**       | `connection.from.blockId !== connection.to.blockId`.                                                                          |
+| **No Duplicate Connections**  | At most one connection per ordered `(from.blockId, to.blockId)` pair.                                                         |
+| **Receiver-Only Enforcement** | `data`, `security`, `operations`, `identity`, and `network` resources never appear as `from.blockId`. They are receiver-only. |
+| **Messaging Bidirectional**   | `messaging` resources can both send to and receive from `compute`.                                                            |
 
 ---
 
@@ -85,7 +87,7 @@ interface BlockBase {
   kind: NodeKind; // 'container' | 'resource'
   layer: LayerType; // 'global' | 'edge' | 'region' | 'zone' | 'subnet' | 'resource'
   resourceType: string; // e.g. 'virtual_network', 'web_compute', 'relational_database'
-  category: ResourceCategory; // 'network' | 'security' | 'edge' | 'compute' | 'data' | 'messaging' | 'operations'
+  category: ResourceCategory; // 'network' | 'delivery' | 'compute' | 'data' | 'messaging' | 'security' | 'identity' | 'operations'
   provider: ProviderType; // 'azure' | 'aws' | 'gcp'
   parentId: string | null; // parent ContainerBlock ID, null for root
   position: Position; // { x, y, z }
@@ -159,27 +161,49 @@ export interface ResourceRuleEntry {
 
 ### 4.2 Resource Type Table
 
-| Resource Type         | Container? | Allowed Parents   | Category   | Canvas Tier |
-| --------------------- | ---------- | ----------------- | ---------- | ----------- |
-| `virtual_network`     | ✅         | `null` (root)     | network    | shared      |
-| `subnet`              | ✅         | `virtual_network` | network    | shared      |
-| `load_balancer`       | ❌         | `subnet`          | edge       | web         |
-| `outbound_access`     | ❌         | `subnet`          | edge       | web         |
-| `web_compute`         | ❌         | `subnet`          | compute    | web         |
-| `app_compute`         | ❌         | `subnet`          | compute    | app         |
-| `relational_database` | ❌         | `subnet`          | data       | data        |
-| `cache_store`         | ❌         | `subnet`          | data       | data        |
-| `firewall_security`   | ❌         | `subnet`          | security   | shared      |
-| `secret_store`        | ❌         | `subnet`          | security   | shared      |
-| `identity_access`     | ❌         | `subnet`          | security   | shared      |
-| `monitoring`          | ❌         | `subnet`          | operations | shared      |
-| `message_queue`       | ❌         | `virtual_network` | messaging  | app         |
-| `event_hub`           | ❌         | `virtual_network` | messaging  | app         |
+| Resource Type            | Container? | Allowed Parents   | Category   | Canvas Tier |
+| ------------------------ | ---------- | ----------------- | ---------- | ----------- |
+| `virtual_network`        | ✅         | `null` (root)     | network    | shared      |
+| `subnet`                 | ✅         | `virtual_network` | network    | shared      |
+| `nat_gateway`            | ❌         | `subnet`          | network    | shared      |
+| `public_ip`              | ❌         | `null` (root)     | network    | shared      |
+| `route_table`            | ❌         | `subnet`          | network    | shared      |
+| `private_endpoint`       | ❌         | `subnet`          | network    | shared      |
+| `dns_zone`               | ❌         | `null` (root)     | delivery   | web         |
+| `cdn_profile`            | ❌         | `null` (root)     | delivery   | web         |
+| `front_door`             | ❌         | `null` (root)     | delivery   | web         |
+| `application_gateway`    | ❌         | `subnet`          | delivery   | web         |
+| `internal_load_balancer` | ❌         | `subnet`          | delivery   | web         |
+| `load_balancer`          | ❌         | `subnet`          | delivery   | web         |
+| `outbound_access`        | ❌         | `subnet`          | delivery   | web         |
+| `function_compute`       | ❌         | `subnet`, `null`  | compute    | app         |
+| `app_service`            | ❌         | `subnet`, `null`  | compute    | app         |
+| `container_instances`    | ❌         | `subnet`, `null`  | compute    | app         |
+| `virtual_machine`        | ❌         | `subnet`          | compute    | app         |
+| `kubernetes_cluster`     | ❌         | `subnet`          | compute    | app         |
+| `web_compute`            | ❌         | `subnet`          | compute    | web         |
+| `app_compute`            | ❌         | `subnet`          | compute    | app         |
+| `blob_storage`           | ❌         | `null` (root)     | data       | data        |
+| `sql_database`           | ❌         | `subnet`          | data       | data        |
+| `cosmos_db`              | ❌         | `subnet`, `null`  | data       | data        |
+| `relational_database`    | ❌         | `subnet`          | data       | data        |
+| `cache_store`            | ❌         | `subnet`          | data       | data        |
+| `key_vault`              | ❌         | `subnet`, `null`  | security   | shared      |
+| `bastion_host`           | ❌         | `subnet`          | security   | shared      |
+| `firewall_security`      | ❌         | `subnet`          | security   | shared      |
+| `network_security_group` | ❌         | `subnet`          | security   | shared      |
+| `secret_store`           | ❌         | `subnet`          | security   | shared      |
+| `identity_access`        | ❌         | `subnet`, `null`  | identity   | shared      |
+| `managed_identity`       | ❌         | `null` (root)     | identity   | shared      |
+| `service_account`        | ❌         | `null` (root)     | identity   | shared      |
+| `monitoring`             | ❌         | `subnet`          | operations | shared      |
+| `message_queue`          | ❌         | `virtual_network` | messaging  | app         |
+| `event_hub`              | ❌         | `virtual_network` | messaging  | app         |
 
 ### 4.3 Derived Types
 
 ```typescript
-export type ResourceType = keyof typeof RESOURCE_RULES; // all 14 types
+export type ResourceType = keyof typeof RESOURCE_RULES; // all 36 types
 export type ContainerCapableResourceType = 'virtual_network' | 'subnet';
 export type LeafOnlyResourceType = Exclude<ResourceType, ContainerCapableResourceType>;
 ```
@@ -222,12 +246,12 @@ export interface Connection {
 
 | Source (Initiator) | Allowed Targets (Receiver)                    |
 | ------------------ | --------------------------------------------- |
-| `internet`         | `edge`                                        |
-| `edge`             | `compute`                                     |
+| `internet`         | `delivery`                                    |
+| `delivery`         | `compute`                                     |
 | `compute`          | `data`, `operations`, `security`, `messaging` |
 | `messaging`        | `compute`                                     |
 
-**Receiver-only**: `data`, `security`, `operations`, and `network` never initiate connections.
+**Receiver-only**: `data`, `security`, `operations`, `identity`, and `network` never initiate connections.
 
 ### 5.3 Connection Types
 
@@ -268,7 +292,7 @@ Placement validation is implemented in `apps/web/src/entities/validation/placeme
 
 | Category     | Required Parent Layer      | Additional Constraint                     |
 | ------------ | -------------------------- | ----------------------------------------- |
-| `edge`       | `subnet`                   | Parent must have `subnetAccess: 'public'` |
+| `delivery`   | `subnet`                   | Parent must have `subnetAccess: 'public'` |
 | `compute`    | `subnet`                   | —                                         |
 | `data`       | `subnet`                   | —                                         |
 | `security`   | `subnet`                   | —                                         |
@@ -323,17 +347,18 @@ Blocks use **visual characteristics** to communicate function in the isometric v
 | **Container** | Container block frame (3 tiers: S/M/L)                  | Network boundaries (VNet, Subnet)     |
 | **Resource**  | Resource block (5 tiers: micro/small/medium/large/wide) | Cloud resources (compute, data, etc.) |
 
-### Resource Color Coding (7 Categories)
+### Resource Color Coding (8 Categories)
 
 | Category     | Hex Color |
 | ------------ | --------- |
 | `compute`    | `#F25022` |
 | `data`       | `#00A4EF` |
-| `edge`       | `#0078D4` |
+| `delivery`   | `#0078D4` |
 | `security`   | `#D6232C` |
 | `messaging`  | `#737373` |
 | `operations` | `#693BC5` |
 | `network`    | `#6366F1` |
+| `identity`   | `#00B294` |
 
 ---
 
@@ -413,7 +438,7 @@ Key concepts:
 
 ```
 ContainerBlock   → Network boundary (VNet, Subnet)
-ResourceBlock    → Cloud resource (compute, data, edge, security...)
+ResourceBlock    → Cloud resource (compute, data, delivery, security, identity...)
 Block            → Discriminated union of ContainerBlock | ResourceBlock
 Connection       → Data/Event flow (initiator direction)
 External Actor   → External endpoint (Internet)
@@ -452,7 +477,7 @@ The architecture model (DSL) is designed around four principles:
 The architecture graph can be read as a directed flow:
 
 ```
-internet → edge → compute → data
+internet → delivery → compute → data
                           → messaging → compute
 ```
 

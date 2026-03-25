@@ -1,7 +1,8 @@
 # Learning Mode — Technical Design Specification
 
-> **Status**: Canonical  
-> **Milestone**: 6C — Learning Mode  
+> **Audience**: All Users / Contributors | **Status**: Stable | **Verified against**: v0.26.0
+
+> **Milestone**: 6C — Learning Mode
 > **Last Updated**: 2026-03-20
 
 ---

@@ -1,14 +1,24 @@
-# User Guide
+# What is CloudBlocks?
 
-Welcome to the CloudBlocks User Guide. Whether you're designing your first cloud architecture or generating production-ready infrastructure code, these guides walk you through everything you need.
+> **Audience**: New users | **Status**: V1 Core | **Verified against**: v0.26.0
+
+Welcome to CloudBlocks — a preset-driven visual architecture design tool. Start from built-in templates, customize with drag-and-drop blocks, validate against real-world rules, and preview across Azure, AWS, and GCP. Everything runs in your browser.
 
 <div class="grid cards" markdown>
+
+- :material-puzzle:{ .lg .middle } **Start from a Template**
+
+  ***
+
+  Load a pre-built architecture and customize it in minutes.
+
+  [:octicons-arrow-right-24: First Architecture](first-architecture.md)
 
 - :material-rocket-launch:{ .lg .middle } **Quick Start**
 
   ***
 
-  Build your first architecture in under 5 minutes — from launch to generated code.
+  Install and launch the builder in under 2 minutes.
 
   [:octicons-arrow-right-24: Get started](quick-start.md)
 
@@ -16,31 +26,31 @@ Welcome to the CloudBlocks User Guide. Whether you're designing your first cloud
 
   ***
 
-  Understand containers, nodes, connections, and templates — the building blocks of every architecture.
+  Understand blocks, connections, templates, and the 8 resource categories.
 
   [:octicons-arrow-right-24: Learn concepts](core-concepts.md)
 
-- :material-pencil-ruler:{ .lg .middle } **Create an Architecture**
+- :material-pencil-ruler:{ .lg .middle } **Editor Basics**
 
   ***
 
-  Step-by-step guide to designing cloud infrastructure on the visual canvas.
+  Learn the interface layout and common interactions.
 
-  [:octicons-arrow-right-24: Start building](create-architecture.md)
+  [:octicons-arrow-right-24: Editor guide](editor-basics.md)
 
-- :material-code-braces:{ .lg .middle } **Generate Code**
-
-  ***
-
-  Export your architecture to Terraform, Bicep, or Pulumi with one click.
-
-  [:octicons-arrow-right-24: Generate code](generate-code.md)
-
-- :material-puzzle:{ .lg .middle } **Use Templates**
+- :material-shield-check:{ .lg .middle } **Validation**
 
   ***
 
-  Start from pre-built architecture patterns and customize them for your needs.
+  Real-time rule checking ensures your architecture is valid.
+
+  [:octicons-arrow-right-24: Validation](validation.md)
+
+- :material-puzzle:{ .lg .middle } **Templates**
+
+  ***
+
+  Browse all 6 built-in architecture patterns.
 
   [:octicons-arrow-right-24: Browse templates](templates.md)
 
@@ -69,12 +79,13 @@ Welcome to the CloudBlocks User Guide. Whether you're designing your first cloud
 | If you want to...                | Start here                                       |
 | -------------------------------- | ------------------------------------------------ |
 | Get up and running fast          | [Quick Start](quick-start.md)                    |
+| Build your first architecture    | [First Architecture](first-architecture.md)      |
 | Understand the terminology       | [Core Concepts](core-concepts.md)                |
-| Design a full architecture       | [Create an Architecture](create-architecture.md) |
-| Export infrastructure code       | [Generate Code](generate-code.md)                |
-| Use a pre-built pattern          | [Use Templates](templates.md)                    |
+| Learn the editor interface       | [Editor Basics](editor-basics.md)                |
+| Use a pre-built pattern          | [Templates](templates.md)                        |
+| Build from a blank canvas        | [Blank Canvas Mode](../advanced/blank-canvas.md) |
 | Work faster with hotkeys         | [Keyboard Shortcuts](keyboard-shortcuts.md)      |
 | Find answers to common questions | [FAQ](faq.md)                                    |
 
 !!! tip "New to CloudBlocks?"
-Start with the [Quick Start](quick-start.md) to build your first architecture, then read [Core Concepts](core-concepts.md) to understand the fundamentals.
+Start with [First Architecture from a Template](first-architecture.md) to build your first architecture, then read [Core Concepts](core-concepts.md) to understand the fundamentals.

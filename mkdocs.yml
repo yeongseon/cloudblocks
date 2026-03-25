@@ -1,5 +1,5 @@
 site_name: CloudBlocks Documentation
-site_description: Visual cloud architecture builder — design infrastructure visually, compile to Terraform, Bicep & Pulumi
+site_description: Preset-driven visual cloud architecture design tool — start from templates, customize with blocks, preview across Azure, AWS, and GCP
 site_url: https://yeongseon.github.io/cloudblocks/docs/
 repo_url: https://github.com/yeongseon/cloudblocks
 repo_name: yeongseon/cloudblocks
@@ -94,39 +94,50 @@ exclude_docs: |
   guides/ROLLBACK_RUNBOOK.md
   guides/WEB_VITALS_GATES.md
   model/STORAGE_ARCHITECTURE.md
+  concept/ROADMAP_0X_HISTORY.md
+  user-guide/generate-code.md
+  user-guide/create-architecture.md
 
 nav:
   - Home: README.md
 
-  - User Guide:
-      - user-guide/index.md
+  - Start Here:
+      - What is CloudBlocks?: user-guide/index.md
       - Quick Start: user-guide/quick-start.md
+      - First Architecture from a Template: user-guide/first-architecture.md
       - Core Concepts: user-guide/core-concepts.md
-      - Create an Architecture: user-guide/create-architecture.md
-      - Generate Code: user-guide/generate-code.md
-      - Use Templates: user-guide/templates.md
+
+  - Build:
+      - Templates: user-guide/templates.md
+      - Editor Basics: user-guide/editor-basics.md
+      - Validation: user-guide/validation.md
+      - Workspaces & Save/Load: user-guide/workspaces.md
       - Keyboard Shortcuts: user-guide/keyboard-shortcuts.md
       - FAQ: user-guide/faq.md
 
-  - Setup:
-      - Tutorials: guides/TUTORIALS.md
-      - Environment & Workspaces: guides/ENVIRONMENT_STRATEGY.md
-      - Deployment: guides/DEPLOYMENT.md
-
-  - Features:
-      - Using the Editor: concept/UI_FLOW.md
-      - Templates: engine/templates.md
-      - Validation Rules: engine/rules.md
-      - Code Generator: engine/generator.md
-      - AI Engine: engine/ai.md
-      - Provider Adapters: engine/provider.md
-      - Learning Mode: design/LEARNING_MODE_SPEC.md
+  - Advanced:
+      - Blank Canvas Mode: advanced/blank-canvas.md
+      - Code Generation (Experimental): advanced/code-generation.md
+      - Backend Integrations: advanced/backend-integrations.md
 
   - Reference:
+      - Architecture Model: model/DOMAIN_MODEL.md
+      - Compatibility & Migration: concept/COMPATIBILITY.md
       - CloudBlocks Spec v2.0: design/CLOUDBLOCKS_SPEC_V2.md
-      - Domain Model: model/DOMAIN_MODEL.md
-      - Theme System: design/THEME_SYSTEM_SPEC.md
-      - Validation Contract: design/VALIDATION_CONTRACT.md
-      - REST API: api/API_SPEC.md
+      - Learning Mode: design/LEARNING_MODE_SPEC.md
+      - V1 Product Contract: concept/V1_PRODUCT_CONTRACT.md
 
-  - Contributing: contributing.md
+  - Contributors:
+      - contributing.md
+      - Setup: guides/TUTORIALS.md
+      - Environment & Workspaces: guides/ENVIRONMENT_STRATEGY.md
+      - Deployment: guides/DEPLOYMENT.md
+      - Generator Architecture: engine/generator.md
+      - Provider Adapters: engine/provider.md
+      - Template Engine: engine/templates.md
+      - Validation Rules Engine: engine/rules.md
+      - AI Engine: engine/ai.md
+      - Validation Contract: design/VALIDATION_CONTRACT.md
+      - Theme System: design/THEME_SYSTEM_SPEC.md
+      - REST API: api/API_SPEC.md
+      - Editor Internals: concept/UI_FLOW.md

@@ -1,5 +1,7 @@
 # CloudBlocks Theme System Specification
 
+> **Audience**: Contributors / Design System | **Status**: Stable — Internal | **Verified against**: v0.26.0
+
 **Status**: Active
 **Date**: 2026-03
 **Supersedes**: Visual styling sections of BRICK_DESIGN_SPEC.md and VISUAL_DESIGN_SPEC.md
