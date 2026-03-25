@@ -66,11 +66,6 @@ vi.mock('../shared/api/client', () => ({
   isApiConfigured: vi.fn(() => false),
 }));
 
-import { useIsMobile } from '../shared/hooks/useIsMobile';
-vi.mock('../shared/api/client', () => ({
-  isApiConfigured: vi.fn(() => false),
-}));
-
 const { useIsMobile } = await import('../shared/hooks/useIsMobile');
 
 describe('BuilderView', () => {
@@ -313,6 +308,7 @@ describe('BuilderView', () => {
                 name: 'Test Node',
                 kind: 'resource',
                 resourceType: 'virtual_machine',
+                category: 'compute',
                 provider: 'azure',
                 layer: 'subnet',
                 parentId: 'subnet-1',
@@ -359,6 +355,26 @@ describe('BuilderView', () => {
       await waitFor(() => {
         expect(useUIStore.getState().selectedId).toBeNull();
       });
+    });
+
+    it('handles Ctrl+Alt+S to toggle sidebar', async () => {
+      const user = userEvent.setup();
+      const toggleSidebarSpy = vi.spyOn(useUIStore.getState(), 'toggleSidebar');
+
+      useUIStore.setState({
+        sidebar: { isOpen: true },
+      });
+
+      render(<BuilderView />);
+
+      // Trigger Ctrl+Alt+S
+      await user.keyboard('{Control>}{Alt>}s{/Alt}{/Control}');
+
+      await waitFor(() => {
+        expect(toggleSidebarSpy).toHaveBeenCalled();
+      });
+
+      toggleSidebarSpy.mockRestore();
     });
   });
 });
