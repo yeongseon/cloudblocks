@@ -22,7 +22,7 @@ describe('DemoBanner', () => {
 
     render(<DemoBanner />);
 
-    expect(screen.getByText(/Demo Mode/)).toBeInTheDocument();
+    expect(screen.getByText(/Frontend-Only Mode/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Dismiss' })).toBeInTheDocument();
   });
 
@@ -32,7 +32,7 @@ describe('DemoBanner', () => {
 
     render(<DemoBanner />);
 
-    expect(screen.queryByText(/Demo Mode/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Frontend-Only Mode/)).not.toBeInTheDocument();
   });
 
   it('does not show banner when already dismissed', () => {
@@ -41,7 +41,7 @@ describe('DemoBanner', () => {
 
     render(<DemoBanner />);
 
-    expect(screen.queryByText(/Demo Mode/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Frontend-Only Mode/)).not.toBeInTheDocument();
   });
 
   it('hides banner and persists dismiss state when dismiss button clicked', async () => {
@@ -49,7 +49,7 @@ describe('DemoBanner', () => {
 
     const { rerender } = render(<DemoBanner />);
 
-    expect(screen.getByText(/Demo Mode/)).toBeInTheDocument();
+    expect(screen.getByText(/Frontend-Only Mode/)).toBeInTheDocument();
 
     // Click dismiss button
     const dismissButton = screen.getByRole('button', { name: 'Dismiss' });
@@ -57,7 +57,7 @@ describe('DemoBanner', () => {
 
     // Banner should be hidden immediately
     await waitFor(() => {
-      expect(screen.queryByText(/Demo Mode/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/Frontend-Only Mode/)).not.toBeInTheDocument();
     });
 
     // Verify localStorage was updated
@@ -65,7 +65,7 @@ describe('DemoBanner', () => {
 
     // Re-render to simulate page reload — banner should still be hidden
     rerender(<DemoBanner />);
-    expect(screen.queryByText(/Demo Mode/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Frontend-Only Mode/)).not.toBeInTheDocument();
   });
 
   it('displays correct demo mode message text', () => {
@@ -77,7 +77,7 @@ describe('DemoBanner', () => {
       /Visual builder, code generation, and templates work instantly/,
     );
     expect(messageElement).toBeInTheDocument();
-    expect(messageElement.textContent).toContain('AI and GitHub features require a backend');
+    expect(messageElement.textContent).toContain('AI and GitHub features require the backend');
   });
 
   it('renders dismiss button with accessible text', () => {

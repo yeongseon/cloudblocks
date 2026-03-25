@@ -137,8 +137,12 @@ describe('SidebarPalette', () => {
     expect(screen.getByTitle('Create Azure Virtual Network')).toBeInTheDocument();
   });
 
-  it('shows disabled resources with lock when network is missing', () => {
+  it('shows disabled resources with lock when network is missing', async () => {
+    const user = userEvent.setup();
     render(<SidebarPalette />);
+
+    // Enable advanced tier so VM is visible
+    await user.click(screen.getByRole('checkbox'));
 
     const vmButton = screen.getByTitle(
       'Create a Network first. Virtual Machines need a network to connect to.',
@@ -165,6 +169,9 @@ describe('SidebarPalette', () => {
 
     render(<SidebarPalette />);
 
+    // Enable advanced tier so VM is visible
+    await user.click(screen.getByRole('checkbox'));
+
     await user.click(screen.getByTitle('Create Virtual Machine'));
 
     expect(addNodeMock).toHaveBeenCalledWith({
@@ -174,6 +181,32 @@ describe('SidebarPalette', () => {
       parentId: 'subnet-public-1',
       provider: 'azure',
       subtype: 'vm',
+    });
+  });
+
+  describe('starter/advanced tier toggle', () => {
+    it('renders Show Advanced checkbox', () => {
+      render(<SidebarPalette />);
+      const checkbox = screen.getByRole('checkbox');
+      expect(checkbox).toBeInTheDocument();
+      expect(screen.getByText('Show Advanced')).toBeInTheDocument();
+    });
+
+    it('shows only starter tier resources by default', () => {
+      render(<SidebarPalette />);
+      // Stats show "Showing 9 of 26" when no search, no advanced toggle
+      expect(screen.getByText(/Showing 9 of 26/)).toBeInTheDocument();
+    });
+
+    it('shows all resources when Show Advanced checkbox is checked', async () => {
+      const user = userEvent.setup();
+      render(<SidebarPalette />);
+
+      const checkbox = screen.getByRole('checkbox');
+      await user.click(checkbox);
+
+      // Stats should update to show all 26 when advanced is enabled
+      expect(screen.getByText(/Showing 26 of 26/)).toBeInTheDocument();
     });
   });
 });

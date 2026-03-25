@@ -179,15 +179,17 @@ describe('SidebarPalette additional coverage', () => {
     });
 
     const { unmount } = render(<SidebarPalette />);
-    const vmButton = screen.getByTitle('Create Virtual Machine');
 
-    interactState.listenersByElement.get(vmButton)?.move?.({ target: vmButton });
-    await user.click(vmButton);
+    // Use a starter-tier resource so drag listeners are registered on first render
+    const appServiceButton = screen.getByTitle('Create Azure App Service');
+
+    interactState.listenersByElement.get(appServiceButton)?.move?.({ target: appServiceButton });
+    await user.click(appServiceButton);
 
     expect(startPlacing).toHaveBeenCalled();
     expect(addNode).not.toHaveBeenCalled();
 
-    interactState.listenersByElement.get(vmButton)?.end?.({ target: vmButton });
+    interactState.listenersByElement.get(appServiceButton)?.end?.({ target: appServiceButton });
     expect(cancelInteraction).toHaveBeenCalled();
 
     unmount();
@@ -209,6 +211,9 @@ describe('SidebarPalette additional coverage', () => {
     });
 
     render(<SidebarPalette />);
+
+    // Enable advanced tier so VM/EC2 is visible
+    await user.click(screen.getByRole('checkbox'));
 
     await user.click(screen.getByTitle('Create EC2'));
     expect(addNode).toHaveBeenCalledWith(

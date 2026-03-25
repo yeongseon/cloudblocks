@@ -306,7 +306,7 @@ describe('MenuBar', () => {
 
     render(<MenuBar />);
 
-    const demoButton = screen.getByRole('button', { name: /Demo Mode/ });
+    const demoButton = screen.getByRole('button', { name: /Frontend Only/ });
     expect(demoButton).toBeDisabled();
     expect(demoButton).toHaveAttribute(
       'title',
