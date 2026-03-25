@@ -46,6 +46,8 @@ export interface ResourceDefinition {
   icon: string;
   category: 'foundation' | 'always' | 'vnet-optional' | 'vnet-required';
   blockCategory: ResourceCategory | null;
+  /** Palette curation tier — starter resources are shown by default, advanced behind a toggle. */
+  tier: 'starter' | 'advanced';
   disabledReason?: string;
 }
 
@@ -59,6 +61,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🌐',
     category: 'foundation',
     blockCategory: null,
+    tier: 'starter',
   },
   subnet: {
     id: 'subnet',
@@ -69,6 +72,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🔲',
     category: 'foundation',
     blockCategory: null,
+    tier: 'starter',
     disabledReason: 'Create a Network first. Subnets live inside a virtual network.',
   },
 
@@ -82,6 +86,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '📦',
     category: 'always',
     blockCategory: 'data',
+    tier: 'starter',
   },
   dns: {
     id: 'dns',
@@ -92,6 +97,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🌐',
     category: 'always',
     blockCategory: 'delivery',
+    tier: 'advanced',
   },
   cdn: {
     id: 'cdn',
@@ -102,6 +108,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '⚡',
     category: 'always',
     blockCategory: 'delivery',
+    tier: 'starter',
   },
   'front-door': {
     id: 'front-door',
@@ -112,6 +119,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🚪',
     category: 'always',
     blockCategory: 'delivery',
+    tier: 'starter',
   },
 
   // VNet optional (public-first, can add private later)
@@ -124,6 +132,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🗄️',
     category: 'vnet-optional',
     blockCategory: 'data',
+    tier: 'starter',
   },
   function: {
     id: 'function',
@@ -134,6 +143,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '⚡',
     category: 'vnet-optional',
     blockCategory: 'compute',
+    tier: 'advanced',
   },
   queue: {
     id: 'queue',
@@ -144,6 +154,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '📨',
     category: 'vnet-optional',
     blockCategory: 'messaging',
+    tier: 'advanced',
   },
   event: {
     id: 'event',
@@ -154,6 +165,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🔔',
     category: 'vnet-optional',
     blockCategory: 'messaging',
+    tier: 'advanced',
   },
   'app-service': {
     id: 'app-service',
@@ -164,6 +176,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🌐',
     category: 'vnet-optional',
     blockCategory: 'compute',
+    tier: 'starter',
   },
   'container-instances': {
     id: 'container-instances',
@@ -174,6 +187,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '📦',
     category: 'vnet-optional',
     blockCategory: 'compute',
+    tier: 'advanced',
   },
   'cosmos-db': {
     id: 'cosmos-db',
@@ -184,6 +198,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🌍',
     category: 'vnet-optional',
     blockCategory: 'data',
+    tier: 'advanced',
   },
   'key-vault': {
     id: 'key-vault',
@@ -194,6 +209,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🔐',
     category: 'vnet-optional',
     blockCategory: 'security',
+    tier: 'starter',
   },
   'managed-identity': {
     id: 'managed-identity',
@@ -204,6 +220,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🪪',
     category: 'vnet-optional',
     blockCategory: 'identity',
+    tier: 'starter',
   },
 
   // VNet required
@@ -216,6 +233,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🖥️',
     category: 'vnet-required',
     blockCategory: 'compute',
+    tier: 'advanced',
     disabledReason: 'Create a Network first. Virtual Machines need a network to connect to.',
   },
   aks: {
@@ -227,6 +245,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '☸️',
     category: 'vnet-required',
     blockCategory: 'compute',
+    tier: 'advanced',
     disabledReason: 'Create a Network first. Kubernetes clusters run inside a virtual network.',
   },
   'internal-lb': {
@@ -238,6 +257,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '⚖️',
     category: 'vnet-required',
     blockCategory: 'delivery',
+    tier: 'advanced',
     disabledReason:
       'Create a Network first. Internal load balancers distribute traffic within a network.',
   },
@@ -250,6 +270,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🛡️',
     category: 'vnet-required',
     blockCategory: 'delivery',
+    tier: 'advanced',
     disabledReason: 'Create a Network first. Firewalls protect traffic entering your network.',
   },
   nsg: {
@@ -261,6 +282,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🔒',
     category: 'vnet-required',
     blockCategory: 'security',
+    tier: 'advanced',
     disabledReason: 'Create a Network first. NSGs filter traffic at the network level.',
   },
   bastion: {
@@ -272,6 +294,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🏰',
     category: 'vnet-required',
     blockCategory: 'security',
+    tier: 'advanced',
     disabledReason:
       'Create a Network first. Bastion provides secure VM access through a virtual network.',
   },
@@ -284,6 +307,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🚪',
     category: 'vnet-required',
     blockCategory: 'network',
+    tier: 'advanced',
     disabledReason:
       'Create a Network first. NAT Gateways enable outbound internet access for private subnets.',
   },
@@ -296,6 +320,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🌐',
     category: 'always',
     blockCategory: 'network',
+    tier: 'advanced',
   },
   'route-table': {
     id: 'route-table',
@@ -306,6 +331,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🔀',
     category: 'vnet-required',
     blockCategory: 'network',
+    tier: 'advanced',
     disabledReason: 'Create a Network first. Route tables define custom routing within subnets.',
   },
   'private-endpoint': {
@@ -317,6 +343,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🔒',
     category: 'vnet-required',
     blockCategory: 'network',
+    tier: 'advanced',
     disabledReason:
       'Create a Network first. Private endpoints connect to Azure services via private IP.',
   },
@@ -329,6 +356,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🚪',
     category: 'vnet-required',
     blockCategory: 'delivery',
+    tier: 'advanced',
     disabledReason: 'Create a Network first. Application Gateways require a dedicated subnet.',
   },
 };

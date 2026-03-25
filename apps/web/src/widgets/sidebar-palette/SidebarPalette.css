@@ -210,3 +210,22 @@
   border-radius: 2px;
   padding: 0 1px;
 }
+
+.sidebar-palette-advanced-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 0;
+  font: 600 var(--text-xs) / 1.2 var(--font-ui);
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.sidebar-palette-advanced-toggle input[type='checkbox'] {
+  accent-color: var(--accent-primary);
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  cursor: pointer;
+}

@@ -83,7 +83,12 @@ interface UIState {
 
   // ── Interaction state machine ──
   interactionState: InteractionState;
-  startPlacing: (category: ResourceCategory, resourceName: string) => void;
+  startPlacing: (
+    category: ResourceCategory,
+    resourceName: string,
+    resourceType?: string,
+    subtype?: string,
+  ) => void;
   startConnecting: (sourceId: string) => void;
   startDragging: () => void;
   startSelecting: () => void;
@@ -95,6 +100,8 @@ interface UIState {
   setDraggedBlockCategory: (category: ResourceCategory | null) => void;
   draggedResourceName: string | null;
   setDraggedResourceName: (name: string | null) => void;
+  draggedResourceType: string | null;
+  draggedSubtype: string | null;
   cancelDrag: () => void;
 
   // ── Panel visibility ──
@@ -268,11 +275,13 @@ export const useUIStore = create<UIState>((set, get) => ({
 
   interactionState: 'idle',
 
-  startPlacing: (category, resourceName) =>
+  startPlacing: (category, resourceName, resourceType, subtype) =>
     set({
       interactionState: 'placing',
       draggedBlockCategory: category,
       draggedResourceName: resourceName,
+      draggedResourceType: resourceType ?? null,
+      draggedSubtype: subtype ?? null,
       toolMode: 'select',
       connectionSource: null,
     }),
@@ -302,6 +311,8 @@ export const useUIStore = create<UIState>((set, get) => ({
       connectionSource: null,
       draggedBlockCategory: null,
       draggedResourceName: null,
+      draggedResourceType: null,
+      draggedSubtype: null,
       magneticSnapTargetId: null,
     }),
 
@@ -311,6 +322,8 @@ export const useUIStore = create<UIState>((set, get) => ({
       connectionSource: null,
       draggedBlockCategory: null,
       draggedResourceName: null,
+      draggedResourceType: null,
+      draggedSubtype: null,
       magneticSnapTargetId: null,
     }),
 
@@ -318,7 +331,15 @@ export const useUIStore = create<UIState>((set, get) => ({
   setDraggedBlockCategory: (category) => set({ draggedBlockCategory: category }),
   draggedResourceName: null,
   setDraggedResourceName: (name) => set({ draggedResourceName: name }),
-  cancelDrag: () => set({ draggedBlockCategory: null, draggedResourceName: null }),
+  draggedResourceType: null,
+  draggedSubtype: null,
+  cancelDrag: () =>
+    set({
+      draggedBlockCategory: null,
+      draggedResourceName: null,
+      draggedResourceType: null,
+      draggedSubtype: null,
+    }),
 
   showBlockPalette: true,
   toggleBlockPalette: () => set((s) => ({ showBlockPalette: !s.showBlockPalette })),
