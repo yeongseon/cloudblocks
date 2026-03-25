@@ -100,12 +100,10 @@ describe('SidebarPalette', () => {
     expect(screen.getByText('Delivery')).toBeInTheDocument();
     expect(screen.getByText('Compute')).toBeInTheDocument();
     expect(screen.getByText('Data')).toBeInTheDocument();
+    expect(screen.getByText('Messaging')).toBeInTheDocument();
     expect(screen.getByText('Security')).toBeInTheDocument();
     expect(screen.getByText('Identity')).toBeInTheDocument();
-
-    // Messaging has only advanced-tier resources; Operations has none yet
-    expect(screen.queryByText('Messaging')).not.toBeInTheDocument();
-    expect(screen.queryByText('Operations')).not.toBeInTheDocument();
+    expect(screen.getByText('Operations')).toBeInTheDocument();
   });
 
   it('shows Messaging group when Show Advanced is checked', async () => {
@@ -115,8 +113,7 @@ describe('SidebarPalette', () => {
     await user.click(screen.getByRole('checkbox'));
 
     expect(screen.getByText('Messaging')).toBeInTheDocument();
-    // Operations still hidden — no resources defined yet
-    expect(screen.queryByText('Operations')).not.toBeInTheDocument();
+    expect(screen.getByText('Operations')).toBeInTheDocument();
   });
 
   it('filters resources by search query', async () => {
@@ -237,8 +234,7 @@ describe('SidebarPalette', () => {
 
     it('shows only starter tier resources by default', () => {
       render(<SidebarPalette />);
-      // Stats show "Showing 9 of 26" when no search, no advanced toggle
-      expect(screen.getByText(/Showing 9 of 26/)).toBeInTheDocument();
+      expect(screen.getByText(/Showing 13 of 28/)).toBeInTheDocument();
     });
 
     it('shows all resources when Show Advanced checkbox is checked', async () => {
@@ -248,8 +244,7 @@ describe('SidebarPalette', () => {
       const checkbox = screen.getByRole('checkbox');
       await user.click(checkbox);
 
-      // Stats should update to show all 26 when advanced is enabled
-      expect(screen.getByText(/Showing 26 of 26/)).toBeInTheDocument();
+      expect(screen.getByText(/Showing 28 of 28/)).toBeInTheDocument();
     });
 
     describe('drag-to-create interaction', () => {

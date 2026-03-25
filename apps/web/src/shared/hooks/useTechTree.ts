@@ -17,9 +17,11 @@ export type ResourceType =
   | 'function'
   | 'queue'
   | 'event'
+  | 'monitor'
   | 'app-service'
   | 'container-instances'
   | 'cosmos-db'
+  | 'redis'
   | 'key-vault'
   | 'vm'
   | 'aks'
@@ -58,7 +60,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'VNet',
     icon: '🌐',
     category: 'foundation',
-    blockCategory: null,
+    blockCategory: 'network',
     tier: 'starter',
   },
   subnet: {
@@ -69,7 +71,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'Subnet',
     icon: '🔲',
     category: 'foundation',
-    blockCategory: null,
+    blockCategory: 'network',
     tier: 'starter',
     disabledReason: 'Create a Network first. Subnets live inside a virtual network.',
   },
@@ -141,7 +143,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '⚡',
     category: 'vnet-optional',
     blockCategory: 'compute',
-    tier: 'advanced',
+    tier: 'starter',
   },
   queue: {
     id: 'queue',
@@ -152,7 +154,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '📨',
     category: 'vnet-optional',
     blockCategory: 'messaging',
-    tier: 'advanced',
+    tier: 'starter',
   },
   event: {
     id: 'event',
@@ -164,6 +166,18 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     category: 'vnet-optional',
     blockCategory: 'messaging',
     tier: 'advanced',
+  },
+  monitor: {
+    id: 'monitor',
+    schemaResourceType: 'monitoring',
+    azureSubtype: 'azure-monitor',
+    label: 'Azure Monitor',
+    shortLabel: 'Monitor',
+    icon: '🔧',
+    category: 'vnet-required',
+    blockCategory: 'operations',
+    tier: 'starter',
+    disabledReason: 'Create a Network first. Monitoring resources observe your network.',
   },
   'app-service': {
     id: 'app-service',
@@ -194,6 +208,17 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     label: 'Azure Cosmos DB',
     shortLabel: 'Cosmos DB',
     icon: '🌍',
+    category: 'vnet-optional',
+    blockCategory: 'data',
+    tier: 'advanced',
+  },
+  redis: {
+    id: 'redis',
+    schemaResourceType: 'cache_store',
+    azureSubtype: 'redis-cache',
+    label: 'Azure Cache for Redis',
+    shortLabel: 'Redis',
+    icon: '⚡',
     category: 'vnet-optional',
     blockCategory: 'data',
     tier: 'advanced',
@@ -231,7 +256,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     icon: '🖥️',
     category: 'vnet-required',
     blockCategory: 'compute',
-    tier: 'advanced',
+    tier: 'starter',
     disabledReason: 'Create a Network first. Virtual Machines need a network to connect to.',
   },
   aks: {
@@ -267,7 +292,7 @@ export const RESOURCE_DEFINITIONS: Record<ResourceType, ResourceDefinition> = {
     shortLabel: 'Firewall',
     icon: '🛡️',
     category: 'vnet-required',
-    blockCategory: 'delivery',
+    blockCategory: 'security',
     tier: 'advanced',
     disabledReason: 'Create a Network first. Firewalls protect traffic entering your network.',
   },
@@ -378,9 +403,11 @@ const PROVIDER_LABELS: Record<ProviderType, Partial<Record<ResourceType, Provide
     function: { label: 'Lambda', shortLabel: 'Lambda' },
     queue: { label: 'SQS', shortLabel: 'SQS' },
     event: { label: 'EventBridge', shortLabel: 'EvBridge' },
+    monitor: { label: 'CloudWatch', shortLabel: 'CloudWatch' },
     'app-service': { label: 'Elastic Beanstalk', shortLabel: 'EB' },
     'container-instances': { label: 'ECS Fargate', shortLabel: 'Fargate' },
     'cosmos-db': { label: 'DynamoDB', shortLabel: 'DynamoDB' },
+    redis: { label: 'ElastiCache', shortLabel: 'ElastiCache' },
     'key-vault': { label: 'Secrets Manager', shortLabel: 'Secrets' },
     'managed-identity': { label: 'IAM Role', shortLabel: 'IAM' },
     vm: { label: 'EC2', shortLabel: 'EC2' },
@@ -405,9 +432,11 @@ const PROVIDER_LABELS: Record<ProviderType, Partial<Record<ResourceType, Provide
     function: { label: 'Cloud Functions', shortLabel: 'GCF' },
     queue: { label: 'Cloud Tasks', shortLabel: 'Tasks' },
     event: { label: 'Pub/Sub', shortLabel: 'PubSub' },
+    monitor: { label: 'Cloud Monitoring', shortLabel: 'Monitoring' },
     'app-service': { label: 'App Engine', shortLabel: 'GAE' },
     'container-instances': { label: 'Cloud Run', shortLabel: 'Run' },
     'cosmos-db': { label: 'Firestore', shortLabel: 'Firestore' },
+    redis: { label: 'Memorystore', shortLabel: 'Memorystore' },
     'key-vault': { label: 'Secret Manager', shortLabel: 'SecMgr' },
     'managed-identity': { label: 'Service Account', shortLabel: 'SA' },
     vm: { label: 'Compute Engine', shortLabel: 'GCE' },

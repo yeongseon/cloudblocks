@@ -11,12 +11,11 @@
 ### P2: Wrong icon mappings
 
 | Resource                | Icon file used                           | Correct icon                                    |
-| ----------------------- | ---------------------------------------- | ----------------------------------------------- |
+| ----------------------- | ---------------------------------------- | ----------------------------------------------- | -------------------------------------------------------- |
 | `function` category     | `logic-apps.svg`                         | Should use a functions icon (doesn't exist yet) |
 | `app-service` (subtype) | `logic-apps.svg` (via function category) | `app-service.svg` exists but is unused          |
 | `identity` (key-vault)  | `storage-account.svg`                    | Needs dedicated icon                            |
-| `analytics`             | `virtual-machine.svg`                    | Needs dedicated icon                            |
-| `observability`         | `event-hub.svg`                          | Needs dedicated icon                            |
+|                         | `operations`                             | `event-hub.svg`                                 | Needs dedicated icon (was `analytics` + `observability`) |
 
 ### P3: Provider badge always shows
 
@@ -142,36 +141,36 @@ No change needed here, but the subtype should also be provider-aware for future 
 
 ### Always-available (edge/global)
 
-| ID           | Cat     | Azure        | AWS                | GCP                  |
-| ------------ | ------- | ------------ | ------------------ | -------------------- |
-| `storage`    | storage | Blob Storage | S3                 | Cloud Storage        |
-| `dns`        | gateway | DNS Zone     | Route 53           | Cloud DNS            |
-| `cdn`        | gateway | CDN Profile  | CloudFront         | Cloud CDN            |
-| `front-door` | gateway | Front Door   | Global Accelerator | Cloud Load Balancing |
+| ID  | Cat          | Azure    | AWS          | GCP                |
+| --- | ------------ | -------- | ------------ | ------------------ | -------------------- |
+|     | `storage`    | data     | Blob Storage | S3                 | Cloud Storage        |
+|     | `dns`        | delivery | DNS Zone     | Route 53           | Cloud DNS            |
+|     | `cdn`        | delivery | CDN Profile  | CloudFront         | Cloud CDN            |
+|     | `front-door` | delivery | Front Door   | Global Accelerator | Cloud Load Balancing |
 
 ### VNet-optional
 
-| ID                    | Cat      | Azure               | AWS               | GCP             |
-| --------------------- | -------- | ------------------- | ----------------- | --------------- |
-| `sql`                 | database | Azure SQL           | Amazon RDS        | Cloud SQL       |
-| `function`            | function | Azure Functions     | Lambda            | Cloud Functions |
-| `queue`               | queue    | Queue Storage       | SQS               | Cloud Tasks     |
-| `event`               | event    | Event Hub           | EventBridge       | Pub/Sub         |
-| `app-service`         | function | App Service         | Elastic Beanstalk | App Engine      |
-| `container-instances` | compute  | Container Instances | ECS Fargate       | Cloud Run       |
-| `cosmos-db`           | database | Cosmos DB           | DynamoDB          | Firestore       |
-| `key-vault`           | identity | Key Vault           | Secrets Manager   | Secret Manager  |
+| ID  | Cat                   | Azure     | AWS                 | GCP               |
+| --- | --------------------- | --------- | ------------------- | ----------------- | --------------- |
+|     | `sql`                 | data      | Azure SQL           | Amazon RDS        | Cloud SQL       |
+|     | `function`            | compute   | Azure Functions     | Lambda            | Cloud Functions |
+|     | `queue`               | messaging | Queue Storage       | SQS               | Cloud Tasks     |
+|     | `event`               | messaging | Event Hub           | EventBridge       | Pub/Sub         |
+|     | `app-service`         | compute   | App Service         | Elastic Beanstalk | App Engine      |
+|     | `container-instances` | compute   | Container Instances | ECS Fargate       | Cloud Run       |
+|     | `cosmos-db`           | data      | Cosmos DB           | DynamoDB          | Firestore       |
+|     | `key-vault`           | security  | Key Vault           | Secrets Manager   | Secret Manager  |
 
 ### VNet-required
 
-| ID            | Cat     | Azure            | AWS              | GCP            |
-| ------------- | ------- | ---------------- | ---------------- | -------------- |
-| `vm`          | compute | Virtual Machine  | EC2              | Compute Engine |
-| `aks`         | compute | Kubernetes (AKS) | EKS              | GKE            |
-| `internal-lb` | gateway | Internal LB      | Internal ALB     | Internal LB    |
-| `firewall`    | gateway | Azure Firewall   | Network Firewall | Cloud Firewall |
-| `nsg`         | gateway | NSG              | Security Group   | Firewall Rules |
-| `bastion`     | gateway | Azure Bastion    | Session Manager  | IAP Tunnel     |
+| ID  | Cat           | Azure    | AWS              | GCP              |
+| --- | ------------- | -------- | ---------------- | ---------------- | -------------- |
+|     | `vm`          | compute  | Virtual Machine  | EC2              | Compute Engine |
+|     | `aks`         | compute  | Kubernetes (AKS) | EKS              | GKE            |
+|     | `internal-lb` | delivery | Internal LB      | Internal ALB     | Internal LB    |
+|     | `firewall`    | security | Azure Firewall   | Network Firewall | Cloud Firewall |
+|     | `nsg`         | security | NSG              | Security Group   | Firewall Rules |
+|     | `bastion`     | security | Azure Bastion    | Session Manager  | IAP Tunnel     |
 
 ## 4. Implementation Issues
 

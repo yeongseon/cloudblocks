@@ -8,6 +8,8 @@ import {
   ACTION_GRID,
   ALL_RESOURCES,
   RESOURCE_DEFINITIONS,
+  getCreationGroupId,
+  getCreationGroupMeta,
   useTechTree,
 } from './useTechTree';
 import type {
@@ -127,7 +129,7 @@ describe('useTechTree constants', () => {
         shortLabel: 'VNet',
         icon: '🌐',
         category: 'foundation',
-        blockCategory: null,
+        blockCategory: 'network',
       },
       subnet: {
         id: 'subnet',
@@ -137,7 +139,7 @@ describe('useTechTree constants', () => {
         shortLabel: 'Subnet',
         icon: '🔲',
         category: 'foundation',
-        blockCategory: null,
+        blockCategory: 'network',
       },
       storage: {
         id: 'storage',
@@ -211,6 +213,15 @@ describe('useTechTree constants', () => {
         category: 'vnet-optional',
         blockCategory: 'messaging',
       },
+      monitor: {
+        id: 'monitor',
+        schemaResourceType: 'monitoring',
+        label: 'Azure Monitor',
+        shortLabel: 'Monitor',
+        icon: '🔧',
+        category: 'vnet-required',
+        blockCategory: 'operations',
+      },
       'app-service': {
         id: 'app-service',
         schemaResourceType: 'app_service',
@@ -235,6 +246,15 @@ describe('useTechTree constants', () => {
         label: 'Azure Cosmos DB',
         shortLabel: 'Cosmos DB',
         icon: '🌍',
+        category: 'vnet-optional',
+        blockCategory: 'data',
+      },
+      redis: {
+        id: 'redis',
+        schemaResourceType: 'cache_store',
+        label: 'Azure Cache for Redis',
+        shortLabel: 'Redis',
+        icon: '⚡',
         category: 'vnet-optional',
         blockCategory: 'data',
       },
@@ -290,7 +310,7 @@ describe('useTechTree constants', () => {
         shortLabel: 'Firewall',
         icon: '🛡️',
         category: 'vnet-required',
-        blockCategory: 'delivery',
+        blockCategory: 'security',
       },
       nsg: {
         id: 'nsg',
@@ -368,9 +388,11 @@ describe('useTechTree constants', () => {
       'function',
       'queue',
       'event',
+      'monitor',
       'app-service',
       'container-instances',
       'cosmos-db',
+      'redis',
       'key-vault',
       'vm',
       'aks',
@@ -385,7 +407,7 @@ describe('useTechTree constants', () => {
       'app-gateway',
       'managed-identity',
     ];
-    expect(resourceTypes).toHaveLength(26);
+    expect(resourceTypes).toHaveLength(28);
 
     for (const resourceType of resourceTypes) {
       const actual = RESOURCE_DEFINITIONS[resourceType as ResourceType];
@@ -436,11 +458,11 @@ describe('useTechTree constants', () => {
     }
   });
 
-  it('has exactly 9 starter and 17 advanced resources', () => {
+  it('has exactly 13 starter and 15 advanced resources', () => {
     const starter = ALL_RESOURCES.filter((t) => RESOURCE_DEFINITIONS[t].tier === 'starter');
     const advanced = ALL_RESOURCES.filter((t) => RESOURCE_DEFINITIONS[t].tier === 'advanced');
-    expect(starter).toHaveLength(9);
-    expect(advanced).toHaveLength(17);
+    expect(starter).toHaveLength(13);
+    expect(advanced).toHaveLength(15);
   });
 });
 
@@ -557,5 +579,80 @@ describe('useTechTree hook', () => {
     const { result } = renderHook(() => useTechTree());
 
     expect(result.current.getTargetPlateId('storage')).toBeNull();
+  });
+});
+
+describe('getCreationGroupId', () => {
+  it('maps dns to delivery group', () => {
+    expect(getCreationGroupId('dns')).toBe('delivery');
+  });
+
+  it('maps vm to compute group', () => {
+    expect(getCreationGroupId('vm')).toBe('compute');
+  });
+
+  it('maps storage to data group', () => {
+    expect(getCreationGroupId('storage')).toBe('data');
+  });
+
+  it('maps firewall to security group', () => {
+    expect(getCreationGroupId('firewall')).toBe('security');
+  });
+
+  it('maps network to network group', () => {
+    expect(getCreationGroupId('network')).toBe('network');
+  });
+
+  it('maps subnet to network group', () => {
+    expect(getCreationGroupId('subnet')).toBe('network');
+  });
+
+  it('maps queue to messaging group', () => {
+    expect(getCreationGroupId('queue')).toBe('messaging');
+  });
+
+  it('maps managed-identity to identity group', () => {
+    expect(getCreationGroupId('managed-identity')).toBe('identity');
+  });
+
+  it('maps monitor to operations group', () => {
+    expect(getCreationGroupId('monitor')).toBe('operations');
+  });
+});
+
+describe('getCreationGroupMeta', () => {
+  it('returns metadata for each creation group', () => {
+    const meta = getCreationGroupMeta('compute');
+    expect(meta).toEqual({
+      icon: '🖥️',
+      label: 'Compute',
+      color: 'var(--cat-compute)',
+    });
+  });
+
+  it('returns metadata for network group', () => {
+    const meta = getCreationGroupMeta('network');
+    expect(meta).toHaveProperty('icon');
+    expect(meta).toHaveProperty('label', 'Network');
+    expect(meta).toHaveProperty('color');
+  });
+
+  it('returns metadata for all 8 groups', () => {
+    const groups = [
+      'network',
+      'delivery',
+      'compute',
+      'data',
+      'messaging',
+      'security',
+      'identity',
+      'operations',
+    ] as const;
+    for (const g of groups) {
+      const meta = getCreationGroupMeta(g);
+      expect(meta).toHaveProperty('icon');
+      expect(meta).toHaveProperty('label');
+      expect(meta).toHaveProperty('color');
+    }
   });
 });
