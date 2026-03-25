@@ -101,8 +101,37 @@ export function LandingPage() {
         </section>
 
         <footer className="landing-footer" role="contentinfo">
+          <div className="landing-footer-links">
+            <a
+              href="https://github.com/yeongseon/cloudblocks"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="landing-footer-link"
+            >
+              GitHub
+            </a>
+            <span className="landing-footer-sep">&middot;</span>
+            <a
+              href="https://github.com/yeongseon/cloudblocks/tree/main/docs"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="landing-footer-link"
+            >
+              Docs
+            </a>
+            <span className="landing-footer-sep">&middot;</span>
+            <a
+              href="https://github.com/yeongseon/cloudblocks/blob/main/LICENSE"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="landing-footer-link"
+            >
+              Apache 2.0
+            </a>
+          </div>
           <p className="landing-footer-text">
-            CloudBlocks — Azure-first visual architecture builder
+            &copy; {new Date().getFullYear()} CloudBlocks &mdash; Azure-first visual architecture
+            builder
           </p>
         </footer>
       </main>
