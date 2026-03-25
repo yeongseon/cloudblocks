@@ -47,6 +47,7 @@ import {
   LogOut,
   Cloud,
   LayoutGrid,
+  Keyboard,
 } from 'lucide-react';
 import './MenuBar.css';
 
@@ -672,6 +673,14 @@ export function MenuBar() {
           title="Save Workspace (Ctrl+S)"
         >
           <Save size={14} />
+        </button>
+        <button
+          type="button"
+          className="quick-btn"
+          onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: '?' }))}
+          title="Keyboard Shortcuts (?)"
+        >
+          <Keyboard size={14} />
         </button>
       </div>
 
