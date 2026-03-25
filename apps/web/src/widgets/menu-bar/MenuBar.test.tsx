@@ -92,7 +92,7 @@ const redoMock = vi.fn();
 const importArchitectureMock = vi.fn();
 
 function getOverflowDropdown(): HTMLElement {
-  const trigger = screen.getByRole('button', { name: 'Menu' });
+  const trigger = screen.getByRole('button', { name: 'Advanced' });
   const container = trigger.closest('.menu-dropdown-container');
   if (!container) throw new Error('Expected menu dropdown container to exist');
   const dropdown = container.querySelector('.menu-dropdown');
@@ -101,7 +101,7 @@ function getOverflowDropdown(): HTMLElement {
 }
 
 async function openOverflow(user: ReturnType<typeof userEvent.setup>): Promise<HTMLElement> {
-  await user.click(screen.getByRole('button', { name: 'Menu' }));
+  await user.click(screen.getByRole('button', { name: 'Advanced' }));
   return getOverflowDropdown();
 }
 
@@ -180,7 +180,7 @@ describe('MenuBar', () => {
     render(<MenuBar />);
 
     expect(screen.getByText(/CB/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Menu' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Advanced' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Workspaces' })).toBeInTheDocument();
 
     expect(screen.getByTitle('Undo (Ctrl+Z)')).toBeInTheDocument();
@@ -188,27 +188,24 @@ describe('MenuBar', () => {
     expect(screen.getByTitle('Save Workspace (Ctrl+S)')).toBeInTheDocument();
   });
 
-  it('renders panel access buttons for Validation, Scenarios, Properties', () => {
+  it('renders core action buttons for Templates and Validate', () => {
     render(<MenuBar />);
 
-    expect(screen.getByTitle('Validation')).toBeInTheDocument();
-    expect(screen.getByTitle('Scenarios')).toBeInTheDocument();
-    expect(screen.getByTitle('Properties')).toBeInTheDocument();
+    expect(screen.getByTitle('Browse Templates')).toBeInTheDocument();
+    expect(screen.getByTitle('Validate Architecture')).toBeInTheDocument();
   });
 
-  it('panel buttons toggle the correct drawer panel', async () => {
+  it('core action buttons trigger templates and validate', async () => {
     const user = userEvent.setup();
+    useUIStore.setState({ showValidation: true });
     render(<MenuBar />);
 
-    await user.click(screen.getByTitle('Validation'));
+    await user.click(screen.getByRole('button', { name: 'Templates' }));
+    expect(useUIStore.getState().showTemplateGallery).toBe(true);
+
+    await user.click(screen.getByRole('button', { name: 'Validate' }));
     expect(useUIStore.getState().drawer.isOpen).toBe(true);
     expect(useUIStore.getState().drawer.activePanel).toBe('validation');
-
-    await user.click(screen.getByTitle('Scenarios'));
-    expect(useUIStore.getState().drawer.activePanel).toBe('scenarios');
-
-    await user.click(screen.getByTitle('Properties'));
-    expect(useUIStore.getState().drawer.activePanel).toBe('properties');
   });
 
   it('renders provider toggle with Azure, AWS, and GCP tabs', () => {
@@ -301,17 +298,18 @@ describe('MenuBar', () => {
     expect(screen.getByRole('button', { name: /octocat/ })).toBeInTheDocument();
   });
 
-  it('shows demo mode button when backend is not available for anonymous users', () => {
+  it('shows requires-backend badge when backend is not available for anonymous users', () => {
     useUIStore.setState({ backendStatus: 'not_configured' });
 
     render(<MenuBar />);
 
-    const demoButton = screen.getByRole('button', { name: /Frontend Only/ });
-    expect(demoButton).toBeDisabled();
-    expect(demoButton).toHaveAttribute(
+    const githubButton = screen.getByRole('button', { name: /GitHub/ });
+    expect(githubButton).toBeDisabled();
+    expect(githubButton).toHaveAttribute(
       'title',
       'Backend API required for GitHub features. Run the backend server to enable.',
     );
+    expect(githubButton.textContent).toContain('Requires Backend');
   });
 
   it('keeps loading state when backend status is unknown', () => {
@@ -334,7 +332,7 @@ describe('MenuBar', () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    const trigger = screen.getByRole('button', { name: 'Menu' });
+    const trigger = screen.getByRole('button', { name: 'Advanced' });
     const dropdown = getOverflowDropdown();
     expect(dropdown.className).not.toContain('show');
 
@@ -520,7 +518,7 @@ describe('MenuBar', () => {
 
     useArchitectureStore.setState({ canUndo: true, canRedo: true });
     // close and reopen
-    await user.click(screen.getByRole('button', { name: 'Menu' }));
+    await user.click(screen.getByRole('button', { name: 'Advanced' }));
     dropdown = await openOverflow(user);
     undoItem = within(dropdown).getByRole('button', { name: /Undo/ });
     redoItem = within(dropdown).getByRole('button', { name: /Redo/ });
@@ -681,11 +679,10 @@ describe('MenuBar', () => {
 
   it('handles overflow menu toggle for validation drawer', async () => {
     const user = userEvent.setup();
+    useUIStore.setState({ showValidation: true });
     render(<MenuBar />);
 
-    // Validation is also in the View section of the overflow
-    // The direct panel button also works
-    await user.click(screen.getByTitle('Validation'));
+    await user.click(screen.getByRole('button', { name: 'Validate' }));
     expect(useUIStore.getState().drawer.isOpen).toBe(true);
     expect(useUIStore.getState().drawer.activePanel).toBe('validation');
   });
@@ -928,13 +925,13 @@ describe('MenuBar', () => {
     expect(screen.queryByRole('button', { name: /Sign In/ })).not.toBeInTheDocument();
   });
 
-  it('toggles sound and updates audio service mute state', async () => {
+  it('toggles sound from Advanced menu', async () => {
     const user = userEvent.setup();
     const setMutedSpy = vi.spyOn(audioService, 'setMuted').mockImplementation(() => {});
     render(<MenuBar />);
 
-    const soundButton = screen.getByTitle('Mute Sounds');
-    await user.click(soundButton);
+    const dropdown = await openOverflow(user);
+    await user.click(within(dropdown).getByRole('button', { name: /Mute Sounds/ }));
 
     expect(useUIStore.getState().isSoundMuted).toBe(true);
     expect(setMutedSpy).toHaveBeenCalledWith(true);
@@ -1026,21 +1023,25 @@ describe('MenuBar', () => {
     expect(useUIStore.getState().diffMode).toBe(false);
   });
 
-  it('theme toggle button switches between blueprint and workshop', async () => {
+  it('theme toggle button switches between blueprint and workshop from Advanced menu', async () => {
     const user = userEvent.setup();
     useUIStore.setState({ themeVariant: 'workshop' });
     render(<MenuBar />);
 
-    const themeBtn = screen.getByTitle('Switch to Blueprint (Dark)');
+    let dropdown = await openOverflow(user);
+    const themeBtn = within(dropdown).getByRole('button', { name: /Switch to Blueprint \(Dark\)/ });
     await user.click(themeBtn);
     expect(useUIStore.getState().themeVariant).toBe('blueprint');
 
-    const themeBtnDark = screen.getByTitle('Switch to Workshop (Light)');
+    dropdown = await openOverflow(user);
+    const themeBtnDark = within(dropdown).getByRole('button', {
+      name: /Switch to Workshop \(Light\)/,
+    });
     await user.click(themeBtnDark);
     expect(useUIStore.getState().themeVariant).toBe('workshop');
   });
 
-  it('shows validation badge on panel button when validation has errors', () => {
+  it('shows validation badge on Validate button when validation has errors', () => {
     useArchitectureStore.setState({
       validationResult: {
         valid: false,
@@ -1050,7 +1051,7 @@ describe('MenuBar', () => {
     });
     render(<MenuBar />);
 
-    const validationBtn = screen.getByTitle('Validation');
+    const validationBtn = screen.getByTitle('Validate Architecture');
     const badge = validationBtn.querySelector('.panel-btn-badge');
     expect(badge).toBeInTheDocument();
     expect(badge?.textContent).toBe('!');
@@ -1062,7 +1063,7 @@ describe('MenuBar', () => {
     });
     render(<MenuBar />);
 
-    const validationBtn = screen.getByTitle('Validation');
+    const validationBtn = screen.getByTitle('Validate Architecture');
     const badge = validationBtn.querySelector('.panel-btn-badge');
     expect(badge).not.toBeInTheDocument();
   });

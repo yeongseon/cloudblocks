@@ -34,6 +34,21 @@ globalThis.ResizeObserver = class ResizeObserver {
   disconnect() {}
 };
 
+// Mock matchMedia for tests (not available in jsdom)
+Object.defineProperty(globalThis, 'matchMedia', {
+  writable: true,
+  value: (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  }),
+});
+
 // Reset localStorage between tests
 beforeEach(() => {
   localStorage.clear();

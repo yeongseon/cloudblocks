@@ -9,7 +9,7 @@ export function LandingPage() {
   const goToBuilder = useUIStore((s) => s.goToBuilder);
   const loadFromTemplate = useArchitectureStore((s) => s.loadFromTemplate);
   const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
-  const templates = listTemplates().slice(0, 3);
+  const templates = listTemplates();
 
   const handleStartBuilding = () => {
     goToBuilder();
@@ -26,17 +26,53 @@ export function LandingPage() {
       <LandingNavbar />
       <main className="landing-main">
         <section className="landing-hero">
-          <h1 className="landing-hero-title">Design Cloud Architecture Visually</h1>
+          <h1 className="landing-hero-title">
+            Start from templates. Edit visually. Validate instantly.
+          </h1>
           <p className="landing-hero-subtitle">
-            Place resources, connect components, validate against real-world rules, and generate
-            Terraform, Bicep, or Pulumi - all from the browser.
+            Azure-first visual architecture builder — no backend required.
           </p>
+          <div className="landing-hero-badges">
+            <span className="landing-hero-badge">6 templates</span>
+            <span className="landing-hero-badge">Real-time validation</span>
+            <span className="landing-hero-badge">No backend required</span>
+          </div>
           <button type="button" className="landing-hero-cta" onClick={handleStartBuilding}>
             Start Building
           </button>
         </section>
 
-        <section className="landing-templates">
+        <section className="landing-how-it-works">
+          <h2 className="landing-how-title">How It Works</h2>
+          <div className="landing-how-steps">
+            <div className="landing-how-step">
+              <div className="landing-how-step-number">1</div>
+              <h3 className="landing-how-step-title">Pick a Template</h3>
+              <p className="landing-how-step-desc">
+                Choose from 6 built-in architecture patterns — three-tier, serverless, event
+                pipeline, and more.
+              </p>
+            </div>
+            <div className="landing-how-step">
+              <div className="landing-how-step-number">2</div>
+              <h3 className="landing-how-step-title">Customize with Blocks</h3>
+              <p className="landing-how-step-desc">
+                Drag resource blocks, connect components, and adjust properties on the visual
+                canvas.
+              </p>
+            </div>
+            <div className="landing-how-step">
+              <div className="landing-how-step-number">3</div>
+              <h3 className="landing-how-step-title">Validate &amp; Export</h3>
+              <p className="landing-how-step-desc">
+                Run the validation engine, then export to Terraform, Bicep, or Pulumi — all in the
+                browser.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section className="landing-templates" id="templates">
           <h2 className="landing-templates-title">Start from a Template</h2>
           <div className="landing-templates-grid">
             {templates.map((template) => (
@@ -66,7 +102,7 @@ export function LandingPage() {
 
         <footer className="landing-footer">
           <p className="landing-footer-text">
-            CloudBlocks - Open source visual cloud architecture builder
+            CloudBlocks — Azure-first visual architecture builder
           </p>
         </footer>
       </main>

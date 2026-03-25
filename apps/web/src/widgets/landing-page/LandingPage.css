@@ -72,7 +72,7 @@
 
 .landing-templates-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 24px;
 }
 
@@ -157,6 +157,76 @@
   font-size: 14px;
 }
 
+.landing-hero-badges {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.landing-hero-badge {
+  font-size: 13px;
+  color: #475569;
+  background: #f1f5f9;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-weight: 500;
+}
+
+.landing-how-it-works {
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.landing-how-title {
+  margin: 0 0 40px;
+  font-size: 24px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.landing-how-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+
+.landing-how-step {
+  padding: 24px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.landing-how-step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 16px;
+  border-radius: 50%;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.landing-how-step-title {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.landing-how-step-desc {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #475569;
+}
+
 @media (max-width: 768px) {
   .landing-main {
     padding-top: 72px;
@@ -171,6 +241,10 @@
   }
 
   .landing-templates-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-how-steps {
     grid-template-columns: 1fr;
   }
 }

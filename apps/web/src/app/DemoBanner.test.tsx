@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { DemoBanner } from './DemoBanner';
 
-const DEMO_BANNER_DISMISSED_KEY = 'cloudblocks:demo-banner-dismissed';
+const DEMO_BANNER_DISMISSED_KEY = 'cloudblocks:standalone-banner-dismissed';
 
 describe('DemoBanner', () => {
   beforeEach(() => {
@@ -22,7 +22,7 @@ describe('DemoBanner', () => {
 
     render(<DemoBanner />);
 
-    expect(screen.getByText(/Frontend-Only Mode/)).toBeInTheDocument();
+    expect(screen.getByText(/no backend required/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Dismiss' })).toBeInTheDocument();
   });
 
@@ -32,7 +32,7 @@ describe('DemoBanner', () => {
 
     render(<DemoBanner />);
 
-    expect(screen.queryByText(/Frontend-Only Mode/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/no backend required/)).not.toBeInTheDocument();
   });
 
   it('does not show banner when already dismissed', () => {
@@ -41,7 +41,7 @@ describe('DemoBanner', () => {
 
     render(<DemoBanner />);
 
-    expect(screen.queryByText(/Frontend-Only Mode/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/no backend required/)).not.toBeInTheDocument();
   });
 
   it('hides banner and persists dismiss state when dismiss button clicked', async () => {
@@ -49,7 +49,7 @@ describe('DemoBanner', () => {
 
     const { rerender } = render(<DemoBanner />);
 
-    expect(screen.getByText(/Frontend-Only Mode/)).toBeInTheDocument();
+    expect(screen.getByText(/no backend required/)).toBeInTheDocument();
 
     // Click dismiss button
     const dismissButton = screen.getByRole('button', { name: 'Dismiss' });
@@ -57,7 +57,7 @@ describe('DemoBanner', () => {
 
     // Banner should be hidden immediately
     await waitFor(() => {
-      expect(screen.queryByText(/Frontend-Only Mode/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/no backend required/)).not.toBeInTheDocument();
     });
 
     // Verify localStorage was updated
@@ -65,19 +65,19 @@ describe('DemoBanner', () => {
 
     // Re-render to simulate page reload — banner should still be hidden
     rerender(<DemoBanner />);
-    expect(screen.queryByText(/Frontend-Only Mode/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/no backend required/)).not.toBeInTheDocument();
   });
 
-  it('displays correct demo mode message text', () => {
+  it('displays correct standalone mode message text', () => {
     (import.meta.env as Record<string, unknown>).VITE_API_URL = '';
 
     render(<DemoBanner />);
 
     const messageElement = screen.getByText(
-      /Visual builder, code generation, and templates work instantly/,
+      /Visual builder, templates, and code generation work instantly/,
     );
     expect(messageElement).toBeInTheDocument();
-    expect(messageElement.textContent).toContain('AI and GitHub features require the backend');
+    expect(messageElement.textContent).toContain('unlock AI and GitHub features');
   });
 
   it('renders dismiss button with accessible text', () => {

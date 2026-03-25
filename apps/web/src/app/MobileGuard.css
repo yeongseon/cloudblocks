@@ -1,0 +1,52 @@
+/* MobileGuard — dismissible info banner for small-screen users */
+
+.mobile-guard {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background-color: rgba(30, 30, 60, 0.95);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+.mobile-guard-text {
+  color: #e0e0e0;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.mobile-guard-dismiss {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #e0e0e0;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.mobile-guard-dismiss:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* Safety net: hide on desktop even if React renders it */
+@media (min-width: 769px) {
+  .mobile-guard {
+    display: none;
+  }
+}

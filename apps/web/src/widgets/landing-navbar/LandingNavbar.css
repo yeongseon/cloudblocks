@@ -21,6 +21,24 @@
   letter-spacing: -0.2px;
 }
 
+.landing-navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.landing-navbar-link {
+  color: #475569;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.landing-navbar-link:hover {
+  color: #0f172a;
+}
+
 .landing-navbar-cta {
   border: 0;
   border-radius: 8px;

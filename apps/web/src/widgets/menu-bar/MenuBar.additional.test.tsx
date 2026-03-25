@@ -29,14 +29,14 @@ const baseArchitecture: ArchitectureModel = {
 };
 
 function getOverflowDropdown(): HTMLElement {
-  const trigger = screen.getByRole('button', { name: 'Menu' });
+  const trigger = screen.getByRole('button', { name: 'Advanced' });
   const container = trigger.closest('.menu-dropdown-container') as HTMLElement;
   return container.querySelector('.menu-dropdown') as HTMLElement;
 }
 
 async function openOverflow(): Promise<HTMLElement> {
   const user = userEvent.setup();
-  await user.click(screen.getByRole('button', { name: 'Menu' }));
+  await user.click(screen.getByRole('button', { name: 'Advanced' }));
   return getOverflowDropdown();
 }
 
@@ -128,15 +128,17 @@ describe('MenuBar additional coverage', () => {
     expect(useUIStore.getState().activeProvider).toBe('azure');
   });
 
-  it('toggles validation drawer via panel button', async () => {
+  it('toggles validation drawer via Validate core button', async () => {
     const user = userEvent.setup();
+    // showValidation=true so handleValidate skips toggleValidation and only calls toggleDrawer
+    useUIStore.setState({ showValidation: true });
     render(<MenuBar />);
 
-    await user.click(screen.getByTitle('Validation'));
+    await user.click(screen.getByTitle('Validate Architecture'));
     expect(useUIStore.getState().drawer.activePanel).toBe('validation');
     expect(useUIStore.getState().drawer.isOpen).toBe(true);
 
-    await user.click(screen.getByTitle('Validation'));
+    await user.click(screen.getByTitle('Validate Architecture'));
     expect(useUIStore.getState().drawer.isOpen).toBe(false);
   });
 

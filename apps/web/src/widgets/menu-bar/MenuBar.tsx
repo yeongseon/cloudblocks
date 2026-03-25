@@ -35,8 +35,6 @@ import {
   PanelLeft,
   BookMarked,
   Search,
-  BarChart3,
-  Settings,
   Volume2,
   VolumeX,
   Moon,
@@ -332,8 +330,8 @@ export function MenuBar() {
           className="menu-trigger compact-trigger"
           data-active={openMenu === 'overflow'}
           onClick={() => toggleMenu('overflow')}
-          aria-label="Menu"
-          title="Menu"
+          aria-label="Advanced"
+          title="Advanced"
         >
           <Menu size={16} />
         </button>
@@ -429,6 +427,7 @@ export function MenuBar() {
             <span className="menu-item-left">
               <Zap size={14} /> Generate Code
             </span>
+            <span className="feature-badge feature-badge-experimental">Experimental</span>
           </button>
           <button
             type="button"
@@ -529,6 +528,42 @@ export function MenuBar() {
               <GitCompare size={14} /> Diff View
             </span>
           </button>
+
+          <div className="menu-separator" />
+
+          <div className="menu-section-label">Preferences</div>
+          <button
+            type="button"
+            className="menu-item"
+            onClick={() => handleAction(handleToggleSound)}
+          >
+            <span className="menu-item-left">
+              {isSoundMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+              {isSoundMuted ? 'Unmute Sounds' : 'Mute Sounds'}
+            </span>
+          </button>
+          <button
+            type="button"
+            className="menu-item"
+            onClick={() =>
+              handleAction(() =>
+                setThemeVariant(themeVariant === 'blueprint' ? 'workshop' : 'blueprint'),
+              )
+            }
+          >
+            <span className="menu-item-left">
+              {themeVariant === 'blueprint' ? <Moon size={14} /> : <Sun size={14} />}
+              {themeVariant === 'blueprint'
+                ? 'Switch to Workshop (Light)'
+                : 'Switch to Blueprint (Dark)'}
+            </span>
+          </button>
+          <button type="button" className="menu-item" onClick={() => handleAction(toggleGrid)}>
+            <span className="menu-item-left">
+              {showGrid ? '✓ ' : '  '}
+              <LayoutGrid size={14} /> Toggle Grid
+            </span>
+          </button>
         </div>
       </div>
 
@@ -584,36 +619,31 @@ export function MenuBar() {
 
       <div className="menu-bar-divider" />
 
-      {/* ── Direct panel access buttons ──────── */}
-      <div className="panel-access-buttons">
+      <div className="core-actions">
         <button
           type="button"
-          className={`panel-btn ${isDrawerActive('validation') ? 'active' : ''}`}
-          onClick={() => toggleDrawer('validation')}
-          title="Validation"
+          className="core-btn"
+          onClick={toggleTemplateGallery}
+          title="Browse Templates"
         >
-          <BarChart3 size={16} />
+          <Package size={14} />
+          <span className="core-btn-label">Templates</span>
+        </button>
+        <button
+          type="button"
+          className="core-btn"
+          onClick={handleValidate}
+          title="Validate Architecture"
+        >
+          <CheckCircle size={14} />
+          <span className="core-btn-label">Validate</span>
           {validationResult && !validationResult.valid && (
             <span className="panel-btn-badge">!</span>
           )}
         </button>
-        <button
-          type="button"
-          className={`panel-btn ${isDrawerActive('scenarios') ? 'active' : ''}`}
-          onClick={() => toggleDrawer('scenarios')}
-          title="Scenarios"
-        >
-          <BookOpen size={16} />
-        </button>
-        <button
-          type="button"
-          className={`panel-btn ${isDrawerActive('properties') ? 'active' : ''}`}
-          onClick={() => toggleDrawer('properties')}
-          title="Properties"
-        >
-          <Settings size={16} />
-        </button>
       </div>
+
+      <div className="menu-bar-divider" />
 
       {/* ── Quick actions (pushed right) ──────── */}
       <div className="quick-actions">
@@ -642,34 +672,6 @@ export function MenuBar() {
           title="Save Workspace (Ctrl+S)"
         >
           <Save size={14} />
-        </button>
-        <button
-          type="button"
-          className="quick-btn"
-          onClick={handleToggleSound}
-          title={isSoundMuted ? 'Unmute Sounds' : 'Mute Sounds'}
-        >
-          {isSoundMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
-        </button>
-        <button
-          type="button"
-          className={`quick-btn ${themeVariant === 'blueprint' ? 'active' : ''}`}
-          onClick={() => setThemeVariant(themeVariant === 'blueprint' ? 'workshop' : 'blueprint')}
-          title={
-            themeVariant === 'blueprint'
-              ? 'Switch to Workshop (Light)'
-              : 'Switch to Blueprint (Dark)'
-          }
-        >
-          {themeVariant === 'blueprint' ? <Moon size={14} /> : <Sun size={14} />}
-        </button>
-        <button
-          type="button"
-          className={`quick-btn ${showGrid ? 'active' : ''}`}
-          onClick={toggleGrid}
-          title={showGrid ? 'Hide grid' : 'Show grid'}
-        >
-          <LayoutGrid size={14} />
         </button>
       </div>
 
@@ -761,7 +763,8 @@ export function MenuBar() {
             disabled
             title="Backend API required for GitHub features. Run the backend server to enable."
           >
-            <Lock size={14} /> Frontend Only
+            <Lock size={14} /> GitHub
+            <span className="feature-badge feature-badge-requires-backend">Requires Backend</span>
           </button>
         ) : (
           <button
