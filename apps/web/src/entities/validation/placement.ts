@@ -6,6 +6,7 @@ import { VALID_PARENTS } from '@cloudblocks/domain';
 import type { LayerType } from '@cloudblocks/schema';
 
 /**
+ * Placement Rules (v3.0 — 8-category Block model):
  * Placement Rules (v3.0 — 7-category Block model):
  *
  * Rules are derived from RESOURCE_RULES (single source of truth).

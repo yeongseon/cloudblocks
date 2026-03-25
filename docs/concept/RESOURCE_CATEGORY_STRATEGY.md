@@ -13,17 +13,18 @@ The original 10-category `BlockCategory` (compute, database, storage, gateway, f
 3. Support future code generation output (Terraform modules, Bicep resources, Pulumi components) when promoted from Experimental.
 4. Minimize forced abstraction — group by real operational similarity, not marketing categories.
 
-## Category Taxonomy (7 Categories)
+## Category Taxonomy (8 Categories)
 
-| Category     | Description                                                    | Example Resources                                  |
-| ------------ | -------------------------------------------------------------- | -------------------------------------------------- |
-| `network`    | Virtual networks, subnets — the container infrastructure       | Azure VNet, Subnet                                 |
-| `security`   | Firewalls, key vaults, identity and access management          | Azure Firewall, Key Vault, Entra ID                |
-| `edge`       | Load balancers, outbound access — public-facing ingress/egress | Azure Load Balancer, NAT Gateway                   |
-| `compute`    | Execution environments (VMs, containers, serverless functions) | Azure App Service, Container Apps, Functions       |
-| `data`       | Databases, caches, object storage                              | Azure SQL, Redis Cache, Blob Storage               |
-| `messaging`  | Message queues, event streams, pub/sub                         | Azure Service Bus, Event Hub, Event Grid           |
-| `operations` | Monitoring, logging, alerting, analytics                       | Azure Monitor, Log Analytics, Application Insights |
+| Category     | Description                                                    | Example Resources                                              |
+| ------------ | -------------------------------------------------------------- | -------------------------------------------------------------- | -------------------------------- |
+| `network`    | Virtual networks, subnets — the container infrastructure       | Azure VNet, Subnet                                             |
+| `security`   | Firewalls, key vaults, identity and access management          | Azure Firewall, Key Vault, Entra ID                            |
+|              | `delivery`                                                     | Load balancers, outbound access — public-facing ingress/egress | Azure Load Balancer, NAT Gateway |
+| `compute`    | Execution environments (VMs, containers, serverless functions) | Azure App Service, Container Apps, Functions                   |
+| `data`       | Databases, caches, object storage                              | Azure SQL, Redis Cache, Blob Storage                           |
+| `messaging`  | Message queues, event streams, pub/sub                         | Azure Service Bus, Event Hub, Event Grid                       |
+| `operations` | Monitoring, logging, alerting, analytics                       | Azure Monitor, Log Analytics, Application Insights             |
+| `identity`   | Identity and access management, authentication, authorization  | Azure Entra ID, Service Principal, Key Vault                   |
 
 ### TypeScript Type
 
@@ -32,10 +33,11 @@ The original 10-category `BlockCategory` (compute, database, storage, gateway, f
 export type ResourceCategory =
   | 'network'
   | 'security'
-  | 'edge'
+  | 'delivery'
   | 'compute'
   | 'data'
   | 'messaging'
+  | 'identity'
   | 'operations';
 
 /** @deprecated Use ResourceCategory instead. */
@@ -46,18 +48,18 @@ export type BlockCategory = ResourceCategory;
 
 ### Mapping Table
 
-| Old Category (10) | New Category (7) | Rationale                                                        |
-| ----------------- | ---------------- | ---------------------------------------------------------------- |
-| `compute`         | `compute`        | Retained — now includes functions                                |
-| `function`        | `compute`        | Functions are a compute execution model, not a separate category |
-| `database`        | `data`           | Merged with storage — both are persistence resources             |
-| `storage`         | `data`           | Merged with database — both are persistence resources            |
-| `gateway`         | `edge`           | Renamed — gateways are edge/ingress infrastructure               |
-| `identity`        | `security`       | Merged — identity is a security concern                          |
-| `queue`           | `messaging`      | Consolidated — queues are a messaging pattern                    |
-| `event`           | `messaging`      | Consolidated — events are a messaging pattern                    |
-| `analytics`       | `operations`     | Merged with observability — both are operational concerns        |
-| `observability`   | `operations`     | Renamed — now includes analytics                                 |
+|                 | Old Category (10) | New Category (8)                                                 | Rationale                                                   |
+| --------------- | ----------------- | ---------------------------------------------------------------- | ----------------------------------------------------------- |
+| `compute`       | `compute`         | Retained — now includes functions                                |
+| `function`      | `compute`         | Functions are a compute execution model, not a separate category |
+| `database`      | `data`            | Merged with storage — both are persistence resources             |
+| `storage`       | `data`            | Merged with database — both are persistence resources            |
+|                 | `gateway`         | `delivery`                                                       | Renamed — gateways are edge/delivery infrastructure         |
+|                 | `identity`        | `identity`                                                       | Elevated to its own category in v3.0 — was security concern |
+| `queue`         | `messaging`       | Consolidated — queues are a messaging pattern                    |
+| `event`         | `messaging`       | Consolidated — events are a messaging pattern                    |
+| `analytics`     | `operations`      | Merged with observability — both are operational concerns        |
+| `observability` | `operations`      | Renamed — now includes analytics                                 |
 
 ### New Category (no old equivalent)
 
@@ -75,8 +77,8 @@ function normalizeCategory(category: string): ResourceCategory {
     function: 'compute',
     database: 'data',
     storage: 'data',
-    gateway: 'edge',
-    identity: 'security',
+    gateway: 'delivery',
+    identity: 'identity',
     queue: 'messaging',
     event: 'messaging',
     analytics: 'operations',
