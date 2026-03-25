@@ -233,7 +233,12 @@ export function BuilderView() {
           </div>
         </aside>
 
-        <main className="builder-canvas">
+        <main
+          className="builder-canvas"
+          id="main-content"
+          role="application"
+          aria-label="Architecture builder canvas"
+        >
           <div className="builder-slot">
             <SceneCanvas />
           </div>

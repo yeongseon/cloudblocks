@@ -24,7 +24,7 @@ export function LandingPage() {
   return (
     <div className="landing-page" data-theme="workshop">
       <LandingNavbar />
-      <main className="landing-main">
+      <main className="landing-main" id="main-content">
         <section className="landing-hero">
           <h1 className="landing-hero-title">
             Start from templates. Edit visually. Validate instantly.
@@ -100,7 +100,7 @@ export function LandingPage() {
           </div>
         </section>
 
-        <footer className="landing-footer">
+        <footer className="landing-footer" role="contentinfo">
           <p className="landing-footer-text">
             CloudBlocks — Azure-first visual architecture builder
           </p>
