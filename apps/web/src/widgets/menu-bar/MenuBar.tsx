@@ -439,33 +439,37 @@ export function MenuBar() {
               <Package size={14} /> Browse Templates
             </span>
           </button>
-          <button
-            type="button"
-            className="menu-item"
-            onClick={() => handleAction(togglePromoteDialog)}
-          >
-            <span className="menu-item-left">
-              <ArrowUpCircle size={14} /> Promote to Production
-            </span>
-          </button>
-          <button
-            type="button"
-            className="menu-item"
-            onClick={() => handleAction(toggleRollbackDialog)}
-          >
-            <span className="menu-item-left">
-              <ArrowDownCircle size={14} /> Rollback Production
-            </span>
-          </button>
-          <button
-            type="button"
-            className="menu-item"
-            onClick={() => handleAction(togglePromoteHistory)}
-          >
-            <span className="menu-item-left">
-              <ClipboardList size={14} /> Promotion History
-            </span>
-          </button>
+          {backendAvailable && (
+            <>
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => handleAction(togglePromoteDialog)}
+              >
+                <span className="menu-item-left">
+                  <ArrowUpCircle size={14} /> Promote to Production
+                </span>
+              </button>
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => handleAction(toggleRollbackDialog)}
+              >
+                <span className="menu-item-left">
+                  <ArrowDownCircle size={14} /> Rollback Production
+                </span>
+              </button>
+              <button
+                type="button"
+                className="menu-item"
+                onClick={() => handleAction(togglePromoteHistory)}
+              >
+                <span className="menu-item-left">
+                  <ClipboardList size={14} /> Promotion History
+                </span>
+              </button>
+            </>
+          )}
           <button
             type="button"
             className="menu-item"
@@ -757,7 +761,7 @@ export function MenuBar() {
             disabled
             title="Backend API required for GitHub features. Run the backend server to enable."
           >
-            <Lock size={14} /> Demo Mode
+            <Lock size={14} /> Frontend Only
           </button>
         ) : (
           <button
