@@ -5,8 +5,6 @@ import type {
   ResourceCategory,
   ResourceType as SchemaResourceType,
 } from '@cloudblocks/schema';
-import { BLOCK_FRIENDLY_NAMES, BLOCK_ICONS } from '../types';
-import { getBlockColor } from '../../entities/block/blockFaceColors';
 
 export type ResourceType =
   | 'network'
@@ -489,43 +487,49 @@ export const CONTAINER_BLOCK_ACTION_GRID: (ContainerBlockActionType | null)[][] 
 
 export const ALL_RESOURCES = Object.keys(RESOURCE_DEFINITIONS) as ResourceType[];
 
-export type CreationGroupId = ResourceCategory | 'foundation';
+export type CreationGroupId = 'foundations' | 'networking' | 'compute' | 'data' | 'security';
 
 export const CREATION_GROUP_ORDER: CreationGroupId[] = [
-  'foundation',
-  'network',
+  'foundations',
+  'networking',
   'compute',
   'data',
-  'delivery',
   'security',
-  'identity',
-  'messaging',
-  'operations',
 ];
+
+/** Map schema ResourceCategory → palette display group */
+const CATEGORY_TO_GROUP: Record<ResourceCategory, CreationGroupId> = {
+  network: 'networking',
+  delivery: 'networking',
+  compute: 'compute',
+  data: 'data',
+  messaging: 'data',
+  security: 'security',
+  identity: 'security',
+  operations: 'security',
+};
+
+const CREATION_GROUP_META: Record<CreationGroupId, { icon: string; label: string; color: string }> =
+  {
+    foundations: { icon: '🧭', label: 'Foundations', color: 'var(--cat-network)' },
+    networking: { icon: '🌐', label: 'Networking', color: 'var(--cat-network)' },
+    compute: { icon: '🖥️', label: 'Compute', color: 'var(--cat-compute)' },
+    data: { icon: '🗄️', label: 'Data', color: 'var(--cat-data)' },
+    security: { icon: '🔒', label: 'Security', color: 'var(--cat-security)' },
+  };
 
 export function getCreationGroupMeta(groupId: CreationGroupId): {
   icon: string;
   label: string;
   color: string;
 } {
-  if (groupId === 'foundation') {
-    return {
-      icon: '🧭',
-      label: 'Network Foundations',
-      color: 'var(--cat-network)',
-    };
-  }
-
-  return {
-    icon: BLOCK_ICONS[groupId],
-    label: BLOCK_FRIENDLY_NAMES[groupId],
-    color: getBlockColor('azure', undefined, groupId),
-  };
+  return CREATION_GROUP_META[groupId];
 }
 
 export function getCreationGroupId(type: ResourceType): CreationGroupId {
   const blockCategory = RESOURCE_DEFINITIONS[type].blockCategory;
-  return blockCategory ?? 'foundation';
+  if (!blockCategory) return 'foundations';
+  return CATEGORY_TO_GROUP[blockCategory];
 }
 
 // ─── Hook ──────────────────────────────────────────────────
