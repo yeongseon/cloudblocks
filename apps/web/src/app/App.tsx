@@ -32,6 +32,9 @@ function App() {
 
   return (
     <div className="app">
+      <a href="#main-content" className="skip-link">
+        Skip to content
+      </a>
       <DemoBanner />
       <MobileGuard />
       {effectiveAppView === 'landing' ? <LandingPage /> : <BuilderView />}

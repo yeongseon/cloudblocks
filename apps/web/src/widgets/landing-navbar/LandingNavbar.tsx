@@ -7,7 +7,7 @@ export function LandingNavbar() {
   return (
     <header className="landing-navbar">
       <div className="landing-navbar-logo">🧱 CloudBlocks</div>
-      <nav className="landing-navbar-links">
+      <nav className="landing-navbar-links" aria-label="Main navigation">
         <a href="#templates" className="landing-navbar-link">
           Templates
         </a>
