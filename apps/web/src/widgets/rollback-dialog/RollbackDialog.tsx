@@ -21,7 +21,7 @@ export function RollbackDialog() {
 
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  // TODO: replace with live environment data
+  // TODO(backend): Replace with live environment data from production deployment API
   const [currentProduction] = useState(() => ({
     imageTag: 'v1.4.3-sha-abc1234',
     commitSha: 'abc1234',
