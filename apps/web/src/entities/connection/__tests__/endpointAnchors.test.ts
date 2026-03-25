@@ -11,7 +11,7 @@ import { endpointId, generateEndpointsForBlock } from '@cloudblocks/schema';
 // Test fixtures
 // ---------------------------------------------------------------------------
 
-function makePlate(overrides?: Partial<ContainerBlock>): ContainerBlock {
+function makeContainerBlock(overrides?: Partial<ContainerBlock>): ContainerBlock {
   return {
     id: 'container-1',
     kind: 'container',
@@ -63,7 +63,7 @@ function makeEndpoints(blockIds: string[]) {
 // ---------------------------------------------------------------------------
 
 describe('getConnectionEndpointWorldAnchors', () => {
-  const container = makePlate();
+  const container = makeContainerBlock();
   const blockA = makeBlock({ id: 'block-a', category: 'compute', position: { x: 2, y: 0, z: 3 } });
   const blockB = makeBlock({ id: 'block-b', category: 'data', position: { x: 5, y: 0, z: 1 } });
   const blocks = [blockA, blockB];
