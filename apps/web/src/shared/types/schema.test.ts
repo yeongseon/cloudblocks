@@ -167,6 +167,126 @@ describe('schema utilities', () => {
     expect(container.frame.height).toBe(0.7);
   });
 
+  it('rebuilds frame when container has profileId but no frame or size', () => {
+    const data = {
+      schemaVersion: SCHEMA_VERSION,
+      workspaces: [
+        {
+          id: 'ws-1',
+          name: 'Test',
+          architecture: {
+            id: 'arch-1',
+            name: 'Test',
+            version: '1',
+            nodes: [
+              {
+                id: 'container-1',
+                kind: 'container',
+                name: 'VNet',
+                layer: 'region',
+                profileId: 'network-platform',
+                parentId: null,
+                children: [],
+                position: { x: 0, y: 0, z: 0 },
+                metadata: {},
+              },
+            ],
+            connections: [],
+            endpoints: [],
+            externalActors: [
+              {
+                id: 'ext-internet',
+                name: 'Internet',
+                type: 'internet',
+                position: { x: -3, y: 0, z: 5 },
+              },
+            ],
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    };
+
+    const result = deserialize(JSON.stringify(data));
+    const container = result[0].architecture.nodes.find(
+      (node): node is ContainerBlock => node.kind === 'container',
+    );
+
+    expect(container).toBeDefined();
+    if (!container) {
+      throw new Error('Expected container node');
+    }
+    expect(container.profileId).toBe('network-platform');
+    expect(container.frame).toBeDefined();
+    expect(container.frame.width).toBe(16);
+    expect(container.frame.height).toBe(0.7);
+    expect(container.frame.depth).toBe(20);
+  });
+
+  it('rebuilds frame when container has profileId and legacy size key', () => {
+    const data = {
+      schemaVersion: SCHEMA_VERSION,
+      workspaces: [
+        {
+          id: 'ws-1',
+          name: 'Test',
+          architecture: {
+            id: 'arch-1',
+            name: 'Test',
+            version: '1',
+            nodes: [
+              {
+                id: 'container-1',
+                kind: 'container',
+                name: 'VNet',
+                layer: 'region',
+                profileId: 'network-platform',
+                parentId: null,
+                children: [],
+                position: { x: 0, y: 0, z: 0 },
+                size: { width: 99, height: 1, depth: 99 },
+                metadata: {},
+              },
+            ],
+            connections: [],
+            endpoints: [],
+            externalActors: [
+              {
+                id: 'ext-internet',
+                name: 'Internet',
+                type: 'internet',
+                position: { x: -3, y: 0, z: 5 },
+              },
+            ],
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      ],
+    };
+
+    const result = deserialize(JSON.stringify(data));
+    const container = result[0].architecture.nodes.find(
+      (node): node is ContainerBlock => node.kind === 'container',
+    );
+
+    expect(container).toBeDefined();
+    if (!container) {
+      throw new Error('Expected container node');
+    }
+    // profileId preserved, frame rebuilt from profileId (not from stale size)
+    expect(container.profileId).toBe('network-platform');
+    expect(container.frame).toBeDefined();
+    expect(container.frame.width).toBe(16);
+    expect(container.frame.height).toBe(0.7);
+    expect(container.frame.depth).toBe(20);
+  });
+
   it('migrates legacy external actors without position', () => {
     const legacyData = {
       schemaVersion: SCHEMA_VERSION,
