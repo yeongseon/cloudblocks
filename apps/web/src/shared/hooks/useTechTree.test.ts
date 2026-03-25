@@ -127,7 +127,7 @@ describe('useTechTree constants', () => {
         shortLabel: 'VNet',
         icon: '🌐',
         category: 'foundation',
-        blockCategory: null,
+        blockCategory: 'network',
       },
       subnet: {
         id: 'subnet',
@@ -137,7 +137,7 @@ describe('useTechTree constants', () => {
         shortLabel: 'Subnet',
         icon: '🔲',
         category: 'foundation',
-        blockCategory: null,
+        blockCategory: 'network',
       },
       storage: {
         id: 'storage',
@@ -211,6 +211,15 @@ describe('useTechTree constants', () => {
         category: 'vnet-optional',
         blockCategory: 'messaging',
       },
+      monitor: {
+        id: 'monitor',
+        schemaResourceType: 'monitoring',
+        label: 'Azure Monitor',
+        shortLabel: 'Monitor',
+        icon: '🔧',
+        category: 'vnet-required',
+        blockCategory: 'operations',
+      },
       'app-service': {
         id: 'app-service',
         schemaResourceType: 'app_service',
@@ -235,6 +244,15 @@ describe('useTechTree constants', () => {
         label: 'Azure Cosmos DB',
         shortLabel: 'Cosmos DB',
         icon: '🌍',
+        category: 'vnet-optional',
+        blockCategory: 'data',
+      },
+      redis: {
+        id: 'redis',
+        schemaResourceType: 'cache_store',
+        label: 'Azure Cache for Redis',
+        shortLabel: 'Redis',
+        icon: '⚡',
         category: 'vnet-optional',
         blockCategory: 'data',
       },
@@ -290,7 +308,7 @@ describe('useTechTree constants', () => {
         shortLabel: 'Firewall',
         icon: '🛡️',
         category: 'vnet-required',
-        blockCategory: 'delivery',
+        blockCategory: 'security',
       },
       nsg: {
         id: 'nsg',
@@ -368,9 +386,11 @@ describe('useTechTree constants', () => {
       'function',
       'queue',
       'event',
+      'monitor',
       'app-service',
       'container-instances',
       'cosmos-db',
+      'redis',
       'key-vault',
       'vm',
       'aks',
@@ -385,7 +405,7 @@ describe('useTechTree constants', () => {
       'app-gateway',
       'managed-identity',
     ];
-    expect(resourceTypes).toHaveLength(26);
+    expect(resourceTypes).toHaveLength(28);
 
     for (const resourceType of resourceTypes) {
       const actual = RESOURCE_DEFINITIONS[resourceType as ResourceType];
@@ -436,11 +456,11 @@ describe('useTechTree constants', () => {
     }
   });
 
-  it('has exactly 9 starter and 17 advanced resources', () => {
+  it('has exactly 13 starter and 15 advanced resources', () => {
     const starter = ALL_RESOURCES.filter((t) => RESOURCE_DEFINITIONS[t].tier === 'starter');
     const advanced = ALL_RESOURCES.filter((t) => RESOURCE_DEFINITIONS[t].tier === 'advanced');
-    expect(starter).toHaveLength(9);
-    expect(advanced).toHaveLength(17);
+    expect(starter).toHaveLength(13);
+    expect(advanced).toHaveLength(15);
   });
 });
 

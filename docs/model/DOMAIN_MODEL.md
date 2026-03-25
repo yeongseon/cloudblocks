@@ -273,7 +273,7 @@ An External Actor represents an endpoint outside the architecture.
 export interface ExternalActor {
   id: string;
   name: string; // e.g., "Internet"
-  type: 'internet';
+  type: 'internet' | 'browser';
   position: Position;
 }
 ```
