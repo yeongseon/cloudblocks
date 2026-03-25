@@ -1,5 +1,7 @@
 # Validation Contract — Single Source of Truth
 
+> **Audience**: Contributors | **Status**: Stable — Internal | **Verified against**: v0.26.0
+
 > Covers issues #23, #24, and #357.
 
 This document defines the canonical validation rule contract for CloudBlocks. All frontend and backend validation must derive from this specification. No layer may invent rules that are not listed here.
@@ -107,7 +109,7 @@ Validation for block aggregation (scaling/clustering) configuration.
 
 ### 5.1 Application Placement Rules (Planned — Not Yet Implemented)
 
-> **Status: Planned.** The Application entity and its placement rules are designed but have no corresponding implementation. The rules below describe the intended behavior for a future milestone. See [DOMAIN_MODEL.md §4.5](../model/DOMAIN_MODEL.md#45-application) for the Application entity design.
+> **Status: Planned.** The Application entity and its placement rules are designed but have no corresponding implementation. The rules below describe the intended behavior for a future milestone.
 
 | Rule ID                  | Severity | Condition                            | Message                                                    |
 | ------------------------ | -------- | ------------------------------------ | ---------------------------------------------------------- |

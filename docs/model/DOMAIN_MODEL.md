@@ -1,5 +1,7 @@
 # CloudBlocks Platform — Domain Model
 
+> **Audience**: All Users / Contributors | **Status**: Stable — V1 Core | **Verified against**: v0.26.0
+
 > **Canonical Source Declaration**
 >
 > This document is the **canonical specification** for the CloudBlocks domain model. All other documentation must reference and conform to the types, field names, and relationships defined here.
@@ -159,27 +161,49 @@ export interface ResourceRuleEntry {
 
 ### 4.2 Resource Type Table
 
-| Resource Type         | Container? | Allowed Parents   | Category   | Canvas Tier |
-| --------------------- | ---------- | ----------------- | ---------- | ----------- |
-| `virtual_network`     | ✅         | `null` (root)     | network    | shared      |
-| `subnet`              | ✅         | `virtual_network` | network    | shared      |
-| `load_balancer`       | ❌         | `subnet`          | delivery   | web         |
-| `outbound_access`     | ❌         | `subnet`          | delivery   | web         |
-| `web_compute`         | ❌         | `subnet`          | compute    | web         |
-| `app_compute`         | ❌         | `subnet`          | compute    | app         |
-| `relational_database` | ❌         | `subnet`          | data       | data        |
-| `cache_store`         | ❌         | `subnet`          | data       | data        |
-| `firewall_security`   | ❌         | `subnet`          | security   | shared      |
-| `secret_store`        | ❌         | `subnet`          | security   | shared      |
-| `identity_access`     | ❌         | `subnet`, `null`  | identity   | shared      |
-| `monitoring`          | ❌         | `subnet`          | operations | shared      |
-| `message_queue`       | ❌         | `virtual_network` | messaging  | app         |
-| `event_hub`           | ❌         | `virtual_network` | messaging  | app         |
+| Resource Type            | Container? | Allowed Parents   | Category   | Canvas Tier |
+| ------------------------ | ---------- | ----------------- | ---------- | ----------- |
+| `virtual_network`        | ✅         | `null` (root)     | network    | shared      |
+| `subnet`                 | ✅         | `virtual_network` | network    | shared      |
+| `nat_gateway`            | ❌         | `subnet`          | network    | shared      |
+| `public_ip`              | ❌         | `null` (root)     | network    | shared      |
+| `route_table`            | ❌         | `subnet`          | network    | shared      |
+| `private_endpoint`       | ❌         | `subnet`          | network    | shared      |
+| `dns_zone`               | ❌         | `null` (root)     | delivery   | web         |
+| `cdn_profile`            | ❌         | `null` (root)     | delivery   | web         |
+| `front_door`             | ❌         | `null` (root)     | delivery   | web         |
+| `application_gateway`    | ❌         | `subnet`          | delivery   | web         |
+| `internal_load_balancer` | ❌         | `subnet`          | delivery   | web         |
+| `load_balancer`          | ❌         | `subnet`          | delivery   | web         |
+| `outbound_access`        | ❌         | `subnet`          | delivery   | web         |
+| `function_compute`       | ❌         | `subnet`, `null`  | compute    | app         |
+| `app_service`            | ❌         | `subnet`, `null`  | compute    | app         |
+| `container_instances`    | ❌         | `subnet`, `null`  | compute    | app         |
+| `virtual_machine`        | ❌         | `subnet`          | compute    | app         |
+| `kubernetes_cluster`     | ❌         | `subnet`          | compute    | app         |
+| `web_compute`            | ❌         | `subnet`          | compute    | web         |
+| `app_compute`            | ❌         | `subnet`          | compute    | app         |
+| `blob_storage`           | ❌         | `null` (root)     | data       | data        |
+| `sql_database`           | ❌         | `subnet`          | data       | data        |
+| `cosmos_db`              | ❌         | `subnet`, `null`  | data       | data        |
+| `relational_database`    | ❌         | `subnet`          | data       | data        |
+| `cache_store`            | ❌         | `subnet`          | data       | data        |
+| `key_vault`              | ❌         | `subnet`, `null`  | security   | shared      |
+| `bastion_host`           | ❌         | `subnet`          | security   | shared      |
+| `firewall_security`      | ❌         | `subnet`          | security   | shared      |
+| `network_security_group` | ❌         | `subnet`          | security   | shared      |
+| `secret_store`           | ❌         | `subnet`          | security   | shared      |
+| `identity_access`        | ❌         | `subnet`, `null`  | identity   | shared      |
+| `managed_identity`       | ❌         | `null` (root)     | identity   | shared      |
+| `service_account`        | ❌         | `null` (root)     | identity   | shared      |
+| `monitoring`             | ❌         | `subnet`          | operations | shared      |
+| `message_queue`          | ❌         | `virtual_network` | messaging  | app         |
+| `event_hub`              | ❌         | `virtual_network` | messaging  | app         |
 
 ### 4.3 Derived Types
 
 ```typescript
-export type ResourceType = keyof typeof RESOURCE_RULES; // all 14 types
+export type ResourceType = keyof typeof RESOURCE_RULES; // all 36 types
 export type ContainerCapableResourceType = 'virtual_network' | 'subnet';
 export type LeafOnlyResourceType = Exclude<ResourceType, ContainerCapableResourceType>;
 ```

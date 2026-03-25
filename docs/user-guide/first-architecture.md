@@ -84,9 +84,9 @@ Your progress is automatically saved to your browser's local storage.
 
 ## What's Next?
 
-| Goal                             | Guide                                         |
-| :------------------------------- | :-------------------------------------------- |
-| Understand the building blocks   | [Core Concepts](core-concepts.md)             |
-| Browse all architecture patterns | [Templates](templates.md)                     |
-| Build from a blank canvas        | [Create Architecture](create-architecture.md) |
-| Learn keyboard shortcuts         | [Keyboard Shortcuts](keyboard-shortcuts.md)   |
+| Goal                             | Guide                                            |
+| :------------------------------- | :----------------------------------------------- |
+| Understand the building blocks   | [Core Concepts](core-concepts.md)                |
+| Browse all architecture patterns | [Templates](templates.md)                        |
+| Build from a blank canvas        | [Blank Canvas Mode](../advanced/blank-canvas.md) |
+| Learn keyboard shortcuts         | [Keyboard Shortcuts](keyboard-shortcuts.md)      |

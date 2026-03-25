@@ -1,5 +1,7 @@
 # CloudBlocks — Deployment Guide
 
+> **Audience**: Contributors / DevOps | **Status**: Stable — Internal | **Verified against**: v0.26.0
+
 ## Overview
 
 CloudBlocks is designed for **lightweight deployment** with minimal infrastructure. The frontend is a static SPA, and the backend is a thin orchestration layer. Production deployments use PostgreSQL for metadata and Redis for session caching, enabling horizontal scaling with multiple container replicas.

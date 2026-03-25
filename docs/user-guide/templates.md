@@ -1,6 +1,10 @@
-# Use Templates
+# Templates
 
-Templates are pre-built architecture patterns that provide a working starting point. Instead of building from scratch, you can load a template and customize it for your specific needs.
+> **Audience**: All Users | **Status**: Stable — V1 Core | **Verified against**: v0.26.0
+
+Templates are pre-built architecture patterns that provide a working starting point. Instead of building from scratch, load a template and customize it for your needs.
+
+> New to CloudBlocks? Start with the [First Architecture from a Template](first-architecture.md) walkthrough.
 
 ---
 
@@ -8,10 +12,10 @@ Templates are pre-built architecture patterns that provide a working starting po
 
 You can load a template in two ways:
 
-1.  On the empty canvas, click **Use Template** from the initial call to action.
-2.  Use the menu: **Build → Browse Templates**.
+1. On the empty canvas, click **Use Template** from the initial call to action.
+2. Use the menu: **Build → Browse Templates**.
 
-Once the Template Gallery opens, you can browse the available patterns. Click any template to see a preview of its architecture and description. Click **Use** to load the template into your workspace.
+The Template Gallery shows all available patterns. Click any template to see a preview and description. Click **Use** to load it into your workspace.
 
 When a template loads, it creates a complete workspace with all blocks and connections pre-configured.
 
@@ -19,55 +23,77 @@ When a template loads, it creates a complete workspace with all blocks and conne
 
 ## Built-in Templates
 
-CloudBlocks includes six built-in templates covering various use cases and difficulty levels:
+CloudBlocks includes six built-in templates covering common cloud architecture patterns. All templates use Azure resources by default, with multi-cloud preview available.
 
 ### 1. Three-Tier Web Application
 
 **Difficulty:** Beginner | **Category:** Web Application
 
-This template implements the classic web architecture pattern. It features an Internet source connecting to an Application Gateway, which routes traffic to a Virtual Machine. The backend includes both a SQL Database and Blob Storage. The resources are organized into two pre-wired subnets.
+The classic web architecture pattern. An Internet source connects to an **Application Gateway** (delivery), which routes traffic to a **Virtual Machine** (compute). The backend includes both an **Azure SQL Database** (data) and **Blob Storage** (data). Resources are organized into two subnets inside a Virtual Network.
 
 ### 2. Simple Compute Setup
 
 **Difficulty:** Beginner | **Category:** Web Application
 
-A minimal architecture designed for simple workloads. It connects the Internet to a Gateway, which then routes to an App Service. Everything is contained within a single subnet, making it an ideal starting point for learning the builder.
+A minimal architecture for simple workloads. Internet traffic flows through a **Gateway** to an **App Service** (compute) inside a single subnet. Ideal for learning the builder interface.
 
 ### 3. Data Storage Backend
 
 **Difficulty:** Intermediate | **Category:** Data Pipeline
 
-This pattern focuses on a backend-only setup where compute resources connect to multiple data stores. It includes an Internet source, an API Gateway, and an API Server. The architecture is split across two subnets: an App Subnet for compute and a Data Subnet for Database and File Storage resources.
+A backend-focused pattern where compute connects to multiple data stores. Includes an Internet source, an **Application Gateway**, and an **API Server** (compute). The architecture splits across two subnets: an App Subnet for compute and a Data Subnet for **Database** and **File Storage** resources.
 
 ### 4. Serverless HTTP API
 
 **Difficulty:** Intermediate | **Category:** Serverless
 
-A modern serverless pattern using managed services. It routes Internet traffic through an API Gateway to an HTTP Handler (Function). Data is persisted in Blob Storage and CosmosDB. This template demonstrates how to build scalable APIs without managing traditional servers.
+A serverless pattern using managed services. Internet traffic routes through an **Application Gateway** to an **HTTP Handler** (function compute). Data is persisted in **Blob Storage** and **Cosmos DB**. Demonstrates scalable APIs without traditional servers.
 
 ### 5. Event-Driven Pipeline
 
 **Difficulty:** Advanced | **Category:** Data Pipeline
 
-This template represents a pure asynchronous processing pipeline. It features Event Sources and a Queue that trigger Processing Functions, which eventually store results in Data Lake Storage. Note that this architecture has no direct internet traffic and relies on timers and events to drive the flow.
+A pure asynchronous processing pipeline. **Event Sources** and a **Message Queue** (messaging) trigger **Processing Functions** (function compute), which store results in **Data Lake Storage**. No direct internet traffic — driven entirely by timers and events.
 
 ### 6. Full-Stack Serverless with Event Processing
 
 **Difficulty:** Advanced | **Category:** Serverless
 
-The most complex built-in template, featuring 13 blocks and 11 connections. It combines a synchronous web frontend (Internet → API Gateway → Web Frontend + API Handler Function) with an asynchronous processing backend (Queue → Worker Function and Event → Batch Processor).
+The most complex built-in template — 13 blocks and 11 connections. Combines a synchronous web frontend (Internet → Application Gateway → Web Frontend + API Handler Function) with an asynchronous processing backend (Message Queue → Worker Function and Event Hub → Batch Processor).
 
 ---
 
 ## Customizing Templates
 
-Templates are fully editable. After loading one, you can modify it just like a workspace built from scratch:
+Templates are fully editable. After loading one, you can modify it just like any workspace:
 
 - **Add resources**: Drag new components from the **Sidebar Palette** on the left.
 - **Remove elements**: Select any block or connection and press **Delete**.
 - **Connect components**: Click an output port on a source block, then click an input port on a target block.
 - **Rearrange**: Drag blocks to change their position on the canvas.
 - **Rename**: Click a block to select it, then edit its name in the **Inspector Panel** on the right.
+
+### Safe Modifications
+
+| ✅ Safe to Do                                 | ⚠️ Be Careful                                     | ❌ May Break Validation                         |
+| :-------------------------------------------- | :------------------------------------------------ | :---------------------------------------------- |
+| Add new resource blocks to existing subnets   | Removing a block that has connections             | Moving a resource block outside its container   |
+| Rename any block                              | Adding a subnet without connecting it             | Deleting a container block with children inside |
+| Add new connections between compatible blocks | Changing a block's resource type after connecting | Creating circular connection dependencies       |
+| Rearrange block positions within a container  | Adding blocks from a different canvas tier        |                                                 |
+
+> **Tip**: The validation engine runs in real-time. If a modification causes an issue, you'll see it immediately in the Validation panel. Use **Ctrl+Z** to undo.
+
+---
+
+## From Template to Custom Architecture
+
+Templates are starting points, not constraints. Here's how to evolve a template into your own design:
+
+1. **Start with the closest template** — pick the pattern that most resembles your target architecture.
+2. **Modify incrementally** — add, remove, or reconnect blocks one at a time. Check validation after each change.
+3. **Extend with new subnets** — if your architecture needs additional network segmentation, add new subnets inside the Virtual Network.
+4. **Save your workspace** — once customized, your workspace is independent of the original template. See [Workspaces & Save/Load](workspaces.md).
 
 ---
 
@@ -81,3 +107,14 @@ Templates are fully editable. After loading one, you can modify it just like a w
 | A serverless API without server management      | Serverless HTTP API        |
 | Asynchronous, event-driven processing           | Event-Driven Pipeline      |
 | A complete serverless stack                     | Full-Stack Serverless      |
+
+---
+
+## What's Next?
+
+| Goal                                     | Guide                                                       |
+| :--------------------------------------- | :---------------------------------------------------------- |
+| Walk through a template step by step     | [First Architecture from a Template](first-architecture.md) |
+| Learn the editor interface               | [Editor Basics](editor-basics.md)                           |
+| Build from scratch without a template    | [Blank Canvas Mode](../advanced/blank-canvas.md)            |
+| Understand blocks, connections, and more | [Core Concepts](core-concepts.md)                           |

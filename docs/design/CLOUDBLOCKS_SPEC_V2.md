@@ -1,5 +1,7 @@
 # CloudBlocks Universal Architecture Specification v2.0
 
+> **Audience**: Contributors / Design System | **Status**: Draft — Reference | **Verified against**: v0.26.0
+
 **Status**: Draft  
 **Date**: 2026-03-19  
 **Supersedes**: Block design spec (v1.x), VISUAL_DESIGN_SPEC.md (v1.x)

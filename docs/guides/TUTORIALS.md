@@ -1,5 +1,7 @@
 # CloudBlocks — Tutorials
 
+> **Audience**: Contributors | **Status**: Stable — Internal | **Verified against**: v0.26.0
+
 ## Overview
 
 CloudBlocks tutorials guide you through building real-world cloud architectures and generating infrastructure code. Each tutorial teaches specific concepts through hands-on practice with the 2.5D isometric builder.
@@ -226,4 +228,4 @@ packages/scenario-library/
 └── index.ts
 ```
 
-Community contributions are welcome! See [CONTRIBUTING.md](../../CONTRIBUTING.md) for guidelines on adding new tutorials.
+Community contributions are welcome! See [CONTRIBUTING.md](../contributing.md) for guidelines on adding new tutorials.

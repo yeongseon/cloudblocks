@@ -1,5 +1,7 @@
 # CloudBlocks — API Specification
 
+> **Audience**: Contributors / Backend Developers | **Status**: Backend Required | **Verified against**: v0.26.0
+
 > **Implementation Status (Phase 7+)**
 >
 > Authentication and GitHub OAuth session flow are implemented with cookie-based sessions.

@@ -1,5 +1,7 @@
 # Infrastructure Code Generator
 
+> **Audience**: Contributors | **Status**: Experimental — Internal | **Verified against**: v0.26.0
+
 > **This is the canonical source** for the CloudBlocks code generation pipeline. All other documents (DOMAIN_MODEL.md, ARCHITECTURE.md, PRD.md) reference this document for pipeline details.
 > **Status**: Implemented (Experimental in V1). Terraform, Bicep, and Pulumi generators are functional in `apps/web/src/features/generate/`.
 >

@@ -1,5 +1,7 @@
 # Architecture Templates
 
+> **Audience**: Contributors | **Status**: Stable — Internal | **Verified against**: v0.26.0
+
 Templates allow users to start from predefined architectures.
 
 Templates are reusable architecture models that serve as starting points for new workspaces.

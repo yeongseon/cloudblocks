@@ -1,5 +1,7 @@
 # CloudBlocks Compatibility & Migration Policy
 
+> **Audience**: All Users | **Status**: Stable — V1 Core | **Verified against**: v0.26.0
+
 This document defines how CloudBlocks handles versioning, backward compatibility, and data migration.
 
 ## Versioning

@@ -1,5 +1,7 @@
 # CloudBlocks Environment Strategy
 
+> **Audience**: Contributors / DevOps | **Status**: Stable — Internal | **Verified against**: v0.26.0
+
 ## 1. Overview
 
 CloudBlocks uses a progressive deployment pipeline:

@@ -1,5 +1,7 @@
 # FAQ
 
+> **Audience**: All Users | **Status**: Stable — V1 Core | **Verified against**: v0.26.0
+
 Find answers to frequently asked questions about CloudBlocks.
 
 ---

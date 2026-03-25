@@ -1,5 +1,7 @@
 # Provider Definition Specification
 
+> **Audience**: Contributors | **Status**: Stable — Internal | **Verified against**: v0.26.0
+
 CloudBlocks uses `ProviderDefinition` as the canonical provider abstraction for generation.
 
 This keeps the architecture model provider-neutral while allowing Terraform, Bicep, and Pulumi output from the same model.
@@ -111,5 +113,3 @@ Provider definitions and resolution logic must:
 >
 > - Generator pipeline: [generator.md](./generator.md)
 > - Architecture model: [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md)
-> - DSL overview: [ARCHITECTURE_MODEL_OVERVIEW.md](../model/ARCHITECTURE_MODEL_OVERVIEW.md)
-> - Roadmap timeline: [ROADMAP.md](../concept/ROADMAP.md)
