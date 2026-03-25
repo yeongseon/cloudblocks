@@ -237,6 +237,7 @@ export const ContainerBlockSprite = memo(function PlateSprite({
           />
         </div>
       </button>
+      <span className="container-label-chip">{label}</span>
     </div>
   );
 });

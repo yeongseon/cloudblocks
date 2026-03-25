@@ -6,12 +6,7 @@ import type { DiffDelta } from '../../shared/types/diff';
 import { ConnectionRenderer } from './ConnectionRenderer';
 import { getDiffState } from '../../features/diff/engine';
 import { getConnectionSurfaceRoute } from './surfaceRouting';
-import type { SurfaceRoute, WorldPoint3 } from './surfaceRouting';
-import {
-  buildConnectionFootprint,
-  getVisibleSideFaces,
-  projectFootprintToScreen,
-} from './connectionGeometry';
+import type { SurfaceRoute } from './surfaceRouting';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
 
@@ -19,21 +14,15 @@ vi.mock('./surfaceRouting', () => ({
   getConnectionSurfaceRoute: vi.fn(),
 }));
 
-vi.mock('./connectionGeometry', () => ({
-  buildConnectionFootprint: vi.fn(),
-  getVisibleSideFaces: vi.fn(),
-  projectFootprintToScreen: vi.fn(),
-}));
-
 vi.mock('../../shared/tokens/designTokens', () => ({
   TILE_W: 64,
   TILE_H: 32,
   TILE_Z: 32,
   RENDER_SCALE: 32,
-  BEAM_WIDTH_CU: 0.5,
-  BEAM_THICKNESS_CU: 1 / 3,
-  CONNECTION_WIDTH_CU: 1,
-  CONNECTION_HEIGHT_CU: 1 / 3,
+  TRACE_STROKE_PX: 2,
+  TRACE_CASE_PX: 4,
+  TRACE_HOVER_PX: 2.5,
+  TRACE_FLASH_PX: 2,
 }));
 
 vi.mock('../../features/diff/engine', () => ({
@@ -81,42 +70,6 @@ function createSurfaceRoute(overrides?: Partial<SurfaceRoute>): SurfaceRoute {
   };
 }
 
-function setupSurfaceRouteMocks() {
-  const footprint: WorldPoint3[] = [
-    [1, 3.333, 1],
-    [3, 3.333, 1],
-    [3, 3.333, 2],
-    [1, 3.333, 2],
-  ];
-  vi.mocked(buildConnectionFootprint).mockReturnValue(footprint);
-  vi.mocked(projectFootprintToScreen).mockReturnValue([
-    { x: 100, y: 220 },
-    { x: 140, y: 240 },
-    { x: 130, y: 260 },
-    { x: 90, y: 240 },
-  ]);
-  vi.mocked(getVisibleSideFaces).mockReturnValue([
-    {
-      face: 'left',
-      vertices: [
-        [1, 3.333, 1],
-        [3, 3.333, 1],
-        [3, 3, 1],
-        [1, 3, 1],
-      ],
-    },
-    {
-      face: 'right',
-      vertices: [
-        [3, 3.333, 1],
-        [3, 3.333, 2],
-        [3, 3, 2],
-        [3, 3, 1],
-      ],
-    },
-  ]);
-}
-
 function renderConnector(conn: Connection = connection) {
   return render(
     <svg aria-label="Test SVG">
@@ -140,7 +93,6 @@ describe('ConnectionRenderer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createSurfaceRoute());
-    setupSurfaceRouteMocks();
     useUIStore.setState(initialUIState, true);
     useArchitectureStore.setState(initialArchitectureState, true);
     useUIStore.setState({
@@ -157,11 +109,11 @@ describe('ConnectionRenderer', () => {
     expect(container.querySelector('g')).toBeNull();
   });
 
-  it('renders svg group with polygons when surface route exists', () => {
+  it('renders svg group with casing and trace paths when surface route exists', () => {
     const { container } = renderConnector();
     expect(container.querySelector('g')).toBeInTheDocument();
-    const polygons = container.querySelectorAll('polygon');
-    expect(polygons.length).toBeGreaterThanOrEqual(3);
+    expect(container.querySelector('[data-testid="connection-casing"]')).toBeInTheDocument();
+    expect(container.querySelector('[data-testid="connection-trace"]')).toBeInTheDocument();
   });
 
   it('renders hit area with data-testid', () => {
@@ -215,10 +167,8 @@ describe('ConnectionRenderer', () => {
     vi.mocked(getDiffState).mockReturnValue('added');
 
     const { container } = renderConnector();
-    const polygons = container.querySelectorAll('polygon');
-    expect(polygons.length).toBeGreaterThanOrEqual(1);
-    const topFaces = Array.from(polygons).filter((p) => p.getAttribute('fill') === '#22c55e');
-    expect(topFaces.length).toBeGreaterThanOrEqual(1);
+    const casingPath = container.querySelector('[data-testid="connection-casing"]');
+    expect(casingPath).toBeInTheDocument();
     expect(container.querySelector('g')?.getAttribute('opacity')).toBe('1');
   });
 
@@ -235,25 +185,27 @@ describe('ConnectionRenderer', () => {
     const { container } = renderConnector();
     const selectionOutline = container.querySelector('[data-layer="selection-outline"]');
     expect(selectionOutline).toBeInTheDocument();
+    expect(selectionOutline?.tagName.toLowerCase()).toBe('path');
     expect(selectionOutline?.getAttribute('stroke')).toBe('#ffffff');
-    expect(selectionOutline?.getAttribute('stroke-opacity')).toBe('0.5');
+    expect(selectionOutline?.getAttribute('stroke-opacity')).toBe('0.35');
   });
 
   describe('surface render path', () => {
-    it('renders top-face polygon from projected connection footprint', () => {
+    it('renders casing and trace path layers from route centerline', () => {
       const { container } = renderConnector();
-      const topFaceLayer = container.querySelector('[data-layer="top-face"]');
-      const topFacePolygon = topFaceLayer?.querySelector('polygon');
-      expect(topFacePolygon).toBeInTheDocument();
-      expect(topFacePolygon?.getAttribute('points')).toBe('100,220 140,240 130,260 90,240');
+      const casingLayer = container.querySelector('[data-layer="casing"]');
+      const traceLayer = container.querySelector('[data-layer="trace"]');
+      expect(casingLayer).toBeInTheDocument();
+      expect(casingLayer?.tagName.toLowerCase()).toBe('path');
+      expect(traceLayer).toBeInTheDocument();
+      expect(traceLayer?.tagName.toLowerCase()).toBe('path');
     });
 
-    it('renders side-face polygons and no legacy liftarm artifacts', () => {
+    it('casing and trace paths share the same d attribute', () => {
       const { container } = renderConnector();
-      const sideFacesLayer = container.querySelector('[data-layer="side-faces"]');
-      expect(sideFacesLayer?.querySelectorAll('polygon')).toHaveLength(2);
-      expect(sideFacesLayer?.querySelectorAll('[data-connector-segment]')).toHaveLength(0);
-      expect(sideFacesLayer?.querySelectorAll('[data-connector-elbow]')).toHaveLength(0);
+      const casing = container.querySelector('[data-layer="casing"]');
+      const trace = container.querySelector('[data-layer="trace"]');
+      expect(casing?.getAttribute('d')).toBe(trace?.getAttribute('d'));
     });
 
     it('shows validation error label on hover for invalid surface route connections', () => {
@@ -279,8 +231,8 @@ describe('ConnectionRenderer', () => {
       expect(container.querySelector('[data-testid="connection-error-label"]')).toBeInTheDocument();
     });
 
-    it('returns null when connection footprint is degenerate', () => {
-      vi.mocked(buildConnectionFootprint).mockReturnValue([]);
+    it('returns null when route has fewer than 2 centerline points', () => {
+      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createSurfaceRoute({ segments: [] }));
       const { container } = renderConnector();
       expect(container.querySelector('g')).toBeNull();
     });
@@ -328,8 +280,8 @@ describe('ConnectionRenderer', () => {
 
       const { container } = renderConnector();
       expect(
-        container.querySelector('[data-testid="connection-hit-area"]')?.getAttribute('d'),
-      ).toBe('');
+        container.querySelector('[data-testid="connection-hit-area"]'),
+      ).not.toBeInTheDocument();
       expect(
         container.querySelector('[data-testid="connection-error-label"]'),
       ).not.toBeInTheDocument();
@@ -492,10 +444,10 @@ describe('ConnectionRenderer', () => {
       vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createSurfaceRoute());
 
       const { container } = renderConnector(actorConnection);
-      const topFaceLayer = container.querySelector('[data-layer="top-face"]');
-      expect(topFaceLayer?.querySelector('polygon')).toBeInTheDocument();
-      expect(container.querySelectorAll('[data-connector-segment]')).toHaveLength(0);
-      expect(container.querySelectorAll('[data-connector-elbow]')).toHaveLength(0);
+      const casingLayer = container.querySelector('[data-layer="casing"]');
+      expect(casingLayer).toBeInTheDocument();
+      const traceLayer = container.querySelector('[data-layer="trace"]');
+      expect(traceLayer).toBeInTheDocument();
     });
 
     it('returns null when surface route resolution fails for external actor connection', () => {

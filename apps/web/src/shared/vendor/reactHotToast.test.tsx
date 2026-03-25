@@ -47,15 +47,15 @@ describe('shared/vendor/reactHotToast', () => {
     vi.clearAllMocks();
   });
 
-  it('renders top-center container and resolves message by default', () => {
+  it('renders bottom-right container and resolves message by default', () => {
     setupToaster([makeToast()]);
 
     const { container } = render(<Toaster />);
 
     expect(screen.getByRole('status')).toHaveTextContent('hello');
     const root = container.firstElementChild as HTMLElement;
-    expect(root.style.top).toBe('12px');
-    expect(root.style.alignItems).toBe('center');
+    expect(root.style.bottom).toBe('12px');
+    expect(root.style.alignItems).toBe('flex-end');
     expect(vi.mocked(resolveValue)).toHaveBeenCalled();
   });
 

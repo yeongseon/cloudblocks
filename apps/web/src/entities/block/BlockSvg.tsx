@@ -6,8 +6,8 @@ import type {
   ResourceCategory,
 } from '@cloudblocks/schema';
 import { CATEGORY_PORTS } from '@cloudblocks/schema';
-import { BLOCK_SHORT_NAMES, ROLE_VISUAL_INDICATORS } from '../../shared/types/index';
-import { getBlockIconUrl, getSubtypeShortLabel } from '../../shared/utils/iconResolver';
+import { ROLE_VISUAL_INDICATORS } from '../../shared/types/index';
+import { getBlockIconUrl } from '../../shared/utils/iconResolver';
 import { getBlockDimensions, getBlockVisualProfile } from '../../shared/types/visualProfile';
 import {
   BLOCK_PADDING,
@@ -100,8 +100,6 @@ export const BlockSvg = memo(function BlockSvg({
   const svgHeight = diamondHeight + sideWallPx + BLOCK_PADDING;
 
   const faceColors = getBlockFaceColors(category, provider ?? 'azure', subtype);
-  const shortName = BLOCK_SHORT_NAMES[category];
-  const subtypeLabel = getSubtypeShortLabel(provider ?? 'azure', subtype);
   const iconUrl = getBlockIconUrl(provider ?? 'azure', category, subtype);
 
   // ─── v2.0: silhouette from CU dimensions ───────────────────
@@ -109,12 +107,10 @@ export const BlockSvg = memo(function BlockSvg({
 
   const connectorId = useId().replace(/:/g, '_');
 
-  const leftLabelX = (leftX + cx) / 2;
   const rightLabelX = (cx + rightX) / 2;
   const wallCenterY = (midY + bottomY + sideWallPx) / 2;
 
   const minDim = Math.min(cu.width, cu.depth);
-  const labelFontSize = minDim <= 1 ? 8 : minDim <= 2 ? 10 : 13;
   const iconSize = minDim <= 1 ? 12 : minDim <= 2 ? 16 : 20;
 
   return (
@@ -180,7 +176,7 @@ export const BlockSvg = memo(function BlockSvg({
                       y1={line.y1}
                       x2={line.x2}
                       y2={line.y2}
-                      stroke="rgba(255,255,255,0.10)"
+                      stroke="rgba(255,255,255,0.06)"
                       strokeWidth={0.5}
                       fill="none"
                     />
@@ -223,20 +219,6 @@ export const BlockSvg = memo(function BlockSvg({
         strokeWidth={EDGE_HIGHLIGHT_STROKE_WIDTH}
         strokeOpacity={EDGE_HIGHLIGHT_OPACITY}
       />
-
-      {/* ─── Resource type label (left wall — flush) ─── */}
-      <text
-        transform={`matrix(0.8975,0.4410,0,1,${leftLabelX},${wallCenterY})`}
-        fontFamily="system-ui, -apple-system, sans-serif"
-        fontSize={labelFontSize}
-        fontWeight="600"
-        fill="#ffffff"
-        fillOpacity="0.9"
-        textAnchor="middle"
-        dominantBaseline="middle"
-      >
-        {subtypeLabel ?? shortName}
-      </text>
 
       {iconUrl && (
         <image
