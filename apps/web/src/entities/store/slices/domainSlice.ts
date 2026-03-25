@@ -58,6 +58,8 @@ type DomainSlice = Pick<
   | 'movePlatePosition'
   | 'moveBlockPosition'
   | 'moveActorPosition'
+  | 'addExternalActor'
+  | 'removeExternalActor'
   | 'addConnection'
   | 'removeConnection'
   | 'updateConnectionType'
@@ -782,6 +784,34 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
       });
 
       return withHistory(state, { ...arch, externalActors });
+    });
+  },
+
+  addExternalActor: (type, position) => {
+    set((state) => {
+      const arch = state.workspace.architecture;
+      const currentActors = arch.externalActors ?? [];
+      const actorSuffix = generateId('ext').slice(4);
+      const newActor: ExternalActor = {
+        id: `ext-${type}-${actorSuffix}`,
+        name: type === 'internet' ? 'Internet' : 'Browser',
+        type,
+        position: position ?? { x: -3, y: 0, z: -3 },
+      };
+      return withHistory(state, { ...arch, externalActors: [...currentActors, newActor] });
+    });
+  },
+
+  removeExternalActor: (id) => {
+    set((state) => {
+      const arch = state.workspace.architecture;
+      const currentActors = arch.externalActors ?? [];
+      const externalActors = currentActors.filter((actor) => actor.id !== id);
+      const connections = arch.connections.filter(
+        (connection) =>
+          connection.metadata['sourceId'] !== id && connection.metadata['targetId'] !== id,
+      );
+      return withHistory(state, { ...arch, externalActors, connections });
     });
   },
 

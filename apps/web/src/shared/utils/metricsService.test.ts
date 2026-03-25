@@ -1,5 +1,8 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { metricsService } from './metricsService';
+
+const METRICS_KEY = 'cloudblocks_funnel_metrics';
+const HEALTH_KEY = 'cloudblocks_health_snapshots';
 
 describe('metricsService', () => {
   beforeEach(() => {
@@ -77,5 +80,86 @@ describe('metricsService', () => {
     metricsService.trackEvent('first_plate_placed');
     const log = metricsService.getMetricsLog();
     expect(log[0].sessionId).toBe(log[1].sessionId);
+  });
+
+  it('returns empty metrics log when persisted JSON is invalid', () => {
+    localStorage.setItem(METRICS_KEY, '{invalid-json');
+    expect(metricsService.getMetricsLog()).toEqual([]);
+  });
+
+  it('keeps only latest 200 metrics', () => {
+    for (let i = 0; i < 205; i += 1) {
+      metricsService.trackEvent('app_loaded', { index: i });
+    }
+
+    const log = metricsService.getMetricsLog();
+    expect(log).toHaveLength(200);
+    expect(log[0].metadata).toEqual({ index: 5 });
+    expect(log[199].metadata).toEqual({ index: 204 });
+  });
+
+  it('swallows persist metric errors when localStorage.setItem fails', () => {
+    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('storage unavailable');
+    });
+
+    expect(() => metricsService.trackEvent('app_loaded')).not.toThrow();
+
+    setItemSpy.mockRestore();
+  });
+
+  it('reads navigation timing entries when available', () => {
+    const navigationEntry = {
+      domContentLoadedEventEnd: 123.6,
+      loadEventEnd: 456.2,
+    } as unknown as PerformanceNavigationTiming;
+    const navigationSpy = vi
+      .spyOn(performance, 'getEntriesByType')
+      .mockReturnValue([navigationEntry]);
+
+    const snapshot = metricsService.captureHealthSnapshot();
+
+    expect(snapshot.navigationTiming).toEqual({
+      domContentLoaded: 124,
+      loadComplete: 456,
+    });
+
+    navigationSpy.mockRestore();
+  });
+
+  it('keeps only latest 50 health snapshots', () => {
+    for (let i = 0; i < 52; i += 1) {
+      metricsService.captureHealthSnapshot(i);
+    }
+
+    const snapshots = metricsService.getHealthSnapshots();
+    expect(snapshots).toHaveLength(50);
+    expect(snapshots[0].connectionCount).toBe(2);
+    expect(snapshots[49].connectionCount).toBe(51);
+  });
+
+  it('returns empty health snapshots when persisted JSON is invalid', () => {
+    localStorage.setItem(HEALTH_KEY, '{invalid-json');
+    expect(metricsService.getHealthSnapshots()).toEqual([]);
+  });
+
+  it('swallows health snapshot persistence errors when localStorage.setItem fails', () => {
+    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('storage unavailable');
+    });
+
+    expect(() => metricsService.captureHealthSnapshot()).not.toThrow();
+
+    setItemSpy.mockRestore();
+  });
+
+  it('swallows clearMetrics errors when localStorage.removeItem fails', () => {
+    const removeItemSpy = vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+      throw new Error('storage unavailable');
+    });
+
+    expect(() => metricsService.clearMetrics()).not.toThrow();
+
+    removeItemSpy.mockRestore();
   });
 });

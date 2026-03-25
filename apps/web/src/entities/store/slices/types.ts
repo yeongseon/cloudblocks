@@ -93,6 +93,11 @@ export interface ArchitectureState {
   /** @deprecated Use moveNodePosition(id, dx, dz) */
   moveBlockPosition: (id: string, deltaX: number, deltaZ: number) => void;
   moveActorPosition: (id: string, deltaX: number, deltaZ: number) => void;
+  addExternalActor: (
+    type: 'internet' | 'browser',
+    position?: { x: number; y: number; z: number },
+  ) => void;
+  removeExternalActor: (id: string) => void;
 
   addConnection: (from: string, to: string) => boolean;
   removeConnection: (id: string) => void;

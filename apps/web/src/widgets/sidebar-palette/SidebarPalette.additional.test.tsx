@@ -100,6 +100,7 @@ const subnetPlate: ContainerBlock = {
 
 describe('SidebarPalette additional coverage', () => {
   const addNode = vi.fn();
+  const addExternalActor = vi.fn();
   const startPlacing = vi.fn();
   const cancelInteraction = vi.fn();
 
@@ -117,6 +118,7 @@ describe('SidebarPalette additional coverage', () => {
 
     useArchitectureStore.setState({
       addNode,
+      addExternalActor,
       workspace: {
         id: 'ws-1',
         name: 'Test Workspace',
