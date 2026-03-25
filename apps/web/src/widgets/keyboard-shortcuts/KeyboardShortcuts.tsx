@@ -35,12 +35,7 @@ function renderKeys(keysStr: string) {
         {parts.map((part, index) => (
           <span key={index}>
             {index > 0 && <span className="keyboard-shortcuts-separator"> / </span>}
-            {part.split('+').map((key, keyIndex) => (
-              <span key={keyIndex}>
-                {keyIndex > 0 && <span className="keyboard-shortcuts-plus">+</span>}
-                <kbd className="keyboard-shortcuts-key">{key.trim()}</kbd>
-              </span>
-            ))}
+            <kbd className="keyboard-shortcuts-key">{part.trim()}</kbd>
           </span>
         ))}
       </>

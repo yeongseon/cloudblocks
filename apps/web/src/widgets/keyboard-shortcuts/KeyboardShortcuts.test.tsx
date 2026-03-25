@@ -146,4 +146,16 @@ describe('KeyboardShortcuts', () => {
 
     expect(stopPropagationSpy).toHaveBeenCalled();
   });
+
+  it('should not call onClose when a non-Escape key is pressed', async () => {
+    const onClose = vi.fn();
+    render(<KeyboardShortcuts isOpen={true} onClose={onClose} />);
+
+    fireEvent.keyDown(window, { key: 'a' });
+
+    // Give any async handlers time to fire
+    await waitFor(() => {
+      expect(onClose).not.toHaveBeenCalled();
+    });
+  });
 });
