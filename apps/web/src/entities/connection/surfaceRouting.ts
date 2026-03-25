@@ -63,7 +63,7 @@ export function resolveSurfacePort(
 ): SurfacePort {
   const [bx, , bz] = getBlockWorldPosition(block, container);
   const cu = getBlockDimensions(block.category, block.provider, block.subtype);
-  const surfaceY = container.position.y + container.frame.height;
+  const surfaceY = container.position.y + (container.frame?.height ?? 0);
   const t = (portIndex + 1) / (totalPorts + 1);
 
   if (side === 'inbound') {
@@ -215,12 +215,12 @@ function getContainerWorldSurfaceY(
   container: ContainerBlock,
   containerMap: Map<string, ContainerBlock>,
 ): number {
-  let y = container.position.y + container.frame.height;
+  let y = container.position.y + (container.frame?.height ?? 0);
   let current = container;
   while (current.parentId) {
     const parent = containerMap.get(current.parentId);
     if (!parent) break;
-    y += parent.position.y + parent.frame.height;
+    y += parent.position.y + (parent.frame?.height ?? 0);
     current = parent;
   }
   return y;
