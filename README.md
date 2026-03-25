@@ -44,7 +44,7 @@ Most diagram tools produce static images. CloudBlocks produces a **live architec
 - 🧱 **Block-based modeling** — Container blocks (boundaries) + Resource blocks (resources) + typed Connections
 - 📋 **Preset templates** — Start from 6 built-in architecture patterns (three-tier, serverless, event pipeline, and more)
 - ✅ **Validation engine** — Real-time rule checking for placement and connections
-- 📦 **7 resource categories** — Network, Security, Edge, Compute, Data, Messaging, Operations
+- 📦 **8 resource categories** — Network, Delivery, Compute, Data, Messaging, Security, Identity, Operations
 - 🌐 **Multi-cloud preview** — Visual preview for Azure, AWS, and GCP (Azure depth-first)
 - 🎨 **Dual theme system** — Workshop (light, enterprise) and Blueprint (dark, creative)
 - 📚 **Learning mode** — Guided scenarios to learn cloud architecture patterns
@@ -57,7 +57,7 @@ Most diagram tools produce static images. CloudBlocks produces a **live architec
 git clone https://github.com/yeongseon/cloudblocks.git
 cd cloudblocks
 pnpm install
-cd apps/web && pnpm dev
+pnpm dev
 ```
 
 Open [http://localhost:5173](http://localhost:5173) to start building.
@@ -87,13 +87,13 @@ Full documentation is available in the [`docs/`](docs/) directory:
 
 ```bash
 # Frontend development
-cd apps/web && pnpm dev
+pnpm dev
 
 # Build
-cd apps/web && pnpm build
+pnpm build
 
 # Type check
-cd apps/web && npx tsc -b
+pnpm typecheck
 
 # Backend
 cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload

@@ -1,5 +1,7 @@
 # Core Concepts
 
+> **Audience**: All users | **Status**: V1 Core | **Verified against**: v0.26.0
+
 CloudBlocks uses a block-based composition model for cloud architecture. You build infrastructure by placing elements on the canvas, connecting them with typed protocols, and validating against real-world rules.
 
 ---
@@ -22,17 +24,18 @@ A typical architecture starts with a Network block, followed by one or more Subn
 
 ## Blocks by Category
 
-Blocks represent individual cloud resources. CloudBlocks organizes resources into exactly **7 categories**:
+Blocks represent individual cloud resources. CloudBlocks organizes resources into exactly **8 categories**:
 
-| Category       | What It Does                          | Example Azure Resources                                                 |
-| -------------- | ------------------------------------- | ----------------------------------------------------------------------- |
-| **Compute**    | Runs application code                 | VM, App Service, Functions, Container Instances, AKS                    |
-| **Data**       | Stores and manages data               | SQL Database, Cosmos DB, Blob Storage, Cache Store                      |
-| **Edge**       | Handles traffic entry and routing     | Application Gateway, Front Door, CDN, DNS Zone, Load Balancer, Firewall |
-| **Security**   | Protects resources and manages access | Key Vault, Bastion, NSG, Secret Store                                   |
-| **Messaging**  | Connects services asynchronously      | Queue (Service Bus), Event Hub                                          |
-| **Network**    | Manages network infrastructure        | NAT Gateway, Public IP, Route Table, Private Endpoint                   |
-| **Operations** | Monitors and observes                 | Monitoring                                                              |
+| Category       | What It Does                             | Example Azure Resources                                                 |
+| -------------- | ---------------------------------------- | ----------------------------------------------------------------------- |
+| **Network**    | Manages network infrastructure           | NAT Gateway, Public IP, Route Table, Private Endpoint                   |
+| **Delivery**   | Handles traffic entry and routing        | Application Gateway, Front Door, CDN, DNS Zone, Load Balancer, Firewall |
+| **Compute**    | Runs application code                    | VM, App Service, Functions, Container Instances, AKS                    |
+| **Data**       | Stores and manages data                  | SQL Database, Cosmos DB, Blob Storage, Cache Store                      |
+| **Messaging**  | Connects services asynchronously         | Queue (Service Bus), Event Hub                                          |
+| **Security**   | Protects resources and manages access    | Key Vault, Bastion, NSG, Secret Store                                   |
+| **Identity**   | Manages authentication and authorization | Entra ID, Service Principal                                             |
+| **Operations** | Monitors and observes                    | Monitoring                                                              |
 
 !!! tip "Sidebar Palette"
 You can find and drag these resources from the **Sidebar Palette** on the left side of the editor.
@@ -56,9 +59,9 @@ The following flows are supported based on resource categories:
 
 | Source Category | Target Category | Allowed Semantics |
 | --------------- | --------------- | ----------------- |
-| internet        | Edge            | http, data        |
-| Edge            | Edge            | http, data        |
-| Edge            | Compute         | http, data        |
+| internet        | Delivery        | http, data        |
+| Delivery        | Delivery        | http, data        |
+| Delivery        | Compute         | http, data        |
 | Compute         | Data            | data              |
 | Compute         | Operations      | event, data       |
 | Compute         | Security        | data              |
@@ -66,7 +69,7 @@ The following flows are supported based on resource categories:
 | Messaging       | Compute         | event, data       |
 
 !!! warning "Receiver-only Categories"
-The following categories can only receive connections and cannot initiate them: **Data**, **Security**, **Operations**, and **Network**.
+The following categories can only receive connections and cannot initiate them: **Data**, **Security**, **Operations**, **Identity**, and **Network**.
 
 ---
 
@@ -111,7 +114,9 @@ Workspaces allow you to manage multiple projects independently.
 
 - **Storage**: Saved automatically to your browser's local storage.
 - **Management**: Create, rename, or delete projects via the **Workspaces** button in the menu bar.
-- **GitHub Sync**: Connect a workspace to a GitHub repository to sync your designs and generate Pull Requests.
+
+!!! note "GitHub Sync"
+GitHub sync requires the backend. See [Backend Integrations](../advanced/backend-integrations.md) for setup.
 
 ---
 
@@ -129,10 +134,10 @@ Access these guided tutorials via **Build → Browse Scenarios** or by clicking 
 
 ## What's Next?
 
-| Goal                          | Guide                                         |
-| ----------------------------- | --------------------------------------------- |
-| Build your first architecture | [Quick Start](quick-start.md)                 |
-| Create a custom design        | [Create Architecture](create-architecture.md) |
-| Generate infrastructure code  | [Generate Code](generate-code.md)             |
-| Explore pre-built patterns    | [Templates](templates.md)                     |
-| Work faster with hotkeys      | [Keyboard Shortcuts](keyboard-shortcuts.md)   |
+| Goal                          | Guide                                            |
+| ----------------------------- | ------------------------------------------------ |
+| Build your first architecture | [First Architecture](first-architecture.md)      |
+| Learn the editor interface    | [Editor Basics](editor-basics.md)                |
+| Build from a blank canvas     | [Blank Canvas Mode](../advanced/blank-canvas.md) |
+| Explore pre-built patterns    | [Templates](templates.md)                        |
+| Work faster with hotkeys      | [Keyboard Shortcuts](keyboard-shortcuts.md)      |

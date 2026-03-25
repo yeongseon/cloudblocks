@@ -30,15 +30,15 @@ CloudBlocks generates infrastructure-as-code files as an Experimental feature. Y
 
 CloudBlocks supports Azure, AWS, and GCP. Azure currently offers the most comprehensive resource coverage.
 
-### What are the 7 resource categories?
+### What are the 8 resource categories?
 
-The seven resource categories are: Compute, Data, Edge, Security, Messaging, Network, and Operations.
+The eight resource categories are: Network, Delivery, Compute, Data, Messaging, Security, Identity, and Operations.
 
 ### Why can't I initiate a connection from a Database?
 
-CloudBlocks uses an initiator model to reflect real-world connectivity patterns. Only certain categories can initiate connections: Compute, Edge, and Messaging.
+CloudBlocks uses an initiator model to reflect real-world connectivity patterns. Only certain categories can initiate connections: Compute, Delivery, and Messaging.
 
-The following categories are receiver-only: Data, Security, Operations, and Network. For example, an application (Compute) connects to a database (Data), but a database does not initiate a connection back to an application.
+The following categories are receiver-only: Data, Security, Operations, Identity, and Network. For example, an application (Compute) connects to a database (Data), but a database does not initiate a connection back to an application.
 
 ### Where do I find resource details?
 
@@ -92,7 +92,7 @@ Blocks must be placed inside a Network or Subnet block. Make sure you have place
 
 ### Why won't my connection work?
 
-Check that your source category can initiate connections (Compute, Edge, or Messaging). If you are trying to connect from a Data, Security, Operations, or Network block, the builder will block it because those categories are receiver-only.
+Check that your source category can initiate connections (Compute, Delivery, or Messaging). If you are trying to connect from a Data, Security, Operations, Identity, or Network block, the builder will block it because those categories are receiver-only.
 
 ### Where is Learning Mode?
 

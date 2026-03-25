@@ -1,85 +1,72 @@
 # Quick Start
 
+> **Audience**: New users | **Status**: V1 Core | **Verified against**: v0.26.0
+
 Build your first cloud architecture in under 5 minutes. No cloud account required. Everything runs in your browser.
 
 ---
 
 ## Step 1 — Launch CloudBlocks
 
-You can use CloudBlocks directly in your browser or run it locally for development.
+You can use CloudBlocks directly in your browser or run it locally.
 
 - **Option A: Live Demo** — Visit [https://yeongseon.github.io/cloudblocks/](https://yeongseon.github.io/cloudblocks/) to start immediately.
-- **Option B: Run Locally** — Use these commands to launch a local development server:
+- **Option B: Run Locally**:
 
 ```bash
 git clone https://github.com/yeongseon/cloudblocks.git
 cd cloudblocks
 pnpm install
-cd apps/web && pnpm dev
+pnpm dev
 ```
 
 Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-When CloudBlocks opens, you'll see a landing page. Choose a persona (e.g., Developer) to enter the builder.
+When CloudBlocks opens, you will see a landing page. Choose a persona (e.g., Developer) to enter the builder.
 
 ---
 
 ## Step 2 — Start from a Template
 
-When the builder opens with an empty canvas, you'll see the Empty Canvas CTA with three options:
+On the empty canvas, you will see three options:
 
 | Option                 | What it does                                              |
 | :--------------------- | :-------------------------------------------------------- |
 | **Use Template**       | Opens the Template Gallery with 6 pre-built architectures |
-| **Start from Scratch** | Creates a VNet (Network) block on the canvas              |
+| **Start from Scratch** | Creates a Network (VNet) block on the canvas              |
 | **Learn How**          | Opens guided learning scenarios                           |
 
-Click **Use Template** and select **Three-Tier Web Application**. This loads a complete architecture with an Application Gateway, VM, SQL Database, and Blob Storage. All components are pre-wired with connections.
+Click **Use Template** and select **Three-Tier Web Application**. This loads a complete architecture with an Application Gateway, VM, SQL Database, and Blob Storage — all pre-wired with connections.
 
 ---
 
 ## Step 3 — Explore the Interface
 
-The builder uses a 4-panel layout designed for professional architecture modeling:
+The builder uses a 4-panel layout:
 
-- **Menu Bar** (top) — Access File, Edit, Build, and View menus. Use the Workspaces button to manage projects, switch between Provider tabs (Azure, AWS, GCP), and access the GitHub section.
-- **Sidebar Palette** (left) — Contains the resource palette grouped by category (foundation, compute, data, edge, security, messaging, operations). Click or drag items to create resources.
-- **Canvas** (center) — The main isometric drawing area where you build and view your architecture.
-- **Inspector Panel** (right) — Manage your selected blocks using three tabs:
-  - **Properties**: View block details and perform actions.
-  - **Code**: See a live preview of the generated IaC.
-- **Connections**: Review related connections for the selected block.
-- **Bottom Dock** (bottom) — Monitor system state through four tabs:
-  - **Output**: View the activity log.
-  - **Validation**: Check rule results for your architecture.
-  - **Logs**: Read system messages.
+- **Menu Bar** (top) — Access File, Edit, Build, and View menus. Switch between Provider tabs (Azure, AWS, GCP). Manage workspaces.
+- **Sidebar Palette** (left) — Resource palette grouped into 8 categories: Network, Delivery, Compute, Data, Messaging, Security, Identity, and Operations. Click or drag items to create resources.
+- **Canvas** (center) — The main isometric drawing area where you build your architecture.
+- **Inspector Panel** (right) — View and edit details for the selected block:
+  - **Properties**: Block details and actions.
+  - **Code**: Live preview of generated infrastructure code _(Experimental)_.
+  - **Connections**: Related connections for the selected block.
+- **Bottom Dock** (bottom) — Monitor system state:
+  - **Output**: Activity log.
+  - **Validation**: Rule check results.
+  - **Logs**: System messages.
   - **Diff**: Compare architecture versions.
 
 ### Common Interactions
 
 - **Drag** a block to reposition it on the canvas.
-- **Click** a block to see its details in the Inspector Panel on the right.
-- **Scroll** with your mouse or trackpad to zoom in and out.
-- Press **Ctrl+Z** (Windows/Linux) or **Cmd+Z** (macOS) to undo your last action.
+- **Click** a block to see its details in the Inspector Panel.
+- **Scroll** to zoom in and out.
+- Press **Ctrl+Z** (Windows/Linux) or **Cmd+Z** (macOS) to undo.
 
 ---
 
-## Step 4 — Generate Infrastructure Code
-
-Turn your visual design into production-ready infrastructure code:
-
-1. Click the **Code** tab in the Inspector Panel on the right side.
-2. Alternatively, go to **Build → Generate Code** in the top menu bar.
-3. The Code tab displays your architecture as Terraform code by default.
-4. Use the format selector to switch between **Terraform**, **Bicep**, or **Pulumi**.
-5. Click **Copy** to copy the generated code to your clipboard.
-
-!!! info "Multi-Cloud Output"
-CloudBlocks generates valid IaC for multiple providers and tools. You can design once and export to the format that fits your team's workflow.
-
----
-
-## Step 5 — Save Your Work
+## Step 4 — Save Your Work
 
 Your progress is automatically saved to your browser's local storage.
 
@@ -91,10 +78,10 @@ Your progress is automatically saved to your browser's local storage.
 
 ## What's Next?
 
-| Goal                             | Guide                                         |
-| :------------------------------- | :-------------------------------------------- |
-| Learn the core building blocks   | [Core Concepts](core-concepts.md)             |
-| Create a custom design           | [Create Architecture](create-architecture.md) |
-| Master the code generator        | [Generate Code](generate-code.md)             |
-| Browse all architecture patterns | [Templates](templates.md)                     |
-| Work faster with keys            | [Keyboard Shortcuts](keyboard-shortcuts.md)   |
+| Goal                                | Guide                                       |
+| :---------------------------------- | :------------------------------------------ |
+| Learn the core building blocks      | [Core Concepts](core-concepts.md)           |
+| Build from a template step by step  | [First Architecture](first-architecture.md) |
+| Learn the editor interface          | [Editor Basics](editor-basics.md)           |
+| Browse all architecture patterns    | [Templates](templates.md)                   |
+| Work faster with keyboard shortcuts | [Keyboard Shortcuts](keyboard-shortcuts.md) |

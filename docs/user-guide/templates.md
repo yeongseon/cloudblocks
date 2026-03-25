@@ -80,4 +80,4 @@ Templates are fully editable. After loading one, you can modify it just like a w
 | A backend with structured and unstructured data | Data Storage Backend       |
 | A serverless API without server management      | Serverless HTTP API        |
 | Asynchronous, event-driven processing           | Event-Driven Pipeline      |
-| A complete production-ready serverless stack    | Full-Stack Serverless      |
+| A complete serverless stack                     | Full-Stack Serverless      |

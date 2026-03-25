@@ -1,142 +1,29 @@
 # Create an Architecture
 
-This guide walks you through designing a cloud architecture on the CloudBlocks canvas. Follow these steps to build a valid, deployable architecture from scratch.
+> **Audience**: All users | **Status**: V1 Core | **Verified against**: v0.26.0
+
+There are two ways to create an architecture in CloudBlocks:
+
+## Start from a Template (Recommended)
+
+Load a pre-built architecture pattern and customize it to your needs. This is the fastest way to get started.
+
+[:octicons-arrow-right-24: First Architecture from a Template](first-architecture.md)
+
+## Start from a Blank Canvas
+
+Build a custom architecture from scratch by placing blocks manually.
+
+[:octicons-arrow-right-24: Blank Canvas Mode](../advanced/blank-canvas.md)
 
 ---
 
-## Step 1: Create a Network
+## Quick Comparison
 
-Every architecture starts with a network block to hold your resources.
+| Approach         | Best For                                 | Time to First Architecture |
+| ---------------- | ---------------------------------------- | -------------------------- |
+| **Template**     | New users, standard patterns, fast start | ~2 minutes                 |
+| **Blank Canvas** | Custom patterns, experienced users       | ~10 minutes                |
 
-1.  On the empty canvas, click **Start from Scratch**. This creates a Network (VNet) block.
-2.  Alternatively, open the **Sidebar Palette** on the left side of the screen.
-3.  Find the **Foundation** group and click or drag **Network (VNet)** onto the canvas.
-
-The network block represents your primary logical boundary, such as a Virtual Private Cloud or Virtual Network.
-
----
-
-## Step 2: Add Subnets
-
-Subnets allow you to partition your network into smaller, isolated segments.
-
-1.  Once a network exists, the **Subnet** option becomes enabled in the Sidebar Palette.
-2.  In the Sidebar Palette, find **Subnet** under the Foundation group.
-3.  Click it or drag it inside your Network on the canvas.
-4.  Add a second subnet to separate different tiers. A common pattern uses one subnet for internet-facing resources and another for backend services.
-
-The Sidebar Palette shows disabled resources with a tooltip. If you cannot select a subnet, the tooltip will explain that you must create a network first.
-
----
-
-## Step 3: Place Resources
-
-Add resources from the **Sidebar Palette** on the left side of the screen. The palette organizes resources into functional groups.
-
-### Resource Groups
-
-| Group      | Resources                                                                       |
-| ---------- | ------------------------------------------------------------------------------- |
-| Foundation | Network (VNet), Subnet                                                          |
-| Compute    | Functions, App Service, Container Instances, Virtual Machine, Kubernetes (AKS)  |
-| Data       | Blob Storage, SQL Database, Cosmos DB                                           |
-| Edge       | DNS Zone, CDN Profile, Front Door, Application Gateway, Load Balancer, Firewall |
-| Security   | Key Vault, Bastion, Network Security Group                                      |
-| Messaging  | Queue, Event Hub                                                                |
-| Network    | NAT Gateway, Public IP, Route Table, Private Endpoint                           |
-| Operations | Monitoring                                                                      |
-
-### How to Add Resources
-
-- **Click**: Select a resource in the Sidebar Palette to place it automatically on the best available block.
-- **Drag**: Move a resource from the Sidebar Palette onto the canvas and drop it in your preferred location.
-
-Some resources require a network to exist before you can place them. These resources appear disabled in the palette until you add a network.
-
----
-
-## Step 4: Connect Resources
-
-CloudBlocks uses a port-based connection model to define how resources communicate.
-
-### Port Types
-
-Each resource has input and output ports (endpoints). Ports use one of three semantic types:
-
-- **http**: For web requests and API calls.
-- **event**: For asynchronous messaging and triggers.
-- **data**: For database access and storage operations.
-
-### Create a Connection
-
-1.  Click an **output port** on the source resource.
-2.  Click an **input port** on the target resource.
-
-### Connection Rules
-
-Connections follow real-world traffic patterns:
-
-- **Internet to Edge**: http, data
-- **Edge to Compute**: http, data
-- **Compute to Data**: data only
-- **Compute to Messaging**: event, data
-- **Messaging to Compute**: event, data (bidirectional)
-
-Resources in the Data, Security, Operations, and Network categories are receiver-only. They cannot initiate connections to other resources.
-
----
-
-## Step 5: Validate
-
-CloudBlocks validates your design in real-time. You can also run a manual check to ensure your architecture is ready for deployment.
-
-1.  Open the menu and select **Build > Validate Architecture**.
-2.  View the results in the **Validation** tab within the **Bottom Dock**.
-3.  Fix any placement or connection errors shown in the list.
-
----
-
-## Step 6: Generate Code
-
-When your architecture is complete, export it as infrastructure code.
-
-1.  Click the **Code** tab in the **Inspector Panel** on the right side of the screen.
-2.  Alternatively, use the menu: **Build > Generate Code**.
-3.  Choose your preferred format: **Terraform**, **Bicep**, or **Pulumi**.
-4.  Click **Copy** to save the code to your clipboard.
-
----
-
-## Tips for Success
-
-- **Use Templates**: Start with a pre-built template to save time and follow best practices.
-- **Tiered Pattern**: Arrange your resources in a logical flow from Internet to Edge, then Compute, and finally Data.
-- **Rename Blocks**: Click any block name in the **Inspector Panel** to give it a meaningful name.
-- **Undo Changes**: Use **Ctrl+Z** (Windows/Linux) or **Cmd+Z** (macOS) to quickly revert mistakes.
-
----
-
-## Example: Three-Tier Web Application
-
-A standard three-tier architecture separates the presentation, logic, and data layers into different subnets.
-
-```text
-Network (VNet)
-├── Subnet 1
-│   ├── Application Gateway (edge)
-│   └── Virtual Machine (compute)
-└── Subnet 2
-    ├── SQL Database (data)
-    └── Blob Storage (data)
-```
-
----
-
-## What's Next?
-
-| Goal                             | Guide                                       |
-| :------------------------------- | :------------------------------------------ |
-| Master the code generator        | [Generate Code](generate-code.md)           |
-| Browse all architecture patterns | [Templates](templates.md)                   |
-| Learn all keyboard shortcuts     | [Keyboard Shortcuts](keyboard-shortcuts.md) |
-| Understand the building blocks   | [Core Concepts](core-concepts.md)           |
+!!! tip "New to CloudBlocks?"
+Start with a template. You can always modify it or start over with a blank canvas later.
