@@ -19,6 +19,7 @@ This directory contains Architecture Decision Records (ADRs) for CloudBlocks. AD
 | [0011](0011-dual-theme-system.md)                       | Dual Theme System — Professional and Lego | Accepted           | 2026-03 |
 | [0012](0012-modular-surface-visual-language.md)         | Modular Surface Visual Language           | Superseded by 0013 | 2026-03 |
 | [0013](0013-block-unification.md)                       | Block Unification — Unified Block Model   | Accepted           | 2026-03 |
+| [0014](0014-promote-rollback-static-data.md)            | Promote/Rollback Static Data Placeholders | Accepted           | 2026-03 |
 
 ## ADR Template
 

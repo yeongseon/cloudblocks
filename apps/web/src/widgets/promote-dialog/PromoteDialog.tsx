@@ -24,7 +24,7 @@ export function PromoteDialog() {
 
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  // TODO: replace with live environment data
+  // TODO(backend): Replace with live environment data from staging deployment API
   const [currentStaging] = useState(() => ({
     imageTag: 'v1.4.3-sha-abc1234',
     commitSha: 'abc1234',
