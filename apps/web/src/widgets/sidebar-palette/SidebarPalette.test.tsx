@@ -64,6 +64,7 @@ const publicSubnet: ContainerBlock = {
 
 describe('SidebarPalette', () => {
   const addNodeMock = vi.fn();
+  const addExternalActorMock = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -76,6 +77,7 @@ describe('SidebarPalette', () => {
 
     useArchitectureStore.setState({
       addNode: addNodeMock,
+      addExternalActor: addExternalActorMock,
       workspace: {
         id: 'ws-1',
         name: 'Test Workspace',
@@ -88,6 +90,10 @@ describe('SidebarPalette', () => {
 
   it('renders category groups', () => {
     render(<SidebarPalette />);
+
+    expect(screen.getByText('External Actors')).toBeInTheDocument();
+    expect(screen.getByTitle('Add Internet')).toBeInTheDocument();
+    expect(screen.getByTitle('Add Browser')).toBeInTheDocument();
 
     // Groups with starter-tier resources appear by default
     expect(screen.getByText('Network')).toBeInTheDocument();
@@ -208,6 +214,17 @@ describe('SidebarPalette', () => {
       provider: 'azure',
       subtype: 'vm',
     });
+  });
+
+  it('adds external actor from palette actions', async () => {
+    const user = userEvent.setup();
+    render(<SidebarPalette />);
+
+    await user.click(screen.getByTitle('Add Internet'));
+    await user.click(screen.getByTitle('Add Browser'));
+
+    expect(addExternalActorMock).toHaveBeenNthCalledWith(1, 'internet');
+    expect(addExternalActorMock).toHaveBeenNthCalledWith(2, 'browser');
   });
 
   describe('starter/advanced tier toggle', () => {

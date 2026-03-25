@@ -33,6 +33,15 @@ const CATEGORY_COLOR_VARS: Record<CreationGroupId, string> = {
   operations: 'var(--cat-operations)',
 };
 
+const EXTERNAL_ACTOR_OPTIONS: ReadonlyArray<{
+  type: 'internet' | 'browser';
+  name: string;
+  emoji: string;
+}> = [
+  { type: 'internet', name: 'Internet', emoji: '🌐' },
+  { type: 'browser', name: 'Browser', emoji: '💻' },
+];
+
 interface HighlightMatchProps {
   text: string;
   query: string;
@@ -185,6 +194,7 @@ function PaletteResourceItem({
 export function SidebarPalette() {
   const techTree = useTechTree();
   const addNode = useArchitectureStore((s) => s.addNode);
+  const addExternalActor = useArchitectureStore((s) => s.addExternalActor);
   const activeProvider = useUIStore((s) => s.activeProvider);
   const startPlacing = useUIStore((s) => s.startPlacing);
   const cancelInteraction = useUIStore((s) => s.cancelInteraction);
@@ -396,6 +406,37 @@ export function SidebarPalette() {
       </label>
 
       <div className="sidebar-palette-content">
+        <section className="sidebar-palette-actor-section" aria-label="External actors">
+          <div className="sidebar-palette-actor-title">
+            <span aria-hidden="true">🔌</span>
+            <span>External Actors</span>
+          </div>
+          <div className="sidebar-palette-actor-list">
+            {EXTERNAL_ACTOR_OPTIONS.map((actor) => (
+              <button
+                key={actor.type}
+                type="button"
+                className="sidebar-palette-actor-btn"
+                onClick={() => {
+                  addExternalActor(actor.type);
+                  playSound('block-snap');
+                }}
+                title={`Add ${actor.name}`}
+              >
+                <img
+                  className="sidebar-palette-actor-img"
+                  src={`/actor-sprites/${actor.type}.svg`}
+                  alt=""
+                  width={18}
+                  height={18}
+                />
+                <span className="sidebar-palette-actor-name">{actor.name}</span>
+                <span className="sidebar-palette-actor-add">{actor.emoji} Add</span>
+              </button>
+            ))}
+          </div>
+        </section>
+
         {groupedResources.map(({ groupId, resources }) => (
           <PaletteCategoryGroup
             key={groupId}

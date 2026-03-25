@@ -281,6 +281,112 @@ describe('domainSlice – targeted branch coverage', () => {
     });
   });
 
+  describe('external actor add/remove actions', () => {
+    it('adds an internet actor with generated id and default position', () => {
+      seedState({ externalActors: [] });
+
+      getState().addExternalActor('internet');
+
+      const actors = getArch().externalActors ?? [];
+      expect(actors).toHaveLength(1);
+      expect(actors[0]).toEqual({
+        id: 'ext-internet-00000001',
+        name: 'Internet',
+        type: 'internet',
+        position: { x: -3, y: 0, z: -3 },
+      });
+    });
+
+    it('adds a browser actor with custom position', () => {
+      seedState({ externalActors: [] });
+
+      getState().addExternalActor('browser', { x: 1, y: 0, z: 1 });
+
+      const actors = getArch().externalActors ?? [];
+      expect(actors).toHaveLength(1);
+      expect(actors[0]).toEqual({
+        id: 'ext-browser-00000001',
+        name: 'Browser',
+        type: 'browser',
+        position: { x: 1, y: 0, z: 1 },
+      });
+    });
+
+    it('removes an external actor by id', () => {
+      seedState({
+        externalActors: [
+          {
+            id: 'ext-browser-1',
+            name: 'Browser',
+            type: 'browser',
+            position: { x: -6, y: 0, z: 5 },
+          },
+          {
+            id: 'ext-internet-1',
+            name: 'Internet',
+            type: 'internet',
+            position: { x: -3, y: 0, z: 5 },
+          },
+        ],
+      });
+
+      getState().removeExternalActor('ext-browser-1');
+
+      expect(getArch().externalActors).toEqual([
+        {
+          id: 'ext-internet-1',
+          name: 'Internet',
+          type: 'internet',
+          position: { x: -3, y: 0, z: 5 },
+        },
+      ]);
+    });
+
+    it('removes connections that reference the removed actor', () => {
+      seedState({
+        externalActors: [
+          {
+            id: 'ext-browser-1',
+            name: 'Browser',
+            type: 'browser',
+            position: { x: -6, y: 0, z: 5 },
+          },
+          {
+            id: 'ext-internet-1',
+            name: 'Internet',
+            type: 'internet',
+            position: { x: -3, y: 0, z: 5 },
+          },
+        ],
+        connections: [
+          makeLegacyConnection('conn-remove', 'ext-browser-1', 'gw1', 'http'),
+          makeLegacyConnection('conn-keep', 'ext-internet-1', 'gw1', 'dataflow'),
+        ],
+      });
+
+      getState().removeExternalActor('ext-browser-1');
+
+      expect(getArch().connections).toHaveLength(1);
+      expect(getArch().connections[0].id).toBe('conn-keep');
+    });
+
+    it('supports undo/redo after addExternalActor', () => {
+      seedState({ externalActors: [] });
+
+      expect(getState().canUndo).toBe(false);
+      getState().addExternalActor('internet');
+      expect(getState().canUndo).toBe(true);
+      expect(getArch().externalActors).toHaveLength(1);
+
+      getState().undo();
+      expect(getArch().externalActors).toHaveLength(0);
+
+      getState().redo();
+      expect(getArch().externalActors).toHaveLength(1);
+      expect(getArch().externalActors?.[0]?.id).toBe('ext-internet-00000001');
+    });
+  });
+
   // ── updateConnectionType (lines 718-724) ──
 
   describe('updateConnectionType', () => {
@@ -728,6 +834,53 @@ describe('domainSlice – targeted branch coverage', () => {
       expect(getState().addConnection('compute-1', 'ext-internet')).toBe(false);
 
       expect(getState().addConnection('ext-internet', 'delivery-1')).toBe(true);
+    });
+
+    it('uses parseEndpointId fallback for capacity counting when endpoints are missing', () => {
+      const subnet = makeContainerNode('container-1', {
+        layer: 'subnet',
+        resourceType: 'subnet',
+        frame: { width: 8, height: 0.3, depth: 10 },
+      });
+      const delivery = makeLeafNode('delivery-1', 'container-1', 'delivery', {
+        resourceType: 'load_balancer',
+      });
+      const compute = makeLeafNode('compute-1', 'container-1', 'compute', {
+        resourceType: 'web_compute',
+      });
+
+      const deliveryDataOutput = generateEndpointsForBlock(delivery.id).find(
+        (endpoint) => endpoint.id === endpointId(delivery.id, 'output', 'data'),
+      );
+      const computeDataInput = generateEndpointsForBlock(compute.id).find(
+        (endpoint) => endpoint.id === endpointId(compute.id, 'input', 'data'),
+      );
+
+      expect(deliveryDataOutput).toBeDefined();
+      expect(computeDataInput).toBeDefined();
+
+      seedState({
+        nodes: [subnet, delivery, compute],
+        endpoints: [deliveryDataOutput!, computeDataInput!],
+        connections: [
+          {
+            id: 'conn-http',
+            from: endpointId(delivery.id, 'output', 'http'),
+            to: endpointId(compute.id, 'input', 'http'),
+            metadata: {
+              type: 'http',
+              sourceId: delivery.id,
+              targetId: compute.id,
+            },
+          },
+        ],
+      });
+
+      expect(getState().addConnection('delivery-1', 'compute-1')).toBe(true);
+
+      const createdConnection = getArch().connections.at(-1);
+      expect(createdConnection?.metadata?.sourcePort).toBe(1);
+      expect(createdConnection?.metadata?.targetPort).toBe(1);
     });
 
     it('returns false when endpoint-backed source/target cannot be resolved', () => {
