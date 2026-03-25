@@ -23,7 +23,7 @@ CloudBlocks evolves through four stages — from visual design tool to multi-clo
 
 - **Preset Templates** — Start from 6 built-in architecture patterns (three-tier, serverless, data storage, event pipeline, full stack)
 - **Editable Diagrams** — Customize layouts with drag-and-drop block placement and grid snapping
-- **Curated Palette** — 7 resource categories: Network, Security, Edge, Compute, Data, Messaging, Operations
+- **Curated Palette** — 8 resource categories: Network, Delivery, Compute, Data, Messaging, Security, Identity, Operations
 - **Block Modeling** — Container blocks (boundaries) + Resource blocks (resources) + typed Connections
 - **Port System** — Port-based connections with category-aware port policies
 - **Visual Theme** — Assembly-board visual language with provider-specific colors (Azure, AWS, GCP)

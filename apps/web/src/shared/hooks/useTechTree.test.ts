@@ -427,6 +427,21 @@ describe('useTechTree constants', () => {
       [null, null, null],
     ]);
   });
+
+  it('assigns a valid tier to every resource definition', () => {
+    const validTiers = ['starter', 'advanced'];
+    for (const type of ALL_RESOURCES) {
+      const def = RESOURCE_DEFINITIONS[type];
+      expect(validTiers).toContain(def.tier);
+    }
+  });
+
+  it('has exactly 9 starter and 17 advanced resources', () => {
+    const starter = ALL_RESOURCES.filter((t) => RESOURCE_DEFINITIONS[t].tier === 'starter');
+    const advanced = ALL_RESOURCES.filter((t) => RESOURCE_DEFINITIONS[t].tier === 'advanced');
+    expect(starter).toHaveLength(9);
+    expect(advanced).toHaveLength(17);
+  });
 });
 
 describe('useTechTree hook', () => {

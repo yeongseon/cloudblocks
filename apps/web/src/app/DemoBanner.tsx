@@ -47,8 +47,8 @@ export function DemoBanner() {
       }}
     >
       <span>
-        ℹ️ Demo Mode — Visual builder, code generation, and templates work instantly. AI and GitHub
-        features require a backend.
+        ℹ️ Frontend-Only Mode — Visual builder, code generation, and templates work instantly in the
+        browser. AI and GitHub features require the backend.
       </span>
       <button
         onClick={handleDismiss}

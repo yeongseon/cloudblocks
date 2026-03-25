@@ -191,6 +191,7 @@ export function SidebarPalette() {
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<CreationGroupId>>(() => new Set());
 
   const playSound = useCallback(
@@ -210,10 +211,16 @@ export function SidebarPalette() {
   const normalizedQuery = searchQuery.trim().toLowerCase();
 
   const groupedResources = useMemo(() => {
+    const isSearching = normalizedQuery.length > 0;
     return CREATION_GROUP_ORDER.map((groupId) => {
       const meta = getCreationGroupMeta(groupId);
       const resources = ALL_RESOURCES.filter((type) => getCreationGroupId(type) === groupId)
         .filter((type) => {
+          // When searching, ignore tier filter so users can discover advanced resources
+          if (!isSearching && !showAdvanced) {
+            const def = RESOURCE_DEFINITIONS[type];
+            if (def.tier === 'advanced') return false;
+          }
           if (!normalizedQuery) return true;
           const name = getResourceLabel(type, activeProvider).toLowerCase();
           const shortName = getResourceShortLabel(type, activeProvider).toLowerCase();
@@ -230,7 +237,7 @@ export function SidebarPalette() {
 
       return { groupId, resources };
     }).filter((group) => group.resources.length > 0);
-  }, [activeProvider, normalizedQuery]);
+  }, [activeProvider, normalizedQuery, showAdvanced]);
 
   const totalResourceCount = ALL_RESOURCES.length;
 
@@ -261,7 +268,12 @@ export function SidebarPalette() {
             const def = RESOURCE_DEFINITIONS[type];
             if (!def?.blockCategory) return;
 
-            startPlacing(def.blockCategory, getResourceLabel(type, activeProvider));
+            startPlacing(
+              def.blockCategory,
+              getResourceLabel(type, activeProvider),
+              def.schemaResourceType ?? def.blockCategory,
+              def.azureSubtype ?? def.schemaResourceType,
+            );
           },
           end(event) {
             const buttonEl = event.target as HTMLButtonElement;
@@ -371,6 +383,15 @@ export function SidebarPalette() {
         visibleCount={visibleResourceCount}
         totalCount={totalResourceCount}
       />
+
+      <label className="sidebar-palette-advanced-toggle">
+        <input
+          type="checkbox"
+          checked={showAdvanced}
+          onChange={(e) => setShowAdvanced(e.target.checked)}
+        />
+        <span>Show Advanced</span>
+      </label>
 
       <div className="sidebar-palette-content">
         {groupedResources.map(({ groupId, resources }) => (

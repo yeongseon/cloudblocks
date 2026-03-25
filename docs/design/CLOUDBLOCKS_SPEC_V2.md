@@ -191,35 +191,33 @@ CloudBlocks defines a strict 6-layer hierarchy:
 
 ### 5.1 Standard Categories
 
-| Category        | Description                  | Base Size (CU) |
-| --------------- | ---------------------------- | -------------- |
-| `compute`       | VMs, containers, instances   | 2 × 2 × 2      |
-| `database`      | Managed databases            | 3 × 3 × 2      |
-| `storage`       | Object/file/block storage    | 2 × 2 × 2      |
-| `gateway`       | Load balancers, API gateways | 3 × 1 × 1      |
-| `function`      | Serverless functions         | 1 × 1 × 1      |
-| `queue`         | Message queues               | 1 × 1 × 1      |
-| `event`         | Event routers, buses         | 1 × 1 × 1      |
-| `analytics`     | Data analytics, warehouses   | 3 × 3 × 2      |
-| `identity`      | IAM, directory services      | 2 × 2 × 1      |
-| `observability` | Monitoring, logging          | 2 × 2 × 1      |
+| Category     | Description                   | Base Size (CU) |
+| ------------ | ----------------------------- | -------------- |
+| `network`    | Virtual networks, subnets     | 2 × 2 × 1      |
+| `delivery`   | CDN, load balancers, gateways | 3 × 1 × 1      |
+| `compute`    | VMs, containers, instances    | 2 × 2 × 2      |
+| `data`       | Databases, storage            | 3 × 3 × 2      |
+| `messaging`  | Queues, event hubs            | 1 × 1 × 1      |
+| `security`   | Key vaults, firewalls         | 2 × 2 × 1      |
+| `identity`   | IAM, directory services       | 2 × 2 × 1      |
+| `operations` | Monitoring, logging           | 2 × 2 × 1      |
 
 Categories are **provider-neutral**.
 
 ### 5.2 Tier Mapping
 
-| Tier     | Size (W×D×H CU) | Categories              |
-| -------- | --------------- | ----------------------- |
-| `micro`  | 1 × 1 × 1       | function, queue, event  |
-| `small`  | 2 × 2 × 1       | identity, observability |
-| `medium` | 2 × 2 × 2       | compute, storage        |
-| `large`  | 3 × 3 × 2       | database, analytics     |
-| `wide`   | 3 × 1 × 1       | gateway                 |
+| Tier     | Size (W×D×H CU) | Categories                    |
+| -------- | --------------- | ----------------------------- |
+| `micro`  | 1 × 1 × 1       | messaging                     |
+| `small`  | 2 × 2 × 1       | identity, operations, network |
+| `medium` | 2 × 2 × 2       | compute                       |
+| `large`  | 3 × 3 × 2       | data                          |
+| `wide`   | 3 × 1 × 1       | delivery                      |
 
 ### 5.3 Size Rules
 
 1. Database must be larger than or equal to compute
-2. Gateway must be rectangular (width > depth)
+2. Delivery must be rectangular (width > depth)
 3. Edge/global resources must be wide (≥ 4 × 1)
 4. Size must NOT change based on scaling/aggregation
 5. All dimensions are integer CU

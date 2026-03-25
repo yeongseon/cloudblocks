@@ -15,6 +15,8 @@ describe('useUIStore', () => {
       connectionSource: null,
       draggedBlockCategory: null,
       draggedResourceName: null,
+      draggedResourceType: null,
+      draggedSubtype: null,
       showBlockPalette: true,
       showResourceGuide: true,
       showValidation: false,
@@ -635,6 +637,62 @@ describe('useUIStore', () => {
       useUIStore.getState().cancelDrag();
       expect(useUIStore.getState().draggedBlockCategory).toBe(null);
       expect(useUIStore.getState().draggedResourceName).toBe(null);
+    });
+  });
+
+  describe('draggedResourceType and draggedSubtype (M27)', () => {
+    it('defaults draggedResourceType and draggedSubtype to null', () => {
+      const state = useUIStore.getState();
+      expect(state.draggedResourceType).toBe(null);
+      expect(state.draggedSubtype).toBe(null);
+    });
+
+    it('startPlacing stores draggedResourceType and draggedSubtype when provided', () => {
+      useUIStore.getState().startPlacing('compute', 'App Service', 'app_service', 'app-service');
+      const state = useUIStore.getState();
+      expect(state.interactionState).toBe('placing');
+      expect(state.draggedBlockCategory).toBe('compute');
+      expect(state.draggedResourceName).toBe('App Service');
+      expect(state.draggedResourceType).toBe('app_service');
+      expect(state.draggedSubtype).toBe('app-service');
+    });
+
+    it('startPlacing sets draggedResourceType/draggedSubtype to null when not provided', () => {
+      useUIStore.getState().startPlacing('compute', 'Virtual Machine');
+      const state = useUIStore.getState();
+      expect(state.draggedResourceType).toBe(null);
+      expect(state.draggedSubtype).toBe(null);
+    });
+
+    it('completeInteraction clears draggedResourceType and draggedSubtype', () => {
+      useUIStore.getState().startPlacing('data', 'SQL Database', 'sql_database', 'sql');
+      expect(useUIStore.getState().draggedResourceType).toBe('sql_database');
+      expect(useUIStore.getState().draggedSubtype).toBe('sql');
+
+      useUIStore.getState().completeInteraction();
+      expect(useUIStore.getState().draggedResourceType).toBe(null);
+      expect(useUIStore.getState().draggedSubtype).toBe(null);
+    });
+
+    it('cancelInteraction clears draggedResourceType and draggedSubtype', () => {
+      useUIStore.getState().startPlacing('security', 'Key Vault', 'key_vault', 'key-vault');
+      expect(useUIStore.getState().draggedResourceType).toBe('key_vault');
+
+      useUIStore.getState().cancelInteraction();
+      expect(useUIStore.getState().draggedResourceType).toBe(null);
+      expect(useUIStore.getState().draggedSubtype).toBe(null);
+    });
+
+    it('cancelDrag clears draggedResourceType and draggedSubtype', () => {
+      useUIStore.setState({
+        draggedBlockCategory: 'compute',
+        draggedResourceName: 'VM',
+        draggedResourceType: 'virtual_machine',
+        draggedSubtype: 'vm',
+      });
+      useUIStore.getState().cancelDrag();
+      expect(useUIStore.getState().draggedResourceType).toBe(null);
+      expect(useUIStore.getState().draggedSubtype).toBe(null);
     });
   });
 

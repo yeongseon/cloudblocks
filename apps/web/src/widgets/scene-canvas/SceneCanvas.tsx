@@ -30,6 +30,8 @@ export function SceneCanvas() {
   const interactionState = useUIStore((s) => s.interactionState);
   const draggedBlockCategory = useUIStore((s) => s.draggedBlockCategory);
   const draggedResourceName = useUIStore((s) => s.draggedResourceName);
+  const draggedResourceType = useUIStore((s) => s.draggedResourceType);
+  const draggedSubtype = useUIStore((s) => s.draggedSubtype);
   const activeProvider = useUIStore((s) => s.activeProvider);
   const completeInteraction = useUIStore((s) => s.completeInteraction);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
@@ -127,10 +129,11 @@ export function SceneCanvas() {
         if (container && canPlaceBlock(draggedBlockCategory, container)) {
           addNode({
             kind: 'resource',
-            resourceType: draggedBlockCategory,
+            resourceType: draggedResourceType ?? draggedBlockCategory,
             name: draggedResourceName,
             parentId: plateId,
             provider: activeProvider,
+            subtype: draggedSubtype ?? undefined,
           });
           playSound('block-snap');
         }
