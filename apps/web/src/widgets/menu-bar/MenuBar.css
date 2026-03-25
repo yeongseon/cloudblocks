@@ -526,3 +526,29 @@
   color: var(--text-muted);
   border-color: var(--border-default);
 }
+
+/* ── Mobile responsive ──────── */
+
+@media (max-width: 768px) {
+  .menu-bar {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .core-btn-label {
+    display: none;
+  }
+  .menu-bar-divider {
+    display: none;
+  }
+  .feature-badge {
+    display: none;
+  }
+  .provider-btn {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  .workspace-pill {
+    padding: 2px 8px;
+    font-size: 11px;
+  }
+}

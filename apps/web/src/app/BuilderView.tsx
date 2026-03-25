@@ -15,6 +15,9 @@ import { useUIStore } from '../entities/store/uiStore';
 import { usePromoteStore } from '../entities/store/promoteStore';
 import { audioService } from '../shared/utils/audioService';
 import { isApiConfigured } from '../shared/api/client';
+import { useIsMobile } from '../shared/hooks/useIsMobile';
+import { MobilePaletteSheet } from '../widgets/mobile-palette-sheet';
+import { Plus } from 'lucide-react';
 import './BuilderView.css';
 
 const WorkspaceManager = lazy(() =>
@@ -65,6 +68,7 @@ const PromoteHistory = lazy(() =>
 
 export function BuilderView() {
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+  const [mobileSheetOpen, setMobileSheetOpen] = useState(false);
   const loadFromStorage = useArchitectureStore((s) => s.loadFromStorage);
   const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
   const undo = useArchitectureStore((s) => s.undo);
@@ -84,11 +88,18 @@ export function BuilderView() {
   const persona = useUIStore((s) => s.persona);
   const sidebarOpen = useUIStore((s) => s.sidebar.isOpen);
   const workspaceId = useArchitectureStore((s) => s.workspace.id);
+  const isMobile = useIsMobile();
 
   const showPromoteDialog = usePromoteStore((s) => s.showPromoteDialog);
   const showRollbackDialog = usePromoteStore((s) => s.showRollbackDialog);
   const showPromoteHistory = usePromoteStore((s) => s.showPromoteHistory);
 
+  // Auto-collapse sidebar on mobile viewport
+  useEffect(() => {
+    if (isMobile) {
+      useUIStore.getState().setSidebarOpen(false);
+    }
+  }, [isMobile]);
   useEffect(() => {
     audioService.setMuted(isSoundMuted);
   }, [isSoundMuted]);
@@ -251,6 +262,23 @@ export function BuilderView() {
           </div>
           <EmptyCanvasCTA />
           <RightDrawer />
+          {isMobile && (
+            <button
+              type="button"
+              className="mobile-fab"
+              onClick={() => setMobileSheetOpen(true)}
+              aria-label="Add block"
+              title="Add block"
+            >
+              <Plus size={20} />
+            </button>
+          )}
+          {isMobile && (
+            <MobilePaletteSheet
+              isOpen={mobileSheetOpen}
+              onClose={() => setMobileSheetOpen(false)}
+            />
+          )}
         </main>
 
         <Suspense fallback={null}>
