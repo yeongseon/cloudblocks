@@ -5,6 +5,7 @@ import type { ArchitectureModel, ContainerBlock } from '@cloudblocks/schema';
 import { SidebarPalette } from './SidebarPalette';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
+import * as techTreeModule from '../../shared/hooks/useTechTree';
 
 const interactState = vi.hoisted(() => ({
   listenersByElement: new Map<
@@ -14,11 +15,17 @@ const interactState = vi.hoisted(() => ({
 }));
 
 const playSoundMock = vi.fn();
+const toastErrorMock = vi.hoisted(() => vi.fn());
 
 vi.mock('./SidebarPalette.css', () => ({}));
 vi.mock('../../shared/utils/audioService', () => ({
   audioService: {
     playSound: (...args: unknown[]) => playSoundMock(...args),
+  },
+}));
+vi.mock('react-hot-toast', () => ({
+  toast: {
+    error: (...args: unknown[]) => toastErrorMock(...args),
   },
 }));
 vi.mock('interactjs', () => {
@@ -194,6 +201,115 @@ describe('SidebarPalette additional coverage', () => {
 
     unmount();
     expect(cancelInteraction).toHaveBeenCalled();
+  });
+
+  it('reveals advanced resources during search even when Show Advanced is off', async () => {
+    const user = userEvent.setup();
+
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: { ...baseArchitecture, nodes: [networkPlate, subnetPlate] },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    render(<SidebarPalette />);
+
+    expect(screen.getByRole('checkbox')).not.toBeChecked();
+    await user.type(screen.getByPlaceholderText('Search resources'), 'vm');
+
+    expect(screen.getByTitle('Create Virtual Machine')).toBeInTheDocument();
+  });
+
+  it('shows toast error when a resource has no target network', async () => {
+    const user = userEvent.setup();
+
+    const useTechTreeSpy = vi.spyOn(techTreeModule, 'useTechTree').mockReturnValue({
+      hasVNet: false,
+      hasSubnet: false,
+      blockCount: 0,
+      plateCount: 0,
+      isEnabled: () => true,
+      getDisabledReason: () => null,
+      getCreationResources: () => [],
+      getTargetPlateId: () => null,
+    });
+
+    render(<SidebarPalette />);
+
+    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByTitle('Create Virtual Machine'));
+
+    expect(toastErrorMock).toHaveBeenCalledWith('Please create a Network first.');
+    useTechTreeSpy.mockRestore();
+  });
+
+  it('passes schemaResourceType and azureSubtype in drag startPlacing payload', () => {
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: { ...baseArchitecture, nodes: [networkPlate, subnetPlate] },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    render(<SidebarPalette />);
+
+    const appServiceButton = screen.getByTitle('Create Azure App Service');
+
+    interactState.listenersByElement.get(appServiceButton)?.move?.({ target: appServiceButton });
+
+    expect(startPlacing).toHaveBeenCalledWith(
+      'compute',
+      'Azure App Service',
+      'app_service',
+      'app-service',
+    );
+  });
+
+  it('returns early in drag move when resource type is missing', () => {
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: { ...baseArchitecture, nodes: [networkPlate, subnetPlate] },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    render(<SidebarPalette />);
+
+    const appServiceButton = screen.getByTitle('Create Azure App Service');
+    appServiceButton.removeAttribute('data-resource-type');
+    interactState.listenersByElement.get(appServiceButton)?.move?.({ target: appServiceButton });
+
+    expect(startPlacing).not.toHaveBeenCalled();
+  });
+
+  it('returns early in drag move when resource definition is unavailable', () => {
+    useArchitectureStore.setState({
+      workspace: {
+        id: 'ws-1',
+        name: 'Test Workspace',
+        architecture: { ...baseArchitecture, nodes: [networkPlate, subnetPlate] },
+        createdAt: '',
+        updatedAt: '',
+      },
+    });
+
+    render(<SidebarPalette />);
+
+    const appServiceButton = screen.getByTitle('Create Azure App Service');
+    appServiceButton.dataset.resourceType = 'non-existent-resource';
+    interactState.listenersByElement.get(appServiceButton)?.move?.({ target: appServiceButton });
+
+    expect(startPlacing).not.toHaveBeenCalled();
   });
 
   it('uses provider-specific labels and increments resource names', async () => {
