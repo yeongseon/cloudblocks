@@ -487,35 +487,49 @@ export const CONTAINER_BLOCK_ACTION_GRID: (ContainerBlockActionType | null)[][] 
 
 export const ALL_RESOURCES = Object.keys(RESOURCE_DEFINITIONS) as ResourceType[];
 
-export type CreationGroupId = 'foundations' | 'networking' | 'compute' | 'data' | 'security';
+export type CreationGroupId =
+  | 'network'
+  | 'delivery'
+  | 'compute'
+  | 'data'
+  | 'messaging'
+  | 'security'
+  | 'identity'
+  | 'operations';
 
 export const CREATION_GROUP_ORDER: CreationGroupId[] = [
-  'foundations',
-  'networking',
+  'network',
+  'delivery',
   'compute',
   'data',
+  'messaging',
   'security',
+  'identity',
+  'operations',
 ];
 
-/** Map schema ResourceCategory → palette display group */
+/** Map schema ResourceCategory → palette display group (1:1) */
 const CATEGORY_TO_GROUP: Record<ResourceCategory, CreationGroupId> = {
-  network: 'networking',
-  delivery: 'networking',
+  network: 'network',
+  delivery: 'delivery',
   compute: 'compute',
   data: 'data',
-  messaging: 'data',
+  messaging: 'messaging',
   security: 'security',
-  identity: 'security',
-  operations: 'security',
+  identity: 'identity',
+  operations: 'operations',
 };
 
 const CREATION_GROUP_META: Record<CreationGroupId, { icon: string; label: string; color: string }> =
   {
-    foundations: { icon: '🧭', label: 'Foundations', color: 'var(--cat-network)' },
-    networking: { icon: '🌐', label: 'Networking', color: 'var(--cat-network)' },
+    network: { icon: '🌐', label: 'Network', color: 'var(--cat-network)' },
+    delivery: { icon: '🚀', label: 'Delivery', color: 'var(--cat-delivery)' },
     compute: { icon: '🖥️', label: 'Compute', color: 'var(--cat-compute)' },
     data: { icon: '🗄️', label: 'Data', color: 'var(--cat-data)' },
+    messaging: { icon: '📨', label: 'Messaging', color: 'var(--cat-messaging)' },
     security: { icon: '🔒', label: 'Security', color: 'var(--cat-security)' },
+    identity: { icon: '🪪', label: 'Identity', color: 'var(--cat-identity)' },
+    operations: { icon: '🔧', label: 'Operations', color: 'var(--cat-operations)' },
   };
 
 export function getCreationGroupMeta(groupId: CreationGroupId): {
@@ -528,7 +542,7 @@ export function getCreationGroupMeta(groupId: CreationGroupId): {
 
 export function getCreationGroupId(type: ResourceType): CreationGroupId {
   const blockCategory = RESOURCE_DEFINITIONS[type].blockCategory;
-  if (!blockCategory) return 'foundations';
+  if (!blockCategory) return 'network';
   return CATEGORY_TO_GROUP[blockCategory];
 }
 

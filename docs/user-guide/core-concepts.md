@@ -28,7 +28,7 @@ Blocks represent individual cloud resources. CloudBlocks organizes resources int
 
 | Category       | What It Does                             | Example Azure Resources                                                 |
 | -------------- | ---------------------------------------- | ----------------------------------------------------------------------- |
-| **Network**    | Manages network infrastructure           | NAT Gateway, Public IP, Route Table, Private Endpoint                   |
+| **Network**    | Manages network infrastructure           | VNet, Subnet, NAT Gateway, Public IP, Route Table, Private Endpoint     |
 | **Delivery**   | Handles traffic entry and routing        | Application Gateway, Front Door, CDN, DNS Zone, Load Balancer, Firewall |
 | **Compute**    | Runs application code                    | VM, App Service, Functions, Container Instances, AKS                    |
 | **Data**       | Stores and manages data                  | SQL Database, Cosmos DB, Blob Storage, Cache Store                      |

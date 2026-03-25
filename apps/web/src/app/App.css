@@ -60,12 +60,12 @@
   transition: padding-right 0.3s ease;
 }
 
-@media (max-width: 899px) {
-  .canvas-container {
-    padding-right: 0;
-  }
+@media (max-width: 768px) {
+  .canvas-container,
+  .canvas-container.learn-mode-active,
   .canvas-container.right-panel-open,
   .canvas-container.right-panel-wide {
     padding-right: 0;
+    padding-bottom: 0;
   }
 }

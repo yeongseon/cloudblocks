@@ -20,13 +20,17 @@ import {
 } from '../../shared/hooks/useTechTree';
 import { getResourceIconUrl } from '../../shared/utils/iconResolver';
 import './SidebarPalette.css';
+import { useIsMobile } from '../../shared/hooks/useIsMobile';
 
 const CATEGORY_COLOR_VARS: Record<CreationGroupId, string> = {
-  foundations: 'var(--cat-network)',
-  networking: 'var(--cat-network)',
+  network: 'var(--cat-network)',
+  delivery: 'var(--cat-delivery)',
   compute: 'var(--cat-compute)',
   data: 'var(--cat-data)',
+  messaging: 'var(--cat-messaging)',
   security: 'var(--cat-security)',
+  identity: 'var(--cat-identity)',
+  operations: 'var(--cat-operations)',
 };
 
 interface HighlightMatchProps {
@@ -185,6 +189,7 @@ export function SidebarPalette() {
   const startPlacing = useUIStore((s) => s.startPlacing);
   const cancelInteraction = useUIStore((s) => s.cancelInteraction);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
+  const isMobile = useIsMobile();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -242,6 +247,7 @@ export function SidebarPalette() {
   }, [groupedResources]);
 
   useEffect(() => {
+    if (isMobile) return;
     if (!containerRef.current) return;
 
     const buttons = containerRef.current.querySelectorAll<HTMLButtonElement>(
@@ -300,7 +306,7 @@ export function SidebarPalette() {
         interactable.unset();
       });
     };
-  }, [activeProvider, cancelInteraction, startPlacing]);
+  }, [activeProvider, cancelInteraction, startPlacing, isMobile]);
 
   const handleCreate = useCallback(
     (type: ResourceType) => {
