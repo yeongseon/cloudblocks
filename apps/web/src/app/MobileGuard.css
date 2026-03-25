@@ -5,7 +5,7 @@
   top: 0;
   left: 0;
   right: 0;
-  z-index: 9999;
+  z-index: 10001;
   background-color: rgba(30, 30, 60, 0.95);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding: 12px 16px;

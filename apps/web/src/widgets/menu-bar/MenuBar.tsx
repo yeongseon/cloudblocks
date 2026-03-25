@@ -170,7 +170,7 @@ export function MenuBar() {
   const handleValidate = () => {
     const result = validate();
     if (!showValidation) toggleValidation();
-    toggleDrawer('validation');
+    else useUIStore.getState().openDrawer('validation');
     playSound(result.valid ? 'validation-success' : 'validation-error');
   };
 

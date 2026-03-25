@@ -128,9 +128,9 @@ describe('MenuBar additional coverage', () => {
     expect(useUIStore.getState().activeProvider).toBe('azure');
   });
 
-  it('toggles validation drawer via Validate core button', async () => {
+  it('opens validation drawer via Validate core button (idempotent)', async () => {
     const user = userEvent.setup();
-    // showValidation=true so handleValidate skips toggleValidation and only calls toggleDrawer
+    // showValidation=true so handleValidate uses openDrawer (not toggleDrawer)
     useUIStore.setState({ showValidation: true });
     render(<MenuBar />);
 
@@ -138,8 +138,10 @@ describe('MenuBar additional coverage', () => {
     expect(useUIStore.getState().drawer.activePanel).toBe('validation');
     expect(useUIStore.getState().drawer.isOpen).toBe(true);
 
+    // Clicking again keeps the drawer open (validate always shows results)
     await user.click(screen.getByTitle('Validate Architecture'));
-    expect(useUIStore.getState().drawer.isOpen).toBe(false);
+    expect(useUIStore.getState().drawer.isOpen).toBe(true);
+    expect(useUIStore.getState().drawer.activePanel).toBe('validation');
   });
 
   it('opens scenario gallery from learning panel action when no active scenario exists', async () => {

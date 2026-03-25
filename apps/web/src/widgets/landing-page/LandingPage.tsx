@@ -33,7 +33,7 @@ export function LandingPage() {
             Azure-first visual architecture builder — no backend required.
           </p>
           <div className="landing-hero-badges">
-            <span className="landing-hero-badge">6 templates</span>
+            <span className="landing-hero-badge">{templates.length} templates</span>
             <span className="landing-hero-badge">Real-time validation</span>
             <span className="landing-hero-badge">No backend required</span>
           </div>
