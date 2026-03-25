@@ -151,6 +151,32 @@
   padding: 48px 24px;
 }
 
+.landing-footer-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.landing-footer-link {
+  color: #64748b;
+  text-decoration: none;
+  font-size: 13px;
+  transition: color 0.15s ease;
+}
+
+.landing-footer-link:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.landing-footer-sep {
+  color: #94a3b8;
+  font-size: 13px;
+  user-select: none;
+}
+
 .landing-footer-text {
   margin: 0;
   color: #94a3b8;
