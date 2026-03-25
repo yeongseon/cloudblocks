@@ -39,7 +39,7 @@ The palette organizes cloud resources into 8 categories:
 
 | Category       | What It Contains                                                                |
 | :------------- | :------------------------------------------------------------------------------ |
-| **Network**    | NAT Gateway, Public IP, Route Table, Private Endpoint                           |
+| **Network**    | VNet, Subnet, NAT Gateway, Public IP, Route Table, Private Endpoint             |
 | **Delivery**   | DNS Zone, CDN Profile, Front Door, Application Gateway, Load Balancer, Firewall |
 | **Compute**    | Functions, App Service, Container Instances, VM, AKS                            |
 | **Data**       | Blob Storage, SQL Database, Cosmos DB                                           |

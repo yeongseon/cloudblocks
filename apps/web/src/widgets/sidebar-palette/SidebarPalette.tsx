@@ -23,11 +23,14 @@ import './SidebarPalette.css';
 import { useIsMobile } from '../../shared/hooks/useIsMobile';
 
 const CATEGORY_COLOR_VARS: Record<CreationGroupId, string> = {
-  foundations: 'var(--cat-network)',
-  networking: 'var(--cat-network)',
+  network: 'var(--cat-network)',
+  delivery: 'var(--cat-delivery)',
   compute: 'var(--cat-compute)',
   data: 'var(--cat-data)',
+  messaging: 'var(--cat-messaging)',
   security: 'var(--cat-security)',
+  identity: 'var(--cat-identity)',
+  operations: 'var(--cat-operations)',
 };
 
 interface HighlightMatchProps {

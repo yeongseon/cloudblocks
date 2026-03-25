@@ -81,11 +81,28 @@ describe('SidebarPalette', () => {
   it('renders category groups', () => {
     render(<SidebarPalette />);
 
-    expect(screen.getByText('Foundations')).toBeInTheDocument();
-    expect(screen.getByText('Networking')).toBeInTheDocument();
+    // Groups with starter-tier resources appear by default
+    expect(screen.getByText('Network')).toBeInTheDocument();
+    expect(screen.getByText('Delivery')).toBeInTheDocument();
     expect(screen.getByText('Compute')).toBeInTheDocument();
     expect(screen.getByText('Data')).toBeInTheDocument();
     expect(screen.getByText('Security')).toBeInTheDocument();
+    expect(screen.getByText('Identity')).toBeInTheDocument();
+
+    // Messaging has only advanced-tier resources; Operations has none yet
+    expect(screen.queryByText('Messaging')).not.toBeInTheDocument();
+    expect(screen.queryByText('Operations')).not.toBeInTheDocument();
+  });
+
+  it('shows Messaging group when Show Advanced is checked', async () => {
+    const user = userEvent.setup();
+    render(<SidebarPalette />);
+
+    await user.click(screen.getByRole('checkbox'));
+
+    expect(screen.getByText('Messaging')).toBeInTheDocument();
+    // Operations still hidden — no resources defined yet
+    expect(screen.queryByText('Operations')).not.toBeInTheDocument();
   });
 
   it('filters resources by search query', async () => {
@@ -128,13 +145,13 @@ describe('SidebarPalette', () => {
 
     render(<SidebarPalette />);
 
-    const toggle = screen.getByRole('button', { name: 'Collapse Foundations' });
+    const toggle = screen.getByRole('button', { name: 'Collapse Network' });
     expect(screen.getByTitle('Create Azure Virtual Network')).toBeInTheDocument();
 
     await user.click(toggle);
     expect(screen.queryByTitle('Create Azure Virtual Network')).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Expand Foundations' }));
+    await user.click(screen.getByRole('button', { name: 'Expand Network' }));
     expect(screen.getByTitle('Create Azure Virtual Network')).toBeInTheDocument();
   });
 
