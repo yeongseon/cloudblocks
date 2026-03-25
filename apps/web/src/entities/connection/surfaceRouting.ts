@@ -15,7 +15,11 @@ import type {
   ResourceBlock,
 } from '@cloudblocks/schema';
 import { CATEGORY_PORTS } from '@cloudblocks/schema';
-import { getBlockWorldPosition } from '../../shared/utils/position';
+import {
+  EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET,
+  EXTERNAL_ACTOR_POSITION,
+  getBlockWorldPosition,
+} from '../../shared/utils/position';
 import { getBlockDimensions } from '../../shared/types/visualProfile';
 import type { PortSide } from '../block/blockGeometry';
 
@@ -351,12 +355,20 @@ function resolveEndpointContext(
   blocks: ResourceBlock[],
   plates: ContainerBlock[],
   endpoints: Endpoint[],
-): {
-  block: ResourceBlock;
-  container: ContainerBlock;
-  portIndex: number;
-  totalPorts: number;
-} | null {
+  externalActors: ExternalActor[],
+):
+  | {
+      kind: 'block';
+      block: ResourceBlock;
+      container: ContainerBlock;
+      portIndex: number;
+      totalPorts: number;
+    }
+  | {
+      kind: 'actor';
+      actor: ExternalActor;
+    }
+  | null {
   const endpoint = endpoints.find((ep) => ep.id === endpointId);
   if (!endpoint) return null;
 
@@ -364,7 +376,11 @@ function resolveEndpointContext(
   if (resolvedSide !== side) return null;
 
   const block = blocks.find((b) => b.id === endpoint.blockId);
-  if (!block) return null;
+  if (!block) {
+    const actor = externalActors.find((candidate) => candidate.id === endpoint.blockId);
+    if (!actor) return null;
+    return { kind: 'actor', actor };
+  }
 
   const container = plates.find((p) => p.id === block.parentId);
   if (!container) return null;
@@ -374,7 +390,26 @@ function resolveEndpointContext(
   const portIndex = semanticToIndex(endpoint.semantic, total);
   if (portIndex === null) return null;
 
-  return { block, container, portIndex, totalPorts: total };
+  return { kind: 'block', block, container, portIndex, totalPorts: total };
+}
+
+function resolveSurfacePortForActor(actor: ExternalActor): SurfacePort {
+  const pos = actor.position ?? {
+    x: EXTERNAL_ACTOR_POSITION[0],
+    y: EXTERNAL_ACTOR_POSITION[1],
+    z: EXTERNAL_ACTOR_POSITION[2],
+  };
+  const y = pos.y + EXTERNAL_ACTOR_ENDPOINT_Y_OFFSET;
+  const surfaceBase: WorldPoint3 = [pos.x, y, pos.z];
+  const surfaceExit: WorldPoint3 = [pos.x, y, pos.z - SURFACE_EXIT_OFFSET_CU];
+
+  return {
+    surfaceBase,
+    surfaceExit,
+    containerId: 'external',
+    surfaceY: y,
+    normal: 'neg-z',
+  };
 }
 
 function semanticToIndex(semantic: EndpointSemantic, total: number): number | null {
@@ -385,39 +420,54 @@ function semanticToIndex(semantic: EndpointSemantic, total: number): number | nu
   return index % total;
 }
 
-/**
- * Compute the full surface route for a connection.
- *
- * Returns null if either endpoint cannot be resolved (external actors
- * are not yet supported in surface routing).
- */
 export function getConnectionSurfaceRoute(
   connection: Connection,
   blocks: ResourceBlock[],
   plates: ContainerBlock[],
   endpoints: Endpoint[],
-  _externalActors: ExternalActor[] = [],
+  externalActors: ExternalActor[] = [],
 ): SurfaceRoute | null {
-  const srcCtx = resolveEndpointContext(connection.from, 'outbound', blocks, plates, endpoints);
+  const srcCtx = resolveEndpointContext(
+    connection.from,
+    'outbound',
+    blocks,
+    plates,
+    endpoints,
+    externalActors,
+  );
   if (!srcCtx) return null;
 
-  const tgtCtx = resolveEndpointContext(connection.to, 'inbound', blocks, plates, endpoints);
+  const tgtCtx = resolveEndpointContext(
+    connection.to,
+    'inbound',
+    blocks,
+    plates,
+    endpoints,
+    externalActors,
+  );
   if (!tgtCtx) return null;
 
-  const srcPort = resolveSurfacePort(
-    srcCtx.block,
-    srcCtx.container,
-    'outbound',
-    srcCtx.portIndex,
-    srcCtx.totalPorts,
-  );
-  const tgtPort = resolveSurfacePort(
-    tgtCtx.block,
-    tgtCtx.container,
-    'inbound',
-    tgtCtx.portIndex,
-    tgtCtx.totalPorts,
-  );
+  const srcPort =
+    srcCtx.kind === 'actor'
+      ? resolveSurfacePortForActor(srcCtx.actor)
+      : resolveSurfacePort(
+          srcCtx.block,
+          srcCtx.container,
+          'outbound',
+          srcCtx.portIndex,
+          srcCtx.totalPorts,
+        );
+
+  const tgtPort =
+    tgtCtx.kind === 'actor'
+      ? resolveSurfacePortForActor(tgtCtx.actor)
+      : resolveSurfacePort(
+          tgtCtx.block,
+          tgtCtx.container,
+          'inbound',
+          tgtCtx.portIndex,
+          tgtCtx.totalPorts,
+        );
 
   if (srcPort.containerId === tgtPort.containerId) {
     const segments = routeSameSurface(srcPort, tgtPort);

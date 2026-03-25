@@ -1,25 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render } from '@testing-library/react';
+import { endpointId } from '@cloudblocks/schema';
+import type { Connection, ConnectionType } from '@cloudblocks/schema';
+import type { DiffDelta } from '../../shared/types/diff';
 import { ConnectionRenderer } from './ConnectionRenderer';
-import { useUIStore } from '../store/uiStore';
-import { useArchitectureStore } from '../store/architectureStore';
-import { getConnectionEndpointWorldAnchors } from './endpointAnchors';
 import { getDiffState } from '../../features/diff/engine';
 import { getConnectionSurfaceRoute } from './surfaceRouting';
+import type { SurfaceRoute, WorldPoint3 } from './surfaceRouting';
 import {
   buildConnectionFootprint,
   getVisibleSideFaces,
   projectFootprintToScreen,
-  samplePortPositions,
 } from './connectionGeometry';
-import type { Connection, ConnectionType } from '@cloudblocks/schema';
-import type { DiffDelta } from '../../shared/types/diff';
-import type { SurfaceRoute, WorldPoint3 } from './surfaceRouting';
-import { endpointId } from '@cloudblocks/schema';
-
-vi.mock('./endpointAnchors', () => ({
-  getConnectionEndpointWorldAnchors: vi.fn(),
-}));
+import { useUIStore } from '../store/uiStore';
+import { useArchitectureStore } from '../store/architectureStore';
 
 vi.mock('./surfaceRouting', () => ({
   getConnectionSurfaceRoute: vi.fn(),
@@ -29,7 +23,6 @@ vi.mock('./connectionGeometry', () => ({
   buildConnectionFootprint: vi.fn(),
   getVisibleSideFaces: vi.fn(),
   projectFootprintToScreen: vi.fn(),
-  samplePortPositions: vi.fn(),
 }));
 
 vi.mock('../../shared/tokens/designTokens', () => ({
@@ -39,11 +32,6 @@ vi.mock('../../shared/tokens/designTokens', () => ({
   RENDER_SCALE: 32,
   BEAM_WIDTH_CU: 0.5,
   BEAM_THICKNESS_CU: 1 / 3,
-  BEAM_THICKNESS_PX: 32 * (1 / 3),
-  PIN_HOLE_SPACING_CU: 1.0,
-  PIN_HOLE_RX: (32 * 3) / 20,
-  PIN_HOLE_RY: (32 * 3) / 20 / 2,
-  PORT_OUT_PX: 8,
   CONNECTION_WIDTH_CU: 1,
   CONNECTION_HEIGHT_CU: 1 / 3,
 }));
@@ -59,14 +47,7 @@ const connection: Connection = {
   metadata: {},
 };
 
-function setupEndpoints(
-  srcWorld: [number, number, number] = [1, 0, 2],
-  tgtWorld: [number, number, number] = [3, 0, 4],
-) {
-  vi.mocked(getConnectionEndpointWorldAnchors).mockReturnValue({ src: srcWorld, tgt: tgtWorld });
-}
-
-function createSurfaceRoute(): SurfaceRoute {
+function createSurfaceRoute(overrides?: Partial<SurfaceRoute>): SurfaceRoute {
   return {
     segments: [
       {
@@ -96,6 +77,7 @@ function createSurfaceRoute(): SurfaceRoute {
       surfaceY: 3,
       normal: 'neg-x',
     },
+    ...overrides,
   };
 }
 
@@ -133,10 +115,6 @@ function setupSurfaceRouteMocks() {
       ],
     },
   ]);
-  vi.mocked(samplePortPositions).mockReturnValue([
-    [1.5, 3.333, 1.5],
-    [2.5, 3.333, 1.5],
-  ]);
 }
 
 function renderConnector(conn: Connection = connection) {
@@ -161,7 +139,7 @@ describe('ConnectionRenderer', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getConnectionSurfaceRoute).mockReturnValue(null);
+    vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createSurfaceRoute());
     setupSurfaceRouteMocks();
     useUIStore.setState(initialUIState, true);
     useArchitectureStore.setState(initialArchitectureState, true);
@@ -173,36 +151,26 @@ describe('ConnectionRenderer', () => {
     });
   });
 
-  it('returns null when endpoint resolution fails', () => {
-    vi.mocked(getConnectionEndpointWorldAnchors).mockReturnValue(null);
-
+  it('returns null when surface route resolution fails', () => {
+    vi.mocked(getConnectionSurfaceRoute).mockReturnValue(null);
     const { container } = renderConnector();
     expect(container.querySelector('g')).toBeNull();
   });
 
-  it('renders svg group with polygons when endpoints exist', () => {
-    setupEndpoints();
-
+  it('renders svg group with polygons when surface route exists', () => {
     const { container } = renderConnector();
-
     expect(container.querySelector('g')).toBeInTheDocument();
     const polygons = container.querySelectorAll('polygon');
     expect(polygons.length).toBeGreaterThanOrEqual(3);
   });
 
   it('renders hit area with data-testid', () => {
-    setupEndpoints();
-
     const { container } = renderConnector();
-
     expect(container.querySelector('[data-testid="connection-hit-area"]')).toBeInTheDocument();
   });
 
   it('click in select mode sets selectedId to connection id', () => {
-    setupEndpoints();
-
     const { container } = renderConnector();
-
     fireEvent.click(
       container.querySelector('[data-testid="connection-hit-area"]') as SVGPathElement,
     );
@@ -213,10 +181,7 @@ describe('ConnectionRenderer', () => {
     const removeConnectionMock = vi.fn();
     useUIStore.setState({ toolMode: 'delete' });
     useArchitectureStore.setState({ removeConnection: removeConnectionMock });
-    setupEndpoints();
-
     const { container } = renderConnector();
-
     fireEvent.click(
       container.querySelector('[data-testid="connection-hit-area"]') as SVGPathElement,
     );
@@ -225,11 +190,6 @@ describe('ConnectionRenderer', () => {
 
   it('stops propagation when clicking a connection', () => {
     const parentClick = vi.fn();
-    vi.mocked(getConnectionEndpointWorldAnchors).mockReturnValue({
-      src: [1, 0, 2],
-      tgt: [3, 0, 4],
-    });
-
     const { container } = render(
       <svg onClick={parentClick} onKeyDown={() => {}} aria-label="Test SVG">
         <title>Test SVG</title>
@@ -253,10 +213,8 @@ describe('ConnectionRenderer', () => {
   it('uses diff colors when diff state is added', () => {
     useUIStore.setState({ diffMode: true, diffDelta: {} as unknown as DiffDelta });
     vi.mocked(getDiffState).mockReturnValue('added');
-    setupEndpoints([1, 0, 1], [1, 0, 4]);
 
     const { container } = renderConnector();
-
     const polygons = container.querySelectorAll('polygon');
     expect(polygons.length).toBeGreaterThanOrEqual(1);
     const topFaces = Array.from(polygons).filter((p) => p.getAttribute('fill') === '#22c55e');
@@ -267,19 +225,14 @@ describe('ConnectionRenderer', () => {
   it('uses removed diff opacity when diff state is removed', () => {
     useUIStore.setState({ diffMode: true, diffDelta: {} as unknown as DiffDelta });
     vi.mocked(getDiffState).mockReturnValue('removed');
-    setupEndpoints([1, 0, 1], [1, 0, 4]);
 
     const { container } = renderConnector();
-
     expect(container.querySelector('g')?.getAttribute('opacity')).toBe('0.4');
   });
 
   it('renders selection outline when connection is selected', () => {
     useUIStore.setState({ selectedId: connection.id });
-    setupEndpoints();
-
     const { container } = renderConnector();
-
     const selectionOutline = container.querySelector('[data-layer="selection-outline"]');
     expect(selectionOutline).toBeInTheDocument();
     expect(selectionOutline?.getAttribute('stroke')).toBe('#ffffff');
@@ -288,37 +241,19 @@ describe('ConnectionRenderer', () => {
 
   describe('surface render path', () => {
     it('renders top-face polygon from projected connection footprint', () => {
-      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createSurfaceRoute());
-
       const { container } = renderConnector();
-
       const topFaceLayer = container.querySelector('[data-layer="top-face"]');
       const topFacePolygon = topFaceLayer?.querySelector('polygon');
       expect(topFacePolygon).toBeInTheDocument();
       expect(topFacePolygon?.getAttribute('points')).toBe('100,220 140,240 130,260 90,240');
-      expect(vi.mocked(getConnectionEndpointWorldAnchors)).not.toHaveBeenCalled();
     });
 
-    it('renders side-face polygons and skips legacy liftarm segments', () => {
-      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createSurfaceRoute());
-
+    it('renders side-face polygons and no legacy liftarm artifacts', () => {
       const { container } = renderConnector();
-
       const sideFacesLayer = container.querySelector('[data-layer="side-faces"]');
       expect(sideFacesLayer?.querySelectorAll('polygon')).toHaveLength(2);
       expect(sideFacesLayer?.querySelectorAll('[data-connector-segment]')).toHaveLength(0);
       expect(sideFacesLayer?.querySelectorAll('[data-connector-elbow]')).toHaveLength(0);
-    });
-
-    it('uses polygon selection outline when surface route is active', () => {
-      useUIStore.setState({ selectedId: connection.id });
-      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createSurfaceRoute());
-
-      const { container } = renderConnector();
-
-      const selectionOutline = container.querySelector('[data-layer="selection-outline"]');
-      expect(selectionOutline).toBeInTheDocument();
-      expect(selectionOutline?.tagName.toLowerCase()).toBe('polygon');
     });
 
     it('shows validation error label on hover for invalid surface route connections', () => {
@@ -336,30 +271,22 @@ describe('ConnectionRenderer', () => {
           warnings: [],
         },
       });
-      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createSurfaceRoute());
 
       const { container } = renderConnector();
-
       fireEvent.mouseEnter(
         container.querySelector('[data-testid="connection-hit-area"]') as Element,
       );
       expect(container.querySelector('[data-testid="connection-error-label"]')).toBeInTheDocument();
-      expect(vi.mocked(getConnectionEndpointWorldAnchors)).not.toHaveBeenCalled();
     });
 
-    it('falls back to null render when connection footprint is degenerate and fallback anchors are missing', () => {
-      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createSurfaceRoute());
+    it('returns null when connection footprint is degenerate', () => {
       vi.mocked(buildConnectionFootprint).mockReturnValue([]);
-      vi.mocked(getConnectionEndpointWorldAnchors).mockReturnValue(null);
-
       const { container } = renderConnector();
-
       expect(container.querySelector('g')).toBeNull();
     });
 
     it('handles disjoint surface segments and still renders a hit area', () => {
-      const disjointRoute: SurfaceRoute = {
-        ...createSurfaceRoute(),
+      const disjointRoute: SurfaceRoute = createSurfaceRoute({
         segments: [
           {
             start: [1, 3, 1],
@@ -372,11 +299,10 @@ describe('ConnectionRenderer', () => {
             kind: 'surface',
           },
         ],
-      };
+      });
       vi.mocked(getConnectionSurfaceRoute).mockReturnValue(disjointRoute);
 
       const { container } = renderConnector();
-
       const hitArea = container.querySelector('[data-testid="connection-hit-area"]');
       expect(hitArea).toBeInTheDocument();
       expect(hitArea?.getAttribute('d')).toContain('L');
@@ -398,47 +324,15 @@ describe('ConnectionRenderer', () => {
           warnings: [],
         },
       });
-      vi.mocked(getConnectionSurfaceRoute).mockReturnValue({
-        ...createSurfaceRoute(),
-        segments: [],
-      });
+      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createSurfaceRoute({ segments: [] }));
 
       const { container } = renderConnector();
-
       expect(
         container.querySelector('[data-testid="connection-hit-area"]')?.getAttribute('d'),
       ).toBe('');
       expect(
         container.querySelector('[data-testid="connection-error-label"]'),
       ).not.toBeInTheDocument();
-    });
-  });
-
-  describe('fallback endpoint side offsets', () => {
-    it('applies src outbound and tgt inbound port offsets', () => {
-      vi.mocked(getConnectionEndpointWorldAnchors).mockReturnValue({
-        src: [1, 0, 1],
-        tgt: [3, 0, 3],
-        srcSide: 'outbound',
-        tgtSide: 'inbound',
-      });
-
-      const { container } = renderConnector();
-
-      expect(container.querySelector('[data-testid="connection-hit-area"]')).toBeInTheDocument();
-    });
-
-    it('applies src inbound and tgt outbound port offsets', () => {
-      vi.mocked(getConnectionEndpointWorldAnchors).mockReturnValue({
-        src: [1, 0, 1],
-        tgt: [3, 0, 3],
-        srcSide: 'inbound',
-        tgtSide: 'outbound',
-      });
-
-      const { container } = renderConnector();
-
-      expect(container.querySelector('[data-testid="connection-hit-area"]')).toBeInTheDocument();
     });
   });
 
@@ -458,94 +352,13 @@ describe('ConnectionRenderer', () => {
           id: `conn-${type}`,
           metadata: { ...connection.metadata, type: type as ConnectionType },
         };
-        setupEndpoints();
 
         const { container } = renderConnector(conn);
-
         const rootGroup = container.querySelector('g');
         expect(rootGroup).toBeInTheDocument();
         expect(rootGroup?.getAttribute('data-connector-type')).toBe(expected);
       });
     }
-  });
-
-  describe('liftarm segments', () => {
-    it('renders segments with data-connector-segment attribute', () => {
-      setupEndpoints([1, 0, 1], [1, 0, 5]);
-
-      const { container } = renderConnector();
-
-      const segments = container.querySelectorAll('[data-connector-segment]');
-      expect(segments.length).toBeGreaterThanOrEqual(1);
-    });
-
-    it('segment has direction data attribute', () => {
-      // src [1,0,1] → screen (100, 232), tgt [4,0,1] → screen (196, 280)
-      // Different X and Y → L-route; first segment direction depends on routing
-      setupEndpoints([1, 0, 1], [4, 0, 1]);
-
-      const { container } = renderConnector();
-
-      const segment = container.querySelector('[data-connector-segment]');
-      expect(segment).toBeInTheDocument();
-      const dir = segment?.getAttribute('data-direction');
-      expect(dir === 'screen-v' || dir === 'screen-h').toBe(true);
-    });
-
-    it('renders at least 3 polygons per segment (top + side + front + optional pin markers)', () => {
-      setupEndpoints([1, 0, 1], [1, 0, 4]);
-
-      const { container } = renderConnector();
-
-      const segment = container.querySelector('[data-connector-segment]');
-      expect(segment).toBeInTheDocument();
-      const polygons = segment?.querySelectorAll('polygon');
-      expect(polygons?.length).toBeGreaterThanOrEqual(3);
-    });
-  });
-
-  describe('elbow joints', () => {
-    it('renders elbow with data-connector-elbow for L-shaped routes', () => {
-      setupEndpoints([1, 0, 1], [4, 0, 5]);
-
-      const { container } = renderConnector();
-
-      const elbows = container.querySelectorAll('[data-connector-elbow]');
-      expect(elbows).toHaveLength(1);
-    });
-
-    it('elbow has 3 polygons (square top + 2 side faces)', () => {
-      setupEndpoints([1, 0, 1], [4, 0, 5]);
-
-      const { container } = renderConnector();
-
-      const elbow = container.querySelector('[data-connector-elbow]');
-      expect(elbow).toBeInTheDocument();
-      expect(elbow?.querySelectorAll('polygon')).toHaveLength(3);
-    });
-
-    it('does not render elbow for screen-aligned connections', () => {
-      // [1,0,1] and [3,0,3]: worldX-worldZ=0 for both → same screenX → single segment, no elbow
-      setupEndpoints([1, 0, 1], [3, 0, 3]);
-
-      const { container } = renderConnector();
-
-      const elbows = container.querySelectorAll('[data-connector-elbow]');
-      expect(elbows).toHaveLength(0);
-    });
-  });
-
-  describe('pin holes', () => {
-    it('renders pin holes along segments for long enough connections', () => {
-      setupEndpoints([0, 0, 0], [0, 0, 5]);
-
-      const { container } = renderConnector();
-
-      const segment = container.querySelector('[data-connector-segment]');
-      expect(segment).toBeInTheDocument();
-      const pinElements = segment?.querySelectorAll('ellipse, line, polygon');
-      expect(pinElements?.length).toBeGreaterThanOrEqual(1);
-    });
   });
 
   describe('validation overlay', () => {
@@ -564,14 +377,12 @@ describe('ConnectionRenderer', () => {
           warnings: [],
         },
       });
-      setupEndpoints();
 
       const { container } = renderConnector();
-
       expect(container.querySelector('[data-testid="connection-invalid"]')).toBeInTheDocument();
     });
 
-    it('does NOT render overlay when no validation errors target this connection', () => {
+    it('does not render overlay when no validation errors target this connection', () => {
       useArchitectureStore.setState({
         validationResult: {
           valid: false,
@@ -586,19 +397,14 @@ describe('ConnectionRenderer', () => {
           warnings: [],
         },
       });
-      setupEndpoints();
 
       const { container } = renderConnector();
-
       expect(container.querySelector('[data-testid="connection-invalid"]')).not.toBeInTheDocument();
     });
 
-    it('does NOT render overlay when validationResult is null', () => {
+    it('does not render overlay when validationResult is null', () => {
       useArchitectureStore.setState({ validationResult: null });
-      setupEndpoints();
-
       const { container } = renderConnector();
-
       expect(container.querySelector('[data-testid="connection-invalid"]')).not.toBeInTheDocument();
     });
 
@@ -617,14 +423,11 @@ describe('ConnectionRenderer', () => {
           warnings: [],
         },
       });
-      setupEndpoints();
 
       const { container } = renderConnector();
-
       fireEvent.mouseEnter(
         container.querySelector('[data-testid="connection-hit-area"]') as Element,
       );
-
       expect(container.querySelector('[data-testid="connection-error-label"]')).toBeInTheDocument();
 
       fireEvent.mouseLeave(
@@ -651,14 +454,12 @@ describe('ConnectionRenderer', () => {
           warnings: [],
         },
       });
-      setupEndpoints();
 
       const { container } = renderConnector();
-
       expect(container.querySelector('[data-testid="connection-error-label"]')).toBeInTheDocument();
     });
 
-    it('does NOT show error label when not hovered and not selected', () => {
+    it('does not show error label when not hovered and not selected', () => {
       useArchitectureStore.setState({
         validationResult: {
           valid: false,
@@ -673,56 +474,39 @@ describe('ConnectionRenderer', () => {
           warnings: [],
         },
       });
-      setupEndpoints();
 
       const { container } = renderConnector();
-
       expect(
         container.querySelector('[data-testid="connection-error-label"]'),
       ).not.toBeInTheDocument();
     });
   });
 
-  describe('external actor fallback path (#1351)', () => {
-    it('uses fallback liftarm renderer when surfaceRoute returns null (external actor)', () => {
-      // surfaceRoute returns null → fallback path is used
-      vi.mocked(getConnectionSurfaceRoute).mockReturnValue(null);
-      vi.mocked(getConnectionEndpointWorldAnchors).mockReturnValue({
-        src: [1, 0, 1],
-        tgt: [3, 0, 3],
-      });
-
-      const { container } = renderConnector();
-
-      // Fallback renders liftarm segments (legacy path)
-      const segments = container.querySelectorAll('[data-connector-segment]');
-      expect(segments.length).toBeGreaterThanOrEqual(1);
-      // Surface route top-face layer should NOT have a polygon
-      const topFaceLayer = container.querySelector('[data-layer="top-face"]');
-      expect(topFaceLayer?.querySelector('polygon')).toBeNull();
-    });
-
-    it('renders surface route and skips fallback when surfaceRoute is available', () => {
+  describe('external actor surface path', () => {
+    it('renders external actor connections using surface route when available', () => {
+      const actorConnection: Connection = {
+        ...connection,
+        id: 'conn-external',
+        from: endpointId('external-1', 'output', 'data'),
+      };
       vi.mocked(getConnectionSurfaceRoute).mockReturnValue(createSurfaceRoute());
 
-      const { container } = renderConnector();
-
-      // Surface route renders top-face polygon
+      const { container } = renderConnector(actorConnection);
       const topFaceLayer = container.querySelector('[data-layer="top-face"]');
       expect(topFaceLayer?.querySelector('polygon')).toBeInTheDocument();
-      // Fallback liftarm segments should NOT be present
-      const sideFacesLayer = container.querySelector('[data-layer="side-faces"]');
-      expect(sideFacesLayer?.querySelectorAll('[data-connector-segment]')).toHaveLength(0);
-      // endpointAnchors should NOT have been called (surface route handles it)
-      expect(vi.mocked(getConnectionEndpointWorldAnchors)).not.toHaveBeenCalled();
+      expect(container.querySelectorAll('[data-connector-segment]')).toHaveLength(0);
+      expect(container.querySelectorAll('[data-connector-elbow]')).toHaveLength(0);
     });
 
-    it('returns null when both surfaceRoute and fallbackEndpoints fail', () => {
+    it('returns null when surface route resolution fails for external actor connection', () => {
+      const actorConnection: Connection = {
+        ...connection,
+        id: 'conn-external-null',
+        from: endpointId('external-1', 'output', 'data'),
+      };
       vi.mocked(getConnectionSurfaceRoute).mockReturnValue(null);
-      vi.mocked(getConnectionEndpointWorldAnchors).mockReturnValue(null);
 
-      const { container } = renderConnector();
-
+      const { container } = renderConnector(actorConnection);
       expect(container.querySelector('g')).toBeNull();
     });
   });

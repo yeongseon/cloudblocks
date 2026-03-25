@@ -8,24 +8,12 @@ import type {
   ResourceBlock,
 } from '@cloudblocks/schema';
 import { getDiffState } from '../../features/diff/engine';
-import { getConnectionEndpointWorldAnchors } from './endpointAnchors';
 import { worldToScreen } from '../../shared/utils/isometric';
 import type { ScreenPoint } from '../../shared/utils/isometric';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
-import {
-  BEAM_THICKNESS_PX,
-  CONNECTION_HEIGHT_CU,
-  CONNECTION_WIDTH_CU,
-  PIN_HOLE_SPACING_CU,
-  PIN_HOLE_RX,
-  PIN_HOLE_RY,
-  PORT_OUT_PX,
-} from '../../shared/tokens/designTokens';
+import { CONNECTION_HEIGHT_CU, CONNECTION_WIDTH_CU } from '../../shared/tokens/designTokens';
 import { DIFF_THEMES, lightenColor } from './connectorTheme';
-import { computeFloorRoute, computeWorldRoute, screenSegmentLengthCU } from './routing';
-import type { PinHoleStyle } from './connectorTheme';
-import type { ScreenSegment } from './routing';
 import { getConnectionSurfaceRoute } from './surfaceRouting';
 import type { SurfaceRoute, WorldPoint3 } from './surfaceRouting';
 import {
@@ -54,21 +42,8 @@ interface ConnectorColors {
   opacity: number;
 }
 
-// ---------------------------------------------------------------------------
-// LEGACY FALLBACK constants & functions (lines 57–341)
-// Used when surfaceRouting returns null (currently: external actor connections).
-// TODO(#1351): Remove once external actors are supported by surface routing.
-// ---------------------------------------------------------------------------
-
-const LEGACY_BEAM_HALF_THICKNESS = 4;
 const HIT_AREA_WIDTH = 20;
 const DRAW_STROKE_WIDTH = Math.max(4, CONNECTION_WIDTH_CU * 8);
-
-const LEGACY_PIN_HOLE_STYLE: Record<ConnectionRenderSemantic, PinHoleStyle> = {
-  http: 'filled',
-  event: 'dashed',
-  data: 'double',
-};
 
 function getColors(
   semantic: ConnectionRenderSemantic,
@@ -104,255 +79,6 @@ function getColors(
     accent,
     opacity: baseOpacity,
   };
-}
-
-function buildBeamTopFace(seg: ScreenSegment): string {
-  const { start: s, end: e, direction } = seg;
-  const hw = LEGACY_BEAM_HALF_THICKNESS;
-
-  if (direction === 'screen-v') {
-    return `${s.x - hw},${s.y} ${s.x + hw},${s.y} ${e.x + hw},${e.y} ${e.x - hw},${e.y}`;
-  }
-  return `${s.x},${s.y - hw} ${e.x},${e.y - hw} ${e.x},${e.y + hw} ${s.x},${s.y + hw}`;
-}
-
-function buildBeamSideFace(seg: ScreenSegment, thickness: number): string {
-  const { start: s, end: e, direction } = seg;
-  const hw = LEGACY_BEAM_HALF_THICKNESS;
-
-  if (direction === 'screen-v') {
-    return `${s.x + hw},${s.y} ${e.x + hw},${e.y} ${e.x + hw},${e.y + thickness} ${s.x + hw},${s.y + thickness}`;
-  }
-  return `${s.x},${s.y + hw} ${e.x},${e.y + hw} ${e.x},${e.y + hw + thickness} ${s.x},${s.y + hw + thickness}`;
-}
-
-function buildBeamFrontFace(seg: ScreenSegment, thickness: number): string {
-  const { end: e, direction } = seg;
-  const hw = LEGACY_BEAM_HALF_THICKNESS;
-
-  if (direction === 'screen-v') {
-    return `${e.x - hw},${e.y} ${e.x + hw},${e.y} ${e.x + hw},${e.y + thickness} ${e.x - hw},${e.y + thickness}`;
-  }
-  return `${e.x},${e.y - hw} ${e.x},${e.y + hw} ${e.x},${e.y + hw + thickness} ${e.x},${e.y - hw + thickness}`;
-}
-
-function renderPinHole(
-  cx: number,
-  cy: number,
-  style: PinHoleStyle,
-  accent: string,
-  id: string,
-): React.ReactNode {
-  const opacity = 0.4;
-  switch (style) {
-    case 'open':
-      return (
-        <ellipse
-          key={id}
-          cx={cx}
-          cy={cy}
-          rx={PIN_HOLE_RX}
-          ry={PIN_HOLE_RY}
-          fill="none"
-          stroke={accent}
-          strokeWidth={1}
-          opacity={opacity}
-        />
-      );
-    case 'filled':
-      return (
-        <ellipse
-          key={id}
-          cx={cx}
-          cy={cy}
-          rx={PIN_HOLE_RX}
-          ry={PIN_HOLE_RY}
-          fill={accent}
-          opacity={opacity}
-        />
-      );
-    case 'cross':
-      return (
-        <g key={id} opacity={opacity}>
-          <line
-            x1={cx - PIN_HOLE_RX}
-            y1={cy}
-            x2={cx + PIN_HOLE_RX}
-            y2={cy}
-            stroke={accent}
-            strokeWidth={1}
-          />
-          <line
-            x1={cx}
-            y1={cy - PIN_HOLE_RY}
-            x2={cx}
-            y2={cy + PIN_HOLE_RY}
-            stroke={accent}
-            strokeWidth={1}
-          />
-        </g>
-      );
-    case 'double':
-      return (
-        <g key={id} opacity={opacity}>
-          <ellipse
-            cx={cx}
-            cy={cy}
-            rx={PIN_HOLE_RX}
-            ry={PIN_HOLE_RY}
-            fill="none"
-            stroke={accent}
-            strokeWidth={1}
-          />
-          <ellipse
-            cx={cx}
-            cy={cy}
-            rx={PIN_HOLE_RX * 0.5}
-            ry={PIN_HOLE_RY * 0.5}
-            fill="none"
-            stroke={accent}
-            strokeWidth={0.5}
-          />
-        </g>
-      );
-    case 'dashed':
-      return (
-        <ellipse
-          key={id}
-          cx={cx}
-          cy={cy}
-          rx={PIN_HOLE_RX}
-          ry={PIN_HOLE_RY}
-          fill="none"
-          stroke={accent}
-          strokeWidth={1}
-          strokeDasharray="2 2"
-          opacity={opacity}
-        />
-      );
-  }
-}
-
-function renderDirectionMarker(
-  cx: number,
-  cy: number,
-  accent: string,
-  id: string,
-): React.ReactNode {
-  const size = PIN_HOLE_RX * 0.8;
-  return (
-    <polygon
-      key={id}
-      points={`${cx},${cy - size} ${cx + size},${cy + size * 0.5} ${cx - size},${cy + size * 0.5}`}
-      fill={accent}
-      opacity={0.5}
-    />
-  );
-}
-
-function getPinHolePositions(seg: ScreenSegment): ScreenPoint[] {
-  const lengthCU = screenSegmentLengthCU(seg);
-  if (lengthCU < PIN_HOLE_SPACING_CU) return [];
-
-  const holeCount = Math.floor(lengthCU / PIN_HOLE_SPACING_CU);
-  const positions: ScreenPoint[] = [];
-
-  for (let i = 1; i <= holeCount; i++) {
-    const t = (i * PIN_HOLE_SPACING_CU) / lengthCU;
-    positions.push({
-      x: seg.start.x + (seg.end.x - seg.start.x) * t,
-      y: seg.start.y + (seg.end.y - seg.start.y) * t,
-    });
-  }
-
-  return positions;
-}
-
-function renderLiftarmSegment(
-  seg: ScreenSegment,
-  colors: ConnectorColors,
-  pinHoleStyle: PinHoleStyle,
-  segId: string,
-  isLastSegment: boolean,
-): React.ReactNode {
-  const topFace = buildBeamTopFace(seg);
-  const sideFace = buildBeamSideFace(seg, BEAM_THICKNESS_PX);
-  const frontFace = buildBeamFrontFace(seg, BEAM_THICKNESS_PX);
-
-  const pinHoles = getPinHolePositions(seg);
-
-  return (
-    <g key={segId} pointerEvents="none" data-connector-segment data-direction={seg.direction}>
-      <polygon points={sideFace} fill={colors.leftSideColor} />
-      <polygon points={frontFace} fill={colors.rightSideColor} />
-      <polygon
-        points={topFace}
-        fill={colors.topFaceColor}
-        stroke={colors.topFaceStroke}
-        strokeWidth={0.5}
-      />
-      {pinHoles.map((pos, i) => {
-        const isLast = isLastSegment && i === pinHoles.length - 1;
-        if (isLast) {
-          return renderDirectionMarker(pos.x, pos.y, colors.accent, `${segId}-dir`);
-        }
-        return renderPinHole(pos.x, pos.y, pinHoleStyle, colors.accent, `${segId}-hole-${i}`);
-      })}
-    </g>
-  );
-}
-
-function renderElbowJoint(
-  elbowScreen: ScreenPoint,
-  colors: ConnectorColors,
-  pinHoleStyle: PinHoleStyle,
-  id: string,
-): React.ReactNode {
-  const hw = LEGACY_BEAM_HALF_THICKNESS;
-
-  const topFace = [
-    `${elbowScreen.x - hw},${elbowScreen.y - hw}`,
-    `${elbowScreen.x + hw},${elbowScreen.y - hw}`,
-    `${elbowScreen.x + hw},${elbowScreen.y + hw}`,
-    `${elbowScreen.x - hw},${elbowScreen.y + hw}`,
-  ].join(' ');
-
-  const rightSide = [
-    `${elbowScreen.x + hw},${elbowScreen.y - hw}`,
-    `${elbowScreen.x + hw},${elbowScreen.y + hw}`,
-    `${elbowScreen.x + hw},${elbowScreen.y + hw + BEAM_THICKNESS_PX}`,
-    `${elbowScreen.x + hw},${elbowScreen.y - hw + BEAM_THICKNESS_PX}`,
-  ].join(' ');
-
-  const bottomSide = [
-    `${elbowScreen.x - hw},${elbowScreen.y + hw}`,
-    `${elbowScreen.x + hw},${elbowScreen.y + hw}`,
-    `${elbowScreen.x + hw},${elbowScreen.y + hw + BEAM_THICKNESS_PX}`,
-    `${elbowScreen.x - hw},${elbowScreen.y + hw + BEAM_THICKNESS_PX}`,
-  ].join(' ');
-
-  return (
-    <g key={id} pointerEvents="none" data-connector-elbow>
-      <polygon points={bottomSide} fill={colors.leftSideColor} />
-      <polygon points={rightSide} fill={colors.rightSideColor} />
-      <polygon
-        points={topFace}
-        fill={colors.topFaceColor}
-        stroke={colors.topFaceStroke}
-        strokeWidth={0.5}
-      />
-      {renderPinHole(elbowScreen.x, elbowScreen.y, pinHoleStyle, colors.accent, `${id}-hole`)}
-    </g>
-  );
-}
-
-function buildHitPath(route: ReturnType<typeof computeWorldRoute>): string {
-  if (route.segments.length === 0) return '';
-  let d = `M ${route.segments[0].start.x} ${route.segments[0].start.y}`;
-  for (const seg of route.segments) {
-    d += ` L ${seg.end.x} ${seg.end.y}`;
-  }
-  return d;
 }
 
 function pointsToPolygon(points: readonly ScreenPoint[]): string {
@@ -466,57 +192,10 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
 
   const hasValidationError = connectionErrors.length > 0;
 
-  // ---------------------------------------------------------------------------
-  // Routing: surface route (primary) vs legacy fallback
-  // Surface routing handles block-to-block connections within/across containers.
-  // It returns null for external actor connections (not yet supported — see #1351).
-  // When null, we fall back to the legacy liftarm renderer below.
-  // TODO(#1351): Remove fallback path once external actors use surface routing.
-  // ---------------------------------------------------------------------------
   const surfaceRoute = useMemo(
     () => getConnectionSurfaceRoute(connection, blocks, plates, endpointsList, externalActors),
     [connection, blocks, plates, endpointsList, externalActors],
   );
-
-  const fallbackEndpoints = useMemo(
-    () =>
-      surfaceRoute
-        ? null
-        : getConnectionEndpointWorldAnchors(
-            connection,
-            blocks,
-            plates,
-            endpointsList,
-            externalActors,
-          ),
-    [surfaceRoute, connection, blocks, plates, endpointsList, externalActors],
-  );
-
-  const fallbackRoute = useMemo(() => {
-    if (!fallbackEndpoints) return null;
-    const usesFloor = fallbackEndpoints.srcFloorY != null && fallbackEndpoints.tgtFloorY != null;
-    const r = usesFloor
-      ? computeFloorRoute(
-          fallbackEndpoints.src,
-          fallbackEndpoints.tgt,
-          fallbackEndpoints.srcFloorY!,
-          fallbackEndpoints.tgtFloorY!,
-          originX,
-          originY,
-        )
-      : computeWorldRoute(fallbackEndpoints.src, fallbackEndpoints.tgt, originX, originY);
-    if (fallbackEndpoints.srcSide === 'outbound') {
-      r.srcScreen = { x: r.srcScreen.x + PORT_OUT_PX, y: r.srcScreen.y };
-    } else if (fallbackEndpoints.srcSide === 'inbound') {
-      r.srcScreen = { x: r.srcScreen.x - PORT_OUT_PX, y: r.srcScreen.y };
-    }
-    if (fallbackEndpoints.tgtSide === 'inbound') {
-      r.tgtScreen = { x: r.tgtScreen.x - PORT_OUT_PX, y: r.tgtScreen.y };
-    } else if (fallbackEndpoints.tgtSide === 'outbound') {
-      r.tgtScreen = { x: r.tgtScreen.x + PORT_OUT_PX, y: r.tgtScreen.y };
-    }
-    return r;
-  }, [fallbackEndpoints, originX, originY]);
 
   const surfaceRender = useMemo(() => {
     if (!surfaceRoute) return null;
@@ -550,33 +229,11 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
     };
   }, [surfaceRoute, originX, originY]);
 
-  const fallbackRender = useMemo(() => {
-    if (!fallbackRoute) return null;
-    const hitPath = buildHitPath(fallbackRoute);
-
-    return {
-      hitPath,
-      labelPos: fallbackRoute.elbows[0] ?? {
-        x:
-          (fallbackRoute.segments[0].start.x +
-            fallbackRoute.segments[fallbackRoute.segments.length - 1].end.x) /
-          2,
-        y:
-          (fallbackRoute.segments[0].start.y +
-            fallbackRoute.segments[fallbackRoute.segments.length - 1].end.y) /
-          2,
-      },
-      segments: fallbackRoute.segments,
-      elbow: fallbackRoute.elbows[0],
-    };
-  }, [fallbackRoute]);
-
-  if (!surfaceRender && !fallbackRender) return null;
+  if (!surfaceRender) return null;
 
   const colors = getColors(renderSemantic, diffState, isHighlighted);
-  const hitPath = surfaceRender?.hitPath ?? fallbackRender?.hitPath ?? '';
-  const labelPos = surfaceRender?.labelPos ?? fallbackRender?.labelPos;
-  const fallbackPinHoleStyle = LEGACY_PIN_HOLE_STYLE[renderSemantic];
+  const hitPath = surfaceRender.hitPath;
+  const labelPos = surfaceRender.labelPos;
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
@@ -612,61 +269,26 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
       </a>
 
       {isSelected && (
-        <>
-          {surfaceRender && (
-            <polygon
-              points={surfaceRender.topFacePolygon}
-              fill="none"
-              stroke="#ffffff"
-              strokeWidth={4}
-              strokeOpacity={0.5}
-              strokeLinejoin="round"
-              pointerEvents="none"
-              data-layer="selection-outline"
-            />
-          )}
-          {!surfaceRender && (
-            <path
-              d={hitPath}
-              stroke="#ffffff"
-              strokeWidth={LEGACY_BEAM_HALF_THICKNESS * 2 + 4}
-              strokeOpacity={0.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              fill="none"
-              pointerEvents="none"
-              data-layer="selection-outline"
-            />
-          )}
-        </>
+        <polygon
+          points={surfaceRender.topFacePolygon}
+          fill="none"
+          stroke="#ffffff"
+          strokeWidth={4}
+          strokeOpacity={0.5}
+          strokeLinejoin="round"
+          pointerEvents="none"
+          data-layer="selection-outline"
+        />
       )}
 
       <g data-layer="side-faces" pointerEvents="none">
-        {surfaceRender
-          ? surfaceRender.sideFaces.map((quad, i) => (
-              <polygon
-                key={`${connection.id}-side-${i}`}
-                points={pointsToPolygon(quad.points)}
-                fill={quad.face === 'left' ? colors.leftSideColor : colors.rightSideColor}
-              />
-            ))
-          : fallbackRender?.segments.map((seg, i) =>
-              renderLiftarmSegment(
-                seg,
-                colors,
-                fallbackPinHoleStyle,
-                `seg-${connection.id}-${i}`,
-                i === fallbackRender.segments.length - 1,
-              ),
-            )}
-        {!surfaceRender && fallbackRender?.elbow
-          ? renderElbowJoint(
-              fallbackRender.elbow,
-              colors,
-              fallbackPinHoleStyle,
-              `elbow-${connection.id}`,
-            )
-          : null}
+        {surfaceRender.sideFaces.map((quad) => (
+          <polygon
+            key={`${connection.id}-side-${quad.face}-${pointsToPolygon(quad.points)}`}
+            points={pointsToPolygon(quad.points)}
+            fill={quad.face === 'left' ? colors.leftSideColor : colors.rightSideColor}
+          />
+        ))}
       </g>
 
       <g data-layer="top-face" pointerEvents="none">
