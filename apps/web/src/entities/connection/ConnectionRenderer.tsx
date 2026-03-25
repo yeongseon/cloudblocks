@@ -12,15 +12,15 @@ import { worldToScreen } from '../../shared/utils/isometric';
 import type { ScreenPoint } from '../../shared/utils/isometric';
 import { useUIStore } from '../store/uiStore';
 import { useArchitectureStore } from '../store/architectureStore';
-import { CONNECTION_HEIGHT_CU, CONNECTION_WIDTH_CU } from '../../shared/tokens/designTokens';
+import {
+  TRACE_STROKE_PX,
+  TRACE_CASE_PX,
+  TRACE_HOVER_PX,
+  TRACE_FLASH_PX,
+} from '../../shared/tokens/designTokens';
 import { DIFF_THEMES, lightenColor } from './connectorTheme';
 import { getConnectionSurfaceRoute } from './surfaceRouting';
 import type { SurfaceRoute, WorldPoint3 } from './surfaceRouting';
-import {
-  buildConnectionFootprint,
-  getVisibleSideFaces,
-  projectFootprintToScreen,
-} from './connectionGeometry';
 import { getConnectionColors } from './connectionFaceColors';
 import type { ConnectionRenderSemantic } from './connectionFaceColors';
 
@@ -33,56 +33,40 @@ interface ConnectionRendererProps {
   originY: number;
 }
 
-interface ConnectorColors {
-  topFaceColor: string;
-  topFaceStroke: string;
-  leftSideColor: string;
-  rightSideColor: string;
-  accent: string;
+/** Resolved colors for the 2-layer trace rendering. */
+interface TraceColors {
+  stroke: string;
+  casing: string;
   opacity: number;
 }
 
 const HIT_AREA_WIDTH = 20;
-const DRAW_STROKE_WIDTH = Math.max(4, CONNECTION_WIDTH_CU * 8);
 
 function getColors(
   semantic: ConnectionRenderSemantic,
   diffState: string,
   isHighlighted: boolean,
-): ConnectorColors {
+): TraceColors {
   const base = getConnectionColors(semantic);
   const diffOverride = diffState !== 'unchanged' ? DIFF_THEMES[diffState] : null;
 
-  const baseTop = diffOverride?.tile ?? base.topFaceColor;
-  const baseRight = diffOverride?.shadow ?? base.rightSideColor;
-  const baseLeft = diffOverride?.dark ?? base.leftSideColor;
-  const baseStroke = diffOverride?.shadow ?? base.topFaceStroke;
+  const baseStroke = diffOverride?.tile ?? base.stroke;
+  const baseCasing = diffOverride?.shadow ?? base.casing;
   const baseOpacity = diffOverride?.opacity ?? 1.0;
-  const accent = diffState !== 'unchanged' ? '#ffffff' : base.topFaceStroke;
 
   if (isHighlighted) {
     return {
-      topFaceColor: lightenColor(baseTop, 0.15),
-      topFaceStroke: lightenColor(baseStroke, 0.1),
-      leftSideColor: lightenColor(baseLeft, 0.1),
-      rightSideColor: lightenColor(baseRight, 0.1),
-      accent,
+      stroke: lightenColor(baseStroke, 0.15),
+      casing: lightenColor(baseCasing, 0.1),
       opacity: baseOpacity,
     };
   }
 
   return {
-    topFaceColor: baseTop,
-    topFaceStroke: baseStroke,
-    leftSideColor: baseLeft,
-    rightSideColor: baseRight,
-    accent,
+    stroke: baseStroke,
+    casing: baseCasing,
     opacity: baseOpacity,
   };
-}
-
-function pointsToPolygon(points: readonly ScreenPoint[]): string {
-  return points.map((p) => `${p.x},${p.y}`).join(' ');
 }
 
 function pointsToPath(points: readonly ScreenPoint[]): string {
@@ -200,32 +184,14 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   const surfaceRender = useMemo(() => {
     if (!surfaceRoute) return null;
 
-    const footprintVertices = buildConnectionFootprint(surfaceRoute);
-    if (footprintVertices.length < 3) {
-      return null;
-    }
-
-    const topFaceScreen = projectFootprintToScreen(footprintVertices, originX, originY);
-    const topY = surfaceRoute.srcPort.surfaceY + CONNECTION_HEIGHT_CU;
-    const baseY = surfaceRoute.srcPort.surfaceY;
-    const sideFaces = getVisibleSideFaces(footprintVertices, topY, baseY).map((face) => ({
-      face: face.face,
-      points: face.vertices.map((v) => worldToScreen(v[0], v[1], v[2], originX, originY)) as [
-        ScreenPoint,
-        ScreenPoint,
-        ScreenPoint,
-        ScreenPoint,
-      ],
-    }));
-
     const hitPoints = getRouteCenterlinePoints(surfaceRoute, originX, originY);
     const hitPath = pointsToPath(hitPoints);
+
+    if (hitPoints.length < 2) return null;
 
     return {
       hitPath,
       labelPos: getLabelPosition(hitPoints),
-      topFacePolygon: pointsToPolygon(topFaceScreen),
-      sideFaces,
     };
   }, [surfaceRoute, originX, originY]);
 
@@ -234,6 +200,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   const colors = getColors(renderSemantic, diffState, isHighlighted);
   const hitPath = surfaceRender.hitPath;
   const labelPos = surfaceRender.labelPos;
+  const innerWidth = isHighlighted ? TRACE_HOVER_PX : TRACE_STROKE_PX;
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
@@ -268,56 +235,55 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
         />
       </a>
 
+      {/* Layer 1: Outer casing path */}
+      <path
+        d={hitPath}
+        stroke={colors.casing}
+        strokeWidth={TRACE_CASE_PX}
+        strokeOpacity={0.55}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+        pointerEvents="none"
+        data-testid="connection-casing"
+        data-layer="casing"
+      />
+
+      {/* Layer 2: Inner trace path (with draw-in animation) */}
+      <path
+        ref={drawInRef}
+        d={hitPath}
+        stroke={colors.stroke}
+        strokeWidth={innerWidth}
+        strokeOpacity={0.95}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+        pointerEvents="none"
+        data-testid="connection-trace"
+        data-layer="trace"
+      />
+
+      {/* Selection glow: wider stroke behind the trace */}
       {isSelected && (
-        <polygon
-          points={surfaceRender.topFacePolygon}
-          fill="none"
+        <path
+          d={hitPath}
           stroke="#ffffff"
-          strokeWidth={4}
-          strokeOpacity={0.5}
+          strokeWidth={TRACE_CASE_PX + 2}
+          strokeOpacity={0.35}
+          strokeLinecap="round"
           strokeLinejoin="round"
+          fill="none"
           pointerEvents="none"
           data-layer="selection-outline"
         />
       )}
 
-      <g data-layer="side-faces" pointerEvents="none">
-        {surfaceRender.sideFaces.map((quad) => (
-          <polygon
-            key={`${connection.id}-side-${quad.face}-${pointsToPolygon(quad.points)}`}
-            points={pointsToPolygon(quad.points)}
-            fill={quad.face === 'left' ? colors.leftSideColor : colors.rightSideColor}
-          />
-        ))}
-      </g>
-
-      <g data-layer="top-face" pointerEvents="none">
-        {surfaceRender && (
-          <polygon
-            points={surfaceRender.topFacePolygon}
-            fill={colors.topFaceColor}
-            stroke={colors.topFaceStroke}
-            strokeWidth={1}
-          />
-        )}
-      </g>
-      <path
-        ref={drawInRef}
-        d={hitPath}
-        stroke={colors.topFaceColor}
-        strokeWidth={DRAW_STROKE_WIDTH}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-        pointerEvents="none"
-        opacity={0.6}
-        data-testid="connection-draw-path"
-      />
-
+      {/* Snap flash animation overlay */}
       <path
         d={hitPath}
-        stroke={colors.topFaceColor}
-        strokeWidth={DRAW_STROKE_WIDTH}
+        stroke={colors.stroke}
+        strokeWidth={TRACE_FLASH_PX}
         strokeLinecap="round"
         strokeLinejoin="round"
         fill="none"

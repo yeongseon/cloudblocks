@@ -5,7 +5,6 @@
 // ═══════════════════════════════════════════════════════════════
 
 import type { EndpointSemantic } from '@cloudblocks/schema';
-import { deriveFaceColors } from '../block/blockFaceColors';
 
 // ─── Semantic Subset ─────────────────────────────────────────
 
@@ -15,31 +14,32 @@ export type ConnectionRenderSemantic = Extract<EndpointSemantic, 'http' | 'event
 // ─── Base Color Palette ──────────────────────────────────────
 
 export const CONNECTION_SEMANTIC_BASE_COLORS: Record<ConnectionRenderSemantic, string> = {
-  http: '#6366F1', // Indigo
-  event: '#F43F5E', // Rose
-  data: '#84CC16', // Lime
+  http: '#6F87B6', // Muted steel blue
+  event: '#C97A63', // Muted terracotta
+  data: '#5FA59B', // Muted teal
 };
 
 // ─── Derived Face + Port Colors ──────────────────────────────
 
 export interface ConnectionColors {
   base: string;
-  topFaceColor: string;
-  topFaceStroke: string;
-  leftSideColor: string;
-  rightSideColor: string;
+  stroke: string; // inner trace color
+  casing: string; // outer casing color (darker)
 }
 
 export function getConnectionColors(semantic: ConnectionRenderSemantic): ConnectionColors {
   const base = CONNECTION_SEMANTIC_BASE_COLORS[semantic];
-  const derived = deriveFaceColors(base);
+  // Derive casing by darkening the base by ~30%
+  const r = parseInt(base.slice(1, 3), 16);
+  const g = parseInt(base.slice(3, 5), 16);
+  const b = parseInt(base.slice(5, 7), 16);
+  const darken = (v: number) => Math.round(v * 0.7);
+  const casing = `#${darken(r).toString(16).padStart(2, '0')}${darken(g).toString(16).padStart(2, '0')}${darken(b).toString(16).padStart(2, '0')}`;
 
   return {
     base,
-    topFaceColor: derived.top,
-    topFaceStroke: derived.topStroke,
-    leftSideColor: derived.left,
-    rightSideColor: derived.right,
+    stroke: base,
+    casing,
   };
 }
 

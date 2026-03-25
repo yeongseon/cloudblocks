@@ -25,19 +25,19 @@ function renderPlateSvg(props?: Partial<ComponentProps<typeof ContainerBlockSvg>
 // ─── Label & Icon Rendering ─────────────────────────────────
 
 describe('PlateSvg — label and icon', () => {
-  it('renders both label and icon when both props are provided', () => {
+  it('renders icon when both label and icon props are provided', () => {
     const { container } = renderPlateSvg({ label: 'Subnet 1', iconUrl: 'test-icon.svg' });
 
-    expect(screen.getByText('Subnet 1')).toBeInTheDocument();
+    // Label is now rendered as HTML chip outside SVG, so no SVG <text>
     const images = container.querySelectorAll('image');
     expect(images.length).toBe(1);
     expect(images[0]).toHaveAttribute('href', 'test-icon.svg');
   });
 
-  it('renders label only when iconUrl is omitted', () => {
+  it('renders no icon when iconUrl is omitted', () => {
     const { container } = renderPlateSvg({ label: 'Subnet 2' });
 
-    expect(screen.getByText('Subnet 2')).toBeInTheDocument();
+    // Label is now HTML chip — no SVG text element
     expect(container.querySelectorAll('image').length).toBe(0);
   });
 
@@ -115,11 +115,11 @@ describe('PlateSvg — CU-based dimensions', () => {
 // ─── SVG Structure ──────────────────────────────────────────
 
 describe('PlateSvg — SVG structure', () => {
-  it('renders 3 face polygons (top, left side, right side)', () => {
+  it('renders 5 face polygons (top + 2 inset + left side + right side)', () => {
     const { container } = renderPlateSvg();
     // Exclude polygons inside <clipPath> (used by PlateSurfaceGrid)
     const polygons = container.querySelectorAll('polygon:not(clipPath polygon)');
-    expect(polygons.length).toBe(3);
+    expect(polygons.length).toBe(5);
   });
 
   it('applies correct fill colors to face polygons', () => {
@@ -127,8 +127,9 @@ describe('PlateSvg — SVG structure', () => {
     const polygons = container.querySelectorAll('polygon');
 
     expect(polygons[0].getAttribute('fill')).toBe('#22C55E'); // top
-    expect(polygons[1].getAttribute('fill')).toBe('#16A34A'); // left
-    expect(polygons[2].getAttribute('fill')).toBe('#15803D'); // right
+    // polygons[1] = inset-highlight (fill=none), polygons[2] = inset-shadow (fill=none)
+    expect(polygons[3].getAttribute('fill')).toBe('#16A34A'); // left
+    expect(polygons[4].getAttribute('fill')).toBe('#15803D'); // right
   });
 });
 
@@ -177,13 +178,21 @@ describe('PlateSvg — layer-type visuals', () => {
     }
   });
 
-  it('global container label uses larger font than subnet', () => {
-    const { container: globalC } = renderPlateSvg({ containerLayer: 'global', label: 'Global' });
-    const { container: subnetC } = renderPlateSvg({ containerLayer: 'subnet', label: 'Subnet' });
+  it('global container uses larger icon than subnet (text labels are now HTML chips)', () => {
+    // SVG text labels were removed — labels are now screen-aligned HTML chips.
+    // Verify icon size differentiation instead.
+    const { container: globalC } = renderPlateSvg({
+      containerLayer: 'global',
+      iconUrl: 'icon-g.svg',
+    });
+    const { container: subnetC } = renderPlateSvg({
+      containerLayer: 'subnet',
+      iconUrl: 'icon-s.svg',
+    });
 
-    const globalFontSize = Number(globalC.querySelector('text')?.getAttribute('font-size'));
-    const subnetFontSize = Number(subnetC.querySelector('text')?.getAttribute('font-size'));
-    expect(globalFontSize).toBeGreaterThan(subnetFontSize);
+    const globalSize = Number(globalC.querySelector('image')?.getAttribute('width'));
+    const subnetSize = Number(subnetC.querySelector('image')?.getAttribute('width'));
+    expect(globalSize).toBeGreaterThan(subnetSize);
   });
 
   it('global container icon uses larger size than zone', () => {
@@ -214,8 +223,9 @@ describe('PlateSvg — colors are independent of containerLayer', () => {
     const polygons = container.querySelectorAll('polygon');
 
     expect(polygons[0].getAttribute('fill')).toBe('#FF0000');
-    expect(polygons[1].getAttribute('fill')).toBe('#CC0000');
-    expect(polygons[2].getAttribute('fill')).toBe('#990000');
+    // polygons[1] = inset-highlight, polygons[2] = inset-shadow
+    expect(polygons[3].getAttribute('fill')).toBe('#CC0000');
+    expect(polygons[4].getAttribute('fill')).toBe('#990000');
   });
 });
 

@@ -31,11 +31,12 @@ export function getContainerBlockFaceColors(container: {
   }
 
   if (container.type === 'region') {
+    // Navy ramp — VNet level (dark navy)
     return {
-      topFaceColor: '#90CAF9',
-      topFaceStroke: '#BBDEFB',
-      leftSideColor: '#64B5F6',
-      rightSideColor: '#42A5F5',
+      topFaceColor: '#162537',
+      topFaceStroke: '#4B6886',
+      leftSideColor: '#0F1B2A',
+      rightSideColor: '#0B1420',
     };
   }
 
@@ -48,11 +49,11 @@ export function getContainerBlockFaceColors(container: {
     };
   }
 
-  // Subnet — unified indigo
+  // Subnet — navy ramp (lighter than VNet)
   return {
-    topFaceColor: '#6366F1',
-    topFaceStroke: '#818CF8',
-    leftSideColor: '#4F46E5',
-    rightSideColor: '#4338CA',
+    topFaceColor: '#22364B',
+    topFaceStroke: '#7F9BB6',
+    leftSideColor: '#182A3D',
+    rightSideColor: '#122030',
   };
 }

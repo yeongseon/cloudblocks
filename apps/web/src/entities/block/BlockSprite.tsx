@@ -345,6 +345,7 @@ export const BlockSprite = memo(function BlockSprite({
           />
         </div>
       </button>
+      {block.name && <span className="block-label-chip">{block.name}</span>}
     </div>
   );
 });

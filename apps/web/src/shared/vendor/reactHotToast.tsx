@@ -6,12 +6,13 @@ const DEFAULT_GUTTER = 8;
 const TOAST_TRANSITION_MS = 180;
 
 const BASE_TOAST_STYLE: CSSProperties = {
-  borderRadius: '8px',
-  boxShadow: '0 10px 24px rgba(0, 0, 0, 0.22)',
+  borderRadius: '6px',
+  boxShadow: '0 6px 16px rgba(0, 0, 0, 0.18)',
   color: '#f0f0f0',
+  background: 'rgba(15, 23, 42, 0.92)',
   fontSize: '0.875rem',
   lineHeight: 1.4,
-  maxWidth: 'min(480px, calc(100vw - 24px))',
+  maxWidth: '320px',
   pointerEvents: 'auto',
 };
 
@@ -54,7 +55,7 @@ export function Toaster({
   containerClassName,
   containerStyle,
   gutter = DEFAULT_GUTTER,
-  position = 'top-center',
+  position = 'bottom-right',
   reverseOrder,
   toastOptions,
   toasterId,

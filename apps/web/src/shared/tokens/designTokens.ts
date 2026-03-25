@@ -16,29 +16,24 @@ export const BLOCK_PADDING = (RENDER_SCALE * 5) / 16; // 10
 
 // -- Edge Highlight --
 export const EDGE_HIGHLIGHT_STROKE_WIDTH = 2;
-export const EDGE_HIGHLIGHT_OPACITY = 0.3;
+export const EDGE_HIGHLIGHT_OPACITY = 0.18;
 export const EDGE_HIGHLIGHT_COLOR = '#ffffff';
 
-// -- Connection Block --
-// Flat isometric connection indicators on container block surfaces.
-// Width = 1 CU (same as block pitch), height = ⅓ block height.
+// -- Connection Trace --
+// Flat 2-layer SVG path connections on container block surfaces.
+// Replaces the previous 3D polygon beam system.
 export const CONNECTION_WIDTH_CU = 1;
 export const CONNECTION_HEIGHT_CU = 1 / 3;
 
-// -- Connector Beam --
-// Derived from block connector proportions.
-// Block pitch = 1 CU, container block height = ⅓ block.
-// We use a thin beam (0.5 CU wide) for visual clarity at our render scale.
-export const BEAM_WIDTH_CU = 0.5; // beam is half a block wide
-export const BEAM_THICKNESS_CU = 1 / 3; // container block height = ⅓ block
-export const BEAM_THICKNESS_PX = RENDER_SCALE * BEAM_THICKNESS_CU; // ~11px
-export const PIN_HOLE_SPACING_CU = 1.0; // 1 hole per block pitch
-export const PIN_HOLE_RX = (RENDER_SCALE * 3) / 20; // 4.8 (iso X radius)
-export const PIN_HOLE_RY = PIN_HOLE_RX / 2; // 2.4 (iso Y radius)
+// Trace stroke dimensions (screen-space px).
+export const TRACE_STROKE_PX = 2; // inner visible stroke
+export const TRACE_CASE_PX = 4; // outer casing stroke
+export const TRACE_HOVER_PX = 2.5; // inner stroke on hover/selected
+export const TRACE_FLASH_PX = 2; // snap-flash animation stroke
 
 // -- Face Stroke --
 export const TOP_FACE_STROKE_WIDTH = 1;
-export const TOP_FACE_STROKE_OPACITY = 0.6;
+export const TOP_FACE_STROKE_OPACITY = 0.45;
 
 // -- Port Visuals (Connection Anchor Points) --
 // Small screen-space offset so connector endpoints sit just outside block face.

@@ -234,3 +234,28 @@
     transform: none;
   }
 }
+
+/* ── Screen-aligned label chip ─ */
+.block-label-chip {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -18px;
+  padding: 1px 6px;
+  background: rgba(15, 23, 42, 0.82);
+  color: rgba(255, 255, 255, 0.88);
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.4;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

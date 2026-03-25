@@ -10,9 +10,6 @@ import {
 } from '../../../shared/types/visualProfile';
 import type { BlockRole, ProviderType, ResourceCategory } from '@cloudblocks/schema';
 import { BLOCK_PADDING, TILE_H, TILE_W, TILE_Z } from '../../../shared/tokens/designTokens';
-
-import { BLOCK_SHORT_NAMES } from '../../../shared/types/index';
-
 // ─── Test Helpers ─────────────────────────────────────────────
 
 /** Extract all polygon elements from rendered SVG, excluding those inside defs/clipPath. */
@@ -299,11 +296,11 @@ describe('BlockSvg SVG structure', () => {
     expect(gridLines.length).toBeGreaterThanOrEqual(2); // at least 2 grid lines (1x1 block = 2 subdivisions)
   });
 
-  it('renders short name text element and conditionally renders icon', () => {
+  it('does not render text elements on SVG face (labels are HTML chips)', () => {
     const { container } = render(<BlockSvg category="compute" />);
     const texts = container.querySelectorAll('text');
     const images = container.querySelectorAll('image');
-    expect(texts.length).toBe(1);
+    expect(texts.length).toBe(0);
     expect(images.length).toBe(0);
   });
 
@@ -468,16 +465,16 @@ describe('BlockSvg role badges', () => {
 // ─── Name Prop Tests ──────────────────────────────────────────
 
 describe('BlockSvg name prop', () => {
-  it('renders shortName on left wall when no subtype is provided', () => {
+  it('does not render text on SVG face (labels moved to HTML chips)', () => {
     const { container } = render(<BlockSvg category="compute" />);
     const texts = container.querySelectorAll('text');
-    expect(texts[0].textContent).toBe(BLOCK_SHORT_NAMES.compute);
+    expect(texts.length).toBe(0);
   });
 
-  it('renders subtype label on left wall when subtype is provided', () => {
+  it('renders icon on SVG face when subtype has a registered icon', () => {
     const { container } = render(<BlockSvg category="compute" provider="azure" subtype="vm" />);
-    const texts = container.querySelectorAll('text');
-    expect(texts[0].textContent).toBe('VM');
+    const images = container.querySelectorAll('image');
+    expect(images.length).toBe(1);
   });
 
   it('renders icon on right wall when subtype has a registered icon', () => {
@@ -495,7 +492,7 @@ describe('BlockSvg name prop', () => {
 
     const texts = container.querySelectorAll('text');
     const images = container.querySelectorAll('image');
-    expect(texts[0].textContent).toBe('VM');
+    expect(texts.length).toBe(0);
     expect(images.length).toBe(1);
   });
 });

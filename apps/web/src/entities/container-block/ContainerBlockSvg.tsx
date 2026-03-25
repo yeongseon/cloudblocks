@@ -86,7 +86,7 @@ export const ContainerBlockSvg = memo(function PlateSvg({
   topFaceStroke,
   leftSideColor,
   rightSideColor,
-  label,
+  label: _label,
   iconUrl,
 }: ContainerBlockSvgProps) {
   // CU-based pixel conversion: 1 CU = 1 unit, rendered via TILE_W/H/Z
@@ -111,7 +111,6 @@ export const ContainerBlockSvg = memo(function PlateSvg({
   const rightSidePoints = `${cx},${bottomY} ${rightX},${midY} ${rightX},${midY + sideWallPx} ${cx},${bottomY + sideWallPx}`;
 
   // Label positioning on side walls
-  const leftLabelX = (leftX + cx) / 2;
   const rightLabelX = (cx + rightX) / 2;
   const wallCenterY = (midY + bottomY + sideWallPx) / 2;
 
@@ -131,23 +130,31 @@ export const ContainerBlockSvg = memo(function PlateSvg({
         strokeWidth={visuals.strokeWidth}
         strokeOpacity={visuals.strokeOpacity}
       />
+
+      {/* Fake inset — inner highlight ring */}
+      <polygon
+        points={topFacePoints}
+        fill="none"
+        stroke="rgba(203,213,225,0.16)"
+        strokeWidth={1}
+        strokeLinejoin="round"
+        transform={`translate(0, 0.5)`}
+        pointerEvents="none"
+        data-layer="inset-highlight"
+      />
+      {/* Fake inset — inner shadow ring */}
+      <polygon
+        points={topFacePoints}
+        fill="none"
+        stroke="rgba(2,6,23,0.45)"
+        strokeWidth={1}
+        strokeLinejoin="round"
+        transform={`translate(0, -0.5)`}
+        pointerEvents="none"
+        data-layer="inset-shadow"
+      />
       <polygon points={leftSidePoints} fill={leftSideColor} />
       <polygon points={rightSidePoints} fill={rightSideColor} />
-
-      {label ? (
-        <text
-          transform={`matrix(0.8975,0.4410,0,1,${leftLabelX},${wallCenterY})`}
-          fontFamily="system-ui, -apple-system, sans-serif"
-          fontSize={visuals.labelFontSize}
-          fontWeight="700"
-          fill="#ffffff"
-          fillOpacity="0.9"
-          textAnchor="middle"
-          dominantBaseline="middle"
-        >
-          {label}
-        </text>
-      ) : null}
 
       {iconUrl ? (
         <image

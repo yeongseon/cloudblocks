@@ -10,9 +10,9 @@ import { PROVIDER_COLORS } from '../../block/blockFaceColors';
 describe('connectionFaceColors', () => {
   describe('CONNECTION_SEMANTIC_BASE_COLORS', () => {
     it('has entries for http, event, and data', () => {
-      expect(CONNECTION_SEMANTIC_BASE_COLORS.http).toBe('#6366F1');
-      expect(CONNECTION_SEMANTIC_BASE_COLORS.event).toBe('#F43F5E');
-      expect(CONNECTION_SEMANTIC_BASE_COLORS.data).toBe('#84CC16');
+      expect(CONNECTION_SEMANTIC_BASE_COLORS.http).toBe('#6F87B6');
+      expect(CONNECTION_SEMANTIC_BASE_COLORS.event).toBe('#C97A63');
+      expect(CONNECTION_SEMANTIC_BASE_COLORS.data).toBe('#5FA59B');
     });
 
     it('contains exactly 3 semantics', () => {
@@ -28,20 +28,19 @@ describe('connectionFaceColors', () => {
         const colors = getConnectionColors(semantic);
 
         expect(colors.base).toBe(CONNECTION_SEMANTIC_BASE_COLORS[semantic]);
-        expect(colors.topFaceColor).toMatch(/^#[0-9A-F]{6}$/i);
-        expect(colors.topFaceStroke).toMatch(/^#[0-9A-F]{6}$/i);
-        expect(colors.leftSideColor).toMatch(/^#[0-9A-F]{6}$/i);
-        expect(colors.rightSideColor).toMatch(/^#[0-9A-F]{6}$/i);
+        expect(colors.stroke).toMatch(/^#[0-9A-Fa-f]{6}$/);
+        expect(colors.casing).toMatch(/^#[0-9A-Fa-f]{6}$/);
       });
 
-      it(`"${semantic}" topFaceColor differs from base (lightened)`, () => {
+      it(`"${semantic}" stroke equals base color`, () => {
         const colors = getConnectionColors(semantic);
-        expect(colors.topFaceColor).not.toBe(colors.base);
+        expect(colors.stroke).toBe(colors.base);
       });
 
-      it(`"${semantic}" leftSideColor differs from rightSideColor`, () => {
+      it(`"${semantic}" casing is darker than base`, () => {
         const colors = getConnectionColors(semantic);
-        expect(colors.leftSideColor).not.toBe(colors.rightSideColor);
+        // Casing should be a different (darker) color
+        expect(colors.casing).not.toBe(colors.base);
       });
     }
   });
