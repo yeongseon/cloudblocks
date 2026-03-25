@@ -271,7 +271,7 @@ export function SceneCanvas() {
         <div className="block-layer">
           {blocks.map((block) => {
             const parentContainer = plates.find((p) => p.id === block.parentId);
-            if (!parentContainer) return null;
+            if (!parentContainer?.frame) return null;
             const worldX = parentContainer.position.x + block.position.x;
             const worldY = parentContainer.position.y + parentContainer.frame.height;
             const worldZ = parentContainer.position.z + block.position.z;

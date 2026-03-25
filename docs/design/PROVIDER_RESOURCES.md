@@ -122,7 +122,7 @@ Simpler approach: always show badge **except** when all blocks share the same pr
 
 ### 2.4 Subtype Storage
 
-When a block is created via CommandCard, `Block.subtype` stores the `ResourceType` ID (e.g., `'sql'`, `'app-service'`, `'vm'`). This is already working — `def.id` is passed as subtype in `addBlock()`.
+When a block is created via the sidebar palette, `Block.subtype` stores the `ResourceType` ID (e.g., `'sql'`, `'app-service'`, `'vm'`). This is already working — `def.id` is passed as subtype in `addBlock()`.
 
 No change needed here, but the subtype should also be provider-aware for future use:
 
@@ -178,8 +178,8 @@ No change needed here, but the subtype should also be provider-aware for future 
 ### Issue 1: Provider-specific resource labels (#1023)
 
 - Add `PROVIDER_LABELS` to `useTechTree.ts`
-- Update `CommandCard` to read labels from provider map
-- Files: `useTechTree.ts`, `CommandCard.tsx`
+- Update `SidebarPalette` to read labels from provider map
+- Files: `useTechTree.ts`, `SidebarPalette.tsx`
 
 ### Issue 2: Fix wrong icon mappings
 

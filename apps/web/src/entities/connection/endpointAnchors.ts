@@ -108,7 +108,7 @@ function resolveEndpoint(
     if (!container) return null;
 
     const worldPos = getBlockWorldPosition(block, container);
-    const floorY = container.position.y + container.frame.height;
+    const floorY = container.position.y + (container.frame?.height ?? 0);
     const cu = getBlockDimensions(block.category, block.provider, block.subtype);
     const anchors = getBlockWorldAnchors(worldPos, cu);
 

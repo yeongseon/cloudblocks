@@ -178,6 +178,8 @@ export const ContainerBlockSprite = memo(function PlateSprite({
   const label = container.name || typeLabel;
   const iconUrl = getContainerBlockIconUrl(containerLayer);
 
+  if (!container.frame) return null;
+
   const { screenWidth, screenHeight } = worldSizeToScreen(
     container.frame.width,
     container.frame.height,

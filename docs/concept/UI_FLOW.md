@@ -45,26 +45,24 @@ The canvas is an SVG-based 2D workspace with 2.5D isometric rendering.
 | **Network**          | Azure VNet / AWS VPC / GCP VPC | Top-level container      |
 | **Subnet**           | Public or Private subnet       | Must be inside a Network |
 
-Container blocks are placed via the Insert menu or by dragging from the CommandCard palette.
+Container blocks are placed via the Insert menu or by dragging from the sidebar palette.
 
 ### Blocks (Cloud Resources)
 
-10 resource categories, placed inside container blocks:
+8 resource categories, placed inside container blocks:
 
-| Category          | Examples                   | Initiator?             |
-| ----------------- | -------------------------- | ---------------------- |
-| **Compute**       | VM, App Service            | Yes                    |
-| **Database**      | SQL, Cosmos DB             | No (receiver-only)     |
-| **Storage**       | Blob, Data Lake            | No (receiver-only)     |
-| **Gateway**       | API Gateway, Load Balancer | Yes                    |
-| **Function**      | Azure Function, Lambda     | Yes                    |
-| **Queue**         | Service Bus, SQS           | Yes (to function only) |
-| **Event**         | Event Grid, EventBridge    | Yes (to function only) |
-| **Analytics**     | Log Analytics, CloudWatch  | No (receiver-only)     |
-| **Identity**      | Entra ID, IAM              | No (receiver-only)     |
-| **Observability** | Azure Monitor, CloudWatch  | No (receiver-only)     |
+| Category       | Examples                       | Initiator?             |
+| -------------- | ------------------------------ | ---------------------- |
+| **Network**    | VNet, Subnet, NSG              | No (boundary)          |
+| **Delivery**   | API Gateway, Load Balancer     | Yes                    |
+| **Compute**    | VM, App Service, Function      | Yes                    |
+| **Data**       | SQL, Cosmos DB, Blob Storage   | No (receiver-only)     |
+| **Messaging**  | Service Bus, Event Grid, Queue | Yes (to function only) |
+| **Security**   | Firewall, WAF                  | No (receiver-only)     |
+| **Identity**   | Entra ID, IAM                  | No (receiver-only)     |
+| **Operations** | Monitor, Log Analytics         | No (receiver-only)     |
 
-Blocks are created by dragging from the **CommandCard** palette in the Bottom Panel, or via `Insert` menu.
+Blocks are created by dragging from the **sidebar palette**, or via `Insert` menu.
 
 ### Interaction Model
 
@@ -238,7 +236,7 @@ The **MenuBar** displays three provider tabs (Azure / AWS / GCP). Clicking a tab
 
 | What Changes         | Description                                              |
 | -------------------- | -------------------------------------------------------- |
-| **Resource palette** | CommandCard filters available resources by provider      |
+| **Resource palette** | Sidebar palette filters available resources by provider  |
 | **New blocks**       | Newly created blocks are tagged with the active provider |
 | **Visual cues**      | UI elements update to reflect the active provider        |
 | **Code generation**  | CodePreview generates IaC for the active provider        |
@@ -264,7 +262,7 @@ The **MenuBar** displays three provider tabs (Azure / AWS / GCP). Clicking a tab
 activeProvider (uiStore — global UI toggle)
   ├── MenuBar          → Provider tab buttons (with confirmation dialog)
   ├── SceneCanvas      → New blocks tagged with activeProvider
-  ├── CommandCard      → Resource list filtered by provider
+  ├── SidebarPalette  → Resource list filtered by provider
   ├── CodePreview      → IaC generation + mismatch warning
   └── DragGhost        → Provider name during drag
 ```

@@ -10,7 +10,12 @@ import type {
   Workspace,
 } from './index';
 import logger from '../utils/logger';
-import { buildContainerBlockSizeFromProfileId, inferLegacyContainerBlockProfileId } from './index';
+import {
+  buildContainerBlockSizeFromProfileId,
+  inferLegacyContainerBlockProfileId,
+  isContainerBlockProfileId,
+  DEFAULT_CONTAINER_BLOCK_PROFILE,
+} from './index';
 import {
   connectionTypeToSemantic,
   endpointId,
@@ -307,6 +312,19 @@ export function deserialize(json: string): Workspace[] {
           });
           node.profileId = inferredProfileId;
           node.frame = buildContainerBlockSizeFromProfileId(inferredProfileId);
+          delete node.size;
+        }
+
+        // Ensure every container has a valid frame — handles the case where
+        // profileId exists but frame was lost or stored under legacy 'size' key
+        if (node.kind === 'container' && !isRecord(node.frame)) {
+          const layer = typeof node.layer === 'string' ? (node.layer as ContainerLayer) : 'region';
+          const pid =
+            typeof node.profileId === 'string' && isContainerBlockProfileId(node.profileId)
+              ? node.profileId
+              : (DEFAULT_CONTAINER_BLOCK_PROFILE[layer] ?? DEFAULT_CONTAINER_BLOCK_PROFILE.region);
+          node.profileId = pid;
+          node.frame = buildContainerBlockSizeFromProfileId(pid);
           delete node.size;
         }
       }

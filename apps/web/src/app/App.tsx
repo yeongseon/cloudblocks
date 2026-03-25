@@ -9,6 +9,7 @@ import { metricsService } from '../shared/utils/metricsService';
 import { LandingPage } from '../widgets/landing-page/LandingPage';
 import { BuilderView } from './BuilderView';
 import { DemoBanner } from './DemoBanner';
+import { MobileGuard } from './MobileGuard';
 import './App.css';
 
 registerBuiltinTemplates();
@@ -32,6 +33,7 @@ function App() {
   return (
     <div className="app">
       <DemoBanner />
+      <MobileGuard />
       {effectiveAppView === 'landing' ? <LandingPage /> : <BuilderView />}
       <Toaster
         position="bottom-center"

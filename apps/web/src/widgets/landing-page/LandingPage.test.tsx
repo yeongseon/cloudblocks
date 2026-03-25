@@ -37,13 +37,13 @@ describe('LandingPage', () => {
     });
   });
 
-  it('shows only the first three templates and slices tags to three', () => {
+  it('shows all templates and slices tags to three', () => {
     render(<LandingPage />);
 
     expect(screen.getByText('Template 1')).toBeInTheDocument();
     expect(screen.getByText('Template 2')).toBeInTheDocument();
     expect(screen.getByText('Template 3')).toBeInTheDocument();
-    expect(screen.queryByText('Template 4')).not.toBeInTheDocument();
+    expect(screen.getByText('Template 4')).toBeInTheDocument();
     expect(screen.getByText('a')).toBeInTheDocument();
     expect(screen.getByText('b')).toBeInTheDocument();
     expect(screen.getByText('c')).toBeInTheDocument();

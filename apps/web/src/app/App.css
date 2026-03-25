@@ -22,7 +22,7 @@
   flex: 1;
   overflow: hidden;
   padding-bottom: 268px;
-  padding-right: 380px; /* CommandCard always-open sidebar width */
+  padding-right: 380px; /* sidebar-palette always-open width */
   transition: padding-right 0.3s ease;
 }
 

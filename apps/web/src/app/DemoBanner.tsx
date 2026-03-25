@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const DEMO_BANNER_DISMISSED_KEY = 'cloudblocks:demo-banner-dismissed';
+const DEMO_BANNER_DISMISSED_KEY = 'cloudblocks:standalone-banner-dismissed';
 
 function getDemoBannerVisibility(): boolean {
   // This should only run client-side
@@ -47,8 +47,8 @@ export function DemoBanner() {
       }}
     >
       <span>
-        ℹ️ Frontend-Only Mode — Visual builder, code generation, and templates work instantly in the
-        browser. AI and GitHub features require the backend.
+        Visual builder, templates, and code generation work instantly — no backend required. Connect
+        the backend to unlock AI and GitHub features.
       </span>
       <button
         onClick={handleDismiss}

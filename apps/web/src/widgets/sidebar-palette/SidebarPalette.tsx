@@ -22,15 +22,11 @@ import { getResourceIconUrl } from '../../shared/utils/iconResolver';
 import './SidebarPalette.css';
 
 const CATEGORY_COLOR_VARS: Record<CreationGroupId, string> = {
-  foundation: 'var(--cat-network)',
-  network: 'var(--cat-network)',
+  foundations: 'var(--cat-network)',
+  networking: 'var(--cat-network)',
   compute: 'var(--cat-compute)',
   data: 'var(--cat-data)',
   security: 'var(--cat-security)',
-  delivery: 'var(--cat-edge)',
-  identity: '#0078D4',
-  messaging: 'var(--cat-messaging)',
-  operations: 'var(--cat-operations)',
 };
 
 interface HighlightMatchProps {
