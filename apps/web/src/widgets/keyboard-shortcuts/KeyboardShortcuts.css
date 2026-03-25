@@ -1,0 +1,231 @@
+.keyboard-shortcuts-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+}
+
+.keyboard-shortcuts-modal {
+  background-color: #1a1a2e;
+  color: #e0e0e0;
+  border-radius: 12px;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  max-width: 480px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: keyboard-shortcuts-slide-up 0.2s ease-out;
+}
+
+@keyframes keyboard-shortcuts-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scrollbar styling for modal */
+.keyboard-shortcuts-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.keyboard-shortcuts-modal::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.keyboard-shortcuts-modal::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.keyboard-shortcuts-modal::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.keyboard-shortcuts-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+.keyboard-shortcuts-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.keyboard-shortcuts-close {
+  background: none;
+  border: none;
+  color: #a0a0a0;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.keyboard-shortcuts-close:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.keyboard-shortcuts-close:active {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.keyboard-shortcuts-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.keyboard-shortcuts-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.keyboard-shortcuts-group-title {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #808080;
+  padding: 0 0 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.keyboard-shortcuts-list {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.keyboard-shortcuts-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.keyboard-shortcuts-keys {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.keyboard-shortcuts-key {
+  background-color: #2a2a3e;
+  color: #d0d0d0;
+  border: 1px solid #3a3a4e;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-family: 'Monaco', 'Courier New', monospace;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 28px;
+  box-shadow:
+    inset 0 -2px 0 rgba(0, 0, 0, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: all 0.15s ease;
+}
+
+.keyboard-shortcuts-key:hover {
+  background-color: #323245;
+  border-color: #4a4a5e;
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 -2px 0 rgba(0, 0, 0, 0.3),
+    0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+.keyboard-shortcuts-plus,
+.keyboard-shortcuts-separator {
+  margin: 0 2px;
+  color: #808080;
+  font-size: 12px;
+}
+
+.keyboard-shortcuts-desc {
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  color: #b0b0b0;
+  text-align: left;
+  flex: 1;
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+  .keyboard-shortcuts-modal {
+    max-width: 95%;
+    border-radius: 8px;
+  }
+
+  .keyboard-shortcuts-header {
+    padding: 16px;
+  }
+
+  .keyboard-shortcuts-title {
+    font-size: 16px;
+    gap: 8px;
+  }
+
+  .keyboard-shortcuts-body {
+    padding: 16px;
+    gap: 20px;
+  }
+
+  .keyboard-shortcuts-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .keyboard-shortcuts-keys {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}

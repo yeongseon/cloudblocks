@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import type { ContainerBlock, ResourceBlock } from '@cloudblocks/schema';
 import { SceneCanvas } from '../widgets/scene-canvas/SceneCanvas';
@@ -6,6 +6,7 @@ import { MenuBar } from '../widgets/menu-bar/MenuBar';
 import { SidebarPalette } from '../widgets/sidebar-palette';
 import { OnboardingTour } from '../widgets/onboarding-tour/OnboardingTour';
 import { Helper } from '../widgets/helper/Helper';
+import { KeyboardShortcuts } from '../widgets/keyboard-shortcuts/KeyboardShortcuts';
 import { RightDrawer } from '../widgets/right-drawer';
 import { EmptyCanvasCTA } from '../widgets/empty-canvas-cta';
 import { useArchitectureStore } from '../entities/store/architectureStore';
@@ -63,6 +64,7 @@ const PromoteHistory = lazy(() =>
 );
 
 export function BuilderView() {
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const loadFromStorage = useArchitectureStore((s) => s.loadFromStorage);
   const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
   const undo = useArchitectureStore((s) => s.undo);
@@ -140,6 +142,10 @@ export function BuilderView() {
         return;
       }
 
+      if (e.key === '?') {
+        setShowKeyboardShortcuts(true);
+        return;
+      }
       if (e.key === 's' && e.ctrlKey && e.altKey) {
         e.preventDefault();
         useUIStore.getState().toggleSidebar();
@@ -192,7 +198,7 @@ export function BuilderView() {
         return;
       }
 
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && !showKeyboardShortcuts) {
         if (interactionState === 'placing') {
           cancelInteraction();
           return;
@@ -218,6 +224,7 @@ export function BuilderView() {
     setSelectedId,
     interactionState,
     cancelInteraction,
+    showKeyboardShortcuts,
   ]);
 
   return (
@@ -252,6 +259,11 @@ export function BuilderView() {
           {showRollbackDialog && <RollbackDialog />}
           {showPromoteHistory && <PromoteHistory />}
         </Suspense>
+
+        <KeyboardShortcuts
+          isOpen={showKeyboardShortcuts}
+          onClose={() => setShowKeyboardShortcuts(false)}
+        />
       </div>
 
       <OnboardingTour />
