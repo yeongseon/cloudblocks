@@ -2,7 +2,10 @@
 
 > **Audience**: All users | **Status**: V1 Core | **Verified against**: v0.26.0
 
-Workspaces let you manage multiple architecture projects independently. All data is stored in your browser's local storage — no account or backend required.
+Workspaces let you keep separate learning exercises, template variations, and practice architectures. All data is stored in your browser's local storage — no account or backend required.
+
+!!! tip "Good learning setup"
+Create one workspace per template or scenario so you can compare versions without losing the original example.
 
 ---
 

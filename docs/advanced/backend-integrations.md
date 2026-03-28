@@ -5,7 +5,7 @@
 !!! note "Optional for V1"
 CloudBlocks V1 is a frontend-only tool. The backend is optional and provides additional features like GitHub sync and AI assistance. These features are not part of the V1 Core experience.
 
-The CloudBlocks backend is a FastAPI application that enables additional features beyond the core visual builder.
+The CloudBlocks backend is a FastAPI application that enables optional features beyond the core browser-based learning experience.
 
 ---
 

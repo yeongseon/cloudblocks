@@ -1,11 +1,11 @@
 [project]
 name = "cloudblocks-api"
 version = "0.19.2"
-description = "CloudBlocks API — orchestration backend for auth, GitHub integration, and code generation"
+description = "CloudBlocks API — optional backend for auth, GitHub sync, and learning tool integrations"
 requires-python = ">=3.10"
 license = {text = "Apache-2.0"}
 authors = [{name = "yeongseon"}]
-keywords = ["cloud-architecture", "infrastructure-as-code", "fastapi"]
+keywords = ["cloud-architecture", "learning-tool", "fastapi", "infrastructure-as-code"]
 dependencies = [
     "fastapi>=0.110.0",
     "uvicorn[standard]>=0.27.0",

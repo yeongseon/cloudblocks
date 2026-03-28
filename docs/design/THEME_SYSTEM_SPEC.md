@@ -11,7 +11,7 @@
 
 ## 0. Purpose
 
-This specification defines the **dual theme system** for CloudBlocks — a preset-driven visual architecture design tool. It establishes two visual themes that share identical layout, geometry, and interaction — only visual tokens (colors, border-radius, shadows) differ.
+This specification defines the **dual theme system** for CloudBlocks — a visual cloud learning tool for beginners. It establishes two visual themes that share identical layout, geometry, and interaction — only visual tokens (colors, border-radius, shadows) differ.
 
 ### Current Implementation (M22)
 
@@ -60,7 +60,7 @@ export type ThemeVariant = 'blueprint' | 'workshop';
 
 ### 2.2 Workshop Theme (Default)
 
-The Workshop theme targets users who treat CloudBlocks as a production architecture tool. Visual cues are understated and informational.
+The Workshop theme is the default learning environment. Visual cues are calm, readable, and instructional so beginners can focus on architecture concepts without visual overload.
 
 **Visual character**:
 

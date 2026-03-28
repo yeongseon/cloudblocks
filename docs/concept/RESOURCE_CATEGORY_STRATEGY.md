@@ -2,15 +2,15 @@
 
 > Status: Active — Governs M19–M27 implementation.
 >
-> Principle: **Universal resource categories, Azure-only supported resources (v1).** CloudBlocks is a preset-driven visual architecture design tool; code generation is an Experimental feature.
+> Principle: **Universal resource categories, Azure-first guided learning content (V1).** CloudBlocks is a visual cloud learning tool for beginners; Terraform starter export is a V1 Core learning feature, Bicep and Pulumi are Experimental.
 
 ## Motivation
 
-The original 10-category `BlockCategory` (compute, database, storage, gateway, function, queue, event, analytics, identity, observability) was tightly coupled to specific implementation patterns — `function` as its own category, `queue` and `event` as separate concepts, `database` and `storage` split unnecessarily. As CloudBlocks evolves toward a production visual design tool with multi-cloud preview, categories must:
+The original 10-category `BlockCategory` (compute, database, storage, gateway, function, queue, event, analytics, identity, observability) was tightly coupled to specific implementation patterns — `function` as its own category, `queue` and `event` as separate concepts, `database` and `storage` split unnecessarily. As CloudBlocks evolves as a visual cloud learning tool with multi-cloud preview, categories must:
 
 1. Reflect industry-standard resource groupings across all major cloud providers.
 2. Remain stable as provider coverage expands (Azure → AWS → GCP).
-3. Support future code generation output (Terraform modules, Bicep resources, Pulumi components) when promoted from Experimental.
+3. Support future code generation output (Terraform modules, Bicep resources, Pulumi components) as the learning tool matures.
 4. Minimize forced abstraction — group by real operational similarity, not marketing categories.
 
 ## Category Taxonomy (8 Categories)

@@ -2,7 +2,7 @@
 
 > **Audience**: All users | **Status**: V1 Core | **Verified against**: v0.26.0
 
-The CloudBlocks editor is a visual canvas for building cloud architecture diagrams. This page covers the interface layout and common interactions.
+The CloudBlocks editor is a hands-on workspace for learning cloud architecture. Most beginners should start from a guided template or scenario, then use this page as a reference while they explore the canvas, palette, inspector, and validation tools.
 
 ---
 
