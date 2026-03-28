@@ -81,7 +81,6 @@ describe('BuilderView', () => {
       showGitHubRepos: false,
       showGitHubPR: false,
       showTemplateGallery: false,
-      persona: null,
       sidebar: { isOpen: true },
       pendingGitHubAction: null,
       diffMode: false,

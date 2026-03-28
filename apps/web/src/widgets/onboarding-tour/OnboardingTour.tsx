@@ -1,14 +1,9 @@
 import { useState, useEffect, useCallback, useRef, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import { useUIStore } from '../../entities/store/uiStore';
-import type { Persona } from '../../shared/types';
-import { PERSONA_LABELS } from '../../shared/types';
 import './OnboardingTour.css';
 
 const STORAGE_KEY = 'cloudblocks:onboarding-completed';
-const PERSONA_STORAGE_KEY = 'cloudblocks:persona';
-
-const ALL_PERSONAS: Persona[] = ['devops', 'backend', 'pm', 'student'];
 
 interface TourStep {
   selector: string;
@@ -125,45 +120,9 @@ function getReadySnapshot() {
   return readyFlag;
 }
 
-function PersonaSelection({ onSelect }: { onSelect: (persona: Persona) => void }) {
-  return (
-    <div className="onboarding-overlay onboarding-overlay--visible" data-testid="persona-selection">
-      <div className="persona-selection-backdrop" />
-      <div className="persona-selection-dialog">
-        <h2 className="persona-selection-title">What best describes you?</h2>
-        <p className="persona-selection-subtitle">
-          This sets your default UI layout. You can change it anytime.
-        </p>
-        <div className="persona-selection-grid">
-          {ALL_PERSONAS.map((p) => {
-            const label = PERSONA_LABELS[p];
-            return (
-              <button
-                key={p}
-                type="button"
-                className="persona-card"
-                data-testid={`persona-card-${p}`}
-                onClick={() => onSelect(p)}
-              >
-                <span className="persona-card-icon">{label.icon}</span>
-                <span className="persona-card-title">{label.title}</span>
-                <span className="persona-card-desc">{label.description}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function OnboardingTour() {
   const showOnboarding = useUIStore((s) => s.showOnboarding);
   const setShowOnboarding = useUIStore((s) => s.setShowOnboarding);
-  const persona = useUIStore((s) => s.persona);
-  const setPersona = useUIStore((s) => s.setPersona);
-
-  const needsPersona = showOnboarding && !persona && !localStorage.getItem(PERSONA_STORAGE_KEY);
 
   const [currentStep, setCurrentStep] = useState(0);
   const [spotlight, setSpotlight] = useState<SpotlightRect | null>(null);
@@ -171,15 +130,15 @@ export function OnboardingTour() {
   const ready = useSyncExternalStore(subscribeReady, getReadySnapshot);
 
   const updateSpotlight = useCallback(() => {
-    if (!showOnboarding || needsPersona) return;
+    if (!showOnboarding) return;
     const step = STEPS[currentStep];
     step.ensureVisible?.();
     const rect = getTargetRect(step);
     setSpotlight(rect);
-  }, [showOnboarding, needsPersona, currentStep]);
+  }, [showOnboarding, currentStep]);
 
   useEffect(() => {
-    if (!showOnboarding || needsPersona) {
+    if (!showOnboarding) {
       readyFlag = false;
       for (const cb of readyListeners) cb();
       return;
@@ -191,10 +150,10 @@ export function OnboardingTour() {
       for (const cb of readyListeners) cb();
     });
     return () => cancelAnimationFrame(frameId);
-  }, [showOnboarding, needsPersona, updateSpotlight]);
+  }, [showOnboarding, updateSpotlight]);
 
   useEffect(() => {
-    if (!showOnboarding || needsPersona) return;
+    if (!showOnboarding) return;
 
     const handleResize = () => {
       cancelAnimationFrame(rafRef.current);
@@ -206,17 +165,17 @@ export function OnboardingTour() {
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(rafRef.current);
     };
-  }, [showOnboarding, needsPersona, updateSpotlight]);
+  }, [showOnboarding, updateSpotlight]);
 
   useEffect(() => {
-    if (!showOnboarding || needsPersona) return;
+    if (!showOnboarding) return;
     const step = STEPS[currentStep];
     step.ensureVisible?.();
     const restore = elevateTarget(step);
     return () => {
       restore?.();
     };
-  }, [showOnboarding, needsPersona, currentStep]);
+  }, [showOnboarding, currentStep]);
 
   const completeTour = useCallback(() => {
     localStorage.setItem(STORAGE_KEY, 'true');
@@ -251,18 +210,7 @@ export function OnboardingTour() {
     }
   }, [currentStep]);
 
-  const handlePersonaSelect = useCallback(
-    (selected: Persona) => {
-      setPersona(selected);
-    },
-    [setPersona],
-  );
-
   if (!showOnboarding) return null;
-
-  if (needsPersona) {
-    return createPortal(<PersonaSelection onSelect={handlePersonaSelect} />, document.body);
-  }
 
   if (!ready) return null;
 

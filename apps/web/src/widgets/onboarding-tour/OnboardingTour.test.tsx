@@ -4,7 +4,6 @@ import { OnboardingTour } from './OnboardingTour';
 import { useUIStore } from '../../entities/store/uiStore';
 
 const STORAGE_KEY = 'cloudblocks:onboarding-completed';
-const PERSONA_STORAGE_KEY = 'cloudblocks:persona';
 
 let targetElements: HTMLElement[] = [];
 
@@ -59,12 +58,9 @@ describe('OnboardingTour', () => {
     vi.clearAllMocks();
     localStorage.clear();
     localStorage.setItem(STORAGE_KEY, 'true');
-    // Set persona so existing tour tests bypass PersonaSelection screen
-    localStorage.setItem(PERSONA_STORAGE_KEY, 'devops');
     useUIStore.setState({
       showOnboarding: false,
-      persona: 'devops' as const,
-      complexityLevel: 'advanced' as const,
+      complexityLevel: 'beginner' as const,
     });
     createTargetElements();
     restoreRect = mockGetBoundingClientRect();
@@ -83,12 +79,12 @@ describe('OnboardingTour', () => {
 
   it('automatically shows onboarding when onboarding-completed key is absent', () => {
     localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(PERSONA_STORAGE_KEY);
-    useUIStore.setState({ showOnboarding: !localStorage.getItem(STORAGE_KEY), persona: null });
+    useUIStore.setState({ showOnboarding: !localStorage.getItem(STORAGE_KEY) });
 
     render(<OnboardingTour />);
 
-    expect(screen.getByTestId('persona-selection')).toBeInTheDocument();
+    // Tour proceeds directly to step 1 without persona selection
+    expect(screen.queryByTestId('persona-selection')).not.toBeInTheDocument();
   });
 
   it('does not show onboarding when onboarding-completed key exists', () => {
@@ -98,7 +94,6 @@ describe('OnboardingTour', () => {
     render(<OnboardingTour />);
 
     expect(screen.queryByTestId('onboarding-tour')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('persona-selection')).not.toBeInTheDocument();
   });
 
   it('renders tour when showOnboarding is true', async () => {
@@ -273,43 +268,16 @@ describe('OnboardingTour', () => {
     expect(useUIStore.getState().sidebar.isOpen).toBe(true);
   });
 
-  it('shows persona selection when no persona is saved', async () => {
-    localStorage.removeItem(PERSONA_STORAGE_KEY);
-    useUIStore.setState({ showOnboarding: true, persona: null });
+  it('proceeds directly to tour without persona selection', async () => {
+    localStorage.removeItem(STORAGE_KEY);
+    useUIStore.setState({ showOnboarding: true });
     render(<OnboardingTour />);
-
-    expect(screen.getByTestId('persona-selection')).toBeInTheDocument();
-    expect(screen.getByText('What best describes you?')).toBeInTheDocument();
-    expect(screen.getByTestId('persona-card-devops')).toBeInTheDocument();
-    expect(screen.getByTestId('persona-card-backend')).toBeInTheDocument();
-    expect(screen.getByTestId('persona-card-pm')).toBeInTheDocument();
-    expect(screen.getByTestId('persona-card-student')).toBeInTheDocument();
-  });
-
-  it('clicking persona card sets store and localStorage', async () => {
-    localStorage.removeItem(PERSONA_STORAGE_KEY);
-    useUIStore.setState({ showOnboarding: true, persona: null });
-    render(<OnboardingTour />);
-
-    fireEvent.click(screen.getByTestId('persona-card-backend'));
-
-    expect(localStorage.getItem(PERSONA_STORAGE_KEY)).toBe('backend');
-    expect(useUIStore.getState().persona).toBe('backend');
-  });
-
-  it('after persona selected, tour proceeds to step 1', async () => {
-    localStorage.removeItem(PERSONA_STORAGE_KEY);
-    useUIStore.setState({ showOnboarding: true, persona: null });
-    render(<OnboardingTour />);
-
-    expect(screen.getByTestId('persona-selection')).toBeInTheDocument();
-
-    fireEvent.click(screen.getByTestId('persona-card-devops'));
 
     await act(async () => {
       await new Promise((r) => requestAnimationFrame(r));
     });
 
+    // No persona selection screen — tour starts immediately
     expect(screen.queryByTestId('persona-selection')).not.toBeInTheDocument();
     expect(screen.getByTestId('onboarding-tour')).toBeInTheDocument();
     expect(screen.getByText('Add a Node')).toBeInTheDocument();
