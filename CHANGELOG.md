@@ -34,14 +34,6 @@ This is a documentation-only change applied on top of v0.26.0. No code changes.
 - docs/advanced/blank-canvas.md, code-generation.md
 - mkdocs.yml, package.json, CHANGELOG.md
 
-### Context
-
-This positioning reset was informed by 4 rounds of Oracle strategic analysis:
-- Competitive gap: No beginner-focused cloud learning tool exists in the market
-- Benchmark: `diagrams` Python library (42k stars) succeeded through extreme scope narrowness
-- Success probability: 40–55% (niche OSS), 10–15% (business) — up from 25–35% pre-reset
-- Key risk: Whether high-quality guided content can be produced fast enough
-
 ---
 
 ## [v0.26.0] — 2026-03-25
