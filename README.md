@@ -32,13 +32,13 @@ _Automated demo video coming soon. For now, [try the live demo](https://yeongseo
 
 Most diagram tools produce static images. CloudBlocks produces a **live architecture model** with built-in learning and validation — designed for people just getting started with cloud infrastructure.
 
-|             | Diagram Tool | CloudBlocks                                       |
-| ----------- | ------------ | ------------------------------------------------- |
-| Output      | Static image | Interactive architecture model                    |
-| Validation  | None         | Real-time rule engine                             |
-| Semantics   | Visual only  | Every block maps to a real cloud resource         |
-| Learning    | None         | Guided scenarios for beginners                    |
-| Code Export | None         | Terraform starter code                            |
+|             | Diagram Tool | CloudBlocks                               |
+| ----------- | ------------ | ----------------------------------------- |
+| Output      | Static image | Interactive architecture model            |
+| Validation  | None         | Real-time rule engine                     |
+| Semantics   | Visual only  | Every block maps to a real cloud resource |
+| Learning    | None         | Guided scenarios for beginners            |
+| Code Export | None         | Terraform starter code                    |
 
 ## Features
 
@@ -52,6 +52,7 @@ Most diagram tools produce static images. CloudBlocks produces a **live architec
 - 🎨 **Dual theme system** — Workshop (light, enterprise) and Blueprint (dark, creative)
 - ⚗️ **Bicep & Pulumi** _(Experimental)_ — Additional IaC export formats
 - 🔗 **GitHub integration** _(Backend required)_ — OAuth login, repo sync, PR creation
+
 ## Quick Start
 
 ```bash
@@ -102,12 +103,12 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 
 ## Product Evolution
 
-| Stage  | Name  | Focus                                                                  | Status      |
-| ------ | ----- | ---------------------------------------------------------------------- | ----------- |
-| **V1** | Learn | Visual cloud learning tool for beginners                               | **Current** |
-| **V2** | Export | Trustworthy Terraform starter code with hypothesis validation          | Next        |
-| **V3** | Practice | Learning paths with progress tracking and guided scenarios          | Later       |
-| **V4** | Teach | Educator distribution, curriculum packaging, community sharing         | Future      |
+| Stage  | Name     | Focus                                                          | Status      |
+| ------ | -------- | -------------------------------------------------------------- | ----------- |
+| **V1** | Learn    | Visual cloud learning tool for beginners                       | **Current** |
+| **V2** | Export   | Trustworthy Terraform starter code with hypothesis validation  | Next        |
+| **V3** | Practice | Learning paths with progress tracking and guided scenarios     | Later       |
+| **V4** | Teach    | Educator distribution, curriculum packaging, community sharing | Future      |
 
 See [ROADMAP.md](docs/concept/ROADMAP.md) for details and [CHANGELOG.md](CHANGELOG.md) for release history.
 

@@ -42,12 +42,12 @@
 
 ## Your First Architecture in 4 Steps
 
-| Step  | What You Do                                  | Guide                                                  |
-| :---: | -------------------------------------------- | ------------------------------------------------------ |
-| **1** | Open the builder (live demo or local)        | [Quick Start](user-guide/quick-start.md)               |
-| **2** | Load a guided template and follow the steps  | [First Architecture](user-guide/first-architecture.md) |
-| **3** | Customize — add blocks, connect, validate    | [Editor Basics](user-guide/editor-basics.md)           |
-| **4** | Export Terraform starter code to keep learning | [Workspaces](user-guide/workspaces.md)               |
+| Step  | What You Do                                    | Guide                                                  |
+| :---: | ---------------------------------------------- | ------------------------------------------------------ |
+| **1** | Open the builder (live demo or local)          | [Quick Start](user-guide/quick-start.md)               |
+| **2** | Load a guided template and follow the steps    | [First Architecture](user-guide/first-architecture.md) |
+| **3** | Customize — add blocks, connect, validate      | [Editor Basics](user-guide/editor-basics.md)           |
+| **4** | Export Terraform starter code to keep learning | [Workspaces](user-guide/workspaces.md)                 |
 
 ---
 
@@ -77,17 +77,17 @@ CloudBlocks uses a **block-based composition model** where everything snaps toge
 
 ## Features at a Glance
 
-| Feature                       | Description                                                                       |
-| ----------------------------- | --------------------------------------------------------------------------------- |
-| **Visual Builder**            | Drag-and-drop editor with grid snapping and auto-layout                           |
-| **Guided Templates**          | 6 built-in architecture patterns with step-by-step learning scenarios             |
-| **Learning Mode**             | Interactive guided scenarios to learn cloud architecture patterns (V1 Core)       |
-| **8 Resource Categories**     | Network, Delivery, Compute, Data, Messaging, Security, Identity, Operations       |
-| **Multi-Cloud Preview**       | Visual preview for Azure, AWS, and GCP                                            |
-| **Validation Engine**         | Real-time rule checking for placement, connections, and constraints               |
-| **Terraform Starter Export**  | Export your design to Terraform starter code for learning and prototyping          |
-| **Dual Theme System**         | Workshop (light) and Blueprint (dark) themes                                      |
-| **Bicep & Pulumi**            | Additional IaC export formats _(Experimental)_                                    |
+| Feature                      | Description                                                                 |
+| ---------------------------- | --------------------------------------------------------------------------- |
+| **Visual Builder**           | Drag-and-drop editor with grid snapping and auto-layout                     |
+| **Guided Templates**         | 6 built-in architecture patterns with step-by-step learning scenarios       |
+| **Learning Mode**            | Interactive guided scenarios to learn cloud architecture patterns (V1 Core) |
+| **8 Resource Categories**    | Network, Delivery, Compute, Data, Messaging, Security, Identity, Operations |
+| **Multi-Cloud Preview**      | Visual preview for Azure, AWS, and GCP                                      |
+| **Validation Engine**        | Real-time rule checking for placement, connections, and constraints         |
+| **Terraform Starter Export** | Export your design to Terraform starter code for learning and prototyping   |
+| **Dual Theme System**        | Workshop (light) and Blueprint (dark) themes                                |
+| **Bicep & Pulumi**           | Additional IaC export formats _(Experimental)_                              |
 
 ---
 

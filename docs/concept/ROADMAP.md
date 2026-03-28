@@ -6,12 +6,12 @@
 
 CloudBlocks evolves through four stages — from visual cloud learning tool to educator platform.
 
-| Stage  | Name     | Focus                                                                  |
-| ------ | -------- | ---------------------------------------------------------------------- |
-| **V1** | Learn    | Visual cloud learning tool for beginners                               |
-| **V2** | Export   | Trustworthy Terraform starter code with hypothesis validation          |
-| **V3** | Practice | Learning paths with progress tracking and guided scenarios             |
-| **V4** | Teach    | Educator distribution, curriculum packaging, community sharing         |
+| Stage  | Name     | Focus                                                          |
+| ------ | -------- | -------------------------------------------------------------- |
+| **V1** | Learn    | Visual cloud learning tool for beginners                       |
+| **V2** | Export   | Trustworthy Terraform starter code with hypothesis validation  |
+| **V3** | Practice | Learning paths with progress tracking and guided scenarios     |
+| **V4** | Teach    | Educator distribution, curriculum packaging, community sharing |
 
 ---
 
