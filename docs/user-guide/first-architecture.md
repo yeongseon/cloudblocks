@@ -2,7 +2,7 @@
 
 > **Audience**: New users | **Status**: V1 Core | **Verified against**: v0.26.0
 
-Build your first cloud architecture in 5 minutes using a built-in template. No cloud account or backend required — everything runs in your browser.
+Learn your first cloud architecture in 5 minutes using a built-in template with guided learning. No cloud account or backend required — everything runs in your browser.
 
 ---
 
@@ -23,9 +23,9 @@ On the empty canvas, you will see three options:
 | :--------------------- | :-------------------------------------------------------- |
 | **Use Template**       | Opens the Template Gallery with 6 pre-built architectures |
 | **Start from Scratch** | Creates a blank canvas with a Network block               |
-| **Learn How**          | Opens guided learning scenarios                           |
+| **Learn How**          | Opens guided learning scenarios (recommended for beginners) |
 
-Click **Use Template** and select **Three-Tier Web Application**.
+**Recommended for beginners**: Click **Learn How** to start a guided scenario that teaches you step by step. Or click **Use Template** and select **Three-Tier Web Application** to explore on your own.
 
 This loads a complete architecture with:
 
@@ -46,13 +46,13 @@ Take a moment to understand the loaded template:
 - **Scroll** to zoom in and out on the canvas.
 - Notice how blocks are organized inside Network and Subnet containers.
 
-The template follows a standard three-tier pattern: traffic enters through the Delivery layer, reaches the Compute layer, and stores data in the Data layer.
+The template follows a standard three-tier pattern: traffic enters through the Delivery layer, reaches the Compute layer, and stores data in the Data layer. This is one of the most common cloud architecture patterns — learning it gives you a foundation for understanding more complex designs.
 
 ---
 
 ## Step 4 — Customize the Template
 
-Templates are starting points, not fixed designs. Try these modifications:
+Templates are starting points for learning, not fixed designs. Try these modifications:
 
 1. **Add a resource**: Open the Sidebar Palette (left) and drag a new resource onto a subnet.
 2. **Create a connection**: Click an output port on one block, then click an input port on another.
@@ -73,7 +73,19 @@ CloudBlocks validates your architecture in real-time. You can also run a manual 
 
 ---
 
-## Step 6 — Save Your Work
+## Step 6 — Export Starter Code
+
+Once your architecture is valid, you can export Terraform starter code to continue learning:
+
+1. Go to **Build → Generate Code** in the menu bar.
+2. Preview the generated Terraform code.
+3. Click **Copy** to save it to your clipboard.
+
+This starter code shows you what your visual architecture looks like as infrastructure-as-code — a great way to learn Terraform alongside cloud architecture.
+
+---
+
+## Step 7 — Save Your Work
 
 Your progress is automatically saved to your browser's local storage.
 
@@ -84,9 +96,10 @@ Your progress is automatically saved to your browser's local storage.
 
 ## What's Next?
 
-| Goal                             | Guide                                            |
-| :------------------------------- | :----------------------------------------------- |
-| Understand the building blocks   | [Core Concepts](core-concepts.md)                |
-| Browse all architecture patterns | [Templates](templates.md)                        |
-| Build from a blank canvas        | [Blank Canvas Mode](../advanced/blank-canvas.md) |
-| Learn keyboard shortcuts         | [Keyboard Shortcuts](keyboard-shortcuts.md)      |
+| Goal                                  | Guide                                            |
+| :------------------------------------ | :----------------------------------------------- |
+| Understand the building blocks        | [Core Concepts](core-concepts.md)                |
+| Browse all architecture patterns      | [Templates](templates.md)                        |
+| Try guided learning scenarios         | **Learn → Browse Scenarios** in the menu bar     |
+| Build from a blank canvas (advanced)  | [Blank Canvas Mode](../advanced/blank-canvas.md) |
+| Learn keyboard shortcuts              | [Keyboard Shortcuts](keyboard-shortcuts.md)      |

@@ -1,20 +1,21 @@
 # Infrastructure Code Generator
 
-> **Audience**: Contributors | **Status**: Experimental — Internal | **Verified against**: v0.26.0
+> **Audience**: Contributors | **Status**: Internal | **Verified against**: v0.26.0
 
 > **This is the canonical source** for the CloudBlocks code generation pipeline. All other documents (DOMAIN_MODEL.md, ARCHITECTURE.md, PRD.md) reference this document for pipeline details.
-> **Status**: Implemented (Experimental in V1). Terraform, Bicep, and Pulumi generators are functional in `apps/web/src/features/generate/`.
+> **Status**: Implemented. Terraform starter export is a V1 Core learning feature. Bicep and Pulumi generators are Experimental.
 >
-> **V1 Note**: Code generation is available as an **Experimental** feature in V1. It will be promoted to Stable in V2 (Compile stage). See [ROADMAP.md](../concept/ROADMAP.md) for the product evolution plan.
+> **V1 Note**: Terraform starter export is available as a **V1 Core** feature for learning and prototyping. Bicep and Pulumi are **Experimental** and will be evaluated in V2 (Export stage). See [ROADMAP.md](../concept/ROADMAP.md) for the product evolution plan.
 
-CloudBlocks converts architecture models into infrastructure code. In V1, this is an **Experimental** feature — available for users who want to export their visual designs, but not the primary product focus.
+CloudBlocks converts architecture models into infrastructure code. In V1, Terraform starter export is a **core learning feature** — it helps beginners understand what their visual architecture looks like as infrastructure-as-code. Bicep and Pulumi exports are Experimental.
 
 ```
 Architecture Model
     ↓
 Generator
     ↓
-Infrastructure Code (Terraform, Bicep, Pulumi)
+Infrastructure Code (Terraform starter, Bicep*, Pulumi*)
+    * Experimental
 ```
 
 ---
@@ -172,12 +173,12 @@ interface GenerationMetadata {
 
 Supported generators:
 
-| Generator   | Target                    | Status                       |
-| ----------- | ------------------------- | ---------------------------- |
-| `terraform` | Multi-cloud (Azure-first) | ✅ Implemented (Milestone 3) |
-| `bicep`     | Azure                     | ✅ Implemented               |
-| `pulumi`    | Code-based IaC            | ✅ Implemented               |
-| `yaml`      | Documentation             | Planned (Milestone 6)        |
+| Generator   | Target                    | Status                                    |
+| ----------- | ------------------------- | ----------------------------------------- |
+| `terraform` | Multi-cloud               | ✅ V1 Core — Terraform Starter Export     |
+| `bicep`     | Azure                     | ⚗️ Experimental                           |
+| `pulumi`    | Code-based IaC            | ⚗️ Experimental                           |
+| `yaml`      | Documentation             | Planned (later milestone)                 |
 
 ---
 
@@ -216,11 +217,11 @@ All errors include enough context for the UI to display actionable feedback to t
 
 ---
 
-## Azure-First Strategy
+## Provider-Aware Learning
 
-CloudBlocks uses **Azure as the reference provider**. All examples, tests, and initial generator implementation target Azure resources first. AWS and GCP adapters follow once the Azure pipeline is validated.
+CloudBlocks supports Azure, AWS, and GCP for code generation. Provider coverage varies by template, resource, and export path. The Terraform starter export works across all three providers. Bicep is Azure-only. Pulumi is Azure-only.
 
-This is a pragmatic decision, not a lock-in — the provider-neutral DSL ensures any architecture can be retargeted to any supported provider.
+This is a pragmatic scope decision, not a lock-in — the provider-neutral DSL ensures any architecture can be retargeted to any supported provider.
 
 ---
 
@@ -228,12 +229,12 @@ This is a pragmatic decision, not a lock-in — the provider-neutral DSL ensures
 
 The generator supports two modes:
 
-| Mode           | Purpose                     | Output                                                   |
-| -------------- | --------------------------- | -------------------------------------------------------- |
-| **Draft**      | Quick preview during design | Minimal output, no variable extraction, inline values    |
-| **Production** | Deployable code for commit  | Full module structure, variables, outputs, documentation |
+| Mode           | Purpose                         | Output                                                   |
+| -------------- | ------------------------------- | -------------------------------------------------------- |
+| **Draft**      | Quick preview during learning   | Minimal output, no variable extraction, inline values    |
+| **Production** | Full starter code for export    | Full module structure, variables, outputs, documentation |
 
-Draft mode enables fast feedback in the UI code preview panel. Production mode generates commit-ready code.
+Draft mode enables fast feedback in the UI code preview panel. Production mode generates complete starter code for export.
 
 ---
 
@@ -250,11 +251,12 @@ The generator explicitly does NOT:
 
 ## Planned Features
 
-Future generator capabilities:
+Future generator capabilities (planned for V2 Export stage):
 
 - Partial regeneration (regenerate only changed blocks)
 - Infrastructure diff detection (compare current vs. generated)
 - Git integration (commit generated code to branches, create PRs)
+- Strong export guarantees (V2)
 
 ---
 

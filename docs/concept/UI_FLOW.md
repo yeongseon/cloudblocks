@@ -9,10 +9,10 @@
 ## Overview
 
 ```
-Entry Point  →  Canvas Workspace  →  Build Architecture  →  Validate  →  Generate Code  →  Deploy via GitHub
+Entry Point  →  Learn / Build  →  Explore Architecture  →  Validate  →  Export Starter Code
 ```
 
-CloudBlocks follows a **model → compile → deploy** workflow. Users visually assemble cloud infrastructure, the system validates it in real-time, and then compiles the architecture into deployable infrastructure-as-code.
+CloudBlocks follows a **learn → build → export** workflow. Users start from guided templates to learn cloud architecture patterns, then customize and validate their designs, and finally export Terraform starter code for further learning.
 
 ---
 
@@ -24,7 +24,7 @@ When the canvas is empty, users see the **EmptyCanvasOverlay** with three option
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | **Use Template**       | Opens the Template Gallery with pre-built architectures (three-tier web app, serverless API, event-driven pipeline) |
 | **Start from Scratch** | Creates a default Network (VNet) container block on the canvas                                                      |
-| **Learn How**          | Opens the Scenario Gallery for guided, step-by-step building                                                        |
+| **Learn How**          | Opens the Scenario Gallery for guided, step-by-step learning                                                        |
 
 Users can also start from the **MenuBar**:
 
@@ -130,11 +130,11 @@ Users generate infrastructure-as-code from their visual architecture.
 
 ### Generators
 
-| Generator     | Provider        | Status     |
-| ------------- | --------------- | ---------- |
-| **Terraform** | Azure, AWS, GCP | Production |
-| **Bicep**     | Azure           | Production |
-| **Pulumi**    | Azure           | Production |
+| Generator     | Provider        | Status                   |
+| ------------- | --------------- | ------------------------ |
+| **Terraform** | Azure, AWS, GCP | Terraform Starter Export |
+| **Bicep**     | Azure           | Experimental             |
+| **Pulumi**    | Azure           | Experimental             |
 
 ### Generation Flow
 
@@ -142,9 +142,8 @@ Users generate infrastructure-as-code from their visual architecture.
 Visual Architecture → architecture.json → Select Generator → Preview Code → Copy / Export
 ```
 
-- **Draft mode**: Quick generation for prototyping
-- **Production mode**: Full resource configuration with best practices
-- **Cross-provider comparison**: View the same architecture in Terraform, Bicep, and Pulumi side-by-side
+- **Starter mode**: Terraform starter code for learning and prototyping
+- **Cross-provider comparison**: View the same architecture in Terraform, Bicep, and Pulumi side-by-side _(Bicep and Pulumi are Experimental)_
 
 Access via `Build → Generate` in the MenuBar.
 
@@ -175,7 +174,7 @@ Access via `File → GitHub` submenu in the MenuBar.
 
 ## 7. Learning Mode
 
-Guided scenarios teach users how to build architectures step-by-step.
+Guided scenarios teach users how to build architectures step-by-step. Learning Mode is a **V1 Core feature** — it is the primary way beginners interact with CloudBlocks.
 
 ### Components
 
@@ -275,6 +274,6 @@ Planned capabilities for upcoming milestones:
 
 - **Container-block-level provider binding** — Each container block (VPC/resource group) owns its provider, blocks inherit from the parent container block
 - **Cross-provider validation** — Warnings for invalid cross-provider connections
-- **Terraform pipeline** — Direct deployment from the builder (Milestone 13)
-- **AI-powered tutoring** — Intelligent architecture suggestions (Milestone 14)
+- **Learning paths with progress tracking** — Guided learning sequences (V3)
+- **AI-powered tutoring** — Intelligent architecture suggestions
 - **Collaborative editing** — Real-time multi-user architecture building

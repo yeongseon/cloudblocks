@@ -13,44 +13,45 @@
 <p align="center">
 </p>
 
-**CloudBlocks is a preset-driven visual architecture design tool with best-effort multi-cloud preview.**
+**CloudBlocks is a visual cloud learning tool for beginners: start from guided templates, learn common architecture patterns, and export Terraform starter code.**
 
-Start from built-in architecture templates, customize layouts with drag-and-drop blocks, and preview infrastructure across Azure, AWS, and GCP — all in the browser. No backend required.
+Start from built-in architecture templates, learn cloud infrastructure patterns with guided scenarios, and export Terraform starter code — all in the browser. No cloud account or backend required.
 
-> **[▶ Try the Live Demo](https://yeongseon.github.io/cloudblocks/)** — Frontend-only playground. Visual builder, templates, and multi-cloud preview work instantly. Code generation is available as an Experimental feature. AI and GitHub features require the backend ([setup guide](docs/guides/TUTORIALS.md)).
+> **[▶ Try the Live Demo](https://yeongseon.github.io/cloudblocks/)** — Frontend-only playground. Visual builder, templates, learning scenarios, and Terraform starter export work instantly. AI and GitHub features require the backend ([setup guide](docs/guides/TUTORIALS.md)).
 
 ## Demo
 
 <p align="center">
 </p>
 
-> **Start** from a preset template, **customize** with drag-and-drop blocks, **connect** components with typed ports, and **preview** across cloud providers — all in the browser.
+> **Start** from a guided template, **learn** cloud architecture patterns step by step, **customize** with drag-and-drop blocks, and **export** Terraform starter code — all in the browser.
 
 _Automated demo video coming soon. For now, [try the live demo](https://yeongseon.github.io/cloudblocks/)._
 
 ## Why CloudBlocks?
 
-Most diagram tools produce static images. CloudBlocks produces a **live architecture model** with validation and multi-cloud awareness.
+Most diagram tools produce static images. CloudBlocks produces a **live architecture model** with built-in learning and validation — designed for people just getting started with cloud infrastructure.
 
-|             | Diagram Tool | CloudBlocks                               |
-| ----------- | ------------ | ----------------------------------------- |
-| Output      | Static image | Interactive architecture model            |
-| Validation  | None         | Real-time rule engine                     |
-| Semantics   | Visual only  | Every block maps to a real cloud resource |
-| Multi-Cloud | Manual       | Visual preview across Azure, AWS, and GCP |
+|             | Diagram Tool | CloudBlocks                                       |
+| ----------- | ------------ | ------------------------------------------------- |
+| Output      | Static image | Interactive architecture model                    |
+| Validation  | None         | Real-time rule engine                             |
+| Semantics   | Visual only  | Every block maps to a real cloud resource         |
+| Learning    | None         | Guided scenarios for beginners                    |
+| Code Export | None         | Terraform starter code                            |
 
 ## Features
 
 - 🧱 **Block-based modeling** — Container blocks (boundaries) + Resource blocks (resources) + typed Connections
-- 📋 **Preset templates** — Start from 6 built-in architecture patterns (three-tier, serverless, event pipeline, and more)
+- 📋 **Guided templates** — Start from 6 built-in architecture patterns with step-by-step learning scenarios
+- 📚 **Learning mode** — Interactive guided scenarios to learn cloud architecture patterns (beginner → advanced)
 - ✅ **Validation engine** — Real-time rule checking for placement and connections
 - 📦 **8 resource categories** — Network, Delivery, Compute, Data, Messaging, Security, Identity, Operations
-- 🌐 **Multi-cloud preview** — Visual preview for Azure, AWS, and GCP (Azure depth-first)
+- 🌐 **Multi-cloud preview** — Visual preview for Azure, AWS, and GCP
+- ⚡ **Terraform starter export** — Export your design to Terraform starter code for learning and prototyping
 - 🎨 **Dual theme system** — Workshop (light, enterprise) and Blueprint (dark, creative)
-- 📚 **Learning mode** — Guided scenarios to learn cloud architecture patterns
-- ⚡ **Code generation** _(Experimental)_ — Export to Terraform, Bicep, or Pulumi
+- ⚗️ **Bicep & Pulumi** _(Experimental)_ — Additional IaC export formats
 - 🔗 **GitHub integration** _(Backend required)_ — OAuth login, repo sync, PR creation
-
 ## Quick Start
 
 ```bash
@@ -60,7 +61,7 @@ pnpm install
 pnpm dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173) to start building.
+Open [http://localhost:5173](http://localhost:5173) to start learning.
 
 > The frontend works standalone — no backend needed. Start `apps/api` for GitHub integration and AI features.
 
@@ -101,12 +102,12 @@ cd apps/api && pip install -e ".[dev]" && uvicorn app.main:app --reload
 
 ## Product Evolution
 
-| Stage  | Name    | Focus                                          | Status      |
-| ------ | ------- | ---------------------------------------------- | ----------- |
-| **V1** | Design  | Preset-driven visual architecture design tool  | **Current** |
-| **V2** | Compile | Architecture compiler → starter infrastructure | Next        |
-| **V3** | Prove   | Azure-proven DevOps design and review tool     | Later       |
-| **V4** | Compare | Multi-cloud mapping studio                     | Future      |
+| Stage  | Name  | Focus                                                                  | Status      |
+| ------ | ----- | ---------------------------------------------------------------------- | ----------- |
+| **V1** | Learn | Visual cloud learning tool for beginners                               | **Current** |
+| **V2** | Export | Trustworthy Terraform starter code with hypothesis validation          | Next        |
+| **V3** | Practice | Learning paths with progress tracking and guided scenarios          | Later       |
+| **V4** | Teach | Educator distribution, curriculum packaging, community sharing         | Future      |
 
 See [ROADMAP.md](docs/concept/ROADMAP.md) for details and [CHANGELOG.md](CHANGELOG.md) for release history.
 

@@ -4,7 +4,7 @@
 
 CloudBlocks uses `ProviderDefinition` as the canonical provider abstraction for generation.
 
-This keeps the architecture model provider-neutral while allowing Terraform, Bicep, and Pulumi output from the same model.
+This keeps the architecture model provider-neutral while allowing Terraform, Bicep, and Pulumi output from the same model. Provider coverage varies by template, resource, and export path — the learning experience is provider-aware, not provider-locked.
 
 ---
 
@@ -42,12 +42,12 @@ interface ProviderDefinition {
 
 Every provider definition includes generator-specific settings:
 
-- `terraform: TerraformProviderConfig`
+- `terraform: TerraformProviderConfig` — V1 Core (Terraform Starter Export)
   - `requiredProviders(): string`
   - `providerBlock(region: string): string`
-- `bicep: BicepProviderConfig`
+- `bicep: BicepProviderConfig` — Experimental
   - `targetScope: 'resourceGroup' | 'subscription'`
-- `pulumi: PulumiProviderConfig`
+- `pulumi: PulumiProviderConfig` — Experimental
   - `packageName: string`
   - `runtime: 'nodejs'`
 

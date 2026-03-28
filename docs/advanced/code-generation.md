@@ -1,11 +1,11 @@
 # Code Generation
 
-> **Audience**: Intermediate users | **Status**: Experimental | **Verified against**: v0.26.0
+> **Audience**: All users | **Status**: V1 Core (Terraform) / Experimental (Bicep, Pulumi) | **Verified against**: v0.26.0
 
-!!! warning "Experimental Feature"
-Code generation is available as an Experimental feature in V1. Generated output is intended as a starting point for infrastructure code, not as production-ready deployment artifacts. Always review and test generated code before using it.
+!!! info "Terraform Starter Export"
+    Terraform starter export is a V1 Core feature — it helps you learn what your visual architecture looks like as infrastructure-as-code. Bicep and Pulumi are available as Experimental features.
 
-Export your visual architecture to Terraform, Bicep, or Pulumi code.
+Export your visual architecture to Terraform starter code for learning and prototyping. Bicep and Pulumi export are also available _(Experimental)_.
 
 ---
 
@@ -26,11 +26,11 @@ Export your visual architecture to Terraform, Bicep, or Pulumi code.
 
 ## Supported Formats
 
-| Format        | Output                          |
-| :------------ | :------------------------------ |
-| **Terraform** | HCL configuration (default)     |
-| **Bicep**     | Azure Bicep templates           |
-| **Pulumi**    | Pulumi TypeScript configuration |
+| Format        | Output                          | Status                |
+| :------------ | :------------------------------ | :-------------------- |
+| **Terraform** | HCL configuration (default)     | V1 Core               |
+| **Bicep**     | Azure Bicep templates           | Experimental          |
+| **Pulumi**    | Pulumi TypeScript configuration | Experimental          |
 
 Use the format selector to switch between output formats. Click **Copy** to copy the generated code to your clipboard.
 
@@ -40,17 +40,31 @@ Use the format selector to switch between output formats. Click **Copy** to copy
 
 CloudBlocks generates code for the currently active provider tab (Azure, AWS, or GCP). Switch provider tabs in the menu bar to generate code for different cloud platforms.
 
-!!! info "Azure Depth-First"
-Azure has the most complete resource coverage. AWS and GCP outputs are best-effort previews.
+!!! info "Provider Coverage"
+    Provider coverage varies by template, resource, and export path. Terraform starter export supports all three providers. Bicep is Azure-only. Pulumi is Azure-only.
+
+---
+
+## What the Starter Code Teaches You
+
+The Terraform starter code shows you:
+
+- How your visual architecture translates to infrastructure-as-code
+- Which Terraform resources correspond to each block on your canvas
+- How connections between blocks map to resource references in code
+- Basic Terraform structure: providers, resources, variables, and outputs
+
+This is designed for learning — review the code to deepen your understanding of cloud infrastructure.
 
 ---
 
 ## Limitations
 
-- Generated code is a **starting point** — it may require manual adjustments for your specific environment.
+- Terraform starter code is designed for **learning and prototyping** — review and adapt it before using in production.
 - Not all resource properties are captured in the generated output.
 - Complex networking configurations may need additional manual setup.
 - The generator does not handle state management or deployment orchestration.
+- Bicep and Pulumi outputs are Experimental and may change between versions.
 
 ---
 
@@ -61,3 +75,4 @@ Azure has the most complete resource coverage. AWS and GCP outputs are best-effo
 | Browse architecture patterns    | [Templates](../user-guide/templates.md)         |
 | Build from a blank canvas       | [Blank Canvas Mode](blank-canvas.md)            |
 | Understand connection semantics | [Core Concepts](../user-guide/core-concepts.md) |
+| Try guided learning scenarios   | **Learn → Browse Scenarios** in the menu bar    |

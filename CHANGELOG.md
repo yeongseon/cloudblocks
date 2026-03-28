@@ -6,6 +6,44 @@ This project uses [Semantic Versioning](https://semver.org/). Version numbers fo
 
 ---
 
+## Positioning Reset — Visual Cloud Learning Tool (2026-03-28)
+
+**Repositioned CloudBlocks from "preset-driven visual architecture design tool" to "visual cloud learning tool for beginners."**
+
+This is a documentation-only change applied on top of v0.26.0. No code changes.
+
+### What Changed
+
+- **Product identity**: "preset-driven visual architecture design tool" → "visual cloud learning tool for beginners"
+- **Evolution stages**: V1 Design / V2 Compile / V3 Prove / V4 Compare → **V1 Learn / V2 Export / V3 Practice / V4 Teach**
+- **Learning Mode**: Promoted from "V1 Advanced (off by default)" to **V1 Core** — now the primary product experience
+- **Terraform starter export**: Promoted from "Experimental" to **V1 Core** learning feature
+- **Bicep & Pulumi**: Labeled as **Experimental** consistently across all documentation
+- **Provider strategy**: Removed "Azure-Only Implementation" / "Azure depth-first" language → provider-aware learning
+- **Target audience**: General users → beginners (bootcamp grads, career changers, junior devs)
+- **Kill switches**: Added D7 retention < 15% and template→edit→export < 30% kill switches in RELEASE_GATES.md
+- **PRD.md**: Added superseded banner pointing to current product direction
+
+### Files Updated (21 files)
+
+- README.md, docs/README.md
+- docs/concept/ROADMAP.md, V1_PRODUCT_CONTRACT.md, COMPATIBILITY.md, PRODUCT_DIRECTION_SPEC.md, UI_FLOW.md, PRD.md
+- docs/design/LEARNING_MODE_SPEC.md, RELEASE_GATES.md
+- docs/user-guide/index.md, faq.md, first-architecture.md, core-concepts.md
+- docs/engine/generator.md, provider.md
+- docs/advanced/blank-canvas.md, code-generation.md
+- mkdocs.yml, package.json, CHANGELOG.md
+
+### Context
+
+This positioning reset was informed by 4 rounds of Oracle strategic analysis:
+- Competitive gap: No beginner-focused cloud learning tool exists in the market
+- Benchmark: `diagrams` Python library (42k stars) succeeded through extreme scope narrowness
+- Success probability: 40–55% (niche OSS), 10–15% (business) — up from 25–35% pre-reset
+- Key risk: Whether high-quality guided content can be produced fast enough
+
+---
+
 ## [v0.26.0] — 2026-03-25
 
 **Milestone 26 — Visual Language & Routing**

@@ -287,3 +287,20 @@ All Milestone 16 gates plus:
 - Root-level build/test/lint covers all modules
 - CI pipeline builds and tests extracted packages
 - Version alignment policy enforced: all packages at single version
+
+### Milestone 17 (In Progress) — Additional Gate
+
+#### Gate 6: Beginner Usability
+
+> Added as part of the positioning reset to "visual cloud learning tool for beginners."
+
+| Check | Criteria | Level |
+| --- | --- | --- |
+| D7 beginner retention | ≥ 15% of beginner users return within 7 days of first session. If < 15% or significantly worse than expert cohort → **kill switch**: reassess learning-first positioning. | **Blocker** |
+| Template → Edit → Export completion | ≥ 30% of new users who open a template successfully edit it and reach the export step. If < 30% → **kill switch**: simplify onboarding or reduce steps. | **Blocker** |
+| Beginner scenario completion rate | Each built-in guided scenario should have ≥ 50% completion rate among users who start it. Scenarios below 25% must be reworked or removed. | **Warning** |
+| First meaningful action latency | ≥ 80% of new users perform a meaningful action (place a block or load a template) within 60 seconds of first visit. | **Warning** |
+
+**Kill Switch Policy**: If either blocker metric is not met within 90 days of launching the learning-tool positioning, the team must convene a retrospective and decide whether to (a) iterate on the learning UX, (b) pivot positioning back to a general-purpose design tool, or (c) shut down the learning-first direction.
+
+> These metrics require analytics instrumentation (planned for a future milestone). Until instrumentation is live, Gate 6 checks are tracked manually via user testing sessions.

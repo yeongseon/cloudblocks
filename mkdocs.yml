@@ -1,5 +1,5 @@
 site_name: CloudBlocks Documentation
-site_description: Preset-driven visual cloud architecture design tool — start from templates, customize with blocks, preview across Azure, AWS, and GCP
+site_description: Visual cloud learning tool for beginners — learn cloud architecture patterns with guided templates and export Terraform starter code
 site_url: https://yeongseon.github.io/cloudblocks/docs/
 repo_url: https://github.com/yeongseon/cloudblocks
 repo_name: yeongseon/cloudblocks

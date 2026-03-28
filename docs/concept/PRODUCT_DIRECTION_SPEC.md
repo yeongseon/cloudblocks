@@ -1,12 +1,12 @@
 # CloudBlocks — Product Direction & Implementation Specification
 
 > **Status**: Active — guides M21+ development
-> **Last Updated**: 2026-03-22
+> **Last Updated**: 2026-03-28
 
 ## Vision
 
-CloudBlocks is a **preset-driven visual cloud architecture design tool** — build infrastructure with modular blocks.
-Place blocks, connect them via ports, and preview infrastructure across cloud providers.
+CloudBlocks is a **visual cloud learning tool for beginners** — start from guided templates, learn common architecture patterns, and export Terraform starter code.
+Place blocks, connect them via ports, and learn cloud infrastructure concepts through hands-on building.
 
 ---
 
@@ -57,15 +57,15 @@ When the user opens CloudBlocks, they see:
 - Dark theme background (`#0f172a`)
 - CloudBlocks logo + tagline
 - Three primary actions:
-  1. **Create** — Start a new architecture from scratch
+  1. **Learn** — Start a guided scenario to learn cloud architecture step by step
   2. **Explore Templates** — Browse pre-built architecture patterns
   3. **Import** — Load an existing architecture file
 
 ### Success Criteria (Time-to-Value)
 
-- **10 seconds** — User clicks "Create"
-- **30 seconds** — First block placed on canvas
-- **3 minutes** — Complete a basic architecture structure
+- **10 seconds** — User clicks "Learn"
+- **30 seconds** — First block placed following a guided scenario
+- **3 minutes** — Complete a beginner learning scenario
 
 ---
 
@@ -90,12 +90,14 @@ When the user opens CloudBlocks, they see:
 - ✅ Connection suggestion (visual hint)
 - ✅ Minimal explanation panel
 - ✅ Template gallery
+- ✅ Learning Mode (guided scenarios)
+- ✅ Terraform starter export
 
 ### Excluded from MVP
 
 - ❌ GitHub integration
 - ❌ Architecture diff
-- ❌ Code generation
+- ❌ Bicep/Pulumi export (Experimental — not MVP scope)
 - ❌ Multi-cloud switching
 - ❌ i18n / localization
 - ❌ AI assistant
@@ -205,6 +207,6 @@ The `getBlockDimensions()` → `cuToSilhouetteDimensions()` pipeline remains, bu
 - CU-based dimension system
 - Template system
 
-### Azure-Only Implementation
+### Provider-Aware Learning
 
-While the architecture supports multi-vendor extensibility, all actual implementation uses Azure resources only. AWS/GCP support is planned but deferred.
+The architecture supports multi-vendor extensibility. Visual preview covers Azure, AWS, and GCP. Provider coverage varies by template, resource, and export path. No single provider is prioritized — the learning experience is provider-aware, not provider-locked.

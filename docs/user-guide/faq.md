@@ -10,7 +10,11 @@ Find answers to frequently asked questions about CloudBlocks.
 
 ### What is CloudBlocks?
 
-CloudBlocks is a preset-driven visual architecture design tool that lets you design cloud infrastructure by placing blocks and creating connections. Your designs are validated against real-world rules, and you can preview infrastructure across Azure, AWS, and GCP. Code generation to Terraform, Bicep, or Pulumi is available as an Experimental feature.
+CloudBlocks is a visual cloud learning tool for beginners. Start from guided templates, learn common architecture patterns step by step, and export Terraform starter code — all in your browser. It is designed for bootcamp students, career changers, and junior developers who are just getting started with cloud infrastructure.
+
+### Who is CloudBlocks for?
+
+CloudBlocks is designed for beginners — bootcamp students, career changers, and junior developers learning cloud infrastructure for the first time. Experienced engineers may find it useful for quick prototyping and architecture visualization.
 
 ### Is CloudBlocks free?
 
@@ -18,11 +22,31 @@ Yes. CloudBlocks is an open-source project under the Apache 2.0 license.
 
 ### Do I need a cloud account?
 
-No. You can design architectures and generate code entirely in the browser without any cloud provider account. You only need a cloud account when you decide to deploy the generated code to a real environment.
+No. You can learn cloud architecture patterns and export Terraform starter code entirely in the browser without any cloud provider account. You only need a cloud account when you decide to deploy the generated code to a real environment.
 
 ### Does CloudBlocks deploy infrastructure?
 
-CloudBlocks generates infrastructure-as-code files as an Experimental feature. You then use your preferred deployment tool (Terraform, Bicep, or Pulumi CLI) to deploy that code. The core product focuses on visual architecture design and validation.
+No. CloudBlocks is a learning tool, not a deployment platform. It exports Terraform starter code that you can use to learn infrastructure-as-code concepts. You then use your preferred deployment tool (Terraform CLI) to deploy that code when you are ready. Bicep and Pulumi export are also available as Experimental features.
+
+---
+
+## Learning
+
+### How do I start learning?
+
+Click **Learn How** on the empty canvas, or go to **Learn → Browse Scenarios** in the menu bar. Choose a scenario that matches your level (beginner, intermediate, or advanced) and follow the guided steps.
+
+### What scenarios are available?
+
+Three built-in scenarios are available:
+
+1. **Three-Tier Web Application** (Beginner, ~10 min) — Build a classic frontend + API + database architecture
+2. **Serverless HTTP API** (Intermediate, ~8 min) — Build a serverless function architecture
+3. **Event-Driven Data Pipeline** (Advanced, ~12 min) — Build an event processing pattern
+
+### Can I exit a scenario early?
+
+Yes. You can exit Learning Mode at any time and keep the architecture you have built so far.
 
 ---
 
@@ -30,7 +54,7 @@ CloudBlocks generates infrastructure-as-code files as an Experimental feature. Y
 
 ### What cloud providers are supported?
 
-CloudBlocks supports Azure, AWS, and GCP. Azure currently offers the most comprehensive resource coverage.
+CloudBlocks supports Azure, AWS, and GCP for visual preview. Provider coverage varies by template, resource, and export path.
 
 ### What are the 8 resource categories?
 
@@ -48,17 +72,17 @@ To see and edit the details of a block, click on it and look at the **Inspector 
 
 ---
 
-## Code Generation
+## Code Export
 
 ### What output formats are supported?
 
-- Terraform (HCL)
-- Bicep (Azure)
-- Pulumi (TypeScript)
+- **Terraform** (HCL) — Starter export for learning and prototyping (V1 Core)
+- **Bicep** (Azure) — _(Experimental)_
+- **Pulumi** (TypeScript) — _(Experimental)_
 
-### Is the code production-ready?
+### Is the exported code production-ready?
 
-The generated code follows standard cloud patterns and is provided as-is (Experimental). You should review the output to ensure it matches your organization's specific naming conventions and security policies before deploying to a production environment.
+The Terraform starter code is designed for learning and prototyping, not production deployment. You should review the output and adapt it to your organization's naming conventions and security policies before deploying to a production environment. Bicep and Pulumi exports are Experimental and may change between versions.
 
 ### Is code generation deterministic?
 
@@ -74,7 +98,7 @@ Your work is saved in your browser's local storage. This means it persists acros
 
 ### Can I export my work?
 
-You can export your design as infrastructure code via the code preview feature. If the backend API is connected, you can also sync your architecture with a GitHub repository.
+You can export your design as Terraform starter code via the code preview feature. If the backend API is connected, you can also sync your architecture with a GitHub repository.
 
 ---
 
@@ -82,7 +106,7 @@ You can export your design as infrastructure code via the code preview feature. 
 
 ### Do I need a GitHub account?
 
-A GitHub account is only required if you want to use advanced features like repo sync, pull request creation, and architecture diffing. The core builder and code generation work without any login.
+A GitHub account is only required if you want to use advanced features like repo sync, pull request creation, and architecture diffing. The core learning experience and code export work without any login.
 
 ---
 
@@ -98,7 +122,7 @@ Check that your source category can initiate connections (Compute, Delivery, or 
 
 ### Where is Learning Mode?
 
-You can access Learning Mode via **Build → Browse Scenarios** or by clicking the **Learn How** button on the empty canvas. There are three built-in scenarios: Three-Tier Web Application, Serverless HTTP API, and Event-Driven Data Pipeline.
+You can access Learning Mode via **Learn → Browse Scenarios** or by clicking the **Learn How** button on the empty canvas. There are three built-in scenarios: Three-Tier Web Application, Serverless HTTP API, and Event-Driven Data Pipeline.
 
 ---
 
