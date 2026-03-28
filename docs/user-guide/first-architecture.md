@@ -17,15 +17,14 @@ When CloudBlocks opens, choose a persona (e.g., Developer) to enter the builder.
 
 ## Step 2 — Load a Template
 
-On the empty canvas, you will see three options:
+On the empty canvas, you will see two options:
 
-| Option                 | What it does                                              |
-| :--------------------- | :-------------------------------------------------------- |
-| **Use Template**       | Opens the Template Gallery with 6 pre-built architectures |
-| **Start from Scratch** | Creates a blank canvas with a Network block               |
-| **Learn How**          | Opens guided learning scenarios (recommended for beginners) |
+| Option                  | What it does                                                     |
+| :---------------------- | :--------------------------------------------------------------- |
+| **Start from Template** | Opens the Scenario Gallery with guided architecture patterns     |
+| **Start from Scratch**  | Dismisses the overlay so you can build manually from the sidebar |
 
-**Recommended for beginners**: Click **Learn How** to start a guided scenario that teaches you step by step. Or click **Use Template** and select **Three-Tier Web Application** to explore on your own.
+**Recommended for beginners**: Click **Start from Template** to open the Scenario Gallery, then select **Three-Tier Web Application** to follow a guided learning scenario. You can also browse scenarios later via **Build → Browse Scenarios** in the menu bar.
 
 This loads a complete architecture with:
 
@@ -96,10 +95,10 @@ Your progress is automatically saved to your browser's local storage.
 
 ## What's Next?
 
-| Goal                                  | Guide                                            |
-| :------------------------------------ | :----------------------------------------------- |
-| Understand the building blocks        | [Core Concepts](core-concepts.md)                |
-| Browse all architecture patterns      | [Templates](templates.md)                        |
-| Try guided learning scenarios         | **Learn → Browse Scenarios** in the menu bar     |
-| Build from a blank canvas (advanced)  | [Blank Canvas Mode](../advanced/blank-canvas.md) |
-| Learn keyboard shortcuts              | [Keyboard Shortcuts](keyboard-shortcuts.md)      |
+| Goal                                 | Guide                                            |
+| :----------------------------------- | :----------------------------------------------- |
+| Understand the building blocks       | [Core Concepts](core-concepts.md)                |
+| Browse all architecture patterns     | [Templates](templates.md)                        |
+| Try guided learning scenarios        | **Build → Browse Scenarios** in the menu bar     |
+| Build from a blank canvas (advanced) | [Blank Canvas Mode](../advanced/blank-canvas.md) |
+| Learn keyboard shortcuts             | [Keyboard Shortcuts](keyboard-shortcuts.md)      |

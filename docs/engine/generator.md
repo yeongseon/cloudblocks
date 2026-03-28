@@ -136,7 +136,7 @@ interface GeneratorPipeline {
 
 interface GenerationOptions {
   /** Target cloud provider */
-  provider: 'azure';
+  provider: 'azure' | 'aws' | 'gcp';
   /** draft = inline preview, production = full module structure */
   mode: 'draft' | 'production';
   /** Project name for resource naming */
@@ -173,12 +173,12 @@ interface GenerationMetadata {
 
 Supported generators:
 
-| Generator   | Target                    | Status                                    |
-| ----------- | ------------------------- | ----------------------------------------- |
-| `terraform` | Multi-cloud               | ✅ V1 Core — Terraform Starter Export     |
-| `bicep`     | Azure                     | ⚗️ Experimental                           |
-| `pulumi`    | Code-based IaC            | ⚗️ Experimental                           |
-| `yaml`      | Documentation             | Planned (later milestone)                 |
+| Generator   | Target         | Status                                |
+| ----------- | -------------- | ------------------------------------- |
+| `terraform` | Multi-cloud    | ✅ V1 Core — Terraform Starter Export |
+| `bicep`     | Azure          | ⚗️ Experimental                       |
+| `pulumi`    | Code-based IaC | ⚗️ Experimental                       |
+| `yaml`      | Documentation  | Planned (later milestone)             |
 
 ---
 
@@ -229,10 +229,10 @@ This is a pragmatic scope decision, not a lock-in — the provider-neutral DSL e
 
 The generator supports two modes:
 
-| Mode           | Purpose                         | Output                                                   |
-| -------------- | ------------------------------- | -------------------------------------------------------- |
-| **Draft**      | Quick preview during learning   | Minimal output, no variable extraction, inline values    |
-| **Production** | Full starter code for export    | Full module structure, variables, outputs, documentation |
+| Mode           | Purpose                       | Output                                                   |
+| -------------- | ----------------------------- | -------------------------------------------------------- |
+| **Draft**      | Quick preview during learning | Minimal output, no variable extraction, inline values    |
+| **Production** | Full starter code for export  | Full module structure, variables, outputs, documentation |
 
 Draft mode enables fast feedback in the UI code preview panel. Production mode generates complete starter code for export.
 

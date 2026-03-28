@@ -18,19 +18,18 @@ CloudBlocks follows a **learn → build → export** workflow. Users start from 
 
 ## 1. Entry Points
 
-When the canvas is empty, users see the **EmptyCanvasOverlay** with three options:
+When the canvas is empty, users see the **EmptyCanvasCTA** with two options:
 
-| Action                 | What Happens                                                                                                        |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| **Use Template**       | Opens the Template Gallery with pre-built architectures (three-tier web app, serverless API, event-driven pipeline) |
-| **Start from Scratch** | Creates a default Network (VNet) container block on the canvas                                                      |
-| **Learn How**          | Opens the Scenario Gallery for guided, step-by-step learning                                                        |
+| Action                  | What Happens                                                                             |
+| ----------------------- | ---------------------------------------------------------------------------------------- |
+| **Start from Template** | Opens the Scenario Gallery for guided, step-by-step learning (recommended for beginners) |
+| **Start from Scratch**  | Dismisses the overlay so the user can build manually from the sidebar palette            |
 
-Users can also start from the **MenuBar**:
+Users can also start from the **MenuBar** (under the Build section):
 
-- `File → New Workspace` — creates a blank workspace
-- `Insert → Network / Subnet` — adds container blocks directly
-- `Learn → Browse Scenarios` — opens Learning Mode
+- `Build → Browse Scenarios` — opens the Scenario Gallery for guided learning
+- `Build → Browse Templates` — opens the Template Gallery with pre-built architectures
+- `Build → Show Learning Panel` — shows the active learning scenario panel
 
 ---
 
@@ -145,7 +144,7 @@ Visual Architecture → architecture.json → Select Generator → Preview Code 
 - **Starter mode**: Terraform starter code for learning and prototyping
 - **Cross-provider comparison**: View the same architecture in Terraform, Bicep, and Pulumi side-by-side _(Bicep and Pulumi are Experimental)_
 
-Access via `Build → Generate` in the MenuBar.
+Access via `Build → Generate Code` in the MenuBar.
 
 ---
 
@@ -188,7 +187,7 @@ Guided scenarios teach users how to build architectures step-by-step. Learning M
 ### Flow
 
 ```
-Learn → Browse Scenarios → Select Scenario → Follow Steps → Complete
+Build → Browse Scenarios → Select Scenario → Follow Steps → Complete
 ```
 
 - Scenarios range from beginner (place a VNet) to advanced (full three-tier architecture)

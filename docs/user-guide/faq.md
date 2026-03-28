@@ -34,7 +34,7 @@ No. CloudBlocks is a learning tool, not a deployment platform. It exports Terraf
 
 ### How do I start learning?
 
-Click **Learn How** on the empty canvas, or go to **Learn → Browse Scenarios** in the menu bar. Choose a scenario that matches your level (beginner, intermediate, or advanced) and follow the guided steps.
+Click **Start from Template** on the empty canvas, or go to **Build → Browse Scenarios** in the menu bar. Choose a scenario that matches your level (beginner, intermediate, or advanced) and follow the guided steps.
 
 ### What scenarios are available?
 
@@ -122,7 +122,7 @@ Check that your source category can initiate connections (Compute, Delivery, or 
 
 ### Where is Learning Mode?
 
-You can access Learning Mode via **Learn → Browse Scenarios** or by clicking the **Learn How** button on the empty canvas. There are three built-in scenarios: Three-Tier Web Application, Serverless HTTP API, and Event-Driven Data Pipeline.
+You can access Learning Mode via **Build → Browse Scenarios** in the menu bar, or by clicking **Start from Template** on the empty canvas. There are three built-in scenarios: Three-Tier Web Application, Serverless HTTP API, and Event-Driven Data Pipeline.
 
 ---
 

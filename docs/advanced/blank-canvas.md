@@ -3,7 +3,7 @@
 > **Audience**: Intermediate users | **Status**: V1 Advanced | **Verified against**: v0.26.0
 
 !!! note "Recommended: Start with Learning Mode"
-    If this is your first time using CloudBlocks, start with [First Architecture from a Template](../user-guide/first-architecture.md) or a guided learning scenario via **Learn → Browse Scenarios**. Blank canvas mode is for users who have completed guided scenarios and want to build a custom architecture from scratch.
+If this is your first time using CloudBlocks, start with [First Architecture from a Template](../user-guide/first-architecture.md) or a guided learning scenario via **Build → Browse Scenarios**. Blank canvas mode is for users who have completed guided scenarios and want to build a custom architecture from scratch.
 
 This guide walks you through designing a cloud architecture from an empty canvas without using a template.
 
@@ -29,7 +29,7 @@ Subnets partition your network into isolated segments.
 3. Add a second subnet to separate tiers — one for internet-facing resources, another for backend services.
 
 !!! tip "Disabled Resources"
-    Resources that require a network appear disabled in the palette. Hover over them to see the requirement tooltip.
+Resources that require a network appear disabled in the palette. Hover over them to see the requirement tooltip.
 
 ---
 
@@ -98,7 +98,7 @@ Network (VNet)
 - **Rename Blocks**: Click any block and edit its name in the Inspector Panel.
 - **Undo**: Use Ctrl+Z / Cmd+Z to quickly revert mistakes.
 - **Templates**: Consider starting from a [template](../user-guide/templates.md) or a guided scenario rather than building from scratch.
-- **Learning Mode**: If you get stuck, try **Learn → Browse Scenarios** for guided practice.
+- **Learning Mode**: If you get stuck, try **Build → Browse Scenarios** for guided practice.
 
 ---
 
@@ -109,4 +109,4 @@ Network (VNet)
 | Understand blocks and connections | [Core Concepts](../user-guide/core-concepts.md) |
 | Export Terraform starter code     | [Code Generation](code-generation.md)           |
 | Browse architecture patterns      | [Templates](../user-guide/templates.md)         |
-| Try guided learning scenarios     | **Learn → Browse Scenarios** in the menu bar    |
+| Try guided learning scenarios     | **Build → Browse Scenarios** in the menu bar    |

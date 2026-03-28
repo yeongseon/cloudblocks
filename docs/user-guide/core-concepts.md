@@ -18,7 +18,7 @@ Blocks represent both logical boundaries and cloud resources in a unified model.
 Blocks are placed inside either a Network or a Subnet to define their network location.
 
 !!! info "Nesting"
-    A typical architecture starts with a Network block, followed by one or more Subnet blocks inside it. Blocks like virtual machines or databases are then placed within those subnets.
+A typical architecture starts with a Network block, followed by one or more Subnet blocks inside it. Blocks like virtual machines or databases are then placed within those subnets.
 
 ---
 
@@ -38,7 +38,7 @@ Blocks represent individual cloud resources. CloudBlocks organizes resources int
 | **Operations** | Monitors and observes                    | Monitoring                                                              |
 
 !!! tip "Sidebar Palette"
-    You can find and drag these resources from the **Sidebar Palette** on the left side of the editor. In Learning Mode, the palette shows only the resources relevant to your current scenario.
+You can find and drag these resources from the **Sidebar Palette** on the left side of the editor. In Learning Mode, the palette shows only the resources relevant to your current scenario.
 
 ---
 
@@ -69,7 +69,7 @@ The following flows are supported based on resource categories:
 | Messaging       | Compute         | event, data       |
 
 !!! warning "Receiver-only Categories"
-    The following categories can only receive connections and cannot initiate them: **Data**, **Security**, **Operations**, **Identity**, and **Network**.
+The following categories can only receive connections and cannot initiate them: **Data**, **Security**, **Operations**, **Identity**, and **Network**.
 
 ---
 
@@ -116,7 +116,7 @@ Workspaces allow you to manage multiple projects independently.
 - **Management**: Create, rename, or delete projects via the **Workspaces** button in the menu bar.
 
 !!! note "GitHub Sync"
-    GitHub sync requires the backend. See [Backend Integrations](../advanced/backend-integrations.md) for setup.
+GitHub sync requires the backend. See [Backend Integrations](../advanced/backend-integrations.md) for setup.
 
 ---
 
@@ -128,7 +128,7 @@ Learning Mode is the **primary way beginners interact with CloudBlocks**. Intera
 - **Serverless HTTP API**: Intermediate scenario, approximately 8 minutes.
 - **Event-Driven Data Pipeline**: Advanced scenario, approximately 12 minutes.
 
-Access these guided scenarios via **Learn → Browse Scenarios** or by clicking the **Learn How** button on an empty canvas.
+Access these guided scenarios via **Build → Browse Scenarios** in the menu bar, or by clicking **Start from Template** on an empty canvas.
 
 ---
 
