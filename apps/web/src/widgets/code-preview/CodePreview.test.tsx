@@ -113,11 +113,13 @@ describe('CodePreview', () => {
       'value',
       'terraform',
     );
-    expect(screen.getByRole('option', { name: 'Bicep (Azure)' })).toHaveAttribute('value', 'bicep');
-    expect(screen.getByRole('option', { name: 'Pulumi (TypeScript)' })).toHaveAttribute(
+    expect(screen.getByRole('option', { name: 'Bicep (Azure) (Experimental)' })).toHaveAttribute(
       'value',
-      'pulumi',
+      'bicep',
     );
+    expect(
+      screen.getByRole('option', { name: 'Pulumi (TypeScript) (Experimental)' }),
+    ).toHaveAttribute('value', 'pulumi');
   });
 
   it('updates project name input', async () => {

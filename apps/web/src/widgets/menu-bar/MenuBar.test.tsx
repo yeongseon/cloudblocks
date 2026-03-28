@@ -591,40 +591,26 @@ describe('MenuBar', () => {
     expect(useUIStore.getState().showTemplateGallery).toBe(true);
   }, 15000);
 
-  it('routes Show Learning Panel to scenario gallery when no scenario is active', async () => {
+  it('routes Learn button to scenario gallery when no scenario is active', async () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    let dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Browse Scenarios/ }));
+    await user.click(screen.getByTitle('Browse guided scenarios'));
     expect(useUIStore.getState().drawer.isOpen).toBe(true);
     expect(useUIStore.getState().drawer.activePanel).toBe('scenarios');
-
-    dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Show Learning Panel/ }));
-    expect(useUIStore.getState().drawer.isOpen).toBe(true);
-    expect(useUIStore.getState().drawer.activePanel).toBe('scenarios');
-    expect(useUIStore.getState().drawer.activePanel).not.toBe('learning');
-
-    dropdown = await openOverflow(user);
-    const learningPanelButton = within(dropdown).getByRole('button', {
-      name: /Show Learning Panel/,
-    });
-    expect(learningPanelButton.textContent).not.toContain('\u2713');
   });
 
-  it('opens scenarios drawer when no scenario active and drawer already open', async () => {
+  it('Learn button opens scenarios drawer when no scenario active and drawer already open', async () => {
     const user = userEvent.setup();
     useUIStore.setState({ drawer: { isOpen: true, activePanel: 'scenarios' } });
     render(<MenuBar />);
 
-    const dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Show Learning Panel/ }));
+    await user.click(screen.getByTitle('Browse guided scenarios'));
     expect(useUIStore.getState().drawer.isOpen).toBe(true);
     expect(useUIStore.getState().drawer.activePanel).toBe('scenarios');
   });
 
-  it('opens learning panel when an active scenario exists', async () => {
+  it('Learn button opens learning panel when an active scenario exists', async () => {
     const user = userEvent.setup();
     useLearningStore.setState({
       activeScenario: {
@@ -664,17 +650,10 @@ describe('MenuBar', () => {
 
     render(<MenuBar />);
 
-    let dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Show Learning Panel/ }));
+    await user.click(screen.getByTitle('Resume current lesson'));
 
     expect(useUIStore.getState().drawer.isOpen).toBe(true);
     expect(useUIStore.getState().drawer.activePanel).toBe('learning');
-
-    dropdown = await openOverflow(user);
-    const learningPanelButton = within(dropdown).getByRole('button', {
-      name: /Show Learning Panel/,
-    });
-    expect(learningPanelButton.textContent).toContain('\u2713');
   });
 
   it('handles overflow menu toggle for validation drawer', async () => {
@@ -1001,13 +980,12 @@ describe('MenuBar', () => {
     expect(usePromoteStore.getState().showPromoteHistory).toBe(true);
   });
 
-  it('show learning panel toggles off when already shown', async () => {
+  it('Learn button toggles off learning panel when already shown', async () => {
     useUIStore.setState({ drawer: { isOpen: true, activePanel: 'learning' } });
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    const dropdown = await openOverflow(user);
-    await user.click(within(dropdown).getByRole('button', { name: /Show Learning Panel/ }));
+    await user.click(screen.getByTitle('Browse guided scenarios'));
 
     expect(useUIStore.getState().drawer.isOpen).toBe(false);
   });

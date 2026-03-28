@@ -50,14 +50,14 @@ describe('LandingPage', () => {
     expect(screen.queryByText('d')).not.toBeInTheDocument();
   });
 
-  it('navigates to builder when Start Building is clicked', async () => {
+  it('navigates to builder when Start Learning is clicked', async () => {
     const user = userEvent.setup();
     const goToBuilder = vi.fn();
     useUIStore.setState({ goToBuilder });
 
     render(<LandingPage />);
 
-    await user.click(screen.getAllByRole('button', { name: 'Start Building' })[0]);
+    await user.click(screen.getAllByRole('button', { name: 'Start Learning' })[0]);
     expect(goToBuilder).toHaveBeenCalledOnce();
   });
 

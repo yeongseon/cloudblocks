@@ -19,7 +19,7 @@ describe('LandingNavbar', () => {
     render(<LandingNavbar />);
 
     expect(screen.getByText('🧱 CloudBlocks')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Start Building' }));
+    await user.click(screen.getByRole('button', { name: 'Start Learning' }));
     expect(goToBuilder).toHaveBeenCalledOnce();
   });
 });

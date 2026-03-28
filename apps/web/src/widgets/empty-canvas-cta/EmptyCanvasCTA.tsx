@@ -56,9 +56,10 @@ export function EmptyCanvasCTA() {
       data-testid="empty-canvas-cta"
     >
       <div className="cta-card">
-        <p className="cta-tagline">Design your cloud architecture</p>
+        <p className="cta-tagline">Learn cloud architecture by doing</p>
         <p className="cta-subtitle">
-          Drag nodes from the sidebar, or start with a pre-built template.
+          Start with a guided template to learn a common cloud pattern, or open a blank canvas when
+          you want to practice on your own.
         </p>
         <div className="cta-actions">
           <button
@@ -67,11 +68,11 @@ export function EmptyCanvasCTA() {
             onClick={handleStartFromTemplate}
           >
             <LayoutTemplate size={16} />
-            Start from Template
+            Start Learning
           </button>
           <button type="button" className="cta-btn cta-btn-secondary" onClick={handleDismiss}>
             <MousePointerClick size={16} />
-            Start from Scratch
+            Practice on Blank Canvas
           </button>
         </div>
       </div>
