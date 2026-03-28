@@ -27,19 +27,19 @@ export function LandingPage() {
       <main className="landing-main" id="main-content">
         <section className="landing-hero">
           <h1 className="landing-hero-title">
-            Start from templates. Edit visually. Validate instantly.
+            Start from guided templates. Learn by editing. Export Terraform starter code.
           </h1>
           <p className="landing-hero-subtitle">
-            Learn cloud architecture from guided templates — all in your browser, no backend
-            required.
+            CloudBlocks is a visual cloud learning tool for beginners — pick a template, understand
+            the architecture pattern, and export Terraform starter code. No cloud account required.
           </p>
           <div className="landing-hero-badges">
-            <span className="landing-hero-badge">{templates.length} templates</span>
-            <span className="landing-hero-badge">Real-time validation</span>
-            <span className="landing-hero-badge">No backend required</span>
+            <span className="landing-hero-badge">Guided templates</span>
+            <span className="landing-hero-badge">Guided learning scenarios</span>
+            <span className="landing-hero-badge">Terraform starter export</span>
           </div>
           <button type="button" className="landing-hero-cta" onClick={handleStartBuilding}>
-            Start Building
+            Start Learning
           </button>
         </section>
 
@@ -48,26 +48,26 @@ export function LandingPage() {
           <div className="landing-how-steps">
             <div className="landing-how-step">
               <div className="landing-how-step-number">1</div>
-              <h3 className="landing-how-step-title">Pick a Template</h3>
+              <h3 className="landing-how-step-title">Pick a Guided Template</h3>
               <p className="landing-how-step-desc">
-                Choose from 6 built-in architecture patterns — three-tier, serverless, event
-                pipeline, and more.
+                Choose from built-in architecture patterns — each one teaches a common cloud design
+                with step-by-step guidance.
               </p>
             </div>
             <div className="landing-how-step">
               <div className="landing-how-step-number">2</div>
-              <h3 className="landing-how-step-title">Customize with Blocks</h3>
+              <h3 className="landing-how-step-title">Learn by Editing</h3>
               <p className="landing-how-step-desc">
-                Drag resource blocks, connect components, and adjust properties on the visual
-                canvas.
+                Follow guided scenarios that walk you through each component. Drag blocks, make
+                connections, and see validation feedback in real time.
               </p>
             </div>
             <div className="landing-how-step">
               <div className="landing-how-step-number">3</div>
-              <h3 className="landing-how-step-title">Validate &amp; Export</h3>
+              <h3 className="landing-how-step-title">Export Terraform Starter Code</h3>
               <p className="landing-how-step-desc">
-                Run the validation engine, then export to Terraform, Bicep, or Pulumi — all in the
-                browser.
+                Generate Terraform starter code from your architecture — ready to learn from or use
+                as a starting point for real infrastructure.
               </p>
             </div>
           </div>

@@ -21,7 +21,7 @@ export function LandingNavbar() {
         </a>
       </nav>
       <button type="button" className="landing-navbar-cta" onClick={goToBuilder}>
-        Start Building
+        Start Learning
       </button>
     </header>
   );

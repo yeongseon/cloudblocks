@@ -16,6 +16,7 @@ function createTargetElements() {
     'right-drawer',
     'menu-bar-nav',
     'builder-canvas',
+    'core-btn-learn',
   ];
   for (const cls of selectors) {
     const el = document.createElement('div');
@@ -120,7 +121,7 @@ describe('OnboardingTour', () => {
       await new Promise((r) => requestAnimationFrame(r));
     });
 
-    expect(screen.getByText('Add a Node')).toBeInTheDocument();
+    expect(screen.getByText('Start with Learn')).toBeInTheDocument();
   });
 
   it('advances to step 2 on Next click', async () => {
@@ -137,7 +138,7 @@ describe('OnboardingTour', () => {
       await new Promise((r) => requestAnimationFrame(r));
     });
 
-    expect(screen.getByText('Connect Nodes')).toBeInTheDocument();
+    expect(screen.getByText('Edit the Architecture')).toBeInTheDocument();
   });
 
   it('goes back to previous step on Back click', async () => {
@@ -160,7 +161,7 @@ describe('OnboardingTour', () => {
       await new Promise((r) => requestAnimationFrame(r));
     });
 
-    expect(screen.getByText('Add a Node')).toBeInTheDocument();
+    expect(screen.getByText('Start with Learn')).toBeInTheDocument();
   });
 
   it('does not show Back button on step 1', async () => {
@@ -257,7 +258,7 @@ describe('OnboardingTour', () => {
       });
     }
 
-    expect(screen.getByText('Generate Code')).toBeInTheDocument();
+    expect(screen.getByText('Export Terraform Starter Code')).toBeInTheDocument();
   });
 
   it('ensure visible opens sidebar for palette step', async () => {
@@ -268,8 +269,17 @@ describe('OnboardingTour', () => {
       await new Promise((r) => requestAnimationFrame(r));
     });
 
-    // Sidebar should open when Add a Node step is shown
+    // Step 1 (Start with Learn) has no ensureVisible — sidebar stays closed
+    expect(useUIStore.getState().sidebar.isOpen).toBe(false);
 
+    // Advance to step 2 (Edit the Architecture) which opens sidebar
+    fireEvent.click(screen.getByText('Next'));
+
+    await act(async () => {
+      await new Promise((r) => requestAnimationFrame(r));
+    });
+
+    // Sidebar should open when Edit the Architecture step is shown
     expect(useUIStore.getState().sidebar.isOpen).toBe(true);
   });
 
@@ -312,7 +322,7 @@ describe('OnboardingTour', () => {
 
     expect(screen.queryByTestId('persona-selection')).not.toBeInTheDocument();
     expect(screen.getByTestId('onboarding-tour')).toBeInTheDocument();
-    expect(screen.getByText('Add a Node')).toBeInTheDocument();
+    expect(screen.getByText('Start with Learn')).toBeInTheDocument();
   });
 
   it('handles window resize during active tour', async () => {
@@ -331,6 +341,6 @@ describe('OnboardingTour', () => {
     });
 
     expect(screen.getByTestId('onboarding-tour')).toBeInTheDocument();
-    expect(screen.getByText('Add a Node')).toBeInTheDocument();
+    expect(screen.getByText('Start with Learn')).toBeInTheDocument();
   });
 });

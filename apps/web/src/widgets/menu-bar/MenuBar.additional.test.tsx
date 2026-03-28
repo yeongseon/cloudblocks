@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ArchitectureModel } from '@cloudblocks/schema';
 import { MenuBar } from './MenuBar';
@@ -27,18 +27,6 @@ const baseArchitecture: ArchitectureModel = {
   createdAt: '',
   updatedAt: '',
 };
-
-function getOverflowDropdown(): HTMLElement {
-  const trigger = screen.getByRole('button', { name: 'Advanced' });
-  const container = trigger.closest('.menu-dropdown-container') as HTMLElement;
-  return container.querySelector('.menu-dropdown') as HTMLElement;
-}
-
-async function openOverflow(): Promise<HTMLElement> {
-  const user = userEvent.setup();
-  await user.click(screen.getByRole('button', { name: 'Advanced' }));
-  return getOverflowDropdown();
-}
 
 describe('MenuBar additional coverage', () => {
   beforeEach(() => {
@@ -144,12 +132,11 @@ describe('MenuBar additional coverage', () => {
     expect(useUIStore.getState().drawer.activePanel).toBe('validation');
   });
 
-  it('opens scenario gallery from learning panel action when no active scenario exists', async () => {
+  it('opens scenario gallery from Learn button when no active scenario exists', async () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    const dropdown = await openOverflow();
-    await user.click(within(dropdown).getByRole('button', { name: /Show Learning Panel/ }));
+    await user.click(screen.getByTitle('Browse guided scenarios'));
 
     expect(useUIStore.getState().drawer.isOpen).toBe(true);
     expect(useUIStore.getState().drawer.activePanel).toBe('scenarios');
