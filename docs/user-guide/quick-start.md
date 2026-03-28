@@ -28,15 +28,14 @@ When CloudBlocks opens, you will see a landing page. Choose a persona (e.g., Dev
 
 ## Step 2 — Start from a Template
 
-On the empty canvas, you will see three options:
+On the empty canvas, you will see two options:
 
-| Option                 | What it does                                              |
-| :--------------------- | :-------------------------------------------------------- |
-| **Use Template**       | Opens the Template Gallery with 6 pre-built architectures |
-| **Start from Scratch** | Creates a Network (VNet) block on the canvas              |
-| **Learn How**          | Opens guided learning scenarios                           |
+| Option                  | What it does                                                     |
+| :---------------------- | :--------------------------------------------------------------- |
+| **Start from Template** | Opens the Scenario Gallery with guided architecture patterns     |
+| **Start from Scratch**  | Dismisses the overlay so you can build manually from the sidebar |
 
-Click **Use Template** and select **Three-Tier Web Application**. This loads a complete architecture with an Application Gateway, VM, SQL Database, and Blob Storage — all pre-wired with connections.
+Click **Start from Template** and select **Three-Tier Web Application**. This loads a guided scenario with an Application Gateway, VM, SQL Database, and Blob Storage — all pre-wired with connections.
 
 ---
 

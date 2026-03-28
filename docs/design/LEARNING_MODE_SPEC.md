@@ -1,15 +1,17 @@
 # Learning Mode — Technical Design Specification
 
-> **Audience**: All Users / Contributors | **Status**: Stable | **Verified against**: v0.26.0
+> **Audience**: All Users / Contributors | **Status**: Stable — **V1 Core** | **Verified against**: v0.26.0
 
 > **Milestone**: 6C — Learning Mode
-> **Last Updated**: 2026-03-20
+> **Last Updated**: 2026-03-28
 
 ---
 
 ## 1. Overview
 
-CloudBlocks Learning Mode transforms the builder into a guided learning platform (Duolingo for Cloud Architecture). Users switch between Build Mode (free-form editor) and Learn Mode (guided scenario missions).
+CloudBlocks Learning Mode is the **primary product experience** — a guided learning platform for cloud architecture beginners (Duolingo for Cloud Architecture). Learning Mode is a V1 Core feature, not an opt-in advanced feature.
+
+Users start in Build Mode (free-form editor) and access Learn Mode (guided scenario missions) via the Scenario Gallery. The recommended path for beginners is to open a guided scenario from the empty canvas CTA ("Start from Template") or from **Build → Browse Scenarios** in the menu bar.
 
 ### Goals
 
@@ -17,6 +19,7 @@ CloudBlocks Learning Mode transforms the builder into a guided learning platform
 - Validate learner progress via state-based predicates (not action-tracking)
 - Reuse the existing visual builder — no separate "learning UI"
 - Progressive difficulty: beginner → intermediate → advanced
+- Serve as the primary entry point for bootcamp students, career changers, and junior developers
 
 ### Non-Goals
 
@@ -32,8 +35,8 @@ CloudBlocks Learning Mode transforms the builder into a guided learning platform
 ### Mode Switch
 
 - `EditorMode = 'build' | 'learn'` in `uiStore.ts`
-- Build Mode: full editor (default)
-- Learn Mode: hides noise (GitHub, import/export, templates), shows LearningPanel
+- Learn Mode: guided scenarios with LearningPanel (recommended for beginners)
+- Build Mode: full editor for free-form building (after completing guided scenarios)
 
 ### Store Architecture
 

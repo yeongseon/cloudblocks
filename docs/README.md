@@ -1,14 +1,14 @@
 # Welcome to CloudBlocks
 
-**CloudBlocks** is a preset-driven visual architecture design tool — start from built-in templates, customize with drag-and-drop blocks, validate against real-world rules, and preview across Azure, AWS, and GCP — all from the browser. No backend required.
+**CloudBlocks** is a visual cloud learning tool for beginners — start from guided templates, learn common architecture patterns, and export Terraform starter code. Everything runs in your browser. No cloud account or backend required.
 
 <div class="grid cards" markdown>
 
-- :material-puzzle:{ .lg .middle } **Start from a Template**
+- :material-school:{ .lg .middle } **Learn Cloud Architecture**
 
   ***
 
-  Load a pre-built architecture pattern — three-tier web app, serverless API, or event pipeline — and customize it.
+  Follow guided scenarios to learn cloud infrastructure patterns step by step — from your first VNet to a full three-tier web app.
 
   [:octicons-arrow-right-24: First Architecture](user-guide/first-architecture.md)
 
@@ -42,12 +42,12 @@
 
 ## Your First Architecture in 4 Steps
 
-| Step  | What You Do                               | Guide                                                  |
-| :---: | ----------------------------------------- | ------------------------------------------------------ |
-| **1** | Open the builder (live demo or local)     | [Quick Start](user-guide/quick-start.md)               |
-| **2** | Load a template and explore the interface | [First Architecture](user-guide/first-architecture.md) |
-| **3** | Customize — add blocks, connect, validate | [Editor Basics](user-guide/editor-basics.md)           |
-| **4** | Save your workspace                       | [Workspaces](user-guide/workspaces.md)                 |
+| Step  | What You Do                                    | Guide                                                  |
+| :---: | ---------------------------------------------- | ------------------------------------------------------ |
+| **1** | Open the builder (live demo or local)          | [Quick Start](user-guide/quick-start.md)               |
+| **2** | Load a guided template and follow the steps    | [First Architecture](user-guide/first-architecture.md) |
+| **3** | Customize — add blocks, connect, validate      | [Editor Basics](user-guide/editor-basics.md)           |
+| **4** | Export Terraform starter code to keep learning | [Workspaces](user-guide/workspaces.md)                 |
 
 ---
 
@@ -58,7 +58,7 @@ CloudBlocks uses a **block-based composition model** where everything snaps toge
 - **Container blocks** — Logical boundaries (VPC, resource group, subnet). Container blocks hold other blocks.
 - **Resource blocks** — Cloud resources (VM, database, storage, function). Resource blocks sit inside container blocks.
 - **Connections** — Typed links between blocks (http, data, event).
-- **Templates** — Pre-built architecture patterns you can load and customize.
+- **Templates** — Pre-built architecture patterns you can load, learn from, and customize.
 
 > New to cloud architecture? Start with [First Architecture from a Template](user-guide/first-architecture.md) — it walks you through a real-world pattern step by step.
 
@@ -77,16 +77,17 @@ CloudBlocks uses a **block-based composition model** where everything snaps toge
 
 ## Features at a Glance
 
-| Feature                   | Description                                                                 |
-| ------------------------- | --------------------------------------------------------------------------- |
-| **Visual Builder**        | Drag-and-drop editor with grid snapping and auto-layout                     |
-| **Preset Templates**      | 6 built-in architecture patterns (three-tier, serverless, event pipeline)   |
-| **8 Resource Categories** | Network, Delivery, Compute, Data, Messaging, Security, Identity, Operations |
-| **Multi-Cloud Preview**   | Visual preview for Azure, AWS, and GCP (Azure depth-first)                  |
-| **Validation Engine**     | Real-time rule checking for placement, connections, and constraints         |
-| **Learning Mode**         | Guided scenarios to learn cloud architecture patterns                       |
-| **Dual Theme System**     | Workshop (light) and Blueprint (dark) themes                                |
-| **Code Generation**       | Export to Terraform, Bicep, or Pulumi _(Experimental)_                      |
+| Feature                      | Description                                                                 |
+| ---------------------------- | --------------------------------------------------------------------------- |
+| **Visual Builder**           | Drag-and-drop editor with grid snapping and auto-layout                     |
+| **Guided Templates**         | 6 built-in architecture patterns with step-by-step learning scenarios       |
+| **Learning Mode**            | Interactive guided scenarios to learn cloud architecture patterns (V1 Core) |
+| **8 Resource Categories**    | Network, Delivery, Compute, Data, Messaging, Security, Identity, Operations |
+| **Multi-Cloud Preview**      | Visual preview for Azure, AWS, and GCP                                      |
+| **Validation Engine**        | Real-time rule checking for placement, connections, and constraints         |
+| **Terraform Starter Export** | Export your design to Terraform starter code for learning and prototyping   |
+| **Dual Theme System**        | Workshop (light) and Blueprint (dark) themes                                |
+| **Bicep & Pulumi**           | Additional IaC export formats _(Experimental)_                              |
 
 ---
 
@@ -106,7 +107,7 @@ CloudBlocks uses a **block-based composition model** where everything snaps toge
 
   ***
 
-  Build a custom architecture from scratch without a template.
+  Build a custom architecture from scratch without a template. Recommended after completing guided scenarios.
 
   [:octicons-arrow-right-24: Blank canvas](advanced/blank-canvas.md)
 
@@ -118,11 +119,11 @@ CloudBlocks uses a **block-based composition model** where everything snaps toge
 
   [:octicons-arrow-right-24: Domain Model](model/DOMAIN_MODEL.md)
 
-- :material-code-braces:{ .lg .middle } **Code Generation** _(Experimental)_
+- :material-code-braces:{ .lg .middle } **Terraform Starter Export**
 
   ***
 
-  Export your design to Terraform, Bicep, or Pulumi.
+  Export your design to Terraform starter code. Bicep and Pulumi are also available _(Experimental)_.
 
   [:octicons-arrow-right-24: Learn how](advanced/code-generation.md)
 

@@ -2,7 +2,7 @@
   "name": "cloudblocks",
   "private": true,
   "version": "0.26.0",
-  "description": "Preset-driven visual cloud architecture design tool with best-effort multi-cloud preview",
+  "description": "Visual cloud learning tool for beginners — learn cloud architecture patterns with guided templates and export Terraform starter code",
   "type": "module",
   "repository": {
     "type": "git",
@@ -42,16 +42,16 @@
     ]
   },
   "keywords": [
+    "cloud-learning",
+    "beginner",
     "cloud-architecture",
+    "terraform-starter",
     "infrastructure-as-code",
-    "terraform",
-    "bicep",
-    "pulumi",
     "visual-builder",
+    "learning-tool",
+    "guided-templates",
+    "terraform",
     "multi-cloud",
-    "azure",
-    "aws",
-    "gcp",
     "react",
     "svg"
   ],

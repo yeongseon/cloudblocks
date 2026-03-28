@@ -2,15 +2,15 @@
 
 > **Audience**: New users | **Status**: V1 Core | **Verified against**: v0.26.0
 
-Welcome to CloudBlocks — a preset-driven visual architecture design tool. Start from built-in templates, customize with drag-and-drop blocks, validate against real-world rules, and preview across Azure, AWS, and GCP. Everything runs in your browser.
+Welcome to CloudBlocks — a visual cloud learning tool for beginners. Start from guided templates, learn common architecture patterns step by step, and export Terraform starter code. Everything runs in your browser — no cloud account or backend required.
 
 <div class="grid cards" markdown>
 
-- :material-puzzle:{ .lg .middle } **Start from a Template**
+- :material-school:{ .lg .middle } **Learn Cloud Architecture**
 
   ***
 
-  Load a pre-built architecture and customize it in minutes.
+  Follow guided scenarios to learn cloud infrastructure patterns — from your first VNet to a full three-tier web app.
 
   [:octicons-arrow-right-24: First Architecture](first-architecture.md)
 
@@ -50,7 +50,7 @@ Welcome to CloudBlocks — a preset-driven visual architecture design tool. Star
 
   ***
 
-  Browse all 6 built-in architecture patterns.
+  Browse all 6 built-in architecture patterns with guided learning scenarios.
 
   [:octicons-arrow-right-24: Browse templates](templates.md)
 
@@ -79,7 +79,7 @@ Welcome to CloudBlocks — a preset-driven visual architecture design tool. Star
 | If you want to...                | Start here                                       |
 | -------------------------------- | ------------------------------------------------ |
 | Get up and running fast          | [Quick Start](quick-start.md)                    |
-| Build your first architecture    | [First Architecture](first-architecture.md)      |
+| Learn your first architecture    | [First Architecture](first-architecture.md)      |
 | Understand the terminology       | [Core Concepts](core-concepts.md)                |
 | Learn the editor interface       | [Editor Basics](editor-basics.md)                |
 | Use a pre-built pattern          | [Templates](templates.md)                        |
@@ -87,5 +87,5 @@ Welcome to CloudBlocks — a preset-driven visual architecture design tool. Star
 | Work faster with hotkeys         | [Keyboard Shortcuts](keyboard-shortcuts.md)      |
 | Find answers to common questions | [FAQ](faq.md)                                    |
 
-!!! tip "New to CloudBlocks?"
-Start with [First Architecture from a Template](first-architecture.md) to build your first architecture, then read [Core Concepts](core-concepts.md) to understand the fundamentals.
+!!! tip "New to cloud architecture?"
+Start with [First Architecture from a Template](first-architecture.md) to follow a guided learning scenario, then read [Core Concepts](core-concepts.md) to understand the fundamentals.

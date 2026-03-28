@@ -1,5 +1,7 @@
 # CloudBlocks PRD
 
+> ⚠️ **Superseded**: This PRD reflects the original product vision. The current product direction is defined in [PRODUCT_DIRECTION_SPEC.md](PRODUCT_DIRECTION_SPEC.md) and [ROADMAP.md](ROADMAP.md). CloudBlocks is now positioned as a **visual cloud learning tool for beginners**.
+>
 > Scope note: This document is the original MVP PRD and remains as historical product context. Some items listed as MVP non-goals were implemented in later milestones/phases. For current implementation status and timeline, use [ROADMAP.md](./ROADMAP.md).
 
 Build cloud architecture visually using a block-based composition model — start from preset templates, customize with drag-and-drop, and preview across cloud providers.

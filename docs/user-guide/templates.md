@@ -12,7 +12,7 @@ Templates are pre-built architecture patterns that provide a working starting po
 
 You can load a template in two ways:
 
-1. On the empty canvas, click **Use Template** from the initial call to action.
+1. On the empty canvas, click **Start from Template** from the initial call to action.
 2. Use the menu: **Build → Browse Templates**.
 
 The Template Gallery shows all available patterns. Click any template to see a preview and description. Click **Use** to load it into your workspace.

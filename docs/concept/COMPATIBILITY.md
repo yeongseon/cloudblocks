@@ -2,7 +2,7 @@
 
 > **Audience**: All Users | **Status**: Stable — V1 Core | **Verified against**: v0.26.0
 
-This document defines how CloudBlocks handles versioning, backward compatibility, and data migration.
+This document defines how CloudBlocks handles versioning, backward compatibility, and data migration. Compatibility guarantees are scoped to **blessed (built-in) templates and the Terraform starter export flow**. Experimental features (Bicep, Pulumi) and custom blank-canvas architectures may change without a major version bump.
 
 ## Versioning
 
@@ -13,6 +13,17 @@ CloudBlocks follows [Semantic Versioning](https://semver.org/) starting from v1.
 - **Patch** (v1.0.1): Bug fixes only
 
 Pre-1.0 versions (v0.x) do not carry compatibility guarantees.
+
+## Scope of Guarantees
+
+| Scope         | Covered                            | Not Covered                                     |
+| ------------- | ---------------------------------- | ----------------------------------------------- |
+| **Templates** | All 6 built-in (blessed) templates | Custom blank-canvas designs                     |
+| **Export**    | Terraform starter export           | Bicep _(Experimental)_, Pulumi _(Experimental)_ |
+| **Providers** | Provider-aware visual preview      | Provider-specific resource completeness         |
+| **Learning**  | Built-in guided scenarios          | Future community-contributed scenarios          |
+
+Experimental features are clearly labeled in the UI and may change between minor versions.
 
 ## Workspace Data (localStorage)
 
@@ -37,7 +48,7 @@ Users can export workspace data as JSON at any time via File → Export. This se
 
 ## Breaking Changes
 
-In the context of a visual design tool, a "breaking change" means:
+In the context of a visual cloud learning tool, a "breaking change" means:
 
 | Breaking                                 | Not Breaking                         |
 | ---------------------------------------- | ------------------------------------ |
@@ -45,6 +56,7 @@ In the context of a visual design tool, a "breaking change" means:
 | Block types removed without migration    | New block types or categories added  |
 | Connection model incompatible            | Visual style changes (colors, fonts) |
 | Template format change without migration | New templates added                  |
+| Learning scenario removed without notice | New scenarios added                  |
 
 ## Deprecation Process
 

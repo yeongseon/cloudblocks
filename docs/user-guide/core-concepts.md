@@ -2,7 +2,7 @@
 
 > **Audience**: All users | **Status**: V1 Core | **Verified against**: v0.26.0
 
-CloudBlocks uses a block-based composition model for cloud architecture. You build infrastructure by placing elements on the canvas, connecting them with typed protocols, and validating against real-world rules.
+CloudBlocks is a visual cloud learning tool that uses a block-based composition model. You learn cloud architecture by placing elements on the canvas, connecting them with typed protocols, and validating against real-world rules.
 
 ---
 
@@ -38,7 +38,7 @@ Blocks represent individual cloud resources. CloudBlocks organizes resources int
 | **Operations** | Monitors and observes                    | Monitoring                                                              |
 
 !!! tip "Sidebar Palette"
-You can find and drag these resources from the **Sidebar Palette** on the left side of the editor.
+You can find and drag these resources from the **Sidebar Palette** on the left side of the editor. In Learning Mode, the palette shows only the resources relevant to your current scenario.
 
 ---
 
@@ -75,7 +75,7 @@ The following categories can only receive connections and cannot initiate them: 
 
 ## Templates
 
-Templates provide pre-configured architecture patterns to help you start quickly. There are 6 built-in templates available:
+Templates provide pre-configured architecture patterns to help you learn common cloud patterns. There are 6 built-in templates available, each with a guided learning scenario:
 
 1.  **Three-Tier Web Application** (beginner, web-application)
 2.  **Simple Compute Setup** (beginner, web-application)
@@ -88,9 +88,9 @@ Templates provide pre-configured architecture patterns to help you start quickly
 
 ## Cloud Providers
 
-CloudBlocks supports multiple cloud providers, adapting resource names and icons automatically.
+CloudBlocks supports multiple cloud providers, adapting resource names and icons automatically. Provider coverage varies by template, resource, and export path.
 
-- **Azure**: The default provider with full resource coverage.
+- **Azure**: Full resource coverage across all 8 categories.
 - **AWS**: Resource names adapt to AWS terminology (e.g., VPC, EC2, Lambda, S3, RDS).
 - **GCP**: Resource names adapt to GCP terminology (e.g., Compute Engine, Cloud Functions, Cloud Storage).
 
@@ -122,13 +122,13 @@ GitHub sync requires the backend. See [Backend Integrations](../advanced/backend
 
 ## Learning Mode
 
-Learning Mode offers interactive scenarios to help you master cloud architecture patterns.
+Learning Mode is the **primary way beginners interact with CloudBlocks**. Interactive guided scenarios teach you cloud architecture patterns step by step.
 
 - **Three-Tier Web Application**: Beginner scenario, approximately 10 minutes.
 - **Serverless HTTP API**: Intermediate scenario, approximately 8 minutes.
 - **Event-Driven Data Pipeline**: Advanced scenario, approximately 12 minutes.
 
-Access these guided tutorials via **Build → Browse Scenarios** or by clicking the **Learn How** button on an empty canvas.
+Access these guided scenarios via **Build → Browse Scenarios** in the menu bar, or by clicking **Start from Template** on an empty canvas.
 
 ---
 
