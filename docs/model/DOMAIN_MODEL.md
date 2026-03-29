@@ -1,17 +1,17 @@
 # CloudBlocks Platform — Domain Model
 
-> **Audience**: Beginners / Contributors | **Status**: Stable — V1 Core | **Verified against**: v0.26.0
+> **Audience**: Beginners / Contributors | **Status**: Stable — V1 Core | **Verified against**: v4.0.0 schema
 
 > **Canonical Source Declaration**
 >
 > This document is the **canonical specification** for the CloudBlocks domain model. All other documentation must reference and conform to the types, field names, and relationships defined here.
 >
-> - **Schema types**: `packages/schema/src/` — `model.ts` (Block, ArchitectureModel), `enums.ts` (ResourceCategory, NodeKind, LayerType), `rules.ts` (RESOURCE_RULES, CanvasTier)
-> - **Domain constraints**: `packages/cloudblocks-domain/src/constraints.ts` — validateContainment, validateNodeIntegrity, validateNodePlacement
+> - **Schema types**: `packages/schema/src/` — `model.ts` (Block, ArchitectureModel), `enums.ts` (ResourceCategory, BlockKind, LayerType), `rules.ts` (RESOURCE_RULES, CanvasTier)
+> - **Domain constraints**: `packages/cloudblocks-domain/src/constraints.ts` — validateContainment, validateBlockIntegrity, validateBlockPlacement
 > - **Shared types**: `apps/web/src/shared/types/index.ts` re-exports from `@cloudblocks/schema`
 > - **Connection rules**: `apps/web/src/entities/validation/connection.ts`
 > - **Placement rules**: `apps/web/src/entities/validation/placement.ts`
-> - **Serialization format**: `apps/web/src/shared/types/schema.ts` — SCHEMA_VERSION `3.0.0`
+> - **Serialization format**: `apps/web/src/shared/types/schema.ts` — SCHEMA_VERSION `4.0.0`
 > - **Version timelines**: `docs/concept/ROADMAP.md`
 > - **Code generation pipeline**: `docs/engine/generator.md`
 
@@ -24,9 +24,10 @@ CloudBlocks represents cloud architecture using a **block abstraction model**. I
 Cloud infrastructure is represented as a **layered containment model** composed of:
 
 - **Blocks** — Container blocks (VNet, Subnet) and resource blocks (VM, Database, etc.)
-- **Connections** — Typed data/event flow between resources
+- **Endpoints** — Typed connection points on blocks (input/output × http/event/data)
+- **Connections** — Data/event flow between endpoints
 - **Rules** — Compatibility and placement constraints driven by RESOURCE_RULES
-- **External Actors** — External endpoints (Internet)
+- **External Actors** — External endpoints (Internet) _(deprecated — see §6)_
 
 This model provides a visual abstraction that maps directly to real cloud resources and IaC constructs. The internal representation uses a **2D coordinate system with hierarchy** — the 2.5D isometric view is a rendering projection, not the source of truth.
 
@@ -47,30 +48,30 @@ These invariants **must hold at all times** in a valid `ArchitectureModel`. Viol
 
 ### 2.1 Identity Rules
 
-| Rule                      | Description                                                                                                                                                                                                              |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **ID Uniqueness**         | All entity IDs within an `ArchitectureModel` are globally unique. No two entities (nodes, connections, external actors) share an ID.                                                                                     |
-| **ID Format**             | IDs follow the pattern `{type}-{uuid}` where type is `block`, `conn`, or `ext`. Example: `block-a1b2c3`, `block-d4e5f6`.                                                                                                 |
-| **ID Immutability**       | Once assigned, an entity's ID never changes. IDs are stable across save/load cycles.                                                                                                                                     |
-| **Referential Integrity** | All ID references must resolve. `parentId` must reference an existing `ContainerBlock` or be `null` (root). `Connection.from.blockId` and `Connection.to.blockId` must reference an existing `Block` or `ExternalActor`. |
+| Rule                      | Description                                                                                                                                                                                                                       |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ID Uniqueness**         | All entity IDs within an `ArchitectureModel` are globally unique. No two entities (blocks, endpoints, connections, external actors) share an ID.                                                                                  |
+| **ID Format**             | IDs follow the pattern `{type}-{uuid}` where type is `block`, `conn`, or `ext`. Example: `block-a1b2c3`, `block-d4e5f6`. Endpoint IDs use the deterministic format `endpoint-{blockId}-{direction}-{semantic}`.                   |
+| **ID Immutability**       | Once assigned, an entity's ID never changes. IDs are stable across save/load cycles.                                                                                                                                              |
+| **Referential Integrity** | All ID references must resolve. `parentId` must reference an existing `ContainerBlock` or be `null` (root). `Connection.from` and `Connection.to` must reference valid endpoint IDs whose parent blocks exist in the model. |
 
 ### 2.2 Structural Invariants
 
-| Rule                      | Description                                                                                                                                                                                                                           |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Root Nodes**            | An `ArchitectureModel` has one or more root `ContainerBlock`s (`parentId: null`). Valid root resource types: `virtual_network`.                                                                                                       |
-| **Containment Hierarchy** | `ContainerBlock`s form a strict tree: `virtual_network` (root) → `subnet` (child). No cycles. Validated by `RESOURCE_RULES.allowedParents`.                                                                                           |
-| **Resource Placement**    | Every `ResourceBlock` has a `parentId` referencing a `ContainerBlock`. Allowed parents are determined by `RESOURCE_RULES`. Most resources go on `subnet`; messaging resources (`message_queue`, `event_hub`) go on `virtual_network`. |
-| **Kind Consistency**      | A node's `kind` must be consistent with its `resourceType`. Only `containerCapable` resource types can be `kind: 'container'`. Validated by `validateNodeIntegrity()`.                                                                |
+| Rule                      | Description                                                                                                                                                                                                                                                                                                                                                             |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Root Blocks**           | An `ArchitectureModel` has one or more root blocks (`parentId: null`). Root blocks include `ContainerBlock` with `virtual_network` as well as 14 resource types that allow root placement (see `ROOT_ALLOWED_RESOURCE_TYPES` in `placement.ts`): `public_ip`, `dns_zone`, `cdn_profile`, `front_door`, `blob_storage`, `managed_identity`, `service_account`, `function_compute`, `app_service`, `container_instances`, `cosmos_db`, `key_vault`, `identity_access`, and `virtual_network`. |
+| **Containment Hierarchy** | `ContainerBlock`s form a strict tree: `virtual_network` (root) → `subnet` (child). No cycles. Validated by `RESOURCE_RULES.allowedParents`.                                                                                                                                                                                                                            |
+| **Resource Placement**    | A `ResourceBlock`'s `parentId` references a `ContainerBlock` or is `null` for root-allowed types. Allowed parents are determined by `RESOURCE_RULES.allowedParents`. Most resources require a `subnet` parent; messaging resources (`message_queue`, `event_hub`) require `virtual_network`; root-allowed resources can have `parentId: null`.                           |
+| **Kind Consistency**      | A block's `kind` must be consistent with its `resourceType`. Only `containerCapable` resource types can be `kind: 'container'`. Validated by `validateBlockIntegrity()`.                                                                                                                                                                                                |
 
 ### 2.3 Connection Invariants
 
-| Rule                          | Description                                                                                                                   |
-| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| **No Self-Connections**       | `connection.from.blockId !== connection.to.blockId`.                                                                          |
-| **No Duplicate Connections**  | At most one connection per ordered `(from.blockId, to.blockId)` pair.                                                         |
-| **Receiver-Only Enforcement** | `data`, `security`, `operations`, `identity`, and `network` resources never appear as `from.blockId`. They are receiver-only. |
-| **Messaging Bidirectional**   | `messaging` resources can both send to and receive from `compute`.                                                            |
+| Rule                          | Description                                                                                                                                                     |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **No Self-Connections**       | A connection's source and target must reference different blocks. The block resolved from `connection.from` must differ from the block resolved from `connection.to`. |
+| **No Duplicate Connections**  | At most one connection per ordered (source block, target block) pair.                                                                                           |
+| **Receiver-Only Enforcement** | `data`, `security`, `operations`, `identity`, and `network` resources never appear as connection sources. They are receiver-only.                                |
+| **Messaging Bidirectional**   | `messaging` resources can both send to and receive from `compute`.                                                                                              |
 
 ---
 
@@ -84,7 +85,7 @@ The unified type for all architecture elements — both container blocks (VNet, 
 interface BlockBase {
   id: string;
   name: string;
-  kind: NodeKind; // 'container' | 'resource'
+  kind: BlockKind; // 'container' | 'resource'
   layer: LayerType; // 'global' | 'edge' | 'region' | 'zone' | 'subnet' | 'resource'
   resourceType: string; // e.g. 'virtual_network', 'web_compute', 'relational_database'
   category: ResourceCategory; // 'network' | 'delivery' | 'compute' | 'data' | 'messaging' | 'security' | 'identity' | 'operations'
@@ -96,7 +97,6 @@ interface BlockBase {
   subtype?: string; // e.g. 'linux' for compute, 'postgresql' for data
   aggregation?: Aggregation; // cluster/scaling (mode + count)
   roles?: BlockRole[]; // visual-only role indicators
-  subnetAccess?: SubnetAccess; // 'public' | 'private' — meaningful for subnet containers
   profileId?: string; // visual profile preset identifier
   canvasTier?: CanvasTier; // 'shared' | 'web' | 'app' | 'data' — visual grouping
 }
@@ -110,7 +110,7 @@ Holds child blocks. Rendered as a container block with ports.
 export interface ContainerBlock extends BlockBase {
   kind: 'container';
   resourceType: ContainerCapableResourceType; // 'virtual_network' | 'subnet'
-  frame: Frame; // { width, height, depth }
+  frame: Size; // { width, height, depth }
 }
 ```
 
@@ -219,30 +219,45 @@ export function getDefaultCategory(resourceType: string): ResourceCategory | und
 
 ---
 
-# 5. Connection
+# 5. Endpoint & Connection Model
 
-Connections represent **data or event flow** between blocks.
+In v4, connections use an **endpoint-based model**. Each block has typed connection points (endpoints), and connections link an output endpoint to an input endpoint.
 
-Direction represents the **request initiator**. Responses flow implicitly in reverse.
+### 5.1 Endpoint
 
-### 5.1 Connection Properties
+An endpoint is a typed connection point on a block. Every block auto-generates 6 endpoints (3 semantics × 2 directions). Endpoint IDs are deterministic to prevent diff churn.
 
 ```typescript
-export interface EndpointRef {
+export interface Endpoint {
+  id: string; // "endpoint-{blockId}-{direction}-{semantic}"
   blockId: string;
-  portId: string;
+  direction: EndpointDirection; // 'input' | 'output'
+  semantic: EndpointSemantic; // 'http' | 'event' | 'data'
 }
+```
 
+**Endpoint ID format**: `endpoint-{blockId}-{direction}-{semantic}`
+
+Example: `endpoint-block-a1b2c3-output-http`
+
+Endpoint generation is deterministic — given a block ID, the 6 endpoints are always the same. See `generateEndpointsForBlock()` in `packages/schema/src/endpoints.ts`.
+
+### 5.2 Connection
+
+A connection links an output endpoint on one block to an input endpoint on another.
+
+```typescript
 export interface Connection {
   id: string;
-  from: EndpointRef; // initiator endpoint
-  to: EndpointRef; // receiver endpoint
-  type: ConnectionType; // 'dataflow' | 'http' | 'internal' | 'data' | 'async'
+  from: string; // output endpoint ID
+  to: string; // input endpoint ID
   metadata: Record<string, unknown>;
 }
 ```
 
-### 5.2 Connection Rules
+> **v3 → v4 migration**: The v3 `Connection` had `sourceId`, `targetId`, and `type: ConnectionType` fields. In v4, `from`/`to` are endpoint ID strings, and the connection semantic is encoded in the endpoint itself. The `ConnectionType` enum is `@deprecated` and kept only for migration. See `LegacyConnection` in `model.ts`.
+
+### 5.3 Connection Rules
 
 | Source (Initiator) | Allowed Targets (Receiver)                    |
 | ------------------ | --------------------------------------------- |
@@ -253,23 +268,43 @@ export interface Connection {
 
 **Receiver-only**: `data`, `security`, `operations`, `identity`, and `network` never initiate connections.
 
-### 5.3 Connection Types
+### 5.4 Endpoint Semantics
 
-| Type       | Description                         | Visual Style     |
-| ---------- | ----------------------------------- | ---------------- |
-| `dataflow` | General request/response            | Solid line       |
-| `http`     | HTTP request path                   | Thick solid line |
-| `internal` | Internal service-to-service         | Short dash       |
-| `data`     | Data access path                    | Long dash        |
-| `async`    | Asynchronous trigger / queue-driven | Dot-dash         |
+| Semantic | Description                                     | Legacy ConnectionType Mapping |
+| -------- | ----------------------------------------------- | ----------------------------- |
+| `http`   | HTTP request/response path                      | `http`                        |
+| `event`  | Asynchronous trigger / queue-driven             | `async`                       |
+| `data`   | Data access, internal service, general dataflow | `dataflow`, `internal`, `data` |
+
+### 5.5 Helper Functions
+
+```typescript
+// Generate deterministic endpoint ID
+export function endpointId(blockId: string, direction: EndpointDirection, semantic: EndpointSemantic): string;
+
+// Generate all 6 endpoints for a block
+export function generateEndpointsForBlock(blockId: string): Endpoint[];
+
+// Map legacy ConnectionType to EndpointSemantic (migration)
+export function connectionTypeToSemantic(type: string): EndpointSemantic;
+
+// Parse endpoint ID back to components
+export function parseEndpointId(epId: string): { blockId: string; direction: EndpointDirection; semantic: EndpointSemantic } | null;
+
+// Resolve v4 connection to source/target block IDs (for UI compatibility)
+export function resolveConnectionNodes(conn: { from: string; to: string }): { sourceId: string; targetId: string; type: string };
+```
 
 ---
 
 # 6. External Actor
 
+> **@deprecated**: ExternalActors are folded into blocks in v4. The interface is kept for backward compatibility with older saved models (v3 → v4 migration). New architectures still create ExternalActors for "Browser" and "Internet" during `createBlankArchitecture()`, but this pattern may be removed in a future version.
+
 An External Actor represents an endpoint outside the architecture.
 
 ```typescript
+/** @deprecated Folded into blocks in v4. Kept for v3→v4 migration. */
 export interface ExternalActor {
   id: string;
   name: string; // e.g., "Internet"
@@ -290,14 +325,18 @@ Rules define **compatibility and placement constraints**. All placement rules ar
 
 Placement validation is implemented in `apps/web/src/entities/validation/placement.ts`. Rules are derived from `RESOURCE_RULES` at module load time via `buildCategoryPlacementMap()`.
 
-| Category     | Required Parent Layer      | Additional Constraint                     |
-| ------------ | -------------------------- | ----------------------------------------- |
-| `delivery`   | `subnet`                   | Parent must have `subnetAccess: 'public'` |
-| `compute`    | `subnet`                   | —                                         |
-| `data`       | `subnet`                   | —                                         |
-| `security`   | `subnet`                   | —                                         |
-| `operations` | `subnet`                   | —                                         |
-| `messaging`  | `region` (virtual_network) | —                                         |
+The placement engine also maintains a `ROOT_ALLOWED_RESOURCE_TYPES` set (built from `buildRootAllowedResourceTypes()`) that identifies which resource types can be placed at root level (`parentId: null`). Currently 14 resource types plus `virtual_network` allow root placement — see the Resource Type Table in §4.2 for which types have `null` in their `allowedParents`.
+
+| Category     | Typical Parent             | Notes                                                         |
+| ------------ | -------------------------- | ------------------------------------------------------------- |
+| `network`    | `null` or `virtual_network` | `virtual_network` and `public_ip` at root; others on subnet |
+| `delivery`   | `subnet` or `null`         | `dns_zone`, `cdn_profile`, `front_door` at root; others on subnet |
+| `compute`    | `subnet` or `null`         | `function_compute`, `app_service`, `container_instances` allow root |
+| `data`       | `subnet` or `null`         | `blob_storage`, `cosmos_db` allow root                       |
+| `security`   | `subnet` or `null`         | `key_vault` allows root                                       |
+| `identity`   | `null` or `subnet`         | `managed_identity`, `service_account` at root; `identity_access` allows both |
+| `operations` | `subnet`                   | —                                                             |
+| `messaging`  | `virtual_network`          | —                                                             |
 
 ### 7.2 Containment Rules
 
@@ -311,13 +350,13 @@ export function validateContainment(
 ): ContainmentError | null;
 
 // Validate kind vs resourceType consistency (containerCapable check)
-export function validateNodeIntegrity(node: Block): NodeIntegrityError[];
+export function validateBlockIntegrity(block: Block): BlockIntegrityError[];
 
 // Combined: both containment + integrity in one call
-export function validateNodePlacement(
-  node: Block,
-  allNodes: readonly Block[],
-): (NodeIntegrityError | ContainmentError)[];
+export function validateBlockPlacement(
+  block: Block,
+  allBlocks: readonly Block[],
+): (BlockIntegrityError | ContainmentError)[];
 ```
 
 ### 7.3 Validation Result
@@ -372,14 +411,16 @@ export interface ArchitectureModel {
   name: string;
   version: string; // user-facing revision counter
   nodes: Block[]; // all container blocks and resource blocks in a flat array
-  connections: Connection[];
-  externalActors: ExternalActor[];
+  endpoints: Endpoint[]; // all endpoints for all blocks
+  connections: Connection[]; // endpoint-to-endpoint connections
+  /** @deprecated Folded into blocks in v4. Kept for v3→v4 migration loading. */
+  externalActors?: ExternalActor[];
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601
 }
 ```
 
-Note: The model uses a flat `nodes[]` array. Containment hierarchy is expressed through `parentId` references, not nesting.
+Note: The model uses a flat `nodes[]` array. Containment hierarchy is expressed through `parentId` references, not nesting. The `endpoints[]` array contains all connection points for all blocks — typically 6 per block (3 semantics × 2 directions).
 
 ---
 
@@ -387,12 +428,14 @@ Note: The model uses a flat `nodes[]` array. Containment hierarchy is expressed 
 
 ### Schema Version
 
-The storage format uses `schemaVersion` (currently `"3.0.0"`) to track the serialization shape. This is **separate** from `ArchitectureModel.version`, which is a user-facing architecture revision counter.
+The storage format uses `schemaVersion` (currently `"4.0.0"`) to track the serialization shape. This is **separate** from `ArchitectureModel.version`, which is a user-facing architecture revision counter.
 
 | Field                       | Purpose                                     | Canonical Source                                         |
 | --------------------------- | ------------------------------------------- | -------------------------------------------------------- |
 | `schemaVersion`             | Storage format version — enables migrations | `apps/web/src/shared/types/schema.ts` → `SCHEMA_VERSION` |
 | `ArchitectureModel.version` | User-facing revision counter                | `packages/schema/src/model.ts`                           |
+
+The `schemaVersion` is stored in the serialized `SerializedData` wrapper, not inside `ArchitectureModel` itself. Supported versions for migration: `4.0.0` (current), `3.0.0`, `2.0.0`. Legacy versions `0.1.0` and `0.2.0` are rejected (no migration path).
 
 ### Migration Policy
 
@@ -440,8 +483,9 @@ Key concepts:
 ContainerBlock   → Network boundary (VNet, Subnet)
 ResourceBlock    → Cloud resource (compute, data, delivery, security, identity...)
 Block            → Discriminated union of ContainerBlock | ResourceBlock
-Connection       → Data/Event flow (initiator direction)
-External Actor   → External endpoint (Internet)
+Endpoint         → Typed connection point on a block (input/output × http/event/data)
+Connection       → Endpoint-to-endpoint data/event flow
+External Actor   → External endpoint (Internet) — @deprecated
 RESOURCE_RULES   → Single source of truth for constraints
 Provider Adapter → Cloud-specific resource mapping
 Generator        → IaC code output (Terraform / Bicep / Pulumi)
