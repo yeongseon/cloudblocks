@@ -26,4 +26,4 @@ Practice from scratch by placing blocks manually after you understand the basics
 | **Blank Canvas** | Custom patterns, experienced users       | ~10 minutes                |
 
 !!! tip "New to CloudBlocks?"
-Start with a template. You can always modify it or start over with a blank canvas later.
+    Start with a template. You can always modify it or start over with a blank canvas later.

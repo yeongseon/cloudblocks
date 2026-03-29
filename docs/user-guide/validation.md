@@ -5,7 +5,7 @@
 Validation is part of the learning experience. As you place resources and create connections, CloudBlocks checks the architecture and teaches you when a pattern breaks common cloud rules.
 
 !!! note "Use validation as feedback"
-Treat each validation result as an explanation of the pattern, not just a blocker to clear.
+    Treat each validation result as an explanation of the pattern, not just a blocker to clear.
 
 ---
 

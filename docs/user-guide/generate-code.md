@@ -3,7 +3,7 @@
 > **Audience**: All users | **Status**: Superseded reference | **Verified against**: v0.26.0
 
 !!! info "Terraform starter export"
-Terraform starter export is a V1 Core learning feature. Bicep and Pulumi remain Experimental. For the current guide, use [Code Generation](../advanced/code-generation.md).
+    Terraform starter export is a V1 Core learning feature. Bicep and Pulumi remain Experimental. For the current guide, use [Code Generation](../advanced/code-generation.md).
 
 CloudBlocks exports Terraform starter code so beginners can see how a visual architecture maps to infrastructure-as-code.
 

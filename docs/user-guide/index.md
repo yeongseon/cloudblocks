@@ -88,4 +88,4 @@ Welcome to CloudBlocks — a visual cloud learning tool for beginners. Start fro
 | Find answers to common questions | [FAQ](faq.md)                                    |
 
 !!! tip "New to cloud architecture?"
-Start with [First Architecture from a Template](first-architecture.md) to follow a guided learning scenario, then read [Core Concepts](core-concepts.md) to understand the fundamentals.
+    Start with [First Architecture from a Template](first-architecture.md) to follow a guided learning scenario, then read [Core Concepts](core-concepts.md) to understand the fundamentals.
