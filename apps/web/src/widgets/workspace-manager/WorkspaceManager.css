@@ -4,11 +4,11 @@
   top: 60px;
   width: 280px;
   max-height: calc(100vh - 80px);
-  background: rgba(20, 20, 40, 0.95);
-  border: 1px solid #333366;
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-default);
   border-radius: 8px;
   padding: 12px;
-  color: #e0e0e0;
+  color: var(--text-primary);
   font-family: var(--font-ui);
   z-index: 10;
   display: flex;
@@ -27,13 +27,13 @@
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .workspace-manager-close {
   background: none;
   border: none;
-  color: #999;
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 14px;
   padding: 2px 6px;
@@ -41,8 +41,8 @@
 }
 
 .workspace-manager-close:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
+  color: var(--text-primary);
 }
 
 .workspace-manager-create {
@@ -54,29 +54,29 @@
 .workspace-manager-input {
   flex: 1;
   padding: 5px 8px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid #444;
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+  border: 1px solid var(--border-strong);
   border-radius: 4px;
-  color: #e0e0e0;
+  color: var(--text-primary);
   font-size: 12px;
   font-family: inherit;
 }
 
 .workspace-manager-input:focus {
   outline: none;
-  border-color: #4285f4;
+  border-color: var(--accent-primary);
 }
 
 .workspace-manager-input::placeholder {
-  color: #666;
+  color: var(--text-muted);
 }
 
 .workspace-manager-create-btn {
   padding: 5px 10px;
-  background: rgba(76, 175, 80, 0.2);
-  border: 1px solid rgba(76, 175, 80, 0.4);
+  background: color-mix(in srgb, var(--accent-success) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-success) 40%, transparent);
   border-radius: 4px;
-  color: #81c784;
+  color: var(--accent-success);
   font-size: 12px;
   cursor: pointer;
   white-space: nowrap;
@@ -84,7 +84,7 @@
 }
 
 .workspace-manager-create-btn:hover {
-  background: rgba(76, 175, 80, 0.35);
+  background: color-mix(in srgb, var(--accent-success) 35%, transparent);
 }
 
 .workspace-manager-list {
@@ -100,19 +100,19 @@
   justify-content: space-between;
   align-items: center;
   padding: 8px 10px;
-  background: rgba(255, 255, 255, 0.03);
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
   border: 1px solid transparent;
   border-radius: 4px;
   transition: all 0.15s;
 }
 
 .workspace-manager-item:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: color-mix(in srgb, var(--text-primary) 6%, transparent);
 }
 
 .workspace-manager-item-active {
-  background: rgba(66, 133, 244, 0.15);
-  border-color: rgba(66, 133, 244, 0.3);
+  background: color-mix(in srgb, var(--accent-primary) 15%, transparent);
+  border-color: color-mix(in srgb, var(--accent-primary) 30%, transparent);
 }
 
 .workspace-manager-item-info {
@@ -126,7 +126,7 @@
 .workspace-manager-item-name {
   font-size: 12px;
   font-weight: 500;
-  color: #e0e0e0;
+  color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -134,7 +134,7 @@
 
 .workspace-manager-item-stats {
   font-size: 10px;
-  color: #777;
+  color: var(--text-muted);
 }
 
 .workspace-manager-item-actions {
@@ -145,23 +145,23 @@
 
 .workspace-manager-action {
   padding: 3px 6px;
-  background: rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
   border: 1px solid transparent;
   border-radius: 3px;
-  color: #999;
+  color: var(--text-muted);
   font-size: 11px;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .workspace-manager-action:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
+  background: color-mix(in srgb, var(--text-primary) 12%, transparent);
+  color: var(--text-primary);
 }
 
 .workspace-manager-action-delete:hover {
-  background: rgba(244, 67, 54, 0.2);
-  color: #ef5350;
+  background: color-mix(in srgb, var(--accent-error) 20%, transparent);
+  color: var(--accent-error);
 }
 
 .workspace-manager-action:disabled {

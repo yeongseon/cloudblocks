@@ -10,7 +10,7 @@
   --sidebar-w: 240px;
 
   background: var(--bg-app);
-  color: var(--text-0, #e0e0e0);
+  color: var(--text-primary);
   overflow: hidden;
 
   transition: grid-template-columns var(--duration-normal, 200ms)
@@ -90,7 +90,7 @@
     border-radius: 50%;
     border: none;
     background: var(--accent-primary);
-    color: #fff;
+    color: var(--text-inverse);
     display: flex;
     align-items: center;
     justify-content: center;
