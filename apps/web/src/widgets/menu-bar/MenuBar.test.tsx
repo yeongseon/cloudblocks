@@ -985,7 +985,7 @@ describe('MenuBar', () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    await user.click(screen.getByTitle('Browse guided scenarios'));
+    await user.click(screen.getByTitle('Close learning panel'));
 
     expect(useUIStore.getState().drawer.isOpen).toBe(false);
   });
