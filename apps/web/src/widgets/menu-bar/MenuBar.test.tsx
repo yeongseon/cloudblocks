@@ -179,7 +179,7 @@ describe('MenuBar', () => {
   it('renders compact logo, overflow menu trigger, workspace button, and quick actions', () => {
     render(<MenuBar />);
 
-    expect(screen.getByText(/CB/)).toBeInTheDocument();
+    expect(document.querySelector('.menu-bar-logo svg')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Advanced' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Workspaces' })).toBeInTheDocument();
 

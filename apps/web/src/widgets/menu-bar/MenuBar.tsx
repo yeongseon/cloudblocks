@@ -318,7 +318,7 @@ export function MenuBar() {
   return (
     <div className="menu-bar">
       <div className="menu-bar-logo">
-        <LogoIcon size={16} /> CB
+        <LogoIcon size={16} />
       </div>
 
       {/* ── Overflow menu (all secondary actions) ──────── */}
