@@ -1,4 +1,6 @@
 import { useUIStore } from '../../entities/store/uiStore';
+import { LogoIcon } from '../../shared/ui/LogoIcon';
+import './LandingNavbar.css';
 import './LandingNavbar.css';
 
 export function LandingNavbar() {
@@ -6,7 +8,9 @@ export function LandingNavbar() {
 
   return (
     <header className="landing-navbar">
-      <div className="landing-navbar-logo">🧱 CloudBlocks</div>
+      <div className="landing-navbar-logo">
+        <LogoIcon size={24} /> CloudBlocks
+      </div>
       <nav className="landing-navbar-links" aria-label="Main navigation">
         <a href="#templates" className="landing-navbar-link">
           Templates

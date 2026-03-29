@@ -15,6 +15,8 @@ validation:
 theme:
   name: material
   language: en
+  logo: assets/logo.svg
+  favicon: assets/logo.svg
   custom_dir: docs/overrides
   font:
     text: Inter

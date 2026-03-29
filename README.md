@@ -11,6 +11,7 @@
 [![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://yeongseon.github.io/cloudblocks/)
 
 <p align="center">
+  <img src="docs/assets/logo.svg" alt="CloudBlocks logo" width="96" height="96" />
 </p>
 
 **CloudBlocks is a visual cloud learning tool for beginners: start from guided templates, learn common architecture patterns, and export Terraform starter code.**
