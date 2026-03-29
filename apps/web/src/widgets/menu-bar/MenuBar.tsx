@@ -86,8 +86,8 @@ export function MenuBar() {
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
   const toggleSound = useUIStore((s) => s.toggleSound);
   const themeVariant = useUIStore((s) => s.themeVariant);
-  const showGrid = useUIStore((s) => s.showGrid);
-  const toggleGrid = useUIStore((s) => s.toggleGrid);
+  const gridStyle = useUIStore((s) => s.gridStyle);
+  const cycleGridStyle = useUIStore((s) => s.cycleGridStyle);
   const setThemeVariant = useUIStore((s) => s.setThemeVariant);
   const playSound = (name: SoundName) => {
     if (!isSoundMuted) audioService.playSound(name);
@@ -533,10 +533,10 @@ export function MenuBar() {
                 : 'Switch to Blueprint (Dark)'}
             </span>
           </button>
-          <button type="button" className="menu-item" onClick={() => handleAction(toggleGrid)}>
+          <button type="button" className="menu-item" onClick={() => handleAction(cycleGridStyle)}>
             <span className="menu-item-left">
-              {showGrid ? '✓ ' : '  '}
-              <LayoutGrid size={14} /> Toggle Grid
+              <LayoutGrid size={14} /> Grid:{' '}
+              {gridStyle.charAt(0).toUpperCase() + gridStyle.slice(1)}
             </span>
           </button>
         </div>
