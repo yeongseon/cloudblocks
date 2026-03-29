@@ -22,7 +22,7 @@ pnpm dev
 
 Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-When CloudBlocks opens, you will see a landing page with a brief introduction. Click **Get Started** to enter the builder.
+When CloudBlocks opens, you will see a landing page. Click **Start Learning** to enter the builder.
 
 ---
 
@@ -30,12 +30,12 @@ When CloudBlocks opens, you will see a landing page with a brief introduction. C
 
 On the empty canvas, you will see two options:
 
-| Option                  | What it does                                                     |
-| :---------------------- | :--------------------------------------------------------------- |
-| **Start from Template** | Opens the Scenario Gallery with guided architecture patterns     |
-| **Start from Scratch**  | Dismisses the overlay so you can build manually from the sidebar |
+| Option                          | What it does                                                     |
+| :------------------------------ | :--------------------------------------------------------------- |
+| **Start Learning**              | Opens the Scenario Gallery with guided architecture patterns     |
+| **Practice on Blank Canvas**    | Dismisses the overlay so you can build manually from the sidebar |
 
-Click **Start from Template** and select **Three-Tier Web Application**. This loads a guided scenario with an Application Gateway, VM, SQL Database, and Blob Storage — all pre-wired with connections.
+Click **Start Learning** and select **Three-Tier Web Application**. This loads a guided scenario with an Application Gateway, VM, SQL Database, and Blob Storage — all pre-wired with connections.
 
 ---
 
@@ -43,7 +43,7 @@ Click **Start from Template** and select **Three-Tier Web Application**. This lo
 
 The builder uses a 4-panel layout:
 
-- **Menu Bar** (top) — Access File, Edit, Build, and View menus. Switch between Provider tabs (Azure, AWS, GCP). Manage workspaces.
+- **Menu Bar** (top) — Access File, Edit, Build, and View menus. The provider selector shows Azure (active), AWS, and GCP (Coming Soon). Manage workspaces.
 - **Sidebar Palette** (left) — Resource palette grouped into 8 categories: Network, Delivery, Compute, Data, Messaging, Security, Identity, and Operations. Click or drag items to create resources.
 - **Canvas** (center) — The main isometric drawing area where you build your architecture.
 - **Inspector Panel** (right) — View and edit details for the selected block:

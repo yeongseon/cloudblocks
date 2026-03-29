@@ -88,13 +88,13 @@ Templates provide pre-configured architecture patterns to help you learn common 
 
 ## Cloud Providers
 
-CloudBlocks supports multiple cloud providers, adapting resource names and icons automatically. Provider coverage varies by template, resource, and export path.
+CloudBlocks supports multiple cloud providers, adapting resource names and icons automatically.
 
-- **Azure**: Full resource coverage across all 8 categories.
-- **AWS**: Resource names adapt to AWS terminology (e.g., VPC, EC2, Lambda, S3, RDS).
-- **GCP**: Resource names adapt to GCP terminology (e.g., Compute Engine, Cloud Functions, Cloud Storage).
+- **Azure**: Full resource coverage across all 8 categories (active).
+- **AWS**: Resource names adapt to AWS terminology (e.g., VPC, EC2, Lambda, S3, RDS). _(Coming Soon)_
+- **GCP**: Resource names adapt to GCP terminology (e.g., Compute Engine, Cloud Functions, Cloud Storage). _(Coming Soon)_
 
-Use the provider tabs in the menu bar to switch the active provider for your workspace.
+Azure is the default active provider. AWS and GCP tabs are visible in the menu bar but marked Coming Soon.
 
 ---
 
@@ -128,7 +128,7 @@ Learning Mode is the **primary way beginners interact with CloudBlocks**. Intera
 - **Serverless HTTP API**: Intermediate scenario, approximately 8 minutes.
 - **Event-Driven Data Pipeline**: Advanced scenario, approximately 12 minutes.
 
-Access these guided scenarios via **Build → Browse Scenarios** in the menu bar, or by clicking **Start from Template** on an empty canvas.
+Access these guided scenarios by clicking the **Learn** button in the menu bar, or by clicking **Start Learning** on an empty canvas.
 
 ---
 

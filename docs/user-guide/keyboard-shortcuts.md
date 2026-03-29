@@ -1,6 +1,6 @@
 # Keyboard Shortcuts
 
-> **Audience**: All Users | **Status**: Stable — V1 Core | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: Stable — V1 Core | **Verified against**: v0.26.0
 
 Use keyboard shortcuts to speed up your workflow in CloudBlocks.
 

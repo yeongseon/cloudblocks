@@ -1,6 +1,6 @@
 # Templates
 
-> **Audience**: All Users | **Status**: Stable — V1 Core | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: Stable — V1 Core | **Verified against**: v0.26.0
 
 Templates are pre-built architecture patterns that provide a working starting point. Instead of building from scratch, load a template and customize it for your needs.
 

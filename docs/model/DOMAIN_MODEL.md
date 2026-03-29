@@ -1,6 +1,6 @@
 # CloudBlocks Platform — Domain Model
 
-> **Audience**: All Users / Contributors | **Status**: Stable — V1 Core | **Verified against**: v0.26.0
+> **Audience**: Beginners / Contributors | **Status**: Stable — V1 Core | **Verified against**: v0.26.0
 
 > **Canonical Source Declaration**
 >

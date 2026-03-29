@@ -2,7 +2,7 @@
 
 > **Audience**: Contributors | **Status**: Stable — Internal | **Verified against**: v0.26.0
 
-> Describes the actual user interaction flows implemented in CloudBlocks (Milestones 1–18).
+> Describes the actual user interaction flows implemented in CloudBlocks (Milestones 1–26).
 
 ---
 

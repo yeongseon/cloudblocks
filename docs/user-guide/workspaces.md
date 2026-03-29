@@ -1,6 +1,6 @@
 # Workspaces & Save/Load
 
-> **Audience**: All users | **Status**: V1 Core | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.26.0
 
 Workspaces let you keep separate learning exercises, template variations, and practice architectures. All data is stored in your browser's local storage — no account or backend required.
 

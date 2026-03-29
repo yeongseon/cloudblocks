@@ -1,6 +1,6 @@
 # Generating Code
 
-> **Audience**: All users | **Status**: Superseded reference | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: Superseded reference | **Verified against**: v0.26.0
 
 !!! info "Terraform starter export"
     Terraform starter export is a V1 Core learning feature. Bicep and Pulumi remain Experimental. For the current guide, use [Code Generation](../advanced/code-generation.md).

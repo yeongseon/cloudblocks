@@ -1,6 +1,6 @@
 # Learning Mode — Technical Design Specification
 
-> **Audience**: All Users / Contributors | **Status**: Stable — **V1 Core** | **Verified against**: v0.26.0
+> **Audience**: Beginners / Contributors | **Status**: Stable — **V1 Core** | **Verified against**: v0.26.0
 
 > **Milestone**: 6C — Learning Mode
 > **Last Updated**: 2026-03-28
