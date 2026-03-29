@@ -230,28 +230,14 @@ describe('MenuBar', () => {
     expect(useUIStore.getState().activeProvider).toBe('azure');
   });
 
-  it('marks AWS and GCP provider tabs as coming soon and disabled', () => {
+  it('AWS and GCP provider tabs are enabled and clickable', () => {
     render(<MenuBar />);
 
-    const awsTab = screen.getByRole('tab', { name: /aws \(coming soon\)/i });
-    const gcpTab = screen.getByRole('tab', { name: /gcp \(coming soon\)/i });
+    const awsTab = screen.getByRole('tab', { name: /aws/i });
+    const gcpTab = screen.getByRole('tab', { name: /gcp/i });
 
-    expect(awsTab).toBeDisabled();
-    expect(awsTab).toHaveAttribute('title', 'AWS support is coming soon');
-    expect(gcpTab).toBeDisabled();
-    expect(gcpTab).toHaveAttribute('title', 'GCP support is coming soon');
-  });
-
-  it('does not show confirm dialog when clicking a coming soon provider', async () => {
-    const user = userEvent.setup();
-    setArchitectureState({ nodes: [{ ...block, provider: 'azure' }] });
-    useUIStore.setState({ activeProvider: 'azure' });
-    render(<MenuBar />);
-
-    await user.click(screen.getByRole('tab', { name: /aws \(coming soon\)/i }));
-
-    expect(confirmDialog).not.toHaveBeenCalled();
-    expect(useUIStore.getState().activeProvider).toBe('azure');
+    expect(awsTab).toBeEnabled();
+    expect(gcpTab).toBeEnabled();
   });
 
   it('does not switch when clicking already active provider tab', async () => {

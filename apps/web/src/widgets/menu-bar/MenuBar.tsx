@@ -52,12 +52,11 @@ import './MenuBar.css';
 
 type DropdownMenu = 'overflow' | 'github' | null;
 
-const PROVIDER_OPTIONS: { id: ProviderType; label: string; color: string; comingSoon?: boolean }[] =
-  [
-    { id: 'azure', label: 'Azure', color: '#0078D4' },
-    { id: 'aws', label: 'AWS', color: '#FF9900', comingSoon: true },
-    { id: 'gcp', label: 'GCP', color: '#4285F4', comingSoon: true },
-  ];
+const PROVIDER_OPTIONS: { id: ProviderType; label: string; color: string }[] = [
+  { id: 'azure', label: 'Azure', color: '#0078D4' },
+  { id: 'aws', label: 'AWS', color: '#FF9900' },
+  { id: 'gcp', label: 'GCP', color: '#4285F4' },
+];
 
 export function MenuBar() {
   const [openMenu, setOpenMenu] = useState<DropdownMenu>(null);
@@ -175,8 +174,6 @@ export function MenuBar() {
   };
 
   const handleProviderSwitch = async (newProvider: ProviderType) => {
-    const targetProvider = PROVIDER_OPTIONS.find((provider) => provider.id === newProvider);
-    if (targetProvider?.comingSoon) return;
     if (newProvider === activeProvider) return;
 
     const blocksFromOtherProvider = blocks.filter(
@@ -566,7 +563,6 @@ export function MenuBar() {
       <div className="provider-section" role="tablist" aria-label="Cloud provider">
         {PROVIDER_OPTIONS.map((provider) => {
           const isActive = activeProvider === provider.id;
-          const isComingSoon = provider.comingSoon === true;
           return (
             <button
               key={provider.id}
@@ -575,9 +571,7 @@ export function MenuBar() {
               aria-selected={isActive}
               className="provider-btn"
               data-active={isActive}
-              disabled={isComingSoon}
               onClick={() => handleProviderSwitch(provider.id)}
-              title={isComingSoon ? `${provider.label} support is coming soon` : undefined}
               style={
                 isActive
                   ? {
@@ -589,7 +583,6 @@ export function MenuBar() {
               }
             >
               {provider.label}
-              {isComingSoon ? ' (Coming Soon)' : ''}
             </button>
           );
         })}
