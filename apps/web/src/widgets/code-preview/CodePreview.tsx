@@ -44,6 +44,7 @@ export function CodePreview({ embedded = false }: CodePreviewProps) {
     .map((generatorPlugin) => ({
       id: generatorPlugin.id,
       label: generatorPlugin.displayName,
+      experimental: generatorPlugin.id !== 'terraform',
     }));
   const [activeTab, setActiveTab] = useState(0);
   const [projectName, setProjectName] = useState(sanitizedName);
@@ -186,6 +187,7 @@ export function CodePreview({ embedded = false }: CodePreviewProps) {
               {generatorOptions.map((g) => (
                 <option key={g.id} value={g.id}>
                   {g.label}
+                  {g.experimental ? ' (Experimental)' : ''}
                 </option>
               ))}
             </select>

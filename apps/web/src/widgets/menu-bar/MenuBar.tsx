@@ -30,7 +30,6 @@ import {
   ArrowUpCircle,
   ArrowDownCircle,
   ClipboardList,
-  BookOpen,
   GraduationCap,
   PanelLeft,
   BookMarked,
@@ -70,8 +69,6 @@ export function MenuBar() {
   const toggleSidebar = useUIStore((s) => s.toggleSidebar);
   const inspectorOpen = useUIStore((s) => s.inspector.isOpen);
   const toggleInspector = useUIStore((s) => s.toggleInspector);
-  const toggleDrawer = useUIStore((s) => s.toggleDrawer);
-  const drawerState = useUIStore((s) => s.drawer);
   const showResourceGuide = useUIStore((s) => s.showResourceGuide);
   const toggleResourceGuide = useUIStore((s) => s.toggleResourceGuide);
   const activeProvider = useUIStore((s) => s.activeProvider);
@@ -84,6 +81,8 @@ export function MenuBar() {
   const toggleGitHubSync = useUIStore((s) => s.toggleGitHubSync);
   const toggleGitHubPR = useUIStore((s) => s.toggleGitHubPR);
   const diffMode = useUIStore((s) => s.diffMode);
+  const drawer = useUIStore((s) => s.drawer);
+  const isLearningOpen = drawer.isOpen && drawer.activePanel === 'learning';
   const activeScenario = useLearningStore((s) => s.activeScenario);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
   const toggleSound = useUIStore((s) => s.toggleSound);
@@ -316,8 +315,6 @@ export function MenuBar() {
     useUIStore.getState().openDrawer('learning');
   };
 
-  const isDrawerActive = (panel: string) => drawerState.isOpen && drawerState.activePanel === panel;
-
   return (
     <div className="menu-bar">
       <div className="menu-bar-logo">
@@ -428,7 +425,6 @@ export function MenuBar() {
             <span className="menu-item-left">
               <Zap size={14} /> Generate Code
             </span>
-            <span className="feature-badge feature-badge-experimental">Experimental</span>
           </button>
           <button
             type="button"
@@ -470,25 +466,6 @@ export function MenuBar() {
               </button>
             </>
           )}
-          <button
-            type="button"
-            className="menu-item"
-            onClick={() => handleAction(() => toggleDrawer('scenarios'))}
-          >
-            <span className="menu-item-left">
-              <BookOpen size={14} /> Browse Scenarios
-            </span>
-          </button>
-          <button
-            type="button"
-            className="menu-item"
-            onClick={() => handleAction(handleToggleLearningPanel)}
-          >
-            <span className="menu-item-left">
-              {isDrawerActive('learning') ? '✓ ' : ''}
-              <GraduationCap size={14} /> Show Learning Panel
-            </span>
-          </button>
 
           <div className="menu-separator" />
 
@@ -621,6 +598,28 @@ export function MenuBar() {
       <div className="menu-bar-divider" />
 
       <div className="core-actions">
+        <button
+          type="button"
+          className="core-btn core-btn-learn"
+          onClick={handleToggleLearningPanel}
+          title={
+            isLearningOpen
+              ? 'Close learning panel'
+              : activeScenario
+                ? 'Resume current lesson'
+                : 'Browse guided scenarios'
+          }
+          aria-label={
+            isLearningOpen
+              ? 'Close learning panel'
+              : activeScenario
+                ? 'Resume current lesson'
+                : 'Browse guided scenarios'
+          }
+        >
+          <GraduationCap size={14} />
+          <span className="core-btn-label">Learn</span>
+        </button>
         <button
           type="button"
           className="core-btn"

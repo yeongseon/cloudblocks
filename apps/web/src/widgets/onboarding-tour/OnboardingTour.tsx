@@ -15,25 +15,26 @@ interface TourStep {
 
 const STEPS: TourStep[] = [
   {
-    selector: '.sidebar-palette',
-    fallbackSelector: '.sidebar-palette',
-    title: 'Add a Node',
+    selector: '.core-btn-learn',
+    fallbackSelector: '.core-btn-learn',
+    title: 'Start with Learn',
     description:
-      'Browse Azure resources in the palette and drag one onto the canvas to start building.',
-    ensureVisible: () => useUIStore.getState().setSidebarOpen(true),
+      'Click Learn to open guided scenarios. Each scenario walks you through a cloud architecture pattern step by step.',
   },
   {
-    selector: '.scene-canvas',
-    fallbackSelector: '.builder-canvas',
-    title: 'Connect Nodes',
-    description: 'Click a port on any node and drag to another node to create a connection.',
+    selector: '.sidebar-palette',
+    fallbackSelector: '.sidebar-palette',
+    title: 'Edit the Architecture',
+    description:
+      'Drag resource blocks from the palette onto the canvas. Connect components to build the architecture pattern.',
+    ensureVisible: () => useUIStore.getState().setSidebarOpen(true),
   },
   {
     selector: '.menu-bar-nav',
     fallbackSelector: '.menu-bar-nav',
-    title: 'Generate Code',
+    title: 'Export Terraform Starter Code',
     description:
-      'Open Build → Generate to export Azure infrastructure code as Bicep, Terraform, or Pulumi.',
+      'Open Build \u2192 Generate Code to export your architecture as Terraform starter code for learning and prototyping.',
   },
 ];
 

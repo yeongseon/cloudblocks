@@ -59,7 +59,7 @@ describe('EmptyCanvasCTA', () => {
   it('renders CTA when canvas is empty', () => {
     render(<EmptyCanvasCTA />);
     expect(screen.getByTestId('empty-canvas-cta')).toBeInTheDocument();
-    expect(screen.getByText('Design your cloud architecture')).toBeInTheDocument();
+    expect(screen.getByText('Learn cloud architecture by doing')).toBeInTheDocument();
   });
 
   it('does not render when canvas has nodes', () => {
@@ -68,28 +68,28 @@ describe('EmptyCanvasCTA', () => {
     expect(container.innerHTML).toBe('');
   });
 
-  it('shows Start from Template and Start from Scratch buttons', () => {
+  it('shows Start Learning and Practice on Blank Canvas buttons', () => {
     render(<EmptyCanvasCTA />);
-    expect(screen.getByRole('button', { name: /Start from Template/ })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Start from Scratch/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Start Learning/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Practice on Blank Canvas/ })).toBeInTheDocument();
   });
 
-  it('Start from Template opens scenarios drawer', async () => {
+  it('Start Learning opens scenarios drawer', async () => {
     const user = userEvent.setup();
     render(<EmptyCanvasCTA />);
 
-    await user.click(screen.getByRole('button', { name: /Start from Template/ }));
+    await user.click(screen.getByRole('button', { name: /Start Learning/ }));
 
     expect(useUIStore.getState().drawer.activePanel).toBe('scenarios');
     expect(useUIStore.getState().drawer.isOpen).toBe(true);
   });
 
-  it('Start from Scratch dismisses CTA after exit animation', async () => {
+  it('Practice on Blank Canvas dismisses CTA after exit animation', async () => {
     const user = userEvent.setup();
     render(<EmptyCanvasCTA />);
 
     const cta = screen.getByTestId('empty-canvas-cta');
-    await user.click(screen.getByRole('button', { name: /Start from Scratch/ }));
+    await user.click(screen.getByRole('button', { name: /Practice on Blank Canvas/ }));
 
     expect(cta).toHaveClass('is-exiting');
     fireEvent.animationEnd(cta);
@@ -136,15 +136,15 @@ describe('EmptyCanvasCTA', () => {
 
   it('shows subtitle with guidance text', () => {
     render(<EmptyCanvasCTA />);
-    expect(screen.getByText(/Drag nodes from the sidebar/)).toBeInTheDocument();
+    expect(screen.getByText(/Start with a guided template/)).toBeInTheDocument();
   });
 
-  it('Start from Template triggers exit animation then dismisses', async () => {
+  it('Start Learning triggers exit animation then dismisses', async () => {
     const user = userEvent.setup();
     render(<EmptyCanvasCTA />);
 
     const cta = screen.getByTestId('empty-canvas-cta');
-    await user.click(screen.getByRole('button', { name: /Start from Template/ }));
+    await user.click(screen.getByRole('button', { name: /Start Learning/ }));
 
     expect(cta).toHaveClass('is-exiting');
     fireEvent.animationEnd(cta);
