@@ -51,13 +51,11 @@ async function openTemplateGallery(page: Page) {
 }
 
 async function openCodePreview(page: Page) {
-  // Open Build menu → Generate Code
-  const buildMenu = page.locator('.menu-dropdown-container', { hasText: 'Build' });
-  await buildMenu.locator('.menu-dropdown-trigger').click();
-  await buildMenu
-    .locator('.menu-dropdown')
-    .getByRole('button', { name: /Generate Code/ })
-    .click();
+  // Open Advanced overflow menu → Generate Code
+  const overflowBtn = page.getByRole('button', { name: 'Advanced' });
+  await overflowBtn.click();
+  const generateBtn = page.locator('.overflow-dropdown .menu-item', { hasText: 'Generate Code' });
+  await generateBtn.click();
   await expect(page.locator('.code-preview')).toBeVisible({ timeout: 5000 });
 }
 
@@ -110,9 +108,9 @@ test.describe('Template → Edit → Export Flow', () => {
       // Wait a moment for rendering
       await page.waitForTimeout(500);
 
-      // Canvas should contain SVG elements (blocks rendered)
-      const svgElements = page.locator('.scene-canvas svg');
-      await expect(svgElements).toBeVisible();
+      // Canvas should contain rendered blocks
+      const viewport = page.locator('.scene-viewport');
+      await expect(viewport).toBeVisible();
 
       await page.screenshot({
         path: `test-results/e2e/template-${template.category}-loaded.png`,
@@ -145,7 +143,7 @@ test.describe('Template → Edit → Export Flow', () => {
     await page.screenshot({ path: 'test-results/e2e/template-terraform-export.png' });
   });
 
-  test('template edit flow: load template, modify, then export', async ({ page }) => {
+  test('template load and export: load template then verify Terraform output', async ({ page }) => {
     await goToBuilder(page);
     await dismissOnboarding(page);
     await openTemplateGallery(page);
@@ -157,9 +155,9 @@ test.describe('Template → Edit → Export Flow', () => {
     await card.locator('.template-gallery-use-btn').click();
     await expect(page.locator('.template-gallery')).not.toBeVisible({ timeout: 5000 });
 
-    // Verify canvas has blocks
+    // Verify canvas has rendered blocks
     await page.waitForTimeout(500);
-    await expect(page.locator('.scene-canvas svg')).toBeVisible();
+    await expect(page.locator('.scene-viewport')).toBeVisible();
 
     // Open code preview to verify export still works after template load
     await openCodePreview(page);
@@ -194,11 +192,11 @@ test.describe('Template → Edit → Export Flow', () => {
       const selector = page.getByRole('combobox');
       await selector.selectOption('bicep');
 
-      // Bicep output should contain something meaningful
+      // Bicep output should contain resource or param definitions
       const codeContent = page.locator('.code-preview');
       await expect(codeContent).toBeVisible();
+      await expect(codeContent).toContainText(/resource|param|module/, { timeout: 5000 });
     }
-
     await page.screenshot({ path: 'test-results/e2e/template-bicep-export.png' });
   });
 
@@ -226,11 +224,11 @@ test.describe('Template → Edit → Export Flow', () => {
       const selector = page.getByRole('combobox');
       await selector.selectOption('pulumi');
 
-      // Pulumi output should contain something meaningful
+      // Pulumi output should contain import or resource definitions
       const codeContent = page.locator('.code-preview');
       await expect(codeContent).toBeVisible();
+      await expect(codeContent).toContainText(/import|pulumi|new /, { timeout: 5000 });
     }
-
     await page.screenshot({ path: 'test-results/e2e/template-pulumi-export.png' });
   });
 });
