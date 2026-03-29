@@ -517,7 +517,7 @@ export const useUIStore = create<UIState>((set, get) => ({
   isSoundMuted: true,
   toggleSound: () => set((s) => ({ isSoundMuted: !s.isSoundMuted })),
 
-  themeVariant: (localStorage.getItem('cloudblocks:theme-variant') as ThemeVariant) || 'blueprint',
+  themeVariant: (localStorage.getItem('cloudblocks:theme-variant') as ThemeVariant) || 'workshop',
   setThemeVariant: (variant) => {
     localStorage.setItem('cloudblocks:theme-variant', variant);
     // Ports are always shown — theme does not affect port visibility

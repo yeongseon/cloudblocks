@@ -43,7 +43,7 @@ describe('useUIStore', () => {
       diffMode: false,
       diffDelta: null,
       diffBaseArchitecture: null,
-      themeVariant: 'blueprint',
+      themeVariant: 'workshop',
       showPorts: true,
     });
   });
@@ -85,8 +85,8 @@ describe('useUIStore', () => {
   });
 
   describe('themeVariant', () => {
-    it("defaults to 'blueprint'", () => {
-      expect(useUIStore.getState().themeVariant).toBe('blueprint');
+    it("defaults to 'workshop'", () => {
+      expect(useUIStore.getState().themeVariant).toBe('workshop');
     });
 
     it('setThemeVariant changes the value', () => {
