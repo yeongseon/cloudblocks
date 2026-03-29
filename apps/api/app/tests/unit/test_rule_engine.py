@@ -51,7 +51,11 @@ def _node_resource(block_id: str, category: str, parent_id: str, name: str = "Bl
     }
 
 
-def _node_container(container_block_id: str, container_layer: str, subnet_access: str | None = None) -> Json:
+def _node_container(
+    container_block_id: str,
+    container_layer: str,
+    subnet_access: str | None = None,
+) -> Json:
     data: Json = {"id": container_block_id, "kind": "container", "type": container_layer}
     if subnet_access is not None:
         data["subnetAccess"] = subnet_access

@@ -323,7 +323,12 @@ async def test_cost_success_with_nodes_format(
     auth_cookies: dict[str, str],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    cost_result = CostEstimate(monthly_cost=10.0, hourly_cost=10.0 / 730, currency="USD", resources=[])
+    cost_result = CostEstimate(
+        monthly_cost=10.0,
+        hourly_cost=10.0 / 730,
+        currency="USD",
+        resources=[],
+    )
 
     async def mock_estimate(
         self: InfracostClient,

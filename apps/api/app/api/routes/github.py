@@ -100,7 +100,10 @@ class ArchitecturePayload(BaseModel):
         has_nodes = len(self.nodes) > 0
         has_legacy_keys = "plates" in self.model_fields_set and "blocks" in self.model_fields_set
         if not has_nodes and not has_legacy_keys:
-            raise ValueError("architecture must include non-empty 'nodes' or both legacy 'plates' and 'blocks'")
+            raise ValueError(
+                "architecture must include non-empty 'nodes'"
+                " or both legacy 'plates' and 'blocks'"
+            )
         return self
 
 
