@@ -162,6 +162,7 @@ export const ContainerBlockSvg = memo(function PlateSvg({
       <polygon points={leftSidePoints} fill={leftSideColor} />
       <polygon points={rightSidePoints} fill={rightSideColor} />
 
+      {/* ─── Left wall: provider icon ─── */}
       {iconUrl ? (
         <image
           href={iconUrl}
@@ -169,16 +170,16 @@ export const ContainerBlockSvg = memo(function PlateSvg({
           height={visuals.emojiFontSize}
           x={-visuals.emojiFontSize / 2}
           y={-visuals.emojiFontSize / 2}
-          transform={`matrix(0.8975,-0.4410,0,1,${rightLabelX},${wallCenterY})`}
+          transform={`matrix(0.8975,0.4410,0,1,${leftLabelX},${wallCenterY})`}
         />
       ) : null}
 
-      {/* ─── Side face (left wall): short label ─── */}
+      {/* ─── Right wall: short label ─── */}
       {shortLabel && (
         <text
           x={0}
           y={0}
-          transform={`matrix(0.8975,0.4410,0,1,${leftLabelX},${wallCenterY})`}
+          transform={`matrix(0.8975,-0.4410,0,1,${rightLabelX},${wallCenterY})`}
           fontFamily="system-ui, -apple-system, sans-serif"
           fontSize={Math.max(10, Math.round(sideWallPx * 0.32))}
           fontWeight="700"

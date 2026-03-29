@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, render } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import { render } from '@testing-library/react';
 
 import { BlockSvg } from '../BlockSvg';
 import { getBlockFaceColors } from '../blockFaceColors';
@@ -463,87 +463,5 @@ describe('BlockSvg name prop', () => {
     const images = container.querySelectorAll('image');
     expect(texts.length).toBe(1);
     expect(images.length).toBe(1);
-  });
-});
-
-describe('BlockSvg port dot interaction branches', () => {
-  it('renders hover glow when showPorts is false but hoveredPort matches', () => {
-    const { container } = render(
-      <BlockSvg category="compute" showPorts={false} hoveredPort="in-0" />,
-    );
-
-    expect(container.querySelector('[data-testid="port-glow-in-0"]')).not.toBeNull();
-  });
-
-  it('does not render glow for occupied endpoints even when hovered', () => {
-    const occupied = new Set<string>(['input-http']);
-    const { container } = render(
-      <BlockSvg
-        category="compute"
-        showPorts
-        hoveredPort="in-0"
-        occupiedEndpointSemantics={occupied}
-      />,
-    );
-
-    const firstInboundDot = container.querySelector('[data-testid="port-dot-in-0"]');
-    expect(firstInboundDot).toHaveAttribute('data-occupied', 'true');
-    expect(container.querySelector('[data-testid="port-glow-in-0"]')).toBeNull();
-  });
-
-  it('invokes inbound/outbound port callbacks with mapped semantics', () => {
-    const onPortPointerDown = vi.fn();
-    const onPortPointerEnter = vi.fn();
-    const onPortPointerLeave = vi.fn();
-
-    const { container } = render(
-      <BlockSvg
-        category="compute"
-        showPorts
-        onPortPointerDown={onPortPointerDown}
-        onPortPointerEnter={onPortPointerEnter}
-        onPortPointerLeave={onPortPointerLeave}
-      />,
-    );
-
-    const inbound0 = container.querySelector('[data-testid="port-dot-in-0"]')!;
-    const outbound0 = container.querySelector('[data-testid="port-dot-out-0"]')!;
-
-    fireEvent.pointerEnter(inbound0);
-    fireEvent.pointerLeave(inbound0);
-    fireEvent.pointerDown(inbound0);
-
-    fireEvent.pointerEnter(outbound0);
-    fireEvent.pointerLeave(outbound0);
-    fireEvent.pointerDown(outbound0);
-
-    expect(onPortPointerEnter).toHaveBeenCalledWith({
-      side: 'inbound',
-      index: 0,
-      semantic: 'http',
-    });
-    expect(onPortPointerLeave).toHaveBeenCalledWith({
-      side: 'inbound',
-      index: 0,
-      semantic: 'http',
-    });
-    expect(onPortPointerEnter).toHaveBeenCalledWith({
-      side: 'outbound',
-      index: 0,
-      semantic: 'http',
-    });
-    expect(onPortPointerLeave).toHaveBeenCalledWith({
-      side: 'outbound',
-      index: 0,
-      semantic: 'http',
-    });
-    expect(onPortPointerDown).toHaveBeenCalledWith(
-      { side: 'inbound', index: 0, semantic: 'http' },
-      expect.any(Object),
-    );
-    expect(onPortPointerDown).toHaveBeenCalledWith(
-      { side: 'outbound', index: 0, semantic: 'http' },
-      expect.any(Object),
-    );
   });
 });

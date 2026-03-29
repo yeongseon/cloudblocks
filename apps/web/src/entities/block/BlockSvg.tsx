@@ -1,11 +1,5 @@
 import { memo, useId } from 'react';
-import type {
-  BlockRole,
-  EndpointSemantic,
-  ProviderType,
-  ResourceCategory,
-} from '@cloudblocks/schema';
-import { CATEGORY_PORTS } from '@cloudblocks/schema';
+import type { BlockRole, ProviderType, ResourceCategory } from '@cloudblocks/schema';
 import { ROLE_VISUAL_INDICATORS } from '../../shared/types/index';
 import { getBlockIconUrl, getSubtypeShortLabel } from '../../shared/utils/iconResolver';
 import { getBlockDimensions, getBlockVisualProfile } from '../../shared/types/visualProfile';
@@ -16,65 +10,17 @@ import {
   EDGE_HIGHLIGHT_STROKE_WIDTH,
   TOP_FACE_STROKE_OPACITY,
   TOP_FACE_STROKE_WIDTH,
-  PORT_DOT_RX,
-  PORT_DOT_RY,
-  PORT_DOT_STROKE_WIDTH,
-  PORT_DOT_OPACITY,
-  PORT_DOT_ACTIVE_OPACITY,
-  PORT_COLOR_HTTP,
-  PORT_COLOR_EVENT,
-  PORT_COLOR_DATA,
-  PORT_COLOR_OCCUPIED,
-  PORT_GLOW_RADIUS,
 } from '../../shared/tokens/designTokens';
 import { getBlockFaceColors } from './blockFaceColors';
 import { cuToSilhouetteDimensions, getSilhouetteFromCU } from './silhouettes';
-import { getBlockSvgPortPoints, portIndexToSemantic } from './blockGeometry';
-
-/** Port interaction event detail passed to callbacks. */
-export interface PortInteraction {
-  side: 'inbound' | 'outbound';
-  index: number;
-  semantic: EndpointSemantic;
-}
 
 interface BlockSvgProps {
   category: ResourceCategory;
   provider?: ProviderType;
   subtype?: string;
-  name?: string; // user-given resource name (displayed in detail panel, not on block face)
-  aggregationCount?: number; // v2.0 §8 — show ×N badge when > 1
-  roles?: BlockRole[]; // v2.0 §9 — visual-only role indicators
-  /** When true, port dots are emphasized (connect mode active). */
-  showPorts?: boolean;
-  /** Set of endpoint semantics that are already connected (shown dimmed). */
-  occupiedEndpointSemantics?: ReadonlySet<string>;
-  /** Called when pointer goes down on a port dot (drag-to-connect). */
-  onPortPointerDown?: (port: PortInteraction, event: React.PointerEvent) => void;
-  /** Called when pointer enters a port dot (hover glow). */
-  onPortPointerEnter?: (port: PortInteraction) => void;
-  /** Called when pointer leaves a port dot (hover glow). */
-  onPortPointerLeave?: (port: PortInteraction) => void;
-  /** Currently hovered port key (e.g. "out-0") for glow rendering. */
-  hoveredPort?: string | null;
-}
-
-/** Semantic color map for port fills. */
-const SEMANTIC_COLOR_MAP: Record<string, string> = {
-  http: PORT_COLOR_HTTP,
-  event: PORT_COLOR_EVENT,
-  data: PORT_COLOR_DATA,
-};
-
-/** Resolve the fill color for a port dot. */
-function getPortFill(
-  showPorts: boolean | undefined,
-  semantic: EndpointSemantic,
-  isOccupied: boolean | undefined,
-): string {
-  if (!showPorts) return '#94a3b8'; // default muted
-  if (isOccupied) return PORT_COLOR_OCCUPIED;
-  return SEMANTIC_COLOR_MAP[semantic] ?? '#94a3b8';
+  name?: string;
+  aggregationCount?: number;
+  roles?: BlockRole[];
 }
 
 export const BlockSvg = memo(function BlockSvg({
@@ -84,12 +30,6 @@ export const BlockSvg = memo(function BlockSvg({
   name: _name,
   aggregationCount,
   roles,
-  showPorts,
-  occupiedEndpointSemantics,
-  onPortPointerDown,
-  onPortPointerEnter,
-  onPortPointerLeave,
-  hoveredPort,
 }: BlockSvgProps) {
   // ─── v2.0: CU-based dimension resolution ───────────────────
   const cu = getBlockDimensions(category, provider, subtype);
@@ -222,7 +162,7 @@ export const BlockSvg = memo(function BlockSvg({
         strokeOpacity={EDGE_HIGHLIGHT_OPACITY}
       />
 
-      {/* ─── Front face (right wall): large provider icon ─── */}
+      {/* ─── Left wall: large provider icon ─── */}
       {iconUrl && (
         <image
           href={iconUrl}
@@ -230,17 +170,17 @@ export const BlockSvg = memo(function BlockSvg({
           height={iconSize}
           x={-iconSize / 2}
           y={-iconSize / 2}
-          transform={`matrix(0.8975,-0.4410,0,1,${rightLabelX},${wallCenterY})`}
+          transform={`matrix(0.8975,0.4410,0,1,${leftLabelX},${wallCenterY})`}
           data-testid="block-face-icon"
         />
       )}
 
-      {/* ─── Side face (left wall): short label ─── */}
+      {/* ─── Right wall: short label ─── */}
       {shortLabel && (
         <text
           x={0}
           y={0}
-          transform={`matrix(0.8975,0.4410,0,1,${leftLabelX},${wallCenterY})`}
+          transform={`matrix(0.8975,-0.4410,0,1,${rightLabelX},${wallCenterY})`}
           fontFamily="system-ui, -apple-system, sans-serif"
           fontSize={Math.max(8, Math.round(sideWallPx * 0.28))}
           fontWeight="700"
@@ -309,129 +249,6 @@ export const BlockSvg = memo(function BlockSvg({
           })}
         </g>
       )}
-
-      {/* ─── Port glow filter (connect mode or hover) ─── */}
-      <defs>
-        <filter id={`port-glow-${connectorId}`} x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur in="SourceGraphic" stdDeviation={PORT_GLOW_RADIUS} />
-        </filter>
-      </defs>
-
-      {/* ─── Port dots (connection anchor points on side walls) ─── */}
-      <g data-testid="port-dots" opacity={showPorts ? PORT_DOT_ACTIVE_OPACITY : PORT_DOT_OPACITY}>
-        {(() => {
-          const ports = CATEGORY_PORTS[category];
-          const portPoints = getBlockSvgPortPoints(cu, ports.inbound, ports.outbound);
-          return (
-            <>
-              {portPoints.inbound.map((pt, i) => {
-                const semantic = portIndexToSemantic(i);
-                const isOccupied = occupiedEndpointSemantics?.has(`input-${semantic}`);
-                const fillColor = getPortFill(showPorts, semantic, isOccupied);
-                const portKey = `in-${i}`;
-                const isHovered = hoveredPort === portKey;
-                const scale = isHovered ? 1.5 : 1;
-                const rx = PORT_DOT_RX * scale;
-                const ry = PORT_DOT_RY * scale;
-                return (
-                  <g key={`port-in-${pt.x}-${pt.y}-${semantic}`}>
-                    {(showPorts || isHovered) && !isOccupied && (
-                      <polygon
-                        points={`${pt.x},${pt.y - ry} ${pt.x + rx},${pt.y} ${pt.x},${pt.y + ry} ${pt.x - rx},${pt.y}`}
-                        fill={fillColor}
-                        filter={`url(#port-glow-${connectorId})`}
-                        opacity={isHovered ? 0.8 : 0.5}
-                        data-testid={`port-glow-in-${i}`}
-                      />
-                    )}
-                    <polygon
-                      points={`${pt.x},${pt.y - ry} ${pt.x + rx},${pt.y} ${pt.x},${pt.y + ry} ${pt.x - rx},${pt.y}`}
-                      fill={fillColor}
-                      stroke={isHovered ? '#ffffff' : '#ffffff'}
-                      strokeWidth={isHovered ? PORT_DOT_STROKE_WIDTH + 0.5 : PORT_DOT_STROKE_WIDTH}
-                      strokeOpacity={isHovered ? 0.9 : 0.6}
-                      style={{ cursor: 'crosshair', pointerEvents: 'all' }}
-                      data-testid={`port-dot-in-${i}`}
-                      data-semantic={semantic}
-                      data-occupied={isOccupied ? 'true' : 'false'}
-                      onPointerDown={
-                        onPortPointerDown
-                          ? (e) => {
-                              e.stopPropagation();
-                              onPortPointerDown({ side: 'inbound', index: i, semantic }, e);
-                            }
-                          : undefined
-                      }
-                      onPointerEnter={
-                        onPortPointerEnter
-                          ? () => onPortPointerEnter({ side: 'inbound', index: i, semantic })
-                          : undefined
-                      }
-                      onPointerLeave={
-                        onPortPointerLeave
-                          ? () => onPortPointerLeave({ side: 'inbound', index: i, semantic })
-                          : undefined
-                      }
-                    />
-                  </g>
-                );
-              })}
-              {portPoints.outbound.map((pt, i) => {
-                const semantic = portIndexToSemantic(i);
-                const isOccupied = occupiedEndpointSemantics?.has(`output-${semantic}`);
-                const fillColor = getPortFill(showPorts, semantic, isOccupied);
-                const portKey = `out-${i}`;
-                const isHovered = hoveredPort === portKey;
-                const scale = isHovered ? 1.5 : 1;
-                const rx = PORT_DOT_RX * scale;
-                const ry = PORT_DOT_RY * scale;
-                return (
-                  <g key={`port-out-${pt.x}-${pt.y}-${semantic}`}>
-                    {(showPorts || isHovered) && !isOccupied && (
-                      <polygon
-                        points={`${pt.x},${pt.y - ry} ${pt.x + rx},${pt.y} ${pt.x},${pt.y + ry} ${pt.x - rx},${pt.y}`}
-                        fill={fillColor}
-                        filter={`url(#port-glow-${connectorId})`}
-                        opacity={isHovered ? 0.8 : 0.5}
-                        data-testid={`port-glow-out-${i}`}
-                      />
-                    )}
-                    <polygon
-                      points={`${pt.x},${pt.y - ry} ${pt.x + rx},${pt.y} ${pt.x},${pt.y + ry} ${pt.x - rx},${pt.y}`}
-                      fill={fillColor}
-                      stroke={isHovered ? '#ffffff' : '#ffffff'}
-                      strokeWidth={isHovered ? PORT_DOT_STROKE_WIDTH + 0.5 : PORT_DOT_STROKE_WIDTH}
-                      strokeOpacity={isHovered ? 0.9 : 0.6}
-                      style={{ cursor: 'crosshair', pointerEvents: 'all' }}
-                      data-testid={`port-dot-out-${i}`}
-                      data-semantic={semantic}
-                      data-occupied={isOccupied ? 'true' : 'false'}
-                      onPointerDown={
-                        onPortPointerDown
-                          ? (e) => {
-                              e.stopPropagation();
-                              onPortPointerDown({ side: 'outbound', index: i, semantic }, e);
-                            }
-                          : undefined
-                      }
-                      onPointerEnter={
-                        onPortPointerEnter
-                          ? () => onPortPointerEnter({ side: 'outbound', index: i, semantic })
-                          : undefined
-                      }
-                      onPointerLeave={
-                        onPortPointerLeave
-                          ? () => onPortPointerLeave({ side: 'outbound', index: i, semantic })
-                          : undefined
-                      }
-                    />
-                  </g>
-                );
-              })}
-            </>
-          );
-        })()}
-      </g>
     </svg>
   );
 });

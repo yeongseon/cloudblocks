@@ -45,10 +45,18 @@ describe('iconResolver additional branches', () => {
     expect(fallback).toBeNull();
   });
 
-  it('resolves Azure resource icon URL and returns null for unsupported lookups', () => {
+  it('resolves resource icon URLs for all providers', () => {
+    // Azure uses legacy resource-type mapping
     expect(getResourceIconUrl('vm', 'azure')).toBe('/azure-icons/virtual-machine.svg');
-    expect(getResourceIconUrl('vm', 'aws')).toBeNull();
+    // AWS/GCP now return vendor-specific icons instead of null
+    expect(getResourceIconUrl('vm', 'aws')).toBe('/aws-icons/ec2.svg');
+    expect(getResourceIconUrl('vm', 'gcp')).toBe('/gcp-icons/compute-engine.svg');
+    expect(getResourceIconUrl('sql', 'aws')).toBe('/aws-icons/rds.svg');
+    expect(getResourceIconUrl('sql', 'gcp')).toBe('/gcp-icons/cloud-sql.svg');
+    // Unknown resource types still return null
     expect(getResourceIconUrl('definitely-unknown-resource', 'azure')).toBeNull();
+    expect(getResourceIconUrl('definitely-unknown-resource', 'aws')).toBeNull();
+    expect(getResourceIconUrl('definitely-unknown-resource', 'gcp')).toBeNull();
   });
 
   it('returns subtype display label only when provider+subtype mapping exists', () => {

@@ -11,6 +11,7 @@ import { useArchitectureStore } from '../store/architectureStore';
 import { getDiffState } from '../../features/diff/engine';
 import type { DiffDelta } from '../../shared/types/diff';
 import { getContainerBlockIconUrl } from '../../shared/utils/iconResolver';
+import { getContainerLabel } from '../../shared/utils/providerMapping';
 import { screenDeltaToWorld, snapToGrid, worldSizeToScreen } from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
 import { canPlaceBlock } from '../validation/placement';
@@ -167,17 +168,16 @@ export const ContainerBlockSprite = memo(function PlateSprite({
   const plateColorInput = { type: containerLayer, provider: activeProvider };
   const faceColors = getContainerBlockFaceColors(plateColorInput);
   const typeLabel =
-    containerLayer === 'subnet'
-      ? 'Subnet'
-      : containerLayer === 'global'
-        ? 'Global Layer'
-        : containerLayer === 'edge'
-          ? 'Edge Layer'
-          : containerLayer === 'zone'
-            ? 'Zone Layer'
-            : 'Region Layer';
+    getContainerLabel(containerLayer, activeProvider) ??
+    (containerLayer === 'global'
+      ? 'Global Layer'
+      : containerLayer === 'edge'
+        ? 'Edge Layer'
+        : containerLayer === 'zone'
+          ? 'Zone Layer'
+          : 'Region Layer');
   const label = container.name || typeLabel;
-  const iconUrl = getContainerBlockIconUrl(containerLayer);
+  const iconUrl = getContainerBlockIconUrl(containerLayer, activeProvider);
 
   if (!container.frame) return null;
 

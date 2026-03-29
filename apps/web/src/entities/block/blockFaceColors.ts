@@ -87,7 +87,7 @@ export function deriveFaceColors(base: string): DerivedFaceColors {
 export const PROVIDER_BRAND_COLOR: Record<ProviderType, string> = {
   azure: '#0078D4', // Azure Blue
   aws: '#D86613', // AWS Orange
-  gcp: '#4285F4', // Google Blue
+  gcp: '#34A853', // Google Green (distinct from Azure Blue)
 };
 
 // ─── Color Lookup ─────────────────────────────────────────────

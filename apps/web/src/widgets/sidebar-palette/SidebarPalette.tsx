@@ -19,6 +19,7 @@ import {
   ALL_RESOURCES,
 } from '../../shared/hooks/useTechTree';
 import { getResourceIconUrl } from '../../shared/utils/iconResolver';
+import { getContainerLabel, remapSubtype } from '../../shared/utils/providerMapping';
 import './SidebarPalette.css';
 import { useIsMobile } from '../../shared/hooks/useIsMobile';
 
@@ -284,7 +285,7 @@ export function SidebarPalette() {
               def.blockCategory,
               getResourceLabel(type, activeProvider),
               def.schemaResourceType ?? def.blockCategory,
-              def.azureSubtype ?? def.schemaResourceType,
+              remapSubtype(def.azureSubtype ?? def.schemaResourceType, activeProvider),
             );
           },
           end(event) {
@@ -329,7 +330,7 @@ export function SidebarPalette() {
           addNode({
             kind: 'container',
             resourceType: 'virtual_network',
-            name: 'VNet',
+            name: getContainerLabel('region', activeProvider) ?? 'VNet',
             parentId: null,
             layer: 'region',
           });
@@ -340,7 +341,7 @@ export function SidebarPalette() {
             addNode({
               kind: 'container',
               resourceType: 'subnet',
-              name: 'Subnet',
+              name: getContainerLabel('subnet', activeProvider) ?? 'Subnet',
               parentId: targetId,
               layer: 'subnet',
             });
@@ -368,7 +369,7 @@ export function SidebarPalette() {
         name,
         parentId: targetId,
         provider: activeProvider,
-        subtype: def.azureSubtype ?? def.schemaResourceType,
+        subtype: remapSubtype(def.azureSubtype ?? def.schemaResourceType, activeProvider),
       });
       playSound('block-snap');
     },

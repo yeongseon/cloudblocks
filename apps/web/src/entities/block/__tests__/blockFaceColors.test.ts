@@ -120,7 +120,7 @@ describe('PROVIDER_BRAND_COLOR', () => {
   it('has correct brand colors', () => {
     expect(PROVIDER_BRAND_COLOR.azure).toBe('#0078D4');
     expect(PROVIDER_BRAND_COLOR.aws).toBe('#D86613');
-    expect(PROVIDER_BRAND_COLOR.gcp).toBe('#4285F4');
+    expect(PROVIDER_BRAND_COLOR.gcp).toBe('#34A853');
   });
 
   it('contains only valid hex colors', () => {
@@ -151,7 +151,7 @@ describe('getBlockColor', () => {
     expect(getBlockColor('aws', 'ec2', 'compute')).toBe('#D86613');
     expect(getBlockColor('aws', 's3', 'data')).toBe('#D86613');
     // All GCP blocks use the same brand color
-    expect(getBlockColor('gcp', 'compute-engine', 'compute')).toBe('#4285F4');
+    expect(getBlockColor('gcp', 'compute-engine', 'compute')).toBe('#34A853');
   });
 
   it('returns the same color when subtype is undefined', () => {
