@@ -314,7 +314,7 @@
   width: 14px;
   height: 14px;
   background: var(--accent-error);
-  color: #fff;
+  color: var(--text-inverse);
   font-size: 9px;
   font-weight: 700;
   line-height: 14px;
@@ -428,7 +428,7 @@
   background: var(--accent-primary);
   border: 1px solid transparent;
   border-radius: 6px;
-  color: #ffffff;
+  color: var(--text-inverse);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -442,7 +442,7 @@
 
 .github-btn:hover {
   opacity: 0.9;
-  color: #ffffff;
+  color: var(--text-inverse);
   transform: translateY(-1px);
   box-shadow: var(--shadow-btn-hover);
 }
@@ -466,12 +466,12 @@
 
 .menu-badge-valid {
   background: var(--accent-success);
-  color: #fff;
+  color: var(--text-inverse);
 }
 
 .menu-badge-invalid {
   background: var(--accent-error);
-  color: #fff;
+  color: var(--text-inverse);
 }
 
 .notification-bell-btn {
@@ -486,7 +486,7 @@
   height: 16px;
   padding: 0 4px;
   background: var(--accent-error);
-  color: #fff;
+  color: var(--text-inverse);
   font-size: 9px;
   font-weight: 700;
   line-height: 16px;
@@ -511,14 +511,14 @@
 }
 
 .feature-badge-experimental {
-  background: #e6a817;
-  color: #1a1a2e;
+  background: var(--accent-warning);
+  color: var(--text-inverse);
 }
 
 .feature-badge-requires-backend {
-  background: rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.7);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: color-mix(in srgb, var(--text-primary) 12%, transparent);
+  color: var(--text-muted);
+  border-color: color-mix(in srgb, var(--text-primary) 15%, transparent);
 }
 
 .feature-badge-coming-soon {

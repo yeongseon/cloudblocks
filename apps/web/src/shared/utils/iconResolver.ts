@@ -65,6 +65,8 @@ const AZURE_RESOURCE_ICONS: Record<string, string> = {
   'route-table': '/azure-icons/route-table.svg',
   'private-endpoint': '/azure-icons/private-endpoint.svg',
   'app-gateway': '/azure-icons/application-gateway.svg',
+  monitor: '/azure-icons/monitor.svg',
+  redis: '/azure-icons/cache-redis.svg',
 };
 
 const VENDOR_ICON_REGISTRY: Record<ProviderType, Record<string, string>> = {
