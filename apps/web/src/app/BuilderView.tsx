@@ -85,7 +85,6 @@ export function BuilderView() {
   const showGitHubRepos = useUIStore((s) => s.showGitHubRepos);
   const showGitHubPR = useUIStore((s) => s.showGitHubPR);
   const showTemplateGallery = useUIStore((s) => s.showTemplateGallery);
-  const persona = useUIStore((s) => s.persona);
   const sidebarOpen = useUIStore((s) => s.sidebar.isOpen);
   const workspaceId = useArchitectureStore((s) => s.workspace.id);
   const isMobile = useIsMobile();
@@ -137,14 +136,15 @@ export function BuilderView() {
     })();
   }, []);
 
-  // First-run-only: auto-show scenario drawer once for new users
+  // First-run-only: auto-show scenario drawer once after onboarding
   useEffect(() => {
     const shownKey = 'cloudblocks:scenario-shown-once';
-    if (!localStorage.getItem(shownKey) && persona) {
+    const onboardingDone = localStorage.getItem('cloudblocks:onboarding-completed');
+    if (!localStorage.getItem(shownKey) && onboardingDone) {
       localStorage.setItem(shownKey, 'true');
       useUIStore.getState().openDrawer('scenarios');
     }
-  }, [persona]);
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

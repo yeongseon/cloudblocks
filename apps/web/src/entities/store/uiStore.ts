@@ -3,10 +3,9 @@ import type { ProviderType, ResourceCategory } from '@cloudblocks/schema';
 import type { EditorMode } from '../../shared/types/learning';
 import type { DiffDelta } from '../../shared/types/diff';
 import type { ArchitectureModel } from '@cloudblocks/schema';
-import type { Persona, ComplexityLevel } from '../../shared/types';
+import type { ComplexityLevel } from '../../shared/types';
 import type { ThemeVariant } from '../../shared/tokens/themeTokens';
 import type { DrawerPanelId } from '../../widgets/right-drawer/panelRegistry';
-import { PERSONA_COMPLEXITY_MAP, PERSONA_PANEL_DEFAULTS } from '../../shared/types';
 
 export type ToolMode = 'select' | 'connect' | 'delete';
 export type InteractionState = 'idle' | 'selecting' | 'dragging' | 'placing' | 'connecting';
@@ -29,7 +28,7 @@ export interface ActivityLogEntry {
   message: string;
 }
 export type { EditorMode } from '../../shared/types/learning';
-export type { Persona, ComplexityLevel } from '../../shared/types';
+export type { ComplexityLevel } from '../../shared/types';
 
 const PENDING_GITHUB_ACTION_KEY = 'cloudblocks_pending_github_action';
 
@@ -184,10 +183,8 @@ interface UIState {
   showOnboarding: boolean;
   setShowOnboarding: (show: boolean) => void;
 
-  // ── Persona ──
-  persona: Persona | null;
+  // ── Complexity ──
   complexityLevel: ComplexityLevel;
-  setPersona: (persona: Persona) => void;
 
   // ── Sound preference ──
   isSoundMuted: boolean;
@@ -568,25 +565,7 @@ export const useUIStore = create<UIState>((set, get) => ({
   showOnboarding: !localStorage.getItem('cloudblocks:onboarding-completed'),
   setShowOnboarding: (show) => set({ showOnboarding: show }),
 
-  persona: localStorage.getItem('cloudblocks:persona') as Persona | null,
-  complexityLevel: (() => {
-    const saved = localStorage.getItem('cloudblocks:persona') as Persona | null;
-    return saved ? PERSONA_COMPLEXITY_MAP[saved] : 'beginner';
-  })(),
-  setPersona: (persona) => {
-    localStorage.setItem('cloudblocks:persona', persona);
-    const defaults = PERSONA_PANEL_DEFAULTS[persona];
-    set({
-      persona,
-      complexityLevel: PERSONA_COMPLEXITY_MAP[persona],
-      showBlockPalette: defaults.showBlockPalette,
-      showResourceGuide: defaults.showResourceGuide,
-      showValidation: defaults.showValidation,
-      showCodePreview: defaults.showCodePreview,
-      showLearningPanel: defaults.showLearningPanel,
-      showTemplateGallery: defaults.showTemplateGallery,
-    });
-  },
+  complexityLevel: 'beginner',
 
   upgradingBlockId: null,
   triggerUpgradeAnimation: (blockId) => {
@@ -616,3 +595,8 @@ export const useUIStore = create<UIState>((set, get) => ({
   magneticSnapTargetId: null,
   setMagneticSnapTarget: (id) => set({ magneticSnapTargetId: id }),
 }));
+
+// One-time cleanup of legacy persona localStorage key
+if (typeof window !== 'undefined') {
+  localStorage.removeItem('cloudblocks:persona');
+}
