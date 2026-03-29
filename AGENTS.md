@@ -114,12 +114,13 @@ zundo        — Zustand undo/redo middleware
   git pull --ff-only origin main
   ```
 - Create or reuse a milestone when the work is a named phase or release, spans multiple epics, or needs shared tracking across multiple implementation issues.
+- **Epic-first rule (MANDATORY)**: Every milestone must have at least one Epic issue BEFORE creating any sub-issues. Never create flat issue lists directly under a milestone — always create the Epic first, then decompose into sub-issues that reference it (`Part of #<epic>`). Flat issues without an Epic parent are a process violation.
 - Create one Epic issue per major feature area inside the milestone. Epic titles use the format `[Epic] <feature area>`.
 - Epic issues must:
   - be assigned to a milestone;
   - use the `epic` label plus one or more domain labels;
   - include these sections in the body: `## Overview`, `## Problems Solved`, `## Architecture`, `## Sub-Issues`, `## Dependencies`, `## Constraints`, `## Branch Name`.
-- Decompose each Epic into focused sub-issues. Each sub-issue should fit in one branch and one PR, and should usually cover one UI slice, one model change, one API route, one provider integration, one migration, or one test suite.
+- Decompose each Epic into focused sub-issues. Each sub-issue must include `Part of #<epic-number>` at the top of its body to establish the parent relationship. Each sub-issue should fit in one branch and one PR, and should usually cover one UI slice, one model change, one API route, one provider integration, one migration, or one test suite.
 - Labeling rules:
   - Epic issues use `epic` plus one or more domain labels. Epic issues do not require a type label.
   - Non-Epic implementation issues use exactly one type label: `enhancement`, `bug`, or `testing`.
