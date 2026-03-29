@@ -1,6 +1,6 @@
 # Quick Start
 
-> **Audience**: New users | **Status**: V1 Core | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.26.0
 
 Build your first cloud architecture in under 5 minutes. No cloud account required. Everything runs in your browser.
 
@@ -22,7 +22,7 @@ pnpm dev
 
 Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-When CloudBlocks opens, you will see a landing page. Choose a persona (e.g., Developer) to enter the builder.
+When CloudBlocks opens, you will see a landing page with a brief introduction. Click **Get Started** to enter the builder.
 
 ---
 

@@ -1,6 +1,6 @@
 # Editor Basics
 
-> **Audience**: All users | **Status**: V1 Core | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.26.0
 
 The CloudBlocks editor is a hands-on workspace for learning cloud architecture. Most beginners should start from a guided template or scenario, then use this page as a reference while they explore the canvas, palette, inspector, and validation tools.
 
