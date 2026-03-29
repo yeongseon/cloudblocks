@@ -56,6 +56,7 @@ describe('MenuBar additional coverage', () => {
       workspace: {
         id: 'ws-1',
         name: 'Workspace',
+        provider: 'azure' as const,
         architecture: baseArchitecture,
         createdAt: '',
         updatedAt: '',
@@ -77,40 +78,19 @@ describe('MenuBar additional coverage', () => {
 
   it('handles provider switch confirmation cancel and confirm branches', async () => {
     const user = userEvent.setup();
-    const architectureWithAwsBlock: ArchitectureModel = {
-      ...baseArchitecture,
-      nodes: [
-        {
-          id: 'block-1',
-          name: 'VM',
-          kind: 'resource',
-          layer: 'resource',
-          resourceType: 'web_compute',
-          category: 'compute',
-          provider: 'aws',
-          parentId: null,
-          position: { x: 0, y: 0, z: 0 },
-          metadata: {},
-        },
-      ],
-    };
 
-    useArchitectureStore.setState({
-      workspace: {
-        ...useArchitectureStore.getState().workspace,
-        architecture: architectureWithAwsBlock,
-      },
-    });
     useUIStore.setState({ activeProvider: 'aws' });
 
     vi.mocked(confirmDialog).mockResolvedValueOnce(false).mockResolvedValueOnce(true);
 
     render(<MenuBar />);
 
+    // First click: cancel → stays on AWS
     await user.click(screen.getByRole('tab', { name: /^azure$/i }));
     expect(confirmDialog).toHaveBeenCalledOnce();
     expect(useUIStore.getState().activeProvider).toBe('aws');
 
+    // Second click: confirm → creates new Azure workspace, switches provider
     await user.click(screen.getByRole('tab', { name: /^azure$/i }));
     expect(confirmDialog).toHaveBeenCalledTimes(2);
     expect(useUIStore.getState().activeProvider).toBe('azure');

@@ -123,6 +123,7 @@ function setArchitectureState(overrides?: Partial<ArchitectureModel>): void {
     workspace: {
       id: 'ws-1',
       name: 'Test',
+      provider: 'azure' as const,
       architecture: { ...emptyArch, ...overrides },
       createdAt: '',
       updatedAt: '',
@@ -220,14 +221,20 @@ describe('MenuBar', () => {
     expect(screen.getByRole('tab', { name: /gcp/i })).toBeInTheDocument();
   });
 
-  it('clicking provider tab switches active provider', async () => {
+  it('clicking provider tab creates new workspace with that provider', async () => {
     const user = userEvent.setup();
+    vi.mocked(confirmDialog).mockResolvedValue(true);
     useUIStore.setState({ activeProvider: 'aws' });
     render(<MenuBar />);
 
     const azureTab = screen.getByRole('tab', { name: /azure/i });
     await user.click(azureTab);
 
+    // Provider switch now creates a new workspace and syncs activeProvider
+    expect(confirmDialog).toHaveBeenCalledWith(
+      expect.stringContaining('AZURE'),
+      expect.stringContaining('AZURE'),
+    );
     expect(useUIStore.getState().activeProvider).toBe('azure');
   });
 

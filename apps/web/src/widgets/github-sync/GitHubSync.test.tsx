@@ -61,6 +61,7 @@ describe('GitHubSync', () => {
       workspace: {
         id: 'ws-1',
         name: 'My Workspace',
+        provider: 'azure' as const,
         architecture: emptyArch,
         createdAt: '',
         updatedAt: '',

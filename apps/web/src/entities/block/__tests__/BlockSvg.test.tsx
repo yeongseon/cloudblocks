@@ -169,30 +169,18 @@ describe('BlockSvg CU-based dimensions', () => {
     expect(vb.height).toBe(svgHeight);
   });
 
-  it('renders micro tier (1×1×1) correctly', () => {
-    const cu = TIER_DIMENSIONS.micro;
+  it('all categories render with uniform medium dimensions (128×138)', () => {
+    // After block unification, all categories are medium (2×2×2)
+    const cu = TIER_DIMENSIONS.medium;
     const { screenWidth, svgHeight } = expectedDims(cu);
 
-    const { container } = render(<BlockSvg category="messaging" />);
-    const vb = getViewBox(container);
+    ALL_CATEGORIES.forEach((category) => {
+      const { container } = render(<BlockSvg category={category} />);
+      const vb = getViewBox(container);
 
-    expect(vb.width).toBe(64); // (1+1)*32
-    expect(vb.height).toBe(74); // 32+32+10
-    expect(screenWidth).toBe(64);
-    expect(svgHeight).toBe(74);
-  });
-
-  it('renders small tier (2×2×1) correctly', () => {
-    const cu = TIER_DIMENSIONS.small;
-    const { screenWidth, svgHeight } = expectedDims(cu);
-
-    const { container } = render(<BlockSvg category="security" />);
-    const vb = getViewBox(container);
-
-    expect(vb.width).toBe(128); // (2+2)*32
-    expect(vb.height).toBe(106); // 64+32+10
-    expect(screenWidth).toBe(128);
-    expect(svgHeight).toBe(106);
+      expect(vb.width).toBe(screenWidth); // 128
+      expect(vb.height).toBe(svgHeight); // 138
+    });
   });
 
   it('renders medium tier (2×2×2) correctly', () => {
@@ -206,32 +194,6 @@ describe('BlockSvg CU-based dimensions', () => {
     expect(vb.height).toBe(138); // 64+64+10
     expect(screenWidth).toBe(128);
     expect(svgHeight).toBe(138);
-  });
-
-  it('renders large tier (3×3×2) correctly', () => {
-    const cu = TIER_DIMENSIONS.large;
-    const { screenWidth, svgHeight } = expectedDims(cu);
-
-    const { container } = render(<BlockSvg category="data" />);
-    const vb = getViewBox(container);
-
-    expect(vb.width).toBe(192); // (3+3)*32
-    expect(vb.height).toBe(170); // 96+64+10
-    expect(screenWidth).toBe(192);
-    expect(svgHeight).toBe(170);
-  });
-
-  it('renders wide tier (3×1×1) correctly', () => {
-    const cu = TIER_DIMENSIONS.wide;
-    const { screenWidth, svgHeight } = expectedDims(cu);
-
-    const { container } = render(<BlockSvg category="delivery" />);
-    const vb = getViewBox(container);
-
-    expect(vb.width).toBe(128); // (3+1)*32
-    expect(vb.height).toBe(106); // 64+32+10
-    expect(screenWidth).toBe(128);
-    expect(svgHeight).toBe(106);
   });
 
   it('produces integer-only pixel values in viewBox (no sub-pixel)', () => {
@@ -248,8 +210,8 @@ describe('BlockSvg CU-based dimensions', () => {
 // ─── Subtype Size Override Tests ──────────────────────────────
 
 describe('BlockSvg subtype size overrides', () => {
-  it('uses subtype override dimensions when subtype is known', () => {
-    // AWS EC2 overrides to 2×2×2 (medium), same as compute default
+  it('renders all subtypes with uniform medium dimensions (no overrides)', () => {
+    // After block unification, all subtypes use medium (2×2×2)
     const cu = getBlockDimensions('compute', 'aws', 'ec2');
     const { screenWidth, svgHeight } = expectedDims(cu);
 
@@ -258,9 +220,11 @@ describe('BlockSvg subtype size overrides', () => {
 
     expect(vb.width).toBe(screenWidth);
     expect(vb.height).toBe(svgHeight);
+    expect(vb.width).toBe(128); // medium: (2+2)*32
+    expect(vb.height).toBe(138); // medium: 64+64+10
   });
 
-  it('falls back to category tier when subtype is unknown', () => {
+  it('falls back to medium when subtype is unknown', () => {
     const cuDefault = getBlockDimensions('compute');
     const cuUnknown = getBlockDimensions('compute', 'aws', 'UnknownService');
     const { screenWidth, svgHeight } = expectedDims(cuDefault);
@@ -349,15 +313,20 @@ describe('BlockSvg category-tier mapping consistency', () => {
     expect(TIER_DIMENSIONS.wide).toEqual({ width: 3, depth: 1, height: 1 });
   });
 
-  it('category-tier mapping matches spec §5.2', () => {
-    expect(CATEGORY_TIER_MAP.compute).toBe('medium');
-    expect(CATEGORY_TIER_MAP.data).toBe('large');
-    expect(CATEGORY_TIER_MAP.delivery).toBe('wide');
-    expect(CATEGORY_TIER_MAP.messaging).toBe('micro');
-    expect(CATEGORY_TIER_MAP.network).toBe('large');
-    expect(CATEGORY_TIER_MAP.identity).toBe('small');
-    expect(CATEGORY_TIER_MAP.operations).toBe('small');
-    expect(CATEGORY_TIER_MAP.security).toBe('small');
+  it('all categories map to medium tier (unified block sizing)', () => {
+    const categories: ResourceCategory[] = [
+      'compute',
+      'data',
+      'delivery',
+      'messaging',
+      'network',
+      'identity',
+      'operations',
+      'security',
+    ];
+    categories.forEach((category) => {
+      expect(CATEGORY_TIER_MAP[category]).toBe('medium');
+    });
   });
 });
 
@@ -492,7 +461,7 @@ describe('BlockSvg name prop', () => {
 
     const texts = container.querySelectorAll('text');
     const images = container.querySelectorAll('image');
-    expect(texts.length).toBe(0);
+    expect(texts.length).toBe(1);
     expect(images.length).toBe(1);
   });
 });

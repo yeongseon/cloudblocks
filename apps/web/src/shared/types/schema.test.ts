@@ -7,6 +7,7 @@ function createWorkspace(id: string): Workspace {
   return {
     id,
     name: `Workspace ${id}`,
+    provider: 'azure' as const,
     architecture: {
       id: `arch-${id}`,
       name: `Architecture ${id}`,
@@ -428,6 +429,7 @@ describe('schema utilities', () => {
       {
         id: 'ws-1',
         name: 'Test',
+        provider: 'azure' as const,
         architecture: {
           id: 'arch-1',
           name: 'Test',

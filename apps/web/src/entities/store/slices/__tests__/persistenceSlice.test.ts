@@ -13,6 +13,7 @@ function seedStore(): void {
     workspace: {
       id: 'ws-seed',
       name: 'Seed Workspace',
+      provider: 'azure' as const,
       architecture: {
         id: 'arch-seed',
         name: 'Seed Architecture',

@@ -5,7 +5,7 @@ import {
   DEFAULT_CONNECTION_SEMANTIC,
 } from '../connectionFaceColors';
 import type { ConnectionRenderSemantic } from '../connectionFaceColors';
-import { PROVIDER_COLORS } from '../../block/blockFaceColors';
+import { PROVIDER_BRAND_COLOR } from '../../block/blockFaceColors';
 
 describe('connectionFaceColors', () => {
   describe('CONNECTION_SEMANTIC_BASE_COLORS', () => {
@@ -46,13 +46,11 @@ describe('connectionFaceColors', () => {
   });
 
   describe('no conflict with provider colors', () => {
-    it('semantic base colors do not overlap with any provider palette', () => {
+    it('semantic base colors do not overlap with any provider brand color', () => {
       const semanticColors = new Set(Object.values(CONNECTION_SEMANTIC_BASE_COLORS));
 
-      for (const [, palette] of Object.entries(PROVIDER_COLORS)) {
-        for (const [, color] of Object.entries(palette)) {
-          expect(semanticColors.has(color)).toBe(false);
-        }
+      for (const [, brandColor] of Object.entries(PROVIDER_BRAND_COLOR)) {
+        expect(semanticColors.has(brandColor)).toBe(false);
       }
     });
   });

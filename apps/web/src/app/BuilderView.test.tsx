@@ -90,6 +90,7 @@ describe('BuilderView', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test Workspace',
+        provider: 'azure' as const,
         architecture: {
           id: 'arch-1',
           name: 'Test Architecture',
@@ -297,6 +298,7 @@ describe('BuilderView', () => {
         workspace: {
           id: 'ws-1',
           name: 'Test Workspace',
+          provider: 'azure' as const,
           architecture: {
             id: 'arch-1',
             name: 'Test Architecture',

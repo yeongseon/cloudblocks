@@ -157,6 +157,7 @@ describe('architectureStore', () => {
     const freshWorkspace = {
       id: 'ws-test',
       name: 'My Architecture',
+      provider: 'azure' as const,
       architecture: {
         id: 'arch-test',
         name: 'My Architecture',

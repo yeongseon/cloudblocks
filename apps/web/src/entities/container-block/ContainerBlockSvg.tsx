@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import type { LayerType } from '@cloudblocks/schema';
+import type { LayerType, ProviderType } from '@cloudblocks/schema';
 import {
   TILE_W,
   TILE_H,
@@ -7,6 +7,7 @@ import {
   BLOCK_MARGIN,
   BLOCK_PADDING,
 } from '../../shared/tokens/designTokens';
+import { getContainerShortLabel } from '../../shared/utils/providerMapping';
 
 // ─── Layer-Type Visual Config ──────────────────────────────
 // Each container type gets distinct visual treatment while keeping
@@ -73,6 +74,7 @@ export interface ContainerBlockSvgProps {
   rightSideColor: string;
   label?: string;
   iconUrl?: string;
+  provider?: ProviderType;
 }
 
 // ─── Component ─────────────────────────────────────────────
@@ -86,8 +88,9 @@ export const ContainerBlockSvg = memo(function PlateSvg({
   topFaceStroke,
   leftSideColor,
   rightSideColor,
-  label: _label,
+  label,
   iconUrl,
+  provider,
 }: ContainerBlockSvgProps) {
   // CU-based pixel conversion: 1 CU = 1 unit, rendered via TILE_W/H/Z
   const screenWidth = ((unitsX + unitsY) * TILE_W) / 2;
@@ -113,6 +116,9 @@ export const ContainerBlockSvg = memo(function PlateSvg({
   // Label positioning on side walls
   const rightLabelX = (cx + rightX) / 2;
   const wallCenterY = (midY + bottomY + sideWallPx) / 2;
+  const leftLabelX = (cx + leftX) / 2;
+
+  const shortLabel = getContainerShortLabel(containerLayer, provider ?? 'azure');
 
   return (
     <svg
@@ -166,6 +172,25 @@ export const ContainerBlockSvg = memo(function PlateSvg({
           transform={`matrix(0.8975,-0.4410,0,1,${rightLabelX},${wallCenterY})`}
         />
       ) : null}
+
+      {/* ─── Side face (left wall): short label ─── */}
+      {shortLabel && (
+        <text
+          x={0}
+          y={0}
+          transform={`matrix(0.8975,0.4410,0,1,${leftLabelX},${wallCenterY})`}
+          fontFamily="system-ui, -apple-system, sans-serif"
+          fontSize={Math.max(10, Math.round(sideWallPx * 0.32))}
+          fontWeight="700"
+          fill="rgba(255,255,255,0.85)"
+          textAnchor="middle"
+          dominantBaseline="central"
+          style={{ pointerEvents: 'none' }}
+          data-testid="container-face-label"
+        >
+          {label || shortLabel}
+        </text>
+      )}
     </svg>
   );
 });

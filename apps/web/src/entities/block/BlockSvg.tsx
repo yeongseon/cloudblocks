@@ -7,7 +7,7 @@ import type {
 } from '@cloudblocks/schema';
 import { CATEGORY_PORTS } from '@cloudblocks/schema';
 import { ROLE_VISUAL_INDICATORS } from '../../shared/types/index';
-import { getBlockIconUrl } from '../../shared/utils/iconResolver';
+import { getBlockIconUrl, getSubtypeShortLabel } from '../../shared/utils/iconResolver';
 import { getBlockDimensions, getBlockVisualProfile } from '../../shared/types/visualProfile';
 import {
   BLOCK_PADDING,
@@ -108,10 +108,12 @@ export const BlockSvg = memo(function BlockSvg({
   const connectorId = useId().replace(/:/g, '_');
 
   const rightLabelX = (cx + rightX) / 2;
+  const leftLabelX = (cx + leftX) / 2;
   const wallCenterY = (midY + bottomY + sideWallPx) / 2;
 
-  const minDim = Math.min(cu.width, cu.depth);
-  const iconSize = minDim <= 1 ? 12 : minDim <= 2 ? 16 : 20;
+  // Icon on right (front) face — fill ~70% of wall height
+  const iconSize = Math.max(16, Math.round(sideWallPx * 0.7));
+  const shortLabel = getSubtypeShortLabel(provider ?? 'azure', subtype);
 
   return (
     <svg
@@ -220,6 +222,7 @@ export const BlockSvg = memo(function BlockSvg({
         strokeOpacity={EDGE_HIGHLIGHT_OPACITY}
       />
 
+      {/* ─── Front face (right wall): large provider icon ─── */}
       {iconUrl && (
         <image
           href={iconUrl}
@@ -228,7 +231,27 @@ export const BlockSvg = memo(function BlockSvg({
           x={-iconSize / 2}
           y={-iconSize / 2}
           transform={`matrix(0.8975,-0.4410,0,1,${rightLabelX},${wallCenterY})`}
+          data-testid="block-face-icon"
         />
+      )}
+
+      {/* ─── Side face (left wall): short label ─── */}
+      {shortLabel && (
+        <text
+          x={0}
+          y={0}
+          transform={`matrix(0.8975,0.4410,0,1,${leftLabelX},${wallCenterY})`}
+          fontFamily="system-ui, -apple-system, sans-serif"
+          fontSize={Math.max(8, Math.round(sideWallPx * 0.28))}
+          fontWeight="700"
+          fill="rgba(255,255,255,0.85)"
+          textAnchor="middle"
+          dominantBaseline="central"
+          style={{ pointerEvents: 'none' }}
+          data-testid="block-face-label"
+        >
+          {shortLabel}
+        </text>
       )}
 
       {aggregationCount != null && aggregationCount > 1 && (

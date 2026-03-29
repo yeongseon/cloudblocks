@@ -163,7 +163,8 @@ export const ContainerBlockSprite = memo(function PlateSprite({
     container.profileId && isContainerBlockProfileId(container.profileId)
       ? getContainerBlockProfile(container.profileId)
       : getContainerBlockProfile(DEFAULT_CONTAINER_BLOCK_PROFILE[containerLayer]);
-  const plateColorInput = { type: containerLayer };
+  const activeProvider = useUIStore((s) => s.activeProvider);
+  const plateColorInput = { type: containerLayer, provider: activeProvider };
   const faceColors = getContainerBlockFaceColors(plateColorInput);
   const typeLabel =
     containerLayer === 'subnet'
@@ -234,10 +235,11 @@ export const ContainerBlockSprite = memo(function PlateSprite({
             rightSideColor={faceColors.rightSideColor}
             label={label}
             iconUrl={iconUrl}
+            provider={activeProvider}
           />
         </div>
       </button>
-      <span className="container-label-chip">{label}</span>
+      {isSelected && <span className="container-label-chip">{label}</span>}
     </div>
   );
 });

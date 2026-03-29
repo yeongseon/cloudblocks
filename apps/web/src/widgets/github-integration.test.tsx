@@ -112,6 +112,7 @@ beforeEach(() => {
     workspace: {
       id: 'ws-1',
       name: 'Workspace',
+      provider: 'azure' as const,
       architecture: emptyArch,
       createdAt: '',
       updatedAt: '',
@@ -333,6 +334,7 @@ describe('Group 3: GitHubPR submission guards', () => {
       workspace: {
         id: 'ws-1',
         name: 'Workspace',
+        provider: 'azure' as const,
         architecture: emptyArch,
         createdAt: '',
         updatedAt: '',
@@ -721,6 +723,7 @@ describe('Group 6: PR body prefill from compare review', () => {
       workspace: {
         id: 'ws-1',
         name: 'Workspace',
+        provider: 'azure' as const,
         architecture: emptyArch,
         createdAt: '',
         updatedAt: '',

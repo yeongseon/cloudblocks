@@ -70,7 +70,6 @@ export function MenuBar() {
   const showResourceGuide = useUIStore((s) => s.showResourceGuide);
   const toggleResourceGuide = useUIStore((s) => s.toggleResourceGuide);
   const activeProvider = useUIStore((s) => s.activeProvider);
-  const setActiveProvider = useUIStore((s) => s.setActiveProvider);
   const openInspectorTab = useUIStore((s) => s.openInspectorTab);
   const toggleWorkspaceManager = useUIStore((s) => s.toggleWorkspaceManager);
   const openDrawer = useUIStore((s) => s.openDrawer);
@@ -105,6 +104,7 @@ export function MenuBar() {
 
   const removeNode = useArchitectureStore((s) => s.removeNode);
   const removeConnection = useArchitectureStore((s) => s.removeConnection);
+  const createWorkspace = useArchitectureStore((s) => s.createWorkspace);
 
   const validate = useArchitectureStore((s) => s.validate);
   const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
@@ -175,28 +175,15 @@ export function MenuBar() {
   const handleProviderSwitch = async (newProvider: ProviderType) => {
     if (newProvider === activeProvider) return;
 
-    const blocksFromOtherProvider = blocks.filter(
-      (block) => block.provider && block.provider !== newProvider,
+    const providerLabel = newProvider.toUpperCase();
+    const confirmed = await confirmDialog(
+      `This will create a new ${providerLabel} workspace. Your current workspace will be preserved.\n\nCreate ${providerLabel} workspace?`,
+      `Switch to ${providerLabel}?`,
     );
+    if (!confirmed) return;
 
-    if (blocksFromOtherProvider.length > 0) {
-      const providerCounts = new Map<string, number>();
-      for (const block of blocksFromOtherProvider) {
-        const p = block.provider ?? 'unknown';
-        providerCounts.set(p, (providerCounts.get(p) ?? 0) + 1);
-      }
-      const summary = Array.from(providerCounts.entries())
-        .map(([p, count]) => `${count} ${p.toUpperCase()}`)
-        .join(', ');
-
-      const confirmed = await confirmDialog(
-        `Your canvas has ${summary} block(s). New blocks will be created as ${newProvider.toUpperCase()} resources. Existing blocks keep their original provider.\n\nSwitch to ${newProvider.toUpperCase()}?`,
-        'Switch Cloud Provider?',
-      );
-      if (!confirmed) return;
-    }
-
-    setActiveProvider(newProvider);
+    createWorkspace(`My ${providerLabel} Architecture`, newProvider);
+    toast.success(`Created new ${providerLabel} workspace`);
   };
 
   const handleSave = () => {

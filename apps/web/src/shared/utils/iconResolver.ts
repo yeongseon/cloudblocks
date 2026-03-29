@@ -38,6 +38,55 @@ const AZURE_SUBTYPE_ICONS: Record<string, string> = {
   'cdn-profile': '/azure-icons/cdn-profile.svg',
 };
 
+const AWS_SUBTYPE_ICONS: Record<string, string> = {
+  ec2: '/aws-icons/ec2.svg',
+  lambda: '/aws-icons/lambda.svg',
+  ecs: '/aws-icons/ecs.svg',
+  eks: '/aws-icons/eks.svg',
+  'rds-postgres': '/aws-icons/rds.svg',
+  dynamodb: '/aws-icons/dynamodb.svg',
+  elasticache: '/aws-icons/elasticache.svg',
+  redshift: '/aws-icons/redshift.svg',
+  s3: '/aws-icons/s3.svg',
+  vpc: '/aws-icons/vpc.svg',
+  'route-53': '/aws-icons/route-53.svg',
+  cloudfront: '/aws-icons/cloudfront.svg',
+  alb: '/aws-icons/alb.svg',
+  elb: '/aws-icons/elb.svg',
+  'api-gateway': '/aws-icons/api-gateway.svg',
+  'nat-gateway': '/aws-icons/nat-gateway.svg',
+  sqs: '/aws-icons/sqs.svg',
+  sns: '/aws-icons/sns.svg',
+  eventbridge: '/aws-icons/eventbridge.svg',
+  iam: '/aws-icons/iam.svg',
+  kms: '/aws-icons/kms.svg',
+  kinesis: '/aws-icons/kinesis.svg',
+  athena: '/aws-icons/athena.svg',
+  sagemaker: '/aws-icons/sagemaker.svg',
+  cloudwatch: '/aws-icons/cloudwatch.svg',
+};
+
+const GCP_SUBTYPE_ICONS: Record<string, string> = {
+  'compute-engine': '/gcp-icons/compute-engine.svg',
+  gke: '/gcp-icons/gke.svg',
+  'cloud-functions': '/gcp-icons/cloud-functions.svg',
+  'cloud-sql-postgres': '/gcp-icons/cloud-sql.svg',
+  'cloud-spanner': '/gcp-icons/cloud-spanner.svg',
+  'cloud-storage': '/gcp-icons/cloud-storage.svg',
+  memorystore: '/gcp-icons/memorystore.svg',
+  'cloud-load-balancing': '/gcp-icons/cloud-load-balancing.svg',
+  'cloud-cdn': '/gcp-icons/cloud-cdn.svg',
+  'cloud-armor': '/gcp-icons/cloud-armor.svg',
+  vpc: '/gcp-icons/vpc.svg',
+  'cloud-dns': '/gcp-icons/cloud-dns.svg',
+  bigquery: '/gcp-icons/bigquery.svg',
+  dataflow: '/gcp-icons/dataflow.svg',
+  'pub-sub': '/gcp-icons/pub-sub.svg',
+  eventarc: '/gcp-icons/eventarc.svg',
+  'cloud-monitoring': '/gcp-icons/cloud-monitoring.svg',
+  'cloud-iam': '/gcp-icons/cloud-iam.svg',
+};
+
 const AZURE_RESOURCE_ICONS: Record<string, string> = {
   network: '/azure-icons/virtual-network.svg',
   subnet: '/azure-icons/subnet.svg',
@@ -71,8 +120,8 @@ const AZURE_RESOURCE_ICONS: Record<string, string> = {
 
 const VENDOR_ICON_REGISTRY: Record<ProviderType, Record<string, string>> = {
   azure: AZURE_SUBTYPE_ICONS,
-  aws: {},
-  gcp: {},
+  aws: AWS_SUBTYPE_ICONS,
+  gcp: GCP_SUBTYPE_ICONS,
 };
 
 export function getBlockIconUrl(
@@ -85,8 +134,12 @@ export function getBlockIconUrl(
 }
 
 export function getResourceIconUrl(resourceType: string, provider: ProviderType): string | null {
-  if (provider !== 'azure') return null;
-  return AZURE_RESOURCE_ICONS[resourceType] ?? null;
+  // For Azure, use the legacy resource-type → icon mapping
+  if (provider === 'azure') {
+    return AZURE_RESOURCE_ICONS[resourceType] ?? null;
+  }
+  // For AWS/GCP, there's no legacy resource-type mapping — icons come via getBlockIconUrl() + subtype
+  return null;
 }
 
 // ─── Subtype Display Labels ─────────────────────────────────
@@ -217,8 +270,53 @@ const SUBTYPE_SHORT_LABELS: Record<string, Record<string, string>> = {
     'load-balancer': 'ILB',
     'cdn-profile': 'CDN',
   },
-  aws: {},
-  gcp: {},
+  aws: {
+    ec2: 'EC2',
+    lambda: 'Lambda',
+    ecs: 'ECS',
+    eks: 'EKS',
+    'rds-postgres': 'RDS',
+    dynamodb: 'DDB',
+    elasticache: 'Cache',
+    redshift: 'RS',
+    s3: 'S3',
+    vpc: 'VPC',
+    'route-53': 'R53',
+    cloudfront: 'CF',
+    alb: 'ALB',
+    elb: 'ELB',
+    'api-gateway': 'APIGW',
+    'nat-gateway': 'NAT',
+    sqs: 'SQS',
+    sns: 'SNS',
+    eventbridge: 'EvBridge',
+    iam: 'IAM',
+    kms: 'KMS',
+    kinesis: 'Kinesis',
+    athena: 'Athena',
+    sagemaker: 'SM',
+    cloudwatch: 'CW',
+  },
+  gcp: {
+    'compute-engine': 'GCE',
+    gke: 'GKE',
+    'cloud-functions': 'GCF',
+    'cloud-sql-postgres': 'SQL',
+    'cloud-spanner': 'Spanner',
+    'cloud-storage': 'GCS',
+    memorystore: 'Mem',
+    'cloud-load-balancing': 'CLB',
+    'cloud-cdn': 'CDN',
+    'cloud-armor': 'Armor',
+    vpc: 'VPC',
+    'cloud-dns': 'DNS',
+    bigquery: 'BQ',
+    dataflow: 'DF',
+    'pub-sub': 'PubSub',
+    eventarc: 'Eventarc',
+    'cloud-monitoring': 'Monitor',
+    'cloud-iam': 'IAM',
+  },
 };
 
 /**

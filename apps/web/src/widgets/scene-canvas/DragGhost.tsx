@@ -37,7 +37,7 @@ export function DragGhost({ containerRef, originX, originY, panX, panY, zoom }: 
   const activeCategory = draggedBlockCategory ?? 'compute';
 
   const [unitsX, unitsY] = getBlockVisualProfile(activeCategory).footprint;
-  const faceColors = getBlockFaceColors(activeCategory);
+  const faceColors = getBlockFaceColors(activeCategory, activeProvider);
 
   const screenWidth = ((unitsX + unitsY) * TILE_W) / 2;
   const diamondHeight = ((unitsX + unitsY) * TILE_H) / 2;

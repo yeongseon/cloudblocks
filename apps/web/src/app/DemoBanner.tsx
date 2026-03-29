@@ -29,21 +29,17 @@ export function DemoBanner() {
   return (
     <div
       style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 10000,
         backgroundColor: '#0f0f1e',
         borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-        padding: '12px 16px',
+        padding: '8px 16px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         gap: '12px',
         color: '#e0e0e0',
-        fontSize: '14px',
+        fontSize: '13px',
         fontFamily: 'system-ui, -apple-system, sans-serif',
+        flexShrink: 0,
       }}
     >
       <span>

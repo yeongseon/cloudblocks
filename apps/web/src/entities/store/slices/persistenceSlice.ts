@@ -22,6 +22,7 @@ import {
 } from '../../../shared/utils/storage';
 import { generateId } from '../../../shared/utils/id';
 import { useUIStore } from '../uiStore';
+import { remapSubtype, remapName, getContainerLabel } from '../../../shared/utils/providerMapping';
 import type { ArchitectureSlice, ArchitectureState } from './types';
 import {
   createDefaultWorkspace,
@@ -385,10 +386,19 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
       return;
     }
 
+    // Migration: ensure every workspace has a provider (legacy data may lack it)
+    for (const ws of workspaces) {
+      if (!ws.provider) {
+        (ws as Workspace).provider = 'azure';
+      }
+    }
+
     const activeId = loadActiveWorkspaceId();
     const active = workspaces.find((ws) => ws.id === activeId) ?? workspaces[0];
 
     useUIStore.getState().clearDiffState();
+    // Sync UI provider from loaded workspace
+    useUIStore.getState().setActiveProvider(active.provider ?? 'azure');
 
     set({
       workspace: active,
@@ -574,9 +584,33 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
         updatedAt: now,
       };
 
+      // ─── Remap imported nodes to active provider ──────────────
+      const importProvider = useUIStore.getState().activeProvider;
+      if (importProvider !== 'azure') {
+        for (const node of normalized.nodes) {
+          const azureSubtype = node.subtype ?? node.resourceType;
+          node.provider = importProvider;
+          if (node.kind === 'container') {
+            const containerLabel = getContainerLabel(node.layer, importProvider);
+            if (containerLabel && node.name === getContainerLabel(node.layer, 'azure')) {
+              node.name = containerLabel;
+            }
+            if (node.subtype) {
+              node.subtype = remapSubtype(node.subtype, importProvider);
+            }
+          } else {
+            node.name = remapName(azureSubtype, node.name, importProvider);
+            if (node.subtype) {
+              node.subtype = remapSubtype(node.subtype, importProvider);
+            }
+          }
+        }
+      }
+
       const newWorkspace: Workspace = {
         id: generateId('ws'),
         name: normalized.name,
+        provider: useUIStore.getState().activeProvider,
         architecture: normalized,
         createdAt: now,
         updatedAt: now,
@@ -623,9 +657,36 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
       generateEndpointsForBlock(id),
     );
 
+    // ─── Remap nodes to active provider ──────────────────────
+    const activeProvider = useUIStore.getState().activeProvider;
+    if (activeProvider !== 'azure') {
+      for (const node of clonedArch.nodes ?? []) {
+        const azureSubtype = node.subtype ?? node.resourceType;
+        node.provider = activeProvider;
+        if (node.kind === 'container') {
+          // Remap container names (VNet → VPC, etc.)
+          const containerLabel = getContainerLabel(node.layer, activeProvider);
+          if (containerLabel && node.name === getContainerLabel(node.layer, 'azure')) {
+            node.name = containerLabel;
+          }
+          // Remap container subtype if present
+          if (node.subtype) {
+            node.subtype = remapSubtype(node.subtype, activeProvider);
+          }
+        } else {
+          // Remap resource block name, subtype
+          node.name = remapName(azureSubtype, node.name, activeProvider);
+          if (node.subtype) {
+            node.subtype = remapSubtype(node.subtype, activeProvider);
+          }
+        }
+      }
+    }
+
     const newWorkspace: Workspace = {
       id: generateId('ws'),
       name: template.name,
+      provider: useUIStore.getState().activeProvider,
       architecture: {
         ...clonedArch,
         id: generateId('arch'),

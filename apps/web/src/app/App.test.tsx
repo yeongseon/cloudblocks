@@ -108,6 +108,7 @@ describe('App', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test',
+        provider: 'azure' as const,
         architecture: {
           id: 'arch-1',
           name: 'Test',
@@ -239,6 +240,7 @@ describe('App', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test',
+        provider: 'azure' as const,
         architecture: {
           id: 'arch-1',
           name: 'Test',
@@ -285,6 +287,7 @@ describe('App', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test',
+        provider: 'azure' as const,
         architecture: {
           id: 'arch-1',
           name: 'Test',
@@ -332,6 +335,7 @@ describe('App', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test',
+        provider: 'azure' as const,
         architecture: {
           id: 'arch-1',
           name: 'Test',
@@ -372,6 +376,7 @@ describe('App', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test',
+        provider: 'azure' as const,
         architecture: {
           id: 'arch-1',
           name: 'Test',
@@ -473,6 +478,7 @@ describe('App', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test',
+        provider: 'azure' as const,
         architecture: {
           id: 'arch-1',
           name: 'Test',

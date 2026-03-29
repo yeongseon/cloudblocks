@@ -1,4 +1,5 @@
-import type { LayerType } from '@cloudblocks/schema';
+import type { LayerType, ProviderType } from '@cloudblocks/schema';
+import { PROVIDER_BRAND_COLOR, deriveFaceColors, darken, lighten } from '../block/blockFaceColors';
 
 type PlateLayerType = Exclude<LayerType, 'resource'>;
 
@@ -9,51 +10,49 @@ export interface ContainerBlockFaceColors {
   rightSideColor: string;
 }
 
+/**
+ * Derive container face colors from the provider brand color.
+ *
+ * All container layers use the same provider brand color as resource blocks,
+ * with layer-specific darkness adjustments so layers remain visually
+ * distinguishable while staying on-brand.
+ *
+ * - global: lightest (lighten 20%)
+ * - edge: lighten 10%
+ * - region (VNet): darken 15%
+ * - zone: lighten 5%
+ * - subnet: darken 8%
+ */
 export function getContainerBlockFaceColors(container: {
   type: PlateLayerType;
+  provider?: ProviderType;
 }): ContainerBlockFaceColors {
-  if (container.type === 'global') {
-    return {
-      topFaceColor: '#B39DDB',
-      topFaceStroke: '#D1C4E9',
-      leftSideColor: '#9575CD',
-      rightSideColor: '#7E57C2',
-    };
+  const brand = PROVIDER_BRAND_COLOR[container.provider ?? 'azure'];
+
+  let adjusted: string;
+  switch (container.type) {
+    case 'global':
+      adjusted = lighten(brand, 20);
+      break;
+    case 'edge':
+      adjusted = lighten(brand, 10);
+      break;
+    case 'region':
+      adjusted = darken(brand, 15);
+      break;
+    case 'zone':
+      adjusted = lighten(brand, 5);
+      break;
+    default: // subnet
+      adjusted = darken(brand, 8);
+      break;
   }
 
-  if (container.type === 'edge') {
-    return {
-      topFaceColor: '#80CBC4',
-      topFaceStroke: '#B2DFDB',
-      leftSideColor: '#4DB6AC',
-      rightSideColor: '#26A69A',
-    };
-  }
-
-  if (container.type === 'region') {
-    // Navy ramp — VNet level (dark navy)
-    return {
-      topFaceColor: '#162537',
-      topFaceStroke: '#4B6886',
-      leftSideColor: '#0F1B2A',
-      rightSideColor: '#0B1420',
-    };
-  }
-
-  if (container.type === 'zone') {
-    return {
-      topFaceColor: '#A5D6A7',
-      topFaceStroke: '#C8E6C9',
-      leftSideColor: '#81C784',
-      rightSideColor: '#66BB6A',
-    };
-  }
-
-  // Subnet — navy ramp (lighter than VNet)
+  const derived = deriveFaceColors(adjusted);
   return {
-    topFaceColor: '#22364B',
-    topFaceStroke: '#7F9BB6',
-    leftSideColor: '#182A3D',
-    rightSideColor: '#122030',
+    topFaceColor: derived.top,
+    topFaceStroke: derived.topStroke,
+    leftSideColor: derived.left,
+    rightSideColor: derived.right,
   };
 }

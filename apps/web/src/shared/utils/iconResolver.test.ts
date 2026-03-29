@@ -42,9 +42,11 @@ describe('getBlockIconUrl', () => {
     expect(functions).toBe('/azure-icons/function-apps.svg');
   });
 
-  it('returns null for AWS and GCP subtypes (not yet registered)', () => {
-    expect(getBlockIconUrl('aws', 'compute', 'ec2')).toBeNull();
-    expect(getBlockIconUrl('gcp', 'compute', 'compute-engine')).toBeNull();
+  it('returns correct icons for AWS and GCP subtypes', () => {
+    expect(getBlockIconUrl('aws', 'compute', 'ec2')).toBe('/aws-icons/ec2.svg');
+    expect(getBlockIconUrl('gcp', 'compute', 'compute-engine')).toBe(
+      '/gcp-icons/compute-engine.svg',
+    );
   });
 
   it('returns null for unknown provider', () => {
