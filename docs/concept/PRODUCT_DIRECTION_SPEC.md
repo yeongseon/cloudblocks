@@ -1,6 +1,6 @@
 # CloudBlocks — Product Direction & Implementation Specification
 
-> **Status**: Active — guides M21+ development
+> **Status**: Active — guides M27+ development
 > **Last Updated**: 2026-03-28
 
 ## Vision

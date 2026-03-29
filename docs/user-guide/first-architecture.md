@@ -11,7 +11,7 @@ Learn your first cloud architecture in 5 minutes using a built-in template with 
 - **Live Demo**: Visit [https://yeongseon.github.io/cloudblocks/](https://yeongseon.github.io/cloudblocks/)
 - **Local**: Clone and run (see [Quick Start](quick-start.md))
 
-When CloudBlocks opens, click **Get Started** to enter the builder.
+When CloudBlocks opens, click **Start Learning** to enter the builder.
 
 ---
 
@@ -19,12 +19,12 @@ When CloudBlocks opens, click **Get Started** to enter the builder.
 
 On the empty canvas, you will see two options:
 
-| Option                  | What it does                                                     |
-| :---------------------- | :--------------------------------------------------------------- |
-| **Start from Template** | Opens the Scenario Gallery with guided architecture patterns     |
-| **Start from Scratch**  | Dismisses the overlay so you can build manually from the sidebar |
+| Option                          | What it does                                                     |
+| :------------------------------ | :--------------------------------------------------------------- |
+| **Start Learning**              | Opens the Scenario Gallery with guided architecture patterns     |
+| **Practice on Blank Canvas**    | Dismisses the overlay so you can build manually from the sidebar |
 
-**Recommended for beginners**: Click **Start from Template** to open the Scenario Gallery, then select **Three-Tier Web Application** to follow a guided learning scenario. You can also browse scenarios later via **Build → Browse Scenarios** in the menu bar.
+**Recommended for beginners**: Click **Start Learning** to open the Scenario Gallery, then select **Three-Tier Web Application** to follow a guided learning scenario. You can also browse scenarios later by clicking the **Learn** button in the menu bar.
 
 This loads a complete architecture with:
 
@@ -99,6 +99,6 @@ Your progress is automatically saved to your browser's local storage.
 | :----------------------------------- | :----------------------------------------------- |
 | Understand the building blocks       | [Core Concepts](core-concepts.md)                |
 | Browse all architecture patterns     | [Templates](templates.md)                        |
-| Try guided learning scenarios        | **Build → Browse Scenarios** in the menu bar     |
+| Try guided learning scenarios        | Click the **Learn** button in the menu bar      |
 | Build from a blank canvas (advanced) | [Blank Canvas Mode](../advanced/blank-canvas.md) |
 | Learn keyboard shortcuts             | [Keyboard Shortcuts](keyboard-shortcuts.md)      |

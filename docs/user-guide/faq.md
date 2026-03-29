@@ -1,6 +1,6 @@
 # FAQ
 
-> **Audience**: All Users | **Status**: Stable — V1 Core | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: Stable — V1 Core | **Verified against**: v0.26.0
 
 Find answers to frequently asked questions about CloudBlocks.
 
@@ -34,15 +34,17 @@ No. CloudBlocks is a learning tool, not a deployment platform. It exports Terraf
 
 ### How do I start learning?
 
-Click **Start from Template** on the empty canvas, or go to **Build → Browse Scenarios** in the menu bar. Choose a scenario that matches your level (beginner, intermediate, or advanced) and follow the guided steps.
+Click **Start Learning** on the empty canvas, or click the **Learn** button in the menu bar. Choose a scenario that matches your level (beginner, intermediate, or advanced) and follow the guided steps.
 
 ### What scenarios are available?
 
-Three built-in scenarios are available:
+Three built-in guided scenarios are available:
 
 1. **Three-Tier Web Application** (Beginner, ~10 min) — Build a classic frontend + API + database architecture
 2. **Serverless HTTP API** (Intermediate, ~8 min) — Build a serverless function architecture
 3. **Event-Driven Data Pipeline** (Advanced, ~12 min) — Build an event processing pattern
+
+In addition, there are 6 built-in templates (including the 3 scenario templates plus Simple Compute Setup, Data Storage Backend, and Full-Stack Serverless with Event Processing) that you can load from the template gallery.
 
 ### Can I exit a scenario early?
 
@@ -54,7 +56,7 @@ Yes. You can exit Learning Mode at any time and keep the architecture you have b
 
 ### What cloud providers are supported?
 
-CloudBlocks supports Azure, AWS, and GCP for visual preview. Provider coverage varies by template, resource, and export path.
+Azure is the active provider with full resource coverage across all 8 categories. AWS and GCP tabs are visible in the menu bar but marked Coming Soon. The code generation engine supports all three providers for Terraform output.
 
 ### What are the 8 resource categories?
 
@@ -122,7 +124,7 @@ Check that your source category can initiate connections (Compute, Delivery, or 
 
 ### Where is Learning Mode?
 
-You can access Learning Mode via **Build → Browse Scenarios** in the menu bar, or by clicking **Start from Template** on the empty canvas. There are three built-in scenarios: Three-Tier Web Application, Serverless HTTP API, and Event-Driven Data Pipeline.
+You can access Learning Mode by clicking the **Learn** button in the menu bar, or by clicking **Start Learning** on the empty canvas. There are three built-in scenarios: Three-Tier Web Application, Serverless HTTP API, and Event-Driven Data Pipeline.
 
 ---
 

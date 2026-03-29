@@ -1,6 +1,6 @@
 # Create an Architecture
 
-> **Audience**: All users | **Status**: V1 Core | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.26.0
 
 CloudBlocks is template-first. If you are new to cloud architecture, start from a guided template so you can learn a real pattern before practicing on a blank canvas.
 

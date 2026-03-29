@@ -275,7 +275,7 @@ All Milestone 6 gates plus:
 - Release management: CHANGELOG.md, annotated tags, GitHub Releases
 - Versioning convention: Milestone N = v0.N.0
 
-### Milestone 17 (In Progress)
+### Milestone 17 (Completed)
 
 All Milestone 16 gates plus:
 
@@ -288,7 +288,7 @@ All Milestone 16 gates plus:
 - CI pipeline builds and tests extracted packages
 - Version alignment policy enforced: all packages at single version
 
-### Milestone 17 (In Progress) — Additional Gate
+### Milestone 17 (Completed) — Additional Gate
 
 #### Gate 6: Beginner Usability
 
