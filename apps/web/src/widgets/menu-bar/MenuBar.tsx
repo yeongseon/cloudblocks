@@ -81,6 +81,8 @@ export function MenuBar() {
   const toggleGitHubSync = useUIStore((s) => s.toggleGitHubSync);
   const toggleGitHubPR = useUIStore((s) => s.toggleGitHubPR);
   const diffMode = useUIStore((s) => s.diffMode);
+  const drawer = useUIStore((s) => s.drawer);
+  const isLearningOpen = drawer.isOpen && drawer.activePanel === 'learning';
   const activeScenario = useLearningStore((s) => s.activeScenario);
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
   const toggleSound = useUIStore((s) => s.toggleSound);
@@ -600,7 +602,20 @@ export function MenuBar() {
           type="button"
           className="core-btn core-btn-learn"
           onClick={handleToggleLearningPanel}
-          title={activeScenario ? 'Resume current lesson' : 'Browse guided scenarios'}
+          title={
+            isLearningOpen
+              ? 'Close learning panel'
+              : activeScenario
+                ? 'Resume current lesson'
+                : 'Browse guided scenarios'
+          }
+          aria-label={
+            isLearningOpen
+              ? 'Close learning panel'
+              : activeScenario
+                ? 'Resume current lesson'
+                : 'Browse guided scenarios'
+          }
         >
           <GraduationCap size={14} />
           <span className="core-btn-label">Learn</span>
