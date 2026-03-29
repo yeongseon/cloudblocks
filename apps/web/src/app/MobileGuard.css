@@ -6,8 +6,8 @@
   left: 0;
   right: 0;
   z-index: 10001;
-  background-color: rgba(30, 30, 60, 0.95);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--bg-surface-raised);
+  border-bottom: 1px solid var(--border-default);
   padding: 12px 16px;
   display: flex;
   align-items: center;
@@ -20,7 +20,7 @@
 }
 
 .mobile-guard-text {
-  color: #e0e0e0;
+  color: var(--text-primary);
   font-size: 13px;
   line-height: 1.4;
   text-align: center;
@@ -28,8 +28,8 @@
 
 .mobile-guard-dismiss {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: #e0e0e0;
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
   padding: 4px 10px;
   border-radius: 4px;
   cursor: pointer;
@@ -40,8 +40,8 @@
 }
 
 .mobile-guard-dismiss:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.6);
+  background-color: color-mix(in srgb, var(--text-primary) 10%, transparent);
+  border-color: var(--border-strong);
 }
 
 /* Safety net: hide on desktop even if React renders it */
