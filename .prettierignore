@@ -7,3 +7,6 @@ pnpm-lock.yaml
 apps/api/.venv/
 apps/web/dist/
 packages/*/dist/
+# MkDocs uses admonition syntax (!!! note) that requires 4-space indented body.
+# Prettier strips this indentation, breaking admonition rendering.
+docs/**/*.md
