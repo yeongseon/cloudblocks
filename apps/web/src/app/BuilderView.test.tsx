@@ -80,7 +80,7 @@ describe('BuilderView', () => {
       showGitHubLogin: false,
       showGitHubRepos: false,
       showGitHubPR: false,
-      showTemplateGallery: false,
+
       sidebar: { isOpen: true },
       pendingGitHubAction: null,
       diffMode: false,

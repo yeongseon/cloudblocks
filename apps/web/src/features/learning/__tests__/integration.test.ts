@@ -84,7 +84,7 @@ function resetUIStore(): void {
     showValidation: false,
     showCodePreview: false,
     showWorkspaceManager: false,
-    showTemplateGallery: false,
+
     showGitHubLogin: false,
     showGitHubRepos: false,
     showGitHubSync: false,

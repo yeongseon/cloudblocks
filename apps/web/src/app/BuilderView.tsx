@@ -25,11 +25,7 @@ const WorkspaceManager = lazy(() =>
     default: m.WorkspaceManager,
   })),
 );
-const TemplateGallery = lazy(() =>
-  import('../widgets/template-gallery/TemplateGallery').then((m) => ({
-    default: m.TemplateGallery,
-  })),
-);
+
 const GitHubLogin = lazy(() =>
   import('../widgets/github-login/GitHubLogin').then((m) => ({
     default: m.GitHubLogin,
@@ -84,7 +80,7 @@ export function BuilderView() {
   const showGitHubLogin = useUIStore((s) => s.showGitHubLogin);
   const showGitHubRepos = useUIStore((s) => s.showGitHubRepos);
   const showGitHubPR = useUIStore((s) => s.showGitHubPR);
-  const showTemplateGallery = useUIStore((s) => s.showTemplateGallery);
+
   const sidebarOpen = useUIStore((s) => s.sidebar.isOpen);
   const workspaceId = useArchitectureStore((s) => s.workspace.id);
   const isMobile = useIsMobile();
@@ -287,7 +283,7 @@ export function BuilderView() {
           <GitHubSync />
           {showGitHubPR && <GitHubPR key={`pr-${workspaceId}`} />}
           {showWorkspaceManager && <WorkspaceManager />}
-          {showTemplateGallery && <TemplateGallery />}
+
           {showPromoteDialog && <PromoteDialog />}
           {showRollbackDialog && <RollbackDialog />}
           {showPromoteHistory && <PromoteHistory />}

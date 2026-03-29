@@ -7,13 +7,13 @@ export function EmptyCanvasOverlay() {
   const containerCount = useArchitectureStore(
     (s) => s.workspace.architecture.nodes.filter((node) => node.kind === 'container').length,
   );
-  const showTemplateGallery = useUIStore((s) => s.showTemplateGallery);
+  const drawer = useUIStore((s) => s.drawer);
+  const openDrawer = useUIStore((s) => s.openDrawer);
   const addNode = useArchitectureStore((s) => s.addNode);
-  const toggleTemplateGallery = useUIStore((s) => s.toggleTemplateGallery);
   const importArchitecture = useArchitectureStore((s) => s.importArchitecture);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  if (containerCount > 0 || showTemplateGallery) return null;
+  if (containerCount > 0 || (drawer.isOpen && drawer.activePanel === 'templates')) return null;
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -59,7 +59,7 @@ export function EmptyCanvasOverlay() {
           <button
             type="button"
             className="empty-canvas-card"
-            onClick={() => toggleTemplateGallery()}
+            onClick={() => openDrawer('templates')}
           >
             <span className="empty-canvas-card-icon">&#9776;</span>
             <span className="empty-canvas-card-label">Explore Templates</span>

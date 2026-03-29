@@ -74,7 +74,7 @@ export function MenuBar() {
   const setActiveProvider = useUIStore((s) => s.setActiveProvider);
   const openInspectorTab = useUIStore((s) => s.openInspectorTab);
   const toggleWorkspaceManager = useUIStore((s) => s.toggleWorkspaceManager);
-  const toggleTemplateGallery = useUIStore((s) => s.toggleTemplateGallery);
+  const openDrawer = useUIStore((s) => s.openDrawer);
   const toggleGitHubLogin = useUIStore((s) => s.toggleGitHubLogin);
   const toggleGitHubRepos = useUIStore((s) => s.toggleGitHubRepos);
   const toggleGitHubSync = useUIStore((s) => s.toggleGitHubSync);
@@ -426,7 +426,7 @@ export function MenuBar() {
           <button
             type="button"
             className="menu-item"
-            onClick={() => handleAction(toggleTemplateGallery)}
+            onClick={() => handleAction(() => openDrawer('templates'))}
           >
             <span className="menu-item-left">
               <Package size={14} /> Browse Templates
@@ -616,7 +616,7 @@ export function MenuBar() {
         <button
           type="button"
           className="core-btn"
-          onClick={toggleTemplateGallery}
+          onClick={() => openDrawer('templates')}
           title="Browse Templates"
         >
           <Package size={14} />

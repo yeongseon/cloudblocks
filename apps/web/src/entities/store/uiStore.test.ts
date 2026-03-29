@@ -23,7 +23,7 @@ describe('useUIStore', () => {
       showCodePreview: false,
       showAdvancedGeneration: false,
       showWorkspaceManager: false,
-      showTemplateGallery: false,
+
       showGitHubLogin: false,
       showGitHubRepos: false,
       showGitHubSync: false,
@@ -62,7 +62,7 @@ describe('useUIStore', () => {
       expect(state.showCodePreview).toBe(false);
       expect(state.showAdvancedGeneration).toBe(false);
       expect(state.showWorkspaceManager).toBe(false);
-      expect(state.showTemplateGallery).toBe(false);
+
       expect(state.showGitHubLogin).toBe(false);
       expect(state.showGitHubRepos).toBe(false);
       expect(state.showGitHubSync).toBe(false);
@@ -833,28 +833,6 @@ describe('useUIStore', () => {
       expect(useUIStore.getState().showWorkspaceManager).toBe(true);
       useUIStore.getState().toggleWorkspaceManager();
       expect(useUIStore.getState().showWorkspaceManager).toBe(false);
-    });
-  });
-
-  describe('toggleTemplateGallery', () => {
-    it('should toggle showTemplateGallery from false to true', () => {
-      expect(useUIStore.getState().showTemplateGallery).toBe(false);
-      useUIStore.getState().toggleTemplateGallery();
-      expect(useUIStore.getState().showTemplateGallery).toBe(true);
-    });
-
-    it('should toggle showTemplateGallery back from true to false', () => {
-      useUIStore.getState().toggleTemplateGallery();
-      useUIStore.getState().toggleTemplateGallery();
-      expect(useUIStore.getState().showTemplateGallery).toBe(false);
-    });
-
-    it('should toggle multiple times correctly', () => {
-      expect(useUIStore.getState().showTemplateGallery).toBe(false);
-      useUIStore.getState().toggleTemplateGallery();
-      expect(useUIStore.getState().showTemplateGallery).toBe(true);
-      useUIStore.getState().toggleTemplateGallery();
-      expect(useUIStore.getState().showTemplateGallery).toBe(false);
     });
   });
 

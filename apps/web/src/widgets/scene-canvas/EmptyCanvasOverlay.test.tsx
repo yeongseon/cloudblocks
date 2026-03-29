@@ -8,10 +8,10 @@ vi.mock('../../entities/store/architectureStore');
 vi.mock('../../entities/store/uiStore');
 
 const mockAddNode = vi.fn();
-const mockToggleTemplateGallery = vi.fn();
+const mockOpenDrawer = vi.fn();
 const mockImportArchitecture = vi.fn();
 
-function setupMocks(plateCount: number, showTemplateGallery = false) {
+function setupMocks(plateCount: number, templateDrawerOpen = false) {
   const nodes = Array.from({ length: plateCount }, (_, i) => ({
     id: `container-${i}`,
     name: `ContainerBlock ${i}`,
@@ -37,8 +37,8 @@ function setupMocks(plateCount: number, showTemplateGallery = false) {
 
   vi.mocked(useUIStore).mockImplementation(((selector: unknown) => {
     const state = {
-      showTemplateGallery,
-      toggleTemplateGallery: mockToggleTemplateGallery,
+      drawer: { isOpen: templateDrawerOpen, activePanel: templateDrawerOpen ? 'templates' : null },
+      openDrawer: mockOpenDrawer,
     };
     return (selector as (s: typeof state) => unknown)(state);
   }) as typeof useUIStore);
@@ -94,11 +94,11 @@ describe('EmptyCanvasOverlay', () => {
     });
   });
 
-  it('clicking Explore Templates calls toggleTemplateGallery', () => {
+  it('clicking Explore Templates opens template drawer', () => {
     setupMocks(0);
     render(<EmptyCanvasOverlay />);
     fireEvent.click(screen.getByText('Explore Templates'));
-    expect(mockToggleTemplateGallery).toHaveBeenCalledTimes(1);
+    expect(mockOpenDrawer).toHaveBeenCalledWith('templates');
   });
 
   it('clicking Import JSON triggers file input click', () => {

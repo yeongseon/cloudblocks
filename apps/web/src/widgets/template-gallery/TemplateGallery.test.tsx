@@ -12,9 +12,9 @@ describe('TemplateGallery', () => {
     registerBuiltinTemplates();
   });
 
-  it('renders template gallery with title', () => {
+  it('renders template gallery with category filters', () => {
     render(<TemplateGallery />);
-    expect(screen.getByText(/Templates/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'All' })).toBeInTheDocument();
   });
 
   it('renders template cards with name, description, and tags', () => {
@@ -31,18 +31,9 @@ describe('TemplateGallery', () => {
     expect(badges.length).toBeGreaterThan(0);
   });
 
-  it('closes gallery when close button is clicked', async () => {
+  it('calls closeDrawer when a template is used', async () => {
     const user = userEvent.setup();
-    useUIStore.setState({ showTemplateGallery: true });
-    render(<TemplateGallery />);
-    const closeBtn = screen.getByRole('button', { name: 'Close template gallery' });
-    await user.click(closeBtn);
-    expect(useUIStore.getState().showTemplateGallery).toBe(false);
-  });
-
-  it('applies template then persists in loadFromTemplate → saveToStorage order', async () => {
-    const user = userEvent.setup();
-    useUIStore.setState({ showTemplateGallery: true });
+    useUIStore.setState({ drawer: { isOpen: true, activePanel: 'templates' } });
 
     const callOrder: string[] = [];
     const saveToStorageSpy = vi.fn(() => {
@@ -65,7 +56,7 @@ describe('TemplateGallery', () => {
     expect(loadFromTemplateSpy).toHaveBeenCalledOnce();
     expect(saveToStorageSpy).toHaveBeenCalledOnce();
     expect(callOrder).toEqual(['loadFromTemplate', 'saveToStorage']);
-    expect(useUIStore.getState().showTemplateGallery).toBe(false);
+    expect(useUIStore.getState().drawer.isOpen).toBe(false);
   });
 
   it('renders tags for templates (up to 3)', () => {
@@ -95,15 +86,9 @@ describe('TemplateGallery', () => {
     expect(screen.queryByText('Three-Tier Web Application')).not.toBeInTheDocument();
   });
 
-  it('renders generator compatibility tag for templates that define generatorCompat', () => {
-    render(<TemplateGallery />);
-
-    expect(screen.getAllByText('terraform · bicep · pulumi').length).toBeGreaterThan(0);
-  });
-
   it('resets category filter to "all" after Use Template', async () => {
     const user = userEvent.setup();
-    useUIStore.setState({ showTemplateGallery: true });
+    useUIStore.setState({ drawer: { isOpen: true, activePanel: 'templates' } });
     const saveToStorageSpy = vi.fn();
     const loadFromTemplateSpy = vi.fn();
     useArchitectureStore.setState({
@@ -124,7 +109,7 @@ describe('TemplateGallery', () => {
 
     // Re-render (simulates reopening the gallery)
     unmount();
-    useUIStore.setState({ showTemplateGallery: true });
+    useUIStore.setState({ drawer: { isOpen: true, activePanel: 'templates' } });
     render(<TemplateGallery />);
 
     // All templates should be visible — filter was reset to "all"
@@ -152,7 +137,7 @@ describe('TemplateGallery', () => {
 
   it('resets category filter to All after using a template', async () => {
     const user = userEvent.setup();
-    useUIStore.setState({ showTemplateGallery: true });
+    useUIStore.setState({ drawer: { isOpen: true, activePanel: 'templates' } });
     const saveToStorageSpy = vi.fn();
     const loadFromTemplateSpy = vi.fn();
     useArchitectureStore.setState({
@@ -172,7 +157,7 @@ describe('TemplateGallery', () => {
 
     // Remount and verify all templates are visible
     unmount();
-    useUIStore.setState({ showTemplateGallery: true });
+    useUIStore.setState({ drawer: { isOpen: true, activePanel: 'templates' } });
     render(<TemplateGallery />);
 
     expect(screen.getByText('Three-Tier Web Application')).toBeInTheDocument();

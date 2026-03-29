@@ -141,7 +141,7 @@ describe('MenuBar', () => {
       showResourceGuide: true,
       showCodePreview: false,
       showWorkspaceManager: false,
-      showTemplateGallery: false,
+
       showGitHubLogin: false,
       showGitHubRepos: false,
       showGitHubSync: false,
@@ -201,7 +201,8 @@ describe('MenuBar', () => {
     render(<MenuBar />);
 
     await user.click(screen.getByRole('button', { name: 'Templates' }));
-    expect(useUIStore.getState().showTemplateGallery).toBe(true);
+    expect(useUIStore.getState().drawer.isOpen).toBe(true);
+    expect(useUIStore.getState().drawer.activePanel).toBe('templates');
 
     await user.click(screen.getByRole('button', { name: 'Validate' }));
     expect(useUIStore.getState().drawer.isOpen).toBe(true);
@@ -574,7 +575,8 @@ describe('MenuBar', () => {
 
     dropdown = await openOverflow(user);
     await user.click(within(dropdown).getByRole('button', { name: /Browse Templates/ }));
-    expect(useUIStore.getState().showTemplateGallery).toBe(true);
+    expect(useUIStore.getState().drawer.isOpen).toBe(true);
+    expect(useUIStore.getState().drawer.activePanel).toBe('templates');
   }, 15000);
 
   it('routes Learn button to scenario gallery when no scenario is active', async () => {

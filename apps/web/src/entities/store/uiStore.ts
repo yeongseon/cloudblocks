@@ -116,8 +116,7 @@ interface UIState {
   toggleAdvancedGeneration: () => void;
   showWorkspaceManager: boolean;
   toggleWorkspaceManager: () => void;
-  showTemplateGallery: boolean;
-  toggleTemplateGallery: () => void;
+
   showGitHubLogin: boolean;
   toggleGitHubLogin: () => void;
   showGitHubRepos: boolean;
@@ -380,9 +379,6 @@ export const useUIStore = create<UIState>((set, get) => ({
 
   showWorkspaceManager: false,
   toggleWorkspaceManager: () => set((s) => ({ showWorkspaceManager: !s.showWorkspaceManager })),
-
-  showTemplateGallery: false,
-  toggleTemplateGallery: () => set((s) => ({ showTemplateGallery: !s.showTemplateGallery })),
 
   showGitHubLogin: false,
   toggleGitHubLogin: () =>

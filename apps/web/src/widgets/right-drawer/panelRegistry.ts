@@ -7,7 +7,15 @@
  */
 
 import type { ComponentType } from 'react';
-import { Settings, CheckCircle, Link2, ClipboardList, BookOpen, Code } from 'lucide-react';
+import {
+  Settings,
+  CheckCircle,
+  Link2,
+  ClipboardList,
+  BookOpen,
+  Code,
+  LayoutTemplate,
+} from 'lucide-react';
 
 export type DrawerPanelId =
   | 'properties'
@@ -15,7 +23,8 @@ export type DrawerPanelId =
   | 'connections'
   | 'scenarios'
   | 'learning'
-  | 'code';
+  | 'code'
+  | 'templates';
 
 export interface PanelRegistryEntry {
   id: DrawerPanelId;
@@ -31,6 +40,7 @@ export const PANEL_REGISTRY: Record<DrawerPanelId, PanelRegistryEntry> = {
   scenarios: { id: 'scenarios', label: 'Scenarios', Icon: ClipboardList, minWidth: 400 },
   learning: { id: 'learning', label: 'Learning', Icon: BookOpen, minWidth: 360 },
   code: { id: 'code', label: 'Code', Icon: Code, minWidth: 400 },
+  templates: { id: 'templates', label: 'Templates', Icon: LayoutTemplate, minWidth: 400 },
 };
 
 /** All registered panel IDs, useful for iteration. */
