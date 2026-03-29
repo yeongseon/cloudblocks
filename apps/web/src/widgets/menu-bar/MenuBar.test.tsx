@@ -92,7 +92,7 @@ const redoMock = vi.fn();
 const importArchitectureMock = vi.fn();
 
 function getOverflowDropdown(): HTMLElement {
-  const trigger = screen.getByRole('button', { name: 'Advanced' });
+  const trigger = screen.getByRole('button', { name: 'Menu' });
   const container = trigger.closest('.menu-dropdown-container');
   if (!container) throw new Error('Expected menu dropdown container to exist');
   const dropdown = container.querySelector('.menu-dropdown');
@@ -101,7 +101,7 @@ function getOverflowDropdown(): HTMLElement {
 }
 
 async function openOverflow(user: ReturnType<typeof userEvent.setup>): Promise<HTMLElement> {
-  await user.click(screen.getByRole('button', { name: 'Advanced' }));
+  await user.click(screen.getByRole('button', { name: 'Menu' }));
   return getOverflowDropdown();
 }
 
@@ -176,11 +176,11 @@ describe('MenuBar', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders compact logo, overflow menu trigger, workspace button, and quick actions', () => {
+  it('renders compact logo, logo menu trigger, workspace button, and quick actions', () => {
     render(<MenuBar />);
 
     expect(document.querySelector('.menu-bar-logo svg')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Advanced' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Menu' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Workspaces' })).toBeInTheDocument();
 
     expect(screen.getByTitle('Undo (Ctrl+Z)')).toBeInTheDocument();
@@ -319,7 +319,7 @@ describe('MenuBar', () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    const trigger = screen.getByRole('button', { name: 'Advanced' });
+    const trigger = screen.getByRole('button', { name: 'Menu' });
     const dropdown = getOverflowDropdown();
     expect(dropdown.className).not.toContain('show');
 
@@ -505,7 +505,7 @@ describe('MenuBar', () => {
 
     useArchitectureStore.setState({ canUndo: true, canRedo: true });
     // close and reopen
-    await user.click(screen.getByRole('button', { name: 'Advanced' }));
+    await user.click(screen.getByRole('button', { name: 'Menu' }));
     dropdown = await openOverflow(user);
     undoItem = within(dropdown).getByRole('button', { name: /Undo/ });
     redoItem = within(dropdown).getByRole('button', { name: /Redo/ });

@@ -27,6 +27,10 @@
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all var(--duration-fast) ease;
 }
 
 .menu-bar-divider {
@@ -37,18 +41,7 @@
   flex-shrink: 0;
 }
 
-/* ── Overflow trigger ──────── */
-
-.compact-trigger {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  padding: 0;
-  flex-shrink: 0;
-}
+/* Compact trigger removed — logo serves as menu trigger */
 
 /* ── Workspace pill ──────── */
 

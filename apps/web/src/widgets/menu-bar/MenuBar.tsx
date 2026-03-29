@@ -16,7 +16,6 @@ import type { BackendStatus } from '../../entities/store/uiStore';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
 import {
-  Menu,
   Save,
   FolderOpen,
   FileDown,
@@ -50,7 +49,7 @@ import {
 } from 'lucide-react';
 import './MenuBar.css';
 
-type DropdownMenu = 'overflow' | 'github' | null;
+type DropdownMenu = 'logo' | 'github' | null;
 
 const PROVIDER_OPTIONS: { id: ProviderType; label: string; color: string }[] = [
   { id: 'azure', label: 'Azure', color: '#0078D4' },
@@ -314,23 +313,19 @@ export function MenuBar() {
 
   return (
     <div className="menu-bar">
-      <div className="menu-bar-logo">
-        <LogoIcon size={16} />
-      </div>
-
-      {/* ── Overflow menu (all secondary actions) ──────── */}
+      {/* ── Logo menu (replaces hamburger) ──────── */}
       <div className="menu-dropdown-container">
         <button
           type="button"
-          className="menu-trigger compact-trigger"
-          data-active={openMenu === 'overflow'}
-          onClick={() => toggleMenu('overflow')}
-          aria-label="Advanced"
-          title="Advanced"
+          className="menu-bar-logo menu-trigger"
+          data-active={openMenu === 'logo'}
+          onClick={() => toggleMenu('logo')}
+          aria-label="Menu"
+          title="Menu"
         >
-          <Menu size={16} />
+          <LogoIcon size={16} />
         </button>
-        <div className={`menu-dropdown overflow-dropdown ${openMenu === 'overflow' ? 'show' : ''}`}>
+        <div className={`menu-dropdown overflow-dropdown ${openMenu === 'logo' ? 'show' : ''}`}>
           {/* File section */}
           <div className="menu-section-label">File</div>
           <button type="button" className="menu-item" onClick={() => handleAction(handleSave)}>
