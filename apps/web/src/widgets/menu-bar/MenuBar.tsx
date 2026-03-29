@@ -9,6 +9,7 @@ import { usePromoteStore } from '../../entities/store/promoteStore';
 import { computeArchitectureDiff } from '../../features/diff/engine';
 import { apiPost, getApiErrorMessage } from '../../shared/api/client';
 import { confirmDialog } from '../../shared/ui/ConfirmDialog';
+import { LogoIcon } from '../../shared/ui/LogoIcon';
 import type { PullResponse } from '../../shared/types/api';
 import type { ArchitectureModel, ProviderType } from '@cloudblocks/schema';
 import type { BackendStatus } from '../../entities/store/uiStore';
@@ -44,7 +45,6 @@ import {
   GitPullRequest,
   GitCompare,
   LogOut,
-  Cloud,
   LayoutGrid,
   Keyboard,
 } from 'lucide-react';
@@ -318,7 +318,7 @@ export function MenuBar() {
   return (
     <div className="menu-bar">
       <div className="menu-bar-logo">
-        <Cloud size={16} /> CB
+        <LogoIcon size={16} /> CB
       </div>
 
       {/* ── Overflow menu (all secondary actions) ──────── */}
