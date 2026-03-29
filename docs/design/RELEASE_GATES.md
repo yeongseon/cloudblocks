@@ -288,9 +288,13 @@ All Milestone 16 gates plus:
 - CI pipeline builds and tests extracted packages
 - Version alignment policy enforced: all packages at single version
 
-### Milestone 17 (Completed) — Additional Gate
+---
 
-#### Gate 6: Beginner Usability
+## 8. Cross-Cutting Gates
+
+These gates are not tied to a specific milestone. They apply to every release once their instrumentation is in place.
+
+### Gate 6: Beginner Usability
 
 > Added as part of the positioning reset to "visual cloud learning tool for beginners."
 
