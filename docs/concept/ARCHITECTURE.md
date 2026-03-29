@@ -263,7 +263,7 @@ apps/api/
 │   │   └── models/                # Entities and repository interfaces
 │   ├── application/
 │   │   └── use_cases/             # Business logic
-│   ├── engines/                   # Prompt templates for AI
+│   ├── engines/                   # AI prompt templates and generation logic
 │   └── infrastructure/
 │       ├── db/
 │       │   ├── connection.py      # Database and PostgresDatabase classes
@@ -338,36 +338,36 @@ Example structure:
 
 ```
 
-NetworkPlate
-└ SubnetPlate (Public)
-└ GatewayBlock
-└ SubnetPlate (Private)
-└ ComputeBlock
-└ DatabaseBlock
+ContainerBlock (virtual_network)
+└ ContainerBlock (subnet, public)
+  └ ResourceBlock (delivery: application_gateway)
+└ ContainerBlock (subnet, private)
+  └ ResourceBlock (compute: virtual_machine)
+  └ ResourceBlock (data: relational_database)
 
 ```
 
 Key responsibilities:
 - Maintain architecture graph
-- Enforce containment relationships
+- Enforce containment relationships (via `parentId` hierarchy)
 - Serialize model state to JSON
 
 ## 3.5 Architecture Model Schema
 
 The canonical model types are defined in `packages/schema` (`@cloudblocks/schema`) and re-exported for frontend usage from `apps/web/src/shared/types/index.ts`. The domain model consists of the following core entities:
 
-- **ContainerBlock** — Infrastructure boundary (network / subnet), with containment hierarchy (`parentId`, `children`) and `frame`
-- **ResourceBlock** — Infrastructure resource (`category`: compute / database / storage / gateway / function / queue / event / analytics / identity / observability), placed on a container block via `placementId`
-- **Connection** — Dataflow between blocks (`from` → `to`, endpoint IDs; each endpoint uses `blockId`), initiator model
-- **ExternalActor** — External endpoint (e.g., Internet)
-- **ArchitectureModel** — Root container for all entities
+- **ContainerBlock** — Infrastructure boundary (network / subnet), with containment hierarchy via `parentId` and `frame` for visual rendering
+- **ResourceBlock** — Infrastructure resource (8 categories: network, delivery, compute, data, messaging, security, identity, operations), placed on a container block via `parentId`
+- **Endpoint** — Typed connection point on a block (input/output × http/event/data), with deterministic IDs
+- **Connection** — Endpoint-to-endpoint dataflow (`from` → `to` as endpoint ID strings), initiator model
+- **ExternalActor** — External endpoint (e.g., Internet) — _@deprecated in v4_
+- **ArchitectureModel** — Root container for all entities (blocks, endpoints, connections)
 
-> The backend uses generated Python models in `apps/api/app/models/generated/architecture_model.py`, built from `packages/schema/dist/architecture-model.schema.json`.
-> For full TypeScript interfaces, field specifications, and JSON examples, see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md) §14 (Implementation Schema).
+> For full TypeScript interfaces, field specifications, and endpoint model, see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md).
 
 ### Serialization Format
 
-- Serialization is versioned through `schemaVersion` and currently uses `"2.0.0"` (source constant: `packages/schema/src/index.ts`).
+- Serialization is versioned through `schemaVersion` and currently uses `"4.0.0"` (source constant: `apps/web/src/shared/types/schema.ts`).
 - The persisted root payload shape is `{ schemaVersion, workspaces[] }`, where each workspace contains one `architecture: ArchitectureModel`.
 - For broader domain semantics and lifecycle rules, see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md).
 
@@ -426,7 +426,7 @@ Validation flow in `engine.ts`:
 
 # 5. Code Generation Pipeline (Milestone 3+)
 
-> **Status**: Implemented in the frontend (`apps/web/src/features/generate`). Terraform, Bicep, and Pulumi generators are available in the web app.
+> **Status**: Implemented in the frontend (`apps/web/src/features/generate`). Terraform is the primary generator; Bicep and Pulumi are available as experimental exports.
 
 The core value delivery — transforming visual architecture into deployable IaC code. The pipeline follows a multi-stage process: Normalize → Validate → Provider Map → Generate → Format → Output.
 
@@ -470,7 +470,7 @@ The scene layer is implemented in `apps/web/src/widgets/scene-canvas/SceneCanvas
 SceneCanvas (root SVG scene)
   ├ Pan/Zoom controls (CSS transform3d)
   ├ Grid (SVG pattern)
-  ├ PlateSprite (network/subnet SVG rendering)
+  ├ ContainerBlockSprite (network/subnet SVG rendering)
   ├ BlockSprite (infrastructure block SVG rendering)
   ├ ConnectionRenderer (data flow SVG connections with surface routing)
 └ Labels (container-block/block names via HTML overlay)
@@ -557,9 +557,9 @@ The storage follows a **Git-native** design: GitHub repos serve as the primary d
 
 Milestone 1 uses browser localStorage for persistence. Storage key: `cloudblocks:workspaces`.
 
-The persisted format uses `schemaVersion: "2.0.0"` with a `workspaces[]` array, each containing a single `architecture: ArchitectureModel` object.
+The persisted format uses `schemaVersion: "4.0.0"` with a `workspaces[]` array, each containing a single `architecture: ArchitectureModel` object.
 
-> For the full workspace model and serialization format, see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md) §13 (Workspace Model) and §14 (Implementation Schema).
+> For the full workspace model and serialization format, see [DOMAIN_MODEL.md](../model/DOMAIN_MODEL.md).
 
 ### Milestone 3+ Storage (Local-First + GitHub Sync)
 
