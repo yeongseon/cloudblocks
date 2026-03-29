@@ -135,7 +135,7 @@ test.describe('Guided Scenarios', () => {
     });
   }
 
-  test('scenario completion screen shows after all steps (Three-Tier)', async ({ page }) => {
+  test('scenario first step renders correctly (Three-Tier)', async ({ page }) => {
     await goToBuilder(page);
     await dismissOnboarding(page);
     await openScenarioGallery(page);
@@ -167,12 +167,12 @@ test.describe('Guided Scenarios', () => {
     await card.locator('.scenario-gallery-use-btn').click();
     await expect(page.locator('.learning-panel')).toBeVisible({ timeout: 5000 });
 
-    // The Generate Code option should still be available in the menu
-    const buildMenu = page.locator('.menu-dropdown-container', { hasText: 'Build' });
-    if (await buildMenu.isVisible().catch(() => false)) {
-      await buildMenu.locator('.menu-dropdown-trigger').click();
+    // The Generate Code option should still be available in the overflow menu
+    const overflowBtn = page.getByRole('button', { name: 'Advanced' });
+    if (await overflowBtn.isVisible().catch(() => false)) {
+      await overflowBtn.click();
       await expect(
-        buildMenu.locator('.menu-dropdown').getByRole('button', { name: /Generate Code/ }),
+        page.locator('.overflow-dropdown .menu-item', { hasText: 'Generate Code' }),
       ).toBeVisible();
     }
   });

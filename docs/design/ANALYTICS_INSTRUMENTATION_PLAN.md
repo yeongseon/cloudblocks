@@ -87,14 +87,14 @@ Gate 6 defines four usability metrics that determine whether CloudBlocks succeed
 
 | Criterion          | PostHog                    | Plausible           | Custom (DIY)              |
 | ------------------ | -------------------------- | ------------------- | ------------------------- |
-| Event tracking     | ✅ Full custom events      | ❌ Page views only  | ✅ Full control           |
-| Funnel analysis    | ✅ Built-in funnels        | ❌ No funnels       | ❌ Build from scratch     |
-| Retention cohorts  | ✅ Built-in                | ❌ No cohorts       | ❌ Build from scratch     |
-| Self-hosted option | ✅ Docker-based            | ✅ Docker-based     | N/A                       |
-| GDPR compliance    | ✅ EU hosting + cookieless | ✅ No cookies       | Depends on implementation |
-| Free tier          | ✅ 1M events/mo            | ✅ 10K pageviews/mo | N/A                       |
-| Integration effort | Low (JS SDK)               | Low (script tag)    | High                      |
-| Session replay     | ✅ Optional                | ❌ No               | ❌ Build from scratch     |
+| Event tracking     | ✅ Full custom events      | ✅ Custom events (via JS API) | ✅ Full control           |
+| Funnel analysis    | ✅ Built-in funnels        | ❌ No built-in funnels        | ❌ Build from scratch     |
+| Retention cohorts  | ✅ Built-in                | ❌ No built-in cohorts        | ❌ Build from scratch     |
+| Self-hosted option | ✅ Docker-based            | ✅ Docker-based               | N/A                       |
+| GDPR compliance    | ✅ EU hosting + cookieless | ✅ No cookies                 | Depends on implementation |
+| Free tier          | ✅ 1M events/mo            | ✅ 10K pageviews/mo           | N/A                       |
+| Integration effort | Low (JS SDK)               | Low (script tag)              | High                      |
+| Session replay     | ✅ Optional                | ❌ No                         | ❌ Build from scratch     |
 
 **Decision**: PostHog — it covers all four Gate 6 metrics natively (events, funnels, retention, timing). Self-hosted option satisfies privacy requirements.
 
