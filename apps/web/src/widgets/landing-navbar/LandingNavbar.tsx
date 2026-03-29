@@ -1,7 +1,6 @@
 import { useUIStore } from '../../entities/store/uiStore';
 import { LogoIcon } from '../../shared/ui/LogoIcon';
 import './LandingNavbar.css';
-import './LandingNavbar.css';
 
 export function LandingNavbar() {
   const goToBuilder = useUIStore((s) => s.goToBuilder);
