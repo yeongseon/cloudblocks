@@ -1,13 +1,17 @@
 # Generating Code
 
-> **Audience**: Intermediate Users | **Status**: Experimental | **Verified against**: v0.26.0
+> **Audience**: All users | **Status**: Superseded reference | **Verified against**: v0.26.0
 
-!!! warning "Experimental Feature"
-Code generation is available as an Experimental feature in V1. Generated output is intended as a starting point for infrastructure code, not as production-ready deployment artifacts. Always review and test generated code before using it.
+!!! info "Terraform starter export"
+    Terraform starter export is a V1 Core learning feature. Bicep and Pulumi remain Experimental. For the current guide, use [Code Generation](../advanced/code-generation.md).
 
-CloudBlocks converts your visual architecture into infrastructure-as-code. This guide explains how to generate, preview, and export code in Terraform, Bicep, or Pulumi.
+CloudBlocks exports Terraform starter code so beginners can see how a visual architecture maps to infrastructure-as-code.
 
-> **Note**: This page is superseded by [Code Generation (Experimental)](../advanced/code-generation.md). The content below remains for reference.
+## Use the Current Guide
+
+For the supported V1 workflow, formats, and limitations, read [Code Generation](../advanced/code-generation.md).
+
+This page is retained only as historical reference for an older inspector-based workflow.
 
 ---
 

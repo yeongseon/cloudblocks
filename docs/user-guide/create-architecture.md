@@ -2,17 +2,17 @@
 
 > **Audience**: All users | **Status**: V1 Core | **Verified against**: v0.26.0
 
-There are two ways to create an architecture in CloudBlocks:
+CloudBlocks is template-first. If you are new to cloud architecture, start from a guided template so you can learn a real pattern before practicing on a blank canvas.
 
 ## Start from a Template (Recommended)
 
-Load a pre-built architecture pattern and customize it to your needs. This is the fastest way to get started.
+Load a guided architecture pattern and learn by editing a working example. This is the recommended path for beginners.
 
 [:octicons-arrow-right-24: First Architecture from a Template](first-architecture.md)
 
 ## Start from a Blank Canvas
 
-Build a custom architecture from scratch by placing blocks manually.
+Practice from scratch by placing blocks manually after you understand the basics from a template or scenario.
 
 [:octicons-arrow-right-24: Blank Canvas Mode](../advanced/blank-canvas.md)
 
@@ -26,4 +26,4 @@ Build a custom architecture from scratch by placing blocks manually.
 | **Blank Canvas** | Custom patterns, experienced users       | ~10 minutes                |
 
 !!! tip "New to CloudBlocks?"
-Start with a template. You can always modify it or start over with a blank canvas later.
+    Start with a template. You can always modify it or start over with a blank canvas later.

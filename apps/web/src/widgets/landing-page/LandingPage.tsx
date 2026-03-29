@@ -30,7 +30,8 @@ export function LandingPage() {
             Start from templates. Edit visually. Validate instantly.
           </h1>
           <p className="landing-hero-subtitle">
-            Azure-first visual architecture builder — no backend required.
+            Learn cloud architecture from guided templates — all in your browser, no backend
+            required.
           </p>
           <div className="landing-hero-badges">
             <span className="landing-hero-badge">{templates.length} templates</span>
@@ -130,8 +131,8 @@ export function LandingPage() {
             </a>
           </div>
           <p className="landing-footer-text">
-            &copy; {new Date().getFullYear()} CloudBlocks &mdash; Azure-first visual architecture
-            builder
+            &copy; {new Date().getFullYear()} CloudBlocks &mdash; visual cloud learning tool for
+            beginners
           </p>
         </footer>
       </main>

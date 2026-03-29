@@ -607,7 +607,7 @@ v2.0 is a **clean start**. No migration from v1.x data.
 
 ## 17. Summary
 
-CloudBlocks v2.0 evolves from a visual block-based diagram tool into a **universal architecture modeling specification** for cloud systems.
+CloudBlocks v2.0 evolves from a visual cloud learning tool into a **universal architecture modeling specification** for cloud systems.
 
 | Aspect          | v1.x                                      | v2.0                                        |
 | --------------- | ----------------------------------------- | ------------------------------------------- |

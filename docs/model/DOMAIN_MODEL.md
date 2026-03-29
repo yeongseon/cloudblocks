@@ -15,7 +15,7 @@
 > - **Version timelines**: `docs/concept/ROADMAP.md`
 > - **Code generation pipeline**: `docs/engine/generator.md`
 
-CloudBlocks represents cloud architecture using a **block abstraction model**. Users visually construct cloud systems in a 2.5D isometric environment, the platform validates them against architectural rules, and generates deployable infrastructure code (Terraform, Bicep, Pulumi).
+CloudBlocks represents cloud architecture using a **block abstraction model**. In V1, this model powers a visual cloud learning tool for beginners: guided templates and scenarios create the architecture state, the platform validates it against architectural rules, and users can export Terraform starter code to study how the design maps to infrastructure-as-code. Bicep and Pulumi remain Experimental.
 
 ---
 

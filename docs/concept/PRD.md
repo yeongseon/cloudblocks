@@ -4,15 +4,15 @@
 >
 > Scope note: This document is the original MVP PRD and remains as historical product context. Some items listed as MVP non-goals were implemented in later milestones/phases. For current implementation status and timeline, use [ROADMAP.md](./ROADMAP.md).
 
-Build cloud architecture visually using a block-based composition model — start from preset templates, customize with drag-and-drop, and preview across cloud providers.
+Build cloud architecture visually using a block-based composition model — start from guided templates, learn cloud patterns, and export Terraform starter code.
 
 ---
 
 # 1. Product Summary
 
-CloudBlocks is an **open-source visual architecture design tool** that models cloud infrastructure using a **block-based composition system**. Users start from preset templates or assemble infrastructure by placing visual building blocks on container blocks, the platform validates the architecture against real-world rules, and provides a multi-cloud preview. Code generation to Terraform, Bicep, or Pulumi is available as an Experimental feature.
+CloudBlocks is a **visual cloud learning tool for beginners** that models cloud infrastructure using a **block-based composition system**. Users start from guided templates or learning scenarios to understand cloud architecture patterns, customize with drag-and-drop blocks, and the platform validates the architecture against real-world rules. Terraform starter code export is available as a V1 Core learning feature; Bicep and Pulumi are Experimental.
 
-Unlike traditional diagram tools (draw.io, Lucidchart), every visual element in CloudBlocks represents a **real infrastructure component** with validation and multi-cloud awareness. Code generation capabilities are available for users who want to export their designs to infrastructure-as-code.
+Unlike traditional diagram tools (draw.io, Lucidchart), every visual element in CloudBlocks represents a **real infrastructure component** with validation and multi-cloud awareness. The focus is on learning — helping beginners understand cloud architecture patterns through guided, hands-on experience.
 
 The system enforces architectural rules and generates infrastructure definitions such as Terraform.
 

@@ -3,7 +3,7 @@
 > **Audience**: All users | **Status**: V1 Core (Terraform) / Experimental (Bicep, Pulumi) | **Verified against**: v0.26.0
 
 !!! info "Terraform Starter Export"
-Terraform starter export is a V1 Core feature — it helps you learn what your visual architecture looks like as infrastructure-as-code. Bicep and Pulumi are available as Experimental features. The UI currently labels Generate Code as "Experimental" — it generates Terraform starter code using the V1 Core pipeline.
+    Terraform starter export is a V1 Core feature — it helps you learn what your visual architecture looks like as infrastructure-as-code. Bicep and Pulumi are available as Experimental features. The UI currently labels Generate Code as "Experimental" — it generates Terraform starter code using the V1 Core pipeline.
 
 Export your visual architecture to Terraform starter code for learning and prototyping. Bicep and Pulumi export are also available _(Experimental)_.
 
@@ -41,7 +41,7 @@ Use the format selector to switch between output formats. Click **Copy** to copy
 CloudBlocks generates code for the currently active provider tab (Azure, AWS, or GCP). Switch provider tabs in the menu bar to generate code for different cloud platforms.
 
 !!! info "Provider Coverage"
-Provider coverage varies by template, resource, and export path. Terraform starter export supports all three providers. Bicep is Azure-only. Pulumi is Azure-only.
+    Provider coverage varies by template, resource, and export path. Terraform starter export supports all three providers. Bicep is Azure-only. Pulumi is Azure-only.
 
 ---
 

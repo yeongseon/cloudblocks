@@ -5,12 +5,12 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "cloudblocks"
 version = "0.11.0"
-description = "Architecture compiler that converts visual infrastructure designs into Terraform, Bicep, and Pulumi code"
+description = "Visual cloud learning tool for beginners — guided templates, architecture patterns, and Terraform starter export"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.10"
 authors = [{name = "yeongseon"}]
-keywords = ["cloud-architecture", "infrastructure-as-code", "terraform", "bicep", "pulumi", "multi-cloud"]
+keywords = ["cloud-architecture", "learning-tool", "terraform", "infrastructure-as-code", "visual-builder", "beginners"]
 
 [project.urls]
 Homepage = "https://github.com/yeongseon/cloudblocks"
