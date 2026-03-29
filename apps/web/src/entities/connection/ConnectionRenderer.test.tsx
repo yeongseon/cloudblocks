@@ -21,8 +21,12 @@ vi.mock('../../shared/tokens/designTokens', () => ({
   RENDER_SCALE: 32,
   TRACE_STROKE_PX: 2,
   TRACE_CASE_PX: 4,
-  TRACE_HOVER_PX: 2.5,
+  TRACE_HOVER_PX: 3,
+  TRACE_HOVER_CASE_PX: 5,
   TRACE_FLASH_PX: 2,
+  ARROW_MARKER_W: 6,
+  ARROW_MARKER_H: 6,
+  ARROW_MARKER_REF_X: 5.5,
 }));
 
 vi.mock('../../features/diff/engine', () => ({
@@ -186,8 +190,41 @@ describe('ConnectionRenderer', () => {
     const selectionOutline = container.querySelector('[data-layer="selection-outline"]');
     expect(selectionOutline).toBeInTheDocument();
     expect(selectionOutline?.tagName.toLowerCase()).toBe('path');
-    expect(selectionOutline?.getAttribute('stroke')).toBe('#ffffff');
-    expect(selectionOutline?.getAttribute('stroke-opacity')).toBe('0.35');
+    expect(selectionOutline?.getAttribute('stroke')).toBe('var(--connection-selection-glow)');
+    expect(selectionOutline?.getAttribute('stroke-opacity')).toBe('1');
+  });
+
+  it('renders arrow marker definition with correct attributes', () => {
+    const { container } = renderConnector();
+    const marker = container.querySelector('[data-testid="connection-arrow-marker"]');
+    expect(marker).toBeInTheDocument();
+    expect(marker?.getAttribute('markerWidth')).toBe('6');
+    expect(marker?.getAttribute('markerHeight')).toBe('6');
+    expect(marker?.getAttribute('refX')).toBe('5.5');
+    expect(marker?.getAttribute('orient')).toBe('auto');
+    // Marker contains a filled triangle path
+    const arrowPath = marker?.querySelector('path');
+    expect(arrowPath).toBeInTheDocument();
+    expect(arrowPath?.getAttribute('d')).toBe('M0,0 L6,3 L0,6 Z');
+  });
+
+  it('trace path references arrow marker via marker-end', () => {
+    const { container } = renderConnector();
+    const trace = container.querySelector('[data-testid="connection-trace"]');
+    expect(trace?.getAttribute('marker-end')).toBe(`url(#arrow-${connection.id})`);
+  });
+
+  it('hover increases casing width from 4 to 5 and trace width from 2 to 3', () => {
+    const { container } = renderConnector();
+    const casing = container.querySelector('[data-testid="connection-casing"]');
+    const trace = container.querySelector('[data-testid="connection-trace"]');
+    // Default state
+    expect(casing?.getAttribute('stroke-width')).toBe('4');
+    expect(trace?.getAttribute('stroke-width')).toBe('2');
+    // Hover
+    fireEvent.mouseEnter(container.querySelector('[data-testid="connection-hit-area"]') as Element);
+    expect(casing?.getAttribute('stroke-width')).toBe('5');
+    expect(trace?.getAttribute('stroke-width')).toBe('3');
   });
 
   describe('surface render path', () => {

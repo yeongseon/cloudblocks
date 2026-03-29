@@ -28,19 +28,22 @@ describe('connectionFaceColors', () => {
         const colors = getConnectionColors(semantic);
 
         expect(colors.base).toBe(CONNECTION_SEMANTIC_BASE_COLORS[semantic]);
-        expect(colors.stroke).toMatch(/^#[0-9A-Fa-f]{6}$/);
-        expect(colors.casing).toMatch(/^#[0-9A-Fa-f]{6}$/);
+        // stroke and casing are now CSS var() strings for theme-awareness
+        expect(colors.stroke).toContain('var(--connection-');
+        expect(colors.casing).toContain('var(--connection-');
+        // Fallback hex values are embedded in the var()
+        expect(colors.stroke).toMatch(/#[0-9A-Fa-f]{6}/);
+        expect(colors.casing).toMatch(/#[0-9A-Fa-f]{6}/);
       });
 
-      it(`"${semantic}" stroke equals base color`, () => {
+      it(`"${semantic}" stroke contains semantic name`, () => {
         const colors = getConnectionColors(semantic);
-        expect(colors.stroke).toBe(colors.base);
+        expect(colors.stroke).toContain(`--connection-${semantic}-stroke`);
       });
 
-      it(`"${semantic}" casing is darker than base`, () => {
+      it(`"${semantic}" casing contains semantic name`, () => {
         const colors = getConnectionColors(semantic);
-        // Casing should be a different (darker) color
-        expect(colors.casing).not.toBe(colors.base);
+        expect(colors.casing).toContain(`--connection-${semantic}-casing`);
       });
     }
   });

@@ -28,8 +28,14 @@ export const CONNECTION_HEIGHT_CU = 1 / 3;
 // Trace stroke dimensions (screen-space px).
 export const TRACE_STROKE_PX = 2; // inner visible stroke
 export const TRACE_CASE_PX = 4; // outer casing stroke
-export const TRACE_HOVER_PX = 2.5; // inner stroke on hover/selected
+export const TRACE_HOVER_PX = 3; // inner stroke on hover/selected (Oracle: 2.5 too subtle)
 export const TRACE_FLASH_PX = 2; // snap-flash animation stroke
+export const TRACE_HOVER_CASE_PX = 5; // outer casing on hover/selected
+
+// Arrow marker dimensions (target-end arrowhead)
+export const ARROW_MARKER_W = 6; // markerWidth
+export const ARROW_MARKER_H = 6; // markerHeight
+export const ARROW_MARKER_REF_X = 5.5; // refX — tip lands just before block edge
 
 // -- Face Stroke --
 export const TOP_FACE_STROKE_WIDTH = 1;
