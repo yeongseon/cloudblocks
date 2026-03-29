@@ -13,7 +13,7 @@ Every step title, instruction, hint, and description across all guided scenarios
 | 3   | **No condescending filler**         | "Click the Network button to add a container."                                                      | "Simply click the Network button — it's easy!"          |
 | 4   | **Max 2 sentences per instruction** | "Place an Azure Load Balancer on Subnet 1. This routes incoming traffic to your compute resources." | Three or more sentences with nested clauses.            |
 | 5   | **Action-oriented titles**          | "Create the Network"                                                                                | "Network Configuration"                                 |
-| 6   | **Consistent terminology**          | Always "container" (not "boundary" or "box" or "plate" interchangeably)                             | Mixed terms for the same concept.                       |
+| 6   | **Consistent terminology**          | Always "container" (not "boundary" or "box" or "region" interchangeably)                             | Mixed terms for the same concept.                       |
 | 7   | **Progressive complexity**          | Step 1 introduces one concept; Step 5 combines concepts.                                            | Step 1 references advanced concepts not yet introduced. |
 
 ---
