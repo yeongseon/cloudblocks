@@ -1,6 +1,6 @@
 import type { ResourceBlock, ContainerBlock, ResourceCategory, Size } from '@cloudblocks/schema';
 import { RESOURCE_RULES } from '@cloudblocks/schema';
-import type { ResourceRuleEntry } from '@cloudblocks/schema';
+import type { ResourceRuleEntry, ResourceType } from '@cloudblocks/schema';
 import type { ValidationError } from '@cloudblocks/domain';
 import { VALID_PARENTS } from '@cloudblocks/domain';
 import type { LayerType } from '@cloudblocks/schema';
@@ -65,8 +65,28 @@ function buildCategoryPlacementMap(): Map<ResourceCategory, Set<LayerType>> {
   return map;
 }
 
+/**
+ * Build a set of resource types that allow root-level placement (no container).
+ * A resource type allows root placement when its allowedParents includes `null`.
+ */
+function buildRootAllowedResourceTypes(): ReadonlySet<string> {
+  const set = new Set<string>();
+  const rules = RESOURCE_RULES as Record<string, ResourceRuleEntry>;
+
+  for (const [resourceType, rule] of Object.entries(rules)) {
+    if (rule.allowedParents.includes(null)) {
+      set.add(resourceType);
+    }
+  }
+
+  return set;
+}
+
 /** Category → allowed parent layers, derived from RESOURCE_RULES. */
 const CATEGORY_ALLOWED_PARENT_LAYERS = buildCategoryPlacementMap();
+
+/** Resource types that allow root-level placement (allowedParents includes null). */
+export const ROOT_ALLOWED_RESOURCE_TYPES = buildRootAllowedResourceTypes();
 
 // ---------------------------------------------------------------------------
 // Placement validation
@@ -77,6 +97,10 @@ export function validatePlacement(
   parent: ContainerBlock | undefined,
 ): ValidationError | null {
   if (!parent) {
+    // Root-level placement is valid for resource types whose allowedParents includes null
+    if (ROOT_ALLOWED_RESOURCE_TYPES.has(resource.resourceType)) {
+      return null;
+    }
     return {
       ruleId: 'rule-container-exists',
       severity: 'error',
@@ -110,20 +134,33 @@ export function validatePlacement(
 }
 
 /**
- * Convenience wrapper for validatePlacement to check if a resource can be placed on a container.
+ * Convenience wrapper for validatePlacement to check if a resource can be placed.
  * Used in drag-to-create flows to show/hide drop targets.
  *
+ * When container is null, checks whether the resource type allows root-level placement.
+ *
  * @param category - The resource category to check
- * @param container - The container to check placement against
+ * @param container - The container to check placement against, or null for root placement
+ * @param resourceType - Optional specific resource type (defaults to category)
  * @returns true if the resource can be placed, false otherwise
  */
-export function canPlaceBlock(category: ResourceCategory, container: ContainerBlock): boolean {
+export function canPlaceBlock(
+  category: ResourceCategory,
+  container: ContainerBlock | null,
+  resourceType?: ResourceType | string,
+): boolean {
+  const effectiveResourceType = resourceType ?? category;
+
+  if (!container) {
+    return ROOT_ALLOWED_RESOURCE_TYPES.has(effectiveResourceType);
+  }
+
   const previewResource: ResourceBlock = {
     id: '__preview__',
     name: '__preview__',
     kind: 'resource',
     layer: 'resource',
-    resourceType: category,
+    resourceType: effectiveResourceType,
     category,
     provider: 'azure',
     parentId: container.id,

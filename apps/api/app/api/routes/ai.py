@@ -19,6 +19,7 @@ from app.domain.models.ai_entities import (
 )
 from app.domain.models.entities import User
 from app.domain.models.repositories import AIApiKeyRepository
+from app.engines.architecture_normalizer import extract_containers_and_resources
 from app.engines.prompts.architecture_prompt import build_architecture_prompt
 from app.engines.suggestions import SuggestionEngine
 from app.engines.validation import ArchitectureValidator
@@ -160,14 +161,9 @@ SUBTYPE_TO_TF_RESOURCE: dict[str, str] = {
 
 def _architecture_to_tf_json(architecture: dict[str, object]) -> dict[str, object]:
     resources: dict[str, dict[str, dict[str, object]]] = {}
-    blocks = architecture.get("blocks")
-    if not isinstance(blocks, list):
-        return {"resource": resources}
+    _, blocks = extract_containers_and_resources(architecture)
 
-    for raw_block in blocks:
-        if not isinstance(raw_block, dict):
-            continue
-        block: dict[str, object] = raw_block  # type: ignore[assignment]
+    for block in blocks:
         subtype = block.get("subtype")
         name = block.get("name", "unnamed")
         block_id = block.get("id", "unknown")

@@ -18,20 +18,23 @@ def _mock_async_client_with_response(response: MagicMock) -> AsyncMock:
     client.get.return_value = response
     client.post.return_value = response
     client.put.return_value = response
-    client.__aenter__ = AsyncMock(return_value=client)
-    client.__aexit__ = AsyncMock(return_value=False)
     return client
 
 
+def _build_service_with_client(client: AsyncMock) -> GitHubService:
+    with patch("httpx.AsyncClient", return_value=client):
+        return GitHubService(client_id="cid", client_secret="csecret")
+
+
 def test_init_stores_client_credentials() -> None:
-    service = GitHubService(client_id="cid", client_secret="csecret")
+    service = _build_service_with_client(AsyncMock())
 
     assert service.client_id == "cid"
     assert service.client_secret == "csecret"
 
 
 def test_get_authorize_url_builds_expected_query_params() -> None:
-    service = GitHubService(client_id="cid", client_secret="csecret")
+    service = _build_service_with_client(AsyncMock())
 
     url = service.get_authorize_url("https://app/callback", "state-1")
     parsed = urlparse(url)
@@ -47,14 +50,13 @@ def test_get_authorize_url_builds_expected_query_params() -> None:
 
 
 async def test_exchange_code_success() -> None:
-    service = GitHubService(client_id="cid", client_secret="csecret")
     response = MagicMock()
     response.status_code = 200
     response.json.return_value = {"access_token": "ghp_xxx", "token_type": "bearer"}
     client = _mock_async_client_with_response(response)
+    service = _build_service_with_client(client)
 
-    with patch("httpx.AsyncClient", return_value=client):
-        result = await service.exchange_code("test-code")
+    result = await service.exchange_code("test-code")
 
     assert result["access_token"] == "ghp_xxx"
     client.post.assert_awaited_once_with(
@@ -65,21 +67,17 @@ async def test_exchange_code_success() -> None:
 
 
 async def test_exchange_code_raises_on_http_error() -> None:
-    service = GitHubService(client_id="cid", client_secret="csecret")
     response = MagicMock()
     response.status_code = 500
     response.json.return_value = {}
     client = _mock_async_client_with_response(response)
+    service = _build_service_with_client(client)
 
-    with (
-        patch("httpx.AsyncClient", return_value=client),
-        pytest.raises(GitHubError, match="Token exchange failed: 500"),
-    ):
+    with pytest.raises(GitHubError, match="Token exchange failed: 500"):
         await service.exchange_code("bad-code")
 
 
 async def test_exchange_code_raises_on_oauth_error_body() -> None:
-    service = GitHubService(client_id="cid", client_secret="csecret")
     response = MagicMock()
     response.status_code = 200
     response.json.return_value = {
@@ -87,22 +85,19 @@ async def test_exchange_code_raises_on_oauth_error_body() -> None:
         "error_description": "The code passed is incorrect",
     }
     client = _mock_async_client_with_response(response)
+    service = _build_service_with_client(client)
 
-    with (
-        patch("httpx.AsyncClient", return_value=client),
-        pytest.raises(GitHubError, match="OAuth error: The code passed is incorrect"),
-    ):
+    with pytest.raises(GitHubError, match="OAuth error: The code passed is incorrect"):
         await service.exchange_code("bad-code")
 
 
 async def test_get_user_success() -> None:
-    service = GitHubService("cid", "secret")
     response = MagicMock(status_code=200)
     response.json.return_value = {"id": 10, "login": "octocat"}
     client = _mock_async_client_with_response(response)
+    service = _build_service_with_client(client)
 
-    with patch("httpx.AsyncClient", return_value=client):
-        result = await service.get_user("token")
+    result = await service.get_user("token")
 
     assert result == {"id": 10, "login": "octocat"}
     client.get.assert_awaited_once_with(
@@ -111,68 +106,80 @@ async def test_get_user_success() -> None:
 
 
 async def test_get_user_emails_success() -> None:
-    service = GitHubService("cid", "secret")
     response = MagicMock(status_code=200)
     response.json.return_value = [{"email": "a@example.com", "primary": True}]
     client = _mock_async_client_with_response(response)
+    service = _build_service_with_client(client)
 
-    with patch("httpx.AsyncClient", return_value=client):
-        result = await service.get_user_emails("token")
+    result = await service.get_user_emails("token")
 
     assert result == [{"email": "a@example.com", "primary": True}]
 
 
 async def test_list_repos_success() -> None:
-    service = GitHubService("cid", "secret")
-    response = MagicMock(status_code=200)
-    response.json.return_value = [{"name": "repo1"}]
-    client = _mock_async_client_with_response(response)
+    first_response = MagicMock(status_code=200)
+    first_response.json.return_value = [{"name": "repo1"}]
+    client = AsyncMock()
+    client.get.return_value = first_response
+    service = _build_service_with_client(client)
 
-    with patch("httpx.AsyncClient", return_value=client):
-        result = await service.list_repos("token")
+    result = await service.list_repos("token")
 
     assert result == [{"name": "repo1"}]
     client.get.assert_awaited_once_with(
         f"{GITHUB_API_URL}/user/repos",
-        params={"sort": "updated", "per_page": 50},
+        params={"sort": "updated", "per_page": 100, "page": 1},
         headers=service._auth_headers("token"),
     )
 
 
+async def test_list_repos_paginates_until_partial_page() -> None:
+    first_response = MagicMock(status_code=200)
+    first_response.json.return_value = [{"name": f"repo-{i}"} for i in range(100)]
+    second_response = MagicMock(status_code=200)
+    second_response.json.return_value = [{"name": "repo-last"}]
+    client = AsyncMock()
+    client.get.side_effect = [first_response, second_response]
+    service = _build_service_with_client(client)
+
+    result = await service.list_repos("token")
+
+    assert len(result) == 101
+    assert result[-1] == {"name": "repo-last"}
+    assert client.get.await_count == 2
+
+
 async def test_create_repo_success() -> None:
-    service = GitHubService("cid", "secret")
     response = MagicMock(status_code=201)
     response.json.return_value = {"full_name": "owner/repo1", "private": True}
     client = _mock_async_client_with_response(response)
+    service = _build_service_with_client(client)
 
-    with patch("httpx.AsyncClient", return_value=client):
-        result = await service.create_repo("token", "repo1", description="desc", private=True)
+    result = await service.create_repo("token", "repo1", description="desc", private=True)
 
     assert result["full_name"] == "owner/repo1"
 
 
 async def test_get_repo_contents_success() -> None:
-    service = GitHubService("cid", "secret")
     response = MagicMock(status_code=200)
     response.json.return_value = [{"name": "README.md", "type": "file"}]
     client = _mock_async_client_with_response(response)
+    service = _build_service_with_client(client)
 
-    with patch("httpx.AsyncClient", return_value=client):
-        result = await service.get_repo_contents("token", "owner", "repo", path="", ref="main")
+    result = await service.get_repo_contents("token", "owner", "repo", path="", ref="main")
 
     assert result == [{"name": "README.md", "type": "file"}]
 
 
 async def test_create_or_update_file_success_without_sha() -> None:
-    service = GitHubService("cid", "secret")
     response = MagicMock(status_code=201)
     response.json.return_value = {"content": {"path": "a.txt"}}
     client = _mock_async_client_with_response(response)
+    service = _build_service_with_client(client)
 
-    with patch("httpx.AsyncClient", return_value=client):
-        result = await service.create_or_update_file(
-            "token", "owner", "repo", "a.txt", "YQ==", "add a", branch="main"
-        )
+    result = await service.create_or_update_file(
+        "token", "owner", "repo", "a.txt", "YQ==", "add a", branch="main"
+    )
 
     assert result == {"content": {"path": "a.txt"}}
     called_json = client.put.await_args.kwargs["json"]
@@ -180,72 +187,67 @@ async def test_create_or_update_file_success_without_sha() -> None:
 
 
 async def test_create_or_update_file_success_with_sha() -> None:
-    service = GitHubService("cid", "secret")
     response = MagicMock(status_code=200)
     response.json.return_value = {"content": {"path": "a.txt"}}
     client = _mock_async_client_with_response(response)
+    service = _build_service_with_client(client)
 
-    with patch("httpx.AsyncClient", return_value=client):
-        await service.create_or_update_file(
-            "token", "owner", "repo", "a.txt", "YQ==", "update a", branch="main", sha="abc123"
-        )
+    await service.create_or_update_file(
+        "token", "owner", "repo", "a.txt", "YQ==", "update a", branch="main", sha="abc123"
+    )
 
     called_json = client.put.await_args.kwargs["json"]
     assert called_json["sha"] == "abc123"
 
 
 async def test_create_branch_success() -> None:
-    service = GitHubService("cid", "secret")
     response = MagicMock(status_code=201)
     response.json.return_value = {"ref": "refs/heads/feature"}
     client = _mock_async_client_with_response(response)
+    service = _build_service_with_client(client)
 
-    with patch("httpx.AsyncClient", return_value=client):
-        result = await service.create_branch("token", "owner", "repo", "feature", "abc123")
+    result = await service.create_branch("token", "owner", "repo", "feature", "abc123")
 
     assert result == {"ref": "refs/heads/feature"}
 
 
 async def test_get_default_branch_sha_success() -> None:
-    service = GitHubService("cid", "secret")
     response = MagicMock(status_code=200)
     response.json.return_value = {"object": {"sha": "deadbeef"}}
     client = _mock_async_client_with_response(response)
+    service = _build_service_with_client(client)
 
-    with patch("httpx.AsyncClient", return_value=client):
-        sha = await service.get_default_branch_sha("token", "owner", "repo")
+    sha = await service.get_default_branch_sha("token", "owner", "repo")
 
     assert sha == "deadbeef"
 
 
 async def test_create_pull_request_success() -> None:
-    service = GitHubService("cid", "secret")
     response = MagicMock(status_code=201)
     response.json.return_value = {"html_url": "https://github.com/org/repo/pull/1"}
     client = _mock_async_client_with_response(response)
+    service = _build_service_with_client(client)
 
-    with patch("httpx.AsyncClient", return_value=client):
-        result = await service.create_pull_request(
-            "token", "owner", "repo", "PR title", "feature", base="main", body="body"
-        )
+    result = await service.create_pull_request(
+        "token", "owner", "repo", "PR title", "feature", base="main", body="body"
+    )
 
     assert result["html_url"] == "https://github.com/org/repo/pull/1"
 
 
 async def test_list_commits_success() -> None:
-    service = GitHubService("cid", "secret")
     response = MagicMock(status_code=200)
     response.json.return_value = [{"sha": "abc"}, {"sha": "def"}]
     client = _mock_async_client_with_response(response)
+    service = _build_service_with_client(client)
 
-    with patch("httpx.AsyncClient", return_value=client):
-        commits = await service.list_commits("token", "owner", "repo", branch="main", per_page=2)
+    commits = await service.list_commits("token", "owner", "repo", branch="main", per_page=2)
 
     assert commits == [{"sha": "abc"}, {"sha": "def"}]
 
 
 def test_auth_headers_returns_expected_dict() -> None:
-    service = GitHubService("cid", "secret")
+    service = _build_service_with_client(AsyncMock())
 
     headers = service._auth_headers("abc")
 
@@ -256,8 +258,17 @@ def test_auth_headers_returns_expected_dict() -> None:
     }
 
 
+async def test_close_closes_underlying_client() -> None:
+    client = AsyncMock()
+    service = _build_service_with_client(client)
+
+    await service.close()
+
+    client.aclose.assert_awaited_once()
+
+
 def test_check_response_ok_status_does_not_raise() -> None:
-    service = GitHubService("cid", "secret")
+    service = _build_service_with_client(AsyncMock())
     response = MagicMock()
     response.status_code = 200
 
@@ -265,7 +276,7 @@ def test_check_response_ok_status_does_not_raise() -> None:
 
 
 def test_check_response_raises_with_json_message() -> None:
-    service = GitHubService("cid", "secret")
+    service = _build_service_with_client(AsyncMock())
     response = MagicMock()
     response.status_code = 404
     response.json.return_value = {"message": "Not Found"}
@@ -278,7 +289,7 @@ def test_check_response_raises_with_json_message() -> None:
 
 
 def test_check_response_raises_with_non_json_error_text() -> None:
-    service = GitHubService("cid", "secret")
+    service = _build_service_with_client(AsyncMock())
     response = MagicMock()
     response.status_code = 500
     response.json.side_effect = ValueError("not json")

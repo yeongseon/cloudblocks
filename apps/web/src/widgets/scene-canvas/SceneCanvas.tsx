@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import { useArchitectureStore } from '../../entities/store/architectureStore';
 import { useUIStore } from '../../entities/store/uiStore';
-import { canPlaceBlock } from '../../entities/validation/placement';
+import { canPlaceBlock, ROOT_ALLOWED_RESOURCE_TYPES } from '../../entities/validation/placement';
 import { worldToScreen, depthKey } from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
@@ -126,12 +126,29 @@ export function SceneCanvas() {
 
       if (plateId) {
         const container = plates.find((p) => p.id === plateId);
-        if (container && canPlaceBlock(draggedBlockCategory, container)) {
+        if (
+          container &&
+          canPlaceBlock(draggedBlockCategory, container, draggedResourceType ?? undefined)
+        ) {
           addNode({
             kind: 'resource',
             resourceType: draggedResourceType ?? draggedBlockCategory,
             name: draggedResourceName,
             parentId: plateId,
+            provider: activeProvider,
+            subtype: draggedSubtype ?? undefined,
+          });
+          playSound('block-snap');
+        }
+      } else {
+        // Canvas-level drop: allow root placement for resource types with allowedParents: [null]
+        const effectiveResourceType = draggedResourceType ?? draggedBlockCategory;
+        if (ROOT_ALLOWED_RESOURCE_TYPES.has(effectiveResourceType)) {
+          addNode({
+            kind: 'resource',
+            resourceType: effectiveResourceType,
+            name: draggedResourceName,
+            parentId: null,
             provider: activeProvider,
             subtype: draggedSubtype ?? undefined,
           });

@@ -78,6 +78,8 @@ jobs:
             --exclude-dir=dist \
             --exclude-dir=coverage \
             --exclude-dir=.git \
+            --exclude-dir=.venv \
+            --exclude-dir=__pycache__ \
             apps/ packages/ docs/ \
             | grep -viE '(student|Student|vi\.stubEnv|vi\.stubGlobal|vi\.unstubAllGlobals|stubAudioContext)' \
             | grep -viE '(BRICK_DESIGN_SPEC|VISUAL_DESIGN_SPEC|BRICK_GUIDEBOOK)' \

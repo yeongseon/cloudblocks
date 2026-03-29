@@ -7,6 +7,9 @@ structural constraints.
 
 from __future__ import annotations
 
+from typing import Any
+
+from app.engines.architecture_normalizer import extract_containers_and_resources
 from app.engines.prompts.architecture_prompt import (
     BLOCK_CATEGORIES,
     CONNECTION_TYPES,
@@ -21,24 +24,36 @@ class ArchitectureValidator:
         """Return a list of human-readable warning strings. Empty = valid."""
         warnings: list[str] = []
 
-        container_blocks = architecture.get("plates")
-        blocks = architecture.get("blocks")
+        raw_architecture: dict[str, Any] = dict(architecture)
+        container_blocks, blocks = extract_containers_and_resources(raw_architecture)
+        container_blocks_for_validation: list[object] = list(container_blocks)
+        blocks_for_validation: list[object] = list(blocks)
+        nodes = architecture.get("nodes")
         connections = architecture.get("connections")
 
-        if not isinstance(container_blocks, list):
-            warnings.append("Missing or invalid 'plates' array")
-            container_blocks = []
-        if not isinstance(blocks, list):
-            warnings.append("Missing or invalid 'blocks' array")
-            blocks = []
+        if isinstance(nodes, list) and nodes:
+            pass
+        elif "nodes" in architecture:
+            if not isinstance(nodes, list):
+                warnings.append("Missing or invalid 'nodes' array")
+        else:
+            if not isinstance(architecture.get("plates"), list):
+                warnings.append("Missing or invalid 'plates' array")
+            if not isinstance(architecture.get("blocks"), list):
+                warnings.append("Missing or invalid 'blocks' array")
         if not isinstance(connections, list):
             warnings.append("Missing or invalid 'connections' array")
             connections = []
 
-        container_block_ids = self._validate_plates(container_blocks, warnings)
-        block_ids = self._validate_blocks(blocks, container_block_ids, warnings)
+        container_block_ids = self._validate_plates(container_blocks_for_validation, warnings)
+        block_ids = self._validate_blocks(blocks_for_validation, container_block_ids, warnings)
         self._validate_connections(connections, block_ids, warnings)
-        self._check_duplicate_ids(container_blocks, blocks, connections, warnings)
+        self._check_duplicate_ids(
+            container_blocks_for_validation,
+            blocks_for_validation,
+            connections,
+            warnings,
+        )
 
         return warnings
 
@@ -116,12 +131,12 @@ class ArchitectureValidator:
                         f"{provider}/{category}, expected one of {valid_subtypes}"
                     )
 
-            placement_id = block.get("placementId")
+            placement_id = block.get("parentId") or block.get("placementId")
             if not isinstance(placement_id, str) or not placement_id:
-                warnings.append(f"blocks[{i}]: missing 'placementId'")
+                warnings.append(f"blocks[{i}]: missing 'parentId'/'placementId'")
             elif placement_id not in container_block_ids:
                 warnings.append(
-                    f"blocks[{i}]: placementId '{placement_id}' "
+                    f"blocks[{i}]: parentId/placementId '{placement_id}' "
                     f"does not reference a known container block"
                 )
 

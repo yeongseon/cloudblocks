@@ -9,6 +9,8 @@ v2.0: Updated for v2.0 container layer types (global, edge, region, zone, subnet
 
 from typing import Any
 
+from app.engines.architecture_normalizer import extract_containers_and_resources
+
 
 def validate_architecture(architecture: dict[str, Any]) -> dict[str, Any]:
     """Validate an architecture model against all rules.
@@ -22,18 +24,14 @@ def validate_architecture(architecture: dict[str, Any]) -> dict[str, Any]:
     errors: list[dict[str, Any]] = []
     warnings: list[dict[str, Any]] = []
 
-    # TODO: Keep the legacy "plates" wire-format key for API compatibility.
-    container_blocks = architecture.get("plates", [])
-    blocks = architecture.get("blocks", [])
+    container_blocks, blocks = extract_containers_and_resources(architecture)
     connections = architecture.get("connections", [])
     external_actors = architecture.get("externalActors", [])
 
     # Placement validation
     for block in blocks:
-        container_block = next(
-            (p for p in container_blocks if p["id"] == block["placementId"]),
-            None,
-        )
+        parent_id = block.get("parentId") or block.get("placementId")
+        container_block = next((p for p in container_blocks if p["id"] == parent_id), None)
         error = _validate_placement(block, container_block)
         if error:
             if error["severity"] == "error":

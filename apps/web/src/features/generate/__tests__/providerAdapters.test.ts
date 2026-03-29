@@ -168,7 +168,7 @@ describe('provider definitions', () => {
     expect(mainTf?.content).toContain('provider "azurerm"');
   });
 
-  it('aws adapter maps compute block to ecs service in terraform output', () => {
+  it('throws when aws provider is used with terraform (not yet supported)', () => {
     const architecture: ArchitectureModel = {
       id: 'arch-adapter-aws-1',
       name: 'Provider Adapter AWS Terraform Test',
@@ -213,22 +213,18 @@ describe('provider definitions', () => {
       updatedAt: '2026-01-01T00:00:00Z',
     };
 
-    const output = generateCode(architecture, {
-      provider: 'aws',
-      mode: 'draft',
-      projectName: 'adapter-test',
-      region: 'eastus',
-      generator: 'terraform',
-    });
-
-    const mainTf = output.files.find((file) => file.path === 'main.tf');
-
-    expect(mainTf).toBeDefined();
-    expect(mainTf?.content).toContain('provider "aws"');
-    expect(mainTf?.content).toContain('resource "aws_ecs_service" "ecs_compute"');
+    expect(() =>
+      generateCode(architecture, {
+        provider: 'aws',
+        mode: 'draft',
+        projectName: 'adapter-test',
+        region: 'eastus',
+        generator: 'terraform',
+      }),
+    ).toThrow(/does not support provider/);
   });
 
-  it('gcp adapter maps compute and delivery blocks to documented terraform resources', () => {
+  it('throws when gcp provider is used with terraform (not yet supported)', () => {
     const architecture: ArchitectureModel = {
       id: 'arch-adapter-gcp-1',
       name: 'Provider Adapter GCP Terraform Test',
@@ -282,21 +278,14 @@ describe('provider definitions', () => {
       updatedAt: '2026-01-01T00:00:00Z',
     };
 
-    const output = generateCode(architecture, {
-      provider: 'gcp',
-      mode: 'draft',
-      projectName: 'adapter-test',
-      region: 'eastus',
-      generator: 'terraform',
-    });
-
-    const mainTf = output.files.find((file) => file.path === 'main.tf');
-
-    expect(mainTf).toBeDefined();
-    expect(mainTf?.content).toContain('provider "google"');
-    expect(mainTf?.content).toContain('resource "google_cloud_run_v2_service" "run_compute"');
-    expect(mainTf?.content).toContain(
-      'resource "google_compute_backend_service" "backend_gateway"',
-    );
+    expect(() =>
+      generateCode(architecture, {
+        provider: 'gcp',
+        mode: 'draft',
+        projectName: 'adapter-test',
+        region: 'eastus',
+        generator: 'terraform',
+      }),
+    ).toThrow(/does not support provider/);
   });
 });

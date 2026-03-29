@@ -41,6 +41,23 @@ def _block(block_id: str, category: str, placement_id: str, name: str = "Block")
     }
 
 
+def _node_resource(block_id: str, category: str, parent_id: str, name: str = "Block") -> Json:
+    return {
+        "id": block_id,
+        "name": name,
+        "kind": "resource",
+        "category": category,
+        "parentId": parent_id,
+    }
+
+
+def _node_container(container_block_id: str, container_layer: str, subnet_access: str | None = None) -> Json:
+    data: Json = {"id": container_block_id, "kind": "container", "type": container_layer}
+    if subnet_access is not None:
+        data["subnetAccess"] = subnet_access
+    return data
+
+
 def _conn(conn_id: str, source_id: str, target_id: str) -> Json:
     return {"id": conn_id, "sourceId": source_id, "targetId": target_id}
 
@@ -274,6 +291,30 @@ def test_validate_architecture_collects_warnings_branch(monkeypatch: pytest.Monk
     assert result["errors"] == []
     warnings = cast(list[Json], result["warnings"])
     assert len(warnings) == 2
+
+
+def test_validate_architecture_supports_nodes_format() -> None:
+    architecture = {
+        "nodes": [
+            _node_container("p-public", "subnet", "public"),
+            _node_container("p-private", "subnet", "private"),
+            _node_resource("gw", "gateway", "p-public", name="Gateway"),
+            _node_resource("cmp", "compute", "p-private", name="Compute"),
+            _node_resource("db", "database", "p-private", name="Database"),
+        ],
+        "externalActors": [{"id": "internet", "type": "internet"}],
+        "connections": [
+            _conn("ok-1", "internet", "gw"),
+            _conn("ok-2", "gw", "cmp"),
+            _conn("ok-3", "cmp", "db"),
+        ],
+    }
+
+    result = rule_engine.validate_architecture(architecture)
+
+    assert result["valid"] is True
+    assert result["errors"] == []
+    assert result["warnings"] == []
 
 
 # ============================================================================
