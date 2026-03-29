@@ -114,6 +114,7 @@ nav:
       - Workspaces & Save/Load: user-guide/workspaces.md
       - Keyboard Shortcuts: user-guide/keyboard-shortcuts.md
       - FAQ: user-guide/faq.md
+      - Provider Support: user-guide/provider-support.md
 
   - Advanced:
       - Blank Canvas Mode: advanced/blank-canvas.md

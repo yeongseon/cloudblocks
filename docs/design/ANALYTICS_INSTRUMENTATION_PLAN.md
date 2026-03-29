@@ -2,6 +2,10 @@
 
 > Covers Gate 6 (Beginner Usability) metrics from [`RELEASE_GATES.md`](RELEASE_GATES.md).
 
+!!! warning "Aspiration vs Implementation"
+    This plan describes the **intended** analytics instrumentation. Most events listed here are not yet implemented. Persona-related events (`persona_selected`, `session_started.persona`) reference a feature that has been removed. This document will be updated when analytics instrumentation is prioritized.
+
+
 ## 1. Purpose
 
 Gate 6 defines four usability metrics that determine whether CloudBlocks succeeds as a visual cloud learning tool for beginners. This document specifies the events, code insertion points, tooling, and privacy constraints required to measure those metrics.

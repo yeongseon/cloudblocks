@@ -1,6 +1,6 @@
 # Core Concepts
 
-> **Audience**: All users | **Status**: V1 Core | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.26.0
 
 CloudBlocks is a visual cloud learning tool that uses a block-based composition model. You learn cloud architecture by placing elements on the canvas, connecting them with typed protocols, and validating against real-world rules.
 

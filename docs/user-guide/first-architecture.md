@@ -1,6 +1,6 @@
 # First Architecture from a Template
 
-> **Audience**: New users | **Status**: V1 Core | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.26.0
 
 Learn your first cloud architecture in 5 minutes using a built-in template with guided learning. No cloud account or backend required — everything runs in your browser.
 
@@ -11,7 +11,7 @@ Learn your first cloud architecture in 5 minutes using a built-in template with 
 - **Live Demo**: Visit [https://yeongseon.github.io/cloudblocks/](https://yeongseon.github.io/cloudblocks/)
 - **Local**: Clone and run (see [Quick Start](quick-start.md))
 
-When CloudBlocks opens, choose a persona (e.g., Developer) to enter the builder.
+When CloudBlocks opens, click **Get Started** to enter the builder.
 
 ---
 

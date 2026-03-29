@@ -42,13 +42,13 @@ Most diagram tools produce static images. CloudBlocks produces a **live architec
 
 ## Features
 
-- 🧱 **Block-based modeling** — Container blocks (boundaries) + Resource blocks (resources) + typed Connections
 - 📋 **Guided templates** — Start from 6 built-in architecture patterns with step-by-step learning scenarios
 - 📚 **Learning mode** — Interactive guided scenarios to learn cloud architecture patterns (beginner → advanced)
+- 🧱 **Block-based modeling** — Container blocks (boundaries) + Resource blocks (resources) + typed Connections
 - ✅ **Validation engine** — Real-time rule checking for placement and connections
 - 📦 **8 resource categories** — Network, Delivery, Compute, Data, Messaging, Security, Identity, Operations
-- 🌐 **Multi-cloud preview** — Visual preview for Azure, AWS, and GCP
 - ⚡ **Terraform starter export** — Export your design to Terraform starter code for learning and prototyping
+- 🌐 **Multi-cloud preview** — Visual preview for Azure, AWS, and GCP
 - 🎨 **Dual theme system** — Workshop (light, enterprise) and Blueprint (dark, creative)
 - ⚗️ **Bicep & Pulumi** _(Experimental)_ — Additional IaC export formats
 - 🔗 **GitHub integration** _(Backend required)_ — OAuth login, repo sync, PR creation

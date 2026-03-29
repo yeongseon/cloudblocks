@@ -6,6 +6,10 @@
 **Date**: 2026-03-19  
 **Supersedes**: Block design spec (v1.x), VISUAL_DESIGN_SPEC.md (v1.x)
 
+!!! warning "Aspiration vs Implementation"
+    This specification is a **design target**, not a description of current behavior. Many sections describe features that are planned but not yet built (e.g., pixel-perfect CU grid, sub-pixel prevention, full provider-specific icon sets). Check the [V1 Product Contract](../concept/V1_PRODUCT_CONTRACT.md) for what is actually implemented today.
+
+
 ---
 
 ## 0. Design Principles
