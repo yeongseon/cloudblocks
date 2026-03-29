@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, model_validator
 
 from app.core.dependencies import (
     get_current_user,
@@ -63,29 +63,48 @@ class PullRequestRequest(BaseModel):
 class ArchitecturePayload(BaseModel):
     """Validates the top-level structure of a CloudBlocks architecture document.
 
-    Ensures required collections (plates, blocks, connections) are present
-    and have the correct types. Does not deep-validate individual items
-    because the canonical schema may evolve; we guard against clearly
-    malformed documents (missing keys, wrong types) that would break
-    downstream consumers (diff engine, code generation, pull flows).
+    Ensures architecture collections use supported wire formats and have
+    correct top-level types. Accepts canonical nodes format and legacy
+    plates/blocks format for backward compatibility.
     """
 
     id: str
     name: str
     version: str
-    plates: list[dict[str, Any]]
-    blocks: list[dict[str, Any]]
+    nodes: list[dict[str, Any]] = []
+    endpoints: list[dict[str, Any]] = []
+    plates: list[dict[str, Any]] = []
+    blocks: list[dict[str, Any]] = []
     connections: list[dict[str, Any]] = []
     externalActors: list[dict[str, Any]] = []  # noqa: N815
     createdAt: str  # noqa: N815
     updatedAt: str  # noqa: N815
 
-    @field_validator("plates", "blocks", "connections", "externalActors", mode="before")
+    @field_validator(
+        "nodes",
+        "endpoints",
+        "plates",
+        "blocks",
+        "connections",
+        "externalActors",
+        mode="before",
+    )
     @classmethod
     def must_be_list(cls, v: Any, info: Any) -> Any:
         if not isinstance(v, list):
             raise ValueError(f"{info.field_name} must be a list")
         return v
+
+    @model_validator(mode="after")
+    def require_supported_structure(self) -> ArchitecturePayload:
+        has_nodes = len(self.nodes) > 0
+        has_legacy_keys = "plates" in self.model_fields_set and "blocks" in self.model_fields_set
+        if not has_nodes and not has_legacy_keys:
+            raise ValueError(
+                "architecture must include non-empty 'nodes'"
+                " or both legacy 'plates' and 'blocks'"
+            )
+        return self
 
 
 def _validate_architecture(data: dict[str, Any]) -> dict[str, Any]:

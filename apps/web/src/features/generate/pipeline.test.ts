@@ -365,28 +365,27 @@ describe('pipeline', () => {
       ).toThrow(/Invalid Azure region/);
     });
 
-    it('allows AWS region values outside Azure allowlist when generator is terraform', () => {
-      const result = generateCode(validModel, {
-        ...validOptions,
-        provider: 'aws',
-        region: 'moon-base-1',
-        generator: 'terraform',
-      });
-
-      expect(result.metadata.provider).toBe('aws');
+    it('throws when AWS provider is used with terraform (not yet supported)', () => {
+      expect(() =>
+        generateCode(validModel, {
+          ...validOptions,
+          provider: 'aws',
+          region: 'us-east-1',
+          generator: 'terraform',
+        }),
+      ).toThrow(/does not support provider/);
     });
 
-    it('allows GCP region values outside Azure allowlist when generator is terraform', () => {
-      const result = generateCode(validModel, {
-        ...validOptions,
-        provider: 'gcp',
-        region: 'custom-gcp-region-1',
-        generator: 'terraform',
-      });
-
-      expect(result.metadata.provider).toBe('gcp');
+    it('throws when GCP provider is used with terraform (not yet supported)', () => {
+      expect(() =>
+        generateCode(validModel, {
+          ...validOptions,
+          provider: 'gcp',
+          region: 'us-central1',
+          generator: 'terraform',
+        }),
+      ).toThrow(/does not support provider/);
     });
-
     it('throws GenerationError when provider is not supported by selected generator', () => {
       expect(() =>
         generateCode(validModel, {

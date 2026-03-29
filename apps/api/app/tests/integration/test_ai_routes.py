@@ -318,6 +318,59 @@ async def test_cost_success(
 
 
 @pytest.mark.asyncio
+async def test_cost_success_with_nodes_format(
+    client: AsyncClient,
+    auth_cookies: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cost_result = CostEstimate(
+        monthly_cost=10.0,
+        hourly_cost=10.0 / 730,
+        currency="USD",
+        resources=[],
+    )
+
+    async def mock_estimate(
+        self: InfracostClient,
+        terraform_dir: str,
+    ) -> CostEstimate:
+        _ = self
+        assert Path(terraform_dir).exists()
+        return cost_result
+
+    monkeypatch.setattr(InfracostClient, "estimate", mock_estimate)
+
+    architecture: dict[str, object] = {
+        "nodes": [
+            {
+                "id": "cb-1",
+                "kind": "container",
+                "type": "region",
+            },
+            {
+                "id": "block-1",
+                "kind": "resource",
+                "name": "Web ALB",
+                "category": "gateway",
+                "parentId": "cb-1",
+                "provider": "aws",
+                "subtype": "alb",
+            },
+        ]
+    }
+
+    response = await client.post(
+        "/api/v1/ai/cost",
+        cookies=auth_cookies,
+        json={"architecture": architecture, "provider": "aws"},
+    )
+
+    assert response.status_code == 200
+    payload = cast(dict[str, object], json.loads(response.text))
+    assert payload["monthly_cost"] == 10.0
+
+
+@pytest.mark.asyncio
 async def test_cost_no_auth(client: AsyncClient) -> None:
     response = await client.post(
         "/api/v1/ai/cost",

@@ -302,6 +302,80 @@ describe('validatePlacement', () => {
       targetId: 'mq-1',
     });
   });
+
+  // ── Root-level placement (allowedParents includes null) ──
+
+  it('returns null when root-allowed resource (dns_zone) has no parent', () => {
+    const block = makeBlock({
+      id: 'dns-1',
+      name: 'DNS Zone',
+      category: 'delivery',
+      resourceType: 'dns_zone',
+    });
+    expect(validatePlacement(block, undefined)).toBeNull();
+  });
+
+  it('returns null when root-allowed resource (blob_storage) has no parent', () => {
+    const block = makeBlock({
+      id: 'blob-1',
+      name: 'Blob Storage',
+      category: 'data',
+      resourceType: 'blob_storage',
+    });
+    expect(validatePlacement(block, undefined)).toBeNull();
+  });
+
+  it('returns null when root-allowed resource (public_ip) has no parent', () => {
+    const block = makeBlock({
+      id: 'pip-1',
+      name: 'Public IP',
+      category: 'network',
+      resourceType: 'public_ip',
+    });
+    expect(validatePlacement(block, undefined)).toBeNull();
+  });
+
+  it('returns null when dual-placement resource (function_compute) has no parent', () => {
+    const block = makeBlock({
+      id: 'fn-root-1',
+      name: 'Root Function',
+      category: 'compute',
+      resourceType: 'function_compute',
+    });
+    expect(validatePlacement(block, undefined)).toBeNull();
+  });
+
+  it('returns error when subnet-only resource (virtual_machine) has no parent', () => {
+    const block = makeBlock({
+      id: 'vm-1',
+      name: 'VM',
+      category: 'compute',
+      resourceType: 'virtual_machine',
+    });
+    expect(validatePlacement(block, undefined)).toEqual({
+      ruleId: 'rule-container-exists',
+      severity: 'error',
+      message: 'Resource "VM" is not placed on any container',
+      suggestion: 'Place the resource on a valid subnet container',
+      targetId: 'vm-1',
+    });
+  });
+
+  it('returns error when subnet-only resource (sql_database) has no parent', () => {
+    const block = makeBlock({
+      id: 'sql-1',
+      name: 'SQL DB',
+      category: 'data',
+      resourceType: 'sql_database',
+    });
+    expect(validatePlacement(block, undefined)).toEqual({
+      ruleId: 'rule-container-exists',
+      severity: 'error',
+      message: 'Resource "SQL DB" is not placed on any container',
+      suggestion: 'Place the resource on a valid subnet container',
+      targetId: 'sql-1',
+    });
+  });
 });
 
 describe('canPlaceBlock', () => {
@@ -369,6 +443,44 @@ describe('canPlaceBlock', () => {
     const container = makePlate({ type: 'subnet' });
     expect(canPlaceBlock('operations', container)).toBe(true);
   });
+});
+
+// ── Root-level placement via canPlaceBlock ──
+
+it('returns true for root-allowed resource type with null container', () => {
+  expect(canPlaceBlock('delivery', null, 'dns_zone')).toBe(true);
+  expect(canPlaceBlock('delivery', null, 'cdn_profile')).toBe(true);
+  expect(canPlaceBlock('delivery', null, 'front_door')).toBe(true);
+  expect(canPlaceBlock('data', null, 'blob_storage')).toBe(true);
+  expect(canPlaceBlock('network', null, 'public_ip')).toBe(true);
+  expect(canPlaceBlock('identity', null, 'managed_identity')).toBe(true);
+  expect(canPlaceBlock('identity', null, 'service_account')).toBe(true);
+});
+
+it('returns true for dual-placement resource type with null container', () => {
+  expect(canPlaceBlock('compute', null, 'function_compute')).toBe(true);
+  expect(canPlaceBlock('compute', null, 'app_service')).toBe(true);
+  expect(canPlaceBlock('compute', null, 'container_instances')).toBe(true);
+  expect(canPlaceBlock('data', null, 'cosmos_db')).toBe(true);
+  expect(canPlaceBlock('security', null, 'key_vault')).toBe(true);
+  expect(canPlaceBlock('identity', null, 'identity_access')).toBe(true);
+});
+
+it('returns false for subnet-only resource type with null container', () => {
+  expect(canPlaceBlock('compute', null, 'virtual_machine')).toBe(false);
+  expect(canPlaceBlock('compute', null, 'kubernetes_cluster')).toBe(false);
+  expect(canPlaceBlock('data', null, 'sql_database')).toBe(false);
+  expect(canPlaceBlock('data', null, 'cache_store')).toBe(false);
+  expect(canPlaceBlock('security', null, 'bastion_host')).toBe(false);
+  expect(canPlaceBlock('operations', null, 'monitoring')).toBe(false);
+});
+
+it('returns false when category alone (no resourceType) is not root-allowed', () => {
+  // When resourceType is not provided, it defaults to category name
+  // 'compute' is not a resourceType, so it's not in ROOT_ALLOWED_RESOURCE_TYPES
+  expect(canPlaceBlock('compute', null)).toBe(false);
+  expect(canPlaceBlock('data', null)).toBe(false);
+  expect(canPlaceBlock('security', null)).toBe(false);
 });
 
 describe('validateLayerPlacement', () => {

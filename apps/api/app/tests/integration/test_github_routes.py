@@ -25,6 +25,34 @@ VALID_ARCHITECTURE: dict[str, Any] = {
     "updatedAt": "2026-01-01T00:00:00Z",
 }
 
+VALID_ARCHITECTURE_NODES: dict[str, Any] = {
+    "id": "arch-2",
+    "name": "Test Architecture Nodes",
+    "version": "0.4.0",
+    "nodes": [
+        {
+            "id": "cb-1",
+            "kind": "container",
+            "name": "Region",
+            "type": "region",
+        },
+        {
+            "id": "r-1",
+            "kind": "resource",
+            "name": "Compute",
+            "category": "compute",
+            "parentId": "cb-1",
+            "provider": "aws",
+            "subtype": "ec2",
+        },
+    ],
+    "endpoints": [],
+    "connections": [],
+    "externalActors": [],
+    "createdAt": "2026-01-01T00:00:00Z",
+    "updatedAt": "2026-01-01T00:00:00Z",
+}
+
 
 async def _create_workspace(
     client: AsyncClient,
@@ -473,6 +501,61 @@ async def test_sync_with_valid_full_architecture_succeeds(
 
     assert response.status_code == 200
     assert response.json()["commit_sha"] == "commit-sha-valid"
+
+
+@pytest.mark.asyncio
+async def test_sync_with_valid_nodes_architecture_succeeds(
+    client: AsyncClient,
+    auth_cookies: dict[str, str],
+    mock_github,
+    test_identity,
+) -> None:
+    workspace = await _create_workspace(client, auth_cookies)
+    mock_github.get_repo_contents.return_value = {"sha": "existing-sha"}
+    mock_github.create_or_update_file.return_value = {"commit": {"sha": "commit-sha-nodes"}}
+
+    response = await client.post(
+        f"/api/v1/workspaces/{workspace['id']}/sync",
+        cookies=auth_cookies,
+        json={"architecture": VALID_ARCHITECTURE_NODES},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["commit_sha"] == "commit-sha-nodes"
+
+
+@pytest.mark.asyncio
+async def test_pr_with_valid_nodes_architecture_succeeds(
+    client: AsyncClient,
+    auth_cookies: dict[str, str],
+    mock_github,
+    test_identity,
+) -> None:
+    workspace = await _create_workspace(client, auth_cookies)
+
+    mock_github.get_default_branch_sha.return_value = "base-sha"
+    mock_github.create_branch.return_value = {"ref": "refs/heads/cloudblocks/nodes-pr"}
+    mock_github.get_repo_contents.return_value = {"sha": "existing-on-branch"}
+    mock_github.create_or_update_file.return_value = {"commit": {"sha": "commit-for-pr"}}
+    mock_github.create_pull_request.return_value = {
+        "html_url": "https://github.com/acme/cloudblocks-arch/pull/8",
+        "number": 8,
+    }
+
+    response = await client.post(
+        f"/api/v1/workspaces/{workspace['id']}/pr",
+        cookies=auth_cookies,
+        json={
+            "architecture": VALID_ARCHITECTURE_NODES,
+            "title": "Update architecture",
+            "body": "Automated update",
+            "branch": "cloudblocks/nodes-pr",
+            "commit_message": "commit from tests",
+        },
+    )
+
+    assert response.status_code == 201
+    assert response.json()["number"] == 8
 
 
 @pytest.mark.asyncio

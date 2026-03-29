@@ -23,6 +23,17 @@ def _minimal_architecture(
     }
 
 
+def _minimal_architecture_nodes(
+    *,
+    nodes: list[object] | None = None,
+    connections: list[object] | None = None,
+) -> dict[str, object]:
+    return {
+        "nodes": nodes if nodes is not None else [],
+        "connections": connections if connections is not None else [],
+    }
+
+
 def _make_container_block(
     container_block_id: str = "cb-1",
     container_layer: str = "region",
@@ -84,6 +95,24 @@ class TestValidArchitecture:
             blocks=[
                 _make_block("block-1", "cb-1"),
                 _make_block("block-2", "cb-1", category="database", subtype="rds-postgres"),
+            ],
+            connections=[_make_connection("conn-1", "block-1", "block-2", "data")],
+        )
+        assert validator.validate(arch) == []
+
+    def test_valid_nodes_format(self, validator: ArchitectureValidator) -> None:
+        arch = _minimal_architecture_nodes(
+            nodes=[
+                _make_container_block("cb-1", "region", kind="container"),
+                _make_block("block-1", "cb-1", kind="resource", parentId="cb-1"),
+                _make_block(
+                    "block-2",
+                    "cb-1",
+                    kind="resource",
+                    category="database",
+                    subtype="rds-postgres",
+                    parentId="cb-1",
+                ),
             ],
             connections=[_make_connection("conn-1", "block-1", "block-2", "data")],
         )
@@ -165,6 +194,16 @@ class TestBlockValidation:
         result = validator.validate(
             _minimal_architecture(container_blocks=[_make_container_block()], blocks=[block])
         )
+        assert any("does not reference a known container block" in w for w in result)
+
+    def test_dangling_parent_id_in_nodes(self, validator: ArchitectureValidator) -> None:
+        arch = _minimal_architecture_nodes(
+            nodes=[
+                _make_container_block("cb-1", "region", kind="container"),
+                _make_block("block-1", "cb-1", kind="resource", parentId="nonexistent"),
+            ]
+        )
+        result = validator.validate(arch)
         assert any("does not reference a known container block" in w for w in result)
 
     def test_non_dict_block(self, validator: ArchitectureValidator) -> None:
