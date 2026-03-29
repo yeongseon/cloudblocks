@@ -4,11 +4,11 @@
   top: 60px;
   width: 360px;
   max-height: calc(100vh - 80px);
-  background: rgba(20, 20, 40, 0.95);
-  border: 1px solid #333366;
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-default);
   border-radius: 8px;
   padding: 12px;
-  color: #e0e0e0;
+  color: var(--text-primary);
   font-family: var(--font-ui);
   z-index: 10;
   display: flex;
@@ -27,13 +27,13 @@
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .github-repos-close {
   background: none;
   border: none;
-  color: #999;
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 14px;
   padding: 2px 6px;
@@ -41,16 +41,16 @@
 }
 
 .github-repos-close:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
+  color: var(--text-primary);
 }
 
 .github-repos-loading {
   padding: 8px;
   font-size: 12px;
-  color: #9aa4d1;
-  background: rgba(66, 133, 244, 0.12);
-  border: 1px solid rgba(66, 133, 244, 0.35);
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 35%, transparent);
   border-radius: 4px;
   margin-bottom: 8px;
 }
@@ -58,17 +58,17 @@
 .github-repos-error {
   padding: 8px;
   font-size: 12px;
-  color: #ef5350;
-  background: rgba(244, 67, 54, 0.16);
-  border: 1px solid rgba(244, 67, 54, 0.4);
+  color: var(--accent-error);
+  background: color-mix(in srgb, var(--accent-error) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-error) 40%, transparent);
   border-radius: 4px;
   margin-bottom: 8px;
 }
 
 .github-repos-create {
   padding: 10px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid #333366;
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  border: 1px solid var(--border-default);
   border-radius: 6px;
   display: flex;
   flex-direction: column;
@@ -79,22 +79,22 @@
 .github-repos-subtitle {
   margin: 0;
   font-size: 12px;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .github-repos-input {
   padding: 5px 8px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid #444;
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+  border: 1px solid var(--border-strong);
   border-radius: 4px;
-  color: #e0e0e0;
+  color: var(--text-primary);
   font-size: 12px;
   font-family: inherit;
 }
 
 .github-repos-input:focus {
   outline: none;
-  border-color: #4285f4;
+  border-color: var(--accent-primary);
 }
 
 .github-repos-checkbox-row {
@@ -102,7 +102,7 @@
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #c9cfe8;
+  color: var(--text-primary);
 }
 
 .github-repos-checkbox {
@@ -111,17 +111,17 @@
 
 .github-repos-create-btn {
   padding: 6px 10px;
-  background: rgba(66, 133, 244, 0.28);
-  border: 1px solid rgba(66, 133, 244, 0.5);
+  background: color-mix(in srgb, var(--accent-primary) 28%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 50%, transparent);
   border-radius: 4px;
-  color: #ffffff;
+  color: var(--text-primary);
   font-size: 12px;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .github-repos-create-btn:hover {
-  background: rgba(66, 133, 244, 0.45);
+  background: color-mix(in srgb, var(--accent-primary) 45%, transparent);
 }
 
 .github-repos-create-btn:disabled {
@@ -138,8 +138,8 @@
 
 .github-repos-item {
   padding: 8px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid #333366;
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  border: 1px solid var(--border-default);
   border-radius: 4px;
 }
 
@@ -152,7 +152,7 @@
 
 .github-repos-name {
   font-size: 12px;
-  color: #ffffff;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -164,18 +164,18 @@
 }
 
 .github-repos-badge-private {
-  background: rgba(244, 67, 54, 0.2);
-  color: #ef5350;
+  background: color-mix(in srgb, var(--accent-error) 20%, transparent);
+  color: var(--accent-error);
 }
 
 .github-repos-badge-public {
-  background: rgba(76, 175, 80, 0.2);
-  color: #81c784;
+  background: color-mix(in srgb, var(--accent-success) 20%, transparent);
+  color: var(--accent-success);
 }
 
 .github-repos-link {
   font-size: 11px;
-  color: #82b1ff;
+  color: var(--accent-primary);
   text-decoration: none;
   word-break: break-all;
 }
@@ -187,16 +187,16 @@
 .github-repos-empty {
   padding: 10px;
   text-align: center;
-  color: #8e95b8;
+  color: var(--text-muted);
   font-size: 12px;
 }
 
 .github-repos-account {
   padding: 6px 8px;
   font-size: 11px;
-  color: #9aa4d1;
-  background: rgba(66, 133, 244, 0.08);
-  border: 1px solid rgba(66, 133, 244, 0.2);
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent);
   border-radius: 4px;
   margin-bottom: 8px;
 }
@@ -204,9 +204,9 @@
 .github-repos-success {
   padding: 8px;
   font-size: 12px;
-  color: #81c784;
-  background: rgba(76, 175, 80, 0.16);
-  border: 1px solid rgba(76, 175, 80, 0.4);
+  color: var(--accent-success);
+  background: color-mix(in srgb, var(--accent-success) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-success) 40%, transparent);
   border-radius: 4px;
   margin-bottom: 8px;
   display: flex;
@@ -217,14 +217,14 @@
 
 .github-repos-link-created-btn {
   padding: 4px 8px;
-  background: rgba(66, 133, 244, 0.2);
-  border: 1px solid rgba(66, 133, 244, 0.5);
+  background: color-mix(in srgb, var(--accent-primary) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 50%, transparent);
   border-radius: 4px;
-  color: #cfe1ff;
+  color: var(--accent-primary);
   font-size: 11px;
   cursor: pointer;
 }
 
 .github-repos-link-created-btn:hover {
-  background: rgba(66, 133, 244, 0.36);
+  background: color-mix(in srgb, var(--accent-primary) 36%, transparent);
 }
