@@ -7,7 +7,7 @@ import type {
   ContainerBlock,
   ResourceBlock,
 } from '@cloudblocks/schema';
-import { awsProviderDefinition, azureProviderDefinition } from './provider';
+import { awsProviderDefinition, azureProviderDefinition, gcpProviderDefinition } from './provider';
 import { generateMainTf, generateOutputsTf, generateVariablesTf, normalize } from './terraform';
 import {
   makeTestArchitecture,
@@ -86,6 +86,13 @@ const awsOptions = {
   mode: 'draft' as const,
   projectName: 'My Test Project',
   region: 'us-east-1',
+};
+
+const gcpOptions = {
+  provider: 'gcp' as const,
+  mode: 'draft' as const,
+  projectName: 'My Test Project',
+  region: 'us-central1',
 };
 
 describe('normalize', () => {
@@ -672,5 +679,116 @@ describe('AWS full-output HCL smoke test', () => {
     // Outputs file
     const outputs = generateOutputsTf(normalized, awsProviderDefinition, awsOptions);
     expect(outputs).toContain('output');
+  });
+});
+
+describe('GCP full-output HCL smoke test', () => {
+  it('generates valid main.tf with VPC, subnet, Cloud Run, and Cloud SQL', () => {
+    const model = createTestModel({
+      plates: [
+        createPlate({ id: 'vpc-1', name: 'Core VPC', type: 'region' }),
+        createPlate({ id: 'sub-1', name: 'App Subnet', type: 'subnet', parentId: 'vpc-1' }),
+      ],
+      blocks: [
+        createBlock({
+          id: 'run-1',
+          name: 'App Service',
+          category: 'compute',
+          subtype: 'cloud-run',
+          placementId: 'sub-1',
+        }),
+        createBlock({
+          id: 'sql-1',
+          name: 'App Database',
+          category: 'data',
+          subtype: 'cloud-sql-postgres',
+          placementId: 'sub-1',
+        }),
+      ],
+    });
+
+    const normalized = normalize(model, gcpProviderDefinition);
+    const hcl = generateMainTf(normalized, gcpProviderDefinition, gcpOptions);
+
+    expect(hcl).toContain('provider "google"');
+    expect(hcl).toContain('resource "google_project_service"');
+    expect(hcl).toContain('resource "google_compute_network"');
+    expect(hcl).toContain('resource "google_compute_subnetwork"');
+    expect(hcl).toContain('resource "google_cloud_run_v2_service"');
+    expect(hcl).toContain('resource "google_sql_database_instance"');
+    expect(hcl).toContain('google_project_service');
+    expect(hcl).not.toContain('undefined');
+    expect(hcl).not.toContain('null');
+
+    const vars = generateVariablesTf(gcpOptions, gcpProviderDefinition);
+    expect(vars).toContain('variable "project_name"');
+    expect(vars).toContain('variable "location"');
+    expect(vars).toContain('variable "project_id"');
+    expect(vars).toContain('variable "zone"');
+
+    const outputs = generateOutputsTf(normalized, gcpProviderDefinition, gcpOptions);
+    expect(outputs).toContain('output');
+  });
+});
+
+describe('GCP container rendering', () => {
+  it('renders VPC and subnet-specific attributes', () => {
+    const model = createTestModel({
+      plates: [
+        createPlate({ id: 'vpc-1', name: 'Core VPC', type: 'region' }),
+        createPlate({ id: 'sub-1', name: 'App Subnet', type: 'subnet', parentId: 'vpc-1' }),
+      ],
+      blocks: [],
+    });
+
+    const hcl = generateMainTf(
+      normalize(model, gcpProviderDefinition),
+      gcpProviderDefinition,
+      gcpOptions,
+    );
+
+    expect(hcl).toContain('auto_create_subnetworks = false');
+    expect(hcl).toContain('network       = google_compute_network.network_core_vpc.id');
+    expect(hcl).toContain('ip_cidr_range = "10.0.1.0/24"');
+    expect(hcl).toContain('region        = var.location');
+  });
+});
+
+describe('GCP compute with Debian image data source', () => {
+  it('renders data source companion before compute resource', () => {
+    const model = createTestModel({
+      plates: [
+        createPlate({ id: 'vpc-1', name: 'Core VPC', type: 'region' }),
+        createPlate({ id: 'sub-1', name: 'App Subnet', type: 'subnet', parentId: 'vpc-1' }),
+      ],
+      blocks: [
+        createBlock({
+          id: 'gce-1',
+          name: 'Web VM',
+          category: 'compute',
+          subtype: 'compute-engine',
+          placementId: 'sub-1',
+        }),
+      ],
+    });
+
+    const hcl = generateMainTf(
+      normalize(model, gcpProviderDefinition),
+      gcpProviderDefinition,
+      gcpOptions,
+    );
+
+    expect(hcl).toContain('data "google_compute_image" "gce_web_vm_image"');
+    expect(hcl).toContain('resource "google_compute_instance" "gce_web_vm"');
+    expect(hcl).toContain('machine_type = "e2-micro"');
+    expect(hcl).toContain('zone         = var.zone');
+    expect(hcl).toContain('boot_disk {');
+    expect(hcl).toContain('subnetwork = google_compute_subnetwork.subnet_app_subnet.id');
+
+    const dataIndex = hcl.indexOf('data "google_compute_image" "gce_web_vm_image"');
+    const resourceIndex = hcl.indexOf('resource "google_compute_instance" "gce_web_vm"');
+    expect(dataIndex).toBeGreaterThan(-1);
+    expect(resourceIndex).toBeGreaterThan(-1);
+    expect(dataIndex).toBeLessThan(resourceIndex);
   });
 });

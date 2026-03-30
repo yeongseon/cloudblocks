@@ -377,15 +377,16 @@ describe('pipeline', () => {
       expect(result.metadata.provider).toBe('aws');
     });
 
-    it('throws when GCP provider is used with terraform (not yet supported)', () => {
-      expect(() =>
-        generateCode(validModel, {
-          ...validOptions,
-          provider: 'gcp',
-          region: 'us-central1',
-          generator: 'terraform',
-        }),
-      ).toThrow(/does not support provider/);
+    it('supports GCP provider when generator is terraform', () => {
+      const result = generateCode(validModel, {
+        ...validOptions,
+        provider: 'gcp',
+        region: 'us-central1',
+        generator: 'terraform',
+      });
+
+      expect(result.files.map((f) => f.path)).toEqual(['main.tf', 'variables.tf', 'outputs.tf']);
+      expect(result.metadata.provider).toBe('gcp');
     });
     it('throws GenerationError when provider is not supported by selected generator', () => {
       expect(() =>

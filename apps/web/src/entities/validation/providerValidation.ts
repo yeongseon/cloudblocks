@@ -27,10 +27,11 @@ const KNOWN_SUBTYPES: Record<string, Partial<Record<ResourceCategory, string[]>>
   gcp: {
     compute: ['compute-engine', 'cloud-run', 'cloud-functions'],
     data: ['cloud-sql-postgres', 'firestore', 'cloud-storage'],
-    delivery: ['cloud-load-balancing', 'api-gateway'],
-    messaging: ['pub-sub', 'eventarc'],
-    operations: ['cloud-monitoring', 'cloud-iam'],
-    identity: ['service_account'],
+    delivery: ['cloud-load-balancing', 'api-gateway', 'nat-gateway'],
+    messaging: ['pubsub', 'eventarc'],
+    operations: ['bigquery', 'monitoring'],
+    security: ['iam', 'nsg'],
+    identity: ['managed-identity', 'managed_identity', 'service-account', 'service_account'],
     network: ['vpc', 'cloud-dns'],
   },
   azure: {
@@ -69,8 +70,9 @@ function validateBlockProviderRules(
     warnings.push({
       ruleId: 'rule-provider-gcp-sql-public',
       severity: 'warning',
-      message: `GCP Cloud SQL "${block.name}" is on a subnet. Database instances should typically be secured with appropriate NSG rules.`,
-      suggestion: 'Ensure proper network security group rules are applied to the subnet.',
+      message: `GCP Cloud SQL "${block.name}" is on a subnet. Database instances should typically be secured with appropriate VPC firewall rules or private service access.`,
+      suggestion:
+        'Ensure proper VPC firewall rules or private service access are configured for this subnet.',
       targetId: block.id,
     });
   }

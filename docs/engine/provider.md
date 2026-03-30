@@ -1,6 +1,6 @@
 # Provider Definition Specification
 
-> **Audience**: Contributors | **Status**: Stable — Internal | **Verified against**: v0.28.0
+> **Audience**: Contributors | **Status**: Stable — Internal | **Verified against**: v0.29.0
 
 CloudBlocks uses `ProviderDefinition` as the canonical provider abstraction for generation.
 
@@ -129,10 +129,20 @@ All hooks receive context objects that provide the normalized model, generation 
 - S3 uses `bucket_prefix` with sanitized/trimmed name (24-char limit)
 - Security groups emit error comment when no ancestor VPC found
 
-## GCP (Pending Implementation)
+## GCP (V1 Starter)
 
-- All hooks return stubs (`[]` or `['  # TODO: Configure ...']`)
-- Awaiting #1512 for full implementation
+- `renderSharedResources`: Conditional `google_project_service` resources for each GCP API used (compute, run, cloudfunctions, sqladmin, firestore, storage, pubsub, eventarc, apigateway, iam, monitoring); uses `disable_on_destroy = false`
+- `renderContainerBody`: VPC with `name` (RFC 1035), `auto_create_subnetworks = false`, `depends_on`; subnet with `name`, `network` reference, indexed `ip_cidr_range`, `region`
+- `renderBlockBody`: Switch on `resourceType` — concrete bodies for Compute Engine, Cloud Run, Cloud SQL, Cloud Storage, Firestore, Pub/Sub, Service Account, Firewall, BigQuery, Monitoring Dashboard, API Gateway, Compute URL Map; explicit "cannot be planned" warnings for Cloud Functions, Cloud NAT, Eventarc
+- `renderBlockCompanions`: `google_compute_image` data source for Compute Engine instances (Debian 12)
+- `extraVariables`: `project_id` (GCP project ID) + `zone` (compute zone)
+- `extraOutputs`: `[]`
+- All GCP resource `name` attributes use RFC 1035 naming (hyphens, not underscores) via `toGcpName()` helper
+- Firewall emits minimal scaffold with `direction`, `source_ranges`, and `allow` block (with WARNING for production)
+- Cloud SQL uses `deletion_protection = false` with production WARNING
+- Storage bucket naming uses `var.project_id` prefix for global uniqueness
+- Firestore warns about `(default)` database singleton constraint
+- All resources include `depends_on` referencing their `google_project_service` API enablement resource
 
 
 # Subtype-Aware Resource Resolution
