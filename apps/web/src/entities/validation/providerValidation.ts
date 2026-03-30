@@ -10,11 +10,18 @@ const KNOWN_SUBTYPES: Record<string, Partial<Record<ResourceCategory, string[]>>
   aws: {
     compute: ['ec2', 'ecs', 'lambda'],
     data: ['rds-postgres', 'dynamodb', 's3'],
-    delivery: ['alb', 'api-gateway'],
+    delivery: ['alb', 'api-gateway', 'nat-gateway'],
     messaging: ['sqs', 'sns', 'eventbridge'],
-    operations: ['cloudwatch'],
-    security: ['iam', 'kms'],
-    identity: ['iam'],
+    operations: ['cloudwatch', 'athena'],
+    security: ['iam', 'kms', 'nsg'],
+    identity: [
+      'managed-identity',
+      'managed_identity',
+      'service-account',
+      'service_account',
+      'service-principal',
+      'service_principal',
+    ],
     network: ['vpc', 'route-53'],
   },
   gcp: {

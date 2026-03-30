@@ -613,3 +613,64 @@ describe('generateOutputsTf', () => {
     expect(hcl).toContain('value = aws_instance.ec2_compute.id');
   });
 });
+
+describe('AWS full-output HCL smoke test', () => {
+  it('generates valid main.tf with VPC, subnet, EC2, and RDS', () => {
+    const model = createTestModel({
+      plates: [
+        createPlate({ id: 'vpc-1', name: 'Production VPC', type: 'region' }),
+        createPlate({ id: 'sub-1', name: 'Public Subnet', type: 'subnet', parentId: 'vpc-1' }),
+      ],
+      blocks: [
+        createBlock({ id: 'ec2-1', name: 'Web Server', category: 'compute', placementId: 'sub-1' }),
+        createBlock({ id: 'rds-1', name: 'App Database', category: 'data', placementId: 'sub-1' }),
+      ],
+    });
+
+    const normalized = normalize(model, awsProviderDefinition);
+    const hcl = generateMainTf(normalized, awsProviderDefinition, awsOptions);
+
+    // Provider block
+    expect(hcl).toContain('provider "aws"');
+    expect(hcl).toContain('hashicorp/aws');
+
+    // Shared data sources
+    expect(hcl).toContain('data "aws_ssm_parameter" "amazon_linux_ami"');
+    expect(hcl).toContain('data "aws_availability_zones" "available"');
+
+    // VPC container
+    expect(hcl).toContain('resource "aws_vpc"');
+    expect(hcl).toContain('cidr_block');
+    expect(hcl).toContain('enable_dns_support');
+
+    // Subnet container
+    expect(hcl).toContain('resource "aws_subnet"');
+    expect(hcl).toContain('vpc_id');
+    expect(hcl).toContain('availability_zone');
+
+    // EC2 instance
+    expect(hcl).toContain('resource "aws_instance"');
+    expect(hcl).toContain('instance_type = "t3.micro"');
+    expect(hcl).toContain('data.aws_ssm_parameter.amazon_linux_ami.value');
+
+    // RDS instance
+    expect(hcl).toContain('resource "aws_db_instance"');
+    expect(hcl).toContain('engine               = "postgres"');
+    expect(hcl).toContain('var.db_admin_username');
+    expect(hcl).toContain('var.db_admin_password');
+    expect(hcl).toContain('skip_final_snapshot');
+
+    // No broken HCL markers
+    expect(hcl).not.toContain('undefined');
+    expect(hcl).not.toContain('null');
+
+    // Variables file
+    const vars = generateVariablesTf(awsOptions, awsProviderDefinition);
+    expect(vars).toContain('variable "project_name"');
+    expect(vars).toContain('variable "location"');
+
+    // Outputs file
+    const outputs = generateOutputsTf(normalized, awsProviderDefinition, awsOptions);
+    expect(outputs).toContain('output');
+  });
+});

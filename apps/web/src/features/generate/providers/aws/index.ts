@@ -117,7 +117,9 @@ function buildAwsBlockBody(ctx: TerraformBlockContext): string[] {
       lines.push('  db_name              = "appdb"');
       lines.push('  username             = var.db_admin_username');
       lines.push('  password             = var.db_admin_password');
-      lines.push('  skip_final_snapshot  = true');
+      lines.push(
+        '  skip_final_snapshot  = true  # WARNING: Set to false for production to enable final snapshot on destroy',
+      );
       lines.push('  tags = {');
       lines.push(`    Name = "${tagName}"`);
       lines.push('  }');
@@ -177,12 +179,14 @@ function buildAwsBlockBody(ctx: TerraformBlockContext): string[] {
           '  # ERROR: Security group requires a VPC ancestor. Place this block inside a VPC container.',
         );
       }
-      lines.push('  egress {');
-      lines.push('    from_port   = 0');
-      lines.push('    to_port     = 0');
-      lines.push('    protocol    = "-1"');
-      lines.push('    cidr_blocks = ["0.0.0.0/0"]');
-      lines.push('  }');
+      lines.push('  # TODO: Add ingress/egress rules based on your application requirements');
+      lines.push('  # Example: allow inbound HTTP');
+      lines.push('  # ingress {');
+      lines.push('  #   from_port   = 80');
+      lines.push('  #   to_port     = 80');
+      lines.push('  #   protocol    = "tcp"');
+      lines.push('  #   cidr_blocks = ["0.0.0.0/0"]');
+      lines.push('  # }');
       lines.push('  tags = {');
       lines.push(`    Name = "${tagName}"`);
       lines.push('  }');
@@ -190,14 +194,21 @@ function buildAwsBlockBody(ctx: TerraformBlockContext): string[] {
     }
     case 'aws_iam_role':
       lines.push(`  name = "${tagName}"`);
+      lines.push(
+        '  # TODO: Configure assume_role_policy based on the service that will assume this role',
+      );
+      lines.push(
+        '  # Common principals: ec2.amazonaws.com, lambda.amazonaws.com, ecs-tasks.amazonaws.com',
+      );
       lines.push('  assume_role_policy = jsonencode({');
       lines.push('    Version = "2012-10-17"');
       lines.push('    Statement = [');
       lines.push('      {');
       lines.push('        Effect = "Allow"');
       lines.push('        Principal = {');
-      lines.push('          Service = "ec2.amazonaws.com"');
-      lines.push('          # TODO: Replace principal based on your service needs');
+      lines.push(
+        '          Service = "ec2.amazonaws.com"  # TODO: Replace with your target service',
+      );
       lines.push('        }');
       lines.push('        Action = "sts:AssumeRole"');
       lines.push('      }');

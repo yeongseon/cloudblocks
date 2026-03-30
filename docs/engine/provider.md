@@ -129,7 +129,7 @@ All hooks receive context objects that provide the normalized model, generation 
 - S3 uses `bucket_prefix` with sanitized/trimmed name (24-char limit)
 - Security groups emit error comment when no ancestor VPC found
 
-## GCP (Stub)
+## GCP (Pending Implementation)
 
 - All hooks return stubs (`[]` or `['  # TODO: Configure ...']`)
 - Awaiting #1512 for full implementation
