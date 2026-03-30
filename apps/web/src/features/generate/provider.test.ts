@@ -6,6 +6,76 @@ import {
   azureProviderDefinition,
   getProviderDefinition,
 } from './provider';
+import type { ArchitectureModel } from '@cloudblocks/schema';
+import type { GenerationOptions, TerraformBlockContext, TerraformContainerContext } from './types';
+
+const stubArchitecture: ArchitectureModel = {
+  id: 'arch-provider-test',
+  name: 'Provider Test',
+  version: '1',
+  nodes: [],
+  connections: [],
+  endpoints: [],
+  externalActors: [],
+  createdAt: '2025-01-01T00:00:00Z',
+  updatedAt: '2025-01-01T00:00:00Z',
+};
+
+const stubOptions: GenerationOptions = {
+  provider: 'azure',
+  mode: 'draft',
+  projectName: 'test',
+  region: 'eastus',
+};
+
+const stubContainerContext: TerraformContainerContext = {
+  normalized: {
+    architecture: stubArchitecture,
+    resourceNames: new Map(),
+  },
+  options: stubOptions,
+  resourceNames: new Map(),
+  container: {
+    id: 'container-1',
+    name: 'Container',
+    kind: 'container',
+    layer: 'region',
+    resourceType: 'virtual_network',
+    category: 'network',
+    provider: 'azure',
+    parentId: null,
+    position: { x: 0, y: 0, z: 0 },
+    frame: { width: 1, height: 1, depth: 1 },
+    metadata: {},
+  },
+  mapping: { resourceType: 'aws_vpc', namePrefix: 'vpc' },
+  resourceName: 'vpc_main',
+  parentResourceName: null,
+};
+
+const stubBlockContext: TerraformBlockContext = {
+  normalized: {
+    architecture: stubArchitecture,
+    resourceNames: new Map(),
+  },
+  options: stubOptions,
+  resourceNames: new Map(),
+  block: {
+    id: 'block-1',
+    name: 'Block',
+    kind: 'resource',
+    layer: 'resource',
+    resourceType: 'web_compute',
+    category: 'compute',
+    provider: 'azure',
+    parentId: 'container-1',
+    position: { x: 0, y: 0, z: 0 },
+    metadata: {},
+  },
+  mapping: { resourceType: 'aws_instance', namePrefix: 'ec2' },
+  resourceName: 'ec2_main',
+  parentResourceName: null,
+};
 
 describe('azureProviderDefinition', () => {
   beforeEach(() => {
@@ -119,6 +189,17 @@ describe('awsProviderDefinition', () => {
       namePrefix: 'subnet',
     });
   });
+
+  it('exposes terraform hook stubs', () => {
+    const terraformConfig = awsProviderDefinition.generators.terraform;
+
+    expect(terraformConfig.requiredProviders()).toContain('hashicorp/aws');
+    expect(terraformConfig.providerBlock('us-east-1')).toContain('provider "aws" {');
+    expect(terraformConfig.renderContainerBody(stubContainerContext)).toEqual([]);
+    expect(terraformConfig.renderBlockBody(stubBlockContext)).toEqual([
+      '  # TODO: Configure aws_instance',
+    ]);
+  });
 });
 
 describe('gcpProviderDefinition', () => {
@@ -150,5 +231,20 @@ describe('gcpProviderDefinition', () => {
       resourceType: 'google_compute_subnetwork',
       namePrefix: 'subnet',
     });
+  });
+
+  it('exposes terraform hook stubs', () => {
+    const terraformConfig = gcpProviderDefinition.generators.terraform;
+    const blockContext: TerraformBlockContext = {
+      ...stubBlockContext,
+      mapping: { resourceType: 'google_compute_instance', namePrefix: 'gce' },
+    };
+
+    expect(terraformConfig.requiredProviders()).toContain('hashicorp/google');
+    expect(terraformConfig.providerBlock('us-central1')).toContain('provider "google" {');
+    expect(terraformConfig.renderContainerBody(stubContainerContext)).toEqual([]);
+    expect(terraformConfig.renderBlockBody(blockContext)).toEqual([
+      '  # TODO: Configure google_compute_instance',
+    ]);
   });
 });
