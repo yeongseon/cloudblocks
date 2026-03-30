@@ -84,10 +84,10 @@ CloudBlocks uses a **block-based composition model** where everything snaps toge
 | **Visual Builder**           | Drag-and-drop editor with grid snapping and auto-layout                     |
 | **Validation Engine**        | Real-time rule checking for placement, connections, and constraints         |
 | **8 Resource Categories**    | Network, Delivery, Compute, Data, Messaging, Security, Identity, Operations |
-| **Terraform Starter Export** | Export your design to Terraform starter code for learning and prototyping   |
-| **Multi-Cloud Preview**      | Visual preview for Azure, AWS, and GCP                                      |
+| **Terraform Starter Export** | Export your design to Terraform starter code for Azure, AWS, or GCP            |
+| **Multi-Cloud Support**      | Terraform generation for Azure, AWS, and GCP with provider-specific resources  |
 | **Dual Theme System**        | Workshop (light) and Blueprint (dark) themes                                |
-| **Bicep & Pulumi**           | Additional IaC export formats _(Experimental)_                              |
+| **Bicep & Pulumi**           | Additional IaC export formats _(Experimental, Azure only)_                     |
 
 ---
 
@@ -123,7 +123,7 @@ CloudBlocks uses a **block-based composition model** where everything snaps toge
 
   ***
 
-  Export your design to Terraform starter code. Bicep and Pulumi are also available _(Experimental)_.
+  Export your design to Terraform starter code for Azure, AWS, or GCP. Bicep and Pulumi are also available _(Experimental, Azure only)_.
 
   [:octicons-arrow-right-24: Learn how](advanced/code-generation.md)
 

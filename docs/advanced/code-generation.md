@@ -1,11 +1,11 @@
 # Code Generation
 
-> **Audience**: Beginners | **Status**: V1 Core (Terraform) / Experimental (Bicep, Pulumi) | **Verified against**: v0.26.0
+> **Audience**: Beginners | **Status**: V1 Core (Terraform — Azure, AWS, GCP) / Experimental (Bicep, Pulumi) | **Verified against**: v0.26.0
 
 !!! info "Terraform Starter Export"
-    Terraform starter export is a V1 Core feature — it helps you learn what your visual architecture looks like as infrastructure-as-code. Bicep and Pulumi are available as Experimental features. The UI currently labels Generate Code as "Experimental" — it generates Terraform starter code using the V1 Core pipeline.
+    Terraform starter export is a V1 Core feature — it generates starter code for Azure, AWS, and GCP. Bicep (Azure-only by design) and Pulumi (Azure-only in V1) are available as Experimental features.
 
-Export your visual architecture to Terraform starter code for learning and prototyping. Bicep and Pulumi export are also available _(Experimental)_.
+Export your visual architecture to Terraform starter code for Azure, AWS, or GCP. Bicep and Pulumi exports are also available _(Experimental, Azure only)_.
 
 ---
 
@@ -26,22 +26,36 @@ Export your visual architecture to Terraform starter code for learning and proto
 
 ## Supported Formats
 
-| Format        | Output                          | Status       |
-| :------------ | :------------------------------ | :----------- |
-| **Terraform** | HCL configuration (default)     | V1 Core      |
-| **Bicep**     | Azure Bicep templates           | Experimental |
-| **Pulumi**    | Pulumi TypeScript configuration | Experimental |
+| Format        | Providers                     | Output                          | Status       |
+| :------------ | :---------------------------- | :------------------------------ | :----------- |
+| **Terraform** | Azure, AWS, GCP               | HCL configuration (default)     | V1 Core      |
+| **Bicep**     | Azure only (by design)        | Azure Bicep templates           | Experimental |
+| **Pulumi**    | Azure only (multi-cloud in V2)| Pulumi TypeScript configuration | Experimental |
 
-Use the format selector to switch between output formats. Click **Copy** to copy the generated code to your clipboard.
+Terraform is selected by default. To access Bicep or Pulumi, enable the **Advanced** toggle in the code preview panel — this reveals the format selector. Click **Copy** to copy the generated code to your clipboard.
 
 ---
 
 ## Multi-Cloud Output
 
-CloudBlocks generates Terraform starter code for the currently active canvas provider (Azure, AWS, or GCP). Switching the canvas provider automatically clears any previously generated output and resets the generator to Terraform when the current selection is incompatible.
+CloudBlocks generates Terraform starter code for the active workspace provider (Azure, AWS, or GCP). Switching the provider tab creates a new workspace for that provider after confirmation; any previously generated output is cleared and the generator resets to Terraform when the current selection is incompatible.
 
 !!! info "Provider Coverage"
     Provider coverage varies by template, resource, and export path. Terraform starter export supports all three providers. Bicep is Azure-only. Pulumi is Azure-only.
+
+### Provider-Specific Output
+
+Each provider generates idiomatic Terraform using its native resource types:
+
+| Provider  | Provider block       | Example resources                       | Default region |
+| :-------- | :------------------- | :-------------------------------------- | :------------- |
+| **Azure** | `azurerm`            | `azurerm_resource_group`, `azurerm_linux_web_app` | `eastus`       |
+| **AWS**   | `aws`                | `aws_instance`, `aws_db_instance`       | `us-east-1`    |
+| **GCP**   | `google`             | `google_cloud_run_v2_service`, `google_sql_database_instance` | `us-central1`  |
+
+AWS and GCP output includes `# TODO` comments for resource configurations that the visual model does not capture (e.g., ECS task definitions and ALB listener wiring for AWS, Cloud Functions source config and firewall rules for GCP). These are marked for you to fill in before applying.
+
+Each provider remembers your last entered region when you switch between providers during a session.
 
 ### Region Validation
 
@@ -71,10 +85,11 @@ This is designed for learning — review the code to deepen your understanding o
 ## Limitations
 
 - Terraform starter code is designed for **learning and prototyping** — review and adapt it before using in production.
+- AWS and GCP output uses `# TODO` comments for fields the visual model does not capture — fill these in before applying.
 - Not all resource properties are captured in the generated output.
 - Complex networking configurations may need additional manual setup.
 - The generator does not handle state management or deployment orchestration.
-- Bicep and Pulumi outputs are Experimental and may change between versions.
+- Bicep is Azure-only by design (Bicep is an Azure-native language). Pulumi multi-cloud support is planned for V2.
 
 ---
 

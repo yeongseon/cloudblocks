@@ -19,8 +19,8 @@ Pre-1.0 versions (v0.x) do not carry compatibility guarantees.
 | Scope         | Covered                            | Not Covered                                     |
 | ------------- | ---------------------------------- | ----------------------------------------------- |
 | **Templates** | All 6 built-in (blessed) templates | Custom blank-canvas designs                     |
-| **Export**    | Terraform starter export           | Bicep _(Experimental)_, Pulumi _(Experimental)_ |
-| **Providers** | Provider-aware visual preview      | Provider-specific resource completeness         |
+| **Export**    | Terraform starter export (Azure, AWS, GCP) | Bicep _(Experimental)_, Pulumi _(Experimental)_ |
+| **Providers** | Multi-cloud Terraform generation   | Provider-specific resource completeness         |
 | **Learning**  | Built-in guided scenarios          | Future community-contributed scenarios          |
 
 Experimental features are clearly labeled in the UI and may change between minor versions.
