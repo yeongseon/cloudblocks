@@ -661,6 +661,23 @@ describe('validateLayerPlacement', () => {
       expect(validateLayerPlacement(block, container)).toBeNull();
     }
   });
+
+  it('returns error when container layer is not a valid parent for resources', () => {
+    const block = makeBlock({ id: 'b-invalid', name: 'InvalidLayerBlock', category: 'compute' });
+    const invalidContainer = {
+      ...makePlate({ type: 'subnet' }),
+      layer: 'resource' as ContainerBlock['layer'],
+    };
+
+    expect(validateLayerPlacement(block, invalidContainer)).toEqual({
+      ruleId: 'rule-layer-hierarchy',
+      severity: 'error',
+      message:
+        'Resource "InvalidLayerBlock" cannot be placed on a "resource" container (invalid layer hierarchy)',
+      suggestion: 'Valid parent layers for resources: subnet, zone, region, edge, global',
+      targetId: 'b-invalid',
+    });
+  });
 });
 
 describe('validateGridAlignment', () => {
