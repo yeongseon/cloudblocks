@@ -11,6 +11,7 @@ import type {
   NormalizedModel,
   ProviderDefinition,
   ResourceMapping,
+  TerraformRenderContext,
 } from './types';
 import { resolveBlockMapping, sanitizeIaCValue } from './types';
 
@@ -95,57 +96,15 @@ export function normalize(
   return { architecture, resourceNames };
 }
 
-// ─── Implicit Companion Resources ───────────────────────────
-
-/**
- * Generate implicit companion resources (PIP, NIC) for blocks that require them.
- * These are Azure resources that always accompany certain parent resources
- * but don't need explicit canvas placement.
- *
- * Rules:
- *   - VM (compute, subtype='vm') → PIP + NIC (PIP before NIC, NIC references PIP)
- *   - Firewall (delivery, subtype='firewall') → PIP only
- *   - Internal LB (delivery, subtype='internal-lb') → no implicit resources (internal)
- */
-function generateImplicitResources(block: ResourceBlock, resourceName: string): string[] {
-  const sections: string[] = [];
-
-  const needsPip =
-    (block.category === 'compute' && block.subtype === 'vm') ||
-    (block.category === 'delivery' && block.subtype === 'firewall');
-
-  const needsNic = block.category === 'compute' && block.subtype === 'vm';
-
-  if (needsPip) {
-    const pipName = `${resourceName}_pip`;
-    sections.push(`resource "azurerm_public_ip" "${pipName}" {`);
-    sections.push(`  name                = "\${var.project_name}-${pipName}"`);
-    sections.push(`  resource_group_name = azurerm_resource_group.main.name`);
-    sections.push(`  location            = azurerm_resource_group.main.location`);
-    sections.push(`  allocation_method   = "Static"`);
-    sections.push(`  sku                 = "Standard"`);
-    sections.push('}');
-    sections.push('');
-  }
-
-  if (needsNic) {
-    const nicName = `${resourceName}_nic`;
-    const pipName = `${resourceName}_pip`;
-    sections.push(`resource "azurerm_network_interface" "${nicName}" {`);
-    sections.push(`  name                = "\${var.project_name}-${nicName}"`);
-    sections.push(`  resource_group_name = azurerm_resource_group.main.name`);
-    sections.push(`  location            = azurerm_resource_group.main.location`);
-    sections.push('');
-    sections.push(`  ip_configuration {`);
-    sections.push(`    name                          = "internal"`);
-    sections.push(`    private_ip_address_allocation = "Dynamic"`);
-    sections.push(`    public_ip_address_id          = azurerm_public_ip.${pipName}.id`);
-    sections.push(`  }`);
-    sections.push('}');
-    sections.push('');
-  }
-
-  return sections;
+function createRenderContext(
+  normalized: NormalizedModel,
+  options: GenerationOptions,
+): TerraformRenderContext {
+  return {
+    normalized,
+    options,
+    resourceNames: normalized.resourceNames,
+  };
 }
 
 // ─── Generate Stage ─────────────────────────────────────────
@@ -154,32 +113,22 @@ function generatePlateResource(
   container: ContainerBlock,
   resourceName: string,
   mapping: ResourceMapping,
-  _projectName: string,
   parentResourceName: string | null,
-  architecture: ArchitectureModel,
+  provider: ProviderDefinition,
+  renderCtx: TerraformRenderContext,
 ): string {
   const lines: string[] = [];
 
   lines.push(`resource "${mapping.resourceType}" "${resourceName}" {`);
-  lines.push(`  name                = "\${var.project_name}-${resourceName}"`);
-  lines.push(`  resource_group_name = azurerm_resource_group.main.name`);
-  lines.push(`  location            = azurerm_resource_group.main.location`);
-
-  if (container.layer !== 'subnet') {
-    lines.push(`  address_space       = ["10.0.0.0/16"]`);
-  }
-
-  if (container.layer === 'subnet' && parentResourceName) {
-    lines.push(`  virtual_network_name = azurerm_virtual_network.${parentResourceName}.name`);
-    // Assign sequential CIDR index based on subnet order under parent VNet
-    const containers = architecture.nodes.filter(
-      (n): n is ContainerBlock => n.kind === 'container',
-    );
-    const siblingSubnets = containers.filter(
-      (c) => c.layer === 'subnet' && c.parentId === container.parentId,
-    );
-    const cidrIndex = siblingSubnets.findIndex((c) => c.id === container.id) + 1;
-    lines.push(`  address_prefixes     = ["10.0.${cidrIndex}.0/24"]`);
+  const containerBody = provider.generators.terraform.renderContainerBody({
+    ...renderCtx,
+    container,
+    mapping,
+    resourceName,
+    parentResourceName,
+  });
+  for (const line of containerBody) {
+    lines.push(line);
   }
 
   lines.push('}');
@@ -190,52 +139,22 @@ function generateBlockResource(
   block: ResourceBlock,
   resourceName: string,
   mapping: ResourceMapping,
-  _subnetResourceName: string | null,
+  parentResourceName: string | null,
+  provider: ProviderDefinition,
+  renderCtx: TerraformRenderContext,
 ): string {
   const lines: string[] = [];
 
   lines.push(`resource "${mapping.resourceType}" "${resourceName}" {`);
-  lines.push(`  name                = "\${var.project_name}-${resourceName}"`);
-  lines.push(`  resource_group_name = azurerm_resource_group.main.name`);
-  lines.push(`  location            = azurerm_resource_group.main.location`);
-
-  switch (block.category) {
-    case 'compute':
-      lines.push(`  service_plan_id     = azurerm_service_plan.main.id`);
-      lines.push(`  site_config {}`);
-      break;
-    case 'data':
-      lines.push(`  administrator_login    = var.db_admin_username`);
-      lines.push(`  administrator_password = var.db_admin_password`);
-      lines.push(`  sku_name               = "B_Standard_B1ms"`);
-      lines.push(`  version                = "14"`);
-      lines.push(`  storage_mb             = 32768`);
-      break;
-    case 'network':
-      lines.push(`  # Network resource configuration`);
-      break;
-    case 'delivery':
-      lines.push(`  # Application Gateway configuration`);
-      lines.push(`  # Requires additional subnet, frontend IP, and backend pool configuration`);
-      lines.push(`  sku {`);
-      lines.push(`    name     = "Standard_v2"`);
-      lines.push(`    tier     = "Standard_v2"`);
-      lines.push(`    capacity = 1`);
-      lines.push(`  }`);
-      break;
-    case 'messaging':
-      lines.push(`  account_tier             = "Standard"`);
-      lines.push(`  account_replication_type = "LRS"`);
-      break;
-    case 'operations':
-      lines.push(`  # Operations and observability resource configuration`);
-      break;
-    case 'identity':
-      lines.push(`  # Managed identity configuration`);
-      break;
-    case 'security':
-      lines.push(`  # Managed identity configuration`);
-      break;
+  const blockBody = provider.generators.terraform.renderBlockBody({
+    ...renderCtx,
+    block,
+    mapping,
+    resourceName,
+    parentResourceName,
+  });
+  for (const line of blockBody) {
+    lines.push(line);
   }
 
   lines.push('}');
@@ -268,6 +187,7 @@ export function generateMainTf(
   options: GenerationOptions,
 ): string {
   const { architecture, resourceNames } = normalized;
+  const renderCtx = createRenderContext(normalized, options);
   const containers = architecture.nodes.filter((n): n is ContainerBlock => n.kind === 'container');
   const resources = architecture.nodes.filter((n): n is ResourceBlock => n.kind === 'resource');
   const sections: string[] = [];
@@ -286,24 +206,9 @@ export function generateMainTf(
   sections.push(provider.generators.terraform.providerBlock(options.region));
   sections.push('');
 
-  // Resource group
-  sections.push('resource "azurerm_resource_group" "main" {');
-  sections.push(`  name     = "\${var.project_name}-rg"`);
-  sections.push('  location = var.location');
-  sections.push('}');
-  sections.push('');
-
-  // Service plan (if compute or function blocks exist)
-  const hasCompute = resources.some((b) => b.category === 'compute');
-  if (hasCompute) {
-    sections.push('resource "azurerm_service_plan" "main" {');
-    sections.push(`  name                = "\${var.project_name}-plan"`);
-    sections.push('  resource_group_name = azurerm_resource_group.main.name');
-    sections.push('  location            = azurerm_resource_group.main.location');
-    sections.push('  os_type             = "Linux"');
-    sections.push('  sku_name            = "B1"');
-    sections.push('}');
-    sections.push('');
+  const sharedResources = provider.generators.terraform.renderSharedResources?.(renderCtx) ?? [];
+  for (const line of sharedResources) {
+    sections.push(line);
   }
 
   // Plates (regions first, then subnets)
@@ -313,9 +218,18 @@ export function generateMainTf(
   for (const container of regions) {
     const resName = resourceNames.get(container.id)!;
     const mapping = provider.containerLayerMappings[getContainerLayer(container)];
-    sections.push(
-      generatePlateResource(container, resName, mapping, options.projectName, null, architecture),
-    );
+    sections.push(generatePlateResource(container, resName, mapping, null, provider, renderCtx));
+    const companionLines =
+      provider.generators.terraform.renderContainerCompanions?.({
+        ...renderCtx,
+        container,
+        mapping,
+        resourceName: resName,
+        parentResourceName: null,
+      }) ?? [];
+    for (const line of companionLines) {
+      sections.push(line);
+    }
     sections.push('');
   }
 
@@ -324,15 +238,19 @@ export function generateMainTf(
     const mapping = provider.containerLayerMappings[getContainerLayer(container)];
     const parentName = container.parentId ? (resourceNames.get(container.parentId) ?? null) : null;
     sections.push(
-      generatePlateResource(
-        container,
-        resName,
-        mapping,
-        options.projectName,
-        parentName,
-        architecture,
-      ),
+      generatePlateResource(container, resName, mapping, parentName, provider, renderCtx),
     );
+    const companionLines =
+      provider.generators.terraform.renderContainerCompanions?.({
+        ...renderCtx,
+        container,
+        mapping,
+        resourceName: resName,
+        parentResourceName: parentName,
+      }) ?? [];
+    for (const line of companionLines) {
+      sections.push(line);
+    }
     sections.push('');
   }
 
@@ -347,12 +265,20 @@ export function generateMainTf(
     )!;
     const subnetName = resourceNames.get(block.parentId ?? '') ?? null;
 
-    const implicitSections = generateImplicitResources(block, resName);
-    for (const section of implicitSections) {
+    const blockCtx = {
+      ...renderCtx,
+      block,
+      mapping,
+      resourceName: resName,
+      parentResourceName: subnetName,
+    };
+
+    const companionLines = provider.generators.terraform.renderBlockCompanions?.(blockCtx) ?? [];
+    for (const section of companionLines) {
       sections.push(section);
     }
 
-    sections.push(generateBlockResource(block, resName, mapping, subnetName));
+    sections.push(generateBlockResource(block, resName, mapping, subnetName, provider, renderCtx));
     sections.push('');
   }
 
@@ -368,7 +294,10 @@ export function generateMainTf(
   return sections.join('\n');
 }
 
-export function generateVariablesTf(options: GenerationOptions): string {
+export function generateVariablesTf(
+  options: GenerationOptions,
+  provider: ProviderDefinition,
+): string {
   const sections: string[] = [];
 
   sections.push('# Generated by CloudBlocks');
@@ -380,7 +309,9 @@ export function generateVariablesTf(options: GenerationOptions): string {
   sections.push('}');
   sections.push('');
   sections.push('variable "location" {');
-  sections.push('  description = "Azure region for resource deployment"');
+  sections.push(
+    `  description = "${provider.generators.terraform.regionVariableDescription ?? 'Deployment region'}"`,
+  );
   sections.push('  type        = string');
   sections.push(`  default     = "${sanitizeIaCValue(options.region)}"`);
   sections.push('}');
@@ -397,22 +328,52 @@ export function generateVariablesTf(options: GenerationOptions): string {
   sections.push('  sensitive   = true');
   sections.push('}');
 
+  const renderCtx = createRenderContext(
+    {
+      architecture: {
+        id: 'variables-only',
+        name: 'variables-only',
+        version: '1',
+        nodes: [],
+        connections: [],
+        endpoints: [],
+        externalActors: [],
+        createdAt: '1970-01-01T00:00:00.000Z',
+        updatedAt: '1970-01-01T00:00:00.000Z',
+      },
+      resourceNames: new Map(),
+    },
+    options,
+  );
+  const extraVariableLines = provider.generators.terraform.extraVariables?.(renderCtx) ?? [];
+  if (extraVariableLines.length > 0) {
+    sections.push('');
+    for (const line of extraVariableLines) {
+      sections.push(line);
+    }
+  }
+
   return sections.join('\n');
 }
 
 export function generateOutputsTf(
   normalized: NormalizedModel,
   provider: ProviderDefinition,
+  options: GenerationOptions,
 ): string {
   const { architecture, resourceNames } = normalized;
+  const renderCtx = createRenderContext(normalized, options);
   const resources = architecture.nodes.filter((n): n is ResourceBlock => n.kind === 'resource');
   const sections: string[] = [];
 
   sections.push('# Generated by CloudBlocks');
   sections.push('');
-  sections.push('output "resource_group_name" {');
-  sections.push('  value = azurerm_resource_group.main.name');
-  sections.push('}');
+  const providerOutputs = provider.generators.terraform.extraOutputs?.(renderCtx) ?? [];
+  for (const output of providerOutputs) {
+    sections.push(`output "${output.name}" {`);
+    sections.push(`  value = ${output.value}`);
+    sections.push('}');
+  }
 
   // Output each block's key attribute
   for (const block of resources) {

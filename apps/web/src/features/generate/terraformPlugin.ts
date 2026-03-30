@@ -23,8 +23,8 @@ export const terraformPlugin: GeneratorPlugin = {
 
   generate: (model, ctx) => {
     const mainTf = generateMainTf(model, ctx.provider, ctx.options);
-    const variablesTf = generateVariablesTf(ctx.options);
-    const outputsTf = generateOutputsTf(model, ctx.provider);
+    const variablesTf = generateVariablesTf(ctx.options, ctx.provider);
+    const outputsTf = generateOutputsTf(model, ctx.provider, ctx.options);
 
     return {
       files: [
