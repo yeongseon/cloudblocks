@@ -76,7 +76,7 @@ After v1.0.0, development continues with backward-compatible minor releases (v1.
 - Code generation validation pipeline
 - CI/CD template integration
 - **Kill switch**: If template→edit→export completion < 30%, re-evaluate export UX before continuing
-- Bicep & Pulumi export promoted from Experimental to Stable
+- Bicep & Pulumi exports remain Experimental — promote only after Terraform kill switch passes
 
 ---
 
