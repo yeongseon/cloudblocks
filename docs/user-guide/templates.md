@@ -12,8 +12,8 @@ Templates are pre-built architecture patterns that provide a working starting po
 
 You can load a template in two ways:
 
-1. On the empty canvas, click **Start Learning** from the initial call to action to open the Scenario Gallery, which includes templates.
-2. Use the menu: **Build → Browse Templates**.
+1. From the builder toolbar, click the **Templates** button to open the Template Gallery.
+2. Or use the menu: **Build → Browse Templates** to open the same Template Gallery view.
 
 The Template Gallery shows all available patterns. Click any template to see a preview and description. Click **Use** to load it into your workspace.
 

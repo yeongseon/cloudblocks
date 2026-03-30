@@ -69,9 +69,10 @@ The builder uses a 4-panel layout:
 
 Once your architecture looks right, export Terraform starter code to see what the design produces:
 
-1. Open **Build → Generate Code** from the menu bar.
-2. Review the generated Terraform configuration in the panel.
-3. Click **Copy** or **Download** to save the output.
+1. Open **Build → Generate Code** from the menu bar to open the code panel.
+2. Click **Generate Code** in the panel to create the Terraform configuration.
+3. Review the generated Terraform configuration in the panel.
+4. Click **Copy** or **Download All** to save the output.
 
 The exported code is a learning artifact — it shows the real Terraform resources behind each block. You can open it in any editor to study the structure.
 

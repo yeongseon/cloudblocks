@@ -25,7 +25,7 @@ When the canvas is empty, users see the **EmptyCanvasCTA** with two options:
 | **Start Learning**          | Opens the Scenario Gallery for guided, step-by-step learning (recommended for beginners) |
 | **Practice on Blank Canvas** | Dismisses the overlay so the user can build manually from the sidebar palette            |
 
-Users can also start from the **MenuBar** (under the Build section):
+Users can also start from the **MenuBar** and **Build** menu:
 
 - **Learn** button (top bar) — opens the Scenario Gallery for guided learning
 - `Build → Browse Templates` — opens the Template Gallery with pre-built architectures
@@ -187,7 +187,7 @@ Guided scenarios teach users how to build architectures step-by-step. Learning M
 ### Flow
 
 ```
-Learn → Browse Scenarios → Select Scenario → Follow Steps → Complete
+Learn → Scenario Gallery → Select Scenario → Follow Steps → Complete
 ```
 
 - Scenarios range from beginner (place a VNet) to advanced (full three-tier architecture)
