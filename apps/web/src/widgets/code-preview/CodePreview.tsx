@@ -161,7 +161,8 @@ export function CodePreview({ embedded = false }: CodePreviewProps) {
             {Array.from(mismatchedProviders.entries())
               .map(([p, count]) => `${count} ${p.toUpperCase()}`)
               .join(', ')}{' '}
-            block(s) but generating for {activeProvider.toUpperCase()}. Switch those blocks to AZURE
+            block(s) but generating for {activeProvider.toUpperCase()}. Switch those blocks to{' '}
+            {activeProvider.toUpperCase()}
             for consistent output.
           </div>
         )}

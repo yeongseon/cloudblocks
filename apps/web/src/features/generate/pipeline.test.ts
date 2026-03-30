@@ -365,15 +365,16 @@ describe('pipeline', () => {
       ).toThrow(/Invalid Azure region/);
     });
 
-    it('throws when AWS provider is used with terraform (not yet supported)', () => {
-      expect(() =>
-        generateCode(validModel, {
-          ...validOptions,
-          provider: 'aws',
-          region: 'us-east-1',
-          generator: 'terraform',
-        }),
-      ).toThrow(/does not support provider/);
+    it('supports AWS provider when generator is terraform', () => {
+      const result = generateCode(validModel, {
+        ...validOptions,
+        provider: 'aws',
+        region: 'us-east-1',
+        generator: 'terraform',
+      });
+
+      expect(result.files.map((f) => f.path)).toEqual(['main.tf', 'variables.tf', 'outputs.tf']);
+      expect(result.metadata.provider).toBe('aws');
     });
 
     it('throws when GCP provider is used with terraform (not yet supported)', () => {

@@ -11,7 +11,7 @@ import { normalize, generateMainTf, generateVariablesTf, generateOutputsTf } fro
 export const terraformPlugin: GeneratorPlugin = {
   id: 'terraform',
   displayName: 'Terraform (HCL)',
-  supportedProviders: ['azure'],
+  supportedProviders: ['azure', 'aws'],
 
   filePlan: () => [
     { path: 'main.tf', language: 'hcl' },
