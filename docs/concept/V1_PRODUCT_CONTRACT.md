@@ -52,6 +52,7 @@ These features require the backend API and are not part of the default V1 experi
 | Server-side features (GitHub, AI) | V3     |
 | Learning paths with progress      | V3     |
 | Educator distribution             | V4     |
+| Bicep & Pulumi promoted to Stable | V2+ (after Terraform kill switch passes) |
 
 ## Version Transition
 
