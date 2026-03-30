@@ -229,7 +229,7 @@ describe('provider definitions', () => {
     expect(mainTf?.content).toContain('resource "aws_vpc"');
   });
 
-  it('throws when gcp provider is used with terraform (not yet supported)', () => {
+  it('gcp adapter generates non-empty terraform output', () => {
     const architecture: ArchitectureModel = {
       id: 'arch-adapter-gcp-1',
       name: 'Provider Adapter GCP Terraform Test',
@@ -283,14 +283,26 @@ describe('provider definitions', () => {
       updatedAt: '2026-01-01T00:00:00Z',
     };
 
-    expect(() =>
-      generateCode(architecture, {
-        provider: 'gcp',
-        mode: 'draft',
-        projectName: 'adapter-test',
-        region: 'eastus',
-        generator: 'terraform',
-      }),
-    ).toThrow(/does not support provider/);
+    const output = generateCode(architecture, {
+      provider: 'gcp',
+      mode: 'draft',
+      projectName: 'adapter-test',
+      region: 'us-central1',
+      generator: 'terraform',
+    });
+
+    const mainTf = output.files.find((file) => file.path === 'main.tf');
+    const variablesTf = output.files.find((file) => file.path === 'variables.tf');
+
+    expect(mainTf).toBeDefined();
+    expect(mainTf?.content.trim().length).toBeGreaterThan(0);
+    expect(mainTf?.content).toContain('provider "google"');
+    expect(mainTf?.content).toContain('resource "google_compute_network"');
+    expect(mainTf?.content).toContain('resource "google_compute_subnetwork"');
+    expect(mainTf?.content).toContain('resource "google_cloud_run_v2_service"');
+
+    expect(variablesTf).toBeDefined();
+    expect(variablesTf?.content).toContain('variable "project_id"');
+    expect(variablesTf?.content).toContain('variable "zone"');
   });
 });

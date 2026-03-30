@@ -476,18 +476,596 @@ describe('gcpProviderDefinition', () => {
     });
   });
 
-  it('exposes terraform hook stubs', () => {
+  it('exposes terraform hooks with GCP starter bodies', () => {
     const terraformConfig = gcpProviderDefinition.generators.terraform;
-    const blockContext: TerraformBlockContext = {
-      ...stubBlockContext,
-      mapping: { resourceType: 'google_compute_instance', namePrefix: 'gce' },
-    };
-
     expect(terraformConfig.requiredProviders()).toContain('hashicorp/google');
     expect(terraformConfig.providerBlock('us-central1')).toContain('provider "google" {');
-    expect(terraformConfig.renderContainerBody(stubContainerContext)).toEqual([]);
-    expect(terraformConfig.renderBlockBody(blockContext)).toEqual([
-      '  # TODO: Configure google_compute_instance',
+    expect(terraformConfig.providerBlock('us-central1')).toContain('project = var.project_id');
+    expect(terraformConfig.providerBlock('us-central1')).toContain('region');
+    expect(terraformConfig.regionVariableDescription).toBe('GCP region for resource deployment');
+  });
+
+  it('renders VPC and subnet container bodies', () => {
+    const terraformConfig = gcpProviderDefinition.generators.terraform;
+    const vpcBody = terraformConfig.renderContainerBody({
+      ...stubContainerContext,
+      container: { ...stubContainerContext.container, layer: 'region' },
+      mapping: { resourceType: 'google_compute_network', namePrefix: 'network' },
+    });
+    expect(vpcBody).toEqual([
+      '  name                    = "vpc-main"',
+      '  auto_create_subnetworks = false',
+      '  depends_on    = [google_project_service.compute]',
     ]);
+
+    const subnetContext: TerraformContainerContext = {
+      ...stubContainerContext,
+      normalized: {
+        architecture: {
+          ...stubArchitecture,
+          nodes: [
+            {
+              ...stubContainerContext.container,
+              id: 'vpc-1',
+              layer: 'region',
+              parentId: null,
+            },
+            {
+              ...stubContainerContext.container,
+              id: 'sub-1',
+              layer: 'subnet',
+              parentId: 'vpc-1',
+            },
+          ],
+          connections: [],
+          endpoints: [],
+          externalActors: [],
+        },
+        resourceNames: new Map([
+          ['vpc-1', 'vpc_main'],
+          ['sub-1', 'subnet_main'],
+        ]),
+      },
+      container: {
+        ...stubContainerContext.container,
+        id: 'sub-1',
+        layer: 'subnet',
+        parentId: 'vpc-1',
+      },
+      mapping: { resourceType: 'google_compute_subnetwork', namePrefix: 'subnet' },
+      resourceName: 'subnet_main',
+      parentResourceName: 'vpc_main',
+    };
+
+    const subnetBody = terraformConfig.renderContainerBody(subnetContext).join('\n');
+    expect(subnetBody).toContain('network       = google_compute_network.vpc_main.id');
+    expect(subnetBody).toContain('ip_cidr_range = "10.0.1.0/24"');
+    expect(subnetBody).toContain('region        = var.location');
+  });
+
+  it('renders GCP compute and service resource bodies', () => {
+    const terraformConfig = gcpProviderDefinition.generators.terraform;
+
+    const computeBody = terraformConfig
+      .renderBlockBody({
+        ...stubBlockContext,
+        mapping: { resourceType: 'google_compute_instance', namePrefix: 'gce' },
+        parentResourceName: 'subnet_main',
+      })
+      .join('\n');
+    expect(computeBody).toContain('machine_type = "e2-micro"');
+    expect(computeBody).toContain('zone         = var.zone');
+    expect(computeBody).toContain('boot_disk {');
+    expect(computeBody).toContain('network_interface {');
+
+    const runBody = terraformConfig
+      .renderBlockBody({
+        ...stubBlockContext,
+        mapping: { resourceType: 'google_cloud_run_v2_service', namePrefix: 'run' },
+      })
+      .join('\n');
+    expect(runBody).toContain('us-docker.pkg.dev/cloudrun/container/hello');
+    expect(runBody).toContain('location = var.location');
+
+    const sqlBody = terraformConfig
+      .renderBlockBody({
+        ...stubBlockContext,
+        mapping: { resourceType: 'google_sql_database_instance', namePrefix: 'sql' },
+      })
+      .join('\n');
+    expect(sqlBody).toContain('POSTGRES_14');
+    expect(sqlBody).toContain('db-f1-micro');
+    expect(sqlBody).toContain('deletion_protection = false');
+
+    const storageBody = terraformConfig
+      .renderBlockBody({
+        ...stubBlockContext,
+        mapping: { resourceType: 'google_storage_bucket', namePrefix: 'gcs' },
+      })
+      .join('\n');
+    expect(storageBody).toContain('force_destroy');
+    expect(storageBody).toContain('uniform_bucket_level_access');
+    expect(storageBody).toContain('public_access_prevention');
+  });
+
+  it('renders firewall body with VPC ancestor and emits error without ancestor', () => {
+    const terraformConfig = gcpProviderDefinition.generators.terraform;
+    const withVpcContext: TerraformBlockContext = {
+      ...stubBlockContext,
+      normalized: {
+        architecture: {
+          ...stubArchitecture,
+          nodes: [
+            {
+              ...stubContainerContext.container,
+              id: 'vpc-1',
+              name: 'VPC',
+              layer: 'region',
+              parentId: null,
+            },
+            {
+              ...stubContainerContext.container,
+              id: 'sub-1',
+              name: 'Subnet',
+              layer: 'subnet',
+              parentId: 'vpc-1',
+            },
+            {
+              ...stubBlockContext.block,
+              id: 'fw-1',
+              category: 'security',
+              parentId: 'sub-1',
+            },
+          ],
+          connections: [],
+          endpoints: [],
+          externalActors: [],
+        },
+        resourceNames: new Map([
+          ['vpc-1', 'vpc_main'],
+          ['sub-1', 'subnet_main'],
+          ['fw-1', 'fw_main'],
+        ]),
+      },
+      resourceNames: new Map([
+        ['vpc-1', 'vpc_main'],
+        ['sub-1', 'subnet_main'],
+        ['fw-1', 'fw_main'],
+      ]),
+      block: { ...stubBlockContext.block, id: 'fw-1', parentId: 'sub-1', category: 'security' },
+      mapping: { resourceType: 'google_compute_firewall', namePrefix: 'fw' },
+      resourceName: 'fw_main',
+      parentResourceName: 'subnet_main',
+    };
+
+    const withVpc = terraformConfig.renderBlockBody(withVpcContext).join('\n');
+    expect(withVpc).toContain('google_compute_network.vpc_main.id');
+
+    const withoutVpc = terraformConfig
+      .renderBlockBody({
+        ...stubBlockContext,
+        mapping: { resourceType: 'google_compute_firewall', namePrefix: 'fw' },
+        block: { ...stubBlockContext.block, parentId: null, category: 'security' },
+      })
+      .join('\n');
+    expect(withoutVpc).toContain('# ERROR: Firewall requires a VPC ancestor');
+  });
+
+  it('emits planning guidance for Cloud Functions', () => {
+    const terraformConfig = gcpProviderDefinition.generators.terraform;
+    const functionBody = terraformConfig
+      .renderBlockBody({
+        ...stubBlockContext,
+        mapping: { resourceType: 'google_cloudfunctions2_function', namePrefix: 'gcf' },
+      })
+      .join('\n');
+    expect(functionBody).toContain('cannot be planned');
+  });
+
+  it('renders shared resources and extra variables for GCP', () => {
+    const terraformConfig = gcpProviderDefinition.generators.terraform;
+    const sharedResources = terraformConfig.renderSharedResources?.({
+      normalized: {
+        architecture: {
+          ...stubArchitecture,
+          nodes: [
+            {
+              ...stubContainerContext.container,
+              id: 'net-1',
+              layer: 'region',
+            },
+            {
+              ...stubBlockContext.block,
+              id: 'run-1',
+              category: 'compute',
+              subtype: 'cloud-run',
+              parentId: 'net-1',
+            },
+          ],
+          connections: [],
+          endpoints: [],
+          externalActors: [],
+        },
+        resourceNames: new Map([
+          ['net-1', 'network_main'],
+          ['run-1', 'run_main'],
+        ]),
+      },
+      options: stubContainerContext.options,
+      resourceNames: new Map([
+        ['net-1', 'network_main'],
+        ['run-1', 'run_main'],
+      ]),
+    });
+
+    expect(sharedResources).toBeDefined();
+    expect(sharedResources!.join('\n')).toContain('google_project_service');
+
+    const extraVariables = terraformConfig.extraVariables?.({
+      normalized: stubContainerContext.normalized,
+      options: stubContainerContext.options,
+      resourceNames: stubContainerContext.resourceNames,
+    });
+    expect(extraVariables).toBeDefined();
+    expect(extraVariables!.join('\n')).toContain('project_id');
+    expect(extraVariables!.join('\n')).toContain('zone');
+  });
+
+  it('renders all uncovered GCP block body variants', () => {
+    const terraformConfig = gcpProviderDefinition.generators.terraform;
+    const cases: Array<{ resourceType: string; expected: string }> = [
+      { resourceType: 'google_firestore_database', expected: 'FIRESTORE_NATIVE' },
+      {
+        resourceType: 'google_compute_url_map',
+        expected: 'URL map requires backend service wiring',
+      },
+      { resourceType: 'google_api_gateway_api', expected: 'api_id = "gcp_block_main"' },
+      {
+        resourceType: 'google_compute_router_nat',
+        expected: 'Cloud NAT requires google_compute_router',
+      },
+      {
+        resourceType: 'google_pubsub_topic',
+        expected: 'name = "${var.project_name}-gcp-block-main"',
+      },
+      {
+        resourceType: 'google_eventarc_trigger',
+        expected: 'Eventarc trigger requires destination service',
+      },
+      { resourceType: 'google_service_account', expected: 'account_id   = "gcp-block-main"' },
+      { resourceType: 'google_bigquery_dataset', expected: 'dataset_id = "gcp_block_main"' },
+      { resourceType: 'google_monitoring_dashboard', expected: 'dashboard_json = jsonencode({' },
+      {
+        resourceType: 'google_compute_backend_service',
+        expected: '# Configure google_compute_backend_service',
+      },
+    ];
+
+    for (const testCase of cases) {
+      const body = terraformConfig.renderBlockBody({
+        ...stubBlockContext,
+        resourceName: 'gcp_block_main',
+        mapping: { resourceType: testCase.resourceType, namePrefix: 'gcp' },
+        parentResourceName: 'subnet_main',
+      });
+
+      expect(body.join('\n')).toContain(testCase.expected);
+    }
+  });
+
+  it('renders compute instance guidance when subnet parent is missing', () => {
+    const terraformConfig = gcpProviderDefinition.generators.terraform;
+    const body = terraformConfig
+      .renderBlockBody({
+        ...stubBlockContext,
+        mapping: { resourceType: 'google_compute_instance', namePrefix: 'gce' },
+        parentResourceName: null,
+      })
+      .join('\n');
+
+    expect(body).toContain('Compute instance requires a subnet parent');
+  });
+
+  it('renders GCP subnet container without parent network reference', () => {
+    const terraformConfig = gcpProviderDefinition.generators.terraform;
+    const body = terraformConfig
+      .renderContainerBody({
+        ...stubContainerContext,
+        container: { ...stubContainerContext.container, layer: 'subnet', parentId: null },
+        mapping: { resourceType: 'google_compute_subnetwork', namePrefix: 'subnet' },
+        parentResourceName: null,
+      })
+      .join('\n');
+
+    expect(body).toContain('region        = var.location');
+    expect(body).not.toContain('network       = google_compute_network');
+    expect(body).not.toContain('ip_cidr_range');
+  });
+
+  it('renders shared resources for all GCP API prefix mappings', () => {
+    const terraformConfig = gcpProviderDefinition.generators.terraform;
+    const shared = terraformConfig.renderSharedResources?.({
+      normalized: {
+        architecture: {
+          ...stubArchitecture,
+          nodes: [
+            {
+              ...stubContainerContext.container,
+              id: 'net-1',
+              kind: 'container',
+              layer: 'region',
+              parentId: null,
+            },
+            {
+              ...stubBlockContext.block,
+              id: 'run-1',
+              category: 'compute',
+              subtype: 'cloud-run',
+              parentId: 'net-1',
+            },
+            {
+              ...stubBlockContext.block,
+              id: 'func-1',
+              category: 'compute',
+              subtype: 'cloud-functions',
+              parentId: 'net-1',
+            },
+            {
+              ...stubBlockContext.block,
+              id: 'sql-1',
+              category: 'data',
+              subtype: 'cloud-sql-postgres',
+              parentId: 'net-1',
+            },
+            {
+              ...stubBlockContext.block,
+              id: 'storage-1',
+              category: 'data',
+              subtype: 'cloud-storage',
+              parentId: 'net-1',
+            },
+            {
+              ...stubBlockContext.block,
+              id: 'topic-1',
+              category: 'messaging',
+              subtype: 'pubsub',
+              parentId: 'net-1',
+            },
+            {
+              ...stubBlockContext.block,
+              id: 'eventarc-1',
+              category: 'messaging',
+              subtype: 'eventarc',
+              parentId: 'net-1',
+            },
+            {
+              ...stubBlockContext.block,
+              id: 'bq-1',
+              category: 'operations',
+              subtype: 'bigquery',
+              parentId: 'net-1',
+            },
+            {
+              ...stubBlockContext.block,
+              id: 'dash-1',
+              category: 'operations',
+              subtype: 'monitoring',
+              parentId: 'net-1',
+            },
+            {
+              ...stubBlockContext.block,
+              id: 'api-1',
+              category: 'delivery',
+              subtype: 'api-gateway',
+              parentId: 'net-1',
+            },
+            {
+              ...stubBlockContext.block,
+              id: 'iam-1',
+              category: 'identity',
+              subtype: 'service-account',
+              parentId: 'net-1',
+            },
+          ],
+          connections: [],
+          endpoints: [],
+          externalActors: [],
+        },
+        resourceNames: new Map([
+          ['net-1', 'network_main'],
+          ['run-1', 'run_main'],
+          ['func-1', 'func_main'],
+          ['sql-1', 'sql_main'],
+          ['storage-1', 'storage_main'],
+          ['topic-1', 'topic_main'],
+          ['eventarc-1', 'eventarc_main'],
+          ['bq-1', 'analytics_main'],
+          ['dash-1', 'dashboard_main'],
+          ['api-1', 'apigw_main'],
+          ['iam-1', 'identity_main'],
+        ]),
+      },
+      options: stubContainerContext.options,
+      resourceNames: new Map([
+        ['net-1', 'network_main'],
+        ['run-1', 'run_main'],
+        ['func-1', 'func_main'],
+        ['sql-1', 'sql_main'],
+        ['storage-1', 'storage_main'],
+        ['topic-1', 'topic_main'],
+        ['eventarc-1', 'eventarc_main'],
+        ['bq-1', 'analytics_main'],
+        ['dash-1', 'dashboard_main'],
+        ['api-1', 'apigw_main'],
+        ['iam-1', 'identity_main'],
+      ]),
+    });
+
+    const joined = shared!.join('\n');
+    expect(joined).toContain('compute.googleapis.com');
+    expect(joined).toContain('run.googleapis.com');
+    expect(joined).toContain('sqladmin.googleapis.com');
+    expect(joined).toContain('storage.googleapis.com');
+    expect(joined).toContain('cloudfunctions.googleapis.com');
+    expect(joined).toContain('pubsub.googleapis.com');
+    expect(joined).toContain('eventarc.googleapis.com');
+    expect(joined).toContain('bigquery.googleapis.com');
+    expect(joined).toContain('monitoring.googleapis.com');
+    expect(joined).toContain('apigateway.googleapis.com');
+    expect(joined).toContain('iam.googleapis.com');
+  });
+
+  it('skips unresolved container/resource mappings in shared resources', () => {
+    const terraformConfig = gcpProviderDefinition.generators.terraform;
+    const originalRegionMapping = gcpProviderDefinition.containerLayerMappings.region;
+    const originalComputeMapping = gcpProviderDefinition.blockMappings.compute;
+
+    Object.defineProperty(gcpProviderDefinition.containerLayerMappings, 'region', {
+      configurable: true,
+      value: undefined,
+    });
+    Object.defineProperty(gcpProviderDefinition.blockMappings, 'compute', {
+      configurable: true,
+      value: undefined,
+    });
+
+    try {
+      const shared = terraformConfig.renderSharedResources?.({
+        normalized: {
+          architecture: {
+            ...stubArchitecture,
+            nodes: [
+              {
+                ...stubContainerContext.container,
+                id: 'container-resource-layer',
+                kind: 'container',
+                layer: 'resource',
+                parentId: null,
+              },
+              {
+                ...stubBlockContext.block,
+                id: 'compute-node',
+                category: 'compute',
+                subtype: undefined,
+                parentId: null,
+              },
+            ],
+            connections: [],
+            endpoints: [],
+            externalActors: [],
+          },
+          resourceNames: new Map([
+            ['container-resource-layer', 'container_resource_layer'],
+            ['compute-node', 'compute_node'],
+          ]),
+        },
+        options: stubContainerContext.options,
+        resourceNames: new Map([
+          ['container-resource-layer', 'container_resource_layer'],
+          ['compute-node', 'compute_node'],
+        ]),
+      });
+
+      expect(shared).toEqual([]);
+    } finally {
+      Object.defineProperty(gcpProviderDefinition.containerLayerMappings, 'region', {
+        configurable: true,
+        value: originalRegionMapping,
+      });
+      Object.defineProperty(gcpProviderDefinition.blockMappings, 'compute', {
+        configurable: true,
+        value: originalComputeMapping,
+      });
+    }
+  });
+
+  it('handles missing node lookups while building shared resources', () => {
+    const terraformConfig = gcpProviderDefinition.generators.terraform;
+    const nodes = [
+      {
+        ...stubBlockContext.block,
+        id: 'lookup-miss-1',
+        category: 'compute' as const,
+      },
+    ];
+
+    Object.defineProperty(nodes, 'find', {
+      configurable: true,
+      value: () => undefined,
+    });
+
+    const shared = terraformConfig.renderSharedResources?.({
+      normalized: {
+        architecture: {
+          ...stubArchitecture,
+          nodes,
+          connections: [],
+          endpoints: [],
+          externalActors: [],
+        },
+        resourceNames: new Map([['lookup-miss-1', 'lookup_miss_1']]),
+      },
+      options: stubContainerContext.options,
+      resourceNames: new Map([['lookup-miss-1', 'lookup_miss_1']]),
+    });
+
+    expect(shared).toEqual([]);
+  });
+
+  it('omits unknown API prefixes from shared resources', () => {
+    const terraformConfig = gcpProviderDefinition.generators.terraform;
+    const originalComputeMapping = gcpProviderDefinition.blockMappings.compute;
+
+    gcpProviderDefinition.blockMappings.compute = {
+      resourceType: 'google_custom_runtime',
+      namePrefix: 'custom',
+    };
+
+    try {
+      const shared = terraformConfig.renderSharedResources?.({
+        normalized: {
+          architecture: {
+            ...stubArchitecture,
+            nodes: [
+              {
+                ...stubBlockContext.block,
+                id: 'custom-1',
+                category: 'compute',
+                subtype: undefined,
+                parentId: null,
+              },
+            ],
+            connections: [],
+            endpoints: [],
+            externalActors: [],
+          },
+          resourceNames: new Map([['custom-1', 'custom_1']]),
+        },
+        options: stubContainerContext.options,
+        resourceNames: new Map([['custom-1', 'custom_1']]),
+      });
+
+      expect(shared).toEqual([]);
+    } finally {
+      gcpProviderDefinition.blockMappings.compute = originalComputeMapping;
+    }
+  });
+
+  it('renders compute companions and no companions for non-compute resources', () => {
+    const terraformConfig = gcpProviderDefinition.generators.terraform;
+
+    const computeCompanions = terraformConfig.renderBlockCompanions?.({
+      ...stubBlockContext,
+      mapping: { resourceType: 'google_compute_instance', namePrefix: 'gce' },
+      resourceName: 'gce_main',
+    });
+    expect(computeCompanions).toBeDefined();
+    expect(computeCompanions!.join('\n')).toContain('data "google_compute_image" "gce_main_image"');
+
+    const storageCompanions = terraformConfig.renderBlockCompanions?.({
+      ...stubBlockContext,
+      mapping: { resourceType: 'google_storage_bucket', namePrefix: 'gcs' },
+    });
+    expect(storageCompanions).toEqual([]);
   });
 });
