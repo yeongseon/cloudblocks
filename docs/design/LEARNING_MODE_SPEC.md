@@ -11,7 +11,7 @@
 
 CloudBlocks Learning Mode is the **primary product experience** — a guided learning platform for cloud architecture beginners (Duolingo for Cloud Architecture). Learning Mode is a V1 Core feature, not an opt-in advanced feature.
 
-Users start in Build Mode (free-form editor) and access Learn Mode (guided scenario missions) via the Scenario Gallery. The recommended path for beginners is to open a guided scenario from the empty canvas CTA ("Start from Template") or from **Build → Browse Scenarios** in the menu bar.
+Users start in Build Mode (free-form editor) and access Learn Mode (guided scenario missions) via the Scenario Gallery. The recommended path for beginners is to open a guided scenario from the empty canvas CTA ("Start Learning") or from the **Learn** button in the menu bar.
 
 ### Goals
 

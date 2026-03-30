@@ -65,7 +65,23 @@ The builder uses a 4-panel layout:
 
 ---
 
-## Step 4 — Save Your Work
+## Step 4 — Export Starter Code
+
+Once your architecture looks right, export Terraform starter code to see what the design produces:
+
+1. Open **Build → Generate Code** from the menu bar to open the code panel.
+2. Click **Generate Code** in the panel to create the Terraform configuration.
+3. Review the generated Terraform configuration in the panel.
+4. Click **Copy** or **Download All** to save the output.
+
+The exported code is a learning artifact — it shows the real Terraform resources behind each block. You can open it in any editor to study the structure.
+
+!!! tip "Experimental formats"
+    Bicep and Pulumi export are also available under Build → Generate Code, marked as experimental.
+
+---
+
+## Step 5 — Save Your Work
 
 Your progress is automatically saved to your browser's local storage.
 
