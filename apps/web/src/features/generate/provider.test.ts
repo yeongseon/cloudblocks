@@ -164,10 +164,10 @@ describe('getProviderDefinition', () => {
 });
 
 describe('awsProviderDefinition', () => {
-  it('uses ECS service mapping for compute category and includes new category mappings', () => {
+  it('uses EC2 instance mapping for compute category and includes new category mappings', () => {
     expect(awsProviderDefinition.blockMappings.compute).toEqual({
-      resourceType: 'aws_ecs_service',
-      namePrefix: 'ecs',
+      resourceType: 'aws_instance',
+      namePrefix: 'ec2',
     });
     expect(awsProviderDefinition.blockMappings.operations).toEqual({
       resourceType: 'aws_athena_workgroup',
@@ -190,15 +190,258 @@ describe('awsProviderDefinition', () => {
     });
   });
 
-  it('exposes terraform hook stubs', () => {
+  it('exposes terraform hooks with AWS starter bodies', () => {
     const terraformConfig = awsProviderDefinition.generators.terraform;
 
     expect(terraformConfig.requiredProviders()).toContain('hashicorp/aws');
     expect(terraformConfig.providerBlock('us-east-1')).toContain('provider "aws" {');
-    expect(terraformConfig.renderContainerBody(stubContainerContext)).toEqual([]);
-    expect(terraformConfig.renderBlockBody(stubBlockContext)).toEqual([
-      '  # TODO: Configure aws_instance',
-    ]);
+    expect(terraformConfig.regionVariableDescription).toBe('AWS region for resource deployment');
+    const sharedResources = terraformConfig.renderSharedResources?.({
+      normalized: stubContainerContext.normalized,
+      options: stubContainerContext.options,
+      resourceNames: stubContainerContext.resourceNames,
+    });
+    expect(sharedResources).toBeDefined();
+    expect(sharedResources!.length).toBeGreaterThan(0);
+    expect(sharedResources!.join('\n')).toContain('aws_ssm_parameter');
+    expect(sharedResources!.join('\n')).toContain('aws_availability_zones');
+    expect(terraformConfig.renderContainerBody(stubContainerContext)).toContain(
+      '  cidr_block           = "10.0.0.0/16"',
+    );
+    expect(terraformConfig.renderBlockBody(stubBlockContext)).toContain(
+      '  instance_type = "t3.micro"',
+    );
+    expect(terraformConfig.renderBlockBody(stubBlockContext)).toContain(
+      '  ami           = data.aws_ssm_parameter.amazon_linux_ami.value',
+    );
+  });
+
+  it('renders subnet-specific container body with parent VPC and CIDR index', () => {
+    const terraformConfig = awsProviderDefinition.generators.terraform;
+    const subnetCtx: TerraformContainerContext = {
+      ...stubContainerContext,
+      normalized: {
+        architecture: {
+          ...stubArchitecture,
+          nodes: [
+            {
+              ...stubContainerContext.container,
+              id: 'vpc-1',
+              name: 'Core',
+              layer: 'region',
+              parentId: null,
+            },
+            {
+              ...stubContainerContext.container,
+              id: 'sub-1',
+              name: 'SubnetA',
+              layer: 'subnet',
+              parentId: 'vpc-1',
+            },
+            {
+              ...stubContainerContext.container,
+              id: 'sub-2',
+              name: 'SubnetB',
+              layer: 'subnet',
+              parentId: 'vpc-1',
+            },
+          ],
+          connections: [],
+          endpoints: [],
+          externalActors: [],
+        },
+        resourceNames: new Map([
+          ['vpc-1', 'vpc_core'],
+          ['sub-1', 'subnet_subneta'],
+          ['sub-2', 'subnet_subnetb'],
+        ]),
+      },
+      container: {
+        ...stubContainerContext.container,
+        id: 'sub-2',
+        name: 'SubnetB',
+        layer: 'subnet',
+        parentId: 'vpc-1',
+      },
+      resourceName: 'subnet_subnetb',
+      parentResourceName: 'vpc_core',
+    };
+
+    const body = terraformConfig.renderContainerBody(subnetCtx);
+
+    expect(body).toContain('  vpc_id            = aws_vpc.vpc_core.id');
+    expect(body).toContain('  cidr_block        = "10.0.2.0/24"');
+    expect(body).toContain('  availability_zone = data.aws_availability_zones.available.names[0]');
+  });
+
+  it('renders all AWS block body variants', () => {
+    const terraformConfig = awsProviderDefinition.generators.terraform;
+    const resourceTypes = [
+      'aws_ecs_service',
+      'aws_lambda_function',
+      'aws_db_instance',
+      'aws_dynamodb_table',
+      'aws_s3_bucket',
+      'aws_lb',
+      'aws_apigatewayv2_api',
+      'aws_sqs_queue',
+      'aws_sns_topic',
+      'aws_iam_role',
+      'aws_cloudwatch_dashboard',
+      'aws_nat_gateway',
+      'aws_iam_user',
+      'aws_athena_workgroup',
+      'aws_unknown_resource',
+    ];
+
+    for (const resourceType of resourceTypes) {
+      const body = terraformConfig.renderBlockBody({
+        ...stubBlockContext,
+        mapping: { resourceType, namePrefix: 'x' },
+        parentResourceName: 'subnet_main',
+      });
+      expect(body.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('renders security group with ancestor VPC lookup and fallback', () => {
+    const terraformConfig = awsProviderDefinition.generators.terraform;
+    const withVpcContext: TerraformBlockContext = {
+      ...stubBlockContext,
+      normalized: {
+        architecture: {
+          ...stubArchitecture,
+          nodes: [
+            {
+              ...stubContainerContext.container,
+              id: 'vpc-1',
+              name: 'VPC',
+              layer: 'region',
+              parentId: null,
+            },
+            {
+              ...stubContainerContext.container,
+              id: 'sub-1',
+              name: 'Subnet',
+              layer: 'subnet',
+              parentId: 'vpc-1',
+            },
+            {
+              ...stubBlockContext.block,
+              id: 'sg-1',
+              category: 'security',
+              parentId: 'sub-1',
+            },
+          ],
+          connections: [],
+          endpoints: [],
+          externalActors: [],
+        },
+        resourceNames: new Map([
+          ['vpc-1', 'vpc_main'],
+          ['sub-1', 'subnet_main'],
+          ['sg-1', 'sg_main'],
+        ]),
+      },
+      resourceNames: new Map([
+        ['vpc-1', 'vpc_main'],
+        ['sub-1', 'subnet_main'],
+        ['sg-1', 'sg_main'],
+      ]),
+      block: { ...stubBlockContext.block, id: 'sg-1', parentId: 'sub-1', category: 'security' },
+      mapping: { resourceType: 'aws_security_group', namePrefix: 'sg' },
+      resourceName: 'sg_main',
+    };
+
+    const withVpc = terraformConfig.renderBlockBody(withVpcContext);
+    expect(withVpc).toContain('  vpc_id = aws_vpc.vpc_main.id');
+
+    const withoutVpc = terraformConfig.renderBlockBody({
+      ...stubBlockContext,
+      block: { ...stubBlockContext.block, parentId: null, category: 'security' },
+      mapping: { resourceType: 'aws_security_group', namePrefix: 'sg' },
+    });
+    expect(withoutVpc.join('\n')).toContain('# ERROR: Security group requires a VPC ancestor');
+
+    const missingParent = terraformConfig.renderBlockBody({
+      ...stubBlockContext,
+      block: { ...stubBlockContext.block, parentId: 'missing-parent', category: 'security' },
+      mapping: { resourceType: 'aws_security_group', namePrefix: 'sg' },
+    });
+    expect(missingParent.join('\n')).toContain('# ERROR: Security group requires a VPC ancestor');
+  });
+
+  it('renderSharedResources returns SSM and AZ data blocks with correct structure', () => {
+    const terraformConfig = awsProviderDefinition.generators.terraform;
+    const shared = terraformConfig.renderSharedResources?.({
+      normalized: stubContainerContext.normalized,
+      options: stubContainerContext.options,
+      resourceNames: stubContainerContext.resourceNames,
+    });
+
+    expect(shared).toBeDefined();
+    const joined = shared!.join('\n');
+    expect(joined).toContain('data "aws_ssm_parameter" "amazon_linux_ami"');
+    expect(joined).toContain('/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2');
+    expect(joined).toContain('data "aws_availability_zones" "available"');
+    expect(joined).toContain('state = "available"');
+  });
+
+  it('S3 bucket uses bucket_prefix with sanitized and trimmed name', () => {
+    const terraformConfig = awsProviderDefinition.generators.terraform;
+    const s3Body = terraformConfig.renderBlockBody({
+      ...stubBlockContext,
+      mapping: { resourceType: 'aws_s3_bucket', namePrefix: 's3' },
+      resourceName: 'very_long_resource_name_that_exceeds_24_characters',
+    });
+
+    const joined = s3Body.join('\n');
+    expect(joined).toContain('bucket_prefix');
+    expect(joined).not.toContain('bucket =');
+    // Verify underscore-to-hyphen sanitization
+    expect(joined).toContain('very-long-resource-name-');
+    // Verify 24-char trim ("very-long-resource-name-" is exactly 24)
+    expect(joined).not.toContain('very-long-resource-name-that-exceeds-24-characters');
+  });
+
+  it('unsupported resources emit "cannot be planned" warnings', () => {
+    const terraformConfig = awsProviderDefinition.generators.terraform;
+
+    for (const resourceType of ['aws_ecs_service', 'aws_lambda_function', 'aws_nat_gateway']) {
+      const body = terraformConfig.renderBlockBody({
+        ...stubBlockContext,
+        mapping: { resourceType, namePrefix: 'test' },
+      });
+      const joined = body.join('\n');
+      expect(joined).toContain('cannot be planned without');
+    }
+  });
+
+  it('EC2 instance uses SSM data source for AMI instead of hardcoded AMI ID', () => {
+    const terraformConfig = awsProviderDefinition.generators.terraform;
+    const body = terraformConfig.renderBlockBody({
+      ...stubBlockContext,
+      mapping: { resourceType: 'aws_instance', namePrefix: 'ec2' },
+      parentResourceName: 'subnet_main',
+    });
+
+    const joined = body.join('\n');
+    expect(joined).toContain('data.aws_ssm_parameter.amazon_linux_ami.value');
+    expect(joined).not.toMatch(/ami-[0-9a-f]{8,}/);
+    expect(joined).toContain('subnet_id     = aws_subnet.subnet_main.id');
+  });
+
+  it('subnet container without parent renders AZ but no vpc_id', () => {
+    const terraformConfig = awsProviderDefinition.generators.terraform;
+    const body = terraformConfig.renderContainerBody({
+      ...stubContainerContext,
+      container: { ...stubContainerContext.container, layer: 'subnet', parentId: null },
+      parentResourceName: null,
+    });
+
+    const joined = body.join('\n');
+    expect(joined).toContain('availability_zone = data.aws_availability_zones.available.names[0]');
+    expect(joined).not.toContain('vpc_id');
   });
 });
 

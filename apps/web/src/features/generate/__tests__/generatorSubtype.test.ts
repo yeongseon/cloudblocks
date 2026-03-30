@@ -97,8 +97,8 @@ describe('generator subtype mapping integration', () => {
     const bicepModel = normalizeBicep(architecture, awsProviderDefinition);
     const pulumiModel = normalizePulumi(architecture, awsProviderDefinition);
 
-    expect(terraformModel.resourceNames.get('block-1')).toBe('ecs_compute');
-    expect(bicepModel.resourceNames.get('block-1')).toBe('ecsCompute');
-    expect(pulumiModel.resourceNames.get('block-1')).toBe('ecsCompute');
+    expect(terraformModel.resourceNames.get('block-1')).toBe('ec2_compute');
+    expect(bicepModel.resourceNames.get('block-1')).toBe('ec2Compute');
+    expect(pulumiModel.resourceNames.get('block-1')).toBe('ec2Compute');
   });
 });

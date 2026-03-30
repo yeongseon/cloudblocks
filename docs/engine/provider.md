@@ -1,6 +1,6 @@
 # Provider Definition Specification
 
-> **Audience**: Contributors | **Status**: Stable — Internal | **Verified against**: v0.27.0
+> **Audience**: Contributors | **Status**: Stable — Internal | **Verified against**: v0.28.0
 
 CloudBlocks uses `ProviderDefinition` as the canonical provider abstraction for generation.
 
@@ -106,6 +106,34 @@ All hooks receive context objects that provide the normalized model, generation 
 | `renderBlockCompanions` | ❌ No | Block companion resources are provider-specific |
 | `extraVariables` | ❌ No | Provider-specific variables (e.g., GCP project) |
 | `extraOutputs` | ❌ No | Provider-specific outputs (e.g., Azure resource_group_name) |
+
+# Implemented Providers
+
+## Azure (V1 Active)
+
+- `renderSharedResources`: Emits `azurerm_resource_group` + `azurerm_service_plan`
+- `renderContainerBody`: Azure VNet / subnet with `address_space` and `address_prefixes`
+- `renderBlockBody`: Category-based dispatch (`azurerm_linux_web_app`, `azurerm_mssql_database`, etc.)
+- `renderBlockCompanions`: NIC + PIP for VMs
+- `extraOutputs`: `resource_group_name`
+
+## AWS (V1 Starter)
+
+- `renderSharedResources`: SSM parameter data source (region-agnostic Amazon Linux 2 AMI) + `aws_availability_zones` data source
+- `renderContainerBody`: VPC with `cidr_block` / `enable_dns_*` / tags; subnet with `vpc_id`, indexed `cidr_block`, `availability_zone` from data source
+- `renderBlockBody`: Switch on `resourceType` — concrete bodies for EC2, RDS, DynamoDB, S3, SQS, SNS, IAM, CloudWatch, API Gateway, Security Group; explicit "cannot be planned" warnings for ECS, Lambda, ALB, NAT
+- `renderBlockCompanions`: `[]`
+- `extraVariables`: `[]`
+- `extraOutputs`: `[]`
+- EC2 AMI uses `data.aws_ssm_parameter.amazon_linux_ami.value` (no hardcoded AMI IDs)
+- S3 uses `bucket_prefix` with sanitized/trimmed name (24-char limit)
+- Security groups emit error comment when no ancestor VPC found
+
+## GCP (Pending Implementation)
+
+- All hooks return stubs (`[]` or `['  # TODO: Configure ...']`)
+- Awaiting #1512 for full implementation
+
 
 # Subtype-Aware Resource Resolution
 

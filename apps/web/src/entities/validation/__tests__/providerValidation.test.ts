@@ -260,4 +260,86 @@ describe('validateProviderRules', () => {
       expect(warning.severity).toBe('warning');
     }
   });
+
+  it('returns no warning for valid AWS nat-gateway subtype', () => {
+    const model = makeModel({
+      blocks: [
+        makeBlock({
+          id: 'natgw-1',
+          name: 'NAT Gateway',
+          provider: 'aws',
+          category: 'delivery',
+          subtype: 'nat-gateway',
+        }),
+      ],
+    });
+
+    const warnings = validateProviderRules(model);
+
+    expect(warnings).toEqual([]);
+  });
+
+  it('returns no warning for valid AWS nsg subtype', () => {
+    const model = makeModel({
+      blocks: [
+        makeBlock({
+          id: 'sg-1',
+          name: 'Security Group',
+          provider: 'aws',
+          category: 'security',
+          subtype: 'nsg',
+        }),
+      ],
+    });
+
+    const warnings = validateProviderRules(model);
+
+    expect(warnings).toEqual([]);
+  });
+
+  it('returns no warning for valid AWS identity subtypes', () => {
+    const subtypes = [
+      'managed-identity',
+      'managed_identity',
+      'service-account',
+      'service_account',
+      'service-principal',
+      'service_principal',
+    ];
+    for (const subtype of subtypes) {
+      const model = makeModel({
+        blocks: [
+          makeBlock({
+            id: `identity-${subtype}`,
+            name: `Identity ${subtype}`,
+            provider: 'aws',
+            category: 'identity',
+            subtype,
+          }),
+        ],
+      });
+
+      const warnings = validateProviderRules(model);
+
+      expect(warnings).toEqual([]);
+    }
+  });
+
+  it('returns no warning for valid AWS athena subtype', () => {
+    const model = makeModel({
+      blocks: [
+        makeBlock({
+          id: 'athena-1',
+          name: 'Athena Workgroup',
+          provider: 'aws',
+          category: 'operations',
+          subtype: 'athena',
+        }),
+      ],
+    });
+
+    const warnings = validateProviderRules(model);
+
+    expect(warnings).toEqual([]);
+  });
 });

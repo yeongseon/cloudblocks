@@ -81,6 +81,13 @@ const defaultOptions = {
   region: 'eastus',
 };
 
+const awsOptions = {
+  provider: 'aws' as const,
+  mode: 'draft' as const,
+  projectName: 'My Test Project',
+  region: 'us-east-1',
+};
+
 describe('normalize', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -118,6 +125,29 @@ describe('normalize', () => {
 
     expect(normalized.resourceNames.get('net-1')).toBe('vnet_core_network');
     expect(normalized.resourceNames.get('web-1')).toBe('webapp_my_app_01');
+  });
+
+  it('uses AWS-specific name prefixes for containers and blocks', () => {
+    const model = createTestModel({
+      plates: [
+        createPlate({ id: 'vpc-1', name: 'Core VPC', type: 'region', parentId: null }),
+        createPlate({ id: 'sub-1', name: 'Public Subnet', type: 'subnet', parentId: 'vpc-1' }),
+      ],
+      blocks: [
+        createBlock({
+          id: 'ecs-1',
+          name: 'Compute Service',
+          category: 'compute',
+          placementId: 'sub-1',
+        }),
+      ],
+    });
+
+    const normalized = normalize(model, awsProviderDefinition);
+
+    expect(normalized.resourceNames.get('vpc-1')).toBe('vpc_core_vpc');
+    expect(normalized.resourceNames.get('sub-1')).toBe('subnet_public_subnet');
+    expect(normalized.resourceNames.get('ecs-1')).toBe('ec2_compute_service');
   });
 });
 
@@ -423,6 +453,103 @@ describe('generateMainTf', () => {
     expect(hcl).not.toContain('azurerm_public_ip');
     expect(hcl).not.toContain('azurerm_network_interface');
   });
+
+  it('generates AWS VPC, subnet, and EC2 resources without Azure shared resources', () => {
+    const model = createTestModel({
+      plates: [
+        createPlate({ id: 'vpc1', name: 'Core VPC', type: 'region', parentId: null }),
+        createPlate({ id: 'sub1', name: 'Public Subnet', type: 'subnet', parentId: 'vpc1' }),
+      ],
+      blocks: [
+        createBlock({
+          id: 'ec2-1',
+          name: 'App Server',
+          category: 'compute',
+          subtype: 'ec2',
+          placementId: 'sub1',
+        }),
+      ],
+    });
+
+    const hcl = generateMainTf(
+      normalize(model, awsProviderDefinition),
+      awsProviderDefinition,
+      awsOptions,
+    );
+
+    expect(hcl).toContain('provider "aws" {');
+    expect(hcl).toContain('resource "aws_vpc" "vpc_core_vpc"');
+    expect(hcl).toContain('resource "aws_subnet" "subnet_public_subnet"');
+    expect(hcl).toContain('vpc_id            = aws_vpc.vpc_core_vpc.id');
+    expect(hcl).toContain('cidr_block        = "10.0.1.0/24"');
+    expect(hcl).toContain('availability_zone = data.aws_availability_zones.available.names[0]');
+    expect(hcl).toContain('resource "aws_instance" "ec2_app_server"');
+    expect(hcl).toContain('instance_type = "t3.micro"');
+    expect(hcl).toContain('ami           = data.aws_ssm_parameter.amazon_linux_ami.value');
+    expect(hcl).toContain('subnet_id     = aws_subnet.subnet_public_subnet.id');
+    expect(hcl).not.toContain('azurerm_resource_group');
+    expect(hcl).not.toContain('azurerm_service_plan');
+  });
+
+  it('generates AWS S3 bucket with bucket_prefix attribute', () => {
+    const model = createTestModel({
+      blocks: [createBlock({ id: 's3-1', name: 'Asset Store', category: 'data', subtype: 's3' })],
+    });
+
+    const hcl = generateMainTf(
+      normalize(model, awsProviderDefinition),
+      awsProviderDefinition,
+      awsOptions,
+    );
+
+    expect(hcl).toContain('resource "aws_s3_bucket" "s3_asset_store"');
+    expect(hcl).toContain(
+      'bucket_prefix = "${replace(var.project_name, "_", "-")}-s3-asset-store"',
+    );
+  });
+
+  it('generates AWS DynamoDB table with billing mode and hash key', () => {
+    const model = createTestModel({
+      blocks: [
+        createBlock({ id: 'ddb-1', name: 'Session Table', category: 'data', subtype: 'dynamodb' }),
+      ],
+    });
+
+    const hcl = generateMainTf(
+      normalize(model, awsProviderDefinition),
+      awsProviderDefinition,
+      awsOptions,
+    );
+
+    expect(hcl).toContain('resource "aws_dynamodb_table" "ddb_session_table"');
+    expect(hcl).toContain('billing_mode = "PAY_PER_REQUEST"');
+    expect(hcl).toContain('hash_key     = "id"');
+  });
+
+  it('generates AWS RDS configuration with engine and credentials', () => {
+    const model = createTestModel({
+      blocks: [
+        createBlock({
+          id: 'rds-1',
+          name: 'Main Postgres',
+          category: 'data',
+          subtype: 'rds-postgres',
+        }),
+      ],
+    });
+
+    const hcl = generateMainTf(
+      normalize(model, awsProviderDefinition),
+      awsProviderDefinition,
+      awsOptions,
+    );
+
+    expect(hcl).toContain('resource "aws_db_instance" "rds_main_postgres"');
+    expect(hcl).toContain('engine               = "postgres"');
+    expect(hcl).toContain('instance_class       = "db.t3.micro"');
+    expect(hcl).toContain('username             = var.db_admin_username');
+    expect(hcl).toContain('password             = var.db_admin_password');
+  });
 });
 
 describe('generateVariablesTf', () => {
@@ -450,7 +577,7 @@ describe('generateVariablesTf', () => {
   it('uses default region description when provider hook is absent', () => {
     const hcl = generateVariablesTf(defaultOptions, awsProviderDefinition);
 
-    expect(hcl).toContain('description = "Deployment region"');
+    expect(hcl).toContain('description = "AWS region for resource deployment"');
   });
 });
 
@@ -479,10 +606,71 @@ describe('generateOutputsTf', () => {
     });
 
     const normalized = normalize(model, awsProviderDefinition);
-    const hcl = generateOutputsTf(normalized, awsProviderDefinition, defaultOptions);
+    const hcl = generateOutputsTf(normalized, awsProviderDefinition, awsOptions);
 
     expect(hcl).not.toContain('output "resource_group_name" {');
-    expect(hcl).toContain('output "ecs_compute_id" {');
-    expect(hcl).toContain('value = aws_ecs_service.ecs_compute.id');
+    expect(hcl).toContain('output "ec2_compute_id" {');
+    expect(hcl).toContain('value = aws_instance.ec2_compute.id');
+  });
+});
+
+describe('AWS full-output HCL smoke test', () => {
+  it('generates valid main.tf with VPC, subnet, EC2, and RDS', () => {
+    const model = createTestModel({
+      plates: [
+        createPlate({ id: 'vpc-1', name: 'Production VPC', type: 'region' }),
+        createPlate({ id: 'sub-1', name: 'Public Subnet', type: 'subnet', parentId: 'vpc-1' }),
+      ],
+      blocks: [
+        createBlock({ id: 'ec2-1', name: 'Web Server', category: 'compute', placementId: 'sub-1' }),
+        createBlock({ id: 'rds-1', name: 'App Database', category: 'data', placementId: 'sub-1' }),
+      ],
+    });
+
+    const normalized = normalize(model, awsProviderDefinition);
+    const hcl = generateMainTf(normalized, awsProviderDefinition, awsOptions);
+
+    // Provider block
+    expect(hcl).toContain('provider "aws"');
+    expect(hcl).toContain('hashicorp/aws');
+
+    // Shared data sources
+    expect(hcl).toContain('data "aws_ssm_parameter" "amazon_linux_ami"');
+    expect(hcl).toContain('data "aws_availability_zones" "available"');
+
+    // VPC container
+    expect(hcl).toContain('resource "aws_vpc"');
+    expect(hcl).toContain('cidr_block');
+    expect(hcl).toContain('enable_dns_support');
+
+    // Subnet container
+    expect(hcl).toContain('resource "aws_subnet"');
+    expect(hcl).toContain('vpc_id');
+    expect(hcl).toContain('availability_zone');
+
+    // EC2 instance
+    expect(hcl).toContain('resource "aws_instance"');
+    expect(hcl).toContain('instance_type = "t3.micro"');
+    expect(hcl).toContain('data.aws_ssm_parameter.amazon_linux_ami.value');
+
+    // RDS instance
+    expect(hcl).toContain('resource "aws_db_instance"');
+    expect(hcl).toContain('engine               = "postgres"');
+    expect(hcl).toContain('var.db_admin_username');
+    expect(hcl).toContain('var.db_admin_password');
+    expect(hcl).toContain('skip_final_snapshot');
+
+    // No broken HCL markers
+    expect(hcl).not.toContain('undefined');
+    expect(hcl).not.toContain('null');
+
+    // Variables file
+    const vars = generateVariablesTf(awsOptions, awsProviderDefinition);
+    expect(vars).toContain('variable "project_name"');
+    expect(vars).toContain('variable "location"');
+
+    // Outputs file
+    const outputs = generateOutputsTf(normalized, awsProviderDefinition, awsOptions);
+    expect(outputs).toContain('output');
   });
 });

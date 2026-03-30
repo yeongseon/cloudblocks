@@ -168,7 +168,7 @@ describe('provider definitions', () => {
     expect(mainTf?.content).toContain('provider "azurerm"');
   });
 
-  it('throws when aws provider is used with terraform (not yet supported)', () => {
+  it('aws adapter generates non-empty terraform output', () => {
     const architecture: ArchitectureModel = {
       id: 'arch-adapter-aws-1',
       name: 'Provider Adapter AWS Terraform Test',
@@ -213,15 +213,20 @@ describe('provider definitions', () => {
       updatedAt: '2026-01-01T00:00:00Z',
     };
 
-    expect(() =>
-      generateCode(architecture, {
-        provider: 'aws',
-        mode: 'draft',
-        projectName: 'adapter-test',
-        region: 'eastus',
-        generator: 'terraform',
-      }),
-    ).toThrow(/does not support provider/);
+    const output = generateCode(architecture, {
+      provider: 'aws',
+      mode: 'draft',
+      projectName: 'adapter-test',
+      region: 'us-east-1',
+      generator: 'terraform',
+    });
+
+    const mainTf = output.files.find((file) => file.path === 'main.tf');
+
+    expect(mainTf).toBeDefined();
+    expect(mainTf?.content.trim().length).toBeGreaterThan(0);
+    expect(mainTf?.content).toContain('provider "aws"');
+    expect(mainTf?.content).toContain('resource "aws_vpc"');
   });
 
   it('throws when gcp provider is used with terraform (not yet supported)', () => {
