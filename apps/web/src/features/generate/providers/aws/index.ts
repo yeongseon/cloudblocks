@@ -112,6 +112,8 @@ export const awsProviderDefinition: ProviderDefinition = {
         ].join('\n'),
       providerBlock: (region: string) =>
         ['provider "aws" {', `  region = "${region}"`, '}'].join('\n'),
+      renderContainerBody: () => [],
+      renderBlockBody: (ctx) => [`  # TODO: Configure ${ctx.mapping.resourceType}`],
     },
     bicep: {
       targetScope: 'resourceGroup',
