@@ -1,6 +1,6 @@
 # Provider Definition Specification
 
-> **Audience**: Contributors | **Status**: Stable — Internal | **Verified against**: v0.26.0
+> **Audience**: Contributors | **Status**: Stable — Internal | **Verified against**: v0.27.0
 
 CloudBlocks uses `ProviderDefinition` as the canonical provider abstraction for generation.
 
@@ -43,8 +43,16 @@ interface ProviderDefinition {
 Every provider definition includes generator-specific settings:
 
 - `terraform: TerraformProviderConfig` — V1 Core (Terraform Starter Export)
-  - `requiredProviders(): string`
-  - `providerBlock(region: string): string`
+  - `requiredProviders(): string` — Terraform required_providers block
+  - `providerBlock(region: string): string` — Provider configuration block
+  - `regionVariableDescription?: string` — Description for the location variable (default: "Deployment region")
+  - `renderSharedResources?(ctx: TerraformRenderContext): string[]` — Top-level shared resources (e.g., Azure resource group, service plan). Optional.
+  - `renderContainerBody(ctx: TerraformContainerContext): string[]` — Body lines for container block resources. **Required.**
+  - `renderContainerCompanions?(ctx: TerraformContainerContext): string[]` — Companion resources adjacent to containers (e.g., route tables, NAT attachments). Optional.
+  - `renderBlockCompanions?(ctx: TerraformBlockContext): string[]` — Companion resources for blocks (e.g., Azure PIP + NIC for VMs). Optional.
+  - `renderBlockBody(ctx: TerraformBlockContext): string[]` — Body lines for resource block resources. **Required.**
+  - `extraVariables?(ctx: TerraformRenderContext): string[]` — Provider-specific variable declarations (e.g., GCP project_id). Optional.
+  - `extraOutputs?(ctx: TerraformRenderContext): TerraformOutputSpec[]` — Provider-specific output declarations. Optional.
 - `bicep: BicepProviderConfig` — Experimental
   - `targetScope: 'resourceGroup' | 'subscription'`
 - `pulumi: PulumiProviderConfig` — Experimental
@@ -52,6 +60,52 @@ Every provider definition includes generator-specific settings:
   - `runtime: 'nodejs'`
 
 ---
+
+## Terraform Render Hooks
+
+The Terraform generator delegates all provider-specific code to render hooks defined in `TerraformProviderConfig`. The orchestrator (`terraform.ts`) is fully provider-agnostic — it calls hooks in a fixed order and assembles the output.
+
+### Hook Execution Order
+
+```
+1. requiredProviders()          → terraform {} block
+2. providerBlock(region)        → provider "..." {} block
+3. renderSharedResources(ctx)   → shared resources (resource group, service plan, etc.)
+4. For each container:
+   a. renderContainerBody(ctx)      → container resource body lines
+   b. renderContainerCompanions(ctx) → companion resources for container
+5. For each block:
+   a. renderBlockCompanions(ctx)    → companion resources (PIP, NIC, etc.)
+   b. renderBlockBody(ctx)          → block resource body lines
+6. Connection comments
+```
+
+### Context Types
+
+All hooks receive context objects that provide the normalized model, generation options, and resource name mappings:
+
+- **`TerraformRenderContext`** — Base context with `normalized`, `options`, `resourceNames`
+- **`TerraformContainerContext`** — Extends base with `container`, `mapping`, `resourceName`, `parentResourceName`
+- **`TerraformBlockContext`** — Extends base with `block`, `mapping`, `resourceName`, `parentResourceName`
+
+### Return Convention
+
+- **Body hooks** (`renderContainerBody`, `renderBlockBody`) return indented lines (2-space indent) that go inside `resource "..." "..." { ... }`
+- **Top-level hooks** (`renderSharedResources`, `renderBlockCompanions`, `renderContainerCompanions`) return complete top-level HCL blocks including the resource declaration
+- **`extraVariables`** returns complete `variable "..." { ... }` blocks as lines
+- **`extraOutputs`** returns `TerraformOutputSpec` objects (name + value pairs) that the orchestrator wraps in `output "..." { ... }`
+
+### Required vs Optional
+
+| Hook | Required | Reason |
+|------|----------|--------|
+| `renderContainerBody` | ✅ Yes | Every provider must produce container resource bodies |
+| `renderBlockBody` | ✅ Yes | Every provider must produce block resource bodies |
+| `renderSharedResources` | ❌ No | Not all providers need shared scaffolding |
+| `renderContainerCompanions` | ❌ No | Container-adjacent resources are provider-specific |
+| `renderBlockCompanions` | ❌ No | Block companion resources are provider-specific |
+| `extraVariables` | ❌ No | Provider-specific variables (e.g., GCP project) |
+| `extraOutputs` | ❌ No | Provider-specific outputs (e.g., Azure resource_group_name) |
 
 # Subtype-Aware Resource Resolution
 

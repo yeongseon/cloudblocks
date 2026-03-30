@@ -1,4 +1,10 @@
-import type { ArchitectureModel, ProviderType, ResourceCategory } from '@cloudblocks/schema';
+import type {
+  ArchitectureModel,
+  ContainerBlock,
+  ProviderType,
+  ResourceBlock,
+  ResourceCategory,
+} from '@cloudblocks/schema';
 
 type PlateLayerType = 'global' | 'edge' | 'region' | 'zone' | 'subnet';
 
@@ -126,6 +132,14 @@ export function resolveBlockMapping(
 export interface TerraformProviderConfig {
   requiredProviders: () => string;
   providerBlock: (region: string) => string;
+  regionVariableDescription?: string;
+  renderSharedResources?: (ctx: TerraformRenderContext) => string[];
+  renderContainerBody: (ctx: TerraformContainerContext) => string[];
+  renderContainerCompanions?: (ctx: TerraformContainerContext) => string[];
+  extraVariables?: (ctx: TerraformRenderContext) => string[];
+  renderBlockCompanions?: (ctx: TerraformBlockContext) => string[];
+  renderBlockBody: (ctx: TerraformBlockContext) => string[];
+  extraOutputs?: (ctx: TerraformRenderContext) => TerraformOutputSpec[];
 }
 
 export interface BicepProviderConfig {
@@ -191,6 +205,31 @@ export interface NormalizedModel {
   architecture: ArchitectureModel;
   /** Resolved resource names (id → resource name) */
   resourceNames: Map<string, string>;
+}
+
+export interface TerraformRenderContext {
+  normalized: NormalizedModel;
+  options: GenerationOptions;
+  resourceNames: Map<string, string>;
+}
+
+export interface TerraformContainerContext extends TerraformRenderContext {
+  container: ContainerBlock;
+  mapping: ResourceMapping;
+  resourceName: string;
+  parentResourceName: string | null;
+}
+
+export interface TerraformBlockContext extends TerraformRenderContext {
+  block: ResourceBlock;
+  mapping: ResourceMapping;
+  resourceName: string;
+  parentResourceName: string | null;
+}
+
+export interface TerraformOutputSpec {
+  name: string;
+  value: string;
 }
 
 export interface GeneratorPipeline {

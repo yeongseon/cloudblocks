@@ -7,7 +7,7 @@ import type {
   ContainerBlock,
   ResourceBlock,
 } from '@cloudblocks/schema';
-import { azureProviderDefinition } from './provider';
+import { awsProviderDefinition, azureProviderDefinition } from './provider';
 import { generateMainTf, generateOutputsTf, generateVariablesTf, normalize } from './terraform';
 import {
   makeTestArchitecture,
@@ -263,6 +263,24 @@ describe('generateMainTf', () => {
     expect(hcl).toContain('name     = "Standard_v2"');
   });
 
+  it('generates category-specific comments for network and identity blocks', () => {
+    const model = createTestModel({
+      blocks: [
+        createBlock({ id: 'net', name: 'NetworkCore', category: 'network' }),
+        createBlock({ id: 'idn', name: 'IdentityCore', category: 'identity' }),
+      ],
+    });
+
+    const hcl = generateMainTf(
+      normalize(model, azureProviderDefinition),
+      azureProviderDefinition,
+      defaultOptions,
+    );
+
+    expect(hcl).toContain('# Network resource configuration');
+    expect(hcl).toContain('# Managed identity configuration');
+  });
+
   it('includes connection comments only when connections exist', () => {
     const withConnections = createTestModel({
       blocks: [createBlock({ id: 'b1', name: 'Web', category: 'compute', placementId: 'sub1' })],
@@ -409,7 +427,7 @@ describe('generateMainTf', () => {
 
 describe('generateVariablesTf', () => {
   it('includes project_name, location, db_admin_username, and db_admin_password variables', () => {
-    const hcl = generateVariablesTf(defaultOptions);
+    const hcl = generateVariablesTf(defaultOptions, azureProviderDefinition);
 
     expect(hcl).toContain('variable "project_name" {');
     expect(hcl).toContain('variable "location" {');
@@ -418,12 +436,21 @@ describe('generateVariablesTf', () => {
   });
 
   it('sanitizes project name in project_name default value', () => {
-    const hcl = generateVariablesTf({
-      ...defaultOptions,
-      projectName: ' Project!!! Name @@@ ',
-    });
+    const hcl = generateVariablesTf(
+      {
+        ...defaultOptions,
+        projectName: ' Project!!! Name @@@ ',
+      },
+      azureProviderDefinition,
+    );
 
     expect(hcl).toContain('default     = "project_name"');
+  });
+
+  it('uses default region description when provider hook is absent', () => {
+    const hcl = generateVariablesTf(defaultOptions, awsProviderDefinition);
+
+    expect(hcl).toContain('description = "Deployment region"');
   });
 });
 
@@ -437,12 +464,25 @@ describe('generateOutputsTf', () => {
     });
 
     const normalized = normalize(model, azureProviderDefinition);
-    const hcl = generateOutputsTf(normalized, azureProviderDefinition);
+    const hcl = generateOutputsTf(normalized, azureProviderDefinition, defaultOptions);
 
     expect(hcl).toContain('output "resource_group_name" {');
     expect(hcl).toContain('output "webapp_compute_id" {');
     expect(hcl).toContain('value = azurerm_linux_web_app.webapp_compute.id');
     expect(hcl).toContain('output "pgserver_database_id" {');
     expect(hcl).toContain('value = azurerm_postgresql_flexible_server.pgserver_database.id');
+  });
+
+  it('skips provider-specific outputs when extraOutputs hook is absent', () => {
+    const model = createTestModel({
+      blocks: [createBlock({ id: 'cmp', name: 'Compute', category: 'compute' })],
+    });
+
+    const normalized = normalize(model, awsProviderDefinition);
+    const hcl = generateOutputsTf(normalized, awsProviderDefinition, defaultOptions);
+
+    expect(hcl).not.toContain('output "resource_group_name" {');
+    expect(hcl).toContain('output "ecs_compute_id" {');
+    expect(hcl).toContain('value = aws_ecs_service.ecs_compute.id');
   });
 });

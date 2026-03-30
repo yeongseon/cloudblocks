@@ -77,7 +77,13 @@ describe('generator subtype mapping integration', () => {
       generator: 'terraform',
     });
 
-    const outputsTf = generateOutputsTf(normalized, awsProviderDefinition);
+    const outputsTf = generateOutputsTf(normalized, awsProviderDefinition, {
+      provider: 'aws',
+      mode: 'draft',
+      projectName: 'subtype-test',
+      region: 'us-east-1',
+      generator: 'terraform',
+    });
 
     expect(mainTf).toContain('resource "aws_instance" "ec2_compute"');
     expect(mainTf).not.toContain('resource "aws_ecs_service" "ec2_compute"');
