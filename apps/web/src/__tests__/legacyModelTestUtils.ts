@@ -5,7 +5,7 @@ import type {
   ResourceBlock,
   ResourceCategory,
 } from '@cloudblocks/schema';
-import { generateEndpointsForBlock } from '@cloudblocks/schema';
+import { CATEGORY_DEFAULT_RESOURCE_TYPE, generateEndpointsForBlock } from '@cloudblocks/schema';
 
 type LegacyCategory =
   | 'database'
@@ -90,16 +90,18 @@ export function makeTestBlock(overrides: LegacyBlockOverrides = {}): ResourceBlo
     placementId,
     parentId: overrideParentId,
     provider,
+    resourceType: overrideResourceType,
     ...rest
   } = overrides;
   const category = mapCategory(overrideCategory);
   const parentId = placementId ?? overrideParentId ?? 'container-1';
+  const resourceType = overrideResourceType ?? CATEGORY_DEFAULT_RESOURCE_TYPE[category] ?? category;
   return {
     id: 'block-1',
     name: 'Block',
     kind: 'resource',
     layer: 'resource',
-    resourceType: category,
+    resourceType,
     category,
     provider: provider ?? 'azure',
     parentId,

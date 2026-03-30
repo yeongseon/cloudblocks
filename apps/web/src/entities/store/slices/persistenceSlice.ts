@@ -8,6 +8,7 @@ import type {
   ResourceBlock,
 } from '@cloudblocks/schema';
 import {
+  CATEGORY_DEFAULT_RESOURCE_TYPE,
   connectionTypeToSemantic,
   endpointId,
   generateEndpointsForBlock,
@@ -502,7 +503,10 @@ export const createPersistenceSlice: ArchitectureSlice<PersistenceSlice> = (set,
             name: block.name as string,
             kind: 'resource',
             layer: 'resource',
-            resourceType: (block.subtype as string | undefined) ?? (block.category as string),
+            resourceType:
+              (block.subtype as string | undefined) ??
+              CATEGORY_DEFAULT_RESOURCE_TYPE[block.category as ResourceCategory] ??
+              (block.category as string),
             category: block.category as ResourceCategory,
             provider: (block.provider as ResourceBlock['provider'] | undefined) ?? 'azure',
             parentId: block.placementId as string,

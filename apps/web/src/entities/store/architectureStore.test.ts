@@ -61,7 +61,7 @@ function makeResourceNode(
     security: 'firewall_security',
     operations: 'monitoring',
     messaging: 'message_queue',
-    identity: 'identity_service',
+    identity: 'identity_access',
     network: 'virtual_network',
   };
   return {
