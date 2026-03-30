@@ -1,7 +1,7 @@
 // ═══════════════════════════════════════════════════════════════
 // Connection Face Color System
 // Semantic colors (http, event, data) — NOT provider colors.
-// Reuses deriveFaceColors() from blockFaceColors.ts (§7.7).
+// Theme-aware via CSS custom properties defined in index.css.
 // ═══════════════════════════════════════════════════════════════
 
 import type { EndpointSemantic } from '@cloudblocks/schema';
@@ -11,7 +11,7 @@ import type { EndpointSemantic } from '@cloudblocks/schema';
 /** Supported semantics for rendering. `identity` reserved for future use. */
 export type ConnectionRenderSemantic = Extract<EndpointSemantic, 'http' | 'event' | 'data'>;
 
-// ─── Base Color Palette ──────────────────────────────────────
+// ─── Base Color Palette (reference hex for tests & documentation) ───
 
 export const CONNECTION_SEMANTIC_BASE_COLORS: Record<ConnectionRenderSemantic, string> = {
   http: '#6F87B6', // Muted steel blue
@@ -19,27 +19,39 @@ export const CONNECTION_SEMANTIC_BASE_COLORS: Record<ConnectionRenderSemantic, s
   data: '#5FA59B', // Muted teal
 };
 
+// ─── CSS Variable Mapping ───────────────────────────────────
+// Actual rendered colors come from CSS custom properties so they
+// respond to the active theme (Workshop / Blueprint).
+
+const CONNECTION_CSS_VARS: Record<ConnectionRenderSemantic, { stroke: string; casing: string }> = {
+  http: {
+    stroke: 'var(--connection-http-stroke, #6F87B6)',
+    casing: 'var(--connection-http-casing, #4E5F7F)',
+  },
+  event: {
+    stroke: 'var(--connection-event-stroke, #C97A63)',
+    casing: 'var(--connection-event-casing, #8D5545)',
+  },
+  data: {
+    stroke: 'var(--connection-data-stroke, #5FA59B)',
+    casing: 'var(--connection-data-casing, #43746D)',
+  },
+};
+
 // ─── Derived Face + Port Colors ──────────────────────────────
 
 export interface ConnectionColors {
   base: string;
-  stroke: string; // inner trace color
-  casing: string; // outer casing color (darker)
+  stroke: string; // inner trace color (CSS var)
+  casing: string; // outer casing color (CSS var)
 }
 
 export function getConnectionColors(semantic: ConnectionRenderSemantic): ConnectionColors {
-  const base = CONNECTION_SEMANTIC_BASE_COLORS[semantic];
-  // Derive casing by darkening the base by ~30%
-  const r = parseInt(base.slice(1, 3), 16);
-  const g = parseInt(base.slice(3, 5), 16);
-  const b = parseInt(base.slice(5, 7), 16);
-  const darken = (v: number) => Math.round(v * 0.7);
-  const casing = `#${darken(r).toString(16).padStart(2, '0')}${darken(g).toString(16).padStart(2, '0')}${darken(b).toString(16).padStart(2, '0')}`;
-
+  const vars = CONNECTION_CSS_VARS[semantic];
   return {
-    base,
-    stroke: base,
-    casing,
+    base: CONNECTION_SEMANTIC_BASE_COLORS[semantic],
+    stroke: vars.stroke,
+    casing: vars.casing,
   };
 }
 

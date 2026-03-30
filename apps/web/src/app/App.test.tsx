@@ -26,9 +26,6 @@ vi.mock('../widgets/right-drawer', () => ({
 vi.mock('../widgets/workspace-manager/WorkspaceManager', () => ({
   WorkspaceManager: () => <div data-testid="workspace-manager" />,
 }));
-vi.mock('../widgets/template-gallery/TemplateGallery', () => ({
-  TemplateGallery: () => <div data-testid="template-gallery" />,
-}));
 vi.mock('../widgets/github-login/GitHubLogin', () => ({
   GitHubLogin: () => <div data-testid="github-login" />,
 }));
@@ -90,7 +87,7 @@ describe('App', () => {
       showGitHubLogin: true,
       showGitHubRepos: true,
       showGitHubPR: true,
-      showTemplateGallery: true,
+
       showScenarioGallery: true,
     });
     useAuthStore.setState({
@@ -111,6 +108,7 @@ describe('App', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test',
+        provider: 'azure' as const,
         architecture: {
           id: 'arch-1',
           name: 'Test',
@@ -136,7 +134,6 @@ describe('App', () => {
     expect(screen.getByTestId('right-drawer')).toBeInTheDocument();
     // Lazy-loaded widgets (code-split) — need to wait for async load
     expect(await screen.findByTestId('workspace-manager')).toBeInTheDocument();
-    expect(await screen.findByTestId('template-gallery')).toBeInTheDocument();
     expect(await screen.findByTestId('github-login')).toBeInTheDocument();
     expect(await screen.findByTestId('github-repos')).toBeInTheDocument();
     expect(await screen.findByTestId('github-sync')).toBeInTheDocument();
@@ -243,6 +240,7 @@ describe('App', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test',
+        provider: 'azure' as const,
         architecture: {
           id: 'arch-1',
           name: 'Test',
@@ -289,6 +287,7 @@ describe('App', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test',
+        provider: 'azure' as const,
         architecture: {
           id: 'arch-1',
           name: 'Test',
@@ -336,6 +335,7 @@ describe('App', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test',
+        provider: 'azure' as const,
         architecture: {
           id: 'arch-1',
           name: 'Test',
@@ -376,6 +376,7 @@ describe('App', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test',
+        provider: 'azure' as const,
         architecture: {
           id: 'arch-1',
           name: 'Test',
@@ -477,6 +478,7 @@ describe('App', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test',
+        provider: 'azure' as const,
         architecture: {
           id: 'arch-1',
           name: 'Test',

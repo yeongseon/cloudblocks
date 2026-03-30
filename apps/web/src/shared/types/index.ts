@@ -5,6 +5,7 @@ import type {
   ArchitectureModel,
   BlockRole,
   ContainerLayer,
+  ProviderType,
   ResourceCategory,
   Size,
 } from '@cloudblocks/schema';
@@ -81,6 +82,8 @@ export interface LastPrResult {
 export interface Workspace {
   id: string;
   name: string;
+  /** Cloud provider bound to this workspace. One provider per workspace. */
+  provider: ProviderType;
   architecture: ArchitectureModel;
   createdAt: string;
   updatedAt: string;

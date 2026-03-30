@@ -24,15 +24,17 @@ export const TIER_DIMENSIONS: Record<BlockTier, BlockDimensionsCU> = {
 };
 
 /** Maps each category to its v2.0 tier. See CLOUDBLOCKS_SPEC_V2.md §5.2. */
+// Unified: all resource blocks use 'medium' tier (2×2×2) for consistent visual sizing.
+// VNet/Subnet containers are unaffected (rendered via ContainerBlockSvg).
 export const CATEGORY_TIER_MAP: Record<ResourceCategory, BlockTier> = {
-  network: 'large',
-  security: 'small',
-  delivery: 'wide',
+  network: 'medium',
+  security: 'medium',
+  delivery: 'medium',
   compute: 'medium',
-  data: 'large',
-  messaging: 'micro',
-  identity: 'small',
-  operations: 'small',
+  data: 'medium',
+  messaging: 'medium',
+  identity: 'medium',
+  operations: 'medium',
 };
 
 export type BlockSurface = 'ported';
@@ -54,71 +56,26 @@ export interface BlockVisualProfile {
   appCapacity: number;
 }
 
+// Unified: all resource blocks use the same rect silhouette, medium tier,
+// and 3×4 footprint. Only color and icon distinguish resources.
+const UNIFORM_BLOCK_PROFILE: BlockVisualProfile = {
+  tier: 'medium',
+  surface: 'ported',
+  silhouette: 'rect',
+  footprint: [3, 4],
+  hostable: false,
+  appCapacity: 0,
+};
+
 export const BLOCK_VISUAL_PROFILES: Record<ResourceCategory, BlockVisualProfile> = {
-  network: {
-    tier: 'large',
-    surface: 'ported',
-    silhouette: 'rect',
-    footprint: [4, 6],
-    hostable: false,
-    appCapacity: 0,
-  },
-  security: {
-    tier: 'small',
-    surface: 'ported',
-    silhouette: 'shield',
-    footprint: [2, 2],
-    hostable: false,
-    appCapacity: 0,
-  },
-  delivery: {
-    tier: 'wide',
-    surface: 'ported',
-    silhouette: 'gateway',
-    footprint: [2, 4],
-    hostable: false,
-    appCapacity: 0,
-  },
-  compute: {
-    tier: 'medium',
-    surface: 'ported',
-    silhouette: 'rect',
-    footprint: [3, 4],
-    hostable: true,
-    appCapacity: 4,
-  },
-  data: {
-    tier: 'large',
-    surface: 'ported',
-    silhouette: 'cylinder',
-    footprint: [4, 6],
-    hostable: false,
-    appCapacity: 0,
-  },
-  messaging: {
-    tier: 'micro',
-    surface: 'ported',
-    silhouette: 'hex',
-    footprint: [2, 4],
-    hostable: false,
-    appCapacity: 0,
-  },
-  identity: {
-    tier: 'small',
-    surface: 'ported',
-    silhouette: 'shield',
-    footprint: [2, 2],
-    hostable: false,
-    appCapacity: 0,
-  },
-  operations: {
-    tier: 'small',
-    surface: 'ported',
-    silhouette: 'circle',
-    footprint: [2, 2],
-    hostable: false,
-    appCapacity: 0,
-  },
+  network: { ...UNIFORM_BLOCK_PROFILE },
+  security: { ...UNIFORM_BLOCK_PROFILE },
+  delivery: { ...UNIFORM_BLOCK_PROFILE },
+  compute: { ...UNIFORM_BLOCK_PROFILE, hostable: true, appCapacity: 4 },
+  data: { ...UNIFORM_BLOCK_PROFILE },
+  messaging: { ...UNIFORM_BLOCK_PROFILE },
+  identity: { ...UNIFORM_BLOCK_PROFILE },
+  operations: { ...UNIFORM_BLOCK_PROFILE },
 };
 
 export function getBlockVisualProfile(category: ResourceCategory): BlockVisualProfile {
@@ -130,75 +87,13 @@ export function getBlockVisualProfile(category: ResourceCategory): BlockVisualPr
   return profile;
 }
 
-// ─── v2.0 Subtype Size Overrides (CLOUDBLOCKS_SPEC_V2.md §6) ─────
-
-/**
- * Subtype size override key format: `provider:registryId` (e.g. `aws:ec2`, `azure:cosmos-db`).
- * When a block has a specific subtype, its CU size may differ from the
- * category default tier size.
- */
-export const SUBTYPE_SIZE_OVERRIDES: Record<string, BlockDimensionsCU> = {
-  // ── AWS (§6.1) ──────────────────────────────────────────────────
-  'aws:ec2': { width: 2, depth: 2, height: 2 },
-  'aws:lambda': { width: 1, depth: 1, height: 1 },
-  'aws:ecs': { width: 2, depth: 2, height: 2 },
-  'aws:eks': { width: 2, depth: 2, height: 2 },
-  'aws:rds-postgres': { width: 3, depth: 3, height: 2 },
-  'aws:dynamodb': { width: 3, depth: 3, height: 2 },
-  'aws:s3': { width: 3, depth: 3, height: 2 },
-  'aws:alb': { width: 3, depth: 1, height: 1 },
-  'aws:elb': { width: 3, depth: 1, height: 1 },
-  'aws:api-gateway': { width: 3, depth: 1, height: 1 },
-  'aws:cloudfront': { width: 4, depth: 1, height: 1 },
-  'aws:nat-gateway': { width: 2, depth: 1, height: 1 },
-  'aws:sqs': { width: 1, depth: 1, height: 1 },
-  'aws:sns': { width: 1, depth: 1, height: 1 },
-  'aws:eventbridge': { width: 1, depth: 1, height: 1 },
-  'aws:route-53': { width: 4, depth: 1, height: 1 },
-  'aws:cloudwatch': { width: 2, depth: 2, height: 1 },
-  'aws:iam': { width: 2, depth: 2, height: 1 },
-  'aws:kinesis': { width: 3, depth: 3, height: 2 },
-  'aws:redshift': { width: 3, depth: 3, height: 2 },
-  'aws:elasticache': { width: 3, depth: 3, height: 2 },
-
-  // ── Azure (§6.2) ───────────────────────────────────────────────
-  'azure:vm': { width: 2, depth: 2, height: 2 },
-  'azure:functions': { width: 1, depth: 1, height: 1 },
-  'azure:aks': { width: 2, depth: 2, height: 2 },
-  'azure:cosmos-db': { width: 3, depth: 3, height: 2 },
-  'azure:sql-database': { width: 3, depth: 3, height: 2 },
-  'azure:blob-storage': { width: 3, depth: 3, height: 2 },
-  'azure:application-gateway': { width: 3, depth: 1, height: 1 },
-  'azure:front-door': { width: 4, depth: 1, height: 1 },
-  'azure:azure-firewall': { width: 2, depth: 1, height: 1 },
-  'azure:service-bus': { width: 1, depth: 1, height: 1 },
-  'azure:event-grid': { width: 1, depth: 1, height: 1 },
-  'azure:event-hubs': { width: 1, depth: 1, height: 1 },
-  'azure:azure-monitor': { width: 2, depth: 2, height: 1 },
-  'azure:entra-id': { width: 2, depth: 2, height: 1 },
-  'azure:azure-dns': { width: 4, depth: 1, height: 1 },
-  'azure:azure-cache-for-redis': { width: 3, depth: 3, height: 2 },
-  'azure:azure-synapse': { width: 3, depth: 3, height: 2 },
-
-  // ── GCP (§6.3) ─────────────────────────────────────────────────
-  'gcp:compute-engine': { width: 2, depth: 2, height: 2 },
-  'gcp:cloud-functions': { width: 1, depth: 1, height: 1 },
-  'gcp:gke': { width: 2, depth: 2, height: 2 },
-  'gcp:cloud-sql-postgres': { width: 3, depth: 3, height: 2 },
-  'gcp:cloud-spanner': { width: 3, depth: 3, height: 2 },
-  'gcp:cloud-storage': { width: 3, depth: 3, height: 2 },
-  'gcp:cloud-load-balancing': { width: 3, depth: 1, height: 1 },
-  'gcp:cloud-cdn': { width: 4, depth: 1, height: 1 },
-  'gcp:cloud-armor': { width: 2, depth: 1, height: 1 },
-  'gcp:pub-sub': { width: 1, depth: 1, height: 1 },
-  'gcp:eventarc': { width: 1, depth: 1, height: 1 },
-  'gcp:cloud-monitoring': { width: 2, depth: 2, height: 1 },
-  'gcp:cloud-iam': { width: 2, depth: 2, height: 1 },
-  'gcp:cloud-dns': { width: 4, depth: 1, height: 1 },
-  'gcp:memorystore': { width: 3, depth: 3, height: 2 },
-  'gcp:bigquery': { width: 3, depth: 3, height: 2 },
-  'gcp:dataflow': { width: 3, depth: 3, height: 2 },
-};
+// ─── v2.0 Subtype Size Overrides ──────────────────────────────────
+//
+// All resource blocks now use uniform medium (2×2×2) sizing.
+// Subtype overrides are intentionally empty — all blocks are the same size.
+// The override map is kept for forward-compatibility if per-subtype sizing
+// is reintroduced in a future milestone.
+export const SUBTYPE_SIZE_OVERRIDES: Record<string, BlockDimensionsCU> = {};
 
 /**
  * Resolve block dimensions in CU with the following priority:

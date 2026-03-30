@@ -15,9 +15,9 @@ describe('BlockSvg', () => {
     expect(container.querySelector('svg')).not.toBeNull();
   });
 
-  it('renders port dots group', () => {
+  it('does not render port dots group (port dots removed)', () => {
     const { container } = render(<BlockSvg category="compute" provider="azure" />);
 
-    expect(container.querySelector('[data-testid="port-dots"]')).not.toBeNull();
+    expect(container.querySelector('[data-testid="port-dots"]')).toBeNull();
   });
 });

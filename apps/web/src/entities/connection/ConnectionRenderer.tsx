@@ -16,7 +16,11 @@ import {
   TRACE_STROKE_PX,
   TRACE_CASE_PX,
   TRACE_HOVER_PX,
+  TRACE_HOVER_CASE_PX,
   TRACE_FLASH_PX,
+  ARROW_MARKER_W,
+  ARROW_MARKER_H,
+  ARROW_MARKER_REF_X,
 } from '../../shared/tokens/designTokens';
 import { DIFF_THEMES, lightenColor } from './connectorTheme';
 import { getConnectionSurfaceRoute } from './surfaceRouting';
@@ -50,22 +54,19 @@ function getColors(
   const base = getConnectionColors(semantic);
   const diffOverride = diffState !== 'unchanged' ? DIFF_THEMES[diffState] : null;
 
-  const baseStroke = diffOverride?.tile ?? base.stroke;
-  const baseCasing = diffOverride?.shadow ?? base.casing;
-  const baseOpacity = diffOverride?.opacity ?? 1.0;
-
-  if (isHighlighted) {
-    return {
-      stroke: lightenColor(baseStroke, 0.15),
-      casing: lightenColor(baseCasing, 0.1),
-      opacity: baseOpacity,
-    };
+  // Diff mode uses hardcoded hex values that can be lightened.
+  // Normal mode uses CSS var() strings — lightening is not possible,
+  // so we boost strokeOpacity in the renderer instead.
+  if (diffOverride) {
+    const stroke = isHighlighted ? lightenColor(diffOverride.tile, 0.15) : diffOverride.tile;
+    const casing = isHighlighted ? lightenColor(diffOverride.shadow, 0.1) : diffOverride.shadow;
+    return { stroke, casing, opacity: diffOverride.opacity };
   }
 
   return {
-    stroke: baseStroke,
-    casing: baseCasing,
-    opacity: baseOpacity,
+    stroke: base.stroke,
+    casing: base.casing,
+    opacity: 1.0,
   };
 }
 
@@ -201,6 +202,8 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
   const hitPath = surfaceRender.hitPath;
   const labelPos = surfaceRender.labelPos;
   const innerWidth = isHighlighted ? TRACE_HOVER_PX : TRACE_STROKE_PX;
+  const casingWidth = isHighlighted ? TRACE_HOVER_CASE_PX : TRACE_CASE_PX;
+  const markerId = `arrow-${connection.id}`;
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
@@ -218,6 +221,25 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
       opacity={colors.opacity}
       data-connector-type={(connection.metadata?.type as string) ?? semantic}
     >
+      {/* Arrow marker definition — one per connection for semantic color */}
+      <defs>
+        <marker
+          id={markerId}
+          markerWidth={ARROW_MARKER_W}
+          markerHeight={ARROW_MARKER_H}
+          refX={ARROW_MARKER_REF_X}
+          refY={ARROW_MARKER_H / 2}
+          orient="auto"
+          markerUnits="strokeWidth"
+          data-testid="connection-arrow-marker"
+        >
+          <path
+            d={`M0,0 L${ARROW_MARKER_W},${ARROW_MARKER_H / 2} L0,${ARROW_MARKER_H} Z`}
+            fill={colors.stroke}
+            fillOpacity={isHighlighted ? 1.0 : 0.95}
+          />
+        </marker>
+      </defs>
       <a
         href={`/connections/${connection.id}`}
         onClick={handleClick}
@@ -239,8 +261,8 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
       <path
         d={hitPath}
         stroke={colors.casing}
-        strokeWidth={TRACE_CASE_PX}
-        strokeOpacity={0.55}
+        strokeWidth={casingWidth}
+        strokeOpacity={isHighlighted ? 0.7 : 0.55}
         strokeLinecap="round"
         strokeLinejoin="round"
         fill="none"
@@ -255,22 +277,23 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
         d={hitPath}
         stroke={colors.stroke}
         strokeWidth={innerWidth}
-        strokeOpacity={0.95}
+        strokeOpacity={isHighlighted ? 1.0 : 0.95}
         strokeLinecap="round"
         strokeLinejoin="round"
         fill="none"
         pointerEvents="none"
         data-testid="connection-trace"
         data-layer="trace"
+        markerEnd={`url(#${markerId})`}
       />
 
       {/* Selection glow: wider stroke behind the trace */}
       {isSelected && (
         <path
           d={hitPath}
-          stroke="#ffffff"
+          stroke="var(--connection-selection-glow)"
           strokeWidth={TRACE_CASE_PX + 2}
-          strokeOpacity={0.35}
+          strokeOpacity={1}
           strokeLinecap="round"
           strokeLinejoin="round"
           fill="none"
@@ -335,7 +358,7 @@ export const ConnectionRenderer = memo(function ConnectionRenderer({
                 y={labelPos.y - rectHeight / 2 - 4 + 1}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fill="#ffffff"
+                fill="var(--connection-error-label-text, #0F172A)"
                 fontSize={11}
                 fontFamily="var(--font-ui, system-ui)"
                 style={{ pointerEvents: 'none' }}

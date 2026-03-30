@@ -78,162 +78,16 @@ export function deriveFaceColors(base: string): DerivedFaceColors {
   };
 }
 
-// ─── Provider Color Palettes (§7.2–§7.4) ─────────────────────
-
-/** Base hex colors per provider, keyed by service family. */
-export const PROVIDER_COLORS: Record<ProviderType, Record<string, string>> = {
-  // §7.2 AWS Service Colors
-  aws: {
-    compute: '#D86613',
-    database: '#CD2264',
-    storage: '#3F8624',
-    networking: '#693BC5',
-    'app-integration': '#CD2264',
-    security: '#D6232C',
-    analytics: '#A166FF',
-    ml: '#1B7B67',
-    management: '#693BC5',
-  },
-  // §7.3 Azure Service Colors
-  azure: {
-    compute: '#0078D4',
-    serverless: '#FEA11B',
-    database: '#005BA1',
-    'database-nosql': '#B25D08',
-    storage: '#258277',
-    networking: '#59B300',
-    security: '#E62323',
-    messaging: '#003F7C',
-    identity: '#EF7100',
-    monitoring: '#32BEDD',
-    iot: '#32D4F5',
-  },
-  // §7.4 GCP Service Colors
-  gcp: {
-    compute: '#4285F4',
-    'storage-db': '#4285F4',
-    networking: '#EA4335',
-    'data-analytics': '#34A853',
-    operations: '#FBBC05',
-  },
-};
-
-// ─── Subtype → Service Family Mapping ─────────────────────────
+// ─── Provider Brand Colors (§7.2–§7.4) ──────────────────────
 
 /**
- * Maps `provider:subtype` to a service family key.
- * If a subtype is not in this map, category-based fallback is used.
+ * Single brand color per provider. Every block of a provider uses the same base color.
+ * Only the provider identity determines the color — not the category or service family.
  */
-const SUBTYPE_FAMILY_MAP: Record<string, string> = {
-  // ── AWS ──
-  'aws:ec2': 'compute',
-  'aws:lambda': 'compute',
-  'aws:ecs': 'compute',
-  'aws:eks': 'compute',
-  'aws:rds-postgres': 'database',
-  'aws:dynamodb': 'database',
-  'aws:elasticache': 'database',
-  'aws:redshift': 'database',
-  'aws:s3': 'storage',
-  'aws:vpc': 'networking',
-  'aws:route-53': 'networking',
-  'aws:cloudfront': 'networking',
-  'aws:alb': 'networking',
-  'aws:elb': 'networking',
-  'aws:api-gateway': 'networking',
-  'aws:nat-gateway': 'networking',
-  'aws:sqs': 'app-integration',
-  'aws:sns': 'app-integration',
-  'aws:eventbridge': 'app-integration',
-  'aws:iam': 'security',
-  'aws:kms': 'security',
-  'aws:kinesis': 'analytics',
-  'aws:athena': 'analytics',
-  'aws:sagemaker': 'ml',
-  'aws:cloudwatch': 'management',
-
-  // ── Azure ──
-  'azure:vm': 'compute',
-  'azure:app-service': 'compute',
-  'azure:functions': 'serverless',
-  'azure:aks': 'compute',
-  'azure:sql-database': 'database',
-  'azure:azure-synapse': 'database',
-  'azure:cosmos-db': 'database-nosql',
-  'azure:blob-storage': 'storage',
-  'azure:vnet': 'networking',
-  'azure:subnet': 'networking',
-  'azure:application-gateway': 'networking',
-  'azure:front-door': 'networking',
-  'azure:nat-gateway': 'networking',
-  'azure:azure-dns': 'networking',
-  'azure:azure-firewall': 'security',
-  'azure:azure-cache-for-redis': 'database',
-  'azure:service-bus': 'messaging',
-  'azure:event-grid': 'messaging',
-  'azure:event-hubs': 'messaging',
-  'azure:entra-id': 'identity',
-  'azure:azure-monitor': 'monitoring',
-  'azure:iot-hub': 'iot',
-
-  // ── GCP ──
-  'gcp:compute-engine': 'compute',
-  'gcp:gke': 'compute',
-  'gcp:cloud-functions': 'compute',
-  'gcp:cloud-sql-postgres': 'storage-db',
-  'gcp:cloud-spanner': 'storage-db',
-  'gcp:cloud-storage': 'storage-db',
-  'gcp:memorystore': 'storage-db',
-  'gcp:cloud-load-balancing': 'networking',
-  'gcp:cloud-cdn': 'networking',
-  'gcp:cloud-armor': 'networking',
-  'gcp:vpc': 'networking',
-  'gcp:cloud-dns': 'networking',
-  'gcp:bigquery': 'data-analytics',
-  'gcp:dataflow': 'data-analytics',
-  'gcp:pub-sub': 'data-analytics',
-  'gcp:eventarc': 'data-analytics',
-  'gcp:cloud-monitoring': 'operations',
-  'gcp:cloud-iam': 'operations',
-};
-
-// ─── Category → Service Family Fallback ──────────────────────
-
-/**
- * When no subtype is available, map category to the most appropriate
- * service family for each provider.
- */
-const CATEGORY_FAMILY_FALLBACK: Record<ProviderType, Record<ResourceCategory, string>> = {
-  aws: {
-    network: 'networking',
-    security: 'security',
-    delivery: 'networking',
-    compute: 'compute',
-    data: 'database',
-    messaging: 'app-integration',
-    identity: 'security',
-    operations: 'management',
-  },
-  azure: {
-    network: 'networking',
-    security: 'security',
-    delivery: 'networking',
-    compute: 'compute',
-    data: 'database',
-    messaging: 'messaging',
-    identity: 'identity',
-    operations: 'monitoring',
-  },
-  gcp: {
-    network: 'networking',
-    security: 'operations',
-    delivery: 'networking',
-    compute: 'compute',
-    data: 'storage-db',
-    messaging: 'data-analytics',
-    identity: 'operations',
-    operations: 'operations',
-  },
+export const PROVIDER_BRAND_COLOR: Record<ProviderType, string> = {
+  azure: '#0078D4', // Azure Blue
+  aws: '#D86613', // AWS Orange
+  gcp: '#34A853', // Google Green (distinct from Azure Blue)
 };
 
 // ─── Color Lookup ─────────────────────────────────────────────
@@ -241,31 +95,17 @@ const CATEGORY_FAMILY_FALLBACK: Record<ProviderType, Record<ResourceCategory, st
 /**
  * Resolve the base provider color for a block.
  *
- * Priority:
- *   1. Subtype override (provider:subtype → service family → base color)
- *   2. Category fallback (category → service family → base color)
+ * All blocks of a provider use the same brand color.
+ * Category and subtype are accepted for API compatibility but ignored.
  *
- * @returns A hex color string (e.g. '#D86613')
+ * @returns A hex color string (e.g. '#0078D4')
  */
 export function getBlockColor(
   provider: ProviderType,
-  subtype: string | undefined,
-  category: ResourceCategory,
+  _subtype: string | undefined,
+  _category: ResourceCategory,
 ): string {
-  const palette = PROVIDER_COLORS[provider];
-
-  // 1. Try subtype-specific family mapping
-  if (subtype) {
-    const key = `${provider}:${subtype}`;
-    const family = SUBTYPE_FAMILY_MAP[key];
-    if (family && palette[family]) {
-      return palette[family];
-    }
-  }
-
-  // 2. Fall back to category → family mapping
-  const fallbackFamily = CATEGORY_FAMILY_FALLBACK[provider][category];
-  return palette[fallbackFamily] ?? palette.compute;
+  return PROVIDER_BRAND_COLOR[provider];
 }
 
 // ─── Public API (backward-compatible) ─────────────────────────

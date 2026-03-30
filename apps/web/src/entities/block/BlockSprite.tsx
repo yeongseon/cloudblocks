@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import interact from 'interactjs';
 
 import type {
@@ -20,7 +20,6 @@ import { getBlockDimensions } from '../../shared/types/visualProfile';
 import { cuToSilhouetteDimensions } from './silhouettes';
 import { BLOCK_PADDING } from '../../shared/tokens/designTokens';
 import { BlockSvg } from './BlockSvg';
-import type { PortInteraction } from './BlockSvg';
 import './BlockSprite.css';
 
 /** Derive screen size for the block clickable area from CU dimensions. */
@@ -67,21 +66,6 @@ export const BlockSprite = memo(function BlockSprite({
   const connections = useArchitectureStore((s) => s.workspace.architecture.connections);
   const endpointsList = useArchitectureStore((s) => s.workspace.architecture.endpoints);
 
-  // Compute which endpoint semantics are occupied (have active connections)
-  const occupiedEndpointSemantics = useMemo(() => {
-    const occupied = new Set<string>();
-    for (const conn of connections) {
-      const fromParsed = parseEndpointId(conn.from);
-      const toParsed = parseEndpointId(conn.to);
-      if (fromParsed?.blockId === block.id) {
-        occupied.add(`output-${fromParsed.semantic}`);
-      }
-      if (toParsed?.blockId === block.id) {
-        occupied.add(`input-${toParsed.semantic}`);
-      }
-    }
-    return occupied;
-  }, [connections, block.id]);
   const diffMode = useUIStore((s) => s.diffMode);
   const diffDelta: DiffDelta | null = useUIStore((s) => s.diffDelta);
   const blockRef = useRef<HTMLDivElement>(null);
@@ -127,32 +111,6 @@ export const BlockSprite = memo(function BlockSprite({
   const isUpgrading = upgradingBlockId === block.id;
   const isSnapTarget = snapTargetBlockIds.has(block.id);
   const isMagneticSnapTarget = magneticSnapTargetId === block.id;
-
-  // ── Port hover state for glow effect ──
-  const [hoveredPort, setHoveredPort] = useState<string | null>(null);
-
-  const handlePortPointerDown = useCallback(
-    (_port: PortInteraction, event: React.PointerEvent) => {
-      // Prevent block drag from starting
-      event.preventDefault();
-      event.stopPropagation();
-
-      // Start connecting from this block (same as clicking in connect mode)
-      if (!connectionSource) {
-        startConnecting(block.id);
-      }
-    },
-    [block.id, connectionSource, startConnecting],
-  );
-
-  const handlePortPointerEnter = useCallback((port: PortInteraction) => {
-    const key = port.side === 'inbound' ? `in-${port.index}` : `out-${port.index}`;
-    setHoveredPort(key);
-  }, []);
-
-  const handlePortPointerLeave = useCallback((_port: PortInteraction) => {
-    setHoveredPort(null);
-  }, []);
 
   useEffect(() => {
     const el = blockRef.current;
@@ -336,16 +294,10 @@ export const BlockSprite = memo(function BlockSprite({
             name={block.name}
             aggregationCount={block.aggregation?.count}
             roles={block.roles}
-            showPorts={isConnectMode}
-            occupiedEndpointSemantics={occupiedEndpointSemantics}
-            onPortPointerDown={handlePortPointerDown}
-            onPortPointerEnter={handlePortPointerEnter}
-            onPortPointerLeave={handlePortPointerLeave}
-            hoveredPort={hoveredPort}
           />
         </div>
       </button>
-      {block.name && <span className="block-label-chip">{block.name}</span>}
+      {block.name && isSelected && <span className="block-label-chip">{block.name}</span>}
     </div>
   );
 });

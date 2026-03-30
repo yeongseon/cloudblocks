@@ -17,6 +17,7 @@ import { promptDialog } from '../../shared/ui/PromptDialog';
 const makeWorkspace = (id: string, name: string, blocks = 0, plates = 0): Workspace => ({
   id,
   name,
+  provider: 'azure' as const,
   architecture: {
     id: `arch-${id}`,
     name,

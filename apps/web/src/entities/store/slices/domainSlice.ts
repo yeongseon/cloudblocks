@@ -12,6 +12,7 @@ import {
   DEFAULT_BLOCK_SIZE,
 } from '../../../shared/types/index';
 import {
+  CATEGORY_DEFAULT_RESOURCE_TYPE,
   connectionTypeToSemantic,
   endpointId,
   generateEndpointsForBlock,
@@ -331,7 +332,7 @@ export const createDomainSlice: ArchitectureSlice<DomainSlice> = (set, get) => (
         name,
         kind: 'resource',
         layer: 'resource',
-        resourceType: subtype ?? category,
+        resourceType: subtype ?? CATEGORY_DEFAULT_RESOURCE_TYPE[category] ?? category,
         category,
         provider: provider ?? 'azure',
         parentId: placementId,

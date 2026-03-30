@@ -49,10 +49,10 @@ describe('PlateSvg — label and icon', () => {
     expect(screen.queryByText('Subnet 1')).not.toBeInTheDocument();
   });
 
-  it('renders no text or image elements when neither label nor iconUrl provided', () => {
+  it('renders short label text but no image when neither label nor iconUrl provided', () => {
     const { container } = renderPlateSvg();
 
-    expect(container.querySelectorAll('text')).toHaveLength(0);
+    expect(container.querySelectorAll('text')).toHaveLength(1);
     expect(container.querySelectorAll('image')).toHaveLength(0);
   });
 });

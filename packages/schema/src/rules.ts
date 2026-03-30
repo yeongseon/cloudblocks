@@ -333,6 +333,26 @@ export function getDefaultCategory(resourceType: string): ResourceCategory | und
 }
 
 // ---------------------------------------------------------------------------
+// Category → default resource type mapping
+// ---------------------------------------------------------------------------
+
+/**
+ * Default (representative) resource type for each category.
+ * Used as a fallback when only a category is known (e.g., drag-to-create without
+ * a specific subtype). Picks the most common / most restrictive type per category
+ * so that placement validation produces reasonable results.
+ */
+export const CATEGORY_DEFAULT_RESOURCE_TYPE: Record<ResourceCategory, string> = {
+  compute: 'web_compute',
+  data: 'sql_database',
+  delivery: 'application_gateway',
+  messaging: 'message_queue',
+  security: 'bastion_host',
+  identity: 'identity_access',
+  operations: 'monitoring',
+  network: 'nat_gateway',
+};
+// ---------------------------------------------------------------------------
 // Port policy — connection point counts per category
 // ---------------------------------------------------------------------------
 

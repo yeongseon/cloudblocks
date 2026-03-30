@@ -60,6 +60,7 @@ describe('CodePreview', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test',
+        provider: 'azure' as const,
         architecture: mockArch,
         createdAt: '',
         updatedAt: '',
@@ -444,6 +445,7 @@ describe('CodePreview', () => {
       workspace: {
         id: 'ws-2',
         name: 'Custom',
+        provider: 'azure' as const,
         architecture: {
           ...mockArch,
           name: 'My Cool App',
@@ -461,6 +463,7 @@ describe('CodePreview', () => {
       workspace: {
         id: 'ws-3',
         name: 'Empty',
+        provider: 'azure' as const,
         architecture: {
           ...mockArch,
           name: '!!!',
@@ -543,6 +546,7 @@ describe('CodePreview', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test',
+        provider: 'azure' as const,
         architecture: {
           ...mockArch,
           nodes: [
@@ -590,6 +594,7 @@ describe('CodePreview', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test',
+        provider: 'azure' as const,
         architecture: {
           ...mockArch,
           nodes: [
@@ -622,6 +627,7 @@ describe('CodePreview', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test',
+        provider: 'azure' as const,
         architecture: {
           ...mockArch,
           nodes: [

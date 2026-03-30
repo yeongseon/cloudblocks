@@ -111,7 +111,7 @@
 .step-progress-node.completed {
   background: var(--accent-success, #22c55e);
   border-color: var(--accent-success, #22c55e);
-  color: #ffffff;
+  color: var(--text-inverse);
 }
 
 .step-progress-node.active {
@@ -172,12 +172,12 @@
 
 .validation-icon.pass {
   background: var(--accent-success, #22c55e);
-  color: white;
+  color: var(--text-inverse);
 }
 
 .validation-icon.fail {
   background: var(--accent-warning, #eab308);
-  color: white;
+  color: var(--text-inverse);
 }
 
 /* Hint Popup */
@@ -261,7 +261,7 @@
 .learning-panel-btn.primary {
   background: var(--accent-primary, #3b82f6);
   border-color: var(--accent-primary, #3b82f6);
-  color: #ffffff;
+  color: var(--text-inverse);
 }
 
 .learning-panel-btn.primary:hover {

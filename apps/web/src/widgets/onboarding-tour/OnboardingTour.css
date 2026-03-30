@@ -14,7 +14,7 @@
 .onboarding-spotlight {
   position: fixed;
   border-radius: 8px;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 0 9999px var(--bg-overlay);
   transition:
     top 0.3s ease,
     left 0.3s ease,
@@ -25,14 +25,14 @@
 
 .onboarding-tooltip {
   position: fixed;
-  background: #1a1a2e;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-default);
   border-radius: 12px;
   padding: 20px 24px;
   max-width: 340px;
   width: 340px;
-  color: #e0e0e0;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  color: var(--text-primary);
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--bg-overlay) 67%, transparent);
   transition:
     top 0.3s ease,
     left 0.3s ease;
@@ -43,20 +43,20 @@
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 8px;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .onboarding-tooltip-desc {
   font-size: 14px;
   line-height: 1.5;
-  color: #b0b0b0;
+  color: var(--text-secondary);
 }
 
 .onboarding-skip {
   position: absolute;
   top: 12px;
   right: 16px;
-  color: #666;
+  color: var(--text-muted);
   font-size: 13px;
   cursor: pointer;
   background: none;
@@ -65,7 +65,7 @@
 }
 
 .onboarding-skip:hover {
-  color: #999;
+  color: var(--text-muted);
 }
 
 .onboarding-dots {
@@ -79,12 +79,12 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
+  background: color-mix(in srgb, var(--text-primary) 20%, transparent);
   transition: background 0.2s ease;
 }
 
 .onboarding-dot--active {
-  background: #3b82f6;
+  background: var(--accent-primary);
 }
 
 .onboarding-nav {
@@ -106,22 +106,22 @@
 }
 
 .onboarding-btn--primary {
-  background: #3b82f6;
-  color: #fff;
+  background: var(--accent-primary);
+  color: var(--text-inverse);
   border: none;
 }
 
 .onboarding-btn--primary:hover {
-  background: #2563eb;
+  background: color-mix(in srgb, var(--accent-primary) 85%, black);
 }
 
 .onboarding-btn--secondary {
   background: transparent;
-  color: #999;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
 }
 
 .onboarding-btn--secondary:hover {
-  color: #ccc;
-  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--text-secondary);
+  border-color: var(--border-default);
 }

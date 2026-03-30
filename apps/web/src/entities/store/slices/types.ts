@@ -110,7 +110,7 @@ export interface ArchitectureState {
   resetWorkspace: () => void;
   renameWorkspace: (name: string) => void;
 
-  createWorkspace: (name: string) => void;
+  createWorkspace: (name: string, provider?: ProviderType) => void;
   switchWorkspace: (id: string) => void;
   deleteWorkspace: (id: string) => void;
   cloneWorkspace: (id: string) => void;

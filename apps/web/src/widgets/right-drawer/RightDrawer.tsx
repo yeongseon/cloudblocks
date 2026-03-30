@@ -26,6 +26,11 @@ const PropertiesDrawerPanel = lazy(() =>
     default: m.PropertiesDrawerPanel,
   })),
 );
+const TemplateGallery = lazy(() =>
+  import('../template-gallery/TemplateGallery').then((m) => ({
+    default: m.TemplateGallery,
+  })),
+);
 
 export interface RightDrawerProps {
   children?: React.ReactNode;
@@ -55,6 +60,12 @@ function DrawerContent({ panelId }: { panelId: DrawerPanelId | null }) {
       return (
         <Suspense fallback={null}>
           <PropertiesDrawerPanel />
+        </Suspense>
+      );
+    case 'templates':
+      return (
+        <Suspense fallback={null}>
+          <TemplateGallery />
         </Suspense>
       );
     default:

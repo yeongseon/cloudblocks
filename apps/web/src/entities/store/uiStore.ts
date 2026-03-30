@@ -116,8 +116,7 @@ interface UIState {
   toggleAdvancedGeneration: () => void;
   showWorkspaceManager: boolean;
   toggleWorkspaceManager: () => void;
-  showTemplateGallery: boolean;
-  toggleTemplateGallery: () => void;
+
   showGitHubLogin: boolean;
   toggleGitHubLogin: () => void;
   showGitHubRepos: boolean;
@@ -197,8 +196,9 @@ interface UIState {
   togglePorts: () => void;
   setShowPorts: (show: boolean) => void;
 
-  showGrid: boolean;
-  toggleGrid: () => void;
+  gridStyle: 'paper' | 'dot' | 'none';
+  setGridStyle: (style: 'paper' | 'dot' | 'none') => void;
+  cycleGridStyle: () => void;
   pendingGitHubAction: PendingGitHubAction;
   setPendingGitHubAction: (action: PendingGitHubAction) => void;
   pendingLinkRepo: string | null;
@@ -381,9 +381,6 @@ export const useUIStore = create<UIState>((set, get) => ({
   showWorkspaceManager: false,
   toggleWorkspaceManager: () => set((s) => ({ showWorkspaceManager: !s.showWorkspaceManager })),
 
-  showTemplateGallery: false,
-  toggleTemplateGallery: () => set((s) => ({ showTemplateGallery: !s.showTemplateGallery })),
-
   showGitHubLogin: false,
   toggleGitHubLogin: () =>
     set((s) => ({
@@ -517,7 +514,7 @@ export const useUIStore = create<UIState>((set, get) => ({
   isSoundMuted: true,
   toggleSound: () => set((s) => ({ isSoundMuted: !s.isSoundMuted })),
 
-  themeVariant: (localStorage.getItem('cloudblocks:theme-variant') as ThemeVariant) || 'blueprint',
+  themeVariant: (localStorage.getItem('cloudblocks:theme-variant') as ThemeVariant) || 'workshop',
   setThemeVariant: (variant) => {
     localStorage.setItem('cloudblocks:theme-variant', variant);
     // Ports are always shown — theme does not affect port visibility
@@ -548,8 +545,19 @@ export const useUIStore = create<UIState>((set, get) => ({
     set({ showPorts: show });
   },
 
-  showGrid: true,
-  toggleGrid: () => set((s) => ({ showGrid: !s.showGrid })),
+  gridStyle:
+    (localStorage.getItem('cloudblocks:grid-style') as 'paper' | 'dot' | 'none') || 'paper',
+  setGridStyle: (style) => {
+    localStorage.setItem('cloudblocks:grid-style', style);
+    set({ gridStyle: style });
+  },
+  cycleGridStyle: () =>
+    set((s) => {
+      const order: Array<'paper' | 'dot' | 'none'> = ['paper', 'dot', 'none'];
+      const next = order[(order.indexOf(s.gridStyle) + 1) % order.length];
+      localStorage.setItem('cloudblocks:grid-style', next);
+      return { gridStyle: next };
+    }),
 
   pendingGitHubAction: readPendingGitHubAction(),
   setPendingGitHubAction: (action) => {

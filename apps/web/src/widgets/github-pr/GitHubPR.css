@@ -4,11 +4,11 @@
   top: 60px;
   width: 360px;
   max-height: calc(100vh - 80px);
-  background: rgba(20, 20, 40, 0.95);
-  border: 1px solid #333366;
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-default);
   border-radius: 8px;
   padding: 12px;
-  color: #e0e0e0;
+  color: var(--text-primary);
   font-family: var(--font-ui);
   z-index: 10;
   display: flex;
@@ -27,13 +27,13 @@
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .github-pr-close {
   background: none;
   border: none;
-  color: #999;
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 14px;
   padding: 2px 6px;
@@ -41,8 +41,8 @@
 }
 
 .github-pr-close:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
+  color: var(--text-primary);
 }
 
 .github-pr-content {
@@ -54,16 +54,16 @@
 
 .github-pr-label {
   font-size: 11px;
-  color: #aab3dc;
+  color: var(--text-secondary);
 }
 
 .github-pr-input,
 .github-pr-textarea {
   padding: 5px 8px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid #444;
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+  border: 1px solid var(--border-strong);
   border-radius: 4px;
-  color: #e0e0e0;
+  color: var(--text-primary);
   font-size: 12px;
   font-family: inherit;
 }
@@ -71,22 +71,22 @@
 .github-pr-input:focus,
 .github-pr-textarea:focus {
   outline: none;
-  border-color: #4285f4;
+  border-color: var(--accent-primary);
 }
 
 .github-pr-submit {
   padding: 6px 10px;
-  background: rgba(66, 133, 244, 0.28);
-  border: 1px solid rgba(66, 133, 244, 0.5);
+  background: color-mix(in srgb, var(--accent-primary) 28%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 50%, transparent);
   border-radius: 4px;
-  color: #ffffff;
+  color: var(--text-primary);
   font-size: 12px;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .github-pr-submit:hover {
-  background: rgba(66, 133, 244, 0.45);
+  background: color-mix(in srgb, var(--accent-primary) 45%, transparent);
 }
 
 .github-pr-submit:disabled {
@@ -97,24 +97,24 @@
 .github-pr-loading {
   padding: 8px;
   font-size: 12px;
-  color: #9aa4d1;
-  background: rgba(66, 133, 244, 0.12);
-  border: 1px solid rgba(66, 133, 244, 0.35);
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 35%, transparent);
   border-radius: 4px;
 }
 
 .github-pr-error {
   padding: 8px;
   font-size: 12px;
-  color: #ef5350;
-  background: rgba(244, 67, 54, 0.16);
-  border: 1px solid rgba(244, 67, 54, 0.4);
+  color: var(--accent-error);
+  background: color-mix(in srgb, var(--accent-error) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-error) 40%, transparent);
   border-radius: 4px;
 }
 
 .github-pr-result-link {
   font-size: 12px;
-  color: #82b1ff;
+  color: var(--accent-primary);
   text-decoration: none;
   word-break: break-all;
 }
@@ -128,14 +128,14 @@
   flex-direction: column;
   gap: 4px;
   padding: 8px;
-  background: rgba(76, 175, 80, 0.12);
-  border: 1px solid rgba(76, 175, 80, 0.35);
+  background: color-mix(in srgb, var(--accent-success) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-success) 35%, transparent);
   border-radius: 4px;
 }
 
 .github-pr-result-info {
   font-size: 12px;
-  color: #a5d6a7;
+  color: var(--accent-success);
   font-weight: 500;
 }
 
@@ -150,25 +150,25 @@
 .github-pr-empty {
   padding: 10px;
   text-align: center;
-  color: #8e95b8;
+  color: var(--text-muted);
   font-size: 12px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px dashed #333366;
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border: 1px dashed var(--border-default);
   border-radius: 4px;
 }
 
 .github-pr-arch-summary {
   font-size: 11px;
-  color: #8e95b8;
+  color: var(--text-muted);
   padding: 6px 8px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid #333366;
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  border: 1px solid var(--border-default);
   border-radius: 4px;
 }
 
 .github-pr-baseline {
   font-size: 11px;
-  color: #9aa4d1;
+  color: var(--text-secondary);
   padding: 4px 8px;
 }
 
@@ -187,18 +187,18 @@
 
 .github-pr-compare-btn {
   padding: 6px 10px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid #444;
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  border: 1px solid var(--border-strong);
   border-radius: 4px;
-  color: #ccc;
+  color: var(--text-secondary);
   font-size: 12px;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .github-pr-compare-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
+  background: color-mix(in srgb, var(--text-primary) 12%, transparent);
+  color: var(--text-primary);
 }
 
 .github-pr-compare-btn:disabled {
@@ -208,20 +208,20 @@
 
 .github-pr-recent-pr {
   font-size: 11px;
-  color: #a5d6a7;
+  color: var(--accent-success);
   padding: 6px 8px;
-  background: rgba(76, 175, 80, 0.08);
-  border: 1px solid rgba(76, 175, 80, 0.25);
+  background: color-mix(in srgb, var(--accent-success) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-success) 25%, transparent);
   border-radius: 4px;
 }
 
 .github-pr-recent-pr-label {
   font-weight: 600;
-  color: #81c784;
+  color: var(--accent-success);
 }
 
 .github-pr-recent-pr a {
-  color: #82b1ff;
+  color: var(--accent-primary);
   text-decoration: none;
 }
 

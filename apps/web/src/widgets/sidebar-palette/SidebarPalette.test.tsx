@@ -81,6 +81,7 @@ describe('SidebarPalette', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test Workspace',
+        provider: 'azure' as const,
         architecture: baseArchitecture,
         createdAt: '',
         updatedAt: '',
@@ -122,6 +123,7 @@ describe('SidebarPalette', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test Workspace',
+        provider: 'azure' as const,
         architecture: {
           ...baseArchitecture,
           nodes: [networkPlate, publicSubnet],
@@ -145,6 +147,7 @@ describe('SidebarPalette', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test Workspace',
+        provider: 'azure' as const,
         architecture: {
           ...baseArchitecture,
           nodes: [networkPlate],
@@ -187,6 +190,7 @@ describe('SidebarPalette', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test Workspace',
+        provider: 'azure' as const,
         architecture: {
           ...baseArchitecture,
           nodes: [networkPlate, publicSubnet],
@@ -257,6 +261,7 @@ describe('SidebarPalette', () => {
           workspace: {
             id: 'ws-1',
             name: 'Test Workspace',
+            provider: 'azure' as const,
             architecture: {
               ...baseArchitecture,
               nodes: [networkPlate, publicSubnet],
@@ -319,6 +324,7 @@ describe('SidebarPalette', () => {
           workspace: {
             id: 'ws-1',
             name: 'Test Workspace',
+            provider: 'azure' as const,
             architecture: {
               ...baseArchitecture,
               nodes: [networkPlate, publicSubnet],
@@ -367,6 +373,7 @@ it('highlights matching text in search results', async () => {
     workspace: {
       id: 'ws-1',
       name: 'Test Workspace',
+      provider: 'azure' as const,
       architecture: {
         ...baseArchitecture,
         nodes: [networkPlate, publicSubnet],

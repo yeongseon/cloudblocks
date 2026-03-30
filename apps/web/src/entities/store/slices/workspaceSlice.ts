@@ -28,14 +28,16 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (set, get
   workspace: createDefaultWorkspace(),
   workspaces: [],
 
-  createWorkspace: (name) => {
+  createWorkspace: (name, provider) => {
     const state = get();
+    const resolvedProvider = provider ?? useUIStore.getState().activeProvider;
     const allWorkspaces = upsertCurrentWorkspace(state.workspaces, state.workspace);
     const uniqueName = deduplicateWorkspaceName(name, allWorkspaces);
     const now = new Date().toISOString();
     const newWorkspace: Workspace = {
       id: generateId('ws'),
       name: uniqueName,
+      provider: resolvedProvider,
       architecture: createBlankArchitecture(generateId('arch'), uniqueName),
       createdAt: now,
       updatedAt: now,
@@ -48,6 +50,7 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (set, get
     }
 
     useUIStore.getState().clearDiffState();
+    useUIStore.getState().setActiveProvider(resolvedProvider);
 
     set({
       workspace: newWorkspace,
@@ -71,6 +74,8 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (set, get
     }
 
     useUIStore.getState().clearDiffState();
+    // Sync UI provider from workspace provider (migration: default to 'azure')
+    useUIStore.getState().setActiveProvider(target.provider ?? 'azure');
 
     set({
       workspace: target,
@@ -127,6 +132,7 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (set, get
     const cloned: Workspace = {
       id: generateId('ws'),
       name: cloneName,
+      provider: source.provider ?? 'azure',
       architecture: {
         ...JSON.parse(JSON.stringify(source.architecture)),
         id: generateId('arch'),
@@ -144,6 +150,7 @@ export const createWorkspaceSlice: ArchitectureSlice<WorkspaceSlice> = (set, get
     }
 
     useUIStore.getState().clearDiffState();
+    useUIStore.getState().setActiveProvider(cloned.provider);
 
     set({
       workspace: cloned,

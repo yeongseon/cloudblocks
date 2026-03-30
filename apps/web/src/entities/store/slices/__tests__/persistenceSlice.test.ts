@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { endpointId } from '@cloudblocks/schema';
 
 import type { ArchitectureModel } from '@cloudblocks/schema';
+import type { ArchitectureTemplate } from '../../../../shared/types/template';
 import { useArchitectureStore } from '../../architectureStore';
+import { useUIStore } from '../../uiStore';
 import { validateArchitectureShape } from '../persistenceSlice';
 
 const FIVE_MB = 5 * 1024 * 1024;
@@ -13,6 +15,7 @@ function seedStore(): void {
     workspace: {
       id: 'ws-seed',
       name: 'Seed Workspace',
+      provider: 'azure' as const,
       architecture: {
         id: 'arch-seed',
         name: 'Seed Architecture',
@@ -86,6 +89,7 @@ describe('persistenceSlice branches', () => {
     vi.restoreAllMocks();
     localStorage.clear();
     seedStore();
+    useUIStore.setState({ activeProvider: 'azure' });
   });
 
   describe('validateArchitectureShape', () => {
@@ -640,7 +644,7 @@ describe('persistenceSlice branches', () => {
         subtype: 'app-service',
         config: { tier: 'basic' },
       });
-      expect(queue).toMatchObject({ resourceType: 'messaging', provider: 'azure' });
+      expect(queue).toMatchObject({ resourceType: 'message_queue', provider: 'azure' });
       expect(architecture.externalActors).toEqual([
         { id: 'ext-browser', name: 'Browser', type: 'browser', position: { x: -6, y: 0, z: 5 } },
         { id: 'ext-internet', name: 'Internet', type: 'internet', position: { x: -3, y: 0, z: 5 } },
@@ -854,6 +858,158 @@ describe('persistenceSlice branches', () => {
 
       expect(typeof invalidJsonResult).toBe('string');
       expect(oversizeResult).toBe('Import exceeds 5MB limit');
+    });
+
+    it('remaps imported nodes and names when active provider is non-azure', () => {
+      useUIStore.setState({ activeProvider: 'aws' });
+
+      const model = {
+        id: 'provider-remap-import',
+        name: 'Provider Remap Import',
+        version: '2',
+        nodes: [
+          {
+            id: 'container-region-default',
+            name: 'VNet',
+            kind: 'container',
+            layer: 'region',
+            resourceType: 'virtual_network',
+            category: 'network',
+            provider: 'azure',
+            parentId: null,
+            position: { x: 0, y: 0, z: 0 },
+            frame: { width: 16, height: 1, depth: 16 },
+            subtype: 'vnet',
+            metadata: {},
+          },
+          {
+            id: 'container-region-custom',
+            name: 'Custom Region',
+            kind: 'container',
+            layer: 'region',
+            resourceType: 'virtual_network',
+            category: 'network',
+            provider: 'azure',
+            parentId: null,
+            position: { x: 20, y: 0, z: 20 },
+            frame: { width: 16, height: 1, depth: 16 },
+            metadata: {},
+          },
+          {
+            id: 'block-vm',
+            name: 'Virtual Machine (Worker)',
+            kind: 'resource',
+            layer: 'resource',
+            resourceType: 'virtual_machine',
+            category: 'compute',
+            provider: 'azure',
+            parentId: 'container-region-default',
+            position: { x: 1, y: 0, z: 1 },
+            subtype: 'vm',
+            metadata: {},
+          },
+        ],
+        connections: [],
+        endpoints: [],
+      };
+
+      const result = useArchitectureStore.getState().importArchitecture(JSON.stringify(model));
+      const architecture = useArchitectureStore.getState().workspace.architecture;
+      const defaultRegion = architecture.nodes.find(
+        (node) => node.id === 'container-region-default',
+      );
+      const customRegion = architecture.nodes.find((node) => node.id === 'container-region-custom');
+      const vmNode = architecture.nodes.find((node) => node.id === 'block-vm');
+
+      expect(result).toBeNull();
+      expect(defaultRegion).toMatchObject({ name: 'VPC', provider: 'aws', subtype: 'vpc' });
+      expect(customRegion).toMatchObject({ name: 'Custom Region', provider: 'aws' });
+      expect(vmNode).toMatchObject({
+        name: 'EC2 Instance (Worker)',
+        provider: 'aws',
+        subtype: 'ec2',
+      });
+    });
+  });
+
+  describe('loadFromTemplate', () => {
+    it('remaps template nodes when active provider is non-azure', () => {
+      useUIStore.setState({ activeProvider: 'gcp' });
+
+      const template: ArchitectureTemplate = {
+        id: 'template-provider-remap',
+        name: 'Provider Remap Template',
+        description: 'Template for provider remap branch coverage',
+        category: 'general' as const,
+        difficulty: 'beginner' as const,
+        tags: ['test'],
+        architecture: {
+          name: 'Template Architecture',
+          version: '1',
+          nodes: [
+            {
+              id: 'container-region-default',
+              name: 'VNet',
+              kind: 'container',
+              layer: 'region',
+              resourceType: 'virtual_network',
+              category: 'network',
+              provider: 'azure',
+              parentId: null,
+              position: { x: 0, y: 0, z: 0 },
+              frame: { width: 16, height: 1, depth: 16 },
+              subtype: 'vnet',
+              metadata: {},
+            },
+            {
+              id: 'container-region-custom',
+              name: 'Custom Region',
+              kind: 'container',
+              layer: 'region',
+              resourceType: 'virtual_network',
+              category: 'network',
+              provider: 'azure',
+              parentId: null,
+              position: { x: 20, y: 0, z: 20 },
+              frame: { width: 16, height: 1, depth: 16 },
+              metadata: {},
+            },
+            {
+              id: 'block-vm',
+              name: 'Virtual Machine',
+              kind: 'resource',
+              layer: 'resource',
+              resourceType: 'virtual_machine',
+              category: 'compute',
+              provider: 'azure',
+              parentId: 'container-region-default',
+              position: { x: 1, y: 0, z: 1 },
+              subtype: 'vm',
+              metadata: {},
+            },
+          ],
+          connections: [],
+          endpoints: [],
+          externalActors: [],
+        },
+      };
+
+      useArchitectureStore.getState().loadFromTemplate(template);
+
+      const architecture = useArchitectureStore.getState().workspace.architecture;
+      const defaultRegion = architecture.nodes.find(
+        (node) => node.id === 'container-region-default',
+      );
+      const customRegion = architecture.nodes.find((node) => node.id === 'container-region-custom');
+      const vmNode = architecture.nodes.find((node) => node.id === 'block-vm');
+
+      expect(defaultRegion).toMatchObject({ name: 'VPC Network', provider: 'gcp', subtype: 'vpc' });
+      expect(customRegion).toMatchObject({ name: 'Custom Region', provider: 'gcp' });
+      expect(vmNode).toMatchObject({
+        name: 'Compute Engine',
+        provider: 'gcp',
+        subtype: 'compute-engine',
+      });
     });
   });
 });

@@ -5,7 +5,7 @@ import {
   DEFAULT_CONNECTION_SEMANTIC,
 } from '../connectionFaceColors';
 import type { ConnectionRenderSemantic } from '../connectionFaceColors';
-import { PROVIDER_COLORS } from '../../block/blockFaceColors';
+import { PROVIDER_BRAND_COLOR } from '../../block/blockFaceColors';
 
 describe('connectionFaceColors', () => {
   describe('CONNECTION_SEMANTIC_BASE_COLORS', () => {
@@ -28,31 +28,32 @@ describe('connectionFaceColors', () => {
         const colors = getConnectionColors(semantic);
 
         expect(colors.base).toBe(CONNECTION_SEMANTIC_BASE_COLORS[semantic]);
-        expect(colors.stroke).toMatch(/^#[0-9A-Fa-f]{6}$/);
-        expect(colors.casing).toMatch(/^#[0-9A-Fa-f]{6}$/);
+        // stroke and casing are now CSS var() strings for theme-awareness
+        expect(colors.stroke).toContain('var(--connection-');
+        expect(colors.casing).toContain('var(--connection-');
+        // Fallback hex values are embedded in the var()
+        expect(colors.stroke).toMatch(/#[0-9A-Fa-f]{6}/);
+        expect(colors.casing).toMatch(/#[0-9A-Fa-f]{6}/);
       });
 
-      it(`"${semantic}" stroke equals base color`, () => {
+      it(`"${semantic}" stroke contains semantic name`, () => {
         const colors = getConnectionColors(semantic);
-        expect(colors.stroke).toBe(colors.base);
+        expect(colors.stroke).toContain(`--connection-${semantic}-stroke`);
       });
 
-      it(`"${semantic}" casing is darker than base`, () => {
+      it(`"${semantic}" casing contains semantic name`, () => {
         const colors = getConnectionColors(semantic);
-        // Casing should be a different (darker) color
-        expect(colors.casing).not.toBe(colors.base);
+        expect(colors.casing).toContain(`--connection-${semantic}-casing`);
       });
     }
   });
 
   describe('no conflict with provider colors', () => {
-    it('semantic base colors do not overlap with any provider palette', () => {
+    it('semantic base colors do not overlap with any provider brand color', () => {
       const semanticColors = new Set(Object.values(CONNECTION_SEMANTIC_BASE_COLORS));
 
-      for (const [, palette] of Object.entries(PROVIDER_COLORS)) {
-        for (const [, color] of Object.entries(palette)) {
-          expect(semanticColors.has(color)).toBe(false);
-        }
+      for (const [, brandColor] of Object.entries(PROVIDER_BRAND_COLOR)) {
+        expect(semanticColors.has(brandColor)).toBe(false);
       }
     });
   });

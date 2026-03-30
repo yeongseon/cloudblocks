@@ -20,6 +20,7 @@ export function createDefaultWorkspace(): Workspace {
   return {
     id: generateId('ws'),
     name: DEFAULT_WORKSPACE_NAME,
+    provider: 'azure',
     architecture: createBlankArchitecture(generateId('arch'), DEFAULT_WORKSPACE_NAME),
     createdAt: now,
     updatedAt: now,

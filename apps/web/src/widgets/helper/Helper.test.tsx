@@ -17,6 +17,7 @@ function makeWorkspace(
   return {
     id: 'ws-test',
     name: 'Test',
+    provider: 'azure' as const,
     architecture: {
       id: 'arch-test',
       name: 'Test',

@@ -4,46 +4,46 @@ import { getContainerBlockFaceColors } from './containerBlockFaceColors';
 describe('getPlateFaceColors', () => {
   it('returns region colors for region container type', () => {
     expect(getContainerBlockFaceColors({ type: 'region' })).toEqual({
-      topFaceColor: '#162537',
-      topFaceStroke: '#4B6886',
-      leftSideColor: '#0F1B2A',
-      rightSideColor: '#0B1420',
+      topFaceColor: '#0A6CB7',
+      topFaceStroke: '#005EA6',
+      leftSideColor: '#005A9E',
+      rightSideColor: '#0060A9',
     });
   });
 
   it('returns global colors for global container type', () => {
     expect(getContainerBlockFaceColors({ type: 'global' })).toEqual({
-      topFaceColor: '#B39DDB',
-      topFaceStroke: '#D1C4E9',
-      leftSideColor: '#9575CD',
-      rightSideColor: '#7E57C2',
+      topFaceColor: '#3B97DE',
+      topFaceStroke: '#2F87CB',
+      leftSideColor: '#2D81C2',
+      rightSideColor: '#308AD0',
     });
   });
 
   it('returns edge colors for edge container type', () => {
     expect(getContainerBlockFaceColors({ type: 'edge' })).toEqual({
-      topFaceColor: '#80CBC4',
-      topFaceStroke: '#B2DFDB',
-      leftSideColor: '#4DB6AC',
-      rightSideColor: '#26A69A',
+      topFaceColor: '#238BDA',
+      topFaceStroke: '#187BC7',
+      leftSideColor: '#1776BE',
+      rightSideColor: '#187ECB',
     });
   });
 
   it('returns zone colors for zone container type', () => {
     expect(getContainerBlockFaceColors({ type: 'zone' })).toEqual({
-      topFaceColor: '#A5D6A7',
-      topFaceStroke: '#C8E6C9',
-      leftSideColor: '#81C784',
-      rightSideColor: '#66BB6A',
+      topFaceColor: '#1784D8',
+      topFaceStroke: '#0C75C5',
+      leftSideColor: '#0B70BC',
+      rightSideColor: '#0C77C9',
     });
   });
 
   it('returns unified navy subnet colors', () => {
     expect(getContainerBlockFaceColors({ type: 'subnet' })).toEqual({
-      topFaceColor: '#22364B',
-      topFaceStroke: '#7F9BB6',
-      leftSideColor: '#182A3D',
-      rightSideColor: '#122030',
+      topFaceColor: '#0A74C5',
+      topFaceStroke: '#0065B3',
+      leftSideColor: '#0061AC',
+      rightSideColor: '#0067B7',
     });
   });
 });

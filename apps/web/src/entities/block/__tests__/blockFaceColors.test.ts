@@ -7,7 +7,7 @@ import {
   getBlockColor,
   getBlockFaceColors,
   lighten,
-  PROVIDER_COLORS,
+  PROVIDER_BRAND_COLOR,
 } from '../blockFaceColors';
 
 const providers: ProviderType[] = ['azure', 'aws', 'gcp'];
@@ -108,57 +108,24 @@ describe('deriveFaceColors', () => {
   });
 });
 
-// ─── Provider Color Palettes (§7.2–§7.4) ─────────────────────
+// ─── Provider Brand Colors ─────────────────────────────────────
 
-describe('PROVIDER_COLORS', () => {
-  it('contains palettes for all three providers', () => {
-    expect(PROVIDER_COLORS).toHaveProperty('aws');
-    expect(PROVIDER_COLORS).toHaveProperty('azure');
-    expect(PROVIDER_COLORS).toHaveProperty('gcp');
+describe('PROVIDER_BRAND_COLOR', () => {
+  it('contains brand colors for all three providers', () => {
+    expect(PROVIDER_BRAND_COLOR).toHaveProperty('aws');
+    expect(PROVIDER_BRAND_COLOR).toHaveProperty('azure');
+    expect(PROVIDER_BRAND_COLOR).toHaveProperty('gcp');
   });
 
-  it('has correct AWS colors from spec §7.2', () => {
-    const aws = PROVIDER_COLORS.aws;
-    expect(aws.compute).toBe('#D86613');
-    expect(aws.database).toBe('#CD2264');
-    expect(aws.storage).toBe('#3F8624');
-    expect(aws.networking).toBe('#693BC5');
-    expect(aws.security).toBe('#D6232C');
-    expect(aws['app-integration']).toBe('#CD2264');
-    expect(aws.analytics).toBe('#A166FF');
-    expect(aws.ml).toBe('#1B7B67');
-    expect(aws.management).toBe('#693BC5');
-  });
-
-  it('has correct Azure colors from spec §7.3', () => {
-    const azure = PROVIDER_COLORS.azure;
-    expect(azure.compute).toBe('#0078D4');
-    expect(azure.serverless).toBe('#FEA11B');
-    expect(azure.database).toBe('#005BA1');
-    expect(azure['database-nosql']).toBe('#B25D08');
-    expect(azure.storage).toBe('#258277');
-    expect(azure.networking).toBe('#59B300');
-    expect(azure.security).toBe('#E62323');
-    expect(azure.messaging).toBe('#003F7C');
-    expect(azure.identity).toBe('#EF7100');
-    expect(azure.monitoring).toBe('#32BEDD');
-    expect(azure.iot).toBe('#32D4F5');
-  });
-
-  it('has correct GCP colors from spec §7.4', () => {
-    const gcp = PROVIDER_COLORS.gcp;
-    expect(gcp.compute).toBe('#4285F4');
-    expect(gcp['storage-db']).toBe('#4285F4');
-    expect(gcp.networking).toBe('#EA4335');
-    expect(gcp['data-analytics']).toBe('#34A853');
-    expect(gcp.operations).toBe('#FBBC05');
+  it('has correct brand colors', () => {
+    expect(PROVIDER_BRAND_COLOR.azure).toBe('#0078D4');
+    expect(PROVIDER_BRAND_COLOR.aws).toBe('#D86613');
+    expect(PROVIDER_BRAND_COLOR.gcp).toBe('#34A853');
   });
 
   it('contains only valid hex colors', () => {
     for (const provider of providers) {
-      for (const color of Object.values(PROVIDER_COLORS[provider])) {
-        expect(color).toMatch(hexColorPattern);
-      }
+      expect(PROVIDER_BRAND_COLOR[provider]).toMatch(hexColorPattern);
     }
   });
 });
@@ -175,43 +142,29 @@ describe('getBlockColor', () => {
     }
   });
 
-  it('uses subtype-specific mapping when available', () => {
-    // AWS EC2 → compute family → #D86613
+  it('returns the same brand color regardless of subtype', () => {
+    // All Azure blocks use the same brand color
+    expect(getBlockColor('azure', 'functions', 'compute')).toBe('#0078D4');
+    expect(getBlockColor('azure', 'cosmos-db', 'data')).toBe('#0078D4');
+    expect(getBlockColor('azure', 'sql-database', 'data')).toBe('#0078D4');
+    // All AWS blocks use the same brand color
     expect(getBlockColor('aws', 'ec2', 'compute')).toBe('#D86613');
-    // AWS S3 → storage family → #3F8624
-    expect(getBlockColor('aws', 's3', 'data')).toBe('#3F8624');
-    // Azure Function App → serverless → #FEA11B
-    expect(getBlockColor('azure', 'functions', 'compute')).toBe('#FEA11B');
-    // Azure Cosmos DB → database-nosql → #B25D08
-    expect(getBlockColor('azure', 'cosmos-db', 'data')).toBe('#B25D08');
+    expect(getBlockColor('aws', 's3', 'data')).toBe('#D86613');
+    // All GCP blocks use the same brand color
+    expect(getBlockColor('gcp', 'compute-engine', 'compute')).toBe('#34A853');
   });
 
-  it('falls back to category mapping when subtype is not in map', () => {
-    // Unknown subtype for AWS compute → category fallback → compute → #D86613
-    const color = getBlockColor('aws', 'UnknownService', 'compute');
-    expect(color).toBe('#D86613');
+  it('returns the same color when subtype is undefined', () => {
+    expect(getBlockColor('azure', undefined, 'compute')).toBe(PROVIDER_BRAND_COLOR.azure);
+    expect(getBlockColor('aws', undefined, 'data')).toBe(PROVIDER_BRAND_COLOR.aws);
+    expect(getBlockColor('gcp', undefined, 'network')).toBe(PROVIDER_BRAND_COLOR.gcp);
   });
 
-  it('falls back to category mapping when subtype is undefined', () => {
-    const color = getBlockColor('azure', undefined, 'compute');
-    expect(color).toBe(PROVIDER_COLORS.azure.compute);
-  });
-
-  it('returns different colors for different providers on the same category', () => {
-    const awsCompute = getBlockColor('aws', undefined, 'compute');
-    const azureCompute = getBlockColor('azure', undefined, 'compute');
-    const gcpCompute = getBlockColor('gcp', undefined, 'compute');
-    // At least AWS and Azure compute should differ
-    expect(awsCompute).not.toBe(azureCompute);
-    expect(new Set([awsCompute, azureCompute, gcpCompute]).size).toBeGreaterThan(1);
-  });
-
-  it('differentiates subtypes within the same category and provider', () => {
-    // Azure SQL Database → database → #005BA1
-    const azureSql = getBlockColor('azure', 'sql-database', 'data');
-    // Azure Cosmos DB → database-nosql → #B25D08
-    const azureCosmos = getBlockColor('azure', 'cosmos-db', 'data');
-    expect(azureSql).not.toBe(azureCosmos);
+  it('returns different colors for different providers', () => {
+    const awsColor = getBlockColor('aws', undefined, 'compute');
+    const azureColor = getBlockColor('azure', undefined, 'compute');
+    const gcpColor = getBlockColor('gcp', undefined, 'compute');
+    expect(new Set([awsColor, azureColor, gcpColor]).size).toBe(3);
   });
 });
 
@@ -253,23 +206,20 @@ describe('getBlockFaceColors', () => {
     }
   });
 
-  it('uses distinct top-face colors across providers for the same category', () => {
-    for (const category of categories) {
-      const providerTopColors = providers.map(
-        (provider) => getBlockFaceColors(category, provider).topFaceColor,
-      );
-
-      expect(new Set(providerTopColors).size).toBe(providers.length);
+  it('all categories for a provider return the same face colors', () => {
+    for (const provider of providers) {
+      const firstColors = getBlockFaceColors(categories[0], provider);
+      for (const category of categories.slice(1)) {
+        const colors = getBlockFaceColors(category, provider);
+        expect(colors).toEqual(firstColors);
+      }
     }
   });
 
-  it('accepts optional subtype parameter for subtype-specific coloring', () => {
+  it('subtype does not change colors (uniform brand color)', () => {
     const withSubtype = getBlockFaceColors('data', 'azure', 'cosmos-db');
     const withoutSubtype = getBlockFaceColors('data', 'azure');
-
-    // Cosmos DB uses database-nosql (#B25D08), default database uses database (#005BA1)
-    expect(withSubtype.topFaceColor).not.toBe(withoutSubtype.topFaceColor);
-    expect(withSubtype.topFaceColor).toBe('#B56312');
+    expect(withSubtype).toEqual(withoutSubtype);
   });
 
   it('side colors are darker than top face color', () => {

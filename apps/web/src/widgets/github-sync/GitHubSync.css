@@ -4,11 +4,11 @@
   top: 60px;
   width: 360px;
   max-height: calc(100vh - 80px);
-  background: rgba(20, 20, 40, 0.95);
-  border: 1px solid #333366;
+  background: var(--bg-surface-raised);
+  border: 1px solid var(--border-default);
   border-radius: 8px;
   padding: 12px;
-  color: #e0e0e0;
+  color: var(--text-primary);
   font-family: var(--font-ui);
   z-index: 10;
   display: flex;
@@ -27,13 +27,13 @@
   margin: 0;
   font-size: 14px;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .github-sync-close {
   background: none;
   border: none;
-  color: #999;
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 14px;
   padding: 2px 6px;
@@ -41,16 +41,16 @@
 }
 
 .github-sync-close:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: color-mix(in srgb, var(--text-primary) 10%, transparent);
+  color: var(--text-primary);
 }
 
 .github-sync-loading {
   padding: 8px;
   font-size: 12px;
-  color: #9aa4d1;
-  background: rgba(66, 133, 244, 0.12);
-  border: 1px solid rgba(66, 133, 244, 0.35);
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 35%, transparent);
   border-radius: 4px;
   margin-bottom: 8px;
 }
@@ -58,9 +58,9 @@
 .github-sync-error {
   padding: 8px;
   font-size: 12px;
-  color: #ef5350;
-  background: rgba(244, 67, 54, 0.16);
-  border: 1px solid rgba(244, 67, 54, 0.4);
+  color: var(--accent-error);
+  background: color-mix(in srgb, var(--accent-error) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-error) 40%, transparent);
   border-radius: 4px;
   margin-bottom: 8px;
 }
@@ -74,22 +74,22 @@
 
 .github-sync-label {
   font-size: 11px;
-  color: #aab3dc;
+  color: var(--text-secondary);
 }
 
 .github-sync-input {
   padding: 5px 8px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid #444;
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+  border: 1px solid var(--border-strong);
   border-radius: 4px;
-  color: #e0e0e0;
+  color: var(--text-primary);
   font-size: 12px;
   font-family: inherit;
 }
 
 .github-sync-input:focus {
   outline: none;
-  border-color: #4285f4;
+  border-color: var(--accent-primary);
 }
 
 .github-sync-open-repos,
@@ -104,25 +104,25 @@
 
 .github-sync-open-repos,
 .github-sync-secondary-btn {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid #444;
-  color: #ccc;
+  background: color-mix(in srgb, var(--text-primary) 5%, transparent);
+  border: 1px solid var(--border-strong);
+  color: var(--text-secondary);
 }
 
 .github-sync-open-repos:hover,
 .github-sync-secondary-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
+  background: color-mix(in srgb, var(--text-primary) 12%, transparent);
+  color: var(--text-primary);
 }
 
 .github-sync-primary-btn {
-  background: rgba(66, 133, 244, 0.28);
-  border: 1px solid rgba(66, 133, 244, 0.5);
-  color: #ffffff;
+  background: color-mix(in srgb, var(--accent-primary) 28%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 50%, transparent);
+  color: var(--text-primary);
 }
 
 .github-sync-primary-btn:hover {
-  background: rgba(66, 133, 244, 0.45);
+  background: color-mix(in srgb, var(--accent-primary) 45%, transparent);
 }
 
 .github-sync-primary-btn:disabled,
@@ -133,7 +133,7 @@
 
 .github-sync-meta {
   font-size: 12px;
-  color: #d7defa;
+  color: var(--text-primary);
 }
 
 .github-sync-actions {
@@ -152,43 +152,43 @@
 .github-sync-subtitle {
   margin: 0;
   font-size: 12px;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .github-sync-commit-item {
   padding: 8px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid #333366;
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  border: 1px solid var(--border-default);
   border-radius: 4px;
 }
 
 .github-sync-commit-message {
   font-size: 12px;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .github-sync-commit-meta {
   margin-top: 3px;
   font-size: 10px;
-  color: #8e95b8;
+  color: var(--text-muted);
 }
 
 .github-sync-empty {
   padding: 10px;
   text-align: center;
-  color: #8e95b8;
+  color: var(--text-muted);
   font-size: 12px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px dashed #333366;
+  background: color-mix(in srgb, var(--text-primary) 2%, transparent);
+  border: 1px dashed var(--border-default);
   border-radius: 4px;
 }
 
 .github-sync-warning {
   padding: 8px;
   font-size: 12px;
-  color: #ffb74d;
-  background: rgba(255, 152, 0, 0.12);
-  border: 1px solid rgba(255, 152, 0, 0.35);
+  color: var(--accent-warning);
+  background: color-mix(in srgb, var(--accent-warning) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-warning) 35%, transparent);
   border-radius: 4px;
   margin-bottom: 8px;
 }
@@ -196,7 +196,7 @@
 .github-sync-unlink-btn {
   background: none;
   border: none;
-  color: #ef5350;
+  color: var(--accent-error);
   cursor: pointer;
   font-size: 11px;
   margin-left: 8px;
@@ -205,19 +205,19 @@
 }
 
 .github-sync-unlink-btn:hover {
-  background: rgba(244, 67, 54, 0.16);
+  background: color-mix(in srgb, var(--accent-error) 16%, transparent);
 }
 
 .github-sync-confirm {
   padding: 8px;
-  background: rgba(255, 152, 0, 0.08);
-  border: 1px solid rgba(255, 152, 0, 0.35);
+  background: color-mix(in srgb, var(--accent-warning) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-warning) 35%, transparent);
   border-radius: 4px;
 }
 
 .github-sync-confirm-message {
   font-size: 12px;
-  color: #ffb74d;
+  color: var(--accent-warning);
   margin-bottom: 8px;
 }
 
@@ -227,7 +227,7 @@
 }
 
 .github-sync-commit-link {
-  color: #4285f4;
+  color: var(--accent-primary);
   text-decoration: none;
 }
 
@@ -237,15 +237,15 @@
 
 .github-sync-arch-summary {
   font-size: 11px;
-  color: #8e95b8;
+  color: var(--text-muted);
   padding: 6px 8px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid #333366;
+  background: color-mix(in srgb, var(--text-primary) 3%, transparent);
+  border: 1px solid var(--border-default);
   border-radius: 4px;
 }
 
 .github-sync-reconciliation {
   font-size: 11px;
-  color: #9aa4d1;
+  color: var(--text-secondary);
   padding: 4px 8px;
 }

@@ -8,6 +8,7 @@ function createWorkspace(id: string): Workspace {
   return {
     id,
     name: `Workspace ${id}`,
+    provider: 'azure' as const,
     architecture: {
       id: `arch-${id}`,
       name: `Architecture ${id}`,

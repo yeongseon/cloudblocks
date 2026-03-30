@@ -92,7 +92,7 @@ const redoMock = vi.fn();
 const importArchitectureMock = vi.fn();
 
 function getOverflowDropdown(): HTMLElement {
-  const trigger = screen.getByRole('button', { name: 'Advanced' });
+  const trigger = screen.getByRole('button', { name: 'Menu' });
   const container = trigger.closest('.menu-dropdown-container');
   if (!container) throw new Error('Expected menu dropdown container to exist');
   const dropdown = container.querySelector('.menu-dropdown');
@@ -101,7 +101,7 @@ function getOverflowDropdown(): HTMLElement {
 }
 
 async function openOverflow(user: ReturnType<typeof userEvent.setup>): Promise<HTMLElement> {
-  await user.click(screen.getByRole('button', { name: 'Advanced' }));
+  await user.click(screen.getByRole('button', { name: 'Menu' }));
   return getOverflowDropdown();
 }
 
@@ -123,6 +123,7 @@ function setArchitectureState(overrides?: Partial<ArchitectureModel>): void {
     workspace: {
       id: 'ws-1',
       name: 'Test',
+      provider: 'azure' as const,
       architecture: { ...emptyArch, ...overrides },
       createdAt: '',
       updatedAt: '',
@@ -141,7 +142,7 @@ describe('MenuBar', () => {
       showResourceGuide: true,
       showCodePreview: false,
       showWorkspaceManager: false,
-      showTemplateGallery: false,
+
       showGitHubLogin: false,
       showGitHubRepos: false,
       showGitHubSync: false,
@@ -176,11 +177,11 @@ describe('MenuBar', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders compact logo, overflow menu trigger, workspace button, and quick actions', () => {
+  it('renders compact logo, logo menu trigger, workspace button, and quick actions', () => {
     render(<MenuBar />);
 
-    expect(screen.getByText(/CB/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Advanced' })).toBeInTheDocument();
+    expect(document.querySelector('.menu-bar-logo svg')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Menu' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Workspaces' })).toBeInTheDocument();
 
     expect(screen.getByTitle('Undo (Ctrl+Z)')).toBeInTheDocument();
@@ -201,7 +202,8 @@ describe('MenuBar', () => {
     render(<MenuBar />);
 
     await user.click(screen.getByRole('button', { name: 'Templates' }));
-    expect(useUIStore.getState().showTemplateGallery).toBe(true);
+    expect(useUIStore.getState().drawer.isOpen).toBe(true);
+    expect(useUIStore.getState().drawer.activePanel).toBe('templates');
 
     await user.click(screen.getByRole('button', { name: 'Validate' }));
     expect(useUIStore.getState().drawer.isOpen).toBe(true);
@@ -219,39 +221,31 @@ describe('MenuBar', () => {
     expect(screen.getByRole('tab', { name: /gcp/i })).toBeInTheDocument();
   });
 
-  it('clicking provider tab switches active provider', async () => {
+  it('clicking provider tab creates new workspace with that provider', async () => {
     const user = userEvent.setup();
+    vi.mocked(confirmDialog).mockResolvedValue(true);
     useUIStore.setState({ activeProvider: 'aws' });
     render(<MenuBar />);
 
     const azureTab = screen.getByRole('tab', { name: /azure/i });
     await user.click(azureTab);
 
+    // Provider switch now creates a new workspace and syncs activeProvider
+    expect(confirmDialog).toHaveBeenCalledWith(
+      expect.stringContaining('AZURE'),
+      expect.stringContaining('AZURE'),
+    );
     expect(useUIStore.getState().activeProvider).toBe('azure');
   });
 
-  it('marks AWS and GCP provider tabs as coming soon and disabled', () => {
+  it('AWS and GCP provider tabs are enabled and clickable', () => {
     render(<MenuBar />);
 
-    const awsTab = screen.getByRole('tab', { name: /aws \(coming soon\)/i });
-    const gcpTab = screen.getByRole('tab', { name: /gcp \(coming soon\)/i });
+    const awsTab = screen.getByRole('tab', { name: /aws/i });
+    const gcpTab = screen.getByRole('tab', { name: /gcp/i });
 
-    expect(awsTab).toBeDisabled();
-    expect(awsTab).toHaveAttribute('title', 'AWS support is coming soon');
-    expect(gcpTab).toBeDisabled();
-    expect(gcpTab).toHaveAttribute('title', 'GCP support is coming soon');
-  });
-
-  it('does not show confirm dialog when clicking a coming soon provider', async () => {
-    const user = userEvent.setup();
-    setArchitectureState({ nodes: [{ ...block, provider: 'azure' }] });
-    useUIStore.setState({ activeProvider: 'azure' });
-    render(<MenuBar />);
-
-    await user.click(screen.getByRole('tab', { name: /aws \(coming soon\)/i }));
-
-    expect(confirmDialog).not.toHaveBeenCalled();
-    expect(useUIStore.getState().activeProvider).toBe('azure');
+    expect(awsTab).toBeEnabled();
+    expect(gcpTab).toBeEnabled();
   });
 
   it('does not switch when clicking already active provider tab', async () => {
@@ -332,7 +326,7 @@ describe('MenuBar', () => {
     const user = userEvent.setup();
     render(<MenuBar />);
 
-    const trigger = screen.getByRole('button', { name: 'Advanced' });
+    const trigger = screen.getByRole('button', { name: 'Menu' });
     const dropdown = getOverflowDropdown();
     expect(dropdown.className).not.toContain('show');
 
@@ -518,7 +512,7 @@ describe('MenuBar', () => {
 
     useArchitectureStore.setState({ canUndo: true, canRedo: true });
     // close and reopen
-    await user.click(screen.getByRole('button', { name: 'Advanced' }));
+    await user.click(screen.getByRole('button', { name: 'Menu' }));
     dropdown = await openOverflow(user);
     undoItem = within(dropdown).getByRole('button', { name: /Undo/ });
     redoItem = within(dropdown).getByRole('button', { name: /Redo/ });
@@ -588,7 +582,8 @@ describe('MenuBar', () => {
 
     dropdown = await openOverflow(user);
     await user.click(within(dropdown).getByRole('button', { name: /Browse Templates/ }));
-    expect(useUIStore.getState().showTemplateGallery).toBe(true);
+    expect(useUIStore.getState().drawer.isOpen).toBe(true);
+    expect(useUIStore.getState().drawer.activePanel).toBe('templates');
   }, 15000);
 
   it('routes Learn button to scenario gallery when no scenario is active', async () => {

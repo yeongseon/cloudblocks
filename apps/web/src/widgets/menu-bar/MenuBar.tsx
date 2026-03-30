@@ -16,7 +16,6 @@ import type { BackendStatus } from '../../entities/store/uiStore';
 import { audioService } from '../../shared/utils/audioService';
 import type { SoundName } from '../../shared/utils/audioService';
 import {
-  Menu,
   Save,
   FolderOpen,
   FileDown,
@@ -50,14 +49,13 @@ import {
 } from 'lucide-react';
 import './MenuBar.css';
 
-type DropdownMenu = 'overflow' | 'github' | null;
+type DropdownMenu = 'logo' | 'github' | null;
 
-const PROVIDER_OPTIONS: { id: ProviderType; label: string; color: string; comingSoon?: boolean }[] =
-  [
-    { id: 'azure', label: 'Azure', color: '#0078D4' },
-    { id: 'aws', label: 'AWS', color: '#FF9900', comingSoon: true },
-    { id: 'gcp', label: 'GCP', color: '#4285F4', comingSoon: true },
-  ];
+const PROVIDER_OPTIONS: { id: ProviderType; label: string; color: string }[] = [
+  { id: 'azure', label: 'Azure', color: '#0078D4' },
+  { id: 'aws', label: 'AWS', color: '#FF9900' },
+  { id: 'gcp', label: 'GCP', color: '#4285F4' },
+];
 
 export function MenuBar() {
   const [openMenu, setOpenMenu] = useState<DropdownMenu>(null);
@@ -72,10 +70,9 @@ export function MenuBar() {
   const showResourceGuide = useUIStore((s) => s.showResourceGuide);
   const toggleResourceGuide = useUIStore((s) => s.toggleResourceGuide);
   const activeProvider = useUIStore((s) => s.activeProvider);
-  const setActiveProvider = useUIStore((s) => s.setActiveProvider);
   const openInspectorTab = useUIStore((s) => s.openInspectorTab);
   const toggleWorkspaceManager = useUIStore((s) => s.toggleWorkspaceManager);
-  const toggleTemplateGallery = useUIStore((s) => s.toggleTemplateGallery);
+  const openDrawer = useUIStore((s) => s.openDrawer);
   const toggleGitHubLogin = useUIStore((s) => s.toggleGitHubLogin);
   const toggleGitHubRepos = useUIStore((s) => s.toggleGitHubRepos);
   const toggleGitHubSync = useUIStore((s) => s.toggleGitHubSync);
@@ -87,8 +84,8 @@ export function MenuBar() {
   const isSoundMuted = useUIStore((s) => s.isSoundMuted);
   const toggleSound = useUIStore((s) => s.toggleSound);
   const themeVariant = useUIStore((s) => s.themeVariant);
-  const showGrid = useUIStore((s) => s.showGrid);
-  const toggleGrid = useUIStore((s) => s.toggleGrid);
+  const gridStyle = useUIStore((s) => s.gridStyle);
+  const cycleGridStyle = useUIStore((s) => s.cycleGridStyle);
   const setThemeVariant = useUIStore((s) => s.setThemeVariant);
   const playSound = (name: SoundName) => {
     if (!isSoundMuted) audioService.playSound(name);
@@ -107,6 +104,7 @@ export function MenuBar() {
 
   const removeNode = useArchitectureStore((s) => s.removeNode);
   const removeConnection = useArchitectureStore((s) => s.removeConnection);
+  const createWorkspace = useArchitectureStore((s) => s.createWorkspace);
 
   const validate = useArchitectureStore((s) => s.validate);
   const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
@@ -175,32 +173,17 @@ export function MenuBar() {
   };
 
   const handleProviderSwitch = async (newProvider: ProviderType) => {
-    const targetProvider = PROVIDER_OPTIONS.find((provider) => provider.id === newProvider);
-    if (targetProvider?.comingSoon) return;
     if (newProvider === activeProvider) return;
 
-    const blocksFromOtherProvider = blocks.filter(
-      (block) => block.provider && block.provider !== newProvider,
+    const providerLabel = newProvider.toUpperCase();
+    const confirmed = await confirmDialog(
+      `This will create a new ${providerLabel} workspace. Your current workspace will be preserved.\n\nCreate ${providerLabel} workspace?`,
+      `Switch to ${providerLabel}?`,
     );
+    if (!confirmed) return;
 
-    if (blocksFromOtherProvider.length > 0) {
-      const providerCounts = new Map<string, number>();
-      for (const block of blocksFromOtherProvider) {
-        const p = block.provider ?? 'unknown';
-        providerCounts.set(p, (providerCounts.get(p) ?? 0) + 1);
-      }
-      const summary = Array.from(providerCounts.entries())
-        .map(([p, count]) => `${count} ${p.toUpperCase()}`)
-        .join(', ');
-
-      const confirmed = await confirmDialog(
-        `Your canvas has ${summary} block(s). New blocks will be created as ${newProvider.toUpperCase()} resources. Existing blocks keep their original provider.\n\nSwitch to ${newProvider.toUpperCase()}?`,
-        'Switch Cloud Provider?',
-      );
-      if (!confirmed) return;
-    }
-
-    setActiveProvider(newProvider);
+    createWorkspace(`My ${providerLabel} Architecture`, newProvider);
+    toast.success(`Created new ${providerLabel} workspace`);
   };
 
   const handleSave = () => {
@@ -317,23 +300,19 @@ export function MenuBar() {
 
   return (
     <div className="menu-bar">
-      <div className="menu-bar-logo">
-        <LogoIcon size={16} /> CB
-      </div>
-
-      {/* ── Overflow menu (all secondary actions) ──────── */}
+      {/* ── Logo menu (replaces hamburger) ──────── */}
       <div className="menu-dropdown-container">
         <button
           type="button"
-          className="menu-trigger compact-trigger"
-          data-active={openMenu === 'overflow'}
-          onClick={() => toggleMenu('overflow')}
-          aria-label="Advanced"
-          title="Advanced"
+          className="menu-bar-logo menu-trigger"
+          data-active={openMenu === 'logo'}
+          onClick={() => toggleMenu('logo')}
+          aria-label="Menu"
+          title="Menu"
         >
-          <Menu size={16} />
+          <LogoIcon size={16} />
         </button>
-        <div className={`menu-dropdown overflow-dropdown ${openMenu === 'overflow' ? 'show' : ''}`}>
+        <div className={`menu-dropdown overflow-dropdown ${openMenu === 'logo' ? 'show' : ''}`}>
           {/* File section */}
           <div className="menu-section-label">File</div>
           <button type="button" className="menu-item" onClick={() => handleAction(handleSave)}>
@@ -429,7 +408,7 @@ export function MenuBar() {
           <button
             type="button"
             className="menu-item"
-            onClick={() => handleAction(toggleTemplateGallery)}
+            onClick={() => handleAction(() => openDrawer('templates'))}
           >
             <span className="menu-item-left">
               <Package size={14} /> Browse Templates
@@ -536,10 +515,10 @@ export function MenuBar() {
                 : 'Switch to Blueprint (Dark)'}
             </span>
           </button>
-          <button type="button" className="menu-item" onClick={() => handleAction(toggleGrid)}>
+          <button type="button" className="menu-item" onClick={() => handleAction(cycleGridStyle)}>
             <span className="menu-item-left">
-              {showGrid ? '✓ ' : '  '}
-              <LayoutGrid size={14} /> Toggle Grid
+              <LayoutGrid size={14} /> Grid:{' '}
+              {gridStyle.charAt(0).toUpperCase() + gridStyle.slice(1)}
             </span>
           </button>
         </div>
@@ -566,7 +545,6 @@ export function MenuBar() {
       <div className="provider-section" role="tablist" aria-label="Cloud provider">
         {PROVIDER_OPTIONS.map((provider) => {
           const isActive = activeProvider === provider.id;
-          const isComingSoon = provider.comingSoon === true;
           return (
             <button
               key={provider.id}
@@ -575,9 +553,7 @@ export function MenuBar() {
               aria-selected={isActive}
               className="provider-btn"
               data-active={isActive}
-              disabled={isComingSoon}
               onClick={() => handleProviderSwitch(provider.id)}
-              title={isComingSoon ? `${provider.label} support is coming soon` : undefined}
               style={
                 isActive
                   ? {
@@ -589,7 +565,6 @@ export function MenuBar() {
               }
             >
               {provider.label}
-              {isComingSoon ? ' (Coming Soon)' : ''}
             </button>
           );
         })}
@@ -623,7 +598,7 @@ export function MenuBar() {
         <button
           type="button"
           className="core-btn"
-          onClick={toggleTemplateGallery}
+          onClick={() => openDrawer('templates')}
           title="Browse Templates"
         >
           <Package size={14} />

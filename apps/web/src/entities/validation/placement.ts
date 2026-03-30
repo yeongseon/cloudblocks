@@ -1,69 +1,35 @@
 import type { ResourceBlock, ContainerBlock, ResourceCategory, Size } from '@cloudblocks/schema';
-import { RESOURCE_RULES } from '@cloudblocks/schema';
+import {
+  CATEGORY_DEFAULT_RESOURCE_TYPE,
+  RESOURCE_RULES,
+  getAllowedParents,
+} from '@cloudblocks/schema';
 import type { ResourceRuleEntry, ResourceType } from '@cloudblocks/schema';
 import type { ValidationError } from '@cloudblocks/domain';
-import { VALID_PARENTS } from '@cloudblocks/domain';
+import { VALID_PARENTS, validateContainment } from '@cloudblocks/domain';
 import type { LayerType } from '@cloudblocks/schema';
 
 /**
- * Placement Rules (v3.0 — 8-category Block model):
- * Placement Rules (v3.0 — 7-category Block model):
+ * Placement Rules (v4.0 — canonical containment delegation):
  *
- * Rules are derived from RESOURCE_RULES (single source of truth).
- * At module load time we build a category → required-parent-layer map
- * so that `validatePlacement` and `canPlaceBlock` stay consistent
- * with the canonical constraint table.
+ * Rules are driven by RESOURCE_RULES (single source of truth) via the
+ * canonical `validateContainment()` validator from @cloudblocks/domain.
  *
- * Layer hierarchy rules:
- * - Resources must be placed on valid parent layers
- * - All positions must be CU-aligned (integer)
- * - No overlapping blocks
+ * - Root placement: checked via ROOT_ALLOWED_RESOURCE_TYPES (per-resourceType).
+ * - Container placement: delegated to validateContainment (per-resourceType).
+ * - Grid alignment: integer CU positions required.
+ * - No overlapping blocks.
  */
 
 // ---------------------------------------------------------------------------
-// Derived placement map from RESOURCE_RULES
+// Derived sets from RESOURCE_RULES
 // ---------------------------------------------------------------------------
 
-/**
- * Maps parent resourceType → corresponding container layer.
- * This lets us translate RESOURCE_RULES' `allowedParents` (resourceType-based)
- * into layer-based checks that match how containers are rendered in the UI.
- */
-const PARENT_RESOURCE_TYPE_TO_LAYER: Record<string, LayerType> = {
-  subnet: 'subnet',
-  virtual_network: 'region',
+/** Human-readable label for a parent resourceType. */
+const PARENT_LABEL: Record<string, string> = {
+  subnet: 'Subnet',
+  virtual_network: 'Region container',
 };
-
-/**
- * Build a map of category → allowed parent layers from RESOURCE_RULES.
- * Only non-container resource types are included (containers don't need placement validation).
- *
- * For each category, we collect ALL allowedParents entries and map them to layers,
- * so resources allowed in multiple parent types are correctly validated.
- */
-function buildCategoryPlacementMap(): Map<ResourceCategory, Set<LayerType>> {
-  const map = new Map<ResourceCategory, Set<LayerType>>();
-  const rules = RESOURCE_RULES as Record<string, ResourceRuleEntry>;
-
-  for (const [, rule] of Object.entries(rules)) {
-    if (rule.containerCapable) continue;
-
-    if (!map.has(rule.category)) {
-      map.set(rule.category, new Set<LayerType>());
-    }
-
-    const layers = map.get(rule.category)!;
-    for (const parentType of rule.allowedParents) {
-      if (parentType === null) continue;
-      const layer = PARENT_RESOURCE_TYPE_TO_LAYER[parentType];
-      if (layer) {
-        layers.add(layer);
-      }
-    }
-  }
-
-  return map;
-}
 
 /**
  * Build a set of resource types that allow root-level placement (no container).
@@ -81,9 +47,6 @@ function buildRootAllowedResourceTypes(): ReadonlySet<string> {
 
   return set;
 }
-
-/** Category → allowed parent layers, derived from RESOURCE_RULES. */
-const CATEGORY_ALLOWED_PARENT_LAYERS = buildCategoryPlacementMap();
 
 /** Resource types that allow root-level placement (allowedParents includes null). */
 export const ROOT_ALLOWED_RESOURCE_TYPES = buildRootAllowedResourceTypes();
@@ -110,22 +73,19 @@ export function validatePlacement(
     };
   }
 
-  // ── RESOURCE_RULES-driven placement check ──
-  const allowedLayers = CATEGORY_ALLOWED_PARENT_LAYERS.get(resource.category);
-  if (
-    allowedLayers &&
-    Array.from(allowedLayers).length > 0 &&
-    !allowedLayers.has(parent.layer as LayerType)
-  ) {
-    const layerLabels = [...allowedLayers].map((l) =>
-      l === 'subnet' ? 'Subnet' : 'Region container',
-    );
+  // ── Canonical containment check (per-resourceType) ──
+  const containmentErr = validateContainment(resource, parent);
+  if (containmentErr) {
+    const allowed = getAllowedParents(resource.resourceType);
+    const parentTypes = allowed?.filter((p): p is string => p !== null) ?? [];
+    const labels = parentTypes.map((t) => PARENT_LABEL[t] ?? t);
+    const destination = labels.length > 0 ? labels.join(' or ') : 'a valid container';
     const cat = resource.category.charAt(0).toUpperCase() + resource.category.slice(1);
     return {
       ruleId: `rule-${resource.category}-parent`,
       severity: 'error',
-      message: `${cat} resource "${resource.name}" must be placed on a ${layerLabels.join(' or ')}`,
-      suggestion: `Move the ${cat} resource to a ${layerLabels.join(' or ')}`,
+      message: `${cat} resource "${resource.name}" must be placed on a ${destination}`,
+      suggestion: `Move the ${cat} resource to a ${destination}`,
       targetId: resource.id,
     };
   }
@@ -149,7 +109,8 @@ export function canPlaceBlock(
   container: ContainerBlock | null,
   resourceType?: ResourceType | string,
 ): boolean {
-  const effectiveResourceType = resourceType ?? category;
+  const effectiveResourceType =
+    resourceType ?? CATEGORY_DEFAULT_RESOURCE_TYPE[category] ?? category;
 
   if (!container) {
     return ROOT_ALLOWED_RESOURCE_TYPES.has(effectiveResourceType);

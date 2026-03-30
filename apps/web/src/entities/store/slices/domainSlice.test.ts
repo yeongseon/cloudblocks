@@ -146,6 +146,7 @@ function seedState(arch: Partial<ArchitectureModel>) {
     workspace: {
       id: 'ws-test',
       name: 'Test WS',
+      provider: 'azure' as const,
       architecture: base,
       createdAt: now,
       updatedAt: now,
@@ -168,6 +169,7 @@ describe('domainSlice – targeted branch coverage', () => {
       workspace: {
         id: 'ws-test',
         name: 'Test',
+        provider: 'azure' as const,
         architecture: {
           id: 'arch-test',
           name: 'Test',

@@ -3,16 +3,16 @@
   width: 100%;
   margin-top: 12px;
   padding: 8px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--border-default);
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.06);
-  color: #e0e0e0;
+  background: color-mix(in srgb, var(--text-primary) 6%, transparent);
+  color: var(--text-primary);
   font-size: 14px;
   outline: none;
   box-sizing: border-box;
 }
 
 .prompt-dialog-input:focus {
-  border-color: rgba(122, 209, 255, 0.5);
-  box-shadow: 0 0 0 2px rgba(65, 148, 255, 0.18);
+  border-color: color-mix(in srgb, var(--accent-primary) 50%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 18%, transparent);
 }

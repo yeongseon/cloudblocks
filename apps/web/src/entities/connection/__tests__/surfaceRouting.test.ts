@@ -98,8 +98,8 @@ describe('resolveSurfacePort', () => {
     expect(result.containerId).toBe(container.id);
     expect(result.surfaceY).toBe(3);
     expect(result.normal).toBe('neg-x');
-    expect(result.surfaceBase).toEqual([12, 3, 25.5]);
-    expect(result.surfaceExit).toEqual([11.25, 3, 25.5]);
+    expect(result.surfaceBase).toEqual([12, 3, 25]);
+    expect(result.surfaceExit).toEqual([11.25, 3, 25]);
   });
 
   it('resolves outbound side using t=0.25 for three-port distribution', () => {
@@ -783,5 +783,133 @@ describe('routeCrossContainer', () => {
     expect(segments[0].kind).toBe('exit');
     expect(segments[segments.length - 1].kind).toBe('exit');
     expect(segments.some((s) => s.kind === 'surface')).toBe(true);
+  });
+
+  it('falls back to ground when LCA id exists but container is missing from map', () => {
+    const childA = makeContainerBlock({
+      id: 'child-a',
+      parentId: 'ghost-parent',
+      position: { x: 0, y: 1, z: 0 },
+      frame: { width: 10, depth: 10, height: 1 },
+    });
+    const childB = makeContainerBlock({
+      id: 'child-b',
+      parentId: 'ghost-parent',
+      position: { x: 12, y: 2, z: 12 },
+      frame: { width: 10, depth: 10, height: 1 },
+    });
+    const map = buildContainerMap([childA, childB]);
+
+    const srcPort = makeSurfacePort({
+      surfaceBase: [2, 2, 2],
+      surfaceExit: [2, 2, 1.25],
+      containerId: 'child-a',
+      surfaceY: 2,
+      normal: 'neg-z',
+    });
+    const tgtPort = makeSurfacePort({
+      surfaceBase: [13, 3, 13],
+      surfaceExit: [12.25, 3, 13],
+      containerId: 'child-b',
+      surfaceY: 3,
+      normal: 'neg-x',
+    });
+
+    const segments = routeCrossContainer(srcPort, tgtPort, map);
+    const transitionSegments = segments.filter((segment) => segment.kind === 'transition');
+    const surfaceSegments = segments.filter((segment) => segment.kind === 'surface');
+
+    expect(transitionSegments.length).toBeGreaterThan(0);
+    expect(
+      transitionSegments.some((segment) => segment.start[1] === 0 || segment.end[1] === 0),
+    ).toBe(true);
+    expect(surfaceSegments.every((segment) => segment.surfaceId === 'ground')).toBe(true);
+  });
+
+  it('routes straight on shared surface when shared source/target align on one axis', () => {
+    const containerA = makeContainerBlock({
+      id: 'a',
+      parentId: null,
+      position: { x: 0, y: 2, z: 0 },
+      frame: { width: 10, depth: 10, height: 1 },
+    });
+    const containerB = makeContainerBlock({
+      id: 'b',
+      parentId: null,
+      position: { x: 10, y: 4, z: 10 },
+      frame: { width: 10, depth: 10, height: 1 },
+    });
+    const map = buildContainerMap([containerA, containerB]);
+
+    const srcPort = makeSurfacePort({
+      surfaceBase: [2, 3, 2],
+      surfaceExit: [1, 3, 2],
+      containerId: 'a',
+      surfaceY: 3,
+      normal: 'neg-x',
+    });
+    const tgtPort = makeSurfacePort({
+      surfaceBase: [1, 5, 10],
+      surfaceExit: [1, 5, 9],
+      containerId: 'b',
+      surfaceY: 5,
+      normal: 'neg-z',
+    });
+
+    const segments = routeCrossContainer(srcPort, tgtPort, map);
+    const surfaceSegments = segments.filter((segment) => segment.kind === 'surface');
+
+    expect(surfaceSegments).toHaveLength(1);
+    expect(surfaceSegments[0]).toMatchObject({
+      start: [1, 0, 2],
+      end: [1, 0, 9],
+      surfaceId: 'ground',
+    });
+  });
+
+  it('uses existing LCA surface even when LCA parent link is missing from map', () => {
+    const parent = makeContainerBlock({
+      id: 'parent',
+      parentId: 'missing-root',
+      position: { x: 0, y: 1, z: 0 },
+      frame: { width: 30, depth: 30, height: 2 },
+    });
+    const childA = makeContainerBlock({
+      id: 'child-a',
+      parentId: 'parent',
+      position: { x: 2, y: 0, z: 2 },
+      frame: { width: 8, depth: 8, height: 1 },
+    });
+    const childB = makeContainerBlock({
+      id: 'child-b',
+      parentId: 'parent',
+      position: { x: 16, y: 0, z: 16 },
+      frame: { width: 8, depth: 8, height: 1 },
+    });
+    const map = buildContainerMap([parent, childA, childB]);
+
+    const srcPort = makeSurfacePort({
+      surfaceBase: [4, 4, 4],
+      surfaceExit: [4, 4, 3.25],
+      containerId: 'child-a',
+      surfaceY: 4,
+      normal: 'neg-z',
+    });
+    const tgtPort = makeSurfacePort({
+      surfaceBase: [18, 4, 18],
+      surfaceExit: [17.25, 4, 18],
+      containerId: 'child-b',
+      surfaceY: 4,
+      normal: 'neg-x',
+    });
+
+    const segments = routeCrossContainer(srcPort, tgtPort, map);
+    const transitions = segments.filter((segment) => segment.kind === 'transition');
+    const surfaces = segments.filter((segment) => segment.kind === 'surface');
+
+    expect(transitions.some((segment) => segment.start[1] === 3 || segment.end[1] === 3)).toBe(
+      true,
+    );
+    expect(surfaces.every((segment) => segment.start[1] === 3 && segment.end[1] === 3)).toBe(true);
   });
 });

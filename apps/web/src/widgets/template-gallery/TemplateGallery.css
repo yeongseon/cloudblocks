@@ -1,107 +1,45 @@
 .template-gallery {
-  position: absolute;
-  left: 50%;
-  top: 60px;
-  transform: translateX(-50%);
-  width: 520px;
-  max-height: calc(100vh - 120px);
-  background: #fffdf0;
-  border: 4px solid #ffc83d;
-  border-radius: 8px;
-  padding: 16px;
-  color: #3d2600;
-  font-family: var(--font-ui);
-  z-index: 200;
   display: flex;
   flex-direction: column;
+  gap: 16px;
+  height: 100%;
   overflow: hidden;
-  box-shadow:
-    0 6px 0 0 rgba(0, 0, 0, 0.15),
-    0 12px 24px rgba(255, 140, 0, 0.2);
-}
-
-.template-gallery-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.template-gallery-title {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 800;
-  color: #ff5e00;
-  text-shadow: 1px 2px 0 rgba(255, 200, 61, 0.4);
-  letter-spacing: 0.5px;
-}
-
-.template-gallery-close {
-  background: #fff5d6;
-  border: 4px solid #ffe4a0;
-  color: #8a5a19;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 800;
-  padding: 2px 8px;
-  border-radius: 6px;
-  box-shadow:
-    inset 2px 3px 0 rgba(160, 100, 0, 0.1),
-    inset -2px -2px 0 rgba(255, 255, 255, 0.9);
-  transition: all 0.1s;
-}
-
-.template-gallery-close:hover {
-  background: #ffe4a0;
-  color: #ff5e00;
-}
-
-.template-gallery-close:active {
-  box-shadow: inset 2px 3px 0 rgba(160, 100, 0, 0.2);
-  transform: translateY(2px);
 }
 
 .template-gallery-filters {
   display: flex;
   gap: 8px;
-  margin-bottom: 16px;
   flex-wrap: wrap;
 }
 
 .template-gallery-filter-btn {
   padding: 6px 14px;
-  background: #fff5d6;
-  border: 4px solid #ffe4a0;
+  background: var(--bg-surface, #f1f5f9);
+  border: 1px solid var(--border-default, #e2e8f0);
   border-radius: 6px;
-  color: #8a5a19;
+  color: var(--text-secondary, #64748b);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow:
-    inset 2px 3px 0 rgba(160, 100, 0, 0.1),
-    inset -2px -2px 0 rgba(255, 255, 255, 0.9);
-  transition: all 0.1s;
+  transition: all 0.15s;
 }
 
 .template-gallery-filter-btn:hover {
-  background: #ffe4a0;
-  color: #ff5e00;
+  background: var(--bg-surface-raised, #e2e8f0);
+  color: var(--text-primary, #1e293b);
 }
 
 .template-gallery-filter-btn.active {
-  background: #ff5e00;
-  border-color: #cc4b00;
-  color: #ffffff;
-  box-shadow:
-    inset 0 3px 0 rgba(0, 0, 0, 0.2),
-    inset 0 -2px 0 rgba(255, 255, 255, 0.2);
+  background: var(--accent-primary, #3b82f6);
+  border-color: var(--accent-primary, #3b82f6);
+  color: var(--text-inverse, #ffffff);
 }
 
 .template-gallery-empty {
   text-align: center;
-  color: #8a5a19;
+  color: var(--text-secondary, #64748b);
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 500;
   padding: 20px;
 }
 
@@ -116,21 +54,15 @@
 
 .template-gallery-card {
   padding: 12px;
-  background: #ffffff;
-  border: 4px solid #ffe4a0;
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-default, #e2e8f0);
   border-radius: 8px;
-  box-shadow:
-    0 4px 0 0 rgba(0, 0, 0, 0.1),
-    inset 0 2px 0 rgba(255, 255, 255, 0.8);
   transition: all 0.15s;
 }
 
 .template-gallery-card:hover {
-  border-color: #ffc83d;
-  transform: translateY(-2px);
-  box-shadow:
-    0 6px 0 0 rgba(0, 0, 0, 0.15),
-    inset 0 2px 0 rgba(255, 255, 255, 0.8);
+  border-color: var(--accent-primary, #3b82f6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .template-gallery-card-header {
@@ -142,45 +74,37 @@
 
 .template-gallery-card-name {
   font-size: 14px;
-  font-weight: 800;
-  color: #3d2600;
+  font-weight: 600;
+  color: var(--text-primary, #1e293b);
 }
 
 .template-gallery-badge {
   font-size: 10px;
   text-transform: uppercase;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.5px;
-  color: #ffffff;
-  padding: 4px 8px;
+  color: var(--text-inverse, #ffffff);
+  padding: 3px 8px;
   border-radius: 4px;
-  box-shadow:
-    0 2px 0 0 rgba(0, 0, 0, 0.15),
-    inset 0 2px 0 rgba(255, 255, 255, 0.3);
-  border: 2px solid rgba(0, 0, 0, 0.1);
 }
 
 .template-gallery-badge--beginner {
-  background: #81c784;
-  border-color: #4caf50;
+  background: var(--accent-success, #22c55e);
 }
 
 .template-gallery-badge--intermediate {
-  background: #ffb74d;
-  border-color: #f57c00;
+  background: var(--accent-warning, #eab308);
 }
 
 .template-gallery-badge--advanced {
-  background: #e57373;
-  border-color: #d32f2f;
+  background: var(--accent-error, #ef4444);
 }
 
 .template-gallery-card-desc {
   margin: 0 0 12px 0;
   font-size: 12px;
-  color: #5c3a00;
+  color: var(--text-secondary, #64748b);
   line-height: 1.5;
-  font-weight: 600;
 }
 
 .template-gallery-card-footer {
@@ -196,45 +120,32 @@
 }
 
 .template-gallery-tag {
-  padding: 4px 8px;
-  background: #fff5d6;
-  border: 2px solid #ffe4a0;
+  padding: 3px 8px;
+  background: var(--bg-surface, #f1f5f9);
+  border: 1px solid var(--border-default, #e2e8f0);
   border-radius: 4px;
   font-size: 10px;
-  font-weight: 800;
-  color: #8a5a19;
+  font-weight: 600;
+  color: var(--text-secondary, #64748b);
   text-transform: uppercase;
-}
-
-.template-gallery-tag-compat {
-  color: #2e7d32;
-  background: #e8f5e9;
-  border-color: #a5d6a7;
 }
 
 .template-gallery-use-btn {
-  padding: 8px 16px;
-  background: #34c759;
-  border: 4px solid #248a3d;
+  padding: 6px 14px;
+  background: var(--accent-success, #22c55e);
+  border: 1px solid color-mix(in srgb, var(--accent-success, #22c55e) 80%, black);
   border-radius: 6px;
-  color: #ffffff;
+  color: var(--text-inverse, #ffffff);
   font-size: 12px;
-  font-weight: 800;
-  text-transform: uppercase;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow:
-    0 4px 0 0 rgba(0, 0, 0, 0.15),
-    inset 0 2px 0 rgba(255, 255, 255, 0.4);
-  transition: all 0.1s;
+  transition: all 0.15s;
 }
 
 .template-gallery-use-btn:hover {
-  background: #3cd866;
+  background: color-mix(in srgb, var(--accent-success, #22c55e) 85%, black);
 }
 
 .template-gallery-use-btn:active {
-  box-shadow:
-    0 0 0 0 rgba(0, 0, 0, 0.15),
-    inset 0 3px 0 rgba(0, 0, 0, 0.2);
-  transform: translateY(4px);
+  background: color-mix(in srgb, var(--accent-success, #22c55e) 70%, black);
 }

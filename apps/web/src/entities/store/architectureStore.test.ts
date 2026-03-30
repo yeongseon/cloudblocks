@@ -61,7 +61,7 @@ function makeResourceNode(
     security: 'firewall_security',
     operations: 'monitoring',
     messaging: 'message_queue',
-    identity: 'identity_service',
+    identity: 'identity_access',
     network: 'virtual_network',
   };
   return {
@@ -157,6 +157,7 @@ describe('architectureStore', () => {
     const freshWorkspace = {
       id: 'ws-test',
       name: 'My Architecture',
+      provider: 'azure' as const,
       architecture: {
         id: 'arch-test',
         name: 'My Architecture',

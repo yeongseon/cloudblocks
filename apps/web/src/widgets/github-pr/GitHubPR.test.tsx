@@ -51,6 +51,7 @@ describe('GitHubPR', () => {
       workspace: {
         id: 'ws-1',
         name: 'Workspace',
+        provider: 'azure' as const,
         architecture: emptyArch,
         createdAt: '',
         updatedAt: '',
@@ -368,6 +369,7 @@ describe('GitHubPR', () => {
       workspace: {
         id: 'ws-1',
         name: 'Workspace',
+        provider: 'azure' as const,
         architecture: emptyArch,
         createdAt: '',
         updatedAt: '',

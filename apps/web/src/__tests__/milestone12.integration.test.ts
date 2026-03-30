@@ -106,6 +106,7 @@ function makeWorkspace(overrides: Partial<Workspace> = {}): Workspace {
   return {
     id: 'ws-1',
     name: 'Workspace 1',
+    provider: 'azure' as const,
     architecture: makeArchitecture(),
     createdAt: '2026-03-01T00:00:00.000Z',
     updatedAt: '2026-03-01T00:00:00.000Z',

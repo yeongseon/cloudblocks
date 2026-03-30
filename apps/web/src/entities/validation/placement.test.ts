@@ -174,7 +174,12 @@ describe('validatePlacement', () => {
   });
 
   it('returns error when queue is on subnet container', () => {
-    const block = makeBlock({ id: 'queue-1', name: 'QueueA', category: 'messaging' });
+    const block = makeBlock({
+      id: 'queue-1',
+      name: 'QueueA',
+      category: 'messaging',
+      resourceType: 'message_queue',
+    });
     const container = makePlate({ type: 'subnet' });
 
     expect(validatePlacement(block, container)).toEqual({
@@ -187,14 +192,19 @@ describe('validatePlacement', () => {
   });
 
   it('returns null when queue is on network container', () => {
-    const block = makeBlock({ category: 'messaging' });
+    const block = makeBlock({ category: 'messaging', resourceType: 'message_queue' });
     const container = makePlate({ type: 'region' });
 
     expect(validatePlacement(block, container)).toBeNull();
   });
 
   it('returns error when event is on subnet container', () => {
-    const block = makeBlock({ id: 'event-1', name: 'EventA', category: 'messaging' });
+    const block = makeBlock({
+      id: 'event-1',
+      name: 'EventA',
+      category: 'messaging',
+      resourceType: 'event_hub',
+    });
     const container = makePlate({ type: 'subnet' });
 
     expect(validatePlacement(block, container)).toEqual({
@@ -207,7 +217,7 @@ describe('validatePlacement', () => {
   });
 
   it('returns null when event is on network container', () => {
-    const block = makeBlock({ category: 'messaging' });
+    const block = makeBlock({ category: 'messaging', resourceType: 'event_hub' });
     const container = makePlate({ type: 'region' });
 
     expect(validatePlacement(block, container)).toBeNull();
@@ -279,7 +289,12 @@ describe('validatePlacement', () => {
 
   it('uses Set-based allowed layers: each category checks all valid parent layers', () => {
     const computeBlock = makeBlock({ id: 'vm-1', name: 'VM', category: 'compute' });
-    const msgBlock = makeBlock({ id: 'mq-1', name: 'Queue', category: 'messaging' });
+    const msgBlock = makeBlock({
+      id: 'mq-1',
+      name: 'Queue',
+      category: 'messaging',
+      resourceType: 'message_queue',
+    });
 
     const subnet = makePlate({ type: 'subnet' });
     const region = makePlate({ type: 'region' });
@@ -375,6 +390,125 @@ describe('validatePlacement', () => {
       suggestion: 'Place the resource on a valid subnet container',
       targetId: 'sql-1',
     });
+  });
+
+  // ── Regression: root-only resource types must be rejected in containers ──
+  // These types have allowedParents: [null] — they should NOT be valid inside a subnet/region.
+
+  it('returns error when root-only dns_zone is placed on subnet container', () => {
+    const block = makeBlock({
+      id: 'dns-1',
+      name: 'DNS Zone',
+      category: 'delivery',
+      resourceType: 'dns_zone',
+    });
+    const container = makePlate({ type: 'subnet' });
+
+    expect(validatePlacement(block, container)).toEqual({
+      ruleId: 'rule-delivery-parent',
+      severity: 'error',
+      message: expect.stringContaining('must be placed'),
+      suggestion: expect.stringContaining('Move'),
+      targetId: 'dns-1',
+    });
+  });
+
+  it('returns error when root-only public_ip is placed on subnet container', () => {
+    const block = makeBlock({
+      id: 'pip-1',
+      name: 'Public IP',
+      category: 'network',
+      resourceType: 'public_ip',
+    });
+    const container = makePlate({ type: 'subnet' });
+
+    expect(validatePlacement(block, container)).toEqual({
+      ruleId: 'rule-network-parent',
+      severity: 'error',
+      message: expect.stringContaining('must be placed'),
+      suggestion: expect.stringContaining('Move'),
+      targetId: 'pip-1',
+    });
+  });
+
+  it('returns error when root-only blob_storage is placed on subnet container', () => {
+    const block = makeBlock({
+      id: 'blob-1',
+      name: 'Blob Storage',
+      category: 'data',
+      resourceType: 'blob_storage',
+    });
+    const container = makePlate({ type: 'subnet' });
+
+    expect(validatePlacement(block, container)).toEqual({
+      ruleId: 'rule-data-parent',
+      severity: 'error',
+      message: expect.stringContaining('must be placed'),
+      suggestion: expect.stringContaining('Move'),
+      targetId: 'blob-1',
+    });
+  });
+
+  it('returns error when root-only managed_identity is placed on subnet container', () => {
+    const block = makeBlock({
+      id: 'mi-1',
+      name: 'Managed Identity',
+      category: 'identity',
+      resourceType: 'managed_identity',
+    });
+    const container = makePlate({ type: 'subnet' });
+
+    expect(validatePlacement(block, container)).toEqual({
+      ruleId: 'rule-identity-parent',
+      severity: 'error',
+      message: expect.stringContaining('must be placed'),
+      suggestion: expect.stringContaining('Move'),
+      targetId: 'mi-1',
+    });
+  });
+
+  it('returns error when root-only service_account is placed on region container', () => {
+    const block = makeBlock({
+      id: 'sa-1',
+      name: 'Service Account',
+      category: 'identity',
+      resourceType: 'service_account',
+    });
+    const container = makePlate({ type: 'region' });
+
+    expect(validatePlacement(block, container)).toEqual({
+      ruleId: 'rule-identity-parent',
+      severity: 'error',
+      message: expect.stringContaining('must be placed'),
+      suggestion: expect.stringContaining('Move'),
+      targetId: 'sa-1',
+    });
+  });
+
+  // ── Positive control: dual-placement types are valid in containers ──
+
+  it('returns null when dual-placement identity_access is on subnet container', () => {
+    const block = makeBlock({
+      id: 'iam-1',
+      name: 'IAM',
+      category: 'identity',
+      resourceType: 'identity_access',
+    });
+    const container = makePlate({ type: 'subnet' });
+
+    expect(validatePlacement(block, container)).toBeNull();
+  });
+
+  it('returns null when dual-placement function_compute is on subnet container', () => {
+    const block = makeBlock({
+      id: 'fn-dual-1',
+      name: 'Function',
+      category: 'compute',
+      resourceType: 'function_compute',
+    });
+    const container = makePlate({ type: 'subnet' });
+
+    expect(validatePlacement(block, container)).toBeNull();
   });
 });
 
@@ -476,8 +610,8 @@ it('returns false for subnet-only resource type with null container', () => {
 });
 
 it('returns false when category alone (no resourceType) is not root-allowed', () => {
-  // When resourceType is not provided, it defaults to category name
-  // 'compute' is not a resourceType, so it's not in ROOT_ALLOWED_RESOURCE_TYPES
+  // When resourceType is not provided, it uses the category representative type
+  // e.g. 'compute' → 'web_compute', which is not in ROOT_ALLOWED_RESOURCE_TYPES
   expect(canPlaceBlock('compute', null)).toBe(false);
   expect(canPlaceBlock('data', null)).toBe(false);
   expect(canPlaceBlock('security', null)).toBe(false);
@@ -526,6 +660,23 @@ describe('validateLayerPlacement', () => {
       const container = makePlate({ type });
       expect(validateLayerPlacement(block, container)).toBeNull();
     }
+  });
+
+  it('returns error when container layer is not a valid parent for resources', () => {
+    const block = makeBlock({ id: 'b-invalid', name: 'InvalidLayerBlock', category: 'compute' });
+    const invalidContainer = {
+      ...makePlate({ type: 'subnet' }),
+      layer: 'resource' as ContainerBlock['layer'],
+    };
+
+    expect(validateLayerPlacement(block, invalidContainer)).toEqual({
+      ruleId: 'rule-layer-hierarchy',
+      severity: 'error',
+      message:
+        'Resource "InvalidLayerBlock" cannot be placed on a "resource" container (invalid layer hierarchy)',
+      suggestion: 'Valid parent layers for resources: subnet, zone, region, edge, global',
+      targetId: 'b-invalid',
+    });
   });
 });
 

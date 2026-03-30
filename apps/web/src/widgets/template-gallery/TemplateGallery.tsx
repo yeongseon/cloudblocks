@@ -22,7 +22,7 @@ const categoryKeys: Array<TemplateCategory | 'all'> = [
 ];
 
 export function TemplateGallery() {
-  const toggleTemplateGallery = useUIStore((s) => s.toggleTemplateGallery);
+  const closeDrawer = useUIStore((s) => s.closeDrawer);
   const loadFromTemplate = useArchitectureStore((s) => s.loadFromTemplate);
   const saveToStorage = useArchitectureStore((s) => s.saveToStorage);
   const [activeCategory, setActiveCategory] = useState<TemplateCategory | 'all'>('all');
@@ -34,23 +34,11 @@ export function TemplateGallery() {
     loadFromTemplate(template);
     saveToStorage();
     setActiveCategory('all');
-    toggleTemplateGallery();
+    closeDrawer();
   };
 
   return (
     <div className="template-gallery">
-      <div className="template-gallery-header">
-        <h3 className="template-gallery-title">📦 Templates</h3>
-        <button
-          type="button"
-          className="template-gallery-close"
-          onClick={toggleTemplateGallery}
-          aria-label="Close template gallery"
-        >
-          ✕
-        </button>
-      </div>
-
       <div className="template-gallery-filters">
         {categoryKeys.map((key) => (
           <button
@@ -86,11 +74,6 @@ export function TemplateGallery() {
                       {tag}
                     </span>
                   ))}
-                  {template.generatorCompat && (
-                    <span className="template-gallery-tag template-gallery-tag-compat">
-                      {template.generatorCompat.join(' · ')}
-                    </span>
-                  )}
                 </div>
                 <button
                   type="button"

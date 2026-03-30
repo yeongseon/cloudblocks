@@ -122,6 +122,7 @@ describe('SidebarPalette additional coverage', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test Workspace',
+        provider: 'azure' as const,
         architecture: baseArchitecture,
         createdAt: '',
         updatedAt: '',
@@ -154,6 +155,7 @@ describe('SidebarPalette additional coverage', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test Workspace',
+        provider: 'azure' as const,
         architecture: { ...baseArchitecture, nodes: [networkPlate] },
         createdAt: '',
         updatedAt: '',
@@ -181,6 +183,7 @@ describe('SidebarPalette additional coverage', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test Workspace',
+        provider: 'azure' as const,
         architecture: { ...baseArchitecture, nodes: [networkPlate, subnetPlate] },
         createdAt: '',
         updatedAt: '',
@@ -212,6 +215,7 @@ describe('SidebarPalette additional coverage', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test Workspace',
+        provider: 'azure' as const,
         architecture: { ...baseArchitecture, nodes: [networkPlate, subnetPlate] },
         createdAt: '',
         updatedAt: '',
@@ -254,6 +258,7 @@ describe('SidebarPalette additional coverage', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test Workspace',
+        provider: 'azure' as const,
         architecture: { ...baseArchitecture, nodes: [networkPlate, subnetPlate] },
         createdAt: '',
         updatedAt: '',
@@ -279,6 +284,7 @@ describe('SidebarPalette additional coverage', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test Workspace',
+        provider: 'azure' as const,
         architecture: { ...baseArchitecture, nodes: [networkPlate, subnetPlate] },
         createdAt: '',
         updatedAt: '',
@@ -299,6 +305,7 @@ describe('SidebarPalette additional coverage', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test Workspace',
+        provider: 'azure' as const,
         architecture: { ...baseArchitecture, nodes: [networkPlate, subnetPlate] },
         createdAt: '',
         updatedAt: '',
@@ -322,6 +329,7 @@ describe('SidebarPalette additional coverage', () => {
       workspace: {
         id: 'ws-1',
         name: 'Test Workspace',
+        provider: 'azure' as const,
         architecture: { ...baseArchitecture, nodes: [networkPlate, subnetPlate] },
         createdAt: '',
         updatedAt: '',

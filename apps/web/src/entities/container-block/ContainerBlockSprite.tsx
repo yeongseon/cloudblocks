@@ -11,6 +11,7 @@ import { useArchitectureStore } from '../store/architectureStore';
 import { getDiffState } from '../../features/diff/engine';
 import type { DiffDelta } from '../../shared/types/diff';
 import { getContainerBlockIconUrl } from '../../shared/utils/iconResolver';
+import { getContainerLabel } from '../../shared/utils/providerMapping';
 import { screenDeltaToWorld, snapToGrid, worldSizeToScreen } from '../../shared/utils/isometric';
 import { audioService } from '../../shared/utils/audioService';
 import { canPlaceBlock } from '../validation/placement';
@@ -163,20 +164,20 @@ export const ContainerBlockSprite = memo(function PlateSprite({
     container.profileId && isContainerBlockProfileId(container.profileId)
       ? getContainerBlockProfile(container.profileId)
       : getContainerBlockProfile(DEFAULT_CONTAINER_BLOCK_PROFILE[containerLayer]);
-  const plateColorInput = { type: containerLayer };
+  const activeProvider = useUIStore((s) => s.activeProvider);
+  const plateColorInput = { type: containerLayer, provider: activeProvider };
   const faceColors = getContainerBlockFaceColors(plateColorInput);
   const typeLabel =
-    containerLayer === 'subnet'
-      ? 'Subnet'
-      : containerLayer === 'global'
-        ? 'Global Layer'
-        : containerLayer === 'edge'
-          ? 'Edge Layer'
-          : containerLayer === 'zone'
-            ? 'Zone Layer'
-            : 'Region Layer';
+    getContainerLabel(containerLayer, activeProvider) ??
+    (containerLayer === 'global'
+      ? 'Global Layer'
+      : containerLayer === 'edge'
+        ? 'Edge Layer'
+        : containerLayer === 'zone'
+          ? 'Zone Layer'
+          : 'Region Layer');
   const label = container.name || typeLabel;
-  const iconUrl = getContainerBlockIconUrl(containerLayer);
+  const iconUrl = getContainerBlockIconUrl(containerLayer, activeProvider);
 
   if (!container.frame) return null;
 
@@ -234,10 +235,11 @@ export const ContainerBlockSprite = memo(function PlateSprite({
             rightSideColor={faceColors.rightSideColor}
             label={label}
             iconUrl={iconUrl}
+            provider={activeProvider}
           />
         </div>
       </button>
-      <span className="container-label-chip">{label}</span>
+      {isSelected && <span className="container-label-chip">{label}</span>}
     </div>
   );
 });
