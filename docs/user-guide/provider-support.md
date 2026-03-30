@@ -1,6 +1,6 @@
 # Provider Support
 
-> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.31.0
+> **Audience**: Beginners | **Status**: V1 Core | **Verified against**: v0.26.0
 
 CloudBlocks supports three cloud providers: **Azure**, **AWS**, and **GCP**. All three providers are available in the visual builder and Terraform starter export. Azure has the deepest template and scenario coverage; AWS and GCP have full Terraform code generation support.
 
@@ -23,18 +23,18 @@ AWS and GCP Terraform output includes `# TODO` comments for resource properties 
 
 ## Provider Selector (Current State)
 
-The menu bar shows three provider tabs: **Azure**, **AWS**, and **GCP**. Click any tab to switch the active provider.
+The menu bar shows three provider tabs: **Azure**, **AWS**, and **GCP**. Clicking a different provider tab creates a new provider-specific workspace after a confirmation dialog — your current workspace is preserved.
 
-- Switching providers changes how blocks are rendered and what code is generated.
-- Your architecture design stays the same — only the provider context changes.
+- Each provider workspace starts from a blank canvas (or from a template if you load one).
+- Switching providers creates a separate workspace — it does not change your existing architecture in place.
 - Previously generated code is cleared when you switch providers to avoid stale output.
 - Each provider remembers your last entered region during the session.
 
 ---
 
-## What "Multi-Cloud Preview" Means
+## Multi-Cloud Terraform Generation
 
-CloudBlocks supports multi-cloud Terraform generation — the same architecture can generate provider-specific Terraform starter code for Azure, AWS, or GCP.
+CloudBlocks supports multi-cloud Terraform generation — each provider workspace generates provider-specific Terraform starter code for Azure, AWS, or GCP.
 
 !!! info "Learning focus"
     Multi-cloud support is a learning feature — it shows you the provider-specific resources and structure for the same architecture pattern. CloudBlocks does not deploy infrastructure or manage Terraform state.
