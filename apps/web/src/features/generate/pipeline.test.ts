@@ -362,7 +362,71 @@ describe('pipeline', () => {
           region: 'not-an-azure-region',
           generator: 'terraform',
         }),
-      ).toThrow(/Invalid Azure region/);
+      ).toThrow(/Unsupported Azure region/);
+    });
+
+    it('validates AWS regions against AWS allowlist', () => {
+      expect(() =>
+        generateCode(validModel, {
+          ...validOptions,
+          provider: 'aws',
+          region: 'not-an-aws-region',
+          generator: 'terraform',
+        }),
+      ).toThrow(/Unsupported AWS region/);
+    });
+
+    it('accepts valid AWS regions', () => {
+      const result = generateCode(validModel, {
+        ...validOptions,
+        provider: 'aws',
+        region: 'eu-west-1',
+        generator: 'terraform',
+      });
+      expect(result.metadata.provider).toBe('aws');
+    });
+
+    it('validates GCP regions against GCP allowlist', () => {
+      expect(() =>
+        generateCode(validModel, {
+          ...validOptions,
+          provider: 'gcp',
+          region: 'not-a-gcp-region',
+          generator: 'terraform',
+        }),
+      ).toThrow(/Unsupported GCP region/);
+    });
+
+    it('accepts valid GCP regions', () => {
+      const result = generateCode(validModel, {
+        ...validOptions,
+        provider: 'gcp',
+        region: 'europe-west1',
+        generator: 'terraform',
+      });
+      expect(result.metadata.provider).toBe('gcp');
+    });
+
+    it('rejects AWS zone identifiers (not regions)', () => {
+      expect(() =>
+        generateCode(validModel, {
+          ...validOptions,
+          provider: 'aws',
+          region: 'us-east-1a',
+          generator: 'terraform',
+        }),
+      ).toThrow(/Unsupported AWS region/);
+    });
+
+    it('rejects GCP zone identifiers (not regions)', () => {
+      expect(() =>
+        generateCode(validModel, {
+          ...validOptions,
+          provider: 'gcp',
+          region: 'us-central1-a',
+          generator: 'terraform',
+        }),
+      ).toThrow(/Unsupported GCP region/);
     });
 
     it('supports AWS provider when generator is terraform', () => {
@@ -393,9 +457,43 @@ describe('pipeline', () => {
         generateCode(validModel, {
           ...validOptions,
           provider: 'aws',
+          region: 'us-east-1',
           generator: 'bicep',
         }),
       ).toThrow(/does not support provider/);
+    });
+
+    it('produces exact error message format for unsupported Azure region', () => {
+      expect(() =>
+        generateCode(validModel, {
+          ...validOptions,
+          provider: 'azure',
+          region: 'mars-north-1',
+          generator: 'terraform',
+        }),
+      ).toThrow('Unsupported Azure region for CloudBlocks starter generation: "mars-north-1"');
+    });
+
+    it('produces exact error message format for unsupported AWS region', () => {
+      expect(() =>
+        generateCode(validModel, {
+          ...validOptions,
+          provider: 'aws',
+          region: 'mars-north-1',
+          generator: 'terraform',
+        }),
+      ).toThrow('Unsupported AWS region for CloudBlocks starter generation: "mars-north-1"');
+    });
+
+    it('produces exact error message format for unsupported GCP region', () => {
+      expect(() =>
+        generateCode(validModel, {
+          ...validOptions,
+          provider: 'gcp',
+          region: 'mars-north1',
+          generator: 'terraform',
+        }),
+      ).toThrow('Unsupported GCP region for CloudBlocks starter generation: "mars-north1"');
     });
   });
 

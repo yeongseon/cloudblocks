@@ -1,6 +1,6 @@
 import type { ArchitectureModel } from '@cloudblocks/schema';
 import type { GeneratedOutput, GenerationOptions, GeneratorId, ProviderName } from './types';
-import { isValidAzureRegion } from './types';
+import { isValidAzureRegion, isValidAwsRegion, isValidGcpRegion } from './types';
 import { getProviderDefinition } from './provider';
 import { getGenerator, listGeneratorIds, registerGenerator } from './registry';
 import { terraformPlugin } from './terraformPlugin';
@@ -31,14 +31,28 @@ export class GenerationError extends Error {
 }
 
 function validateRegion(options: GenerationOptions): void {
-  if (options.provider !== 'azure') {
-    return;
-  }
-
-  if (!isValidAzureRegion(options.region)) {
-    throw new GenerationError(
-      `Invalid Azure region: "${options.region}". Use a valid region like "eastus", "westeurope", etc.`,
-    );
+  switch (options.provider) {
+    case 'azure':
+      if (!isValidAzureRegion(options.region)) {
+        throw new GenerationError(
+          `Unsupported Azure region for CloudBlocks starter generation: "${options.region}"`,
+        );
+      }
+      break;
+    case 'aws':
+      if (!isValidAwsRegion(options.region)) {
+        throw new GenerationError(
+          `Unsupported AWS region for CloudBlocks starter generation: "${options.region}"`,
+        );
+      }
+      break;
+    case 'gcp':
+      if (!isValidGcpRegion(options.region)) {
+        throw new GenerationError(
+          `Unsupported GCP region for CloudBlocks starter generation: "${options.region}"`,
+        );
+      }
+      break;
   }
 }
 

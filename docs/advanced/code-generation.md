@@ -38,10 +38,20 @@ Use the format selector to switch between output formats. Click **Copy** to copy
 
 ## Multi-Cloud Output
 
-CloudBlocks generates code for the currently active provider. Azure is active by default; AWS and GCP tabs are visible but marked Coming Soon. The code generation engine supports all three providers for Terraform output.
+CloudBlocks generates Terraform starter code for the currently active canvas provider (Azure, AWS, or GCP). Switching the canvas provider automatically clears any previously generated output and resets the generator to Terraform when the current selection is incompatible.
 
 !!! info "Provider Coverage"
     Provider coverage varies by template, resource, and export path. Terraform starter export supports all three providers. Bicep is Azure-only. Pulumi is Azure-only.
+
+### Region Validation
+
+Each provider validates the region input against a curated allowlist of commonly used regions. If you enter an unsupported region, the generator returns an error in this format:
+
+```
+Unsupported <Provider> region for CloudBlocks starter generation: "<region>"
+```
+
+Regions (not availability zones) are validated — for example, `us-east-1` is valid for AWS, but `us-east-1a` is not.
 
 ---
 

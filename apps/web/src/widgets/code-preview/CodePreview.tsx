@@ -46,6 +46,7 @@ export function CodePreview({ embedded = false }: CodePreviewProps) {
       label: generatorPlugin.displayName,
       experimental: generatorPlugin.id !== 'terraform',
     }));
+  const hasGenerators = generatorOptions.length > 0;
   const [activeTab, setActiveTab] = useState(0);
   const [projectName, setProjectName] = useState(sanitizedName);
   const [regions, setRegions] = useState<Record<ProviderType, string>>({
@@ -54,6 +55,20 @@ export function CodePreview({ embedded = false }: CodePreviewProps) {
   const [generator, setGenerator] = useState<GeneratorId>(generatorOptions[0]?.id ?? 'terraform');
   const [output, setOutput] = useState<GeneratedOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Auto-reset generator when switching providers makes current selection incompatible
+  // Uses the "store previous value in state" pattern recommended by React docs:
+  // https://react.dev/reference/react/useState#storing-information-from-previous-renders
+  const [prevProvider, setPrevProvider] = useState(activeProvider);
+  if (prevProvider !== activeProvider) {
+    setPrevProvider(activeProvider);
+    clearGeneratedState(setError, setOutput, setActiveTab);
+    const isCurrentValid = generatorOptions.some((g) => g.id === generator);
+    if (!isCurrentValid && hasGenerators) {
+      const preferred = generatorOptions.find((g) => g.id === 'terraform');
+      setGenerator(preferred ? preferred.id : generatorOptions[0].id);
+    }
+  }
 
   const mismatchedProviders = architecture.nodes
     .filter((node) => node.kind === 'resource')
@@ -166,55 +181,68 @@ export function CodePreview({ embedded = false }: CodePreviewProps) {
             for consistent output.
           </div>
         )}
-        <label className="code-preview-field code-preview-field-checkbox">
-          <span className="code-preview-field-label">Advanced</span>
-          <label className="code-preview-checkbox-label">
-            <input
-              type="checkbox"
-              checked={showAdvancedGeneration}
-              onChange={(e) => handleAdvancedToggle(e.target.checked)}
-            />
-            Expert generator selection
-          </label>
-        </label>
-        {showAdvancedGeneration && (
-          <label className="code-preview-field">
-            <span className="code-preview-field-label">Generator</span>
-            <select
-              className="code-preview-input"
-              value={generator}
-              onChange={(e) => handleGeneratorChange(e.target.value as GeneratorId)}
-            >
-              {generatorOptions.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.label}
-                  {g.experimental ? ' (Experimental)' : ''}
-                </option>
-              ))}
-            </select>
-          </label>
+        {hasGenerators ? (
+          <>
+            <label className="code-preview-field code-preview-field-checkbox">
+              <span className="code-preview-field-label">Advanced</span>
+              <label className="code-preview-checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={showAdvancedGeneration}
+                  onChange={(e) => handleAdvancedToggle(e.target.checked)}
+                />
+                Expert generator selection
+              </label>
+            </label>
+            {showAdvancedGeneration && (
+              <label className="code-preview-field">
+                <span className="code-preview-field-label">Generator</span>
+                <select
+                  className="code-preview-input"
+                  value={generator}
+                  onChange={(e) => handleGeneratorChange(e.target.value as GeneratorId)}
+                >
+                  {generatorOptions.map((g) => (
+                    <option key={g.id} value={g.id}>
+                      {g.label}
+                      {g.experimental ? ' (Experimental)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            <label className="code-preview-field">
+              <span className="code-preview-field-label">Project</span>
+              <input
+                className="code-preview-input"
+                type="text"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+              />
+            </label>
+            <label className="code-preview-field">
+              <span className="code-preview-field-label">Region</span>
+              <input
+                className="code-preview-input"
+                type="text"
+                value={regions[activeProvider]}
+                onChange={(e) =>
+                  setRegions((prev) => ({ ...prev, [activeProvider]: e.target.value }))
+                }
+              />
+            </label>
+            <button type="button" className="code-preview-generate-btn" onClick={handleGenerate}>
+              🚀 Generate Code
+            </button>
+          </>
+        ) : (
+          <div className="code-preview-empty-state">
+            <p>
+              No code generators currently support <strong>{activeProvider.toUpperCase()}</strong>.
+            </p>
+            <p>Switch the canvas provider to use code generation.</p>
+          </div>
         )}
-        <label className="code-preview-field">
-          <span className="code-preview-field-label">Project</span>
-          <input
-            className="code-preview-input"
-            type="text"
-            value={projectName}
-            onChange={(e) => setProjectName(e.target.value)}
-          />
-        </label>
-        <label className="code-preview-field">
-          <span className="code-preview-field-label">Region</span>
-          <input
-            className="code-preview-input"
-            type="text"
-            value={regions[activeProvider]}
-            onChange={(e) => setRegions((prev) => ({ ...prev, [activeProvider]: e.target.value }))}
-          />
-        </label>
-        <button type="button" className="code-preview-generate-btn" onClick={handleGenerate}>
-          🚀 Generate Code
-        </button>
       </div>
 
       {error && <div className="code-preview-error">{error}</div>}
