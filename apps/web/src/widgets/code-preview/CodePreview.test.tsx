@@ -833,4 +833,32 @@ describe('CodePreview', () => {
       expect(screen.getByText(/No code generators currently support/)).toBeInTheDocument();
     });
   });
+
+  it('clears stale error when switching provider', async () => {
+    const user = userEvent.setup();
+    listGeneratorsMock.mockReturnValue([
+      {
+        id: 'terraform',
+        displayName: 'Terraform (HCL)',
+        supportedProviders: ['azure', 'aws', 'gcp'],
+      },
+    ]);
+    vi.mocked(generateCode).mockImplementation(() => {
+      throw new GenerationError('Architecture is empty');
+    });
+
+    const { rerender } = render(<CodePreview />);
+    await user.click(screen.getByText(/Generate Code/));
+    expect(screen.getByText('Architecture is empty')).toBeInTheDocument();
+
+    // Switch to AWS — stale error from Azure generation must be cleared
+    act(() => {
+      useUIStore.setState({ activeProvider: 'aws' });
+    });
+    rerender(<CodePreview />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Architecture is empty')).not.toBeInTheDocument();
+    });
+  });
 });
