@@ -271,3 +271,20 @@
   font-size: 11px;
   line-height: 1.4;
 }
+
+.code-preview-empty-state {
+  width: 100%;
+  padding: 16px 12px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.code-preview-empty-state p {
+  margin: 0 0 4px;
+}
+
+.code-preview-empty-state p:last-child {
+  margin-bottom: 0;
+}

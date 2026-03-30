@@ -278,6 +278,68 @@ export const AZURE_REGIONS = [
   'southafricanorth',
 ] as const;
 
+// ─── AWS Region Allowlist ───────────────────────────────────
+
+export const AWS_REGIONS = [
+  'us-east-1',
+  'us-east-2',
+  'us-west-1',
+  'us-west-2',
+  'ca-central-1',
+  'sa-east-1',
+  'eu-west-1',
+  'eu-west-2',
+  'eu-west-3',
+  'eu-central-1',
+  'eu-central-2',
+  'eu-north-1',
+  'eu-south-1',
+  'ap-northeast-1',
+  'ap-northeast-2',
+  'ap-northeast-3',
+  'ap-southeast-1',
+  'ap-southeast-2',
+  'ap-south-1',
+  'ap-east-1',
+  'me-south-1',
+  'af-south-1',
+] as const;
+
+export type AwsRegion = (typeof AWS_REGIONS)[number];
+
+// ─── GCP Region Allowlist ───────────────────────────────────
+
+export const GCP_REGIONS = [
+  'us-central1',
+  'us-east1',
+  'us-east4',
+  'us-west1',
+  'us-west2',
+  'us-west4',
+  'northamerica-northeast1',
+  'southamerica-east1',
+  'europe-west1',
+  'europe-west2',
+  'europe-west3',
+  'europe-west4',
+  'europe-west6',
+  'europe-north1',
+  'europe-central2',
+  'asia-east1',
+  'asia-east2',
+  'asia-northeast1',
+  'asia-northeast2',
+  'asia-northeast3',
+  'asia-southeast1',
+  'asia-southeast2',
+  'asia-south1',
+  'australia-southeast1',
+  'me-west1',
+  'me-central1',
+] as const;
+
+export type GcpRegion = (typeof GCP_REGIONS)[number];
+
 export type AzureRegion = (typeof AZURE_REGIONS)[number];
 
 // ─── IaC Value Sanitization ────────────────────────────────
@@ -290,4 +352,14 @@ export function sanitizeIaCValue(value: string): string {
 /** Validate that a region string is in the Azure allowlist. */
 export function isValidAzureRegion(region: string): region is AzureRegion {
   return (AZURE_REGIONS as readonly string[]).includes(region);
+}
+
+/** Validate that a region string is in the AWS allowlist. */
+export function isValidAwsRegion(region: string): region is AwsRegion {
+  return (AWS_REGIONS as readonly string[]).includes(region);
+}
+
+/** Validate that a region string is in the GCP allowlist. */
+export function isValidGcpRegion(region: string): region is GcpRegion {
+  return (GCP_REGIONS as readonly string[]).includes(region);
 }

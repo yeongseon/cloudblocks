@@ -653,4 +653,212 @@ describe('CodePreview', () => {
 
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
+
+  it('shows empty state when no generators support the active provider', () => {
+    listGeneratorsMock.mockReturnValue([
+      { id: 'terraform', displayName: 'Terraform (HCL)', supportedProviders: ['azure'] },
+    ]);
+    useUIStore.setState({ activeProvider: 'aws' });
+
+    render(<CodePreview />);
+
+    expect(screen.getByText(/No code generators currently support/)).toBeInTheDocument();
+    expect(screen.getByText('AWS')).toBeInTheDocument();
+    expect(screen.queryByText(/Generate Code/)).not.toBeInTheDocument();
+  });
+
+  it('shows form when generators support the active provider', () => {
+    listGeneratorsMock.mockReturnValue([
+      { id: 'terraform', displayName: 'Terraform (HCL)', supportedProviders: ['azure', 'aws'] },
+    ]);
+    useUIStore.setState({ activeProvider: 'aws' });
+
+    render(<CodePreview />);
+
+    expect(screen.queryByText(/No code generators currently support/)).not.toBeInTheDocument();
+    expect(screen.getByText(/Generate Code/)).toBeInTheDocument();
+  });
+
+  it('auto-resets generator to terraform when provider switch invalidates selection', async () => {
+    const user = userEvent.setup();
+    listGeneratorsMock.mockReturnValue([
+      { id: 'terraform', displayName: 'Terraform (HCL)', supportedProviders: ['azure', 'aws'] },
+      { id: 'bicep', displayName: 'Bicep (Azure)', supportedProviders: ['azure'] },
+    ]);
+    useUIStore.setState({ activeProvider: 'azure', showAdvancedGeneration: true });
+
+    const { rerender } = render(<CodePreview />);
+
+    // Select bicep
+    const select = screen.getByRole('combobox');
+    await user.selectOptions(select, 'bicep');
+
+    // Switch to AWS — bicep doesn't support AWS, should auto-reset
+    act(() => {
+      useUIStore.setState({ activeProvider: 'aws' });
+    });
+    rerender(<CodePreview />);
+
+    // Generate and verify it uses terraform (not bicep)
+    vi.mocked(generateCode).mockReturnValue({
+      files: [{ path: 'main.tf', content: 'aws content', language: 'hcl' as const }],
+      metadata: {
+        generator: 'terraform',
+        version: '1.0.0',
+        provider: 'aws' as const,
+        generatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    });
+
+    await user.click(screen.getByText(/Generate Code/));
+
+    expect(generateCode).toHaveBeenCalledWith(
+      mockArch,
+      expect.objectContaining({ generator: 'terraform', provider: 'aws' }),
+    );
+  });
+
+  it('keeps generator when provider switch leaves it valid', async () => {
+    const user = userEvent.setup();
+    listGeneratorsMock.mockReturnValue([
+      {
+        id: 'terraform',
+        displayName: 'Terraform (HCL)',
+        supportedProviders: ['azure', 'aws', 'gcp'],
+      },
+    ]);
+    useUIStore.setState({ activeProvider: 'azure' });
+
+    const { rerender } = render(<CodePreview />);
+
+    // Switch to AWS — terraform still supports AWS, should keep selection
+    act(() => {
+      useUIStore.setState({ activeProvider: 'aws' });
+    });
+    rerender(<CodePreview />);
+
+    vi.mocked(generateCode).mockReturnValue({
+      files: [{ path: 'main.tf', content: 'ok', language: 'hcl' as const }],
+      metadata: {
+        generator: 'terraform',
+        version: '1.0.0',
+        provider: 'aws' as const,
+        generatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    });
+
+    await user.click(screen.getByText(/Generate Code/));
+
+    expect(generateCode).toHaveBeenCalledWith(
+      mockArch,
+      expect.objectContaining({ generator: 'terraform', provider: 'aws' }),
+    );
+  });
+
+  it('falls back to first compatible generator when terraform is not available', () => {
+    listGeneratorsMock.mockReturnValue([
+      { id: 'pulumi', displayName: 'Pulumi (TypeScript)', supportedProviders: ['aws'] },
+    ]);
+    useUIStore.setState({ activeProvider: 'aws' });
+
+    render(<CodePreview />);
+
+    // Should render form (not empty state) since pulumi supports AWS
+    expect(screen.getByText(/Generate Code/)).toBeInTheDocument();
+  });
+
+  it('clears stale output when switching to a provider where terraform is still valid', async () => {
+    const user = userEvent.setup();
+    listGeneratorsMock.mockReturnValue([
+      {
+        id: 'terraform',
+        displayName: 'Terraform (HCL)',
+        supportedProviders: ['azure', 'aws', 'gcp'],
+      },
+    ]);
+    vi.mocked(generateCode).mockReturnValue({
+      files: [{ path: 'main.tf', content: 'azure content', language: 'hcl' as const }],
+      metadata: {
+        generator: 'terraform',
+        version: '1.0.0',
+        provider: 'azure' as const,
+        generatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    });
+
+    const { rerender } = render(<CodePreview />);
+    await user.click(screen.getByText(/Generate Code/));
+    expect(screen.getByText('main.tf')).toBeInTheDocument();
+
+    // Switch to AWS — terraform still valid, but stale Azure output must be cleared
+    act(() => {
+      useUIStore.setState({ activeProvider: 'aws' });
+    });
+    rerender(<CodePreview />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('main.tf')).not.toBeInTheDocument();
+      expect(screen.queryByText('azure content')).not.toBeInTheDocument();
+    });
+  });
+
+  it('clears stale output when switching to a provider with no generator support', async () => {
+    const user = userEvent.setup();
+    listGeneratorsMock.mockReturnValue([
+      { id: 'terraform', displayName: 'Terraform (HCL)', supportedProviders: ['azure'] },
+    ]);
+    vi.mocked(generateCode).mockReturnValue({
+      files: [{ path: 'main.tf', content: 'azure content', language: 'hcl' as const }],
+      metadata: {
+        generator: 'terraform',
+        version: '1.0.0',
+        provider: 'azure' as const,
+        generatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    });
+
+    const { rerender } = render(<CodePreview />);
+    await user.click(screen.getByText(/Generate Code/));
+    expect(screen.getByText('main.tf')).toBeInTheDocument();
+
+    // Switch to AWS — no generators support AWS, should show empty state with no stale output
+    act(() => {
+      useUIStore.setState({ activeProvider: 'aws' });
+    });
+    rerender(<CodePreview />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('main.tf')).not.toBeInTheDocument();
+      expect(screen.queryByText('azure content')).not.toBeInTheDocument();
+      expect(screen.getByText(/No code generators currently support/)).toBeInTheDocument();
+    });
+  });
+
+  it('clears stale error when switching provider', async () => {
+    const user = userEvent.setup();
+    listGeneratorsMock.mockReturnValue([
+      {
+        id: 'terraform',
+        displayName: 'Terraform (HCL)',
+        supportedProviders: ['azure', 'aws', 'gcp'],
+      },
+    ]);
+    vi.mocked(generateCode).mockImplementation(() => {
+      throw new GenerationError('Architecture is empty');
+    });
+
+    const { rerender } = render(<CodePreview />);
+    await user.click(screen.getByText(/Generate Code/));
+    expect(screen.getByText('Architecture is empty')).toBeInTheDocument();
+
+    // Switch to AWS — stale error from Azure generation must be cleared
+    act(() => {
+      useUIStore.setState({ activeProvider: 'aws' });
+    });
+    rerender(<CodePreview />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Architecture is empty')).not.toBeInTheDocument();
+    });
+  });
 });
