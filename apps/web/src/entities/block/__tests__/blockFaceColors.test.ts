@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import type { ProviderType, ResourceCategory } from '@cloudblocks/schema';
 import {
+  adjustColorHsl,
   darken,
+  deriveContainerFaceColors,
   deriveFaceColors,
   getBlockColor,
   getBlockFaceColors,
@@ -239,6 +241,170 @@ describe('getBlockFaceColors', () => {
     }
   });
 });
+
+// ─── HSL Adjustment ──────────────────────────────────────────
+
+describe('adjustColorHsl', () => {
+  it('returns the original color when scale=1 and boost=0', () => {
+    // HSL round-trip can shift by ±1 per channel, so we allow close match
+    const result = adjustColorHsl('#0078D4', { saturationScale: 1, lightnessBoost: 0 });
+    expect(result).toMatch(hexColorPattern);
+    // Verify each channel is within ±1 of the original
+    const [origR, origG, origB] = parseHexTest('#0078D4');
+    const [resR, resG, resB] = parseHexTest(result);
+    expect(Math.abs(origR - resR)).toBeLessThanOrEqual(1);
+    expect(Math.abs(origG - resG)).toBeLessThanOrEqual(1);
+    expect(Math.abs(origB - resB)).toBeLessThanOrEqual(1);
+  });
+
+  it('fully desaturates to a gray when saturationScale=0', () => {
+    const result = adjustColorHsl('#FF0000', { saturationScale: 0, lightnessBoost: 0 });
+    expect(result).toMatch(hexColorPattern);
+    // With 0 saturation, R=G=B (gray)
+    const [r, g, b] = parseHexTest(result);
+    expect(r).toBe(g);
+    expect(g).toBe(b);
+  });
+
+  it('increases lightness with positive boost', () => {
+    const original = '#0078D4';
+    const boosted = adjustColorHsl(original, { saturationScale: 1, lightnessBoost: 20 });
+    const origLum = getLuminance(original);
+    const boostedLum = getLuminance(boosted);
+    expect(boostedLum).toBeGreaterThan(origLum);
+  });
+
+  it('reduces saturation with scale < 1', () => {
+    const original = '#0078D4';
+    const desaturated = adjustColorHsl(original, { saturationScale: 0.3, lightnessBoost: 0 });
+    // Desaturated color should have channels closer together (less spread)
+    const [origR, origG, origB] = parseHexTest(original);
+    const [desR, desG, desB] = parseHexTest(desaturated);
+    const origSpread = Math.max(origR, origG, origB) - Math.min(origR, origG, origB);
+    const desSpread = Math.max(desR, desG, desB) - Math.min(desR, desG, desB);
+    expect(desSpread).toBeLessThan(origSpread);
+  });
+
+  it('clamps lightness at 100 (no overflow)', () => {
+    const result = adjustColorHsl('#FFFFFF', { saturationScale: 1, lightnessBoost: 50 });
+    expect(result).toMatch(hexColorPattern);
+    // Already white (L=100), +50 should clamp to white
+    expect(result).toBe('#FFFFFF');
+  });
+
+  it('clamps saturation at 0 (no underflow)', () => {
+    // Very low saturation color with scale that would push below 0
+    const result = adjustColorHsl('#808080', { saturationScale: 0.5, lightnessBoost: 0 });
+    expect(result).toMatch(hexColorPattern);
+    // Gray has 0 saturation, 0 * 0.5 = 0, still gray
+    const [r, g, b] = parseHexTest(result);
+    expect(r).toBe(g);
+    expect(g).toBe(b);
+  });
+
+  it('returns valid hex for all provider brand colors with typical adjustments', () => {
+    for (const provider of providers) {
+      const brand = PROVIDER_BRAND_COLOR[provider];
+      const result = adjustColorHsl(brand, { saturationScale: 0.38, lightnessBoost: 16 });
+      expect(result).toMatch(hexColorPattern);
+    }
+  });
+
+  it('produces deterministic Azure region base color', () => {
+    // This is the intermediate desaturated color before face derivation
+    const result = adjustColorHsl('#0078D4', { saturationScale: 0.38, lightnessBoost: 16 });
+    expect(result).toMatch(hexColorPattern);
+    // Should be a muted blue — verify it is blueish (B > R)
+    const [r, , b] = parseHexTest(result);
+    expect(b).toBeGreaterThan(r);
+  });
+});
+
+// ─── Container Face Color Derivation ────────────────────────
+
+describe('deriveContainerFaceColors', () => {
+  it('returns all 4 face properties', () => {
+    const derived = deriveContainerFaceColors('#6688AA');
+    expect(Object.keys(derived)).toHaveLength(4);
+    expect(derived).toHaveProperty('top');
+    expect(derived).toHaveProperty('topStroke');
+    expect(derived).toHaveProperty('right');
+    expect(derived).toHaveProperty('left');
+  });
+
+  it('produces valid hex colors for all derived values', () => {
+    const derived = deriveContainerFaceColors('#6688AA');
+    for (const value of Object.values(derived)) {
+      expect(value).toMatch(hexColorPattern);
+    }
+  });
+
+  it('uses narrower deltas than resource deriveFaceColors', () => {
+    const base = '#6688AA';
+    const container = deriveContainerFaceColors(base);
+    const resource = deriveFaceColors(base);
+
+    // Container top lighten(2) should be darker than resource top lighten(4)
+    const containerTopLum = getLuminance(container.top);
+    const resourceTopLum = getLuminance(resource.top);
+    expect(containerTopLum).toBeLessThanOrEqual(resourceTopLum);
+
+    // Container left darken(6) should be lighter than resource left darken(12)
+    const containerLeftLum = getLuminance(container.left);
+    const resourceLeftLum = getLuminance(resource.left);
+    expect(containerLeftLum).toBeGreaterThanOrEqual(resourceLeftLum);
+  });
+
+  it('maintains correct face ordering (top brightest, left darkest)', () => {
+    const derived = deriveContainerFaceColors('#6688AA');
+    const topLum = getLuminance(derived.top);
+    const rightLum = getLuminance(derived.right);
+    const leftLum = getLuminance(derived.left);
+
+    expect(topLum).toBeGreaterThanOrEqual(rightLum);
+    expect(rightLum).toBeGreaterThanOrEqual(leftLum);
+  });
+
+  it('top is close to base (narrow lighten of 2%)', () => {
+    const base = '#6688AA';
+    const derived = deriveContainerFaceColors(base);
+    // top = lighten(base, 2) — should be very close to base
+    expect(derived.top).toBe(lighten(base, 2));
+  });
+
+  it('topStroke = darken(base, 8)', () => {
+    const base = '#6688AA';
+    expect(deriveContainerFaceColors(base).topStroke).toBe(darken(base, 8));
+  });
+
+  it('right = darken(base, 3)', () => {
+    const base = '#6688AA';
+    expect(deriveContainerFaceColors(base).right).toBe(darken(base, 3));
+  });
+
+  it('left = darken(base, 6)', () => {
+    const base = '#6688AA';
+    expect(deriveContainerFaceColors(base).left).toBe(darken(base, 6));
+  });
+
+  it('produces valid results for all provider brand colors', () => {
+    for (const provider of providers) {
+      const brand = PROVIDER_BRAND_COLOR[provider];
+      const derived = deriveContainerFaceColors(brand);
+      for (const value of Object.values(derived)) {
+        expect(value).toMatch(hexColorPattern);
+      }
+    }
+  });
+});
+
+// ─── Test helper ─────────────────────────────────────────────
+
+function parseHexTest(hex: string): [number, number, number] {
+  const h = hex.replace('#', '');
+  const v = Number.parseInt(h, 16);
+  return [(v >> 16) & 0xff, (v >> 8) & 0xff, v & 0xff];
+}
 
 /**
  * Calculate relative luminance of a hex color for comparison purposes.

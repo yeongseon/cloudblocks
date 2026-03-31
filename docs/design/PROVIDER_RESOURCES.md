@@ -255,3 +255,66 @@ Lives in `shared/presentation/` — importable from any layer (`entities/`, `fea
 ### Migration Path
 
 Existing consumers (`SidebarPalette.tsx`, `BlockSvg.tsx`, `ContainerBlockSprite.tsx`) currently import directly from `useTechTree`, `iconResolver`, and `providerMapping`. Future issues (#1558, #1559) will migrate these consumers to use `blockPresentation.ts` instead, consolidating the resolution path.
+
+## 6. Container Block Color System (#1557)
+
+### Problem
+
+Container blocks used the same face derivation deltas as resource blocks (lighten 4 / darken 6 / darken 12), making containers visually compete with resources instead of receding as background plates. All container layers used full-saturation provider brand colors with high stroke widths and strong depth shadows.
+
+### Design
+
+Container blocks now use an HSL desaturation pipeline that preserves provider hue while reducing saturation and boosting lightness. Each container layer type receives a different treatment so layers remain visually distinguishable.
+
+#### HSL Pipeline
+
+```
+brand hex → adjustColorHsl(brand, { saturationScale, lightnessBoost }) → deriveContainerFaceColors(desaturated)
+```
+
+- `adjustColorHsl()`: Converts to HSL, scales saturation, boosts lightness, converts back to hex.
+- `deriveContainerFaceColors()`: Uses narrower deltas than resource blocks (lighten 2 / darken 3 / darken 6 vs lighten 4 / darken 6 / darken 12).
+
+#### Per-Layer Adjustments
+
+| Layer | Saturation Scale | Lightness Boost | Visual Effect |
+| --- | --- | --- | --- |
+| `global` | 0.25 (25%) | +30 | Most washed-out, lightest background |
+| `edge` | 0.28 (28%) | +26 | Slightly more color than global |
+| `region` | 0.38 (38%) | +16 | Moderate muting, primary workspace |
+| `zone` | 0.32 (32%) | +22 | Between edge and region |
+| `subnet` | 0.35 (35%) | +18 | Between zone and region |
+
+#### Stroke Width Reduction
+
+| Layer | Previous | New |
+| --- | --- | --- |
+| `global` | 3 | 1.5 |
+| `edge` | 2.5 | 1.2 |
+| `region` | 2 | 1.0 |
+| `zone` | 1.5 | 0.8 |
+| `subnet` | 1 | 0.6 |
+
+#### Shadow and Inset Softening
+
+- **Inset highlight**: `rgba(203,213,225, 0.16)` → `rgba(203,213,225, 0.08)` (50% reduction)
+- **Inset shadow**: `rgba(2,6,23, 0.45)` → `rgba(2,6,23, 0.25)` (44% reduction)
+- **Neutral depth shadow**: `3px 6px 0px rgba(0,0,0,0.2)` → `2px 3px 0px rgba(0,0,0,0.12)` (halved offset, 40% opacity reduction)
+- **Selection/diff glows**: Preserved at original strength (these are intentional emphasis effects)
+
+### Files Modified
+
+| File | Change |
+| --- | --- |
+| `entities/block/blockFaceColors.ts` | Added `adjustColorHsl()`, `deriveContainerFaceColors()`, HSL conversion internals |
+| `entities/container-block/containerBlockFaceColors.ts` | Rewrote with HSL desaturation pipeline and per-layer config |
+| `entities/container-block/ContainerBlockSvg.tsx` | Reduced `LAYER_VISUALS` stroke widths, softened inset highlight/shadow |
+| `entities/container-block/ContainerBlockSprite.css` | Softened neutral depth shadows |
+
+### Invariants
+
+1. **Hue preservation**: Container top face hue stays within ±5° of provider brand hue.
+2. **Desaturation**: Container top face saturation is always less than brand saturation.
+3. **Lightness boost**: Container top face lightness is always greater than brand lightness.
+4. **Narrow deltas**: Container face top-to-left luminance delta is <15 units (vs resource blocks which have wider spread).
+5. **Provider distinguishability**: Azure, AWS, and GCP container colors for the same layer are always visually distinct.
